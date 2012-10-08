@@ -1,7 +1,7 @@
 #!/bin/sh
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
-
+set -e
 command="$0 $*"
 
 # check for `cmake` command
@@ -29,6 +29,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
   Optional Features:
     --enable-debug         compile in debugging mode
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
+    --enable-perftools     force use of Google perftools on non-Linux systems
+                           (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
@@ -98,6 +100,7 @@ append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
+append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
@@ -146,7 +149,11 @@ while [ $# -ne 0 ]; do
         --enable-mobile-ipv6)
             append_cache_entry ENABLE_MOBILE_IPV6         BOOL   true
             ;;
+        --enable-perftools)
+            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
+            ;;
         --enable-perftools-debug)
+            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --disable-broccoli)

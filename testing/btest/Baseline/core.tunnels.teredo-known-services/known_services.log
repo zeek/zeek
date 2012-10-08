@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	known_services
+#open	2012-10-02-20-10-05
+#fields	ts	host	port_num	port_proto	service
+#types	time	addr	port	enum	table[string]
+1258567191.405770	192.168.1.1	53	udp	TEREDO
+#close	2012-10-02-20-10-05

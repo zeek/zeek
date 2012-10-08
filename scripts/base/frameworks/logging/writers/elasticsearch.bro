@@ -23,11 +23,13 @@ export {
 	const index_prefix = "bro" &redef;
 
 	## The ES type prefix comes before the name of the related log.
-	## e.g. prefix = "bro_" would create types of bro_dns, bro_software, etc.
+	## e.g. prefix = "bro\_" would create types of bro_dns, bro_software, etc.
 	const type_prefix = "" &redef;
 
-	## The time before an ElasticSearch transfer will timeout.
-	## This is not working!
+	## The time before an ElasticSearch transfer will timeout. Note that
+	## the fractional part of the timeout will be ignored. In particular, time
+	## specifications less than a second result in a timeout value of 0, which
+	## means "no timeout."
 	const transfer_timeout = 2secs;
 
 	## The batch size is the number of messages that will be queued up before

@@ -35,7 +35,7 @@ private:
 	bool DoWriteOne(ODesc* desc, threading::Value* val, const threading::Field* field);
 	bool WriteHeaderField(const string& key, const string& value);
 	void CloseFile(double t);
-	string Timestamp(double t);
+	string Timestamp(double t); // Uses current time if t is zero.
 
 	int fd;
 	string fname;

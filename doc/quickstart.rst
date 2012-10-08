@@ -1,5 +1,6 @@
 .. _CMake: http://www.cmake.org
 .. _SWIG: http://www.swig.org
+.. _Xcode: https://developer.apple.com/xcode/
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
 .. _Homebrew: http://mxcl.github.com/homebrew
@@ -85,17 +86,20 @@ The following dependencies are required to build Bro:
 
 * Mac OS X
 
-  Snow Leopard (10.6) comes with all required dependencies except for CMake_.
+  Compiling source code on Macs requires first downloading Xcode_,
+  then going through its "Preferences..." -> "Downloads" menus to
+  install the "Command Line Tools" component.
 
-  Lion (10.7) comes with all required dependencies except for CMake_ and SWIG_.
+  Lion (10.7) and Mountain Lion (10.8) come with all required
+  dependencies except for CMake_, SWIG_, and ``libmagic``.
 
-  Distributions of these dependencies can be obtained from the project websites
-  linked above, but they're also likely available from your preferred Mac OS X
-  package management system (e.g. MacPorts_, Fink_, or Homebrew_).
+  Distributions of these dependencies can be obtained from the project
+  websites linked above, but they're also likely available from your
+  preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
+  or Homebrew_).
 
-  Note that the MacPorts ``swig`` package may not include any specific
-  language support so you may need to also install ``swig-ruby`` and
-  ``swig-python``.
+  Specifically for MacPorts, the ``swig``, ``swig-ruby``, ``swig-python``
+  and ``file`` packages provide the required dependencies.
 
 Optional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~

@@ -7,8 +7,33 @@ release. For a complete list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own CHANGES.)
 
-Bro 2.1 Beta
-------------
+Bro 2.2
+-------
+
+New Functionality
+~~~~~~~~~~~~~~~~~
+
+- TODO: Update.
+
+Changed Functionality
+~~~~~~~~~~~~~~~~~~~~~
+
+- We removed the following, already deprecated, functionality:
+
+    * Scripting language:
+        - &disable_print_hook attribute.
+
+    * BiF functions:
+        - parse_dotted_addr(), dump_config(),
+          make_connection_persistent(), generate_idmef(),
+          split_complete()
+
+- Removed a now unused argument from "do_split" helper function.
+
+- "this" is no longer a reserved keyword.
+
+Bro 2.1
+-------
 
 New Functionality
 ~~~~~~~~~~~~~~~~~
@@ -82,7 +107,8 @@ New Functionality
 
     * ElasticSearch: a distributed RESTful, storage engine and search
       engine built on top of Apache Lucene. It scales very well, both
-      for distributed indexing and distributed searching.
+      for distributed indexing and distributed searching. See
+      doc/logging-elasticsearch.rst for more information.
 
   Note that at this point, we consider Bro's support for these two
   formats as prototypes for collecting experience with alternative
@@ -101,9 +127,14 @@ the full set.
 
     * Bro now requires CMake >= 2.6.3.
 
-    * Bro now links in tcmalloc (part of Google perftools) if found at
-      configure time. Doing so can significantly improve memory and
-      CPU use.
+    * On Linux, Bro now links in tcmalloc (part of Google perftools)
+      if found at configure time. Doing so can significantly improve
+      memory and CPU use.
+
+      On the other platforms, the new configure option
+      --enable-perftools can be used to enable linking to tcmalloc.
+      (Note that perftools's support for non-Linux platforms may be
+      less reliable).
 
 - The configure switch --enable-brov6 is gone.
 
@@ -152,13 +183,14 @@ the full set.
   understands.
 
 - ASCII logs now record the time when they were opened/closed at the
-  beginning and end of the file, respectively. The options
-  LogAscii::header_prefix and LogAscii::include_header have been
-  renamed to LogAscii::meta_prefix and LogAscii::include_meta,
+  beginning and end of the file, respectively (wall clock). The
+  options LogAscii::header_prefix and LogAscii::include_header have
+  been renamed to LogAscii::meta_prefix and LogAscii::include_meta,
   respectively.
 
 - The ASCII writers "header_*" options have been renamed to "meta_*"
   (because there's now also a footer).
+
 
 Bro 2.0
 -------

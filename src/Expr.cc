@@ -872,10 +872,12 @@ Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	const IPPrefix& n1 = v1->AsSubNet();
 	const IPPrefix& n2 = v2->AsSubNet();
 
-	if ( n1 == n2 )
-		return new Val(1, TYPE_BOOL);
-	else
-		return new Val(0, TYPE_BOOL);
+	bool result = ( n1 == n2 ) ? true : false;
+
+	if ( tag == EXPR_NE )
+		result = ! result;
+
+	return new Val(result, TYPE_BOOL);
 	}
 
 void BinaryExpr::SwapOps()
@@ -1515,6 +1517,8 @@ RemoveFromExpr::RemoveFromExpr(Expr* arg_op1, Expr* arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
+	else if ( BothInterval(bt1, bt2) )
+		SetType(base_type(bt1));
 	else
 		ExprError("requires two arithmetic operands");
 	}

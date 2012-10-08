@@ -113,6 +113,9 @@ std::string get_escaped_string(const std::string& str, bool escape_all)
 
 char* copy_string(const char* s)
 	{
+	if ( ! s )
+		return 0;
+
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
 	return c;
@@ -722,7 +725,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			{
 			int amt = read(fd, buf + pos,
 					sizeof(uint32) * (bufsiz - pos));
-			close(fd);
+			safe_close(fd);
 
 			if ( amt > 0 )
 				pos += amt / sizeof(uint32);
@@ -1204,7 +1207,7 @@ void _set_processing_status(const char* status)
 		len -= n;
 		}
 
-	close(fd);
+	safe_close(fd);
 
 	errno = old_errno;
 	}
@@ -1353,9 +1356,40 @@ bool safe_write(int fd, const char* data, int len)
 	return true;
 	}
 
+void safe_close(int fd)
+	{
+	/*
+	 * Failure cases of close(2) are ...
+	 * EBADF: Indicative of programming logic error that needs to be fixed, we
+	 *        should always be attempting to close a valid file descriptor.
+	 * EINTR: Ignore signal interruptions, most implementations will actually
+	 *        reclaim the open descriptor and POSIX standard doesn't leave many
+	 *        options by declaring the state of the descriptor as "unspecified".
+	 *        Attempting to inspect actual state or re-attempt close() is not
+	 *        thread safe.
+	 * EIO:   Again the state of descriptor is "unspecified", but don't recover
+	 *        from an I/O error, safe_write() won't either.
+	 *
+	 * Note that we don't use the reporter here to allow use from different threads.
+	 */
+	if ( close(fd) < 0 && errno != EINTR )
+		{
+		char buf[128];
+		strerror_r(errno, buf, sizeof(buf));
+		fprintf(stderr, "safe_close error %d: %s\n", errno, buf);
+		abort();
+		}
+	}
+
 void out_of_memory(const char* where)
 	{
-	reporter->FatalError("out of memory in %s.\n", where);
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( reporter )
+		// Guess that might fail here if memory is really tight ...
+		reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)

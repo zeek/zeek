@@ -95,6 +95,7 @@ struct Manager::WriterInfo {
 	Func* postprocessor;
 	WriterFrontend* writer;
 	WriterBackend::WriterInfo* info;
+	bool from_remote;
 	string instantiating_filter;
 	};
 
@@ -247,6 +248,29 @@ Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer)
 		}
 
 	return 0;
+	}
+
+bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer)
+	{
+	if ( filter->num_fields != writer->NumFields() )
+		return false;
+
+	for ( int i = 0; i < filter->num_fields; ++ i)
+		if ( filter->fields[i]->type != writer->Fields()[i]->type )
+			return false;
+
+	return true;
+	}
+
+bool Manager::CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter)
+	{
+	if ( winfo->from_remote )
+		// If the writer was instantiated as a result of remote logging, then
+		// a filter and writer are only compatible if field types match
+		return ! CompareFields(filter, winfo->writer);
+	else
+		// If the writer was instantiated locally, it is bound to one filter
+		return winfo->instantiating_filter != filter->name;
 	}
 
 void Manager::RemoveDisabledWriters(Stream* stream)
@@ -695,15 +719,12 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			int result = 1;
 
-			try
+			Val* v = filter->pred->Call(&vl);
+			if ( v )
 				{
-				Val* v = filter->pred->Call(&vl);
 				result = v->AsBool();
 				Unref(v);
 				}
-
-			catch ( InterpreterException& e )
-				{ /* Already reported. */ }
 
 			if ( ! result )
 				continue;
@@ -735,15 +756,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			Val* v = 0;
 
-			try
-				{
-				v = filter->path_func->Call(&vl);
-				}
+			v = filter->path_func->Call(&vl);
 
-			catch ( InterpreterException& e )
-				{
+			if ( ! v )
 				return false;
-				}
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
 				{
@@ -767,22 +783,43 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 #endif
 			}
 
+		Stream::WriterPathPair wpp(filter->writer->AsEnum(), path);
+
 		// See if we already have a writer for this path.
-		Stream::WriterMap::iterator w =
-			stream->writers.find(Stream::WriterPathPair(filter->writer->AsEnum(), path));
+		Stream::WriterMap::iterator w = stream->writers.find(wpp);
+
+		if ( w != stream->writers.end() &&
+		     CheckFilterWriterConflict(w->second, filter) )
+			{
+			// Auto-correct path due to conflict over the writer/path pairs.
+			string instantiator = w->second->instantiating_filter;
+			string new_path;
+			unsigned int i = 2;
+
+			do {
+				char num[32];
+				snprintf(num, sizeof(num), "-%u", i++);
+				new_path = path + num;
+				wpp.second = new_path;
+				w = stream->writers.find(wpp);
+			} while ( w != stream->writers.end() &&
+			          CheckFilterWriterConflict(w->second, filter) );
+
+			Unref(filter->path_val);
+			filter->path_val = new StringVal(new_path.c_str());
+
+			reporter->Warning("Write using filter '%s' on path '%s' changed to"
+			  " use new path '%s' to avoid conflict with filter '%s'",
+			  filter->name.c_str(), path.c_str(), new_path.c_str(),
+			  instantiator.c_str());
+
+			path = filter->path = filter->path_val->AsString()->CheckString();
+			}
 
 		WriterFrontend* writer = 0;
 
 		if ( w != stream->writers.end() )
 			{
-			if ( w->second->instantiating_filter != filter->name )
-				{
-				reporter->Warning("Skipping write to filter '%s' on path '%s'"
-				  " because filter '%s' has already instantiated the same"
-				  " writer type for that path", filter->name.c_str(),
-				  filter->path.c_str(), w->second->instantiating_filter.c_str());
-				continue;
-				}
 			// We know this writer already.
 			writer = w->second->writer;
 			}
@@ -819,8 +856,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			// CreateWriter() will set the other fields in info.
 
 			writer = CreateWriter(stream->id, filter->writer,
-					      info, filter->num_fields,
-					      arg_fields, filter->local, filter->remote, filter->name);
+					      info, filter->num_fields, arg_fields, filter->local,
+					      filter->remote, false, filter->name);
 
 			if ( ! writer )
 				{
@@ -1019,7 +1056,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-				int num_fields, const threading::Field* const*  fields, bool local, bool remote,
+				int num_fields, const threading::Field* const*  fields, bool local, bool remote, bool from_remote,
 				const string& instantiating_filter)
 	{
 	Stream* stream = FindStream(id);
@@ -1044,6 +1081,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->interval = 0;
 	winfo->postprocessor = 0;
 	winfo->info = info;
+	winfo->from_remote = from_remote;
 	winfo->instantiating_filter = instantiating_filter;
 
 	// Search for a corresponding filter for the writer/path pair and use its
@@ -1210,11 +1248,15 @@ bool Manager::Flush(EnumVal* id)
 void Manager::Terminate()
 	{
 	// Make sure we process all the pending rotations.
-	while ( rotations_pending )
+
+	while ( rotations_pending > 0 )
 		{
 		thread_mgr->ForceProcessing(); // A blatant layering violation ...
 		usleep(1000);
 		}
+
+	if ( rotations_pending < 0 )
+		reporter->InternalError("Negative pending log rotations: %d", rotations_pending);
 
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
@@ -1329,13 +1371,18 @@ void Manager::Rotate(WriterInfo* winfo)
 	}
 
 bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
-		      double open, double close, bool terminating)
+		      double open, double close, bool success, bool terminating)
 	{
+	assert(writer);
+
 	--rotations_pending;
 
-	if ( ! writer )
-		// Writer didn't produce local output.
+	if ( ! success )
+		{
+		DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,",
+			writer->Name(), filename, network_time);
 		return true;
+		}
 
 	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
 		writer->Name(), network_time, new_name);
@@ -1369,16 +1416,12 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	int result = 0;
 
-	try
+	Val* v = func->Call(&vl);
+	if ( v )
 		{
-		Val* v = func->Call(&vl);
 		result = v->AsBool();
 		Unref(v);
 		}
 
-	catch ( InterpreterException& e )
-		{ /* Already reported. */ }
-
 	return result;
 	}
-

@@ -4,42 +4,33 @@ module LogElasticSearch;
 
 export {
 	## An elasticsearch specific rotation interval.
-	const rotation_interval = 24hr &redef;
+	const rotation_interval = 3hr &redef;
 
-	## Optionally ignore any :bro:enum:`Log::ID` from being sent to
+	## Optionally ignore any :bro:type:`Log::ID` from being sent to
 	## ElasticSearch with this script.
-	const excluded_log_ids: set[string] = set("Communication::LOG") &redef;
+	const excluded_log_ids: set[Log::ID] &redef;
 
-	## If you want to explicitly only send certain :bro:enum:`Log::ID` 
+	## If you want to explicitly only send certain :bro:type:`Log::ID` 
 	## streams, add them to this set.  If the set remains empty, all will 
-	## be sent.  The :bro:id:`excluded_log_ids` option will remain in 
+	## be sent.  The :bro:id:`LogElasticSearch::excluded_log_ids` option will remain in 
 	## effect as well.
-	const send_logs: set[string] = set() &redef;
+	const send_logs: set[Log::ID] &redef;
 }
-
-module Log;
 
 event bro_init() &priority=-5
 	{
-	local my_filters: table[ID, string] of Filter = table();
-
-	for ( [id, name] in filters )
+	if ( server_host == "" )
+		return;
+	
+	for ( stream_id in Log::active_streams )
 		{
-		local filter = filters[id, name];
-		if ( fmt("%s", id) in LogElasticSearch::excluded_log_ids ||
-		     (|LogElasticSearch::send_logs| > 0 && fmt("%s", id) !in LogElasticSearch::send_logs) )
+		if ( stream_id in excluded_log_ids ||
+		     (|send_logs| > 0 && stream_id !in send_logs) )
 			next;
 
-		filter$name = cat(name, "-es");
-		filter$writer = Log::WRITER_ELASTICSEARCH;
-		filter$interv = LogElasticSearch::rotation_interval;
-		my_filters[id, name] = filter;
-		}
-
-	# This had to be done separately to avoid an ever growing filters list
-	# where the for loop would never end.
-	for ( [id, name] in my_filters )
-		{
-		Log::add_filter(id, filter);
+		local filter: Log::Filter = [$name = "default-es",
+		                             $writer = Log::WRITER_ELASTICSEARCH,
+		                             $interv = LogElasticSearch::rotation_interval];
+		Log::add_filter(stream_id, filter);
 		}
 	}

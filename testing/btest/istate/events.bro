@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: btest-bg-run sender   bro -Bthreading,logging,comm -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro -Bthreading,logging,comm  ../receiver.bro
-# @TEST-EXEC: btest-bg-wait -k 20
+# @TEST-EXEC: btest-bg-wait 20
 # 
 # @TEST-EXEC: btest-diff sender/http.log
 # @TEST-EXEC: btest-diff receiver/http.log
@@ -50,7 +50,7 @@ event bro_init()
 redef peer_description = "events-rcv";
 
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T]
+    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T, $retry=1sec]
 };
 
 event remote_connection_closed(p: event_peer)

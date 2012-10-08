@@ -58,7 +58,7 @@ void FlowSrc::Process()
 
 void FlowSrc::Close()
 	{
-	close(selectable_fd);
+	safe_close(selectable_fd);
 	}
 
 

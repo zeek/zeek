@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh
-#start	2012-07-20-01-49-20
+#open	2012-07-20-01-49-20
 #fields	t	f
 #types	time	file
 1342748960.757056	Foo.log
-#end	2012-07-20-01-49-20
+#close	2012-07-20-01-49-20

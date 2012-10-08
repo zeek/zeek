@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh
-#start	2012-07-20-01-49-20
+#open	2012-07-20-01-49-20
 #fields	status	country	a1	b1	b2
 #types	string	string	count	count	count
 success	unknown	1	3	4
-#end	2012-07-20-01-49-20
+#close	2012-07-20-01-49-20

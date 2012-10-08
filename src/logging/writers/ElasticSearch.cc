@@ -48,7 +48,7 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 	last_send = current_time();
 	failing = false;
 
-	transfer_timeout = BifConst::LogElasticSearch::transfer_timeout * 1000;
+	transfer_timeout = static_cast<long>(BifConst::LogElasticSearch::transfer_timeout);
 
 	curl_handle = HTTPSetup();
 }
@@ -322,9 +322,7 @@ bool ElasticSearch::DoRotate(const char* rotated_path, double open, double close
 		}
 
 	if ( ! FinishedRotation(current_index.c_str(), prev_index.c_str(), open, close, terminating) )
-		{
 		Error(Fmt("error rotating %s to %s", prev_index.c_str(), current_index.c_str()));
-		}
 
 	return true;
 	}
@@ -359,10 +357,10 @@ CURL* ElasticSearch::HTTPSetup()
 	return handle;
 	}
 
-bool ElasticSearch::HTTPReceive(void* ptr, int size, int nmemb, void* userdata)
+size_t ElasticSearch::HTTPReceive(void* ptr, int size, int nmemb, void* userdata)
 	{
 	//TODO: Do some verification on the result?
-	return true;
+	return size;
 	}
 
 bool ElasticSearch::HTTPSend(CURL *handle)
@@ -373,7 +371,11 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 	// The best (only?) way to disable that is to just use HTTP 1.0
 	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 
-	//curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, transfer_timeout);
+	// Some timeout options.  These will need more attention later.
+	curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1);
+	curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, transfer_timeout);
+	curl_easy_setopt(handle, CURLOPT_TIMEOUT, transfer_timeout);
+	curl_easy_setopt(handle, CURLOPT_DNS_CACHE_TIMEOUT, 60*60);
 
 	CURLcode return_code = curl_easy_perform(handle);
 
@@ -386,12 +388,16 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 			{
 			if ( ! failing )
 				Error(Fmt("ElasticSearch server may not be accessible."));
+
+			break;
 			}
 
 		case CURLE_OPERATION_TIMEDOUT:
 			{
 			if ( ! failing )
 				Warning(Fmt("HTTP operation with elasticsearch server timed out at %" PRIu64 " msecs.", transfer_timeout));
+
+			break;
 			}
 
 		case CURLE_OK:
@@ -403,10 +409,13 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 				return true;
 			else if ( ! failing )
 				Error(Fmt("Received a non-successful status code back from ElasticSearch server, check the elasticsearch server log."));
+
+			break;
 			}
 
 		default:
 			{
+			break;
 			}
 		}
 		// The "successful" return happens above

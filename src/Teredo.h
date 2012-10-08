@@ -6,7 +6,8 @@
 
 class Teredo_Analyzer : public Analyzer {
 public:
-	Teredo_Analyzer(Connection* conn) : Analyzer(AnalyzerTag::Teredo, conn)
+	Teredo_Analyzer(Connection* conn) : Analyzer(AnalyzerTag::Teredo, conn),
+	                                    valid_orig(false), valid_resp(false)
 		{}
 
 	virtual ~Teredo_Analyzer()
@@ -26,18 +27,34 @@ public:
 
 	/**
 	 * Emits a weird only if the analyzer has previously been able to
-	 * decapsulate a Teredo packet since otherwise the weirds could happen
-	 * frequently enough to be less than helpful.
+	 * decapsulate a Teredo packet in both directions or if *force* param is
+	 * set, since otherwise the weirds could happen frequently enough to be less
+	 * than helpful.  The *force* param is meant for cases where just one side
+	 * has a valid encapsulation and so the weird would be informative.
 	 */
-	void Weird(const char* name) const
+	void Weird(const char* name, bool force = false) const
 		{
-		if ( ProtocolConfirmed() )
+		if ( ProtocolConfirmed() || force )
 			reporter->Weird(Conn(), name);
+		}
+
+	/**
+	 * If the delayed confirmation option is set, then a valid encapsulation
+	 * seen from both end points is required before confirming.
+	 */
+	void Confirm()
+		{
+		if ( ! BifConst::Tunnel::delay_teredo_confirmation ||
+		     ( valid_orig && valid_resp ) )
+			ProtocolConfirmation();
 		}
 
 protected:
 	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
+
+	bool valid_orig;
+	bool valid_resp;
 };
 
 class TeredoEncapsulation {

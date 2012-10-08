@@ -248,9 +248,8 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
 	if ( backend )
 		backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
 	else
-		// Still signal log manager that we're done, but signal that
-		// nothing happened by setting the writer to zeri.
-		log_mgr->FinishedRotation(0, "", rotated_path, open, close, terminating);
+		// Still signal log manager that we're done.
+		log_mgr->FinishedRotation(this, 0, 0, 0, 0, false, terminating);
 	}
 
 void WriterFrontend::DeleteVals(Value** vals)

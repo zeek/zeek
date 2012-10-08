@@ -148,9 +148,15 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(1, new Val(((ip6_ext*)data)->ip6e_len, TYPE_COUNT));
 		rv->Assign(2, new Val(ntohs(((uint16*)data)[1]), TYPE_COUNT));
 		rv->Assign(3, new Val(ntohl(((uint32*)data)[1]), TYPE_COUNT));
-		rv->Assign(4, new Val(ntohl(((uint32*)data)[2]), TYPE_COUNT));
-		uint16 off = 3 * sizeof(uint32);
-		rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
+
+		if ( Length() >= 12 )
+			{
+			// Sequence Number and ICV fields can only be extracted if
+			// Payload Len was non-zero for this header.
+			rv->Assign(4, new Val(ntohl(((uint32*)data)[2]), TYPE_COUNT));
+			uint16 off = 3 * sizeof(uint32);
+			rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
+			}
 		}
 		break;
 

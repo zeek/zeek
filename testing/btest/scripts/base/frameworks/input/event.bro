@@ -49,6 +49,6 @@ event bro_init()
 	{
 	try = 0;
 	outfile = open("../out");
-	Input::add_event([$source="../input.log", $name="input", $fields=Val, $ev=line]);
+	Input::add_event([$source="../input.log", $name="input", $fields=Val, $ev=line, $want_record=F]);
 	Input::remove("input");
 	}

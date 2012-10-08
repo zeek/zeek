@@ -201,6 +201,12 @@ protected:
 	 */
 	void HeartbeatInChild();
 
+	/** Returns true if a child command has reported a failure. In that case, we'll
+	  * be in the process of killing this thread and no further activity
+	  * should carried out. To be called only from this child thread.
+	  */
+	bool Failed() const { return failed; }
+
 	/**
 	 * Regulatly triggered for execution in the child thread.
 	 *
@@ -294,6 +300,7 @@ private:
 	uint64_t cnt_sent_out;	// Counts message sent by child.
 
 	bool finished;	// Set to true by Finished message.
+	bool failed;	// Set to true when a command failed.
 };
 
 /**

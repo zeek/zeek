@@ -4,8 +4,8 @@
 # @TEST-EXEC: btest-bg-run receiver bro -B threading,logging --pseudo-realtime %INPUT ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: btest-diff receiver/test.log
-# @TEST-EXEC: cat receiver/test.log | egrep -v '#start|#end' >r.log
-# @TEST-EXEC: cat sender/test.log   | egrep -v '#start|#end' >s.log
+# @TEST-EXEC: cat receiver/test.log | egrep -v '#open|#close' >r.log
+# @TEST-EXEC: cat sender/test.log   | egrep -v '#open|#close' >s.log
 # @TEST-EXEC: cmp r.log s.log
 
 # Remote version testing all types.

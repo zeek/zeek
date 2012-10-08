@@ -132,13 +132,13 @@ endif()
 
 set(USE_ELASTICSEARCH false)
 set(USE_CURL false)
-find_package(CURL)
+find_package(LibCURL)
 
-if (CURL_FOUND)
+if (LIBCURL_FOUND)
   set(USE_ELASTICSEARCH true)
   set(USE_CURL true)
-  include_directories(BEFORE ${CURL_INCLUDE_DIR})
-  list(APPEND OPTLIBS ${CURL_LIBRARIES})
+  include_directories(BEFORE ${LibCURL_INCLUDE_DIR})
+  list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
 endif()
 
 if (ENABLE_PERFTOOLS_DEBUG)

@@ -61,6 +61,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-swig=PATH       path to SWIG executable
     --with-dataseries=PATH path to DataSeries and Lintel libraries
     --with-xml2=PATH       path to libxml2 installation (for DataSeries)
+    --with-curl=PATH       path to libcurl install root (for ElasticSearch)
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
@@ -233,6 +234,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-xml2=*)
             append_cache_entry LibXML2_ROOT_DIR PATH $optarg
+            ;;
+        --with-curl=*)
+            append_cache_entry LibCURL_ROOT_DIR PATH $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

@@ -1,4 +1,11 @@
 
+2.1-58 | 2012-10-08 10:10:09 -0700
+
+  * Fix a problem with non-manager cluster nodes applying
+    Notice::policy. This could, for example, result in duplicate
+    emails being sent if Notice::emailed_types is redef'd in local.bro
+    (or any script that gets loaded on all cluster nodes). (Jon Siwek)
+
 2.1-56 | 2012-10-03 16:04:52 -0700
 
   * Add general FAQ entry about upgrading Bro. (Jon Siwek)

@@ -320,22 +320,12 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		}
 
 	Unref(mode);
-
+	
 	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
-
-	ReaderFrontend* reader_obj = new ReaderFrontend(*rinfo, reader);
-	assert(reader_obj);
-
-	info->reader = reader_obj;
-	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
-	info->name = name;
 	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
-	info->info = rinfo;
-
-	Ref(description);
-	info->description = description;
-
+		
 		{
+		// create config mapping in ReaderInfo. Has to be done before the construction of reader_obj.
 		HashKey* k;
 		IterCookie* c = info->config->AsTable()->InitForIteration();
 
@@ -345,12 +335,26 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			ListVal* index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
-			info->info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
+			printf("Inserting %s:%s\n", key.c_str(), value.c_str());
+			rinfo->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 			Unref(index);
 			delete k;
 			}
 
 		}
+
+
+	ReaderFrontend* reader_obj = new ReaderFrontend(*rinfo, reader);
+	assert(reader_obj);
+
+	info->reader = reader_obj;
+	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
+	info->name = name;
+	info->info = rinfo;
+
+	Ref(description);
+	info->description = description;
+
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());

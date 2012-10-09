@@ -103,12 +103,20 @@ export {
 		notice_threshold:  count                   &optional;
 		## A series of thresholds at which to generate notices.
 		notice_thresholds: vector of count         &optional;
-		## How often this notice should be raised for this filter.  It 
-		## will be generated everytime it crosses a threshold, but if the 
-		## $break_interval is set to 5mins and this is set to 1hr the notice
-		## only be generated once per hour even if something crosses the
-		## threshold in every break interval.
-		notice_freq:       interval                &optional;
+		
+		## Sheharbano's additions
+		##--------------------------------------------
+		## A straight threshold for generating a notice.
+		default_threshold:  count                   &optional;
+		## Represents Index specific thresholds, that is we can
+		## have different thresholds for different Index values.
+		## If the threshold for an Index is not specified in <dynamic_thresholds>,
+		## <threshold> will be used as default.
+		custom_thresholds: table[Index] of count         &optional;
+		## A predicate so that you can decide when to flexibly declare when 
+		## a threshold crossed, and do extra stuff
+		check_threshold:     function(index: Index, default_thresh: count, 
+					custom_thresh: table[Index] of count, val: count ): bool &optional;
 	};
 	
 	## Function to associate a metric filter with a metric ID.
@@ -262,6 +270,11 @@ function add_filter(id: string, filter: Filter)
 		print "INVALID Metric filter: Defined both $notice_threshold and $notice_thresholds";
 		return;
 		}
+	if ( !filter?$default_threshold && !filter?$custom_thresholds )
+		{
+		print "INVALID Metric filter: Must define one of $default_threshold and $custom_thresholds";
+		return;
+		}
 	
 	if ( ! filter?$id )
 		filter$id = id;
@@ -349,15 +362,43 @@ function add_unique(id: string, index: Index, data: string)
 	
 function check_notice(filter: Filter, index: Index, val: count): bool
 	{
-	if ( (filter?$notice_threshold &&
-	      [filter$id, filter$name, index] !in thresholds &&
-	      val >= filter$notice_threshold) ||
-	     (filter?$notice_thresholds &&
-	      |filter$notice_thresholds| <= thresholds[filter$id, filter$name, index] &&
-	      val >= filter$notice_thresholds[thresholds[filter$id, filter$name, index]]) )
-		return T;
+	## It's possible for a user to skip defining either default_threshold or custom_thresholds.
+	## Therefore must check which one is missing, so we can craft and send a dummy value in the function
+
+	local cust_thresh: table[Index] of count;
+	local def_thresh = 0;
+
+	if ( filter?$custom_thresholds )
+		cust_thresh = filter$custom_thresholds;
+
+	if ( filter?$default_threshold )
+		def_thresh = filter$default_threshold;
+
+	if ( filter?$check_threshold )
+		return filter$check_threshold( index, def_thresh, cust_thresh, val );
+
 	else
+		{
+		if ( index in cust_thresh )
+			{
+			if ( val > cust_thresh[index] )
+				return T;
+			}
+		else if ( val > def_thresh)
+			return T;
+
 		return F;
+		}
+
+	#if ( (filter?$notice_threshold &&
+		 #     [filter$id, filter$name, index] !in thresholds &&
+		  #    val >= filter$notice_threshold) ||
+		   #  (filter?$notice_thresholds &&
+		    #  |filter$notice_thresholds| <= thresholds[filter$id, filter$name, index] &&
+		     # val >= filter$notice_thresholds[thresholds[filter$id, filter$name, index]]) )
+			#return T;
+		#else
+			#return F;
 	}
 		
 function do_notice(filter: Filter, index: Index, val: count)
@@ -377,7 +418,12 @@ function do_notice(filter: Filter, index: Index, val: count)
 	# TODO: not sure where to put the network yet.
 	
 	NOTICE(n);
+
+	# Resetting unique values
+	local metric_tbl = store[filter$id, filter$name];
+	metric_tbl[index]$unique_vals = set();
 	
+
 	# This just needs set to some value so that it doesn't refire the 
 	# notice until it expires from the table or it crosses the next 
 	# threshold in the case of vectors of thresholds.

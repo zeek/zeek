@@ -438,6 +438,7 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/SQLite.cc
 
     nb_dns.c
     digest.h

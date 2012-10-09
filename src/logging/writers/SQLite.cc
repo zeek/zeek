@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#define USE_SQLITE 1
-#ifdef USE_SQLITE
 
 #include "config.h"
+
+#ifdef USE_SQLITE
+
 #include <string>
 #include <errno.h>
 
@@ -100,7 +101,6 @@ bool SQLite::checkError( int code )
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
-		printf("SQLite call failed: %s\n", sqlite3_errmsg(db));
 		Error(Fmt("SQLite call failed: %s", sqlite3_errmsg(db)));
 		return true;
 		}

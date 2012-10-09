@@ -2,6 +2,7 @@
 //
 // Log writer for SQLITE logs.
 
+
 #ifndef LOGGING_WRITER_SQLITE_H
 #define LOGGING_WRITER_SQLITE_H
 

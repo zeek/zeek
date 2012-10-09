@@ -26,8 +26,6 @@
 #include "writers/DataSeries.h"
 #endif
 
-#define USE_SQLITE 1
-
 #ifdef USE_SQLITE
 #include "writers/SQLite.h"
 #endif

@@ -9,6 +9,10 @@
 #include "readers/Raw.h"
 #include "readers/Benchmark.h"
 
+#ifdef USE_SQLITE
+#include "readers/SQLite.h"
+#endif
+
 #include "Event.h"
 #include "EventHandler.h"
 #include "NetVar.h"
@@ -34,6 +38,9 @@ ReaderDefinition input_readers[] = {
 	{ BifEnum::Input::READER_ASCII, "Ascii", 0, reader::Ascii::Instantiate },
 	{ BifEnum::Input::READER_RAW, "Raw", 0, reader::Raw::Instantiate },
 	{ BifEnum::Input::READER_BENCHMARK, "Benchmark", 0, reader::Benchmark::Instantiate },
+#ifdef USE_SQLITE
+	{ BifEnum::Input::READER_SQLITE, "SQLite", 0, reader::SQLite::Instantiate },
+#endif	
 
 	// End marker
 	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }

@@ -335,7 +335,6 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			ListVal* index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
-			printf("Inserting %s:%s\n", key.c_str(), value.c_str());
 			rinfo->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 			Unref(index);
 			delete k;

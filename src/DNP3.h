@@ -39,6 +39,7 @@ public:
 				dnp3_debug_byte; }
 
 protected:
+	int DNP3_Reassembler(int len, const u_char* data, bool orig);
 	struct StrByteStream {
 		StrByteStream()
 			{

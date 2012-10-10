@@ -1,6 +1,6 @@
 ##! The intelligence framework provides a way to store and query IP addresses,
 ##! and strings (with a str_type).  Metadata can
-##! also be associated with the intelligence like for making more informated
+##! also be associated with the intelligence like for making more informed
 ##! decisions about matching and handling of intelligence.
 
 @load base/frameworks/notice
@@ -9,11 +9,6 @@ module Intel;
 
 export {
 	redef enum Log::ID += { LOG };
-	
-	redef enum Notice::Type += {
-		## Notice type to indicate an intelligence hit.
-		Detection,
-	};
 	
 	## String data needs to be further categoried since it could represent
 	## and number of types of data.
@@ -24,14 +19,14 @@ export {
 		USER_AGENT,
 		## Email address.
 		EMAIL,
-		## DNS domain name (DNS Zones are implemented in an intelligence plugin).
+		## DNS domain name.
 		DOMAIN,
 		## A user name.
 		USER_NAME,
-		## File hash which is non hash type specific.  It's up to the user to query
+		## File hash which is non-hash type specific.  It's up to the user to query
 		## for any relevant hash types.
 		FILE_HASH,
-		## Certificate hash.  Normally for X.509 certificates from the SSL analyzer.
+		## Certificate SHA-1 hash.
 		CERT_HASH,
 	};
 	
@@ -47,45 +42,65 @@ export {
 		url:         string      &optional;
 	};
 	
+	## Represents a piece of intelligence.
 	type Item: record {
+		## The IP address if the intelligence is about an IP address.
 		host:        addr           &optional;
+		## The network if the intelligence is about a CIDR block.
 		net:         subnet         &optional;
+		## The string if the intelligence is about a string.
 		str:         string         &optional;
+		## The type of data that is in the string if the $str field is set.
 		str_type:    StrType        &optional;
 		
+		## Metadata for the item.  Typically represents more deeply \
+		## descriptive data for a piece of intelligence.
 		meta:        MetaData;
 	};
 	
 	## Enum to represent where data came from when it was discovered.
+	## The convenction is to prefix the name with "IN_".
 	type Where: enum {
 		## A catchall value to represent data of unknown provenance.
 		IN_ANYWHERE,
 	};
 
+	## The $host field and combination of $str and $str_type fields are mutually 
+	## exclusive.  These records *must* represent either an IP address being
+	## seen or a string being seen.
 	type Seen: record {
-		host:      addr          &optional &log;
-		str:       string        &optional &log;
-		str_type:  StrType       &optional &log;
+		## The IP address if the data seen is an IP address.
+		host:      addr          &log &optional;
+		## The string if the data is about a string.
+		str:       string        &log &optional;
+		## The type of data that is in the string if the $str field is set.
+		str_type:  StrType       &log &optional;
 
+		## Where the data was discovered.
 		where:     Where         &log;
 		
+		## If the data was discovered within a connection, the 
+		## connection record should go into get to give context to the data.
 		conn:      connection    &optional;
 	};
 
+	## Record used for the logging framework representing a positive
+	## hit within the intelligence framework.
 	type Info: record {
-		ts:   time           &log;
+		## Timestamp when the data was discovered.
+		ts:       time           &log;
 
-		uid:  string         &log &optional;
-		id:   conn_id        &log &optional;
+		## If a connection was associated with this intelligence hit,
+		## this is the uid for the connection
+		uid:      string         &log &optional;
+		## If a connection was associated with this intelligence hit,
+		## this is the conn_id for the connection.
+		id:       conn_id        &log &optional;
 
-		seen: Seen           &log;
-		sources: set[string] &log;
-	};
-
-	type PolicyItem: record {
-		pred:   function(s: Seen, item: Item): bool &optional;
-
-		log_it: bool &default=T;
+		## Where the data was seen.
+		seen:     Seen           &log;
+		## Sources which supplied data that resulted in this match.
+		sources:  set[string]    &log;
 	};
 
 	## Intelligence data manipulation functions.
@@ -95,28 +110,24 @@ export {
 	## it against known intelligence for matches.
 	global seen: function(s: Seen);
 
-	## Intelligence policy variable for handling matches.
-	const policy: set[PolicyItem] = {
-	#	[$pred(s: Seen) = { return T; },
-	#	 $action=Intel::ACTION_LOG]
-	} &redef;
-
-	## API Events that indicate when various things happen internally within the 
-	## intelligence framework.
-	global new_item: event(item: Item);
-	global updated_item: event(item: Item);
+	## Event to represent a match in the intelligence data from data that was seen.  
+	## On clusters there is no assurance as to where this event will be generated 
+	## so do not assume that arbitrary global state beyond the given data
+	## will be available.
+	##
+	## This is the primary mechanism where a user will take actions based on data
+	## within the intelligence framework.
+	global match: event(s: Seen, items: set[Item]);
 
 	global log_intel: event(rec: Info);
 }
 
-# Event to represent a match happening in a connection.  On clusters there
-# is no assurance as to where this event will be generated so don't 
-# assume that arbitrary global state beyond the given data
-# will be available.
-global match: event(s: Seen, items: set[Item]);
-
-# Internal handler for conn oriented matches with no metadata based on the have_full_data setting.
+# Internal handler for matches with no metadata available.
 global match_no_items: event(s: Seen);
+
+# Internal events for cluster data distribution
+global new_item: event(item: Item);
+global updated_item: event(item: Item);
 
 # Optionally store metadata.  This is used internally depending on
 # if this is a cluster deployment or not.
@@ -129,7 +140,7 @@ type DataStore: record {
 };
 global data_store: DataStore &redef;
 
-# The inmemory data structure for holding the barest matchable intelligence.
+# The in memory data structure for holding the barest matchable intelligence.
 # This is primarily for workers to do the initial quick matches and store
 # a minimal amount of data for the full match to happen on the manager.
 type MinDataStore: record {
@@ -207,15 +218,8 @@ function get_items(s: Seen): set[Item]
 	return return_data;
 	}
 
-#global total_seen=0;
-#event bro_done()
-#	{
-#	print fmt("total seen: %d", total_seen);
-#	}
-
 function Intel::seen(s: Seen)
 	{
-	#++total_seen;
 	if ( find(s) )
 		{
 		if ( have_full_data )

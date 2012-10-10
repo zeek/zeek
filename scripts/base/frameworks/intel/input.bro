@@ -16,14 +16,18 @@ event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: 
 
 event bro_init() &priority=5
 	{
-	for ( a_file in read_files )
+	if ( ! Cluster::is_enabled() ||
+	     Cluster::local_node_type() == Cluster::MANAGER )
 		{
-		Input::add_event([$source=a_file,
-		                  $reader=Input::READER_ASCII,
-		                  $mode=Input::REREAD,
-		                  $name=cat("intel-", a_file),
-		                  $fields=Intel::Item,
-		                  $ev=Intel::read_entry]);
+		for ( a_file in read_files )
+			{
+			Input::add_event([$source=a_file,
+			                  $reader=Input::READER_ASCII,
+			                  $mode=Input::REREAD,
+			                  $name=cat("intel-", a_file),
+			                  $fields=Intel::Item,
+			                  $ev=Intel::read_entry]);
+			}
 		}
 	}
 

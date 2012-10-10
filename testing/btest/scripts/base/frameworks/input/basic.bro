@@ -55,7 +55,7 @@ event bro_init()
 	Input::remove("ssh");
 	}
 
-event Input::update_finished(name: string, source:string)
+event Input::end_of_data(name: string, source:string)
 	{
 	print outfile, servers;
 	print outfile, to_count(servers[-42]$ns); # try to actually use a string. If null-termination is wrong this will fail.

@@ -196,7 +196,7 @@ Manager::TableStream::~TableStream()
 
 Manager::Manager()
 	{
-	update_finished = internal_handler("Input::update_finished");
+	end_of_data = internal_handler("Input::end_of_data");
 	}
 
 Manager::~Manager()
@@ -1169,8 +1169,12 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	DBG_LOG(DBG_INPUT, "Got EndCurrentSend stream %s", i->name.c_str());
 #endif
 
-	if ( i->stream_type == EVENT_STREAM )  // nothing to do..
+	if ( i->stream_type == EVENT_STREAM )  
+		{
+		// just signal the end of the data source
+		SendEndOfData(i);
 		return;
+		}
 
 	assert(i->stream_type == TABLE_STREAM);
 	TableStream* stream = (TableStream*) i;
@@ -1251,13 +1255,28 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "EndCurrentSend complete for stream %s, queueing update_finished event",
+	DBG_LOG(DBG_INPUT, "EndCurrentSend complete for stream %s",
 		i->name.c_str());
 #endif
 
-	// Send event that the current update is indeed finished.
-	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
+	SendEndOfData(i);
 	}
+
+void Manager::SendEndOfData(ReaderFrontend* reader) {
+	Stream *i = FindStream(reader);
+
+	if ( i == 0 )
+		{
+		reporter->InternalError("Unknown reader in SendEndOfData");
+		return;
+		}
+
+	SendEndOfData(i);
+}
+
+void Manager::SendEndOfData(const Stream *i) {
+	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
+}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	{

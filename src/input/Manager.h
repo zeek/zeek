@@ -78,7 +78,7 @@ public:
 	 * input.bif, which just forwards here.
 	 */
 	bool RemoveStream(const string &id);
-
+	
 protected:
 	friend class ReaderFrontend;
 	friend class PutMessage;
@@ -89,6 +89,7 @@ protected:
 	friend class EndCurrentSendMessage;
 	friend class ReaderClosedMessage;
 	friend class DisableMessage;
+	friend class EndOfDataMessage;
 
 	// For readers to write to input stream in direct mode (reporting
 	// new/deleted values directly). Functions take ownership of
@@ -96,6 +97,9 @@ protected:
 	void Put(ReaderFrontend* reader, threading::Value* *vals);
 	void Clear(ReaderFrontend* reader);
 	bool Delete(ReaderFrontend* reader, threading::Value* *vals);
+	// Trigger sending the End-of-Data event when the input source has
+	// finished reading. Just use in direct mode.
+	void SendEndOfData(ReaderFrontend* reader);
 
 	// For readers to write to input stream in indirect mode (manager is
 	// monitoring new/deleted values) Functions take ownership of
@@ -119,7 +123,7 @@ protected:
 	// main thread. This makes sure all data that has ben queued for a
 	// stream is still received.
 	bool RemoveStreamContinuation(ReaderFrontend* reader);
-	
+
 	/**
 	 * Deletes an existing input stream.
 	 *
@@ -154,15 +158,18 @@ private:
 	// equivalend in threading cannot be used, because we have support
 	// different types from the log framework
 	bool IsCompatibleType(BroType* t, bool atomic_only=false);
-
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
 	// records
 	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend, bool allow_file_func);
+	
 
 	// Send events
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...);
 	void SendEvent(EventHandlerPtr ev, list<Val*> events);
+	
+	// Implementation of SendEndOfData (send end_of_data event)
+	void SendEndOfData(const Stream *i);
 
 	// Call predicate function and return result.
 	bool CallPred(Func* pred_func, const int numvals, ...);
@@ -193,6 +200,7 @@ private:
 	// Converts a Bro ListVal to a RecordVal given the record type.
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);
 
+
 	Stream* FindStream(const string &name);
 	Stream* FindStream(ReaderFrontend* reader);
 
@@ -200,7 +208,7 @@ private:
 
 	map<ReaderFrontend*, Stream*> readers;
 
-	EventHandlerPtr update_finished;
+	EventHandlerPtr end_of_data;
 };
 
 

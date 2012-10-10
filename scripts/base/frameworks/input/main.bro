@@ -125,8 +125,8 @@ export {
 	## id: string value identifying the stream
 	global force_update: function(id: string) : bool;
 
-	## Event that is called, when the update of a specific source is finished
-	global update_finished: event(name: string, source:string);
+	## Event that is called, when the end of a data source has been reached, usually after an update
+	global end_of_data: event(name: string, source:string);
 }
 
 @load base/input.bif

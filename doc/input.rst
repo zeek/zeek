@@ -98,12 +98,12 @@ been completed. Because of this, it is, for example, possible to call
 will remain queued until the first read has been completed.
 
 Once the input framework finishes reading from a data source, it fires
-the ``update_finished`` event. Once this event has been received all data
+the ``end_of_data`` event. Once this event has been received all data
 from the input file is available in the table.
 
 .. code:: bro
 
-        event Input::update_finished(name: string, source: string) {
+        event Input::end_of_data(name: string, source: string) {
                 # now all data is in the table
                 print blacklist;
         }
@@ -129,7 +129,7 @@ deal with changing data files.
 The first, very basic method is an explicit refresh of an input stream. When
 an input stream is open, the function ``force_update`` can be called. This
 will trigger a complete refresh of the table; any changed elements from the
-file will be updated.  After the update is finished the ``update_finished``
+file will be updated.  After the update is finished the ``end_of_data``
 event will be raised.
 
 In our example the call would look like:
@@ -142,7 +142,7 @@ The input framework also supports two automatic refresh modes. The first mode
 continually checks if a file has been changed. If the file has been changed, it
 is re-read and the data in the Bro table is updated to reflect the current
 state.  Each time a change has been detected and all the new data has been
-read into the table, the ``update_finished`` event is raised.
+read into the table, the ``end_of_data`` event is raised.
 
 The second mode is a streaming mode. This mode assumes that the source data
 file is an append-only file to which new data is continually appended. Bro
@@ -150,7 +150,7 @@ continually checks for new data at the end of the file and will add the new
 data to the table.  If newer lines in the file have the same index as previous
 lines, they will overwrite the values in the output table.  Because of the
 nature of streaming reads (data is continually added to the table),
-the ``update_finished`` event is never raised when using streaming reads.
+the ``end_of_data`` event is never raised when using streaming reads.
 
 The reading mode can be selected by setting the ``mode`` option of the
 add_table call.  Valid values are ``MANUAL`` (the default), ``REREAD``

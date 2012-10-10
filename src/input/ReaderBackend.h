@@ -280,6 +280,16 @@ protected:
 	 *
 	 */
 	void Clear();
+	
+	/**
+	 * Method telling the manager that we finished reading the current
+	 * data source. Will trigger an end_of_data event.
+	 *
+	 * Note: When using SendEntry/the tracking mode this is triggered 
+	 * automatically by EndCurrentSend(). Only use if not using the
+	 * tracking mode. Otherwise the event will be sent twice.
+	 */
+	void EndOfData();
 
 	// Content-sending-functions (tracking mode): Only changed lines are propagated.
 

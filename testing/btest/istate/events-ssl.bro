@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
-# @TEST-EXEC: btest-bg-wait -k 20
+# @TEST-EXEC: btest-bg-wait 20
 # 
 # @TEST-EXEC: btest-diff sender/http.log
 # @TEST-EXEC: btest-diff receiver/http.log
@@ -55,7 +55,7 @@ event bro_init()
 redef peer_description = "events-rcv";
 
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T, $ssl=T]
+    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T, $ssl=T, $retry=1sec]
 };
 
 redef ssl_ca_certificate = "../ca_cert.pem";

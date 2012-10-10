@@ -8,9 +8,9 @@
 @TEST-START-FILE input.log
 #separator \x09
 #path	ssh
-#fields	b	i	e	c	p	sn	a	d	t	iv	s	sc	ss	se	vc	ve	f
-#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	table	table	table	vector	vector	func
-T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	SSH::foo\x0a{ \x0aif (0 < SSH::i) \x0a\x09return (Foo);\x0aelse\x0a\x09return (Bar);\x0a\x0a}
+#fields	b	i	e	c	p	sn	a	d	t	iv	s	sc	ss	se	vc	ve	ns
+#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	table	table	table	vector	vector	string
+T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
 @TEST-END-FILE
 
 @load base/protocols/ssh
@@ -37,6 +37,7 @@ type Val: record {
 	t: time;
 	iv: interval;
 	s: string;
+	ns: string;
 	sc: set[count];
 	ss: set[string];
 	se: set[string];
@@ -57,6 +58,7 @@ event bro_init()
 event Input::update_finished(name: string, source:string)
 	{
 	print outfile, servers;
+	print outfile, to_count(servers[-42]$ns); # try to actually use a string. If null-termination is wrong this will fail.
 	close(outfile);
 	terminate();
 	}

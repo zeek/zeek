@@ -18,8 +18,19 @@ New Functionality
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 
-- TODO: Update.
+- We removed the following, already deprecated, functionality:
 
+    * Scripting language:
+        - &disable_print_hook attribute.
+
+    * BiF functions:
+        - parse_dotted_addr(), dump_config(),
+          make_connection_persistent(), generate_idmef(),
+          split_complete()
+
+- Removed a now unused argument from "do_split" helper function.
+
+- "this" is no longer a reserved keyword.
 
 Bro 2.1
 -------

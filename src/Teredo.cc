@@ -138,6 +138,11 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
+	if ( orig )
+		valid_orig = false;
+	else
+		valid_resp = false;
+
 	TeredoEncapsulation te(this);
 
 	if ( ! te.Parse(data, len) )
@@ -150,7 +155,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
 		{
-		Weird("tunnel_depth");
+		Weird("tunnel_depth", true);
 		return;
 		}
 
@@ -162,7 +167,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		if ( inner->NextProto() == IPPROTO_NONE && inner->PayloadLen() == 0 )
 			// Teredo bubbles having data after IPv6 header isn't strictly a
 			// violation, but a little weird.
-			Weird("Teredo_bubble_with_payload");
+			Weird("Teredo_bubble_with_payload", true);
 		else
 			{
 			delete inner;
@@ -173,6 +178,11 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( rslt == 0 || rslt > 0 )
 		{
+		if ( orig )
+			valid_orig = true;
+		else
+			valid_resp = true;
+
 		if ( BifConst::Tunnel::yielding_teredo_decapsulation &&
 		     ! ProtocolConfirmed() )
 			{
@@ -193,7 +203,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 				}
 
 			if ( ! sibling_has_confirmed )
-				ProtocolConfirmation();
+				Confirm();
 			else
 				{
 				delete inner;
@@ -201,10 +211,8 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 				}
 			}
 		else
-			{
-			// Aggressively decapsulate anything with valid Teredo encapsulation
-			ProtocolConfirmation();
-			}
+			// Aggressively decapsulate anything with valid Teredo encapsulation.
+			Confirm();
 		}
 
 	else

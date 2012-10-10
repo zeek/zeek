@@ -1,4 +1,47 @@
 
+2.1-58 | 2012-10-08 10:10:09 -0700
+
+  * Fix a problem with non-manager cluster nodes applying
+    Notice::policy. This could, for example, result in duplicate
+    emails being sent if Notice::emailed_types is redef'd in local.bro
+    (or any script that gets loaded on all cluster nodes). (Jon Siwek)
+
+2.1-56 | 2012-10-03 16:04:52 -0700
+
+  * Add general FAQ entry about upgrading Bro. (Jon Siwek)
+
+2.1-53 | 2012-10-03 16:00:40 -0700
+
+  * Add new Tunnel::delay_teredo_confirmation option that indicates
+    that the Teredo analyzer should wait until it sees both sides of a
+    connection using a valid Teredo encapsulation before issuing a
+    protocol_confirmation. Default is on. Addresses #890. (Jon Siwek)
+
+2.1-50 | 2012-10-02 12:06:08 -0700
+
+  * Fix a typing issue that prevented the ElasticSearch timeout to
+    work. (Matthias Vallentin)
+
+  * Use second granularity for ElasticSearch timeouts. (Matthias
+    Vallentin)
+
+  * Fix compile issues with older versions of libcurl, which don't
+    offer *_MS timeout constants. (Matthias Vallentin)
+
+2.1-47 | 2012-10-02 11:59:29 -0700
+
+  * Fix for the input framework: BroStrings were constructed without a
+    final \0, which makes them unusable by basically all internal
+    functions (like to_count). (Bernhard Amann)
+
+  * Remove deprecated script functionality (see NEWS for details).
+    (Daniel Thayer)
+    
+2.1-39 | 2012-09-29 14:09:16 -0700
+
+  * Reliability adjustments to istate tests with network
+    communication. (Jon Siwek)
+
 2.1-37 | 2012-09-25 14:21:37 -0700
 
   * Reenable some tests that previously would cause Bro to exit with

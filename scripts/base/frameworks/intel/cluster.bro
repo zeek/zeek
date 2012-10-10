@@ -36,7 +36,7 @@ event remote_connection_handshake_done(p: event_peer)
 	# It will be kept up to date after this by the cluster_new_item event.
 	if ( Cluster::nodes[p$descr]$node_type == Cluster::WORKER )
 		{
-		send_id(p, "min_data_store");
+		send_id(p, "Intel::min_data_store");
 		}
 	}
 @endif

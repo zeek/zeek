@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
+#include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>

@@ -108,6 +108,20 @@ public:
 private:
 };
 
+class EndOfDataMessage : public threading::OutputMessage<ReaderFrontend> {
+public:
+	EndOfDataMessage(ReaderFrontend* reader)
+		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader) {}
+
+	virtual bool Process()
+		{
+		input_mgr->SendEndOfData(Object());
+		return true;
+		}
+
+private:
+};
+
 class ReaderClosedMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
 	ReaderClosedMessage(ReaderFrontend* reader)
@@ -181,6 +195,11 @@ void ReaderBackend::SendEvent(const char* name, const int num_vals, Value* *vals
 void ReaderBackend::EndCurrentSend()
 	{
 	SendOut(new EndCurrentSendMessage(frontend));
+	}
+
+void ReaderBackend::EndOfData()
+	{
+	SendOut(new EndOfDataMessage(frontend));
 	}
 
 void ReaderBackend::SendEntry(Value* *vals)

@@ -4,13 +4,6 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
@@ -23,13 +16,6 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
@@ -42,13 +28,6 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
@@ -61,13 +40,6 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
@@ -80,13 +52,6 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
@@ -99,13 +64,6 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
@@ -118,16 +76,10 @@ print outfile, A::description;
 print outfile, A::tpe;
 print outfile, A::i;
 print outfile, A::b;
-try = try + 1;
-if (7 == try) 
-{ 
-close(outfile);
-terminate();
-}
-
 }, config={
 
 }]
 Input::EVENT_NEW
 7
 T
+End-of-data

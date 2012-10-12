@@ -1,4 +1,14 @@
 
+2.1-68 | 2012-10-12 09:46:41 -0700
+
+  * Rename the Input Framework's update_finished event to end_of_data.
+    It will now not only fire after table-reads have been completed,
+    but also after the last event of a whole-file-read (or
+    whole-db-read, etc.). (Bernhard Amann)
+
+  * Fix for DNS log problem when a DNS response is seen with 0 RRs.
+    (Seth Hall)
+
 2.1-64 | 2012-10-12 09:36:41 -0700
 
   * Teach --disable-dataseries/--disable-elasticsearch to ./configure.

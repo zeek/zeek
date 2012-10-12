@@ -32,6 +32,11 @@ Changed Functionality
 
 - "this" is no longer a reserved keyword.
 
+- The Input Framework's update_finished event has been renamed to
+  end_of_data. It will now not only fire after table-reads have been
+  completed, but also after the last event of a whole-file-read (or
+  whole-db-read, etc.).
+
 Bro 2.1
 -------
 

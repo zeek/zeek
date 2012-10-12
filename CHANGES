@@ -1,4 +1,9 @@
 
+2.1-61 | 2012-10-12 09:32:48 -0700
+
+  * Fix bug in the input framework: the config table did not work.
+    (Bernhard Amann)
+
 2.1-58 | 2012-10-08 10:10:09 -0700
 
   * Fix a problem with non-manager cluster nodes applying

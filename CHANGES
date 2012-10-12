@@ -1,4 +1,11 @@
 
+2.1-64 | 2012-10-12 09:36:41 -0700
+
+  * Teach --disable-dataseries/--disable-elasticsearch to ./configure.
+    Addresses #877. (Jon Siwek)
+
+  * Add --with-curl option to ./configure. Addresses #877. (Jon Siwek)
+    
 2.1-61 | 2012-10-12 09:32:48 -0700
 
   * Fix bug in the input framework: the config table did not work.

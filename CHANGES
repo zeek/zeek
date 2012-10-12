@@ -1,4 +1,37 @@
 
+2.1-76 | 2012-10-12 10:32:39 -0700
+
+  * Add support for recognizing GridFTP connections as an extension to
+    the standard FTP analyzer. (Jon Siwek)
+
+    This is enabled by default and includes:
+
+      - An analyzer for GSI mechanism of GSSAPI FTP AUTH method. GSI
+        authentication involves an encoded TLS/SSL handshake over the
+        FTP control session. For FTP sessions that attempt GSI
+        authentication, the *service* field of the connection log will
+        include "gridftp" (as well as also "ftp" and "ssl").
+
+      - Add an example of a GridFTP data channel detection script. It
+        relies on the heuristics of GridFTP data channels commonly
+        default to SSL mutual authentication with a NULL bulk cipher
+        and that they usually transfer large datasets (default
+        threshold of script is 1 GB).  The script also defaults to
+        skip_further_processing() after detection to try to save
+        cycles analyzing the large, benign connection.
+
+        For identified GridFTP data channels, the *services* fields of
+        the connection log will include "gridftp-data".
+
+  * Add *client_subject* and *client_issuer_subject* as &log'd fields
+    to SSL::Info record.  Also add *client_cert* and
+    *client_cert_chain* fields to track client cert chain. (Jon Siwek)
+
+  * Add a script in base/protocols/conn/polling that generalizes the
+    process of polling a connection for interesting features. The
+    GridFTP data channel detection script depends on it to monitor
+    bytes transferred. (Jon Siwek)
+
 2.1-68 | 2012-10-12 09:46:41 -0700
 
   * Rename the Input Framework's update_finished event to end_of_data.

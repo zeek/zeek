@@ -13,7 +13,9 @@ Bro 2.2
 New Functionality
 ~~~~~~~~~~~~~~~~~
 
-- TODO: Update.
+- GridFTP support. TODO: Extend.
+
+- ssl.log now also records the subject client and issuer certificates.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~

@@ -16,6 +16,7 @@ event Metrics::log_it(filter: Filter)
 	
 function data_added(filter: Filter, index: Index, val: count)
 	{
-	if ( check_notice(filter, index, val) )
-		do_notice(filter, index, val);
+	if ( check_threshold(filter, index, val) )
+		threshold_crossed_alert( filter, index, val );
+		#do_notice(filter, index, val);
 	}

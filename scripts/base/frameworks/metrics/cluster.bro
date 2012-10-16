@@ -107,7 +107,7 @@ function data_added(filter: Filter, index: Index, val: count)
 	# intermediate update.
 	local pct_val = double_to_count(val / cluster_request_global_view_percent);
 	
-	if ( check_notice(filter, index, pct_val) ) 
+	if ( check_threshold(filter, index, pct_val) ) 
 		{
 		# kick off intermediate update
 		event Metrics::cluster_index_intermediate_response(filter$id, filter$name, index, val);
@@ -137,6 +137,9 @@ event Metrics::send_data(uid: string, id: string, filter_name: string, data: Met
 	# If data is empty, this metric is done.
 	if ( |data| == 0 )
 		done = T;
+
+	#print "Here is local_data";
+	#print local_data;
 	
 	event Metrics::cluster_filter_response(uid, id, filter_name, local_data, done);
 	if ( ! done )
@@ -191,8 +194,9 @@ event Metrics::log_it(filter: Filter)
 # being collected by managers.
 function data_added(filter: Filter, index: Index, val: count)
 	{
-	if ( check_notice(filter, index, val) )
-		do_notice(filter, index, val);
+	if ( check_threshold(filter, index, val) )
+		threshold_crossed_alert( filter, index, val );
+		#do_notice(filter, index, val);
 	}
 	
 event Metrics::cluster_index_response(uid: string, id: string, filter_name: string, index: Index, data: DataPoint)
@@ -206,8 +210,9 @@ event Metrics::cluster_index_response(uid: string, id: string, filter_name: stri
 	if ( Cluster::worker_count == done_with[uid] )
 		{
 		local size = ir?$num ? ir$num : |ir$unique_vals|;
-		if ( check_notice(filter_store[id, filter_name], index, size) )
-			do_notice(filter_store[id, filter_name], index, size);
+		if ( check_threshold(filter_store[id, filter_name], index, size) )
+			threshold_crossed_alert( filter_store[id, filter_name], index, size );
+			#do_notice(filter_store[id, filter_name], index, size);
 		delete done_with[uid];
 		delete index_requests[uid, id, filter_name, index];
 		}

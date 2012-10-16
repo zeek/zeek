@@ -70,6 +70,8 @@ protected:
 		int length;
 	};
 
+	int DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len);
+
 	binpac::DNP3::DNP3_Conn* interp;
 	bool mEncounteredFirst;
 	StrByteStream gDNP3Data;

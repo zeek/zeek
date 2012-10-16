@@ -101,6 +101,39 @@ void DNP3_Analyzer::Done()
 // of the length. That is why in this version of the DNP3 analyzer, we can only handle a logic DNP3 fragment with size of 65535 bytes.
 // Later, I will manually increae "len" to be 32 bit.  
 
+
+// DNP3_CopyDataBlock
+
+int DNP3_Analyzer::DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len)
+	{
+	int dnp3_i = 0; // Index within the data block.
+
+	// target->mData should be allocated memory space; but double check here to avoid misuse
+	if(target->mData == NULL)
+		{
+		Weird("DNP3_CopyDataBlock target buffer is not allocated");
+		return -1;
+		}
+	
+	memcpy(target->mData, data, 8); // Keep the first 8 bytes.
+
+	for( int i = 0; i < len - 10; i++ )
+		{
+                if ( (i % 18 != 16) && (i % 18 != 17) // Does not include crc on each data block (not the last data block)
+                        && ((len - 10 - i) > 2)       // Does not include crc on the last data block 
+                        && ( i != 0 ) )               // Does not sent first byte which is DNP3 Pseudo Transport Layer data into binpac analyzer
+			{
+                       	//gDNP3Data.mData[dnp3_i + 8] = data[i + 10];
+			target->mData[dnp3_i + 8] = data[i + 10];
+                        dnp3_i++;
+                        }
+                }
+
+        //gDNP3Data.length = dnp3_i + 8;
+        target->length = dnp3_i + 8;
+	return 0;	
+	}
+
 // DNP3_Reassembler();
 //
 // Purpose: Construct "Hooked DNP3 Serial Application Layer Data" from 
@@ -172,7 +205,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 		// move the inialization into DNP3_Analyzer::DeliverStream 
 		//gDNP3Data.Reserve(len);
 
-		memcpy(gDNP3Data.mData, data, 8); // Keep the first 8 bytes.
+		//memcpy(gDNP3Data.mData, data, 8); // Keep the first 8 bytes.
 
 		// As mentioned what data includes is :
 		// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
@@ -186,7 +219,9 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 		// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
 		// The CRC values are checked (TODO-Hui) here and then removed. So the bytes stream sent to the binpac analyzer is the logic 
 		// DNP3 fragment
-		
+
+		DNP3_CopyDataBlock(&gDNP3Data, data, len);	
+		/*	
 		int dnp3_i = 0; // Index within the data block.
 
 		for( int i = 0; i < len - 10; i++ )
@@ -201,6 +236,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 			}
 
 		gDNP3Data.length = dnp3_i + 8;
+		*/
 		return 1;  
 		}
 
@@ -214,12 +250,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 			Weird("dnp3_first_transport_sgement_missing");
 			return -5;
 			}
-
-		int aTempFormerLen = gDNP3Data.length;
-
-		// TODO-Hui: The following code is almost identical to the
-		// one above. Please factor out into a separate function.
-
+	
 		if ( (aTranFin == 0) && (len != 292) )
 			{
 			// This is not a last transport segment, so the
@@ -228,10 +259,19 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 			Weird("unexpected_payload_length");
 			return -6;
 			}
+	
+		//// Since this DNP3 Pseudo Application Layer Data is either a middle trunk of the last trunk,
+		//// we have to concate bytes in "data" into the previous data trunk in order to form the complete 
+		//// logicl DNP3 Application layer fragment
 
+		//// a temporary buffer is used to store the bytes issued in previous data trunk
+		int aTempFormerLen = gDNP3Data.length;
 		u_char* aTempResult = new u_char[len + aTempFormerLen];
 		memcpy(aTempResult, gDNP3Data.mData, aTempFormerLen);
 
+		//// Add bytes in "data" into previous trunk
+		//// This piece of code has some differences from the code included in DNP3_CopyDataBlock,
+		//// So I left it as it is. 
 		int dnp3_i = 0;
 
 		for( int i = 0; i < (len - 10); i++ )
@@ -240,8 +280,8 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 				&& ((len - 10 - i) > 2)      // Does not include last data block.
 				&& ( i != 0 ) )              // Does not consider first byte, transport layer header.
 				{
-				// TODO-HUi: Insert commenty what this is doing.
-				// TODO-Hui: Can this overflow?
+				// can not over flow; as the size of the temporary buffer is 
+				// len + gDNP3Data.length; "len" is the length of data
 				aTempResult[dnp3_i + aTempFormerLen] = data[i + 10];
 				dnp3_i++;
 				}
@@ -250,7 +290,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 		delete [] gDNP3Data.mData;
 		gDNP3Data.mData = aTempResult;
 		gDNP3Data.length = dnp3_i + aTempFormerLen;
-
+		
 		if ( aTranFin == 1 ) // If this is the last segment.
 			{
 			mEncounteredFirst = false;
@@ -265,7 +305,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 				}
 			// "len" in DNP3 Additional Header contains the lower 8 bit of the length
 			gDNP3Data.mData[2] = (gDNP3Data.length - 2) % 0x100;  
-			// "ctrl" in DNP3 Additional Header contains the higher 8 bit of the lenght
+			// "ctrl" in DNP3 Additional Header contains the higher 8 bit of the length
 			gDNP3Data.mData[3] = ((gDNP3Data.length -2) & 0xFF00) >> 8;
 
 			/// call this function in the this->DeliveryStream
@@ -297,9 +337,12 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 			Weird("dnp3_missing_finish_packet");
 			}
 
-		// TODO-Hui: Again the same code. Please factor out.
-
+		DNP3_CopyDataBlock(&gDNP3Data, data, len);
+		//// since this is the only application layer trunk, so the higer 8bits of the length is 0
+		gDNP3Data.mData[3] = 0x00;
+		/*
 		//memcpy(tran_data, data, 8); // Keep the first 8 bytes.
+		
 		memcpy(gDNP3Data.mData, data, 8); // Keep the first 8 bytes.
 
 		int dnp3_i = 0;
@@ -322,6 +365,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 		//int dnp3_length = dnp3_i + 8;
 		gDNP3Data.length = dnp3_i + 8;
 		//interp->NewData(m_orig, tran_data, tran_data + dnp3_length);
+		*/
 
 		//delete [] tran_data;
 

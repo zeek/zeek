@@ -1,13 +1,27 @@
 %{
 #include <stdio.h>
+#include <netinet/in.h>
+#include <vector>
+#include "config.h"
 #include "RuleMatcher.h"
 #include "Reporter.h"
+#include "IPAddr.h"
+#include "net_util.h"
 
 extern void begin_PS();
 extern void end_PS();
 
 Rule* current_rule = 0;
 const char* current_rule_file = 0;
+
+static uint8_t mask_to_len(uint32_t mask)
+	{
+	if ( mask == 0xffffffff ) return 32;
+	uint32_t x = ~mask + 1;
+	uint8_t len;
+	for ( len = 0; len < 32 && (! (x & (1<<len))); ++len );
+	return len;
+	}
 %}
 
 %token TOK_COMP
@@ -21,6 +35,7 @@ const char* current_rule_file = 0;
 %token TOK_IDENT
 %token TOK_INT
 %token TOK_IP
+%token TOK_IP6
 %token TOK_IP_OPTIONS
 %token TOK_IP_OPTION_SYM
 %token TOK_IP_PROTO
@@ -49,7 +64,9 @@ const char* current_rule_file = 0;
 %type <hdr_test> hdr_expr
 %type <range> range rangeopt
 %type <vallist> value_list
+%type <prefix_val_list> prefix_value_list
 %type <mval> TOK_IP value
+%type <prefixval> TOK_IP6 prefix_value
 %type <prot> TOK_PROT
 %type <ptype> TOK_PATTERN_TYPE
 
@@ -57,6 +74,8 @@ const char* current_rule_file = 0;
 	Rule* rule;
 	RuleHdrTest* hdr_test;
 	maskedvalue_list* vallist;
+	vector<IPPrefix>* prefix_val_list;
+	IPPrefix* prefixval;
 
 	bool bl;
 	int val;
@@ -91,11 +110,11 @@ rule_attr_list:
 	;
 
 rule_attr:
-		TOK_DST_IP TOK_COMP value_list
+		TOK_DST_IP TOK_COMP prefix_value_list
 			{
 			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::IP, 16, 4,
-				(RuleHdrTest::Comp) $2, $3));
+				RuleHdrTest::IPDst,
+				(RuleHdrTest::Comp) $2, *($3)));
 			}
 
 	|	TOK_DST_PORT TOK_COMP value_list
@@ -123,10 +142,14 @@ rule_attr:
 			{
 			int proto = 0;
 			switch ( $3 ) {
-			case RuleHdrTest::ICMP: proto = 1; break;
+			case RuleHdrTest::ICMP: proto = IPPROTO_ICMP; break;
+			case RuleHdrTest::ICMPv6: proto = IPPROTO_ICMPV6; break;
+			// signature matching against outer packet headers of IP-in-IP
+			// tunneling not supported, so do a no-op there
 			case RuleHdrTest::IP: proto = 0; break;
-			case RuleHdrTest::TCP: proto = 6; break;
-			case RuleHdrTest::UDP: proto = 17; break;
+			case RuleHdrTest::IPv6: proto = 0; break;
+			case RuleHdrTest::TCP: proto = IPPROTO_TCP; break;
+			case RuleHdrTest::UDP: proto = IPPROTO_UDP; break;
 			default:
 				rules_error("internal_error: unknown protocol");
 			}
@@ -140,16 +163,20 @@ rule_attr:
 				val->mask = 0xffffffff;
 				vallist->append(val);
 
+				// offset & size params are dummies, actual next proto value in
+				// header is retrieved dynamically via IP_Hdr::NextProto()
 				current_rule->AddHdrTest(new RuleHdrTest(
-					RuleHdrTest::IP, 9, 1,
+					RuleHdrTest::NEXT, 0, 0,
 					(RuleHdrTest::Comp) $2, vallist));
 				}
 			}
 
 	|	TOK_IP_PROTO TOK_COMP value_list
 			{
+			// offset & size params are dummies, actual next proto value in
+			// header is retrieved dynamically via IP_Hdr::NextProto()
 			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::IP, 9, 1,
+				RuleHdrTest::NEXT, 0, 0,
 				(RuleHdrTest::Comp) $2, $3));
 			}
 
@@ -193,11 +220,11 @@ rule_attr:
 	|	TOK_SAME_IP
 			{ current_rule->AddCondition(new RuleConditionSameIP()); }
 
-	|	TOK_SRC_IP TOK_COMP value_list
+	|	TOK_SRC_IP TOK_COMP prefix_value_list
 			{
 			current_rule->AddHdrTest(new RuleHdrTest(
-				RuleHdrTest::IP, 12, 4,
-				(RuleHdrTest::Comp) $2, $3));
+				RuleHdrTest::IPSrc,
+				(RuleHdrTest::Comp) $2, *($3)));
 			}
 
 	|	TOK_SRC_PORT TOK_COMP value_list
@@ -252,6 +279,38 @@ value_list:
 			$$ = new maskedvalue_list();
 			id_to_maskedvallist($1, $$);
 			}
+	;
+
+prefix_value_list:
+		prefix_value_list ',' prefix_value
+			{
+			$$ = $1;
+			$$->push_back(*($3));
+			}
+	|	prefix_value_list ',' TOK_IDENT
+			{
+			$$ = $1;
+			id_to_maskedvallist($3, 0, $1);
+			}
+	|	prefix_value
+			{
+			$$ = new vector<IPPrefix>();
+			$$->push_back(*($1));
+			}
+	|	TOK_IDENT
+			{
+			$$ = new vector<IPPrefix>();
+			id_to_maskedvallist($1, 0, $$);
+			}
+	;
+
+prefix_value:
+		TOK_IP
+			{
+			$$ = new IPPrefix(IPAddr(IPv4, &($1.val), IPAddr::Host),
+			                  mask_to_len($1.mask));
+			}
+	|	TOK_IP6
 	;
 
 value:

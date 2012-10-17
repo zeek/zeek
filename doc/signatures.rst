@@ -83,9 +83,8 @@ Header Conditions
 ~~~~~~~~~~~~~~~~~
 
 Header conditions limit the applicability of the signature to a subset
-of traffic that contains matching packet headers. For TCP, this match
-is performed only for the first packet of a connection. For other
-protocols, it is done on each individual packet.
+of traffic that contains matching packet headers.  This type of matching
+is performed only for the first packet of a connection.
 
 There are pre-defined header conditions for some of the most used
 header fields. All of them generally have the format ``<keyword> <cmp>
@@ -95,14 +94,22 @@ one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``; and
 against. The following keywords are defined:
 
 ``src-ip``/``dst-ip <cmp> <address-list>``
-    Source and destination address, respectively. Addresses can be
-    given as IP addresses or CIDR masks.
+    Source and destination address, respectively. Addresses can be given
+    as IPv4 or IPv6 addresses or CIDR masks.  For IPv6 addresses/masks
+    the colon-hexadecimal representation of the address must be enclosed
+    in square brackets (e.g. ``[fe80::1]`` or ``[fe80::0]/16``).
 
-``src-port``/``dst-port`` ``<int-list>``
+``src-port``/``dst-port <cmp> <int-list>``
     Source and destination port, respectively.
 
-``ip-proto tcp|udp|icmp``
-    IP protocol.
+``ip-proto <cmp> tcp|udp|icmp|icmp6|ip|ip6``
+    IPv4 header's Protocol field or the Next Header field of the final
+    IPv6 header (i.e. either Next Header field in the fixed IPv6 header
+    if no extension headers are present or that field from the last
+    extension header in the chain).  Note that the IP-in-IP forms of
+    tunneling are automatically decapsulated by default and signatures
+    apply to only the inner-most packet, so specifying ``ip`` or ``ip6``
+    is a no-op.
 
 For lists of multiple values, they are sequentially compared against
 the corresponding header field. If at least one of the comparisons
@@ -116,20 +123,22 @@ condition can be defined either as
 
     header <proto>[<offset>:<size>] [& <integer>] <cmp> <value-list>
 
-This compares the value found at the given position of the packet
-header with a list of values. ``offset`` defines the position of the
-value within the header of the protocol defined by ``proto`` (which
-can be ``ip``, ``tcp``, ``udp`` or ``icmp``). ``size`` is either 1, 2,
-or 4 and specifies the value to have a size of this many bytes. If the
-optional ``& <integer>`` is given, the packet's value is first masked
-with the integer before it is compared to the value-list. ``cmp`` is
-one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``. ``value-list`` is
-a list of comma-separated integers similar to those described above.
-The integers within the list may be followed by an additional ``/
-mask`` where ``mask`` is a value from 0 to 32. This corresponds to the
-CIDR notation for netmasks and is translated into a corresponding
-bitmask applied to the packet's value prior to the comparison (similar
-to the optional ``& integer``).
+This compares the value found at the given position of the packet header
+with a list of values. ``offset`` defines the position of the value
+within the header of the protocol defined by ``proto`` (which can be
+``ip``, ``ip6``, ``tcp``, ``udp``, ``icmp`` or ``icmp6``). ``size`` is
+either 1, 2, or 4 and specifies the value to have a size of this many
+bytes. If the optional ``& <integer>`` is given, the packet's value is
+first masked with the integer before it is compared to the value-list.
+``cmp`` is one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``.
+``value-list`` is a list of comma-separated integers similar to those
+described above.  The integers within the list may be followed by an
+additional ``/ mask`` where ``mask`` is a value from 0 to 32. This
+corresponds to the CIDR notation for netmasks and is translated into a
+corresponding bitmask applied to the packet's value prior to the
+comparison (similar to the optional ``& integer``).  IPv6 address values
+are not allowed in the value-list, though you can still inspect any 1,
+2, or 4 byte section of an IPv6 header using this keyword.
 
 Putting it all together, this is an example condition that is
 equivalent to ``dst-ip == 1.2.3.4/16, 5.6.7.8/24``:
@@ -138,8 +147,8 @@ equivalent to ``dst-ip == 1.2.3.4/16, 5.6.7.8/24``:
 
     header ip[16:4] == 1.2.3.4/16, 5.6.7.8/24
 
-Internally, the predefined header conditions are in fact just
-short-cuts and mapped into a generic condition.
+Note that the analogous example for IPv6 isn't currently possible since
+4 bytes is the max width of a value that can be compared.
 
 Content Conditions
 ~~~~~~~~~~~~~~~~~~

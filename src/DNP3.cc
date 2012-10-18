@@ -2,9 +2,14 @@
 #include "DNP3.h"
 #include "TCP_Reassembler.h"
 
+
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTag::DNP3, c)
 	{
 	mEncounteredFirst = false;
+
+	//// precompute CrcTable from this magic number
+	this->DNP3_PrecomputeCRC(DNP3_CrcTable, 0xA6BC);  
+	
 	interp = new binpac::DNP3::DNP3_Conn(this);
 	}
 
@@ -58,7 +63,7 @@ void DNP3_Analyzer::Done()
 // Through calculation, the largest size of a DNP3 Packet (DNP3 Data Link Layer : DNP3 Transport Layer : DNP3 Application Layer) can only be 
 //  292 bytes. 
 //
-// The CRC values are checked (TODO-Hui) here and then removed. So the bytes stream sent to the binpac analyzer is the logic 
+// The CRC values are checked here and then removed. So the bytes stream sent to the binpac analyzer is the logic 
 // DNP3 fragment
 
 // 2. A single logic DNP3 fragment can be truncated into several DNP3 Pseudo  Application Layer data included under 
@@ -102,7 +107,138 @@ void DNP3_Analyzer::Done()
 // Later, I will manually increae "len" to be 32 bit.  
 
 
+// DNP3_CheckCRC check the CRC values in the original DNP3 packets
+// 
+
+int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
+	{
+	int i = 0;
+	int j = 0;
+	u_char buffer[18];
+	unsigned int crc_result; 
+	u_char cal_crc[2]; //crc results calculated
+	int last_length = 0; // the length of last user data block
+
+	if(len < 10)
+		{
+		Weird("DNP3 packets original lenght is less than 10 bytes");
+		return -1;
+		}	
+
+	// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
+	// THe structure of the DNP3 Packet is (can be found in page 8 of DNP3 Specification Volum 4, Data Link Layer)
+	// 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB (each field is a byte) 
+	// User Data Block 1 (16 bytes) CRC (2 bytes)
+	// User Data Block 2 (16 bytes) CRC (2 bytes)
+	// .....
+	// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
+	
+	//// first 8 bytes are calcuated for a CRC
+	for(i = 0; i < 8; i++)
+		{
+		buffer[i] = data[i];
+		
+		}
+	
+	crc_result = DNP3_CalcCRC(buffer, 8, DNP3_CrcTable, 0x0000, true);
+	cal_crc[0] = crc_result & 0xff;
+	cal_crc[1] = (crc_result & 0xff00) >> 8;
+	if( cal_crc[0] != data[8] || cal_crc[1] != data[9] )
+		{
+		printf("header: calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], data[8], data[9]);
+		Weird("Invalid CRC Values");
+		return -2;
+		}
+
+	//// bytes following the first 10 bytes and before the last user data block
+	//// are grouped with size of 18 byte (last 2 bytes are CRC) We check group by group
+	//// calculate the legnth of the last data user block
+	last_length = ( len - 10) % 18;
+	if ( (last_length > 0) && (last_length <= 2) )  //// value of last_length can never be 1 or 2
+		{
+		Weird("Truncated DNP3 Packets");
+		return -3;
+		}
+	for( i = 0; i < (len - 10 - last_length); i++ )
+		{
+		buffer[i % 18] = data[i + 10];
+		if(  i % 18 == 17    )
+			{	
+			crc_result = DNP3_CalcCRC(buffer, 16, DNP3_CrcTable, 0x0000, true);
+			cal_crc[0] = crc_result & 0xff;
+			cal_crc[1] = (crc_result & 0xff00) >> 8;
+			if( cal_crc[0] != buffer[16] || cal_crc[1] != buffer[17] )
+				{
+				printf("calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[16], buffer[17]);
+				Weird("Invalid CRC Values");
+				return -2;
+				}	
+			}
+		}
+
+	//// validate crc values for the last data block
+	for( i = 0; i < last_length ; i++ )
+		{
+		//// starting position of the last data block is (len- last_length)
+		buffer[i % 18] = data[ i + ( len - last_length ) ];
+		if(  i % 18 == ( last_length - 1 )   )
+			{	
+			crc_result = DNP3_CalcCRC(buffer, ( last_length - 2 ), DNP3_CrcTable, 0x0000, true);
+			cal_crc[0] = crc_result & 0xff;
+			cal_crc[1] = (crc_result & 0xff00) >> 8;
+			if( cal_crc[0] != buffer[last_length - 2] || cal_crc[1] != buffer[last_length - 1] )
+				{
+				printf("last calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[last_length -2 ], buffer[last_length -1 ]);
+				Weird("Invalid CRC Values in last data block");
+				return -2;
+				}	
+			}
+		}
+
+
+	return 0;
+	}
+//// NOTE I copy codes for the codes for DNP3_CalcCRC and DNP3_PrecomputeCRC from the internet as this is common method to calculate CRC values; is it all right?
+void DNP3_Analyzer::DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial)
+	{
+	unsigned int i, j, CRC;
+
+        for(i = 0; i < 256; i++) 
+		{
+                CRC = i;
+                for (j = 0; j < 8; ++j) 
+			{
+                        if(CRC & 0x0001) 
+				CRC = (CRC >> 1) ^ aPolynomial;
+                        else 
+				CRC >>= 1;
+                	}
+                apTable[i] = CRC;
+        	}
+
+	}
+
+unsigned int DNP3_Analyzer::DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert)
+	{
+	unsigned int CRC, index;
+
+        CRC = aStart;
+
+        for(size_t i = 0; i < aLength; i++) {
+                index = (CRC ^ aInput[i]) & 0xFF;
+                CRC = apTable[index] ^ (CRC >> 8);
+        }
+
+        if(aInvert) CRC = (~CRC) & 0xFFFF;
+
+        return CRC;
+	}
+
+
 // DNP3_CopyDataBlock
+// This function did the real job of constructing the logical DNP3 fragment from the original DNP3 packet:
+// (1) construct the DNP3 Additional Header for Binpac analyzer
+// (2) remove the CRC values from DNP3 Pseudo Application Layer
 
 int DNP3_Analyzer::DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len)
 	{
@@ -389,6 +525,8 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 	
+	//// Checkec the CRC values included in the DNP3 packets
+	DNP3_CheckCRC(len, data);
 	
 	gDNP3Data.Reserve(len);
 	

@@ -71,10 +71,17 @@ protected:
 	};
 
 	int DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len);
+	int DNP3_CheckCRC(int len, const u_char* data);
+	unsigned int DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert);	
+	void DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial);
 
 	binpac::DNP3::DNP3_Conn* interp;
 	bool mEncounteredFirst;
 	StrByteStream gDNP3Data;
+
+//// for the use of calculating CRC values
+	unsigned int DNP3_CrcTable[256];
+	
 };
 
 #endif

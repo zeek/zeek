@@ -81,7 +81,7 @@ export {
 		id:                string                  &optional;
 		## A predicate so that you can decide per index if you would like
 		## to accept the data being inserted.
-		pred:              function(index: Index): bool &optional;
+		pred:              function(index: Index, str: string): bool &optional;
 		## A function to normalize the index.  This can be used to normalize
 		## any field in the index and is likely most useful to normalize
 		## the $str field.
@@ -328,7 +328,7 @@ function add_it(id: string, index: Index, integer_value: bool, num: count, str: 
 		
 		# If this filter has a predicate, run the predicate and skip this
 		# index if the predicate return false.
-		if ( filter?$pred && ! filter$pred(index) )
+		if ( filter?$pred && ! filter$pred(index,str) )
 			next;
 		
 		if ( index?$host )

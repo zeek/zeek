@@ -40,6 +40,7 @@
 #include "Syslog-binpac.h"
 #include "Teredo.h"
 #include "ConnSizeAnalyzer.h"
+#include "GTPv1.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -139,6 +140,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Teredo, "TEREDO",
 		Teredo_Analyzer::InstantiateAnalyzer,
 		Teredo_Analyzer::Available, 0, false },
+	{ AnalyzerTag::GTPv1, "GTPV1",
+		GTPv1_Analyzer::InstantiateAnalyzer,
+		GTPv1_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },

@@ -177,6 +177,7 @@ enum Type %{
 	AYIYA,
 	TEREDO,
 	SOCKS,
+	GTPv1,
 %}
 
 type EncapsulatingConn: record;

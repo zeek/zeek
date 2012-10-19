@@ -577,6 +577,19 @@ event teredo_origin_indication%(outer: connection, inner: teredo_hdr%);
 ##    it may become particularly expensive for real-time analysis.
 event teredo_bubble%(outer: connection, inner: teredo_hdr%);
 
+## Generated for GTPv1 G-PDU packets.  That is, packets with a UDP payload
+## that includes a GTP header followed by an IPv4 or IPv6 packet.
+##
+## outer: The GTP outer tunnel connection.
+##
+## inner_gtp: The GTP header.
+##
+## inner_ip: The inner IP and transport layer packet headers.
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particularly expensive for real-time analysis.
+event gtpv1_g_pdu_packet%(outer: connection, inner_gtp: gtpv1_hdr, inner_ip: pkt_hdr%);
+
 ## Generated for every packet that has a non-empty transport-layer payload.
 ## This is a very low-level and expensive event that should be avoided when
 ## at all possible.  It's usually infeasible to handle when processing even
@@ -858,7 +871,7 @@ event udp_contents%(u: connection, is_orig: bool, contents: string%);
 ## Generated when a UDP session for a supported protocol has finished. Some of
 ## Bro's application-layer UDP analyzers flag the end of a session by raising
 ## this event. Currently, the analyzers for DNS, NTP, Netbios, Syslog, AYIYA,
-## and Teredo support this.
+## Teredo, and GTPv1 support this.
 ##
 ## u: The connection record for the corresponding UDP flow.
 ##

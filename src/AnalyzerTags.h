@@ -37,6 +37,7 @@ namespace AnalyzerTag {
 		AYIYA,
 		SOCKS,
 		Teredo,
+		GTPv1,
 
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,

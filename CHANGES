@@ -1,4 +1,9 @@
 
+2.1-84 | 2012-10-19 15:12:56 -0700
+
+  * Added a BiF strptime() to wrap the corresponding C function. (Seth
+    Hall)
+
 2.1-82 | 2012-10-19 15:05:40 -0700
 
   * Add IPv6 support to signature header conditions. (Jon Siwek)

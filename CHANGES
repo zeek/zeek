@@ -1,4 +1,28 @@
 
+2.1-82 | 2012-10-19 15:05:40 -0700
+
+  * Add IPv6 support to signature header conditions. (Jon Siwek)
+
+    - "src-ip" and "dst-ip" conditions can now use IPv6 addresses/subnets.
+      They must be written in colon-hexadecimal representation and enclosed
+      in square brackets (e.g. [fe80::1]).  Addresses #774.
+
+    - "icmp6" is now a valid protocol for use with "ip-proto" and "header"
+      conditions.  This allows signatures to be written that can match
+      against ICMPv6 payloads.  Addresses #880.
+
+    - "ip6" is now a valid protocol for use with the "header" condition.
+      (also the "ip-proto" condition, but it results in a no-op in that
+      case since signatures apply only to the inner-most IP packet when
+      packets are tunneled).  This allows signatures to match specifically
+      against IPv6 packets (whereas "ip" only matches against IPv4 packets).
+
+    - "ip-proto" conditions can now match against IPv6 packets.  Before,
+      IPv6 packets were just silently ignored which meant DPD based on
+      signatures did not function for IPv6 -- protocol analyzers would only
+      get attached to a connection over IPv6 based on the well-known ports
+      set in the "dpd_config" table.
+
 2.1-80 | 2012-10-19 14:48:42 -0700
 
   * Change how "gridftp" gets added to service field of connection

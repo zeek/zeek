@@ -1,4 +1,18 @@
 
+2.1-80 | 2012-10-19 14:48:42 -0700
+
+  * Change how "gridftp" gets added to service field of connection
+    records. In addition to checking for a finished SSL handshake over
+    an FTP connection, it now also requires that the SSL handshake
+    occurs after the FTP client requested AUTH GSSAPI, more
+    specifically identifying the characteristics of GridFTP control
+    channels. Addresses #891. (Jon Siwek)
+
+  * Allow faster rebuilds in certain cases. Previously, when
+    rebuilding with a different "--prefix" or "--scriptdir", all Bro
+    source files were recompiled.  With this change, only util.cc is
+    recompiled. (Daniel Thayer)
+
 2.1-76 | 2012-10-12 10:32:39 -0700
 
   * Add support for recognizing GridFTP connections as an extension to

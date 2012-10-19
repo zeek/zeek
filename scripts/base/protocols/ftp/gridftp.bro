@@ -68,6 +68,16 @@ export {
 	const data_channel_initial_criteria: function(c: connection): bool &redef;
 }
 
+redef record FTP::Info += {
+	last_auth_requested: string &optional;
+};
+
+event ftp_request(c: connection, command: string, arg: string) &priority=4
+	{
+	if ( command == "AUTH" && c?$ftp )
+		c$ftp$last_auth_requested = arg;
+	}
+
 function size_callback(c: connection, cnt: count): interval
 	{
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
@@ -89,8 +99,10 @@ function size_callback(c: connection, cnt: count): interval
 
 event ssl_established(c: connection) &priority=5
 	{
-	# Add service label to control channels.
-	if ( "FTP" in c$service )
+	# If an FTP client requests AUTH GSSAPI and later an SSL handshake
+	# finishes, it's likely a GridFTP control channel, so add service label.
+	if ( c?$ftp && c$ftp?$last_auth_requested &&
+	     /GSSAPI/ in c$ftp$last_auth_requested )
 		add c$service["gridftp"];
 	}
 

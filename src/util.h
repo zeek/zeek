@@ -91,6 +91,9 @@ void delete_each(T* t)
 		delete *it;
 	}
 
+std::string extract_ip(const std::string& i);
+std::string extract_ip_and_len(const std::string& i, int* len);
+
 std::string get_unescaped_string(const std::string& str);
 std::string get_escaped_string(const std::string& str, bool escape_all);
 

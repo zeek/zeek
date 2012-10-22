@@ -1,10 +1,3 @@
-.. _CMake: http://www.cmake.org
-.. _SWIG: http://www.swig.org
-.. _Xcode: https://developer.apple.com/xcode/
-.. _MacPorts: http://www.macports.org
-.. _Fink: http://www.finkproject.org
-.. _Homebrew: http://mxcl.github.com/homebrew
-.. _bro downloads page: http://bro-ids.org/download/index.html
 
 =================
 Quick Start Guide
@@ -23,181 +16,11 @@ Installation
 
 Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
-source code forms.
-
-Pre-Built Binary Release Packages
----------------------------------
-
-See the `bro downloads page`_ for currently supported/targeted platforms.
-
-* RPM
-
-  .. console::
-
-      sudo yum localinstall Bro-*.rpm
-
-* DEB
-
-  .. console::
-
-      sudo gdebi Bro-*.deb
-
-* MacOS Disk Image with Installer
-
-  Just open the ``Bro-*.dmg`` and then run the ``.pkg`` installer.
-  Everything installed by the package will go into ``/opt/bro``.
-
-The primary install prefix for binary packages is ``/opt/bro``.
-Non-MacOS packages that include BroControl also put variable/runtime
-data (e.g. Bro logs) in ``/var/opt/bro``.
-
-Building From Source
---------------------
-
-Required Dependencies
-~~~~~~~~~~~~~~~~~~~~~
-
-The following dependencies are required to build Bro:
-
-* RPM/RedHat-based Linux:
-
-  .. console::
-
-     sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel file-devel
-
-* DEB/Debian-based Linux:
-
-  .. console::
-
-     sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev libmagic-dev
-
-* FreeBSD
-
-  Most required dependencies should come with a minimal FreeBSD install
-  except for the following.
-
-  .. console::
-
-      sudo pkg_add -r bash cmake swig bison python
-
-  Note that ``bash`` needs to be in ``PATH``, which by default it is
-  not. The FreeBSD package installs the binary into
-  ``/usr/local/bin``.
-
-* Mac OS X
-
-  Compiling source code on Macs requires first downloading Xcode_,
-  then going through its "Preferences..." -> "Downloads" menus to
-  install the "Command Line Tools" component.
-
-  Lion (10.7) and Mountain Lion (10.8) come with all required
-  dependencies except for CMake_, SWIG_, and ``libmagic``.
-
-  Distributions of these dependencies can be obtained from the project
-  websites linked above, but they're also likely available from your
-  preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
-  or Homebrew_).
-
-  Specifically for MacPorts, the ``swig``, ``swig-ruby``, ``swig-python``
-  and ``file`` packages provide the required dependencies.
-
-Optional Dependencies
-~~~~~~~~~~~~~~~~~~~~~
-
-Bro can use libGeoIP for geo-locating IP addresses, and sendmail for
-sending emails.
-
-* RedHat Enterprise Linux:
-
-  .. console::
-
-      sudo yum install geoip-devel sendmail
-
-* CentOS Linux:
-
-  .. console::
-  
-      sudo yum install GeoIP-devel sendmail
-
-* DEB/Debian-based Linux:
-
-  .. console::
-
-      sudo apt-get install libgeoip-dev sendmail
-
-* Ports-based FreeBSD
-
-  .. console::
-
-      sudo pkg_add -r GeoIP
-
-  sendmail is typically already available.
-
-* Mac OS X
-
-  Vanilla OS X installations don't ship with libmagic or libGeoIP, but
-  if installed from your preferred package management system (e.g. MacPorts,
-  Fink, or Homebrew), they should be automatically detected and Bro will compile
-  against them.
-
-Additional steps may be needed to :doc:`get the right GeoIP database <geoip>`
-
-Compiling Bro Source Code
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Bro releases are bundled into source packages for convenience and
-available from the `bro downloads page`_.
-
-The latest Bro development versions are obtainable through git
-repositories hosted at `git.bro-ids.org <http://git.bro-ids.org>`_.  See
-our `git development documentation
-<http://bro-ids.org/development/process.html>`_ for comprehensive
-information on Bro's use of git revision control, but the short story
-for downloading the full source code experience for Bro via git is:
-
-.. console::
-
-    git clone --recursive git://git.bro-ids.org/bro
-
-.. note:: If you choose to clone the ``bro`` repository non-recursively for
-   a "minimal Bro experience", be aware that compiling it depends on
-   BinPAC, which has its own ``binpac`` repository.  Either install it
-   first or initialize/update the cloned ``bro`` repository's
-   ``aux/binpac`` submodule.
-
-See the ``INSTALL`` file included with the source code for more information
-on compiling, but this is the typical way to build and install from source
-(of course, changing the value of the ``--prefix`` option to point to the
-desired root install path):
-
-.. console::
-
-    ./configure --prefix=/desired/install/path
-    make
-    make install
-
-The default installation prefix is ``/usr/local/bro``, which would typically
-require root privileges when doing the ``make install``.
-
-Configure the Run-Time Environment
-----------------------------------
-
-Just remember that you may need to adjust your ``PATH`` environment variable
-according to the platform/shell/package you're using.  For example:
-
-Bourne-Shell Syntax:
-
-.. console::
-
-   export PATH=/usr/local/bro/bin:$PATH
-
-C-Shell Syntax:
-
-.. console::
-
-   setenv PATH /usr/local/bro/bin:$PATH
-
-Or substitute ``/opt/bro/bin`` instead if you installed from a binary package.
+source code forms.  See :doc:`Installing Bro <INSTALL>` for instructions
+on how to install Bro.
+
+.. note:: Below, ``$PREFIX`` is used to reference the Bro installation
+   root directory.
 
 Using BroControl
 ================
@@ -205,9 +28,6 @@ Using BroControl
 BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
 traffic-monitoring cluster.
-
-.. note:: Below, ``$PREFIX`` is used to reference the Bro installation
-   root directory.
 
 A Minimal Starting Configuration
 --------------------------------

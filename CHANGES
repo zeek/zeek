@@ -1,4 +1,102 @@
 
+2.1-84 | 2012-10-19 15:12:56 -0700
+
+  * Added a BiF strptime() to wrap the corresponding C function. (Seth
+    Hall)
+
+2.1-82 | 2012-10-19 15:05:40 -0700
+
+  * Add IPv6 support to signature header conditions. (Jon Siwek)
+
+    - "src-ip" and "dst-ip" conditions can now use IPv6 addresses/subnets.
+      They must be written in colon-hexadecimal representation and enclosed
+      in square brackets (e.g. [fe80::1]).  Addresses #774.
+
+    - "icmp6" is now a valid protocol for use with "ip-proto" and "header"
+      conditions.  This allows signatures to be written that can match
+      against ICMPv6 payloads.  Addresses #880.
+
+    - "ip6" is now a valid protocol for use with the "header" condition.
+      (also the "ip-proto" condition, but it results in a no-op in that
+      case since signatures apply only to the inner-most IP packet when
+      packets are tunneled).  This allows signatures to match specifically
+      against IPv6 packets (whereas "ip" only matches against IPv4 packets).
+
+    - "ip-proto" conditions can now match against IPv6 packets.  Before,
+      IPv6 packets were just silently ignored which meant DPD based on
+      signatures did not function for IPv6 -- protocol analyzers would only
+      get attached to a connection over IPv6 based on the well-known ports
+      set in the "dpd_config" table.
+
+2.1-80 | 2012-10-19 14:48:42 -0700
+
+  * Change how "gridftp" gets added to service field of connection
+    records. In addition to checking for a finished SSL handshake over
+    an FTP connection, it now also requires that the SSL handshake
+    occurs after the FTP client requested AUTH GSSAPI, more
+    specifically identifying the characteristics of GridFTP control
+    channels. Addresses #891. (Jon Siwek)
+
+  * Allow faster rebuilds in certain cases. Previously, when
+    rebuilding with a different "--prefix" or "--scriptdir", all Bro
+    source files were recompiled.  With this change, only util.cc is
+    recompiled. (Daniel Thayer)
+
+2.1-76 | 2012-10-12 10:32:39 -0700
+
+  * Add support for recognizing GridFTP connections as an extension to
+    the standard FTP analyzer. (Jon Siwek)
+
+    This is enabled by default and includes:
+
+      - An analyzer for GSI mechanism of GSSAPI FTP AUTH method. GSI
+        authentication involves an encoded TLS/SSL handshake over the
+        FTP control session. For FTP sessions that attempt GSI
+        authentication, the *service* field of the connection log will
+        include "gridftp" (as well as also "ftp" and "ssl").
+
+      - Add an example of a GridFTP data channel detection script. It
+        relies on the heuristics of GridFTP data channels commonly
+        default to SSL mutual authentication with a NULL bulk cipher
+        and that they usually transfer large datasets (default
+        threshold of script is 1 GB).  The script also defaults to
+        skip_further_processing() after detection to try to save
+        cycles analyzing the large, benign connection.
+
+        For identified GridFTP data channels, the *services* fields of
+        the connection log will include "gridftp-data".
+
+  * Add *client_subject* and *client_issuer_subject* as &log'd fields
+    to SSL::Info record.  Also add *client_cert* and
+    *client_cert_chain* fields to track client cert chain. (Jon Siwek)
+
+  * Add a script in base/protocols/conn/polling that generalizes the
+    process of polling a connection for interesting features. The
+    GridFTP data channel detection script depends on it to monitor
+    bytes transferred. (Jon Siwek)
+
+2.1-68 | 2012-10-12 09:46:41 -0700
+
+  * Rename the Input Framework's update_finished event to end_of_data.
+    It will now not only fire after table-reads have been completed,
+    but also after the last event of a whole-file-read (or
+    whole-db-read, etc.). (Bernhard Amann)
+
+  * Fix for DNS log problem when a DNS response is seen with 0 RRs.
+    (Seth Hall)
+
+2.1-64 | 2012-10-12 09:36:41 -0700
+
+  * Teach --disable-dataseries/--disable-elasticsearch to ./configure.
+    Addresses #877. (Jon Siwek)
+
+  * Add --with-curl option to ./configure. Addresses #877. (Jon Siwek)
+    
+2.1-61 | 2012-10-12 09:32:48 -0700
+
+  * Fix bug in the input framework: the config table did not work.
+    (Bernhard Amann)
+
 2.1-58 | 2012-10-08 10:10:09 -0700
 
   * Fix a problem with non-manager cluster nodes applying

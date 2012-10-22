@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 
 #include "config.h"
 
@@ -41,6 +42,23 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
 	level = 0;
 	}
 
+RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
+	{
+	prot = arg_prot;
+	offset = 0;
+	size = 0;
+	comp = arg_comp;
+	vals = new maskedvalue_list;
+	prefix_vals = arg_v;
+	sibling = 0;
+	child = 0;
+	pattern_rules = 0;
+	pure_rules = 0;
+	ruleset = new IntSet;
+	id = ++idcounter;
+	level = 0;
+	}
+
 Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const
 	{
@@ -62,6 +80,8 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 	vals = new maskedvalue_list;
 	loop_over_list(*h.vals, i)
 		vals->append(new MaskedValue(*(*h.vals)[i]));
+
+	prefix_vals = h.prefix_vals;
 
 	for ( int j = 0; j < Rule::TYPES; ++j )
 		{
@@ -114,6 +134,10 @@ bool RuleHdrTest::operator==(const RuleHdrTest& h)
 		     (*vals)[i]->mask != (*h.vals)[i]->mask )
 			return false;
 
+	for ( size_t i = 0; i < prefix_vals.size(); ++i )
+		if ( ! (prefix_vals[i] == h.prefix_vals[i]) )
+			return false;
+
 	return true;
 	}
 
@@ -128,6 +152,9 @@ void RuleHdrTest::PrintDebug()
 	loop_over_list(*vals, i)
 		fprintf(stderr, " 0x%08x/0x%08x",
 				(*vals)[i]->val, (*vals)[i]->mask);
+
+	for ( size_t i = 0; i < prefix_vals.size(); ++i )
+		fprintf(stderr, " %s", prefix_vals[i].AsString().c_str());
 
 	fprintf(stderr, "\n");
 	}
@@ -410,29 +437,129 @@ static inline uint32 getval(const u_char* data, int size)
 	}
 
 
-// A line which can be inserted into the macros below for debugging
-// fprintf(stderr, "%.06f %08x & %08x %s %08x\n", network_time, v, (mvals)[i]->mask, #op, (mvals)[i]->val);
-
 // Evaluate a value list (matches if at least one value matches).
-#define DO_MATCH_OR( mvals, v, op )	\
-	{	\
-	loop_over_list((mvals), i)	\
-		{	\
-		if ( ((v) & (mvals)[i]->mask) op (mvals)[i]->val )	\
-			goto match;	\
-		}	\
-	goto no_match;	\
+template <typename FuncT>
+static inline bool match_or(const maskedvalue_list& mvals, uint32 v, FuncT comp)
+	{
+	loop_over_list(mvals, i)
+		{
+		if ( comp(v & mvals[i]->mask, mvals[i]->val) )
+			return true;
+		}
+	return false;
+	}
+
+// Evaluate a prefix list (matches if at least one value matches).
+template <typename FuncT>
+static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
+                            FuncT comp)
+	{
+	for ( size_t i = 0; i < prefixes.size(); ++i )
+		{
+		IPAddr masked(a);
+		masked.Mask(prefixes[i].LengthIPv6());
+		if ( comp(masked, prefixes[i].Prefix()) )
+			return true;
+		}
+	return false;
 	}
 
 // Evaluate a value list (doesn't match if any value matches).
-#define DO_MATCH_NOT_AND( mvals, v, op )	\
-	{	\
-	loop_over_list((mvals), i)	\
-		{	\
-		if ( ((v) & (mvals)[i]->mask) op (mvals)[i]->val )	\
-			goto no_match;	\
-		}	\
-	goto match;	\
+template <typename FuncT>
+static inline bool match_not_and(const maskedvalue_list& mvals, uint32 v,
+                                 FuncT comp)
+	{
+	loop_over_list(mvals, i)
+		{
+		if ( comp(v & mvals[i]->mask, mvals[i]->val) )
+			return false;
+		}
+	return true;
+	}
+
+// Evaluate a prefix list (doesn't match if any value matches).
+template <typename FuncT>
+static inline bool match_not_and(const vector<IPPrefix>& prefixes,
+                                 const IPAddr& a, FuncT comp)
+	{
+	for ( size_t i = 0; i < prefixes.size(); ++i )
+		{
+		IPAddr masked(a);
+		masked.Mask(prefixes[i].LengthIPv6());
+		if ( comp(masked, prefixes[i].Prefix()) )
+			return false;
+		}
+	return true;
+	}
+
+static inline bool compare(const maskedvalue_list& mvals, uint32 v,
+                           RuleHdrTest::Comp comp)
+	{
+	switch ( comp ) {
+		case RuleHdrTest::EQ:
+			return match_or(mvals, v, std::equal_to<uint32>());
+			break;
+
+		case RuleHdrTest::NE:
+			return match_not_and(mvals, v, std::equal_to<uint32>());
+			break;
+
+		case RuleHdrTest::LT:
+			return match_or(mvals, v, std::less<uint32>());
+			break;
+
+		case RuleHdrTest::GT:
+			return match_or(mvals, v, std::greater<uint32>());
+			break;
+
+		case RuleHdrTest::LE:
+			return match_or(mvals, v, std::less_equal<uint32>());
+			break;
+
+		case RuleHdrTest::GE:
+			return match_or(mvals, v, std::greater_equal<uint32>());
+			break;
+
+		default:
+			reporter->InternalError("unknown comparison type");
+			break;
+	}
+	return false;
+	}
+
+static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
+                           RuleHdrTest::Comp comp)
+	{
+	switch ( comp ) {
+		case RuleHdrTest::EQ:
+			return match_or(prefixes, a, std::equal_to<IPAddr>());
+			break;
+
+		case RuleHdrTest::NE:
+			return match_not_and(prefixes, a, std::equal_to<IPAddr>());
+			break;
+
+		case RuleHdrTest::LT:
+			return match_or(prefixes, a, std::less<IPAddr>());
+			break;
+
+		case RuleHdrTest::GT:
+			return match_or(prefixes, a, std::greater<IPAddr>());
+			break;
+
+		case RuleHdrTest::LE:
+			return match_or(prefixes, a, std::less_equal<IPAddr>());
+			break;
+
+		case RuleHdrTest::GE:
+			return match_or(prefixes, a, std::greater_equal<IPAddr>());
+			break;
+
+		default:
+			reporter->InternalError("unknown comparison type");
+			break;
+	}
+	return false;
 	}
 
 RuleEndpointState* RuleMatcher::InitEndpoint(Analyzer* analyzer,
@@ -492,66 +619,54 @@ RuleEndpointState* RuleMatcher::InitEndpoint(Analyzer* analyzer,
 
 		if ( ip )
 			{
-			// Get start of transport layer.
-			const u_char* transport = ip->Payload();
-
 			// Descend the RuleHdrTest tree further.
 			for ( RuleHdrTest* h = hdr_test->child; h;
 			      h = h->sibling )
 				{
-				const u_char* data;
+				bool match = false;
 
 				// Evaluate the header test.
 				switch ( h->prot ) {
+				case RuleHdrTest::NEXT:
+					match = compare(*h->vals, ip->NextProto(), h->comp);
+					break;
+
 				case RuleHdrTest::IP:
-					data = (const u_char*) ip->IP4_Hdr();
+					if ( ! ip->IP4_Hdr() )
+						continue;
+
+					match = compare(*h->vals, getval((const u_char*)ip->IP4_Hdr() + h->offset, h->size), h->comp);
+					break;
+
+				case RuleHdrTest::IPv6:
+					if ( ! ip->IP6_Hdr() )
+						continue;
+
+					match = compare(*h->vals, getval((const u_char*)ip->IP6_Hdr() + h->offset, h->size), h->comp);
 					break;
 
 				case RuleHdrTest::ICMP:
+				case RuleHdrTest::ICMPv6:
 				case RuleHdrTest::TCP:
 				case RuleHdrTest::UDP:
-					data = transport;
+					match = compare(*h->vals, getval(ip->Payload() + h->offset, h->size), h->comp);
+					break;
+
+				case RuleHdrTest::IPSrc:
+					match = compare(h->prefix_vals, ip->IPHeaderSrcAddr(), h->comp);
+					break;
+
+				case RuleHdrTest::IPDst:
+					match = compare(h->prefix_vals, ip->IPHeaderDstAddr(), h->comp);
 					break;
 
 				default:
-					data = 0;
 					reporter->InternalError("unknown protocol");
+					break;
 				}
 
-				// ### data can be nil here if it's an
-				// IPv6 packet and we're doing an IP test.
-				if ( ! data )
-					continue;
-
-				// Sorry for the hidden gotos :-)
-				switch ( h->comp ) {
-					case RuleHdrTest::EQ:
-						DO_MATCH_OR(*h->vals, getval(data + h->offset, h->size), ==);
-
-					case RuleHdrTest::NE:
-						DO_MATCH_NOT_AND(*h->vals, getval(data + h->offset, h->size), ==);
-
-					case RuleHdrTest::LT:
-						DO_MATCH_OR(*h->vals, getval(data + h->offset, h->size), <);
-
-					case RuleHdrTest::GT:
-						DO_MATCH_OR(*h->vals, getval(data + h->offset, h->size), >);
-
-					case RuleHdrTest::LE:
-						DO_MATCH_OR(*h->vals, getval(data + h->offset, h->size), <=);
-
-					case RuleHdrTest::GE:
-						DO_MATCH_OR(*h->vals, getval(data + h->offset, h->size), >=);
-
-					default:
-						reporter->InternalError("unknown comparision type");
-				}
-
-no_match:
-				continue;
-
-match:
-				tests.append(h);
+				if ( match )
+					tests.append(h);
 				}
 			}
 		}
@@ -1028,7 +1143,7 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 				Rule* r = Rule::rule_table[set->ids[k] - 1];
 				f->Write(fmt("%s ", r->ID()));
 				}
-			
+
 			f->Write("\n");
 			}
 		}
@@ -1050,8 +1165,11 @@ static Val* get_bro_val(const char* label)
 	}
 
 
-// Converts an atomic Val and appends it to the list
-static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
+// Converts an atomic Val and appends it to the list.  For subnet types,
+// if the prefix_vector param isn't null, appending to that is preferred
+// over appending to the masked val list.
+static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
+                             vector<IPPrefix>* prefix_vector)
 	{
 	MaskedValue* mval = new MaskedValue;
 
@@ -1071,29 +1189,37 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 
 		case TYPE_SUBNET:
 			{
-			const uint32* n;
-			uint32 m[4];
-			v->AsSubNet().Prefix().GetBytes(&n);
-			v->AsSubNetVal()->Mask().CopyIPv6(m);
-
-			for ( unsigned int i = 0; i < 4; ++i )
-				m[i] = ntohl(m[i]);
-
-			bool is_v4_mask = m[0] == 0xffffffff &&
-						m[1] == m[0] && m[2] == m[0];
-
-			if ( v->AsSubNet().Prefix().GetFamily() == IPv4 &&
-			     is_v4_mask )
+			if ( prefix_vector )
 				{
-				mval->val = ntohl(*n);
-				mval->mask = m[3];
+				prefix_vector->push_back(v->AsSubNet());
+				delete mval;
+				return true;
 				}
-
 			else
 				{
-				rules_error("IPv6 subnets not supported");
-				mval->val = 0;
-				mval->mask = 0;
+				const uint32* n;
+				uint32 m[4];
+				v->AsSubNet().Prefix().GetBytes(&n);
+				v->AsSubNetVal()->Mask().CopyIPv6(m);
+
+				for ( unsigned int i = 0; i < 4; ++i )
+					m[i] = ntohl(m[i]);
+
+				bool is_v4_mask = m[0] == 0xffffffff &&
+				                          m[1] == m[0] && m[2] == m[0];
+
+
+				if ( v->AsSubNet().Prefix().GetFamily() == IPv4 && is_v4_mask )
+					{
+					mval->val = ntohl(*n);
+					mval->mask = m[3];
+					}
+				else
+					{
+					rules_error("IPv6 subnets not supported");
+					mval->val = 0;
+					mval->mask = 0;
+					}
 				}
 			}
 			break;
@@ -1108,7 +1234,8 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 	return true;
 	}
 
-void id_to_maskedvallist(const char* id, maskedvalue_list* append_to)
+void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
+                         vector<IPPrefix>* prefix_vector)
 	{
 	Val* v = get_bro_val(id);
 	if ( ! v )
@@ -1118,7 +1245,7 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to)
 		{
 		val_list* vals = v->AsTableVal()->ConvertToPureList()->Vals();
 		loop_over_list(*vals, i )
-			if ( ! val_to_maskedval((*vals)[i], append_to) )
+			if ( ! val_to_maskedval((*vals)[i], append_to, prefix_vector) )
 			{
 				delete_vals(vals);
 				return;
@@ -1128,7 +1255,7 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to)
 		}
 
 	else
-		val_to_maskedval(v, append_to);
+		val_to_maskedval(v, append_to, prefix_vector);
 	}
 
 char* id_to_str(const char* id)

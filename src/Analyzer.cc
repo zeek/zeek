@@ -171,6 +171,7 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Contents_SMB, "CONTENTS_SMB", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_RPC, "CONTENTS_RPC", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_NFS, "CONTENTS_NFS", 0, 0, 0, false },
+	{ AnalyzerTag::FTP_ADAT, "FTP_ADAT", 0, 0, 0, false },
 };
 
 AnalyzerTimer::~AnalyzerTimer()

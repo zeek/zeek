@@ -43,7 +43,7 @@ event bro_init()
 	Input::remove("input");
 	}
 
-event Input::update_finished(name: string, source: string)
+event Input::end_of_data(name: string, source: string)
 	{
 	print outfile, servers[1.2.3.4];
 	print outfile, servers[1.2.3.5];

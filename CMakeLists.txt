@@ -120,7 +120,8 @@ find_package(Lintel)
 find_package(DataSeries)
 find_package(LibXML2)
 
-if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
+if (NOT DISABLE_DATASERIES AND
+    LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
     set(USE_DATASERIES true)
 	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
 	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
@@ -132,13 +133,13 @@ endif()
 
 set(USE_ELASTICSEARCH false)
 set(USE_CURL false)
-find_package(CURL)
+find_package(LibCURL)
 
-if (CURL_FOUND)
+if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
   set(USE_ELASTICSEARCH true)
   set(USE_CURL true)
-  include_directories(BEFORE ${CURL_INCLUDE_DIR})
-  list(APPEND OPTLIBS ${CURL_LIBRARIES})
+  include_directories(BEFORE ${LibCURL_INCLUDE_DIR})
+  list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
 endif()
 
 if (ENABLE_PERFTOOLS_DEBUG)

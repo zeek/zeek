@@ -45,7 +45,7 @@ event bro_init()
 		}
 	}
 
-event Input::update_finished(name: string, source: string)
+event Input::end_of_data(name: string, source: string)
 	{
 	print outfile, name;
 	print outfile, source;

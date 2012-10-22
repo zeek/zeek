@@ -342,6 +342,21 @@ public:
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
 		}
 
+	friend bool operator<=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return addr1 < addr2 || addr1 == addr2;
+		}
+
+	friend bool operator>=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! ( addr1 < addr2 );
+		}
+
+	friend bool operator>(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! ( addr1 <= addr2 );
+		}
+
 	/** Converts the address into the type used internally by the
 	  * inter-thread communication.
 	  */
@@ -583,6 +598,11 @@ public:
 		return net1.Prefix() == net2.Prefix() && net1.Length() == net2.Length();
 		}
 
+	friend bool operator!=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! (net1 == net2);
+		}
+
 	/**
 	 * Comparison operator IP prefixes. This defines a well-defined order for
 	 * IP prefix. However, the order does not necessarily corresponding to their
@@ -598,6 +618,21 @@ public:
 
 		else
 			return false;
+		}
+
+	friend bool operator<=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return net1 < net2 || net1 == net2;
+		}
+
+	friend bool operator>=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! (net1 < net2 );
+		}
+
+	friend bool operator>(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! ( net1 <= net2 );
 		}
 
 private:

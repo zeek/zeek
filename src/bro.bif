@@ -11,6 +11,7 @@
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
+#include <time.h>
 
 #include "digest.h"
 #include "Reporter.h"
@@ -2615,15 +2616,15 @@ function to_double%(str: string%): double
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-	
+
 	double d = strtod(s, &end_s);
-	
+
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		{       
+		{
 		builtin_error("bad conversion to double", @ARG@[0]);
 		d = 0;
-		}     
-	
+		}
+
 	return new Val(d, TYPE_DOUBLE);
 	%}
 
@@ -3284,6 +3285,31 @@ function strftime%(fmt: string, d: time%) : string
 
 	return new StringVal(buffer);
 	%}
+
+
+## Parse a textual representation of a date/time value into a ``time`` type value.
+##
+## fmt: The format string used to parse the following *d* argument. See ``man strftime``
+##      for the syntax.
+##
+## d: The string representing the time.
+##
+## Returns: The time value calculated from parsing *d* with *fmt*.
+function strptime%(fmt: string, d: string%) : time
+	%{
+	const time_t timeval = time_t(NULL);
+	struct tm t = *localtime(&timeval);
+
+	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
+		{
+		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		return new Val(0.0, TYPE_TIME);
+		}
+
+	double ret = mktime(&t);
+	return new Val(ret, TYPE_TIME);
+	%}
+
 
 # ===========================================================================
 #

@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2009-11-18-17-59-51
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1258567191.405770	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258578181.260420	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258579063.557927	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258581768.568451	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258584478.859853	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258600683.934458	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+#close	2009-11-19-03-18-03

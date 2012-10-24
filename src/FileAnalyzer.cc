@@ -3,23 +3,19 @@
 #include "FileAnalyzer.h"
 #include "Reporter.h"
 
-#ifdef HAVE_LIBMAGIC
 magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;
-#endif
 
 File_Analyzer::File_Analyzer(Connection* conn)
 : TCP_ApplicationAnalyzer(AnalyzerTag::File, conn)
 	{
 	buffer_len = 0;
 
-#ifdef HAVE_LIBMAGIC
 	if ( ! magic )
 		{
 		InitMagic(&magic, MAGIC_NONE);
 		InitMagic(&magic_mime, MAGIC_MIME);
 		}
-#endif
 	}
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
@@ -52,13 +48,11 @@ void File_Analyzer::Identify()
 	const char* descr = 0;
 	const char* mime = 0;
 
-#ifdef HAVE_LIBMAGIC
 	if ( magic )
 		descr = magic_buffer(magic, buffer, buffer_len);
 
 	if ( magic_mime )
 		mime = magic_buffer(magic_mime, buffer, buffer_len);
-#endif
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
@@ -68,7 +62,6 @@ void File_Analyzer::Identify()
 	ConnectionEvent(file_transferred, vl);
 	}
 
-#ifdef HAVE_LIBMAGIC
 void File_Analyzer::InitMagic(magic_t* magic, int flags)
 	{
 	*magic = magic_open(flags);
@@ -83,4 +76,3 @@ void File_Analyzer::InitMagic(magic_t* magic, int flags)
 		*magic = 0;
 		}
 	}
-#endif

@@ -1,0 +1,5 @@
+1	/da/home/robin/bro/master/testing/btest/.tmp/coverage.coverage-blacklist/coverage-blacklist.bro, line 13	print cover me;
+1	/da/home/robin/bro/master/testing/btest/.tmp/coverage.coverage-blacklist/coverage-blacklist.bro, line 17	print always executed;
+0	/da/home/robin/bro/master/testing/btest/.tmp/coverage.coverage-blacklist/coverage-blacklist.bro, line 26	print also impossible, but included in code coverage analysis;
+1	/da/home/robin/bro/master/testing/btest/.tmp/coverage.coverage-blacklist/coverage-blacklist.bro, line 29	print success;
+1	/da/home/robin/bro/master/testing/btest/.tmp/coverage.coverage-blacklist/coverage-blacklist.bro, line 5	print first;

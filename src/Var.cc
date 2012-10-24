@@ -202,7 +202,8 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 		Ref(id);
 
 		Stmt* stmt =
-			new ExprStmt(new AssignExpr(new NameExpr(id), init, 0));
+		    new ExprStmt(new AssignExpr(new NameExpr(id), init, 0, 0,
+		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
 		stmt->SetLocationInfo(init->GetLocationInfo());
 
 		return stmt;

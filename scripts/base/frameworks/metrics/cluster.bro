@@ -13,11 +13,11 @@
 module Metrics;
 
 export {
-	## This value allows a user to decide how large of result groups the 
-	## workers should transmit values.
+	## Allows a user to decide how large of result groups the 
+	## workers should transmit values for cluster metric aggregation.
 	const cluster_send_in_groups_of = 50 &redef;
 	
-	## This is the percent of the full threshold value that needs to be met 
+	## The percent of the full threshold value that needs to be met 
 	## on a single worker for that worker to send the value to its manager in
 	## order for it to request a global view for that value.  There is no
 	## requirement that the manager requests a global view for the index
@@ -25,11 +25,11 @@ export {
 	## recently.
 	const cluster_request_global_view_percent = 0.1 &redef;
 	
-	## This event is sent by the manager in a cluster to initiate the 
+	## Event sent by the manager in a cluster to initiate the 
 	## collection of metrics values for a filter.
 	global cluster_filter_request: event(uid: string, id: ID, filter_name: string);
 
-	## This event is sent by nodes that are collecting metrics after receiving
+	## Event sent by nodes that are collecting metrics after receiving
 	## a request for the metric filter from the manager.
 	global cluster_filter_response: event(uid: string, id: ID, filter_name: string, data: MetricTable, done: bool);
 
@@ -40,12 +40,12 @@ export {
 	global cluster_index_request: event(uid: string, id: ID, filter_name: string, index: Index);
 
 	## This event is sent by nodes in response to a 
-	## :bro:id:`cluster_index_request` event.
+	## :bro:id:`Metrics::cluster_index_request` event.
 	global cluster_index_response: event(uid: string, id: ID, filter_name: string, index: Index, val: count);
 
 	## This is sent by workers to indicate that they crossed the percent of the 
 	## current threshold by the percentage defined globally in 
-	## :bro:id:`cluster_request_global_view_percent`
+	## :bro:id:`Metrics::cluster_request_global_view_percent`
 	global cluster_index_intermediate_response: event(id: Metrics::ID, filter_name: string, index: Metrics::Index, val: count);
 
 	## This event is scheduled internally on workers to send result chunks.

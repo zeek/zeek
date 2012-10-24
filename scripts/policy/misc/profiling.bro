@@ -2,14 +2,13 @@
 
 module Profiling;
 
+## Set the profiling output file.
 redef profiling_file = open_log_file("prof");
 
-export {
-	## Cheap profiling every 15 seconds.
-	redef profiling_interval = 15 secs &redef;
-}
+## Set the cheap profiling interval.
+redef profiling_interval = 15 secs;
 
-# Expensive profiling every 5 minutes.
+## Set the expensive profiling interval.
 redef expensive_profiling_multiple = 20;
 
 event bro_init()

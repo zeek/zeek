@@ -11,9 +11,7 @@ Architecture
 
 The figure below illustrates the main components of a Bro cluster.
 
-.. {{git_pull('bro:doc/deployment.png')}}
-
-.. image:: deployment.bro.png
+.. image:: images/deployment.png
 
 Tap
 ***
@@ -47,7 +45,7 @@ This is the Bro process that sniffs network traffic and does protocol analysis o
 
 The rule of thumb we have followed recently is to allocate approximately 1 core for every 80Mbps of traffic that is being analyzed, however this estimate could be extremely traffic mix specific.  It has generally worked for mixed traffic with many users and servers.  For example, if your traffic peaks around 2Gbps (combined) and you want to handle traffic at peak load, you may want to have 26 cores available (2048 / 80 == 25.6).  If the 80Mbps estimate works for your traffic, this could be handled by 3 physical hosts dedicated to being workers with each one containing dual 6-core processors.  
 
-Once a flow based load balancer is put into place this model is extremely easy to scale as well so it’s recommended that you guess at the amount of hardware you will need to fully analyze your traffic.  If it turns out that you need more, it’s relatively easy to easy increase the size of the cluster in most cases.
+Once a flow based load balancer is put into place this model is extremely easy to scale as well so it’s recommended that you guess at the amount of hardware you will need to fully analyze your traffic.  If it turns out that you need more, it’s relatively easy to increase the size of the cluster in most cases.
 
 Frontend Options
 ----------------
@@ -60,7 +58,7 @@ Discrete hardware flow balancers
 cPacket
 ^^^^^^^
 
-If you are monitoring one or more 10G physical interfaces, the recommended solution is to use either a cFlow or cVu device from cPacket because they are currently being used very successfully at a number of sites.  These devices will perform layer-2 load balancing by rewriting the destination ethernet MAC address to cause each packet associated with a particular flow to have the same destination MAC.  The packets can then be passed directly to a monitoring host where each worker has a BPF filter to limit it's visibility to only that stream of flows or onward to a commodity switch to split the traffic out to multiple 1G interfaces for the workers.  This can ultimately greatly reduce costs since workers can use relatively inexpensive 1G interfaces.
+If you are monitoring one or more 10G physical interfaces, the recommended solution is to use either a cFlow or cVu device from cPacket because they are currently being used very successfully at a number of sites.  These devices will perform layer-2 load balancing by rewriting the destination ethernet MAC address to cause each packet associated with a particular flow to have the same destination MAC.  The packets can then be passed directly to a monitoring host where each worker has a BPF filter to limit its visibility to only that stream of flows or onward to a commodity switch to split the traffic out to multiple 1G interfaces for the workers.  This can ultimately greatly reduce costs since workers can use relatively inexpensive 1G interfaces.
 
 OpenFlow Switches
 ^^^^^^^^^^^^^^^^^
@@ -78,7 +76,7 @@ The PF_RING software for Linux has a “clustering” feature which will do flow
 Netmap
 ^^^^^^
 
-FreeBSD has an in-progress project named Netmap which will enabled flow based load balancing as well.  When it becomes viable for real world use, this document will be updated.
+FreeBSD has an in-progress project named Netmap which will enable flow based load balancing as well.  When it becomes viable for real world use, this document will be updated.
 
 Click! Software Router
 ^^^^^^^^^^^^^^^^^^^^^^

@@ -137,7 +137,7 @@ bool PersistenceSerializer::CheckForFile(UnserialInfo* info, const char* file,
 
 bool PersistenceSerializer::ReadAll(bool is_init, bool delete_files)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 

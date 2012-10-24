@@ -124,7 +124,7 @@ nb_dns_init(char *errstr)
 	nd->s = -1;
 
 	/* XXX should be able to init static hostent struct some other way */
-	(void)gethostbyname("localhost.");
+	(void)gethostbyname("localhost");
 
 	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
 		snprintf(errstr, NB_DNS_ERRSIZE, "res_init() failed");
@@ -186,7 +186,7 @@ _nb_dns_cmpsockaddr(register struct sockaddr *sa1,
 #endif
 	static const char serr[] = "answer from wrong nameserver (%d)";
 
-	if (sa1->sa_family != sa1->sa_family) {
+	if (sa1->sa_family != sa2->sa_family) {
 		snprintf(errstr, NB_DNS_ERRSIZE, serr, 1);
 		return (-1);
 	}
@@ -381,7 +381,7 @@ nb_dns_addr_request2(register struct nb_dns_info *nd, char *addrp,
 			size -= i;
 			cp += i;
 		}
-		snprintf(cp, size, "ip6.int");
+		snprintf(cp, size, "ip6.arpa");
 		break;
 #endif
 

@@ -1,0 +1,2 @@
+error in /da/home/robin/bro/master/testing/btest/.tmp/bifs.to_double_from_string/to_double_from_string.bro, line 7 and /da/home/robin/bro/master/testing/btest/.tmp/bifs.to_double_from_string/to_double_from_string.bro, line 15: bad conversion to double (to_double(d) and NotADouble)
+error in /da/home/robin/bro/master/testing/btest/.tmp/bifs.to_double_from_string/to_double_from_string.bro, line 7 and /da/home/robin/bro/master/testing/btest/.tmp/bifs.to_double_from_string/to_double_from_string.bro, line 16: bad conversion to double (to_double(d) and )

@@ -57,7 +57,7 @@ public:
 	RecordVal* Rotate();
 
 	// Set &rotate_interval, &rotate_size, &postprocessor,
-	// &disable_print_hook, and &raw_output attributes.
+	// and &raw_output attributes.
 	void SetAttrs(Attributes* attrs);
 
 	// Returns the current size of the file, after fresh stat'ing.
@@ -87,7 +87,13 @@ protected:
 
 	BroFile()	{ Init(); }
 	void Init();
-	bool Open(FILE* f = 0);	// if file is given, it's an open file to use
+
+	/**
+	 * If file is given, it's an open file to use already.
+	 * If file is not given and mode is, the filename will be opened with that
+	 * access mode.
+	 */
+	bool Open(FILE* f = 0, const char* mode = 0);
 
 	BroFile* Prev()	{ return prev; }
 	BroFile* Next()	{ return next; }

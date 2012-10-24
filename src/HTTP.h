@@ -8,6 +8,7 @@
 #include "MIME.h"
 #include "binpac_bro.h"
 #include "ZIP.h"
+#include "IPAddr.h"
 
 enum CHUNKED_TRANSFER_STATE {
 	NON_CHUNKED_TRANSFER,
@@ -29,10 +30,8 @@ public:
 			int expect_body);
 	~HTTP_Entity()
 		{
-#ifdef HAVE_LIBZ
 		if ( zip )
 			{ zip->Done(); delete zip; }
-#endif
 		}
 
 	void EndOfData();
@@ -55,9 +54,7 @@ protected:
 	int64_t header_length;
 	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-#ifdef HAVE_LIBZ
 	ZIP_Analyzer* zip;
-#endif
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 
@@ -216,7 +213,7 @@ protected:
 
 	const BroString* UnansweredRequestMethod();
 
-	void ParseVersion(data_chunk_t ver, const uint32* host, bool user_agent);
+	void ParseVersion(data_chunk_t ver, const IPAddr& host, bool user_agent);
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 

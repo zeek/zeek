@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
+#include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -27,6 +28,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <libgen.h>
+#include <openssl/md5.h>
+#include <openssl/sha.h>
 
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
@@ -35,14 +38,85 @@
 #include "input.h"
 #include "util.h"
 #include "Obj.h"
-#include "md5.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
 
+/**
+ * Takes a string, unescapes all characters that are escaped as hex codes
+ * (\x##) and turns them into the equivalent ascii-codes. Returns a string
+ * containing no escaped values
+ *
+ * @param str string to unescape
+ * @return A str::string without escaped characters.
+ */
+std::string get_unescaped_string(const std::string& arg_str)
+	{
+	const char* str = arg_str.c_str();
+	char* buf = new char [arg_str.length() + 1]; // it will at most have the same length as str.
+	char* bufpos = buf;
+	size_t pos = 0;
+
+	while ( pos < arg_str.length() )
+		{
+		if ( str[pos] == '\\' && str[pos+1] == 'x' &&
+		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) )
+			{
+				*bufpos = (decode_hex(str[pos+2]) << 4) +
+					decode_hex(str[pos+3]);
+
+				pos += 4;
+				bufpos++;
+			}
+		else
+			*bufpos++ = str[pos++];
+		}
+
+	*bufpos = 0;
+	string outstring(buf, bufpos - buf);
+
+	delete [] buf;
+
+	return outstring;
+	}
+
+/**
+ * Takes a string, escapes characters into equivalent hex codes (\x##), and
+ * returns a string containing all escaped values.
+ *
+ * @param str string to escape
+ * @param escape_all If true, all characters are escaped. If false, only
+ * characters are escaped that are either whitespace or not printable in
+ * ASCII.
+ * @return A std::string containing a list of escaped hex values of the form
+ * \x## */
+std::string get_escaped_string(const std::string& str, bool escape_all)
+	{
+	char tbuf[16];
+	string esc = "";
+
+	for ( size_t i = 0; i < str.length(); ++i )
+		{
+		char c = str[i];
+
+		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+			{
+			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+			esc += tbuf;
+			}
+		else
+			esc += c;
+		}
+
+	return esc;
+	}
+
 char* copy_string(const char* s)
 	{
+	if ( ! s )
+		return 0;
+
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
 	return c;
@@ -344,7 +418,10 @@ template<class T> int atoi_n(int len, const char* s, const char** end, int base,
 
 // Instantiate the ones we need.
 template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
+template int atoi_n<uint16_t>(int len, const char* s, const char** end, int base, uint16_t& result);
+template int atoi_n<uint32_t>(int len, const char* s, const char** end, int base, uint32_t& result);
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
+template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
 
 char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 	{
@@ -514,24 +591,6 @@ bool is_dir(const char* path)
 	return S_ISDIR(st.st_mode);
 	}
 
-void hash_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
-	{
-	md5_state_s h;
-	md5_init(&h);
-	md5_append(&h, bytes, size);
-	md5_finish(&h, digest);
-	}
-
-const char* md5_digest_print(const unsigned char digest[16])
-	{
-	static char digest_print[256];
-
-	for ( int i = 0; i < 16; ++i )
-		snprintf(digest_print + i * 2, 3, "%02x", digest[i]);
-
-	return digest_print;
-	}
-
 int hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
 
@@ -540,12 +599,12 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	if ( ! hmac_key_set )
 		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
-	hash_md5(size, bytes, digest);
+	MD5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
 		digest[i] ^= shared_hmac_md5_key[i];
 
-	hash_md5(16, digest, digest);
+	MD5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32* seed,
@@ -616,18 +675,27 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
 
-static void bro_srand(unsigned int seed, bool deterministic)
+static void bro_srandom(unsigned int seed, bool deterministic)
 	{
 	bro_rand_state = seed;
 	bro_rand_determistic = deterministic;
 
-	srand(seed);
+	srandom(seed);
+	}
+
+void bro_srandom(unsigned int seed)
+	{
+	if ( bro_rand_determistic )
+		bro_rand_state = seed;
+	else
+		srandom(seed);
 	}
 
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 16;
 	uint32 buf[bufsiz];
+	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 
@@ -658,7 +726,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			{
 			int amt = read(fd, buf + pos,
 					sizeof(uint32) * (bufsiz - pos));
-			close(fd);
+			safe_close(fd);
 
 			if ( amt > 0 )
 				pos += amt / sizeof(uint32);
@@ -688,11 +756,11 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			seeds_done = true;
 		}
 
-	bro_srand(seed, seeds_done);
+	bro_srandom(seed, seeds_done);
 
 	if ( ! hmac_key_set )
 		{
-		hash_md5(sizeof(buf), (u_char*) buf, shared_hmac_md5_key);
+		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
 		hmac_key_set = 1;
 		}
 
@@ -1065,18 +1133,8 @@ const char* log_file_name(const char* tag)
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
-double calc_next_rotate(double interval, const char* rotate_base_time)
+double parse_rotate_base_time(const char* rotate_base_time)
 	{
-	double current = network_time;
-
-	// Calculate start of day.
-	time_t teatime = time_t(current);
-
-	struct tm t;
-	t = *localtime(&teatime);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
-
 	double base = -1;
 
 	if ( rotate_base_time && rotate_base_time[0] != '\0' )
@@ -1087,6 +1145,19 @@ double calc_next_rotate(double interval, const char* rotate_base_time)
 		else
 			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
 		}
+
+	return base;
+	}
+
+double calc_next_rotate(double current, double interval, double base)
+	{
+	// Calculate start of day.
+	time_t teatime = time_t(current);
+
+	struct tm t;
+	t = *localtime_r(&teatime, &t);
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
@@ -1137,7 +1208,7 @@ void _set_processing_status(const char* status)
 		len -= n;
 		}
 
-	close(fd);
+	safe_close(fd);
 
 	errno = old_errno;
 	}
@@ -1262,9 +1333,64 @@ uint64 calculate_unique_id(size_t pool)
 	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
+bool safe_write(int fd, const char* data, int len)
+	{
+	while ( len > 0 )
+		{
+		int n = write(fd, data, len);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		len -= n;
+		}
+
+	return true;
+	}
+
+void safe_close(int fd)
+	{
+	/*
+	 * Failure cases of close(2) are ...
+	 * EBADF: Indicative of programming logic error that needs to be fixed, we
+	 *        should always be attempting to close a valid file descriptor.
+	 * EINTR: Ignore signal interruptions, most implementations will actually
+	 *        reclaim the open descriptor and POSIX standard doesn't leave many
+	 *        options by declaring the state of the descriptor as "unspecified".
+	 *        Attempting to inspect actual state or re-attempt close() is not
+	 *        thread safe.
+	 * EIO:   Again the state of descriptor is "unspecified", but don't recover
+	 *        from an I/O error, safe_write() won't either.
+	 *
+	 * Note that we don't use the reporter here to allow use from different threads.
+	 */
+	if ( close(fd) < 0 && errno != EINTR )
+		{
+		char buf[128];
+		strerror_r(errno, buf, sizeof(buf));
+		fprintf(stderr, "safe_close error %d: %s\n", errno, buf);
+		abort();
+		}
+	}
+
 void out_of_memory(const char* where)
 	{
-	reporter->FatalError("out of memory in %s.\n", where);
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( reporter )
+		// Guess that might fail here if memory is really tight ...
+		reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)

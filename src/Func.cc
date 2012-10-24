@@ -29,7 +29,6 @@
 
 #include <algorithm>
 
-#include "md5.h"
 #include "Base64.h"
 #include "Stmt.h"
 #include "Scope.h"
@@ -101,7 +100,7 @@ Func* Func::Unserialize(UnserialInfo* info)
 		if ( ! (id->HasVal() && id->ID_Val()->Type()->Tag() == TYPE_FUNC) )
 			{
 			info->s->Error(fmt("ID %s is not a built-in", name));
-			return false;
+			return 0;
 			}
 
 		Unref(f);
@@ -330,7 +329,17 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				bodies[i].stmts->GetLocationInfo());
 
 		Unref(result);
-		result = bodies[i].stmts->Exec(f, flow);
+
+		try
+			{
+			result = bodies[i].stmts->Exec(f, flow);
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Already reported, but we continue exec'ing remaining bodies.
+			continue;
+			}
 
 		if ( f->HasDelayed() )
 			{
@@ -523,11 +532,13 @@ void builtin_error(const char* msg, BroObj* arg)
 
 #include "bro.bif.func_h"
 #include "logging.bif.func_h"
+#include "input.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 
 #include "bro.bif.func_def"
 #include "logging.bif.func_def"
+#include "input.bif.func_def"
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
@@ -542,6 +553,7 @@ void init_builtin_funcs()
 
 #include "bro.bif.func_init"
 #include "logging.bif.func_init"
+#include "input.bif.func_init"
 #include "reporter.bif.func_init"
 #include "strings.bif.func_init"
 

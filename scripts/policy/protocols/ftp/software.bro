@@ -12,8 +12,10 @@ module FTP;
 
 export {
 	redef enum Software::Type += {
-		FTP_CLIENT,
-		FTP_SERVER,
+		## Identifier for FTP clients in the software framework.
+		CLIENT,
+		## Not currently implemented.
+		SERVER,
 	};
 }
 
@@ -21,7 +23,6 @@ event ftp_request(c: connection, command: string, arg: string) &priority=4
 	{
 	if ( command == "CLNT" )
 		{
-		local si = Software::parse(arg, c$id$orig_h, FTP_CLIENT);
-		Software::found(c$id, si);
+		Software::found(c$id, [$unparsed_version=arg, $host=c$id$orig_h, $software_type=CLIENT]);
 		}
 	}

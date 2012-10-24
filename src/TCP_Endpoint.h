@@ -3,6 +3,8 @@
 #ifndef tcpendpoint_h
 #define tcpendpoint_h
 
+#include "IPAddr.h"
+
 typedef enum {
 	TCP_ENDPOINT_INACTIVE,	// no SYN (or other packets) seen for this side
 	TCP_ENDPOINT_SYN_SENT,	// SYN seen, but no ack
@@ -128,8 +130,8 @@ public:
 	uint32 checksum_base;
 
 	double start_time, last_time;
-	const uint32* src_addr; // the other endpoint
-	const uint32* dst_addr; // this endpoint
+	IPAddr src_addr; // the other endpoint
+	IPAddr dst_addr; // this endpoint
 	uint32 window; // current congestion window (*scaled*, not pre-scaling)
 	int window_scale;  // from the TCP option
 	uint32 window_ack_seq; // at which ack_seq number did we record 'window'

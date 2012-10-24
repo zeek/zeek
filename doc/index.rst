@@ -1,50 +1,90 @@
+.. Bro documentation master file
 
-
+=================
 Bro Documentation
 =================
 
-`Getting Started <{{git('bro:doc/quickstart.rst')}}>`_
-    A quick introduction into using Bro 2.x.
+Guides
+------
 
-`Bro 1.5 to 2.0 Upgrade Guide <{{git('bro:doc/upgrade.rst')}}>`_
-    Guidelines and notes about upgrading from Bro 1.5 to 2.x. Lots of
-    things have changed, so make sure to read this when upgrading.
+.. toctree::
+   :maxdepth: 1
 
-`BroControl <{{git('broctl:doc/broctl.rst')}}>`_
-    An interactive console for managing Bro installations.
-
-`Script Reference <{{autodoc_bro_scripts}}/index.html>`_ 
-    A complete reference of all policy scripts shipped with Bro.
-
-`FAQ <{{docroot}}/documentation/faq.html>`_
-    A list with frequently asked questions.
-
-`How to Report a Problem <{{docroot}}/documentation/reporting-problems.html>`_
-    Some advice for when you see Bro doing something you believe it
-    shouldn't.
+   INSTALL
+   quickstart
+   upgrade
+   faq
+   reporting-problems
 
 Frameworks
 ----------
 
-Bro comes with a number of frameworks, some of which are described in
-more detail here:
+.. toctree::
+   :maxdepth: 1
 
-`Notice <{{git('bro:doc/notice.rst')}}>`_
-    The notice framework.
-
-`Logging <{{git('bro:doc/logging.rst')}}>`_
-    Customizing and extensing Bro's logging.
-
-`Cluster <{{git('bro:doc/cluster.rst')}}>`_
-    Setting up a Bro Cluster when a single box can't handle the traffic anymore.
-        
-`Signatures <{{git('bro:doc/signatures.rst')}}>`_ 
-    Bro has support for traditional NIDS signatures as well.
+   notice
+   logging
+   input
+   cluster
+   signatures
 
 How-Tos
 -------
 
-We also collect more specific How-Tos on specific topics:
+.. toctree::
+   :maxdepth: 1
 
-`Using GeoIP in Bro scripts <{{git('bro:doc/geoip.rst')}}>`_
-    Installation and usage of the the GeoIP library.
+   geoip
+
+Script Reference
+----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   scripts/packages
+   scripts/index
+   scripts/builtins
+   scripts/bifs
+
+Other Bro Components
+--------------------
+
+The following are snapshots of documentation for components that come
+with this version of Bro (|version|). Since they can also be used
+independently, see the `download page
+<http://bro-ids.org/download/index.html>`_ for documentation of any
+current, independent component releases.
+
+.. toctree::
+   :maxdepth: 1
+
+   BinPAC - A protocol parser generator <components/binpac/README>
+   Broccoli - The Bro Client Communication Library (README) <components/broccoli/README>
+   Broccoli - User Manual <components/broccoli/broccoli-manual>
+   Broccoli Python Bindings <components/broccoli-python/README>
+   Broccoli Ruby Bindings <components/broccoli-ruby/README>
+   BroControl - Interactive Bro management shell <components/broctl/README>
+   Bro-Aux - Small auxiliary tools for Bro <components/bro-aux/README>
+   BTest - A unit testing framework <components/btest/README>
+   Capstats - Command-line packet statistic tool <components/capstats/README>
+   PySubnetTree - Python module for CIDR lookups<components/pysubnettree/README>
+   trace-summary - Script for generating break-downs of network traffic <components/trace-summary/README>
+
+The `Broccoli API Reference <broccoli-api/index.html>`_ may also be of
+interest.
+
+Other Indices and References
+----------------------------
+
+* :ref:`General Index <genindex>`
+* `Notice Index <bro-noticeindex.html>`_
+* :ref:`search`
+
+Internal References
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   scripts/internal

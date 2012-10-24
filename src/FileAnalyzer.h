@@ -5,9 +5,7 @@
 
 #include "TCP.h"
 
-#ifdef HAVE_LIBMAGIC
 #include <magic.h>
-#endif
 
 class File_Analyzer : public TCP_ApplicationAnalyzer {
 public:
@@ -31,12 +29,10 @@ protected:
 	char buffer[BUFFER_SIZE];
 	int buffer_len;
 
-#ifdef HAVE_LIBMAGIC
 	static void InitMagic(magic_t* magic, int flags);
 
 	static magic_t magic;
 	static magic_t magic_mime;
-#endif
 };
 
 #endif

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#open	2012-07-20-01-49-19
+#fields	x	y	z
+#types	string	string	string
+\x2d	-	(empty)
+#close	2012-07-20-01-49-19

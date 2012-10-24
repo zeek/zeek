@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ftp
+#open	2012-02-15-17-43-07
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	user	password	command	arg	mime_type	mime_desc	file_size	reply_code	reply_msg	tags	extraction_file
+#types	time	string	addr	port	addr	port	string	string	string	string	string	string	count	count	string	table[string]	file
+1329327787.396984	UWkUyAuUGXf	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49185	2001:470:4867:99::21	21	anonymous	test	RETR	ftp://[2001:470:4867:99::21]/robots.txt	-	-	77	226	Transfer complete.	-	-
+1329327795.463946	UWkUyAuUGXf	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49185	2001:470:4867:99::21	21	anonymous	test	RETR	ftp://[2001:470:4867:99::21]/robots.txt	-	-	77	226	Transfer complete.	-	-
+#close	2012-02-15-17-43-24

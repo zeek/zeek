@@ -26,6 +26,7 @@
 @load misc/capture-loss.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
+@load misc/stats.bro
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
@@ -59,4 +60,5 @@
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
+@load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro

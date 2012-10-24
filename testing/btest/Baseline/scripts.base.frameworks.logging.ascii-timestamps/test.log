@@ -1,5 +1,9 @@
 #separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
+#open	2012-07-20-01-49-20
 #fields	data
 #types	time
 1234567890.000000
@@ -10,3 +14,4 @@
 1234567890.000010
 1234567890.000001
 1234567890.000000
+#close	2012-07-20-01-49-20

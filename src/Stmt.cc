@@ -258,6 +258,8 @@ static BroFile* print_stdout = 0;
 
 Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
+	RegisterAccess();
+
 	if ( ! print_stdout )
 		print_stdout = new BroFile(stdout);
 
@@ -941,7 +943,10 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 		{
 		const type_list* indices = e->Type()->AsTableType()->IndexTypes();
 		if ( indices->length() != loop_vars->length() )
+			{
 			e->Error("wrong index size");
+			return;
+			}
 
 		for ( int i = 0; i < indices->length(); i++ )
 			{

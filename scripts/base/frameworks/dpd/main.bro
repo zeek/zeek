@@ -3,18 +3,19 @@
 
 module DPD;
 
-## Add the DPD signatures to the signature framework.
-redef signature_files += "base/frameworks/dpd/dpd.sig";
+@load-sigs ./dpd.sig
 
 export {
+	## Add the DPD logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## The record type defining the columns to log in the DPD logging stream.
 	type Info: record {
 		## Timestamp for when protocol analysis failed.
 		ts:             time            &log;
 		## Connection unique ID.
 		uid:            string          &log;
-		## Connection ID.
+		## Connection ID containing the 4-tuple which identifies endpoints.
 		id:             conn_id         &log;
 		## Transport protocol for the violation.
 		proto:          transport_proto &log;
@@ -103,5 +104,8 @@ event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=-5
 	{
 	if ( c?$dpd )
+		{
 		Log::write(DPD::LOG, c$dpd);
+		delete c$dpd;
+		}
 	}

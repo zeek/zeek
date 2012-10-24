@@ -43,9 +43,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	header_length = 0;
 	deliver_body = (http_entity_data != 0);
 	encoding = IDENTITY;
-#ifdef HAVE_LIBZ
 	zip = 0;
-#endif
 	}
 
 void HTTP_Entity::EndOfData()
@@ -53,7 +51,6 @@ void HTTP_Entity::EndOfData()
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f: end of data\n", network_time);
 
-#ifdef HAVE_LIBZ
 	if ( zip )
 		{
 		zip->Done();
@@ -61,7 +58,6 @@ void HTTP_Entity::EndOfData()
 		zip = 0;
 		encoding = IDENTITY;
 		}
-#endif
 
 	if ( body_length )
 		http_message->MyHTTP_Analyzer()->
@@ -179,7 +175,6 @@ private:
 
 void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 	{
-#ifdef HAVE_LIBZ
 	if ( encoding == GZIP || encoding == DEFLATE )
 		{
 		ZIP_Analyzer::Method method =
@@ -198,7 +193,6 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		zip->NextStream(len, (const u_char*) data, false);
 		}
 	else
-#endif
 		DeliverBodyClear(len, data, trailing_CRLF);
 	}
 
@@ -450,9 +444,7 @@ void HTTP_Entity::SubmitAllHeaders()
 	// content-length headers or if connection is to be closed afterwards
 	// anyway.
 	else if ( http_message->MyHTTP_Analyzer()->IsConnectionClose ()
-#ifdef HAVE_LIBZ
 		  || encoding == GZIP || encoding == DEFLATE
-#endif
 		 )
 		{
 		// FIXME: Using INT_MAX is kind of a hack here.  Better
@@ -1551,7 +1543,7 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, MIME_Header* h)
 		}
 	}
 
-void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const uint32* host,
+void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 				bool user_agent)
 	{
 	int len = ver.length;

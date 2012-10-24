@@ -1,0 +1,12 @@
+[logging::writer::None]
+  path=ssh
+  rotation_interval=3600
+  rotation_base=300
+  config[foo] = bar
+  config[foo2] = bar2
+  field id.orig_p: port
+  field id.resp_h: addr
+  field id.resp_p: port
+  field status: string
+  field country: string
+

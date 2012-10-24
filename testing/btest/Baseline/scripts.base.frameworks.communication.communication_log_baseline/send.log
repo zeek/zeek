@@ -1,0 +1,24 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	communication
+#open	2012-07-20-01-49-40
+#fields	ts	peer	src_name	connected_peer_desc	connected_peer_addr	connected_peer_port	level	message
+#types	time	string	string	string	addr	port	string	string
+1342748980.737451	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] added peer
+1342748980.747149	bro	child	-	-	-	info	[#1/127.0.0.1:47757] connected
+1342748980.748489	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer connected
+1342748980.748489	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: version
+1342748980.750749	bro	script	-	-	-	info	connection established
+1342748980.750749	bro	script	-	-	-	info	requesting events matching /^?(NOTHING)$?/
+1342748980.750749	bro	script	-	-	-	info	accepting state
+1342748980.752225	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: handshake
+1342748980.752225	bro	parent	-	-	-	info	warning: no events to request
+1342748980.753384	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer_description is bro
+1342748980.793108	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer supports keep-in-cache; using that
+1342748980.793108	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: running
+1342748980.793108	bro	parent	-	-	-	info	terminating...
+1342748980.796454	bro	child	-	-	-	info	terminating
+1342748980.797536	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] closing connection
+#close	2012-07-20-01-49-40

@@ -1,0 +1,48 @@
+#! /usr/bin/awk -f
+#
+# A diff canonifier that removes all X.509 Distinguished Name subject fields
+# because that output can differ depending on installed OpenSSL version.
+
+BEGIN { FS="\t"; OFS="\t"; s_col = -1; i_col = -1; cs_col = -1; ci_col = -1 }
+
+/^#fields/ {
+    for ( i = 2; i < NF; ++i )
+        {
+        if ( $i == "subject" )
+            s_col = i-1;
+        if ( $i == "issuer_subject" )
+            i_col = i-1;
+        if ( $i == "client_subject" )
+            cs_col = i-1;
+        if ( $i == "client_issuer_subject" )
+            ci_col = i-1;
+        }
+}
+
+s_col >= 0 {
+    if ( $s_col != "-" )
+        # Mark that it's set, but ignore content.
+        $s_col = "+";
+}
+
+i_col >= 0 {
+    if ( $i_col != "-" )
+        # Mark that it's set, but ignore content.
+        $i_col = "+";
+}
+
+cs_col >= 0 {
+    if ( $cs_col != "-" )
+        # Mark that it's set, but ignore content.
+        $cs_col = "+";
+}
+
+ci_col >= 0 {
+    if ( $ci_col != "-" )
+        # Mark that it's set, but ignore content.
+        $ci_col = "+";
+}
+
+{
+    print;
+}

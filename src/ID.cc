@@ -372,7 +372,7 @@ ID* ID::Unserialize(UnserialInfo* info)
 
 		Ref(id);
 		global_scope()->Insert(id->Name(), id);
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		heap_checker->IgnoreObject(id);
 #endif
 		}

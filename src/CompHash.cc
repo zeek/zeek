@@ -107,40 +107,18 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 	case TYPE_INTERNAL_ADDR:
 		{
-		// Use uint32 instead of int, because 'int' is not
-		// guaranteed to be 32-bit.
 		uint32* kp = AlignAndPadType<uint32>(kp0);
-#ifdef BROv6
-		const addr_type av = v->AsAddr();
-		kp[0] = av[0];
-		kp[1] = av[1];
-		kp[2] = av[2];
-		kp[3] = av[3];
+		v->AsAddr().CopyIPv6(kp);
 		kp1 = reinterpret_cast<char*>(kp+4);
-#else
-		*kp = v->AsAddr();
-		kp1 = reinterpret_cast<char*>(kp+1);
-#endif
 		}
 		break;
 
 	case TYPE_INTERNAL_SUBNET:
 		{
 		uint32* kp = AlignAndPadType<uint32>(kp0);
-#ifdef BROv6
-		const subnet_type* sv = v->AsSubNet();
-		kp[0] = sv->net[0];
-		kp[1] = sv->net[1];
-		kp[2] = sv->net[2];
-		kp[3] = sv->net[3];
-		kp[4] = sv->width;
+		v->AsSubNet().Prefix().CopyIPv6(kp);
+		kp[4] = v->AsSubNet().Length();
 		kp1 = reinterpret_cast<char*>(kp+5);
-#else
-		const subnet_type* sv = v->AsSubNet();
-		kp[0] = sv->net;
-		kp[1] = sv->width;
-		kp1 = reinterpret_cast<char*>(kp+2);
-#endif
 		}
 		break;
 
@@ -155,14 +133,16 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		{
-		if ( v->Type()->Tag() == TYPE_FUNC )
+		switch ( v->Type()->Tag() ) {
+		case TYPE_FUNC:
 			{
 			uint32* kp = AlignAndPadType<uint32>(kp0);
 			*kp = v->AsFunc()->GetUniqueFuncID();
 			kp1 = reinterpret_cast<char*>(kp+1);
+			break;
 			}
 
-		else if ( v->Type()->Tag() == TYPE_RECORD )
+		case TYPE_RECORD:
 			{
 			char* kp = kp0;
 			RecordVal* rv = v->AsRecordVal();
@@ -186,14 +166,87 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 				}
 
 			kp1 = kp;
+			break;
 			}
-		else
+
+		case TYPE_TABLE:
+			{
+			int* kp = AlignAndPadType<int>(kp0);
+			TableVal* tv = v->AsTableVal();
+			ListVal* lv = tv->ConvertToList();
+			*kp = tv->Size();
+			kp1 = reinterpret_cast<char*>(kp+1);
+			for ( int i = 0; i < tv->Size(); ++i )
+				{
+				Val* key = lv->Index(i);
+				if ( ! (kp1 = SingleValHash(type_check, kp1, key->Type(), key,
+				                            false)) )
+					return 0;
+
+				if ( ! v->Type()->IsSet() )
+					{
+					Val* val = tv->Lookup(key);
+					if ( ! (kp1 = SingleValHash(type_check, kp1, val->Type(),
+								    val, false)) )
+						return 0;
+					}
+				}
+			}
+			break;
+
+		case TYPE_VECTOR:
+			{
+			unsigned int* kp = AlignAndPadType<unsigned int>(kp0);
+			VectorVal* vv = v->AsVectorVal();
+			VectorType* vt = v->Type()->AsVectorType();
+			vector<Val*>* indices = v->AsVector();
+			*kp = vv->Size();
+			kp1 = reinterpret_cast<char*>(kp+1);
+			for ( unsigned int i = 0; i < vv->Size(); ++i )
+				{
+				Val* val = vv->Lookup(i);
+				unsigned int* kp = AlignAndPadType<unsigned int>(kp1);
+				*kp = i;
+				kp1 = reinterpret_cast<char*>(kp+1);
+				kp = AlignAndPadType<unsigned int>(kp1);
+				*kp = val ? 1 : 0;
+				kp1 = reinterpret_cast<char*>(kp+1);
+
+				if ( val )
+					{
+					if ( ! (kp1 = SingleValHash(type_check, kp1,
+					                            vt->YieldType(), val, false)) )
+						return 0;
+					}
+				}
+			}
+			break;
+
+		case TYPE_LIST:
+			{
+			int* kp = AlignAndPadType<int>(kp0);
+			ListVal* lv = v->AsListVal();
+			*kp = lv->Length();
+			kp1 = reinterpret_cast<char*>(kp+1);
+			for ( int i = 0; i < lv->Length(); ++i )
+				{
+				Val* v = lv->Index(i);
+				if ( ! (kp1 = SingleValHash(type_check, kp1, v->Type(), v,
+				                            false)) )
+					return 0;
+				}
+			}
+			break;
+
+		default:
 			{
 			reporter->InternalError("bad index type in CompositeHash::SingleValHash");
 			return 0;
 			}
 		}
-		break;
+
+		break; // case TYPE_INTERNAL_VOID/OTHER
+		}
 
 	case TYPE_INTERNAL_STRING:
 		{
@@ -283,26 +336,16 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	if ( type_check && v->Type()->InternalType() != singleton_tag )
 		return 0;
 
-	uint32 tmp_addr;
 	switch ( singleton_tag ) {
 	case TYPE_INTERNAL_INT:
 	case TYPE_INTERNAL_UNSIGNED:
 		return new HashKey(v->ForceAsInt());
 
 	case TYPE_INTERNAL_ADDR:
-#ifdef BROv6
-		return new HashKey(v->AsAddr(), 4);
-#else
-		return new HashKey(v->AsAddr());
-#endif
+		return v->AsAddr().GetHashKey();
 
 	case TYPE_INTERNAL_SUBNET:
-#ifdef BROv6
-		return new HashKey((const uint32*) v->AsSubNet(), 5);
-#else
-		return new HashKey((const uint32*) v->AsSubNet(), 2);
-
-#endif
+		return v->AsSubNet().GetHashKey();
 
 	case TYPE_INTERNAL_DOUBLE:
 		return new HashKey(v->InternalDouble());
@@ -350,22 +393,13 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 		break;
 
 	case TYPE_INTERNAL_ADDR:
-#ifdef BROv6
 		sz = SizeAlign(sz, sizeof(uint32));
 		sz += sizeof(uint32) * 3;	// to make a total of 4 words
-#else
-		sz = SizeAlign(sz, sizeof(uint32));
-#endif
 		break;
 
 	case TYPE_INTERNAL_SUBNET:
-#ifdef BROv6
 		sz = SizeAlign(sz, sizeof(uint32));
 		sz += sizeof(uint32) * 4;	// to make a total of 5 words
-#else
-		sz = SizeAlign(sz, sizeof(uint32));
-		sz += sizeof(uint32);	// make room for width
-#endif
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
@@ -375,10 +409,14 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		{
-		if ( bt->Tag() == TYPE_FUNC )
+		switch ( bt->Tag() ) {
+		case TYPE_FUNC:
+			{
 			sz = SizeAlign(sz, sizeof(uint32));
+			break;
+			}
 
-		else if ( bt->Tag() == TYPE_RECORD )
+		case TYPE_RECORD:
 			{
 			const RecordVal* rv = v ? v->AsRecordVal() : 0;
 			RecordType* rt = bt->AsRecordType();
@@ -396,14 +434,81 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				if ( ! sz )
 					return 0;
 				}
+
+			break;
 			}
-		else
+
+		case TYPE_TABLE:
+			{
+			if ( ! v )
+				return (optional && ! calc_static_size) ? sz : 0;
+
+			sz = SizeAlign(sz, sizeof(int));
+			TableVal* tv = const_cast<TableVal*>(v->AsTableVal());
+			ListVal* lv = tv->ConvertToList();
+			for ( int i = 0; i < tv->Size(); ++i )
+				{
+				Val* key = lv->Index(i);
+				sz = SingleTypeKeySize(key->Type(), key, type_check, sz, false,
+				                       calc_static_size);
+				if ( ! sz ) return 0;
+				if ( ! bt->IsSet() )
+					{
+					Val* val = tv->Lookup(key);
+					sz = SingleTypeKeySize(val->Type(), val, type_check, sz,
+					                       false, calc_static_size);
+					if ( ! sz ) return 0;
+					}
+				}
+
+			break;
+			}
+
+		case TYPE_VECTOR:
+			{
+			if ( ! v )
+				return (optional && ! calc_static_size) ? sz : 0;
+
+			sz = SizeAlign(sz, sizeof(unsigned int));
+			VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
+			for ( unsigned int i = 0; i < vv->Size(); ++i )
+				{
+				Val* val = vv->Lookup(i);
+				sz = SizeAlign(sz, sizeof(unsigned int));
+				sz = SizeAlign(sz, sizeof(unsigned int));
+				if ( val )
+					sz = SingleTypeKeySize(bt->AsVectorType()->YieldType(),
+					                       val, type_check, sz, false,
+					                       calc_static_size);
+				if ( ! sz ) return 0;
+				}
+
+			break;
+			}
+
+		case TYPE_LIST:
+			{
+			sz = SizeAlign(sz, sizeof(int));
+			ListVal* lv = const_cast<ListVal*>(v->AsListVal());
+			for ( int i = 0; i < lv->Length(); ++i )
+				{
+				sz = SingleTypeKeySize(lv->Index(i)->Type(), lv->Index(i),
+				                       type_check, sz, false, calc_static_size);
+				if ( ! sz) return 0;
+				}
+
+			break;
+			}
+
+		default:
 			{
 			reporter->InternalError("bad index type in CompositeHash::CompositeHash");
 			return 0;
 			}
 		}
-		break;
+
+		break; // case TYPE_INTERNAL_VOID/OTHER
+		}
 
 	case TYPE_INTERNAL_STRING:
 		if ( ! v )
@@ -602,16 +707,13 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 	case TYPE_INTERNAL_ADDR:
 		{
 		const uint32* const kp = AlignType<uint32>(kp0);
-#ifdef BROv6
-		const_addr_type addr_val = kp;
 		kp1 = reinterpret_cast<const char*>(kp+4);
-#else
-		const_addr_type addr_val = *kp;
-		kp1 = reinterpret_cast<const char*>(kp+1);
-#endif
+
+		IPAddr addr(IPv6, kp, IPAddr::Network);
+
 		switch ( tag ) {
 		case TYPE_ADDR:
-			pval = new AddrVal(addr_val);
+			pval = new AddrVal(addr);
 			break;
 
 		default:
@@ -624,19 +726,17 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 	case TYPE_INTERNAL_SUBNET:
 		{
-		const subnet_type* const kp =
-			reinterpret_cast<const subnet_type*>(
-				AlignType<uint32>(kp0));
-		kp1 = reinterpret_cast<const char*>(kp+1);
-
-		pval = new SubNetVal(kp->net, kp->width);
+		const uint32* const kp = AlignType<uint32>(kp0);
+		kp1 = reinterpret_cast<const char*>(kp+5);
+		pval = new SubNetVal(kp, kp[4]);
 		}
 		break;
 
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		{
-		if ( t->Tag() == TYPE_FUNC )
+		switch ( t->Tag() ) {
+		case TYPE_FUNC:
 			{
 			const uint32* const kp = AlignType<uint32>(kp0);
 			kp1 = reinterpret_cast<const char*>(kp+1);
@@ -662,8 +762,9 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				  pval->Type()->Tag() != TYPE_FUNC )
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
 			}
+			break;
 
-		else if ( t->Tag() == TYPE_RECORD )
+		case TYPE_RECORD:
 			{
 			const char* kp = kp0;
 			RecordType* rt = t->AsRecordType();
@@ -700,10 +801,90 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			pval = rv;
 			kp1 = kp;
 			}
-		else
+			break;
+
+		case TYPE_TABLE:
+			{
+			int n;
+			const int* const kp = AlignType<int>(kp0);
+			n = *kp;
+			kp1 = reinterpret_cast<const char*>(kp+1);
+			TableType* tt = t->AsTableType();
+			TableVal* tv = new TableVal(tt);
+			vector<Val*> keys, values;
+			for ( int i = 0; i < n; ++i )
+				{
+				Val* key;
+				kp1 = RecoverOneVal(k, kp1, k_end, tt->Indices(), key, false);
+				keys.push_back(key);
+				if ( ! t->IsSet() )
+					{
+					Val* value;
+					kp1 = RecoverOneVal(k, kp1, k_end, tt->YieldType(), value,
+					                    false);
+					values.push_back(value);
+					}
+				}
+
+			for ( int i = 0; i < n; ++i )
+				tv->Assign(keys[i], t->IsSet() ? 0 : values[i]);
+
+			pval = tv;
+			}
+			break;
+
+		case TYPE_VECTOR:
+			{
+			unsigned int n;
+			const unsigned int* kp = AlignType<unsigned int>(kp0);
+			n = *kp;
+			kp1 = reinterpret_cast<const char*>(kp+1);
+			VectorType* vt = t->AsVectorType();
+			VectorVal* vv = new VectorVal(vt);
+			for ( unsigned int i = 0; i < n; ++i )
+				{
+				kp = AlignType<unsigned int>(kp1);
+				unsigned int index = *kp;
+				kp1 = reinterpret_cast<const char*>(kp+1);
+				kp = AlignType<unsigned int>(kp1);
+				unsigned int have_val = *kp;
+				kp1 = reinterpret_cast<const char*>(kp+1);
+				Val* value = 0;
+				if ( have_val )
+					kp1 = RecoverOneVal(k, kp1, k_end, vt->YieldType(), value,
+					                    false);
+				vv->Assign(index, value, 0);
+				}
+
+			pval = vv;
+			}
+			break;
+
+		case TYPE_LIST:
+			{
+			int n;
+			const int* const kp = AlignType<int>(kp0);
+			n = *kp;
+			kp1 = reinterpret_cast<const char*>(kp+1);
+			TypeList* tl = t->AsTypeList();
+			ListVal* lv = new ListVal(TYPE_ANY);
+			for ( int i = 0; i < n; ++i )
+				{
+				Val* v;
+				BroType* it = (*tl->Types())[i];
+				kp1 = RecoverOneVal(k, kp1, k_end, it, v, false);
+				lv->Append(v);
+				}
+
+			pval = lv;
+			}
+			break;
+
+		default:
 			{
 			reporter->InternalError("bad index type in CompositeHash::DescribeKey");
 			}
+		}
 		}
 		break;
 

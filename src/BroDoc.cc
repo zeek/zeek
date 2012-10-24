@@ -85,12 +85,13 @@ void BroDoc::AddImport(const std::string& s)
 	if ( ext_pos != std::string::npos )
 		lname = lname.substr(0, ext_pos);
 
-	const char* full_filename = "<error>";
-	const char* subpath = "<error>";
+	const char* full_filename = NULL;
+	const char* subpath = NULL;
+
 	FILE* f = search_for_file(lname.c_str(), "bro", &full_filename, true,
 	                          &subpath);
 
-	if ( f )
+	if ( f && full_filename && subpath )
 		{
 		fclose(f);
 
@@ -126,12 +127,14 @@ void BroDoc::AddImport(const std::string& s)
 			}
 
 		delete [] tmp;
-		delete [] full_filename;
-		delete [] subpath;
 		}
+
 	else
 		fprintf(stderr, "Failed to document '@load %s' in file: %s\n",
 		        s.c_str(), reST_filename.c_str());
+
+	delete [] full_filename;
+	delete [] subpath;
 	}
 
 void BroDoc::SetPacketFilter(const std::string& s)
@@ -170,13 +173,26 @@ void BroDoc::WriteDocFile() const
 	{
 	WriteToDoc(".. Automatically generated.  Do not edit.\n\n");
 
+	WriteToDoc(":tocdepth: 3\n\n");
+
 	WriteSectionHeading(doc_title.c_str(), '=');
 
-	WriteToDoc("\n:download:`Original Source File <%s>`\n\n",
-		downloadable_filename.c_str());
+	WriteStringList(".. bro:namespace:: %s\n", modules);
 
-	WriteSectionHeading("Overview", '-');
-	WriteStringList("%s\n", "%s\n\n", summary);
+	WriteToDoc("\n");
+
+	// WriteSectionHeading("Overview", '-');
+	WriteStringList("%s\n", summary);
+
+	WriteToDoc("\n");
+
+	if ( ! modules.empty() )
+		{
+		WriteToDoc(":Namespace%s: ", (modules.size() > 1 ? "s" : ""));
+		// WriteStringList(":bro:namespace:`%s`", modules);
+		WriteStringList("``%s``, ", "``%s``", modules);
+		WriteToDoc("\n");
+		}
 
 	if ( ! imports.empty() )
 		{
@@ -196,36 +212,37 @@ void BroDoc::WriteDocFile() const
 		WriteToDoc("\n");
 		}
 
+	WriteToDoc(":Source File: :download:`%s`\n",
+		downloadable_filename.c_str());
+
 	WriteToDoc("\n");
 
 	WriteInterface("Summary", '~', '#', true, true);
 
-	if ( ! modules.empty() )
-		{
-		WriteSectionHeading("Namespaces", '~');
-		WriteStringList(".. bro:namespace:: %s\n", modules);
-		WriteToDoc("\n");
-		}
-
 	if ( ! notices.empty() )
-		WriteBroDocObjList(notices, "Notices", '~');
+		WriteBroDocObjList(notices, "Notices", '#');
 
-	WriteInterface("Public Interface", '-', '~', true, false);
+	if ( port_analysis.size() || packet_filter.size() )
+		WriteSectionHeading("Configuration Changes", '#');
 
 	if ( ! port_analysis.empty() )
 		{
-		WriteSectionHeading("Port Analysis", '-');
-		WriteToDoc(":ref:`More Information <common_port_analysis_doc>`\n\n");
-		WriteStringList("%s", port_analysis);
+		WriteSectionHeading("Port Analysis", '^');
+		WriteToDoc("Loading this script makes the following changes to "
+		           ":bro:see:`dpd_config`.\n\n");
+		WriteStringList("%s, ", "%s", port_analysis);
 		}
 
 	if ( ! packet_filter.empty() )
 		{
-		WriteSectionHeading("Packet Filter", '-');
-		WriteToDoc(":ref:`More Information <common_packet_filter_doc>`\n\n");
+		WriteSectionHeading("Packet Filter", '^');
+		WriteToDoc("Loading this script makes the following changes to "
+		           ":bro:see:`capture_filters`.\n\n");
 		WriteToDoc("Filters added::\n\n");
 		WriteToDoc("%s\n", packet_filter.c_str());
 		}
+
+	WriteInterface("Detailed Interface", '~', '#', true, false);
 
 #if 0   // Disabled for now.
 	BroDocObjList::const_iterator it;
@@ -241,7 +258,7 @@ void BroDoc::WriteDocFile() const
 		}
 
 	if ( hasPrivateIdentifiers )
-		WriteInterface("Private Interface", '-', '~', false, false);
+		WriteInterface("Private Interface", '~', '#', false, false);
 #endif
 	}
 

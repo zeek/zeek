@@ -52,6 +52,7 @@ public:
 
 	void RegisterAccess() const	{ last_access = network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
+	uint32 GetAccessCount() const { return access_count; }
 
 	virtual void Describe(ODesc* d) const;
 

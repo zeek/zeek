@@ -15,6 +15,7 @@ public:
 		pid_32bit = false;
 		include_locations = true;
 		new_cache_strategy = false;
+		broccoli_peer = false;
 		}
 
 	SerialInfo(const SerialInfo& info)
@@ -28,6 +29,7 @@ public:
 		pid_32bit = info.pid_32bit;
 		include_locations = info.include_locations;
 		new_cache_strategy = info.new_cache_strategy;
+		broccoli_peer = info.broccoli_peer;
 		}
 
 	// Parameters that control serialization.
@@ -45,6 +47,11 @@ public:
 
 	// If true, we support keeping objs in cache permanently.
 	bool new_cache_strategy;
+
+	// If true, we're connecting to a Broccoli. If so, serialization
+	// specifics may be adapted for functionality Broccoli does not
+	// support.
+	bool broccoli_peer;
 
 	ChunkedIO::Chunk* chunk; // chunk written right before the serialization
 
@@ -70,6 +77,7 @@ public:
 		print = 0;
 		pid_32bit = false;
 		new_cache_strategy = false;
+		broccoli_peer = false;
 		}
 
 	UnserialInfo(const UnserialInfo& info)
@@ -86,6 +94,7 @@ public:
 		print = info.print;
 		pid_32bit = info.pid_32bit;
 		new_cache_strategy = info.new_cache_strategy;
+		broccoli_peer = info.broccoli_peer;
 		}
 
 	// Parameters that control unserialization.
@@ -105,6 +114,11 @@ public:
 
 	// If true, we support keeping objs in cache permanently.
 	bool new_cache_strategy;
+
+	// If true, we're connecting to a Broccoli. If so, serialization
+	// specifics may be adapted for functionality Broccoli does not
+	// support.
+	bool broccoli_peer;
 
 	// If a global ID already exits, of these policies is used.
 	enum {

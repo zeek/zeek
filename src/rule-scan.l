@@ -1,24 +1,38 @@
 %{
-typedef unsigned int uint32;
-
 #include <string.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "RuleMatcher.h"
+#include "IPAddr.h"
+#include "util.h"
 #include "rule-parse.h"
 
 int rules_line_number = 0;
+
+static string extract_ipv6(string s)
+	{
+	if ( s.substr(0, 3) == "[0x" )
+		s = s.substr(3, s.find("]") - 3);
+	else
+		s = s.substr(1, s.find("]") - 1);
+
+	return s;
+	}
 %}
 
 %x PS
 
+OWS	[ \t]*
 WS	[ \t]+
 D	[0-9]+
 H	[0-9a-fA-F]+
+HEX {H}
 STRING	\"([^\n\"]|\\\")*\"
-ID	[0-9a-zA-Z_-]+
+ID	([0-9a-zA-Z_-]+::)*[0-9a-zA-Z_-]+
+IP6	("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/
 META	\.[^ \t]+{WS}[^\n]+
 PID	([0-9a-zA-Z_-]|"::")+
@@ -34,6 +48,19 @@ PID	([0-9a-zA-Z_-]|"::")+
 	\n	++rules_line_number;
 }
 
+{IP6}	{
+	rules_lval.prefixval = new IPPrefix(IPAddr(extract_ipv6(yytext)), 128);
+	return TOK_IP6;
+	}
+
+{IP6}{OWS}"/"{OWS}{D}	{
+	char* l = strchr(yytext, '/');
+	*l++ = '\0';
+	int len = atoi(l);
+	rules_lval.prefixval = new IPPrefix(IPAddr(extract_ipv6(yytext)), len);
+	return TOK_IP6;
+	}
+
 [!\]\[{}&:,]	return rules_text[0];
 
 "<="	{ rules_lval.val = RuleHdrTest::LE; return TOK_COMP; }
@@ -45,7 +72,9 @@ PID	([0-9a-zA-Z_-]|"::")+
 "!="	{ rules_lval.val = RuleHdrTest::NE; return TOK_COMP; }
 
 ip	{ rules_lval.val = RuleHdrTest::IP; return TOK_PROT; }
+ip6	{ rules_lval.val = RuleHdrTest::IPv6; return TOK_PROT; }
 icmp	{ rules_lval.val = RuleHdrTest::ICMP; return TOK_PROT; }
+icmp6	{ rules_lval.val = RuleHdrTest::ICMPv6; return TOK_PROT; }
 tcp	{ rules_lval.val = RuleHdrTest::TCP; return TOK_PROT; }
 udp	{ rules_lval.val = RuleHdrTest::UDP; return TOK_PROT; }
 
@@ -123,7 +152,7 @@ http	{ rules_lval.val = Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
 ftp	{ rules_lval.val = Rule::FTP; return TOK_PATTERN_TYPE; }
 finger	{ rules_lval.val = Rule::FINGER; return TOK_PATTERN_TYPE; }
 
-{D}("."{D}){3}"/"{D}	{
+{D}("."{D}){3}{OWS}"/"{OWS}{D}	{
 	char* s = strchr(yytext, '/');
 	*s++ = '\0';
 

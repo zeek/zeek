@@ -60,7 +60,7 @@ public:
 	virtual void Access(Val* val, const StateAccess& sa)
 		{ QueueTrigger(this); }
 
-	virtual const char* Name();
+	virtual const char* Name() const;
 
 	static void QueueTrigger(Trigger* trigger);
 

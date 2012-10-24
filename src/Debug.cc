@@ -142,7 +142,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 	if ( ! loc.filename )
 		{
-		loc.filename = "<no filename>";
+		loc.filename = copy_string("<no filename>");
 		loc.last_line = 0;
 		}
 
@@ -721,7 +721,6 @@ static char* get_prompt(bool reset_counter = false)
 
 string get_context_description(const Stmt* stmt, const Frame* frame)
 	{
-	char buf[1024];
 	ODesc d;
 	const BroFunc* func = frame->GetFunction();
 
@@ -735,14 +734,18 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 		loc = *stmt->GetLocationInfo();
 	else
 		{
-		loc.filename = "<no filename>";
+		loc.filename = copy_string("<no filename>");
 		loc.last_line = 0;
 		}
 
-	safe_snprintf(buf, sizeof(buf), "In %s at %s:%d",
+	size_t buf_size = strlen(d.Description()) + strlen(loc.filename) + 1024;
+	char* buf = new char[buf_size];
+	safe_snprintf(buf, buf_size, "In %s at %s:%d",
 		      d.Description(), loc.filename, loc.last_line);
 
-	return string(buf);
+	string retval(buf);
+	delete [] buf;
+	return retval;
 	}
 
 int dbg_handle_debug_input()
@@ -924,6 +927,8 @@ bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow)
 // Evaluates the given expression in the context of the currently selected
 // frame.  Returns the resulting value, or nil if none (or there was an error).
 Expr* g_curr_debug_expr = 0;
+const char* g_curr_debug_error = 0;
+bool in_debug = false;
 
 // ### fix this hardwired access to external variables etc.
 struct yy_buffer_state;
@@ -969,6 +974,11 @@ Val* dbg_eval_expr(const char* expr)
 	Val* result = 0;
 	if ( yyparse() )
 		{
+		if ( g_curr_debug_error )
+			debug_msg("Parsing expression '%s' failed: %s\n", expr, g_curr_debug_error);
+		else
+			debug_msg("Parsing expression '%s' failed\n", expr);
+
 		if ( g_curr_debug_expr )
 			{
 			delete g_curr_debug_expr;
@@ -983,6 +993,9 @@ Val* dbg_eval_expr(const char* expr)
 
 	delete g_curr_debug_expr;
 	g_curr_debug_expr = 0;
+	delete [] g_curr_debug_error;
+	g_curr_debug_error = 0;
+	in_debug = false;
 
 	return result;
 	}

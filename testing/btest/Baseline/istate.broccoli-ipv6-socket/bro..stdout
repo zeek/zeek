@@ -1,0 +1,9 @@
+handshake done with peer
+bro_addr(1.2.3.4)
+bro_subnet(10.0.0.0/16)
+bro_addr(2607:f8b0:4009:802::1014)
+bro_subnet(2607:f8b0::/32)
+broccoli_addr(1.2.3.4)
+broccoli_subnet(10.0.0.0/16)
+broccoli_addr(2607:f8b0:4009:802::1014)
+broccoli_subnet(2607:f8b0::/32)

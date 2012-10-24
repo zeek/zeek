@@ -55,33 +55,18 @@ flow DHCP_Flow(is_orig: bool) {
 		vector<DHCP_Option*>::const_iterator ptr;
 
 		// Requested IP address to the server.
-#ifdef BROv6
-		::uint32 req_addr[4], serv_addr[4];
-
-		req_addr[0] = req_addr[1] = req_addr[2] = req_addr[3] = 0;
-		serv_addr[0] = serv_addr[1] = serv_addr[2] = serv_addr[3] = 0;
-#else
-		addr_type req_addr = 0, serv_addr = 0;
-#endif
+		::uint32 req_addr = 0, serv_addr = 0;
 
 		for ( ptr = options->begin();
 		       ptr != options->end() && ! (*ptr)->last(); ++ptr )
 			{
 			switch ( (*ptr)->code() ) {
 			case REQ_IP_OPTION:
-#ifdef BROv6
-				req_addr[3] = htonl((*ptr)->info()->req_addr());
-#else
 				req_addr = htonl((*ptr)->info()->req_addr());
-#endif
 				break;
 
 			case SERV_ID_OPTION:
-#ifdef BROv6
-				serv_addr[3] = htonl((*ptr)->info()->serv_addr());
-#else
 				serv_addr = htonl((*ptr)->info()->serv_addr());
-#endif
 				break;
 			}
 			}
@@ -91,13 +76,14 @@ flow DHCP_Flow(is_orig: bool) {
 		case DHCPDISCOVER:
 			BifEvent::generate_dhcp_discover(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
-					dhcp_msg_val_->Ref(), req_addr);
+					dhcp_msg_val_->Ref(), new AddrVal(req_addr));
 			break;
 
 		case DHCPREQUEST:
 			BifEvent::generate_dhcp_request(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				dhcp_msg_val_->Ref(), req_addr, serv_addr);
+				dhcp_msg_val_->Ref(), new AddrVal(req_addr),
+				new AddrVal(serv_addr));
 			break;
 
 		case DHCPDECLINE:
@@ -129,15 +115,7 @@ flow DHCP_Flow(is_orig: bool) {
 		// RFC 1533 allows a list of router addresses.
 		TableVal* router_list = 0;
 
-#ifdef BROv6
-		::uint32 subnet_mask[4], serv_addr[4];
-
-		subnet_mask[0] = subnet_mask[1] =
-			subnet_mask[2] = subnet_mask[3] = 0;
-		serv_addr[0] = serv_addr[1] = serv_addr[2] = serv_addr[3] = 0;
-#else
-		addr_type subnet_mask = 0, serv_addr = 0;
-#endif
+		::uint32 subnet_mask = 0, serv_addr = 0;
 
 		uint32 lease = 0;
 
@@ -146,13 +124,7 @@ flow DHCP_Flow(is_orig: bool) {
 			{
 			switch ( (*ptr)->code() ) {
 			case  SUBNET_OPTION:
-#ifdef BROv6
-				subnet_mask[0] =
-					subnet_mask[1] = subnet_mask[2] = 0;
-				subnet_mask[3] = htonl((*ptr)->info()->mask());
-#else
 				subnet_mask = htonl((*ptr)->info()->mask());
-#endif
 				break;
 
 			case  ROUTER_OPTION:
@@ -170,14 +142,8 @@ flow DHCP_Flow(is_orig: bool) {
 					vector<uint32>* rlist =
 						(*ptr)->info()->router_list();
 					uint32 raddr = (*rlist)[i];
-#ifdef BROv6
-					::uint32 tmp_addr[4];
-					tmp_addr[0] = tmp_addr[1] = tmp_addr[2] = 0;
-					tmp_addr[3] = htonl(raddr);
-#else
 					::uint32 tmp_addr;
 					tmp_addr = htonl(raddr);
-#endif
 					// index starting from 1
 					Val* index = new Val(i + 1, TYPE_COUNT);
 					router_list->Assign(index, new AddrVal(tmp_addr));
@@ -191,11 +157,7 @@ flow DHCP_Flow(is_orig: bool) {
 				break;
 
 			case  SERV_ID_OPTION:
-#ifdef BROv6
-				serv_addr[3] = htonl((*ptr)->info()->serv_addr());
-#else
 				serv_addr = htonl((*ptr)->info()->serv_addr());
-#endif
 				break;
 			}
 			}
@@ -204,15 +166,15 @@ flow DHCP_Flow(is_orig: bool) {
 		case DHCPOFFER:
 			BifEvent::generate_dhcp_offer(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
-					dhcp_msg_val_->Ref(), subnet_mask,
-					router_list, lease, serv_addr);
+					dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
+					router_list, lease, new AddrVal(serv_addr));
 			break;
 
 		case DHCPACK:
 			BifEvent::generate_dhcp_ack(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
-					dhcp_msg_val_->Ref(), subnet_mask,
-					router_list, lease, serv_addr);
+					dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
+					router_list, lease, new AddrVal(serv_addr));
 			break;
 
 		case DHCPNAK:

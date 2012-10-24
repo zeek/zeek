@@ -1,51 +1,76 @@
 ##! The logging this script does is primarily focused on logging FTP commands
 ##! along with metadata.  For example, if files are transferred, the argument
 ##! will take on the full path that the client is at along with the requested 
-##! file name.  
-##! 
-##! TODO:
-##!
-##! * Handle encrypted sessions correctly (get an example?)
+##! file name.
 
 @load ./utils-commands
 @load base/utils/paths
 @load base/utils/numbers
+@load base/utils/addrs
 
 module FTP;
 
 export {
+	## The FTP protocol logging stream identifier.
 	redef enum Log::ID += { LOG };
-
+	
+	## List of commands that should have their command/response pairs logged.
+	const logged_commands = {
+		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
+	} &redef;
+	
 	## This setting changes if passwords used in FTP sessions are captured or not.
 	const default_capture_password = F &redef;
 	
+	## User IDs that can be considered "anonymous".
+	const guest_ids = { "anonymous", "ftp", "ftpuser", "guest" } &redef;
+	
 	type Info: record {
+		## Time when the command was sent.
 		ts:               time        &log;
+		## Unique ID for the connection.
 		uid:              string      &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id     &log;
+		## User name for the current FTP session.
 		user:             string      &log &default="<unknown>";
+		## Password for the current FTP session if captured.
 		password:         string      &log &optional;
+		## Command given by the client.
 		command:          string      &log &optional;
+		## Argument for the command if one is given.
 		arg:              string      &log &optional;
-		                              
+		
+		## Libmagic "sniffed" file type if the command indicates a file transfer.
 		mime_type:        string      &log &optional;
+		## Libmagic "sniffed" file description if the command indicates a file transfer.
 		mime_desc:        string      &log &optional;
+		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;
+		
+		## Reply code from the server in response to the command.
 		reply_code:       count       &log &optional;
+		## Reply message from the server in response to the command.
 		reply_msg:        string      &log &optional;
+		## Arbitrary tags that may indicate a particular attribute of this command.
 		tags:             set[string] &log &default=set();
 		
-		## By setting the CWD to '/.', we can indicate that unless something
+		## Current working directory that this session is in.  By making
+		## the default value '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
 		cwd:                string  &default="/.";
+		
+		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
+		## Queue for commands that have been sent but not yet responded to 
+		## are tracked here.
 		pending_commands:   PendingCmds;
 		
-		## This indicates if the session is in active or passive mode.
+		## Indicates if the session is in active or passive mode.
 		passive:            bool &default=F;
 		
-		## This determines if the password will be captured for this request.
+		## Determines if the password will be captured for this request.
 		capture_password:   bool &default=default_capture_password;
 	};
 
@@ -56,22 +81,12 @@ export {
 		y: count;
 		z: count;
 	};
-
-	# TODO: add this back in some form.  raise a notice again?
-	#const excessive_filename_len = 250 &redef;
-	#const excessive_filename_trunc_len = 32 &redef;
-
-	## These are user IDs that can be considered "anonymous".
-	const guest_ids = { "anonymous", "ftp", "guest" } &redef;
 	
-	## The list of commands that should have their command/response pairs logged.
-	const logged_commands = {
-		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
-	} &redef;
-	
-	## This function splits FTP reply codes into the three constituent 
+	## Parse FTP reply codes into the three constituent single digit values.
 	global parse_ftp_reply_code: function(code: count): ReplyCode;
-
+	
+	## Event that can be handled to access the :bro:type:`FTP::Info`
+	## record as it is sent on to the logging framework.
 	global log_ftp: event(rec: Info);
 }
 
@@ -81,11 +96,11 @@ redef record connection += {
 };
 
 # Configure DPD
-const ports = { 21/tcp } &redef;
-redef capture_filters += { ["ftp"] = "port 21" };
+const ports = { 21/tcp, 2811/tcp } &redef; # 2811/tcp is GridFTP.
+redef capture_filters += { ["ftp"] = "port 21 and port 2811" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
-redef likely_server_ports += { 21/tcp };
+redef likely_server_ports += { 21/tcp, 2811/tcp };
 
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
@@ -148,12 +163,16 @@ function ftp_message(s: Info)
 	# or it's a deliberately logged command.
 	if ( |s$tags| > 0 || (s?$cmdarg && s$cmdarg$cmd in logged_commands) )
 		{
-		if ( s?$password && to_lower(s$user) !in guest_ids )
+		if ( s?$password && 
+		     ! s$capture_password && 
+		     to_lower(s$user) !in guest_ids )
+			{
 			s$password = "<hidden>";
+			}
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), build_path_compressed(s$cwd, arg));
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
@@ -258,7 +277,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			{
 			c$ftp$passive=T;
 			
-			if ( code == 229 && data$h == 0.0.0.0 )
+			if ( code == 229 && data$h == [::] )
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;

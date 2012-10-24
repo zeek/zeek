@@ -3,7 +3,13 @@
 # This script creates binary packages for Mac OS X.
 # They can be found in ../build/ after running.
 
-./check-cmake || { exit 1; }
+cmake -P /dev/stdin << "EOF"
+if ( ${CMAKE_VERSION} VERSION_LESS 2.8.9 )
+    message(FATAL_ERROR "CMake >= 2.8.9 required to build package")
+endif ()
+EOF
+
+[ $? -ne 0 ] && exit 1;
 
 type sw_vers > /dev/null 2>&1 || {
     echo "Unable to get Mac OS X version" >&2;
@@ -34,26 +40,26 @@ prefix=/opt/bro
 cd ..
 
 # Minimum Bro
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
-    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro \
+CMAKE_PREFIX_PATH=/usr CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro-minimal \
     --binary-package
 ( cd build && make package )
 
 # Full Bro package
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
-    --pkg-name-prefix=Bro-all --binary-package
+CMAKE_PREFIX_PATH=/usr CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --pkg-name-prefix=Bro --binary-package
 ( cd build && make package )
 
 # Broccoli
 cd aux/broccoli
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+CMAKE_PREFIX_PATH=/usr CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
     --binary-package
-( cd build && make package && mv Broccoli*.dmg ../../../build/ )
+( cd build && make package && mv *.dmg ../../../build/ )
 cd ../..
 
 # Broctl
 cd aux/broctl
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+CMAKE_PREFIX_PATH=/usr CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
     --binary-package
-( cd build && make package && mv Broctl*.dmg ../../../build/ )
+( cd build && make package && mv *.dmg ../../../build/ )
 cd ../..

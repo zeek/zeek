@@ -1,0 +1,5 @@
+to_double(3.14) = 3.14 (SUCCESS)
+to_double(-3.14) = -3.14 (SUCCESS)
+to_double(0) = 0.0 (SUCCESS)
+to_double(NotADouble) = 0.0 (SUCCESS)
+to_double() = 0.0 (SUCCESS)

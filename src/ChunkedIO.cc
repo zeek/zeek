@@ -76,7 +76,7 @@ void ChunkedIO::DumpDebugData(const char* basefnname, bool want_reads)
 		ChunkedIOFd io(fd, "dump-file");
 		io.Write(*i);
 		io.Flush();
-		close(fd);
+		safe_close(fd);
 		}
 
 	l->clear();
@@ -127,7 +127,7 @@ ChunkedIOFd::~ChunkedIOFd()
 
 	delete [] read_buffer;
 	delete [] write_buffer;
-	close(fd);
+	safe_close(fd);
 
 	if ( partial )
 		{
@@ -686,7 +686,7 @@ ChunkedIOSSL::~ChunkedIOSSL()
 		ssl = 0;
 		}
 
-	close(socket);
+	safe_close(socket);
 	}
 
 
@@ -1170,8 +1170,6 @@ void ChunkedIOSSL::Stats(char* buffer, int length)
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
 
-#ifdef HAVE_LIBZ
-
 bool CompressedChunkedIO::Init()
 	{
 	zin.zalloc = 0;
@@ -1348,5 +1346,3 @@ void CompressedChunkedIO::Stats(char* buffer, int length)
 	io->Stats(buffer + i, length - i);
 	buffer[length-1] = '\0';
 	}
-
-#endif	/* HAVE_LIBZ */

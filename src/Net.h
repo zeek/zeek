@@ -111,5 +111,6 @@ struct ScannedFile {
 };
 
 extern std::list<ScannedFile> files_scanned;
+extern std::vector<string> sig_files;
 
 #endif

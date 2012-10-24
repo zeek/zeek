@@ -1,0 +1,85 @@
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+1
+T
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+2
+T
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+3
+F
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+4
+F
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+5
+F
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+6
+F
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::i;
+print outfile, A::b;
+}, config={
+
+}]
+Input::EVENT_NEW
+7
+T
+End-of-data

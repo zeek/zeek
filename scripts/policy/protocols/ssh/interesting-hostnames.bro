@@ -10,9 +10,9 @@ module SSH;
 
 export {
 	redef enum Notice::Type += {
-		## Generated if a login originates or responds with a host and the 
+		## Generated if a login originates or responds with a host where the 
 		## reverse hostname lookup resolves to a name matched by the 
-		## :bro:id:`interesting_hostnames` regular expression.
+		## :bro:id:`SSH::interesting_hostnames` regular expression.
 		Interesting_Hostname_Login,
 	};
 	
@@ -36,7 +36,9 @@ event SSH::heuristic_successful_login(c: connection)
 			if ( interesting_hostnames in hostname )
 				{
 				NOTICE([$note=Interesting_Hostname_Login,
-				        $msg=fmt("Interesting login from hostname: %s", hostname),
+				        $msg=fmt("Possible SSH login involving a %s %s with an interesting hostname.",
+				                 Site::is_local_addr(host) ? "local" : "remote",
+				                 host == c$id$orig_h ? "client" : "server"),
 				        $sub=hostname, $conn=c]);
 				}
 			}

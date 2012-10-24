@@ -163,7 +163,7 @@ SerialObj* SerialObj::Unserialize(UnserialInfo* info, SerialType type)
 	if ( ! result )
 		{
 		DBG_POP(DBG_SERIAL);
-		return false;
+		return 0;
 		}
 
 	DBG_POP(DBG_SERIAL);

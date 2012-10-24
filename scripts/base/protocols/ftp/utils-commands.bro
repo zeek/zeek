@@ -2,14 +2,22 @@ module FTP;
 
 export {
 	type CmdArg: record {
+		## Time when the command was sent.
 		ts:   time;
+		## Command.
 		cmd:  string &default="<unknown>";
+		## Argument for the command if one was given.
 		arg:  string &default="";
+		## Counter to track how many commands have been executed.
 		seq:  count &default=0;
 	};
-
+	
+	## Structure for tracking pending commands in the event that the client
+	## sends a large number of commands before the server has a chance to 
+	## reply.
 	type PendingCmds: table[count] of CmdArg;
-
+	
+	## Possible response codes for a wide variety of FTP commands.
 	const cmd_reply_code: set[string, count] = {
 		# According to RFC 959
 		["<init>", [120, 220, 421]],

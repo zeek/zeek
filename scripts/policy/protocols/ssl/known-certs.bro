@@ -1,5 +1,4 @@
-##! This script can be used to log information about certificates while 
-##! attempting to avoid duplicate logging.
+##! Log information about certificates while attempting to avoid duplicate logging.
 
 @load base/utils/directions-and-hosts
 @load base/protocols/ssl
@@ -36,6 +35,8 @@ export {
 	## in the set is for storing the DER formatted certificate's MD5 hash.
 	global certs: set[addr, string] &create_expire=1day &synchronized &redef;
 	
+	## Event that can be handled to access the loggable record as it is sent 
+	## on to the logging framework.
 	global log_known_certs: event(rec: CertsInfo);
 }
 
@@ -44,10 +45,10 @@ event bro_init() &priority=5
 	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
 	}
 
-event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=3
+event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string) &priority=3
 	{
 	# Make sure this is the server cert and we have a hash for it.
-	if ( chain_idx != 0 || ! c$ssl?$cert_hash ) 
+	if ( is_orig || chain_idx != 0 || ! c$ssl?$cert_hash ) 
 		return;
 	
 	local host = c$id$resp_h;

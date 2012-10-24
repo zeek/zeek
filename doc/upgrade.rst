@@ -3,7 +3,7 @@
 Upgrading From Bro 1.5 to 2.0
 =============================
 
-.. class:: opening
+.. rst-class:: opening
 
    This guide details differences between Bro versions 1.5 and 2.0
    that may be important for users to know as they work on updating
@@ -39,7 +39,7 @@ version. The two rules of thumb are:
         if you need help.
 
 Below we summarize changes from 1.x to 2.x in more detail. This list
-isn't complete, see the `CHANGES <{{git('bro:CHANGES', 'txt')}}>`_ file in the
+isn't complete, see the :download:`CHANGES <CHANGES>` file in the
 distribution for the full story. 
 
 Default Scripts
@@ -55,13 +55,13 @@ renamed to ``scripts/`` and contains major subdirectories ``base/``,
 further.
 
 The contents of the new ``scripts/`` directory, like the old/flat
-``policy/`` still gets installed under under the ``share/bro``
+``policy/`` still gets installed under the ``share/bro``
 subdirectory of the installation prefix path just like previous
 versions.  For example, if Bro was compiled like ``./configure
 --prefix=/usr/local/bro && make && make install``, then the script
 hierarchy can be found in ``/usr/local/bro/share/bro``.
 
-THe main
+The main
 subdirectories of that hierarchy are as follows:
 
 - ``base/`` contains all scripts that are loaded by Bro by default
@@ -131,8 +131,8 @@ Logging Framework
     endpoint.
 
 - The new logging framework makes it possible to extend, customize,
-  and filter logs very easily. See `the logging framework
-  <{{git('bro:doc/logging.rst')}}>`_ more information on usage.
+  and filter logs very easily. See the :doc:`logging framework <logging>`
+  for more information on usage.
 
 - A common pattern found in the new scripts is to store logging stream
   records for protocols inside the ``connection`` records so that
@@ -155,8 +155,7 @@ Notice Framework
 
 The way users interact with "notices" has changed significantly in
 order to make it easier to define a site policy and more extensible
-for adding customized actions. See the `the notice framework
-<{{git('bro:doc/notice.rst')}}>`_.
+for adding customized actions. See the :doc:`notice framework <notice>`.
 
 
 New Default Settings
@@ -169,10 +168,6 @@ New Default Settings
   are loaded. See ``PacketFilter::all_packets`` for how to revert to old
   behavior.
 
-- By default, Bro now sets a libpcap snaplen of 65535. Depending on
-  the OS, this may have performance implications and you can use the
-  ``--snaplen`` option to change the value.
-  
 API Changes
 -----------
 
@@ -198,7 +193,7 @@ Variable Naming
 
 - Identifiers may have been renamed to conform to new `scripting
   conventions
-  <{{docroot}}/development/script-conventions.html>`_
+  <http://www.bro-ids.org/development/script-conventions.html>`_
 
 
 BroControl
@@ -214,8 +209,8 @@ live analysis.
 BroControl now has an extensive plugin interface for adding new
 commands and options. Note that this is still considered experimental.
 
-We have remove the ``analysis`` command, and BroControl does currently
-not not send daily alarm summaries anymore (this may be restored
+We have removed the ``analysis`` command, and BroControl currently
+does not send daily alarm summaries anymore (this may be restored
 later).
 
 Removed Functionality
@@ -238,11 +233,11 @@ Development Infrastructure
 ==========================
 
 Bro development has moved from using SVN to Git for revision control.
-Users that like to use the latest Bro developments by checking it out
+Users that want to use the latest Bro development snapshot by checking it out
 from the source repositories should see the `development process
-<{{docroot}}/development/process.html>`_. Note that all the various
-sub-components now reside on their own repositories. However, the
-top-level Bro repository includes them as git submodules so it's easu
+<http://www.bro-ids.org/development/process.html>`_. Note that all the various
+sub-components now reside in their own repositories. However, the
+top-level Bro repository includes them as git submodules so it's easy
 to check them all out simultaneously.
 
 Bro now uses `CMake <http://www.cmake.org>`_ for its build system so

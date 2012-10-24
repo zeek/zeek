@@ -1,3 +1,4 @@
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro
@@ -153,7 +154,8 @@ event bro_init()
     }
 	
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /.*/, $connect=T, $sync=T]
+    ["foo"] = [$host = 127.0.0.1, $events = /.*/, $connect=T, $sync=T,
+               $retry=1sec]
 };
 
 event remote_connection_closed(p: event_peer)

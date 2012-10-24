@@ -193,7 +193,18 @@ void PktSrc::Process()
 		{
 		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
 
-		if ( protocol != AF_INET && protocol != AF_INET6 )
+		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
+		// different values in {NetBSD,OpenBSD,BSD/OS},
+		// {FreeBSD,DragonFlyBSD}, and {Darwin/Mac OS X}, so an IPv6
+		// packet might have a link-layer header with 24, 28, or 30
+		// as the AF_ value." As we may be reading traces captured on
+		// platforms other than what we're running on, we accept them
+		// all here.
+		if ( protocol != AF_INET
+		     && protocol != AF_INET6
+		     && protocol != 24
+		     && protocol != 28
+		     && protocol != 30 )
 			{
 			sessions->Weird("non_ip_packet_in_null_transport", &hdr, data);
 			data = 0;
@@ -400,6 +411,7 @@ void PktSrc::AddSecondaryTablePrograms()
 			{
 			delete program;
 			Close();
+			return;
 			}
 
 		SecondaryProgram* sp = new SecondaryProgram(program, se);

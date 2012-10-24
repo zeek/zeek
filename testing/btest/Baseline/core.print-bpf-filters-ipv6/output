@@ -1,8 +1,0 @@
-# ts	node	filter	init	success
-1308603220.46822	-	ip or not ip	F	T
-# ts	node	filter	init	success
-1308603220.51607	-	tcp port 22	F	T
-# ts	node	filter	init	success
-1308603220.55432	-	port 42	F	T
-# ts	node	filter	init	success
-1308603220.59452	-	port 56730	T	T

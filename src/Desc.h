@@ -4,6 +4,9 @@
 #define descriptor_h
 
 #include <stdio.h>
+#include <list>
+#include <utility>
+
 #include "BroString.h"
 
 typedef enum {
@@ -19,6 +22,8 @@ typedef enum {
 } desc_style;
 
 class BroFile;
+class IPAddr;
+class IPPrefix;
 
 class ODesc {
 public:
@@ -48,8 +53,13 @@ public:
 
 	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
 
-	// The string passed in must remain valid as long as this object lives.
-	void SetEscape(const char* escape, int len);
+	void EnableEscaping();
+	void AddEscapeSequence(const char* s) { escape_sequences.push_back(s); }
+	void AddEscapeSequence(const char* s, size_t n)
+	    { escape_sequences.push_back(string(s, n)); }
+	void RemoveEscapeSequence(const char* s) { escape_sequences.remove(s); }
+	void RemoveEscapeSequence(const char* s, size_t n)
+	    { escape_sequences.remove(string(s, n)); }
 
 	void PushIndent();
 	void PopIndent();
@@ -61,11 +71,14 @@ public:
 
 	void Add(const char* s, int do_indent=1);
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
+	void Add(const string& s)	{ AddBytes(s.data(), s.size()); }
 	void Add(int i);
 	void Add(uint32 u);
 	void Add(int64 i);
 	void Add(uint64 u);
 	void Add(double d);
+	void Add(const IPAddr& addr);
+	void Add(const IPPrefix& prefix);
 
 	// Add s as a counted string.
 	void AddCS(const char* s);
@@ -133,6 +146,19 @@ protected:
 
 	void OutOfMemory();
 
+	/**
+	 * Returns the location of the first place in the bytes to be hex-escaped.
+	 *
+	 * @param bytes the starting memory address to start searching for
+	 *        escapable character.
+	 * @param n the maximum number of bytes to search.
+	 * @return a pair whose first element represents a starting memory address
+	 *         to be escaped up to the number of characters indicated by the
+	 *         second element.  The first element may be 0 if nothing is
+	 *         to be escaped.
+	 */
+	pair<const char*, size_t> FirstEscapeLoc(const char* bytes, size_t n);
+
 	desc_type type;
 	desc_style style;
 
@@ -140,8 +166,8 @@ protected:
 	unsigned int offset;	// where we are in the buffer
 	unsigned int size;	// size of buffer in bytes
 
-	int escape_len;	// number of bytes in to escape sequence
-	const char* escape;	// bytes to escape on output
+	bool escape;	// escape unprintable characters in output?
+	list<string> escape_sequences; // additional sequences of chars to escape
 
 	BroFile* f;	// or the file we're using.
 

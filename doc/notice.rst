@@ -2,7 +2,7 @@
 Notice Framework
 ================
 
-.. class:: opening
+.. rst-class:: opening
 
     One of the easiest ways to customize Bro is writing a local notice
     policy. Bro can detect a large number of potentially interesting
@@ -21,7 +21,7 @@ Let's start with a little bit of background on Bro's philosophy on reporting
 things. Bro ships with a large number of policy scripts which perform a wide
 variety of analyses. Most of these scripts monitor for activity which might be
 of interest for the user. However, none of these scripts determines the
-importance of what it finds itself. Instead, the scripts only flags situations
+importance of what it finds itself. Instead, the scripts only flag situations
 as *potentially* interesting, leaving it to the local configuration to define
 which of them are in fact actionable. This decoupling of detection and
 reporting allows Bro to address the different needs that sites have:
@@ -29,17 +29,18 @@ definitions of what constitutes an attack or even a compromise differ quite a
 bit between environments, and activity deemed malicious at one site might be
 fully acceptable at another.
 
-Whenever one of Bro's analysis scripts sees something potentially interesting
-it flags the situation by calling the ``NOTICE`` function and giving it a
-single ``Notice::Info`` record. A Notice has a ``Notice::Type``, which
-reflects the kind of activity that has been seen, and it is usually also
-augmented with further context about the situation. 
+Whenever one of Bro's analysis scripts sees something potentially
+interesting it flags the situation by calling the :bro:see:`NOTICE`
+function and giving it a single :bro:see:`Notice::Info` record. A Notice
+has a :bro:see:`Notice::Type`, which reflects the kind of activity that
+has been seen, and it is usually also augmented with further context
+about the situation.
 
 More information about raising notices can be found in the `Raising Notices`_
 section.
 
 Once a notice is raised, it can have any number of actions applied to it by
-the ``Notice::policy`` set which is described in the `Notice Policy`_
+the :bro:see:`Notice::policy` set which is described in the `Notice Policy`_
 section below. Such actions can be to send a mail to the configured
 address(es) or to simply ignore the notice. Currently, the following actions
 are defined:
@@ -52,20 +53,20 @@ are defined:
       - Description
 
     * - Notice::ACTION_LOG
-      - Write the notice to the ``Notice::LOG`` logging stream.
+      - Write the notice to the :bro:see:`Notice::LOG` logging stream.
 
     * - Notice::ACTION_ALARM
-      - Log into the ``Notice::ALARM_LOG`` stream which will rotate
+      - Log into the :bro:see:`Notice::ALARM_LOG` stream which will rotate
         hourly and email the contents to the email address or addresses
-        defined in the ``Notice::mail_dest`` variable.
+        defined in the :bro:see:`Notice::mail_dest` variable.
 
     * - Notice::ACTION_EMAIL
       - Send the notice in an email to the email address or addresses given in
-        the ``Notice::mail_dest`` variable.
+        the :bro:see:`Notice::mail_dest` variable.
 
     * - Notice::ACTION_PAGE
       - Send an email to the email address or addresses given in the
-        ``Notice::mail_page_dest`` variable.
+        :bro:see:`Notice::mail_page_dest` variable.
 
     * - Notice::ACTION_NO_SUPPRESS
       - This action will disable the built in notice suppression for the
@@ -82,15 +83,17 @@ Processing Notices
 Notice Policy
 *************
 
-The predefined set ``Notice::policy`` provides the mechanism for applying
-actions and other behavior modifications to notices. Each entry of
-``Notice::policy`` is a record of the type ``Notice::PolicyItem`` which
-defines a condition to be matched against all raised notices and one or more
-of a variety of behavior modifiers. The notice policy is defined by adding any
-number of ``Notice::PolicyItem`` records to the ``Notice::policy`` set.
+The predefined set :bro:see:`Notice::policy` provides the mechanism for
+applying actions and other behavior modifications to notices. Each entry
+of :bro:see:`Notice::policy` is a record of the type
+:bro:see:`Notice::PolicyItem` which defines a condition to be matched
+against all raised notices and one or more of a variety of behavior
+modifiers. The notice policy is defined by adding any number of
+:bro:see:`Notice::PolicyItem` records to the :bro:see:`Notice::policy`
+set.
 
 Here's a simple example which tells Bro to send an email for all notices of
-type ``SSH::Login`` if the server is 10.0.0.1:
+type :bro:see:`SSH::Login` if the server is 10.0.0.1:
 
 .. code:: bro
 
@@ -113,11 +116,11 @@ flexibility due to having access to Bro's full programming language.
 Predicate Field
 ^^^^^^^^^^^^^^^
 
-The ``Notice::PolicyItem`` record type has a field name ``$pred`` which
-defines the entry's condition in the form of a predicate written as a Bro
-function. The function is passed the notice as a ``Notice::Info`` record and
-it returns a boolean value indicating if the entry is applicable to that
-particular notice.
+The :bro:see:`Notice::PolicyItem` record type has a field name ``$pred``
+which defines the entry's condition in the form of a predicate written
+as a Bro function. The function is passed the notice as a
+:bro:see:`Notice::Info` record and it returns a boolean value indicating
+if the entry is applicable to that particular notice.
 
 .. note::
 
@@ -125,14 +128,14 @@ particular notice.
     (``T``) since an implicit false (``F``) value would never be used.
 
 Bro evaluates the predicates of each entry in the order defined by the
-``$priority`` field in ``Notice::PolicyItem`` records. The valid values are
-0-10 with 10 being earliest evaluated. If ``$priority`` is omitted, the
-default priority is 5.
+``$priority`` field in :bro:see:`Notice::PolicyItem` records. The valid
+values are 0-10 with 10 being earliest evaluated. If ``$priority`` is
+omitted, the default priority is 5.
 
 Behavior Modification Fields
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are a set of fields in the ``Notice::PolicyItem`` record type that
+There are a set of fields in the :bro:see:`Notice::PolicyItem` record type that
 indicate ways that either the notice or notice processing should be modified
 if the predicate field (``$pred``) evaluated to true (``T``). Those fields are
 explained in more detail in the following table.
@@ -146,8 +149,8 @@ explained in more detail in the following table.
       - Example
 
     * - ``$action=<Notice::Action>``
-      - Each Notice::PolicyItem can have a single action applied to the notice
-        with this field.
+      - Each :bro:see:`Notice::PolicyItem` can have a single action
+        applied to the notice with this field.
       - ``$action = Notice::ACTION_EMAIL``
 
     * - ``$suppress_for=<interval>`` 
@@ -162,9 +165,9 @@ explained in more detail in the following table.
       - This field can be used for modification of the notice policy
         evaluation. To stop processing of notice policy items before
         evaluating all of them, set this field to ``T`` and make the ``$pred``
-        field return ``T``. ``Notice::PolicyItem`` records defined at a higher
-        priority as defined by the ``$priority`` field will still be evaluated
-        but those at a lower priority won't.
+        field return ``T``. :bro:see:`Notice::PolicyItem` records defined at
+        a higher priority as defined by the ``$priority`` field will still be
+        evaluated but those at a lower priority won't.
       - ``$halt = T``
 
 
@@ -186,11 +189,11 @@ Notice Policy Shortcuts
 Although the notice framework provides a great deal of flexibility and
 configurability there are many times that the full expressiveness isn't needed
 and actually becomes a hindrance to achieving results. The framework provides
-a default ``Notice::policy`` suite as a way of giving users the
+a default :bro:see:`Notice::policy` suite as a way of giving users the
 shortcuts to easily apply many common actions to notices.
 
 These are implemented as sets and tables indexed with a
-``Notice::Type`` enum value. The following table shows and describes
+:bro:see:`Notice::Type` enum value. The following table shows and describes
 all of the variables available for shortcut configuration of the notice
 framework.
 
@@ -201,40 +204,44 @@ framework.
     * - Variable name
       - Description
 
-    * - Notice::ignored_types
-      - Adding a ``Notice::Type`` to this set results in the notice
+    * - :bro:see:`Notice::ignored_types`
+      - Adding a :bro:see:`Notice::Type` to this set results in the notice
         being ignored. It won't have any other action applied to it, not even
-        ``Notice::ACTION_LOG``.
+        :bro:see:`Notice::ACTION_LOG`.
 
-    * - Notice::emailed_types
-      - Adding a ``Notice::Type`` to this set results in
-        ``Notice::ACTION_EMAIL`` being applied to the notices of that type.
+    * - :bro:see:`Notice::emailed_types`
+      - Adding a :bro:see:`Notice::Type` to this set results in
+        :bro:see:`Notice::ACTION_EMAIL` being applied to the notices of
+        that type.
 
-    * - Notice::alarmed_types
-      - Adding a Notice::Type to this set results in
-        ``Notice::ACTION_ALARM`` being applied to the notices of that type.
+    * - :bro:see:`Notice::alarmed_types`
+      - Adding a :bro:see:`Notice::Type` to this set results in
+        :bro:see:`Notice::ACTION_ALARM` being applied to the notices of
+        that type.
 
-    * - Notice::not_suppressed_types
-      - Adding a ``Notice::Type`` to this set results in that notice no longer
-        undergoing the normal notice suppression that would take place. Be
-        careful when using this in production it could result in a dramatic
-        increase in the number of notices being processed.
+    * - :bro:see:`Notice::not_suppressed_types`
+      - Adding a :bro:see:`Notice::Type` to this set results in that notice
+        no longer undergoing the normal notice suppression that would
+        take place. Be careful when using this in production it could
+        result in a dramatic increase in the number of notices being
+        processed.
 
-    * - Notice::type_suppression_intervals
-      - This is a table indexed on ``Notice::Type`` and yielding an interval.
-        It can be used as an easy way to extend the default suppression
-        interval for an entire ``Notice::Type`` without having to create a
-        whole ``Notice::policy`` entry and setting the ``$suppress_for``
-        field.
+    * - :bro:see:`Notice::type_suppression_intervals`
+      - This is a table indexed on :bro:see:`Notice::Type` and yielding an
+        interval.  It can be used as an easy way to extend the default
+        suppression interval for an entire :bro:see:`Notice::Type`
+        without having to create a whole :bro:see:`Notice::policy` entry
+        and setting the ``$suppress_for`` field.
 
 Raising Notices
 ---------------
 
-A script should raise a notice for any occurrence that a user may want to be
-notified about or take action on. For example, whenever the base SSH analysis
-scripts sees an SSH session where it is heuristically guessed to be a
-successful login, it raises a Notice of the type ``SSH::Login``. The code in
-the base SSH analysis script looks like this:
+A script should raise a notice for any occurrence that a user may want
+to be notified about or take action on. For example, whenever the base
+SSH analysis scripts sees an SSH session where it is heuristically
+guessed to be a successful login, it raises a Notice of the type
+:bro:see:`SSH::Login`. The code in the base SSH analysis script looks
+like this:
 
 .. code:: bro
 
@@ -242,10 +249,10 @@ the base SSH analysis script looks like this:
             $msg="Heuristically detected successful SSH login.",
             $conn=c]);
 
-``NOTICE`` is a normal function in the global namespace which wraps a function
-within the ``Notice`` namespace. It takes a single argument of the
-``Notice::Info`` record type. The most common fields used when raising notices
-are described in the following table:
+:bro:see:`NOTICE` is a normal function in the global namespace which
+wraps a function within the ``Notice`` namespace. It takes a single
+argument of the :bro:see:`Notice::Info` record type. The most common
+fields used when raising notices are described in the following table:
 
 .. list-table::
     :widths: 32 40
@@ -263,21 +270,21 @@ are described in the following table:
         information about this particular instance of the notice type.
 
     * - ``$sub``
-      - This is a sub-message which meant for human readability but will
+      - This is a sub-message meant for human readability but will
         frequently also be used to contain data meant to be matched with the
         ``Notice::policy``.
 
     * - ``$conn``
       - If a connection record is available when the notice is being raised
-        and the notice represents some attribute of the connection the
+        and the notice represents some attribute of the connection, then the
         connection record can be given here. Other fields such as ``$id`` and
         ``$src`` will automatically be populated from this value.
 
     * - ``$id``
       - If a conn_id record is available when the notice is being raised and
-        the notice represents some attribute of the connection, the connection
-        be given here. Other fields such as ``$src`` will automatically be
-        populated from this value.
+        the notice represents some attribute of the connection, then the
+        connection can be given here. Other fields such as ``$src`` will
+        automatically be populated from this value.
 
     * - ``$src``
       - If the notice represents an attribute of a single host then it's
@@ -295,9 +302,10 @@ are described in the following table:
 
     * - ``$suppress_for``
       - This field can be set if there is a natural suppression interval for
-        the notice that may be different than the default value. The value set
-        to this field can also be modified by a user's ``Notice::policy`` so
-        the value is not set permanently and unchangeably.
+        the notice that may be different than the default value. The
+        value set to this field can also be modified by a user's
+        :bro:see:`Notice::policy` so the value is not set permanently
+        and unchangeably.
 
 When writing Bro scripts which raise notices, some thought should be given to
 what the notice represents and what data should be provided to give a consumer
@@ -305,7 +313,7 @@ of the notice the best information about the notice. If the notice is
 representative of many connections and is an attribute of a host (e.g. a
 scanning host) it probably makes most sense to fill out the ``$src`` field and
 not give a connection or conn_id. If a notice is representative of a
-connection attribute (e.g. an apparent SSH login) the it makes sense to fill
+connection attribute (e.g. an apparent SSH login) then it makes sense to fill
 out either ``$conn`` or ``$id`` based on the data that is available when the
 notice is raised. Using care when inserting data into a notice will make later
 analysis easier when only the data to fully represent the occurrence that
@@ -325,7 +333,7 @@ The notice framework supports suppression for notices if the author of the
 script that is generating the notice has indicated to the notice framework how
 to identify notices that are intrinsically the same. Identification of these
 "intrinsically duplicate" notices is implemented with an optional field in
-``Notice::Info`` records named ``$identifier`` which is a simple string.
+:bro:see:`Notice::Info` records named ``$identifier`` which is a simple string.
 If the ``$identifier`` and ``$type`` fields are the same for two notices, the
 notice framework actually considers them to be the same thing and can use that
 information to suppress duplicates for a configurable period of time.
@@ -337,12 +345,13 @@ information to suppress duplicates for a configurable period of time.
     could be completely legitimate usage if no notices could ever be
     considered to be duplicates.
 
-The ``$identifier`` field is typically comprised of several pieces of data
-related to the notice that when combined represent a unique instance of that
-notice. Here is an example of the script
-``policy/protocols/ssl/validate-certs.bro`` raising a notice for session
-negotiations where the certificate or certificate chain did not validate
-successfully against the available certificate authority certificates.
+The ``$identifier`` field is typically comprised of several pieces of
+data related to the notice that when combined represent a unique
+instance of that notice. Here is an example of the script
+:doc:`scripts/policy/protocols/ssl/validate-certs` raising a notice
+for session negotiations where the certificate or certificate chain did
+not validate successfully against the available certificate authority
+certificates.
 
 .. code:: bro
 
@@ -369,7 +378,7 @@ it's assumed that the script author who is raising the notice understands the
 full problem set and edge cases of the notice which may not be readily
 apparent to users. If users don't want the suppression to take place or simply
 want a different interval, they can always modify it with the
-``Notice::policy``.
+:bro:see:`Notice::policy`.
 
 
 Extending Notice Framework

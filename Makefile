@@ -2,7 +2,7 @@
 # A simple static wrapper for a number of standard Makefile targets,
 # mostly just forwarding to build/Makefile. This is provided only for
 # convenience and supports only a subset of what CMake's Makefile
-# to offer. For more, execute that one directly. 
+# offers. For more, execute that one directly. 
 #
 
 BUILD=build
@@ -12,22 +12,34 @@ VERSION_MIN=$(REPO)-`cat VERSION`-minimal
 HAVE_MODULES=git submodule | grep -v cmake >/dev/null
 
 all: configured
-	( cd $(BUILD) && make )
+	$(MAKE) -C $(BUILD) $@
 
-install: configured
-	( cd $(BUILD) && make install )
+install: configured all
+	$(MAKE) -C $(BUILD) $@
 
 install-aux: configured
-	( cd $(BUILD) && make install-aux )
+	$(MAKE) -C $(BUILD) $@
 
 clean: configured docclean
-	( cd $(BUILD) && make clean )
+	$(MAKE) -C $(BUILD) $@
 
 doc: configured
-	( cd $(BUILD) && make doc )
+	$(MAKE) -C $(BUILD) $@
 
 docclean: configured
-	( cd $(BUILD) && make docclean )
+	$(MAKE) -C $(BUILD) $@
+
+restdoc: configured
+	$(MAKE) -C $(BUILD) $@
+
+restclean: configured
+	$(MAKE) -C $(BUILD) $@
+
+broxygen: configured
+	$(MAKE) -C $(BUILD) $@
+
+broxygenclean: configured
+	$(MAKE) -C $(BUILD) $@
 
 dist:
 	@rm -rf $(VERSION_FULL) $(VERSION_FULL).tgz
@@ -47,6 +59,9 @@ bindist:
 
 distclean:
 	rm -rf $(BUILD)
+
+test:
+	@(cd testing && make )
 
 configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )

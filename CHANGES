@@ -1,4 +1,8 @@
 
+2.1-91 | 2012-10-24 16:04:47 -0700
+
+  * Adding PPPoE support to Bro. (Seth Hall)
+
 2.1-87 | 2012-10-24 15:40:06 -0700
 
   * Adding missing &redef for some TCP options. Addresses #905, #906,

@@ -11,16 +11,6 @@
 #include "rule-parse.h"
 
 int rules_line_number = 0;
-
-static string extract_ipv6(string s)
-	{
-	if ( s.substr(0, 3) == "[0x" )
-		s = s.substr(3, s.find("]") - 3);
-	else
-		s = s.substr(1, s.find("]") - 1);
-
-	return s;
-	}
 %}
 
 %x PS
@@ -49,15 +39,14 @@ PID	([0-9a-zA-Z_-]|"::")+
 }
 
 {IP6}	{
-	rules_lval.prefixval = new IPPrefix(IPAddr(extract_ipv6(yytext)), 128);
+	rules_lval.prefixval = new IPPrefix(IPAddr(extract_ip(yytext)), 128, true);
 	return TOK_IP6;
 	}
 
 {IP6}{OWS}"/"{OWS}{D}	{
-	char* l = strchr(yytext, '/');
-	*l++ = '\0';
-	int len = atoi(l);
-	rules_lval.prefixval = new IPPrefix(IPAddr(extract_ipv6(yytext)), len);
+	int len = 0;
+	string ip = extract_ip_and_len(yytext, &len);
+	rules_lval.prefixval = new IPPrefix(IPAddr(ip), len, true);
 	return TOK_IP6;
 	}
 

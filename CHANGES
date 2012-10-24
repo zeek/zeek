@@ -1,4 +1,9 @@
 
+2.1-86 | 2012-10-24 15:37:11 -0700
+
+  * Add parsing rules for IPv4/IPv6 subnet literal constants.
+    Addresses #888. (Jon Siwek)
+
 2.1-84 | 2012-10-19 15:12:56 -0700
 
   * Added a BiF strptime() to wrap the corresponding C function. (Seth

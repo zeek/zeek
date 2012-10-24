@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function test_case(msg: string, expect: bool)
@@ -43,5 +43,10 @@ event bro_init()
 
 	test_case( "IPv4 and IPv6 address inequality", a1 != b1 );
 
+	# IPv4-mapped-IPv6 (internally treated as IPv4)
+	local c1: addr = [::ffff:1.2.3.4];
+
+	test_case( "IPv4-mapped-IPv6 equality to IPv4", c1 == 1.2.3.4 );
+	test_case( "IPv4-mapped-IPv6 is IPv4", is_v4_addr(c1) == T );
 }
 

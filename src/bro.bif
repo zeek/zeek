@@ -2701,6 +2701,25 @@ function to_port%(s: string%): port
     return new PortVal(port, TRANSPORT_UNKNOWN);
 	%}
 
+## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
+##
+## s: The string of bytes representing a double value.
+##
+## Returns: The double value contained in *s*, or 0 if the conversion
+##          failed.
+##
+function bytestring_to_double%(s: string%): double
+	%{
+	if ( s->Len() != sizeof(double) )
+		{
+		builtin_error("bad conversion to double");
+		return new Val(0.0, TYPE_DOUBLE);
+		}
+
+	double d = ntohd( *(double *)s->Bytes() );
+	return new Val(d, TYPE_DOUBLE);
+	%}
+
 ## Converts a reverse pointer name to an address. For example,
 ## ``1.0.168.192.in-addr.arpa`` to ``192.168.0.1``.
 ##

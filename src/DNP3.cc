@@ -27,59 +27,65 @@ void DNP3_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-// Hui-Resolve: DNP3 was initially used over serial lines; it defined its own application layer, 
+// DNP3 was initially used over serial links; it defined its own application layer, 
 // transport layer, and data link layer. This hierarchy cannot be mapped to the TCP/IP stack 
 // directly. As a result, all three DNP3 layers are packed together as a single application layer
-// payload over the TCP layer. So each DNP3 packet in the application layer may look like this
+// payload over the TCP layer. Each DNP3 packet in the application layer may look like this
 // DNP3 Packet ->  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
+// (this hierarchy can be vied in the Wireshark visually)
 //
 // When DeliverStream is called, "data" contains DNP3 packets consisting of all pseudo three layers. 
-// I use the binpac to write the parser of DNP3 Pseudo Application Layer instead of the whole application 
+// I use the binpac to write the parser of DNP3 Pseudo Application Layer only instead of the whole application 
 // layer payload. The following list explains why I am doing this and other challenges with my resolutions:
 //
-// 1. Basic structure of DNP3 Protocol over serila lines. This information can be found in detail in 
+// 1. Basic structure of DNP3 Protocol over serial links. This information can be found in detail in 
 //     DNP3 Specification Volum 2, Part 1 Basic, Application Layer
 //     DNP3 Specification Volum 4, Data Link Layer
-// A DNP3 Application Fragment is a byte stream that can be parsed by certain industry control devices and the semantics contained 
-// in the byte stream can be properly executed. It relies on the DNP3 device to decide what a upper pound of the fragment size is. 
-// However, a long (> 255 bytes) DNP3 applicaiton fragment have to be truncated into different trunks and carried by different Data Link 
-// Layer. 
-// So the whole DNP3 fragment transmitted over serial link may look like (since we are talking about serial link communicaiton in this small 
-// section, so "Pseudo" is removed in the name)
+// In history, the DNP3 Application Layer in serial links contains "DNP3 Application Layer Fragment", the data that is 
+// parsed by the end device and is executed. The "DNP3 Application Layer Fragment" can carried in 
+// DNP3 Pseudo Application Layer of more than one DNP3 packets
+// It relies on the DNP3 device to decide what a upper pound of the fragment size is. 
+// However, a long (> 255 bytes) DNP3 applicaiton fragment have to be truncated put into 
+// Pseudo Application Layer (just mentioned) which is indexed different Data Link Layer headers. 
+// So the whole DNP3 fragment transmitted over serial link may look like (since we are talking 
+// about serial link communicaiton in this small section, so "Pseudo" is removed in the name)
 //
 // DNP3 Packet ->  DNP3 Link Layer : DNP3 Transport Layer : DNP3 Application Layer #1
 // DNP3 Packet ->  DNP3 Link Layer : DNP3 Transport Layer : DNP3 Application Layer #2
 // ....
 // DNP3 Packet ->  DNP3 Link Layer : DNP3 Transport Layer : DNP3 Application Layer #n
 // 
-// So to get the whole DNP3 application Fragment, we concatenate each Application Layer Data. 
+// So to get the whole DNP3 application Fragment, we concatenate each DNP3 Application Layer Data. 
 // A logic DNP3 Fragment = DNP3 Application Layer #1 + DNP3 Application Layer #2 + ... + DNP3 Application Layer #n
 //
-// Note: The structure of the DNP3 Link Layer is: 
+// Note: The detailed structure of the DNP3 Link Layer is: 
 // 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB 
 //       (each field is a byte; LSB: least significant byte; MSB: Most significatn Byte )
-// "Len" field indicates the length of the byte stream right after this field (execluding CRC field). Since "Len" field is of size 
-// one byte, so largest length it can represent is 255 bytes. The larget DNP3 Application Layer size is 255 - 5 + size of all CRC fields.
-// Through calculation, the largest size of a DNP3 Packet (DNP3 Data Link Layer : DNP3 Transport Layer : DNP3 Application Layer) can only be 
+// "Len" field indicates the length of the byte stream right after this field (execluding CRC fields). 
+// Since "Len" field is of size one byte, so largest length it can represent is 255 bytes. 
+// The larget DNP3 Application Layer size is (255 - 5 + size of all CRC fields). minus 5 is coming from
+// the 5 bytes after "Len" field in the DNP3 Link Layer, i.e. Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB
+// Through calculation, the largest size of 
+// a DNP3 Packet (DNP3 Data Link Layer : DNP3 Transport Layer : DNP3 Application Layer) can only be 
 //  292 bytes. 
-//
-// The CRC values are checked here and then removed. So the bytes stream sent to the binpac analyzer is the logic 
-// DNP3 fragment
 
-// 2. A single logic DNP3 fragment can be truncated into several DNP3 Pseudo  Application Layer data included under 
-// different DNP3 Pseudo layer header. As a result, reassembly is needed in some situations to reassemble DNP3 Pseudo
-// Application Layer data to form the complete logical DNP3 fragment. (This is similar to TCP reassembly, but happened in the application layer).
-// I find it very challenging to do this reassembly in binpac scripts. So the codes before the calling of DeliverStream
+
+// 2. A single logic DNP3 Applicatino Layer Fragment can be truncated into several DNP3 Pseudo Application Layer data included under 
+// different DNP3 Pseudo Data Link Layer header. As a result, in some situation, 
+// reassembly is needed to construct the DNP3 Application Layer. 
+// (This is similar to TCP reassembly, but happened in the application layer of the TCP/IP stack).
+// I find it very challenging to do this reassembly in binpac scripts. So the codes before the calling of interp->NewData
 // is to actually (1) extract bytes stream of DNP3 Pseudo Application Layer from the whole application layer trunk and 
 // then deliver them to the binpac analyzer; (2) perform the aformentioned reassembly if necessary. 
 //
 // 3. The DNP3 Pseudo Application Layer does not include a length field which indicate the length of this layer.
-// This brings challenges to write the binpac scripts. What I am doing is in this DeliverStream function, I extract the
-// length field in the DNP3 Pseudo Link Layer and do some computations to get the length of DNP3 Pseudo Application Layer and 
-// hook the original DNP3 Pseudo Application Layer data with a additional header (this is represented by the type of Header_Block in the binpac script) 
+// This brings challenges to write the binpac scripts. So, I extract the
+// length field (LEN field) in the DNP3 Pseudo Data Link Layer and do some computations to get 
+// the length of DNP3 Pseudo Application Layer and hook the original DNP3 Pseudo Application Layer data 
+// with a additional header (this is represented by the type of Header_Block in the binpac script) 
 // In this way, the DNP3 Pseudo Application Layer data can be represented properly by DNP3_Flow in binpac script
 //
-// Graphically, the codes in this functions does:
+// Graphically, the procedure is:
 // DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
 //                                   ||                                    ||
 //                                   || (length field)                     || (original paylad byte stream)         
@@ -87,8 +93,9 @@ void DNP3_Analyzer::Done()
 //                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo Application Layer Data  
 //                                                   ||
 //                                                   \/
-//                                              DNP3 Analyzer
-//TODO-Hui: Information from the DNP3 Pseudo Data Link Layer may generate events as well; so I exactly copy the information 
+//                                            Binpac DNP3 Analyzer
+//TODO-Hui: Information from the DNP3 Pseudo Data Link Layer may generate events as well
+// so I exactly copy the information 
 //          from Pseudo Data Link Layer into the DNP3 Additional Header (excluding CRC values)
 // The structure of the DNP3 Pseudo Link Layer is: 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB
 // And the DNP3 Additional Header is defined as:
@@ -101,9 +108,11 @@ void DNP3_Analyzer::Done()
 // } &byteorder = littleendian
 //   &length = 8;
 // By doing this, we can use binpac analyzer to generate events from DNP3 Pseudo Data Link Layer.
-// However by doing this, a problem is generated. "len" is 1 byte which can only represent a logic DNP3 fragment with length < 255
-// My TEMPORARY solution is, if the length of the logic DNP3 fragment is larger than 255 bytes, "ctrl" contains the higher 8-bit values
-// of the length. That is why in this version of the DNP3 analyzer, we can only handle a logic DNP3 fragment with size of 65535 bytes.
+// However by doing this, a problem is generated. "LEN" field is 1 byte which can only represent 
+// a logic DNP3 fragment with length less than or equal to 255 bytes. 
+// My TEMPORARY solution is, if the length of the logic DNP3 fragment is larger than 255 bytes, I use 
+// "Ctrl" contains the higher 8-bit values of the length.(then the original information in "Ctrl" is lost)
+// That is why in this version of the DNP3 analyzer, we can only handle a logic DNP3 fragment with size of 65535 bytes.
 // Later, I will manually increae "len" to be 32 bit.  
 
 
@@ -152,17 +161,23 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 
 	//// bytes following the first 10 bytes and before the last user data block
 	//// are grouped with size of 18 byte (last 2 bytes are CRC) We check group by group
-	//// calculate the legnth of the last data user block
+	//// calculate the legnth of the last user data block (the length of the last user data block
+	//// can be any values from 3 bytes to 18 bytes. )
+	//// value of length of last user data block (last_length) can never be 1 or 2,
+	//// because the a user data block can not contain 2-byte CRC bytes without containing any data 
+
 	last_length = ( len - 10) % 18;
-	if ( (last_length > 0) && (last_length <= 2) )  //// value of last_length can never be 1 or 2
+	if ( (last_length > 0) && (last_length <= 2) ) 
 		{
 		Weird("Truncated DNP3 Packets");
 		return -3;
 		}
+
+	//// check CRC values for user data block by group by group
 	for( i = 0; i < (len - 10 - last_length); i++ )
 		{
 		buffer[i % 18] = data[i + 10];
-		if(  i % 18 == 17    )
+		if(  i % 18 == 17    )    //// this means that we reach the last element of the user data block, this is the MSB of the CRC
 			{	
 			crc_result = DNP3_CalcCRC(buffer, 16, DNP3_CrcTable, 0x0000, true);
 			cal_crc[0] = crc_result & 0xff;

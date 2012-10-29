@@ -20,5 +20,13 @@ void AYIYA_Analyzer::Done()
 void AYIYA_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, int seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
-	interp->NewData(orig, data, data + len);
+
+	try
+		{
+		interp->NewData(orig, data, data + len);
+		}
+	catch ( const binpac::Exception& e )
+		{
+		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		}
 	}

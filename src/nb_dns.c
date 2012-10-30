@@ -307,31 +307,32 @@ nb_dns_host_request(register struct nb_dns_info *nd, register const char *name,
     register void *cookie, register char *errstr)
 {
 
-	return (nb_dns_host_request2(nd, name, AF_INET, cookie, errstr));
+	return (nb_dns_host_request2(nd, name, AF_INET, 0, cookie, errstr));
 }
 
 int
 nb_dns_host_request2(register struct nb_dns_info *nd, register const char *name,
-    register int af, register void *cookie, register char *errstr)
+    register int af, register int qtype, register void *cookie, register char *errstr)
 {
-	register int qtype;
+	if (qtype != 16){
 
-	switch (af) {
+		switch (af) {
 
-	case AF_INET:
-		qtype = T_A;
-		break;
+		case AF_INET:
+			qtype = T_A;
+			break;
 
 #ifdef AF_INET6
-	case AF_INET6:
-		qtype = T_AAAA;
-		break;
+		case AF_INET6:
+			qtype = T_AAAA;
+			break;
 #endif
 
-	default:
-		snprintf(errstr, NB_DNS_ERRSIZE,
-		    "nb_dns_host_request2(): uknown address family %d", af);
-		return (-1);
+		default:
+			snprintf(errstr, NB_DNS_ERRSIZE,
+			    "nb_dns_host_request2(): unknown address family %d", af);
+			return (-1);
+		}
 	}
 	return (_nb_dns_mkquery(nd, name, af, qtype, cookie, errstr));
 }
@@ -600,6 +601,12 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 			bp += n;		/* returned len includes EOS */
 
 			/* "Find first satisfactory answer" */
+			nr->hostent = he;
+			nr->ttl = rttl;
+			return (1);
+		case T_TXT:
+			memcpy(bp, rdata, rdlen);
+			he->h_name = bp+1; /* First char is a control character. */
 			nr->hostent = he;
 			nr->ttl = rttl;
 			return (1);

@@ -60,8 +60,8 @@ export {
 	## Default rotation interval. Zero disables rotation.
 	const default_rotation_interval = 0secs &redef;
 
-	## Default alarm mail interval. Zero disables alarm mails.
-	const default_alarm_mail_interval = 0secs &redef;
+	## Default alarm summary mail interval. Zero disables alarm summary mails.
+	const default_mail_alarms_interval = 0secs &redef;
 
 	## Default naming format for timestamps embedded into filenames.
 	## Uses a ``strftime()`` style.

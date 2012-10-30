@@ -28,7 +28,9 @@ export {
 	type Info: record {
 		## Time when the command was sent.
 		ts:               time        &log;
+		## Unique ID for the connection.
 		uid:              string      &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id     &log;
 		## User name for the current FTP session.
 		user:             string      &log &default="<unknown>";
@@ -94,11 +96,11 @@ redef record connection += {
 };
 
 # Configure DPD
-const ports = { 21/tcp } &redef;
-redef capture_filters += { ["ftp"] = "port 21" };
+const ports = { 21/tcp, 2811/tcp } &redef; # 2811/tcp is GridFTP.
+redef capture_filters += { ["ftp"] = "port 21 and port 2811" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
-redef likely_server_ports += { 21/tcp };
+redef likely_server_ports += { 21/tcp, 2811/tcp };
 
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;

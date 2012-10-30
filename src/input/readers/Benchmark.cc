@@ -38,7 +38,7 @@ void Benchmark::DoClose()
 
 bool Benchmark::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	num_lines = atoi(info.source.c_str());
+	num_lines = atoi(info.source);
 
 	if ( autospread != 0.0 )
 		autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
@@ -126,8 +126,12 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		assert(false); // no enums, please.
 
 	case TYPE_STRING:
-		val->val.string_val = new string(RandomString(10));
+		{
+		string rnd = RandomString(10);
+		val->val.string_val.data = copy_string(rnd.c_str());
+		val->val.string_val.length = rnd.size();
 		break;
+		}
 
 	case TYPE_BOOL:
 		val->val.int_val = 1; // we never lie.
@@ -222,7 +226,6 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 bool Benchmark::DoHeartbeat(double network_time, double current_time)
 {
-	ReaderBackend::DoHeartbeat(network_time, current_time);
 	num_lines = (int) ( (double) num_lines*multiplication_factor);
 	num_lines += add;
 	heartbeatstarttime = CurrTime();

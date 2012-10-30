@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace input::reader;
 using threading::Value;
@@ -87,10 +88,10 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	{
 	mtime = 0;
 
-	file = new ifstream(info.source.c_str());
+	file = new ifstream(info.source);
 	if ( ! file->is_open() )
 		{
-		Error(Fmt("Init: cannot open %s", info.source.c_str()));
+		Error(Fmt("Init: cannot open %s", info.source));
 		delete(file);
 		file = 0;
 		return false;
@@ -98,7 +99,7 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 
 	if ( ReadHeader(false) == false )
 		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source.c_str()));
+		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source));
 		file->close();
 		delete(file);
 		file = 0;
@@ -144,7 +145,7 @@ bool Ascii::ReadHeader(bool useCached)
 		pos++;
 		}
 
-	//printf("Updating fields from description %s\n", line.c_str());
+	// printf("Updating fields from description %s\n", line.c_str());
 	columnMap.clear();
 
 	for ( int i = 0; i < NumFields(); i++ )
@@ -164,20 +165,20 @@ bool Ascii::ReadHeader(bool useCached)
 				}
 
 			Error(Fmt("Did not find requested field %s in input data file %s.",
-				  field->name.c_str(), Info().source.c_str()));
+				  field->name, Info().source));
 			return false;
 			}
 
 
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
 
-		if ( field->secondary_name != "" )
+		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
 			{
 			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
 				Error(Fmt("Could not find requested port type field %s in input data file.",
-					  field->secondary_name.c_str()));
+					  field->secondary_name));
 				return false;
 				}
 
@@ -199,11 +200,47 @@ bool Ascii::GetLine(string& str)
 		if ( str[0] != '#' )
 			return true;
 
-		if ( str.compare(0,8, "#fields\t") == 0 )
+		if ( ( str.length() > 8 ) && ( str.compare(0,7, "#fields") == 0 ) && ( str[7] == separator[0] ) )
 			{
 			str = str.substr(8);
 			return true;
 			}
+		}
+
+	return false;
+	}
+
+bool Ascii::CheckNumberError(const string& s, const char * end)
+	{
+	// Do this check first, before executing s.c_str() or similar.
+	// otherwise the value to which *end is pointing at the moment might
+	// be gone ...
+	bool endnotnull =  (*end != '\0');
+
+	if ( s.length() == 0 )
+		{
+		Error("Got empty string for number field");
+		return true;
+		}
+
+	if ( end == s.c_str() ) {
+		Error(Fmt("String '%s' contained no parseable number", s.c_str()));
+		return true;
+	}
+
+	if ( endnotnull )
+		Warning(Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
+
+	if ( errno == EINVAL )
+		{
+		Error(Fmt("String '%s' could not be converted to a number", s.c_str()));
+		return true;
+		}
+
+	else if ( errno == ERANGE )
+		{
+		Error(Fmt("Number '%s' out of supported range.", s.c_str()));
+		return true;
 		}
 
 	return false;
@@ -216,11 +253,15 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		return new Value(field.type, false);
 
 	Value* val = new Value(field.type, true);
+	char* end = 0;
+	errno = 0;
 
 	switch ( field.type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
-		val->val.string_val = new string(s);
+		s = get_unescaped_string(s);
+		val->val.string_val.length = s.size();
+		val->val.string_val.data = copy_string(s.c_str());
 		break;
 
 	case TYPE_BOOL:
@@ -237,27 +278,37 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		break;
 
 	case TYPE_INT:
-		val->val.int_val = atoi(s.c_str());
+		val->val.int_val = strtoll(s.c_str(), &end, 10);
+		if ( CheckNumberError(s, end) )
+			return 0;
 		break;
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		val->val.double_val = atof(s.c_str());
+		val->val.double_val = strtod(s.c_str(), &end);
+		if ( CheckNumberError(s, end) )
+			return 0;
 		break;
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		val->val.uint_val = atoi(s.c_str());
+		val->val.uint_val = strtoull(s.c_str(), &end, 10);
+		if ( CheckNumberError(s, end) )
+			return 0;
 		break;
 
 	case TYPE_PORT:
-		val->val.port_val.port = atoi(s.c_str());
+		val->val.port_val.port = strtoull(s.c_str(), &end, 10);
+		if ( CheckNumberError(s, end) )
+			return 0;
+
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
 	case TYPE_SUBNET:
 		{
+		s = get_unescaped_string(s);
 		size_t pos = s.find("/");
 		if ( pos == s.npos )
 			{
@@ -265,7 +316,11 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			return 0;
 			}
 
-		int width = atoi(s.substr(pos+1).c_str());
+		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
+
+		if ( CheckNumberError(s, end) )
+			return 0;
+
 		string addr = s.substr(0, pos);
 
 		val->val.subnet_val.prefix = StringToAddr(addr);
@@ -274,6 +329,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		}
 
 	case TYPE_ADDR:
+		s = get_unescaped_string(s);
 		val->val.addr_val = StringToAddr(s);
 		break;
 
@@ -287,7 +343,10 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		// how many entries do we have...
 		unsigned int length = 1;
 		for ( unsigned int i = 0; i < s.size(); i++ )
-			if ( s[i] == ',' ) length++;
+			{
+			if ( s[i] == set_separator[0] )
+				length++;
+			}
 
 		unsigned int pos = 0;
 
@@ -341,9 +400,24 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			pos++;
 			}
 
+		// Test if the string ends with a set_separator... or if the
+		// complete string is empty. In either of these cases we have
+		// to push an empty val on top of it.
+		if ( s.empty() || *s.rbegin() == set_separator[0] )
+			{
+			lvals[pos] = EntryToVal("", field.subType());
+			if ( lvals[pos] == 0 )
+				{
+				Error("Error while trying to add empty set element");
+				return 0;
+				}
+
+			pos++;
+			}
+
 		if ( pos != length )
 			{
-			Error("Internal error while parsing set: did not find all elements");
+			Error(Fmt("Internal error while parsing set: did not find all elements: %s", s.c_str()));
 			return 0;
 			}
 
@@ -367,9 +441,9 @@ bool Ascii::DoUpdate()
 			{
 			// check if the file has changed
 			struct stat sb;
-			if ( stat(Info().source.c_str(), &sb) == -1 )
+			if ( stat(Info().source, &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", Info().source.c_str()));
+				Error(Fmt("Could not get stat for %s", Info().source));
 				return false;
 				}
 
@@ -403,10 +477,10 @@ bool Ascii::DoUpdate()
 				file = 0;
 				}
 
-			file = new ifstream(Info().source.c_str());
+			file = new ifstream(Info().source);
 			if ( ! file->is_open() )
 				{
-				Error(Fmt("cannot open %s", Info().source.c_str()));
+				Error(Fmt("cannot open %s", Info().source));
 				return false;
 				}
 
@@ -427,6 +501,7 @@ bool Ascii::DoUpdate()
 	while ( GetLine(line ) )
 		{
 		// split on tabs
+		bool error = false;
 		istringstream splitstream(line);
 
 		map<int, string> stringfields;
@@ -471,8 +546,9 @@ bool Ascii::DoUpdate()
 			Value* val = EntryToVal(stringfields[(*fit).position], *fit);
 			if ( val == 0 )
 				{
-				Error("Could not convert String value to Val");
-				return false;
+				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				error = true;
+				break;
 				}
 
 			if ( (*fit).secondary_position != -1 )
@@ -487,6 +563,19 @@ bool Ascii::DoUpdate()
 			fields[fpos] = val;
 
 			fpos++;
+			}
+
+		if ( error )
+			{
+			// Encountered non-fatal error, ignoring line. But
+			// first, delete all successfully read fields and the
+			// array structure.
+
+			for ( int i = 0; i < fpos; i++ )
+				delete fields[fpos];
+
+			delete [] fields;
+			continue;
 			}
 
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
@@ -506,8 +595,6 @@ bool Ascii::DoUpdate()
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
-	ReaderBackend::DoHeartbeat(network_time, current_time);
-
 	switch ( Info().mode  ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)

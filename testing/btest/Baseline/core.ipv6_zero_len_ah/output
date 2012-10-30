@@ -1,0 +1,2 @@
+[orig_h=2000:1300::1, orig_p=128/icmp, resp_h=2000:1300::2, resp_p=129/icmp]
+[ip=<uninitialized>, ip6=[class=0, flow=0, len=166, nxt=51, hlim=255, src=2000:1300::1, dst=2000:1300::2, exts=[[id=51, hopopts=<uninitialized>, dstopts=<uninitialized>, routing=<uninitialized>, fragment=<uninitialized>, ah=[nxt=58, len=0, rsv=0, spi=0, seq=<uninitialized>, data=<uninitialized>], esp=<uninitialized>, mobility=<uninitialized>]]], tcp=<uninitialized>, udp=<uninitialized>, icmp=<uninitialized>]

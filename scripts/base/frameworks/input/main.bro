@@ -8,7 +8,15 @@ export {
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
 
+	## The default reader mode used. Defaults to `MANUAL`.
 	const default_mode = MANUAL &redef;
+
+	## Flag that controls if the input framework accepts records
+	## that contain types that are not supported (at the moment
+	## file and function). If true, the input framework will
+	## warn in these cases, but continue. If false, it will
+	## abort. Defaults to false (abort)
+	const accept_unsupported_types = F &redef;
 
 	## TableFilter description type used for the `table` method.
 	type TableDescription: record {
@@ -82,11 +90,11 @@ export {
 		## Record describing the fields to be retrieved from the source input.
 		fields: any;
 
-		## If want_record if false (default), the event receives each value in fields as a seperate argument.
-		## If it is set to true, the event receives all fields in a signle record value.
-		want_record: bool &default=F;
+		## If want_record if false, the event receives each value in fields as a separate argument.
+		## If it is set to true (default), the event receives all fields in a single record value.
+		want_record: bool &default=T;
 
-		## The event that is rised each time a new line is received from the reader.
+		## The event that is raised each time a new line is received from the reader.
 		## The event will receive an Input::Event enum as the first element, and the fields as the following arguments.
 		ev: any;
 
@@ -106,7 +114,8 @@ export {
 	## description: `TableDescription` record describing the source.
 	global add_event: function(description: Input::EventDescription) : bool;
 
-	## Remove a input stream. Returns true on success and false if the named stream was not found.
+	## Remove a input stream. Returns true on success and false if the named stream was
+	## not found. 
 	##
 	## id: string value identifying the stream to be removed
 	global remove: function(id: string) : bool;
@@ -117,8 +126,9 @@ export {
 	## id: string value identifying the stream
 	global force_update: function(id: string) : bool;
 
-	## Event that is called, when the update of a specific source is finished
-	global update_finished: event(name: string, source:string);
+	## Event that is called, when the end of a data source has been reached, including
+	## after an update.
+	global end_of_data: event(name: string, source:string);
 }
 
 @load base/input.bif

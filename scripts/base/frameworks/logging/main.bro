@@ -99,6 +99,12 @@ export {
 		## file name. Generally, filenames are expected to given
 		## without any extensions; writers will add appropiate
 		## extensions automatically.
+		##
+		## If this path is found to conflict with another filter's
+		## for the same writer type, it is automatically corrected
+		## by appending "-N", where N is the smallest integer greater
+		## or equal to 2 that allows the corrected path name to not
+		## conflict with another filter's.
 		path: string &optional;
 
 		## A function returning the output path for recording entries
@@ -118,7 +124,10 @@ export {
 		## rec: An instance of the streams's ``columns`` type with its
 		##      fields set to the values to be logged.
 		##
-		## Returns: The path to be used for the filter.
+		## Returns: The path to be used for the filter, which will be subject
+		##          to the same automatic correction rules as the *path*
+		##          field of :bro:type:`Log::Filter` in the case of conflicts
+		##          with other filters trying to use the same writer/path pair.
 		path_func: function(id: ID, path: string, rec: any): string &optional;
 
 		## Subset of column names to record. If not given, all
@@ -321,6 +330,11 @@ export {
 	##    Log::default_rotation_postprocessor_cmd
 	##    Log::default_rotation_postprocessors
 	global run_rotation_postprocessor_cmd: function(info: RotationInfo, npath: string) : bool;
+
+	## The streams which are currently active and not disabled.
+	## This table is not meant to be modified by users!  Only use it for
+	## examining which streams are active.
+	global active_streams: table[ID] of Stream = table();
 }
 
 # We keep a script-level copy of all filters so that we can manipulate them.
@@ -335,22 +349,23 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 	{
 	if ( info$writer in default_rotation_postprocessors )
 		return default_rotation_postprocessors[info$writer](info);
-
-	return F;
+	else
+		# Return T by default so that postprocessor-less writers don't shutdown.
+		return T;
 	}
 
 function default_path_func(id: ID, path: string, rec: any) : string
 	{
+	# The suggested path value is a previous result of this function
+	# or a filter path explicitly set by the user, so continue using it.
+	if ( path != "" )
+		return path;
+
 	local id_str = fmt("%s", id);
 
 	local parts = split1(id_str, /::/);
 	if ( |parts| == 2 )
 		{
-		# The suggested path value is a previous result of this function
-		# or a filter path explicitly set by the user, so continue using it.
-		if ( path != "" )
-			return path;
-
 		# Example: Notice::LOG -> "notice"
 		if ( parts[2] == "LOG" )
 			{
@@ -405,11 +420,15 @@ function create_stream(id: ID, stream: Stream) : bool
 	if ( ! __create_stream(id, stream) )
 		return F;
 
+	active_streams[id] = stream;
+
 	return add_default_filter(id);
 	}
 
 function disable_stream(id: ID) : bool
 	{
+	delete active_streams[id];
+
 	return __disable_stream(id);
 	}
 

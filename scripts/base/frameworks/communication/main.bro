@@ -10,14 +10,14 @@ export {
 
 	## The communication logging stream identifier.
 	redef enum Log::ID += { LOG };
-	
+
 	## Which interface to listen on. The addresses ``0.0.0.0`` and ``[::]``
 	## are wildcards.
 	const listen_interface = 0.0.0.0 &redef;
-	
+
 	## Which port to listen on.
 	const listen_port = 47757/tcp &redef;
-	
+
 	## This defines if a listening socket should use SSL.
 	const listen_ssl = F &redef;
 
@@ -34,7 +34,7 @@ export {
 	## :bro:id:`Communication::listen_port` if it's already in use.
 	const listen_retry = 30 secs &redef;
 
-	## Default compression level.  Compression level is 0-9, with 0 = no 
+	## Default compression level.  Compression level is 0-9, with 0 = no
 	## compression.
 	global compression_level = 0 &redef;
 
@@ -42,7 +42,7 @@ export {
 	type Info: record {
 		## The network time at which a communication event occurred.
 		ts:                  time   &log;
-		## The peer name (if any) for which a communication event is concerned.
+		## The peer name (if any) with which a communication event is concerned.
 		peer:                string &log &optional;
 		## Where the communication event message originated from, that is,
 		## either from the scripting layer or inside the Bro process.
@@ -70,7 +70,7 @@ export {
 		## If the *host* field is a non-global IPv6 address, this field
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id: string &optional;
-		
+
 		## Port of the remote Bro communication endpoint if we are initiating
 		## the connection based on the :bro:id:`connect` field.
 		p: port &optional;
@@ -120,7 +120,7 @@ export {
 
 		## The remote peer.
 		peer: event_peer &optional;
-		
+
 		## Indicates the status of the node.
 		connected: bool &default = F;
 	};
@@ -163,7 +163,7 @@ event bro_init() &priority=5
 
 function do_script_log_common(level: count, src: count, msg: string)
 	{
-	Log::write(Communication::LOG, [$ts = network_time(), 
+	Log::write(Communication::LOG, [$ts = network_time(),
 	                                $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
 	                                $src_name = src_names[src],
 	                                $peer = get_event_peer()$descr,
@@ -199,9 +199,9 @@ function connect_peer(peer: string)
 	local class = node?$class ? node$class : "";
 	local zone_id = node?$zone_id ? node$zone_id : "";
 	local id = connect(node$host, zone_id, p, class, node$retry, node$ssl);
-    
+
 	if ( id == PEER_ID_NONE )
-		Log::write(Communication::LOG, [$ts = network_time(), 
+		Log::write(Communication::LOG, [$ts = network_time(),
 		                                $peer = get_event_peer()$descr,
 		                                $message = "can't trigger connect"]);
 	pending_peers[id] = node;
@@ -340,7 +340,7 @@ event bro_init() &priority = -10 # let others modify nodes
 	{
 	if ( |nodes| > 0 )
 		enable_communication();
-	
+
 	for ( tag in nodes )
 		{
 		if ( ! nodes[tag]$connect )

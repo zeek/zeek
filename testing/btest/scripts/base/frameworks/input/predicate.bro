@@ -35,7 +35,7 @@ type Val: record {
 	b: bool;
 };
 
-global servers: table[int] of Val = table();
+global servers: table[int] of bool = table();
 
 event bro_init()
 	{
@@ -47,7 +47,7 @@ event bro_init()
 	Input::remove("input");
 	}
 
-event Input::update_finished(name: string, source: string)
+event Input::end_of_data(name: string, source: string)
 	{
 	if ( 1 in servers )
 		print outfile, "VALID";

@@ -56,22 +56,24 @@ private:
 
 class SendEventMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	SendEventMessage(ReaderFrontend* reader, const string& name, const int num_vals, Value* *val)
+	SendEventMessage(ReaderFrontend* reader, const char* name, const int num_vals, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
-		name(name), num_vals(num_vals), val(val) {}
+		name(copy_string(name)), num_vals(num_vals), val(val) {}
+
+	virtual ~SendEventMessage()	{ delete [] name; }
 
 	virtual bool Process()
 		{
 		bool success = input_mgr->SendEvent(name, num_vals, val);
 
 		if ( ! success )
-			reporter->Error("SendEvent for event %s failed", name.c_str());
+			reporter->Error("SendEvent for event %s failed", name);
 
 		return true; // We do not want to die if sendEvent fails because the event did not return.
 		}
 
 private:
-	const string name;
+	const char* name;
 	const int num_vals;
 	Value* *val;
 };
@@ -100,6 +102,20 @@ public:
 	virtual bool Process()
 		{
 		input_mgr->EndCurrentSend(Object());
+		return true;
+		}
+
+private:
+};
+
+class EndOfDataMessage : public threading::OutputMessage<ReaderFrontend> {
+public:
+	EndOfDataMessage(ReaderFrontend* reader)
+		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader) {}
+
+	virtual bool Process()
+		{
+		input_mgr->SendEndOfData(Object());
 		return true;
 		}
 
@@ -146,12 +162,14 @@ ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
 	disabled = true; // disabled will be set correcty in init.
 	frontend = arg_frontend;
+	info = new ReaderInfo(frontend->Info());
 
 	SetName(frontend->Name());
 	}
 
 ReaderBackend::~ReaderBackend()
 	{
+	delete info;
 	}
 
 void ReaderBackend::Put(Value* *val)
@@ -169,7 +187,7 @@ void ReaderBackend::Clear()
 	SendOut(new ClearMessage(frontend));
 	}
 
-void ReaderBackend::SendEvent(const string& name, const int num_vals, Value* *vals)
+void ReaderBackend::SendEvent(const char* name, const int num_vals, Value* *vals)
 	{
 	SendOut(new SendEventMessage(frontend, name, num_vals, vals));
 	}
@@ -179,22 +197,27 @@ void ReaderBackend::EndCurrentSend()
 	SendOut(new EndCurrentSendMessage(frontend));
 	}
 
+void ReaderBackend::EndOfData()
+	{
+	SendOut(new EndOfDataMessage(frontend));
+	}
+
 void ReaderBackend::SendEntry(Value* *vals)
 	{
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(const ReaderInfo& arg_info, const int arg_num_fields,
+bool ReaderBackend::Init(const int arg_num_fields,
 		         const threading::Field* const* arg_fields)
 	{
-	info = arg_info;
+	if ( Failed() )
+		return true;
+
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	SetName("InputReader/"+info.source);
-
 	// disable if DoInit returns error.
-	int success = DoInit(arg_info, arg_num_fields, arg_fields);
+	int success = DoInit(*info, arg_num_fields, arg_fields);
 
 	if ( ! success )
 		{
@@ -207,9 +230,11 @@ bool ReaderBackend::Init(const ReaderInfo& arg_info, const int arg_num_fields,
 	return success;
 	}
 
-void ReaderBackend::Close()
+bool ReaderBackend::OnFinish(double network_time)
 	{
-	DoClose();
+	if ( ! Failed() )
+		DoClose();
+
 	disabled = true; // frontend disables itself when it gets the Close-message.
 	SendOut(new ReaderClosedMessage(frontend));
 
@@ -221,12 +246,17 @@ void ReaderBackend::Close()
 		delete [] (fields);
 		fields = 0;
 		}
+
+	return true;
 	}
 
 bool ReaderBackend::Update()
 	{
 	if ( disabled )
 		return false;
+
+	if ( Failed() )
+		return true;
 
 	bool success = DoUpdate();
 	if ( ! success )
@@ -243,10 +273,12 @@ void ReaderBackend::DisableFrontend()
 	SendOut(new DisableMessage(frontend));
 	}
 
-bool ReaderBackend::DoHeartbeat(double network_time, double current_time)
+bool ReaderBackend::OnHeartbeat(double network_time, double current_time)
 	{
-	MsgThread::DoHeartbeat(network_time, current_time);
-	return true;
+	if ( Failed() )
+		return true;
+
+	return DoHeartbeat(network_time, current_time);
 	}
 
 TransportProto ReaderBackend::StringToProto(const string &proto)

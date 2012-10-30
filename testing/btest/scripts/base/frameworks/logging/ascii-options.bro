@@ -4,7 +4,7 @@
 
 redef LogAscii::output_to_stdout = F;
 redef LogAscii::separator = "|";
-redef LogAscii::include_header = F;
+redef LogAscii::include_meta = F;
 
 module SSH;
 

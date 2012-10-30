@@ -30,6 +30,10 @@ void Manager::Terminate()
 	do Process(); while ( did_process );
 
 	// Signal all to stop.
+
+	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+		(*i)->PrepareStop();
+
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
 		(*i)->Stop();
 
@@ -48,24 +52,16 @@ void Manager::Terminate()
 	terminating = false;
 	}
 
-void Manager::KillThreads()
-	{
-	DBG_LOG(DBG_THREADING, "Killing threads ...");
-
-	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->Kill();
-	}
-
 void Manager::AddThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name().c_str());
+	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
 	idle = false;
 	}
 
 void Manager::AddMsgThread(MsgThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "%s is a MsgThread ...", thread->Name().c_str());
+	DBG_LOG(DBG_THREADING, "%s is a MsgThread ...", thread->Name());
 	msg_threads.push_back(thread);
 	}
 
@@ -84,11 +80,27 @@ double Manager::NextTimestamp(double* network_time)
 
 	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
 		{
-			if ( (*i)->MightHaveOut() )
-				return timer_mgr->Time();
+		MsgThread* t = *i;
+
+		if ( (*i)->MightHaveOut() && ! t->Killed() )
+			return timer_mgr->Time();
 		}
 
 	return -1.0;
+	}
+
+void Manager::KillThreads()
+	{
+	DBG_LOG(DBG_THREADING, "Killing threads ...");
+
+	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+		(*i)->Kill();
+        }
+
+void Manager::KillThread(BasicThread* thread)
+	{
+	DBG_LOG(DBG_THREADING, "Killing thread %s ...", thread->Name());
+	thread->Kill();
 	}
 
 void Manager::Process()
@@ -110,9 +122,15 @@ void Manager::Process()
 		if ( do_beat )
 			t->Heartbeat();
 
-		while ( t->HasOut() )
+		while ( t->HasOut() && ! t->Killed() )
 			{
 			Message* msg = t->RetrieveOut();
+
+			if ( ! msg )
+				{
+				assert(t->Killed());
+				break;
+				}
 
 			if ( msg->Process() )
 				{
@@ -122,10 +140,9 @@ void Manager::Process()
 
 			else
 				{
-				string s = msg->Name() + " failed, terminating thread";
-				reporter->Error("%s", s.c_str());
+				reporter->Error("%s failed, terminating thread", msg->Name());
 				t->Stop();
-			}
+				}
 
 			delete msg;
 			}

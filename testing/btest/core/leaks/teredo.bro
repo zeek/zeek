@@ -5,10 +5,6 @@
 # @TEST-GROUP: leaks
 #
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -r $TRACES/tunnels/Teredo.pcap %INPUT >output
-# @TEST-EXEC: btest-diff output
-# @TEST-EXEC: btest-diff tunnel.log
-# @TEST-EXEC: btest-diff conn.log
-# @TEST-EXEC: btest-diff http.log
 
 function print_teredo(name: string, outer: connection, inner: teredo_hdr)
 	{

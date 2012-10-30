@@ -2,7 +2,9 @@
 #define sigs_h
 
 #include <limits.h>
+#include <vector>
 
+#include "IPAddr.h"
 #include "BroString.h"
 #include "List.h"
 #include "RE.h"
@@ -59,17 +61,19 @@ declare(PList, BroString);
 typedef PList(BroString) bstr_list;
 
 // Get values from Bro's script-level variables.
-extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to);
+extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
+                                vector<IPPrefix>* prefix_vector = 0);
 extern char* id_to_str(const char* id);
 extern uint32 id_to_uint(const char* id);
 
 class RuleHdrTest {
 public:
 	enum Comp { LE, GE, LT, GT, EQ, NE };
-	enum Prot { NOPROT, IP, ICMP, TCP, UDP };
+	enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 
 	RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -86,6 +90,7 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
+	vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32 offset;
 	uint32 size;
 

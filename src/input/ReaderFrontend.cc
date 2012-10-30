@@ -11,18 +11,17 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const ReaderBackend::ReaderInfo& info,
+	InitMessage(ReaderBackend* backend,
 		    const int num_fields, const threading::Field* const* fields)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
-		info(info), num_fields(num_fields), fields(fields) { }
+		num_fields(num_fields), fields(fields) { }
 
 	virtual bool Process()
 		{
-		return Object()->Init(info, num_fields, fields);
+		return Object()->Init(num_fields, fields);
 		}
 
 private:
-	const ReaderBackend::ReaderInfo info;
 	const int num_fields;
 	const threading::Field* const* fields;
 };
@@ -37,32 +36,26 @@ public:
 	virtual bool Process() { return Object()->Update(); }
 };
 
-class CloseMessage : public threading::InputMessage<ReaderBackend>
-{
-public:
-	CloseMessage(ReaderBackend* backend)
-		: threading::InputMessage<ReaderBackend>("Close", backend)
-		 { }
-
-	virtual bool Process() { Object()->Close(); return true; }
-};
-
-
-ReaderFrontend::ReaderFrontend(bro_int_t type)
+ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVal* type)
 	{
 	disabled = initialized = false;
-	ty_name = "<not set>";
-	backend = input_mgr->CreateBackend(this, type);
+	info = new ReaderBackend::ReaderInfo(arg_info);
 
+	const char* t = type->Type()->AsEnumType()->Lookup(type->InternalInt());
+	name = copy_string(fmt("%s/%s", arg_info.source, t));
+
+	backend = input_mgr->CreateBackend(this, type->InternalInt());
 	assert(backend);
 	backend->Start();
 	}
 
 ReaderFrontend::~ReaderFrontend()
 	{
+	delete [] name;
+	delete info;
 	}
 
-void ReaderFrontend::Init(const ReaderBackend::ReaderInfo& arg_info, const int arg_num_fields,
+void ReaderFrontend::Init(const int arg_num_fields,
 		          const threading::Field* const* arg_fields)
 	{
 	if ( disabled )
@@ -71,12 +64,11 @@ void ReaderFrontend::Init(const ReaderBackend::ReaderInfo& arg_info, const int a
 	if ( initialized )
 		reporter->InternalError("reader initialize twice");
 
-	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 	initialized = true;
 
-	backend->SendIn(new InitMessage(backend, info, num_fields, fields));
+	backend->SendIn(new InitMessage(backend, num_fields, fields));
 	}
 
 void ReaderFrontend::Update()
@@ -93,27 +85,9 @@ void ReaderFrontend::Update()
 	backend->SendIn(new UpdateMessage(backend));
 	}
 
-void ReaderFrontend::Close()
+const char* ReaderFrontend::Name() const
 	{
-	if ( disabled )
-		return;
-
-	if ( ! initialized )
-		{
-		reporter->Error("Tried to call finish on uninitialized reader");
-		return;
-		}
-
-	disabled = true;
-	backend->SendIn(new CloseMessage(backend));
-	}
-
-string ReaderFrontend::Name() const
-	{
-	if ( ! info.source.size() )
-		return ty_name;
-
-	return ty_name + "/" + info.source;
+	return name;
 	}
 
 }

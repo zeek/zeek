@@ -31,7 +31,11 @@ public:
 	 * script-level \c Log::Writer enum (e.g., \a WRITER_ASCII). The
 	 * frontend will internally instantiate a WriterBackend of the
 	 * corresponding type.
-	 * 
+	 *
+	 * info: The meta information struct for the writer.
+	 *
+	 * writer_name: A descriptive name for the writer's type.
+	 *
 	 * local: If true, the writer will instantiate a local backend.
 	 *
 	 * remote: If true, the writer will forward all data to remote
@@ -39,7 +43,7 @@ public:
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	WriterFrontend(EnumVal* stream, EnumVal* writer, bool local, bool remote);
+	WriterFrontend(const WriterBackend::WriterInfo& info, EnumVal* stream, EnumVal* writer, bool local, bool remote);
 
 	/**
 	 * Destructor.
@@ -50,7 +54,7 @@ public:
 
 	/**
 	 * Stops all output to this writer. Calling this methods disables all
-	 * message forwarding to the backend and stops the backend thread.
+	 * message forwarding to the backend.
 	 *
 	 * This method must only be called from the main thread.
 	 */
@@ -68,7 +72,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(const WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const*  fields);
+	void Init(int num_fields, const threading::Field* const*  fields);
 
 	/**
 	 * Write out a record.
@@ -114,8 +118,10 @@ public:
 	 * message back that will asynchronously call Disable().
 	 *
 	 * This method must only be called from the main thread.
+	 *
+	 * @param network_time The network time when the flush was triggered.
 	 */
-	void Flush();
+	void Flush(double network_time);
 
 	/**
 	 * Triggers log rotation.
@@ -128,7 +134,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Rotate(string rotated_path, double open, double close, bool terminating);
+	void Rotate(const char* rotated_path, double open, double close, bool terminating);
 
 	/**
 	 * Finalizes writing to this tream.
@@ -138,8 +144,10 @@ public:
 	 * sends a message back that will asynchronously call Disable().
 	 *
 	 * This method must only be called from the main thread.
+	 *
+	 * @param network_time The network time when the finish was triggered.
 	 */
-	void Finish();
+	void Finish(double network_time);
 
 	/**
 	 * Explicitly triggers a transfer of all potentially buffered Write()
@@ -171,7 +179,7 @@ public:
 	/**
 	 * Returns the additional writer information as passed into the constructor.
 	 */
-	const WriterBackend::WriterInfo& Info() const	{ return info; }
+	const WriterBackend::WriterInfo& Info() const	{ return *info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
@@ -184,7 +192,7 @@ public:
 	 *
 	 * This method is safe to call from any thread.
 	 */
-	string Name() const;
+	const char* Name() const	{ return name; }
 
 	/**
 	 * Returns the log fields as passed into the constructor.
@@ -206,8 +214,8 @@ protected:
 	bool local;	// True if logging locally.
 	bool remote;	// True if loggin remotely.
 
-	string ty_name;	// Name of the backend type. Set by the manager.
-	WriterBackend::WriterInfo info;	// The writer information.
+	const char* name;	// Descriptive name of the
+	WriterBackend::WriterInfo* info;	// The writer information.
 	int num_fields;	// The number of log fields.
 	const threading::Field* const*  fields;	// The log fields.
 

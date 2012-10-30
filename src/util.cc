@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
+#include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -43,6 +44,78 @@
 #include "Reporter.h"
 
 /**
+ * Return IP address without enclosing brackets and any leading 0x.
+ */
+std::string extract_ip(const std::string& i)
+	{
+	std::string s(skip_whitespace(i.c_str()));
+	if ( s.size() > 0 && s[0] == '[' )
+		s.erase(0, 1);
+
+	if ( s.size() > 1 && s.substr(0, 2) == "0x" )
+		s.erase(0, 2);
+
+	size_t pos = 0;
+	if ( (pos = s.find(']')) != std::string::npos )
+		s = s.substr(0, pos);
+
+	return s;
+	}
+
+/**
+ * Given a subnet string, return IP address and subnet length separately.
+ */
+std::string extract_ip_and_len(const std::string& i, int* len)
+	{
+	size_t pos = i.find('/');
+	if ( pos == std::string::npos )
+		return i;
+
+	if ( len )
+		*len = atoi(i.substr(pos + 1).c_str());
+
+	return extract_ip(i.substr(0, pos));
+	}
+
+/**
+ * Takes a string, unescapes all characters that are escaped as hex codes
+ * (\x##) and turns them into the equivalent ascii-codes. Returns a string
+ * containing no escaped values
+ *
+ * @param str string to unescape
+ * @return A str::string without escaped characters.
+ */
+std::string get_unescaped_string(const std::string& arg_str)
+	{
+	const char* str = arg_str.c_str();
+	char* buf = new char [arg_str.length() + 1]; // it will at most have the same length as str.
+	char* bufpos = buf;
+	size_t pos = 0;
+
+	while ( pos < arg_str.length() )
+		{
+		if ( str[pos] == '\\' && str[pos+1] == 'x' &&
+		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) )
+			{
+				*bufpos = (decode_hex(str[pos+2]) << 4) +
+					decode_hex(str[pos+3]);
+
+				pos += 4;
+				bufpos++;
+			}
+		else
+			*bufpos++ = str[pos++];
+		}
+
+	*bufpos = 0;
+	string outstring(buf, bufpos - buf);
+
+	delete [] buf;
+
+	return outstring;
+	}
+
+/**
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
  * returns a string containing all escaped values.
  *
@@ -53,28 +126,31 @@
  * @return A std::string containing a list of escaped hex values of the form
  * \x## */
 std::string get_escaped_string(const std::string& str, bool escape_all)
-{
-    char tbuf[16];
-    string esc = "";
+	{
+	char tbuf[16];
+	string esc = "";
 
-    for ( size_t i = 0; i < str.length(); ++i )
-        {
-	char c = str[i];
-
-	if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+	for ( size_t i = 0; i < str.length(); ++i )
 		{
-		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-		esc += tbuf;
-		}
-	else
-		esc += c;
-	}
+		char c = str[i];
 
-    return esc;
-}
+		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+			{
+			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+			esc += tbuf;
+			}
+		else
+			esc += c;
+		}
+
+	return esc;
+	}
 
 char* copy_string(const char* s)
 	{
+	if ( ! s )
+		return 0;
+
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
 	return c;
@@ -653,6 +729,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	{
 	static const int bufsiz = 16;
 	uint32 buf[bufsiz];
+	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 
@@ -683,7 +760,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			{
 			int amt = read(fd, buf + pos,
 					sizeof(uint32) * (bufsiz - pos));
-			close(fd);
+			safe_close(fd);
 
 			if ( amt > 0 )
 				pos += amt / sizeof(uint32);
@@ -1165,7 +1242,7 @@ void _set_processing_status(const char* status)
 		len -= n;
 		}
 
-	close(fd);
+	safe_close(fd);
 
 	errno = old_errno;
 	}
@@ -1290,9 +1367,64 @@ uint64 calculate_unique_id(size_t pool)
 	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
+bool safe_write(int fd, const char* data, int len)
+	{
+	while ( len > 0 )
+		{
+		int n = write(fd, data, len);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		len -= n;
+		}
+
+	return true;
+	}
+
+void safe_close(int fd)
+	{
+	/*
+	 * Failure cases of close(2) are ...
+	 * EBADF: Indicative of programming logic error that needs to be fixed, we
+	 *        should always be attempting to close a valid file descriptor.
+	 * EINTR: Ignore signal interruptions, most implementations will actually
+	 *        reclaim the open descriptor and POSIX standard doesn't leave many
+	 *        options by declaring the state of the descriptor as "unspecified".
+	 *        Attempting to inspect actual state or re-attempt close() is not
+	 *        thread safe.
+	 * EIO:   Again the state of descriptor is "unspecified", but don't recover
+	 *        from an I/O error, safe_write() won't either.
+	 *
+	 * Note that we don't use the reporter here to allow use from different threads.
+	 */
+	if ( close(fd) < 0 && errno != EINTR )
+		{
+		char buf[128];
+		strerror_r(errno, buf, sizeof(buf));
+		fprintf(stderr, "safe_close error %d: %s\n", errno, buf);
+		abort();
+		}
+	}
+
 void out_of_memory(const char* where)
 	{
-	reporter->FatalError("out of memory in %s.\n", where);
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( reporter )
+		// Guess that might fail here if memory is really tight ...
+		reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)

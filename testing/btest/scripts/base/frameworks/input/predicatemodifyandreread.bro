@@ -94,7 +94,7 @@ event bro_init()
 				]);
 	}
 
-event Input::update_finished(name: string, source: string)
+event Input::end_of_data(name: string, source: string)
 	{
 	try = try + 1;
 	print outfile, fmt("Update_finished for %s, try %d", name, try);

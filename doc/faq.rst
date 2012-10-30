@@ -12,6 +12,43 @@ Frequently Asked Questions
 Installation and Configuration
 ==============================
 
+How do I upgrade to a new version of Bro?
+-----------------------------------------
+
+There's two suggested approaches, either install Bro using the same
+installation prefix directory as before, or pick a new prefix and copy
+local customizations over.
+
+Re-Use Previous Install Prefix
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you choose to configure and install Bro with the same prefix
+directory as before, local customization and configuration to files in
+``$prefix/share/bro/site`` and ``$prefix/etc`` won't be overwritten
+(``$prefix`` indicating the root of where Bro was installed). Also, logs
+generated at run-time won't be touched by the upgrade. (But making
+a backup of local changes before proceeding is still recommended.)
+
+After upgrading, remember to check ``$prefix/share/bro/site`` and
+``$prefix/etc`` for ``.example`` files, which indicate the
+distribution's version of the file differs from the local one, which may
+include local changes.  Review the differences, and make adjustments
+as necessary (for differences that aren't the result of a local change,
+use the new version's).
+
+Pick a New Install prefix
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want to install the newer version in a different prefix
+directory than before, you can just copy local customization and
+configuration files from ``$prefix/share/bro/site`` and ``$prefix/etc``
+to the new location (``$prefix`` indicating the root of where Bro was
+originally installed).  Make sure to review the files for difference
+before copying and make adjustments as necessary (for differences that
+aren't the result of a local change, use the new version's).  Of
+particular note, the copied version of ``$prefix/etc/broctl.cfg`` is
+likely to need changes to the ``SpoolDir`` and ``LogDir`` settings.
+
 How can I tune my operating system for best capture performance?
 ----------------------------------------------------------------
 
@@ -46,7 +83,7 @@ directions:
 http://securityonion.blogspot.com/2011/10/when-is-full-packet-capture-not-full.html
 
 What does an error message like ``internal error: NB-DNS error`` mean?
----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 That often means that DNS is not set up correctly on the system
 running Bro. Try verifying from the command line that DNS lookups
@@ -65,6 +102,15 @@ Generally, please note that we do not regularly test OpenBSD builds.
 We appreciate any patches that improve Bro's support for this
 platform.
 
+How do BroControl options affect Bro script variables?
+------------------------------------------------------
+
+Some (but not all) BroControl options override a corresponding Bro script variable.
+For example, setting the BroControl option "LogRotationInterval" will override
+the value of the Bro script variable "Log::default_rotation_interval".
+See the :doc:`BroControl Documentation <components/broctl/README>` to find out
+which BroControl options override Bro script variables, and for more discussion
+on site-specific customization.
 
 Usage
 =====

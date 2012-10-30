@@ -15,7 +15,7 @@ const char* attr_name(attr_tag t)
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
 		"&persistent", "&synchronized", "&postprocessor",
-		"&encrypt", "&match", "&disable_print_hook",
+		"&encrypt", "&match",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
 		"(&tracked)",
@@ -383,11 +383,6 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_SYNCHRONIZED:
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
-		break;
-
-	case ATTR_DISABLE_PRINT_HOOK:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&disable_print_hook only applicable to files");
 		break;
 
 	case ATTR_RAW_OUTPUT:

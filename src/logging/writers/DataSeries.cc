@@ -78,10 +78,10 @@ std::string DataSeries::LogValueToString(threading::Value *val)
 	case TYPE_STRING:
 	case TYPE_FILE:
 	case TYPE_FUNC:
-		if ( ! val->val.string_val->size() )
+		if ( ! val->val.string_val.length )
 			return "";
 
-		return string(val->val.string_val->data(), val->val.string_val->size());
+		return string(val->val.string_val.data, val->val.string_val.length);
 
 	case TYPE_TABLE:
 		{
@@ -243,8 +243,25 @@ bool DataSeries::OpenLog(string path)
 	log_file->writeExtentLibrary(log_types);
 
 	for( size_t i = 0; i < schema_list.size(); ++i )
-		extents.insert(std::make_pair(schema_list[i].field_name,
-					      GeneralField::create(log_series, schema_list[i].field_name)));
+		{
+		string fn = schema_list[i].field_name;
+		GeneralField* gf = 0;
+#ifdef USE_PERFTOOLS_DEBUG
+		{
+		// GeneralField isn't cleaning up some results of xml parsing, reported
+		// here: https://github.com/dataseries/DataSeries/issues/1
+		// Ignore for now to make leak tests pass.  There's confidence that
+		// we do clean up the GeneralField* since the ExtentSeries dtor for
+		// member log_series would trigger an assert if dynamically allocated
+		// fields aren't deleted beforehand.
+		HeapLeakChecker::Disabler disabler;
+#endif
+		gf = GeneralField::create(log_series, fn);
+#ifdef USE_PERFTOOLS_DEBUG
+		}
+#endif
+		extents.insert(std::make_pair(fn, gf));
+		}
 
 	if ( ds_extent_size < ROW_MIN )
 		{
@@ -302,7 +319,8 @@ bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading:
 
 	if( ds_dump_schema )
 		{
-		FILE* pFile = fopen ( string(info.path + ".ds.xml").c_str() , "wb" );
+		string name = string(info.path) + ".ds.xml";
+		FILE* pFile = fopen(name.c_str(), "wb" );
 
 		if( pFile )
 			{
@@ -311,7 +329,7 @@ bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading:
 			}
 
 		else
-			Error(Fmt("cannot dump schema: %s", strerror(errno)));
+			Error(Fmt("cannot dump schema: %s", Strerror(errno)));
 		}
 
 	compress_type = Extent::compress_all;
@@ -343,7 +361,7 @@ bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading:
 	return OpenLog(info.path);
 	}
 
-bool DataSeries::DoFlush()
+bool DataSeries::DoFlush(double network_time)
 {
 	// Flushing is handled by DataSeries automatically, so this function
 	// doesn't do anything.
@@ -366,11 +384,10 @@ void DataSeries::CloseLog()
 	log_file = 0;
 	}
 
-bool DataSeries::DoFinish()
+bool DataSeries::DoFinish(double network_time)
 {
 	CloseLog();
-
-	return WriterBackend::DoFinish();
+	return true;
 }
 
 bool DataSeries::DoWrite(int num_fields, const threading::Field* const * fields,
@@ -395,17 +412,17 @@ bool DataSeries::DoWrite(int num_fields, const threading::Field* const * fields,
 	return true;
 }
 
-bool DataSeries::DoRotate(string rotated_path, double open, double close, bool terminating)
+bool DataSeries::DoRotate(const char* rotated_path, double open, double close, bool terminating)
 {
 	// Note that if DS files are rotated too often, the aggregate log
 	// size will be (much) larger.
 	CloseLog();
 
-	string dsname = Info().path + ".ds";
-	string nname = rotated_path + ".ds";
+	string dsname = string(Info().path) + ".ds";
+	string nname = string(rotated_path) + ".ds";
 	rename(dsname.c_str(), nname.c_str());
 
-	if ( ! FinishedRotation(nname, dsname, open, close, terminating) )
+	if ( ! FinishedRotation(nname.c_str(), dsname.c_str(), open, close, terminating) )
 		{
 		Error(Fmt("error rotating %s to %s", dsname.c_str(), nname.c_str()));
 		return false;
@@ -417,6 +434,11 @@ bool DataSeries::DoRotate(string rotated_path, double open, double close, bool t
 bool DataSeries::DoSetBuf(bool enabled)
 {
 	// DataSeries is *always* buffered to some degree.  This option is ignored.
+	return true;
+}
+
+bool DataSeries::DoHeartbeat(double network_time, double current_time)
+{
 	return true;
 }
 

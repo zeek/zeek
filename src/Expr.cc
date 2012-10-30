@@ -872,10 +872,12 @@ Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	const IPPrefix& n1 = v1->AsSubNet();
 	const IPPrefix& n2 = v2->AsSubNet();
 
-	if ( n1 == n2 )
-		return new Val(1, TYPE_BOOL);
-	else
-		return new Val(0, TYPE_BOOL);
+	bool result = ( n1 == n2 ) ? true : false;
+
+	if ( tag == EXPR_NE )
+		result = ! result;
+
+	return new Val(result, TYPE_BOOL);
 	}
 
 void BinaryExpr::SwapOps()
@@ -1035,12 +1037,10 @@ Val* IncrExpr::Eval(Frame* f) const
 				{
 				Val* new_elt = DoSingleEval(f, elt);
 				v_vec->Assign(i, new_elt, this, OP_INCR);
-				Unref(new_elt); // was Ref()'d by Assign()
 				}
 			else
 				v_vec->Assign(i, 0, this, OP_INCR);
 			}
-		// FIXME: Is the next line needed?
 		op->Assign(f, v_vec, OP_INCR);
 		}
 
@@ -1517,6 +1517,8 @@ RemoveFromExpr::RemoveFromExpr(Expr* arg_op1, Expr* arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
+	else if ( BothInterval(bt1, bt2) )
+		SetType(base_type(bt1));
 	else
 		ExprError("requires two arithmetic operands");
 	}
@@ -2400,11 +2402,6 @@ RefExpr::RefExpr(Expr* arg_op) : UnaryExpr(EXPR_REF, arg_op)
 Expr* RefExpr::MakeLvalue()
 	{
 	return this;
-	}
-
-Val* RefExpr::Eval(Val* v) const
-	{
-	return Fold(v);
 	}
 
 void RefExpr::Assign(Frame* f, Val* v, Opcode opcode)

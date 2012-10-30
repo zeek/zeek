@@ -1,6 +1,7 @@
 #
-#@TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out
-# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
+# @TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out.tmp
+# @TEST-EXEC: cat out.tmp pp.log | sort >out
+# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | $SCRIPTS/diff-remove-timestamps | uniq >>out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stderr
 
@@ -19,7 +20,7 @@ export {
 }
 
 redef Log::default_rotation_interval = 1hr;
-redef Log::default_rotation_postprocessor_cmd = "echo 1st";
+redef Log::default_rotation_postprocessor_cmd = "echo 1st >>pp.log";
 
 function custom_rotate(info: Log::RotationInfo) : bool
 {

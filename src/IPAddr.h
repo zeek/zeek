@@ -342,6 +342,21 @@ public:
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
 		}
 
+	friend bool operator<=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return addr1 < addr2 || addr1 == addr2;
+		}
+
+	friend bool operator>=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! ( addr1 < addr2 );
+		}
+
+	friend bool operator>(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! ( addr1 <= addr2 );
+		}
+
 	/** Converts the address into the type used internally by the
 	  * inter-thread communication.
 	  */
@@ -481,8 +496,15 @@ public:
 	 * @param addr The IP address.
 	 *
 	 * @param length The prefix length in the range from 0 to 128
+	 *
+	 * @param len_is_v6_relative Whether \a length is relative to the full
+	 * 128 bits of an IPv6 address.  If false and \a addr is an IPv4
+	 * address, then \a length is expected to range from 0 to 32.  If true
+	 * \a length is expected to range from 0 to 128 even if \a addr is IPv4,
+	 * meaning that the mask is to apply to the IPv4-mapped-IPv6 representation.
 	 */
-	IPPrefix(const IPAddr& addr, uint8_t length);
+	IPPrefix(const IPAddr& addr, uint8_t length,
+	         bool len_is_v6_relative = false);
 
 	/**
 	 * Copy constructor.
@@ -583,6 +605,11 @@ public:
 		return net1.Prefix() == net2.Prefix() && net1.Length() == net2.Length();
 		}
 
+	friend bool operator!=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! (net1 == net2);
+		}
+
 	/**
 	 * Comparison operator IP prefixes. This defines a well-defined order for
 	 * IP prefix. However, the order does not necessarily corresponding to their
@@ -598,6 +625,21 @@ public:
 
 		else
 			return false;
+		}
+
+	friend bool operator<=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return net1 < net2 || net1 == net2;
+		}
+
+	friend bool operator>=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! (net1 < net2 );
+		}
+
+	friend bool operator>(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! ( net1 <= net2 );
 		}
 
 private:

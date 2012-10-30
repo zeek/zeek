@@ -11,6 +11,7 @@
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
+#include <time.h>
 
 #include "digest.h"
 #include "Reporter.h"
@@ -2604,6 +2605,29 @@ function to_subnet%(sn: string%): subnet
 	return ret;
 	%}
 
+## Converts a :bro:type:`string` to a :bro:type:`double`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as double, or 0 if *str* has
+##          an invalid format.
+##
+function to_double%(str: string%): double
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+
+	double d = strtod(s, &end_s);
+
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		{
+		builtin_error("bad conversion to double", @ARG@[0]);
+		d = 0;
+		}
+
+	return new Val(d, TYPE_DOUBLE);
+	%}
+
 ## Converts a :bro:type:`count` to an :bro:type:`addr`.
 ##
 ## ip: The :bro:type:`count` to convert.
@@ -3262,6 +3286,31 @@ function strftime%(fmt: string, d: time%) : string
 	return new StringVal(buffer);
 	%}
 
+
+## Parse a textual representation of a date/time value into a ``time`` type value.
+##
+## fmt: The format string used to parse the following *d* argument. See ``man strftime``
+##      for the syntax.
+##
+## d: The string representing the time.
+##
+## Returns: The time value calculated from parsing *d* with *fmt*.
+function strptime%(fmt: string, d: string%) : time
+	%{
+	const time_t timeval = time_t(NULL);
+	struct tm t = *localtime(&timeval);
+
+	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
+		{
+		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		return new Val(0.0, TYPE_TIME);
+		}
+
+	double ret = mktime(&t);
+	return new Val(ret, TYPE_TIME);
+	%}
+
+
 # ===========================================================================
 #
 #                           Network Type Processing
@@ -3764,7 +3813,7 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
 	if ( ! geoip )
-		reporter->Warning("Failed to open GeoIP database: %s",
+		reporter->Info("Failed to open GeoIP database: %s",
 		                  GeoIPDBFileName[type]);
 	return geoip;
 	}
@@ -3804,7 +3853,7 @@ function lookup_location%(a: addr%) : geo_location
 			if ( ! geoip )
 				builtin_error("Can't initialize GeoIP City/Country database");
 			else
-				reporter->Warning("Fell back to GeoIP Country database");
+				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;
@@ -4835,7 +4884,7 @@ function file_size%(f: string%) : double
 	%}
 
 ## Disables sending :bro:id:`print_hook` events to remote peers for a given
-## file. This function is equivalent to :bro:attr:`&disable_print_hook`. In a
+## file. In a
 ## distributed setup, communicating Bro instances generate the event
 ## :bro:id:`print_hook` for each print statement and send it to the remote
 ## side. When disabled for a particular file, these events will not be
@@ -4851,7 +4900,7 @@ function disable_print_hook%(f: file%): any
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
-## This function is equivalent to :bro:attr:`&disable_print_hook`.
+## This function is equivalent to :bro:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
 ##
@@ -5660,12 +5709,6 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 #
 # ===========================================================================
 
-## Deprecated. Will be removed.
-function parse_dotted_addr%(s: string%): addr
-	%{
-	IPAddr a(s->CheckString());
-	return new AddrVal(a);
-	%}
 
 
 %%{
@@ -5765,75 +5808,3 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		}
 	%}
 
-## Deprecated. Will be removed.
-function dump_config%(%) : bool
-	%{
-	return new Val(persistence_serializer->WriteConfig(true), TYPE_BOOL);
-	%}
-
-## Deprecated. Will be removed.
-function make_connection_persistent%(c: connection%) : any
-	%{
-	c->MakePersistent();
-	return 0;
-	%}
-
-%%{
-// Experimental code to add support for IDMEF XML output based on
-// notices.  For now, we're implementing it as a builtin you can call on an
-// notices record.
-
-#ifdef USE_IDMEF
-extern "C" {
-#include <libidmef/idmefxml.h>
-}
-#endif
-
-#include <sys/socket.h>
-
-char* port_to_string(PortVal* port)
-	{
-	char buf[256];	// to hold sprintf results on port numbers
-	snprintf(buf, sizeof(buf), "%u", port->Port());
-	return copy_string(buf);
-	}
-
-%%}
-
-## Deprecated. Will be removed.
-function generate_idmef%(src_ip: addr, src_port: port,
-				dst_ip: addr, dst_port: port%) : bool
-	%{
-#ifdef USE_IDMEF
-	xmlNodePtr message =
-		newIDMEF_Message(newAttribute("version","1.0"),
-			newAlert(newCreateTime(NULL),
-			newSource(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(src_ip->AsAddr().AsString().c_str())),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(src_port)),
-					NULL), NULL),
-			newTarget(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(dst_ip->AsAddr().AsString().c_str())),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(dst_port)),
-					NULL), NULL), NULL), NULL);
-
-	// if ( validateCurrentDoc() )
-	printCurrentMessage(stderr);
-	return new Val(1, TYPE_BOOL);
-#else
-	builtin_error("Bro was not configured for IDMEF support");
-	return new Val(0, TYPE_BOOL);
-#endif
-	%}

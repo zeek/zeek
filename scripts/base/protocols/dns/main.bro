@@ -45,27 +45,29 @@ export {
 		AA:            bool               &log &default=F;
 		## The Truncation bit specifies that the message was truncated.
 		TC:            bool               &log &default=F;
-		## The Recursion Desired bit indicates to a name server to recursively
-		## purse the query.
+		## The Recursion Desired bit in a request message indicates that
+		## the client wants recursive service for this query.
 		RD:            bool               &log &default=F;
-		## The Recursion Available bit in a response message indicates if
+		## The Recursion Available bit in a response message indicates that
 		## the name server supports recursive queries.
 		RA:            bool               &log &default=F;
 		## A reserved field that is currently supposed to be zero in all
 		## queries and responses.
 		Z:             count              &log &default=0;
-		## The set of resource descriptions in answer of the query.
+		## The set of resource descriptions in the query answer.
 		answers:       vector of string   &log &optional;
 		## The caching intervals of the associated RRs described by the
 		## ``answers`` field.
 		TTLs:          vector of interval &log &optional;
+		## The DNS query was rejected by the server.
+		rejected:      bool               &log &default=F;
 
 		## This value indicates if this request/response pair is ready to be
 		## logged.
 		ready:         bool            &default=F;
 		## The total number of resource records in a reply message's answer
 		## section.
-		total_answers: count           &optional;
+		total_answers: count           &default=0;
 		## The total number of resource records in a reply message's answer,
 		## authority, and additional sections.
 		total_replies: count           &optional;
@@ -162,11 +164,11 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 
 	c$dns = c$dns_state$pending[msg$id];
 
-	c$dns$rcode = msg$rcode;
-	c$dns$rcode_name = base_errors[msg$rcode];
-
 	if ( ! is_query )
 		{
+		c$dns$rcode = msg$rcode;
+		c$dns$rcode_name = base_errors[msg$rcode];
+
 		if ( ! c$dns?$total_answers )
 			c$dns$total_answers = msg$num_answers;
 
@@ -186,10 +188,13 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 		}
 	}
 
+event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
+	{
+	set_session(c, msg, is_orig);
+	}
+
 event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
-	set_session(c, msg, F);
-
 	if ( ans$answer_type == DNS_ANS )
 		{
 		c$dns$AA    = msg$AA;
@@ -209,7 +214,8 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 			c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
 			}
 
-		if ( c$dns?$answers && |c$dns$answers| == c$dns$total_answers )
+		if ( c$dns?$answers && c$dns?$total_answers &&
+		     |c$dns$answers| == c$dns$total_answers )
 			{
 			add c$dns_state$finished_answers[c$dns$trans_id];
 			# Indicate this request/reply pair is ready to be logged.
@@ -230,8 +236,6 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	set_session(c, msg, T);
-
 	c$dns$RD          = msg$RD;
 	c$dns$TC          = msg$TC;
 	c$dns$qclass      = qclass;
@@ -321,11 +325,9 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 #
 #	}
 
-
-event dns_rejected(c: connection, msg: dns_msg,
-                   query: string, qtype: count, qclass: count) &priority=5
+event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	set_session(c, msg, F);
+	c$dns$rejected = T;
 	}
 
 event connection_state_remove(c: connection) &priority=-5

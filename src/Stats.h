@@ -116,10 +116,10 @@ extern SampleLogger* sample_logger;
 extern int killed_by_inactivity;
 
 // Content gap statistics.
-extern uint32 tot_ack_events;
-extern uint32 tot_ack_bytes;
-extern uint32 tot_gap_events;
-extern uint32 tot_gap_bytes;
+extern uint64 tot_ack_events;
+extern uint64 tot_ack_bytes;
+extern uint64 tot_gap_events;
+extern uint64 tot_gap_bytes;
 
 
 // A TCPStateStats object tracks the distribution of TCP states for

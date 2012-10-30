@@ -826,7 +826,7 @@ const tcp_storm_interarrival_thresh = 1 sec &redef;
 ## peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
-const tcp_max_initial_window = 4096;
+const tcp_max_initial_window = 4096 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a sequence
 ## hole that we'll tolerate before assuming that there's been a packet drop and we
@@ -834,7 +834,7 @@ const tcp_max_initial_window = 4096;
 ## up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
-const tcp_max_above_hole_without_any_acks = 4096;
+const tcp_max_above_hole_without_any_acks = 4096 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that
@@ -843,7 +843,7 @@ const tcp_max_above_hole_without_any_acks = 4096;
 ## has in fact gone too far, but for now we just make this quite beefy.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
-const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024;
+const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
 ## For services without an a handler, these sets define originator-side ports that
 ## still trigger reassembly.
@@ -1135,10 +1135,10 @@ type ip6_ah: record {
 	rsv: count;
 	## Security Parameter Index.
 	spi: count;
-	## Sequence number.
-	seq: count;
-	## Authentication data.
-	data: string;
+	## Sequence number, unset in the case that *len* field is zero.
+	seq: count &optional;
+	## Authentication data, unset in the case that *len* field is zero.
+	data: string &optional;
 };
 
 ## Values extracted from an IPv6 ESP extension header.
@@ -2783,6 +2783,14 @@ export {
 	## reduce false positives of UDP traffic (e.g. DNS) that also happens
 	## to have a valid Teredo encapsulation.
 	const yielding_teredo_decapsulation = T &redef;
+
+	## With this set, the Teredo analyzer waits until it sees both sides
+	## of a connection using a valid Teredo encapsulation before issuing
+	## a :bro:see:`protocol_confirmation`.  If it's false, the first
+	## occurence of a packet with valid Teredo encapsulation causes a
+	## confirmation.  Both cases are still subject to effects of
+	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
+	const delay_teredo_confirmation = T &redef;
 
 	## How often to cleanup internal state for inactive IP tunnels.
 	const ip_tunnel_timeout = 24hrs &redef;

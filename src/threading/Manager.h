@@ -49,15 +49,6 @@ public:
 	 */
 	bool Terminating() const	{ return terminating; }
 
-	/**
-	 * Immediately kills all child threads. It does however not yet join
-	 * them, one still needs to call Terminate() for that.
-	 *
-	 * This method is safe to call from a signal handler, and can in fact
-	 * be called while Terminate() is already in progress.
-	 */
-	void KillThreads();
-
 	typedef std::list<std::pair<string, MsgThread::Stats> > msg_stats_list;
 
 	/**
@@ -82,6 +73,16 @@ public:
 	 *  Usually, though, one should avoid using it.
 	 */
 	void ForceProcessing() { Process(); }
+
+	/**
+	 * Signals a specific threads to terminate immediately.
+	 */
+	void KillThread(BasicThread* thread);
+
+	/**
+	 * Signals all threads to terminate immediately.
+	 */
+	void KillThreads();
 
 protected:
 	friend class BasicThread;

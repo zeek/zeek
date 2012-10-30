@@ -1,12 +1,13 @@
 #
 # @TEST-EXEC: bro -b %INPUT
-# @TEST-EXEC: btest-diff ssh.log
+# @TEST-EXEC: cat ssh.log | grep -v PREFIX.*20..- >ssh-filtered.log
+# @TEST-EXEC: btest-diff ssh-filtered.log
 
 redef LogAscii::output_to_stdout = F;
 redef LogAscii::separator = "|";
 redef LogAscii::empty_field = "EMPTY";
 redef LogAscii::unset_field = "NOT-SET";
-redef LogAscii::header_prefix = "PREFIX<>";
+redef LogAscii::meta_prefix = "PREFIX<>";
 
 module SSH;
 

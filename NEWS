@@ -7,8 +7,40 @@ release. For a complete list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own CHANGES.)
 
-Bro 2.1 Beta
-------------
+Bro 2.2
+-------
+
+New Functionality
+~~~~~~~~~~~~~~~~~
+
+- GridFTP support. TODO: Extend.
+
+- ssl.log now also records the subject client and issuer certificates.
+
+Changed Functionality
+~~~~~~~~~~~~~~~~~~~~~
+
+- We removed the following, already deprecated, functionality:
+
+    * Scripting language:
+        - &disable_print_hook attribute.
+
+    * BiF functions:
+        - parse_dotted_addr(), dump_config(),
+          make_connection_persistent(), generate_idmef(),
+          split_complete()
+
+- Removed a now unused argument from "do_split" helper function.
+
+- "this" is no longer a reserved keyword.
+
+- The Input Framework's update_finished event has been renamed to
+  end_of_data. It will now not only fire after table-reads have been
+  completed, but also after the last event of a whole-file-read (or
+  whole-db-read, etc.).
+
+Bro 2.1
+-------
 
 New Functionality
 ~~~~~~~~~~~~~~~~~
@@ -56,13 +88,6 @@ New Functionality
   "reader plugins" that make it easy to interface to different data
   sources. We will add more in the future.
 
-- Bro's default ASCII log format is not exactly the most efficient way
-  for storing and searching large volumes of data. An an alternative,
-  Bro now comes with experimental support for DataSeries output, an
-  efficient binary format for recording structured bulk data.
-  DataSeries is developed and maintained at HP Labs. See
-  doc/logging-dataseries for more information.
-
 - BroControl now has built-in support for host-based load-balancing
   when using either PF_RING, Myricom cards, or individual interfaces.
   Instead of adding a separate worker entry in node.cfg for each Bro
@@ -78,6 +103,25 @@ New Functionality
   "lb_method=interfaces" to specify which interfaces to load-balance
   on).
 
+- Bro's default ASCII log format is not exactly the most efficient way
+  for storing and searching large volumes of data. An alternatives,
+  Bro now comes with experimental support for two alternative output
+  formats:
+
+    * DataSeries: an efficient binary format for recording structured
+      bulk data. DataSeries is developed and maintained at HP Labs.
+      See doc/logging-dataseries for more information.
+
+    * ElasticSearch: a distributed RESTful, storage engine and search
+      engine built on top of Apache Lucene. It scales very well, both
+      for distributed indexing and distributed searching. See
+      doc/logging-elasticsearch.rst for more information.
+
+  Note that at this point, we consider Bro's support for these two
+  formats as prototypes for collecting experience with alternative
+  outputs. We do not yet recommend them for production (but welcome
+  feedback!)
+
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
@@ -90,9 +134,14 @@ the full set.
 
     * Bro now requires CMake >= 2.6.3.
 
-    * Bro now links in tcmalloc (part of Google perftools) if found at
-      configure time. Doing so can significantly improve memory and
-      CPU use.
+    * On Linux, Bro now links in tcmalloc (part of Google perftools)
+      if found at configure time. Doing so can significantly improve
+      memory and CPU use.
+
+      On the other platforms, the new configure option
+      --enable-perftools can be used to enable linking to tcmalloc.
+      (Note that perftools's support for non-Linux platforms may be
+      less reliable).
 
 - The configure switch --enable-brov6 is gone.
 
@@ -139,6 +188,15 @@ the full set.
 - The options "tunnel_port" and "parse_udp_tunnels" have been removed.
   Bro now supports decapsulating tunnels directly for protocols it
   understands.
+
+- ASCII logs now record the time when they were opened/closed at the
+  beginning and end of the file, respectively (wall clock). The
+  options LogAscii::header_prefix and LogAscii::include_header have
+  been renamed to LogAscii::meta_prefix and LogAscii::include_meta,
+  respectively.
+
+- The ASCII writers "header_*" options have been renamed to "meta_*"
+  (because there's now also a footer).
 
 
 Bro 2.0

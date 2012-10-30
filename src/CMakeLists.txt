@@ -4,6 +4,7 @@ include_directories(BEFORE
 )
 
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
+configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
 # This creates a custom command to transform a bison output file (inFile)
 # into outFile in order to avoid symbol conflicts:
@@ -428,6 +429,7 @@ set(bro_SRCS
     logging/WriterFrontend.cc
     logging/writers/Ascii.cc
     logging/writers/DataSeries.cc
+    logging/writers/ElasticSearch.cc
     logging/writers/None.cc
 
     input/Manager.cc
@@ -442,10 +444,6 @@ set(bro_SRCS
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
-
-add_definitions(-DBRO_SCRIPT_INSTALL_PATH="${BRO_SCRIPT_INSTALL_PATH}")
-add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
-add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 

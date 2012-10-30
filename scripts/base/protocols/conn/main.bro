@@ -17,7 +17,7 @@ export {
 	type Info: record {
 		## This is the time of the first packet.
 		ts:           time            &log;
-		## A unique identifier of a connection.
+		## A unique identifier of the connection.
 		uid:          string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:           conn_id         &log;
@@ -30,7 +30,7 @@ export {
 		## tear-downs, this will not include the final ACK.
 		duration:     interval        &log &optional;
 		## The number of payload bytes the originator sent. For TCP
-		## this is taken from sequence numbers and might be inaccurate 
+		## this is taken from sequence numbers and might be inaccurate
 		## (e.g., due to large connections)
 		orig_bytes:   count           &log &optional;
 		## The number of payload bytes the responder sent. See ``orig_bytes``.
@@ -54,16 +54,16 @@ export {
 		## OTH          No SYN seen, just midstream traffic (a "partial connection" that was not later closed).
 		## ==========   ===============================================
 		conn_state:   string          &log &optional;
-		
+
 		## If the connection is originated locally, this value will be T.  If
 		## it was originated remotely it will be F.  In the case that the
-		## :bro:id:`Site::local_nets` variable is undefined, this field will 
+		## :bro:id:`Site::local_nets` variable is undefined, this field will
 		## be left empty at all times.
 		local_orig:   bool            &log &optional;
-		
-		## Indicates the number of bytes missed in content gaps which is
-		## representative of packet loss.  A value other than zero will 
-		## normally cause protocol analysis to fail but some analysis may 
+
+		## Indicates the number of bytes missed in content gaps, which is
+		## representative of packet loss.  A value other than zero will
+		## normally cause protocol analysis to fail but some analysis may
 		## have been completed prior to the packet loss.
 		missed_bytes: count           &log &default=0;
 
@@ -83,25 +83,26 @@ export {
 		## i       inconsistent packet (e.g. SYN+RST bits both set)
 		## ======  ====================================================
 		##
-		## If the letter is in upper case it means the event comes from the
-		## originator and lower case then means the responder.
-		## Also, there is compression. We only record one "d" in each direction,
-		## for instance. I.e., we just record that data went in that direction.
-		## This history is not meant to encode how much data that happened to
-		## be.
+		## If the event comes from the originator, the letter is in upper-case; if it comes
+		## from the responder, it's in lower-case. Multiple packets of the same type will
+		## only be noted once (e.g. we only record one "d" in each direction, regardless of
+		## how many data packets were seen.)
 		history:      string          &log &optional;
-		## Number of packets the originator sent.
+		## Number of packets that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		orig_pkts:     count      &log &optional;
-		## Number IP level bytes the originator sent (as seen on the wire,
+		## Number of IP level bytes that the originator sent (as seen on the wire,
 		## taken from IP total_length header field).
 		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		orig_ip_bytes: count      &log &optional;
-		## Number of packets the responder sent. See ``orig_pkts``.
+		## Number of packets that the responder sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		resp_pkts:     count      &log &optional;
-		## Number IP level bytes the responder sent. See ``orig_pkts``.
+		## Number og IP level bytes that the responder sent (as seen on the wire,
+		## taken from IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		resp_ip_bytes: count      &log &optional;
-		## If this connection was over a tunnel, indicate the 
+		## If this connection was over a tunnel, indicate the
 		## *uid* values for any encapsulating parent connections
 		## used over the lifetime of this inner connection.
 		tunnel_parents: set[string] &log;
@@ -199,10 +200,10 @@ function set_conn(c: connection, eoc: bool)
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
 		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
-	
+
 	if ( eoc )
 		{
-		if ( c$duration > 0secs ) 
+		if ( c$duration > 0secs )
 			{
 			c$conn$duration=c$duration;
 			c$conn$orig_bytes=c$orig$size;
@@ -218,7 +219,7 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$resp_ip_bytes = c$resp$num_bytes_ip;
 			}
 		local service = determine_service(c);
-		if ( service != "" ) 
+		if ( service != "" )
 			c$conn$service=service;
 		c$conn$conn_state=conn_state(c, get_port_transport_proto(c$id$resp_p));
 
@@ -230,7 +231,7 @@ function set_conn(c: connection, eoc: bool)
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
 	set_conn(c, F);
-	
+
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
 	}
 
@@ -241,7 +242,7 @@ event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 		add c$conn$tunnel_parents[e[|e|-1]$uid];
 	c$tunnel = e;
 	}
-	
+
 event connection_state_remove(c: connection) &priority=5
 	{
 	set_conn(c, T);

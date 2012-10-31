@@ -1,4 +1,9 @@
 
+2.1-96 | 2012-10-31 14:23:50 -0700
+
+  * Renaming option defining the frequency of alarm summary mails to
+    'Logging::default_alarm_mail_interval'. (Daniel Thayer)
+
 2.1-91 | 2012-10-24 16:04:47 -0700
 
   * Adding PPPoE support to Bro. (Seth Hall)

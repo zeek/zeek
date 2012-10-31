@@ -1,4 +1,12 @@
 
+2.1-101 | 2012-10-31 14:30:26 -0700
+
+  * Documentation reorg: The install info has been consolidated into a
+    single document (INSTALL), the upgrade info has been moved from
+    the FAQ to a section in the install doc, and the "upgrading from
+    1.5 to 2.0" document has been updated (and renamed) to also
+    include 2.0 to 2.1 upgrade info. (Daniel Thayer)
+
 2.1-96 | 2012-10-31 14:23:50 -0700
 
   * Renaming option defining the frequency of alarm summary mails to

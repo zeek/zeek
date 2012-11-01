@@ -63,6 +63,7 @@ public:
 
 	const char* LookupAddrInCache(const IPAddr& addr);
 	TableVal* LookupNameInCache(string name);
+	const char* LookupTextInCache(string name);
 
 	// Support for async lookups.
 	class LookupCallback {
@@ -76,7 +77,9 @@ public:
 	};
 
 	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
-	void AsyncLookupName(string name, LookupCallback* callback);
+
+	// If is_txt is true, perform a TXT lookup.
+	void AsyncLookupName(string name, LookupCallback* callback, bool is_txt = false);
 
 	struct Stats {
 		unsigned long requests;	// These count only async requests.
@@ -85,6 +88,7 @@ public:
 		unsigned long pending;
 		unsigned long cached_hosts;
 		unsigned long cached_addresses;
+		unsigned long cached_texts;
 	};
 
 	void GetStats(Stats* stats);
@@ -106,6 +110,7 @@ protected:
 
 	typedef map<string, pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
 	typedef map<IPAddr, DNS_Mapping*> AddrMap;
+	typedef map<string, DNS_Mapping*> TextMap;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, const AddrMap& m);
 	void Save(FILE* f, const HostMap& m);
@@ -122,6 +127,7 @@ protected:
 	// requested.
 	void CheckAsyncAddrRequest(const IPAddr& addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
+	void CheckAsyncTextRequest(const char* host, bool timeout);
 
 	// Process outstanding requests.
 	void DoProcess(bool flush);
@@ -138,6 +144,7 @@ protected:
 
 	HostMap host_mappings;
 	AddrMap addr_mappings;
+	TextMap text_mappings;
 
 	DNS_mgr_request_list requests;
 
@@ -165,6 +172,7 @@ protected:
 		double time;
 		IPAddr host;
 		string name;
+		bool is_txt;
 		CallbackList callbacks;
 
 		bool IsAddrReq() const	{ return name.length() == 0; }
@@ -209,6 +217,9 @@ protected:
 
 	typedef map<string, AsyncRequest*> AsyncRequestNameMap;
 	AsyncRequestNameMap asyncs_names;
+
+	typedef map<string, AsyncRequest*> AsyncRequestTextMap;
+	AsyncRequestTextMap asyncs_texts;
 
 	typedef list<AsyncRequest*> QueuedList;
 	QueuedList asyncs_queued;

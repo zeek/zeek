@@ -1,4 +1,9 @@
 
+2.1-104 | 2012-11-01 10:37:50 -0700
+
+  * A new built-in function lookup_hostname_txt() provides support for
+    DNS TXT queries. (Vlad Grigorescu)
+
 2.1-101 | 2012-10-31 14:30:26 -0700
 
   * Documentation reorg: The install info has been consolidated into a

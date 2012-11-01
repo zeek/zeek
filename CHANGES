@@ -1,4 +1,9 @@
 
+2.1-127 | 2012-11-01 08:20:00 -0700
+
+  * Initial version of a completely reworked intelligence framework.
+    See doc/intel.rst for more information. (Seth Hall)
+
 2.1-101 | 2012-10-31 14:30:26 -0700
 
   * Documentation reorg: The install info has been consolidated into a

@@ -14,6 +14,7 @@
 @load base/utils/patterns
 @load base/utils/strings
 @load base/utils/thresholds
+@load base/utils/urls
 
 # This has some deep interplay between types and BiFs so it's 
 # loaded in base/init-bare.bro

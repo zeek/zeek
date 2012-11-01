@@ -1,0 +1,4 @@
+cluster_new_item: 1.2.3.4 inserted by manager (from peer: manager-1)
+cluster_new_item: 123.123.123.123 inserted by worker-1 (from peer: manager-1)
+cluster_new_item: 4.3.2.1 inserted by worker-2 (from peer: manager-1)
+Doing a lookup

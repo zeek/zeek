@@ -194,11 +194,23 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_coil_request )
 			{
+			int val;
+			if ( ${message.value} == 0x0000 )
+				val = 0;
+			else if ( ${message.value} == 0xFF00 )
+				val = 1;
+			else
+				{
+				connection()->bro_analyzer()->ProtocolViolation(fmt("invalid value for modbus write single coil request %d",
+				                                                    ${message.value}));
+				return false;
+				}
+
 			BifEvent::generate_modbus_write_single_coil_request(connection()->bro_analyzer(),
 			                                                    connection()->bro_analyzer()->Conn(),
 			                                                    HeaderToBro(header),
-			                                                    ${message.start_address}, 
-			                                                    ${message.on_off}, ${message.other});
+			                                                    ${message.address}, 
+			                                                    val);
 			}
 
 		return true;
@@ -209,11 +221,23 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_coil_response )
 			{
+			int val;
+			if ( ${message.value} == 0x0000 )
+				val = 0;
+			else if ( ${message.value} == 0xFF00 )
+				val = 1;
+			else
+				{
+				connection()->bro_analyzer()->ProtocolViolation(fmt("invalid value for modbus write single coil response %d",
+				                                                    ${message.value}));
+				return false;
+				}
+
 			BifEvent::generate_modbus_write_single_coil_response(connection()->bro_analyzer(),
 			                                                     connection()->bro_analyzer()->Conn(),
 			                                                     HeaderToBro(header),
-			                                                     ${message.start_address}, 
-			                                                     ${message.on_off}, ${message.other});
+			                                                     ${message.address}, 
+			                                                     val);
 			}
 
 		return true;
@@ -228,7 +252,7 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_write_single_register_request(connection()->bro_analyzer(),
 			                                                        connection()->bro_analyzer()->Conn(),
 			                                                        HeaderToBro(header),
-			                                                        ${message.start_address}, ${message.value});
+			                                                        ${message.address}, ${message.value});
 			}
 
 		return true;
@@ -242,7 +266,7 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_write_single_register_response(connection()->bro_analyzer(),
 			                                                         connection()->bro_analyzer()->Conn(),
 			                                                         HeaderToBro(header),
-			                                                         ${message.start_address}, ${message.value});
+			                                                         ${message.address}, ${message.value});
 			}
 
 		return true;
@@ -434,7 +458,7 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_mask_write_register_request(connection()->bro_analyzer(),
 			                                                      connection()->bro_analyzer()->Conn(),
 			                                                      HeaderToBro(header),
-			                                                      ${message.start_address},
+			                                                      ${message.address},
 			                                                      ${message.and_mask}, ${message.or_mask});
 			}
 
@@ -449,7 +473,7 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_mask_write_register_response(connection()->bro_analyzer(),
 			                                                       connection()->bro_analyzer()->Conn(),
 			                                                       HeaderToBro(header),
-			                                                       ${message.start_address},
+			                                                       ${message.address},
 			                                                       ${message.and_mask}, ${message.or_mask});
 			}
 		

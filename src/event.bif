@@ -6547,146 +6547,300 @@ event netflow_v5_header%(h: nf_v5_header%);
 ## .. bro:see:: netflow_v5_record
 event netflow_v5_record%(r: nf_v5_record%);
 
-## Event for any function code whether or not it's supported.
+## Generated for any modbus message regardless of if the particular function
+## is further supported or not.
 ##
-## TODO-Dina: Document event.
-event modbus_message%(c: connection, header: ModbusHeaders, is_orig: bool%);
-
-## Event that parses modbus exception
+## c: The connection.
 ##
-## TODO-Dina: Document event.
-event modbus_exception%(c: connection, header: ModbusHeaders, code: count%);
-
-## Event that passes modbus request function code=1
+## headers: The headers for the modbus function.
 ##
-## TODO-Dina: Document event.
-event modbus_read_coils_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+## is_orig: True if the event is raised for the originator side.
+event modbus_message%(c: connection, headers: ModbusHeaders, is_orig: bool%);
 
-## Event that passes modbus response function code=1
+## Generated for any modbus exception message.
 ##
-## TODO-Dina: Document event.
-event modbus_read_coils_response%(c: connection, header: ModbusHeaders, coils: ModbusCoils%);
-
-## Event that passes modbus request function code=2
+## c: The connection.
 ##
-## TODO-Dina: Document event.
-event modbus_read_discrete_inputs_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
-
-## Event that passes modbus response function code=2
+## headers: The headers for the modbus function.
 ##
-## TODO-Dina: Document event.
-event modbus_read_discrete_inputs_response%(c: connection, header: ModbusHeaders, coils: ModbusCoils%);
+## code: The exception code.
+event modbus_exception%(c: connection, headers: ModbusHeaders, code: count%);
 
-## Event that passes modbus request function code=3
+## Generated for a Modbus read coils request.
 ##
-## TODO-Dina: Document event.
-event modbus_read_holding_registers_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
-
-## Event that passes modbus response function code=3
+## c: The connection.
 ##
-## TODO-Dina: Document event.
-event modbus_read_holding_registers_response%(c: connection, header: ModbusHeaders, registers: ModbusRegisters%);
-
-## Event that passes modbus request function code =4
+## headers: The headers for the modbus function.
 ##
-## TODO-Dina: Document event.
-event modbus_read_input_registers_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
-
-## Event that passes modbus response function code=4
+## start_address: The memory address where of the first coil to be read.
 ##
-## TODO-Dina: Document event.
-event modbus_read_input_registers_response%(c: connection, header: ModbusHeaders, registers: ModbusRegisters%);
+## quantity: The number of coils to be read.
+event modbus_read_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
 
-## Event that passes modbus request function code=5
+## Generated for a Modbus read coils response.
 ##
-## TODO-Dina: Document event.
-event modbus_write_single_coil_request%(c: connection, header: ModbusHeaders, start_address: count, on_off: count, other: count%);
-
-## Event that passes modbus request function code=5
+## c: The connection.
 ##
-## TODO-Dina: Document event.
-event modbus_write_single_coil_response%(c: connection, header: ModbusHeaders, start_address: count, on_off: count, other: count%);
-
-## Event that passes modbus request function code=6
+## headers: The headers for the modbus function.
 ##
-## TODO-Dina: Document event.
-event modbus_write_single_register_request%(c: connection, header: ModbusHeaders, start_address: count, value: count%);
+## coils: The coil values returned from the device.
+event modbus_read_coils_response%(c: connection, headers: ModbusHeaders, coils: ModbusCoils%);
 
-## Event that passes modbus response function code=6
+## Generated for a Modbus read discrete inputs request.
 ##
-## TODO-Dina: Document event.
-event modbus_write_single_register_response%(c: connection, header: ModbusHeaders, start_address: count, value: count%);
-
-
-## Event that passes modbus request function code=15
+## c: The connection.
 ##
-## TODO-Dina: Document event.
-event modbus_write_multiple_coils_request%(c: connection, header: ModbusHeaders, start_address: count, coils: ModbusCoils%);
-
-## Event that passes modbus response function code=15
+## headers: The headers for the modbus function.
 ##
-## TODO-Dina: Document event.
-event modbus_write_multiple_coils_response%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
-
-## Event that passes modbus request function code=16
+## start_address: The memory address of the first coil to be read.
 ##
-## TODO-Dina: Document event.
-event modbus_write_multiple_registers_request%(c: connection, header: ModbusHeaders, start_address: count, registers: ModbusRegisters%);
+## quantity: The number of coils to be read.
+event modbus_read_discrete_inputs_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
 
-## Event that passes modbus response function code=16
+## Generated for a Modbus read discrete inputs response.
 ##
-## TODO-Dina: Document event.
-event modbus_write_multiple_registers_response%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## coils: The coil values returned from the device.
+event modbus_read_discrete_inputs_response%(c: connection, headers: ModbusHeaders, coils: ModbusCoils%);
 
-## Event that passes modbus request function code=20
+## Generated for a Modbus read holding registers request.
 ##
-## TODO-Dina: Document event.
-event modbus_read_file_record_request%(c: connection, header: ModbusHeaders%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be read.
+##
+## quantity: The number of registers to be read.
+event modbus_read_holding_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
 
-## Event that passes modbus response function code=20
+## Generated for a Modbus read holding registers response.
 ##
-## TODO-Dina: Document event.
-event modbus_read_file_record_response%(c: connection, header: ModbusHeaders%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## registers: The register values returned from the device.
+event modbus_read_holding_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
 
-## Event that passes modbus request function code=21
+## Generated for a Modbus read input registers request.
 ##
-## TODO-Dina: Document event.
-event modbus_write_file_record_request%(c: connection, header: ModbusHeaders%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be read.
+##
+## quantity: The number of registers to be read.
+event modbus_read_input_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
 
-## Event that passes modbus response function code=21
+## Generated for a Modbus read input registers response.
 ##
-## TODO-Dina: Document event.
-event modbus_write_file_record_response%(c: connection, header: ModbusHeaders%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## registers: The register values returned from the device.
+event modbus_read_input_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
 
-## Event  that passes modbus request function code=22
+## Generated for a Modbus write single coil request.
 ##
-## TODO-Dina: Document event.
-event modbus_mask_write_register_request%(c: connection, header: ModbusHeaders, start_address: count, and_mask: count, or_mask: count%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the coil to be written.
+##
+## value: The value to be written to the coil.
+event modbus_write_single_coil_request%(c: connection, headers: ModbusHeaders, address: count, value: bool%);
 
-## Event that passes modbus response function code=22
+## Generated for a Modbus write single coil response.
 ##
-## TODO-Dina: Document event.
-event modbus_mask_write_register_response%(c: connection, header: ModbusHeaders, start_address: count, and_mask: count, or_mask: count%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the coil that was written.
+##
+## value: The value that was written to the coil.
+event modbus_write_single_coil_response%(c: connection, headers: ModbusHeaders, address: count, value: bool%);
 
-## Event that passes modbus request function code=23
+## Generated for a Modbus write single register request.
 ##
-## TODO-Dina: Document event.
-event modbus_read_write_multiple_registers_request%(c: connection, header: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register to be written.
+##
+## value: The value to be written to the register.
+event modbus_write_single_register_request%(c: connection, headers: ModbusHeaders, address: count, value: count%);
 
-## Event that passes modbus response function code=23
+## Generated for a Modbus write single register response.
 ##
-## TODO-Dina: Document event.
-event modbus_read_write_multiple_registers_response%(c: connection, header: ModbusHeaders, written_registers: ModbusRegisters%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register that was written.
+##
+## value: The value that was written to the register.
+event modbus_write_single_register_response%(c: connection, headers: ModbusHeaders, address: count, value: count%);
 
-## Event that passes modbus request function code=24
+## Generated for a Modbus write multiple coils request.
 ##
-## TODO-Dina: Document event.
-event modbus_read_fifo_queue_request%(c: connection, header: ModbusHeaders, start_address: count%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil to be written.
+##
+## value: The values to be written to the coils.
+event modbus_write_multiple_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, coils: ModbusCoils%);
 
-## Event that passes modbus response function code=24
+## Generated for a Modbus write multiple coils response.
 ##
-## TODO-Dina: Document event.
-event modbus_read_fifo_queue_response%(c: connection, header: ModbusHeaders, fifos: ModbusRegisters%);
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil that was written.
+##
+## quantity: The quantity of coils that were written.
+event modbus_write_multiple_coils_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus write multiple registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be written.
+##
+## registers: The values to be written to the registers.
+event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, registers: ModbusRegisters%);
+
+## Generated for a Modbus write multiple registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register that was written.
+##
+## quantity: The quantity of registers that were written.
+event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read file record request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus read file record response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus write file record request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus write file record response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus mask write register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register where the masks should be applied.
+##
+## and_mask: The value of the logical AND mask to apply to the register.
+##
+## or_mask: The value of the logical OR mask to apply to the register.
+event modbus_mask_write_register_request%(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count%);
+
+## Generated for a Modbus mask write register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register where the masks were applied.
+##
+## and_mask: The value of the logical AND mask applied register.
+##
+## or_mask: The value of the logical OR mask applied to the register.
+event modbus_mask_write_register_response%(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count%);
+
+## Generated for a Modbus read/write multiple registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## read_start_address: The memory address of the first register to be read.
+##
+## read_quantity: The number of registers to read.
+##
+## write_start_address: The memory address of the first register to be written.
+##
+## write_registers: The values to be written to the registers.
+event modbus_read_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters%);
+
+## Generated for a Modbus read/write multiple registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## written_registers: The register values read from the registers specified in the request.
+event modbus_read_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters%);
+
+## Generated for a Modbus read FIFO queue request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The address of the FIFO queue to read.
+event modbus_read_fifo_queue_request%(c: connection, headers: ModbusHeaders, start_address: count%);
+
+## Generated for a Modbus read FIFO queue response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## fifos: The register values read from the FIFO queue on the device.
+event modbus_read_fifo_queue_response%(c: connection, headers: ModbusHeaders, fifos: ModbusRegisters%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such
 ## messages may be generated internally by the event engine and also by other

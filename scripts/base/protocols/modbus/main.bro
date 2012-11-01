@@ -14,8 +14,6 @@ export {
 		id:        conn_id        &log;
 		## The name of the function message that was sent.
 		func:      string         &log &optional;
-		## The status of the response.
-		success:   bool           &log &default=T;
 		## The exception if the response was a failure.
 		exception: string         &log &optional;
 	};
@@ -48,26 +46,24 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 
 	c$modbus$ts   = network_time();
 	c$modbus$func = function_codes[headers$function_code];
-
-	if ( ! is_orig && 
-	     ( headers$function_code >= 0x81 || headers$function_code <= 0x98 ) )
-		c$modbus$success = F;
-	else
-		c$modbus$success = T;
 	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=-5
 	{
-	# Don't log now if this is an exception (log in the exception event handler)
-	if ( c$modbus$success )
+	# Only log upon replies.
+	# Also, don't log now if this is an exception (log in the exception event handler)
+	if ( ! is_orig && ( headers$function_code <= 0x81 || headers$function_code >= 0x98 ) )
 		Log::write(LOG, c$modbus);
 	}
 
 event modbus_exception(c: connection, headers: ModbusHeaders, code: count) &priority=5
 	{
 	c$modbus$exception = exception_codes[code];
-	Log::write(LOG, c$modbus);
+	}
 
+event modbus_exception(c: connection, headers: ModbusHeaders, code: count) &priority=-5
+	{
+	Log::write(LOG, c$modbus);
 	delete c$modbus$exception;
 	}
 

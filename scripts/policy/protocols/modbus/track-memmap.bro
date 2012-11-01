@@ -11,12 +11,19 @@ export {
 	const track_memmap: Host = ALL_HOSTS &redef;
 
 	type MemmapInfo: record {
+		## Timestamp for the detected register change
 		ts:        time     &log;
+		## Unique ID for the connection
 		uid:       string   &log;
+		## Connection ID.
 		id:        conn_id  &log;
+		## The device memory offset.
 		register:  count    &log;
+		## The old value stored in the register.
 		old_val:   count    &log;
+		## The new value stored in the register.
 		new_val:   count    &log;
+		## The time delta between when the 'old_val' and 'new_val' were seen.
 		delta:     interval &log;
 	};
 

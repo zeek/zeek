@@ -30,6 +30,7 @@
 @load base/frameworks/intel
 @load base/frameworks/reporter
 @load base/frameworks/tunnels
+@load base/frameworks/auth
 
 @load base/protocols/conn
 @load base/protocols/dns

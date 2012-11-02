@@ -1,7 +1,7 @@
 ## Functions for URL handling.
 
 ## A regular expression for matching and extracting URLs.
-const url_regex = /^([a-zA-Z\-]{3,5})(:\/\/[^\/?#"'\r\n><]*)([^?#"'\r\n><]*)([^[:blank:]\r\n"'><]*|\??[^"'\r\n><]*)/ &redef;
+const url_regex = /^([a-zA-Z0-9\-]{3,10})?(:\/\/([^[:blank:]]+(:[^[:blank:]]*)?@)?[^\/?#"'\r\n><]*)[^?#[:blank:]"'\r\n><]*\??[^[:blank:]\r\n"'><]*/ &redef;
 
 ## Extracts URLs discovered in arbitrary text.
 function find_all_urls(s: string): string_set

@@ -1055,21 +1055,38 @@ void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback, bool is_txt
 		}
 
 	AsyncRequest* req = 0;
-
-	// Have we already a request waiting for this host?
-	AsyncRequestNameMap::iterator i = asyncs_names.find(name);
-	if ( i != asyncs_names.end() )
-		req = i->second;
-	else
-		{
-		// A new one.
-		req = new AsyncRequest;
-		req->name = name;
-		req->is_txt = is_txt;
-		asyncs_queued.push_back(req);
-		asyncs_names.insert(AsyncRequestNameMap::value_type(name, req));
+	if ( is_txt )
+		{	
+		// Have we already a request waiting for this host?
+		AsyncRequestTextMap::iterator i = asyncs_texts.find(name);
+		if ( i != asyncs_texts.end() )
+			req = i->second;
+		else
+			{
+			// A new one.
+			req = new AsyncRequest;
+			req->name = name;
+			req->is_txt = is_txt;
+			asyncs_queued.push_back(req);
+			asyncs_texts.insert(AsyncRequestTextMap::value_type(name, req));
+			}
 		}
-
+	else
+		{	
+		// Have we already a request waiting for this host?
+		AsyncRequestNameMap::iterator i = asyncs_names.find(name);
+		if ( i != asyncs_names.end() )
+			req = i->second;
+		else
+			{
+			// A new one.
+			req = new AsyncRequest;
+			req->name = name;
+			req->is_txt = is_txt;
+			asyncs_queued.push_back(req);
+			asyncs_names.insert(AsyncRequestNameMap::value_type(name, req));
+			}
+		}
 	req->callbacks.push_back(callback);
 
 	IssueAsyncRequests();
@@ -1170,7 +1187,6 @@ void DNS_Mgr::CheckAsyncTextRequest(const char* host, bool timeout)
 	// Note that this code is a mirror of that for CheckAsyncAddrRequest.
 
 	AsyncRequestTextMap::iterator i = asyncs_texts.find(host);
-
 	if ( i != asyncs_texts.end() )
 		{
 		const char* name = LookupTextInCache(host);

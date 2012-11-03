@@ -15,6 +15,12 @@ export {
 		## malware hash registry.
 		Malware_Hash_Registry_Match
 	};
+	
+	## The malware hash registry runs each malware sample through several A/V engines.
+	## Team Cymru returns a percentage to indicate how many A/V engines flagged the
+	## sample as malicious. This threshold allows you to require a minimum detection 
+	## rate (default: 50%).
+	const MHR_threshold = 50 &redef;
 }
 
 event log_http(rec: HTTP::Info)
@@ -22,10 +28,11 @@ event log_http(rec: HTTP::Info)
 	if ( rec?$md5 )
 		{
 		local hash_domain = fmt("%s.malware.hash.cymru.com", rec$md5);
-		when ( local addrs = lookup_hostname(hash_domain) )
+		when ( local MHR_result = lookup_hostname_txt(hash_domain) )
 			{
-			# 127.0.0.2 indicates that the md5 sum was found in the MHR.
-			if ( 127.0.0.2 in addrs )
+			# Data is returned as "<dateFirstDetected> <detectionRate>"
+			local MHR_answer = split1(MHR_result, / /);
+			if ( length(MHR_answer) == 2 && to_count(MHR_answer[2]) >= MHR_threshold)
 				{
 				local url = HTTP::build_url_http(rec);
 				local message = fmt("%s %s %s", rec$id$orig_h, rec$md5, url);

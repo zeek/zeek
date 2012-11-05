@@ -1,4 +1,13 @@
 
+2.1-112 | 2012-11-05 13:58:20 -0800
+
+  * New base script for detecting cases of checksum offloading. 
+    Reporter messages will now tell if one has bad checksums. (Seth
+    Hall)
+
+  * Clarifying ownership rules for BroString constructors. (Robin
+    Sommer)
+
 2.1-109 | 2012-11-05 13:39:34 -0800
 
   * Add detection rate threshold for MHR. (Vlad Grigorescu)

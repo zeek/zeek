@@ -36,6 +36,7 @@
 @load base/protocols/ftp
 @load base/protocols/http
 @load base/protocols/irc
+@load base/protocols/modbus
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh

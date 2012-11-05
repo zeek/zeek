@@ -4,6 +4,8 @@
 ##!          master/slave relationships based on commands sent and successful (non-exception)
 ##!          responses.
 
+@load base/protocols/modbus
+
 module Known;
 
 export {

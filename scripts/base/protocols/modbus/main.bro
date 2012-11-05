@@ -2,6 +2,8 @@
 
 module Modbus;
 
+@load ./consts
+
 export {
 	redef enum Log::ID += { LOG };
 

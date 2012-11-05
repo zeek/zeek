@@ -4,6 +4,9 @@
 ##! .. todo: Not all register reads and write functions are being supported yet.
 module Modbus;
 
+@load base/protocols/modbus
+@load base/utils/directions-and-hosts
+
 export {
 	redef enum Log::ID += { Modbus::REGISTER_CHANGE_LOG };
 

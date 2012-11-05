@@ -44,6 +44,8 @@
 @load protocols/http/software.bro
 @load protocols/http/var-extraction-cookies.bro
 @load protocols/http/var-extraction-uri.bro
+@load protocols/modbus/known-masters-slaves.bro
+@load protocols/modbus/track-memmap.bro
 @load protocols/smtp/blocklists.bro
 @load protocols/smtp/detect-suspicious-orig.bro
 @load protocols/smtp/software.bro

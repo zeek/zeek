@@ -1,4 +1,10 @@
 
+2.1-109 | 2012-11-05 13:39:34 -0800
+
+  * Add detection rate threshold for MHR. (Vlad Grigorescu)
+    
+  * lookup_hostname_txt fixes. (Vlad Grigorescu)
+    
 2.1-104 | 2012-11-01 10:37:50 -0700
 
   * A new built-in function lookup_hostname_txt() provides support for

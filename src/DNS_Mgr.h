@@ -77,9 +77,8 @@ public:
 	};
 
 	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
-
-	// If is_txt is true, perform a TXT lookup.
-	void AsyncLookupName(string name, LookupCallback* callback, bool is_txt = false);
+	void AsyncLookupName(string name, LookupCallback* callback);
+	void AsyncLookupNameText(string name, LookupCallback* callback);
 
 	struct Stats {
 		unsigned long requests;	// These count only async requests.

@@ -1022,36 +1022,19 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
-void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback, bool is_txt)
+void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
 
 	// Do we already know the answer?
-
-	if ( is_txt )
+	TableVal* addrs = LookupNameInCache(name);
+	if ( addrs )
 		{
-		const char* text = LookupTextInCache(name);
-
-		if ( text )
-			{
-			callback->Resolved(text);
-			delete callback;
-			return;
-			}
-		}
-
-	else
-		{
-		TableVal* addrs = LookupNameInCache(name);
-
-		if ( addrs )
-			{
-			callback->Resolved(addrs);
-			Unref(addrs);
-			delete callback;
-			return;
-			}
+		callback->Resolved(addrs);
+		Unref(addrs);
+		delete callback;
+		return;
 		}
 
 	AsyncRequest* req = 0;
@@ -1065,9 +1048,37 @@ void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback, bool is_txt
 		// A new one.
 		req = new AsyncRequest;
 		req->name = name;
-		req->is_txt = is_txt;
 		asyncs_queued.push_back(req);
 		asyncs_names.insert(AsyncRequestNameMap::value_type(name, req));
+		}
+
+	req->callbacks.push_back(callback);
+
+	IssueAsyncRequests();
+	}
+
+void DNS_Mgr::AsyncLookupNameText(string name, LookupCallback* callback)
+	{
+	if ( ! did_init )
+		Init();
+
+	// Do we already know the answer?
+	TableVal* addrs;
+
+	AsyncRequest* req = 0;
+
+	// Have we already a request waiting for this host?
+	AsyncRequestTextMap::iterator i = asyncs_texts.find(name);
+	if ( i != asyncs_texts.end() )
+		req = i->second;
+	else
+		{
+		// A new one.
+		req = new AsyncRequest;
+		req->name = name;
+		req->is_txt = true;
+		asyncs_queued.push_back(req);
+		asyncs_texts.insert(AsyncRequestTextMap::value_type(name, req));
 		}
 
 	req->callbacks.push_back(callback);
@@ -1170,7 +1181,6 @@ void DNS_Mgr::CheckAsyncTextRequest(const char* host, bool timeout)
 	// Note that this code is a mirror of that for CheckAsyncAddrRequest.
 
 	AsyncRequestTextMap::iterator i = asyncs_texts.find(host);
-
 	if ( i != asyncs_texts.end() )
 		{
 		const char* name = LookupTextInCache(host);

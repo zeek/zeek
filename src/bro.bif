@@ -3776,10 +3776,10 @@ function lookup_addr%(host: addr%) : string
 ##
 ## host: The hostname to lookup.
 ##
-## Returns: A set of DNS A and AAAA records associated with *host*.
+## Returns: The DNS TXT record associated with *host*.
 ##
 ## .. bro:see:: lookup_hostname
-function lookup_hostname_txt%(host: string%) : addr_set
+function lookup_hostname_txt%(host: string%) : string
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
@@ -3794,9 +3794,8 @@ function lookup_hostname_txt%(host: string%) : addr_set
 	frame->SetDelayed();
 	trigger->Hold();
 
-	dns_mgr->AsyncLookupName(host->CheckString(),
-				 new LookupHostCallback(trigger, frame->GetCall(), false),
-				 true);
+	dns_mgr->AsyncLookupNameText(host->CheckString(),
+				 new LookupHostCallback(trigger, frame->GetCall(), true));
 	return 0;
 	%}
 

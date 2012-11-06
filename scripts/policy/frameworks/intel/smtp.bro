@@ -1,4 +1,5 @@
 @load base/frameworks/intel
+@load base/protocols/smtp
 @load ./where-locations
 
 event mime_end_entity(c: connection)

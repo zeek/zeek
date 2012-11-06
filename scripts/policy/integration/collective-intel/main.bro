@@ -1,4 +1,6 @@
 
+@load base/frameworks/intel
+
 module Intel;
 
 ## These are some fields to add extended compatibility between Bro and the Collective

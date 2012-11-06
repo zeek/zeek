@@ -1,4 +1,5 @@
 @load base/frameworks/intel
+@load base/protocols/http/utils
 @load ./where-locations
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)

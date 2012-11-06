@@ -14,6 +14,16 @@
 # @load frameworks/control/controller.bro
 @load frameworks/dpd/detect-protocols.bro
 @load frameworks/dpd/packet-segment-logging.bro
+@load frameworks/intel/__load__.bro
+@load frameworks/intel/conn-established.bro
+@load frameworks/intel/dns.bro
+@load frameworks/intel/http-host-header.bro
+@load frameworks/intel/http-url.bro
+@load frameworks/intel/http-user-agents.bro
+@load frameworks/intel/smtp-url-extraction.bro
+@load frameworks/intel/smtp.bro
+@load frameworks/intel/ssl.bro
+@load frameworks/intel/where-locations.bro
 @load frameworks/metrics/conn-example.bro
 @load frameworks/metrics/http-example.bro
 @load frameworks/metrics/ssl-example.bro
@@ -22,6 +32,8 @@
 @load integration/barnyard2/__load__.bro
 @load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro
+@load integration/collective-intel/__load__.bro
+@load integration/collective-intel/main.bro
 @load misc/analysis-groups.bro
 @load misc/capture-loss.bro
 @load misc/loaded-scripts.bro
@@ -35,7 +47,6 @@
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect.bro
 @load protocols/ftp/software.bro
-@load protocols/http/detect-intel.bro
 @load protocols/http/detect-MHR.bro
 @load protocols/http/detect-sqli.bro
 @load protocols/http/detect-webapps.bro

@@ -1,8 +1,11 @@
 
-2.1-XXX | 2012-11-01 08:20:00 -0700
+2.1-152 | 2012-11-05 16:52:34 -0800
 
   * Initial version of a completely reworked intelligence framework.
     See doc/intel.rst for more information. (Seth Hall)
+
+  * Experimental Modbus analyzer. See policy/protocols/modbus/* for
+    example policies. (Dina Hadziosmanovic, Seth Hall)
 
 2.1-112 | 2012-11-05 13:58:20 -0800
 

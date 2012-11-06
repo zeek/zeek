@@ -1,178 +1,148 @@
 #
-# @TEST-EXEC: bro -r $TRACES/modbus.trace %INPUT >output
+# @TEST-EXEC: bro -r $TRACES/modbus.trace %INPUT | sort | uniq -c >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $1}' | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/event.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
 
-event modbus_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count)
+event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)
 {
-	print "modbus_request", is_orig, tid, pid, uid, fc;
+    print "modbus_message", c, headers, is_orig;
 }
 
-event modbus_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count)
+event modbus_exception(c: connection, headers: ModbusHeaders, code: count)
 {
-	print "modbus_response", is_orig, tid, pid, uid, fc;
+    print "modbus_exception", c, headers, code;
 }
 
-event modbus_read_coils_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bcount: count)
+event modbus_read_coils_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 {
-	print "modbus_read_coils_request", is_orig, tid, pid, uid, fc, ref, bcount;
+    print "modbus_read_coils_request", c, headers, start_address, quantity;
 }
 
-event modbus_read_input_discretes_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bcount: count)
+event modbus_read_coils_response(c: connection, headers: ModbusHeaders, coils: ModbusCoils)
 {
-	print "modbus_read_input_discretes_request", is_orig, tid, pid, uid, fc, ref, bcount;
+    print "modbus_read_coils_response", c, headers, coils;
 }
 
-event modbus_read_multi_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, wcount: count, len: count)
+event modbus_read_discrete_inputs_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 {
-	print "modbus_read_multi_request", is_orig, tid, pid, uid, fc, ref, wcount, len;
+    print "modbus_read_discrete_inputs_request", c, headers, start_address, quantity;
 }
 
-event modbus_read_input_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, wcount: count, len: count)
+event modbus_read_discrete_inputs_response(c: connection, headers: ModbusHeaders, coils: ModbusCoils)
 {
-	print "modbus_read_input_request", is_orig, tid, pid, uid, fc, ref, wcount, len;
+    print "modbus_read_discrete_inputs_response", c, headers, coils;
 }
 
-event modbus_write_coil_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, onOff: count, other: count)
+event modbus_read_holding_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 {
-	print "modbus_write_coil_request", is_orig, tid, pid, uid, fc, ref, onOff, other;
+    print "modbus_read_holding_registers_request", c, headers, start_address, quantity;
 }
 
-event modbus_write_single_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count, ref: count, value: count)
+event modbus_read_holding_registers_response(c: connection, headers: ModbusHeaders, registers: ModbusRegisters)
 {
-	print "modbus_write_single_request", is_orig, tid, pid, uid, fc, len, ref, value;
+    print "modbus_read_holding_registers_response", c, headers, registers;
 }
 
-event modbus_force_coils_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bitCount: count, byteCount: count, coils: string)
+event modbus_read_input_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 {
-	print "modbus_force_coils_request", is_orig, tid, pid, uid, fc, ref, bitCount, byteCount, coils;
+    print "modbus_read_input_registers_request", c, headers, start_address, quantity;
 }
 
-event modbus_write_multi_request(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, ref: count, wCount: count, bCount: count, len: count)
+event modbus_read_input_registers_response(c: connection, headers: ModbusHeaders, registers: ModbusRegisters)
 {
-	print "modbus_write_multi_request", is_orig, t, tid, pid, uid, fc, ref, wCount, bCount, len;
+    print "modbus_read_input_registers_response", c, headers, registers;
 }
 
-event modbus_read_reference_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refCount: count, t: int_vec)
+event modbus_write_single_coil_request(c: connection, headers: ModbusHeaders, address: count, value: bool)
 {
-	print "modbus_read_reference_request", is_orig, tid, pid, uid, fc, refCount, t;
+    print "modbus_write_single_coil_request", c, headers, address, value;
 }
 
-event modbus_read_single_reference_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refType: count, refNumber: count, wordCount: count)
+event modbus_write_single_coil_response(c: connection, headers: ModbusHeaders, address: count, value: bool)
 {
-	print "modbus_read_single_reference_request", is_orig, tid, pid, uid, fc, refType, refNumber, wordCount;
+    print "modbus_write_single_coil_response", c, headers, address, value;
 }
 
-event modbus_write_reference_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, t: int_vec)
+event modbus_write_single_register_request(c: connection, headers: ModbusHeaders, address: count, value: count)
 {
-	print "modbus_write_reference_request", is_orig, tid, pid, uid, fc, byteCount, t;
+    print "modbus_write_single_register_request", c, headers, address, value;
 }
 
-event modbus_write_single_reference(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refType: count, refNumber: count, wordCount: count, t: int_vec)
+event modbus_write_single_register_response(c: connection, headers: ModbusHeaders, address: count, value: count)
 {
-	print "modbus_write_single_reference", is_orig, tid, pid, uid, fc, refType, refNumber, wordCount, t;
+    print "modbus_write_single_register_response", c, headers, address, value;
 }
 
-event modbus_mask_write_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, andMask: count, orMask: count)
+event modbus_write_multiple_coils_request(c: connection, headers: ModbusHeaders, start_address: count, coils: ModbusCoils)
 {
-	print "modbus_mask_write_request", is_orig, tid, pid, uid, fc, ref, andMask, orMask;
+    print "modbus_write_multiple_coils_request", c, headers, start_address, coils;
 }
 
-event modbus_read_write_request(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, refRead: count, wcRead: count, refWrite: count, wcWrite: count, bCount: count, len: count)
+event modbus_write_multiple_coils_response(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 {
-	print "modbus_read_write_request", is_orig, t, tid, pid, uid, fc, refRead, wcRead, refWrite, wcWrite, bCount, len;
+    print "modbus_write_multiple_coils_response", c, headers, start_address, quantity;
 }
 
-event modbus_read_FIFO_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count)
+event modbus_write_multiple_registers_request(c: connection, headers: ModbusHeaders, start_address: count, registers: ModbusRegisters)
 {
-	print "modbus_read_FIFO_request", is_orig, tid, pid, uid, fc, ref;
+    print "modbus_write_multiple_registers_request", c, headers, start_address, registers;
 }
 
-event modbus_read_except_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count)
+event modbus_write_multiple_registers_response(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 {
-	print "modbus_read_except_request", is_orig, tid, pid, uid, fc, len;
+    print "modbus_write_multiple_registers_response", c, headers, start_address, quantity;
 }
 
-event modbus_read_coils_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, bcount: count, bits: string)
+event modbus_read_file_record_request(c: connection, headers: ModbusHeaders)
 {
-	print "modbus_read_coils_response", is_orig, tid, pid, uid, fc, bcount, bits;
+    print "modbus_read_file_record_request", c, headers;
 }
 
-event modbus_read_input_discretes_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, bcount: count, bits: string)
+event modbus_read_file_record_response(c: connection, headers: ModbusHeaders)
 {
-	print "modbus_read_input_discretes_response", is_orig, tid, pid, uid, fc, bcount, bits;
+    print "modbus_read_file_record_response", c, headers;
 }
 
-event modbus_read_multi_response(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bCount: count, len: count)
+event modbus_write_file_record_request(c: connection, headers: ModbusHeaders)
 {
-	print "modbus_read_multi_response", is_orig, t, tid, pid, uid, fc, bCount, len;
+    print "modbus_write_file_record_request", c, headers;
 }
 
-event modbus_read_input_response(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bCount: count, len: count)
+event modbus_write_file_record_response(c: connection, headers: ModbusHeaders)
 {
-	print "modbus_read_input_response", is_orig, t, tid, pid, uid, fc, bCount, len;
+    print "modbus_write_file_record_response", c, headers;
 }
 
-event modbus_write_coil_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, onOff: count, other: count)
+event modbus_mask_write_register_request(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count)
 {
-	print "modbus_write_coil_response", is_orig, tid, pid, uid, fc, ref, onOff, other;
+    print "modbus_mask_write_register_request", c, headers, address, and_mask, or_mask;
 }
 
-event modbus_write_single_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count, ref: count, value: count)
+event modbus_mask_write_register_response(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count)
 {
-	print "modbus_write_single_response", is_orig, tid, pid, uid, fc, len, ref, value;
+    print "modbus_mask_write_register_response", c, headers, address, and_mask, or_mask;
 }
 
-event modbus_force_coils_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bitCount: count)
+event modbus_read_write_multiple_registers_request(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters)
 {
-	print "modbus_force_coils_response", is_orig, tid, pid, uid, fc, ref, bitCount;
+    print "modbus_read_write_multiple_registers_request", c, headers, read_start_address, read_quantity, write_start_address, write_registers;
 }
 
-event modbus_write_multi_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, wcount: count, len: count)
+event modbus_read_write_multiple_registers_response(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters)
 {
-	print "modbus_write_multi_response", is_orig, tid, pid, uid, fc, ref, wcount, len;
+    print "modbus_read_write_multiple_registers_response", c, headers, written_registers;
 }
 
-event modbus_read_reference_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, t: int_vec)
+event modbus_read_fifo_queue_request(c: connection, headers: ModbusHeaders, start_address: count)
 {
-	print "modbus_read_reference_response", is_orig, tid, pid, uid, fc, byteCount, t;
+    print "modbus_read_fifo_queue_request", c, headers, start_address;
 }
 
-event modbus_read_single_reference_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, refType: count, t: int_vec)
+event modbus_read_fifo_queue_response(c: connection, headers: ModbusHeaders, fifos: ModbusRegisters)
 {
-	print "modbus_read_single_reference_response", is_orig, tid, pid, uid, fc, byteCount, refType, t;
-}
-
-event modbus_write_reference_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, t: int_vec)
-{
-	print "modbus_write_reference_response", is_orig, tid, pid, uid, fc, byteCount, t;
-}
-
-event modbus_mask_write_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, andMask: count, orMask: count)
-{
-	print "modbus_mask_write_response", is_orig, tid, pid, uid, fc, ref, andMask, orMask;
-}
-
-event modbus_read_write_response(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bCount: count, len: count)
-{
-	print "modbus_read_write_response", is_orig, t, tid, pid, uid, fc, bCount, len;
-}
-
-event modbus_read_FIFO_response(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bcount: count)
-{
-	print "modbus_read_FIFO_response", is_orig, t, tid, pid, uid, fc, bcount;
-}
-
-event modbus_read_except_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, status: count, len: count)
-{
-	print "modbus_read_except_response", is_orig, tid, pid, uid, fc, status, len;
-}
-
-event modbus_exception(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, code: count)
-{
-	print "modbus_exception", is_orig, tid, pid, uid, fc, code;
+    print "modbus_read_fifo_queue_response", c, headers, fifos;
 }
 

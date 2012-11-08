@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: bro -r $TRACES/modbus.trace %INPUT | sort | uniq -c >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$DIST/testing/scripts/diff-canonifier-external btest-diff output
+# @TEST-EXEC: bro -r $TRACES/modbus.trace %INPUT | sort | uniq -c | sed 's/^  */ /g' >output
+# @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $1}' | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/event.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage

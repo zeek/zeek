@@ -44,6 +44,40 @@
 #include "Reporter.h"
 
 /**
+ * Return IP address without enclosing brackets and any leading 0x.
+ */
+std::string extract_ip(const std::string& i)
+	{
+	std::string s(skip_whitespace(i.c_str()));
+	if ( s.size() > 0 && s[0] == '[' )
+		s.erase(0, 1);
+
+	if ( s.size() > 1 && s.substr(0, 2) == "0x" )
+		s.erase(0, 2);
+
+	size_t pos = 0;
+	if ( (pos = s.find(']')) != std::string::npos )
+		s = s.substr(0, pos);
+
+	return s;
+	}
+
+/**
+ * Given a subnet string, return IP address and subnet length separately.
+ */
+std::string extract_ip_and_len(const std::string& i, int* len)
+	{
+	size_t pos = i.find('/');
+	if ( pos == std::string::npos )
+		return i;
+
+	if ( len )
+		*len = atoi(i.substr(pos + 1).c_str());
+
+	return extract_ip(i.substr(0, pos));
+	}
+
+/**
  * Takes a string, unescapes all characters that are escaped as hex codes
  * (\x##) and turns them into the equivalent ascii-codes. Returns a string
  * containing no escaped values

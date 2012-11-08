@@ -248,10 +248,10 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 	prefix.Mask(this->length);
 	}
 
-IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length)
+IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
 	: prefix(addr)
 	{
-	if ( prefix.GetFamily() == IPv4 )
+	if ( prefix.GetFamily() == IPv4 && ! len_is_v6_relative )
 		{
 		if ( length > 32 )
 			reporter->InternalError("Bad IPAddr(v4) IPPrefix length : %d",

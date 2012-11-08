@@ -1,4 +1,59 @@
 
+2.1-152 | 2012-11-05 16:52:34 -0800
+
+  * Initial version of a completely reworked intelligence framework.
+    See doc/intel.rst for more information. (Seth Hall)
+
+  * Experimental Modbus analyzer. See policy/protocols/modbus/* for
+    example policies. (Dina Hadziosmanovic, Seth Hall)
+
+2.1-112 | 2012-11-05 13:58:20 -0800
+
+  * New base script for detecting cases of checksum offloading. 
+    Reporter messages will now tell if one has bad checksums. (Seth
+    Hall)
+
+  * Clarifying ownership rules for BroString constructors. (Robin
+    Sommer)
+
+2.1-109 | 2012-11-05 13:39:34 -0800
+
+  * Add detection rate threshold for MHR. (Vlad Grigorescu)
+    
+  * lookup_hostname_txt fixes. (Vlad Grigorescu)
+    
+2.1-104 | 2012-11-01 10:37:50 -0700
+
+  * A new built-in function lookup_hostname_txt() provides support for
+    DNS TXT queries. (Vlad Grigorescu)
+
+2.1-101 | 2012-10-31 14:30:26 -0700
+
+  * Documentation reorg: The install info has been consolidated into a
+    single document (INSTALL), the upgrade info has been moved from
+    the FAQ to a section in the install doc, and the "upgrading from
+    1.5 to 2.0" document has been updated (and renamed) to also
+    include 2.0 to 2.1 upgrade info. (Daniel Thayer)
+
+2.1-96 | 2012-10-31 14:23:50 -0700
+
+  * Renaming option defining the frequency of alarm summary mails to
+    'Logging::default_alarm_mail_interval'. (Daniel Thayer)
+
+2.1-91 | 2012-10-24 16:04:47 -0700
+
+  * Adding PPPoE support to Bro. (Seth Hall)
+
+2.1-87 | 2012-10-24 15:40:06 -0700
+
+  * Adding missing &redef for some TCP options. Addresses #905, #906,
+    #907. (Carsten Langer)
+
+2.1-86 | 2012-10-24 15:37:11 -0700
+
+  * Add parsing rules for IPv4/IPv6 subnet literal constants.
+    Addresses #888. (Jon Siwek)
+
 2.1-84 | 2012-10-19 15:12:56 -0700
 
   * Added a BiF strptime() to wrap the corresponding C function. (Seth

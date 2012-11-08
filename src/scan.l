@@ -148,6 +148,7 @@ D	[0-9]+
 HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
+IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 FILE	[^ \t\n]+
 PREFIX	[^ \t\n]+
 FLOAT	(({D}*"."?{D})|({D}"."?{D}*))([eE][-+]?{D})?
@@ -229,21 +230,23 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 			}
 
 	/* IPv6 literal constant patterns */
-"["({HEX}:){7}{HEX}"]" {
-	string s(yytext+1);
-	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+{IP6}	{
+	RET_CONST(new AddrVal(extract_ip(yytext)))
 }
-"["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]" {
-	string s(yytext+3);
-	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+
+{IP6}{OWS}"/"{OWS}{D}	{
+	int len = 0;
+	string ip = extract_ip_and_len(yytext, &len);
+	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len, true)))
 }
-"["({HEX}|:)*"::"({HEX}|:)*"]" {
-	string s(yytext+1);
-	RET_CONST(new AddrVal(s.erase(s.size()-1)))
-}
-"["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]" {
-	string s(yytext+1);
-	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+
+	/* IPv4 literal constant patterns */
+({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
+
+({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
+	int len = 0;
+	string ip = extract_ip_and_len(yytext, &len);
+	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
 [!%*/+\-,:;<=>?()\[\]{}~$|]	return yytext[0];
@@ -483,8 +486,6 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 {FLOAT}{OWS}sec(s?)	RET_CONST(new IntervalVal(atof(yytext),Seconds))
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
-
-({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
 
 "0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
 

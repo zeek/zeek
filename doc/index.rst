@@ -5,6 +5,33 @@
 Bro Documentation
 =================
 
+Guides
+------
+
+.. toctree::
+   :maxdepth: 1
+
+   INSTALL
+   upgrade
+   quickstart
+   faq
+   reporting-problems
+
+xFrameworks
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   notice
+   logging
+   input
+   cluster
+   signatures
+
+How-Tos
+-------
+
 .. toctree::
     :maxdepth: 2
     :numbered:

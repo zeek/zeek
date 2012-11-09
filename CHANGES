@@ -1,4 +1,10 @@
 
+2.1-157 | 2012-11-08 16:22:00 -0800
+
+  * Fix for lookup_hostname BIF. (Jon Siwek)
+
+  * Fix for modbus test portability. (Robin Sommer)
+
 2.1-152 | 2012-11-05 16:52:34 -0800
 
   * Initial version of a completely reworked intelligence framework.

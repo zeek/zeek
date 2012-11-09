@@ -1012,7 +1012,6 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 		// A new one.
 		req = new AsyncRequest;
 		req->host = host;
-		req->is_txt = false;
 		asyncs_queued.push_back(req);
 		asyncs_addrs.insert(AsyncRequestAddrMap::value_type(host, req));
 		}

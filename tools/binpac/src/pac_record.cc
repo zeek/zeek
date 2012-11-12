@@ -617,7 +617,7 @@ void RecordPaddingField::GenFieldEnd(Output* out_cc, Env* env, const DataPtr& fi
 				field_begin.ptr_expr());
 			out_cc->inc_indent();
 			out_cc->println("{");
-			out_cc->println("// throw ExceptionInvalidOffset(\"%s\", %s - %s, %s);",
+			out_cc->println("// throw binpac::ExceptionInvalidOffset(\"%s\", %s - %s, %s);",
 				id_->LocName(), 
 				field_begin.ptr_expr(),
 				env->RValue(begin_of_data),

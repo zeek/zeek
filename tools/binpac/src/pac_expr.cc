@@ -295,7 +295,7 @@ void Expr::GenCaseEval(Output *out_cc, Env *env)
 		}
 	else
 		{
-		out_cc->println("throw ExceptionInvalidCaseIndex(\"%s\", %s);",
+		out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", %s);",
 			Location(), operand_[0]->EvalExpr(out_cc, env));
 		}
 	out_cc->println("break;");

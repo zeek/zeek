@@ -52,7 +52,7 @@ void DataPtr::GenBoundaryCheck(Output* out_cc, Env* env,
 	char* data_offset = AbsOffsetExpr(env, begin_of_data); 
 
 	out_cc->println("// Handle out-of-bound condition");
-	out_cc->println("throw ExceptionOutOfBound(\"%s\",", data_name);
+	out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", data_name);
 	out_cc->println("	(%s) + (%s), ", 
 		data_offset, data_size);
 	out_cc->println("	(%s) - (%s));", 

@@ -226,7 +226,7 @@ void FlowDecl::GenProcessFunc(Output *out_h, Output *out_cc)
 	out_cc->println("}");
 	out_cc->dec_indent();
 
-	out_cc->println("catch ( Exception const &e )");
+	out_cc->println("catch ( binpac::Exception const &e )");
 	out_cc->inc_indent();
 	out_cc->println("{");
 	GenCleanUpCode(out_cc);

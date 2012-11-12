@@ -168,7 +168,7 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env,
 		{
 		out_cc->println("default:");
 		out_cc->inc_indent();
-		out_cc->println("throw ExceptionInvalidCaseIndex(\"%s\", %s);", 
+		out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", %s);",
 			decl_id()->Name(), env->RValue(index_var_));
 		out_cc->println("break;");
 		out_cc->dec_indent();
@@ -302,10 +302,11 @@ void CaseField::GenPubDecls(Output* out_h, Env* env)
 
 		out_h->println("default:");
 		out_h->inc_indent();
-		out_h->println("throw ExceptionInvalidCase(\"%s\", %s, \"%s\");", 
-		               id_->LocName(), 
-		               env->RValue(index_var_), 
-		               OrigExprList(index_).c_str());
+		out_h->println(
+			"throw binpac::ExceptionInvalidCase(\"%s\", %s, \"%s\");",
+			id_->LocName(),
+			env->RValue(index_var_),
+			OrigExprList(index_).c_str());
 		out_h->println("break;");
 		out_h->dec_indent();
 

@@ -283,7 +283,8 @@ void StringType::DoGenParseCode(Output* out_cc, Env* env,
 		out_cc->println("// check for negative sizes");
 		out_cc->println("if ( %s < 0 )",
 			str_size.c_str());
-		out_cc->println("throw ExceptionInvalidStringLength(\"%s\", %s);",
+		out_cc->println(
+			"throw binpac::ExceptionInvalidStringLength(\"%s\", %s);",
 			Location(), str_size.c_str());
 		out_cc->println("%s.init(%s, %s);",
 			env->LValue(value_var()),
@@ -301,7 +302,7 @@ void StringType::DoGenParseCode(Output* out_cc, Env* env,
 void StringType::GenStringMismatch(Output* out_cc, Env* env, 
 		const DataPtr& data, const char *pattern)
 	{
-	out_cc->println("throw ExceptionStringMismatch(\"%s\", %s, %s);",
+	out_cc->println("throw binpac::ExceptionStringMismatch(\"%s\", %s, %s);",
 		Location(), 
 		pattern,
 		fmt("string((const char *) (%s), (const char *) %s).c_str()", 

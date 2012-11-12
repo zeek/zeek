@@ -147,6 +147,7 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_read_holding_registers_response(connection()->bro_analyzer(),
 			                                                          connection()->bro_analyzer()->Conn(),
 			                                                          HeaderToBro(header),
+			                                                          ${message.byte_count},
 			                                                          t);
 			}
 
@@ -182,7 +183,9 @@ refine flow ModbusTCP_Flow += {
 
 			BifEvent::generate_modbus_read_input_registers_response(connection()->bro_analyzer(),
 			                                                        connection()->bro_analyzer()->Conn(),
-			                                                        HeaderToBro(header), t);
+			                                                        HeaderToBro(header),
+			                                                        ${message.byte_count},
+			                                                        t);
 			}
 
 		return true;
@@ -318,7 +321,7 @@ refine flow ModbusTCP_Flow += {
 				BifEvent::generate_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
 				                                                           connection()->bro_analyzer()->Conn(),
 				                                                           HeaderToBro(header),
-				                                                           ${message.start_address}, t);
+				                                                           ${message.start_address}, ${message.byte_count}, t);
 			}
 
 		return true;
@@ -498,6 +501,7 @@ refine flow ModbusTCP_Flow += {
 			                                                                ${message.read_start_address},
 			                                                                ${message.read_quantity},
 			                                                                ${message.write_start_address},
+			                                                                ${message.write_byte_count},
 			                                                                t);
 			}
 
@@ -518,7 +522,9 @@ refine flow ModbusTCP_Flow += {
 
 			BifEvent::generate_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
 			                                                                 connection()->bro_analyzer()->Conn(),
-			                                                                 HeaderToBro(header), t);
+			                                                                 HeaderToBro(header),
+			                                                                 ${message.byte_count},
+			                                                                 t);
 			}
 
 		return true;
@@ -553,7 +559,9 @@ refine flow ModbusTCP_Flow += {
 
 			BifEvent::generate_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
 			                                                   connection()->bro_analyzer()->Conn(),
-			                                                   HeaderToBro(header), t);
+			                                                   HeaderToBro(header),
+			                                                   ${message.byte_count},
+			                                                   t);
 			}
 
 		return true;

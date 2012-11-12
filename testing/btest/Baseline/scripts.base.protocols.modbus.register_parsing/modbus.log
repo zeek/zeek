@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	modbus
+#open	2012-11-12-21-51-15
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	func	exception
+#types	time	string	addr	port	addr	port	string	string
+1342774775.305761	UWkUyAuUGXf	10.1.1.234	51411	10.10.5.104	502	READ_INPUT_REGISTERS	-
+1342775209.493066	arKYeMETxOg	10.1.1.234	51411	10.10.5.104	502	READ_INPUT_REGISTERS	-
+1342776371.617757	nQcgTWjvg4c	10.1.1.234	51411	10.10.5.104	502	READ_INPUT_REGISTERS	-
+#close	2012-11-12-21-51-15

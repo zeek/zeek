@@ -2716,8 +2716,9 @@ function bytestring_to_double%(s: string%): double
 		return new Val(0.0, TYPE_DOUBLE);
 		}
 
-	double d = ntohd( *(double *)s->Bytes() );
-	return new Val(d, TYPE_DOUBLE);
+	double d;
+	memcpy(&d, s->Bytes(), sizeof(double));
+	return new Val(ntohd(d), TYPE_DOUBLE);
 	%}
 
 ## Converts a reverse pointer name to an address. For example,

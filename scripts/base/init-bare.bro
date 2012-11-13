@@ -2457,6 +2457,16 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+type ModbusCoils: vector of bool;
+type ModbusRegisters: vector of count;
+
+type ModbusHeaders: record {
+	tid:           count;
+	pid:           count;
+	uid:           count;
+	function_code: count;
+};
+
 module SOCKS;
 export {
 	## This record is for a SOCKS client or server to provide either a 

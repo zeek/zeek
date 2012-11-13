@@ -3790,6 +3790,35 @@ function lookup_addr%(host: addr%) : string
 	return 0;
 	%}
 
+## Issues an asynchronous TEXT DNS lookup and delays the function result.
+## This function can therefore only be called inside a ``when`` condition,
+## e.g., ``when ( local h = lookup_hostname_txt("www.bro-ids.org") ) { f(h); }``.
+##
+## host: The hostname to lookup.
+##
+## Returns: The DNS TXT record associated with *host*.
+##
+## .. bro:see:: lookup_hostname
+function lookup_hostname_txt%(host: string%) : string
+	%{
+	// FIXME: Is should be easy to adapt the function to synchronous
+	// lookups if we're reading a trace.
+	Trigger* trigger = frame->GetTrigger();
+
+	if ( ! trigger)
+		{
+		builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	dns_mgr->AsyncLookupNameText(host->CheckString(),
+				 new LookupHostCallback(trigger, frame->GetCall(), true));
+	return 0;
+	%}
+
 ## Issues an asynchronous DNS lookup and delays the function result.
 ## This function can therefore only be called inside a ``when`` condition,
 ## e.g., ``when ( local h = lookup_hostname("www.bro-ids.org") ) { f(h); }``.

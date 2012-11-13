@@ -34,11 +34,15 @@ public:
 	typedef IdxVec::iterator IdxVecIt;
 	typedef IdxVec::const_iterator IdxVecCIt;
 
-	BroString(int arg_final_NUL, byte_vec str, int arg_n);
+	// Constructors creating internal copies of the data passed in.
 	BroString(const u_char* str, int arg_n, int add_NUL);
 	BroString(const char* str);
 	BroString(const string& str);
 	BroString(const BroString& bs);
+
+	// Constructor that takes owernship of the vector passed in.
+	BroString(int arg_final_NUL, byte_vec str, int arg_n);
+
 	BroString();
 	~BroString()	{ Reset(); }
 

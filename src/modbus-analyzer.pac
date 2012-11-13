@@ -135,8 +135,16 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=3
 	function deliver_ReadHoldingRegistersResponse(header: ModbusTCP_TransportHeader, message: ReadHoldingRegistersResponse): bool
 		%{
+		if ( ${message.byte_count} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus read holding register response byte count %d", ${message.byte_count}));
+			return false;
+			}
+
 		if ( ::modbus_read_holding_registers_response )
 			{
+
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
@@ -147,7 +155,6 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_read_holding_registers_response(connection()->bro_analyzer(),
 			                                                          connection()->bro_analyzer()->Conn(),
 			                                                          HeaderToBro(header),
-			                                                          ${message.byte_count},
 			                                                          t);
 			}
 
@@ -172,6 +179,13 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=4
 	function deliver_ReadInputRegistersResponse(header: ModbusTCP_TransportHeader, message: ReadInputRegistersResponse): bool
 		%{
+		if ( ${message.byte_count} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus read input register response byte count %d", ${message.byte_count}));
+			return false;
+			}
+
 		if ( ::modbus_read_input_registers_response )
 			{
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
@@ -184,7 +198,6 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_read_input_registers_response(connection()->bro_analyzer(),
 			                                                        connection()->bro_analyzer()->Conn(),
 			                                                        HeaderToBro(header),
-			                                                        ${message.byte_count},
 			                                                        t);
 			}
 
@@ -309,6 +322,13 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=16
 	function deliver_WriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader, message: WriteMultipleRegistersRequest): bool
 		%{
+		if ( ${message.byte_count} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus write multiple registers request byte count %d", ${message.byte_count}));
+			return false;
+			}
+
 		if ( ::modbus_write_multiple_registers_request )
 			{
 			VectorVal * t = new VectorVal(BifType::Vector::ModbusRegisters);
@@ -321,7 +341,7 @@ refine flow ModbusTCP_Flow += {
 				BifEvent::generate_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
 				                                                           connection()->bro_analyzer()->Conn(),
 				                                                           HeaderToBro(header),
-				                                                           ${message.start_address}, ${message.byte_count}, t);
+				                                                           ${message.start_address}, t);
 			}
 
 		return true;
@@ -486,6 +506,13 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=23
 	function deliver_ReadWriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader, message: ReadWriteMultipleRegistersRequest): bool
 		%{
+		if ( ${message.write_byte_count} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus read write multiple registers request write byte count %d", ${message.write_byte_count}));
+			return false;
+			}
+
 		if ( ::modbus_read_write_multiple_registers_request )
 			{
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
@@ -501,7 +528,6 @@ refine flow ModbusTCP_Flow += {
 			                                                                ${message.read_start_address},
 			                                                                ${message.read_quantity},
 			                                                                ${message.write_start_address},
-			                                                                ${message.write_byte_count},
 			                                                                t);
 			}
 
@@ -511,6 +537,13 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=23
 	function deliver_ReadWriteMultipleRegistersResponse(header: ModbusTCP_TransportHeader, message: ReadWriteMultipleRegistersResponse): bool
 		%{
+		if ( ${message.byte_count} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus read write multiple registers response byte count %d", ${message.byte_count}));
+			return false;
+			}
+
 		if ( ::modbus_read_write_multiple_registers_response )
 			{
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
@@ -523,7 +556,6 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
 			                                                                 connection()->bro_analyzer()->Conn(),
 			                                                                 HeaderToBro(header),
-			                                                                 ${message.byte_count},
 			                                                                 t);
 			}
 
@@ -548,6 +580,13 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=24
 	function deliver_ReadFIFOQueueResponse(header: ModbusTCP_TransportHeader, message: ReadFIFOQueueResponse): bool
 		%{
+		if ( ${message.byte_count} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus read FIFO queue response byte count %d", ${message.byte_count}));
+			return false;
+			}
+
 		if ( ::modbus_read_fifo_queue_response )
 			{
 			VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
@@ -560,7 +599,6 @@ refine flow ModbusTCP_Flow += {
 			BifEvent::generate_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
 			                                                   connection()->bro_analyzer()->Conn(),
 			                                                   HeaderToBro(header),
-			                                                   ${message.byte_count},
 			                                                   t);
 			}
 

@@ -60,7 +60,7 @@ event modbus_read_holding_registers_request(c: connection, headers: ModbusHeader
 	c$modbus$track_address = start_address+1;
 	}
 
-event modbus_read_holding_registers_response(c: connection, headers: ModbusHeaders, byte_count: count, registers: ModbusRegisters)
+event modbus_read_holding_registers_response(c: connection, headers: ModbusHeaders, registers: ModbusRegisters)
 	{
 	local slave = c$id$resp_h;
 

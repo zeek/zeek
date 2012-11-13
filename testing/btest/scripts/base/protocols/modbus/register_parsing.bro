@@ -6,15 +6,16 @@
 # of register values, with the quantity being derived from a byte count value
 # that is also sent.  If the byte count value is invalid (e.g. an odd value
 # might not be valid since registers must be 2-byte values), then the parser
-# should not trigger any asserts, but the resulting event could indicate
-# the strangeness (i.e. byte_count != 2*|registers|).
+# should not trigger any asserts, but generate a protocol_violation (in this
+# case TCP_ApplicationAnalyzer::ProtocolViolation asserts its behavior for
+# incomplete connections).
 
 event modbus_read_input_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
 	{
 	print "modbus_read_input_registers_request", c$id, headers, start_address, quantity;
 	}
 
-event modbus_read_input_registers_response(c: connection, headers: ModbusHeaders, byte_count: count, registers: ModbusRegisters)
+event modbus_read_input_registers_response(c: connection, headers: ModbusHeaders, registers: ModbusRegisters)
 	{
-	print "modbus_read_input_registers_response", c$id, headers, registers, |registers|, byte_count;
+	print "modbus_read_input_registers_response", c$id, headers, registers, |registers|;
 	}

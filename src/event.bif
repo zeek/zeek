@@ -6623,10 +6623,8 @@ event modbus_read_holding_registers_request%(c: connection, headers: ModbusHeade
 ##
 ## headers: The headers for the modbus function.
 ##
-## byte_count: The number of bytes in the message that comprise register values.
-##
 ## registers: The register values returned from the device.
-event modbus_read_holding_registers_response%(c: connection, headers: ModbusHeaders, byte_count: count, registers: ModbusRegisters%);
+event modbus_read_holding_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
 
 ## Generated for a Modbus read input registers request.
 ##
@@ -6645,10 +6643,8 @@ event modbus_read_input_registers_request%(c: connection, headers: ModbusHeaders
 ##
 ## headers: The headers for the modbus function.
 ##
-## byte_count: The number of bytes in the message that comprise register values.
-##
 ## registers: The register values returned from the device.
-event modbus_read_input_registers_response%(c: connection, headers: ModbusHeaders, byte_count: count, registers: ModbusRegisters%);
+event modbus_read_input_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
 
 ## Generated for a Modbus write single coil request.
 ##
@@ -6724,10 +6720,8 @@ event modbus_write_multiple_coils_response%(c: connection, headers: ModbusHeader
 ##
 ## start_address: The memory address of the first register to be written.
 ##
-## byte_count: The number of bytes in the message that comprise register values.
-##
 ## registers: The values to be written to the registers.
-event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, byte_count: count, registers: ModbusRegisters%);
+event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, registers: ModbusRegisters%);
 
 ## Generated for a Modbus write multiple registers response.
 ##
@@ -6818,10 +6812,8 @@ event modbus_mask_write_register_response%(c: connection, headers: ModbusHeaders
 ##
 ## write_start_address: The memory address of the first register to be written.
 ##
-## write_byte_count: Number of bytes in message that comprise register values.
-##
 ## write_registers: The values to be written to the registers.
-event modbus_read_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_byte_count: count, write_registers: ModbusRegisters%);
+event modbus_read_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters%);
 
 ## Generated for a Modbus read/write multiple registers response.
 ##
@@ -6829,10 +6821,8 @@ event modbus_read_write_multiple_registers_request%(c: connection, headers: Modb
 ##
 ## headers: The headers for the modbus function.
 ##
-## byte_count: The number of bytes in the message that comprise register values.
-##
 ## written_registers: The register values read from the registers specified in the request.
-event modbus_read_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, byte_count: count, written_registers: ModbusRegisters%);
+event modbus_read_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters%);
 
 ## Generated for a Modbus read FIFO queue request.
 ##
@@ -6849,10 +6839,8 @@ event modbus_read_fifo_queue_request%(c: connection, headers: ModbusHeaders, sta
 ##
 ## headers: The headers for the modbus function.
 ##
-## byte_count: The number of bytes in the message that comprise register values.
-##
 ## fifos: The register values read from the FIFO queue on the device.
-event modbus_read_fifo_queue_response%(c: connection, headers: ModbusHeaders, byte_count: count, fifos: ModbusRegisters%);
+event modbus_read_fifo_queue_response%(c: connection, headers: ModbusHeaders, fifos: ModbusRegisters%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such
 ## messages may be generated internally by the event engine and also by other

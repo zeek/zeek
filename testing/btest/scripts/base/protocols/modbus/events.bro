@@ -41,7 +41,7 @@ event modbus_read_holding_registers_request(c: connection, headers: ModbusHeader
     print "modbus_read_holding_registers_request", c, headers, start_address, quantity;
 }
 
-event modbus_read_holding_registers_response(c: connection, headers: ModbusHeaders, byte_count: count, registers: ModbusRegisters)
+event modbus_read_holding_registers_response(c: connection, headers: ModbusHeaders, registers: ModbusRegisters)
 {
     print "modbus_read_holding_registers_response", c, headers, registers;
 }
@@ -51,7 +51,7 @@ event modbus_read_input_registers_request(c: connection, headers: ModbusHeaders,
     print "modbus_read_input_registers_request", c, headers, start_address, quantity;
 }
 
-event modbus_read_input_registers_response(c: connection, headers: ModbusHeaders, byte_count: count, registers: ModbusRegisters)
+event modbus_read_input_registers_response(c: connection, headers: ModbusHeaders, registers: ModbusRegisters)
 {
     print "modbus_read_input_registers_response", c, headers, registers;
 }
@@ -86,7 +86,7 @@ event modbus_write_multiple_coils_response(c: connection, headers: ModbusHeaders
     print "modbus_write_multiple_coils_response", c, headers, start_address, quantity;
 }
 
-event modbus_write_multiple_registers_request(c: connection, headers: ModbusHeaders, start_address: count, byte_count: count, registers: ModbusRegisters)
+event modbus_write_multiple_registers_request(c: connection, headers: ModbusHeaders, start_address: count, registers: ModbusRegisters)
 {
     print "modbus_write_multiple_registers_request", c, headers, start_address, registers;
 }
@@ -126,12 +126,12 @@ event modbus_mask_write_register_response(c: connection, headers: ModbusHeaders,
     print "modbus_mask_write_register_response", c, headers, address, and_mask, or_mask;
 }
 
-event modbus_read_write_multiple_registers_request(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_byte_count: count, write_registers: ModbusRegisters)
+event modbus_read_write_multiple_registers_request(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters)
 {
     print "modbus_read_write_multiple_registers_request", c, headers, read_start_address, read_quantity, write_start_address, write_registers;
 }
 
-event modbus_read_write_multiple_registers_response(c: connection, headers: ModbusHeaders, byte_count: count, written_registers: ModbusRegisters)
+event modbus_read_write_multiple_registers_response(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters)
 {
     print "modbus_read_write_multiple_registers_response", c, headers, written_registers;
 }
@@ -141,7 +141,7 @@ event modbus_read_fifo_queue_request(c: connection, headers: ModbusHeaders, star
     print "modbus_read_fifo_queue_request", c, headers, start_address;
 }
 
-event modbus_read_fifo_queue_response(c: connection, headers: ModbusHeaders, byte_count: count, fifos: ModbusRegisters)
+event modbus_read_fifo_queue_response(c: connection, headers: ModbusHeaders, fifos: ModbusRegisters)
 {
     print "modbus_read_fifo_queue_response", c, headers, fifos;
 }

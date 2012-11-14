@@ -1,0 +1,10 @@
+# @TEST-EXEC: bro -r $TRACES/modbus/fuzz-72.trace
+# @TEST-EXEC: btest-diff modbus.log
+# @TEST-EXEC: btest-diff weird.log
+
+# The pcap has a flow with some fuzzed modbus traffic in it that should cause
+# the binpac-generated analyzer code to throw a binpac::ExceptionOutOfBound.
+# This should be correctly caught as a type of binpac::Exception and the
+# binpac::ModbusTCP::Exception type that's defined as part of the analyzer
+# shouldn't interfere with that handling and definitely shouldn't crash bro.
+# A weird is currently emitted for parsing exceptions.

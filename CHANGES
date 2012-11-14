@@ -1,4 +1,10 @@
 
+2.1-162 | 2012-11-13 17:29:00 -0800
+
+  * Fix modbus register array parsing. (Jon Siwek)
+
+  * Adjustments to modbus test cases. (Jon Siwek)
+
 2.1-157 | 2012-11-08 16:22:00 -0800
 
   * Fix for lookup_hostname BIF. (Jon Siwek)

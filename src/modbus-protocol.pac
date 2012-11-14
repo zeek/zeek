@@ -192,7 +192,7 @@ type ReadHoldingRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 # RESPONSE FC=3
 type ReadHoldingRegistersResponse(header: ModbusTCP_TransportHeader) = record {
 	byte_count: uint8;
-	registers:  uint16[] &length=byte_count;
+	registers:  uint16[byte_count/2] &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadHoldingRegistersResponse(header, this);
 } &byteorder=bigendian;
@@ -208,7 +208,7 @@ type ReadInputRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 # RESPONSE FC=4
 type ReadInputRegistersResponse(header: ModbusTCP_TransportHeader) = record {
 	byte_count: uint8;
-	registers:  uint16[] &length=byte_count;
+	registers:  uint16[byte_count/2] &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadInputRegistersResponse(header, this);
 } &byteorder=bigendian;
@@ -303,7 +303,7 @@ type ReadFileRecordRequest(header: ModbusTCP_TransportHeader) = record {
 type FileRecordResponse = record {
 	file_len:    uint8    &check(file_len >= 0x07 && file_len <= 0xF5);
 	ref_type:    uint8    &check(ref_type == 6);
-	record_data: uint16[] &length=file_len;
+	record_data: uint16[file_len/2] &length=file_len;
 } &byteorder=bigendian;
 
 # RESPONSE FC=20
@@ -372,7 +372,7 @@ type ReadWriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader) = reco
 # RESPONSE FC=23
 type ReadWriteMultipleRegistersResponse(header: ModbusTCP_TransportHeader) = record {
 	byte_count:  uint8;
-	registers:   uint16[] &length=byte_count;
+	registers:   uint16[byte_count/2] &length=byte_count;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadWriteMultipleRegistersResponse(header, this);
 } &byteorder=bigendian;
@@ -388,7 +388,7 @@ type ReadFIFOQueueRequest(header: ModbusTCP_TransportHeader) = record {
 type ReadFIFOQueueResponse(header: ModbusTCP_TransportHeader) = record {
 	byte_count:    uint16             &check(byte_count <= 62);
 	fifo_count:    uint16             &check(fifo_count <= 31);
-	register_data: uint16[fifo_count] &length=byte_count/2;
+	register_data: uint16[fifo_count] &length=fifo_count*2;
 } &let {
 	deliver: bool = $context.flow.deliver_ReadFIFOQueueResponse(header, this);
 } &byteorder=bigendian;

@@ -1,4 +1,10 @@
 
+2.1-167 | 2012-11-14 13:19:17 -0800
+
+  * Add a new BIF "bytestring_to_double" for converting from a binary
+    representation of a double. Addresses #908. (Carsten Langer/Daniel
+    Thayer)
+
 2.1-162 | 2012-11-13 17:29:00 -0800
 
   * Fix modbus register array parsing. (Jon Siwek)

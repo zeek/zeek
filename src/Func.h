@@ -25,7 +25,7 @@ public:
 	virtual ~Func();
 
 	virtual int IsPure() const = 0;
-	int IsEvent() const	{ return FType()->IsEvent(); }
+	function_flavor Flavor() const { return FType()->Flavor(); }
 
 	struct Body {
 		Stmt* stmts;

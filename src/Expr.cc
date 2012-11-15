@@ -4374,7 +4374,7 @@ bool InExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args)
+CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 : Expr(EXPR_CALL)
 	{
 	func = arg_func;
@@ -4402,8 +4402,29 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args)
 
 		if ( ! yield )
 			{
-			Error("event called in expression");
-			SetError();
+			switch ( func_type->AsFuncType()->Flavor() ) {
+			case FUNC_FLAVOR_FUNCTION:
+				Error("function has no yield type");
+				SetError();
+				break;
+			case FUNC_FLAVOR_EVENT:
+				Error("event called in expression, use event statement instead");
+				SetError();
+				break;
+			case FUNC_FLAVOR_HOOK:
+				// It's fine to not have a yield if it's known that the call
+				// is being done from a hook statement.
+				if ( ! in_hook )
+					{
+					Error("hook called in expression, use hook statement instead");
+					SetError();
+					}
+				break;
+			default:
+				Error("invalid function flavor");
+				SetError();
+				break;
+			}
 			}
 		else
 			SetType(yield->Ref());

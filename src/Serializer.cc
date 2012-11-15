@@ -389,23 +389,30 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 		{
 		if ( info->print )
 			fprintf(info->print, "%s [%.06f] %s(%s)\n",
-				functype->IsEvent() ? "Event" : "Function call",
+				functype->FlavorString().c_str(),
 				time, name, types ? d.Description() : "<ignored>");
 
-		if ( functype->IsEvent() )
+		switch ( functype->Flavor() ) {
+		case FUNC_FLAVOR_EVENT:
 			{
 			EventHandler* handler = event_registry->Lookup(name);
 			assert(handler);
 			if ( ! info->ignore_callbacks )
 				GotEvent(name, time, handler, args);
 			}
-		else
+			break;
+		case FUNC_FLAVOR_FUNCTION:
+		case FUNC_FLAVOR_HOOK:
 			if ( ! info->ignore_callbacks )
 				GotFunctionCall(name, time, id->ID_Val()->AsFunc(), args);
+			break;
+		default:
+			reporter->InternalError("invalid function flavor");
+			break;
+		}
 
 		if ( info->ignore_callbacks )
 			delete_vals(args);
-
 		}
 	else
 		delete_vals(args);

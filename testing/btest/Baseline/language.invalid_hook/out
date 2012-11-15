@@ -1,0 +1,1 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.invalid_hook/invalid_hook.bro, line 15: hook called in expression, use hook statement instead (myhook(nope))

@@ -2,14 +2,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 87
+%expect 88
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
-%token TOK_FUNCTION TOK_GLOBAL TOK_ID TOK_IF TOK_INT
+%token TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
 %token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
@@ -56,6 +56,7 @@
 %type <re> pattern
 %type <expr> expr init anonymous_function
 %type <event_expr> event
+%type <call_expr> hook
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
 %type <func_type> func_hdr func_params
@@ -118,6 +119,7 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
+static bool in_hook = false;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -859,7 +861,13 @@ type:
 	|	TOK_EVENT '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, 0, 1);
+				$$ = new FuncType($3, 0, FUNC_FLAVOR_EVENT);
+				}
+
+	|	TOK_HOOK '(' formal_args ')'
+				{
+				set_location(@1, @3);
+				$$ = new FuncType($3, 0, FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
@@ -991,12 +999,23 @@ decl:
 				ID* id = $2;
 				if ( id->Type()->Tag() == TYPE_FUNC )
 					{
-					if ( id->Type()->AsFuncType()->IsEvent() )
-						current_reST_doc->AddEvent(
-							new BroDocObj(id, reST_doc_comments));
-					else
+					switch ( id->Type()->AsFuncType()->Flavor() ) {
+					case FUNC_FLAVOR_FUNCTION:
 						current_reST_doc->AddFunction(
 							new BroDocObj(id, reST_doc_comments));
+						break;
+					case FUNC_FLAVOR_EVENT:
+						current_reST_doc->AddEvent(
+							new BroDocObj(id, reST_doc_comments));
+						break;
+					case FUNC_FLAVOR_HOOK:
+						current_reST_doc->AddHook(
+							new BroDocObj(id, reST_doc_comments));
+						break;
+					default:
+						reporter->InternalError("invalid function flavor");
+						break;
+					}
 					}
 
 				else
@@ -1175,6 +1194,15 @@ func_hdr:
 				current_reST_doc->AddEventHandler(
 					new BroDocObj($2, reST_doc_comments));
 			}
+	|	TOK_HOOK def_global_id func_params
+			{
+			begin_func($2, current_module.c_str(),
+				   FUNC_FLAVOR_HOOK, 0, $3);
+			$$ = $3;
+			if ( generate_documentation )
+				current_reST_doc->AddHookHandler(
+					new BroDocObj($2, reST_doc_comments));
+			}
 	|	TOK_REDEF TOK_EVENT event_id func_params
 			{
 			begin_func($3, current_module.c_str(),
@@ -1209,9 +1237,9 @@ begin_func:
 
 func_params:
 		'(' formal_args ')' ':' type
-			{ $$ = new FuncType($2, $5, 0); }
+			{ $$ = new FuncType($2, $5, FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new FuncType($2, base_type(TYPE_VOID), 0); }
+			{ $$ = new FuncType($2, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:
@@ -1328,6 +1356,14 @@ stmt:
 			set_location(@1, @3);
 			$$ = new EventStmt($2);
 			if ( ! $4 )
+			    brofiler.AddStmt($$);
+			}
+
+	|	TOK_HOOK { in_hook = true; } hook { in_hook = false; } ';' opt_no_test
+			{
+			set_location(@1, @5);
+			$$ = new HookStmt($3);
+			if ( ! $6 )
 			    brofiler.AddStmt($$);
 			}
 
@@ -1481,6 +1517,14 @@ event:
 			{
 			set_location(@1, @4);
 			$$ = new EventExpr($1, $3);
+			}
+	;
+
+hook:
+		expr '(' opt_expr_list ')'
+			{
+			set_location(@1, @4);
+			$$ = new CallExpr($1, $3, in_hook);
 			}
 	;
 

@@ -1202,9 +1202,10 @@ bool FileType::DoUnserialize(UnserialInfo* info)
 	return yield != 0;
 	}
 
-EnumType::EnumType()
+EnumType::EnumType(const string& arg_name)
 : BroType(TYPE_ENUM)
 	{
+	name = arg_name;
 	counter = 0;
 	}
 
@@ -1325,6 +1326,13 @@ const char* EnumType::Lookup(bro_int_t value)
 			return iter->first;
 
 	return 0;
+	}
+
+void EnumType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(name.c_str());
+	d->Add("`");
 	}
 
 void CommentedEnumType::DescribeReST(ODesc* d) const

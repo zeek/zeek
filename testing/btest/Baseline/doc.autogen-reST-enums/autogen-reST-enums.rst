@@ -12,6 +12,12 @@ autogen-reST-enums.bro
 
 Summary
 ~~~~~~~
+Options
+#######
+==================================================================== ======================================================================
+:bro:id:`test_enum_option`: :bro:type:`TestEnum1` :bro:attr:`&redef` this should reference the TestEnum1 type and not a generic "enum" type
+==================================================================== ======================================================================
+
 Types
 #####
 ======================================= ======================================
@@ -30,6 +36,16 @@ Redefinitions
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Options
+#######
+.. bro:id:: test_enum_option
+
+   :Type: :bro:type:`TestEnum1`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``ONE``
+
+   this should reference the TestEnum1 type and not a generic "enum" type
+
 Types
 #####
 .. bro:type:: TestEnum1

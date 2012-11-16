@@ -51,14 +51,29 @@ event bro_init() &priority=3
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
 	
-	Metrics::add_filter("http.sqli.attacker", [$log=F,
-	                                           $notice_threshold=sqli_requests_threshold,
-	                                           $break_interval=sqli_requests_interval,
-	                                           $note=SQL_Injection_Attacker]);
-	Metrics::add_filter("http.sqli.victim", [$log=F,
-	                                         $notice_threshold=sqli_requests_threshold,
-	                                         $break_interval=sqli_requests_interval,
-	                                         $note=SQL_Injection_Victim]);
+	Metrics::add_filter("http.sqli.attacker", 
+	                    [$every=sqli_requests_interval,
+	                     $measure=set(Metrics::SUM),
+	                     $threshold=sqli_requests_threshold,
+	                     $samples=10,
+	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                     	NOTICE([$note=SQL_Injection_Attacker, 
+	                     	        $msg="An SQL injection attacker was discovered!",
+	                     	        $src=index$host,
+	                     	        $identifier=cat(index$host)]);
+	                     }, $log=F]);
+
+	Metrics::add_filter("http.sqli.victim",
+	                    [$every=sqli_requests_interval,
+	                     $measure=set(Metrics::SUM),
+	                     $threshold=sqli_requests_threshold,
+	                     $samples=10,
+	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                     	NOTICE([$note=SQL_Injection_Victim, 
+	                     	        $msg="An SQL injection victim was discovered!",
+	                     	        $src=index$host,
+	                     	        $identifier=cat(index$host)]);
+	                     }, $log=F]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -68,7 +83,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data("http.sqli.attacker", [$host=c$id$orig_h], 1);
-		Metrics::add_data("http.sqli.victim", [$host=c$id$resp_h], 1);
+		Metrics::add_data("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
+		Metrics::add_data("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
 		}
 	}

@@ -1,7 +1,5 @@
 ##! The metrics framework provides a way to count and measure data.  
 
-@load base/frameworks/notice
-
 module Metrics;
 
 export {
@@ -11,15 +9,21 @@ export {
 	## The default interval used for "breaking" metrics and writing the 
 	## current value to the logging stream.
 	const default_break_interval = 15mins &redef;
-
-	## The default number of metric items which trigger 
-	## filter$custom_check_threshold 
-	const default_trigger_custom_check_threshold = 10 &redef;
 	
 	## This is the interval for how often threshold based notices will happen 
 	## after they have already fired.
 	const threshold_series_restart_interval = 1hr &redef;
 	
+	type Calculation: enum {
+		SUM,
+		MIN,
+		MAX,
+		VARIANCE,
+		STD_DEV,
+		AVG,
+		UNIQUE,
+	};
+
 	## Represents a thing which is having metrics collected for it.  An instance
 	## of this record type and an id together represent a single measurement.
 	type Index: record {
@@ -40,12 +44,47 @@ export {
 		network:      subnet &optional;
 	} &log;
 	
-	## Represents data being added for a single metric data point.  Used internally.
+	## Represents data being added for a single metric data point.
 	type DataPoint: record {
-		num:        count       &optional;
-		unique_vals: set[string] &optional;
+		num:       count       &optional;
+		dbl:       double      &optional;
+		str:       string      &optional;
 	};
-	
+
+	## Value supplied when a metric is finished.  It contains all
+	## of the measurements collected for the metric.
+	type ResultVal: record {
+		## The number of measurements received.
+		num:     count        &log &default=0;
+
+		## For numeric data, this tracks the sum of all values.
+		sum:     double       &log &optional;
+
+		## For numeric data, this tracks the minimum value given.
+		min:     double       &log &optional;
+
+		## For numeric data, this tracks the maximum value given.
+		max:     double       &log &optional;
+
+		## For numeric data, this calculates the average of all values.
+		avg:     double       &log &optional;
+
+		## For numeric data, this calculates the variance.
+		variance: double      &log &optional;
+
+		## For numeric data, this calculates the standard deviation.
+		std_dev:  double      &log &optional;
+
+		## If cardinality is being tracked, the number of unique
+		## items is tracked here.
+		unique: count         &log &optional;
+
+		## A sample of something being measured.  This is helpful in 
+		## some cases for collecting information to do further detection
+		## or better logging for forensic purposes.
+		sample: set[DataPoint]   &optional;
+	};
+
 	## The record type that is used for logging metrics.
 	type Info: record {
 		## Timestamp at which the metric was "broken".
@@ -57,67 +96,58 @@ export {
 		## the data so this is necessary to understand the value.
 		filter_name:  string   &log;
 		## What measurement the metric represents.
-		metric_id:    string   &log;
+		metric:       string   &log;
 		## What the metric value applies to.
 		index:        Index    &log;
 		## The simple numeric value of the metric.
-		value:        count    &log;
+		result:        ResultVal    &log;
 	};
 	
-    # TODO: configure a metrics filter logging stream to log the current
-	#       metrics configuration in case someone is looking through
-	#       old logs and the configuration has changed since then.
-	
 	## Filters define how the data from a metric is aggregated and handled.  
-	## Filters can be used to set how often the measurements are cut or "broken"
+	## Filters can be used to set how often the measurements are cut 
 	## and logged or how the data within them is aggregated.  It's also 
-	## possible to disable logging and use filters for thresholding.
+	## possible to disable logging and use filters solely for thresholding.
 	type Filter: record {
 		## The name for this filter so that multiple filters can be
 		## applied to a single metrics to get a different view of the same
 		## metric data being collected (different aggregation, break, etc).
-		name:              string                  &default="default";
-		## The :bro:type:`Metrics::ID` that this filter applies to.
-		id:                string                  &optional;
+		name:              string                   &default="default";
+		## The metric that this filter applies to.
+		id:                string                   &optional;
+		## The measurements to perform on the data.
+		measure:           set[Calculation]         &optional;
 		## A predicate so that you can decide per index if you would like
 		## to accept the data being inserted.
-		pred:              function(index: Index, str: string): bool &optional;
-		## A function to normalize the index.  This can be used to normalize
-		## any field in the index and is likely most useful to normalize
-		## the $str field.
-		normalize_func:    function(index: Index): Index &optional;
-		## Global mask by which you'd like to aggregate traffic.
-		aggregation_mask:  count                   &optional;
-		## This is essentially a mapping table between addresses and subnets.
-		aggregation_table: table[subnet] of subnet &optional;
+		pred:              function(index: Metrics::Index, data: DataPoint): bool &optional;
+		## A function to normalize the index.  This can be used to aggregate or
+		## normalize the entire index.
+		normalize_func:    function(index: Metrics::Index): Index &optional;
+		## Global mask by to aggregate traffic measuring an attribute of hosts.
+		## This is a special case of the normalize_func.
+		aggregation_mask:  count                    &optional;
 		## The interval at which this filter should be "broken" and written
 		## to the logging stream.  The counters are also reset to zero at 
 		## this time so any threshold based detection needs to be set to a 
 		## number that should be expected to happen within this period.
-		break_interval:    interval                &default=default_break_interval;
+		every:             interval                 &default=default_break_interval;
 		## This determines if the result of this filter is sent to the metrics
 		## logging stream.  One use for the logging framework is as an internal
 		## thresholding and statistics gathering utility that is meant to
 		## never log but rather to generate notices and derive data.
-		log:               bool                    &default=T;
-		## A straight threshold for generating a notice.
-		default_threshold:  count                   &optional;
+		log:               bool                     &default=T;
+		## A direct threshold for calling the $threshold_crossed function when 
+		## the SUM is greater than or equal to this value.
+		threshold:         count                    &optional;
+		## A series of thresholds for calling the $threshold_crossed function.
+		threshold_series:  vector of count          &optional;
 		## A predicate so that you can decide when to flexibly declare when 
-		## a threshold crossed, and do extra stuff
-		custom_check_threshold:     function(index: Index, default_thresh: count, 
-						     val: count ): bool &optional;
-		## Even if custom_check_threshold has been defined, we don't want 
-		## to call it every time because of function call overhead.
-		## Metrics::Filter$trigger_custom_check_threshold describes how often
-		## custom_check_threshold will be called
-		## e.g. call custom_check_threshold for every 10 items seen by the metrics fw
-		trigger_custom_check_threshold: count   &default=default_trigger_custom_check_threshold;
-		## A predicate that is called whenever a threshold is crossed
-		## ToDo: Also have a parameter here that is a sample of the
-		## observed trackable items 
-		threshold_crossed:     function(index: Index, val: count );
-		## A series of thresholds at which to generate notices.
-		threshold_series: vector of count         &optional;
+		## a threshold crossed, and do extra work.
+		threshold_func:    function(index: Metrics::Index, val: Metrics::ResultVal): bool &optional;
+		## A function callback that is called when a threshold is crossed.
+		threshold_crossed: function(index: Metrics::Index, val: Metrics::ResultVal) &optional;
+		## A number of sample DataPoints to collect for the threshold 
+		## crossing callback.
+		samples:           count                    &optional;
 	};
 	
 	## Function to associate a metric filter with a metric ID.
@@ -125,69 +155,71 @@ export {
 	## id: The metric ID that the filter should be associated with.
 	##
 	## filter: The record representing the filter configuration.
-	global add_filter: function(id: string, filter: Filter);
+	global add_filter: function(id: string, filter: Metrics::Filter);
 	
-	## Add data into a :bro:type:`Metrics::ID`.  This should be called when
+	## Add data into a metric.  This should be called when
 	## a script has measured some point value and is ready to increment the
 	## counters.
 	##
-	## id: The metric ID that the data represents.
+	## id: The metric identifier that the data represents.
 	##
 	## index: The metric index that the value is to be added to.
 	##
 	## increment: How much to increment the counter by.
-	global add_data: function(id: string, index: Index, increment: count);
-
-	# This function does the following:
-	# If index (src,) doesn't exist, it creates an entry for this index. It
-	# adds data (c$id$orig_h) to a set associated with this index. If the number
-	# of unique data values for an index exceeds threshold, a notice is generated.
-	# So the threshold applies to the number of unique data values associated with
-	# an index.
-	
-	global add_unique: function(id: string, index: Index, data: string);
+	global add_data: function(id: string, index: Metrics::Index, data: Metrics::DataPoint);
 	
 	## Helper function to represent a :bro:type:`Metrics::Index` value as 
-	## a simple string
+	## a simple string.
 	## 
 	## index: The metric index that is to be converted into a string.
 	##
 	## Returns: A string reprentation of the metric index.
-	global index2str: function(index: Index): string;
-	
-	## Event that is used to "finish" metrics and adapt the metrics
-	## framework for clustered or non-clustered usage.
-	##
-	## ..note: This is primarily intended for internal use.
-	global log_it: event(filter: Filter);
-	
+	global index2str: function(index: Metrics::Index): string;
+		
 	## Event to access metrics records as they are passed to the logging framework.
-	global log_metrics: event(rec: Info);
+	global log_metrics: event(rec: Metrics::Info);
 	
-	## Type to store a table of metrics values.  Interal use only!
-	type MetricTable: table[Index] of DataPoint;
 }
 
-redef record Notice::Info += {
-	metric_index: Index &log &optional;
+redef record ResultVal += {
+	# Internal use only.  Used for incrementally calculating variance.
+	prev_avg:      double      &optional;
+
+	# Internal use only.  For calculating variance.
+	var_s:         double      &optional;
+
+	# Internal use only.  This is not meant to be publically available 
+	# because we don't want to trust that we can inspect the values 
+	# since we will like move to a probalistic data structure in the future.
+	# TODO: in the future this will optionally be a hyperloglog structure
+	unique_vals:  set[DataPoint] &optional;
 };
 
+# Type to store a table of metrics values.
+type MetricTable: table[Index] of ResultVal;
+
+# Store the filters indexed on the metric identifier.
 global metric_filters: table[string] of vector of Filter = table();
+
+# Store the filters indexed on the metric identifier and filter name.
 global filter_store: table[string, string] of Filter = table();
 
-# This is indexed by metric ID and stream filter name.
+# This is indexed by metric id and filter name.
 global store: table[string, string] of MetricTable = table() &default=table();
-
-# This function checks if a threshold has been crossed and generates a 
-# notice if it has.  It is also used as a method to implement 
-# mid-break-interval threshold crossing detection for cluster deployments.
-global check_threshold: function(filter: Filter, index: Index, val: count): bool;
-# This is hook for watching thresholds being crossed.  It is called whenever
-# index values are updated and the new val is given as the `val` argument.
-global data_added: function(filter: Filter, index: Index, val: count);
 
 # This stores the current threshold index for filters using $threshold_series.
 global threshold_series_index: table[string, string, Index] of count = {} &create_expire=threshold_series_restart_interval &default=0;
+
+# This is hook for watching thresholds being crossed.  It is called whenever
+# index values are updated and the new val is given as the `val` argument.
+# It's only prototyped here because cluster and non-cluster has separate 
+# implementations.
+global data_added: function(filter: Filter, index: Index, val: ResultVal);
+
+## Event that is used to "finish" metrics and adapt the metrics
+## framework for clustered or non-clustered usage.
+global log_it: event(filter: Metrics::Filter);
+
 
 event bro_init() &priority=5
 	{
@@ -206,29 +238,91 @@ function index2str(index: Index): string
 	return fmt("metric_index(%s)", out);
 	}
 	
-function merge_data_points(dp1: DataPoint, dp2: DataPoint): DataPoint
+function do_calculated_fields(val: ResultVal)
 	{
-	local result: DataPoint;
-	if ( dp1?$num || dp2?$num )
+	if ( val?$unique_vals )
+		val$unique = |val$unique_vals|;
+	if ( val?$var_s )
+		val$variance = (val$num > 1) ? val$var_s/val$num : 0.0;
+	if ( val?$variance )
+		val$std_dev = sqrt(val$variance);
+	}
+
+function merge_result_vals(rv1: ResultVal, rv2: ResultVal): ResultVal
+	{
+	local result: ResultVal;
+	
+	# Merge $num
+	result$num = rv1$num + rv2$num;
+
+	# Merge $sum
+	if ( rv1?$sum || rv2?$sum )
 		{
-		result$num = 0;
-		if ( dp1?$num )
-			result$num += dp1$num;
-		if ( dp2?$num )
-			result$num += dp2$num;
+		result$sum = 0;
+		if ( rv1?$sum )
+			result$sum += rv1$sum;
+		if ( rv2?$sum )
+			result$sum += rv2$sum;
 		}
-		
-	if ( dp1?$unique_vals || dp2?$unique_vals )
+	
+	# Merge $max
+	if ( rv1?$max && rv2?$max )
+		result$max = (rv1$max > rv2$max) ? rv1$max : rv2$max;
+	else if ( rv1?$max )
+		result$max = rv1$max;
+	else if ( rv2?$max )
+		result$max = rv2$max;
+
+	# Merge $min
+	if ( rv1?$min && rv2?$min )
+		result$min = (rv1$min < rv2$min) ? rv1$min : rv2$min;
+	else if ( rv1?$min )
+		result$min = rv1$min;
+	else if ( rv2?$min )
+		result$min = rv2$min;
+
+	# Merge $avg
+	if ( rv1?$avg && rv2?$avg )
+		result$avg = ((rv1$avg*rv1$num) + (rv2$avg*rv2$num))/(rv1$num+rv2$num);
+	else if ( rv1?$avg )
+		result$avg = rv1$avg;
+	else if ( rv2?$avg )
+		result$avg = rv2$avg;
+
+	# Merge $prev_avg
+	if ( rv1?$prev_avg && rv2?$prev_avg )
+		result$prev_avg = ((rv1$prev_avg*rv1$num) + (rv2$prev_avg*rv2$num))/(rv1$num+rv2$num);
+	else if ( rv1?$prev_avg )
+		result$prev_avg = rv1$prev_avg;
+	else if ( rv2?$prev_avg )
+		result$prev_avg = rv2$prev_avg;
+
+	# Merge $var_s
+	if ( rv1?$var_s && rv2?$var_s )
+		{
+		local rv1_avg_sq = (rv1$avg - result$avg);
+		rv1_avg_sq = rv1_avg_sq*rv1_avg_sq;
+		local rv2_avg_sq = (rv2$avg - result$avg);
+		rv2_avg_sq = rv2_avg_sq*rv2_avg_sq;
+		result$var_s = rv1$num*(rv1$var_s/rv1$num + rv1_avg_sq) + rv2$num*(rv2$var_s/rv2$num + rv2_avg_sq);
+		}
+	else if ( rv1?$var_s )
+		result$var_s = rv1$var_s;
+	else if ( rv2?$var_s )
+		result$var_s = rv2$var_s;
+
+	if ( rv1?$unique_vals || rv2?$unique_vals )
 		{
 		result$unique_vals = set();
-		if ( dp1?$unique_vals )
-			for ( val1 in dp1$unique_vals )
+		if ( rv1?$unique_vals )
+			for ( val1 in rv1$unique_vals )
 				add result$unique_vals[val1];
-		if ( dp2?$unique_vals )
-			for ( val2 in dp2$unique_vals )
+		if ( rv2?$unique_vals )
+			for ( val2 in rv2$unique_vals )
 				add result$unique_vals[val2];
-			}
-			
+		}
+	
+	do_calculated_fields(result);
 	return result;
 	}
 	
@@ -236,23 +330,17 @@ function write_log(ts: time, filter: Filter, data: MetricTable)
 	{
 	for ( index in data )
 		{
-		local val = 0;
-		if ( data[index]?$unique_vals )
-			val = |data[index]$unique_vals|;
-		else
-			val = data[index]$num;
 		local m: Info = [$ts=ts,
-		                 $ts_delta=filter$break_interval,
-		                 $metric_id=filter$id,
+		                 $ts_delta=filter$every,
+		                 $metric=filter$id,
 		                 $filter_name=filter$name,
 		                 $index=index,
-		                 $value=val];
+		                 $result=data[index]];
 		
 		if ( filter$log )
 			Log::write(Metrics::LOG, m);
 		}
 	}
-
 
 function reset(filter: Filter)
 	{
@@ -261,44 +349,15 @@ function reset(filter: Filter)
 
 function add_filter(id: string, filter: Filter)
 	{
-	if ( filter?$aggregation_table && filter?$aggregation_mask )
+	if ( filter?$normalize_func && filter?$aggregation_mask )
 		{
-		print "INVALID Metric filter: Defined $aggregation_table and $aggregation_mask.";
+		Reporter::warning(fmt("invalid Metric filter (%s): Defined $normalize_func and $aggregation_mask.", filter$name));
 		return;
 		}
 	if ( [id, filter$name] in store )
 		{
-		print fmt("INVALID Metric filter: Filter with name \"%s\" already exists.", filter$name);
+		Reporter::warning(fmt("invalid Metric filter (%s): Filter with same name already exists.", filter$name));
 		return;
-		}
-	if ( !filter?$threshold_series &&  !filter?$default_threshold )
-		{
-		print "INVALID Metric filter: Must define one of $default_threshold and $threshold_series";
-		return;
-		}
-	if ( filter?$threshold_series &&  filter?$custom_check_threshold )
-		{
-		print "INVALID Metric filter: Cannot define $custom_check_threshold with $threshold_series";
-		return;
-		}
-	if ( filter?$threshold_series &&  filter?$default_threshold )
-		{
-		print "INVALID Metric filter: Cannot define both $default_threshold and $threshold_series";
-		return;
-		}
-	if ( filter?$custom_check_threshold &&  !filter?$default_threshold )
-		{
-		print "INVALID Metric filter: Must define $default_threshold with $custom_check_threshold";
-		return;
-		}
-	if ( !filter?$trigger_custom_check_threshold &&  filter?$custom_check_threshold )
-		{
-		print "INVALID Metric filter: You defined $trigger_custom_check_threshold but $custom_check_threshold is missing";
-		return;
-		}
-	if ( !filter?$trigger_custom_check_threshold &&  filter?$custom_check_threshold )
-		{
-		print "WARNING Metric filter: You did not define $trigger_custom_check_threshold (default will be used)";
 		}
 	
 	if ( ! filter?$id )
@@ -311,10 +370,10 @@ function add_filter(id: string, filter: Filter)
 	filter_store[id, filter$name] = filter;
 	store[id, filter$name] = table();
 	
-	schedule filter$break_interval { Metrics::log_it(filter) };
+	schedule filter$every { Metrics::log_it(filter) };
 	}
 
-function add_it(id: string, index: Index, integer_value: bool, num: count, str: string)
+function add_data(id: string, index: Index, data: DataPoint)
 	{
 	if ( id !in metric_filters )
 		return;
@@ -328,103 +387,140 @@ function add_it(id: string, index: Index, integer_value: bool, num: count, str: 
 		
 		# If this filter has a predicate, run the predicate and skip this
 		# index if the predicate return false.
-		if ( filter?$pred && ! filter$pred(index,str) )
+		if ( filter?$pred && ! filter$pred(index, data) )
 			next;
 		
-		if ( index?$host )
+		if ( filter?$normalize_func )
+			index = filter$normalize_func(copy(index));
+
+		if ( index?$host && filter?$aggregation_mask )
 			{
-			if ( filter?$normalize_func )
-				{
-				index = filter$normalize_func(copy(index));
-				}
-			
-			if ( filter?$aggregation_mask )
-				{
-				index$network = mask_addr(index$host, filter$aggregation_mask);
-				delete index$host;
-				}
-			else if ( filter?$aggregation_table )
-				{
-				# Don't add the data if the aggregation table doesn't include 
-				# the given host address.
-				if ( index$host !in filter$aggregation_table )
-					return;
-				index$network = filter$aggregation_table[index$host];
-				delete index$host;
-				}
+			index$network = mask_addr(index$host, filter$aggregation_mask);
+			delete index$host;
 			}
 		
 		local metric_tbl = store[id, filter$name];
-		if ( integer_value )
+		if ( index !in metric_tbl )
+			metric_tbl[index] = [];
+
+		local result = metric_tbl[index];
+
+		# If a string was given, fall back to 1.0 as the value.
+		local val = 1.0;
+		if ( data?$num || data?$dbl )
+			val = data?$dbl ? data$dbl : data$num;
+
+		++result$num;
+
+		if ( SUM in filter$measure )
 			{
-			if ( index !in metric_tbl )
-				metric_tbl[index] = [$num=0];
-			metric_tbl[index]$num += num;
-			data_added(filter, index, metric_tbl[index]$num);
+			if ( ! result?$sum ) result$sum = 0;
+			result$sum += val;
 			}
-		else
+
+		if ( MIN in filter$measure )
 			{
-			if ( index !in metric_tbl )
+			if ( ! result?$min ) 
+				result$min = val;
+			else if (val < result$min) 
+				result$min = val;
+			}
+
+		if ( MAX in filter$measure )
+			{
+			if ( ! result?$max ) 
+				result$max = val;
+			else if (val > result$max) 
+				result$max = val;
+			}
+	
+		if ( AVG in filter$measure || VARIANCE in filter$measure )
+			{
+			if ( ! result?$avg ) 
 				{
-				local empty_ss: set[string] = set();
-				metric_tbl[index] = [$unique_vals=empty_ss];
+				result$avg = val;
+				result$prev_avg = val;
 				}
-			add metric_tbl[index]$unique_vals[str];
-			#print metric_tbl[index]$unique_vals;
-			#print "-------------------------------------";
-			data_added(filter, index, |metric_tbl[index]$unique_vals|);
+			else
+				{
+				result$prev_avg = result$avg;
+				result$avg += (val - result$avg) / result$num;
+				}
 			}
+
+		if ( VARIANCE in filter$measure )
+			{
+			if ( ! result?$var_s ) result$var_s = 0.0;
+			result$var_s += (val - result$prev_avg)*(val - result$avg);
+			}
+
+		if ( STD_DEV in filter$measure )
+			{
+			#if ( result?$variance )
+			#	result$std_dev = sqrt(result$variance);
+			}
+
+		if ( UNIQUE in filter$measure )
+			{
+			if ( ! result?$unique_vals ) result$unique_vals=set();
+			add result$unique_vals[data];
+			}
+
+		do_calculated_fields(result);
+		data_added(filter, index, result);
 		}
 	}
 
-function add_data(id: string, index: Index, increment: count)
+# This function checks if a threshold has been crossed and generates a 
+# notice if it has.  It is also used as a method to implement 
+# mid-break-interval threshold crossing detection for cluster deployments.
+function check_thresholds(filter: Filter, index: Index, val: ResultVal, modify_pct: double): bool
 	{
-	add_it(id, index, T, increment, "");
-	}
-	
-function add_unique(id: string, index: Index, data: string)
-	{
-	add_it(id, index, F, 0, data);
-	}
-	
-function check_threshold(filter: Filter, index: Index, val: count): bool
-	{
-	local def_thresh = 0;
+	local watch = 0.0;
+	if ( val?$unique )
+		watch = val$unique;
+	else if ( val?$sum )
+		watch = val$sum;
 
-	if ( filter?$default_threshold )
-		def_thresh = filter$default_threshold;
- 
-	if ( filter?$custom_check_threshold && ( val%filter$trigger_custom_check_threshold == 0 ) )
-		return filter$custom_check_threshold( index, def_thresh, val );
+	if ( modify_pct < 1.0 && modify_pct > 0.0 )
+		watch = watch/modify_pct;
 
-	# No custom check threshold defined
-	else if ( !filter?$custom_check_threshold )
+	if ( filter?$threshold && watch >= filter$threshold )
 		{
-		if ( filter?$default_threshold )
-			{
-			if ( val > def_thresh)
-				return T;
-			}
-
-		else if ( filter?$threshold_series )
-			{
-			if ( |filter$threshold_series| >= threshold_series_index[filter$id, filter$name, index] &&
-			     val >= filter$threshold_series[threshold_series_index[filter$id, filter$name, index]] )
-				return T;
-			}
+		# A default threshold was given and the value crossed it.
+		return T;
 		}
+
+	if ( filter?$threshold_series &&
+	     |filter$threshold_series| >= threshold_series_index[filter$id, filter$name, index] &&
+	     watch >= filter$threshold_series[threshold_series_index[filter$id, filter$name, index]] )
+		{
+		# A threshold series was given and the value crossed the next 
+		# value in the series.
+		return T;
+		}
+
+	if ( filter?$threshold_func &&
+	     filter$threshold_func(index, val) )
+		{
+		# The threshold function indicated it was crossed.
+		return T;
+		}
+
 	return F;
 	}
 		
-function threshold_crossed_alert(filter: Filter, index: Index, val: count)
+function threshold_crossed(filter: Filter, index: Index, val: ResultVal)
 	{
 	if ( filter?$threshold_crossed )
-		filter$threshold_crossed( index, val );
+		filter$threshold_crossed(index, val);
 
 	# If I don't reset here, the value just keeps
-	# retriggering once the threshold has been exceeded
+	# retriggering once the threshold has been exceeded.
 	if ( !filter?$threshold_series )
+		{
 		reset(filter);
+		}
 	else
 		{
 		# This just needs set to some value so that it doesn't refire the 

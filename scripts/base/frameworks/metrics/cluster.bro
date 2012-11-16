@@ -3,9 +3,6 @@
 ##! and will be depending on if the cluster framework has been enabled.
 ##! The goal of this script is to make metric calculation completely and
 ##! transparently automated when running on a cluster.
-##! 
-##! Events defined here are not exported deliberately because they are meant
-##! to be an internal implementation detail.
 
 @load base/frameworks/cluster
 @load ./main
@@ -24,35 +21,33 @@ export {
 	## since it may opt not to if it requested a global view for the index
 	## recently.
 	const cluster_request_global_view_percent = 0.1 &redef;
-	
-	## Event sent by the manager in a cluster to initiate the 
-	## collection of metrics values for a filter.
+
+	# Event sent by the manager in a cluster to initiate the 
+	# collection of metrics values for a filter.
 	global cluster_filter_request: event(uid: string, id: string, filter_name: string);
 
-	## Event sent by nodes that are collecting metrics after receiving
-	## a request for the metric filter from the manager.
+	# Event sent by nodes that are collecting metrics after receiving
+	# a request for the metric filter from the manager.
 	global cluster_filter_response: event(uid: string, id: string, filter_name: string, data: MetricTable, done: bool);
 
-	## This event is sent by the manager in a cluster to initiate the
-	## collection of a single index value from a filter.  It's typically
-	## used to get intermediate updates before the break interval triggers
-	## to speed detection of a value crossing a threshold.
+	# This event is sent by the manager in a cluster to initiate the
+	# collection of a single index value from a filter.  It's typically
+	# used to get intermediate updates before the break interval triggers
+	# to speed detection of a value crossing a threshold.
 	global cluster_index_request: event(uid: string, id: string, filter_name: string, index: Index);
 
-	## This event is sent by nodes in response to a 
-	## :bro:id:`Metrics::cluster_index_request` event.
-	global cluster_index_response: event(uid: string, id: string, filter_name: string, index: Index, data: DataPoint);
+	# This event is sent by nodes in response to a 
+	# :bro:id:`Metrics::cluster_index_request` event.
+	global cluster_index_response: event(uid: string, id: string, filter_name: string, index: Index, val: ResultVal);
 
-	## This is sent by workers to indicate that they crossed the percent of the 
-	## current threshold by the percentage defined globally in 
-	## :bro:id:`Metrics::cluster_request_global_view_percent`
-	global cluster_index_intermediate_response: event(id: string, filter_name: string, index: Metrics::Index, val: count);
+	# This is sent by workers to indicate that they crossed the percent of the 
+	# current threshold by the percentage defined globally in 
+	# :bro:id:`Metrics::cluster_request_global_view_percent`
+	global cluster_index_intermediate_response: event(id: string, filter_name: string, index: Metrics::Index);
 
-	## This event is scheduled internally on workers to send result chunks.
+	# This event is scheduled internally on workers to send result chunks.
 	global send_data: event(uid: string, id: string, filter_name: string, data: MetricTable);
-	
 }
-
 
 # This is maintained by managers so they can know what data they requested and
 # when they requested it.
@@ -76,7 +71,7 @@ global done_with: table[string] of count &create_expire=5mins &default=0;
 
 # This variable is maintained by managers to track intermediate responses as 
 # they are getting a global view for a certain index.
-global index_requests: table[string, string, string, Index] of DataPoint &create_expire=5mins &default=[];
+global index_requests: table[string, string, string, Index] of ResultVal &create_expire=5mins &default=[];
 
 # This variable is maintained by all hosts for different purposes. Non-managers
 # maintain it to know what indexes they have recently sent as intermediate
@@ -95,23 +90,20 @@ redef Cluster::worker2manager_events += /Metrics::cluster_(filter_response|index
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 # This is done on all non-manager node types in the event that a metric is 
 # being collected somewhere other than a worker.
-function data_added(filter: Filter, index: Index, val: count)
+function data_added(filter: Filter, index: Index, val: ResultVal)
 	{
 	# If an intermediate update for this value was sent recently, don't send
 	# it again.
 	if ( [filter$id, filter$name, index] in recent_global_view_indexes )
 		return;
-		
+
 	# If val is 5 and global view % is 0.1 (10%), pct_val will be 50.  If that
 	# crosses the full threshold then it's a candidate to send as an 
 	# intermediate update.
-	local pct_val = double_to_count(val / cluster_request_global_view_percent);
-	
-	if ( check_threshold(filter, index, pct_val) ) 
+	if ( check_thresholds(filter, index, val, cluster_request_global_view_percent) )
 		{
 		# kick off intermediate update
-		event Metrics::cluster_index_intermediate_response(filter$id, filter$name, index, val);
-		
+		event Metrics::cluster_index_intermediate_response(filter$id, filter$name, index);
 		++recent_global_view_indexes[filter$id, filter$name, index];
 		}
 	}
@@ -137,9 +129,6 @@ event Metrics::send_data(uid: string, id: string, filter_name: string, data: Met
 	# If data is empty, this metric is done.
 	if ( |data| == 0 )
 		done = T;
-
-	#print "Here is local_data";
-	#print local_data;
 	
 	event Metrics::cluster_filter_response(uid, id, filter_name, local_data, done);
 	if ( ! done )
@@ -148,7 +137,7 @@ event Metrics::send_data(uid: string, id: string, filter_name: string, data: Met
 
 event Metrics::cluster_filter_request(uid: string, id: string, filter_name: string)
 	{
-	#print fmt("WORKER %s: received the cluster_filter_request event.", Cluster::node);
+	#print fmt("WORKER %s: received the cluster_filter_request event for %s.", Cluster::node, id);
 	
 	# Initiate sending all of the data for the requested filter.
 	event Metrics::send_data(uid, id, filter_name, store[id, filter_name]);
@@ -160,12 +149,12 @@ event Metrics::cluster_filter_request(uid: string, id: string, filter_name: stri
 	
 event Metrics::cluster_index_request(uid: string, id: string, filter_name: string, index: Index)
 	{
-	local data: DataPoint;
-	if ( index in store[id, filter_name] )
-		data = store[id, filter_name][index];
-	
-	# fmt("WORKER %s: received the cluster_index_request event for %s=%d.", Cluster::node, index2str(index), val);
-	event Metrics::cluster_index_response(uid, id, filter_name, index, data);
+	if ( [id, filter_name] in store && index in store[id, filter_name] )
+		{
+		local data = store[id, filter_name][index];
+		#print fmt("WORKER %s: received the cluster_index_request event for %s=%s.", Cluster::node, index2str(index), data);
+		event Metrics::cluster_index_response(uid, id, filter_name, index, data);
+		}
 	}
 
 @endif
@@ -177,7 +166,6 @@ event Metrics::cluster_index_request(uid: string, id: string, filter_name: strin
 event Metrics::log_it(filter: Filter)
 	{
 	#print fmt("%.6f MANAGER: breaking %s filter for %s metric", network_time(), filter$name, filter$id);
-	
 	local uid = unique_id("");
 	
 	# Set some tracking variables.
@@ -187,39 +175,44 @@ event Metrics::log_it(filter: Filter)
 	# Request data from peers.
 	event Metrics::cluster_filter_request(uid, filter$id, filter$name);
 	# Schedule the log_it event for the next break period.
-	schedule filter$break_interval { Metrics::log_it(filter) };
+	schedule filter$every { Metrics::log_it(filter) };
 	}
 
 # This is unlikely to be called often, but it's here in case there are metrics
 # being collected by managers.
-function data_added(filter: Filter, index: Index, val: count)
+function data_added(filter: Filter, index: Index, val: ResultVal)
 	{
-	if ( check_threshold(filter, index, val) )
-		threshold_crossed_alert( filter, index, val );
-		#do_notice(filter, index, val);
+	if ( check_thresholds(filter, index, val, 1.0) )
+		threshold_crossed(filter, index, val);
 	}
 	
-event Metrics::cluster_index_response(uid: string, id: string, filter_name: string, index: Index, data: DataPoint)
+event Metrics::cluster_index_response(uid: string, id: string, filter_name: string, index: Index, val: ResultVal)
 	{
-	#print fmt("%0.6f MANAGER: receiving index data from %s", network_time(), get_event_peer()$descr);
+	#print fmt("%0.6f MANAGER: receiving index data from %s - %s=%s", network_time(), get_event_peer()$descr, index2str(index), val);
 	
-	index_requests[uid, id, filter_name, index] = merge_data_points(index_requests[uid, id, filter_name, index], data);
+	local merged_val = merge_result_vals(index_requests[uid, id, filter_name, index], val);
+	index_requests[uid, id, filter_name, index] = merged_val;
 	local ir = index_requests[uid, id, filter_name, index];
 	
+	# Mark that this worker is done.
 	++done_with[uid];
+
+	#print ir;
+	#print fmt("worker_count:%d :: done_with:%d", Cluster::worker_count, done_with[uid]);
+
 	if ( Cluster::worker_count == done_with[uid] )
 		{
-		local size = ir?$num ? ir$num : |ir$unique_vals|;
-		if ( check_threshold(filter_store[id, filter_name], index, size) )
-			threshold_crossed_alert( filter_store[id, filter_name], index, size );
-			#do_notice(filter_store[id, filter_name], index, size);
+		if ( check_thresholds(filter_store[id, filter_name], index, ir, 1.0) )
+			{
+			threshold_crossed(filter_store[id, filter_name], index, ir);
+			}
 		delete done_with[uid];
 		delete index_requests[uid, id, filter_name, index];
 		}
 	}
 
 # Managers handle intermediate updates here.
-event Metrics::cluster_index_intermediate_response(id: string, filter_name: string, index: Index, val: count)
+event Metrics::cluster_index_intermediate_response(id: string, filter_name: string, index: Index)
 	{
 	#print fmt("MANAGER: receiving intermediate index data from %s", get_event_peer()$descr);
 	#print fmt("MANAGER: requesting index data for %s", index2str(index));
@@ -237,12 +230,12 @@ event Metrics::cluster_filter_response(uid: string, id: string, filter_name: str
 	for ( index in data )
 		{
 		if ( index in local_data )
-			local_data[index] = merge_data_points(local_data[index], data[index]);
+			local_data[index] = merge_result_vals(local_data[index], data[index]);
 		else
 			local_data[index] = data[index];
 		}
 	
-		# Mark another worker as being "done" for this uid.
+	# Mark another worker as being "done" for this uid.
 	if ( done )
 		++done_with[uid];
 	

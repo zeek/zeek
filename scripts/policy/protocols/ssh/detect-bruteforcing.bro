@@ -42,10 +42,15 @@ export {
 event bro_init()
 	{
 	Metrics::add_filter("ssh.login.failure", [$name="detect-bruteforcing", $log=F,
-	                                          $note=Password_Guessing,
-	                                          $notice_threshold=password_guesses_limit,
-	                                          $notice_freq=1hr,
-	                                          $break_interval=guessing_timeout]);
+	                                          $every=guessing_timeout,
+	                                          $measure=set(Metrics::SUM),
+	                                          $threshold=password_guesses_limit,
+	                                          $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                                          	NOTICE([$note=Password_Guessing, 
+	                                          	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %.0f connections).", index$host, val$sum),
+	                                          	        $src=index$host,
+	                                          	        $identifier=cat(index$host)]);
+	                                          }]);
 	}
 
 event SSH::heuristic_successful_login(c: connection)
@@ -70,5 +75,5 @@ event SSH::heuristic_failed_login(c: connection)
 	# be ignored.
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
-		Metrics::add_data("ssh.login.failure", [$host=id$orig_h], 1);
+		Metrics::add_data("ssh.login.failure", [$host=id$orig_h], [$num=1]);
 	}

@@ -1,36 +1,33 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
-# @TEST-EXEC: sleep 1
+# @TEST-EXEC: sleep 3
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT 
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait 20
-# @TEST-EXEC: btest-diff manager-1/notice.log
+# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-diff manager-1/.stdout
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth1"],
+	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $interface="eth0"],
+	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth1"],
 };
 @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
 
-redef enum Notice::Type += {
-	Test_Notice,
-};
-
 event bro_init() &priority=5
 	{
 	Metrics::add_filter("test.metric",
-		[$name="foo-bar",
-		 $break_interval=1hr,
-		 $note=Test_Notice,
-		 $notice_threshold=100,
-		 $log=T]);
+	                    [$every=1hr,
+	                     $measure=set(Metrics::SUM),
+	                     $threshold=100,
+	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                     	print "A test metric threshold was crossed!";
+	                     	terminate();
+	                     }
+	                     ]);
 	}
 
 event remote_connection_closed(p: event_peer)
@@ -38,24 +35,12 @@ event remote_connection_closed(p: event_peer)
 	terminate();
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-
-event Notice::log_notice(rec: Notice::Info)
-	{
-	terminate_communication();
-	terminate();
-	}
-
-@endif
-
-@if ( Cluster::local_node_type() == Cluster::WORKER )
-
 event do_metrics(i: count)
 	{
 	# Worker-1 will trigger an intermediate update and then if everything
 	# works correctly, the data from worker-2 will hit the threshold and
 	# should trigger the notice.
-	Metrics::add_data("test.metric", [$host=1.2.3.4], i);
+	Metrics::add_data("test.metric", [$host=1.2.3.4], [$num=i]);
 	}
 
 event bro_init()
@@ -65,5 +50,3 @@ event bro_init()
 	if ( Cluster::node == "worker-2" )
 		event do_metrics(1);
 	}
-
-@endif

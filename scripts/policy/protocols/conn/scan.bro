@@ -282,7 +282,6 @@ event connection_reset(c: connection)
 	if ( is_failed_conn(c) )
 		{
 		is_scan = T;
-		is_reverse_scan = F;
 		}
 	else if ( is_reverse_failed_conn(c) )
 		{
@@ -305,7 +304,6 @@ event connection_pending(c: connection)
 	if ( is_failed_conn(c) )
 		{
 		is_scan = T;
-		is_reverse_scan = F;
 		}
 	else if ( is_reverse_failed_conn(c) )
 		{

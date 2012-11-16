@@ -1,19 +1,80 @@
 
-=============================
-Upgrading From Bro 1.5 to 2.0
-=============================
+==========================================
+Upgrading From the Previous Version of Bro
+==========================================
 
 .. rst-class:: opening
 
-   This guide details differences between Bro versions 1.5 and 2.0
+   This guide details specific differences between Bro versions
    that may be important for users to know as they work on updating
    their Bro deployment/configuration to the later version.
 
 .. contents::
 
 
-Introduction
-============
+Upgrading From Bro 2.0 to 2.1
+=============================
+
+In Bro 2.1, IPv6 is enabled by default.  Therefore, when building Bro from
+source, the "--enable-brov6" configure option has been removed because it
+is no longer relevant.  
+
+Other configure changes include renaming the "--enable-perftools" option
+to "--enable-perftools-debug" to indicate that the option is only relevant
+for debugging the heap.  One other change involves what happens when
+tcmalloc (part of Google perftools) is found at configure time.  On Linux,
+it will automatically be linked with Bro, but on other platforms you
+need to use the "--enable-perftools" option to enable linking to tcmalloc.
+
+There are a couple of changes to the Bro scripting language to better
+support IPv6. First, IPv6 literals appearing in a Bro script must now be
+enclosed in square brackets (for example, ``[fe80::db15]``). For subnet
+literals, the slash "/" appears after the closing square bracket (for
+example, ``[fe80:1234::]/32``). Second, when an IP address variable or IP
+address literal is enclosed in pipes (for example, ``|[fe80::db15]|``) the
+result is now the size of the address in bits (32 for IPv4 and 128 for IPv6).
+
+In the Bro scripting language, "match" and "using" are no longer reserved
+keywords.
+
+Some built-in functions have been removed: "addr_to_count" (use
+"addr_to_counts" instead), "bro_has_ipv6" (this is no longer relevant
+because Bro now always supports IPv6), "active_connection" (use
+"connection_exists" instead), and "connection_record" (use "lookup_connection"
+instead).
+
+The "NFS3::mode2string" built-in function has been renamed to "file_mode".
+
+Some built-in functions have been changed:  "exit" (now takes the exit code
+as a parameter), "to_port" (now takes a string as parameter instead
+of a count and transport protocol, but "count_to_port" is still available),
+"connect" (now takes an additional string parameter specifying the zone of
+a non-global IPv6 address), and "listen" (now takes three additional
+parameters to enable listening on IPv6 addresses).
+
+Some Bro script variables have been renamed:  "LogAscii::header_prefix"
+has been renamed to "LogAscii::meta_prefix", "LogAscii::include_header"
+has been renamed to "LogAscii::include_meta".
+
+Some Bro script variables have been removed: "tunnel_port",
+"parse_udp_tunnels", "use_connection_compressor", "cc_handle_resets",
+"cc_handle_only_syns", and "cc_instantiate_on_data".
+
+A couple events have changed:  the "icmp_redirect" event now includes
+the target and destination addresses and any Neighbor Discovery options
+in the message, and the last parameter of the "dns_AAAA_reply" event has
+been removed because it was unused.
+
+The format of the ASCII log files has changed very slightly.  Two new lines
+are automatically added, one to record the time when the log was opened,
+and the other to record the time when the log was closed.
+
+In BroControl, the option (in broctl.cfg) "CFlowAddr" was renamed
+to "CFlowAddress".
+
+
+Upgrading From Bro 1.5 to 2.0
+=============================
 
 As the version number jump suggests, Bro 2.0 is a major upgrade and
 lots of things have changed. Most importantly, we have rewritten

@@ -39,6 +39,11 @@ Changed Functionality
   completed, but also after the last event of a whole-file-read (or
   whole-db-read, etc.).
 
+- Renamed the option defining the frequency of alarm summary mails to
+  'Logging::default_alarm_mail_interval'. When using BroControl, the
+  value can now be set with the new broctl.cfg option
+  "MailAlarmsInterval".
+
 Bro 2.1
 -------
 

@@ -496,8 +496,15 @@ public:
 	 * @param addr The IP address.
 	 *
 	 * @param length The prefix length in the range from 0 to 128
+	 *
+	 * @param len_is_v6_relative Whether \a length is relative to the full
+	 * 128 bits of an IPv6 address.  If false and \a addr is an IPv4
+	 * address, then \a length is expected to range from 0 to 32.  If true
+	 * \a length is expected to range from 0 to 128 even if \a addr is IPv4,
+	 * meaning that the mask is to apply to the IPv4-mapped-IPv6 representation.
 	 */
-	IPPrefix(const IPAddr& addr, uint8_t length);
+	IPPrefix(const IPAddr& addr, uint8_t length,
+	         bool len_is_v6_relative = false);
 
 	/**
 	 * Copy constructor.

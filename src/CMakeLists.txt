@@ -216,6 +216,8 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
+binpac_target(modbus.pac
+    modbus-protocol.pac modbus-analyzer.pac)
 
 ########################################################################
 ## bro target
@@ -346,6 +348,7 @@ set(bro_SRCS
     Reporter.cc
     Login.cc
     MIME.cc
+    Modbus.cc
     NCP.cc
     NFA.cc
     NFS.cc

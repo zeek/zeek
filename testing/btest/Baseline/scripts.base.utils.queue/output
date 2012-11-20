@@ -1,0 +1,11 @@
+This is a get_cnt_vector test: 3
+This is a get_cnt_vector test: 4
+This is a get_str_vector test: 3
+This is a get_str_vector test: 4
+Testing pop: 3
+Length after pop: 1
+Size of q2: 4
+String queue value: test 1
+String queue value: test 2
+String queue value: test 2
+String queue value: test 1

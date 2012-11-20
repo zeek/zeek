@@ -68,6 +68,9 @@ export {
 	## Value supplied when a metric is finished.  It contains all
 	## of the measurements collected for the metric.
 	type ResultVal: record {
+		## The time when this result was first started.
+		begin:    time          &log;
+
 		## The number of measurements received.
 		num:      count         &log &default=0;
 
@@ -439,7 +442,7 @@ function add_data(id: string, index: Index, data: DataPoint)
 		
 		local metric_tbl = store[id, filter$name];
 		if ( index !in metric_tbl )
-			metric_tbl[index] = [];
+			metric_tbl[index] = [$begin=network_time()];
 
 		local result = metric_tbl[index];
 
@@ -450,7 +453,7 @@ function add_data(id: string, index: Index, data: DataPoint)
 
 		++result$num;
 
-		if ( filter?$samples && data?$str )
+		if ( filter?$samples && filter$samples > 0 && data?$str )
 			{
 			if ( ! result?$sample_queue )
 				result$sample_queue = Queue::init([$max_len=filter$samples]);

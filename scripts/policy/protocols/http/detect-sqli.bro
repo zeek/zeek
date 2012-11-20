@@ -35,6 +35,11 @@ export {
 	## At the end of each interval the counter is reset.
 	const sqli_requests_interval = 5min &redef;
 
+	## Collecting samples will add extra data to notice emails
+	## by collecting some sample SQL injection url paths.  Disable
+	## sample collection by setting this value to 0.
+	const collect_SQLi_samples = 5 &redef;
+
 	## Regular expression is used to match URI based SQL injections.
 	const match_sql_injection_uri = 
 		  /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*?([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
@@ -45,20 +50,28 @@ export {
 		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
 }
 
+function format_sqli_samples(samples: vector of string): string
+	{
+	local ret = "SQL Injection samples\n---------------------";
+	for ( i in samples )
+		ret += "\n" + samples[i];
+	return ret;
+	}
+
 event bro_init() &priority=3
 	{
 	# Add filters to the metrics so that the metrics framework knows how to 
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
-	
-	Metrics::add_filter("http.sqli.attacker", 
+	Metrics::add_filter("http.sqli.attacker",
 	                    [$every=sqli_requests_interval,
 	                     $measure=set(Metrics::SUM),
 	                     $threshold=sqli_requests_threshold,
-	                     $samples=10,
+	                     $samples=collect_SQLi_samples,
 	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
-	                     	NOTICE([$note=SQL_Injection_Attacker, 
+	                     	NOTICE([$note=SQL_Injection_Attacker,
 	                     	        $msg="An SQL injection attacker was discovered!",
+	                     	        $email_body_sections=vector(format_sqli_samples(val$samples)),
 	                     	        $src=index$host,
 	                     	        $identifier=cat(index$host)]);
 	                     }, $log=F]);
@@ -67,10 +80,11 @@ event bro_init() &priority=3
 	                    [$every=sqli_requests_interval,
 	                     $measure=set(Metrics::SUM),
 	                     $threshold=sqli_requests_threshold,
-	                     $samples=10,
+	                     $samples=collect_SQLi_samples,
 	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
-	                     	NOTICE([$note=SQL_Injection_Victim, 
+	                     	NOTICE([$note=SQL_Injection_Victim,
 	                     	        $msg="An SQL injection victim was discovered!",
+	                     	        $email_body_sections=vector(format_sqli_samples(val$samples)),
 	                     	        $src=index$host,
 	                     	        $identifier=cat(index$host)]);
 	                     }, $log=F]);

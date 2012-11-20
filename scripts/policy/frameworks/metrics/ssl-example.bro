@@ -6,15 +6,11 @@
 @load base/frameworks/metrics
 @load base/protocols/ssl
 
-redef enum Metrics::ID += {
-	SSL_SERVERNAME,
-};
-
 event bro_init()
 	{
-	Metrics::add_filter(SSL_SERVERNAME, 
+	Metrics::add_filter("ssl.by_servername", 
 		[$name="no-google-ssl-servers",
-		 $pred(index: Metrics::Index) = { 
+		 $pred(index: Metrics::Index, data: Metrics::DataPoint) = { 
 		    return (/google\.com$/ !in index$str); 
 		 },
 		 $break_interval=10secs
@@ -24,5 +20,5 @@ event bro_init()
 event SSL::log_ssl(rec: SSL::Info)
 	{
 	if ( rec?$server_name )
-		Metrics::add_data(SSL_SERVERNAME, [$str=rec$server_name], 1);
+		Metrics::add_data("ssl.by_servername", [$str=rec$server_name], [$num=1]);
 	}

@@ -4,10 +4,12 @@
 ##!            Seth Hall
 ##!            All the authors of the old scan.bro
 
+@load base/frameworks/notice
+@load base/frameworks/metrics
+
 module Scan;
 
 export {
-
 	redef enum Notice::Type += {
 		AddressScan,
 		PortScan,

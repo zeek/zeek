@@ -135,7 +135,7 @@ export {
 		measure:           set[Calculation]         &optional;
 		## A predicate so that you can decide per index if you would like
 		## to accept the data being inserted.
-		pred:              function(index: Metrics::Index, data: DataPoint): bool &optional;
+		pred:              function(index: Metrics::Index, data: Metrics::DataPoint): bool &optional;
 		## A function to normalize the index.  This can be used to aggregate or
 		## normalize the entire index.
 		normalize_func:    function(index: Metrics::Index): Index &optional;

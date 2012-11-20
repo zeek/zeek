@@ -16,6 +16,6 @@ event bro_init()
 
 event connection_established(c: connection)
 	{
-	Metrics::add_data("conns.originated", [$host=c$id$orig_h], 1);
-	Metrics::add_data("conns.responded",  [$host=c$id$resp_h], 1);
+	Metrics::add_data("conns.originated", [$host=c$id$orig_h], [$num=1]);
+	Metrics::add_data("conns.responded",  [$host=c$id$resp_h], [$num=1]);
 	}

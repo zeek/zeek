@@ -1,4 +1,7 @@
 
+@load base/protocols/conn
+@load base/frameworks/metrics
+
 event bro_init() &priority=5
 	{
 	Metrics::add_filter("conn.orig.data", 

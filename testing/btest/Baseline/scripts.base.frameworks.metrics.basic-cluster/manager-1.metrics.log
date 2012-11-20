@@ -3,10 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	metrics
-#open	2012-07-20-01-50-41
-#fields	ts	metric_id	filter_name	index.host	index.str	index.network	value
-#types	time	enum	string	addr	string	subnet	count
-1342749041.601712	TEST_METRIC	foo-bar	6.5.4.3	-	-	4
-1342749041.601712	TEST_METRIC	foo-bar	7.2.1.5	-	-	2
-1342749041.601712	TEST_METRIC	foo-bar	1.2.3.4	-	-	6
-#close	2012-07-20-01-50-49
+#open	2012-11-20-06-46-51
+#fields	ts	ts_delta	filter_name	metric	index.str	index.host	index.network	result.begin	result.num	result.sum	result.min	result.max	result.avg	result.variance	result.std_dev	result.unique
+#types	time	interval	string	string	string	addr	subnet	time	count	double	double	double	double	double	double	count
+1353394011.192622	3.000000	default	test.metric	-	6.5.4.3	-	-	2	6.0	1.0	5.0	3.0	4.0	2.0	-
+1353394011.192622	3.000000	default	test.metric	-	1.2.3.4	-	-	9	437.0	3.0	95.0	48.555556	674.469136	25.970544	-
+1353394011.192622	3.000000	default	test.metric	-	7.2.1.5	-	-	2	145.0	54.0	91.0	72.5	342.25	18.5	-
+#close	2012-11-20-06-46-51

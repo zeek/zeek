@@ -171,6 +171,8 @@ public:
 protected:
 	friend class Manager;
 	friend class HeartbeatMessage;
+	friend class FinishMessage;
+	friend class FinishedMessage;
 
 	/**
 	 * Pops a message sent by the child from the child-to-main queue.
@@ -187,25 +189,26 @@ protected:
 	 *
 	 * This is method is called regularly by the threading::Manager.
 	 *
-	 * Can be overriden in derived classed to hook into the heart beat,
-	 * but must call the parent implementation. Note that this method is
-	 * always called by the main thread and must not access data of the
-	 * child thread directly. See DoHeartbeat() if you want to do
-	 * something on the child-side.
+	 * Can be overriden in derived classed to hook into the heart beat
+	 * sending, but must call the parent implementation. Note that this
+	 * method is always called by the main thread and must not access
+	 * data of the child thread directly. Implement OnHeartbeat() if you
+	 * want to do something on the child-side.
 	 */
 	virtual void Heartbeat();
 
-	/**
-	 * Overriden from BasicThread.
-	 *
+	/** Internal heartbeat processing. Called from child.
 	 */
-	virtual void Run();
-	virtual void OnStop();
+	void HeartbeatInChild();
+
+	/** Returns true if a child command has reported a failure. In that case, we'll
+	  * be in the process of killing this thread and no further activity
+	  * should carried out. To be called only from this child thread.
+	  */
+	bool Failed() const { return failed; }
 
 	/**
 	 * Regulatly triggered for execution in the child thread.
-	 *
-	 * When overriding, one must call the parent class' implementation.
 	 *
 	 * network_time: The network_time when the heartbeat was trigger by
 	 * the main thread.
@@ -213,7 +216,21 @@ protected:
 	 * current_time: Wall clock when the heartbeat was trigger by the
 	 * main thread.
 	 */
-	virtual bool DoHeartbeat(double network_time, double current_time);
+	virtual bool OnHeartbeat(double network_time, double current_time) = 0;
+
+	/** Triggered for execution in the child thread just before shutting threads down.
+	 *  The child thread should finish its operations.
+	 */
+	virtual bool OnFinish(double network_time) = 0;
+
+	/**
+	 * Overriden from BasicThread.
+	 *
+	 */
+	virtual void Run();
+	virtual void OnStop();
+	virtual void OnPrepareStop();
+	virtual void OnKill();
 
 private:
 	/**
@@ -265,11 +282,25 @@ private:
 	 */
 	bool HasOut()	{ return queue_out.Ready(); }
 
+	/**
+	 * Returns true if there might be at least one message pending for
+	 * the main thread. This function may occasionally return a value not
+	 * indicating the actual state, but won't do so very often.
+	 */
+	bool MightHaveOut() { return queue_out.MaybeReady(); }
+
+	/** Flags that the child process has finished processing. Called from child.
+	 */
+	void Finished();
+
 	Queue<BasicInputMessage *> queue_in;
 	Queue<BasicOutputMessage *> queue_out;
 
 	uint64_t cnt_sent_in;	// Counts message sent to child.
 	uint64_t cnt_sent_out;	// Counts message sent by child.
+
+	bool finished;	// Set to true by Finished message.
+	bool failed;	// Set to true when a command failed.
 };
 
 /**
@@ -288,7 +319,7 @@ public:
 	 * what's passed into the constructor and used mainly for debugging
 	 * purposes.
 	 */
-	const string& Name() const { return name; }
+	const char* Name() const { return name; }
 
 	/**
 	 * Callback that must be overriden for processing a message.
@@ -302,10 +333,11 @@ protected:
 	 * @param arg_name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	Message(const string& arg_name)	{ name = arg_name; }
+	Message(const char* arg_name)
+		{ name = copy_string(arg_name); }
 
 private:
-	string name;
+	const char* name;
 };
 
 /**
@@ -320,7 +352,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	BasicInputMessage(const string& name) : Message(name)	{}
+	BasicInputMessage(const char* name) : Message(name)	{}
 };
 
 /**
@@ -335,7 +367,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	BasicOutputMessage(const string& name) : Message(name)	{}
+	BasicOutputMessage(const char* name) : Message(name)	{}
 };
 
 /**
@@ -360,7 +392,7 @@ protected:
 	 *
 	 * @param arg_object: An object to store with the message. 
 	 */
-	InputMessage(const string& name, O* arg_object) : BasicInputMessage(name)
+	InputMessage(const char* name, O* arg_object) : BasicInputMessage(name)
 		{ object = arg_object; }
 
 private:
@@ -389,7 +421,7 @@ protected:
 	 *
 	 * @param arg_object An object to store with the message. 
 	 */
-	OutputMessage(const string& name, O* arg_object) : BasicOutputMessage(name)
+	OutputMessage(const char* name, O* arg_object) : BasicOutputMessage(name)
 		{ object = arg_object; }
 
 private:

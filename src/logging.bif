@@ -65,10 +65,39 @@ function Log::__flush%(id: Log::ID%): bool
 module LogAscii;
 
 const output_to_stdout: bool;
-const include_header: bool;
-const header_prefix: string;
+const include_meta: bool;
+const meta_prefix: string;
 const separator: string;
 const set_separator: string;
 const empty_field: string;
 const unset_field: string;
 
+# Options for the DataSeries writer.
+
+module LogDataSeries;
+
+const compression: string;
+const extent_size: count;
+const dump_schema: bool;
+const use_integer_for_time: bool;
+const num_threads: count;
+
+# Options for the ElasticSearch writer.
+
+module LogElasticSearch;
+
+const cluster_name: string;
+const server_host: string;
+const server_port: count;
+const index_prefix: string;
+const type_prefix: string;
+const transfer_timeout: interval;
+const max_batch_size: count;
+const max_batch_interval: interval;
+const max_byte_size: count;
+
+# Options for the None writer.
+
+module LogNone;
+
+const debug: bool;

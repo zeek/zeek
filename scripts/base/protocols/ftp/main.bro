@@ -7,6 +7,7 @@
 @load ./utils-commands
 @load base/utils/paths
 @load base/utils/numbers
+@load base/utils/addrs
 
 
 module FTP;
@@ -29,7 +30,9 @@ export {
 	type Info: record {
 		## Time when the command was sent.
 		ts:               time        &log;
+		## Unique ID for the connection.
 		uid:              string      &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id     &log;
 		## User name for the current FTP session.
 		user:             string      &log &default="<unknown>";
@@ -169,12 +172,7 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			{
-			if ( is_v4_addr(s$id$resp_h) )
-				arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
-			else
-				arg = fmt("ftp://[%s]%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
-			}
+			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), build_path_compressed(s$cwd, arg));
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;

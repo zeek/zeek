@@ -14,6 +14,7 @@
 @load base/utils/patterns
 @load base/utils/strings
 @load base/utils/thresholds
+@load base/utils/urls
 
 # This has some deep interplay between types and BiFs so it's 
 # loaded in base/init-bare.bro
@@ -30,13 +31,18 @@
 @load base/frameworks/intel
 @load base/frameworks/reporter
 @load base/frameworks/protocols
+@load base/frameworks/tunnels
 
 @load base/protocols/conn
 @load base/protocols/dns
 @load base/protocols/ftp
 @load base/protocols/http
 @load base/protocols/irc
+@load base/protocols/modbus
 @load base/protocols/smtp
+@load base/protocols/socks
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
+
+@load base/misc/find-checksum-offloading

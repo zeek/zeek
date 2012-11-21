@@ -1,0 +1,59 @@
+# functions and types for the input framework
+
+module Input;
+
+%%{
+#include "input/Manager.h"
+#include "NetVar.h"
+%%}
+
+type TableDescription: record;
+type EventDescription: record;
+
+function Input::__create_table_stream%(description: Input::TableDescription%) : bool
+	%{
+	bool res = input_mgr->CreateTableStream(description->AsRecordVal());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__create_event_stream%(description: Input::EventDescription%) : bool
+	%{
+	bool res = input_mgr->CreateEventStream(description->AsRecordVal());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__remove_stream%(id: string%) : bool
+	%{
+	bool res = input_mgr->RemoveStream(id->AsString()->CheckString());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+function Input::__force_update%(id: string%) : bool
+	%{
+	bool res = input_mgr->ForceUpdate(id->AsString()->CheckString());
+	return new Val(res, TYPE_BOOL);
+	%}
+
+# Options for the input framework
+
+const accept_unsupported_types: bool;
+
+# Options for Ascii Reader
+
+module InputAscii;
+
+const separator: string;
+const set_separator: string;
+const empty_field: string;
+const unset_field: string;
+
+module InputRaw;
+const record_separator: string;
+
+module InputBenchmark;
+const factor: double;
+const spread: count;
+const autospread: double;
+const addfactor: count;
+const stopspreadat: count;
+const timedspread: double;

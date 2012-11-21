@@ -74,9 +74,8 @@ void RotateTimer::Dispatch(double t, int is_expire)
 
 // The following could in principle be part of a "file manager" object.
 
-#define MAX_FILE_CACHE_SIZE 32
+#define MAX_FILE_CACHE_SIZE 512
 static int num_files_in_cache = 0;
-static int max_files_in_cache = 0;
 static BroFile* head = 0;
 static BroFile* tail = 0;
 
@@ -87,12 +86,9 @@ double BroFile::default_rotation_size = 0;
 // that we should use for the cache.
 static int maximize_num_fds()
 	{
-#ifdef NO_HAVE_SETRLIMIT
-	return MAX_FILE_CACHE_SIZE;
-#else
 	struct rlimit rl;
 	if ( getrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		reporter->InternalError("maximize_num_fds(): getrlimit failed");
+		reporter->FatalError("maximize_num_fds(): getrlimit failed");
 
 	if ( rl.rlim_max == RLIM_INFINITY )
 		{
@@ -108,10 +104,9 @@ static int maximize_num_fds()
 	rl.rlim_cur = rl.rlim_max;
 
 	if ( setrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		reporter->InternalError("maximize_num_fds(): setrlimit failed");
+		reporter->FatalError("maximize_num_fds(): setrlimit failed");
 
 	return rl.rlim_cur / 2;
-#endif
 	}
 
 
@@ -143,11 +138,22 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
 	{
 	Init();
-
+	f = 0;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
 	t = arg_t ? arg_t : base_type(TYPE_STRING);
-	if ( ! Open() )
+
+	if ( streq(name, "/dev/stdin") )
+		f = stdin;
+	else if ( streq(name, "/dev/stdout") )
+		f = stdout;
+	else if ( streq(name, "/dev/stderr") )
+		f = stderr;
+
+	if ( f )
+		is_open = 1;
+
+	else if ( ! Open() )
 		{
 		reporter->Error("cannot open %s: %s", name, strerror(errno));
 		is_open = 0;
@@ -172,7 +178,7 @@ const char* BroFile::Name() const
 	return 0;
 	}
 
-bool BroFile::Open(FILE* file)
+bool BroFile::Open(FILE* file, const char* mode)
 	{
 	open_time = network_time ? network_time : current_time();
 
@@ -196,7 +202,12 @@ bool BroFile::Open(FILE* file)
 	InstallRotateTimer();
 
 	if ( ! f )
-		f = fopen(name, access);
+		{
+		if ( ! mode )
+			f = fopen(name, access);
+		else
+			f = fopen(name, mode);
+		}
 
 	SetBuf(buffered);
 
@@ -342,8 +353,8 @@ int BroFile::Close()
 
 	FinishEncrypt();
 
-	// Do not close stdout/stderr.
-	if ( f == stdout || f == stderr )
+	// Do not close stdin/stdout/stderr.
+	if ( f == stdin || f == stdout || f == stderr )
 		return 0;
 
 	if ( is_in_cache )
@@ -503,12 +514,9 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 			InitEncrypt(log_encryption_key->AsString()->CheckString());
 		}
 
-	if ( attrs->FindAttr(ATTR_DISABLE_PRINT_HOOK) )
-		DisablePrintHook();
-
 	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )
 		EnableRawOutput();
-	
+
 	InstallRotateTimer();
 	}
 
@@ -521,6 +529,10 @@ void BroFile::SetRotateInterval(double secs)
 RecordVal* BroFile::Rotate()
 	{
 	if ( ! is_open )
+		return 0;
+
+	// Do not rotate stdin/stdout/stderr.
+	if ( f == stdin || f == stdout || f == stderr )
 		return 0;
 
 	if ( okay_to_manage && ! is_in_cache )
@@ -572,8 +584,9 @@ void BroFile::InstallRotateTimer()
 			const char* base_time = log_rotate_base_time ?
 				log_rotate_base_time->AsString()->CheckString() : 0;
 
+			double base = parse_rotate_base_time(base_time);
 			double delta_t =
-				calc_next_rotate(rotate_interval, base_time);
+				calc_next_rotate(network_time, rotate_interval, base);
 			rotate_timer = new RotateTimer(network_time + delta_t,
 							this, true);
 			}
@@ -846,8 +859,8 @@ BroFile* BroFile::Unserialize(UnserialInfo* info)
 			}
 		}
 
-	// Otherwise, open.
-	if ( ! file->Open() )
+	// Otherwise, open, but don't clobber.
+	if ( ! file->Open(0, "a") )
 		{
 		info->s->Error(fmt("cannot open %s: %s",
 					file->name, strerror(errno)));

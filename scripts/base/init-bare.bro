@@ -115,6 +115,61 @@ type icmp_context: record {
 	DF: bool;	##< True if the packets *don't fragment* flag is set.
 };
 
+## Values extracted from a Prefix Information option in an ICMPv6 neighbor
+## discovery message as specified by :rfc:`4861`.
+##
+## .. bro:see:: icmp6_nd_option
+type icmp6_nd_prefix_info: record {
+	## Number of leading bits of the *prefix* that are valid.
+	prefix_len: count;
+	## Flag indicating the prefix can be used for on-link determination.
+	L_flag: bool;
+	## Autonomous address-configuration flag.
+	A_flag: bool;
+	## Length of time in seconds that the prefix is valid for purpose of
+	## on-link determination (0xffffffff represents infinity).
+	valid_lifetime: interval;
+	## Length of time in seconds that the addresses generated from the prefix
+	## via stateless address autoconfiguration remain preferred
+	## (0xffffffff represents infinity).
+	preferred_lifetime: interval;
+	## An IP address or prefix of an IP address.  Use the *prefix_len* field
+	## to convert this into a :bro:type:`subnet`.
+	prefix: addr;
+};
+
+## Options extracted from ICMPv6 neighbor discovery messages as specified
+## by :rfc:`4861`.
+##
+## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+##    icmp_neighbor_advertisement icmp_neighbor_solicitation icmp_redirect
+##    icmp6_nd_options
+type icmp6_nd_option: record {
+	## 8-bit identifier of the type of option.
+	otype:        count;
+	## 8-bit integer representing the length of the option (including the type
+	## and length fields) in units of 8 octets.
+	len:          count;
+	## Source Link-Layer Address (Type 1) or Target Link-Layer Address (Type 2).
+	## Byte ordering of this is dependent on the actual link-layer.
+	link_address: string &optional;
+	## Prefix Information (Type 3).
+	prefix:       icmp6_nd_prefix_info &optional;
+	## Redirected header (Type 4).  This field contains the context of the
+	## original, redirected packet.
+	redirect:     icmp_context &optional;
+	## Recommended MTU for the link (Type 5).
+	mtu:          count &optional;
+	## The raw data of the option (everything after type & length fields),
+	## useful for unknown option types or when the full option payload is
+	## truncated in the captured packet.  In those cases, option fields
+	## won't be pre-extracted into the fields above.
+	payload:      string &optional;
+};
+
+## A type alias for a vector of ICMPv6 neighbor discovery message options.
+type icmp6_nd_options: vector of icmp6_nd_option;
+
 # A DNS mapping between IP address and hostname resolved by Bro's internal
 # resolver.
 #
@@ -178,9 +233,35 @@ type endpoint_stats: record {
 ##    use ``count``. That should be changed.
 type AnalyzerID: count;
 
-## Statistics about an endpoint.
+module Tunnel;
+export {
+	## Records the identity of an encapsulating parent of a tunneled connection.
+	type EncapsulatingConn: record {
+		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
+		## tunnel the ports will be set to 0. The direction (i.e., orig and
+		## resp) are set according to the first tunneled packet seen
+		## and not according to the side that established the tunnel. 
+		cid: conn_id;
+		## The type of tunnel.
+		tunnel_type: Tunnel::Type;
+		## A globally unique identifier that, for non-IP-in-IP tunnels,
+		## cross-references the *uid* field of :bro:type:`connection`.
+		uid: string &optional;
+	} &log;
+} # end export
+module GLOBAL;
+
+## A type alias for a vector of encapsulating "connections", i.e for when
+## there are tunnels within tunnels.
 ##
-## todo::Where is this used?
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type EncapsulatingConnVector: vector of Tunnel::EncapsulatingConn;
+
+## Statistics about a :bro:type:`connection` endpoint.
+##
+## .. bro:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
 	## Endpoint state. For TCP connection, one of the constants:
@@ -194,12 +275,15 @@ type endpoint: record {
 	## Number of IP-level bytes sent. Only set if :bro:id:`use_conn_size_analyzer` is
 	## true.
 	num_bytes_ip: count &optional;
+	## The current IPv6 flow label that the connection endpoint is using.
+	## Always 0 if the connection is over IPv4.
+	flow_label: count;
 };
 
-# A connection. This is Bro's basic connection type describing IP- and
-# transport-layer information about the conversation. Note that Bro uses a
-# liberal interpreation of "connection" and associates instances of this type
-# also with UDP and ICMP flows.
+## A connection. This is Bro's basic connection type describing IP- and
+## transport-layer information about the conversation. Note that Bro uses a
+## liberal interpreation of "connection" and associates instances of this type
+## also with UDP and ICMP flows.
 type connection: record {
 	id: conn_id;	##< The connection's identifying 4-tuple.
 	orig: endpoint;	##< Statistics about originator side.
@@ -219,11 +303,17 @@ type connection: record {
         service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
-	history: string;	##< State history of TCP connections. See *history* in :bro:see:`Conn::Info`.
+	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Bro creates an ID
 	## that is very likely unique across independent Bro runs. These IDs can thus be
 	## used to tag and locate information  associated with that connection.
 	uid: string;
+	## If the connection is tunneled, this field contains information about
+	## the encapsulating "connection(s)" with the outermost one starting
+	## at index zero.  It's also always the first such enapsulation seen
+	## for the connection unless the :bro:id:`tunnel_changed` event is handled
+	## and re-assigns this field to the new encapsulation.
+	tunnel: EncapsulatingConnVector &optional;
 };
 
 ## Fields of a SYN packet.
@@ -612,7 +702,9 @@ function add_signature_file(sold: string, snew: string): string
 	}
 
 ## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files will be searched relative to ``BROPATH``.
+## extend. Signature files added this way will be searched relative to
+## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## since that can search paths relative to the current script.
 global signature_files = "" &add_func = add_signature_file;
 
 ## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
@@ -721,7 +813,7 @@ const tcp_storm_interarrival_thresh = 1 sec &redef;
 ## peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
-const tcp_max_initial_window = 4096;
+const tcp_max_initial_window = 4096 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a sequence
 ## hole that we'll tolerate before assuming that there's been a packet drop and we
@@ -729,7 +821,7 @@ const tcp_max_initial_window = 4096;
 ## up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
-const tcp_max_above_hole_without_any_acks = 4096;
+const tcp_max_above_hole_without_any_acks = 4096 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that
@@ -738,7 +830,7 @@ const tcp_max_above_hole_without_any_acks = 4096;
 ## has in fact gone too far, but for now we just make this quite beefy.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
-const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024;
+const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
 ## For services without an a handler, these sets define originator-side ports that
 ## still trigger reassembly.
@@ -866,17 +958,8 @@ const frag_timeout = 0.0 sec &redef;
 const packet_sort_window = 0 usecs &redef;
 
 ## If positive, indicates the encapsulation header size that should
-## be skipped. This either applies to all packets, or if
-## :bro:see:`tunnel_port` is set, only to packets on that port.
-##
-## .. :bro:see:: tunnel_port
+## be skipped. This applies to all packets.
 const encap_hdr_size = 0 &redef;
-
-## A UDP port that specifies which connections to apply :bro:see:`encap_hdr_size`
-## to.
-##
-## .. :bro:see:: encap_hdr_size
-const tunnel_port = 0/udp &redef;
 
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transfered by each endpoint. If true, these values are returned
@@ -954,16 +1037,19 @@ const IPPROTO_MOBILITY = 135;		##< IPv6 mobility header.
 ## Values extracted from an IPv6 extension header's (e.g. hop-by-hop or
 ## destination option headers) option field.
 ##
-## .. bro:see:: ip6_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+## .. bro:see:: ip6_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 type ip6_option: record {
 	otype: count;	##< Option type.
 	len: count;		##< Option data length.
 	data: string;	##< Option data.
 };
 
+## A type alias for a vector of IPv6 options.
+type ip6_options: vector of ip6_option;
+
 ## Values extracted from an IPv6 Hop-by-Hop options extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
 type ip6_hopopts: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -971,12 +1057,12 @@ type ip6_hopopts: record {
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
 	## The TLV encoded options;
-	options: vector of ip6_option;
+	options: ip6_options;
 };
 
 ## Values extracted from an IPv6 Destination options extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
 type ip6_dstopts: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -984,12 +1070,12 @@ type ip6_dstopts: record {
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
 	## The TLV encoded options;
-	options: vector of ip6_option;
+	options: ip6_options;
 };
 
 ## Values extracted from an IPv6 Routing extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_routing: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1006,7 +1092,7 @@ type ip6_routing: record {
 
 ## Values extracted from an IPv6 Fragment extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_fragment: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1025,7 +1111,7 @@ type ip6_fragment: record {
 
 ## Values extracted from an IPv6 Authentication extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_ah: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1036,15 +1122,15 @@ type ip6_ah: record {
 	rsv: count;
 	## Security Parameter Index.
 	spi: count;
-	## Sequence number.
-	seq: count;
-	## Authentication data.
-	data: string;
+	## Sequence number, unset in the case that *len* field is zero.
+	seq: count &optional;
+	## Authentication data, unset in the case that *len* field is zero.
+	data: string &optional;
 };
 
 ## Values extracted from an IPv6 ESP extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_esp: record {
 	## Security Parameters Index.
 	spi: count;
@@ -1054,7 +1140,7 @@ type ip6_esp: record {
 
 ## Values extracted from an IPv6 Mobility Binding Refresh Request message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_brr: record {
 	## Reserved.
 	rsv: count;
@@ -1064,7 +1150,7 @@ type ip6_mobility_brr: record {
 
 ## Values extracted from an IPv6 Mobility Home Test Init message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_hoti: record {
 	## Reserved.
 	rsv: count;
@@ -1076,7 +1162,7 @@ type ip6_mobility_hoti: record {
 
 ## Values extracted from an IPv6 Mobility Care-of Test Init message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_coti: record {
 	## Reserved.
 	rsv: count;
@@ -1088,7 +1174,7 @@ type ip6_mobility_coti: record {
 
 ## Values extracted from an IPv6 Mobility Home Test message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_hot: record {
 	## Home Nonce Index.
 	nonce_idx: count;
@@ -1102,7 +1188,7 @@ type ip6_mobility_hot: record {
 
 ## Values extracted from an IPv6 Mobility Care-of Test message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_cot: record {
 	## Care-of Nonce Index.
 	nonce_idx: count;
@@ -1116,7 +1202,7 @@ type ip6_mobility_cot: record {
 
 ## Values extracted from an IPv6 Mobility Binding Update message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_bu: record {
 	## Sequence number.
 	seq: count;
@@ -1136,7 +1222,7 @@ type ip6_mobility_bu: record {
 
 ## Values extracted from an IPv6 Mobility Binding Acknowledgement message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_back: record {
 	## Status.
 	status: count;
@@ -1152,7 +1238,7 @@ type ip6_mobility_back: record {
 
 ## Values extracted from an IPv6 Mobility Binding Error message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_be: record {
 	## Status.
 	status: count;
@@ -1164,7 +1250,7 @@ type ip6_mobility_be: record {
 
 ## Values extracted from an IPv6 Mobility header's message data.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr
 type ip6_mobility_msg: record {
 	## The type of message from the header's MH Type field.
 	id: count;
@@ -1188,7 +1274,7 @@ type ip6_mobility_msg: record {
 
 ## Values extracted from an IPv6 Mobility header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_mobility_hdr: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1229,9 +1315,12 @@ type ip6_ext_hdr: record {
 	mobility: ip6_mobility_hdr &optional;
 };
 
+## A type alias for a vector of IPv6 extension headers.
+type ip6_ext_hdr_chain: vector of ip6_ext_hdr;
+
 ## Values extracted from an IPv6 header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+## .. bro:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 ##    ip6_routing ip6_fragment ip6_ah ip6_esp
 type ip6_hdr: record {
 	class: count;					##< Traffic class.
@@ -1243,7 +1332,7 @@ type ip6_hdr: record {
 	hlim: count;					##< Hop limit.
 	src: addr;					##< Source address.
 	dst: addr;					##< Destination address.
-	exts: vector of ip6_ext_hdr;			##< Extension header chain.
+	exts: ip6_ext_hdr_chain;			##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.
@@ -1310,6 +1399,42 @@ type pkt_hdr: record {
 	tcp: tcp_hdr &optional;			##< The TCP header if a TCP packet.
 	udp: udp_hdr &optional;			##< The UDP header if a UDP packet.
 	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.
+};
+
+## A Teredo origin indication header.  See :rfc:`4380` for more information
+## about the Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+##    teredo_hdr
+type teredo_auth: record {
+	id:      string;  ##< Teredo client identifier.
+	value:   string;  ##< HMAC-SHA1 over shared secret key between client and
+	                  ##< server, nonce, confirmation byte, origin indication
+	                  ##< (if present), and the IPv6 packet.
+	nonce:   count;   ##< Nonce chosen by Teredo client to be repeated by
+	                  ##< Teredo server.
+	confirm: count;   ##< Confirmation byte to be set to 0 by Teredo client
+	                  ##< and non-zero by server if client needs new key.
+};
+
+## A Teredo authentication header.  See :rfc:`4380` for more information
+## about the Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+##    teredo_hdr
+type teredo_origin: record {
+	p: port; ##< Unobfuscated UDP port of Teredo client.
+	a: addr; ##< Unobfuscated IPv4 address of Teredo client.
+};
+
+## A Teredo packet header.  See :rfc:`4380` for more information about the
+## Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+type teredo_hdr: record {
+	auth:   teredo_auth &optional;   ##< Teredo authentication header.
+	origin: teredo_origin &optional; ##< Teredo origin indication header.
+	hdr:    pkt_hdr;                 ##< IPv6 and transport protocol headers.
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
@@ -1788,6 +1913,14 @@ export {
 		invarsec: interval;	##< TODO.
 	};
 } # end export
+
+module Threading;
+
+export {
+	## The heartbeat interval used by the threading framework.
+	## Changing this should usually not be neccessary and will break several tests.
+	const heartbeat_interval = 1.0 secs &redef;
+}
 
 module GLOBAL;
 
@@ -2311,10 +2444,36 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+type ModbusCoils: vector of bool;
+type ModbusRegisters: vector of count;
+
+type ModbusHeaders: record {
+	tid:           count;
+	pid:           count;
+	uid:           count;
+	function_code: count;
+};
+
+module SOCKS;
+export {
+	## This record is for a SOCKS client or server to provide either a 
+	## name or an address to represent a desired or established connection.
+	type Address: record {
+		host: addr   &optional;
+		name: string &optional;
+	} &log;
+}
+module GLOBAL;
+
 @load base/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
+
+## The maximum number of open files to keep cached at a given time.
+## If set to zero, this is automatically determined by inspecting
+## the current/maximum limit on open files for the process.
+const max_files_in_cache = 0 &redef;
 
 ## Deprecated.
 const log_rotate_interval = 0 sec &redef;
@@ -2599,11 +2758,41 @@ const record_all_packets = F &redef;
 ## .. bro:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
 
-## Whether the analysis engine parses IP packets encapsulated in
-## UDP tunnels.
-##
-## .. bro:see:: tunnel_port
-const parse_udp_tunnels = F &redef;
+module Tunnel;
+export {
+	## The maximum depth of a tunnel to decapsulate until giving up.
+	## Setting this to zero will disable all types of tunnel decapsulation.
+	const max_depth: count = 2 &redef;
+
+	## Toggle whether to do IPv{4,6}-in-IPv{4,6} decapsulation.
+	const enable_ip = T &redef;
+
+	## Toggle whether to do IPv{4,6}-in-AYIYA decapsulation.
+	const enable_ayiya = T &redef;
+
+	## Toggle whether to do IPv6-in-Teredo decapsulation.
+	const enable_teredo = T &redef;
+
+	## With this option set, the Teredo analysis will first check to see if
+	## other protocol analyzers have confirmed that they think they're
+	## parsing the right protocol and only continue with Teredo tunnel
+	## decapsulation if nothing else has yet confirmed.  This can help
+	## reduce false positives of UDP traffic (e.g. DNS) that also happens
+	## to have a valid Teredo encapsulation.
+	const yielding_teredo_decapsulation = T &redef;
+
+	## With this set, the Teredo analyzer waits until it sees both sides
+	## of a connection using a valid Teredo encapsulation before issuing
+	## a :bro:see:`protocol_confirmation`.  If it's false, the first
+	## occurence of a packet with valid Teredo encapsulation causes a
+	## confirmation.  Both cases are still subject to effects of
+	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
+	const delay_teredo_confirmation = T &redef;
+
+	## How often to cleanup internal state for inactive IP tunnels.
+	const ip_tunnel_timeout = 24hrs &redef;
+} # end export
+module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
@@ -2611,3 +2800,6 @@ const snaplen = 8192 &redef;
 # Load the logging framework here because it uses fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
+
+@load base/frameworks/input
+

@@ -64,7 +64,7 @@ Val::~Val()
 
 	Unref(type);
 #ifdef DEBUG
-	Unref(bound_id);
+	delete [] bound_id;
 #endif
 	}
 
@@ -948,6 +948,11 @@ SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
 	val.subnet_val = new IPPrefix(addr, width);
 	}
 
+SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(TYPE_SUBNET)
+	{
+	val.subnet_val = new IPPrefix(prefix);
+	}
+
 SubNetVal::~SubNetVal()
 	{
 	delete val.subnet_val;
@@ -1646,6 +1651,7 @@ int TableVal::RemoveFrom(Val* val) const
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
 		Val* index = RecoverIndex(k);
+
 		Unref(index);
 		Unref(t->Delete(k));
 		delete k;

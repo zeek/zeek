@@ -36,13 +36,12 @@ static inline RecordType* hdrType(RecordType*& type, const char* name)
 
 static VectorVal* BuildOptionsVal(const u_char* data, int len)
 	{
-	VectorVal* vv = new VectorVal(new VectorType(
-	        hdrType(ip6_option_type, "ip6_option")->Ref()));
+	VectorVal* vv = new VectorVal(internal_type("ip6_options")->AsVectorType());
 
 	while ( len > 0 )
 		{
 		const struct ip6_opt* opt = (const struct ip6_opt*) data;
-		RecordVal* rv = new RecordVal(ip6_option_type);
+		RecordVal* rv = new RecordVal(hdrType(ip6_option_type, "ip6_option"));
 		rv->Assign(0, new Val(opt->ip6o_type, TYPE_COUNT));
 
 		if ( opt->ip6o_type == 0 )
@@ -87,8 +86,8 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(5, new AddrVal(IPAddr(ip6->ip6_src)));
 		rv->Assign(6, new AddrVal(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
-			chain = new VectorVal(new VectorType(
-			        hdrType(ip6_ext_hdr_type, "ip6_ext_hdr")->Ref()));
+			chain = new VectorVal(
+			    internal_type("ip6_ext_hdr_chain")->AsVectorType());
 		rv->Assign(7, chain);
 		}
 		break;
@@ -149,9 +148,15 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(1, new Val(((ip6_ext*)data)->ip6e_len, TYPE_COUNT));
 		rv->Assign(2, new Val(ntohs(((uint16*)data)[1]), TYPE_COUNT));
 		rv->Assign(3, new Val(ntohl(((uint32*)data)[1]), TYPE_COUNT));
-		rv->Assign(4, new Val(ntohl(((uint32*)data)[2]), TYPE_COUNT));
-		uint16 off = 3 * sizeof(uint32);
-		rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
+
+		if ( Length() >= 12 )
+			{
+			// Sequence Number and ICV fields can only be extracted if
+			// Payload Len was non-zero for this header.
+			rv->Assign(4, new Val(ntohl(((uint32*)data)[2]), TYPE_COUNT));
+			uint16 off = 3 * sizeof(uint32);
+			rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
+			}
 		}
 		break;
 
@@ -583,7 +588,8 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		ip6_mob_type = internal_type("ip6_mobility_hdr")->AsRecordType();
 		}
 
-	VectorVal* rval = new VectorVal(new VectorType(ip6_ext_hdr_type->Ref()));
+	VectorVal* rval = new VectorVal(
+	    internal_type("ip6_ext_hdr_chain")->AsVectorType());
 
 	for ( size_t i = 1; i < chain.size(); ++i )
 		{

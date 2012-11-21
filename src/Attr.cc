@@ -15,9 +15,10 @@ const char* attr_name(attr_tag t)
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
 		"&persistent", "&synchronized", "&postprocessor",
-		"&encrypt", "&match", "&disable_print_hook",
+		"&encrypt", "&match",
 		"&raw_output", "&mergeable", "&priority",
-		"&group", "&log", "&error_handler", "(&tracked)",
+		"&group", "&log", "&error_handler", "&type_column",
+		"(&tracked)",
 	};
 
 	return attr_names[int(t)];
@@ -384,11 +385,6 @@ void Attributes::CheckAttr(Attr* a)
 		// FIXME: Check here for global ID?
 		break;
 
-	case ATTR_DISABLE_PRINT_HOOK:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&disable_print_hook only applicable to files");
-		break;
-
 	case ATTR_RAW_OUTPUT:
 		if ( type->Tag() != TYPE_FILE )
 			Error("&raw_output only applicable to files");
@@ -419,6 +415,25 @@ void Attributes::CheckAttr(Attr* a)
 		if ( ! threading::Value::IsCompatibleType(type) )
 			Error("&log applied to a type that cannot be logged");
 		break;
+
+	case ATTR_TYPE_COLUMN:
+		{
+		if ( type->Tag() != TYPE_PORT )
+			{
+			Error("type_column tag only applicable to ports");
+			break;
+			}
+
+		BroType* atype = a->AttrExpr()->Type();
+
+		if ( atype->Tag() != TYPE_STRING ) {
+			Error("type column needs to have a string argument");
+			break;
+		}
+
+		break;
+		}
+
 
 	default:
 		BadTag("Attributes::CheckAttr", attr_name(a->Tag()));

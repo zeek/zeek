@@ -188,11 +188,20 @@ public:
 	 * IPv4 to IPv6 address mapping to return a full 16 bytes.
 	 *
 	 * @param bytes The pointer to a memory location in which the
-	 * raw bytes of the address are to be copied in network byte-order.
+	 * raw bytes of the address are to be copied.
+	 *
+	 * @param order The byte-order in which the returned raw bytes are copied.
+	 * The default is network order.
 	 */
-	void CopyIPv6(uint32_t* bytes) const
+	void CopyIPv6(uint32_t* bytes, ByteOrder order = Network) const
 		{
 		memcpy(bytes, in6.s6_addr, sizeof(in6.s6_addr));
+
+		if ( order == Host )
+			{
+			for ( unsigned int i = 0; i < 4; ++i )
+				bytes[i] = ntohl(bytes[i]);
+			}
 		}
 
 	/**
@@ -281,6 +290,19 @@ public:
 	string AsString() const;
 
 	/**
+	 * Returns a string representation of the address suitable for inclusion
+	 * in an URI.  For IPv4 addresses, this is the same as AsString(), but
+	 * IPv6 addresses are encased in square brackets.
+	 */
+	string AsURIString() const
+		{
+		if ( GetFamily() == IPv4 )
+			return AsString();
+		else
+			return string("[") + AsString() + "]";
+		}
+
+	/**
 	 * Returns a host-order, plain hex string representation of the address.
 	 */
 	string AsHexString() const;
@@ -318,6 +340,21 @@ public:
 	friend bool operator<(const IPAddr& addr1, const IPAddr& addr2)
 		{
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
+		}
+
+	friend bool operator<=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return addr1 < addr2 || addr1 == addr2;
+		}
+
+	friend bool operator>=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! ( addr1 < addr2 );
+		}
+
+	friend bool operator>(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! ( addr1 <= addr2 );
 		}
 
 	/** Converts the address into the type used internally by the
@@ -459,8 +496,15 @@ public:
 	 * @param addr The IP address.
 	 *
 	 * @param length The prefix length in the range from 0 to 128
+	 *
+	 * @param len_is_v6_relative Whether \a length is relative to the full
+	 * 128 bits of an IPv6 address.  If false and \a addr is an IPv4
+	 * address, then \a length is expected to range from 0 to 32.  If true
+	 * \a length is expected to range from 0 to 128 even if \a addr is IPv4,
+	 * meaning that the mask is to apply to the IPv4-mapped-IPv6 representation.
 	 */
-	IPPrefix(const IPAddr& addr, uint8_t length);
+	IPPrefix(const IPAddr& addr, uint8_t length,
+	         bool len_is_v6_relative = false);
 
 	/**
 	 * Copy constructor.
@@ -561,6 +605,11 @@ public:
 		return net1.Prefix() == net2.Prefix() && net1.Length() == net2.Length();
 		}
 
+	friend bool operator!=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! (net1 == net2);
+		}
+
 	/**
 	 * Comparison operator IP prefixes. This defines a well-defined order for
 	 * IP prefix. However, the order does not necessarily corresponding to their
@@ -576,6 +625,21 @@ public:
 
 		else
 			return false;
+		}
+
+	friend bool operator<=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return net1 < net2 || net1 == net2;
+		}
+
+	friend bool operator>=(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! (net1 < net2 );
+		}
+
+	friend bool operator>(const IPPrefix& net1, const IPPrefix& net2)
+		{
+		return ! ( net1 <= net2 );
 		}
 
 private:

@@ -193,7 +193,18 @@ void PktSrc::Process()
 		{
 		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
 
-		if ( protocol != AF_INET && protocol != AF_INET6 )
+		// From the Wireshark Wiki: "AF_INET6, unfortunately, has
+		// different values in {NetBSD,OpenBSD,BSD/OS},
+		// {FreeBSD,DragonFlyBSD}, and {Darwin/Mac OS X}, so an IPv6
+		// packet might have a link-layer header with 24, 28, or 30
+		// as the AF_ value." As we may be reading traces captured on
+		// platforms other than what we're running on, we accept them
+		// all here.
+		if ( protocol != AF_INET
+		     && protocol != AF_INET6
+		     && protocol != 24
+		     && protocol != 28
+		     && protocol != 30 )
 			{
 			sessions->Weird("non_ip_packet_in_null_transport", &hdr, data);
 			data = 0;
@@ -208,16 +219,35 @@ void PktSrc::Process()
 		// Get protocol being carried from the ethernet frame.
 		protocol = (data[12] << 8) + data[13];
 
-		// MPLS carried over the ethernet frame.
-		if ( protocol == 0x8847 )
-			have_mpls = true;
-
-		// VLAN carried over ethernet frame.
-		else if ( protocol == 0x8100 )
+		switch ( protocol )
 			{
-			data += get_link_header_size(datalink);
-			data += 4; // Skip the vlan header
-			pkt_hdr_size = 0;
+			// MPLS carried over the ethernet frame.
+			case 0x8847:
+				have_mpls = true;
+				break;
+
+			// VLAN carried over the ethernet frame.
+			case 0x8100:
+				data += get_link_header_size(datalink);
+				data += 4; // Skip the vlan header
+				pkt_hdr_size = 0;
+				break;
+
+			// PPPoE carried over the ethernet frame.
+			case 0x8864:
+				data += get_link_header_size(datalink);
+				protocol = (data[6] << 8) + data[7];
+				data += 8; // Skip the PPPoE session and PPP header
+				pkt_hdr_size = 0;
+
+				if ( protocol != 0x0021 && protocol != 0x0057 )
+					{
+					// Neither IPv4 nor IPv6.
+					sessions->Weird("non_ip_packet_in_pppoe_encapsulation", &hdr, data);
+					data = 0;
+					return;
+					}
+				break;
 			}
 
 		break;

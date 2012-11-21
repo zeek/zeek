@@ -1,4 +1,3 @@
-
 #ifndef THREADING_QUEUE_H
 #define THREADING_QUEUE_H
 
@@ -6,8 +5,10 @@
 #include <queue>
 #include <deque>
 #include <stdint.h>
+#include <sys/time.h>
 
 #include "Reporter.h"
+#include "BasicThread.h"
 
 #undef Queue // Defined elsewhere unfortunately.
 
@@ -30,8 +31,12 @@ class Queue
 public:
 	/**
 	 * Constructor.
+	 *
+	 * reader, writer: The corresponding threads. This is for checking
+	 * whether they have terminated so that we can abort I/O opeations.
+	 * Can be left null for the main thread.
 	 */
-	Queue();
+	Queue(BasicThread* arg_reader, BasicThread* arg_writer);
 
 	/**
 	 * Destructor.
@@ -39,7 +44,9 @@ public:
 	~Queue();
 
 	/**
-	 * Retrieves one elment.
+	 * Retrieves one element. This may block for a little while of no
+	 * input is available and eventually return with a null element if
+	 * nothing shows up.
 	 */
 	T Get();
 
@@ -52,6 +59,18 @@ public:
 	 * Returns true if the next Get() operation will succeed.
 	 */
 	bool Ready();
+
+	/**
+	 * Returns true if the next Get() operation might succeed.
+	 * This function may occasionally return a value not
+	 * indicating the actual state, but won't do so very often.
+	 */
+	bool MaybeReady() { return ( ( read_ptr - write_ptr) != 0 ); }
+
+	/** Wake up the reader if it's currently blocked for input. This is
+	 primarily to give it a chance to check termination quickly.
+	**/
+	void WakeUp();
 
 	/**
 	 * Returns the number of queued items not yet retrieved.
@@ -84,6 +103,9 @@ private:
 	int read_ptr;	// Where the next operation will read from
 	int write_ptr;	// Where the next operation will write to
 
+	BasicThread* reader;
+	BasicThread* writer;
+
 	// Statistics.
 	uint64_t num_reads;
 	uint64_t num_writes;
@@ -102,18 +124,20 @@ inline static void safe_unlock(pthread_mutex_t* mutex)
 	}
 
 template<typename T>
-inline Queue<T>::Queue()
+inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer)
 	{
 	read_ptr = 0;
 	write_ptr = 0;
 	num_reads = num_writes = 0;
+	reader = arg_reader;
+	writer = arg_writer;
 
 	for( int i = 0; i < NUM_QUEUES; ++i )
 		{
-		if ( pthread_cond_init(&has_data[i], NULL) != 0 )
+		if ( pthread_cond_init(&has_data[i], 0) != 0 )
 			reporter->FatalError("cannot init queue condition variable");
 
-		if ( pthread_mutex_init(&mutex[i], NULL) != 0 )
+		if ( pthread_mutex_init(&mutex[i], 0) != 0 )
 			reporter->FatalError("cannot init queue mutex");
 		}
 	}
@@ -131,12 +155,23 @@ inline Queue<T>::~Queue()
 template<typename T>
 inline T Queue<T>::Get()
 	{
+	if ( (reader && reader->Killed()) || (writer && writer->Killed()) )
+		return 0;
+
 	safe_lock(&mutex[read_ptr]);
 
 	int old_read_ptr = read_ptr;
 
 	if ( messages[read_ptr].empty() )
-		pthread_cond_wait(&has_data[read_ptr], &mutex[read_ptr]);
+		{
+		struct timespec ts;
+		ts.tv_sec = time(0) + 5;
+		ts.tv_nsec = 0;
+
+		pthread_cond_timedwait(&has_data[read_ptr], &mutex[read_ptr], &ts);
+		safe_unlock(&mutex[read_ptr]);
+		return 0;
+		}
 
 	T data = messages[read_ptr].front();
 	messages[read_ptr].pop();
@@ -213,6 +248,17 @@ inline void Queue<T>::GetStats(Stats* stats)
 
 	for ( int i = 0; i < NUM_QUEUES; i++ )
 		safe_unlock(&mutex[i]);
+	}
+
+template<typename T>
+inline void Queue<T>::WakeUp()
+	{
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		{
+		safe_lock(&mutex[i]);
+		pthread_cond_signal(&has_data[i]);
+		safe_unlock(&mutex[i]);
+		}
 	}
 
 }

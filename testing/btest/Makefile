@@ -21,4 +21,7 @@ cleanup:
 	@rm -f $(DIAG)
 	@rm -f .tmp/script-coverage*
 
+update-doc-sources:
+	../../doc/scripts/genDocSourcesList.sh ../../doc/scripts/DocSourcesList.cmake
+
 .PHONY: all btest-verbose brief btest-brief coverage cleanup

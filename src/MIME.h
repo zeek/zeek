@@ -2,13 +2,12 @@
 #define mime_h
 
 #include <assert.h>
-
+#include <openssl/md5.h>
 #include <stdio.h>
 #include <vector>
 #include <queue>
 using namespace std;
 
-#include "md5.h"
 #include "Base64.h"
 #include "BroString.h"
 #include "Analyzer.h"
@@ -248,7 +247,7 @@ protected:
 	int buffer_offset;
 	int compute_content_hash;
 	int content_hash_length;
-	md5_state_t md5_hash;
+	MD5_CTX md5_hash;
 	vector<const BroString*> entity_content;
 	vector<const BroString*> all_content;
 

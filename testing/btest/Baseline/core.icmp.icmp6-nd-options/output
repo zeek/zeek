@@ -1,0 +1,28 @@
+icmp_redirect options
+    [otype=4, len=8, link_address=<uninitialized>, prefix=<uninitialized>, redirect=[id=[orig_h=fe80::aaaa, orig_p=30000/udp, resp_h=fe80::bbbb, resp_p=13000/udp], len=56, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F], mtu=<uninitialized>, payload=<uninitialized>]
+icmp_neighbor_advertisement options
+    [otype=2, len=1, link_address=\xc2\0T\xf5\0\0, prefix=<uninitialized>, redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+     MAC: c20054f50000
+icmp_router_advertisement options
+    [otype=1, len=1, link_address=\xc2\0T\xf5\0\0, prefix=<uninitialized>, redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+     MAC: c20054f50000
+    [otype=5, len=1, link_address=<uninitialized>, prefix=<uninitialized>, redirect=<uninitialized>, mtu=1500, payload=<uninitialized>]
+    [otype=3, len=4, link_address=<uninitialized>, prefix=[prefix_len=64, L_flag=T, A_flag=T, valid_lifetime=30.0 days, preferred_lifetime=7.0 days, prefix=2001:db8:0:1::], redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+icmp_neighbor_advertisement options
+    [otype=2, len=1, link_address=\xc2\0T\xf5\0\0, prefix=<uninitialized>, redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+     MAC: c20054f50000
+icmp_router_advertisement options
+    [otype=1, len=1, link_address=\xc2\0T\xf5\0\0, prefix=<uninitialized>, redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+     MAC: c20054f50000
+    [otype=5, len=1, link_address=<uninitialized>, prefix=<uninitialized>, redirect=<uninitialized>, mtu=1500, payload=<uninitialized>]
+    [otype=3, len=4, link_address=<uninitialized>, prefix=[prefix_len=64, L_flag=T, A_flag=T, valid_lifetime=30.0 days, preferred_lifetime=7.0 days, prefix=2001:db8:0:1::], redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+icmp_router_advertisement options
+    [otype=1, len=1, link_address=\xc2\0T\xf5\0\0, prefix=<uninitialized>, redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+     MAC: c20054f50000
+    [otype=5, len=1, link_address=<uninitialized>, prefix=<uninitialized>, redirect=<uninitialized>, mtu=1500, payload=<uninitialized>]
+    [otype=3, len=4, link_address=<uninitialized>, prefix=[prefix_len=64, L_flag=T, A_flag=T, valid_lifetime=30.0 days, preferred_lifetime=7.0 days, prefix=2001:db8:0:1::], redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+icmp_router_advertisement options
+    [otype=1, len=1, link_address=\xc2\0T\xf5\0\0, prefix=<uninitialized>, redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]
+     MAC: c20054f50000
+    [otype=5, len=1, link_address=<uninitialized>, prefix=<uninitialized>, redirect=<uninitialized>, mtu=1500, payload=<uninitialized>]
+    [otype=3, len=4, link_address=<uninitialized>, prefix=[prefix_len=64, L_flag=T, A_flag=T, valid_lifetime=30.0 days, preferred_lifetime=7.0 days, prefix=2001:db8:0:1::], redirect=<uninitialized>, mtu=<uninitialized>, payload=<uninitialized>]

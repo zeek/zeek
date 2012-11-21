@@ -25,7 +25,7 @@ redef Software::vulnerable_versions += {
 @load frameworks/software/version-changes
 
 # This adds signatures to detect cleartext forward and reverse windows shells.
-redef signature_files += "frameworks/signatures/detect-windows-shells.sig";
+@load-sigs frameworks/signatures/detect-windows-shells
 
 # Uncomment the following line to begin receiving (by default hourly) emails
 # containing all of your notices.

@@ -48,7 +48,7 @@ protected:
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 	void NeighborSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
-	void Router(double t, const struct icmp* icmpp, int len,
+	void RouterSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 
 	void Describe(ODesc* d) const;
@@ -74,6 +74,9 @@ protected:
 
 	void Context6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr);
+
+	// RFC 4861 Neighbor Discover message options
+	VectorVal* BuildNDOptionsVal(int caplen, const u_char* data);
 
 	RecordVal* icmp_conn_val;
 	int type;

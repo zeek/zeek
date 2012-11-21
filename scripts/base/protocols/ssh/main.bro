@@ -27,21 +27,23 @@ export {
 	type Info: record {
 		## Time when the SSH connection began.
 		ts:              time         &log;
+		## Unique ID for the connection.
 		uid:             string       &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:              conn_id      &log;
 		## Indicates if the login was heuristically guessed to be "success"
 		## or "failure".
 		status:          string       &log &optional;
 		## Direction of the connection.  If the client was a local host 
-		## logging into an external host, this would be OUTBOUD.  INBOUND
+		## logging into an external host, this would be OUTBOUND. INBOUND
 		## would be set for the opposite situation.
 		# TODO: handle local-local and remote-remote better.
 		direction:       Direction    &log &optional;
-		## Software string given by the client.
+		## Software string from the client.
 		client:          string       &log &optional;
-		## Software string given by the server.
+		## Software string from the server.
 		server:          string       &log &optional;
-		## Amount of data returned from the server.  This is currently
+		## Amount of data returned from the server. This is currently
 		## the only measure of the success heuristic and it is logged to 
 		## assist analysts looking at the logs to make their own determination
 		## about the success on a case-by-case basis.

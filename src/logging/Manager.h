@@ -9,14 +9,14 @@
 #include "../EventHandler.h"
 #include "../RemoteSerializer.h"
 
+#include "WriterBackend.h"
+
 class SerializationFormat;
 class RemoteSerializer;
 class RotationTimer;
 
 namespace logging {
 
-
-class WriterBackend;
 class WriterFrontend;
 class RotationFinishedMessage;
 
@@ -56,7 +56,7 @@ public:
 	 * logging.bif, which just forwards here.
 	 */
 	bool EnableStream(EnumVal* id);
-	
+
 	/**
 	 * Disables a log stream.
 	 *
@@ -145,9 +145,15 @@ public:
 	 */
 	void Terminate();
 
+	/**
+	 * Returns a list of supported output formats.
+	 */
+	static list<string> SupportedFormats();
+
 protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;
+	friend class RotationFailedMessage;
 	friend class ::RemoteSerializer;
 	friend class ::RotationTimer;
 
@@ -157,10 +163,10 @@ protected:
 
 	//// Function also used by the RemoteSerializer.
 
-	// Takes ownership of fields.
-	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, string path,
+	// Takes ownership of fields and info.
+	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
 				int num_fields, const threading::Field* const* fields,
-				bool local, bool remote);
+				bool local, bool remote, bool from_remote, const string& instantiating_filter="");
 
 	// Takes ownership of values..
 	bool Write(EnumVal* id, EnumVal* writer, string path,
@@ -170,8 +176,8 @@ protected:
 	void SendAllWritersTo(RemoteSerializer::PeerID peer);
 
 	// Signals that a file has been rotated.
-	bool FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
-			      double open, double close, bool terminating);
+	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
+			      double open, double close, bool success, bool terminating);
 
 	// Deletes the values as passed into Write().
 	void DeleteVals(int num_fields, threading::Value** vals);
@@ -194,8 +200,11 @@ private:
 	void Rotate(WriterInfo* info);
 	Filter* FindFilter(EnumVal* id, StringVal* filter);
 	WriterInfo* FindWriter(WriterFrontend* writer);
+	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
+	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
 	vector<Stream *> streams;	// Indexed by stream enum.
+	int rotations_pending;	// Number of rotations not yet finished.
 };
 
 }

@@ -1,0 +1,23 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	http-3
+#open	2011-03-18-19-06-08
+#fields	uri
+#types	string
+/skins-1.5/monobook/main.css
+/wikipedia/commons/6/63/Wikipedia-logo.png
+/wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
+/wikipedia/commons/b/bd/Bookshelf-40x201_6.png
+/wikipedia/commons/thumb/8/8a/Wikinews-logo.png/35px-Wikinews-logo.png
+/wikipedia/commons/4/4a/Wiktionary-logo-en-35px.png
+/wikipedia/commons/thumb/f/fa/Wikiquote-logo.svg/35px-Wikiquote-logo.svg.png
+/images/wikimedia-button.png
+/wikipedia/commons/thumb/f/fa/Wikibooks-logo.svg/35px-Wikibooks-logo.svg.png
+/wikipedia/commons/thumb/d/df/Wikispecies-logo.svg/35px-Wikispecies-logo.svg.png
+/wikipedia/commons/thumb/4/4c/Wikisource-logo.svg/35px-Wikisource-logo.svg.png
+/wikipedia/commons/thumb/4/4a/Commons-logo.svg/35px-Commons-logo.svg.png
+/wikipedia/commons/thumb/9/91/Wikiversity-logo.svg/35px-Wikiversity-logo.svg.png
+/wikipedia/commons/thumb/7/75/Wikimedia_Community_Logo.svg/35px-Wikimedia_Community_Logo.svg.png
+#close	2011-03-18-19-06-13

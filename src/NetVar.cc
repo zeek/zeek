@@ -31,7 +31,6 @@ int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
 
 int encap_hdr_size;
-int udp_tunnel_port;
 
 double frag_timeout;
 
@@ -48,6 +47,8 @@ int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
 RecordType* x509_type;
+
+RecordType* socks_address;
 
 double non_analyzed_lifetime;
 double tcp_inactivity_timeout;
@@ -167,6 +168,7 @@ TableVal* preserve_orig_addr;
 TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
+int max_files_in_cache;
 double log_rotate_interval;
 double log_max_size;
 RecordType* rotate_info;
@@ -241,6 +243,7 @@ StringVal* cmd_line_bpf_filter;
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
 #include "logging.bif.netvar_def"
+#include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 
 void init_event_handlers()
@@ -257,6 +260,7 @@ void init_general_global_var()
 	state_dir = internal_val("state_dir")->AsStringVal();
 	state_write_delay = opt_internal_double("state_write_delay");
 
+	max_files_in_cache = opt_internal_int("max_files_in_cache");
 	log_rotate_interval = opt_internal_double("log_rotate_interval");
 	log_max_size = opt_internal_double("log_max_size");
 	rotate_info = internal_type("rotate_info")->AsRecordType();
@@ -301,6 +305,7 @@ void init_net_var()
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
 #include "logging.bif.netvar_init"
+#include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
@@ -324,8 +329,6 @@ void init_net_var()
 
 	encap_hdr_size = opt_internal_int("encap_hdr_size");
 
-	udp_tunnel_port = opt_internal_int("udp_tunnel_port") & ~UDP_PORT_MASK;
-
 	frag_timeout = opt_internal_double("frag_timeout");
 
 	tcp_SYN_timeout = opt_internal_double("tcp_SYN_timeout");
@@ -343,6 +346,8 @@ void init_net_var()
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
 	x509_type = internal_type("X509")->AsRecordType();
+	
+	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");

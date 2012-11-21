@@ -15,7 +15,7 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
-	virtual void EndpointEOF(TCP_Reassembler* endp);
+	virtual void EndpointEOF(bool is_orig);
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new BitTorrent_Analyzer(conn); }

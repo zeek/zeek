@@ -12,11 +12,17 @@
 #include <getopt.h>
 #endif
 
+#ifdef USE_CURL
+#include <curl/curl.h>
+#endif
+
 #ifdef USE_IDMEF
 extern "C" {
 #include <libidmef/idmefxml.h>
 }
 #endif
+
+#include <openssl/md5.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -48,6 +54,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Brofiler.h"
 
 #include "threading/Manager.h"
+#include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
 
@@ -78,6 +85,7 @@ DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
+input::Manager* input_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -201,6 +209,27 @@ void usage()
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
+	fprintf(stderr, "\n");
+	fprintf(stderr, "    Supported log formats: ");
+
+	bool first = true;
+	list<string> fmts = logging::Manager::SupportedFormats();
+
+	for ( list<string>::const_iterator i = fmts.begin(); i != fmts.end(); ++i )
+		{
+		if ( *i == "None" )
+			// Skip, it's uninteresting.
+			continue;
+
+		if ( ! first )
+			fprintf(stderr, ",");
+
+		fprintf(stderr, "%s", (*i).c_str());
+		first = false;
+		}
+
+	fprintf(stderr, "\n");
+
 	exit(1);
 	}
 
@@ -288,8 +317,12 @@ void terminate_bro()
 	if ( remote_serializer )
 		remote_serializer->LogStats();
 
+	mgr.Drain();
+
 	log_mgr->Terminate();
 	thread_mgr->Terminate();
+
+	mgr.Drain();
 
 	delete timer_mgr;
 	delete dns_mgr;
@@ -304,6 +337,8 @@ void terminate_bro()
 	delete log_mgr;
 	delete thread_mgr;
 	delete reporter;
+
+	reporter = 0;
 	}
 
 void termination_signal()
@@ -332,12 +367,6 @@ RETSIGTYPE sig_handler(int signo)
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
 
-	if ( thread_mgr->Terminating() && (signal_val == SIGTERM || signal_val == SIGINT) )
-		// If the thread manager is already terminating (i.e.,
-		// waiting for child threads to exit), another term signal
-		// will send the threads a kill.
-		thread_mgr->KillThreads();
-
 	return RETSIGVAL;
 	}
 
@@ -353,6 +382,8 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	std::set_new_handler(bro_new_handler);
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -570,8 +601,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'K':
-			hash_md5(strlen(optarg), (const u_char*) optarg,
-				 shared_hmac_md5_key);
+			MD5((const u_char*) optarg, strlen(optarg), shared_hmac_md5_key);
 			hmac_key_set = 1;
 			break;
 
@@ -690,6 +720,10 @@ int main(int argc, char** argv)
 	SSL_library_init();
 	SSL_load_error_strings();
 
+#ifdef USE_CURL
+	curl_global_init(CURL_GLOBAL_ALL);
+#endif
+
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
@@ -741,6 +775,7 @@ int main(int argc, char** argv)
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
 	log_mgr = new logging::Manager();
+    	input_mgr = new input::Manager();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -810,6 +845,10 @@ int main(int argc, char** argv)
 	while ( (s = strsep(&tmp, " \t")) )
 		if ( *s )
 			rule_files.append(s);
+
+	// Append signature files defined in @load-sigs
+	for ( size_t i = 0; i < sig_files.size(); ++i )
+		rule_files.append(copy_string(sig_files[i].c_str()));
 
 	if ( rule_files.length() > 0 )
 		{
@@ -1035,6 +1074,10 @@ int main(int argc, char** argv)
 		net_run();
 		done_with_network();
 		net_delete();
+
+#ifdef USE_CURL
+		curl_global_cleanup();
+#endif
 
 		terminate_bro();
 

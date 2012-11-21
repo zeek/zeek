@@ -1,3 +1,13 @@
+1st test.2011-03-07-03-00-05.log test 11-03-07_03.00.05 11-03-07_04.00.05 0 ascii
+1st test.2011-03-07-04-00-05.log test 11-03-07_04.00.05 11-03-07_05.00.05 0 ascii
+1st test.2011-03-07-05-00-05.log test 11-03-07_05.00.05 11-03-07_06.00.05 0 ascii
+1st test.2011-03-07-06-00-05.log test 11-03-07_06.00.05 11-03-07_07.00.05 0 ascii
+1st test.2011-03-07-07-00-05.log test 11-03-07_07.00.05 11-03-07_08.00.05 0 ascii
+1st test.2011-03-07-08-00-05.log test 11-03-07_08.00.05 11-03-07_09.00.05 0 ascii
+1st test.2011-03-07-09-00-05.log test 11-03-07_09.00.05 11-03-07_10.00.05 0 ascii
+1st test.2011-03-07-10-00-05.log test 11-03-07_10.00.05 11-03-07_11.00.05 0 ascii
+1st test.2011-03-07-11-00-05.log test 11-03-07_11.00.05 11-03-07_12.00.05 0 ascii
+1st test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1 ascii
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_03.00.05.log, path=test2, open=1299466805.0, close=1299470395.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_03.59.55.log, path=test2, open=1299470395.0, close=1299470405.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_04.00.05.log, path=test2, open=1299470405.0, close=1299473995.0, terminating=F]
@@ -18,8 +28,10 @@ custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_11.00.05.log, pat
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_11.59.55.log, path=test2, open=1299499195.0, close=1299499205.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.00.05.log, path=test2, open=1299499205.0, close=1299502795.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.59.55.log, path=test2, open=1299502795.0, close=1299502795.0, terminating=T]
+#close	2012-07-27-19-14-39
 #empty_field	(empty)
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
+#open	2012-07-27-19-14-39
 #path	test
 #path	test2
 #separator \x09

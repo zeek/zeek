@@ -1,0 +1,4 @@
+function (PASS)
+global variable (PASS)
+const (PASS)
+event (PASS)

@@ -11,24 +11,78 @@ bool Field::Read(SerializationFormat* fmt)
 	{
 	int t;
 	int st;
+	string tmp_name;
+	bool have_2nd;
 
-	bool success = (fmt->Read(&name, "name") && fmt->Read(&t, "type") && fmt->Read(&st, "subtype") );
+	if ( ! fmt->Read(&have_2nd, "have_2nd") )
+		return false;
+
+	if ( have_2nd )
+		{
+		string tmp_secondary_name;
+		if ( ! fmt->Read(&tmp_secondary_name, "secondary_name") )
+			return false;
+
+		secondary_name = copy_string(tmp_secondary_name.c_str());
+		}
+	else
+		secondary_name = 0;
+
+	bool success = (fmt->Read(&tmp_name, "name")
+			&& fmt->Read(&t, "type")
+			&& fmt->Read(&st, "subtype")
+			&& fmt->Read(&optional, "optional"));
+
+	if ( ! success )
+		return false;
+
+	name = copy_string(tmp_name.c_str());
+
 	type = (TypeTag) t;
 	subtype = (TypeTag) st;
 
-	return success;
+	return true;
 	}
 
 bool Field::Write(SerializationFormat* fmt) const
 	{
-	return (fmt->Write(name, "name") && fmt->Write((int)type, "type") && fmt->Write((int)subtype, "subtype"));
+	assert(name);
+
+	if ( secondary_name )
+		{
+		if ( ! (fmt->Write(true, "have_2nd")
+			&& fmt->Write(secondary_name, "secondary_name")) )
+			return false;
+		}
+	else
+		if ( ! fmt->Write(false, "have_2nd") )
+			return false;
+
+	return (fmt->Write(name, "name")
+		&& fmt->Write((int)type, "type")
+		&& fmt->Write((int)subtype, "subtype"),
+		fmt->Write(optional, "optional"));
+	}
+
+string Field::TypeName() const
+	{
+	string n = type_name(type);
+
+	if ( (type == TYPE_TABLE) || (type == TYPE_VECTOR) )
+		{
+		n += "[";
+		n += type_name(subtype);
+		n += "]";
+		}
+
+	return n;
 	}
 
 Value::~Value()
 	{
 	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)
 	     && present )
-		delete val.string_val;
+		delete [] val.string_val.data;
 
 	if ( type == TYPE_TABLE && present )
 		{
@@ -172,7 +226,7 @@ bool Value::Read(SerializationFormat* fmt)
 		char length;
 		char family;
 
-		if ( ! (fmt->Read(&length, "subnet-len") && fmt->Read(&family, "subnet-family")) ) 
+		if ( ! (fmt->Read(&length, "subnet-len") && fmt->Read(&family, "subnet-family")) )
 			return false;
 
 		switch ( family ) {
@@ -201,10 +255,7 @@ bool Value::Read(SerializationFormat* fmt)
 	case TYPE_STRING:
 	case TYPE_FILE:
 	case TYPE_FUNC:
-		{
-		val.string_val = new string;
-		return fmt->Read(val.string_val, "string");
-		}
+		return fmt->Read(&val.string_val.data, &val.string_val.length, "string");
 
 	case TYPE_TABLE:
 		{
@@ -316,7 +367,7 @@ bool Value::Write(SerializationFormat* fmt) const
 	case TYPE_STRING:
 	case TYPE_FILE:
 	case TYPE_FUNC:
-		return fmt->Write(*val.string_val, "string");
+		return fmt->Write(val.string_val.data, val.string_val.length, "string");
 
 	case TYPE_TABLE:
 		{

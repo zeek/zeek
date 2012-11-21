@@ -10,54 +10,69 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
-		## Time when the SSL connection began.
+		## Time when the SSL connection was first detected.
 		ts:               time             &log;
-		uid:              string           &log;
+		## Unique ID for the connection.
+		uid:         string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id          &log;
-		## SSL/TLS version the server offered.
+		## SSL/TLS version that the server offered.
 		version:          string           &log &optional;
-		## SSL/TLS cipher suite the server chose.
+		## SSL/TLS cipher suite that the server chose.
 		cipher:           string           &log &optional;
-		## Value of the Server Name Indicator SSL/TLS extension.  It 
+		## Value of the Server Name Indicator SSL/TLS extension.  It
 		## indicates the server name that the client was requesting.
 		server_name:      string           &log &optional;
 		## Session ID offered by the client for session resumption.
 		session_id:       string           &log &optional;
 		## Subject of the X.509 certificate offered by the server.
 		subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the server.
+		issuer_subject:   string           &log &optional;
 		## NotValidBefore field value from the server certificate.
 		not_valid_before: time             &log &optional;
-		## NotValidAfter field value from the serve certificate.
+		## NotValidAfter field value from the server certificate.
 		not_valid_after:  time             &log &optional;
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
-		
+
+		## Subject of the X.509 certificate offered by the client.
+		client_subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the client.
+		client_issuer_subject:   string           &log &optional;
+
 		## Full binary server certificate stored in DER format.
 		cert:             string           &optional;
-		## Chain of certificates offered by the server to validate its 
+		## Chain of certificates offered by the server to validate its
 		## complete signing chain.
 		cert_chain:       vector of string &optional;
+
+		## Full binary client certificate stored in DER format.
+		client_cert:             string           &optional;
+		## Chain of certificates offered by the client to validate its
+		## complete signing chain.
+		client_cert_chain:       vector of string &optional;
 
 		## The analyzer ID used for the analyzer instance attached
 		## to each connection.  It is not used for logging since it's a
 		## meaningless arbitrary number.
 		analyzer_id:      count            &optional;
 	};
-	
+
 	## The default root CA bundle.  By loading the
 	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
-	
+
 	## If true, detach the SSL analyzer from the connection to prevent
 	## continuing to process encrypted traffic. Helps with performance
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
-	
+
 	## The openssl command line utility.  If it's in the path the default
 	## value will work, otherwise a full path string can be supplied for the
 	## utility.
 	const openssl_util = "openssl" &redef;
-	
+
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
@@ -82,7 +97,8 @@ redef Protocols::common_ports += { ["SSL"] = ports };
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
-		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector()];
+		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector(),
+		         $client_cert_chain=vector()];
 	}
 
 function finish(c: connection)
@@ -116,22 +132,40 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: coun
 
 	# We aren't doing anything with client certificates yet.
 	if ( is_orig )
-		return;
-
-	if ( chain_idx == 0 )
 		{
-		# Save the primary cert.
-		c$ssl$cert = der_cert;
+		if ( chain_idx == 0 )
+			{
+			# Save the primary cert.
+			c$ssl$client_cert = der_cert;
 
-		# Also save other certificate information about the primary cert.
-		c$ssl$subject = cert$subject;
-		c$ssl$not_valid_before = cert$not_valid_before;
-		c$ssl$not_valid_after = cert$not_valid_after;
+			# Also save other certificate information about the primary cert.
+			c$ssl$client_subject = cert$subject;
+			c$ssl$client_issuer_subject = cert$issuer;
+			}
+		else
+			{
+			# Otherwise, add it to the cert validation chain.
+			c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = der_cert;
+			}
 		}
 	else
 		{
-		# Otherwise, add it to the cert validation chain.
-		c$ssl$cert_chain[|c$ssl$cert_chain|] = der_cert;
+		if ( chain_idx == 0 )
+			{
+			# Save the primary cert.
+			c$ssl$cert = der_cert;
+
+			# Also save other certificate information about the primary cert.
+			c$ssl$subject = cert$subject;
+			c$ssl$issuer_subject = cert$issuer;
+			c$ssl$not_valid_before = cert$not_valid_before;
+			c$ssl$not_valid_after = cert$not_valid_after;
+			}
+		else
+			{
+			# Otherwise, add it to the cert validation chain.
+			c$ssl$cert_chain[|c$ssl$cert_chain|] = der_cert;
+			}
 		}
 	}
 

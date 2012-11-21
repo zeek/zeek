@@ -13,7 +13,9 @@ export {
 	type Info: record {
 		## Timestamp when the command was seen.
 		ts:       time        &log;
+		## Unique ID for the connection.
 		uid:      string      &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:       conn_id     &log;
 		## Nick name given for the connection.
 		nick:     string      &log &optional;

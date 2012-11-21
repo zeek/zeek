@@ -44,19 +44,10 @@ public:
 	void Terminate();
 
 	/**
-	 * Returns True if we are currently in Terminate() waiting for 
+	 * Returns True if we are currently in Terminate() waiting for
 	 * threads to exit.
 	 */
 	bool Terminating() const	{ return terminating; }
-
-	/**
-	 * Immediately kills all child threads. It does however not yet join
-	 * them, one still needs to call Terminate() for that.
-	 *
-	 * This method is safe to call from a signal handler, and can in fact
-	 * be called while Terminate() is already in progress.
-	 */
-	void KillThreads();
 
 	typedef std::list<std::pair<string, MsgThread::Stats> > msg_stats_list;
 
@@ -77,6 +68,22 @@ public:
 	 */
 	int NumThreads() const { return all_threads.size(); }
 
+	/** Manually triggers processing of any thread input. This can be useful
+	 *  if the main thread is waiting for a specific message from a child.
+	 *  Usually, though, one should avoid using it.
+	 */
+	void ForceProcessing() { Process(); }
+
+	/**
+	 * Signals a specific threads to terminate immediately.
+	 */
+	void KillThread(BasicThread* thread);
+
+	/**
+	 * Signals all threads to terminate immediately.
+	 */
+	void KillThreads();
+
 protected:
 	friend class BasicThread;
 	friend class MsgThread;
@@ -93,7 +100,7 @@ protected:
 	 * Registers a new message thread with the manager. This is
 	 * automatically called by the thread's constructor. This must be
 	 * called \a in \a addition to AddThread(BasicThread* thread). The
-	 * MsgThread constructor makes sure to do so. 
+	 * MsgThread constructor makes sure to do so.
 	 *
 	 * @param thread The thread.
 	 */
@@ -120,8 +127,6 @@ protected:
 	virtual const char* Tag()	{ return "threading::Manager"; }
 
 private:
-	static const int HEART_BEAT_INTERVAL = 1;
-
 	typedef std::list<BasicThread*> all_thread_list;
 	all_thread_list all_threads;
 

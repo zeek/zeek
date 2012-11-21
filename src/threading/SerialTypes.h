@@ -2,8 +2,6 @@
 #ifndef THREADING_SERIALIZATIONTYPES_H
 #define THREADING_SERIALIZATIONTYPES_H
 
-using namespace std;
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -11,7 +9,10 @@ using namespace std;
 #include "Type.h"
 #include "net_util.h"
 
+using namespace std;
+
 class SerializationFormat;
+class RemoteSerializer;
 
 namespace threading {
 
@@ -19,20 +20,35 @@ namespace threading {
  * Definition of a log file, i.e., one column of a log stream.
  */
 struct Field {
-	string name;	//! Name of the field.
+	const char* name;	//! Name of the field.
+	//! Needed by input framework. Port fields have two names (one for the
+	//! port, one for the type), and this specifies the secondary name.
+	const char* secondary_name;
 	TypeTag type;	//! Type of the field.
 	TypeTag subtype;	//! Inner type for sets.
+	bool optional;	//! True if field is optional.
 
 	/**
 	 * Constructor.
 	 */
-	Field() 	{ subtype = TYPE_VOID; }
+	Field(const char* name, const char* secondary_name, TypeTag type, TypeTag subtype, bool optional)
+		: name(name ? copy_string(name) : 0),
+		  secondary_name(secondary_name ? copy_string(secondary_name) : 0),
+		  type(type), subtype(subtype), optional(optional)	{ }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name), type(other.type), subtype(other.subtype) {  }
+		: name(other.name ? copy_string(other.name) : 0),
+		  secondary_name(other.secondary_name ? copy_string(other.secondary_name) : 0),
+		  type(other.type), subtype(other.subtype), optional(other.optional)	{ }
+
+	~Field()
+		{
+		delete [] name;
+		delete [] secondary_name;
+		}
 
 	/**
 	 * Unserializes a field.
@@ -53,6 +69,18 @@ struct Field {
 	 * @return False if an error occured.
 	 */
 	bool Write(SerializationFormat* fmt) const;
+
+	/**
+	 * Returns a textual description of the field's type. This method is
+	 * thread-safe.
+	 */
+	string TypeName() const;
+
+private:
+	friend class ::RemoteSerializer;
+
+	// Force usage of constructor above.
+	Field()	{};
 };
 
 /**
@@ -92,7 +120,11 @@ struct Value {
 		vec_t vector_val;
 		addr_t addr_val;
 		subnet_t subnet_val;
-		string* string_val;
+
+		struct {
+			char* data;
+			int length;
+		} string_val;
 	} val;
 
 	/**
@@ -132,12 +164,12 @@ struct Value {
 
 	/**
 	 * Returns true if the type can be represented by a Value. If
-	 * `atomic_only` is true, will not permit composite types.
-	 */
+	 * `atomic_only` is true, will not permit composite types. This
+	 * method is thread-safe. */
 	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
 private:
-friend class ::IPAddr;
+	friend class ::IPAddr;
 	Value(const Value& other)	{ } // Disabled.
 };
 

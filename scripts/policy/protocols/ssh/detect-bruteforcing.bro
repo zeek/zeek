@@ -19,6 +19,11 @@ export {
 		## currently implemented.
 		Login_By_Password_Guesser,
 	};
+
+	redef enum Intel::Where += {
+		## An indicator of the login for the intel framework.
+		SSH::SUCCESSFUL_LOGIN,
+	};
 	
 	## The number of failed SSH connections before a host is designated as
 	## guessing passwords.
@@ -33,10 +38,6 @@ export {
 	## heuristic fails and this acts as the whitelist.  The index represents 
 	## client subnets and the yield value represents server subnets.
 	const ignore_guessers: table[subnet] of subnet &redef;
-
-	## Tracks hosts identified as guessing passwords.
-	global password_guessers: set[addr] 
-		&read_expire=guessing_timeout+1hr &synchronized &redef;
 }
 
 event bro_init()
@@ -46,10 +47,15 @@ event bro_init()
 	                                          $measure=set(Metrics::SUM),
 	                                          $threshold=password_guesses_limit,
 	                                          $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                                          	# Generate the notice.
 	                                          	NOTICE([$note=Password_Guessing, 
 	                                          	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %.0f connections).", index$host, val$sum),
 	                                          	        $src=index$host,
 	                                          	        $identifier=cat(index$host)]);
+	                                          	# Insert the guesser into the intel framework.
+	                                          	Intel::insert([$host=index$host,
+	                                          		           $meta=[$source="local", 
+	                                          		                  $desc=fmt("Bro observed %0.f apparently failed SSH connections.", val$sum)]]);
 	                                          }]);
 	}
 
@@ -57,14 +63,9 @@ event SSH::heuristic_successful_login(c: connection)
 	{
 	local id = c$id;
 	
-	# TODO: This is out for the moment pending some more additions to the 
-	#       metrics framework.
-	#if ( id$orig_h in password_guessers )
-	#	{
-	#	NOTICE([$note=Login_By_Password_Guesser,
-	#	        $conn=c,
-	#	        $msg=fmt("Successful SSH login by password guesser %s", id$orig_h)]);
-	#	}
+	Intel::seen([$host=id$orig_h,
+	             $conn=c,
+	             $where=SSH::SUCCESSFUL_LOGIN]);
 	}
 
 event SSH::heuristic_failed_login(c: connection)

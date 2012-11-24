@@ -660,8 +660,16 @@ void ID::DescribeReSTShort(ODesc* d) const
 				d->Add(type->AsFuncType()->IsEvent() ? "event" : type_name(t));
 				break;
 
+			case TYPE_ENUM:
+				if ( is_type )
+					d->Add(type_name(t));
+				else
+					d->Add(type->AsEnumType()->Name().c_str());
+				break;
+
 			default:
 				d->Add(type_name(t));
+				break;
 			}
 			}
 

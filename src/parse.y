@@ -131,16 +131,18 @@ const char* cur_enum_elem_id = 0;
 type_decl_list* fake_type_decl_list = 0;
 TypeDecl* last_fake_type_decl = 0;
 
+static ID* cur_decl_type_id = 0;
+
 static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
-	cur_enum_type = new EnumType();
+	cur_enum_type = new EnumType(cur_decl_type_id->Name());
 
 	// For documentation purposes, a separate type object is created
 	// in order to avoid overlap that can be caused by redefs.
 	if ( generate_documentation )
-		cur_enum_type_doc = new CommentedEnumType();
+		cur_enum_type_doc = new CommentedEnumType(cur_decl_type_id->Name());
 	}
 
 static void parser_redef_enum (ID *id)
@@ -158,7 +160,7 @@ static void parser_redef_enum (ID *id)
 		}
 
 	if ( generate_documentation )
-		cur_enum_type_doc = new CommentedEnumType();
+		cur_enum_type_doc = new CommentedEnumType(id->Name());
 	}
 
 static void add_enum_comment (std::list<std::string>* comments)
@@ -1105,9 +1107,10 @@ decl:
 				}
 			}
 
-	|	TOK_TYPE global_id ':' type opt_attr ';'
+	|	TOK_TYPE global_id ':' { cur_decl_type_id = $2; } type opt_attr ';'
 			{
-			add_type($2, $4, $5, 0);
+			cur_decl_type_id = 0;
+			add_type($2, $5, $6, 0);
 
 			if ( generate_documentation )
 				{

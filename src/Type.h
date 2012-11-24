@@ -497,7 +497,7 @@ protected:
 
 class EnumType : public BroType {
 public:
-	EnumType();
+	EnumType(const string& arg_name);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -513,7 +513,12 @@ public:
 	bro_int_t Lookup(const string& module_name, const char* name);
 	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
+	string Name() const { return name; }
+
+	void DescribeReST(ODesc* d) const;
+
 protected:
+	EnumType() { counter = 0; }
 	DECLARE_SERIAL(EnumType)
 
 	virtual void AddNameInternal(const string& module_name,
@@ -529,11 +534,14 @@ protected:
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
 	bro_int_t counter;
+
+	// The name of the enum type is stored for documentation purposes.
+	string name;
 };
 
 class CommentedEnumType: public EnumType {
 public:
-	CommentedEnumType() {}
+	CommentedEnumType(const string& arg_name) : EnumType(arg_name) {}
 	~CommentedEnumType();
 
 	void DescribeReST(ODesc* d) const;

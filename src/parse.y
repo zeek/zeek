@@ -456,17 +456,24 @@ expr:
 
 	|	'[' expr_list ']'
 			{
-			// A little crufty: we peek at the type of
-			// the first expression in the list.  If it's
-			// a record or a field assignment, then this
-			// is a record constructor.  If not, then this
-			// is a list used for an initializer.
-
 			set_location(@1, @3);
 
-			Expr* e0 = $2->Exprs()[0];
-			if ( e0->Tag() == EXPR_FIELD_ASSIGN ||
-			     e0->Type()->Tag() == TYPE_RECORD )
+			bool is_record_ctor = true;
+
+			// If every expression in the list is a field assignment,
+			// then treat it as a record constructor, else as a list
+			// used for an initializer.
+
+			for ( int i = 0; i < $2->Exprs().length(); ++i )
+				{
+				if ( $2->Exprs()[i]->Tag() != EXPR_FIELD_ASSIGN )
+					{
+					is_record_ctor = false;
+					break;
+					}
+				}
+
+			if ( is_record_ctor )
 				$$ = new RecordConstructorExpr($2);
 			else
 				$$ = $2;

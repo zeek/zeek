@@ -1,4 +1,11 @@
 
+2.1-171 | 2012-11-23 18:24:15 -0800
+
+  * Fix ambiguity between composite table index and record ctor
+    expressions. If a table type is "global t = table[conn_id, bool]
+    of count", then checking membership like "[c$id, is_orig] in t"
+    now works. Addresses #80. (Jon Siwek)
+
 2.1-169 | 2012-11-23 18:21:32 -0800
 
   * Fix some warnings from sphinx when building docs. (Jon Siwek)

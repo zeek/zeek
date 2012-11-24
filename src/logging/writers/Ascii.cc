@@ -19,6 +19,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	fd = 0;
 	ascii_done = false;
+	only_single_header_row = false;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
@@ -80,7 +81,7 @@ void Ascii::CloseFile(double t)
 	if ( ! fd )
 		return;
 
-	if ( include_meta )
+	if ( include_meta && ! only_single_header_row )
 		WriteHeaderField("close", Timestamp(0));
 
 	safe_close(fd);
@@ -108,28 +109,28 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		return false;
 		}
 
+	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
+		{
+		if ( strcmp(i->first, "only_single_header_row") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				only_single_header_row = true;
+
+			else if ( strcmp(i->second, "F") == 0 )
+				only_single_header_row = false;
+
+			else
+				{
+				Error("invalid value for 'only_single_header_row', must be boolean (T/F)");
+				return false;
+				}
+			}
+		}
+
 	if ( include_meta )
 		{
 		string names;
 		string types;
-
-		string str = string(meta_prefix, meta_prefix_len)
-			+ "separator " // Always use space as separator here.
-			+ get_escaped_string(string(separator, separator_len), false)
-			+ "\n";
-
-		if ( ! safe_write(fd, str.c_str(), str.length()) )
-			goto write_error;
-
-		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
-		            string(set_separator, set_separator_len), false)) &&
-		        WriteHeaderField("empty_field", get_escaped_string(
-		            string(empty_field, empty_field_len), false)) &&
-		        WriteHeaderField("unset_field", get_escaped_string(
-		            string(unset_field, unset_field_len), false)) &&
-		        WriteHeaderField("path", get_escaped_string(path, false)) &&
-		        WriteHeaderField("open", Timestamp(0))) )
-			goto write_error;
 
 		for ( int i = 0; i < num_fields; ++i )
 			{
@@ -143,11 +144,39 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			types += fields[i]->TypeName().c_str();
 			}
 
+		if ( only_single_header_row )
+			{
+			// A single CSV-style line is all we need.
+			string str = names + "\n";
+			if ( ! safe_write(fd, str.c_str(), str.length()) )
+				goto write_error;
+
+			return true;
+			}
+
+		string str = string(meta_prefix, meta_prefix_len)
+			+ "separator " // Always use space as separator here.
+			+ get_escaped_string(string(separator, separator_len), false)
+			+ "\n";
+
+		if ( ! safe_write(fd, str.c_str(), str.length()) )
+			goto write_error;
+
+		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
+			    string(set_separator, set_separator_len), false)) &&
+			WriteHeaderField("empty_field", get_escaped_string(
+			    string(empty_field, empty_field_len), false)) &&
+			WriteHeaderField("unset_field", get_escaped_string(
+			    string(unset_field, unset_field_len), false)) &&
+			WriteHeaderField("path", get_escaped_string(path, false)) &&
+			WriteHeaderField("open", Timestamp(0))) )
+			goto write_error;
+
 		if ( ! (WriteHeaderField("fields", names)
 			&& WriteHeaderField("types", types)) )
 			goto write_error;
 		}
-
+	
 	return true;
 
 write_error:

@@ -1,4 +1,19 @@
 
+2.1-178 | 2012-11-23 19:35:32 -0800
+
+  * The ASCII writer now supports a new filter config option
+    "only_single_header_row" that turns the output into CSV format
+    when set to "T". (Carsten Langer)
+
+  * Add new function flavor called a "hook". This new flavor of
+    function behaves like a "synchronous event". See
+    doc/scripts/builtins.rst more details on usage. (Jon Siwek)
+
+  * Improve auto-generated enum documentation. The names of enum types
+    are tracked so that variables holding a value of a given enum type
+    can generate a reference to it instead of just listing the type as
+    a generic "enum". (Jon Siwek)
+
 2.1-171 | 2012-11-23 18:24:15 -0800
 
   * Fix ambiguity between composite table index and record ctor

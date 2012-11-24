@@ -35,7 +35,11 @@ typedef enum {
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
 
-typedef enum { FUNC_FLAVOR_FUNCTION, FUNC_FLAVOR_EVENT } function_flavor;
+typedef enum {
+	FUNC_FLAVOR_FUNCTION,
+	FUNC_FLAVOR_EVENT,
+	FUNC_FLAVOR_HOOK
+} function_flavor;
 
 typedef enum {
 	TYPE_INTERNAL_VOID,
@@ -350,18 +354,19 @@ protected:
 
 class FuncType : public BroType {
 public:
-	FuncType(RecordType* args, BroType* yield, int is_event);
+	FuncType(RecordType* args, BroType* yield, function_flavor f);
 
 	~FuncType();
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType();
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
-	int IsEvent() const		{ return is_event; }
+	function_flavor Flavor() const { return flavor; }
+	string FlavorString() const;
 
-	// Used to convert a function type to an event type.
-	void ClearYieldType()
-		{ Unref(yield); yield = 0; is_event = 1; }
+	// Used to convert a function type to an event or hook type.
+	void ClearYieldType(function_flavor arg_flav)
+		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
 	int MatchesIndex(ListExpr*& index) const;
 	int CheckArgs(const type_list* args) const;
@@ -374,14 +379,13 @@ public:
 	void DescribeReST(ODesc* d) const;
 
 protected:
-	FuncType()	{ args = 0; arg_types = 0; yield = 0; return_value = 0; }
+	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
 	DECLARE_SERIAL(FuncType)
 
 	RecordType* args;
 	TypeList* arg_types;
 	BroType* yield;
-	int is_event;
-	ID* return_value;
+	function_flavor flavor;
 };
 
 class TypeType : public BroType {

@@ -17,6 +17,11 @@ New Functionality
 
 - ssl.log now also records the subject client and issuer certificates.
 
+- Hooks: TODO: Briefly summarize the documention from
+  doc/scripts/builtins.rst here.
+
+- The ASCII writer can now output CSV files on a per filter basis.
+
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 

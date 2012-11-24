@@ -119,7 +119,6 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
-static bool in_hook = false;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -1373,11 +1372,11 @@ stmt:
 			    brofiler.AddStmt($$);
 			}
 
-	|	TOK_HOOK { in_hook = true; } hook { in_hook = false; } ';' opt_no_test
+	|	TOK_HOOK hook ';' opt_no_test
 			{
-			set_location(@1, @5);
-			$$ = new HookStmt($3);
-			if ( ! $6 )
+			set_location(@1, @4);
+			$$ = new HookStmt($2);
+			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
 
@@ -1538,7 +1537,7 @@ hook:
 		expr '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new CallExpr($1, $3, in_hook);
+			$$ = new CallExpr($1, $3, true);
 			}
 	;
 

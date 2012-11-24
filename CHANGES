@@ -1,4 +1,8 @@
 
+2.1-169 | 2012-11-23 18:21:32 -0800
+
+  * Fix some warnings from sphinx when building docs. (Jon Siwek)
+
 2.1-167 | 2012-11-14 13:19:17 -0800
 
   * Add a new BIF "bytestring_to_double" for converting from a binary

@@ -189,15 +189,16 @@ function data_added(filter: Filter, index: Index, val: ResultVal)
 event Metrics::cluster_index_response(uid: string, id: string, filter_name: string, index: Index, val: ResultVal)
 	{
 	#print fmt("%0.6f MANAGER: receiving index data from %s - %s=%s", network_time(), get_event_peer()$descr, index2str(index), val);
-	
-	local merged_val = merge_result_vals(index_requests[uid, id, filter_name, index], val);
-	index_requests[uid, id, filter_name, index] = merged_val;
+	if ( [uid, id, filter_name, index] in index_requests )
+		index_requests[uid, id, filter_name, index] = merge_result_vals(index_requests[uid, id, filter_name, index], val);
+	else
+		index_requests[uid, id, filter_name, index] = val;
+
 	local ir = index_requests[uid, id, filter_name, index];
 	
 	# Mark that this worker is done.
 	++done_with[uid];
 
-	#print ir;
 	#print fmt("worker_count:%d :: done_with:%d", Cluster::worker_count, done_with[uid]);
 
 	if ( Cluster::worker_count == done_with[uid] )

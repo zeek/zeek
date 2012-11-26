@@ -34,7 +34,25 @@ hook myhook(r: rec) &priority=10
 	r$b = "goobye world";
 	# returning from the handler early, is fine, remaining handlers still run.
 	return;
-	print "ERROR: break statement should return from hook handler body";
+	print "ERROR: return statement should return from hook handler body";
+	}
+
+hook myhook(r: rec) &priority=9
+	{
+	print "myhook return F";
+	# return value is ignored, remaining handlers still run, final return
+	# value is whether any hook body returned via break statement
+	return F;
+	print "ERROR: return statement should return from hook handler body";
+	}
+
+hook myhook(r: rec) &priority=8
+	{
+	print "myhook return T";
+	# return value is ignored, remaining handlers still run, final return
+	# value is whether any hook body returned via break statement
+	return T;
+	print "ERROR: return statement should return from hook handler body";
 	}
 
 # hook function doesn't need a declaration, we can go straight to defining
@@ -56,16 +74,16 @@ hook myhook4() &priority=2
 
 event bro_init()
 	{
-	hook myhook([$a=1156, $b="hello world"]);
+	print myhook([$a=1156, $b="hello world"]);
 
 	# A hook with no handlers is fine, it's just a no-op.
-	hook myhook2("nope");
+	print myhook2("nope");
 
-	hook myhook3(8);
-	hook myhook4();
+	print myhook3(8);
+	print myhook4();
 
 	# A hook can be treated like other data types and doesn't have to be
 	# invoked directly by name.
 	local h = myhook;
-	hook h([$a=2, $b="it works"]);
+	print h([$a=2, $b="it works"]);
 	}

@@ -294,12 +294,12 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		int is_redef, FuncType* t)
 	{
-	if ( flavor == FUNC_FLAVOR_EVENT || flavor == FUNC_FLAVOR_HOOK )
+	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
 		const BroType* yt = t->YieldType();
 
 		if ( yt && yt->Tag() != TYPE_VOID )
-			id->Error("event/hook cannot yield a value", t);
+			id->Error("event cannot yield a value", t);
 
 		t->ClearYieldType(flavor);
 		}

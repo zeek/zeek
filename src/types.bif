@@ -156,6 +156,13 @@ type readdir_reply_t: record;
 
 type fsstat_t: record;
 
+
+module GLOBAL;
+
+type ModbusHeaders: record;
+type ModbusCoils: vector;
+type ModbusRegisters: vector;
+
 module Log;
 
 enum Writer %{

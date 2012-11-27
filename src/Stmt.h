@@ -286,6 +286,24 @@ protected:
 	EventExpr* event_expr;
 };
 
+class HookStmt : public ExprStmt {
+public:
+	HookStmt(CallExpr* e);
+
+	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+
+	TraversalCode Traverse(TraversalCallback* cb) const;
+
+protected:
+	friend class Stmt;
+
+	HookStmt() { call_expr = 0; }
+
+	DECLARE_SERIAL(HookStmt);
+
+	CallExpr* call_expr;
+};
+
 class ForStmt : public ExprStmt {
 public:
 	ForStmt(id_list* loop_vars, Expr* loop_expr);

@@ -114,7 +114,8 @@ export {
 	## description: `TableDescription` record describing the source.
 	global add_event: function(description: Input::EventDescription) : bool;
 
-	## Remove a input stream. Returns true on success and false if the named stream was not found.
+	## Remove a input stream. Returns true on success and false if the named stream was
+	## not found. 
 	##
 	## id: string value identifying the stream to be removed
 	global remove: function(id: string) : bool;
@@ -125,8 +126,9 @@ export {
 	## id: string value identifying the stream
 	global force_update: function(id: string) : bool;
 
-	## Event that is called, when the update of a specific source is finished
-	global update_finished: event(name: string, source:string);
+	## Event that is called, when the end of a data source has been reached, including
+	## after an update.
+	global end_of_data: event(name: string, source:string);
 }
 
 @load base/input.bif

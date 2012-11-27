@@ -71,7 +71,9 @@ void Attr::DescribeReST(ODesc* d) const
 
 		else if ( expr->Type()->Tag() == TYPE_FUNC )
 			{
-			d->Add(":bro:type:`func`");
+			d->Add(":bro:type:`");
+			d->Add(expr->Type()->AsFuncType()->FlavorString());
+			d->Add("`");
 			}
 
 		else
@@ -401,13 +403,13 @@ void Attributes::CheckAttr(Attr* a)
 
 	case ATTR_GROUP:
 		if ( type->Tag() != TYPE_FUNC ||
-		     ! type->AsFuncType()->IsEvent() )
+		     type->AsFuncType()->Flavor() != FUNC_FLAVOR_EVENT )
 			Error("&group only applicable to events");
 		break;
 
 	case ATTR_ERROR_HANDLER:
 		if ( type->Tag() != TYPE_FUNC ||
-		     ! type->AsFuncType()->IsEvent() )
+		     type->AsFuncType()->Flavor() != FUNC_FLAVOR_EVENT )
 			Error("&error_handler only applicable to events");
 		break;
 

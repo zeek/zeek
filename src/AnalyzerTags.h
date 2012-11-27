@@ -32,6 +32,7 @@ namespace AnalyzerTag {
 		// Application-layer analyzers, binpac-generated.
 		DHCP_BINPAC, DNS_TCP_BINPAC, DNS_UDP_BINPAC,
 		HTTP_BINPAC, SSL, SYSLOG_BINPAC,
+		Modbus,
 
 		// Decapsulation analyzers.
 		AYIYA,
@@ -46,6 +47,7 @@ namespace AnalyzerTag {
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,
 		Contents_NetbiosSSN, Contents_Rlogin, Contents_Rsh,
 		Contents_DCE_RPC, Contents_SMB, Contents_RPC, Contents_NFS,
+		FTP_ADAT,
 		// End-marker.
 		LastAnalyzer
 	};

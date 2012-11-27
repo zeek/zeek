@@ -96,11 +96,11 @@ redef record connection += {
 };
 
 # Configure DPD
-const ports = { 21/tcp } &redef;
-redef capture_filters += { ["ftp"] = "port 21" };
+const ports = { 21/tcp, 2811/tcp } &redef; # 2811/tcp is GridFTP.
+redef capture_filters += { ["ftp"] = "port 21 and port 2811" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
-redef likely_server_ports += { 21/tcp };
+redef likely_server_ports += { 21/tcp, 2811/tcp };
 
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;

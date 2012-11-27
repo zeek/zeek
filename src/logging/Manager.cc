@@ -334,7 +334,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		// Make sure the event is prototyped as expected.
 		FuncType* etype = event->FType()->AsFuncType();
 
-		if ( ! etype->IsEvent() )
+		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
 			return false;

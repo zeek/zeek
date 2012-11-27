@@ -271,6 +271,7 @@ void BroDoc::WriteInterface(const char* heading, char underline,
 	WriteBroDocObjList(state_vars, isPublic, "State Variables", sub, isShort);
 	WriteBroDocObjList(types, isPublic, "Types", sub, isShort);
 	WriteBroDocObjList(events, isPublic, "Events", sub, isShort);
+	WriteBroDocObjList(hooks, isPublic, "Hooks", sub, isShort);
 	WriteBroDocObjList(functions, isPublic, "Functions", sub, isShort);
 	WriteBroDocObjList(redefs, isPublic, "Redefinitions", sub, isShort);
 	}

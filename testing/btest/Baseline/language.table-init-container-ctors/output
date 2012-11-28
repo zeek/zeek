@@ -1,0 +1,42 @@
+table of set
+{
+[13] = {
+[bar, 2] ,
+[foo, 1] 
+},
+[5] = {
+[bah, 3] ,
+[baz, 4] 
+}
+}
+
+table of vector
+{
+[13] = [1, 2],
+[5] = [3, 4]
+}
+
+table of table
+{
+[13] = {
+[bar, 2] = 2,
+[foo, 1] = 1
+},
+[5] = {
+[bah, 3] = 3,
+[baz, 4] = 4
+}
+}
+
+T
+T
+T
+T
+T
+T
+T
+T
+T
+T
+T
+T

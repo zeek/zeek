@@ -2663,7 +2663,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	TableVal* tv = aggr->AsTableVal();
 
 	Val* index = op1->Eval(f);
-	Val* v = op2->Eval(f);
+	Val* v = check_and_promote(op2->Eval(f), t->YieldType(), 1);
 	if ( ! index || ! v )
 		return;
 
@@ -3386,7 +3386,14 @@ Val* TableConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	if ( IsError() )
 		return 0;
 
-	return op->InitVal(t, aggr);
+	TableType* tt = Type()->AsTableType();
+	TableVal* tval = aggr ? aggr->AsTableVal() : new TableVal(tt, attrs);
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+
+	loop_over_list(exprs, i)
+		exprs[i]->EvalIntoAggregate(t, tval, 0);
+
+	return tval;
 	}
 
 void TableConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3456,7 +3463,26 @@ Val* SetConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	if ( IsError() )
 		return 0;
 
-	return op->InitVal(t, aggr);
+	const BroType* index_type = t->AsTableType()->Indices();
+	TableType* tt = Type()->AsTableType();
+	TableVal* tval = aggr ? aggr->AsTableVal() : new TableVal(tt, attrs);
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+
+	loop_over_list(exprs, i)
+		{
+		Expr* e = exprs[i];
+		Val* element = check_and_promote(e->Eval(0), index_type, 1);
+
+		if ( ! element || ! tval->Assign(element, 0) )
+			{
+			Error(fmt("initialization type mismatch in set"), e);
+			return 0;
+			}
+
+		Unref(element);
+		}
+
+	return tval;
 	}
 
 void SetConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3536,14 +3562,14 @@ Val* VectorConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	if ( IsError() )
 		return 0;
 
-	VectorVal* vec = aggr->AsVectorVal();
-	const BroType* vt = vec->Type()->AsVectorType()->YieldType();
+	VectorType* vt = Type()->AsVectorType();
+	VectorVal* vec = aggr ? aggr->AsVectorVal() : new VectorVal(vt);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		Val* v = check_and_promote(e->Eval(0), vt, 1);
+		Val* v = check_and_promote(e->Eval(0), t->YieldType(), 1);
 
 		if ( ! v || ! vec->Assign(i, v, e) )
 			{

@@ -1,0 +1,7 @@
+myhook, &priority=10, [a=1156, b=hello world]
+myhook, &priority=5, [a=37, b=goobye world]
+myhook3, 8
+myhook4, 2
+myhook4, 1
+myhook, &priority=10, [a=2, b=it works]
+myhook, &priority=5, [a=37, b=goobye world]

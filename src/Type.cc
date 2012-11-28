@@ -651,17 +651,36 @@ bool SetType::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, int arg_is_event)
+FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
 : BroType(TYPE_FUNC)
 	{
 	args = arg_args;
 	yield = arg_yield;
-	is_event = arg_is_event;
+	flavor = arg_flavor;
 
 	arg_types = new TypeList();
 
 	for ( int i = 0; i < args->NumFields(); ++i )
 		arg_types->Append(args->FieldType(i)->Ref());
+	}
+
+string FuncType::FlavorString() const
+	{
+	switch ( flavor ) {
+
+	case FUNC_FLAVOR_FUNCTION:
+		return "function";
+
+	case FUNC_FLAVOR_EVENT:
+		return "event";
+
+	case FUNC_FLAVOR_HOOK:
+		return "hook";
+
+	default:
+		reporter->InternalError("Invalid function flavor");
+		return "invalid_func_flavor";
+	}
 	}
 
 FuncType::~FuncType()
@@ -698,7 +717,7 @@ void FuncType::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		{
-		d->Add(is_event ? "event" : "function");
+		d->Add(FlavorString());
 		d->Add("(");
 		args->DescribeFields(d);
 		d->Add(")");
@@ -712,7 +731,7 @@ void FuncType::Describe(ODesc* d) const
 	else
 		{
 		d->Add(int(Tag()));
-		d->Add(is_event);
+		d->Add(flavor);
 		d->Add(yield != 0);
 		args->DescribeFields(d);
 		if ( yield )
@@ -723,7 +742,7 @@ void FuncType::Describe(ODesc* d) const
 void FuncType::DescribeReST(ODesc* d) const
 	{
 	d->Add(":bro:type:`");
-	d->Add(is_event ? "event" : "function");
+	d->Add(FlavorString());
 	d->Add("`");
 	d->Add(" (");
 	args->DescribeFieldsReST(d, true);
@@ -755,9 +774,30 @@ bool FuncType::DoSerialize(SerialInfo* info) const
 
 	SERIALIZE_OPTIONAL(yield);
 
+	int ser_flavor = 0;
+
+	switch ( flavor ) {
+
+	case FUNC_FLAVOR_FUNCTION:
+		ser_flavor = 0;
+		break;
+
+	case FUNC_FLAVOR_EVENT:
+		ser_flavor = 1;
+		break;
+
+	case FUNC_FLAVOR_HOOK:
+		ser_flavor = 2;
+		break;
+
+	default:
+		reporter->InternalError("Invalid function flavor serialization");
+		break;
+	}
+
 	return args->Serialize(info) &&
 		arg_types->Serialize(info) &&
-		SERIALIZE(is_event);
+		SERIALIZE(ser_flavor);
 	}
 
 bool FuncType::DoUnserialize(UnserialInfo* info)
@@ -774,7 +814,27 @@ bool FuncType::DoUnserialize(UnserialInfo* info)
 	if ( ! arg_types )
 		return false;
 
-	return UNSERIALIZE(&is_event);
+	int ser_flavor = 0;
+
+	if ( ! UNSERIALIZE(&ser_flavor) )
+		return false;
+
+	switch ( ser_flavor ) {
+	case 0:
+		flavor = FUNC_FLAVOR_FUNCTION;
+		break;
+	case 1:
+		flavor = FUNC_FLAVOR_EVENT;
+		break;
+	case 2:
+		flavor = FUNC_FLAVOR_HOOK;
+		break;
+	default:
+		reporter->InternalError("Invalid function flavor unserialization");
+		break;
+	}
+
+	return true;
 	}
 
 TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
@@ -1202,9 +1262,10 @@ bool FileType::DoUnserialize(UnserialInfo* info)
 	return yield != 0;
 	}
 
-EnumType::EnumType()
+EnumType::EnumType(const string& arg_name)
 : BroType(TYPE_ENUM)
 	{
+	name = arg_name;
 	counter = 0;
 	}
 
@@ -1325,6 +1386,13 @@ const char* EnumType::Lookup(bro_int_t value)
 			return iter->first;
 
 	return 0;
+	}
+
+void EnumType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(name.c_str());
+	d->Add("`");
 	}
 
 void CommentedEnumType::DescribeReST(ODesc* d) const
@@ -1595,7 +1663,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t2;
 
-		if ( ft1->IsEvent() != ft2->IsEvent() )
+		if ( ft1->Flavor() != ft2->Flavor() )
 			return 0;
 
 		if ( t1->YieldType() || t2->YieldType() )
@@ -1882,7 +1950,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		BroType* yield = t1->YieldType() ?
 			merge_types(t1->YieldType(), t2->YieldType()) : 0;
 
-		return new FuncType(args->AsRecordType(), yield, ft1->IsEvent());
+		return new FuncType(args->AsRecordType(), yield, ft1->Flavor());
 		}
 
 	case TYPE_RECORD:

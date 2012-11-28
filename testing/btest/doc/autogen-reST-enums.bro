@@ -34,3 +34,6 @@ redef enum TestEnum1 += {
     ## adding another
     FIVE, ##< value
 };
+
+## this should reference the TestEnum1 type and not a generic "enum" type
+const test_enum_option = ONE &redef;

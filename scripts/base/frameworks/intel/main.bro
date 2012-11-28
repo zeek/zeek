@@ -59,7 +59,7 @@ export {
 	};
 	
 	## Enum to represent where data came from when it was discovered.
-	## The convenction is to prefix the name with "IN_".
+	## The convention is to prefix the name with ``IN_``.
 	type Where: enum {
 		## A catchall value to represent data of unknown provenance.
 		IN_ANYWHERE,

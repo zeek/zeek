@@ -81,7 +81,7 @@ global index_requests: table[string, string, string, Index] of ResultVal &create
 # an intermediate result has been received. The manager may optionally request
 # the index again before data expires from here if too many workers are crossing
 # the percentage threshold (not implemented yet!).
-global recent_global_view_indexes: table[string, string, Index] of count &create_expire=5mins &default=0;
+global recent_global_view_indexes: table[string, string, Index] of count &create_expire=1min &default=0;
 
 # Add events to the cluster framework to make this work.
 redef Cluster::manager2worker_events += /Metrics::cluster_(filter_request|index_request)/;
@@ -217,10 +217,12 @@ event Metrics::cluster_index_intermediate_response(id: string, filter_name: stri
 	{
 	#print fmt("MANAGER: receiving intermediate index data from %s", get_event_peer()$descr);
 	#print fmt("MANAGER: requesting index data for %s", index2str(index));
-	
+	++recent_global_view_indexes[id, filter_name, index];
+	if ( [id, filter_name, index] in recent_global_view_indexes )
+		return;
+
 	local uid = unique_id("");
 	event Metrics::cluster_index_request(uid, id, filter_name, index);
-	++recent_global_view_indexes[id, filter_name, index];
 	}
 
 event Metrics::cluster_filter_response(uid: string, id: string, filter_name: string, data: MetricTable, done: bool)

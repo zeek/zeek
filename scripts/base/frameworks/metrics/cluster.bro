@@ -217,9 +217,12 @@ event Metrics::cluster_index_intermediate_response(id: string, filter_name: stri
 	{
 	#print fmt("MANAGER: receiving intermediate index data from %s", get_event_peer()$descr);
 	#print fmt("MANAGER: requesting index data for %s", index2str(index));
-	++recent_global_view_indexes[id, filter_name, index];
+
+	# If a worker recently sent this as an intermediate update, don't request it.
 	if ( [id, filter_name, index] in recent_global_view_indexes )
 		return;
+
+	++recent_global_view_indexes[id, filter_name, index];
 
 	local uid = unique_id("");
 	event Metrics::cluster_index_request(uid, id, filter_name, index);

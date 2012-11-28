@@ -28,6 +28,14 @@ table of table
 }
 }
 
+table of record
+{
+[13] = [a=1, b=foo],
+[5] = [a=2, b=bar]
+}
+
+T
+T
 T
 T
 T

@@ -126,6 +126,7 @@ function merge(q1: Queue, q2: Queue): Queue
 		++i;
 		++j;
 		}
+	return ret;
 	}
 
 function len(q: Queue): count

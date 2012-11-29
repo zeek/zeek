@@ -260,6 +260,11 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
+			if ( type->Tag() == TYPE_TABLE &&
+			     type->AsTableType()->IsUnspecifiedTable() )
+				// Ok.
+				break;
+
 			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
 
@@ -287,6 +292,11 @@ void Attributes::CheckAttr(Attr* a)
 				if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
 				      record_promotion_compatible(atype->AsRecordType(),
 								  ytype->AsRecordType())) )
+					// Ok.
+					break;
+
+				Expr* e = a->AttrExpr();
+				if ( check_and_promote_expr(e, ytype) )
 					// Ok.
 					break;
 

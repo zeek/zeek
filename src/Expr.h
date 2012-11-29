@@ -747,6 +747,8 @@ public:
 	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
 	~TableConstructorExpr()	{ Unref(attrs); }
 
+	Attributes* Attrs() { return attrs; }
+
 	Val* Eval(Frame* f) const;
 
 protected:
@@ -766,6 +768,8 @@ class SetConstructorExpr : public UnaryExpr {
 public:
 	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
 	~SetConstructorExpr()	{ Unref(attrs); }
+
+	Attributes* Attrs() { return attrs; }
 
 	Val* Eval(Frame* f) const;
 

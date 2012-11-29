@@ -284,8 +284,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #endif
 	if ( ! bodies.size() ) 
 		{
-		// Can only happen for events.
-		assert(IsEvent());
+		// Can only happen for events and hooks.
+		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
 		return 0 ;
@@ -309,7 +309,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
-			IsEvent() ? "event" : "function", d.Description());
+			FType()->FlavorString().c_str(), d.Description());
 		}
 
 	loop_over_list(*args, i)
@@ -348,6 +348,12 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			parent->SetDelayed();
 			break;
 			}
+
+		if ( flow == FLOW_BREAK && Flavor() == FUNC_FLAVOR_HOOK )
+			{
+			// short-circuit execution of remaining hook handler bodies
+			break;
+			}
 		}
 
 	// Warn if the function returns something, but we returned from
@@ -380,7 +386,7 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 
 	new_body = AddInits(new_body, new_inits);
 
-	if ( ! IsEvent() )
+	if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);

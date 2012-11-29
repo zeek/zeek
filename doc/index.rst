@@ -11,8 +11,8 @@ Guides
    :maxdepth: 1
 
    INSTALL
-   quickstart
    upgrade
+   quickstart
    faq
    reporting-problems
 

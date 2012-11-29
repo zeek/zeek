@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function test_case(msg: string, expect: bool)
@@ -26,6 +26,9 @@ event bro_init()
 	local t10: table[port, string, bool] of string = { 
 		[10/udp, "curly", F] = "first",
 		[11/udp, "braces", T] = "second" };
+	local t11: table[conn_id, bool] of count = {
+	    [ [$orig_h=1.1.1.1, $orig_p=1234/tcp,
+	       $resp_h=2.2.2.2, $resp_p=4321/tcp], T ] = 42 };
 
 	# Type inference tests
 
@@ -45,6 +48,7 @@ event bro_init()
 	test_case( "cardinality", |t8| == 0 );
 	test_case( "cardinality", |t9| == 1 );
 	test_case( "cardinality", |t10| == 2 );
+	test_case( "cardinality", |t11| == 1 );
 	test_case( "cardinality", |tg1| == 3 );
 
 	# Test iterating over each table
@@ -121,6 +125,13 @@ event bro_init()
 	test_case( "add element", |t5| == 3 );
 	test_case( "in operator", 10 in t5 );
 
+	local cid = [$orig_h=1.1.1.1, $orig_p=1234/tcp,
+	             $resp_h=2.2.2.2, $resp_p=4321/tcp];
+	t11[[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp], F] = 3;
+	test_case( "composite index add element", |t11| == 2 );
+	test_case( "composite index in operator", [cid, T] in t11 );
+	test_case( "composite index in operator", [[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp], F] in t11 );
+
 	# Test removing elements from each table (Note: cannot remove elements
 	# from tables of multiple types)
 
@@ -145,5 +156,8 @@ event bro_init()
 	test_case( "remove element", |t5| == 2 );
 	test_case( "!in operator", 1 !in t5 );
 
+	delete t11[cid, T];
+	test_case( "remove element", |t11| == 1 );
+	test_case( "!in operator", [cid, T] !in t11 );
 }
 

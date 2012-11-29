@@ -1,4 +1,146 @@
 
+2.1-178 | 2012-11-23 19:35:32 -0800
+
+  * The ASCII writer now supports a new filter config option
+    "only_single_header_row" that turns the output into CSV format
+    when set to "T". (Carsten Langer)
+
+  * Add new function flavor called a "hook". This new flavor of
+    function behaves like a "synchronous event". See
+    doc/scripts/builtins.rst more details on usage. (Jon Siwek)
+
+  * Improve auto-generated enum documentation. The names of enum types
+    are tracked so that variables holding a value of a given enum type
+    can generate a reference to it instead of just listing the type as
+    a generic "enum". (Jon Siwek)
+
+2.1-171 | 2012-11-23 18:24:15 -0800
+
+  * Fix ambiguity between composite table index and record ctor
+    expressions. If a table type is "global t = table[conn_id, bool]
+    of count", then checking membership like "[c$id, is_orig] in t"
+    now works. Addresses #80. (Jon Siwek)
+
+2.1-169 | 2012-11-23 18:21:32 -0800
+
+  * Fix some warnings from sphinx when building docs. (Jon Siwek)
+
+2.1-167 | 2012-11-14 13:19:17 -0800
+
+  * Add a new BIF "bytestring_to_double" for converting from a binary
+    representation of a double. Addresses #908. (Carsten Langer/Daniel
+    Thayer)
+
+2.1-162 | 2012-11-13 17:29:00 -0800
+
+  * Fix modbus register array parsing. (Jon Siwek)
+
+  * Adjustments to modbus test cases. (Jon Siwek)
+
+2.1-157 | 2012-11-08 16:22:00 -0800
+
+  * Fix for lookup_hostname BIF. (Jon Siwek)
+
+  * Fix for modbus test portability. (Robin Sommer)
+
+2.1-152 | 2012-11-05 16:52:34 -0800
+
+  * Initial version of a completely reworked intelligence framework.
+    See doc/intel.rst for more information. (Seth Hall)
+
+  * Experimental Modbus analyzer. See policy/protocols/modbus/* for
+    example policies. (Dina Hadziosmanovic, Seth Hall)
+
+2.1-112 | 2012-11-05 13:58:20 -0800
+
+  * New base script for detecting cases of checksum offloading. 
+    Reporter messages will now tell if one has bad checksums. (Seth
+    Hall)
+
+  * Clarifying ownership rules for BroString constructors. (Robin
+    Sommer)
+
+2.1-109 | 2012-11-05 13:39:34 -0800
+
+  * Add detection rate threshold for MHR. (Vlad Grigorescu)
+    
+  * lookup_hostname_txt fixes. (Vlad Grigorescu)
+    
+2.1-104 | 2012-11-01 10:37:50 -0700
+
+  * A new built-in function lookup_hostname_txt() provides support for
+    DNS TXT queries. (Vlad Grigorescu)
+
+2.1-101 | 2012-10-31 14:30:26 -0700
+
+  * Documentation reorg: The install info has been consolidated into a
+    single document (INSTALL), the upgrade info has been moved from
+    the FAQ to a section in the install doc, and the "upgrading from
+    1.5 to 2.0" document has been updated (and renamed) to also
+    include 2.0 to 2.1 upgrade info. (Daniel Thayer)
+
+2.1-96 | 2012-10-31 14:23:50 -0700
+
+  * Renaming option defining the frequency of alarm summary mails to
+    'Logging::default_alarm_mail_interval'. (Daniel Thayer)
+
+2.1-91 | 2012-10-24 16:04:47 -0700
+
+  * Adding PPPoE support to Bro. (Seth Hall)
+
+2.1-87 | 2012-10-24 15:40:06 -0700
+
+  * Adding missing &redef for some TCP options. Addresses #905, #906,
+    #907. (Carsten Langer)
+
+2.1-86 | 2012-10-24 15:37:11 -0700
+
+  * Add parsing rules for IPv4/IPv6 subnet literal constants.
+    Addresses #888. (Jon Siwek)
+
+2.1-84 | 2012-10-19 15:12:56 -0700
+
+  * Added a BiF strptime() to wrap the corresponding C function. (Seth
+    Hall)
+
+2.1-82 | 2012-10-19 15:05:40 -0700
+
+  * Add IPv6 support to signature header conditions. (Jon Siwek)
+
+    - "src-ip" and "dst-ip" conditions can now use IPv6 addresses/subnets.
+      They must be written in colon-hexadecimal representation and enclosed
+      in square brackets (e.g. [fe80::1]).  Addresses #774.
+
+    - "icmp6" is now a valid protocol for use with "ip-proto" and "header"
+      conditions.  This allows signatures to be written that can match
+      against ICMPv6 payloads.  Addresses #880.
+
+    - "ip6" is now a valid protocol for use with the "header" condition.
+      (also the "ip-proto" condition, but it results in a no-op in that
+      case since signatures apply only to the inner-most IP packet when
+      packets are tunneled).  This allows signatures to match specifically
+      against IPv6 packets (whereas "ip" only matches against IPv4 packets).
+
+    - "ip-proto" conditions can now match against IPv6 packets.  Before,
+      IPv6 packets were just silently ignored which meant DPD based on
+      signatures did not function for IPv6 -- protocol analyzers would only
+      get attached to a connection over IPv6 based on the well-known ports
+      set in the "dpd_config" table.
+
+2.1-80 | 2012-10-19 14:48:42 -0700
+
+  * Change how "gridftp" gets added to service field of connection
+    records. In addition to checking for a finished SSL handshake over
+    an FTP connection, it now also requires that the SSL handshake
+    occurs after the FTP client requested AUTH GSSAPI, more
+    specifically identifying the characteristics of GridFTP control
+    channels. Addresses #891. (Jon Siwek)
+
+  * Allow faster rebuilds in certain cases. Previously, when
+    rebuilding with a different "--prefix" or "--scriptdir", all Bro
+    source files were recompiled.  With this change, only util.cc is
+    recompiled. (Daniel Thayer)
+
 2.1-76 | 2012-10-12 10:32:39 -0700
 
   * Add support for recognizing GridFTP connections as an extension to

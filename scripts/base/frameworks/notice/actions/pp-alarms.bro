@@ -101,7 +101,7 @@ event bro_init()
 	# This replaces the standard non-pretty-printing filter.
 	Log::add_filter(Notice::ALARM_LOG,
 			[$name="alarm-mail", $writer=Log::WRITER_NONE,
-			 $interv=Log::default_rotation_interval,
+			 $interv=Log::default_mail_alarms_interval,
 			 $postprocessor=pp_postprocessor]);
 	}
 

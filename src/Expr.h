@@ -959,7 +959,7 @@ protected:
 
 class CallExpr : public Expr {
 public:
-	CallExpr(Expr* func, ListExpr* args);
+	CallExpr(Expr* func, ListExpr* args, bool in_hook = false);
 	~CallExpr();
 
 	Expr* Func() const	{ return func; }

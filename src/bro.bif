@@ -11,6 +11,7 @@
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
+#include <time.h>
 
 #include "digest.h"
 #include "Reporter.h"
@@ -2615,15 +2616,15 @@ function to_double%(str: string%): double
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-	
+
 	double d = strtod(s, &end_s);
-	
+
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		{       
+		{
 		builtin_error("bad conversion to double", @ARG@[0]);
 		d = 0;
-		}     
-	
+		}
+
 	return new Val(d, TYPE_DOUBLE);
 	%}
 
@@ -2698,6 +2699,27 @@ function to_port%(s: string%): port
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
     return new PortVal(port, TRANSPORT_UNKNOWN);
+	%}
+
+## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
+##
+## s: A string of bytes containing the binary representation of a double value.
+##
+## Returns: The double value contained in *s*, or 0 if the conversion
+##          failed.
+##
+function bytestring_to_double%(s: string%): double
+	%{
+	if ( s->Len() != sizeof(double) )
+		{
+		builtin_error("bad conversion to double");
+		return new Val(0.0, TYPE_DOUBLE);
+		}
+
+	// See #908 for a discussion of portability.
+	double d;
+	memcpy(&d, s->Bytes(), sizeof(double));
+	return new Val(ntohd(d), TYPE_DOUBLE);
 	%}
 
 ## Converts a reverse pointer name to an address. For example,
@@ -3285,6 +3307,31 @@ function strftime%(fmt: string, d: time%) : string
 	return new StringVal(buffer);
 	%}
 
+
+## Parse a textual representation of a date/time value into a ``time`` type value.
+##
+## fmt: The format string used to parse the following *d* argument. See ``man strftime``
+##      for the syntax.
+##
+## d: The string representing the time.
+##
+## Returns: The time value calculated from parsing *d* with *fmt*.
+function strptime%(fmt: string, d: string%) : time
+	%{
+	const time_t timeval = time_t(NULL);
+	struct tm t = *localtime(&timeval);
+
+	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
+		{
+		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		return new Val(0.0, TYPE_TIME);
+		}
+
+	double ret = mktime(&t);
+	return new Val(ret, TYPE_TIME);
+	%}
+
+
 # ===========================================================================
 #
 #                           Network Type Processing
@@ -3741,6 +3788,35 @@ function lookup_addr%(host: addr%) : string
 
 	dns_mgr->AsyncLookupAddr(host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
+	return 0;
+	%}
+
+## Issues an asynchronous TEXT DNS lookup and delays the function result.
+## This function can therefore only be called inside a ``when`` condition,
+## e.g., ``when ( local h = lookup_hostname_txt("www.bro-ids.org") ) { f(h); }``.
+##
+## host: The hostname to lookup.
+##
+## Returns: The DNS TXT record associated with *host*.
+##
+## .. bro:see:: lookup_hostname
+function lookup_hostname_txt%(host: string%) : string
+	%{
+	// FIXME: Is should be easy to adapt the function to synchronous
+	// lookups if we're reading a trace.
+	Trigger* trigger = frame->GetTrigger();
+
+	if ( ! trigger)
+		{
+		builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	dns_mgr->AsyncLookupNameText(host->CheckString(),
+				 new LookupHostCallback(trigger, frame->GetCall(), true));
 	return 0;
 	%}
 

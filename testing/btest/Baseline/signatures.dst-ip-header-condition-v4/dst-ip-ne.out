@@ -1,0 +1,1 @@
+signature_match [orig_h=192.168.1.100, orig_p=8/icmp, resp_h=192.168.1.101, resp_p=0/icmp] - dst-ip-ne

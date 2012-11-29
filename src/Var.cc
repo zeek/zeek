@@ -171,7 +171,9 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 	id->UpdateValAttrs();
 
-	if ( t && t->Tag() == TYPE_FUNC && t->AsFuncType()->IsEvent() )
+	if ( t && t->Tag() == TYPE_FUNC &&
+	     (t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT ||
+	      t->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK) )
 		{
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
@@ -258,7 +260,7 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 		case TYPE_FUNC:
 			tnew = new FuncType(t->AsFuncType()->Args(),
 			                    t->AsFuncType()->YieldType(),
-			                    t->AsFuncType()->IsEvent());
+			                    t->AsFuncType()->Flavor());
 			break;
 		default:
 			SerializationFormat* form = new BinarySerializationFormat();
@@ -292,14 +294,14 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		int is_redef, FuncType* t)
 	{
-	if ( flavor == FUNC_FLAVOR_EVENT )
+	if ( flavor == FUNC_FLAVOR_EVENT || flavor == FUNC_FLAVOR_HOOK )
 		{
 		const BroType* yt = t->YieldType();
 
 		if ( yt && yt->Tag() != TYPE_VOID )
-			id->Error("event cannot yield a value", t);
+			id->Error("event/hook cannot yield a value", t);
 
-		t->ClearYieldType();
+		t->ClearYieldType(flavor);
 		}
 
 	if ( id->Type() )
@@ -313,21 +315,29 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( id->HasVal() )
 		{
-		int id_is_event = id->ID_Val()->AsFunc()->IsEvent();
+		function_flavor id_flavor = id->ID_Val()->AsFunc()->Flavor();
 
-		if ( id_is_event != (flavor == FUNC_FLAVOR_EVENT) )
-			id->Error("inconsistency between event and function", t);
-		if ( id_is_event )
-			{
+		if ( id_flavor != flavor )
+			id->Error("inconsistent function flavor", t);
+
+		switch ( id_flavor ) {
+
+		case FUNC_FLAVOR_EVENT:
+		case FUNC_FLAVOR_HOOK:
 			if ( is_redef )
 				// Clear out value so it will be replaced.
 				id->SetVal(0);
-			}
-		else
-			{
+			break;
+
+		case FUNC_FLAVOR_FUNCTION:
 			if ( ! id->IsRedefinable() )
 				id->Error("already defined");
-			}
+			break;
+
+		default:
+			reporter->InternalError("invalid function flavor");
+			break;
+		}
 		}
 	else
 		id->SetType(t);

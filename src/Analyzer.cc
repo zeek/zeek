@@ -28,6 +28,7 @@
 #include "DCE_RPC.h"
 #include "Gnutella.h"
 #include "Ident.h"
+#include "Modbus.h"
 #include "NCP.h"
 #include "NetbiosSSN.h"
 #include "SMB.h"
@@ -130,6 +131,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },
+	{ AnalyzerTag::Modbus, "MODBUS",
+		ModbusTCP_Analyzer::InstantiateAnalyzer,
+		ModbusTCP_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::AYIYA, "AYIYA",
 		AYIYA_Analyzer::InstantiateAnalyzer,

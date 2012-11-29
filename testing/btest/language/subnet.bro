@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function test_case(msg: string, expect: bool)
@@ -43,5 +43,22 @@ event bro_init()
 	test_case( "IPv4 and IPv6 subnet inequality", s1 != t1 );
 	test_case( "IPv4 address and IPv6 subnet", a1 !in t2 );
 
+	# IPv4-mapped-IPv6 subnets
+	local u1: subnet = [::ffff:0:0]/96;
+
+	test_case( "IPv4 in IPv4-mapped-IPv6 subnet", 1.2.3.4 in u1 );
+	test_case( "IPv6 !in IPv4-mapped-IPv6 subnet", [fe80::1] !in u1 );
+	test_case( "IPv4-mapped-IPv6 in IPv4-mapped-IPv6 subnet",
+	           [::ffff:1.2.3.4] in u1 );
+	test_case( "IPv4-mapped-IPv6 subnet equality",
+	           [::ffff:1.2.3.4]/112 == 1.2.0.0/16 );
+	test_case( "subnet literal const whitespace",
+	           [::ffff:1.2.3.4] / 112 == 1.2.0.0 / 16 );
+	test_case( "subnet literal const whitespace",
+	           [::ffff:1.2.3.4]/ 128 == 1.2.3.4/ 32 );
+	test_case( "subnet literal const whitespace",
+	           [::ffff:1.2.3.4] /96 == 1.2.3.4 /0 );
+	test_case( "subnet literal const whitespace",
+	           [::ffff:1.2.3.4]   /    92 == [::fffe:1.2.3.4]    /   92 );
 }
 

@@ -17,6 +17,11 @@ New Functionality
 
 - ssl.log now also records the subject client and issuer certificates.
 
+- Hooks: TODO: Briefly summarize the documention from
+  doc/scripts/builtins.rst here.
+
+- The ASCII writer can now output CSV files on a per filter basis.
+
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -38,6 +43,11 @@ Changed Functionality
   end_of_data. It will now not only fire after table-reads have been
   completed, but also after the last event of a whole-file-read (or
   whole-db-read, etc.).
+
+- Renamed the option defining the frequency of alarm summary mails to
+  'Logging::default_alarm_mail_interval'. When using BroControl, the
+  value can now be set with the new broctl.cfg option
+  "MailAlarmsInterval".
 
 Bro 2.1
 -------

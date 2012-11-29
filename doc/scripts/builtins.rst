@@ -548,9 +548,9 @@ The Bro scripting language supports the following built-in types.
             print "not going to happen", s;
             }
 
-    Note that, although the first (forward) declaration of ``myhook`` as
-    a hook type isn't strictly required, when it is provided, the
-    argument types must match.
+    Note that the first (forward) declaration of ``myhook`` as a hook
+    type isn't strictly required.  Argument types must match for all
+    hook handlers and any forward declaration of a given hook.
 
     To invoke immediate execution of all hook handler bodies, they
     can be called just like a function:

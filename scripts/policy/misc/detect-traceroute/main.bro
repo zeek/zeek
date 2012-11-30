@@ -29,7 +29,7 @@ export {
 	## Defines the threshold for ICMP Time Exceeded messages for a src-dst pair.
 	## This threshold only comes into play after a host is found to be
 	## sending low ttl packets.
-	const icmp_time_exceeded_threshold = 2 &redef;
+	const icmp_time_exceeded_threshold = 3 &redef;
 
 	## Interval at which to watch for the
 	## :bro:id:`ICMPTimeExceeded::icmp_time_exceeded_threshold` variable to be crossed.
@@ -49,10 +49,21 @@ export {
 	global log_traceroute: event(rec: Traceroute::Info);
 }
 
-# Track hosts that have sent low TTL packets.
+# Track hosts that have sent low TTL packets and which hosts they 
+# sent them to.
 global low_ttlers: set[addr, addr] = {} &create_expire=2min &synchronized;
 
-event bro_init() &priority=3
+function traceroute_detected(src: addr, dst: addr)
+	{
+	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst]);
+	NOTICE([$note=Traceroute::Detected,
+	        $msg=fmt("%s seems to be running traceroute", src),
+	        $src=src, $dst=dst,
+	        $identifier=cat(src)]);
+	}
+
+
+event bro_init() &priority=5
 	{
 	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute]);
 
@@ -65,11 +76,15 @@ event bro_init() &priority=3
 	                     	local parts = split1(index$str, /-/);
 	                     	local src = to_addr(parts[1]);
 	                     	local dst = to_addr(parts[2]);
-	                     	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst]);
-	                     	NOTICE([$note=Traceroute::Detected,
-	                     	        $msg=fmt("%s seems to be running traceroute", src),
-	                     	        $src=src, $dst=dst,
-	                     	        $identifier=parts[1]]);
+	                     	if ( require_low_ttl_packets )
+	                     		{
+	                     		when ( [src, dst] in low_ttlers )
+	                     			{
+	                     			traceroute_detected(src, dst);
+		                     		}
+		                     	}
+                     		else
+                     			traceroute_detected(src, dst);
 	                     }]);
 	}
 
@@ -82,6 +97,5 @@ event signature_match(state: signature_state, msg: string, data: string)
 
 event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
 	{
-	if ( ! require_low_ttl_packets || [context$id$orig_h, context$id$resp_h] in low_ttlers )
-		Metrics::add_data("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h)], [$str=cat(c$id$orig_h)]);
+	Metrics::add_data("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h)], [$str=cat(c$id$orig_h)]);
 	}

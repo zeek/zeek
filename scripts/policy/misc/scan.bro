@@ -1,6 +1,6 @@
 ##! Scan detection
 ##!
-##! ..Authors: Sheharbano Kattack
+##! ..Authors: Sheharbano Khattak
 ##!            Seth Hall
 ##!            All the authors of the old scan.bro
 

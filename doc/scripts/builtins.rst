@@ -553,13 +553,21 @@ The Bro scripting language supports the following built-in types.
     hook handlers and any forward declaration of a given hook.
 
     To invoke immediate execution of all hook handler bodies, they
-    can be called just like a function:
+    are called similarly to a function, except preceded by the ``hook``
+    keyword:
 
     .. code:: bro
 
-        myhook("hi");
+        hook myhook("hi");
 
-    And the output would like like::
+    or
+
+    .. code:: bro
+
+        if ( hook myhook("hi") )
+            print "all handlers ran";
+
+    And the output would look like::
 
         priority 10 myhook handler, hi
         break out of myhook handling, bye

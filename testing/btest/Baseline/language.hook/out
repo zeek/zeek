@@ -8,6 +8,9 @@ T
 myhook4, 2
 myhook4, 1
 T
+myhook4, 2
+myhook4, 1
+myhook4 all handlers ran
 myhook, &priority=10, [a=2, b=it works]
 myhook return F
 myhook return T

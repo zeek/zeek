@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 87
+%expect 88
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -32,6 +32,7 @@
 
 %token TOK_NO_TEST
 
+%nonassoc TOK_HOOK
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
@@ -118,6 +119,7 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
+static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -515,7 +517,16 @@ expr:
 	|	expr '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new CallExpr($1, $3);
+			$$ = new CallExpr($1, $3, in_hook > 0);
+			}
+
+	|	TOK_HOOK { ++in_hook; } expr
+			{
+			--in_hook;
+			set_location(@1, @3);
+			if ( $3->Tag() != EXPR_CALL )
+				$3->Error("not a valid hook call expression");
+			$$ = $3;
 			}
 
 	|	expr TOK_HAS_FIELD TOK_ID

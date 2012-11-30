@@ -4374,7 +4374,7 @@ bool InExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args)
+CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 : Expr(EXPR_CALL)
 	{
 	func = arg_func;
@@ -4390,6 +4390,13 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args)
 	if ( ! IsFunc(func_type->Tag()) )
 		{
 		func->Error("not a function");
+		SetError();
+		return;
+		}
+
+	if ( func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK && ! in_hook )
+		{
+		func->Error("hook cannot be called directly, use hook operator");
 		SetError();
 		return;
 		}

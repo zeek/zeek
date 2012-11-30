@@ -74,16 +74,20 @@ hook myhook4() &priority=2
 
 event bro_init()
 	{
-	print myhook([$a=1156, $b="hello world"]);
+	print hook myhook([$a=1156, $b="hello world"]);
 
 	# A hook with no handlers is fine, it's just a no-op.
-	print myhook2("nope");
+	print hook myhook2("nope");
 
-	print myhook3(8);
-	print myhook4();
+	print hook myhook3(8);
+	print hook myhook4();
+	if ( hook myhook4() )
+		{
+		print "myhook4 all handlers ran";
+		}
 
 	# A hook can be treated like other data types and doesn't have to be
 	# invoked directly by name.
 	local h = myhook;
-	print h([$a=2, $b="it works"]);
+	print hook h([$a=2, $b="it works"]);
 	}

@@ -11,31 +11,39 @@ module Scan;
 
 export {
 	redef enum Notice::Type += {
-		AddressScan,
-		PortScan,
+		## Address scans detect that a host appears to be scanning
+		## some number of other hosts on a single port.
+		Address_Scan,
+		## Port scans detect that a host appears to be scanning a
+		## single other host on numerous ports.
+		Port_Scan,
 		};
 
-	const analyze_addr_scan = T &redef;
-	const analyze_port_scan = T &redef;
+	## Interval at which to watch for an address scan detection threshold to be crossed.
+	const addr_scan_interval = 5min &redef;
+	## Interval at which to watch for a port scan detection threshold to be crossed.
+	const port_scan_interval = 5min &redef;
 
-	## Interval at which to watch for the
-	## :bro:id:`Scan::conn_failed_(port|addr)_threshold` variable to be crossed.
-	## At the end of each interval the counter is reset.
-	const conn_failed_addr_interval = 5min &redef;
-	const conn_failed_port_interval = 5min &redef;
+	## The threshold of a unique number of hosts a scanning host has to have failed 
+	## connections with on a single port.
+	const addr_scan_threshold = 25 &redef;
+	## The threshold of a number of unique ports a scanning host has to have failed
+	## connections with on a single victim host.
+	const port_scan_threshold = 15 &redef;
 
-	const default_addr_scan_threshold = 25 &redef;
-	const default_port_scan_threshold = 15 &redef;
-
-	# Custom threholds based on service for address scan
+	## Custom threholds based on service for address scan.  This is primarily 
+	## useful for setting reduced thresholds for specific ports.
 	const addr_scan_custom_thresholds: table[port] of count &redef;
 }
 
 
 function check_addr_scan_threshold(index: Metrics::Index, val: Metrics::ResultVal): bool
 	{
-	local service = to_port(index$str);
+	# We don't need to do this if no custom thresholds are defined.
+	if ( |addr_scan_custom_thresholds| == 0 )
+		return F;
 
+	local service = to_port(index$str);
 	return ( service in addr_scan_custom_thresholds &&
 	         val$sum > addr_scan_custom_thresholds[service] );
 	}
@@ -45,12 +53,12 @@ function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 	local side = Site::is_local_addr(index$host) ? "local" : "remote";
 	local message=fmt("%s scanned %d unique hosts on port %s", index$host, val$unique, index$str);
 
-	NOTICE([$note=AddressScan,
+	NOTICE([$note=Address_Scan,
 	        $src=index$host,
 	        $p=to_port(index$str),
 	        $sub=side,
 	        $msg=message,
-	        $identifier=message]);
+	        $identifier=cat(index)]);
 	}
 
 function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
@@ -58,58 +66,46 @@ function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 	local side = Site::is_local_addr(index$host) ? "local" : "remote";
 	local message = fmt("%s scanned %d unique ports of host %s", index$host, val$unique, index$str);
 
-	NOTICE([$note=PortScan, 
+	NOTICE([$note=Port_Scan, 
 	        $src=index$host,
 	        $dst=to_addr(index$str),
 	        $sub=side,
 	        $msg=message,
-	        $identifier=message]);
+	        $identifier=cat(index)]);
 	}
 
 event bro_init() &priority=5
 	{
-	# Add local networks here to determine scan direction
-	# i.e. inbound scan / outbound scan
-	#add Site::local_nets[0.0.0.0/16];
+	# note=> Addr scan: table [src_ip, port] of set(dst);	
+	# Add filters to the metrics so that the metrics framework knows how to
+	# determine when it looks like an actual attack and how to respond when
+	# thresholds are crossed.
+	Metrics::add_filter("scan.addr.fail", [$log=F,
+	                                       $every=addr_scan_interval,
+	                                       $measure=set(Metrics::UNIQUE),
+	                                       $threshold_func=check_addr_scan_threshold,
+	                                       $threshold=addr_scan_threshold,
+	                                       $threshold_crossed=addr_scan_threshold_crossed]); 
 
-	if ( analyze_addr_scan )
-		{
-		# note=> Addr scan: table [src_ip, port] of set(dst);	
-		# Add filters to the metrics so that the metrics framework knows how to
-		# determine when it looks like an actual attack and how to respond when
-		# thresholds are crossed.
-		Metrics::add_filter("scan.addr.fail", [$log=F,
-		                                       $every=conn_failed_addr_interval,
-		                                       $measure=set(Metrics::UNIQUE),
-		                                       $threshold_func=check_addr_scan_threshold,
-		                                       $threshold=default_addr_scan_threshold,
-		                                       $threshold_crossed=addr_scan_threshold_crossed]); 
-		}
-
-	if ( analyze_port_scan )
-		{
-		# note=> Port Sweep: table[src_ip, dst_ip] of set(port);
-		# Add filters to the metrics so that the metrics framework knows how to
-		# determine when it looks like an actual attack and how to respond when
-		# thresholds are crossed.
-		Metrics::add_filter("scan.port.fail", [$log=F,
-		                                       $every=conn_failed_port_interval,
-		                                       $measure=set(Metrics::UNIQUE),
-		                                       $threshold=default_port_scan_threshold,
-		                                       $threshold_crossed=port_scan_threshold_crossed]); 
-		}
+	# note=> Port Sweep: table[src_ip, dst_ip] of set(port);
+	# Add filters to the metrics so that the metrics framework knows how to
+	# determine when it looks like an actual attack and how to respond when
+	# thresholds are crossed.
+	Metrics::add_filter("scan.port.fail", [$log=F,
+	                                       $every=port_scan_interval,
+	                                       $measure=set(Metrics::UNIQUE),
+	                                       $threshold=port_scan_threshold,
+	                                       $threshold_crossed=port_scan_threshold_crossed]); 
 	}
 
 function is_failed_conn(c: connection): bool
 	{
 	# Sr || ( (hR || ShR) && (data not sent in any direction) ) 
 	if ( (c$orig$state == TCP_SYN_SENT && c$resp$state == TCP_RESET) ||
-	     (
-	      ((c$orig$state == TCP_RESET && c$resp$state == TCP_SYN_ACK_SENT) ||
+	     (((c$orig$state == TCP_RESET && c$resp$state == TCP_SYN_ACK_SENT) ||
 	       (c$orig$state == TCP_RESET && c$resp$state == TCP_ESTABLISHED && "S" in c$history )
-	      ) &&
-	      !("D" in c$history || "d" in c$history)
-	     ) )
+	      ) && /[Dd]/ !in c$history )
+	   )
 		return T;
 	return F;
 	}
@@ -119,33 +115,25 @@ function is_reverse_failed_conn(c: connection): bool
 	# reverse scan i.e. conn dest is the scanner
 	# sR || ( (Hr || sHr) && (data not sent in any direction) ) 
 	if ( (c$resp$state == TCP_SYN_SENT && c$orig$state == TCP_RESET) ||
-	     (
-	      ((c$resp$state == TCP_RESET && c$orig$state == TCP_SYN_ACK_SENT) ||
+	     (((c$resp$state == TCP_RESET && c$orig$state == TCP_SYN_ACK_SENT) ||
 	       (c$resp$state == TCP_RESET && c$orig$state == TCP_ESTABLISHED && "s" in c$history )
-	      ) &&
-	      !("D" in c$history || "d" in c$history)
-	     ) )
+	      ) && /[Dd]/ !in c$history )
+	   )
 		return T;
 	return F;
 	}
 
 function add_metrics(id: conn_id, reverse: bool)
 	{
-	local scanner:      addr;
-	local victim:       addr;
-	local scanned_port: port;
+	local scanner      = id$orig_h;
+	local victim       = id$resp_h;
+	local scanned_port = id$resp_p;
 
 	if ( reverse )
 		{
 		scanner      = id$resp_h;
 		victim       = id$orig_h;
 		scanned_port = id$orig_p;
-		}
-	else
-		{
-		scanner      = id$orig_h;
-		victim       = id$resp_h;
-		scanned_port = id$resp_p;
 		}
 
 	# Defaults to be implemented with a hook...
@@ -173,12 +161,10 @@ function add_metrics(id: conn_id, reverse: bool)
 	#	return F;
 
 	# Probably do a hook point here?
-	if ( analyze_addr_scan )
-		Metrics::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
+	Metrics::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
 
 	# Probably do a hook point here?
-	if ( analyze_port_scan )
-		Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
+	Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
 	}
 
 ## Generated for an unsuccessful connection attempt. This 
@@ -236,7 +222,7 @@ event connection_pending(c: connection)
 ## originator sent an ACK, indicated by ‘A’ in the history string.
 #event connection_established(c: connection)
 #	{
-	# Not useful for scan (too early)
+#	# Not useful for scan (too early)
 #	}
 
 ## Generated when one endpoint of a TCP connection attempted 
@@ -245,6 +231,6 @@ event connection_pending(c: connection)
 ## routing, in which Bro only sees one side of a connection.
 #event connection_half_finished(c: connection)
 #	{
-	# Half connections never were "established", so do scan-checking here.
-	# I am not taking *f cases of c$history into account. Ask Seth if I should
+#	# Half connections never were "established", so do scan-checking here.
+#	# I am not taking *f cases of c$history into account. Ask Seth if I should
 #	}

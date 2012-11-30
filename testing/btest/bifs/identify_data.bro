@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT | sed 's/PNG image data/PNG image/g' >out
+# @TEST-EXEC: bro -b %INPUT | sed 's/PNG image data/PNG image/g' >out
 # @TEST-EXEC: btest-diff out
 
 event bro_init()

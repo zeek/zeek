@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: bro %INPUT >out1
+# @TEST-EXEC: bro -b %INPUT >out1
 # @TEST-EXEC: btest-diff out1
 # @TEST-EXEC: bro -r $TRACES/web.trace %INPUT >out2
 # @TEST-EXEC: btest-diff out2

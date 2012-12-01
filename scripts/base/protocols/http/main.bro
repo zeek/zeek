@@ -94,6 +94,17 @@ export {
 		"XROXY-CONNECTION",
 		"PROXY-CONNECTION",
 	} &redef;
+
+	## A list of HTTP methods. Other methods will generate a weird.
+	const http_methods: set[string] = {
+		"GET", "POST", "HEAD", "OPTIONS", 
+		"PUT", "DELETE", "TRACE", "CONNECT",
+		# HTTP methods for distributed authoring:
+		"PROPFIND", "PROPPATCH", "MKCOL",
+		"COPY", "MOVE", "LOCK", "UNLOCK",
+		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
+		"SEARCH"
+	} &redef;
 	
 	## Event that can be handled to access the HTTP record as it is sent on 
 	## to the logging framework.
@@ -180,6 +191,9 @@ event http_request(c: connection, method: string, original_URI: string,
 	
 	c$http$method = method;
 	c$http$uri = unescaped_URI;
+	
+	if ( !(method in http_methods) )
+		event conn_weird("unknown_HTTP_method", c, method);	     	     
 	}
 	
 event http_reply(c: connection, version: string, code: count, reason: string) &priority=5

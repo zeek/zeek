@@ -4394,6 +4394,13 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 		return;
 		}
 
+	if ( func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK && ! in_hook )
+		{
+		func->Error("hook cannot be called directly, use hook operator");
+		SetError();
+		return;
+		}
+
 	if ( ! func_type->MatchesIndex(args) )
 		SetError("argument type mismatch in function call");
 	else
@@ -4415,13 +4422,8 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 				break;
 
 			case FUNC_FLAVOR_HOOK:
-				// It's fine to not have a yield if it's known that the call
-				// is being done from a hook statement.
-				if ( ! in_hook )
-					{
-					Error("hook called in expression, use hook statement instead");
-					SetError();
-					}
+				Error("hook has no yield type");
+				SetError();
 				break;
 
 			default:

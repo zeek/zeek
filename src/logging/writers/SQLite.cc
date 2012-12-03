@@ -294,7 +294,7 @@ void SQLite::ValToAscii(ODesc* desc, Value* val)
 	case TYPE_VECTOR:
 		assert(false);
 		// this would mean that we have a table/vector inside a table/vector.
-		// that is not possible and shoulr have been caught way earlier.
+		// that is not possible and should have been caught way earlier.
 
 	default:
 		// there may not be any types that we do not know here.

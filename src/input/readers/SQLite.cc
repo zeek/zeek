@@ -149,7 +149,6 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 
 	case TYPE_INT:
 		val->val.int_val = sqlite3_column_int64(st, pos);
-		printf("Value: %d\n", val->val.int_val);
 		break;
 
 	case TYPE_DOUBLE:

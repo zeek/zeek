@@ -1,4 +1,9 @@
 
+2.1-194 | 2012-12-03 14:36:26 -0800
+
+  * Renaming ASCII writer filter option 'only_single_header_row' to
+    'tsv'. Also clarifying usage. Closes #912. (Robin Sommer)
+
 2.1-193 | 2012-12-03 14:11:14 -0800
 
   * Fix a set of bugs with table/set attributes. (Jon Siwek)

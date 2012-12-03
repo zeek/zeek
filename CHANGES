@@ -1,4 +1,14 @@
 
+2.1-191 | 2012-12-03 14:08:56 -0800
+
+  * Add test of record() constructor to table initializer unit test.
+    (Jon Siwek)
+
+  * Fix table(), set(), vector() constructors in table initializer
+    lists. Also adds type checking of yield values to table()
+    constructor and fixes the type checking of yield values in
+    vector() constructor. Addresses #5. (Jon Siwek)
+
 2.1-188 | 2012-12-03 14:04:29 -0800
 
   * Hook functions now callable with "hook" expression (i.e., hook is

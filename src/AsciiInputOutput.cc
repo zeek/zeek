@@ -13,12 +13,21 @@ AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t)
 	}
 
 AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const string & separator, const string & set_separator, 
-				const string & empty_field, const string & unset_field) 
+				 const string & unset_field, const string & empty_field) 
 	{
 	thread = t;
 	this->separator = separator;
 	this->set_separator = set_separator;
+	this->unset_field = unset_field;
 	this->empty_field = empty_field;
+	}
+
+AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const string & separator, const string & set_separator, 
+				 const string & unset_field) 
+	{
+	thread = t;
+	this->separator = separator;
+	this->set_separator = set_separator;
 	this->unset_field = unset_field;
 	}
 
@@ -275,7 +284,7 @@ threading::Value* AsciiInputOutput::EntryToVal(string s, string name, TypeTag ty
 
 		unsigned int pos = 0;
 
-		if ( s.compare(empty_field) == 0 )
+		if ( empty_field.size() > 0 && s.compare(empty_field) == 0 )
 			length = 0;
 
 		threading::Value** lvals = new threading::Value* [length];

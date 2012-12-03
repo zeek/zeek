@@ -15,7 +15,13 @@ class AsciiInputOutput {
 		// Constructor that defines all separators, etc.
 		// Use if you need either ValToODesc or EntryToVal.
 		AsciiInputOutput(threading::MsgThread*, const string & separator, const string & set_separator, 
-				const string & empty_field, const string & unset_field);
+				 const string & unset_field, const string & empty_field);
+		
+		// Constructor that defines all separators, etc, besides empty_field, which is not needed for many
+		// non-ascii-based io sources.
+		// Use if you need either ValToODesc or EntryToVal.
+		AsciiInputOutput(threading::MsgThread*, const string & separator, const string & set_separator, 
+				 const string & unset_field);
 		~AsciiInputOutput();
 
 

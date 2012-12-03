@@ -52,7 +52,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	desc.EnableEscaping();
 	desc.AddEscapeSequence(separator);
 
-	io = new AsciiInputOutput(this, separator, set_separator, empty_field, unset_field);
+	io = new AsciiInputOutput(this, separator, set_separator, unset_field, empty_field);
 	}
 
 Ascii::~Ascii()

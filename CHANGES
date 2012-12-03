@@ -1,4 +1,16 @@
 
+2.1-184 | 2012-12-03 13:59:50 -0800
+
+  * Slightly fix up file name extraction from Content-Disposition
+    headers. (Seth Hall)
+
+  * Adding -b flag to bro in unit tests so they run faster.
+
+  * Fixed a DNS attribute issue. Reported by Matt Thompson. (Seth
+    Hall)
+
+  * Adding NEWS placeholder for hooks and CSV mode. (Robin Sommer)
+    
 2.1-178 | 2012-11-23 19:35:32 -0800
 
   * The ASCII writer now supports a new filter config option

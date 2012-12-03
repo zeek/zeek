@@ -303,7 +303,7 @@ extern bool safe_write(int fd, const char* data, int len);
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);
 
-extern void out_of_memory(const char* where);
+extern "C" void out_of_memory(const char* where);
 
 inline void* safe_realloc(void* ptr, size_t size)
 	{

@@ -2,12 +2,29 @@
 
 #include "config.h"
 
+#include "AsciiInputOutput.h"
+#include "bro_inet_ntop.h"
 
-bool AsciiInputOutput::ValToText(ODesc* desc, Value* val, const Field* field)
+AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const string & separator, const string & set_separator, 
+				const string & empty_field, const string & unset_field) 
+	{
+	thread = t;
+	this->separator = separator;
+	this->set_separator = set_separator;
+	this->empty_field = empty_field;
+	this->unset_field = unset_field;
+	}
+
+
+AsciiInputOutput::~AsciiInputOutput()
+	{
+	}
+
+bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const threading::Field* field) const
 	{
 	if ( ! val->present )
 		{
-		desc->AddN(unset_field, unset_field_len);
+		desc->Add(unset_field);
 		return true;
 		}
 
@@ -63,11 +80,11 @@ bool AsciiInputOutput::ValToText(ODesc* desc, Value* val, const Field* field)
 
 		if ( ! size )
 			{
-			desc->AddN(empty_field, empty_field_len);
+			desc->Add(empty_field);
 			break;
 			}
 
-		if ( size == unset_field_len && memcmp(data, unset_field, size) == 0 )
+		if ( size == unset_field.size() && memcmp(data, unset_field.data(), size) == 0 )
 			{
 			// The value we'd write out would match exactly the
 			// place-holder we use for unset optional fields. We
@@ -93,23 +110,23 @@ bool AsciiInputOutput::ValToText(ODesc* desc, Value* val, const Field* field)
 		{
 		if ( ! val->val.set_val.size )
 			{
-			desc->AddN(empty_field, empty_field_len);
+			desc->Add(empty_field);
 			break;
 			}
 
-		desc->AddEscapeSequence(set_separator, set_separator_len);
+		desc->AddEscapeSequence(set_separator);
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddRaw(set_separator, set_separator_len);
+				desc->AddRaw(set_separator);
 
-			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
+			if ( ! ValToODesc(desc, val->val.set_val.vals[j], field) )
 				{
-				desc->RemoveEscapeSequence(set_separator, set_separator_len);
+				desc->RemoveEscapeSequence(set_separator);
 				return false;
 				}
 			}
-		desc->RemoveEscapeSequence(set_separator, set_separator_len);
+		desc->RemoveEscapeSequence(set_separator);
 
 		break;
 		}
@@ -118,32 +135,76 @@ bool AsciiInputOutput::ValToText(ODesc* desc, Value* val, const Field* field)
 		{
 		if ( ! val->val.vector_val.size )
 			{
-			desc->AddN(empty_field, empty_field_len);
+			desc->Add(empty_field);
 			break;
 			}
 
-		desc->AddEscapeSequence(set_separator, set_separator_len);
+		desc->AddEscapeSequence(set_separator);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddRaw(set_separator, set_separator_len);
+				desc->AddRaw(set_separator);
 
-			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
+			if ( ! ValToODesc(desc, val->val.vector_val.vals[j], field) )
 				{
-				desc->RemoveEscapeSequence(set_separator, set_separator_len);
+				desc->RemoveEscapeSequence(set_separator);
 				return false;
 				}
 			}
-		desc->RemoveEscapeSequence(set_separator, set_separator_len);
+		desc->RemoveEscapeSequence(set_separator);
 
 		break;
 		}
 
 	default:
-		Error(Fmt("unsupported field format %d for %s", val->type, field->name));
+		thread->Error(thread->Fmt("unsupported field format %d for %s", val->type, field->name));
 		return false;
 	}
 
 	return true;
+	}
+
+
+string AsciiInputOutput::Render(const threading::Value::addr_t& addr) 
+	{
+	if ( addr.family == IPv4 )
+		{
+		char s[INET_ADDRSTRLEN];
+
+		if ( ! bro_inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) )
+			return "<bad IPv4 address conversion>";
+		else
+			return s;
+		}
+	else
+		{
+		char s[INET6_ADDRSTRLEN];
+
+		if ( ! bro_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
+			return "<bad IPv6 address conversion>";
+		else
+			return s;
+		}
+	}
+
+string AsciiInputOutput::Render(const threading::Value::subnet_t& subnet) 
+	{
+	char l[16];
+
+	if ( subnet.prefix.family == IPv4 )
+		modp_uitoa10(subnet.length - 96, l);
+	else
+		modp_uitoa10(subnet.length, l);
+
+	string s = Render(subnet.prefix) + "/" + l;
+
+	return s;
+	}
+
+string AsciiInputOutput::Render(double d) 
+	{
+	char buf[256];
+	modp_dtoa(d, buf, 6);
+	return buf;
 	}
 

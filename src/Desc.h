@@ -118,6 +118,7 @@ public:
 
 	// Bypasses the escaping enabled via SetEscape().
 	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
+	void AddRaw(const string &s)		{ AddBytesRaw(s.data(), s.size()); }
 
 	// Returns the description as a string.
 	const char* Description() const		{ return (const char*) base; }

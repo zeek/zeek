@@ -16,6 +16,7 @@
 #include "BroString.h"
 #include "NetVar.h"
 #include "threading/SerialTypes.h"
+#include "../../AsciiInputOutput.h"
 
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -124,13 +125,13 @@ bool ElasticSearch::AddValueToBuffer(ODesc* b, Value* val)
 
 		case TYPE_SUBNET:
 			b->AddRaw("\"", 1);
-			b->Add(Render(val->val.subnet_val));
+			b->Add(AsciiInputOutput::Render(val->val.subnet_val));
 			b->AddRaw("\"", 1);
 			break;
 
 		case TYPE_ADDR:
 			b->AddRaw("\"", 1);
-			b->Add(Render(val->val.addr_val));
+			b->Add(AsciiInputOutput::Render(val->val.addr_val));
 			b->AddRaw("\"", 1);
 			break;
 

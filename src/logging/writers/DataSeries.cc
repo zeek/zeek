@@ -46,10 +46,10 @@ std::string DataSeries::LogValueToString(threading::Value *val)
 		}
 
 	case TYPE_SUBNET:
-		return Render(val->val.subnet_val);
+		return AsciiInputOutput::Render(val->val.subnet_val);
 
 	case TYPE_ADDR:
-		return Render(val->val.addr_val);
+		return AsciiInputOutput::Render(val->val.addr_val);
 
 	// Note: These two cases are relatively special.  We need to convert
 	// these values into their integer equivalents to maximize precision.
@@ -69,10 +69,10 @@ std::string DataSeries::LogValueToString(threading::Value *val)
 			return ostr.str();
 			}
 		else
-			return Render(val->val.double_val);
+			return AsciiInputOutput::Render(val->val.double_val);
 
 	case TYPE_DOUBLE:
-		return Render(val->val.double_val);
+		return AsciiInputOutput::Render(val->val.double_val);
 
 	case TYPE_ENUM:
 	case TYPE_STRING:

@@ -284,6 +284,7 @@ set(bro_SRCS
     Analyzer.cc
     Anon.cc
     ARP.cc
+    AsciiInputOutput.cc
     Attr.cc
     AYIYA.cc
     BackDoor.cc

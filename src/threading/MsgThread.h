@@ -400,7 +400,7 @@ private:
 };
 
 /**
- * A paremeterized OututMessage that stores a pointer to an argument object.
+ * A paremeterized OutputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
 template<typename O>

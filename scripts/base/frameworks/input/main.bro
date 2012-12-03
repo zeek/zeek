@@ -11,6 +11,24 @@ export {
 	## The default reader mode used. Defaults to `MANUAL`.
 	const default_mode = MANUAL &redef;
 
+	## Separator between fields.
+	## Please note that the separator has to be exactly one character long
+	## Can be overwritten by individual writers.
+	const separator = "\t" &redef;
+
+	## Separator between set elements.
+	## Please note that the separator has to be exactly one character long
+	## Can be overwritten by individual writers.
+	const set_separator = "," &redef;
+
+	## String to use for empty fields.
+	## Can be overwritten by individual writers.	
+	const empty_field = "(empty)" &redef;
+
+	## String to use for an unset &optional field.
+	## Can be overwritten by individual writers.
+	const unset_field = "-" &redef;
+
 	## Flag that controls if the input framework accepts records
 	## that contain types that are not supported (at the moment
 	## file and function). If true, the input framework will

@@ -4,6 +4,7 @@
 #define INPUT_READERS_BENCHMARK_H
 
 #include "../ReaderBackend.h"
+#include "../../AsciiInputOutput.h"
 
 namespace input { namespace reader {
 
@@ -38,6 +39,8 @@ private:
 	double heartbeatstarttime;
 	double timedspread;
 	double heartbeat_interval;
+
+	AsciiInputOutput* io;
 };
 
 

@@ -24,12 +24,22 @@ using threading::Field;
 
 SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
-	set_separator_len = BifConst::LogSQLite::set_separator->Len();
-	set_separator = new char[set_separator_len];
-	memcpy(set_separator, BifConst::LogSQLite::set_separator->Bytes(),
-	       set_separator_len);
+
+	set_separator.assign(
+			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
+			BifConst::LogAscii::set_separator->Len()
+			);
+
+
+	unset_field.assign(
+			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
+			BifConst::LogAscii::unset_field->Len()
+			);
+
 
 	db = 0;
+
+	io = new AsciiInputOutput(this, set_separator, unset_field);
 	}
 
 SQLite::~SQLite()
@@ -39,6 +49,8 @@ SQLite::~SQLite()
 		sqlite3_close(db);
 		db = 0;
 		}
+
+	delete io;
 	}
 
 string SQLite::GetTableType(int arg_type, int arg_subtype) {
@@ -226,84 +238,6 @@ char* SQLite::FS(const char* format, ...) {
 	return buf;
 }
 
-// this one is mainly ripped from Ascii.cc - with some adaptions.
-void SQLite::ValToAscii(ODesc* desc, Value* val)
-	{
-	if ( ! val->present )
-		{
-			assert(false);
-		}
-
-	switch ( val->type ) {
-
-	case TYPE_BOOL:
-		desc->Add(val->val.int_val ? "T" : "F");
-		break;
-
-	case TYPE_INT:
-		desc->Add(val->val.int_val);
-		break;
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		desc->Add(val->val.uint_val);
-		break;
-
-	case TYPE_PORT:
-		desc->Add(val->val.port_val.port);
-		break;
-
-	case TYPE_SUBNET:
-		desc->Add(Render(val->val.subnet_val));
-		break;
-
-	case TYPE_ADDR:
-		desc->Add(Render(val->val.addr_val));
-		break;
-
-	case TYPE_DOUBLE:
-		// Rendering via Add() truncates trailing 0s after the
-		// decimal point. The difference with TIME/INTERVAL is mainly
-		// to keep the log format consistent.
-		desc->Add(val->val.double_val);
-		break;
-
-	case TYPE_INTERVAL:
-	case TYPE_TIME:
-		// Rendering via Render() keeps trailing 0s after the decimal
-		// point. The difference with DOUBLEis mainly to keep the log
-		// format consistent.
-		desc->Add(Render(val->val.double_val));
-		break;
-
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
-		{
-		int size = val->val.string_val.length;
-		const char* data = val->val.string_val.data;
-
-		if ( size )
-			desc->AddN(data, size);
-
-		break;
-		}
-
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
-		assert(false);
-		// this would mean that we have a table/vector inside a table/vector.
-		// that is not possible and should have been caught way earlier.
-
-	default:
-		// there may not be any types that we do not know here.
-		assert(false);
-	}
-
-	}
-
-
 int SQLite::AddParams(Value* val, int pos)
 	{
 
@@ -329,13 +263,13 @@ int SQLite::AddParams(Value* val, int pos)
 
 	case TYPE_SUBNET:
 		{
-		string out = Render(val->val.subnet_val).c_str();
+		string out = io->Render(val->val.subnet_val).c_str();
 		return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
 		}
 
 	case TYPE_ADDR:
 		{
-		string out = Render(val->val.addr_val).c_str();			
+		string out = io->Render(val->val.addr_val).c_str();			
 		return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
 		}
 
@@ -359,17 +293,19 @@ int SQLite::AddParams(Value* val, int pos)
 		{
 		ODesc desc;
 		desc.Clear();		
-		desc.AddEscapeSequence(set_separator, set_separator_len);
+		desc.AddEscapeSequence(set_separator);
 
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc.AddRaw(set_separator, set_separator_len);
+				desc.AddRaw(set_separator);
 
-			ValToAscii(&desc, val->val.set_val.vals[j]);
+			io->ValToODesc(&desc, val->val.set_val.vals[j], NULL); 
+			// yes, giving NULL here is not really really pretty....
+			// it works however, because tables cannot contain tables...
+			// or vectors.
 			}
-
-
+		desc.RemoveEscapeSequence(set_separator);		
 		return sqlite3_bind_text(st, pos, (const char*) desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
 		}
 
@@ -377,16 +313,17 @@ int SQLite::AddParams(Value* val, int pos)
 		{
 		ODesc desc;
 		desc.Clear();		
-		desc.AddEscapeSequence(set_separator, set_separator_len);
+		desc.AddEscapeSequence(set_separator);
 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc.AddRaw(set_separator, set_separator_len);
+				desc.AddRaw(set_separator);
 
-			ValToAscii(&desc, val->val.vector_val.vals[j]);
+			io->ValToODesc(&desc, val->val.vector_val.vals[j], NULL);
 			}
 
+		desc.RemoveEscapeSequence(set_separator);		
 
 		return sqlite3_bind_text(st, pos, (const char*) desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
 		}

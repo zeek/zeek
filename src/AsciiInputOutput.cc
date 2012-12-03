@@ -134,6 +134,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 			if ( j > 0 )
 				desc->AddRaw(set_separator);
 
+			assert(field != 0);
 			if ( ! ValToODesc(desc, val->val.set_val.vals[j], field) )
 				{
 				desc->RemoveEscapeSequence(set_separator);
@@ -159,6 +160,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 			if ( j > 0 )
 				desc->AddRaw(set_separator);
 
+			assert(field != 0);
 			if ( ! ValToODesc(desc, val->val.vector_val.vals[j], field) )
 				{
 				desc->RemoveEscapeSequence(set_separator);

@@ -12,6 +12,7 @@
 
 #include "../WriterBackend.h"
 #include "sqlite3.h"
+#include "../../AsciiInputOutput.h"
 
 namespace logging { namespace writer {
 
@@ -37,7 +38,6 @@ protected:
 
 private:
 	bool checkError(int code);
-	void ValToAscii(ODesc* desc, threading::Value* val);
 
 	int AddParams(threading::Value* val, int pos);
 	string GetTableType(int, int);
@@ -46,8 +46,11 @@ private:
 	sqlite3 *db;
 	sqlite3_stmt *st;
 
-	char* set_separator;
-	int set_separator_len;
+	string separator;
+	string set_separator;
+	string unset_field;
+	
+	AsciiInputOutput* io;
 };
 
 }

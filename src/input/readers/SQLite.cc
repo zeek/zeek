@@ -23,13 +23,13 @@ using threading::Field;
 
 SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
-	
+	io = new AsciiInputOutput(this);
 	}
 
 SQLite::~SQLite()
 	{
 	DoClose();
-
+	delete io;
 	}
 
 void SQLite::DoClose()
@@ -174,7 +174,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		int width = atoi(s.substr(pos+1).c_str());
 		string addr = s.substr(0, pos);
 
-		val->val.subnet_val.prefix = StringToAddr(addr);
+		val->val.subnet_val.prefix = io->StringToAddr(addr);
 		val->val.subnet_val.length = width;		
 		break;
 
@@ -183,7 +183,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));			
-		val->val.addr_val = StringToAddr(s);			  
+		val->val.addr_val = io->StringToAddr(s);			  
 		break;
 		}
 

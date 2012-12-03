@@ -12,7 +12,10 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
+#include "../../AsciiInputOutput.h"
+
 #include "sqlite3.h"
+
 
 namespace input { namespace reader {
 
@@ -47,6 +50,8 @@ private:
 
 	sqlite3 *db;
 	sqlite3_stmt *st;
+
+	AsciiInputOutput* io;
 
 };
 

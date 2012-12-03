@@ -3445,7 +3445,7 @@ Val* SetConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return 0;
 
-	TableVal* aggr = new TableVal(type->AsTableType(), 0);
+	TableVal* aggr = new TableVal(type->AsTableType(), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)

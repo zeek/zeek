@@ -1,4 +1,22 @@
 
+2.1-193 | 2012-12-03 14:11:14 -0800
+
+  * Fix a set of bugs with table/set attributes. (Jon Siwek)
+
+    - Identifiers that are initialized with set()/table() constructor
+      expressions now inherit attributes from the expression.  Before,
+      statements like
+
+         const i: set[string] = set() &redef;
+
+      associated the attribute with the set() constructor, but not the
+      "i" identifier, preventing redefinition.  Addresses #866.
+
+    - Allow &default attribute to apply to tables initialized as empty
+      (via either "{ }" or "table()") or if the expression supplied to it
+      can evaluate to a type that's promotable to the same yield type as
+      the table.
+
 2.1-191 | 2012-12-03 14:08:56 -0800
 
   * Add test of record() constructor to table initializer unit test.

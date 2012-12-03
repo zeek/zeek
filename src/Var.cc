@@ -109,6 +109,36 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	if ( attr )
 		id->AddAttrs(new Attributes(attr, t, false));
 
+	if ( init )
+		{
+		switch ( init->Tag() ) {
+		case EXPR_TABLE_CONSTRUCTOR:
+			{
+			TableConstructorExpr* ctor = (TableConstructorExpr*) init;
+			if ( ctor->Attrs() )
+				{
+				::Ref(ctor->Attrs());
+				id->AddAttrs(ctor->Attrs());
+				}
+			}
+			break;
+
+		case EXPR_SET_CONSTRUCTOR:
+			{
+			SetConstructorExpr* ctor = (SetConstructorExpr*) init;
+			if ( ctor->Attrs() )
+				{
+				::Ref(ctor->Attrs());
+				id->AddAttrs(ctor->Attrs());
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
+		}
+
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
 		if ( dt == VAR_CONST )

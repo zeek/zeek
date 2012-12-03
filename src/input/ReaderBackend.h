@@ -315,21 +315,6 @@ protected:
 	 */
 	void EndCurrentSend();
 
-	/**
-	 *  Convert a string into a TransportProto. This is just a utility
-	 *  function for Readers.
-	 *
-	 * @param proto the transport protocol
-	 */
-	TransportProto StringToProto(const string &proto);
-
-	/**
-	 * Convert a string into a Value::addr_t.  This is just a utility
-	 * function for Readers.
-	 *
-	 * @param addr containing an ipv4 or ipv6 address
-	 */
-	threading::Value::addr_t StringToAddr(const string &addr);
 
 private:
 	// Frontend that instantiated us. This object must not be accessed

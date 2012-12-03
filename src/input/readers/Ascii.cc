@@ -67,11 +67,14 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 			    BifConst::InputAscii::unset_field->Len());
+
+	io = new AsciiInputOutput(this, separator, set_separator, empty_field, unset_field);	
 }
 
 Ascii::~Ascii()
 	{
 	DoClose();
+	delete io;	
 	}
 
 void Ascii::DoClose()
@@ -210,228 +213,7 @@ bool Ascii::GetLine(string& str)
 	return false;
 	}
 
-bool Ascii::CheckNumberError(const string& s, const char * end)
-	{
-	// Do this check first, before executing s.c_str() or similar.
-	// otherwise the value to which *end is pointing at the moment might
-	// be gone ...
-	bool endnotnull =  (*end != '\0');
 
-	if ( s.length() == 0 )
-		{
-		Error("Got empty string for number field");
-		return true;
-		}
-
-	if ( end == s.c_str() ) {
-		Error(Fmt("String '%s' contained no parseable number", s.c_str()));
-		return true;
-	}
-
-	if ( endnotnull )
-		Warning(Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
-
-	if ( errno == EINVAL )
-		{
-		Error(Fmt("String '%s' could not be converted to a number", s.c_str()));
-		return true;
-		}
-
-	else if ( errno == ERANGE )
-		{
-		Error(Fmt("Number '%s' out of supported range.", s.c_str()));
-		return true;
-		}
-
-	return false;
-	}
-
-
-Value* Ascii::EntryToVal(string s, FieldMapping field)
-	{
-	if ( s.compare(unset_field) == 0 )  // field is not set...
-		return new Value(field.type, false);
-
-	Value* val = new Value(field.type, true);
-	char* end = 0;
-	errno = 0;
-
-	switch ( field.type ) {
-	case TYPE_ENUM:
-	case TYPE_STRING:
-		s = get_unescaped_string(s);
-		val->val.string_val.length = s.size();
-		val->val.string_val.data = copy_string(s.c_str());
-		break;
-
-	case TYPE_BOOL:
-		if ( s == "T" )
-			val->val.int_val = 1;
-		else if ( s == "F" )
-			val->val.int_val = 0;
-		else
-			{
-			Error(Fmt("Field: %s Invalid value for boolean: %s",
-				  field.name.c_str(), s.c_str()));
-			return 0;
-			}
-		break;
-
-	case TYPE_INT:
-		val->val.int_val = strtoll(s.c_str(), &end, 10);
-		if ( CheckNumberError(s, end) )
-			return 0;
-		break;
-
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		val->val.double_val = strtod(s.c_str(), &end);
-		if ( CheckNumberError(s, end) )
-			return 0;
-		break;
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		val->val.uint_val = strtoull(s.c_str(), &end, 10);
-		if ( CheckNumberError(s, end) )
-			return 0;
-		break;
-
-	case TYPE_PORT:
-		val->val.port_val.port = strtoull(s.c_str(), &end, 10);
-		if ( CheckNumberError(s, end) )
-			return 0;
-
-		val->val.port_val.proto = TRANSPORT_UNKNOWN;
-		break;
-
-	case TYPE_SUBNET:
-		{
-		s = get_unescaped_string(s);
-		size_t pos = s.find("/");
-		if ( pos == s.npos )
-			{
-			Error(Fmt("Invalid value for subnet: %s", s.c_str()));
-			return 0;
-			}
-
-		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
-
-		if ( CheckNumberError(s, end) )
-			return 0;
-
-		string addr = s.substr(0, pos);
-
-		val->val.subnet_val.prefix = StringToAddr(addr);
-		val->val.subnet_val.length = width;
-		break;
-		}
-
-	case TYPE_ADDR:
-		s = get_unescaped_string(s);
-		val->val.addr_val = StringToAddr(s);
-		break;
-
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
-		// First - common initialization
-		// Then - initialization for table.
-		// Then - initialization for vector.
-		// Then - common stuff
-		{
-		// how many entries do we have...
-		unsigned int length = 1;
-		for ( unsigned int i = 0; i < s.size(); i++ )
-			{
-			if ( s[i] == set_separator[0] )
-				length++;
-			}
-
-		unsigned int pos = 0;
-
-		if ( s.compare(empty_field) == 0 )
-			length = 0;
-
-		Value** lvals = new Value* [length];
-
-		if ( field.type == TYPE_TABLE )
-			{
-			val->val.set_val.vals = lvals;
-			val->val.set_val.size = length;
-			}
-
-		else if ( field.type == TYPE_VECTOR )
-			{
-			val->val.vector_val.vals = lvals;
-			val->val.vector_val.size = length;
-			}
-
-		else
-			assert(false);
-
-		if ( length == 0 )
-			break; //empty
-
-		istringstream splitstream(s);
-		while ( splitstream )
-			{
-			string element;
-
-			if ( ! getline(splitstream, element, set_separator[0]) )
-				break;
-
-			if ( pos >= length )
-				{
-				Error(Fmt("Internal error while parsing set. pos %d >= length %d."
-				          " Element: %s", pos, length, element.c_str()));
-				break;
-				}
-
-			Value* newval = EntryToVal(element, field.subType());
-			if ( newval == 0 )
-				{
-				Error("Error while reading set");
-				return 0;
-				}
-
-			lvals[pos] = newval;
-
-			pos++;
-			}
-
-		// Test if the string ends with a set_separator... or if the
-		// complete string is empty. In either of these cases we have
-		// to push an empty val on top of it.
-		if ( s.empty() || *s.rbegin() == set_separator[0] )
-			{
-			lvals[pos] = EntryToVal("", field.subType());
-			if ( lvals[pos] == 0 )
-				{
-				Error("Error while trying to add empty set element");
-				return 0;
-				}
-
-			pos++;
-			}
-
-		if ( pos != length )
-			{
-			Error(Fmt("Internal error while parsing set: did not find all elements: %s", s.c_str()));
-			return 0;
-			}
-
-		break;
-		}
-
-	default:
-		Error(Fmt("unsupported field format %d for %s", field.type,
-		field.name.c_str()));
-		return 0;
-	}
-
-	return val;
-	}
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
@@ -543,7 +325,7 @@ bool Ascii::DoUpdate()
 				return false;
 				}
 
-			Value* val = EntryToVal(stringfields[(*fit).position], *fit);
+			Value* val = io->EntryToVal(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 			if ( val == 0 )
 				{
 				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
@@ -557,7 +339,7 @@ bool Ascii::DoUpdate()
 				assert(val->type == TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				val->val.port_val.proto = StringToProto(stringfields[(*fit).secondary_position]);
+				val->val.port_val.proto = io->StringToProto(stringfields[(*fit).secondary_position]);
 				}
 
 			fields[fpos] = val;

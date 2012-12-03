@@ -98,31 +98,6 @@ event bro_init() &priority=5
 	                                       $threshold_crossed=port_scan_threshold_crossed]); 
 	}
 
-function is_failed_conn(c: connection): bool
-	{
-	# Sr || ( (hR || ShR) && (data not sent in any direction) ) 
-	if ( (c$orig$state == TCP_SYN_SENT && c$resp$state == TCP_RESET) ||
-	     (((c$orig$state == TCP_RESET && c$resp$state == TCP_SYN_ACK_SENT) ||
-	       (c$orig$state == TCP_RESET && c$resp$state == TCP_ESTABLISHED && "S" in c$history )
-	      ) && /[Dd]/ !in c$history )
-	   )
-		return T;
-	return F;
-	}
-
-function is_reverse_failed_conn(c: connection): bool
-	{
-	# reverse scan i.e. conn dest is the scanner
-	# sR || ( (Hr || sHr) && (data not sent in any direction) ) 
-	if ( (c$resp$state == TCP_SYN_SENT && c$orig$state == TCP_RESET) ||
-	     (((c$resp$state == TCP_RESET && c$orig$state == TCP_SYN_ACK_SENT) ||
-	       (c$resp$state == TCP_RESET && c$orig$state == TCP_ESTABLISHED && "s" in c$history )
-	      ) && /[Dd]/ !in c$history )
-	   )
-		return T;
-	return F;
-	}
-
 function add_metrics(id: conn_id, reverse: bool)
 	{
 	local scanner      = id$orig_h;
@@ -165,6 +140,31 @@ function add_metrics(id: conn_id, reverse: bool)
 
 	# Probably do a hook point here?
 	Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
+	}
+
+function is_failed_conn(c: connection): bool
+	{
+	# Sr || ( (hR || ShR) && (data not sent in any direction) ) 
+	if ( (c$orig$state == TCP_SYN_SENT && c$resp$state == TCP_RESET) ||
+	     (((c$orig$state == TCP_RESET && c$resp$state == TCP_SYN_ACK_SENT) ||
+	       (c$orig$state == TCP_RESET && c$resp$state == TCP_ESTABLISHED && "S" in c$history )
+	      ) && /[Dd]/ !in c$history )
+	   )
+		return T;
+	return F;
+	}
+
+function is_reverse_failed_conn(c: connection): bool
+	{
+	# reverse scan i.e. conn dest is the scanner
+	# sR || ( (Hr || sHr) && (data not sent in any direction) ) 
+	if ( (c$resp$state == TCP_SYN_SENT && c$orig$state == TCP_RESET) ||
+	     (((c$resp$state == TCP_RESET && c$orig$state == TCP_SYN_ACK_SENT) ||
+	       (c$resp$state == TCP_RESET && c$orig$state == TCP_ESTABLISHED && "s" in c$history )
+	      ) && /[Dd]/ !in c$history )
+	   )
+		return T;
+	return F;
 	}
 
 ## Generated for an unsuccessful connection attempt. This 

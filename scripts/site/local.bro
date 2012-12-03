@@ -9,7 +9,7 @@
 @load tuning/defaults
 
 # Load the scan detection script.
-@load protocols/conn/scan
+@load misc/scan
 
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined

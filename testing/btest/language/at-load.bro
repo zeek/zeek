@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 # In this script, we try to access each object defined in a "@load"ed script

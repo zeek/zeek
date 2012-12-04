@@ -1,6 +1,6 @@
 # This tests the @unload directive
 #
-# @TEST-EXEC: bro %INPUT misc/loaded-scripts dontloadmebro > output
+# @TEST-EXEC: bro -b %INPUT misc/loaded-scripts dontloadmebro > output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: grep -q dontloadmebro loaded_scripts.log && exit 1 || exit 0
 

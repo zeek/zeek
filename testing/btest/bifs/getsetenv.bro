@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: TESTBRO=testvalue bro %INPUT >out
+# @TEST-EXEC: TESTBRO=testvalue bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event bro_init()

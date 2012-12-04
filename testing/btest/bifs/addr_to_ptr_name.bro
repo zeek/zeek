@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 print addr_to_ptr_name([2607:f8b0:4009:802::1012]);

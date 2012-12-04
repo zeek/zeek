@@ -143,7 +143,7 @@ event Metrics::cluster_filter_request(uid: string, id: string, filter_name: stri
 	event Metrics::send_data(uid, id, filter_name, store[id, filter_name]);
 	
 	# Lookup the actual filter and reset it, the reference to the data
-	# currently stored will be maintained interally by the send_data event.
+	# currently stored will be maintained internally by the send_data event.
 	reset(filter_store[id, filter_name]);
 	}
 	
@@ -232,6 +232,10 @@ event Metrics::cluster_filter_response(uid: string, id: string, filter_name: str
 	{
 	#print fmt("MANAGER: receiving results from %s", get_event_peer()$descr);
 	
+	# Mark another worker as being "done" for this uid.
+	if ( done )
+		++done_with[uid];
+
 	local local_data = filter_results[uid, id, filter_name];
 	for ( index in data )
 		{
@@ -239,11 +243,18 @@ event Metrics::cluster_filter_response(uid: string, id: string, filter_name: str
 			local_data[index] = merge_result_vals(local_data[index], data[index]);
 		else
 			local_data[index] = data[index];
+
+		# If a filter is done being collected, thresholds for each index
+		# need to checked so we're doing it here to avoid doubly iterating 
+		# over each index.
+		if ( Cluster::worker_count == done_with[uid] )
+			{
+			if ( check_thresholds(filter_store[id, filter_name], index, local_data[index], 1.0) )
+				{
+				threshold_crossed(filter_store[id, filter_name], index, local_data[index]);
+				}
+			}
 		}
-	
-	# Mark another worker as being "done" for this uid.
-	if ( done )
-		++done_with[uid];
 	
 	# If the data has been collected from all peers, we are done and ready to log.
 	if ( Cluster::worker_count == done_with[uid] )

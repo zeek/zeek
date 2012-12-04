@@ -11,17 +11,26 @@ module Scan;
 
 export {
 	redef enum Notice::Type += {
-		## Address scans detect that a host appears to be scanning
-		## some number of other hosts on a single port.
+		## Address scans detect that a host appears to be scanning some number
+		## of hosts on a single port. This notice is generated when more than 
+		## :bro:id:`addr_scan_threshold` unique hosts are seen over the 
+		## previous :bro:id:`addr_scan_interval` time range.
 		Address_Scan,
-		## Port scans detect that a host appears to be scanning a
-		## single other host on numerous ports.
+		## Port scans detect that an attacking host appears to be scanning a 
+		## single victim host on several ports.  This notice is generated when 
+		## an attacking host attempts to connect to :bro:id:`port_scan_threshold` 
+		## unique ports on a single host over the previous 
+		## :bro:id:`port_scan_interval` time range.
 		Port_Scan,
 		};
 
-	## Interval at which to watch for an address scan detection threshold to be crossed.
+	## Failed connection attempts are tracked over this time interval for the address 
+	## scan detection.  A higher interval will detect slower scanners, but may 
+	## also yield more false positives.
 	const addr_scan_interval = 5min &redef;
-	## Interval at which to watch for a port scan detection threshold to be crossed.
+	## Failed connection attempts are tracked over this time interval for the port 
+	## scan detection.  A higher interval will detect slower scanners, but may 
+	## also yield more false positives.
 	const port_scan_interval = 5min &redef;
 
 	## The threshold of a unique number of hosts a scanning host has to have failed 
@@ -48,10 +57,17 @@ function check_addr_scan_threshold(index: Metrics::Index, val: Metrics::ResultVa
 	         val$sum > addr_scan_custom_thresholds[service] );
 	}
 
+function duration_to_mins_secs(dur: interval): string
+	{
+	local dur_count = double_to_count(interval_to_double(dur));
+	return fmt("%dm%ds", dur_count/60, dur_count%60);
+	}
+
 function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
 	{
 	local side = Site::is_local_addr(index$host) ? "local" : "remote";
-	local message=fmt("%s scanned %d unique hosts on port %s in %s", index$host, val$unique, index$str, val$end-val$begin);
+	local dur = duration_to_mins_secs(val$end-val$begin);
+	local message=fmt("%s scanned %d unique hosts on port %s in %s", index$host, val$unique, index$str, dur);
 
 	NOTICE([$note=Address_Scan,
 	        $src=index$host,
@@ -64,7 +80,8 @@ function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
 	{
 	local side = Site::is_local_addr(index$host) ? "local" : "remote";
-	local message = fmt("%s scanned %d unique ports of host %s in %s", index$host, val$unique, index$str, val$end-val$begin);
+	local dur = duration_to_mins_secs(val$end-val$begin);
+	local message = fmt("%s scanned %d unique ports of host %s in %s", index$host, val$unique, index$str, dur);
 
 	NOTICE([$note=Port_Scan, 
 	        $src=index$host,
@@ -208,13 +225,3 @@ event connection_pending(c: connection)
 	else if ( is_reverse_failed_conn(c) )
 		add_metrics(c$id, T);
 	}
-
-## Generated when a SYN-ACK packet is seen in response to a SYN 
-## packet during a TCP handshake. The final ACK of the handshake 
-## in response to SYN-ACK may or may not occur later, one way to 
-## tell is to check the history field of connection to see if the 
-## originator sent an ACK, indicated by ‘A’ in the history string.
-#event connection_established(c: connection)
-#	{
-#	# Not useful for scan (too early)
-#	}

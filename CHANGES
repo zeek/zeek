@@ -1,4 +1,101 @@
 
+2.1-195 | 2012-12-03 14:50:33 -0800
+
+  * Catching out-of-memory in patricia tree code. (Bill Parker)
+    
+2.1-194 | 2012-12-03 14:36:26 -0800
+
+  * Renaming ASCII writer filter option 'only_single_header_row' to
+    'tsv'. Also clarifying usage. Closes #912. (Robin Sommer)
+
+2.1-193 | 2012-12-03 14:11:14 -0800
+
+  * Fix a set of bugs with table/set attributes. (Jon Siwek)
+
+    - Identifiers that are initialized with set()/table() constructor
+      expressions now inherit attributes from the expression.  Before,
+      statements like
+
+         const i: set[string] = set() &redef;
+
+      associated the attribute with the set() constructor, but not the
+      "i" identifier, preventing redefinition.  Addresses #866.
+
+    - Allow &default attribute to apply to tables initialized as empty
+      (via either "{ }" or "table()") or if the expression supplied to it
+      can evaluate to a type that's promotable to the same yield type as
+      the table.
+
+2.1-191 | 2012-12-03 14:08:56 -0800
+
+  * Add test of record() constructor to table initializer unit test.
+    (Jon Siwek)
+
+  * Fix table(), set(), vector() constructors in table initializer
+    lists. Also adds type checking of yield values to table()
+    constructor and fixes the type checking of yield values in
+    vector() constructor. Addresses #5. (Jon Siwek)
+
+2.1-188 | 2012-12-03 14:04:29 -0800
+
+  * Hook functions now callable with "hook" expression (i.e., hook is
+    no longer a statement). The return value of the call is an
+    implicit boolean value of T if all hook handlers ran, or F if one
+    hook handler exited as a result of a break statement and
+    potentially prevented other handlers from running.
+
+    Scripts don't need to declare hooks with an explicit return type of bool
+    (internally, that's assumed), and any values given to (optional) return
+    statements in handler definitions are just ignored.
+
+    Addresses #918. (Jon Siwek)
+
+  * Clarification in hook documentation. (Jon Siwek)
+
+2.1-184 | 2012-12-03 13:59:50 -0800
+
+  * Slightly fix up file name extraction from Content-Disposition
+    headers. (Seth Hall)
+
+  * Adding -b flag to bro in unit tests so they run faster.
+
+  * Fixed a DNS attribute issue. Reported by Matt Thompson. (Seth
+    Hall)
+
+  * Adding NEWS placeholder for hooks and CSV mode. (Robin Sommer)
+    
+2.1-178 | 2012-11-23 19:35:32 -0800
+
+  * The ASCII writer now supports a new filter config option
+    "only_single_header_row" that turns the output into CSV format
+    when set to "T". (Carsten Langer)
+
+  * Add new function flavor called a "hook". This new flavor of
+    function behaves like a "synchronous event". See
+    doc/scripts/builtins.rst more details on usage. (Jon Siwek)
+
+  * Improve auto-generated enum documentation. The names of enum types
+    are tracked so that variables holding a value of a given enum type
+    can generate a reference to it instead of just listing the type as
+    a generic "enum". (Jon Siwek)
+
+2.1-171 | 2012-11-23 18:24:15 -0800
+
+  * Fix ambiguity between composite table index and record ctor
+    expressions. If a table type is "global t = table[conn_id, bool]
+    of count", then checking membership like "[c$id, is_orig] in t"
+    now works. Addresses #80. (Jon Siwek)
+
+2.1-169 | 2012-11-23 18:21:32 -0800
+
+  * Fix some warnings from sphinx when building docs. (Jon Siwek)
+
+2.1-167 | 2012-11-14 13:19:17 -0800
+
+  * Add a new BIF "bytestring_to_double" for converting from a binary
+    representation of a double. Addresses #908. (Carsten Langer/Daniel
+    Thayer)
+
 2.1-162 | 2012-11-13 17:29:00 -0800
 
   * Fix modbus register array parsing. (Jon Siwek)

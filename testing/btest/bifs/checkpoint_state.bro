@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: test -f .state/state.bst
 
 event bro_init()

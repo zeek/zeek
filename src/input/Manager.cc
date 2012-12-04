@@ -393,7 +393,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	bool allow_file_func = false;
 
-	if ( ! etype->IsEvent() )
+	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 		{
 		reporter->Error("stream event is a function, not an event");
 		return false;
@@ -566,7 +566,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		{
 		FuncType* etype = event->FType()->AsFuncType();
 
-		if ( ! etype->IsEvent() )
+		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
 			return false;

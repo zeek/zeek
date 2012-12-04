@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro foo >output
+# @TEST-EXEC: bro -b foo >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE foo/__load__.bro

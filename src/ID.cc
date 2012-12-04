@@ -107,7 +107,8 @@ void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
 #endif
 
 	if ( type && val &&
-	     type->Tag() == TYPE_FUNC && type->AsFuncType()->IsEvent() )
+	     type->Tag() == TYPE_FUNC &&
+	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 		{
 		EventHandler* handler = event_registry->Lookup(name);
 		if ( ! handler )
@@ -657,11 +658,19 @@ void ID::DescribeReSTShort(ODesc* d) const
 				break;
 
 			case TYPE_FUNC:
-				d->Add(type->AsFuncType()->IsEvent() ? "event" : type_name(t));
+				d->Add(type->AsFuncType()->FlavorString());
+				break;
+
+			case TYPE_ENUM:
+				if ( is_type )
+					d->Add(type_name(t));
+				else
+					d->Add(type->AsEnumType()->Name().c_str());
 				break;
 
 			default:
 				d->Add(type_name(t));
+				break;
 			}
 			}
 

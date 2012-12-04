@@ -1332,7 +1332,10 @@ ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 		}
 
 	else if ( ! e )
-		Error("return statement needs expression");
+		{
+		if ( ft->Flavor() != FUNC_FLAVOR_HOOK )
+			Error("return statement needs expression");
+		}
 
 	else
 		(void) check_and_promote_expr(e, yt);

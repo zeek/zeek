@@ -3286,20 +3286,22 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	RecordVal* rv = Eval(0)->AsRecordVal();
-	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+	Val* v = Eval(0);
 
-	if ( ar )
+	if ( v )
 		{
-		Unref(rv);
-		return ar;
+		RecordVal* rv = v->AsRecordVal();
+		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+
+		if ( ar )
+			{
+			Unref(rv);
+			return ar;
+			}
 		}
 
-	else
-		{
-		Error("bad record initializer");
-		return 0;
-		}
+	Error("bad record initializer");
+	return 0;
 	}
 
 Val* RecordConstructorExpr::Fold(Val* v) const

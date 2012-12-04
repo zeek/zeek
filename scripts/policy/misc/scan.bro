@@ -51,7 +51,7 @@ function check_addr_scan_threshold(index: Metrics::Index, val: Metrics::ResultVa
 function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
 	{
 	local side = Site::is_local_addr(index$host) ? "local" : "remote";
-	local message=fmt("%s scanned %d unique hosts on port %s", index$host, val$unique, index$str);
+	local message=fmt("%s scanned %d unique hosts on port %s in %s", index$host, val$unique, index$str, val$end-val$begin);
 
 	NOTICE([$note=Address_Scan,
 	        $src=index$host,
@@ -64,7 +64,7 @@ function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
 	{
 	local side = Site::is_local_addr(index$host) ? "local" : "remote";
-	local message = fmt("%s scanned %d unique ports of host %s", index$host, val$unique, index$str);
+	local message = fmt("%s scanned %d unique ports of host %s in %s", index$host, val$unique, index$str, val$end-val$begin);
 
 	NOTICE([$note=Port_Scan, 
 	        $src=index$host,

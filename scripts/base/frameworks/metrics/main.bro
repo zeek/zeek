@@ -71,6 +71,9 @@ export {
 		## The time when this result was first started.
 		begin:    time          &log;
 
+		## The time when the last value was added to this result.
+		end:      time          &log;
+
 		## The number of measurements received.
 		num:      count         &log &default=0;
 
@@ -277,6 +280,12 @@ function merge_result_vals(rv1: ResultVal, rv2: ResultVal): ResultVal
 	{
 	local result: ResultVal;
 	
+	# Merge $begin (take the earliest one)
+	result$begin = rv1$begin < rv2$begin ? rv1$begin : rv2$begin;
+
+	# Merge $end (take the latest one)
+	result$end = rv1$end > rv2$end ? rv1$end : rv2$end;
+
 	# Merge $num
 	result$num = rv1$num + rv2$num;
 
@@ -442,7 +451,7 @@ function add_data(id: string, index: Index, data: DataPoint)
 		
 		local metric_tbl = store[id, filter$name];
 		if ( index !in metric_tbl )
-			metric_tbl[index] = [$begin=network_time()];
+			metric_tbl[index] = [$begin=network_time(), $end=network_time()];
 
 		local result = metric_tbl[index];
 
@@ -452,6 +461,8 @@ function add_data(id: string, index: Index, data: DataPoint)
 			val = data?$dbl ? data$dbl : data$num;
 
 		++result$num;
+		# Continually update the $end field.
+		result$end=network_time();
 
 		if ( filter?$samples && filter$samples > 0 && data?$str )
 			{

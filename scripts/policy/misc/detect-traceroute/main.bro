@@ -81,10 +81,10 @@ event bro_init() &priority=5
 	                     		when ( [src, dst] in low_ttlers )
 	                     			{
 	                     			traceroute_detected(src, dst);
-		                     		}
-		                     	}
-                     		else
-                     			traceroute_detected(src, dst);
+	                     			}
+	                     		}
+	                     	else
+	                     		traceroute_detected(src, dst);
 	                     }]);
 	}
 

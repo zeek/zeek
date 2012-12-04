@@ -76,10 +76,7 @@ function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 
 event bro_init() &priority=5
 	{
-	# note=> Addr scan: table [src_ip, port] of set(dst);	
-	# Add filters to the metrics so that the metrics framework knows how to
-	# determine when it looks like an actual attack and how to respond when
-	# thresholds are crossed.
+	# Note: addr scans are trcked similar to:  table[src_ip, port] of set(dst);	
 	Metrics::add_filter("scan.addr.fail", [$log=F,
 	                                       $every=addr_scan_interval,
 	                                       $measure=set(Metrics::UNIQUE),
@@ -87,10 +84,7 @@ event bro_init() &priority=5
 	                                       $threshold=addr_scan_threshold,
 	                                       $threshold_crossed=addr_scan_threshold_crossed]); 
 
-	# note=> Port Sweep: table[src_ip, dst_ip] of set(port);
-	# Add filters to the metrics so that the metrics framework knows how to
-	# determine when it looks like an actual attack and how to respond when
-	# thresholds are crossed.
+	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
 	Metrics::add_filter("scan.port.fail", [$log=F,
 	                                       $every=port_scan_interval,
 	                                       $measure=set(Metrics::UNIQUE),
@@ -223,14 +217,4 @@ event connection_pending(c: connection)
 #event connection_established(c: connection)
 #	{
 #	# Not useful for scan (too early)
-#	}
-
-## Generated when one endpoint of a TCP connection attempted 
-## to gracefully close the connection, but the other endpoint 
-## is in the TCP_INACTIVE state. This can happen due to split 
-## routing, in which Bro only sees one side of a connection.
-#event connection_half_finished(c: connection)
-#	{
-#	# Half connections never were "established", so do scan-checking here.
-#	# I am not taking *f cases of c$history into account. Ask Seth if I should
 #	}

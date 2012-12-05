@@ -1118,36 +1118,23 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 
 int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	{
-	const char* rest = 0;
-	static const char* http_methods[] = {
-		"GET", "POST", "HEAD",
+	const char* request_method_str = 0;
+	int request_method_len = 0;
 
-		"OPTIONS", "PUT", "DELETE", "TRACE", "CONNECT",
+	get_word(end_of_line - line, line, request_method_len, request_method_str);
 
-		// HTTP methods for distributed authoring.
-		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
-		"COPY", "MOVE", "LOCK", "UNLOCK",
-		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
+	const char* end_of_request = request_method_str + request_method_len;
+	const char* rest = skip_whitespace(end_of_request, end_of_line);
 
-		"SEARCH",
-
-		0,
-	};
-
-	int i;
-	for ( i = 0; http_methods[i]; ++i )
-		if ( (rest = PrefixWordMatch(line, end_of_line, http_methods[i])) != 0 )
-			break;
-
-	if ( ! http_methods[i] )
+	if ( request_method_len == 0 || rest == end_of_request )
 		{
-		// Weird("HTTP_unknown_method");
-		if ( RequestExpected() )
-			HTTP_Event("unknown_HTTP_method", new_string_val(line, end_of_line));
+		// End of line already reached. Most likely a DPD failure -
+		// this is pretty noisy for me, so leaving commented for now
+		reporter->Weird(Conn(), "bad_HTTP_request");
 		return 0;
 		}
 
-	request_method = new StringVal(http_methods[i]);
+	request_method = new StringVal(request_method_len, request_method_str);
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		reporter->InternalError("HTTP ParseRequest failed");

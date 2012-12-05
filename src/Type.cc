@@ -1278,26 +1278,26 @@ void OpaqueType::Describe(ODesc* d) const
 	d->Add(name.c_str());
 	}
 
-// TODO: Serialization semantics not yet defined.
-//
-// IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
-// 
-// bool OpaqueType::DoSerialize(SerialInfo* info) const
-// 	{
-// 	DO_SERIALIZE(SER_OPAQUE_TYPE, BroType);
-// 	return SERIALIZE(name);
-// 	}
-// 
-// bool OpaqueType::DoUnserialize(UnserialInfo* info)
-// 	{
-// 	DO_UNSERIALIZE(BroType);
-// 
-// 	char const* n;
-// 	if ( ! UNSERIALIZE_STR(&n, 0) );
-// 	  return false;
-// 	name = n;
-// 	return true;
-// 	}
+IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
+
+bool OpaqueType::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_OPAQUE_TYPE, BroType);
+
+  // For now we only serialize the name of the type but will add type-specific
+  // serialization code here when necessary.
+	return SERIALIZE(name);
+	}
+
+bool OpaqueType::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(BroType);
+	char const* n;
+	if ( ! UNSERIALIZE_STR(&n, 0) );
+	  return false;
+	name = n;
+	return true;
+	}
 
 EnumType::EnumType(const string& arg_name)
 : BroType(TYPE_ENUM)

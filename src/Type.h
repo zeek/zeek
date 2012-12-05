@@ -512,10 +512,9 @@ public:
 protected:
 	OpaqueType() { }
 
-  // TODO: Serialization semantics not yet defined.
-	//DECLARE_SERIAL(OpaqueType)
+	DECLARE_SERIAL(OpaqueType)
 
-	const string name;
+	string name;
 };
 
 class EnumType : public BroType {

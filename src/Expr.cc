@@ -2950,16 +2950,12 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	if ( IsError() )
 		return 0;
 
-	if ( v1->Type()->Tag() == TYPE_VECTOR )
-		{
-		Val* v = v1->AsVectorVal()->Lookup(v2);
-		// ### dangerous - this can silently fail larger operations
-		// due to a missing element
-		return v ? v->Ref() : 0;
-		}
+	Val* v = 0;
 
-	TableVal* v_tbl = v1->AsTableVal();
-	Val* v = v_tbl->Lookup(v2);
+	if ( v1->Type()->Tag() == TYPE_VECTOR )
+		v = v1->AsVectorVal()->Lookup(v2);
+	else
+		v = v1->AsTableVal()->Lookup(v2);
 
 	if ( v )
 		return v->Ref();
@@ -3290,20 +3286,22 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	RecordVal* rv = Eval(0)->AsRecordVal();
-	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+	Val* v = Eval(0);
 
-	if ( ar )
+	if ( v )
 		{
-		Unref(rv);
-		return ar;
+		RecordVal* rv = v->AsRecordVal();
+		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+
+		if ( ar )
+			{
+			Unref(rv);
+			return ar;
+			}
 		}
 
-	else
-		{
-		Error("bad record initializer");
-		return 0;
-		}
+	Error("bad record initializer");
+	return 0;
 	}
 
 Val* RecordConstructorExpr::Fold(Val* v) const

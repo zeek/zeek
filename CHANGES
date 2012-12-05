@@ -1,4 +1,24 @@
 
+2.1-203 | 2012-12-05 14:36:56 -0800
+
+  * Fix segfault: Synchronization of state between connecting peers
+    now skips over identifiers that aren't initialized with a value
+    yet. Addresses #66. (Jon Siwek)
+
+  * Fix segfault: Delete correct entry in error case in input
+    framework. (Bernhard Amann)
+
+  * Bad record constructor initializers now give an error. Addresses
+    #34. (Jon Siwek)
+
+  * Invalid vector indices now generate error message. Addresses #24.
+    (Jon Siwek)
+
+  * Bump CPack RPM package requirement to Python >= 2.6.0. (Jon Siwek)
+
+  * Interpreter exceptions occurring in "when" blocks are now handled.
+    Addresses #779 (Jon Siwek)
+
 2.1-195 | 2012-12-03 14:50:33 -0800
 
   * Catching out-of-memory in patricia tree code. (Bill Parker)

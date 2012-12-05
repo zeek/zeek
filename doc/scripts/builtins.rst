@@ -4,6 +4,21 @@ Built-in Types and Attributes
 Types
 -----
 
+Every value in a Bro script has a type (see below for a list of all built-in
+types).  Although Bro variables have static types (meaning that their type
+is fixed), their type is inferred from the value to which they are
+initially assigned when the variable is declared without an explicit type
+name.
+
+Automatic conversions happen when a binary operator has operands of 
+different types.  Automatic conversions are limited to converting between
+numeric types.  The numeric types are ``int``, ``count``, and ``double``
+(``bool`` is not a numeric type).
+When an automatic conversion occurs, values are promoted to the "highest"
+type in the expression. In general, this promotion follows a simple
+hierarchy: ``double`` is highest, ``int`` comes next, and ``count`` is
+lowest.
+
 The Bro scripting language supports the following built-in types.
 
 .. bro:type:: void
@@ -48,7 +63,7 @@ The Bro scripting language supports the following built-in types.
     precede the hex digits), e.g. ``0xff`` or ``0xABC123``.
 
     The ``count`` type supports the same operators as the :bro:type:`int`
-    type.
+    type.  A unary plus or minus applied to a ``count`` results in an ``int``.
 
 .. bro:type:: counter
 
@@ -67,6 +82,10 @@ The Bro scripting language supports the following built-in types.
     (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``), assignment operators
     (``=``, ``+=``, ``-=``), and absolute value (e.g., ``|-3.14|`` is 3.14).
 
+    When using type inferencing use care so that the
+    intended type is inferred, e.g. ``local size_difference = 5`` will
+    infer :bro:type:`count`, while ``local size_difference = 5.0``
+    will infer :bro:type:`double`.
 
 .. bro:type:: time
 
@@ -78,9 +97,9 @@ The Bro scripting language supports the following built-in types.
     Time values support the comparison operators (``==``, ``!=``, ``<``,
     ``<=``, ``>``, ``>=``).  A ``time`` value can be subtracted from
     another ``time`` value to produce an ``interval`` value.  An ``interval``
-    value can be added to, or subtracted from, a ``time`` value.  The
-    absolute value of a ``time`` value is a ``double`` with the same
-    numeric value.
+    value can be added to, or subtracted from, a ``time`` value to produce a
+    ``time`` value.  The absolute value of a ``time`` value is a ``double``
+    with the same numeric value.
 
 .. bro:type:: interval
 
@@ -99,10 +118,10 @@ The Bro scripting language supports the following built-in types.
     division (in which case the result is a ``double`` value), the
     comparison operators (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``),
     and the assignment operators (``=``, ``+=``, ``-=``).  Also, an
-    interval can be multiplied or divided by an arithmetic type (``count``,
-    ``int``, or ``double``).  The absolute value of an interval is a
-    ``double`` value equal to the number of seconds in the ``interval``
-    (e.g., ``|-1 min|`` is 60).
+    ``interval`` can be multiplied or divided by an arithmetic type
+    (``count``, ``int``, or ``double``) to produce an ``interval`` value.
+    The absolute value of an ``interval`` is a ``double`` value equal to the
+    number of seconds in the ``interval`` (e.g., ``|-1 min|`` is 60).
 
 .. bro:type:: string
 
@@ -198,6 +217,11 @@ The Bro scripting language supports the following built-in types.
     ``unknown`` < ``tcp`` < ``udp`` < ``icmp``, for example ``65535/tcp``
     is smaller than ``0/udp``.
 
+    Note that you can obtain the transport-level protocol type of a ``port``
+    with the :bro:id:`get_port_transport_proto` built-in function, and
+    the numeric value of a ``port`` with the :bro:id:`port_to_count`
+    built-in function.
+
 .. bro:type:: addr
 
     A type representing an IP address.
@@ -246,6 +270,9 @@ The Bro scripting language supports the following built-in types.
         local s: subnet = 192.168.0.0/16;
         if ( a in s )
             print "true";
+
+    Note that you can check if a given ``addr`` is IPv4 or IPv6 using
+    the :bro:id:`is_v4_addr` and :bro:id:`is_v6_addr` built-in functions.
 
 .. bro:type:: subnet
 
@@ -511,9 +538,11 @@ The Bro scripting language supports the following built-in types.
 
 .. bro:type:: file
 
-    Bro supports writing to files, but not reading from them.  For
-    example, declare, open, and write to a file and finally close it
-    like:
+    Bro supports writing to files, but not reading from them.  Files
+    can be opened using either the :bro:id:`open` or :bro:id:`open_for_append`
+    built-in functions, and closed using the :bro:id:`close` built-in
+    function. For example, declare, open, and write to a file
+    and finally close it like:
 
     .. code:: bro
 

@@ -1032,6 +1032,14 @@ bool RemoteSerializer::SendAllSynchronized(Peer* peer, SerialInfo* info)
 
 	for ( ; index < sync_ids.length(); ++index )
 		{
+		if ( ! sync_ids[index]->ID_Val() )
+			{
+#ifdef DEBUG
+			DBG_LOG(DBG_COMM, "Skip sync of ID with null value: %s\n",
+			        sync_ids[index]->Name());
+#endif
+			continue;
+			}
 		cont->SaveContext();
 
 		StateAccess sa(OP_ASSIGN, sync_ids[index],

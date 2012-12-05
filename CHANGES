@@ -1,4 +1,27 @@
 
+2.1-207 | 2012-12-05 15:47:32 -0800
+
+  * Reporting warnings if kill/waitpid fail in communication system.
+    (Bill Parker)
+
+  * Replace() bzero with memset(). (Bill Parker)
+
+  * Merge remote-tracking branch 'vlad/topic/vladg/http-verbs'
+
+    * vlad/topic/vladg/http-verbs:
+      A test for HTTP methods, including some horribly illegal requests.
+      Remove hardcoded HTTP verbs from the analyzer (#741)
+
+    I added a "bad_HTTP_request" weird for HTTP request lines that don't
+    have more than a single word.
+
+    Closes #741. (Robin Sommer)
+
+  * A test for HTTP methods, including some horribly illegal requests. (Vlad Grigorescu)
+
+  * Remove hardcoded HTTP verbs from the analyzer (#741) (Vlad Grigorescu)
+
+
 2.1-203 | 2012-12-05 14:36:56 -0800
 
   * Fix segfault: Synchronization of state between connecting peers

@@ -95,7 +95,9 @@ export {
 		"PROXY-CONNECTION",
 	} &redef;
 
-	## A list of HTTP methods. Other methods will generate a weird.
+	## A list of HTTP methods. Other methods will generate a weird. Note
+        ## that the HTTP analyzer will only accept methods consisting solely
+        ## of letters ``[A-Za-z]``.
 	const http_methods: set[string] = {
 		"GET", "POST", "HEAD", "OPTIONS",
 		"PUT", "DELETE", "TRACE", "CONNECT",

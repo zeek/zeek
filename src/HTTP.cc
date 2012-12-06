@@ -1119,20 +1119,28 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	{
 	const char* request_method_str = 0;
+	const char* end_of_request = 0;
+	const char* rest = 0;
 	int request_method_len = 0;
 
 	get_word(end_of_line - line, line, request_method_len, request_method_str);
 
-	const char* end_of_request = request_method_str + request_method_len;
-	const char* rest = skip_whitespace(end_of_request, end_of_line);
+	if ( request_method_len == 0 )
+		goto error;
 
-	if ( request_method_len == 0 || rest == end_of_request )
+	end_of_request = request_method_str + request_method_len;
+
+	for ( const char* p = request_method_str; p < end_of_request; p++ )
 		{
-		// End of line already reached. Most likely a DPD failure -
-		// this is pretty noisy for me, so leaving commented for now
-		reporter->Weird(Conn(), "bad_HTTP_request");
-		return 0;
+		// The method must consist of only letters.
+		if ( (*p < 'a' || *p > 'z') && (*p < 'A' || *p > 'Z') )
+			goto error;
 		}
+
+	rest = skip_whitespace(end_of_request, end_of_line);
+	if ( rest == end_of_request )
+		// End of line already reached. Most likely a DPD failure.
+		goto error;
 
 	request_method = new StringVal(request_method_len, request_method_str);
 
@@ -1144,6 +1152,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 			unescaped_URI->AsString()->Len(), true, true, true, true);
 
 	return 1;
+
+error:
+	reporter->Weird(Conn(), "bad_HTTP_request");
+	return 0;
 	}
 
 int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)

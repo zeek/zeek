@@ -1,4 +1,9 @@
 
+2.1-209 | 2012-12-05 16:44:04 -0800
+
+  * Adapting the HTTP request line parsing to only accept methods
+    consisting of letters [A-Za-z]. (Robin Sommer)
+
 2.1-207 | 2012-12-05 15:47:32 -0800
 
   * Reporting warnings if kill/waitpid fail in communication system.

@@ -505,7 +505,7 @@ public:
 	OpaqueType(const string& name);
 	virtual ~OpaqueType() { };
 
-	const string& Name()	{ return name; }
+	const string& Name() const { return name; }
 
 	void Describe(ODesc* d) const;
 

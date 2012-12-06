@@ -1754,8 +1754,11 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		return same_type(t1->YieldType(), t2->YieldType(), is_init);
 
   case TYPE_OPAQUE:
-    // FIXME: Should we downcast here and compare the opaque type names?
-    return 1;
+    {
+		const OpaqueType* ot1 = (const OpaqueType*) t1;
+		const OpaqueType* ot2 = (const OpaqueType*) t2;
+    return ot1->Name() == ot2->Name() ? 1 : 0;
+    }
 
 	case TYPE_TYPE:
 		return same_type(t1, t2, is_init);

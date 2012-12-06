@@ -572,7 +572,7 @@ bool Ascii::DoUpdate()
 			// array structure.
 
 			for ( int i = 0; i < fpos; i++ )
-				delete fields[fpos];
+				delete fields[i];
 
 			delete [] fields;
 			continue;

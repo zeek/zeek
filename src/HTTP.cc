@@ -1118,36 +1118,31 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 
 int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	{
+	const char* request_method_str = 0;
+	const char* end_of_request = 0;
 	const char* rest = 0;
-	static const char* http_methods[] = {
-		"GET", "POST", "HEAD",
+	int request_method_len = 0;
 
-		"OPTIONS", "PUT", "DELETE", "TRACE", "CONNECT",
+	get_word(end_of_line - line, line, request_method_len, request_method_str);
 
-		// HTTP methods for distributed authoring.
-		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
-		"COPY", "MOVE", "LOCK", "UNLOCK",
-		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
+	if ( request_method_len == 0 )
+		goto error;
 
-		"SEARCH",
+	end_of_request = request_method_str + request_method_len;
 
-		0,
-	};
-
-	int i;
-	for ( i = 0; http_methods[i]; ++i )
-		if ( (rest = PrefixWordMatch(line, end_of_line, http_methods[i])) != 0 )
-			break;
-
-	if ( ! http_methods[i] )
+	for ( const char* p = request_method_str; p < end_of_request; p++ )
 		{
-		// Weird("HTTP_unknown_method");
-		if ( RequestExpected() )
-			HTTP_Event("unknown_HTTP_method", new_string_val(line, end_of_line));
-		return 0;
+		// The method must consist of only letters.
+		if ( (*p < 'a' || *p > 'z') && (*p < 'A' || *p > 'Z') )
+			goto error;
 		}
 
-	request_method = new StringVal(http_methods[i]);
+	rest = skip_whitespace(end_of_request, end_of_line);
+	if ( rest == end_of_request )
+		// End of line already reached. Most likely a DPD failure.
+		goto error;
+
+	request_method = new StringVal(request_method_len, request_method_str);
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		reporter->InternalError("HTTP ParseRequest failed");
@@ -1157,6 +1152,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 			unescaped_URI->AsString()->Len(), true, true, true, true);
 
 	return 1;
+
+error:
+	reporter->Weird(Conn(), "bad_HTTP_request");
+	return 0;
 	}
 
 int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)

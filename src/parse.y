@@ -11,11 +11,12 @@
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
 %token TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
 %token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
-%token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_TEXT
+%token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
+%token TOK_OPAQUE TOK_OPAQUE_MD5 TOK_OPAQUE_HYPERLOGLOG
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ATTR TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
 %token TOK_ATTR_OPTIONAL TOK_ATTR_REDEF TOK_ATTR_ROTATE_INTERVAL
@@ -46,7 +47,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
 %type <b> opt_no_test opt_no_test_block
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC
+%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC opaque_id
 %type <str_l> opt_doc_list opt_post_doc_list
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
@@ -565,7 +566,6 @@ expr:
 					id->SetType(error_type());
 					$$ = new NameExpr(id);
 					}
-
 				else if ( id->IsEnumConst() )
 					{
 					EnumType* t = id->Type()->AsEnumType();
@@ -890,10 +890,10 @@ type:
 				$$ = new FileType(base_type(TYPE_STRING));
 				}
 
-	|	TOK_OPAQUE TOK_OF TOK_ID
+	|	TOK_OPAQUE TOK_OF opaque_id
 				{
 				set_location(@1, @3);
-				$$ = new OpaqueType($3);
+				$$ = new OpaqueType(@3);
 				}
 
 	|	resolve_id
@@ -908,6 +908,13 @@ type:
 			else
 				Ref($$);
 			}
+	;
+
+opaque_id:
+    TOK_OPAQUE_MD5 
+      { } 
+  | TOK_OPAQUE_HYPERLOGLOG
+      { } 
 	;
 
 type_list:

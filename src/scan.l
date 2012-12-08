@@ -298,7 +298,6 @@ local	return TOK_LOCAL;
 module	return TOK_MODULE;
 next	return TOK_NEXT;
 of	return TOK_OF;
-opaque	return TOK_OPAQUE;
 pattern	return TOK_PATTERN;
 port	return TOK_PORT;
 print	return TOK_PRINT;
@@ -318,6 +317,10 @@ type	return TOK_TYPE;
 union	return TOK_UNION;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
+
+opaque	return TOK_OPAQUE;
+md5 return TOK_OPAQUE_MD5;
+hyper-log-log return TOK_OPAQUE_HYPERLOGLOG;
 
 &add_func	return TOK_ATTR_ADD_FUNC;
 &attr		return TOK_ATTR_ATTR;

@@ -1116,33 +1116,39 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 	return line;
 	}
 
+static bool is_HTTP_token_char(char c)
+	{
+	return c > 31 && c != 127 &&      // CTL per RFC 2616.
+	        c != ' ' && c != '\t' &&  // Separators.
+		c != '(' && c != ')' && c != '<' && c != '>' && c != '@' &&
+		c != ',' && c != ';' && c != ':' && c != '\\' && c != '"' &&
+		c != '/' && c != '[' && c != ']' && c != '?' && c != '=' &&
+		c != '{' && c != '}';
+	}
+
+static const char* get_HTTP_token(const char* s, const char* e)
+	{
+	while ( s < e && is_HTTP_token_char(*s) )
+		++s;
+
+	return s;
+	}
+
+
 int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	{
-	const char* request_method_str = 0;
-	const char* end_of_request = 0;
 	const char* rest = 0;
-	int request_method_len = 0;
+	const char* end_of_method = get_HTTP_token(line, end_of_line);
 
-	get_word(end_of_line - line, line, request_method_len, request_method_str);
-
-	if ( request_method_len == 0 )
+	if ( end_of_method == line )
 		goto error;
 
-	end_of_request = request_method_str + request_method_len;
+	rest = skip_whitespace(end_of_method, end_of_line);
 
-	for ( const char* p = request_method_str; p < end_of_request; p++ )
-		{
-		// The method must consist of only letters.
-		if ( (*p < 'a' || *p > 'z') && (*p < 'A' || *p > 'Z') )
-			goto error;
-		}
-
-	rest = skip_whitespace(end_of_request, end_of_line);
-	if ( rest == end_of_request )
-		// End of line already reached. Most likely a DPD failure.
+	if ( rest == end_of_method )
 		goto error;
 
-	request_method = new StringVal(request_method_len, request_method_str);
+	request_method = new StringVal(end_of_method - line, line);
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		reporter->InternalError("HTTP ParseRequest failed");

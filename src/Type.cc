@@ -47,6 +47,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	is_network_order = 0;
 	base_type = arg_base_type;
 	type_id = 0;
+	attrs = 0;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -112,6 +113,7 @@ BroType::~BroType()
 	{
 	if ( type_id )
 		delete [] type_id;
+	Unref(attrs);
 	}
 
 int BroType::MatchesIndex(ListExpr*& /* index */) const

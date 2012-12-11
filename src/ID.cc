@@ -183,14 +183,14 @@ void ID::SetAttrs(Attributes* a)
 	AddAttrs(a);
 	}
 
-void ID::UpdateValAttrs()
+void ID::UpdateValAttrs(Val* v)
 	{
 	if ( ! attrs )
 		return;
 
 	MutableVal::Properties props = 0;
 
-	if ( val && val->IsMutableVal() )
+	if ( v && v->IsMutableVal() )
 		{
 		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
 			props |= MutableVal::SYNCHRONIZED;
@@ -201,7 +201,7 @@ void ID::UpdateValAttrs()
 		if ( attrs->FindAttr(ATTR_TRACKED) )
 			props |= MutableVal::TRACKED;
 
-		val->AsMutableVal()->AddProperties(props);
+		v->AsMutableVal()->AddProperties(props);
 		}
 
 	if ( ! IsInternalGlobal() )
@@ -213,11 +213,11 @@ void ID::UpdateValAttrs()
 			persistence_serializer->Register(this);
 		}
 
-	if ( val && val->Type()->Tag() == TYPE_TABLE )
-		val->AsTableVal()->SetAttrs(attrs);
+	if ( v && v->Type()->Tag() == TYPE_TABLE )
+		v->AsTableVal()->SetAttrs(attrs);
 
-	if ( val && val->Type()->Tag() == TYPE_FILE )
-		val->AsFile()->SetAttrs(attrs);
+	if ( v && v->Type()->Tag() == TYPE_FILE )
+		v->AsFile()->SetAttrs(attrs);
 
 	if ( Type()->Tag() == TYPE_FUNC )
 		{

@@ -106,6 +106,9 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 	id->SetType(t);
 
+	if ( t->Attrs() )
+		id->AddAttrs(new Attributes(*t->Attrs()));
+
 	if ( attr )
 		id->AddAttrs(new Attributes(attr, t, false));
 
@@ -116,10 +119,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			TableConstructorExpr* ctor = (TableConstructorExpr*) init;
 			if ( ctor->Attrs() )
-				{
-				::Ref(ctor->Attrs());
-				id->AddAttrs(ctor->Attrs());
-				}
+				id->AddAttrs(new Attributes(*ctor->Attrs()));
 			}
 			break;
 
@@ -127,10 +127,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			SetConstructorExpr* ctor = (SetConstructorExpr*) init;
 			if ( ctor->Attrs() )
-				{
-				::Ref(ctor->Attrs());
-				id->AddAttrs(ctor->Attrs());
-				}
+				id->AddAttrs(new Attributes(*ctor->Attrs()));
 			}
 			break;
 
@@ -213,7 +210,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		id->SetConst();
 		}
 	}
-
 
 void add_global(ID* id, BroType* t, init_class c, Expr* init,
 		attr_list* attr, decl_type dt)
@@ -318,7 +314,10 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	id->MakeType();
 
 	if ( attr )
+		{
 		id->SetAttrs(new Attributes(attr, tnew, false));
+		tnew->SetAttrs(new Attributes(*id->Attrs()));
+		}
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,

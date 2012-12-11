@@ -71,7 +71,8 @@ public:
 	void SetAttrs(Attributes* attr);
 	void AddAttrs(Attributes* attr);
 	void RemoveAttr(attr_tag a);
-	void UpdateValAttrs();
+	void UpdateValAttrs(Val* v);
+	void UpdateValAttrs() { UpdateValAttrs(val); }
 	Attributes* Attrs() const	{ return attrs; }
 
 	Attr* FindAttr(attr_tag t) const

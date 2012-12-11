@@ -1,0 +1,8 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.type-attrs/type-attrs.bro, line 44: no such index (v[1])
+s vals, s test, all test, n/a
+t vals, t test, all test, blah
+u vals, u test, all test, hmm
+more s vals, s test2, n/a, n/a
+more t vals, t test2, blah, blah
+more u vals, u test2, hmm, hmm
+v vals, v test, hello, hello

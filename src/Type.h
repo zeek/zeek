@@ -229,8 +229,11 @@ public:
 	void SetTypeID(const char* id)	{ type_id = id; }
 	const char* GetTypeID() const	{ return type_id; }
 
+	void SetAttrs(Attributes* a) { attrs = a; }
+	Attributes* Attrs() const { return attrs; }
+
 protected:
-	BroType()	{ type_id = 0; }
+	BroType()	{ type_id = 0; attrs = 0; }
 
 	void SetError();
 
@@ -245,6 +248,8 @@ private:
 	// This type_id field is only used by the documentation framework to
 	// track the names of declared types.
 	const char* type_id;
+
+	Attributes* attrs;
 };
 
 class TypeList : public BroType {

@@ -3,18 +3,49 @@
 
 # @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: tr '\000' 'X' <myfile >output
+# @TEST-EXEC: tr '\000' 'X' <myfile2 >>output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cmp myfile hookfile
 
 # first check local variable of file type w/ &raw_output
 
+type raw_file: file &raw_output;
+
 event bro_init()
     {
-    local myfile: file;
+    local myfile: file &raw_output;
+    local myfile2: raw_file;
     myfile = open("myfile");
-    enable_raw_output(myfile);
+    myfile2 = open("myfile2");
     print myfile, "hello\x00world", "hi";
+    print myfile2, "hello\x00world", "hi";
     close(myfile);
+    close(myfile2);
+    }
+
+event print_hook(f: file, s: string)
+    {
+    local hookfile = open("hookfile");
+    write_file(hookfile, s);
+    close(hookfile);
+    }
+
+# @TEST-START-NEXT
+
+# now test globals
+
+type raw_file: file &raw_output;
+global myfile: file &raw_output;
+global myfile2: raw_file;
+
+event bro_init()
+    {
+    myfile = open("myfile");
+    myfile2 = open("myfile2");
+    print myfile, "hello\x00world", "hi";
+    print myfile2, "hello\x00world", "hi";
+    close(myfile);
+    close(myfile2);
     }
 
 event print_hook(f: file, s: string)

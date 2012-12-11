@@ -111,6 +111,15 @@ Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record)
 	delete a;
 	}
 
+Attributes::Attributes(const Attributes& other)
+	{
+	attrs = new attr_list(other.attrs->length());
+	type = other.type->Ref();
+	in_record = other.in_record;
+	loop_over_list(*other.attrs, i)
+		AddAttr((*other.attrs)[i]);
+	}
+
 Attributes::~Attributes()
 	{
 	loop_over_list(*attrs, i)

@@ -78,6 +78,7 @@ protected:
 class Attributes : public BroObj {
 public:
 	Attributes(attr_list* a, BroType* t, bool in_record);
+	Attributes(const Attributes& other);
 	~Attributes();
 
 	void AddAttr(Attr* a);

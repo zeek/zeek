@@ -296,6 +296,8 @@ void NameExpr::Assign(Frame* f, Val* v, Opcode op)
 		id->SetVal(v, op);
 	else
 		f->SetElement(id->Offset(), v);
+
+	id->UpdateValAttrs(v);
 	}
 
 int NameExpr::IsPure() const

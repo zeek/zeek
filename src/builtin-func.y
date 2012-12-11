@@ -269,15 +269,15 @@ void print_event_c_body(FILE *fp)
 
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
-%token TOK_FUNCTION TOK_EVENT TOK_CONST TOK_ENUM
-%token TOK_TYPE TOK_RECORD TOK_SET TOK_VECTOR TOK_TABLE TOK_MODULE
+%token TOK_FUNCTION TOK_EVENT TOK_CONST TOK_ENUM TOK_OF
+%token TOK_TYPE TOK_RECORD TOK_SET TOK_VECTOR TOK_OPAQUE TOK_TABLE TOK_MODULE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
 %token TOK_ATOM TOK_INT TOK_C_TOKEN
 
 %left ',' ':'
 
-%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws
+%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws type
 %type <val> TOK_ATOM TOK_BOOL
 
 %union	{
@@ -584,7 +584,17 @@ args_1:		args_1 ',' opt_ws arg opt_ws
 			{ /* empty */ }
 	;
 
-arg:		TOK_ID opt_ws ':' opt_ws TOK_ID
+// TODO: Migrate all other compound types to this rule. Once the BiF language
+// can parse all regular Bro types, we can throw out the unnecessary
+// boilerplate typedefs for addr_set, string_set, etc.
+type:
+    TOK_OPAQUE opt_ws TOK_OF opt_ws TOK_ID
+      { $$ = concat("opaque of ", $5); }
+  | TOK_ID
+      { $$ = $1; }
+  ;
+
+arg:		TOK_ID opt_ws ':' opt_ws type
 			{ args.push_back(new BuiltinFuncArg($1, $5)); }
 	|	TOK_VAR_ARG
 			{
@@ -594,7 +604,7 @@ arg:		TOK_ID opt_ws ':' opt_ws TOK_ID
 			}
 	;
 
-return_type:	':' opt_ws TOK_ID opt_ws
+return_type:	':' opt_ws type opt_ws
 			{
 			BuiltinFuncArg* ret = new BuiltinFuncArg("", $3);
 			ret->PrintBro(fp_bro_init);

@@ -74,6 +74,8 @@ HEX	[0-9a-fA-F]+
 "set"		return check_c_mode(TOK_SET);
 "table"		return check_c_mode(TOK_TABLE);
 "vector"	return check_c_mode(TOK_VECTOR);
+"of"    return check_c_mode(TOK_OF);
+"opaque"    return check_c_mode(TOK_OPAQUE);
 "module"    return check_c_mode(TOK_MODULE);
 
 "@ARG@"		return TOK_ARG;

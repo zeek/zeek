@@ -9,8 +9,9 @@ bool HashVal::IsValid() const
 
 bool HashVal::Init()
   {
-  assert(! "missing implementation of Init()");
-  return false;
+  assert(! valid);
+  valid = DoInit();
+  return valid;
   }
 
 StringVal* HashVal::Get()
@@ -18,7 +19,7 @@ StringVal* HashVal::Get()
   if ( ! valid )
     return new StringVal("");
 
-  StringVal* result = Finish();
+  StringVal* result = DoGet();
   valid = false;
   return result;
   }
@@ -26,21 +27,27 @@ StringVal* HashVal::Get()
 bool HashVal::Feed(const void* data, size_t size)
   {
   if ( valid )
-    return Update(data, size);
+    return DoFeed(data, size);
 
   reporter->InternalError("invalidated opaque handle");
   return false;
   }
 
-bool HashVal::Update(const void*, size_t)
+bool HashVal::DoInit()
   {
-  assert(! "missing implementation of Update()");
+  assert(! "missing implementation of DoInit()");
   return false;
   }
 
-StringVal* HashVal::Finish()
+bool HashVal::DoFeed(const void*, size_t)
   {
-  assert(! "missing implementation of Finish()");
+  assert(! "missing implementation of DoFeed()");
+  return false;
+  }
+
+StringVal* HashVal::DoGet()
+  {
+  assert(! "missing implementation of DoGet()");
   return new StringVal("");
   }
 
@@ -94,22 +101,27 @@ void MD5Val::hmac(val_list& vlist,
   MD5(result, MD5_DIGEST_LENGTH, result);
   }
 
-bool MD5Val::Init()
+bool MD5Val::DoInit()
   {
+  assert(! IsValid());
   md5_init(&ctx);
   return true;
   }
 
-bool MD5Val::Update(const void* data, size_t size)
+bool MD5Val::DoFeed(const void* data, size_t size)
   {
-  assert(IsValid());
+  if ( ! IsValid() )
+    return new StringVal("");
+
   md5_update(&ctx, data, size);
   return true;
   }
 
-StringVal* MD5Val::Finish()
+StringVal* MD5Val::DoGet()
   {
-  assert(IsValid());
+  if ( ! IsValid() )
+    return new StringVal("");
+
   u_char digest[MD5_DIGEST_LENGTH];
   md5_final(&ctx, digest);
   return new StringVal(md5_digest_print(digest));
@@ -196,22 +208,27 @@ void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
   sha1_final(&h, result);
   }
 
-bool SHA1Val::Init()
+bool SHA1Val::DoInit()
   {
+  assert(! IsValid());
   sha1_init(&ctx);
   return true;
   }
 
-bool SHA1Val::Update(const void* data, size_t size)
+bool SHA1Val::DoFeed(const void* data, size_t size)
   {
-  assert(IsValid());
+  if ( ! IsValid() )
+    return new StringVal("");
+
   sha1_update(&ctx, data, size);
   return true;
   }
 
-StringVal* SHA1Val::Finish()
+StringVal* SHA1Val::DoGet()
   {
-  assert(IsValid());
+  if ( ! IsValid() )
+    return new StringVal("");
+
   u_char digest[SHA_DIGEST_LENGTH];
   sha1_final(&ctx, digest);
   return new StringVal(sha1_digest_print(digest));
@@ -302,22 +319,27 @@ void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
   sha256_final(&h, result);
   }
 
-bool SHA256Val::Init()
+bool SHA256Val::DoInit()
   {
+  assert( ! IsValid() );
   sha256_init(&ctx);
   return true;
   }
 
-bool SHA256Val::Update(const void* data, size_t size)
+bool SHA256Val::DoFeed(const void* data, size_t size)
   {
-  assert(IsValid());
+  if ( ! IsValid() )
+    return new StringVal("");
+
   sha256_update(&ctx, data, size);
   return true;
   }
 
-StringVal* SHA256Val::Finish()
+StringVal* SHA256Val::DoGet()
   {
-  assert(IsValid());
+  if ( ! IsValid() )
+    return new StringVal("");
+
   u_char digest[SHA256_DIGEST_LENGTH];
   sha256_final(&ctx, digest);
   return new StringVal(sha256_digest_print(digest));

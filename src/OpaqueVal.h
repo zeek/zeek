@@ -14,8 +14,9 @@ public:
 protected:
   HashVal() { };
   HashVal(OpaqueType* t);
-  virtual bool Update(const void* data, size_t size);
-  virtual StringVal* Finish();
+  virtual bool DoInit();
+  virtual bool DoFeed(const void* data, size_t size);
+  virtual StringVal* DoGet();
 
   DECLARE_SERIAL(HashVal);
 
@@ -37,9 +38,9 @@ public:
 protected:
   friend class Val;
 
-  virtual bool Init() /* override */;
-  virtual bool Update(const void* data, size_t size) /* override */;
-  virtual StringVal* Finish() /* override */;
+  virtual bool DoInit() /* override */;
+  virtual bool DoFeed(const void* data, size_t size) /* override */;
+  virtual StringVal* DoGet() /* override */;
 
   DECLARE_SERIAL(MD5Val);
 
@@ -56,9 +57,9 @@ public:
 protected:
   friend class Val;
 
-  virtual bool Init() /* override */;
-  virtual bool Update(const void* data, size_t size) /* override */;
-  virtual StringVal* Finish() /* override */;
+  virtual bool DoInit() /* override */;
+  virtual bool DoFeed(const void* data, size_t size) /* override */;
+  virtual StringVal* DoGet() /* override */;
 
   DECLARE_SERIAL(SHA1Val);
 
@@ -75,9 +76,9 @@ public:
 protected:
   friend class Val;
 
-  virtual bool Init() /* override */;
-  virtual bool Update(const void* data, size_t size) /* override */;
-  virtual StringVal* Finish() /* override */;
+  virtual bool DoInit() /* override */;
+  virtual bool DoFeed(const void* data, size_t size) /* override */;
+  virtual StringVal* DoGet() /* override */;
 
   DECLARE_SERIAL(SHA256Val);
 

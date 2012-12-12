@@ -530,37 +530,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	%}
 
 %%{
-static void hash_md5_val(val_list& vlist, unsigned char digest[16])
-	{
-	MD5_CTX h;
-
-	md5_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			md5_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			md5_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	md5_final(&h, digest);
-	}
-
-static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
-	{
-	hash_md5_val(vlist, digest);
-	for ( int i = 0; i < 16; ++i )
-		digest[i] = digest[i] ^ shared_hmac_md5_key[i];
-	MD5(digest, 16, digest);
-	}
-
+// TODO: Migrate these functions into SHA*Val, in the same vein as MD5Val.
 static void hash_sha1_val(val_list& vlist, unsigned char digest[20])
 	{
 	SHA_CTX h;
@@ -608,6 +578,10 @@ static void hash_sha256_val(val_list& vlist, unsigned char digest[32])
 	}
 %%}
 
+%%{
+#include "OpaqueVal.h"
+%%}
+
 ## Computes the MD5 hash value of the provided list of arguments.
 ##
 ## Returns: The MD5 hash value of the concatenated arguments.
@@ -623,8 +597,8 @@ static void hash_sha256_val(val_list& vlist, unsigned char digest[32])
 ##      friends.
 function md5_hash%(...%): string
 	%{
-	unsigned char digest[16];
-	hash_md5_val(@ARG@, digest);
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5Val::digest(@ARG@, digest);
 	return new StringVal(md5_digest_print(digest));
 	%}
 
@@ -643,7 +617,7 @@ function md5_hash%(...%): string
 ##      friends.
 function sha1_hash%(...%): string
 	%{
-	unsigned char digest[20];
+	unsigned char digest[SHA_DIGEST_LENGTH];
 	hash_sha1_val(@ARG@, digest);
 	return new StringVal(sha1_digest_print(digest));
 	%}
@@ -663,7 +637,7 @@ function sha1_hash%(...%): string
 ##      friends.
 function sha256_hash%(...%): string
 	%{
-	unsigned char digest[32];
+	unsigned char digest[SHA256_DIGEST_LENGTH];
 	hash_sha256_val(@ARG@, digest);
 	return new StringVal(sha256_digest_print(digest));
 	%}
@@ -679,59 +653,38 @@ function sha256_hash%(...%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hmac%(...%): string
 	%{
-	unsigned char digest[16];
-	hmac_md5_val(@ARG@, digest);
-	return new StringVal(md5_digest_print(digest));
+	unsigned char hmac[MD5_DIGEST_LENGTH];
+	MD5Val::hmac(@ARG@, shared_hmac_md5_key, hmac);
+	return new StringVal(md5_digest_print(hmac));
 	%}
 
-%%{
-static map<BroString, MD5_CTX> md5_states;
-static map<BroString, SHA_CTX> sha1_states;
-static map<BroString, SHA256_CTX> sha256_states;
-
-BroString* convert_index_to_string(Val* index)
-	{
-	ODesc d;
-	index->Describe(&d);
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(1);
-	return s;
-	}
-%%}
-
-## Initializes MD5 state to enable incremental hash computation. After
-## initializing the MD5 state with this function, you can feed data to
-## :bro:id:`md5_hash_update` and finally need to call :bro:id:`md5_hash_finish`
-## to finish the computation and get the final hash value.
+## Constructs an MD5 handle to enable incremental hash computation. You can
+## feed data to the ## returned opaque value with ## :bro:id:`md5_hash_update`
+## and finally need to call :bro:id:`md5_hash_finish` to finish the computation
+## and get the final hash value.
+##
+## Returns: The opaque handle associated with this hash computation.
 ##
 ## For example, when computing incremental MD5 values of transferred files in
-## multiple concurrent HTTP connections, one would call ``md5_hash_init(c$id)``
-## once before invoking ``md5_hash_update(c$id, some_more_data)`` in the
+## multiple concurrent HTTP connections, one keep an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$md5_handle = md5_hash_init()`` ## once before invoking
+## ``md5_hash_update(c$http$md5_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`md5_hash_finish` returns the final hash value.
-##
-## index: The unique identifier to associate with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function md5_hash_init%(index: any%): bool
+function md5_hash_init%(%): opaque of md5
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( md5_states.count(*s) < 1 )
-		{
-		MD5_CTX h;
-		md5_init(&h);
-		md5_states[*s] = h;
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	HashVal* digest = new MD5Val();
+	digest->Init();
+	return digest;
 	%}
 
+# TODO: Update documentation.
+#
 ## Initializes SHA1 state to enable incremental hash computation. After
 ## initializing the SHA1 state with this function, you can feed data to
 ## :bro:id:`sha1_hash_update` and finally need to call
@@ -749,23 +702,15 @@ function md5_hash_init%(index: any%): bool
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function sha1_hash_init%(index: any%): bool
+function sha1_hash_init%(%): opaque of sha1
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha1_states.count(*s) < 1 )
-		{
-		SHA_CTX h;
-		sha1_init(&h);
-		sha1_states[*s] = h;
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	HashVal* digest = new SHA1Val();
+	digest->Init();
+	return digest;
 	%}
 
+# TODO: Update documentation.
+#
 ## Initializes SHA256 state to enable incremental hash computation. After
 ## initializing the SHA256 state with this function, you can feed data to
 ## :bro:id:`sha256_hash_update` and finally need to call
@@ -784,49 +729,34 @@ function sha1_hash_init%(index: any%): bool
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_update sha256_hash_finish
-function sha256_hash_init%(index: any%): bool
+function sha256_hash_init%(%): opaque of sha256
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha256_states.count(*s) < 1 )
-		{
-		SHA256_CTX h;
-		sha256_init(&h);
-		sha256_states[*s] = h;
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	HashVal* digest = new SHA256Val();
+	digest->Init();
+	return digest;
 	%}
 
-## Update the MD5 value associated with a given index. It is required to
+## Updates the MD5 value associated with a given index. It is required to
 ## call :bro:id:`md5_hash_init` once before calling this
 ## function.
 ##
-## index: The unique identifier to associate with this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
 ## data: The data to add to the hash computation.
+##
+## Returns: True on success.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function md5_hash_update%(index: any, data: string%): bool
+function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( md5_states.count(*s) > 0 )
-		{
-		md5_update(&md5_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
 	%}
 
+# TODO: Update documentation.
+#
 ## Update the SHA1 value associated with a given index. It is required to
 ## call :bro:id:`sha1_hash_init` once before calling this
 ## function.
@@ -838,21 +768,14 @@ function md5_hash_update%(index: any, data: string%): bool
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function sha1_hash_update%(index: any, data: string%): bool
+function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha1_states.count(*s) > 0 )
-		{
-		sha1_update(&sha1_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
 	%}
 
+# TODO: Update documentation.
+#
 ## Update the SHA256 value associated with a given index. It is required to
 ## call :bro:id:`sha256_hash_init` once before calling this
 ## function.
@@ -864,49 +787,28 @@ function sha1_hash_update%(index: any, data: string%): bool
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_finish
-function sha256_hash_update%(index: any, data: string%): bool
+function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha256_states.count(*s) > 0 )
-		{
-		sha256_update(&sha256_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
 	%}
 
 ## Returns the final MD5 digest of an incremental hash computation.
 ##
-## index: The unique identifier of this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
-## Returns: The hash value associated with the computation at *index*.
+## Returns: The hash value associated with the computation of *handle*.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function md5_hash_finish%(index: any%): string
+function md5_hash_finish%(handle: opaque of md5%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( md5_states.count(*s) > 0 )
-		{
-		unsigned char digest[16];
-		md5_final(&md5_states[*s], digest);
-		md5_states.erase(*s);
-		printable_digest = new StringVal(md5_digest_print(digest));
-		}
-	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+	return static_cast<HashVal*>(handle)->Get();
 	%}
 
+# TODO: Update documentation.
+#
 ## Returns the final SHA1 digest of an incremental hash computation.
 ##
 ## index: The unique identifier of this hash computation.
@@ -916,23 +818,9 @@ function md5_hash_finish%(index: any%): string
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function sha1_hash_finish%(index: any%): string
+function sha1_hash_finish%(handle: opaque of sha1%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( sha1_states.count(*s) > 0 )
-		{
-		unsigned char digest[20];
-		sha1_final(&sha1_states[*s], digest);
-		sha1_states.erase(*s);
-		printable_digest = new StringVal(sha1_digest_print(digest));
-		}
-	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+	return static_cast<HashVal*>(handle)->Get();
 	%}
 
 ## Returns the final SHA256 digest of an incremental hash computation.
@@ -944,23 +832,9 @@ function sha1_hash_finish%(index: any%): string
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update
-function sha256_hash_finish%(index: any%): string
+function sha256_hash_finish%(handle: opaque of sha256%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( sha256_states.count(*s) > 0 )
-		{
-		unsigned char digest[32];
-		sha256_final(&sha256_states[*s], digest);
-		sha256_states.erase(*s);
-		printable_digest = new StringVal(sha256_digest_print(digest));
-		}
-	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+	return static_cast<HashVal*>(handle)->Get();
 	%}
 
 ## Generates a random number.
@@ -1121,6 +995,17 @@ function find_entropy%(data: string%): entropy_test_result
 	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
 	return ent_result;
 	%}
+
+%%{
+BroString* convert_index_to_string(Val* index)
+	{
+	ODesc d;
+	index->Describe(&d);
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(1);
+	return s;
+	}
+%%}
 
 ## Initializes data structures for incremental entropy calculation.
 ##

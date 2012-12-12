@@ -31,7 +31,7 @@ bool HashVal::Feed(const void* data, size_t size)
   if ( valid )
     return DoFeed(data, size);
 
-  reporter->InternalError("invalidated opaque handle");
+  reporter->InternalError("invalid opaque hash value");
   return false;
   }
 

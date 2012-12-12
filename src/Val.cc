@@ -3114,6 +3114,38 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
+OpaqueVal::OpaqueVal(OpaqueType* t) : opaque_type(t) { }
+
+OpaqueVal::~OpaqueVal()
+  {
+  Unref(opaque_type);
+  }
+
+bool OpaqueVal::IsValid() const
+  {
+  return false;
+  }
+
+IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
+
+bool OpaqueVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_OPAQUE_VAL, Val);
+  assert(opaque_type);
+  // TODO: how to serialize a serializable class?
+	//return SERIALIZE(*opaque_type);
+	return false;
+	}
+
+bool OpaqueVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(Val);
+  // TODO: how to deserialize a serializable class?
+	//opaque_type = new OpaqueType();
+	//return UNSERIALIZE(opaque_type);
+	return false;
+	}
+
 
 Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	{

@@ -1013,6 +1013,24 @@ protected:
 	VectorType* vector_type;
 };
 
+// See OpaqueVal.h for derived classes.
+class OpaqueVal : public Val {
+public:
+  OpaqueVal(OpaqueType* t);
+  virtual ~OpaqueVal();
+
+  // Determines whether the opaque value is in a valid state.
+  virtual bool IsValid() const;
+
+protected:
+  friend class Val;
+  OpaqueVal() { }
+
+	DECLARE_SERIAL(OpaqueVal);
+
+  OpaqueType* opaque_type;
+};
+
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version,

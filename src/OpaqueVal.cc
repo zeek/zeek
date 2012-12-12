@@ -9,7 +9,9 @@ bool HashVal::IsValid() const
 
 bool HashVal::Init()
   {
-  assert(! valid);
+  if ( ! valid )
+    return false;
+
   valid = DoInit();
   return valid;
   }
@@ -51,7 +53,7 @@ StringVal* HashVal::DoGet()
   return new StringVal("");
   }
 
-HashVal::HashVal(OpaqueType* t) : OpaqueVal(t), valid(true) { }
+HashVal::HashVal(OpaqueType* t) : OpaqueVal(t), valid(false) { }
 
 IMPLEMENT_SERIAL(HashVal, SER_HASH_VAL);
 

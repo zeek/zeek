@@ -50,11 +50,13 @@ IMPLEMENT_SERIAL(HashVal, SER_HASH_VAL);
 
 bool HashVal::DoSerialize(SerialInfo* info) const
   {
+  DO_SERIALIZE(SER_HASH_VAL, OpaqueVal);
   return SERIALIZE(valid);
   }
 
 bool HashVal::DoUnserialize(UnserialInfo* info)
   {
+  DO_UNSERIALIZE(OpaqueVal);
   return UNSERIALIZE(&valid);
   }
 
@@ -117,14 +119,58 @@ IMPLEMENT_SERIAL(MD5Val, SER_MD5_VAL);
 
 bool MD5Val::DoSerialize(SerialInfo* info) const
   {
-  // TODO: Implement serialization of MD5 state.
-  return false;
+  DO_SERIALIZE(SER_MD5_VAL, HashVal);
+
+  if ( ! IsValid() )
+    return true;
+
+  if ( ! SERIALIZE(ctx.A) )
+    return false;
+  if ( ! SERIALIZE(ctx.B) )
+    return false;
+  if ( ! SERIALIZE(ctx.C) )
+    return false;
+  if ( ! SERIALIZE(ctx.D) )
+    return false;
+  if ( ! SERIALIZE(ctx.Nl) )
+    return false;
+  if ( ! SERIALIZE(ctx.Nh) )
+    return false;
+  for ( int i = 0; i < MD5_LBLOCK; ++i )
+    if ( ! SERIALIZE(ctx.data[i]) )
+      return false;
+  if ( ! SERIALIZE(ctx.num) )
+    return false;
+
+  return true;
   }
 
 bool MD5Val::DoUnserialize(UnserialInfo* info)
   {
-  // TODO: Implement deserialization of MD5 state.
-  return false;
+  DO_UNSERIALIZE(HashVal);
+
+  if (! IsValid())
+    return true;
+
+  if ( ! UNSERIALIZE(&ctx.A) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.B) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.C) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.D) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.Nl) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.Nh) )
+    return false;
+  for ( int i = 0; i < MD5_LBLOCK; ++i )
+    if ( ! UNSERIALIZE(&ctx.data[i]) )
+      return false;
+  if ( ! UNSERIALIZE(&ctx.num) )
+    return false;
+
+  return true;
   }
 
 
@@ -175,14 +221,62 @@ IMPLEMENT_SERIAL(SHA1Val, SER_SHA1_VAL);
 
 bool SHA1Val::DoSerialize(SerialInfo* info) const
   {
-  // TODO: Implement serialization of SHA1 state.
-  return false;
+  DO_SERIALIZE(SER_SHA1_VAL, HashVal);
+
+  if ( ! IsValid() )
+    return true;
+
+  if ( ! SERIALIZE(ctx.h0) )
+    return false;
+  if ( ! SERIALIZE(ctx.h1) )
+    return false;
+  if ( ! SERIALIZE(ctx.h2) )
+    return false;
+  if ( ! SERIALIZE(ctx.h3) )
+    return false;
+  if ( ! SERIALIZE(ctx.h4) )
+    return false;
+  if ( ! SERIALIZE(ctx.Nl) )
+    return false;
+  if ( ! SERIALIZE(ctx.Nh) )
+    return false;
+  for ( int i = 0; i < SHA_LBLOCK; ++i )
+    if ( ! SERIALIZE(ctx.data[i]) )
+      return false;
+  if ( ! SERIALIZE(ctx.num) )
+    return false;
+
+  return true;
   }
 
 bool SHA1Val::DoUnserialize(UnserialInfo* info)
   {
-  // TODO: Implement deserialization of SHA1 state.
-  return false;
+  DO_UNSERIALIZE(HashVal);
+
+  if ( ! IsValid() )
+    return true;
+
+  if ( ! UNSERIALIZE(&ctx.h0) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.h1) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.h2) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.h3) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.h4) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.Nl) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.Nh) )
+    return false;
+  for ( int i = 0; i < SHA_LBLOCK; ++i )
+    if ( ! UNSERIALIZE(&ctx.data[i]) )
+      return false;
+  if ( ! UNSERIALIZE(&ctx.num) )
+    return false;
+
+  return true;
   }
 
 
@@ -233,12 +327,50 @@ IMPLEMENT_SERIAL(SHA256Val, SER_SHA256_VAL);
 
 bool SHA256Val::DoSerialize(SerialInfo* info) const
   {
-  // TODO: Implement serialization of SHA256 state.
-  return false;
+  DO_SERIALIZE(SER_SHA256_VAL, HashVal);
+
+  if ( ! IsValid() )
+    return true;
+
+  for ( int i = 0; i < 8; ++i )
+    if ( ! SERIALIZE(ctx.h[i]) )
+      return false;
+  if ( ! SERIALIZE(ctx.Nl) )
+    return false;
+  if ( ! SERIALIZE(ctx.Nh) )
+    return false;
+  for ( int i = 0; i < SHA_LBLOCK; ++i )
+    if ( ! SERIALIZE(ctx.data[i]) )
+      return false;
+  if ( ! SERIALIZE(ctx.num) )
+    return false;
+  if ( ! SERIALIZE(ctx.md_len) )
+    return false;
+
+  return true;
   }
 
 bool SHA256Val::DoUnserialize(UnserialInfo* info)
   {
-  // TODO: Implement deserialization of SHA256 state.
-  return false;
+  DO_UNSERIALIZE(HashVal);
+
+  if ( ! IsValid() )
+    return true;
+
+  for ( int i = 0; i < 8; ++i )
+    if ( ! UNSERIALIZE(&ctx.h[i]) )
+      return false;
+  if ( ! UNSERIALIZE(&ctx.Nl) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.Nh) )
+    return false;
+  for ( int i = 0; i < SHA_LBLOCK; ++i )
+    if ( ! UNSERIALIZE(&ctx.data[i]) )
+      return false;
+  if ( ! UNSERIALIZE(&ctx.num) )
+    return false;
+  if ( ! UNSERIALIZE(&ctx.md_len) )
+    return false;
+
+  return true;
   }

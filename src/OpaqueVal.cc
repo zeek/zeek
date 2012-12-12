@@ -9,7 +9,7 @@ bool HashVal::IsValid() const
 
 bool HashVal::Init()
   {
-  if ( ! valid )
+  if ( valid )
     return false;
 
   valid = DoInit();

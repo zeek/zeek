@@ -29,7 +29,7 @@ bool HashVal::Feed(const void* data, size_t size)
     return Update(data, size);
 
   reporter->InternalError("invalidated opaque handle");
-	return false;
+  return false;
   }
 
 bool HashVal::Update(const void*, size_t)
@@ -60,37 +60,37 @@ bool HashVal::DoUnserialize(UnserialInfo* info)
 
 
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
-	{
-	MD5_CTX h;
+  {
+  MD5_CTX h;
 
-	md5_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			md5_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			md5_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	md5_final(&h, result);
-	}
+  md5_init(&h);
+  loop_over_list(vlist, i)
+    {
+    Val* v = vlist[i];
+    if ( v->Type()->Tag() == TYPE_STRING )
+      {
+      const BroString* str = v->AsString();
+      md5_update(&h, str->Bytes(), str->Len());
+      }
+    else
+      {
+      ODesc d(DESC_BINARY);
+      v->Describe(&d);
+      md5_update(&h, (const u_char *) d.Bytes(), d.Len());
+      }
+    }
+  md5_final(&h, result);
+  }
 
 void MD5Val::hmac(val_list& vlist,
                   u_char key[MD5_DIGEST_LENGTH],
                   u_char result[MD5_DIGEST_LENGTH])
-	{
-	digest(vlist, result);
-	for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
-		result[i] ^= key[i];
-	MD5(result, MD5_DIGEST_LENGTH, result);
-	}
+  {
+  digest(vlist, result);
+  for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
+    result[i] ^= key[i];
+  MD5(result, MD5_DIGEST_LENGTH, result);
+  }
 
 bool MD5Val::Init()
   {
@@ -128,6 +128,28 @@ bool MD5Val::DoUnserialize(UnserialInfo* info)
   }
 
 
+void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
+  {
+  SHA_CTX h;
+  sha1_init(&h);
+  loop_over_list(vlist, i)
+    {
+    Val* v = vlist[i];
+    if ( v->Type()->Tag() == TYPE_STRING )
+      {
+      const BroString* str = v->AsString();
+      sha1_update(&h, str->Bytes(), str->Len());
+      }
+    else
+      {
+      ODesc d(DESC_BINARY);
+      v->Describe(&d);
+      sha1_update(&h, (const u_char *) d.Bytes(), d.Len());
+      }
+    }
+  sha1_final(&h, result);
+  }
+
 bool SHA1Val::Init()
   {
   sha1_init(&ctx);
@@ -163,6 +185,28 @@ bool SHA1Val::DoUnserialize(UnserialInfo* info)
   return false;
   }
 
+
+void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
+  {
+  SHA256_CTX h;
+  sha256_init(&h);
+  loop_over_list(vlist, i)
+    {
+    Val* v = vlist[i];
+    if ( v->Type()->Tag() == TYPE_STRING )
+      {
+      const BroString* str = v->AsString();
+      sha256_update(&h, str->Bytes(), str->Len());
+      }
+    else
+      {
+      ODesc d(DESC_BINARY);
+      v->Describe(&d);
+      sha256_update(&h, (const u_char *) d.Bytes(), d.Len());
+      }
+    }
+  sha256_final(&h, result);
+  }
 
 bool SHA256Val::Init()
   {

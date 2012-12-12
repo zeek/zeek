@@ -530,55 +530,6 @@ function piped_exec%(program: string, to_write: string%): bool
 	%}
 
 %%{
-// TODO: Migrate these functions into SHA*Val, in the same vein as MD5Val.
-static void hash_sha1_val(val_list& vlist, unsigned char digest[20])
-	{
-	SHA_CTX h;
-
-	sha1_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			sha1_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			sha1_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	sha1_final(&h, digest);
-	}
-
-static void hash_sha256_val(val_list& vlist, unsigned char digest[32])
-	{
-	SHA256_CTX h;
-
-	sha256_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			sha256_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			sha256_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	sha256_final(&h, digest);
-	}
-%%}
-
-%%{
 #include "OpaqueVal.h"
 %%}
 
@@ -618,7 +569,7 @@ function md5_hash%(...%): string
 function sha1_hash%(...%): string
 	%{
 	unsigned char digest[SHA_DIGEST_LENGTH];
-	hash_sha1_val(@ARG@, digest);
+	SHA1Val::digest(@ARG@, digest);
 	return new StringVal(sha1_digest_print(digest));
 	%}
 
@@ -638,7 +589,7 @@ function sha1_hash%(...%): string
 function sha256_hash%(...%): string
 	%{
 	unsigned char digest[SHA256_DIGEST_LENGTH];
-	hash_sha256_val(@ARG@, digest);
+	SHA256Val::digest(@ARG@, digest);
 	return new StringVal(sha256_digest_print(digest));
 	%}
 
@@ -659,7 +610,7 @@ function md5_hmac%(...%): string
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can
-## feed data to the ## returned opaque value with ## :bro:id:`md5_hash_update`
+## feed data to the returned opaque value with ## :bro:id:`md5_hash_update`
 ## and finally need to call :bro:id:`md5_hash_finish` to finish the computation
 ## and get the final hash value.
 ##

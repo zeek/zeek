@@ -610,9 +610,9 @@ function md5_hmac%(...%): string
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can
-## feed data to the returned opaque value with ## :bro:id:`md5_hash_update`
-## and finally need to call :bro:id:`md5_hash_finish` to finish the computation
-## and get the final hash value.
+## feed data to the returned opaque value with :bro:id:`md5_hash_update` and
+## finally need to call :bro:id:`md5_hash_finish` to finish the computation
+## and get the hash digest as result.
 ##
 ## Returns: The opaque handle associated with this hash computation.
 ##
@@ -634,21 +634,20 @@ function md5_hash_init%(%): opaque of md5
 	return digest;
 	%}
 
-# TODO: Update documentation.
-#
-## Initializes SHA1 state to enable incremental hash computation. After
-## initializing the SHA1 state with this function, you can feed data to
-## :bro:id:`sha1_hash_update` and finally need to call
-## :bro:id:`sha1_hash_finish` to finish the computation and get the final hash
-## value.
+## Constructs an SHA1 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`sha1_hash_update` and
+## finally need to call :bro:id:`sha1_hash_finish` to finish the computation
+## and get the hash digest as result.
 ##
 ## For example, when computing incremental SHA1 values of transferred files in
-## multiple concurrent HTTP connections, one would call ``sha1_hash_init(c$id)``
-## once before invoking ``sha1_hash_update(c$id, some_more_data)`` in the
+## multiple concurrent HTTP connections, one keep an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha1_handle = sha1_hash_init()`` ## once before invoking
+## ``sha1_hash_update(c$http$sha1_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha1_hash_finish` returns the final hash value.
 ##
-## index: The unique identifier to associate with this hash computation.
+## Returns: The opaque handle associated with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_update sha1_hash_finish
@@ -660,22 +659,20 @@ function sha1_hash_init%(%): opaque of sha1
 	return digest;
 	%}
 
-# TODO: Update documentation.
-#
-## Initializes SHA256 state to enable incremental hash computation. After
-## initializing the SHA256 state with this function, you can feed data to
-## :bro:id:`sha256_hash_update` and finally need to call
-## :bro:id:`sha256_hash_finish` to finish the computation and get the final hash
-## value.
+## Constructs an SHA256 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`sha256_hash_update` and
+## finally need to call :bro:id:`sha256_hash_finish` to finish the computation
+## and get the hash digest as result.
 ##
 ## For example, when computing incremental SHA256 values of transferred files in
-## multiple concurrent HTTP connections, one would call
-## ``sha256_hash_init(c$id)`` once before invoking
-## ``sha256_hash_update(c$id, some_more_data)`` in the
+## multiple concurrent HTTP connections, one keep an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha256_handle = sha256_hash_init()`` ## once before invoking
+## ``sha256_hash_update(c$http$sha256_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha256_hash_finish` returns the final hash value.
 ##
-## index: The unique identifier to associate with this hash computation.
+## Returns: The opaque handle associated with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
@@ -706,15 +703,15 @@ function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	return new Val(rc, TYPE_BOOL);
 	%}
 
-# TODO: Update documentation.
-#
-## Update the SHA1 value associated with a given index. It is required to
+## Updates the SHA1 value associated with a given index. It is required to
 ## call :bro:id:`sha1_hash_init` once before calling this
 ## function.
 ##
-## index: The unique identifier to associate with this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
 ## data: The data to add to the hash computation.
+##
+## Returns: True on success.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_finish
@@ -725,15 +722,15 @@ function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	return new Val(rc, TYPE_BOOL);
 	%}
 
-# TODO: Update documentation.
-#
-## Update the SHA256 value associated with a given index. It is required to
+## Updates the SHA256 value associated with a given index. It is required to
 ## call :bro:id:`sha256_hash_init` once before calling this
 ## function.
 ##
-## index: The unique identifier to associate with this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
 ## data: The data to add to the hash computation.
+##
+## Returns: True on success.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
@@ -758,13 +755,11 @@ function md5_hash_finish%(handle: opaque of md5%): string
 	return static_cast<HashVal*>(handle)->Get();
 	%}
 
-# TODO: Update documentation.
-#
 ## Returns the final SHA1 digest of an incremental hash computation.
 ##
-## index: The unique identifier of this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
-## Returns: The hash value associated with the computation at *index*.
+## Returns: The hash value associated with the computation of *handle*.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update
@@ -776,9 +771,9 @@ function sha1_hash_finish%(handle: opaque of sha1%): string
 
 ## Returns the final SHA256 digest of an incremental hash computation.
 ##
-## index: The unique identifier of this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
-## Returns: The hash value associated with the computation at *index*.
+## Returns: The hash value associated with the computation of *handle*.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish

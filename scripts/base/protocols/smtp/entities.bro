@@ -16,33 +16,33 @@ export {
 
 	type EntityInfo: record {
 		## This is the timestamp of when the MIME content transfer began.
-		ts:               time    &log;
-		uid:              string  &log;
-		id:               conn_id &log;
+		ts:               time            &log;
+		uid:              string          &log;
+		id:               conn_id         &log;
 		## A count to represent the depth of this message transaction in a 
 		## single connection where multiple messages were transferred.
-		trans_depth:      count  &log;
+		trans_depth:      count           &log;
 		## The filename seen in the Content-Disposition header.
-		filename:         string  &log &optional;
+		filename:         string          &log &optional;
 		## Track how many bytes of the MIME encoded file have been seen.
-		content_len:      count   &log &default=0;
+		content_len:      count           &log &default=0;
 		## The mime type of the entity discovered through magic bytes identification.
-		mime_type:        string  &log &optional;
+		mime_type:        string          &log &optional;
 		
 		## The calculated MD5 sum for the MIME entity.
-		md5:              string  &log &optional;
+		md5:              string          &log &optional;
 		## Optionally calculate the file's MD5 sum.  Must be set prior to the 
 		## first data chunk being see in an event.
-		calc_md5:         bool    &default=F;
+		calc_md5:         bool            &default=F;
 		## This boolean value indicates if an MD5 sum is being calculated 
 		## for the current file transfer.
-		calculating_md5:  bool    &default=F;
+		md5_handle:       opaque of md5   &optional;
 		
 		## Optionally write the file to disk.  Must be set prior to first 
 		## data chunk being seen in an event.
-		extract_file:     bool    &default=F;
+		extract_file:     bool            &default=F;
 		## Store the file handle here for the file currently being extracted.
-		extraction_file:  file    &log &optional;
+		extraction_file:  file            &log &optional;
 	};
 
 	redef record Info += {
@@ -126,18 +126,16 @@ event mime_segment_data(c: connection, length: count, data: string) &priority=-5
 
 	if ( c$smtp$current_entity$content_len == 0 )
 		{
-		if ( generate_md5 in c$smtp$current_entity$mime_type && ! never_calc_md5 )
-			c$smtp$current_entity$calc_md5 = T;
+		local entity = c$smtp$current_entity;
+		if ( generate_md5 in entity$mime_type && ! never_calc_md5 )
+			entity$calc_md5 = T;
 
-		if ( c$smtp$current_entity$calc_md5 )
-			{
-			c$smtp$current_entity$calculating_md5 = T;
-			md5_hash_init(c$id);
-			}
+		if ( entity$calc_md5 )
+			entity$md5_handle = md5_hash_init();
 		}
 
-	if ( c$smtp$current_entity$calculating_md5 )
-		md5_hash_update(c$id, data);
+	if ( c$smtp$current_entity?$md5_handle )
+		md5_hash_update(entity$md5_handle, data);
 }
 
 ## In the event of a content gap during the MIME transfer, detect the state for
@@ -147,10 +145,11 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 	{
 	if ( is_orig || ! c?$smtp || ! c$smtp?$current_entity ) return;
 
-	if ( c$smtp$current_entity$calculating_md5 )
+  local entity = c$smtp$current_entity;
+	if ( entity?$md5_handle )
 		{
-		c$smtp$current_entity$calculating_md5 = F;
-		md5_hash_finish(c$id);
+		md5_hash_finish(entity$md5_handle);
+    delete entity$md5_handle;
 		}
 	}
 
@@ -161,12 +160,14 @@ event mime_end_entity(c: connection) &priority=-3
 	if ( ! c?$smtp || ! c$smtp?$current_entity )
 		return;
 
-	if ( c$smtp$current_entity$calculating_md5 )
+  local entity = c$smtp$current_entity;
+	if ( entity?$md5_handle )
 		{
-		c$smtp$current_entity$md5 = md5_hash_finish(c$id);
+		entity$md5 = md5_hash_finish(entity$md5_handle);
+    delete entity$md5_handle;
 
 		NOTICE([$note=MD5, $msg=fmt("Calculated a hash for a MIME entity from %s", c$id$orig_h),
-				$sub=c$smtp$current_entity$md5, $conn=c]);
+				$sub=entity$md5, $conn=c]);
 		}
 	}
 

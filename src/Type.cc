@@ -30,6 +30,7 @@ const char* type_name(TypeTag t)
 		"table", "union", "record", "types",
 		"func",
 		"file",
+		"opaque",
 		"vector",
 		"type",
 		"error",

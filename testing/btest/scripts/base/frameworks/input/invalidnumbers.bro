@@ -1,11 +1,8 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff .stderrwithoutfirstline
 
 @TEST-START-FILE input.log
 #separator \x09
@@ -16,8 +13,6 @@
 Justtext	1
 9223372036854775800	-18446744073709551612
 @TEST-END-FILE
-
-@load frameworks/communication/listen
 
 global outfile: file;
 

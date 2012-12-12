@@ -217,8 +217,15 @@ bool Trigger::Eval()
 			Name());
 
 	Unref(v);
+	v = 0;
 	stmt_flow_type flow;
-	v = body->Exec(f, flow);
+
+	try
+		{
+		v = body->Exec(f, flow);
+		}
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 
 	if ( is_return )
 		{
@@ -300,7 +307,14 @@ void Trigger::Timeout()
 		{
 		stmt_flow_type flow;
 		Frame* f = frame->Clone();
-		Val* v = timeout_stmts->Exec(f, flow);
+		Val* v = 0;
+
+		try
+			{
+			v = timeout_stmts->Exec(f, flow);
+			}
+		catch ( InterpreterException& e )
+			{ /* Already reported. */ }
 
 		if ( is_return )
 			{
@@ -382,7 +396,7 @@ void Trigger::Attach(Trigger *trigger)
 
 void Trigger::Cache(const CallExpr* expr, Val* v)
 	{
-	if ( disabled )
+	if ( disabled || ! v )
 		return;
 
 	ValCache::iterator i = cache.find(expr);

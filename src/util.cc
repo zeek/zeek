@@ -1416,7 +1416,7 @@ void safe_close(int fd)
 		}
 	}
 
-void out_of_memory(const char* where)
+extern "C" void out_of_memory(const char* where)
 	{
 	fprintf(stderr, "out of memory in %s.\n", where);
 

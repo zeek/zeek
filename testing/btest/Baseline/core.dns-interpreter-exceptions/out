@@ -1,0 +1,12 @@
+1300475167.096535 expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.dns-interpreter-exceptions/dns-interpreter-exceptions.bro, line 28: field value missing [p$ip]
+1300475167.096535 expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.dns-interpreter-exceptions/dns-interpreter-exceptions.bro, line 49: field value missing [p$ip]
+1300475168.902195 expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.dns-interpreter-exceptions/dns-interpreter-exceptions.bro, line 39: field value missing [p$ip]
+1300475168.902195 expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.dns-interpreter-exceptions/dns-interpreter-exceptions.bro, line 12: field value missing [p$ip]
+timeout g(), F
+timeout g(), T
+timeout
+g() done, no exception, T
+localhost resolved
+localhost resolved from f(), T
+localhost resolved from f(), F
+f() done, no exception, T

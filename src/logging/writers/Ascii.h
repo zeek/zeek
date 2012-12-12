@@ -45,7 +45,7 @@ private:
 	// Options set from the script-level.
 	bool output_to_stdout;
 	bool include_meta;
-	bool only_single_header_row;
+	bool tsv;
 
 	char* separator;
 	int separator_len;

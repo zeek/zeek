@@ -1,0 +1,42 @@
+myhook(), 3
+other myhook(), 3
+myhook(), 3
+other myhook(), 3
+T
+myhook(), 0
+F
+-----------
+indirect()
+myhook(), 3
+other myhook(), 3
+indirect()
+myhook(), 3
+other myhook(), 3
+T
+-----------
+really_indirect()
+indirect()
+myhook(), 3
+other myhook(), 3
+really_indirect()
+indirect()
+myhook(), 3
+other myhook(), 3
+T
+-----------
+myhook(), 3
+other myhook(), 3
+myhook(), 3
+other myhook(), 3
+T
+myhook(), 3
+other myhook(), 3
+yes
+myhook(), 0
+double yes
+-----------
+myhook(), 3
+other myhook(), 3
+myhook(), 3
+other myhook(), 3
+T

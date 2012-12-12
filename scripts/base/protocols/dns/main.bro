@@ -67,7 +67,7 @@ export {
 		ready:         bool            &default=F;
 		## The total number of resource records in a reply message's answer
 		## section.
-		total_answers: count           &default=0;
+		total_answers: count           &optional;
 		## The total number of resource records in a reply message's answer,
 		## authority, and additional sections.
 		total_replies: count           &optional;
@@ -231,6 +231,7 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 		Log::write(DNS::LOG, c$dns);
 		# This record is logged and no longer pending.
 		delete c$dns_state$pending[c$dns$trans_id];
+		delete c$dns;
 		}
 	}
 

@@ -3149,6 +3149,9 @@ bool OpaqueVal::DoUnserialize(UnserialInfo* info)
 
 Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	{
+	if ( ! v )
+		return 0;
+
 	BroType* vt = v->Type();
 
 	vt = flatten_type(vt);

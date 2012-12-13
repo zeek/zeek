@@ -6,7 +6,7 @@
 #define LOGGING_WRITER_ASCII_H
 
 #include "../WriterBackend.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 namespace logging { namespace writer {
 

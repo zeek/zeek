@@ -16,7 +16,7 @@
 #include "BroString.h"
 #include "NetVar.h"
 #include "threading/SerialTypes.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 #include <curl/curl.h>
 #include <curl/easy.h>

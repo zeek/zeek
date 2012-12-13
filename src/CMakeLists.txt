@@ -286,7 +286,6 @@ set(bro_SRCS
     Analyzer.cc
     Anon.cc
     ARP.cc
-    AsciiInputOutput.cc
     Attr.cc
     AYIYA.cc
     BackDoor.cc
@@ -426,6 +425,7 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
+    threading/AsciiInputOutput.cc
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc

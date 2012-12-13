@@ -5,7 +5,7 @@
 #include <sstream>
 #include <errno.h>
 #include "AsciiInputOutput.h"
-#include "bro_inet_ntop.h"
+#include "../bro_inet_ntop.h"
 
 AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t) 
 	{

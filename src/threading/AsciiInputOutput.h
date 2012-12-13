@@ -3,8 +3,8 @@
 #ifndef AsciiInputOutput_h
 #define AsciiInputOutput_h
 
-#include "Desc.h"
-#include "threading/MsgThread.h"
+#include "../Desc.h"
+#include "MsgThread.h"
 
 class AsciiInputOutput {
 	public: 

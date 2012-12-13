@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 namespace input { namespace reader {
 

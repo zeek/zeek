@@ -198,7 +198,7 @@ protected:
 
 class NameExpr : public Expr {
 public:
-	NameExpr(ID* id);
+	NameExpr(ID* id, bool const_init = false);
 	~NameExpr();
 
 	ID* Id() const		{ return id; }
@@ -220,6 +220,7 @@ protected:
 	DECLARE_SERIAL(NameExpr);
 
 	ID* id;
+	bool in_const_init;
 };
 
 class ConstExpr : public Expr {

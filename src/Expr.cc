@@ -229,9 +229,10 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 	}
 
 
-NameExpr::NameExpr(ID* arg_id) : Expr(EXPR_NAME)
+NameExpr::NameExpr(ID* arg_id, bool const_init) : Expr(EXPR_NAME)
 	{
 	id = arg_id;
+	in_const_init = const_init;
 	SetType(id->Type()->Ref());
 
 	EventHandler* h = event_registry->Lookup(id->Name());
@@ -287,6 +288,9 @@ Expr* NameExpr::MakeLvalue()
 	if ( id->AsType() )
 		ExprError("Type name is not an lvalue");
 
+	if ( id->IsConst() && ! in_const_init )
+		ExprError("const is not a modifiable lvalue");
+
 	return new RefExpr(this);
 	}
 
@@ -337,9 +341,11 @@ bool NameExpr::DoSerialize(SerialInfo* info) const
 
 	// Write out just the name of the function if requested.
 	if ( info->globals_as_names && id->IsGlobal() )
-		return SERIALIZE('n') && SERIALIZE(id->Name());
+		return SERIALIZE('n') && SERIALIZE(id->Name()) &&
+		       SERIALIZE(in_const_init);
 	else
-		return SERIALIZE('f') && id->Serialize(info);
+		return SERIALIZE('f') && id->Serialize(info) &&
+		       SERIALIZE(in_const_init);
 	}
 
 bool NameExpr::DoUnserialize(UnserialInfo* info)
@@ -368,6 +374,9 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		id = ID::Unserialize(info);
 
 	if ( ! id )
+		return false;
+
+	if ( ! UNSERIALIZE(&in_const_init) )
 		return false;
 
 	return true;

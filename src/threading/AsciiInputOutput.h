@@ -30,7 +30,7 @@ class AsciiInputOutput {
 		bool ValToODesc(ODesc* desc, threading::Value* val, const threading::Field* field) const;
 
 		// convert the ascii representation of a field into a Value
-		threading::Value* EntryToVal(string s, string name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
+		threading::Value* StringToVal(string s, string name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 		/** Helper method to render an IP address as a string.
 		  *

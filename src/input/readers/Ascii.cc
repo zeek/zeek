@@ -325,7 +325,7 @@ bool Ascii::DoUpdate()
 				return false;
 				}
 
-			Value* val = io->EntryToVal(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+			Value* val = io->StringToVal(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 			if ( val == 0 )
 				{
 				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));

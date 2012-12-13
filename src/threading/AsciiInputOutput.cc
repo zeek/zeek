@@ -179,7 +179,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 	}
 
 
-threading::Value* AsciiInputOutput::EntryToVal(string s, string name, TypeTag type, TypeTag subtype) const
+threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag type, TypeTag subtype) const
 	{
 	if ( s.compare(unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
@@ -320,7 +320,7 @@ threading::Value* AsciiInputOutput::EntryToVal(string s, string name, TypeTag ty
 				break;
 				}
 
-			threading::Value* newval = EntryToVal(element, name, subtype);
+			threading::Value* newval = StringToVal(element, name, subtype);
 			if ( newval == 0 )
 				{
 				thread->Error("Error while reading set");
@@ -337,7 +337,7 @@ threading::Value* AsciiInputOutput::EntryToVal(string s, string name, TypeTag ty
 		// to push an empty val on top of it.
 		if ( s.empty() || *s.rbegin() == set_separator[0] )
 			{
-			lvals[pos] = EntryToVal("", name, subtype);
+			lvals[pos] = StringToVal("", name, subtype);
 			if ( lvals[pos] == 0 )
 				{
 				thread->Error("Error while trying to add empty set element");

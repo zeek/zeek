@@ -1,4 +1,18 @@
 
+2.1-223 | 2012-12-12 14:25:15 -0800
+
+  * Trick for parallelizing input framework unit tests. Instead of
+    loading listen.bro to block until files are read, just read a pcap
+    file in pseudo-realtime. (Jon Siwek)
+
+  * Fix reliability of a unit test that relies on when statements.
+    (Jon Siwek)
+
+  * Remove unused attributes. (Daniel Thayer)
+        - Removed attributes &postprocessor and &match from documentation and source code.
+        - Removed undocumented attribute &attr from source code.
+        - Removed internal attribute "(&tracked)" from documentation.
+
 2.1-218 | 2012-12-10 14:45:04 -0800
 
   * Add GPRS Tunnelling Protocol (GTPv1) decapsulation. This currently

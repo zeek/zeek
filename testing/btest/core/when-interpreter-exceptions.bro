@@ -1,6 +1,10 @@
-# @TEST-EXEC: bro -b -r $TRACES/wikipedia.trace %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/rotation.trace %INPUT
+# @TEST-EXEC: btest-bg-wait -k 3
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff bro/.stderr
+# @TEST-EXEC: btest-diff bro/.stdout
+
 # interpreter exceptions in "when" blocks shouldn't cause termination
+
 global p: pkt_hdr;
 
 function f(do_exception: bool): bool

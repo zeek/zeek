@@ -2,11 +2,14 @@
 ##! to tweak the output format of ASCII logs.
 ##!
 ##! The ASCII writer supports currently one writer-specific filter option via
-##! ``config``: setting ``only_single_header_row`` to ``T`` turns the output into
-##! into CSV mode where only a single header row with the column names is printed
-##! out as meta information. Example filter using this::
+##! ``config``: setting ``tsv`` to the string ``T`` turns the output into into
+##! "tab-separated-value" mode where only a single header row with the column names
+##! is printed out as meta information, with no "# fields" prepended; no other meta
+##! data gets included in that mode.   
 ##! 
-##!    local my_filter: Log::Filter = [$name = "my-filter", $writer = Log::WRITER_ASCII, $config = table(["only_single_header_row"] = "T")]; 
+##! Example filter using this::
+##! 
+##!    local my_filter: Log::Filter = [$name = "my-filter", $writer = Log::WRITER_ASCII, $config = table(["tsv"] = "T")]; 
 ##!
 
 module LogAscii;

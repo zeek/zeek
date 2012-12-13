@@ -203,6 +203,8 @@ binpac_target(dns.pac
     dns-protocol.pac dns-analyzer.pac)
 binpac_target(dns_tcp.pac
     dns.pac)
+binpac_target(gtpv1.pac
+    gtpv1-protocol.pac gtpv1-analyzer.pac)
 binpac_target(http.pac
     http-protocol.pac http-analyzer.pac)
 binpac_target(ncp.pac)
@@ -333,6 +335,7 @@ set(bro_SRCS
     Frame.cc
     Func.cc
     Gnutella.cc
+    GTPv1.cc
     HTTP.cc
     HTTP-binpac.cc
     Hash.cc

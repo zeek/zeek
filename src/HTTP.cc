@@ -1116,38 +1116,39 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 	return line;
 	}
 
+static bool is_HTTP_token_char(char c)
+	{
+	return c > 31 && c != 127 &&      // CTL per RFC 2616.
+	        c != ' ' && c != '\t' &&  // Separators.
+		c != '(' && c != ')' && c != '<' && c != '>' && c != '@' &&
+		c != ',' && c != ';' && c != ':' && c != '\\' && c != '"' &&
+		c != '/' && c != '[' && c != ']' && c != '?' && c != '=' &&
+		c != '{' && c != '}';
+	}
+
+static const char* get_HTTP_token(const char* s, const char* e)
+	{
+	while ( s < e && is_HTTP_token_char(*s) )
+		++s;
+
+	return s;
+	}
+
+
 int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	{
 	const char* rest = 0;
-	static const char* http_methods[] = {
-		"GET", "POST", "HEAD",
+	const char* end_of_method = get_HTTP_token(line, end_of_line);
 
-		"OPTIONS", "PUT", "DELETE", "TRACE", "CONNECT",
+	if ( end_of_method == line )
+		goto error;
 
-		// HTTP methods for distributed authoring.
-		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
-		"COPY", "MOVE", "LOCK", "UNLOCK",
-		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
+	rest = skip_whitespace(end_of_method, end_of_line);
 
-		"SEARCH",
+	if ( rest == end_of_method )
+		goto error;
 
-		0,
-	};
-
-	int i;
-	for ( i = 0; http_methods[i]; ++i )
-		if ( (rest = PrefixWordMatch(line, end_of_line, http_methods[i])) != 0 )
-			break;
-
-	if ( ! http_methods[i] )
-		{
-		// Weird("HTTP_unknown_method");
-		if ( RequestExpected() )
-			HTTP_Event("unknown_HTTP_method", new_string_val(line, end_of_line));
-		return 0;
-		}
-
-	request_method = new StringVal(http_methods[i]);
+	request_method = new StringVal(end_of_method - line, line);
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		reporter->InternalError("HTTP ParseRequest failed");
@@ -1157,6 +1158,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 			unescaped_URI->AsString()->Len(), true, true, true, true);
 
 	return 1;
+
+error:
+	reporter->Weird(Conn(), "bad_HTTP_request");
+	return 0;
 	}
 
 int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)

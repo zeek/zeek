@@ -545,8 +545,11 @@ RemoteSerializer::~RemoteSerializer()
 	{
 	if ( child_pid )
 		{
-		kill(child_pid, SIGKILL);
-		waitpid(child_pid, 0, 0);
+		if ( kill(child_pid, SIGKILL) < 0 )
+			reporter->Warning("warning: cannot kill child (pid %d), %s", child_pid, strerror(errno));
+
+		else if ( waitpid(child_pid, 0, 0) < 0 )
+			reporter->Warning("warning: error encountered during waitpid(%d), %s", child_pid, strerror(errno));
 		}
 
 	delete io;
@@ -1032,6 +1035,14 @@ bool RemoteSerializer::SendAllSynchronized(Peer* peer, SerialInfo* info)
 
 	for ( ; index < sync_ids.length(); ++index )
 		{
+		if ( ! sync_ids[index]->ID_Val() )
+			{
+#ifdef DEBUG
+			DBG_LOG(DBG_COMM, "Skip sync of ID with null value: %s\n",
+			        sync_ids[index]->Name());
+#endif
+			continue;
+			}
 		cont->SaveContext();
 
 		StateAccess sa(OP_ASSIGN, sync_ids[index],
@@ -3153,7 +3164,10 @@ void RemoteSerializer::FatalError(const char* msg)
 	reporter->Error("%s", msg);
 
 	closed = true;
-	kill(child_pid, SIGQUIT);
+
+	if ( kill(child_pid, SIGQUIT) < 0 )
+		reporter->Warning("warning: cannot kill child pid %d, %s", child_pid, strerror(errno));
+
 	child_pid = 0;
 	using_communication = false;
 	io->Clear();
@@ -3963,7 +3977,7 @@ bool SocketComm::Connect(Peer* peer)
 	{
 	int status;
 	addrinfo hints, *res, *res0;
-	bzero(&hints, sizeof(hints));
+        memset(&hints, 0, sizeof(hints));
 
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -4095,7 +4109,7 @@ bool SocketComm::Listen()
 	{
 	int status, on = 1;
 	addrinfo hints, *res, *res0;
-	bzero(&hints, sizeof(hints));
+        memset(&hints, 0, sizeof(hints));
 
 	IPAddr listen_ip(listen_if);
 
@@ -4360,7 +4374,8 @@ void SocketComm::Kill()
 
 	CloseListenFDs();
 
-	kill(getpid(), SIGTERM);
+	if ( kill(getpid(), SIGTERM) < 0 )
+		Log(fmt("warning: cannot kill SocketComm pid %d, %s", getpid(), strerror(errno)));
 
 	while ( 1 )
 		; // loop until killed

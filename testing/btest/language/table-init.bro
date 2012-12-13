@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 global global_table: table[count] of string = {

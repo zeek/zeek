@@ -1,0 +1,6 @@
+# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp7_ipv6.pcap
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff tunnel.log
+
+# While the majority of user plane traffic inside the GTP tunnel is still IPv4,
+# there is sometimes already native IPv6.

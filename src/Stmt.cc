@@ -23,7 +23,7 @@ const char* stmt_name(BroStmtTag t)
 		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
-		"<init>", "hook",
+		"<init>",
 		"null",
 	};
 
@@ -933,52 +933,6 @@ bool EventStmt::DoUnserialize(UnserialInfo* info)
 	return event_expr != 0;
 	}
 
-HookStmt::HookStmt(CallExpr* arg_e) : ExprStmt(STMT_HOOK, arg_e)
-	{
-	call_expr = arg_e;
-	}
-
-Val* HookStmt::Exec(Frame* f, stmt_flow_type& flow) const
-	{
-	RegisterAccess();
-
-	Val* ret = call_expr->Eval(f);
-	Unref(ret);
-
-	flow = FLOW_NEXT;
-
-	return 0;
-	}
-
-TraversalCode HookStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	// call expr is stored in base class's "e" field.
-	tc = e->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(HookStmt, SER_HOOK_STMT);
-
-bool HookStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_HOOK_STMT, ExprStmt);
-	return call_expr->Serialize(info);
-	}
-
-bool HookStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	call_expr = (CallExpr*) Expr::Unserialize(info, EXPR_CALL);
-	return call_expr != 0;
-	}
-
 ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 : ExprStmt(STMT_FOR, loop_expr)
 	{
@@ -1378,7 +1332,10 @@ ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 		}
 
 	else if ( ! e )
-		Error("return statement needs expression");
+		{
+		if ( ft->Flavor() != FUNC_FLAVOR_HOOK )
+			Error("return statement needs expression");
+		}
 
 	else
 		(void) check_and_promote_expr(e, yt);
@@ -1990,7 +1947,6 @@ int same_stmt(const Stmt* s1, const Stmt* s2)
 	case STMT_RETURN:
 	case STMT_EXPR:
 	case STMT_EVENT:
-	case STMT_HOOK:
 		{
 		const ExprStmt* e1 = (const ExprStmt*) s1;
 		const ExprStmt* e2 = (const ExprStmt*) s2;

@@ -17,7 +17,7 @@
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
 
-%token TOK_ATTR_ADD_FUNC TOK_ATTR_ATTR TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
+%token TOK_ATTR_ADD_FUNC TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
 %token TOK_ATTR_OPTIONAL TOK_ATTR_REDEF TOK_ATTR_ROTATE_INTERVAL
 %token TOK_ATTR_ROTATE_SIZE TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
@@ -32,6 +32,7 @@
 
 %token TOK_NO_TEST
 
+%nonassoc TOK_HOOK
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
@@ -56,7 +57,6 @@
 %type <re> pattern
 %type <expr> expr init anonymous_function
 %type <event_expr> event
-%type <call_expr> hook
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
 %type <func_type> func_hdr func_params
@@ -119,6 +119,7 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
+static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -212,7 +213,6 @@ static std::list<std::string>* concat_opt_docs (std::list<std::string>* pre,
 	Val* val;
 	RE_Matcher* re;
 	Expr* expr;
-	CallExpr* call_expr;
 	EventExpr* event_expr;
 	Stmt* stmt;
 	ListExpr* list;
@@ -517,7 +517,16 @@ expr:
 	|	expr '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new CallExpr($1, $3);
+			$$ = new CallExpr($1, $3, in_hook > 0);
+			}
+
+	|	TOK_HOOK { ++in_hook; } expr
+			{
+			--in_hook;
+			set_location(@1, @3);
+			if ( $3->Tag() != EXPR_CALL )
+				$3->Error("not a valid hook call expression");
+			$$ = $3;
 			}
 
 	|	expr TOK_HAS_FIELD TOK_ID
@@ -875,7 +884,7 @@ type:
 	|	TOK_HOOK '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, 0, FUNC_FLAVOR_HOOK);
+				$$ = new FuncType($3, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
@@ -1209,6 +1218,8 @@ func_hdr:
 			}
 	|	TOK_HOOK def_global_id func_params
 			{
+			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
+			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_HOOK, 0, $3);
 			$$ = $3;
@@ -1372,14 +1383,6 @@ stmt:
 			    brofiler.AddStmt($$);
 			}
 
-	|	TOK_HOOK hook ';' opt_no_test
-			{
-			set_location(@1, @4);
-			$$ = new HookStmt($2);
-			if ( ! $4 )
-			    brofiler.AddStmt($$);
-			}
-
 	|	TOK_IF '(' expr ')' stmt
 			{
 			set_location(@1, @4);
@@ -1530,14 +1533,6 @@ event:
 			{
 			set_location(@1, @4);
 			$$ = new EventExpr($1, $3);
-			}
-	;
-
-hook:
-		expr '(' opt_expr_list ')'
-			{
-			set_location(@1, @4);
-			$$ = new CallExpr($1, $3, true);
 			}
 	;
 

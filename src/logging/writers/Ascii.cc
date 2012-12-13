@@ -19,7 +19,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	fd = 0;
 	ascii_done = false;
-	only_single_header_row = false;
+	tsv = false;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
@@ -78,7 +78,7 @@ void Ascii::CloseFile(double t)
 	if ( ! fd )
 		return;
 
-	if ( include_meta && ! only_single_header_row )
+	if ( include_meta && ! tsv )
 		WriteHeaderField("close", Timestamp(0));
 
 	safe_close(fd);
@@ -108,17 +108,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
 		{
-		if ( strcmp(i->first, "only_single_header_row") == 0 )
+		if ( strcmp(i->first, "tsv") == 0 )
 			{
 			if ( strcmp(i->second, "T") == 0 )
-				only_single_header_row = true;
+				tsv = true;
 
 			else if ( strcmp(i->second, "F") == 0 )
-				only_single_header_row = false;
+				tsv = false;
 
 			else
 				{
-				Error("invalid value for 'only_single_header_row', must be boolean (T/F)");
+				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
 				return false;
 				}
 			}
@@ -141,9 +141,9 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			types += fields[i]->TypeName().c_str();
 			}
 
-		if ( only_single_header_row )
+		if ( tsv )
 			{
-			// A single CSV-style line is all we need.
+			// A single TSV-style line is all we need.
 			string str = names + "\n";
 			if ( ! safe_write(fd, str.c_str(), str.length()) )
 				goto write_error;

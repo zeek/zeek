@@ -1,8 +1,5 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: cp input1.log input.log
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT 
+# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT 
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: cat input2.log >> input.log
 # @TEST-EXEC: sleep 3
@@ -26,8 +23,6 @@ dfsdf
 sdf
 3rw43wRRERLlL#RWERERERE.
 @TEST-END-FILE
-
-@load frameworks/communication/listen
 
 module A;
 

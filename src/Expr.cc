@@ -2663,7 +2663,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	TableVal* tv = aggr->AsTableVal();
 
 	Val* index = op1->Eval(f);
-	Val* v = op2->Eval(f);
+	Val* v = check_and_promote(op2->Eval(f), t->YieldType(), 1);
 	if ( ! index || ! v )
 		return;
 
@@ -2950,16 +2950,12 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	if ( IsError() )
 		return 0;
 
-	if ( v1->Type()->Tag() == TYPE_VECTOR )
-		{
-		Val* v = v1->AsVectorVal()->Lookup(v2);
-		// ### dangerous - this can silently fail larger operations
-		// due to a missing element
-		return v ? v->Ref() : 0;
-		}
+	Val* v = 0;
 
-	TableVal* v_tbl = v1->AsTableVal();
-	Val* v = v_tbl->Lookup(v2);
+	if ( v1->Type()->Tag() == TYPE_VECTOR )
+		v = v1->AsVectorVal()->Lookup(v2);
+	else
+		v = v1->AsTableVal()->Lookup(v2);
 
 	if ( v )
 		return v->Ref();
@@ -3290,20 +3286,22 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	RecordVal* rv = Eval(0)->AsRecordVal();
-	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+	Val* v = Eval(0);
 
-	if ( ar )
+	if ( v )
 		{
-		Unref(rv);
-		return ar;
+		RecordVal* rv = v->AsRecordVal();
+		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+
+		if ( ar )
+			{
+			Unref(rv);
+			return ar;
+			}
 		}
 
-	else
-		{
-		Error("bad record initializer");
-		return 0;
-		}
+	Error("bad record initializer");
+	return 0;
 	}
 
 Val* RecordConstructorExpr::Fold(Val* v) const
@@ -3386,7 +3384,14 @@ Val* TableConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	if ( IsError() )
 		return 0;
 
-	return op->InitVal(t, aggr);
+	TableType* tt = Type()->AsTableType();
+	TableVal* tval = aggr ? aggr->AsTableVal() : new TableVal(tt, attrs);
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+
+	loop_over_list(exprs, i)
+		exprs[i]->EvalIntoAggregate(t, tval, 0);
+
+	return tval;
 	}
 
 void TableConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3438,7 +3443,7 @@ Val* SetConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return 0;
 
-	TableVal* aggr = new TableVal(type->AsTableType(), 0);
+	TableVal* aggr = new TableVal(type->AsTableType(), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
@@ -3456,7 +3461,26 @@ Val* SetConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	if ( IsError() )
 		return 0;
 
-	return op->InitVal(t, aggr);
+	const BroType* index_type = t->AsTableType()->Indices();
+	TableType* tt = Type()->AsTableType();
+	TableVal* tval = aggr ? aggr->AsTableVal() : new TableVal(tt, attrs);
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+
+	loop_over_list(exprs, i)
+		{
+		Expr* e = exprs[i];
+		Val* element = check_and_promote(e->Eval(0), index_type, 1);
+
+		if ( ! element || ! tval->Assign(element, 0) )
+			{
+			Error(fmt("initialization type mismatch in set"), e);
+			return 0;
+			}
+
+		Unref(element);
+		}
+
+	return tval;
 	}
 
 void SetConstructorExpr::ExprDescribe(ODesc* d) const
@@ -3536,14 +3560,14 @@ Val* VectorConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	if ( IsError() )
 		return 0;
 
-	VectorVal* vec = aggr->AsVectorVal();
-	const BroType* vt = vec->Type()->AsVectorType()->YieldType();
+	VectorType* vt = Type()->AsVectorType();
+	VectorVal* vec = aggr ? aggr->AsVectorVal() : new VectorVal(vt);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		Val* v = check_and_promote(e->Eval(0), vt, 1);
+		Val* v = check_and_promote(e->Eval(0), t->YieldType(), 1);
 
 		if ( ! v || ! vec->Assign(i, v, e) )
 			{
@@ -4394,6 +4418,13 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 		return;
 		}
 
+	if ( func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK && ! in_hook )
+		{
+		func->Error("hook cannot be called directly, use hook operator");
+		SetError();
+		return;
+		}
+
 	if ( ! func_type->MatchesIndex(args) )
 		SetError("argument type mismatch in function call");
 	else
@@ -4415,13 +4446,8 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 				break;
 
 			case FUNC_FLAVOR_HOOK:
-				// It's fine to not have a yield if it's known that the call
-				// is being done from a hook statement.
-				if ( ! in_hook )
-					{
-					Error("hook called in expression, use hook statement instead");
-					SetError();
-					}
+				Error("hook has no yield type");
+				SetError();
 				break;
 
 			default:

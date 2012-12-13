@@ -1,4 +1,148 @@
 
+2.1-223 | 2012-12-12 14:25:15 -0800
+
+  * Trick for parallelizing input framework unit tests. Instead of
+    loading listen.bro to block until files are read, just read a pcap
+    file in pseudo-realtime. (Jon Siwek)
+
+  * Fix reliability of a unit test that relies on when statements.
+    (Jon Siwek)
+
+  * Remove unused attributes. (Daniel Thayer)
+        - Removed attributes &postprocessor and &match from documentation and source code.
+        - Removed undocumented attribute &attr from source code.
+        - Removed internal attribute "(&tracked)" from documentation.
+
+2.1-218 | 2012-12-10 14:45:04 -0800
+
+  * Add GPRS Tunnelling Protocol (GTPv1) decapsulation. This currently
+    supports automatic decapsulation of GTP-U packets on UDP port 2152.
+    The GTPv1 headers for such tunnels can be inspected by handling
+    the "gtpv1_g_pdu_packet" event, which has a parameter of type
+    "gtpv1_hdr". Addresses #690. (Jon Siwek; derived from patch by
+    Carsten Langer)
+
+  * Change BinPAC exceptions in AYIYA/GTP analyzers to do
+    "protocol_violation". (Jon Siwek)
+
+2.1-212 | 2012-12-07 19:42:03 -0800
+
+  * Changing the HTTP parser to accept request methods in alignment
+    with the RFC. (Robin Sommer)
+
+2.1-209 | 2012-12-05 16:44:04 -0800
+
+  * Adapting the HTTP request line parsing to only accept methods
+    consisting of letters [A-Za-z]. (Robin Sommer)
+
+2.1-207 | 2012-12-05 15:47:32 -0800
+
+  * Reporting warnings if kill/waitpid fail in communication system.
+    (Bill Parker)
+
+  * Replace() bzero with memset(). (Bill Parker)
+
+  * Merge remote-tracking branch 'vlad/topic/vladg/http-verbs'
+
+    * vlad/topic/vladg/http-verbs:
+      A test for HTTP methods, including some horribly illegal requests.
+      Remove hardcoded HTTP verbs from the analyzer (#741)
+
+    I added a "bad_HTTP_request" weird for HTTP request lines that don't
+    have more than a single word.
+
+    Closes #741. (Robin Sommer)
+
+  * A test for HTTP methods, including some horribly illegal requests. (Vlad Grigorescu)
+
+  * Remove hardcoded HTTP verbs from the analyzer (#741) (Vlad Grigorescu)
+
+
+2.1-203 | 2012-12-05 14:36:56 -0800
+
+  * Fix segfault: Synchronization of state between connecting peers
+    now skips over identifiers that aren't initialized with a value
+    yet. Addresses #66. (Jon Siwek)
+
+  * Fix segfault: Delete correct entry in error case in input
+    framework. (Bernhard Amann)
+
+  * Bad record constructor initializers now give an error. Addresses
+    #34. (Jon Siwek)
+
+  * Invalid vector indices now generate error message. Addresses #24.
+    (Jon Siwek)
+
+  * Bump CPack RPM package requirement to Python >= 2.6.0. (Jon Siwek)
+
+  * Interpreter exceptions occurring in "when" blocks are now handled.
+    Addresses #779 (Jon Siwek)
+
+2.1-195 | 2012-12-03 14:50:33 -0800
+
+  * Catching out-of-memory in patricia tree code. (Bill Parker)
+    
+2.1-194 | 2012-12-03 14:36:26 -0800
+
+  * Renaming ASCII writer filter option 'only_single_header_row' to
+    'tsv'. Also clarifying usage. Closes #912. (Robin Sommer)
+
+2.1-193 | 2012-12-03 14:11:14 -0800
+
+  * Fix a set of bugs with table/set attributes. (Jon Siwek)
+
+    - Identifiers that are initialized with set()/table() constructor
+      expressions now inherit attributes from the expression.  Before,
+      statements like
+
+         const i: set[string] = set() &redef;
+
+      associated the attribute with the set() constructor, but not the
+      "i" identifier, preventing redefinition.  Addresses #866.
+
+    - Allow &default attribute to apply to tables initialized as empty
+      (via either "{ }" or "table()") or if the expression supplied to it
+      can evaluate to a type that's promotable to the same yield type as
+      the table.
+
+2.1-191 | 2012-12-03 14:08:56 -0800
+
+  * Add test of record() constructor to table initializer unit test.
+    (Jon Siwek)
+
+  * Fix table(), set(), vector() constructors in table initializer
+    lists. Also adds type checking of yield values to table()
+    constructor and fixes the type checking of yield values in
+    vector() constructor. Addresses #5. (Jon Siwek)
+
+2.1-188 | 2012-12-03 14:04:29 -0800
+
+  * Hook functions now callable with "hook" expression (i.e., hook is
+    no longer a statement). The return value of the call is an
+    implicit boolean value of T if all hook handlers ran, or F if one
+    hook handler exited as a result of a break statement and
+    potentially prevented other handlers from running.
+
+    Scripts don't need to declare hooks with an explicit return type of bool
+    (internally, that's assumed), and any values given to (optional) return
+    statements in handler definitions are just ignored.
+
+    Addresses #918. (Jon Siwek)
+
+  * Clarification in hook documentation. (Jon Siwek)
+
+2.1-184 | 2012-12-03 13:59:50 -0800
+
+  * Slightly fix up file name extraction from Content-Disposition
+    headers. (Seth Hall)
+
+  * Adding -b flag to bro in unit tests so they run faster.
+
+  * Fixed a DNS attribute issue. Reported by Matt Thompson. (Seth
+    Hall)
+
+  * Adding NEWS placeholder for hooks and CSV mode. (Robin Sommer)
+    
 2.1-178 | 2012-11-23 19:35:32 -0800
 
   * The ASCII writer now supports a new filter config option

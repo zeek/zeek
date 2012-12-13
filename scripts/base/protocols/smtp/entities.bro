@@ -177,6 +177,10 @@ event mime_one_header(c: connection, h: mime_header_rec)
 	if ( h$name == "CONTENT-DISPOSITION" &&
 	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in h$value )
 		c$smtp$current_entity$filename = extract_filename_from_content_disposition(h$value);
+
+	if ( h$name == "CONTENT-TYPE" && 
+	     /[nN][aA][mM][eE][:blank:]*=/ in h$value )
+		c$smtp$current_entity$filename = extract_filename_from_content_disposition(h$value);
 	}
 
 event mime_end_entity(c: connection) &priority=-5

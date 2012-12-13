@@ -6547,19 +6547,43 @@ event netflow_v5_header%(h: nf_v5_header%);
 ## .. bro:see:: netflow_v5_record
 event netflow_v5_record%(r: nf_v5_record%);
 
-# TODO-Hui: Can we delete this?
-#event dnp3_application_request_header%(c: connection, is_orig: bool, app_control: string, fc: string%);
 
-## TODO-Hui: Document.
+### event handler that is used to analyze network packets based on DNP3 protocol
+### starts with dnp3_
+### In src/DNP3.cc, we include detailed descriptions on how DNP3 Pseudo Link Layer, 
+### DNP3 Pseudo Transport Layer, DNP3 Pseudo Application Layer are packed into application 
+### layer payload over TCP 
+### The event handlers defined for binpac DNP3 analyzer are used to analyze fields 
+### of the DNP3 Pseudo Application Layer.  
+### we have tried our best to name the event handler by the field names that is described 
+### in DNP3 Specification Volum 2, Part 1 Basic, Application Layer, DNP3 Specification 
+### Volum 4, Data Link Layer, DNP3 Specification Volum 6, Part 1 Basic, DNP3 OBJECT LIBRARY, 
+### DNP3 Specification Volum 6, Part 2 Objects, DNP3 OBJECT LIBRARY 
+
+## Generated for the request header in Pseudo Application Layer. 
+## The request header contains two fields: 
+##    app_control: application control field.
+##    fc: function code.
 event dnp3_application_request_header%(c: connection, is_orig: bool, app_control: count, fc: count%);
 
-## TODO-Hui: Document.
+## Generated for the response header in Pseudo Application Layer.
+## The response header contains three fields:
+##    app_control: application control field.
+##    fc: function code.
+##    iin: internal indication number  
 event dnp3_application_response_header%(c: connection, is_orig: bool, app_control: count, fc: count, iin: count%);
 
-## TODO-Hui: Document.
+## Generated for the object header found in both DNP3 requests and responses
+##    obj_type: type of object, which is classified based on an 8-bit group number and an 8-bit variation number
+##    qua_field: qualifier field
+##    rf_low, rf_high: the structure of the range field depends on the qualified field. In some cases, range field 
+##       contain only one logic part, e.g., number of objects, so only rf_low contains the useful values; in some 
+##       cases, range field contain two logic parts, e.g., start index and stop index, so rf_low contains the start
+##       index while rf_high contains the stop index  
 event dnp3_object_header%(c: connection, is_orig: bool, obj_type: count, qua_field: count, number: count, rf_low: count, rf_high: count%);
 
-## TODO-Hui: Document.
+## Generated for the prefix before each object. 
+##   the structure and the meaning of the prefix are defined by the qualifier field
 event dnp3_object_prefix%(c: connection, is_orig: bool, prefix_value: count%);
 
 ## TODO-Hui: Document.

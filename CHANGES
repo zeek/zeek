@@ -1,4 +1,12 @@
 
+2.1-229 | 2012-12-14 14:46:12 -0800
+
+  * Fix memory leak in ASCII reader when encoutering errors in input.
+    (Bernhard Amann)
+
+  * Improvements for the "bad checksums" detector to make it detect
+    bad TCP checksums. (Seth Hall)
+
 2.1-223 | 2012-12-12 14:25:15 -0800
 
   * Trick for parallelizing input framework unit tests. Instead of

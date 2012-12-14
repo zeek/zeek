@@ -1294,7 +1294,7 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BroType);
 	char const* n;
-	if ( ! UNSERIALIZE_STR(&n, 0) );
+	if ( ! UNSERIALIZE_STR(&n, 0) )
 	  return false;
 	name = n;
 	return true;

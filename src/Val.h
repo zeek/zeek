@@ -1019,16 +1019,11 @@ public:
   OpaqueVal(OpaqueType* t);
   virtual ~OpaqueVal();
 
-  // Determines whether the opaque value is in a valid state.
-  virtual bool IsValid() const;
-
 protected:
   friend class Val;
   OpaqueVal() { }
 
 	DECLARE_SERIAL(OpaqueVal);
-
-  OpaqueType* opaque_type;
 };
 
 

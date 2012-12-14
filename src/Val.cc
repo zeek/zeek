@@ -3114,16 +3114,13 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : opaque_type(t) { }
+OpaqueVal::OpaqueVal(OpaqueType* t)
+  : Val(t)
+  {
+  }
 
 OpaqueVal::~OpaqueVal()
   {
-  Unref(opaque_type);
-  }
-
-bool OpaqueVal::IsValid() const
-  {
-  return false;
   }
 
 IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
@@ -3131,15 +3128,13 @@ IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
 bool OpaqueVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_OPAQUE_VAL, Val);
-	assert(opaque_type);
-	return opaque_type->Serialize(info);
+	return true;
 	}
 
 bool OpaqueVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(Val);
-	opaque_type = static_cast<OpaqueType*>(BroType::Unserialize(info));
-	return opaque_type != 0;
+	return true;
 	}
 
 

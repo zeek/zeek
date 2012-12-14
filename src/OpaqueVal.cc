@@ -53,7 +53,11 @@ StringVal* HashVal::DoGet()
   return new StringVal("");
   }
 
-HashVal::HashVal(OpaqueType* t) : OpaqueVal(t), valid(false) { }
+HashVal::HashVal(OpaqueType* t)
+  : OpaqueVal(t)
+  {
+  valid = false;
+  }
 
 IMPLEMENT_SERIAL(HashVal, SER_HASH_VAL);
 
@@ -113,7 +117,7 @@ bool MD5Val::DoInit()
 bool MD5Val::DoFeed(const void* data, size_t size)
   {
   if ( ! IsValid() )
-    return new StringVal("");
+    return false;
 
   md5_update(&ctx, data, size);
   return true;
@@ -220,7 +224,7 @@ bool SHA1Val::DoInit()
 bool SHA1Val::DoFeed(const void* data, size_t size)
   {
   if ( ! IsValid() )
-    return new StringVal("");
+    return false;
 
   sha1_update(&ctx, data, size);
   return true;
@@ -331,7 +335,7 @@ bool SHA256Val::DoInit()
 bool SHA256Val::DoFeed(const void* data, size_t size)
   {
   if ( ! IsValid() )
-    return new StringVal("");
+    return false;
 
   sha256_update(&ctx, data, size);
   return true;

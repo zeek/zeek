@@ -878,11 +878,6 @@ function identify_data%(data: string, return_mime: bool%): string
 	return new StringVal(descr);
 	%}
 
-%%{
-#include <RandTest.h>
-static map<BroString, RandTest*> entropy_states;
-%%}
-
 ## Performs an entropy test on the given data.
 ## See http://www.fourmilab.ch/random.
 ##
@@ -927,13 +922,11 @@ function find_entropy%(data: string%): entropy_test_result
 	%{
 	double montepi, scc, ent, mean, chisq;
 	montepi = scc = ent = mean = chisq = 0.0;
+	EntropyVal e;
+	e.Feed(data->Bytes(), data->Len());
+	e.Get(&ent, &chisq, &mean, &montepi, &scc);
+
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	RandTest *rt = new RandTest();
-
-	rt->add((char*) data->Bytes(), data->Len());
-	rt->end(&ent, &chisq, &mean, &montepi, &scc);
-	delete rt;
-
 	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
@@ -942,98 +935,54 @@ function find_entropy%(data: string%): entropy_test_result
 	return ent_result;
 	%}
 
-%%{
-BroString* convert_index_to_string(Val* index)
-	{
-	ODesc d;
-	index->Describe(&d);
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(1);
-	return s;
-	}
-%%}
-
 ## Initializes data structures for incremental entropy calculation.
 ##
-## index: An arbitrary unique value per distinct computation.
-##
-## Returns: True on success.
+## Returns: An opaque handle to be used in subsequent operations.
 ##
 ## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
-function entropy_test_init%(index: any%): bool
+function entropy_test_init%(%): opaque of entropy
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( entropy_states.count(*s) < 1 )
-		{
-		entropy_states[*s] = new RandTest();
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	return new EntropyVal();
 	%}
 
-## Adds data to an incremental entropy calculation. Before using this function,
-## one needs to invoke :bro:id:`entropy_test_init`.
+## Adds data to an incremental entropy calculation.
+##
+## handle: The opaque handle representing the entropy calculation state.
 ##
 ## data: The data to add to the entropy calculation.
 ##
-## index: An arbitrary unique value that identifies a particular entropy
-##        computation.
-##
 ## Returns: True on success.
 ##
 ## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
-function entropy_test_add%(index: any, data: string%): bool
+function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( entropy_states.count(*s) > 0 )
-		{
-		entropy_states[*s]->add((char*) data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
+	bool status = static_cast<EntropyVal*>(handle)->Feed(data->Bytes(),
+	                                                     data->Len());
 	return new Val(status, TYPE_BOOL);
 	%}
 
 ## Finishes an incremental entropy calculation. Before using this function,
-## one needs to initialize the computation with :bro:id:`entropy_test_init` and
+## one needs to obtain an opaque handle with :bro:id:`entropy_test_init` and
 ## add data to it via :bro:id:`entropy_test_add`.
 ##
-## index: An arbitrary unique value that identifies a particular entropy
-##        computation.
+## handle: The opaque handle representing the entropy calculation state.
 ##
 ## Returns: The result of the entropy test. See :bro:id:`find_entropy` for a
 ##          description of the individual components.
 ##
 ## .. bro:see:: find_entropy entropy_test_init entropy_test_add
-function entropy_test_finish%(index: any%): entropy_test_result
+function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	%{
-	BroString* s = convert_index_to_string(index);
 	double montepi, scc, ent, mean, chisq;
 	montepi = scc = ent = mean = chisq = 0.0;
+	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
+
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-
-	if ( entropy_states.count(*s) > 0 )
-		{
-		RandTest *rt = entropy_states[*s];
-		rt->end(&ent, &chisq, &mean, &montepi, &scc);
-		entropy_states.erase(*s);
-		delete rt;
-		}
-
 	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
 	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
 	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
-
-	delete s;
 	return ent_result;
 	%}
 

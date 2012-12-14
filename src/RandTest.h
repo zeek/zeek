@@ -1,11 +1,14 @@
-#include <math.h>
+#ifndef RANDTEST_H
+#define RANDTEST_H
 
-class EntropyVal;
+#include "util.h"
 
 #define RT_MONTEN 6  /* Bytes used as Monte Carlo
                         co-ordinates. This should be no more
                         bits than the mantissa of your "double"
                         floating point type. */
+class EntropyVal;
+
 
 class RandTest {
 	public:
@@ -17,12 +20,14 @@ class RandTest {
 	private:
 	  friend class EntropyVal;
 
-		long ccount[256];  /* Bins to count occurrences of values */
-		long totalc;       /* Total bytes counted */
+		int64 ccount[256];  /* Bins to count occurrences of values */
+		int64 totalc;       /* Total bytes counted */
 		int mp;
 		int sccfirst;
 		unsigned int monte[RT_MONTEN];
-		long inmont, mcount;
+		int64 inmont, mcount;
 		double cexp, montex, montey, montepi,
 		       sccu0, scclast, scct1, scct2, scct3;
-	};
+};
+
+#endif

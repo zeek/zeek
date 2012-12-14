@@ -12,6 +12,7 @@
 	Modified for Bro by Seth Hall - July 2010
 */
 
+#include <math.h>
 #include "RandTest.h"
 
 #define log2of10 3.32192809488736234787

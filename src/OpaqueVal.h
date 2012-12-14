@@ -1,6 +1,7 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
+#include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
 
@@ -84,6 +85,24 @@ protected:
 
 private:
   SHA256_CTX ctx;
+};
+
+class EntropyVal : public OpaqueVal {
+public:
+  EntropyVal() : OpaqueVal(new OpaqueType("entropy")) { }
+
+  bool Feed(const void* data, size_t size);
+  bool Get(double *r_ent, double *r_chisq, double *r_mean,
+           double *r_montepicalc, double *r_scc);
+
+protected:
+  friend class Val;
+  EntropyVal(OpaqueType* t);
+
+  DECLARE_SERIAL(EntropyVal);
+
+private:
+  RandTest state;
 };
 
 #endif

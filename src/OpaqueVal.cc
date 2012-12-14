@@ -398,3 +398,103 @@ bool SHA256Val::DoUnserialize(UnserialInfo* info)
 
   return true;
   }
+
+
+bool EntropyVal::Feed(const void* data, size_t size)
+  {
+  state.add(data, size);
+  return true;
+  }
+
+bool EntropyVal::Get(double *r_ent, double *r_chisq, double *r_mean,
+                     double *r_montepicalc, double *r_scc)
+  {
+  state.end(r_ent, r_chisq, r_mean, r_montepicalc, r_scc);
+  return true;
+  }
+
+IMPLEMENT_SERIAL(EntropyVal, SER_ENTROPY_VAL);
+
+bool EntropyVal::DoSerialize(SerialInfo* info) const
+  {
+  DO_SERIALIZE(SER_ENTROPY_VAL, OpaqueVal);
+
+  for ( int i = 0; i < 256; ++i )
+    if ( ! SERIALIZE(state.ccount[i]) )
+      return false;
+  if ( ! SERIALIZE(state.totalc) )
+    return false;
+  if ( ! SERIALIZE(state.mp) )
+    return false;
+  if ( ! SERIALIZE(state.sccfirst) )
+    return false;
+  for ( int i = 0; i < RT_MONTEN; ++i )
+    if ( ! SERIALIZE(state.monte[i]) )
+      return false;
+  if ( ! SERIALIZE(state.inmont) )
+    return false;
+  if ( ! SERIALIZE(state.mcount) )
+    return false;
+  if ( ! SERIALIZE(state.cexp) )
+    return false;
+  if ( ! SERIALIZE(state.montex) )
+    return false;
+  if ( ! SERIALIZE(state.montey) )
+    return false;
+  if ( ! SERIALIZE(state.montepi) )
+    return false;
+  if ( ! SERIALIZE(state.sccu0) )
+    return false;
+  if ( ! SERIALIZE(state.scclast) )
+    return false;
+  if ( ! SERIALIZE(state.scct1) )
+    return false;
+  if ( ! SERIALIZE(state.scct2) )
+    return false;
+  if ( ! SERIALIZE(state.scct3) )
+    return false;
+
+  return true;
+  }
+
+bool EntropyVal::DoUnserialize(UnserialInfo* info)
+  {
+  DO_UNSERIALIZE(OpaqueVal);
+
+  for ( int i = 0; i < 256; ++i )
+    if ( ! UNSERIALIZE(&state.ccount[i]) )
+      return false;
+  if ( ! UNSERIALIZE(&state.totalc) )
+    return false;
+  if ( ! UNSERIALIZE(&state.mp) )
+    return false;
+  if ( ! UNSERIALIZE(&state.sccfirst) )
+    return false;
+  for ( int i = 0; i < RT_MONTEN; ++i )
+    if ( ! UNSERIALIZE(&state.monte[i]) )
+      return false;
+  if ( ! UNSERIALIZE(&state.inmont) )
+    return false;
+  if ( ! UNSERIALIZE(&state.mcount) )
+    return false;
+  if ( ! UNSERIALIZE(&state.cexp) )
+    return false;
+  if ( ! UNSERIALIZE(&state.montex) )
+    return false;
+  if ( ! UNSERIALIZE(&state.montey) )
+    return false;
+  if ( ! UNSERIALIZE(&state.montepi) )
+    return false;
+  if ( ! UNSERIALIZE(&state.sccu0) )
+    return false;
+  if ( ! UNSERIALIZE(&state.scclast) )
+    return false;
+  if ( ! UNSERIALIZE(&state.scct1) )
+    return false;
+  if ( ! UNSERIALIZE(&state.scct2) )
+    return false;
+  if ( ! UNSERIALIZE(&state.scct3) )
+    return false;
+
+  return true;
+  }

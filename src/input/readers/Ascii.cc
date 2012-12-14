@@ -273,14 +273,14 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			{
 			Error(Fmt("Field: %s Invalid value for boolean: %s",
 				  field.name.c_str(), s.c_str()));
-			return 0;
+			goto parse_error;
 			}
 		break;
 
 	case TYPE_INT:
 		val->val.int_val = strtoll(s.c_str(), &end, 10);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 		break;
 
 	case TYPE_DOUBLE:
@@ -288,20 +288,20 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 	case TYPE_INTERVAL:
 		val->val.double_val = strtod(s.c_str(), &end);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 		break;
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
 		val->val.uint_val = strtoull(s.c_str(), &end, 10);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 		break;
 
 	case TYPE_PORT:
 		val->val.port_val.port = strtoull(s.c_str(), &end, 10);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
@@ -313,13 +313,13 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		if ( pos == s.npos )
 			{
 			Error(Fmt("Invalid value for subnet: %s", s.c_str()));
-			return 0;
+			goto parse_error;
 			}
 
 		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
 
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 
 		string addr = s.substr(0, pos);
 
@@ -349,6 +349,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			}
 
 		unsigned int pos = 0;
+		bool error = false;
 
 		if ( s.compare(empty_field) == 0 )
 			length = 0;
@@ -385,14 +386,16 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 				{
 				Error(Fmt("Internal error while parsing set. pos %d >= length %d."
 				          " Element: %s", pos, length, element.c_str()));
+				error = true;
 				break;
 				}
 
 			Value* newval = EntryToVal(element, field.subType());
 			if ( newval == 0 )
 				{
-				Error("Error while reading set");
-				return 0;
+				Error("Error while reading set or vector");
+				error = true;
+				break;
 				}
 
 			lvals[pos] = newval;
@@ -403,22 +406,32 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		// Test if the string ends with a set_separator... or if the
 		// complete string is empty. In either of these cases we have
 		// to push an empty val on top of it.
-		if ( s.empty() || *s.rbegin() == set_separator[0] )
+		if ( ! error && (s.empty() || *s.rbegin() == set_separator[0]) )
 			{
 			lvals[pos] = EntryToVal("", field.subType());
 			if ( lvals[pos] == 0 )
 				{
 				Error("Error while trying to add empty set element");
-				return 0;
+				goto parse_error;
 				}
 
 			pos++;
 			}
 
+		if ( error ) {
+			// We had an error while reading a set or a vector.
+			// Hence we have to clean up the values that have
+			// been read so far
+			for ( unsigned int i = 0; i < pos; i++ )
+				delete lvals[i];
+
+			goto parse_error;
+		}
+
 		if ( pos != length )
 			{
 			Error(Fmt("Internal error while parsing set: did not find all elements: %s", s.c_str()));
-			return 0;
+			goto parse_error;
 			}
 
 		break;
@@ -427,10 +440,14 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 	default:
 		Error(Fmt("unsupported field format %d for %s", field.type,
 		field.name.c_str()));
-		return 0;
+		goto parse_error;
 	}
 
 	return val;
+
+parse_error:
+	delete val;
+	return 0;
 	}
 
 // read the entire file and send appropriate thingies back to InputMgr

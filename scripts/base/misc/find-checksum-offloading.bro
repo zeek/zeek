@@ -14,7 +14,8 @@ export {
 }
 
 # Keep track of how many bad checksums have been seen.
-global bad_checksums = 0;
+global bad_ip_checksums  = 0;
+global bad_tcp_checksums = 0;
 
 # Track to see if this script is done so that messages aren't created multiple times.
 global done = F;
@@ -25,10 +26,19 @@ event ChecksumOffloading::check()
 		return;
 
 	local pkts_recvd = net_stats()$pkts_recvd;
-	if ( (bad_checksums*1.0 / net_stats()$pkts_recvd*1.0) > 0.05 )
+	local bad_ip_checksum_pct = (pkts_recvd != 0) ? (bad_ip_checksums*1.0 / pkts_recvd*1.0) : 0;
+	local bad_tcp_checksum_pct = (pkts_recvd != 0) ? (bad_tcp_checksums*1.0 / pkts_recvd*1.0) : 0;
+	if ( bad_ip_checksum_pct > 0.05 || bad_tcp_checksum_pct > 0.05 )
 		{
 		local packet_src = reading_traces() ? "trace file likely has" : "interface is likely receiving";
-		local message = fmt("Your %s invalid IP checksums, most likely from NIC checksum offloading.", packet_src);
+		local bad_checksum_msg = (bad_ip_checksum_pct > 0.0) ? "IP" : "";
+		if ( bad_tcp_checksum_pct > 0.0 )
+			{
+			if ( |bad_checksum_msg| > 0 )
+				bad_checksum_msg += " and ";
+			bad_checksum_msg += "TCP";
+			}
+		local message = fmt("Your %s invalid %s checksums, most likely from NIC checksum offloading.", packet_src, bad_checksum_msg);
 		Reporter::warning(message);
 		done = T;
 		}
@@ -48,7 +58,13 @@ event bro_init()
 event net_weird(name: string)
 	{
 	if ( name == "bad_IP_checksum" )
-		++bad_checksums;
+		++bad_ip_checksums;
+	}
+
+event conn_weird(name: string, c: connection, addl: string)
+	{
+	if ( name == "bad_TCP_checksum" )
+		++bad_tcp_checksums;
 	}
 
 event bro_done()

@@ -21,12 +21,10 @@ redef Cluster::manager2worker_events += /Notice::begin_suppression/;
 redef Cluster::worker2manager_events += /Notice::cluster_notice/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
+
 # The notice policy is completely handled by the manager and shouldn't be 
 # done by workers or proxies to save time for packet processing.
-event bro_init() &priority=11
-	{
-	Notice::policy = table();
-	}
+redef Notice::policy = table();
 
 event Notice::begin_suppression(n: Notice::Info)
 	{

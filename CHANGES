@@ -1,4 +1,11 @@
 
+2.1-231 | 2012-12-14 14:51:35 -0800
+
+  * Make const variables actually constant. Both local and global
+    variables declared with "const" could be modified, but now
+    expressions that would modify them generate an error message at
+    parse-time. Addresses #922. (Jon Siwek)
+
 2.1-229 | 2012-12-14 14:46:12 -0800
 
   * Fix memory leak in ASCII reader when encoutering errors in input.

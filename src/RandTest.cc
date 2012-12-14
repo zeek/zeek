@@ -12,7 +12,17 @@
 	Modified for Bro by Seth Hall - July 2010
 */
 
-#include <RandTest.h>
+#include "RandTest.h"
+
+#define log2of10 3.32192809488736234787
+/*  RT_LOG2  --  Calculate log to the base 2  */
+static double rt_log2(double x)
+{
+    return log2of10 * log10(x);
+}
+
+// RT_INCIRC = pow(pow(256.0, (double) (RT_MONTEN / 2)) - 1, 2.0);
+#define RT_INCIRC 281474943156225.0
 
 RandTest::RandTest()
 	{
@@ -28,9 +38,9 @@ RandTest::RandTest()
 		}
 	}
 
-void RandTest::add(void *buf, int bufl)
+void RandTest::add(const void *buf, int bufl)
 	{
-	unsigned char *bp = (unsigned char*)buf;
+	const unsigned char *bp = static_cast<const unsigned char*>(buf);
 	int oc;
 
 	while (bufl-- > 0)
@@ -78,8 +88,8 @@ void RandTest::add(void *buf, int bufl)
 		}
 	}
 
-void RandTest::end(double *r_ent, double *r_chisq,
-                   double *r_mean, double *r_montepicalc, double *r_scc)
+void RandTest::end(double* r_ent, double* r_chisq,
+                   double* r_mean, double* r_montepicalc, double* r_scc)
 	{
 	int i;
 	double ent, chisq, scc, datasum;

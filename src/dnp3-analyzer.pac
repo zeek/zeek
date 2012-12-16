@@ -18,34 +18,8 @@ flow DNP3_Flow(is_orig: bool) {
 			}
 
 		return true;
-		%}
-
-	function get_dnp3_data_block(data: const_bytestring, crc: uint16): bool
-		%{
-		if ( ::dnp3_data_block )
-			{
-			BifEvent::generate_dnp3_data_block(
-				connection()->bro_analyzer(),
-				connection()->bro_analyzer()->Conn(),
-				is_orig(), bytestring_to_val(data), crc);
-			}
-
-		return true;
-		%}
-
-	function get_dnp3_pdu_test(rest: const_bytestring): bool
-		%{
-		if ( ::dnp3_pdu_test )
-			{
-			BifEvent::generate_dnp3_pdu_test(
-				connection()->bro_analyzer(),
-				connection()->bro_analyzer()->Conn(),
-				is_orig(), bytestring_to_val(rest));
-			}
-
-		return true;
-		%}
-
+		%}	
+	
 	function get_dnp3_application_request_header(app_control: uint8, fc: uint8): bool
 		%{
 		if ( ::dnp3_application_request_header )

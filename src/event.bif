@@ -6586,145 +6586,200 @@ event dnp3_object_header%(c: connection, is_orig: bool, obj_type: count, qua_fie
 ##   the structure and the meaning of the prefix are defined by the qualifier field
 event dnp3_object_prefix%(c: connection, is_orig: bool, prefix_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the additional header that is added by the DNP3.cc; 
+## the reason to add this header is found in DNP3.cc
+##      start: the first two bytes of the DNP3 Pseudo Link Layer; its value is fixed as 0x0564
+##      len:   the "length" field in the DNP3 Pseudo Link Layer
+##      ctrl:  the "control" field in the DNP3 Pseudo Link Layer
+##      dest_addr: the "destination" field in the DNP3 Pseudo Link Layer
+##      src_addr: the "source" field in the DNP3 Pseudo Link Layer
 event dnp3_header_block%(c: connection, is_orig: bool, start: count, len: count, ctrl: count, dest_addr: count, src_addr: count%);
 
-## TODO-Hui: Document.
+## Generated for "Response_Data_Object"
+## the "Response_Data_Object" contains two parts: object prefix and objects data. 
+## In most cases, objects data are defined by new record types. But in a few
+## cases, objects data are directly basic types, such as int16, or int8; thus we use
+## a additional data_value to record the values of those object data. 
 event dnp3_response_data_object%(c: connection, is_orig: bool, data_value: count%);
 
-## TODO-Hui: Document.
+## Different from most binpac scripts, which consists only two pac files: *-analyzer.pac
+## and *-protocol.pac. I use a separate pac files, i.e., dnp3-objects.pac to contain 
+## different types of object data. 
+## The following event handlers are all generated for the different object data types.
+
+## Generated for the object with the group number 12 and variation number 1
+## CROB: control relay output block
 event dnp3_crob%(c: connection, is_orig: bool, control_code: count, count8: count, on_time: count, off_time: count, status_code: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 12 and variation number 2
+## PCB: Pattern Control Block
 event dnp3_pcb%(c: connection, is_orig: bool, control_code: count, count8: count, on_time: count, off_time: count, status_code: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 20 and variation number 1
+## counter 32 bit with flag
 event dnp3_counter32_wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 20 and variation number 2
+## counter 16 bit with flag
 event dnp3_counter16_wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 20 and variation number 5
+## counter 32 bit without flag
 event dnp3_counter32_woFlag%(c: connection, is_orig: bool, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 20 and variation number 6
+## counter 16 bit without flag
 event dnp3_counter16_woFlag%(c: connection, is_orig: bool, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 21 and variation number 1
+## frozen counter 32 bit with flag
 event dnp3_frozen_counter32_wFlag%(c: connection, is_orig: bool, flag:count, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 21 and variation number 2
+## frozen counter 16 bit with flag
 event dnp3_frozen_counter16_wFlag%(c: connection, is_orig: bool, flag:count, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 21 and variation number 5
+## frozen counter 32 bit with flag and time
 event dnp3_frozen_counter32_wFlagTime%(c: connection, is_orig: bool, flag:count, count_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 21 and variation number 6
+## frozen counter 16 bit with flag and time
 event dnp3_frozen_counter16_wFlagTime%(c: connection, is_orig: bool, flag:count, count_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 21 and variation number 9
+## frozen counter 32 bit without flag
 event dnp3_frozen_counter32_woFlag%(c: connection, is_orig: bool, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 21 and variation number 10
+## frozen counter 16 bit without flag
 event dnp3_frozen_counter16_woFlag%(c: connection, is_orig: bool, count_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 30 and variation number 1
+## analog input 32 bit with flag
 event dnp3_analog_input32_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 30 and variation number 2
+## analog input 16 bit with flag
 event dnp3_analog_input16_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 30 and variation number 3
+## analog input 32 bit without flag
 event dnp3_analog_input32_woFlag%(c: connection, is_orig: bool, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 30 and variation number 4
+## analog input 16 bit without flag
 event dnp3_analog_input16_woFlag%(c: connection, is_orig: bool, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 30 and variation number 5
+## analog input single precision, float point with flag 
 event dnp3_analog_inputSP_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 30 and variation number 6
+## analog input double precision, float point with flag
 event dnp3_analog_inputDP_wFlag%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 1
+## frozen analog input 32 bit with flag
 event dnp3_frozen_analog_input32_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 2
+## frozen analog input 16 bit with flag
 event dnp3_frozen_analog_input16_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 3
+## frozen analog input 32 bit with time-of-freeze
 event dnp3_frozen_analog_input32_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 4
+## frozen analog input 16 bit with time-of-freeze
 event dnp3_frozen_analog_input16_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 5
+## frozen analog input 32 bit without flag
 event dnp3_frozen_analog_input32_woFlag%(c: connection, is_orig: bool, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 6
+## frozen analog input 16 bit without flag
 event dnp3_frozen_analog_input16_woFlag%(c: connection, is_orig: bool, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 7
+## frozen analog input single-precision, float point with flag
 event dnp3_frozen_analog_inputSP_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 31 and variation number 8
+## frozen analog input double-precision, float point with flag
 event dnp3_frozen_analog_inputDP_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 1
+## analog input event 32 bit without time
 event dnp3_analog_input32_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 2
+## analog input event 16 bit without time
 event dnp3_analog_input16_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 3
+## analog input event 32 bit with time
 event dnp3_analog_input32_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 4
+## analog input event 16 bit with time
 event dnp3_analog_input16_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 5
+## analog input event single-precision float point without time
 event dnp3_analog_inputSP_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 6
+## analog input event double-precision float point without time
 event dnp3_analog_inputDP_woTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 7
+## analog input event single-precision float point with time
 event dnp3_analog_inputSP_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 32 and variation number 8
+## analog input event double-precisiion float point with time
 event dnp3_analog_inputDP_wTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 1
+## frozen analog input event 32 bit without time
 event dnp3_frozen_analog_inputevent32_woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 2
+## frozen analog input event 16 bit without time
 event dnp3_frozen_analog_inputevent16_woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 3
+## frozen analog input event 32 bit with time
 event dnp3_frozen_analog_inputevent32_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 4
+## frozen analog input event 16 bit with time
 event dnp3_frozen_analog_inputevent16_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 5
+## frozen analog input event single-precision float point without time
 event dnp3_frozen_analog_inputeventSP_woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 6
+## frozen analog input event double-precision float point without time
 event dnp3_frozen_analog_inputeventDP_woTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 33 and variation number 7
+## frozen analog input event single-precision float point with time
 event dnp3_frozen_analog_inputeventSP_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
-## TODO-Hui: Document.
+## Generated for the object with the group number 34 and variation number 8
+## frozen analog input event double-precision float point with time
 event dnp3_frozen_analog_inputeventDP_wTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string%);
 
-## TODO-Hui: Document.
-event dnp3_data_block%(c: connection, is_orig: bool, data: string, crc: count%);
-
-## TODO-Hui: Document. Is this for debugging?
-event dnp3_pdu_test%(c: connection, is_orig: bool, rest: string%);
-
-## TODO-Hui: Document. Is this for debugging?
+## Generated for the "Debug_Byte" for the binpac analyzer
+## This event handler is left for the debug usage. 
+## For example, in the binpac analyzer, a unknown "case" generated 
+## this event; the user can base on the debug the byte string to check
+## what cause the malformed network packets
 event dnp3_debug_byte%(c: connection, is_orig: bool, debug: string%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such

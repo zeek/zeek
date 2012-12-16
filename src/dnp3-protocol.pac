@@ -114,9 +114,9 @@ type Request_Objects(function_code: uint8) = record {
 type Response_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
-		0x0101 -> biwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
-		0x0301 -> diwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
-		0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
+		0x0101 -> biwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  
+		0x0301 -> diwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  
+		0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  
 		0x0c03 -> bocmd_PM: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];
 		default -> ojbects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 	};
@@ -125,7 +125,7 @@ type Response_Objects(function_code: uint8) = record {
 type Object_Header(function_code: uint8) = record {
 	object_type_field: uint16 ;
 	qualifier_field: uint8 ;
-	range_field: case ( qualifier_field & 0x0f ) of {  # warning
+	range_field: case ( qualifier_field & 0x0f ) of { 
 		0 -> range_field_0: Range_Field_0 &check(range_field_0.stop_index >= range_field_0.start_index);
 		1 -> range_field_1: Range_Field_1 &check(range_field_1.stop_index >= range_field_1.start_index);
 		2 -> range_field_2: Range_Field_2 &check(range_field_2.stop_index >= range_field_2.start_index);
@@ -149,7 +149,7 @@ type Object_Header(function_code: uint8) = record {
 		0 -> (range_field_0.stop_index - range_field_0.start_index + 1);
 		1 -> (range_field_1.stop_index - range_field_1.start_index + 1);
 		2 -> (range_field_2.stop_index - range_field_2.start_index + 1);
-		7 -> range_field_7;  # data type warning?
+		7 -> range_field_7;  
 		8 -> ( range_field_8 & 0x0ff )* 0x100 + ( range_field_8 / 0x100 ) ;
 		9 -> ( range_field_9 & 0x000000ff )* 0x1000000 + (range_field_9 & 0x0000ff00) * 0x100 + (range_field_9 & 0x00ff0000) / 0x100 + (range_field_9 & 0xff000000) / 0x1000000 ;
 		0x0b -> range_field_b;

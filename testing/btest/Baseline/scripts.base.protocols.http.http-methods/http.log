@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2012-12-06-00-55-27
+#open	2012-12-07-04-43-19
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	string	string	file
 1354328870.191989	UWkUyAuUGXf	128.2.6.136	46562	173.194.75.103	80	1	OPTIONS	www.google.com	*	-	-	0	962	405	Method Not Allowed	-	-	-	(empty)	-	-	-	text/html	-	-
@@ -21,11 +21,11 @@
 1354328891.204740	iE6yhOq3SF	128.2.6.136	46574	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328891.245592	GSxOnSLghOa	128.2.6.136	46575	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328891.287655	qCaWGmzFtM5	128.2.6.136	46576	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
-1354328891.328583	70MGiRM1Qf4	128.2.6.136	46577	173.194.75.103	80	0	-	-	-	-	-	0	963	405	Method Not Allowed	-	-	-	(empty)	-	-	-	text/html	-	-
-1354328895.375116	h5DsfNtYzi1	128.2.6.136	46578	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
+1354328891.309065	70MGiRM1Qf4	128.2.6.136	46577	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	-	0	963	405	Method Not Allowed	-	-	-	(empty)	-	-	-	text/html	-	-
+1354328895.355012	h5DsfNtYzi1	128.2.6.136	46578	173.194.75.103	80	1	CCM_POST	www.google.com	/HTTP/1.1	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328895.416133	P654jzLoe3a	128.2.6.136	46579	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328895.459490	Tw8jXtpTGu6	128.2.6.136	46580	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
-1354328895.500315	c4Zw9TmAE05	128.2.6.136	46581	173.194.75.103	80	0	-	-	-	-	-	0	963	405	Method Not Allowed	-	-	-	(empty)	-	-	-	text/html	-	-
+1354328895.480865	c4Zw9TmAE05	128.2.6.136	46581	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	-	0	963	405	Method Not Allowed	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328899.526682	EAr0uf4mhq	128.2.6.136	46582	173.194.75.103	80	1	CONNECT	www.google.com	/	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328903.572533	GvmoxJFXdTa	128.2.6.136	46583	173.194.75.103	80	1	CONNECT	www.google.com	/HTTP/1.1	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328903.634196	0Q4FH8sESw5	128.2.6.136	46584	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
@@ -55,4 +55,4 @@
 1354328932.692706	ydiZblvsYri	128.2.6.136	46608	173.194.75.103	80	1	HEAD	www.google.com	/HTTP/1.1	-	-	0	0	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	-
 1354328932.754657	HFYOnBqSE5e	128.2.6.136	46609	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328932.796568	JcUvhfWUMgd	128.2.6.136	46610	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
-#close	2012-12-06-00-55-28
+#close	2012-12-07-04-43-19

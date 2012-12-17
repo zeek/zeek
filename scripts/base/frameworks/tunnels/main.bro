@@ -88,7 +88,10 @@ redef dpd_config += { [ANALYZER_AYIYA] = [$ports = ayiya_ports] };
 const teredo_ports = { 3544/udp };
 redef dpd_config += { [ANALYZER_TEREDO] = [$ports = teredo_ports] };
 
-redef likely_server_ports += { ayiya_ports, teredo_ports };
+const gtpv1u_ports = { 2152/udp };
+redef dpd_config += { [ANALYZER_GTPV1] = [$ports = gtpv1u_ports] };
+
+redef likely_server_ports += { ayiya_ports, teredo_ports, gtpv1u_ports };
 
 event bro_init() &priority=5
 	{

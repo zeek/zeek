@@ -14,8 +14,8 @@ const char* attr_name(attr_tag t)
 		"&rotate_interval", "&rotate_size",
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
-		"&persistent", "&synchronized", "&postprocessor",
-		"&encrypt", "&match",
+		"&persistent", "&synchronized",
+		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
 		"(&tracked)",
@@ -335,11 +335,6 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_ROTATE_SIZE:
 		if ( type->Tag() != TYPE_FILE )
 			Error("&rotate_size only applicable to files");
-		break;
-
-	case ATTR_POSTPROCESSOR:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&postprocessor only applicable to files");
 		break;
 
 	case ATTR_ENCRYPT:

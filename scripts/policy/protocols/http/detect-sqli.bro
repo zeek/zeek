@@ -74,7 +74,7 @@ event bro_init() &priority=3
 	                     	        $email_body_sections=vector(format_sqli_samples(val$samples)),
 	                     	        $src=index$host,
 	                     	        $identifier=cat(index$host)]);
-	                     }, $log=F]);
+	                     }]);
 
 	Metrics::add_filter("http.sqli.victim",
 	                    [$every=sqli_requests_interval,
@@ -87,7 +87,7 @@ event bro_init() &priority=3
 	                     	        $email_body_sections=vector(format_sqli_samples(val$samples)),
 	                     	        $src=index$host,
 	                     	        $identifier=cat(index$host)]);
-	                     }, $log=F]);
+	                     }]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,

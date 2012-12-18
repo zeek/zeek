@@ -16,7 +16,7 @@ export {
 	};
 
 	## The frequency of logging the stats collected by this script.
-	const break_interval = 1min &redef;
+	const break_interval = 15mins &redef;
 }
 
 function app_metrics_rollup(index: Metrics::Index, vals: table[string, string] of Metrics::ResultVal) 

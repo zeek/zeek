@@ -43,7 +43,7 @@ event bro_init() &priority=3
 	Log::create_stream(AppMetrics::LOG, [$columns=Info]);
 
 	Metrics::create_index_rollup("AppMetrics", app_metrics_rollup);
-	Metrics::add_filter("apps.bytes", [$every=break_interval, $measure=set(Metrics::SUM),    $period_finished=Metrics::write_log, $rollup="AppMetrics"]);
+	Metrics::add_filter("apps.bytes", [$every=break_interval, $measure=set(Metrics::SUM),    $rollup="AppMetrics"]);
 	Metrics::add_filter("apps.hits",  [$every=break_interval, $measure=set(Metrics::UNIQUE), $rollup="AppMetrics"]);
 	}
 

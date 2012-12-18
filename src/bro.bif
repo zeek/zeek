@@ -2684,8 +2684,9 @@ function to_port%(s: string%): port
     if ( s->Len() < 10 )
         {
         char* slash;
+        errno = 0;
         port = strtol(s->CheckString(), &slash, 10);
-        if ( port )
+        if ( ! errno )
             {
             ++slash;
             if ( streq(slash, "tcp") )

@@ -7,6 +7,9 @@ event bro_init()
 	print to_port("123/tcp");
 	print to_port("123/udp");
 	print to_port("123/icmp");
+	print to_port("0/tcp");
+	print to_port("0/udp");
+	print to_port("0/icmp");
 	print to_port("not a port");
 
 	local a: transport_proto = tcp;

@@ -8,10 +8,6 @@ export {
 	## The metrics logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
-	## The default interval used for "breaking" metrics and writing the 
-	## current value to the logging stream.
-	const default_break_interval = 15mins &redef;
-	
 	## This is the interval for how often threshold based notices will happen 
 	## after they have already fired.
 	const threshold_crossed_restart_interval = 1hr &redef;
@@ -108,63 +104,74 @@ export {
 	## The record type that is used for logging metrics.
 	type Info: record {
 		## Timestamp at which the metric was "broken".
-		ts:           time     &log;
+		ts:           time       &log;
 		## Interval between logging of this filter and the last time it was logged.
-		ts_delta:     interval &log;
-		## The name of the filter being logged.  Values
-		## can have multiple filters which represent different perspectives on
-		## the data so this is necessary to understand the value.
-		filter_name:  string   &log;
+		ts_delta:     interval   &log;
 		## What measurement the metric represents.
-		metric:       string   &log;
+		metric:       string     &log;
 		## What the metric value applies to.
-		index:        Index    &log;
+		index:        Index      &log;
 		## The simple numeric value of the metric.
-		result:        ResultVal    &log;
+		result:       ResultVal  &log;
 	};
 	
+	## Type to store a table of metrics result values.
+	type MetricTable: table[Index] of ResultVal;
+
 	## Filters define how the data from a metric is aggregated and handled.  
 	## Filters can be used to set how often the measurements are cut 
 	## and logged or how the data within them is aggregated.  It's also 
 	## possible to disable logging and use filters solely for thresholding.
 	type Filter: record {
-		## The name for this filter so that multiple filters can be
-		## applied to a single metrics to get a different view of the same
-		## metric data being collected (different aggregation, break, etc).
+		## A name for the filter in case multiple filters are being
+		## applied to the same metric.  In most cases the default 
+		## filter name is fine and this field does not need to be set.
 		name:              string                   &default="default";
-		## The metric that this filter applies to.
-		id:                string                   &optional;
-		## The measurements to perform on the data.
-		measure:           set[Calculation]         &optional;
-		## A predicate so that you can decide per index if you would like
-		## to accept the data being inserted.
-		pred:              function(index: Metrics::Index, data: Metrics::DataPoint): bool &optional;
-		## A function to normalize the index.  This can be used to aggregate or
-		## normalize the entire index.
-		normalize_func:    function(index: Metrics::Index): Index &optional;
-		## Global mask by to aggregate traffic measuring an attribute of hosts.
-		## This is a special case of the normalize_func.
-		aggregation_mask:  count                    &optional;
+
 		## The interval at which this filter should be "broken" and written
 		## to the logging stream.  The counters are also reset to zero at 
 		## this time so any threshold based detection needs to be set to a 
 		## number that should be expected to happen within this period.
-		every:             interval                 &default=default_break_interval;
-		## This determines if the result of this filter is sent to the metrics
-		## logging stream.  One use for the logging framework is as an internal
-		## thresholding and statistics gathering utility that is meant to
-		## never log but rather to generate notices and derive data.
-		log:               bool                     &default=T;
+		every:             interval;
+		
+		## The measurements to perform on the data.
+		measure:           set[Calculation]         &optional;
+		
+		## A predicate so that you can decide per index if you would like
+		## to accept the data being inserted.
+		pred:              function(index: Metrics::Index, data: Metrics::DataPoint): bool &optional;
+		
+		## A function to normalize the index.  This can be used to aggregate or
+		## normalize the entire index.
+		normalize_func:    function(index: Metrics::Index): Index &optional;
+		
+		## Global mask by to aggregate traffic measuring an attribute of hosts.
+		## This is a special case of the normalize_func.
+		aggregation_mask:  count                    &optional;
+		
 		## A direct threshold for calling the $threshold_crossed function when 
 		## the SUM is greater than or equal to this value.
 		threshold:         count                    &optional;
+		
 		## A series of thresholds for calling the $threshold_crossed function.
 		threshold_series:  vector of count          &optional;
+		
 		## A predicate so that you can decide when to flexibly declare when 
 		## a threshold crossed, and do extra work.
 		threshold_func:    function(index: Metrics::Index, val: Metrics::ResultVal): bool &optional;
-		## A function callback that is called when a threshold is crossed.
+		
+		## A callback with the full collection of ResultVals for this filter.  This 
+		## is defined as a redef because the function includes a :bro:type:`Filter`
+		## record which is self referential before the Filter type has been fully 
+		## defined and doesn't work.
+		period_finished:   function(ts: time, metric_name: string, filter_name: string, data: Metrics::MetricTable) &optional;
+
+		## A callback that is called when a threshold is crossed.
 		threshold_crossed: function(index: Metrics::Index, val: Metrics::ResultVal) &optional;
+
+		## A rollup to register this filter with.
+		rollup:            string &optional;
+
 		## A number of sample DataPoint strings to collect for the threshold 
 		## crossing callback.
 		samples:           count                    &optional;
@@ -187,7 +194,19 @@ export {
 	##
 	## increment: How much to increment the counter by.
 	global add_data: function(id: string, index: Metrics::Index, data: Metrics::DataPoint);
-	
+
+	## The callback definition for rollup functions.
+	type RollupCallback: function(index: Metrics::Index, vals: table[string, string] of Metrics::ResultVal);
+
+	## Add a rollup function for merging multiple filters with matching 
+	## indexes.  If the metrics filters being merged don't have equivalent times
+	## in the $every field, an error will be generated.
+	##
+	## name: An arbitrary name for this filter rollup.
+	##
+	## vals: Each ResultVal record indexed by the appropriate metric name and filter name.
+	global create_index_rollup: function(name: string, rollup: RollupCallback);
+
 	## Helper function to represent a :bro:type:`Metrics::Index` value as 
 	## a simple string.
 	## 
@@ -195,11 +214,22 @@ export {
 	##
 	## Returns: A string reprentation of the metric index.
 	global index2str: function(index: Metrics::Index): string;
-		
+	
+	## A helper function to use with the `period_finished` field in filters.  Using 
+	## this function is not recommended however since each metric likely has 
+	## different data and different semantics which would be better served by writing
+	## a custom function that logs in more domain specific fashion.
+	global write_log: function(ts: time, metric_name: string, filter_name: string, data: Metrics::MetricTable);
+
 	## Event to access metrics records as they are passed to the logging framework.
 	global log_metrics: event(rec: Metrics::Info);
 	
 }
+
+redef record Filter += {
+	# The metric that this filter applies to.  The value is automatically set.
+	id: string &optional;
+};
 
 redef record ResultVal += {
 	# Internal use only.  Used for incrementally calculating variance.
@@ -226,9 +256,6 @@ redef record ResultVal += {
 	threshold_series_index: count &default=0;
 };
 
-# Type to store a table of metrics values.
-type MetricTable: table[Index] of ResultVal;
-
 # Store the filters indexed on the metric identifier.
 global metric_filters: table[string] of vector of Filter = table();
 
@@ -238,16 +265,23 @@ global filter_store: table[string, string] of Filter = table();
 # This is indexed by metric id and filter name.
 global store: table[string, string] of MetricTable = table() &default=table();
 
-# This is hook for watching thresholds being crossed.  It is called whenever
+# This is a hook for watching thresholds being crossed.  It is called whenever
 # index values are updated and the new val is given as the `val` argument.
-# It's only prototyped here because cluster and non-cluster has separate 
+# It's only prototyped here because cluster and non-cluster have separate 
 # implementations.
 global data_added: function(filter: Filter, index: Index, val: ResultVal);
 
+type Rollup: record {
+	callback: RollupCallback;
+	filters:  set[Filter] &optional;
+};
+global rollups: table[string] of Rollup;
+global rollup_store: table[Index] of table[string, string] of ResultVal = {};
+
+
 ## Event that is used to "finish" metrics and adapt the metrics
 ## framework for clustered or non-clustered usage.
-global log_it: event(filter: Metrics::Filter);
-
+global finish_period: event(filter: Metrics::Filter);
 
 event bro_init() &priority=5
 	{
@@ -279,22 +313,21 @@ function do_calculated_fields(val: ResultVal)
 function merge_result_vals(rv1: ResultVal, rv2: ResultVal): ResultVal
 	{
 	local result: ResultVal;
-	
+
 	# Merge $begin (take the earliest one)
-	result$begin = rv1$begin < rv2$begin ? rv1$begin : rv2$begin;
+	result$begin = (rv1$begin < rv2$begin) ? rv1$begin : rv2$begin;
 
 	# Merge $end (take the latest one)
-	result$end = rv1$end > rv2$end ? rv1$end : rv2$end;
+	result$end = (rv1$end > rv2$end) ? rv1$end : rv2$end;
 
 	# Merge $num
 	result$num = rv1$num + rv2$num;
 
 	# Merge $sum
+	result$sum = rv1$sum + rv2$sum;
 	if ( rv1?$sum || rv2?$sum )
 		{
-		result$sum = 0;
-		if ( rv1?$sum )
-			result$sum += rv1$sum;
+		result$sum = rv1?$sum ? rv1$sum : 0;
 		if ( rv2?$sum )
 			result$sum += rv2$sum;
 		}
@@ -348,13 +381,15 @@ function merge_result_vals(rv1: ResultVal, rv2: ResultVal): ResultVal
 	# Merge $unique_vals
 	if ( rv1?$unique_vals || rv2?$unique_vals )
 		{
-		result$unique_vals = set();
 		if ( rv1?$unique_vals )
-			for ( val1 in rv1$unique_vals )
-				add result$unique_vals[val1];
+			result$unique_vals = rv1$unique_vals;
+		
 		if ( rv2?$unique_vals )
-			for ( val2 in rv2$unique_vals )
-				add result$unique_vals[val2];
+			if ( ! result?$unique_vals )
+				result$unique_vals = rv2$unique_vals;
+			else
+				for ( val2 in rv2$unique_vals )
+					add result$unique_vals[val2];
 		}
 
 	# Merge $sample_queue
@@ -376,8 +411,9 @@ function merge_result_vals(rv1: ResultVal, rv2: ResultVal): ResultVal
 	return result;
 	}
 	
-function write_log(ts: time, filter: Filter, data: MetricTable)
+function write_log(ts: time, metric_name: string, filter_name: string, data: Metrics::MetricTable)
 	{
+	local filter = filter_store[metric_name, filter_name];
 	for ( index in data )
 		{
 		local m: Info = [$ts=ts,
@@ -386,9 +422,7 @@ function write_log(ts: time, filter: Filter, data: MetricTable)
 		                 $filter_name=filter$name,
 		                 $index=index,
 		                 $result=data[index]];
-		
-		if ( filter$log )
-			Log::write(Metrics::LOG, m);
+		Log::write(LOG, m);
 		}
 	}
 
@@ -401,7 +435,7 @@ function add_filter(id: string, filter: Filter)
 	{
 	if ( filter?$normalize_func && filter?$aggregation_mask )
 		{
-		Reporter::warning(fmt("invalid Metric filter (%s): Defined $normalize_func and $aggregation_mask.", filter$name));
+		Reporter::warning(fmt("invalid Metric filter (%s): Defined both $normalize_func and $aggregation_mask.", filter$name));
 		return;
 		}
 	if ( [id, filter$name] in store )
@@ -409,7 +443,33 @@ function add_filter(id: string, filter: Filter)
 		Reporter::warning(fmt("invalid Metric filter (%s): Filter with same name already exists.", filter$name));
 		return;
 		}
-	
+	if ( filter?$rollup )
+		{
+		if ( filter$rollup !in rollups )
+			{
+			Reporter::warning(fmt("invalid Metric filter (%s): %s rollup doesn't exist.", filter$name, filter$rollup));
+			return;
+			}
+		else
+			{
+			local every_field = 0secs;
+			for ( filt in rollups )
+				{
+				if ( [id, filt] !in filter_store )
+					next;
+				
+				if ( every_field == 0secs )
+					every_field = filter_store[id, filt]$every;
+				else if ( every_field == filter_store[id, filt]$every )
+					{
+					Reporter::warning(fmt("invalid Metric rollup for %s: Filters with differing $every fields applied to %s.", filter$name, filter$rollup));
+					return;
+					}
+				}
+			}
+			add rollups[filter$rollup]$filters[filter];
+		}
+
 	if ( ! filter?$id )
 		filter$id = id;
 	
@@ -419,8 +479,8 @@ function add_filter(id: string, filter: Filter)
 
 	filter_store[id, filter$name] = filter;
 	store[id, filter$name] = table();
-	
-	schedule filter$every { Metrics::log_it(filter) };
+
+	schedule filter$every { Metrics::finish_period(filter) };
 	}
 
 function add_data(id: string, index: Index, data: DataPoint)
@@ -513,11 +573,11 @@ function add_data(id: string, index: Index, data: DataPoint)
 			result$var_s += (val - result$prev_avg)*(val - result$avg);
 			}
 
-		if ( STD_DEV in filter$measure )
-			{
-			#if ( result?$variance )
-			#	result$std_dev = sqrt(result$variance);
-			}
+		#if ( STD_DEV in filter$measure )
+		#	{
+		#	#if ( result?$variance )
+		#	#	result$std_dev = sqrt(result$variance);
+		#	}
 
 		if ( UNIQUE in filter$measure )
 			{
@@ -530,8 +590,7 @@ function add_data(id: string, index: Index, data: DataPoint)
 		}
 	}
 
-# This function checks if a threshold has been crossed and generates a 
-# notice if it has.  It is also used as a method to implement 
+# This function checks if a threshold has been crossed.  It is also used as a method to implement 
 # mid-break-interval threshold crossing detection for cluster deployments.
 function check_thresholds(filter: Filter, index: Index, val: ResultVal, modify_pct: double): bool
 	{
@@ -570,7 +629,7 @@ function check_thresholds(filter: Filter, index: Index, val: ResultVal, modify_p
 
 	return F;
 	}
-		
+
 function threshold_crossed(filter: Filter, index: Index, val: ResultVal)
 	{
 	if ( ! filter?$threshold_crossed )
@@ -585,4 +644,11 @@ function threshold_crossed(filter: Filter, index: Index, val: ResultVal)
 	# Bump up to the next threshold series index if a threshold series is being used.
 	if ( filter?$threshold_series )
 		++val$threshold_series_index;
+	}
+
+function create_index_rollup(name: string, rollup: RollupCallback)
+	{
+	local r: Rollup = [$callback=rollup];
+	r$filters=set();
+	rollups[name] = r;
 	}

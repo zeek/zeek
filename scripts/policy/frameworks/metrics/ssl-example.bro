@@ -10,11 +10,10 @@ event bro_init()
 	{
 	Metrics::add_filter("ssl.by_servername", 
 		[$name="no-google-ssl-servers",
+		 $every=10secs, $measure=set(Metrics::SUM),
 		 $pred(index: Metrics::Index, data: Metrics::DataPoint) = { 
 		    return (/google\.com$/ !in index$str); 
-		 },
-		 $break_interval=10secs
-		]);
+		 }]);
 	}
 
 event SSL::log_ssl(rec: SSL::Info)

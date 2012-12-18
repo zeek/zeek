@@ -26,8 +26,7 @@ event bro_init() &priority=5
 	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
 	                     	print "A test metric threshold was crossed!";
 	                     	terminate();
-	                     }
-	                     ]);
+	                     }]);
 	}
 
 event remote_connection_closed(p: event_peer)

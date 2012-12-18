@@ -43,6 +43,10 @@ export {
 	## Custom threholds based on service for address scan.  This is primarily 
 	## useful for setting reduced thresholds for specific ports.
 	const addr_scan_custom_thresholds: table[port] of count &redef;
+
+	global Scan::addr_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
+	
+	global Scan::port_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
 }
 
 
@@ -94,16 +98,14 @@ function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 event bro_init() &priority=5
 	{
 	# Note: addr scans are trcked similar to:  table[src_ip, port] of set(dst);	
-	Metrics::add_filter("scan.addr.fail", [$log=F,
-	                                       $every=addr_scan_interval,
+	Metrics::add_filter("scan.addr.fail", [$every=addr_scan_interval,
 	                                       $measure=set(Metrics::UNIQUE),
 	                                       $threshold_func=check_addr_scan_threshold,
 	                                       $threshold=addr_scan_threshold,
 	                                       $threshold_crossed=addr_scan_threshold_crossed]); 
 
 	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
-	Metrics::add_filter("scan.port.fail", [$log=F,
-	                                       $every=port_scan_interval,
+	Metrics::add_filter("scan.port.fail", [$every=port_scan_interval,
 	                                       $measure=set(Metrics::UNIQUE),
 	                                       $threshold=port_scan_threshold,
 	                                       $threshold_crossed=port_scan_threshold_crossed]); 
@@ -146,11 +148,11 @@ function add_metrics(id: conn_id, reverse: bool)
 	#if ( |analyze_subnets| > 0 && host !in analyze_subnets )
 	#	return F;
 
-	# Probably do a hook point here?
-	Metrics::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
+	if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
+		Metrics::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
 
-	# Probably do a hook point here?
-	Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
+	if ( hook Scan::port_scan_policy(scanner, victim, scanned_port) )
+		Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
 	}
 
 function is_failed_conn(c: connection): bool

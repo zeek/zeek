@@ -7,11 +7,16 @@
 event bro_init()
 	{
 	#Metrics::add_filter("conns.originated", [$aggregation_mask=24, $break_interval=1mins]);
-	Metrics::add_filter("conns.originated",  [$aggregation_table=Site::local_nets_table, $break_interval=1mins]);
+	Metrics::add_filter("conns.originated", [$every=1mins, $measure=set(Metrics::SUM), 
+	                                         $aggregation_table=Site::local_nets_table, 
+	                                         $period_finished=Metrics::write_log]);
 	
 	
 	# Site::local_nets must be defined in order for this to actually do anything.
-	Metrics::add_filter("conns.responded",  [$aggregation_table=Site::local_nets_table, $break_interval=1mins]);
+	Metrics::add_filter("conns.responded",  [$every=1mins, $measure=set(Metrics::SUM),
+	                                         $aggregation_table=Site::local_nets_table, 
+	                                         $period_finished=Metrics::write_log]);
+
 	}
 
 event connection_established(c: connection)

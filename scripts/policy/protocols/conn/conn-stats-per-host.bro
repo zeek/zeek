@@ -6,10 +6,12 @@ event bro_init() &priority=5
 	{
 	Metrics::add_filter("conn.orig.data", 
 	                    [$every=5mins,
-	                     $measure=set(Metrics::VARIANCE, Metrics::AVG, Metrics::MAX, Metrics::MIN, Metrics::STD_DEV)]);
+	                     $measure=set(Metrics::VARIANCE, Metrics::AVG, Metrics::MAX, Metrics::MIN, Metrics::STD_DEV),
+	                     $period_finished=Metrics::write_log]);
 	Metrics::add_filter("conn.resp.data", 
 	                    [$every=5mins,
-	                     $measure=set(Metrics::VARIANCE, Metrics::AVG, Metrics::MAX, Metrics::MIN, Metrics::STD_DEV)]);
+	                     $measure=set(Metrics::VARIANCE, Metrics::AVG, Metrics::MAX, Metrics::MIN, Metrics::STD_DEV),
+	                     $period_finished=Metrics::write_log]);
 	}
 
 

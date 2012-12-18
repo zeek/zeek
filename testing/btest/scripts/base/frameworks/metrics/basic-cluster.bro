@@ -19,11 +19,23 @@ redef Cluster::nodes = {
 
 redef Log::default_rotation_interval = 0secs;
 
+global n = 0;
+
 event bro_init() &priority=5
 	{
 	Metrics::add_filter("test.metric", 
 	                    [$every=3secs,
-	                     $measure=set(Metrics::SUM, Metrics::MIN, Metrics::MAX, Metrics::AVG, Metrics::STD_DEV, Metrics::VARIANCE)]);
+	                     $measure=set(Metrics::SUM, Metrics::MIN, Metrics::MAX, Metrics::AVG, Metrics::STD_DEV, Metrics::VARIANCE, Metrics::UNIQUE),
+	                     $period_finished(ts: time, metric_name: string, filter_name: string, data: Metrics::MetricTable) =
+	                     	{
+	                     	Metrics::write_log(ts, metric_name, filter_name, data);
+	                     	if ( ++n == 3 )
+	                     		{
+	                     		terminate_communication();
+	                     		terminate();
+	                     		}
+	                     	}
+	                     	]);
 	}
 
 event remote_connection_closed(p: event_peer)
@@ -64,22 +76,10 @@ event ready_for_data()
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
-global n = 0;
 global peer_count = 0;
-
-event Metrics::log_metrics(rec: Metrics::Info)
-	{
-	++n;
-	if ( n == 3 )
-		{
-		terminate_communication();
-		terminate();
-		}
-	}
 
 event remote_connection_handshake_done(p: event_peer)
 	{
-	print p;
 	++peer_count;
 	if ( peer_count == 3 )
 		event ready_for_data();

@@ -148,10 +148,12 @@ function add_metrics(id: conn_id, reverse: bool)
 	#if ( |analyze_subnets| > 0 && host !in analyze_subnets )
 	#	return F;
 
-	if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
+	# Hooks don't seem to be working like I expected.  They'll have to wait a bit longer.
+	
+	#if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
 		Metrics::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
 
-	if ( hook Scan::port_scan_policy(scanner, victim, scanned_port) )
+	#if ( hook Scan::port_scan_policy(scanner, victim, scanned_port) )
 		Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
 	}
 

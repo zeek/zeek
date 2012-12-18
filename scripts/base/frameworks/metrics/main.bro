@@ -324,7 +324,6 @@ function merge_result_vals(rv1: ResultVal, rv2: ResultVal): ResultVal
 	result$num = rv1$num + rv2$num;
 
 	# Merge $sum
-	result$sum = rv1$sum + rv2$sum;
 	if ( rv1?$sum || rv2?$sum )
 		{
 		result$sum = rv1?$sum ? rv1$sum : 0;

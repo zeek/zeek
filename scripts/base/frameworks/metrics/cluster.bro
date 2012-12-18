@@ -49,29 +49,6 @@ export {
 	global send_data: event(uid: string, id: string, filter_name: string, data: MetricTable);
 }
 
-# This is maintained by managers so they can know what data they requested and
-# when they requested it.
-global requested_results: table[string] of time = table() &create_expire=5mins;
-
-# TODO: The next 4 variables make the assumption that a value never 
-#       takes longer than 5 minutes to transmit from workers to manager.  This needs to 
-#       be tunable or self-tuning.  These should also be restructured to be
-#       maintained within a single variable.
-
-# This variable is maintained by manager nodes as they collect and aggregate 
-# results.
-global filter_results: table[string, string, string] of MetricTable &read_expire=1min;
-
-# This variable is maintained by manager nodes to track how many "dones" they
-# collected per collection unique id.  Once the number of results for a uid 
-# matches the number of peer nodes that results should be coming from, the 
-# result is written out and deleted from here.
-# TODO: add an &expire_func in case not all results are received.
-global done_with: table[string] of count &read_expire=1min &default=0;
-
-# This variable is maintained by managers to track intermediate responses as 
-# they are getting a global view for a certain index.
-global index_requests: table[string, string, string, Index] of ResultVal &read_expire=1min;
 
 # This variable is maintained by all hosts for different purposes. Non-managers
 # maintain it to know what indexes they have recently sent as intermediate
@@ -162,6 +139,26 @@ event Metrics::cluster_index_request(uid: string, id: string, filter_name: strin
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
+# This variable is maintained by manager nodes as they collect and aggregate 
+# results.
+global filter_results: table[string, string, string] of MetricTable &read_expire=1min;
+
+# This is maintained by managers so they can know what data they requested and
+# when they requested it.
+global requested_results: table[string] of time = table() &create_expire=5mins;
+
+# This variable is maintained by manager nodes to track how many "dones" they
+# collected per collection unique id.  Once the number of results for a uid 
+# matches the number of peer nodes that results should be coming from, the 
+# result is written out and deleted from here.
+# TODO: add an &expire_func in case not all results are received.
+global done_with: table[string] of count &read_expire=1min &default=0;
+
+# This variable is maintained by managers to track intermediate responses as 
+# they are getting a global view for a certain index.
+global index_requests: table[string, string, string, Index] of ResultVal &read_expire=1min;
+
+
 # Manager's handle logging.
 event Metrics::finish_period(filter: Filter)
 	{
@@ -170,6 +167,8 @@ event Metrics::finish_period(filter: Filter)
 	
 	# Set some tracking variables.
 	requested_results[uid] = network_time();
+	if ( [uid, filter$id, filter$name] in filter_results )
+		delete filter_results[uid, filter$id, filter$name];
 	filter_results[uid, filter$id, filter$name] = table();
 	
 	# Request data from peers.

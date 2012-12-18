@@ -227,7 +227,7 @@ export {
 }
 
 redef record Filter += {
-	# The metric that this filter applies to.  The value is automatically set.
+	# Internal use only.  The metric that this filter applies to.  The value is automatically set.
 	id: string &optional;
 };
 
@@ -263,7 +263,7 @@ global metric_filters: table[string] of vector of Filter = table();
 global filter_store: table[string, string] of Filter = table();
 
 # This is indexed by metric id and filter name.
-global store: table[string, string] of MetricTable = table() &default=table();
+global store: table[string, string] of MetricTable = table();
 
 # This is a hook for watching thresholds being crossed.  It is called whenever
 # index values are updated and the new val is given as the `val` argument.
@@ -427,6 +427,9 @@ function write_log(ts: time, metric_name: string, filter_name: string, data: Met
 
 function reset(filter: Filter)
 	{
+	if ( [filter$id, filter$name] in store )
+		delete store[filter$id, filter$name];
+
 	store[filter$id, filter$name] = table();
 	}
 

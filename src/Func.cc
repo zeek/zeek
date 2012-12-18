@@ -288,7 +288,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
-		return 0 ;
+		return Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0;
 		}
 
 	SegmentProfiler(segment_logger, location);

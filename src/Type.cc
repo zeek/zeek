@@ -2190,3 +2190,18 @@ BroType* init_type(Expr* init)
 
 	return new SetType(t->AsTypeList(), 0);
 	}
+
+bool is_atomic_type(const BroType* t)
+	{
+	switch ( t->InternalType() ) {
+	case TYPE_INTERNAL_INT:
+	case TYPE_INTERNAL_UNSIGNED:
+	case TYPE_INTERNAL_DOUBLE:
+	case TYPE_INTERNAL_STRING:
+	case TYPE_INTERNAL_ADDR:
+	case TYPE_INTERNAL_SUBNET:
+		return true;
+	default:
+		return false;
+	}
+	}

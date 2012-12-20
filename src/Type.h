@@ -625,6 +625,9 @@ BroType* merge_type_list(ListExpr* elements);
 // Given an expression, infer its type when used for an initialization.
 extern BroType* init_type(Expr* init);
 
+// Returns true if argument is an atomic type.
+bool is_atomic_type(const BroType* t);
+
 // True if the given type tag corresponds to an integral type.
 #define IsIntegral(t)	(t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER)
 

@@ -13,9 +13,16 @@ Bro 2.2
 New Functionality
 ~~~~~~~~~~~~~~~~~
 
+- GPRS Tunnelling Protocol (GTPv1) decapsulation.
+
 - GridFTP support. TODO: Extend.
 
 - ssl.log now also records the subject client and issuer certificates.
+
+- Hooks: TODO: Briefly summarize the documention from
+  doc/scripts/builtins.rst here.
+
+- The ASCII writer can now output CSV files on a per filter basis.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~

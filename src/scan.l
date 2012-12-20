@@ -287,6 +287,7 @@ for	return TOK_FOR;
 function	return TOK_FUNCTION;
 global	return TOK_GLOBAL;
 "?$"	return TOK_HAS_FIELD;
+hook	return TOK_HOOK;
 if	return TOK_IF;
 in	return TOK_IN;
 "!"{OWS}in/[^A-Za-z0-9]	return TOK_NOT_IN;	/* don't confuse w "! infoo"! */
@@ -318,7 +319,6 @@ vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
 &add_func	return TOK_ATTR_ADD_FUNC;
-&attr		return TOK_ATTR_ATTR;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
 &default	return TOK_ATTR_DEFAULT;
 &delete_func	return TOK_ATTR_DEL_FUNC;

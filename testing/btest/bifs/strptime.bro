@@ -1,7 +1,6 @@
 #
-# @TEST-EXEC: bro %INPUT
-# @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: btest-diff reporter.log
+# @TEST-EXEC: bro -b %INPUT >out 2>&1
+# @TEST-EXEC: btest-diff out
 
 event bro_init()
 	{

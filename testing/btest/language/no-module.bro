@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT secondtestfile >out
+# @TEST-EXEC: bro -b %INPUT secondtestfile >out
 # @TEST-EXEC: btest-diff out
 
 # This is the same test as "module.bro", but here we omit the module definition

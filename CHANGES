@@ -1,4 +1,98 @@
 
+2.1-231 | 2012-12-14 14:51:35 -0800
+
+  * Make const variables actually constant. Both local and global
+    variables declared with "const" could be modified, but now
+    expressions that would modify them generate an error message at
+    parse-time. Addresses #922. (Jon Siwek)
+
+2.1-229 | 2012-12-14 14:46:12 -0800
+
+  * Fix memory leak in ASCII reader when encoutering errors in input.
+    (Bernhard Amann)
+
+  * Improvements for the "bad checksums" detector to make it detect
+    bad TCP checksums. (Seth Hall)
+
+2.1-223 | 2012-12-12 14:25:15 -0800
+
+  * Trick for parallelizing input framework unit tests. Instead of
+    loading listen.bro to block until files are read, just read a pcap
+    file in pseudo-realtime. (Jon Siwek)
+
+  * Fix reliability of a unit test that relies on when statements.
+    (Jon Siwek)
+
+  * Remove unused attributes. (Daniel Thayer)
+        - Removed attributes &postprocessor and &match from documentation and source code.
+        - Removed undocumented attribute &attr from source code.
+        - Removed internal attribute "(&tracked)" from documentation.
+
+2.1-218 | 2012-12-10 14:45:04 -0800
+
+  * Add GPRS Tunnelling Protocol (GTPv1) decapsulation. This currently
+    supports automatic decapsulation of GTP-U packets on UDP port 2152.
+    The GTPv1 headers for such tunnels can be inspected by handling
+    the "gtpv1_g_pdu_packet" event, which has a parameter of type
+    "gtpv1_hdr". Addresses #690. (Jon Siwek; derived from patch by
+    Carsten Langer)
+
+  * Change BinPAC exceptions in AYIYA/GTP analyzers to do
+    "protocol_violation". (Jon Siwek)
+
+2.1-212 | 2012-12-07 19:42:03 -0800
+
+  * Changing the HTTP parser to accept request methods in alignment
+    with the RFC. (Robin Sommer)
+
+2.1-209 | 2012-12-05 16:44:04 -0800
+
+  * Adapting the HTTP request line parsing to only accept methods
+    consisting of letters [A-Za-z]. (Robin Sommer)
+
+2.1-207 | 2012-12-05 15:47:32 -0800
+
+  * Reporting warnings if kill/waitpid fail in communication system.
+    (Bill Parker)
+
+  * Replace() bzero with memset(). (Bill Parker)
+
+  * Merge remote-tracking branch 'vlad/topic/vladg/http-verbs'
+
+    * vlad/topic/vladg/http-verbs:
+      A test for HTTP methods, including some horribly illegal requests.
+      Remove hardcoded HTTP verbs from the analyzer (#741)
+
+    I added a "bad_HTTP_request" weird for HTTP request lines that don't
+    have more than a single word.
+
+    Closes #741. (Robin Sommer)
+
+  * A test for HTTP methods, including some horribly illegal requests. (Vlad Grigorescu)
+
+  * Remove hardcoded HTTP verbs from the analyzer (#741) (Vlad Grigorescu)
+
+
+2.1-203 | 2012-12-05 14:36:56 -0800
+
+  * Fix segfault: Synchronization of state between connecting peers
+    now skips over identifiers that aren't initialized with a value
+    yet. Addresses #66. (Jon Siwek)
+
+  * Fix segfault: Delete correct entry in error case in input
+    framework. (Bernhard Amann)
+
+  * Bad record constructor initializers now give an error. Addresses
+    #34. (Jon Siwek)
+
+  * Invalid vector indices now generate error message. Addresses #24.
+    (Jon Siwek)
+
+  * Bump CPack RPM package requirement to Python >= 2.6.0. (Jon Siwek)
+
+  * Interpreter exceptions occurring in "when" blocks are now handled.
+    Addresses #779 (Jon Siwek)
+
 2.1-195 | 2012-12-03 14:50:33 -0800
 
   * Catching out-of-memory in patricia tree code. (Bill Parker)

@@ -195,7 +195,7 @@ CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 if (INSTALL_BROCTL)
     # CPack RPM Generator may not automatically detect this
-    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.4.0")
+    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.6.0")
 endif ()
 
 # If this CMake project is a sub-project of another, we will not

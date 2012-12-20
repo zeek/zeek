@@ -229,9 +229,10 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 	}
 
 
-NameExpr::NameExpr(ID* arg_id) : Expr(EXPR_NAME)
+NameExpr::NameExpr(ID* arg_id, bool const_init) : Expr(EXPR_NAME)
 	{
 	id = arg_id;
+	in_const_init = const_init;
 	SetType(id->Type()->Ref());
 
 	EventHandler* h = event_registry->Lookup(id->Name());
@@ -287,6 +288,9 @@ Expr* NameExpr::MakeLvalue()
 	if ( id->AsType() )
 		ExprError("Type name is not an lvalue");
 
+	if ( id->IsConst() && ! in_const_init )
+		ExprError("const is not a modifiable lvalue");
+
 	return new RefExpr(this);
 	}
 
@@ -337,9 +341,11 @@ bool NameExpr::DoSerialize(SerialInfo* info) const
 
 	// Write out just the name of the function if requested.
 	if ( info->globals_as_names && id->IsGlobal() )
-		return SERIALIZE('n') && SERIALIZE(id->Name());
+		return SERIALIZE('n') && SERIALIZE(id->Name()) &&
+		       SERIALIZE(in_const_init);
 	else
-		return SERIALIZE('f') && id->Serialize(info);
+		return SERIALIZE('f') && id->Serialize(info) &&
+		       SERIALIZE(in_const_init);
 	}
 
 bool NameExpr::DoUnserialize(UnserialInfo* info)
@@ -368,6 +374,9 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		id = ID::Unserialize(info);
 
 	if ( ! id )
+		return false;
+
+	if ( ! UNSERIALIZE(&in_const_init) )
 		return false;
 
 	return true;
@@ -2950,16 +2959,12 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	if ( IsError() )
 		return 0;
 
-	if ( v1->Type()->Tag() == TYPE_VECTOR )
-		{
-		Val* v = v1->AsVectorVal()->Lookup(v2);
-		// ### dangerous - this can silently fail larger operations
-		// due to a missing element
-		return v ? v->Ref() : 0;
-		}
+	Val* v = 0;
 
-	TableVal* v_tbl = v1->AsTableVal();
-	Val* v = v_tbl->Lookup(v2);
+	if ( v1->Type()->Tag() == TYPE_VECTOR )
+		v = v1->AsVectorVal()->Lookup(v2);
+	else
+		v = v1->AsTableVal()->Lookup(v2);
 
 	if ( v )
 		return v->Ref();
@@ -3290,20 +3295,22 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	RecordVal* rv = Eval(0)->AsRecordVal();
-	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+	Val* v = Eval(0);
 
-	if ( ar )
+	if ( v )
 		{
-		Unref(rv);
-		return ar;
+		RecordVal* rv = v->AsRecordVal();
+		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+
+		if ( ar )
+			{
+			Unref(rv);
+			return ar;
+			}
 		}
 
-	else
-		{
-		Error("bad record initializer");
-		return 0;
-		}
+	Error("bad record initializer");
+	return 0;
 	}
 
 Val* RecordConstructorExpr::Fold(Val* v) const

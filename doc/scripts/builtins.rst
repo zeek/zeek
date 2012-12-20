@@ -799,19 +799,11 @@ scripting language supports the following built-in attributes.
     ``&synchronized`` variable is automatically propagated to all peers
     when it changes.
 
-.. bro:attr:: &postprocessor
-
-.. TODO: needs to be documented.
-
 .. bro:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
 
 .. TODO: needs to be documented in more detail.
-
-.. bro:attr:: &match
-
-.. TODO: needs to be documented.
 
 .. bro:attr:: &raw_output
 
@@ -846,6 +838,3 @@ scripting language supports the following built-in attributes.
 
 .. TODO: needs documented
 
-.. bro:attr:: (&tracked)
-
-.. TODO: needs documented or removed if it's not used anywhere.

@@ -755,11 +755,18 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &add_func
 
-.. TODO: needs to be documented.
+    Can be applied to an identifier with &redef to specify a function to
+    be called any time a "redef <id> += ..." declaration is parsed.  The
+    function takes two arguments of the same type as the identifier, the first
+    being the old value of the variable and the second being the new
+    value given after the "+=" operator in the "redef" declaration.  The
+    return value of the function will be the actual new value of the
+    variable after the "redef" declaration is parsed.
 
 .. bro:attr:: &delete_func
 
-.. TODO: needs to be documented.
+    Same as &add_func, except for "redef" declarations that use the "-="
+    operator.
 
 .. bro:attr:: &expire_func
 
@@ -836,5 +843,15 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &error_handler
 
-.. TODO: needs documented
+    Internally set on the events that are associated with the reporter
+    framework: :bro:id:`reporter_info`, :bro:id:`reporter_warning`, and
+    :bro:id:`reporter_error`.  It prevents any handlers of those events
+    from being able to generate reporter messages that go through any of
+    those events (i.e., it prevents an infinite event recursion).  Instead,
+    such nested reporter messages are output to stderr.
 
+.. bro:attr:: &type_column
+
+    Used by the input framework. It can be used on columns of type
+    :bro:type:`port` and specifies the name of an additional column in
+    the input file which specifies the protocol of the port (tcp/udp/icmp).

@@ -114,8 +114,16 @@ BroType::~BroType()
 		delete [] type_id;
 	}
 
-int BroType::MatchesIndex(ListExpr*& /* index */) const
+int BroType::MatchesIndex(ListExpr*& index) const
 	{
+	if ( Tag() == TYPE_STRING )
+		{
+		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
+			return DOES_NOT_MATCH_INDEX;
+		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT)) )
+			return MATCHES_INDEX_SCALAR;
+		}
+
 	return DOES_NOT_MATCH_INDEX;
 	}
 

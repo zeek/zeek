@@ -174,6 +174,8 @@ protected:
 		bool is_txt;
 		CallbackList callbacks;
 
+		AsyncRequest() : time(0.0), is_txt(false) { }
+
 		bool IsAddrReq() const	{ return name.length() == 0; }
 
 		void Resolved(const char* name)

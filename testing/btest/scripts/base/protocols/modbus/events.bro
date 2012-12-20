@@ -1,7 +1,7 @@
 #
-# @TEST-EXEC: bro -r $TRACES/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
+# @TEST-EXEC: bro -r $TRACES/modbus/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: cat output | awk '{print $1}' | sort | uniq | wc -l >covered
+# @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/event.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage

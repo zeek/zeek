@@ -24,6 +24,13 @@ New Functionality
 
 - The ASCII writer can now output CSV files on a per filter basis.
 
+- Bro's language now has a working "switch" statement that generally
+  behaves like C-style switches except case labels can be comprised of
+  multiple literal constants delimited by commas.  Only atomic types
+  are allowed for now.  Case label bodies that don't execute a
+  "return" or "break" statement will fall through to subsequent cases.
+  A default case label is allowed.
+
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 

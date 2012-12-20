@@ -3209,17 +3209,7 @@ int same_val(const Val* /* v1 */, const Val* /* v2 */)
 
 bool is_atomic_val(const Val* v)
 	{
-	switch ( v->Type()->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-	case TYPE_INTERNAL_UNSIGNED:
-	case TYPE_INTERNAL_DOUBLE:
-	case TYPE_INTERNAL_STRING:
-	case TYPE_INTERNAL_ADDR:
-	case TYPE_INTERNAL_SUBNET:
-		return true;
-	default:
-		return false;
-	}
+	return is_atomic_type(v->Type());
 	}
 
 int same_atomic_val(const Val* v1, const Val* v2)

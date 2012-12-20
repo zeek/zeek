@@ -1,4 +1,9 @@
 
+2.1-240 | 2012-12-20 15:21:07 -0800
+
+  * Improve error for invalid use of types as values. Addresses #923.
+    (Jon Siwek)
+
 2.1-238 | 2012-12-20 15:11:25 -0800
 
   * Finish implementation of script-layer switch statement. Addresses

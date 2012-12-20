@@ -233,7 +233,11 @@ NameExpr::NameExpr(ID* arg_id, bool const_init) : Expr(EXPR_NAME)
 	{
 	id = arg_id;
 	in_const_init = const_init;
-	SetType(id->Type()->Ref());
+
+	if ( id->AsType() )
+		SetType(new TypeType(id->AsType()));
+	else
+		SetType(id->Type()->Ref());
 
 	EventHandler* h = event_registry->Lookup(id->Name());
 	if ( h )

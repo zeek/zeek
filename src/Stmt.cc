@@ -942,7 +942,8 @@ bool SwitchStmt::DoUnserialize(UnserialInfo* info)
 		{
 		const ListExpr* le = (*cases)[i]->Cases();
 
-		if ( ! le ) continue;
+		if ( ! le )
+			continue;
 
 		const expr_list& exprs = le->Exprs();
 

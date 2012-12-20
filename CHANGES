@@ -1,4 +1,12 @@
 
+2.1-234 | 2012-12-20 12:12:19 -0800
+
+  * Fix return value of hook calls that have no handlers. For this
+    case, the return value is always true. (Jon Siwek)
+
+  * Fix to_port() BIF for port strings with a port number of zero.
+    (Jon Siwek)
+
 2.1-231 | 2012-12-14 14:51:35 -0800
 
   * Make const variables actually constant. Both local and global

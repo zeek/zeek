@@ -29,6 +29,7 @@ typedef enum {
 	TYPE_LIST,
 	TYPE_FUNC,
 	TYPE_FILE,
+	TYPE_OPAQUE,
 	TYPE_VECTOR,
 	TYPE_TYPE,
 	TYPE_ERROR
@@ -497,6 +498,23 @@ protected:
 	DECLARE_SERIAL(FileType)
 
 	BroType* yield;
+};
+
+class OpaqueType : public BroType {
+public:
+	OpaqueType(const string& name);
+	virtual ~OpaqueType() { };
+
+	const string& Name() const { return name; }
+
+	void Describe(ODesc* d) const;
+
+protected:
+	OpaqueType() { }
+
+	DECLARE_SERIAL(OpaqueType)
+
+	string name;
 };
 
 class EnumType : public BroType {

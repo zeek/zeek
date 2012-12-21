@@ -3114,6 +3114,27 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
+OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
+	{
+	}
+
+OpaqueVal::~OpaqueVal()
+	{
+	}
+
+IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
+
+bool OpaqueVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_OPAQUE_VAL, Val);
+	return true;
+	}
+
+bool OpaqueVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(Val);
+	return true;
+	}
 
 Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	{

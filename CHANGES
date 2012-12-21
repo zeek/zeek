@@ -1,4 +1,23 @@
 
+2.1-263 | 2012-12-20 16:22:09 -0800
+
+  * Bro's language now has a new set of types "opaque of X". (Matthias
+    Vallentin)
+
+    Opaque values can be passed around like other values but they can
+    only be manipulated with BiF functions, not with other operators.
+    Currently, the following opaque types are supported:
+
+        - opaque of md5
+        - opaque of sha1
+        - opaque of sha256
+        - opaquey of entropy.
+
+    They go along with the corrsponding BiF functions md5_*, sha1_*,
+    sha256_*, and entropy_*, respectively. Note that these functions
+    have changed their signatures to work with opaques types rather
+    than global state as it was before.
+    
 2.1-240 | 2012-12-20 15:21:07 -0800
 
   * Improve error for invalid use of types as values. Addresses #923.

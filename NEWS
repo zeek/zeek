@@ -31,6 +31,22 @@ New Functionality
   "return" or "break" statement will fall through to subsequent cases.
   A default case label is allowed.
 
+- Bro's language now has a new set of types "opaque of X". Opaque
+  values can be passed around like other values but they can only be
+  manipulated with BiF functions, not with other operators. Currently,
+  the following opaque types are supported:
+
+        - opaque of md5
+        - opaque of sha1
+        - opaque of sha256
+        - opaquey of entropy.
+
+  They go along with the corrsponding BiF functions md5_*, sha1_*,
+  sha256_*, and entropy_*, respectively. Note that these functions
+  have changed their signatures to work with opaques types rather
+  than global state as it was before.
+
+
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -43,6 +59,9 @@ Changed Functionality
         - parse_dotted_addr(), dump_config(),
           make_connection_persistent(), generate_idmef(),
           split_complete()
+
+        - md5_*, sha1_*, sha256_*, and entropy_* have all changed
+        their signatures to work with opaque types (see above).
 
 - Removed a now unused argument from "do_split" helper function.
 

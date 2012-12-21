@@ -1,4 +1,18 @@
 
+2.1-265 | 2012-12-20 17:38:42 -0800
+
+  * Add array-style index accessor for strings.  Addresses #422. (Jon
+    Siwek)
+
+    The index expression can take up to two indices for the start and
+    end index of the substring to return (e.g. "mystring[1,3]").
+    Negative indices are allowed, with -1 representing the last
+    character in the string.  The indexing is not cyclic -- if the
+    starting index is >= the length of the string an empty string is
+    returned, and if the ending index is >= the length of the string
+    then it's interpreted as the last index of the string.  Assigning
+    to substrings accessed like this isn't allowed.
+
 2.1-263 | 2012-12-20 16:22:09 -0800
 
   * Bro's language now has a new set of types "opaque of X". (Matthias

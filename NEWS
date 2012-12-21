@@ -46,6 +46,10 @@ New Functionality
   have changed their signatures to work with opaques types rather
   than global state as it was before.
 
+- Strings now support the subscript operator to extract individual
+  characters and substrings (e.g., s[4], s[1,5]). The index expression
+  can take up to two indices for the start and end index of the
+  substring to return (e.g. "mystring[1,3]").
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~

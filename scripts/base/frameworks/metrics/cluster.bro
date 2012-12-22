@@ -22,6 +22,11 @@ export {
 	## recently.
 	const cluster_request_global_view_percent = 0.1 &redef;
 
+	## Intermediate updates can cause overload situations on very large clusters.
+	## This option may help reduce load and correct intermittent problems.
+	## The goal for this option is also meant to be temporary.
+	const enable_intermediate_updates = T &redef;
+
 	# Event sent by the manager in a cluster to initiate the 
 	# collection of metrics values for a filter.
 	global cluster_filter_request: event(uid: string, id: string, filter_name: string);
@@ -77,7 +82,8 @@ function data_added(filter: Filter, index: Index, val: ResultVal)
 	# If val is 5 and global view % is 0.1 (10%), pct_val will be 50.  If that
 	# crosses the full threshold then it's a candidate to send as an 
 	# intermediate update.
-	if ( check_thresholds(filter, index, val, cluster_request_global_view_percent) )
+	if ( enable_intermediate_updates && 
+	     check_thresholds(filter, index, val, cluster_request_global_view_percent) )
 		{
 		# kick off intermediate update
 		event Metrics::cluster_index_intermediate_response(filter$id, filter$name, index);

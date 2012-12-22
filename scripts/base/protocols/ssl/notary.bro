@@ -13,12 +13,12 @@ export {
 		valid: bool &log &optional;
 	};
 
-  ## Hands over an SSL record to the Notary module. This is an ownership
-  ## transfer, i.e., the caller does not need to call Log::write on this record
-  ## anymore.
-  global push: function(info: SSL::Info);
+	## Hands over an SSL record to the Notary module. This is an ownership
+	## transfer, i.e., the caller does not need to call Log::write on this record
+	## anymore.
+	global push: function(info: SSL::Info);
 
-  ## The notary domain to query.
+	## The notary domain to query.
 	const domain = "notary.icsi.berkeley.edu" &redef;
 }
 
@@ -63,26 +63,26 @@ function clear_waitlist(digest: string)
 	}
 
 function flush(evict_all: bool)
-  {
-  local current: string;
-  for ( unused_index in deque )
-    {
-    current = deque[tail];
-    local info = records[current];
-    if ( ! evict_all && ! info?$notary )
-      break;
-    Log::write(SSL::LOG, info);
-    delete deque[tail];
-    delete records[current];
-    ++tail;
-    }
-  }
+	{
+	local current: string;
+	for ( unused_index in deque )
+		{
+		current = deque[tail];
+		local info = records[current];
+		if ( ! evict_all && ! info?$notary )
+			break;
+		Log::write(SSL::LOG, info);
+		delete deque[tail];
+		delete records[current];
+		++tail;
+		}
+	}
 
 function lookup_cert_hash(uid: string, digest: string)
-  {
-  # Add the record ID to the list of waiting IDs for this digest.
-  local waits_already = digest in waiting;
-  if ( ! waits_already )
+	j{
+	j# Add the record ID to the list of waiting IDs for this digest.
+	jlocal waits_already = digest in waiting;
+	jif ( ! waits_already )
 		waiting[digest] = vector();
 	waiting[digest][|waiting[digest]|] = uid;
 	if ( waits_already )
@@ -135,14 +135,14 @@ function push(info: SSL::Info)
 	if ( ! info?$sha1_digest )
 	  return;
 
-  local digest = info$sha1_digest;
-  if ( info$sha1_digest in notary_cache )
-    info$notary = notary_cache[digest];
-  else
-    lookup_cert_hash(info$uid, digest);
-  records[info$uid] = info;
-  deque[head] = info$uid;
-  ++head;
+	local digest = info$sha1_digest;
+	if ( info$sha1_digest in notary_cache )
+		info$notary = notary_cache[digest];
+	else
+		lookup_cert_hash(info$uid, digest);
+	records[info$uid] = info;
+	deque[head] = info$uid;
+	++head;
 	}
 
 event x509_certificate(c: connection, is_orig: bool, cert: X509,
@@ -151,12 +151,12 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 	if ( is_orig || chain_idx != 0 || ! c?$ssl )
 	  return;
 
-  c$ssl$sha1_digest = sha1_hash(der_cert);
-  }
+	c$ssl$sha1_digest = sha1_hash(der_cert);
+	}
 
 event bro_done()
 	{
 	if ( |deque| == 0 )
 		return;
-  flush(T);
+	flush(T);
 	}

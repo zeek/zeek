@@ -6,66 +6,6 @@
 module SSL;
 
 export {
-	redef enum Log::ID += { LOG };
-
-	## A response from the ICSI certificate notary.
-	type NotaryResponse: record {
-		first_seen: count &log &optional;
-		last_seen: count &log &optional;
-		times_seen: count &log &optional;
-		valid: bool &log &optional;
-	};
-
-	type Info: record {
-		## Time when the SSL connection was first detected.
-		ts:               time             &log;
-		## Unique ID for the connection.
-		uid:         string          &log;
-		## The connection's 4-tuple of endpoint addresses/ports.
-		id:               conn_id          &log;
-		## SSL/TLS version that the server offered.
-		version:          string           &log &optional;
-		## SSL/TLS cipher suite that the server chose.
-		cipher:           string           &log &optional;
-		## Value of the Server Name Indicator SSL/TLS extension.  It
-		## indicates the server name that the client was requesting.
-		server_name:      string           &log &optional;
-		## Session ID offered by the client for session resumption.
-		session_id:       string           &log &optional;
-		## Subject of the X.509 certificate offered by the server.
-		subject:          string           &log &optional;
-		## Subject of the signer of the X.509 certificate offered by the server.
-		issuer_subject:   string           &log &optional;
-		## NotValidBefore field value from the server certificate.
-		not_valid_before: time             &log &optional;
-		## NotValidAfter field value from the server certificate.
-		not_valid_after:  time             &log &optional;
-		## Last alert that was seen during the connection.
-		last_alert:       string           &log &optional;
-
-		## Subject of the X.509 certificate offered by the client.
-		client_subject:          string           &log &optional;
-		## Subject of the signer of the X.509 certificate offered by the client.
-		client_issuer_subject:   string           &log &optional;
-
-		## Full binary server certificate stored in DER format.
-		cert:             string           &optional;
-		## Chain of certificates offered by the server to validate its
-		## complete signing chain.
-		cert_chain:       vector of string &optional;
-
-		## Full binary client certificate stored in DER format.
-		client_cert:             string           &optional;
-		## Chain of certificates offered by the client to validate its
-		## complete signing chain.
-		client_cert_chain:       vector of string &optional;
-
-		## The analyzer ID used for the analyzer instance attached
-		## to each connection.  It is not used for logging since it's a
-		## meaningless arbitrary number.
-		analyzer_id:      count            &optional;
-	};
-
 	## The default root CA bundle.  By loading the
 	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
@@ -80,47 +20,10 @@ export {
 	## utility.
 	const openssl_util = "openssl" &redef;
 
-	## Flag that determines whether to use the ICSI certificate notary to enhance
-	## the SSL log records.
-	const use_notary = T &redef;
-
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
 }
-
-# TODO: Maybe wrap these in @ifdef's? Otherwise we carry the extra baggage
-# around all the time.
-redef record Info += {
-	sha1_digest: string &optional;
-	notary: NotaryResponse &log &optional;
-	};
-
-redef record connection += {
-	ssl: Info &optional;
-};
-
-# The DNS cache of notary responses.
-global notary_cache: table[string] of NotaryResponse &create_expire = 1 hr;
-
-# The buffered SSL log records.
-global records: table[string] of Info;
-
-# The records that wait for a notary response identified by the cert digest.
-# Each digest refers to a list of connection UIDs which are updated when a DNS
-# reply arrives asynchronously.
-global waiting: table[string] of vector of string;
-
-# A double-ended queue that determines the log record order in which logs have
-# to written out to disk.
-global deque: table[count] of string;
-
-# The top-most deque index.
-global head = 0;
-
-# The bottom deque index that points to the next record to be flushed as soon
-# as the notary response arrives.
-global tail = 0;
 
 event bro_init() &priority=5
 	{
@@ -163,102 +66,15 @@ function set_session(c: connection)
 		         $client_cert_chain=vector()];
 	}
 
-function clear_waitlist(digest: string)
-	{
-	if ( digest in waiting )
-		{
-		for ( i in waiting[digest] )
-			{
-			local uid = waiting[digest][i];
-			records[uid]$notary = [];
-			}
-		delete waiting[digest];
-		}
-	}
-
-function lookup_cert_hash(uid: string, digest: string)
-  {
-  # Add the record ID to the list of waiting IDs for this digest.
-  local waits_already = digest in waiting;
-  if ( ! waits_already )
-		waiting[digest] = vector();
-	waiting[digest][|waiting[digest]|] = uid;
-	if ( waits_already )
-		return;
-
-	local domain = "%s.notary.icsi.berkeley.edu";
-	when ( local str = lookup_hostname_txt(fmt(domain, digest)) )
-		{
-		# Cache every response for a digest.
-		# TODO: should we ignore failing answers?
-		notary_cache[digest] = [];
-
-		# Parse notary answer.
-		if ( str == "<???>" )
-			{
-			# TODO: Should we handle NXDOMAIN separately?
-			clear_waitlist(digest);
-			return;
-			}
-		local fields = split(str, / /);
-		if ( |fields| != 5 )	# version 1 has 5 fields.
-			{
-			clear_waitlist(digest);
-			return;
-			}
-		local version = split(fields[1], /=/)[2];
-		if ( version != "1" )
-			{
-			clear_waitlist(digest);
-			return;
-			}
-		local r = notary_cache[digest];
-		r$first_seen = to_count(split(fields[2], /=/)[2]);
-		r$last_seen = to_count(split(fields[3], /=/)[2]);
-		r$times_seen = to_count(split(fields[4], /=/)[2]);
-		r$valid = split(fields[5], /=/)[2] == "1";
-
-		# Assign notary answer to all waiting records.
-		if ( digest in waiting )
-			{
-			for ( i in waiting[digest] )
-				records[waiting[digest][i]]$notary = r;
-			delete waiting[digest];
-			}
-
-		# Flush all records up to the record which still awaits an answer.
-		local current: string;
-		for ( unused_index in deque )
-			{
-			current = deque[tail];
-			local info = records[current];
-			if ( ! info?$notary )
-				break;
-			Log::write(SSL::LOG, info);
-			delete deque[tail];
-			delete records[current];
-			++tail;
-			}
-		}
-	}
-
 function finish(c: connection)
 	{
-	if ( use_notary && c$ssl?$sha1_digest)
-		{
-		local digest = c$ssl$sha1_digest;
-		if ( c$ssl$sha1_digest in notary_cache )
-			c$ssl$notary = notary_cache[digest];
-		else
-			lookup_cert_hash(c$uid, digest);
-		records[c$uid] = c$ssl; # Copy the record.
-		deque[head] = c$uid;
-		++head;
-		}
-	else
-		{
-		Log::write(SSL::LOG, c$ssl);
-		}
+# TODO: This dummy flag merely exists to check whether the notary script is
+# loaded. There's probably a better way to incorporate the notary.
+@ifdef( Notary::enabled )
+	Notary::push(c$ssl);
+@else
+	Log::write(SSL::LOG, c$ssl);
+@endif
 
 	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
@@ -316,9 +132,6 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: coun
 			c$ssl$issuer_subject = cert$issuer;
 			c$ssl$not_valid_before = cert$not_valid_before;
 			c$ssl$not_valid_after = cert$not_valid_after;
-
-			if ( use_notary )
-				c$ssl$sha1_digest = sha1_hash(der_cert);
 			}
 		else
 			{
@@ -365,21 +178,4 @@ event protocol_violation(c: connection, atype: count, aid: count,
 	{
 	if ( c?$ssl )
 		finish(c);
-	}
-
-event bro_done()
-	{
-	if ( ! use_notary || |deque| == 0 )
-		return;
-
-	local current: string;
-	for ( unused_index in deque )
-		{
-		current = deque[tail];
-		local info = records[current];
-		Log::write(SSL::LOG, info);
-		delete deque[tail];
-		delete records[current];
-		++tail;
-		}
 	}

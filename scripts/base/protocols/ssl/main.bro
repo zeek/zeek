@@ -208,10 +208,10 @@ function lookup_cert_hash(uid: string, digest: string)
 			}
 		local version = split(fields[1], /=/)[2];
 		if ( version != "1" )
-		{
+			{
 			clear_waitlist(digest);
 			return;
-		}
+			}
 		local r = notary_cache[digest];
 		r$first_seen = to_count(split(fields[2], /=/)[2]);
 		r$last_seen = to_count(split(fields[3], /=/)[2]);
@@ -220,24 +220,24 @@ function lookup_cert_hash(uid: string, digest: string)
 
 		# Assign notary answer to all waiting records.
 		if ( digest in waiting )
-		{
+			{
 			for ( i in waiting[digest] )
 				records[waiting[digest][i]]$notary = r;
 			delete waiting[digest];
-		}
+			}
 
 		# Flush all records up to the record which still awaits an answer.
 		local current: string;
 		for ( unused_index in deque )
 			{
-				current = deque[tail];
-				local info = records[current];
-				if ( ! info?$notary )
-					break;
-				Log::write(SSL::LOG, info);
-				delete deque[tail];
-				delete records[current];
-				++tail;
+			current = deque[tail];
+			local info = records[current];
+			if ( ! info?$notary )
+				break;
+			Log::write(SSL::LOG, info);
+			delete deque[tail];
+			delete records[current];
+			++tail;
 			}
 		}
 	}

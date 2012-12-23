@@ -6,6 +6,63 @@
 module SSL;
 
 export {
+	redef enum Log::ID += { LOG };
+
+	type Info: record {
+		## Time when the SSL connection was first detected.
+		ts:               time             &log;
+		## Unique ID for the connection.
+		uid:         string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
+		id:               conn_id          &log;
+		## SSL/TLS version that the server offered.
+		version:          string           &log &optional;
+		## SSL/TLS cipher suite that the server chose.
+		cipher:           string           &log &optional;
+		## Value of the Server Name Indicator SSL/TLS extension.  It
+		## indicates the server name that the client was requesting.
+		server_name:      string           &log &optional;
+		## Session ID offered by the client for session resumption.
+		session_id:       string           &log &optional;
+		## Subject of the X.509 certificate offered by the server.
+		subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the server.
+		issuer_subject:   string           &log &optional;
+		## NotValidBefore field value from the server certificate.
+		not_valid_before: time             &log &optional;
+		## NotValidAfter field value from the server certificate.
+		not_valid_after:  time             &log &optional;
+		## Last alert that was seen during the connection.
+		last_alert:       string           &log &optional;
+
+		## Subject of the X.509 certificate offered by the client.
+		client_subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the client.
+		client_issuer_subject:   string           &log &optional;
+
+		## Full binary server certificate stored in DER format.
+		cert:             string           &optional;
+		## Chain of certificates offered by the server to validate its
+		## complete signing chain.
+		cert_chain:       vector of string &optional;
+
+		## Full binary client certificate stored in DER format.
+		client_cert:             string           &optional;
+		## Chain of certificates offered by the client to validate its
+		## complete signing chain.
+		client_cert_chain:       vector of string &optional;
+
+		## The analyzer ID used for the analyzer instance attached
+		## to each connection.  It is not used for logging since it's a
+		## meaningless arbitrary number.
+		analyzer_id:      count            &optional;
+
+		## Adding a string "token" to this set will cause the SSL script
+    ## to delay logging the record until either the token has been removed or
+    ## the record has been delayed for :bro:id:`SSL::max_log_delay`.
+	  delay_tokens: set[string] &optional;	
+	};
+
 	## The default root CA bundle.  By loading the
 	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
@@ -20,10 +77,23 @@ export {
 	## utility.
 	const openssl_util = "openssl" &redef;
 
+	## The maximum amount of time a plugin can delay records from being logged.
+	const max_log_delay = 15secs &redef;
+
+	## TODO: document.
+	global add_delayed_record: function(info: Info, token: string);
+
+	## TODO: document.
+	global clear_delayed_record: function(uid: string, token: string) : Info;
+
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
 }
+
+redef record connection += {
+	ssl: Info &optional;
+};
 
 event bro_init() &priority=5
 	{
@@ -59,6 +129,20 @@ redef likely_server_ports += {
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
 
+# The buffered SSL log records.
+global records: table[string] of Info;
+
+# A double-ended queue that determines the log record order in which logs have
+# to written out to disk.
+global deque: table[count] of string;
+
+# The top-most deque index.
+global head = 0;
+
+# The bottom deque index that points to the next record to be flushed as soon
+# as the notary response arrives.
+global tail = 0;
+
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
@@ -66,16 +150,69 @@ function set_session(c: connection)
 		         $client_cert_chain=vector()];
 	}
 
+function add_delayed_record(info: Info, token: string)
+	{
+	if ( info$uid in records )
+		{
+		print fmt("----- ignoring duplicate %s -----", info$uid);
+		return;
+		}
+
+	records[info$uid] = info;
+	deque[head] = info$uid;
+	++head;
+
+	info$delay_tokens = set();
+	add info$delay_tokens[token];
+	}
+
+function clear_delayed_record(uid: string, token: string) : Info
+	{
+	local info = records[uid];
+	delete info$delay_tokens[token];
+	return info;
+	}
+
+global log_record: function(info: Info);
+
+event delay_logging(info: Info)
+	{
+	log_record(info);
+	}
+
+function log_record(info: Info)
+	{
+	for ( unused_index in records )
+		{
+		if ( head == tail )
+			return;
+		local uid = deque[tail];
+		if ( |records[uid]$delay_tokens| > 0 )
+			{
+			if ( info$ts + max_log_delay > network_time() )
+				{
+				schedule 1sec { delay_logging(info) };
+				return;
+				}
+			else
+				{
+				event reporter_info(
+						network_time(),
+						fmt("SSL delay tokens not released in time (%s)",
+								info$delay_tokens),
+						"");
+				}
+			}
+		Log::write(SSL::LOG, records[uid]);
+		delete records[uid];
+		delete deque[tail];
+		++tail;
+		}
+	}
+
 function finish(c: connection)
 	{
-# TODO: This dummy flag merely exists to check whether the notary script is
-# loaded. There's probably a better way to incorporate the notary.
-@ifdef( Notary::enabled )
-	Notary::push(c$ssl);
-@else
-	Log::write(SSL::LOG, c$ssl);
-@endif
-
+	log_record(c$ssl);
 	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
 	delete c$ssl;
@@ -178,4 +315,18 @@ event protocol_violation(c: connection, atype: count, aid: count,
 	{
 	if ( c?$ssl )
 		finish(c);
+	}
+
+event bro_done()
+	{
+	if ( |records| == 0 )
+		return;
+	for ( unused_index in records )
+		{
+		local uid = deque[tail];
+		Log::write(SSL::LOG, records[uid]);
+		delete records[uid];
+		delete deque[tail];
+		++tail;
+		}
 	}

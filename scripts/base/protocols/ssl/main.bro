@@ -80,11 +80,13 @@ export {
 	## The maximum amount of time a plugin can delay records from being logged.
 	const max_log_delay = 15secs &redef;
 
-	## TODO: document.
-	global add_delayed_record: function(info: Info, token: string);
+	## Delays an SSL record for a specific token: the record will not be logged
+	## as longs the token exists or until :bro:id:`SSL::max_log_delay` elapses.
+	global delay_record: function(info: Info, token: string);
 
-	## TODO: document.
-	global clear_delayed_record: function(uid: string, token: string) : Info;
+	## Undelays an SSL record for a previously inserted token, allowing the
+	## record to be logged.
+	global undelay_record: function(info: Info, token: string);
 
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
@@ -129,12 +131,9 @@ redef likely_server_ports += {
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
 
-# The buffered SSL log records.
-global records: table[string] of Info;
-
 # A double-ended queue that determines the log record order in which logs have
 # to written out to disk.
-global deque: table[count] of string;
+global deque: table[count] of Info;
 
 # The top-most deque index.
 global head = 0;
@@ -150,27 +149,19 @@ function set_session(c: connection)
 		         $client_cert_chain=vector()];
 	}
 
-function add_delayed_record(info: Info, token: string)
+function delay_record(info: Info, token: string)
 	{
-	if ( info$uid in records )
-		{
-		print fmt("----- ignoring duplicate %s -----", info$uid);
-		return;
-		}
-
-	records[info$uid] = info;
-	deque[head] = info$uid;
-	++head;
-
 	info$delay_tokens = set();
 	add info$delay_tokens[token];
+
+	deque[head] = info;
+	++head;
 	}
 
-function clear_delayed_record(uid: string, token: string) : Info
+function undelay_record(info: Info, token: string)
 	{
-	local info = records[uid];
-	delete info$delay_tokens[token];
-	return info;
+	if ( token in info$delay_tokens )
+		delete info$delay_tokens[token];
 	}
 
 global log_record: function(info: Info);
@@ -182,12 +173,11 @@ event delay_logging(info: Info)
 
 function log_record(info: Info)
 	{
-	for ( unused_index in records )
+	for ( unused_index in deque )
 		{
 		if ( head == tail )
 			return;
-		local uid = deque[tail];
-		if ( |records[uid]$delay_tokens| > 0 )
+		if ( |deque[tail]$delay_tokens| > 0 )
 			{
 			if ( info$ts + max_log_delay > network_time() )
 				{
@@ -203,8 +193,7 @@ function log_record(info: Info)
 						"");
 				}
 			}
-		Log::write(SSL::LOG, records[uid]);
-		delete records[uid];
+		Log::write(SSL::LOG, deque[tail]);
 		delete deque[tail];
 		++tail;
 		}
@@ -215,7 +204,6 @@ function finish(c: connection)
 	log_record(c$ssl);
 	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
-	delete c$ssl;
 	}
 
 event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
@@ -319,13 +307,11 @@ event protocol_violation(c: connection, atype: count, aid: count,
 
 event bro_done()
 	{
-	if ( |records| == 0 )
+	if ( |deque| == 0 )
 		return;
-	for ( unused_index in records )
+	for ( unused_index in deque )
 		{
-		local uid = deque[tail];
-		Log::write(SSL::LOG, records[uid]);
-		delete records[uid];
+		Log::write(SSL::LOG, deque[tail]);
 		delete deque[tail];
 		++tail;
 		}

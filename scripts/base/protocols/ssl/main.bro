@@ -131,15 +131,13 @@ redef likely_server_ports += {
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
 
-# A double-ended queue that determines the log record order in which logs have
-# to written out to disk.
-global deque: table[count] of Info;
+# A queue that buffers log records.
+global queue: table[count] of Info;
 
-# The top-most deque index.
+# The top queue index where records are added.
 global head = 0;
 
-# The bottom deque index that points to the next record to be flushed as soon
-# as the notary response arrives.
+# The bottom queue index that points to the next record to be flushed.
 global tail = 0;
 
 function set_session(c: connection)
@@ -154,7 +152,7 @@ function delay_record(info: Info, token: string)
 	info$delay_tokens = set();
 	add info$delay_tokens[token];
 
-	deque[head] = info;
+	queue[head] = info;
 	++head;
 	}
 
@@ -173,11 +171,11 @@ event delay_logging(info: Info)
 
 function log_record(info: Info)
 	{
-	for ( unused_index in deque )
+	for ( unused_index in queue )
 		{
 		if ( head == tail )
 			return;
-		if ( |deque[tail]$delay_tokens| > 0 )
+		if ( |queue[tail]$delay_tokens| > 0 )
 			{
 			if ( info$ts + max_log_delay > network_time() )
 				{
@@ -193,8 +191,8 @@ function log_record(info: Info)
 						"");
 				}
 			}
-		Log::write(SSL::LOG, deque[tail]);
-		delete deque[tail];
+		Log::write(SSL::LOG, queue[tail]);
+		delete queue[tail];
 		++tail;
 		}
 	}
@@ -307,12 +305,12 @@ event protocol_violation(c: connection, atype: count, aid: count,
 
 event bro_done()
 	{
-	if ( |deque| == 0 )
+	if ( |queue| == 0 )
 		return;
-	for ( unused_index in deque )
+	for ( unused_index in queue )
 		{
-		Log::write(SSL::LOG, deque[tail]);
-		delete deque[tail];
+		Log::write(SSL::LOG, queue[tail]);
+		delete queue[tail];
 		++tail;
 		}
 	}

@@ -10,9 +10,13 @@ Scripting
     Understanding Bro Scripts
     The Event Queue and Event Handlers
     The Connection Record Datatype
-    Data Types
-    Variables and Scope
-    Branching and Iteration
+    Data Types and Data Structures
+    Scope
+    Global Variables
+    Constants
+    Local Variables
+    Data Structures
+
 
 Understanding Bro Scripts
 =========================
@@ -111,10 +115,62 @@ Bro uses the dollar sign as it's field delimiter and a direct correlation exists
 
 The addition of the base/protocols/dns scripts populates the dns=[] member of the connection record.  While Bro is doing a massive amount of work in the background, it is in what is commonly called "script land" that details are being refined and decisions being made.  Were we to continue running in "bare mode" we could slowly keep adding infrastructure through @load statements.  For example, were we to load base/frameworks/logging, Bro would generate a conn.log and dns.log for us in the current working directory.  Not only is it good practice to include appropriate load statements in your scripts, but it also helps to illuminate the various functionalities within Bro's scripting language. 
 
-Data Types
-==========
+Data Types and Data Structures
+==============================
 
-The table below shows the common data types used in Bro, of which, the first four should seem familiar while the remaining six are less common in other languages.  A basic understanding of the extra data types in Bro might save you a light night of reinventing the wheel.  It should come as no surprise that a scripting language for a Network Security Monitoring platform has a fairly robust set of network-centric data types.  While each of the network centric data types should be be familiar in the type of data they represent, seeing the data types in action can be a better starting point.
+Scope
+-----
+
+Before embarking on a exploration of Bro's native Data Types and Data Structures, it's important to have a good grasp of the different levels of scope available in Bro and the appropriate times to use them within a script.  The declarations of variables in Bro come in two forms.  Variables can be declared with or without a definition in the form "SCOPE name: TYPE" or "SCOPE name = EXPRESSION" respectively; each of which produce the same result if EXPRESSION evaluates to the same type as TYPE.  The decision as to which type of declaration to use is likely to be dictated by personal preference and readability. 
+
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 4-14
+
+Global Variables
+~~~~~~~~~~~~~~~~
+
+A global variable is used when the state of variable needs to be tracked, not surprisingly, globally.  While there are some caveats, when a script declares a variable using the global scope, that script is granting access to that variable from other scripts.  The declaration below, is a taken from the known-hosts.bro script and declares a variable called "known_hosts"" as a global set of unique ip addresses(line 32) within the "Known" namespace (line 8) and exports it (line 10) for use outside of the "Known" namespace.  Were we to want to use the "known_hosts" variable we'd be able to access it through "Known::known_hosts".  
+
+.. literalinclude:: ../scripts/policy/protocols/conn/known-hosts.bro
+   :language: bro
+   :linenos: 
+   :lines: 8-10, 32, 37
+
+The sample above also makes use of an export{} block.  When the module keyword is used in a script, the variables declared are said to be in that module's "namespace".  Where as a global variable can be accessed by its name alone when it is not declared within a module, a global variable declared within a module must be exported and then accessed via MODULE_NAME::VARIABLE_NAME.  As in the example above, we would be able to access the "known_hosts" in a separate script variable via "Known::known_hosts" due to the fact that known_hosts was declared as a global variable within an export block under the "Known" namespace.  
+
+Constants
+~~~~~~~~~
+
+The next level of scoping available in Bro are constants which are denoted by the "const" keyword.  Unlike globals, constants can only be set or altered at parse time, afterwards (in runtime) the constants are unalterable.  In most cases, constants are used in Bro scripts as containers for configuration options.  The majority of constants defined are defined with the "&redef" attribute, making it such that the constant can be redefined.  While the idea of a redefinable constant might be odd, the constraint that constants can only be altered at parse-time remains even with the "&redef" attribute.  In the code snippet below, a table of strings indexed by ports is declared as a constant before two values are added to the table through redef statements.  The table is then printed in a bro_init() event.  Were we to try to alter the table in an event handler, Bro would notify the user of an error and the script would fail.
+
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_const.bro
+   :language: bro
+   :linenos:
+   :lines: 4-12
+
+.. btest:: data_type_const.bro
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_type_const.bro
+
+Local Variables
+~~~~~~~~~~~~~~~
+
+Whereas globals and constants are widely available in scriptland through various means, when a variable is defined with a local scope, its availability is restricted to the body of the event or function in which it was declared.  Local variables tend to be used for values that are only needed within a specific scope and once the processing of a script passes beyond that scope, the variable is deleted.  It is possible for a function to return a locally scoped variable but in doing so, it is the value that is returned.  Bro maintains a difference between variables and values.
+
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_local.bro
+   :language: bro
+   :linenos:
+   :lines: 4-14
+
+
+Data Structures
+---------------
+
+It's difficult to talk about Bro's data types in a practical manner without first covering the data structures available in Bro.  Some of the more interesting characteristics of data types are revealed when used inside of a data structure, but given that data structures are made up of data types, it devolved rather quickly into a "chicken-and-egg"" problem.  As such, we'll introduce data types from bird's eye view before diving into data structures and from there a more complete exploration of data types.
+
+The table below shows the common data types used in Bro, of which, the first four should seem familiar if you have some scripting experience, while the remaining six are less common in other languages. It should come as no surprise that a scripting language for a Network Security Monitoring platform has a fairly robust set of network centric data types and taking note of them here may well save you a late night of reinventing the wheel.  
 
 +-----------+-------------------------------------+
 | Data Type | Description                         |
@@ -140,17 +196,42 @@ The table below shows the common data types used in Bro, of which, the first fou
 | pattern   | regular expression                  |
 +-----------+-------------------------------------+
 
+Data Structures
+---------------
+
+Vectors
+~~~~~~~
+
+Similar to arrays, vectors in Bro use contiguous storage for their contents and as such the contents can be accessed using a zero indexed numerical offset.  Each element in a vector is indexed by a count, starting and zero and progressing up to the current length of the list.  While members of a vector must all be of the same type, the vector itself can grow dynamically.  The format for the declaration of a vector follows the pattern of other declarations, namely, SCOPE v: vector of T where v is the name of your vector of T is the data type of its members.  For example, the following snippet shows an explicit and implicit declaration of a vector.
+
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector.bro
+   :language: bro
+   :linenos:
+   :lines: 6,7
+
+    
+
+Sets
+~~~~
+
+Tables
+~~~~~~
+
+ While each of the network centric data types should be be familiar in the type of data they represent, seeing the data types in action can be a better starting point, to do so a basic understanding of Bro's data structures will be helpful and
+
+
 subnet
 ------
 
 Bro has full support for CIDR notation subnets as a base data type.  There is no need to manage the IP and the subnet mask as two seperate entities when you can provide the same information in CIDR notation in your scripts.  The following example below uses a Bro script to determine if a series of IP addresses are within a set of subnets using a 20 bit subnet mask.  We'll be using some structures we have not yet introduced, as well as some operationts, but we'll touch on them here before going into more detail with them later on.
 
-.. literalinclude:: ${TESTBASE}/doc/manual/data_type_subnets.bro
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_subnets.bro
    :language: bro
    :linenos:
    :lines: 4-19
 
-Because this is a script that doesn't use any kind of network analysis, we can handle the event bro_init() which is always generated by Bro's core upon startup.  On lines six and seven, two locally scoped vectors (vectors are like lists in Python or arrays in C) are created to hold our lists of subnets and IP addresses respectively.  Then, using a set of nested for loops, we iterate over every subnet and every IP address and use an if statement to compare an IP address against a subnet using the in operator.  The in operator returns true if the IP address falls within a given subnet.  For example, 10.0.0.1 in 10.0.0.0/8 would return true while 192.168.2.1 in 192.168.1.0/24 would return false.  When we run the script, we get the output listing the IP address and the subnet in which it belongs.  
+Because this is a script that doesn't use any kind of network analysis, we can handle the event bro_init() which is always generated by Bro's core upon startup.  On lines six and seven, two locally scoped vectors are created to hold our lists of subnets and IP addresses respectively.  Then, using a set of nested for loops, we iterate over every subnet and every IP address and use an if statement to compare an IP address against a subnet using the in operator.  The in operator returns true if the IP address falls within a given subnet based on the longest prefix match calculation.  For example, 10.0.0.1 in 10.0.0.0/8 would return true while 192.168.2.1 in 192.168.1.0/24 would return false.  When we run the script, we get the output listing the IP address and the subnet in which it belongs.
+
 
 .. btest:: data_type_subnets
 

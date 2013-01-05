@@ -15,7 +15,7 @@ export {
 
 	## How many rejected usernames or passwords are required before being 
 	## considered to be bruteforcing.
-	const bruteforce_threshold = 2 &redef;
+	const bruteforce_threshold = 20 &redef;
 }
 
 

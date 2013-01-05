@@ -298,6 +298,7 @@ local	return TOK_LOCAL;
 module	return TOK_MODULE;
 next	return TOK_NEXT;
 of	return TOK_OF;
+opaque	return TOK_OPAQUE;
 pattern	return TOK_PATTERN;
 port	return TOK_PORT;
 print	return TOK_PRINT;

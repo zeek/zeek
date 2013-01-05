@@ -29,6 +29,7 @@ typedef enum {
 	TYPE_LIST,
 	TYPE_FUNC,
 	TYPE_FILE,
+	TYPE_OPAQUE,
 	TYPE_VECTOR,
 	TYPE_TYPE,
 	TYPE_ERROR
@@ -499,6 +500,23 @@ protected:
 	BroType* yield;
 };
 
+class OpaqueType : public BroType {
+public:
+	OpaqueType(const string& name);
+	virtual ~OpaqueType() { };
+
+	const string& Name() const { return name; }
+
+	void Describe(ODesc* d) const;
+
+protected:
+	OpaqueType() { }
+
+	DECLARE_SERIAL(OpaqueType)
+
+	string name;
+};
+
 class EnumType : public BroType {
 public:
 	EnumType(const string& arg_name);
@@ -624,6 +642,9 @@ BroType* merge_type_list(ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
 extern BroType* init_type(Expr* init);
+
+// Returns true if argument is an atomic type.
+bool is_atomic_type(const BroType* t);
 
 // True if the given type tag corresponds to an integral type.
 #define IsIntegral(t)	(t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER)

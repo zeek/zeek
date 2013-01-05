@@ -361,6 +361,7 @@ set(bro_SRCS
     NetVar.cc
     NetbiosSSN.cc
     Obj.cc
+    OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
     PacketSort.cc

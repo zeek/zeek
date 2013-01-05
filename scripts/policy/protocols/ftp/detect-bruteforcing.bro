@@ -29,7 +29,6 @@ event bro_init()
 	                                        	},
 	                                        $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = 
 	                                        	{
-	                                        	print "booyah";
 	                                        	local dur = duration_to_mins_secs(val$end-val$begin);
 	                                        	local message = fmt("%s had %d failed logins on %d FTP servers in %s", index$host, val$num, val$unique, dur);
 	                                        	NOTICE([$note=FTP::Bruteforcing, 
@@ -45,9 +44,6 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	if ( cmd == "USER" || cmd == "PASS" )
 		{
 		if ( FTP::parse_ftp_reply_code(code)$x == 5 )
-			{
-			print "yep";
 			Metrics::add_data("ftp.failed_auth", [$host=c$id$orig_h], [$host=c$id$resp_h]);
-			}
 		}
 	}

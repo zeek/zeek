@@ -157,7 +157,7 @@ The next level of scoping available in Bro are constants which are denoted by th
 Local Variables
 ~~~~~~~~~~~~~~~
 
-Whereas globals and constants are widely available in scriptland through various means, when a variable is defined with a local scope, its availability is restricted to the body of the event or function in which it was declared.  Local variables tend to be used for values that are only needed within a specific scope and once the processing of a script passes beyond that scope, the variable is deleted.  It is possible for a function to return a locally scoped variable but in doing so, it is the value that is returned.  Bro maintains a difference between variables and values.
+Whereas globals and constants are widely available in scriptland through various means, when a variable is defined with a local scope, its availability is restricted to the body of the event or function in which it was declared.  Local variables tend to be used for values that are only needed within a specific scope and once the processing of a script passes beyond that scope and no longer used, the variable is deleted.  While it is possible for a function to return a locally scoped variable, in doing so it retuns the value instead of the variable.  Bro maintains a difference between variables an example of which is illustrated below.  The script executes the event handler "bro_init()" which in turn calls the function "add_two(i: count)" with an argument of 10.  Once Bro enters the add_two function, it provisions a locally scoped variable called "added_two" to hold the value of i+2, in this case, 12.  The add_two function then prints the value of the added_two variable and returns its value to the bro_init() event handler.  At this point, the variable "added_two" has fallen out of scope and no longer exists while the value 12 is still in use and stored in the locally scoped variable "test".  When Bro finishes processing the bro_init function, the variable called "test" is no longer in scope and, since there exist no other references to the value "12", the value is also deleted.  
 
 .. literalinclude:: ../../../../testing/btest/doc/manual/data_type_local.bro
    :language: bro
@@ -220,10 +220,13 @@ Tables
  While each of the network centric data types should be be familiar in the type of data they represent, seeing the data types in action can be a better starting point, to do so a basic understanding of Bro's data structures will be helpful and
 
 
-subnet
-------
+Data Types Revisited
+--------------------
 
-Bro has full support for CIDR notation subnets as a base data type.  There is no need to manage the IP and the subnet mask as two seperate entities when you can provide the same information in CIDR notation in your scripts.  The following example below uses a Bro script to determine if a series of IP addresses are within a set of subnets using a 20 bit subnet mask.  We'll be using some structures we have not yet introduced, as well as some operationts, but we'll touch on them here before going into more detail with them later on.
+subnet
+~~~~~~
+
+Bro has full support for CIDR notation subnets as a base data type.  There is no need to manage the IP and the subnet mask as two seperate entities when you can provide the same information in CIDR notation in your scripts.  The following example below uses a Bro script to determine if a series of IP addresses are within a set of subnets using a 20 bit subnet mask. 
 
 .. literalinclude:: ../../../../testing/btest/doc/manual/data_type_subnets.bro
    :language: bro

@@ -7,6 +7,8 @@
 @load base/frameworks/notice
 @load base/frameworks/metrics
 
+@load base/utils/time
+
 module Scan;
 
 export {
@@ -59,12 +61,6 @@ function check_addr_scan_threshold(index: Metrics::Index, val: Metrics::ResultVa
 	local service = to_port(index$str);
 	return ( service in addr_scan_custom_thresholds &&
 	         val$sum > addr_scan_custom_thresholds[service] );
-	}
-
-function duration_to_mins_secs(dur: interval): string
-	{
-	local dur_count = double_to_count(interval_to_double(dur));
-	return fmt("%dm%ds", dur_count/60, dur_count%60);
 	}
 
 function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)

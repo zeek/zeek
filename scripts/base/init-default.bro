@@ -15,6 +15,7 @@
 @load base/utils/queue
 @load base/utils/strings
 @load base/utils/thresholds
+@load base/utils/time
 @load base/utils/urls
 
 # This has some deep interplay between types and BiFs so it's 

@@ -16,17 +16,19 @@ export {
 	## How many rejected usernames or passwords are required before being 
 	## considered to be bruteforcing.
 	const bruteforce_threshold = 20 &redef;
+
+	## The time period in which the threshold needs to be crossed before
+	## being reset.
+	const bruteforce_measurement_interval = 15mins;
 }
 
 
 event bro_init()
 	{
-	Metrics::add_filter("ftp.failed_auth", [$every=15min,
-	                                        $measure=set(Metrics::SUM, Metrics::UNIQUE),
-	                                        $threshold_func(index: Metrics::Index, val: Metrics::ResultVal) = 
-	                                        	{
-	                                        	return val$num >= bruteforce_threshold;
-	                                        	},
+	Metrics::add_filter("ftp.failed_auth", [$every=bruteforce_measurement_interval,
+	                                        $measure=set(Metrics::UNIQUE),
+	                                        $threshold_val_func(val: Metrics::ResultVal) = { return val$num; },
+	                                        $threshold=bruteforce_threshold,
 	                                        $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = 
 	                                        	{
 	                                        	local dur = duration_to_mins_secs(val$end-val$begin);
@@ -44,6 +46,6 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	if ( cmd == "USER" || cmd == "PASS" )
 		{
 		if ( FTP::parse_ftp_reply_code(code)$x == 5 )
-			Metrics::add_data("ftp.failed_auth", [$host=c$id$orig_h], [$host=c$id$resp_h]);
+			Metrics::add_data("ftp.failed_auth", [$host=c$id$orig_h], [$str=cat(c$id$resp_h)]);
 		}
 	}

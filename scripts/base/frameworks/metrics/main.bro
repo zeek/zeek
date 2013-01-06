@@ -149,6 +149,12 @@ export {
 		## This is a special case of the normalize_func.
 		aggregation_mask:  count                    &optional;
 		
+		## Optionally provide a function to calculate a value from the ResultVal 
+		## structure which will be used for thresholding.  If no function is 
+		## provided, then in the following order of preference either the 
+		## $unique or the $sum fields will be used.
+		threshold_val_func: function(val: Metrics::ResultVal): count  &optional;
+
 		## A direct threshold for calling the $threshold_crossed function when 
 		## the SUM is greater than or equal to this value.
 		threshold:         count                    &optional;
@@ -601,6 +607,9 @@ function check_thresholds(filter: Filter, index: Index, val: ResultVal, modify_p
 		watch = val$unique;
 	else if ( val?$sum )
 		watch = val$sum;
+
+	if ( filter?$threshold_val_func )
+		watch = filter$threshold_val_func(val);
 
 	if ( modify_pct < 1.0 && modify_pct > 0.0 )
 		watch = watch/modify_pct;

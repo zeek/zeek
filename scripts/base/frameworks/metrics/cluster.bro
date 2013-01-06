@@ -174,7 +174,7 @@ global index_requests: table[string, string, string, Index] of ResultVal &read_e
 # This variable is maintained by managers to prevent overwhelming communication due
 # to too many intermediate updates.  Each metric filter is tracked separately so that 
 # one metric won't overwhelm and degrade other quieter metrics.
-global outstanding_global_views: table[string, string] of count;
+global outstanding_global_views: table[string, string] of count &default=0;
 
 # Managers handle logging.
 event Metrics::finish_period(filter: Filter)
@@ -226,7 +226,9 @@ event Metrics::cluster_index_response(uid: string, id: string, filter_name: stri
 			}
 		delete done_with[uid];
 		delete index_requests[uid, id, filter_name, index];
-		--outstanding_global_views[id, filter_name];
+		# Check that there is an outstanding view before subtracting.
+		if ( outstanding_global_views[id, filter_name] > 0 )
+			--outstanding_global_views[id, filter_name];
 		}
 	}
 

@@ -1305,6 +1305,7 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 		return false;
 
 	name = n;
+	delete [] n;
 	return true;
 	}
 

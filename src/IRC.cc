@@ -22,7 +22,7 @@ IRC_Analyzer::IRC_Analyzer(Connection* conn)
 	AddSupportAnalyzer(new ContentLine_Analyzer(conn, false));
 	}
 
-bool IRC_Analyzer::Available()
+bool IRC_Analyzer::Available(const AnalyzerTag& tag)
 	{
 	static bool did_avail = false;
 	static bool avail = false;

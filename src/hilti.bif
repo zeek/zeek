@@ -1,0 +1,23 @@
+##! Internal functions and types used by the HILTI/BinPAC++ subsystem.
+
+module Hilti;
+
+%%{
+#include "NetVar.h"
+
+#include "logging/Manager.h"
+%%}
+
+module Pac2;
+
+const dump_debug: bool;
+const dump_code: bool;
+const dump_code_all: bool;
+const dump_code_pre_finalize: bool;
+const no_verify: bool;
+const compile_all: bool;
+const debug: count;
+const optimize: count;
+const save_pac2: bool;
+const save_hilti: bool;
+const save_llvm: bool;

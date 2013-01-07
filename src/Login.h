@@ -21,7 +21,7 @@ typedef enum {
 
 class Login_Analyzer : public TCP_ApplicationAnalyzer {
 public:
-	Login_Analyzer(AnalyzerTag::Tag tag, Connection* conn);
+	Login_Analyzer(AnalyzerTag tag, Connection* conn);
 	~Login_Analyzer();
 
 	virtual void DeliverStream(int len, const u_char* data, bool orig);

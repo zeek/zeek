@@ -1,3 +1,4 @@
+
 #include "DPM.h"
 #include "PIA.h"
 #include "Hash.h"
@@ -40,39 +41,94 @@ DPM::DPM()
 
 DPM::~DPM()
 	{
-	delete [] active_analyzers;
 	}
 
 void DPM::PreScriptInit()
 	{
-	for ( int i = 1; i < int(AnalyzerTag::LastAnalyzer); i++ )
-		{
-		// Create IDs ANALYZER_*.
-		ID* id = install_ID(fmt("ANALYZER_%s",
-				Analyzer::analyzer_configs[i].name),
-					GLOBAL_MODULE_NAME, true, false);
-		assert(id);
-		id->SetVal(new Val(i, TYPE_COUNT));
-		id->SetType(id->ID_Val()->Type()->Ref());
-		}
+	const AnalyzerConfig* config = Analyzer::analyzer_definitions;
+
+	while ( config->tag != AnalyzerTag::EndOfAnalyzers )
+		AddConfigPreScriptInit(*config++);
+	}
+
+void DPM::AddAnalyzer(AnalyzerTag tag,
+		 const char* name,
+		 analyzer_config_factory_callback factory,
+		 analyzer_config_available_callback available,
+		 analyzer_config_match_callback match,
+		 bool partial)
+	{
+	AnalyzerConfig cfg;
+	cfg.tag = tag;
+	cfg.name = strdup(name); // Note this will leak, but make cctor save.
+	cfg.factory = factory;
+	cfg.available = available;
+	cfg.match = match;
+	cfg.partial = partial;
+	AddConfigPreScriptInit(cfg);
+	}
+
+void DPM::AddConfigPreScriptInit(const AnalyzerConfig& cfg)
+	{
+	// Create IDs ANALYZER_*.
+	ID* id = install_ID(fmt("ANALYZER_%s",
+				cfg.name),
+			    GLOBAL_MODULE_NAME, true, false);
+	assert(id);
+	id->SetVal(new Val(cfg.tag, TYPE_COUNT));
+	id->SetType(id->ID_Val()->Type()->Ref());
+
+	Analyzer::analyzer_configs.insert(std::make_pair(cfg.tag, cfg));
+	Analyzer::analyzer_configs_by_name.insert(std::make_pair(cfg.name, cfg));
 	}
 
 void DPM::PostScriptInit()
 	{
-	active_analyzers = new bool[int(AnalyzerTag::LastAnalyzer)];
+	const AnalyzerConfig* config = Analyzer::analyzer_definitions;
 
-	for ( int i = 1; i < int(AnalyzerTag::LastAnalyzer); i++ )
+	Analyzer::AnalyzerMap::const_iterator i;
+
+	for ( i = Analyzer::analyzer_configs.begin(); i != Analyzer::analyzer_configs.end(); ++i )
 		{
-		if ( ! Analyzer::analyzer_configs[i].available )
-			continue;
-
-		active_analyzers[i] = Analyzer::analyzer_configs[i].available();
-		if ( active_analyzers[i] )
-			AddConfig(Analyzer::analyzer_configs[i]);
+		const AnalyzerConfig* config = &(i->second);
+		if ( config->available && config->available(config->tag) )
+			AddConfigPostScriptInit(*config);
 		}
+
+#ifdef DEBUG
+	for ( i = Analyzer::analyzer_configs.begin(); i != Analyzer::analyzer_configs.end(); ++i )
+		{
+		const AnalyzerConfig* config = &(i->second);
+		if ( config->available && config->available(config->tag) )
+			{
+			const AnalyzerConfig* cfg = &(i->second);
+			DBG_LOG(DBG_DPD, "%s analyzer active [type: %u/%u]", cfg->name, (unsigned int)cfg->tag.Type(), cfg->tag.Subtype());
+			}
+		}
+
+	analyzer_map::const_iterator j;
+
+	for ( j = tcp_ports.begin(); j != tcp_ports.end(); j++ )
+		{
+		string s;
+		for ( tag_list::const_iterator t = j->second->begin(); t != j->second->end(); ++t )
+			s += string(Analyzer::GetTagName(*t)) + string(" ");
+
+		DBG_LOG(DBG_DPD, "TCP port %u: %s", j->first, s.c_str());
+		}
+
+	for ( j = udp_ports.begin(); j != udp_ports.end(); j++ )
+		{
+		string s;
+		for ( tag_list::const_iterator t = j->second->begin(); t != j->second->end(); ++t )
+			s += string(Analyzer::GetTagName(*t)) + string(" ");
+
+		DBG_LOG(DBG_DPD, "UDP port %u: %s", j->first, s.c_str());
+		}
+#endif
 	}
 
-void DPM::AddConfig(const Analyzer::Config& cfg)
+void DPM::AddConfigPostScriptInit(const AnalyzerConfig& cfg)
 	{
 #ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
@@ -81,9 +137,6 @@ void DPM::AddConfig(const Analyzer::Config& cfg)
 	Val* index = new Val(cfg.tag, TYPE_COUNT);
 	Val* v = dpd_config->Lookup(index);
 
-#ifdef DEBUG
-	ODesc desc;
-#endif
 	if ( v )
 		{
 		RecordVal* cfg_record = v->AsRecordVal();
@@ -96,36 +149,33 @@ void DPM::AddConfig(const Analyzer::Config& cfg)
 			for ( int i = 0; i< plist->Length(); ++i )
 				{
 				PortVal* port = plist->Index(i)->AsPortVal();
-
-				analyzer_map* ports =
-					port->IsTCP() ? &tcp_ports : &udp_ports;
-
-				analyzer_map::iterator j =
-					ports->find(port->Port());
-
-				if ( j == ports->end() )
-					{
-					tag_list* analyzers = new tag_list;
-					analyzers->push_back(cfg.tag);
-					ports->insert(analyzer_map::value_type(port->Port(), analyzers));
-					}
-				else
-					j->second->push_back(cfg.tag);
-
-#ifdef DEBUG
-				port->Describe(&desc);
-				desc.SP();
-#endif
+				RegisterAnalyzerForPort(cfg.tag, port->PortType(), port->Port());
 				}
 			}
 		}
 
-	DBG_LOG(DBG_DPD, "%s analyzer active on port(s) %s", cfg.name, desc.Description());
-
 	Unref(index);
 	}
 
-AnalyzerTag::Tag DPM::GetExpected(int proto, const Connection* conn)
+void DPM::RegisterAnalyzerForPort(AnalyzerTag tag, TransportProto proto, uint32 port)
+	{
+	assert(proto == TRANSPORT_TCP || proto == TRANSPORT_UDP);
+
+	analyzer_map* ports = proto == TRANSPORT_TCP ? &tcp_ports : &udp_ports;
+	analyzer_map::iterator j = ports->find(port);
+
+	if ( j == ports->end() )
+		{
+		tag_list* analyzers = new tag_list;
+		analyzers->push_back(tag);
+		ports->insert(analyzer_map::value_type(port, analyzers));
+		}
+
+	else
+		j->second->push_back(tag);
+	}
+
+AnalyzerTag DPM::GetExpected(int proto, const Connection* conn)
 	{
 	if ( ! expected_conns.Length() )
 		return AnalyzerTag::Error;
@@ -161,7 +211,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	UDP_Analyzer* udp = 0;
 	ICMP_Analyzer* icmp = 0;
 	TransportLayerAnalyzer* root = 0;
-	AnalyzerTag::Tag expected = AnalyzerTag::Error;
+	AnalyzerTag expected = AnalyzerTag(AnalyzerTag::Error);
 	analyzer_map* ports = 0;
 	PIA* pia = 0;
 	bool analyzed = false;
@@ -205,7 +255,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	if ( expected != AnalyzerTag::Error )
 		{
 		Analyzer* analyzer =
-			Analyzer::InstantiateAnalyzer(expected, conn);
+			Analyzer::InstantiateAnalyzer(conn, expected);
 		root->AddChildAnalyzer(analyzer, false);
 		DBG_DPD_ARGS(conn, "activated %s analyzer as scheduled",
 			Analyzer::GetTagName(expected));
@@ -229,7 +279,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 				      j != analyzers->end(); j++ )
 					{
 					Analyzer* analyzer =
-					Analyzer::InstantiateAnalyzer(*j, conn);
+					Analyzer::InstantiateAnalyzer(conn, *j);
 
 					root->AddChildAnalyzer(analyzer, false);
 					DBG_DPD_ARGS(conn, "activated %s analyzer due to port %d", Analyzer::GetTagName(*j), conn->RespPort());
@@ -268,7 +318,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 		// Add a BackDoor analyzer if requested.  This analyzer
 		// can handle both reassembled and non-reassembled input.
-		if ( BackDoor_Analyzer::Available() )
+		if ( BackDoor_Analyzer::Available(AnalyzerTag::Backdoor) )
 			{
 			BackDoor_Analyzer* bd = new BackDoor_Analyzer(conn);
 			tcp->AddChildAnalyzer(bd, false);
@@ -276,7 +326,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 		// Add a InterConn analyzer if requested.  This analyzer
 		// can handle both reassembled and non-reassembled input.
-		if ( InterConn_Analyzer::Available() )
+		if ( InterConn_Analyzer::Available(AnalyzerTag::InterConn) )
 			{
 			InterConn_Analyzer* bd = new InterConn_Analyzer(conn);
 			tcp->AddChildAnalyzer(bd, false);
@@ -288,7 +338,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		// our general framing ...  Better would be to turn it
 		// on *after* we discover we have interactive traffic.
 		uint16 resp_port = ntohs(conn->RespPort());
-		if ( SteppingStone_Analyzer::Available() &&
+		if ( SteppingStone_Analyzer::Available(AnalyzerTag::SteppingStone) &&
 		     (resp_port == 22 || resp_port == 23 || resp_port == 513) )
 			{
 			AddrVal src(conn->OrigAddr());
@@ -302,17 +352,17 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 		// Add TCPStats analyzer. This needs to see packets so
 		// we cannot add it as a normal child.
-		if ( TCPStats_Analyzer::Available() )
+		if ( TCPStats_Analyzer::Available(AnalyzerTag::TCPStats) )
 			tcp->AddChildPacketAnalyzer(new TCPStats_Analyzer(conn));
 
 		// Add ConnSize analyzer. Needs to see packets, not stream.
-		if ( ConnSize_Analyzer::Available() )
+		if ( ConnSize_Analyzer::Available(AnalyzerTag::ConnSize) )
 			tcp->AddChildPacketAnalyzer(new ConnSize_Analyzer(conn));
 		}
 
 	else
 		{
-		if ( ConnSize_Analyzer::Available() )
+		if ( ConnSize_Analyzer::Available(AnalyzerTag::ConnSize) )
 			root->AddChildAnalyzer(new ConnSize_Analyzer(conn), false);
 		}
 
@@ -338,7 +388,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 void DPM::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
 			uint16 resp_p,
-			TransportProto proto, AnalyzerTag::Tag analyzer,
+			TransportProto proto, AnalyzerTag analyzer,
 			double timeout, void* cookie)
 	{
 	// Use the chance to see if the oldest entry is already expired.

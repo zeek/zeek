@@ -15,10 +15,10 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new DHCP_Analyzer_binpac(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return dhcp_request && FLAGS_use_binpac; }
 
 protected:

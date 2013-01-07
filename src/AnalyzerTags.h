@@ -1,20 +1,25 @@
 #ifndef ANALYZERTAGS_H
 #define ANALYZERTAGS_H
 
-// Each kind of analyzer gets a tag. When adding an analyzer here, also adapt
-// the table of analyzers in Analyzer.cc.
+// Each kind of analyzer gets a tag consisting of a main type and subtype.
+// The former determines the analyzer class to be instantiated, per the table
+// in Analyzers.cc. The latter is passed through to that new analyzer
+// instance and allows it to branch out to one out of a set of analyzers
+// internally. The traditional, hard-coded analyzers don't use the subtype
+// further, but the BinPAC++ support maps it to its analyzer definitions.
 //
-// Using a namespace here is kind of a hack: ideally this would be in "class
-// Analyzer {...}". But then we'd have circular dependencies across the header
-// files.
+// When adding a new main type here, don't forget to adapt the table of
+// analyzers in Analyzer.cc.
 
+#include "config.h"
 #include "util.h"
 
 typedef uint32 AnalyzerID;
 
-namespace AnalyzerTag {
-	enum Tag {
-		Error = 0,	// used as error code
+class AnalyzerTag  {
+public:
+	enum MainType {
+		Error = 0,
 
 		// Analyzer in charge of protocol detection.
 		PIA_TCP, PIA_UDP,
@@ -49,9 +54,45 @@ namespace AnalyzerTag {
 		Contents_NetbiosSSN, Contents_Rlogin, Contents_Rsh,
 		Contents_DCE_RPC, Contents_SMB, Contents_RPC, Contents_NFS,
 		FTP_ADAT,
-		// End-marker.
-		LastAnalyzer
+
+#ifdef HAVE_HILTI
+		// BinPAC++ analyzer. These are different: each handles a set
+		// of protocols, between we differentiate by subtype.
+		PAC2_TCP, PAC2_UDP,
+#endif
+
+		EndOfAnalyzers,	// used as error code and array end marker.
 	};
+
+	AnalyzerTag(MainType arg_type = Error, uint32_t arg_subtype = 0)
+		{ type = arg_type; subtype = arg_subtype; }
+
+	AnalyzerTag(const AnalyzerTag& other)
+		{ type = other.type; subtype = other.subtype; }
+
+	AnalyzerTag(uint64_t tid)
+		{ type = (MainType)(tid & 0xffffffffffffffff); subtype = (tid >> 32); }
+
+	MainType Type() const 	{ return type; }
+	uint32_t Subtype() const 	{ return subtype; }
+
+	// Returns an identifying for this tag integer that's guaranteed to
+	// be unique across all tags.
+	operator uint64_t() const { return (uint64_t)(type) | ((uint64_t)subtype << 32); }
+
+	bool operator==(const AnalyzerTag& other) const	{ return type == other.type && subtype == other.subtype; }
+	bool operator!=(const AnalyzerTag& other) const	{ return type != other.type || subtype != other.subtype; }
+	bool operator<(const AnalyzerTag& other) const
+		{
+		return type != other.type ? type < other.type : (subtype < other.subtype);
+		}
+
+	bool operator==(MainType arg_type) const	{ return type == arg_type; }
+	bool operator!=(MainType arg_type) const	{ return type != arg_type; }
+
+private:
+	MainType type;
+	uint32_t subtype; // Assigned by analyzer.
 };
 
 #endif

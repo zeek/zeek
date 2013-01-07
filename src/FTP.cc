@@ -176,7 +176,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	// Don't know how to parse anything but the ADAT exchanges of GSI GSSAPI,
 	// which is basically just TLS/SSL.
-	if ( ! Parent()->GetTag() == AnalyzerTag::SSL )
+	if ( Parent()->GetTag() != AnalyzerTag::SSL )
 		{
 		Parent()->Remove();
 		return;

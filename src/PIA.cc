@@ -129,7 +129,7 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 				bol, eol, clear_state);
 	}
 
-void PIA_UDP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
+void PIA_UDP::ActivateAnalyzer(AnalyzerTag tag, const Rule* rule)
 	{
 	if ( pkt_buffer.state == MATCHING_ONLY )
 		{
@@ -149,7 +149,7 @@ void PIA_UDP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 		ReplayPacketBuffer(a);
 	}
 
-void PIA_UDP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
+void PIA_UDP::DeactivateAnalyzer(AnalyzerTag tag)
 	{
 	reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
@@ -262,7 +262,7 @@ void PIA_TCP::Undelivered(int seq, int len, bool is_orig)
 	// No check for buffer overrun here. I think that's ok.
 	}
 
-void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
+void PIA_TCP::ActivateAnalyzer(AnalyzerTag tag, const Rule* rule)
 	{
 	if ( stream_buffer.state == MATCHING_ONLY )
 		{
@@ -371,7 +371,7 @@ void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 	tcp->SetReassembler(reass_orig, reass_resp);
 	}
 
-void PIA_TCP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
+void PIA_TCP::DeactivateAnalyzer(AnalyzerTag tag)
 	{
 	reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}

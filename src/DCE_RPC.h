@@ -174,10 +174,10 @@ public:
 	DCE_RPC_Analyzer(Connection* conn, bool speculative = false);
 	~DCE_RPC_Analyzer();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new DCE_RPC_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return DCE_RPC_Session::any_dce_rpc_event(); }
 
 protected:

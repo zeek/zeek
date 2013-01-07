@@ -85,10 +85,10 @@ public:
 			proc_tcp_option_t proc, TCP_Analyzer* analyzer,
 			bool is_orig, void* cookie);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new TCP_Analyzer(conn); }
 
-	static bool Available()	{ return true; }
+	static bool Available(const AnalyzerTag& tag)	{ return true; }
 
 protected:
 	friend class TCP_ApplicationAnalyzer;
@@ -261,7 +261,7 @@ private:
 
 class TCP_ApplicationAnalyzer : public Analyzer {
 public:
-	TCP_ApplicationAnalyzer(AnalyzerTag::Tag tag, Connection* conn)
+	TCP_ApplicationAnalyzer(AnalyzerTag tag, Connection* conn)
 	: Analyzer(tag, conn)
 		{ tcp = 0; }
 
@@ -317,7 +317,7 @@ private:
 
 class TCP_SupportAnalyzer : public SupportAnalyzer {
 public:
-	TCP_SupportAnalyzer(AnalyzerTag::Tag tag, Connection* conn, bool arg_orig)
+	TCP_SupportAnalyzer(AnalyzerTag tag, Connection* conn, bool arg_orig)
 		: SupportAnalyzer(tag, conn, arg_orig)	{ }
 
 	virtual ~TCP_SupportAnalyzer() {}
@@ -362,10 +362,10 @@ public:
 	virtual void Init();
 	virtual void Done();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new TCPStats_Analyzer(conn); }
 
-	static bool Available()	{ return conn_stats || tcp_rexmit; }
+	static bool Available(const AnalyzerTag& tag)	{ return conn_stats || tcp_rexmit; }
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,

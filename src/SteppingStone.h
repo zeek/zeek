@@ -51,10 +51,10 @@ public:
 	virtual void Init();
 	virtual void Done();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new SteppingStone_Analyzer(conn); }
 
-	static bool Available()	{ return stp_correlate_pair; }
+	static bool Available(const AnalyzerTag& tag)	{ return stp_correlate_pair; }
 
 protected:
 	// We support both packet and stream input and can be put in place even

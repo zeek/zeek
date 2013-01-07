@@ -1,5 +1,7 @@
 #include <algorithm>
 
+#include "config.h"
+
 #include "Analyzer.h"
 #include "PIA.h"
 #include "Event.h"
@@ -44,7 +46,7 @@
 #include "GTPv1.h"
 
 // Keep same order here as in AnalyzerTag definition!
-const Analyzer::Config Analyzer::analyzer_configs[] = {
+const AnalyzerConfig Analyzer::analyzer_definitions[] = {
 	{ AnalyzerTag::Error, "<ERROR>", 0, 0, 0, false },
 
 	{ AnalyzerTag::PIA_TCP, "PIA_TCP", PIA_TCP::InstantiateAnalyzer,
@@ -180,6 +182,8 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Contents_RPC, "CONTENTS_RPC", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_NFS, "CONTENTS_NFS", 0, 0, 0, false },
 	{ AnalyzerTag::FTP_ADAT, "FTP_ADAT", 0, 0, 0, false },
+
+	{ AnalyzerTag::EndOfAnalyzers, "<end-of-analyzers>", 0, 0, 0, false }, // End marker.
 };
 
 AnalyzerTimer::~AnalyzerTimer()
@@ -214,25 +218,36 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 
 AnalyzerID Analyzer::id_counter = 0;;
 
-Analyzer* Analyzer::InstantiateAnalyzer(AnalyzerTag::Tag tag, Connection* c)
+Analyzer::AnalyzerMap Analyzer::analyzer_configs;
+Analyzer::AnalyzerByNameMap Analyzer::analyzer_configs_by_name;
+
+Analyzer* Analyzer::InstantiateAnalyzer(Connection* c, const AnalyzerTag& tag)
 	{
-	Analyzer* a = analyzer_configs[tag].factory(c);
+	AnalyzerMap::const_iterator i = analyzer_configs.find(tag);
+	assert(i != analyzer_configs.end());
+	Analyzer* a = i->second.factory(c, tag);
 	assert(a);
 	return a;
 	}
 
-const char* Analyzer::GetTagName(AnalyzerTag::Tag tag)
+const char* Analyzer::GetTagName(AnalyzerTag tag)
 	{
-	return analyzer_configs[tag].name;
+	AnalyzerMap::const_iterator i = analyzer_configs.find(tag);
+	assert(i != analyzer_configs.end());
+	return i->second.name;
 	}
 
-AnalyzerTag::Tag Analyzer::GetTag(const char* name)
+bool Analyzer::IsAvailable(AnalyzerTag tag)
 	{
-	for ( int i = 1; i < int(AnalyzerTag::LastAnalyzer); i++ )
-		if ( strcasecmp(analyzer_configs[i].name, name) == 0 )
-			return analyzer_configs[i].tag;
+	AnalyzerMap::const_iterator i = analyzer_configs.find(tag);
+	assert(i != analyzer_configs.end());
+	return i->second.available && (*i->second.available)(tag);
+	}
 
-	return AnalyzerTag::Error;
+AnalyzerTag Analyzer::GetTag(const char* name)
+	{
+	AnalyzerByNameMap::const_iterator i = analyzer_configs_by_name.find(name);
+	return (i != analyzer_configs_by_name.end()) ? i->second.tag : AnalyzerTag::Error;
 	}
 
 // Used in debugging output.
@@ -241,7 +256,7 @@ static string fmt_analyzer(Analyzer* a)
 	return string(a->GetTagName()) + fmt("[%d]", a->GetID());
 	}
 
-Analyzer::Analyzer(AnalyzerTag::Tag arg_tag, Connection* arg_conn)
+Analyzer::Analyzer(AnalyzerTag arg_tag, Connection* arg_conn)
 	{
 	// Don't Ref conn here to avoid circular ref'ing. It can't be deleted
 	// before us.
@@ -533,11 +548,11 @@ void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
 	}
 
-Analyzer* Analyzer::AddChildAnalyzer(AnalyzerTag::Tag analyzer)
+Analyzer* Analyzer::AddChildAnalyzer(AnalyzerTag analyzer)
 	{
 	if ( ! HasChildAnalyzer(analyzer) )
 		{
-		Analyzer* a = InstantiateAnalyzer(analyzer, conn);
+		Analyzer* a = InstantiateAnalyzer(conn, analyzer);
 		AddChildAnalyzer(a);
 		return a;
 		}
@@ -576,7 +591,7 @@ void Analyzer::RemoveChildAnalyzer(AnalyzerID id)
 			}
 	}
 
-bool Analyzer::HasChildAnalyzer(AnalyzerTag::Tag tag)
+bool Analyzer::HasChildAnalyzer(AnalyzerTag tag)
 	{
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->tag == tag )
@@ -604,7 +619,7 @@ Analyzer* Analyzer::FindChild(AnalyzerID arg_id)
 	return 0;
 	}
 
-Analyzer* Analyzer::FindChild(AnalyzerTag::Tag arg_tag)
+Analyzer* Analyzer::FindChild(AnalyzerTag arg_tag)
 	{
 	if ( tag == arg_tag )
 		return this;
@@ -707,7 +722,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	return;
 	}
 
-bool Analyzer::HasSupportAnalyzer(AnalyzerTag::Tag tag, bool orig)
+bool Analyzer::HasSupportAnalyzer(AnalyzerTag tag, bool orig)
 	{
 	SupportAnalyzer* s = orig ? orig_supporters : resp_supporters;
 	for ( ; s; s = s->sibling )

@@ -29,10 +29,10 @@ public:
 	virtual ~Portmapper_Analyzer();
 	virtual void Init();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new Portmapper_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return pm_request || rpc_call; }
 };
 

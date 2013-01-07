@@ -17,10 +17,10 @@ public:
 	// Overriden from TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new SSL_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return ( ssl_client_hello || ssl_server_hello ||
 			ssl_established || ssl_extension || ssl_alert ||

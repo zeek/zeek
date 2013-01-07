@@ -20,10 +20,10 @@ public:
 
 	virtual void UpdateConnVal(RecordVal *conn_val);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new UDP_Analyzer(conn); }
 
-	static bool Available() { return true; }
+	static bool Available(const AnalyzerTag& tag) { return true; }
 
 protected:
 	virtual void Done();

@@ -22,11 +22,11 @@ public:
 
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
 	// signature that triggered the activitation, if any.
-	virtual void ActivateAnalyzer(AnalyzerTag::Tag tag,
+	virtual void ActivateAnalyzer(AnalyzerTag tag,
 					const Rule* rule = 0) = 0;
 
 	// Called when PIA wants to remove an Analyzer.
-	virtual void DeactivateAnalyzer(AnalyzerTag::Tag tag) = 0;
+	virtual void DeactivateAnalyzer(AnalyzerTag tag) = 0;
 
 	void Match(Rule::PatternType type, const u_char* data, int len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
@@ -37,7 +37,7 @@ public:
 	// as pointer to an Analyzer.
 	Analyzer* AsAnalyzer()	{ return as_analyzer; }
 
-	static bool Available()	{ return true; }
+	static bool Available(const AnalyzerTag& tag)	{ return true; }
 
 protected:
 	void PIA_Done();
@@ -94,7 +94,7 @@ public:
 		{ SetConn(conn); }
 	virtual ~PIA_UDP()	{ }
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new PIA_UDP(conn); }
 
 protected:
@@ -111,8 +111,8 @@ protected:
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		}
 
-	virtual void ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule);
-	virtual void DeactivateAnalyzer(AnalyzerTag::Tag tag);
+	virtual void ActivateAnalyzer(AnalyzerTag tag, const Rule* rule);
+	virtual void DeactivateAnalyzer(AnalyzerTag tag);
 };
 
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
@@ -139,7 +139,7 @@ public:
 
 	void ReplayStreamBuffer(Analyzer* analyzer);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new PIA_TCP(conn); }
 
 protected:
@@ -159,9 +159,9 @@ protected:
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
 	virtual void Undelivered(int seq, int len, bool is_orig);
 
-	virtual void ActivateAnalyzer(AnalyzerTag::Tag tag,
+	virtual void ActivateAnalyzer(AnalyzerTag tag,
 					const Rule* rule = 0);
-	virtual void DeactivateAnalyzer(AnalyzerTag::Tag tag);
+	virtual void DeactivateAnalyzer(AnalyzerTag tag);
 
 private:
 	// FIXME: Not sure yet whether we need both pkt_buffer and stream_buffer.

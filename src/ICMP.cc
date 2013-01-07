@@ -19,7 +19,7 @@ ICMP_Analyzer::ICMP_Analyzer(Connection* c)
 	request_len = reply_len = -1;
 	}
 
-ICMP_Analyzer::ICMP_Analyzer(AnalyzerTag::Tag tag, Connection* c)
+ICMP_Analyzer::ICMP_Analyzer(AnalyzerTag tag, Connection* c)
 : TransportLayerAnalyzer(tag, c)
 	{
 	icmp_conn_val = 0;

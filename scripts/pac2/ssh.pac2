@@ -1,0 +1,9 @@
+
+module SSH;
+
+export type Banner = unit {
+    magic   : /SSH-/;
+    version : /[^-]*/;
+    dash    : /-/;
+    software: /[^\r\n]*/;
+};

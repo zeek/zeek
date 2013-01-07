@@ -1,0 +1,7 @@
+
+analyzer SSH over TCP:
+    parse with SSH::Banner,
+    port 22/tcp;
+
+on SSH::Banner -> event ssh::banner($conn, $is_orig, version, software);
+

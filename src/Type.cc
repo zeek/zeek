@@ -1020,7 +1020,12 @@ void RecordType::Describe(ODesc* d) const
 	if ( d->IsReadable() )
 		{
 		d->AddSP("record {");
-		DescribeFields(d);
+
+		if ( ! d->IsShort() )
+			DescribeFields(d);
+		else
+			d->Add("...");
+
 		d->SP();
 		d->Add("}");
 		}
@@ -1091,7 +1096,12 @@ void RecordType::DescribeFields(ODesc* d) const
 			const TypeDecl* td = FieldDecl(i);
 			d->Add(td->id);
 			d->Add(":");
-			td->type->Describe(d);
+
+			if ( d->IsShort() && td->type->GetTypeID() )
+				d->Add(td->type->GetTypeID());
+			else
+				td->type->Describe(d);
+
 			d->Add(";");
 			}
 		}

@@ -13,10 +13,10 @@ public:
 
 	virtual void DeliverStream(int length, const u_char* data, bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new Ident_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return ident_request || ident_reply || ident_error; }
 
 protected:

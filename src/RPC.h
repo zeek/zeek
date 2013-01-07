@@ -224,7 +224,7 @@ protected:
 
 class RPC_Analyzer : public TCP_ApplicationAnalyzer {
 public:
-	RPC_Analyzer(AnalyzerTag::Tag tag, Connection* conn,
+	RPC_Analyzer(AnalyzerTag tag, Connection* conn,
 			RPC_Interpreter* arg_interp);
 	virtual ~RPC_Analyzer();
 

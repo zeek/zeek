@@ -54,9 +54,22 @@ protected:
 class SupportAnalyzer;
 class OutputHandler;
 
+typedef bool (*analyzer_config_available_callback)(const AnalyzerTag& tag);
+typedef Analyzer* (*analyzer_config_factory_callback)(Connection* conn, const AnalyzerTag& tag);
+typedef bool (*analyzer_config_match_callback)(Connection*);
+
+struct AnalyzerConfig {
+	AnalyzerTag tag;
+	const char* name;
+	analyzer_config_factory_callback factory;
+	analyzer_config_available_callback available;
+	analyzer_config_match_callback match;
+	bool partial;
+	};
+
 class Analyzer {
 public:
-	Analyzer(AnalyzerTag::Tag tag, Connection* conn);
+	Analyzer(AnalyzerTag tag, Connection* conn);
 	virtual ~Analyzer();
 
 	virtual void Init();
@@ -128,12 +141,12 @@ public:
 
 	bool IsFinished() const 		{ return finished; }
 
-	AnalyzerTag::Tag GetTag() const		{ return tag; }
+	AnalyzerTag GetTag() const		{ return tag; }
 	const char* GetTagName() const;
-	static AnalyzerTag::Tag GetTag(const char* tag);
-	static const char* GetTagName(AnalyzerTag::Tag tag);
-	static bool IsAvailable(AnalyzerTag::Tag tag)
-		{ return analyzer_configs[tag].available(); }
+
+	static AnalyzerTag GetTag(const char* tag);
+	static const char* GetTagName(AnalyzerTag tag);
+	static bool IsAvailable(AnalyzerTag tag);
 
 	// Management of the tree.
 	//
@@ -141,18 +154,18 @@ public:
 	// of the same type.
 	void AddChildAnalyzer(Analyzer* analyzer)
 		{ AddChildAnalyzer(analyzer, true); }
-	Analyzer* AddChildAnalyzer(AnalyzerTag::Tag tag);
+	Analyzer* AddChildAnalyzer(AnalyzerTag tag);
 
 	void RemoveChildAnalyzer(Analyzer* analyzer);
 	void RemoveChildAnalyzer(AnalyzerID id);
 
-	bool HasChildAnalyzer(AnalyzerTag::Tag tag);
+	bool HasChildAnalyzer(AnalyzerTag tag);
 
 	// Recursive; returns nil if not found.
 	Analyzer* FindChild(AnalyzerID id);
 
 	// Recursive; returns first found, or nil.
-	Analyzer* FindChild(AnalyzerTag::Tag tag);
+	Analyzer* FindChild(AnalyzerTag tag);
 
 	const analyzer_list& GetChildren()	{ return children; }
 
@@ -234,7 +247,7 @@ public:
 	// default, this method will be called for each analyzer in the tree.
 	// Analyzers can use this method to attach additional data to the
 	// connections. A call to BuildConnVal will in turn trigger a call to
-	// UpdateConnVal. 
+	// UpdateConnVal.
 	virtual void UpdateConnVal(RecordVal *conn_val);
 
 	// The following methods are proxies: calls are directly forwarded
@@ -252,7 +265,7 @@ public:
 		{ conn->Weird(name, addl); }
 
 	// Factory function to instantiate new analyzers.
-	static Analyzer* InstantiateAnalyzer(AnalyzerTag::Tag tag, Connection* c);
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag);
 
 protected:
 	friend class DPM;
@@ -275,7 +288,7 @@ protected:
 	void RemoveTimer(Timer* t);
 	void CancelTimers();
 
-	bool HasSupportAnalyzer(AnalyzerTag::Tag tag, bool orig);
+	bool HasSupportAnalyzer(AnalyzerTag tag, bool orig);
 
 	void AddChildAnalyzer(Analyzer* analyzer, bool init);
 	void InitChildren();
@@ -286,7 +299,7 @@ private:
 	// already Done().
 	void DeleteChild(analyzer_list::iterator i);
 
-	AnalyzerTag::Tag tag;
+	AnalyzerTag tag;
 	AnalyzerID id;
 
 	Connection* conn;
@@ -310,22 +323,16 @@ private:
 
 	static AnalyzerID id_counter;
 
-	typedef bool (*available_callback)();
-	typedef Analyzer* (*factory_callback)(Connection* conn);
-	typedef bool (*match_callback)(Connection*);
-
-	struct Config {
-		AnalyzerTag::Tag tag;
-		const char* name;
-		factory_callback factory;
-		available_callback available;
-		match_callback match;
-		bool partial;
-	};
-
 	// Table of analyzers.
-	static const Config analyzer_configs[];
+	//
+	// TODO: These should move to DPM now.
+	typedef std::map<AnalyzerTag, const AnalyzerConfig> AnalyzerMap;
+	typedef std::map<string, const AnalyzerConfig> AnalyzerByNameMap;
 
+	static AnalyzerMap analyzer_configs;
+	static AnalyzerByNameMap analyzer_configs_by_name;
+
+	static const AnalyzerConfig analyzer_definitions[];
 };
 
 #define ADD_ANALYZER_TIMER(timer, t, do_expire, type) \
@@ -349,7 +356,7 @@ private:
 
 class SupportAnalyzer : public Analyzer {
 public:
-	SupportAnalyzer(AnalyzerTag::Tag tag, Connection* conn, bool arg_orig)
+	SupportAnalyzer(AnalyzerTag tag, Connection* conn, bool arg_orig)
 		: Analyzer(tag, conn)	{ orig = arg_orig; sibling = 0; }
 
 	virtual ~SupportAnalyzer() {}
@@ -378,7 +385,7 @@ private:
 
 class TransportLayerAnalyzer : public Analyzer {
 public:
-	TransportLayerAnalyzer(AnalyzerTag::Tag tag, Connection* conn)
+	TransportLayerAnalyzer(AnalyzerTag tag, Connection* conn)
 		: Analyzer(tag, conn)	{ pia = 0; }
 
 	virtual void Done();

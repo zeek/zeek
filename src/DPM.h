@@ -5,9 +5,18 @@
 
 #include <queue>
 
-#include "Analyzer.h"
+#include "AnalyzerTags.h"
 #include "Dict.h"
+#include "IPAddr.h"
 #include "net_util.h"
+
+struct AnalyzerConfig;
+class Analyzer;
+class Connection;
+
+typedef bool (*analyzer_config_available_callback)(const AnalyzerTag& tag);
+typedef Analyzer* (*analyzer_config_factory_callback)(Connection* conn, const AnalyzerTag& tag);
+typedef bool (*analyzer_config_match_callback)(Connection*);
 
 // DPM debug logging, which includes the connection id into the message.
 #ifdef DEBUG
@@ -47,7 +56,7 @@ public:
 		}
 
 	ExpectedConn conn;
-	AnalyzerTag::Tag analyzer;
+	AnalyzerTag analyzer;
 	double timeout;
 	void* cookie;
 	bool deleted;
@@ -67,6 +76,19 @@ public:
 	void PreScriptInit();	// To be called before scripts are parsed ...
 	void PostScriptInit();	// ... and after.
 
+	// Registers an analyzer with the DPM. This must be called only
+	// before the script interpreter is initialized.
+	void AddAnalyzer(AnalyzerTag tag,
+		    const char* name,
+		    analyzer_config_factory_callback factory,
+		    analyzer_config_available_callback available,
+		    analyzer_config_match_callback match,
+		    bool partial);
+
+	// Registers an analyzer for analysis on a port. The analyzer itself
+	// must have been adeed with AddAnalyzer().
+	void RegisterAnalyzerForPort(AnalyzerTag tag, TransportProto proto, uint32 port);
+
 	// Given info about the first packet, build initial analyzer tree.
 	//
 	// It would be more flexible if we simply pass in the IP header
@@ -85,7 +107,7 @@ public:
 	// 0 acts as a wildcard for orig.  (Cookie is currently unused.
 	// Eventually, we may pass it on to the analyzer).
 	void ExpectConnection(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
-				TransportProto proto, AnalyzerTag::Tag analyzer,
+				TransportProto proto, AnalyzerTag analyzer,
 				double timeout, void* cookie);
 
 	// Activates signature matching for protocol detection. (Called when an
@@ -96,22 +118,20 @@ public:
 	void Done();
 
 private:
+	void AddConfigPreScriptInit(const AnalyzerConfig& tag);
+
 	// Convert script-level config into internal data structures.
-	void AddConfig(const Analyzer::Config& tag);
+	void AddConfigPostScriptInit(const AnalyzerConfig& tag);
 
 	// Return analyzer if any has been scheduled with ExpectConnection()
 	// AnalyzerTag::::Error if none.
-	AnalyzerTag::Tag GetExpected(int proto, const Connection* conn);
+	AnalyzerTag GetExpected(int proto, const Connection* conn);
 
 	// Mappings of destination port to analyzer.
-	typedef list<AnalyzerTag::Tag> tag_list;
+	typedef list<AnalyzerTag> tag_list;
 	typedef map<uint32, tag_list*> analyzer_map;
 	analyzer_map tcp_ports;
 	analyzer_map udp_ports;
-
-	// Array of bools indicating whether an analyzer is activated,
-	// indexed by AnalyzerTag::Tag.
-	bool* active_analyzers;
 
 	// True if signature-matching has been activated.
 	bool sigs_activated;

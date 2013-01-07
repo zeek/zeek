@@ -5,8 +5,14 @@
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
+#endif
+
 #include <inttypes.h>
 #include <stdint.h>
 

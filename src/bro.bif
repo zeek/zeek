@@ -4097,7 +4097,7 @@ function expect_connection%(orig: addr, resp: addr, resp_p: port,
 				analyzer: count, tout: interval%) : any
 	%{
 	dpm->ExpectConnection(orig->AsAddr(), resp->AsAddr(), resp_p->Port(),
-				 resp_p->PortType(), (AnalyzerTag::Tag) analyzer, tout, 0);
+			      resp_p->PortType(), analyzer, tout, 0);
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4141,7 +4141,7 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 ## .. bro:see:: expect_connection disable_analyzer current_analyzer
 function analyzer_name%(aid: count%) : string
 	%{
-	return new StringVal(Analyzer::GetTagName((AnalyzerTag::Tag) aid));
+	return new StringVal(Analyzer::GetTagName(aid));
 	%}
 
 ## Informs Bro that it should skip any further processing of the contents of

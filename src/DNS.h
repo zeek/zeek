@@ -266,10 +266,10 @@ public:
 
 	void ExpireTimer(double t);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new DNS_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return (dns_request || dns_full_request) &&
 			! FLAGS_use_binpac;

@@ -15,10 +15,10 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new Syslog_Analyzer_binpac(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return syslog_message; }
 
 protected:
@@ -42,10 +42,10 @@ protected:
 //	virtual void Undelivered(int seq, int len, bool orig);
 //	virtual void EndpointEOF(TCP_Reassembler* endp);
 //
-//	static Analyzer* InstantiateAnalyzer(Connection* conn)
+//	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 //		{ return new Syslog_TCP_Analyzer_binpac(conn); }
 //
-//	static bool Available()
+//	static bool Available(const AnalyzerTag& tag)
 //		{ return (Syslog_request || Syslog_full_request) && FLAGS_use_binpac; }
 //
 //protected:

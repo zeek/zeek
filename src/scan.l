@@ -1033,6 +1033,7 @@ static void check_dpd_config_changes()
 		valdesc.PushIndent();
 		v->Describe(&valdesc);
 
+#if 0
 		if ( tag < AnalyzerTag::Error || tag > AnalyzerTag::LastAnalyzer )
 			{
 			fprintf(stderr, "Warning: skipped bad analyzer tag: %i\n", tag);
@@ -1040,8 +1041,9 @@ static void check_dpd_config_changes()
 			}
 
 		last_reST_doc->AddPortAnalysis(
-			Analyzer::GetTagName((AnalyzerTag::Tag)tag),
+			Analyzer::GetTagName((AnalyzerTag)tag),
 			valdesc.Description());
+#endif			
 		}
 
 	dpd_table->RemoveAll();

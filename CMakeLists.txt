@@ -172,23 +172,33 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ########################################################################
 ## Recurse on sub-directories
 
+set_property(GLOBAL PROPERTY HLT_HAVE_HILTI     false)
+set_property(GLOBAL PROPERTY HLT_HILTI_CONFIG   "N/A")
+set_property(GLOBAL PROPERTY HLT_CLANG_EXEC     "N/A")
+set_property(GLOBAL PROPERTY HLT_CLANGXX_EXEC   "N/A")
+
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
+
+get_property(HAVE_HILTI         GLOBAL PROPERTY HLT_HAVE_HILTI)
+get_property(HILTI_CONFIG       GLOBAL PROPERTY HLT_HILTI_CONFIG)
+get_property(HILTI_CLANG_EXEC   GLOBAL PROPERTY HLT_CLANG_EXEC)
+get_property(HILTI_CLANGXX_EXEC GLOBAL PROPERTY HLT_CLANGXX_EXEC)
 
 include(CheckOptionalBuildSources)
 
 CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 ########################################################################
 ## Packaging Setup
@@ -239,6 +249,10 @@ message(
     "\nDataSeries:        ${USE_DATASERIES}"
     "\nElasticSearch:     ${USE_ELASTICSEARCH}"
     "\n"
+    "\nHILTI/BinPAC++:    ${HAVE_HILTI}"
+    "\n  hilti-config:    ${HILTI_CONFIG}"
+    "\n         clang:    ${HILTI_CLANG_EXEC}"
+    "\n       clang++:    ${HILTI_CLANGXX_EXEC}"
     "\n================================================================\n"
 )
 

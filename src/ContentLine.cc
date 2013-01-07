@@ -9,7 +9,7 @@ ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig)
 	InitState();
 	}
 
-ContentLine_Analyzer::ContentLine_Analyzer(AnalyzerTag::Tag tag,
+ContentLine_Analyzer::ContentLine_Analyzer(AnalyzerTag tag,
 						Connection* conn, bool orig)
 : TCP_SupportAnalyzer(tag, conn, orig)
 	{

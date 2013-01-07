@@ -68,12 +68,12 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{
 		return new POP3_Analyzer(conn);
 		}
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return pop3_request || pop3_reply || pop3_data || pop3_unexpected;
 		}

@@ -15,4 +15,4 @@
 	url = git://git.bro-ids.org/btest
 [submodule "cmake"]
 	path = cmake
-	url = git://git.bro-ids.org/cmake
+	url = empire.icsi.berkeley.edu/git-repos/cmake-hilti

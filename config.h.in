@@ -209,3 +209,6 @@
 
 /* Common IPv6 extension structure */
 #cmakedefine HAVE_IP6_EXT
+
+/* HILTI support */
+#cmakedefine HAVE_HILTI

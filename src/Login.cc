@@ -20,7 +20,7 @@ static RE_Matcher* re_login_timeouts;
 
 static RE_Matcher* init_RE(ListVal* l);
 
-Login_Analyzer::Login_Analyzer(AnalyzerTag::Tag tag, Connection* conn)
+Login_Analyzer::Login_Analyzer(AnalyzerTag tag, Connection* conn)
 : TCP_ApplicationAnalyzer(tag, conn)
 	{
 	state = LOGIN_STATE_AUTHENTICATE;

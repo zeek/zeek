@@ -26,6 +26,7 @@ enum DebugStream {
 	DBG_LOGGING,	// Logging streams
 	DBG_INPUT,	// Input streams
 	DBG_THREADING,	// Threading system
+	DBG_PAC2,	// BinPAC++ analyzer management
 
 	NUM_DBGS // Has to be last
 };

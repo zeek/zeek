@@ -15,11 +15,11 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new ModbusTCP_Analyzer(conn); }
 
 	// Put event names in this function
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return modbus_message
 		     | modbus_exception

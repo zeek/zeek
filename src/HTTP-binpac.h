@@ -15,10 +15,10 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new HTTP_Analyzer_binpac(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return (http_request || http_reply) && FLAGS_use_binpac; }
 
 protected:

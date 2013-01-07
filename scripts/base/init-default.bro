@@ -45,3 +45,5 @@
 @load base/protocols/syslog
 
 @load base/misc/find-checksum-offloading
+
+@load base/hilti

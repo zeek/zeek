@@ -60,10 +60,10 @@ public:
 	void ServerUserName(const char* s);
 	void TerminalType(const char* s);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new Rlogin_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return login_failure || login_success ||
 			login_input_line || login_output_line;

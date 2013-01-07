@@ -673,7 +673,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		} // end while
 	}
 
-RPC_Analyzer::RPC_Analyzer(AnalyzerTag::Tag tag, Connection* conn,
+RPC_Analyzer::RPC_Analyzer(AnalyzerTag tag, Connection* conn,
 				RPC_Interpreter* arg_interp)
 : TCP_ApplicationAnalyzer(tag, conn)
 	{

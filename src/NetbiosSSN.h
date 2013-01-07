@@ -157,10 +157,10 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new NetbiosSSN_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return NetbiosSSN_Interpreter::any_netbios_ssn_event() ||
 			SMB_Session::any_smb_event() ||

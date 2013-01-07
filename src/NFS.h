@@ -75,10 +75,10 @@ public:
 	NFS_Analyzer(Connection* conn);
 	virtual void Init();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new NFS_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return ( nfs_proc_null || nfs_proc_not_implemented || nfs_proc_getattr ||
 		         nfs_proc_lookup || nfs_proc_read || nfs_proc_readlink ||

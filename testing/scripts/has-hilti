@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+#
+# Returns true if Bro has been compiled with HILTI/BinPAC++ support.
+
+bro --help 2>&1 | grep -q "HILTI.*yes"

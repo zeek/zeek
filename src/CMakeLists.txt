@@ -149,11 +149,14 @@ set(BIF_SRCS
     types.bif
     strings.bif
     reporter.bif
+    hilti.bif
 )
 
 foreach (bift ${BIF_SRCS})
     bif_target(${bift})
 endforeach ()
+
+add_custom_target(generate_bifs DEPENDS ${ALL_BIF_OUTPUTS})
 
 ########################################################################
 ## BinPAC-dependent targets
@@ -426,6 +429,8 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
+    hilti/LocalReporter.cc # The other hilti/* files are compiled separately.
+
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc
@@ -450,14 +455,46 @@ set(bro_SRCS
     digest.h
 )
 
+if ( ENABLE_HILTI )
+    add_subdirectory(hilti)
+endif()
+
 collect_headers(bro_HEADERS ${bro_SRCS})
-
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
-
 target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
+
+if ( ENABLE_HILTI )
+    get_property(HILTI_LD_FLAGS      GLOBAL PROPERTY HLT_LD_FLAGS)
+    get_property(HILTI_LIBS_STATIC   GLOBAL PROPERTY HLT_LIBS_STATIC)
+    get_property(HILTI_LIBS_SHARED   GLOBAL PROPERTY HLT_LIBS_SHARED)
+    get_property(HILTI_CLANG_EXEC    GLOBAL PROPERTY HLT_CLANG_EXEC)
+    get_property(HILTI_CLANGXX_EXEC  GLOBAL PROPERTY HLT_CLANGXX_EXEC)
+
+    string(REPLACE " " ";" HILTI_LIBS_STATIC "${HILTI_LIBS_STATIC}")
+
+    foreach(lib ${HILTI_LIBS_STATIC})
+        GET_FILENAME_COMPONENT(basename "${lib}" NAME)
+        # message("LIB: ${lib} -> ${basename}")
+        add_library(${basename} STATIC IMPORTED)
+        set_property(TARGET ${basename} PROPERTY IMPORTED_LOCATION "${lib}")
+        list(APPEND all_shared "${basename}")
+    endforeach()
+
+    # message("SHARED: ${HILTI_LIBS_SHARED}")
+    # message("STATIC: ${all_shared}")
+
+    target_link_libraries(bro brohilti ${all_shared})
+    set_target_properties(bro PROPERTIES LINK_FLAGS "${HILTI_LD_FLAGS} ${HILTI_LIBS_SHARED} -lc++")
+
+    # Need to link Bro with clang so that we can include bitcode files.
+    string(REPLACE "<CMAKE_CXX_COMPILER>" "${HILTI_CLANG_EXEC}" CMAKE_BROCXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE}")
+    set_target_properties(bro PROPERTIES LINKER_LANGUAGE "BROCXX")
+
+endif()
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)
+

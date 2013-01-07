@@ -174,10 +174,10 @@ public:
 	virtual void ConnectionReset();
 	virtual void PacketWithRST();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new HTTP_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return (http_request || http_reply || http_header ||
 			http_all_headers || http_begin_entity || http_end_entity ||
 			http_content_type || http_entity_data || http_message_done ||

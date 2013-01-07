@@ -40,10 +40,10 @@ public:
 	virtual void Done ();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new Gnutella_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return gnutella_text_msg || gnutella_binary_msg ||
 			gnutella_partial_binary_msg || gnutella_establish ||

@@ -102,10 +102,10 @@ public:
 	NCP_Analyzer(Connection* conn);
 	virtual ~NCP_Analyzer();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new NCP_Analyzer(conn); }
 
-	static bool Available()	{ return NCP_Session::any_ncp_event(); }
+	static bool Available(const AnalyzerTag& tag)	{ return NCP_Session::any_ncp_event(); }
 
 protected:
 

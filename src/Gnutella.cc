@@ -129,7 +129,7 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		ConnectionEvent(gnutella_http_notify, vl);
 		}
 
-	if ( HTTP_Analyzer::Available() )
+	if ( HTTP_Analyzer::Available(AnalyzerTag::HTTP) )
 		{
 		Analyzer* a = new HTTP_Analyzer(Conn());
 		Parent()->AddChildAnalyzer(a);

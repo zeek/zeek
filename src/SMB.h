@@ -195,10 +195,10 @@ public:
 	SMB_Analyzer(Connection* conn);
 	~SMB_Analyzer();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new SMB_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return SMB_Session::any_smb_event() ||
 			DCE_RPC_Session::any_dce_rpc_event();

@@ -45,14 +45,14 @@ public:
 
 	virtual void PrintDebug();
 
-	AnalyzerTag::Tag Analyzer() const { return analyzer; }
-	AnalyzerTag::Tag ChildAnalyzer() const { return child_analyzer; }
+	AnalyzerTag Analyzer() const { return analyzer; }
+	AnalyzerTag ChildAnalyzer() const { return child_analyzer; }
 
 private:
 	// FIXME: This is in fact an AnalyzerID but we can't include "Analyzer.h"
 	// at this point due to circular dependenides. Fix that!
-	AnalyzerTag::Tag analyzer;
-	AnalyzerTag::Tag child_analyzer;
+	AnalyzerTag analyzer;
+	AnalyzerTag child_analyzer;
 };
 
 class RuleActionEnable : public RuleActionDPM {

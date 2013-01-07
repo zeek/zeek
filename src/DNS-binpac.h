@@ -20,10 +20,10 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new DNS_UDP_Analyzer_binpac(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return (dns_request || dns_full_request) && FLAGS_use_binpac; }
 
 protected:
@@ -47,10 +47,10 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new DNS_TCP_Analyzer_binpac(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return (dns_request || dns_full_request) && FLAGS_use_binpac; }
 
 protected:

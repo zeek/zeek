@@ -557,12 +557,14 @@ void builtin_error(const char* msg, BroObj* arg)
 #include "input.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
+#include "hilti.bif.func_h"
 
 #include "bro.bif.func_def"
 #include "logging.bif.func_def"
 #include "input.bif.func_def"
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
+#include "hilti.bif.func_def"
 
 void init_builtin_funcs()
 	{

@@ -71,10 +71,10 @@ public:
 	virtual void Done();
 	void StatTimer(double t, int is_expire);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new BackDoor_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{
 		return backdoor_stats || rlogin_signature_found ||
 			telnet_signature_found || ssh_signature_found ||

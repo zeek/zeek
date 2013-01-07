@@ -47,10 +47,10 @@ public:
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new Rsh_Analyzer(conn); }
 
-	static bool Available()
+	static bool Available(const AnalyzerTag& tag)
 		{ return login_failure || login_success || login_input_line || login_output_line; }
 
 	Contents_Rsh_Analyzer* contents_orig;

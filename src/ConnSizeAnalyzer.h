@@ -20,10 +20,10 @@ public:
 	virtual void UpdateConnVal(RecordVal *conn_val);
 	virtual void FlipRoles();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new ConnSize_Analyzer(conn); }
 
-	static bool Available()	{ return BifConst::use_conn_size_analyzer ; }
+	static bool Available(const AnalyzerTag& tag)	{ return BifConst::use_conn_size_analyzer ; }
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,

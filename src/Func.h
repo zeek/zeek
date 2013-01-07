@@ -56,6 +56,7 @@ public:
 
 	const ID* GetID() const { return id; }
 	void SetID(ID *arg_id);
+	void ExportID()	const { if ( id ) id->SetExport(); }
 
 	virtual void Describe(ODesc* d) const = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;

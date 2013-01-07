@@ -18,14 +18,14 @@ public:
 
 	virtual void UpdateConnVal(RecordVal *conn_val);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new ICMP_Analyzer(conn); }
 
-	static bool Available()	{ return true; }
+	static bool Available(const AnalyzerTag& tag)	{ return true; }
 
 protected:
 	ICMP_Analyzer()	{ }
-	ICMP_Analyzer(AnalyzerTag::Tag tag, Connection* conn);
+	ICMP_Analyzer(AnalyzerTag tag, Connection* conn);
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,

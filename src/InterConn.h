@@ -47,10 +47,10 @@ public:
 	virtual void Done();
 	void StatTimer(double t, int is_expire);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new InterConn_Analyzer(conn); }
 
-	static bool Available()	{ return interconn_stats; }
+	static bool Available(const AnalyzerTag& tag)	{ return interconn_stats; }
 
 protected:
 	// We support both packet and stream input and can be put in place even

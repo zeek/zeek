@@ -39,10 +39,10 @@ class NTP_Analyzer : public Analyzer {
 public:
 	NTP_Analyzer(Connection* conn);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new NTP_Analyzer(conn); }
 
-	static bool Available()	{ return ntp_message; }
+	static bool Available(const AnalyzerTag& tag)	{ return ntp_message; }
 
 protected:
 	virtual void Done();

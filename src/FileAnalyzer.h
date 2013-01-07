@@ -15,10 +15,10 @@ public:
 
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
 		{ return new File_Analyzer(conn); }
 
-	static bool Available()	{ return file_transferred; }
+	static bool Available(const AnalyzerTag& tag)	{ return file_transferred; }
 
 protected:
 	File_Analyzer()	{}

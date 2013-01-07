@@ -2801,9 +2801,23 @@ bool AssignExpr::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_init);
 	}
 
-IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2)
+IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_string_slice)
 : BinaryExpr(EXPR_INDEX, arg_op1, arg_op2)
 	{
+	if ( IsError() )
+		return;
+
+	if ( is_string_slice )
+		{
+		if ( ! IsString(op1->Type()->Tag()) )
+			ExprError("slice notation indexing can apply only to strings");
+		}
+	else if ( IsString(op1->Type()->Tag()) )
+		{
+		if ( arg_op2->Exprs().length() != 1 )
+			ExprError("invalid string index expression");
+		}
+
 	if ( IsError() )
 		return;
 

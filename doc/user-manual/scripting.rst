@@ -196,8 +196,6 @@ The table below shows the common data types used in Bro, of which, the first fou
 | pattern   | regular expression                  |
 +-----------+-------------------------------------+
 
-Data Structures
----------------
 
 Vectors
 ~~~~~~~
@@ -209,13 +207,23 @@ The format for the declaration of a Vector follows the pattern of other declarat
 .. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector_declaration.bro
    :language: bro
    :linenos:
-   :lines: 6,7
+   :lines: 4-16
 
 .. btest:: data_type_const.bro
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_declaration.bro
 
-In a lot of cases, storing elements in a vector is simply a precursor to then iterating over them.  
+In a lot of cases, storing elements in a vector is simply a precursor to then iterating over them.  Iterating over a vector is easy with the for keyword.  The sample below iterates over a vector of IP addresses and for each IP address, masks that address with 18 bits.
+
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector_iter.bro
+   :language: bro
+   :linenos:
+   :lines: 4-12
+
+.. btest:: data_type_const.bro
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_iter.bro
+
 
 Sets
 ~~~~

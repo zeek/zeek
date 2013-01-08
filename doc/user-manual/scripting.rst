@@ -202,23 +202,26 @@ Data Structures
 Vectors
 ~~~~~~~
 
-Similar to arrays, vectors in Bro use contiguous storage for their contents and as such the contents can be accessed using a zero indexed numerical offset.  Each element in a vector is indexed by a count, starting and zero and progressing up to the current length of the list.  While members of a vector must all be of the same type, the vector itself can grow dynamically.  The format for the declaration of a vector follows the pattern of other declarations, namely, SCOPE v: vector of T where v is the name of your vector of T is the data type of its members.  For example, the following snippet shows an explicit and implicit declaration of a vector.
+If you're coming to Bro with a programming background, you may or may not be familiar with the Vector data type depending on your language of choice.  On the surface, vectors perform much of the same functionality as arrays, but in truth they are more like associate arrays with zero indexed unsigned integers as the indecies.  As such any time you need to sequentially store data of the same type, in Bro you'll have to reach for a vector.  Vectors are a collection of objects, all of which are of the same data type, to which elements can be dynamically added or removed.  Since Vectors use contiguous storage for their elements, the contents of a vector can be accessed through a zero indexed numerical offset.  
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector.bro
+The format for the declaration of a Vector follows the pattern of other declarations, namely, "SCOPE v: vector of T" where v is the name of your vector of T is the data type of its members.  For example, the following snippet shows an explicit and implicit declaration of two locally scoped vectors.  The script populates the first vector by inserting values at the end by placing the vector name between two vertical pipes to get the Vector's current length before printing the contents of both Vectors and their current lengths.
+
+.. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector_declaration.bro
    :language: bro
    :linenos:
    :lines: 6,7
 
-    
+.. btest:: data_type_const.bro
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_declaration.bro
+
+In a lot of cases, storing elements in a vector is simply a precursor to then iterating over them.  
 
 Sets
 ~~~~
 
 Tables
 ~~~~~~
-
- While each of the network centric data types should be be familiar in the type of data they represent, seeing the data types in action can be a better starting point, to do so a basic understanding of Bro's data structures will be helpful and
-
 
 Data Types Revisited
 --------------------

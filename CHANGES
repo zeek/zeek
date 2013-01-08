@@ -1,4 +1,9 @@
 
+2.1-271 | 2013-01-08 10:18:57 -0800
+
+  * Change substring index notation to use a colon.  String slice
+    notation is now written as `s[1:2]`. Addresses #422. (Jon Siwek)
+
 2.1-268 | 2013-01-07 09:43:44 -0800
 
   * Fix memory leak in OpaqueType::DoUnserialize. (Jon Siwek)

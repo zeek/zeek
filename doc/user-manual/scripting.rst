@@ -89,7 +89,7 @@ While Bro is capable of packet level processing, its strengths lay in the contex
 
 Of the events listed, the event that will give us the best insight into the connection record data type will be connection_state_remove().  As detailed in the in-line documentation, Bro generates this event just before it decides to remove this event from memory, effectively forgetting about it.  Let's take a look at a simple script that will output the connection record for a single connection.
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/connection_record_01.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/connection_record_01.bro
    :language: bro
    :linenos:
    :lines: 4-9
@@ -104,7 +104,7 @@ As you can see from the output, the connection record is something of a jumble w
 
 Bro uses the dollar sign as it's field delimiter and a direct correlation exists between the output of the connection record and the proper format of a dereferenced variable in scripts. In the output of the script above, groups of information are collected between brackets, which would correspond to the $-delimiter in a Bro script.  For example, the originating host is referenced by c$id$orig_h which breaks down to "orig_h which is a member of id which is a member of the data structure referred to as c that was passed into the event handler."  Given that the responder port (c$id$resp_p) is 53/tcp, it's likely that Bro's base DNS scripts can further populate the connection record.  Let's load the base/protocols/dns scripts and check the output of our script. 
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/connection_record_02.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/connection_record_02.bro
    :language: bro
    :linenos:
    :lines: 4-10
@@ -123,7 +123,7 @@ Scope
 
 Before embarking on a exploration of Bro's native Data Types and Data Structures, it's important to have a good grasp of the different levels of scope available in Bro and the appropriate times to use them within a script.  The declarations of variables in Bro come in two forms.  Variables can be declared with or without a definition in the form "SCOPE name: TYPE" or "SCOPE name = EXPRESSION" respectively; each of which produce the same result if EXPRESSION evaluates to the same type as TYPE.  The decision as to which type of declaration to use is likely to be dictated by personal preference and readability. 
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_declaration.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_declaration.bro
    :language: bro
    :linenos:
    :lines: 4-14
@@ -145,7 +145,7 @@ Constants
 
 The next level of scoping available in Bro are constants which are denoted by the "const" keyword.  Unlike globals, constants can only be set or altered at parse time, afterwards (in runtime) the constants are unalterable.  In most cases, constants are used in Bro scripts as containers for configuration options.  The majority of constants defined are defined with the "&redef" attribute, making it such that the constant can be redefined.  While the idea of a redefinable constant might be odd, the constraint that constants can only be altered at parse-time remains even with the "&redef" attribute.  In the code snippet below, a table of strings indexed by ports is declared as a constant before two values are added to the table through redef statements.  The table is then printed in a bro_init() event.  Were we to try to alter the table in an event handler, Bro would notify the user of an error and the script would fail.
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_const.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_const.bro
    :language: bro
    :linenos:
    :lines: 4-12
@@ -159,7 +159,7 @@ Local Variables
 
 Whereas globals and constants are widely available in scriptland through various means, when a variable is defined with a local scope, its availability is restricted to the body of the event or function in which it was declared.  Local variables tend to be used for values that are only needed within a specific scope and once the processing of a script passes beyond that scope and no longer used, the variable is deleted.  While it is possible for a function to return a locally scoped variable, in doing so it retuns the value instead of the variable.  Bro maintains a difference between variables an example of which is illustrated below.  The script executes the event handler "bro_init()" which in turn calls the function "add_two(i: count)" with an argument of 10.  Once Bro enters the add_two function, it provisions a locally scoped variable called "added_two" to hold the value of i+2, in this case, 12.  The add_two function then prints the value of the added_two variable and returns its value to the bro_init() event handler.  At this point, the variable "added_two" has fallen out of scope and no longer exists while the value 12 is still in use and stored in the locally scoped variable "test".  When Bro finishes processing the bro_init function, the variable called "test" is no longer in scope and, since there exist no other references to the value "12", the value is also deleted.  
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/data_type_local.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_local.bro
    :language: bro
    :linenos:
    :lines: 4-14
@@ -204,7 +204,7 @@ If you're coming to Bro with a programming background, you may or may not be fam
 
 The format for the declaration of a Vector follows the pattern of other declarations, namely, "SCOPE v: vector of T" where v is the name of your vector of T is the data type of its members.  For example, the following snippet shows an explicit and implicit declaration of two locally scoped vectors.  The script populates the first vector by inserting values at the end by placing the vector name between two vertical pipes to get the Vector's current length before printing the contents of both Vectors and their current lengths.
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector_declaration.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_vector_declaration.bro
    :language: bro
    :linenos:
    :lines: 4-16
@@ -213,9 +213,9 @@ The format for the declaration of a Vector follows the pattern of other declarat
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_declaration.bro
 
-In a lot of cases, storing elements in a vector is simply a precursor to then iterating over them.  Iterating over a vector is easy with the for keyword.  The sample below iterates over a vector of IP addresses and for each IP address, masks that address with 18 bits.
+In a lot of cases, storing elements in a vector is simply a precursor to then iterating over them.  Iterating over a vector is easy with the for keyword.  The sample below iterates over a vector of IP addresses and for each IP address, masks that address with 18 bits.  The for keyword is used to generate a locally scoped variable called "i" which will hold the index of the current element in the vector.  Using i as an index to addr_vector we can access the current item in the vector with addr_vector[i].  
 
-.. literalinclude:: ../../../../testing/btest/doc/manual/data_struct_vector_iter.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_vector_iter.bro
    :language: bro
    :linenos:
    :lines: 4-12

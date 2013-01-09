@@ -1,4 +1,73 @@
 
+2.1-271 | 2013-01-08 10:18:57 -0800
+
+  * Change substring index notation to use a colon.  String slice
+    notation is now written as `s[1:2]`. Addresses #422. (Jon Siwek)
+
+2.1-268 | 2013-01-07 09:43:44 -0800
+
+  * Fix memory leak in OpaqueType::DoUnserialize. (Jon Siwek)
+
+2.1-265 | 2012-12-20 17:38:42 -0800
+
+  * Add array-style index accessor for strings.  Addresses #422. (Jon
+    Siwek)
+
+    The index expression can take up to two indices for the start and
+    end index of the substring to return (e.g. "mystring[1,3]").
+    Negative indices are allowed, with -1 representing the last
+    character in the string.  The indexing is not cyclic -- if the
+    starting index is >= the length of the string an empty string is
+    returned, and if the ending index is >= the length of the string
+    then it's interpreted as the last index of the string.  Assigning
+    to substrings accessed like this isn't allowed.
+
+2.1-263 | 2012-12-20 16:22:09 -0800
+
+  * Bro's language now has a new set of types "opaque of X". (Matthias
+    Vallentin)
+
+    Opaque values can be passed around like other values but they can
+    only be manipulated with BiF functions, not with other operators.
+    Currently, the following opaque types are supported:
+
+        - opaque of md5
+        - opaque of sha1
+        - opaque of sha256
+        - opaquey of entropy.
+
+    They go along with the corrsponding BiF functions md5_*, sha1_*,
+    sha256_*, and entropy_*, respectively. Note that these functions
+    have changed their signatures to work with opaques types rather
+    than global state as it was before.
+    
+2.1-240 | 2012-12-20 15:21:07 -0800
+
+  * Improve error for invalid use of types as values. Addresses #923.
+    (Jon Siwek)
+
+2.1-238 | 2012-12-20 15:11:25 -0800
+
+  * Finish implementation of script-layer switch statement. Addresses
+    #754. (Jon Siwek)
+
+    They behave like C-style switches except case labels can be
+    comprised of multiple literal constants delimited by commas.  Only
+    atomic types are allowed for now.  Case label bodies that don't
+    execute a "return" or "break" statement will fall through to
+    subsequent cases.  A default case label is allowed.
+
+  * Fix a case where c$resp$size is misrepresented.  Addresses #730.
+    (Jon Siwek)
+
+2.1-234 | 2012-12-20 12:12:19 -0800
+
+  * Fix return value of hook calls that have no handlers. For this
+    case, the return value is always true. (Jon Siwek)
+
+  * Fix to_port() BIF for port strings with a port number of zero.
+    (Jon Siwek)
+
 2.1-231 | 2012-12-14 14:51:35 -0800
 
   * Make const variables actually constant. Both local and global

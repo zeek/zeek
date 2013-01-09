@@ -382,7 +382,7 @@ void TCP_Analyzer::ProcessFIN(double t, TCP_Endpoint* endpoint,
 	endpoint->FIN_seq = base_seq - endpoint->StartSeq() + seq_len;
 	}
 
-bool TCP_Analyzer::ProcessRST(double t, TCP_Endpoint* endpoint,
+void TCP_Analyzer::ProcessRST(double t, TCP_Endpoint* endpoint,
 				const IP_Hdr* ip, uint32 base_seq,
 				int len, int& seq_len)
 	{
@@ -406,11 +406,9 @@ bool TCP_Analyzer::ProcessRST(double t, TCP_Endpoint* endpoint,
 		}
 
 	PacketWithRST();
-
-	return true;
 	}
 
-int TCP_Analyzer::ProcessFlags(double t,
+void TCP_Analyzer::ProcessFlags(double t,
 				const IP_Hdr* ip, const struct tcphdr* tp,
 				uint32 tcp_hdr_len, int len, int& seq_len,
 				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
@@ -425,14 +423,11 @@ int TCP_Analyzer::ProcessFlags(double t,
 	if ( flags.FIN() )
 		ProcessFIN(t, endpoint, seq_len, base_seq);
 
-	if ( flags.RST() &&
-	     ! ProcessRST(t, endpoint, ip, base_seq, len, seq_len) )
-		return 0;
+	if ( flags.RST() )
+		ProcessRST(t, endpoint, ip, base_seq, len, seq_len);
 
 	if ( flags.ACK() )
 		ProcessACK(endpoint, peer, ack_seq, is_orig, flags);
-
-	return 1;
 	}
 
 void TCP_Analyzer::TransitionFromInactive(double t, TCP_Endpoint* endpoint,
@@ -825,10 +820,27 @@ void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
 		}
 	}
 
-void TCP_Analyzer::UpdateResetState(int len, TCP_Flags flags)
+void TCP_Analyzer::UpdateResetState(int len, TCP_Flags flags,
+                                    TCP_Endpoint* endpoint, uint32 base_seq,
+                                    uint32 last_seq)
 	{
 	if ( flags.SYN() )
+		{
 		Weird("SYN_after_reset");
+
+		if ( endpoint->prev_state == TCP_ENDPOINT_INACTIVE )
+			{
+			// Seq. numbers were initialized by a RST packet from this endpoint,
+			// but now that a SYN is seen from it, that could mean the earlier
+			// RST was spoofed/injected, so re-initialize.  This mostly just
+			// helps prevent misrepresentations of payload sizes that are based
+			// on bad initial sequence values.
+			endpoint->InitStartSeq(base_seq);
+			endpoint->InitAckSeq(base_seq);
+			endpoint->InitLastSeq(last_seq);
+			}
+		}
+
 	if ( flags.FIN() )
 		Weird("FIN_after_reset");
 
@@ -871,7 +883,7 @@ void TCP_Analyzer::UpdateStateMachine(double t,
 		break;
 
 	case TCP_ENDPOINT_RESET:
-		UpdateResetState(len, flags);
+		UpdateResetState(len, flags, endpoint, base_seq, last_seq);
 		break;
 	}
 	}
@@ -996,10 +1008,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int seq_len = len;	// length in terms of sequence space
 
-	if ( ! ProcessFlags(t, ip, tp, tcp_hdr_len, len, seq_len,
-				endpoint, peer, base_seq, ack_seq,
-				orig_addr, is_orig, flags) )
-		return;
+	ProcessFlags(t, ip, tp, tcp_hdr_len, len, seq_len, endpoint, peer, base_seq,
+	             ack_seq, orig_addr, is_orig, flags);
 
 	uint32 last_seq = base_seq + seq_len;
 

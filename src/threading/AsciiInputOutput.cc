@@ -205,14 +205,14 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 			{
 			thread->Error(thread->Fmt("Field: %s Invalid value for boolean: %s",
 				  name.c_str(), s.c_str()));
-			return 0;
+			goto parse_error;
 			}
 		break;
 
 	case TYPE_INT:
 		val->val.int_val = strtoll(s.c_str(), &end, 10);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 		break;
 
 	case TYPE_DOUBLE:
@@ -220,20 +220,20 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 	case TYPE_INTERVAL:
 		val->val.double_val = strtod(s.c_str(), &end);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 		break;
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
 		val->val.uint_val = strtoull(s.c_str(), &end, 10);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 		break;
 
 	case TYPE_PORT:
 		val->val.port_val.port = strtoull(s.c_str(), &end, 10);
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
@@ -245,13 +245,13 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 		if ( pos == s.npos )
 			{
 			thread->Error(thread->Fmt("Invalid value for subnet: %s", s.c_str()));
-			return 0;
+			goto parse_error;
 			}
 
 		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
 
 		if ( CheckNumberError(s, end) )
-			return 0;
+			goto parse_error;
 
 		string addr = s.substr(0, pos);
 
@@ -281,6 +281,7 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 			}
 
 		unsigned int pos = 0;
+		bool error = false;
 
 		if ( empty_field.size() > 0 && s.compare(empty_field) == 0 )
 			length = 0;
@@ -317,14 +318,16 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 				{
 				thread->Error(thread->Fmt("Internal error while parsing set. pos %d >= length %d."
 				          " Element: %s", pos, length, element.c_str()));
+				error = true;
 				break;
 				}
 
 			threading::Value* newval = StringToVal(element, name, subtype);
 			if ( newval == 0 )
 				{
-				thread->Error("Error while reading set");
-				return 0;
+				thread->Error("Error while reading set or vector");
+				error = true;
+				break;
 				}
 
 			lvals[pos] = newval;
@@ -335,22 +338,32 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 		// Test if the string ends with a set_separator... or if the
 		// complete string is empty. In either of these cases we have
 		// to push an empty val on top of it.
-		if ( s.empty() || *s.rbegin() == set_separator[0] )
+		if ( ! error && (s.empty() || *s.rbegin() == set_separator[0]) )
 			{
 			lvals[pos] = StringToVal("", name, subtype);
 			if ( lvals[pos] == 0 )
 				{
 				thread->Error("Error while trying to add empty set element");
-				return 0;
+				goto parse_error;
 				}
 
 			pos++;
 			}
 
+		if ( error ) {
+			// We had an error while reading a set or a vector.
+			// Hence we have to clean up the values that have
+			// been read so far
+			for ( unsigned int i = 0; i < pos; i++ )
+				delete lvals[i];
+
+			goto parse_error;
+		}
+
 		if ( pos != length )
 			{
 			thread->Error(thread->Fmt("Internal error while parsing set: did not find all elements: %s", s.c_str()));
-			return 0;
+			goto parse_error;
 			}
 
 		break;
@@ -359,10 +372,14 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 	default:
 		thread->Error(thread->Fmt("unsupported field format %d for %s", type,
 		name.c_str()));
-		return 0;
+		goto parse_error;
 	}
 
 	return val;
+
+parse_error:
+	delete val;
+	return 0;	
 	}
 
 bool AsciiInputOutput::CheckNumberError(const string& s, const char * end) const

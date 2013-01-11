@@ -152,6 +152,7 @@ function switch_break(v: count): string
 	case 2:
 		rval += "testing";
 		break;
+		rval += "ERROR";
 	case 3:
 		rval += "tested";
 	}
@@ -246,17 +247,17 @@ event bro_init()
 	test_switch( switch_subnet([fe80::1]/96) , "[fe80::0]" );
 	test_switch( switch_subnet(192.168.1.100/16) , "192.168.0.0/16" );
 	test_switch( switch_empty(2) , "n/a" );
-	test_switch( switch_break(1) , "testtestingreturn" );
+	test_switch( switch_break(1) , "testreturn" );
 	test_switch( switch_break(2) , "testingreturn" );
 	test_switch( switch_break(3) , "testedreturn" );
-	test_switch( switch_default(1) , "123dr" );
-	test_switch( switch_default(2) , "23dr" );
-	test_switch( switch_default(3) , "3dr" );
+	test_switch( switch_default(1) , "1r" );
+	test_switch( switch_default(2) , "2r" );
+	test_switch( switch_default(3) , "3r" );
 	test_switch( switch_default(4) , "dr" );
-	test_switch( switch_default_placement(1) , "1d2r" );
+	test_switch( switch_default_placement(1) , "1r" );
 	test_switch( switch_default_placement(2) , "2r" );
 	test_switch( switch_default_placement(3) , "3r" );
-	test_switch( switch_default_placement(4) , "d2r" );
+	test_switch( switch_default_placement(4) , "dr" );
 
 	local v = vector(0,1,2,3,4,5,6,7,9,10);
 	local expect: string;
@@ -266,16 +267,12 @@ event bro_init()
 		switch ( v[i] ) {
 		case 1, 2:
 			expect = "1,2";
-			break;
 		case 3, 4, 5:
 			expect = "3,4,5";
-			break;
 		case 6, 7, 8, 9:
 			expect = "6,7,8,9";
-			break;
 		default:
 			expect = "n/a";
-			break;
 		}
 		test_switch( switch_case_list(v[i]) , expect );
 		}

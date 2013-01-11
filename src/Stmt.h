@@ -46,6 +46,12 @@ public:
 		return (StmtList*) this;
 		}
 
+	const StmtList* AsStmtList() const
+		{
+		CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
+		return (const StmtList*) this;
+		}
+
 	ForStmt* AsForStmt()
 		{
 		CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)

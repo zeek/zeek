@@ -701,6 +701,9 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 		const Case* c = (*cases)[i];
 		const ListExpr* le = c->Cases();
 
+		if ( ! c->Body() || c->Body()->AsStmtList()->Stmts().length() == 0 )
+			c->Error("empty case label body does nothing");
+
 		if ( le )
 			{
 			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
@@ -795,22 +798,13 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	if ( matching_label_idx == -1 )
 		return 0;
 
-	for ( int i = matching_label_idx; i < cases->length(); ++i )
-		{
-		const Case* c = (*cases)[i];
+	const Case* c = (*cases)[matching_label_idx];
 
+	flow = FLOW_NEXT;
+	rval = c->Body()->Exec(f, flow);
+
+	if ( flow == FLOW_BREAK )
 		flow = FLOW_NEXT;
-		rval = c->Body()->Exec(f, flow);
-
-		if ( flow == FLOW_BREAK )
-			{
-			flow = FLOW_NEXT;
-			break;
-			}
-
-		if ( flow == FLOW_RETURN )
-			break;
-		}
 
 	return rval;
 	}

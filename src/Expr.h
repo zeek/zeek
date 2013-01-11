@@ -198,7 +198,7 @@ protected:
 
 class NameExpr : public Expr {
 public:
-	NameExpr(ID* id);
+	NameExpr(ID* id, bool const_init = false);
 	~NameExpr();
 
 	ID* Id() const		{ return id; }
@@ -220,6 +220,7 @@ protected:
 	DECLARE_SERIAL(NameExpr);
 
 	ID* id;
+	bool in_const_init;
 };
 
 class ConstExpr : public Expr {
@@ -645,7 +646,7 @@ protected:
 
 class IndexExpr : public BinaryExpr {
 public:
-	IndexExpr(Expr* op1, ListExpr* op2);
+	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
 
 	int CanAdd() const;
 	int CanDel() const;

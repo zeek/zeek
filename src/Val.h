@@ -1013,6 +1013,20 @@ protected:
 	VectorType* vector_type;
 };
 
+// Base class for values with types that are managed completely internally,
+// with no further script-level operators provided (other than bif
+// functions). See OpaqueVal.h for derived classes.
+class OpaqueVal : public Val {
+public:
+	OpaqueVal(OpaqueType* t);
+	virtual ~OpaqueVal();
+
+protected:
+	friend class Val;
+	OpaqueVal() { }
+
+	DECLARE_SERIAL(OpaqueVal);
+};
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version,

@@ -213,8 +213,6 @@ bool Ascii::GetLine(string& str)
 	return false;
 	}
 
-
-
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{

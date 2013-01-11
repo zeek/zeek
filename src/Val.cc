@@ -3114,6 +3114,27 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
+OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
+	{
+	}
+
+OpaqueVal::~OpaqueVal()
+	{
+	}
+
+IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
+
+bool OpaqueVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_OPAQUE_VAL, Val);
+	return true;
+	}
+
+bool OpaqueVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(Val);
+	return true;
+	}
 
 Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	{
@@ -3209,17 +3230,7 @@ int same_val(const Val* /* v1 */, const Val* /* v2 */)
 
 bool is_atomic_val(const Val* v)
 	{
-	switch ( v->Type()->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-	case TYPE_INTERNAL_UNSIGNED:
-	case TYPE_INTERNAL_DOUBLE:
-	case TYPE_INTERNAL_STRING:
-	case TYPE_INTERNAL_ADDR:
-	case TYPE_INTERNAL_SUBNET:
-		return true;
-	default:
-		return false;
-	}
+	return is_atomic_type(v->Type());
 	}
 
 int same_atomic_val(const Val* v1, const Val* v2)

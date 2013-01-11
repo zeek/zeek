@@ -229,10 +229,15 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 	}
 
 
-NameExpr::NameExpr(ID* arg_id) : Expr(EXPR_NAME)
+NameExpr::NameExpr(ID* arg_id, bool const_init) : Expr(EXPR_NAME)
 	{
 	id = arg_id;
-	SetType(id->Type()->Ref());
+	in_const_init = const_init;
+
+	if ( id->AsType() )
+		SetType(new TypeType(id->AsType()));
+	else
+		SetType(id->Type()->Ref());
 
 	EventHandler* h = event_registry->Lookup(id->Name());
 	if ( h )
@@ -287,6 +292,9 @@ Expr* NameExpr::MakeLvalue()
 	if ( id->AsType() )
 		ExprError("Type name is not an lvalue");
 
+	if ( id->IsConst() && ! in_const_init )
+		ExprError("const is not a modifiable lvalue");
+
 	return new RefExpr(this);
 	}
 
@@ -337,9 +345,11 @@ bool NameExpr::DoSerialize(SerialInfo* info) const
 
 	// Write out just the name of the function if requested.
 	if ( info->globals_as_names && id->IsGlobal() )
-		return SERIALIZE('n') && SERIALIZE(id->Name());
+		return SERIALIZE('n') && SERIALIZE(id->Name()) &&
+		       SERIALIZE(in_const_init);
 	else
-		return SERIALIZE('f') && id->Serialize(info);
+		return SERIALIZE('f') && id->Serialize(info) &&
+		       SERIALIZE(in_const_init);
 	}
 
 bool NameExpr::DoUnserialize(UnserialInfo* info)
@@ -368,6 +378,9 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		id = ID::Unserialize(info);
 
 	if ( ! id )
+		return false;
+
+	if ( ! UNSERIALIZE(&in_const_init) )
 		return false;
 
 	return true;
@@ -2788,9 +2801,24 @@ bool AssignExpr::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_init);
 	}
 
-IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2)
+IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 : BinaryExpr(EXPR_INDEX, arg_op1, arg_op2)
 	{
+	if ( IsError() )
+		return;
+
+	if ( is_slice )
+		{
+		if ( ! IsString(op1->Type()->Tag()) )
+			ExprError("slice notation indexing only supported for strings currently");
+		}
+
+	else if ( IsString(op1->Type()->Tag()) )
+		{
+		if ( arg_op2->Exprs().length() != 1 )
+			ExprError("invalid string index expression");
+		}
+
 	if ( IsError() )
 		return;
 
@@ -2799,11 +2827,17 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2)
 		SetError("not an index type");
 
 	else if ( ! op1->Type()->YieldType() )
+		{
+		if ( IsString(op1->Type()->Tag()) &&
+		     match_type == MATCHES_INDEX_SCALAR )
+			SetType(base_type(TYPE_STRING));
+		else
 		// It's a set - so indexing it yields void.  We don't
 		// directly generate an error message, though, since this
 		// expression might be part of an add/delete statement,
 		// rather than yielding a value.
-		SetType(base_type(TYPE_VOID));
+			SetType(base_type(TYPE_VOID));
+		}
 
 	else if ( match_type == MATCHES_INDEX_SCALAR )
 		SetType(op1->Type()->YieldType()->Ref());
@@ -2879,6 +2913,9 @@ void IndexExpr::Delete(Frame* f)
 
 Expr* IndexExpr::MakeLvalue()
 	{
+	if ( IsString(op1->Type()->Tag()) )
+		ExprError("cannot assign to string index expression");
+
 	return new RefExpr(this);
 	}
 
@@ -2952,10 +2989,37 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 
 	Val* v = 0;
 
-	if ( v1->Type()->Tag() == TYPE_VECTOR )
+	switch ( v1->Type()->Tag() ) {
+	case TYPE_VECTOR:
 		v = v1->AsVectorVal()->Lookup(v2);
-	else
+		break;
+
+	case TYPE_TABLE:
 		v = v1->AsTableVal()->Lookup(v2);
+		break;
+
+	case TYPE_STRING:
+		{
+		const ListVal* lv = v2->AsListVal();
+		const BroString* s = v1->AsString();
+		int len = s->Len();
+		bro_int_t first = lv->Index(0)->AsInt();
+		bro_int_t last = lv->Length() > 1 ? lv->Index(1)->AsInt() : first;
+
+		if ( first < 0 )
+			first += len;
+
+		if ( last < 0 )
+			last += len;
+
+		BroString* substring = s->GetSubstring(first, last - first + 1);
+		return new StringVal(substring ? substring : new BroString(""));
+		}
+
+	default:
+		Error("type cannot be indexed");
+		break;
+	}
 
 	if ( v )
 		return v->Ref();
@@ -2982,14 +3046,25 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 		return;
 		}
 
-	if ( v1->Type()->Tag() == TYPE_VECTOR )
-		{
+	switch ( v1->Type()->Tag() ) {
+	case TYPE_VECTOR:
 		if ( ! v1->AsVectorVal()->Assign(v2, v, this, op) )
 			Internal("assignment failed");
-		}
+		break;
 
-	else if ( ! v1->AsTableVal()->Assign(v2, v, op) )
-		Internal("assignment failed");
+	case TYPE_TABLE:
+		if ( ! v1->AsTableVal()->Assign(v2, v, op) )
+			Internal("assignment failed");
+		break;
+
+	case TYPE_STRING:
+		Internal("assignment via string index accessor not allowed");
+		break;
+
+	default:
+		Internal("bad index expression type in assignment");
+		break;
+	}
 
 	Unref(v1);
 	Unref(v2);

@@ -20,7 +20,7 @@ public:
 
 	// Put event names in this function
 	static bool Available()
-		{ return dnp3_header_block || dnp3_data_block || dnp3_pdu_test ||
+		{ return dnp3_header_block ||
 				dnp3_application_request_header || dnp3_object_header ||
 				dnp3_response_data_object ||
 				dnp3_crob || dnp3_pcb ||

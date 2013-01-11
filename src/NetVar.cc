@@ -246,6 +246,7 @@ StringVal* cmd_line_bpf_filter;
 #include "logging.bif.netvar_def"
 #include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
+#include "file_analysis.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -308,6 +309,7 @@ void init_net_var()
 #include "logging.bif.netvar_init"
 #include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
+#include "file_analysis.bif.netvar_init"
 
 	gtpv1_hdr_type = internal_type("gtpv1_hdr")->AsRecordType();
 	conn_id = internal_type("conn_id")->AsRecordType();

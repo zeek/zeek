@@ -1,0 +1,59 @@
+##! Internal functions and types used by the logging framework.
+
+module FileAnalysis;
+
+%%{
+#include "FileAnalysisManager.h"
+%%}
+
+type Info: record;
+
+## An enumeration of possibly-interesting "events" that can occur over
+## the course of analyzing files.  The :bro:see:`FileAnalysis::policy`
+## hook is called each time a trigger occurs.
+enum Trigger %{
+	## Raised when any part of a new file is detected.
+	TRIGGER_NEW,
+	## Raised when file analysis has likely seen a complete file.  That
+	## is when a number of bytes indicated by the *total_bytes* field of
+	## :bro:see:`FileAnalysis::Info` have been processed.  Note that
+	## the *undelivered* field does not have to be zero for this to have
+	## occurred.
+	TRIGGER_DONE,
+	## Raised when file analysis for a given file is aborted due
+	## to not seeing any data for it recently.  Note that this doesn't
+	## necessarily mean the full file wasn't seen (e.g. if the
+	## :bro:see:`FileAnalysis::Info` record indicates the file *total_bytes*
+	## isn't known).  Use :bro:see:`FileAnalysis::postpone_timeout`
+	## during a :bro:see:`FileAnalysis::policy` handler for this trigger to
+	## defer the timeout until later.
+	TRIGGER_TIMEOUT,
+	## Raised when the beginning of a file is detected.
+	TRIGGER_BOF,
+	## Raised when the beginning of a file is available and that beginning
+	## is at least the number of bytes indicated by the *bof_buffer_size*
+	## field of :bro:see:`FileAnalysis::Info`.
+	TRIGGER_BOF_BUFFER_AVAIL,
+	## Raised when the mime type of a file is matched based on magic
+	## numbers.  TODO: re-purposing protocols/http/file-ident.sig for
+	## doing this is tricky since the signature engine doesn't expect
+	## to be decoupled from connections, so figure out what work needs
+	## done there.
+	TRIGGER_MIME_TYPE,
+	## Raised when the end of a file is detected.  If the file is not
+	## being transferred linearly, then this doesn't have to mean the full
+	## file has been transferred.
+	TRIGGER_EOF,
+	## The reassembly buffer for the file filled and had to be discarded.
+	## The *undelivered* field of :bro:see:`FileAnalysis::Info` will
+	## indicate the number of bytes, if any, that were not all-in-sequence.
+	## TODO: Is it possible to extend the reassembly buffer when "handling"
+	## this trigger?
+	TRIGGER_REASSEMBLY_BUFFER_FULL,
+%}
+
+function FileAnalysis::__postpone_timeout%(file_id: string%): bool
+	%{
+	bool result = file_mgr->PostponeTimeout(file_id->CheckString());
+	return new Val(result, TYPE_BOOL);
+	%}

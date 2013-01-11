@@ -145,6 +145,7 @@ set(BIF_SRCS
     logging.bif
     input.bif
     event.bif
+    file_analysis.bif
     const.bif
     types.bif
     strings.bif
@@ -328,6 +329,7 @@ set(bro_SRCS
     FTP.cc
     File.cc
     FileAnalyzer.cc
+    FileAnalysisManager.cc
     Finger.cc
     FlowSrc.cc
     Frag.cc

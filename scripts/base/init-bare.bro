@@ -2866,3 +2866,4 @@ const snaplen = 8192 &redef;
 
 @load base/frameworks/input
 
+@load base/frameworks/file-analysis

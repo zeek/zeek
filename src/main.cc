@@ -58,6 +58,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
 
+#include "FileAnalysisManager.h"
+
 #include "binpac_bro.h"
 
 Brofiler brofiler;
@@ -86,6 +88,7 @@ TimerMgr* timer_mgr;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
+file_analysis::Manager* file_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -319,6 +322,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	file_mgr->Terminate();
 	log_mgr->Terminate();
 	thread_mgr->Terminate();
 
@@ -336,6 +340,7 @@ void terminate_bro()
 	delete dpm;
 	delete log_mgr;
 	delete thread_mgr;
+	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;
@@ -775,7 +780,8 @@ int main(int argc, char** argv)
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
 	log_mgr = new logging::Manager();
-    	input_mgr = new input::Manager();
+	input_mgr = new input::Manager();
+	file_mgr = new file_analysis::Manager();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);

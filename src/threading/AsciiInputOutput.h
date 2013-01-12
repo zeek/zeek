@@ -8,22 +8,48 @@
 
 class AsciiInputOutput {
 	public: 
-		// Constructor that leaves separators, etc empty.
-		// Use if you just need functionality like StringToAddr, etc.
-		AsciiInputOutput(threading::MsgThread*);
 
-		// Constructor that defines all separators, etc.
-		// Use if you need either ValToODesc or EntryToVal.
-		AsciiInputOutput(threading::MsgThread*, const string & set_separator, 
+		/** 
+		 * A struct to pass the necessary initialization values to the AsciiInputOutput module
+		 * on startup
+		 */
+		struct SeparatorInfo 
+			{
+			//const string separator;
+			string set_separator;
+			string empty_field;
+			string unset_field;
+			string meta_prefix;
+
+			// Constructor that leaves separators, etc empty.
+			// Use if you just need functionality like StringToAddr, etc.
+			SeparatorInfo() { };
+
+			// Constructor that defines all separators, etc.
+			// Use if you need either ValToODesc or EntryToVal.
+			SeparatorInfo(const string & set_separator, 
 				 const string & unset_field, const string & empty_field);
-		
-		// Constructor that defines all separators, etc, besides empty_field, which is not needed for many
-		// non-ascii-based io sources.
-		// Use if you need either ValToODesc or EntryToVal.
-		AsciiInputOutput(threading::MsgThread*, const string & set_separator, 
-				 const string & unset_field);
-		~AsciiInputOutput();
 
+			// Constructor that defines all separators, etc, besides empty_field, which is not needed for many
+			// non-ascii-based io sources.
+			// Use if you need either ValToODesc or EntryToVal.
+			SeparatorInfo(const string & set_separator, 
+				 const string & unset_field);
+			};
+
+		/**
+		 * Constructor
+		 *
+		 * @param t The thread that uses this class instance. Used to access thread
+		 * message passing methods
+		 *
+		 * @param info
+		 * SeparatorInfo structure defining the necessary separators
+		 */
+		AsciiInputOutput(threading::MsgThread* t, const SeparatorInfo info);
+	
+		// Destructor
+		~AsciiInputOutput();
 
 		// converts a threading value to the corresponding ascii representation
 		// returns false & logs an error with reporter in case an error occurs
@@ -75,11 +101,7 @@ class AsciiInputOutput {
 	private:
 		bool CheckNumberError(const string& s, const char * end) const;
 
-		string separator;
-		string set_separator;
-		string empty_field;
-		string unset_field;
-		string meta_prefix;
+		SeparatorInfo separators;
 
 		threading::MsgThread* thread;
 };

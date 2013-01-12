@@ -68,7 +68,7 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 			    BifConst::InputAscii::unset_field->Len());
 
-	io = new AsciiInputOutput(this, set_separator, unset_field, empty_field);	
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field, empty_field));	
 }
 
 Ascii::~Ascii()

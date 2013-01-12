@@ -7,24 +7,23 @@
 #include "AsciiInputOutput.h"
 #include "../bro_inet_ntop.h"
 
-AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t) 
+AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const SeparatorInfo info) 
 	{
 	thread = t;
+	this->separators = info;
 	}
 
-AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const string & set_separator, 
+AsciiInputOutput::SeparatorInfo::SeparatorInfo(const string & set_separator, 
 				 const string & unset_field, const string & empty_field) 
 	{
-	thread = t;
 	this->set_separator = set_separator;
 	this->unset_field = unset_field;
 	this->empty_field = empty_field;
 	}
 
-AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const string & set_separator, 
+AsciiInputOutput::SeparatorInfo::SeparatorInfo(const string & set_separator, 
 				 const string & unset_field) 
 	{
-	thread = t;
 	this->set_separator = set_separator;
 	this->unset_field = unset_field;
 	}
@@ -38,7 +37,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 	{
 	if ( ! val->present )
 		{
-		desc->Add(unset_field);
+		desc->Add(separators.unset_field);
 		return true;
 		}
 
@@ -94,11 +93,11 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 
 		if ( ! size )
 			{
-			desc->Add(empty_field);
+			desc->Add(separators.empty_field);
 			break;
 			}
 
-		if ( size == unset_field.size() && memcmp(data, unset_field.data(), size) == 0 )
+		if ( size == separators.unset_field.size() && memcmp(data, separators.unset_field.data(), size) == 0 )
 			{
 			// The value we'd write out would match exactly the
 			// place-holder we use for unset optional fields. We
@@ -124,23 +123,23 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 		{
 		if ( ! val->val.set_val.size )
 			{
-			desc->Add(empty_field);
+			desc->Add(separators.empty_field);
 			break;
 			}
 
-		desc->AddEscapeSequence(set_separator);
+		desc->AddEscapeSequence(separators.set_separator);
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddRaw(set_separator);
+				desc->AddRaw(separators.set_separator);
 
 			if ( ! ValToODesc(desc, val->val.set_val.vals[j], field) )
 				{
-				desc->RemoveEscapeSequence(set_separator);
+				desc->RemoveEscapeSequence(separators.set_separator);
 				return false;
 				}
 			}
-		desc->RemoveEscapeSequence(set_separator);
+		desc->RemoveEscapeSequence(separators.set_separator);
 
 		break;
 		}
@@ -149,23 +148,23 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 		{
 		if ( ! val->val.vector_val.size )
 			{
-			desc->Add(empty_field);
+			desc->Add(separators.empty_field);
 			break;
 			}
 
-		desc->AddEscapeSequence(set_separator);
+		desc->AddEscapeSequence(separators.set_separator);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddRaw(set_separator);
+				desc->AddRaw(separators.set_separator);
 
 			if ( ! ValToODesc(desc, val->val.vector_val.vals[j], field) )
 				{
-				desc->RemoveEscapeSequence(set_separator);
+				desc->RemoveEscapeSequence(separators.set_separator);
 				return false;
 				}
 			}
-		desc->RemoveEscapeSequence(set_separator);
+		desc->RemoveEscapeSequence(separators.set_separator);
 
 		break;
 		}
@@ -181,7 +180,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 
 threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag type, TypeTag subtype) const
 	{
-	if ( s.compare(unset_field) == 0 )  // field is not set...
+	if ( s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
 
 	threading::Value* val = new threading::Value(type, true);
@@ -276,14 +275,14 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 		unsigned int length = 1;
 		for ( unsigned int i = 0; i < s.size(); i++ )
 			{
-			if ( s[i] == set_separator[0] )
+			if ( s[i] == separators.set_separator[0] )
 				length++;
 			}
 
 		unsigned int pos = 0;
 		bool error = false;
 
-		if ( empty_field.size() > 0 && s.compare(empty_field) == 0 )
+		if ( separators.empty_field.size() > 0 && s.compare(separators.empty_field) == 0 )
 			length = 0;
 
 		threading::Value** lvals = new threading::Value* [length];
@@ -311,7 +310,7 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 			{
 			string element;
 
-			if ( ! getline(splitstream, element, set_separator[0]) )
+			if ( ! getline(splitstream, element, separators.set_separator[0]) )
 				break;
 
 			if ( pos >= length )
@@ -338,7 +337,7 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 		// Test if the string ends with a set_separator... or if the
 		// complete string is empty. In either of these cases we have
 		// to push an empty val on top of it.
-		if ( ! error && (s.empty() || *s.rbegin() == set_separator[0]) )
+		if ( ! error && (s.empty() || *s.rbegin() == separators.set_separator[0]) )
 			{
 			lvals[pos] = StringToVal("", name, subtype);
 			if ( lvals[pos] == 0 )

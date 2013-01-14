@@ -166,98 +166,89 @@ event dnp3_frozen_analog_inputDP_wFlag(c: connection, is_orig: bool, flag: count
 	print "dnp3_frozen_analog_inputDP_wFlag", is_orig, flag, frozen_value_low, frozen_value_high;
 }
 
-event dnp3_analog_input32_woTime(c: connection, is_orig: bool, flag: count, value: count)
+event dnp3_analog_input_event_32woTime(c: connection, is_orig: bool, flag: count, value: count)
 {
-	print "dnp3_analog_input32_woTime", is_orig, flag, value;
+	print "dnp3_analog_input_event_32woTime", is_orig, flag, value;
 }
 
-event dnp3_analog_input16_woTime(c: connection, is_orig: bool, flag: count, value: count)
+event dnp3_analog_input_event_16woTime(c: connection, is_orig: bool, flag: count, value: count)
 {
-	print "dnp3_analog_input16_woTime", is_orig, flag, value;
+	print "dnp3_analog_input_event_16woTime", is_orig, flag, value;
 }
 
-event dnp3_analog_input32_wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
+event dnp3_analog_input_event_32wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
 {
-	print "dnp3_analog_input32_wTime", is_orig, flag, value, time48;
+	print "dnp3_analog_input_event_32wTime", is_orig, flag, value, time48;
 }
 
 event dnp3_analog_input16_wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
 {
-	print "dnp3_analog_input16_wTime", is_orig, flag, value, time48;
+	print "dnp3_analog_input_event_16wTime", is_orig, flag, value, time48;
 }
 
 event dnp3_analog_inputSP_woTime(c: connection, is_orig: bool, flag: count, value: count)
 {
-	print "dnp3_analog_inputSP_woTime", is_orig, flag, value;
+	print "dnp3_analog_input_event_SPwoTime", is_orig, flag, value;
 }
 
 event dnp3_analog_inputDP_woTime(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count)
 {
-	print "dnp3_analog_inputDP_woTime", is_orig, flag, value_low, value_high;
+	print "dnp3_analog_input_event_DPwoTime", is_orig, flag, value_low, value_high;
 }
 
 event dnp3_analog_inputSP_wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
 {
-	print "dnp3_analog_inputSP_wTime", is_orig, flag, value, time48;
+	print "dnp3_analog_input_event_SPwTime", is_orig, flag, value, time48;
 }
 
 event dnp3_analog_inputDP_wTime(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string)
 {
-	print "dnp3_analog_inputDP_wTime", is_orig, flag, value_low, value_high, time48;
+	print "dnp3_analog_input_event_DPwTime", is_orig, flag, value_low, value_high, time48;
 }
 
-event dnp3_frozen_analog_inputevent32_woTime(c: connection, is_orig: bool, flag: count, frozen_value: count)
+event dnp3_frozen_analog_input_event_32woTime(c: connection, is_orig: bool, flag: count, frozen_value: count)
 {
-	print "dnp3_frozen_analog_inputevent32_woTime", is_orig, flag, frozen_value;
+	print "dnp3_frozen_analog_input_event_32woTime", is_orig, flag, frozen_value;
 }
 
-event dnp3_frozen_analog_inputevent16_woTime(c: connection, is_orig: bool, flag: count, frozen_value: count)
+event dnp3_frozen_analog_input_event_16woTime(c: connection, is_orig: bool, flag: count, frozen_value: count)
 {
-	print "dnp3_frozen_analog_inputevent16_woTime", is_orig, flag, frozen_value;
+	print "dnp3_frozen_analog_input_event_16woTime", is_orig, flag, frozen_value;
 }
 
-event dnp3_frozen_analog_inputevent32_wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_event_32wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
 {
-	print "dnp3_frozen_analog_inputevent32_wTime", is_orig, flag, frozen_value, time48;
+	print "dnp3_frozen_analog_input_event_32wTime", is_orig, flag, frozen_value, time48;
 }
 
-event dnp3_frozen_analog_inputevent16_wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_event_16wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
 {
-	print "dnp3_frozen_analog_inputevent16_wTime", is_orig, flag, frozen_value, time48;
+	print "dnp3_frozen_analog_input_event_16wTime", is_orig, flag, frozen_value, time48;
 }
 
-event dnp3_frozen_analog_inputeventSP_woTime(c: connection, is_orig: bool, flag: count, frozen_value: count)
+event dnp3_frozen_analog_input_event_SPwoTime(c: connection, is_orig: bool, flag: count, frozen_value: count)
 {
-	print "dnp3_frozen_analog_inputeventSP_woTime", is_orig, flag, frozen_value;
+	print "dnp3_frozen_analog_input_event_SPwoTime", is_orig, flag, frozen_value;
 }
 
-event dnp3_frozen_analog_inputeventDP_woTime(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count)
+event dnp3_frozen_analog_input_event_DPwoTime(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count)
 {
-	print "dnp3_frozen_analog_inputeventDP_woTime", is_orig, flag, frozen_value_low, frozen_value_high;
+	print "dnp3_frozen_analog_input_event_DPwoTime", is_orig, flag, frozen_value_low, frozen_value_high;
 }
 
-event dnp3_frozen_analog_inputeventSP_wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_event_SPwTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
 {
 	print "dnp3_frozen_analog_inputeventSP_wTime", is_orig, flag, frozen_value, time48;
 }
 
-event dnp3_frozen_analog_inputeventDP_wTime(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string)
+event dnp3_frozen_analog_input_event_DPwTime(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string)
 {
 	print "dnp3_frozen_analog_inputeventDP_wTime", is_orig, flag, frozen_value_low, frozen_value_high, time48;
-}
-
-event dnp3_data_block(c: connection, is_orig: bool, data: string, crc: count)
-{
-	print "dnp3_data_block", is_orig, data, crc;
-}
-
-event dnp3_pdu_test(c: connection, is_orig: bool, rest: string)
-{
-	print "dnp3_pdu_test", is_orig, rest;
 }
 
 event dnp3_debug_byte(c: connection, is_orig: bool, debug: string)
 {
 	print "dnp3_debug_byte", is_orig, debug;
 }
+
 

@@ -17,6 +17,7 @@ dnp3_header_block, F, 25605, 10, 0, 3, 4
 dnp3_application_response_header, F, 194, 129, 0
 dnp3_header_block, F, 25605, 10, 0, 3, 4
 dnp3_application_response_header, F, 249, 130, 0
+dnp3_header_block, T, 20368, 42, 10, 0, 0
 dnp3_header_block, F, 25605, 10, 0, 3, 4
 dnp3_application_response_header, F, 242, 130, 4096
 dnp3_header_block, T, 25605, 8, 0, 4, 3
@@ -52,13 +53,13 @@ dnp3_object_prefix, F, 1
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 211, 0
@@ -78,13 +79,13 @@ dnp3_object_prefix, F, 2
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 198
+dnp3_analog_input_event_32woTime, F, 1, 198
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 212, 0
@@ -106,13 +107,13 @@ dnp3_object_prefix, F, 1
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 198
+dnp3_analog_input_event_32woTime, F, 1, 198
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 202
+dnp3_analog_input_event_32woTime, F, 1, 202
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 198
+dnp3_analog_input_event_32woTime, F, 1, 198
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 213, 0
@@ -132,13 +133,13 @@ dnp3_object_prefix, F, 2
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 202
+dnp3_analog_input_event_32woTime, F, 1, 202
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 200
+dnp3_analog_input_event_32woTime, F, 1, 200
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 214, 0
@@ -160,13 +161,13 @@ dnp3_object_prefix, F, 1
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 215, 0
@@ -206,13 +207,13 @@ dnp3_object_prefix, F, 2
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 198
+dnp3_analog_input_event_32woTime, F, 1, 198
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 199
+dnp3_analog_input_event_32woTime, F, 1, 199
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 199
+dnp3_analog_input_event_32woTime, F, 1, 199
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 217, 0
@@ -230,13 +231,13 @@ dnp3_object_prefix, F, 2
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 202
+dnp3_analog_input_event_32woTime, F, 1, 202
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 200
+dnp3_analog_input_event_32woTime, F, 1, 200
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 218, 0
@@ -258,13 +259,13 @@ dnp3_object_prefix, F, 1
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 0
+dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 219, 0
@@ -278,13 +279,13 @@ dnp3_object_prefix, F, 2
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woTime, F, 1, 203
+dnp3_analog_input_event_32woTime, F, 1, 203
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
-dnp3_analog_input32_woTime, F, 1, 202
+dnp3_analog_input_event_32woTime, F, 1, 202
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
-dnp3_analog_input32_woTime, F, 1, 199
+dnp3_analog_input_event_32woTime, F, 1, 199
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 220, 0

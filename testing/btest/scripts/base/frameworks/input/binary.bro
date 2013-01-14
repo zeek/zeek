@@ -1,7 +1,4 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
@@ -24,8 +21,6 @@ abc\x7c\xffdef|DATA2
 abc\xff\x7cdef|DATA2
 #end|2012-07-20-01-49-19
 @TEST-END-FILE
-
-@load frameworks/communication/listen
 
 global outfile: file;
 global try: count;

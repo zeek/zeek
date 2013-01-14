@@ -109,6 +109,36 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	if ( attr )
 		id->AddAttrs(new Attributes(attr, t, false));
 
+	if ( init )
+		{
+		switch ( init->Tag() ) {
+		case EXPR_TABLE_CONSTRUCTOR:
+			{
+			TableConstructorExpr* ctor = (TableConstructorExpr*) init;
+			if ( ctor->Attrs() )
+				{
+				::Ref(ctor->Attrs());
+				id->AddAttrs(ctor->Attrs());
+				}
+			}
+			break;
+
+		case EXPR_SET_CONSTRUCTOR:
+			{
+			SetConstructorExpr* ctor = (SetConstructorExpr*) init;
+			if ( ctor->Attrs() )
+				{
+				::Ref(ctor->Attrs());
+				id->AddAttrs(ctor->Attrs());
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
+		}
+
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
 		if ( dt == VAR_CONST )
@@ -180,7 +210,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// defined.
 		Func* f = new BroFunc(id, 0, 0, 0, 0);
 		id->SetVal(new Val(f));
-		id->SetConst();
 		}
 	}
 
@@ -203,8 +232,9 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 
 		Ref(id);
 
+		Expr* name_expr = new NameExpr(id, dt == VAR_CONST);
 		Stmt* stmt =
-		    new ExprStmt(new AssignExpr(new NameExpr(id), init, 0, 0,
+		    new ExprStmt(new AssignExpr(name_expr, init, 0, 0,
 		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
 		stmt->SetLocationInfo(init->GetLocationInfo());
 
@@ -294,12 +324,12 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		int is_redef, FuncType* t)
 	{
-	if ( flavor == FUNC_FLAVOR_EVENT || flavor == FUNC_FLAVOR_HOOK )
+	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
 		const BroType* yt = t->YieldType();
 
 		if ( yt && yt->Tag() != TYPE_VOID )
-			id->Error("event/hook cannot yield a value", t);
+			id->Error("event cannot yield a value", t);
 
 		t->ClearYieldType(flavor);
 		}

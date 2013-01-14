@@ -22,7 +22,7 @@ event bro_init()
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 
 	local filter = Log::get_filter(SSH::LOG, "default");
-        filter$config = table(["only_single_header_row"] = "T");
+        filter$config = table(["tsv"] = "T");
 	Log::add_filter(SSH::LOG, filter);
 
         local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];

@@ -298,6 +298,7 @@ local	return TOK_LOCAL;
 module	return TOK_MODULE;
 next	return TOK_NEXT;
 of	return TOK_OF;
+opaque	return TOK_OPAQUE;
 pattern	return TOK_PATTERN;
 port	return TOK_PORT;
 print	return TOK_PRINT;
@@ -319,7 +320,6 @@ vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
 &add_func	return TOK_ATTR_ADD_FUNC;
-&attr		return TOK_ATTR_ATTR;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
 &default	return TOK_ATTR_DEFAULT;
 &delete_func	return TOK_ATTR_DEL_FUNC;

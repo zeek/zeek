@@ -26,7 +26,7 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	timedspread = double(BifConst::InputBenchmark::timedspread);
 	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
 
-	io = new AsciiInputOutput(this);
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo());
 	}
 
 Benchmark::~Benchmark()

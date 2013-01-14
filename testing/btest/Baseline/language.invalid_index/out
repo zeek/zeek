@@ -1,0 +1,7 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.invalid_index/invalid_index.bro, line 8: no such index (foo[1])
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.invalid_index/invalid_index.bro, line 9: no such index (foo[2])
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.invalid_index/invalid_index.bro, line 12: no such index (foo2[1])
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.invalid_index/invalid_index.bro, line 13: no such index (foo2[2])
+foo[0], 42
+foo2[0], 13
+done

@@ -6,7 +6,7 @@
 #define LOGGING_WRITER_ASCII_H
 
 #include "../WriterBackend.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 namespace logging { namespace writer {
 
@@ -45,7 +45,7 @@ private:
 	// Options set from the script-level.
 	bool output_to_stdout;
 	bool include_meta;
-	bool only_single_header_row;
+	bool tsv;
 
 	string separator;
 	string set_separator;

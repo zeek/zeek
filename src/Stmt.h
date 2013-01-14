@@ -17,6 +17,8 @@
 class StmtList;
 class ForStmt;
 
+declare(PDict, int);
+
 class Stmt : public BroObj {
 public:
 	BroStmtTag Tag() const	{ return tag; }
@@ -187,7 +189,8 @@ protected:
 
 class Case : public BroObj {
 public:
-	Case(ListExpr* c, Stmt* arg_s)	{ cases = c; s = arg_s; }
+	Case(ListExpr* c, Stmt* arg_s) :
+	    cases(simplify_expr_list(c,SIMPLIFY_GENERAL)), s(arg_s) { }
 	~Case();
 
 	const ListExpr* Cases() const	{ return cases; }
@@ -226,7 +229,7 @@ public:
 
 protected:
 	friend class Stmt;
-	SwitchStmt()	{ cases = 0; }
+	SwitchStmt()	{ cases = 0; default_case_idx = -1; comp_hash = 0; }
 
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 	Stmt* DoSimplify();
@@ -234,7 +237,23 @@ protected:
 
 	DECLARE_SERIAL(SwitchStmt);
 
+	// Initialize composite hash and case label map.
+	void Init();
+
+	// Adds an entry in case_label_map for the given value to associate it
+	// with the given index in the cases list.  If the entry already exists,
+	// returns false, else returns true.
+	bool AddCaseLabelMapping(const Val* v, int idx);
+
+	// Returns index of a case label that's equal to the value, or
+	// default_case_idx if no case label matches (which may be -1 if there's
+	// no default label).
+	int FindCaseLabelMatch(const Val* v) const;
+
 	case_list* cases;
+	int default_case_idx;
+	CompositeHash* comp_hash;
+	PDict(int) case_label_map;
 };
 
 class AddStmt : public ExprStmt {
@@ -284,24 +303,6 @@ protected:
 	DECLARE_SERIAL(EventStmt);
 
 	EventExpr* event_expr;
-};
-
-class HookStmt : public ExprStmt {
-public:
-	HookStmt(CallExpr* e);
-
-	Val* Exec(Frame* f, stmt_flow_type& flow) const;
-
-	TraversalCode Traverse(TraversalCallback* cb) const;
-
-protected:
-	friend class Stmt;
-
-	HookStmt() { call_expr = 0; }
-
-	DECLARE_SERIAL(HookStmt);
-
-	CallExpr* call_expr;
 };
 
 class ForStmt : public ExprStmt {

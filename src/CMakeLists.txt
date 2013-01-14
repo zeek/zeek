@@ -203,6 +203,8 @@ binpac_target(dns.pac
     dns-protocol.pac dns-analyzer.pac)
 binpac_target(dns_tcp.pac
     dns.pac)
+binpac_target(gtpv1.pac
+    gtpv1-protocol.pac gtpv1-analyzer.pac)
 binpac_target(http.pac
     http-protocol.pac http-analyzer.pac)
 binpac_target(ncp.pac)
@@ -284,7 +286,6 @@ set(bro_SRCS
     Analyzer.cc
     Anon.cc
     ARP.cc
-    AsciiInputOutput.cc
     Attr.cc
     AYIYA.cc
     BackDoor.cc
@@ -333,6 +334,7 @@ set(bro_SRCS
     Frame.cc
     Func.cc
     Gnutella.cc
+    GTPv1.cc
     HTTP.cc
     HTTP-binpac.cc
     Hash.cc
@@ -359,6 +361,7 @@ set(bro_SRCS
     NetVar.cc
     NetbiosSSN.cc
     Obj.cc
+    OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
     PacketSort.cc
@@ -423,6 +426,7 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
+    threading/AsciiInputOutput.cc
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc

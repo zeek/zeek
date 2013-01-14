@@ -4,7 +4,7 @@
 #define INPUT_READERS_BENCHMARK_H
 
 #include "../ReaderBackend.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 namespace input { namespace reader {
 

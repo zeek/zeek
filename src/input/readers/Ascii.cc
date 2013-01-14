@@ -68,7 +68,7 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 			    BifConst::InputAscii::unset_field->Len());
 
-	io = new AsciiInputOutput(this, set_separator, unset_field, empty_field);	
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field, empty_field));	
 }
 
 Ascii::~Ascii()
@@ -213,8 +213,6 @@ bool Ascii::GetLine(string& str)
 	return false;
 	}
 
-
-
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
@@ -325,7 +323,7 @@ bool Ascii::DoUpdate()
 				return false;
 				}
 
-			Value* val = io->EntryToVal(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+			Value* val = io->StringToVal(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 			if ( val == 0 )
 				{
 				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
@@ -354,7 +352,7 @@ bool Ascii::DoUpdate()
 			// array structure.
 
 			for ( int i = 0; i < fpos; i++ )
-				delete fields[fpos];
+				delete fields[i];
 
 			delete [] fields;
 			continue;

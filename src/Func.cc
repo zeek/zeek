@@ -282,13 +282,14 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
-	if ( ! bodies.size() ) 
+	if ( ! bodies.size() )
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
-		return 0 ;
+
+		return Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0;
 		}
 
 	SegmentProfiler(segment_logger, location);
@@ -349,16 +350,31 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			break;
 			}
 
-		if ( flow == FLOW_BREAK && Flavor() == FUNC_FLAVOR_HOOK )
+		if ( Flavor() == FUNC_FLAVOR_HOOK )
 			{
-			// short-circuit execution of remaining hook handler bodies
-			break;
+			// Ignore any return values of hook bodies, final return value
+			// depends on whether a body returns as a result of break statement.
+			Unref(result);
+			result = 0;
+
+			if ( flow == FLOW_BREAK )
+				{
+				// Short-circuit execution of remaining hook handler bodies.
+				result = new Val(false, TYPE_BOOL);
+				break;
+				}
 			}
+		}
+
+	if ( Flavor() == FUNC_FLAVOR_HOOK )
+		{
+		if ( ! result )
+			result = new Val(true, TYPE_BOOL);
 		}
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
+	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )

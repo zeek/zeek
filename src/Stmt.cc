@@ -23,7 +23,7 @@ const char* stmt_name(BroStmtTag t)
 		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
-		"<init>", "hook",
+		"<init>",
 		"null",
 	};
 
@@ -592,6 +592,21 @@ Case::~Case()
 
 void Case::Describe(ODesc* d) const
 	{
+	if ( ! Cases() )
+		{
+		if ( ! d->IsBinary() )
+			d->Add("default:");
+
+		d->AddCount(0);
+
+		d->PushIndent();
+		Body()->AccessStats(d);
+		Body()->Describe(d);
+		d->PopIndent();
+
+		return;
+		}
+
 	const expr_list& e = Cases()->Exprs();
 
 	if ( ! d->IsBinary() )
@@ -658,13 +673,64 @@ bool Case::DoUnserialize(UnserialInfo* info)
 	return this->s != 0;
 	}
 
-SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
-	ExprStmt(STMT_SWITCH, index)
+static void int_del_func(void* v)
 	{
-	cases = arg_cases;
+	delete (int*) v;
+	}
 
-	//### need to loop over cases and make sure their type matches
-	//### the index, and they're constant and not redundant
+void SwitchStmt::Init()
+	{
+	TypeList* t = new TypeList();
+	t->Append(e->Type()->Ref());
+	comp_hash = new CompositeHash(t);
+	Unref(t);
+
+	case_label_map.SetDeleteFunc(int_del_func);
+	}
+
+SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
+	ExprStmt(STMT_SWITCH, index), cases(arg_cases), default_case_idx(-1)
+	{
+	Init();
+
+	if ( ! is_atomic_type(e->Type()) )
+		e->Error("switch expression must be of an atomic type");
+
+	loop_over_list(*cases, i)
+		{
+		const Case* c = (*cases)[i];
+		const ListExpr* le = c->Cases();
+
+		if ( le )
+			{
+			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
+				{
+				le->Error("case expression type differs from switch type", e);
+				continue;
+				}
+
+			const expr_list& exprs = le->Exprs();
+
+			loop_over_list(exprs, j)
+				{
+				if ( ! exprs[j]->IsConst() )
+					exprs[j]->Error("case label expression isn't constant");
+				else
+					{
+					if ( ! AddCaseLabelMapping(exprs[j]->ExprVal(), i) )
+						exprs[j]->Error("duplicate case label");
+					}
+				}
+			}
+
+		else
+			{
+			if ( default_case_idx != -1 )
+				c->Error("multiple default labels", (*cases)[default_case_idx]);
+			else
+				default_case_idx = i;
+			}
+		}
 	}
 
 SwitchStmt::~SwitchStmt()
@@ -673,12 +739,80 @@ SwitchStmt::~SwitchStmt()
 		Unref((*cases)[i]);
 
 	delete cases;
+	delete comp_hash;
 	}
 
-Val* SwitchStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
+bool SwitchStmt::AddCaseLabelMapping(const Val* v, int idx)
 	{
-	printf("switch statement not implemented\n");
-	return 0;
+	HashKey* hk = comp_hash->ComputeHash(v, 1);
+
+	if ( ! hk )
+		{
+		reporter->PushLocation(e->GetLocationInfo());
+		reporter->InternalError("switch expression type mismatch (%s/%s)",
+		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+		}
+
+	int* label_idx = case_label_map.Lookup(hk);
+
+	if ( label_idx )
+		{
+		delete hk;
+		return false;
+		}
+
+	case_label_map.Insert(hk, new int(idx));
+	return true;
+	}
+
+int SwitchStmt::FindCaseLabelMatch(const Val* v) const
+	{
+	HashKey* hk = comp_hash->ComputeHash(v, 1);
+
+	if ( ! hk )
+		{
+		reporter->PushLocation(e->GetLocationInfo());
+		reporter->InternalError("switch expression type mismatch (%s/%s)",
+		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+		}
+
+	int* label_idx = case_label_map.Lookup(hk);
+
+	delete hk;
+
+	if ( ! label_idx )
+		return default_case_idx;
+	else
+		return *label_idx;
+	}
+
+Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+	{
+	Val* rval = 0;
+
+	int matching_label_idx = FindCaseLabelMatch(v);
+
+	if ( matching_label_idx == -1 )
+		return 0;
+
+	for ( int i = matching_label_idx; i < cases->length(); ++i )
+		{
+		const Case* c = (*cases)[i];
+
+		flow = FLOW_NEXT;
+		rval = c->Body()->Exec(f, flow);
+
+		if ( flow == FLOW_BREAK )
+			{
+			flow = FLOW_NEXT;
+			break;
+			}
+
+		if ( flow == FLOW_RETURN )
+			break;
+		}
+
+	return rval;
 	}
 
 Stmt* SwitchStmt::DoSimplify()
@@ -697,7 +831,13 @@ Stmt* SwitchStmt::DoSimplify()
 		}
 
 	if ( e->IsConst() )
-		{ // ### go through cases and pull out the one it matches
+		{
+		// Could possibly remove all case labels before the one
+		// that will match, but may be tricky to tell if any
+		// subsequent ones can also be removed since it depends
+		// on the evaluation of the body executing a break/return
+		// statement.  Then still need a way to bypass the lookup
+		// DoExec for it to be beneficial.
 		if ( ! optimize )
 			Warn("constant in switch");
 		}
@@ -770,12 +910,17 @@ bool SwitchStmt::DoSerialize(SerialInfo* info) const
 		if ( ! (*cases)[i]->Serialize(info) )
 			return false;
 
+	if ( ! SERIALIZE(default_case_idx) )
+		return false;
+
 	return true;
 	}
 
 bool SwitchStmt::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(ExprStmt);
+
+	Init();
 
 	int len;
 	if ( ! UNSERIALIZE(&len) )
@@ -788,6 +933,25 @@ bool SwitchStmt::DoUnserialize(UnserialInfo* info)
 			return false;
 
 		cases->append(c);
+		}
+
+	if ( ! UNSERIALIZE(&default_case_idx) )
+		return false;
+
+	loop_over_list(*cases, i)
+		{
+		const ListExpr* le = (*cases)[i]->Cases();
+
+		if ( ! le )
+			continue;
+
+		const expr_list& exprs = le->Exprs();
+
+		loop_over_list(exprs, j)
+			{
+			if ( ! AddCaseLabelMapping(exprs[j]->ExprVal(), i) )
+				return false;
+			}
 		}
 
 	return true;
@@ -931,52 +1095,6 @@ bool EventStmt::DoUnserialize(UnserialInfo* info)
 
 	event_expr = (EventExpr*) Expr::Unserialize(info, EXPR_EVENT);
 	return event_expr != 0;
-	}
-
-HookStmt::HookStmt(CallExpr* arg_e) : ExprStmt(STMT_HOOK, arg_e)
-	{
-	call_expr = arg_e;
-	}
-
-Val* HookStmt::Exec(Frame* f, stmt_flow_type& flow) const
-	{
-	RegisterAccess();
-
-	Val* ret = call_expr->Eval(f);
-	Unref(ret);
-
-	flow = FLOW_NEXT;
-
-	return 0;
-	}
-
-TraversalCode HookStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	// call expr is stored in base class's "e" field.
-	tc = e->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(HookStmt, SER_HOOK_STMT);
-
-bool HookStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_HOOK_STMT, ExprStmt);
-	return call_expr->Serialize(info);
-	}
-
-bool HookStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	call_expr = (CallExpr*) Expr::Unserialize(info, EXPR_CALL);
-	return call_expr != 0;
 	}
 
 ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
@@ -1378,7 +1496,10 @@ ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 		}
 
 	else if ( ! e )
-		Error("return statement needs expression");
+		{
+		if ( ft->Flavor() != FUNC_FLAVOR_HOOK )
+			Error("return statement needs expression");
+		}
 
 	else
 		(void) check_and_promote_expr(e, yt);
@@ -1990,7 +2111,6 @@ int same_stmt(const Stmt* s1, const Stmt* s2)
 	case STMT_RETURN:
 	case STMT_EXPR:
 	case STMT_EVENT:
-	case STMT_HOOK:
 		{
 		const ExprStmt* e1 = (const ExprStmt*) s1;
 		const ExprStmt* e2 = (const ExprStmt*) s2;

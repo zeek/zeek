@@ -1,8 +1,5 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: cp input1.log input.log
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: cp input2.log input.log
 # @TEST-EXEC: sleep 2
@@ -57,8 +54,6 @@
 #types	int	bool	string	string
 1	T	test1	idx1
 @TEST-END-FILE
-
-@load frameworks/communication/listen
 
 redef InputAscii::empty_field = "EMPTY";
 

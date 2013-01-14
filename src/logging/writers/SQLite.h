@@ -12,7 +12,7 @@
 
 #include "../WriterBackend.h"
 #include "sqlite3.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 namespace logging { namespace writer {
 

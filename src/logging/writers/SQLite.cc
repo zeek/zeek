@@ -39,7 +39,7 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 
 	db = 0;
 
-	io = new AsciiInputOutput(this, set_separator, unset_field);
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field));
 	}
 
 SQLite::~SQLite()

@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
-#include "../../AsciiInputOutput.h"
+#include "../../threading/AsciiInputOutput.h"
 
 #include "sqlite3.h"
 

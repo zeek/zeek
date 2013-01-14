@@ -23,7 +23,7 @@ using threading::Field;
 
 SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
-	io = new AsciiInputOutput(this);
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo());
 	}
 
 SQLite::~SQLite()

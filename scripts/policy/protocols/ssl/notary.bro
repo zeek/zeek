@@ -24,15 +24,15 @@ global notary_cache: table[string] of Response &create_expire = 1 hr;
 # The records that wait for a notary response identified by the cert digest.
 # Each digest refers to a list of connection UIDs which are updated when a DNS
 # reply arrives asynchronously.
-global wait_list: table[string] of vector of SSL::Info;
+global waitlist: table[string] of vector of SSL::Info;
 
 function clear_waitlist(digest: string)
 	{
-	if ( digest in wait_list )
+	if ( digest in waitlist )
 		{
-		for ( i in wait_list[digest] )
-			SSL::undelay_record(wait_list[digest][i], "notary");
-		delete wait_list[digest];
+		for ( i in waitlist[digest] )
+			SSL::undelay_record(waitlist[digest][i], "notary");
+		delete waitlist[digest];
 		}
 	}
 
@@ -53,10 +53,10 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 
   SSL::delay_record(c$ssl, "notary");
 
-	local waits_already = digest in wait_list;
+	local waits_already = digest in waitlist;
 	if ( ! waits_already )
-		wait_list[digest] = vector();
-	wait_list[digest][|wait_list[digest]|] = c$ssl;
+		waitlist[digest] = vector();
+	waitlist[digest][|waitlist[digest]|] = c$ssl;
 	if ( waits_already )
 		return;
 
@@ -89,15 +89,15 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 		r$valid = split(fields[5], /=/)[2] == "1";
 
 		# Assign notary answer to all records waiting for this digest.
-		if ( digest in wait_list )
+		if ( digest in waitlist )
 			{
-			for ( i in wait_list[digest] )
+			for ( i in waitlist[digest] )
         {
-			  local info = wait_list[digest][i];
+			  local info = waitlist[digest][i];
 			  SSL::undelay_record(info, "notary");
 				info$notary = r;
         }
-			delete wait_list[digest];
+			delete waitlist[digest];
 			}
 		}
 	}

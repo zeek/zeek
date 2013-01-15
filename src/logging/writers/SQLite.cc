@@ -1,19 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-
-
 #include "config.h"
 
 #ifdef USE_SQLITE
 
 #include <string>
 #include <errno.h>
+#include <vector>
 
 #include "../../NetVar.h"
-
 #include "../../threading/SerialTypes.h"
-
-#include <vector>
 
 #include "SQLite.h"
 
@@ -24,18 +20,15 @@ using threading::Field;
 
 SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
-
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
 			BifConst::LogAscii::set_separator->Len()
 			);
 
-
 	unset_field.assign(
 			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
 			BifConst::LogAscii::unset_field->Len()
 			);
-
 
 	db = 0;
 
@@ -54,11 +47,9 @@ SQLite::~SQLite()
 	}
 
 string SQLite::GetTableType(int arg_type, int arg_subtype) {
-
 	string type;
 
 	switch ( arg_type ) {
-
 	case TYPE_BOOL:
 		type = "boolean";
 		break;
@@ -66,15 +57,9 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 	case TYPE_INT:
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
+	case TYPE_PORT: // note that we do not save the protocol at the moment. Just like in the case of the ascii-writer
 		type = "integer";
 		break;
-
-		/*
-	case TYPE_PORT:
-		type = "VARCHAR(10)";
-		break;
-*/
 
 	case TYPE_SUBNET:
 	case TYPE_ADDR:
@@ -96,19 +81,18 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 
 	case TYPE_TABLE:
 	case TYPE_VECTOR:
-		type = "text"; // dirty - but sqlite does not directly support arrays. so - we just roll it into a ","-separated string I guess.
-		//type = GetTableType(arg_subtype, 0) + "[]";
+		type = "text"; // dirty - but sqlite does not directly support arrays. so - we just roll it into a ","-separated string.
 		break;
 
 	default:
 		Error(Fmt("unsupported field format %d ", arg_type));
-		return "";
+		return ""; // not the cleanest way to abort. But sqlite will complain on create table...
 	}
 
 	return type;
 }
 
-
+// returns true true in case of error
 bool SQLite::checkError( int code ) 
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
@@ -123,7 +107,11 @@ bool SQLite::checkError( int code )
 bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			    const Field* const * fields)
 	{
-
+	if ( sqlite3_threadsafe() == 0 ) {
+		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
+		return false;
+	}
+	
 	string fullpath(info.path);
 	fullpath.append(".sqlite");
 	string dbname;
@@ -157,9 +145,15 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			if ( i != 0 ) 
 				create += ",\n";
 
-			string fieldname = fields[i]->name;
-			replace( fieldname.begin(), fieldname.end(), '.', '_' ); // sqlite does not like "." in row names.
+			// sadly sqlite3 has no other method for escaping stuff. That I know of.
+			char* fieldname = sqlite3_mprintf("%Q", fields[i]->name);
+			if ( fieldname == 0 ) 
+				{
+				InternalError("Could not malloc memory");
+				return false;
+				}
 			create += fieldname;
+			sqlite3_free(fieldname);
 
 			string type = GetTableType(field->type, field->subtype);
 
@@ -167,19 +161,15 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			/* if ( !field->optional ) {
 				create += " NOT NULL";
 			} */
-
 		}
 
 	create += "\n);";
-
-	//printf("Create: %s\n", create.c_str());
 
 		{
 		char *errorMsg = 0;
 		int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
 		if ( res != SQLITE_OK ) 
 			{
-			//printf("Error executing table creation statement: %s", errorMsg);
 			Error(Fmt("Error executing table creation statement: %s", errorMsg));
 			sqlite3_free(errorMsg);
 			return false;
@@ -206,16 +196,20 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 
 			insert += "?";	
 
-			string fieldname = fields[i]->name;
-			replace( fieldname.begin(), fieldname.end(), '.', '_' ); // sqlite does not like "." in row names.
-			names += fieldname;
-
+			char* fieldname = sqlite3_mprintf("%Q", fields[i]->name);
+			printf("Fieldname: %s\n", fieldname);
+			if ( fieldname == 0 ) 
+				{
+				InternalError("Could not malloc memory");
+				return false;
+				}
+			names.append(fieldname);
+			sqlite3_free(fieldname);
 		}
 		insert += ");";
 		names += ") ";
 
 		insert = names + insert;
-		//printf("Prepared insert: %s\n\n", insert.c_str());
 
 		if ( checkError(sqlite3_prepare_v2( db, insert.c_str(), insert.size()+1, &st, NULL )) )
 			return false;
@@ -242,12 +236,9 @@ int SQLite::AddParams(Value* val, int pos)
 	{
 
 	if ( ! val->present )
-		{
-			return sqlite3_bind_null(st, pos);
-		}
+		return sqlite3_bind_null(st, pos);
 
 	switch ( val->type ) {
-
 	case TYPE_BOOL:
 		return sqlite3_bind_int(st, pos, val->val.int_val ? 1 : 0 );
 
@@ -263,13 +254,13 @@ int SQLite::AddParams(Value* val, int pos)
 
 	case TYPE_SUBNET:
 		{
-		string out = io->Render(val->val.subnet_val).c_str();
+		string out = io->Render(val->val.subnet_val);
 		return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
 		}
 
 	case TYPE_ADDR:
 		{
-		string out = io->Render(val->val.addr_val).c_str();			
+		string out = io->Render(val->val.addr_val);			
 		return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
 		}
 

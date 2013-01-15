@@ -794,15 +794,16 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			if ( allow_file_func )
 				{
 				if ( ( rec->FieldType(i)->Tag() == TYPE_FILE ||
-				       rec->FieldType(i)->Tag() == TYPE_FUNC ) &&
+				       rec->FieldType(i)->Tag() == TYPE_FUNC ||
+				       rec->FieldType(i)->Tag() == TYPE_OPAQUE ) &&
 				       rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in table definition for ReaderFrontend. Ignoring field.", type_name(rec->FieldType(i)->Tag()));
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()));
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in table definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
+			reporter->Error("Incompatible type \"%s\" in type definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
 			return false;
 			}
 

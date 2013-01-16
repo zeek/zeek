@@ -195,8 +195,7 @@ protected:
 
 class Case : public BroObj {
 public:
-	Case(ListExpr* c, Stmt* arg_s) :
-	    cases(simplify_expr_list(c,SIMPLIFY_GENERAL)), s(arg_s) { }
+	Case(ListExpr* c, Stmt* arg_s);
 	~Case();
 
 	const ListExpr* Cases() const	{ return cases; }
@@ -369,6 +368,21 @@ public:
 
 protected:
 	DECLARE_SERIAL(BreakStmt);
+};
+
+class FallthroughStmt : public Stmt {
+public:
+	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
+
+	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	int IsPure() const;
+
+	void Describe(ODesc* d) const;
+
+	TraversalCode Traverse(TraversalCallback* cb) const;
+
+protected:
+	DECLARE_SERIAL(FallthroughStmt);
 };
 
 class ReturnStmt : public ExprStmt {

@@ -6,7 +6,6 @@
 
 #include "Conn.h"
 #include "Analyzer.h"
-#include "AnalyzerTags.h"
 #include "Timer.h"
 #include "Val.h"
 #include "Reporter.h"
@@ -62,7 +61,7 @@ protected:
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
 	Info(const string& file_id, Connection* conn = 0,
-	     AnalyzerTag::Tag at = AnalyzerTag::Error);
+	     const string& protocol = "");
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -132,20 +131,25 @@ public:
 	 */
 	void DataIn(const string& file_id, const u_char* data, uint64 len,
 	            uint64 offset, Connection* conn = 0,
-	            AnalyzerTag::Tag at = AnalyzerTag::Error);
+	            const string& protocol = "");
 
 	/**
 	 * Pass in sequential file data.
 	 */
 	void DataIn(const string& file_id, const u_char* data, uint64 len,
-	            Connection* conn = 0,
-	            AnalyzerTag::Tag at = AnalyzerTag::Error);
+	            Connection* conn = 0, const string& protocol = "");
+
+	/**
+	 * Signal the end of file data.
+	 */
+	void EndOfData(const string& file_id, Connection* conn = 0,
+	               const string& protocol = "");
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
 	void SetSize(const string& file_id, uint64 size, Connection* conn = 0,
-	             AnalyzerTag::Tag at = AnalyzerTag::Error);
+	             const string& protocol = "");
 
 	/**
 	 * Discard the file_analysis::Info object associated with \a file_id.
@@ -174,13 +178,12 @@ protected:
 	 *         doesn't exist.
 	 */
 	Info* IDtoInfo(const string& file_id, Connection* conn = 0,
-	               AnalyzerTag::Tag at = AnalyzerTag::Error);
+	               const string& protocol = "");
 
 	/**
 	 * @return the Info object mapped to \a file_id, or a null pointer if no
 	 *         mapping exists.
 	 */
-
 	Info* Lookup(const string& file_id) const;
 
 	/**

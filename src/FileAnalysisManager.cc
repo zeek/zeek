@@ -40,7 +40,7 @@ int Info::total_bytes_idx = -1;
 int Info::undelivered_idx = -1;
 int Info::timeout_interval_idx = -1;
 
-Info::Info(const string& file_id, Connection* conn, AnalyzerTag::Tag at)
+Info::Info(const string& file_id, Connection* conn, const string& protocol)
     : val(0), last_activity_time(network_time), postpone_timeout(false)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s", file_id.c_str());
@@ -63,8 +63,8 @@ Info::Info(const string& file_id, Connection* conn, AnalyzerTag::Tag at)
 
 	UpdateConnectionFields(conn);
 
-	if ( at != AnalyzerTag::Error )
-		val->Assign(protocol_idx, new StringVal(Analyzer::GetTagName(at)));
+	if ( protocol != "" )
+		val->Assign(protocol_idx, new StringVal(protocol.c_str()));
 
 	ScheduleInactivityTimer();
 	Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_NEW, this);
@@ -171,27 +171,37 @@ void Manager::Terminate()
 	}
 
 void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
-                     uint64 offset, Connection* conn, AnalyzerTag::Tag at)
+                     uint64 offset, Connection* conn, const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, at);
+	Info* info = IDtoInfo(file_id, conn, protocol);
 	info->UpdateLastActivityTime();
 	info->UpdateConnectionFields(conn);
 	// TODO: more stuff
 	}
 
 void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
-                     Connection* conn, AnalyzerTag::Tag at)
+                     Connection* conn, const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, at);
+	Info* info = IDtoInfo(file_id, conn, protocol);
 	info->UpdateLastActivityTime();
 	info->UpdateConnectionFields(conn);
 	// TODO: more stuff
 	}
 
-void Manager::SetSize(const string& file_id, uint64 size,
-                      Connection* conn, AnalyzerTag::Tag at)
+void Manager::EndOfData(const string& file_id, Connection* conn,
+                        const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, at);
+	Info* info = IDtoInfo(file_id, conn, protocol);
+	info->UpdateLastActivityTime();
+	info->UpdateConnectionFields(conn);
+	Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, info);
+	Remove(file_id);
+	}
+
+void Manager::SetSize(const string& file_id, uint64 size,
+                      Connection* conn, const string& protocol)
+	{
+	Info* info = IDtoInfo(file_id, conn, protocol);
 	info->UpdateLastActivityTime();
 	info->UpdateConnectionFields(conn);
 	info->SetTotalBytes(size);
@@ -224,11 +234,11 @@ bool Manager::PostponeTimeout(const string& file_id) const
 	}
 
 Info* Manager::IDtoInfo(const string& file_id, Connection* conn,
-                        AnalyzerTag::Tag at)
+                        const string& protocol)
 	{
 	Info* rval = file_map[file_id];
 	if ( ! rval )
-		rval = file_map[file_id] = new Info(file_id, conn, at);
+		rval = file_map[file_id] = new Info(file_id, conn, protocol);
 	return rval;
 	}
 
@@ -261,8 +271,7 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
 	        info->FileID().c_str());
 
-	file_map.erase(file_id);
-	delete info;
+	Remove(file_id);
 	}
 
 void Manager::Remove(const string& file_id)

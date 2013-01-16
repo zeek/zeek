@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2012-07-20-14-34-11
+#open	2013-01-16-18-04-57
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -29,5 +29,8 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/input/./readers/ascii.bro
     scripts/base/frameworks/input/./readers/raw.bro
     scripts/base/frameworks/input/./readers/benchmark.bro
+  scripts/base/frameworks/file-analysis/__load__.bro
+    scripts/base/frameworks/file-analysis/./main.bro
+      build/src/base/file_analysis.bif.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2012-07-20-14-34-11
+#close	2013-01-16-18-04-57

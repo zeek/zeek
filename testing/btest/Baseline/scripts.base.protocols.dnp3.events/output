@@ -17,7 +17,7 @@ dnp3_header_block, F, 25605, 10, 0, 3, 4
 dnp3_application_response_header, F, 194, 129, 0
 dnp3_header_block, F, 25605, 10, 0, 3, 4
 dnp3_application_response_header, F, 249, 130, 0
-dnp3_header_block, T, 20368, 42, 10, 0, 0
+dnp3_header_block, T, 44448, 106, 9, 0, 0
 dnp3_header_block, F, 25605, 10, 0, 3, 4
 dnp3_application_response_header, F, 242, 130, 4096
 dnp3_header_block, T, 25605, 8, 0, 4, 3
@@ -353,33 +353,33 @@ dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 1
 dnp3_object_header, F, 5125, 0, 1, 0, 0
 dnp3_object_prefix, F, 0
-dnp3_counter32_woFlag, F, 0
+dnp3_counter_32woFlag, F, 0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 5385, 0, 1, 0, 0
 dnp3_object_prefix, F, 0
-dnp3_frozen_counter32_woFlag, F, 0
+dnp3_frozen_counter_32woFlag, F, 0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 7683, 0, 7, 0, 6
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 197
+dnp3_analog_input_32woFlag, F, 197
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 199
+dnp3_analog_input_32woFlag, F, 199
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 200
+dnp3_analog_input_32woFlag, F, 200
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 1
+dnp3_analog_input_32woFlag, F, 1
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 7205
+dnp3_analog_input_32woFlag, F, 7205
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 7182
+dnp3_analog_input_32woFlag, F, 7182
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 7184
+dnp3_analog_input_32woFlag, F, 7184
 dnp3_response_data_object, F, 255
 dnp3_header_block, F, 25605, 10, 0, 6, 4
 dnp3_application_response_header, F, 250, 130, 0
@@ -484,33 +484,33 @@ dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 1
 dnp3_object_header, F, 5125, 0, 1, 0, 0
 dnp3_object_prefix, F, 0
-dnp3_counter32_woFlag, F, 32
+dnp3_counter_32woFlag, F, 32
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 5385, 0, 1, 0, 0
 dnp3_object_prefix, F, 0
-dnp3_frozen_counter32_woFlag, F, 0
+dnp3_frozen_counter_32woFlag, F, 0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 7683, 0, 7, 0, 6
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 202
+dnp3_analog_input_32woFlag, F, 202
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 203
+dnp3_analog_input_32woFlag, F, 203
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 201
+dnp3_analog_input_32woFlag, F, 201
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 18446744073709551615
+dnp3_analog_input_32woFlag, F, 18446744073709551615
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 8550
+dnp3_analog_input_32woFlag, F, 8550
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 8537
+dnp3_analog_input_32woFlag, F, 8537
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
-dnp3_analog_input32_woFlag, F, 8523
+dnp3_analog_input_32woFlag, F, 8523
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 0, 4, 3
 dnp3_application_request_header, T, 200, 14

@@ -6617,163 +6617,163 @@ event dnp3_pcb%(c: connection, is_orig: bool, control_code: count, count8: count
 
 ## Generated for the object with the group number 20 and variation number 1
 ## counter 32 bit with flag
-event dnp3_counter32_wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+event dnp3_counter_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
 
 ## Generated for the object with the group number 20 and variation number 2
 ## counter 16 bit with flag
-event dnp3_counter16_wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+event dnp3_counter_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
 
 ## Generated for the object with the group number 20 and variation number 5
 ## counter 32 bit without flag
-event dnp3_counter32_woFlag%(c: connection, is_orig: bool, count_value: count%);
+event dnp3_counter_32woFlag%(c: connection, is_orig: bool, count_value: count%);
 
 ## Generated for the object with the group number 20 and variation number 6
 ## counter 16 bit without flag
-event dnp3_counter16_woFlag%(c: connection, is_orig: bool, count_value: count%);
+event dnp3_counter_16woFlag%(c: connection, is_orig: bool, count_value: count%);
 
 ## Generated for the object with the group number 21 and variation number 1
 ## frozen counter 32 bit with flag
-event dnp3_frozen_counter32_wFlag%(c: connection, is_orig: bool, flag:count, count_value: count%);
+event dnp3_frozen_counter_32wFlag%(c: connection, is_orig: bool, flag:count, count_value: count%);
 
 ## Generated for the object with the group number 21 and variation number 2
 ## frozen counter 16 bit with flag
-event dnp3_frozen_counter16_wFlag%(c: connection, is_orig: bool, flag:count, count_value: count%);
+event dnp3_frozen_counter_16wFlag%(c: connection, is_orig: bool, flag:count, count_value: count%);
 
 ## Generated for the object with the group number 21 and variation number 5
 ## frozen counter 32 bit with flag and time
-event dnp3_frozen_counter32_wFlagTime%(c: connection, is_orig: bool, flag:count, count_value: count, time48: string%);
+event dnp3_frozen_counter_32wFlagTime%(c: connection, is_orig: bool, flag:count, count_value: count, time48: string%);
 
 ## Generated for the object with the group number 21 and variation number 6
 ## frozen counter 16 bit with flag and time
-event dnp3_frozen_counter16_wFlagTime%(c: connection, is_orig: bool, flag:count, count_value: count, time48: string%);
+event dnp3_frozen_counter_16wFlagTime%(c: connection, is_orig: bool, flag:count, count_value: count, time48: string%);
 
 ## Generated for the object with the group number 21 and variation number 9
 ## frozen counter 32 bit without flag
-event dnp3_frozen_counter32_woFlag%(c: connection, is_orig: bool, count_value: count%);
+event dnp3_frozen_counter_32woFlag%(c: connection, is_orig: bool, count_value: count%);
 
 ## Generated for the object with the group number 21 and variation number 10
 ## frozen counter 16 bit without flag
-event dnp3_frozen_counter16_woFlag%(c: connection, is_orig: bool, count_value: count%);
+event dnp3_frozen_counter_16woFlag%(c: connection, is_orig: bool, count_value: count%);
 
 ## Generated for the object with the group number 30 and variation number 1
 ## analog input 32 bit with flag
-event dnp3_analog_input32_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input_32wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
 
 ## Generated for the object with the group number 30 and variation number 2
 ## analog input 16 bit with flag
-event dnp3_analog_input16_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input_16wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
 
 ## Generated for the object with the group number 30 and variation number 3
 ## analog input 32 bit without flag
-event dnp3_analog_input32_woFlag%(c: connection, is_orig: bool, value: count%);
+event dnp3_analog_input_32woFlag%(c: connection, is_orig: bool, value: count%);
 
 ## Generated for the object with the group number 30 and variation number 4
 ## analog input 16 bit without flag
-event dnp3_analog_input16_woFlag%(c: connection, is_orig: bool, value: count%);
+event dnp3_analog_input_16woFlag%(c: connection, is_orig: bool, value: count%);
 
 ## Generated for the object with the group number 30 and variation number 5
 ## analog input single precision, float point with flag 
-event dnp3_analog_inputSP_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input_SPwFlag%(c: connection, is_orig: bool, flag: count, value: count%);
 
 ## Generated for the object with the group number 30 and variation number 6
 ## analog input double precision, float point with flag
-event dnp3_analog_inputDP_wFlag%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
+event dnp3_analog_input_DPwFlag%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
 
 ## Generated for the object with the group number 31 and variation number 1
 ## frozen analog input 32 bit with flag
-event dnp3_frozen_analog_input32_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
+event dnp3_frozen_analog_input_32wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
 ## Generated for the object with the group number 31 and variation number 2
 ## frozen analog input 16 bit with flag
-event dnp3_frozen_analog_input16_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
+event dnp3_frozen_analog_input_16wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
 ## Generated for the object with the group number 31 and variation number 3
 ## frozen analog input 32 bit with time-of-freeze
-event dnp3_frozen_analog_input32_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
+event dnp3_frozen_analog_input_32wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
 ## Generated for the object with the group number 31 and variation number 4
 ## frozen analog input 16 bit with time-of-freeze
-event dnp3_frozen_analog_input16_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
+event dnp3_frozen_analog_input_16wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
 ## Generated for the object with the group number 31 and variation number 5
 ## frozen analog input 32 bit without flag
-event dnp3_frozen_analog_input32_woFlag%(c: connection, is_orig: bool, frozen_value: count%);
+event dnp3_frozen_analog_input_32woFlag%(c: connection, is_orig: bool, frozen_value: count%);
 
 ## Generated for the object with the group number 31 and variation number 6
 ## frozen analog input 16 bit without flag
-event dnp3_frozen_analog_input16_woFlag%(c: connection, is_orig: bool, frozen_value: count%);
+event dnp3_frozen_analog_input_16woFlag%(c: connection, is_orig: bool, frozen_value: count%);
 
 ## Generated for the object with the group number 31 and variation number 7
 ## frozen analog input single-precision, float point with flag
-event dnp3_frozen_analog_inputSP_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
+event dnp3_frozen_analog_input_SPwFlag%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
 ## Generated for the object with the group number 31 and variation number 8
 ## frozen analog input double-precision, float point with flag
-event dnp3_frozen_analog_inputDP_wFlag%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count%);
+event dnp3_frozen_analog_input_DPwFlag%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count%);
 
 ## Generated for the object with the group number 32 and variation number 1
 ## analog input event 32 bit without time
-event dnp3_analog_input32_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input_event_32woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 
 ## Generated for the object with the group number 32 and variation number 2
 ## analog input event 16 bit without time
-event dnp3_analog_input16_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input_event_16woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 
 ## Generated for the object with the group number 32 and variation number 3
 ## analog input event 32 bit with time
-event dnp3_analog_input32_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_input_event_32wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 
 ## Generated for the object with the group number 32 and variation number 4
 ## analog input event 16 bit with time
-event dnp3_analog_input16_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_input_event_16wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 
 ## Generated for the object with the group number 32 and variation number 5
 ## analog input event single-precision float point without time
-event dnp3_analog_inputSP_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input_event_SPwoTime%(c: connection, is_orig: bool, flag: count, value: count%);
 
 ## Generated for the object with the group number 32 and variation number 6
 ## analog input event double-precision float point without time
-event dnp3_analog_inputDP_woTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
+event dnp3_analog_input_event_DPwoTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
 
 ## Generated for the object with the group number 32 and variation number 7
 ## analog input event single-precision float point with time
-event dnp3_analog_inputSP_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_input_event_SPwTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 
 ## Generated for the object with the group number 32 and variation number 8
 ## analog input event double-precisiion float point with time
-event dnp3_analog_inputDP_wTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
+event dnp3_analog_input_event_DPwTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
 
 ## Generated for the object with the group number 33 and variation number 1
 ## frozen analog input event 32 bit without time
-event dnp3_frozen_analog_inputevent32_woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
+event dnp3_frozen_analog_input_event_32woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
 ## Generated for the object with the group number 33 and variation number 2
 ## frozen analog input event 16 bit without time
-event dnp3_frozen_analog_inputevent16_woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
+event dnp3_frozen_analog_input_event_16woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
 ## Generated for the object with the group number 33 and variation number 3
 ## frozen analog input event 32 bit with time
-event dnp3_frozen_analog_inputevent32_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
+event dnp3_frozen_analog_input_event_32wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
 ## Generated for the object with the group number 33 and variation number 4
 ## frozen analog input event 16 bit with time
-event dnp3_frozen_analog_inputevent16_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
+event dnp3_frozen_analog_input_event_16wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
 ## Generated for the object with the group number 33 and variation number 5
 ## frozen analog input event single-precision float point without time
-event dnp3_frozen_analog_inputeventSP_woTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
+event dnp3_frozen_analog_input_event_SPwoTime%(c: connection, is_orig: bool, flag: count, frozen_value: count%);
 
 ## Generated for the object with the group number 33 and variation number 6
 ## frozen analog input event double-precision float point without time
-event dnp3_frozen_analog_inputeventDP_woTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count%);
+event dnp3_frozen_analog_input_event_DPwoTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count%);
 
 ## Generated for the object with the group number 33 and variation number 7
 ## frozen analog input event single-precision float point with time
-event dnp3_frozen_analog_inputeventSP_wTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
+event dnp3_frozen_analog_input_event_SPwTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
 ## Generated for the object with the group number 34 and variation number 8
 ## frozen analog input event double-precision float point with time
-event dnp3_frozen_analog_inputeventDP_wTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string%);
+event dnp3_frozen_analog_input_event_DPwTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string%);
 
 ## Generated for the "Debug_Byte" for the binpac analyzer
 ## This event handler is left for the debug usage. 

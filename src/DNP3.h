@@ -24,19 +24,23 @@ public:
 				dnp3_application_request_header || dnp3_object_header ||
 				dnp3_response_data_object ||
 				dnp3_crob || dnp3_pcb ||
-				dnp3_counter32_wFlag || dnp3_counter16_wFlag ||
-				dnp3_counter32_woFlag || dnp3_counter16_woFlag ||
-				dnp3_frozen_counter32_wFlag || dnp3_frozen_counter16_wFlag ||
-				dnp3_frozen_counter32_wFlagTime || dnp3_frozen_counter16_wFlagTime ||
-				dnp3_frozen_counter32_woFlag || dnp3_frozen_counter16_woFlag ||
-				dnp3_analog_input32_wFlag || dnp3_analog_input16_wFlag ||
-				dnp3_analog_input32_woFlag || dnp3_analog_input16_woFlag ||
-				dnp3_analog_inputSP_wFlag || dnp3_analog_inputDP_wFlag ||
-				dnp3_analog_input32_woTime || dnp3_analog_input16_woTime ||
-				dnp3_analog_input32_wTime  || dnp3_analog_input16_wTime  ||
-				dnp3_analog_inputSP_woTime || dnp3_analog_inputDP_woTime ||
-				dnp3_analog_inputSP_wTime  || dnp3_analog_inputDP_wTime  ||
-				dnp3_debug_byte; }
+				dnp3_counter_32wFlag || dnp3_counter_16wFlag ||
+				dnp3_counter_32woFlag || dnp3_counter_16woFlag ||
+				dnp3_frozen_counter_32wFlag || dnp3_frozen_counter_16wFlag ||
+				dnp3_frozen_counter_32wFlagTime || dnp3_frozen_counter_16wFlagTime ||
+				dnp3_frozen_counter_32woFlag || dnp3_frozen_counter_16woFlag ||
+				dnp3_analog_input_32wFlag || dnp3_analog_input_16wFlag ||
+				dnp3_analog_input_32woFlag || dnp3_analog_input_16woFlag ||
+				dnp3_analog_input_SPwFlag || dnp3_analog_input_DPwFlag ||
+				dnp3_analog_input_event_32woTime || dnp3_analog_input_event_16woTime ||
+				dnp3_analog_input_event_32wTime  || dnp3_analog_input_event_16wTime  ||
+				dnp3_analog_input_event_SPwoTime || dnp3_analog_input_event_DPwoTime ||
+				dnp3_analog_input_event_SPwTime  || dnp3_analog_input_event_DPwTime  ||
+				dnp3_frozen_analog_input_event_32woTime || dnp3_frozen_analog_input_event_16woTime ||
+				dnp3_frozen_analog_input_event_32wTime  || dnp3_frozen_analog_input_event_16wTime  ||
+				dnp3_frozen_analog_input_event_SPwoTime || dnp3_frozen_analog_input_event_DPwoTime ||
+				dnp3_frozen_analog_input_event_SPwTime  || dnp3_frozen_analog_input_event_DPwTime  ||
+				dnp3_debug_byte ; }
 
 protected:
 	int DNP3_Reassembler(int len, const u_char* data, bool orig);

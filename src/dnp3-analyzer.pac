@@ -123,11 +123,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g20v1
-	function get_dnp3_counter32_wFlag(flag: uint8, count_value: uint32): bool
+	function get_dnp3_counter_32wFlag(flag: uint8, count_value: uint32): bool
 		%{
-		if ( ::dnp3_counter32_wFlag )
+		if ( ::dnp3_counter_32wFlag )
 			{
-			BifEvent::generate_dnp3_counter32_wFlag(
+			BifEvent::generate_dnp3_counter_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -137,11 +137,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g20v2
-	function get_dnp3_counter16_wFlag(flag: uint8, count_value: uint16): bool
+	function get_dnp3_counter_16wFlag(flag: uint8, count_value: uint16): bool
 		%{
-		if ( ::dnp3_counter16_wFlag )
+		if ( ::dnp3_counter_16wFlag )
 			{
-			BifEvent::generate_dnp3_counter16_wFlag(
+			BifEvent::generate_dnp3_counter_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -151,11 +151,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g20v5
-	function get_dnp3_counter32_woFlag(count_value: uint32): bool
+	function get_dnp3_counter_32woFlag(count_value: uint32): bool
 		%{
-		if ( ::dnp3_counter32_woFlag )
+		if ( ::dnp3_counter_32woFlag )
 			{
-			BifEvent::generate_dnp3_counter32_woFlag(
+			BifEvent::generate_dnp3_counter_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -165,11 +165,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g20v6
-	function get_dnp3_counter16_woFlag(count_value: uint16): bool
+	function get_dnp3_counter_16woFlag(count_value: uint16): bool
 		%{
-		if ( ::dnp3_counter16_woFlag )
+		if ( ::dnp3_counter_16woFlag )
 			{
-			BifEvent::generate_dnp3_counter16_woFlag(
+			BifEvent::generate_dnp3_counter_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -179,11 +179,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g21v1
-	function get_dnp3_frozen_counter32_wFlag(flag: uint8, count_value: uint32): bool
+	function get_dnp3_frozen_counter_32wFlag(flag: uint8, count_value: uint32): bool
 		%{
-		if ( ::dnp3_frozen_counter32_wFlag )
+		if ( ::dnp3_frozen_counter_32wFlag )
 			{
-			BifEvent::generate_dnp3_frozen_counter32_wFlag(
+			BifEvent::generate_dnp3_frozen_counter_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -193,11 +193,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g21v2
-	function get_dnp3_frozen_counter16_wFlag(flag: uint8, count_value: uint16): bool
+	function get_dnp3_frozen_counter_16wFlag(flag: uint8, count_value: uint16): bool
 		%{
-		if ( ::dnp3_frozen_counter16_wFlag )
+		if ( ::dnp3_frozen_counter_16wFlag )
 			{
-			BifEvent::generate_dnp3_frozen_counter16_wFlag(
+			BifEvent::generate_dnp3_frozen_counter_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -207,11 +207,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g21v5
-	function get_dnp3_frozen_counter32_wFlagTime(flag: uint8, count_value: uint32, time48: const_bytestring): bool
+	function get_dnp3_frozen_counter_32wFlagTime(flag: uint8, count_value: uint32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_counter32_wFlagTime )
+		if ( ::dnp3_frozen_counter_32wFlagTime )
 			{
-			BifEvent::generate_dnp3_frozen_counter32_wFlagTime(
+			BifEvent::generate_dnp3_frozen_counter_32wFlagTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value, bytestring_to_val(time48));
@@ -221,11 +221,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g21v6
-	function get_dnp3_frozen_counter16_wFlagTime(flag: uint8, count_value: uint16, time48: const_bytestring): bool
+	function get_dnp3_frozen_counter_16wFlagTime(flag: uint8, count_value: uint16, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_counter16_wFlagTime )
+		if ( ::dnp3_frozen_counter_16wFlagTime )
 			{
-			BifEvent::generate_dnp3_frozen_counter16_wFlagTime(
+			BifEvent::generate_dnp3_frozen_counter_16wFlagTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value, bytestring_to_val(time48));
@@ -235,11 +235,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g21v9
-	function get_dnp3_frozen_counter32_woFlag(count_value: uint32): bool
+	function get_dnp3_frozen_counter_32woFlag(count_value: uint32): bool
 		%{
-		if ( ::dnp3_frozen_counter32_woFlag )
+		if ( ::dnp3_frozen_counter_32woFlag )
 			{
-			BifEvent::generate_dnp3_frozen_counter32_woFlag(
+			BifEvent::generate_dnp3_frozen_counter_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -249,11 +249,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g21v10
-	function get_dnp3_frozen_counter16_woFlag(count_value: uint16): bool
+	function get_dnp3_frozen_counter_16woFlag(count_value: uint16): bool
 		%{
-		if ( ::dnp3_frozen_counter16_woFlag )
+		if ( ::dnp3_frozen_counter_16woFlag )
 			{
-			BifEvent::generate_dnp3_frozen_counter16_woFlag(
+			BifEvent::generate_dnp3_frozen_counter_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -263,11 +263,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g30v1
-	function get_dnp3_analog_input32_wFlag(flag: uint8, value: int32): bool
+	function get_dnp3_analog_input_32wFlag(flag: uint8, value: int32): bool
 		%{
-		if ( ::dnp3_analog_input32_wFlag )
+		if ( ::dnp3_analog_input_32wFlag )
 			{
-			BifEvent::generate_dnp3_analog_input32_wFlag(
+			BifEvent::generate_dnp3_analog_input_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -277,11 +277,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g30v2
-	function get_dnp3_analog_input16_wFlag(flag: uint8, value: int16): bool
+	function get_dnp3_analog_input_16wFlag(flag: uint8, value: int16): bool
 		%{
-		if ( ::dnp3_analog_input16_wFlag )
+		if ( ::dnp3_analog_input_16wFlag )
 			{
-			BifEvent::generate_dnp3_analog_input16_wFlag(
+			BifEvent::generate_dnp3_analog_input_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -291,11 +291,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g30v3
-	function get_dnp3_analog_input32_woFlag(value: int32): bool
+	function get_dnp3_analog_input_32woFlag(value: int32): bool
 		%{
-		if ( ::dnp3_analog_input32_woFlag )
+		if ( ::dnp3_analog_input_32woFlag )
 			{
-			BifEvent::generate_dnp3_analog_input32_woFlag(
+			BifEvent::generate_dnp3_analog_input_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), value);
@@ -305,11 +305,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	#g30v4
-	function get_dnp3_analog_input16_woFlag(value: int16): bool
+	function get_dnp3_analog_input_16woFlag(value: int16): bool
 		%{
-		if ( ::dnp3_analog_input16_woFlag )
+		if ( ::dnp3_analog_input_16woFlag )
 			{
-			BifEvent::generate_dnp3_analog_input16_woFlag(
+			BifEvent::generate_dnp3_analog_input_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), value);
@@ -319,11 +319,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g30v5
-	function get_dnp3_analog_inputSP_wFlag(flag: uint8, value: uint32): bool
+	function get_dnp3_analog_input_SPwFlag(flag: uint8, value: uint32): bool
 		%{
-		if ( ::dnp3_analog_inputSP_wFlag )
+		if ( ::dnp3_analog_input_SPwFlag )
 			{
-			BifEvent::generate_dnp3_analog_inputSP_wFlag(
+			BifEvent::generate_dnp3_analog_input_SPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -333,11 +333,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g30v6
-	function get_dnp3_analog_inputDP_wFlag(flag: uint8, value_low: uint32, value_high: uint32): bool
+	function get_dnp3_analog_input_DPwFlag(flag: uint8, value_low: uint32, value_high: uint32): bool
 		%{
-		if ( ::dnp3_analog_inputDP_wFlag )
+		if ( ::dnp3_analog_input_DPwFlag )
 			{
-			BifEvent::generate_dnp3_analog_inputDP_wFlag(
+			BifEvent::generate_dnp3_analog_input_DPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value_low, value_high);
@@ -347,11 +347,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v1
-	function get_dnp3_frozen_analog_input32_wFlag(flag: uint8, frozen_value: int32): bool
+	function get_dnp3_frozen_analog_input_32wFlag(flag: uint8, frozen_value: int32): bool
 		%{
-		if ( ::dnp3_frozen_analog_input32_wFlag )
+		if ( ::dnp3_frozen_analog_input_32wFlag )
 			{
-			BifEvent::generate_dnp3_frozen_analog_input32_wFlag(
+			BifEvent::generate_dnp3_frozen_analog_input_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -361,11 +361,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v2
-	function get_dnp3_frozen_analog_input16_wFlag(flag: uint8, frozen_value: int16): bool
+	function get_dnp3_frozen_analog_input_16wFlag(flag: uint8, frozen_value: int16): bool
 		%{
-		if ( ::dnp3_frozen_analog_input16_wFlag )
+		if ( ::dnp3_frozen_analog_input_16wFlag )
 			{
-			BifEvent::generate_dnp3_frozen_analog_input16_wFlag(
+			BifEvent::generate_dnp3_frozen_analog_input_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -375,11 +375,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v3
-	function get_dnp3_frozen_analog_input32_wTime(flag: uint8, frozen_value: int32, time48: const_bytestring): bool
+	function get_dnp3_frozen_analog_input_32wTime(flag: uint8, frozen_value: int32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_analog_input32_wTime )
+		if ( ::dnp3_frozen_analog_input_32wTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_input32_wTime(
+			BifEvent::generate_dnp3_frozen_analog_input_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_val(time48));
@@ -389,11 +389,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v4
-	function get_dnp3_frozen_analog_input16_wTime(flag: uint8, frozen_value: int16, time48: const_bytestring): bool
+	function get_dnp3_frozen_analog_input_16wTime(flag: uint8, frozen_value: int16, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_analog_input16_wTime )
+		if ( ::dnp3_frozen_analog_input_16wTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_input16_wTime(
+			BifEvent::generate_dnp3_frozen_analog_input_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_val(time48));
@@ -403,11 +403,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v5
-	function get_dnp3_frozen_analog_input32_woFlag(frozen_value: int32): bool
+	function get_dnp3_frozen_analog_input_32woFlag(frozen_value: int32): bool
 		%{
-		if ( ::dnp3_frozen_analog_input32_woFlag )
+		if ( ::dnp3_frozen_analog_input_32woFlag )
 			{
-			BifEvent::generate_dnp3_frozen_analog_input32_woFlag(
+			BifEvent::generate_dnp3_frozen_analog_input_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), frozen_value);
@@ -417,11 +417,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v6
-	function get_dnp3_frozen_analog_input16_woFlag(frozen_value: int16): bool
+	function get_dnp3_frozen_analog_input_16woFlag(frozen_value: int16): bool
 		%{
-		if ( ::dnp3_frozen_analog_input16_woFlag )
+		if ( ::dnp3_frozen_analog_input_16woFlag )
 			{
-			BifEvent::generate_dnp3_frozen_analog_input16_woFlag(
+			BifEvent::generate_dnp3_frozen_analog_input_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), frozen_value);
@@ -431,11 +431,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v7
-	function get_dnp3_frozen_analog_inputSP_wFlag(flag: uint8, frozen_value: uint32): bool
+	function get_dnp3_frozen_analog_input_SPwFlag(flag: uint8, frozen_value: uint32): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputSP_wFlag )
+		if ( ::dnp3_frozen_analog_input_SPwFlag )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputSP_wFlag(
+			BifEvent::generate_dnp3_frozen_analog_input_SPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -445,11 +445,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g31v8
-	function get_dnp3_frozen_analog_inputDP_wFlag(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32): bool
+	function get_dnp3_frozen_analog_input_DPwFlag(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputDP_wFlag )
+		if ( ::dnp3_frozen_analog_input_DPwFlag )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputDP_wFlag(
+			BifEvent::generate_dnp3_frozen_analog_input_DPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value_low, frozen_value_high);
@@ -459,11 +459,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v1
-	function get_dnp3_analog_input32_woTime(flag: uint8, value: int32): bool
+	function get_dnp3_analog_input_event_32woTime(flag: uint8, value: int32): bool
 		%{
-		if ( ::dnp3_analog_input32_woTime )
+		if ( ::dnp3_analog_input_event_32woTime )
 			{
-			BifEvent::generate_dnp3_analog_input32_woTime(
+			BifEvent::generate_dnp3_analog_input_event_32woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -473,11 +473,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v2
-	function get_dnp3_analog_input16_woTime(flag: uint8, value: int16): bool
+	function get_dnp3_analog_input_event_16woTime(flag: uint8, value: int16): bool
 		%{
-		if ( ::dnp3_analog_input16_woTime )
+		if ( ::dnp3_analog_input_event_16woTime )
 			{
-			BifEvent::generate_dnp3_analog_input16_woTime(
+			BifEvent::generate_dnp3_analog_input_event_16woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -487,11 +487,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v3
-	function get_dnp3_analog_input32_wTime(flag: uint8, value: int32, time48: const_bytestring): bool
+	function get_dnp3_analog_input_event_32wTime(flag: uint8, value: int32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_analog_input32_wTime )
+		if ( ::dnp3_analog_input_event_32wTime )
 			{
-			BifEvent::generate_dnp3_analog_input32_wTime(
+			BifEvent::generate_dnp3_analog_input_event_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value, bytestring_to_val(time48));
@@ -501,11 +501,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v4
-	function get_dnp3_analog_input16_wTime(flag: uint8, value: int16, time48: const_bytestring): bool
+	function get_dnp3_analog_input_event_16wTime(flag: uint8, value: int16, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_analog_input16_wTime )
+		if ( ::dnp3_analog_input_event_16wTime )
 			{
-			BifEvent::generate_dnp3_analog_input16_wTime(
+			BifEvent::generate_dnp3_analog_input_event_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value, bytestring_to_val(time48));
@@ -515,11 +515,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v5
-	function get_dnp3_analog_inputSP_woTime(flag: uint8, value: uint32): bool
+	function get_dnp3_analog_input_event_SPwoTime(flag: uint8, value: uint32): bool
 		%{
-		if ( ::dnp3_analog_inputSP_woTime )
+		if ( ::dnp3_analog_input_event_SPwoTime )
 			{
-			BifEvent::generate_dnp3_analog_inputSP_woTime(
+			BifEvent::generate_dnp3_analog_input_event_SPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -529,11 +529,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v6
-	function get_dnp3_analog_inputDP_woTime(flag: uint8, value_low: uint32, value_high: uint32): bool
+	function get_dnp3_analog_input_event_DPwoTime(flag: uint8, value_low: uint32, value_high: uint32): bool
 		%{
-		if ( ::dnp3_analog_inputDP_woTime )
+		if ( ::dnp3_analog_input_event_DPwoTime )
 			{
-			BifEvent::generate_dnp3_analog_inputDP_woTime(
+			BifEvent::generate_dnp3_analog_input_event_DPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value_low, value_high);
@@ -543,11 +543,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v7
-	function get_dnp3_analog_inputSP_wTime(flag: uint8, value: uint32, time48: const_bytestring): bool
+	function get_dnp3_analog_input_event_SPwTime(flag: uint8, value: uint32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_analog_inputSP_wTime )
+		if ( ::dnp3_analog_input_event_SPwTime )
 			{
-			BifEvent::generate_dnp3_analog_inputSP_wTime(
+			BifEvent::generate_dnp3_analog_input_event_SPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value, bytestring_to_val(time48));
@@ -557,11 +557,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g32v8
-	function get_dnp3_analog_inputDP_wTime(flag: uint8, value_low: uint32, value_high: uint32, time48: const_bytestring): bool
+	function get_dnp3_analog_input_event_DPwTime(flag: uint8, value_low: uint32, value_high: uint32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_analog_inputDP_wTime )
+		if ( ::dnp3_analog_input_event_DPwTime )
 			{
-			BifEvent::generate_dnp3_analog_inputDP_wTime(
+			BifEvent::generate_dnp3_analog_input_event_DPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value_low, value_high, bytestring_to_val(time48));
@@ -571,11 +571,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g33v1
-	function get_dnp3_frozen_analog_inputevent32_woTime(flag: uint8, frozen_value: int32): bool
+	function get_dnp3_frozen_analog_input_event_32woTime(flag: uint8, frozen_value: int32): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputevent32_woTime )
+		if ( ::dnp3_frozen_analog_input_event_32woTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputevent32_woTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_32woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -584,11 +584,11 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 	# g33v2
-	function get_dnp3_frozen_analog_inputevent16_woTime(flag: uint8, frozen_value: int16): bool
+	function get_dnp3_frozen_analog_input_event_16woTime(flag: uint8, frozen_value: int16): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputevent16_woTime )
+		if ( ::dnp3_frozen_analog_input_event_16woTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputevent16_woTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_16woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -598,11 +598,11 @@ flow DNP3_Flow(is_orig: bool) {
 		%}
 
 	# g33v3
-	function get_dnp3_frozen_analog_inputevent32_wTime(flag: uint8, frozen_value: int32, time48: const_bytestring): bool
+	function get_dnp3_frozen_analog_input_event_32wTime(flag: uint8, frozen_value: int32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputevent32_wTime )
+		if ( ::dnp3_frozen_analog_input_event_32wTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputevent32_wTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_val(time48));
@@ -611,11 +611,11 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 	# g33v4
-	function get_dnp3_frozen_analog_inputevent16_wTime(flag: uint8, frozen_value: int16, time48: const_bytestring): bool
+	function get_dnp3_frozen_analog_input_event_16wTime(flag: uint8, frozen_value: int16, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputevent16_wTime )
+		if ( ::dnp3_frozen_analog_input_event_16wTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputevent16_wTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_val(time48));
@@ -624,11 +624,11 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 	# g33v5
-	function get_dnp3_frozen_analog_inputeventSP_woTime(flag: uint8, frozen_value: uint32): bool
+	function get_dnp3_frozen_analog_input_event_SPwoTime(flag: uint8, frozen_value: uint32): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputeventSP_woTime )
+		if ( ::dnp3_frozen_analog_input_event_SPwoTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputeventSP_woTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_SPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -637,11 +637,11 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 	# g33v6
-	function get_dnp3_frozen_analog_inputeventDP_woTime(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32): bool
+	function get_dnp3_frozen_analog_input_event_DPwoTime(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputeventDP_woTime )
+		if ( ::dnp3_frozen_analog_input_event_DPwoTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputeventDP_woTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_DPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value_low, frozen_value_high);
@@ -650,11 +650,11 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 	# g33v7
-	function get_dnp3_frozen_analog_inputeventSP_wTime(flag: uint8, frozen_value: uint32, time48: const_bytestring): bool
+	function get_dnp3_frozen_analog_input_event_SPwTime(flag: uint8, frozen_value: uint32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputeventSP_wTime )
+		if ( ::dnp3_frozen_analog_input_event_SPwTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputeventSP_wTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_SPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_val(time48));
@@ -663,11 +663,11 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 	# g33v8
-	function get_dnp3_frozen_analog_inputeventDP_wTime(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32, time48: const_bytestring): bool
+	function get_dnp3_frozen_analog_input_event_DPwTime(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32, time48: const_bytestring): bool
 		%{
-		if ( ::dnp3_frozen_analog_inputeventDP_wTime )
+		if ( ::dnp3_frozen_analog_input_event_DPwTime )
 			{
-			BifEvent::generate_dnp3_frozen_analog_inputeventDP_wTime(
+			BifEvent::generate_dnp3_frozen_analog_input_event_DPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value_low, frozen_value_high, bytestring_to_val(time48));
@@ -728,201 +728,201 @@ refine typeattr PCB += &let {
 
 # g20v1
 refine typeattr Counter32wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_counter32_wFlag(flag, count_value);
+	process_request: bool =  $context.flow.get_dnp3_counter_32wFlag(flag, count_value);
 };
 
 # g20v2
 refine typeattr Counter16wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_counter16_wFlag(flag, count_value);
+	process_request: bool =  $context.flow.get_dnp3_counter_16wFlag(flag, count_value);
 };
 
 # g20v5
 refine typeattr Counter32woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_counter32_woFlag(count_value);
+	process_request: bool =  $context.flow.get_dnp3_counter_32woFlag(count_value);
 };
 
 # g20v6
 refine typeattr Counter16woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_counter16_woFlag(count_value);
+	process_request: bool =  $context.flow.get_dnp3_counter_16woFlag(count_value);
 };
 
 # g21v1
 refine typeattr FrozenCounter32wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_counter32_wFlag(flag, count_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_counter_32wFlag(flag, count_value);
 };
 
 # g21v2
 refine typeattr FrozenCounter16wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_counter16_wFlag(flag, count_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_counter_16wFlag(flag, count_value);
 };
 # g21v5
 refine typeattr FrozenCounter32wFlagTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_counter32_wFlagTime(flag, count_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_counter_32wFlagTime(flag, count_value, time48);
 };
 
 # g21v6
 refine typeattr FrozenCounter16wFlagTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_counter16_wFlagTime(flag, count_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_counter_16wFlagTime(flag, count_value, time48);
 };
 
 # g21v9
 refine typeattr FrozenCounter32woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_counter32_woFlag(count_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_counter_32woFlag(count_value);
 };
 
 # g21v10
 refine typeattr FrozenCounter16woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_counter16_woFlag(count_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_counter_16woFlag(count_value);
 };
 
 # g30v1
 refine typeattr AnalogInput32wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input32_wFlag(flag, value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_32wFlag(flag, value);
 };
 
 # g30v2
 refine typeattr AnalogInput16wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input16_wFlag(flag, value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_16wFlag(flag, value);
 };
 
 # g30v3
 refine typeattr AnalogInput32woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input32_woFlag(value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_32woFlag(value);
 };
 
 # g30v4
 refine typeattr AnalogInput16woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input16_woFlag(value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_16woFlag(value);
 };
 
 # g30v5
 refine typeattr AnalogInputSPwFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_inputSP_wFlag(flag, value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_SPwFlag(flag, value);
 };
 
 # g30v6
 refine typeattr AnalogInputDPwFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_inputDP_wFlag(flag, value_low, value_high);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_DPwFlag(flag, value_low, value_high);
 };
 
 # g31v1
 refine typeattr FrozenAnalogInput32wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input32_wFlag(flag, frozen_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_32wFlag(flag, frozen_value);
 };
 
 # g31v2
 refine typeattr FrozenAnalogInput16wFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input16_wFlag(flag, frozen_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_16wFlag(flag, frozen_value);
 };
 
 # g31v3
 refine typeattr FrozenAnalogInput32wTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input32_wTime(flag, frozen_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_32wTime(flag, frozen_value, time48);
 };
 
 # g31v4
 refine typeattr FrozenAnalogInput16wTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input16_wTime(flag, frozen_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_16wTime(flag, frozen_value, time48);
 };
 
 # g31v5
 refine typeattr FrozenAnalogInput32woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input32_woFlag(frozen_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_32woFlag(frozen_value);
 };
 
 # g31v6
 refine typeattr FrozenAnalogInput16woFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input16_woFlag(frozen_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_16woFlag(frozen_value);
 };
 
 # g31v7
 refine typeattr FrozenAnalogInputSPwFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputSP_wFlag(flag, frozen_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_SPwFlag(flag, frozen_value);
 };
 
 # g31v8
 refine typeattr FrozenAnalogInputDPwFlag += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputDP_wFlag(flag, frozen_value_low, frozen_value_high);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_DPwFlag(flag, frozen_value_low, frozen_value_high);
 };
 
 # g32v1
 refine typeattr AnalogInput32woTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input32_woTime(flag, value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_32woTime(flag, value);
 };
 
 # g32v2
 refine typeattr AnalogInput16woTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input16_woTime(flag, value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_16woTime(flag, value);
 };
 
 # g32v3
 refine typeattr AnalogInput32wTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input32_wTime(flag, value, time48);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_32wTime(flag, value, time48);
 };
 
 # g32v4
 refine typeattr AnalogInput16wTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_input16_wTime(flag, value, time48);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_16wTime(flag, value, time48);
 };
 
 # g32v5
 refine typeattr AnalogInputSPwoTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_inputSP_woTime(flag, value);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_SPwoTime(flag, value);
 };
 
 # g32v6
 refine typeattr AnalogInputDPwoTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_inputDP_woTime(flag, value_low, value_high);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_DPwoTime(flag, value_low, value_high);
 };
 
 # g32v7
 refine typeattr AnalogInputSPwTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_inputSP_wTime(flag, value, time48);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_SPwTime(flag, value, time48);
 };
 
 # g32v8
 refine typeattr AnalogInputDPwTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_analog_inputDP_wTime(flag, value_low, value_high, time48);
+	process_request: bool =  $context.flow.get_dnp3_analog_input_event_DPwTime(flag, value_low, value_high, time48);
 };
 
 # g33v1
 refine typeattr FrozenAnaInputEve32woTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputevent32_woTime(flag, f_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_32woTime(flag, f_value);
 };
 
 # g33v2
 refine typeattr FrozenAnaInputEve16woTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputevent16_woTime(flag, f_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_16woTime(flag, f_value);
 };
 
 # g33v3
 refine typeattr FrozenAnaInputEve32wTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputevent32_wTime(flag, f_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_32wTime(flag, f_value, time48);
 };
 
 # g33v4
 refine typeattr FrozenAnaInputEve16wTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputevent16_wTime(flag, f_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_16wTime(flag, f_value, time48);
 };
 
 # g33v5
 refine typeattr FrozenAnaInputEveSPwoTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputeventSP_woTime(flag, f_value);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_SPwoTime(flag, f_value);
 };
 
 # g33v6
 refine typeattr FrozenAnaInputEveDPwoTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputeventDP_woTime(flag, f_value_low, f_value_high);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_DPwoTime(flag, f_value_low, f_value_high);
 };
 
 # g33v7
 refine typeattr FrozenAnaInputEveSPwTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputeventSP_wTime(flag, f_value, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_SPwTime(flag, f_value, time48);
 };
 
 # g33v8
 refine typeattr FrozenAnaInputEveDPwTime += &let {
-	process_request: bool =  $context.flow.get_dnp3_frozen_analog_inputeventDP_wTime(flag, f_value_low, f_value_high, time48);
+	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_DPwTime(flag, f_value_low, f_value_high, time48);
 };
 
 refine typeattr Debug_Byte += &let {

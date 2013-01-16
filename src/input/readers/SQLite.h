@@ -37,22 +37,16 @@ protected:
 private:
 	bool checkError(int code);	
 
-	unsigned int num_fields;
-
+	threading::Value* EntryToVal(sqlite3_stmt *st, const threading::Field *field, int pos, int subpos);
+	
 	const threading::Field* const * fields; // raw mapping		
-
-	threading::Value* EntryToVal(sqlite3_stmt *st, const threading::Field *field, int pos);
-
+	unsigned int num_fields;
 	int mode;
-
 	bool started;
 	string query;
-
 	sqlite3 *db;
 	sqlite3_stmt *st;
-
 	AsciiInputOutput* io;
-
 };
 
 

@@ -76,7 +76,7 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 	case TYPE_STRING:
 	case TYPE_FILE:
 	case TYPE_FUNC:
-		type = "TEXT";
+		type = "text";
 		break;
 
 	case TYPE_TABLE:
@@ -107,22 +107,26 @@ bool SQLite::checkError( int code )
 bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			    const Field* const * fields)
 	{
-	if ( sqlite3_threadsafe() == 0 ) {
+	if ( sqlite3_threadsafe() == 0 ) 
+		{
 		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
 		return false;
-	}
+		}
 	
 	string fullpath(info.path);
 	fullpath.append(".sqlite");
 	string dbname;
 
 	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
-	if ( it == info.config.end() ) {
+	if ( it == info.config.end() ) 
+		{
 		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to path %s", info.path));
 		dbname = info.path;
-	} else {
+		} 
+	else 
+		{
 		dbname = it->second;
-	}
+		}
 
 
 	if ( checkError(sqlite3_open_v2(
@@ -135,7 +139,7 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 					NULL)) )
 		return false;
 
-	string create = "CREATE TABLE IF NOT EXISTS "+dbname+" (\n"; // yes. using path here is stupid. open for better ideas.
+	string create = "CREATE TABLE IF NOT EXISTS "+dbname+" (\n"; 
 		//"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
 	for ( int i = 0; i < num_fields; ++i )
@@ -197,7 +201,6 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			insert += "?";	
 
 			char* fieldname = sqlite3_mprintf("%Q", fields[i]->name);
-			printf("Fieldname: %s\n", fieldname);
 			if ( fieldname == 0 ) 
 				{
 				InternalError("Could not malloc memory");
@@ -219,7 +222,8 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 	}
 
 // Format String
-char* SQLite::FS(const char* format, ...) {
+char* SQLite::FS(const char* format, ...) 
+	{
 	char * buf;
 
 	va_list al;
@@ -230,7 +234,7 @@ char* SQLite::FS(const char* format, ...) {
 	assert(n >= 0);
 
 	return buf;
-}
+	}
 
 int SQLite::AddParams(Value* val, int pos)
 	{

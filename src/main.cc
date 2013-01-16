@@ -16,6 +16,10 @@
 #include <curl/curl.h>
 #endif
 
+#ifdef USE_SQLITE
+#include "sqlite3.h"
+#endif
+
 #ifdef USE_IDMEF
 extern "C" {
 #include <libidmef/idmefxml.h>
@@ -724,6 +728,10 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
+#ifdef USE_SQLITE
+	sqlite3_initialize();
+#endif
+
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
@@ -1076,6 +1084,10 @@ int main(int argc, char** argv)
 
 #ifdef USE_CURL
 		curl_global_cleanup();
+#endif
+
+#ifdef USE_SQLITE
+		sqlite3_shutdown();
 #endif
 
 		terminate_bro();

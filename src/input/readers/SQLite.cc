@@ -9,12 +9,11 @@
 
 #include <fstream>
 #include <sstream>
-
-#include "../../threading/SerialTypes.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include "../../threading/SerialTypes.h"
 
 using namespace input::reader;
 using threading::Value;
@@ -54,6 +53,12 @@ bool SQLite::checkError( int code )
 
 bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* arg_fields)
 	{
+	if ( sqlite3_threadsafe() == 0 ) 
+		{
+		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
+		return false;
+		}
+		
 	started = false;
 
 	string fullpath(info.source);
@@ -64,7 +69,6 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	if ( it == info.config.end() ) 
 		{
 		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to source %s", info.source));
-		Error(Fmt("dbname configuration option not found. Defaulting to source %s", info.source));
 		dbname = info.source;
 		} 
 	else 
@@ -105,9 +109,10 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	return true;
 	}
 
-Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int pos)
+// pos = field position
+// subpos = subfield position, only used for port-field
+Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int pos, int subpos)  
 	{
-	
 	if ( sqlite3_column_type(st, pos ) == SQLITE_NULL ) 
 		return new Value(field->type, false);
 
@@ -130,10 +135,11 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 
 	case TYPE_BOOL:
 		{
-		if ( sqlite3_column_type(st, pos) != SQLITE_INTEGER ) {
+		if ( sqlite3_column_type(st, pos) != SQLITE_INTEGER ) 
+			{
 			Error("Invalid data type for boolean - expected Integer");
 			return 0;
-		}
+			}
 
 		int res = sqlite3_column_int(st, pos);
 
@@ -163,11 +169,23 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 
 	case TYPE_PORT:
+		{
 		val->val.port_val.port = sqlite3_column_int(st, pos);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
+		if ( subpos != -1 ) 
+			{
+			const char *text = (const char*) sqlite3_column_text(st, subpos);
+			string s(text, sqlite3_column_bytes(st, subpos));
+			if ( text == 0 )
+				Error("Port protocol definition did not contain text");
+			else 
+				val->val.port_val.proto = io->StringToProto(s);
+			}
 		break;
+		}
 
-	case TYPE_SUBNET: {
+	case TYPE_SUBNET: 
+		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));
 		int pos = s.find("/");
@@ -177,8 +195,8 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		val->val.subnet_val.prefix = io->StringToAddr(addr);
 		val->val.subnet_val.length = width;		
 		break;
-
 		}
+
 	case TYPE_ADDR: 
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
@@ -189,81 +207,12 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 
 	case TYPE_TABLE:
 	case TYPE_VECTOR:
-		assert(false);
-		/* 
-		// First - common initialization
-		// Then - initialization for table.
-		// Then - initialization for vector.
-		// Then - common stuff
 		{
-		// how many entries do we have...
-		unsigned int length = 1;
-		for ( unsigned int i = 0; i < s.size(); i++ )
-			if ( s[i] == ',') length++;
-
-		unsigned int pos = 0;
-		
-		if ( s.compare(empty_field) == 0 ) 
-			length = 0;
-			
-
-		Value** lvals = new Value* [length];
-
-		if ( field->type == TYPE_TABLE ) 
-			{
-			val->val.set_val.vals = lvals;
-			val->val.set_val.size = length;
-			} 
-		else if ( field->type == TYPE_VECTOR ) 
-			{
-			val->val.vector_val.vals = lvals;
-			val->val.vector_val.size = length;
-		else 
-			assert(false);
-
-		if ( length == 0 )
-			break; //empty
-
-		istringstream splitstream(s);
-		while ( splitstream ) 
-			{
-			string element;
-
-			if ( !getline(splitstream, element, ',') )
-				break;
-
-			if ( pos >= length ) 
-				{
-				Error(Fmt("Internal error while parsing set. pos %d >= length %d. Element: %s", pos, length, element.c_str()));
-				break;
-				}
-
-			Field* newfield = new Field(*field);
-			newfield->type = field->subtype;
-			Value* newval = EntryToVal(element, newfield);
-			delete(newfield);
-			if ( newval == 0 ) 
-				{
-				Error("Error while reading set");
-				return 0;
-				}
-			lvals[pos] = newval;
-
-			pos++;
-	
-			}
-
-
-		if ( pos != length ) 
-			{
-			Error("Internal error while parsing set: did not find all elements");
-			return 0;
-			}
-
+		const char *text = (const char*) sqlite3_column_text(st, pos);
+		string s(text, sqlite3_column_bytes(st, pos));			
+		val = io->StringToVal(s, "", field->type, field->subtype);
 		break;
 		}
-		*/
-
 
 	default:
 		Error(Fmt("unsupported field format %d", field->type));
@@ -276,29 +225,26 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 
 bool SQLite::DoUpdate() 
 	{
-
 	int numcolumns = sqlite3_column_count(st);
 
-	/* This can happen legitimately I think...
-	if ( numcolumns != num_fields ) 
-		{
-		Error(Fmt("SQLite query returned %d results, but input framework expected %d. Aborting", numcolumns, num_fields));
-		return false;
-		}
-	*/
-	
 	int *mapping = new int [num_fields];
+	int *submapping = new int [num_fields];
 	// first set them all to -1
 	for ( unsigned int i = 0; i < num_fields; ++i ) {
 		mapping[i] = -1;
+		submapping[i] = -1;
 	}
+
+
 
 	for ( unsigned int i = 0; i < numcolumns; ++i ) 
 		{
 		const char *name = sqlite3_column_name(st, i);
 
-		for ( unsigned j = 0; j < num_fields; j++ ) {
-			if ( strcmp(fields[j]->name, name) == 0 ) {
+		for ( unsigned j = 0; j < num_fields; j++ ) 
+			{
+			if ( strcmp(fields[j]->name, name) == 0 ) 
+				{
 				if ( mapping[j] != -1 ) 
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
@@ -306,10 +252,20 @@ bool SQLite::DoUpdate()
 					}
 
 				mapping[j] = i;
-				break;
-			}
-		}
+				}
 
+			if ( fields[j]->secondary_name != 0 && strcmp(fields[j]->secondary_name, name) == 0 )
+				{
+				assert(fields[j]->type == TYPE_PORT);
+				if ( submapping[j] != -1 ) 
+					{
+					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					return false;
+					}
+
+				submapping[j] = i;
+				}
+			}
 		}
 	
 	for ( unsigned int i = 0; i < num_fields; ++i ) {
@@ -327,12 +283,9 @@ bool SQLite::DoUpdate()
 
 		for ( unsigned int j = 0; j < num_fields; ++j) 
 			{
-
-			ofields[j] = EntryToVal(st, fields[j], mapping[j]);
-			if ( ofields[j] == 0 ) {
+			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
+			if ( ofields[j] == 0 ) 
 				return false;
-			} 
-
 			}
 
 		SendEntry(ofields);
@@ -344,7 +297,8 @@ bool SQLite::DoUpdate()
 
 	EndCurrentSend();
 
-	delete (mapping);
+	delete [] mapping;
+	delete [] submapping;
 
 	if ( checkError(sqlite3_reset(st)) )
 		return false;	

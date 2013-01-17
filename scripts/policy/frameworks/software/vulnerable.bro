@@ -2,6 +2,7 @@
 ##! a version of that software as old or older than the defined version a 
 ##! notice will be generated.
 
+@load base/frameworks/control
 @load base/frameworks/notice
 @load base/frameworks/software
 
@@ -13,17 +14,120 @@ export {
 		Vulnerable_Version,
 	};
 
+	type VulnerableVersionRange: record {
+		## The minimal version of a vulnerable version range.  This
+		## field can be undefined if all previous versions of a piece
+		## of software are vulnerable. 
+		min:  Software::Version &optional;
+		## The maximum vulnerable version.  This field is deliberately
+		## not optional because a maximum vulnerable version must
+		## always be defined.
+		max:  Software::Version;
+	};
+
+	## The DNS zone where runtime vulnerable software updates will
+	## be loaded from.
+	const vulnerable_versions_update_endpoint = "" &redef;
+
+	## The interval at which vulnerable versions should grab updates
+	## over DNS.
+	const vulnerable_versions_update_interval = 1hr &redef;
+
 	## This is a table of software versions indexed by the name of the 
-	## software and yielding the latest version that is vulnerable.
-	const vulnerable_versions: table[string] of Version &redef;
+	## software and a set of version ranges that are declared to be 
+	## vulnerable for that software.
+	const vulnerable_versions: table[string] of set[VulnerableVersionRange] &redef;
 }
+
+global internal_vulnerable_versions: table[string] of set[VulnerableVersionRange] = table();
+
+event Control::configuration_update()
+	{
+	# Copy the const vulnerable versions into the global modifiable one.
+	for ( sw in vulnerable_versions )
+		internal_vulnerable_versions[sw] = vulnerable_versions[sw];
+	}
+
+function decode_vulnerable_version_range(vuln_sw: string): VulnerableVersionRange
+	{
+	# Create a max value with a dunce value only because the $max field
+	# is not optional.
+	local vvr: Software::VulnerableVersionRange = [$max=[$major=0]];
+
+	if ( /max=/ !in vuln_sw )
+		{
+		Reporter::warning(fmt("The vulnerable software detection script encountered a version with no max value (which is required). %s", vuln_sw));
+		return vvr;
+		}
+
+	local versions = split1(vuln_sw, /\x09/);
+
+	for ( i in versions )
+		{
+		local field_and_ver = split1(versions[i], /=/);
+		if ( |field_and_ver| != 2 )
+			return vvr; #failure!
+
+		local ver = Software::parse(field_and_ver[2])$version;
+		if ( field_and_ver[1] == "min" )
+			vvr$min = ver;
+		else if ( field_and_ver[1] == "max" )
+			vvr$max = ver;
+		}
+
+		return vvr;
+	}
+
+event grab_vulnerable_versions(i: count)
+	{
+	if ( vulnerable_versions_update_endpoint == "" )
+		{
+		# Reschedule this event in case the user updates the setting at runtime.
+		schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
+		return;
+		}
+
+	when ( local result = lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint)) )
+		{
+		local parts = split1(result, /\x09/);
+		if ( |parts| != 2 )
+			return; #failure!
+
+		local sw = parts[1];
+		local vvr = decode_vulnerable_version_range(parts[2]);
+		add internal_vulnerable_versions[sw][vvr];
+
+		# TODO: deal with the lookup timing out or otherwise failing.
+		#       maybe keep a "last lookup" time with an event scheduled to 
+		#       make sure that nothing's failing occassionally.
+		if ( sw == "" )
+			schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
+		else
+			event grab_vulnerable_versions(i+1);
+		}
+	}
+
+event bro_init()
+	{
+	event grab_vulnerable_versions(1);
+
+	#print decode_vulnerable_version_range("min=6.1	max=6.9.3.a");
+	}
 
 event log_software(rec: Info)
 	{
-	if ( rec$name in vulnerable_versions &&
-	     cmp_versions(rec$version, vulnerable_versions[rec$name]) <= 0 )
+	if ( rec$name !in internal_vulnerable_versions )
+		return;
+
+	for ( version_range in internal_vulnerable_versions[rec$name] )
 		{
-		NOTICE([$note=Vulnerable_Version, $src=rec$host, 
-		        $msg=fmt("A vulnerable version of software was detected: %s", software_fmt(rec))]);
+		if ( cmp_versions(rec$version, version_range$max) <= 0 &&
+			 (!version_range?$min || cmp_versions(rec$version, version_range$min) >= 0) )
+			{
+			# The software is inside a vulnerable version range.
+			NOTICE([$note=Vulnerable_Version, $src=rec$host, 
+			        $msg=fmt("%s is running %s which is vulnerable.", rec$host, software_fmt(rec)),
+			        $sub=software_fmt(rec)]);
+			}
 		}
 	}

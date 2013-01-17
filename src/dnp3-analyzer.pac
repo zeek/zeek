@@ -93,6 +93,20 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+	
+	#g0
+	function get_dnp3_attribute_common(data_type_code: uint8, leng: uint8, attribute_obj: const_bytestring): bool
+		%{
+		if ( ::dnp3_attribute_common )
+			{
+			BifEvent::generate_dnp3_attribute_common(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), data_type_code, leng, bytestring_to_val(attribute_obj) );
+			}
+
+		return true;
+		%}
 
 	#g12v1
 	function get_dnp3_crob(control_code: uint8, count8: uint8, on_time: uint32, off_time: uint32, status_code: uint8): bool
@@ -714,6 +728,11 @@ refine typeattr Prefix_Type += &let {
 
 refine typeattr Response_Data_Object += &let {
 	process_request: bool =  $context.flow.get_dnp3_response_data_object(data_value);
+};
+
+# g0
+refine typeattr AttributeCommon += &let {
+	process_request: bool =  $context.flow.get_dnp3_attribute_common(data_type_code, leng, attribute_obj);
 };
 
 # g12v1

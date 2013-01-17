@@ -98,7 +98,8 @@ type Request_Objects(function_code: uint8) = record {
 							&check( object_header.qualifer_field == 0x0f && object_header.number_of_item == 0x01);
 		default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 	};
-# dump for checking some conditions
+	# dump_data is always empty; however, I use it for checking some conditions;
+	# However, in the current binpac implementation, &check is not implemented
 	dump_data: case (function_code) of {
 		OPEN_FILE -> open_file_dump: empty &check(object_header.object_type_field == 0x4603);
 		CLOSE_FILE -> close_file_dump: empty &check(object_header.object_type_field == 0x4604);
@@ -139,7 +140,8 @@ type Object_Header(function_code: uint8) = record {
 		0x0b -> range_field_b: uint8;
 		default -> unknown: bytestring &restofdata &check(0);
 	};
-	dump_data: case ( object_type_field & 0xff00 ) of {    # type is always empty; used to check dependency bw object_type_field and qualifier_field
+	# dump_data is always empty; used to check dependency bw object_type_field and qualifier_field
+	dump_data: case ( object_type_field & 0xff00 ) of {   
 		0x3C00 -> dump_3c: empty &check( (object_type_field == 0x3C01 || object_type_field == 0x3C02 || object_type_field == 0x3C03 || object_type_field == 0x3C04) && ( qualifier_field == 0x06 ) );
 		default -> dump_def: empty;
 	};

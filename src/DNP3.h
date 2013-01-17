@@ -23,6 +23,7 @@ public:
 		{ return dnp3_header_block ||
 				dnp3_application_request_header || dnp3_object_header ||
 				dnp3_response_data_object ||
+				dnp3_attribute_common ||
 				dnp3_crob || dnp3_pcb ||
 				dnp3_counter_32wFlag || dnp3_counter_16wFlag ||
 				dnp3_counter_32woFlag || dnp3_counter_16woFlag ||

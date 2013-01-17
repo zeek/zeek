@@ -6607,6 +6607,8 @@ event dnp3_response_data_object%(c: connection, is_orig: bool, data_value: count
 ## different types of object data. 
 ## The following event handlers are all generated for the different object data types.
 
+event dnp3_attribute_common%(c: connection, is_orig: bool, data_type_code: count, leng: count, attribute_obj: string%);
+
 ## Generated for the object with the group number 12 and variation number 1
 ## CROB: control relay output block
 event dnp3_crob%(c: connection, is_orig: bool, control_code: count, count8: count, on_time: count, off_time: count, status_code: count%);

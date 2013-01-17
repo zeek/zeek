@@ -42,48 +42,48 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
-		0x00D3 -> attrib211: Attrib_Common;
-		0x00D4 -> attrib212: Attrib_Common;
-		0x00D5 -> attrib213: Attrib_Common;
-		0x00D6 -> attrib214: Attrib_Common;
-		0x00D7 -> attrib215: Attrib_Common;
-		0x00D8 -> attrib216: Attrib_Common;
-		0x00D9 -> attrib217: Attrib_Common;
-		0x00DA -> attrib218: Attrib_Common;
-		0x00DB -> attrib219: Attrib_Common;
-		0x00DC -> attrib220: Attrib_Common;
-		0x00DD -> attrib221: Attrib_Common;
-		0x00DE -> attrib222: Attrib_Common;
-		0x00DF -> attrib223: Attrib_Common;
-		0x00E0 -> attrib224: Attrib_Common;
-		0x00E1 -> attrib225: Attrib_Common;
-		0x00E2 -> attrib226: Attrib_Common;
-		0x00E3 -> attrib227: Attrib_Common;
-		0x00E4 -> attrib228: Attrib_Common;
-		0x00E5 -> attrib229: Attrib_Common;
-		0x00E6 -> attrib230: Attrib_Common;
-		0x00E7 -> attrib231: Attrib_Common;
-		0x00E8 -> attrib232: Attrib_Common;
-		0x00E9 -> attrib233: Attrib_Common;
-		0x00EA -> attrib234: Attrib_Common;
-		0x00EB -> attrib235: Attrib_Common;
-		0x00EC -> attrib236: Attrib_Common;
-		0x00ED -> attrib237: Attrib_Common;
-		0x00EE -> attrib238: Attrib_Common;
-		0x00EF -> attrib239: Attrib_Common;
-		0x00F0 -> attrib240: Attrib_Common;
-		0x00F1 -> attrib241: Attrib_Common;
-		0x00F2 -> attrib242: Attrib_Common;
-		0x00F3 -> attrib243: Attrib_Common;
-		0x00F5 -> attrib245: Attrib_Common;
-		0x00F6 -> attrib246: Attrib_Common;
-		0x00F7 -> attrib247: Attrib_Common;
-		0x00F8 -> attrib248: Attrib_Common;
-		0x00F9 -> attrib249: Attrib_Common;
-		0x00FA -> attrib250: Attrib_Common;
-		0x00FC -> attrib252: Attrib_Common;
-		0x00FE -> attrib254: Attrib_Common;
-		0x00FF -> attrib255: Attrib_Common;
+		0x00D3 -> attrib211: AttributeCommon;
+		0x00D4 -> attrib212: AttributeCommon;
+		0x00D5 -> attrib213: AttributeCommon;
+		0x00D6 -> attrib214: AttributeCommon;
+		0x00D7 -> attrib215: AttributeCommon;
+		0x00D8 -> attrib216: AttributeCommon;
+		0x00D9 -> attrib217: AttributeCommon;
+		0x00DA -> attrib218: AttributeCommon;
+		0x00DB -> attrib219: AttributeCommon;
+		0x00DC -> attrib220: AttributeCommon;
+		0x00DD -> attrib221: AttributeCommon;
+		0x00DE -> attrib222: AttributeCommon;
+		0x00DF -> attrib223: AttributeCommon;
+		0x00E0 -> attrib224: AttributeCommon;
+		0x00E1 -> attrib225: AttributeCommon;
+		0x00E2 -> attrib226: AttributeCommon;
+		0x00E3 -> attrib227: AttributeCommon;
+		0x00E4 -> attrib228: AttributeCommon;
+		0x00E5 -> attrib229: AttributeCommon;
+		0x00E6 -> attrib230: AttributeCommon;
+		0x00E7 -> attrib231: AttributeCommon;
+		0x00E8 -> attrib232: AttributeCommon;
+		0x00E9 -> attrib233: AttributeCommon;
+		0x00EA -> attrib234: AttributeCommon;
+		0x00EB -> attrib235: AttributeCommon;
+		0x00EC -> attrib236: AttributeCommon;
+		0x00ED -> attrib237: AttributeCommon;
+		0x00EE -> attrib238: AttributeCommon;
+		0x00EF -> attrib239: AttributeCommon;
+		0x00F0 -> attrib240: AttributeCommon;
+		0x00F1 -> attrib241: AttributeCommon;
+		0x00F2 -> attrib242: AttributeCommon;
+		0x00F3 -> attrib243: AttributeCommon;
+		0x00F5 -> attrib245: AttributeCommon;
+		0x00F6 -> attrib246: AttributeCommon;
+		0x00F7 -> attrib247: AttributeCommon;
+		0x00F8 -> attrib248: AttributeCommon;
+		0x00F9 -> attrib249: AttributeCommon;
+		0x00FA -> attrib250: AttributeCommon;
+		0x00FC -> attrib252: AttributeCommon;
+		0x00FE -> attrib254: AttributeCommon;
+		0x00FF -> attrib255: AttributeCommon;
 
 	# binary input g1
 		0x0100 -> bi_default: empty;
@@ -354,48 +354,48 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
-		0x00D3 -> attrib211: Attrib_Common;
-		0x00D4 -> attrib212: Attrib_Common;
-		0x00D5 -> attrib213: Attrib_Common;
-		0x00D6 -> attrib214: Attrib_Common;
-		0x00D7 -> attrib215: Attrib_Common;
-		0x00D8 -> attrib216: Attrib_Common;
-		0x00D9 -> attrib217: Attrib_Common;
-		0x00DA -> attrib218: Attrib_Common;
-		0x00DB -> attrib219: Attrib_Common;
-		0x00DC -> attrib220: Attrib_Common;
-		0x00DD -> attrib221: Attrib_Common;
-		0x00DE -> attrib222: Attrib_Common;
-		0x00DF -> attrib223: Attrib_Common;
-		0x00E0 -> attrib224: Attrib_Common;
-		0x00E1 -> attrib225: Attrib_Common;
-		0x00E2 -> attrib226: Attrib_Common;
-		0x00E3 -> attrib227: Attrib_Common;
-		0x00E4 -> attrib228: Attrib_Common;
-		0x00E5 -> attrib229: Attrib_Common;
-		0x00E6 -> attrib230: Attrib_Common;
-		0x00E7 -> attrib231: Attrib_Common;
-		0x00E8 -> attrib232: Attrib_Common;
-		0x00E9 -> attrib233: Attrib_Common;
-		0x00EA -> attrib234: Attrib_Common;
-		0x00EB -> attrib235: Attrib_Common;
-		0x00EC -> attrib236: Attrib_Common;
-		0x00ED -> attrib237: Attrib_Common;
-		0x00EE -> attrib238: Attrib_Common;
-		0x00EF -> attrib239: Attrib_Common;
-		0x00F0 -> attrib240: Attrib_Common;
-		0x00F1 -> attrib241: Attrib_Common;
-		0x00F2 -> attrib242: Attrib_Common;
-		0x00F3 -> attrib243: Attrib_Common;
-		0x00F5 -> attrib245: Attrib_Common;
-		0x00F6 -> attrib246: Attrib_Common;
-		0x00F7 -> attrib247: Attrib_Common;
-		0x00F8 -> attrib248: Attrib_Common;
-		0x00F9 -> attrib249: Attrib_Common;
-		0x00FA -> attrib250: Attrib_Common;
-		0x00FC -> attrib252: Attrib_Common;
-		0x00FE -> attrib254: Attrib_Common;
-		0x00FF -> attrib255: Attrib_Common;
+		0x00D3 -> attrib211: AttributeCommon;
+		0x00D4 -> attrib212: AttributeCommon;
+		0x00D5 -> attrib213: AttributeCommon;
+		0x00D6 -> attrib214: AttributeCommon;
+		0x00D7 -> attrib215: AttributeCommon;
+		0x00D8 -> attrib216: AttributeCommon;
+		0x00D9 -> attrib217: AttributeCommon;
+		0x00DA -> attrib218: AttributeCommon;
+		0x00DB -> attrib219: AttributeCommon;
+		0x00DC -> attrib220: AttributeCommon;
+		0x00DD -> attrib221: AttributeCommon;
+		0x00DE -> attrib222: AttributeCommon;
+		0x00DF -> attrib223: AttributeCommon;
+		0x00E0 -> attrib224: AttributeCommon;
+		0x00E1 -> attrib225: AttributeCommon;
+		0x00E2 -> attrib226: AttributeCommon;
+		0x00E3 -> attrib227: AttributeCommon;
+		0x00E4 -> attrib228: AttributeCommon;
+		0x00E5 -> attrib229: AttributeCommon;
+		0x00E6 -> attrib230: AttributeCommon;
+		0x00E7 -> attrib231: AttributeCommon;
+		0x00E8 -> attrib232: AttributeCommon;
+		0x00E9 -> attrib233: AttributeCommon;
+		0x00EA -> attrib234: AttributeCommon;
+		0x00EB -> attrib235: AttributeCommon;
+		0x00EC -> attrib236: AttributeCommon;
+		0x00ED -> attrib237: AttributeCommon;
+		0x00EE -> attrib238: AttributeCommon;
+		0x00EF -> attrib239: AttributeCommon;
+		0x00F0 -> attrib240: AttributeCommon;
+		0x00F1 -> attrib241: AttributeCommon;
+		0x00F2 -> attrib242: AttributeCommon;
+		0x00F3 -> attrib243: AttributeCommon;
+		0x00F5 -> attrib245: AttributeCommon;
+		0x00F6 -> attrib246: AttributeCommon;
+		0x00F7 -> attrib247: AttributeCommon;
+		0x00F8 -> attrib248: AttributeCommon;
+		0x00F9 -> attrib249: AttributeCommon;
+		0x00FA -> attrib250: AttributeCommon;
+		0x00FC -> attrib252: AttributeCommon;
+		0x00FE -> attrib254: AttributeCommon;
+		0x00FF -> attrib255: AttributeCommon;
 
 	# binary input g1
 		0x0101 -> biwoflag: uint8;  # warning: returning integer index?
@@ -656,11 +656,12 @@ type Default_Wrap(obj_type: uint32) = record {
 # contains different objects format
 # corresponding to the DNP3Spec-V6-Part2-Objects
 
-# g0 including variation 249 255
-type Attrib_Common = record {
+# g0: group 0 objects are used to retrieve substation attributes; 
+# all variations including variation 249 255, share the same structure;
+type AttributeCommon = record {
 	data_type_code: uint8;
 	leng: uint8;
-	attrib_obj: bytestring &length=leng;
+	attribute_obj: bytestring &length=leng;
 } &byteorder = littleendian;
 
 

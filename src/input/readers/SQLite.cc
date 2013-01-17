@@ -22,7 +22,17 @@ using threading::Field;
 
 SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo());
+	set_separator.assign(
+			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
+			BifConst::InputSQLite::set_separator->Len()
+			);
+
+	unset_field.assign(
+			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
+			BifConst::InputSQLite::unset_field->Len()
+			);
+		
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field));
 	}
 
 SQLite::~SQLite()

@@ -47,6 +47,9 @@ private:
 	sqlite3 *db;
 	sqlite3_stmt *st;
 	AsciiInputOutput* io;
+
+	string set_separator;
+	string unset_field;
 };
 
 

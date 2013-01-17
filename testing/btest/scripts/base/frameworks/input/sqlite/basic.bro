@@ -86,7 +86,6 @@ event bro_init()
 	};
 
 	outfile = open("../out");
-	# first read in the old stuff into the table...
 	Input::add_event([$source="../conn", $name="conn", $fields=Conn::Info, $ev=line, $want_record=T, $reader=Input::READER_SQLITE, $config=config_strings]);
 	}
 

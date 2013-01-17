@@ -36,7 +36,6 @@ event bro_init()
 	};
 
 	outfile = open("../out");
-	# first read in the old stuff into the table...
 	Input::add_event([$source="../port", $name="port", $fields=Val, $ev=line, $reader=Input::READER_SQLITE, $want_record=F, $config=config_strings]);
 	}
 

@@ -87,6 +87,7 @@ const num_threads: count;
 module LogSQLite;
 
 const set_separator: string;
+const empty_field: string;
 const unset_field: string;
 
 # Options for the ElasticSearch writer.

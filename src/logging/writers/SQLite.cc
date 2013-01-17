@@ -30,9 +30,14 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 			BifConst::LogAscii::unset_field->Len()
 			);
 
+	empty_field.assign(
+			(const char*) BifConst::LogAscii::empty_field->Bytes(),
+			BifConst::LogAscii::empty_field->Len()
+			);	
+
 	db = 0;
 
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field));
+	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -134,7 +139,7 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 					&db,
 					SQLITE_OPEN_READWRITE | 
 					SQLITE_OPEN_CREATE |
-					SQLITE_OPEN_FULLMUTEX // perhaps change to nomutex
+					SQLITE_OPEN_NOMUTEX // perhaps change to nomutex
 					,
 					NULL)) )
 		return false;

@@ -418,6 +418,14 @@ expr:
 			$$ = new IndexExpr($1, $3);
 			}
 
+	|	expr '[' expr ':' expr ']'
+			{
+			set_location(@1, @6);
+			ListExpr* le = new ListExpr($3);
+			le->Append($5);
+			$$ = new IndexExpr($1, le, true);
+			}
+
 	|	expr '$' TOK_ID
 			{
 			set_location(@1, @3);

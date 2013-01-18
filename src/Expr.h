@@ -646,7 +646,7 @@ protected:
 
 class IndexExpr : public BinaryExpr {
 public:
-	IndexExpr(Expr* op1, ListExpr* op2);
+	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
 
 	int CanAdd() const;
 	int CanDel() const;

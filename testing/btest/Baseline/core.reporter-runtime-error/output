@@ -1,2 +1,2 @@
-error in /home/jsiwek/bro/testing/btest/.tmp/core.reporter-runtime-error/reporter-runtime-error.bro, line 12: no such index (a[1])
-ERROR: no such index (a[2]) (/home/jsiwek/bro/testing/btest/.tmp/core.reporter-runtime-error/reporter-runtime-error.bro, line 9)
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter-runtime-error/reporter-runtime-error.bro, line 12: no such index (a[1])
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter-runtime-error/reporter-runtime-error.bro, line 9: no such index (a[2])

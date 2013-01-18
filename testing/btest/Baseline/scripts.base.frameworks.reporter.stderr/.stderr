@@ -1,1 +1,1 @@
-ERROR: no such index (test[3]) (/blah/testing/btest/.tmp/scripts.base.frameworks.reporter.stderr/stderr.bro, line 9)
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/scripts.base.frameworks.reporter.stderr/stderr.bro, line 9: no such index (test[3])

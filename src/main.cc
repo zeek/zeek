@@ -824,6 +824,8 @@ int main(int argc, char** argv)
 		exit(1);
 		}
 
+	reporter->InitOptions();
+
 	init_general_global_var();
 
 	if ( user_pcap_filter )

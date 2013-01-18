@@ -402,7 +402,7 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 
 		case CURLE_OK:
 			{
-			uint http_code = 0;
+			long http_code = 0;
 			curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
 			if ( http_code == 200 )
 				// Hopefully everything goes through here.

@@ -1,4 +1,7 @@
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# (uses listen.bro just to ensure input sources are more reliably fully-read).
+# @TEST-SERIALIZE: comm
+#
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
@@ -12,6 +15,8 @@
 192.168.17.14
 192.168.17.42
 @TEST-END-FILE
+
+@load frameworks/communication/listen
 
 global outfile: file;
 

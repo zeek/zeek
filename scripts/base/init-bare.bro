@@ -2608,6 +2608,15 @@ const gap_report_freq = 1.0 sec &redef;
 ## .. bro:see:: content_gap gap_report partial_connection
 const report_gaps_for_partial = F &redef;
 
+## Flag to prevent Bro from exiting automatically when input is exhausted.
+## Normally Bro terminates when all packets sources have gone dry
+## and  communication isn't enabled. If this flag is set, Bro's main loop will
+## instead keep idleing until :bro:see::`terminate` is explicitly called. 
+## 
+## This is mainly for testing purposes when termination behaviour needs to be
+## controlled for reproducing results. 
+const exit_only_after_terminate = F &redef;
+
 ## The CA certificate file to authorize remote Bros/Broccolis.
 ##
 ## .. bro:see:: ssl_private_key ssl_passphrase

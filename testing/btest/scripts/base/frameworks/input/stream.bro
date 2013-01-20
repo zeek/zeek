@@ -1,5 +1,8 @@
+# (uses listen.bro just to ensure input sources are more reliably fully-read).
+# @TEST-SERIALIZE: comm
+#
 # @TEST-EXEC: cp input1.log input.log
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: cat input2.log >> input.log
 # @TEST-EXEC: sleep 3
@@ -22,6 +25,7 @@ F	-43	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 @TEST-END-FILE
 
 @load base/protocols/ssh
+@load frameworks/communication/listen
 
 redef InputAscii::empty_field = "EMPTY";
 

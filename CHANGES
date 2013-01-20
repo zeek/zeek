@@ -1,4 +1,18 @@
 
+2.1-279 | 2013-01-18 17:18:22 -0800
+
+  * Revert "Trick for parallelizing input framework unit tests." The
+    old way of doing the tests seems more reliable for now. (Jon
+    Siwek)
+
+  * Fixing variable size issues with http response code in
+    ElasticSearch writer. (Gilbert Clark)
+
+  * Removing unused class member. (Robin Sommer)
+    
+  * Add opaque type-ignoring for the accept_unsupported_types input
+    framework option. (Bernhard Amann)
+
 2.1-271 | 2013-01-08 10:18:57 -0800
 
   * Change substring index notation to use a colon.  String slice

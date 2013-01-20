@@ -228,8 +228,21 @@ In a lot of cases, storing elements in a vector is simply a precursor to then it
 Sets
 ~~~~
 
+Sets, like Vectors, are containers which store elements in a specific order.  Unlike Vectors though, all elements in a Set are unique, making them the perfect resource for collections where each element is naturally unique such as IP addresses, ports and subnets.  Sets even share a good number of syntactic elements with Vectors such as assignments and constructors.  Their declarations however, are different. Where as Vectors are declared with the use of the "of" keyword, Sets are declared using squared brackets.  As such, a set of ports would be declared as "set[port]".  Insertion and deletion of data into a set is performed by the add and delete keywords respectively while accessing data is again similar to Vectors and uses the squared brackets.  The sample below shows the use of a Set to hold various SSL based protocols.  First a local Set is declared named my_ports then in lines 8, 10 and 12, we use the add keyword to insert data for the SSH, HTTPS and IMAPS.  In lines 15-18 an if statement is used to check whether the SMTPS port is currently in the my_ports set and if not, it is added.  Finally, on line 20, the set is printed to stdout.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_set_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 4-21
+
+.. btest:: connection-record-02
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_set_declaration.bro
+
 Tables
 ~~~~~~
+
+
 
 Data Types Revisited
 --------------------

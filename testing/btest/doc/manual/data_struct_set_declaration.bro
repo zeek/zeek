@@ -3,19 +3,28 @@
 
 event bro_init()
     {
-    local my_ports: set[port];
+    local ssl_ports: set[port];
+    local non_ssl_ports = set( 23/tcp, 80/tcp, 143/tcp, 25/tcp );
     # SSH
-    add my_ports[22/tcp];
+    add ssl_ports[22/tcp];
     # HTTPS
-    add my_ports[443/tcp];
+    add ssl_ports[443/tcp];
     # IMAPS
-    add my_ports[993/tcp];
+    add ssl_ports[993/tcp];
     
     # Check for SMTPS 
-    if ( 587/tcp !in my_ports )
+    if ( 587/tcp !in ssl_ports )
         {
-        add my_ports[587/tcp];
+        add ssl_ports[587/tcp];
         }
     
-    print my_ports;
+    for ( i in ssl_ports )
+        {
+        print fmt("SSL Port: %s", i);
+        }
+
+    for ( i in non_ssl_ports )
+        {
+        print fmt("Non-SSL Port: %s", i);
+        }
     }

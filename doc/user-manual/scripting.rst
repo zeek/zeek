@@ -196,6 +196,59 @@ The table below shows the common data types used in Bro, of which, the first fou
 | pattern   | regular expression                  |
 +-----------+-------------------------------------+
 
+Sets
+~~~~
+
+Sets in Bro are used to stored a unique elements of the same data type.  In essence, you can think of them as "a unique set of integers" or "a unique set of ip addresses".  While the declaration of a set may differ based on the data type being collected, the set will always contain unique elements and the elements in the set will always be of the same data type.  Such requirements make the set data type perfect for information that is already naturally unique such as ports or ip addresses.  The code snippet below shows both an explicit and implicit declaration of a locally scoped set.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_set_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 6,7
+
+As you can see, sets are declared using the format "SCOPE var_name: set[TYPE]".  Adding and removing elements in a set is achieved using the add and delete statements.  Once you have elements inserted into the set, it's likely that you'll need to either iterate over that set or test for membership within the set, both of which are covered by the in operator.  In the case of iterating over a set, combining the for statement and the in operator will allow you to sequentially process each element of the set as seen below.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_set_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 21-29
+
+Here, the for statement loops over the contents of the set storing each element in the temporary variable "i".  With each iteration of the for loop, the next element is chosen.  Since sets are not an ordered data type, you cannot guarantee the order of the elements as the for loop processes.
+   
+To test for membership in a set the in statment can be combined with an if statement to return a true or false value.  If the exact element in the condition is already in the set, the condition returns true and the body executes.  The in statement can also be negated by the ! operator to create the inverse of the condition.  While line 16 of the code snippet below could be rewrite as "if (!( 587/tcp in ssl_ports ))" try to avoid using this construct; instead, negate the in operator itself.  While the functionality is the same, using the latter is a more natural construct and will aid in the readability of your script. 
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_set_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 15-19
+
+You can see the full script and its output below.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_set_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 4-21
+
+.. btest:: connection-record-02
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_set_declaration.bro
+
+Tables
+~~~~~~
+
+A table in Bro is a mapping of a key to a value or yield.  While the values don't have to be unique, each key in the table must be unique to preserve a one-to-one mapping of keys to values.  In the example below, we've compiled a table of SSL enable services and their common ports.  The explicit declaration and constructor for the table on lines 6 and 7 lay out the data types of the keys (strings) and the data types of the yields (ports) and then fill in some sample key and yeild pairs.  Line 8 shows how to use a table accessor to insert one key-yield pair into the table.  When using the in operator on a table, you are effectively working with the keys of the table.  In the case of an inf statement, the in operator will check for membership among the set of keys and return a true or false value.  As seen on line 10, we are checking if "SMTPS" is not in the set of keys for the ssl_services table and if the condition holds true, we add the key-yield pair to the table.  In the case of a for statement, as seen on line 15, we iterate over each key currently in the table.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_table_declaration.bro
+   :language: bro
+   :linenos:
+   :lines: 4-21
+
+.. btest:: connection-record-02
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_table_declaration.bro
+
+Simple examples aside, Tables can become extremely complex as the keys and values for the table become more intricate.  The flexability gained with the use of Tables in Bro implies a cost in complexity for the person writing the scripts.  
+
 
 Vectors
 ~~~~~~~
@@ -223,24 +276,6 @@ In a lot of cases, storing elements in a vector is simply a precursor to then it
 .. btest:: data_type_const.bro
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_iter.bro
-
-
-Sets
-~~~~
-
-Sets, like Vectors, are containers which store elements in a specific order.  Unlike Vectors though, all elements in a Set are unique, making them the perfect resource for collections where each element is naturally unique such as IP addresses, ports and subnets.  Sets even share a good number of syntactic elements with Vectors such as assignments and constructors.  Their declarations however, are different. Where as Vectors are declared with the use of the "of" keyword, Sets are declared using squared brackets.  As such, a set of ports would be declared as "set[port]".  Insertion and deletion of data into a set is performed by the add and delete keywords respectively while accessing data is again similar to Vectors and uses the squared brackets.  The sample below shows the use of a Set to hold various SSL based protocols.  First a local Set is declared named my_ports then in lines 8, 10 and 12, we use the add keyword to insert data for the SSH, HTTPS and IMAPS.  In lines 15-18 an if statement is used to check whether the SMTPS port is currently in the my_ports set and if not, it is added.  Finally, on line 20, the set is printed to stdout.  
-
-.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_set_declaration.bro
-   :language: bro
-   :linenos:
-   :lines: 4-21
-
-.. btest:: connection-record-02
-
-    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_set_declaration.bro
-
-Tables
-~~~~~~
 
 
 

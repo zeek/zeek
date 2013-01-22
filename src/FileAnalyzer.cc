@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "FileAnalysisManager.h"
 #include "FileAnalyzer.h"
 #include "Reporter.h"
 
@@ -16,11 +17,19 @@ File_Analyzer::File_Analyzer(Connection* conn)
 		InitMagic(&magic, MAGIC_NONE);
 		InitMagic(&magic_mime, MAGIC_MIME);
 		}
+
+	char op[256], rp[256];
+	modp_ulitoa10(ntohs(conn->OrigPort()), op);
+	modp_ulitoa10(ntohs(conn->RespPort()), rp);
+	file_id = "TCPFile " + conn->OrigAddr().AsString() + ":" + op + "->" +
+	          conn->RespAddr().AsString() + ":" + rp;
 	}
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+
+	file_mgr->DataIn(file_id, data, len, Conn());
 
 	int n = min(len, BUFFER_SIZE - buffer_len);
 
@@ -38,6 +47,8 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 void File_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
+
+	file_mgr->EndOfFile(file_id, Conn());
 
 	if ( buffer_len && buffer_len != BUFFER_SIZE )
 		Identify();

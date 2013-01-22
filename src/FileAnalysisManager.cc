@@ -5,6 +5,20 @@
 
 using namespace file_analysis;
 
+Action::Action(Info* arg_info) : info(arg_info)
+	{
+	}
+
+Extract::Extract(Info* arg_info, const string& arg_filename)
+    : Action(arg_info), filename(arg_filename)
+	{
+	}
+
+void Extract::DeliverStream(const u_char* data, uint64 len)
+	{
+	// TODO: write data to filename
+	}
+
 static TableVal* empty_conn_id_set()
 	{
 	TypeList* set_index = new TypeList(conn_id);
@@ -59,6 +73,7 @@ Info::Info(const string& file_id, Connection* conn, const string& protocol)
 		}
 
 	val = new RecordVal(BifType::Record::FileAnalysis::Info);
+	// TODO: hash/prettify file_id for script layer presentation
 	val->Assign(file_id_idx, new StringVal(file_id.c_str()));
 
 	UpdateConnectionFields(conn);
@@ -72,6 +87,8 @@ Info::Info(const string& file_id, Connection* conn, const string& protocol)
 
 Info::~Info()
 	{
+	for ( size_t i = 0; i < analyzers.size(); ++i )
+
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s", FileID().c_str());
 	Unref(val);
 	}
@@ -91,6 +108,22 @@ void Info::UpdateConnectionFields(Connection* conn)
 	conn_ids->AsTableVal()->Assign(get_conn_id_val(conn), 0);
 	}
 
+uint64 Info::FieldDefaultCount(int idx) const
+	{
+	Val* v = val->LookupWithDefault(idx);
+	uint64 rval = v->AsCount();
+	Unref(v);
+	return rval;
+	}
+
+double Info::FieldDefaultInterval(int idx) const
+	{
+	Val* v = val->LookupWithDefault(idx);
+	double rval = v->AsInterval();
+	Unref(v);
+	return rval;
+	}
+
 int Info::Idx(const string& field)
 	{
 	int rval = BifType::Record::FileAnalysis::Info->FieldOffset(field.c_str());
@@ -102,7 +135,7 @@ int Info::Idx(const string& field)
 
 double Info::TimeoutInterval() const
 	{
-	return val->LookupWithDefault(timeout_interval_idx)->AsInterval();
+	return FieldDefaultInterval(timeout_interval_idx);
 	}
 
 string Info::FileID() const
@@ -110,15 +143,24 @@ string Info::FileID() const
 	return val->Lookup(file_id_idx)->AsString()->CheckString();
 	}
 
+void Info::IncrementSeenBytes(uint64 size)
+	{
+	uint64 old = FieldDefaultCount(seen_bytes_idx);
+	val->Assign(seen_bytes_idx, new Val(old + size, TYPE_COUNT));
+	}
+
 void Info::SetTotalBytes(uint64 size)
 	{
 	val->Assign(total_bytes_idx, new Val(size, TYPE_COUNT));
+	}
 
-	if ( val->LookupWithDefault(seen_bytes_idx)->AsCount() >= size )
-		{
-		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, this);
-		file_mgr->Remove(FileID());
-		}
+bool Info::IsComplete() const
+	{
+	Val* total = val->Lookup(total_bytes_idx);
+	if ( ! total ) return false;
+	if ( FieldDefaultCount(seen_bytes_idx) >= total->AsCount() )
+		return true;
+	return false;
 	}
 
 void Info::ScheduleInactivityTimer() const
@@ -170,6 +212,15 @@ void Manager::Terminate()
 		Timeout(keys[i], true);
 	}
 
+static void check_file_done(Info* info)
+	{
+	if ( info->IsComplete() )
+		{
+		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, info);
+		file_mgr->Remove(info->FileID());
+		}
+	}
+
 void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
                      uint64 offset, Connection* conn, const string& protocol)
 	{
@@ -177,6 +228,7 @@ void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
 	info->UpdateLastActivityTime();
 	info->UpdateConnectionFields(conn);
 	// TODO: more stuff
+	check_file_done(info);
 	}
 
 void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
@@ -186,9 +238,10 @@ void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
 	info->UpdateLastActivityTime();
 	info->UpdateConnectionFields(conn);
 	// TODO: more stuff
+	check_file_done(info);
 	}
 
-void Manager::EndOfData(const string& file_id, Connection* conn,
+void Manager::EndOfFile(const string& file_id, Connection* conn,
                         const string& protocol)
 	{
 	Info* info = IDtoInfo(file_id, conn, protocol);
@@ -205,6 +258,7 @@ void Manager::SetSize(const string& file_id, uint64 size,
 	info->UpdateLastActivityTime();
 	info->UpdateConnectionFields(conn);
 	info->SetTotalBytes(size);
+	check_file_done(info);
 	}
 
 void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)

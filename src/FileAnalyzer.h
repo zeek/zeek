@@ -5,6 +5,7 @@
 
 #include "TCP.h"
 
+#include <string>
 #include <magic.h>
 
 class File_Analyzer : public TCP_ApplicationAnalyzer {
@@ -33,6 +34,8 @@ protected:
 
 	static magic_t magic;
 	static magic_t magic_mime;
+
+	string file_id;
 };
 
 #endif

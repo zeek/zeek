@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 #include "Conn.h"
 #include "Analyzer.h"
@@ -11,6 +12,42 @@
 #include "Reporter.h"
 
 namespace file_analysis {
+
+class Info;
+
+/**
+ * Base class for actions that can be attached to a file_analysis::Info object.
+ */
+class Action {
+public:
+
+	Action(Info* arg_info);
+
+	~Action() {}
+
+	virtual void DeliverStream(const u_char* data, uint64 len) = 0;
+
+protected:
+
+	Info* info;
+};
+
+/**
+ * An action to simply extract files to disk.
+ */
+class Extract : Action {
+public:
+
+	Extract(Info* arg_info, const string& arg_filename);
+
+	~Extract() {}
+
+	virtual void DeliverStream(const u_char* data, uint64 len);
+
+protected:
+
+	string filename;
+};
 
 /**
  * Wrapper class around \c FileAnalysis::Info record values from script layer.
@@ -41,10 +78,21 @@ public:
 	void UpdateLastActivityTime() { last_activity_time = network_time; }
 
 	/**
-	 * Set "total_bytes" field of #val record to \a size, check if "seen_bytes"
-	 * is greater or equal to it, and evaluate \c FileAnalysis::policy if so.
+	 * Increments the "seen_bytes" field of #val record by \a size.
+	 */
+	void IncrementSeenBytes(uint64 size);
+
+	/**
+	 * Set "total_bytes" field of #val record to \a size.
 	 */
 	void SetTotalBytes(uint64 size);
+
+	/**
+	 * Compares "seen_bytes" field to "total_bytes" field of #val record
+	 * and returns true if the comparison indicates the full file was seen.
+	 * If "total_bytes" hasn't been set yet, it returns false.
+	 */
+	bool IsComplete() const;
 
 	/**
 	 * Create a timer to be dispatched after the amount of time indicated by
@@ -69,9 +117,23 @@ protected:
 	 */
 	void UpdateConnectionFields(Connection* conn);
 
+	/**
+	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
+	 * \a idx which automatically unrefs the Val and returns a converted value.
+	 */
+	uint64 FieldDefaultCount(int idx) const;
+
+	/**
+	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
+	 * \a idx which automatically unrefs the Val and returns a converted value.
+	 */
+	double FieldDefaultInterval(int idx) const;
+
 	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
 	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
+
+	vector<Analyzer*> analyzers;
 
 	/**
 	 * @return the field offset in #val record corresponding to \a field_name.
@@ -142,7 +204,7 @@ public:
 	/**
 	 * Signal the end of file data.
 	 */
-	void EndOfData(const string& file_id, Connection* conn = 0,
+	void EndOfFile(const string& file_id, Connection* conn = 0,
 	               const string& protocol = "");
 
 	/**

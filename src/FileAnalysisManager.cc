@@ -88,6 +88,7 @@ Info::Info(const string& file_id, Connection* conn, const string& protocol)
 Info::~Info()
 	{
 	for ( size_t i = 0; i < analyzers.size(); ++i )
+		delete analyzers[i];
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s", FileID().c_str());
 	Unref(val);

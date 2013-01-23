@@ -1853,13 +1853,21 @@ Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		ID* aggr = (*inits)[i];
 		BroType* t = aggr->Type();
 
-		Val* v;
-		if ( t->Tag() == TYPE_RECORD )
+		Val* v = 0;
+
+		switch ( t->Tag() ) {
+		case TYPE_RECORD:
 			v = new RecordVal(t->AsRecordType());
-		else if ( aggr->Type()->Tag() == TYPE_VECTOR )
+			break;
+		case TYPE_VECTOR:
 			v = new VectorVal(t->AsVectorType());
-		else
+			break;
+		case TYPE_TABLE:
 			v = new TableVal(t->AsTableType(), aggr->Attrs());
+			break;
+		default:
+			break;
+		}
 
 		f->SetElement(aggr->Offset(), v);
 		}

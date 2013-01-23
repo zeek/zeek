@@ -229,7 +229,7 @@ You can see the full script and its output below.
    :linenos:
    :lines: 4-21
 
-.. btest:: connection-record-02
+.. btest:: data_struct_set_declaration
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_set_declaration.bro
 
@@ -243,12 +243,22 @@ A table in Bro is a mapping of a key to a value or yield.  While the values don'
    :linenos:
    :lines: 4-21
 
-.. btest:: connection-record-02
+.. btest:: data_struct_table_declaration
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_table_declaration.bro
 
-Simple examples aside, Tables can become extremely complex as the keys and values for the table become more intricate.  The flexability gained with the use of Tables in Bro implies a cost in complexity for the person writing the scripts.  
+Simple examples aside, tables can become extremely complex as the keys and values for the table become more intricate.  Tables can have keys comprised of multiple data types, other data structures, and even of tables themselves.  The flexibility gained with the use of complex tables in Bro implies a cost in complexity for the person writing the scripts but pays off in effectiveness given the power of Bro as a network security platform.
 
+The script below shows a sample table of strings indexed by two strings, a count, and a final string.  With multiple entities acting as an aggregate key, the order is the important as a change in order would result in a new key.  Here, we're using the table to track the Director, Studio, year or release, and lead actor in a series of samurai flicks.  It's important to note that in the case of the for statement, it's an all or nothing kind of iteration.  We cannot iterate over, say, the directors; We have to iterate with the exact format as the keys themselves.  In this case, we need squared brackets surrounding four temporary variables to act as a collection for our iteration.  While this is a contrived example, we could easily have had keys containin ip addresses(addr), ports(port) and even a string calculated as the result of a reverse hostname lookup.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_table_complex.bro
+   :language: bro
+   :linenos:
+   :lines: 4-21
+
+.. btest:: data_struct_table_complex
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_table_complex.bro
 
 Vectors
 ~~~~~~~
@@ -262,7 +272,7 @@ The format for the declaration of a Vector follows the pattern of other declarat
    :linenos:
    :lines: 4-16
 
-.. btest:: data_type_const.bro
+.. btest:: data_struct_vector_declaration
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_declaration.bro
 
@@ -273,7 +283,7 @@ In a lot of cases, storing elements in a vector is simply a precursor to then it
    :linenos:
    :lines: 4-12
 
-.. btest:: data_type_const.bro
+.. btest:: data_struct_vector_iter
 
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_iter.bro
 

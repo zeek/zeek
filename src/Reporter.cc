@@ -320,6 +320,14 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		else
 			mgr.QueueEvent(event, vl);
 		}
+	else
+		{
+		if ( addl )
+			{
+			loop_over_list(*addl, i)
+				Unref((*addl)[i]);
+			}
+		}
 
 	if ( out )
 		{
@@ -351,12 +359,6 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 		if ( out )
 			fprintf(out, "%s", s.c_str());
-
-		if ( addl )
-			{
-			loop_over_list(*addl, i)
-				Unref((*addl)[i]);
-			}
 		}
 
 	if ( alloced )

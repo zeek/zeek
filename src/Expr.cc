@@ -3921,8 +3921,11 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
-				// Orphane field in rhs, that's ok.
-				continue;
+				{
+				ExprError(fmt("orphaned field \"%s\" in record coercion",
+				              sub_r->FieldName(i)));
+				break;
+				}
 
 			BroType* sub_t_i = sub_r->FieldType(i);
 			BroType* sup_t_i = t_r->FieldType(t_i);

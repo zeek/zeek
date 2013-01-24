@@ -1,4 +1,8 @@
 
+2.1-304 | 2013-01-23 19:43:27 -0800
+
+  * Making a test portable. (Robin Sommer)
+
 2.1-302 | 2013-01-23 16:17:29 -0800
 
   * Refactoring ASCII formatting/parsing from loggers/readers into a

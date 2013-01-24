@@ -1,4 +1,26 @@
 
+2.1-302 | 2013-01-23 16:17:29 -0800
+
+  * Refactoring ASCII formatting/parsing from loggers/readers into a
+    separate AsciiFormatter class. (Bernhard Amann)
+
+  * Fix uninitialized locals in event/hook handlers from having a
+    value. Addresses #932. (Jon Siwek)
+
+  * Add a null value check in CompositeHash::ComputeHash. Addresses
+    #930. (Jon Siwek)
+
+  * Change reporter messages to more reliably print to stderr.
+    Addressed #930 (and revisits #836). (Jon Siwek)
+
+  * Changing test=suite's btest call to use "-j" instead of "-j 5".
+    (Robin Sommer)
+    
+  * Require "case" blocks to end with either "break", "return", or a
+    new "fallthrough" statement that passes control on to the
+    subsequent case. This gives us the best mix of safety,
+    readability, and flexibility. Addresses #754. (Jon Siwek)
+
 2.1-279 | 2013-01-18 17:18:22 -0800
 
   * Revert "Trick for parallelizing input framework unit tests." The

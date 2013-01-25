@@ -3967,7 +3967,7 @@ RecordCoerceExpr::~RecordCoerceExpr()
 
 Val* RecordCoerceExpr::Fold(Val* v) const
 	{
-	RecordVal* val = new RecordVal(Type()->Ref()->AsRecordType());
+	RecordVal* val = new RecordVal(Type()->AsRecordType());
 	RecordVal* rv = v->AsRecordVal();
 
 	for ( int i = 0; i < map_size; ++i )

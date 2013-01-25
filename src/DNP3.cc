@@ -15,12 +15,14 @@ DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTa
 
 DNP3_Analyzer::~DNP3_Analyzer()
 	{
+
 	delete interp;
 	mEncounteredFirst = false;
 	}
 
 void DNP3_Analyzer::Done()
 	{
+	
 	TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
@@ -163,8 +165,8 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 	//// are grouped with size of 18 byte (last 2 bytes are CRC) We check group by group
 	//// calculate the legnth of the last user data block (the length of the last user data block
 	//// can be any values from 3 bytes to 18 bytes. )
-	//// value of length of last user data block (last_length) can never be 1 or 2,
-	//// because the a user data block can not contain 2-byte CRC bytes without containing any data 
+	//// The length of last user data block (last_length) can never be 1 or 2, because
+        //// the a user data block can not contain 2-byte CRC bytes without containing any data 
 
 	last_length = ( len - 10) % 18;
 	if ( (last_length > 0) && (last_length <= 2) ) 
@@ -353,8 +355,7 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 			Weird("dnp3_unexpected_payload_size");
 			return -4;
 			}
-		// move the inialization into DNP3_Analyzer::DeliverStream 
-		//gDNP3Data.Reserve(len);
+		gDNP3Data.Reserve(len);
 
 		//memcpy(gDNP3Data.mData, data, 8); // Keep the first 8 bytes.
 
@@ -368,7 +369,6 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 		// User Data Block 2 (16 bytes) CRC (2 bytes)
 		// .....
 		// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
-		// The CRC values are checked (TODO-Hui) here and then removed. So the bytes stream sent to the binpac analyzer is the logic 
 		// DNP3 fragment
 
 		DNP3_CopyDataBlock(&gDNP3Data, data, len);	
@@ -484,10 +484,10 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 			//     truncated network packets
 			//  But this newly received packets should be delivered to the binpac as usuall
 			gDNP3Data.Clear();
-			gDNP3Data.Reserve(len);
 			Weird("dnp3_missing_finish_packet");
 			}
 
+		gDNP3Data.Reserve(len);
 		DNP3_CopyDataBlock(&gDNP3Data, data, len);
 		//// since this is the only application layer trunk, so the higer 8bits of the length is 0
 		gDNP3Data.mData[3] = 0x00;
@@ -533,43 +533,49 @@ int DNP3_Analyzer::DNP3_Reassembler(int len, const u_char* data, bool orig)
 
 void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	// The parent's DeliverStream should normally be called
-	// right away with all the original data. 
-	// However, "data" passed from the parent's DeliverStream include all three serial layers of DNP3 Packets
-	// as a result, I need to extract the original serial application layer data and passed to the binpac analyzer
-	
+
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+
+	int result = 0;
 	
 	//// Checkec the CRC values included in the DNP3 packets
 	DNP3_CheckCRC(len, data);
 	
-	gDNP3Data.Reserve(len);
+	if( data[0] != 0x05 || data[1] != 0x64 )
+		return ;
+
+	/// if result > 0, then DNP3_Reassembler reassembles the intermediate trunk
+	//// if result < 0, errors happened in DNP3_Reassembler.
+	result = DNP3_Reassembler(len, data, orig);		
+	if(result != 0){
+		return ;	
+	}
 	
-	DNP3_Reassembler(len, data, orig);	
-	
+
 	bool m_orig = ( (data[3] & 0x80) == 0x80 );
+		
+
 	interp->NewData(m_orig, gDNP3Data.mData, gDNP3Data.mData + gDNP3Data.length );
 
 	gDNP3Data.Clear();
-	// TODO-Hui: Again, what does this comment mean? Does this need to be
-	// fixed?
-	//
-	// Process the data payload; extract DNP3 application layer data
-	// directly the validation of crc can be set up here in the furutre,
-	// now it is ignored if this is the first transport segment but not
-	// last
+
 
 	
 }
 
 void DNP3_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
+
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
 
 void DNP3_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	{
+
 	TCP_ApplicationAnalyzer::EndpointEOF(endp);
 	interp->FlowEOF(endp->IsOrig());
 	}
+
+
+

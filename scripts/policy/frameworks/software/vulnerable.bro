@@ -21,12 +21,14 @@ export {
 		min:  Software::Version &optional;
 		## The maximum vulnerable version.  This field is deliberately
 		## not optional because a maximum vulnerable version must
-		## always be defined.
+		## always be defined.  This assumption may become incorrent 
+		## if all future versions of some software are to be considered 
+		## vulnerable. :)
 		max:  Software::Version;
 	};
 
 	## The DNS zone where runtime vulnerable software updates will
-	## be loaded from.
+	## be loaded from.  
 	const vulnerable_versions_update_endpoint = "" &redef;
 
 	## The interval at which vulnerable versions should grab updates
@@ -36,13 +38,15 @@ export {
 	## This is a table of software versions indexed by the name of the 
 	## software and a set of version ranges that are declared to be 
 	## vulnerable for that software.
-	const vulnerable_versions: table[string] of set[VulnerableVersionRange] &redef;
+	const vulnerable_versions: table[string] of set[VulnerableVersionRange] = table() &redef;
 }
 
 global internal_vulnerable_versions: table[string] of set[VulnerableVersionRange] = table();
 
 event Control::configuration_update()
 	{
+	internal_vulnerable_versions = table();
+
 	# Copy the const vulnerable versions into the global modifiable one.
 	for ( sw in vulnerable_versions )
 		internal_vulnerable_versions[sw] = vulnerable_versions[sw];
@@ -90,28 +94,30 @@ event grab_vulnerable_versions(i: count)
 	when ( local result = lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint)) )
 		{
 		local parts = split1(result, /\x09/);
-		if ( |parts| != 2 )
-			return; #failure!
+		if ( |parts| != 2 ) #failure or end of list!
+			{
+			schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
+			return; 
+			}
 
 		local sw = parts[1];
 		local vvr = decode_vulnerable_version_range(parts[2]);
+		if ( sw !in internal_vulnerable_versions )
+			internal_vulnerable_versions[sw] = set();
 		add internal_vulnerable_versions[sw][vvr];
 
-		# TODO: deal with the lookup timing out or otherwise failing.
-		#       maybe keep a "last lookup" time with an event scheduled to 
-		#       make sure that nothing's failing occassionally.
-		if ( sw == "" )
-			schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
-		else
-			event grab_vulnerable_versions(i+1);
+		event grab_vulnerable_versions(i+1);
+		}
+	timeout 5secs 
+		{
+		# In case a lookup fails, try starting over in one minute.
+		schedule 1min { grab_vulnerable_versions(1) };
 		}
 	}
 
 event bro_init()
 	{
 	event grab_vulnerable_versions(1);
-
-	#print decode_vulnerable_version_range("min=6.1	max=6.9.3.a");
 	}
 
 event log_software(rec: Info)

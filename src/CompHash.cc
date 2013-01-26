@@ -273,6 +273,9 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 	{
+	if ( ! v )
+		reporter->InternalError("null value given to CompositeHash::ComputeHash");
+
 	if ( is_singleton )
 		return ComputeSingletonHash(v, type_check);
 

@@ -2857,6 +2857,25 @@ export {
 } # end export
 module GLOBAL;
 
+module Reporter;
+export {
+	## Tunable for sending reporter info messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const info_to_stderr = T &redef;
+
+	## Tunable for sending reporter warning messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const warnings_to_stderr = T &redef;
+
+	## Tunable for sending reporter error messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const errors_to_stderr = T &redef;
+}
+module GLOBAL;
+
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 

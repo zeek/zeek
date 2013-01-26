@@ -16,6 +16,7 @@ typedef enum {
 	STMT_ADD, STMT_DELETE,
 	STMT_LIST, STMT_EVENT_BODY_LIST,
 	STMT_INIT,
+	STMT_FALLTHROUGH,
 	STMT_NULL
 #define NUM_STMTS (int(STMT_NULL) + 1)
 } BroStmtTag;
@@ -24,7 +25,8 @@ typedef enum {
 	FLOW_NEXT,		// continue on to next statement
 	FLOW_LOOP,		// go to top of loop
 	FLOW_BREAK,		// break out of loop
-	FLOW_RETURN		// return from function
+	FLOW_RETURN,		// return from function
+	FLOW_FALLTHROUGH	// fall through to next switch case
 } stmt_flow_type;
 
 extern const char* stmt_name(BroStmtTag t);

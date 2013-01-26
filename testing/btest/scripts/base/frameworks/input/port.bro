@@ -1,4 +1,7 @@
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# (uses listen.bro just to ensure input sources are more reliably fully-read).
+# @TEST-SERIALIZE: comm
+#
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
@@ -8,6 +11,8 @@
 1.2.3.5	52	udp
 1.2.3.6	30	unknown
 @TEST-END-FILE
+
+@load frameworks/communication/listen
 
 global outfile: file;
 

@@ -1,4 +1,4 @@
-1355265853.593476 error: ../input.log/Input::READER_ASCII: String 'l' contained no parseable number
-1355265853.593476 error: ../input.log/Input::READER_ASCII: Could not convert line '	l' to Val. Ignoring line.
-1355265853.593476 received termination signal
+error: ../input.log/Input::READER_ASCII: String 'l' contained no parseable number
+error: ../input.log/Input::READER_ASCII: Could not convert line '	l' to Val. Ignoring line.
+received termination signal
 >>>

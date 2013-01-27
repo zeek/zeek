@@ -3,6 +3,8 @@
 #include "TCP_Reassembler.h"
 
 
+#define USE_BUFFER 
+
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTag::DNP3, c)
 	{
 	mEncounteredFirst = false;
@@ -544,20 +546,41 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if( data[0] != 0x05 || data[1] != 0x64 )
 		return ;
 
+
+	#ifdef USE_BUFFER
+	result = DNP3_Reassembler2(len, data, orig);
+	gDNP3Data.mData[3] = 0x00;
+	
+	#else
+
 	/// if result > 0, then DNP3_Reassembler reassembles the intermediate trunk
 	//// if result < 0, errors happened in DNP3_Reassembler.
 	result = DNP3_Reassembler(len, data, orig);		
 	if(result != 0){
 		return ;	
 	}
+	#endif
 	
-
 	bool m_orig = ( (data[3] & 0x80) == 0x80 );
-		
 
+	int i = 0;
+	printf("\nBytes into BInpac analzyer:");
+	for (i = 0; i < gDNP3Data.length ; i++)
+		printf("0x%x ", gDNP3Data.mData[i]);
+	printf("\n");
+
+		
 	interp->NewData(m_orig, gDNP3Data.mData, gDNP3Data.mData + gDNP3Data.length );
 
 	gDNP3Data.Clear();
+
+	#ifdef USE_BUFFER
+	if(result == 10){
+		//interp->FlowEOF(m_orig);	
+		//interp->FlowEOF(true);	
+		//interp->FlowEOF(false);	
+	}	
+	#endif
 
 
 	
@@ -578,4 +601,239 @@ void DNP3_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	}
 
 
+int DNP3_Analyzer::DNP3_Reassembler2(int len, const u_char* data, bool orig)
+	{
+	// DNP3 Packet :  DNP3 Serial Link Layer : DNP3 Serial Transport Layer : DNP3 Serial Application Layer
+	
+	//// ** Perform some checkings on DNP3 Serial Link Layer Data **////
+	//// These restrictions can be found in "DNP3 Specification Volume 4, Data Link Layer"
 
+	// The first two bytes of DNP3 Serial Link Layer data is always 0564....
+	// If it is not serial protocol data ignore.
+	if( data[0] != 0x05 || data[1] != 0x64 )
+		return -1;
+
+	// Double check the orig. in case that the first received traffic is response
+	// Such as unsolicited response, a response issued to the control center without receiving any requests
+	u_char control_field = data[3];
+	
+	// DNP3 Serial Link Layer Data can actually be used without being followed any DNP3 Serial Transport Layer and 
+	// DNP3 Serial Application Layer data. It is the legacy design of serial link communication and may be used to detect
+	// network status. A function code field (this is different from the function field you will find in 
+	// DNP3 Serial Application Layer), indicate link layer functionality. 
+	//// In this version of DNP3 Analyer, events from DNP3 Serial Link Layer data is not supported. 
+	///// The 4-bit function code field, included in 4-bit control_field byte, is 0x03, then DNP3 Serial Transport Layer data and 
+	//     DNP3 Serial Application Layer data is deliverd with confirmation requested .
+ 	///// The 4-bit function code field, included in 4-bit control_field byte, is 0x04, then DNP3 Serial Transport Layer data and 
+	//     DNP3 Serial Application Layer data is deliverd without confirmation requested . 
+
+	// TODO-Hui PRM bit
+	if ( (control_field & 0x0F) != 0x03 && (control_field & 0x0F) != 0x04 )
+		return -2;
+
+	//// ** End: Perform some checkings on DNP3 Serial Link Layer Data **////
+	
+	//// ** Perform some checkings on DNP3 Serical Transport Layer Data **////
+	//// These restrictions can be found in "DNP3 Specification Volume 3, Transport Function"
+	
+	//// DNP3 Packet :  DNP3 Serial Link Layer : DNP3 Serial Transport Layer : DNP3 Serial Application Layer
+	//// DNP3 Serial Transport Layer data is always 1 byte. 
+	//// Get FIN FIR seq field in transport header
+	//// FIR indicate whether the following DNP3 Serial Application Layer is first trunk of bytes or not 
+	//// FIN indicate whether the following DNP3 Serial Application Layer is last trunk of bytes or not 
+	int aTranFir = (data[10] & 0x40) >> 6;
+	int aTranFin = (data[10] & 0x80) >> 7;
+	int aTranSeq = (data[10] & 0x3F);
+
+	
+	// if FIR field is 1 and FIN field is 0, the carried DNP3 Pseudo Application Layer Data is the first trunk but not the last trunk, 
+	// more trunks will be received afterforwards
+	if ( (aTranFir == 1) && (aTranFin == 0) )
+		{
+		mEncounteredFirst = true;
+
+		if( len != 292 )
+			{
+			// The largest length of the DNP3 Pseudo Application Layer Data is 292 bytes including the crc values 
+			// If the DNP3 packet contains the first DNP3 Pseudo Application Layer Data but not the last
+			// its size should be exactly 292 bytes. But vise versa is not true.
+			Weird("dnp3_unexpected_payload_size");
+			return -4;
+			}
+		gDNP3Data.Reserve(len);
+
+		//memcpy(gDNP3Data.mData, data, 8); // Keep the first 8 bytes.
+
+		// As mentioned what data includes is :
+		// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
+		// In details. THe structure of the DNP3 Packet is (can be found in page 8 of DNP3 Specification Volum 4, Data Link Layer)
+		// The structure of DNP3 Pseudo Link Layer Data is
+		// 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB (each field is a byte)
+		// The structure of DNP3 Pseudo Transport Layer (1 Byte) and DNP3 Pseudo APplication Layer is 
+		// User Data Block 1 (16 bytes) CRC (2 bytes)
+		// User Data Block 2 (16 bytes) CRC (2 bytes)
+		// .....
+		// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
+		// DNP3 fragment
+
+		DNP3_CopyDataBlock(&gDNP3Data, data, len);	
+		/*	
+		int dnp3_i = 0; // Index within the data block.
+
+		for( int i = 0; i < len - 10; i++ )
+			{
+			if ( (i % 18 != 16) && (i % 18 != 17) // Does not include crc on each data block (not the last data block)
+				&& ((len - 10 - i) > 2)       // Does not include crc on the last data block 
+				&& ( i != 0 ) )               // Does not sent first byte which is DNP3 Pseudo Transport Layer data into binpac analyzer
+				{
+				gDNP3Data.mData[dnp3_i + 8] = data[i + 10];
+				dnp3_i++;
+				}
+			}
+
+		gDNP3Data.length = dnp3_i + 8;
+		*/
+		return 1;  
+		}
+
+	// If FIR is 0, the carried DNP3 Pseudo Application Layer Data is not the first trunk. So this trunk can be either middle trunk
+	// or the last trunk (FIN field is 1)
+
+	if ( aTranFir == 0 )
+		{
+		if ( ! mEncounteredFirst )
+			{
+			Weird("dnp3_first_transport_sgement_missing");
+			return -5;
+			}
+	
+		if ( (aTranFin == 0) && (len != 292) )
+			{
+			// This is not a last transport segment, so the
+			// length of the TCP payload should be exactly 292
+			// bytes.
+			Weird("unexpected_payload_length");
+			return -6;
+			}
+	
+		//// Since this DNP3 Pseudo Application Layer Data is either a middle trunk of the last trunk,
+		//// we have to concate bytes in "data" into the previous data trunk in order to form the complete 
+		//// logicl DNP3 Application layer fragment
+
+		//// a temporary buffer is used to store the bytes issued in previous data trunk
+		//int aTempFormerLen = gDNP3Data.length;
+		//u_char* aTempResult = new u_char[len + aTempFormerLen];
+		//memcpy(aTempResult, gDNP3Data.mData, aTempFormerLen);
+
+		//// Add bytes in "data" into previous trunk
+		//// This piece of code has some differences from the code included in DNP3_CopyDataBlock,
+		//// So I left it as it is. 
+		int dnp3_i = 0;
+
+		for( int i = 0; i < (len - 10); i++ )
+			{
+			if( (i % 18 != 16) && (i % 18 != 17) // Does not include crc on each data block.
+				&& ((len - 10 - i) > 2)      // Does not include last data block.
+				&& ( i != 0 ) )              // Does not consider first byte, transport layer header.
+				{
+				// can not over flow; as the size of the temporary buffer is 
+				// len + gDNP3Data.length; "len" is the length of data
+				//aTempResult[dnp3_i + aTempFormerLen] = data[i + 10];
+				gDNP3Data.mData[dnp3_i] = data[i + 10];
+				dnp3_i++;
+				}
+			}
+
+		//delete [] gDNP3Data.mData;
+		//gDNP3Data.mData = aTempResult;
+		//gDNP3Data.length = dnp3_i + aTempFormerLen;
+		gDNP3Data.length = dnp3_i;
+		
+		if ( aTranFin == 1 ) // If this is the last segment.
+			{
+			mEncounteredFirst = false;
+			
+			// In my TEMPORARY solution, I use "len" (1 byte) and "ctrl" (1 byte) in DNP3 Additional Header to 
+			// represent the length of the whole DNP3 fragment. 
+			if( gDNP3Data.length >= 65536 )
+				{
+				Weird("dnp3_data_exceeds_65K");
+				gDNP3Data.Clear();
+				return -7;
+				}
+			// "len" in DNP3 Additional Header contains the lower 8 bit of the length
+			//gDNP3Data.mData[2] = (gDNP3Data.length - 2) % 0x100;  
+			// "ctrl" in DNP3 Additional Header contains the higher 8 bit of the length
+			//gDNP3Data.mData[3] = ((gDNP3Data.length -2) & 0xFF00) >> 8;
+
+			/// call this function in the this->DeliveryStream
+			////interp->NewData(m_orig, gDNP3Data.mData, gDNP3Data.mData + gDNP3Data.length );
+			
+			// move it to DNP3_Analyzer::DeliverStream
+			//gDNP3Data.Clear();
+			return 10;
+			}
+
+		return 1;
+		}
+
+	// if FIR field is 1 and FIN field is 1, the carried DNP3 Pseudo Application Layer Data is the whole 
+	// logic DNP3 application layer fragment
+	if ( (aTranFir == 1) && (aTranFin == 1) )
+		{
+		//// can directly use gDNP3Data
+		////u_char* tran_data = new u_char[len]; // Definitely not more than original data payload.
+		if( mEncounteredFirst == true )
+			{
+			/// Before this packet, a first transport segment is found
+			/// but the finish one is missing
+			//// so we should clear out the memory used before; abondon the former 
+			//     truncated network packets
+			//  But this newly received packets should be delivered to the binpac as usuall
+			gDNP3Data.Clear();
+			Weird("dnp3_missing_finish_packet");
+			}
+
+		gDNP3Data.Reserve(len);
+		DNP3_CopyDataBlock(&gDNP3Data, data, len);
+		//// since this is the only application layer trunk, so the higer 8bits of the length is 0
+		gDNP3Data.mData[3] = 0x00;
+		/*
+		//memcpy(tran_data, data, 8); // Keep the first 8 bytes.
+		
+		memcpy(gDNP3Data.mData, data, 8); // Keep the first 8 bytes.
+
+		int dnp3_i = 0;
+
+		for( int i = 0; i < len - 10; i++ )
+			{
+			if ( (i % 18 != 16) && (i % 18 != 17) // Does not include crc on each data block.
+		     		&& ((len - 10 - i) > 2)       // Does not include last data block.
+		     		&& ( i != 0 ) )               // Does not consider first byte, transport layer header.
+				{
+				// TODO-HUi: Insert commenty what this is doing.
+				// TODO-Hui: Can this overflow?
+				//tran_data[dnp3_i + 8] = data[i + 10];
+				gDNP3Data.mData[dnp3_i + 8] = data[i + 10];
+				dnp3_i++;
+				}
+			}
+		//tran_data[3] = 0;   // Put ctrl as zero as the high-8bit.
+		gDNP3Data.mData[3] = 0;   // Put ctrl as zero as the high-8bit.
+		//int dnp3_length = dnp3_i + 8;
+		gDNP3Data.length = dnp3_i + 8;
+		//interp->NewData(m_orig, tran_data, tran_data + dnp3_length);
+		*/
+
+		//delete [] tran_data;
+
+		// This is for the abnormal traffic pattern such as a a first
+		// application packet is sent but no last segment is found.
+		mEncounteredFirst = false;
+		//gDNP3Data.Clear();
+	
+		}
+	//// ** End: Perform some checkings on DNP3 Serical Transport Layer Data **////
+
+	return 0;	
+	}

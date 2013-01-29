@@ -2608,6 +2608,8 @@ const gap_report_freq = 1.0 sec &redef;
 ## .. bro:see:: content_gap gap_report partial_connection
 const report_gaps_for_partial = F &redef;
 
+const papi_events = F &redef;
+
 ## The CA certificate file to authorize remote Bros/Broccolis.
 ##
 ## .. bro:see:: ssl_private_key ssl_passphrase

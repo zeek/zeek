@@ -79,6 +79,13 @@ include_directories(BEFORE
 )
 
 # Optional Dependencies
+set(USE_PAPI false)
+find_package(PAPI)
+if ( PAPI_FOUND )
+    set(USE_PAPI true)
+    include_directories(BEFORE ${PAPI_INCLUDE_DIRS})
+    list(APPEND OPTLIBS ${PAPI_LIBRARIES})
+endif ()
 
 set(USE_GEOIP false)
 find_package(LibGeoIP)
@@ -231,6 +238,7 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
+    "\nPAPI:              ${USE_PAPI}"
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"

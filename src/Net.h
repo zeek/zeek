@@ -11,6 +11,8 @@
 #include "Func.h"
 #include "RemoteSerializer.h"
 
+class Conn;
+
 extern void net_init(name_list& interfaces, name_list& readfiles,
 		name_list& netflows, name_list& flowfiles,
 		const char* writefile, const char* filter,
@@ -83,6 +85,7 @@ extern int current_hdr_size;
 extern double current_timestamp;
 extern PktSrc* current_pktsrc;
 extern IOSource* current_iosrc;
+extern Connection* current_conn;
 
 declare(PList,PktSrc);
 extern PList(PktSrc) pkt_srcs;

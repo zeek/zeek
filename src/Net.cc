@@ -68,6 +68,8 @@ double current_timestamp = 0.0;
 PktSrc* current_pktsrc = 0;
 IOSource* current_iosrc;
 
+Connection* current_conn = 0;
+
 std::list<ScannedFile> files_scanned;
 std::vector<string> sig_files;
 

@@ -5,6 +5,7 @@
 #include "Event.h"
 #include "Func.h"
 #include "NetVar.h"
+#include "Net.h"
 #include "Trigger.h"
 
 EventMgr mgr;
@@ -27,6 +28,7 @@ Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
 		Ref(obj);
 
 	next_event = 0;
+	conn = current_conn;
 	}
 
 Event::~Event()
@@ -34,6 +36,38 @@ Event::~Event()
 	// We don't Unref() the individual arguments by using delete_vals()
 	// here, because Func::Call already did that.
 	delete args;
+	}
+
+void Event::Dispatch(bool no_remote)
+	{
+	if ( event_serializer )
+		{
+		SerialInfo info(event_serializer);
+		event_serializer->Serialize(&info, handler->Name(), args);
+		}
+
+	if ( handler->ErrorHandler() )
+		reporter->BeginErrorHandler();
+
+	try
+		{
+		Connection* save_current_conn = current_conn;
+		current_conn = conn;
+		handler->Call(args, no_remote);
+		current_conn = save_current_conn;
+		}
+
+	catch ( InterpreterException& e )
+		{
+		// Already reported.
+		}
+
+	if ( obj )
+		// obj->EventDone();
+		Unref(obj);
+
+	if ( handler->ErrorHandler() )
+		reporter->EndErrorHandler();
 	}
 
 void Event::Describe(ODesc* d) const

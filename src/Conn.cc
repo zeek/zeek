@@ -604,8 +604,10 @@ int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
 
 void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, const char* name)
 	{
-	if ( ! f )
+	if ( ! f ) 
 		return;
+
+	current_conn = this;
 
 	val_list* vl = new val_list(2);
 	if ( name )
@@ -613,6 +615,7 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, const char* name)
 	vl->append(BuildConnVal());
 
 	ConnectionEvent(f, analyzer, vl);
+	current_conn = 0;
 	}
 
 void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
@@ -624,6 +627,8 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
 		return;
 		}
 
+	current_conn = this;
+
 	val_list* vl = new val_list(3);
 	vl->append(BuildConnVal());
 	vl->append(v1);
@@ -632,6 +637,7 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
 		vl->append(v2);
 
 	ConnectionEvent(f, analyzer, vl);
+	current_conn = 0;
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
@@ -646,9 +652,12 @@ void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
 		return;
 		}
 
+	current_conn = this;
+
 	// "this" is passed as a cookie for the event
 	mgr.QueueEvent(f, vl, SOURCE_LOCAL,
 			a ? a->GetID() : 0, GetTimerMgr(), this);
+	current_conn = 0;
 	}
 
 void Connection::Weird(const char* name, const char* addl)

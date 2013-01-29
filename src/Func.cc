@@ -333,7 +333,24 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		try
 			{
+#ifdef USE_PAPI
+			long_long cnts[PAPI_NUM_EVENTS];
+			double t = network_time;
+
+			if ( BifConst::papi_events && Flavor() == FUNC_FLAVOR_EVENT )
+				papi_start(cnts);
+#endif
+
 			result = bodies[i].stmts->Exec(f, flow);
+
+#ifdef USE_PAPI
+			if ( BifConst::papi_events && Flavor() == FUNC_FLAVOR_EVENT )
+				{
+				if ( papi_stop(cnts) )
+					PAPIOutput(t, bodies[i], cnts);
+				}
+
+#endif
 			}
 
 		catch ( InterpreterException& e )
@@ -393,6 +410,57 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	return result;
 	}
+
+#ifdef USE_PAPI
+
+void BroFunc::PAPIOutput(double t, const Body& body, const long_long* cnts) const
+	{
+	static FILE* papi_log = 0;
+
+	if ( ! papi_log )
+		{
+		papi_log = fopen("papi-events.log", "w");
+		if ( ! papi_log )
+			{
+			fprintf(stderr, "cannot open PAPI event log file for output.\n");
+			exit(1);
+			}
+
+		fprintf(papi_log, "# time name conn instructions cycles\n");
+		}
+
+
+	char tmp[20];
+	const char* uid = "-";
+
+	if ( current_conn )
+		{
+		uitoa_n(current_conn->GetUID(), tmp, sizeof(tmp), 62);
+		uid = tmp;
+		}
+
+	const Location* l = body.stmts->GetLocationInfo();
+	const char *f = l->filename + strlen(l->filename);
+
+	int cnt = 3;
+
+	while ( cnt && --f > l->filename )
+		{
+		if ( *f == '/' )
+			--cnt;
+		}
+
+	if ( f <= l->filename )
+		f = l->filename;
+	else
+		f++;
+
+	fprintf(papi_log, "%.6f %s@%s:%d %s %lld %lld\n",
+			t, id->Name(), f, l->first_line,
+			uid, cnts[0], cnts[1]);
+
+	}
+#endif
 
 void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 		int priority)

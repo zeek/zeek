@@ -364,4 +364,15 @@ struct CompareString
 		}
 	};
 
+// PAPI library helpers.
+#ifdef USE_PAPI
+#include <papi.h>
+#define  PAPI_NUM_EVENTS    2
+#define  PAPI_TOT_CYCLES    0
+extern void papi_init();
+extern void papi_finish();
+extern void papi_start(long_long* cnts);
+extern bool papi_stop(long_long* cnts);
+#endif
+
 #endif

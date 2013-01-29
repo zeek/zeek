@@ -720,6 +720,10 @@ int main(int argc, char** argv)
 	SSL_library_init();
 	SSL_load_error_strings();
 
+#ifdef USE_PAPI
+	papi_init();
+#endif
+
 #ifdef USE_CURL
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif

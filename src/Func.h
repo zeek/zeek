@@ -101,6 +101,10 @@ public:
 
 	void Describe(ODesc* d) const;
 
+#ifdef USE_PAPI
+	void PAPIOutput(double t, const Body& body, const long_long* cnts) const;
+#endif
+
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
 	Stmt* AddInits(Stmt* body, id_list* inits);

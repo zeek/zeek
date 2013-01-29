@@ -1459,6 +1459,99 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	// return ret_total;
 	}
 
+#ifdef USE_PAPI
+
+int PAPISet = PAPI_NULL;
+bool have_papi = false;
+
+// PAPI helpers.
+void papi_init()
+	{
+	have_papi = false;
+
+	if ( PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT)
+		{
+		fprintf(stderr, "warning: cannot init PAPI library (not running as root?)!\n");
+		return;
+		}
+
+	int ret;
+	if ( (ret = PAPI_create_eventset(&PAPISet)) != PAPI_OK )
+		{
+		fprintf(stderr, "Error in creating the event set: %s\n", PAPI_strerror(ret));
+		return;
+		}
+
+	if ( (ret = PAPI_add_event(PAPISet, PAPI_TOT_INS)) != PAPI_OK )
+		{
+		fprintf(stderr, "Error in adding into the event set (tot_ins): %s\n", PAPI_strerror(ret));
+		return;
+		}
+
+	if ( (ret = PAPI_add_event(PAPISet, PAPI_TOT_CYC)) != PAPI_OK )
+		{
+		fprintf(stderr, "Error in adding into the event set (tot_cyc): %s\n", PAPI_strerror(ret));
+		return;
+		}
+
+	PAPI_option_t options;
+	memset(&options, 0, sizeof(options));
+	options.domain.eventset = PAPISet;
+	options.domain.domain = PAPI_DOM_ALL;
+	if ( (ret = PAPI_set_opt(PAPI_DOMAIN, &options)) != PAPI_OK )
+		{
+		fprintf(stderr, "Error in setting PAPI domain: %s\n", PAPI_strerror(ret));
+		return;
+		}
+
+	if ( (ret = PAPI_start(PAPISet)) != PAPI_OK)
+		{
+		fprintf(stderr, "Error in starting PAPI counters: %s\n", PAPI_strerror(ret));
+		return;
+		}
+
+	have_papi = true;
+	}
+
+void papi_finish()
+	{
+	int ret;
+	long_long dummy[PAPI_NUM_EVENTS];
+	if ( (ret = PAPI_stop(PAPISet, dummy)) != PAPI_OK)
+		fprintf(stderr, "Error in stoppping PAPI counters: %s\n", PAPI_strerror(ret));
+	}
+
+void papi_start(long_long* cnts)
+	{
+	if ( ! have_papi )
+		return;
+
+	int ret;
+	if ( (ret = PAPI_read(PAPISet, cnts)) != PAPI_OK)
+		fprintf(stderr, "Error in reading PAPI counters: %s\n", PAPI_strerror(ret));
+	}
+
+bool papi_stop(long_long* cnts)
+	{
+	if ( ! have_papi )
+		return false;
+
+	long_long cnts2[PAPI_NUM_EVENTS];
+
+	int ret;
+	if ( (ret = PAPI_read(PAPISet, cnts2)) != PAPI_OK)
+		{
+		fprintf(stderr, "Error in reading PAPI counters: %s\n", PAPI_strerror(ret));
+		return false;
+		}
+
+	for ( int i = 0; i < PAPI_NUM_EVENTS; i++ )
+		cnts[i] = cnts2[i] - cnts[i];
+
+	return true;
+	}
+#endif
+
 #ifdef malloc
 
 #undef malloc

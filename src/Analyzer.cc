@@ -777,8 +777,10 @@ void Analyzer::ProtocolConfirmation()
 
 	// We immediately raise the event so that the analyzer can quickly
 	// react if necessary.
+	current_conn = Conn();
 	::Event* e = new ::Event(protocol_confirmation, vl, SOURCE_LOCAL);
 	mgr.Dispatch(e);
+	current_conn = 0;
 
 	protocol_confirmed = true;
 	}
@@ -806,8 +808,10 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 
 	// We immediately raise the event so that the analyzer can quickly be
 	// disabled if necessary.
+	current_conn = Conn();
 	::Event* e = new ::Event(protocol_violation, vl, SOURCE_LOCAL);
 	mgr.Dispatch(e);
+	current_conn = 0;
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,

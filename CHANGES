@@ -1,4 +1,12 @@
 
+2.1-310 | 2013-01-30 20:09:27 -0800
+
+  * Add an error for record coercions that would orphan a field. (Jon
+    Siwek)
+
+  * Fixing several scripts where a field in an inlined record was
+    never removed after a code refactor. (Jon Siwek)
+
 2.1-307 | 2013-01-25 13:50:57 -0800
 
   * Fix runaway reference counting bug in record coercion. (Jon Siwek)

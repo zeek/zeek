@@ -1053,7 +1053,7 @@ int main(int argc, char** argv)
 
 	io_sources.Register(thread_mgr, true);
 
-	if ( io_sources.Size() > 0 || have_pending_timers )
+	if ( io_sources.Size() > 0 || have_pending_timers || BifConst::exit_only_after_terminate )
 		{
 		if ( profiling_logger )
 			profiling_logger->Log();

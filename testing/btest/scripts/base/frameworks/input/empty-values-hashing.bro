@@ -1,6 +1,3 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 2
@@ -23,8 +20,9 @@
 2	TEST	TEST
 @TEST-END-FILE
 
-@load frameworks/communication/listen
+@load base/frameworks/communication  # let network-time run
 
+redef exit_only_after_terminate = T;
 
 module A;
 

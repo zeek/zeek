@@ -1,6 +1,3 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
@@ -17,7 +14,7 @@ need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	95	1342569600	1.228.83.
 need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	65	1342656000	1.228.83.33	-	-	9318 HANARO-AS Hanaro Telecom Inc.	1.224.0.0/13	apnic	KR	spam infrastructure	spamming;malware domain	public	http://reputation.alienvault.com/reputation.generic
 @TEST-END-FILE
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 global outfile: file;
 

@@ -1,4 +1,13 @@
 
+2.1-319 | 2013-02-04 09:45:34 -0800
+
+  * Update input tests to use exit_only_after_terminate. (Bernhard
+    Amann)
+
+  * New option exit_only_after_terminate to prevent Bro from exiting.
+    If set, the main loop won't terminate before somebody calls
+    terminate(). (Robin Sommer)
+
 2.1-311 | 2013-02-01 08:03:01 -0800
 
   * Updating submodule(s).

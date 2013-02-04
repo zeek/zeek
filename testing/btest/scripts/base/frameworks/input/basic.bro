@@ -1,9 +1,8 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
+
+redef exit_only_after_terminate = T;
 
 @TEST-START-FILE input.log
 #separator \x09
@@ -14,7 +13,6 @@ T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 @TEST-END-FILE
 
 @load base/protocols/ssh
-@load frameworks/communication/listen
 
 global outfile: file;
 

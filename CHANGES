@@ -1,4 +1,12 @@
 
+2.1-328 | 2013-02-05 01:34:29 -0500
+
+  * New script to query the ICSI Certificate Notary 
+    (http://notary.icsi.berkeley.edu/) over DNS and add information
+    to the SSL log at runtime. (Matthias Vallentin) 
+
+  * Add delayed logging to SSL base scripts. (Matthias Vallentin)
+
 2.1-319 | 2013-02-04 09:45:34 -0800
 
   * Update input tests to use exit_only_after_terminate. (Bernhard

@@ -59,6 +59,10 @@ redef Software::vulnerable_versions += {
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
+# This script checks each SSL certificate hash against the ICSI certificate
+# notary service.
+@load protocols/ssl/notary
+
 # If you have libGeoIP support built in, do some geographic detections and 
 # logging for SSH traffic.
 @load protocols/ssh/geo-data

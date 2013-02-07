@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
@@ -9,6 +9,8 @@
 #types	int	bool
 1	T
 @TEST-END-FILE
+
+redef exit_only_after_terminate = T;
 
 global outfile: file;
 global try: count;

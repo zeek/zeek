@@ -1,4 +1,88 @@
 
+2.1-328 | 2013-02-05 01:34:29 -0500
+
+  * New script to query the ICSI Certificate Notary 
+    (http://notary.icsi.berkeley.edu/) over DNS and add information
+    to the SSL log at runtime. (Matthias Vallentin) 
+
+  * Add delayed logging to SSL base scripts. (Matthias Vallentin)
+
+2.1-319 | 2013-02-04 09:45:34 -0800
+
+  * Update input tests to use exit_only_after_terminate. (Bernhard
+    Amann)
+
+  * New option exit_only_after_terminate to prevent Bro from exiting.
+    If set, the main loop won't terminate before somebody calls
+    terminate(). (Robin Sommer)
+
+2.1-311 | 2013-02-01 08:03:01 -0800
+
+  * Updating submodule(s).
+
+2.1-310 | 2013-01-30 20:09:27 -0800
+
+  * Add an error for record coercions that would orphan a field. (Jon
+    Siwek)
+
+  * Fixing several scripts where a field in an inlined record was
+    never removed after a code refactor. (Jon Siwek)
+
+2.1-307 | 2013-01-25 13:50:57 -0800
+
+  * Fix runaway reference counting bug in record coercion. (Jon Siwek)
+
+  * Fix memory leak in some reporter messaging cases. (Jon Siwek)
+
+2.1-304 | 2013-01-23 19:43:27 -0800
+
+  * Making a test portable. (Robin Sommer)
+
+2.1-302 | 2013-01-23 16:17:29 -0800
+
+  * Refactoring ASCII formatting/parsing from loggers/readers into a
+    separate AsciiFormatter class. (Bernhard Amann)
+
+  * Fix uninitialized locals in event/hook handlers from having a
+    value. Addresses #932. (Jon Siwek)
+
+  * Add a null value check in CompositeHash::ComputeHash. Addresses
+    #930. (Jon Siwek)
+
+  * Change reporter messages to more reliably print to stderr.
+    Addressed #930 (and revisits #836). (Jon Siwek)
+
+  * Changing test=suite's btest call to use "-j" instead of "-j 5".
+    (Robin Sommer)
+    
+  * Require "case" blocks to end with either "break", "return", or a
+    new "fallthrough" statement that passes control on to the
+    subsequent case. This gives us the best mix of safety,
+    readability, and flexibility. Addresses #754. (Jon Siwek)
+
+2.1-279 | 2013-01-18 17:18:22 -0800
+
+  * Revert "Trick for parallelizing input framework unit tests." The
+    old way of doing the tests seems more reliable for now. (Jon
+    Siwek)
+
+  * Fixing variable size issues with http response code in
+    ElasticSearch writer. (Gilbert Clark)
+
+  * Removing unused class member. (Robin Sommer)
+    
+  * Add opaque type-ignoring for the accept_unsupported_types input
+    framework option. (Bernhard Amann)
+
+2.1-271 | 2013-01-08 10:18:57 -0800
+
+  * Change substring index notation to use a colon.  String slice
+    notation is now written as `s[1:2]`. Addresses #422. (Jon Siwek)
+
+2.1-268 | 2013-01-07 09:43:44 -0800
+
+  * Fix memory leak in OpaqueType::DoUnserialize. (Jon Siwek)
+
 2.1-265 | 2012-12-20 17:38:42 -0800
 
   * Add array-style index accessor for strings.  Addresses #422. (Jon

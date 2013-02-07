@@ -1,5 +1,5 @@
 # @TEST-EXEC: cp input1.log input.log
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: cp input2.log input.log
 # @TEST-EXEC: btest-bg-wait -k 5
@@ -19,6 +19,10 @@
 1	TEST	-
 2	TEST	TEST
 @TEST-END-FILE
+
+@load base/frameworks/communication  # let network-time run
+
+redef exit_only_after_terminate = T;
 
 module A;
 

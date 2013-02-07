@@ -2801,9 +2801,24 @@ bool AssignExpr::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_init);
 	}
 
-IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2)
+IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 : BinaryExpr(EXPR_INDEX, arg_op1, arg_op2)
 	{
+	if ( IsError() )
+		return;
+
+	if ( is_slice )
+		{
+		if ( ! IsString(op1->Type()->Tag()) )
+			ExprError("slice notation indexing only supported for strings currently");
+		}
+
+	else if ( IsString(op1->Type()->Tag()) )
+		{
+		if ( arg_op2->Exprs().length() != 1 )
+			ExprError("invalid string index expression");
+		}
+
 	if ( IsError() )
 		return;
 
@@ -3906,8 +3921,11 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
-				// Orphane field in rhs, that's ok.
-				continue;
+				{
+				ExprError(fmt("orphaned field \"%s\" in record coercion",
+				              sub_r->FieldName(i)));
+				break;
+				}
 
 			BroType* sub_t_i = sub_r->FieldType(i);
 			BroType* sup_t_i = t_r->FieldType(t_i);
@@ -3952,7 +3970,7 @@ RecordCoerceExpr::~RecordCoerceExpr()
 
 Val* RecordCoerceExpr::Fold(Val* v) const
 	{
-	RecordVal* val = new RecordVal(Type()->Ref()->AsRecordType());
+	RecordVal* val = new RecordVal(Type()->AsRecordType());
 	RecordVal* rv = v->AsRecordVal();
 
 	for ( int i = 0; i < map_size; ++i )

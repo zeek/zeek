@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
@@ -13,6 +13,8 @@ need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	65	1342656000	1.0.17.22
 need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	95	1342569600	1.228.83.33	6	25	9318 HANARO-AS Hanaro Telecom Inc.	1.224.0.0/13	apnic	KR	spam infrastructure	direct ube sources, spam operations & spam services	public	http://www.spamhaus.org/query/bl?ip=1.228.83.33
 need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	65	1342656000	1.228.83.33	-	-	9318 HANARO-AS Hanaro Telecom Inc.	1.224.0.0/13	apnic	KR	spam infrastructure	spamming;malware domain	public	http://reputation.alienvault.com/reputation.generic
 @TEST-END-FILE
+
+redef exit_only_after_terminate = T;
 
 global outfile: file;
 

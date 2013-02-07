@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
+#include "threading/AsciiFormatter.h"
 
 namespace input { namespace reader {
 
@@ -47,8 +48,6 @@ private:
 
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
-	threading::Value* EntryToVal(string s, FieldMapping type);
-	bool CheckNumberError(const string& s, const char * end);
 
 	ifstream* file;
 	time_t mtime;
@@ -64,6 +63,8 @@ private:
 	string set_separator;
 	string empty_field;
 	string unset_field;
+
+	AsciiFormatter* ascii;
 };
 
 

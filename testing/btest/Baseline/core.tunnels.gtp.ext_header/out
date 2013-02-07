@@ -1,0 +1,2 @@
+gtpv1_message, [orig_h=10.155.148.149, orig_p=9000/udp, resp_h=10.155.148.157, resp_p=2152/udp]
+[version=1, pt_flag=T, rsv=F, e_flag=T, s_flag=T, pn_flag=F, msg_type=255, length=1508, teid=1050199, seq=5, n_pdu=0, next_type=192]

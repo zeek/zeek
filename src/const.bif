@@ -6,6 +6,7 @@ const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const use_conn_size_analyzer: bool;
 const report_gaps_for_partial: bool;
+const exit_only_after_terminate: bool;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;

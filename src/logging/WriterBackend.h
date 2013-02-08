@@ -256,30 +256,6 @@ public:
 	 */
 	bool FinishedRotation();
 
-	/** Helper method to render an IP address as a string.
-	  *
-	  * @param addr The address.
-	  *
-	  * @return An ASCII representation of the address.
-	  */
-	string Render(const threading::Value::addr_t& addr) const;
-
-	/** Helper method to render an subnet value as a string.
-	  *
-	  * @param addr The address.
-	  *
-	  * @return An ASCII representation of the address.
-	  */
-	string Render(const threading::Value::subnet_t& subnet) const;
-
-	/** Helper method to render a double in Bro's standard precision.
-	  *
-	  * @param d The double.
-	  *
-	  * @return An ASCII representation of the double.
-	  */
-	string Render(double d) const;
-
 	// Overridden from MsgThread.
 	virtual bool OnHeartbeat(double network_time, double current_time);
 	virtual bool OnFinish(double network_time);

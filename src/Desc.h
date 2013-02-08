@@ -57,9 +57,13 @@ public:
 	void AddEscapeSequence(const char* s) { escape_sequences.push_back(s); }
 	void AddEscapeSequence(const char* s, size_t n)
 	    { escape_sequences.push_back(string(s, n)); }
+	void AddEscapeSequence(const string & s)
+	    { escape_sequences.push_back(s); }
 	void RemoveEscapeSequence(const char* s) { escape_sequences.remove(s); }
 	void RemoveEscapeSequence(const char* s, size_t n)
 	    { escape_sequences.remove(string(s, n)); }
+	void RemoveEscapeSequence(const string & s)
+	    { escape_sequences.remove(s); }
 
 	void PushIndent();
 	void PopIndent();
@@ -114,6 +118,7 @@ public:
 
 	// Bypasses the escaping enabled via SetEscape().
 	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
+	void AddRaw(const string &s)		{ AddBytesRaw(s.data(), s.size()); }
 
 	// Returns the description as a string.
 	const char* Description() const		{ return (const char*) base; }

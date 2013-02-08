@@ -199,10 +199,6 @@ private:
 	bool terminating;	// Set to to true to signal termination.
 	bool killed;	// Set to true once forcefully killed.
 
-	// Used as a semaphore to tell the pthread thread when it may
-	// terminate.
-	pthread_mutex_t terminate;
-
 	// For implementing Fmt().
 	char* buf;
 	unsigned int buf_len;

@@ -1,0 +1,2 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.uninitialized-local/uninitialized-local.bro, line 16: value used but not set (my_string)
+Continuing

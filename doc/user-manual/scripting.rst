@@ -115,7 +115,7 @@ Bro uses the dollar sign as its field delimiter and a direct correlation exists 
 
     @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/dns-session.trace ${TESTBASE}/doc/manual/connection_record_02.bro
 
-The addition of the ``base/protocols/dns`` scripts populates the dns=[] member of the connection record.  While Bro is doing a massive amount of work in the background, it is in what is commonly called "script land" that details are being refined and decisions being made.  Were we to continue running in "bare mode" we could slowly keep adding infrastructure through ``@load`` statements.  For example, were we to ``@load base/frameworks/logging``, Bro would generate a conn.log and dns.log for us in the current working directory.  As mentioned above, including the appropriate ``@load`` statements is not only good practice, but can also help to indicate which functionalities are being used in a script.
+The addition of the ``base/protocols/dns`` scripts populates the dns=[] member of the connection record.  While Bro is doing a massive amount of work in the background, it is in what is commonly called "script land" that details are being refined and decisions being made.  Were we to continue running in "bare mode" we could slowly keep adding infrastructure through ``@load`` statements.  For example, were we to ``@load base/frameworks/logging``, Bro would generate a conn.log and dns.log for us in the current working directory.  As mentioned above, including the appropriate ``@load`` statements is not only good practice, but can also help to indicate which functionalities are being used in a script.  Take a second to run the script with the ``-b`` flag and check the output when all of Bro's functionality is applied to the tracefile.  
 
 Data Types and Data Structures
 ==============================
@@ -145,7 +145,21 @@ The sample above also makes use of an export{} block.  When the module keyword i
 Constants
 ~~~~~~~~~
 
-Bro also makes use of constants which are denoted by the "const" keyword.  Unlike globals, constants can only be set or altered at parse time, afterwards (in runtime) the constants are unalterable.  In most cases, constants are used in Bro scripts as containers for configuration options.  The majority of constants defined are defined with the "&redef" attribute, making it such that the constant can be redefined.  While the idea of a redefinable constant might be odd, the constraint that constants can only be altered at parse-time remains even with the "&redef" attribute.  In the code snippet below, a table of strings indexed by ports is declared as a constant before two values are added to the table through redef statements.  The table is then printed in a bro_init() event.  Were we to try to alter the table in an event handler, Bro would notify the user of an error and the script would fail.
+Bro also makes use of constants which are denoted by the "const" keyword.  Unlike globals, constants can only be set or altered at parse time if the &redef attribute has been used.  Afterwards (in runtime) the constants are unalterable.  In most cases, redefinable constants are used in Bro scripts as containers for configuration options.  For example, the configuration option to log password decrypted from HTTP streams is stored in ``HTTP::default_capture_password`` as shown in the stripped down excerpt from ``http/main.bro`` below.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
+   :language: bro
+   :linenos:
+   :lines: 8-10,19,20,74
+
+Because the constant was declared with the ``&redef`` attribute, if we needed to turn this option on globally, we could do so by adding the following line to our ``site/local.bro`` file before firing up Bro.
+
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_const_simple.bro
+   :language: bro
+   :lines: 6
+
+While the idea of a redefinable constant might be odd, the constraint that constants can only be altered at parse-time remains even with the "&redef" attribute.  In the code snippet below, a table of strings indexed by ports is declared as a constant before two values are added to the table through redef statements.  The table is then printed in a bro_init() event.  Were we to try to alter the table in an event handler, Bro would notify the user of an error and the script would fail.
 
 .. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_const.bro
    :language: bro

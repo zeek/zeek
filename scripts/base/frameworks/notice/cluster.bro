@@ -21,20 +21,9 @@ redef Cluster::manager2worker_events += /Notice::begin_suppression/;
 redef Cluster::worker2manager_events += /Notice::cluster_notice/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
-
-# The notice policy is completely handled by the manager and shouldn't be 
-# done by workers or proxies to save time for packet processing.
-redef Notice::policy = table();
-
 event Notice::begin_suppression(n: Notice::Info)
 	{
 	suppressing[n$note, n$identifier] = n;
-	}
-
-event Notice::notice(n: Notice::Info)
-	{
-	# Send the locally generated notice on to the manager.
-	event Notice::cluster_notice(n);
 	}
 
 event bro_init() &priority=-3
@@ -54,3 +43,20 @@ event Notice::cluster_notice(n: Notice::Info)
 	NOTICE(n);
 	}
 @endif
+
+module GLOBAL;
+
+## This is the entry point in the global namespace for notice framework.
+function NOTICE(n: Notice::Info)
+	{
+	# Suppress this notice if necessary.
+	if ( Notice::is_being_suppressed(n) )
+		return;
+
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+	Notice::internal_NOTICE(n);
+@else
+	# For non-managers, send the notice on to the manager.
+	event Notice::cluster_notice(n);
+@endif
+	}

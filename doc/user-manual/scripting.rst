@@ -135,7 +135,7 @@ Global Variables
 
 A global variable is used when the state of variable needs to be tracked, not surprisingly, globally.  While there are some caveats, when a script declares a variable using the global scope, that script is granting access to that variable from other scripts.  However, when a script uses the ``module`` keyword to give the script a namespace, more care must be given to the declaration of globals to ensure the intended result.  When a global is declared in a script with a namespace there are two possible outcomes.  First, the variable is available only within the context of the namespace.  In this scenario, other scripts within the same namespace will have access to the varaible declared while scripts using a different namespace or no namespace altogether will not have access to the variable.  Alternatively, if a global variable is declared within an ``export{}`` block that variable is available to any other script through the naming convention of ``MODULE::variable_name``.
 
-The declaration below, is a taken from the ``known-hosts.bro`` script and declares a variable called "known_hosts"" as a global set of unique ip addresses(line 32) within the "Known" namespace (line 8) and exports it (line 10) for use outside of the "Known" namespace.  Were we to want to use the "known_hosts" variable we'd be able to access it through "Known::known_hosts".  
+The declaration below, is a taken from the ``known-hosts.bro`` script and declares a variable called "known_hosts"" as a global set of unique ip addresses(line 32) within the "Known" namespace (line 8) and exports it (line 10) for use outside of the "Known" namespace.  Were we to want to use the "known_hosts" variable we'd be able to access it through ``Known::known_hosts``.  
 
 .. literalinclude:: ../scripts/policy/protocols/conn/known-hosts.bro
    :language: bro
@@ -306,9 +306,13 @@ In a lot of cases, storing elements in a vector is simply a precursor to then it
     @TEST-EXEC: btest-rst-cmd bro -b ${TESTBASE}/doc/manual/data_struct_vector_iter.bro
 
 
-
 Data Types Revisited
 --------------------
+
+addr
+~~~~
+
+The addr, or address, data type manages to cover a surprisingly large amount of ground while remaining succinct.  IPv4, IPv6 and even hostname constants are included in the addr data type.  While IPv4 addresses use the default dotted quad formatting, IPv6 addresses use RFC 2373 defined notation with the addition of squared brackets wrapping the entire address.   When you venture into hostname constants, Bro performs a little slight of hand for the benefit of the user; a hostname constant is, in fact, a set of addresses.  Bro will issue a DNS request when it sees a hostname constant in use and return a set whose elements are the invidiual answers to the DNS request.
 
 subnet
 ~~~~~~

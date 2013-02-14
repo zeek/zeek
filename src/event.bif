@@ -6560,6 +6560,9 @@ event netflow_v5_record%(r: nf_v5_record%);
 ### Volum 4, Data Link Layer, DNP3 Specification Volum 6, Part 1 Basic, DNP3 OBJECT LIBRARY, 
 ### DNP3 Specification Volum 6, Part 2 Objects, DNP3 OBJECT LIBRARY 
 
+event dnp3_debug_bufferBytes%(c: connection , is_orig: bool, buffer_bytes: count%);
+
+
 ## Generated for the request header in Pseudo Application Layer. 
 ## The request header contains two fields: 
 ##    app_control: application control field.

@@ -3,7 +3,7 @@
 #include "TCP_Reassembler.h"
 
 
-#define USE_BUFFER 
+#define NOTUSE_BUFFER 
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTag::DNP3, c)
 	{
@@ -547,9 +547,11 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		return ;
 
 
-	#ifdef USE_BUFFER
+	#ifdef NOTUSE_BUFFER
 	result = DNP3_Reassembler2(len, data, orig);
 	gDNP3Data.mData[3] = 0x00;
+	
+	//gDNP3Data.mData[3] = 0xff;
 	
 	#else
 
@@ -574,9 +576,15 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	gDNP3Data.Clear();
 
-	#ifdef USE_BUFFER
+	#ifdef NOTUSE_BUFFER
 	if(result == 10){
 		//interp->FlowEOF(m_orig);	
+		//interp->FlowEOF(true);	
+		//interp->FlowEOF(false);	
+	}
+	#else 
+	if(result == 10){
+		interp->FlowEOF(m_orig);	
 		//interp->FlowEOF(true);	
 		//interp->FlowEOF(false);	
 	}	
@@ -676,7 +684,9 @@ int DNP3_Analyzer::DNP3_Reassembler2(int len, const u_char* data, bool orig)
 		// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
 		// DNP3 fragment
 
-		DNP3_CopyDataBlock(&gDNP3Data, data, len);	
+		DNP3_CopyDataBlock(&gDNP3Data, data, len);
+		gDNP3Data.mData[3] = 0xff;
+		//gDNP3Data.length = gDNP3Data.mData[3] * 0x100 + gDNP3Data.mData[2];	
 		/*	
 		int dnp3_i = 0; // Index within the data block.
 

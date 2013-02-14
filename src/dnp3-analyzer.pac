@@ -7,6 +7,79 @@ connection DNP3_Conn(bro_analyzer: BroAnalyzer) {
 flow DNP3_Flow(is_orig: bool) {
 	flowunit = DNP3_PDU(is_orig) withcontext (connection, this);
 
+
+	%member{
+        FlowBuffer frag_reassembler_;
+	//FlowBuffer flow_buffer_;
+	const_byteptr pre_begin;
+	const_byteptr pre_end;
+        %}
+
+
+	function increaseBuffer(addBuffer: uint32): bool
+		%{
+		//flow_buffer_->ExpandBuffer(addBuffer);
+		printf("HL Debug: increase buffer \n");
+		pre_begin = flow_buffer_->begin();
+		pre_end = flow_buffer_->end();
+		//flow_buffer_->GrowFrame(addBuffer);
+		flow_buffer_->NewFrame(addBuffer, false);
+		return true;
+		%}
+	function get_bufferContents(): const_bytestring
+		%{
+		//if(flow_buffer_->ready() == true){
+			return const_bytestring(
+                        	flow_buffer_->begin(),
+                        	flow_buffer_->end());	
+                        	//( flow_buffer_->begin()) + 10 );	
+		//}
+		//return 0;
+		%}
+	function getPreviousBuffer(addBuffer: uint32): const_bytestring
+		%{
+		//if(flow_buffer_->ready() == true){
+			return const_bytestring(
+                        	pre_begin,
+                        	pre_begin + addBuffer);	
+                        	//( flow_buffer_->begin()) + 10 );	
+		//}
+		//return 0;
+		%}
+
+	function get_bufferBytes(): uint32
+		%{
+		return flow_buffer_->data_length();
+		//return frag_reassembler_.data_length();
+		//return frag_reassembler_.orig_data_end_ - frag_reassembler_.orig_data_begin_;
+		%}
+	function buffer_available(): bool
+		%{
+		return flow_buffer_->data_available();
+		//return true;
+		%}
+	function buffer_ready(): bool
+		%{
+		return flow_buffer_->ready();
+		%}
+	
+	function get_dnp3_debug_bufferBytes(buffer_bytes: uint32): bool
+		%{
+		if ( ::dnp3_debug_bufferBytes )
+			{
+			BifEvent::generate_dnp3_debug_bufferBytes(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), buffer_bytes);
+			}
+		return true;
+		%}
+
+	function get_data(debug: const_bytestring): const_bytestring
+		%{
+		return debug;	
+		%}	
+
 	function get_dnp3_header_block(start: uint16, len: uint8, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool
 		%{
 		if ( ::dnp3_header_block )
@@ -706,6 +779,22 @@ flow DNP3_Flow(is_orig: bool) {
 
 };
 
+refine typeattr DNP3_Req += &let {
+	get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
+};
+
+refine typeattr DNP3_ReqWrap += &let {
+	get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
+};
+
+refine typeattr  File_Transport += &let {
+	get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
+};
+
+refine typeattr Header_Block += &let {
+	get_buffer1: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes1);
+};
+
 refine typeattr Header_Block += &let {
 	get_header: bool =  $context.flow.get_dnp3_header_block(start, len, ctrl, dest_addr, src_addr);
 };
@@ -946,4 +1035,21 @@ refine typeattr FrozenAnaInputEveDPwTime += &let {
 
 refine typeattr Debug_Byte += &let {
 	process_request: bool =  $context.flow.get_dnp3_debug_byte(debug);
+};
+
+refine typeattr DNP3_Req += &let {
+	#process_request: bool =  $context.flow.get_dnp3_debug_byte(data);
+	#process_request: bool =  $context.flow.get_dnp3_debug_byte(body);
+};
+
+refine typeattr Body += &let {
+	process_request: bool =  $context.flow.get_dnp3_debug_byte(payload);
+};
+
+refine typeattr DNP3_ReqWrap += &let {
+	#process_request: bool =  $context.flow.get_dnp3_debug_byte(second);
+};
+
+refine typeattr Empty += &let {
+        get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
 };

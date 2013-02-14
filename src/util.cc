@@ -1391,6 +1391,31 @@ bool safe_write(int fd, const char* data, int len)
 	return true;
 	}
 
+bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
+	{
+	while ( len != 0 )
+		{
+		ssize_t n = pwrite(fd, data, len, offset);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		offset +=n;
+		len -= n;
+		}
+
+	return true;
+	}
+
 void safe_close(int fd)
 	{
 	/*

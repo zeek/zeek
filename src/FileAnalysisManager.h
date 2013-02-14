@@ -21,16 +21,36 @@ class Info;
 class Action {
 public:
 
-	Action(Info* arg_info);
+	virtual ~Action() {}
 
-	~Action() {}
+	/**
+	 * Subclasses may override this to receive file data non-sequentially.
+	 */
+	virtual void DeliverChunk(const u_char* data, uint64 len, uint64 offset) {}
 
-	virtual void DeliverStream(const u_char* data, uint64 len) = 0;
+	/**
+	 * Subclasses may override this to receive file sequentially.
+	 */
+	virtual void DeliverStream(const u_char* data, uint64 len) {}
+
+	/**
+	 * Subclasses may override this to specifically handle the end of a file.
+	 */
+	virtual void EndOfFile() {}
+
+	/**
+	 * Subclasses may override this to handle missing data in a file stream.
+	 */
+	virtual void Undelivered(uint64 offset, uint64 len) {}
 
 protected:
 
+	Action(Info* arg_info);
+
 	Info* info;
 };
+
+typedef Action* (*ActionInstantiator)(const RecordVal* args, Info* info);
 
 /**
  * An action to simply extract files to disk.
@@ -38,15 +58,18 @@ protected:
 class Extract : Action {
 public:
 
-	Extract(Info* arg_info, const string& arg_filename);
+	static Action* Instantiate(const RecordVal* args, Info* info);
 
-	~Extract() {}
+	~Extract();
 
-	virtual void DeliverStream(const u_char* data, uint64 len);
+	virtual void DeliverChunk(const u_char* data, uint64 len, uint64 offset);
 
 protected:
 
+	Extract(Info* arg_info, const string& arg_filename);
+
 	string filename;
+	int fd;
 };
 
 /**
@@ -78,11 +101,6 @@ public:
 	void UpdateLastActivityTime() { last_activity_time = network_time; }
 
 	/**
-	 * Increments the "seen_bytes" field of #val record by \a size.
-	 */
-	void IncrementSeenBytes(uint64 size);
-
-	/**
 	 * Set "total_bytes" field of #val record to \a size.
 	 */
 	void SetTotalBytes(uint64 size);
@@ -101,6 +119,38 @@ public:
 	 */
 	void ScheduleInactivityTimer() const;
 
+	/**
+	 * Attaches an action.  Only one action per type can be attached at a time.
+	 * @return true if the action was attached, else false.
+	 */
+	bool AddAction(EnumVal* act, RecordVal* args);
+
+	/**
+	 * Removes an action.
+	 * @return true if the action was removed, else false.
+	 */
+	bool RemoveAction(EnumVal* act);
+
+	/**
+	 * Pass in non-sequential data and deliver to attached actions/analyzers.
+	 */
+	void DataIn(const u_char* data, uint64 len, uint64 offset);
+
+	/**
+	 * Pass in sequential data and deliver to attached actions/analyzers.
+	 */
+	void DataIn(const u_char* data, uint64 len);
+
+	/**
+	 * Inform attached actions/analyzers about end of file being seen.
+	 */
+	void EndOfFile();
+
+	/**
+	 * Inform attached actions/analyzers about a gap in file stream.
+	 */
+	void Gap(uint64 offset, uint64 len);
+
 protected:
 
 	friend class Manager;
@@ -118,27 +168,40 @@ protected:
 	void UpdateConnectionFields(Connection* conn);
 
 	/**
-	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
-	 * \a idx which automatically unrefs the Val and returns a converted value.
+	 * Increment a byte count field of #val record by \a size.
 	 */
-	uint64 FieldDefaultCount(int idx) const;
+	void IncrementByteCount(uint64 size, int field_idx);
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
 	 * \a idx which automatically unrefs the Val and returns a converted value.
 	 */
-	double FieldDefaultInterval(int idx) const;
+	uint64 LookupFieldDefaultCount(int idx) const;
+
+	/**
+	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
+	 * \a idx which automatically unrefs the Val and returns a converted value.
+	 */
+	double LookupFieldDefaultInterval(int idx) const;
 
 	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
 	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
+	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 
-	vector<Analyzer*> analyzers;
+	typedef map<int, Action*> ActionMap;
+
+	ActionMap actions;
 
 	/**
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
 	static int Idx(const string& field_name);
+
+	/**
+	 * Initializes the index offsets for fields in \c FileAnalysis::info record.
+	 */
+	static void InitFieldIndices();
 
 	static int file_id_idx;
 	static int parent_file_id_idx;
@@ -147,12 +210,15 @@ protected:
 	static int conn_ids_idx;
 	static int seen_bytes_idx;
 	static int total_bytes_idx;
-	static int undelivered_idx;
+	static int missing_bytes_idx;
+	static int overflow_bytes_idx;
 	static int timeout_interval_idx;
+	static int actions_idx;
+	static int action_args_idx;
 };
 
 /**
- * Timer to periodically check if file analysis for a given file is inative.
+ * Timer to periodically check if file analysis for a given file is inactive.
  */
 class InfoTimer : public Timer {
 public:
@@ -208,6 +274,12 @@ public:
 	               const string& protocol = "");
 
 	/**
+	 * Signal a gap in the file data stream.
+	 */
+	void Gap(const string& file_id, uint64 offset, uint64 len,
+	         Connection* conn = 0, const string& protocol = "");
+
+	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
 	void SetSize(const string& file_id, uint64 size, Connection* conn = 0,
@@ -215,14 +287,28 @@ public:
 
 	/**
 	 * Discard the file_analysis::Info object associated with \a file_id.
+	 * @return false if file identifier did not map to anything, else true.
 	 */
-	void Remove(const string& file_id);
+	bool RemoveFile(const string& file_id);
 
 	/**
 	 * If called during \c FileAnalysis::policy evaluation for a
 	 * \c FileAnalysis::TRIGGER_TIMEOUT, requests deferral of analysis timeout.
 	 */
 	bool PostponeTimeout(const string& file_id) const;
+
+	/**
+	 * Attaches an action to the file identifier.  Only one action of a given
+	 * type can be attached per file identifier at a time.
+	 * @return true if the action was attached, else false.
+	 */
+	bool AddAction(const string& file_id, EnumVal* act, RecordVal* args) const;
+
+	/**
+	 * Removes an action for a given file identifier.
+	 * @return true if the action was removed, else false.
+	 */
+	bool RemoveAction(const string& file_id, EnumVal* act) const;
 
 	/**
 	 * Calls the \c FileAnalysis::policy hook.
@@ -237,7 +323,8 @@ protected:
 
 	/**
 	 * @return the Info object mapped to \a file_id.  One is created if mapping
-	 *         doesn't exist.
+	 *         doesn't exist.  If it did exist, the activity time is refreshed
+	 *         and connection-related fields of the record value may be updated.
 	 */
 	Info* IDtoInfo(const string& file_id, Connection* conn = 0,
 	               const string& protocol = "");

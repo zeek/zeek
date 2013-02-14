@@ -300,6 +300,10 @@ inline size_t pad_size(size_t size)
 // thread-safe as long as no two threads write to the same descriptor.
 extern bool safe_write(int fd, const char* data, int len);
 
+// Same as safe_write(), but for pwrite().
+extern bool safe_pwrite(int fd, const unsigned char* data, size_t len,
+                        size_t offset);
+
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);
 

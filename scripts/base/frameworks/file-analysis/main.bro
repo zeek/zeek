@@ -33,6 +33,10 @@ export {
 	## TODO: what's a reasonable default?
 	const default_data_event_len: count = 1024*1024 &redef;
 
+	type ActionArgs: record {
+		extract_filename: string &optional;
+	};
+
 	## Contains all metadata related to the analysis of a given file, some
 	## of which is logged.
 	type Info: record {
@@ -57,25 +61,30 @@ export {
 		## Total number of bytes that are supposed to comprise the file content.
 		total_bytes: count &log &optional;
 
-		## The number of not all-in-sequence bytes over the course of the
+		## The number of bytes in the file stream that were completely missed
+		## during the process of analysis e.g. due to dropped packets.
 		## analysis that had to be discarded due to a reassembly buffer size
 		## of *reassembly_buffer_size* being filled.
-		undelivered: count &default=0;
+		missing_bytes: count &log &default=0;
+
+		## The number of not all-in-sequence bytes in the file stream that
+		## were delivered to file actions/analyzers due to reassembly buffer
+		## size of *reassembly_buffer_size* being filled.
+		overflow_bytes: count &log &default=0;
 
 		## The amount of time between receiving new data for this file that
 		## the analysis engine will wait before giving up on it.
-		timeout_interval: interval &default=default_timeout_interval;
+		timeout_interval: interval &log &default=default_timeout_interval;
 
+		## Actions that have been added to the analysis of this file.
+		actions: vector of Action &default=vector();
+
+		## The corresponding arguments supplied to each element of *actions*.
+		action_args: vector of ActionArgs &default=vector();
 	} &redef;
 
 	## TODO: document
 	global policy: hook(trig: Trigger, info: Info);
 
-	## TODO: document
-	global postpone_timeout: function(file_id: string): bool;
+	# TODO: wrapper functions for BiFs ?
 }
-
-function postpone_timeout(file_id: string): bool
-	{
-	return __postpone_timeout(file_id);
-	}

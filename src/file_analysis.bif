@@ -7,6 +7,7 @@ module FileAnalysis;
 %%}
 
 type Info: record;
+type ActionArgs: record;
 
 ## An enumeration of possibly-interesting "events" that can occur over
 ## the course of analyzing files.  The :bro:see:`FileAnalysis::policy`
@@ -50,10 +51,42 @@ enum Trigger %{
 	## TODO: Is it possible to extend the reassembly buffer when "handling"
 	## this trigger?
 	TRIGGER_REASSEMBLY_BUFFER_FULL,
+	## Raised when there's a missing chunk of data in the file stream.
+	TRIGGER_GAP,
 %}
 
-function FileAnalysis::__postpone_timeout%(file_id: string%): bool
+enum Action %{
+	ACTION_EXTRACT,
+%}
+
+function FileAnalysis::postpone_timeout%(file_id: string%): bool
 	%{
 	bool result = file_mgr->PostponeTimeout(file_id->CheckString());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function FileAnalysis::add_action%(file_id: string,
+                                   action: FileAnalysis::Action,
+                                   args: any%): bool
+	%{
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(
+	  BifType::Record::FileAnalysis::ActionArgs);
+	bool result = file_mgr->AddAction(file_id->CheckString(),
+	                                  action->AsEnumVal(), rv);
+	Unref(rv);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function FileAnalysis::remove_action%(file_id: string,
+                                      action: FileAnalysis::Action%): bool
+	%{
+	bool result = file_mgr->RemoveAction(file_id->CheckString(),
+	                                     action->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function FileAnalysis::stop%(file_id: string%): bool
+	%{
+	bool result = file_mgr->RemoveFile(file_id->CheckString());
 	return new Val(result, TYPE_BOOL);
 	%}

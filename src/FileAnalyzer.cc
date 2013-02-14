@@ -44,6 +44,13 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	return;
 	}
 
+void File_Analyzer::Undelivered(int seq, int len, bool orig)
+	{
+	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+
+	file_mgr->Gap(file_id, seq, len);
+	}
+
 void File_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();

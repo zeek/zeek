@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "FileAnalysisManager.h"
+#include "file_analysis/Manager.h"
 #include "FileAnalyzer.h"
 #include "Reporter.h"
 

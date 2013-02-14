@@ -3,7 +3,7 @@
 module FileAnalysis;
 
 %%{
-#include "FileAnalysisManager.h"
+#include "file_analysis/Manager.h"
 %%}
 
 type Info: record;

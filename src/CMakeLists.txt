@@ -329,7 +329,6 @@ set(bro_SRCS
     FTP.cc
     File.cc
     FileAnalyzer.cc
-    FileAnalysisManager.cc
     Finger.cc
     FlowSrc.cc
     Frag.cc
@@ -448,6 +447,12 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+
+    file_analysis/Manager.cc
+    file_analysis/Info.cc
+    file_analysis/InfoTimer.cc
+    file_analysis/Action.h
+    file_analysis/Extract.cc
 
     nb_dns.c
     digest.h

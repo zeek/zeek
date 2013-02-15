@@ -1,0 +1,1 @@
+error in /home/robin/bro/master/testing/btest/.tmp/language.switch-incomplete/switch-incomplete.bro, lines 7-8: case block must end in break/fallthrough/return statement (case 1:{ print 1})

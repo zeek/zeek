@@ -361,6 +361,7 @@ set(bro_SRCS
     NetVar.cc
     NetbiosSSN.cc
     Obj.cc
+    OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
     PacketSort.cc
@@ -425,6 +426,7 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
+    threading/AsciiFormatter.cc
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc

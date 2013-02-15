@@ -1,4 +1,148 @@
 
+2.1-328 | 2013-02-05 01:34:29 -0500
+
+  * New script to query the ICSI Certificate Notary 
+    (http://notary.icsi.berkeley.edu/) over DNS and add information
+    to the SSL log at runtime. (Matthias Vallentin) 
+
+  * Add delayed logging to SSL base scripts. (Matthias Vallentin)
+
+2.1-319 | 2013-02-04 09:45:34 -0800
+
+  * Update input tests to use exit_only_after_terminate. (Bernhard
+    Amann)
+
+  * New option exit_only_after_terminate to prevent Bro from exiting.
+    If set, the main loop won't terminate before somebody calls
+    terminate(). (Robin Sommer)
+
+2.1-311 | 2013-02-01 08:03:01 -0800
+
+  * Updating submodule(s).
+
+2.1-310 | 2013-01-30 20:09:27 -0800
+
+  * Add an error for record coercions that would orphan a field. (Jon
+    Siwek)
+
+  * Fixing several scripts where a field in an inlined record was
+    never removed after a code refactor. (Jon Siwek)
+
+2.1-307 | 2013-01-25 13:50:57 -0800
+
+  * Fix runaway reference counting bug in record coercion. (Jon Siwek)
+
+  * Fix memory leak in some reporter messaging cases. (Jon Siwek)
+
+2.1-304 | 2013-01-23 19:43:27 -0800
+
+  * Making a test portable. (Robin Sommer)
+
+2.1-302 | 2013-01-23 16:17:29 -0800
+
+  * Refactoring ASCII formatting/parsing from loggers/readers into a
+    separate AsciiFormatter class. (Bernhard Amann)
+
+  * Fix uninitialized locals in event/hook handlers from having a
+    value. Addresses #932. (Jon Siwek)
+
+  * Add a null value check in CompositeHash::ComputeHash. Addresses
+    #930. (Jon Siwek)
+
+  * Change reporter messages to more reliably print to stderr.
+    Addressed #930 (and revisits #836). (Jon Siwek)
+
+  * Changing test=suite's btest call to use "-j" instead of "-j 5".
+    (Robin Sommer)
+    
+  * Require "case" blocks to end with either "break", "return", or a
+    new "fallthrough" statement that passes control on to the
+    subsequent case. This gives us the best mix of safety,
+    readability, and flexibility. Addresses #754. (Jon Siwek)
+
+2.1-279 | 2013-01-18 17:18:22 -0800
+
+  * Revert "Trick for parallelizing input framework unit tests." The
+    old way of doing the tests seems more reliable for now. (Jon
+    Siwek)
+
+  * Fixing variable size issues with http response code in
+    ElasticSearch writer. (Gilbert Clark)
+
+  * Removing unused class member. (Robin Sommer)
+    
+  * Add opaque type-ignoring for the accept_unsupported_types input
+    framework option. (Bernhard Amann)
+
+2.1-271 | 2013-01-08 10:18:57 -0800
+
+  * Change substring index notation to use a colon.  String slice
+    notation is now written as `s[1:2]`. Addresses #422. (Jon Siwek)
+
+2.1-268 | 2013-01-07 09:43:44 -0800
+
+  * Fix memory leak in OpaqueType::DoUnserialize. (Jon Siwek)
+
+2.1-265 | 2012-12-20 17:38:42 -0800
+
+  * Add array-style index accessor for strings.  Addresses #422. (Jon
+    Siwek)
+
+    The index expression can take up to two indices for the start and
+    end index of the substring to return (e.g. "mystring[1,3]").
+    Negative indices are allowed, with -1 representing the last
+    character in the string.  The indexing is not cyclic -- if the
+    starting index is >= the length of the string an empty string is
+    returned, and if the ending index is >= the length of the string
+    then it's interpreted as the last index of the string.  Assigning
+    to substrings accessed like this isn't allowed.
+
+2.1-263 | 2012-12-20 16:22:09 -0800
+
+  * Bro's language now has a new set of types "opaque of X". (Matthias
+    Vallentin)
+
+    Opaque values can be passed around like other values but they can
+    only be manipulated with BiF functions, not with other operators.
+    Currently, the following opaque types are supported:
+
+        - opaque of md5
+        - opaque of sha1
+        - opaque of sha256
+        - opaquey of entropy.
+
+    They go along with the corrsponding BiF functions md5_*, sha1_*,
+    sha256_*, and entropy_*, respectively. Note that these functions
+    have changed their signatures to work with opaques types rather
+    than global state as it was before.
+    
+2.1-240 | 2012-12-20 15:21:07 -0800
+
+  * Improve error for invalid use of types as values. Addresses #923.
+    (Jon Siwek)
+
+2.1-238 | 2012-12-20 15:11:25 -0800
+
+  * Finish implementation of script-layer switch statement. Addresses
+    #754. (Jon Siwek)
+
+    They behave like C-style switches except case labels can be
+    comprised of multiple literal constants delimited by commas.  Only
+    atomic types are allowed for now.  Case label bodies that don't
+    execute a "return" or "break" statement will fall through to
+    subsequent cases.  A default case label is allowed.
+
+  * Fix a case where c$resp$size is misrepresented.  Addresses #730.
+    (Jon Siwek)
+
+2.1-234 | 2012-12-20 12:12:19 -0800
+
+  * Fix return value of hook calls that have no handlers. For this
+    case, the return value is always true. (Jon Siwek)
+
+  * Fix to_port() BIF for port strings with a port number of zero.
+    (Jon Siwek)
+
 2.1-231 | 2012-12-14 14:51:35 -0800
 
   * Make const variables actually constant. Both local and global

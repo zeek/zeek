@@ -16,6 +16,7 @@
 #include "BroString.h"
 #include "NetVar.h"
 #include "threading/SerialTypes.h"
+#include "threading/AsciiFormatter.h"
 
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -51,11 +52,14 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 	transfer_timeout = static_cast<long>(BifConst::LogElasticSearch::transfer_timeout);
 
 	curl_handle = HTTPSetup();
+
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
 }
 
 ElasticSearch::~ElasticSearch()
 	{
 	delete [] cluster_name;
+	delete ascii;
 	}
 
 bool ElasticSearch::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
@@ -124,13 +128,13 @@ bool ElasticSearch::AddValueToBuffer(ODesc* b, Value* val)
 
 		case TYPE_SUBNET:
 			b->AddRaw("\"", 1);
-			b->Add(Render(val->val.subnet_val));
+			b->Add(ascii->Render(val->val.subnet_val));
 			b->AddRaw("\"", 1);
 			break;
 
 		case TYPE_ADDR:
 			b->AddRaw("\"", 1);
-			b->Add(Render(val->val.addr_val));
+			b->Add(ascii->Render(val->val.addr_val));
 			b->AddRaw("\"", 1);
 			break;
 
@@ -402,7 +406,7 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 
 		case CURLE_OK:
 			{
-			uint http_code = 0;
+			long http_code = 0;
 			curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
 			if ( http_code == 200 )
 				// Hopefully everything goes through here.

@@ -390,7 +390,7 @@ protected:
 	 * @param name: A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 *
-	 * @param arg_object: An object to store with the message. 
+	 * @param arg_object: An object to store with the message.
 	 */
 	InputMessage(const char* name, O* arg_object) : BasicInputMessage(name)
 		{ object = arg_object; }
@@ -400,7 +400,7 @@ private:
 };
 
 /**
- * A paremeterized OututMessage that stores a pointer to an argument object.
+ * A parameterized OutputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
 template<typename O>
@@ -419,7 +419,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 *
-	 * @param arg_object An object to store with the message. 
+	 * @param arg_object An object to store with the message.
 	 */
 	OutputMessage(const char* name, O* arg_object) : BasicOutputMessage(name)
 		{ object = arg_object; }

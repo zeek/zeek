@@ -1,11 +1,13 @@
 # @TEST-EXEC: cp input1.log input.log
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT 
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT 
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: cat input2.log >> input.log
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: cat input3.log >> input.log
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
+
+redef exit_only_after_terminate = T;
 
 @TEST-START-FILE input1.log
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
@@ -23,6 +25,8 @@ dfsdf
 sdf
 3rw43wRRERLlL#RWERERERE.
 @TEST-END-FILE
+
+@load base/frameworks/communication  # let network-time run
 
 module A;
 

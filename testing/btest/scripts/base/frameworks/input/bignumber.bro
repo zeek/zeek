@@ -1,9 +1,8 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
+
+redef exit_only_after_terminate = T; 
 
 @TEST-START-FILE input.log
 #separator \x09
@@ -12,8 +11,6 @@
 9223372036854775800	18446744073709551612
 -9223372036854775800	18446744073709551612
 @TEST-END-FILE
-
-@load frameworks/communication/listen
 
 global outfile: file;
 

@@ -67,7 +67,7 @@ event socks_request(c: connection, version: count, request_type: count,
 	# proxied connection.  We treat this as a singular "tunnel".
 	local cid = copy(c$id);
 	cid$orig_p = 0/tcp;
-	Tunnel::register([$cid=cid, $tunnel_type=Tunnel::SOCKS, $payload_proxy=T]);
+	Tunnel::register([$cid=cid, $tunnel_type=Tunnel::SOCKS]);
 	}
 
 event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port) &priority=5

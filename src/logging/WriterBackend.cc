@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "util.h"
-#include "bro_inet_ntop.h"
 #include "threading/SerialTypes.h"
 
 #include "Manager.h"
@@ -327,47 +326,4 @@ bool WriterBackend::OnHeartbeat(double network_time, double current_time)
 
 	SendOut(new FlushWriteBufferMessage(frontend));
 	return DoHeartbeat(network_time, current_time);
-	}
-
-string WriterBackend::Render(const threading::Value::addr_t& addr) const
-	{
-	if ( addr.family == IPv4 )
-		{
-		char s[INET_ADDRSTRLEN];
-
-		if ( ! bro_inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) )
-			return "<bad IPv4 address conversion>";
-		else
-			return s;
-		}
-	else
-		{
-		char s[INET6_ADDRSTRLEN];
-
-		if ( ! bro_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
-			return "<bad IPv6 address conversion>";
-		else
-			return s;
-		}
-	}
-
-string WriterBackend::Render(const threading::Value::subnet_t& subnet) const
-	{
-	char l[16];
-
-	if ( subnet.prefix.family == IPv4 )
-		modp_uitoa10(subnet.length - 96, l);
-	else
-		modp_uitoa10(subnet.length, l);
-
-	string s = Render(subnet.prefix) + "/" + l;
-
-	return s;
-	}
-
-string WriterBackend::Render(double d) const
-	{
-	char buf[256];
-	modp_dtoa(d, buf, 6);
-	return buf;
 	}

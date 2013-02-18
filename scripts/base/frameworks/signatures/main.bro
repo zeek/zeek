@@ -148,7 +148,7 @@ function has_signature_matched(id: string, orig: addr, resp: addr): bool
 event sig_summary(orig: addr, id: string, msg: string)
 	{
 	NOTICE([$note=Signature_Summary, $src=orig,
-	        $filename=id, $msg=fmt("%s: %s", orig, msg),
+	        $msg=fmt("%s: %s", orig, msg),
 	        $n=count_per_orig[orig,id] ]);
 	}
 
@@ -209,7 +209,6 @@ event signature_match(state: signature_state, msg: string, data: string)
 			{
 			NOTICE([$note=Count_Signature, $conn=state$conn,
 				   $msg=msg,
-				   $filename=sig_id,
 				   $n=count_per_resp[dst,sig_id],
 				   $sub=fmt("%d matches of signature %s on host %s",
 						count_per_resp[dst,sig_id],
@@ -240,7 +239,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 	if ( notice )
 		NOTICE([$note=Sensitive_Signature,
 		        $conn=state$conn, $src=src_addr,
-		        $dst=dst_addr, $filename=sig_id, $msg=fmt("%s: %s", src_addr, msg),
+		        $dst=dst_addr, $msg=fmt("%s: %s", src_addr, msg),
 		        $sub=data]);
 	
 	if ( action == SIG_FILE_BUT_NO_SCAN || action == SIG_SUMMARY )
@@ -274,7 +273,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 		     $src_addr=orig, $sig_id=sig_id, $event_msg=msg,
 		     $host_count=hcount, $sub_msg=horz_scan_msg]);
 
-		NOTICE([$note=Multiple_Sig_Responders, $src=orig, $filename=sig_id,
+		NOTICE([$note=Multiple_Sig_Responders, $src=orig,
 			$msg=msg, $n=hcount, $sub=horz_scan_msg]);
 
 		last_hthresh[orig] = hcount;
@@ -295,7 +294,6 @@ event signature_match(state: signature_state, msg: string, data: string)
 			 $sub_msg=vert_scan_msg]);
 
 		NOTICE([$note=Multiple_Signatures, $src=orig, $dst=resp,
-			$filename=sig_id,
 			$msg=fmt("%s different signatures triggered", vcount),
 			$n=vcount, $sub=vert_scan_msg]);
 

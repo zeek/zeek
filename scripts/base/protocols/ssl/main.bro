@@ -72,6 +72,17 @@ export {
 	## utility.
 	const openssl_util = "openssl" &redef;
 
+	## The maximum amount of time a script can delay records from being logged.
+	const max_log_delay = 15secs &redef;
+
+	## Delays an SSL record for a specific token: the record will not be logged
+	## as longs the token exists or until :bro:id:`SSL::max_log_delay` elapses.
+	global delay_log: function(info: Info, token: string);
+
+	## Undelays an SSL record for a previously inserted token, allowing the
+	## record to be logged.
+	global undelay_log: function(info: Info, token: string);
+
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
@@ -79,6 +90,13 @@ export {
 
 redef record connection += {
 	ssl: Info &optional;
+};
+
+redef record Info += {
+		# Adding a string "token" to this set will cause the SSL script
+		# to delay logging the record until either the token has been removed or
+		# the record has been delayed for :bro:id:`SSL::max_log_delay`.
+		delay_tokens: set[string] &optional;
 };
 
 event bro_init() &priority=5
@@ -115,6 +133,13 @@ redef likely_server_ports += {
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
 
+# A queue that buffers log records.
+global log_delay_queue: table[count] of Info;
+# The top queue index where records are added.
+global log_delay_queue_head = 0;
+# The bottom queue index that points to the next record to be flushed.
+global log_delay_queue_tail = 0;
+
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
@@ -122,12 +147,65 @@ function set_session(c: connection)
 		         $client_cert_chain=vector()];
 	}
 
+function delay_log(info: Info, token: string)
+	{
+	info$delay_tokens = set();
+	add info$delay_tokens[token];
+
+	log_delay_queue[log_delay_queue_head] = info;
+	++log_delay_queue_head;
+	}
+
+function undelay_log(info: Info, token: string)
+	{
+	if ( token in info$delay_tokens )
+		delete info$delay_tokens[token];
+	}
+
+global log_record: function(info: Info);
+
+event delay_logging(info: Info)
+	{
+	log_record(info);
+	}
+
+function log_record(info: Info)
+	{
+	if ( ! info?$delay_tokens || |info$delay_tokens| == 0 )
+		{
+		Log::write(SSL::LOG, info);
+		}
+	else
+		{
+		for ( unused_index in log_delay_queue )
+			{
+			if ( log_delay_queue_head == log_delay_queue_tail )
+				return;
+			if ( |log_delay_queue[log_delay_queue_tail]$delay_tokens| > 0 )
+				{
+				if ( info$ts + max_log_delay > network_time() )
+					{
+					schedule 1sec { delay_logging(info) };
+					return;
+					}
+				else
+					{
+					Reporter::info(fmt("SSL delay tokens not released in time (%s)",
+					                   info$delay_tokens));
+					}
+				}
+			Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
+			delete log_delay_queue[log_delay_queue_tail];
+			++log_delay_queue_tail;
+			}
+		}
+	}
+
 function finish(c: connection)
 	{
-	Log::write(SSL::LOG, c$ssl);
+	log_record(c$ssl);
 	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
-	delete c$ssl;
 	}
 
 event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
@@ -227,4 +305,16 @@ event protocol_violation(c: connection, atype: count, aid: count,
 	{
 	if ( c?$ssl )
 		finish(c);
+	}
+
+event bro_done()
+	{
+	if ( |log_delay_queue| == 0 )
+		return;
+	for ( unused_index in log_delay_queue )
+		{
+		Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
+		delete log_delay_queue[log_delay_queue_tail];
+		++log_delay_queue_tail;
+		}
 	}

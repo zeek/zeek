@@ -27,6 +27,13 @@ Reporter::Reporter()
 	via_events = false;
 	in_error_handler = 0;
 
+	// Always use stderr at startup/init before scripts have been fully parsed.
+	// Messages may otherwise be missed if an error occurs that prevents events
+	// from ever being dispatched.
+	info_to_stderr = true;
+	warnings_to_stderr = true;
+	errors_to_stderr = true;
+
 	openlog("bro", 0, LOG_LOCAL5);
 	}
 
@@ -35,11 +42,19 @@ Reporter::~Reporter()
 	closelog();
 	}
 
+void Reporter::InitOptions()
+	{
+	info_to_stderr = internal_const_val("Reporter::info_to_stderr")->AsBool();
+	warnings_to_stderr = internal_const_val("Reporter::warnings_to_stderr")->AsBool();
+	errors_to_stderr = internal_const_val("Reporter::errors_to_stderr")->AsBool();
+	}
+
 void Reporter::Info(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("", reporter_info, stderr, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = info_to_stderr ? stderr : 0;
+	DoLog("", reporter_info, out, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -47,7 +62,8 @@ void Reporter::Warning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("warning", reporter_warning, stderr, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = warnings_to_stderr ? stderr : 0;
+	DoLog("warning", reporter_warning, out, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -56,7 +72,8 @@ void Reporter::Error(const char* fmt, ...)
 	++errors;
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("error", reporter_error, stderr, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = errors_to_stderr ? stderr : 0;
+	DoLog("error", reporter_error, out, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -98,7 +115,9 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	PushLocation(expr->GetLocationInfo());
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("expression error", reporter_error, stderr, 0, 0, true, true, d.Description(), fmt, ap);
+	FILE* out = errors_to_stderr ? stderr : 0;
+	DoLog("expression error", reporter_error, out, 0, 0, true, true,
+	      d.Description(), fmt, ap);
 	va_end(ap);
 	PopLocation();
 	throw InterpreterException();
@@ -122,7 +141,9 @@ void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("internal warning", reporter_warning, stderr, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = warnings_to_stderr ? stderr : 0;
+	DoLog("internal warning", reporter_warning, out, 0, 0, true, true, 0, fmt,
+	      ap);
 	va_end(ap);
 	}
 
@@ -189,7 +210,9 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
 	WeirdFlowHelper(orig, resp, "%s", name);
 	}
 
-void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* postfix, const char* fmt, va_list ap)
+void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
+                     Connection* conn, val_list* addl, bool location, bool time,
+                     const char* postfix, const char* fmt, va_list ap)
 	{
 	static char tmp[512];
 
@@ -297,8 +320,16 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		else
 			mgr.QueueEvent(event, vl);
 		}
-
 	else
+		{
+		if ( addl )
+			{
+			loop_over_list(*addl, i)
+				Unref((*addl)[i]);
+			}
+		}
+
+	if ( out )
 		{
 		string s = "";
 
@@ -328,12 +359,6 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
 		if ( out )
 			fprintf(out, "%s", s.c_str());
-
-		if ( addl )
-			{
-			loop_over_list(*addl, i)
-				Unref((*addl)[i]);
-			}
 		}
 
 	if ( alloced )

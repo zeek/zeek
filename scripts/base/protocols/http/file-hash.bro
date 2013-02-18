@@ -73,7 +73,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		delete c$http$md5_handle;
 		
 		NOTICE([$note=MD5, $msg=fmt("%s %s %s", c$id$orig_h, c$http$md5, url),
-		        $sub=c$http$md5, $conn=c, $URL=url]);
+		        $sub=c$http$md5, $conn=c]);
 		}
 	}
 

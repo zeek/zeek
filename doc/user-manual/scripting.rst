@@ -312,7 +312,14 @@ Data Types Revisited
 addr
 ~~~~
 
-The addr, or address, data type manages to cover a surprisingly large amount of ground while remaining succinct.  IPv4, IPv6 and even hostname constants are included in the addr data type.  While IPv4 addresses use the default dotted quad formatting, IPv6 addresses use RFC 2373 defined notation with the addition of squared brackets wrapping the entire address.   When you venture into hostname constants, Bro performs a little slight of hand for the benefit of the user; a hostname constant is, in fact, a set of addresses.  Bro will issue a DNS request when it sees a hostname constant in use and return a set whose elements are the invidiual answers to the DNS request.
+The addr, or address, data type manages to cover a surprisingly large amount of ground while remaining succinct.  IPv4, IPv6 and even hostname constants are included in the addr data type.  While IPv4 addresses use the default dotted quad formatting, IPv6 addresses use RFC 2373 defined notation with the addition of squared brackets wrapping the entire address.   When you venture into hostname constants, Bro performs a little slight of hand for the benefit of the user; a hostname constant is, in fact, a set of addresses.  Bro will issue a DNS request when it sees a hostname constant in use and return a set whose elements are the answers to the DNS request.  For example, if you were to use ``local google = www.google.com;`` you would end up with a locally scoped set of addr elements that represent the current set of round robin DNS entries for google.  At first blush, this seems trivial, but it is yet another example of Bro making the life of the common Bro scripter a little easier through abstraction applied in a practical manner.
+
+port
+~~~~
+
+Transport layer port numbers in Bro are represented in the format of ``unsigned integer/protocol name`` e.g. ``22/tcp`` or ``53/udp``.  Bro supports TCP( /tcp ), UDP( /udp ) , ICMP( /icmp )  and UNKNOWN( /unknown ) as protocol designations.  While ICMP doesn't have an actual port, Bro supports the concept of ICMP "ports" by using the ICMP message type and ICMP message code as the source and destination port respectively.  Ports can be compared for equality using the == or != operators and can even be compared for ordering.  Bro gives the protocol designations the following "order":  unknown < tcp < udp < icmp.  
+
+Ports can be compared for equality and also for ordering. When comparing order across transport-level protocols, unknown < tcp < udp < icmp, for example 65535/tcp is smaller than 0/udp.
 
 subnet
 ~~~~~~

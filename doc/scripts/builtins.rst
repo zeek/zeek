@@ -1,40 +1,73 @@
-Builtin Types and Attributes
-============================
+Built-in Types and Attributes
+=============================
 
 Types
 -----
+
+Every value in a Bro script has a type (see below for a list of all built-in
+types).  Although Bro variables have static types (meaning that their type
+is fixed), their type is inferred from the value to which they are
+initially assigned when the variable is declared without an explicit type
+name.
+
+Automatic conversions happen when a binary operator has operands of 
+different types.  Automatic conversions are limited to converting between
+numeric types.  The numeric types are ``int``, ``count``, and ``double``
+(``bool`` is not a numeric type).
+When an automatic conversion occurs, values are promoted to the "highest"
+type in the expression. In general, this promotion follows a simple
+hierarchy: ``double`` is highest, ``int`` comes next, and ``count`` is
+lowest.
 
 The Bro scripting language supports the following built-in types.
 
 .. bro:type:: void
 
-    An internal Bro type representing an absence of a type.  Should
-    most often be seen as a possible function return type.
+    An internal Bro type representing the absence of a return type for a
+    function.
 
 .. bro:type:: bool
 
     Reflects a value with one of two meanings: true or false.  The two
     ``bool`` constants are ``T`` and ``F``.
 
+    The ``bool`` type supports the following operators: equality/inequality
+    (``==``, ``!=``), logical and/or (``&&``, ``||``), logical
+    negation (``!``), and absolute value (where ``|T|`` is 1, and ``|F|`` is 0).
+
 .. bro:type:: int
 
-    A numeric type representing a signed integer.  An ``int`` constant
+    A numeric type representing a 64-bit signed integer.  An ``int`` constant
     is a string of digits preceded by a ``+`` or ``-`` sign, e.g.
-    ``-42`` or ``+5``.  When using type inferencing use care so that the
+    ``-42`` or ``+5`` (the "+" sign is optional but see note about type
+    inferencing below).  An ``int`` constant can also be written in
+    hexadecimal notation (in which case "0x" must be between the sign and
+    the hex digits), e.g. ``-0xFF`` or ``+0xabc123``.
+
+    The ``int`` type supports the following operators:  arithmetic
+    operators (``+``, ``-``, ``*``, ``/``, ``%``), comparison operators
+    (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``), assignment operators
+    (``=``, ``+=``, ``-=``), pre-increment (``++``), pre-decrement
+    (``--``), and absolute value (e.g., ``|-3|`` is 3).
+
+    When using type inferencing use care so that the
     intended type is inferred, e.g. ``local size_difference = 0`` will
     infer :bro:type:`count`, while ``local size_difference = +0``
     will infer :bro:type:`int`.
 
 .. bro:type:: count
 
-    A numeric type representing an unsigned integer.  A ``count``
-    constant is a string of digits, e.g. ``1234`` or ``0``.
+    A numeric type representing a 64-bit unsigned integer.  A ``count``
+    constant is a string of digits, e.g. ``1234`` or ``0``.  A ``count``
+    can also be written in hexadecimal notation (in which case "0x" must
+    precede the hex digits), e.g. ``0xff`` or ``0xABC123``.
+
+    The ``count`` type supports the same operators as the :bro:type:`int`
+    type.  A unary plus or minus applied to a ``count`` results in an ``int``.
 
 .. bro:type:: counter
 
     An alias to :bro:type:`count`.
-
-.. TODO: is there anything special about this type?
 
 .. bro:type:: double
 
@@ -42,14 +75,31 @@ The Bro scripting language supports the following built-in types.
     number.  Floating-point constants are written as a string of digits
     with an optional decimal point, optional scale-factor in scientific
     notation, and optional ``+`` or ``-`` sign.  Examples are ``-1234``,
-    ``-1234e0``, ``3.14159``, and ``.003e-23``.
+    ``-1234e0``, ``3.14159``, and ``.003E-23``.
+
+    The ``double`` type supports the following operators:  arithmetic
+    operators (``+``, ``-``, ``*``, ``/``), comparison operators
+    (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``), assignment operators
+    (``=``, ``+=``, ``-=``), and absolute value (e.g., ``|-3.14|`` is 3.14).
+
+    When using type inferencing use care so that the
+    intended type is inferred, e.g. ``local size_difference = 5`` will
+    infer :bro:type:`count`, while ``local size_difference = 5.0``
+    will infer :bro:type:`double`.
 
 .. bro:type:: time
 
     A temporal type representing an absolute time.  There is currently
     no way to specify a ``time`` constant, but one can use the
-    :bro:id:`current_time` or :bro:id:`network_time` built-in functions
-    to assign a value to a ``time``-typed variable.
+    :bro:id:`double_to_time`, :bro:id:`current_time`, or :bro:id:`network_time`
+    built-in functions to assign a value to a ``time``-typed variable.  
+
+    Time values support the comparison operators (``==``, ``!=``, ``<``,
+    ``<=``, ``>``, ``>=``).  A ``time`` value can be subtracted from
+    another ``time`` value to produce an ``interval`` value.  An ``interval``
+    value can be added to, or subtracted from, a ``time`` value to produce a
+    ``time`` value.  The absolute value of a ``time`` value is a ``double``
+    with the same numeric value.
 
 .. bro:type:: interval
 
@@ -61,16 +111,31 @@ The Bro scripting language supports the following built-in types.
     constant and time unit is optional.  Appending the letter "s" to the
     time unit in order to pluralize it is also optional (to no semantic
     effect).  Examples of ``interval`` constants are ``3.5 min`` and
-    ``3.5mins``.  An ``interval`` can also be negated, for example ``-
-    12 hr`` represents "twelve hours in the past".  Intervals also
-    support addition, subtraction, multiplication, division, and
-    comparison operations.
+    ``3.5mins``.  An ``interval`` can also be negated, for example
+    ``-12 hr`` represents "twelve hours in the past".
+
+    Intervals support addition and subtraction.  Intervals also support
+    division (in which case the result is a ``double`` value), the
+    comparison operators (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``),
+    and the assignment operators (``=``, ``+=``, ``-=``).  Also, an
+    ``interval`` can be multiplied or divided by an arithmetic type
+    (``count``, ``int``, or ``double``) to produce an ``interval`` value.
+    The absolute value of an ``interval`` is a ``double`` value equal to the
+    number of seconds in the ``interval`` (e.g., ``|-1 min|`` is 60).
 
 .. bro:type:: string
 
     A type used to hold character-string values which represent text.
     String constants are created by enclosing text in double quotes (")
-    and the backslash character (\\) introduces escape sequences.
+    and the backslash character (\\) introduces escape sequences (all of
+    the C-style escape sequences are supported).
+
+    Strings support concatenation (``+``), and assignment (``=``, ``+=``).
+    Strings also support the comparison operators (``==``, ``!=``, ``<``,
+    ``<=``, ``>``, ``>=``).  Substring searching can be performed using
+    the "in" or "!in" operators (e.g., "bar" in "foobar" yields true).
+    The number of characters in a string can be found by enclosing the
+    string within pipe characters (e.g., ``|"abc"|`` is 3).
 
     Note that Bro represents strings internally as a count and vector of
     bytes rather than a NUL-terminated byte string (although string
@@ -127,9 +192,7 @@ The Bro scripting language supports the following built-in types.
 .. bro:type:: enum
 
     A type allowing the specification of a set of related values that
-    have no further structure.  The only operations allowed on
-    enumerations are equality comparisons and they do not have
-    associated values or ordering.  An example declaration:
+    have no further structure.  An example declaration:
 
     .. code:: bro
 
@@ -137,9 +200,9 @@ The Bro scripting language supports the following built-in types.
 
     The last comma after ``Blue`` is optional.
 
-.. bro:type:: timer
-
-.. TODO: is this a type that's exposed to users?
+    The only operations allowed on enumerations are equality comparisons
+    (``==``, ``!=``) and assignment (``=``).
+    Enumerations do not have associated values or ordering.
 
 .. bro:type:: port
 
@@ -149,10 +212,15 @@ The Bro scripting language supports the following built-in types.
     message code.  A ``port`` constant is written as an unsigned integer
     followed by one of ``/tcp``, ``/udp``, ``/icmp``, or ``/unknown``.
 
-    Ports can be compared for equality and also for ordering.  When
-    comparing order across transport-level protocols, ``unknown`` <
-    ``tcp`` < ``udp`` < ``icmp``, for example ``65535/tcp`` is smaller
-    than ``0/udp``.
+    Ports support the comparison operators (``==``, ``!=``, ``<``, ``<=``,
+    ``>``, ``>=``).  When comparing order across transport-level protocols,
+    ``unknown`` < ``tcp`` < ``udp`` < ``icmp``, for example ``65535/tcp``
+    is smaller than ``0/udp``.
+
+    Note that you can obtain the transport-level protocol type of a ``port``
+    with the :bro:id:`get_port_transport_proto` built-in function, and
+    the numeric value of a ``port`` with the :bro:id:`port_to_count`
+    built-in function.
 
 .. bro:type:: addr
 
@@ -162,22 +230,29 @@ The Bro scripting language supports the following built-in types.
     ``A1.A2.A3.A4``, where Ai all lie between 0 and 255.
 
     IPv6 address constants are written as colon-separated hexadecimal form
-    as described by :rfc:`2373`, but additionally encased in square brackets.
-    The mixed notation with embedded IPv4 addresses as dotted-quads in the
-    lower 32 bits is also allowed.
-    Some examples: ``[2001:db8::1]``, ``[::ffff:192.168.1.100]``, or
+    as described by :rfc:`2373` (including the mixed notation with embedded
+    IPv4 addresses as dotted-quads in the lower 32 bits), but additionally
+    encased in square brackets.  Some examples: ``[2001:db8::1]``,
+    ``[::ffff:192.168.1.100]``, or
     ``[aaaa:bbbb:cccc:dddd:eeee:ffff:1111:2222]``.
 
+    Note that IPv4-mapped IPv6 addresses (i.e., addresses with the first 80
+    bits zero, the next 16 bits one, and the remaining 32 bits are the IPv4
+    address) are treated internally as IPv4 addresses (for example,
+    ``[::ffff:192.168.1.100]`` is equal to ``192.168.1.100``).
+
     Hostname constants can also be used, but since a hostname can
-    correspond to multiple IP addresses, the type of such variable is a
+    correspond to multiple IP addresses, the type of such a variable is a
     :bro:type:`set` of :bro:type:`addr` elements. For example:
 
     .. code:: bro
 
         local a = www.google.com;
 
-    Addresses can be compared for (in)equality using ``==`` and ``!=``.
-    They can also be masked with ``/`` to produce a :bro:type:`subnet`:
+    Addresses can be compared for equality (``==``, ``!=``),
+    and also for ordering (``<``, ``<=``, ``>``, ``>=``).  The absolute value
+    of an address gives the size in bits (32 for IPv4, and 128 for IPv6).
+    Addresses can also be masked with ``/`` to produce a :bro:type:`subnet`:
 
     .. code:: bro
 
@@ -186,7 +261,8 @@ The Bro scripting language supports the following built-in types.
         if ( a/16 == s )
             print "true";
 
-    And checked for inclusion within a :bro:type:`subnet` using ``in`` :
+    And checked for inclusion within a :bro:type:`subnet` using ``in``
+    or ``!in``:
 
     .. code:: bro
 
@@ -195,12 +271,19 @@ The Bro scripting language supports the following built-in types.
         if ( a in s )
             print "true";
 
+    Note that you can check if a given ``addr`` is IPv4 or IPv6 using
+    the :bro:id:`is_v4_addr` and :bro:id:`is_v6_addr` built-in functions.
+
 .. bro:type:: subnet
 
     A type representing a block of IP addresses in CIDR notation.  A
     ``subnet`` constant is written as an :bro:type:`addr` followed by a
     slash (/) and then the network prefix size specified as a decimal
     number.  For example, ``192.168.0.0/16`` or ``[fe80::]/64``.
+
+    Subnets can be compared for equality (``==``, ``!=``).  An
+    :bro:type:`addr` can be checked for inclusion in a subnet using
+    the "in" or "!in" operators.
 
 .. bro:type:: any
 
@@ -246,14 +329,14 @@ The Bro scripting language supports the following built-in types.
             [5] = "five",
         };
 
-    Accessing table elements if provided by enclosing values within square
-    brackets (``[]``), for example:
+    Accessing table elements is provided by enclosing index values within
+    square brackets (``[]``), for example:
 
     .. code:: bro
 
-        t[13] = "thirteen";
+        print t[11];
 
-    And membership can be tested with ``in``:
+    And membership can be tested with ``in`` or ``!in``:
 
     .. code:: bro
 
@@ -272,17 +355,23 @@ The Bro scripting language supports the following built-in types.
         for ( [a, p] in services )
             ...
 
+    Add or overwrite individual table elements by assignment:
+
+    .. code:: bro
+
+        t[13] = "thirteen";
+
     Remove individual table elements with ``delete``:
 
     .. code:: bro
 
         delete t[13];
 
-    Nothing happens if the element with value ``13`` isn't present in
+    Nothing happens if the element with index value ``13`` isn't present in
     the table.
 
-    Table size can be obtained by placing the table identifier between
-    vertical pipe (|) characters:
+    The number of elements in a table can be obtained by placing the table
+    identifier between vertical pipe characters:
 
     .. code:: bro
 
@@ -308,11 +397,19 @@ The Bro scripting language supports the following built-in types.
     The types are explicitly shown in the example above, but they could
     have been left to type inference.
 
-    Set membership is tested with ``in``:
+    Set membership is tested with ``in`` or ``!in``:
 
     .. code:: bro
 
         if ( 21/tcp in s )
+            ...
+
+    Iterate over a set with a ``for`` loop:
+
+    .. code:: bro
+
+        local s: set[port];
+        for ( p in s )
             ...
 
     Elements are added with ``add``:
@@ -321,14 +418,20 @@ The Bro scripting language supports the following built-in types.
 
         add s[22/tcp];
 
+    Nothing happens if the element with value ``22/tcp`` was already present in
+    the set.
+
     And removed with ``delete``:
 
     .. code:: bro
 
         delete s[21/tcp];
 
-    Set size can be obtained by placing the set identifier between
-    vertical pipe (|) characters:
+    Nothing happens if the element with value ``21/tcp`` isn't present in
+    the set.
+
+    The number of elements in a set can be obtained by placing the set
+    identifier between vertical pipe characters:
 
     .. code:: bro
 
@@ -337,7 +440,8 @@ The Bro scripting language supports the following built-in types.
 .. bro:type:: vector
 
     A vector is like a :bro:type:`table`, except it's always indexed by a
-    :bro:type:`count`.  A vector is declared like:
+    :bro:type:`count` (and vector indexing is always zero-based).  A vector
+    is declared like:
 
     .. code:: bro
 
@@ -349,20 +453,50 @@ The Bro scripting language supports the following built-in types.
 
         global v: vector of string = vector("one", "two", "three");
 
-    Adding an element to a vector involves accessing/assigning it:
+    Accessing vector elements is provided by enclosing index values within
+    square brackets (``[]``), for example:
 
     .. code:: bro
 
-        v[3] = "four"
+        print v[2];
 
-    Note how the vector indexing is 0-based.
+    Iterate over a vector with a ``for`` loop:
 
-    Vector size can be obtained by placing the vector identifier between
-    vertical pipe (|) characters:
+    .. code:: bro
+
+        local v: vector of string;
+        for ( n in v )
+            ...
+
+    An element can be added to a vector by assigning the value (a value
+    that already exists at that index will be overwritten):
+
+    .. code:: bro
+
+        v[3] = "four";
+
+    The number of elements in a vector can be obtained by placing the vector
+    identifier between vertical pipe characters:
 
     .. code:: bro
 
         |v|
+
+    Vectors of integral types (``int`` or ``count``) support the pre-increment
+    (``++``) and pre-decrement operators (``--``), which will increment or
+    decrement each element in the vector.
+
+    Vectors of arithmetic types (``int``, ``count``, or ``double``) can be
+    operands of the arithmetic operators (``+``, ``-``, ``*``, ``/``, ``%``),
+    but both operands must have the same number of elements (and the modulus
+    operator ``%`` cannot be used if either operand is a ``vector of double``).
+    The resulting vector contains the result of the operation applied to each
+    of the elements in the operand vectors.
+
+    Vectors of bool can be operands of the logical "and" (``&&``) and logical
+    "or" (``||``) operators (both operands must have same number of elements).
+    The resulting vector of bool is the logical "and" (or logical "or") of
+    each element of the operand vectors.
 
 .. bro:type:: record
 
@@ -404,9 +538,11 @@ The Bro scripting language supports the following built-in types.
 
 .. bro:type:: file
 
-    Bro supports writing to files, but not reading from them.  For
-    example, declare, open, and write to a file and finally close it
-    like:
+    Bro supports writing to files, but not reading from them.  Files
+    can be opened using either the :bro:id:`open` or :bro:id:`open_for_append`
+    built-in functions, and closed using the :bro:id:`close` built-in
+    function. For example, declare, open, and write to a file
+    and finally close it like:
 
     .. code:: bro
 
@@ -444,8 +580,8 @@ The Bro scripting language supports the following built-in types.
 
     Note that in the definition above, it's not necessary for us to have
     done the first (forward) declaration of ``greeting`` as a function
-    type, but when it is, the argument list and return type much match
-    exactly.
+    type, but when it is, the return type and argument list (including the
+    name of each argument) must match exactly.
 
     Function types don't need to have a name and can be assigned anonymously:
 
@@ -619,11 +755,18 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &add_func
 
-.. TODO: needs to be documented.
+    Can be applied to an identifier with &redef to specify a function to
+    be called any time a "redef <id> += ..." declaration is parsed.  The
+    function takes two arguments of the same type as the identifier, the first
+    being the old value of the variable and the second being the new
+    value given after the "+=" operator in the "redef" declaration.  The
+    return value of the function will be the actual new value of the
+    variable after the "redef" declaration is parsed.
 
 .. bro:attr:: &delete_func
 
-.. TODO: needs to be documented.
+    Same as &add_func, except for "redef" declarations that use the "-="
+    operator.
 
 .. bro:attr:: &expire_func
 
@@ -700,5 +843,15 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &error_handler
 
-.. TODO: needs documented
+    Internally set on the events that are associated with the reporter
+    framework: :bro:id:`reporter_info`, :bro:id:`reporter_warning`, and
+    :bro:id:`reporter_error`.  It prevents any handlers of those events
+    from being able to generate reporter messages that go through any of
+    those events (i.e., it prevents an infinite event recursion).  Instead,
+    such nested reporter messages are output to stderr.
 
+.. bro:attr:: &type_column
+
+    Used by the input framework. It can be used on columns of type
+    :bro:type:`port` and specifies the name of an additional column in
+    the input file which specifies the protocol of the port (tcp/udp/icmp).

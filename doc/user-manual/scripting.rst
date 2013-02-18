@@ -353,5 +353,27 @@ When the script is executed we get an output showing the details of established 
 
     @TEST-EXEC: btest-rst-cmd bro  -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_time.bro
 
+interval
+~~~~~~~~
+
+The interval data type is another area in Bro where rational application of abstraction made perfect sense.  As a data type, the interval represents a relative time as denoted by a numeric constant followed by a unit of time.  For example, ten seconds would be ``2.2sec`` and thirty-one days would be represented by ``31days``.  Bro supports usec, msec, sec, min, hr, or day which represent microseconds, milliseconds, seconds, minutes, hours, and days respectively.  In fact, the interval data type allows for a surprising amount of variation in its definitions.  There can be a space between the numeric constant or they can crammed together like a temporal portmanteau.  The time unit can be either singular or plural.  All of this adds up to to the fact that both ``42hrs`` and ``42 hr`` are perfectly valid and logically equivalent in Bro.  The point, however, is to increase the readability and thus maintainability of a script.  Intervals can even be negated, allowing for ``- 10mins`` to represent "ten minutes ago".
+
+Intervals in Bro can have mathematical operations performed against them allowing the user to perform addition, subtraction, multiplication, division, and comparison operations. As well, Bro returns an interval when comparing two ``time`` values using the ``-`` operator.  The script below amends the script started in the section above to include a time delta value printed along with the connection establishment report.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_interval.bro
+   :language: bro
+   :linenos:
+   :lines: 4-20
+
+This time, when we execute the script we see an additional line in the output to display the time delta since the last fully established connection.  
+
+.. btest:: data_type_subnets
+
+    @TEST-EXEC: btest-rst-cmd bro  -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_interval.bro
+
+
+
+
+
 
 

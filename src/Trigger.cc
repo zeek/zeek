@@ -242,6 +242,7 @@ bool Trigger::Eval()
 
 		trigger->Cache(frame->GetCall(), v);
 		trigger->Release();
+		frame->ClearTrigger();
 		}
 
 	Unref(v);
@@ -251,7 +252,6 @@ bool Trigger::Eval()
 		timer_mgr->Cancel(timer);
 
 	Disable();
-	UnregisterAll();
 	Unref(this);
 
 	return true;
@@ -331,6 +331,7 @@ void Trigger::Timeout()
 #endif
 			trigger->Cache(frame->GetCall(), v);
 			trigger->Release();
+			frame->ClearTrigger();
 			}
 
 		Unref(v);
@@ -338,7 +339,6 @@ void Trigger::Timeout()
 		}
 
 	Disable();
-	UnregisterAll();
 	Unref(this);
 	}
 
@@ -424,6 +424,12 @@ Val* Trigger::Lookup(const CallExpr* expr)
 
 	ValCache::iterator i = cache.find(expr);
 	return (i != cache.end()) ? i->second : 0;
+	}
+
+void Trigger::Disable()
+	{
+	UnregisterAll();
+	disabled = true;
 	}
 
 const char* Trigger::Name() const

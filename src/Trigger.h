@@ -79,7 +79,6 @@ private:
 	friend class TriggerTimer;
 
 	void Init();
-	void DeleteTrigger();
 	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();

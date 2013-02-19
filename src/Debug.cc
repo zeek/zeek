@@ -763,7 +763,7 @@ int dbg_handle_debug_input()
 	Frame* curr_frame = g_frame_stack.back();
 	const BroFunc* func = curr_frame->GetFunction();
 	if ( func )
-		current_module = func->GetID()->ModuleName();
+		current_module = extract_module_name(func->Name());
 	else
 		current_module = GLOBAL_MODULE_NAME;
 

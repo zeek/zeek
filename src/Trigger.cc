@@ -251,6 +251,7 @@ bool Trigger::Eval()
 		timer_mgr->Cancel(timer);
 
 	Disable();
+	UnregisterAll();
 	Unref(this);
 
 	return true;
@@ -337,6 +338,7 @@ void Trigger::Timeout()
 		}
 
 	Disable();
+	UnregisterAll();
 	Unref(this);
 	}
 

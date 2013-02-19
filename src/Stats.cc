@@ -338,7 +338,7 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	load_samples->Assign(new StringVal(func->GetID()->Name()), 0);
+	load_samples->Assign(new StringVal(func->Name()), 0);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)

@@ -4639,12 +4639,13 @@ Val* CallExpr::Eval(Frame* f) const
 		{
 		const ::Func* func = func_val->AsFunc();
 		calling_expr = this;
+		const CallExpr* current_call = f ? f->GetCall() : 0;
 
 		if ( f )
 			f->SetCall(this);
 		ret = func->Call(v, f); // No try/catch here; we pass exceptions upstream.
 		if ( f )
-			f->ClearCall();
+			f->SetCall(current_call);
 		// Don't Unref() the arguments, as Func::Call already did that.
 		delete v;
 

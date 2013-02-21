@@ -81,7 +81,7 @@ type DNP3_Application_Request_Header = record {
 	empty: bytestring &length = 0;
 	application_control : uint8;
 	function_code       : uint8 ;
-} &length = 2 &check(whatisthehell);
+} &length = 2 ;
 
 type DNP3_Application_Response_Header = record {
 	empty: bytestring &length = 0;

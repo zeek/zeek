@@ -3,7 +3,9 @@
 #include "TCP_Reassembler.h"
 
 
-#define USE_BUFFER 
+
+//#define NOT_USE_BUFFER 
+#define DEBUG
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTag::DNP3, c)
 	{
@@ -547,7 +549,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		return ;
 
 
-	#ifdef USE_BUFFER
+	#ifdef NOT_USE_BUFFER
 	result = DNP3_Reassembler2(len, data, orig);
 	gDNP3Data.mData[3] = 0x00;
 	
@@ -564,17 +566,19 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	bool m_orig = ( (data[3] & 0x80) == 0x80 );
 
 	int i = 0;
+	#ifdef DEBUG
 	printf("\nBytes into BInpac analzyer:");
 	for (i = 0; i < gDNP3Data.length ; i++)
 		printf("0x%x ", gDNP3Data.mData[i]);
 	printf("\n");
+	#endif
 
 		
 	interp->NewData(m_orig, gDNP3Data.mData, gDNP3Data.mData + gDNP3Data.length );
 
 	gDNP3Data.Clear();
 
-	#ifdef USE_BUFFER
+	#ifdef NOT_USE_BUFFER
 	if(result == 10){
 		//interp->FlowEOF(m_orig);	
 		//interp->FlowEOF(true);	

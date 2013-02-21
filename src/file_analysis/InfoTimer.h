@@ -1,8 +1,9 @@
 #ifndef FILE_ANALYSIS_INFOTIMER_H
 #define FILE_ANALYSIS_INFOTIMER_H
 
-#include "Timer.h"
 #include <string>
+#include "Timer.h"
+#include "FileID.h"
 
 namespace file_analysis {
 
@@ -12,7 +13,7 @@ namespace file_analysis {
 class InfoTimer : public Timer {
 public:
 
-	InfoTimer(double t, const string& id, double interval)
+	InfoTimer(double t, const FileID& id, double interval)
 	    : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id) {}
 
 	~InfoTimer() {}
@@ -25,7 +26,7 @@ public:
 
 protected:
 
-	string file_id;
+	FileID file_id;
 };
 
 } // namespace file_analysis

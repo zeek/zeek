@@ -7,6 +7,7 @@
 #include "Conn.h"
 #include "Val.h"
 #include "Action.h"
+#include "FileID.h"
 
 namespace file_analysis {
 
@@ -26,7 +27,12 @@ public:
 	/**
 	 * @return value of the "file_id" field from #val record.
 	 */
-	string FileID() const;
+	FileID GetFileID() const { return file_id; }
+
+	/**
+	 * @return the string which uniquely identifies the file.
+	 */
+	string Unique() const { return unique; }
 
 	/**
 	 * @return #last_activity_time
@@ -96,7 +102,7 @@ protected:
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	Info(const string& file_id, Connection* conn = 0,
+	Info(const string& unique, Connection* conn = 0,
 	     const string& protocol = "");
 
 	/**
@@ -122,6 +128,8 @@ protected:
 	 */
 	double LookupFieldDefaultInterval(int idx) const;
 
+	FileID file_id;            /**< A pretty hash that likely identifies file*/
+	string unique;             /**< A string that uniquely identifies file */
 	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
 	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */

@@ -451,6 +451,7 @@ set(bro_SRCS
     file_analysis/Manager.cc
     file_analysis/Info.cc
     file_analysis/InfoTimer.cc
+    file_analysis/FileID.h
     file_analysis/Action.h
     file_analysis/Extract.cc
 

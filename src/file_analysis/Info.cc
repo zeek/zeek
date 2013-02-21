@@ -2,6 +2,7 @@
 
 #include "Info.h"
 #include "InfoTimer.h"
+#include "FileID.h"
 #include "Reporter.h"
 #include "Val.h"
 
@@ -70,17 +71,20 @@ void Info::InitFieldIndices()
 	action_args_idx = Idx("action_args");
 	}
 
-Info::Info(const string& file_id, Connection* conn, const string& protocol)
-    : val(0), last_activity_time(network_time), postpone_timeout(false),
-      need_reassembly(false)
+Info::Info(const string& unique, Connection* conn, const string& protocol)
+    : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
+      postpone_timeout(false), need_reassembly(false)
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s", file_id.c_str());
-
 	InitFieldIndices();
 
+	char id[20];
+	uitoa_n(calculate_unique_id(), id, sizeof(id), 62);
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s", id);
+
 	val = new RecordVal(BifType::Record::FileAnalysis::Info);
-	// TODO: hash/prettify file_id for script layer presentation
-	val->Assign(file_id_idx, new StringVal(file_id.c_str()));
+	val->Assign(file_id_idx, new StringVal(id));
+	file_id = FileID(id);
 
 	UpdateConnectionFields(conn);
 
@@ -96,7 +100,7 @@ Info::~Info()
 	for ( it = actions.begin(); it != actions.end(); ++it )
 		delete it->second;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s", FileID().c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s",file_id.c_str());
 	Unref(val);
 	}
 
@@ -145,11 +149,6 @@ double Info::TimeoutInterval() const
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
-string Info::FileID() const
-	{
-	return val->Lookup(file_id_idx)->AsString()->CheckString();
-	}
-
 void Info::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
@@ -172,7 +171,7 @@ bool Info::IsComplete() const
 
 void Info::ScheduleInactivityTimer() const
 	{
-	timer_mgr->Add(new InfoTimer(network_time, FileID(), TimeoutInterval()));
+	timer_mgr->Add(new InfoTimer(network_time, file_id, TimeoutInterval()));
 	}
 
 bool Info::AddAction(EnumVal* act, RecordVal* args)
@@ -184,7 +183,7 @@ bool Info::AddAction(EnumVal* act, RecordVal* args)
 	if ( ! a ) return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act->AsEnum(),
-	        FileID().c_str());
+	        file_id.c_str());
 	actions[act->AsEnum()] = a;
 
 	VectorVal* av = val->LookupWithDefault(actions_idx)->AsVectorVal();
@@ -206,7 +205,7 @@ bool Info::RemoveAction(EnumVal* act)
 	if ( it == actions.end() ) return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", act->AsEnum(),
-	        FileID().c_str());
+	        file_id.c_str());
 	delete it->second;
 	actions.erase(it);
 	return true;

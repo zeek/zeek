@@ -13,17 +13,18 @@ flow DNP3_Flow(is_orig: bool) {
 	//FlowBuffer flow_buffer_;
 	const_byteptr pre_begin;
 	const_byteptr pre_end;
+	uint32 buffer;
         %}
 
 
 	function increaseBuffer(addBuffer: uint32): bool
 		%{
 		//flow_buffer_->ExpandBuffer(addBuffer);
-		printf("HL Debug: increase buffer \n");
+		//printf("HL Debug: increase buffer \n");
 		pre_begin = flow_buffer_->begin();
 		pre_end = flow_buffer_->end();
-		//flow_buffer_->GrowFrame(addBuffer);
-		flow_buffer_->NewFrame(addBuffer, false);
+		flow_buffer_->GrowFrame(addBuffer);
+		//flow_buffer_->NewFrame(addBuffer, false);
 		return true;
 		%}
 	function get_bufferContents(): const_bytestring
@@ -36,12 +37,24 @@ flow DNP3_Flow(is_orig: bool) {
 		//}
 		//return 0;
 		%}
+	function SetwheretoBuffer(index: uint32) : bool
+		%{
+		buffer = index;
+		return true;
+		%}
+	function GetwheretoBuffer() : uint32
+		%{
+		
+		return buffer;
+		%}
+
 	function getPreviousBuffer(addBuffer: uint32): const_bytestring
 		%{
 		//if(flow_buffer_->ready() == true){
+		//if(buffer == 23){
 			return const_bytestring(
-                        	pre_begin,
-                        	pre_begin + addBuffer);	
+                        	pre_end - addBuffer,
+                        	pre_end);	
                         	//( flow_buffer_->begin()) + 10 );	
 		//}
 		//return 0;

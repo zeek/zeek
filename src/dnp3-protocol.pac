@@ -55,17 +55,18 @@ type DNP3_Req = record {
 	#empty: Empty;
 	addin_header : Header_Block;
 	app_header : DNP3_Application_Request_Header;
+	data: Body ;
 	#data: bytestring &until($input.length()==0); 
 	#data: bytestring &restofdata ;
-	data: bytestring &length = 18 ;
+	#data: bytestring &length = 8 ;
 	#data: AByte[] &until($element.last);	
 } &let{
 	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-	#incBuff : bool = $context.flow.increaseBuffer(7) ;	
+	#incBuff : bool = $context.flow.increaseBuffer(18) ;	
 	available : bool = $context.flow.buffer_available();
 	ready : bool = $context.flow.buffer_ready();
 	buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-	body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
+	#body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
 	#body : bytestring =  $context.flow.get_bufferContents() ;
 	#body : Body withinput $context.flow.getPreviousBuffer(18) ;
 
@@ -82,8 +83,11 @@ type Empty = record{
 }
 &let{
 	buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-        ready : bool = $context.flow.buffer_ready();
-        body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
+        #ready : bool = $context.flow.buffer_ready();
+        ready : uint32 = $context.flow.GetwheretoBuffer();
+	
+        #body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
+	body : Body withinput $context.flow.getPreviousBuffer(8) &if ( ready == 23 );
 }
 ;
 

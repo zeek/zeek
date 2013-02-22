@@ -454,6 +454,7 @@ set(bro_SRCS
     file_analysis/FileID.h
     file_analysis/Action.h
     file_analysis/Extract.cc
+    file_analysis/Hash.cc
 
     nb_dns.c
     digest.h

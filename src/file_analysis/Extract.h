@@ -5,20 +5,21 @@
 
 #include "Val.h"
 #include "Info.h"
+#include "Action.h"
 
 namespace file_analysis {
 
 /**
  * An action to simply extract files to disk.
  */
-class Extract : Action {
+class Extract : public Action {
 public:
 
 	static Action* Instantiate(const RecordVal* args, Info* info);
 
-	~Extract();
+	virtual ~Extract();
 
-	virtual void DeliverChunk(const u_char* data, uint64 len, uint64 offset);
+	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset);
 
 protected:
 

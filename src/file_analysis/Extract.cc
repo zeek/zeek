@@ -6,7 +6,8 @@
 using namespace file_analysis;
 
 Extract::Extract(Info* arg_info, const string& arg_filename)
-    : Action(arg_info), filename(arg_filename)
+    : Action(arg_info, BifEnum::FileAnalysis::ACTION_EXTRACT),
+      filename(arg_filename)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
@@ -36,11 +37,12 @@ Action* Extract::Instantiate(const RecordVal* args, Info* info)
 	return new Extract(info, v->AsString()->CheckString());
 	}
 
-void Extract::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+bool Extract::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
 	Action::DeliverChunk(data, len, offset);
 
-	if ( ! fd ) return;
+	if ( ! fd ) return false;
 
 	safe_pwrite(fd, data, len, offset);
+	return true;
 	}

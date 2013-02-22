@@ -8,6 +8,7 @@ module FileAnalysis;
 
 type Info: record;
 type ActionArgs: record;
+type ActionResults: record;
 
 ## An enumeration of possibly-interesting "events" that can occur over
 ## the course of analyzing files.  The :bro:see:`FileAnalysis::policy`
@@ -57,6 +58,9 @@ enum Trigger %{
 
 enum Action %{
 	ACTION_EXTRACT,
+	ACTION_MD5,
+	ACTION_SHA1,
+	ACTION_SHA256,
 %}
 
 function FileAnalysis::postpone_timeout%(file_id: string%): bool

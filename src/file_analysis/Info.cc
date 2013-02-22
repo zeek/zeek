@@ -8,12 +8,16 @@
 
 #include "Action.h"
 #include "Extract.h"
+#include "Hash.h"
 
 using namespace file_analysis;
 
 // keep in order w/ declared enum values in file_analysis.bif
 static ActionInstantiator action_factory[] = {
     Extract::Instantiate,
+    MD5::Instantiate,
+    SHA1::Instantiate,
+    SHA256::Instantiate,
 };
 
 static TableVal* empty_conn_id_set()
@@ -53,6 +57,7 @@ int Info::overflow_bytes_idx = -1;
 int Info::timeout_interval_idx = -1;
 int Info::actions_idx = -1;
 int Info::action_args_idx = -1;
+int Info::action_results_idx = -1;
 
 void Info::InitFieldIndices()
 	{
@@ -69,6 +74,7 @@ void Info::InitFieldIndices()
 	timeout_interval_idx = Idx("timeout_interval");
 	actions_idx = Idx("actions");
 	action_args_idx = Idx("action_args");
+	action_results_idx = Idx("action_results");
 	}
 
 Info::Info(const string& unique, Connection* conn, const string& protocol)
@@ -149,6 +155,11 @@ double Info::TimeoutInterval() const
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
+RecordVal* Info::Results() const
+	{
+	return val->Lookup(action_results_idx)->AsRecordVal();
+	}
+
 void Info::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
@@ -174,22 +185,25 @@ void Info::ScheduleInactivityTimer() const
 	timer_mgr->Add(new InfoTimer(network_time, file_id, TimeoutInterval()));
 	}
 
-bool Info::AddAction(EnumVal* act, RecordVal* args)
+bool Info::AddAction(ActionTag act, RecordVal* args)
 	{
-	if ( actions.find(act->AsEnum()) != actions.end() ) return false;
+	if ( actions.find(act) != actions.end() ) return false;
 
-	Action* a = action_factory[act->AsEnum()](args, this);
+	ActionTag tag = static_cast<ActionTag>(act);
+
+	Action* a = action_factory[act](args, this);
 
 	if ( ! a ) return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act->AsEnum(),
+	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act,
 	        file_id.c_str());
-	actions[act->AsEnum()] = a;
+	actions[act] = a;
 
 	VectorVal* av = val->LookupWithDefault(actions_idx)->AsVectorVal();
 	VectorVal* aav = val->LookupWithDefault(action_args_idx)->AsVectorVal();
 
-	av->Assign(av->Size(), act->Ref(), 0);
+	EnumVal* ev = new EnumVal(act, BifType::Enum::FileAnalysis::Action);
+	av->Assign(av->Size(), ev, 0);
 	aav->Assign(aav->Size(), args->Ref(), 0);
 
 	Unref(av);
@@ -198,13 +212,18 @@ bool Info::AddAction(EnumVal* act, RecordVal* args)
 	return true;
 	}
 
-bool Info::RemoveAction(EnumVal* act)
+bool Info::RemoveAction(ActionTag act)
 	{
-	ActionMap::iterator it = actions.find(act->AsEnum());
+	ActionMap::iterator it = actions.find(act);
 
 	if ( it == actions.end() ) return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", act->AsEnum(),
+	return RemoveAction(it);
+	}
+
+bool Info::RemoveAction(const ActionMap::iterator& it)
+	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", it->first,
 	        file_id.c_str());
 	delete it->second;
 	actions.erase(it);
@@ -213,12 +232,18 @@ bool Info::RemoveAction(EnumVal* act)
 
 void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
-	ActionMap::const_iterator it;
-	for ( it = actions.begin(); it != actions.end(); ++it )
-		it->second->DeliverChunk(data, len, offset);
+	ActionMap::iterator it = actions.begin();
+	while ( it != actions.end() )
+		if ( ! it->second->DeliverChunk(data, len, offset) )
+			RemoveAction(it++);
+		else
+			++it;
 
 	// TODO: check reassembly requirement based on buffer size in record
-	if ( ! need_reassembly ) return;
+	if ( need_reassembly )
+		{
+		// TODO
+		}
 
 	// TODO: reassembly stuff, possibly having to deliver chunks if buffer full
 	//       and incrememt overflow bytes
@@ -228,13 +253,22 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 
 void Info::DataIn(const u_char* data, uint64 len)
 	{
-	ActionMap::const_iterator it;
-	for ( it = actions.begin(); it != actions.end(); ++it )
+	ActionMap::iterator it = actions.begin();
+	while ( it != actions.end() )
 		{
-		it->second->DeliverStream(data, len);
+		if ( ! it->second->DeliverStream(data, len) )
+			{
+			RemoveAction(it++);
+			continue;
+			}
+
 		uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
 		                LookupFieldDefaultCount(missing_bytes_idx);
-		it->second->DeliverChunk(data, len, offset);
+
+		if ( ! it->second->DeliverChunk(data, len, offset) )
+			RemoveAction(it++);
+		else
+			++it;
 		}
 
 	IncrementByteCount(len, seen_bytes_idx);
@@ -242,16 +276,22 @@ void Info::DataIn(const u_char* data, uint64 len)
 
 void Info::EndOfFile()
 	{
-	ActionMap::const_iterator it;
-	for ( it = actions.begin(); it != actions.end(); ++it )
-		it->second->EndOfFile();
+	ActionMap::iterator it = actions.begin();
+	while ( it != actions.end() )
+		if ( ! it->second->EndOfFile() )
+			RemoveAction(it++);
+		else
+			++it;
 	}
 
 void Info::Gap(uint64 offset, uint64 len)
 	{
-	ActionMap::const_iterator it;
-	for ( it = actions.begin(); it != actions.end(); ++it )
-		it->second->Undelivered(offset, len);
+	ActionMap::iterator it = actions.begin();
+	while ( it != actions.end() )
+		if ( ! it->second->Undelivered(offset, len) )
+			RemoveAction(it++);
+		else
+			++it;
 
 	IncrementByteCount(len, missing_bytes_idx);
 	}

@@ -37,6 +37,12 @@ export {
 		extract_filename: string &optional;
 	};
 
+	type ActionResults: record {
+		md5: string &optional;
+		sha1: string &optional;
+		sha256: string &optional;
+	};
+
 	## Contains all metadata related to the analysis of a given file, some
 	## of which is logged.
 	type Info: record {
@@ -81,6 +87,9 @@ export {
 
 		## The corresponding arguments supplied to each element of *actions*.
 		action_args: vector of ActionArgs &default=vector();
+
+		## Some actions may directly yield results in this record.
+		action_results: ActionResults;
 	} &redef;
 
 	## TODO: document

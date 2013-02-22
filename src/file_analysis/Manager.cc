@@ -3,6 +3,7 @@
 
 #include "Manager.h"
 #include "Info.h"
+#include "Action.h"
 
 using namespace file_analysis;
 
@@ -106,7 +107,7 @@ bool Manager::AddAction(const FileID& file_id, EnumVal* act,
 
 	if ( ! info ) return false;
 
-	return info->AddAction(act, args);
+	return info->AddAction(static_cast<ActionTag>(act->AsEnum()), args);
 	}
 
 bool Manager::RemoveAction(const FileID& file_id, EnumVal* act) const
@@ -115,7 +116,7 @@ bool Manager::RemoveAction(const FileID& file_id, EnumVal* act) const
 
 	if ( ! info ) return false;
 
-	return info->RemoveAction(act);
+	return info->RemoveAction(static_cast<ActionTag>(act->AsEnum()));
 	}
 
 Info* Manager::GetInfo(const string& unique, Connection* conn,

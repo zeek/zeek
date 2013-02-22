@@ -7,6 +7,7 @@
 #include "Conn.h"
 #include "Val.h"
 #include "Action.h"
+#include "FileID.h"
 
 namespace file_analysis {
 
@@ -26,7 +27,17 @@ public:
 	/**
 	 * @return value of the "file_id" field from #val record.
 	 */
-	string FileID() const;
+	FileID GetFileID() const { return file_id; }
+
+	/**
+	 * @return record val of the "action_results" field from #val record.
+	 */
+	RecordVal* Results() const;
+
+	/**
+	 * @return the string which uniquely identifies the file.
+	 */
+	string Unique() const { return unique; }
 
 	/**
 	 * @return #last_activity_time
@@ -61,13 +72,13 @@ public:
 	 * Attaches an action.  Only one action per type can be attached at a time.
 	 * @return true if the action was attached, else false.
 	 */
-	bool AddAction(EnumVal* act, RecordVal* args);
+	bool AddAction(ActionTag act, RecordVal* args);
 
 	/**
 	 * Removes an action.
 	 * @return true if the action was removed, else false.
 	 */
-	bool RemoveAction(EnumVal* act);
+	bool RemoveAction(ActionTag act);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached actions/analyzers.
@@ -93,10 +104,12 @@ protected:
 
 	friend class Manager;
 
+	typedef map<ActionTag, Action*> ActionMap;
+
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	Info(const string& file_id, Connection* conn = 0,
+	Info(const string& unique, Connection* conn = 0,
 	     const string& protocol = "");
 
 	/**
@@ -122,14 +135,19 @@ protected:
 	 */
 	double LookupFieldDefaultInterval(int idx) const;
 
+	/**
+	 * Removes an action.
+	 * @return true if the action was removed, else false.
+	 */
+	bool RemoveAction(const ActionMap::iterator& it);
+
+	FileID file_id;            /**< A pretty hash that likely identifies file*/
+	string unique;             /**< A string that uniquely identifies file */
 	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
 	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
-
-	typedef map<int, Action*> ActionMap;
-
-	ActionMap actions;
+	ActionMap actions;         /**< Actions/analysis to perform on file. */
 
 	/**
 	 * @return the field offset in #val record corresponding to \a field_name.
@@ -153,6 +171,7 @@ protected:
 	static int timeout_interval_idx;
 	static int actions_idx;
 	static int action_args_idx;
+	static int action_results_idx;
 };
 
 } // namespace file_analysis

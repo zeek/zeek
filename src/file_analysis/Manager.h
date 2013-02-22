@@ -10,6 +10,7 @@
 
 #include "Info.h"
 #include "InfoTimer.h"
+#include "FileID.h"
 
 namespace file_analysis {
 
@@ -31,58 +32,58 @@ public:
 	/**
 	 * Pass in non-sequential file data.
 	 */
-	void DataIn(const string& file_id, const u_char* data, uint64 len,
+	void DataIn(const string& unique, const u_char* data, uint64 len,
 	            uint64 offset, Connection* conn = 0,
 	            const string& protocol = "");
 
 	/**
 	 * Pass in sequential file data.
 	 */
-	void DataIn(const string& file_id, const u_char* data, uint64 len,
+	void DataIn(const string& unique, const u_char* data, uint64 len,
 	            Connection* conn = 0, const string& protocol = "");
 
 	/**
 	 * Signal the end of file data.
 	 */
-	void EndOfFile(const string& file_id, Connection* conn = 0,
+	void EndOfFile(const string& unique, Connection* conn = 0,
 	               const string& protocol = "");
 
 	/**
 	 * Signal a gap in the file data stream.
 	 */
-	void Gap(const string& file_id, uint64 offset, uint64 len,
+	void Gap(const string& unique, uint64 offset, uint64 len,
 	         Connection* conn = 0, const string& protocol = "");
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
-	void SetSize(const string& file_id, uint64 size, Connection* conn = 0,
+	void SetSize(const string& unique, uint64 size, Connection* conn = 0,
 	             const string& protocol = "");
 
 	/**
 	 * Discard the file_analysis::Info object associated with \a file_id.
 	 * @return false if file identifier did not map to anything, else true.
 	 */
-	bool RemoveFile(const string& file_id);
+	bool RemoveFile(const FileID& file_id);
 
 	/**
 	 * If called during \c FileAnalysis::policy evaluation for a
 	 * \c FileAnalysis::TRIGGER_TIMEOUT, requests deferral of analysis timeout.
 	 */
-	bool PostponeTimeout(const string& file_id) const;
+	bool PostponeTimeout(const FileID& file_id) const;
 
 	/**
 	 * Attaches an action to the file identifier.  Only one action of a given
 	 * type can be attached per file identifier at a time.
 	 * @return true if the action was attached, else false.
 	 */
-	bool AddAction(const string& file_id, EnumVal* act, RecordVal* args) const;
+	bool AddAction(const FileID& file_id, EnumVal* act, RecordVal* args) const;
 
 	/**
 	 * Removes an action for a given file identifier.
 	 * @return true if the action was removed, else false.
 	 */
-	bool RemoveAction(const string& file_id, EnumVal* act) const;
+	bool RemoveAction(const FileID& file_id, EnumVal* act) const;
 
 	/**
 	 * Calls the \c FileAnalysis::policy hook.
@@ -93,29 +94,31 @@ protected:
 
 	friend class InfoTimer;
 
-	typedef map<string, Info*> FileMap;
+	typedef map<string, Info*> StrMap;
+	typedef map<FileID, Info*> IDMap;
 
 	/**
-	 * @return the Info object mapped to \a file_id.  One is created if mapping
+	 * @return the Info object mapped to \a unique.  One is created if mapping
 	 *         doesn't exist.  If it did exist, the activity time is refreshed
 	 *         and connection-related fields of the record value may be updated.
 	 */
-	Info* IDtoInfo(const string& file_id, Connection* conn = 0,
-	               const string& protocol = "");
+	Info* GetInfo(const string& unique, Connection* conn = 0,
+	              const string& protocol = "");
 
 	/**
 	 * @return the Info object mapped to \a file_id, or a null pointer if no
 	 *         mapping exists.
 	 */
-	Info* Lookup(const string& file_id) const;
+	Info* Lookup(const FileID& file_id) const;
 
 	/**
 	 * Evaluate timeout policy for a file and remove the Info object mapped to
 	 * \a file_id if needed.
 	 */
-	void Timeout(const string& file_id, bool is_terminating = ::terminating);
+	void Timeout(const FileID& file_id, bool is_terminating = ::terminating);
 
-	FileMap file_map; /**< Map strings to \c FileAnalysis::Info records. */
+	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
+	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
 };
 
 } // namespace file_analysis

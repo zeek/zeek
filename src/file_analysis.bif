@@ -8,6 +8,7 @@ module FileAnalysis;
 
 type Info: record;
 type ActionArgs: record;
+type ActionResults: record;
 
 ## An enumeration of possibly-interesting "events" that can occur over
 ## the course of analyzing files.  The :bro:see:`FileAnalysis::policy`
@@ -57,12 +58,16 @@ enum Trigger %{
 
 enum Action %{
 	ACTION_EXTRACT,
+	ACTION_MD5,
+	ACTION_SHA1,
+	ACTION_SHA256,
 	ACTION_PE_ANALYZER,
 %}
 
 function FileAnalysis::postpone_timeout%(file_id: string%): bool
 	%{
-	bool result = file_mgr->PostponeTimeout(file_id->CheckString());
+	using namespace file_analysis;
+	bool result = file_mgr->PostponeTimeout(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
 	%}
 
@@ -70,9 +75,10 @@ function FileAnalysis::add_action%(file_id: string,
                                    action: FileAnalysis::Action,
                                    args: any%): bool
 	%{
+	using namespace file_analysis;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(
 	  BifType::Record::FileAnalysis::ActionArgs);
-	bool result = file_mgr->AddAction(file_id->CheckString(),
+	bool result = file_mgr->AddAction(FileID(file_id->CheckString()),
 	                                  action->AsEnumVal(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
@@ -81,13 +87,15 @@ function FileAnalysis::add_action%(file_id: string,
 function FileAnalysis::remove_action%(file_id: string,
                                       action: FileAnalysis::Action%): bool
 	%{
-	bool result = file_mgr->RemoveAction(file_id->CheckString(),
+	using namespace file_analysis;
+	bool result = file_mgr->RemoveAction(FileID(file_id->CheckString()),
 	                                     action->AsEnumVal());
 	return new Val(result, TYPE_BOOL);
 	%}
 
 function FileAnalysis::stop%(file_id: string%): bool
 	%{
-	bool result = file_mgr->RemoveFile(file_id->CheckString());
+	using namespace file_analysis;
+	bool result = file_mgr->RemoveFile(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
 	%}

@@ -3,6 +3,7 @@
 
 #include "Manager.h"
 #include "Info.h"
+#include "Action.h"
 
 using namespace file_analysis;
 
@@ -17,8 +18,8 @@ Manager::~Manager()
 
 void Manager::Terminate()
 	{
-	vector<string> keys;
-	for ( FileMap::iterator it = file_map.begin(); it != file_map.end(); ++it )
+	vector<FileID> keys;
+	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
 		keys.push_back(it->first);
 	for ( size_t i = 0; i < keys.size(); ++i )
 		Timeout(keys[i], true);
@@ -29,46 +30,46 @@ static void check_file_done(Info* info)
 	if ( info->IsComplete() )
 		{
 		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, info);
-		file_mgr->RemoveFile(info->FileID());
+		file_mgr->RemoveFile(info->GetFileID());
 		}
 	}
 
-void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
+void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
                      uint64 offset, Connection* conn, const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, protocol);
+	Info* info = GetInfo(unique, conn, protocol);
 	info->DataIn(data, len, offset);
 	check_file_done(info);
 	}
 
-void Manager::DataIn(const string& file_id, const u_char* data, uint64 len,
+void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
                      Connection* conn, const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, protocol);
+	Info* info = GetInfo(unique, conn, protocol);
 	info->DataIn(data, len);
 	check_file_done(info);
 	}
 
-void Manager::EndOfFile(const string& file_id, Connection* conn,
+void Manager::EndOfFile(const string& unique, Connection* conn,
                         const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, protocol);
+	Info* info = GetInfo(unique, conn, protocol);
 	info->EndOfFile();
 	Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_EOF, info);
 	}
 
-void Manager::Gap(const string& file_id, uint64 offset, uint64 len,
+void Manager::Gap(const string& unique, uint64 offset, uint64 len,
                   Connection* conn, const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, protocol);
+	Info* info = GetInfo(unique, conn, protocol);
 	info->Gap(offset, len);
 	Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_GAP, info);
 	}
 
-void Manager::SetSize(const string& file_id, uint64 size,
+void Manager::SetSize(const string& unique, uint64 size,
                       Connection* conn, const string& protocol)
 	{
-	Info* info = IDtoInfo(file_id, conn, protocol);
+	Info* info = GetInfo(unique, conn, protocol);
 	info->SetTotalBytes(size);
 	check_file_done(info);
 	}
@@ -89,7 +90,7 @@ void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
 	Unref(result);
 	}
 
-bool Manager::PostponeTimeout(const string& file_id) const
+bool Manager::PostponeTimeout(const FileID& file_id) const
 	{
 	Info* info = Lookup(file_id);
 
@@ -99,33 +100,42 @@ bool Manager::PostponeTimeout(const string& file_id) const
 	return true;
 	}
 
-bool Manager::AddAction(const string& file_id, EnumVal* act,
+bool Manager::AddAction(const FileID& file_id, EnumVal* act,
                         RecordVal* args) const
 	{
 	Info* info = Lookup(file_id);
 
 	if ( ! info ) return false;
 
-	return info->AddAction(act, args);
+	return info->AddAction(static_cast<ActionTag>(act->AsEnum()), args);
 	}
 
-bool Manager::RemoveAction(const string& file_id, EnumVal* act) const
+bool Manager::RemoveAction(const FileID& file_id, EnumVal* act) const
 	{
 	Info* info = Lookup(file_id);
 
 	if ( ! info ) return false;
 
-	return info->RemoveAction(act);
+	return info->RemoveAction(static_cast<ActionTag>(act->AsEnum()));
 	}
 
-Info* Manager::IDtoInfo(const string& file_id, Connection* conn,
-                        const string& protocol)
+Info* Manager::GetInfo(const string& unique, Connection* conn,
+                       const string& protocol)
 	{
-	Info* rval = file_map[file_id];
+	Info* rval = str_map[unique];
 
 	if ( ! rval )
 		{
-		rval = file_map[file_id] = new Info(file_id, conn, protocol);
+		rval = str_map[unique] = new Info(unique, conn, protocol);
+		FileID id = rval->GetFileID();
+
+		if ( id_map[id] )
+			{
+			reporter->Error("Evicted duplicate file ID: %s", id.c_str());
+			RemoveFile(id);
+			}
+
+		id_map[id] = rval;
 		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_NEW, rval);
 		}
 	else
@@ -137,16 +147,16 @@ Info* Manager::IDtoInfo(const string& file_id, Connection* conn,
 	return rval;
 	}
 
-Info* Manager::Lookup(const string& file_id) const
+Info* Manager::Lookup(const FileID& file_id) const
 	{
-	FileMap::const_iterator it = file_map.find(file_id);
+	IDMap::const_iterator it = id_map.find(file_id);
 
-	if ( it == file_map.end() ) return 0;
+	if ( it == id_map.end() ) return 0;
 
 	return it->second;
 	}
 
-void Manager::Timeout(const string& file_id, bool is_terminating)
+void Manager::Timeout(const FileID& file_id, bool is_terminating)
 	{
 	Info* info = Lookup(file_id);
 
@@ -157,25 +167,27 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 	if ( info->postpone_timeout && ! is_terminating )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Postpone file analysis timeout for %s",
-		        info->FileID().c_str());
+		        info->GetFileID().c_str());
 		info->UpdateLastActivityTime();
 		info->ScheduleInactivityTimer();
 		return;
 		}
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
-	        info->FileID().c_str());
+	        info->GetFileID().c_str());
 
 	RemoveFile(file_id);
 	}
 
-bool Manager::RemoveFile(const string& file_id)
+bool Manager::RemoveFile(const FileID& file_id)
 	{
-	FileMap::iterator it = file_map.find(file_id);
+	IDMap::iterator it = id_map.find(file_id);
 
-	if ( it == file_map.end() ) return false;
+	if ( it == id_map.end() ) return false;
 
+	if ( ! str_map.erase(it->second->Unique()) )
+		reporter->Error("No string mapping for file ID %s", file_id.c_str());
 	delete it->second;
-	file_map.erase(it);
+	id_map.erase(it);
 	return true;
 	}

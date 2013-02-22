@@ -176,6 +176,7 @@ macro(BINPAC_TARGET pacFile)
                        COMMAND ${BinPAC_EXE}
                        ARGS -q -d ${CMAKE_CURRENT_BINARY_DIR}
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
+                            -I ${CMAKE_CURRENT_SOURCE_DIR}/file_analysis/analyzers
                             ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
                        DEPENDS ${BinPAC_EXE} ${pacFile}
                                ${BINPAC_AUXSRC} ${ARGN}
@@ -221,6 +222,9 @@ binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
+
+binpac_target(file_analysis/analyzers/pe.pac
+    file_analysis/analyzers/pe-file.pac file_analysis/analyzers/pe-analyzer.pac)
 
 ########################################################################
 ## bro target
@@ -453,6 +457,7 @@ set(bro_SRCS
     file_analysis/InfoTimer.cc
     file_analysis/Action.h
     file_analysis/Extract.cc
+    file_analysis/analyzers/PE.cc
 
     nb_dns.c
     digest.h

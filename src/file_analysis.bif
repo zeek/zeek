@@ -57,6 +57,7 @@ enum Trigger %{
 
 enum Action %{
 	ACTION_EXTRACT,
+	ACTION_PE_ANALYZER,
 %}
 
 function FileAnalysis::postpone_timeout%(file_id: string%): bool

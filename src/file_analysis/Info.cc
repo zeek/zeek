@@ -7,12 +7,14 @@
 
 #include "Action.h"
 #include "Extract.h"
+#include "analyzers/PE.h"
 
 using namespace file_analysis;
 
 // keep in order w/ declared enum values in file_analysis.bif
 static ActionInstantiator action_factory[] = {
     Extract::Instantiate,
+    PE_Analyzer::Instantiate,
 };
 
 static TableVal* empty_conn_id_set()

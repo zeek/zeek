@@ -9,6 +9,7 @@
 #include "Action.h"
 #include "Extract.h"
 #include "Hash.h"
+#include "DataEvent.h"
 
 using namespace file_analysis;
 
@@ -18,6 +19,7 @@ static ActionInstantiator action_factory[] = {
     MD5::Instantiate,
     SHA1::Instantiate,
     SHA256::Instantiate,
+    DataEvent::Instantiate,
 };
 
 static TableVal* empty_conn_id_set()
@@ -150,12 +152,12 @@ int Info::Idx(const string& field)
 	return rval;
 	}
 
-double Info::TimeoutInterval() const
+double Info::GetTimeoutInterval() const
 	{
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
-RecordVal* Info::Results() const
+RecordVal* Info::GetResults() const
 	{
 	return val->Lookup(action_results_idx)->AsRecordVal();
 	}
@@ -182,7 +184,7 @@ bool Info::IsComplete() const
 
 void Info::ScheduleInactivityTimer() const
 	{
-	timer_mgr->Add(new InfoTimer(network_time, file_id, TimeoutInterval()));
+	timer_mgr->Add(new InfoTimer(network_time, file_id, GetTimeoutInterval()));
 	}
 
 bool Info::AddAction(ActionTag act, RecordVal* args)

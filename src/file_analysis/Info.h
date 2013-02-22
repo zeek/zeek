@@ -20,9 +20,14 @@ public:
 	~Info();
 
 	/**
+	 * @return the #val record.
+	 */
+	RecordVal* GetVal() const { return val; }
+
+	/**
 	 * @return value (seconds) of the "timeout_interval" field from #val record.
 	 */
-	double TimeoutInterval() const;
+	double GetTimeoutInterval() const;
 
 	/**
 	 * @return value of the "file_id" field from #val record.
@@ -32,17 +37,17 @@ public:
 	/**
 	 * @return record val of the "action_results" field from #val record.
 	 */
-	RecordVal* Results() const;
+	RecordVal* GetResults() const;
 
 	/**
 	 * @return the string which uniquely identifies the file.
 	 */
-	string Unique() const { return unique; }
+	string GetUnique() const { return unique; }
 
 	/**
 	 * @return #last_activity_time
 	 */
-	double LastActivityTime() const { return last_activity_time; }
+	double GetLastActivityTime() const { return last_activity_time; }
 
 	/**
 	 * Refreshes #last_activity_time with current network time.

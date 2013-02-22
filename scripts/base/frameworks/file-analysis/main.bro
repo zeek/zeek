@@ -33,8 +33,13 @@ export {
 	## TODO: what's a reasonable default?
 	const default_data_event_len: count = 1024*1024 &redef;
 
+	# Needed a forward declaration for event parameters...
+	type Info: record {};
+
 	type ActionArgs: record {
 		extract_filename: string &optional;
+		chunk_event: event(info: Info, data: string, off: count) &optional;
+		stream_event: event(info: Info, data: string) &optional;
 	};
 
 	type ActionResults: record {

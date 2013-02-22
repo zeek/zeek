@@ -185,7 +185,7 @@ bool Manager::RemoveFile(const FileID& file_id)
 
 	if ( it == id_map.end() ) return false;
 
-	if ( ! str_map.erase(it->second->Unique()) )
+	if ( ! str_map.erase(it->second->GetUnique()) )
 		reporter->Error("No string mapping for file ID %s", file_id.c_str());
 	delete it->second;
 	id_map.erase(it);

@@ -50,5 +50,5 @@ void Hash::Finalize()
 	if ( i < 0 )
 		reporter->InternalError("Hash Action result field not found");
 
-	info->Results()->Assign(i, sv);
+	info->GetResults()->Assign(i, sv);
 	}

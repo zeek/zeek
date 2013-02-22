@@ -9,7 +9,7 @@ void InfoTimer::Dispatch(double t, int is_expire)
 
 	if ( ! info ) return;
 
-	double last_active = info->LastActivityTime();
+	double last_active = info->GetLastActivityTime();
 	double inactive_time = t > last_active ? t - last_active : 0.0;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Checking inactivity for %s, last active at %f, "
@@ -23,7 +23,7 @@ void InfoTimer::Dispatch(double t, int is_expire)
 		return;
 		}
 
-	if ( inactive_time >= info->TimeoutInterval() )
+	if ( inactive_time >= info->GetTimeoutInterval() )
 		file_mgr->Timeout(file_id);
 	else if ( ! is_expire )
 		info->ScheduleInactivityTimer();

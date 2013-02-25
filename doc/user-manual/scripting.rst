@@ -371,3 +371,27 @@ This time, when we execute the script we see an additional line in the output to
 
     @TEST-EXEC: btest-rst-cmd bro  -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_interval.bro
 
+Pattern
+~~~~~~~
+
+Bro has support for fast text searching operations using regular expressions and even goes so far as to declare a native data type for the patterns used in regular expressions.  A pattern constant is created by enclosing text within the forward slash characters.  Bro supports syntax very similar to the flex lexical analyzer syntax.  The most common use of patterns in Bro you are likely to come across is embedded matching using the ``in`` operator.  Embedded matching adheres to a strict format, requiring the regular expression or pattern constant to be on the left side of the ``in`` operator and the string against which it will be tested to be on the right.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_pattern_01.bro
+   :language: bro
+   :linenos:
+   :lines: 4-13
+
+In the sample above, two local variables are declared to hold our sample sentence and regular expression.  Our regular expression in this case will return true if the string contains either the word "quick" or the word "fox."  The ``if`` statement on line six uses embedded matching and the ``in`` operator to check for the existence of the pattern within the string.  If the statement resolves to true, split is called to break the string into separate pieces.  Split takes a string and a pattern as its arguments and returns a table of strings indexed by a count.  Each element of the table will be the segments before and after any matches against the pattern but excluding the actual matches.  In this case, our pattern matches twice, and results in a table with three entries.  Lines 11 through 13 print the contents of the table in order.  
+
+.. btest:: data_type_subnets
+    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_type_pattern_01.bro
+
+Patterns can also be used to compare strings using equality and inequality operators through the ``==`` and ``!=`` operators respectively. When used in this manner however, the string must match entirely to resolve to true.  For example, the script below uses two ternary conditional statements to illustrate the use of the ``==`` operators with patterns.  On lines 5 and 8 the output is altered based on the result of the comparison between the pattern and the string.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_type_pattern_02.bro
+   :language: bro
+   :linenos:
+   :lines: 4-13
+
+.. btest:: data_type_subnets
+    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_type_pattern_02.bro

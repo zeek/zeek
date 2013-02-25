@@ -5,6 +5,7 @@
 #include "FileID.h"
 #include "Reporter.h"
 #include "Val.h"
+#include "Type.h"
 
 #include "Action.h"
 #include "Extract.h"
@@ -58,8 +59,6 @@ int Info::missing_bytes_idx = -1;
 int Info::overflow_bytes_idx = -1;
 int Info::timeout_interval_idx = -1;
 int Info::actions_idx = -1;
-int Info::action_args_idx = -1;
-int Info::action_results_idx = -1;
 
 void Info::InitFieldIndices()
 	{
@@ -75,8 +74,11 @@ void Info::InitFieldIndices()
 	overflow_bytes_idx = Idx("overflow_bytes");
 	timeout_interval_idx = Idx("timeout_interval");
 	actions_idx = Idx("actions");
-	action_args_idx = Idx("action_args");
-	action_results_idx = Idx("action_results");
+	}
+
+static void action_del_func(void* v)
+	{
+	delete (Action*) v;
 	}
 
 Info::Info(const string& unique, Connection* conn, const string& protocol)
@@ -94,6 +96,12 @@ Info::Info(const string& unique, Connection* conn, const string& protocol)
 	val->Assign(file_id_idx, new StringVal(id));
 	file_id = FileID(id);
 
+	TypeList* t = new TypeList();
+	t->Append(BifType::Record::FileAnalysis::ActionArgs->Ref());
+	action_hash = new CompositeHash(t);
+	Unref(t);
+	action_map.SetDeleteFunc(action_del_func);
+
 	UpdateConnectionFields(conn);
 
 	if ( protocol != "" )
@@ -104,11 +112,8 @@ Info::Info(const string& unique, Connection* conn, const string& protocol)
 
 Info::~Info()
 	{
-	ActionMap::const_iterator it;
-	for ( it = actions.begin(); it != actions.end(); ++it )
-		delete it->second;
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s",file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s", file_id.c_str());
+	delete action_hash;
 	Unref(val);
 	}
 
@@ -157,9 +162,18 @@ double Info::GetTimeoutInterval() const
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
-RecordVal* Info::GetResults() const
+RecordVal* Info::GetResults(RecordVal* args) const
 	{
-	return val->Lookup(action_results_idx)->AsRecordVal();
+	TableVal* actions_table = val->Lookup(actions_idx)->AsTableVal();
+	RecordVal* rval = actions_table->Lookup(args)->AsRecordVal();
+
+	if ( ! rval )
+		{
+		rval = new RecordVal(BifType::Record::FileAnalysis::ActionResults);
+		actions_table->Assign(args, rval);
+		}
+
+	return rval;
 	}
 
 void Info::IncrementByteCount(uint64 size, int field_idx)
@@ -187,59 +201,91 @@ void Info::ScheduleInactivityTimer() const
 	timer_mgr->Add(new InfoTimer(network_time, file_id, GetTimeoutInterval()));
 	}
 
-bool Info::AddAction(ActionTag act, RecordVal* args)
+bool Info::AddAction(RecordVal* args)
 	{
-	if ( actions.find(act) != actions.end() ) return false;
+	HashKey* key = action_hash->ComputeHash(args, 1);
 
-	ActionTag tag = static_cast<ActionTag>(act);
+	if ( ! key )
+		reporter->InternalError("ActionArgs type mismatch in add_action");
 
-	Action* a = action_factory[act](args, this);
+	Action* act = action_map.Lookup(key);
 
-	if ( ! a ) return false;
+	if ( act )
+		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d skipped for already active"
+		        " action on file id %s", act->Tag(), file_id.c_str());
+		delete key;
+		return false;
+		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act,
+	act = action_factory[Action::ArgsTag(args)](args, this);
+
+	if ( ! act )
+		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "Failed to instantiate action %d"
+		        " on file id %s", Action::ArgsTag(args), file_id.c_str());
+		delete key;
+		return false;
+		}
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act->Tag(),
 	        file_id.c_str());
-	actions[act] = a;
 
-	VectorVal* av = val->LookupWithDefault(actions_idx)->AsVectorVal();
-	VectorVal* aav = val->LookupWithDefault(action_args_idx)->AsVectorVal();
-
-	EnumVal* ev = new EnumVal(act, BifType::Enum::FileAnalysis::Action);
-	av->Assign(av->Size(), ev, 0);
-	aav->Assign(aav->Size(), args->Ref(), 0);
-
-	Unref(av);
-	Unref(aav);
+	action_map.Insert(key, act);
+	val->Lookup(actions_idx)->AsTableVal()->Assign(args,
+	        new RecordVal(BifType::Record::FileAnalysis::ActionResults));
 
 	return true;
 	}
 
-bool Info::RemoveAction(ActionTag act)
+void Info::ScheduleRemoval(const Action* act)
 	{
-	ActionMap::iterator it = actions.find(act);
-
-	if ( it == actions.end() ) return false;
-
-	return RemoveAction(it);
+	removing.push_back(act->Args());
 	}
 
-bool Info::RemoveAction(const ActionMap::iterator& it)
+void Info::DoActionRemoval()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", it->first,
+	ActionArgList::iterator it;
+	for ( it = removing.begin(); it != removing.end(); ++it )
+		RemoveAction(*it);
+	removing.clear();
+	}
+
+bool Info::RemoveAction(const RecordVal* args)
+	{
+	HashKey* key = action_hash->ComputeHash(args, 1);
+
+	if ( ! key )
+		reporter->InternalError("ActionArgs type mismatch in remove_action");
+
+	Action* act = (Action*) action_map.Remove(key);
+	delete key;
+
+	if ( ! act )
+		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "Skip remove action %d for file id %s",
+	            Action::ArgsTag(args), file_id.c_str());
+		return false;
+		}
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", act->Tag(),
 	        file_id.c_str());
-	delete it->second;
-	actions.erase(it);
+	delete act;
 	return true;
 	}
 
 void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
-	ActionMap::iterator it = actions.begin();
-	while ( it != actions.end() )
-		if ( ! it->second->DeliverChunk(data, len, offset) )
-			RemoveAction(it++);
-		else
-			++it;
+	Action* act = 0;
+	IterCookie* c = action_map.InitForIteration();
+
+	while ( (act = action_map.NextEntry(c)) )
+		{
+		if ( ! act->DeliverChunk(data, len, offset) )
+			ScheduleRemoval(act);
+		}
+
+	DoActionRemoval();
 
 	// TODO: check reassembly requirement based on buffer size in record
 	if ( need_reassembly )
@@ -255,45 +301,54 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 
 void Info::DataIn(const u_char* data, uint64 len)
 	{
-	ActionMap::iterator it = actions.begin();
-	while ( it != actions.end() )
+	Action* act = 0;
+	IterCookie* c = action_map.InitForIteration();
+
+	while ( (act = action_map.NextEntry(c)) )
 		{
-		if ( ! it->second->DeliverStream(data, len) )
+		if ( ! act->DeliverStream(data, len) )
 			{
-			RemoveAction(it++);
+			ScheduleRemoval(act);
 			continue;
 			}
 
 		uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
 		                LookupFieldDefaultCount(missing_bytes_idx);
 
-		if ( ! it->second->DeliverChunk(data, len, offset) )
-			RemoveAction(it++);
-		else
-			++it;
+
+		if ( ! act->DeliverChunk(data, len, offset) )
+			ScheduleRemoval(act);
 		}
 
+	DoActionRemoval();
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
 void Info::EndOfFile()
 	{
-	ActionMap::iterator it = actions.begin();
-	while ( it != actions.end() )
-		if ( ! it->second->EndOfFile() )
-			RemoveAction(it++);
-		else
-			++it;
+	Action* act = 0;
+	IterCookie* c = action_map.InitForIteration();
+
+	while ( (act = action_map.NextEntry(c)) )
+		{
+		if ( ! act->EndOfFile() )
+			ScheduleRemoval(act);
+		}
+
+	DoActionRemoval();
 	}
 
 void Info::Gap(uint64 offset, uint64 len)
 	{
-	ActionMap::iterator it = actions.begin();
-	while ( it != actions.end() )
-		if ( ! it->second->Undelivered(offset, len) )
-			RemoveAction(it++);
-		else
-			++it;
+	Action* act = 0;
+	IterCookie* c = action_map.InitForIteration();
 
+	while ( (act = action_map.NextEntry(c)) )
+		{
+		if ( ! act->Undelivered(offset, len) )
+			ScheduleRemoval(act);
+		}
+
+	DoActionRemoval();
 	IncrementByteCount(len, missing_bytes_idx);
 	}

@@ -37,6 +37,7 @@ export {
 	type Info: record {};
 
 	type ActionArgs: record {
+		act: Action;
 		extract_filename: string &optional;
 		chunk_event: event(info: Info, data: string, off: count) &optional;
 		stream_event: event(info: Info, data: string) &optional;
@@ -88,13 +89,8 @@ export {
 		timeout_interval: interval &log &default=default_timeout_interval;
 
 		## Actions that have been added to the analysis of this file.
-		actions: vector of Action &default=vector();
-
-		## The corresponding arguments supplied to each element of *actions*.
-		action_args: vector of ActionArgs &default=vector();
-
-		## Some actions may directly yield results in this record.
-		action_results: ActionResults;
+		## Not meant to be modified directly by scripts.
+		actions: table[ActionArgs] of ActionResults;
 	} &redef;
 
 	## TODO: document

@@ -73,17 +73,18 @@ public:
 	bool PostponeTimeout(const FileID& file_id) const;
 
 	/**
-	 * Attaches an action to the file identifier.  Only one action of a given
-	 * type can be attached per file identifier at a time.
+	 * Attaches an action to the file identifier.  Multiple actions of a given
+	 * type can be attached per file identifier at a time as long as the
+	 * arguments differ.
 	 * @return true if the action was attached, else false.
 	 */
-	bool AddAction(const FileID& file_id, EnumVal* act, RecordVal* args) const;
+	bool AddAction(const FileID& file_id, RecordVal* args) const;
 
 	/**
 	 * Removes an action for a given file identifier.
 	 * @return true if the action was removed, else false.
 	 */
-	bool RemoveAction(const FileID& file_id, EnumVal* act) const;
+	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
 
 	/**
 	 * Calls the \c FileAnalysis::policy hook.

@@ -7,13 +7,13 @@
 
 using namespace file_analysis;
 
-DataEvent::DataEvent(Info* arg_info, EventHandlerPtr ce, EventHandlerPtr se)
-    : Action(arg_info, BifEnum::FileAnalysis::ACTION_DATA_EVENT),
-      chunk_event(ce), stream_event(se)
+DataEvent::DataEvent(RecordVal* args, Info* info,
+                     EventHandlerPtr ce, EventHandlerPtr se)
+    : Action(args, info), chunk_event(ce), stream_event(se)
 	{
 	}
 
-Action* DataEvent::Instantiate(const RecordVal* args, Info* info)
+Action* DataEvent::Instantiate(RecordVal* args, Info* info)
 	{
 	using BifType::Record::FileAnalysis::ActionArgs;
 
@@ -36,7 +36,7 @@ Action* DataEvent::Instantiate(const RecordVal* args, Info* info)
 	if ( stream_val )
 		stream = event_registry->Lookup(stream_val->AsFunc()->GetID()->Name());
 
-	return new DataEvent(info, chunk, stream);
+	return new DataEvent(args, info, chunk, stream);
 	}
 
 bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)

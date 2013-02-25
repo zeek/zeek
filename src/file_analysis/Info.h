@@ -2,14 +2,18 @@
 #define FILE_ANALYSIS_INFO_H
 
 #include <string>
-#include <map>
+#include <list>
 
+#include "CompHash.h"
+#include "Dict.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Action.h"
 #include "FileID.h"
 
 namespace file_analysis {
+
+declare(PDict,Action);
 
 /**
  * Wrapper class around \c FileAnalysis::Info record values from script layer.
@@ -35,9 +39,11 @@ public:
 	FileID GetFileID() const { return file_id; }
 
 	/**
-	 * @return record val of the "action_results" field from #val record.
+	 * @return looks up the value of the "actions" field in the #val record at
+	 *         the index corresponding to \a args.  If there was no value at
+	 *         the index, it is created.
 	 */
-	RecordVal* GetResults() const;
+	RecordVal* GetResults(RecordVal* args) const;
 
 	/**
 	 * @return the string which uniquely identifies the file.
@@ -74,16 +80,17 @@ public:
 	void ScheduleInactivityTimer() const;
 
 	/**
-	 * Attaches an action.  Only one action per type can be attached at a time.
+	 * Attaches an action.  Only one action per type can be attached at a time,
+	 * unless the arguments differ.
 	 * @return true if the action was attached, else false.
 	 */
-	bool AddAction(ActionTag act, RecordVal* args);
+	bool AddAction(RecordVal* args);
 
 	/**
 	 * Removes an action.
 	 * @return true if the action was removed, else false.
 	 */
-	bool RemoveAction(ActionTag act);
+	bool RemoveAction(const RecordVal* args);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached actions/analyzers.
@@ -108,8 +115,6 @@ public:
 protected:
 
 	friend class Manager;
-
-	typedef map<ActionTag, Action*> ActionMap;
 
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
@@ -141,10 +146,15 @@ protected:
 	double LookupFieldDefaultInterval(int idx) const;
 
 	/**
-	 * Removes an action.
-	 * @return true if the action was removed, else false.
+	 * Adds file_analysis::Action associated with \a args to list of actions
+	 * to remove, #removing.
 	 */
-	bool RemoveAction(const ActionMap::iterator& it);
+	void ScheduleRemoval(const Action* act);
+
+	/**
+	 * Deletes/removes all actions in #removing.
+	 */
+	void DoActionRemoval();
 
 	FileID file_id;            /**< A pretty hash that likely identifies file*/
 	string unique;             /**< A string that uniquely identifies file */
@@ -152,7 +162,10 @@ protected:
 	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
-	ActionMap actions;         /**< Actions/analysis to perform on file. */
+	CompositeHash* action_hash;/**< ActionArgs hashes Action map lookup. */
+	PDict(Action) action_map;  /**< Actions indexed by ActionArgs. */
+	typedef list<const RecordVal*> ActionArgList;
+	ActionArgList removing;    /**< Actions pending removal. */
 
 	/**
 	 * @return the field offset in #val record corresponding to \a field_name.
@@ -175,8 +188,6 @@ protected:
 	static int overflow_bytes_idx;
 	static int timeout_interval_idx;
 	static int actions_idx;
-	static int action_args_idx;
-	static int action_results_idx;
 };
 
 } // namespace file_analysis

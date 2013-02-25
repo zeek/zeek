@@ -26,61 +26,51 @@ public:
 
 protected:
 
-	Hash(Info* arg_info, ActionTag arg_tag, HashVal* hv);
+	Hash(RecordVal* args, Info* info, HashVal* hv, const char* field);
 
 	void Finalize();
 
-	virtual int GetResultFieldOffset() const = 0;
-
 	HashVal* hash;
+	int result_field_idx;
 };
 
 class MD5 : public Hash {
 public:
 
-	static Action* Instantiate(const RecordVal* args, Info* info)
-		{ return new MD5(info); }
+	static Action* Instantiate(RecordVal* args, Info* info)
+		{ return new MD5(args, info); }
 
 protected:
 
-	MD5(Info* arg_info)
-	 : Hash(arg_info, BifEnum::FileAnalysis::ACTION_MD5, new MD5Val()) {}
-
-	virtual int GetResultFieldOffset() const
-		{ return BifType::Record::FileAnalysis::ActionResults->
-		  FieldOffset("md5"); }
+	MD5(RecordVal* args, Info* info)
+		: Hash(args, info, new MD5Val(), "md5")
+		{}
 };
 
 class SHA1 : public Hash {
 public:
 
-	static Action* Instantiate(const RecordVal* args, Info* info)
-		{ return new SHA1(info); }
+	static Action* Instantiate(RecordVal* args, Info* info)
+		{ return new SHA1(args, info); }
 
 protected:
 
-	SHA1(Info* arg_info)
-	 : Hash(arg_info, BifEnum::FileAnalysis::ACTION_SHA1, new SHA1Val()) {}
-
-	virtual int GetResultFieldOffset() const
-		{ return BifType::Record::FileAnalysis::ActionResults->
-		  FieldOffset("sha1"); }
+	SHA1(RecordVal* args, Info* info)
+		: Hash(args, info, new SHA1Val(), "sha1")
+		{}
 };
 
 class SHA256 : public Hash {
 public:
 
-	static Action* Instantiate(const RecordVal* args, Info* info)
-		{ return new SHA256(info); }
+	static Action* Instantiate(RecordVal* args, Info* info)
+		{ return new SHA256(args, info); }
 
 protected:
 
-	SHA256(Info* arg_info)
-	 : Hash(arg_info, BifEnum::FileAnalysis::ACTION_SHA256, new SHA256Val()) {}
-
-	virtual int GetResultFieldOffset() const
-		{ return BifType::Record::FileAnalysis::ActionResults->
-		  FieldOffset("sha256"); }
+	SHA256(RecordVal* args, Info* info)
+		: Hash(args, info, new SHA256Val(), "sha256")
+		{}
 };
 
 } // namespace file_analysis

@@ -100,23 +100,22 @@ bool Manager::PostponeTimeout(const FileID& file_id) const
 	return true;
 	}
 
-bool Manager::AddAction(const FileID& file_id, EnumVal* act,
-                        RecordVal* args) const
+bool Manager::AddAction(const FileID& file_id, RecordVal* args) const
 	{
 	Info* info = Lookup(file_id);
 
 	if ( ! info ) return false;
 
-	return info->AddAction(static_cast<ActionTag>(act->AsEnum()), args);
+	return info->AddAction(args);
 	}
 
-bool Manager::RemoveAction(const FileID& file_id, EnumVal* act) const
+bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
 	{
 	Info* info = Lookup(file_id);
 
 	if ( ! info ) return false;
 
-	return info->RemoveAction(static_cast<ActionTag>(act->AsEnum()));
+	return info->RemoveAction(args);
 	}
 
 Info* Manager::GetInfo(const string& unique, Connection* conn,

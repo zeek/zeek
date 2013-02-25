@@ -15,7 +15,7 @@ namespace file_analysis {
 class DataEvent : public Action {
 public:
 
-	static Action* Instantiate(const RecordVal* args, Info* info);
+	static Action* Instantiate(RecordVal* args, Info* info);
 
 	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset);
 
@@ -23,7 +23,8 @@ public:
 
 protected:
 
-	DataEvent(Info* arg_info, EventHandlerPtr ce, EventHandlerPtr se);
+	DataEvent(RecordVal* args, Info* info,
+	          EventHandlerPtr ce, EventHandlerPtr se);
 
 	EventHandlerPtr chunk_event;
 	EventHandlerPtr stream_event;

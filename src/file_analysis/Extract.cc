@@ -5,9 +5,8 @@
 
 using namespace file_analysis;
 
-Extract::Extract(Info* arg_info, const string& arg_filename)
-    : Action(arg_info, BifEnum::FileAnalysis::ACTION_EXTRACT),
-      filename(arg_filename)
+Extract::Extract(RecordVal* args, Info* info, const string& arg_filename)
+    : Action(args, info), filename(arg_filename)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
@@ -26,15 +25,15 @@ Extract::~Extract()
 		safe_close(fd);
 	}
 
-Action* Extract::Instantiate(const RecordVal* args, Info* info)
+Action* Extract::Instantiate(RecordVal* args, Info* info)
 	{
+	using BifType::Record::FileAnalysis::ActionArgs;
 	const char* field = "extract_filename";
-	int off = BifType::Record::FileAnalysis::ActionArgs->FieldOffset(field);
-	Val* v = args->Lookup(off);
+	Val* v = args->Lookup(ActionArgs->FieldOffset(field));
 
 	if ( ! v ) return 0;
 
-	return new Extract(info, v->AsString()->CheckString());
+	return new Extract(args, info, v->AsString()->CheckString());
 	}
 
 bool Extract::DeliverChunk(const u_char* data, uint64 len, uint64 offset)

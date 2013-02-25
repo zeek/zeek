@@ -5,9 +5,12 @@
 
 using namespace file_analysis;
 
-Hash::Hash(Info* arg_info, ActionTag tag, HashVal* hv)
-	: Action(arg_info, tag), hash(hv)
+Hash::Hash(RecordVal* args, Info* info, HashVal* hv, const char* field)
+	: Action(args, info), hash(hv)
 	{
+	using BifType::Record::FileAnalysis::ActionResults;
+	if ( (result_field_idx = ActionResults->FieldOffset(field)) < 0 )
+		reporter->InternalError("Missing ActionResults field: %s", field);
 	hash->Init();
 	}
 
@@ -15,7 +18,7 @@ Hash::~Hash()
 	{
 	// maybe it's all there...
 	Finalize();
-	delete hash;
+	Unref(hash);
 	}
 
 bool Hash::DeliverStream(const u_char* data, uint64 len)
@@ -45,10 +48,5 @@ void Hash::Finalize()
 	if ( ! hash->IsValid() ) return;
 
 	StringVal* sv = hash->Get();
-	int i = GetResultFieldOffset();
-
-	if ( i < 0 )
-		reporter->InternalError("Hash Action result field not found");
-
-	info->GetResults()->Assign(i, sv);
+	info->GetResults(args)->Assign(result_field_idx, sv);
 	}

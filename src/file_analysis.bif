@@ -71,25 +71,23 @@ function FileAnalysis::postpone_timeout%(file_id: string%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::add_action%(file_id: string,
-                                   action: FileAnalysis::Action,
-                                   args: any%): bool
+function FileAnalysis::add_action%(file_id: string, args: any%): bool
 	%{
 	using file_analysis::FileID;
 	using BifType::Record::FileAnalysis::ActionArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(ActionArgs);
-	bool result = file_mgr->AddAction(FileID(file_id->CheckString()),
-	                                  action->AsEnumVal(), rv);
+	bool result = file_mgr->AddAction(FileID(file_id->CheckString()), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::remove_action%(file_id: string,
-                                      action: FileAnalysis::Action%): bool
+function FileAnalysis::remove_action%(file_id: string, args: any%): bool
 	%{
 	using file_analysis::FileID;
-	bool result = file_mgr->RemoveAction(FileID(file_id->CheckString()),
-	                                     action->AsEnumVal());
+	using BifType::Record::FileAnalysis::ActionArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(ActionArgs);
+	bool result = file_mgr->RemoveAction(FileID(file_id->CheckString()), rv);
+	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 

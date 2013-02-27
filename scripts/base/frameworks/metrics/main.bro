@@ -424,7 +424,6 @@ function write_log(ts: time, metric_name: string, filter_name: string, data: Met
 		local m: Info = [$ts=ts,
 		                 $ts_delta=filter$every,
 		                 $metric=filter$id,
-		                 $filter_name=filter$name,
 		                 $index=index,
 		                 $result=data[index]];
 		Log::write(LOG, m);

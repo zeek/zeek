@@ -16,6 +16,7 @@
 #include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "util.h"
 
 using namespace std;
 
@@ -844,38 +845,21 @@ extern "C" {
 ## return_mime: If true, the function returns a short MIME type string (e.g.,
 ##              ``text/plain`` instead of a more elaborate textual description).
 ##
-## Returns: The MIME type of *data*.
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
 function identify_data%(data: string, return_mime: bool%): string
 	%{
-	const char* descr = "";
-
 	static magic_t magic_mime = 0;
 	static magic_t magic_descr = 0;
 
 	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
+	bro_init_magic(magic, return_mime ? MAGIC_MIME : MAGIC_NONE);
 
 	if( ! *magic )
-		{
-		*magic = magic_open(return_mime ? MAGIC_MIME : MAGIC_NONE);
+		return new StringVal("<unknown>");
 
-		if ( ! *magic )
-			{
-			reporter->Error("can't init libmagic: %s", magic_error(*magic));
-			return new StringVal("");
-			}
+	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
 
-		if ( magic_load(*magic, 0) < 0 )
-			{
-			reporter->Error("can't load magic file: %s", magic_error(*magic));
-			magic_close(*magic);
-			*magic = 0;
-			return new StringVal("");
-			}
-		}
-
-	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-
-	return new StringVal(descr);
+	return new StringVal(desc ? desc : "<unknown>");
 	%}
 
 ## Performs an entropy test on the given data.

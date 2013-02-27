@@ -1527,3 +1527,35 @@ void operator delete[](void* v)
 	}
 
 #endif
+
+void bro_init_magic(magic_t* cookie_ptr, int flags)
+	{
+	if ( ! cookie_ptr || *cookie_ptr ) return;
+
+	*cookie_ptr = magic_open(flags);
+
+	if ( ! *cookie_ptr )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		reporter->Error("can't init libmagic: %s", err ? err : "unknown");
+		}
+
+	else if ( magic_load(*cookie_ptr, 0) < 0 )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		reporter->Error("can't load magic file: %s", err ? err : "unknown");
+		magic_close(*cookie_ptr);
+		*cookie_ptr = 0;
+		}
+	}
+
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
+	{
+	const char* rval = magic_buffer(cookie, buffer, length);
+	if ( ! rval )
+		{
+		const char* err = magic_error(cookie);
+		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
+		}
+	return rval;
+	}

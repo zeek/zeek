@@ -18,20 +18,13 @@ export {
 	const default_reassembly_buffer_size: count = 1024*1024 &redef;
 
 	## The default buffer size used for storing the beginning of files.
-	# TODO: what's a reasonable default?
-	const default_bof_buffer_size: count = 256 &redef;
+	const default_bof_buffer_size: count = 1024 &redef;
 
 	## The default amount of time file analysis will wait for new file data
 	## before giving up.
 	## TODO: what's a reasonable default?
 	#const default_timeout_interval: interval = 2 mins &redef;
 	const default_timeout_interval: interval = 10 sec &redef;
-
-	## The default amount of data that a user is allowed to extract
-	## from a file to an event with the
-	## :bro:see:`FileAnalysis::ACTION_DATA_EVENT` action.
-	## TODO: what's a reasonable default?
-	const default_data_event_len: count = 1024*1024 &redef;
 
 	# Needed a forward declaration for event parameters...
 	type Info: record {};
@@ -87,6 +80,20 @@ export {
 		## The amount of time between receiving new data for this file that
 		## the analysis engine will wait before giving up on it.
 		timeout_interval: interval &log &default=default_timeout_interval;
+
+		## The number of bytes at the beginning of a file to save for later
+		## inspection in *bof_buffer* field of
+		## :bro:see:`FileAnalysis::ActionResults`.
+		bof_buffer_size: count &default=default_bof_buffer_size;
+
+		## The content of the beginning of a file up to *bof_buffer_size* bytes.
+		## This is also the buffer that's used for file/mime type detection.
+		bof_buffer: string &optional;
+
+		## An initial guess at file type.
+		file_type: string &optional;
+		## An initial guess at mime type.
+		mime_type: string &optional;
 
 		## Actions that have been added to the analysis of this file.
 		## Not meant to be modified directly by scripts.

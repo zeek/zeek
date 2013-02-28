@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <list>
 
 #include "Net.h"
 #include "Conn.h"
@@ -61,7 +62,9 @@ public:
 	             const string& protocol = "");
 
 	/**
-	 * Discard the file_analysis::Info object associated with \a file_id.
+	 * Queue the file_analysis::Info object associated with \a file_id to
+	 * be discarded.  It will be discarded at the end of DataIn, EndOfFile, Gap,
+	 * or SetSize functions.
 	 * @return false if file identifier did not map to anything, else true.
 	 */
 	bool RemoveFile(const FileID& file_id);
@@ -73,16 +76,16 @@ public:
 	bool PostponeTimeout(const FileID& file_id) const;
 
 	/**
-	 * Attaches an action to the file identifier.  Multiple actions of a given
-	 * type can be attached per file identifier at a time as long as the
-	 * arguments differ.
-	 * @return true if the action was attached, else false.
+	 * Queue attachment of an action to the file identifier.  Multiple actions
+	 * of a given type can be attached per file identifier at a time as long as
+	 * the arguments differ.
+	 * @return false if the action failed to be instantiated, else true.
 	 */
 	bool AddAction(const FileID& file_id, RecordVal* args) const;
 
 	/**
-	 * Removes an action for a given file identifier.
-	 * @return true if the action was removed, else false.
+	 * Queue removal of an action for a given file identifier.
+	 * @return true if the action is active at the time of call, else false.
 	 */
 	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
 
@@ -97,6 +100,7 @@ protected:
 
 	typedef map<string, Info*> StrMap;
 	typedef map<FileID, Info*> IDMap;
+	typedef list<FileID> IDList;
 
 	/**
 	 * @return the Info object mapped to \a unique.  One is created if mapping
@@ -118,8 +122,20 @@ protected:
 	 */
 	void Timeout(const FileID& file_id, bool is_terminating = ::terminating);
 
+	/**
+	 * Immediately remove file_analysis::Info object associated with \a file_id.
+	 * @return false if file identifier did not map to anything, else true.
+	 */
+	bool DoRemoveFile(const FileID& file_id);
+
+	/**
+	 * Clean up all pending file analysis for file IDs in #removing.
+	 */
+	void DoRemoveFiles();
+
 	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
 	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
+	IDList removing;/**< File IDs that are about to be removed. */
 };
 
 } // namespace file_analysis

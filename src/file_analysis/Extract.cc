@@ -38,8 +38,6 @@ Action* Extract::Instantiate(RecordVal* args, Info* info)
 
 bool Extract::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
-	Action::DeliverChunk(data, len, offset);
-
 	if ( ! fd ) return false;
 
 	safe_pwrite(fd, data, len, offset);

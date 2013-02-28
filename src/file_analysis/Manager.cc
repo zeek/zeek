@@ -29,8 +29,8 @@ static void check_file_done(Info* info)
 	{
 	if ( info->IsComplete() )
 		{
-		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, info);
 		file_mgr->RemoveFile(info->GetFileID());
+		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, info);
 		}
 	}
 
@@ -40,6 +40,7 @@ void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
 	Info* info = GetInfo(unique, conn, protocol);
 	info->DataIn(data, len, offset);
 	check_file_done(info);
+	DoRemoveFiles();
 	}
 
 void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
@@ -48,6 +49,7 @@ void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
 	Info* info = GetInfo(unique, conn, protocol);
 	info->DataIn(data, len);
 	check_file_done(info);
+	DoRemoveFiles();
 	}
 
 void Manager::EndOfFile(const string& unique, Connection* conn,
@@ -56,6 +58,7 @@ void Manager::EndOfFile(const string& unique, Connection* conn,
 	Info* info = GetInfo(unique, conn, protocol);
 	info->EndOfFile();
 	Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_EOF, info);
+	DoRemoveFiles();
 	}
 
 void Manager::Gap(const string& unique, uint64 offset, uint64 len,
@@ -64,6 +67,7 @@ void Manager::Gap(const string& unique, uint64 offset, uint64 len,
 	Info* info = GetInfo(unique, conn, protocol);
 	info->Gap(offset, len);
 	Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_GAP, info);
+	DoRemoveFiles();
 	}
 
 void Manager::SetSize(const string& unique, uint64 size,
@@ -72,6 +76,7 @@ void Manager::SetSize(const string& unique, uint64 size,
 	Info* info = GetInfo(unique, conn, protocol);
 	info->SetTotalBytes(size);
 	check_file_done(info);
+	DoRemoveFiles();
 	}
 
 void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
@@ -131,11 +136,12 @@ Info* Manager::GetInfo(const string& unique, Connection* conn,
 		if ( id_map[id] )
 			{
 			reporter->Error("Evicted duplicate file ID: %s", id.c_str());
-			RemoveFile(id);
+			DoRemoveFile(id);
 			}
 
 		id_map[id] = rval;
 		Manager::EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_NEW, rval);
+		rval->ScheduleInactivityTimer();
 		}
 	else
 		{
@@ -175,7 +181,24 @@ void Manager::Timeout(const FileID& file_id, bool is_terminating)
 	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
 	        info->GetFileID().c_str());
 
-	RemoveFile(file_id);
+	DoRemoveFile(file_id);
+	}
+
+bool Manager::DoRemoveFile(const FileID& file_id)
+	{
+	IDMap::iterator it = id_map.find(file_id);
+
+	if ( it == id_map.end() ) return false;
+
+	if ( ! str_map.erase(it->second->GetUnique()) )
+		reporter->Error("No string mapping for file ID %s", file_id.c_str());
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", it->first.c_str());
+
+	it->second->EndOfFile();
+	delete it->second;
+	id_map.erase(it);
+	return true;
 	}
 
 bool Manager::RemoveFile(const FileID& file_id)
@@ -184,9 +207,18 @@ bool Manager::RemoveFile(const FileID& file_id)
 
 	if ( it == id_map.end() ) return false;
 
-	if ( ! str_map.erase(it->second->GetUnique()) )
-		reporter->Error("No string mapping for file ID %s", file_id.c_str());
-	delete it->second;
-	id_map.erase(it);
+	DBG_LOG(DBG_FILE_ANALYSIS, "Queue removal of FileID %s",
+	        it->first.c_str());
+
+	it->second->EndOfFile();
+	removing.push_back(it->first);
 	return true;
+	}
+
+void Manager::DoRemoveFiles()
+	{
+	IDList::iterator it;
+	for ( it = removing.begin(); it != removing.end(); ++it )
+		DoRemoveFile(*it);
+	removing.clear();
 	}

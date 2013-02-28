@@ -39,7 +39,9 @@ public:
 		{ return true; }
 
 	/**
-	 * Subclasses may override this to specifically handle the end of a file.
+	 * Subclasses may override this to specifically handle an EOF signal,
+	 * which means no more data is going to be incoming and the action/analyzer
+	 * may be deleted/cleaned up soon.
 	 * @return true if the action is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
@@ -63,6 +65,11 @@ public:
 	 * @return the ActionArgs associated with the aciton.
 	 */
 	RecordVal* Args() const { return args; }
+
+	/**
+	 * @return the file_analysis::Info object to which the action is attached.
+	 */
+	Info* GetInfo() const { return info; }
 
 	/**
 	 * @return the action tag equivalent of the 'act' field from the ActionArgs

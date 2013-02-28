@@ -16,15 +16,11 @@ Hash::Hash(RecordVal* args, Info* info, HashVal* hv, const char* field)
 
 Hash::~Hash()
 	{
-	// maybe it's all there...
-	Finalize();
 	Unref(hash);
 	}
 
 bool Hash::DeliverStream(const u_char* data, uint64 len)
 	{
-	Action::DeliverStream(data, len);
-
 	if ( ! hash->IsValid() ) return false;
 
 	hash->Feed(data, len);
@@ -33,7 +29,6 @@ bool Hash::DeliverStream(const u_char* data, uint64 len)
 
 bool Hash::EndOfFile()
 	{
-	Action::EndOfFile();
 	Finalize();
 	return false;
 	}

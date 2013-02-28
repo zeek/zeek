@@ -2,18 +2,15 @@
 #define FILE_ANALYSIS_INFO_H
 
 #include <string>
-#include <list>
+#include <vector>
 
-#include "CompHash.h"
-#include "Dict.h"
 #include "Conn.h"
 #include "Val.h"
-#include "Action.h"
+#include "ActionSet.h"
 #include "FileID.h"
+#include "BroString.h"
 
 namespace file_analysis {
-
-declare(PDict,Action);
 
 /**
  * Wrapper class around \c FileAnalysis::Info record values from script layer.
@@ -80,15 +77,15 @@ public:
 	void ScheduleInactivityTimer() const;
 
 	/**
-	 * Attaches an action.  Only one action per type can be attached at a time,
-	 * unless the arguments differ.
-	 * @return true if the action was attached, else false.
+	 * Queues attaching an action.  Only one action per type can be attached at
+	 * a time unless the arguments differ.
+	 * @return false if action can't be instantiated, else true.
 	 */
 	bool AddAction(RecordVal* args);
 
 	/**
-	 * Removes an action.
-	 * @return true if the action was removed, else false.
+	 * Queues removal of an action.
+	 * @return true if action was active at time of call, else false.
 	 */
 	bool RemoveAction(const RecordVal* args);
 
@@ -146,15 +143,16 @@ protected:
 	double LookupFieldDefaultInterval(int idx) const;
 
 	/**
-	 * Adds file_analysis::Action associated with \a args to list of actions
-	 * to remove, #removing.
+	 * Buffers incoming data at the beginning of a file.  If \a data is a null
+	 * pointer, that signifies a gap and the buffering cannot continue.
+	 * @return true if buffering is still required, else false
 	 */
-	void ScheduleRemoval(const Action* act);
+	bool BufferBOF(const u_char* data, uint64 len);
 
 	/**
-	 * Deletes/removes all actions in #removing.
+	 * Forward any beginning-of-file buffered data on to DataIn stream.
 	 */
-	void DoActionRemoval();
+	void ReplayBOF();
 
 	FileID file_id;            /**< A pretty hash that likely identifies file*/
 	string unique;             /**< A string that uniquely identifies file */
@@ -162,10 +160,19 @@ protected:
 	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
-	CompositeHash* action_hash;/**< ActionArgs hashes Action map lookup. */
-	PDict(Action) action_map;  /**< Actions indexed by ActionArgs. */
-	typedef list<const RecordVal*> ActionArgList;
-	ActionArgList removing;    /**< Actions pending removal. */
+	bool done;                 /**< If this object is about to be deleted. */
+	ActionSet actions;
+
+	struct BOF_Buffer {
+		BOF_Buffer() : full(false), replayed(false), size(0) {}
+		~BOF_Buffer()
+			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
+
+		bool full;
+		bool replayed;
+		uint64 size;
+		BroString::CVec chunks;
+	} bof_buffer;              /**< Beginning of file buffer. */
 
 	/**
 	 * @return the field offset in #val record corresponding to \a field_name.
@@ -177,6 +184,7 @@ protected:
 	 */
 	static void InitFieldIndices();
 
+public:
 	static int file_id_idx;
 	static int parent_file_id_idx;
 	static int protocol_idx;
@@ -187,6 +195,10 @@ protected:
 	static int missing_bytes_idx;
 	static int overflow_bytes_idx;
 	static int timeout_interval_idx;
+	static int bof_buffer_size_idx;
+	static int bof_buffer_idx;
+	static int file_type_idx;
+	static int mime_type_idx;
 	static int actions_idx;
 };
 

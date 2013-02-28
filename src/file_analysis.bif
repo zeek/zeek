@@ -35,13 +35,13 @@ enum Trigger %{
 	## Raised when the beginning of a file is available and that beginning
 	## is at least the number of bytes indicated by the *bof_buffer_size*
 	## field of :bro:see:`FileAnalysis::Info`.
-	TRIGGER_BOF_BUFFER_AVAIL,
-	## Raised when the mime type of a file is matched based on magic
-	## numbers.  TODO: re-purposing protocols/http/file-ident.sig for
-	## doing this is tricky since the signature engine doesn't expect
+	TRIGGER_BOF_BUFFER,
+	## Raised when an initial guess at the file/mime type of a file is matched
+	## based on magic numbers.  TODO: re-purposing protocols/http/file-ident.sig
+	## for doing this is tricky since the signature engine doesn't expect
 	## to be decoupled from connections, so figure out what work needs
 	## done there.
-	TRIGGER_MIME_TYPE,
+	TRIGGER_TYPE,
 	## Raised when the end of a file is detected.  If the file is not
 	## being transferred linearly, then this doesn't have to mean the full
 	## file has been transferred.

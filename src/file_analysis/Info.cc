@@ -3,25 +3,12 @@
 #include "Info.h"
 #include "InfoTimer.h"
 #include "FileID.h"
+#include "Manager.h"
 #include "Reporter.h"
 #include "Val.h"
 #include "Type.h"
 
-#include "Action.h"
-#include "Extract.h"
-#include "Hash.h"
-#include "DataEvent.h"
-
 using namespace file_analysis;
-
-// keep in order w/ declared enum values in file_analysis.bif
-static ActionInstantiator action_factory[] = {
-    Extract::Instantiate,
-    MD5::Instantiate,
-    SHA1::Instantiate,
-    SHA256::Instantiate,
-    DataEvent::Instantiate,
-};
 
 static TableVal* empty_conn_id_set()
 	{
@@ -58,6 +45,10 @@ int Info::total_bytes_idx = -1;
 int Info::missing_bytes_idx = -1;
 int Info::overflow_bytes_idx = -1;
 int Info::timeout_interval_idx = -1;
+int Info::bof_buffer_size_idx = -1;
+int Info::bof_buffer_idx = -1;
+int Info::file_type_idx = -1;
+int Info::mime_type_idx = -1;
 int Info::actions_idx = -1;
 
 void Info::InitFieldIndices()
@@ -73,17 +64,17 @@ void Info::InitFieldIndices()
 	missing_bytes_idx = Idx("missing_bytes");
 	overflow_bytes_idx = Idx("overflow_bytes");
 	timeout_interval_idx = Idx("timeout_interval");
+	bof_buffer_size_idx = Idx("bof_buffer_size");
+	bof_buffer_idx = Idx("bof_buffer");
+	file_type_idx = Idx("file_type");
+	mime_type_idx = Idx("mime_type");
 	actions_idx = Idx("actions");
-	}
-
-static void action_del_func(void* v)
-	{
-	delete (Action*) v;
 	}
 
 Info::Info(const string& unique, Connection* conn, const string& protocol)
     : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
-      postpone_timeout(false), need_reassembly(false)
+      postpone_timeout(false), need_reassembly(false), done(false),
+      actions(this)
 	{
 	InitFieldIndices();
 
@@ -96,24 +87,15 @@ Info::Info(const string& unique, Connection* conn, const string& protocol)
 	val->Assign(file_id_idx, new StringVal(id));
 	file_id = FileID(id);
 
-	TypeList* t = new TypeList();
-	t->Append(BifType::Record::FileAnalysis::ActionArgs->Ref());
-	action_hash = new CompositeHash(t);
-	Unref(t);
-	action_map.SetDeleteFunc(action_del_func);
-
 	UpdateConnectionFields(conn);
 
 	if ( protocol != "" )
 		val->Assign(protocol_idx, new StringVal(protocol.c_str()));
-
-	ScheduleInactivityTimer();
 	}
 
 Info::~Info()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s", file_id.c_str());
-	delete action_hash;
 	Unref(val);
 	}
 
@@ -203,89 +185,90 @@ void Info::ScheduleInactivityTimer() const
 
 bool Info::AddAction(RecordVal* args)
 	{
-	HashKey* key = action_hash->ComputeHash(args, 1);
-
-	if ( ! key )
-		reporter->InternalError("ActionArgs type mismatch in add_action");
-
-	Action* act = action_map.Lookup(key);
-
-	if ( act )
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d skipped for already active"
-		        " action on file id %s", act->Tag(), file_id.c_str());
-		delete key;
-		return false;
-		}
-
-	act = action_factory[Action::ArgsTag(args)](args, this);
-
-	if ( ! act )
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Failed to instantiate action %d"
-		        " on file id %s", Action::ArgsTag(args), file_id.c_str());
-		delete key;
-		return false;
-		}
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act->Tag(),
-	        file_id.c_str());
-
-	action_map.Insert(key, act);
-	val->Lookup(actions_idx)->AsTableVal()->Assign(args,
-	        new RecordVal(BifType::Record::FileAnalysis::ActionResults));
-
-	return true;
-	}
-
-void Info::ScheduleRemoval(const Action* act)
-	{
-	removing.push_back(act->Args());
-	}
-
-void Info::DoActionRemoval()
-	{
-	ActionArgList::iterator it;
-	for ( it = removing.begin(); it != removing.end(); ++it )
-		RemoveAction(*it);
-	removing.clear();
+	return done ? false : actions.QueueAddAction(args);
 	}
 
 bool Info::RemoveAction(const RecordVal* args)
 	{
-	HashKey* key = action_hash->ComputeHash(args, 1);
+	return done ? false : actions.QueueRemoveAction(args);
+	}
 
-	if ( ! key )
-		reporter->InternalError("ActionArgs type mismatch in remove_action");
+bool Info::BufferBOF(const u_char* data, uint64 len)
+	{
+	if ( bof_buffer.full || bof_buffer.replayed ) return false;
 
-	Action* act = (Action*) action_map.Remove(key);
-	delete key;
+	using BifEnum::FileAnalysis::TRIGGER_BOF;
+	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
 
-	if ( ! act )
+	if ( bof_buffer.chunks.size() == 0 )
+		Manager::EvaluatePolicy(TRIGGER_BOF, this);
+
+	if ( ! data )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Skip remove action %d for file id %s",
-	            Action::ArgsTag(args), file_id.c_str());
+		// A gap means we're done seeing as much as the start of the file
+		// as possible, replay anything that we have
+		bof_buffer.full = true;
+		ReplayBOF();
+		// TODO: libmagic stuff
 		return false;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", act->Tag(),
-	        file_id.c_str());
-	delete act;
+	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
+
+	// If no buffer is desired or if the first chunk satisfies desired size,
+	// just do everything we need with the first chunk without copying.
+	if ( desired_size == 0 ||
+	     (bof_buffer.chunks.empty() && len >= desired_size) )
+		{
+		bof_buffer.full = bof_buffer.replayed = true;
+		val->Assign(bof_buffer_idx, new StringVal(new BroString(data, len, 0)));
+		Manager::EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
+		// TODO: libmagic stuff
+		return false;
+		}
+
+	bof_buffer.chunks.push_back(new BroString(data, len, 0));
+	bof_buffer.size += len;
+
+	if ( bof_buffer.size >= desired_size )
+		{
+		bof_buffer.full = true;
+		// TODO: libmagic stuff
+		ReplayBOF();
+		}
+
 	return true;
+	}
+
+void Info::ReplayBOF()
+	{
+	if ( bof_buffer.replayed ) return;
+	bof_buffer.replayed = true;
+
+	val->Assign(bof_buffer_idx, new StringVal(concatenate(bof_buffer.chunks)));
+
+	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
+	Manager::EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
+
+	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
+		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
 	}
 
 void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
-	Action* act = 0;
-	IterCookie* c = action_map.InitForIteration();
+	actions.FlushQueuedModifications();
+	// TODO: attempt libmagic stuff here before doing reassembly?
 
-	while ( (act = action_map.NextEntry(c)) )
+	Action* act = 0;
+	IterCookie* c = actions.InitForIteration();
+
+	while ( (act = actions.NextEntry(c)) )
 		{
 		if ( ! act->DeliverChunk(data, len, offset) )
-			ScheduleRemoval(act);
+			actions.QueueRemoveAction(act->Args());
 		}
 
-	DoActionRemoval();
+	actions.FlushQueuedModifications();
 
 	// TODO: check reassembly requirement based on buffer size in record
 	if ( need_reassembly )
@@ -293,62 +276,73 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 		// TODO
 		}
 
-	// TODO: reassembly stuff, possibly having to deliver chunks if buffer full
-	//       and incrememt overflow bytes
+	// TODO: reassembly overflow stuff, increment overflow count, eval trigger
 
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
 void Info::DataIn(const u_char* data, uint64 len)
 	{
-	Action* act = 0;
-	IterCookie* c = action_map.InitForIteration();
+	actions.FlushQueuedModifications();
+	if ( BufferBOF(data, len) ) return;
 
-	while ( (act = action_map.NextEntry(c)) )
+	Action* act = 0;
+	IterCookie* c = actions.InitForIteration();
+
+	while ( (act = actions.NextEntry(c)) )
 		{
 		if ( ! act->DeliverStream(data, len) )
 			{
-			ScheduleRemoval(act);
+			actions.QueueRemoveAction(act->Args());
 			continue;
 			}
 
 		uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
 		                LookupFieldDefaultCount(missing_bytes_idx);
 
-
 		if ( ! act->DeliverChunk(data, len, offset) )
-			ScheduleRemoval(act);
+			actions.QueueRemoveAction(act->Args());
 		}
 
-	DoActionRemoval();
+	actions.FlushQueuedModifications();
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
 void Info::EndOfFile()
 	{
-	Action* act = 0;
-	IterCookie* c = action_map.InitForIteration();
+	if ( done ) return;
+	done = true;
+	actions.FlushQueuedModifications();
 
-	while ( (act = action_map.NextEntry(c)) )
+	// send along anything that's been buffered, but never flushed
+	ReplayBOF();
+
+	Action* act = 0;
+	IterCookie* c = actions.InitForIteration();
+
+	while ( (act = actions.NextEntry(c)) )
 		{
 		if ( ! act->EndOfFile() )
-			ScheduleRemoval(act);
+			actions.QueueRemoveAction(act->Args());
 		}
 
-	DoActionRemoval();
+	actions.FlushQueuedModifications();
 	}
 
 void Info::Gap(uint64 offset, uint64 len)
 	{
-	Action* act = 0;
-	IterCookie* c = action_map.InitForIteration();
+	actions.FlushQueuedModifications();
+	if ( BufferBOF(0, len) ) return;
 
-	while ( (act = action_map.NextEntry(c)) )
+	Action* act = 0;
+	IterCookie* c = actions.InitForIteration();
+
+	while ( (act = actions.NextEntry(c)) )
 		{
 		if ( ! act->Undelivered(offset, len) )
-			ScheduleRemoval(act);
+			actions.QueueRemoveAction(act->Args());
 		}
 
-	DoActionRemoval();
+	actions.FlushQueuedModifications();
 	IncrementByteCount(len, missing_bytes_idx);
 	}

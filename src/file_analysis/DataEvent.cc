@@ -41,8 +41,6 @@ Action* DataEvent::Instantiate(RecordVal* args, Info* info)
 
 bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
-	Action::DeliverChunk(data, len, offset);
-
 	if ( ! chunk_event ) return true;
 
 	val_list* args = new val_list;
@@ -56,8 +54,6 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 
 bool DataEvent::DeliverStream(const u_char* data, uint64 len)
 	{
-	Action::DeliverStream(data, len);
-
 	if ( ! stream_event ) return true;
 
 	val_list* args = new val_list;

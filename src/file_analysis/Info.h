@@ -143,8 +143,7 @@ protected:
 	double LookupFieldDefaultInterval(int idx) const;
 
 	/**
-	 * Buffers incoming data at the beginning of a file.  If \a data is a null
-	 * pointer, that signifies a gap and the buffering cannot continue.
+	 * Buffers incoming data at the beginning of a file.
 	 * @return true if buffering is still required, else false
 	 */
 	bool BufferBOF(const u_char* data, uint64 len);

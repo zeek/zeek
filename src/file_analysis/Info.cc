@@ -203,22 +203,11 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 	if ( bof_buffer.chunks.size() == 0 )
 		Manager::EvaluatePolicy(TRIGGER_BOF, this);
 
-	if ( ! data )
-		{
-		// A gap means we're done seeing as much as the start of the file
-		// as possible, replay anything that we have
-		bof_buffer.full = true;
-		ReplayBOF();
-		// TODO: libmagic stuff
-		return false;
-		}
-
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
-	// If no buffer is desired or if the first chunk satisfies desired size,
-	// just do everything we need with the first chunk without copying.
-	if ( desired_size == 0 ||
-	     (bof_buffer.chunks.empty() && len >= desired_size) )
+	/* Leaving out this optimization (I think) for now to keep things simpler.
+	// If first chunk satisfies desired size, do everything now without copying.
+	if ( bof_buffer.chunks.empty() && len >= desired_size )
 		{
 		bof_buffer.full = bof_buffer.replayed = true;
 		val->Assign(bof_buffer_idx, new StringVal(new BroString(data, len, 0)));
@@ -226,6 +215,7 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 		// TODO: libmagic stuff
 		return false;
 		}
+	*/
 
 	bof_buffer.chunks.push_back(new BroString(data, len, 0));
 	bof_buffer.size += len;
@@ -233,7 +223,6 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 	if ( bof_buffer.size >= desired_size )
 		{
 		bof_buffer.full = true;
-		// TODO: libmagic stuff
 		ReplayBOF();
 		}
 
@@ -249,6 +238,8 @@ void Info::ReplayBOF()
 
 	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
 	Manager::EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
+
+	// TODO: libmagic stuff
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
@@ -284,6 +275,7 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 void Info::DataIn(const u_char* data, uint64 len)
 	{
 	actions.FlushQueuedModifications();
+
 	if ( BufferBOF(data, len) ) return;
 
 	Action* act = 0;
@@ -312,9 +304,10 @@ void Info::EndOfFile()
 	{
 	if ( done ) return;
 	done = true;
+
 	actions.FlushQueuedModifications();
 
-	// send along anything that's been buffered, but never flushed
+	// Send along anything that's been buffered, but never flushed.
 	ReplayBOF();
 
 	Action* act = 0;
@@ -332,7 +325,10 @@ void Info::EndOfFile()
 void Info::Gap(uint64 offset, uint64 len)
 	{
 	actions.FlushQueuedModifications();
-	if ( BufferBOF(0, len) ) return;
+
+	// If we were buffering the beginning of the file, a gap means we've got
+	// as much contiguous stuff at the beginning as possible, so work with that.
+	ReplayBOF();
 
 	Action* act = 0;
 	IterCookie* c = actions.InitForIteration();

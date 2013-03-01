@@ -3,7 +3,7 @@
 
 #include <string>
 #include <map>
-#include <list>
+#include <set>
 
 #include "Net.h"
 #include "Conn.h"
@@ -62,12 +62,11 @@ public:
 	             const string& protocol = "");
 
 	/**
-	 * Queue the file_analysis::Info object associated with \a file_id to
-	 * be discarded.  It will be discarded at the end of DataIn, EndOfFile, Gap,
-	 * or SetSize functions.
+	 * Starts ignoring a file, which will finally be removed from internal
+	 * mappings on EOF or TIMEOUT.
 	 * @return false if file identifier did not map to anything, else true.
 	 */
-	bool RemoveFile(const FileID& file_id);
+	bool IgnoreFile(const FileID& file_id);
 
 	/**
 	 * If called during \c FileAnalysis::policy evaluation for a
@@ -92,20 +91,22 @@ public:
 	/**
 	 * Calls the \c FileAnalysis::policy hook.
 	 */
-	static void EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info);
+	void EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info);
 
 protected:
 
 	friend class InfoTimer;
 
 	typedef map<string, Info*> StrMap;
+	typedef set<string> StrSet;
 	typedef map<FileID, Info*> IDMap;
-	typedef list<FileID> IDList;
 
 	/**
-	 * @return the Info object mapped to \a unique.  One is created if mapping
-	 *         doesn't exist.  If it did exist, the activity time is refreshed
-	 *         and connection-related fields of the record value may be updated.
+	 * @return the Info object mapped to \a unique or a null pointer if analysis
+	 *         is being ignored for the associated file.  An Info object may be
+	 *         created if a mapping doesn't exist, and if it did exist, the
+	 *         activity time is refreshed and connection-related fields of the
+	 *         record value may be updated.
 	 */
 	Info* GetInfo(const string& unique, Connection* conn = 0,
 	              const string& protocol = "");
@@ -123,19 +124,19 @@ protected:
 	void Timeout(const FileID& file_id, bool is_terminating = ::terminating);
 
 	/**
-	 * Immediately remove file_analysis::Info object associated with \a file_id.
-	 * @return false if file identifier did not map to anything, else true.
+	 * Immediately remove file_analysis::Info object associated with \a unique.
+	 * @return false if file string did not map to anything, else true.
 	 */
-	bool DoRemoveFile(const FileID& file_id);
+	bool RemoveFile(const string& unique);
 
 	/**
-	 * Clean up all pending file analysis for file IDs in #removing.
+	 * @return whether the file mapped to \a unique is being ignored.
 	 */
-	void DoRemoveFiles();
+	bool IsIgnored(const string& unique);
 
 	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
 	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
-	IDList removing;/**< File IDs that are about to be removed. */
+	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
 };
 
 } // namespace file_analysis

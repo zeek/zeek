@@ -37,14 +37,10 @@ enum Trigger %{
 	## field of :bro:see:`FileAnalysis::Info`.
 	TRIGGER_BOF_BUFFER,
 	## Raised when an initial guess at the file/mime type of a file is matched
-	## based on magic numbers.  TODO: re-purposing protocols/http/file-ident.sig
-	## for doing this is tricky since the signature engine doesn't expect
-	## to be decoupled from connections, so figure out what work needs
-	## done there.
+	## based on magic numbers.
 	TRIGGER_TYPE,
-	## Raised when the end of a file is detected.  If the file is not
-	## being transferred linearly, then this doesn't have to mean the full
-	## file has been transferred.
+	## Raised to signal that no more file data is incoming and it couldn't be
+	## determined whether the full file was actually seen.
 	TRIGGER_EOF,
 	## The reassembly buffer for the file filled and had to be discarded.
 	## The *undelivered* field of :bro:see:`FileAnalysis::Info` will
@@ -94,6 +90,6 @@ function FileAnalysis::remove_action%(file_id: string, args: any%): bool
 function FileAnalysis::stop%(file_id: string%): bool
 	%{
 	using file_analysis::FileID;
-	bool result = file_mgr->RemoveFile(FileID(file_id->CheckString()));
+	bool result = file_mgr->IgnoreFile(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
 	%}

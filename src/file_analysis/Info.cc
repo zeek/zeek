@@ -197,11 +197,8 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 	{
 	if ( bof_buffer.full || bof_buffer.replayed ) return false;
 
-	using BifEnum::FileAnalysis::TRIGGER_BOF;
-	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
-
 	if ( bof_buffer.chunks.size() == 0 )
-		Manager::EvaluatePolicy(TRIGGER_BOF, this);
+		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_BOF, this);
 
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
@@ -211,7 +208,7 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 		{
 		bof_buffer.full = bof_buffer.replayed = true;
 		val->Assign(bof_buffer_idx, new StringVal(new BroString(data, len, 0)));
-		Manager::EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
+		file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
 		// TODO: libmagic stuff
 		return false;
 		}
@@ -234,10 +231,12 @@ void Info::ReplayBOF()
 	if ( bof_buffer.replayed ) return;
 	bof_buffer.replayed = true;
 
+	if ( bof_buffer.chunks.empty() ) return;
+
 	val->Assign(bof_buffer_idx, new StringVal(concatenate(bof_buffer.chunks)));
 
 	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
-	Manager::EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
+	file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
 
 	// TODO: libmagic stuff
 
@@ -319,6 +318,11 @@ void Info::EndOfFile()
 			actions.QueueRemoveAction(act->Args());
 		}
 
+	if ( IsComplete() )
+		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, this);
+	else
+		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_EOF, this);
+
 	actions.FlushQueuedModifications();
 	}
 
@@ -338,6 +342,8 @@ void Info::Gap(uint64 offset, uint64 len)
 		if ( ! act->Undelivered(offset, len) )
 			actions.QueueRemoveAction(act->Args());
 		}
+
+	file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_GAP, this);
 
 	actions.FlushQueuedModifications();
 	IncrementByteCount(len, missing_bytes_idx);

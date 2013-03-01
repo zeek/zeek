@@ -395,3 +395,31 @@ Patterns can also be used to compare strings using equality and inequality opera
 
 .. btest:: data_type_subnets
     @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_type_pattern_02.bro
+
+
+Advanced Data Types
+===================
+
+Custom Data Types
+~~~~~~~~~~~~~~~~~
+
+With Bro's support for a wide array of data types and data structures an obvious extension of is to include the ability to create custom data types consisting of the atomic types and ddata structures.  To accomplish this, Bro introduces the ``record`` type and the ``type`` keyword.  Similar to how you would define a new data structure in C with the ``typedef`` and ``struct`` keywords, Bro allows you to cobble together new data types to suit the needs of your situation.
+
+When combined with the ``type`` keyword, ``record`` can generate a composite type.  We have, in fact, already encountered a a complex example of the ``record`` data type in the earlier sections.  The excerpt below shows the definition of the connection record data type as defined in the ``Conn`` module.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
+   :language: bro
+   :linenos:
+   :lines: 10-12,16,17,19,21,23,25,28,31,35,37,56,62,68,90,93,97,100,104,108,109,114
+
+While it might be surprising that Bro is tracking and passing around this much data for each connection, it shouldn't be too surprising, given our exploration of it earlier, that the connection record consists of a collection of atomic data types, simple data types and even another ``record``.  Looking at the structure of the definition, a new collection of data types is being defined as a type called ``Info``.  Since this type definition is within the confines of an export block, what is defined is, in fact, ``Conn::Info``.
+
+It's also common to see a ``type`` used to simply alias a data structure to a more descriptive name.  The example below shows an example of this from Bro's own type definitions file.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/scripts/base/init-bare.bro
+   :language: bro
+   :linenos:
+   :lines: 12,19,26
+
+The three lines above alias a type of data structure to a descriptive name.  Functionally, the operations are the same, however, each of the types above are named such that their function is instantly identifiable.  This is another place in Bro scripting where consideration can lead to better readability of your code and thus easier maintainability in the future.   
+

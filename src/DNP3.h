@@ -82,6 +82,9 @@ protected:
 	void DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial);
 
 	binpac::DNP3::DNP3_Conn* interp;
+	binpac::DNP3::DNP3_Flow* hl_test;
+
+	unsigned int hl_debug;
 	bool mEncounteredFirst;
 	StrByteStream gDNP3Data;
 

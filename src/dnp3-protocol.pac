@@ -2,6 +2,8 @@
 # This is Binpac code for DNP3 analyzer by Hui Lin.
 #
 
+
+
 type DNP3_PDU(is_orig: bool) = case is_orig of {
 	#true    ->  request:  DNP3_Request;
 	true    ->  request:  DNP3_Req;
@@ -10,13 +12,14 @@ type DNP3_PDU(is_orig: bool) = case is_orig of {
 } &byteorder = bigendian;
 
 type Header_Block = record {
+	empty : Empty;
 	start: uint16 &check(start == 0x0564);
 	len: uint8;
 	ctrl: uint8;   #since this ctrl function code is not used here, I use it to store high 8-bit of len, if len > 255
 	dest_addr: uint16;
 	src_addr: uint16;
 }  &let{
-	buffer_bytes1 : uint32 = $context.flow.get_bufferBytes() ;
+	#buffer_bytes1 : uint32 = $context.flow.get_bufferBytes() ;
 	# body : 
 }
   &byteorder = littleendian
@@ -58,14 +61,15 @@ type DNP3_Req = record {
 	data: Body ;
 	#data: bytestring &until($input.length()==0); 
 	#data: bytestring &restofdata ;
+	#data: Debug_Byte ;
 	#data: bytestring &length = 8 ;
 	#data: AByte[] &until($element.last);	
 } &let{
 	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
 	#incBuff : bool = $context.flow.increaseBuffer(18) ;	
-	available : bool = $context.flow.buffer_available();
-	ready : bool = $context.flow.buffer_ready();
-	buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
+	#available : bool = $context.flow.buffer_available();
+	#ready : bool = $context.flow.buffer_ready();
+	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
 	#body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
 	#body : bytestring =  $context.flow.get_bufferContents() ;
 	#body : Body withinput $context.flow.getPreviousBuffer(18) ;
@@ -73,8 +77,9 @@ type DNP3_Req = record {
 	
 }
   &byteorder = bigendian 
-  &length = 12
+  &length = 28 + 10 
   #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1 - 10
   #&length = -1
 ;
 
@@ -82,20 +87,20 @@ type Empty = record{
 	dump : empty;
 }
 &let{
-	buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
+	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
         #ready : bool = $context.flow.buffer_ready();
-        ready : uint32 = $context.flow.GetwheretoBuffer();
+        #ready : uint32 = $context.flow.GetwheretoBuffer();
 	
         #body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
-	body : Body withinput $context.flow.getPreviousBuffer(8) &if ( ready == 23 );
+	#body : Body withinput $context.flow.getPreviousBuffer(8) &if ( ready == 23 );
+	hook : bool = $context.flow.modifLength(28);
 }
 ;
 
 type Body = record {
-	#payload : bytestring &length = 7;
-	payload : bytestring &restofdata;
+	payload : bytestring &length = 46;
+	#payload : bytestring &restofdata;
 }
-&length = 7
 ;
 
 type AByte = record{
@@ -165,7 +170,7 @@ type DNP3_Response = record {
   &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1;
 
 type DNP3_Application_Request_Header = record {
-	#empty: bytestring &length = 0;
+	empty: bytestring &length = 0;
 	application_control : uint8;
 	function_code       : uint8 ;
 } &length = 2 ;

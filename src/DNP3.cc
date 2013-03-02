@@ -13,6 +13,9 @@ DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTa
 	this->DNP3_PrecomputeCRC(DNP3_CrcTable, 0xA6BC);  
 	
 	interp = new binpac::DNP3::DNP3_Conn(this);
+	//hl_test = new binpac::DNP3::DNP3_Flow(interp, true);
+
+	hl_debug = 0 ;
 	}
 
 DNP3_Analyzer::~DNP3_Analyzer()
@@ -552,6 +555,20 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	gDNP3Data.mData[3] = 0x00;
 	
 	//gDNP3Data.mData[3] = 0xff;
+
+
+	///// here is what I tried about removing buffer here
+	
+	/*
+	if(hl_debug == 2){
+		printf("/n/ndebug; increase the buffer \n");
+		printf("Current buffer size %d\n", hl_test->get_bufferBytes());
+		hl_test->increaseBuffer(400);
+	}
+
+	hl_debug ++;
+	*/ 
+	///// here is what I tried about removing buffer here
 	
 	#else
 
@@ -566,13 +583,39 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	bool m_orig = ( (data[3] & 0x80) == 0x80 );
 
 	int i = 0;
-	printf("\nBytes into BInpac analzyer:");
+	printf("\nBytes into BInpac analzyer:%d ", hl_debug);
 	for (i = 0; i < gDNP3Data.length ; i++)
 		printf("0x%x ", gDNP3Data.mData[i]);
 	printf("\n");
 
-		
+	/*
+	if(hl_debug == 2){
+		int t_l = gDNP3Data.length + 4;
+                u_char* temp = new u_char[gDNP3Data.length + 4];
+                for(i = 0; i < gDNP3Data.length ; i++)
+                        temp[i] = gDNP3Data.mData[i];
+                for(i = gDNP3Data.length ; i < t_l ; i++)
+                        temp[i] = 0x00;
+                gDNP3Data.Clear();
+                gDNP3Data.mData = temp;
+                gDNP3Data.length = t_l;
+	}
+	*/	
+	
 	interp->NewData(m_orig, gDNP3Data.mData, gDNP3Data.mData + gDNP3Data.length );
+
+	if(hl_debug == 0){	
+		hl_test = interp->upflow();
+		//hl_test->increaseBuffer(60);
+		hl_test->increaseBuffer(56);
+
+				
+
+		//// manually increase four types.
+		
+		
+	}
+	hl_debug ++ ;
 
 	gDNP3Data.Clear();
 

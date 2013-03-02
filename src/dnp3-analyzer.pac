@@ -16,13 +16,18 @@ flow DNP3_Flow(is_orig: bool) {
 	uint32 buffer;
         %}
 
+	function modifLength(size : uint8): bool
+		%{
+		bytestring(flow_buffer_->begin(), flow_buffer_->end());
+		return 0;
+		%}
 
 	function increaseBuffer(addBuffer: uint32): bool
 		%{
 		//flow_buffer_->ExpandBuffer(addBuffer);
 		//printf("HL Debug: increase buffer \n");
-		pre_begin = flow_buffer_->begin();
-		pre_end = flow_buffer_->end();
+		//pre_begin = flow_buffer_->begin();
+		//pre_end = flow_buffer_->end();
 		flow_buffer_->GrowFrame(addBuffer);
 		//flow_buffer_->NewFrame(addBuffer, false);
 		return true;
@@ -793,7 +798,7 @@ flow DNP3_Flow(is_orig: bool) {
 };
 
 refine typeattr DNP3_Req += &let {
-	get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
+	#get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
 };
 
 refine typeattr DNP3_ReqWrap += &let {
@@ -805,7 +810,7 @@ refine typeattr  File_Transport += &let {
 };
 
 refine typeattr Header_Block += &let {
-	get_buffer1: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes1);
+	#get_buffer1: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes1);
 };
 
 refine typeattr Header_Block += &let {
@@ -1064,5 +1069,5 @@ refine typeattr DNP3_ReqWrap += &let {
 };
 
 refine typeattr Empty += &let {
-        get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
+        #get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
 };

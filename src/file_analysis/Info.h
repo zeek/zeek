@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <magic.h>
 
 #include "Conn.h"
 #include "Val.h"
@@ -182,6 +183,9 @@ protected:
 	 * Initializes the index offsets for fields in \c FileAnalysis::info record.
 	 */
 	static void InitFieldIndices();
+
+	static magic_t magic;
+	static magic_t magic_mime;
 
 public:
 	static int file_id_idx;

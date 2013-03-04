@@ -51,6 +51,9 @@ int Info::file_type_idx = -1;
 int Info::mime_type_idx = -1;
 int Info::actions_idx = -1;
 
+magic_t Info::magic = 0;
+magic_t Info::magic_mime = 0;
+
 void Info::InitFieldIndices()
 	{
 	if ( file_id_idx != -1 ) return;
@@ -71,12 +74,33 @@ void Info::InitFieldIndices()
 	actions_idx = Idx("actions");
 	}
 
+static void init_magic(magic_t* magic, int flags)
+	{
+	*magic = magic_open(flags);
+
+	if ( ! *magic )
+		reporter->Error("can't init libmagic: %s", magic_error(*magic));
+
+	else if ( magic_load(*magic, 0) < 0 )
+		{
+		reporter->Error("can't load magic file: %s", magic_error(*magic));
+		magic_close(*magic);
+		*magic = 0;
+		}
+	}
+
 Info::Info(const string& unique, Connection* conn, const string& protocol)
     : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
       postpone_timeout(false), need_reassembly(false), done(false),
       actions(this)
 	{
 	InitFieldIndices();
+
+	if ( ! magic )
+		{
+		init_magic(&magic, MAGIC_NONE);
+		init_magic(&magic_mime, MAGIC_MIME);
+		}
 
 	char id[20];
 	uitoa_n(calculate_unique_id(), id, sizeof(id), 62);
@@ -233,12 +257,23 @@ void Info::ReplayBOF()
 
 	if ( bof_buffer.chunks.empty() ) return;
 
-	val->Assign(bof_buffer_idx, new StringVal(concatenate(bof_buffer.chunks)));
+	BroString* bs = concatenate(bof_buffer.chunks);
+	const char* desc = magic_buffer(magic, bs->Bytes(), bs->Len());
+	const char* mime = magic_buffer(magic_mime, bs->Bytes(), bs->Len());
+
+	val->Assign(bof_buffer_idx, new StringVal(bs));
+
+	if ( desc )
+		val->Assign(file_type_idx, new StringVal(desc));
+
+	if ( mime )
+		val->Assign(mime_type_idx, new StringVal(mime));
 
 	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
 	file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
 
-	// TODO: libmagic stuff
+	if ( desc || mime )
+		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());

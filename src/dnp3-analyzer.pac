@@ -9,19 +9,14 @@ flow DNP3_Flow(is_orig: bool) {
 
 
 	%member{
-        FlowBuffer frag_reassembler_;
+        //FlowBuffer frag_reassembler_;
 	//FlowBuffer flow_buffer_;
-	const_byteptr pre_begin;
-	const_byteptr pre_end;
-	uint32 buffer;
+	//const_byteptr pre_begin;
+	//const_byteptr pre_end;
+	//uint32 buffer;
         %}
 
-	function modifLength(size : uint8): bool
-		%{
-		bytestring(flow_buffer_->begin(), flow_buffer_->end());
-		return 0;
-		%}
-
+	
 	function increaseBuffer(addBuffer: uint32): bool
 		%{
 		//flow_buffer_->ExpandBuffer(addBuffer);
@@ -38,28 +33,6 @@ flow DNP3_Flow(is_orig: bool) {
 			return const_bytestring(
                         	flow_buffer_->begin(),
                         	flow_buffer_->end());	
-                        	//( flow_buffer_->begin()) + 10 );	
-		//}
-		//return 0;
-		%}
-	function SetwheretoBuffer(index: uint32) : bool
-		%{
-		buffer = index;
-		return true;
-		%}
-	function GetwheretoBuffer() : uint32
-		%{
-		
-		return buffer;
-		%}
-
-	function getPreviousBuffer(addBuffer: uint32): const_bytestring
-		%{
-		//if(flow_buffer_->ready() == true){
-		//if(buffer == 23){
-			return const_bytestring(
-                        	pre_end - addBuffer,
-                        	pre_end);	
                         	//( flow_buffer_->begin()) + 10 );	
 		//}
 		//return 0;
@@ -781,6 +754,20 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+	# g70v5
+	function get_dnp3_file_transport(file_handle: uint32, block_num: uint32, file_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_transport )
+			{
+			BifEvent::generate_dnp3_file_transport(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), file_handle, block_num, bytestring_to_val(file_data));
+			}
+
+		return true;
+		%}
+
 #### for debug use or unknown data types used in "case"
 	function get_dnp3_debug_byte(debug: const_bytestring): bool
 		%{
@@ -802,10 +789,6 @@ refine typeattr DNP3_Req += &let {
 };
 
 refine typeattr DNP3_ReqWrap += &let {
-	get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
-};
-
-refine typeattr  File_Transport += &let {
 	get_buffer: bool =  $context.flow.get_dnp3_debug_bufferBytes(buffer_bytes);
 };
 
@@ -1049,6 +1032,11 @@ refine typeattr FrozenAnaInputEveSPwTime += &let {
 # g33v8
 refine typeattr FrozenAnaInputEveDPwTime += &let {
 	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_DPwTime(flag, f_value_low, f_value_high, time48);
+};
+
+# g70v5
+refine typeattr File_Transport += &let {
+        result: bool =  $context.flow.get_dnp3_file_transport(file_handle, block_num, file_data);
 };
 
 refine typeattr Debug_Byte += &let {

@@ -6780,6 +6780,9 @@ event dnp3_frozen_analog_input_event_SPwTime%(c: connection, is_orig: bool, flag
 ## frozen analog input event double-precision float point with time
 event dnp3_frozen_analog_input_event_DPwTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string%);
 
+## g70
+event dnp3_file_transport%(c: connection, is_orig: bool, file_handle: count, block_num: count, file_data: string%);
+
 ## Generated for the "Debug_Byte" for the binpac analyzer
 ## This event handler is left for the debug usage. 
 ## For example, in the binpac analyzer, a unknown "case" generated 

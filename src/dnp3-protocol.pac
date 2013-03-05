@@ -5,8 +5,8 @@
 
 
 type DNP3_PDU(is_orig: bool) = case is_orig of {
-	#true    ->  request:  DNP3_Request;
-	true    ->  request:  DNP3_Req;
+	true    ->  request:  DNP3_Request;
+	#true    ->  request:  DNP3_Req;
 	#true    ->  request:  DNP3_ReqWrap;
 	false   ->  response: DNP3_Response;
 } &byteorder = bigendian;
@@ -77,8 +77,8 @@ type DNP3_Req = record {
 	
 }
   &byteorder = bigendian 
-  &length = 28 + 10 
-  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  #&length = 28 + 10 
+  &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
   #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1 - 10
   #&length = -1
 ;
@@ -93,13 +93,13 @@ type Empty = record{
 	
         #body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
 	#body : Body withinput $context.flow.getPreviousBuffer(8) &if ( ready == 23 );
-	hook : bool = $context.flow.modifLength(28);
+	#hook : bool = $context.flow.modifLength(28);
 }
 ;
 
 type Body = record {
-	payload : bytestring &length = 46;
-	#payload : bytestring &restofdata;
+	#payload : bytestring &length = 46;
+	payload : bytestring &restofdata;
 }
 ;
 

@@ -1268,9 +1268,6 @@ type File_Transport(obj_size: uint32) = record {
 	block_num: uint32;
 	#file_data: bytestring &restofdata;
 	file_data: bytestring &length = (obj_size - 8);
-}
-&let{
-	buffer_bytes: uint32 = $context.flow.get_bufferBytes() ;
 } 
 &byteorder = littleendian
 ;

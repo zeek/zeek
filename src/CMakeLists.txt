@@ -447,6 +447,7 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/Binary.cc
 
     file_analysis/Manager.cc
     file_analysis/Info.cc

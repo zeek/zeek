@@ -51,8 +51,10 @@ export {
 		## from a container file as part of the analysis.
 		parent_file_id: string &log &optional;
 
-		## The network protocol over which the file was transferred.
-		protocol: string &log &optional;
+		## An identification of the source of the file data.  E.g. it may be
+		## a network protocol over which it was transferred, or a local file
+		## path which was read, or some other input source.
+		source: string &log &optional;
 
 		## The set of connections over which the file was transferred,
 		## indicated by UID strings.

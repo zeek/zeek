@@ -117,8 +117,7 @@ protected:
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	Info(const string& unique, Connection* conn = 0,
-	     const string& protocol = "");
+	Info(const string& unique, Connection* conn = 0, const string& source = "");
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -190,7 +189,7 @@ protected:
 public:
 	static int file_id_idx;
 	static int parent_file_id_idx;
-	static int protocol_idx;
+	static int source_idx;
 	static int conn_uids_idx;
 	static int conn_ids_idx;
 	static int seen_bytes_idx;

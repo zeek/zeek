@@ -37,7 +37,7 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 
 int Info::file_id_idx = -1;
 int Info::parent_file_id_idx = -1;
-int Info::protocol_idx = -1;
+int Info::source_idx = -1;
 int Info::conn_uids_idx = -1;
 int Info::conn_ids_idx = -1;
 int Info::seen_bytes_idx = -1;
@@ -59,7 +59,7 @@ void Info::InitFieldIndices()
 	if ( file_id_idx != -1 ) return;
 	file_id_idx = Idx("file_id");
 	parent_file_id_idx = Idx("parent_file_id");
-	protocol_idx = Idx("protocol");
+	source_idx = Idx("source");
 	conn_uids_idx = Idx("conn_uids");
 	conn_ids_idx = Idx("conn_ids");
 	seen_bytes_idx = Idx("seen_bytes");
@@ -89,7 +89,7 @@ static void init_magic(magic_t* magic, int flags)
 		}
 	}
 
-Info::Info(const string& unique, Connection* conn, const string& protocol)
+Info::Info(const string& unique, Connection* conn, const string& source)
     : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
       postpone_timeout(false), need_reassembly(false), done(false),
       actions(this)
@@ -113,8 +113,8 @@ Info::Info(const string& unique, Connection* conn, const string& protocol)
 
 	UpdateConnectionFields(conn);
 
-	if ( protocol != "" )
-		val->Assign(protocol_idx, new StringVal(protocol.c_str()));
+	if ( ! source.empty() )
+		val->Assign(source_idx, new StringVal(source.c_str()));
 	}
 
 Info::~Info()

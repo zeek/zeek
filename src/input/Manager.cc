@@ -8,6 +8,7 @@
 #include "readers/Ascii.h"
 #include "readers/Raw.h"
 #include "readers/Benchmark.h"
+#include "readers/Binary.h"
 
 #include "Event.h"
 #include "EventHandler.h"
@@ -34,6 +35,7 @@ ReaderDefinition input_readers[] = {
 	{ BifEnum::Input::READER_ASCII, "Ascii", 0, reader::Ascii::Instantiate },
 	{ BifEnum::Input::READER_RAW, "Raw", 0, reader::Raw::Instantiate },
 	{ BifEnum::Input::READER_BENCHMARK, "Benchmark", 0, reader::Benchmark::Instantiate },
+	{ BifEnum::Input::READER_BINARY, "Binary", 0, reader::Binary::Instantiate },
 
 	// End marker
 	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }

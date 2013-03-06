@@ -26,11 +26,11 @@ void Manager::Terminate()
 	}
 
 void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
-                     uint64 offset, Connection* conn, const string& protocol)
+                     uint64 offset, Connection* conn, const string& source)
 	{
 	if ( IsIgnored(unique) ) return;
 
-	Info* info = GetInfo(unique, conn, protocol);
+	Info* info = GetInfo(unique, conn, source);
 
 	if ( ! info ) return;
 
@@ -41,9 +41,9 @@ void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
 	}
 
 void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
-                     Connection* conn, const string& protocol)
+                     Connection* conn, const string& source)
 	{
-	Info* info = GetInfo(unique, conn, protocol);
+	Info* info = GetInfo(unique, conn, source);
 
 	if ( ! info ) return;
 
@@ -54,18 +54,18 @@ void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
 	}
 
 void Manager::EndOfFile(const string& unique, Connection* conn,
-                        const string& protocol)
+                        const string& source)
 	{
-	// Just call GetInfo because maybe the conn/protocol args will update
+	// Just call GetInfo because maybe the conn/source args will update
 	// something in the Info record.
-	GetInfo(unique, conn, protocol);
+	GetInfo(unique, conn, source);
 	RemoveFile(unique);
 	}
 
 void Manager::Gap(const string& unique, uint64 offset, uint64 len,
-                  Connection* conn, const string& protocol)
+                  Connection* conn, const string& source)
 	{
-	Info* info = GetInfo(unique, conn, protocol);
+	Info* info = GetInfo(unique, conn, source);
 
 	if ( ! info ) return;
 
@@ -73,9 +73,9 @@ void Manager::Gap(const string& unique, uint64 offset, uint64 len,
 	}
 
 void Manager::SetSize(const string& unique, uint64 size,
-                      Connection* conn, const string& protocol)
+                      Connection* conn, const string& source)
 	{
-	Info* info = GetInfo(unique, conn, protocol);
+	Info* info = GetInfo(unique, conn, source);
 
 	if ( ! info ) return;
 
@@ -132,7 +132,7 @@ bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
 	}
 
 Info* Manager::GetInfo(const string& unique, Connection* conn,
-                       const string& protocol)
+                       const string& source)
 	{
 	if ( IsIgnored(unique) ) return 0;
 
@@ -140,7 +140,7 @@ Info* Manager::GetInfo(const string& unique, Connection* conn,
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new Info(unique, conn, protocol);
+		rval = str_map[unique] = new Info(unique, conn, source);
 		FileID id = rval->GetFileID();
 
 		if ( id_map[id] )

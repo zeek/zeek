@@ -35,31 +35,31 @@ public:
 	 */
 	void DataIn(const string& unique, const u_char* data, uint64 len,
 	            uint64 offset, Connection* conn = 0,
-	            const string& protocol = "");
+	            const string& source = "");
 
 	/**
 	 * Pass in sequential file data.
 	 */
 	void DataIn(const string& unique, const u_char* data, uint64 len,
-	            Connection* conn = 0, const string& protocol = "");
+	            Connection* conn = 0, const string& source = "");
 
 	/**
 	 * Signal the end of file data.
 	 */
 	void EndOfFile(const string& unique, Connection* conn = 0,
-	               const string& protocol = "");
+	               const string& source = "");
 
 	/**
 	 * Signal a gap in the file data stream.
 	 */
 	void Gap(const string& unique, uint64 offset, uint64 len,
-	         Connection* conn = 0, const string& protocol = "");
+	         Connection* conn = 0, const string& source = "");
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
 	void SetSize(const string& unique, uint64 size, Connection* conn = 0,
-	             const string& protocol = "");
+	             const string& source = "");
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -109,7 +109,7 @@ protected:
 	 *         record value may be updated.
 	 */
 	Info* GetInfo(const string& unique, Connection* conn = 0,
-	              const string& protocol = "");
+	              const string& source = "");
 
 	/**
 	 * @return the Info object mapped to \a file_id, or a null pointer if no

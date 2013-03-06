@@ -1,14 +1,22 @@
 
+2.1-336 | 2013-03-06 15:08:06 -0800
+
+  * Fix memory leaks resulting from 'when' and 'return when'
+    statements. Addresses #946. (Jon Siwek)
+
+  * Fix three bugs with 'when' and 'return when' statements. Addresses
+    #946. (Jon Siwek)
+
 2.1-333 | 2013-03-06 14:59:47 -0800
 
   * Add parsing for GTPv1 extension headers and control messages.  (Jon Siwek)
 
     This includes:
 
-      - a new generic gtpv1_message() event generated for any GTP
+      - A new generic gtpv1_message() event generated for any GTP
         message type.
 
-      - specific events for the create/update/delete PDP context
+      - Specific events for the create/update/delete PDP context
         request/response messages.
 
     Addresses #934.

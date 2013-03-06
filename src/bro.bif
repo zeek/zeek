@@ -2868,6 +2868,48 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	return new StringVal(hexstr);
 	%}
 
+## Encodes a Base64-encoded string.
+##
+## s: The string to encode
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64_custom
+function encode_base64%(s: string%): string
+	%{
+	BroString* t = encode_base64(s->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+## Encodes a Base64-encoded string with a custom alphabet.
+##
+## s: The string to encode
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64
+function encode_base64_custom%(s: string, a: string%): string
+	%{
+	BroString* t = encode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
 ## Decodes a Base64-encoded string.
 ##
 ## s: The Base64-encoded string.

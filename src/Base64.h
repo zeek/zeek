@@ -11,7 +11,23 @@
 
 // Maybe we should have a base class for generic decoders?
 
-class Base64Decoder {
+class Base64 {
+public: 
+protected:
+	static const string default_alphabet;
+};
+
+
+class Base64Encoder : public Base64 {
+public:
+	Base64Encoder(const string& arg_alphabet = "");
+	void Encode(int len, const unsigned char* data, int* blen, char** buf);
+protected:
+	string alphabet;
+	
+}; 
+
+class Base64Decoder : public Base64 {
 public:
 	// <analyzer> is used for error reporting, and it should be zero when
 	// the decoder is called by the built-in function decode_base64().
@@ -51,19 +67,19 @@ protected:
 	char error_msg[256];
 
 protected:
+	static int* InitBase64Table(const string& alphabet);
+	static int default_base64_table[256];
 	char base64_group[4];
 	int base64_group_next;
 	int base64_padding;
 	int base64_after_padding;
+	int* base64_table;
 	int errored;	// if true, we encountered an error - skip further processing
 	Analyzer* analyzer;
-	int* base64_table;
 
-	static int* InitBase64Table(const string& alphabet);
-	static int default_base64_table[256];
-	static const string default_alphabet;
 };
 
 BroString* decode_base64(const BroString* s, const BroString* a = 0);
+BroString* encode_base64(const BroString* s, const BroString* a = 0);
 
 #endif /* base64_h */

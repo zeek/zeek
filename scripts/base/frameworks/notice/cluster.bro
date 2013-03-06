@@ -25,15 +25,6 @@ event Notice::begin_suppression(n: Notice::Info)
 	{
 	suppressing[n$note, n$identifier] = n;
 	}
-
-event bro_init() &priority=-3
-	{
-	# Workers and proxies need to disable the notice streams because notice
-	# events are forwarded directly instead of being logged remotely.
-	Log::disable_stream(Notice::LOG);
-	Log::disable_stream(Notice::POLICY_LOG);
-	Log::disable_stream(Notice::ALARM_LOG);
-	}
 @endif
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
@@ -46,17 +37,16 @@ event Notice::cluster_notice(n: Notice::Info)
 
 module GLOBAL;
 
-## This is the entry point in the global namespace for notice framework.
+## This is the entry point in the global namespace for the notice framework.
 function NOTICE(n: Notice::Info)
 	{
 	# Suppress this notice if necessary.
 	if ( Notice::is_being_suppressed(n) )
 		return;
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-	Notice::internal_NOTICE(n);
-@else
-	# For non-managers, send the notice on to the manager.
-	event Notice::cluster_notice(n);
-@endif
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
+		Notice::internal_NOTICE(n);
+	else
+		# For non-managers, send the notice on to the manager.
+		event Notice::cluster_notice(n);
 	}

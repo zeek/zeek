@@ -10,9 +10,6 @@ export {
 	redef enum Log::ID += {
 		## This is the primary logging stream for notices.
 		LOG,
-		## This is the notice policy auditing log.  It records what the current
-		## notice policy is at Bro init time.
-		POLICY_LOG,
 		## This is the alarm stream.
 		ALARM_LOG,
 	};
@@ -42,9 +39,6 @@ export {
 		## version of the alarm log is emailed in bulk to the address(es)
 		## configured in :bro:id:`Notice::mail_dest`.
 		ACTION_ALARM,
-		## Indicates that the notice should not be supressed by the normal
-		## duplicate notice suppression that the notice framework does.
-		ACTION_NO_SUPPRESS,
 	};
 
 	## The notice framework is able to do automatic notice supression by
@@ -138,9 +132,8 @@ export {
 		identifier:          string         &optional;
 
 		## This field indicates the length of time that this
-		## unique notice should be suppressed.  This field is automatically
-		## filled out and should not be written to by any other script.
-		suppress_for:        interval       &log &optional;
+		## unique notice should be suppressed.
+		suppress_for:        interval       &log &default=default_suppression_interval;
 	};
 
 	## Ignored notice types.
@@ -154,39 +147,6 @@ export {
 	## This table can be used as a shorthand way to modify suppression
 	## intervals for entire notice types.
 	const type_suppression_intervals: table[Notice::Type] of interval = {} &redef;
-
-	## This is the record that defines the items that make up the notice policy.
-	type PolicyItem: record {
-		## This is the exact positional order in which the
-		## :bro:type:`Notice::PolicyItem` records are checked.
-		## This is set internally by the notice framework.
-		position: count                            &log &optional;
-		## Define the priority for this check.  Items are checked in ordered
-		## from highest value (10) to lowest value (0).
-		priority: count                            &log &default=5;
-		## An action given to the notice if the predicate return true.
-		action:   Notice::Action                   &log &default=ACTION_NONE;
-		## The pred (predicate) field is a function that returns a boolean T
-		## or F value.  If the predicate function return true, the action in
-		## this record is applied to the notice that is given as an argument
-		## to the predicate function.  If no predicate is supplied, it's
-		## assumed that the PolicyItem always applies.
-		pred:     function(n: Notice::Info): bool  &log &optional;
-		## Indicates this item should terminate policy processing if the
-		## predicate returns T.
-		halt:     bool                             &log &default=F;
-		## This defines the length of time that this particular notice should
-		## be supressed.
-		suppress_for: interval                     &log &optional;
-	};
-	
-	## Defines a notice policy that is extensible on a per-site basis.
-	## All notice processing is done through this variable.  This variable
-	## is the former 'policy' variable, and
-	## this variable is deprecated and will be removed in a future version.
-	## All notice policy decisions are going to be done through the 
-	## 'policy' hook now.
-	const policy_table: set[PolicyItem] = {} &redef;
 
 	## The hook to modify notice handling.
 	global policy: hook(n: Notice::Info);
@@ -307,10 +267,6 @@ function per_notice_suppression_interval(t: table[Notice::Type, string] of Notic
 global suppressing: table[Type, string] of Notice::Info = {}
 		&create_expire=0secs
 		&expire_func=per_notice_suppression_interval;
-
-# This is an internal variable used to store the notice policy ordered by
-# priority.
-global ordered_policy: vector of PolicyItem = vector();
 
 function log_mailing_postprocessor(info: Log::RotationInfo): bool
 	{
@@ -442,7 +398,7 @@ hook Notice::policy(n: Notice::Info) &priority=10
 		break;
 
 	if ( n$note in Notice::not_suppressed_types )
-		add n$actions[ACTION_NO_SUPPRESS];
+		n$suppress_for=0secs;
 	if ( n$note in Notice::alarmed_types )
 		add n$actions[ACTION_ALARM];
 	if ( n$note in Notice::emailed_types )
@@ -467,7 +423,6 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 	# Normally suppress further notices like this one unless directed not to.
 	#  n$identifier *must* be specified for suppression to function at all.
 	if ( n?$identifier &&
-	     ACTION_NO_SUPPRESS !in n$actions &&
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
 		{
@@ -552,24 +507,6 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$email_delay_tokens )
 		n$email_delay_tokens = set();
 
-	for ( i in ordered_policy )
-		{
-		# If there's no predicate or the predicate returns F.
-		if ( ! ordered_policy[i]?$pred || ordered_policy[i]$pred(n) )
-			{
-			add n$actions[ordered_policy[i]$action];
-
-			# If the predicate matched and there was a suppression interval,
-			# apply it to the notice now.
-			if ( ordered_policy[i]?$suppress_for )
-				n$suppress_for = ordered_policy[i]$suppress_for;
-
-			# If the policy item wants to halt policy processing, do it now!
-			if ( ordered_policy[i]$halt )
-				break;
-			}
-		}
-
 	# Apply the hook based policy.
 	hook Notice::policy(n);
 
@@ -586,40 +523,6 @@ function apply_policy(n: Notice::Info)
 		delete n$conn;
 	if ( n?$iconn )
 		delete n$iconn;
-	}
-
-# Create the ordered notice policy automatically which will be used at runtime
-# for prioritized matching of the notice policy.
-event bro_init() &priority=10
-	{
-	# Create the policy log here because it's only written to in this handler.
-	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
-
-	local tmp: table[count] of set[PolicyItem] = table();
-	for ( pi in policy_table )
-		{
-		if ( pi$priority < 0 || pi$priority > 10 )
-			Reporter::fatal("All Notice::PolicyItem priorities must be within 0 and 10");
-
-		if ( pi$priority !in tmp )
-			tmp[pi$priority] = set();
-		add tmp[pi$priority][pi];
-		}
-
-	local rev_count = vector(10,9,8,7,6,5,4,3,2,1,0);
-	for ( i in rev_count )
-		{
-		local j = rev_count[i];
-		if ( j in tmp )
-			{
-			for ( pi in tmp[j] )
-				{
-				pi$position = |ordered_policy|;
-				ordered_policy[|ordered_policy|] = pi;
-				Log::write(Notice::POLICY_LOG, pi);
-				}
-			}
-		}
 	}
 
 function internal_NOTICE(n: Notice::Info)

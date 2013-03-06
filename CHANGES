@@ -1,4 +1,9 @@
 
+2.1-338 | 2013-03-06 15:10:43 -0800
+
+  * Fix init of local sets/vectors via curly brace initializer lists.
+    (Jon Siwek)
+
 2.1-336 | 2013-03-06 15:08:06 -0800
 
   * Fix memory leaks resulting from 'when' and 'return when'

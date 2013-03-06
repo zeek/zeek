@@ -2507,15 +2507,27 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				attr_copy->append((*attrs)[i]);
 			}
 
-		op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+		if ( op1->Type()->IsSet() )
+			op2 = new SetConstructorExpr(op2->AsListExpr(), attr_copy);
+		else
+			op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+
 		return true;
 		}
 
-	if ( bt1 == TYPE_VECTOR && bt2 == bt1 &&
-	     op2->Type()->AsVectorType()->IsUnspecifiedVector() )
+	if ( bt1 == TYPE_VECTOR )
 		{
-		op2 = new VectorCoerceExpr(op2, op1->Type()->AsVectorType());
-		return true;
+		if ( bt2 == bt1 && op2->Type()->AsVectorType()->IsUnspecifiedVector() )
+			{
+			op2 = new VectorCoerceExpr(op2, op1->Type()->AsVectorType());
+			return true;
+			}
+
+		if ( op2->Tag() == EXPR_LIST )
+			{
+			op2 = new VectorConstructorExpr(op2->AsListExpr());
+			return true;
+			}
 		}
 
 	if ( op1->Type()->Tag() == TYPE_RECORD &&

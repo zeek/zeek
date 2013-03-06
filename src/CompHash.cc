@@ -856,7 +856,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				if ( have_val )
 					kp1 = RecoverOneVal(k, kp1, k_end, vt->YieldType(), value,
 					                    false);
-				vv->Assign(index, value, 0);
+				vv->Assign(index, value);
 				}
 
 			pval = vv;

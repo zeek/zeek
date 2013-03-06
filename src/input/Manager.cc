@@ -2107,7 +2107,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
 		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
+			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
 
 		Unref(vt);
 		return v;

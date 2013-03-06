@@ -371,7 +371,7 @@ void StateAccess::Replay()
 
 			CheckOld("index assign", target.id, op1.val, op3,
 					v->AsVectorVal()->Lookup(index));
-			v->AsVectorVal()->Assign(index, op2 ? op2->Ref() : 0, 0);
+			v->AsVectorVal()->Assign(index, op2 ? op2->Ref() : 0);
 			}
 
 		else
@@ -421,7 +421,7 @@ void StateAccess::Replay()
 			Val* lookup_op1 = v->AsVectorVal()->Lookup(index);
 			int delta = lookup_op1->CoerceToInt() + amount;
 			Val* new_val = new Val(delta, t);
-			v->AsVectorVal()->Assign(index, new_val, 0);
+			v->AsVectorVal()->Assign(index, new_val);
 			}
 
 		else

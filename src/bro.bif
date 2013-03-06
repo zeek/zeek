@@ -1349,7 +1349,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
-		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
+		result_v->Assign(i, new Val(ind, TYPE_COUNT));
 		}
 
 	return result_v;
@@ -1633,7 +1633,7 @@ function record_type_to_vector%(rt: string%): string_vec
 		for ( int i = 0; i < type->NumFields(); ++i )
 			{
 			StringVal* val = new StringVal(type->FieldName(i));
-			result->Assign(i+1, val, 0);
+			result->Assign(i+1, val);
 			}
 		}
 
@@ -2139,7 +2139,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	while ( len > 0 )
 		{
 		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
-		rval->Assign(rval->Size(), new AddrVal(a), 0);
+		rval->Assign(rval->Size(), new AddrVal(a));
 		bytes += 16;
 		len -= 16;
 		}
@@ -2162,7 +2162,7 @@ function addr_to_counts%(a: addr%): index_vec
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT), 0);
+		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT));
 
 	return rval;
 	%}

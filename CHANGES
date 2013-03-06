@@ -1,4 +1,12 @@
 
+2.1-331 | 2013-03-06 14:54:33 -0800
+
+  * Fix possible null pointer dereference in identify_data BIF. Also
+    centralized libmagic calls for consistent error handling/output.
+    (Jon Siwek)
+
+  * Fix build on OpenBSD 5.2. (Jon Siwek)
+
 2.1-328 | 2013-02-05 01:34:29 -0500
 
   * New script to query the ICSI Certificate Notary 

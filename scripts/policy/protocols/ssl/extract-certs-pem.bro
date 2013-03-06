@@ -49,7 +49,7 @@ event ssl_established(c: connection) &priority=5
 	local i = 1;
 	for ( line in lines ) 
 		{
-		if ( byte_len(lines[i]) > 0 )
+		if ( |lines[i]| > 0 )
 			{
 			print outfile, lines[i];
 			}

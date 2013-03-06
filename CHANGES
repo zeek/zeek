@@ -1,4 +1,9 @@
 
+2.1-342 | 2013-03-06 15:42:52 -0800
+
+  * Moved the Notice::notice event and Notice::policy table to both be
+    hooks. See documentation and NEWS for information. (Seth Hall).
+
 2.1-338 | 2013-03-06 15:10:43 -0800
 
   * Fix init of local sets/vectors via curly brace initializer lists.

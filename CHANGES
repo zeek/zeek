@@ -1,4 +1,18 @@
 
+2.1-333 | 2013-03-06 14:59:47 -0800
+
+  * Add parsing for GTPv1 extension headers and control messages.  (Jon Siwek)
+
+    This includes:
+
+      - a new generic gtpv1_message() event generated for any GTP
+        message type.
+
+      - specific events for the create/update/delete PDP context
+        request/response messages.
+
+    Addresses #934.
+
 2.1-331 | 2013-03-06 14:54:33 -0800
 
   * Fix possible null pointer dereference in identify_data BIF. Also

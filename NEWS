@@ -67,6 +67,7 @@ Changed Functionality
         - md5_*, sha1_*, sha256_*, and entropy_* have all changed
         their signatures to work with opaque types (see above).
 
+
 - Removed a now unused argument from "do_split" helper function.
 
 - "this" is no longer a reserved keyword.
@@ -80,6 +81,50 @@ Changed Functionality
   'Logging::default_alarm_mail_interval'. When using BroControl, the
   value can now be set with the new broctl.cfg option
   "MailAlarmsInterval".
+
+- We have completely reworded the "notice_policy" mechanism. It now no
+  linger uses a record of policy items but a "hook", a new language
+  element that's roughly equivalent to a function with multiple
+  bodies. The documentation [TODO: insert link] describes how to use
+  the new notice policy. For existing code, the two main changes are:
+
+    - What used to be a "redef" of "Notice::policy" now becomes a hook
+      implementation. Example:
+
+      Old:
+
+        redef Notice::policy += {
+            [$pred(n: Notice::Info) = {
+                return n$note == SSH::Login && n$id$resp_h == 10.0.0.1;
+                },
+            $action = Notice::ACTION_EMAIL]
+            };
+
+      New:
+
+        hook Notice::policy(n: Notice::Info)
+            {
+            if ( n$note == SSH::Login && n$id$resp_h == 10.0.0.1 )
+                add n$actions[Notice::ACTION_EMAIL];
+            }
+
+    - notice() is now likewise a hook, no longer an event. If you have
+      handlers for that event, you'll likely just need to change the
+      type accordingly. Example:
+
+      Old:
+
+        event notice(n: Notice::Info) { ... }
+
+      New:
+
+        hook notice(n: Notice::Info) { ... }
+
+- The notice_policy.log is gone. That's a result of the new notice
+  policy setup.
+
+- Removed the byte_len() and length() bif functions. Use the "|...|"
+  operator instead.
 
 Bro 2.1
 -------

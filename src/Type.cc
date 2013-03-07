@@ -696,7 +696,9 @@ string FuncType::FlavorString() const
 
 FuncType::~FuncType()
 	{
+	Unref(args);
 	Unref(arg_types);
+	Unref(yield);
 	}
 
 BroType* FuncType::YieldType()

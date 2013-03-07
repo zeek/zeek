@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <sys/types.h>
 #include <sys/socket.h>
 
 const char * 

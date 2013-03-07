@@ -2921,8 +2921,7 @@ VectorVal::~VectorVal()
 	delete val.vector_val;
 	}
 
-bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
-			Opcode op)
+bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 	{
 	if ( element &&
 	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
@@ -2983,12 +2982,12 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 	}
 
 bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
-				Val* element, const Expr* assigner)
+				Val* element)
 	{
 	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
-		if ( ! Assign(i, element, assigner) )
+		if ( ! Assign(i, element ) )
 			return false;
 
 	return true;
@@ -3089,7 +3088,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 		{
 		Val* v;
 		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
-		Assign(i, v, 0);
+		Assign(i, v);
 		}
 
 	return true;

@@ -10,9 +10,6 @@ export {
 	redef enum Log::ID += {
 		## This is the primary logging stream for notices.
 		LOG,
-		## This is the notice policy auditing log.  It records what the current
-		## notice policy is at Bro init time.
-		POLICY_LOG,
 		## This is the alarm stream.
 		ALARM_LOG,
 	};
@@ -42,9 +39,6 @@ export {
 		## version of the alarm log is emailed in bulk to the address(es)
 		## configured in :bro:id:`Notice::mail_dest`.
 		ACTION_ALARM,
-		## Indicates that the notice should not be supressed by the normal
-		## duplicate notice suppression that the notice framework does.
-		ACTION_NO_SUPPRESS,
 	};
 
 	## The notice framework is able to do automatic notice supression by
@@ -64,7 +58,7 @@ export {
 		## A connection 4-tuple identifying the endpoints concerned with the
 		## notice.
 		id:             conn_id        &log &optional;
-		
+
 		## A shorthand way of giving the uid and id to a notice.  The
 		## reference to the actual connection will be deleted after applying
 		## the notice policy.
@@ -102,10 +96,6 @@ export {
 		## The actions which have been applied to this notice.
 		actions:        set[Notice::Action] &log &optional;
 
-		## These are policy items that returned T and applied their action
-		## to the notice.
-		policy_items:   set[count]     &log &optional;
-
 		## By adding chunks of text into this element, other scripts can
 		## expand on notices that are being emailed.  The normal way to add text
 		## is to extend the vector by handling the :bro:id:`Notice::notice`
@@ -142,9 +132,8 @@ export {
 		identifier:          string         &optional;
 
 		## This field indicates the length of time that this
-		## unique notice should be suppressed.  This field is automatically
-		## filled out and should not be written to by any other script.
-		suppress_for:        interval       &log &optional;
+		## unique notice should be suppressed.
+		suppress_for:        interval       &log &default=default_suppression_interval;
 	};
 
 	## Ignored notice types.
@@ -159,58 +148,8 @@ export {
 	## intervals for entire notice types.
 	const type_suppression_intervals: table[Notice::Type] of interval = {} &redef;
 
-	## This is the record that defines the items that make up the notice policy.
-	type PolicyItem: record {
-		## This is the exact positional order in which the
-		## :bro:type:`Notice::PolicyItem` records are checked.
-		## This is set internally by the notice framework.
-		position: count                            &log &optional;
-		## Define the priority for this check.  Items are checked in ordered
-		## from highest value (10) to lowest value (0).
-		priority: count                            &log &default=5;
-		## An action given to the notice if the predicate return true.
-		action:   Notice::Action                   &log &default=ACTION_NONE;
-		## The pred (predicate) field is a function that returns a boolean T
-		## or F value.  If the predicate function return true, the action in
-		## this record is applied to the notice that is given as an argument
-		## to the predicate function.  If no predicate is supplied, it's
-		## assumed that the PolicyItem always applies.
-		pred:     function(n: Notice::Info): bool  &log &optional;
-		## Indicates this item should terminate policy processing if the
-		## predicate returns T.
-		halt:     bool                             &log &default=F;
-		## This defines the length of time that this particular notice should
-		## be supressed.
-		suppress_for: interval                     &log &optional;
-	};
-	
-	## Defines a notice policy that is extensible on a per-site basis.
-	## All notice processing is done through this variable.
-	const policy: set[PolicyItem] = {
-		[$pred(n: Notice::Info) = { return (n$note in Notice::ignored_types); },
-		 $halt=T, $priority = 9],
-		[$pred(n: Notice::Info) = { return (n$note in Notice::not_suppressed_types); },
-		 $action = ACTION_NO_SUPPRESS,
-		 $priority = 9],
-		[$pred(n: Notice::Info) = { return (n$note in Notice::alarmed_types); },
-		 $action = ACTION_ALARM,
-		 $priority = 8],
-		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
-		 $action = ACTION_EMAIL,
-		 $priority = 8],
-		[$pred(n: Notice::Info) = {
-			if (n$note in Notice::type_suppression_intervals)
-				{
-				n$suppress_for=Notice::type_suppression_intervals[n$note];
-				return T;
-				}
-			return F;
-		 },
-		 $action = ACTION_NONE,
-		 $priority = 8],
-		[$action = ACTION_LOG,
-		 $priority = 0],
-	} &redef;
+	## The hook to modify notice handling.
+	global policy: hook(n: Notice::Info);
 
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
@@ -240,31 +179,22 @@ export {
 	## This is the event that is called as the entry point to the
 	## notice framework by the global :bro:id:`NOTICE` function.  By the time
 	## this event is generated, default values have already been filled out in
-	## the :bro:type:`Notice::Info` record and synchronous functions in the 
-	## :bro:id:`Notice::sync_functions` have already been called.  The notice
+	## the :bro:type:`Notice::Info` record and the notice
 	## policy has also been applied.
 	##
 	## n: The record containing notice data.
-	global notice: event(n: Info);
-
-	## This is a set of functions that provide a synchronous way for scripts
-	## extending the notice framework to run before the normal event based
-	## notice pathway that most of the notice framework takes.  This is helpful
-	## in cases where an action against a notice needs to happen immediately
-	## and can't wait the short time for the event to bubble up to the top of
-	## the event queue.  An example is the IP address dropping script that
-	## can block IP addresses that have notices generated because it
-	## needs to operate closer to real time than the event queue allows it to.
-	## Normally the event based extension model using the
-	## :bro:id:`Notice::notice` event will work fine if there aren't harder
-	## real time constraints.
-	const sync_functions: set[function(n: Notice::Info)] = set() &redef;
+	global notice: hook(n: Info);
 
 	## This event is generated when a notice begins to be suppressed.
 	##
 	## n: The record containing notice data regarding the notice type
 	##    about to be suppressed.
 	global begin_suppression: event(n: Notice::Info);
+
+	## A function to determine if an event is supposed to be suppressed.
+	##
+	## n: The record containing the notice in question.
+	global is_being_suppressed: function(n: Notice::Info): bool;
 
 	## This event is generated on each occurence of an event being suppressed.
 	##
@@ -299,13 +229,13 @@ export {
 	##
 	## Returns: a string of mail headers to which an email body can be appended
 	global email_headers: function(subject_desc: string, dest: string): string;
-	
+
 	## This event can be handled to access the :bro:type:`Notice::Info`
 	## record as it is sent on to the logging framework.
 	##
 	## rec: The record containing notice data before it is logged.
 	global log_notice: event(rec: Info);
-	
+
 	## This is an internal wrapper for the global :bro:id:`NOTICE` function;
 	## disregard.
 	##
@@ -337,10 +267,6 @@ function per_notice_suppression_interval(t: table[Notice::Type, string] of Notic
 global suppressing: table[Type, string] of Notice::Info = {}
 		&create_expire=0secs
 		&expire_func=per_notice_suppression_interval;
-
-# This is an internal variable used to store the notice policy ordered by
-# priority.
-global ordered_policy: vector of PolicyItem = vector();
 
 function log_mailing_postprocessor(info: Log::RotationInfo): bool
 	{
@@ -424,9 +350,7 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 				}
 			else
 				{
-				event reporter_info(network_time(),
-					fmt("Notice email delay tokens weren't released in time (%s).", n$email_delay_tokens),
-					"");
+				Reporter::info(fmt("Notice email delay tokens weren't released in time (%s).", n$email_delay_tokens));
 				}
 			}
 		}
@@ -468,7 +392,26 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	piped_exec(fmt("%s -t -oi", sendmail), email_text);
 	}
 
-event notice(n: Notice::Info) &priority=-5
+hook Notice::policy(n: Notice::Info) &priority=10
+	{
+	if ( n$note in Notice::ignored_types )
+		break;
+
+	if ( n$note in Notice::not_suppressed_types )
+		n$suppress_for=0secs;
+	if ( n$note in Notice::alarmed_types )
+		add n$actions[ACTION_ALARM];
+	if ( n$note in Notice::emailed_types )
+		add n$actions[ACTION_EMAIL];
+
+	if ( n$note in Notice::type_suppression_intervals )
+		n$suppress_for=Notice::type_suppression_intervals[n$note];
+
+	# Logging is a default action.  It can be removed in a later hook if desired.
+	add n$actions[ACTION_LOG];
+	}
+
+hook Notice::notice(n: Notice::Info) &priority=-5
 	{
 	if ( ACTION_EMAIL in n$actions )
 		email_notice_to(n, mail_dest, T);
@@ -480,7 +423,6 @@ event notice(n: Notice::Info) &priority=-5
 	# Normally suppress further notices like this one unless directed not to.
 	#  n$identifier *must* be specified for suppression to function at all.
 	if ( n?$identifier &&
-	     ACTION_NO_SUPPRESS !in n$actions &&
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
 		{
@@ -488,8 +430,8 @@ event notice(n: Notice::Info) &priority=-5
 		event Notice::begin_suppression(n);
 		}
 	}
-	
-## This determines if a notice is being suppressed.  It is only used 
+
+## This determines if a notice is being suppressed.  It is only used
 ## internally as part of the mechanics for the global :bro:id:`NOTICE`
 ## function.
 function is_being_suppressed(n: Notice::Info): bool
@@ -539,7 +481,7 @@ function apply_policy(n: Notice::Info)
 			n$p = n$id$resp_p;
 		}
 
-	if ( n?$p ) 
+	if ( n?$p )
 		n$proto = get_port_transport_proto(n$p);
 
 	if ( n?$iconn )
@@ -565,27 +507,8 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$email_delay_tokens )
 		n$email_delay_tokens = set();
 
-	if ( ! n?$policy_items )
-		n$policy_items = set();
-
-	for ( i in ordered_policy )
-		{
-		# If there's no predicate or the predicate returns F.
-		if ( ! ordered_policy[i]?$pred || ordered_policy[i]$pred(n) )
-			{
-			add n$actions[ordered_policy[i]$action];
-			add n$policy_items[int_to_count(i)];
-
-			# If the predicate matched and there was a suppression interval,
-			# apply it to the notice now.
-			if ( ordered_policy[i]?$suppress_for )
-				n$suppress_for = ordered_policy[i]$suppress_for;
-
-			# If the policy item wants to halt policy processing, do it now!
-			if ( ordered_policy[i]$halt )
-				break;
-			}
-		}
+	# Apply the hook based policy.
+	hook Notice::policy(n);
 
 	# Apply the suppression time after applying the policy so that policy
 	# items can give custom suppression intervals.  If there is no
@@ -602,61 +525,15 @@ function apply_policy(n: Notice::Info)
 		delete n$iconn;
 	}
 
-# Create the ordered notice policy automatically which will be used at runtime
-# for prioritized matching of the notice policy.
-event bro_init() &priority=10
-	{
-	# Create the policy log here because it's only written to in this handler.
-	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
-
-	local tmp: table[count] of set[PolicyItem] = table();
-	for ( pi in policy )
-		{
-		if ( pi$priority < 0 || pi$priority > 10 )
-			Reporter::fatal("All Notice::PolicyItem priorities must be within 0 and 10");
-
-		if ( pi$priority !in tmp )
-			tmp[pi$priority] = set();
-		add tmp[pi$priority][pi];
-		}
-
-	local rev_count = vector(10,9,8,7,6,5,4,3,2,1,0);
-	for ( i in rev_count )
-		{
-		local j = rev_count[i];
-		if ( j in tmp )
-			{
-			for ( pi in tmp[j] )
-				{
-				pi$position = |ordered_policy|;
-				ordered_policy[|ordered_policy|] = pi;
-				Log::write(Notice::POLICY_LOG, pi);
-				}
-			}
-		}
-	}
-
 function internal_NOTICE(n: Notice::Info)
 	{
-	# Suppress this notice if necessary.
-	if ( is_being_suppressed(n) )
-		return;
-
 	# Fill out fields that might be empty and do the policy processing.
 	apply_policy(n);
 
-	# Run the synchronous functions with the notice.
-	for ( func in sync_functions )
-		func(n);
-
 	# Generate the notice event with the notice.
-	event Notice::notice(n);
+	hook Notice::notice(n);
 	}
 
 module GLOBAL;
 
-## This is the entry point in the global namespace for notice framework.
-function NOTICE(n: Notice::Info)
-	{
-	Notice::internal_NOTICE(n);
-	}
+global NOTICE: function(n: Notice::Info);

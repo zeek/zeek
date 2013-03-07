@@ -1,4 +1,10 @@
 
+2.1-351 | 2013-03-07 13:27:29 -0800
+
+  * Fix new/delete mismatch. Addresses #958. (Jacob Baines)
+    
+  * Fix compiler warnings. (Jon Siwek)
+    
 2.1-347 | 2013-03-06 16:48:44 -0800
 
   * Remove unused parameter from vector assignment method. (Bernhard Amann)

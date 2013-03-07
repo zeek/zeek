@@ -1,4 +1,9 @@
 
+2.1-353 | 2013-03-07 13:31:37 -0800
+
+  * Fix function type-equivalence requiring same parameter names.
+    Addresses #957. (Jon Siwek)
+
 2.1-351 | 2013-03-07 13:27:29 -0800
 
   * Fix new/delete mismatch. Addresses #958. (Jacob Baines)

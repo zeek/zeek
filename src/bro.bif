@@ -1017,29 +1017,6 @@ function clear_table%(v: any%): any
 	return 0;
 	%}
 
-## Returns the number of elements in a container. This function works with all
-## container types, i.e., sets, tables, and vectors.
-##
-## v: The container whose elements are counted.
-##
-## Returns: The number of elements in *v*.
-function length%(v: any%): count
-	%{
-	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
-
-	if ( tv )
-		return new Val(tv->Size(), TYPE_COUNT);
-
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
-		return new Val(v->AsVectorVal()->Size(), TYPE_COUNT);
-
-	else
-		{
-		builtin_error("length() requires a table/set/vector argument");
-		return new Val(0, TYPE_COUNT);
-		}
-	%}
-
 ## Checks whether two objects reference the same internal object. This function
 ## uses equality comparison of C++ raw pointer values to determine if the two
 ## objects are the same.

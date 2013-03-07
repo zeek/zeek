@@ -496,7 +496,7 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 	safe_snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
 
 	RE_Matcher* merge = new RE_Matcher(merge_text);
-	delete merge_text;
+	delete [] merge_text;
 
 	merge->Compile();
 

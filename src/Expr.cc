@@ -485,7 +485,7 @@ Val* UnaryExpr::Eval(Frame* f) const
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
 			Val* v_i = v_op->Lookup(i);
-			result->Assign(i, v_i ? Fold(v_i) : 0, this);
+			result->Assign(i, v_i ? Fold(v_i) : 0);
 			}
 
 		Unref(v);
@@ -625,10 +625,9 @@ Val* BinaryExpr::Eval(Frame* f) const
 			if ( v_op1->Lookup(i) && v_op2->Lookup(i) )
 				v_result->Assign(i,
 						 Fold(v_op1->Lookup(i),
-						      v_op2->Lookup(i)),
-						 this);
+						      v_op2->Lookup(i)));
 			else
-				v_result->Assign(i, 0, this);
+				v_result->Assign(i, 0);
 			// SetError("undefined element in vector operation");
 			}
 
@@ -648,10 +647,9 @@ Val* BinaryExpr::Eval(Frame* f) const
 			if ( vv_i )
 				v_result->Assign(i,
 					 is_vec1 ?
-						 Fold(vv_i, v2) : Fold(v1, vv_i),
-					 this);
+						 Fold(vv_i, v2) : Fold(v1, vv_i));
 			else
-				v_result->Assign(i, 0, this);
+				v_result->Assign(i, 0);
 
 			// SetError("Undefined element in vector operation");
 			}
@@ -1049,10 +1047,10 @@ Val* IncrExpr::Eval(Frame* f) const
 			if ( elt )
 				{
 				Val* new_elt = DoSingleEval(f, elt);
-				v_vec->Assign(i, new_elt, this, OP_INCR);
+				v_vec->Assign(i, new_elt, OP_INCR);
 				}
 			else
-				v_vec->Assign(i, 0, this, OP_INCR);
+				v_vec->Assign(i, 0, OP_INCR);
 			}
 		op->Assign(f, v_vec, OP_INCR);
 		}
@@ -1919,7 +1917,7 @@ Val* BoolExpr::Eval(Frame* f) const
 			result = new VectorVal(Type()->AsVectorType());
 			result->Resize(vector_v->Size());
 			result->AssignRepeat(0, result->Size(),
-						scalar_v, this);
+						scalar_v);
 			}
 		else
 			result = vector_v->Ref()->AsVectorVal();
@@ -1957,10 +1955,10 @@ Val* BoolExpr::Eval(Frame* f) const
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 
-			result->Assign(i, new Val(local_result, TYPE_BOOL), this);
+			result->Assign(i, new Val(local_result, TYPE_BOOL));
 			}
 		else
-			result->Assign(i, 0, this);
+			result->Assign(i, 0);
 		}
 
 	Unref(v1);
@@ -2334,10 +2332,9 @@ Val* CondExpr::Eval(Frame* f) const
 		if ( local_cond )
 			result->Assign(i,
 				       local_cond->IsZero() ?
-					       b->Lookup(i) : a->Lookup(i),
-				       this);
+					       b->Lookup(i) : a->Lookup(i));
 		else
-			result->Assign(i, 0, this);
+			result->Assign(i, 0);
 		}
 
 	return result;
@@ -2973,7 +2970,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				{
 				if ( v_v2->Lookup(i)->AsBool() )
-					v_result->Assign(v_result->Size() + 1, v_v1->Lookup(i), this);
+					v_result->Assign(v_result->Size() + 1, v_v1->Lookup(i));
 				}
 			}
 		else
@@ -2983,7 +2980,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			// Probably only do this if *all* are negative.
 			v_result->Resize(v_v2->Size());
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				v_result->Assign(i, v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt()), this);
+				v_result->Assign(i, v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt()));
 			}
 		}
 	else
@@ -3060,7 +3057,7 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
-		if ( ! v1->AsVectorVal()->Assign(v2, v, this, op) )
+		if ( ! v1->AsVectorVal()->Assign(v2, v, op) )
 			Internal("assignment failed");
 		break;
 
@@ -3632,7 +3629,7 @@ Val* VectorConstructorExpr::Eval(Frame* f) const
 		{
 		Expr* e = exprs[i];
 		Val* v = e->Eval(f);
-		if ( ! vec->Assign(i, v, e) )
+		if ( ! vec->Assign(i, v) )
 			{
 			Error(fmt("type mismatch at index %d", i), e);
 			return 0;
@@ -3656,7 +3653,7 @@ Val* VectorConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 		Expr* e = exprs[i];
 		Val* v = check_and_promote(e->Eval(0), t->YieldType(), 1);
 
-		if ( ! v || ! vec->Assign(i, v, e) )
+		if ( ! v || ! vec->Assign(i, v) )
 			{
 			Error(fmt("initialization type mismatch at index %d", i), e);
 			return 0;
@@ -3877,9 +3874,9 @@ Val* ArithCoerceExpr::Fold(Val* v) const
 		{
 		Val* elt = vv->Lookup(i);
 		if ( elt )
-			result->Assign(i, FoldSingleVal(elt, t), this);
+			result->Assign(i, FoldSingleVal(elt, t));
 		else
-			result->Assign(i, 0, this);
+			result->Assign(i, 0);
 		}
 
 	return result;
@@ -5058,7 +5055,7 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 			Expr* e = exprs[i];
 			check_and_promote_expr(e, vec->Type()->AsVectorType()->YieldType());
 			Val* v = e->Eval(0);
-			if ( ! vec->Assign(i, v, e) )
+			if ( ! vec->Assign(i, v) )
 				{
 				e->Error(fmt("type mismatch at index %d", i));
 				return 0;

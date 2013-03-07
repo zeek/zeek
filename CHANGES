@@ -1,4 +1,10 @@
 
+2.1-347 | 2013-03-06 16:48:44 -0800
+
+  * Remove unused parameter from vector assignment method. (Bernhard Amann)
+
+  * Remove the byte_len() and length() bifs. (Bernhard Amann)
+
 2.1-342 | 2013-03-06 15:42:52 -0800
 
   * Moved the Notice::notice event and Notice::policy table to both be

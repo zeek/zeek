@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <magic.h>
 #include "config.h"
 
 #if __STDC__
@@ -367,5 +368,8 @@ struct CompareString
 		return strcmp(a, b) < 0;
 		}
 	};
+
+void bro_init_magic(magic_t* cookie_ptr, int flags);
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
 
 #endif

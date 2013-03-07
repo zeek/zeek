@@ -5,7 +5,6 @@
 #include "Var.h"
 #include "NetVar.h"
 
-RecordType* gtpv1_hdr_type;
 RecordType* conn_id;
 RecordType* endpoint;
 RecordType* endpoint_stats;
@@ -311,7 +310,6 @@ void init_net_var()
 #include "reporter.bif.netvar_init"
 #include "file_analysis.bif.netvar_init"
 
-	gtpv1_hdr_type = internal_type("gtpv1_hdr")->AsRecordType();
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
 	endpoint_stats = internal_type("endpoint_stats")->AsRecordType();

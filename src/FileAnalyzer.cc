@@ -3,6 +3,7 @@
 #include "file_analysis/Manager.h"
 #include "FileAnalyzer.h"
 #include "Reporter.h"
+#include "util.h"
 
 magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;
@@ -12,11 +13,8 @@ File_Analyzer::File_Analyzer(Connection* conn)
 	{
 	buffer_len = 0;
 
-	if ( ! magic )
-		{
-		InitMagic(&magic, MAGIC_NONE);
-		InitMagic(&magic_mime, MAGIC_MIME);
-		}
+	bro_init_magic(&magic, MAGIC_NONE);
+	bro_init_magic(&magic_mime, MAGIC_MIME);
 
 	char op[256], rp[256];
 	modp_ulitoa10(ntohs(conn->OrigPort()), op);
@@ -67,10 +65,10 @@ void File_Analyzer::Identify()
 	const char* mime = 0;
 
 	if ( magic )
-		descr = magic_buffer(magic, buffer, buffer_len);
+		descr = bro_magic_buffer(magic, buffer, buffer_len);
 
 	if ( magic_mime )
-		mime = magic_buffer(magic_mime, buffer, buffer_len);
+		mime = bro_magic_buffer(magic_mime, buffer, buffer_len);
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
@@ -78,19 +76,4 @@ void File_Analyzer::Identify()
 	vl->append(new StringVal(descr ? descr : "<unknown>"));
 	vl->append(new StringVal(mime ? mime : "<unknown>"));
 	ConnectionEvent(file_transferred, vl);
-	}
-
-void File_Analyzer::InitMagic(magic_t* magic, int flags)
-	{
-	*magic = magic_open(flags);
-
-	if ( ! *magic )
-		reporter->Error("can't init libmagic: %s", magic_error(*magic));
-
-	else if ( magic_load(*magic, 0) < 0 )
-		{
-		reporter->Error("can't load magic file: %s", magic_error(*magic));
-		magic_close(*magic);
-		*magic = 0;
-		}
 	}

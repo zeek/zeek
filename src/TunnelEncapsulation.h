@@ -186,7 +186,7 @@ public:
 		if ( conns )
 			{
 			for ( size_t i = 0; i < conns->size(); ++i )
-				vv->Assign(i, (*conns)[i].GetRecordVal(), 0);
+				vv->Assign(i, (*conns)[i].GetRecordVal());
 			}
 
 		return vv;

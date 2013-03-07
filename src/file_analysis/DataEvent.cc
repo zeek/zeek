@@ -31,10 +31,10 @@ Action* DataEvent::Instantiate(RecordVal* args, Info* info)
 	EventHandlerPtr stream;
 
 	if ( chunk_val )
-		chunk = event_registry->Lookup(chunk_val->AsFunc()->GetID()->Name());
+		chunk = event_registry->Lookup(chunk_val->AsFunc()->Name());
 
 	if ( stream_val )
-		stream = event_registry->Lookup(stream_val->AsFunc()->GetID()->Name());
+		stream = event_registry->Lookup(stream_val->AsFunc()->Name());
 
 	return new DataEvent(args, info, chunk, stream);
 	}

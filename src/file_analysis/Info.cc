@@ -74,21 +74,6 @@ void Info::InitFieldIndices()
 	actions_idx = Idx("actions");
 	}
 
-static void init_magic(magic_t* magic, int flags)
-	{
-	*magic = magic_open(flags);
-
-	if ( ! *magic )
-		reporter->Error("can't init libmagic: %s", magic_error(*magic));
-
-	else if ( magic_load(*magic, 0) < 0 )
-		{
-		reporter->Error("can't load magic file: %s", magic_error(*magic));
-		magic_close(*magic);
-		*magic = 0;
-		}
-	}
-
 Info::Info(const string& unique, Connection* conn, const string& source)
     : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
       postpone_timeout(false), need_reassembly(false), done(false),
@@ -96,11 +81,8 @@ Info::Info(const string& unique, Connection* conn, const string& source)
 	{
 	InitFieldIndices();
 
-	if ( ! magic )
-		{
-		init_magic(&magic, MAGIC_NONE);
-		init_magic(&magic_mime, MAGIC_MIME);
-		}
+	bro_init_magic(&magic, MAGIC_NONE);
+	bro_init_magic(&magic_mime, MAGIC_MIME);
 
 	char id[20];
 	uitoa_n(calculate_unique_id(), id, sizeof(id), 62);
@@ -258,8 +240,8 @@ void Info::ReplayBOF()
 	if ( bof_buffer.chunks.empty() ) return;
 
 	BroString* bs = concatenate(bof_buffer.chunks);
-	const char* desc = magic_buffer(magic, bs->Bytes(), bs->Len());
-	const char* mime = magic_buffer(magic_mime, bs->Bytes(), bs->Len());
+	const char* desc = bro_magic_buffer(magic, bs->Bytes(), bs->Len());
+	const char* mime = bro_magic_buffer(magic_mime, bs->Bytes(), bs->Len());
 
 	val->Assign(bof_buffer_idx, new StringVal(bs));
 

@@ -19,7 +19,7 @@ Reporting Problems
 
 Generally, when you encounter a problem with Bro, the best thing to do
 is opening a new ticket in `Bro's issue tracker
-<http://tracker.bro-ids.org/>`__ and include information on how to
+<http://tracker.bro.org/>`__ and include information on how to
 reproduce the issue. Ideally, your ticket should come with the
 following:
 

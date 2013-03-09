@@ -38,7 +38,7 @@ flow NetFlow_Flow {
 	# %cleanup does not only put the cleanup code into the destructor,
 	# but also at the end of the catch clause in NewData().  This is
 	# different from the documentation at
-	# http://www.bro-ids.org/wiki/index.php/BinPAC_Userguide#.25cleanup.7B....25.7D
+	# http://www.bro.org/wiki/index.php/BinPAC_Userguide#.25cleanup.7B....25.7D
 	#
 	# Unfortunately this means that we cannot clean up the identifier
 	# string.  Note that IOSource destructors seemingly are never

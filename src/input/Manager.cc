@@ -483,7 +483,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(fields); // ref'd by lookupwithdefault
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
-	stream->event = event_registry->Lookup(event->GetID()->Name());
+	stream->event = event_registry->Lookup(event->Name());
 	stream->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
@@ -644,7 +644,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->tab = dst->AsTableVal();
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
-	stream->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->currDict = new PDict(InputHash);
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new PDict(InputHash);
@@ -787,22 +787,23 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 
 		if ( ! IsCompatibleType(rec->FieldType(i)) )
 			{
-			// If the field is a file or a function type
+			// If the field is a file, function, or opaque
 			// and it is optional, we accept it nevertheless.
 			// This allows importing logfiles containing this
 			// stuff that we actually cannot read :)
 			if ( allow_file_func )
 				{
 				if ( ( rec->FieldType(i)->Tag() == TYPE_FILE ||
-				       rec->FieldType(i)->Tag() == TYPE_FUNC ) &&
+				       rec->FieldType(i)->Tag() == TYPE_FUNC ||
+				       rec->FieldType(i)->Tag() == TYPE_OPAQUE ) &&
 				       rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in table definition for ReaderFrontend. Ignoring field.", type_name(rec->FieldType(i)->Tag()));
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()));
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in table definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
+			reporter->Error("Incompatible type \"%s\" in type definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
 			return false;
 			}
 
@@ -2106,7 +2107,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
 		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
+			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
 
 		Unref(vt);
 		return v;

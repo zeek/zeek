@@ -43,6 +43,9 @@ public:
 	Reporter();
 	~Reporter();
 
+	// Initialize reporter-sepcific options	that are defined in script-layer.
+	void InitOptions();
+
 	// Report an informational message, nothing that needs specific
 	// attention.
 	void Info(const char* fmt, ...) FMT_ATTR;
@@ -126,6 +129,9 @@ private:
 	int errors;
 	bool via_events;
 	int in_error_handler;
+	bool info_to_stderr;
+	bool warnings_to_stderr;
+	bool errors_to_stderr;
 
 	std::list<std::pair<const Location*, const Location*> > locations;
 };

@@ -431,6 +431,7 @@ set(bro_SRCS
 
     hilti/LocalReporter.cc # The other hilti/* files are compiled separately.
 
+    threading/AsciiFormatter.cc
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc

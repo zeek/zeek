@@ -282,6 +282,7 @@ else	return TOK_ELSE;
 enum	return TOK_ENUM;
 event	return TOK_EVENT;
 export	return TOK_EXPORT;
+fallthrough	return TOK_FALLTHROUGH;
 file	return TOK_FILE;
 for	return TOK_FOR;
 function	return TOK_FUNCTION;

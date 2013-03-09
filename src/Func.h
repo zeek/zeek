@@ -47,13 +47,13 @@ public:
 	virtual void SetScope(Scope* newscope)	{ scope = newscope; }
 	virtual Scope* GetScope() const		{ return scope; }
 
-	virtual FuncType* FType() const
-		{
-		return (FuncType*) id->Type()->AsFuncType();
-		}
+	virtual FuncType* FType() const { return type->AsFuncType(); }
 
 	Kind GetKind() const	{ return kind; }
 
+	const char* Name() const { return name.c_str(); }
+
+	// TODO: Unify with the name Name().
 	const ID* GetID() const { return id; }
 	void SetID(ID *arg_id);
 	void ExportID()	const { if ( id ) id->SetExport(); }
@@ -65,7 +65,6 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static Func* Unserialize(UnserialInfo* info);
 
-	ID* GetReturnValueID() const;
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
 	uint32 GetUniqueFuncID() const { return unique_id; }
@@ -80,8 +79,8 @@ protected:
 	vector<Body> bodies;
 	Scope* scope;
 	Kind kind;
-	ID* id;
-	ID* return_value;
+	BroType* type;
+	string name;
 	uint32 unique_id;
 	static vector<Func*> unique_ids;
 };
@@ -120,18 +119,16 @@ public:
 
 	int IsPure() const;
 	Val* Call(val_list* args, Frame* parent) const;
-	const char* Name() const	{ return name; }
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const;
 
 protected:
-	BuiltinFunc()	{ func = 0; name = 0; is_pure = 0; }
+	BuiltinFunc()	{ func = 0; is_pure = 0; }
 
 	DECLARE_SERIAL(BuiltinFunc);
 
 	built_in_func func;
-	const char* name;
 	int is_pure;
 };
 

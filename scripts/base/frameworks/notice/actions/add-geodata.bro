@@ -27,18 +27,17 @@ export {
 	## Notice types which should have the "remote" location looked up.
 	## If GeoIP support is not built in, this does nothing.
 	const lookup_location_types: set[Notice::Type] = {} &redef;
-	
-	## Add a helper to the notice policy for looking up GeoIP data.
-	redef Notice::policy += {
-		[$pred(n: Notice::Info) = { return (n$note in Notice::lookup_location_types); },
-		 $action = ACTION_ADD_GEODATA,
-		 $priority = 10],
-	};
 }
+
+hook policy(n: Notice::Info) &priority=10
+	{
+	if ( n$note in Notice::lookup_location_types )
+		add n$actions[ACTION_ADD_GEODATA];
+	}
 
 # This is handled at a high priority in case other notice handlers 
 # want to use the data.
-event notice(n: Notice::Info) &priority=10
+hook notice(n: Notice::Info) &priority=10
 	{
 	if ( ACTION_ADD_GEODATA in n$actions &&
 	     |Site::local_nets| > 0 &&

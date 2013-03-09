@@ -1,0 +1,56 @@
+# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp_control_prime.pcap -r $TRACES/tunnels/gtp/gtp_create_pdp_ctx.pcap %INPUT >out
+# @TEST-EXEC: btest-diff out
+
+event gtpv1_message(c: connection, hdr: gtpv1_hdr)
+	{
+	print "gtpv1_message", c$id;
+	print hdr;
+	}
+
+event gtpv1_create_pdp_ctx_request(c: connection, hdr: gtpv1_hdr,
+                                  elements: gtp_create_pdp_ctx_request_elements)
+	{
+	print "gtp create request", c$id;
+	print hdr;
+	print elements;
+	}
+
+event gtpv1_create_pdp_ctx_response(c: connection, hdr: gtpv1_hdr,
+                                 elements: gtp_create_pdp_ctx_response_elements)
+	{
+	print "gtp create response", c$id;
+	print hdr;
+	print elements;
+	}
+
+event gtpv1_update_pdp_ctx_request(c: connection, hdr: gtpv1_hdr,
+                                  elements: gtp_update_pdp_ctx_request_elements)
+	{
+	print "gtp update request", c$id;
+	print hdr;
+	print elements;
+	}
+
+event gtpv1_update_pdp_ctx_response(c: connection, hdr: gtpv1_hdr,
+                                 elements: gtp_update_pdp_ctx_response_elements)
+	{
+	print "gtp update response", c$id;
+	print hdr;
+	print elements;
+	}
+
+event gtpv1_delete_pdp_ctx_request(c: connection, hdr: gtpv1_hdr,
+                                  elements: gtp_delete_pdp_ctx_request_elements)
+	{
+	print "gtp delete request", c$id;
+	print hdr;
+	print elements;
+	}
+
+event gtpv1_delete_pdp_ctx_response(c: connection, hdr: gtpv1_hdr,
+                                 elements: gtp_delete_pdp_ctx_response_elements)
+	{
+	print "gtp delete response", c$id;
+	print hdr;
+	print elements;
+	}

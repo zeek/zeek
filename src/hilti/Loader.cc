@@ -30,6 +30,7 @@ namespace BifConst { namespace Pac2 {  extern int dump_code_pre_finalize;  }  }
 namespace BifConst { namespace Pac2 {  extern int dump_debug;  }  }
 namespace BifConst { namespace Pac2 {  extern int no_verify;  }  }
 namespace BifConst { namespace Pac2 {  extern int compile_all;  }  }
+namespace BifConst { namespace Pac2 {  extern StringVal* cg_debug;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_pac2;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_hilti;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_llvm;  }  }
@@ -137,9 +138,9 @@ struct Loader::PIMPL
 	typedef std::vector<shared_ptr<Pac2AnalyzerInfo>> pac2_analyzer_vector;
 	typedef std::list<shared_ptr<::hilti::Module>>    hilti_module_list;
 
-	int debug;		// Debug level, set from BifConst::Pac2::debug.
-	int opt;		// Optimization level, set from BifConst::Pac2::optimize.
-	bool verify;		// Debug level, set from BifConst::Pac2::no_verify.
+	::hilti::Options hilti_options;
+	::binpac::Options pac2_options;
+
 	bool compile_all;	// Compile all event code, even if no handler, set from BifConst::Pac2::compile_all.
 	bool dump_debug;	// Output debug summary, set from BifConst::Pac2::dump_debug.
 	bool dump_code;		// Output generated code, set from BifConst::Pac2::dump_code.
@@ -175,11 +176,13 @@ struct Loader::PIMPL
 
 Loader::Loader()
 	{
+	std::set<string> cg_debug;
+
+	for ( auto t : ::util::strsplit(BifConst::Pac2::cg_debug->CheckString(), ":") )
+		cg_debug.insert(t);
+
 	pimpl = new PIMPL;
 	pimpl->pac2_ast = new Pac2AST;
-	pimpl->debug = BifConst::Pac2::debug;
-	pimpl->opt = BifConst::Pac2::optimize;
-	pimpl->verify = ! BifConst::Pac2::no_verify;
 	pimpl->compile_all = BifConst::Pac2::compile_all;
 	pimpl->dump_debug = BifConst::Pac2::dump_debug;
 	pimpl->dump_code = BifConst::Pac2::dump_code;
@@ -189,6 +192,16 @@ Loader::Loader()
 	pimpl->save_pac2 = BifConst::Pac2::save_pac2;
 	pimpl->save_hilti = BifConst::Pac2::save_hilti;
 	pimpl->save_llvm = BifConst::Pac2::save_llvm;
+
+	pimpl->hilti_options.debug = BifConst::Pac2::debug;
+	pimpl->hilti_options.optimize = BifConst::Pac2::optimize;
+	pimpl->hilti_options.verify = ! BifConst::Pac2::no_verify;
+	pimpl->hilti_options.cg_debug = cg_debug;
+
+	pimpl->pac2_options.debug = BifConst::Pac2::debug;
+	pimpl->pac2_options.optimize = BifConst::Pac2::optimize;
+	pimpl->pac2_options.verify = ! BifConst::Pac2::no_verify;
+	pimpl->pac2_options.cg_debug = cg_debug;
 
 	::hilti::init();
 	::binpac::init();
@@ -208,8 +221,15 @@ Loader::~Loader()
 
 bool Loader::Load()
 	{
-	pimpl->pac2_context = std::make_shared<::binpac::CompilerContext>(pimpl->import_paths);
-	pimpl->hilti_context = std::make_shared<::hilti::CompilerContext>(pimpl->import_paths);
+	for ( auto dir : pimpl->import_paths )
+		{
+		pimpl->hilti_options.libdirs_hlt.push_back(dir);
+		pimpl->pac2_options.libdirs_hlt.push_back(dir);
+		pimpl->pac2_options.libdirs_pac2.push_back(dir);
+		}
+
+	pimpl->hilti_context = std::make_shared<::hilti::CompilerContext>(pimpl->hilti_options);
+	pimpl->pac2_context = std::make_shared<::binpac::CompilerContext>(pimpl->pac2_options);
 
 	if ( ! SearchFiles("pac2", [&](std::istream& in, const string& path) -> bool { return LoadPac2Module(in, path); }) )
 		return false;
@@ -257,7 +277,7 @@ bool Loader::Compile()
 	// Compile all the *.pac2 modules we have loaded directly.
 	for ( auto m : pimpl->pac2_modules )
 		{
-		auto hltmod = m->context->compile(m->module, pimpl->debug, pimpl->verify);
+		auto hltmod = m->context->compile(m->module);
 
 		if ( ! hltmod )
 			return false;
@@ -287,7 +307,7 @@ bool Loader::Compile()
 			pimpl->pac2_context->print(pimpl->pac2_module, std::cerr);
 			}
 
-		if ( ! pimpl->pac2_context->finalize(pimpl->pac2_module, pimpl->verify) )
+		if ( ! pimpl->pac2_context->finalize(pimpl->pac2_module) )
 			return false;
 
 		if ( pimpl->dump_code_pre_finalize )
@@ -298,7 +318,7 @@ bool Loader::Compile()
 			pimpl->pac2_context->print(pimpl->pac2_module, std::cerr);
 			}
 
-		auto hltmod = pimpl->pac2_context->compile(pimpl->pac2_module, pimpl->debug, pimpl->verify);
+		auto hltmod = pimpl->pac2_context->compile(pimpl->pac2_module);
 
 		if ( ! hltmod )
 			return false;
@@ -338,7 +358,7 @@ bool Loader::Compile()
 			}
 
 		// Finalize the HILTI module.
-		if ( ! pimpl->hilti_context->finalize(pimpl->hilti_module, pimpl->verify) )
+		if ( ! pimpl->hilti_context->finalize(pimpl->hilti_module) )
 			return false;
 
 		pimpl->hilti_modules.push_back(pimpl->hilti_module);
@@ -368,7 +388,7 @@ bool Loader::Compile()
 
 	DBG_LOG(DBG_PAC2, "loading %s", libbro_path.c_str());
 
-	auto libbro = hilti_context->loadModule(libbro_path, pimpl->verify);
+	auto libbro = hilti_context->loadModule(libbro_path);
 
 	if ( ! libbro )
 		{
@@ -384,7 +404,7 @@ bool Loader::Compile()
 
 	DBG_LOG(DBG_PAC2, "compiling & linking all HILTI code into a single LLVM module");
 
-	auto llvm_module = pimpl->pac2_context->linkModules("<all Bro JIT code>", pimpl->hilti_modules, pimpl->debug, false);
+	auto llvm_module = pimpl->pac2_context->linkModules("<all Bro JIT code>", pimpl->hilti_modules);
 
 	if ( ! llvm_module )
 		{
@@ -402,7 +422,7 @@ bool Loader::Compile()
 	DBG_LOG(DBG_PAC2, "running JIT on LLVM module");
 
 	// Now JIT it into native code.
-	auto ee = hilti_context->jitModule(llvm_module, pimpl->debug);
+	auto ee = hilti_context->jitModule(llvm_module);
 
 	if ( ! ee )
 		{
@@ -456,8 +476,8 @@ bool Loader::LoadPac2Module(std::istream& in, const string& path)
 	// ctx->enableDebug(dbg_scanner, dbg_parser, dbg_scopes, dbg_grammars);
 
 	reporter::push_location(path, 0);
-	auto ctx = std::make_shared<::binpac::CompilerContext>(pimpl->import_paths);
-	auto module = ctx->load(path, pimpl->verify);
+	auto ctx = std::make_shared<::binpac::CompilerContext>(pimpl->pac2_options);
+	auto module = ctx->load(path);
 	reporter::pop_location();
 
 	if ( ! module )
@@ -1082,9 +1102,13 @@ void Loader::RegisterBroEvent(shared_ptr<Pac2EventInfo> ev)
 	if ( handler )
 		{
 		if ( handler->LocalHandler() )
+			{
 			// To enable scoped event names, export their IDs
 			// implicitly.
-			handler->LocalHandler()->ExportID();
+			auto id = global_scope()->Lookup(handler->LocalHandler()->Name());
+			if ( id )
+				id->SetExport();
+			}
 
 		if ( handler->FType() && ! same_type(ftype, handler->FType()) )
 			{
@@ -1148,7 +1172,7 @@ bool Loader::CreatePac2Hook(Pac2EventInfo* ev)
 	::binpac::parameter_list raise_params = {
 		std::make_shared<::binpac::type::function::Parameter>(std::make_shared<::binpac::ID>("self"),
 								      std::make_shared<::binpac::type::Unknown>(std::make_shared<::binpac::ID>(ev->unit)),
-								      true, nullptr),
+								      true, false, nullptr),
 	};
 
 	auto raise_type = std::make_shared<::binpac::type::Function>(raise_result, raise_params, ::binpac::type::function::BINPAC_HILTI);

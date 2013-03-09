@@ -53,11 +53,6 @@ public:
 
 	const char* Name() const { return name.c_str(); }
 
-	// TODO: Unify with the name Name().
-	const ID* GetID() const { return id; }
-	void SetID(ID *arg_id);
-	void ExportID()	const { if ( id ) id->SetExport(); }
-
 	virtual void Describe(ODesc* d) const = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
 

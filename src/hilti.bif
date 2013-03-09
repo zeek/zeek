@@ -18,6 +18,7 @@ const no_verify: bool;
 const compile_all: bool;
 const debug: count;
 const optimize: count;
+const cg_debug: string;
 const save_pac2: bool;
 const save_hilti: bool;
 const save_llvm: bool;

@@ -28,6 +28,9 @@ export {
 	## Optimization level for code generation.
 	const optimize = 0 &redef;
 
+	## Tags for codegen debug output as colon-separated string.
+	const cg_debug = "" &redef;
+
 	## Save all generated BinPAC++ modules into "bro.<X>.pac2"
         const save_pac2 = F &redef;
 

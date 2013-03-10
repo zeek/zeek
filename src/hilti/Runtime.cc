@@ -24,6 +24,8 @@ extern const ::hilti::CompilerContext::FunctionMapping libbro_function_table[] =
 	{ "libbro_cookie_to_conn_val", (void*)&libbro_cookie_to_conn_val },
 	{ "libbro_cookie_to_is_orig", (void*)&libbro_cookie_to_is_orig },
 	{ "libbro_h2b_bytes", (void*)&libbro_h2b_bytes},
+	{ "libbro_h2b_integer_signed", (void*)&libbro_h2b_integer_signed},
+	{ "libbro_h2b_integer_unsigned", (void*)&libbro_h2b_integer_unsigned},
 	{ "libbro_raise_event", (void*)&libbro_raise_event },
 	{ 0, 0 } // End marker.
 };
@@ -52,6 +54,16 @@ void* libbro_h2b_bytes(hlt_bytes* value, hlt_exception** excpt, hlt_execution_co
 	Val* v = new StringVal(len, data);
 	hlt_free(data);
 	return v;
+	}
+
+void* libbro_h2b_integer_signed(int64_t i, hlt_exception** excpt, hlt_execution_context* ctx)
+	{
+	return new Val(i, TYPE_INT);
+	}
+
+void* libbro_h2b_integer_unsigned(uint64_t i, hlt_exception** excpt, hlt_execution_context* ctx)
+	{
+	return new Val(i, TYPE_COUNT);
 	}
 
 void libbro_raise_event(hlt_bytes* name, const hlt_type_info* type, const void* tuple, hlt_exception** excpt, hlt_execution_context* ctx)
@@ -86,5 +98,4 @@ void libbro_raise_event(hlt_bytes* name, const hlt_type_info* type, const void* 
 	}
 
 }
-
 

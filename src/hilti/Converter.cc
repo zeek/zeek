@@ -64,12 +64,56 @@ void ValueConverter::visit(::hilti::type::Reference* b)
 	setResult(true);
 	}
 
+void TypeConverter::visit(::hilti::type::Integer* i)
+	{
+	auto itype = ast::checkedCast<binpac::type::Integer>(arg1());
+
+	auto result = itype->signed_() ? base_type(TYPE_INT) : base_type(TYPE_COUNT);
+	setResult(result);
+	}
+
 void TypeConverter::visit(::hilti::type::Bytes* b)
 	{
 	auto btype = arg1();
 
 	auto result = base_type(TYPE_STRING);
 	setResult(result);
+	}
+
+void ValueConverter::visit(::hilti::type::Integer* i)
+	{
+	auto itype = ast::checkedCast<binpac::type::Integer>(arg1());
+
+	auto val = arg1();
+	auto dst = arg2();
+	auto btype = arg3();
+
+	const char* func = "";
+	shared_ptr<::hilti::Instruction> ext = 0;
+
+	if ( itype->signed_() )
+		{
+		func = "LibBro::h2b_integer_signed";
+		ext = ::hilti::instruction::integer::SExt;
+		}
+
+	else
+		{
+		func = "LibBro::h2b_integer_unsigned";
+		ext = ::hilti::instruction::integer::ZExt;
+		}
+
+	if ( itype->width() != 64 )
+		{
+		auto tmp = Builder()->addTmp("ext", ::hilti::builder::integer::type(64));
+		Builder()->addInstruction(tmp, ext, val);
+		val = tmp;
+		}
+
+	auto args = ::hilti::builder::tuple::create( { val } );
+	Builder()->addInstruction(dst, ::hilti::instruction::flow::CallResult,
+				  ::hilti::builder::id::create(func), args);
+	setResult(true);
 	}
 
 void ValueConverter::visit(::hilti::type::Bytes* b)

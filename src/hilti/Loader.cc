@@ -543,7 +543,30 @@ static bool extract_id(const string& chunk, size_t* i, string* id)
 	return true;
 
 error:
-	reporter::error(::util::fmt("expected token"));
+	reporter::error(::util::fmt("expected id"));
+	return false;
+
+	}
+
+static bool extract_dotted_id(const string& chunk, size_t* i, string* id)
+	{
+	eat_spaces(chunk, i);
+
+	size_t j = *i;
+
+	while ( j < chunk.size() && (is_id_char(chunk, j) || chunk[j] == '.') )
+		++j;
+
+	if ( *i == j )
+		goto error;
+
+	*id = chunk.substr(*i, j - *i);
+	*i = j;
+
+	return true;
+
+error:
+	reporter::error(::util::fmt("expected dotted id"));
 	return false;
 
 	}
@@ -931,7 +954,7 @@ shared_ptr<Pac2EventInfo> Loader::ParsePac2EventSpec(const string& chunk)
 				return 0;
 			}
 
-		if ( ! extract_id(chunk, &i, &arg) )
+		if ( ! extract_dotted_id(chunk, &i, &arg) )
 			return 0;
 
 		args.push_back(arg);
@@ -1010,11 +1033,18 @@ shared_ptr<Pac2EventInfo> Loader::ParsePac2EventSpec(const string& chunk)
 
 		else
 			{
-			item = ev->unit_type->item(std::make_shared<binpac::ID>(*a));
+			auto p = ev->unit_type->path(*a);
+			item = p.first;
 
 			if ( ! item )
 				{
 				reporter::error(::util::fmt("no field %s in unit type %s", *a, ev->unit));
+				return 0;
+				}
+
+			if ( p.second.size() )
+				{
+				reporter::error(::util::fmt("path not fully traversed. If it's a bitfield, we don't support those yet ... (%s, remainder %s)", *a, p.second));
 				return 0;
 				}
 			}
@@ -1087,9 +1117,9 @@ void Loader::RegisterBroEvent(shared_ptr<Pac2EventInfo> ev)
 		else
 			{
 			assert(i.second->fieldType());
-			auto item = i.second;
-			auto htype = pimpl->pac2_context->hiltiType(item->fieldType());
-			BroType* t = pimpl->type_converter->Convert(htype, item->fieldType());
+			auto ftype = i.second->fieldType();
+			auto htype = pimpl->pac2_context->hiltiType(ftype);
+			BroType* t = pimpl->type_converter->Convert(htype, ftype);
 			types->append(new TypeDecl(t, strdup(i.first.c_str())));
 			}
 		}
@@ -1248,16 +1278,37 @@ bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 		else
 			{
 			assert(i.second);
+			auto path = i.first;
 			auto item = i.second;
-			auto id = item->id();
+			auto unit = ev->unit_type;
 
-			auto htype = pimpl->pac2_context->hiltiType(item->fieldType());
-			auto tmp = ModuleBuilder()->addTmp("t", htype, nullptr, true);
+			shared_ptr<::hilti::Expression> tmp;
+			shared_ptr<::hilti::Expression> prev_tmp;
 
-			Builder()->addInstruction(tmp,
-						  ::hilti::instruction::struct_::Get,
-						  ::hilti::builder::id::create("self"),
-						  ::hilti::builder::string::create(id->name()));
+			auto components = ::util::strsplit(path, ".");
+			assert(components.size());
+
+			auto id = components.begin();
+
+			while ( true )
+				{
+				auto i = unit->item(*id);
+				assert(i);
+
+				auto htype = pimpl->pac2_context->hiltiType(i->fieldType());
+				tmp = ModuleBuilder()->addTmp("t", htype);
+
+				Builder()->addInstruction(tmp,
+							  ::hilti::instruction::struct_::Get,
+							  prev_type ? prev_tmp : ::hilti::builder::id::create("self")
+							  ::hilti::builder::string::create(*id));
+
+				if ( ++id == components.end() )
+					break;
+
+				unit = ast::checked_cast<binpac::type::Unit>(item->type());
+				prev_tmp = tmp;
+				}
 
 			pimpl->value_converter->Convert(tmp, val, item->fieldType());
 			}

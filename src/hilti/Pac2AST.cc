@@ -24,7 +24,7 @@ void Pac2AST::visit(binpac::Module* u)
 
 void Pac2AST::visit(binpac::declaration::Type* t)
 	{
-	shared_ptr<binpac::type::Unit> unit = ast::checkedCast<binpac::type::Unit>(t->type());
+	shared_ptr<binpac::type::Unit> unit = ast::tryCast<binpac::type::Unit>(t->type());
 
 	if ( ! unit )
 		return;

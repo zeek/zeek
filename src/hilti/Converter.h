@@ -41,6 +41,7 @@ public:
 
 private:
 	void visit(::hilti::type::Bytes* b) override;
+	void visit(::hilti::type::Integer* i) override;
 	void visit(::hilti::type::Reference* b) override;
 };
 
@@ -80,6 +81,7 @@ protected:
 
 private:
 	void visit(::hilti::type::Bytes* b) override;
+	void visit(::hilti::type::Integer* i) override;
 	void visit(::hilti::type::Reference* b) override;
 
 	shared_ptr<::hilti::builder::ModuleBuilder> mbuilder;

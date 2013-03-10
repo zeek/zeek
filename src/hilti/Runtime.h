@@ -19,6 +19,12 @@ void* libbro_cookie_to_is_orig(void* cookie, hlt_exception** excpt, hlt_executio
 // Converts a HILTI bytes value into a Bro StringVal.
 void* libbro_h2b_bytes(hlt_bytes* value, hlt_exception** excpt, hlt_execution_context* ctx);
 
+// Converts a signed HILTI integer value into a Bro Val.
+void* libbro_h2b_integer_signed(int64_t i, hlt_exception** excpt, hlt_execution_context* ctx);
+
+// Converts an unsigned HILTI integer value into a Bro Val.
+void* libbro_h2b_integer_unsigned(uint64_t i, hlt_exception** excpt, hlt_execution_context* ctx);
+
 // Raises a given Bro events. The arguments are given as a tuple of Bro Val
 // instances. The function takes ownership of those instances.
 void libbro_raise_event(hlt_bytes* name, const hlt_type_info* type, const void* tuple, hlt_exception** excpt, hlt_execution_context* ctx);

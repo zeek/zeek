@@ -110,6 +110,7 @@ struct bro::hilti::Pac2AnalyzerInfo {
 struct bro::hilti::Pac2EventInfo
 	{
 	typedef std::list<std::pair<string, shared_ptr<binpac::type::unit::Item>>> item_list;
+	typedef std::list<std::shared_ptr<::hilti::declaration::Function>> function_list;
 
 	// Information parsed directly from the *.evt file.
 	string name;		// The name of the event.
@@ -126,7 +127,8 @@ struct bro::hilti::Pac2EventInfo
 	shared_ptr<::hilti::declaration::Function> hilti_raise;	// The generated HILTI raise() function.
 	BroType* bro_event_type;                        // The type of the Bro event.
 	EventHandlerPtr bro_event_handler;              // The type of the corresponding Bro event. Set only if we have a handler.
-	item_list items; // The unit items corresponding to the arguments.
+	item_list items;                                // The unit items corresponding to the arguments.
+	function_list item_accessors;                   // One HILTI function per argument to access the value.
 	};
 
 // Implementation of the Loader class attributes.
@@ -1214,14 +1216,82 @@ bool Loader::CreatePac2Hook(Pac2EventInfo* ev)
 
 	ev->pac2_hook = hdecl;
 
+	int nr = 0;
+	for ( auto i : ev->items )
+		CreatePac2ItemAccessor(ev, ++nr, i.first, i.second);
+
 	return true;
+	}
+
+shared_ptr<binpac::declaration::Function> Loader::CreatePac2ItemAccessor(Pac2EventInfo* ev, int nr, const string& expr, shared_ptr<binpac::type::unit::Item> item)
+	{
+	if ( expr == "$conn" || expr == "$is_orig" )
+		return nullptr;
+
+	auto fname = ::util::fmt("accessor_%s_arg%d", ::util::strreplace(ev->name, "::", "_"), nr);
+
+	DBG_LOG(DBG_PAC2, "Defining BinPAC++ function %s for parameter %d of event %s", fname.c_str(), nr, ev->name.c_str());
+
+	// TODO: Currently we parse the expr "manually" here, assuming it's
+	// just a dotted ID. The question is if we could support a full
+	// BinPAC++ expression here via the BinPAC++ parser.
+	shared_ptr<binpac::Expression> cur = std::make_shared<binpac::expression::ID>(std::make_shared<binpac::ID>("self"));
+
+	for ( auto p : util::strsplit(expr, ".") )
+		{
+		auto attr = std::make_shared<binpac::expression::MemberAttribute>(std::make_shared<binpac::ID>(p));
+
+		binpac::expression_list exprs = { cur, attr };
+		cur = std::make_shared<binpac::expression::UnresolvedOperator>(binpac::operator_::Attribute, exprs);
+		}
+
+	auto stmt = std::make_shared<::binpac::statement::Return>(cur);
+
+	auto body = std::make_shared<::binpac::statement::Block>(pimpl->pac2_module->body()->scope());
+	body->addStatement(stmt);
+
+	auto func_result = std::make_shared<::binpac::type::function::Result>(item->fieldType(), true);
+	::binpac::parameter_list func_params = {
+		std::make_shared<::binpac::type::function::Parameter>(std::make_shared<::binpac::ID>("self"),
+								      std::make_shared<::binpac::type::Unknown>(std::make_shared<::binpac::ID>(ev->unit)),
+								      true, false, nullptr),
+	};
+
+	auto ftype = std::make_shared<::binpac::type::Function>(func_result, func_params, ::binpac::type::function::HILTI);
+	auto func = std::make_shared<::binpac::Function>(std::make_shared<::binpac::ID>(fname), ftype, pimpl->pac2_module, body);
+	auto fdecl = std::make_shared<::binpac::declaration::Function>(func, ::binpac::Declaration::EXPORTED);
+
+	pimpl->pac2_module->body()->addDeclaration(fdecl);
+
+	return fdecl;
+	}
+
+
+shared_ptr<::hilti::declaration::Function> Loader::DeclareHiltiItemAccessor(Pac2EventInfo* ev, int nr, const string& expr, shared_ptr<binpac::type::unit::Item> item)
+	{
+	if ( expr == "$conn" || expr == "$is_orig" )
+		return nullptr;
+
+	auto fname = ::util::fmt("BroHooks::accessor_%s_arg%d", ::util::strreplace(ev->name, "::", "_"), nr);
+
+	DBG_LOG(DBG_PAC2, "declaring HILTI function %s for parameter %d of event %s", fname.c_str(), nr, ev->name.c_str());
+
+	auto hilti_field_type = pimpl->pac2_context->hiltiType(item->fieldType());
+
+	auto result = ::hilti::builder::function::result(hilti_field_type);
+
+	::hilti::builder::function::parameter_list args = {
+		::hilti::builder::function::parameter("self", ::hilti::builder::reference::type(::hilti::builder::type::byName(ev->unit)), true, nullptr),
+		};
+
+	auto func = ModuleBuilder()->declareFunction(fname, result, args);
+	ModuleBuilder()->exportID(fname);
+
+	return func;
 	}
 
 bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 	{
-	string fname = ::util::fmt("raise_%s", ::util::strreplace(ev->name, "::", "_"));
-
-	DBG_LOG(DBG_PAC2, "adding HILTI function %s for event %s", fname.c_str(), ev->name.c_str());
 
 	if ( ! pimpl->hilti_module )
 		{
@@ -1231,6 +1301,17 @@ bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 		pimpl->hilti_module = pimpl->hilti_mbuilder->module();
 		pimpl->value_converter = std::make_shared<ValueConverter>(pimpl->hilti_mbuilder);
 		}
+
+	int nr = 0;
+	for ( auto i : ev->items )
+		{
+		auto func = DeclareHiltiItemAccessor(ev, ++nr, i.first, i.second);
+		ev->item_accessors.push_back(func);
+		}
+
+	string fname = ::util::fmt("raise_%s", ::util::strreplace(ev->name, "::", "_"));
+
+	DBG_LOG(DBG_PAC2, "adding HILTI function %s for event %s", fname.c_str(), ev->name.c_str());
 
 	auto result = ::hilti::builder::function::result(::hilti::builder::void_::type());
 
@@ -1255,8 +1336,11 @@ bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 
 	::hilti::builder::tuple::element_list vals;
 
-	for ( auto i : ev->items )
+	for ( auto m : ::util::zip2(ev->items, ev->item_accessors) )
 		{
+		auto i = m.first;
+		auto accessor = m.second;
+
 		auto val = ModuleBuilder()->addTmp("val", ::hilti::builder::type::byName("LibBro::BroVal"));
 
 		if ( i.first == "$conn" )
@@ -1277,40 +1361,17 @@ bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 
 		else
 			{
-			assert(i.second);
-			auto path = i.first;
 			auto item = i.second;
-			auto unit = ev->unit_type;
+			auto ftype = item->fieldType();
+			auto htype = pimpl->pac2_context->hiltiType(ftype);
+			auto tmp = ModuleBuilder()->addTmp("t", htype);
 
-			shared_ptr<::hilti::Expression> tmp;
-			shared_ptr<::hilti::Expression> prev_tmp;
+			Builder()->addInstruction(tmp,
+						  ::hilti::instruction::flow::CallResult,
+						  ::hilti::builder::id::create(accessor->id()),
+						  ::hilti::builder::tuple::create( { ::hilti::builder::id::create("self") } ));
 
-			auto components = ::util::strsplit(path, ".");
-			assert(components.size());
-
-			auto id = components.begin();
-
-			while ( true )
-				{
-				auto i = unit->item(*id);
-				assert(i);
-
-				auto htype = pimpl->pac2_context->hiltiType(i->fieldType());
-				tmp = ModuleBuilder()->addTmp("t", htype);
-
-				Builder()->addInstruction(tmp,
-							  ::hilti::instruction::struct_::Get,
-							  prev_type ? prev_tmp : ::hilti::builder::id::create("self")
-							  ::hilti::builder::string::create(*id));
-
-				if ( ++id == components.end() )
-					break;
-
-				unit = ast::checked_cast<binpac::type::Unit>(item->type());
-				prev_tmp = tmp;
-				}
-
-			pimpl->value_converter->Convert(tmp, val, item->fieldType());
+			pimpl->value_converter->Convert(tmp, val, ftype);
 			}
 
 		vals.push_back(val);

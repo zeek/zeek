@@ -82,11 +82,9 @@ void TypeConverter::visit(::hilti::type::Bytes* b)
 
 void ValueConverter::visit(::hilti::type::Integer* i)
 	{
-	auto itype = ast::checkedCast<binpac::type::Integer>(arg1());
-
 	auto val = arg1();
 	auto dst = arg2();
-	auto btype = arg3();
+	auto itype = ast::checkedCast<binpac::type::Integer>(arg3());
 
 	const char* func = "";
 	shared_ptr<::hilti::Instruction> ext = 0;

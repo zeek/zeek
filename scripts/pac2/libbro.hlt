@@ -7,6 +7,8 @@ type Cookie = caddr
 declare "C-HILTI" BroVal cookie_to_conn_val(Cookie cookie)
 declare "C-HILTI" BroVal cookie_to_is_orig(Cookie cookie)
 declare "C-HILTI" BroVal h2b_bytes(ref<bytes> val)
+declare "C-HILTI" BroVal h2b_integer_signed(int<64> val)
+declare "C-HILTI" BroVal h2b_integer_unsigned(int<64> val)
 declare "C-HILTI" void   raise_event(ref<bytes> name, tuple<*> vals)
 
 export cookie_to_conn_val

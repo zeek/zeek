@@ -4,7 +4,7 @@
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
 .. _Homebrew: http://mxcl.github.com/homebrew
-.. _bro downloads page: http://bro-ids.org/download/index.html
+.. _bro downloads page: http://bro.org/download/index.html
 
 ==============
 Installing Bro
@@ -189,15 +189,15 @@ Bro releases are bundled into source packages for convenience and
 available from the `bro downloads page`_.
 
 Alternatively, the latest Bro development version can be obtained through git
-repositories hosted at `git.bro-ids.org <http://git.bro-ids.org>`_.  See
+repositories hosted at `git.bro.org <http://git.bro.org>`_.  See
 our `git development documentation
-<http://bro-ids.org/development/process.html>`_ for comprehensive
+<http://bro.org/development/process.html>`_ for comprehensive
 information on Bro's use of git revision control, but the short story
 for downloading the full source code experience for Bro via git is:
 
 .. console::
 
-    git clone --recursive git://git.bro-ids.org/bro
+    git clone --recursive git://git.bro.org/bro
 
 .. note:: If you choose to clone the ``bro`` repository non-recursively for
    a "minimal Bro experience", be aware that compiling it depends on
@@ -230,7 +230,7 @@ automatically.  Finally, use ``make install-aux`` to install some of
 the other programs that are in the ``aux/bro-aux`` directory.
 
 OpenBSD users, please see our FAQ at
-http://www.bro-ids.org/documentation/faq.html if you are having
+http://www.bro.org/documentation/faq.html if you are having
 problems installing Bro.
 
 
@@ -298,7 +298,7 @@ Running Bro
 
 Bro is a complex program and it takes a bit of time to get familiar
 with it.  A good place for newcomers to start is the Quick Start Guide
-at http://www.bro-ids.org/documentation/quickstart.html.
+at http://www.bro.org/documentation/quickstart.html.
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have

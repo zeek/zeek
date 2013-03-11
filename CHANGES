@@ -1,4 +1,21 @@
 
+2.1-357 | 2013-03-08 09:18:35 -0800
+
+  * Fix race-condition in table-event test. (Bernhard Amann)
+
+  * s/bro-ids.org/bro.org/g. (Robin Sommer)
+
+2.1-353 | 2013-03-07 13:31:37 -0800
+
+  * Fix function type-equivalence requiring same parameter names.
+    Addresses #957. (Jon Siwek)
+
+2.1-351 | 2013-03-07 13:27:29 -0800
+
+  * Fix new/delete mismatch. Addresses #958. (Jacob Baines)
+    
+  * Fix compiler warnings. (Jon Siwek)
+    
 2.1-347 | 2013-03-06 16:48:44 -0800
 
   * Remove unused parameter from vector assignment method. (Bernhard Amann)

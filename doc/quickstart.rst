@@ -111,7 +111,7 @@ protocol-dependent activity that's occurring.  E.g. ``http.log``'s next few
 columns (shortened for brevity) show a request to the root of Bro website::
 
     # method   host         uri  referrer  user_agent
-    GET        bro-ids.org  /    -         <...>Chrome/12.0.742.122<...>
+    GET        bro.org  /    -         <...>Chrome/12.0.742.122<...>
 
 Some logs are worth explicit mention:
 

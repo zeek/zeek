@@ -35,7 +35,6 @@ global destination: table[int] of Val = table();
 
 event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: bool)
 	{
-	print outfile, description;
 	print outfile, tpe;
 	print outfile, left;
 	print outfile, right;

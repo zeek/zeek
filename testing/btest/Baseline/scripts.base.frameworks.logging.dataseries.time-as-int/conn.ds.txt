@@ -8,7 +8,7 @@
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="conn" version="1.0" namespace="bro-ids.org">
+<ExtentType name="conn" version="1.0" namespace="bro.org">
 	<field type="int64" name="ts" pack_relative="ts" units="microseconds" epoch="unix"/>
 	<field type="variable32" name="uid" pack_unique="yes"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>

@@ -76,7 +76,7 @@ typedef int32 ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId32
 #define PRI_PTR_COMPAT_UINT PRIu32
 #else
-# error "Unusual pointer size. Please report to bro@bro-ids.org."
+# error "Unusual pointer size. Please report to bro@bro.org."
 #endif
 
 extern "C"

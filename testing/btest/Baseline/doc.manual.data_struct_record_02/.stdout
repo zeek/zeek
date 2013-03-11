@@ -1,0 +1,7 @@
+System: morlock
+  Service: dns(RFC1035)
+    port: 53/tcp
+    port: 53/udp
+  Service: http(RFC2616)
+    port: 80/tcp
+    port: 8080/tcp

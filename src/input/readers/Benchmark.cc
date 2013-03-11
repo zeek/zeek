@@ -26,14 +26,14 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	timedspread = double(BifConst::InputBenchmark::timedspread);
 	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
 
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo());
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
 	}
 
 Benchmark::~Benchmark()
 	{
 	DoClose();
 
-	delete io;
+	delete ascii;
 	}
 
 void Benchmark::DoClose()
@@ -166,13 +166,13 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 	case TYPE_SUBNET:
 		{
-		val->val.subnet_val.prefix = io->StringToAddr("192.168.17.1");
+		val->val.subnet_val.prefix = ascii->ParseAddr("192.168.17.1");
 		val->val.subnet_val.length = 16;
 		}
 		break;
 
 	case TYPE_ADDR:
-		val->val.addr_val = io->StringToAddr("192.168.17.1");
+		val->val.addr_val = ascii->ParseAddr("192.168.17.1");
 		break;
 
 	case TYPE_TABLE:

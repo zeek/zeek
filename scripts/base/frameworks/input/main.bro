@@ -12,17 +12,17 @@ export {
 	const default_mode = MANUAL &redef;
 
 	## Separator between fields.
-	## Please note that the separator has to be exactly one character long
+	## Please note that the separator has to be exactly one character long.
 	## Can be overwritten by individual writers.
 	const separator = "\t" &redef;
 
 	## Separator between set elements.
-	## Please note that the separator has to be exactly one character long
+	## Please note that the separator has to be exactly one character long.
 	## Can be overwritten by individual writers.
 	const set_separator = "," &redef;
 
 	## String to use for empty fields.
-	## Can be overwritten by individual writers.	
+	## Can be overwritten by individual writers.
 	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
@@ -133,7 +133,7 @@ export {
 	global add_event: function(description: Input::EventDescription) : bool;
 
 	## Remove a input stream. Returns true on success and false if the named stream was
-	## not found. 
+	## not found.
 	##
 	## id: string value identifying the stream to be removed
 	global remove: function(id: string) : bool;

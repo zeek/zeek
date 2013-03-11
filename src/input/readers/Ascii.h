@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
-#include "../../threading/AsciiInputOutput.h"
+#include "threading/AsciiFormatter.h"
 
 namespace input { namespace reader {
 
@@ -64,7 +64,7 @@ private:
 	string empty_field;
 	string unset_field;
 
-	AsciiInputOutput* io;
+	AsciiFormatter* ascii;
 };
 
 

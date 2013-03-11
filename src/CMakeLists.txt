@@ -426,7 +426,7 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
-    threading/AsciiInputOutput.cc
+    threading/AsciiFormatter.cc
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc

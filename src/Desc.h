@@ -63,7 +63,7 @@ public:
 	void RemoveEscapeSequence(const char* s, size_t n)
 	    { escape_sequences.remove(string(s, n)); }
 	void RemoveEscapeSequence(const string & s)
-	    { escape_sequences.remove(s); }	
+	    { escape_sequences.remove(s); }
 
 	void PushIndent();
 	void PopIndent();

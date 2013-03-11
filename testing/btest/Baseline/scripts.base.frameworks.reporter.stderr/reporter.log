@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	reporter
-#open	2012-08-10-20-09-23
+#open	2013-01-18-18-29-30
 #fields	ts	level	message	location
 #types	time	enum	string	string
-0.000000	Reporter::ERROR	no such index (test[3])	/da/home/robin/bro/master/testing/btest/.tmp/scripts.base.frameworks.reporter.stderr/stderr.bro, line 9
-#close	2012-08-10-20-09-23
+0.000000	Reporter::ERROR	no such index (test[3])	/Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/scripts.base.frameworks.reporter.stderr/stderr.bro, line 9
+#close	2013-01-18-18-29-30

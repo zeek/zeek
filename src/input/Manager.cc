@@ -490,7 +490,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(fields); // ref'd by lookupwithdefault
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
-	stream->event = event_registry->Lookup(event->GetID()->Name());
+	stream->event = event_registry->Lookup(event->Name());
 	stream->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
@@ -651,7 +651,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->tab = dst->AsTableVal();
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
-	stream->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->currDict = new PDict(InputHash);
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new PDict(InputHash);
@@ -794,7 +794,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 
 		if ( ! IsCompatibleType(rec->FieldType(i)) )
 			{
-			// If the field is a file or a function type
+			// If the field is a file, function, or opaque
 			// and it is optional, we accept it nevertheless.
 			// This allows importing logfiles containing this
 			// stuff that we actually cannot read :)
@@ -2114,7 +2114,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
 		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
+			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
 
 		Unref(vt);
 		return v;

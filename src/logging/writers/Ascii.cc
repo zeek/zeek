@@ -52,7 +52,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	desc.EnableEscaping();
 	desc.AddEscapeSequence(separator);
 
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field, empty_field));
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
 	}
 
 Ascii::~Ascii()
@@ -63,7 +63,7 @@ Ascii::~Ascii()
 		abort();
 		}
 
-	delete io;
+	delete ascii;
 	}
 
 bool Ascii::WriteHeaderField(const string& key, const string& val)
@@ -170,7 +170,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			&& WriteHeaderField("types", types)) )
 			goto write_error;
 		}
-	
+
 	return true;
 
 write_error:
@@ -212,7 +212,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 		if ( i > 0 )
 			desc.AddRaw(separator);
 
-		if ( ! io->ValToODesc(&desc, vals[i], fields[i]) )
+		if ( ! ascii->Describe(&desc, vals[i], fields[i]->name) )
 			return false;
 		}
 

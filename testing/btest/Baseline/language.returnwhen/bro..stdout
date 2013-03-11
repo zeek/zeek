@@ -1,0 +1,12 @@
+dummy from async_func() from bro_init()
+async_func() return result in bro_init(), flag in my_set
+dummy from bro_init() when block
+hi!
+dummy from async_func() from do_another()
+async_func() return result in do_another(), flag in my_set
+dummy from do_another() when block
+hi!
+dummy from async_func() from do_another()
+async_func() return result in do_another(), timeout
+dummy from do_another() when block
+hi!

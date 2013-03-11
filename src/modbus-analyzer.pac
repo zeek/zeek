@@ -149,7 +149,7 @@ refine flow ModbusTCP_Flow += {
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
 				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
-				t->Assign(i, r, 0, OP_ASSIGN);
+				t->Assign(i, r);
 				}
 
 			BifEvent::generate_modbus_read_holding_registers_response(connection()->bro_analyzer(),
@@ -192,7 +192,7 @@ refine flow ModbusTCP_Flow += {
 			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
 				{
 				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
-				t->Assign(i, r, 0, OP_ASSIGN);
+				t->Assign(i, r);
 				}
 
 			BifEvent::generate_modbus_read_input_registers_response(connection()->bro_analyzer(),
@@ -335,7 +335,7 @@ refine flow ModbusTCP_Flow += {
 			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
 				{
 				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
-				t->Assign(i, r, 0, OP_ASSIGN);
+				t->Assign(i, r);
 				}
 
 				BifEvent::generate_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
@@ -371,13 +371,13 @@ refine flow ModbusTCP_Flow += {
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
 			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
-			//	t->Assign(i, r, 0, OP_ASSIGN);
+			//	t->Assign(i, r);
 			//
 			//	Val* k = new Val((${message.references[i].file_num}), TYPE_COUNT);
-			//	t->Assign(i, k, 0, OP_ASSIGN);
+			//	t->Assign(i, k);
 			//
 			//	Val* l = new Val((${message.references[i].record_num}), TYPE_COUNT);
-			//	t->Assign(i, l, 0, OP_ASSIGN);
+			//	t->Assign(i, l);
 			//	}
 
 			BifEvent::generate_modbus_read_file_record_request(connection()->bro_analyzer(),
@@ -398,7 +398,7 @@ refine flow ModbusTCP_Flow += {
 			//	{
 			//	//TODO: work the reference type in here somewhere
 			//	Val* r = new Val(${message.references[i].record_data}), TYPE_COUNT);
-			//	t->Assign(i, r, 0, OP_ASSIGN);
+			//	t->Assign(i, r);
 			//	}
 
 			BifEvent::generate_modbus_read_file_record_response(connection()->bro_analyzer(),
@@ -418,18 +418,18 @@ refine flow ModbusTCP_Flow += {
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
 			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
-			//	t->Assign(i, r, 0, OP_ASSIGN);
+			//	t->Assign(i, r);
 			//
 			//	Val* k = new Val((${message.references[i].file_num}), TYPE_COUNT);
-			//	t->Assign(i, k, 0, OP_ASSIGN);
+			//	t->Assign(i, k);
 			//
 			//	Val* n = new Val((${message.references[i].record_num}), TYPE_COUNT);
-			//	t->Assign(i, n, 0, OP_ASSIGN);
+			//	t->Assign(i, n);
 			//
 			//	for ( unsigned int j = 0; j < (${message.references[i].register_value}->size()); ++j )
 			//		{
 			//		k = new Val((${message.references[i].register_value[j]}), TYPE_COUNT);
-			//		t->Assign(i, k, 0, OP_ASSIGN);
+			//		t->Assign(i, k);
 			//		}
 			//	}
 
@@ -451,18 +451,18 @@ refine flow ModbusTCP_Flow += {
 			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
 			//	{
 			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
-			//	t->Assign(i, r, 0, OP_ASSIGN);
+			//	t->Assign(i, r);
 			//
 			//	Val* f = new Val((${message.references[i].file_num}), TYPE_COUNT);
-			//	t->Assign(i, f, 0, OP_ASSIGN);
+			//	t->Assign(i, f);
 			//
 			//	Val* rn = new Val((${message.references[i].record_num}), TYPE_COUNT);
-			//	t->Assign(i, rn, 0, OP_ASSIGN);
+			//	t->Assign(i, rn);
 			//
 			//	for ( unsigned int j = 0; j<(${message.references[i].register_value}->size()); ++j )
 			//		{
 			//		Val* k = new Val((${message.references[i].register_value[j]}), TYPE_COUNT);
-			//		t->Assign(i, k, 0, OP_ASSIGN);
+			//		t->Assign(i, k);
 			//		}
 
 			BifEvent::generate_modbus_write_file_record_response(connection()->bro_analyzer(),
@@ -519,7 +519,7 @@ refine flow ModbusTCP_Flow += {
 			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
 				{
 				Val* r = new Val(${message.write_register_values[i]}, TYPE_COUNT);
-				t->Assign(i, r, 0, OP_ASSIGN);
+				t->Assign(i, r);
 				}
 
 			BifEvent::generate_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
@@ -550,7 +550,7 @@ refine flow ModbusTCP_Flow += {
 			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
 				{
 				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
-				t->Assign(i, r, 0, OP_ASSIGN);
+				t->Assign(i, r);
 				}
 
 			BifEvent::generate_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
@@ -593,7 +593,7 @@ refine flow ModbusTCP_Flow += {
 			for ( unsigned int i = 0; i < (${message.register_data})->size(); ++i )
 				{
 				Val* r = new Val(${message.register_data[i]}, TYPE_COUNT);
-				t->Assign(i, r, 0, OP_ASSIGN);
+				t->Assign(i, r);
 				}
 
 			BifEvent::generate_modbus_read_fifo_queue_response(connection()->bro_analyzer(),

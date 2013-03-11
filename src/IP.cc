@@ -63,7 +63,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 			len -= opt->ip6o_len + off;
 			}
 
-		vv->Assign(vv->Size(), rv, 0);
+		vv->Assign(vv->Size(), rv);
 		}
 
 	return vv;
@@ -626,7 +626,7 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 			reporter->InternalError("IPv6_Hdr_Chain bad header %d", type);
 			break;
 		}
-		rval->Assign(rval->Size(), ext_hdr, 0);
+		rval->Assign(rval->Size(), ext_hdr);
 		}
 
 	return rval;

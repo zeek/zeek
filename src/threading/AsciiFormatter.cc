@@ -4,36 +4,36 @@
 
 #include <sstream>
 #include <errno.h>
-#include "AsciiInputOutput.h"
-#include "../bro_inet_ntop.h"
 
-AsciiInputOutput::AsciiInputOutput(threading::MsgThread* t, const SeparatorInfo info) 
+#include "AsciiFormatter.h"
+#include "bro_inet_ntop.h"
+
+AsciiFormatter::SeparatorInfo::SeparatorInfo()
 	{
-	thread = t;
-	this->separators = info;
+	this->set_separator = "SHOULD_NOT_BE_USED";
+	this->unset_field = "SHOULD_NOT_BE_USED";
+	this->empty_field = "SHOULD_NOT_BE_USED";
 	}
 
-AsciiInputOutput::SeparatorInfo::SeparatorInfo(const string & set_separator, 
-				 const string & unset_field, const string & empty_field) 
+AsciiFormatter::SeparatorInfo::SeparatorInfo(const string & set_separator,
+				 const string & unset_field, const string & empty_field)
 	{
 	this->set_separator = set_separator;
 	this->unset_field = unset_field;
 	this->empty_field = empty_field;
 	}
 
-AsciiInputOutput::SeparatorInfo::SeparatorInfo(const string & set_separator, 
-				 const string & unset_field) 
+AsciiFormatter::AsciiFormatter(threading::MsgThread* t, const SeparatorInfo info)
 	{
-	this->set_separator = set_separator;
-	this->unset_field = unset_field;
+	thread = t;
+	this->separators = info;
 	}
 
-
-AsciiInputOutput::~AsciiInputOutput()
+AsciiFormatter::~AsciiFormatter()
 	{
 	}
 
-bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const threading::Field* field) const
+bool AsciiFormatter::Describe(ODesc* desc, threading::Value* val, const string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -78,8 +78,8 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 	case TYPE_INTERVAL:
 	case TYPE_TIME:
 		// Rendering via Render() keeps trailing 0s after the decimal
-		// point. The difference with DOUBLEis mainly to keep the log
-		// format consistent.
+		// point. The difference with DOUBLE is mainly to keep the
+		// log format consistent.
 		desc->Add(Render(val->val.double_val));
 		break;
 
@@ -97,7 +97,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 			break;
 			}
 
-		if ( size == separators.unset_field.size() && memcmp(data, separators.unset_field.data(), size) == 0 )
+		if ( size == (int)separators.unset_field.size() && memcmp(data, separators.unset_field.data(), size) == 0 )
 			{
 			// The value we'd write out would match exactly the
 			// place-holder we use for unset optional fields. We
@@ -133,8 +133,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
 
-			assert(field != 0);
-			if ( ! ValToODesc(desc, val->val.set_val.vals[j], field) )
+			if ( ! Describe(desc, val->val.set_val.vals[j], name) )
 				{
 				desc->RemoveEscapeSequence(separators.set_separator);
 				return false;
@@ -159,8 +158,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
 
-			assert(field != 0);
-			if ( ! ValToODesc(desc, val->val.vector_val.vals[j], field) )
+			if ( ! Describe(desc, val->val.vector_val.vals[j], name) )
 				{
 				desc->RemoveEscapeSequence(separators.set_separator);
 				return false;
@@ -172,7 +170,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 		}
 
 	default:
-		thread->Error(thread->Fmt("unsupported field format %d for %s", val->type, field->name));
+		thread->Error(thread->Fmt("unsupported field format %d for %s", val->type, name.c_str()));
 		return false;
 	}
 
@@ -180,7 +178,7 @@ bool AsciiInputOutput::ValToODesc(ODesc* desc, threading::Value* val, const thre
 	}
 
 
-threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag type, TypeTag subtype) const
+threading::Value* AsciiFormatter::ParseValue(string s, string name, TypeTag type, TypeTag subtype) const
 	{
 	if ( s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
@@ -256,14 +254,14 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 
 		string addr = s.substr(0, pos);
 
-		val->val.subnet_val.prefix = StringToAddr(addr);
+		val->val.subnet_val.prefix = ParseAddr(addr);
 		val->val.subnet_val.length = width;
 		break;
 		}
 
 	case TYPE_ADDR:
 		s = get_unescaped_string(s);
-		val->val.addr_val = StringToAddr(s);
+		val->val.addr_val = ParseAddr(s);
 		break;
 
 	case TYPE_TABLE:
@@ -323,7 +321,7 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 				break;
 				}
 
-			threading::Value* newval = StringToVal(element, name, subtype);
+			threading::Value* newval = ParseValue(element, name, subtype);
 			if ( newval == 0 )
 				{
 				thread->Error("Error while reading set or vector");
@@ -341,7 +339,7 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 		// to push an empty val on top of it.
 		if ( ! error && (s.empty() || *s.rbegin() == separators.set_separator[0]) )
 			{
-			lvals[pos] = StringToVal("", name, subtype);
+			lvals[pos] = ParseValue("", name, subtype);
 			if ( lvals[pos] == 0 )
 				{
 				thread->Error("Error while trying to add empty set element");
@@ -380,10 +378,10 @@ threading::Value* AsciiInputOutput::StringToVal(string s, string name, TypeTag t
 
 parse_error:
 	delete val;
-	return 0;	
+	return 0;
 	}
 
-bool AsciiInputOutput::CheckNumberError(const string& s, const char * end) const
+bool AsciiFormatter::CheckNumberError(const string& s, const char* end) const
 	{
 	// Do this check first, before executing s.c_str() or similar.
 	// otherwise the value to which *end is pointing at the moment might
@@ -419,7 +417,7 @@ bool AsciiInputOutput::CheckNumberError(const string& s, const char * end) const
 	return false;
 	}
 
-string AsciiInputOutput::Render(const threading::Value::addr_t& addr) 
+string AsciiFormatter::Render(const threading::Value::addr_t& addr) const
 	{
 	if ( addr.family == IPv4 )
 		{
@@ -441,7 +439,7 @@ string AsciiInputOutput::Render(const threading::Value::addr_t& addr)
 		}
 	}
 
-TransportProto AsciiInputOutput::StringToProto(const string &proto) const
+TransportProto AsciiFormatter::ParseProto(const string &proto) const
 	{
 	if ( proto == "unknown" )
 		return TRANSPORT_UNKNOWN;
@@ -459,7 +457,7 @@ TransportProto AsciiInputOutput::StringToProto(const string &proto) const
 
 
 // More or less verbose copy from IPAddr.cc -- which uses reporter.
-threading::Value::addr_t AsciiInputOutput::StringToAddr(const string &s) const
+threading::Value::addr_t AsciiFormatter::ParseAddr(const string &s) const
 	{
 		threading::Value::addr_t val;
 
@@ -487,7 +485,7 @@ threading::Value::addr_t AsciiInputOutput::StringToAddr(const string &s) const
 	return val;
 	}
 
-string AsciiInputOutput::Render(const threading::Value::subnet_t& subnet) 
+string AsciiFormatter::Render(const threading::Value::subnet_t& subnet) const
 	{
 	char l[16];
 
@@ -501,7 +499,7 @@ string AsciiInputOutput::Render(const threading::Value::subnet_t& subnet)
 	return s;
 	}
 
-string AsciiInputOutput::Render(double d) 
+string AsciiFormatter::Render(double d) const
 	{
 	char buf[256];
 	modp_dtoa(d, buf, 6);

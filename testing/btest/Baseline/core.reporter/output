@@ -1,7 +1,9 @@
-/home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 52: pre test-info
-warning in /home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 53: pre test-warning
-error in /home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 54: pre test-error
-WARNING: init test-warning (/home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 9)
-ERROR: init test-error (/home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 10)
-WARNING: done test-warning (/home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 16)
-ERROR: done test-error (/home/jsiwek/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 17)
+/Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 52: pre test-info
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 53: pre test-warning
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 54: pre test-error
+/Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 8: init test-info
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 9: init test-warning
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 10: init test-error
+/Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 15: done test-info
+warning in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 16: done test-warning
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter/reporter.bro, line 17: done test-error

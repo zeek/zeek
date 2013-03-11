@@ -68,13 +68,13 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 			    BifConst::InputAscii::unset_field->Len());
 
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field, empty_field));	
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
 }
 
 Ascii::~Ascii()
 	{
 	DoClose();
-	delete io;	
+	delete ascii;
 	}
 
 void Ascii::DoClose()
@@ -323,7 +323,8 @@ bool Ascii::DoUpdate()
 				return false;
 				}
 
-			Value* val = io->StringToVal(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+			Value* val = ascii->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+
 			if ( val == 0 )
 				{
 				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
@@ -337,7 +338,7 @@ bool Ascii::DoUpdate()
 				assert(val->type == TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				val->val.port_val.proto = io->StringToProto(stringfields[(*fit).secondary_position]);
+				val->val.port_val.proto = ascii->ParseProto(stringfields[(*fit).secondary_position]);
 				}
 
 			fields[fpos] = val;

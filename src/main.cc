@@ -832,6 +832,8 @@ int main(int argc, char** argv)
 		exit(1);
 		}
 
+	reporter->InitOptions();
+
 	init_general_global_var();
 
 	if ( user_pcap_filter )
@@ -1061,7 +1063,9 @@ int main(int argc, char** argv)
 
 	io_sources.Register(thread_mgr, true);
 
-	if ( io_sources.Size() > 0 || have_pending_timers )
+	if ( io_sources.Size() > 0 ||
+	     have_pending_timers ||
+	     BifConst::exit_only_after_terminate )
 		{
 		if ( profiling_logger )
 			profiling_logger->Log();

@@ -6,7 +6,7 @@
 #define LOGGING_WRITER_ASCII_H
 
 #include "../WriterBackend.h"
-#include "../../threading/AsciiInputOutput.h"
+#include "threading/AsciiFormatter.h"
 
 namespace logging { namespace writer {
 
@@ -53,7 +53,7 @@ private:
 	string unset_field;
 	string meta_prefix;
 
-	AsciiInputOutput* io;
+	AsciiFormatter* ascii;
 };
 
 }

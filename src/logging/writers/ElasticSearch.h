@@ -72,6 +72,8 @@ private:
 	bool failing;
 
 	uint64 batch_size;
+
+	AsciiFormatter* ascii;
 };
 
 }

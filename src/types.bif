@@ -213,3 +213,17 @@ enum Mode %{
 %}
 
 module GLOBAL;
+
+type gtpv1_hdr: record;
+type gtp_create_pdp_ctx_request_elements: record;
+type gtp_create_pdp_ctx_response_elements: record;
+type gtp_update_pdp_ctx_request_elements: record;
+type gtp_update_pdp_ctx_response_elements: record;
+type gtp_delete_pdp_ctx_request_elements: record;
+type gtp_delete_pdp_ctx_response_elements: record;
+
+type gtp_end_user_addr: record;
+type gtp_rai: record;
+type gtp_qos_profile: record;
+type gtp_private_extension: record;
+type gtp_gsn_addr: record;

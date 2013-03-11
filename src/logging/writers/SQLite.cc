@@ -22,17 +22,17 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
-			BifConst::LogAscii::set_separator->Len()
+			BifConst::LogSQLite::set_separator->Len()
 			);
 
 	unset_field.assign(
 			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
-			BifConst::LogAscii::unset_field->Len()
+			BifConst::LogSQLite::unset_field->Len()
 			);
 
 	empty_field.assign(
 			(const char*) BifConst::LogSQLite::empty_field->Bytes(),
-			BifConst::LogAscii::empty_field->Len()
+			BifConst::LogSQLite::empty_field->Len()
 			);	
 
 	db = 0;
@@ -247,7 +247,7 @@ char* SQLite::FS(const char* format, ...)
 int SQLite::AddParams(Value* val, int pos)
 	{
 
-	if ( ! val->present )
+	if ( ! val->present ) 
 		return sqlite3_bind_null(st, pos);
 
 	switch ( val->type ) {
@@ -296,18 +296,25 @@ int SQLite::AddParams(Value* val, int pos)
 		{
 		ODesc desc;
 		desc.Clear();		
+		desc.EnableEscaping();		
 		desc.AddEscapeSequence(set_separator);
 
-		for ( int j = 0; j < val->val.set_val.size; j++ )
+		if ( ! val->val.set_val.size )
 			{
-			if ( j > 0 )
-				desc.AddRaw(set_separator);
-
-			io->Describe(&desc, val->val.set_val.vals[j], fields[pos]->name); 
-			// yes, giving NULL here is not really really pretty....
-			// it works however, because tables cannot contain tables...
-			// or vectors.
+			desc.Add(empty_field);
 			}
+		else
+			for ( int j = 0; j < val->val.set_val.size; j++ )
+				{
+				if ( j > 0 )
+					desc.AddRaw(set_separator);
+
+				io->Describe(&desc, val->val.set_val.vals[j], fields[pos]->name); 
+				// yes, giving NULL here is not really really pretty....
+				// it works however, because tables cannot contain tables...
+				// or vectors.
+				}
+
 		desc.RemoveEscapeSequence(set_separator);		
 		return sqlite3_bind_text(st, pos, (const char*) desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
 		}
@@ -316,15 +323,21 @@ int SQLite::AddParams(Value* val, int pos)
 		{
 		ODesc desc;
 		desc.Clear();		
+		desc.EnableEscaping();				
 		desc.AddEscapeSequence(set_separator);
-
-		for ( int j = 0; j < val->val.vector_val.size; j++ )
+		
+		if ( ! val->val.vector_val.size )
 			{
-			if ( j > 0 )
-				desc.AddRaw(set_separator);
-
-			io->Describe(&desc, val->val.vector_val.vals[j], fields[pos]->name);
+			desc.Add(empty_field);
 			}
+		else
+			for ( int j = 0; j < val->val.vector_val.size; j++ )
+				{
+				if ( j > 0 )
+					desc.AddRaw(set_separator);
+
+				io->Describe(&desc, val->val.vector_val.vals[j], fields[pos]->name);
+				}
 
 		desc.RemoveEscapeSequence(set_separator);		
 

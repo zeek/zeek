@@ -1,0 +1,8 @@
+1|-42|SSH::LOG|21|123|10.0.0.0/24|1.2.3.4|3.14|1363036624.07106|100.0|hurz|2,4,1,3|CC,AA,BB|(empty)|10,20,30|(empty)|SSH::foo
+{ 
+if (0 < SSH::i) 
+	return (Foo);
+else
+	return (Bar);
+
+}

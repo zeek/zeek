@@ -31,13 +31,13 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 			);
 
 	empty_field.assign(
-			(const char*) BifConst::LogAscii::empty_field->Bytes(),
+			(const char*) BifConst::LogSQLite::empty_field->Bytes(),
 			BifConst::LogAscii::empty_field->Len()
 			);	
 
 	db = 0;
 
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field, empty_field));
+	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -300,7 +300,7 @@ int SQLite::AddParams(Value* val, int pos)
 			if ( j > 0 )
 				desc.AddRaw(set_separator);
 
-			io->ValToODesc(&desc, val->val.set_val.vals[j], NULL); 
+			io->Describe(&desc, val->val.set_val.vals[j], NULL); 
 			// yes, giving NULL here is not really really pretty....
 			// it works however, because tables cannot contain tables...
 			// or vectors.
@@ -320,7 +320,7 @@ int SQLite::AddParams(Value* val, int pos)
 			if ( j > 0 )
 				desc.AddRaw(set_separator);
 
-			io->ValToODesc(&desc, val->val.vector_val.vals[j], NULL);
+			io->Describe(&desc, val->val.vector_val.vals[j], NULL);
 			}
 
 		desc.RemoveEscapeSequence(set_separator);		

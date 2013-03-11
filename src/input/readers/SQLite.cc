@@ -31,8 +31,13 @@ SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
 			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
 			BifConst::InputSQLite::unset_field->Len()
 			);
+
+	empty_field.assign(
+			(const char*) BifConst::LogAscii::empty_field->Bytes(),
+			BifConst::InputSQLite::empty_field->Len()
+			);		
 		
-	io = new AsciiInputOutput(this, AsciiInputOutput::SeparatorInfo(set_separator, unset_field));
+	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -189,7 +194,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 			if ( text == 0 )
 				Error("Port protocol definition did not contain text");
 			else 
-				val->val.port_val.proto = io->StringToProto(s);
+				val->val.port_val.proto = io->ParseProto(s);
 			}
 		break;
 		}
@@ -202,7 +207,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		int width = atoi(s.substr(pos+1).c_str());
 		string addr = s.substr(0, pos);
 
-		val->val.subnet_val.prefix = io->StringToAddr(addr);
+		val->val.subnet_val.prefix = io->ParseAddr(addr);
 		val->val.subnet_val.length = width;		
 		break;
 		}
@@ -211,7 +216,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));			
-		val->val.addr_val = io->StringToAddr(s);			  
+		val->val.addr_val = io->ParseAddr(s);			  
 		break;
 		}
 
@@ -220,7 +225,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));			
-		val = io->StringToVal(s, "", field->type, field->subtype);
+		val = io->ParseValue(s, "", field->type, field->subtype);
 		break;
 		}
 

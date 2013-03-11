@@ -12,7 +12,7 @@
 
 #include "../WriterBackend.h"
 #include "sqlite3.h"
-#include "../../threading/AsciiInputOutput.h"
+#include "../../threading/AsciiFormatter.h"
 
 namespace logging { namespace writer {
 
@@ -50,7 +50,7 @@ private:
 	string unset_field;
 	string empty_field;	
 	
-	AsciiInputOutput* io;
+	AsciiFormatter* io;
 };
 
 }

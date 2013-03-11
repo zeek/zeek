@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
-#include "../../threading/AsciiInputOutput.h"
+#include "../../threading/AsciiFormatter.h"
 
 #include "sqlite3.h"
 
@@ -46,10 +46,11 @@ private:
 	string query;
 	sqlite3 *db;
 	sqlite3_stmt *st;
-	AsciiInputOutput* io;
+	AsciiFormatter* io;
 
 	string set_separator;
 	string unset_field;
+	string empty_field;
 };
 
 

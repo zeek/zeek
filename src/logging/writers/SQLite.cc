@@ -109,14 +109,17 @@ bool SQLite::checkError( int code )
 	return false;	
 	}
 
-bool SQLite::DoInit(const WriterInfo& info, int num_fields,
-			    const Field* const * fields)
+bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
+			    const Field* const * arg_fields)
 	{
 	if ( sqlite3_threadsafe() == 0 ) 
 		{
 		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
 		return false;
 		}
+
+	num_fields = arg_num_fields;
+	fields = arg_fields;	
 	
 	string fullpath(info.path);
 	fullpath.append(".sqlite");
@@ -300,7 +303,7 @@ int SQLite::AddParams(Value* val, int pos)
 			if ( j > 0 )
 				desc.AddRaw(set_separator);
 
-			io->Describe(&desc, val->val.set_val.vals[j], NULL); 
+			io->Describe(&desc, val->val.set_val.vals[j], fields[pos]->name); 
 			// yes, giving NULL here is not really really pretty....
 			// it works however, because tables cannot contain tables...
 			// or vectors.
@@ -320,7 +323,7 @@ int SQLite::AddParams(Value* val, int pos)
 			if ( j > 0 )
 				desc.AddRaw(set_separator);
 
-			io->Describe(&desc, val->val.vector_val.vals[j], NULL);
+			io->Describe(&desc, val->val.vector_val.vals[j], fields[pos]->name);
 			}
 
 		desc.RemoveEscapeSequence(set_separator);		

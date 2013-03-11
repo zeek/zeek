@@ -27,7 +27,7 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new SQLite(frontend); }
     
 protected:
-	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields); 
+	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* arg_fields); 
 
 	virtual void DoClose();
 

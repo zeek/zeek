@@ -25,8 +25,8 @@ public:
 		{ return new SQLite(frontend); }
 
 protected:
-	virtual bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const* fields);
+	virtual bool DoInit(const WriterInfo& info, int arg_num_fields,
+			    const threading::Field* const* arg_fields);
 	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
 			     threading::Value** vals);
 	virtual bool DoSetBuf(bool enabled) { return true; }
@@ -42,6 +42,9 @@ private:
 	int AddParams(threading::Value* val, int pos);
 	string GetTableType(int, int);
 	char* FS(const char* format, ...);
+
+	const threading::Field* const * fields; // raw mapping		
+	unsigned int num_fields;	
 
 	sqlite3 *db;
 	sqlite3_stmt *st;

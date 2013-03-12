@@ -3,22 +3,9 @@
 #include <math.h>
 
 int Base64Decoder::default_base64_table[256];
-const string Base64::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const string Base64Decoder::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-Base64Encoder::Base64Encoder(const string& arg_alphabet) 
-	{
-	if ( arg_alphabet.size() > 0 )
-		{
-		assert(arg_alphabet.size() == 64);
-		alphabet = arg_alphabet;
-		} 
-	else 
-		{
-		alphabet = default_alphabet;
-		}
-	}
-
-void Base64Encoder::Encode(int len, const unsigned char* data, int* pblen, char** pbuf) 
+void Base64Decoder::Encode(int len, const unsigned char* data, int* pblen, char** pbuf) 
 	{
 	int blen;
 	char *buf;
@@ -97,9 +84,19 @@ int* Base64Decoder::InitBase64Table(const string& alphabet)
 
 
 
-Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& alphabet)
+Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& arg_alphabet)
 	{
-	base64_table = InitBase64Table(alphabet.size() ? alphabet : default_alphabet);
+	if ( arg_alphabet.size() > 0 )
+		{
+		assert(arg_alphabet.size() == 64);
+		alphabet = arg_alphabet;
+		} 
+	else 
+		{
+		alphabet = default_alphabet;
+		}
+
+	base64_table = 0;
 	base64_group_next = 0;
 	base64_padding = base64_after_padding = 0;
 	errored = 0;
@@ -116,6 +113,10 @@ int Base64Decoder::Decode(int len, const char* data, int* pblen, char** pbuf)
 	{
 	int blen;
 	char* buf;
+
+	// initialization of table on first_time call of Decode
+	if ( base64_table == 0 ) 
+		base64_table = InitBase64Table(alphabet);
 
 	if ( ! pbuf )
 		reporter->InternalError("nil pointer to decoding result buffer");
@@ -260,7 +261,7 @@ BroString* encode_base64(const BroString* s, const BroString* a)
 
 	char* outbuf = 0;
 	int outlen = 0;
-	Base64Encoder enc;
+	Base64Decoder enc(0);
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
 	return new BroString(1, (u_char*)outbuf, outlen);

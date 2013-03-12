@@ -10,27 +10,10 @@
 #include "Analyzer.h"
 
 // Maybe we should have a base class for generic decoders?
-
-class Base64 {
-public: 
-protected:
-	static const string default_alphabet;
-};
-
-
-class Base64Encoder : public Base64 {
-public:
-	Base64Encoder(const string& arg_alphabet = "");
-	void Encode(int len, const unsigned char* data, int* blen, char** buf);
-protected:
-	string alphabet;
-	
-}; 
-
-class Base64Decoder : public Base64 {
+class Base64Decoder {
 public:
 	// <analyzer> is used for error reporting, and it should be zero when
-	// the decoder is called by the built-in function decode_base64().
+	// the decoder is called by the built-in function decode_base64() or encode_base64().
 	// Empty alphabet indicates the default base64 alphabet.
 	Base64Decoder(Analyzer* analyzer, const string& alphabet = "");
 	~Base64Decoder();
@@ -46,6 +29,7 @@ public:
 	// is not enough output buffer space.
 
 	int Decode(int len, const char* data, int* blen, char** buf);
+	void Encode(int len, const unsigned char* data, int* blen, char** buf);	
 
 	int Done(int* pblen, char** pbuf);
 	int HasData() const { return base64_group_next != 0; }
@@ -67,6 +51,9 @@ protected:
 	char error_msg[256];
 
 protected:
+	static const string default_alphabet;
+	string alphabet;	
+
 	static int* InitBase64Table(const string& alphabet);
 	static int default_base64_table[256];
 	char base64_group[4];

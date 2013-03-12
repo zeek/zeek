@@ -855,6 +855,8 @@ void HTTP_Analyzer::Done()
 		Unref(unanswered_requests.front());
 		unanswered_requests.pop();
 		}
+
+	file_mgr->EndOfFile(Conn());
 	}
 
 void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)

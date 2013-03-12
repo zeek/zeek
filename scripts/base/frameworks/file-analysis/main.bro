@@ -127,16 +127,19 @@ function get_handle(c: connection, is_orig: bool): string
 	local cid: conn_id = c$id;
 
 	if ( "ftp-data" in c$service )
-		rval = fmt("%s: %s", "ftp-data", conn_str(c));
+		rval = fmt("%s ftp-data: %s", c$start_time, conn_str(c));
+
+	if ( "irc-dcc-data" in c$service )
+		rval = fmt("%s irc-dcc-data: %s", c$start_time, conn_str(c));
 
 	else if ( c?$http )
 		{
 		if ( c$http$range_request )
-			rval = fmt("http(%s): %s: %s", is_orig, c$id$orig_h,
-			           HTTP::build_url(c$http));
+			rval = fmt("%s http(%s): %s: %s", c$start_time, is_orig,
+			           c$id$orig_h, HTTP::build_url(c$http));
 		else
-			rval = fmt("http(%s, %s): %s", is_orig, c$http$trans_depth,
-			           conn_str(c));
+			rval = fmt("%s http(%s, %s): %s", c$start_time, is_orig,
+			           c$http$trans_depth, conn_str(c));
 		}
 
 	#print fmt("file handle: %s", rval);

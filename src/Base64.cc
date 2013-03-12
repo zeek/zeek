@@ -261,7 +261,7 @@ BroString* encode_base64(const BroString* s, const BroString* a)
 
 	char* outbuf = 0;
 	int outlen = 0;
-	Base64Decoder enc(0);
+	Base64Decoder enc(0, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
 	return new BroString(1, (u_char*)outbuf, outlen);

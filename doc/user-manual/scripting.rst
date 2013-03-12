@@ -349,9 +349,9 @@ While there is currently no supported way to add a time constant in Bro, two bui
 
 When the script is executed we get an output showing the details of established connections.  
 
-.. btest:: data_type_subnets
+.. btest:: data_type_time
 
-    @TEST-EXEC: btest-rst-cmd bro  -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_time.bro
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_time.bro
 
 interval
 ~~~~~~~~
@@ -367,9 +367,10 @@ Intervals in Bro can have mathematical operations performed against them allowin
 
 This time, when we execute the script we see an additional line in the output to display the time delta since the last fully established connection.  
 
-.. btest:: data_type_subnets
+.. btest:: data_type_interval
 
-    @TEST-EXEC: btest-rst-cmd bro  -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_interval.bro
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/wikipedia.trace ${TESTBASE}/doc/manual/data_type_interval.bro
+
 
 Pattern
 ~~~~~~~
@@ -383,7 +384,8 @@ Bro has support for fast text searching operations using regular expressions and
 
 In the sample above, two local variables are declared to hold our sample sentence and regular expression.  Our regular expression in this case will return true if the string contains either the word "quick" or the word "fox."  The ``if`` statement on line six uses embedded matching and the ``in`` operator to check for the existence of the pattern within the string.  If the statement resolves to true, split is called to break the string into separate pieces.  Split takes a string and a pattern as its arguments and returns a table of strings indexed by a count.  Each element of the table will be the segments before and after any matches against the pattern but excluding the actual matches.  In this case, our pattern matches twice, and results in a table with three entries.  Lines 11 through 13 print the contents of the table in order.  
 
-.. btest:: data_type_subnets
+.. btest:: data_type_pattern
+
     @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_type_pattern_01.bro
 
 Patterns can also be used to compare strings using equality and inequality operators through the ``==`` and ``!=`` operators respectively. When used in this manner however, the string must match entirely to resolve to true.  For example, the script below uses two ternary conditional statements to illustrate the use of the ``==`` operators with patterns.  On lines 5 and 8 the output is altered based on the result of the comparison between the pattern and the string.  
@@ -393,15 +395,17 @@ Patterns can also be used to compare strings using equality and inequality opera
    :linenos:
    :lines: 4-13
 
-.. btest:: data_type_subnets
+.. btest:: data_type_pattern_02
+
     @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_type_pattern_02.bro
+
 
 
 Advanced Data Types
 ===================
 
 Custom Data Types
-~~~~~~~~~~~~~~~~~
+-----------------
 
 With Bro's support for a wide array of data types and data structures an obvious extension of is to include the ability to create custom data types consisting of the atomic types and ddata structures.  To accomplish this, Bro introduces the ``record`` type and the ``type`` keyword.  Similar to how you would define a new data structure in C with the ``typedef`` and ``struct`` keywords, Bro allows you to cobble together new data types to suit the needs of your situation.
 
@@ -416,24 +420,26 @@ While it might be surprising that Bro is tracking and passing around this much d
 
 The formatting for a declaration of a record type in Bro includes the descriptive name of the type being defined and the seperate entities that make up the record.  The individual entites that make up the new record are not limited in type or number as long as the name for each entity is unique.
 
-.. rootliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_record_01.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_record_01.bro
    :language: bro
    :linenos:
    :lines: 4-25
 
 .. btest:: data_struct_record_01
+
    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_struct_record_01.bro
 
 The sample above shows a simple type definition that includes a string, a set of ports, and a count to define a service type.  Also included is a function to print each entity of a record in a formatted fashion and a bro_init event handler to show some functionality of working with records.  The defintions of the dns and http services are both done inline using squared brackets before being passed to the ``print_service`` function.  The ``print_service`` function makes use of the ``$`` dereference operator to access the entities within the newly defined Service record type.  
 
 As you saw in the definition for the connection record, other records are even valid as entities within another record.  We can extend the example above to include another record that contains a Service record.
 
-.. rootliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_record_02.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_record_02.bro
    :language: bro
    :linenos:
    :lines: 4-25
 
 .. btest:: data_struct_record_02
+
    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_struct_record_02.bro
 
 The example above includes a second record type in which an entity is used as the data type for a set.  Records can be reapeatedly nested within other records, their entities reachable through repeated chains of the ``$`` dereference operator.  
@@ -446,4 +452,3 @@ It's also common to see a ``type`` used to simply alias a data structure to a mo
    :lines: 12,19,26
 
 The three lines above alias a type of data structure to a descriptive name.  Functionally, the operations are the same, however, each of the types above are named such that their function is instantly identifiable.  This is another place in Bro scripting where consideration can lead to better readability of your code and thus easier maintainability in the future.   
-

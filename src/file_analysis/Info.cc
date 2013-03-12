@@ -74,7 +74,7 @@ void Info::InitFieldIndices()
 	actions_idx = Idx("actions");
 	}
 
-Info::Info(const string& unique, Connection* conn, const string& source)
+Info::Info(const string& unique, Connection* conn)
     : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
       postpone_timeout(false), need_reassembly(false), done(false),
       actions(this)
@@ -93,10 +93,31 @@ Info::Info(const string& unique, Connection* conn, const string& source)
 	val->Assign(file_id_idx, new StringVal(id));
 	file_id = FileID(id);
 
-	UpdateConnectionFields(conn);
+	if ( conn )
+		{
+		// update source and connection fields
+		RecordVal* cval = conn->BuildConnVal();
+		ListVal* services = cval->Lookup(5)->AsTableVal()->ConvertToPureList();
+		Unref(cval);
+		string source;
 
-	if ( ! source.empty() )
-		val->Assign(source_idx, new StringVal(source.c_str()));
+		for ( int i = 0; i < services->Length(); ++i )
+			{
+			if ( i > 0 )
+				source += ", ";
+			source += services->Index(i)->AsStringVal()->CheckString();
+			}
+
+		Unref(services);
+
+		if ( ! source.empty() )
+			val->Assign(source_idx, new StringVal(source.c_str()));
+
+		UpdateConnectionFields(conn);
+		}
+	else
+		// use the unique file handle as source
+		val->Assign(source_idx, new StringVal(unique.c_str()));
 	}
 
 Info::~Info()
@@ -263,7 +284,7 @@ void Info::ReplayBOF()
 
 void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 	// TODO: attempt libmagic stuff here before doing reassembly?
 
 	Action* act = 0;
@@ -275,7 +296,7 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 			actions.QueueRemoveAction(act->Args());
 		}
 
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 
 	// TODO: check reassembly requirement based on buffer size in record
 	if ( need_reassembly )
@@ -290,7 +311,7 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 
 void Info::DataIn(const u_char* data, uint64 len)
 	{
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 
 	if ( BufferBOF(data, len) ) return;
 
@@ -312,7 +333,7 @@ void Info::DataIn(const u_char* data, uint64 len)
 			actions.QueueRemoveAction(act->Args());
 		}
 
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
@@ -321,7 +342,7 @@ void Info::EndOfFile()
 	if ( done ) return;
 	done = true;
 
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 
 	// Send along anything that's been buffered, but never flushed.
 	ReplayBOF();
@@ -340,12 +361,12 @@ void Info::EndOfFile()
 	else
 		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_EOF, this);
 
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 	}
 
 void Info::Gap(uint64 offset, uint64 len)
 	{
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 
 	// If we were buffering the beginning of the file, a gap means we've got
 	// as much contiguous stuff at the beginning as possible, so work with that.
@@ -362,6 +383,6 @@ void Info::Gap(uint64 offset, uint64 len)
 
 	file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_GAP, this);
 
-	actions.FlushQueuedModifications();
+	actions.DrainModifications();
 	IncrementByteCount(len, missing_bytes_idx);
 	}

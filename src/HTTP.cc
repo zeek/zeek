@@ -12,6 +12,7 @@
 #include "HTTP.h"
 #include "Event.h"
 #include "MIME.h"
+#include "file_analysis/Manager.h"
 
 const bool DEBUG_http = false;
 
@@ -194,6 +195,12 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		}
 	else
 		DeliverBodyClear(len, data, trailing_CRLF);
+
+	file_mgr->DataIn(reinterpret_cast<const u_char*>(data), len,
+	                 http_message->MyHTTP_Analyzer()->Conn(),
+	                 http_message->IsOrig());
+	// TODO: set size if we have content_length?
+	// TODO: handle partial content and multipart/byteranges
 	}
 
 void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
@@ -586,6 +593,8 @@ void HTTP_Message::EndEntity(MIME_Entity* entity)
 	// SubmitAllHeaders (through EndOfData).
 	if ( entity == top_level )
 		Done();
+
+	file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
 	}
 
 void HTTP_Message::SubmitHeader(MIME_Header* h)

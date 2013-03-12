@@ -16,6 +16,32 @@ Manager::~Manager()
 	Terminate();
 	}
 
+string Manager::GetFileHandle(Connection* conn, bool is_orig)
+	{
+	if ( ! conn ) return "";
+
+	const ID* id = global_scope()->Lookup("FileAnalysis::get_handle");
+	assert(id);
+	const Func* func = id->ID_Val()->AsFunc();
+
+	val_list vl(2);
+	vl.append(conn->BuildConnVal());
+	vl.append(new Val(is_orig, TYPE_BOOL));
+
+	Val* result = func->Call(&vl);
+	string rval = result->AsString()->CheckString();
+	Unref(result);
+	return rval;
+	}
+
+void Manager::DrainPending()
+	{
+	for ( size_t i = 0; i < pending.size(); ++i )
+		pending[i].Retry();
+
+	pending.clear();
+	}
+
 void Manager::Terminate()
 	{
 	vector<FileID> keys;
@@ -25,65 +51,133 @@ void Manager::Terminate()
 		Timeout(keys[i], true);
 	}
 
-void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
-                     uint64 offset, Connection* conn, const string& source)
+void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+                     Connection* conn, bool is_orig, bool allow_retry)
 	{
-	if ( IsIgnored(unique) ) return;
+	string unique = GetFileHandle(conn, is_orig);
 
-	Info* info = GetInfo(unique, conn, source);
+	if ( ! unique.empty() )
+		{
+		DataIn(data, len, offset, GetInfo(unique, conn));
+		return;
+		}
 
+	if ( allow_retry )
+		pending.push_back(PendingFile(data, len, offset, conn, is_orig));
+	}
+
+void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+                     const string& unique)
+	{
+	DataIn(data, len, offset, GetInfo(unique));
+	}
+
+void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+                     Info* info)
+	{
 	if ( ! info ) return;
 
 	info->DataIn(data, len, offset);
 
 	if ( info->IsComplete() )
-		RemoveFile(unique);
+		RemoveFile(info->GetUnique());
 	}
 
-void Manager::DataIn(const string& unique, const u_char* data, uint64 len,
-                     Connection* conn, const string& source)
+void Manager::DataIn(const u_char* data, uint64 len, Connection* conn,
+                     bool is_orig, bool allow_retry)
 	{
-	Info* info = GetInfo(unique, conn, source);
+	string unique = GetFileHandle(conn, is_orig);
 
+	if ( ! unique.empty() )
+		{
+		DataIn(data, len, GetInfo(unique, conn));
+		return;
+		}
+
+	if ( allow_retry )
+		pending.push_back(PendingFile(data, len, conn, is_orig));
+	}
+
+void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
+	{
+	DataIn(data, len, GetInfo(unique));
+	}
+
+void Manager::DataIn(const u_char* data, uint64 len, Info* info)
+	{
 	if ( ! info ) return;
 
 	info->DataIn(data, len);
 
 	if ( info->IsComplete() )
-		RemoveFile(unique);
+		RemoveFile(info->GetUnique());
 	}
 
-void Manager::EndOfFile(const string& unique, Connection* conn,
-                        const string& source)
+void Manager::EndOfFile(Connection* conn)
 	{
-	// Just call GetInfo because maybe the conn/source args will update
-	// something in the Info record.
-	GetInfo(unique, conn, source);
+	EndOfFile(conn, true);
+	EndOfFile(conn, false);
+	}
+
+void Manager::EndOfFile(Connection* conn, bool is_orig)
+	{
+	string unique = GetFileHandle(conn, is_orig);
+
+	if ( unique.empty() ) return; // nothing to do
+
 	RemoveFile(unique);
 	}
 
-void Manager::Gap(const string& unique, uint64 offset, uint64 len,
-                  Connection* conn, const string& source)
+void Manager::EndOfFile(const string& unique)
 	{
-	Info* info = GetInfo(unique, conn, source);
+	RemoveFile(unique);
+	}
 
+void Manager::Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig)
+	{
+	string unique = GetFileHandle(conn, is_orig);
+
+	if ( unique.empty() ) return;  // nothing to do since no data has been seen
+
+	Gap(offset, len, GetInfo(unique, conn));
+	}
+
+void Manager::Gap(uint64 offset, uint64 len, const string& unique)
+	{
+	Gap(offset, len, GetInfo(unique));
+	}
+
+void Manager::Gap(uint64 offset, uint64 len, Info* info)
+	{
 	if ( ! info ) return;
 
 	info->Gap(offset, len);
 	}
 
-void Manager::SetSize(const string& unique, uint64 size,
-                      Connection* conn, const string& source)
+void Manager::SetSize(uint64 size, Connection* conn, bool is_orig)
 	{
-	Info* info = GetInfo(unique, conn, source);
+	string unique = GetFileHandle(conn, is_orig);
 
+	if ( unique.empty() ) return; // ok assuming this always follows a DataIn()
+
+	SetSize(size, GetInfo(unique, conn));
+	}
+
+void Manager::SetSize(uint64 size, const string& unique)
+	{
+	SetSize(size, GetInfo(unique));
+	}
+
+void Manager::SetSize(uint64 size, Info* info)
+	{
 	if ( ! info ) return;
 
 	info->SetTotalBytes(size);
 
 	if ( info->IsComplete() )
-		RemoveFile(unique);
+		RemoveFile(info->GetUnique());
 	}
+
 
 void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
 	{
@@ -131,8 +225,7 @@ bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
 	return info->RemoveAction(args);
 	}
 
-Info* Manager::GetInfo(const string& unique, Connection* conn,
-                       const string& source)
+Info* Manager::GetInfo(const string& unique, Connection* conn)
 	{
 	if ( IsIgnored(unique) ) return 0;
 
@@ -140,7 +233,7 @@ Info* Manager::GetInfo(const string& unique, Connection* conn,
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new Info(unique, conn, source);
+		rval = str_map[unique] = new Info(unique, conn);
 		FileID id = rval->GetFileID();
 
 		if ( id_map[id] )

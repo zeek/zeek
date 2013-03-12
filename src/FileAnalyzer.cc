@@ -15,19 +15,13 @@ File_Analyzer::File_Analyzer(Connection* conn)
 
 	bro_init_magic(&magic, MAGIC_NONE);
 	bro_init_magic(&magic_mime, MAGIC_MIME);
-
-	char op[256], rp[256];
-	modp_ulitoa10(ntohs(conn->OrigPort()), op);
-	modp_ulitoa10(ntohs(conn->RespPort()), rp);
-	unique_file = "TCPFile " + conn->OrigAddr().AsString() + ":" + op + "->" +
-				  conn->RespAddr().AsString() + ":" + rp;
 	}
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	file_mgr->DataIn(unique_file, data, len, Conn());
+	file_mgr->DataIn(data, len, Conn(), orig);
 
 	int n = min(len, BUFFER_SIZE - buffer_len);
 
@@ -46,14 +40,14 @@ void File_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
-	file_mgr->Gap(unique_file, seq, len);
+	file_mgr->Gap(seq, len, Conn(), orig);
 	}
 
 void File_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
-	file_mgr->EndOfFile(unique_file, Conn());
+	file_mgr->EndOfFile(Conn());
 
 	if ( buffer_len && buffer_len != BUFFER_SIZE )
 		Identify();

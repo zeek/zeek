@@ -168,7 +168,7 @@ void ActionSet::InsertAction(Action* act, HashKey* key)
 	        new RecordVal(BifType::Record::FileAnalysis::ActionResults));
 	}
 
-void ActionSet::FlushQueuedModifications()
+void ActionSet::DrainModifications()
 	{
 	if ( mod_queue.empty() ) return;
 

@@ -5,6 +5,11 @@
 # TODO: do logging here?
 @load base/frameworks/logging
 
+# dependendies for file handle determination
+@load base/protocols/http/main
+@load base/protocols/http/utils
+@load base/protocols/ftp/main
+
 module FileAnalysis;
 
 export {
@@ -105,5 +110,35 @@ export {
 	## TODO: document
 	global policy: hook(trig: Trigger, info: Info);
 
+	global get_handle: function(c: connection, is_orig: bool): string &redef;
+
 	# TODO: wrapper functions for BiFs ?
 }
+
+function conn_str(c: connection): string
+	{
+	return fmt("%s:%s -> %s:%s", c$id$orig_h, c$id$orig_p,
+	           c$id$resp_h, c$id$resp_p);
+	}
+
+function get_handle(c: connection, is_orig: bool): string
+	{
+	local rval: string = "";
+	local cid: conn_id = c$id;
+
+	if ( "ftp-data" in c$service )
+		rval = fmt("%s: %s", "ftp-data", conn_str(c));
+
+	else if ( c?$http )
+		{
+		if ( c$http$range_request )
+			rval = fmt("http(%s): %s: %s", is_orig, c$id$orig_h,
+			           HTTP::build_url(c$http));
+		else
+			rval = fmt("http(%s, %s): %s", is_orig, c$http$trans_depth,
+			           conn_str(c));
+		}
+
+	#print fmt("file handle: %s", rval);
+	return rval;
+	}

@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <vector>
 
 #include "Net.h"
 #include "Conn.h"
@@ -12,6 +13,7 @@
 #include "Info.h"
 #include "InfoTimer.h"
 #include "FileID.h"
+#include "PendingFile.h"
 
 namespace file_analysis {
 
@@ -26,6 +28,17 @@ public:
 	~Manager();
 
 	/**
+	 * Attempts to forward the data from any pending file contents, i.e.
+	 * those for which a unique file handle string could not immediately
+	 * be determined.  If again a file handle can't be determined, give up.
+	 * The assumption for this to work correctly is that the EventMgr would
+	 * have always drained between packet boundaries, so calling this method
+	 * at that time may mean the script-layer function for generating file
+	 * handles can now come up with a result.
+	 */
+	void DrainPending();
+
+	/**
 	 * Times out any active file analysis to prepare for shutdown.
 	 */
 	void Terminate();
@@ -33,33 +46,41 @@ public:
 	/**
 	 * Pass in non-sequential file data.
 	 */
-	void DataIn(const string& unique, const u_char* data, uint64 len,
-	            uint64 offset, Connection* conn = 0,
-	            const string& source = "");
+    void DataIn(const u_char* data, uint64 len, uint64 offset,
+                Connection* conn, bool is_orig, bool allow_retry = true);
+    void DataIn(const u_char* data, uint64 len, uint64 offset,
+                const string& unique);
+    void DataIn(const u_char* data, uint64 len, uint64 offset,
+                Info* info);
 
 	/**
 	 * Pass in sequential file data.
 	 */
-	void DataIn(const string& unique, const u_char* data, uint64 len,
-	            Connection* conn = 0, const string& source = "");
+	void DataIn(const u_char* data, uint64 len, Connection* conn, bool is_orig,
+	            bool allow_retry = true);
+	void DataIn(const u_char* data, uint64 len, const string& unique);
+	void DataIn(const u_char* data, uint64 len, Info* info);
 
 	/**
 	 * Signal the end of file data.
 	 */
-	void EndOfFile(const string& unique, Connection* conn = 0,
-	               const string& source = "");
+	void EndOfFile(Connection* conn);
+	void EndOfFile(Connection* conn, bool is_orig);
+	void EndOfFile(const string& unique);
 
 	/**
 	 * Signal a gap in the file data stream.
 	 */
-	void Gap(const string& unique, uint64 offset, uint64 len,
-	         Connection* conn = 0, const string& source = "");
+	void Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig);
+	void Gap(uint64 offset, uint64 len, const string& unique);
+	void Gap(uint64 offset, uint64 len, Info* info);
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
-	void SetSize(const string& unique, uint64 size, Connection* conn = 0,
-	             const string& source = "");
+	void SetSize(uint64 size, Connection* conn, bool is_orig);
+	void SetSize(uint64 size, const string& unique);
+	void SetSize(uint64 size, Info* info);
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -96,20 +117,31 @@ public:
 protected:
 
 	friend class InfoTimer;
+	friend class PendingFile;
 
 	typedef map<string, Info*> StrMap;
 	typedef set<string> StrSet;
 	typedef map<FileID, Info*> IDMap;
+	typedef vector<PendingFile> PendingList;
 
 	/**
 	 * @return the Info object mapped to \a unique or a null pointer if analysis
 	 *         is being ignored for the associated file.  An Info object may be
 	 *         created if a mapping doesn't exist, and if it did exist, the
-	 *         activity time is refreshed and connection-related fields of the
-	 *         record value may be updated.
+	 *         activity time is refreshed along with any connection-related
+	 *         fields.
 	 */
-	Info* GetInfo(const string& unique, Connection* conn = 0,
-	              const string& source = "");
+	Info* GetInfo(const string& unique, Connection* conn = 0);
+
+	/**
+	 * @return a string which can uniquely identify the file being transported
+	 *         over the connection.  A script-layer function is evaluated in
+	 *         order to determine the unique string.  An empty string means
+	 *         a unique handle for the file couldn't be determined at the time
+	 *         time the function was evaluated (possibly because some events
+	 *         have not yet been drained from the queue).
+	 */
+	string GetFileHandle(Connection* conn, bool is_orig);
 
 	/**
 	 * @return the Info object mapped to \a file_id, or a null pointer if no
@@ -137,6 +169,7 @@ protected:
 	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
 	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
+	PendingList pending; /**< Files waiting for next Tick to return a handle */
 };
 
 } // namespace file_analysis

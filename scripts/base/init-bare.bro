@@ -300,7 +300,7 @@ type connection: record {
 	## one protocol analyzer is able to parse the same data. If so, all will
 	## be recorded. Also note that the recorced services are independent of any
 	## transport-level protocols.
-        service: set[string];
+	service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.

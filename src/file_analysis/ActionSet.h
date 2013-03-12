@@ -43,7 +43,7 @@ public:
 	/**
 	 * Perform all queued modifications to the currently active actions.
 	 */
-	void FlushQueuedModifications();
+	void DrainModifications();
 
 	IterCookie* InitForIteration() const
 		{ return action_map.InitForIteration(); }

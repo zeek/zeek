@@ -117,7 +117,7 @@ protected:
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	Info(const string& unique, Connection* conn = 0, const string& source = "");
+	Info(const string& unique, Connection* conn = 0);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the

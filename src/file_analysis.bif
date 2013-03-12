@@ -96,41 +96,31 @@ function FileAnalysis::stop%(file_id: string%): bool
 
 function FileAnalysis::input_data%(source: string, data: string%): any
 	%{
-	string s = source->CheckString();
-	string unique = "BIF " + s;
-	file_mgr->DataIn(unique, data->Bytes(), data->Len(), 0, s);
+	file_mgr->DataIn(data->Bytes(), data->Len(), source->CheckString());
 	return 0;
 	%}
 
 function FileAnalysis::input_data_chunk%(source: string, data: string,
                                          offset: count%): any
 	%{
-	string s = source->CheckString();
-	string unique = "BIF " + s;
-	file_mgr->DataIn(unique, data->Bytes(), data->Len(), offset, 0, s);
+	file_mgr->DataIn(data->Bytes(), data->Len(), offset, source->CheckString());
 	return 0;
 	%}
 
 function FileAnalysis::gap%(source: string, offset: count, len: count%): any
 	%{
-	string s = source->CheckString();
-	string unique = "BIF " + s;
-	file_mgr->Gap(unique, offset, len, 0, s);
+	file_mgr->Gap(offset, len, source->CheckString());
 	return 0;
 	%}
 
 function FileAnalysis::set_size%(source: string, size: count%): any
 	%{
-	string s = source->CheckString();
-	string unique = "BIF " + s;
-	file_mgr->SetSize(unique, size, 0, s);
+	file_mgr->SetSize(size, source->CheckString());
 	return 0;
 	%}
 
 function FileAnalysis::input_eof%(source: string%): any
 	%{
-	string s = source->CheckString();
-	string unique = "BIF "+ s;
-	file_mgr->EndOfFile(unique, 0, s);
+	file_mgr->EndOfFile(source->CheckString());
 	return 0;
 	%}

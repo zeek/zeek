@@ -96,12 +96,12 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 				align_val->Assign(0, new StringVal(new BroString(*align.string)));
 				align_val->Assign(1, new Val(align.index, TYPE_COUNT));
 
-				aligns->Assign(j+1, align_val, 0);
+				aligns->Assign(j+1, align_val);
 				}
 
 			st_val->Assign(1, aligns);
 			st_val->Assign(2, new Val(bst->IsNewAlignment(), TYPE_BOOL));
-			result->Assign(i+1, st_val, 0);
+			result->Assign(i+1, st_val);
 			}
 		}
 

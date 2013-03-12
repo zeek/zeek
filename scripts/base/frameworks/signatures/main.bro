@@ -161,7 +161,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 		return;
 
 	# Trim the matched data down to something reasonable
-	if ( byte_len(data) > 140 )
+	if ( |data| > 140 )
 		data = fmt("%s...", sub_bytes(data, 0, 140));
 		
 	local src_addr: addr;
@@ -259,8 +259,8 @@ event signature_match(state: signature_state, msg: string, data: string)
 
 	add vert_table[orig, resp][sig_id];
 
-	local hcount = length(horiz_table[orig, sig_id]);
-	local vcount = length(vert_table[orig, resp]);
+	local hcount = |horiz_table[orig, sig_id]|;
+	local vcount = |vert_table[orig, resp]|;
 
 	if ( hcount in horiz_scan_thresholds && hcount != last_hthresh[orig] )
 		{

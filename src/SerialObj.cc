@@ -155,7 +155,7 @@ SerialObj* SerialObj::Unserialize(UnserialInfo* info, SerialType type)
 	else
 		{
 		// Broccoli compatibility mode with 32bit pids.
-		uint32 tmp;
+		uint32 tmp = 0;
 		result = UNSERIALIZE(&full_obj) && UNSERIALIZE(&tmp);
 		pid = tmp;
 		}

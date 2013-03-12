@@ -371,7 +371,7 @@ void StateAccess::Replay()
 
 			CheckOld("index assign", target.id, op1.val, op3,
 					v->AsVectorVal()->Lookup(index));
-			v->AsVectorVal()->Assign(index, op2 ? op2->Ref() : 0, 0);
+			v->AsVectorVal()->Assign(index, op2 ? op2->Ref() : 0);
 			}
 
 		else
@@ -421,7 +421,7 @@ void StateAccess::Replay()
 			Val* lookup_op1 = v->AsVectorVal()->Lookup(index);
 			int delta = lookup_op1->CoerceToInt() + amount;
 			Val* new_val = new Val(delta, t);
-			v->AsVectorVal()->Assign(index, new_val, 0);
+			v->AsVectorVal()->Assign(index, new_val);
 			}
 
 		else
@@ -926,16 +926,21 @@ void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 	DBG_LOG(DBG_NOTIFIERS, "registering ID %s for notifier %s",
 		id->Name(), notifier->Name());
 
+	Attr* attr = new Attr(ATTR_TRACKED);
+
 	if ( id->Attrs() )
-		id->Attrs()->AddAttr(new Attr(ATTR_TRACKED));
+		{
+		if ( ! id->Attrs()->FindAttr(ATTR_TRACKED) )
+			id->Attrs()->AddAttr(attr);
+		}
 	else
 		{
 		attr_list* a = new attr_list;
-		Attr* attr = new Attr(ATTR_TRACKED);
 		a->append(attr);
 		id->SetAttrs(new Attributes(a, id->Type(), false));
-		Unref(attr);
 		}
+
+	Unref(attr);
 
 	NotifierMap::iterator i = ids.find(id->Name());
 
@@ -967,7 +972,9 @@ void NotifierRegistry::Unregister(ID* id, NotifierRegistry::Notifier* notifier)
 	if ( i == ids.end() )
 		return;
 
+	Attr* attr = id->Attrs()->FindAttr(ATTR_TRACKED);
 	id->Attrs()->RemoveAttr(ATTR_TRACKED);
+	Unref(attr);
 
 	NotifierSet* s = i->second;
 	s->erase(notifier);

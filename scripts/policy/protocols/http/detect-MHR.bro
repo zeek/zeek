@@ -32,7 +32,7 @@ event log_http(rec: HTTP::Info)
 			{
 			# Data is returned as "<dateFirstDetected> <detectionRate>"
 			local MHR_answer = split1(MHR_result, / /);
-			if ( length(MHR_answer) == 2 && to_count(MHR_answer[2]) >= MHR_threshold )
+			if ( |MHR_answer| == 2 && to_count(MHR_answer[2]) >= MHR_threshold )
 				{
 				local url = HTTP::build_url_http(rec);
 				local message = fmt("%s %s %s", rec$id$orig_h, rec$md5, url);

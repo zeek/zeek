@@ -29,8 +29,6 @@ protected:
 	char buffer[BUFFER_SIZE];
 	int buffer_len;
 
-	static void InitMagic(magic_t* magic, int flags);
-
 	static magic_t magic;
 	static magic_t magic_mime;
 };

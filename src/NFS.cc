@@ -599,7 +599,7 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 				entry->Assign(4, nfs3_post_op_fh(buf,n));
 				}
 
-			entries->Assign(pos, entry, 0);
+			entries->Assign(pos, entry);
 			pos++;
 			}
 

@@ -16,6 +16,7 @@
 #include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "util.h"
 
 using namespace std;
 
@@ -844,38 +845,21 @@ extern "C" {
 ## return_mime: If true, the function returns a short MIME type string (e.g.,
 ##              ``text/plain`` instead of a more elaborate textual description).
 ##
-## Returns: The MIME type of *data*.
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
 function identify_data%(data: string, return_mime: bool%): string
 	%{
-	const char* descr = "";
-
 	static magic_t magic_mime = 0;
 	static magic_t magic_descr = 0;
 
 	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
+	bro_init_magic(magic, return_mime ? MAGIC_MIME : MAGIC_NONE);
 
 	if( ! *magic )
-		{
-		*magic = magic_open(return_mime ? MAGIC_MIME : MAGIC_NONE);
+		return new StringVal("<unknown>");
 
-		if ( ! *magic )
-			{
-			reporter->Error("can't init libmagic: %s", magic_error(*magic));
-			return new StringVal("");
-			}
+	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
 
-		if ( magic_load(*magic, 0) < 0 )
-			{
-			reporter->Error("can't load magic file: %s", magic_error(*magic));
-			magic_close(*magic);
-			*magic = 0;
-			return new StringVal("");
-			}
-		}
-
-	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-
-	return new StringVal(descr);
+	return new StringVal(desc ? desc : "<unknown>");
 	%}
 
 ## Performs an entropy test on the given data.
@@ -1031,29 +1015,6 @@ function clear_table%(v: any%): any
 		builtin_error("clear_table() requires a table/set argument");
 
 	return 0;
-	%}
-
-## Returns the number of elements in a container. This function works with all
-## container types, i.e., sets, tables, and vectors.
-##
-## v: The container whose elements are counted.
-##
-## Returns: The number of elements in *v*.
-function length%(v: any%): count
-	%{
-	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
-
-	if ( tv )
-		return new Val(tv->Size(), TYPE_COUNT);
-
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
-		return new Val(v->AsVectorVal()->Size(), TYPE_COUNT);
-
-	else
-		{
-		builtin_error("length() requires a table/set/vector argument");
-		return new Val(0, TYPE_COUNT);
-		}
 	%}
 
 ## Checks whether two objects reference the same internal object. This function
@@ -1349,7 +1310,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
-		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
+		result_v->Assign(i, new Val(ind, TYPE_COUNT));
 		}
 
 	return result_v;
@@ -1633,7 +1594,7 @@ function record_type_to_vector%(rt: string%): string_vec
 		for ( int i = 0; i < type->NumFields(); ++i )
 			{
 			StringVal* val = new StringVal(type->FieldName(i));
-			result->Assign(i+1, val, 0);
+			result->Assign(i+1, val);
 			}
 		}
 
@@ -2139,7 +2100,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	while ( len > 0 )
 		{
 		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
-		rval->Assign(rval->Size(), new AddrVal(a), 0);
+		rval->Assign(rval->Size(), new AddrVal(a));
 		bytes += 16;
 		len -= 16;
 		}
@@ -2162,7 +2123,7 @@ function addr_to_counts%(a: addr%): index_vec
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT), 0);
+		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT));
 
 	return rval;
 	%}
@@ -3616,7 +3577,7 @@ function lookup_addr%(host: addr%) : string
 
 ## Issues an asynchronous TEXT DNS lookup and delays the function result.
 ## This function can therefore only be called inside a ``when`` condition,
-## e.g., ``when ( local h = lookup_hostname_txt("www.bro-ids.org") ) { f(h); }``.
+## e.g., ``when ( local h = lookup_hostname_txt("www.bro.org") ) { f(h); }``.
 ##
 ## host: The hostname to lookup.
 ##
@@ -3645,7 +3606,7 @@ function lookup_hostname_txt%(host: string%) : string
 
 ## Issues an asynchronous DNS lookup and delays the function result.
 ## This function can therefore only be called inside a ``when`` condition,
-## e.g., ``when ( local h = lookup_hostname("www.bro-ids.org") ) { f(h); }``.
+## e.g., ``when ( local h = lookup_hostname("www.bro.org") ) { f(h); }``.
 ##
 ## host: The hostname to lookup.
 ##

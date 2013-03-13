@@ -1,0 +1,207 @@
+#
+# TODO:
+#
+# - Continued headers
+# - b":" instead of /:/
+
+module HTTP;
+
+type DeliveryMode = enum { EndOfData, Length, Multipart, Chunked };
+
+const Token      = /[^ \t\r\n]+/;
+const URI        = /[^ \t\r\n]+/;
+const NewLine    = /\r?\n/;
+const RestOfLine = /[^\r\n]*/;
+const FullLine   = /[^\r\n]*\r?\n/;
+const Integer    = /[0-9]+/;
+const HexInteger = /[0-9a-zA-Z]+/;
+const WhiteSpace = /[ \t]+/;
+const OptionalWhiteSpace = /[ \t]*/;
+
+bool reply_code_needs_body(status: uint64)
+{
+   return status <= 99 || (status >= 200 && status != 204 && status != 304);
+}
+
+export type Requests = unit {
+    :  list<Request> &transient;
+};
+
+type Request = unit {
+    request: RequestLine;
+    message: Message(False);
+};
+
+export type Replies = unit {
+    :  list<Reply> &transient;
+};
+
+type Reply = unit {
+    reply: ReplyLine;
+    message: Message(reply_code_needs_body(self.reply.status));
+};
+
+type Version = unit {
+    :        /HTTP\//;
+    number: /[0-9]+\.[0-9]+/;
+};
+
+export type RequestLine = unit {
+    method:  Token;
+    :        WhiteSpace;
+    uri:     URI;
+    :        WhiteSpace;
+    version: Version;
+    :        NewLine;
+};
+
+on RequestLine::version %debug {
+    print "request", self.method, "|", self.uri, "|", self.version.number;
+    }
+
+type ReplyLine = unit {
+    version: Version;
+    :        WhiteSpace;
+    status:  Integer &convert=dec_to_uint($$);
+    :        OptionalWhiteSpace;
+    reason:  RestOfLine;
+    :        NewLine;
+};
+
+on ReplyLine::reason %debug {
+    print "reply  ", self.version.number, "|", self.status, "|", self.reason;
+    }
+
+type Message = unit(body_default: bool) {
+    headers:    list<Header(self)>;
+    end_of_hdr: NewLine;
+    body:       Body(self, self.delivery_mode) if ( self.has_body );
+
+    var content_length: uint64;
+    var content_type: bytes;
+    var transfer_encoding: bytes;
+    var multipart_boundary: bytes;
+
+    var has_body: bool;
+    var delivery_mode: DeliveryMode = DeliveryMode::EndOfData;
+
+    on %init {
+        self.has_body = body_default;
+        }
+
+    on end_of_hdr {
+        if ( self?.content_length )
+            self.delivery_mode = DeliveryMode::Length;
+
+        if ( self?.content_type && (self.content_type).startswith(b"multipart/") ) {
+            local boundary : bytes;
+
+            boundary = self.content_type.match(/boundary="([^"]*)"/, 1);
+
+            if ( ! |boundary| )
+                boundary = self.content_type.match(/boundary=([^ ;]*)/, 1);
+
+            self.delivery_mode = DeliveryMode::Multipart;
+            self.multipart_boundary = b"--" + boundary + b"--\r\n";
+        }
+
+        if ( self?.transfer_encoding && self.transfer_encoding == b"chunked" )
+            self.delivery_mode = DeliveryMode::Chunked;
+    }
+};
+
+const HeaderName  = /[^:\r\n]+/;
+const HeaderValue = /[^\r\n]*/;
+
+type Header = unit(msg: Message) {
+    name:    HeaderName &convert=to_upper($$);
+    :        /:[\t ]*/;
+    content: HeaderValue;
+    :        NewLine;
+
+    on content {
+        if ( self.name == b"content-length" ) {
+            msg.content_length = dec_to_uint(self.content);
+            msg.has_body = True;
+            }
+
+        if ( self.name == b"transfer-encoding" ) {
+            msg.transfer_encoding = self.content;
+            msg.has_body = True;
+            }
+
+        if ( self.name == b"content-type" )
+            msg.content_type = self.content;
+        }
+};
+
+type Body = unit(msg: Message, delivery_mode: DeliveryMode) {
+
+    switch ( delivery_mode ) {
+
+      DeliveryMode::EndOfData -> : bytes &eod &chunked -> self.data;
+
+      DeliveryMode::Length    -> : bytes &length=msg.content_length &chunked -> self.data;
+
+      DeliveryMode::Multipart -> : list<FullLine> &transient &until($$ == msg.multipart_boundary)
+                                   foreach { self.data.write($$); }
+
+      DeliveryMode::Chunked   -> : Chunks(self, msg);
+    };
+
+    var data: sink;
+    var content: Content;
+
+    on %init {
+        if ( msg.content_type != b"" )
+            self.data.connect_mime_type(msg.content_type);
+
+        self.data.connect(self.content);
+        }
+};
+
+export type Content = unit {
+    data: bytes &chunked &eod;
+};
+
+type Chunks = unit(body: Body, msg: Message) {
+    :        list<Chunk(body)> &transient &until($$.length == 0);
+    trailer: list<Header(msg)> &transient
+                { msg.headers += self.trailer; }
+    :        NewLine;
+};
+
+type Chunk = unit(body: Body) {
+    length:    HexInteger &convert=hex_to_uint($$);
+    :          OptionalWhiteSpace;
+    extension: RestOfLine;
+    :          NewLine;
+    :          bytes &length=self.length &chunked -> body.data;
+    :          NewLine if ( self.length != 0 );
+};
+
+# These are implemented in libhilti.
+import "HILTI-C" int64 Hilti::bytes_to_int(b: bytes, base: uint64);
+import "HILTI-C" bytes Hilti::bytes_to_lower(b: bytes);
+import "HILTI-C" bytes Hilti::bytes_to_upper(b: bytes);
+
+# These will eventually move into libbinpac.
+bytes to_lower(b: bytes)
+{
+     return Hilti::bytes_to_lower(b);
+}
+
+bytes to_upper(b: bytes)
+{
+     return Hilti::bytes_to_upper(b);
+}
+
+uint64 dec_to_uint(b: bytes)
+{
+     return cast<uint64>(Hilti::bytes_to_int(b, 10));
+}
+
+uint64 hex_to_uint(b: bytes)
+{
+     return cast<uint64>(Hilti::bytes_to_int(b, 16));
+}

@@ -301,6 +301,21 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
+event http_message_done_no_stats(c: connection, is_orig: bool) &priority = -5
+	{
+	# The reply body is done so we're ready to log.
+	if ( ! is_orig )
+		{
+		# If the response was an informational 1xx, we're still expecting
+		# the real response later, so we'll continue using the same record.
+		if ( ! (c$http?$status_code && code_in_range(c$http$status_code, 100, 199)) )
+			{
+			Log::write(HTTP::LOG, c$http);
+			delete c$http_state$pending[c$http_state$current_response];
+			}
+		}
+	}
+
 event connection_state_remove(c: connection) &priority=-5
 	{
 	# Flush all pending but incomplete request/response pairs.

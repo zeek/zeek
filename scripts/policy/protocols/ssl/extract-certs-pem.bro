@@ -39,6 +39,7 @@ event ssl_established(c: connection) &priority=5
 		# If we already extracted this cert, don't do it again.
 		return;
 
+	add extracted_certs[c$ssl$cert_hash];
 	local filename = Site::is_local_addr(c$id$resp_h) ? "certs-local.pem" : "certs-remote.pem";
 	local outfile = open_for_append(filename);
 

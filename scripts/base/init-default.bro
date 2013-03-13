@@ -5,9 +5,12 @@
 ##! you actually want.
 
 @load base/utils/site
+@load base/utils/active-http
 @load base/utils/addrs
 @load base/utils/conn-ids
+@load base/utils/dir
 @load base/utils/directions-and-hosts
+@load base/utils/exec
 @load base/utils/files
 @load base/utils/numbers
 @load base/utils/paths

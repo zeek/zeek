@@ -34,8 +34,6 @@ protected:
 
 	static magic_t magic;
 	static magic_t magic_mime;
-
-	string unique_file;
 };
 
 #endif

@@ -9,6 +9,7 @@
 #include "Net.h"
 #include "Conn.h"
 #include "Val.h"
+#include "Analyzer.h"
 
 #include "Info.h"
 #include "InfoTimer.h"
@@ -141,7 +142,9 @@ protected:
 	 *         time the function was evaluated (possibly because some events
 	 *         have not yet been drained from the queue).
 	 */
-	string GetFileHandle(Connection* conn, bool is_orig);
+	string GetFileHandle(Connection* conn, bool is_orig) const;
+	string GetFileHandle(Analyzer* root, Connection* conn,
+	                     bool is_orig) const;
 
 	/**
 	 * @return the Info object mapped to \a file_id, or a null pointer if no

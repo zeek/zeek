@@ -4,6 +4,7 @@
 #include "Manager.h"
 #include "Info.h"
 #include "Action.h"
+#include "Var.h"
 
 using namespace file_analysis;
 
@@ -16,22 +17,48 @@ Manager::~Manager()
 	Terminate();
 	}
 
-string Manager::GetFileHandle(Connection* conn, bool is_orig)
+string Manager::GetFileHandle(Analyzer* root, Connection* conn,
+                              bool is_orig) const
+	{
+	static TableVal* table = 0;
+
+	if ( ! table )
+		table = internal_val("FileAnalysis::handle_callbacks")->AsTableVal();
+
+	if ( ! root ) return "";
+
+	Val* index = new Val(root->GetTag(), TYPE_COUNT);
+	const Val* callback = table->Lookup(index);
+	Unref(index);
+
+	if ( callback )
+		{
+		val_list vl(2);
+		vl.append(conn->BuildConnVal());
+		vl.append(new Val(is_orig, TYPE_BOOL));
+
+		Val* result = callback->AsFunc()->Call(&vl);
+		string rval = result->AsString()->CheckString();
+		Unref(result);
+
+		if ( ! rval.empty() ) return rval;
+		}
+
+	for ( analyzer_list::const_iterator	it = root->GetChildren().begin();
+	      it != root->GetChildren().end(); ++it )
+		{
+		string rval = GetFileHandle((*it), conn, is_orig);
+		if ( ! rval.empty() ) return rval;
+		}
+
+	return "";
+	}
+
+string Manager::GetFileHandle(Connection* conn, bool is_orig) const
 	{
 	if ( ! conn ) return "";
 
-	const ID* id = global_scope()->Lookup("FileAnalysis::get_handle");
-	assert(id);
-	const Func* func = id->ID_Val()->AsFunc();
-
-	val_list vl(2);
-	vl.append(conn->BuildConnVal());
-	vl.append(new Val(is_orig, TYPE_BOOL));
-
-	Val* result = func->Call(&vl);
-	string rval = result->AsString()->CheckString();
-	Unref(result);
-	return rval;
+	return GetFileHandle(conn->GetRootAnalyzer(), conn, is_orig);
 	}
 
 void Manager::DrainPending()

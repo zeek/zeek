@@ -5,11 +5,6 @@
 # TODO: do logging here?
 @load base/frameworks/logging
 
-# dependendies for file handle determination
-@load base/protocols/http/main
-@load base/protocols/http/utils
-@load base/protocols/ftp/main
-
 module FileAnalysis;
 
 export {
@@ -110,38 +105,32 @@ export {
 	## TODO: document
 	global policy: hook(trig: Trigger, info: Info);
 
+	type HandleCallback: function(c: connection, is_orig: bool): string;
+
+	const handle_callbacks: table[AnalyzerTag] of HandleCallback = {} &redef;
+
+	const service_handle_callbacks: table[string] of HandleCallback = {} &redef;
+
 	global get_handle: function(c: connection, is_orig: bool): string &redef;
 
 	# TODO: wrapper functions for BiFs ?
 }
 
-function conn_str(c: connection): string
+function get_file_handle_by_service(c: connection, is_orig: bool): string
 	{
-	return fmt("%s:%s -> %s:%s", c$id$orig_h, c$id$orig_p,
-	           c$id$resp_h, c$id$resp_p);
-	}
+	local handle: string = "";
 
-function get_handle(c: connection, is_orig: bool): string
-	{
-	local rval: string = "";
-	local cid: conn_id = c$id;
-
-	if ( "ftp-data" in c$service )
-		rval = fmt("%s ftp-data: %s", c$start_time, conn_str(c));
-
-	if ( "irc-dcc-data" in c$service )
-		rval = fmt("%s irc-dcc-data: %s", c$start_time, conn_str(c));
-
-	else if ( c?$http )
+	for ( serv in c$service )
 		{
-		if ( c$http$range_request )
-			rval = fmt("%s http(%s): %s: %s", c$start_time, is_orig,
-			           c$id$orig_h, HTTP::build_url(c$http));
-		else
-			rval = fmt("%s http(%s, %s): %s", c$start_time, is_orig,
-			           c$http$trans_depth, conn_str(c));
+		if ( serv in service_handle_callbacks )
+			{
+			handle = service_handle_callbacks[serv](c, is_orig);
+			if ( handle != "" ) return handle;
+			}
 		}
-
-	#print fmt("file handle: %s", rval);
-	return rval;
+	return handle;
 	}
+
+redef FileAnalysis::handle_callbacks += {
+	[ANALYZER_FILE] = get_file_handle_by_service,
+};

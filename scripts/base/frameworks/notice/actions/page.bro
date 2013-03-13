@@ -15,7 +15,7 @@ export {
 	const mail_page_dest = "" &redef;
 }
 
-event notice(n: Notice::Info) &priority=-5
+hook notice(n: Notice::Info) &priority=-5
 	{
 	if ( ACTION_PAGE in n$actions )
 		email_notice_to(n, mail_page_dest, F);

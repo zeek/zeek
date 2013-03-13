@@ -8,7 +8,6 @@
 #include "EventRegistry.h"
 #include "Stats.h"
 
-extern RecordType* gtpv1_hdr_type;
 extern RecordType* conn_id;
 extern RecordType* endpoint;
 extern RecordType* endpoint_stats;

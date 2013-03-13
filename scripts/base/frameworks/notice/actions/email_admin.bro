@@ -18,7 +18,7 @@ export {
 	};
 }
 
-event notice(n: Notice::Info) &priority=-5
+hook notice(n: Notice::Info) &priority=-5
 	{
 	if ( |Site::local_admins| > 0 &&
 	     ACTION_EMAIL_ADMIN in n$actions )

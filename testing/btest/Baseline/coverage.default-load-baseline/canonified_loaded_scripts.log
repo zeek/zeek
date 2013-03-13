@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2012-11-20-06-11-08
+#open	2013-02-11-18-44-43
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -54,6 +54,7 @@ scripts/base/init-default.bro
       scripts/base/frameworks/cluster/./main.bro
         scripts/base/frameworks/control/__load__.bro
           scripts/base/frameworks/control/./main.bro
+    scripts/base/frameworks/notice/./non-cluster.bro
     scripts/base/frameworks/notice/./actions/pp-alarms.bro
   scripts/base/frameworks/dpd/__load__.bro
     scripts/base/frameworks/dpd/./main.bro
@@ -119,4 +120,4 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/./main.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2012-11-20-06-11-08
+#close	2013-02-11-18-44-43

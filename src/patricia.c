@@ -336,7 +336,7 @@ ascii2prefix (int family, char *string)
 		memcpy (save, string, cp - string);
 		save[cp - string] = '\0';
 		string = save;
-		if (bitlen < 0 || bitlen > maxbitlen)
+		if (bitlen > maxbitlen)
 			bitlen = maxbitlen;
 		}
 		else {

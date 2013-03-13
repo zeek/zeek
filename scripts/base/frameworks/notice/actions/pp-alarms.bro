@@ -105,7 +105,7 @@ event bro_init()
 			 $postprocessor=pp_postprocessor]);
 	}
 
-event notice(n: Notice::Info) &priority=-5
+hook notice(n: Notice::Info) &priority=-5
 	{
 	if ( ! want_pp() )
 		return;

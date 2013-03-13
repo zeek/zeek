@@ -254,7 +254,7 @@ Variable Naming
 
 - Identifiers may have been renamed to conform to new `scripting
   conventions
-  <http://www.bro-ids.org/development/script-conventions.html>`_
+  <http://www.bro.org/development/script-conventions.html>`_
 
 
 BroControl
@@ -296,7 +296,7 @@ Development Infrastructure
 Bro development has moved from using SVN to Git for revision control.
 Users that want to use the latest Bro development snapshot by checking it out
 from the source repositories should see the `development process
-<http://www.bro-ids.org/development/process.html>`_. Note that all the various
+<http://www.bro.org/development/process.html>`_. Note that all the various
 sub-components now reside in their own repositories. However, the
 top-level Bro repository includes them as git submodules so it's easy
 to check them all out simultaneously.

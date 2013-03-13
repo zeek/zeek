@@ -829,7 +829,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 		data += length;
 		caplen -= length;
 
-		vv->Assign(vv->Size(), rv, 0);
+		vv->Assign(vv->Size(), rv);
 		}
 
 	return vv;

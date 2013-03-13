@@ -17,20 +17,13 @@ export {
 	};
 }
 
-# This is a little awkward because we want to inject drop along with the
-# synchronous functions.
-event bro_init()
+hook notice(n: Notice::Info)
 	{
-	local drop_func = function(n: Notice::Info)
+	if ( ACTION_DROP in n$actions )
 		{
-		if ( ACTION_DROP in n$actions )
-			{
-			#local drop = React::drop_address(n$src, "");
-			#local addl = drop?$sub ? fmt(" %s", drop$sub) : "";
-			#n$dropped = drop$note != Drop::AddressDropIgnored;
-			#n$msg += fmt(" [%s%s]", drop$note, addl);
-			}
-		};
-
-	add Notice::sync_functions[drop_func];
+		#local drop = React::drop_address(n$src, "");
+		#local addl = drop?$sub ? fmt(" %s", drop$sub) : "";
+		#n$dropped = drop$note != Drop::AddressDropIgnored;
+		#n$msg += fmt(" [%s%s]", drop$note, addl);
+		}
 	}

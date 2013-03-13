@@ -167,7 +167,7 @@ string DataSeries::BuildDSSchemaFromFieldTypes(const vector<SchemaValue>& vals, 
 
 	string xmlschema = "<ExtentType name=\""
 		+ sTitle
-		+ "\" version=\"1.0\" namespace=\"bro-ids.org\">\n";
+		+ "\" version=\"1.0\" namespace=\"bro.org\">\n";
 
 	for( size_t i = 0; i < vals.size(); ++i )
 		{

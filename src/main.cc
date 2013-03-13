@@ -189,6 +189,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	fprintf(stderr, "    -X|--disable-analyzer <name>   | disable the named analyzer\n");
 	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -398,6 +399,8 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
+	double time_start = current_time(true);;
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -426,6 +429,7 @@ int main(int argc, char** argv)
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
 	int RE_level = 4;
+	std::set<string> disabled_analyzers;
 
 	static struct option long_opts[] = {
 		{"bare-mode",	no_argument,		0,	'b'},
@@ -462,6 +466,7 @@ int main(int argc, char** argv)
 		{"watchdog",		no_argument,		0,	'W'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
+		{"disable-analyzer",	required_argument,	0,	'X'},
 
 #ifdef	DEBUG
 		{"debug",		required_argument,	0,	'B'},
@@ -679,12 +684,10 @@ int main(int argc, char** argv)
 		case 'x':
 			bst_file = optarg;
 			break;
-#if 0 // broken
+
 		case 'X':
-			bst_file = optarg;
-			to_xml = 1;
+			disabled_analyzers.insert(optarg);
 			break;
-#endif
 
 		case 'Z':
 			generate_documentation = 1;
@@ -1087,6 +1090,9 @@ int main(int argc, char** argv)
 		mgr.QueueEvent(bro_script_loaded, vl);
 		}
 
+	for ( std::set<string>::iterator i = disabled_analyzers.begin(); i != disabled_analyzers.end(); i++ )
+		dpm->DisableAnalyzer(*i);
+
 	dpm->PostScriptInit();
 
 	reporter->ReportViaEvents(true);
@@ -1116,7 +1122,13 @@ int main(int argc, char** argv)
 
 #endif
 
+		double time_net_start = current_time(true);;
 		net_run();
+		double time_net_done = current_time(true);;
+
+		fprintf(stderr, "# total time %.6f, initialization %.6f, processing %.6f\n",
+			time_net_done - time_start, time_net_start - time_start, time_net_done - time_net_start);
+
 		done_with_network();
 		net_delete();
 

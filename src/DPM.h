@@ -4,6 +4,7 @@
 #define DPM_H
 
 #include <queue>
+#include <set>
 
 #include "AnalyzerTags.h"
 #include "Dict.h"
@@ -85,6 +86,9 @@ public:
 		    analyzer_config_match_callback match,
 		    bool partial);
 
+	// Disables am analyzer. Returns false if no such analyzer exists.
+	bool DisableAnalyzer(const string& name);
+
 	// Registers an analyzer for analysis on a port. The analyzer itself
 	// must have been adeed with AddAnalyzer().
 	void RegisterAnalyzerForPort(AnalyzerTag tag, TransportProto proto, uint32 port);
@@ -128,8 +132,8 @@ private:
 	AnalyzerTag GetExpected(int proto, const Connection* conn);
 
 	// Mappings of destination port to analyzer.
-	typedef list<AnalyzerTag> tag_list;
-	typedef map<uint32, tag_list*> analyzer_map;
+	typedef std::set<AnalyzerTag> tag_set;
+	typedef map<uint32, tag_set*> analyzer_map;
 	analyzer_map tcp_ports;
 	analyzer_map udp_ports;
 

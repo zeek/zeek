@@ -82,6 +82,27 @@ void DPM::AddConfigPreScriptInit(const AnalyzerConfig& cfg)
 	Analyzer::analyzer_configs_by_name.insert(std::make_pair(cfg.name, cfg));
 	}
 
+bool DPM::DisableAnalyzer(const string& name)
+	{
+	Analyzer::AnalyzerByNameMap::iterator i = Analyzer::analyzer_configs_by_name.find(name);
+
+	if ( i == Analyzer::analyzer_configs_by_name.end() )
+		return false;
+
+	AnalyzerTag tag = i->second.tag;
+
+	Analyzer::analyzer_configs.erase(tag);
+	Analyzer::analyzer_configs_by_name.erase(i);
+
+	for ( analyzer_map::iterator t = tcp_ports.begin(); t != tcp_ports.end(); t++ )
+		t->second->erase(tag);
+
+	for ( analyzer_map::iterator t = udp_ports.begin(); t != udp_ports.end(); t++ )
+		t->second->erase(tag);
+
+	return true;
+	}
+
 void DPM::PostScriptInit()
 	{
 	const AnalyzerConfig* config = Analyzer::analyzer_definitions;
@@ -111,7 +132,7 @@ void DPM::PostScriptInit()
 	for ( j = tcp_ports.begin(); j != tcp_ports.end(); j++ )
 		{
 		string s;
-		for ( tag_list::const_iterator t = j->second->begin(); t != j->second->end(); ++t )
+		for ( tag_set::const_iterator t = j->second->begin(); t != j->second->end(); ++t )
 			s += string(Analyzer::GetTagName(*t)) + string(" ");
 
 		DBG_LOG(DBG_DPD, "TCP port %u: %s", j->first, s.c_str());
@@ -120,7 +141,7 @@ void DPM::PostScriptInit()
 	for ( j = udp_ports.begin(); j != udp_ports.end(); j++ )
 		{
 		string s;
-		for ( tag_list::const_iterator t = j->second->begin(); t != j->second->end(); ++t )
+		for ( tag_set::const_iterator t = j->second->begin(); t != j->second->end(); ++t )
 			s += string(Analyzer::GetTagName(*t)) + string(" ");
 
 		DBG_LOG(DBG_DPD, "UDP port %u: %s", j->first, s.c_str());
@@ -166,13 +187,13 @@ void DPM::RegisterAnalyzerForPort(AnalyzerTag tag, TransportProto proto, uint32 
 
 	if ( j == ports->end() )
 		{
-		tag_list* analyzers = new tag_list;
-		analyzers->push_back(tag);
+		tag_set* analyzers = new tag_set;
+		analyzers->insert(tag);
 		ports->insert(analyzer_map::value_type(port, analyzers));
 		}
 
 	else
-		j->second->push_back(tag);
+		j->second->insert(tag);
 	}
 
 AnalyzerTag DPM::GetExpected(int proto, const Connection* conn)
@@ -274,8 +295,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 			if ( i != ports->end() )
 				{
-				tag_list* analyzers = i->second;
-				for ( tag_list::const_iterator j = analyzers->begin();
+				tag_set* analyzers = i->second;
+				for ( tag_set::const_iterator j = analyzers->begin();
 				      j != analyzers->end(); j++ )
 					{
 					Analyzer* analyzer =

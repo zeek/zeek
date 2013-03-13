@@ -97,9 +97,10 @@ int Pac2_Analyzer::FeedChunk(int len, const u_char* data, bool is_orig, bool eod
 		{
 		endp->parser = hilti_loader->ParserForAnalyzer(endp->cookie.analyzer->GetTag(), is_orig);
 		assert(endp->parser);
+		GC_CCTOR(endp->parser, hlt_Parser);
 		}
 
-	bool result = 0;
+	int result = 0;
 	bool done = false;
 	bool error = false;
 
@@ -132,11 +133,12 @@ int Pac2_Analyzer::FeedChunk(int len, const u_char* data, bool is_orig, bool eod
 
 		void* pobj = (*endp->parser->resume_func)(endp->resume, &excpt, ctx);
 		GC_DTOR_GENERIC(&pobj, endp->parser->type_info);
+		endp->resume = 0;
 		}
 
 	if ( excpt )
 		{
-		if ( excpt->type == &hlt_exception_yield )
+		if ( hlt_exception_is_yield(excpt) )
 			{
 			debug_msg(endp->cookie.analyzer, "parsing yielded", 0, 0, is_orig);
 			endp->resume = excpt;
@@ -189,7 +191,7 @@ void Pac2_Analyzer::ParseError(const string& msg, bool is_orig)
 	Endpoint* endp = is_orig ? &orig : &resp;
 	string s = "parse error: " + msg;
 	debug_msg(endp->cookie.analyzer, s.c_str(), 0, 0, is_orig);
-	reporter::weird(endp->cookie.analyzer->Conn(), msg);
+	reporter::weird(endp->cookie.analyzer->Conn(), s);
 	}
 
 Analyzer* Pac2_TCP_Analyzer::InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
@@ -236,7 +238,7 @@ void Pac2_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 	int rc = FeedChunk(len, data, is_orig, false);
 
-	if ( rc  >= 0 )
+	if ( rc >= 0 )
 		{
 		if ( is_orig )
 			{

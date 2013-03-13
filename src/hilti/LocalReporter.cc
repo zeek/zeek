@@ -43,7 +43,7 @@ extern void __error(const char* msg)
 
 extern void __weird(Connection* conn, const char* msg)
 	{
-	::reporter->Weird(conn, "%s", msg);
+	::reporter->Weird(conn, msg);
 	}
 
 }

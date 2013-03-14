@@ -30,7 +30,6 @@
 #include "PacketSort.h"
 #include "Serializer.h"
 #include "PacketDumper.h"
-#include "file_analysis/Manager.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -353,7 +352,6 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 
 	sessions->DispatchPacket(t, hdr, pkt, hdr_size, src_ps, pkt_elem);
 	mgr.Drain();
-	file_mgr->DrainPending();
 
 	if ( sp )
 		{

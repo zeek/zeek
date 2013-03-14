@@ -192,7 +192,6 @@
 #include "logging/Manager.h"
 #include "IPAddr.h"
 #include "bro_inet_ntop.h"
-#include "file_analysis/Manager.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -1463,7 +1462,6 @@ void RemoteSerializer::Process()
 		current_iosrc = this;
 		sessions->NextPacket(p->time, p->hdr, p->pkt, p->hdr_size, 0);
 		mgr.Drain();
-		file_mgr->DrainPending();
 
 		current_hdr = 0;	// done with these
 		current_pkt = 0;

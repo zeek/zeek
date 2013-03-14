@@ -3025,6 +3025,26 @@ export {
 }
 module GLOBAL;
 
+module FileAnalysis;
+export {
+	## When the file analysis framework receives input regarding a file
+	## transferred over the network, and a unique handle string cannot
+	## be determined immediately from :bro:see:`FileAnalysis::handle_callbacks`,
+	## that input is buffered.  This is the interval at which to automatically
+	## check back on any currently buffered inputs to see if a handle is
+	## available so that the input can be processed.  Since any input
+	## triggers the check for all buffered inputs, this option only helps
+	## cases where the file analysis framework is getting little input.
+	const pending_file_drain_interval = 10 sec &redef;
+
+	## This is the interval at which to give up checking for a unique handle
+	## string for files transferred over the network that were initially
+	## buffered because no handle was available yet (e.g. when the necessary
+	## events to construct the handle may not have been flushed yet).
+	const pending_file_timeout = 10 sec &redef;
+}
+module GLOBAL;
+
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 

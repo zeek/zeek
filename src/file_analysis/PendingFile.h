@@ -8,28 +8,87 @@ namespace file_analysis {
 class PendingFile {
 public:
 
-	PendingFile(const u_char* arg_data, uint64 arg_len, uint64 arg_offset,
-	            Connection* arg_conn, bool arg_is_orig);
+	virtual ~PendingFile();
 
-	PendingFile(const u_char* arg_data, uint64 arg_len,
-	            Connection* arg_conn, bool arg_is_orig);
+	virtual bool Retry() const = 0;
 
-	PendingFile(const PendingFile& other);
+	bool IsStale() const;
 
-	PendingFile& operator=(const PendingFile& other);
+protected:
 
-	~PendingFile();
+	PendingFile(Connection* arg_conn, bool arg_is_orig);
 
-	void Retry() const;
+	Connection* conn;
+	bool is_orig;
+	double creation_time;
+};
 
-private:
+class PendingDataInChunk : public PendingFile {
+public:
 
-	bool is_linear;
+	PendingDataInChunk(const u_char* arg_data, uint64 arg_len,
+	                   uint64 arg_offset, Connection* arg_conn,
+	                   bool arg_is_orig);
+
+	virtual ~PendingDataInChunk();
+
+	virtual bool Retry() const;
+
+protected:
+
 	const u_char* data;
 	uint64 len;
 	uint64 offset;
-	Connection* conn;
-	bool is_orig;
+};
+
+class PendingDataInStream : public PendingFile {
+public:
+
+	PendingDataInStream(const u_char* arg_data, uint64 arg_len,
+	                    Connection* arg_conn, bool arg_is_orig);
+
+	virtual ~PendingDataInStream();
+
+	virtual bool Retry() const;
+
+protected:
+
+	const u_char* data;
+	uint64 len;
+};
+
+class PendingGap : public PendingFile {
+public:
+
+	PendingGap(uint64 arg_offset, uint64 arg_len, Connection* arg_conn,
+	           bool arg_is_orig);
+
+	virtual bool Retry() const;
+
+protected:
+
+	uint64 offset;
+	uint64 len;
+};
+
+class PendingEOF : public PendingFile {
+public:
+
+	PendingEOF(Connection* arg_conn, bool arg_is_orig);
+
+	virtual bool Retry() const;
+};
+
+class PendingSize : public PendingFile {
+public:
+
+	PendingSize(uint64 arg_size, Connection* arg_conn, bool arg_is_orig);
+
+	virtual bool Retry() const;
+
+protected:
+
+	uint64 size;
 };
 
 } // namespace file_analysis

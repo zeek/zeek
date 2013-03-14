@@ -16,8 +16,6 @@ public:
 	InfoTimer(double t, const FileID& id, double interval)
 	    : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id) {}
 
-	~InfoTimer() {}
-
 	/**
 	 * Check inactivity of file_analysis::Info corresponding to #file_id,
 	 * reschedule if active, else call file_analysis::Manager::Timeout.

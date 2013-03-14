@@ -4,12 +4,13 @@
 #include <string>
 #include <map>
 #include <set>
-#include <vector>
+#include <list>
 
 #include "Net.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Analyzer.h"
+#include "Timer.h"
 
 #include "Info.h"
 #include "InfoTimer.h"
@@ -17,6 +18,15 @@
 #include "PendingFile.h"
 
 namespace file_analysis {
+
+class DrainTimer : public Timer {
+public:
+
+	DrainTimer(double interval)
+		: Timer(network_time + interval, TIMER_FILE_ANALYSIS_DRAIN) {}
+
+	void Dispatch(double t, int is_expire);
+};
 
 /**
  * Main entry point for interacting with file analysis.
@@ -29,17 +39,6 @@ public:
 	~Manager();
 
 	/**
-	 * Attempts to forward the data from any pending file contents, i.e.
-	 * those for which a unique file handle string could not immediately
-	 * be determined.  If again a file handle can't be determined, give up.
-	 * The assumption for this to work correctly is that the EventMgr would
-	 * have always drained between packet boundaries, so calling this method
-	 * at that time may mean the script-layer function for generating file
-	 * handles can now come up with a result.
-	 */
-	void DrainPending();
-
-	/**
 	 * Times out any active file analysis to prepare for shutdown.
 	 */
 	void Terminate();
@@ -47,8 +46,8 @@ public:
 	/**
 	 * Pass in non-sequential file data.
 	 */
-    void DataIn(const u_char* data, uint64 len, uint64 offset,
-                Connection* conn, bool is_orig, bool allow_retry = true);
+    bool DataIn(const u_char* data, uint64 len, uint64 offset,
+                Connection* conn, bool is_orig);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
                 const string& unique);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
@@ -57,8 +56,7 @@ public:
 	/**
 	 * Pass in sequential file data.
 	 */
-	void DataIn(const u_char* data, uint64 len, Connection* conn, bool is_orig,
-	            bool allow_retry = true);
+	bool DataIn(const u_char* data, uint64 len, Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, const string& unique);
 	void DataIn(const u_char* data, uint64 len, Info* info);
 
@@ -66,20 +64,20 @@ public:
 	 * Signal the end of file data.
 	 */
 	void EndOfFile(Connection* conn);
-	void EndOfFile(Connection* conn, bool is_orig);
+	bool EndOfFile(Connection* conn, bool is_orig);
 	void EndOfFile(const string& unique);
 
 	/**
 	 * Signal a gap in the file data stream.
 	 */
-	void Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig);
+	bool Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig);
 	void Gap(uint64 offset, uint64 len, const string& unique);
 	void Gap(uint64 offset, uint64 len, Info* info);
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
-	void SetSize(uint64 size, Connection* conn, bool is_orig);
+	bool SetSize(uint64 size, Connection* conn, bool is_orig);
 	void SetSize(uint64 size, const string& unique);
 	void SetSize(uint64 size, Info* info);
 
@@ -118,12 +116,13 @@ public:
 protected:
 
 	friend class InfoTimer;
+	friend class DrainTimer;
 	friend class PendingFile;
 
 	typedef map<string, Info*> StrMap;
 	typedef set<string> StrSet;
 	typedef map<FileID, Info*> IDMap;
-	typedef vector<PendingFile> PendingList;
+	typedef list<PendingFile*> PendingList;
 
 	/**
 	 * @return the Info object mapped to \a unique or a null pointer if analysis
@@ -169,10 +168,19 @@ protected:
 	 */
 	bool IsIgnored(const string& unique);
 
+	/**
+	 * Attempts to forward the data from any pending file contents, i.e.
+	 * those for which a unique file handle string could not immediately
+	 * be determined.
+	 */
+	void DrainPending();
+
 	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
 	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	PendingList pending; /**< Files waiting for next Tick to return a handle */
+	PendingList pending; /**< Files awaiting a unique handle. */
+
+	bool is_draining;
 };
 
 } // namespace file_analysis

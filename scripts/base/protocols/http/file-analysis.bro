@@ -12,6 +12,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 	if ( c$http$range_request )
 		return fmt("%s http(%s): %s: %s", c$start_time, is_orig,
 		           c$id$orig_h, build_url(c$http));
+
 	return fmt("%s http(%s, %s): %s", c$start_time, is_orig,
 	           c$http$trans_depth, id_string(c$id));
 	}

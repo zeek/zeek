@@ -1,4 +1,4 @@
-<ExtentType name="ssh" version="1.0" namespace="bro-ids.org">
+<ExtentType name="ssh" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />

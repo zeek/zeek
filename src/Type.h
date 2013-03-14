@@ -370,11 +370,9 @@ public:
 		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
 	int MatchesIndex(ListExpr*& index) const;
-	int CheckArgs(const type_list* args) const;
+	int CheckArgs(const type_list* args, bool is_init = false) const;
 
-	TypeList* ArgTypes()	{ return arg_types; }
-
-	ID* GetReturnValueID() const;
+	TypeList* ArgTypes() const	{ return arg_types; }
 
 	void Describe(ODesc* d) const;
 	void DescribeReST(ODesc* d) const;

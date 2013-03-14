@@ -223,6 +223,12 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		// we look to see if what we have is consistent with an
 		// IPv4 packet.  If not, it's either ARP or IPv6 or weird.
 
+		if ( hdr_size > static_cast<int>(hdr->caplen) )
+			{
+			Weird("truncated_link_frame", hdr, pkt);
+			return;
+			}
+
 		uint32 caplen = hdr->caplen - hdr_size;
 		if ( caplen < sizeof(struct ip) )
 			{

@@ -369,7 +369,7 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 		BroString* string = (*vec)[i];
 		StringVal* val = new StringVal(string->Len(),
 						(const char*) string->Bytes());
-		result->Assign(i+1, val, 0);
+		result->Assign(i+1, val);
 		}
 
 	return result;

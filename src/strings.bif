@@ -265,19 +265,6 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 	return new StringVal(new BroString(1, byte_vec(new_s), ind));
 	%}
 
-## Returns the number of characters (bytes) in the given string. The
-## length computation includes any embedded NULs, and also a trailing NUL,
-## if any (which is why the function isn't called ``strlen``; to remind
-## the user that Bro strings can include NULs).
-##
-## s: The string to compute the length for.
-##
-## Returns: The number of characters in *s*.
-function byte_len%(s: string%): count
-	%{
-	return new Val(s->Len(), TYPE_COUNT);
-	%}
-
 ## Get a substring from a string, given a starting position and length.
 ##
 ## s: The string to obtain a substring from.
@@ -866,7 +853,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 
 		for ( BroString::VecIt it = result->begin();
 		      it != result->end(); ++it, ++i )
-			result_v->Assign(i, new StringVal(*it), 0);
+			result_v->Assign(i, new StringVal(*it));
 			// StringVal now possesses string.
 
 		delete result;

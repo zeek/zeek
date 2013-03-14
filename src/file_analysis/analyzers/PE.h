@@ -18,7 +18,7 @@ public:
 
 	~PE_Analyzer();
 
-	virtual void DeliverStream(const u_char* data, uint64 len);
+	virtual bool DeliverStream(const u_char* data, uint64 len);
 
 protected:
 

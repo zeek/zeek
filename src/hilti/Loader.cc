@@ -34,8 +34,8 @@ namespace BifConst { namespace Pac2 {  extern StringVal* cg_debug;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_pac2;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_hilti;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_llvm;  }  }
-namespace BifConst { namespace Pac2 {  extern bro_uint_t debug;  }  }
-namespace BifConst { namespace Pac2 {  extern bro_uint_t optimize;  }  }
+namespace BifConst { namespace Pac2 {  extern int debug;  }  }
+namespace BifConst { namespace Pac2 {  extern int optimize;  }  }
 /// End of NetVar.h declarations.
 
 #include <ast/declaration.h>

@@ -16,29 +16,29 @@ export {
 	const dump_code_all = F &redef;
 
 	## Disable code verification (for debugging only).
-        const no_verify = F &redef;
+	const no_verify = F &redef;
 
 	## Generate code for all events no matter if they have a handler
-        ## defined or not.
-        const compile_all = F &redef;
+	## defined or not.
+	const compile_all = F &redef;
 
 	## Debug level for compilation.
-        const debug = 1 &redef;
+	const debug = T &redef;
 
 	## Optimization level for code generation.
-	const optimize = 0 &redef;
+	const optimize = F &redef;
 
 	## Tags for codegen debug output as colon-separated string.
 	const cg_debug = "" &redef;
 
 	## Save all generated BinPAC++ modules into "bro.<X>.pac2"
-        const save_pac2 = F &redef;
+	const save_pac2 = F &redef;
 
 	## Save all HILTI modules into "bro.<X>.hlt"
-        const save_hilti = F &redef;
+	const save_hilti = F &redef;
 
 	## Save final linked LLVM assembly into "bro.ll"
-        const save_llvm = F &redef;
+	const save_llvm = F &redef;
 
 }
 

@@ -3,7 +3,6 @@
 #ifndef INPUT_READERS_RAW_H
 #define INPUT_READERS_RAW_H
 
-#include <iostream>
 #include <vector>
 
 #include "../ReaderBackend.h"
@@ -30,10 +29,9 @@ protected:
 private:
 	bool OpenInput();
 	bool CloseInput();
-	bool GetLine(string& str);
+	int64_t GetLine();
 
 	string fname; // Source with a potential "|" removed.
-	istream* in;
 	FILE* file;
 	bool execute;
 	bool firstrun;
@@ -41,6 +39,12 @@ private:
 
 	// options set from the script-level.
 	string separator;
+	unsigned int sep_length; // length of the separator
+
+	static const int block_size;
+	uint32_t bufpos;
+	char* buf;
+	char* outbuf;
 };
 
 }

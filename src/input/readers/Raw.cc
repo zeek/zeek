@@ -3,32 +3,32 @@
 #include "Raw.h"
 #include "NetVar.h"
 
-#include <fstream>
-#include <sstream>
-
 #include "../../threading/SerialTypes.h"
-#include "../fdstream.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <errno.h>
 
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
+const int Raw::block_size = 512; // how big do we expect our chunks of data to be... 
+
 Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
-	in = 0;
-
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
 			  BifConst::InputRaw::record_separator->Len());
 
-	if ( separator.size() != 1 )
-		Error("separator length has to be 1. Separator will be truncated.");
+	sep_length = BifConst::InputRaw::record_separator->Len();
+
+	buf = 0;
+	outbuf = 0;
+	bufpos = 0;
 	}
 
 Raw::~Raw()
@@ -47,7 +47,7 @@ bool Raw::OpenInput()
 	if ( execute )
 		{
 		file = popen(fname.c_str(), "r");
-		if ( file == NULL )
+		if ( !file )
 			{
 			Error(Fmt("Could not execute command %s", fname.c_str()));
 			return false;
@@ -56,15 +56,12 @@ bool Raw::OpenInput()
 	else
 		{
 		file = fopen(fname.c_str(), "r");
-		if ( file == NULL )
+		if ( !file )
 			{
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
 			return false;
 			}
 		}
-
-	// This is defined in input/fdstream.h
-	in = new boost::fdistream(fileno(file));
 
 	if ( execute && Info().mode == MODE_STREAM )
 		fcntl(fileno(file), F_SETFL, O_NONBLOCK);
@@ -74,7 +71,7 @@ bool Raw::OpenInput()
 
 bool Raw::CloseInput()
 	{
-	if ( file == NULL )
+	if ( file == 0 )
 		{
 		InternalError(Fmt("Trying to close closed file for stream %s", fname.c_str()));
 		return false;
@@ -83,15 +80,12 @@ bool Raw::CloseInput()
 	Debug(DBG_INPUT, "Raw reader starting close");
 #endif
 
-	delete in;
-
 	if ( execute )
 		pclose(file);
 	else
 		fclose(file);
 
-	in = NULL;
-	file = NULL;
+	file = 0;
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "Raw reader finished close");
@@ -169,15 +163,81 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	}
 
 
-bool Raw::GetLine(string& str)
+int64_t Raw::GetLine()
 	{
-	if ( in->peek() == std::iostream::traits_type::eof() )
-		return false;
 
-	if ( in->eofbit == true || in->failbit == true )
-		return false;
+	errno = 0;
+	uint64_t pos = 0;
 
-	return getline(*in, str, separator[0]);
+	if ( buf == 0 )
+		buf = new char[block_size];
+
+	int repeats = 1;
+
+	for (;;)
+		{
+		size_t readbytes = fread(buf+bufpos, 1, block_size-bufpos, file);
+		pos += bufpos + readbytes;
+		bufpos = 0; // read full block size in next read...
+
+		if ( errno != 0 ) 
+			break;
+
+		char* token = strnstr(buf, separator.c_str(), block_size*repeats-pos);
+
+		if ( token == 0 ) 
+			{
+			// we did not find it and have to search again in the next try. resize buffer....
+			// but first check if we encountered the file end - because if we did this was it.
+			if ( feof(file) != 0 ) 
+				{
+				outbuf = buf;
+				buf = 0;
+				if ( pos == 0 ) 
+					return -1; // signal EOF - and that we had no more data.
+				else 
+					return pos;
+				}
+			
+			repeats++;
+			// bah, we cannot use realloc because we would have to change the delete in the manager to a delete :(
+			//char* newbuf = realloc(buf,block_size*repeats);
+			char * newbuf = new char[block_size*repeats];
+			memcpy(newbuf, buf, block_size*(repeats-1));
+			delete buf;
+			buf = newbuf;
+			}
+		else
+			{
+			outbuf = buf;
+			buf = 0;
+			buf = new char[block_size];
+
+
+			if ( token - outbuf < pos  ) 
+				{
+				// we have leftovers. copy them into the buffer for the next line
+				buf = new char[block_size];
+				memcpy(buf, token + sep_length, -(token - outbuf + sep_length) +pos);
+				bufpos =  -(token - outbuf + sep_length) +pos;
+				}
+			
+			pos = token-outbuf;
+			return  pos;
+			}
+
+		}
+
+	if ( errno == 0 ) {
+		assert(false);
+	} else if ( errno == EAGAIN || errno == EAGAIN || errno == EINTR ) {
+		return -2;
+	} else {
+		// an error code we did no expect. This probably is bad.
+		Error(Fmt("Reader encountered unexpected error code %d", errno));
+		return -3;
+	}
+
 	}
 
 // read the entire file and send appropriate thingies back to InputMgr
@@ -211,10 +271,10 @@ bool Raw::DoUpdate()
 
 		case MODE_MANUAL:
 		case MODE_STREAM:
-			if ( Info().mode == MODE_STREAM && file != NULL && in != NULL )
+			if ( Info().mode == MODE_STREAM && file != 0 )
 				{
 				//fpurge(file);
-				in->clear(); // remove end of file evil bits
+				clearerr(file);  // remove end of file evil bits
 				break;
 				}
 
@@ -230,19 +290,27 @@ bool Raw::DoUpdate()
 		}
 
 	string line;
-	while ( GetLine(line) )
+	assert (NumFields() == 1);
+	for ( ;; )
 		{
-		assert (NumFields() == 1);
+		int64_t length = GetLine();
+		if ( length == -3 ) 
+			return false;
+		else if ( length == -2 || length == -1 ) 
+			// no data ready or eof
+			break;
 
 		Value** fields = new Value*[1];
 
 		// filter has exactly one text field. convert to it.
 		Value* val = new Value(TYPE_STRING, true);
-		val->val.string_val.data = copy_string(line.c_str());
-		val->val.string_val.length = line.size();
+		val->val.string_val.data = outbuf;
+		val->val.string_val.length = length;
 		fields[0] = val;
 
 		Put(fields);
+
+		outbuf = 0;
 		}
 
 #ifdef DEBUG

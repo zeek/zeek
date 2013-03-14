@@ -1,6 +1,6 @@
 
 @load base/protocols/conn
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 
 event bro_init() &priority=5
 	{

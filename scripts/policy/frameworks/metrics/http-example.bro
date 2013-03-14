@@ -2,7 +2,7 @@
 ##! only local networks.  Additionally, the status code for the response from
 ##! the request is added into the metric.
 
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/protocols/http
 @load base/utils/site
 

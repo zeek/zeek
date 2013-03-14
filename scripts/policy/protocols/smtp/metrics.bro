@@ -3,7 +3,7 @@
 ##!   "How much mail is being sent from each local mail server per hour?"
 
 @load base/protocols/smtp
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/utils/site
 @load base/utils/directions-and-hosts
 

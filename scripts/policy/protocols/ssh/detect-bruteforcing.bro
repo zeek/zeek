@@ -2,7 +2,7 @@
 ##! bruteforcing over SSH.
 
 @load base/protocols/ssh
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/frameworks/notice
 @load base/frameworks/intel
 
@@ -54,8 +54,8 @@ event bro_init()
 	                                          	        $identifier=cat(index$host)]);
 	                                          	# Insert the guesser into the intel framework.
 	                                          	Intel::insert([$host=index$host,
-	                                          		           $meta=[$source="local", 
-	                                          		                  $desc=fmt("Bro observed %0.f apparently failed SSH connections.", val$sum)]]);
+	                                          	               $meta=[$source="local", 
+	                                          	                      $desc=fmt("Bro observed %0.f apparently failed SSH connections.", val$sum)]]);
 	                                          }]);
 	}
 

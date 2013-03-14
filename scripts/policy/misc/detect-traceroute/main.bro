@@ -2,7 +2,7 @@
 ##! toward hosts that have sent low TTL packets.
 ##! It generates a notice when the number of ICMP Time Exceeded 
 ##! messages for a source-destination pair exceeds threshold
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/frameworks/signatures
 @load-sigs ./detect-low-ttls.sig
 

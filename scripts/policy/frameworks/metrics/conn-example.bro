@@ -1,7 +1,7 @@
 ##! An example of using the metrics framework to collect connection metrics 
 ##! aggregated into /24 CIDR ranges.
 
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/utils/site
 
 event bro_init()

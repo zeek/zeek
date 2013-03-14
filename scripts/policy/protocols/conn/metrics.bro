@@ -1,4 +1,4 @@
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/utils/site
 
 event bro_init() &priority=3

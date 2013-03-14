@@ -1,6 +1,6 @@
 
 @load base/protocols/ftp
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 
 @load base/utils/time
 
@@ -19,7 +19,7 @@ export {
 
 	## The time period in which the threshold needs to be crossed before
 	## being reset.
-	const bruteforce_measurement_interval = 15mins;
+	const bruteforce_measurement_interval = 15mins &redef;
 }
 
 
@@ -32,7 +32,8 @@ event bro_init()
 	                                        $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = 
 	                                        	{
 	                                        	local dur = duration_to_mins_secs(val$end-val$begin);
-	                                        	local message = fmt("%s had %d failed logins on %d FTP servers in %s", index$host, val$num, val$unique, dur);
+	                                        	local plural = val$unique>1 ? "s" : "";
+	                                        	local message = fmt("%s had %d failed logins on %d FTP server%s in %s", index$host, val$num, val$unique, plural, dur);
 	                                        	NOTICE([$note=FTP::Bruteforcing, 
 	                                        	        $src=index$host,
 	                                        	        $msg=message,

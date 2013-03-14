@@ -5,7 +5,7 @@
 ##!            All the authors of the old scan.bro
 
 @load base/frameworks/notice
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 
 @load base/utils/time
 
@@ -24,7 +24,7 @@ export {
 		## unique ports on a single host over the previous 
 		## :bro:id:`port_scan_interval` time range.
 		Port_Scan,
-		};
+	};
 
 	## Failed connection attempts are tracked over this time interval for the address 
 	## scan detection.  A higher interval will detect slower scanners, but may 
@@ -42,7 +42,7 @@ export {
 	## connections with on a single victim host.
 	const port_scan_threshold = 15 &redef;
 
-	## Custom threholds based on service for address scan.  This is primarily 
+	## Custom thresholds based on service for address scan.  This is primarily 
 	## useful for setting reduced thresholds for specific ports.
 	const addr_scan_custom_thresholds: table[port] of count &redef;
 
@@ -74,7 +74,7 @@ function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 	        $p=to_port(index$str),
 	        $sub=side,
 	        $msg=message,
-	        $identifier=cat(index)]);
+	        $identifier=cat(index$host)]);
 	}
 
 function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
@@ -88,7 +88,7 @@ function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::Result
 	        $dst=to_addr(index$str),
 	        $sub=side,
 	        $msg=message,
-	        $identifier=cat(index)]);
+	        $identifier=cat(index$host)]);
 	}
 
 event bro_init() &priority=5

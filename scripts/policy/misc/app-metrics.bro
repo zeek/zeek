@@ -1,8 +1,8 @@
 @load base/protocols/http
 @load base/protocols/ssl
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 
-module AppMetrics;
+module AppMeasurement;
 
 export {
 	redef enum Log::ID += { LOG };
@@ -19,7 +19,11 @@ export {
 	const break_interval = 15mins &redef;
 }
 
-function app_metrics_rollup(index: Metrics::Index, vals: table[string, string] of Metrics::ResultVal) 
+redef record connection += {
+	resp_hostname: string &optional;
+};
+
+function app_metrics_rollup(index: Measurement::Index, vals: table[string, string] of Measurement::ResultVal) 
 	{
 	local l: Info;
 	l$ts = network_time();
@@ -35,55 +39,67 @@ function app_metrics_rollup(index: Metrics::Index, vals: table[string, string] o
 			l$uniq_hosts = val$unique;
 			}
 		}
-	Log::write(LOG, l);
 	}
 
 event bro_init() &priority=3
 	{
-	Log::create_stream(AppMetrics::LOG, [$columns=Info]);
+	Log::create_stream(AppMeasurement::LOG, [$columns=Info]);
 
-	Metrics::create_index_rollup("AppMetrics", app_metrics_rollup);
-	Metrics::add_filter("apps.bytes", [$every=break_interval, $measure=set(Metrics::SUM),    $rollup="AppMetrics"]);
-	Metrics::add_filter("apps.hits",  [$every=break_interval, $measure=set(Metrics::UNIQUE), $rollup="AppMetrics"]);
+	#Measurement::create_index_rollup("AppMeasurement", app_metrics_rollup);
+	#Measurement::add_filter("apps.bytes", [$every=break_interval, $measure=set(Measurement::SUM),    $rollup="AppMeasurement"]);
+	#Measurement::add_filter("apps.hits",  [$every=break_interval, $measure=set(Measurement::UNIQUE), $rollup="AppMeasurement"]);
+
+	Measurement::create([$epoch=break_interval, 
+	                     $measurements=table(["apps.bytes"] = [$apply=set(Measurement::SUM)],
+	                                         ["apps.hits"]  = [$apply=set(Measurement::UNIQUE)]),
+	                     $period_finished(result: Measurement::Results) = 
+	                     	{
+	                     	local l: Info;
+	                     	l$ts = network_time();
+	                     	for ( index in result )
+	                     		{
+	                     		l$bytes      = double_to_count(floor(result[index]["apps.bytes"]$sum));
+	                     		l$hits       = result[index]["apps.hits"]$num;
+	                     		l$uniq_hosts = result[index]["apps.hits"]$unique;
+	                     		Log::write(LOG, l);
+	                     		}
+	                     	}]);
 	}
 
 function do_metric(id: conn_id, hostname: string, size: count)
 	{
-	if ( /youtube\.com$/ in hostname && size > 512*1024 )
+	if ( /\.youtube\.com$/ in hostname && size > 512*1024 )
 		{
-		Metrics::add_data("apps.bytes", [$str="youtube"], [$num=size]);
-		Metrics::add_data("apps.hits",  [$str="youtube"], [$str=cat(id$orig_h)]);
+		Measurement::add_data("apps.bytes", [$str="youtube"], [$num=size]);
+		Measurement::add_data("apps.hits",  [$str="youtube"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /(\.facebook\.com|\.fbcdn\.net)$/ in hostname && size > 20 )
 		{
-		Metrics::add_data("apps.bytes", [$str="facebook"], [$num=size]);
-		Metrics::add_data("apps.hits",  [$str="facebook"], [$str=cat(id$orig_h)]);
+		Measurement::add_data("apps.bytes", [$str="facebook"], [$num=size]);
+		Measurement::add_data("apps.hits",  [$str="facebook"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /\.google\.com$/ in hostname && size > 20 ) 
 		{
-		Metrics::add_data("apps.bytes", [$str="google"], [$num=size]);
-		Metrics::add_data("apps.hits",  [$str="google"], [$str=cat(id$orig_h)]);
+		Measurement::add_data("apps.bytes", [$str="google"], [$num=size]);
+		Measurement::add_data("apps.hits",  [$str="google"], [$str=cat(id$orig_h)]);
 		}
-	else if ( /nflximg\.com$/ in hostname && size > 200*1024 ) 
+	else if ( /\.nflximg\.com$/ in hostname && size > 200*1024 ) 
 		{
-		Metrics::add_data("apps.bytes", [$str="netflix"], [$num=size]);
-		Metrics::add_data("apps.hits",  [$str="netflix"], [$str=cat(id$orig_h)]);
+		Measurement::add_data("apps.bytes", [$str="netflix"], [$num=size]);
+		Measurement::add_data("apps.hits",  [$str="netflix"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /\.(pandora|p-cdn)\.com$/ in hostname && size > 512*1024 )
 		{
-		Metrics::add_data("apps.bytes", [$str="pandora"], [$num=size]);
-		Metrics::add_data("apps.hits",  [$str="pandora"], [$str=cat(id$orig_h)]);
+		Measurement::add_data("apps.bytes", [$str="pandora"], [$num=size]);
+		Measurement::add_data("apps.hits",  [$str="pandora"], [$str=cat(id$orig_h)]);
 		}
-	else if ( /gmail\.com$/ in hostname && size > 20 )
+	else if ( /\.gmail\.com$/ in hostname && size > 20 )
 		{
-		Metrics::add_data("apps.bytes", [$str="gmail"], [$num=size]);
-		Metrics::add_data("apps.hits",  [$str="gmail"], [$str=cat(id$orig_h)]);
+		Measurement::add_data("apps.bytes", [$str="gmail"], [$num=size]);
+		Measurement::add_data("apps.hits",  [$str="gmail"], [$str=cat(id$orig_h)]);
 		}
 }
 
-redef record connection += {
-	resp_hostname: string &optional;
-};
 
 event ssl_established(c: connection)
 	{

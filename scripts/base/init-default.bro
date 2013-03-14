@@ -29,7 +29,7 @@
 @load base/frameworks/communication
 @load base/frameworks/control
 @load base/frameworks/cluster
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/frameworks/intel
 @load base/frameworks/reporter
 @load base/frameworks/tunnels

@@ -3,7 +3,7 @@
 ##! establishments.  Names ending in google.com are being filtered out as an
 ##! example of the predicate based filtering in metrics filters.
 
-@load base/frameworks/metrics
+@load base/frameworks/measurement
 @load base/protocols/ssl
 
 event bro_init()

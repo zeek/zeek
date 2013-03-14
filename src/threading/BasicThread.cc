@@ -150,11 +150,12 @@ void BasicThread::Join()
 	if ( ! started )
 		return;
 
+	if ( ! pthread )
+		return;
+
 	assert(terminating);
 
-	DBG_LOG(DBG_THREADING, "Joining thread %s ...", name);
-
-	if ( pthread && pthread_join(pthread, 0) != 0  )
+	if ( pthread_join(pthread, 0) != 0  )
 		reporter->FatalError("Failure joining thread %s", name);
 
 	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);

@@ -54,7 +54,8 @@ public:
 
 	/**
 	 * Stops all output to this writer. Calling this methods disables all
-	 * message forwarding to the backend.
+	 * message forwarding to the backend and will eventually remove the
+	 * backend thread.
 	 *
 	 * This method must only be called from the main thread.
 	 */

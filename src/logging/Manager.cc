@@ -374,6 +374,38 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	return true;
 	}
 
+bool Manager::RemoveStream(EnumVal* id)
+	{
+	unsigned int idx = id->AsEnum();
+
+	if ( idx >= streams.size() || ! streams[idx] )
+		return false;
+
+	Stream* stream = streams[idx];
+
+	if ( ! stream )
+		return false;
+
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
+		{
+		WriterInfo* winfo = i->second;
+
+		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'",
+			winfo->writer->Name(), stream->name.c_str());
+
+		winfo->writer->Stop();
+		delete winfo->writer;
+		delete winfo;
+		}
+
+	stream->writers.clear();
+	delete stream;
+	streams[idx] = 0;
+
+	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", stream->name.c_str());
+	return true;
+	}
+
 bool Manager::EnableStream(EnumVal* id)
 	{
 	Stream* stream = FindStream(id);

@@ -45,6 +45,9 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	deliver_body = (http_entity_data != 0);
 	encoding = IDENTITY;
 	zip = 0;
+	is_partial_content = false;
+	offset = 0;
+	content_size = -1; // unspecified
 	}
 
 void HTTP_Entity::EndOfData()
@@ -195,12 +198,6 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		}
 	else
 		DeliverBodyClear(len, data, trailing_CRLF);
-
-	file_mgr->DataIn(reinterpret_cast<const u_char*>(data), len,
-	                 http_message->MyHTTP_Analyzer()->Conn(),
-	                 http_message->IsOrig());
-	// TODO: set size if we have content_length?
-	// TODO: handle partial content and multipart/byteranges
 	}
 
 void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
@@ -284,6 +281,28 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	{
 	if ( deliver_body )
 		MIME_Entity::SubmitData(len, buf);
+
+	if ( is_partial_content )
+		{
+		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
+	                     http_message->MyHTTP_Analyzer()->Conn(),
+	                     http_message->IsOrig());
+		offset += len;
+		if ( content_size >= 0 )
+			file_mgr->SetSize(content_size,
+	                          http_message->MyHTTP_Analyzer()->Conn(),
+	                          http_message->IsOrig());
+		}
+	else
+		{
+		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                     http_message->MyHTTP_Analyzer()->Conn(),
+	                     http_message->IsOrig());
+		if ( content_length >= 0 )
+			file_mgr->SetSize(content_length,
+	                          http_message->MyHTTP_Analyzer()->Conn(),
+	                          http_message->IsOrig());
+		}
 	}
 
 void HTTP_Entity::SetPlainDelivery(int64_t length)
@@ -366,7 +385,14 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
 
 		if ( len > 0 )
+			{
+			if ( instance_length != "*" )
+				atoi_n(instance_length.size(), instance_length.c_str(), 0, 10,
+				       content_size);
+			is_partial_content = true;
+			offset = f;
 			content_length = len;
+			}
 		else
 			{
 			http_message->Weird("HTTP_non_positive_content_range");
@@ -529,6 +555,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		}
 
 	MyHTTP_Analyzer()->HTTP_MessageDone(is_orig, this);
+	file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
 
 	delete_strings(buffers);
 
@@ -593,8 +620,9 @@ void HTTP_Message::EndEntity(MIME_Entity* entity)
 	// SubmitAllHeaders (through EndOfData).
 	if ( entity == top_level )
 		Done();
-
-	file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
+	else if ( ! ( current_entity->MIMEContentType() == CONTENT_TYPE_MULTIPART &&
+	              MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 ) )
+		file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
 	}
 
 void HTTP_Message::SubmitHeader(MIME_Header* h)

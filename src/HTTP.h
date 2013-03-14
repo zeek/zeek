@@ -55,6 +55,9 @@ protected:
 	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
 	ZIP_Analyzer* zip;
+	bool is_partial_content;
+	uint64_t offset;
+	int64_t content_size; // total size  of content specified by content-range
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 

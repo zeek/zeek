@@ -1,4 +1,5 @@
 #include <string>
+#include <openssl/md5.h>
 
 #include "Info.h"
 #include "InfoTimer.h"
@@ -54,9 +55,12 @@ int Info::actions_idx = -1;
 magic_t Info::magic = 0;
 magic_t Info::magic_mime = 0;
 
-void Info::InitFieldIndices()
+string Info::salt;
+
+void Info::StaticInit()
 	{
 	if ( file_id_idx != -1 ) return;
+
 	file_id_idx = Idx("file_id");
 	parent_file_id_idx = Idx("parent_file_id");
 	source_idx = Idx("source");
@@ -72,6 +76,11 @@ void Info::InitFieldIndices()
 	file_type_idx = Idx("file_type");
 	mime_type_idx = Idx("mime_type");
 	actions_idx = Idx("actions");
+
+	bro_init_magic(&magic, MAGIC_NONE);
+	bro_init_magic(&magic_mime, MAGIC_MIME);
+
+	salt = BifConst::FileAnalysis::salt->CheckString();
 	}
 
 Info::Info(const string& unique, Connection* conn)
@@ -79,13 +88,14 @@ Info::Info(const string& unique, Connection* conn)
       postpone_timeout(false), need_reassembly(false), done(false),
       actions(this)
 	{
-	InitFieldIndices();
-
-	bro_init_magic(&magic, MAGIC_NONE);
-	bro_init_magic(&magic_mime, MAGIC_MIME);
+	StaticInit();
 
 	char id[20];
-	uitoa_n(calculate_unique_id(), id, sizeof(id), 62);
+	uint64 hash[2];
+	string msg(unique + salt);
+	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
+	    reinterpret_cast<u_char*>(hash));
+	uitoa_n(hash[0], id, sizeof(id), 62);
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s", id);
 

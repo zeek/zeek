@@ -26,3 +26,4 @@ const Threading::heartbeat_interval: interval;
 
 const FileAnalysis::pending_file_drain_interval: interval;
 const FileAnalysis::pending_file_timeout: interval;
+const FileAnalysis::salt: string;

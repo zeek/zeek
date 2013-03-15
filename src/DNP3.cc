@@ -13,9 +13,9 @@ DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTa
 	this->DNP3_PrecomputeCRC(DNP3_CrcTable, 0xA6BC);  
 	
 	interp = new binpac::DNP3::DNP3_Conn(this);
-	//hl_test = new binpac::DNP3::DNP3_Flow(interp, true);
 
-	hl_debug = 0 ;
+	upflow_count = 0 ;
+	downflow_count = 0 ;
 	}
 
 DNP3_Analyzer::~DNP3_Analyzer()
@@ -617,19 +617,37 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 		
 	if(result == 2){
-		////adding assert 
-		hl_test = interp->upflow();
-		printf("test buffer size %d\n", hl_test->get_bufferBytes());
-		newFrame = 258 + hl_debug * (257 - 8);
-		printf("new frame size is %d \n", newFrame);
-		hl_test->increaseBuffer( 258 + hl_debug * (257 - 8) );
-		printf("after increas it ? test buffer size %d\n", hl_test->get_bufferBytes());
-		hl_debug++;
+		////adding assert
+		if(m_orig == true){ 
+			//upflow = interp->upflow();
+			printf("test buffer size %d\n", upflow->get_bufferBytes());
+			newFrame = 258 + upflow_count * (257 - 8);
+			printf("new frame size is %d \n", newFrame);
+			upflow->increaseBuffer( 258 + upflow_count * (257 - 8) );
+			printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
+			upflow_count++;
+		}
+		else{
+			downflow = interp->downflow();
+			printf("down test buffer size %d\n", downflow->get_bufferBytes());
+			newFrame = 258 + downflow_count * (257 - 8);
+			printf("down new frame size is %d \n", newFrame);
+			downflow->increaseBuffer( 258 + downflow_count * (257 - 8) );
+			printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
+			downflow_count++;
+		}
 	}
 	if(result == 3){
-		printf("test buffer size %d\n", hl_test->get_bufferBytes());
-		hl_test->increaseBuffer( 258 + (hl_debug - 1) * (257 - 8) + gDNP3Data.length - 1 );
-		hl_debug = 0;
+		if(m_orig == true){
+			printf("test buffer size %d\n", upflow->get_bufferBytes());
+			upflow->increaseBuffer( 258 + (upflow_count - 1) * (257 - 8) + gDNP3Data.length - 1 );
+			upflow_count = 0;
+		}
+		else{
+			printf("down test buffer size %d\n", downflow->get_bufferBytes());
+			downflow->increaseBuffer( 258 + (downflow_count - 1) * (257 - 8) + gDNP3Data.length - 1 );
+			downflow_count = 0;
+		}
 		
 	}
 	
@@ -646,8 +664,15 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	*/
 	if(result == 1){
 		printf("after parsing the first packet\n");
-		hl_debug ++;  // number of packets
-		hl_test = interp->upflow();
+		//trunk_count ++;  // number of packets
+		if( m_orig == true){
+			upflow_count ++;
+			upflow = interp->upflow();
+		}
+		else{
+			downflow_count ++;
+			downflow = interp->downflow();
+		}
 		//hl_test = interp->downflow();
 		//hl_test->increaseBuffer(257 + 257 - 8);
 	}
@@ -669,22 +694,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		
 	}
 	*/
-	gDNP3Data.Clear();
-
-	#ifdef NOTUSE_BUFFER
-	if(result == 10){
-		//interp->FlowEOF(m_orig);	
-		//interp->FlowEOF(true);	
-		//interp->FlowEOF(false);	
-	}
-	#else 
-	if(result == 10){
-		//interp->FlowEOF(m_orig);	
-		//interp->FlowEOF(true);	
-		//interp->FlowEOF(false);	
-	}	
-	#endif
-
+	gDNP3Data.Clear();	
 
 	
 }

@@ -40,11 +40,16 @@ private:
 	// options set from the script-level.
 	string separator;
 	unsigned int sep_length; // length of the separator
+	bool Execute();
 
 	static const int block_size;
 	uint32_t bufpos;
 	char* buf;
 	char* outbuf;
+
+	int stdin_fileno;
+	int stdout_fileno;
+	int stderr_fileno;
 };
 
 }

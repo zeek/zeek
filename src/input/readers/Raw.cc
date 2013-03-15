@@ -29,6 +29,15 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	buf = 0;
 	outbuf = 0;
 	bufpos = 0;
+
+	stdin_fileno = fileno(stdin);
+	stdout_fileno = fileno(stdout);
+	stderr_fileno = fileno(stderr);
+
+	// and because we later assume this...
+	assert(stdin_fileno == 0);
+	assert(stdout_fileno == 1);
+	assert(stderr_fileno == 2);
 	}
 
 Raw::~Raw()
@@ -42,16 +51,53 @@ void Raw::DoClose()
 		CloseInput();
 	}
 
+bool Raw::Execute() 
+	{
+	int stdout_pipe[2];
+        pid_t pid;
+
+	if (pipe(stdout_pipe) != 0)
+		{
+		Error(Fmt("Could not open pipe: %d", errno));
+		return false;
+		}
+
+	pid = fork();
+	if ( pid < 0 )
+		{
+		Error(Fmt("Could not create child process: %d", errno));
+		return false;
+		}
+	else if ( pid == 0 ) 
+		{
+		// we are the child.
+		close(stdout_pipe[stdin_fileno]);
+		dup2(stdout_pipe[stdout_fileno], stdout_fileno);
+		//execv("/usr/bin/uname",test);
+		execl("/bin/sh", "sh", "-c", fname.c_str(), NULL);
+		fprintf(stderr, "Exec failed :(......\n");
+		exit(255);
+		}
+	else
+		{
+		// we are the parent
+		close(stdout_pipe[stdout_fileno]);
+		file = fdopen(stdout_pipe[stdin_fileno], "r");
+		if ( file == 0 )
+			{
+			Error("Could not convert fileno to file");
+			return false;
+			}
+		return true;
+		}
+	}
+
 bool Raw::OpenInput()
 	{
 	if ( execute )
 		{
-		file = popen(fname.c_str(), "r");
-		if ( !file )
-			{
-			Error(Fmt("Could not execute command %s", fname.c_str()));
+		if ( ! Execute() ) 
 			return false;
-			}
 		}
 	else
 		{
@@ -63,9 +109,10 @@ bool Raw::OpenInput()
 			}
 		}
 
-	if ( execute && Info().mode == MODE_STREAM )
-		fcntl(fileno(file), F_SETFL, O_NONBLOCK);
+	//if ( execute && Info().mode == MODE_STREAM )
+	//	fcntl(fileno(file), F_SETFL, O_NONBLOCK);
 
+	//fcntl(fileno(file), F_SETFD, FD_CLOEXEC);
 	return true;
 	}
 
@@ -130,12 +177,14 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		execute = true;
 		fname = source.substr(0, fname.length() - 1);
 
+		/*
 		if ( (info.mode != MODE_MANUAL) )
 			{
 			Error(Fmt("Unsupported read mode %d for source %s in execution mode",
 				  info.mode, fname.c_str()));
 			return false;
 			}
+			*/
 
 		result = OpenInput();
 
@@ -299,7 +348,7 @@ bool Raw::DoUpdate()
 		else if ( length == -2 || length == -1 ) 
 			// no data ready or eof
 			break;
-
+		
 		Value** fields = new Value*[1];
 
 		// filter has exactly one text field. convert to it.

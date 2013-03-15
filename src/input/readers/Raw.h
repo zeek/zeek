@@ -50,6 +50,8 @@ private:
 	int stdin_fileno;
 	int stdout_fileno;
 	int stderr_fileno;
+
+	pid_t childpid;
 };
 
 }

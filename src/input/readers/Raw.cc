@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <signal.h>
 
 using namespace input::reader;
 using threading::Value;
@@ -38,6 +39,8 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	assert(stdin_fileno == 0);
 	assert(stdout_fileno == 1);
 	assert(stderr_fileno == 2);
+
+	childpid = -1;
 	}
 
 Raw::~Raw()
@@ -49,12 +52,15 @@ void Raw::DoClose()
 	{
 	if ( file != 0 )
 		CloseInput();
+
+	if ( execute && childpid > 0 )
+		// kill child process
+		kill(childpid, 9); // TERMINATOR
 	}
 
 bool Raw::Execute() 
 	{
 	int stdout_pipe[2];
-        pid_t pid;
 
 	if (pipe(stdout_pipe) != 0)
 		{
@@ -62,13 +68,13 @@ bool Raw::Execute()
 		return false;
 		}
 
-	pid = fork();
-	if ( pid < 0 )
+	childpid = fork();
+	if ( childpid < 0 )
 		{
 		Error(Fmt("Could not create child process: %d", errno));
 		return false;
 		}
-	else if ( pid == 0 ) 
+	else if ( childpid == 0 ) 
 		{
 		// we are the child.
 		close(stdout_pipe[stdin_fileno]);
@@ -82,6 +88,10 @@ bool Raw::Execute()
 		{
 		// we are the parent
 		close(stdout_pipe[stdout_fileno]);
+
+		if ( Info().mode == MODE_STREAM )
+			fcntl(stdout_pipe[stdin_fileno], F_SETFL, O_NONBLOCK);
+		
 		file = fdopen(stdout_pipe[stdin_fileno], "r");
 		if ( file == 0 )
 			{
@@ -102,6 +112,7 @@ bool Raw::OpenInput()
 	else
 		{
 		file = fopen(fname.c_str(), "r");
+		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
 		if ( !file )
 			{
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
@@ -177,15 +188,6 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		execute = true;
 		fname = source.substr(0, fname.length() - 1);
 
-		/*
-		if ( (info.mode != MODE_MANUAL) )
-			{
-			Error(Fmt("Unsupported read mode %d for source %s in execution mode",
-				  info.mode, fname.c_str()));
-			return false;
-			}
-			*/
-
 		result = OpenInput();
 
 		}
@@ -229,7 +231,7 @@ int64_t Raw::GetLine()
 		pos += bufpos + readbytes;
 		bufpos = 0; // read full block size in next read...
 
-		if ( errno != 0 ) 
+		if ( pos == 0 && errno != 0 )
 			break;
 
 		char* token = strnstr(buf, separator.c_str(), block_size*repeats-pos);
@@ -279,7 +281,7 @@ int64_t Raw::GetLine()
 
 	if ( errno == 0 ) {
 		assert(false);
-	} else if ( errno == EAGAIN || errno == EAGAIN || errno == EINTR ) {
+	} else if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR ) {
 		return -2;
 	} else {
 		// an error code we did no expect. This probably is bad.
@@ -343,6 +345,8 @@ bool Raw::DoUpdate()
 	for ( ;; )
 		{
 		int64_t length = GetLine();
+		//printf("Read %lld bytes", length);
+
 		if ( length == -3 ) 
 			return false;
 		else if ( length == -2 || length == -1 ) 

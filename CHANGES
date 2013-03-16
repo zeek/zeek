@@ -1,4 +1,8 @@
 
+2.1-386 | 2013-03-22 12:41:50 -0700
+
+  * Added reverse() function to strings.bif. (Yun Zheng Hu)
+    
 2.1-384 | 2013-03-22 12:10:14 -0700
 
   * Fix record constructors in table initializer indices.  Addresses

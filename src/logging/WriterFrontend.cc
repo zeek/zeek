@@ -141,8 +141,7 @@ void WriterFrontend::Stop()
 
 	if ( backend )
 		{
-		backend->PrepareStop();
-		backend->Stop();
+		backend->SignalStop();
 		backend = 0; // Thread manager will clean it up once it finishes.
 		}
 	}

@@ -32,10 +32,10 @@ void Manager::Terminate()
 	// Signal all to stop.
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->PrepareStop();
+		(*i)->SignalStop();
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->Stop();
+		(*i)->WaitForStop();
 
 	// Then join them all.
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
@@ -141,7 +141,7 @@ void Manager::Process()
 			else
 				{
 				reporter->Error("%s failed, terminating thread", msg->Name());
-				t->Stop();
+				t->SignalStop();
 				}
 
 			delete msg;

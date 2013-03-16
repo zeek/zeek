@@ -44,6 +44,7 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	childpid = -1;
 
 	stdin_towrite = 0; // by default do not open stdin
+	use_stderr = false;
 	}
 
 Raw::~Raw()
@@ -89,6 +90,12 @@ bool Raw::Execute()
 			dup2(pipes[stdin_in], stdin_fileno);
 			} 
 
+		if ( use_stderr )
+			{
+			close(pipes[stderr_in]);
+			dup2(pipes[stderr_out], stderr_fileno);
+			}
+
 		//execv("/usr/bin/uname",test);
 		execl("/bin/sh", "sh", "-c", fname.c_str(), NULL);
 		fprintf(stderr, "Exec failed :(......\n");
@@ -107,13 +114,22 @@ bool Raw::Execute()
 			close(pipes[stdin_in]);
 			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK);
 			}
+
+		if ( use_stderr ) 
+			{
+			close(pipes[stderr_out]);
+			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK);
+			}
 		
 		file = fdopen(pipes[stdout_in], "r");
-		if ( file == 0 )
+		stderrfile = fdopen(pipes[stderr_in], "r");
+		if ( file == 0 || (stderrfile == 0 && use_stderr) )
 			{
 			Error("Could not convert fileno to file");
 			return false;
 			}
+
+
 		return true;
 		}
 	}
@@ -172,7 +188,17 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	mtime = 0;
 	execute = false;
 	firstrun = true;
+	int want_fields = 1;
 	bool result;
+	
+	// do Initialization
+	string source = string(info.source);
+	char last = info.source[source.length() - 1];
+	if ( last == '|' )
+		{
+		execute = true;
+		fname = source.substr(0, fname.length() - 1);
+		}
 
 	if ( ! info.source || strlen(info.source) == 0 )
 		{
@@ -186,37 +212,34 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		stdin_string = it->second;
 		stdin_towrite = stdin_string.length();
 		}
-
-	if ( num_fields != 1 )
+	
+	it = info.config.find("read_stderr"); // we want to read stderr
+	if ( it != info.config.end() && execute )
 		{
-		Error("Filter for raw reader contains more than one field. "
-		      "Filters for the raw reader may only contain exactly one string field. "
-		      "Filter ignored.");
+		use_stderr = true;
+		want_fields = 2;
+		}
+
+	if ( num_fields != want_fields )
+		{
+		Error(Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
+		      "Filters for the raw reader contain one field when used in normal mode and 2 fields when using execute mode with stderr capuring. "
+		      "Filter ignored.", num_fields, want_fields));
 		return false;
 		}
 
 	if ( fields[0]->type != TYPE_STRING )
 		{
-		Error("Filter for raw reader contains a field that is not of type string.");
+		Error("First field for raw reader always has to be of type string.");
 		return false;
 		}
-
-	// do Initialization
-	string source = string(info.source);
-	char last = info.source[source.length() - 1];
-	if ( last == '|' )
+	if ( use_stderr && fields[1]->type != TYPE_BOOL ) 
 		{
-		execute = true;
-		fname = source.substr(0, fname.length() - 1);
-
-		result = OpenInput();
-
+		Error("Second field for raw reader always has to be of type bool.");
 		}
-	else
-		{
-		execute = false;
-		result = OpenInput();
-		}
+
+
+	result = OpenInput();
 
 	if ( result == false )
 		return result;
@@ -329,7 +352,6 @@ void Raw::WriteToStdin()
 		}
 
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
-		printf("Closing %d\n", pipes[stdin_out]);
 		close(pipes[stdin_out]);
 	}
 
@@ -383,14 +405,14 @@ bool Raw::DoUpdate()
 		}
 
 	string line;
-	assert (NumFields() == 1);
+	assert ( (NumFields() == 1 && !use_stderr) || (NumFields() == 2 && use_stderr));
 	for ( ;; )
 		{
 		if ( stdin_towrite > 0 ) 
 			WriteToStdin();
 
 		int64_t length = GetLine(file);
-		//printf("Read %lld bytes\n", length);
+		printf("Read %lld bytes\n", length);
 
 		if ( length == -3 ) 
 			return false;
@@ -398,7 +420,7 @@ bool Raw::DoUpdate()
 			// no data ready or eof
 			break;
 		
-		Value** fields = new Value*[1];
+		Value** fields = new Value*[2]; // just always reserve 2. This means that our [] is too long by a count of 1 if not using stderr. But who cares...
 
 		// filter has exactly one text field. convert to it.
 		Value* val = new Value(TYPE_STRING, true);
@@ -406,10 +428,41 @@ bool Raw::DoUpdate()
 		val->val.string_val.length = length;
 		fields[0] = val;
 
+		if ( use_stderr ) 
+			{
+			Value* bval = new Value(TYPE_BOOL, true);
+			bval->val.int_val = 0;
+			fields[1] = bval;
+			}
+
 		Put(fields);
 
 		outbuf = 0;
 		}
+
+	if ( use_stderr ) 
+		for ( ;; )
+			{
+			int64_t length = GetLine(stderrfile);
+			printf("Read stderr %lld bytes\n", length);
+			if ( length == -3 ) 
+				return false;
+			else if ( length == -2 || length == -1 )
+				break;
+
+			Value** fields = new Value*[2];
+			Value* val = new Value(TYPE_STRING, true);			
+			val->val.string_val.data = outbuf;
+			val->val.string_val.length = length;
+			fields[0] = val;
+			Value* bval = new Value(TYPE_BOOL, true);
+			bval->val.int_val = 1; // yes, we are stderr
+			fields[1] = bval;
+
+			Put(fields);
+
+			outbuf = 0;		
+			}
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "DoUpdate finished successfully");

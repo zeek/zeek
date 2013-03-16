@@ -35,6 +35,7 @@ private:
 
 	string fname; // Source with a potential "|" removed.
 	FILE* file;
+	FILE* stderrfile;
 	bool execute;
 	bool firstrun;
 	time_t mtime;
@@ -54,6 +55,8 @@ private:
 
 	string stdin_string;
 	uint64_t stdin_towrite;
+
+	bool use_stderr;
 
 	int pipes[6];
 	pid_t childpid;

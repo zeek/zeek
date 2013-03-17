@@ -1,4 +1,22 @@
 
+2.1-366 | 2013-03-17 12:35:59 -0700
+
+  * Correctly handle DNS lookups for software version ranges. (Seth
+    Hall)
+
+  * Improvements to vulnerable software detection. (Seth Hall)
+    
+     - Add a DNS based updating method.  This needs to be tested
+       still.
+
+     - Vulnerable version ranges are used now instead of only single
+       versions.  This can deal with software with multiple stable
+       major versions.
+
+  * Update software version parsing and comparison to account for a
+    third numeric subversion. Also, $addl is now compared numerically
+    if the value is actually numeric. (Seth Hall)
+
 2.1-361 | 2013-03-13 07:18:22 -0700
 
   * Add check for truncated link frames. Addresses #962. (Jacob

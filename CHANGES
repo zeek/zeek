@@ -1,5 +1,5 @@
 
-2.1-373 | 2013-03-17 12:58:39 -0700
+2.1-375 | 2013-03-17 13:14:26 -0700
 
   * Add base64 encoding functionality, including new BiFs
 	encode_base64() and encode_base64_custom(). (Bernhard Amann)
@@ -7,6 +7,10 @@
   * Replace call to external "openssl" in extract-certs-pem.bro with
 	that encode_base64(). (Bernhard Amann)
 
+  * Adding a test for extract-certs-pem.pem. (Robin Sommer)
+
+  * Renaming Base64Decoder to Base64Converter. (Robin Sommer)
+    
 2.1-366 | 2013-03-17 12:35:59 -0700
 
   * Correctly handle DNS lookups for software version ranges. (Seth

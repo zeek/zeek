@@ -10,13 +10,13 @@
 #include "Analyzer.h"
 
 // Maybe we should have a base class for generic decoders?
-class Base64Decoder {
+class Base64Converter {
 public:
 	// <analyzer> is used for error reporting, and it should be zero when
 	// the decoder is called by the built-in function decode_base64() or encode_base64().
 	// Empty alphabet indicates the default base64 alphabet.
-	Base64Decoder(Analyzer* analyzer, const string& alphabet = "");
-	~Base64Decoder();
+	Base64Converter(Analyzer* analyzer, const string& alphabet = "");
+	~Base64Converter();
 
 	// A note on Decode():
 	//

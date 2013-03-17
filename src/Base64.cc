@@ -2,10 +2,10 @@
 #include "Base64.h"
 #include <math.h>
 
-int Base64Decoder::default_base64_table[256];
-const string Base64Decoder::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+int Base64Converter::default_base64_table[256];
+const string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void Base64Decoder::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
+void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
 	{
 	int blen;
 	char *buf;
@@ -42,7 +42,7 @@ void Base64Decoder::Encode(int len, const unsigned char* data, int* pblen, char*
 	}
 
 
-int* Base64Decoder::InitBase64Table(const string& alphabet)
+int* Base64Converter::InitBase64Table(const string& alphabet)
 	{
 	assert(alphabet.size() == 64);
 
@@ -84,7 +84,7 @@ int* Base64Decoder::InitBase64Table(const string& alphabet)
 
 
 
-Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& arg_alphabet)
+Base64Converter::Base64Converter(Analyzer* arg_analyzer, const string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{
@@ -103,13 +103,13 @@ Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& arg_alphabet)
 	analyzer = arg_analyzer;
 	}
 
-Base64Decoder::~Base64Decoder()
+Base64Converter::~Base64Converter()
 	{
 	if ( base64_table != default_base64_table )
 		delete base64_table;
 	}
 
-int Base64Decoder::Decode(int len, const char* data, int* pblen, char** pbuf)
+int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 	{
 	int blen;
 	char* buf;
@@ -199,7 +199,7 @@ int Base64Decoder::Decode(int len, const char* data, int* pblen, char** pbuf)
 	return dlen;
 	}
 
-int Base64Decoder::Done(int* pblen, char** pbuf)
+int Base64Converter::Done(int* pblen, char** pbuf)
 	{
 	const char* padding = "===";
 
@@ -231,7 +231,7 @@ BroString* decode_base64(const BroString* s, const BroString* a)
 	int rlen2, rlen = buf_len;
 	char* rbuf2, *rbuf = new char[rlen];
 
-	Base64Decoder dec(0, a ? a->CheckString() : "");
+	Base64Converter dec(0, a ? a->CheckString() : "");
 	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf) == -1 )
 		goto err;
 
@@ -261,7 +261,7 @@ BroString* encode_base64(const BroString* s, const BroString* a)
 
 	char* outbuf = 0;
 	int outlen = 0;
-	Base64Decoder enc(0, a ? a->CheckString() : "");
+	Base64Converter enc(0, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
 	return new BroString(1, (u_char*)outbuf, outlen);

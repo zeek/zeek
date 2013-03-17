@@ -1,8 +1,46 @@
 #include "config.h"
 #include "Base64.h"
+#include <math.h>
 
 int Base64Decoder::default_base64_table[256];
 const string Base64Decoder::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+void Base64Decoder::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
+	{
+	int blen;
+	char *buf;
+
+	if ( ! pbuf )
+		reporter->InternalError("nil pointer to encoding result buffer");
+
+	if ( *pbuf && (*pblen % 4 != 0) )
+		reporter->InternalError("Base64 encode buffer not a multiple of 4");
+
+	if ( *pbuf )
+		{
+		buf = *pbuf;
+		blen = *pblen;
+		}
+	else
+		{
+		blen = (int)(4 * ceil((double)len / 3));
+		*pbuf = buf = new char[blen];
+		*pblen = blen;
+		}
+
+	for ( int i = 0, j = 0; (i < len) && ( j < blen ); )
+		{
+			uint32_t bit32 = ((i < len ? data[i++] : 0) << 16) +
+					 ((i < len ? data[i++] : 0 & i++) << 8) +
+					 ( i < len ? data[i++] : 0 & i++);
+
+			buf[j++] = alphabet[(bit32 >> 18) & 0x3f];
+			buf[j++] = alphabet[(bit32 >> 12) & 0x3f];
+			buf[j++] = (i == (len+2)) ? '=' : alphabet[(bit32 >> 6) & 0x3f];
+			buf[j++] = (i >= (len+1)) ? '=' : alphabet[bit32 & 0x3f];
+		}
+	}
+
 
 int* Base64Decoder::InitBase64Table(const string& alphabet)
 	{
@@ -44,9 +82,21 @@ int* Base64Decoder::InitBase64Table(const string& alphabet)
 	return base64_table;
 	}
 
-Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& alphabet)
+
+
+Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& arg_alphabet)
 	{
-	base64_table = InitBase64Table(alphabet.size() ? alphabet : default_alphabet);
+	if ( arg_alphabet.size() > 0 )
+		{
+		assert(arg_alphabet.size() == 64);
+		alphabet = arg_alphabet;
+		}
+	else
+		{
+		alphabet = default_alphabet;
+		}
+
+	base64_table = 0;
 	base64_group_next = 0;
 	base64_padding = base64_after_padding = 0;
 	errored = 0;
@@ -63,6 +113,10 @@ int Base64Decoder::Decode(int len, const char* data, int* pblen, char** pbuf)
 	{
 	int blen;
 	char* buf;
+
+	// Initialization of table on first_time call of Decode.
+	if ( ! base64_table )
+		base64_table = InitBase64Table(alphabet);
 
 	if ( ! pbuf )
 		reporter->InternalError("nil pointer to decoding result buffer");
@@ -195,3 +249,21 @@ err:
 	delete [] rbuf;
 	return 0;
 	}
+
+BroString* encode_base64(const BroString* s, const BroString* a)
+	{
+	if ( a && a->Len() != 64 )
+		{
+		reporter->Error("base64 alphabet is not 64 characters: %s",
+		                a->CheckString());
+		return 0;
+		}
+
+	char* outbuf = 0;
+	int outlen = 0;
+	Base64Decoder enc(0, a ? a->CheckString() : "");
+	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
+
+	return new BroString(1, (u_char*)outbuf, outlen);
+	}
+

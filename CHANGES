@@ -1,4 +1,8 @@
 
+2.1-377 | 2013-03-17 17:36:09 -0700
+
+  * Fixing potential leak in DNS error case. (Vlad Grigorescu)
+    
 2.1-375 | 2013-03-17 13:14:26 -0700
 
   * Add base64 encoding functionality, including new BiFs

@@ -5,6 +5,7 @@
 #include "Event.h"
 #include "Reporter.h"
 #include "digest.h"
+#include "file_analysis/Manager.h"
 
 // Here are a few things to do:
 //
@@ -1019,6 +1020,8 @@ void MIME_Mail::Done()
 		}
 
 	MIME_Message::Done();
+
+	file_mgr->EndOfFile(analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1121,6 +1124,9 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		vl->append(new StringVal(data_len, data));
 		analyzer->ConnectionEvent(mime_segment_data, vl);
 		}
+
+	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                 analyzer->Conn(), false);  // is_orig param N/A
 
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}

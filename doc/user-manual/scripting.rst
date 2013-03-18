@@ -418,7 +418,7 @@ When combined with the ``type`` keyword, ``record`` can generate a composite typ
 
 While it might be surprising that Bro is tracking and passing around this much data for each connection, it shouldn't be too surprising, given our exploration of it earlier, that the connection record consists of a collection of atomic data types, simple data types and even another ``record``.  Looking at the structure of the definition, a new collection of data types is being defined as a type called ``Info``.  Since this type definition is within the confines of an export block, what is defined is, in fact, ``Conn::Info``.
 
-The formatting for a declaration of a record type in Bro includes the descriptive name of the type being defined and the seperate entities that make up the record.  The individual entites that make up the new record are not limited in type or number as long as the name for each entity is unique.
+The formatting for a declaration of a record type in Bro includes the descriptive name of the type being defined and the seperate fields that make up the record.  The individual fields that make up the new record are not limited in type or number as long as the name for each field is unique.
 
 .. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_record_01.bro
    :language: bro
@@ -429,9 +429,9 @@ The formatting for a declaration of a record type in Bro includes the descriptiv
 
    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_struct_record_01.bro
 
-The sample above shows a simple type definition that includes a string, a set of ports, and a count to define a service type.  Also included is a function to print each entity of a record in a formatted fashion and a bro_init event handler to show some functionality of working with records.  The defintions of the dns and http services are both done inline using squared brackets before being passed to the ``print_service`` function.  The ``print_service`` function makes use of the ``$`` dereference operator to access the entities within the newly defined Service record type.  
+The sample above shows a simple type definition that includes a string, a set of ports, and a count to define a service type.  Also included is a function to print each field of a record in a formatted fashion and a bro_init event handler to show some functionality of working with records.  The defintions of the dns and http services are both done inline using squared brackets before being passed to the ``print_service`` function.  The ``print_service`` function makes use of the ``$`` dereference operator to access the fields within the newly defined Service record type.  
 
-As you saw in the definition for the connection record, other records are even valid as entities within another record.  We can extend the example above to include another record that contains a Service record.
+As you saw in the definition for the connection record, other records are even valid as fields within another record.  We can extend the example above to include another record that contains a Service record.
 
 .. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/data_struct_record_02.bro
    :language: bro
@@ -442,7 +442,7 @@ As you saw in the definition for the connection record, other records are even v
 
    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_struct_record_02.bro
 
-The example above includes a second record type in which an entity is used as the data type for a set.  Records can be reapeatedly nested within other records, their entities reachable through repeated chains of the ``$`` dereference operator.  
+The example above includes a second record type in which an field is used as the data type for a set.  Records can be reapeatedly nested within other records, their fields reachable through repeated chains of the ``$`` dereference operator.  
 
 It's also common to see a ``type`` used to simply alias a data structure to a more descriptive name.  The example below shows an example of this from Bro's own type definitions file.
 

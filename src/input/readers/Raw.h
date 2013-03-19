@@ -58,6 +58,8 @@ private:
 
 	bool use_stderr;
 
+	bool forcekill;
+
 	int pipes[6];
 	pid_t childpid;
 

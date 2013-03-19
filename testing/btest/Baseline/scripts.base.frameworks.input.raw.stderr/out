@@ -1,0 +1,27 @@
+Process finished event
+input
+1
+Input::EVENT_NEW
+..:
+F
+Input::EVENT_NEW
+bro
+F
+Input::EVENT_NEW
+out
+F
+Input::EVENT_NEW
+stderr.bro
+F
+Input::EVENT_NEW
+ls: ../nonexistant: No such file or directory
+T
+Input::EVENT_NEW
+ls: ../nonexistant2: No such file or directory
+T
+Input::EVENT_NEW
+ls: ../nonexistant3: No such file or directory
+T
+done
+End of Data event
+input

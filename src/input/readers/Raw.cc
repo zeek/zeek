@@ -6,6 +6,7 @@
 #include "../../threading/SerialTypes.h"
 
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -23,6 +24,8 @@ const int Raw::block_size = 512; // how big do we expect our chunks of data to b
 Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
+	stderrfile = 0;
+	forcekill = false;
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
 			  BifConst::InputRaw::record_separator->Len());
 
@@ -35,11 +38,6 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	stdin_fileno = fileno(stdin);
 	stdout_fileno = fileno(stdout);
 	stderr_fileno = fileno(stderr);
-
-	// and because we later assume this...
-	assert(stdin_fileno == 0);
-	assert(stdout_fileno == 1);
-	assert(stderr_fileno == 2);
 
 	childpid = -1;
 
@@ -58,9 +56,17 @@ void Raw::DoClose()
 		CloseInput();
 
 
-	if ( execute && childpid > 0 )
+	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
+		{
 		// kill child process
-		kill(childpid, 9); // TERMINATOR
+		kill(childpid, 15); // sigterm
+		if ( forcekill )
+			{
+			usleep(200); // 200 msecs should be enough for anyone ;)
+			if ( kill(childpid, 0) == 0 ) // perhaps it is already gone
+				kill(childpid, 9); // TERMINATE
+			}
+		}
 	}
 
 bool Raw::Execute() 
@@ -112,22 +118,26 @@ bool Raw::Execute()
 		if ( stdin_towrite )
 			{
 			close(pipes[stdin_in]);
-			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK);
+			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK); // ya, just always set this to nonblocking. we do not want to block on a program receiving data.
+			// note that there is a small gotcha with it. More data is queued when more data is read from the program output. Hence, when having
+			// a program in mode_manual where the first write cannot write everything, the rest will be stuck in a queue that is never emptied.
 			}
 
 		if ( use_stderr ) 
 			{
 			close(pipes[stderr_out]);
-			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK);
+			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
 			}
 		
 		file = fdopen(pipes[stdout_in], "r");
-		stderrfile = fdopen(pipes[stderr_in], "r");
-		if ( file == 0 || (stderrfile == 0 && use_stderr) )
-			{
-			Error("Could not convert fileno to file");
-			return false;
-			}
+
+		if ( use_stderr ) 
+			stderrfile = fdopen(pipes[stderr_in], "r");
+			if ( file == 0 || (stderrfile == 0 && use_stderr) )
+				{
+				Error("Could not convert fileno to file");
+				return false;
+				}
 
 
 		return true;
@@ -165,15 +175,19 @@ bool Raw::CloseInput()
 	Debug(DBG_INPUT, "Raw reader starting close");
 #endif
 
+	fclose(file);
+	
+	if ( use_stderr ) 
+		fclose(stderrfile);
+
 	if ( execute ) // we do not care if any of those fails. They should all be defined.
 		{
 		for ( int i = 0; i < 6; i ++ ) 
 			close(pipes[i]);
 		}
-	else
-		fclose(file);
 
 	file = 0;
+	stderrfile = 0;
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "Raw reader finished close");
@@ -219,11 +233,17 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		use_stderr = true;
 		want_fields = 2;
 		}
+	
+	it = info.config.find("force_kill"); // we want to be sure that our child is dead when we exit
+	if ( it != info.config.end() && execute )
+		{
+		forcekill = true;
+		}
 
 	if ( num_fields != want_fields )
 		{
 		Error(Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
-		      "Filters for the raw reader contain one field when used in normal mode and 2 fields when using execute mode with stderr capuring. "
+		      "Filters for the raw reader contain one string field when used in normal mode and one string and one bool fields when using execute mode with stderr capuring. "
 		      "Filter ignored.", num_fields, want_fields));
 		return false;
 		}
@@ -236,6 +256,14 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	if ( use_stderr && fields[1]->type != TYPE_BOOL ) 
 		{
 		Error("Second field for raw reader always has to be of type bool.");
+		return false;
+		}
+
+	if ( execute && Info().mode == MODE_REREAD )
+		{
+		// for execs this makes no sense - would have to execute each heartbeat?
+		Error("Rereading only supported for files, not for executables.");
+		return false;
 		}
 
 
@@ -353,7 +381,13 @@ void Raw::WriteToStdin()
 
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
 		close(pipes[stdin_out]);
+
+	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
+		{
+		Error(Fmt("Could not write whole string to stdin of child process in one go. Please use STREAM mode to pass more data to child."));
+		}
 	}
+
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Raw::DoUpdate()
@@ -366,6 +400,7 @@ bool Raw::DoUpdate()
 		switch ( Info().mode  ) {
 		case MODE_REREAD:
 			{
+			assert(childpid == -1); // mode may not be used to execute child programs
 			// check if the file has changed
 			struct stat sb;
 			if ( stat(fname.c_str(), &sb) == -1 )
@@ -388,7 +423,6 @@ bool Raw::DoUpdate()
 		case MODE_STREAM:
 			if ( Info().mode == MODE_STREAM && file != 0 )
 				{
-				//fpurge(file);
 				clearerr(file);  // remove end of file evil bits
 				break;
 				}
@@ -412,7 +446,7 @@ bool Raw::DoUpdate()
 			WriteToStdin();
 
 		int64_t length = GetLine(file);
-		printf("Read %lld bytes\n", length);
+		//printf("Read %lld bytes\n", length);
 
 		if ( length == -3 ) 
 			return false;
@@ -444,7 +478,7 @@ bool Raw::DoUpdate()
 		for ( ;; )
 			{
 			int64_t length = GetLine(stderrfile);
-			printf("Read stderr %lld bytes\n", length);
+			//printf("Read stderr %lld bytes\n", length);
 			if ( length == -3 ) 
 				return false;
 			else if ( length == -2 || length == -1 )
@@ -463,6 +497,50 @@ bool Raw::DoUpdate()
 
 			outbuf = 0;		
 			}
+
+	if ( ( Info().mode == MODE_MANUAL ) || ( Info().mode == MODE_REREAD ) ) 
+		// done with the current data source :)
+		EndCurrentSend();
+
+	// and let's check if the child process is still alive
+	int return_code;
+	if ( waitpid(childpid, &return_code, WNOHANG) != 0 ) {
+		// child died :(
+		bool signal = false;
+		int code = 0;
+		if ( WIFEXITED(return_code) ) {
+			code = WEXITSTATUS(return_code);
+			if ( code != 0 ) 
+				Error(Fmt("Child process exited with non-zero return code %d", code));
+		} else if ( WIFSIGNALED(return_code) ) {
+			signal = false;
+			code = WTERMSIG(return_code);
+			Error(Fmt("Child process exited due to signal %d", code));
+		} else {
+			assert(false);
+		}
+
+		Value** vals = new Value*[4];
+		vals[0] = new Value(TYPE_STRING, true);
+		vals[0]->val.string_val.data = copy_string(Info().name);
+		vals[0]->val.string_val.length = strlen(Info().name);
+		vals[1] = new Value(TYPE_STRING, true);
+		vals[1]->val.string_val.data = copy_string(Info().source);
+		vals[1]->val.string_val.length = strlen(Info().source);
+		vals[2] = new Value(TYPE_COUNT, true);
+		vals[2]->val.int_val = code;
+		vals[3] = new Value(TYPE_BOOL, true);
+		vals[3]->val.int_val = signal;
+		
+		// and in this case we can signal end_of_data even for the streaming reader
+		if ( Info().mode == MODE_STREAM )
+			EndCurrentSend();
+
+		SendEvent("InputRaw::process_finished", 4, vals);
+		
+	}
+
+
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "DoUpdate finished successfully");

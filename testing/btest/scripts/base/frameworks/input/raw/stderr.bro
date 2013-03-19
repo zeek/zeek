@@ -4,8 +4,6 @@
 
 redef exit_only_after_terminate = T;
 
-module A;
-
 type Val: record {
 	s: string;
 	is_stderr: bool;
@@ -16,7 +14,6 @@ global outfile: file;
 
 event line(description: Input::EventDescription, tpe: Input::Event, s: string, is_stderr: bool)
 	{
-	print outfile, description;
 	print outfile, tpe;
 	print outfile, s;
 	print outfile, is_stderr;
@@ -25,10 +22,23 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string, i
 	if ( try == 7 )
 		{
 		print outfile, "done";
-		close(outfile);
 		Input::remove("input");
-		terminate();
 		}
+	}
+
+event Input::end_of_data(name: string, source:string)
+	{
+	print outfile, "End of Data event";
+	print outfile, name;
+	terminate(); # due to the current design, end_of_data will be called after process_finshed and all line events.
+	# this could potentially change
+	}
+
+event InputRaw::process_finished(name: string, source:string, exit_code:count, signal_exit:bool)
+	{
+	print outfile, "Process finished event";
+	print outfile, name;
+	print outfile, exit_code;
 	}
 
 event bro_init()

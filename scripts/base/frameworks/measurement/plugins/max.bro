@@ -1,5 +1,5 @@
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -7,15 +7,15 @@ export {
 		MAX
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## For numeric data, this tracks the maximum value given.
 		max:      double        &log &optional;
 	};
 }
 
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal)
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( MAX in filter$measure )
+	if ( MAX in r$apply )
 		{
 		if ( ! result?$max ) 
 			result$max = val;
@@ -24,7 +24,7 @@ hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: Re
 		}
 	}
 
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
 	{
 	if ( rv1?$max && rv2?$max )
 		result$max = (rv1$max > rv2$max) ? rv1$max : rv2$max;

@@ -1,5 +1,5 @@
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -7,15 +7,15 @@ export {
 		MIN
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## For numeric data, this tracks the minimum value given.
 		min:      double        &log &optional;
 	};
 }
 
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal)
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( MIN in filter$measure )
+	if ( MIN in r$apply )
 		{
 		if ( ! result?$min ) 
 			result$min = val;
@@ -24,7 +24,7 @@ hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: Re
 		}
 	}
 
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
 	{
 	if ( rv1?$min && rv2?$min )
 		result$min = (rv1$min < rv2$min) ? rv1$min : rv2$min;

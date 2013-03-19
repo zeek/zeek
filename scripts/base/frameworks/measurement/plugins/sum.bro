@@ -1,5 +1,5 @@
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -8,15 +8,15 @@ export {
 		SUM
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## For numeric data, this tracks the sum of all values.
 		sum:      double        &log &optional;
 	};
 }
 
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal)
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( SUM in filter$measure )
+	if ( SUM in r$apply )
 		{
 		if ( ! result?$sum ) 
 			result$sum = 0;
@@ -24,7 +24,7 @@ hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: Re
 		}
 	}
 
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
 	{
 	if ( rv1?$sum || rv2?$sum )
 		{

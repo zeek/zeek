@@ -1,5 +1,5 @@
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -7,15 +7,15 @@ export {
 		AVERAGE
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## For numeric data, this calculates the average of all values.
 		average: double &log &optional;
 	};
 }
 
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal)
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( AVERAGE in filter$measure )
+	if ( AVERAGE in r$apply )
 		{
 		if ( ! result?$average ) 
 			result$average = val;
@@ -24,7 +24,7 @@ hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: Re
 		}
 	}
 
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
 	{
 	if ( rv1?$average && rv2?$average )
 		result$average = ((rv1$average*rv1$num) + (rv2$average*rv2$num))/(rv1$num+rv2$num);

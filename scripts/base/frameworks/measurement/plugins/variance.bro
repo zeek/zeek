@@ -1,6 +1,6 @@
 @load ./average
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -8,13 +8,13 @@ export {
 		VARIANCE
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## For numeric data, this calculates the variance.
 		variance: double &log &optional;
 	};
 }
 
-redef record ResultVal += {
+redef record Result += {
 	# Internal use only.  Used for incrementally calculating variance.
 	prev_avg: double &optional;
 
@@ -22,16 +22,16 @@ redef record ResultVal += {
 	var_s: double &optional;
 };
 
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal) &priority=5
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( VARIANCE in filter$measure )
+	if ( VARIANCE in r$apply )
 		result$prev_avg = result$average;
 	}
 
 # Reduced priority since this depends on the average
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal) &priority=-5
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result) &priority=-5
 	{
-	if ( VARIANCE in filter$measure )
+	if ( VARIANCE in r$apply )
 		{
 		if ( ! result?$var_s )
 			result$var_s = 0.0;
@@ -41,7 +41,7 @@ hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: Re
 	}
 
 # Reduced priority since this depends on the average
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal) &priority=-5
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result) &priority=-5
 	{
 	if ( rv1?$var_s && rv2?$var_s )
 		{

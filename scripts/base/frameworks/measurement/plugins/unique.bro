@@ -1,5 +1,5 @@
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -7,14 +7,14 @@ export {
 		UNIQUE
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## If cardinality is being tracked, the number of unique
 		## items is tracked here.
 		unique: count &log &optional;
 	};
 }
 
-redef record ResultVal += {
+redef record Result += {
 	# Internal use only.  This is not meant to be publically available 
 	# because we don't want to trust that we can inspect the values 
 	# since we will like move to a probalistic data structure in the future.
@@ -22,17 +22,18 @@ redef record ResultVal += {
 	unique_vals: set[DataPoint] &optional;
 };
 
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal)
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( UNIQUE in filter$measure )
+	if ( UNIQUE in r$apply )
 		{
 		if ( ! result?$unique_vals ) 
 			result$unique_vals=set();
 		add result$unique_vals[data];
+		result$unique = |result$unique_vals|;
 		}
 	}
 
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
 	{
 	if ( rv1?$unique_vals || rv2?$unique_vals )
 		{

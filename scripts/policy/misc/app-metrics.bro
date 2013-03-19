@@ -16,51 +16,33 @@ export {
 	};
 
 	## The frequency of logging the stats collected by this script.
-	const break_interval = 15mins &redef;
+	const break_interval = 1min &redef;
 }
 
 redef record connection += {
 	resp_hostname: string &optional;
 };
 
-function app_metrics_rollup(index: Measurement::Index, vals: table[string, string] of Measurement::ResultVal) 
-	{
-	local l: Info;
-	l$ts = network_time();
-	for ( [metric_name, filter_name] in vals )
-		{
-		local val = vals[metric_name, filter_name];
-		l$app = index$str;
-		if ( metric_name == "apps.bytes" )
-			l$bytes = double_to_count(floor(val$sum));
-		else if ( metric_name == "apps.hits" )
-			{
-			l$hits = val$num;
-			l$uniq_hosts = val$unique;
-			}
-		}
-	}
 
 event bro_init() &priority=3
 	{
 	Log::create_stream(AppMeasurement::LOG, [$columns=Info]);
 
-	#Measurement::create_index_rollup("AppMeasurement", app_metrics_rollup);
-	#Measurement::add_filter("apps.bytes", [$every=break_interval, $measure=set(Measurement::SUM),    $rollup="AppMeasurement"]);
-	#Measurement::add_filter("apps.hits",  [$every=break_interval, $measure=set(Measurement::UNIQUE), $rollup="AppMeasurement"]);
-
+	local r1: Measurement::Reducer = [$stream="apps.bytes", $apply=set(Measurement::SUM)];
+	local r2: Measurement::Reducer = [$stream="apps.hits",  $apply=set(Measurement::UNIQUE)];
 	Measurement::create([$epoch=break_interval, 
-	                     $measurements=table(["apps.bytes"] = [$apply=set(Measurement::SUM)],
-	                                         ["apps.hits"]  = [$apply=set(Measurement::UNIQUE)]),
-	                     $period_finished(result: Measurement::Results) = 
+	                     $reducers=set(r1, r2),
+	                     $period_finished(data: Measurement::ResultTable) = 
 	                     	{
 	                     	local l: Info;
 	                     	l$ts = network_time();
-	                     	for ( index in result )
+	                     	for ( key in data )
 	                     		{
-	                     		l$bytes      = double_to_count(floor(result[index]["apps.bytes"]$sum));
-	                     		l$hits       = result[index]["apps.hits"]$num;
-	                     		l$uniq_hosts = result[index]["apps.hits"]$unique;
+	                     		local result = data[key];
+	                     		l$app        = key$str;
+	                     		l$bytes      = double_to_count(floor(result["apps.bytes"]$sum));
+	                     		l$hits       = result["apps.hits"]$num;
+	                     		l$uniq_hosts = result["apps.hits"]$unique;
 	                     		Log::write(LOG, l);
 	                     		}
 	                     	}]);

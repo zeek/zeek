@@ -1,7 +1,7 @@
 @load ./sum
 @load ./variance
 
-module Metrics;
+module Measurement;
 
 export {
 	redef enum Calculation += { 
@@ -9,23 +9,23 @@ export {
 		STD_DEV
 	};
 
-	redef record ResultVal += {
+	redef record Result += {
 		## For numeric data, this calculates the standard deviation.
 		std_dev:  double &log &optional;
 	};
 }
 
 # This depends on the variance plugin which uses priority -5
-hook add_to_calculation(filter: Filter, val: double, data: DataPoint, result: ResultVal) &priority=-10
+hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
 	{
-	if ( STD_DEV in filter$measure )
+	if ( STD_DEV in r$apply )
 		{
 		if ( result?$variance )
 			result$std_dev = sqrt(result$variance);
 		}
 	}
 
-hook plugin_merge_measurements(result: ResultVal, rv1: ResultVal, rv2: ResultVal) &priority=-10
+hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result) &priority=-10
 	{
 	if ( rv1?$sum || rv2?$sum )
 		{

@@ -111,6 +111,7 @@ bool Raw::Execute()
 		{
 		// we are the parent
 		close(pipes[stdout_out]);
+		pipes[stdout_out] = -1;
 
 		if ( Info().mode == MODE_STREAM )
 			fcntl(pipes[stdout_in], F_SETFL, O_NONBLOCK);
@@ -118,6 +119,7 @@ bool Raw::Execute()
 		if ( stdin_towrite )
 			{
 			close(pipes[stdin_in]);
+			pipes[stdin_in] = -1;
 			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK); // ya, just always set this to nonblocking. we do not want to block on a program receiving data.
 			// note that there is a small gotcha with it. More data is queued when more data is read from the program output. Hence, when having
 			// a program in mode_manual where the first write cannot write everything, the rest will be stuck in a queue that is never emptied.
@@ -126,13 +128,16 @@ bool Raw::Execute()
 		if ( use_stderr ) 
 			{
 			close(pipes[stderr_out]);
+			pipes[stderr_out] = -1;
 			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
 			}
 		
 		file = fdopen(pipes[stdout_in], "r");
+		pipes[stdout_in] = -1; // will be closed by fclose
 
 		if ( use_stderr ) 
 			stderrfile = fdopen(pipes[stderr_in], "r");
+			pipes[stderr_in] = -1; // will be closed by fclose
 			if ( file == 0 || (stderrfile == 0 && use_stderr) )
 				{
 				Error("Could not convert fileno to file");
@@ -183,8 +188,9 @@ bool Raw::CloseInput()
 	if ( execute ) // we do not care if any of those fails. They should all be defined.
 		{
 		for ( int i = 0; i < 6; i ++ ) 
-			close(pipes[i]);
-		}
+			if ( pipes[i] != -1 ) 
+				close(pipes[i]);
+		} 
 
 	file = 0;
 	stderrfile = 0;

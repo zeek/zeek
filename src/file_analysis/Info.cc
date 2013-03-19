@@ -97,7 +97,8 @@ Info::Info(const string& unique, Connection* conn)
 	    reinterpret_cast<u_char*>(hash));
 	uitoa_n(hash[0], id, sizeof(id), 62);
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s", id);
+	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s (%s)", id,
+	        unique.c_str());
 
 	val = new RecordVal(BifType::Record::FileAnalysis::Info);
 	val->Assign(file_id_idx, new StringVal(id));

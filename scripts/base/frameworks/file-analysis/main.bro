@@ -22,9 +22,7 @@ export {
 
 	## The default amount of time file analysis will wait for new file data
 	## before giving up.
-	## TODO: what's a reasonable default?
-	#const default_timeout_interval: interval = 2 mins &redef;
-	const default_timeout_interval: interval = 10 sec &redef;
+	const default_timeout_interval: interval = 2 mins &redef;
 
 	# Needed a forward declaration for event parameters...
 	type Info: record {};

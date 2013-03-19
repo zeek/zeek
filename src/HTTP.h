@@ -57,7 +57,8 @@ protected:
 	ZIP_Analyzer* zip;
 	bool is_partial_content;
 	uint64_t offset;
-	int64_t content_size; // total size  of content specified by content-range
+	int64_t instance_length; // total length indicated by content-range
+	bool send_size; // whether to send size indication to FAF
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 

@@ -74,7 +74,7 @@ export {
 
 		## Indicates if this request can assume 206 partial content in
 		## response.
-		range_request:           bool      &default=F;
+		range_request:           bool &default=F;
 	};
 	
 	## Structure to maintain state for an HTTP connection with multiple 

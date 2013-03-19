@@ -1,0 +1,14 @@
+FileAnalysis::TRIGGER_NEW
+MHMkq2nFxej, 0, 0
+FileAnalysis::TRIGGER_DONE
+MHMkq2nFxej, 498702, 0
+{
+UWkUyAuUGXf,
+arKYeMETxOg
+}
+{
+[orig_h=10.45.179.94, orig_p=19950/tcp, resp_h=129.174.93.170, resp_p=80/tcp],
+[orig_h=10.45.179.94, orig_p=19953/tcp, resp_h=129.174.93.170, resp_p=80/tcp]
+}
+total bytes: 498668
+source: HTTP

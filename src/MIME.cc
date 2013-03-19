@@ -1068,6 +1068,8 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		vl->append(analyzer->BuildConnVal());
 		analyzer->ConnectionEvent(mime_end_entity, vl);
 		}
+
+	file_mgr->EndOfFile(analyzer->Conn());
 	}
 
 void MIME_Mail::SubmitHeader(MIME_Header* h)

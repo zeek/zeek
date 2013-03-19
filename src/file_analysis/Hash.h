@@ -31,6 +31,7 @@ protected:
 	void Finalize();
 
 	HashVal* hash;
+	bool fed;
 	int result_field_idx;
 };
 

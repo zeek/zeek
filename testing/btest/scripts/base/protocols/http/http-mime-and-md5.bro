@@ -2,7 +2,7 @@
 # will normalize mime types other than the target type to prevent sensitivity
 # to varying versions of libmagic.
 
-# @TEST-EXEC: bro -r $TRACES/http-pipelined-requests.trace %INPUT > output
+# @TEST-EXEC: bro -r $TRACES/http/pipelined-requests.trace %INPUT > output
 # @TEST-EXEC: btest-diff http.log
 
 redef HTTP::generate_md5 += /image\/png/;

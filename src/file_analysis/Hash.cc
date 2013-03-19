@@ -6,7 +6,7 @@
 using namespace file_analysis;
 
 Hash::Hash(RecordVal* args, Info* info, HashVal* hv, const char* field)
-	: Action(args, info), hash(hv)
+	: Action(args, info), hash(hv), fed(false)
 	{
 	using BifType::Record::FileAnalysis::ActionResults;
 	if ( (result_field_idx = ActionResults->FieldOffset(field)) < 0 )
@@ -22,6 +22,9 @@ Hash::~Hash()
 bool Hash::DeliverStream(const u_char* data, uint64 len)
 	{
 	if ( ! hash->IsValid() ) return false;
+
+	if ( ! fed )
+		fed = len > 0;
 
 	hash->Feed(data, len);
 	return true;
@@ -40,7 +43,7 @@ bool Hash::Undelivered(uint64 offset, uint64 len)
 
 void Hash::Finalize()
 	{
-	if ( ! hash->IsValid() ) return;
+	if ( ! hash->IsValid() || ! fed ) return;
 
 	StringVal* sv = hash->Get();
 	info->GetResults(args)->Assign(result_field_idx, sv);

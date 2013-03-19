@@ -401,11 +401,8 @@ Patterns can also be used to compare strings using equality and inequality opera
 
 
 
-Advanced Data Types
-===================
-
-Custom Data Types
------------------
+Record Data Type
+================
 
 With Bro's support for a wide array of data types and data structures an obvious extension of is to include the ability to create custom data types consisting of the atomic types and ddata structures.  To accomplish this, Bro introduces the ``record`` type and the ``type`` keyword.  Similar to how you would define a new data structure in C with the ``typedef`` and ``struct`` keywords, Bro allows you to cobble together new data types to suit the needs of your situation.
 
@@ -442,7 +439,7 @@ As you saw in the definition for the connection record, other records are even v
 
    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/data_struct_record_02.bro
 
-The example above includes a second record type in which an field is used as the data type for a set.  Records can be reapeatedly nested within other records, their fields reachable through repeated chains of the ``$`` dereference operator.  
+The example above includes a second record type in which a field is used as the data type for a set.  Records can be reapeatedly nested within other records, their fields reachable through repeated chains of the ``$`` dereference operator.  
 
 It's also common to see a ``type`` used to simply alias a data structure to a more descriptive name.  The example below shows an example of this from Bro's own type definitions file.
 
@@ -452,3 +449,4 @@ It's also common to see a ``type`` used to simply alias a data structure to a mo
    :lines: 12,19,26
 
 The three lines above alias a type of data structure to a descriptive name.  Functionally, the operations are the same, however, each of the types above are named such that their function is instantly identifiable.  This is another place in Bro scripting where consideration can lead to better readability of your code and thus easier maintainability in the future.   
+

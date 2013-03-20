@@ -22,3 +22,4 @@ const cg_debug: string;
 const save_pac2: bool;
 const save_hilti: bool;
 const save_llvm: bool;
+const use_cache: bool;

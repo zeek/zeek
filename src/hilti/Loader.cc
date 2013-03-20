@@ -36,6 +36,7 @@ namespace BifConst { namespace Pac2 {  extern int save_hilti;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_llvm;  }  }
 namespace BifConst { namespace Pac2 {  extern int debug;  }  }
 namespace BifConst { namespace Pac2 {  extern int optimize;  }  }
+namespace BifConst { namespace Pac2 {  extern int use_cache;  }  }
 /// End of NetVar.h declarations.
 
 #include <ast/declaration.h>
@@ -199,11 +200,13 @@ Loader::Loader()
 	pimpl->hilti_options.optimize = BifConst::Pac2::optimize;
 	pimpl->hilti_options.verify = ! BifConst::Pac2::no_verify;
 	pimpl->hilti_options.cg_debug = cg_debug;
+	pimpl->hilti_options.module_cache = BifConst::Pac2::use_cache ? ".cache" : "";
 
 	pimpl->pac2_options.debug = BifConst::Pac2::debug;
 	pimpl->pac2_options.optimize = BifConst::Pac2::optimize;
 	pimpl->pac2_options.verify = ! BifConst::Pac2::no_verify;
 	pimpl->pac2_options.cg_debug = cg_debug;
+	pimpl->pac2_options.module_cache = BifConst::Pac2::use_cache ? ".cache" : "";
 
 	::hilti::init();
 	::binpac::init();

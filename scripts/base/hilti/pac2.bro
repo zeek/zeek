@@ -40,6 +40,8 @@ export {
 	## Save final linked LLVM assembly into "bro.ll"
 	const save_llvm = F &redef;
 
+	## Use on-disk cache for compiled modules.
+	const use_cache = F &redef;
 }
 
 

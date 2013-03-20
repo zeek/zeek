@@ -24,6 +24,14 @@ type Header_Block = record {
 }
   &byteorder = littleendian
   &length = 8;
+  #&length = 9;
+
+type PseudoTran = record {
+	pseudoTran : uint8;
+}
+&length = 1
+;
+
 
 # Related to dnp3 application layer data
 
@@ -110,6 +118,7 @@ type AByte = record{
 
 type DNP3_Request = record {
 	addin_header: Header_Block;  ## added by Hui Lin in Bro code
+	#tran_layer: PseudoTran;
 	app_header: DNP3_Application_Request_Header;
 	data: case ( app_header.function_code ) of {
 		CONFIRM -> none_coonfirm: empty;
@@ -150,6 +159,7 @@ type DNP3_Request = record {
 	};
 } &byteorder = bigendian
   &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5
   #&length = -1 	
 ;
 
@@ -159,6 +169,7 @@ type Debug_Byte = record {
 
 type DNP3_Response = record {
 	addin_header: Header_Block;
+	##tran_layer: uint8;	
 	app_header: DNP3_Application_Response_Header;
 	data: case ( app_header.function_code ) of {
 		RESPONSE -> response_objects: Response_Objects(app_header.function_code)[];
@@ -167,20 +178,28 @@ type DNP3_Response = record {
 		default -> unknown: Debug_Byte;
 	};
 } &byteorder = bigendian
-  &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1;
+  &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5
+;
 
 type DNP3_Application_Request_Header = record {
 	empty: bytestring &length = 0;
 	application_control : uint8;
 	function_code       : uint8 ;
-} &length = 2 ;
+} 
+&length = 2 
+#&length = 3 
+;
 
 type DNP3_Application_Response_Header = record {
 	empty: bytestring &length = 0;
+	#tran_layer : uint8;
 	application_control  : uint8;
 	function_code	: uint8;
 	internal_indications : uint16;
-} &length = 4;
+} 
+&length = 4
+;
 
 type Request_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);

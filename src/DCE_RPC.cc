@@ -10,7 +10,8 @@ using namespace std;
 
 #include "DCE_RPC.h"
 #include "Sessions.h"
-#include "DPM.h"
+
+#include "analyzer/Manager.h"
 
 #define xbyte(b, n) (((const u_char*) (b))[n])
 
@@ -160,11 +161,11 @@ static void add_dce_rpc_endpoint(const dce_rpc_endpoint_addr& addr,
 	// of the dce_rpc_endpoints table.
 	// FIXME: Don't hard-code the timeout.
 
-	dpm->ExpectConnection(IPAddr(), addr.addr, addr.port, addr.proto,
-				AnalyzerTag::DCE_RPC, 5 * 60, 0);
+	analyzer_mgr->ExpectConnection(IPAddr(), addr.addr, addr.port, addr.proto,
+				       "DCE_RPC", 5 * 60, 0);
 	}
 
-DCE_RPC_Header::DCE_RPC_Header(Analyzer* a, const u_char* b)
+DCE_RPC_Header::DCE_RPC_Header(analyzer::Analyzer* a, const u_char* b)
 	{
 	analyzer = a;
 	bytes = b;
@@ -183,7 +184,7 @@ DCE_RPC_Header::DCE_RPC_Header(Analyzer* a, const u_char* b)
 	frag_len = extract_uint16(LittleEndian(), bytes + 8);
 	}
 
-DCE_RPC_Session::DCE_RPC_Session(Analyzer* a)
+DCE_RPC_Session::DCE_RPC_Session(analyzer::Analyzer* a)
 : analyzer(a),
   if_uuid("00000000-0000-0000-0000-000000000000"),
   if_id(BifEnum::DCE_RPC_unknown_if)
@@ -442,7 +443,7 @@ void DCE_RPC_Session::DeliverEpmapperMapResponse(
 
 Contents_DCE_RPC_Analyzer::Contents_DCE_RPC_Analyzer(Connection* conn,
 		bool orig, DCE_RPC_Session* arg_session, bool speculative)
-: TCP_SupportAnalyzer(AnalyzerTag::Contents_DCE_RPC, conn, orig)
+: TCP_SupportAnalyzer("CONTENTS_DCE_RPC", conn, orig)
 	{
 	session = arg_session;
 	msg_buf = 0;
@@ -566,7 +567,7 @@ bool Contents_DCE_RPC_Analyzer::ParseHeader()
 	}
 
 DCE_RPC_Analyzer::DCE_RPC_Analyzer(Connection* conn, bool arg_speculative)
-: TCP_ApplicationAnalyzer(AnalyzerTag::DCE_RPC, conn)
+: TCP_ApplicationAnalyzer("DCE_RPC", conn)
 	{
 	session = new DCE_RPC_Session(this);
 	speculative = arg_speculative;

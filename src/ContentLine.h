@@ -55,7 +55,7 @@ public:
 		{ return seq + length <= seq_to_skip; }
 
 protected:
-	ContentLine_Analyzer(AnalyzerTag::Tag tag, Connection* conn, bool orig);
+	ContentLine_Analyzer(const char* name, Connection* conn, bool orig);
 
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
 	virtual void Undelivered(int seq, int len, bool orig);

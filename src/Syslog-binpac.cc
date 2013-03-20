@@ -2,7 +2,7 @@
 #include "TCP_Reassembler.h"
 
 Syslog_Analyzer_binpac::Syslog_Analyzer_binpac(Connection* conn)
-: Analyzer(AnalyzerTag::SYSLOG_BINPAC, conn)
+: Analyzer("SYSLOG_BINPAC", conn)
 	{
 	interp = new binpac::Syslog::Syslog_Conn(this);
 	did_session_done = 0;
@@ -45,7 +45,7 @@ void Syslog_Analyzer_binpac::DeliverPacket(int len, const u_char* data, bool ori
 //	}
 
 //Syslog_TCP_Analyzer_binpac::Syslog_TCP_Analyzer_binpac(Connection* conn)
-//: TCP_ApplicationAnalyzer(AnalyzerTag::Syslog_TCP_BINPAC, conn)
+//: TCP_ApplicationAnalyzer(conn)
 //	{
 //	interp = new binpac::Syslog_on_TCP::Syslog_TCP_Conn(this);
 //	}

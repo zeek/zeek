@@ -8,19 +8,12 @@
 #include "NetVar.h"
 #include "Event.h"
 #include "ICMP.h"
+#include "Conn.h"
 
 #include <netinet/icmp6.h>
 
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
-: TransportLayerAnalyzer(AnalyzerTag::ICMP, c)
-	{
-	icmp_conn_val = 0;
-	c->SetInactivityTimeout(icmp_inactivity_timeout);
-	request_len = reply_len = -1;
-	}
-
-ICMP_Analyzer::ICMP_Analyzer(AnalyzerTag::Tag tag, Connection* c)
-: TransportLayerAnalyzer(tag, c)
+: TransportLayerAnalyzer("ICMP", c)
 	{
 	icmp_conn_val = 0;
 	c->SetInactivityTimeout(icmp_inactivity_timeout);

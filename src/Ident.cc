@@ -9,7 +9,7 @@
 #include "Event.h"
 
 Ident_Analyzer::Ident_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::Ident, conn)
+: TCP_ApplicationAnalyzer("IDENT", conn)
 	{
 	did_bad_reply = did_deliver = 0;
 

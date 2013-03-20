@@ -3,7 +3,7 @@
 #include "TCP_Reassembler.h"
 
 ModbusTCP_Analyzer::ModbusTCP_Analyzer(Connection* c)
-	: TCP_ApplicationAnalyzer(AnalyzerTag::Modbus, c)
+	: TCP_ApplicationAnalyzer("MODBUS", c)
 	{
 	interp = new binpac::ModbusTCP::ModbusTCP_Conn(this);
 	}

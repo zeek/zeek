@@ -2,7 +2,7 @@
 #include "RuleMatcher.h"
 #include "TCP_Reassembler.h"
 
-PIA::PIA(Analyzer* arg_as_analyzer)
+PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
 	{
 	current_packet.data = 0;
 	as_analyzer = arg_as_analyzer;
@@ -61,7 +61,7 @@ void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig)
 	AddToBuffer(buffer, -1, len, data, is_orig);
 	}
 
-void PIA::ReplayPacketBuffer(Analyzer* analyzer)
+void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
 	{
 	DBG_LOG(DBG_DPD, "PIA replaying %d total packet bytes", pkt_buffer.size);
 
@@ -129,7 +129,7 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 				bol, eol, clear_state);
 	}
 
-void PIA_UDP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
+void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	{
 	if ( pkt_buffer.state == MATCHING_ONLY )
 		{
@@ -142,14 +142,14 @@ void PIA_UDP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 	if ( Parent()->HasChildAnalyzer(tag) )
 		return;
 
-	Analyzer* a = Parent()->AddChildAnalyzer(tag);
+	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
 	a->SetSignature(rule);
 
 	if ( a )
 		ReplayPacketBuffer(a);
 	}
 
-void PIA_UDP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
+void PIA_UDP::DeactivateAnalyzer(analyzer::Tag tag)
 	{
 	reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
@@ -165,7 +165,7 @@ void PIA_TCP::Init()
 	{
 	TCP_ApplicationAnalyzer::Init();
 
-	if ( Parent()->GetTag() == AnalyzerTag::TCP )
+	if ( Parent()->IsAnalyzer("TCP") )
 		{
 		TCP_Analyzer* tcp = static_cast<TCP_Analyzer*>(Parent());
 		SetTCP(tcp);
@@ -262,7 +262,7 @@ void PIA_TCP::Undelivered(int seq, int len, bool is_orig)
 	// No check for buffer overrun here. I think that's ok.
 	}
 
-void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
+void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	{
 	if ( stream_buffer.state == MATCHING_ONLY )
 		{
@@ -275,7 +275,7 @@ void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 	if ( Parent()->HasChildAnalyzer(tag) )
 		return;
 
-	Analyzer* a = Parent()->AddChildAnalyzer(tag);
+	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
 	a->SetSignature(rule);
 
 	// We have two cases here:
@@ -305,13 +305,13 @@ void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 	//   (4) We hand the two reassemblers to the TCP Analyzer (our parent),
 	//       turning reassembly now on for all subsequent data.
 
-	DBG_LOG(DBG_DPD, "DPM_TCP switching from packet-mode to stream-mode");
+	DBG_LOG(DBG_DPD, "PIA_TCP switching from packet-mode to stream-mode");
 	stream_mode = true;
 
 	// FIXME: The reassembler will query the endpoint for state. Not sure
 	// if this is works in all cases...
 
-	if ( Parent()->GetTag() != AnalyzerTag::TCP )
+	if ( ! Parent()->IsAnalyzer("TCP") )
 		{
 		// Our parent is not the TCP analyzer, which can only mean
 		// we have been inserted somewhere further down in the
@@ -371,12 +371,12 @@ void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 	tcp->SetReassembler(reass_orig, reass_resp);
 	}
 
-void PIA_TCP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
+void PIA_TCP::DeactivateAnalyzer(analyzer::Tag tag)
 	{
 	reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}
 
-void PIA_TCP::ReplayStreamBuffer(Analyzer* analyzer)
+void PIA_TCP::ReplayStreamBuffer(analyzer::Analyzer* analyzer)
 	{
 	DBG_LOG(DBG_DPD, "PIA_TCP replaying %d total stream bytes", stream_buffer.size);
 

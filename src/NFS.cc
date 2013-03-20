@@ -641,7 +641,7 @@ Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 
 
 NFS_Analyzer::NFS_Analyzer(Connection* conn)
-	: RPC_Analyzer(AnalyzerTag::NFS, conn, new NFS_Interp(this))
+	: RPC_Analyzer("RPC", conn, new NFS_Interp(this))
 	{
 	orig_rpc = resp_rpc = 0;
 	}

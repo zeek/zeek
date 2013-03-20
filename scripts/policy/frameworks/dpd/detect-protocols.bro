@@ -21,22 +21,22 @@ export {
 
 	type dir: enum { NONE, INCOMING, OUTGOING, BOTH };
 
-	const valids: table[count, addr, port] of dir = {
+	const valids: table[Analyzer::Tag, addr, port] of dir = {
 		# A couple of ports commonly used for benign HTTP servers.
 
 		# For now we want to see everything.
 
-		# [ANALYZER_HTTP, 0.0.0.0, 81/tcp] = OUTGOING,
-		# [ANALYZER_HTTP, 0.0.0.0, 82/tcp] = OUTGOING,
-		# [ANALYZER_HTTP, 0.0.0.0, 83/tcp] = OUTGOING,
-		# [ANALYZER_HTTP, 0.0.0.0, 88/tcp] = OUTGOING,
-		# [ANALYZER_HTTP, 0.0.0.0, 8001/tcp] = OUTGOING,
-		# [ANALYZER_HTTP, 0.0.0.0, 8090/tcp] = OUTGOING,
-		# [ANALYZER_HTTP, 0.0.0.0, 8081/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 81/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 82/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 83/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 88/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 8001/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 8090/tcp] = OUTGOING,
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 8081/tcp] = OUTGOING,
 		#
-		# [ANALYZER_HTTP, 0.0.0.0, 6346/tcp] = BOTH, # Gnutella
-		# [ANALYZER_HTTP, 0.0.0.0, 6347/tcp] = BOTH, # Gnutella
-		# [ANALYZER_HTTP, 0.0.0.0, 6348/tcp] = BOTH, # Gnutella
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 6346/tcp] = BOTH, # Gnutella
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 6347/tcp] = BOTH, # Gnutella
+		# [Analyzer::ANALYZER_HTTP, 0.0.0.0, 6348/tcp] = BOTH, # Gnutella
 	} &redef;
 
 	# Set of analyzers for which we suppress Server_Found notices
@@ -44,8 +44,8 @@ export {
 	# log files, this also saves memory because for these we don't
 	# need to remember which servers we already have reported, which
 	# for some can be a lot.
-	const suppress_servers: set [count] = {
-		# ANALYZER_HTTP
+	const suppress_servers: set [Analyzer::Tag] = {
+		# Analyzer::ANALYZER_HTTP
 	} &redef;
 
 	# We consider a connection to use a protocol X if the analyzer for X
@@ -60,7 +60,7 @@ export {
 
 	# Entry point for other analyzers to report that they recognized
 	# a certain (sub-)protocol.
-	global found_protocol: function(c: connection, analyzer: count,
+	global found_protocol: function(c: connection, analyzer: Analyzer::Tag,
 					protocol: string);
 
 	# Table keeping reported (server, port, analyzer) tuples (and their
@@ -89,7 +89,7 @@ function get_protocol(c: connection, a: count) : protocol
 			str = |str| > 0 ? fmt("%s/%s", str, p) : p;
 		}
 
-	return [$a=analyzer_name(a), $sub=str];
+	return [$a=Analyzer::name(a), $sub=str];
 	}
 
 function fmt_protocol(p: protocol) : string
@@ -194,10 +194,10 @@ event connection_state_remove(c: connection)
 	report_protocols(c);
 	}
 
-event protocol_confirmation(c: connection, atype: count, aid: count)
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
 	{
 	# Don't report anything running on a well-known port.
-	if ( atype in dpd_config && c$id$resp_p in dpd_config[atype]$ports )
+	if ( c$id$resp_p in Analyzer::registered_ports(atype) )
 		return;
 
 	if ( c$id in conns )
@@ -214,11 +214,10 @@ event protocol_confirmation(c: connection, atype: count, aid: count)
 		}
 	}
 
-function found_protocol(c: connection, analyzer: count, protocol: string)
+function found_protocol(c: connection, analyzer: Analyzer::tag, protocol: string)
 	{
 	# Don't report anything running on a well-known port.
-	if ( analyzer in dpd_config &&
-	     c$id$resp_p in dpd_config[analyzer]$ports )
+	if ( c$id$resp_p in Analyzer::registered_ports(atype) )
 		return;
 
 	if ( c$id !in protocols )

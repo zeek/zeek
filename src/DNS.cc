@@ -12,7 +12,7 @@
 #include "Sessions.h"
 #include "Event.h"
 
-DNS_Interpreter::DNS_Interpreter(Analyzer* arg_analyzer)
+DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	}
@@ -993,7 +993,7 @@ Val* DNS_MsgInfo::BuildTSIG_Val()
 
 Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 				DNS_Interpreter* arg_interp)
-: TCP_SupportAnalyzer(AnalyzerTag::Contents_DNS, conn, orig)
+: TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
 	{
 	interp = arg_interp;
 
@@ -1080,7 +1080,7 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 DNS_Analyzer::DNS_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::DNS, conn)
+: TCP_ApplicationAnalyzer("DNS", conn)
 	{
 	interp = new DNS_Interpreter(this);
 	contents_dns_orig = contents_dns_resp = 0;

@@ -3,7 +3,7 @@
 #include "ZIP.h"
 
 ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
-: TCP_SupportAnalyzer(AnalyzerTag::Zip, conn, orig)
+: TCP_SupportAnalyzer("ZIP", conn, orig)
 	{
 	zip = 0;
 	zip_status = Z_OK;

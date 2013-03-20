@@ -3,7 +3,7 @@
 #ifndef PIA_H
 #define PIA_H
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include "TCP.h"
 
 class RuleEndpointState;
@@ -17,25 +17,25 @@ class RuleEndpointState;
 // PIAs and then each needs its own matching-state.
 class PIA : public RuleMatcherState {
 public:
-	PIA(Analyzer* as_analyzer);
+	PIA(analyzer::Analyzer* as_analyzer);
 	virtual ~PIA();
 
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
 	// signature that triggered the activitation, if any.
-	virtual void ActivateAnalyzer(AnalyzerTag::Tag tag,
+	virtual void ActivateAnalyzer(analyzer::Tag tag,
 					const Rule* rule = 0) = 0;
 
 	// Called when PIA wants to remove an Analyzer.
-	virtual void DeactivateAnalyzer(AnalyzerTag::Tag tag) = 0;
+	virtual void DeactivateAnalyzer(analyzer::Tag tag) = 0;
 
 	void Match(Rule::PatternType type, const u_char* data, int len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
 
-	void ReplayPacketBuffer(Analyzer* analyzer);
+	void ReplayPacketBuffer(analyzer::Analyzer* analyzer);
 
 	// Children are also derived from Analyzer. Return this object
 	// as pointer to an Analyzer.
-	Analyzer* AsAnalyzer()	{ return as_analyzer; }
+	analyzer::Analyzer* AsAnalyzer()	{ return as_analyzer; }
 
 	static bool Available()	{ return true; }
 
@@ -81,20 +81,20 @@ protected:
 	Buffer pkt_buffer;
 
 private:
-	Analyzer* as_analyzer;
+	analyzer::Analyzer* as_analyzer;
 	Connection* conn;
 	DataBlock current_packet;
 };
 
 // PIA for UDP.
-class PIA_UDP : public PIA, public Analyzer {
+class PIA_UDP : public PIA, public analyzer::Analyzer {
 public:
 	PIA_UDP(Connection* conn)
-	: PIA(this), Analyzer(AnalyzerTag::PIA_UDP, conn)
+	: PIA(this), Analyzer("PIA_UDP", conn)
 		{ SetConn(conn); }
 	virtual ~PIA_UDP()	{ }
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new PIA_UDP(conn); }
 
 protected:
@@ -111,8 +111,8 @@ protected:
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		}
 
-	virtual void ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule);
-	virtual void DeactivateAnalyzer(AnalyzerTag::Tag tag);
+	virtual void ActivateAnalyzer(analyzer::Tag tag, const Rule* rule);
+	virtual void DeactivateAnalyzer(analyzer::Tag tag);
 };
 
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
@@ -120,7 +120,7 @@ protected:
 class PIA_TCP : public PIA, public TCP_ApplicationAnalyzer {
 public:
 	PIA_TCP(Connection* conn)
-	: PIA(this), TCP_ApplicationAnalyzer(AnalyzerTag::PIA_TCP, conn)
+		: PIA(this), TCP_ApplicationAnalyzer("PIA_TCP", conn)
 		{ stream_mode = false; SetConn(conn); }
 
 	virtual ~PIA_TCP();
@@ -137,9 +137,9 @@ public:
 	// to be unnecessary overhead.)
 	void FirstPacket(bool is_orig, const IP_Hdr* ip);
 
-	void ReplayStreamBuffer(Analyzer* analyzer);
+	void ReplayStreamBuffer(analyzer::Analyzer* analyzer);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new PIA_TCP(conn); }
 
 protected:
@@ -159,9 +159,9 @@ protected:
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
 	virtual void Undelivered(int seq, int len, bool is_orig);
 
-	virtual void ActivateAnalyzer(AnalyzerTag::Tag tag,
+	virtual void ActivateAnalyzer(analyzer::Tag tag,
 					const Rule* rule = 0);
-	virtual void DeactivateAnalyzer(AnalyzerTag::Tag tag);
+	virtual void DeactivateAnalyzer(analyzer::Tag tag);
 
 private:
 	// FIXME: Not sure yet whether we need both pkt_buffer and stream_buffer.

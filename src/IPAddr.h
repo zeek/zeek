@@ -14,7 +14,7 @@
 #include "threading/SerialTypes.h"
 
 struct ConnID;
-class ExpectedConn;
+namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
 
@@ -363,7 +363,7 @@ public:
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
 	friend HashKey* BuildConnIDHashKey(const ConnID& id);
-	friend HashKey* BuildExpectedConnHashKey(const ExpectedConn& c);
+	friend HashKey* BuildExpectedConnHashKey(const analyzer::ExpectedConn& c);
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -455,7 +455,7 @@ HashKey* BuildConnIDHashKey(const ConnID& id);
 /**
   * Returns a hash key for a given ExpectedConn instance. Passes ownership to caller.
   */
-HashKey* BuildExpectedConnHashKey(const ExpectedConn& c);
+HashKey* BuildExpectedConnHashKey(const analyzer::ExpectedConn& c);
 
 /**
  * Class storing both IPv4 and IPv6 prefixes

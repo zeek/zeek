@@ -4,7 +4,7 @@
 #include "util.h"
 
 SSL_Analyzer::SSL_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SSL, c)
+: TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
 	had_gap = false;

@@ -20,8 +20,8 @@ static RE_Matcher* re_login_timeouts;
 
 static RE_Matcher* init_RE(ListVal* l);
 
-Login_Analyzer::Login_Analyzer(AnalyzerTag::Tag tag, Connection* conn)
-: TCP_ApplicationAnalyzer(tag, conn)
+Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
+: TCP_ApplicationAnalyzer(name, conn)
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
 	num_user_lines_seen = lines_scanned = 0;

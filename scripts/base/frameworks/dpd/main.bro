@@ -41,33 +41,27 @@ redef record connection += {
 event bro_init() &priority=5
 	{
 	Log::create_stream(DPD::LOG, [$columns=Info]);
-	
-	# Populate the internal DPD analysis variable.
-	for ( a in dpd_config )
-		{
-		for ( p in dpd_config[a]$ports )
-			{
-			if ( p !in dpd_analyzer_ports )
-				dpd_analyzer_ports[p] = set();
-			add dpd_analyzer_ports[p][a];
-			}
-		}
 	}
 
-event protocol_confirmation(c: connection, atype: count, aid: count) &priority=10
+function foo() : string
 	{
-	local analyzer = analyzer_name(atype);
-	
+	return "HTTP";
+	}
+
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=10
+	{
+	local analyzer = Analyzer::name(atype);
+
 	if ( fmt("-%s",analyzer) in c$service )
 		delete c$service[fmt("-%s", analyzer)];
 
 	add c$service[analyzer];
 	}
 
-event protocol_violation(c: connection, atype: count, aid: count,
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=10
 	{
-	local analyzer = analyzer_name(atype);
+	local analyzer = Analyzer::name(atype);
 	# If the service hasn't been confirmed yet, don't generate a log message
 	# for the protocol violation.
 	if ( analyzer !in c$service )
@@ -86,7 +80,7 @@ event protocol_violation(c: connection, atype: count, aid: count,
 	c$dpd = info;
 	}
 
-event protocol_violation(c: connection, atype: count, aid: count, reason: string) &priority=5
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string) &priority=5
 	{
 	if ( !c?$dpd || aid in c$dpd$disabled_aids )
 		return;
@@ -100,7 +94,7 @@ event protocol_violation(c: connection, atype: count, aid: count, reason: string
 	add c$dpd$disabled_aids[aid];
 	}
 
-event protocol_violation(c: connection, atype: count, aid: count,
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
 				reason: string) &priority=-5
 	{
 	if ( c?$dpd )

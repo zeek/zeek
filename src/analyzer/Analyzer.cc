@@ -1,186 +1,13 @@
+
 #include <algorithm>
 
 #include "Analyzer.h"
-#include "PIA.h"
-#include "Event.h"
+#include "Manager.h"
 
-#include "AYIYA.h"
-#include "BackDoor.h"
-#include "BitTorrent.h"
-#include "BitTorrentTracker.h"
-#include "Finger.h"
-#include "InterConn.h"
-#include "NTP.h"
-#include "HTTP.h"
-#include "HTTP-binpac.h"
-#include "ICMP.h"
-#include "SteppingStone.h"
-#include "IRC.h"
-#include "SMTP.h"
-#include "FTP.h"
-#include "FileAnalyzer.h"
-#include "DNS.h"
-#include "DNS-binpac.h"
-#include "DHCP-binpac.h"
-#include "Telnet.h"
-#include "Rlogin.h"
-#include "RSH.h"
-#include "DCE_RPC.h"
-#include "Gnutella.h"
-#include "Ident.h"
-#include "Modbus.h"
-#include "NCP.h"
-#include "NetbiosSSN.h"
-#include "SMB.h"
-#include "NFS.h"
-#include "Portmap.h"
-#include "POP3.h"
-#include "SOCKS.h"
-#include "SSH.h"
-#include "SSL.h"
-#include "Syslog-binpac.h"
-#include "Teredo.h"
-#include "ConnSizeAnalyzer.h"
-#include "GTPv1.h"
+#include "../PIA.h"
+#include "../Event.h"
 
-// Keep same order here as in AnalyzerTag definition!
-const Analyzer::Config Analyzer::analyzer_configs[] = {
-	{ AnalyzerTag::Error, "<ERROR>", 0, 0, 0, false },
-
-	{ AnalyzerTag::PIA_TCP, "PIA_TCP", PIA_TCP::InstantiateAnalyzer,
-		PIA_TCP::Available, 0, false },
-	{ AnalyzerTag::PIA_UDP, "PIA_UDP", PIA_UDP::InstantiateAnalyzer,
-		PIA_UDP::Available, 0, false },
-
-	{ AnalyzerTag::ICMP, "ICMP", ICMP_Analyzer::InstantiateAnalyzer,
-		ICMP_Analyzer::Available, 0, false },
-
-	{ AnalyzerTag::TCP, "TCP", TCP_Analyzer::InstantiateAnalyzer,
-		TCP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::UDP, "UDP", UDP_Analyzer::InstantiateAnalyzer,
-		UDP_Analyzer::Available, 0, false },
-
-	{ AnalyzerTag::BitTorrent, "BITTORRENT",
-		BitTorrent_Analyzer::InstantiateAnalyzer,
-		BitTorrent_Analyzer::Available, 0, false },
-	{ AnalyzerTag::BitTorrentTracker, "BITTORRENTTRACKER",
-		BitTorrentTracker_Analyzer::InstantiateAnalyzer,
-		BitTorrentTracker_Analyzer::Available, 0, false },
-	{ AnalyzerTag::DCE_RPC, "DCE_RPC",
-		DCE_RPC_Analyzer::InstantiateAnalyzer,
-		DCE_RPC_Analyzer::Available, 0, false },
-	{ AnalyzerTag::DNS, "DNS", DNS_Analyzer::InstantiateAnalyzer,
-		DNS_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Finger, "FINGER", Finger_Analyzer::InstantiateAnalyzer,
-		Finger_Analyzer::Available, 0, false },
-	{ AnalyzerTag::FTP, "FTP", FTP_Analyzer::InstantiateAnalyzer,
-		FTP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Gnutella, "GNUTELLA",
-		Gnutella_Analyzer::InstantiateAnalyzer,
-		Gnutella_Analyzer::Available, 0, false },
-	{ AnalyzerTag::HTTP, "HTTP", HTTP_Analyzer::InstantiateAnalyzer,
-		HTTP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Ident, "IDENT", Ident_Analyzer::InstantiateAnalyzer,
-		Ident_Analyzer::Available, 0, false },
-	{ AnalyzerTag::IRC, "IRC", IRC_Analyzer::InstantiateAnalyzer,
-		IRC_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Login, "LOGIN", 0, 0, 0, false },  // just a base class
-	{ AnalyzerTag::NCP, "NCP", NCP_Analyzer::InstantiateAnalyzer,
-		NCP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::NetbiosSSN, "NetbiosSSN",
-		NetbiosSSN_Analyzer::InstantiateAnalyzer,
-		NetbiosSSN_Analyzer::Available, 0, false },
-	{ AnalyzerTag::NFS, "NFS", NFS_Analyzer::InstantiateAnalyzer,
-		NFS_Analyzer::Available, 0, false },
-	{ AnalyzerTag::NTP, "NTP", NTP_Analyzer::InstantiateAnalyzer,
-		NTP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::POP3, "POP3", POP3_Analyzer::InstantiateAnalyzer,
-		POP3_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Portmapper, "PORTMAPPER",
-		Portmapper_Analyzer::InstantiateAnalyzer,
-		Portmapper_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Rlogin, "RLOGIN", Rlogin_Analyzer::InstantiateAnalyzer,
-		Rlogin_Analyzer::Available, 0, false },
-	{ AnalyzerTag::RPC, "RPC", 0, 0, 0, false },
-	{ AnalyzerTag::Rsh, "RSH", Rsh_Analyzer::InstantiateAnalyzer,
-		Rsh_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SMB, "SMB", SMB_Analyzer::InstantiateAnalyzer,
-		SMB_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SMTP, "SMTP", SMTP_Analyzer::InstantiateAnalyzer,
-		SMTP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SSH, "SSH", SSH_Analyzer::InstantiateAnalyzer,
-		SSH_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Telnet, "TELNET", Telnet_Analyzer::InstantiateAnalyzer,
-		Telnet_Analyzer::Available, 0, false },
-
-	{ AnalyzerTag::DHCP_BINPAC, "DHCP_BINPAC",
-		DHCP_Analyzer_binpac::InstantiateAnalyzer,
-		DHCP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::DNS_TCP_BINPAC, "DNS_TCP_BINPAC",
-		DNS_TCP_Analyzer_binpac::InstantiateAnalyzer,
-		DNS_TCP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::DNS_UDP_BINPAC, "DNS_UDP_BINPAC",
-		DNS_UDP_Analyzer_binpac::InstantiateAnalyzer,
-		DNS_UDP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::HTTP_BINPAC, "HTTP_BINPAC",
-		HTTP_Analyzer_binpac::InstantiateAnalyzer,
-		HTTP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::SSL, "SSL",
-		SSL_Analyzer::InstantiateAnalyzer,
-		SSL_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
-		Syslog_Analyzer_binpac::InstantiateAnalyzer,
-		Syslog_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::Modbus, "MODBUS",
-		ModbusTCP_Analyzer::InstantiateAnalyzer,
-		ModbusTCP_Analyzer::Available, 0, false },
-
-	{ AnalyzerTag::AYIYA, "AYIYA",
-		AYIYA_Analyzer::InstantiateAnalyzer,
-		AYIYA_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SOCKS, "SOCKS",
-		SOCKS_Analyzer::InstantiateAnalyzer,
-		SOCKS_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Teredo, "TEREDO",
-		Teredo_Analyzer::InstantiateAnalyzer,
-		Teredo_Analyzer::Available, 0, false },
-	{ AnalyzerTag::GTPv1, "GTPV1",
-		GTPv1_Analyzer::InstantiateAnalyzer,
-		GTPv1_Analyzer::Available, 0, false },
-
-	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
-		File_Analyzer::Available, 0, false },
-	{ AnalyzerTag::Backdoor, "BACKDOOR",
-		BackDoor_Analyzer::InstantiateAnalyzer,
-		BackDoor_Analyzer::Available, 0, false },
-	{ AnalyzerTag::InterConn, "INTERCONN",
-		InterConn_Analyzer::InstantiateAnalyzer,
-		InterConn_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SteppingStone, "STEPPINGSTONE",
-		SteppingStone_Analyzer::InstantiateAnalyzer,
-		SteppingStone_Analyzer::Available, 0, false },
-	{ AnalyzerTag::TCPStats, "TCPSTATS",
-		TCPStats_Analyzer::InstantiateAnalyzer,
-		TCPStats_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ConnSize, "CONNSIZE",
-		ConnSize_Analyzer::InstantiateAnalyzer,
-		ConnSize_Analyzer::Available, 0, false },
-
-	{ AnalyzerTag::Contents, "CONTENTS", 0, 0, 0, false },
-	{ AnalyzerTag::ContentLine, "CONTENTLINE", 0, 0, 0, false },
-	{ AnalyzerTag::NVT, "NVT", 0, 0, 0, false },
-	{ AnalyzerTag::Zip, "ZIP", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_DNS, "CONTENTS_DNS", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_NetbiosSSN, "CONTENTS_NETBIOSSSN", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_NCP, "CONTENTS_NCP", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_Rlogin, "CONTENTS_Rlogin", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_Rsh, "CONTENTS_RSH", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_DCE_RPC, "CONTENTS_DCE_RPC", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_SMB, "CONTENTS_SMB", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_RPC, "CONTENTS_RPC", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_NFS, "CONTENTS_NFS", 0, 0, 0, false },
-	{ AnalyzerTag::FTP_ADAT, "FTP_ADAT", 0, 0, 0, false },
-};
+using namespace analyzer;
 
 AnalyzerTimer::~AnalyzerTimer()
 	{
@@ -212,41 +39,25 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 	Ref(analyzer->Conn());
 	}
 
-AnalyzerID Analyzer::id_counter = 0;;
+analyzer::ID Analyzer::id_counter = 0;;
 
-Analyzer* Analyzer::InstantiateAnalyzer(AnalyzerTag::Tag tag, Connection* c)
+bool Analyzer::IsAnalyzer(const char* name)
 	{
-	Analyzer* a = analyzer_configs[tag].factory(c);
-	assert(a);
-	return a;
-	}
-
-const char* Analyzer::GetTagName(AnalyzerTag::Tag tag)
-	{
-	return analyzer_configs[tag].name;
-	}
-
-AnalyzerTag::Tag Analyzer::GetTag(const char* name)
-	{
-	for ( int i = 1; i < int(AnalyzerTag::LastAnalyzer); i++ )
-		if ( strcasecmp(analyzer_configs[i].name, name) == 0 )
-			return analyzer_configs[i].tag;
-
-	return AnalyzerTag::Error;
+	return analyzer_mgr->GetAnalyzerName(Tag()) == name;
 	}
 
 // Used in debugging output.
 static string fmt_analyzer(Analyzer* a)
 	{
-	return string(a->GetTagName()) + fmt("[%d]", a->GetID());
+	return analyzer_mgr->GetAnalyzerName(a->GetTag()) + fmt("[%d]", a->GetID());
 	}
 
-Analyzer::Analyzer(AnalyzerTag::Tag arg_tag, Connection* arg_conn)
+Analyzer::Analyzer(const char* name, Connection* arg_conn)
 	{
 	// Don't Ref conn here to avoid circular ref'ing. It can't be deleted
 	// before us.
 	conn = arg_conn;
-	tag = arg_tag;
+	tag = analyzer_mgr->GetAnalyzerTag(name);
 	id = ++id_counter;
 	protocol_confirmed = false;
 	skip = false;
@@ -257,6 +68,10 @@ Analyzer::Analyzer(AnalyzerTag::Tag arg_tag, Connection* arg_conn)
 	resp_supporters = 0;
 	signature = 0;
 	output_handler = 0;
+
+	if ( ! tag )
+		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::PluginComponent?", name);
+
 	}
 
 Analyzer::~Analyzer()
@@ -349,11 +164,6 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, int seq,
 			Weird(e.c_msg());
 			}
 		}
-	}
-
-const char* Analyzer::GetTagName() const
-	{
-	return GetTagName(tag);
 	}
 
 void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
@@ -533,12 +343,15 @@ void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
 	}
 
-Analyzer* Analyzer::AddChildAnalyzer(AnalyzerTag::Tag analyzer)
+Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
 	{
 	if ( ! HasChildAnalyzer(analyzer) )
 		{
-		Analyzer* a = InstantiateAnalyzer(analyzer, conn);
-		AddChildAnalyzer(a);
+		Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
+
+		if ( a )
+			AddChildAnalyzer(a);
+
 		return a;
 		}
 
@@ -563,12 +376,12 @@ void Analyzer::RemoveChildAnalyzer(Analyzer* analyzer)
 			}
 	}
 
-void Analyzer::RemoveChildAnalyzer(AnalyzerID id)
+void Analyzer::RemoveChildAnalyzer(ID id)
 	{
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
-			DBG_LOG(DBG_DPD, "%s  disabling child %s", GetTagName(), id,
+			DBG_LOG(DBG_DPD, "%s  disabling child %s", analyzer_mgr->GetAnalyzerName(GetTag()).c_str(), id,
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// See comment above.
 			(*i)->removing = true;
@@ -576,7 +389,7 @@ void Analyzer::RemoveChildAnalyzer(AnalyzerID id)
 			}
 	}
 
-bool Analyzer::HasChildAnalyzer(AnalyzerTag::Tag tag)
+bool Analyzer::HasChildAnalyzer(Tag tag)
 	{
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->tag == tag )
@@ -589,7 +402,7 @@ bool Analyzer::HasChildAnalyzer(AnalyzerTag::Tag tag)
 	return false;
 	}
 
-Analyzer* Analyzer::FindChild(AnalyzerID arg_id)
+Analyzer* Analyzer::FindChild(ID arg_id)
 	{
 	if ( id == arg_id )
 		return this;
@@ -604,7 +417,7 @@ Analyzer* Analyzer::FindChild(AnalyzerID arg_id)
 	return 0;
 	}
 
-Analyzer* Analyzer::FindChild(AnalyzerTag::Tag arg_tag)
+Analyzer* Analyzer::FindChild(Tag arg_tag)
 	{
 	if ( tag == arg_tag )
 		return this;
@@ -617,6 +430,12 @@ Analyzer* Analyzer::FindChild(AnalyzerTag::Tag arg_tag)
 		}
 
 	return 0;
+	}
+
+Analyzer* Analyzer::FindChild(const string& name)
+	{
+	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
+	return tag != Tag::ERROR ? FindChild(tag) : 0;
 	}
 
 void Analyzer::DeleteChild(analyzer_list::iterator i)
@@ -707,7 +526,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	return;
 	}
 
-bool Analyzer::HasSupportAnalyzer(AnalyzerTag::Tag tag, bool orig)
+bool Analyzer::HasSupportAnalyzer(Tag tag, bool orig)
 	{
 	SupportAnalyzer* s = orig ? orig_supporters : resp_supporters;
 	for ( ; s; s = s->sibling )
@@ -772,7 +591,7 @@ void Analyzer::ProtocolConfirmation()
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(new Val(tag, TYPE_COUNT));
+	vl->append(tag.Val());
 	vl->append(new Val(id, TYPE_COUNT));
 
 	// We immediately raise the event so that the analyzer can quickly
@@ -800,7 +619,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(new Val(tag, TYPE_COUNT));
+	vl->append(tag.Val());
 	vl->append(new Val(id, TYPE_COUNT));
 	vl->append(r);
 
@@ -870,6 +689,31 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
 	LOOP_OVER_CHILDREN(i)
 		(*i)->UpdateConnVal(conn_val);
+	}
+
+RecordVal* Analyzer::BuildConnVal()
+	{
+	return conn->BuildConnVal();
+	}
+
+void Analyzer::Event(EventHandlerPtr f, const char* name)
+	{
+	conn->Event(f, this, name);
+	}
+
+void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
+	{
+	conn->Event(f, this, v1, v2);
+	}
+
+void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
+	{
+	conn->ConnectionEvent(f, this, vl);
+	}
+
+void Analyzer::Weird(const char* name, const char* addl)
+	{
+	conn->Weird(name, addl);
 	}
 
 void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,

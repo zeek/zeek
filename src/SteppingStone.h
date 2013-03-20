@@ -51,7 +51,7 @@ public:
 	virtual void Init();
 	virtual void Done();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SteppingStone_Analyzer(conn); }
 
 	static bool Available()	{ return stp_correlate_pair; }

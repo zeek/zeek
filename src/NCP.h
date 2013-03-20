@@ -29,7 +29,7 @@
 
 class NCP_Session {
 public:
-	NCP_Session(Analyzer* analyzer);
+	NCP_Session(analyzer::Analyzer* analyzer);
 	virtual ~NCP_Session() {}
 
 	virtual void Deliver(int is_orig, int len, const u_char* data);
@@ -42,7 +42,7 @@ public:
 protected:
 	void DeliverFrame(const binpac::NCP::ncp_frame* frame);
 
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	int req_frame_type;
 	int req_func;
 };
@@ -102,7 +102,7 @@ public:
 	NCP_Analyzer(Connection* conn);
 	virtual ~NCP_Analyzer();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NCP_Analyzer(conn); }
 
 	static bool Available()	{ return NCP_Session::any_ncp_event(); }

@@ -360,7 +360,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 
 NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
-: ContentLine_Analyzer(AnalyzerTag::NVT, conn, orig)
+: ContentLine_Analyzer("NVT", conn, orig)
 	{
 	peer = 0;
 	is_suboption = last_was_IAC = pending_IAC = 0;

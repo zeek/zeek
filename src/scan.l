@@ -22,9 +22,11 @@
 #include "PolicyFile.h"
 #include "broparse.h"
 #include "BroDoc.h"
-#include "Analyzer.h"
-#include "AnalyzerTags.h"
 #include "Reporter.h"
+#include "RE.h"
+#include "Net.h"
+
+#include "analyzer/analyzer.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
@@ -67,8 +69,10 @@ void clear_reST_doc_comments();
 // Adds changes to capture_filter to the current script's reST documentation.
 static void check_capture_filter_changes();
 
+#if 0
 // Adds changes to dpd_config to the current script's reST documentation.
 static void check_dpd_config_changes();
+#endif
 
 static const char* canon_doc_comment(const char* comment)
 	{
@@ -822,7 +826,9 @@ int yywrap()
 	while ( input_files.length() > 0 )
 		{
 		check_capture_filter_changes();
+#if 0
 		check_dpd_config_changes();
+#endif
 
 		if ( load_files(input_files[0]) )
 			{
@@ -838,7 +844,9 @@ int yywrap()
 		}
 
 	check_capture_filter_changes();
+#if 0
 	check_dpd_config_changes();
+#endif	
 
 	// For each file scanned so far, and for each @prefix, look for a
 	// prefixed and flattened version of the loaded file in BROPATH. The
@@ -1003,6 +1011,7 @@ static void check_capture_filter_changes()
 		}
 	}
 
+#if 0
 static void check_dpd_config_changes()
 	{
 	if ( ! generate_documentation )
@@ -1047,6 +1056,7 @@ static void check_dpd_config_changes()
 
 	dpd_table->RemoveAll();
 	}
+#endif
 
 void print_current_reST_doc_comments()
 	{

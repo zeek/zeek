@@ -208,7 +208,6 @@ TableType* irc_join_list;
 RecordType* irc_join_info;
 TableVal* irc_servers;
 
-TableVal* dpd_config;
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
 int dpd_match_only_beginning;
@@ -239,6 +238,7 @@ TableType* record_field_table;
 
 StringVal* cmd_line_bpf_filter;
 
+#include "analyzer.bif.netvar_def"
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
@@ -512,7 +512,6 @@ void init_net_var()
 		opt_internal_double("remote_trace_sync_interval");
 	remote_trace_sync_peers = opt_internal_int("remote_trace_sync_peers");
 
-	dpd_config = internal_val("dpd_config")->AsTableVal();
 	dpd_reassemble_first_packets =
 		opt_internal_int("dpd_reassemble_first_packets");
 	dpd_buffer_size = opt_internal_int("dpd_buffer_size");

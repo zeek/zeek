@@ -161,7 +161,7 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 		DeliverBody(len, data, trailing_CRLF);
 	}
 
-class HTTP_Entity::UncompressedOutput : public Analyzer::OutputHandler {
+class HTTP_Entity::UncompressedOutput : public analyzer::Analyzer::OutputHandler {
 public:
 	UncompressedOutput(HTTP_Entity* e)	{ entity = e; }
 	virtual	~UncompressedOutput() { }
@@ -787,7 +787,7 @@ void HTTP_Message::Weird(const char* msg)
 	}
 
 HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
-	: TCP_ApplicationAnalyzer(AnalyzerTag::HTTP, conn)
+: TCP_ApplicationAnalyzer("HTTP", conn)
 	{
 	num_requests = num_replies = 0;
 	num_request_lines = num_reply_lines = 0;
@@ -1736,7 +1736,7 @@ void escape_URI_char(unsigned char ch, unsigned char*& p)
 	}
 
 BroString* unescape_URI(const u_char* line, const u_char* line_end,
-			Analyzer* analyzer)
+			analyzer::Analyzer* analyzer)
 	{
 	byte_vec decoded_URI = new u_char[line_end - line + 1];
 	byte_vec URI_p = decoded_URI;

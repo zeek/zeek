@@ -88,7 +88,7 @@ enum DCE_RPC_PTYPE {
 
 class DCE_RPC_Header {
 public:
-	DCE_RPC_Header(Analyzer* a, const u_char* bytes);
+	DCE_RPC_Header(analyzer::Analyzer* a, const u_char* bytes);
 
 	BifEnum::dce_rpc_ptype PTYPE() const	{ return ptype; }
 	int FragLen() const		{ return frag_len; }
@@ -99,7 +99,7 @@ public:
 	void SetBytes(const u_char* b)	{ bytes = b; }
 
 protected:
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	const u_char* bytes;
 	BifEnum::dce_rpc_ptype ptype;
 	int frag_len;
@@ -112,7 +112,7 @@ protected:
 
 class DCE_RPC_Session {
 public:
-	DCE_RPC_Session(Analyzer* a);
+	DCE_RPC_Session(analyzer::Analyzer* a);
 	virtual ~DCE_RPC_Session() {}
 	virtual void DeliverPDU(int is_orig, int len, const u_char* data);
 
@@ -135,7 +135,7 @@ protected:
 			const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu,
 			const binpac::DCE_RPC_Simple::DCE_RPC_Response* resp);
 
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	UUID if_uuid;
 	BifEnum::dce_rpc_if_id if_id;
 	int opnum;
@@ -174,7 +174,7 @@ public:
 	DCE_RPC_Analyzer(Connection* conn, bool speculative = false);
 	~DCE_RPC_Analyzer();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
 	static bool Available()

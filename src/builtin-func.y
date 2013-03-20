@@ -197,11 +197,11 @@ char* concat(const char* str1, const char* str2)
 void print_event_c_prototype(FILE *fp, bool is_header)
 	{
 	if ( is_header )
-		fprintf(fp, "%s void %s(Analyzer* analyzer%s",
+		fprintf(fp, "%s void %s(analyzer::Analyzer* analyzer%s",
 			decl.generate_c_namespace_start.c_str(), decl.generate_bare_name.c_str(),
 			args.size() ? ", " : "" );
 	else
-		fprintf(fp, "void %s(Analyzer* analyzer%s",
+		fprintf(fp, "void %s(analyzer::Analyzer* analyzer%s",
 			decl.generate_c_fullname.c_str(),
 			args.size() ? ", " : "" );
 	for ( int i = 0; i < (int) args.size(); ++i )

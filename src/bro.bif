@@ -3353,14 +3353,14 @@ const char* conn_id_string(Val* c)
 ## .. bro:see:: skip_smtp_data
 function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	%{
-	AnalyzerID id = mgr.CurrentAnalyzer();
+	analyzer::ID id = mgr.CurrentAnalyzer();
 	if ( id )
 		{
-		Analyzer* ha = c->FindAnalyzer(id);
+		analyzer::Analyzer* ha = c->FindAnalyzer(id);
 
 		if ( ha )
 			{
-			if ( ha->GetTag() == AnalyzerTag::HTTP )
+			if ( ha->IsAnalyzer("HTTP") )
 				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
 			else
 				reporter->Error("non-HTTP analyzer associated with connection record");
@@ -4074,35 +4074,8 @@ function file_mode%(mode: count%): string
 # ===========================================================================
 
 %%{
-#include "DPM.h"
+#include "analyzer/Manager.h"
 %%}
-
-## Schedules an analyzer for a future connection from a given IP address and
-## port. The function ignores the scheduling request if the connection did
-## not occur within the specified time interval.
-##
-## orig: The IP address originating a connection in the future.
-##
-## resp: The IP address responding to a connection from *orig*.
-##
-## resp_p: The destination port at *resp*.
-##
-## analyzer: The analyzer ID.
-##
-## tout: The timeout interval after which to ignore the scheduling request.
-##
-## Returns: True (unconditionally).
-##
-## .. bro:see:: disable_analyzer analyzer_name
-##
-## .. todo:: The return value should be changed to any.
-function expect_connection%(orig: addr, resp: addr, resp_p: port,
-				analyzer: count, tout: interval%) : any
-	%{
-	dpm->ExpectConnection(orig->AsAddr(), resp->AsAddr(), resp_p->Port(),
-				 resp_p->PortType(), (AnalyzerTag::Tag) analyzer, tout, 0);
-	return new Val(1, TYPE_BOOL);
-	%}
 
 ## Disables the analyzer which raised the current event (if the analyzer
 ## belongs to the given connection).
@@ -4124,7 +4097,7 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 		return new Val(0, TYPE_BOOL);
 		}
 
-	Analyzer* a = c->FindAnalyzer(aid);
+	analyzer::Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
 		reporter->Error("connection does not have analyzer specified to disable");
@@ -4133,18 +4106,6 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 
 	a->Remove();
 	return new Val(1, TYPE_BOOL);
-	%}
-
-## Translate an analyzer type to an ASCII string.
-##
-## aid: The analyzer ID.
-##
-## Returns: The analyzer *aid* as string.
-##
-## .. bro:see:: expect_connection disable_analyzer current_analyzer
-function analyzer_name%(aid: count%) : string
-	%{
-	return new StringVal(Analyzer::GetTagName((AnalyzerTag::Tag) aid));
 	%}
 
 ## Informs Bro that it should skip any further processing of the contents of
@@ -4321,7 +4282,7 @@ function get_login_state%(cid: conn_id%): count
 	if ( ! c )
 		return new Val(0, TYPE_BOOL);
 
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
+	analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
 		return new Val(0, TYPE_BOOL);
 
@@ -4346,7 +4307,7 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 	if ( ! c )
 		return new Val(0, TYPE_BOOL);
 
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
+	analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
 		return new Val(0, TYPE_BOOL);
 
@@ -4377,7 +4338,7 @@ function get_orig_seq%(cid: conn_id%): count
 	if ( c->ConnTransport() != TRANSPORT_TCP )
 		return new Val(0, TYPE_COUNT);
 
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
 		return new Val(static_cast<TCP_Analyzer*>(tc)->OrigSeq(),
 				TYPE_COUNT);
@@ -4407,7 +4368,7 @@ function get_resp_seq%(cid: conn_id%): count
 	if ( c->ConnTransport() != TRANSPORT_TCP )
 		return new Val(0, TYPE_COUNT);
 
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
 		return new Val(static_cast<TCP_Analyzer*>(tc)->RespSeq(),
 				TYPE_COUNT);
@@ -4429,7 +4390,7 @@ function get_resp_seq%(cid: conn_id%): count
 ## .. bro:see:: skip_http_entity_data
 function skip_smtp_data%(c: connection%): any
 	%{
-	Analyzer* sa = c->FindAnalyzer(AnalyzerTag::SMTP);
+	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
 	if ( sa )
 		static_cast<SMTP_Analyzer*>(sa)->SkipData();
 	return 0;

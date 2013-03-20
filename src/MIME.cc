@@ -966,7 +966,7 @@ TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	return t;
 	}
 
-MIME_Mail::MIME_Mail(Analyzer* mail_analyzer, int buf_size)
+MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, int buf_size)
 : MIME_Message(mail_analyzer)
 	{
 	analyzer = mail_analyzer;

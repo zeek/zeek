@@ -141,6 +141,7 @@ macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
 endmacro(GET_BIF_OUTPUT_FILES)
 
 set(BIF_SRCS
+    analyzer.bif
     bro.bif
     logging.bif
     input.bif
@@ -283,7 +284,6 @@ set(bro_SRCS
     net_util.cc
     util.cc
     module_util.cc
-    Analyzer.cc
     Anon.cc
     ARP.cc
     Attr.cc
@@ -318,7 +318,6 @@ set(bro_SRCS
     Desc.cc
     Dict.cc
     Discard.cc
-    DPM.cc
     EquivClass.cc
     Event.cc
     EventHandler.cc
@@ -446,6 +445,16 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+
+    plugin/Component.cc
+    plugin/Manager.cc
+    plugin/Plugin.cc
+
+    analyzer/Analyzer.cc
+    analyzer/BuiltinAnalyzers.cc
+    analyzer/Manager.cc
+    analyzer/PluginComponent.cc
+    analyzer/Tag.cc
 
     nb_dns.c
     digest.h

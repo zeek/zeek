@@ -30,7 +30,7 @@ GnutellaMsgState::GnutellaMsgState()
 
 
 Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::Gnutella, conn)
+: TCP_ApplicationAnalyzer("GNUTELLA", conn)
 	{
 	state = 0;
 	new_state = 0;
@@ -131,13 +131,13 @@ int Gnutella_Analyzer::IsHTTP(string header)
 
 	if ( HTTP_Analyzer::Available() )
 		{
-		Analyzer* a = new HTTP_Analyzer(Conn());
+		analyzer::Analyzer* a = new HTTP_Analyzer(Conn());
 		Parent()->AddChildAnalyzer(a);
 
-		if ( Parent()->GetTag() == AnalyzerTag::TCP )
+		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			PIA* pia = static_cast<TransportLayerAnalyzer *>(Parent())->GetPIA();
+			PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
 			if ( pia )
 				static_cast<PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}

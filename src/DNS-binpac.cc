@@ -2,7 +2,7 @@
 #include "TCP_Reassembler.h"
 
 DNS_UDP_Analyzer_binpac::DNS_UDP_Analyzer_binpac(Connection* conn)
-: Analyzer(AnalyzerTag::DNS_UDP_BINPAC, conn)
+: Analyzer("DNS_UDP_BINPAC", conn)
 	{
 	interp = new binpac::DNS::DNS_Conn(this);
 	did_session_done = 0;
@@ -45,7 +45,7 @@ void DNS_UDP_Analyzer_binpac::ExpireTimer(double t)
 	}
 
 DNS_TCP_Analyzer_binpac::DNS_TCP_Analyzer_binpac(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::DNS_TCP_BINPAC, conn)
+: TCP_ApplicationAnalyzer("DNS_TCP_BINPAC", conn)
 	{
 	interp = new binpac::DNS_on_TCP::DNS_TCP_Conn(this);
 	}

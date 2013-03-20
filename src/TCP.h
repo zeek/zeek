@@ -3,10 +3,12 @@
 #ifndef TCP_H
 #define TCP_H
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include "TCP.h"
 #include "PacketDumper.h"
 #include "IPAddr.h"
+#include "TCP_Endpoint.h"
+#include "Conn.h"
 
 // We define two classes here:
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.
@@ -16,6 +18,7 @@
 class PIA_TCP;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
+class TCP_Endpoint;
 
 class TCP_Flags {
 public:
@@ -32,7 +35,7 @@ protected:
 	u_char flags;
 };
 
-class TCP_Analyzer : public TransportLayerAnalyzer {
+class TCP_Analyzer : public analyzer::TransportLayerAnalyzer {
 public:
 	TCP_Analyzer(Connection* conn);
 	virtual ~TCP_Analyzer();
@@ -41,7 +44,7 @@ public:
 
 	// Add a child analyzer that will always get the packets,
 	// independently of whether we do any reassembly.
-	void AddChildPacketAnalyzer(Analyzer* a)
+	void AddChildPacketAnalyzer(analyzer::Analyzer* a)
 		{ packet_children.push_back(a); a->SetParent(this); }
 
 	// True if the connection has closed in some sense, false otherwise.
@@ -85,7 +88,7 @@ public:
 			proc_tcp_option_t proc, TCP_Analyzer* analyzer,
 			bool is_orig, void* cookie);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new TCP_Analyzer(conn); }
 
 	static bool Available()	{ return true; }
@@ -213,7 +216,7 @@ protected:
 	void ExpireTimer(double t);
 	void ResetTimer(double t);
 	void DeleteTimer(double t);
-	void ConnDeleteTimer(double t)	{ Conn()->DeleteTimer(t); }
+	void ConnDeleteTimer(double t);
 
 	void EndpointEOF(TCP_Reassembler* endp);
 	void ConnectionClosed(TCP_Endpoint* endpoint,
@@ -240,6 +243,7 @@ private:
 	TCP_Endpoint* orig;
 	TCP_Endpoint* resp;
 
+	typedef list<analyzer::Analyzer*> analyzer_list;
 	analyzer_list packet_children;
 
 	unsigned int first_packet_seen: 2;
@@ -259,10 +263,10 @@ private:
 	unsigned int seen_first_ACK: 1;
 };
 
-class TCP_ApplicationAnalyzer : public Analyzer {
+class TCP_ApplicationAnalyzer : public analyzer::Analyzer {
 public:
-	TCP_ApplicationAnalyzer(AnalyzerTag::Tag tag, Connection* conn)
-	: Analyzer(tag, conn)
+	TCP_ApplicationAnalyzer(const char* name, Connection* conn)
+	: Analyzer(name, conn)
 		{ tcp = 0; }
 
 	virtual ~TCP_ApplicationAnalyzer()	{ }
@@ -273,8 +277,7 @@ public:
 		{
 		return tcp ?
 			tcp :
-			static_cast<TCP_Analyzer*>(
-				Conn()->FindAnalyzer(AnalyzerTag::TCP));
+			static_cast<TCP_Analyzer*>(Conn()->FindAnalyzer("TCP"));
 		}
 
 	void SetTCP(TCP_Analyzer* arg_tcp)	{ tcp = arg_tcp; }
@@ -308,17 +311,14 @@ public:
 	//  delete them when done with them.
 	virtual void SetEnv(bool orig, char* name, char* val);
 
-protected:
-   	TCP_ApplicationAnalyzer() 	{ };
-
 private:
 	TCP_Analyzer* tcp;
 };
 
-class TCP_SupportAnalyzer : public SupportAnalyzer {
+class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer {
 public:
-	TCP_SupportAnalyzer(AnalyzerTag::Tag tag, Connection* conn, bool arg_orig)
-		: SupportAnalyzer(tag, conn, arg_orig)	{ }
+	TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
+		: analyzer::SupportAnalyzer(name, conn, arg_orig)	{ }
 
 	virtual ~TCP_SupportAnalyzer() {}
 
@@ -362,7 +362,7 @@ public:
 	virtual void Init();
 	virtual void Done();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new TCPStats_Analyzer(conn); }
 
 	static bool Available()	{ return conn_stats || tcp_rexmit; }

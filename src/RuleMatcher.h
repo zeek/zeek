@@ -35,7 +35,7 @@ extern const char* current_rule_file;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 
-class Analyzer;
+namespace analyzer { class Analyzer; }
 class PIA;
 
 // RuleHdrTest and associated things:
@@ -140,7 +140,7 @@ class RuleEndpointState {
 public:
 	~RuleEndpointState();
 
-	Analyzer* GetAnalyzer()	const	{ return analyzer; }
+	analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
 	bool IsOrig()		{ return is_orig; }
 
 	// For flipping roles.
@@ -159,7 +159,7 @@ private:
 
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
-	RuleEndpointState(Analyzer* arg_analyzer, bool arg_is_orig,
+	RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
 			  RuleEndpointState* arg_opposite, ::PIA* arg_PIA);
 
 	struct Matcher {
@@ -171,7 +171,7 @@ private:
 	typedef PList(Matcher) matcher_list;
 
 	bool is_orig;
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
 	::PIA* pia;
 
@@ -207,7 +207,7 @@ public:
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
-	RuleEndpointState* InitEndpoint(Analyzer* analyzer, const IP_Hdr* ip,
+	RuleEndpointState* InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
 		int caplen, RuleEndpointState* opposite, bool is_orig, PIA* pia);
 
 	// Finish matching for this stream.
@@ -310,7 +310,7 @@ public:
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
-	void InitEndpointMatcher(Analyzer* analyzer, const IP_Hdr* ip,
+	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
 				int caplen, bool from_orig, PIA* pia = 0);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're

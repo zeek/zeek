@@ -114,6 +114,7 @@ extern char* skip_digits(char* s);
 extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
+extern std::string to_upper(const std::string& s);
 extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
 extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);

@@ -5,8 +5,9 @@
 #include "IPAddr.h"
 #include "Reporter.h"
 #include "Conn.h"
-#include "DPM.h"
 #include "bro_inet_ntop.h"
+
+#include "analyzer/Manager.h"
 
 const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
                                                0, 0, 0, 0,
@@ -44,7 +45,7 @@ HashKey* BuildConnIDHashKey(const ConnID& id)
 	return new HashKey(&key, sizeof(key));
 	}
 
-HashKey* BuildExpectedConnHashKey(const ExpectedConn& c)
+HashKey* BuildExpectedConnHashKey(const analyzer::ExpectedConn& c)
 	{
 	struct {
 		in6_addr orig;

@@ -149,7 +149,7 @@ public:
 
 class DNS_Interpreter {
 public:
-	DNS_Interpreter(Analyzer* analyzer);
+	DNS_Interpreter(analyzer::Analyzer* analyzer);
 
 	int ParseMessage(const u_char* data, int len, int is_query);
 
@@ -217,7 +217,7 @@ protected:
 					const u_char*& data, int& len,
 					BroString* question_name);
 
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 };
 
 
@@ -266,7 +266,7 @@ public:
 
 	void ExpireTimer(double t);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 	static bool Available()

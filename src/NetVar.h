@@ -212,7 +212,6 @@ extern TableType* irc_join_list;
 extern RecordType* irc_join_info;
 extern TableVal* irc_servers;
 
-extern TableVal* dpd_config;
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
 extern int dpd_match_only_beginning;
@@ -249,6 +248,7 @@ extern void init_general_global_var();
 extern void init_event_handlers();
 extern void init_net_var();
 
+#include "analyzer.bif.netvar_h"
 #include "const.bif.netvar_h"
 #include "types.bif.netvar_h"
 #include "event.bif.netvar_h"

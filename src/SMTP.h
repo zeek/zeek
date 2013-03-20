@@ -47,7 +47,7 @@ public:
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{
 		return new SMTP_Analyzer(conn);
 		}

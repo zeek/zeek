@@ -2,15 +2,15 @@
 
 #include <iostream>
 #include "IRC.h"
-#include "DPM.h"
 #include "ContentLine.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "ZIP.h"
 
+#include "analyzer/Manager.h"
 
 IRC_Analyzer::IRC_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::IRC, conn)
+: TCP_ApplicationAnalyzer("IRC", conn)
 	{
 	invalid_msg_count = 0;
 	invalid_msg_max_count = 20;

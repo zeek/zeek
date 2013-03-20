@@ -8,9 +8,10 @@
 #include "NetVar.h"
 #include "UDP.h"
 #include "Reporter.h"
+#include "Conn.h"
 
 UDP_Analyzer::UDP_Analyzer(Connection* conn)
-: TransportLayerAnalyzer(AnalyzerTag::UDP, conn)
+: TransportLayerAnalyzer("UDP", conn)
 	{
 	conn->EnableStatusUpdateTimer();
 	conn->SetInactivityTimeout(udp_inactivity_timeout);

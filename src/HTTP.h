@@ -174,7 +174,7 @@ public:
 	virtual void ConnectionReset();
 	virtual void PacketWithRST();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()
@@ -252,6 +252,6 @@ extern int is_reserved_URI_char(unsigned char ch);
 extern int is_unreserved_URI_char(unsigned char ch);
 extern void escape_URI_char(unsigned char ch, unsigned char*& p);
 extern BroString* unescape_URI(const u_char* line, const u_char* line_end,
-				Analyzer* analyzer);
+				analyzer::Analyzer* analyzer);
 
 #endif

@@ -17,7 +17,7 @@ using namespace std;
 	 uint16(xbyte(bytes, 0)) | ((uint16(xbyte(bytes, 1))) << 8) : \
 	 uint16(xbyte(bytes, 1)) | ((uint16(xbyte(bytes, 0))) << 8))
 
-NCP_Session::NCP_Session(Analyzer* a)
+NCP_Session::NCP_Session(analyzer::Analyzer* a)
 : analyzer(a)
 	{
 	req_frame_type = 0;
@@ -150,7 +150,7 @@ void NCP_FrameBuffer::compute_msg_length()
 	}
 
 Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* arg_session)
-: TCP_SupportAnalyzer(AnalyzerTag::Contents_NCP, conn, orig)
+: TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
 	resync = true;
@@ -215,7 +215,7 @@ void Contents_NCP_Analyzer::Undelivered(int seq, int len, bool orig)
 	}
 
 NCP_Analyzer::NCP_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::NCP, conn)
+: TCP_ApplicationAnalyzer("NCP", conn)
 	{
 	session = new NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);

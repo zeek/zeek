@@ -7,7 +7,7 @@
 
 class PortmapperInterp : public RPC_Interpreter {
 public:
-	PortmapperInterp(Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
@@ -29,7 +29,7 @@ public:
 	virtual ~Portmapper_Analyzer();
 	virtual void Init();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 
 	static bool Available()

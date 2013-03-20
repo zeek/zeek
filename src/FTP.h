@@ -13,7 +13,7 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{
 		return new FTP_Analyzer(conn);
 		}
@@ -22,8 +22,6 @@ public:
 
 
 protected:
-	FTP_Analyzer()	{}
-
 	NVT_Analyzer* nvt_orig;
 	NVT_Analyzer* nvt_resp;
 	uint32 pending_reply;	// code associated with multi-line reply, or 0
@@ -37,10 +35,10 @@ protected:
  * analyzer just decodes the tokens and passes them on to the parent, which must
  * be an SSL analyzer instance.
  */
-class FTP_ADAT_Analyzer : public SupportAnalyzer {
+class FTP_ADAT_Analyzer : public analyzer::SupportAnalyzer {
 public:
 	FTP_ADAT_Analyzer(Connection* conn, bool arg_orig)
-	    : SupportAnalyzer(AnalyzerTag::FTP_ADAT, conn, arg_orig),
+	    : SupportAnalyzer("FTP_ADAT", conn, arg_orig),
 	      first_token(true) { }
 
 	void DeliverStream(int len, const u_char* data, bool orig);

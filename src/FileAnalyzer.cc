@@ -8,7 +8,7 @@ magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;
 
 File_Analyzer::File_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::File, conn)
+: TCP_ApplicationAnalyzer("FILE", conn)
 	{
 	buffer_len = 0;
 

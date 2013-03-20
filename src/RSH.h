@@ -47,7 +47,7 @@ public:
 	void ClientUserName(const char* s);
 	void ServerUserName(const char* s);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Rsh_Analyzer(conn); }
 
 	static bool Available()

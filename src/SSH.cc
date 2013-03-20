@@ -10,7 +10,7 @@
 #include "ContentLine.h"
 
 SSH_Analyzer::SSH_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SSH, c)
+: TCP_ApplicationAnalyzer("SSH", c)
 	{
 	orig = new ContentLine_Analyzer(c, true);
 	orig->SetSkipPartial(true);

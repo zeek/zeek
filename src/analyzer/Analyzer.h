@@ -1,18 +1,29 @@
 // Main analyzer interface.
 
-#ifndef ANALYZER_H
-#define ANALYZER_H
+#ifndef ANALYZER_ANALYZER_H
+#define ANALYZER_ANALYZER_H
 
 #include <list>
 
-#include "AnalyzerTags.h"
-#include "Conn.h"
-#include "Obj.h"
+#include "Tag.h"
 
-class DPM;
+#include "../Obj.h"
+#include "../EventHandler.h"
+#include "../Timer.h"
+
+class Rule;
+class Connection;
 class PIA;
-class Analyzer;
+class IP_Hdr;
+class TCP_ApplicationAnalyzer;
+
+namespace analyzer { class Analyzer; }
+
+namespace analyzer {
+
 typedef list<Analyzer*> analyzer_list;
+
+typedef uint32 ID;
 
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
@@ -56,7 +67,8 @@ class OutputHandler;
 
 class Analyzer {
 public:
-	Analyzer(AnalyzerTag::Tag tag, Connection* conn);
+	// "name" must match the one used in 
+	Analyzer(const char* name, Connection* conn);
 	virtual ~Analyzer();
 
 	virtual void Init();
@@ -94,7 +106,7 @@ public:
 	// Report a message boundary to all child analyzers
 	virtual void ForwardEndOfData(bool orig);
 
-	AnalyzerID GetID() const	{ return id; }
+	ID GetID() const	{ return id; }
 	Connection* Conn() const	{ return conn; }
 
 	// An OutputHandler can be used to get access to data extracted by this
@@ -128,12 +140,8 @@ public:
 
 	bool IsFinished() const 		{ return finished; }
 
-	AnalyzerTag::Tag GetTag() const		{ return tag; }
-	const char* GetTagName() const;
-	static AnalyzerTag::Tag GetTag(const char* tag);
-	static const char* GetTagName(AnalyzerTag::Tag tag);
-	static bool IsAvailable(AnalyzerTag::Tag tag)
-		{ return analyzer_configs[tag].available(); }
+	Tag GetTag() const		{ return tag; }
+	bool IsAnalyzer(const char* name);
 
 	// Management of the tree.
 	//
@@ -141,18 +149,21 @@ public:
 	// of the same type.
 	void AddChildAnalyzer(Analyzer* analyzer)
 		{ AddChildAnalyzer(analyzer, true); }
-	Analyzer* AddChildAnalyzer(AnalyzerTag::Tag tag);
+	Analyzer* AddChildAnalyzer(Tag tag);
 
 	void RemoveChildAnalyzer(Analyzer* analyzer);
-	void RemoveChildAnalyzer(AnalyzerID id);
+	void RemoveChildAnalyzer(ID id);
 
-	bool HasChildAnalyzer(AnalyzerTag::Tag tag);
+	bool HasChildAnalyzer(Tag tag);
 
 	// Recursive; returns nil if not found.
-	Analyzer* FindChild(AnalyzerID id);
+	Analyzer* FindChild(ID id);
 
 	// Recursive; returns first found, or nil.
-	Analyzer* FindChild(AnalyzerTag::Tag tag);
+	Analyzer* FindChild(Tag tag);
+
+	// Recursive; returns first found, or nil.
+	Analyzer* FindChild(const string& name);
 
 	const analyzer_list& GetChildren()	{ return children; }
 
@@ -240,27 +251,17 @@ public:
 	// The following methods are proxies: calls are directly forwarded
 	// to the connection instance.  These are for convenience only,
 	// allowing us to reuse more of the old analyzer code unchanged.
-	RecordVal* BuildConnVal()
-		{ return conn->BuildConnVal(); }
-	void Event(EventHandlerPtr f, const char* name = 0)
-		{ conn->Event(f, this, name); }
-	void Event(EventHandlerPtr f, Val* v1, Val* v2 = 0)
-		{ conn->Event(f, this, v1, v2); }
-	void ConnectionEvent(EventHandlerPtr f, val_list* vl)
-		{ conn->ConnectionEvent(f, this, vl); }
-	void Weird(const char* name, const char* addl = "")
-		{ conn->Weird(name, addl); }
-
-	// Factory function to instantiate new analyzers.
-	static Analyzer* InstantiateAnalyzer(AnalyzerTag::Tag tag, Connection* c);
+	RecordVal* BuildConnVal();
+	void Event(EventHandlerPtr f, const char* name = 0);
+	void Event(EventHandlerPtr f, Val* v1, Val* v2 = 0);
+	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
+	void Weird(const char* name, const char* addl = "");
 
 protected:
-	friend class DPM;
 	friend class Connection;
 	friend class AnalyzerTimer;
 	friend class TCP_ApplicationAnalyzer;
-
-	Analyzer()	{ }
+	friend class Manager;
 
 	// Associates a connection with this analyzer.  Must be called if
 	// we're using the default ctor.
@@ -275,7 +276,7 @@ protected:
 	void RemoveTimer(Timer* t);
 	void CancelTimers();
 
-	bool HasSupportAnalyzer(AnalyzerTag::Tag tag, bool orig);
+	bool HasSupportAnalyzer(Tag tag, bool orig);
 
 	void AddChildAnalyzer(Analyzer* analyzer, bool init);
 	void InitChildren();
@@ -286,8 +287,8 @@ private:
 	// already Done().
 	void DeleteChild(analyzer_list::iterator i);
 
-	AnalyzerTag::Tag tag;
-	AnalyzerID id;
+	Tag tag;
+	ID id;
 
 	Connection* conn;
 	Analyzer* parent;
@@ -308,49 +309,32 @@ private:
 	bool finished;
 	bool removing;
 
-	static AnalyzerID id_counter;
-
-	typedef bool (*available_callback)();
-	typedef Analyzer* (*factory_callback)(Connection* conn);
-	typedef bool (*match_callback)(Connection*);
-
-	struct Config {
-		AnalyzerTag::Tag tag;
-		const char* name;
-		factory_callback factory;
-		available_callback available;
-		match_callback match;
-		bool partial;
-	};
-
-	// Table of analyzers.
-	static const Config analyzer_configs[];
-
+	static ID id_counter;
 };
 
 #define ADD_ANALYZER_TIMER(timer, t, do_expire, type) \
-	AddTimer(analyzer_timer_func(timer), (t), (do_expire), (type))
+	   AddTimer(analyzer::analyzer_timer_func(timer), (t), (do_expire), (type))
 
 #define LOOP_OVER_CHILDREN(var) \
-	for ( analyzer_list::iterator var = children.begin(); \
+	for ( analyzer::analyzer_list::iterator var = children.begin(); \
 	      var != children.end(); var++ )
 
 #define LOOP_OVER_CONST_CHILDREN(var) \
-	for ( analyzer_list::const_iterator var = children.begin(); \
+	for ( analyzer::analyzer_list::const_iterator var = children.begin(); \
 	      var != children.end(); var++ )
 
 #define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) \
-	for ( analyzer_list::iterator var = the_kids.begin(); \
+	for ( analyzer::analyzer_list::iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 #define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
-	for ( analyzer_list::const_iterator var = the_kids.begin(); \
+	for ( analyzer::analyzer_list::const_iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 class SupportAnalyzer : public Analyzer {
 public:
-	SupportAnalyzer(AnalyzerTag::Tag tag, Connection* conn, bool arg_orig)
-		: Analyzer(tag, conn)	{ orig = arg_orig; sibling = 0; }
+	SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
+		: Analyzer(name, conn)	{ orig = arg_orig; sibling = 0; }
 
 	virtual ~SupportAnalyzer() {}
 
@@ -366,7 +350,6 @@ public:
 protected:
 	friend class Analyzer;
 
-	SupportAnalyzer()	{ }
 private:
 	bool orig;
 
@@ -378,8 +361,8 @@ private:
 
 class TransportLayerAnalyzer : public Analyzer {
 public:
-	TransportLayerAnalyzer(AnalyzerTag::Tag tag, Connection* conn)
-		: Analyzer(tag, conn)	{ pia = 0; }
+	TransportLayerAnalyzer(const char* name, Connection* conn)
+		: Analyzer(name, conn)	{ pia = 0; }
 
 	virtual void Done();
 	virtual bool IsReuse(double t, const u_char* pkt) = 0;
@@ -393,11 +376,10 @@ public:
 	// Raises packet_contents event.
 	void PacketContents(const u_char* data, int len);
 
-protected:
-	TransportLayerAnalyzer()	{ }
-
 private:
 	PIA* pia;
 };
+
+}
 
 #endif

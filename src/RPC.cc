@@ -66,7 +66,7 @@ void rpc_callinfo_delete_func(void* v)
 	delete (RPC_CallInfo*) v;
 	}
 
-RPC_Interpreter::RPC_Interpreter(Analyzer* arg_analyzer)
+RPC_Interpreter::RPC_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	calls.SetDeleteFunc(rpc_callinfo_delete_func);
@@ -373,7 +373,7 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 
 Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 				RPC_Interpreter* arg_interp)
-	: TCP_SupportAnalyzer(AnalyzerTag::Contents_RPC, conn, orig)
+	: TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
@@ -673,9 +673,9 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		} // end while
 	}
 
-RPC_Analyzer::RPC_Analyzer(AnalyzerTag::Tag tag, Connection* conn,
+RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 				RPC_Interpreter* arg_interp)
-: TCP_ApplicationAnalyzer(tag, conn)
+: TCP_ApplicationAnalyzer(name, conn)
 	{
 	interp = arg_interp;
 

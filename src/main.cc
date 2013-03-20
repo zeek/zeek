@@ -49,7 +49,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "DPM.h"
 #include "BroDoc.h"
 #include "Brofiler.h"
 
@@ -57,6 +56,9 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
+#include "analyzer/BuiltinAnalyzers.h"
+#include "analyzer/Manager.h"
+#include "plugin/Manager.h"
 
 #include "binpac_bro.h"
 
@@ -86,6 +88,8 @@ TimerMgr* timer_mgr;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
+plugin::Manager* plugin_mgr = 0;
+analyzer::Manager* analyzer_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -99,7 +103,6 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-DPM* dpm = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
@@ -176,6 +179,7 @@ void usage()
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -L|--rule-benchmark            | benchmark for rules\n");
+	fprintf(stderr, "    -N|--print-plugins             | print all available plugins and exit\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -233,6 +237,27 @@ void usage()
 	exit(1);
 	}
 
+void show_plugins()
+	{
+	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+
+	if ( ! plugins.size() )
+		{
+		printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
+		return;
+		}
+
+	ODesc d;
+
+	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
+		{
+		(*i)->Describe(&d);
+		d.NL();
+		}
+
+	printf("%s", d.Description());
+	}
+
 void done_with_network()
 	{
 	set_processing_status("TERMINATING", "done_with_network");
@@ -262,7 +287,7 @@ void done_with_network()
 
 	terminating = true;
 
-	dpm->Done();
+	analyzer_mgr->Done();
 	timer_mgr->Expire();
 	dns_mgr->Flush();
 	mgr.Drain();
@@ -324,6 +349,8 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	plugin_mgr->FinishPlugins();
+
 	delete timer_mgr;
 	delete dns_mgr;
 	delete persistence_serializer;
@@ -333,8 +360,9 @@ void terminate_bro()
 	delete event_registry;
 	delete secondary_path;
 	delete remote_serializer;
-	delete dpm;
+	delete analyzer_mgr;
 	delete log_mgr;
+	delete plugin_mgr;
 	delete thread_mgr;
 	delete reporter;
 
@@ -412,6 +440,7 @@ int main(int argc, char** argv)
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
 	int RE_level = 4;
+	int print_plugins = 0;
 
 	static struct option long_opts[] = {
 		{"bare-mode",	no_argument,		0,	'b'},
@@ -440,6 +469,7 @@ int main(int argc, char** argv)
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
 		{"rule-benchmark",	no_argument,		0,	'L'},
+		{"print-plugins",	no_argument,		0,	'N'},
 		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
 		{"replay",		required_argument,	0,	'R'},
@@ -494,7 +524,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -607,6 +637,10 @@ int main(int argc, char** argv)
 
 		case 'L':
 			++rule_bench;
+			break;
+
+		case 'N':
+			print_plugins = 1;
 			break;
 
 		case 'O':
@@ -764,6 +798,8 @@ int main(int argc, char** argv)
 			add_input_file(argv[optind++]);
 		}
 
+	push_scope(0);
+
 	dns_mgr = new DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
@@ -774,18 +810,27 @@ int main(int argc, char** argv)
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
+
+	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
-    	input_mgr = new input::Manager();
+	input_mgr = new input::Manager();
+	plugin_mgr = new plugin::Manager();
+
+	plugin_mgr->RegisterPlugin(new analyzer::BuiltinAnalyzers());
+	plugin_mgr->InitPlugins();
+
+	if ( print_plugins )
+		{
+		show_plugins();
+		exit(1);
+		}
+
+	analyzer_mgr->Init();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
-
-	push_scope(0);
-
-	dpm = new DPM;
-	dpm->PreScriptInit();
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -1045,11 +1090,11 @@ int main(int argc, char** argv)
 		mgr.QueueEvent(bro_script_loaded, vl);
 		}
 
-	dpm->PostScriptInit();
-
 	reporter->ReportViaEvents(true);
 
 	mgr.Drain();
+
+	analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

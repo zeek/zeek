@@ -6,7 +6,7 @@
 
 #include "syslog_pac.h"
 
-class Syslog_Analyzer_binpac : public Analyzer {
+class Syslog_Analyzer_binpac : public analyzer::Analyzer {
 public:
 	Syslog_Analyzer_binpac(Connection* conn);
 	virtual ~Syslog_Analyzer_binpac();
@@ -15,7 +15,7 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Syslog_Analyzer_binpac(conn); }
 
 	static bool Available()
@@ -42,7 +42,7 @@ protected:
 //	virtual void Undelivered(int seq, int len, bool orig);
 //	virtual void EndpointEOF(TCP_Reassembler* endp);
 //
-//	static Analyzer* InstantiateAnalyzer(Connection* conn)
+//	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 //		{ return new Syslog_TCP_Analyzer_binpac(conn); }
 //
 //	static bool Available()

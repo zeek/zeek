@@ -11,7 +11,7 @@
 // change that easily? (Ideally, the TCP preprocessing would become a
 // support-analyzer as it is done for the traditional DNS analyzer.)
 
-class DNS_UDP_Analyzer_binpac : public Analyzer {
+class DNS_UDP_Analyzer_binpac : public analyzer::Analyzer {
 public:
 	DNS_UDP_Analyzer_binpac(Connection* conn);
 	virtual ~DNS_UDP_Analyzer_binpac();
@@ -20,7 +20,7 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DNS_UDP_Analyzer_binpac(conn); }
 
 	static bool Available()
@@ -47,7 +47,7 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DNS_TCP_Analyzer_binpac(conn); }
 
 	static bool Available()

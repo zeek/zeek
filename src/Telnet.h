@@ -10,7 +10,7 @@ public:
 	Telnet_Analyzer(Connection* conn);
 	virtual ~Telnet_Analyzer()	{}
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Telnet_Analyzer(conn); }
 
 	static bool Available()

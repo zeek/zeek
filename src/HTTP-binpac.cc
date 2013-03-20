@@ -2,7 +2,7 @@
 #include "TCP_Reassembler.h"
 
 HTTP_Analyzer_binpac::HTTP_Analyzer_binpac(Connection *c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::HTTP_BINPAC, c)
+: TCP_ApplicationAnalyzer("HTTP_BINPAC", c)
 	{
 	interp = new binpac::HTTP::HTTP_Conn(this);
 	}

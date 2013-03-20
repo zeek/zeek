@@ -681,7 +681,7 @@ int BackDoorEndpoint::CheckForString(const char* str,
 
 
 BackDoor_Analyzer::BackDoor_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::Backdoor, c)
+: TCP_ApplicationAnalyzer("BACKDOOR", c)
 	{
 	orig_endp = resp_endp = 0;
 

@@ -92,7 +92,7 @@ declare(PDict,RPC_CallInfo);
 
 class RPC_Interpreter {
 public:
-	RPC_Interpreter(Analyzer* analyzer);
+	RPC_Interpreter(analyzer::Analyzer* analyzer);
 	virtual ~RPC_Interpreter();
 
 	// Delivers the given RPC.  Returns true if "len" bytes were
@@ -115,7 +115,7 @@ protected:
 	void Weird(const char* name);
 
 	PDict(RPC_CallInfo) calls;
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 };
 
 
@@ -224,7 +224,7 @@ protected:
 
 class RPC_Analyzer : public TCP_ApplicationAnalyzer {
 public:
-	RPC_Analyzer(AnalyzerTag::Tag tag, Connection* conn,
+	RPC_Analyzer(const char* name, Connection* conn,
 			RPC_Interpreter* arg_interp);
 	virtual ~RPC_Analyzer();
 

@@ -9,7 +9,7 @@
 
 
 NTP_Analyzer::NTP_Analyzer(Connection* conn)
-	: Analyzer(AnalyzerTag::NTP, conn)
+	: Analyzer("NTP", conn)
 	{
 	ADD_ANALYZER_TIMER(&NTP_Analyzer::ExpireTimer,
 				network_time + ntp_session_timeout, 1,

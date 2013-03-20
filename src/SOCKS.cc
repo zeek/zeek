@@ -3,7 +3,7 @@
 #include "TCP_Reassembler.h"
 
 SOCKS_Analyzer::SOCKS_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SOCKS, conn)
+: TCP_ApplicationAnalyzer("SOCKS", conn)
 	{
 	interp = new binpac::SOCKS::SOCKS_Conn(this);
 	orig_done = resp_done = false;

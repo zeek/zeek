@@ -13,7 +13,7 @@ public:
 
 	virtual void DeliverStream(int length, const u_char* data, bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Ident_Analyzer(conn); }
 
 	static bool Available()

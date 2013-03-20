@@ -8,8 +8,9 @@ using std::string;
 #include "Conn.h"
 #include "Event.h"
 #include "NetVar.h"
-#include "DPM.h"
 #include "PIA.h"
+
+#include "analyzer/Manager.h"
 
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len)
@@ -34,42 +35,42 @@ void RuleActionEvent::PrintDebug()
 	fprintf(stderr, "	RuleActionEvent: |%s|\n", msg);
 	}
 
-RuleActionDPM::RuleActionDPM(const char* arg_analyzer)
+RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	{
 	string str(arg_analyzer);
 	string::size_type pos = str.find(':');
 	string arg = str.substr(0, pos);
-	analyzer = Analyzer::GetTag(arg.c_str());
+	analyzer = analyzer_mgr->GetAnalyzerTag(arg);
 
 	if ( pos != string::npos )
 		{
 		arg = str.substr(pos + 1);
-		child_analyzer = Analyzer::GetTag(arg.c_str());
+		child_analyzer = analyzer_mgr->GetAnalyzerTag(arg);
 		}
 	else
-		child_analyzer = AnalyzerTag::Error;
+		child_analyzer = analyzer::Tag::ERROR;
 
-	if ( analyzer != AnalyzerTag::Error )
-		dpm->ActivateSigs();
+	if ( analyzer != analyzer::Tag::ERROR )
+		analyzer_mgr->ActivateSigs();
 	}
 
-void RuleActionDPM::PrintDebug()
+void RuleActionAnalyzer::PrintDebug()
 	{
-	if ( child_analyzer == AnalyzerTag::Error )
-		fprintf(stderr, "|%s|\n", Analyzer::GetTagName(analyzer));
+	if ( child_analyzer == analyzer::Tag::ERROR )
+		fprintf(stderr, "|%s|\n", analyzer_mgr->GetAnalyzerName(analyzer).c_str());
 	else
 		fprintf(stderr, "|%s:%s|\n",
-			Analyzer::GetTagName(analyzer),
-			Analyzer::GetTagName(child_analyzer));
+			analyzer_mgr->GetAnalyzerName(analyzer).c_str(),
+			analyzer_mgr->GetAnalyzerName(child_analyzer).c_str());
 	}
 
 
 void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len)
 	{
-	if ( ChildAnalyzer() == AnalyzerTag::Error )
+	if ( ChildAnalyzer() == analyzer::Tag::ERROR )
 		{
-		if ( ! Analyzer::IsAvailable(Analyzer()) )
+		if ( ! analyzer_mgr->IsEnabled(Analyzer()) )
 			return;
 
 		if ( state->PIA() )
@@ -77,7 +78,7 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 		}
 	else
 		{
-		if ( ! Analyzer::IsAvailable(ChildAnalyzer()) )
+		if ( ! analyzer_mgr->IsEnabled(ChildAnalyzer()) )
 			return;
 
 		// This is ugly and works only if there exists only one
@@ -90,13 +91,13 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 void RuleActionEnable::PrintDebug()
 	{
 	fprintf(stderr, "  RuleActionEnable: ");
-	RuleActionDPM::PrintDebug();
+	RuleActionAnalyzer::PrintDebug();
 	}
 
 void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	if ( ChildAnalyzer() == AnalyzerTag::Error )
+	if ( ChildAnalyzer() == analyzer::Tag::ERROR )
 		{
 		if ( state->PIA() )
 			state->PIA()->DeactivateAnalyzer(Analyzer());
@@ -109,5 +110,5 @@ void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
 void RuleActionDisable::PrintDebug()
 	{
 	fprintf(stderr, "  RuleActionDisable: ");
-	RuleActionDPM::PrintDebug();
+	RuleActionAnalyzer::PrintDebug();
 	}

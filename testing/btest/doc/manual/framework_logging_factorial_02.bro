@@ -24,18 +24,17 @@ function factorial(n: count): count
         }
     }
 
-    
 event bro_init()
     {
-    local numbers: vector of count = vector(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-
     Log::create_stream(LOG, [$columns=Info]);
-    
+    }
+
+event bro_done()
+    {
+    local numbers: vector of count = vector(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);    
     for ( n in numbers )
         {
         Log::write( Factor::LOG, [$num=numbers[n],
                                   $factorial_num=factorial(numbers[n])]);
         }
     }
-
-

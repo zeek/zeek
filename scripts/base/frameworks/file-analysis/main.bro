@@ -84,16 +84,16 @@ export {
 		## The number of bytes at the beginning of a file to save for later
 		## inspection in *bof_buffer* field of
 		## :bro:see:`FileAnalysis::ActionResults`.
-		bof_buffer_size: count &default=default_bof_buffer_size;
+		bof_buffer_size: count &log &default=default_bof_buffer_size;
 
 		## The content of the beginning of a file up to *bof_buffer_size* bytes.
 		## This is also the buffer that's used for file/mime type detection.
 		bof_buffer: string &optional;
 
 		## An initial guess at file type.
-		file_type: string &optional;
+		file_type: string &log &optional;
 		## An initial guess at mime type.
-		mime_type: string &optional;
+		mime_type: string &log &optional;
 
 		## Actions that have been added to the analysis of this file.
 		## Not meant to be modified directly by scripts.
@@ -110,4 +110,61 @@ export {
 	global get_handle: function(c: connection, is_orig: bool): string &redef;
 
 	# TODO: wrapper functions for BiFs ?
+
+	## Event that can be handled to access the Info record as it is sent on
+	## to the logging framework.
+	global log_file_analysis: event(rec: Info);
 }
+
+event bro_init() &priority=5
+	{
+	Log::create_stream(FileAnalysis::LOG,
+	                   [$columns=Info, $ev=log_file_analysis]);
+	}
+
+redef record FileAnalysis::Info += {
+	actions_taken: set[Action] &log &optional;
+	extracted_files: set[string] &log &optional;
+	md5: string &log &optional;
+	sha1: string &log &optional;
+	sha256: string &log &optional;
+};
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=-10
+	{
+	if ( trig != FileAnalysis::TRIGGER_EOF &&
+	     trig != FileAnalysis::TRIGGER_DONE ) return;
+
+	info$actions_taken = set();
+	info$extracted_files = set();
+
+	for ( act in info$actions )
+		{
+		add info$actions_taken[act$act];
+		local result: FileAnalysis::ActionResults = info$actions[act];
+
+		switch ( act$act ) {
+		case FileAnalysis::ACTION_EXTRACT:
+			add info$extracted_files[act$extract_filename];
+			break;
+		case FileAnalysis::ACTION_MD5:
+			if ( result?$md5 )
+				info$md5 = result$md5;
+			break;
+		case FileAnalysis::ACTION_SHA1:
+			if ( result?$sha1 )
+				info$sha1 = result$sha1;
+			break;
+		case FileAnalysis::ACTION_SHA256:
+			if ( result?$sha256 )
+				info$sha256 = result$sha256;
+			break;
+		case FileAnalysis::ACTION_DATA_EVENT:
+			# no direct result
+			break;
+		}
+		}
+
+	Log::write(FileAnalysis::LOG, info);
+	}

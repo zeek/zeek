@@ -265,6 +265,7 @@ _nb_dns_mkquery(register struct nb_dns_info *nd, register const char *name,
 	default:
 		snprintf(errstr, NB_DNS_ERRSIZE,
 		    "_nb_dns_mkquery: bad family %d", atype);
+		free(ne);
 		return (-1);
 	}
 

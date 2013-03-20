@@ -483,3 +483,17 @@ Now, if we run the new version of the script, instead of generating logging info
    @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/framework_logging_factorial_02.bro
 
 While the previous example is a simplistic one, it serves to demonstrate the small pieces of script that need to be in place in order to generate logs.  For example, it's common to call ``Log::create_stream()`` in ``bro_init()`` and while in a live example, determining when to call ``Log::write()`` would likely be done in an event handler, in this case we use ``bro_done()``.  
+
+If you've already spent time with a deployment of Bro, you've likely had the opportunity to view, search through, or manipulate the logs produced by the Logging Framework.  The log output from a default installation of Bro is substantial to say the least, however, there are times in which the way the Logging Framework by default isn't ideal for the situation.  This can range from needing to log more or less data with each call to ``Log::write()`` or even the need to split log files based on arbitrary logic.  In the later case, Filters come into play along with the Logging Framework.  Filters grant a level of customization to Bro's scriptland, allowing the scripter to include or exclude fields in the log and even make alterations to the path of the file in which the logs are being placed.  Each stream, when created, is given a default filter called, not surprisingly, ``default``.  When using the ``default`` filter, every key value pair with the ``&log`` attribute is written to a single file.  For the example we've been using, let's extend it so as to write any factorial which is a factor of 5 to an alternate file, while writing the remaining logs to factor.log.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_logging_factorial_02.bro
+   :language: bro
+   :linenos:
+   :lines: 43-60
+
+To dynamically alter the file in which a stream writes its logs a filter can specify function returns a string to be used as the filename for the current call to ``Log::write()``. The definition for this function has to take as its parameters a Log::ID called id, a string called path and the appropraite record type for the logs called "rec".  You can see the definition of ``mod5`` used in this example on line one conforms to that requirement.  The function simply returns "factor-mod5" if the factorial is divisible evenly by 5, otherwise, it retuns "factor-non5".  In the additional ``bro_init()`` event handler, we define a locally scoped ``Log::Filter`` and assign it a record that defines the ``name`` and ``path_func`` fields.  We then call ``Log::add_filter()`` to add the filter to the ``Factor::LOG`` Log::ID and call ``Log::remove_filter()`` to remove the ``default`` filter for Factor::LOG.  Had we not removed the ``default`` filter, we'd have ended up with three log files:  factor-mod5.log with all the factorials that are a factors of 5, factor-non5.log with the factorials that are not factors of 5, and factor.log which would have included all factorials.  
+
+
+
+
+

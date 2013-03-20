@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	factor-mod5
+#open	2013-03-20-03-22-52
+#fields	num	factorial_num
+#types	count	count
+5	120
+6	720
+7	5040
+8	40320
+9	362880
+10	3628800
+#close	2013-03-20-03-22-52

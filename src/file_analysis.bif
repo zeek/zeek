@@ -94,13 +94,13 @@ function FileAnalysis::stop%(file_id: string%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::input_data%(source: string, data: string%): any
+function FileAnalysis::data_stream%(source: string, data: string%): any
 	%{
 	file_mgr->DataIn(data->Bytes(), data->Len(), source->CheckString());
 	return 0;
 	%}
 
-function FileAnalysis::input_data_chunk%(source: string, data: string,
+function FileAnalysis::data_chunk%(source: string, data: string,
                                          offset: count%): any
 	%{
 	file_mgr->DataIn(data->Bytes(), data->Len(), offset, source->CheckString());
@@ -119,7 +119,7 @@ function FileAnalysis::set_size%(source: string, size: count%): any
 	return 0;
 	%}
 
-function FileAnalysis::input_eof%(source: string%): any
+function FileAnalysis::eof%(source: string%): any
 	%{
 	file_mgr->EndOfFile(source->CheckString());
 	return 0;

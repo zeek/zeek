@@ -3,6 +3,14 @@
 
 using namespace file_analysis;
 
+
+InfoTimer::InfoTimer(double t, const FileID& id, double interval)
+    : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
+	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s",
+	        file_id.c_str(), interval);
+	}
+
 void InfoTimer::Dispatch(double t, int is_expire)
 	{
 	Info* info = file_mgr->Lookup(file_id);

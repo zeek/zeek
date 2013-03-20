@@ -228,7 +228,8 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 			{
 			c$ftp$passive=F;
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FILE, 5mins);
+			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FTP_DATA,
+			                  5mins);
 			}
 		else
 			{
@@ -281,7 +282,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
+			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FTP_DATA,
+			                  5mins);
 			}
 		else
 			{

@@ -9,7 +9,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 	{
 	if ( ! c?$smtp ) return "";
 
-	return fmt("%s smtp(%s, %s)", c$start_time, c$smtp$trans_depth,
+	return fmt("%s %s %s %s", ANALYZER_SMTP, c$start_time, c$smtp$trans_depth,
 	           c$smtp_state$mime_level);
 	}
 

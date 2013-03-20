@@ -8,8 +8,8 @@
 magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;
 
-File_Analyzer::File_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::File, conn)
+File_Analyzer::File_Analyzer(AnalyzerTag::Tag tag, Connection* conn)
+: TCP_ApplicationAnalyzer(tag, conn)
 	{
 	buffer_len = 0;
 
@@ -20,8 +20,6 @@ File_Analyzer::File_Analyzer(Connection* conn)
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
-
-	file_mgr->DataIn(data, len, Conn(), orig);
 
 	int n = min(len, BUFFER_SIZE - buffer_len);
 
@@ -39,15 +37,11 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 void File_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
-
-	file_mgr->Gap(seq, len, Conn(), orig);
 	}
 
 void File_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
-
-	file_mgr->EndOfFile(Conn());
 
 	if ( buffer_len && buffer_len != BUFFER_SIZE )
 		Identify();
@@ -70,4 +64,50 @@ void File_Analyzer::Identify()
 	vl->append(new StringVal(descr ? descr : "<unknown>"));
 	vl->append(new StringVal(mime ? mime : "<unknown>"));
 	ConnectionEvent(file_transferred, vl);
+	}
+
+IRC_Data::IRC_Data(Connection* conn)
+	: File_Analyzer(AnalyzerTag::IRC_Data, conn)
+	{
+	}
+
+void IRC_Data::Done()
+	{
+	File_Analyzer::Done();
+	file_mgr->EndOfFile(Conn());
+	}
+
+void IRC_Data::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	File_Analyzer::DeliverStream(len, data, orig);
+	file_mgr->DataIn(data, len, Conn(), orig);
+	}
+
+void IRC_Data::Undelivered(int seq, int len, bool orig)
+	{
+	File_Analyzer::Undelivered(seq, len, orig);
+	file_mgr->Gap(seq, len, Conn(), orig);
+	}
+
+FTP_Data::FTP_Data(Connection* conn)
+	: File_Analyzer(AnalyzerTag::FTP_Data, conn)
+	{
+	}
+
+void FTP_Data::Done()
+	{
+	File_Analyzer::Done();
+	file_mgr->EndOfFile(Conn());
+	}
+
+void FTP_Data::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	File_Analyzer::DeliverStream(len, data, orig);
+	file_mgr->DataIn(data, len, Conn(), orig);
+	}
+
+void FTP_Data::Undelivered(int seq, int len, bool orig)
+	{
+	File_Analyzer::Undelivered(seq, len, orig);
+	file_mgr->Gap(seq, len, Conn(), orig);
 	}

@@ -1,16 +1,16 @@
 # @TEST-EXEC: bro -r $TRACES/http/206_example_a.pcap %INPUT >a.out
 # @TEST-EXEC: btest-diff a.out
-# @TEST-EXEC: wc -c uj9AtyGOiZ8-file0 >a.size
+# @TEST-EXEC: wc -c 7gZBKVUgy4l-file0 >a.size
 # @TEST-EXEC: btest-diff a.size
 
 # @TEST-EXEC: bro -r $TRACES/http/206_example_b.pcap %INPUT >b.out
 # @TEST-EXEC: btest-diff b.out
-# @TEST-EXEC: wc -c ns7As4DOZcj-file0 >b.size
+# @TEST-EXEC: wc -c oDwT1BbzjM1-file0 >b.size
 # @TEST-EXEC: btest-diff b.size
 
 # @TEST-EXEC: bro -r $TRACES/http/206_example_c.pcap %INPUT >c.out
 # @TEST-EXEC: btest-diff c.out
-# @TEST-EXEC: wc -c MHMkq2nFxej-file0 >c.size
+# @TEST-EXEC: wc -c uHS14uhRKGe-file0 >c.size
 # @TEST-EXEC: btest-diff c.size
 
 global actions: set[FileAnalysis::ActionArgs];

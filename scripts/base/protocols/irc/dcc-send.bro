@@ -104,7 +104,7 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	c$irc$dcc_file_name = argument;
 	c$irc$dcc_file_size = size;
 	local p = count_to_port(dest_port, tcp);
-	expect_connection(to_addr("0.0.0.0"), address, p, ANALYZER_FILE, 5 min);
+	expect_connection(to_addr("0.0.0.0"), address, p, ANALYZER_IRC_DATA, 5 min);
 	dcc_expected_transfers[address, p] = c$irc;
 	}
 

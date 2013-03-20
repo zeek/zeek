@@ -2,8 +2,8 @@
 # @TEST-EXEC: bro -r $TRACES/http/get-gzip.trace %INPUT >get-gzip.out
 # @TEST-EXEC: btest-diff get.out
 # @TEST-EXEC: btest-diff get-gzip.out
-# @TEST-EXEC: btest-diff KPVibShQgUc-file
-# @TEST-EXEC: btest-diff LMA6EHLacYc-file
+# @TEST-EXEC: btest-diff Cx92a0ym5R8-file
+# @TEST-EXEC: btest-diff kg59rqyYxN-file
 
 global actions: set[FileAnalysis::ActionArgs];
 

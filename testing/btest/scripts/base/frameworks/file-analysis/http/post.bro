@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro -r $TRACES/http/post.trace %INPUT >out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff WDJLxTGN0m8-file
-# @TEST-EXEC: btest-diff LkolCF6OeHh-file
+# @TEST-EXEC: btest-diff v5HLI7MxPQh-file
+# @TEST-EXEC: btest-diff PZS1XGHkIf1-file
 
 global actions: set[FileAnalysis::ActionArgs];
 

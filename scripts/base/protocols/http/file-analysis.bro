@@ -10,10 +10,10 @@ function get_file_handle(c: connection, is_orig: bool): string
 	if ( ! c?$http ) return "";
 
 	if ( c$http$range_request )
-		return fmt("http(%s): %s: %s", is_orig, c$id$orig_h,
+		return fmt("%s %s %s %s", ANALYZER_HTTP, is_orig, c$id$orig_h,
 		           build_url(c$http));
 
-	return fmt("%s http(%s, %s): %s", c$start_time, is_orig,
+	return fmt("%s %s %s %s %s", ANALYZER_HTTP, c$start_time, is_orig,
 	           c$http$trans_depth, id_string(c$id));
 	}
 

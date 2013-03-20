@@ -150,6 +150,10 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },
+	{ AnalyzerTag::FTP_Data, "FTP_DATA", FTP_Data::InstantiateAnalyzer,
+		FTP_Data::Available, 0, false },
+	{ AnalyzerTag::IRC_Data, "IRC_DATA", IRC_Data::InstantiateAnalyzer,
+		IRC_Data::Available, 0, false },
 	{ AnalyzerTag::Backdoor, "BACKDOOR",
 		BackDoor_Analyzer::InstantiateAnalyzer,
 		BackDoor_Analyzer::Available, 0, false },

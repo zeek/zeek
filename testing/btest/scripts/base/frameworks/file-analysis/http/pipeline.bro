@@ -1,10 +1,10 @@
 # @TEST-EXEC: bro -r $TRACES/http/pipelined-requests.trace %INPUT >out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff Z3kT1FyLnfk-file
-# @TEST-EXEC: btest-diff WLJWC1FMBq9-file
-# @TEST-EXEC: btest-diff Ac8PLL9KL49-file
-# @TEST-EXEC: btest-diff NV2MvAX0Is4-file
-# @TEST-EXEC: btest-diff YLndcRpw5Ge-file
+# @TEST-EXEC: btest-diff aFQKI8SPOL2-file
+# @TEST-EXEC: btest-diff CCU3vUEr06l-file
+# @TEST-EXEC: btest-diff HCzA0dVwDPj-file
+# @TEST-EXEC: btest-diff a1Zu1fteVEf-file
+# @TEST-EXEC: btest-diff xXlF7wFdsR-file
 
 global actions: set[FileAnalysis::ActionArgs];
 

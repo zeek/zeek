@@ -107,28 +107,7 @@ export {
 
 	const handle_callbacks: table[AnalyzerTag] of HandleCallback = {} &redef;
 
-	const service_handle_callbacks: table[string] of HandleCallback = {} &redef;
-
 	global get_handle: function(c: connection, is_orig: bool): string &redef;
 
 	# TODO: wrapper functions for BiFs ?
 }
-
-function get_file_handle_by_service(c: connection, is_orig: bool): string
-	{
-	local handle: string = "";
-
-	for ( serv in c$service )
-		{
-		if ( serv in service_handle_callbacks )
-			{
-			handle = service_handle_callbacks[serv](c, is_orig);
-			if ( handle != "" ) return handle;
-			}
-		}
-	return handle;
-	}
-
-redef FileAnalysis::handle_callbacks += {
-	[ANALYZER_FILE] = get_file_handle_by_service,
-};

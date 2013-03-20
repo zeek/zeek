@@ -2,10 +2,11 @@
 @load base/utils/conn-ids
 @load base/frameworks/file-analysis/main
 
-redef FileAnalysis::service_handle_callbacks += {
-	["ftp-data"] = function(c: connection, is_orig: bool): string
+redef FileAnalysis::handle_callbacks += {
+	[ANALYZER_FTP_DATA] = function(c: connection, is_orig: bool): string
 		{
 		if ( is_orig ) return "";
-		return fmt("%s ftp-data: %s", c$start_time, id_string(c$id));
+		return fmt("%s %s %s", ANALYZER_FTP_DATA, c$start_time,
+		           id_string(c$id));
 		},
 };

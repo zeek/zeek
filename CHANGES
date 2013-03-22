@@ -1,4 +1,8 @@
 
+2.1-382 | 2013-03-22 12:01:34 -0700
+
+  * Add support for 802.1ah (Q-in-Q). Addresses #641. (Seth Hall)
+    
 2.1-380 | 2013-03-18 12:18:10 -0700
 
   * Fix gcc compile warnings in base64 encoder and benchmark reader.

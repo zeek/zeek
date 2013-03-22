@@ -80,13 +80,13 @@ void IRC_Data::Done()
 void IRC_Data::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	File_Analyzer::DeliverStream(len, data, orig);
-	file_mgr->DataIn(data, len, Conn(), orig);
+	file_mgr->DataIn(data, len, GetTag(), Conn(), orig);
 	}
 
 void IRC_Data::Undelivered(int seq, int len, bool orig)
 	{
 	File_Analyzer::Undelivered(seq, len, orig);
-	file_mgr->Gap(seq, len, Conn(), orig);
+	file_mgr->Gap(seq, len, GetTag(), Conn(), orig);
 	}
 
 FTP_Data::FTP_Data(Connection* conn)
@@ -103,11 +103,11 @@ void FTP_Data::Done()
 void FTP_Data::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	File_Analyzer::DeliverStream(len, data, orig);
-	file_mgr->DataIn(data, len, Conn(), orig);
+	file_mgr->DataIn(data, len, GetTag(), Conn(), orig);
 	}
 
 void FTP_Data::Undelivered(int seq, int len, bool orig)
 	{
 	File_Analyzer::Undelivered(seq, len, orig);
-	file_mgr->Gap(seq, len, Conn(), orig);
+	file_mgr->Gap(seq, len, GetTag(), Conn(), orig);
 	}

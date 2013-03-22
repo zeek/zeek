@@ -20,8 +20,10 @@ static string conn_str(Connection* c)
 	return rval;
 	}
 
-PendingFile::PendingFile(Connection* arg_conn, bool arg_is_orig)
-	: conn(arg_conn), is_orig(arg_is_orig), creation_time(network_time)
+PendingFile::PendingFile(Connection* arg_conn, bool arg_is_orig,
+                         AnalyzerTag::Tag arg_tag)
+	: conn(arg_conn), is_orig(arg_is_orig), creation_time(network_time),
+	  tag(arg_tag)
 	{
 	Ref(conn);
 	DBG_LOG(DBG_FILE_ANALYSIS, "New pending file: %s", conn_str(conn).c_str());
@@ -47,16 +49,18 @@ bool PendingFile::IsStale() const
 	}
 
 PendingDataInChunk::PendingDataInChunk(const u_char* arg_data, uint64 arg_len,
-                                       uint64 arg_offset, Connection* arg_conn,
-                                       bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig), len(arg_len), offset(arg_offset)
+                                       uint64 arg_offset,
+                                       AnalyzerTag::Tag arg_tag,
+                                       Connection* arg_conn, bool arg_is_orig)
+	: PendingFile(arg_conn, arg_is_orig, arg_tag), len(arg_len),
+	  offset(arg_offset)
 	{
 	copy_data(&data, arg_data, len);
 	}
 
 bool PendingDataInChunk::Retry() const
 	{
-	return file_mgr->DataIn(data, len, offset, conn, is_orig);
+	return file_mgr->DataIn(data, len, offset, tag, conn, is_orig);
 	}
 
 PendingDataInChunk::~PendingDataInChunk()
@@ -65,15 +69,16 @@ PendingDataInChunk::~PendingDataInChunk()
 	}
 
 PendingDataInStream::PendingDataInStream(const u_char* arg_data, uint64 arg_len,
-                                       Connection* arg_conn, bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig), len(arg_len)
+                                         AnalyzerTag::Tag arg_tag,
+                                         Connection* arg_conn, bool arg_is_orig)
+	: PendingFile(arg_conn, arg_is_orig, arg_tag), len(arg_len)
 	{
 	copy_data(&data, arg_data, len);
 	}
 
 bool PendingDataInStream::Retry() const
 	{
-	return file_mgr->DataIn(data, len, conn, is_orig);
+	return file_mgr->DataIn(data, len, tag, conn, is_orig);
 	}
 
 PendingDataInStream::~PendingDataInStream()
@@ -81,15 +86,17 @@ PendingDataInStream::~PendingDataInStream()
 	delete [] data;
 	}
 
-PendingGap::PendingGap(uint64 arg_offset, uint64 arg_len, Connection* arg_conn,
+PendingGap::PendingGap(uint64 arg_offset, uint64 arg_len,
+                       AnalyzerTag::Tag arg_tag, Connection* arg_conn,
                        bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig), offset(arg_offset), len(arg_len)
+	: PendingFile(arg_conn, arg_is_orig, arg_tag), offset(arg_offset),
+	  len(arg_len)
 	{
 	}
 
 bool PendingGap::Retry() const
 	{
-	return file_mgr->Gap(offset, len, conn, is_orig);
+	return file_mgr->Gap(offset, len, tag, conn, is_orig);
 	}
 
 PendingEOF::PendingEOF(Connection* arg_conn, bool arg_is_orig)
@@ -102,13 +109,13 @@ bool PendingEOF::Retry() const
 	return file_mgr->EndOfFile(conn, is_orig);
 	}
 
-PendingSize::PendingSize(uint64 arg_size, Connection* arg_conn,
-                         bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig), size(arg_size)
+PendingSize::PendingSize(uint64 arg_size, AnalyzerTag::Tag arg_tag,
+                         Connection* arg_conn, bool arg_is_orig)
+	: PendingFile(arg_conn, arg_is_orig, arg_tag), size(arg_size)
 	{
 	}
 
 bool PendingSize::Retry() const
 	{
-	return file_mgr->SetSize(size, conn, is_orig);
+	return file_mgr->SetSize(size, tag, conn, is_orig);
 	}

@@ -42,7 +42,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	expect_data_length = 0;
 	body_length = 0;
 	header_length = 0;
-	deliver_body = (http_entity_data != 0);
+	deliver_body = true;
 	encoding = IDENTITY;
 	zip = 0;
 	is_partial_content = false;
@@ -238,6 +238,11 @@ int HTTP_Entity::Undelivered(int64_t len)
 	if ( end_of_data && in_header )
 		return 0;
 
+	file_mgr->Gap(body_length, len,
+	              http_message->MyHTTP_Analyzer()->GetTag(),
+	              http_message->MyHTTP_Analyzer()->Conn(),
+	              http_message->IsOrig());
+
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{
 		if ( chunked_transfer_state == EXPECT_CHUNK_DATA &&
@@ -291,9 +296,11 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 		{
 		if ( send_size && instance_length > 0 )
 			file_mgr->SetSize(instance_length,
+			                  http_message->MyHTTP_Analyzer()->GetTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
 			                  http_message->IsOrig());
 		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
+		                 http_message->MyHTTP_Analyzer()->GetTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
 		                 http_message->IsOrig());
 		offset += len;
@@ -302,9 +309,11 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 		{
 		if ( send_size && content_length > 0 )
 			file_mgr->SetSize(content_length,
+			                  http_message->MyHTTP_Analyzer()->GetTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
 			                  http_message->IsOrig());
 		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+		                 http_message->MyHTTP_Analyzer()->GetTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
 		                 http_message->IsOrig());
 		}
@@ -554,6 +563,10 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 	// DEBUG_MSG("%.6f HTTP message done.\n", network_time);
 	top_level->EndOfData();
 
+	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
+		// multipart/byteranges may span multiple connections
+		file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
+
 	if ( http_message_done )
 		{
 		val_list* vl = new val_list;
@@ -562,10 +575,6 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		vl->append(BuildMessageStat(interrupted, detail));
 		GetAnalyzer()->ConnectionEvent(http_message_done, vl);
 		}
-
-	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
-		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
 
 	MyHTTP_Analyzer()->HTTP_MessageDone(is_orig, this);
 
@@ -689,9 +698,6 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 
 int HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
-	if ( ! http_entity_data )
-		return 0;
-
 	if ( ! data_buffer )
 		if ( ! InitBuffer(mime_segment_length) )
 			return 0;

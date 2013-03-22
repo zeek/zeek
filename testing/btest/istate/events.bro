@@ -36,6 +36,14 @@ redef peer_description = "events-send";
 # it gets propagated but that's ok.)
 redef tcp_close_delay = 0secs;
 
+# File analysis that populates fields in the http.log would make the sender's
+# log differ from the receiver's since hooks don't get sent to peers.
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=10
+	{
+	FileAnalysis::stop(info$file_id);
+	}
+
 @TEST-END-FILE
 
 #############

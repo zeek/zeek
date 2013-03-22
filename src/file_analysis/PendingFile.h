@@ -1,6 +1,7 @@
 #ifndef FILE_ANALYSIS_PENDINGFILE_H
 #define FILE_ANALYSIS_PENDINGFILE_H
 
+#include "AnalyzerTags.h"
 #include "Conn.h"
 
 namespace file_analysis {
@@ -16,19 +17,21 @@ public:
 
 protected:
 
-	PendingFile(Connection* arg_conn, bool arg_is_orig);
+	PendingFile(Connection* arg_conn, bool arg_is_orig,
+	            AnalyzerTag::Tag arg_tag = AnalyzerTag::Error);
 
 	Connection* conn;
 	bool is_orig;
 	double creation_time;
+	AnalyzerTag::Tag tag;
 };
 
 class PendingDataInChunk : public PendingFile {
 public:
 
 	PendingDataInChunk(const u_char* arg_data, uint64 arg_len,
-	                   uint64 arg_offset, Connection* arg_conn,
-	                   bool arg_is_orig);
+	                   uint64 arg_offset, AnalyzerTag::Tag tag,
+	                   Connection* arg_conn, bool arg_is_orig);
 
 	virtual ~PendingDataInChunk();
 
@@ -45,7 +48,8 @@ class PendingDataInStream : public PendingFile {
 public:
 
 	PendingDataInStream(const u_char* arg_data, uint64 arg_len,
-	                    Connection* arg_conn, bool arg_is_orig);
+	                    AnalyzerTag::Tag tag, Connection* arg_conn,
+	                    bool arg_is_orig);
 
 	virtual ~PendingDataInStream();
 
@@ -60,8 +64,8 @@ protected:
 class PendingGap : public PendingFile {
 public:
 
-	PendingGap(uint64 arg_offset, uint64 arg_len, Connection* arg_conn,
-	           bool arg_is_orig);
+	PendingGap(uint64 arg_offset, uint64 arg_len, AnalyzerTag::Tag tag,
+	           Connection* arg_conn, bool arg_is_orig);
 
 	virtual bool Retry() const;
 
@@ -82,7 +86,8 @@ public:
 class PendingSize : public PendingFile {
 public:
 
-	PendingSize(uint64 arg_size, Connection* arg_conn, bool arg_is_orig);
+	PendingSize(uint64 arg_size, AnalyzerTag::Tag tag, Connection* arg_conn,
+	            bool arg_is_orig);
 
 	virtual bool Retry() const;
 

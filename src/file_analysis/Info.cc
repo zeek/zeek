@@ -8,22 +8,15 @@
 #include "Reporter.h"
 #include "Val.h"
 #include "Type.h"
+#include "Analyzer.h"
 
 using namespace file_analysis;
 
-static TableVal* empty_conn_id_set()
+static TableVal* empty_connection_table()
 	{
-	TypeList* set_index = new TypeList(conn_id);
-	set_index->Append(conn_id->Ref());
-	return new TableVal(new SetType(set_index, 0));
-	}
-
-static StringVal* get_conn_uid_val(Connection* conn)
-	{
-	char tmp[20];
-	if ( ! conn->GetUID() )
-		conn->SetUID(calculate_unique_id());
-    return new StringVal(uitoa_n(conn->GetUID(), tmp, sizeof(tmp), 62));
+	TypeList* tbl_index = new TypeList(conn_id);
+	tbl_index->Append(conn_id->Ref());
+	return new TableVal(new TableType(tbl_index, connection_type->Ref()));
 	}
 
 static RecordVal* get_conn_id_val(const Connection* conn)
@@ -39,8 +32,8 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 int Info::file_id_idx = -1;
 int Info::parent_file_id_idx = -1;
 int Info::source_idx = -1;
-int Info::conn_uids_idx = -1;
-int Info::conn_ids_idx = -1;
+int Info::conns_idx = -1;
+int Info::last_active_idx = -1;
 int Info::seen_bytes_idx = -1;
 int Info::total_bytes_idx = -1;
 int Info::missing_bytes_idx = -1;
@@ -64,8 +57,8 @@ void Info::StaticInit()
 	file_id_idx = Idx("file_id");
 	parent_file_id_idx = Idx("parent_file_id");
 	source_idx = Idx("source");
-	conn_uids_idx = Idx("conn_uids");
-	conn_ids_idx = Idx("conn_ids");
+	conns_idx = Idx("conns");
+	last_active_idx = Idx("last_active");
 	seen_bytes_idx = Idx("seen_bytes");
 	total_bytes_idx = Idx("total_bytes");
 	missing_bytes_idx = Idx("missing_bytes");
@@ -83,10 +76,9 @@ void Info::StaticInit()
 	salt = BifConst::FileAnalysis::salt->CheckString();
 	}
 
-Info::Info(const string& unique, Connection* conn)
-    : file_id(unique), unique(unique), val(0), last_activity_time(network_time),
-      postpone_timeout(false), need_reassembly(false), done(false),
-      actions(this)
+Info::Info(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
+    : file_id(unique), unique(unique), val(0), postpone_timeout(false),
+      need_reassembly(false), done(false), actions(this)
 	{
 	StaticInit();
 
@@ -106,29 +98,15 @@ Info::Info(const string& unique, Connection* conn)
 
 	if ( conn )
 		{
-		// update source and connection fields
-		RecordVal* cval = conn->BuildConnVal();
-		ListVal* services = cval->Lookup(5)->AsTableVal()->ConvertToPureList();
-		Unref(cval);
-		string source;
-
-		for ( int i = 0; i < services->Length(); ++i )
-			{
-			if ( i > 0 )
-				source += ", ";
-			source += services->Index(i)->AsStringVal()->CheckString();
-			}
-
-		Unref(services);
-
-		if ( ! source.empty() )
-			val->Assign(source_idx, new StringVal(source.c_str()));
-
+		// add source and connection fields
+		val->Assign(source_idx, new StringVal(Analyzer::GetTagName(tag)));
 		UpdateConnectionFields(conn);
 		}
 	else
 		// use the unique file handle as source
 		val->Assign(source_idx, new StringVal(unique.c_str()));
+
+	UpdateLastActivityTime();
 	}
 
 Info::~Info()
@@ -137,19 +115,28 @@ Info::~Info()
 	Unref(val);
 	}
 
+void Info::UpdateLastActivityTime()
+	{
+	val->Assign(last_active_idx, new Val(network_time, TYPE_TIME));
+	}
+
+double Info::GetLastActivityTime() const
+	{
+	return val->Lookup(last_active_idx)->AsTime();
+	}
+
 void Info::UpdateConnectionFields(Connection* conn)
 	{
 	if ( ! conn ) return;
 
-	Val* conn_uids = val->Lookup(conn_uids_idx);
-	Val* conn_ids = val->Lookup(conn_ids_idx);
-	if ( ! conn_uids )
-		val->Assign(conn_uids_idx, conn_uids = new TableVal(string_set));
-	if ( ! conn_ids )
-		val->Assign(conn_ids_idx, conn_ids = empty_conn_id_set());
+	Val* conns = val->Lookup(conns_idx);
 
-	conn_uids->AsTableVal()->Assign(get_conn_uid_val(conn), 0);
-	conn_ids->AsTableVal()->Assign(get_conn_id_val(conn), 0);
+	if ( ! conns )
+		val->Assign(conns_idx, conns = empty_connection_table());
+
+	Val* idx = get_conn_id_val(conn);
+	conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
+	Unref(idx);
 	}
 
 uint64 Info::LookupFieldDefaultCount(int idx) const

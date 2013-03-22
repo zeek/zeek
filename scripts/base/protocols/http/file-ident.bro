@@ -1,15 +1,9 @@
 ##! Identification of file types in HTTP response bodies with file content sniffing.
 
-@load base/frameworks/signatures
 @load base/frameworks/notice
 @load ./main
 @load ./utils
-
-# Add the magic number signatures to the core signature set.
-@load-sigs ./file-ident.sig
-
-# Ignore the signatures used to match files
-redef Signatures::ignored_ids += /^matchfile-/;
+@load ./file-analysis
 
 module HTTP;
 
@@ -22,11 +16,6 @@ export {
 	redef record Info += {
 		## Mime type of response body identified by content sniffing.
 		mime_type:    string   &log &optional;
-		
-		## Indicates that no data of the current file transfer has been
-		## seen yet.  After the first :bro:id:`http_entity_data` event, it 
-		## will be set to F.
-		first_chunk:     bool &default=T;
 	};
 	
 	## Mapping between mime types and regular expressions for URLs
@@ -43,43 +32,34 @@ export {
 	const ignored_incorrect_file_type_urls = /^$/ &redef;
 }
 
-event signature_match(state: signature_state, msg: string, data: string) &priority=5
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	# Only signatures matching file types are dealt with here.
-	if ( /^matchfile-/ !in state$sig_id ) return;
+	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
+	if ( ! info?$mime_type ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+	if ( ! info?$conns ) return;
 
-	local c = state$conn;
-	set_state(c, F, F);
-	
-	# Not much point in any of this if we don't know about the HTTP session.
-	if ( ! c?$http ) return;
-	
-	# Set the mime type that was detected.
-	c$http$mime_type = msg;
-	
-	if ( msg in mime_types_extensions && 
-	     c$http?$uri && mime_types_extensions[msg] !in c$http$uri )
+	for ( cid in info$conns )
 		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		c$http$mime_type = info$mime_type;
+
+		if ( info$mime_type !in mime_types_extensions ) next;
+		if ( ! c$http?$uri ) next;
+		if ( mime_types_extensions[info$mime_type] in c$http$uri ) next;
+
 		local url = build_url_http(c$http);
-		
-		if ( url == ignored_incorrect_file_type_urls )
-			return;
-		
-		local message = fmt("%s %s %s", msg, c$http$method, url);
+
+		if ( url == ignored_incorrect_file_type_urls ) next;
+
+		local message = fmt("%s %s %s", info$mime_type, c$http$method, url);
 		NOTICE([$note=Incorrect_File_Type,
 		        $msg=message,
 		        $conn=c]);
 		}
-	}
-
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
-	{
-	if ( c$http$first_chunk && ! c$http?$mime_type )
-			c$http$mime_type = split1(identify_data(data, T), /;/)[1];
-	}
-	
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-10
-	{
-	if ( c$http$first_chunk )
-		c$http$first_chunk=F;
 	}

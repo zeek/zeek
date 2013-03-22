@@ -7,6 +7,7 @@
 #include <list>
 
 #include "Net.h"
+#include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Analyzer.h"
@@ -47,7 +48,7 @@ public:
 	 * Pass in non-sequential file data.
 	 */
     bool DataIn(const u_char* data, uint64 len, uint64 offset,
-                Connection* conn, bool is_orig);
+                AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
                 const string& unique);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
@@ -56,7 +57,8 @@ public:
 	/**
 	 * Pass in sequential file data.
 	 */
-	bool DataIn(const u_char* data, uint64 len, Connection* conn, bool is_orig);
+	bool DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+	            Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, const string& unique);
 	void DataIn(const u_char* data, uint64 len, Info* info);
 
@@ -70,14 +72,16 @@ public:
 	/**
 	 * Signal a gap in the file data stream.
 	 */
-	bool Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig);
+	bool Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
+	         bool is_orig);
 	void Gap(uint64 offset, uint64 len, const string& unique);
 	void Gap(uint64 offset, uint64 len, Info* info);
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
-	bool SetSize(uint64 size, Connection* conn, bool is_orig);
+	bool SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+	             bool is_orig);
 	void SetSize(uint64 size, const string& unique);
 	void SetSize(uint64 size, Info* info);
 
@@ -131,7 +135,8 @@ protected:
 	 *         activity time is refreshed along with any connection-related
 	 *         fields.
 	 */
-	Info* GetInfo(const string& unique, Connection* conn = 0);
+	Info* GetInfo(const string& unique, Connection* conn = 0,
+	              AnalyzerTag::Tag tag = AnalyzerTag::Error);
 
 	/**
 	 * @return a string which can uniquely identify the file being transported

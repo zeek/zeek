@@ -5,6 +5,7 @@
 #include <vector>
 #include <magic.h>
 
+#include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
 #include "ActionSet.h"
@@ -49,14 +50,14 @@ public:
 	string GetUnique() const { return unique; }
 
 	/**
-	 * @return #last_activity_time
+	 * @return value of "last_active" field in #val record;
 	 */
-	double GetLastActivityTime() const { return last_activity_time; }
+	double GetLastActivityTime() const;
 
 	/**
-	 * Refreshes #last_activity_time with current network time.
+	 * Refreshes "last_active" field of #val record with current network time.
 	 */
-	void UpdateLastActivityTime() { last_activity_time = network_time; }
+	void UpdateLastActivityTime();
 
 	/**
 	 * Set "total_bytes" field of #val record to \a size.
@@ -73,7 +74,7 @@ public:
 	/**
 	 * Create a timer to be dispatched after the amount of time indicated by
 	 * the "timeout_interval" field of the #val record in order to check if
-	 * #last_activity_time is old enough to timeout analysis of the file.
+	 * "last_active" field is old enough to timeout analysis of the file.
 	 */
 	void ScheduleInactivityTimer() const;
 
@@ -117,7 +118,8 @@ protected:
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	Info(const string& unique, Connection* conn = 0);
+	Info(const string& unique, Connection* conn = 0,
+	     AnalyzerTag::Tag tag = AnalyzerTag::Error);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -156,7 +158,6 @@ protected:
 	FileID file_id;            /**< A pretty hash that likely identifies file*/
 	string unique;             /**< A string that uniquely identifies file */
 	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
-	double last_activity_time; /**< Time of last activity. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
@@ -192,8 +193,8 @@ public:
 	static int file_id_idx;
 	static int parent_file_id_idx;
 	static int source_idx;
-	static int conn_uids_idx;
-	static int conn_ids_idx;
+	static int conns_idx;
+	static int last_active_idx;
 	static int seen_bytes_idx;
 	static int total_bytes_idx;
 	static int missing_bytes_idx;

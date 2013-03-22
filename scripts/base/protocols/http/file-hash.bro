@@ -1,15 +1,11 @@
 ##! Calculate hashes for HTTP body transfers.
 
-@load ./file-ident
+@load ./main
+@load ./file-analysis
 
 module HTTP;
 
 export {
-	redef enum Notice::Type += {
-		## Indicates that an MD5 sum was calculated for an HTTP response body.
-		MD5,
-	};
-
 	redef record Info += {
 		## MD5 sum for a file transferred over HTTP calculated from the 
 		## response body.
@@ -19,10 +15,6 @@ export {
 		## if a file should have an MD5 sum generated.  It must be
 		## set to T at the time of or before the first chunk of body data.
 		calc_md5:        bool       &default=F;
-		
-		## Indicates if an MD5 sum is being calculated for the current 
-		## request/response pair.
-		md5_handle: opaque of md5   &optional;
 	};
 	
 	## Generate MD5 sums for these filetypes.
@@ -31,62 +23,67 @@ export {
 	                   &redef;
 }
 
-## Initialize and calculate the hash.
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	if ( is_orig || ! c?$http ) return;
-	
-	if ( c$http$first_chunk )
+	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
+	if ( ! info?$mime_type ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+
+	if ( generate_md5 in info$mime_type )
+		FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
+	else if ( info?$conns )
 		{
-		if ( c$http$calc_md5 || 
-		     (c$http?$mime_type && generate_md5 in c$http$mime_type) )
+		for ( cid in info$conns )
 			{
-			c$http$md5_handle = md5_hash_init();
+			local c: connection = info$conns[cid];
+
+			if ( ! c?$http ) next;
+
+			if ( c$http$calc_md5 )
+				{
+				FileAnalysis::add_action(info$file_id,
+				                         [$act=FileAnalysis::ACTION_MD5]);
+				return;
+				}
 			}
 		}
-	
-	if ( c$http?$md5_handle )
-		md5_hash_update(c$http$md5_handle, data);
-	}
-	
-## In the event of a content gap during a file transfer, detect the state for
-## the MD5 sum calculation and stop calculating the MD5 since it would be 
-## incorrect anyway.
-event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
-	{
-	if ( is_orig || ! c?$http || ! c$http?$md5_handle ) return;
-	
-	set_state(c, F, is_orig);
-	md5_hash_finish(c$http$md5_handle); # Ignore return value.
-	delete c$http$md5_handle;
 	}
 
-## When the file finishes downloading, finish the hash and generate a notice.
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-3
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	if ( is_orig || ! c?$http ) return;
-	
-	if ( c$http?$md5_handle )
+	if ( trig != FileAnalysis::TRIGGER_DONE &&
+	     trig != FileAnalysis::TRIGGER_EOF ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+	if ( ! info?$conns ) return;
+
+	local act: FileAnalysis::ActionArgs = [$act=FileAnalysis::ACTION_MD5];
+
+	if ( act !in info$actions ) return;
+
+	local result = info$actions[act];
+
+	if ( ! result?$md5 ) return;
+
+	for ( cid in info$conns )
 		{
-		local url = build_url_http(c$http);
-		c$http$md5 = md5_hash_finish(c$http$md5_handle);
-		delete c$http$md5_handle;
-		
-		NOTICE([$note=MD5, $msg=fmt("%s %s %s", c$id$orig_h, c$http$md5, url),
-		        $sub=c$http$md5, $conn=c]);
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		c$http$md5 = result$md5;
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	if ( c?$http_state && 
-	     c$http_state$current_response in c$http_state$pending &&
-	     c$http_state$pending[c$http_state$current_response]?$md5_handle )
-		{
-		# The MD5 sum isn't going to be saved anywhere since the entire 
-		# body wouldn't have been seen anyway and we'd just be giving an
-		# incorrect MD5 sum.
-		md5_hash_finish(c$http$md5_handle);
-		delete c$http$md5_handle;
-		}
+	if ( trig != FileAnalysis::TRIGGER_GAP ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+
+	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
 	}

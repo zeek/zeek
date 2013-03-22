@@ -54,12 +54,11 @@ export {
 		## path which was read, or some other input source.
 		source: string &log &optional;
 
-		## The set of connections over which the file was transferred,
-		## indicated by UID strings.
-		conn_uids: set[string] &log &optional;
-		## The set of connections over which the file was transferred,
-		## indicated by 5-tuples.
-		conn_ids: set[conn_id] &optional;
+		## The set of connections over which the file was transferred.
+		conns: table[conn_id] of connection &optional;
+
+		## The time at which the last activity for the file was seen.
+		last_active: time &log;
 
 		## Number of bytes provided to the file analysis engine for the file.
 		seen_bytes: count &log &default=0;
@@ -123,6 +122,7 @@ event bro_init() &priority=5
 	}
 
 redef record FileAnalysis::Info += {
+	conn_uids: set[string] &log &optional;
 	actions_taken: set[Action] &log &optional;
 	extracted_files: set[string] &log &optional;
 	md5: string &log &optional;
@@ -135,6 +135,11 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 	{
 	if ( trig != FileAnalysis::TRIGGER_EOF &&
 	     trig != FileAnalysis::TRIGGER_DONE ) return;
+
+	info$conn_uids = set();
+	if ( info?$conns )
+		for ( cid in info$conns )
+			add info$conn_uids[info$conns[cid]$uid];
 
 	info$actions_taken = set();
 	info$extracted_files = set();

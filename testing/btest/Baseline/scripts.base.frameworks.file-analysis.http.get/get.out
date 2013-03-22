@@ -8,12 +8,7 @@ file type is set
 mime type is set
 FileAnalysis::TRIGGER_DONE
 Cx92a0ym5R8, 4705, 0
-{
-UWkUyAuUGXf
-}
-{
 [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
-}
 total bytes: 4705
 source: HTTP
 SHA1: 1dd7ac0398df6cbc0696445a91ec681facf4dc47

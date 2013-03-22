@@ -108,7 +108,7 @@ void Manager::Terminate()
 	}
 
 bool Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     Connection* conn, bool is_orig)
+                     AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
 	DrainPending();
 
@@ -116,12 +116,12 @@ bool Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 
 	if ( ! unique.empty() )
 		{
-		DataIn(data, len, offset, GetInfo(unique, conn));
+		DataIn(data, len, offset, GetInfo(unique, conn, tag));
 		return true;
 		}
 
 	if ( ! is_draining )
-		pending.push_back(new PendingDataInChunk(data, len, offset, conn,
+		pending.push_back(new PendingDataInChunk(data, len, offset, tag, conn,
 		                                         is_orig));
 
 	return false;
@@ -146,8 +146,8 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 		RemoveFile(info->GetUnique());
 	}
 
-bool Manager::DataIn(const u_char* data, uint64 len, Connection* conn,
-                     bool is_orig)
+bool Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+                     Connection* conn, bool is_orig)
 	{
 	DrainPending();
 
@@ -155,12 +155,13 @@ bool Manager::DataIn(const u_char* data, uint64 len, Connection* conn,
 
 	if ( ! unique.empty() )
 		{
-		DataIn(data, len, GetInfo(unique, conn));
+		DataIn(data, len, GetInfo(unique, conn, tag));
 		return true;
 		}
 
 	if ( ! is_draining )
-		pending.push_back(new PendingDataInStream(data, len, conn, is_orig));
+		pending.push_back(new PendingDataInStream(data, len, tag, conn,
+		                                          is_orig));
 
 	return false;
 	}
@@ -212,7 +213,8 @@ void Manager::EndOfFile(const string& unique)
 	RemoveFile(unique);
 	}
 
-bool Manager::Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig)
+bool Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
+                  Connection* conn, bool is_orig)
 	{
 	DrainPending();
 
@@ -220,12 +222,12 @@ bool Manager::Gap(uint64 offset, uint64 len, Connection* conn, bool is_orig)
 
 	if ( ! unique.empty() )
 		{
-		Gap(offset, len, GetInfo(unique, conn));
+		Gap(offset, len, GetInfo(unique, conn, tag));
 		return true;
 		}
 
 	if ( ! is_draining )
-		pending.push_back(new PendingGap(offset, len, conn, is_orig));
+		pending.push_back(new PendingGap(offset, len, tag, conn, is_orig));
 
 	return false;
 	}
@@ -244,7 +246,8 @@ void Manager::Gap(uint64 offset, uint64 len, Info* info)
 	info->Gap(offset, len);
 	}
 
-bool Manager::SetSize(uint64 size, Connection* conn, bool is_orig)
+bool Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+                      bool is_orig)
 	{
 	DrainPending();
 
@@ -252,12 +255,12 @@ bool Manager::SetSize(uint64 size, Connection* conn, bool is_orig)
 
 	if ( ! unique.empty() )
 		{
-		SetSize(size, GetInfo(unique, conn));
+		SetSize(size, GetInfo(unique, conn, tag));
 		return true;
 		}
 
 	if ( ! is_draining )
-		pending.push_back(new PendingSize(size, conn, is_orig));
+		pending.push_back(new PendingSize(size, tag, conn, is_orig));
 
 	return false;
 	}
@@ -326,7 +329,8 @@ bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
 	return info->RemoveAction(args);
 	}
 
-Info* Manager::GetInfo(const string& unique, Connection* conn)
+Info* Manager::GetInfo(const string& unique, Connection* conn,
+                       AnalyzerTag::Tag tag)
 	{
 	if ( IsIgnored(unique) ) return 0;
 
@@ -334,7 +338,7 @@ Info* Manager::GetInfo(const string& unique, Connection* conn)
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new Info(unique, conn);
+		rval = str_map[unique] = new Info(unique, conn, tag);
 		FileID id = rval->GetFileID();
 
 		if ( id_map[id] )

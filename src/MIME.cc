@@ -1127,8 +1127,9 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		analyzer->ConnectionEvent(mime_segment_data, vl);
 		}
 
+	// is_orig param not available, doesn't matter as long as it's consistent
 	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
-	                 analyzer->Conn(), false);  // is_orig param N/A
+	                 analyzer->GetTag(), analyzer->Conn(), false);
 
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}

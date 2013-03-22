@@ -42,8 +42,9 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 
 	case FileAnalysis::TRIGGER_EOF:
 		print info$file_id, info$seen_bytes, info$missing_bytes;
-		print info$conn_uids;
-		print info$conn_ids;
+		if ( info?$conns )
+			for ( cid in info$conns )
+				print cid;
 
 		if ( info?$total_bytes )
 			print "total bytes: " + fmt("%s", info$total_bytes);

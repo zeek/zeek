@@ -1,6 +1,5 @@
 FileAnalysis::TRIGGER_NEW
 Cx92a0ym5R8, 0, 0
-T
 FileAnalysis::TRIGGER_BOF
 FileAnalysis::TRIGGER_BOF_BUFFER
 ^J0.26 | 201
@@ -20,6 +19,9 @@ Cx92a0ym5R8, 4705, 0
 [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
 total bytes: 4705
 source: HTTP
+SHA1: 1dd7ac0398df6cbc0696445a91ec681facf4dc47
+MD5: 397168fd09991a0e712254df7bc639ac
+SHA256: 4e7c7ef0984119447e743e3ec77e1de52713e345cde03fe7df753a35849bed18
 file_stream, Cx92a0ym5R8, 476,  now links against thread library when necessary (e.g.^J    PF_RING's libpcap) (Jon Siwek)^J^J  * Install binaries with an RPATH (Jon Siwek)^J^J  * Workaround for FreeBSD CMake port missing debug flags (Jon Siwek)^J^J  * Rewrite of the update-changes script. (Robin Sommer)^J^J0.1-1 | 2011-06-14 21:12:41 -0700^J^J  * Add a script for generating Mozilla's CA list for the SSL analyzer.^J    (Seth Hall)^J^J0.1 | 2011-04-01 16:28:22 -0700^J^J  * Converting build process to CMake. (Jon Siwek)^J
 file_chunk, Cx92a0ym5R8, 476, 4024,  now links against thread library when necessary (e.g.^J    PF_RING's libpcap) (Jon Siwek)^J^J  * Install binaries with an RPATH (Jon Siwek)^J^J  * Workaround for FreeBSD CMake port missing debug flags (Jon Siwek)^J^J  * Rewrite of the update-changes script. (Robin Sommer)^J^J0.1-1 | 2011-06-14 21:12:41 -0700^J^J  * Add a script for generating Mozilla's CA list for the SSL analyzer.^J    (Seth Hall)^J^J0.1 | 2011-04-01 16:28:22 -0700^J^J  * Converting build process to CMake. (Jon Siwek)^J
 file_stream, Cx92a0ym5R8, 205, ^J  * Removing cf/hf/ca-* from distribution. The README has a note where^J    to find them now. (Robin Sommer)^J^J  * General cleanup. (Robin Sommer)^J^J  * Initial import of bro/aux from SVN r7088. (Jon Siwek)^J

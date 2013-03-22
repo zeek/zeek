@@ -1,77 +1,13 @@
-# @TEST-EXEC: bro -r $TRACES/http/get.trace %INPUT >get.out
-# @TEST-EXEC: bro -r $TRACES/http/get-gzip.trace %INPUT >get-gzip.out
+# @TEST-EXEC: bro -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.bro %INPUT >get.out
+# @TEST-EXEC: bro -r $TRACES/http/get-gzip.trace $SCRIPTS/file-analysis-test.bro %INPUT >get-gzip.out
 # @TEST-EXEC: btest-diff get.out
 # @TEST-EXEC: btest-diff get-gzip.out
 # @TEST-EXEC: btest-diff Cx92a0ym5R8-file
 # @TEST-EXEC: btest-diff kg59rqyYxN-file
 
-global actions: set[FileAnalysis::ActionArgs];
+redef test_file_analysis_source = "HTTP";
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+redef test_get_file_name = function(info: FileAnalysis::Info): string
 	{
-	print trig;
-
-	switch ( trig ) {
-	case FileAnalysis::TRIGGER_NEW:
-		print info$file_id, info$seen_bytes, info$missing_bytes;
-
-		if ( info$source == "HTTP" )
-			{
-			for ( act in actions )
-				FileAnalysis::add_action(info$file_id, act);
-			local filename: string = fmt("%s-file", info$file_id);
-			FileAnalysis::add_action(info$file_id,
-			                         [$act=FileAnalysis::ACTION_EXTRACT,
-			                          $extract_filename=filename]);
-			}
-		break;
-
-	case FileAnalysis::TRIGGER_BOF_BUFFER:
-		if ( info?$bof_buffer )
-			print info$bof_buffer[0:10];
-		break;
-
-	case FileAnalysis::TRIGGER_TYPE:
-		# not actually printing the values due to libmagic variances
-		if ( info?$file_type )
-			print "file type is set";
-		if ( info?$mime_type )
-			print "mime type is set";
-		break;
-
-	case FileAnalysis::TRIGGER_EOF:
-		fallthrough;
-	case FileAnalysis::TRIGGER_DONE:
-
-		print info$file_id, info$seen_bytes, info$missing_bytes;
-		if ( info?$conns )
-			for ( cid in info$conns )
-				print cid;
-
-		if ( info?$total_bytes )
-			print "total bytes: " + fmt("%s", info$total_bytes);
-		if ( info?$source )
-			print "source: " + info$source;
-
-		for ( act in info$actions )
-			switch ( act$act ) {
-			case FileAnalysis::ACTION_MD5:
-				print fmt("MD5: %s", info$actions[act]$md5);
-				break;
-			case FileAnalysis::ACTION_SHA1:
-				print fmt("SHA1: %s", info$actions[act]$sha1);
-				break;
-			case FileAnalysis::ACTION_SHA256:
-				print fmt("SHA256: %s", info$actions[act]$sha256);
-				break;
-			}
-		break;
-	}
-	}
-
-event bro_init()
-	{
-	add actions[[$act=FileAnalysis::ACTION_MD5]];
-	add actions[[$act=FileAnalysis::ACTION_SHA1]];
-	add actions[[$act=FileAnalysis::ACTION_SHA256]];
-	}
+	return fmt("%s-file", info$file_id);
+	};

@@ -27,6 +27,11 @@ flow DNP3_Flow(is_orig: bool) {
 		//flow_buffer_->NewFrame(addBuffer, false);
 		return true;
 		%}
+	function discardBuffer(): bool
+		%{
+		flow_buffer_->DiscardData();
+		return true;
+		%}
 	function get_bufferContents(): const_bytestring
 		%{
 		//if(flow_buffer_->ready() == true){

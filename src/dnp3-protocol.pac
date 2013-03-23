@@ -14,7 +14,8 @@ type DNP3_PDU(is_orig: bool) = case is_orig of {
 type Header_Block = record {
 	empty : Empty;
 	start: uint16 &check(start == 0x0564);
-	len: uint8;
+	#len: uint8;
+	len: uint16;
 	ctrl: uint8;   #since this ctrl function code is not used here, I use it to store high 8-bit of len, if len > 255
 	dest_addr: uint16;
 	src_addr: uint16;
@@ -23,8 +24,8 @@ type Header_Block = record {
 	# body : 
 }
   &byteorder = littleendian
-  &length = 8;
-  #&length = 9;
+  #&length = 8;
+  &length = 9;
 
 type PseudoTran = record {
 	pseudoTran : uint8;
@@ -158,7 +159,8 @@ type DNP3_Request = record {
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
-  &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  &length= 9 + addin_header.len - 5 - 1
   #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5
   #&length = -1 	
 ;
@@ -178,7 +180,8 @@ type DNP3_Response = record {
 		default -> unknown: Debug_Byte;
 	};
 } &byteorder = bigendian
-  &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
+  &length= 9 + addin_header.len - 5 - 1
   #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5
 ;
 

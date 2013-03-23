@@ -5,12 +5,17 @@
 
 #define NOTUSE_BUFFER 
 
-#define MAX_PACKET_SIZE_NOCRC 257
+//#define MAX_PACKET_SIZE_NOCRC 257
+#define MAX_PACKET_SIZE_NOCRC 258
 #define MAX_PACKET_SIZE_CRC 292
+//#define MAX_PACKET_SIZE_CRC 293
 #define PSEUDO_LINK_LEN 8
+#define PSEUDO_LINK_LEN_EX 9
 #define LEN_FIELD_INDEX 2
 #define CRTL_FIELD_INDEX 3
+//#define CRTL_FIELD_INDEX 4
 #define PSEUDO_TRAN_INDEX 10
+//#define PSEUDO_TRAN_INDEX 11
 
 #define DNP3_APP_DATA_BLK 16
 #define CRC_LEN 2
@@ -414,14 +419,18 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	// The first two bytes of DNP3 Serial Link Layer data is always 0564....
 	// If it is not serial protocol data ignore.
 
-	u_char pseudoLink[PSEUDO_LINK_LEN] ;
+	u_char pseudoLink[PSEUDO_LINK_LEN_EX] ;
 	int i;
 	int j;
 	int newFrame = 0;
 	
+	j = 0;
 	for(i = 0; i < PSEUDO_LINK_LEN ; i++)
 		{
-		pseudoLink[i] = data[i];
+		pseudoLink[j] = data[i];
+		if(j == LEN_FIELD_INDEX) j++;
+	
+		j++;
 		}
 
 	if( data[0] != 0x05 || data[1] != 0x64 )
@@ -468,6 +477,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		{
 		mEncounteredFirst = true;
 
+		
 		if( len != MAX_PACKET_SIZE_CRC )
 			{
 			// The largest length of the DNP3 Pseudo Application Layer Data is 292 bytes including the crc values 
@@ -476,6 +486,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			Weird("dnp3_unexpected_payload_size");
 			return -4;
 			}
+		
 		//gDNP3Data.Reserve(len);
 
 		// As mentioned what data includes is :
@@ -490,17 +501,17 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
 		// DNP3 fragment
 		
-		pseudoLink[3] = 0x01;
+		pseudoLink[LEN_FIELD_INDEX + 1] = 0x01;
                 pseudoLink[LEN_FIELD_INDEX] = 0x00;	
 		
 		//// send pseudoLink data to binpac
-		printf("\n\nHeader sent to Binpac \n");
-		for(j =  0 ; j < PSEUDO_LINK_LEN ; j ++)
+		printf("\n\nThe first trunk - Header sent to Binpac \n");
+		for(j =  0 ; j < PSEUDO_LINK_LEN_EX ; j ++)
 		{
 			printf("Ox%x ", pseudoLink[j]);
 		}
 		printf("\n");
-		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN);
+		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
 		if( m_orig == true)
 			{
@@ -520,22 +531,21 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	if ( aTranFir == 0 && aTranFin == 0 )
 		{
 		
-		/*
+		
 		if ( ! mEncounteredFirst )
 			{
-			Weird("dnp3_first_transport_sgement_missing");
+			Weird("dnp3_first_pseudo_application_layer_trunk_missing");
 			return -5;
 			}
-	
-		if ( (aTranFin == 0) && (len != 292) )
+		
+		if ( len != MAX_PACKET_SIZE_CRC )
 			{
 			// This is not a last transport segment, so the
 			// length of the TCP payload should be exactly 292
 			// bytes.
-			Weird("unexpected_payload_length");
+			Weird("dnp3_unexpected_payload_size");
 			return -6;
 			}
-		*/
 		//// Since this DNP3 Pseudo Application Layer Data is either a middle trunk of the last trunk,
 		//// we have to concate bytes in "data" into the previous data trunk in order to form the complete 
 		//// logicl DNP3 Application layer fragment
@@ -549,9 +559,9 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			{
                         //upflow = interp->upflow();
                         printf("test buffer size %d\n", upflow->get_bufferBytes());
-                        newFrame = MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN);
+                        newFrame = MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
                         printf("new frame size is %d \n", newFrame);
-                        upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN) );
+                        upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
                         printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
                         upflow_count++;
                 	}
@@ -559,9 +569,9 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			{
                         downflow = interp->downflow();
                         printf("down test buffer size %d\n", downflow->get_bufferBytes());
-                        newFrame = MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN);
+                        newFrame = MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
                         printf("down new frame size is %d \n", newFrame);
-                        downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN) );
+                        downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
                         printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
                         downflow_count++;
                 	}
@@ -603,16 +613,16 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			{
                        	printf("test buffer size %d\n", upflow->get_bufferBytes());
 	                upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 
-					(upflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN) + 
-						pseudoLink[LEN_FIELD_INDEX] + 2 - 8 );
+					(upflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
+						pseudoLink[LEN_FIELD_INDEX] -5 - 1 );
         	        upflow_count = 0;
                 	}
 	        else
 			{
         	        printf("down test buffer size %d\n", downflow->get_bufferBytes());
                         downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 
-					(downflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN) + 
-						pseudoLink[LEN_FIELD_INDEX] + 2 - 8 );
+					(downflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
+						pseudoLink[LEN_FIELD_INDEX] - 5 - 1 );
                       	downflow_count = 0;
                		}
 			
@@ -647,7 +657,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		{
 		//// can directly use gDNP3Data
 		////u_char* tran_data = new u_char[len]; // Definitely not more than original data payload.
-		/*
+	
 		if( mEncounteredFirst == true )
 			{
 			/// Before this packet, a first transport segment is found
@@ -655,24 +665,36 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			//// so we should clear out the memory used before; abondon the former 
 			//     truncated network packets
 			//  But this newly received packets should be delivered to the binpac as usuall
-			
+			if(m_orig == true)
+                        	{
+                        	//printf("test buffer size %d\n", upflow->get_bufferBytes());
+	                        upflow->discardBuffer();
+        	                upflow_count = 0;
+                	        }
+                	else
+                        	{
+	                        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
+        	                downflow->discardBuffer();
+                	        downflow_count = 0;
+                        	}
+	
 			Weird("dnp3_missing_finish_packet");
 			}
-		*/
+		
 		//gDNP3Data.Reserve(len);
 		//DNP3_CopyDataBlock(&gDNP3Data, data, len);
 		//// since this is the only application layer trunk, so the higer 8bits of the length is 0
 		//gDNP3Data.mData[3] = 0x00;
-		pseudoLink[3]= 0x00;
+		pseudoLink[LEN_FIELD_INDEX + 1]= 0x00;
 
 		printf("\n\nHeader sent to Binpac \n");
-                for(j =  0 ; j < PSEUDO_LINK_LEN ; j ++)
+                for(j =  0 ; j < PSEUDO_LINK_LEN_EX ; j ++)
                 {
                         printf("Ox%x ", pseudoLink[j]);
                 }
                 printf("\n");
 
-		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN);
+		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
 		mEncounteredFirst = false;
 		//gDNP3Data.Clear();

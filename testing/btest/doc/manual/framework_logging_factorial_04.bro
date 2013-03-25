@@ -29,7 +29,7 @@ function factorial(n: count): count
 
 event bro_init()
     {
-    Log::create_stream(LOG, [$columns=Info, $ev=log_factorial]);
+    Log::create_stream(LOG, [$columns=Info, $ev=log_factor]);
     }
 
 event bro_done()

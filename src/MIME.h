@@ -163,7 +163,7 @@ protected:
 	MIME_Entity* parent;
 	MIME_Entity* current_child_entity;
 
-	Base64Decoder* base64_decoder;
+	Base64Converter* base64_decoder;
 
 	int data_buf_length;
 	char* data_buf_data;

@@ -64,7 +64,7 @@ Val::~Val()
 
 	Unref(type);
 #ifdef DEBUG
-	Unref(bound_id);
+	delete [] bound_id;
 #endif
 	}
 
@@ -2921,8 +2921,7 @@ VectorVal::~VectorVal()
 	delete val.vector_val;
 	}
 
-bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
-			Opcode op)
+bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 	{
 	if ( element &&
 	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
@@ -2983,12 +2982,12 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 	}
 
 bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
-				Val* element, const Expr* assigner)
+				Val* element)
 	{
 	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
-		if ( ! Assign(i, element, assigner) )
+		if ( ! Assign(i, element ) )
 			return false;
 
 	return true;
@@ -3089,7 +3088,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 		{
 		Val* v;
 		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
-		Assign(i, v, 0);
+		Assign(i, v);
 		}
 
 	return true;
@@ -3114,9 +3113,33 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
+OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
+	{
+	}
+
+OpaqueVal::~OpaqueVal()
+	{
+	}
+
+IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
+
+bool OpaqueVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_OPAQUE_VAL, Val);
+	return true;
+	}
+
+bool OpaqueVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(Val);
+	return true;
+	}
 
 Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	{
+	if ( ! v )
+		return 0;
+
 	BroType* vt = v->Type();
 
 	vt = flatten_type(vt);
@@ -3206,17 +3229,7 @@ int same_val(const Val* /* v1 */, const Val* /* v2 */)
 
 bool is_atomic_val(const Val* v)
 	{
-	switch ( v->Type()->InternalType() ) {
-	case TYPE_INTERNAL_INT:
-	case TYPE_INTERNAL_UNSIGNED:
-	case TYPE_INTERNAL_DOUBLE:
-	case TYPE_INTERNAL_STRING:
-	case TYPE_INTERNAL_ADDR:
-	case TYPE_INTERNAL_SUBNET:
-		return true;
-	default:
-		return false;
-	}
+	return is_atomic_type(v->Type());
 	}
 
 int same_atomic_val(const Val* v1, const Val* v2)

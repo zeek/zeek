@@ -180,6 +180,30 @@ public:
 		}
 
 	/**
+	 * Schedules documentation of a hook declared by the script.
+	 * @param o A pointer to a BroDocObj which contains the internal
+	 *        Bro language representation of the script hook and
+	 *        also any associated comments about it.
+	 */
+	void AddHook(const BroDocObj* o)
+		{
+		hooks.push_back(o);
+		all.push_back(o);
+		}
+
+	/**
+	 * Schedules documentation of a hook handler declared by the script.
+	 * @param o A pointer to a BroDocObj which contains the internal
+	 *        Bro language representation of the script hook handler and
+	 *        also any associated comments about it.
+	 */
+	void AddHookHandler(const BroDocObj* o)
+		{
+		hook_handlers.push_back(o);
+		all.push_back(o);
+		}
+
+	/**
 	 * Schedules documentation of a function declared by the script.
 	 * @param o A pointer to a BroDocObj which contains the internal
 	 *        Bro language representation of the script function and
@@ -241,6 +265,8 @@ protected:
 	BroDocObjList notices;
 	BroDocObjList events;
 	BroDocObjList event_handlers;
+	BroDocObjList hooks;
+	BroDocObjList hook_handlers;
 	BroDocObjMap functions;
 	BroDocObjList redefs;
 

@@ -29,13 +29,18 @@ typedef enum {
 	TYPE_LIST,
 	TYPE_FUNC,
 	TYPE_FILE,
+	TYPE_OPAQUE,
 	TYPE_VECTOR,
 	TYPE_TYPE,
 	TYPE_ERROR
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
 
-typedef enum { FUNC_FLAVOR_FUNCTION, FUNC_FLAVOR_EVENT } function_flavor;
+typedef enum {
+	FUNC_FLAVOR_FUNCTION,
+	FUNC_FLAVOR_EVENT,
+	FUNC_FLAVOR_HOOK
+} function_flavor;
 
 typedef enum {
 	TYPE_INTERNAL_VOID,
@@ -350,38 +355,36 @@ protected:
 
 class FuncType : public BroType {
 public:
-	FuncType(RecordType* args, BroType* yield, int is_event);
+	FuncType(RecordType* args, BroType* yield, function_flavor f);
 
 	~FuncType();
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType();
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
-	int IsEvent() const		{ return is_event; }
+	function_flavor Flavor() const { return flavor; }
+	string FlavorString() const;
 
-	// Used to convert a function type to an event type.
-	void ClearYieldType()
-		{ Unref(yield); yield = 0; is_event = 1; }
+	// Used to convert a function type to an event or hook type.
+	void ClearYieldType(function_flavor arg_flav)
+		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
 	int MatchesIndex(ListExpr*& index) const;
-	int CheckArgs(const type_list* args) const;
+	int CheckArgs(const type_list* args, bool is_init = false) const;
 
-	TypeList* ArgTypes()	{ return arg_types; }
-
-	ID* GetReturnValueID() const;
+	TypeList* ArgTypes() const	{ return arg_types; }
 
 	void Describe(ODesc* d) const;
 	void DescribeReST(ODesc* d) const;
 
 protected:
-	FuncType()	{ args = 0; arg_types = 0; yield = 0; return_value = 0; }
+	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
 	DECLARE_SERIAL(FuncType)
 
 	RecordType* args;
 	TypeList* arg_types;
 	BroType* yield;
-	int is_event;
-	ID* return_value;
+	function_flavor flavor;
 };
 
 class TypeType : public BroType {
@@ -495,9 +498,26 @@ protected:
 	BroType* yield;
 };
 
+class OpaqueType : public BroType {
+public:
+	OpaqueType(const string& name);
+	virtual ~OpaqueType() { };
+
+	const string& Name() const { return name; }
+
+	void Describe(ODesc* d) const;
+
+protected:
+	OpaqueType() { }
+
+	DECLARE_SERIAL(OpaqueType)
+
+	string name;
+};
+
 class EnumType : public BroType {
 public:
-	EnumType();
+	EnumType(const string& arg_name);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -513,7 +533,12 @@ public:
 	bro_int_t Lookup(const string& module_name, const char* name);
 	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
+	string Name() const { return name; }
+
+	void DescribeReST(ODesc* d) const;
+
 protected:
+	EnumType() { counter = 0; }
 	DECLARE_SERIAL(EnumType)
 
 	virtual void AddNameInternal(const string& module_name,
@@ -529,11 +554,14 @@ protected:
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
 	bro_int_t counter;
+
+	// The name of the enum type is stored for documentation purposes.
+	string name;
 };
 
 class CommentedEnumType: public EnumType {
 public:
-	CommentedEnumType() {}
+	CommentedEnumType(const string& arg_name) : EnumType(arg_name) {}
 	~CommentedEnumType();
 
 	void DescribeReST(ODesc* d) const;
@@ -612,6 +640,9 @@ BroType* merge_type_list(ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
 extern BroType* init_type(Expr* init);
+
+// Returns true if argument is an atomic type.
+bool is_atomic_type(const BroType* t);
 
 // True if the given type tag corresponds to an integral type.
 #define IsIntegral(t)	(t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER)

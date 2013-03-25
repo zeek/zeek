@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace input::reader;
 using threading::Value;
@@ -66,11 +67,14 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 			    BifConst::InputAscii::unset_field->Len());
+
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
 }
 
 Ascii::~Ascii()
 	{
 	DoClose();
+	delete ascii;
 	}
 
 void Ascii::DoClose()
@@ -209,157 +213,6 @@ bool Ascii::GetLine(string& str)
 	return false;
 	}
 
-
-Value* Ascii::EntryToVal(string s, FieldMapping field)
-	{
-	if ( s.compare(unset_field) == 0 )  // field is not set...
-		return new Value(field.type, false);
-
-	Value* val = new Value(field.type, true);
-
-	switch ( field.type ) {
-	case TYPE_ENUM:
-	case TYPE_STRING:
-		val->val.string_val.length = s.size();
-		val->val.string_val.data = copy_string(s.c_str());
-		break;
-
-	case TYPE_BOOL:
-		if ( s == "T" )
-			val->val.int_val = 1;
-		else if ( s == "F" )
-			val->val.int_val = 0;
-		else
-			{
-			Error(Fmt("Field: %s Invalid value for boolean: %s",
-				  field.name.c_str(), s.c_str()));
-			return 0;
-			}
-		break;
-
-	case TYPE_INT:
-		val->val.int_val = atoi(s.c_str());
-		break;
-
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		val->val.double_val = atof(s.c_str());
-		break;
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		val->val.uint_val = atoi(s.c_str());
-		break;
-
-	case TYPE_PORT:
-		val->val.port_val.port = atoi(s.c_str());
-		val->val.port_val.proto = TRANSPORT_UNKNOWN;
-		break;
-
-	case TYPE_SUBNET:
-		{
-		size_t pos = s.find("/");
-		if ( pos == s.npos )
-			{
-			Error(Fmt("Invalid value for subnet: %s", s.c_str()));
-			return 0;
-			}
-
-		int width = atoi(s.substr(pos+1).c_str());
-		string addr = s.substr(0, pos);
-
-		val->val.subnet_val.prefix = StringToAddr(addr);
-		val->val.subnet_val.length = width;
-		break;
-		}
-
-	case TYPE_ADDR:
-		val->val.addr_val = StringToAddr(s);
-		break;
-
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
-		// First - common initialization
-		// Then - initialization for table.
-		// Then - initialization for vector.
-		// Then - common stuff
-		{
-		// how many entries do we have...
-		unsigned int length = 1;
-		for ( unsigned int i = 0; i < s.size(); i++ )
-			if ( s[i] == ',' ) length++;
-
-		unsigned int pos = 0;
-
-		if ( s.compare(empty_field) == 0 )
-			length = 0;
-
-		Value** lvals = new Value* [length];
-
-		if ( field.type == TYPE_TABLE )
-			{
-			val->val.set_val.vals = lvals;
-			val->val.set_val.size = length;
-			}
-
-		else if ( field.type == TYPE_VECTOR )
-			{
-			val->val.vector_val.vals = lvals;
-			val->val.vector_val.size = length;
-			}
-
-		else
-			assert(false);
-
-		if ( length == 0 )
-			break; //empty
-
-		istringstream splitstream(s);
-		while ( splitstream )
-			{
-			string element;
-
-			if ( ! getline(splitstream, element, set_separator[0]) )
-				break;
-
-			if ( pos >= length )
-				{
-				Error(Fmt("Internal error while parsing set. pos %d >= length %d."
-				          " Element: %s", pos, length, element.c_str()));
-				break;
-				}
-
-			Value* newval = EntryToVal(element, field.subType());
-			if ( newval == 0 )
-				{
-				Error("Error while reading set");
-				return 0;
-				}
-
-			lvals[pos] = newval;
-
-			pos++;
-			}
-
-		if ( pos != length )
-			{
-			Error("Internal error while parsing set: did not find all elements");
-			return 0;
-			}
-
-		break;
-		}
-
-	default:
-		Error(Fmt("unsupported field format %d for %s", field.type,
-		field.name.c_str()));
-		return 0;
-	}
-
-	return val;
-	}
-
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
@@ -428,6 +281,7 @@ bool Ascii::DoUpdate()
 	while ( GetLine(line ) )
 		{
 		// split on tabs
+		bool error = false;
 		istringstream splitstream(line);
 
 		map<int, string> stringfields;
@@ -437,8 +291,6 @@ bool Ascii::DoUpdate()
 			string s;
 			if ( ! getline(splitstream, s, separator[0]) )
 				break;
-
-			s = get_unescaped_string(s);
 
 			stringfields[pos] = s;
 			pos++;
@@ -471,11 +323,13 @@ bool Ascii::DoUpdate()
 				return false;
 				}
 
-			Value* val = EntryToVal(stringfields[(*fit).position], *fit);
+			Value* val = ascii->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+
 			if ( val == 0 )
 				{
-				Error("Could not convert String value to Val");
-				return false;
+				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				error = true;
+				break;
 				}
 
 			if ( (*fit).secondary_position != -1 )
@@ -484,12 +338,25 @@ bool Ascii::DoUpdate()
 				assert(val->type == TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				val->val.port_val.proto = StringToProto(stringfields[(*fit).secondary_position]);
+				val->val.port_val.proto = ascii->ParseProto(stringfields[(*fit).secondary_position]);
 				}
 
 			fields[fpos] = val;
 
 			fpos++;
+			}
+
+		if ( error )
+			{
+			// Encountered non-fatal error, ignoring line. But
+			// first, delete all successfully read fields and the
+			// array structure.
+
+			for ( int i = 0; i < fpos; i++ )
+				delete fields[i];
+
+			delete [] fields;
+			continue;
 			}
 
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);

@@ -56,8 +56,8 @@ public:
 	// Rotates the logfile. Returns rotate_info.
 	RecordVal* Rotate();
 
-	// Set &rotate_interval, &rotate_size, &postprocessor,
-	// &disable_print_hook, and &raw_output attributes.
+	// Set &rotate_interval, &rotate_size,
+	// and &raw_output attributes.
 	void SetAttrs(Attributes* attrs);
 
 	// Returns the current size of the file, after fresh stat'ing.

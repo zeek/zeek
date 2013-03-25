@@ -109,6 +109,36 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	if ( attr )
 		id->AddAttrs(new Attributes(attr, t, false));
 
+	if ( init )
+		{
+		switch ( init->Tag() ) {
+		case EXPR_TABLE_CONSTRUCTOR:
+			{
+			TableConstructorExpr* ctor = (TableConstructorExpr*) init;
+			if ( ctor->Attrs() )
+				{
+				::Ref(ctor->Attrs());
+				id->AddAttrs(ctor->Attrs());
+				}
+			}
+			break;
+
+		case EXPR_SET_CONSTRUCTOR:
+			{
+			SetConstructorExpr* ctor = (SetConstructorExpr*) init;
+			if ( ctor->Attrs() )
+				{
+				::Ref(ctor->Attrs());
+				id->AddAttrs(ctor->Attrs());
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
+		}
+
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
 		if ( dt == VAR_CONST )
@@ -171,14 +201,15 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 	id->UpdateValAttrs();
 
-	if ( t && t->Tag() == TYPE_FUNC && t->AsFuncType()->IsEvent() )
+	if ( t && t->Tag() == TYPE_FUNC &&
+	     (t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT ||
+	      t->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK) )
 		{
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
 		Func* f = new BroFunc(id, 0, 0, 0, 0);
 		id->SetVal(new Val(f));
-		id->SetConst();
 		}
 	}
 
@@ -201,8 +232,9 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 
 		Ref(id);
 
+		Expr* name_expr = new NameExpr(id, dt == VAR_CONST);
 		Stmt* stmt =
-		    new ExprStmt(new AssignExpr(new NameExpr(id), init, 0, 0,
+		    new ExprStmt(new AssignExpr(name_expr, init, 0, 0,
 		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
 		stmt->SetLocationInfo(init->GetLocationInfo());
 
@@ -211,10 +243,7 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 
 	else
 		{
-		if ( t->Tag() == TYPE_RECORD || t->Tag() == TYPE_TABLE ||
-		     t->Tag() == TYPE_VECTOR )
-			current_scope()->AddInit(id);
-
+		current_scope()->AddInit(id);
 		return new NullStmt;
 		}
 	}
@@ -258,7 +287,7 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 		case TYPE_FUNC:
 			tnew = new FuncType(t->AsFuncType()->Args(),
 			                    t->AsFuncType()->YieldType(),
-			                    t->AsFuncType()->IsEvent());
+			                    t->AsFuncType()->Flavor());
 			break;
 		default:
 			SerializationFormat* form = new BinarySerializationFormat();
@@ -299,7 +328,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		if ( yt && yt->Tag() != TYPE_VOID )
 			id->Error("event cannot yield a value", t);
 
-		t->ClearYieldType();
+		t->ClearYieldType(flavor);
 		}
 
 	if ( id->Type() )
@@ -313,21 +342,29 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( id->HasVal() )
 		{
-		int id_is_event = id->ID_Val()->AsFunc()->IsEvent();
+		function_flavor id_flavor = id->ID_Val()->AsFunc()->Flavor();
 
-		if ( id_is_event != (flavor == FUNC_FLAVOR_EVENT) )
-			id->Error("inconsistency between event and function", t);
-		if ( id_is_event )
-			{
+		if ( id_flavor != flavor )
+			id->Error("inconsistent function flavor", t);
+
+		switch ( id_flavor ) {
+
+		case FUNC_FLAVOR_EVENT:
+		case FUNC_FLAVOR_HOOK:
 			if ( is_redef )
 				// Clear out value so it will be replaced.
 				id->SetVal(0);
-			}
-		else
-			{
+			break;
+
+		case FUNC_FLAVOR_FUNCTION:
 			if ( ! id->IsRedefinable() )
 				id->Error("already defined");
-			}
+			break;
+
+		default:
+			reporter->InternalError("invalid function flavor");
+			break;
+		}
 		}
 	else
 		id->SetType(t);

@@ -8,7 +8,33 @@ export {
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
 
+	## The default reader mode used. Defaults to `MANUAL`.
 	const default_mode = MANUAL &redef;
+
+	## Separator between fields.
+	## Please note that the separator has to be exactly one character long.
+	## Can be overwritten by individual writers.
+	const separator = "\t" &redef;
+
+	## Separator between set elements.
+	## Please note that the separator has to be exactly one character long.
+	## Can be overwritten by individual writers.
+	const set_separator = "," &redef;
+
+	## String to use for empty fields.
+	## Can be overwritten by individual writers.
+	const empty_field = "(empty)" &redef;
+
+	## String to use for an unset &optional field.
+	## Can be overwritten by individual writers.
+	const unset_field = "-" &redef;
+
+	## Flag that controls if the input framework accepts records
+	## that contain types that are not supported (at the moment
+	## file and function). If true, the input framework will
+	## warn in these cases, but continue. If false, it will
+	## abort. Defaults to false (abort)
+	const accept_unsupported_types = F &redef;
 
 	## TableFilter description type used for the `table` method.
 	type TableDescription: record {
@@ -106,7 +132,8 @@ export {
 	## description: `TableDescription` record describing the source.
 	global add_event: function(description: Input::EventDescription) : bool;
 
-	## Remove a input stream. Returns true on success and false if the named stream was not found.
+	## Remove a input stream. Returns true on success and false if the named stream was
+	## not found.
 	##
 	## id: string value identifying the stream to be removed
 	global remove: function(id: string) : bool;
@@ -117,8 +144,9 @@ export {
 	## id: string value identifying the stream
 	global force_update: function(id: string) : bool;
 
-	## Event that is called, when the update of a specific source is finished
-	global update_finished: event(name: string, source:string);
+	## Event that is called, when the end of a data source has been reached, including
+	## after an update.
+	global end_of_data: event(name: string, source:string);
 }
 
 @load base/input.bif

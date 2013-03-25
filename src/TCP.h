@@ -135,13 +135,13 @@ protected:
 	void ProcessFIN(double t, TCP_Endpoint* endpoint, int& seq_len,
 			uint32 base_seq);
 
-	bool ProcessRST(double t, TCP_Endpoint* endpoint, const IP_Hdr* ip,
+	void ProcessRST(double t, TCP_Endpoint* endpoint, const IP_Hdr* ip,
 			uint32 base_seq, int len, int& seq_len);
 
 	void ProcessACK(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 ack_seq, int is_orig, TCP_Flags flags);
 
-	int ProcessFlags(double t, const IP_Hdr* ip, const struct tcphdr* tp,
+	void ProcessFlags(double t, const IP_Hdr* ip, const struct tcphdr* tp,
 			uint32 tcp_hdr_len, int len, int& seq_len,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 base_seq, uint32 ack_seq,
@@ -186,7 +186,8 @@ protected:
 				int delta_last, TCP_Flags flags,
 				int& do_close);
 
-	void UpdateResetState(int len, TCP_Flags flags);
+	void UpdateResetState(int len, TCP_Flags flags, TCP_Endpoint* endpoint,
+				uint32 base_seq, uint32 last_seq);
 
 	void GeneratePacketEvent(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 					uint32 base_seq, uint32 ack_seq,

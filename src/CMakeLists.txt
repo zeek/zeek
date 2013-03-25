@@ -4,6 +4,7 @@ include_directories(BEFORE
 )
 
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
+configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
 # This creates a custom command to transform a bison output file (inFile)
 # into outFile in order to avoid symbol conflicts:
@@ -202,6 +203,8 @@ binpac_target(dns.pac
     dns-protocol.pac dns-analyzer.pac)
 binpac_target(dns_tcp.pac
     dns.pac)
+binpac_target(gtpv1.pac
+    gtpv1-protocol.pac gtpv1-analyzer.pac)
 binpac_target(http.pac
     http-protocol.pac http-analyzer.pac)
 binpac_target(ncp.pac)
@@ -215,6 +218,8 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
+binpac_target(modbus.pac
+    modbus-protocol.pac modbus-analyzer.pac)
 
 ########################################################################
 ## bro target
@@ -329,6 +334,7 @@ set(bro_SRCS
     Frame.cc
     Func.cc
     Gnutella.cc
+    GTPv1.cc
     HTTP.cc
     HTTP-binpac.cc
     Hash.cc
@@ -346,6 +352,7 @@ set(bro_SRCS
     Reporter.cc
     Login.cc
     MIME.cc
+    Modbus.cc
     NCP.cc
     NFA.cc
     NFS.cc
@@ -355,6 +362,7 @@ set(bro_SRCS
     NetVar.cc
     NetbiosSSN.cc
     Obj.cc
+    OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
     PacketSort.cc
@@ -419,6 +427,7 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
+    threading/AsciiFormatter.cc
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc
@@ -444,10 +453,6 @@ set(bro_SRCS
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
-
-add_definitions(-DBRO_SCRIPT_INSTALL_PATH="${BRO_SCRIPT_INSTALL_PATH}")
-add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
-add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 

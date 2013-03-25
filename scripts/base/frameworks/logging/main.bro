@@ -17,6 +17,23 @@ export {
 	## anything else.
 	const default_writer = WRITER_ASCII &redef;
 
+	## Default separator between fields for logwriters.
+	## Can be overwritten by individual writers.
+	const separator = "\t" &redef;
+
+	## Separator between set elements.
+	## Can be overwritten by individual writers.
+	const set_separator = "," &redef;
+
+	## String to use for empty fields. This should be different from
+        ## *unset_field* to make the output non-ambigious. 
+	## Can be overwritten by individual writers.
+	const empty_field = "(empty)" &redef;
+
+	## String to use for an unset &optional field.
+	## Can be overwritten by individual writers.
+	const unset_field = "-" &redef;	
+
 	## Type defining the content of a logging stream.
 	type Stream: record {
 		## A record type defining the log's columns.
@@ -59,6 +76,9 @@ export {
 
 	## Default rotation interval. Zero disables rotation.
 	const default_rotation_interval = 0secs &redef;
+
+	## Default alarm summary mail interval. Zero disables alarm summary mails.
+	const default_mail_alarms_interval = 0secs &redef;
 
 	## Default naming format for timestamps embedded into filenames.
 	## Uses a ``strftime()`` style.
@@ -329,9 +349,9 @@ export {
 	global run_rotation_postprocessor_cmd: function(info: RotationInfo, npath: string) : bool;
 
 	## The streams which are currently active and not disabled.
-	## This set is not meant to be modified by users!  Only use it for
+	## This table is not meant to be modified by users!  Only use it for
 	## examining which streams are active.
-	global active_streams: set[ID] = set();
+	global active_streams: table[ID] of Stream = table();
 }
 
 # We keep a script-level copy of all filters so that we can manipulate them.
@@ -417,7 +437,7 @@ function create_stream(id: ID, stream: Stream) : bool
 	if ( ! __create_stream(id, stream) )
 		return F;
 
-	add active_streams[id];
+	active_streams[id] = stream;
 
 	return add_default_filter(id);
 	}

@@ -3,38 +3,38 @@
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2012-07-27-19-14-29
+#open	2012-11-06-00-53-09
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1343416469.508262	-	ip or not ip	T	T
-#close	2012-07-27-19-14-29
+1352163189.729807	-	ip or not ip	T	T
+#close	2012-11-06-00-53-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2012-07-27-19-14-29
+#open	2012-11-06-00-53-10
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1343416469.888870	-	(((((((((((((((((((((((((port 53) or (tcp port 989)) or (tcp port 443)) or (port 6669)) or (udp and port 5353)) or (port 6668)) or (tcp port 1080)) or (udp and port 5355)) or (tcp port 22)) or (tcp port 995)) or (port 21)) or (tcp port 25 or tcp port 587)) or (port 6667)) or (tcp port 614)) or (tcp port 990)) or (udp port 137)) or (tcp port 993)) or (tcp port 5223)) or (port 514)) or (tcp port 585)) or (tcp port 992)) or (tcp port 563)) or (tcp port 994)) or (tcp port 636)) or (tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888))) or (port 6666)	T	T
-#close	2012-07-27-19-14-29
+1352163190.114261	-	((((((((((((((((((((((((((port 53) or (tcp port 989)) or (tcp port 443)) or (port 6669)) or (udp and port 5353)) or (port 6668)) or (tcp port 1080)) or (udp and port 5355)) or (tcp port 502)) or (tcp port 995)) or (tcp port 22)) or (port 21 and port 2811)) or (tcp port 25 or tcp port 587)) or (tcp port 614)) or (tcp port 990)) or (port 6667)) or (udp port 137)) or (tcp port 993)) or (tcp port 5223)) or (port 514)) or (tcp port 585)) or (tcp port 992)) or (tcp port 563)) or (tcp port 994)) or (tcp port 636)) or (tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888))) or (port 6666)	T	T
+#close	2012-11-06-00-53-10
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2012-07-27-19-14-30
+#open	2012-11-06-00-53-10
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1343416470.252918	-	port 42	T	T
-#close	2012-07-27-19-14-30
+1352163190.484506	-	port 42	T	T
+#close	2012-11-06-00-53-10
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2012-07-27-19-14-30
+#open	2012-11-06-00-53-10
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1343416470.614962	-	port 56730	T	T
-#close	2012-07-27-19-14-30
+1352163190.855090	-	port 56730	T	T
+#close	2012-11-06-00-53-10

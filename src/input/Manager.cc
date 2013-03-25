@@ -196,7 +196,7 @@ Manager::TableStream::~TableStream()
 
 Manager::Manager()
 	{
-	update_finished = internal_handler("Input::update_finished");
+	end_of_data = internal_handler("Input::end_of_data");
 	}
 
 Manager::~Manager()
@@ -322,20 +322,10 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	Unref(mode);
 
 	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
-
-	ReaderFrontend* reader_obj = new ReaderFrontend(*rinfo, reader);
-	assert(reader_obj);
-
-	info->reader = reader_obj;
-	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
-	info->name = name;
 	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
-	info->info = rinfo;
-
-	Ref(description);
-	info->description = description;
 
 		{
+		// create config mapping in ReaderInfo. Has to be done before the construction of reader_obj.
 		HashKey* k;
 		IterCookie* c = info->config->AsTable()->InitForIteration();
 
@@ -345,12 +335,25 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			ListVal* index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
-			info->info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
+			rinfo->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 			Unref(index);
 			delete k;
 			}
 
 		}
+
+
+	ReaderFrontend* reader_obj = new ReaderFrontend(*rinfo, reader);
+	assert(reader_obj);
+
+	info->reader = reader_obj;
+	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
+	info->name = name;
+	info->info = rinfo;
+
+	Ref(description);
+	info->description = description;
+
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());
@@ -388,7 +391,9 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	FuncType* etype = event->FType()->AsFuncType();
 
-	if ( ! etype->IsEvent() )
+	bool allow_file_func = false;
+
+	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 		{
 		reporter->Error("stream event is a function, not an event");
 		return false;
@@ -453,6 +458,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			return false;
 			}
 
+		allow_file_func = BifConst::Input::accept_unsupported_types;
+
 		}
 
 	else
@@ -461,7 +468,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	vector<Field*> fieldsV; // vector, because UnrollRecordType needs it
 
-	bool status = !UnrollRecordType(&fieldsV, fields, "");
+	bool status = (! UnrollRecordType(&fieldsV, fields, "", allow_file_func));
 
 	if ( status )
 		{
@@ -476,7 +483,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(fields); // ref'd by lookupwithdefault
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
-	stream->event = event_registry->Lookup(event->GetID()->Name());
+	stream->event = event_registry->Lookup(event->Name());
 	stream->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
@@ -559,7 +566,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		{
 		FuncType* etype = event->FType()->AsFuncType();
 
-		if ( ! etype->IsEvent() )
+		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
 			return false;
@@ -609,12 +616,12 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	vector<Field*> fieldsV; // vector, because we don't know the length beforehands
 
-	bool status = !UnrollRecordType(&fieldsV, idx, "");
+	bool status = (! UnrollRecordType(&fieldsV, idx, "", false));
 
 	int idxfields = fieldsV.size();
 
 	if ( val ) // if we are not a set
-		status = status || !UnrollRecordType(&fieldsV, val, "");
+		status = status || ! UnrollRecordType(&fieldsV, val, "", BifConst::Input::accept_unsupported_types);
 
 	int valfields = fieldsV.size() - idxfields;
 
@@ -637,7 +644,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->tab = dst->AsTableVal();
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
-	stream->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->currDict = new PDict(InputHash);
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new PDict(InputHash);
@@ -772,16 +779,31 @@ bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 	return true;
 	}
 
-bool Manager::UnrollRecordType(vector<Field*> *fields,
-		const RecordType *rec, const string& nameprepend)
+bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
+			       const string& nameprepend, bool allow_file_func)
 	{
-
 	for ( int i = 0; i < rec->NumFields(); i++ )
 		{
 
 		if ( ! IsCompatibleType(rec->FieldType(i)) )
-	       		{
-			reporter->Error("Incompatible type \"%s\" in table definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
+			{
+			// If the field is a file, function, or opaque
+			// and it is optional, we accept it nevertheless.
+			// This allows importing logfiles containing this
+			// stuff that we actually cannot read :)
+			if ( allow_file_func )
+				{
+				if ( ( rec->FieldType(i)->Tag() == TYPE_FILE ||
+				       rec->FieldType(i)->Tag() == TYPE_FUNC ||
+				       rec->FieldType(i)->Tag() == TYPE_OPAQUE ) &&
+				       rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+					{
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()));
+					continue;
+					}
+				}
+
+			reporter->Error("Incompatible type \"%s\" in type definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
 			return false;
 			}
 
@@ -789,7 +811,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields,
 			{
 			string prep = nameprepend + rec->FieldName(i) + ".";
 
-			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep) )
+			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep, allow_file_func) )
 				{
 				return false;
 				}
@@ -1044,9 +1066,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 
 			if ( ! updated )
 				{
-				// throw away. Hence - we quit. And remove the entry from the current dictionary...
-				// (but why should it be in there? assert this).
-				assert ( stream->currDict->RemoveEntry(idxhash) == 0 );
+				// just quit and delete everything we created.
 				delete idxhash;
 				delete h;
 				return stream->num_val_fields + stream->num_idx_fields;
@@ -1153,8 +1173,12 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	DBG_LOG(DBG_INPUT, "Got EndCurrentSend stream %s", i->name.c_str());
 #endif
 
-	if ( i->stream_type == EVENT_STREAM )  // nothing to do..
+	if ( i->stream_type == EVENT_STREAM )
+		{
+		// just signal the end of the data source
+		SendEndOfData(i);
 		return;
+		}
 
 	assert(i->stream_type == TABLE_STREAM);
 	TableStream* stream = (TableStream*) i;
@@ -1212,7 +1236,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			Ref(predidx);
 			Ref(val);
 			Ref(ev);
-			SendEvent(stream->event, 3, ev, predidx, val);
+			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, val);
 			}
 
 		if ( predidx )  // if we have a stream or an event...
@@ -1235,12 +1259,29 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 
 #ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "EndCurrentSend complete for stream %s, queueing update_finished event",
+	DBG_LOG(DBG_INPUT, "EndCurrentSend complete for stream %s",
 		i->name.c_str());
 #endif
 
-	// Send event that the current update is indeed finished.
-	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
+	SendEndOfData(i);
+	}
+
+void Manager::SendEndOfData(ReaderFrontend* reader)
+	{
+	Stream *i = FindStream(reader);
+
+	if ( i == 0 )
+		{
+		reporter->InternalError("Unknown reader in SendEndOfData");
+		return;
+		}
+
+	SendEndOfData(i);
+	}
+
+void Manager::SendEndOfData(const Stream *i)
+	{
+	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
@@ -1677,6 +1718,18 @@ RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
 		Val* fieldVal = 0;
 		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD )
 			fieldVal = ValueToRecordVal(vals, request_type->FieldType(i)->AsRecordType(), position);
+		else if ( request_type->FieldType(i)->Tag() == TYPE_FILE ||
+			  request_type->FieldType(i)->Tag() == TYPE_FUNC )
+			{
+			// If those two unsupported types are encountered here, they have
+			// been let through by the type checking.
+			// That means that they are optional & the user agreed to ignore
+			// them and has been warned by reporter.
+			// Hence -> assign null to the field, done.
+
+			// Better check that it really is optional. Uou never know.
+			assert(request_type->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+			}
 		else
 			{
 			fieldVal = ValueToVal(vals[*position], request_type->FieldType(i));
@@ -1720,7 +1773,7 @@ int Manager::GetValueLength(const Value* val) {
 	case TYPE_STRING:
 	case TYPE_ENUM:
 		{
-		length += val->val.string_val.length;
+		length += val->val.string_val.length + 1;
 		break;
 		}
 
@@ -1820,7 +1873,10 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 	case TYPE_ENUM:
 		{
 		memcpy(data+startpos, val->val.string_val.data, val->val.string_val.length);
-		return val->val.string_val.length;
+		// Add a \0 to the end. To be able to hash zero-length
+		// strings and differentiate from !present.
+		memset(data + startpos + val->val.string_val.length, 0, 1);
+		return val->val.string_val.length + 1;
 		}
 
 	case TYPE_ADDR:
@@ -1911,13 +1967,15 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		const Value* val = vals[i];
 		if ( val->present )
 			length += GetValueLength(val);
+
+		// And in any case add 1 for the end-of-field-identifier.
+		length++;
 		}
 
-	if ( length == 0 )
-		{
-		reporter->Error("Input reader sent line where all elements are null values. Ignoring line");
+	assert ( length >= num_elements );
+
+	if ( length == num_elements )
 		return NULL;
-		}
 
 	int position = 0;
 	char *data = (char*) malloc(length);
@@ -1929,6 +1987,12 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		const Value* val = vals[i];
 		if ( val->present )
 			position += CopyValue(data, position, val);
+
+		memset(data + position, 1, 1); // Add end-of-field-marker. Does not really matter which value it is,
+		                               // it just has to be... something.
+
+		position++;
+
 		}
 
 	HashKey *key = new HashKey(data, length);
@@ -1968,7 +2032,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_STRING:
 		{
-		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, 0);
+		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, 1);
 		return new StringVal(s);
 		}
 
@@ -2043,7 +2107,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
 		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
+			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
 
 		Unref(vt);
 		return v;

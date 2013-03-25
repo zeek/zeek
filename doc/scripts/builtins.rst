@@ -55,8 +55,8 @@ The Bro scripting language supports the following built-in types.
 
     A temporal type representing a relative time.  An ``interval``
     constant can be written as a numeric constant followed by a time
-    unit where the time unit is one of ``usec``, ``sec``, ``min``,
-    ``hr``, or ``day`` which respectively represent microseconds,
+    unit where the time unit is one of ``usec``, ``msec``, ``sec``, ``min``,
+    ``hr``, or ``day`` which respectively represent microseconds, milliseconds,
     seconds, minutes, hours, and days.  Whitespace between the numeric
     constant and time unit is optional.  Appending the letter "s" to the
     time unit in order to pluralize it is also optional (to no semantic
@@ -95,14 +95,14 @@ The Bro scripting language supports the following built-in types.
     and embedded.
 
     In exact matching the ``==`` equality relational operator is used
-    with one :bro:type:`string` operand and one :bro:type:`pattern`
-    operand to check whether the full string exactly matches the
-    pattern.  In this case, the ``^`` beginning-of-line and ``$``
-    end-of-line anchors are redundant since pattern is implicitly
-    anchored to the beginning and end of the line to facilitate an exact
-    match.  For example::
+    with one :bro:type:`pattern` operand and one :bro:type:`string`
+    operand (order of operands does not matter) to check whether the full
+    string exactly matches the pattern.  In exact matching, the ``^``
+    beginning-of-line and ``$`` end-of-line anchors are redundant since
+    the pattern is implicitly anchored to the beginning and end of the
+    line to facilitate an exact match.  For example::
 
-        "foo" == /foo|bar/
+        /foo|bar/ == "foo"
 
     yields true, while::
 
@@ -110,9 +110,9 @@ The Bro scripting language supports the following built-in types.
 
     yields false.  The ``!=`` operator would yield the negation of ``==``.
 
-    In embedded matching the ``in`` operator is again used with one
-    :bro:type:`string` operand and one :bro:type:`pattern` operand
-    (which must be on the left-hand side), but tests whether the pattern
+    In embedded matching the ``in`` operator is used with one
+    :bro:type:`pattern` operand (which must be on the left-hand side) and
+    one :bro:type:`string` operand, but tests whether the pattern
     appears anywhere within the given string.  For example::
 
         /foo|bar/ in "foobar"
@@ -417,10 +417,6 @@ The Bro scripting language supports the following built-in types.
     Writing to files like this for logging usually isn't recommended, for better
     logging support see :doc:`/logging`.
 
-.. bro:type:: func
-
-    See :bro:type:`function`.
-
 .. bro:type:: function
 
     Function types in Bro are declared using::
@@ -504,6 +500,87 @@ The Bro scripting language supports the following built-in types.
     identifier and the body of each will be executed in turn.  Ordering
     of execution can be influenced with :bro:attr:`&priority`.
 
+.. bro:type:: hook
+
+    A hook is another flavor of function that shares characteristics of
+    both a :bro:type:`function` and a :bro:type:`event`.  They are like
+    events in that many handler bodies can be defined for the same hook
+    identifier and the order of execution can be enforced with
+    :bro:attr:`&priority`.  They are more like functions in the way they
+    are invoked/called, because, unlike events, their execution is
+    immediate and they do not get scheduled through an event queue.
+    Also, a unique feature of a hook is that a given hook handler body
+    can short-circuit the execution of remaining hook handlers simply by
+    exiting from the body as a result of a ``break`` statement (as
+    opposed to a ``return`` or just reaching the end of the body).
+
+    A hook type is declared like::
+
+        hook( argument* )
+
+    where *argument* is a (possibly empty) comma-separated list of
+    arguments.  For example:
+
+    .. code:: bro
+
+        global myhook: hook(s: string)
+
+    Here ``myhook`` is the hook type identifier and no hook handler
+    bodies have been defined for it yet.  To define some hook handler
+    bodies the syntax looks like:
+
+    .. code:: bro
+
+        hook myhook(s: string) &priority=10
+            {
+            print "priority 10 myhook handler", s;
+            s = "bye";
+            }
+
+        hook myhook(s: string)
+            {
+            print "break out of myhook handling", s;
+            break;
+            }
+
+        hook myhook(s: string) &priority=-5
+            {
+            print "not going to happen", s;
+            }
+
+    Note that the first (forward) declaration of ``myhook`` as a hook
+    type isn't strictly required.  Argument types must match for all
+    hook handlers and any forward declaration of a given hook.
+
+    To invoke immediate execution of all hook handler bodies, they
+    are called similarly to a function, except preceded by the ``hook``
+    keyword:
+
+    .. code:: bro
+
+        hook myhook("hi");
+
+    or
+
+    .. code:: bro
+
+        if ( hook myhook("hi") )
+            print "all handlers ran";
+
+    And the output would look like::
+
+        priority 10 myhook handler, hi
+        break out of myhook handling, bye
+
+    Note how the modification to arguments can be seen by remaining
+    hook handlers.
+
+    The return value of a hook call is an implicit :bro:type:`bool`
+    value with ``T`` meaning that all handlers for the hook were
+    executed and ``F`` meaning that only some of the handlers may have
+    executed due to one handler body exiting as a result of a ``break``
+    statement.
+
 Attributes
 ----------
 
@@ -586,23 +663,11 @@ scripting language supports the following built-in attributes.
     ``&synchronized`` variable is automatically propagated to all peers
     when it changes.
 
-.. bro:attr:: &postprocessor
-
-.. TODO: needs to be documented.
-
 .. bro:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
 
 .. TODO: needs to be documented in more detail.
-
-.. bro:attr:: &match
-
-.. TODO: needs to be documented.
-
-.. bro:attr:: &disable_print_hook
-
-    Deprecated. Will be removed.
 
 .. bro:attr:: &raw_output
 
@@ -637,6 +702,3 @@ scripting language supports the following built-in attributes.
 
 .. TODO: needs documented
 
-.. bro:attr:: (&tracked)
-
-.. TODO: needs documented or removed if it's not used anywhere.

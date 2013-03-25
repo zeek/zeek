@@ -14,13 +14,6 @@
 # information.
 @load frameworks/software/vulnerable
 
-# Example vulnerable software.  This needs to be updated and maintained over
-# time as new vulnerabilities are discovered.
-redef Software::vulnerable_versions += {
-	["Flash"] = [$major=10,$minor=2,$minor2=153,$addl="1"],
-	["Java"] = [$major=1,$minor=6,$minor2=0,$addl="22"],
-};
-
 # Detect software changing (e.g. attacker installing hacked SSHD).
 @load frameworks/software/version-changes
 
@@ -55,6 +48,10 @@ redef Software::vulnerable_versions += {
 
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
+
+# This script checks each SSL certificate hash against the ICSI certificate
+# notary service.
+@load protocols/ssl/notary
 
 # If you have libGeoIP support built in, do some geographic detections and 
 # logging for SSH traffic.

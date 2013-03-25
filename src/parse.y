@@ -2,27 +2,27 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 90
+%expect 88
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
-%token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
-%token TOK_FUNCTION TOK_GLOBAL TOK_ID TOK_IF TOK_INT
+%token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
+%token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
 %token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
-%token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
+%token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
-%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE TOK_THIS
+%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
 
-%token TOK_ATTR_ADD_FUNC TOK_ATTR_ATTR TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
+%token TOK_ATTR_ADD_FUNC TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
 %token TOK_ATTR_OPTIONAL TOK_ATTR_REDEF TOK_ATTR_ROTATE_INTERVAL
 %token TOK_ATTR_ROTATE_SIZE TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
-%token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
+%token TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
 %token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN
 
@@ -32,6 +32,7 @@
 
 %token TOK_NO_TEST
 
+%nonassoc TOK_HOOK
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':'
@@ -118,7 +119,7 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
-Expr* bro_this = 0;
+static int in_hook = 0;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -132,16 +133,18 @@ const char* cur_enum_elem_id = 0;
 type_decl_list* fake_type_decl_list = 0;
 TypeDecl* last_fake_type_decl = 0;
 
+static ID* cur_decl_type_id = 0;
+
 static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
-	cur_enum_type = new EnumType();
+	cur_enum_type = new EnumType(cur_decl_type_id->Name());
 
 	// For documentation purposes, a separate type object is created
 	// in order to avoid overlap that can be caused by redefs.
 	if ( generate_documentation )
-		cur_enum_type_doc = new CommentedEnumType();
+		cur_enum_type_doc = new CommentedEnumType(cur_decl_type_id->Name());
 	}
 
 static void parser_redef_enum (ID *id)
@@ -159,7 +162,7 @@ static void parser_redef_enum (ID *id)
 		}
 
 	if ( generate_documentation )
-		cur_enum_type_doc = new CommentedEnumType();
+		cur_enum_type_doc = new CommentedEnumType(id->Name());
 	}
 
 static void add_enum_comment (std::list<std::string>* comments)
@@ -210,7 +213,6 @@ static std::list<std::string>* concat_opt_docs (std::list<std::string>* pre,
 	Val* val;
 	RE_Matcher* re;
 	Expr* expr;
-	CallExpr* call_expr;
 	EventExpr* event_expr;
 	Stmt* stmt;
 	ListExpr* list;
@@ -416,6 +418,14 @@ expr:
 			$$ = new IndexExpr($1, $3);
 			}
 
+	|	expr '[' expr ':' expr ']'
+			{
+			set_location(@1, @6);
+			ListExpr* le = new ListExpr($3);
+			le->Append($5);
+			$$ = new IndexExpr($1, le, true);
+			}
+
 	|	expr '$' TOK_ID
 			{
 			set_location(@1, @3);
@@ -457,17 +467,24 @@ expr:
 
 	|	'[' expr_list ']'
 			{
-			// A little crufty: we peek at the type of
-			// the first expression in the list.  If it's
-			// a record or a field assignment, then this
-			// is a record constructor.  If not, then this
-			// is a list used for an initializer.
-
 			set_location(@1, @3);
 
-			Expr* e0 = $2->Exprs()[0];
-			if ( e0->Tag() == EXPR_FIELD_ASSIGN ||
-			     e0->Type()->Tag() == TYPE_RECORD )
+			bool is_record_ctor = true;
+
+			// If every expression in the list is a field assignment,
+			// then treat it as a record constructor, else as a list
+			// used for an initializer.
+
+			for ( int i = 0; i < $2->Exprs().length(); ++i )
+				{
+				if ( $2->Exprs()[i]->Tag() != EXPR_FIELD_ASSIGN )
+					{
+					is_record_ctor = false;
+					break;
+					}
+				}
+
+			if ( is_record_ctor )
 				$$ = new RecordConstructorExpr($2);
 			else
 				$$ = $2;
@@ -508,7 +525,16 @@ expr:
 	|	expr '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new CallExpr($1, $3);
+			$$ = new CallExpr($1, $3, in_hook > 0);
+			}
+
+	|	TOK_HOOK { ++in_hook; } expr
+			{
+			--in_hook;
+			set_location(@1, @3);
+			if ( $3->Tag() != EXPR_CALL )
+				$3->Error("not a valid hook call expression");
+			$$ = $3;
 			}
 
 	|	expr TOK_HAS_FIELD TOK_ID
@@ -582,12 +608,6 @@ expr:
 			set_location(@1);
 			$1->Compile();
 			$$ = new ConstExpr(new PatternVal($1));
-			}
-
-	|	TOK_THIS
-			{
-			set_location(@1);
-			$$ = bro_this->Ref();
 			}
 
 	|       '|' expr '|'
@@ -866,7 +886,13 @@ type:
 	|	TOK_EVENT '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, 0, 1);
+				$$ = new FuncType($3, 0, FUNC_FLAVOR_EVENT);
+				}
+
+	|	TOK_HOOK '(' formal_args ')'
+				{
+				set_location(@1, @3);
+				$$ = new FuncType($3, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
@@ -879,6 +905,12 @@ type:
 				{
 				set_location(@1);
 				$$ = new FileType(base_type(TYPE_STRING));
+				}
+
+	|	TOK_OPAQUE TOK_OF TOK_ID
+				{
+				set_location(@1, @3);
+				$$ = new OpaqueType($3);
 				}
 
 	|	resolve_id
@@ -998,12 +1030,27 @@ decl:
 				ID* id = $2;
 				if ( id->Type()->Tag() == TYPE_FUNC )
 					{
-					if ( id->Type()->AsFuncType()->IsEvent() )
-						current_reST_doc->AddEvent(
-							new BroDocObj(id, reST_doc_comments));
-					else
+					switch ( id->Type()->AsFuncType()->Flavor() ) {
+
+					case FUNC_FLAVOR_FUNCTION:
 						current_reST_doc->AddFunction(
 							new BroDocObj(id, reST_doc_comments));
+						break;
+
+					case FUNC_FLAVOR_EVENT:
+						current_reST_doc->AddEvent(
+							new BroDocObj(id, reST_doc_comments));
+						break;
+
+					case FUNC_FLAVOR_HOOK:
+						current_reST_doc->AddHook(
+							new BroDocObj(id, reST_doc_comments));
+						break;
+
+					default:
+						reporter->InternalError("invalid function flavor");
+						break;
+					}
 					}
 
 				else
@@ -1105,9 +1152,10 @@ decl:
 				}
 			}
 
-	|	TOK_TYPE global_id ':' type opt_attr ';'
+	|	TOK_TYPE global_id ':' { cur_decl_type_id = $2; } type opt_attr ';'
 			{
-			add_type($2, $4, $5, 0);
+			cur_decl_type_id = 0;
+			add_type($2, $5, $6, 0);
 
 			if ( generate_documentation )
 				{
@@ -1182,6 +1230,17 @@ func_hdr:
 				current_reST_doc->AddEventHandler(
 					new BroDocObj($2, reST_doc_comments));
 			}
+	|	TOK_HOOK def_global_id func_params
+			{
+			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
+			$3->SetYieldType(base_type(TYPE_BOOL));
+			begin_func($2, current_module.c_str(),
+				   FUNC_FLAVOR_HOOK, 0, $3);
+			$$ = $3;
+			if ( generate_documentation )
+				current_reST_doc->AddHookHandler(
+					new BroDocObj($2, reST_doc_comments));
+			}
 	|	TOK_REDEF TOK_EVENT event_id func_params
 			{
 			begin_func($3, current_module.c_str(),
@@ -1216,9 +1275,9 @@ begin_func:
 
 func_params:
 		'(' formal_args ')' ':' type
-			{ $$ = new FuncType($2, $5, 0); }
+			{ $$ = new FuncType($2, $5, FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new FuncType($2, base_type(TYPE_VOID), 0); }
+			{ $$ = new FuncType($2, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:
@@ -1297,8 +1356,6 @@ attr:
 			{ $$ = new Attr(ATTR_ENCRYPT); }
 	|	TOK_ATTR_ENCRYPT '=' expr
 			{ $$ = new Attr(ATTR_ENCRYPT, $3); }
-	|	TOK_ATTR_DISABLE_PRINT_HOOK
-			{ $$ = new Attr(ATTR_DISABLE_PRINT_HOOK); }
 	|	TOK_ATTR_RAW_OUTPUT
 			{ $$ = new Attr(ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_MERGEABLE
@@ -1377,6 +1434,14 @@ stmt:
 			$$ = new BreakStmt;
 			if ( ! $3 )
 			    brofiler.AddStmt($$);
+			}
+
+	|	TOK_FALLTHROUGH ';' opt_no_test
+			{
+			set_location(@1, @2);
+			$$ = new FallthroughStmt;
+			if ( ! $3 )
+				brofiler.AddStmt($$);
 			}
 
 	|	TOK_RETURN ';' opt_no_test

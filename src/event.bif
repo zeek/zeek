@@ -150,7 +150,7 @@ event new_connection%(c: connection%);
 ## encapsulation value of *e* after this event is raised.  If the desired
 ## behavior is to track the latest tunnel encapsulation per-connection,
 ## then a handler of this event should assign *e* to ``c$tunnel`` (which Bro's
-## default scripts are doing). 
+## default scripts are doing).
 ##
 ## c: The connection whose tunnel/encapsulation changed.
 ##
@@ -577,6 +577,80 @@ event teredo_origin_indication%(outer: connection, inner: teredo_hdr%);
 ##    it may become particularly expensive for real-time analysis.
 event teredo_bubble%(outer: connection, inner: teredo_hdr%);
 
+## Generated for any GTP message with a GTPv1 header.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+event gtpv1_message%(c: connection, hdr: gtpv1_hdr%);
+
+## Generated for GTPv1 G-PDU packets.  That is, packets with a UDP payload
+## that includes a GTP header followed by an IPv4 or IPv6 packet.
+##
+## outer: The GTP outer tunnel connection.
+##
+## inner_gtp: The GTP header.
+##
+## inner_ip: The inner IP and transport layer packet headers.
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particularly expensive for real-time analysis.
+event gtpv1_g_pdu_packet%(outer: connection, inner_gtp: gtpv1_hdr, inner_ip: pkt_hdr%);
+
+## Generated for GTPv1-C Create PDP Context Request messages.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+##
+## elements: The set of Information Elements comprising the message.
+event gtpv1_create_pdp_ctx_request%(c: connection, hdr: gtpv1_hdr, elements: gtp_create_pdp_ctx_request_elements%);
+
+## Generated for GTPv1-C Create PDP Context Response messages.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+##
+## elements: The set of Information Elements comprising the message.
+event gtpv1_create_pdp_ctx_response%(c: connection, hdr: gtpv1_hdr, elements: gtp_create_pdp_ctx_response_elements%);
+
+## Generated for GTPv1-C Update PDP Context Request messages.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+##
+## elements: The set of Information Elements comprising the message.
+event gtpv1_update_pdp_ctx_request%(c: connection, hdr: gtpv1_hdr, elements: gtp_update_pdp_ctx_request_elements%);
+
+## Generated for GTPv1-C Update PDP Context Response messages.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+##
+## elements: The set of Information Elements comprising the message.
+event gtpv1_update_pdp_ctx_response%(c: connection, hdr: gtpv1_hdr, elements: gtp_update_pdp_ctx_response_elements%);
+
+## Generated for GTPv1-C Delete PDP Context Request messages.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+##
+## elements: The set of Information Elements comprising the message.
+event gtpv1_delete_pdp_ctx_request%(c: connection, hdr: gtpv1_hdr, elements: gtp_delete_pdp_ctx_request_elements%);
+
+## Generated for GTPv1-C Delete PDP Context Response messages.
+##
+## c: The connection over which the message is sent.
+##
+## hdr: The GTPv1 header.
+##
+## elements: The set of Information Elements comprising the message.
+event gtpv1_delete_pdp_ctx_response%(c: connection, hdr: gtpv1_hdr, elements: gtp_delete_pdp_ctx_response_elements%);
+
 ## Generated for every packet that has a non-empty transport-layer payload.
 ## This is a very low-level and expensive event that should be avoided when
 ## at all possible.  It's usually infeasible to handle when processing even
@@ -858,7 +932,7 @@ event udp_contents%(u: connection, is_orig: bool, contents: string%);
 ## Generated when a UDP session for a supported protocol has finished. Some of
 ## Bro's application-layer UDP analyzers flag the end of a session by raising
 ## this event. Currently, the analyzers for DNS, NTP, Netbios, Syslog, AYIYA,
-## and Teredo support this.
+## Teredo, and GTPv1 support this.
 ##
 ## u: The connection record for the corresponding UDP flow.
 ##
@@ -6546,6 +6620,301 @@ event netflow_v5_header%(h: nf_v5_header%);
 ##
 ## .. bro:see:: netflow_v5_record
 event netflow_v5_record%(r: nf_v5_record%);
+
+## Generated for any modbus message regardless if the particular function
+## is further supported or not.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## is_orig: True if the event is raised for the originator side.
+event modbus_message%(c: connection, headers: ModbusHeaders, is_orig: bool%);
+
+## Generated for any modbus exception message.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## code: The exception code.
+event modbus_exception%(c: connection, headers: ModbusHeaders, code: count%);
+
+## Generated for a Modbus read coils request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address where of the first coil to be read.
+##
+## quantity: The number of coils to be read.
+event modbus_read_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read coils response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## coils: The coil values returned from the device.
+event modbus_read_coils_response%(c: connection, headers: ModbusHeaders, coils: ModbusCoils%);
+
+## Generated for a Modbus read discrete inputs request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil to be read.
+##
+## quantity: The number of coils to be read.
+event modbus_read_discrete_inputs_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read discrete inputs response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## coils: The coil values returned from the device.
+event modbus_read_discrete_inputs_response%(c: connection, headers: ModbusHeaders, coils: ModbusCoils%);
+
+## Generated for a Modbus read holding registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be read.
+##
+## quantity: The number of registers to be read.
+event modbus_read_holding_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read holding registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## registers: The register values returned from the device.
+event modbus_read_holding_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
+
+## Generated for a Modbus read input registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be read.
+##
+## quantity: The number of registers to be read.
+event modbus_read_input_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read input registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## registers: The register values returned from the device.
+event modbus_read_input_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
+
+## Generated for a Modbus write single coil request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the coil to be written.
+##
+## value: The value to be written to the coil.
+event modbus_write_single_coil_request%(c: connection, headers: ModbusHeaders, address: count, value: bool%);
+
+## Generated for a Modbus write single coil response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the coil that was written.
+##
+## value: The value that was written to the coil.
+event modbus_write_single_coil_response%(c: connection, headers: ModbusHeaders, address: count, value: bool%);
+
+## Generated for a Modbus write single register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register to be written.
+##
+## value: The value to be written to the register.
+event modbus_write_single_register_request%(c: connection, headers: ModbusHeaders, address: count, value: count%);
+
+## Generated for a Modbus write single register response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register that was written.
+##
+## value: The value that was written to the register.
+event modbus_write_single_register_response%(c: connection, headers: ModbusHeaders, address: count, value: count%);
+
+## Generated for a Modbus write multiple coils request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil to be written.
+##
+## value: The values to be written to the coils.
+event modbus_write_multiple_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, coils: ModbusCoils%);
+
+## Generated for a Modbus write multiple coils response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil that was written.
+##
+## quantity: The quantity of coils that were written.
+event modbus_write_multiple_coils_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus write multiple registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be written.
+##
+## registers: The values to be written to the registers.
+event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, registers: ModbusRegisters%);
+
+## Generated for a Modbus write multiple registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register that was written.
+##
+## quantity: The quantity of registers that were written.
+event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read file record request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus read file record response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus write file record request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus write file record response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus mask write register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register where the masks should be applied.
+##
+## and_mask: The value of the logical AND mask to apply to the register.
+##
+## or_mask: The value of the logical OR mask to apply to the register.
+event modbus_mask_write_register_request%(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count%);
+
+## Generated for a Modbus mask write register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register where the masks were applied.
+##
+## and_mask: The value of the logical AND mask applied register.
+##
+## or_mask: The value of the logical OR mask applied to the register.
+event modbus_mask_write_register_response%(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count%);
+
+## Generated for a Modbus read/write multiple registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## read_start_address: The memory address of the first register to be read.
+##
+## read_quantity: The number of registers to read.
+##
+## write_start_address: The memory address of the first register to be written.
+##
+## write_registers: The values to be written to the registers.
+event modbus_read_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters%);
+
+## Generated for a Modbus read/write multiple registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## written_registers: The register values read from the registers specified in the request.
+event modbus_read_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters%);
+
+## Generated for a Modbus read FIFO queue request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The address of the FIFO queue to read.
+event modbus_read_fifo_queue_request%(c: connection, headers: ModbusHeaders, start_address: count%);
+
+## Generated for a Modbus read FIFO queue response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## fifos: The register values read from the FIFO queue on the device.
+event modbus_read_fifo_queue_response%(c: connection, headers: ModbusHeaders, fifos: ModbusRegisters%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such
 ## messages may be generated internally by the event engine and also by other

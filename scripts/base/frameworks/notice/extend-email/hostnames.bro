@@ -13,7 +13,7 @@ module Notice;
 # reference to the original notice)
 global tmp_notice_storage: table[string] of Notice::Info &create_expire=max_email_delay+10secs;
 
-event Notice::notice(n: Notice::Info) &priority=10
+hook notice(n: Notice::Info) &priority=10
 	{
 	if ( ! n?$src && ! n?$dst )
 		return;

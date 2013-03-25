@@ -19,7 +19,7 @@ test.2011-03-07-12-00-05.ds test 11-03-07_12.00.05 11-03-07_12.59.55 1 dataserie
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -47,7 +47,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -75,7 +75,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -103,7 +103,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -131,7 +131,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -159,7 +159,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -187,7 +187,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -215,7 +215,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -243,7 +243,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -271,7 +271,7 @@ t id.orig_h id.orig_p id.resp_h id.resp_p
   <field type="variable32" name="xmltype" />
 </ExtentType>
 
-<ExtentType name="test" version="1.0" namespace="bro-ids.org">
+<ExtentType name="test" version="1.0" namespace="bro.org">
 	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />

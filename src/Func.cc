@@ -54,13 +54,13 @@ bool did_builtin_init = false;
 
 vector<Func*> Func::unique_ids;
 
-Func::Func() : scope(0), id(0), return_value(0)
+Func::Func() : scope(0), type(0)
 	{
 	unique_id = unique_ids.size();
 	unique_ids.push_back(this);
 	}
 
-Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), id(0), return_value(0)
+Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), type(0)
 	{
 	unique_id = unique_ids.size();
 	unique_ids.push_back(this);
@@ -68,6 +68,7 @@ Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), id(0), return_value(0)
 
 Func::~Func()
 	{
+	Unref(type);
 	}
 
 void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
@@ -129,6 +130,12 @@ bool Func::DoSerialize(SerialInfo* info) const
 	if ( ! SERIALIZE(char(kind) ) )
 		return false;
 
+	if ( ! type->Serialize(info) )
+		return false;
+
+	if ( ! SERIALIZE(Name()) )
+		return false;
+
 	// We don't serialize scope as only global functions are considered here
 	// anyway.
 	return true;
@@ -160,12 +167,25 @@ bool Func::DoUnserialize(UnserialInfo* info)
 		return false;
 
 	kind = (Kind) c;
+
+	type = BroType::Unserialize(info);
+	if ( ! type )
+		return false;
+
+	const char* n;
+	if ( ! UNSERIALIZE_STR(&n, 0) )
+		return false;
+
+	name = n;
+	delete [] n;
+
 	return true;
 	}
 
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
 	{
-	id->Describe(d);
+	d->Add(Name());
+
 	RecordType* func_args = FType()->Args();
 
 	if ( args )
@@ -196,21 +216,6 @@ void Func::DescribeDebug(ODesc* d, const val_list* args) const
 		}
 	}
 
-void Func::SetID(ID *arg_id)
-	{
-	id = arg_id;
-
-	return_value =
-		new ID(string(string(id->Name()) + "_returnvalue").c_str(),
-			SCOPE_FUNCTION, false);
-	return_value->SetType(FType()->YieldType()->Ref());
-	}
-
-ID* Func::GetReturnValueID() const
-	{
-	return return_value;
-	}
-
 TraversalCode Func::Traverse(TraversalCallback* cb) const
 	{
 	// FIXME: Make a fake scope for builtins?
@@ -225,12 +230,6 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 		{
 		tc = scope->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
-
-		if ( GetReturnValueID() )
-			{
-			tc = GetReturnValueID()->Traverse(cb);
-			HANDLE_TC_STMT_PRE(tc);
-			}
 
 		for ( unsigned int i = 0; i < bodies.size(); ++i )
 			{
@@ -249,7 +248,8 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 		int arg_frame_size, int priority)
 : Func(BRO_FUNC)
 	{
-	id = arg_id;
+	name = arg_id->Name();
+	type = arg_id->Type()->Ref();
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
@@ -263,7 +263,6 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 
 BroFunc::~BroFunc()
 	{
-	Unref(id);
 	for ( unsigned int i = 0; i < bodies.size(); ++i )
 		Unref(bodies[i].stmts);
 	}
@@ -282,13 +281,14 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
-	if ( ! bodies.size() ) 
+	if ( ! bodies.size() )
 		{
-		// Can only happen for events.
-		assert(IsEvent());
+		// Can only happen for events and hooks.
+		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
-		return 0 ;
+
+		return Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0;
 		}
 
 	SegmentProfiler(segment_logger, location);
@@ -309,7 +309,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
-			IsEvent() ? "event" : "function", d.Description());
+			FType()->FlavorString().c_str(), d.Description());
 		}
 
 	loop_over_list(*args, i)
@@ -348,15 +348,37 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			parent->SetDelayed();
 			break;
 			}
+
+		if ( Flavor() == FUNC_FLAVOR_HOOK )
+			{
+			// Ignore any return values of hook bodies, final return value
+			// depends on whether a body returns as a result of break statement.
+			Unref(result);
+			result = 0;
+
+			if ( flow == FLOW_BREAK )
+				{
+				// Short-circuit execution of remaining hook handler bodies.
+				result = new Val(false, TYPE_BOOL);
+				break;
+				}
+			}
+		}
+
+	if ( Flavor() == FUNC_FLAVOR_HOOK )
+		{
+		if ( ! result )
+			result = new Val(true, TYPE_BOOL);
 		}
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
+	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		reporter->Warning("non-void function returns without a value: %s", id->Name());
+		reporter->Warning("non-void function returns without a value: %s",
+		                  Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -380,7 +402,7 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 
 	new_body = AddInits(new_body, new_inits);
 
-	if ( ! IsEvent() )
+	if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);
@@ -399,8 +421,7 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 
 void BroFunc::Describe(ODesc* d) const
 	{
-	if ( id )
-		id->Describe(d);
+	d->Add(Name());
 
 	d->NL();
 	d->AddCount(frame_size);
@@ -428,14 +449,14 @@ IMPLEMENT_SERIAL(BroFunc, SER_BRO_FUNC);
 bool BroFunc::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BRO_FUNC, Func);
-	return id->Serialize(info) && SERIALIZE(frame_size);
+	return SERIALIZE(frame_size);
 	}
 
 bool BroFunc::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(Func);
-	id = ID::Unserialize(info);
-	return id && UNSERIALIZE(&frame_size);
+
+	return UNSERIALIZE(&frame_size);
 	}
 
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
@@ -443,15 +464,16 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 : Func(BUILTIN_FUNC)
 	{
 	func = arg_func;
-	name = copy_string(make_full_var_name(GLOBAL_MODULE_NAME, arg_name).c_str());
+	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
 	is_pure = arg_is_pure;
 
-	id = lookup_ID(name, GLOBAL_MODULE_NAME, false);
+	ID* id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
-		reporter->InternalError("built-in function %s missing", name);
+		reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
-		reporter->InternalError("built-in function %s multiply defined", name);
+		reporter->InternalError("built-in function %s multiply defined", Name());
 
+	type = id->Type()->Ref();
 	id->SetVal(new Val(this));
 	}
 
@@ -469,7 +491,7 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-	SegmentProfiler(segment_logger, name);
+	SegmentProfiler(segment_logger, Name());
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
@@ -500,8 +522,7 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 
 void BuiltinFunc::Describe(ODesc* d) const
 	{
-	if ( id )
-	id->Describe(d);
+	d->Add(Name());
 	d->AddCount(is_pure);
 	}
 
@@ -510,16 +531,13 @@ IMPLEMENT_SERIAL(BuiltinFunc, SER_BUILTIN_FUNC);
 bool BuiltinFunc::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BUILTIN_FUNC, Func);
-
-	// We ignore the ID. Func::Serialize() will rebind us anyway.
-	return SERIALIZE(name);
+	return true;
 	}
 
 bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(Func);
-	id = 0;
-	return UNSERIALIZE_STR(&name, 0);
+	return true;
 	}
 
 void builtin_error(const char* msg, BroObj* arg)

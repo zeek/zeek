@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "../../threading/Manager.h"
 
@@ -25,11 +26,15 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
 	timedspread = double(BifConst::InputBenchmark::timedspread);
 	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
+
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
 	}
 
 Benchmark::~Benchmark()
 	{
 	DoClose();
+
+	delete ascii;
 	}
 
 void Benchmark::DoClose()
@@ -67,7 +72,9 @@ string Benchmark::RandomString(const int len)
 double Benchmark::CurrTime()
 	{
 	struct timeval tv;
-	assert ( gettimeofday(&tv, 0) >= 0 );
+	if ( gettimeofday(&tv, 0) != 0 ) {
+		FatalError(Fmt("Could not get time: %d", errno));
+	}
 
 	return double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 	}
@@ -162,13 +169,13 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 	case TYPE_SUBNET:
 		{
-		val->val.subnet_val.prefix = StringToAddr("192.168.17.1");
+		val->val.subnet_val.prefix = ascii->ParseAddr("192.168.17.1");
 		val->val.subnet_val.length = 16;
 		}
 		break;
 
 	case TYPE_ADDR:
-		val->val.addr_val = StringToAddr("192.168.17.1");
+		val->val.addr_val = ascii->ParseAddr("192.168.17.1");
 		break;
 
 	case TYPE_TABLE:

@@ -265,19 +265,6 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 	return new StringVal(new BroString(1, byte_vec(new_s), ind));
 	%}
 
-## Returns the number of characters (bytes) in the given string. The
-## length computation includes any embedded NULs, and also a trailing NUL,
-## if any (which is why the function isn't called ``strlen``; to remind
-## the user that Bro strings can include NULs).
-##
-## s: The string to compute the length for.
-##
-## Returns: The number of characters in *s*.
-function byte_len%(s: string%): count
-	%{
-	return new Val(s->Len(), TYPE_COUNT);
-	%}
-
 ## Get a substring from a string, given a starting position and length.
 ##
 ## s: The string to obtain a substring from.
@@ -311,15 +298,9 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 	return 1;
 	}
 
-Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
-		int incl_sep, int max_num_sep)
+Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 	{
 	TableVal* a = new TableVal(string_array);
-	ListVal* other_strings = 0;
-
-	if ( other_sep && other_sep->Size() > 0 )
-		other_strings = other_sep->ConvertToPureList();
-
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -372,9 +353,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		if ( s > end_of_s )
 			reporter->InternalError("RegMatch in split goes beyond the string");
 		}
-
-	if ( other_strings )
-		delete other_strings;
 
 	return a;
 	}
@@ -483,7 +461,7 @@ Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
 ##
 function split%(str: string, re: pattern%): string_array
 	%{
-	return do_split(str, re, 0, 0, 0);
+	return do_split(str, re, 0, 0);
 	%}
 
 ## Splits a string *once* into a two-element array of strings according to a
@@ -503,7 +481,7 @@ function split%(str: string, re: pattern%): string_array
 ## .. bro:see:: split split_all split_n str_split
 function split1%(str: string, re: pattern%): string_array
 	%{
-	return do_split(str, re, 0, 0, 1);
+	return do_split(str, re, 0, 1);
 	%}
 
 ## Splits a string into an array of strings according to a pattern. This
@@ -523,7 +501,7 @@ function split1%(str: string, re: pattern%): string_array
 ## .. bro:see:: split split1 split_n str_split
 function split_all%(str: string, re: pattern%): string_array
 	%{
-	return do_split(str, re, 0, 1, 0);
+	return do_split(str, re, 1, 0);
 	%}
 
 ## Splits a string a given number of times into an array of strings according
@@ -549,16 +527,7 @@ function split_all%(str: string, re: pattern%): string_array
 function split_n%(str: string, re: pattern,
 		incl_sep: bool, max_num_sep: count%): string_array
 	%{
-	return do_split(str, re, 0, incl_sep, max_num_sep);
-	%}
-
-## Deprecated. Will be removed.
-# Reason: the parameter ``other`` does nothing.
-function split_complete%(str: string,
-		re: pattern, other: string_set,
-		incl_sep: bool, max_num_sep: count%): string_array
-	%{
-	return do_split(str, re, other->AsTableVal(), incl_sep, max_num_sep);
+	return do_split(str, re, incl_sep, max_num_sep);
 	%}
 
 ## Substitutes a given replacement string for the first occurrence of a pattern
@@ -884,7 +853,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 
 		for ( BroString::VecIt it = result->begin();
 		      it != result->end(); ++it, ++i )
-			result_v->Assign(i, new StringVal(*it), 0);
+			result_v->Assign(i, new StringVal(*it));
 			// StringVal now possesses string.
 
 		delete result;
@@ -1152,4 +1121,17 @@ function hexdump%(data_str: string%) : string
 	delete [] hex_data;
 
 	return result;
+	%}
+
+## Returns a reversed copy of the string
+##
+## str: The string to reverse.
+##
+## Returns: A reversed copy of *str*
+##
+function reverse%(str: string%) : string
+	%{
+	string s = string((const char*)str->Bytes(), str->Len());
+	reverse(s.begin(), s.end());
+	return new StringVal(s.length(), (const char*)s.c_str());
 	%}

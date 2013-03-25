@@ -87,8 +87,11 @@ Frame* Frame::Clone()
 
 void Frame::SetTrigger(Trigger* arg_trigger)
 	{
+	ClearTrigger();
+
 	if ( arg_trigger )
 		Ref(arg_trigger);
+
 	trigger = arg_trigger;
 	}
 

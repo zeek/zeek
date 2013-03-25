@@ -19,7 +19,7 @@ export {
 		version:          string           &log &optional;
 		## SSL/TLS cipher suite that the server chose.
 		cipher:           string           &log &optional;
-		## Value of the Server Name Indicator SSL/TLS extension.  It 
+		## Value of the Server Name Indicator SSL/TLS extension.  It
 		## indicates the server name that the client was requesting.
 		server_name:      string           &log &optional;
 		## Session ID offered by the client for session resumption.
@@ -30,37 +30,54 @@ export {
 		issuer_subject:   string           &log &optional;
 		## NotValidBefore field value from the server certificate.
 		not_valid_before: time             &log &optional;
-		## NotValidAfter field value from the serve certificate.
+		## NotValidAfter field value from the server certificate.
 		not_valid_after:  time             &log &optional;
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
-		
+
+		## Subject of the X.509 certificate offered by the client.
+		client_subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the client.
+		client_issuer_subject:   string           &log &optional;
+
 		## Full binary server certificate stored in DER format.
 		cert:             string           &optional;
-		## Chain of certificates offered by the server to validate its 
+		## Chain of certificates offered by the server to validate its
 		## complete signing chain.
 		cert_chain:       vector of string &optional;
+
+		## Full binary client certificate stored in DER format.
+		client_cert:             string           &optional;
+		## Chain of certificates offered by the client to validate its
+		## complete signing chain.
+		client_cert_chain:       vector of string &optional;
 
 		## The analyzer ID used for the analyzer instance attached
 		## to each connection.  It is not used for logging since it's a
 		## meaningless arbitrary number.
 		analyzer_id:      count            &optional;
 	};
-	
+
 	## The default root CA bundle.  By loading the
 	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
-	
+
 	## If true, detach the SSL analyzer from the connection to prevent
 	## continuing to process encrypted traffic. Helps with performance
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
-	
-	## The openssl command line utility.  If it's in the path the default
-	## value will work, otherwise a full path string can be supplied for the
-	## utility.
-	const openssl_util = "openssl" &redef;
-	
+
+	## The maximum amount of time a script can delay records from being logged.
+	const max_log_delay = 15secs &redef;
+
+	## Delays an SSL record for a specific token: the record will not be logged
+	## as longs the token exists or until :bro:id:`SSL::max_log_delay` elapses.
+	global delay_log: function(info: Info, token: string);
+
+	## Undelays an SSL record for a previously inserted token, allowing the
+	## record to be logged.
+	global undelay_log: function(info: Info, token: string);
+
 	## Event that can be handled to access the SSL
 	## record as it is sent on to the logging framework.
 	global log_ssl: event(rec: Info);
@@ -68,6 +85,13 @@ export {
 
 redef record connection += {
 	ssl: Info &optional;
+};
+
+redef record Info += {
+		# Adding a string "token" to this set will cause the SSL script
+		# to delay logging the record until either the token has been removed or
+		# the record has been delayed for :bro:id:`SSL::max_log_delay`.
+		delay_tokens: set[string] &optional;
 };
 
 event bro_init() &priority=5
@@ -104,18 +128,79 @@ redef likely_server_ports += {
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
 
+# A queue that buffers log records.
+global log_delay_queue: table[count] of Info;
+# The top queue index where records are added.
+global log_delay_queue_head = 0;
+# The bottom queue index that points to the next record to be flushed.
+global log_delay_queue_tail = 0;
+
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
-		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector()];
+		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector(),
+		         $client_cert_chain=vector()];
+	}
+
+function delay_log(info: Info, token: string)
+	{
+	info$delay_tokens = set();
+	add info$delay_tokens[token];
+
+	log_delay_queue[log_delay_queue_head] = info;
+	++log_delay_queue_head;
+	}
+
+function undelay_log(info: Info, token: string)
+	{
+	if ( token in info$delay_tokens )
+		delete info$delay_tokens[token];
+	}
+
+global log_record: function(info: Info);
+
+event delay_logging(info: Info)
+	{
+	log_record(info);
+	}
+
+function log_record(info: Info)
+	{
+	if ( ! info?$delay_tokens || |info$delay_tokens| == 0 )
+		{
+		Log::write(SSL::LOG, info);
+		}
+	else
+		{
+		for ( unused_index in log_delay_queue )
+			{
+			if ( log_delay_queue_head == log_delay_queue_tail )
+				return;
+			if ( |log_delay_queue[log_delay_queue_tail]$delay_tokens| > 0 )
+				{
+				if ( info$ts + max_log_delay > network_time() )
+					{
+					schedule 1sec { delay_logging(info) };
+					return;
+					}
+				else
+					{
+					Reporter::info(fmt("SSL delay tokens not released in time (%s)",
+					                   info$delay_tokens));
+					}
+				}
+			Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
+			delete log_delay_queue[log_delay_queue_tail];
+			++log_delay_queue_tail;
+			}
+		}
 	}
 
 function finish(c: connection)
 	{
-	Log::write(SSL::LOG, c$ssl);
+	log_record(c$ssl);
 	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
-	delete c$ssl;
 	}
 
 event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
@@ -141,23 +226,40 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: coun
 
 	# We aren't doing anything with client certificates yet.
 	if ( is_orig )
-		return;
-
-	if ( chain_idx == 0 )
 		{
-		# Save the primary cert.
-		c$ssl$cert = der_cert;
+		if ( chain_idx == 0 )
+			{
+			# Save the primary cert.
+			c$ssl$client_cert = der_cert;
 
-		# Also save other certificate information about the primary cert.
-		c$ssl$subject = cert$subject;
-		c$ssl$issuer_subject = cert$issuer;
-		c$ssl$not_valid_before = cert$not_valid_before;
-		c$ssl$not_valid_after = cert$not_valid_after;
+			# Also save other certificate information about the primary cert.
+			c$ssl$client_subject = cert$subject;
+			c$ssl$client_issuer_subject = cert$issuer;
+			}
+		else
+			{
+			# Otherwise, add it to the cert validation chain.
+			c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = der_cert;
+			}
 		}
 	else
 		{
-		# Otherwise, add it to the cert validation chain.
-		c$ssl$cert_chain[|c$ssl$cert_chain|] = der_cert;
+		if ( chain_idx == 0 )
+			{
+			# Save the primary cert.
+			c$ssl$cert = der_cert;
+
+			# Also save other certificate information about the primary cert.
+			c$ssl$subject = cert$subject;
+			c$ssl$issuer_subject = cert$issuer;
+			c$ssl$not_valid_before = cert$not_valid_before;
+			c$ssl$not_valid_after = cert$not_valid_after;
+			}
+		else
+			{
+			# Otherwise, add it to the cert validation chain.
+			c$ssl$cert_chain[|c$ssl$cert_chain|] = der_cert;
+			}
 		}
 	}
 
@@ -198,4 +300,16 @@ event protocol_violation(c: connection, atype: count, aid: count,
 	{
 	if ( c?$ssl )
 		finish(c);
+	}
+
+event bro_done()
+	{
+	if ( |log_delay_queue| == 0 )
+		return;
+	for ( unused_index in log_delay_queue )
+		{
+		Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
+		delete log_delay_queue[log_delay_queue_tail];
+		++log_delay_queue_tail;
+		}
 	}

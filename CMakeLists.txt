@@ -88,24 +88,30 @@ if (LIBGEOIP_FOUND)
     list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
 endif ()
 
-set(USE_PERFTOOLS false)
+set(HAVE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
+set(USE_PERFTOOLS_TCMALLOC false)
 
 if (NOT DISABLE_PERFTOOLS)
    find_package(GooglePerftools)
 endif ()
 
 if (GOOGLEPERFTOOLS_FOUND)
-    include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
-    set(USE_PERFTOOLS true)
+    set(HAVE_PERFTOOLS true)
+    # Non-Linux systems may not be well-supported by gperftools, so
+    # require explicit request from user to enable it in that case.
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ENABLE_PERFTOOLS)
+        set(USE_PERFTOOLS_TCMALLOC true)
 
-    if (ENABLE_PERFTOOLS_DEBUG)
-        # Enable heap debugging with perftools.
-        set(USE_PERFTOOLS_DEBUG true)
-        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
-    else ()
-        # Link in tcmalloc for better performance.
-        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
+        if (ENABLE_PERFTOOLS_DEBUG)
+            # Enable heap debugging with perftools.
+            set(USE_PERFTOOLS_DEBUG true)
+            include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+            list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
+        else ()
+            # Link in tcmalloc for better performance.
+            list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
+        endif ()
     endif ()
 endif ()
 
@@ -114,7 +120,8 @@ find_package(Lintel)
 find_package(DataSeries)
 find_package(LibXML2)
 
-if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
+if (NOT DISABLE_DATASERIES AND
+    LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
     set(USE_DATASERIES true)
 	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
 	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
@@ -126,13 +133,13 @@ endif()
 
 set(USE_ELASTICSEARCH false)
 set(USE_CURL false)
-find_package(CURL)
+find_package(LibCURL)
 
-if (CURL_FOUND)
+if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
   set(USE_ELASTICSEARCH true)
   set(USE_CURL true)
-  include_directories(BEFORE ${CURL_INCLUDE_DIR})
-  list(APPEND OPTLIBS ${CURL_LIBRARIES})
+  include_directories(BEFORE ${LibCURL_INCLUDE_DIR})
+  list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
 endif()
 
 if (ENABLE_PERFTOOLS_DEBUG)
@@ -188,7 +195,7 @@ CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 if (INSTALL_BROCTL)
     # CPack RPM Generator may not automatically detect this
-    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.4.0")
+    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.6.0")
 endif ()
 
 # If this CMake project is a sub-project of another, we will not
@@ -224,7 +231,8 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
-    "\nGoogle perftools:  ${USE_PERFTOOLS}"
+    "\ngperftools found:  ${HAVE_PERFTOOLS}"
+    "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\ncURL:              ${USE_CURL}"
     "\n"

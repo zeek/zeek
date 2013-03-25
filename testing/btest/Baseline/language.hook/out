@@ -1,0 +1,19 @@
+myhook, &priority=10, [a=1156, b=hello world]
+myhook return F
+myhook return T
+myhook, &priority=5, [a=37, b=goobye world]
+F
+T
+myhook3, 8
+T
+myhook4, 2
+myhook4, 1
+T
+myhook4, 2
+myhook4, 1
+myhook4 all handlers ran
+myhook, &priority=10, [a=2, b=it works]
+myhook return F
+myhook return T
+myhook, &priority=5, [a=37, b=goobye world]
+F

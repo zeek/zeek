@@ -22,7 +22,7 @@ void nb_dns_finish(struct nb_dns_info *);
 int nb_dns_fd(struct nb_dns_info *);
 
 int nb_dns_host_request(struct nb_dns_info *, const char *, void *, char *);
-int nb_dns_host_request2(struct nb_dns_info *, const char *, int,
+int nb_dns_host_request2(struct nb_dns_info *, const char *, int, int,
 				void *, char *);
 
 int nb_dns_addr_request(struct nb_dns_info *, nb_uint32_t, void *, char *);

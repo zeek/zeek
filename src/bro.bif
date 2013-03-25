@@ -9,10 +9,12 @@
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
+#include <time.h>
 
 #include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "util.h"
 
 using namespace std;
 
@@ -527,82 +529,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	%}
 
 %%{
-static void hash_md5_val(val_list& vlist, unsigned char digest[16])
-	{
-	MD5_CTX h;
-
-	md5_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			md5_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			md5_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	md5_final(&h, digest);
-	}
-
-static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
-	{
-	hash_md5_val(vlist, digest);
-	for ( int i = 0; i < 16; ++i )
-		digest[i] = digest[i] ^ shared_hmac_md5_key[i];
-	MD5(digest, 16, digest);
-	}
-
-static void hash_sha1_val(val_list& vlist, unsigned char digest[20])
-	{
-	SHA_CTX h;
-
-	sha1_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			sha1_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			sha1_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	sha1_final(&h, digest);
-	}
-
-static void hash_sha256_val(val_list& vlist, unsigned char digest[32])
-	{
-	SHA256_CTX h;
-
-	sha256_init(&h);
-	loop_over_list(vlist, i)
-		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			sha256_update(&h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			sha256_update(&h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-	sha256_final(&h, digest);
-	}
+#include "OpaqueVal.h"
 %%}
 
 ## Computes the MD5 hash value of the provided list of arguments.
@@ -620,8 +547,8 @@ static void hash_sha256_val(val_list& vlist, unsigned char digest[32])
 ##      friends.
 function md5_hash%(...%): string
 	%{
-	unsigned char digest[16];
-	hash_md5_val(@ARG@, digest);
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5Val::digest(@ARG@, digest);
 	return new StringVal(md5_digest_print(digest));
 	%}
 
@@ -640,8 +567,8 @@ function md5_hash%(...%): string
 ##      friends.
 function sha1_hash%(...%): string
 	%{
-	unsigned char digest[20];
-	hash_sha1_val(@ARG@, digest);
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	SHA1Val::digest(@ARG@, digest);
 	return new StringVal(sha1_digest_print(digest));
 	%}
 
@@ -660,8 +587,8 @@ function sha1_hash%(...%): string
 ##      friends.
 function sha256_hash%(...%): string
 	%{
-	unsigned char digest[32];
-	hash_sha256_val(@ARG@, digest);
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	SHA256Val::digest(@ARG@, digest);
 	return new StringVal(sha256_digest_print(digest));
 	%}
 
@@ -676,288 +603,183 @@ function sha256_hash%(...%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hmac%(...%): string
 	%{
-	unsigned char digest[16];
-	hmac_md5_val(@ARG@, digest);
-	return new StringVal(md5_digest_print(digest));
+	unsigned char hmac[MD5_DIGEST_LENGTH];
+	MD5Val::hmac(@ARG@, shared_hmac_md5_key, hmac);
+	return new StringVal(md5_digest_print(hmac));
 	%}
 
-%%{
-static map<BroString, MD5_CTX> md5_states;
-static map<BroString, SHA_CTX> sha1_states;
-static map<BroString, SHA256_CTX> sha256_states;
-
-BroString* convert_index_to_string(Val* index)
-	{
-	ODesc d;
-	index->Describe(&d);
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(1);
-	return s;
-	}
-%%}
-
-## Initializes MD5 state to enable incremental hash computation. After
-## initializing the MD5 state with this function, you can feed data to
-## :bro:id:`md5_hash_update` and finally need to call :bro:id:`md5_hash_finish`
-## to finish the computation and get the final hash value.
+## Constructs an MD5 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`md5_hash_update` and
+## eventually need to call :bro:id:`md5_hash_finish` to finish the computation
+## and get the hash digest as result.
 ##
 ## For example, when computing incremental MD5 values of transferred files in
-## multiple concurrent HTTP connections, one would call ``md5_hash_init(c$id)``
-## once before invoking ``md5_hash_update(c$id, some_more_data)`` in the
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$md5_handle = md5_hash_init()`` once before invoking
+## ``md5_hash_update(c$http$md5_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`md5_hash_finish` returns the final hash value.
-##
-## index: The unique identifier to associate with this hash computation.
+## 
+## Returns: The opaque handle associated with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function md5_hash_init%(index: any%): bool
+function md5_hash_init%(%): opaque of md5
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( md5_states.count(*s) < 1 )
-		{
-		MD5_CTX h;
-		md5_init(&h);
-		md5_states[*s] = h;
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	HashVal* digest = new MD5Val();
+	digest->Init();
+	return digest;
 	%}
 
-## Initializes SHA1 state to enable incremental hash computation. After
-## initializing the SHA1 state with this function, you can feed data to
-## :bro:id:`sha1_hash_update` and finally need to call
-## :bro:id:`sha1_hash_finish` to finish the computation and get the final hash
-## value.
+## Constructs an SHA1 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`sha1_hash_update` and
+## finally need to call :bro:id:`sha1_hash_finish` to finish the computation
+## and get the hash digest as result.
 ##
 ## For example, when computing incremental SHA1 values of transferred files in
-## multiple concurrent HTTP connections, one would call ``sha1_hash_init(c$id)``
-## once before invoking ``sha1_hash_update(c$id, some_more_data)`` in the
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha1_handle = sha1_hash_init()`` ## once before invoking
+## ``sha1_hash_update(c$http$sha1_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha1_hash_finish` returns the final hash value.
 ##
-## index: The unique identifier to associate with this hash computation.
+## Returns: The opaque handle associated with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function sha1_hash_init%(index: any%): bool
+function sha1_hash_init%(%): opaque of sha1
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha1_states.count(*s) < 1 )
-		{
-		SHA_CTX h;
-		sha1_init(&h);
-		sha1_states[*s] = h;
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	HashVal* digest = new SHA1Val();
+	digest->Init();
+	return digest;
 	%}
 
-## Initializes SHA256 state to enable incremental hash computation. After
-## initializing the SHA256 state with this function, you can feed data to
-## :bro:id:`sha256_hash_update` and finally need to call
-## :bro:id:`sha256_hash_finish` to finish the computation and get the final hash
-## value.
+## Constructs an SHA256 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`sha256_hash_update` and
+## finally need to call :bro:id:`sha256_hash_finish` to finish the computation
+## and get the hash digest as result.
 ##
 ## For example, when computing incremental SHA256 values of transferred files in
-## multiple concurrent HTTP connections, one would call
-## ``sha256_hash_init(c$id)`` once before invoking
-## ``sha256_hash_update(c$id, some_more_data)`` in the
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha256_handle = sha256_hash_init()`` ## once before invoking
+## ``sha256_hash_update(c$http$sha256_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha256_hash_finish` returns the final hash value.
 ##
-## index: The unique identifier to associate with this hash computation.
+## Returns: The opaque handle associated with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_update sha256_hash_finish
-function sha256_hash_init%(index: any%): bool
+function sha256_hash_init%(%): opaque of sha256
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha256_states.count(*s) < 1 )
-		{
-		SHA256_CTX h;
-		sha256_init(&h);
-		sha256_states[*s] = h;
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	HashVal* digest = new SHA256Val();
+	digest->Init();
+	return digest;
 	%}
 
-## Update the MD5 value associated with a given index. It is required to
+## Updates the MD5 value associated with a given index. It is required to
 ## call :bro:id:`md5_hash_init` once before calling this
 ## function.
 ##
-## index: The unique identifier to associate with this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
 ## data: The data to add to the hash computation.
+##
+## Returns: True on success.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function md5_hash_update%(index: any, data: string%): bool
+function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( md5_states.count(*s) > 0 )
-		{
-		md5_update(&md5_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
 	%}
 
-## Update the SHA1 value associated with a given index. It is required to
+## Updates the SHA1 value associated with a given index. It is required to
 ## call :bro:id:`sha1_hash_init` once before calling this
 ## function.
 ##
-## index: The unique identifier to associate with this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
 ## data: The data to add to the hash computation.
+##
+## Returns: True on success.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function sha1_hash_update%(index: any, data: string%): bool
+function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha1_states.count(*s) > 0 )
-		{
-		sha1_update(&sha1_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
 	%}
 
-## Update the SHA256 value associated with a given index. It is required to
+## Updates the SHA256 value associated with a given index. It is required to
 ## call :bro:id:`sha256_hash_init` once before calling this
 ## function.
 ##
-## index: The unique identifier to associate with this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
 ## data: The data to add to the hash computation.
+##
+## Returns: True on success.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_finish
-function sha256_hash_update%(index: any, data: string%): bool
+function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( sha256_states.count(*s) > 0 )
-		{
-		sha256_update(&sha256_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
 	%}
 
 ## Returns the final MD5 digest of an incremental hash computation.
 ##
-## index: The unique identifier of this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
-## Returns: The hash value associated with the computation at *index*.
+## Returns: The hash value associated with the computation of *handle*.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function md5_hash_finish%(index: any%): string
+function md5_hash_finish%(handle: opaque of md5%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( md5_states.count(*s) > 0 )
-		{
-		unsigned char digest[16];
-		md5_final(&md5_states[*s], digest);
-		md5_states.erase(*s);
-		printable_digest = new StringVal(md5_digest_print(digest));
-		}
-	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+	return static_cast<HashVal*>(handle)->Get();
 	%}
 
 ## Returns the final SHA1 digest of an incremental hash computation.
 ##
-## index: The unique identifier of this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
-## Returns: The hash value associated with the computation at *index*.
+## Returns: The hash value associated with the computation of *handle*.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
-function sha1_hash_finish%(index: any%): string
+function sha1_hash_finish%(handle: opaque of sha1%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( sha1_states.count(*s) > 0 )
-		{
-		unsigned char digest[20];
-		sha1_final(&sha1_states[*s], digest);
-		sha1_states.erase(*s);
-		printable_digest = new StringVal(sha1_digest_print(digest));
-		}
-	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+	return static_cast<HashVal*>(handle)->Get();
 	%}
 
 ## Returns the final SHA256 digest of an incremental hash computation.
 ##
-## index: The unique identifier of this hash computation.
+## handle: The opaque handle associated with this hash computation.
 ##
-## Returns: The hash value associated with the computation at *index*.
+## Returns: The hash value associated with the computation of *handle*.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update
-function sha256_hash_finish%(index: any%): string
+function sha256_hash_finish%(handle: opaque of sha256%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( sha256_states.count(*s) > 0 )
-		{
-		unsigned char digest[32];
-		sha256_final(&sha256_states[*s], digest);
-		sha256_states.erase(*s);
-		printable_digest = new StringVal(sha256_digest_print(digest));
-		}
-	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+	return static_cast<HashVal*>(handle)->Get();
 	%}
 
 ## Generates a random number.
@@ -1021,44 +843,22 @@ extern "C" {
 ## return_mime: If true, the function returns a short MIME type string (e.g.,
 ##              ``text/plain`` instead of a more elaborate textual description).
 ##
-## Returns: The MIME type of *data*.
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
 function identify_data%(data: string, return_mime: bool%): string
 	%{
-	const char* descr = "";
-
 	static magic_t magic_mime = 0;
 	static magic_t magic_descr = 0;
 
 	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
+	bro_init_magic(magic, return_mime ? MAGIC_MIME : MAGIC_NONE);
 
 	if( ! *magic )
-		{
-		*magic = magic_open(return_mime ? MAGIC_MIME : MAGIC_NONE);
+		return new StringVal("<unknown>");
 
-		if ( ! *magic )
-			{
-			reporter->Error("can't init libmagic: %s", magic_error(*magic));
-			return new StringVal("");
-			}
+	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
 
-		if ( magic_load(*magic, 0) < 0 )
-			{
-			reporter->Error("can't load magic file: %s", magic_error(*magic));
-			magic_close(*magic);
-			*magic = 0;
-			return new StringVal("");
-			}
-		}
-
-	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-
-	return new StringVal(descr);
+	return new StringVal(desc ? desc : "<unknown>");
 	%}
-
-%%{
-#include <RandTest.h>
-static map<BroString, RandTest*> entropy_states;
-%%}
 
 ## Performs an entropy test on the given data.
 ## See http://www.fourmilab.ch/random.
@@ -1104,13 +904,11 @@ function find_entropy%(data: string%): entropy_test_result
 	%{
 	double montepi, scc, ent, mean, chisq;
 	montepi = scc = ent = mean = chisq = 0.0;
+	EntropyVal e;
+	e.Feed(data->Bytes(), data->Len());
+	e.Get(&ent, &chisq, &mean, &montepi, &scc);
+
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	RandTest *rt = new RandTest();
-
-	rt->add((char*) data->Bytes(), data->Len());
-	rt->end(&ent, &chisq, &mean, &montepi, &scc);
-	delete rt;
-
 	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
@@ -1121,85 +919,52 @@ function find_entropy%(data: string%): entropy_test_result
 
 ## Initializes data structures for incremental entropy calculation.
 ##
-## index: An arbitrary unique value per distinct computation.
-##
-## Returns: True on success.
+## Returns: An opaque handle to be used in subsequent operations.
 ##
 ## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
-function entropy_test_init%(index: any%): bool
+function entropy_test_init%(%): opaque of entropy
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( entropy_states.count(*s) < 1 )
-		{
-		entropy_states[*s] = new RandTest();
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	return new EntropyVal();
 	%}
 
-## Adds data to an incremental entropy calculation. Before using this function,
-## one needs to invoke :bro:id:`entropy_test_init`.
+## Adds data to an incremental entropy calculation.
+##
+## handle: The opaque handle representing the entropy calculation state.
 ##
 ## data: The data to add to the entropy calculation.
 ##
-## index: An arbitrary unique value that identifies a particular entropy
-##        computation.
-##
 ## Returns: True on success.
 ##
 ## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
-function entropy_test_add%(index: any, data: string%): bool
+function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( entropy_states.count(*s) > 0 )
-		{
-		entropy_states[*s]->add((char*) data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
+	bool status = static_cast<EntropyVal*>(handle)->Feed(data->Bytes(),
+	                                                     data->Len());
 	return new Val(status, TYPE_BOOL);
 	%}
 
 ## Finishes an incremental entropy calculation. Before using this function,
-## one needs to initialize the computation with :bro:id:`entropy_test_init` and
+## one needs to obtain an opaque handle with :bro:id:`entropy_test_init` and
 ## add data to it via :bro:id:`entropy_test_add`.
 ##
-## index: An arbitrary unique value that identifies a particular entropy
-##        computation.
+## handle: The opaque handle representing the entropy calculation state.
 ##
 ## Returns: The result of the entropy test. See :bro:id:`find_entropy` for a
 ##          description of the individual components.
 ##
 ## .. bro:see:: find_entropy entropy_test_init entropy_test_add
-function entropy_test_finish%(index: any%): entropy_test_result
+function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	%{
-	BroString* s = convert_index_to_string(index);
 	double montepi, scc, ent, mean, chisq;
 	montepi = scc = ent = mean = chisq = 0.0;
+	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
+
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-
-	if ( entropy_states.count(*s) > 0 )
-		{
-		RandTest *rt = entropy_states[*s];
-		rt->end(&ent, &chisq, &mean, &montepi, &scc);
-		entropy_states.erase(*s);
-		delete rt;
-		}
-
 	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
 	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
 	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
-
-	delete s;
 	return ent_result;
 	%}
 
@@ -1248,29 +1013,6 @@ function clear_table%(v: any%): any
 		builtin_error("clear_table() requires a table/set argument");
 
 	return 0;
-	%}
-
-## Returns the number of elements in a container. This function works with all
-## container types, i.e., sets, tables, and vectors.
-##
-## v: The container whose elements are counted.
-##
-## Returns: The number of elements in *v*.
-function length%(v: any%): count
-	%{
-	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
-
-	if ( tv )
-		return new Val(tv->Size(), TYPE_COUNT);
-
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
-		return new Val(v->AsVectorVal()->Size(), TYPE_COUNT);
-
-	else
-		{
-		builtin_error("length() requires a table/set/vector argument");
-		return new Val(0, TYPE_COUNT);
-		}
 	%}
 
 ## Checks whether two objects reference the same internal object. This function
@@ -1566,7 +1308,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
-		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
+		result_v->Assign(i, new Val(ind, TYPE_COUNT));
 		}
 
 	return result_v;
@@ -1850,7 +1592,7 @@ function record_type_to_vector%(rt: string%): string_vec
 		for ( int i = 0; i < type->NumFields(); ++i )
 			{
 			StringVal* val = new StringVal(type->FieldName(i));
-			result->Assign(i+1, val, 0);
+			result->Assign(i+1, val);
 			}
 		}
 
@@ -2356,7 +2098,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	while ( len > 0 )
 		{
 		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
-		rval->Assign(rval->Size(), new AddrVal(a), 0);
+		rval->Assign(rval->Size(), new AddrVal(a));
 		bytes += 16;
 		len -= 16;
 		}
@@ -2379,7 +2121,7 @@ function addr_to_counts%(a: addr%): index_vec
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT), 0);
+		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT));
 
 	return rval;
 	%}
@@ -2613,15 +2355,15 @@ function to_double%(str: string%): double
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-	
+
 	double d = strtod(s, &end_s);
-	
+
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		{       
+		{
 		builtin_error("bad conversion to double", @ARG@[0]);
 		d = 0;
-		}     
-	
+		}
+
 	return new Val(d, TYPE_DOUBLE);
 	%}
 
@@ -2681,8 +2423,9 @@ function to_port%(s: string%): port
     if ( s->Len() < 10 )
         {
         char* slash;
+        errno = 0;
         port = strtol(s->CheckString(), &slash, 10);
-        if ( port )
+        if ( ! errno )
             {
             ++slash;
             if ( streq(slash, "tcp") )
@@ -2696,6 +2439,27 @@ function to_port%(s: string%): port
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
     return new PortVal(port, TRANSPORT_UNKNOWN);
+	%}
+
+## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
+##
+## s: A string of bytes containing the binary representation of a double value.
+##
+## Returns: The double value contained in *s*, or 0 if the conversion
+##          failed.
+##
+function bytestring_to_double%(s: string%): double
+	%{
+	if ( s->Len() != sizeof(double) )
+		{
+		builtin_error("bad conversion to double");
+		return new Val(0.0, TYPE_DOUBLE);
+		}
+
+	// See #908 for a discussion of portability.
+	double d;
+	memcpy(&d, s->Bytes(), sizeof(double));
+	return new Val(ntohd(d), TYPE_DOUBLE);
 	%}
 
 ## Converts a reverse pointer name to an address. For example,
@@ -3063,13 +2827,55 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	return new StringVal(hexstr);
 	%}
 
+## Encodes a Base64-encoded string.
+##
+## s: The string to encode
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64_custom, decode_base64
+function encode_base64%(s: string%): string
+	%{
+	BroString* t = encode_base64(s->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+## Encodes a Base64-encoded string with a custom alphabet.
+##
+## s: The string to encode
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64, decode_base64_custom
+function encode_base64_custom%(s: string, a: string%): string
+	%{
+	BroString* t = encode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
 ## Decodes a Base64-encoded string.
 ##
 ## s: The Base64-encoded string.
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom
+## .. bro:see:: decode_base64_custom, encode_base64
 function decode_base64%(s: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString());
@@ -3092,7 +2898,7 @@ function decode_base64%(s: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64
+## .. bro:see:: decode_base64, encode_base64_custom
 function decode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
@@ -3282,6 +3088,31 @@ function strftime%(fmt: string, d: time%) : string
 
 	return new StringVal(buffer);
 	%}
+
+
+## Parse a textual representation of a date/time value into a ``time`` type value.
+##
+## fmt: The format string used to parse the following *d* argument. See ``man strftime``
+##      for the syntax.
+##
+## d: The string representing the time.
+##
+## Returns: The time value calculated from parsing *d* with *fmt*.
+function strptime%(fmt: string, d: string%) : time
+	%{
+	const time_t timeval = time_t(NULL);
+	struct tm t = *localtime(&timeval);
+
+	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
+		{
+		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		return new Val(0.0, TYPE_TIME);
+		}
+
+	double ret = mktime(&t);
+	return new Val(ret, TYPE_TIME);
+	%}
+
 
 # ===========================================================================
 #
@@ -3742,9 +3573,38 @@ function lookup_addr%(host: addr%) : string
 	return 0;
 	%}
 
+## Issues an asynchronous TEXT DNS lookup and delays the function result.
+## This function can therefore only be called inside a ``when`` condition,
+## e.g., ``when ( local h = lookup_hostname_txt("www.bro.org") ) { f(h); }``.
+##
+## host: The hostname to lookup.
+##
+## Returns: The DNS TXT record associated with *host*.
+##
+## .. bro:see:: lookup_hostname
+function lookup_hostname_txt%(host: string%) : string
+	%{
+	// FIXME: Is should be easy to adapt the function to synchronous
+	// lookups if we're reading a trace.
+	Trigger* trigger = frame->GetTrigger();
+
+	if ( ! trigger)
+		{
+		builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	dns_mgr->AsyncLookupNameText(host->CheckString(),
+				 new LookupHostCallback(trigger, frame->GetCall(), true));
+	return 0;
+	%}
+
 ## Issues an asynchronous DNS lookup and delays the function result.
 ## This function can therefore only be called inside a ``when`` condition,
-## e.g., ``when ( local h = lookup_hostname("www.bro-ids.org") ) { f(h); }``.
+## e.g., ``when ( local h = lookup_hostname("www.bro.org") ) { f(h); }``.
 ##
 ## host: The hostname to lookup.
 ##
@@ -3785,7 +3645,7 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
 	if ( ! geoip )
-		reporter->Warning("Failed to open GeoIP database: %s",
+		reporter->Info("Failed to open GeoIP database: %s",
 		                  GeoIPDBFileName[type]);
 	return geoip;
 	}
@@ -3825,7 +3685,7 @@ function lookup_location%(a: addr%) : geo_location
 			if ( ! geoip )
 				builtin_error("Can't initialize GeoIP City/Country database");
 			else
-				reporter->Warning("Fell back to GeoIP Country database");
+				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;
@@ -4856,7 +4716,7 @@ function file_size%(f: string%) : double
 	%}
 
 ## Disables sending :bro:id:`print_hook` events to remote peers for a given
-## file. This function is equivalent to :bro:attr:`&disable_print_hook`. In a
+## file. In a
 ## distributed setup, communicating Bro instances generate the event
 ## :bro:id:`print_hook` for each print statement and send it to the remote
 ## side. When disabled for a particular file, these events will not be
@@ -4872,7 +4732,7 @@ function disable_print_hook%(f: file%): any
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
-## This function is equivalent to :bro:attr:`&disable_print_hook`.
+## This function is equivalent to :bro:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
 ##
@@ -5681,12 +5541,6 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 #
 # ===========================================================================
 
-## Deprecated. Will be removed.
-function parse_dotted_addr%(s: string%): addr
-	%{
-	IPAddr a(s->CheckString());
-	return new AddrVal(a);
-	%}
 
 
 %%{
@@ -5785,80 +5639,6 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 			(enum ip_addr_anonymization_class_t) anon_class));
 		}
 	%}
-
-## Deprecated. Will be removed.
-function dump_config%(%) : bool
-	%{
-	return new Val(persistence_serializer->WriteConfig(true), TYPE_BOOL);
-	%}
-
-## Deprecated. Will be removed.
-function make_connection_persistent%(c: connection%) : any
-	%{
-	c->MakePersistent();
-	return 0;
-	%}
-
-%%{
-// Experimental code to add support for IDMEF XML output based on
-// notices.  For now, we're implementing it as a builtin you can call on an
-// notices record.
-
-#ifdef USE_IDMEF
-extern "C" {
-#include <libidmef/idmefxml.h>
-}
-#endif
-
-#include <sys/socket.h>
-
-char* port_to_string(PortVal* port)
-	{
-	char buf[256];	// to hold sprintf results on port numbers
-	snprintf(buf, sizeof(buf), "%u", port->Port());
-	return copy_string(buf);
-	}
-
-%%}
-
-## Deprecated. Will be removed.
-function generate_idmef%(src_ip: addr, src_port: port,
-				dst_ip: addr, dst_port: port%) : bool
-	%{
-#ifdef USE_IDMEF
-	xmlNodePtr message =
-		newIDMEF_Message(newAttribute("version","1.0"),
-			newAlert(newCreateTime(NULL),
-			newSource(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(src_ip->AsAddr().AsString().c_str())),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(src_port)),
-					NULL), NULL),
-			newTarget(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(dst_ip->AsAddr().AsString().c_str())),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(dst_port)),
-					NULL), NULL), NULL), NULL);
-
-	// if ( validateCurrentDoc() )
-	printCurrentMessage(stderr);
-	return new Val(1, TYPE_BOOL);
-#else
-	builtin_error("Bro was not configured for IDMEF support");
-	return new Val(0, TYPE_BOOL);
-#endif
-	%}
-
 
 ## This is where my code starts...
 ##Just a note about notation. I'm specifying everything with the prefix hll just

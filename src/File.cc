@@ -138,11 +138,22 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
 	{
 	Init();
-
+	f = 0;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
 	t = arg_t ? arg_t : base_type(TYPE_STRING);
-	if ( ! Open() )
+
+	if ( streq(name, "/dev/stdin") )
+		f = stdin;
+	else if ( streq(name, "/dev/stdout") )
+		f = stdout;
+	else if ( streq(name, "/dev/stderr") )
+		f = stderr;
+
+	if ( f )
+		is_open = 1;
+
+	else if ( ! Open() )
 		{
 		reporter->Error("cannot open %s: %s", name, strerror(errno));
 		is_open = 0;
@@ -342,8 +353,8 @@ int BroFile::Close()
 
 	FinishEncrypt();
 
-	// Do not close stdout/stderr.
-	if ( f == stdout || f == stderr )
+	// Do not close stdin/stdout/stderr.
+	if ( f == stdin || f == stdout || f == stderr )
 		return 0;
 
 	if ( is_in_cache )
@@ -503,12 +514,9 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 			InitEncrypt(log_encryption_key->AsString()->CheckString());
 		}
 
-	if ( attrs->FindAttr(ATTR_DISABLE_PRINT_HOOK) )
-		DisablePrintHook();
-
 	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )
 		EnableRawOutput();
-	
+
 	InstallRotateTimer();
 	}
 
@@ -521,6 +529,10 @@ void BroFile::SetRotateInterval(double secs)
 RecordVal* BroFile::Rotate()
 	{
 	if ( ! is_open )
+		return 0;
+
+	// Do not rotate stdin/stdout/stderr.
+	if ( f == stdin || f == stdout || f == stderr )
 		return 0;
 
 	if ( okay_to_manage && ! is_in_cache )

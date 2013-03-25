@@ -2,6 +2,7 @@
 #ifndef THREADING_SERIALIZATIONTYPES_H
 #define THREADING_SERIALIZATIONTYPES_H
 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

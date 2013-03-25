@@ -1,10 +1,15 @@
-##! This framework is intended to create an output and filtering path for 
-##! internal messages/warnings/errors.  It should typically be loaded to 
-##! avoid Bro spewing internal messages to standard error and instead log
-##! them to a file in a standard way.  Note that this framework deals with
-##! the handling of internally-generated reporter messages, for the
-##! interface into actually creating reporter messages from the scripting
-##! layer, use the built-in functions in :doc:`/scripts/base/reporter.bif`.
+##! This framework is intended to create an output and filtering path for
+##! internal messages/warnings/errors.  It should typically be loaded to
+##! log such messages to a file in a standard way.  For the options to
+##! toggle whether messages are additionally written to STDERR, see
+##! :bro:see:`Reporter::info_to_stderr`,
+##! :bro:see:`Reporter::warnings_to_stderr`, and
+##! :bro:see:`Reporter::errors_to_stderr`.
+##!
+##! Note that this framework deals with the handling of internally generated
+##! reporter messages, for the interface in to actually creating interface
+##! into actually creating reporter messages from the scripting layer, use
+##! the built-in functions in :doc:`/scripts/base/reporter.bif`.
 
 module Reporter;
 
@@ -13,11 +18,11 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## An indicator of reporter message severity.
-	type Level: enum { 
+	type Level: enum {
 		## Informational, not needing specific attention.
-		INFO, 
+		INFO,
 		## Warning of a potential problem.
-		WARNING, 
+		WARNING,
 		## A non-fatal error that should be addressed, but doesn't
 		## terminate program execution.
 		ERROR
@@ -43,17 +48,17 @@ event bro_init() &priority=5
 	Log::create_stream(Reporter::LOG, [$columns=Info]);
 	}
 
-event reporter_info(t: time, msg: string, location: string)
+event reporter_info(t: time, msg: string, location: string) &priority=-5
 	{
 	Log::write(Reporter::LOG, [$ts=t, $level=INFO, $message=msg, $location=location]);
 	}
-	
-event reporter_warning(t: time, msg: string, location: string)
+
+event reporter_warning(t: time, msg: string, location: string) &priority=-5
 	{
 	Log::write(Reporter::LOG, [$ts=t, $level=WARNING, $message=msg, $location=location]);
 	}
 
-event reporter_error(t: time, msg: string, location: string)
+event reporter_error(t: time, msg: string, location: string) &priority=-5
 	{
 	Log::write(Reporter::LOG, [$ts=t, $level=ERROR, $message=msg, $location=location]);
 	}

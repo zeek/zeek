@@ -1,0 +1,1 @@
+protocol_violation, [orig_h=74.125.216.149, orig_p=2152/udp, resp_h=10.131.138.69, resp_p=2152/udp], GTP-in-GTP [\x80\xe1Bc.\xe20\xebn\xd9'|\x00\x00\x01\xb6[\xf6\xdc0\xb7d\xe5\xe6\xa76\x91\xfbk\x0e\x02\xc8A\x05\xa8\xe6\xf3Gi\x80...]

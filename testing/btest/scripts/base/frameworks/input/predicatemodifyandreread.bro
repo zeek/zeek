@@ -1,6 +1,3 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 2
@@ -58,7 +55,9 @@
 1	T	test1	idx1
 @TEST-END-FILE
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
+
+@load base/frameworks/communication  # let network-time run
 
 redef InputAscii::empty_field = "EMPTY";
 
@@ -94,7 +93,7 @@ event bro_init()
 				]);
 	}
 
-event Input::update_finished(name: string, source: string)
+event Input::end_of_data(name: string, source: string)
 	{
 	try = try + 1;
 	print outfile, fmt("Update_finished for %s, try %d", name, try);

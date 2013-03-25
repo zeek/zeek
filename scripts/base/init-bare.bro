@@ -240,7 +240,7 @@ export {
 		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
 		## tunnel the ports will be set to 0. The direction (i.e., orig and
 		## resp) are set according to the first tunneled packet seen
-		## and not according to the side that established the tunnel. 
+		## and not according to the side that established the tunnel.
 		cid: conn_id;
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type;
@@ -826,7 +826,7 @@ const tcp_storm_interarrival_thresh = 1 sec &redef;
 ## peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
-const tcp_max_initial_window = 4096;
+const tcp_max_initial_window = 4096 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a sequence
 ## hole that we'll tolerate before assuming that there's been a packet drop and we
@@ -834,7 +834,7 @@ const tcp_max_initial_window = 4096;
 ## up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
-const tcp_max_above_hole_without_any_acks = 4096;
+const tcp_max_above_hole_without_any_acks = 4096 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that
@@ -843,7 +843,7 @@ const tcp_max_above_hole_without_any_acks = 4096;
 ## has in fact gone too far, but for now we just make this quite beefy.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
-const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024;
+const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
 ## For services without an a handler, these sets define originator-side ports that
 ## still trigger reassembly.
@@ -1135,10 +1135,10 @@ type ip6_ah: record {
 	rsv: count;
 	## Security Parameter Index.
 	spi: count;
-	## Sequence number.
-	seq: count;
-	## Authentication data.
-	data: string;
+	## Sequence number, unset in the case that *len* field is zero.
+	seq: count &optional;
+	## Authentication data, unset in the case that *len* field is zero.
+	data: string &optional;
 };
 
 ## Values extracted from an IPv6 ESP extension header.
@@ -1448,6 +1448,184 @@ type teredo_hdr: record {
 	auth:   teredo_auth &optional;   ##< Teredo authentication header.
 	origin: teredo_origin &optional; ##< Teredo origin indication header.
 	hdr:    pkt_hdr;                 ##< IPv6 and transport protocol headers.
+};
+
+## A GTPv1 (GPRS Tunneling Protocol) header.
+type gtpv1_hdr: record {
+	## The 3-bit version field, which for GTPv1 should be 1.
+	version:   count;
+	## Protocol Type value differentiates GTP (value 1) from GTP' (value 0).
+	pt_flag:   bool;
+	## Reserved field, should be 0.
+	rsv:       bool;
+	## Extension Header flag.  When 0, the *next_type* field may or may not
+	## be present, but shouldn't be meaningful.  When 1, *next_type* is
+	## present and meaningful.
+	e_flag:    bool;
+	## Sequence Number flag.  When 0, the *seq* field may or may not
+	## be present, but shouldn't be meaningful.  When 1, *seq* is
+	## present and meaningful.
+	s_flag:    bool;
+	## N-PDU flag.  When 0, the *n_pdu* field may or may not
+	## be present, but shouldn't be meaningful.  When 1, *n_pdu* is
+	## present and meaningful.
+	pn_flag:   bool;
+	## Message Type.  A value of 255 indicates user-plane data is encapsulated.
+	msg_type:  count;
+	## Length of the GTP packet payload (the rest of the packet following the
+	## mandatory 8-byte GTP header).
+	length:    count;
+	## Tunnel Endpoint Identifier.  Unambiguously identifies a tunnel endpoint
+	## in receiving GTP-U or GTP-C protocol entity.
+	teid:      count;
+	## Sequence Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field is
+	## set.
+	seq:       count &optional;
+	## N-PDU Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field is set.
+	n_pdu:     count &optional;
+	## Next Extension Header Type.  Set if any *e_flag*, *s_flag*, or *pn_flag*
+	## field is set.
+	next_type: count &optional;
+};
+
+type gtp_cause: count;
+type gtp_imsi: count;
+type gtp_teardown_ind: bool;
+type gtp_nsapi: count;
+type gtp_recovery: count;
+type gtp_teid1: count;
+type gtp_teid_control_plane: count;
+type gtp_charging_id: count;
+type gtp_charging_gateway_addr: addr;
+type gtp_trace_reference: count;
+type gtp_trace_type: count;
+type gtp_tft: string;
+type gtp_trigger_id: string;
+type gtp_omc_id: string;
+type gtp_reordering_required: bool;
+type gtp_proto_config_options: string;
+type gtp_charging_characteristics: count;
+type gtp_selection_mode: count;
+type gtp_access_point_name: string;
+type gtp_msisdn: string;
+
+type gtp_gsn_addr: record {
+	## If the GSN Address information element has length 4 or 16, then this
+	## field is set to be the informational element's value interpreted as
+	## an IPv4 or IPv6 address, respectively.
+	ip: addr &optional;
+	## This field is set if it's not an IPv4 or IPv6 address.
+	other: string &optional;
+};
+
+type gtp_end_user_addr: record {
+	pdp_type_org: count;
+	pdp_type_num: count;
+	## Set if the End User Address information element is IPv4/IPv6.
+	pdp_ip: addr &optional;
+	## Set if the End User Address information element isn't IPv4/IPv6.
+	pdp_other_addr: string &optional;
+};
+
+type gtp_rai: record {
+	mcc: count;
+	mnc: count;
+	lac: count;
+	rac: count;
+};
+
+type gtp_qos_profile: record {
+	priority: count;
+	data: string;
+};
+
+type gtp_private_extension: record {
+	id: count;
+	value: string;
+};
+
+type gtp_create_pdp_ctx_request_elements: record {
+	imsi:             gtp_imsi &optional;
+	rai:              gtp_rai &optional;
+	recovery:         gtp_recovery &optional;
+	select_mode:      gtp_selection_mode &optional;
+	data1:            gtp_teid1;
+	cp:               gtp_teid_control_plane &optional;
+	nsapi:            gtp_nsapi;
+	linked_nsapi:     gtp_nsapi &optional;
+	charge_character: gtp_charging_characteristics &optional;
+	trace_ref:        gtp_trace_reference &optional;
+	trace_type:       gtp_trace_type &optional;
+	end_user_addr:    gtp_end_user_addr &optional;
+	ap_name:          gtp_access_point_name &optional;
+	opts:             gtp_proto_config_options &optional;
+	signal_addr:      gtp_gsn_addr;
+	user_addr:        gtp_gsn_addr;
+	msisdn:           gtp_msisdn &optional;
+	qos_prof:         gtp_qos_profile;
+	tft:              gtp_tft &optional;
+	trigger_id:       gtp_trigger_id &optional;
+	omc_id:           gtp_omc_id &optional;
+	ext:              gtp_private_extension &optional;
+};
+
+type gtp_create_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	reorder_req:    gtp_reordering_required &optional;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	end_user_addr:  gtp_end_user_addr &optional;
+	opts:           gtp_proto_config_options &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_update_pdp_ctx_request_elements: record {
+	imsi:          gtp_imsi &optional;
+	rai:           gtp_rai &optional;
+	recovery:      gtp_recovery &optional;
+	data1:         gtp_teid1;
+	cp:            gtp_teid_control_plane &optional;
+	nsapi:         gtp_nsapi;
+	trace_ref:     gtp_trace_reference &optional;
+	trace_type:    gtp_trace_type &optional;
+	cp_addr:       gtp_gsn_addr;
+	user_addr:     gtp_gsn_addr;
+	qos_prof:      gtp_qos_profile;
+	tft:           gtp_tft &optional;
+	trigger_id:    gtp_trigger_id &optional;
+	omc_id:        gtp_omc_id &optional;
+	ext:           gtp_private_extension &optional;
+	end_user_addr: gtp_end_user_addr &optional;
+};
+
+type gtp_update_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_request_elements: record {
+	teardown_ind: gtp_teardown_ind &optional;
+	nsapi:        gtp_nsapi;
+	ext:          gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_response_elements: record {
+	cause: gtp_cause;
+	ext:   gtp_private_extension &optional;
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
@@ -2457,9 +2635,19 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+type ModbusCoils: vector of bool;
+type ModbusRegisters: vector of count;
+
+type ModbusHeaders: record {
+	tid:           count;
+	pid:           count;
+	uid:           count;
+	function_code: count;
+};
+
 module SOCKS;
 export {
-	## This record is for a SOCKS client or server to provide either a 
+	## This record is for a SOCKS client or server to provide either a
 	## name or an address to represent a desired or established connection.
 	type Address: record {
 		host: addr   &optional;
@@ -2559,6 +2747,15 @@ const gap_report_freq = 1.0 sec &redef;
 ##
 ## .. bro:see:: content_gap gap_report partial_connection
 const report_gaps_for_partial = F &redef;
+
+## Flag to prevent Bro from exiting automatically when input is exhausted.
+## Normally Bro terminates when all packets sources have gone dry
+## and  communication isn't enabled. If this flag is set, Bro's main loop will
+## instead keep idleing until :bro:see::`terminate` is explicitly called.
+##
+## This is mainly for testing purposes when termination behaviour needs to be
+## controlled for reproducing results.
+const exit_only_after_terminate = F &redef;
 
 ## The CA certificate file to authorize remote Bros/Broccolis.
 ##
@@ -2776,6 +2973,9 @@ export {
 	## Toggle whether to do IPv6-in-Teredo decapsulation.
 	const enable_teredo = T &redef;
 
+	## Toggle whether to do GTPv1 decapsulation.
+	const enable_gtpv1 = T &redef;
+
 	## With this option set, the Teredo analysis will first check to see if
 	## other protocol analyzers have confirmed that they think they're
 	## parsing the right protocol and only continue with Teredo tunnel
@@ -2784,9 +2984,45 @@ export {
 	## to have a valid Teredo encapsulation.
 	const yielding_teredo_decapsulation = T &redef;
 
+	## With this set, the Teredo analyzer waits until it sees both sides
+	## of a connection using a valid Teredo encapsulation before issuing
+	## a :bro:see:`protocol_confirmation`.  If it's false, the first
+	## occurence of a packet with valid Teredo encapsulation causes a
+	## confirmation.  Both cases are still subject to effects of
+	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
+	const delay_teredo_confirmation = T &redef;
+
+	## With this set, the GTP analyzer waits until the most-recent upflow
+	## and downflow packets are a valid GTPv1 encapsulation before
+	## issuing :bro:see:`protocol_confirmation`.  If it's false, the
+	## first occurence of a packet with valid GTPv1 encapsulation causes
+	## confirmation.  Since the same inner connection can be carried
+	## differing outer upflow/downflow connections, setting to false
+	## may work better.
+	const delay_gtp_confirmation = F &redef;
+
 	## How often to cleanup internal state for inactive IP tunnels.
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
+module GLOBAL;
+
+module Reporter;
+export {
+	## Tunable for sending reporter info messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const info_to_stderr = T &redef;
+
+	## Tunable for sending reporter warning messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const warnings_to_stderr = T &redef;
+
+	## Tunable for sending reporter error messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const errors_to_stderr = T &redef;
+}
 module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.

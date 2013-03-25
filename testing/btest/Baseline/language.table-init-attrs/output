@@ -1,0 +1,91 @@
+my_set_ctor_init
+{
+test2,
+test3,
+test4,
+test1
+}
+
+my_table_ctor_init
+{
+[2] = test2,
+[1] = test1,
+[3] = test3
+}
+nope
+
+my_set_init
+{
+test2,
+test3,
+test4,
+test1
+}
+
+my_table_init
+{
+[2] = test2,
+[4] = test4,
+[1] = test1,
+[3] = test3
+}
+nope
+
+inception
+{
+[0] = {
+[13] = bar
+}
+}
+{
+[13] = bar
+}
+bar
+forty-two
+{
+
+}
+we need to go deeper
+{
+[0] = {
+[13] = bar
+}
+}
+{
+[13] = bar
+}
+bar
+forty-two
+{
+
+}
+we need to go deeper
+
+local table t1
+{
+[1] = foo
+}
+foo
+nope
+
+local table t2
+{
+[1] = foo
+}
+foo
+nope
+
+local table t3
+{
+
+}
+nope
+nope
+
+local table t4
+{
+
+}
+nope
+nope
+

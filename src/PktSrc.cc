@@ -219,16 +219,44 @@ void PktSrc::Process()
 		// Get protocol being carried from the ethernet frame.
 		protocol = (data[12] << 8) + data[13];
 
-		// MPLS carried over the ethernet frame.
-		if ( protocol == 0x8847 )
-			have_mpls = true;
-
-		// VLAN carried over ethernet frame.
-		else if ( protocol == 0x8100 )
+		switch ( protocol )
 			{
-			data += get_link_header_size(datalink);
-			data += 4; // Skip the vlan header
-			pkt_hdr_size = 0;
+			// MPLS carried over the ethernet frame.
+			case 0x8847:
+				have_mpls = true;
+				break;
+
+			// VLAN carried over the ethernet frame.
+			case 0x8100:
+				data += get_link_header_size(datalink);
+				data += 4; // Skip the vlan header
+				pkt_hdr_size = 0;
+
+				// Check for 802.1ah (Q-in-Q) containing IP.
+				// Only do a second layer of vlan tag
+				// stripping because there is no
+				// specification that allows for deeper
+				// nesting.
+				if ( ((data[2] << 8) + data[3]) == 0x0800 )
+					data += 4;
+
+				break;
+
+			// PPPoE carried over the ethernet frame.
+			case 0x8864:
+				data += get_link_header_size(datalink);
+				protocol = (data[6] << 8) + data[7];
+				data += 8; // Skip the PPPoE session and PPP header
+				pkt_hdr_size = 0;
+
+				if ( protocol != 0x0021 && protocol != 0x0057 )
+					{
+					// Neither IPv4 nor IPv6.
+					sessions->Weird("non_ip_packet_in_pppoe_encapsulation", &hdr, data);
+					data = 0;
+					return;
+					}
+				break;
 			}
 
 		break;

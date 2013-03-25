@@ -347,13 +347,15 @@ public:
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
-	ID* GetID() const	{ return bound_id; }
+	ID* GetID() const
+		{
+		return bound_id ? global_scope()->Lookup(bound_id) : 0;
+		}
+
 	void SetID(ID* id)
 		{
-		if ( bound_id )
-			::Unref(bound_id);
-		bound_id = id;
-		::Ref(bound_id);
+		delete [] bound_id;
+		bound_id = id ? copy_string(id->Name()) : 0;
 		}
 #endif
 
@@ -401,8 +403,8 @@ protected:
 	RecordVal* attribs;
 
 #ifdef DEBUG
-	// For debugging, we keep the ID to which a Val is bound.
-	ID* bound_id;
+	// For debugging, we keep the name of the ID to which a Val is bound.
+	const char* bound_id;
 #endif
 
 };
@@ -966,18 +968,16 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
-	bool Assign(unsigned int index, Val* element, const Expr* assigner,
-			Opcode op = OP_ASSIGN);
-	bool Assign(Val* index, Val* element, const Expr* assigner,
-			Opcode op = OP_ASSIGN)
+	bool Assign(unsigned int index, Val* element, Opcode op = OP_ASSIGN);
+	bool Assign(Val* index, Val* element, Opcode op = OP_ASSIGN)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element, assigner, op);
+				element, op);
 		}
 
 	// Assigns the value to how_many locations starting at index.
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
-			  Val* element, const Expr* assigner);
+			  Val* element);
 
 	// Returns nil if no element was at that value.
 	// Lookup does NOT grow the vector to this size.
@@ -1011,6 +1011,20 @@ protected:
 	VectorType* vector_type;
 };
 
+// Base class for values with types that are managed completely internally,
+// with no further script-level operators provided (other than bif
+// functions). See OpaqueVal.h for derived classes.
+class OpaqueVal : public Val {
+public:
+	OpaqueVal(OpaqueType* t);
+	virtual ~OpaqueVal();
+
+protected:
+	friend class Val;
+	OpaqueVal() { }
+
+	DECLARE_SERIAL(OpaqueVal);
+};
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version,

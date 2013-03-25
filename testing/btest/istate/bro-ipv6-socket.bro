@@ -4,7 +4,7 @@
 #
 # @TEST-EXEC: btest-bg-run recv bro -b ../recv.bro
 # @TEST-EXEC: btest-bg-run send bro -b ../send.bro
-# @TEST-EXEC: btest-bg-wait -k 20
+# @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: btest-diff recv/.stdout
 # @TEST-EXEC: btest-diff send/.stdout
@@ -14,7 +14,7 @@
 @load base/frameworks/communication
 
 redef Communication::nodes += {
-    ["foo"] = [$host=[::1], $connect=T, $events=/my_event/]
+    ["foo"] = [$host=[::1], $connect=T, $retry=1sec, $events=/my_event/]
 };
 
 global my_event: event(s: string);

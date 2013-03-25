@@ -1,6 +1,3 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
@@ -14,7 +11,7 @@ T	1
 -	2
 @TEST-END-FILE
 
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 global outfile: file;
 
@@ -40,7 +37,7 @@ event bro_init()
 	Input::remove("ssh");
 	}
 
-event Input::update_finished(name: string, source:string)
+event Input::end_of_data(name: string, source:string)
 	{
 	print outfile, servers;
 	close(outfile);

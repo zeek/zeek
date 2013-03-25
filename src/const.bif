@@ -6,6 +6,7 @@ const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const use_conn_size_analyzer: bool;
 const report_gaps_for_partial: bool;
+const exit_only_after_terminate: bool;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;
@@ -15,7 +16,10 @@ const Tunnel::max_depth: count;
 const Tunnel::enable_ip: bool;
 const Tunnel::enable_ayiya: bool;
 const Tunnel::enable_teredo: bool;
+const Tunnel::enable_gtpv1: bool;
 const Tunnel::yielding_teredo_decapsulation: bool;
+const Tunnel::delay_teredo_confirmation: bool;
+const Tunnel::delay_gtp_confirmation: bool;
 const Tunnel::ip_tunnel_timeout: interval;
 
 const Threading::heartbeat_interval: interval;

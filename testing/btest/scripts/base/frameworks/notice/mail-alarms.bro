@@ -1,7 +1,11 @@
 # @TEST-EXEC: bro -C -r $TRACES/web.trace %INPUT
 # @TEST-EXEC: btest-diff alarm-mail.txt
 
-redef Notice::policy += { [$action = Notice::ACTION_ALARM, $priority = 1 ] };
+hook Notice::policy(n: Notice::Info) &priority=1
+	{
+	add n$actions[Notice::ACTION_ALARM];
+	}
+
 redef Notice::force_email_summaries = T;
 
 redef enum Notice::Type += {

@@ -281,6 +281,16 @@ protected:
 	 */
 	void Clear();
 
+	/**
+	 * Method telling the manager that we finished reading the current
+	 * data source. Will trigger an end_of_data event.
+	 *
+	 * Note: When using SendEntry as the tracking mode this is triggered
+	 * automatically by EndCurrentSend(). Only use if not using the
+	 * tracking mode. Otherwise the event will be sent twice.
+	 */
+	void EndOfData();
+
 	// Content-sending-functions (tracking mode): Only changed lines are propagated.
 
 	/**
@@ -305,21 +315,6 @@ protected:
 	 */
 	void EndCurrentSend();
 
-	/**
-	 *  Convert a string into a TransportProto. This is just a utility
-	 *  function for Readers.
-	 *
-	 * @param proto the transport protocol
-	 */
-	TransportProto StringToProto(const string &proto);
-
-	/**
-	 * Convert a string into a Value::addr_t.  This is just a utility
-	 * function for Readers.
-	 *
-	 * @param addr containing an ipv4 or ipv6 address
-	 */
-	threading::Value::addr_t StringToAddr(const string &addr);
 
 private:
 	// Frontend that instantiated us. This object must not be accessed

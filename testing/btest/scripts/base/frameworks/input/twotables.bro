@@ -1,6 +1,3 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 5
@@ -34,7 +31,7 @@ F	-44	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 @TEST-END-FILE
 
 @load base/protocols/ssh
-@load frameworks/communication/listen
+redef exit_only_after_terminate = T;
 
 redef InputAscii::empty_field = "EMPTY";
 
@@ -113,7 +110,7 @@ event bro_init()
 	}
 
 
-event Input::update_finished(name: string, source: string)
+event Input::end_of_data(name: string, source: string)
 	{
 	print fin_out, "==========SERVERS============";
 	#print fin_out, servers;

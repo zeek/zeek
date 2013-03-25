@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
+#include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -41,6 +42,40 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
+
+/**
+ * Return IP address without enclosing brackets and any leading 0x.
+ */
+std::string extract_ip(const std::string& i)
+	{
+	std::string s(skip_whitespace(i.c_str()));
+	if ( s.size() > 0 && s[0] == '[' )
+		s.erase(0, 1);
+
+	if ( s.size() > 1 && s.substr(0, 2) == "0x" )
+		s.erase(0, 2);
+
+	size_t pos = 0;
+	if ( (pos = s.find(']')) != std::string::npos )
+		s = s.substr(0, pos);
+
+	return s;
+	}
+
+/**
+ * Given a subnet string, return IP address and subnet length separately.
+ */
+std::string extract_ip_and_len(const std::string& i, int* len)
+	{
+	size_t pos = i.find('/');
+	if ( pos == std::string::npos )
+		return i;
+
+	if ( len )
+		*len = atoi(i.substr(pos + 1).c_str());
+
+	return extract_ip(i.substr(0, pos));
+	}
 
 /**
  * Takes a string, unescapes all characters that are escaped as hex codes
@@ -1381,9 +1416,15 @@ void safe_close(int fd)
 		}
 	}
 
-void out_of_memory(const char* where)
+extern "C" void out_of_memory(const char* where)
 	{
-	reporter->FatalError("out of memory in %s.\n", where);
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( reporter )
+		// Guess that might fail here if memory is really tight ...
+		reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)
@@ -1486,3 +1527,37 @@ void operator delete[](void* v)
 	}
 
 #endif
+
+void bro_init_magic(magic_t* cookie_ptr, int flags)
+	{
+	if ( ! cookie_ptr || *cookie_ptr )
+		return;
+
+	*cookie_ptr = magic_open(flags);
+
+	if ( ! *cookie_ptr )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		reporter->Error("can't init libmagic: %s", err ? err : "unknown");
+		}
+
+	else if ( magic_load(*cookie_ptr, 0) < 0 )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		reporter->Error("can't load magic file: %s", err ? err : "unknown");
+		magic_close(*cookie_ptr);
+		*cookie_ptr = 0;
+		}
+	}
+
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
+	{
+	const char* rval = magic_buffer(cookie, buffer, length);
+	if ( ! rval )
+		{
+		const char* err = magic_error(cookie);
+		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
+		}
+
+	return rval;
+	}

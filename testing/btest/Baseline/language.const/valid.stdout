@@ -1,0 +1,10 @@
+40
+enter f, 10
+exit f, 110
+enter f, 9
+exit f, 109
+enter f, 7
+exit f, 107
+foo, 10
+bar, 9
+baz, 7

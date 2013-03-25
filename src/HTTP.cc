@@ -565,7 +565,8 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 
 	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
 		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
+		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetTag(),
+		                    MyHTTP_Analyzer()->Conn(), is_orig);
 
 	if ( http_message_done )
 		{
@@ -642,7 +643,8 @@ void HTTP_Message::EndEntity(MIME_Entity* entity)
 	if ( entity == top_level )
 		Done();
 	else if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->Conn(), is_orig);
+		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetTag(),
+		                    MyHTTP_Analyzer()->Conn(), is_orig);
 	}
 
 void HTTP_Message::SubmitHeader(MIME_Header* h)
@@ -901,11 +903,11 @@ void HTTP_Analyzer::Done()
 		unanswered_requests.pop();
 		}
 
-	file_mgr->EndOfFile(Conn(), true);
+	file_mgr->EndOfFile(GetTag(), Conn(), true);
 	/* TODO: this might be nice to have, but reply code is cleared by now.
 	if ( HTTP_ReplyCode() != 206 )
 		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(Conn(), false);
+		file_mgr->EndOfFile(GetTag(), Conn(), false);
 	*/
 	}
 

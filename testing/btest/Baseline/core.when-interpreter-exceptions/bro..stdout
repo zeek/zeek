@@ -1,6 +1,6 @@
-timeout
-timeout g(), T
 timeout g(), F
+timeout g(), T
+timeout
 g() done, no exception, T
 localhost resolved
 localhost resolved from f(), T

@@ -6,6 +6,7 @@
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"
+#include "file_analysis/Manager.h"
 
 EventMgr mgr;
 
@@ -124,6 +125,8 @@ void EventMgr::Drain()
 	// processing, we ensure that it's done at a regular basis by checking
 	// them here.
 	Trigger::EvaluatePending();
+
+	file_mgr->EventDrainDone();
 	}
 
 void EventMgr::Describe(ODesc* d) const

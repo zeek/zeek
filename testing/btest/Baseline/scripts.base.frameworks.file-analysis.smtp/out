@@ -1,5 +1,5 @@
 FileAnalysis::TRIGGER_NEW
-9VCisPgrqVj, 0, 0
+cwR7l6Zctxb, 0, 0
 FileAnalysis::TRIGGER_BOF
 FileAnalysis::TRIGGER_BOF_BUFFER
 Hello^M^J^M^J ^M
@@ -7,7 +7,7 @@ FileAnalysis::TRIGGER_TYPE
 file type is set
 mime type is set
 FileAnalysis::TRIGGER_EOF
-9VCisPgrqVj, 79, 0
+cwR7l6Zctxb, 79, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
 source: SMTP
 SHA1: b7e497be8a9f5e2c4b6980fceb015360f98f4a13

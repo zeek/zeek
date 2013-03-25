@@ -74,7 +74,7 @@ IRC_Data::IRC_Data(Connection* conn)
 void IRC_Data::Done()
 	{
 	File_Analyzer::Done();
-	file_mgr->EndOfFile(Conn());
+	file_mgr->EndOfFile(GetTag(), Conn());
 	}
 
 void IRC_Data::DeliverStream(int len, const u_char* data, bool orig)
@@ -97,7 +97,7 @@ FTP_Data::FTP_Data(Connection* conn)
 void FTP_Data::Done()
 	{
 	File_Analyzer::Done();
-	file_mgr->EndOfFile(Conn());
+	file_mgr->EndOfFile(GetTag(), Conn());
 	}
 
 void FTP_Data::DeliverStream(int len, const u_char* data, bool orig)

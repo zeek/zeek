@@ -5,14 +5,28 @@
 
 module SMTP;
 
-function get_file_handle(c: connection, is_orig: bool): string
+export {
+	## Determines whether the default :bro:see:`get_file_handle` handler
+	## is used to return file handles to the file analysis framework.
+	## Redefine to true in order to provide a custom handler which overrides
+	## the default for SMTP.
+	const disable_default_file_handle_provider: bool = F &redef;
+
+	## Default file handle provider for SMTP.
+	function get_file_handle(c: connection, is_orig: bool): string
+		{
+		if ( ! c?$smtp ) return "";
+
+		return fmt("%s %s %s %s", ANALYZER_SMTP, c$start_time,
+		           c$smtp$trans_depth, c$smtp_state$mime_level);
+		}
+}
+
+module GLOBAL;
+
+event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
 	{
-	if ( ! c?$smtp ) return "";
-
-	return fmt("%s %s %s %s", ANALYZER_SMTP, c$start_time, c$smtp$trans_depth,
-	           c$smtp_state$mime_level);
+	if ( tag != ANALYZER_SMTP ) return;
+	if ( SMTP::disable_default_file_handle_provider ) return;
+	return_file_handle(SMTP::get_file_handle(c, is_orig));
 	}
-
-redef FileAnalysis::handle_callbacks += {
-	[ANALYZER_SMTP] = get_file_handle,
-};

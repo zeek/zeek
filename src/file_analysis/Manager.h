@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 #include <set>
-#include <list>
+#include <queue>
 
 #include "Net.h"
 #include "AnalyzerTags.h"
@@ -19,15 +19,6 @@
 #include "PendingFile.h"
 
 namespace file_analysis {
-
-class DrainTimer : public Timer {
-public:
-
-	DrainTimer(double interval)
-		: Timer(network_time + interval, TIMER_FILE_ANALYSIS_DRAIN) {}
-
-	void Dispatch(double t, int is_expire);
-};
 
 /**
  * Main entry point for interacting with file analysis.
@@ -45,9 +36,22 @@ public:
 	void Terminate();
 
 	/**
+	 * Associates a handle with the next element in the #pending queue, which
+	 * will immediately push that element all the way through the file analysis
+	 * framework, possibly evaluating any policy hooks.
+	 */
+	void ReceiveHandle(const string& handle);
+
+	/**
+	 * Called when all events have been drained from the event queue.
+	 * There should be no pending file input/data at this point.
+	 */
+	void EventDrainDone();
+
+	/**
 	 * Pass in non-sequential file data.
 	 */
-    bool DataIn(const u_char* data, uint64 len, uint64 offset,
+    void DataIn(const u_char* data, uint64 len, uint64 offset,
                 AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
                 const string& unique);
@@ -57,7 +61,7 @@ public:
 	/**
 	 * Pass in sequential file data.
 	 */
-	bool DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+	void DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 	            Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, const string& unique);
 	void DataIn(const u_char* data, uint64 len, Info* info);
@@ -65,14 +69,14 @@ public:
 	/**
 	 * Signal the end of file data.
 	 */
-	void EndOfFile(Connection* conn);
-	bool EndOfFile(Connection* conn, bool is_orig);
+	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn);
+	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
 	void EndOfFile(const string& unique);
 
 	/**
 	 * Signal a gap in the file data stream.
 	 */
-	bool Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
+	void Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
 	         bool is_orig);
 	void Gap(uint64 offset, uint64 len, const string& unique);
 	void Gap(uint64 offset, uint64 len, Info* info);
@@ -80,7 +84,7 @@ public:
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
-	bool SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+	void SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 	             bool is_orig);
 	void SetSize(uint64 size, const string& unique);
 	void SetSize(uint64 size, Info* info);
@@ -120,13 +124,12 @@ public:
 protected:
 
 	friend class InfoTimer;
-	friend class DrainTimer;
 	friend class PendingFile;
 
 	typedef map<string, Info*> StrMap;
 	typedef set<string> StrSet;
 	typedef map<FileID, Info*> IDMap;
-	typedef list<PendingFile*> PendingList;
+	typedef queue<PendingFile*> PendingQueue;
 
 	/**
 	 * @return the Info object mapped to \a unique or a null pointer if analysis
@@ -137,18 +140,6 @@ protected:
 	 */
 	Info* GetInfo(const string& unique, Connection* conn = 0,
 	              AnalyzerTag::Tag tag = AnalyzerTag::Error);
-
-	/**
-	 * @return a string which can uniquely identify the file being transported
-	 *         over the connection.  A script-layer function is evaluated in
-	 *         order to determine the unique string.  An empty string means
-	 *         a unique handle for the file couldn't be determined at the time
-	 *         time the function was evaluated (possibly because some events
-	 *         have not yet been drained from the queue).
-	 */
-	string GetFileHandle(Connection* conn, bool is_orig) const;
-	string GetFileHandle(Analyzer* root, Connection* conn,
-	                     bool is_orig) const;
 
 	/**
 	 * @return the Info object mapped to \a file_id, or a null pointer if no
@@ -174,18 +165,23 @@ protected:
 	bool IsIgnored(const string& unique);
 
 	/**
-	 * Attempts to forward the data from any pending file contents, i.e.
-	 * those for which a unique file handle string could not immediately
-	 * be determined.
+	 * @return whether file analysis is disabled for the given analyzer.
 	 */
-	void DrainPending();
+	static bool IsDisabled(AnalyzerTag::Tag tag);
+
+	/**
+	 * Queues \c get_file_handle event in order to retrieve unique file handle.
+	 * @return true if there is a handler for the event, else false.
+	 */
+	static bool QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
+	                             bool is_orig);
 
 	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
 	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	PendingList pending; /**< Files awaiting a unique handle. */
+	PendingQueue pending; /**< Files awaiting a unique handle. */
 
-	bool is_draining;
+	static TableVal* disabled; /**< Table of disabled analyzers. */
 };
 
 } // namespace file_analysis

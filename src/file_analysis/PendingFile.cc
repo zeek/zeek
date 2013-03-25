@@ -20,10 +20,8 @@ static string conn_str(Connection* c)
 	return rval;
 	}
 
-PendingFile::PendingFile(Connection* arg_conn, bool arg_is_orig,
-                         AnalyzerTag::Tag arg_tag)
-	: conn(arg_conn), is_orig(arg_is_orig), creation_time(network_time),
-	  tag(arg_tag)
+PendingFile::PendingFile(Connection* arg_conn, AnalyzerTag::Tag arg_tag)
+	: conn(arg_conn), tag(arg_tag)
 	{
 	Ref(conn);
 	DBG_LOG(DBG_FILE_ANALYSIS, "New pending file: %s", conn_str(conn).c_str());
@@ -36,31 +34,24 @@ PendingFile::~PendingFile()
 	        conn_str(conn).c_str());
 	}
 
-bool PendingFile::IsStale() const
+Info* PendingFile::GetInfo(const string& handle) const
 	{
-	using BifConst::FileAnalysis::pending_file_timeout;
-	if ( creation_time + pending_file_timeout < network_time )
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Stale pending file: %s",
-		        conn_str(conn).c_str());
-		return true;
-		}
-	return false;
+	return file_mgr->GetInfo(handle, conn, tag);
 	}
 
 PendingDataInChunk::PendingDataInChunk(const u_char* arg_data, uint64 arg_len,
                                        uint64 arg_offset,
                                        AnalyzerTag::Tag arg_tag,
-                                       Connection* arg_conn, bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig, arg_tag), len(arg_len),
+                                       Connection* arg_conn)
+	: PendingFile(arg_conn, arg_tag), len(arg_len),
 	  offset(arg_offset)
 	{
 	copy_data(&data, arg_data, len);
 	}
 
-bool PendingDataInChunk::Retry() const
+void PendingDataInChunk::Finish(const string& handle) const
 	{
-	return file_mgr->DataIn(data, len, offset, tag, conn, is_orig);
+	file_mgr->DataIn(data, len, offset, GetInfo(handle));
 	}
 
 PendingDataInChunk::~PendingDataInChunk()
@@ -70,15 +61,15 @@ PendingDataInChunk::~PendingDataInChunk()
 
 PendingDataInStream::PendingDataInStream(const u_char* arg_data, uint64 arg_len,
                                          AnalyzerTag::Tag arg_tag,
-                                         Connection* arg_conn, bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig, arg_tag), len(arg_len)
+                                         Connection* arg_conn)
+	: PendingFile(arg_conn, arg_tag), len(arg_len)
 	{
 	copy_data(&data, arg_data, len);
 	}
 
-bool PendingDataInStream::Retry() const
+void PendingDataInStream::Finish(const string& handle) const
 	{
-	return file_mgr->DataIn(data, len, tag, conn, is_orig);
+	file_mgr->DataIn(data, len, GetInfo(handle));
 	}
 
 PendingDataInStream::~PendingDataInStream()
@@ -87,35 +78,34 @@ PendingDataInStream::~PendingDataInStream()
 	}
 
 PendingGap::PendingGap(uint64 arg_offset, uint64 arg_len,
-                       AnalyzerTag::Tag arg_tag, Connection* arg_conn,
-                       bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig, arg_tag), offset(arg_offset),
+                       AnalyzerTag::Tag arg_tag, Connection* arg_conn)
+	: PendingFile(arg_conn, arg_tag), offset(arg_offset),
 	  len(arg_len)
 	{
 	}
 
-bool PendingGap::Retry() const
+void PendingGap::Finish(const string& handle) const
 	{
-	return file_mgr->Gap(offset, len, tag, conn, is_orig);
+	file_mgr->Gap(offset, len, GetInfo(handle));
 	}
 
-PendingEOF::PendingEOF(Connection* arg_conn, bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig)
+PendingEOF::PendingEOF(AnalyzerTag::Tag arg_tag, Connection* arg_conn)
+	: PendingFile(arg_conn, arg_tag)
 	{
 	}
 
-bool PendingEOF::Retry() const
+void PendingEOF::Finish(const string& handle) const
 	{
-	return file_mgr->EndOfFile(conn, is_orig);
+	file_mgr->EndOfFile(handle);
 	}
 
 PendingSize::PendingSize(uint64 arg_size, AnalyzerTag::Tag arg_tag,
-                         Connection* arg_conn, bool arg_is_orig)
-	: PendingFile(arg_conn, arg_is_orig, arg_tag), size(arg_size)
+                         Connection* arg_conn)
+	: PendingFile(arg_conn, arg_tag), size(arg_size)
 	{
 	}
 
-bool PendingSize::Retry() const
+void PendingSize::Finish(const string& handle) const
 	{
-	return file_mgr->SetSize(size, tag, conn, is_orig);
+	file_mgr->SetSize(size, GetInfo(handle));
 	}

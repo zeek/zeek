@@ -5,22 +5,14 @@
 #include "Info.h"
 #include "Action.h"
 #include "Var.h"
+#include "Event.h"
 
 using namespace file_analysis;
 
-void DrainTimer::Dispatch(double t, int is_expire)
-	{
-	using BifConst::FileAnalysis::pending_file_drain_interval;
-	DBG_LOG(DBG_FILE_ANALYSIS, "DrainTimer dispatched");
-	file_mgr->DrainPending();
-	if ( ! is_expire )
-		timer_mgr->Add(new DrainTimer(pending_file_drain_interval));
-	}
+TableVal* Manager::disabled = 0;
 
-Manager::Manager() : is_draining(false)
+Manager::Manager()
 	{
-	using BifConst::FileAnalysis::pending_file_drain_interval;
-	timer_mgr->Add(new DrainTimer(pending_file_drain_interval));
 	}
 
 Manager::~Manager()
@@ -28,78 +20,8 @@ Manager::~Manager()
 	Terminate();
 	}
 
-string Manager::GetFileHandle(Analyzer* root, Connection* conn,
-                              bool is_orig) const
-	{
-	static TableVal* table = 0;
-
-	if ( ! table )
-		table = internal_val("FileAnalysis::handle_callbacks")->AsTableVal();
-
-	if ( ! root ) return "";
-
-	Val* index = new Val(root->GetTag(), TYPE_COUNT);
-	const Val* callback = table->Lookup(index);
-	Unref(index);
-
-	if ( callback )
-		{
-		val_list vl(2);
-		vl.append(conn->BuildConnVal());
-		vl.append(new Val(is_orig, TYPE_BOOL));
-
-		Val* result = callback->AsFunc()->Call(&vl);
-
-		if ( result )
-			{
-			string rval = result->AsString()->CheckString();
-			Unref(result);
-			if ( ! rval.empty() ) return rval;
-			}
-		}
-
-	for ( analyzer_list::const_iterator	it = root->GetChildren().begin();
-	      it != root->GetChildren().end(); ++it )
-		{
-		string rval = GetFileHandle((*it), conn, is_orig);
-		if ( ! rval.empty() ) return rval;
-		}
-
-	return "";
-	}
-
-string Manager::GetFileHandle(Connection* conn, bool is_orig) const
-	{
-	if ( ! conn ) return "";
-
-	return GetFileHandle(conn->GetRootAnalyzer(), conn, is_orig);
-	}
-
-void Manager::DrainPending()
-	{
-	if ( is_draining ) return;
-
-	is_draining = true;
-	PendingList::iterator it = pending.begin();
-
-	while ( it != pending.end() )
-		{
-		if ( (*it)->Retry() || (*it)->IsStale() )
-			{
-			delete *it;
-			pending.erase(it++);
-			}
-		else
-			++it;
-		}
-
-	is_draining = false;
-	}
-
 void Manager::Terminate()
 	{
-	DrainPending();
-
 	vector<FileID> keys;
 	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
 		keys.push_back(it->first);
@@ -107,24 +29,38 @@ void Manager::Terminate()
 		Timeout(keys[i], true);
 	}
 
-bool Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+void Manager::ReceiveHandle(const string& handle)
+	{
+	if ( pending.empty() )
+		reporter->InternalError("File analysis underflow");
+
+	PendingFile* pf = pending.front();
+	if ( ! handle.empty() )
+		pf->Finish(handle);
+	delete pf;
+	pending.pop();
+	}
+
+void Manager::EventDrainDone()
+	{
+	if ( pending.empty() ) return;
+
+	reporter->Error("Too few return_file_handle() calls, discarding pending"
+	                " file analysis input.");
+
+	while ( ! pending.empty() )
+		{
+		delete pending.front();
+		pending.pop();
+		}
+	}
+
+void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	DrainPending();
-
-	string unique = GetFileHandle(conn, is_orig);
-
-	if ( ! unique.empty() )
-		{
-		DataIn(data, len, offset, GetInfo(unique, conn, tag));
-		return true;
-		}
-
-	if ( ! is_draining )
-		pending.push_back(new PendingDataInChunk(data, len, offset, tag, conn,
-		                                         is_orig));
-
-	return false;
+	if ( IsDisabled(tag) ) return;
+	if ( ! QueueHandleEvent(tag, conn, is_orig) ) return;
+	pending.push(new PendingDataInChunk(data, len, offset, tag, conn));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
@@ -136,8 +72,6 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      Info* info)
 	{
-	DrainPending();
-
 	if ( ! info ) return;
 
 	info->DataIn(data, len, offset);
@@ -146,24 +80,12 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 		RemoveFile(info->GetUnique());
 	}
 
-bool Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
                      Connection* conn, bool is_orig)
 	{
-	DrainPending();
-
-	string unique = GetFileHandle(conn, is_orig);
-
-	if ( ! unique.empty() )
-		{
-		DataIn(data, len, GetInfo(unique, conn, tag));
-		return true;
-		}
-
-	if ( ! is_draining )
-		pending.push_back(new PendingDataInStream(data, len, tag, conn,
-		                                          is_orig));
-
-	return false;
+	if ( IsDisabled(tag) ) return;
+	if ( ! QueueHandleEvent(tag, conn, is_orig) ) return;
+	pending.push(new PendingDataInStream(data, len, tag, conn));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
@@ -173,8 +95,6 @@ void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
 
 void Manager::DataIn(const u_char* data, uint64 len, Info* info)
 	{
-	DrainPending();
-
 	if ( ! info ) return;
 
 	info->DataIn(data, len);
@@ -183,53 +103,30 @@ void Manager::DataIn(const u_char* data, uint64 len, Info* info)
 		RemoveFile(info->GetUnique());
 	}
 
-void Manager::EndOfFile(Connection* conn)
+void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
 	{
-	EndOfFile(conn, true);
-	EndOfFile(conn, false);
+	EndOfFile(tag, conn, true);
+	EndOfFile(tag, conn, false);
 	}
 
-bool Manager::EndOfFile(Connection* conn, bool is_orig)
+void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	DrainPending();
-
-	string unique = GetFileHandle(conn, is_orig);
-
-	if ( ! unique.empty() )
-		{
-		RemoveFile(unique);
-		return true;
-		}
-
-	if ( ! is_draining )
-		pending.push_back(new PendingEOF(conn, is_orig));
-
-	return false;
+	if ( IsDisabled(tag) ) return;
+	if ( ! QueueHandleEvent(tag, conn, is_orig) ) return;
+	pending.push(new PendingEOF(tag, conn));
 	}
 
 void Manager::EndOfFile(const string& unique)
 	{
-	DrainPending();
 	RemoveFile(unique);
 	}
 
-bool Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
+void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
                   Connection* conn, bool is_orig)
 	{
-	DrainPending();
-
-	string unique = GetFileHandle(conn, is_orig);
-
-	if ( ! unique.empty() )
-		{
-		Gap(offset, len, GetInfo(unique, conn, tag));
-		return true;
-		}
-
-	if ( ! is_draining )
-		pending.push_back(new PendingGap(offset, len, tag, conn, is_orig));
-
-	return false;
+	if ( IsDisabled(tag) ) return;
+	if ( ! QueueHandleEvent(tag, conn, is_orig) ) return;
+	pending.push(new PendingGap(offset, len, tag, conn));
 	}
 
 void Manager::Gap(uint64 offset, uint64 len, const string& unique)
@@ -239,30 +136,17 @@ void Manager::Gap(uint64 offset, uint64 len, const string& unique)
 
 void Manager::Gap(uint64 offset, uint64 len, Info* info)
 	{
-	DrainPending();
-
 	if ( ! info ) return;
 
 	info->Gap(offset, len);
 	}
 
-bool Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
                       bool is_orig)
 	{
-	DrainPending();
-
-	string unique = GetFileHandle(conn, is_orig);
-
-	if ( ! unique.empty() )
-		{
-		SetSize(size, GetInfo(unique, conn, tag));
-		return true;
-		}
-
-	if ( ! is_draining )
-		pending.push_back(new PendingSize(size, tag, conn, is_orig));
-
-	return false;
+	if ( IsDisabled(tag) ) return;
+	if ( ! QueueHandleEvent(tag, conn, is_orig) ) return;
+	pending.push(new PendingSize(size, tag, conn));
 	}
 
 void Manager::SetSize(uint64 size, const string& unique)
@@ -272,8 +156,6 @@ void Manager::SetSize(uint64 size, const string& unique)
 
 void Manager::SetSize(uint64 size, Info* info)
 	{
-	DrainPending();
-
 	if ( ! info ) return;
 
 	info->SetTotalBytes(size);
@@ -281,7 +163,6 @@ void Manager::SetSize(uint64 size, Info* info)
 	if ( info->IsComplete() )
 		RemoveFile(info->GetUnique());
 	}
-
 
 void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
 	{
@@ -372,8 +253,6 @@ Info* Manager::Lookup(const FileID& file_id) const
 
 void Manager::Timeout(const FileID& file_id, bool is_terminating)
 	{
-	DrainPending();
-
 	Info* info = Lookup(file_id);
 
 	if ( ! info ) return;
@@ -432,4 +311,35 @@ bool Manager::RemoveFile(const string& unique)
 bool Manager::IsIgnored(const string& unique)
 	{
 	return ignored.find(unique) != ignored.end();
+	}
+
+bool Manager::IsDisabled(AnalyzerTag::Tag tag)
+	{
+	if ( ! disabled )
+		disabled = internal_const_val("FileAnalysis::disable")->AsTableVal();
+
+	Val* index = new Val(tag, TYPE_COUNT);
+	Val* yield = disabled->Lookup(index);
+	Unref(index);
+
+	if ( ! yield ) return false;
+
+	bool rval = yield->AsBool();
+	Unref(yield);
+
+	return rval;
+	}
+
+bool Manager::QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
+                               bool is_orig)
+	{
+	if ( ! get_file_handle ) return false;
+
+	val_list* vl = new val_list();
+	vl->append(new Val(tag, TYPE_COUNT));
+	vl->append(conn->BuildConnVal());
+	vl->append(new Val(is_orig, TYPE_BOOL));
+
+	mgr.QueueEvent(get_file_handle, vl);
+	return true;
 	}

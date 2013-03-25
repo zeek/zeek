@@ -17,6 +17,7 @@
 #include "Reporter.h"
 #include "IPAddr.h"
 #include "util.h"
+#include "file_analysis/Manager.h"
 
 using namespace std;
 
@@ -5535,6 +5536,22 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 			from_orig, bol, eol, clear);
 
 	return new Val(1, TYPE_BOOL);
+	%}
+
+## For use within a :bro:see:`get_file_handle` handler to return a unique
+## identifier to associate with some buffered input to the file analysis
+## framework.  The buffered data will then immediately be allowed to pass
+## pass through the file analysis framework and execute any policy hooks
+## that are available.  If an empty string is returned, that signifies that
+## the buffered data will be discarded with no further action taken on it.
+##
+## handle: A string that uniquely identifies a file.
+##
+## .. bro:see:: get_file_handle FileAnalysis::policy
+function return_file_handle%(handle: string%): any
+	%{
+	file_mgr->ReceiveHandle(handle->CheckString());
+	return 0;
 	%}
 
 # ===========================================================================

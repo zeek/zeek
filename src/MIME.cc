@@ -1021,7 +1021,7 @@ void MIME_Mail::Done()
 
 	MIME_Message::Done();
 
-	file_mgr->EndOfFile(analyzer->Conn());
+	file_mgr->EndOfFile(analyzer->GetTag(), analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1069,7 +1069,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		analyzer->ConnectionEvent(mime_end_entity, vl);
 		}
 
-	file_mgr->EndOfFile(analyzer->Conn());
+	file_mgr->EndOfFile(analyzer->GetTag(), analyzer->Conn());
 	}
 
 void MIME_Mail::SubmitHeader(MIME_Header* h)

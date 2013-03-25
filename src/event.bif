@@ -6981,6 +6981,22 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
 
+## This event is handled to provide feedback to the file analysis framework
+## about how to identify the logical "file" to which some data/input
+## belongs.  All incoming data to the framework is buffered, and depends
+## on a handler for this event to return a string value that uniquely
+## identifies a file.  Among all handlers of this event, exactly one must
+## call :bro:see:`return_file_handle`.
+##
+## tag: The analyzer which is carrying the file data.
+##
+## c: The connection which is carrying the file data.
+##
+## is_orig: The direction the file data is flowing over the connection.
+##
+## .. bro:see:: return_file_handle
+event get_file_handle%(tag: count, c: connection, is_orig: bool%);
+
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 

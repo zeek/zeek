@@ -56,8 +56,9 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
-#include "analyzer/BuiltinAnalyzers.h"
+#include "analyzer/BuiltInAnalyzers.h"
 #include "analyzer/Manager.h"
+#include "analyzer/Tag.h"
 #include "plugin/Manager.h"
 
 #include "binpac_bro.h"

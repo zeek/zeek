@@ -451,7 +451,7 @@ set(bro_SRCS
     plugin/Plugin.cc
 
     analyzer/Analyzer.cc
-    analyzer/BuiltinAnalyzers.cc
+    analyzer/BuiltInAnalyzers.cc
     analyzer/Manager.cc
     analyzer/PluginComponent.cc
     analyzer/Tag.cc

@@ -5,10 +5,10 @@
 
 #include <queue>
 
-#include "Tag.h"
-#include "PluginComponent.h"
-
 #include "Analyzer.h"
+#include "PluginComponent.h"
+#include "Tag.h"
+
 #include "../Dict.h"
 #include "../net_util.h"
 #include "../IP.h"
@@ -112,7 +112,7 @@ public:
 	// as a wildcard for orig.  (Cookie is currently unused. Eventually,
 	// we may pass it on to the analyzer).
 	void ExpectConnection(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
-				TransportProto proto, Tag::Tag analyzer,
+				TransportProto proto, Tag analyzer,
 				double timeout, void* cookie);
 
 	void ExpectConnection(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,

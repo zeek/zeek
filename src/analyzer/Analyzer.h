@@ -258,10 +258,10 @@ public:
 	void Weird(const char* name, const char* addl = "");
 
 protected:
-	friend class Connection;
 	friend class AnalyzerTimer;
-	friend class TCP_ApplicationAnalyzer;
 	friend class Manager;
+	friend class ::Connection;
+	friend class ::TCP_ApplicationAnalyzer;
 
 	// Associates a connection with this analyzer.  Must be called if
 	// we're using the default ctor.

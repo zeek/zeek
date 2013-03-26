@@ -26,7 +26,7 @@
 #include "RE.h"
 #include "Net.h"
 
-#include "analyzer/analyzer.h"
+#include "analyzer/Analyzer.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;

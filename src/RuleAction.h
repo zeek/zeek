@@ -5,7 +5,7 @@
 #include "List.h"
 #include "util.h"
 
-#include "analyzer/tag.h"
+#include "analyzer/Tag.h"
 
 class Rule;
 class RuleEndpointState;

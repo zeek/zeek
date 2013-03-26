@@ -126,6 +126,8 @@ event bro_init() &priority=5
 	{
 	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns]);
 
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, dns_tcp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, dns_udp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS_TCP_BINPAC, dns_tcp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS_UDP_BINPAC, dns_udp_ports);
 	}

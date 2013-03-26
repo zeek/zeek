@@ -20,6 +20,9 @@ export {
 	## XXX.
 	global registered_ports: function(tag: Analyzer::Tag) : set[port];
 
+	## XXX
+	global all_registered_ports: function() : table[Analyzer::Tag] of set[port]; 
+
 	## Translate an analyzer type to an ASCII string.
 	##
 	## atype: The analyzer tag.
@@ -104,6 +107,11 @@ function register_for_port(tag: Analyzer::Tag, p: port) : bool
 function registered_ports(tag: Analyzer::Tag) : set[port]
 	{
 	return tag in ports ? ports[tag] : set();
+	}
+
+function all_registered_ports(): table[Analyzer::Tag] of set[port]
+	{
+	return ports;
 	}
 
 function name(atype: Analyzer::Tag) : string

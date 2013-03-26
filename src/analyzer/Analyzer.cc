@@ -41,15 +41,20 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 
 analyzer::ID Analyzer::id_counter = 0;;
 
+const string& Analyzer::GetAnalyzerName() const
+	{
+	return analyzer_mgr->GetAnalyzerName(tag);
+	}
+
 bool Analyzer::IsAnalyzer(const char* name)
 	{
-	return analyzer_mgr->GetAnalyzerName(Tag()) == name;
+	return analyzer_mgr->GetAnalyzerName(tag) == name;
 	}
 
 // Used in debugging output.
 static string fmt_analyzer(Analyzer* a)
 	{
-	return analyzer_mgr->GetAnalyzerName(a->GetTag()) + fmt("[%d]", a->GetID());
+	return a->GetAnalyzerName() + fmt("[%d]", a->GetID());
 	}
 
 Analyzer::Analyzer(const char* name, Connection* arg_conn)
@@ -320,7 +325,7 @@ void Analyzer::ForwardEndOfData(bool orig)
 
 void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	{
-	if ( HasChildAnalyzer(analyzer->GetTag()) )
+	if ( HasChildAnalyzer(analyzer->GetAnalyzerTag()) )
 		{
 		analyzer->Done();
 		delete analyzer;
@@ -381,7 +386,7 @@ void Analyzer::RemoveChildAnalyzer(ID id)
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
-			DBG_LOG(DBG_DPD, "%s  disabling child %s", analyzer_mgr->GetAnalyzerName(GetTag()).c_str(), id,
+			DBG_LOG(DBG_DPD, "%s  disabling child %s", GetAnalyzerName().c_str(), id,
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// See comment above.
 			(*i)->removing = true;
@@ -460,7 +465,7 @@ void Analyzer::DeleteChild(analyzer_list::iterator i)
 
 void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
-	if ( HasSupportAnalyzer(analyzer->GetTag(), analyzer->IsOrig()) )
+	if ( HasSupportAnalyzer(analyzer->GetAnalyzerTag(), analyzer->IsOrig()) )
 		{
 		DBG_LOG(DBG_DPD, "%s already has %s %s",
 			fmt_analyzer(this).c_str(),

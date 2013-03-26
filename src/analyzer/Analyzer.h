@@ -140,7 +140,8 @@ public:
 
 	bool IsFinished() const 		{ return finished; }
 
-	Tag GetTag() const		{ return tag; }
+	Tag GetAnalyzerTag() const		{ return tag; }
+	const string& GetAnalyzerName() const;
 	bool IsAnalyzer(const char* name);
 
 	// Management of the tree.

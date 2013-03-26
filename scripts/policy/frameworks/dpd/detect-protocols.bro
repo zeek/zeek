@@ -70,7 +70,7 @@ export {
 }
 
 # Table that tracks currently active dynamic analyzers per connection.
-global conns: table[conn_id] of set[count];
+global conns: table[conn_id] of set[Analyzer::Tag];
 
 # Table of reports by other analyzers about the protocol used in a connection.
 global protocols: table[conn_id] of set[string];
@@ -80,7 +80,7 @@ type protocol : record {
 	sub: string;	# "sub-protocols" reported by other sources
 };
 
-function get_protocol(c: connection, a: count) : protocol
+function get_protocol(c: connection, a: Analyzer::Tag) : protocol
 	{
 	local str = "";
 	if ( c$id in protocols )
@@ -97,7 +97,7 @@ function fmt_protocol(p: protocol) : string
 	return p$sub != "" ? fmt("%s (via %s)", p$sub, p$a) : p$a;
 	}
 
-function do_notice(c: connection, a: count, d: dir)
+function do_notice(c: connection, a: Analyzer::Tag, d: dir)
 	{
 	if ( d == BOTH )
 		return;
@@ -113,7 +113,7 @@ function do_notice(c: connection, a: count, d: dir)
 
 	NOTICE([$note=Protocol_Found,
 		$msg=fmt("%s %s on port %s", id_string(c$id), s, c$id$resp_p),
-		$sub=s, $conn=c, $n=a]);
+		$sub=s, $conn=c]);
 
 	# We report multiple Server_Found's per host if we find a new
 	# sub-protocol.
@@ -129,7 +129,7 @@ function do_notice(c: connection, a: count, d: dir)
 		NOTICE([$note=Server_Found,
 			$msg=fmt("%s: %s server on port %s%s", c$id$resp_h, s,
 				c$id$resp_p, (known ? " (update)" : "")),
-			$p=c$id$resp_p, $sub=s, $conn=c, $src=c$id$resp_h, $n=a]);
+			$p=c$id$resp_p, $sub=s, $conn=c, $src=c$id$resp_h]);
 
 		if ( ! known )
 			servers[c$id$resp_h, c$id$resp_p, p$a] = set();
@@ -214,7 +214,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
 		}
 	}
 
-function found_protocol(c: connection, analyzer: Analyzer::tag, protocol: string)
+function found_protocol(c: connection, atype: Analyzer::Tag, protocol: string)
 	{
 	# Don't report anything running on a well-known port.
 	if ( c$id$resp_p in Analyzer::registered_ports(atype) )

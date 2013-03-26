@@ -25,7 +25,7 @@ public:
 	PluginComponent(std::string name, factory_callback factory, bool enabled, bool partial);
 	PluginComponent(std::string name, Tag::subtype_t subtype, factory_callback factory, bool enabled, bool partial);
 
-	std::string Name() const	{ return name; }
+	const std::string& Name() const	{ return name; }
 	factory_callback Factory() const	{ return factory; }
 	bool Partial() const	{ return partial; }
 	bool Enabled() const	{ return enabled; }

@@ -88,8 +88,8 @@ public:
 
 	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c); // Null if disabled.
 
-	string GetAnalyzerName(Tag tag);
-	string GetAnalyzerName(Val* val);
+	const string& GetAnalyzerName(Tag tag);
+	const string& GetAnalyzerName(Val* val);
 	Tag GetAnalyzerTag(const string& name); // Tag::ERROR when not known.
 	Tag GetAnalyzerTag(const char* name); // Tag::ERROR when not known.
 

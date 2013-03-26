@@ -316,10 +316,12 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 	return a;
 	}
 
-string Manager::GetAnalyzerName(Tag tag)
+const string& Manager::GetAnalyzerName(Tag tag)
 	{
+	static string error = "<error>";
+
 	if ( ! tag )
-		return "<error>";
+		return error;
 
 	PluginComponent* c = Lookup(tag);
 
@@ -329,7 +331,7 @@ string Manager::GetAnalyzerName(Tag tag)
 	return c->Name();
 	}
 
-string Manager::GetAnalyzerName(Val* val)
+const string& Manager::GetAnalyzerName(Val* val)
 	{
 	return GetAnalyzerName(Tag(val->AsEnumVal()));
 	}
@@ -354,13 +356,13 @@ EnumType* Manager::GetTagEnumType()
 
 PluginComponent* Manager::Lookup(const string& name)
 	{
-	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(name);
+	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(to_upper(name));
 	return i != analyzers_by_name.end() ? i->second : 0;
 	}
 
 PluginComponent* Manager::Lookup(const char* name)
 	{
-	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(name);
+	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(to_upper(name));
 	return i != analyzers_by_name.end() ? i->second : 0;
 	}
 
@@ -598,7 +600,7 @@ bool Manager::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		{
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			udp->AddChildAnalyzer(new ConnSize_Analyzer(conn));
+			root->AddChildAnalyzer(new ConnSize_Analyzer(conn));
 		}
 
 	if ( pia )

@@ -42,10 +42,16 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	string arg = str.substr(0, pos);
 	analyzer = analyzer_mgr->GetAnalyzerTag(arg);
 
+	if ( ! analyzer )
+		reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
+
 	if ( pos != string::npos )
 		{
 		arg = str.substr(pos + 1);
 		child_analyzer = analyzer_mgr->GetAnalyzerTag(arg);
+
+		if ( ! child_analyzer )
+			reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
 		}
 	else
 		child_analyzer = analyzer::Tag::ERROR;

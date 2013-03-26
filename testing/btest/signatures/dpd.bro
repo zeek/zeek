@@ -33,7 +33,7 @@ signature my_ftp_server {
 event bro_init()
 	{
 	# no analyzer attached to any port by default, depends entirely on sigs
-	print "dpd_config", dpd_config;
+	print "|Analyzer::all_registered_ports()|", |Analyzer::all_registered_ports()|;
 	}
 
 event signature_match(state: signature_state, msg: string, data: string)

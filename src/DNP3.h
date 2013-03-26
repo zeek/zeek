@@ -44,9 +44,10 @@ public:
 				dnp3_debug_byte ; }
 
 protected:
-	int DNP3_Reassembler(int len, const u_char* data, bool orig);
-	int DNP3_Reassembler2(int len, const u_char* data, bool orig);
+	//int DNP3_Reassembler(int len, const u_char* data, bool orig);
+	//int DNP3_Reassembler2(int len, const u_char* data, bool orig);
 	int DNP3_ProcessData(int len, const u_char* data);
+	/*
 	struct StrByteStream {
 		StrByteStream()
 			{
@@ -72,12 +73,12 @@ protected:
 			mData = 0;
 			length = 0;
 			}
-
 		u_char* mData;
 		int length;
 	};
+	*/
 
-	int DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len);
+	//int DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len);
 	int DNP3_CheckCRC(int len, const u_char* data);
 	unsigned int DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert);	
 	void DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial);
@@ -89,7 +90,7 @@ protected:
 	unsigned int upflow_count;
 	unsigned int downflow_count;
 	bool mEncounteredFirst;
-	StrByteStream gDNP3Data;
+	//StrByteStream gDNP3Data;
 
 //// for the use of calculating CRC values
 	unsigned int DNP3_CrcTable[256];

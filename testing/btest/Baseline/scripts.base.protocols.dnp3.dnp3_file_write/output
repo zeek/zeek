@@ -1,0 +1,156 @@
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox63 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 116 
+Oxc6 Ox19 Ox46 Ox3 Ox5b Ox1 Ox55 Ox0 Ox1a Ox0 Ox3b Ox0 Ox0 Ox0 Ox0 
+Ox0 Ox0 Ox0 Oxff Ox1 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox2 Ox0 Ox0 
+Ox4 Ox6 Ox0 Ox43 Ox3a Ox2f Ox74 Ox65 Ox6d Ox70 Ox2f Ox44 Ox4e Ox50 Ox44 Ox65 
+Ox76 Ox69 Ox63 Ox65 Ox43 Ox6f Ox6e Ox66 Ox69 Ox67 Ox75 Ox72 Ox61 Ox74 Ox69 Ox6f 
+Ox6e Ox20 Ox77 Ox72 Ox69 Ox74 Ox74 Ox65 Ox6e Ox20 Ox74 Ox6f Ox20 Ox52 Ox65 Ox6d 
+Ox6f Ox74 Ox65 Ox20 Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox2e Ox78 Ox6d Ox6c 
+
+
+dnp3_header_block, T, 25605, 99, 196, 4, 3
+dnp3_application_request_header, T, 198, 25
+dnp3_object_header, T, 17923, 91, 1, 1, 0
+dnp3_object_prefix, T, 85
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1d Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 38 
+Oxc6 Ox81 Ox0 Ox0 Ox46 Ox4 Ox5b Ox1 Oxd Ox0 Ox78 Ox56 Ox34 Ox12 Ox0 
+Ox0 Ox0 Ox0 Ox0 Ox4 Ox6 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 29, 68, 3, 4
+dnp3_application_response_header, F, 198, 129, 0
+dnp3_object_header, F, 17924, 91, 1, 1, 0
+dnp3_object_prefix, F, 13
+dnp3_response_data_object, F, 255
+
+
+The first trunk - Header sent to Binpac 
+Ox5 Ox64 Ox0 Ox1 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 292 
+Oxc7 Ox2 Ox46 Ox5 Ox5b Ox1 Ox46 Ox3 Ox78 Ox56 Ox34 Ox12 Ox0 Ox0 Ox0 
+Ox80 Oxef Oxbb Oxbf Ox3c Ox3f Ox78 Ox6d Ox6c Ox20 Ox76 Ox65 Ox72 Ox73 Ox69 Ox6f 
+Ox6e Ox3d Ox22 Ox31 Ox2e Ox30 Ox22 Ox20 Ox65 Ox6e Ox63 Ox6f Ox64 Ox69 Ox6e Ox67 
+Ox3d Ox22 Ox75 Ox74 Ox66 Ox2d Ox38 Ox22 Ox3f Ox3e Oxd Oxa Ox3c Ox3f Ox78 Ox6d 
+Ox6c Ox2d Ox73 Ox74 Ox79 Ox6c Ox65 Ox73 Ox68 Ox65 Ox65 Ox74 Ox20 Ox74 Ox79 Ox70 
+Ox65 Ox3d Ox27 Ox74 Ox65 Ox78 Ox74 Ox2f Ox78 Ox73 Ox6c Ox27 Ox20 Ox68 Ox72 Ox65 
+Ox66 Ox3d Ox27 Ox44 Ox4e Ox50 Ox33 Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox50 Ox72 Ox6f 
+Ox66 Ox69 Ox6c Ox65 Ox4a Ox61 Ox6e Ox32 Ox30 Ox31 Ox30 Ox2e Ox78 Ox73 Ox6c Ox74 
+Ox27 Ox20 Ox6d Ox65 Ox64 Ox69 Ox61 Ox3d Ox27 Ox73 Ox63 Ox72 Ox65 Ox65 Ox6e Ox27 
+Ox3f Ox3e Oxd Oxa Ox3c Ox44 Ox4e Ox50 Ox33 Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox50 
+Ox72 Ox6f Ox66 Ox69 Ox6c Ox65 Ox44 Ox6f Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox20 Ox78 
+Ox6d Ox6c Ox6e Ox73 Ox3a Ox78 Ox73 Ox69 Ox3d Ox22 Ox68 Ox74 Ox74 Ox70 Ox3a Ox2f 
+Ox2f Ox77 Ox77 Ox77 Ox2e Ox77 Ox33 Ox2e Ox6f Ox72 Ox67 Ox2f Ox32 Ox30 Ox30 Ox31 
+Ox2f Ox58 Ox4d Ox4c Ox53 Ox63 Ox68 Ox65 Ox6d Ox61 Ox2d Ox69 Ox6e Ox73 Ox74 Ox61 
+Ox6e Ox63 Ox65 Ox22 Ox20 Ox78 Ox6d Ox6c Ox6e Ox73 Ox3a Ox78 Ox73 Ox64 Ox3d Ox22 
+Ox68 Ox74 Ox74 Ox70 Ox3a Ox2f Ox2f Ox77 Ox77 Ox77 
+
+
+dnp3_header_block, T, 25605, 0, 196, 4, 3
+test buffer size 258
+new frame size is 508 
+after increas it ? test buffer size 258
+App sent to Binpac 292 
+Ox2e Ox77 Ox33 Ox2e Ox6f Ox72 Ox67 Ox2f Ox32 Ox30 Ox30 Ox31 Ox2f Ox58 Ox4d 
+Ox4c Ox53 Ox63 Ox68 Ox65 Ox6d Ox61 Ox22 Ox20 Ox73 Ox63 Ox68 Ox65 Ox6d Ox61 Ox56 
+Ox65 Ox72 Ox73 Ox69 Ox6f Ox6e Ox3d Ox22 Ox32 Ox2e Ox30 Ox37 Ox2e Ox30 Ox30 Ox22 
+Ox20 Ox78 Ox6d Ox6c Ox6e Ox73 Ox3d Ox22 Ox68 Ox74 Ox74 Ox70 Ox3a Ox2f Ox2f Ox77 
+Ox77 Ox77 Ox2e Ox64 Ox6e Ox70 Ox33 Ox2e Ox6f Ox72 Ox67 Ox2f Ox44 Ox4e Ox50 Ox33 
+Ox2f Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox50 Ox72 Ox6f Ox66 Ox69 Ox6c Ox65 Ox2f Ox4a 
+Ox61 Ox6e Ox32 Ox30 Ox31 Ox30 Ox22 Ox3e Oxd Oxa Ox20 Ox20 Ox3c Ox21 Ox2d Ox2d 
+Ox44 Ox6f Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox20 Ox48 Ox65 Ox61 Ox64 Ox65 Ox72 Ox2d 
+Ox2d Ox3e Oxd Oxa Ox20 Ox20 Ox3c Ox64 Ox6f Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox48 
+Ox65 Ox61 Ox64 Ox65 Ox72 Ox3e Oxd Oxa Ox20 Ox20 Ox20 Ox20 Ox3c Ox64 Ox6f Ox63 
+Ox75 Ox6d Ox65 Ox6e Ox74 Ox4e Ox61 Ox6d Ox65 Ox3e Ox41 Ox20 Ox44 Ox4e Ox50 Ox33 
+Ox20 Ox58 Ox4d Ox4c Ox20 Ox46 Ox69 Ox6c Ox65 Ox3c Ox2f Ox64 Ox6f Ox63 Ox75 Ox6d 
+Ox65 Ox6e Ox74 Ox4e Ox61 Ox6d Ox65 Ox3e Oxd Oxa Ox20 Ox20 Ox20 Ox20 Ox3c Ox64 
+Ox6f Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox44 Ox65 Ox73 Ox63 Ox72 Ox69 Ox70 Ox74 Ox69 
+Ox6f Ox6e Ox3e Ox54 Ox68 Ox69 Ox73 Ox20 Ox69 Ox73 Ox20 Ox61 Ox20 Ox44 Ox4e Ox50 
+Ox33 Ox20 Ox43 Ox6f Ox6d Ox70 Ox6c Ox65 Ox74 Ox65 
+
+
+test buffer size 507
+new frame size is 757 
+after increas it ? test buffer size 507
+App sent to Binpac 292 
+Ox20 Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox20 Ox50 Ox72 Ox6f Ox66 Ox69 Ox6c Ox65 
+Ox20 Ox66 Ox6f Ox72 Ox20 Ox44 Ox4e Ox50 Ox20 Ox4f Ox75 Ox74 Ox73 Ox74 Ox61 Ox74 
+Ox69 Ox6f Ox6e Ox20 Ox69 Ox6e Ox20 Ox74 Ox68 Ox65 Ox20 Ox54 Ox4d Ox57 Ox20 Ox43 
+Ox6f Ox6d Ox6d Ox75 Ox6e Ox69 Ox63 Ox61 Ox74 Ox69 Ox6f Ox6e Ox20 Ox50 Ox72 Ox6f 
+Ox74 Ox6f Ox63 Ox6f Ox6c Ox20 Ox54 Ox65 Ox73 Ox74 Ox20 Ox48 Ox61 Ox72 Ox6e Ox65 
+Ox73 Ox73 Ox3c Ox2f Ox64 Ox6f Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox44 Ox65 Ox73 Ox63 
+Ox72 Ox69 Ox70 Ox74 Ox69 Ox6f Ox6e Ox3e Oxd Oxa Ox20 Ox20 Ox20 Ox20 Ox3c Ox72 
+Ox65 Ox76 Ox69 Ox73 Ox69 Ox6f Ox6e Ox48 Ox69 Ox73 Ox74 Ox6f Ox72 Ox79 Ox20 Ox76 
+Ox65 Ox72 Ox73 Ox69 Ox6f Ox6e Ox3d Ox22 Ox32 Ox22 Ox3e Oxd Oxa Ox20 Ox20 Ox20 
+Ox20 Ox20 Ox20 Ox3c Ox64 Ox61 Ox74 Ox65 Ox3e Ox32 Ox30 Ox31 Ox30 Ox2d Ox31 Ox32 
+Ox2d Ox30 Ox31 Ox3c Ox2f Ox64 Ox61 Ox74 Ox65 Ox3e Oxd Oxa Ox20 Ox20 Ox20 Ox20 
+Ox20 Ox20 Ox3c Ox61 Ox75 Ox74 Ox68 Ox6f Ox72 Ox3e Ox53 Ox74 Ox65 Ox76 Ox65 Ox20 
+Ox4d Ox63 Ox43 Ox6f Ox79 Ox3c Ox2f Ox61 Ox75 Ox74 Ox68 Ox6f Ox72 Ox3e Oxd Oxa 
+Ox20 Ox20 Ox20 Ox20 Ox20 Ox20 Ox3c Ox72 Ox65 Ox61 Ox73 Ox6f Ox6e Ox3e Ox44 Ox6f 
+Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox65 Ox64 Ox20 Ox54 Ox65 Ox73 Ox74 Ox20 Ox48 Ox61 
+Ox72 Ox6e Ox65 Ox73 Ox73 Ox20 Ox53 Ox44 Ox4e Ox50 
+
+
+test buffer size 756
+App sent to Binpac 124 
+Ox20 Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox20 Ox50 Ox72 Ox6f Ox66 Ox69 Ox6c Ox65 
+Ox3c Ox2f Ox72 Ox65 Ox61 Ox73 Ox6f Ox6e Ox3e Oxd Oxa Ox20 Ox20 Ox20 Ox20 Ox3c 
+Ox2f Ox72 Ox65 Ox76 Ox69 Ox73 Ox69 Ox6f Ox6e Ox48 Ox69 Ox73 Ox74 Ox6f Ox72 Ox79 
+Ox3e Oxd Oxa Ox20 Ox20 Ox3c Ox2f Ox64 Ox6f Ox63 Ox75 Ox6d Ox65 Ox6e Ox74 Ox48 
+Ox65 Ox61 Ox64 Ox65 Ox72 Ox3e Oxd Oxa Ox3c Ox2f Ox44 Ox4e Ox50 Ox33 Ox44 Ox65 
+Ox76 Ox69 Ox63 Ox65 Ox50 Ox72 Ox6f Ox66 Ox69 Ox6c Ox65 Ox44 Ox6f Ox63 Ox75 Ox6d 
+Ox65 Ox6e Ox74 Ox3e 
+
+
+dnp3_application_request_header, T, 199, 2
+dnp3_object_header, T, 17925, 91, 1, 1, 0
+dnp3_object_prefix, T, 838
+dnp3_file_transport, T, 305419896, 2147483648
+0000  ef bb bf 3c 3f 78 6d 6c  20 76 65 72 73 69 6f 6e  ...<?xml  version^J0010  3d 22 31 2e 30 22 20 65  6e 63 6f 64 69 6e 67 3d  ="1.0" e ncoding=^J0020  22 75 74 66 2d 38 22 3f  3e 0d 0a 3c 3f 78 6d 6c  "utf-8"? >..<?xml^J0030  2d 73 74 79 6c 65 73 68  65 65 74 20 74 79 70 65  -stylesh eet type^J0040  3d 27 74 65 78 74 2f 78  73 6c 27 20 68 72 65 66  ='text/x sl' href^J0050  3d 27 44 4e 50 33 44 65  76 69 63 65 50 72 6f 66  ='DNP3De viceProf^J0060  69 6c 65 4a 61 6e 32 30  31 30 2e 78 73 6c 74 27  ileJan20 10.xslt'^J0070  20 6d 65 64 69 61 3d 27  73 63 72 65 65 6e 27 3f   media=' screen'?^J0080  3e 0d 0a 3c 44 4e 50 33  44 65 76 69 63 65 50 72  >..<DNP3 DevicePr^J0090  6f 66 69 6c 65 44 6f 63  75 6d 65 6e 74 20 78 6d  ofileDoc ument xm^J00a0  6c 6e 73 3a 78 73 69 3d  22 68 74 74 70 3a 2f 2f  lns:xsi= "http://^J00b0  77 77 77 2e 77 33 2e 6f  72 67 2f 32 30 30 31 2f  www.w3.o rg/2001/^J00c0  58 4d 4c 53 63 68 65 6d  61 2d 69 6e 73 74 61 6e  XMLSchem a-instan^J00d0  63 65 22 20 78 6d 6c 6e  73 3a 78 73 64 3d 22 68  ce" xmln s:xsd="h^J00e0  74 74 70 3a 2f 2f 77 77  77 2e 77 33 2e 6f 72 67  ttp://ww w.w3.org^J00f0  2f 32 30 30 31 2f 58 4d  4c 53 63 68 65 6d 61 22  /2001/XM LSchema"^J0100  20 73 63 68 65 6d 61 56  65 72 73 69 6f 6e 3d 22   schemaV ersion="^J0110  32 2e 30 37 2e 30 30 22  20 78 6d 6c 6e 73 3d 22  2.07.00"  xmlns="^J0120  68 74 74 70 3a 2f 2f 77  77 77 2e 64 6e 70 33 2e  http://w ww.dnp3.^J0130  6f 72 67 2f 44 4e 50 33  2f 44 65 76 69 63 65 50  org/DNP3 /DeviceP^J0140  72 6f 66 69 6c 65 2f 4a  61 6e 32 30 31 30 22 3e  rofile/J an2010">^J0150  0d 0a 20 20 3c 21 2d 2d  44 6f 63 75 6d 65 6e 74  ..  <!-- Document^J0160  20 48 65 61 64 65 72 2d  2d 3e 0d 0a 20 20 3c 64   Header- ->..  <d^J0170  6f 63 75 6d 65 6e 74 48  65 61 64 65 72 3e 0d 0a  ocumentH eader>..^J0180  20 20 20 20 3c 64 6f 63  75 6d 65 6e 74 4e 61 6d      <doc umentNam^J0190  65 3e 41 20 44 4e 50 33  20 58 4d 4c 20 46 69 6c  e>A DNP3  XML Fil^J01a0  65 3c 2f 64 6f 63 75 6d  65 6e 74 4e 61 6d 65 3e  e</docum entName>^J01b0  0d 0a 20 20 20 20 3c 64  6f 63 75 6d 65 6e 74 44  ..    <d ocumentD^J01c0  65 73 63 72 69 70 74 69  6f 6e 3e 54 68 69 73 20  escripti on>This ^J01d0  69 73 20 61 20 44 4e 50  33 20 43 6f 6d 70 6c 65  is a DNP 3 Comple^J01e0  74 65 20 44 65 76 69 63  65 20 50 72 6f 66 69 6c  te Devic e Profil^J01f0  65 20 66 6f 72 20 44 4e  50 20 4f 75 74 73 74 61  e for DN P Outsta^J0200  74 69 6f 6e 20 69 6e 20  74 68 65 20 54 4d 57 20  tion in  the TMW ^J0210  43 6f 6d 6d 75 6e 69 63  61 74 69 6f 6e 20 50 72  Communic ation Pr^J0220  6f 74 6f 63 6f 6c 20 54  65 73 74 20 48 61 72 6e  otocol T est Harn^J0230  65 73 73 3c 2f 64 6f 63  75 6d 65 6e 74 44 65 73  ess</doc umentDes^J0240  63 72 69 70 74 69 6f 6e  3e 0d 0a 20 20 20 20 3c  cription >..    <^J0250  72 65 76 69 73 69 6f 6e  48 69 73 74 6f 72 79 20  revision History ^J0260  76 65 72 73 69 6f 6e 3d  22 32 22 3e 0d 0a 20 20  version= "2">..  ^J0270  20 20 20 20 3c 64 61 74  65 3e 32 30 31 30 2d 31      <dat e>2010-1^J0280  32 2d 30 31 3c 2f 64 61  74 65 3e 0d 0a 20 20 20  2-01</da te>..   ^J0290  20 20 20 3c 61 75 74 68  6f 72 3e 53 74 65 76 65     <auth or>Steve^J02a0  20 4d 63 43 6f 79 3c 2f  61 75 74 68 6f 72 3e 0d   McCoy</ author>.^J02b0  0a 20 20 20 20 20 20 3c  72 65 61 73 6f 6e 3e 44  .      < reason>D^J02c0  6f 63 75 6d 65 6e 74 65  64 20 54 65 73 74 20 48  ocumente d Test H^J02d0  61 72 6e 65 73 73 20 53  44 4e 50 20 44 65 76 69  arness S DNP Devi^J02e0  63 65 20 50 72 6f 66 69  6c 65 3c 2f 72 65 61 73  ce Profi le</reas^J02f0  6f 6e 3e 0d 0a 20 20 20  20 3c 2f 72 65 76 69 73  on>..     </revis^J0300  69 6f 6e 48 69 73 74 6f  72 79 3e 0d 0a 20 20 3c  ionHisto ry>..  <^J0310  2f 64 6f 63 75 6d 65 6e  74 48 65 61 64 65 72 3e  /documen tHeader>^J0320  0d 0a 3c 2f 44 4e 50 33  44 65 76 69 63 65 50 72  ..</DNP3 DevicePr^J0330  6f 66 69 6c 65 44 6f 63  75 6d 65 6e 74 3e        ofileDoc ument>^J
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox19 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 34 
+Oxc7 Ox81 Ox0 Ox0 Ox46 Ox6 Ox5b Ox1 Ox9 Ox0 Ox78 Ox56 Ox34 Ox12 Ox0 
+Ox0 Ox0 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 25, 68, 3, 4
+dnp3_application_response_header, F, 199, 129, 0
+dnp3_object_header, F, 17926, 91, 1, 1, 0
+dnp3_object_prefix, F, 9
+dnp3_response_data_object, F, 255
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1b Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 36 
+Oxc8 Ox1a Ox46 Ox4 Ox5b Ox1 Oxd Ox0 Ox78 Ox56 Ox34 Ox12 Ox0 Ox0 Ox0 
+Ox0 Ox0 Ox0 Ox7 Ox0 Ox0 
+
+
+dnp3_header_block, T, 25605, 27, 196, 4, 3
+dnp3_application_request_header, T, 200, 26
+dnp3_object_header, T, 17924, 91, 1, 1, 0
+dnp3_object_prefix, T, 13
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1d Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 38 
+Oxc8 Ox81 Ox0 Ox0 Ox46 Ox4 Ox5b Ox1 Oxd Ox0 Ox78 Ox56 Ox34 Ox12 Ox0 
+Ox0 Ox0 Ox0 Ox0 Ox0 Ox7 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 29, 68, 3, 4
+dnp3_application_response_header, F, 200, 129, 0
+dnp3_object_header, F, 17924, 91, 1, 1, 0
+dnp3_object_prefix, F, 13
+dnp3_response_data_object, F, 255

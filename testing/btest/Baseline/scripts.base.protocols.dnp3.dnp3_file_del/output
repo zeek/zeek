@@ -1,0 +1,31 @@
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox63 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 116 
+Oxc9 Ox1b Ox46 Ox3 Ox5b Ox1 Ox55 Ox0 Ox1a Ox0 Ox3b Ox0 Ox0 Ox0 Ox0 
+Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 
+Ox0 Ox1e Ox0 Ox43 Ox3a Ox2f Ox74 Ox65 Ox6d Ox70 Ox2f Ox44 Ox4e Ox50 Ox44 Ox65 
+Ox76 Ox69 Ox63 Ox65 Ox43 Ox6f Ox6e Ox66 Ox69 Ox67 Ox75 Ox72 Ox61 Ox74 Ox69 Ox6f 
+Ox6e Ox20 Ox77 Ox72 Ox69 Ox74 Ox74 Ox65 Ox6e Ox20 Ox74 Ox6f Ox20 Ox52 Ox65 Ox6d 
+Ox6f Ox74 Ox65 Ox20 Ox44 Ox65 Ox76 Ox69 Ox63 Ox65 Ox2e Ox78 Ox6d Ox6c 
+
+
+dnp3_header_block, T, 25605, 99, 196, 4, 3
+dnp3_application_request_header, T, 201, 27
+dnp3_object_header, T, 17923, 91, 1, 1, 0
+dnp3_object_prefix, T, 85
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1d Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 38 
+Oxc9 Ox81 Ox0 Ox0 Ox46 Ox4 Ox5b Ox1 Oxd Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 
+Ox0 Ox0 Ox0 Ox0 Ox0 Ox1e Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 29, 68, 3, 4
+dnp3_application_response_header, F, 201, 129, 0
+dnp3_object_header, F, 17924, 91, 1, 1, 0
+dnp3_object_prefix, F, 13
+dnp3_response_data_object, F, 255

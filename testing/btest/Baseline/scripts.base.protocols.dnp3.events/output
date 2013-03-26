@@ -1,41 +1,156 @@
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf7 Ox82 Ox10 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 247, 130, 4096
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd7 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 215, 0
-dnp3_header_block, T, 25605, 18, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox12 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 25 
+Oxc1 Ox2 Ox32 Ox1 Ox7 Ox1 Oxeb Oxe4 Ox5a Ox87 Oxff Ox0 
+
+
+dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 193, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc1 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 193, 129, 0
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc2 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 194, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc2 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 194, 129, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf9 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 249, 130, 0
-dnp3_header_block, T, 44448, 106, 9, 0, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf2 Ox82 Ox10 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 242, 130, 4096
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd2 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 210, 0
-dnp3_header_block, T, 25605, 18, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox12 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 25 
+Oxc1 Ox2 Ox32 Ox1 Ox7 Ox1 Oxa9 Oxe1 Ox7b Ox87 Oxff Ox0 
+
+
+dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 193, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc1 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 193, 129, 0
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc2 Ox14 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 194, 20
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc2 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 194, 129, 0
-dnp3_header_block, F, 25605, 76, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 91 
+Oxf3 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxe2 Ox43 Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox5 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox1 Ox0 Ox81 Ox0 Ox0 Ox2 Ox0 
+Ox81 Ox0 Ox0 Ox0 Ox0 Ox81 Oxf3 Ox3 Ox1 Ox0 Ox1 Oxf3 Ox3 Ox20 Ox1 Ox28 
+Ox3 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 243, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -61,9 +176,29 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
 dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd3 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 211, 0
-dnp3_header_block, F, 25605, 71, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox47 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 86 
+Oxf4 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxd5 Ox47 Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox4 Ox0 Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Ox17 Ox3 Ox1 Ox0 
+Ox81 Ox17 Ox3 Ox2 Ox0 Ox81 Ox17 Ox3 Ox20 Ox1 Ox28 Ox3 Ox0 Ox2 Ox0 Ox1 
+Oxc6 Ox0 Ox0 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 
+Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 71, 68, 3, 4
 dnp3_application_response_header, F, 244, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -87,9 +222,29 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
 dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd4 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 212, 0
-dnp3_header_block, F, 25605, 76, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 91 
+Oxf5 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxf4 Ox4e Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox5 Ox0 Ox0 Ox0 Ox81 Ox0 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 Ox2 Ox0 
+Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Oxc1 Ox3 Ox1 Ox0 Ox81 Oxc1 Ox3 Ox20 Ox1 Ox28 
+Ox3 Ox0 Ox0 Ox0 Ox1 Oxc6 Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Oxca Ox0 Ox0 Ox0 
+Ox2 Ox0 Ox1 Oxc6 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 245, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -115,9 +270,29 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
 dnp3_analog_input_event_32woTime, F, 1, 198
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd5 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 213, 0
-dnp3_header_block, F, 25605, 71, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox47 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 86 
+Oxf6 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxb5 Ox52 Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox4 Ox0 Ox2 Ox0 Ox81 Ox0 Ox0 Ox0 Ox0 Ox81 Oxa4 Ox3 Ox1 Ox0 
+Ox1 Oxa4 Ox3 Ox2 Ox0 Ox1 Oxa4 Ox3 Ox20 Ox1 Ox28 Ox3 Ox0 Ox2 Ox0 Ox1 
+Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox1 Oxca Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Oxc8 Ox0 
+Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 71, 68, 3, 4
 dnp3_application_response_header, F, 246, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -141,9 +316,29 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
 dnp3_analog_input_event_32woTime, F, 1, 200
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd6 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 214, 0
-dnp3_header_block, F, 25605, 76, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 91 
+Oxf7 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Ox1a Ox5a Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox5 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox1 Ox0 Ox81 Ox0 Ox0 Ox2 Ox0 
+Ox81 Ox0 Ox0 Ox0 Ox0 Ox81 Oxad Ox3 Ox1 Ox0 Ox1 Oxad Ox3 Ox20 Ox1 Ox28 
+Ox3 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 247, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -169,9 +364,27 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
 dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd7 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 215, 0
-dnp3_header_block, F, 25605, 50, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox32 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 61 
+Oxf8 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxc7 Ox5d Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox5 Ox0 Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Oxe Ox3 Ox1 Ox0 
+Ox81 Oxe Ox3 Ox2 Ox0 Ox81 Oxe Ox3 Ox0 Ox0 Ox81 Ox1 Ox7 
+
+
+dnp3_header_block, F, 25605, 50, 68, 3, 4
 dnp3_application_response_header, F, 248, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -187,9 +400,29 @@ dnp3_object_prefix, F, 2
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd8 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 216, 0
-dnp3_header_block, F, 25605, 76, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 91 
+Oxf9 Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxc8 Ox64 Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox5 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+Ox1 Ox2b Ox3 Ox1 Ox0 Ox81 Ox2b Ox3 Ox2 Ox0 Ox81 Ox2b Ox3 Ox20 Ox1 Ox28 
+Ox3 Ox0 Ox0 Ox0 Ox1 Oxc6 Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Oxc7 Ox0 Ox0 Ox0 
+Ox2 Ox0 Ox1 Oxc7 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 249, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -215,9 +448,28 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
 dnp3_analog_input_event_32woTime, F, 1, 199
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd9 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 217, 0
-dnp3_header_block, F, 25605, 66, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox42 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 79 
+Oxfa Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Oxb5 Ox6b Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox3 Ox0 Ox0 Ox0 Ox81 Ox0 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 Ox2 Ox0 
+Ox1 Ox0 Ox0 Ox20 Ox1 Ox28 Ox3 Ox0 Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox0 
+Ox0 Ox1 Oxca Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Oxc8 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 66, 68, 3, 4
 dnp3_application_response_header, F, 250, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -239,9 +491,29 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
 dnp3_analog_input_event_32woTime, F, 1, 200
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxda Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 218, 0
-dnp3_header_block, F, 25605, 76, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 91 
+Oxfb Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Ox5e Ox6e Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox5 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox1 Ox0 Ox81 Ox0 Ox0 Ox2 Ox0 
+Ox81 Ox0 Ox0 Ox0 Ox0 Ox81 Oxd Ox3 Ox1 Ox0 Ox1 Oxd Ox3 Ox20 Ox1 Ox28 
+Ox3 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+Ox2 Ox0 Ox1 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 251, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -267,9 +539,28 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
 dnp3_analog_input_event_32woTime, F, 1, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxdb Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 219, 0
-dnp3_header_block, F, 25605, 56, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox38 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 69 
+Oxfc Ox82 Ox0 Ox0 Ox33 Ox1 Ox7 Ox1 Ox6b Ox71 Ox7d Ox87 Oxff Ox0 Ox2 
+Ox3 Ox28 Ox1 Ox0 Ox2 Ox0 Ox1 Ox0 Ox0 Ox20 Ox1 Ox28 Ox3 Ox0 Ox0 Ox0 
+Ox1 Oxcb Ox0 Ox0 Ox0 Ox1 Ox0 Ox1 Oxca Ox0 Ox0 Ox0 Ox2 Ox0 Ox1 Oxc7 
+Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 56, 68, 3, 4
 dnp3_application_response_header, F, 252, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
@@ -287,53 +578,185 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
 dnp3_analog_input_event_32woTime, F, 1, 199
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxdc Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 220, 0
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxc3 Oxd 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 195, 13
-dnp3_header_block, F, 25605, 16, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox10 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 23 
+Oxc3 Ox81 Ox0 Ox0 Ox34 Ox2 Ox7 Ox1 Ox88 Ox13 
+
+
+dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 195, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxc1 Oxd 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 193, 13
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf7 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 247, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf8 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 248, 130, 0
-dnp3_header_block, F, 25605, 16, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox10 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 23 
+Oxc1 Ox81 Ox0 Ox0 Ox34 Ox2 Ox7 Ox1 Ox88 Ox13 
+
+
+dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 193, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 11, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxb Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 18 
+Oxc2 Ox1 Ox2 Ox0 Ox6 
+
+
+dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 194, 1
 dnp3_object_header, T, 512, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc2 Ox81 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 194, 129, 32768
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf9 Ox82 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 249, 130, 32768
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc3 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 195, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc3 Ox81 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 195, 129, 32768
-dnp3_header_block, T, 25605, 14, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxe Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 21 
+Oxc4 Ox2 Ox50 Ox1 Ox0 Ox7 Ox7 Ox0 
+
+
+dnp3_header_block, T, 25605, 14, 196, 4, 3
 dnp3_application_request_header, T, 196, 2
 dnp3_object_header, T, 20481, 0, 1, 7, 7
 dnp3_object_prefix, T, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc4 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 196, 129, 0
-dnp3_header_block, T, 25605, 20, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox14 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 27 
+Oxc5 Ox1 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 Ox3c Ox1 Ox6 
+
+
+dnp3_header_block, T, 25605, 20, 196, 4, 3
 dnp3_application_request_header, T, 197, 1
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
 dnp3_object_header, T, 15361, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 78, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4e Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 93 
+Oxc5 Ox81 Ox0 Ox0 Ox1 Ox1 Ox0 Ox0 Ox5 Ox2 Oxa Ox2 Ox0 Ox0 Ox5 
+Ox1 Ox1 Ox1 Ox1 Ox1 Ox1 Ox14 Ox5 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox15 
+Ox9 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox1e Ox3 Ox0 Ox0 Ox6 Oxc5 Ox0 Ox0 
+Ox0 Oxc7 Ox0 Ox0 Ox0 Oxc8 Ox0 Ox0 Ox0 Ox1 Ox0 Ox0 Ox0 Ox25 Ox1c Ox0 
+Ox0 Oxe Ox1c Ox0 Ox0 Ox10 Ox1c Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 78, 68, 3, 4
 dnp3_application_response_header, F, 197, 129, 0
 dnp3_object_header, F, 257, 0, 6, 0, 5
 dnp3_object_prefix, F, 0
@@ -381,90 +804,334 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
 dnp3_analog_input_32woFlag, F, 7184
 dnp3_response_data_object, F, 255
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxfa Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 250, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxfb Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 251, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxfc Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 252, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxfd Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 253, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxfe Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 254, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxff Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 255, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf0 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 240, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf1 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 241, 130, 0
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc6 Ox14 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 198, 20
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc6 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 198, 129, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf2 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 242, 130, 0
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc7 Ox14 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 199, 20
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc7 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 199, 129, 0
-dnp3_header_block, F, 25605, 10, 0, 6, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox6 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf3 Ox82 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 6, 4
 dnp3_application_response_header, F, 243, 130, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf0 Ox82 Ox90 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 240, 130, 36864
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxd0 Ox0 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 208, 0
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 193, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc1 Ox81 Ox90 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 193, 129, 36864
-dnp3_header_block, T, 25605, 18, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox12 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 25 
+Oxc2 Ox2 Ox32 Ox1 Ox7 Ox1 Ox2f Ox1d Oxb4 Ox87 Oxff Ox0 
+
+
+dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 194, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc2 Ox81 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 194, 129, 32768
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc3 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 195, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc3 Ox81 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 195, 129, 32768
-dnp3_header_block, T, 25605, 18, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox12 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 25 
+Oxc4 Ox2 Ox32 Ox1 Ox7 Ox1 Ox5b Ox1e Oxb4 Ox87 Oxff Ox0 
+
+
+dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 196, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc4 Ox81 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 196, 129, 32768
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc5 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 197, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc5 Ox81 Ox80 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 197, 129, 32768
-dnp3_header_block, T, 25605, 14, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxe Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 21 
+Oxc6 Ox2 Ox50 Ox1 Ox0 Ox7 Ox7 Ox0 
+
+
+dnp3_header_block, T, 25605, 14, 196, 4, 3
 dnp3_application_request_header, T, 198, 2
 dnp3_object_header, T, 20481, 0, 1, 7, 7
 dnp3_object_prefix, T, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc6 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 198, 129, 0
-dnp3_header_block, T, 25605, 20, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox14 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 27 
+Oxc7 Ox1 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 Ox3c Ox1 Ox6 
+
+
+dnp3_header_block, T, 25605, 20, 196, 4, 3
 dnp3_application_request_header, T, 199, 1
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
 dnp3_object_header, T, 15361, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 78, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox4e Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 93 
+Oxc7 Ox81 Ox0 Ox0 Ox1 Ox1 Ox0 Ox0 Ox5 Ox19 Oxa Ox2 Ox0 Ox0 Ox5 
+Ox81 Ox1 Ox81 Ox81 Ox1 Ox1 Ox14 Ox5 Ox0 Ox0 Ox0 Ox20 Ox0 Ox0 Ox0 Ox15 
+Ox9 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox0 Ox1e Ox3 Ox0 Ox0 Ox6 Oxca Ox0 Ox0 
+Ox0 Oxcb Ox0 Ox0 Ox0 Oxc9 Ox0 Ox0 Ox0 Oxff Oxff Oxff Oxff Ox66 Ox21 Ox0 
+Ox0 Ox59 Ox21 Ox0 Ox0 Ox4b Ox21 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 78, 68, 3, 4
 dnp3_application_response_header, F, 199, 129, 0
 dnp3_object_header, F, 257, 0, 6, 0, 5
 dnp3_object_prefix, F, 0
@@ -512,144 +1179,450 @@ dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
 dnp3_analog_input_32woFlag, F, 8523
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxc8 Oxe 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 200, 14
-dnp3_header_block, F, 25605, 16, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox10 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 23 
+Oxc8 Ox81 Ox0 Ox0 Ox34 Ox2 Ox7 Ox1 Oxd0 Ox7 
+
+
+dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 200, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 8, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox8 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 15 
+Oxc9 Oxe 
+
+
+dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 201, 14
-dnp3_header_block, F, 25605, 16, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox10 Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 23 
+Oxc9 Ox81 Ox0 Ox0 Ox34 Ox2 Ox7 Ox1 Oxd0 Ox7 
+
+
+dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 201, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
 dnp3_response_data_object, F, 255
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxfd Ox82 Ox1 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 253, 130, 256
-dnp3_header_block, T, 25605, 17, 0, 65535, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Oxff Oxff Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Oxed 
+
+
+dnp3_header_block, T, 25605, 17, 196, 65535, 3
 dnp3_application_request_header, T, 193, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 237, 0, 0, 0
-dnp3_header_block, T, 25605, 17, 0, 65535, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Oxff Oxff Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox15 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Oxed 
+
+
+dnp3_header_block, T, 25605, 17, 196, 65535, 3
 dnp3_application_request_header, T, 193, 21
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 237, 0, 0, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxf1 Ox82 Ox10 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 241, 130, 4096
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox12 Ox3c Ox2 Ox6 Ox1 Ox7 Ox6 Ox3c Ox4 Oxed 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 193, 18
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 263, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 237, 0, 0, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc3 Ox81 Ox10 Ox1 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 195, 129, 4097
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox12 Ox3c Ox2 Ox6 Ox1 Ox7 Ox6 Ox3c Ox4 Oxed 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 193, 18
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 263, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 237, 0, 0, 0
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc4 Ox81 Ox10 Ox1 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 196, 129, 4097
-dnp3_header_block, F, 25605, 10, 0, 3, 6
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox6 Ox0 
+App sent to Binpac 17 
+Oxf6 Ox82 Ox95 Ox1 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 6
 dnp3_application_response_header, F, 246, 130, 38145
-dnp3_header_block, T, 25605, 17, 0, 65535, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Oxff Oxff Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox12 Ox3c Ox2 Ox6 Ox1 Ox7 Ox6 Ox3c Ox4 Oxed 
+
+
+dnp3_header_block, T, 25605, 17, 196, 65535, 3
 dnp3_application_request_header, T, 193, 18
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 263, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 237, 0, 0, 0
-dnp3_header_block, T, 25605, 17, 0, 65535, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Oxff Oxff Ox3 Ox0 
+App sent to Binpac 24 
+Oxc1 Ox12 Ox3c Ox2 Ox6 Ox1 Ox7 Ox6 Ox3c Ox4 Oxed 
+
+
+dnp3_header_block, T, 25605, 17, 196, 65535, 3
 dnp3_application_request_header, T, 193, 18
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 263, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 237, 0, 0, 0
-dnp3_header_block, T, 25605, 17, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox11 Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 24 
+Oxc2 Ox1 Ox3c Ox2 Ox6 Ox3c Ox3 Ox6 Ox3c Ox4 Ox6 
+
+
+dnp3_header_block, T, 25605, 17, 196, 4, 3
 dnp3_application_request_header, T, 194, 1
 dnp3_object_header, T, 15362, 6, 0, 65535, 65535
 dnp3_object_header, T, 15363, 6, 0, 65535, 65535
 dnp3_object_header, T, 15364, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc2 Ox81 Ox0 Ox0 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 194, 129, 0
-dnp3_header_block, T, 25605, 26, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1a Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 35 
+Oxc3 Ox3 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 Ox0 Ox0 
+Ox64 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, T, 25605, 26, 196, 4, 3
 dnp3_application_request_header, T, 195, 3
 dnp3_object_header, T, 3073, 40, 1, 256, 0
 dnp3_object_prefix, T, 34463
 dnp3_crob, T, 3, 1, 100, 100, 0
-dnp3_header_block, F, 25605, 28, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 37 
+Oxc3 Ox81 Ox0 Ox4 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 
+Ox0 Ox0 Ox64 Ox0 Ox0 Ox0 Ox4 
+
+
+dnp3_header_block, F, 25605, 28, 68, 3, 4
 dnp3_application_response_header, F, 195, 129, 4
 dnp3_object_header, F, 3073, 40, 1, 256, 0
 dnp3_object_prefix, F, 34463
 dnp3_crob, F, 3, 1, 100, 100, 4
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 26, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1a Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 35 
+Oxc4 Ox3 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 Ox0 Ox0 
+Ox64 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, T, 25605, 26, 196, 4, 3
 dnp3_application_request_header, T, 196, 3
 dnp3_object_header, T, 3073, 40, 1, 256, 0
 dnp3_object_prefix, T, 34463
 dnp3_crob, T, 3, 1, 100, 100, 0
-dnp3_header_block, F, 25605, 28, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 37 
+Oxc4 Ox81 Ox0 Ox4 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 
+Ox0 Ox0 Ox64 Ox0 Ox0 Ox0 Ox4 
+
+
+dnp3_header_block, F, 25605, 28, 68, 3, 4
 dnp3_application_response_header, F, 196, 129, 4
 dnp3_object_header, F, 3073, 40, 1, 256, 0
 dnp3_object_prefix, F, 34463
 dnp3_crob, F, 3, 1, 100, 100, 4
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 26, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1a Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 35 
+Oxc5 Ox3 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 Ox0 Ox0 
+Ox64 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, T, 25605, 26, 196, 4, 3
 dnp3_application_request_header, T, 197, 3
 dnp3_object_header, T, 3073, 40, 1, 256, 0
 dnp3_object_prefix, T, 34463
 dnp3_crob, T, 3, 1, 100, 100, 0
-dnp3_header_block, F, 25605, 28, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 37 
+Oxc5 Ox81 Ox0 Ox4 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 
+Ox0 Ox0 Ox64 Ox0 Ox0 Ox0 Ox4 
+
+
+dnp3_header_block, F, 25605, 28, 68, 3, 4
 dnp3_application_response_header, F, 197, 129, 4
 dnp3_object_header, F, 3073, 40, 1, 256, 0
 dnp3_object_prefix, F, 34463
 dnp3_crob, F, 3, 1, 100, 100, 4
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 26, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1a Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 35 
+Oxc6 Ox3 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 Ox0 Ox0 
+Ox64 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, T, 25605, 26, 196, 4, 3
 dnp3_application_request_header, T, 198, 3
 dnp3_object_header, T, 3073, 40, 1, 256, 0
 dnp3_object_prefix, T, 34463
 dnp3_crob, T, 3, 1, 100, 100, 0
-dnp3_header_block, F, 25605, 28, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 37 
+Oxc6 Ox81 Ox0 Ox4 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 
+Ox0 Ox0 Ox64 Ox0 Ox0 Ox0 Ox4 
+
+
+dnp3_header_block, F, 25605, 28, 68, 3, 4
 dnp3_application_response_header, F, 198, 129, 4
 dnp3_object_header, F, 3073, 40, 1, 256, 0
 dnp3_object_prefix, F, 34463
 dnp3_crob, F, 3, 1, 100, 100, 4
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 26, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1a Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 35 
+Oxc7 Ox3 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 Ox0 Ox0 
+Ox64 Ox0 Ox0 Ox0 Ox0 
+
+
+dnp3_header_block, T, 25605, 26, 196, 4, 3
 dnp3_application_request_header, T, 199, 3
 dnp3_object_header, T, 3073, 40, 1, 256, 0
 dnp3_object_prefix, T, 34463
 dnp3_crob, T, 3, 1, 100, 100, 0
-dnp3_header_block, F, 25605, 28, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Ox1c Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 37 
+Oxc7 Ox81 Ox0 Ox4 Oxc Ox1 Ox28 Ox1 Ox0 Ox9f Ox86 Ox3 Ox1 Ox64 Ox0 
+Ox0 Ox0 Ox64 Ox0 Ox0 Ox0 Ox4 
+
+
+dnp3_header_block, F, 25605, 28, 68, 3, 4
 dnp3_application_response_header, F, 199, 129, 4
 dnp3_object_header, F, 3073, 40, 1, 256, 0
 dnp3_object_prefix, F, 34463
 dnp3_crob, F, 3, 1, 100, 100, 4
 dnp3_response_data_object, F, 255
-dnp3_header_block, T, 25605, 11, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxb Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 18 
+Oxc8 Ox1 Oxff Ox0 Ox6 
+
+
+dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 200, 1
 dnp3_object_header, T, 65280, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc8 Ox81 Ox0 Ox6 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 200, 129, 6
-dnp3_header_block, T, 25605, 11, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxb Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 18 
+Oxc9 Ox1 Oxff Ox0 Ox6 
+
+
+dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 201, 1
 dnp3_object_header, T, 65280, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxc9 Ox81 Ox0 Ox6 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 201, 129, 6
-dnp3_header_block, T, 25605, 11, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxb Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 18 
+Oxca Ox1 Oxff Ox0 Ox6 
+
+
+dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 202, 1
 dnp3_object_header, T, 65280, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxca Ox81 Ox0 Ox6 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 202, 129, 6
-dnp3_header_block, T, 25605, 11, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxb Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 18 
+Oxcb Ox1 Oxff Ox0 Ox6 
+
+
+dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 203, 1
 dnp3_object_header, T, 65280, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxcb Ox81 Ox0 Ox6 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 203, 129, 6
-dnp3_header_block, T, 25605, 11, 0, 4, 3
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxb Ox0 Oxc4 Ox4 Ox0 Ox3 Ox0 
+App sent to Binpac 18 
+Oxcc Ox1 Oxff Ox0 Ox6 
+
+
+dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 204, 1
 dnp3_object_header, T, 65280, 6, 0, 65535, 65535
-dnp3_header_block, F, 25605, 10, 0, 3, 4
+
+
+Header sent to Binpac 
+Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox4 Ox0 
+App sent to Binpac 17 
+Oxcc Ox81 Ox0 Ox6 
+
+
+dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 204, 129, 6

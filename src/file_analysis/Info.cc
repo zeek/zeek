@@ -77,7 +77,7 @@ void Info::StaticInit()
 	}
 
 Info::Info(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
-    : file_id(unique), unique(unique), val(0), postpone_timeout(false),
+    : file_id(""), unique(unique), val(0), postpone_timeout(false),
       need_reassembly(false), done(false), actions(this)
 	{
 	StaticInit();
@@ -338,12 +338,13 @@ void Info::DataIn(const u_char* data, uint64 len)
 void Info::EndOfFile()
 	{
 	if ( done ) return;
-	done = true;
 
 	actions.DrainModifications();
 
 	// Send along anything that's been buffered, but never flushed.
 	ReplayBOF();
+
+	done = true;
 
 	Action* act = 0;
 	IterCookie* c = actions.InitForIteration();

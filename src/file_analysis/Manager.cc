@@ -303,8 +303,8 @@ bool Manager::RemoveFile(const string& unique)
 		reporter->Error("No mapping for fileID %s", id.c_str());
 
 	ignored.erase(unique);
-	str_map.erase(unique);
 	delete it->second;
+	str_map.erase(unique);
 	return true;
 	}
 

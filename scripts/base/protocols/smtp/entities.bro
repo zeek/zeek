@@ -7,11 +7,6 @@
 module SMTP;
 
 export {
-	redef enum Notice::Type += {
-		## Indicates that an MD5 sum was calculated for a MIME message.
-		MD5,
-	};
-
 	redef enum Log::ID += { ENTITIES_LOG };
 
 	type EntityInfo: record {
@@ -34,15 +29,12 @@ export {
 		## Optionally calculate the file's MD5 sum.  Must be set prior to the 
 		## first data chunk being see in an event.
 		calc_md5:         bool            &default=F;
-		## This boolean value indicates if an MD5 sum is being calculated 
-		## for the current file transfer.
-		md5_handle:       opaque of md5   &optional;
 		
 		## Optionally write the file to disk.  Must be set prior to first 
 		## data chunk being seen in an event.
 		extract_file:     bool            &default=F;
 		## Store the file handle here for the file currently being extracted.
-		extraction_file:  file            &log &optional;
+		extraction_file:  string          &log &optional;
 	};
 
 	redef record Info += {
@@ -77,6 +69,8 @@ export {
 	global log_mime: event(rec: EntityInfo);
 }
 
+global extract_count: count = 0;
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(SMTP::ENTITIES_LOG, [$columns=EntityInfo, $ev=log_mime]);
@@ -100,74 +94,155 @@ function set_session(c: connection, new_entity: bool)
 event mime_begin_entity(c: connection) &priority=10
 	{
 	if ( ! c?$smtp ) return;
-	
+
 	set_session(c, T);
 	}
 
-# This has priority -10 because other handlers need to know the current
-# content_len before it's updated by this handler.
-event mime_segment_data(c: connection, length: count, data: string) &priority=-10
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	if ( ! c?$smtp ) return;
-	
-	c$smtp$current_entity$content_len = c$smtp$current_entity$content_len + length;
-	}
+	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "SMTP" ) return;
+	if ( ! info?$conns ) return;
 
-event mime_segment_data(c: connection, length: count, data: string) &priority=7
-    {
-	if ( ! c?$smtp ) return;
-	if ( c$smtp$current_entity$content_len == 0 )
-		c$smtp$current_entity$mime_type = split1(identify_data(data, T), /;/)[1];
-	}
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	                          extract_count);
+	local extracting: bool = F;
 
-event mime_segment_data(c: connection, length: count, data: string) &priority=-5
-	{
-	if ( ! c?$smtp ) return;
-
-	if ( c$smtp$current_entity$content_len == 0 )
+	for ( cid in info$conns )
 		{
-		local entity = c$smtp$current_entity;
-		if ( generate_md5 in entity$mime_type && ! never_calc_md5 )
-			entity$calc_md5 = T;
+		local c: connection = info$conns[cid];
 
-		if ( entity$calc_md5 )
-			entity$md5_handle = md5_hash_init();
-		}
+		if ( ! c?$smtp ) next;
 
-	if ( c$smtp$current_entity?$md5_handle )
-		md5_hash_update(entity$md5_handle, data);
-}
+		if ( c$smtp$current_entity$extract_file )
+			{
+			if ( ! extracting )
+				{
+				FileAnalysis::add_action(info$file_id,
+				                         [$act=FileAnalysis::ACTION_EXTRACT,
+				                          $extract_filename=fname]);
+				extracting = T;
+				++extract_count;
+				}
 
-## In the event of a content gap during the MIME transfer, detect the state for
-## the MD5 sum calculation and stop calculating the MD5 since it would be
-## incorrect anyway.
-event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
-	{
-	if ( is_orig || ! c?$smtp || ! c$smtp?$current_entity ) return;
+			c$smtp$current_entity$extraction_file = fname;
+			}
 
-	local entity = c$smtp$current_entity;
-	if ( entity?$md5_handle )
-		{
-		md5_hash_finish(entity$md5_handle);
-		delete entity$md5_handle;
+		if ( c$smtp$current_entity$calc_md5 )
+			FileAnalysis::add_action(info$file_id,
+			                         [$act=FileAnalysis::ACTION_MD5]);
 		}
 	}
 
-event mime_end_entity(c: connection) &priority=-3
-    {
-	# TODO: this check is only due to a bug in mime_end_entity that
-	#       causes the event to be generated twice for the same real event.
-	if ( ! c?$smtp || ! c$smtp?$current_entity )
+function check_extract_by_type(info: FileAnalysis::Info)
+	{
+	if ( extract_file_types !in info$mime_type ) return;
+
+	for ( act in info$actions )
+		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
+
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	                          extract_count);
+	++extract_count;
+	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
+	                         $extract_filename=fname]);
+
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$smtp ) next;
+
+		c$smtp$current_entity$extraction_file = fname;
+		}
+	}
+
+function check_md5_by_type(info: FileAnalysis::Info)
+	{
+	if ( never_calc_md5 ) return;
+	if ( generate_md5 !in info$mime_type ) return;
+
+	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
+	}
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
+	if ( ! info?$mime_type ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "SMTP" ) return;
+
+	if ( info?$conns )
+		for ( cid in info$conns )
+			{
+			local c: connection = info$conns[cid];
+
+			if ( ! c?$smtp ) next;
+
+			c$smtp$current_entity$mime_type = info$mime_type;
+			}
+
+	check_extract_by_type(info);
+	check_md5_by_type(info);
+	}
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_GAP ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "SMTP" ) return;
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$smtp ) next;
+		if ( ! c$smtp?$current_entity ) next;
+
+		FileAnalysis::remove_action(info$file_id,
+		                            [$act=FileAnalysis::ACTION_MD5]);
+		}
+	}
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_EOF &&
+	     trig != FileAnalysis::TRIGGER_DONE ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "SMTP" ) return;
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$smtp ) next;
+		if ( ! c$smtp?$current_entity ) next;
+		# Only log is there was some content.
+		if ( info$seen_bytes == 0 ) next;
+
+		local act: FileAnalysis::ActionArgs = [$act=FileAnalysis::ACTION_MD5];
+
+		if ( act in info$actions )
+			{
+			local result = info$actions[act];
+			if ( result?$md5 )
+				c$smtp$current_entity$md5 = result$md5;
+			}
+
+		c$smtp$current_entity$content_len = info$seen_bytes;
+
+		Log::write(SMTP::ENTITIES_LOG, c$smtp$current_entity);
+		delete c$smtp$current_entity;
 		return;
-
-	local entity = c$smtp$current_entity;
-	if ( entity?$md5_handle )
-		{
-		entity$md5 = md5_hash_finish(entity$md5_handle);
-		delete entity$md5_handle;
-
-		NOTICE([$note=MD5, $msg=fmt("Calculated a hash for a MIME entity from %s", c$id$orig_h),
-				$sub=entity$md5, $conn=c]);
 		}
 	}
 
@@ -179,66 +254,7 @@ event mime_one_header(c: connection, h: mime_header_rec)
 	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in h$value )
 		c$smtp$current_entity$filename = extract_filename_from_content_disposition(h$value);
 
-	if ( h$name == "CONTENT-TYPE" && 
+	if ( h$name == "CONTENT-TYPE" &&
 	     /[nN][aA][mM][eE][:blank:]*=/ in h$value )
 		c$smtp$current_entity$filename = extract_filename_from_content_disposition(h$value);
-	}
-
-event mime_end_entity(c: connection) &priority=-5
-	{
-	if ( ! c?$smtp ) return;
-
-	# This check and the delete below are just to cope with a bug where
-	# mime_end_entity can be generated multiple times for the same event.
-	if ( ! c$smtp?$current_entity )
-		return;
-
-	# Only log is there was some content.
-	if ( c$smtp$current_entity$content_len > 0 )
-		Log::write(SMTP::ENTITIES_LOG, c$smtp$current_entity);
-
-	delete c$smtp$current_entity;
-	}
-
-event mime_segment_data(c: connection, length: count, data: string) &priority=5
-	{
-	if ( ! c?$smtp ) return;
-	
-	if ( extract_file_types in c$smtp$current_entity$mime_type )
-		c$smtp$current_entity$extract_file = T;
-	}
-
-event mime_segment_data(c: connection, length: count, data: string) &priority=3
-	{
-	if ( ! c?$smtp ) return;
-	
-	if ( c$smtp$current_entity$extract_file && 
-	     c$smtp$current_entity$content_len == 0 )
-		{
-		local suffix = fmt("%d.dat", ++c$smtp_state$num_extracted_files);
-		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
-		c$smtp$current_entity$extraction_file = open(fname);
-		enable_raw_output(c$smtp$current_entity$extraction_file);
-		}
-	}
-
-event mime_segment_data(c: connection, length: count, data: string) &priority=-5
-	{
-	if ( ! c?$smtp ) return;
-	
-	if ( c$smtp$current_entity$extract_file && c$smtp$current_entity?$extraction_file )
-		print c$smtp$current_entity$extraction_file, data;
-	}
-
-event mime_end_entity(c: connection) &priority=-3
-	{
-	if ( ! c?$smtp ) return;
-	
-	# TODO: this check is only due to a bug in mime_end_entity that
-	#       causes the event to be generated twice for the same real event.
-	if ( ! c$smtp?$current_entity )
-		return;
-
-	if ( c$smtp$current_entity?$extraction_file )
-		close(c$smtp$current_entity$extraction_file);
 	}

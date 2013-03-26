@@ -85,5 +85,5 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 	if ( ! info?$source ) return;
 	if ( info$source != "HTTP" ) return;
 
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
+	FileAnalysis::remove_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
 	}

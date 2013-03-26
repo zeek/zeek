@@ -238,6 +238,7 @@ public:
 	int RequestBuffer(int* plen, char** pbuf);
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail);
+	void Undelivered(int len);
 
 protected:
 	int min_overlap_length;
@@ -252,6 +253,8 @@ protected:
 	vector<const BroString*> all_content;
 
 	BroString* data_buffer;
+
+	uint64 cur_entity_len;
 };
 
 

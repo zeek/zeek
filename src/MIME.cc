@@ -1033,6 +1033,7 @@ MIME_Mail::~MIME_Mail()
 
 void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	{
+	cur_entity_len = 0;
 	if ( mime_begin_entity )
 		{
 		val_list* vl = new val_list;
@@ -1130,6 +1131,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	// is_orig param not available, doesn't matter as long as it's consistent
 	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
 	                 analyzer->GetTag(), analyzer->Conn(), false);
+	cur_entity_len += len;
 
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}
@@ -1202,6 +1204,12 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 		}
 	}
 
+void MIME_Mail::Undelivered(int len)
+	{
+	// is_orig param not available, doesn't matter as long as it's consistent
+	file_mgr->Gap(cur_entity_len, len, analyzer->GetTag(), analyzer->Conn(),
+	              false);
+	}
 
 int strcasecmp_n(data_chunk_t s, const char* t)
 	{

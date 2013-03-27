@@ -3,7 +3,7 @@
 #include "TCP_Reassembler.h"
 
 
-#define MAX_PACKET_SIZE_NOCRC 258
+#define MAX_PACKET_SIZE_NOCRC 258   
 #define MAX_PACKET_SIZE_CRC 292
 #define PSEUDO_LINK_LEN 8
 #define PSEUDO_LINK_LEN_EX 9
@@ -49,34 +49,41 @@ void DNP3_Analyzer::Done()
 // transport layer, and data link layer. This hierarchy cannot be mapped to the TCP/IP stack 
 // directly. As a result, all three DNP3 layers are packed together as a single application layer
 // payload over the TCP layer. Each DNP3 packet in the application layer may look like this
-// DNP3 Packet ->  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
-// (this hierarchy can be vied in the Wireshark visually)
+// DNP3 Packet:  DNP3 Pseudo Link Layer <> DNP3 Pseudo Transport Layer <> DNP3 Pseudo Application Layer
+// (this hierarchy can be viwed in the Wireshark visually)
 //
-// When DeliverStream is called, "data" contains DNP3 packets consisting of all pseudo three layers. 
-// I use the binpac to write the parser of DNP3 Pseudo Application Layer only instead of the whole application 
-// layer payload. The following list explains why I am doing this and other challenges with my resolutions:
+// Background on DNP3
 //
-// 1. Basic structure of DNP3 Protocol over serial links. This information can be found in detail in 
+// 1. Basic structure of DNP3 Protocol over serial links, This information can be found in detail in 
 //     DNP3 Specification Volum 2, Part 1 Basic, Application Layer
 //     DNP3 Specification Volum 4, Data Link Layer
 // In history, the DNP3 Application Layer in serial links contains "DNP3 Application Layer Fragment", the data that is 
-// parsed by the end device and is executed. The "DNP3 Application Layer Fragment" can carried in 
-// DNP3 Pseudo Application Layer of more than one DNP3 packets
-// It relies on the DNP3 device to decide what a upper pound of the fragment size is. 
-// However, a long (> 255 bytes) DNP3 applicaiton fragment have to be truncated put into 
-// Pseudo Application Layer (just mentioned) which is indexed different Data Link Layer headers. 
-// So the whole DNP3 fragment transmitted over serial link may look like (since we are talking 
-// about serial link communicaiton in this small section, so "Pseudo" is removed in the name)
-//
-// DNP3 Packet ->  DNP3 Link Layer : DNP3 Transport Layer : DNP3 Application Layer #1
-// DNP3 Packet ->  DNP3 Link Layer : DNP3 Transport Layer : DNP3 Application Layer #2
-// ....
-// DNP3 Packet ->  DNP3 Link Layer : DNP3 Transport Layer : DNP3 Application Layer #n
+// parsed by the end device and is executed. The "DNP3 Application Layer Fragment" can be long (> 255 bytess) 
+ // so it can be trunkcated and  carried in the DNP3 Pseudo Application Layer of more than one DNP3 packets. 
 // 
-// So to get the whole DNP3 application Fragment, we concatenate each DNP3 Application Layer Data. 
+// So we may find a long DNP3 Application Layer Fragment to be transmitted in the following format
+//
+// DNP3 Packet #1 : DNP3 Link Layer | DNP3 Transport Layer | DNP3 Application Layer #1
+// DNP3 Packet #2 : DNP3 Link Layer | DNP3 Transport Layer | DNP3 Application Layer #2
+// ....
+// DNP3 Packet #n : DNP3 Link Layer | DNP3 Transport Layer | DNP3 Application Layer #n
+// 
+// So to get the whole DNP3 application layer fragment, we concatenate each DNP3 Application Layer Data. 
 // A logic DNP3 Fragment = DNP3 Application Layer #1 + DNP3 Application Layer #2 + ... + DNP3 Application Layer #n
 //
-// Note: The detailed structure of the DNP3 Link Layer is: 
+// 2. Packing DNP3 Network Packet into TCP/IP stack
+//
+// For a long DNP3 application layer fragment, we may find it tramistted 
+// over IP network in the following format: 
+// Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #1
+// Network Packet #2 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #2
+// ....
+// Network Packet #n : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #n
+//
+// Challenges of Writing DNP3 Analyzer on Binpac
+//
+//
+///Note: The detailed structure of the DNP3 Link Layer is: 
 // 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB 
 //       (each field is a byte; LSB: least significant byte; MSB: Most significatn Byte )
 // "Len" field indicates the length of the byte stream right after this field (execluding CRC fields). 
@@ -86,15 +93,15 @@ void DNP3_Analyzer::Done()
 // Through calculation, the largest size of 
 // a DNP3 Packet (DNP3 Data Link Layer : DNP3 Transport Layer : DNP3 Application Layer) can only be 
 //  292 bytes. 
-
-
-// 2. A single logic DNP3 Applicatino Layer Fragment can be truncated into several DNP3 Pseudo Application Layer data included under 
-// different DNP3 Pseudo Data Link Layer header. As a result, in some situation, 
-// reassembly is needed to construct the DNP3 Application Layer. 
-// (This is similar to TCP reassembly, but happened in the application layer of the TCP/IP stack).
-// I find it very challenging to do this reassembly in binpac scripts. So the codes before the calling of interp->NewData
-// is to actually (1) extract bytes stream of DNP3 Pseudo Application Layer from the whole application layer trunk and 
-// then deliver them to the binpac analyzer; (2) perform the aformentioned reassembly if necessary. 
+// 
+// THe "Len" field indicate the length of of a single trunk of DNP3 Psuedo Application Layer data instead of
+// the whole DNP3 Application Layer Fragment. Due to historical reason, we could not know the whole length 
+// of the DNP3 Application Layer Fragment, until all trunk of Pseudo Application Layer Data is received.
+// I exploit the flow_buffer class used in Binpac to buffer the application layer data until all trunks are 
+// received. The trick that I used require in-depth understanding on how Binpac parse the application layer data 
+// and perform incremental parsing. 
+// The codes that exploit flow_buffer class to buffer the application layer data is included in DNP3_ProcessData
+// class.  
 //
 // 3. The DNP3 Pseudo Application Layer does not include a length field which indicate the length of this layer.
 // This brings challenges to write the binpac scripts. So, I extract the
@@ -133,139 +140,6 @@ void DNP3_Analyzer::Done()
 // That is why in this version of the DNP3 analyzer, we can only handle a logic DNP3 fragment with size of 65535 bytes.
 // Later, I will manually increae "len" to be 32 bit.  
 
-
-// DNP3_CheckCRC check the CRC values in the original DNP3 packets
-// 
-
-int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
-	{
-	int i = 0;
-	int j = 0;
-	u_char buffer[18];
-	unsigned int crc_result; 
-	u_char cal_crc[2]; //crc results calculated
-	int last_length = 0; // the length of last user data block
-
-	if(len < 10)
-		{
-		Weird("DNP3 packets original lenght is less than 10 bytes");
-		return -1;
-		}	
-
-	// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
-	// THe structure of the DNP3 Packet is (can be found in page 8 of DNP3 Specification Volum 4, Data Link Layer)
-	// 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB (each field is a byte) 
-	// User Data Block 1 (16 bytes) CRC (2 bytes)
-	// User Data Block 2 (16 bytes) CRC (2 bytes)
-	// .....
-	// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
-	
-	//// first 8 bytes are calcuated for a CRC
-	for(i = 0; i < 8; i++)
-		{
-		buffer[i] = data[i];
-		
-		}
-	
-	crc_result = DNP3_CalcCRC(buffer, 8, DNP3_CrcTable, 0x0000, true);
-	cal_crc[0] = crc_result & 0xff;
-	cal_crc[1] = (crc_result & 0xff00) >> 8;
-	if( cal_crc[0] != data[8] || cal_crc[1] != data[9] )
-		{
-		printf("header: calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], data[8], data[9]);
-		Weird("Invalid CRC Values");
-		return -2;
-		}
-
-	//// bytes following the first 10 bytes and before the last user data block
-	//// are grouped with size of 18 byte (last 2 bytes are CRC) We check group by group
-	//// calculate the legnth of the last user data block (the length of the last user data block
-	//// can be any values from 3 bytes to 18 bytes. )
-	//// The length of last user data block (last_length) can never be 1 or 2, because
-        //// the a user data block can not contain 2-byte CRC bytes without containing any data 
-
-	last_length = ( len - 10) % 18;
-	if ( (last_length > 0) && (last_length <= 2) ) 
-		{
-		Weird("Truncated DNP3 Packets");
-		return -3;
-		}
-
-	//// check CRC values for user data block by group by group
-	for( i = 0; i < (len - 10 - last_length); i++ )
-		{
-		buffer[i % 18] = data[i + 10];
-		if(  i % 18 == 17    )    //// this means that we reach the last element of the user data block, this is the MSB of the CRC
-			{	
-			crc_result = DNP3_CalcCRC(buffer, 16, DNP3_CrcTable, 0x0000, true);
-			cal_crc[0] = crc_result & 0xff;
-			cal_crc[1] = (crc_result & 0xff00) >> 8;
-			if( cal_crc[0] != buffer[16] || cal_crc[1] != buffer[17] )
-				{
-				printf("calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[16], buffer[17]);
-				Weird("Invalid CRC Values");
-				return -2;
-				}	
-			}
-		}
-
-	//// validate crc values for the last data block
-	for( i = 0; i < last_length ; i++ )
-		{
-		//// starting position of the last data block is (len- last_length)
-		buffer[i % 18] = data[ i + ( len - last_length ) ];
-		if(  i % 18 == ( last_length - 1 )   )
-			{	
-			crc_result = DNP3_CalcCRC(buffer, ( last_length - 2 ), DNP3_CrcTable, 0x0000, true);
-			cal_crc[0] = crc_result & 0xff;
-			cal_crc[1] = (crc_result & 0xff00) >> 8;
-			if( cal_crc[0] != buffer[last_length - 2] || cal_crc[1] != buffer[last_length - 1] )
-				{
-				printf("last calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[last_length -2 ], buffer[last_length -1 ]);
-				Weird("Invalid CRC Values in last data block");
-				return -2;
-				}	
-			}
-		}
-
-
-	return 0;
-	}
-//// NOTE I copy codes for the codes for DNP3_CalcCRC and DNP3_PrecomputeCRC from the internet as this is common method to calculate CRC values; is it all right?
-void DNP3_Analyzer::DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial)
-	{
-	unsigned int i, j, CRC;
-
-        for(i = 0; i < 256; i++) 
-		{
-                CRC = i;
-                for (j = 0; j < 8; ++j) 
-			{
-                        if(CRC & 0x0001) 
-				CRC = (CRC >> 1) ^ aPolynomial;
-                        else 
-				CRC >>= 1;
-                	}
-                apTable[i] = CRC;
-        	}
-
-	}
-
-unsigned int DNP3_Analyzer::DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert)
-	{
-	unsigned int CRC, index;
-
-        CRC = aStart;
-
-        for(size_t i = 0; i < aLength; i++) {
-                index = (CRC ^ aInput[i]) & 0xFF;
-                CRC = apTable[index] ^ (CRC >> 8);
-        }
-
-        if(aInvert) CRC = (~CRC) & 0xFFFF;
-
-        return CRC;
-	}
 
 void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
@@ -591,6 +465,141 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 
 	return 0;	
 	}
+
+// DNP3_CheckCRC check the CRC values in the original DNP3 packets
+// 
+
+int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
+	{
+	int i = 0;
+	int j = 0;
+	u_char buffer[18];
+	unsigned int crc_result; 
+	u_char cal_crc[2]; //crc results calculated
+	int last_length = 0; // the length of last user data block
+
+	if(len < 10)
+		{
+		Weird("DNP3 packets original lenght is less than 10 bytes");
+		return -1;
+		}	
+
+	// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
+	// THe structure of the DNP3 Packet is (can be found in page 8 of DNP3 Specification Volum 4, Data Link Layer)
+	// 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB (each field is a byte) 
+	// User Data Block 1 (16 bytes) CRC (2 bytes)
+	// User Data Block 2 (16 bytes) CRC (2 bytes)
+	// .....
+	// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
+	
+	//// first 8 bytes are calcuated for a CRC
+	for(i = 0; i < 8; i++)
+		{
+		buffer[i] = data[i];
+		
+		}
+	
+	crc_result = DNP3_CalcCRC(buffer, 8, DNP3_CrcTable, 0x0000, true);
+	cal_crc[0] = crc_result & 0xff;
+	cal_crc[1] = (crc_result & 0xff00) >> 8;
+	if( cal_crc[0] != data[8] || cal_crc[1] != data[9] )
+		{
+		printf("header: calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], data[8], data[9]);
+		Weird("Invalid CRC Values");
+		return -2;
+		}
+
+	//// bytes following the first 10 bytes and before the last user data block
+	//// are grouped with size of 18 byte (last 2 bytes are CRC) We check group by group
+	//// calculate the legnth of the last user data block (the length of the last user data block
+	//// can be any values from 3 bytes to 18 bytes. )
+	//// The length of last user data block (last_length) can never be 1 or 2, because
+        //// the a user data block can not contain 2-byte CRC bytes without containing any data 
+
+	last_length = ( len - 10) % 18;
+	if ( (last_length > 0) && (last_length <= 2) ) 
+		{
+		Weird("Truncated DNP3 Packets");
+		return -3;
+		}
+
+	//// check CRC values for user data block by group by group
+	for( i = 0; i < (len - 10 - last_length); i++ )
+		{
+		buffer[i % 18] = data[i + 10];
+		if(  i % 18 == 17    )    //// this means that we reach the last element of the user data block, this is the MSB of the CRC
+			{	
+			crc_result = DNP3_CalcCRC(buffer, 16, DNP3_CrcTable, 0x0000, true);
+			cal_crc[0] = crc_result & 0xff;
+			cal_crc[1] = (crc_result & 0xff00) >> 8;
+			if( cal_crc[0] != buffer[16] || cal_crc[1] != buffer[17] )
+				{
+				printf("calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[16], buffer[17]);
+				Weird("Invalid CRC Values");
+				return -2;
+				}	
+			}
+		}
+
+	//// validate crc values for the last data block
+	for( i = 0; i < last_length ; i++ )
+		{
+		//// starting position of the last data block is (len- last_length)
+		buffer[i % 18] = data[ i + ( len - last_length ) ];
+		if(  i % 18 == ( last_length - 1 )   )
+			{	
+			crc_result = DNP3_CalcCRC(buffer, ( last_length - 2 ), DNP3_CrcTable, 0x0000, true);
+			cal_crc[0] = crc_result & 0xff;
+			cal_crc[1] = (crc_result & 0xff00) >> 8;
+			if( cal_crc[0] != buffer[last_length - 2] || cal_crc[1] != buffer[last_length - 1] )
+				{
+				printf("last calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[last_length -2 ], buffer[last_length -1 ]);
+				Weird("Invalid CRC Values in last data block");
+				return -2;
+				}	
+			}
+		}
+
+
+	return 0;
+	}
+//// NOTE I copy codes for the codes for DNP3_CalcCRC and DNP3_PrecomputeCRC from the internet as this is common method to calculate CRC values; is it all right?
+void DNP3_Analyzer::DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial)
+	{
+	unsigned int i, j, CRC;
+
+        for(i = 0; i < 256; i++) 
+		{
+                CRC = i;
+                for (j = 0; j < 8; ++j) 
+			{
+                        if(CRC & 0x0001) 
+				CRC = (CRC >> 1) ^ aPolynomial;
+                        else 
+				CRC >>= 1;
+                	}
+                apTable[i] = CRC;
+        	}
+
+	}
+
+unsigned int DNP3_Analyzer::DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert)
+	{
+	unsigned int CRC, index;
+
+        CRC = aStart;
+
+        for(size_t i = 0; i < aLength; i++) {
+                index = (CRC ^ aInput[i]) & 0xFF;
+                CRC = apTable[index] ^ (CRC >> 8);
+        }
+
+        if(aInvert) CRC = (~CRC) & 0xFFFF;
+
+        return CRC;
+	}
+
+
 
 // DNP3_Reassembler();
 //

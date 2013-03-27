@@ -359,9 +359,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	
 event connection_state_remove(c: connection) &priority=-5
 	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
-		delete ftp_data_expected[id$resp_h, id$resp_p];
+	delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
 	}
 
 # Use state remove event to cover connections terminated by RST.

@@ -28,69 +28,146 @@ export {
 		dcc_file_size:         count  &log &optional;
 		## Sniffed mime type of the file.
 		dcc_mime_type:         string &log &optional;
-		
+
 		## The file handle for the file to be extracted
-		extraction_file:       file &log &optional;
-		
+		extraction_file:       string &log &optional;
+
 		## A boolean to indicate if the current file transfer should be extracted.
 		extract_file:          bool &default=F;
-		
-		## The count of the number of file that have been extracted during the session.
-		num_extracted_files:   count &default=0;
 	};
 }
 
-global dcc_expected_transfers: table[addr, port] of Info = table();
+global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
 
-event file_transferred(c: connection, prefix: string, descr: string,
-                       mime_type: string) &priority=3
+global extract_count: count = 0;
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] !in dcc_expected_transfers )
-		return;
-		
-	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
-	
-	irc$dcc_mime_type = split1(mime_type, /;/)[1];
+	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "IRC_DATA" ) return;
+	if ( ! info?$conns ) return;
 
-	if ( extract_file_types == irc$dcc_mime_type )
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	                          extract_count);
+	local extracting: bool = F;
+
+	for ( cid in info$conns )
 		{
-		irc$extract_file = T;
-		}
-		
-	if ( irc$extract_file )
-		{
-		local suffix = fmt("%d.dat", ++irc$num_extracted_files);
-		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
-		irc$extraction_file = open(fname);
+		local c: connection = info$conns[cid];
+
+		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
+
+		local s = dcc_expected_transfers[cid$resp_h, cid$resp_p];
+
+		if ( ! s$extract_file ) next;
+
+		if ( ! extracting )
+			{
+			FileAnalysis::add_action(info$file_id,
+			                         [$act=FileAnalysis::ACTION_EXTRACT,
+			                          $extract_filename=fname]);
+			extracting = T;
+			++extract_count;
+			}
+
+		s$extraction_file = fname;
 		}
 	}
 
-event file_transferred(c: connection, prefix: string, descr: string,
-			mime_type: string) &priority=-4
+function set_dcc_mime(info: FileAnalysis::Info)
 	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] !in dcc_expected_transfers )
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
+
+		local s = dcc_expected_transfers[cid$resp_h, cid$resp_p];
+
+		s$dcc_mime_type = info$mime_type;
+		}
+	}
+
+function set_dcc_extraction_file(info: FileAnalysis::Info, filename: string)
+	{
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
+
+		local s = dcc_expected_transfers[cid$resp_h, cid$resp_p];
+
+		s$extraction_file = filename;
+		}
+	}
+
+function log_dcc(info: FileAnalysis::Info)
+	{
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
+
+		local irc = dcc_expected_transfers[cid$resp_h, cid$resp_p];
+
+		local tmp = irc$command;
+		irc$command = "DCC";
+		Log::write(IRC::LOG, irc);
+		irc$command = tmp;
+
+		# Delete these values in case another DCC transfer 
+		# happens during the IRC session.
+		delete irc$extract_file;
+		delete irc$extraction_file;
+		delete irc$dcc_file_name;
+		delete irc$dcc_file_size;
+		delete irc$dcc_mime_type;
+
 		return;
+		}
+	}
 
-	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
+	if ( ! info?$mime_type ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "IRC_DATA" ) return;
 
-	local tmp = irc$command;
-	irc$command = "DCC";
-	Log::write(IRC::LOG, irc);
-	irc$command = tmp;
+	set_dcc_mime(info);
 
-	if ( irc?$extraction_file )
-		set_contents_file(id, CONTENTS_RESP, irc$extraction_file);
+	if ( extract_file_types !in info$mime_type ) return;
 
-	# Delete these values in case another DCC transfer 
-	# happens during the IRC session.
-	delete irc$extract_file;
-	delete irc$extraction_file;
-	delete irc$dcc_file_name;
-	delete irc$dcc_file_size;
-	delete irc$dcc_mime_type;
-	delete dcc_expected_transfers[id$resp_h, id$resp_p];
+	for ( act in info$actions )
+		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
+
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	                          extract_count);
+	++extract_count;
+	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
+	                                        $extract_filename=fname]);
+	set_dcc_extraction_file(info, fname);
+	}
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=-5
+	{
+	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "IRC_DATA" ) return;
+
+	log_dcc(info);
 	}
 
 event irc_dcc_message(c: connection, is_orig: bool,
@@ -100,7 +177,7 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	{
 	set_session(c);
 	if ( dcc_type != "SEND" )
-            return;
+		return;
 	c$irc$dcc_file_name = argument;
 	c$irc$dcc_file_size = size;
 	local p = count_to_port(dest_port, tcp);
@@ -113,4 +190,9 @@ event expected_connection_seen(c: connection, a: count) &priority=10
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in dcc_expected_transfers )
 		add c$service["irc-dcc-data"];
+	}
+
+event connection_state_remove(c: connection) &priority=-5
+	{
+	delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
 	}

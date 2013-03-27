@@ -77,7 +77,7 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 	}
 
 hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+	&priority=-5
 	{
 	if ( trig != FileAnalysis::TRIGGER_EOF &&
 	     trig != FileAnalysis::TRIGGER_DONE ) return;

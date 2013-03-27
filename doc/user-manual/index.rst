@@ -8,5 +8,6 @@ User Manual
     :numbered:
 
     intro.rst
-    starting.rst
+    quickstart.rst
+    scripting.rst
 

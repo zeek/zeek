@@ -76,13 +76,16 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 		for ( act in info$actions )
 			switch ( act$act ) {
 			case FileAnalysis::ACTION_MD5:
-				print fmt("MD5: %s", info$actions[act]$md5);
+				if ( info$actions[act]?$md5 )
+					print fmt("MD5: %s", info$actions[act]$md5);
 				break;
 			case FileAnalysis::ACTION_SHA1:
-				print fmt("SHA1: %s", info$actions[act]$sha1);
+				if ( info$actions[act]?$sha1 )
+					print fmt("SHA1: %s", info$actions[act]$sha1);
 				break;
 			case FileAnalysis::ACTION_SHA256:
-				print fmt("SHA256: %s", info$actions[act]$sha256);
+				if ( info$actions[act]?$sha256 )
+					print fmt("SHA256: %s", info$actions[act]$sha256);
 				break;
 			}
 		break;

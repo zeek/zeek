@@ -14,9 +14,29 @@ export {
 	## Default file handle provider for FTP.
 	function get_file_handle(c: connection, is_orig: bool): string
 		{
-		if ( is_orig ) return "";
-		return fmt("%s %s %s", ANALYZER_FTP_DATA, c$start_time,
-		           id_string(c$id));
+		if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected ) return "";
+
+		local info: FTP::Info = ftp_data_expected[c$id$resp_h, c$id$resp_p];
+
+		local rval = fmt("%s %s %s", ANALYZER_FTP_DATA, c$start_time,
+		                 id_string(c$id));
+
+		if ( info$passive )
+			# FTP client initiates data channel.
+			if ( is_orig )
+				# Don't care about FTP client data.
+				return "";
+			else
+				# Do care about FTP server data.
+				return rval;
+		else
+			# FTP server initiates dta channel.
+			if ( is_orig )
+				# Do care about FTP server data.
+				return rval;
+			else
+				# Don't care about FTP client data.
+				return "";
 		}
 }
 

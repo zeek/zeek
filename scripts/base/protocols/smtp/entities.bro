@@ -43,9 +43,6 @@ export {
 	};
 
 	redef record State += {
-		## Store a count of the number of files that have been transferred in
-		## a conversation to create unique file names on disk.
-		num_extracted_files:  count   &default=0;
 		## Track the number of MIME encoded files transferred during a session.
 		mime_level:           count   &default=0;
 	};

@@ -1,4 +1,22 @@
 
+2.1-386 | 2013-03-22 12:41:50 -0700
+
+  * Added reverse() function to strings.bif. (Yun Zheng Hu)
+    
+2.1-384 | 2013-03-22 12:10:14 -0700
+
+  * Fix record constructors in table initializer indices.  Addresses
+    #660. (Jon Siwek)
+
+2.1-382 | 2013-03-22 12:01:34 -0700
+
+  * Add support for 802.1ah (Q-in-Q). Addresses #641. (Seth Hall)
+    
+2.1-380 | 2013-03-18 12:18:10 -0700
+
+  * Fix gcc compile warnings in base64 encoder and benchmark reader.
+    (Bernhard Amann)
+    
 2.1-377 | 2013-03-17 17:36:09 -0700
 
   * Fixing potential leak in DNS error case. (Vlad Grigorescu)

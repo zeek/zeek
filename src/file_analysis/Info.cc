@@ -12,11 +12,14 @@
 
 using namespace file_analysis;
 
-static TableVal* empty_connection_table()
+static Val* empty_connection_table()
 	{
 	TypeList* tbl_index = new TypeList(conn_id);
 	tbl_index->Append(conn_id->Ref());
-	return new TableVal(new TableType(tbl_index, connection_type->Ref()));
+	TableType* tbl_type = new TableType(tbl_index, connection_type->Ref());
+	Val* rval = new TableVal(tbl_type);
+	Unref(tbl_type);
+	return rval;
 	}
 
 static RecordVal* get_conn_id_val(const Connection* conn)

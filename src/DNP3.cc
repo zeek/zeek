@@ -3,8 +3,6 @@
 #include "TCP_Reassembler.h"
 
 
-#define NOTUSE_BUFFER 
-
 #define MAX_PACKET_SIZE_NOCRC 258
 #define MAX_PACKET_SIZE_CRC 292
 #define PSEUDO_LINK_LEN 8
@@ -281,101 +279,8 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	//// Checkec the CRC values included in the DNP3 packets
 	DNP3_CheckCRC(len, data);
 
-	/*	
-	if( data[0] != 0x05 || data[1] != 0x64 )
-		return ;
-	*/
-
-	//#ifdef NOTUSE_BUFFER
 	DNP3_ProcessData(len, data);
 	return ;
-	
-	/*
-	result = DNP3_Reassembler2(len, data, orig);
-	
-	if(result == 1){
-		printf("before parsing the first packet \n");
-		gDNP3Data.mData[3] = 0x01;
-		gDNP3Data.mData[2] = 0x00;
-		//gDNP3Data.mData[3] = 0x00;
-		//gDNP3Data.mData[2] = 0xff;
-	}	
-		
-	#else
-
-	/// if result > 0, then DNP3_Reassembler reassembles the intermediate trunk
-	//// if result < 0, errors happened in DNP3_Reassembler.
-	result = DNP3_Reassembler(len, data, orig);		
-	if(result != 0){
-		return ;	
-	}
-	#endif
-	*/
-	/*
-	bool m_orig = ( (data[3] & 0x80) == 0x80 );
-
-	int i = 0;
-	printf("\nBytes into BInpac analzyer:");
-	for (i = 0; i < gDNP3Data.length ; i++)
-		printf("0x%x ", gDNP3Data.mData[i]);
-	printf("\n");
-
-		
-	if(result == 2){
-		////adding assert
-		if(m_orig == true){ 
-			//upflow = interp->upflow();
-			printf("test buffer size %d\n", upflow->get_bufferBytes());
-			newFrame = 258 + upflow_count * (257 - 8);
-			printf("new frame size is %d \n", newFrame);
-			upflow->increaseBuffer( 258 + upflow_count * (257 - 8) );
-			printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
-			upflow_count++;
-		}
-		else{
-			downflow = interp->downflow();
-			printf("down test buffer size %d\n", downflow->get_bufferBytes());
-			newFrame = 258 + downflow_count * (257 - 8);
-			printf("down new frame size is %d \n", newFrame);
-			downflow->increaseBuffer( 258 + downflow_count * (257 - 8) );
-			printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
-			downflow_count++;
-		}
-	}
-	if(result == 3){
-		if(m_orig == true){
-			printf("test buffer size %d\n", upflow->get_bufferBytes());
-			upflow->increaseBuffer( 258 + (upflow_count - 1) * (257 - 8) + gDNP3Data.length - 1 );
-			upflow_count = 0;
-		}
-		else{
-			printf("down test buffer size %d\n", downflow->get_bufferBytes());
-			downflow->increaseBuffer( 258 + (downflow_count - 1) * (257 - 8) + gDNP3Data.length - 1 );
-			downflow_count = 0;
-		}
-		
-	}
-	
-
-	interp->NewData(m_orig, gDNP3Data.mData, gDNP3Data.mData + gDNP3Data.length );
-
-	if(result == 1){
-		printf("after parsing the first packet\n");
-		//trunk_count ++;  // number of packets
-		if( m_orig == true){
-			upflow_count ++;
-			upflow = interp->upflow();
-		}
-		else{
-			downflow_count ++;
-			downflow = interp->downflow();
-		}
-		//hl_test = interp->downflow();
-		//hl_test->increaseBuffer(257 + 257 - 8);
-	}
-	
-	gDNP3Data.Clear();	
-	*/
 	
 }
 
@@ -486,12 +391,15 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
                 pseudoLink[LEN_FIELD_INDEX] = 0x00;	
 		
 		//// send pseudoLink data to binpac
+		/*
 		printf("\n\nThe first trunk - Header sent to Binpac \n");
 		for(j =  0 ; j < PSEUDO_LINK_LEN_EX ; j ++)
 		{
 			printf("Ox%x ", pseudoLink[j]);
 		}
 		printf("\n");
+		*/
+
 		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
 		if( m_orig == true)
@@ -539,21 +447,21 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		if(m_orig == true)
 			{
                         //upflow = interp->upflow();
-                        printf("test buffer size %d\n", upflow->get_bufferBytes());
+                        //printf("test buffer size %d\n", upflow->get_bufferBytes());
                         newFrame = MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
-                        printf("new frame size is %d \n", newFrame);
+                        //printf("new frame size is %d \n", newFrame);
                         upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
-                        printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
+                        //printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
                         upflow_count++;
                 	}
                 else
 			{
                         downflow = interp->downflow();
-                        printf("down test buffer size %d\n", downflow->get_bufferBytes());
+                        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
                         newFrame = MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
-                        printf("down new frame size is %d \n", newFrame);
+                        //printf("down new frame size is %d \n", newFrame);
                         downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
-                        printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
+                        //printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
                         downflow_count++;
                 	}
 		
@@ -565,7 +473,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 
 		if(m_orig == true)
 			{
-                       	printf("test buffer size %d\n", upflow->get_bufferBytes());
+                       	//printf("test buffer size %d\n", upflow->get_bufferBytes());
 	                upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 
 					(upflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
 						pseudoLink[LEN_FIELD_INDEX] -5 - 1 );
@@ -573,7 +481,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
                 	}
 	        else
 			{
-        	        printf("down test buffer size %d\n", downflow->get_bufferBytes());
+        	        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
                         downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 
 					(downflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
 						pseudoLink[LEN_FIELD_INDEX] - 5 - 1 );
@@ -614,13 +522,14 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			}
 		
 		pseudoLink[LEN_FIELD_INDEX + 1]= 0x00;
-
+		/*
 		printf("\n\nHeader sent to Binpac \n");
                 for(j =  0 ; j < PSEUDO_LINK_LEN_EX ; j ++)
                 {
                         printf("Ox%x ", pseudoLink[j]);
                 }
                 printf("\n");
+		*/
 
 		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
@@ -636,7 +545,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	const u_char* trunkStart = NULL;
 
 	
-	printf("App sent to Binpac %d \n", len);
+	//printf("App sent to Binpac %d \n", len);
 
 	for(i = 0 ; i < ( len - (PSEUDO_LINK_LEN + CRC_LEN) ) ; )
 		{
@@ -669,62 +578,19 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			}
 
 		
-		
+		/*
                 for(j =  0 ; j < trunkLen ; j ++)
                 {
                         printf("Ox%x ", trunkStart[j]);
                 }
                 printf("\n");	
+		*/
 		interp->NewData(m_orig, trunkStart, trunkStart + trunkLen);
 		}
-	printf("\n\n");
+	//printf("\n\n");
 
 	return 0;	
 	}
-/*
-int DNP3_PseudoLinkLayerToAnalyzer(const u_char* header, int len, bool m_orig)
-	{
-	
-	interp->NewData(m_orig, header , len);	
-				
-	}
-*/
-// DNP3_CopyDataBlock
-// This function did the real job of constructing the logical DNP3 fragment from the original DNP3 packet:
-// (1) construct the DNP3 Additional Header for Binpac analyzer
-// (2) remove the CRC values from DNP3 Pseudo Application Layer
-/*
-int DNP3_Analyzer::DNP3_CopyDataBlock(struct StrByteStream* target, const u_char* data, int len)
-	{
-	int dnp3_i = 0; // Index within the data block.
-
-	// target->mData should be allocated memory space; but double check here to avoid misuse
-	if(target->mData == NULL)
-		{
-		Weird("DNP3_CopyDataBlock target buffer is not allocated");
-		return -1;
-		}
-	
-	memcpy(target->mData, data, 8); // Keep the first 8 bytes.
-
-	for( int i = 0; i < len - 10; i++ )
-		{
-                if ( (i % 18 != 16) && (i % 18 != 17) // Does not include crc on each data block (not the last data block)
-                        && ((len - 10 - i) > 2)       // Does not include crc on the last data block 
-                        && ( i != 0 ) )               // Does not sent first byte which is DNP3 Pseudo Transport Layer data into binpac analyzer
-			{
-                       	//gDNP3Data.mData[dnp3_i + 8] = data[i + 10];
-			target->mData[dnp3_i + 8] = data[i + 10];
-                        dnp3_i++;
-                        }
-                }
-
-        //gDNP3Data.length = dnp3_i + 8;
-        target->length = dnp3_i + 8;
-	return 0;	
-	}
-
-*/
 
 // DNP3_Reassembler();
 //

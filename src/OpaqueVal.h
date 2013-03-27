@@ -36,7 +36,7 @@ public:
 			 u_char key[MD5_DIGEST_LENGTH],
 			 u_char result[MD5_DIGEST_LENGTH]);
 
-	MD5Val() : HashVal(new OpaqueType("md5"))	{ }
+	MD5Val() : HashVal(new OpaqueType("md5"))	{ Unref(Type()); }
 
 protected:
 	friend class Val;
@@ -55,7 +55,7 @@ class SHA1Val : public HashVal {
 public:
 	static void digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH]);
 
-	SHA1Val() : HashVal(new OpaqueType("sha1")) { }
+	SHA1Val() : HashVal(new OpaqueType("sha1")) { Unref(Type()); }
 
 protected:
 	friend class Val;
@@ -74,7 +74,7 @@ class SHA256Val : public HashVal {
 public:
 	static void digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH]);
 
-	SHA256Val() : HashVal(new OpaqueType("sha256"))	{ }
+	SHA256Val() : HashVal(new OpaqueType("sha256"))	{ Unref(Type()); }
 
 protected:
 	friend class Val;

@@ -164,6 +164,7 @@ void ActionSet::InsertAction(Action* act, HashKey* key)
 	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act->Tag(),
 	        info->GetFileID().c_str());
 	action_map.Insert(key, act);
+	delete key;
 	info->GetVal()->Lookup(Info::actions_idx)->AsTableVal()->Assign(act->Args(),
 	        new RecordVal(BifType::Record::FileAnalysis::ActionResults));
 	}

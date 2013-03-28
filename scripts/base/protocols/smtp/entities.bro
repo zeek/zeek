@@ -112,6 +112,7 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 		local c: connection = info$conns[cid];
 
 		if ( ! c?$smtp ) next;
+		if ( ! c$smtp?$current_entity ) next;
 
 		if ( c$smtp$current_entity$extract_file )
 			{
@@ -180,6 +181,7 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 			local c: connection = info$conns[cid];
 
 			if ( ! c?$smtp ) next;
+			if ( ! c$smtp?$current_entity ) next;
 
 			c$smtp$current_entity$mime_type = info$mime_type;
 			}

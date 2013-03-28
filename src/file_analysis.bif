@@ -16,6 +16,9 @@ type ActionResults: record;
 enum Trigger %{
 	## Raised when any part of a new file is detected.
 	TRIGGER_NEW,
+	## Raised when file is detected being transported over a new network
+	## connection (other than the first).
+	TRIGGER_NEW_CONN,
 	## Raised when file analysis has likely seen a complete file.  That
 	## is when a number of bytes indicated by the *total_bytes* field of
 	## :bro:see:`FileAnalysis::Info` have been processed.  Note that

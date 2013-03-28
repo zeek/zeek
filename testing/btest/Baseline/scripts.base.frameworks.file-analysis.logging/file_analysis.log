@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	file_analysis
-#open	2013-03-26-20-26-26
-#fields	file_id	parent_file_id	source	last_active	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timeout_interval	bof_buffer_size	file_type	mime_type	conn_uids	actions_taken	extracted_files	md5	sha1	sha256
-#types	string	string	string	time	count	count	count	count	interval	count	string	string	table[string]	table[enum]	table[string]	string	string	string
-Cx92a0ym5R8	-	HTTP	1362692527.009775	4705	4705	0	0	120.000000	1024	set	set	UWkUyAuUGXf	FileAnalysis::ACTION_SHA1,FileAnalysis::ACTION_EXTRACT,FileAnalysis::ACTION_DATA_EVENT,FileAnalysis::ACTION_MD5,FileAnalysis::ACTION_SHA256	Cx92a0ym5R8-file	397168fd09991a0e712254df7bc639ac	1dd7ac0398df6cbc0696445a91ec681facf4dc47	4e7c7ef0984119447e743e3ec77e1de52713e345cde03fe7df753a35849bed18
-#close	2013-03-26-20-26-26
+#open	2013-03-28-21-35-46
+#fields	file_id	parent_file_id	source	last_active	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timeout_interval	bof_buffer_size	file_type	mime_type	timedout	conn_uids	actions_taken	extracted_files	md5	sha1	sha256
+#types	string	string	string	time	count	count	count	count	interval	count	string	string	bool	table[string]	table[enum]	table[string]	string	string	string
+Cx92a0ym5R8	-	HTTP	1362692527.009775	4705	4705	0	0	120.000000	1024	set	set	F	UWkUyAuUGXf	FileAnalysis::ACTION_SHA1,FileAnalysis::ACTION_EXTRACT,FileAnalysis::ACTION_DATA_EVENT,FileAnalysis::ACTION_MD5,FileAnalysis::ACTION_SHA256	Cx92a0ym5R8-file	397168fd09991a0e712254df7bc639ac	1dd7ac0398df6cbc0696445a91ec681facf4dc47	4e7c7ef0984119447e743e3ec77e1de52713e345cde03fe7df753a35849bed18
+#close	2013-03-28-21-35-46

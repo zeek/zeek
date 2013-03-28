@@ -126,6 +126,7 @@ event bro_init() &priority=5
 	}
 
 redef record FileAnalysis::Info += {
+	timedout: bool &log &default=F;
 	conn_uids: set[string] &log &optional;
 	actions_taken: set[Action] &log &optional;
 	extracted_files: set[string] &log &optional;
@@ -135,7 +136,14 @@ redef record FileAnalysis::Info += {
 };
 
 hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=-10
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_TIMEOUT ) return;
+	info$timedout = T;
+	}
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=-5
 	{
 	if ( trig != FileAnalysis::TRIGGER_EOF &&
 	     trig != FileAnalysis::TRIGGER_DONE ) return;

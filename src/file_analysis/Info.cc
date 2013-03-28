@@ -81,7 +81,8 @@ void Info::StaticInit()
 
 Info::Info(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
     : file_id(""), unique(unique), val(0), postpone_timeout(false),
-      need_reassembly(false), done(false), actions(this)
+      first_chunk(true), need_type(false), need_reassembly(false), done(false),
+      actions(this)
 	{
 	StaticInit();
 
@@ -134,11 +135,23 @@ void Info::UpdateConnectionFields(Connection* conn)
 
 	Val* conns = val->Lookup(conns_idx);
 
+	bool is_first = false;
+
 	if ( ! conns )
+		{
+		is_first = true;
 		val->Assign(conns_idx, conns = empty_connection_table());
+		}
 
 	Val* idx = get_conn_id_val(conn);
-	conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
+	if ( ! conns->AsTableVal()->Lookup(idx) )
+		{
+		conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
+		if ( ! is_first )
+			file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_NEW_CONN,
+			                         this);
+		}
+
 	Unref(idx);
 	}
 
@@ -162,7 +175,7 @@ int Info::Idx(const string& field)
 	{
 	int rval = BifType::Record::FileAnalysis::Info->FieldOffset(field.c_str());
 	if ( rval < 0 )
-		reporter->InternalError("Unkown FileAnalysis::Info field: %s",
+		reporter->InternalError("Unknown FileAnalysis::Info field: %s",
 		                        field.c_str());
 	return rval;
 	}
@@ -254,18 +267,10 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 	return true;
 	}
 
-void Info::ReplayBOF()
+bool Info::DetectTypes(const u_char* data, uint64 len)
 	{
-	if ( bof_buffer.replayed ) return;
-	bof_buffer.replayed = true;
-
-	if ( bof_buffer.chunks.empty() ) return;
-
-	BroString* bs = concatenate(bof_buffer.chunks);
-	const char* desc = bro_magic_buffer(magic, bs->Bytes(), bs->Len());
-	const char* mime = bro_magic_buffer(magic_mime, bs->Bytes(), bs->Len());
-
-	val->Assign(bof_buffer_idx, new StringVal(bs));
+	const char* desc = bro_magic_buffer(magic, data, len);
+	const char* mime = bro_magic_buffer(magic_mime, data, len);
 
 	if ( desc )
 		val->Assign(file_type_idx, new StringVal(desc));
@@ -273,10 +278,29 @@ void Info::ReplayBOF()
 	if ( mime )
 		val->Assign(mime_type_idx, new StringVal(mime));
 
+	return desc || mime;
+	}
+
+void Info::ReplayBOF()
+	{
+	if ( bof_buffer.replayed ) return;
+	bof_buffer.replayed = true;
+
+	if ( bof_buffer.chunks.empty() )
+		{
+		// Since we missed the beginning, try file type detect on next data in.
+		need_type = true;
+		return;
+		}
+
+	BroString* bs = concatenate(bof_buffer.chunks);
+	val->Assign(bof_buffer_idx, new StringVal(bs));
+	bool have_type = DetectTypes(bs->Bytes(), bs->Len());
+
 	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
 	file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
 
-	if ( desc || mime )
+	if ( have_type )
 		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
@@ -286,7 +310,17 @@ void Info::ReplayBOF()
 void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
 	actions.DrainModifications();
-	// TODO: attempt libmagic stuff here before doing reassembly?
+
+	if ( first_chunk )
+		{
+		if ( DetectTypes(data, len) )
+			{
+			file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
+			actions.DrainModifications();
+			}
+
+		first_chunk = false;
+		}
 
 	Action* act = 0;
 	IterCookie* c = actions.InitForIteration();
@@ -315,6 +349,17 @@ void Info::DataIn(const u_char* data, uint64 len)
 	actions.DrainModifications();
 
 	if ( BufferBOF(data, len) ) return;
+
+	if ( need_type )
+		{
+		if ( DetectTypes(data, len) )
+			{
+			file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
+			actions.DrainModifications();
+			}
+
+		need_type = false;
+		}
 
 	Action* act = 0;
 	IterCookie* c = actions.InitForIteration();

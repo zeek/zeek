@@ -66,7 +66,7 @@ export {
 		## Reply message from the server in response to the command.
 		reply_msg:        string      &log &optional;
 		## Arbitrary tags that may indicate a particular attribute of this command.
-		tags:             set[string] &log &default=set();
+		tags:             set[string] &log;
 
 		## Expected FTP data channel.
 		data_channel:     ExpectedDataChannel &log &optional;
@@ -109,6 +109,7 @@ export {
 # Add the state tracking information variable to the connection record
 redef record connection += {
 	ftp: Info &optional;
+	ftp_data_reuse: bool &default=F;
 };
 
 # Configure DPD
@@ -337,7 +338,6 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		}
 	}
 
-
 event expected_connection_seen(c: connection, a: count) &priority=10
 	{
 	local id = c$id;
@@ -356,9 +356,16 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		s$mime_desc = descr;
 		}
 	}
+
+event connection_reused(c: connection) &priority=5
+	{
+	if ( "ftp-data" in c$service )
+		c$ftp_data_reuse = T;
+	}
 	
 event connection_state_remove(c: connection) &priority=-5
 	{
+	if ( c$ftp_data_reuse ) return;
 	delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
 	}
 

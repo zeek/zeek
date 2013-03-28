@@ -8,7 +8,7 @@ BEGIN { FS="\t"; OFS="\t"; type_col = -1; desc_col = -1 }
 /^#fields/ {
     for ( i = 2; i < NF; ++i )
         {
-        if ( $i == "mime_type" )
+        if ( $i == "mime_type" || $i == "file_type" )
             type_col = i-1;
         if ( $i == "mime_desc" )
             desc_col = i-1;

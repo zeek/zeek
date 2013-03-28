@@ -9,7 +9,8 @@ module HTTP;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates when the file extension doesn't seem to match the file contents.
+		## Indicates when the file extension doesn't seem to match the file
+		## contents.
 		Incorrect_File_Type,
 	};
 
@@ -18,9 +19,10 @@ export {
 		mime_type:    string   &log &optional;
 	};
 	
-	## Mapping between mime types and regular expressions for URLs
-	## The :bro:enum:`HTTP::Incorrect_File_Type` notice is generated if the pattern 
-	## doesn't match the mime type that was discovered.
+	## Mapping between mime type strings (without character set) and
+	## regular expressions for URLs.
+	## The :bro:enum:`HTTP::Incorrect_File_Type` notice is generated if the
+	## pattern doesn't match the mime type that was discovered.
 	const mime_types_extensions: table[string] of pattern = {
 		["application/x-dosexec"] = /\.([eE][xX][eE]|[dD][lL][lL])/,
 	} &redef;
@@ -49,17 +51,66 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 
 		c$http$mime_type = info$mime_type;
 
-		if ( info$mime_type !in mime_types_extensions ) next;
+		local mime_str: string = split1(info$mime_type, /;/)[1];
+
+		if ( mime_str !in mime_types_extensions ) next;
 		if ( ! c$http?$uri ) next;
-		if ( mime_types_extensions[info$mime_type] in c$http$uri ) next;
+		if ( mime_types_extensions[mime_str] in c$http$uri ) next;
 
 		local url = build_url_http(c$http);
 
 		if ( url == ignored_incorrect_file_type_urls ) next;
 
-		local message = fmt("%s %s %s", info$mime_type, c$http$method, url);
+		local message = fmt("%s %s %s", mime_str, c$http$method, url);
 		NOTICE([$note=Incorrect_File_Type,
 		        $msg=message,
 		        $conn=c]);
 		}
+	}
+
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_NEW_CONN ) return;
+	if ( ! info?$mime_type ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+	if ( ! info?$conns ) return;
+
+	# Spread the mime around (e.g. for partial content, TRIGGER_TYPE only
+	# happens once for the first connection, but if there's subsequent
+	# connections to transfer the same file, they'll be lacking the mime_type
+	# field if we don't do this).
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		c$http$mime_type = info$mime_type;
+		}
+	}
+
+# Tracks byte-range request / partial content response mime types, indexed
+# by [connection, uri] pairs.  This is needed because a person can pipeline
+# byte-range requests over multiple connections to the same uri.  Without
+# the tracking, only the first request in the pipeline for each connection
+# would get a mime_type field assigned to it (by the FileAnalysis policy hooks).
+global partial_types: table[conn_id, string] of string &read_expire=5mins;
+
+# Priority 4 so that it runs before the handler that will write to http.log.
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
+	&priority=4
+	{
+	if ( ! c$http$range_request ) return;
+	if ( ! c$http?$uri ) return;
+
+	if ( c$http?$mime_type )
+		{
+		partial_types[c$id, c$http$uri] = c$http$mime_type;
+		return;
+		}
+
+	if ( [c$id, c$http$uri] in partial_types )
+		c$http$mime_type = partial_types[c$id, c$http$uri];
 	}

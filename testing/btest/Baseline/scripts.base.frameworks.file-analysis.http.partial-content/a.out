@@ -1,5 +1,9 @@
 FileAnalysis::TRIGGER_NEW
 7gZBKVUgy4l, 0, 0
+FileAnalysis::TRIGGER_TYPE
+file type is set
+mime type is set
+FileAnalysis::TRIGGER_NEW_CONN
 FileAnalysis::TRIGGER_DONE
 7gZBKVUgy4l, 555523, 0
 [orig_h=10.101.84.70, orig_p=10978/tcp, resp_h=129.174.93.161, resp_p=80/tcp]

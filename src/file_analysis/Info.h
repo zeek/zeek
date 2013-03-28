@@ -155,10 +155,19 @@ protected:
 	 */
 	void ReplayBOF();
 
+	/**
+	 * Does file/mime type detection and assigns types (if available) to
+	 * corresponding fields in #val.
+	 * @return whether a file or mime type was available.
+	 */
+	bool DetectTypes(const u_char* data, uint64 len);
+
 	FileID file_id;            /**< A pretty hash that likely identifies file*/
 	string unique;             /**< A string that uniquely identifies file */
 	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
+	bool first_chunk;          /**< Track first non-linear chunk. */
+	bool need_type;            /**< Flags next data input to be magic typed. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
 	ActionSet actions;

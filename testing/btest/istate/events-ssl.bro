@@ -40,7 +40,15 @@ redef tcp_close_delay = 0secs;
 redef ssl_ca_certificate = "../ca_cert.pem";
 redef ssl_private_key = "../bro.pem";
 redef ssl_passphrase = "my-password";
-                                                                                                                                    
+
+# File analysis that populates fields in the http.log would make the sender's
+# log differ from the receiver's since hooks don't get sent to peers.
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=10
+	{
+	FileAnalysis::stop(info$file_id);
+	}
+
 @TEST-END-FILE
 
 #############

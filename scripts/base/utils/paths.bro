@@ -27,7 +27,7 @@ function compress_path(dir: string): string
 	const cdup_sep = /((\/)*([^\/]|\\\/)+)?((\/)+\.\.(\/)*)/;
 
 	local parts = split_n(dir, cdup_sep, T, 1);
-	if ( length(parts) > 1 )
+	if ( |parts| > 1 )
 		{
 		# reaching a point with two parent dir references back-to-back means
 		# we don't know about anything higher in the tree to pop off

@@ -9,8 +9,8 @@ namespace file_analysis {
  * identify files, and others which use a pretty hash (the FileID) to identify
  * files.  A FileID is primarily used in methods which interface with the
  * script-layer, while the unique strings are used for methods which interface
- * with protocol analyzers (to better accomodate the possibility that a file
- * can be distributed over different connections and thus analyzer instances).
+ * with protocol analyzers or anything that sends data to the file analysis
+ * framework.
  */
 struct FileID {
 	string id;

@@ -1,6 +1,6 @@
 # @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/rotation.trace %INPUT
 # @TEST-EXEC: btest-bg-wait -k 3
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff bro/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-sort" btest-diff bro/.stderr
 # @TEST-EXEC: btest-diff bro/.stdout
 
 # interpreter exceptions in "when" blocks shouldn't cause termination

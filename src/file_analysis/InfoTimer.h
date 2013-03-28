@@ -13,10 +13,7 @@ namespace file_analysis {
 class InfoTimer : public Timer {
 public:
 
-	InfoTimer(double t, const FileID& id, double interval)
-	    : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id) {}
-
-	~InfoTimer() {}
+	InfoTimer(double t, const FileID& id, double interval);
 
 	/**
 	 * Check inactivity of file_analysis::Info corresponding to #file_id,

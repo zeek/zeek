@@ -5,6 +5,7 @@
 #include "Event.h"
 #include "Reporter.h"
 #include "digest.h"
+#include "file_analysis/Manager.h"
 
 // Here are a few things to do:
 //
@@ -810,7 +811,7 @@ void MIME_Entity::StartDecodeBase64()
 	if ( base64_decoder )
 		reporter->InternalError("previous Base64 decoder not released!");
 
-	base64_decoder = new Base64Decoder(message->GetAnalyzer());
+	base64_decoder = new Base64Converter(message->GetAnalyzer());
 	}
 
 void MIME_Entity::FinishDecodeBase64()
@@ -1019,6 +1020,8 @@ void MIME_Mail::Done()
 		}
 
 	MIME_Message::Done();
+
+	file_mgr->EndOfFile(analyzer->GetTag(), analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1030,6 +1033,7 @@ MIME_Mail::~MIME_Mail()
 
 void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	{
+	cur_entity_len = 0;
 	if ( mime_begin_entity )
 		{
 		val_list* vl = new val_list;
@@ -1065,6 +1069,8 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		vl->append(analyzer->BuildConnVal());
 		analyzer->ConnectionEvent(mime_end_entity, vl);
 		}
+
+	file_mgr->EndOfFile(analyzer->GetTag(), analyzer->Conn());
 	}
 
 void MIME_Mail::SubmitHeader(MIME_Header* h)
@@ -1121,6 +1127,11 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		vl->append(new StringVal(data_len, data));
 		analyzer->ConnectionEvent(mime_segment_data, vl);
 		}
+
+	// is_orig param not available, doesn't matter as long as it's consistent
+	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                 analyzer->GetTag(), analyzer->Conn(), false);
+	cur_entity_len += len;
 
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}
@@ -1193,6 +1204,12 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 		}
 	}
 
+void MIME_Mail::Undelivered(int len)
+	{
+	// is_orig param not available, doesn't matter as long as it's consistent
+	file_mgr->Gap(cur_entity_len, len, analyzer->GetTag(), analyzer->Conn(),
+	              false);
+	}
 
 int strcasecmp_n(data_chunk_t s, const char* t)
 	{

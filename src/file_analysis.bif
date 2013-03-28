@@ -35,16 +35,12 @@ enum Trigger %{
 	## Raised when the beginning of a file is available and that beginning
 	## is at least the number of bytes indicated by the *bof_buffer_size*
 	## field of :bro:see:`FileAnalysis::Info`.
-	TRIGGER_BOF_BUFFER_AVAIL,
-	## Raised when the mime type of a file is matched based on magic
-	## numbers.  TODO: re-purposing protocols/http/file-ident.sig for
-	## doing this is tricky since the signature engine doesn't expect
-	## to be decoupled from connections, so figure out what work needs
-	## done there.
-	TRIGGER_MIME_TYPE,
-	## Raised when the end of a file is detected.  If the file is not
-	## being transferred linearly, then this doesn't have to mean the full
-	## file has been transferred.
+	TRIGGER_BOF_BUFFER,
+	## Raised when an initial guess at the file/mime type of a file is matched
+	## based on magic numbers.
+	TRIGGER_TYPE,
+	## Raised to signal that no more file data is incoming and it couldn't be
+	## determined whether the full file was actually seen.
 	TRIGGER_EOF,
 	## The reassembly buffer for the file filled and had to be discarded.
 	## The *undelivered* field of :bro:see:`FileAnalysis::Info` will
@@ -61,41 +57,71 @@ enum Action %{
 	ACTION_MD5,
 	ACTION_SHA1,
 	ACTION_SHA256,
+	ACTION_DATA_EVENT,
 	ACTION_PE_ANALYZER,
 %}
 
 function FileAnalysis::postpone_timeout%(file_id: string%): bool
 	%{
-	using namespace file_analysis;
+	using file_analysis::FileID;
 	bool result = file_mgr->PostponeTimeout(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::add_action%(file_id: string,
-                                   action: FileAnalysis::Action,
-                                   args: any%): bool
+function FileAnalysis::add_action%(file_id: string, args: any%): bool
 	%{
-	using namespace file_analysis;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(
-	  BifType::Record::FileAnalysis::ActionArgs);
-	bool result = file_mgr->AddAction(FileID(file_id->CheckString()),
-	                                  action->AsEnumVal(), rv);
+	using file_analysis::FileID;
+	using BifType::Record::FileAnalysis::ActionArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(ActionArgs);
+	bool result = file_mgr->AddAction(FileID(file_id->CheckString()), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::remove_action%(file_id: string,
-                                      action: FileAnalysis::Action%): bool
+function FileAnalysis::remove_action%(file_id: string, args: any%): bool
 	%{
-	using namespace file_analysis;
-	bool result = file_mgr->RemoveAction(FileID(file_id->CheckString()),
-	                                     action->AsEnumVal());
+	using file_analysis::FileID;
+	using BifType::Record::FileAnalysis::ActionArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(ActionArgs);
+	bool result = file_mgr->RemoveAction(FileID(file_id->CheckString()), rv);
+	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
 function FileAnalysis::stop%(file_id: string%): bool
 	%{
-	using namespace file_analysis;
-	bool result = file_mgr->RemoveFile(FileID(file_id->CheckString()));
+	using file_analysis::FileID;
+	bool result = file_mgr->IgnoreFile(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
+	%}
+
+function FileAnalysis::data_stream%(source: string, data: string%): any
+	%{
+	file_mgr->DataIn(data->Bytes(), data->Len(), source->CheckString());
+	return 0;
+	%}
+
+function FileAnalysis::data_chunk%(source: string, data: string,
+                                         offset: count%): any
+	%{
+	file_mgr->DataIn(data->Bytes(), data->Len(), offset, source->CheckString());
+	return 0;
+	%}
+
+function FileAnalysis::gap%(source: string, offset: count, len: count%): any
+	%{
+	file_mgr->Gap(offset, len, source->CheckString());
+	return 0;
+	%}
+
+function FileAnalysis::set_size%(source: string, size: count%): any
+	%{
+	file_mgr->SetSize(size, source->CheckString());
+	return 0;
+	%}
+
+function FileAnalysis::eof%(source: string%): any
+	%{
+	file_mgr->EndOfFile(source->CheckString());
+	return 0;
 	%}

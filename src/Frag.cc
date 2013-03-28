@@ -100,6 +100,13 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 	int offset = ip->FragOffset();
 	int len = ip->TotalLen();
 	int hdr_len = ip->HdrLen();
+
+	if ( len < hdr_len )
+		{
+		s->Weird("fragment_protocol_inconsistency", ip);
+		return;
+		}
+
 	int upper_seq = offset + len - hdr_len;
 
 	if ( ! offset )

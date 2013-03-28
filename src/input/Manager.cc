@@ -8,6 +8,7 @@
 #include "readers/Ascii.h"
 #include "readers/Raw.h"
 #include "readers/Benchmark.h"
+#include "readers/Binary.h"
 
 #include "Event.h"
 #include "EventHandler.h"
@@ -34,6 +35,7 @@ ReaderDefinition input_readers[] = {
 	{ BifEnum::Input::READER_ASCII, "Ascii", 0, reader::Ascii::Instantiate },
 	{ BifEnum::Input::READER_RAW, "Raw", 0, reader::Raw::Instantiate },
 	{ BifEnum::Input::READER_BENCHMARK, "Benchmark", 0, reader::Benchmark::Instantiate },
+	{ BifEnum::Input::READER_BINARY, "Binary", 0, reader::Binary::Instantiate },
 
 	// End marker
 	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }
@@ -483,7 +485,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(fields); // ref'd by lookupwithdefault
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
-	stream->event = event_registry->Lookup(event->GetID()->Name());
+	stream->event = event_registry->Lookup(event->Name());
 	stream->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
@@ -644,7 +646,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->tab = dst->AsTableVal();
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
-	stream->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->currDict = new PDict(InputHash);
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new PDict(InputHash);
@@ -2107,7 +2109,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
 		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
+			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
 
 		Unref(vt);
 		return v;

@@ -29,6 +29,7 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/input/./readers/ascii.bro
     scripts/base/frameworks/input/./readers/raw.bro
     scripts/base/frameworks/input/./readers/benchmark.bro
+    scripts/base/frameworks/input/./readers/binary.bro
   scripts/base/frameworks/file-analysis/__load__.bro
     scripts/base/frameworks/file-analysis/./main.bro
       build/src/base/file_analysis.bif.bro

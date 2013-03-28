@@ -451,14 +451,18 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/Binary.cc
 
     file_analysis/Manager.cc
     file_analysis/Info.cc
     file_analysis/InfoTimer.cc
+    file_analysis/PendingFile.cc
     file_analysis/FileID.h
     file_analysis/Action.h
+    file_analysis/ActionSet.cc
     file_analysis/Extract.cc
     file_analysis/Hash.cc
+    file_analysis/DataEvent.cc
     file_analysis/analyzers/PE.cc
 
     nb_dns.c

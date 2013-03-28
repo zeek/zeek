@@ -16,6 +16,8 @@
 #include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "util.h"
+#include "file_analysis/Manager.h"
 
 using namespace std;
 
@@ -844,38 +846,21 @@ extern "C" {
 ## return_mime: If true, the function returns a short MIME type string (e.g.,
 ##              ``text/plain`` instead of a more elaborate textual description).
 ##
-## Returns: The MIME type of *data*.
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
 function identify_data%(data: string, return_mime: bool%): string
 	%{
-	const char* descr = "";
-
 	static magic_t magic_mime = 0;
 	static magic_t magic_descr = 0;
 
 	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
+	bro_init_magic(magic, return_mime ? MAGIC_MIME : MAGIC_NONE);
 
 	if( ! *magic )
-		{
-		*magic = magic_open(return_mime ? MAGIC_MIME : MAGIC_NONE);
+		return new StringVal("<unknown>");
 
-		if ( ! *magic )
-			{
-			reporter->Error("can't init libmagic: %s", magic_error(*magic));
-			return new StringVal("");
-			}
+	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
 
-		if ( magic_load(*magic, 0) < 0 )
-			{
-			reporter->Error("can't load magic file: %s", magic_error(*magic));
-			magic_close(*magic);
-			*magic = 0;
-			return new StringVal("");
-			}
-		}
-
-	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-
-	return new StringVal(descr);
+	return new StringVal(desc ? desc : "<unknown>");
 	%}
 
 ## Performs an entropy test on the given data.
@@ -1031,29 +1016,6 @@ function clear_table%(v: any%): any
 		builtin_error("clear_table() requires a table/set argument");
 
 	return 0;
-	%}
-
-## Returns the number of elements in a container. This function works with all
-## container types, i.e., sets, tables, and vectors.
-##
-## v: The container whose elements are counted.
-##
-## Returns: The number of elements in *v*.
-function length%(v: any%): count
-	%{
-	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
-
-	if ( tv )
-		return new Val(tv->Size(), TYPE_COUNT);
-
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
-		return new Val(v->AsVectorVal()->Size(), TYPE_COUNT);
-
-	else
-		{
-		builtin_error("length() requires a table/set/vector argument");
-		return new Val(0, TYPE_COUNT);
-		}
 	%}
 
 ## Checks whether two objects reference the same internal object. This function
@@ -1349,7 +1311,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
-		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
+		result_v->Assign(i, new Val(ind, TYPE_COUNT));
 		}
 
 	return result_v;
@@ -1633,7 +1595,7 @@ function record_type_to_vector%(rt: string%): string_vec
 		for ( int i = 0; i < type->NumFields(); ++i )
 			{
 			StringVal* val = new StringVal(type->FieldName(i));
-			result->Assign(i+1, val, 0);
+			result->Assign(i+1, val);
 			}
 		}
 
@@ -2139,7 +2101,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	while ( len > 0 )
 		{
 		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
-		rval->Assign(rval->Size(), new AddrVal(a), 0);
+		rval->Assign(rval->Size(), new AddrVal(a));
 		bytes += 16;
 		len -= 16;
 		}
@@ -2162,7 +2124,7 @@ function addr_to_counts%(a: addr%): index_vec
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT), 0);
+		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT));
 
 	return rval;
 	%}
@@ -2868,13 +2830,55 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	return new StringVal(hexstr);
 	%}
 
+## Encodes a Base64-encoded string.
+##
+## s: The string to encode
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64_custom, decode_base64
+function encode_base64%(s: string%): string
+	%{
+	BroString* t = encode_base64(s->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+## Encodes a Base64-encoded string with a custom alphabet.
+##
+## s: The string to encode
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64, decode_base64_custom
+function encode_base64_custom%(s: string, a: string%): string
+	%{
+	BroString* t = encode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
 ## Decodes a Base64-encoded string.
 ##
 ## s: The Base64-encoded string.
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom
+## .. bro:see:: decode_base64_custom, encode_base64
 function decode_base64%(s: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString());
@@ -2897,7 +2901,7 @@ function decode_base64%(s: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64
+## .. bro:see:: decode_base64, encode_base64_custom
 function decode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
@@ -3574,7 +3578,7 @@ function lookup_addr%(host: addr%) : string
 
 ## Issues an asynchronous TEXT DNS lookup and delays the function result.
 ## This function can therefore only be called inside a ``when`` condition,
-## e.g., ``when ( local h = lookup_hostname_txt("www.bro-ids.org") ) { f(h); }``.
+## e.g., ``when ( local h = lookup_hostname_txt("www.bro.org") ) { f(h); }``.
 ##
 ## host: The hostname to lookup.
 ##
@@ -3603,7 +3607,7 @@ function lookup_hostname_txt%(host: string%) : string
 
 ## Issues an asynchronous DNS lookup and delays the function result.
 ## This function can therefore only be called inside a ``when`` condition,
-## e.g., ``when ( local h = lookup_hostname("www.bro-ids.org") ) { f(h); }``.
+## e.g., ``when ( local h = lookup_hostname("www.bro.org") ) { f(h); }``.
 ##
 ## host: The hostname to lookup.
 ##
@@ -5532,6 +5536,22 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 			from_orig, bol, eol, clear);
 
 	return new Val(1, TYPE_BOOL);
+	%}
+
+## For use within a :bro:see:`get_file_handle` handler to return a unique
+## identifier to associate with some buffered input to the file analysis
+## framework.  The buffered data will then immediately be allowed to pass
+## pass through the file analysis framework and execute any policy hooks
+## that are available.  If an empty string is returned, that signifies that
+## the buffered data will be discarded with no further action taken on it.
+##
+## handle: A string that uniquely identifies a file.
+##
+## .. bro:see:: get_file_handle FileAnalysis::policy
+function return_file_handle%(handle: string%): any
+	%{
+	file_mgr->ReceiveHandle(handle->CheckString());
+	return 0;
 	%}
 
 # ===========================================================================

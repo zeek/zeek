@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <magic.h>
 #include "config.h"
 
 #if __STDC__
@@ -75,7 +76,7 @@ typedef int32 ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId32
 #define PRI_PTR_COMPAT_UINT PRIu32
 #else
-# error "Unusual pointer size. Please report to bro@bro-ids.org."
+# error "Unusual pointer size. Please report to bro@bro.org."
 #endif
 
 extern "C"
@@ -367,5 +368,8 @@ struct CompareString
 		return strcmp(a, b) < 0;
 		}
 	};
+
+void bro_init_magic(magic_t* cookie_ptr, int flags);
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
 
 #endif

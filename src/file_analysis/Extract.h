@@ -15,7 +15,7 @@ namespace file_analysis {
 class Extract : public Action {
 public:
 
-	static Action* Instantiate(const RecordVal* args, Info* info);
+	static Action* Instantiate(RecordVal* args, Info* info);
 
 	virtual ~Extract();
 
@@ -23,7 +23,7 @@ public:
 
 protected:
 
-	Extract(Info* arg_info, const string& arg_filename);
+	Extract(RecordVal* args, Info* info, const string& arg_filename);
 
 	string filename;
 	int fd;

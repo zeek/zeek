@@ -300,7 +300,7 @@ type connection: record {
 	## one protocol analyzer is able to parse the same data. If so, all will
 	## be recorded. Also note that the recorced services are independent of any
 	## transport-level protocols.
-        service: set[string];
+	service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
@@ -1486,6 +1486,146 @@ type gtpv1_hdr: record {
 	## Next Extension Header Type.  Set if any *e_flag*, *s_flag*, or *pn_flag*
 	## field is set.
 	next_type: count &optional;
+};
+
+type gtp_cause: count;
+type gtp_imsi: count;
+type gtp_teardown_ind: bool;
+type gtp_nsapi: count;
+type gtp_recovery: count;
+type gtp_teid1: count;
+type gtp_teid_control_plane: count;
+type gtp_charging_id: count;
+type gtp_charging_gateway_addr: addr;
+type gtp_trace_reference: count;
+type gtp_trace_type: count;
+type gtp_tft: string;
+type gtp_trigger_id: string;
+type gtp_omc_id: string;
+type gtp_reordering_required: bool;
+type gtp_proto_config_options: string;
+type gtp_charging_characteristics: count;
+type gtp_selection_mode: count;
+type gtp_access_point_name: string;
+type gtp_msisdn: string;
+
+type gtp_gsn_addr: record {
+	## If the GSN Address information element has length 4 or 16, then this
+	## field is set to be the informational element's value interpreted as
+	## an IPv4 or IPv6 address, respectively.
+	ip: addr &optional;
+	## This field is set if it's not an IPv4 or IPv6 address.
+	other: string &optional;
+};
+
+type gtp_end_user_addr: record {
+	pdp_type_org: count;
+	pdp_type_num: count;
+	## Set if the End User Address information element is IPv4/IPv6.
+	pdp_ip: addr &optional;
+	## Set if the End User Address information element isn't IPv4/IPv6.
+	pdp_other_addr: string &optional;
+};
+
+type gtp_rai: record {
+	mcc: count;
+	mnc: count;
+	lac: count;
+	rac: count;
+};
+
+type gtp_qos_profile: record {
+	priority: count;
+	data: string;
+};
+
+type gtp_private_extension: record {
+	id: count;
+	value: string;
+};
+
+type gtp_create_pdp_ctx_request_elements: record {
+	imsi:             gtp_imsi &optional;
+	rai:              gtp_rai &optional;
+	recovery:         gtp_recovery &optional;
+	select_mode:      gtp_selection_mode &optional;
+	data1:            gtp_teid1;
+	cp:               gtp_teid_control_plane &optional;
+	nsapi:            gtp_nsapi;
+	linked_nsapi:     gtp_nsapi &optional;
+	charge_character: gtp_charging_characteristics &optional;
+	trace_ref:        gtp_trace_reference &optional;
+	trace_type:       gtp_trace_type &optional;
+	end_user_addr:    gtp_end_user_addr &optional;
+	ap_name:          gtp_access_point_name &optional;
+	opts:             gtp_proto_config_options &optional;
+	signal_addr:      gtp_gsn_addr;
+	user_addr:        gtp_gsn_addr;
+	msisdn:           gtp_msisdn &optional;
+	qos_prof:         gtp_qos_profile;
+	tft:              gtp_tft &optional;
+	trigger_id:       gtp_trigger_id &optional;
+	omc_id:           gtp_omc_id &optional;
+	ext:              gtp_private_extension &optional;
+};
+
+type gtp_create_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	reorder_req:    gtp_reordering_required &optional;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	end_user_addr:  gtp_end_user_addr &optional;
+	opts:           gtp_proto_config_options &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_update_pdp_ctx_request_elements: record {
+	imsi:          gtp_imsi &optional;
+	rai:           gtp_rai &optional;
+	recovery:      gtp_recovery &optional;
+	data1:         gtp_teid1;
+	cp:            gtp_teid_control_plane &optional;
+	nsapi:         gtp_nsapi;
+	trace_ref:     gtp_trace_reference &optional;
+	trace_type:    gtp_trace_type &optional;
+	cp_addr:       gtp_gsn_addr;
+	user_addr:     gtp_gsn_addr;
+	qos_prof:      gtp_qos_profile;
+	tft:           gtp_tft &optional;
+	trigger_id:    gtp_trigger_id &optional;
+	omc_id:        gtp_omc_id &optional;
+	ext:           gtp_private_extension &optional;
+	end_user_addr: gtp_end_user_addr &optional;
+};
+
+type gtp_update_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_request_elements: record {
+	teardown_ind: gtp_teardown_ind &optional;
+	nsapi:        gtp_nsapi;
+	ext:          gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_response_elements: record {
+	cause: gtp_cause;
+	ext:   gtp_private_extension &optional;
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as

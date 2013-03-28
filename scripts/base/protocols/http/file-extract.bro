@@ -2,8 +2,7 @@
 ##! the message body from the server can be extracted with this script.
 
 @load ./main
-@load ./file-ident
-@load base/utils/files
+@load ./file-analysis
 
 module HTTP;
 
@@ -16,45 +15,77 @@ export {
 
 	redef record Info += {
 		## On-disk file where the response body was extracted to.
-		extraction_file:  file &log &optional;
+		extraction_file:  string &log &optional;
 		
 		## Indicates if the response body is to be extracted or not.  Must be 
-		## set before or by the first :bro:id:`http_entity_data` event for the
-		## content.
+		## set before or by the first :bro:enum:`FileAnalysis::TRIGGER_NEW`
+		## for the file content.
 		extract_file:     bool &default=F;
 	};
 }
 
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
-	{
-	# Client body extraction is not currently supported in this script.
-	if ( is_orig )
-		return;
-	
-	if ( c$http$first_chunk )
-		{
-		if ( c$http?$mime_type &&
-		     extract_file_types in c$http$mime_type )
-			{
-			c$http$extract_file = T;
-			}
-			
-		if ( c$http$extract_file )
-			{
-			local suffix = fmt("%s_%d.dat", is_orig ? "orig" : "resp", c$http_state$current_response);
-			local fname = generate_extraction_filename(extraction_prefix, c, suffix);
-			
-			c$http$extraction_file = open(fname);
-			enable_raw_output(c$http$extraction_file);
-			}
-		}
+global extract_count: count = 0;
 
-	if ( c$http?$extraction_file )
-		print c$http$extraction_file, data;
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
+	{
+	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
+	if ( ! info?$mime_type ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+	if ( extract_file_types !in info$mime_type ) return;
+
+	for ( act in info$actions )
+		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
+
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	                          extract_count);
+	++extract_count;
+	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
+	                                        $extract_filename=fname]);
+
+	if ( ! info?$conns ) return;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		c$http$extraction_file = fname;
+		}
 	}
 
-event http_end_entity(c: connection, is_orig: bool)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+	&priority=5
 	{
-	if ( c$http?$extraction_file )
-		close(c$http$extraction_file);
+	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
+	if ( ! info?$source ) return;
+	if ( info$source != "HTTP" ) return;
+	if ( ! info?$conns ) return;
+
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	                          extract_count);
+	local extracting: bool = F;
+
+	for ( cid in info$conns )
+		{
+		local c: connection = info$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		if ( c$http$extract_file )
+			{
+			if ( ! extracting )
+				{
+				FileAnalysis::add_action(info$file_id,
+				                         [$act=FileAnalysis::ACTION_EXTRACT,
+		                                  $extract_filename=fname]);
+				extracting = T;
+				++extract_count;
+				}
+
+			c$http$extraction_file = fname;
+			}
+		}
 	}

@@ -16,7 +16,11 @@ class Info;
 class Action {
 public:
 
-	virtual ~Action() {}
+	virtual ~Action()
+		{
+		DBG_LOG(DBG_FILE_ANALYSIS, "Destroy action %d", tag);
+		Unref(args);
+		}
 
 	/**
 	 * Subclasses may override this to receive file data non-sequentially.
@@ -35,7 +39,9 @@ public:
 		{ return true; }
 
 	/**
-	 * Subclasses may override this to specifically handle the end of a file.
+	 * Subclasses may override this to specifically handle an EOF signal,
+	 * which means no more data is going to be incoming and the action/analyzer
+	 * may be deleted/cleaned up soon.
 	 * @return true if the action is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
@@ -50,17 +56,45 @@ public:
 	virtual bool Undelivered(uint64 offset, uint64 len)
 		{ return true; }
 
+	/**
+	 * @return the action type enum value.
+	 */
 	ActionTag Tag() const { return tag; }
+
+	/**
+	 * @return the ActionArgs associated with the aciton.
+	 */
+	RecordVal* Args() const { return args; }
+
+	/**
+	 * @return the file_analysis::Info object to which the action is attached.
+	 */
+	Info* GetInfo() const { return info; }
+
+	/**
+	 * @return the action tag equivalent of the 'act' field from the ActionArgs
+	 *         value \a args.
+	 */
+	static ActionTag ArgsTag(const RecordVal* args)
+		{
+		using BifType::Record::FileAnalysis::ActionArgs;
+		return static_cast<ActionTag>(
+		               args->Lookup(ActionArgs->FieldOffset("act"))->AsEnum());
+		}
 
 protected:
 
-	Action(Info* arg_info, ActionTag arg_tag) : info(arg_info), tag(arg_tag) {}
+	Action(RecordVal* arg_args, Info* arg_info)
+	    : tag(Action::ArgsTag(arg_args)), args(arg_args->Ref()->AsRecordVal()),
+	      info(arg_info)
+		{}
 
-	Info* info;
 	ActionTag tag;
+	RecordVal* args;
+	Info* info;
 };
 
-typedef Action* (*ActionInstantiator)(const RecordVal* args, Info* info);
+typedef Action* (*ActionInstantiator)(RecordVal* args, Info* info);
 
 } // namespace file_analysis
 

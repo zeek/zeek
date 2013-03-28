@@ -1,4 +1,127 @@
 
+2.1-386 | 2013-03-22 12:41:50 -0700
+
+  * Added reverse() function to strings.bif. (Yun Zheng Hu)
+    
+2.1-384 | 2013-03-22 12:10:14 -0700
+
+  * Fix record constructors in table initializer indices.  Addresses
+    #660. (Jon Siwek)
+
+2.1-382 | 2013-03-22 12:01:34 -0700
+
+  * Add support for 802.1ah (Q-in-Q). Addresses #641. (Seth Hall)
+    
+2.1-380 | 2013-03-18 12:18:10 -0700
+
+  * Fix gcc compile warnings in base64 encoder and benchmark reader.
+    (Bernhard Amann)
+    
+2.1-377 | 2013-03-17 17:36:09 -0700
+
+  * Fixing potential leak in DNS error case. (Vlad Grigorescu)
+    
+2.1-375 | 2013-03-17 13:14:26 -0700
+
+  * Add base64 encoding functionality, including new BiFs
+	encode_base64() and encode_base64_custom(). (Bernhard Amann)
+
+  * Replace call to external "openssl" in extract-certs-pem.bro with
+	that encode_base64(). (Bernhard Amann)
+
+  * Adding a test for extract-certs-pem.pem. (Robin Sommer)
+
+  * Renaming Base64Decoder to Base64Converter. (Robin Sommer)
+    
+2.1-366 | 2013-03-17 12:35:59 -0700
+
+  * Correctly handle DNS lookups for software version ranges. (Seth
+    Hall)
+
+  * Improvements to vulnerable software detection. (Seth Hall)
+    
+     - Add a DNS based updating method.  This needs to be tested
+       still.
+
+     - Vulnerable version ranges are used now instead of only single
+       versions.  This can deal with software with multiple stable
+       major versions.
+
+  * Update software version parsing and comparison to account for a
+    third numeric subversion. Also, $addl is now compared numerically
+    if the value is actually numeric. (Seth Hall)
+
+2.1-361 | 2013-03-13 07:18:22 -0700
+
+  * Add check for truncated link frames. Addresses #962. (Jacob
+    Baines)
+
+  * Fix large memory allocation in IP fragment reassembly. Addresses
+    #961. (Jacob Baines)
+
+2.1-357 | 2013-03-08 09:18:35 -0800
+
+  * Fix race-condition in table-event test. (Bernhard Amann)
+
+  * s/bro-ids.org/bro.org/g. (Robin Sommer)
+
+2.1-353 | 2013-03-07 13:31:37 -0800
+
+  * Fix function type-equivalence requiring same parameter names.
+    Addresses #957. (Jon Siwek)
+
+2.1-351 | 2013-03-07 13:27:29 -0800
+
+  * Fix new/delete mismatch. Addresses #958. (Jacob Baines)
+    
+  * Fix compiler warnings. (Jon Siwek)
+    
+2.1-347 | 2013-03-06 16:48:44 -0800
+
+  * Remove unused parameter from vector assignment method. (Bernhard Amann)
+
+  * Remove the byte_len() and length() bifs. (Bernhard Amann)
+
+2.1-342 | 2013-03-06 15:42:52 -0800
+
+  * Moved the Notice::notice event and Notice::policy table to both be
+    hooks. See documentation and NEWS for information. (Seth Hall).
+
+2.1-338 | 2013-03-06 15:10:43 -0800
+
+  * Fix init of local sets/vectors via curly brace initializer lists.
+    (Jon Siwek)
+
+2.1-336 | 2013-03-06 15:08:06 -0800
+
+  * Fix memory leaks resulting from 'when' and 'return when'
+    statements. Addresses #946. (Jon Siwek)
+
+  * Fix three bugs with 'when' and 'return when' statements. Addresses
+    #946. (Jon Siwek)
+
+2.1-333 | 2013-03-06 14:59:47 -0800
+
+  * Add parsing for GTPv1 extension headers and control messages.  (Jon Siwek)
+
+    This includes:
+
+      - A new generic gtpv1_message() event generated for any GTP
+        message type.
+
+      - Specific events for the create/update/delete PDP context
+        request/response messages.
+
+    Addresses #934.
+
+2.1-331 | 2013-03-06 14:54:33 -0800
+
+  * Fix possible null pointer dereference in identify_data BIF. Also
+    centralized libmagic calls for consistent error handling/output.
+    (Jon Siwek)
+
+  * Fix build on OpenBSD 5.2. (Jon Siwek)
+
 2.1-328 | 2013-02-05 01:34:29 -0500
 
   * New script to query the ICSI Certificate Notary 

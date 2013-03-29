@@ -10,21 +10,23 @@ type Info: record;
 type ActionArgs: record;
 type ActionResults: record;
 
-## An enumeration of possibly-interesting "events" that can occur over
-## the course of analyzing files.  The :bro:see:`FileAnalysis::policy`
-## hook is called each time a trigger occurs.
+## An enumeration of significant things that can occur over the course of
+## analyzing files.  The :bro:see:`FileAnalysis::policy` hook is called each
+## time a trigger occurs.
 enum Trigger %{
+
 	## Raised when any part of a new file is detected.
 	TRIGGER_NEW,
+
 	## Raised when file is detected being transported over a new network
 	## connection (other than the first).
 	TRIGGER_NEW_CONN,
+
 	## Raised when file analysis has likely seen a complete file.  That
 	## is when a number of bytes indicated by the *total_bytes* field of
-	## :bro:see:`FileAnalysis::Info` have been processed.  Note that
-	## the *undelivered* field does not have to be zero for this to have
-	## occurred.
+	## :bro:see:`FileAnalysis::Info` have been processed.
 	TRIGGER_DONE,
+
 	## Raised when file analysis for a given file is aborted due
 	## to not seeing any data for it recently.  Note that this doesn't
 	## necessarily mean the full file wasn't seen (e.g. if the
@@ -33,44 +35,55 @@ enum Trigger %{
 	## during a :bro:see:`FileAnalysis::policy` handler for this trigger to
 	## defer the timeout until later.
 	TRIGGER_TIMEOUT,
+
 	## Raised when the beginning of a file is detected.
 	TRIGGER_BOF,
-	## Raised when the beginning of a file is available and that beginning
-	## is at least the number of bytes indicated by the *bof_buffer_size*
-	## field of :bro:see:`FileAnalysis::Info`.
+
+	## Raised when the beginning of a file is available in the *bof_buffer*
+	## field of :bro:see:`FileAnalysis::Info` and that beginning
+	## is at least the number of bytes indicated by the *bof_buffer_size* field.
 	TRIGGER_BOF_BUFFER,
-	## Raised when an initial guess at the file/mime type of a file is matched
-	## based on magic numbers.
+
+	## Raised when an initial guess at the file/mime type of a file is matched.
 	TRIGGER_TYPE,
+
 	## Raised to signal that no more file data is incoming and it couldn't be
-	## determined whether the full file was actually seen.
+	## determined whether the full file was actually seen and analyzed.
 	TRIGGER_EOF,
-	## The reassembly buffer for the file filled and had to be discarded.
-	## The *undelivered* field of :bro:see:`FileAnalysis::Info` will
-	## indicate the number of bytes, if any, that were not all-in-sequence.
-	## TODO: Is it possible to extend the reassembly buffer when "handling"
-	## this trigger?
-	TRIGGER_REASSEMBLY_BUFFER_FULL,
+
 	## Raised when there's a missing chunk of data in the file stream.
 	TRIGGER_GAP,
 %}
 
+## An enumeration of various file analysis actions that can be taken.
 enum Action %{
+
+	## Extract a file to local filesystem
 	ACTION_EXTRACT,
+
+	## Calculate an MD5 digest of the file's contents.
 	ACTION_MD5,
+
+	## Calculate an SHA1 digest of the file's contents.
 	ACTION_SHA1,
+
+	## Calculate an SHA256 digest of the file's contents.
 	ACTION_SHA256,
+
+	## Deliver the file contents to the script-layer in an event.
 	ACTION_DATA_EVENT,
 %}
 
-function FileAnalysis::postpone_timeout%(file_id: string%): bool
+## :bro:see:`FileAnalysis::postpone_timeout`.
+function FileAnalysis::__postpone_timeout%(file_id: string%): bool
 	%{
 	using file_analysis::FileID;
 	bool result = file_mgr->PostponeTimeout(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::add_action%(file_id: string, args: any%): bool
+## :bro:see:`FileAnalysis::add_action`.
+function FileAnalysis::__add_action%(file_id: string, args: any%): bool
 	%{
 	using file_analysis::FileID;
 	using BifType::Record::FileAnalysis::ActionArgs;
@@ -80,7 +93,8 @@ function FileAnalysis::add_action%(file_id: string, args: any%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::remove_action%(file_id: string, args: any%): bool
+## :bro:see:`FileAnalysis::remove_action`.
+function FileAnalysis::__remove_action%(file_id: string, args: any%): bool
 	%{
 	using file_analysis::FileID;
 	using BifType::Record::FileAnalysis::ActionArgs;
@@ -90,39 +104,45 @@ function FileAnalysis::remove_action%(file_id: string, args: any%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::stop%(file_id: string%): bool
+## :bro:see:`FileAnalysis::stop`.
+function FileAnalysis::__stop%(file_id: string%): bool
 	%{
 	using file_analysis::FileID;
 	bool result = file_mgr->IgnoreFile(FileID(file_id->CheckString()));
 	return new Val(result, TYPE_BOOL);
 	%}
 
-function FileAnalysis::data_stream%(source: string, data: string%): any
+## :bro:see:`FileAnalysis::data_stream`.
+function FileAnalysis::__data_stream%(source: string, data: string%): any
 	%{
 	file_mgr->DataIn(data->Bytes(), data->Len(), source->CheckString());
 	return 0;
 	%}
 
-function FileAnalysis::data_chunk%(source: string, data: string,
-                                         offset: count%): any
+## :bro:see:`FileAnalysis::data_chunk`.
+function FileAnalysis::__data_chunk%(source: string, data: string,
+                                     offset: count%): any
 	%{
 	file_mgr->DataIn(data->Bytes(), data->Len(), offset, source->CheckString());
 	return 0;
 	%}
 
-function FileAnalysis::gap%(source: string, offset: count, len: count%): any
+## :bro:see:`FileAnalysis::gap`.
+function FileAnalysis::__gap%(source: string, offset: count, len: count%): any
 	%{
 	file_mgr->Gap(offset, len, source->CheckString());
 	return 0;
 	%}
 
-function FileAnalysis::set_size%(source: string, size: count%): any
+## :bro:see:`FileAnalysis::set_size`.
+function FileAnalysis::__set_size%(source: string, size: count%): any
 	%{
 	file_mgr->SetSize(size, source->CheckString());
 	return 0;
 	%}
 
-function FileAnalysis::eof%(source: string%): any
+## :bro:see:`FileAnalysis::eof`.
+function FileAnalysis::__eof%(source: string%): any
 	%{
 	file_mgr->EndOfFile(source->CheckString());
 	return 0;

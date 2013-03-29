@@ -7,6 +7,10 @@
 
 namespace file_analysis {
 
+/**
+ * Provides buffering for file contents until the script-layer is able to
+ * return a unique file handle for it.
+ */
 class PendingFile {
 public:
 

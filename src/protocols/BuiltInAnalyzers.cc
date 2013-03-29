@@ -1,6 +1,9 @@
 
+// TODO: This file will eventually go away once we've converrted all
+// analyzers into separate plugins.
+
 #include "BuiltInAnalyzers.h"
-#include "PluginComponent.h"
+#include "analyzer/PluginComponent.h"
 
 #include "../binpac_bro.h"
 
@@ -11,8 +14,6 @@
 #include "Finger.h"
 #include "InterConn.h"
 #include "NTP.h"
-#include "HTTP.h"
-#include "HTTP-binpac.h"
 #include "ICMP.h"
 #include "SteppingStone.h"
 #include "IRC.h"
@@ -37,13 +38,14 @@
 #include "POP3.h"
 #include "SOCKS.h"
 #include "SSH.h"
-#include "SSL.h"
 #include "Syslog-binpac.h"
 #include "Teredo.h"
 #include "ConnSizeAnalyzer.h"
 #include "GTPv1.h"
 
 using namespace analyzer;
+
+BuiltinAnalyzers builtin_analyzers;
 
 #define DEFINE_ANALYZER(name, factory, enabled, partial) \
 	AddComponent(new PluginComponent(name, factory, enabled, partial))
@@ -53,7 +55,7 @@ void BuiltinAnalyzers::Init()
 	plugin::Description desc;
 	desc.name = "Core-Analyzers";
 	desc.description = "Built-in protocol analyzers";
-	desc.version = plugin::API_BUILTIN;
+	desc.version = BRO_PLUGIN_VERSION_BUILTIN;
 	SetDescription(desc);
 
 	DEFINE_ANALYZER("PIA_TCP", PIA_TCP::InstantiateAnalyzer, true, false);
@@ -71,7 +73,7 @@ void BuiltinAnalyzers::Init()
 	DEFINE_ANALYZER("FINGER", Finger_Analyzer::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("FTP", FTP_Analyzer::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("GNUTELLA", Gnutella_Analyzer::InstantiateAnalyzer, true, false);
-	DEFINE_ANALYZER("HTTP", HTTP_Analyzer::InstantiateAnalyzer, ! FLAGS_use_binpac, false);
+	// DEFINE_ANALYZER("HTTP", HTTP_Analyzer::InstantiateAnalyzer, ! FLAGS_use_binpac, false);
 	DEFINE_ANALYZER("IDENT", Ident_Analyzer::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("IRC", IRC_Analyzer::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("LOGIN", 0, true, false);  // just a base class
@@ -92,8 +94,8 @@ void BuiltinAnalyzers::Init()
 	DEFINE_ANALYZER("DHCP_BINPAC", DHCP_Analyzer_binpac::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("DNS_TCP_BINPAC", DNS_TCP_Analyzer_binpac::InstantiateAnalyzer, FLAGS_use_binpac, false);
 	DEFINE_ANALYZER("DNS_UDP_BINPAC", DNS_UDP_Analyzer_binpac::InstantiateAnalyzer, FLAGS_use_binpac, false);
-	DEFINE_ANALYZER("HTTP_BINPAC", HTTP_Analyzer_binpac::InstantiateAnalyzer, FLAGS_use_binpac, false);
-	DEFINE_ANALYZER("SSL", SSL_Analyzer::InstantiateAnalyzer, true, false);
+	// DEFINE_ANALYZER("HTTP_BINPAC", HTTP_Analyzer_binpac::InstantiateAnalyzer, FLAGS_use_binpac, false);
+	// DEFINE_ANALYZER("SSL", SSL_Analyzer::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("SYSLOG_BINPAC", Syslog_Analyzer_binpac::InstantiateAnalyzer, true, false);
 	DEFINE_ANALYZER("MODBUS", ModbusTCP_Analyzer::InstantiateAnalyzer, true, false);
 

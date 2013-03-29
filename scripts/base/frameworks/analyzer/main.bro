@@ -59,7 +59,7 @@ export {
 	&redef;
 }
 
-@load base/analyzer.bif
+@load base/bif/analyzer.bif
 
 global ports: table[Analyzer::Tag] of set[port];
 

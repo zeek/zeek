@@ -9,6 +9,8 @@
 #include "binpac_bro.h"
 #include "ZIP.h"
 #include "IPAddr.h"
+#include "HTTP.h"
+#include "events.bif.h"
 
 enum CHUNKED_TRANSFER_STATE {
 	NON_CHUNKED_TRANSFER,

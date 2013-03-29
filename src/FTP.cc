@@ -8,8 +8,8 @@
 #include "FTP.h"
 #include "NVT.h"
 #include "Event.h"
-#include "SSL.h"
 #include "Base64.h"
+#include "analyzer/Manager.h"
 
 FTP_Analyzer::FTP_Analyzer(Connection* conn)
 : TCP_ApplicationAnalyzer("FTP", conn)
@@ -154,10 +154,13 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			// Server wants to proceed with an ADAT exchange and we
 			// know how to analyze the GSI mechanism, so attach analyzer
 			// to look for that.
-			SSL_Analyzer* ssl = new SSL_Analyzer(Conn());
-			ssl->AddSupportAnalyzer(new FTP_ADAT_Analyzer(Conn(), true));
-			ssl->AddSupportAnalyzer(new FTP_ADAT_Analyzer(Conn(), false));
-			AddChildAnalyzer(ssl);
+			Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+			if ( ssl )
+				{
+				ssl->AddSupportAnalyzer(new FTP_ADAT_Analyzer(Conn(), true));
+				ssl->AddSupportAnalyzer(new FTP_ADAT_Analyzer(Conn(), false));
+				AddChildAnalyzer(ssl);
+				}
 			}
 
 		vl->append(new Val(reply_code, TYPE_COUNT));

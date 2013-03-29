@@ -1,5 +1,5 @@
-@load base/const.bif
-@load base/types.bif
+@load base/bif/const.bif.bro
+@load base/bif/types.bif
 
 # Type declarations
 
@@ -646,9 +646,9 @@ type entropy_test_result: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load base/strings.bif
-@load base/bro.bif
-@load base/reporter.bif
+@load base/bif/strings.bif
+@load base/bif/bro.bif
+@load base/bif/reporter.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -2656,7 +2656,7 @@ export {
 }
 module GLOBAL;
 
-@load base/event.bif
+@load base/bif/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
@@ -3004,3 +3004,5 @@ const snaplen = 8192 &redef;
 @load base/frameworks/input
 @load base/frameworks/analyzer
 
+# Load BiF defined by plugins.
+@load base/bif/plugins

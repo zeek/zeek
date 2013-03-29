@@ -31,21 +31,7 @@ bool Manager::LoadPluginsFrom(const std::string& dir)
 
 bool Manager::RegisterPlugin(Plugin *plugin)
 	{
-	assert(! init);
-
-	plugin::Description desc = plugin->GetDescription();
-
-	if ( desc.version != plugin::API_BUILTIN )
-		{
-		if ( desc.api_version == API_ERROR )
-			reporter->InternalError("API version of plugin %s not initialized", desc.name.c_str());
-
-		if ( desc.api_version != API_VERSION )
-			reporter->FatalError("API version mismatch for plugin %s: expected %d, but have %d",
-						 desc.name.c_str(), API_VERSION, desc.version);
-		}
-
-	plugins.push_back(plugin);
+	Manager::PluginsInternal()->push_back(plugin);
 	return true;
 	}
 
@@ -53,8 +39,18 @@ void Manager::InitPlugins()
 	{
 	assert(! init);
 
-	for ( plugin_list::iterator i = plugins.begin(); i != plugins.end(); i++ )
+	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		(*i)->Init();
+
+	init = true;
+	}
+
+void Manager::InitPluginsBif()
+	{
+	assert(init);
+
+	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
+		(*i)->InitBif();
 
 	init = true;
 	}
@@ -63,19 +59,28 @@ void Manager::FinishPlugins()
 	{
 	assert(init);
 
-	for ( plugin_list::iterator i = plugins.begin(); i != plugins.end(); i++ )
+	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		{
 		(*i)->Done();
-		delete *i;
+//		delete *i;
 		}
 
-	plugins.clear();
+	Manager::PluginsInternal()->clear();
 
 	init = false;
 	}
 
 Manager::plugin_list Manager::Plugins() const
 	{
-	return plugins;
-}
+	return *Manager::PluginsInternal();
+	}
 
+Manager::plugin_list* Manager::PluginsInternal()
+	{
+	static plugin_list* plugins = 0;
+
+	if ( ! plugins )
+		plugins = new plugin_list;
+
+	return plugins;
+	}

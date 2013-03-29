@@ -1,6 +1,8 @@
 #ifndef ssl_h
 #define ssl_h
 
+#include "events.bif.h"
+
 #include "TCP.h"
 #include "ssl_pac.h"
 

@@ -20,7 +20,6 @@
 #include "UDP.h"
 
 #include "DNS-binpac.h"
-#include "HTTP-binpac.h"
 
 #include "SteppingStone.h"
 #include "BackDoor.h"

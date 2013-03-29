@@ -86,7 +86,8 @@ public:
 	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 	bool UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
 
-	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c); // Null if disabled.
+	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c); // Null if disabled or not available.
+	Analyzer* InstantiateAnalyzer(const char* name, Connection* c); // Null if disabled or not available.
 
 	const string& GetAnalyzerName(Tag tag);
 	const string& GetAnalyzerName(Val* val);

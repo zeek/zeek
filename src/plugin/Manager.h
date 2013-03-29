@@ -29,14 +29,21 @@ public:
 
 	/**
 	 *
-	 * @param plugin: The plugin to register. The method takes ownership.
+	 * @param plugin: The plugin to register. The method does not take
+	 * ownershop but assume the pointer will leave at least until the
+	 * Manager is destroyed.
 	 */
-	bool RegisterPlugin(Plugin *plugin); // Takes ownership.
+	static bool RegisterPlugin(Plugin *plugin);
 
 	/**
 	 *
 	 */
 	void InitPlugins();
+
+	/**
+	 *
+	 */
+	void InitPluginsBif();
 
 	/**
 	 *
@@ -55,8 +62,9 @@ public:
 	std::list<T *> Components(component::Type type) const;
 
 private:
+	static plugin_list* PluginsInternal();
+
 	bool init;
-	plugin_list plugins;
 };
 
 template<class T>
@@ -64,7 +72,7 @@ std::list<T *> Manager::Components(component::Type type) const
 	{
 	std::list<T *> result;
 
-	for ( plugin_list::const_iterator p = plugins.begin(); p != plugins.end(); p++ )
+	for ( plugin_list::const_iterator p = PluginsInternal()->begin(); p != PluginsInternal()->end(); p++ )
 		{
 		component_list components = (*p)->Components();
 

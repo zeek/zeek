@@ -7,10 +7,10 @@
 #include <algorithm>
 
 #include "NetVar.h"
-#include "HTTP.h"
 #include "Gnutella.h"
 #include "Event.h"
 #include "PIA.h"
+#include "analyzer/Manager.h"
 
 GnutellaMsgState::GnutellaMsgState()
 	{
@@ -129,9 +129,10 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		ConnectionEvent(gnutella_http_notify, vl);
 		}
 
-	if ( HTTP_Analyzer::Available() )
+	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
+
+	if ( a )
 		{
-		analyzer::Analyzer* a = new HTTP_Analyzer(Conn());
 		Parent()->AddChildAnalyzer(a);
 
 		if ( Parent()->IsAnalyzer("TCP") )

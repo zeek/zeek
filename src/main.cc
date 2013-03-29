@@ -56,7 +56,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
-#include "analyzer/BuiltInAnalyzers.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
@@ -180,7 +179,7 @@ void usage()
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -L|--rule-benchmark            | benchmark for rules\n");
-	fprintf(stderr, "    -N|--print-plugins             | print all available plugins and exit\n");
+	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -238,7 +237,7 @@ void usage()
 	exit(1);
 	}
 
-void show_plugins()
+void show_plugins(int level)
 	{
 	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
 
@@ -250,10 +249,15 @@ void show_plugins()
 
 	ODesc d;
 
+	if ( level == 1 )
+		d.SetShort();
+
 	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
 		{
 		(*i)->Describe(&d);
-		d.NL();
+
+		if ( ! d.IsShort() )
+			d.Add("\n");
 		}
 
 	printf("%s", d.Description());
@@ -641,7 +645,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'N':
-			print_plugins = 1;
+			++print_plugins;
 			break;
 
 		case 'O':
@@ -785,7 +789,7 @@ int main(int argc, char** argv)
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
 	     interfaces.length() == 0 &&
-	     ! (id_name || bst_file) && ! command_line_policy )
+	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
 
 	// Process remaining arguments.  X=Y arguments indicate script
@@ -816,15 +820,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	plugin_mgr = new plugin::Manager();
-
-	plugin_mgr->RegisterPlugin(new analyzer::BuiltinAnalyzers());
 	plugin_mgr->InitPlugins();
-
-	if ( print_plugins )
-		{
-		show_plugins();
-		exit(1);
-		}
 
 	analyzer_mgr->Init();
 
@@ -845,6 +841,14 @@ int main(int argc, char** argv)
 #endif
 
 	yyparse();
+
+	plugin_mgr->InitPluginsBif();
+
+	if ( print_plugins )
+		{
+		show_plugins(print_plugins);
+		exit(1);
+		}
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}

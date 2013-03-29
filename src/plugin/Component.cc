@@ -1,4 +1,3 @@
-
 #include "Component.h"
 
 #include "../Desc.h"

@@ -316,6 +316,12 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 	return a;
 	}
 
+Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
+	{
+	Tag tag = GetAnalyzerTag(name);
+	return tag ? InstantiateAnalyzer(tag, conn) : 0;
+	}
+
 const string& Manager::GetAnalyzerName(Tag tag)
 	{
 	static string error = "<error>";

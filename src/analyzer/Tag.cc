@@ -6,11 +6,10 @@
 
 using namespace analyzer;
 
-Tag Tag::ERROR;
-
 Tag::Tag(type_t arg_type, subtype_t arg_subtype)
 	{
 	assert(arg_type > 0);
+
 	type = arg_type;
 	subtype = arg_subtype;
 	int64_t i = (int64)(type) | ((int64)subtype << 31);
@@ -23,6 +22,7 @@ Tag::Tag(type_t arg_type, subtype_t arg_subtype)
 Tag::Tag(EnumVal* arg_val)
 	{
 	assert(val);
+
 	val = arg_val;
 	Ref(val);
 
@@ -37,7 +37,7 @@ Tag::Tag(const Tag& other) : type(other.type), subtype(other.subtype)
 	subtype = other.subtype;
 	val = other.val;
 
-	if  ( val )
+	if ( val )
 		Ref(val);
 	}
 
@@ -48,7 +48,7 @@ Tag::Tag()
 	val = 0;
 	}
 
-EnumVal* Tag::Val()
+EnumVal* Tag::AsEnumVal() const
 	{
 	if ( ! val )
 		{
@@ -66,4 +66,3 @@ std::string Tag::AsString() const
 	{
 	return fmt("%" PRIu32 "/%" PRIu32, type, subtype);
 	}
-

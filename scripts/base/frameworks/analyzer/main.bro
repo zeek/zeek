@@ -45,7 +45,7 @@ export {
 	## tout: The timeout interval after which to ignore the scheduling request.
 	##
 	## Returns: True if succesful.
-	global expect_connection: function(orig: addr, resp: addr, resp_p: port,
+	global schedule_analyzer: function(orig: addr, resp: addr, resp_p: port,
 					   analyzer: Analyzer::Tag, tout: interval) : bool;
 
 	## Analyzers to disable at startup.
@@ -119,9 +119,9 @@ function name(atype: Analyzer::Tag) : string
 	return __name(atype);
 	}
 
-function expect_connection(orig: addr, resp: addr, resp_p: port,
+function schedule_analyzer(orig: addr, resp: addr, resp_p: port,
 			   analyzer: Analyzer::Tag, tout: interval) : bool
 	{
-	return __expect_connection(orig, resp, resp_p, analyzer, tout);
+	return __schedule_analyzer(orig, resp, resp_p, analyzer, tout);
 	}
 

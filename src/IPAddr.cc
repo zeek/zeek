@@ -45,23 +45,6 @@ HashKey* BuildConnIDHashKey(const ConnID& id)
 	return new HashKey(&key, sizeof(key));
 	}
 
-HashKey* BuildExpectedConnHashKey(const analyzer::ExpectedConn& c)
-	{
-	struct {
-		in6_addr orig;
-		in6_addr resp;
-		uint16 resp_p;
-		uint16 proto;
-	} key;
-
-	key.orig = c.orig.in6;
-	key.resp = c.resp.in6;
-	key.resp_p = c.resp_p;
-	key.proto = c.proto;
-
-	return new HashKey(&key, sizeof(key));
-	}
-
 void IPAddr::Mask(int top_bits_to_keep)
 	{
 	if ( top_bits_to_keep < 0 || top_bits_to_keep > 128 )

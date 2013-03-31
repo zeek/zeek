@@ -2,7 +2,7 @@
 #ifndef PLUGIN_MACROS_H
 #define PLUGIN_MACROS_H
 
-#include "analyzer/PluginComponent.h"
+#include "analyzer/Component.h"
 
 #define BRO_PLUGIN_VERSION_BUILTIN -1
 #define BRO_PLUGIN_API_VERSION      1
@@ -36,7 +36,10 @@
 		std::list<std::pair<std::string, int> >  __bif_##file##_init();	\
 		AddBifInitFunction(&__bif_##file##_init);
 
-#define BRO_PLUGIN_ANALYZER(tag, factory, enabled, partial) \
-	AddComponent(new ::analyzer::PluginComponent(tag, factory, enabled, partial));
+#define BRO_PLUGIN_ANALYZER(tag, factory) \
+	AddComponent(new ::analyzer::Component(tag, factory));
+
+#define BRO_PLUGIN_ANALYZER_EXT(tag, factory, enabled, partial) \
+	AddComponent(new ::analyzer::Component(tag, factory, 0, enabled, partial));
 
 #endif

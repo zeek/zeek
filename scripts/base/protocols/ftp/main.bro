@@ -228,7 +228,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 			{
 			c$ftp$passive=F;
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			Analyzer::expect_connection(id$resp_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
+			Analyzer::schedule_analyzer(id$resp_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
 			}
 		else
 			{
@@ -281,7 +281,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			Analyzer::expect_connection(id$orig_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
+			Analyzer::schedule_analyzer(id$orig_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
 			}
 		else
 			{
@@ -312,7 +312,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	}
 
 
-event expected_connection_seen(c: connection, a: count) &priority=10
+event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )

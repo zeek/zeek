@@ -1874,7 +1874,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_DPD, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}

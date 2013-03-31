@@ -363,7 +363,6 @@ public:
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
 	friend HashKey* BuildConnIDHashKey(const ConnID& id);
-	friend HashKey* BuildExpectedConnHashKey(const analyzer::ExpectedConn& c);
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 

@@ -54,15 +54,12 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 			reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
 		}
 	else
-		child_analyzer = analyzer::Tag::ERROR;
-
-	if ( analyzer != analyzer::Tag::ERROR )
-		analyzer_mgr->ActivateSigs();
+		child_analyzer = analyzer::Tag();
 	}
 
 void RuleActionAnalyzer::PrintDebug()
 	{
-	if ( child_analyzer == analyzer::Tag::ERROR )
+	if ( ! child_analyzer )
 		fprintf(stderr, "|%s|\n", analyzer_mgr->GetAnalyzerName(analyzer).c_str());
 	else
 		fprintf(stderr, "|%s:%s|\n",
@@ -74,7 +71,7 @@ void RuleActionAnalyzer::PrintDebug()
 void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len)
 	{
-	if ( ChildAnalyzer() == analyzer::Tag::ERROR )
+	if ( ! ChildAnalyzer() )
 		{
 		if ( ! analyzer_mgr->IsEnabled(Analyzer()) )
 			return;
@@ -103,7 +100,7 @@ void RuleActionEnable::PrintDebug()
 void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	if ( ChildAnalyzer() == analyzer::Tag::ERROR )
+	if ( ! ChildAnalyzer() )
 		{
 		if ( state->PIA() )
 			state->PIA()->DeactivateAnalyzer(Analyzer());

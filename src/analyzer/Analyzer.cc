@@ -75,7 +75,7 @@ Analyzer::Analyzer(const char* name, Connection* arg_conn)
 	output_handler = 0;
 
 	if ( ! tag )
-		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::PluginComponent?", name);
+		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
 
 	}
 
@@ -344,7 +344,7 @@ void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	if ( init )
 		analyzer->Init();
 
-	DBG_LOG(DBG_DPD, "%s added child %s",
+	DBG_LOG(DBG_ANALYZER, "%s added child %s",
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
 	}
 
@@ -368,7 +368,7 @@ void Analyzer::RemoveChildAnalyzer(Analyzer* analyzer)
 	LOOP_OVER_CHILDREN(i)
 		if ( *i == analyzer && ! (analyzer->finished || analyzer->removing) )
 			{
-			DBG_LOG(DBG_DPD, "%s disabling child %s",
+			DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// We just flag it as being removed here but postpone
 			// actually doing that to later. Otherwise, we'd need
@@ -386,7 +386,7 @@ void Analyzer::RemoveChildAnalyzer(ID id)
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
-			DBG_LOG(DBG_DPD, "%s  disabling child %s", GetAnalyzerName().c_str(), id,
+			DBG_LOG(DBG_ANALYZER, "%s  disabling child %s", GetAnalyzerName().c_str(), id,
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// See comment above.
 			(*i)->removing = true;
@@ -440,7 +440,7 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 Analyzer* Analyzer::FindChild(const string& name)
 	{
 	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
-	return tag != Tag::ERROR ? FindChild(tag) : 0;
+	return tag ? FindChild(tag) : 0;
 	}
 
 void Analyzer::DeleteChild(analyzer_list::iterator i)
@@ -456,7 +456,7 @@ void Analyzer::DeleteChild(analyzer_list::iterator i)
 		child->removing = false;
 		}
 
-	DBG_LOG(DBG_DPD, "%s deleted child %s 3",
+	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3",
 		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
 
 	children.erase(i);
@@ -467,7 +467,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
 	if ( HasSupportAnalyzer(analyzer->GetAnalyzerTag(), analyzer->IsOrig()) )
 		{
-		DBG_LOG(DBG_DPD, "%s already has %s %s",
+		DBG_LOG(DBG_ANALYZER, "%s already has %s %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -495,7 +495,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 	analyzer->Init();
 
-	DBG_LOG(DBG_DPD, "%s added %s support %s",
+	DBG_LOG(DBG_ANALYZER, "%s added %s support %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -519,7 +519,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	else
 		*head = s->sibling;
 
-	DBG_LOG(DBG_DPD, "%s removed support %s",
+	DBG_LOG(DBG_ANALYZER, "%s removed support %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
@@ -544,33 +544,33 @@ bool Analyzer::HasSupportAnalyzer(Tag tag, bool orig)
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				int seq, const IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_DPD, "%s DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	DBG_LOG(DBG_DPD, "%s DeliverStream(%d, %s) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(int seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_DPD, "%s Undelivered(%d, %d, %s)",
+	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%d, %d, %s)",
 			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
 	}
 
 void Analyzer::EndOfData(bool is_orig)
 	{
-	DBG_LOG(DBG_DPD, "%s EndOfData(%s)",
+	DBG_LOG(DBG_ANALYZER, "%s EndOfData(%s)",
 			fmt_analyzer(this).c_str(), is_orig ? "T" : "F");
 	}
 
 void Analyzer::FlipRoles()
 	{
-	DBG_LOG(DBG_DPD, "%s FlipRoles()");
+	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()");
 
 	LOOP_OVER_CHILDREN(i)
 		(*i)->FlipRoles();
@@ -596,7 +596,7 @@ void Analyzer::ProtocolConfirmation()
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(tag.Val());
+	vl->append(tag.AsEnumVal());
 	vl->append(new Val(id, TYPE_COUNT));
 
 	// We immediately raise the event so that the analyzer can quickly
@@ -624,7 +624,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(tag.Val());
+	vl->append(tag.AsEnumVal());
 	vl->append(new Val(id, TYPE_COUNT));
 	vl->append(r);
 

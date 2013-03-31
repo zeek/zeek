@@ -1178,7 +1178,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
 	conn->SetTransport(tproto);
-	analyzer_mgr->BuildInitialAnalyzerTree(tproto, conn, data);
+	analyzer_mgr->BuildInitialAnalyzerTree(conn);
 
 	bool external = conn->IsExternal();
 

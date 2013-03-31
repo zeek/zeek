@@ -16,8 +16,8 @@
 
 using namespace analyzer;
 
-ExpectedConn::ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
-				uint16 _resp_p, uint16 _proto)
+Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
+				     uint16 _resp_p, uint16 _proto)
 	{
 	if ( _orig == IPAddr(string("0.0.0.0")) )
 		// don't use the IPv4 mapping, use the literal unspecified address
@@ -25,21 +25,37 @@ ExpectedConn::ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
 		orig = IPAddr(string("::"));
 	else
 		orig = _orig;
+
 	resp = _resp;
 	resp_p = _resp_p;
 	proto = _proto;
 	}
 
-ExpectedConn::ExpectedConn(const ExpectedConn& c)
+Manager::ConnIndex::ConnIndex()
 	{
-	orig = c.orig;
-	resp = c.resp;
-	resp_p = c.resp_p;
-	proto = c.proto;
+	orig = resp = IPAddr("0.0.0.0");
+	resp_p = 0;
+	proto = 0;
+	}
+
+bool Manager::ConnIndex::operator<(const ConnIndex& other) const
+	{
+	if ( orig != other.orig )
+		return orig < other.orig;
+
+	if ( resp != other.resp )
+		return resp < other.resp;
+
+	if ( proto != other.proto )
+		return proto < other.proto;
+
+	if ( resp_p != other.resp_p )
+		return resp_p < other.resp_p;
+
+	return false;
 	}
 
 Manager::Manager()
-	: expected_conns_queue(AssignedAnalyzer::compare)
 	{
 	tag_enum_type = new EnumType("Analyzer::Tag");
 	::ID* id = install_ID("Tag", "Analyzer", true, true);
@@ -58,26 +74,19 @@ Manager::~Manager()
 	analyzers_by_port_tcp.clear();
 
 	// Clean up expected-connection table.
-	while ( expected_conns_queue.size() )
+	while ( conns_by_timeout.size() )
 		{
-		AssignedAnalyzer* a = expected_conns_queue.top();
-		if ( ! a->deleted )
-			{
-			HashKey* key = BuildExpectedConnHashKey(a->conn);
-			expected_conns.Remove(key);
-			delete key;
-			}
-
-		expected_conns_queue.pop();
+		ScheduledAnalyzer* a = conns_by_timeout.top();
+		conns_by_timeout.pop();
 		delete a;
 		}
 	}
 
 void Manager::Init()
 	{
-	std::list<PluginComponent*> analyzers = plugin_mgr->Components<PluginComponent>(plugin::component::ANALYZER);
+	std::list<Component*> analyzers = plugin_mgr->Components<Component>(plugin::component::ANALYZER);
 
-	for ( std::list<PluginComponent*>::const_iterator i = analyzers.begin(); i != analyzers.end(); i++ )
+	for ( std::list<Component*>::const_iterator i = analyzers.begin(); i != analyzers.end(); i++ )
 		RegisterAnalyzerComponent(*i);
 
 	// Caache these tags.
@@ -91,12 +100,12 @@ void Manager::Init()
 void Manager::DumpDebug()
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_DPD, "Available analyzers after bro_init():");
+	DBG_LOG(DBG_ANALYZER, "Available analyzers after bro_init():");
 	for ( analyzer_map_by_name::const_iterator i = analyzers_by_name.begin(); i != analyzers_by_name.end(); i++ )
-		DBG_LOG(DBG_DPD, "    %s (%s)", i->second->Name().c_str(), IsEnabled(i->second->Tag()) ? "enabled" : "disabled");
+		DBG_LOG(DBG_ANALYZER, "    %s (%s)", i->second->Name().c_str(), IsEnabled(i->second->Tag()) ? "enabled" : "disabled");
 
-	DBG_LOG(DBG_DPD, "");
-	DBG_LOG(DBG_DPD, "Analyzers by port:");
+	DBG_LOG(DBG_ANALYZER, "");
+	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
 		{
@@ -105,7 +114,7 @@ void Manager::DumpDebug()
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
 			s += GetAnalyzerName(*j) + " ";
 
-		DBG_LOG(DBG_DPD, "    %d/tcp: %s", i->first, s.c_str());
+		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
 		}
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
@@ -115,15 +124,15 @@ void Manager::DumpDebug()
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
 			s += GetAnalyzerName(*j) + " ";
 
-		DBG_LOG(DBG_DPD, "    %d/udp: %s", i->first, s.c_str());
+		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
 
 #if 0
 	ODesc d;
 	tag_enum_type->Describe(&d);
 
-	DBG_LOG(DBG_DPD, "");
-	DBG_LOG(DBG_DPD, "Analyzer::Tag type: %s", d.Description());
+	DBG_LOG(DBG_ANALYZER, "");
+	DBG_LOG(DBG_ANALYZER, "Analyzer::Tag type: %s", d.Description());
 #endif
 
 #endif
@@ -133,35 +142,35 @@ void Manager::Done()
 	{
 	}
 
-void Manager::RegisterAnalyzerComponent(PluginComponent* component)
+void Manager::RegisterAnalyzerComponent(Component* component)
 	{
 	if ( Lookup(component->Name()) )
 		reporter->FatalError("Analyzer %s defined more than once", component->Name().c_str());
 
-	DBG_LOG(DBG_DPD, "Registering analyzer %s (tag %s)",
+	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s (tag %s)",
 		component->Name().c_str(), component->Tag().AsString().c_str());
 
 	analyzers_by_name.insert(std::make_pair(component->Name(), component));
 	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
-	analyzers_by_val.insert(std::make_pair(component->Tag().Val()->InternalInt(), component));
+	analyzers_by_val.insert(std::make_pair(component->Tag().AsEnumVal()->InternalInt(), component));
 
 	// Install enum "Analyzer::ANALYZER_*"
 	string name = to_upper(component->Name());
 	string id = fmt("ANALYZER_%s", name.c_str());
-	tag_enum_type->AddName("Analyzer", id.c_str(), component->Tag().Val()->InternalInt(), true);
+	tag_enum_type->AddName("Analyzer", id.c_str(), component->Tag().AsEnumVal()->InternalInt(), true);
 	}
 
 bool Manager::EnableAnalyzer(Tag tag)
 	{
-	PluginComponent* p = Lookup(tag);
+	Component* p = Lookup(tag);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to enable non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to enable non-existing analyzer");
 		return false;
 		}
 
-	DBG_LOG(DBG_DPD, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -169,15 +178,15 @@ bool Manager::EnableAnalyzer(Tag tag)
 
 bool Manager::EnableAnalyzer(EnumVal* val)
 	{
-	PluginComponent* p = Lookup(val);
+	Component* p = Lookup(val);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to enable non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to enable non-existing analyzer");
 		return false;
 		}
 
-	DBG_LOG(DBG_DPD, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -185,15 +194,15 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 
 bool Manager::DisableAnalyzer(Tag tag)
 	{
-	PluginComponent* p = Lookup(tag);
+	Component* p = Lookup(tag);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to disable non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to disable non-existing analyzer");
 		return false;
 		}
 
-	DBG_LOG(DBG_DPD, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -201,15 +210,15 @@ bool Manager::DisableAnalyzer(Tag tag)
 
 bool Manager::DisableAnalyzer(EnumVal* val)
 	{
-	PluginComponent* p = Lookup(val);
+	Component* p = Lookup(val);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to disable non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to disable non-existing analyzer");
 		return false;
 		}
 
-	DBG_LOG(DBG_DPD, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -220,11 +229,11 @@ bool Manager::IsEnabled(Tag tag)
 	if ( ! tag )
 		return false;
 
-	PluginComponent* p = Lookup(tag);
+	Component* p = Lookup(tag);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to check non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to check non-existing analyzer");
 		return false;
 		}
 
@@ -233,11 +242,11 @@ bool Manager::IsEnabled(Tag tag)
 
 bool Manager::IsEnabled(EnumVal* val)
 	{
-	PluginComponent* p = Lookup(val);
+	Component* p = Lookup(val);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to check non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to check non-existing analyzer");
 		return false;
 		}
 
@@ -247,11 +256,11 @@ bool Manager::IsEnabled(EnumVal* val)
 
 bool Manager::RegisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	{
-	PluginComponent* p = Lookup(val);
+	Component* p = Lookup(val);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to register port for non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to register port for non-existing analyzer");
 		return false;
 		}
 
@@ -260,11 +269,11 @@ bool Manager::RegisterAnalyzerForPort(EnumVal* val, PortVal* port)
 
 bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	{
-	PluginComponent* p = Lookup(val);
+	Component* p = Lookup(val);
 
 	if ( ! p  )
 		{
-		DBG_LOG(DBG_DPD, "Asked to unregister port fork non-existing analyzer");
+		DBG_LOG(DBG_ANALYZER, "Asked to unregister port fork non-existing analyzer");
 		return false;
 		}
 
@@ -277,7 +286,7 @@ bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port
 
 #ifdef DEBUG
 	std::string name = GetAnalyzerName(tag);
-	DBG_LOG(DBG_DPD, "Registering analyzer %s for port %" PRIu32 "/%d", name.c_str(), port, proto);
+	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name.c_str(), port, proto);
 #endif
 
 	l->insert(tag);
@@ -290,7 +299,7 @@ bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 po
 
 #ifdef DEBUG
 	std::string name = GetAnalyzerName(tag);
-	DBG_LOG(DBG_DPD, "Unregistering analyzer %s for port %" PRIu32 "/%d", name.c_str(), port, proto);
+	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name.c_str(), port, proto);
 #endif
 
 	l->erase(tag);
@@ -299,7 +308,7 @@ bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 po
 
 Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 	{
-	PluginComponent* c = Lookup(tag);
+	Component* c = Lookup(tag);
 
 	if ( ! c )
 		reporter->InternalError("request to instantiate unknown analyzer");
@@ -329,7 +338,7 @@ const string& Manager::GetAnalyzerName(Tag tag)
 	if ( ! tag )
 		return error;
 
-	PluginComponent* c = Lookup(tag);
+	Component* c = Lookup(tag);
 
 	if ( ! c )
 		reporter->InternalError("request for name of unknown analyzer tag %s", tag.AsString().c_str());
@@ -344,14 +353,14 @@ const string& Manager::GetAnalyzerName(Val* val)
 
 Tag Manager::GetAnalyzerTag(const string& name)
 	{
-	PluginComponent* c = Lookup(name);
-	return c ? c->Tag() : Tag::ERROR;
+	Component* c = Lookup(name);
+	return c ? c->Tag() : Tag();
 	}
 
 Tag Manager::GetAnalyzerTag(const char* name)
 	{
-	PluginComponent* c = Lookup(name);
-	return c ? c->Tag() : Tag::ERROR;
+	Component* c = Lookup(name);
+	return c ? c->Tag() : Tag();
 	}
 
 EnumType* Manager::GetTagEnumType()
@@ -359,26 +368,25 @@ EnumType* Manager::GetTagEnumType()
 	return tag_enum_type;
 	}
 
-
-PluginComponent* Manager::Lookup(const string& name)
+Component* Manager::Lookup(const string& name)
 	{
 	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(to_upper(name));
 	return i != analyzers_by_name.end() ? i->second : 0;
 	}
 
-PluginComponent* Manager::Lookup(const char* name)
+Component* Manager::Lookup(const char* name)
 	{
 	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(to_upper(name));
 	return i != analyzers_by_name.end() ? i->second : 0;
 	}
 
-PluginComponent* Manager::Lookup(const Tag& tag)
+Component* Manager::Lookup(const Tag& tag)
 	{
 	analyzer_map_by_tag::const_iterator i = analyzers_by_tag.find(tag);
 	return i != analyzers_by_tag.end() ? i->second : 0;
 	}
 
-PluginComponent* Manager::Lookup(EnumVal* val)
+Component* Manager::Lookup(EnumVal* val)
 	{
 	analyzer_map_by_val::const_iterator i = analyzers_by_val.find(val->InternalInt());
 	return i != analyzers_by_val.end() ? i->second : 0;
@@ -419,69 +427,39 @@ Manager::tag_set* Manager::LookupPort(PortVal* val, bool add_if_not_found)
 	return LookupPort(val->PortType(), val->Port(), add_if_not_found);
 	}
 
-Tag Manager::GetExpected(int proto, const Connection* conn)
-	{
-	if ( ! expected_conns.Length() )
-		return Tag::ERROR;
-
-	ExpectedConn c(conn->OrigAddr(), conn->RespAddr(),
-			ntohs(conn->RespPort()), proto);
-
-	HashKey* key = BuildExpectedConnHashKey(c);
-	AssignedAnalyzer* a = expected_conns.Lookup(key);
-	delete key;
-
-	if ( ! a )
-		{
-		// Wildcard for originator.
-		c.orig = IPAddr(string("::"));
-
-		HashKey* key = BuildExpectedConnHashKey(c);
-		a = expected_conns.Lookup(key);
-		delete key;
-		}
-
-	if ( ! a )
-		return Tag::ERROR;
-
-	// We don't delete it here.  It will be expired eventually.
-	return a->analyzer;
-	}
-
-bool Manager::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
-					const u_char* data)
+bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
 	Analyzer* analyzer = 0;
 	TCP_Analyzer* tcp = 0;
 	UDP_Analyzer* udp = 0;
 	ICMP_Analyzer* icmp = 0;
 	TransportLayerAnalyzer* root = 0;
-	Tag expected = Tag::ERROR;
+	tag_set expected;
 	PIA* pia = 0;
 	bool analyzed = false;
 	bool check_port = false;
 
-	switch ( proto ) {
+	switch ( conn->ConnTransport() ) {
 
 	case TRANSPORT_TCP:
 		root = tcp = new TCP_Analyzer(conn);
 		pia = new PIA_TCP(conn);
-		expected = GetExpected(proto, conn);
+		expected = GetScheduled(conn);
 		check_port = true;
-		DBG_DPD(conn, "activated TCP analyzer");
+		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
 
 	case TRANSPORT_UDP:
 		root = udp = new UDP_Analyzer(conn);
 		pia = new PIA_UDP(conn);
-		expected = GetExpected(proto, conn);
+		expected = GetScheduled(conn);
 		check_port = true;
-		DBG_DPD(conn, "activated UDP analyzer");
+		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
 
 	case TRANSPORT_ICMP: {
 		root = icmp = new ICMP_Analyzer(conn);
-		DBG_DPD(conn, "activated ICMP analyzer");
+		DBG_ANALYZER(conn, "activated ICMP analyzer");
 		analyzed = true;
 		break;
 		}
@@ -492,34 +470,34 @@ bool Manager::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 	if ( ! root )
 		{
-		DBG_DPD(conn, "cannot build analyzer tree");
+		DBG_ANALYZER(conn, "cannot build analyzer tree");
 		return false;
 		}
 
 	// Any scheduled analyzer?
-	if ( expected )
+	for ( tag_set::iterator i = expected.begin(); i != expected.end(); i++ )
 		{
-		Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(expected, conn);
+		Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*i, conn);
 
 		if ( analyzer )
 			{
 			root->AddChildAnalyzer(analyzer, false);
 
-			DBG_DPD_ARGS(conn, "activated %s analyzer as scheduled",
-				     analyzer_mgr->GetAnalyzerName(expected).c_str());
+			DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
+				     analyzer_mgr->GetAnalyzerName(*i).c_str());
 			}
 
-		// Hmm... Do we want *just* the expected analyzer, or all
-		// other potential analyzers as well?  For now we only take
-		// the scheduled one.
 		}
 
-	else
+	// Hmm... Do we want *just* the expected analyzer, or all
+	// other potential analyzers as well?  For now we only take
+	// the scheduled ones.
+	if ( expected.size() == 0 )
 		{ // Let's see if it's a port we know.
 		if ( check_port && ! dpd_ignore_ports )
 			{
 			int resp_port = ntohs(conn->RespPort());
-			tag_set* ports = LookupPort(proto, resp_port, false);
+			tag_set* ports = LookupPort(conn->ConnTransport(), resp_port, false);
 
 			if ( ports )
 				{
@@ -531,7 +509,7 @@ bool Manager::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 						continue;
 
 					root->AddChildAnalyzer(analyzer, false);
-					DBG_DPD_ARGS(conn, "activated %s analyzer due to port %d",
+					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
 						     analyzer_mgr->GetAnalyzerName(*j).c_str(), resp_port);
 					}
 				}
@@ -622,78 +600,116 @@ bool Manager::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	if ( ! analyzed )
 		conn->SetLifetime(non_analyzed_lifetime);
 
-	if ( expected != Tag::ERROR  )
-		conn->Event(expected_connection_seen, 0,
-				new Val(expected, TYPE_COUNT));
+	for ( tag_set::iterator i = expected.begin(); i != expected.end(); i++ )
+		conn->Event(scheduled_analyzer_applied, 0, i->AsEnumVal());
 
 	return true;
 	}
 
-void Manager::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
-			uint16 resp_p,
-			TransportProto proto, Tag analyzer,
-			double timeout, void* cookie)
+void Manager::ExpireScheduledAnalyzers()
 	{
-	// Use the chance to see if the oldest entry is already expired.
-	if ( expected_conns_queue.size() )
+	if ( ! network_time )
+		return;
+
+	while ( conns_by_timeout.size() )
 		{
-		AssignedAnalyzer* a = expected_conns_queue.top();
-		if ( a->timeout < network_time )
+		ScheduledAnalyzer* a = conns_by_timeout.top();
+
+		if ( a->timeout > network_time )
+			return;
+
+		conns_by_timeout.pop();
+
+		std::pair<conns_map::iterator, conns_map::iterator> all = conns.equal_range(a->conn);
+
+		bool found = false;
+
+		for ( conns_map::iterator i = all.first; i != all.second; i++ )
 			{
-			if ( ! a->deleted )
-				{
-				HashKey* key = BuildExpectedConnHashKey(a->conn);
-				expected_conns.Remove(key);
-				delete key;
-				}
+			if ( i->second != a )
+				continue;
 
-			expected_conns_queue.pop();
+			conns.erase(i);
 
-			DBG_LOG(DBG_DPD, "Expired expected %s analyzer for %s",
-				analyzer_mgr->GetAnalyzerName(analyzer).c_str(),
-				fmt_conn_id(a->conn.orig, 0,
-						a->conn.resp,
-						a->conn.resp_p));
+			DBG_LOG(DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
+				analyzer_mgr->GetAnalyzerName(a->analyzer).c_str(),
+				fmt_conn_id(a->conn.orig, 0, a->conn.resp, a->conn.resp_p));
 
 			delete a;
+			found = true;
+			break;
 			}
+
+		assert(found);
 		}
-
-	ExpectedConn c(orig, resp, resp_p, proto);
-
-	HashKey* key = BuildExpectedConnHashKey(c);
-
-	AssignedAnalyzer* a = expected_conns.Lookup(key);
-
-	if ( a )
-		a->deleted = true;
-
-	a = new AssignedAnalyzer(c);
-
-	a->analyzer = analyzer;
-	a->cookie = cookie;
-	a->timeout = network_time + timeout;
-	a->deleted = false;
-
-	expected_conns.Insert(key, a);
-	expected_conns_queue.push(a);
-	delete key;
 	}
 
-void Manager::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
+void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
+			uint16 resp_p,
+			TransportProto proto, Tag analyzer,
+			double timeout)
+	{
+	if ( ! network_time )
+		{
+		reporter->Warning("cannot schedule analyzers before processing begins; ignored");
+		return;
+		}
+
+	assert(timeout);
+
+	// Use the chance to see if the oldest entry is already expired.
+	ExpireScheduledAnalyzers();
+
+	ScheduledAnalyzer* a = new ScheduledAnalyzer;
+	a->conn = ConnIndex(orig, resp, resp_p, proto);
+	a->analyzer = analyzer;
+	a->timeout = network_time + timeout;
+
+	conns.insert(std::make_pair(a->conn, a));
+	conns_by_timeout.push(a);
+	}
+
+void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 			uint16 resp_p,
 			TransportProto proto, const string& analyzer,
-			double timeout, void* cookie)
+			double timeout)
 	{
 	Tag tag = GetAnalyzerTag(analyzer);
 
-	if ( tag != Tag::ERROR )
-		ExpectConnection(orig, resp, resp_p, proto, tag, timeout, cookie);
+	if ( tag != Tag() )
+		ScheduleAnalyzer(orig, resp, resp_p, proto, tag, timeout);
 	}
 
-void Manager::ExpectConnection(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
-			       Val* analyzer, double timeout, void* cookie)
+void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
+			       Val* analyzer, double timeout)
 	{
 	EnumVal* ev = analyzer->AsEnumVal();
-	return ExpectConnection(orig, resp, resp_p->Port(), resp_p->PortType(), Tag(ev), timeout, cookie);
+	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(), Tag(ev), timeout);
+	}
+
+Manager::tag_set Manager::GetScheduled(const Connection* conn)
+	{
+	ConnIndex c(conn->OrigAddr(), conn->RespAddr(),
+		    ntohs(conn->RespPort()), conn->ConnTransport());
+
+	std::pair<conns_map::iterator, conns_map::iterator> all = conns.equal_range(c);
+
+	tag_set result;
+
+	for ( conns_map::iterator i = all.first; i != all.second; i++ )
+		result.insert(i->second->analyzer);
+
+	// Try wildcard for originator.
+	c.orig = IPAddr(string("::"));
+	all = conns.equal_range(c);
+
+	for ( conns_map::iterator i = all.first; i != all.second; i++ )
+		{
+		if ( i->second->timeout > network_time )
+			result.insert(i->second->analyzer);
+		}
+
+	// We don't delete scheduled analyzers here. They will be expired
+	// eventually.
+	return result;
 	}

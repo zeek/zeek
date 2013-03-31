@@ -161,8 +161,8 @@ static void add_dce_rpc_endpoint(const dce_rpc_endpoint_addr& addr,
 	// of the dce_rpc_endpoints table.
 	// FIXME: Don't hard-code the timeout.
 
-	analyzer_mgr->ExpectConnection(IPAddr(), addr.addr, addr.port, addr.proto,
-				       "DCE_RPC", 5 * 60, 0);
+	analyzer_mgr->ScheduleAnalyzer(IPAddr(), addr.addr, addr.port, addr.proto,
+				       "DCE_RPC", 5 * 60);
 	}
 
 DCE_RPC_Header::DCE_RPC_Header(analyzer::Analyzer* a, const u_char* b)

@@ -400,7 +400,7 @@ set(bro_SRCS
 
     analyzer/Analyzer.cc
     analyzer/Manager.cc
-    analyzer/PluginComponent.cc
+    analyzer/Component.cc
     analyzer/Tag.cc
 
     protocols/BuiltInAnalyzers.cc

@@ -7,24 +7,24 @@ export {
 		MIN
 	};
 
-	redef record Result += {
+	redef record ResultVal += {
 		## For numeric data, this tracks the minimum value given.
-		min:      double        &log &optional;
+		min: double &optional;
 	};
 }
 
-hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
+hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
 	{
 	if ( MIN in r$apply )
 		{
-		if ( ! result?$min ) 
-			result$min = val;
-		else if ( val < result$min )
-			result$min = val;
+		if ( ! rv?$min ) 
+			rv$min = val;
+		else if ( val < rv$min )
+			rv$min = val;
 		}
 	}
 
-hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
+hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
 	if ( rv1?$min && rv2?$min )
 		result$min = (rv1$min < rv2$min) ? rv1$min : rv2$min;

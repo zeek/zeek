@@ -8,23 +8,32 @@ export {
 		SUM
 	};
 
-	redef record Result += {
+	redef record ResultVal += {
 		## For numeric data, this tracks the sum of all values.
-		sum:      double        &log &optional;
+		sum: double &default=0.0;
 	};
+
+	type threshold_function: function(key: Measurement::Key, result: Measurement::Result): count;
+	global sum_threshold: function(data_id: string): threshold_function;
 }
 
-hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
+function sum_threshold(data_id: string): threshold_function
 	{
-	if ( SUM in r$apply )
+	return function(key: Measurement::Key, result: Measurement::Result): count
 		{
-		if ( ! result?$sum ) 
-			result$sum = 0;
-		result$sum += val;
-		}
+		print fmt("data_id: %s", data_id);
+		print result;
+		return double_to_count(result[data_id]$sum);
+		};
 	}
 
-hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
+hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
+	{
+	if ( SUM in r$apply )
+		rv$sum += val;
+	}
+
+hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
 	if ( rv1?$sum || rv2?$sum )
 		{

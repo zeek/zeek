@@ -1,0 +1,6 @@
+THRESHOLD_SERIES: hit a threshold series value at 3 for measurement_key(host=1.2.3.4)
+THRESHOLD: hit a threshold value at 6 for measurement_key(host=1.2.3.4)
+THRESHOLD_SERIES: hit a threshold series value at 6 for measurement_key(host=1.2.3.4)
+THRESHOLD: hit a threshold value at 1001 for measurement_key(host=7.2.1.5)
+THRESHOLD_SERIES: hit a threshold series value at 1001 for measurement_key(host=7.2.1.5)
+THRESHOLD WITH RATIO BETWEEN REDUCERS: hit a threshold value at 55x for measurement_key(host=7.2.1.5)

@@ -7,24 +7,24 @@ export {
 		MAX
 	};
 
-	redef record Result += {
+	redef record ResultVal += {
 		## For numeric data, this tracks the maximum value given.
-		max:      double        &log &optional;
+		max: double &optional;
 	};
 }
 
-hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
+hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
 	{
 	if ( MAX in r$apply )
 		{
-		if ( ! result?$max ) 
-			result$max = val;
-		else if ( val > result$max )
-			result$max = val;
+		if ( ! rv?$max ) 
+			rv$max = val;
+		else if ( val > rv$max )
+			rv$max = val;
 		}
 	}
 
-hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
+hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
 	if ( rv1?$max && rv2?$max )
 		result$max = (rv1$max > rv2$max) ? rv1$max : rv2$max;

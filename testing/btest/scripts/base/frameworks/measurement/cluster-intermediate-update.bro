@@ -19,14 +19,20 @@ redef Log::default_rotation_interval = 0secs;
 
 event bro_init() &priority=5
 	{
-	Metrics::add_filter("test.metric",
-	                    [$every=1hr,
-	                     $measure=set(Metrics::SUM),
+	local r1: Measurement::Reducer = [$stream="test.metric", $apply=set(Measurement::SUM)];
+	Measurement::create([$epoch=1hr,
+	                     $reducers=set(r1),
+	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
+	                     	{
+	                     	return double_to_count(result["test.metric"]$sum);
+	                     	},
 	                     $threshold=100,
-	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
-	                     	print "A test metric threshold was crossed!";
+	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) =
+	                     	{
+	                     	print fmt("A test metric threshold was crossed with a value of: %.1f", result["test.metric"]$sum);
 	                     	terminate();
-	                     }]);
+	                     	}
+	                    ]);
 	}
 
 event remote_connection_closed(p: event_peer)
@@ -39,13 +45,16 @@ event do_metrics(i: count)
 	# Worker-1 will trigger an intermediate update and then if everything
 	# works correctly, the data from worker-2 will hit the threshold and
 	# should trigger the notice.
-	Metrics::add_data("test.metric", [$host=1.2.3.4], [$num=i]);
+	Measurement::add_data("test.metric", [$host=1.2.3.4], [$num=i]);
 	}
 
-event bro_init()
+event remote_connection_handshake_done(p: event_peer)
 	{
-	if ( Cluster::node == "worker-1" )
-		schedule 2sec { do_metrics(99) };
-	if ( Cluster::node == "worker-2" )
-		event do_metrics(1);
+	if ( p$descr == "manager-1" )
+		{
+		if ( Cluster::node == "worker-1" )
+			schedule 0.1sec { do_metrics(1) };
+		if ( Cluster::node == "worker-2" )
+			schedule 0.5sec { do_metrics(99) };
+		}
 	}

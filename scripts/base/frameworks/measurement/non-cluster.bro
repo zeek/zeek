@@ -2,18 +2,18 @@
 
 module Measurement;
 
-event Measurement::finish_period(m: Measurement)
+event Measurement::finish_epoch(m: Measurement)
 	{
 	if ( m$id in result_store )
 		{
 		local data = result_store[m$id];
-		if ( m?$period_finished )
-			m$period_finished(data);
+		if ( m?$epoch_finished )
+			m$epoch_finished(data);
 
 		reset(m);
 		}
-	
-	schedule m$epoch { Measurement::finish_period(m) };
+
+	schedule m$epoch { Measurement::finish_epoch(m) };
 	}
 	
 	

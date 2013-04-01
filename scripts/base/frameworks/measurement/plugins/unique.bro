@@ -7,14 +7,14 @@ export {
 		UNIQUE
 	};
 
-	redef record Result += {
+	redef record ResultVal += {
 		## If cardinality is being tracked, the number of unique
 		## items is tracked here.
-		unique: count &log &optional;
+		unique: count &optional;
 	};
 }
 
-redef record Result += {
+redef record ResultVal += {
 	# Internal use only.  This is not meant to be publically available 
 	# because we don't want to trust that we can inspect the values 
 	# since we will like move to a probalistic data structure in the future.
@@ -22,18 +22,18 @@ redef record Result += {
 	unique_vals: set[DataPoint] &optional;
 };
 
-hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
+hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
 	{
 	if ( UNIQUE in r$apply )
 		{
-		if ( ! result?$unique_vals ) 
-			result$unique_vals=set();
-		add result$unique_vals[data];
-		result$unique = |result$unique_vals|;
+		if ( ! rv?$unique_vals ) 
+			rv$unique_vals=set();
+		add rv$unique_vals[data];
+		rv$unique = |rv$unique_vals|;
 		}
 	}
 
-hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
+hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
 	if ( rv1?$unique_vals || rv2?$unique_vals )
 		{

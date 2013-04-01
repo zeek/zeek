@@ -19,21 +19,21 @@ export {
 		## value in a Host header.  This is an example of a non-host based
 		## metric since multiple IP addresses could respond for the same Host
 		## header value.
-		str:          string &optional;
+		str:  string &optional;
 	
 		## Host is the value to which this metric applies.
-		host:         addr &optional;
-	} &log;
+		host: addr &optional;
+	};
 	
 	## Represents data being added for a single metric data point.
 	## Only supply a single value here at a time.
 	type DataPoint: record {
 		## Count value.
-		num:       count       &optional;
+		num:  count  &optional;
 		## Double value.
-		dbl:       double      &optional;
+		dbl:  double &optional;
 		## String value.
-		str:       string      &optional;
+		str:  string &optional;
 	};
 
 	type Reducer: record {
@@ -45,7 +45,7 @@ export {
 		
 		## A predicate so that you can decide per key if you would like
 		## to accept the data being inserted.
-		pred:           function(key: Measurement::Key, data: Measurement::DataPoint): bool &optional;
+		pred:           function(key: Measurement::Key, point: Measurement::DataPoint): bool &optional;
 		
 		## A function to normalize the key.  This can be used to aggregate or
 		## normalize the entire key.
@@ -54,44 +54,45 @@ export {
 
 	## Value calculated for a data point stream fed into a reducer.
 	## Most of the fields are added by plugins.
-	type Result: record {
+	type ResultVal: record {
 		## The time when the first data point was added to this result value.
-		begin:    time          &log;
+		begin:  time;
 
 		## The time when the last data point was added to this result value.
-		end:      time          &log;
+		end:    time;
 
 		## The number of measurements received.
-		num:      count         &log &default=0;
+		num:    count &default=0;
 	};
 
-	## Type to store a table of measurement results.  First table is
-	## indexed on the measurement Key and the enclosed table is 
-	## indexed on the data id that the Key was relevant for.
-	type ResultTable: table[Key] of table[string] of Result;
+	## Type to store results for multiple reducers.
+	type Result: table[string] of ResultVal;
 
-	## Filters define how the data from a metric is aggregated and handled.  
-	## Filters can be used to set how often the measurements are cut 
-	## and logged or how the data within them is aggregated.
+	## Type to store a table of measurement results indexed by the measurement key.
+	type ResultTable: table[Key] of Result;
+
+	## Measurements represent an aggregation of reducers along with 
+	## mechanisms to handle various situations like the epoch ending
+	## or thresholds being crossed.
 	type Measurement: record {
 		## The interval at which this filter should be "broken" and the
-		## callback called.  The counters are also reset to zero at 
-		## this time so any threshold based detection needs to be set to a 
-		## number that should be expected to happen within this period.
+		## '$epoch_finished' callback called.  The results are also reset 
+		## at this time so any threshold based detection needs to be set to a 
+		## number that should be expected to happen within this epoch.
 		epoch:              interval;
 
 		## The reducers for the measurement indexed by data id.
 		reducers:           set[Reducer];
 
-		## Optionally provide a function to calculate a value from the Result 
+		## Provide a function to calculate a value from the :bro:see:`Result`
 		## structure which will be used for thresholding.
-		threshold_val:      function(result: Measurement::Result): count  &optional;
+		threshold_val:      function(key: Measurement::Key, result: Measurement::Result): count &optional;
 
 		## The threshold value for calling the $threshold_crossed callback.
-		threshold:          count                    &optional;
+		threshold:          count             &optional;
 		
 		## A series of thresholds for calling the $threshold_crossed callback.
-		threshold_series:   vector of count          &optional;
+		threshold_series:   vector of count   &optional;
 
 		## A callback that is called when a threshold is crossed.
 		threshold_crossed:  function(key: Measurement::Key, result: Measurement::Result) &optional;
@@ -100,22 +101,21 @@ export {
 		## It's best to not access any global state outside of the variables
 		## given to the callback because there is no assurance provided as to
 		## where the callback will be executed on clusters.
-		period_finished:    function(data: Measurement::ResultTable) &optional;
+		epoch_finished:    function(rt: Measurement::ResultTable) &optional;
 	};
 	
 	## Create a measurement.
 	global create: function(m: Measurement::Measurement);
 
-	## Add data into a metric.  This should be called when
-	## a script has measured some point value and is ready to increment the
-	## counters.
+	## Add data into a data point stream.  This should be called when
+	## a script has measured some point value.
 	##
-	## id: The metric identifier that the data represents.
+	## id: The stream identifier that the data point represents.
 	##
-	## key: The metric key that the value is to be added to.
+	## key: The measurement key that the value is to be added to.
 	##
-	## data: The data point to send into the stream.
-	global add_data: function(id: string, key: Measurement::Key, data: Measurement::DataPoint);
+	## point: The data point to send into the stream.
+	global add_data: function(id: string, key: Measurement::Key, point: Measurement::DataPoint);
 
 	## Helper function to represent a :bro:type:`Measurement::Key` value as 
 	## a simple string.
@@ -124,15 +124,19 @@ export {
 	##
 	## Returns: A string representation of the metric key.
 	global key2str: function(key: Measurement::Key): string;
-	
+
+	## This event is generated for each new measurement that is created.
+	##
+	## m: The record which describes a measurement.
+	global new_measurement: event(m: Measurement);
 }
 
 redef record Reducer += {
-	# Internal use only.  Measurement ID.
+	# Internal use only.  Provides a reference back to the related Measurement by it's ID.
 	mid: string &optional;
 };
 
-redef record Result += {
+type Thresholding: record {
 	# Internal use only.  Indicates if a simple threshold was already crossed.
 	is_threshold_crossed: bool &default=F;
 
@@ -143,16 +147,22 @@ redef record Result += {
 redef record Measurement += {
 	# Internal use only (mostly for cluster coherency).
 	id: string &optional;
+
+	# Internal use only.  For tracking tresholds per key.
+	threshold_tracker: table[Key] of Thresholding &optional;
 };
 
-# Store of reducers indexed on the data id.
+# Store of measurements indexed on the measurement id.
+global measurement_store: table[string] of Measurement = table();
+
+# Store of reducers indexed on the data point stream id.
 global reducer_store: table[string] of set[Reducer] = table();
 
 # Store of results indexed on the measurement id.
 global result_store: table[string] of ResultTable = table();
 
-# Store of measurements indexed on the measurement id.
-global measurement_store: table[string] of Measurement = table();
+# Store of threshold information.
+global thresholds_store: table[string, Key] of bool = table();
 
 # This is called whenever
 # key values are updated and the new val is given as the `val` argument.
@@ -161,13 +171,15 @@ global measurement_store: table[string] of Measurement = table();
 global data_added: function(m: Measurement, key: Key, result: Result);
 
 # Prototype the hook point for plugins to do calculations.
-global add_to_reducer: hook(r: Reducer, val: double, data: DataPoint, result: Result);
+global add_to_reducer_hook: hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal);
+# Prototype the hook point for plugins to initialize any result values.
+global init_resultval_hook: hook(r: Reducer, rv: ResultVal);
 # Prototype the hook point for plugins to merge Results.
-global compose_resultvals_hook: hook(result: Result, rv1: Result, rv2: Result);
+global compose_resultvals_hook: hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal);
 
 # Event that is used to "finish" measurements and adapt the measurement
 # framework for clustered or non-clustered usage.
-global finish_period: event(m: Measurement);
+global finish_epoch: event(m: Measurement);
 
 function key2str(key: Key): string
 	{
@@ -176,12 +188,19 @@ function key2str(key: Key): string
 		out = fmt("%shost=%s", out, key$host);
 	if ( key?$str )
 		out = fmt("%s%sstr=%s", out, |out|==0 ? "" : ", ", key$str);
-	return fmt("metric_key(%s)", out);
+	return fmt("measurement_key(%s)", out);
 	}
 
-function compose_resultvals(rv1: Result, rv2: Result): Result
+function init_resultval(r: Reducer): ResultVal
 	{
-	local result: Result;
+	local rv: ResultVal = [$begin=network_time(), $end=network_time()];
+	hook init_resultval_hook(r, rv);
+	return rv;
+	}
+
+function compose_resultvals(rv1: ResultVal, rv2: ResultVal): ResultVal
+	{
+	local result: ResultVal;
 
 	# Merge $begin (take the earliest one)
 	result$begin = (rv1$begin < rv2$begin) ? rv1$begin : rv2$begin;
@@ -192,18 +211,40 @@ function compose_resultvals(rv1: Result, rv2: Result): Result
 	# Merge $num
 	result$num = rv1$num + rv2$num;
 
-	# Merge $threshold_series_index
-	result$threshold_series_index = (rv1$threshold_series_index > rv2$threshold_series_index) ? rv1$threshold_series_index : rv2$threshold_series_index;
-
-	# Merge $is_threshold_crossed
-	if ( rv1$is_threshold_crossed || rv2$is_threshold_crossed )
-		result$is_threshold_crossed = T;
-
 	hook compose_resultvals_hook(result, rv1, rv2);
 
 	return result;
 	}
+
+function compose_results(r1: Result, r2: Result): Result
+	{
+	local result: Result = table();
+
+	if ( |r1| > |r2| )
+		{
+		for ( data_id in r1 )
+			{
+			if ( data_id in r2 )
+				result[data_id] = compose_resultvals(r1[data_id], r2[data_id]);
+			else
+				result[data_id] = r1[data_id];
+			}
+		}
+	else
+		{
+		for ( data_id in r2 )
+			{
+			if ( data_id in r1 )
+				result[data_id] = compose_resultvals(r1[data_id], r2[data_id]);
+			else
+				result[data_id] = r2[data_id];
+			}
+		}
 	
+	return result;
+	}
+
+
 function reset(m: Measurement)
 	{
 	if ( m$id in result_store )
@@ -214,7 +255,10 @@ function reset(m: Measurement)
 
 function create(m: Measurement)
 	{
-	m$id=unique_id("");
+	if ( ! m?$id )
+		m$id=unique_id("");
+	local tmp: table[Key] of Thresholding = table();
+	m$threshold_tracker = tmp;
 	measurement_store[m$id] = m;
 
 	for ( reducer in m$reducers )
@@ -226,20 +270,20 @@ function create(m: Measurement)
 		}
 
 	reset(m);
-	schedule m$epoch { Measurement::finish_period(m) };
+	schedule m$epoch { Measurement::finish_epoch(m) };
 	}
 
-function add_data(data_id: string, key: Key, data: DataPoint)
+function add_data(id: string, key: Key, point: DataPoint)
 	{
 	# Try to add the data to all of the defined reducers.
-	if ( data_id !in reducer_store )
+	if ( id !in reducer_store )
 		return;
 
-	for ( r in reducer_store[data_id] )
+	for ( r in reducer_store[id] )
 		{
 		# If this reducer has a predicate, run the predicate 
 		# and skip this key if the predicate return false.
-		if ( r?$pred && ! r$pred(key, data) )
+		if ( r?$pred && ! r$pred(key, point) )
 			next;
 		
 		if ( r?$normalize_key )
@@ -249,20 +293,21 @@ function add_data(data_id: string, key: Key, data: DataPoint)
 		local results = result_store[m$id];
 		if ( key !in results )
 			results[key] = table();
-		if ( data_id !in results[key] )
-			results[key][data_id] = [$begin=network_time(), $end=network_time()];
+		if ( id !in results[key] )
+			results[key][id] = init_resultval(r);
 
-		local result = results[key][data_id];
-		++result$num;
+		local result = results[key];
+		local result_val = result[id];
+		++result_val$num;
 		# Continually update the $end field.
-		result$end=network_time();
+		result_val$end=network_time();
 
 		# If a string was given, fall back to 1.0 as the value.
 		local val = 1.0;
-		if ( data?$num || data?$dbl )
-			val = data?$dbl ? data$dbl : data$num;
+		if ( point?$num || point?$dbl )
+			val = point?$dbl ? point$dbl : point$num;
 
-		hook add_to_reducer(r, val, data, result);
+		hook add_to_reducer_hook(r, val, point, result_val);
 		data_added(m, key, result);
 		}
 	}
@@ -274,28 +319,37 @@ function check_thresholds(m: Measurement, key: Key, result: Result, modify_pct: 
 	if ( ! (m?$threshold || m?$threshold_series) )
 		return F;
 
-	local watch = 0.0;
-	#if ( val?$unique )
-	#	watch = val$unique;
-	#else if ( val?$sum )
-	#	watch = val$sum;
+	if ( key !in m$threshold_tracker )
+		{
+		local tmp: Thresholding;
+		m$threshold_tracker[key] = tmp;
+		}
 
-	if ( m?$threshold_val )
-		watch = m$threshold_val(result);
+	# Add in the extra ResultVals to make threshold_vals easier to write.
+	if ( |m$reducers| != |result| )
+		{
+		for ( reducer in m$reducers )
+			{
+			if ( reducer$stream !in result )
+				result[reducer$stream] = init_resultval(reducer);
+			}
+		}
+
+	local watch = m$threshold_val(key, result);
 
 	if ( modify_pct < 1.0 && modify_pct > 0.0 )
-		watch = watch/modify_pct;
+		watch = double_to_count(floor(watch/modify_pct));
 
-	if ( ! result$is_threshold_crossed &&
-	     m?$threshold && watch >= m$threshold )
+	local tt = m$threshold_tracker[key];
+	if ( m?$threshold && ! tt$is_threshold_crossed && watch >= m$threshold )
 		{
-		# A default threshold was given and the value crossed it.
+		# Value crossed the threshold.
 		return T;
 		}
 
 	if ( m?$threshold_series &&
-	     |m$threshold_series| >= result$threshold_series_index &&
-	     watch >= m$threshold_series[result$threshold_series_index] )
+	     |m$threshold_series| >= tt$threshold_series_index &&
+	     watch >= m$threshold_series[tt$threshold_series_index] )
 		{
 		# A threshold series was given and the value crossed the next 
 		# value in the series.
@@ -307,17 +361,29 @@ function check_thresholds(m: Measurement, key: Key, result: Result, modify_pct: 
 
 function threshold_crossed(m: Measurement, key: Key, result: Result)
 	{
+	# If there is no callback, there is no point in any of this.
 	if ( ! m?$threshold_crossed )
 		return;
 
 	#if ( val?$sample_queue )
 	#	val$samples = Queue::get_str_vector(val$sample_queue);
 
+	# Add in the extra ResultVals to make threshold_crossed callbacks easier to write.
+	if ( |m$reducers| != |result| )
+		{
+		for ( reducer in m$reducers )
+			{
+			if ( reducer$stream !in result )
+				result[reducer$stream] = init_resultval(reducer);
+			}
+		}
+
 	m$threshold_crossed(key, result);
-	result$is_threshold_crossed = T;
+	local tt = m$threshold_tracker[key];
+	tt$is_threshold_crossed = T;
 
 	# Bump up to the next threshold series index if a threshold series is being used.
 	if ( m?$threshold_series )
-		++result$threshold_series_index;
+		++tt$threshold_series_index;
 	}
 

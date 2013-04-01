@@ -3,18 +3,18 @@
 #include "TCP_Reassembler.h"
 
 
-#define MAX_PACKET_SIZE_NOCRC 258   
-#define MAX_PACKET_SIZE_CRC 292
-#define PSEUDO_LINK_LEN 8
-#define PSEUDO_LINK_LEN_EX 9
-#define LEN_FIELD_INDEX 2
-#define CRTL_FIELD_INDEX 3
-#define PSEUDO_TRAN_INDEX 10
+#define MAX_PACKET_SIZE_NOCRC 258  // the length of each trunk of DNP3 Pseudo App Layer Data excluding CRC 
+#define MAX_PACKET_SIZE_CRC 292    // the length of each trunk of DNP3 Pseudo App Layer Data including CRC
+#define PSEUDO_LINK_LEN 8          // the length of DNP3 Pseudo Link Layer
+#define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
+#define LEN_FIELD_INDEX 2          // index of len field of DNP3 Pseudo Link Layer 
+#define CRTL_FIELD_INDEX 3         // index of ctrl field of DNP3 Pseudo Link Layer
+#define PSEUDO_TRAN_INDEX 10       // index of DNP3 Pseudo Transport Layer 
+#define PSEUDO_TRAN_LEN 1          // The length of DNP3 Pseudo Transport Layer
 
-#define DNP3_APP_DATA_BLK 16
-#define CRC_LEN 2
-#define PSEUDO_TRAN_LEN 1
-#define CRC_GEN_POLY 0xA6BC
+#define DNP3_APP_DATA_BLK 16       // maximum length of a data block in DNP3 Pseudo App Layer
+#define CRC_LEN 2                  // length of CRC 
+#define CRC_GEN_POLY 0xA6BC        // Generation Polynomial to calculate 16-bit CRC
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTag::DNP3, c)
 	{
@@ -49,7 +49,7 @@ void DNP3_Analyzer::Done()
 // transport layer, and data link layer. This hierarchy cannot be mapped to the TCP/IP stack 
 // directly. As a result, all three DNP3 layers are packed together as a single application layer
 // payload over the TCP layer. Each DNP3 packet in the application layer may look like this
-// DNP3 Packet:  DNP3 Pseudo Link Layer <> DNP3 Pseudo Transport Layer <> DNP3 Pseudo Application Layer
+// DNP3 Packet:  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer
 // (this hierarchy can be viwed in the Wireshark visually)
 //
 // Background on DNP3
@@ -57,9 +57,9 @@ void DNP3_Analyzer::Done()
 // 1. Basic structure of DNP3 Protocol over serial links, This information can be found in detail in 
 //     DNP3 Specification Volum 2, Part 1 Basic, Application Layer
 //     DNP3 Specification Volum 4, Data Link Layer
-// In history, the DNP3 Application Layer in serial links contains "DNP3 Application Layer Fragment", the data that is 
+// In history, the DNP3 Application Layer in serial links contains a "DNP3 Application Layer Fragment", the data that is 
 // parsed by the end device and is executed. The "DNP3 Application Layer Fragment" can be long (> 255 bytess) 
- // so it can be trunkcated and  carried in the DNP3 Pseudo Application Layer of more than one DNP3 packets. 
+ // so it can be trunkcated and carried in different DNP3 Pseudo Application Layer of more than one DNP3 packets. 
 // 
 // So we may find a long DNP3 Application Layer Fragment to be transmitted in the following format
 //
@@ -69,7 +69,8 @@ void DNP3_Analyzer::Done()
 // DNP3 Packet #n : DNP3 Link Layer | DNP3 Transport Layer | DNP3 Application Layer #n
 // 
 // So to get the whole DNP3 application layer fragment, we concatenate each DNP3 Application Layer Data. 
-// A logic DNP3 Fragment = DNP3 Application Layer #1 + DNP3 Application Layer #2 + ... + DNP3 Application Layer #n
+// A logic DNP3 Application Layer Fragment 
+//	= DNP3 Application Layer #1 + DNP3 Application Layer #2 + ... + DNP3 Application Layer #n
 //
 // 2. Packing DNP3 Network Packet into TCP/IP stack
 //
@@ -80,13 +81,14 @@ void DNP3_Analyzer::Done()
 // ....
 // Network Packet #n : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #n
 //
-// Challenges of Writing DNP3 Analyzer on Binpac
 //
+//  **  Challenges of Writing DNP3 Analyzer on Binpac  **
 //
 ///Note: The detailed structure of the DNP3 Link Layer is: 
 // 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB 
 //       (each field is a byte; LSB: least significant byte; MSB: Most significatn Byte )
-// "Len" field indicates the length of the byte stream right after this field (execluding CRC fields). 
+// "Len" field indicates the length of the byte stream right after this field (execluding CRC fields) in this current 
+//  DNP3 packet 
 // Since "Len" field is of size one byte, so largest length it can represent is 255 bytes. 
 // The larget DNP3 Application Layer size is (255 - 5 + size of all CRC fields). minus 5 is coming from
 // the 5 bytes after "Len" field in the DNP3 Link Layer, i.e. Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB
@@ -96,49 +98,13 @@ void DNP3_Analyzer::Done()
 // 
 // THe "Len" field indicate the length of of a single trunk of DNP3 Psuedo Application Layer data instead of
 // the whole DNP3 Application Layer Fragment. Due to historical reason, we could not know the whole length 
-// of the DNP3 Application Layer Fragment, until all trunk of Pseudo Application Layer Data is received.
+// of the DNP3 Application Layer Fragment, until all trunks of Pseudo Application Layer Data are received.
 // I exploit the flow_buffer class used in Binpac to buffer the application layer data until all trunks are 
 // received. The trick that I used require in-depth understanding on how Binpac parse the application layer data 
 // and perform incremental parsing. 
 // The codes that exploit flow_buffer class to buffer the application layer data is included in DNP3_ProcessData
 // class.  
 //
-// 3. The DNP3 Pseudo Application Layer does not include a length field which indicate the length of this layer.
-// This brings challenges to write the binpac scripts. So, I extract the
-// length field (LEN field) in the DNP3 Pseudo Data Link Layer and do some computations to get 
-// the length of DNP3 Pseudo Application Layer and hook the original DNP3 Pseudo Application Layer data 
-// with a additional header (this is represented by the type of Header_Block in the binpac script) 
-// In this way, the DNP3 Pseudo Application Layer data can be represented properly by DNP3_Flow in binpac script
-//
-// Graphically, the procedure is:
-// DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
-//                                   ||                                    ||
-//                                   || (length field)                     || (original paylad byte stream)         
-//                                   \/                                    \/
-//                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo Application Layer Data  
-//                                                   ||
-//                                                   \/
-//                                            Binpac DNP3 Analyzer
-//TODO-Hui: Information from the DNP3 Pseudo Data Link Layer may generate events as well
-// so I exactly copy the information 
-//          from Pseudo Data Link Layer into the DNP3 Additional Header (excluding CRC values)
-// The structure of the DNP3 Pseudo Link Layer is: 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB
-// And the DNP3 Additional Header is defined as:
-// type Header_Block = record {
-//        start: uint16 &check(start == 0x0564);
-//        len: uint8;
-//        ctrl: uint8;  
-//        dest_addr: uint16;
-//        src_addr: uint16;
-// } &byteorder = littleendian
-//   &length = 8;
-// By doing this, we can use binpac analyzer to generate events from DNP3 Pseudo Data Link Layer.
-// However by doing this, a problem is generated. "LEN" field is 1 byte which can only represent 
-// a logic DNP3 fragment with length less than or equal to 255 bytes. 
-// My TEMPORARY solution is, if the length of the logic DNP3 fragment is larger than 255 bytes, I use 
-// "Ctrl" contains the higher 8-bit values of the length.(then the original information in "Ctrl" is lost)
-// That is why in this version of the DNP3 analyzer, we can only handle a logic DNP3 fragment with size of 65535 bytes.
-// Later, I will manually increae "len" to be 32 bit.  
 
 
 void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
@@ -146,9 +112,9 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	//printf("\nEntering Deliverstream\n");
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
-	int newFrame = 0;
+	//int newFrame = 0;
 
-	int result = 0;
+	//int result = 0;
 	
 	//// Checkec the CRC values included in the DNP3 packets
 	DNP3_CheckCRC(len, data);
@@ -172,22 +138,45 @@ void DNP3_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	interp->FlowEOF(endp->IsOrig());
 	}
 
+// I wrote binpac analyzer to parse DNP3 Application Layer Fragment
+// However, I added the original Pseudo Link Layer data before the DNP3 Application Fragment.
+// This can help me to know how many bytes are in the current trunk of DNP3 application layer data (not
+// the whole Application Layer Fragment)
+//
+// Graphically, the procedure is:
+// DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
+//                                   ||                                    ||
+//                                   || (length field)                     || (original paylad byte stream)         
+//                                   \/                                    \/
+//                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo Application Layer Data  
+//                                                   ||
+//                                                   \/
+//                                            Binpac DNP3 Analyzer
 
 int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	{
-	// DNP3 Packet :  DNP3 Serial Link Layer : DNP3 Serial Transport Layer : DNP3 Serial Application Layer
-	
-	//// ** Perform some checkings on DNP3 Serial Link Layer Data **////
-	//// These restrictions can be found in "DNP3 Specification Volume 4, Data Link Layer"
-
-	// The first two bytes of DNP3 Serial Link Layer data is always 0564....
-	// If it is not serial protocol data ignore.
+	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
 
 	u_char pseudoLink[PSEUDO_LINK_LEN_EX] ;
 	int i;
 	int j;
 	int newFrame = 0;
-	
+
+	///// the first two bytes should always be 0x0564	
+	///// This is used as DPD signature
+	if( data[0] != 0x05 || data[1] != 0x64 )
+		return -1;
+
+	u_char control_field = data[CRTL_FIELD_INDEX];
+	// Double check the orig. in case that the first received traffic is response
+	// Such as unsolicited response, a response issued to the control center without receiving any requests
+	// I input m_orig into binpac to indicate the flow direction
+	bool m_orig = ( (data[CRTL_FIELD_INDEX] & 0x80) == 0x80 );	
+
+
+
+	//// The original LEN field on Pseudo Link Layer has only 1 byte;
+	//// I increase this field into two bytes to help me buffer more coming application layer data
 	j = 0;
 	for(i = 0; i < PSEUDO_LINK_LEN ; i++)
 		{
@@ -197,85 +186,64 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		j++;
 		}
 
-	if( data[0] != 0x05 || data[1] != 0x64 )
-		return -1;
-
-	// Double check the orig. in case that the first received traffic is response
-	// Such as unsolicited response, a response issued to the control center without receiving any requests
-	u_char control_field = data[CRTL_FIELD_INDEX];
 	
-	// DNP3 Serial Link Layer Data can actually be used without being followed any DNP3 Serial Transport Layer and 
-	// DNP3 Serial Application Layer data. It is the legacy design of serial link communication and may be used to detect
-	// network status. A function code field (this is different from the function field you will find in 
-	// DNP3 Serial Application Layer), indicate link layer functionality. 
-	//// In this version of DNP3 Analyer, events from DNP3 Serial Link Layer data is not supported. 
-	///// The 4-bit function code field, included in 4-bit control_field byte, is 0x03, then DNP3 Serial Transport Layer data and 
-	//     DNP3 Serial Application Layer data is deliverd with confirmation requested .
- 	///// The 4-bit function code field, included in 4-bit control_field byte, is 0x04, then DNP3 Serial Transport Layer data and 
-	//     DNP3 Serial Application Layer data is deliverd without confirmation requested . 
-
-	//// ** End: Perform some checkings on DNP3 Serial Link Layer Data **////
-	
-	//// ** Perform some checkings on DNP3 Serical Transport Layer Data **////
+	//// ** Perform some checkings on DNP3 Pseudo Transport Layer Data **////
 	//// These restrictions can be found in "DNP3 Specification Volume 3, Transport Function"
 	
-	//// DNP3 Packet :  DNP3 Serial Link Layer : DNP3 Serial Transport Layer : DNP3 Serial Application Layer
+	//// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer
 	//// DNP3 Serial Transport Layer data is always 1 byte. 
 	//// Get FIN FIR seq field in transport header
 	//// FIR indicate whether the following DNP3 Serial Application Layer is first trunk of bytes or not 
 	//// FIN indicate whether the following DNP3 Serial Application Layer is last trunk of bytes or not 
-	int aTranFir = (data[PSEUDO_TRAN_INDEX] & 0x40) >> 6;
+
+
+	//// Get FIR and FIN field from the DNP3 Pseudo Transport Layer
+	int aTranFir = (data[PSEUDO_TRAN_INDEX] & 0x40) >> 6; 
 	int aTranFin = (data[PSEUDO_TRAN_INDEX] & 0x80) >> 7;
 	int aTranSeq = (data[PSEUDO_TRAN_INDEX] & 0x3F);
 
-
-	bool m_orig = ( (data[CRTL_FIELD_INDEX] & 0x80) == 0x80 );	
-
-	// if FIR field is 1 and FIN field is 0, the carried DNP3 Pseudo Application Layer Data is the first trunk but not the last trunk, 
+	//// Four cases based on Combination of FIR and FIN field value
+	//// FIR : 1 ; FIN : 1; The carried DNP3 Pseudo Application Layer Data is the 
+	////                    complete DNP3 Application Layer Fragment
+   	//// FIR : 1 ; FIN : 0; The carried DNP3 Pseudo Application Layer Data is the first trunk  
+	////                    of the DNP3 Application Layer Fragment
+   	//// FIR : 0 ; FIN : 0; The carried DNP3 Pseudo Application Layer Data is one of intermediate trunk
+	////                    of the DNP3 Application Layer Fragment
+   	//// FIR : 0 ; FIN : 1; The carried DNP3 Pseudo Application Layer Data is the last trunk of
+	////                    the DNP3 Application Layer Fragment
+	
+	// if FIR field is 1 and FIN field is 0, 
+        // the carried DNP3 Pseudo Application Layer Data is the first trunk but not the last trunk, 
 	// more trunks will be received afterforwards
 	if ( (aTranFir == 1) && (aTranFin == 0) )
 		{
 		mEncounteredFirst = true;
 
-		
+		//// In this case
+		// LEN field value should be 0x00FF
+		// The whole length of the DNP3 Packet including all three pseudo layers are MAX_PACKET_SIZE_CRC
 		if( len != MAX_PACKET_SIZE_CRC )
 			{
-			// The largest length of the DNP3 Pseudo Application Layer Data is 292 bytes including the crc values 
-			// If the DNP3 packet contains the first DNP3 Pseudo Application Layer Data but not the last
-			// its size should be exactly 292 bytes. But vise versa is not true.
-			Weird("dnp3_unexpected_payload_size");
+			Weird("dnp3_unexpected_packet_size");
 			return -4;
 			}
 		
-		//gDNP3Data.Reserve(len);
-
-		// As mentioned what data includes is :
-		// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
-		// In details. THe structure of the DNP3 Packet is (can be found in page 8 of DNP3 Specification Volum 4, Data Link Layer)
-		// The structure of DNP3 Pseudo Link Layer Data is
-		// 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB (each field is a byte)
-		// The structure of DNP3 Pseudo Transport Layer (1 Byte) and DNP3 Pseudo APplication Layer is 
-		// User Data Block 1 (16 bytes) CRC (2 bytes)
-		// User Data Block 2 (16 bytes) CRC (2 bytes)
-		// .....
-		// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
-		// DNP3 fragment
-		
+		//// Here is the trick of exploiting flow_buffer class in binpac
+		//// I manually increase the LEN field as 0x0100 
+		//// Based on this field, Binpac will allocate the size of flow buffer 
+		////  1 byte larger than what is delivered from interp->NewData
+		//// As a result, Binpac will buffer the current data and wait for more data to come 
 		pseudoLink[LEN_FIELD_INDEX + 1] = 0x01;
                 pseudoLink[LEN_FIELD_INDEX] = 0x00;	
 		
-		//// send pseudoLink data to binpac
-		/*
-		printf("\n\nThe first trunk - Header sent to Binpac \n");
-		for(j =  0 ; j < PSEUDO_LINK_LEN_EX ; j ++)
-		{
-			printf("Ox%x ", pseudoLink[j]);
-		}
-		printf("\n");
-		*/
-
+		//// Send the pseudoLink layer data to binpac
 		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
+		///// In order to manipulate flow_buffer class, we need to get its pointer here
+		////  Note that we can only call interp->upflow() after interp->NewData, otherwise
+		////  Null pointer is returned. 
+		////  upflow and downflow is used to calculate the number of trunk that we encounter 
+		////  so far
 		if( m_orig == true)
 			{
                         upflow_count ++;
@@ -288,13 +256,11 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
                 	}
 		}
 
-	// If FIR is 0, the carried DNP3 Pseudo Application Layer Data is not the first trunk. So this trunk can be either middle trunk
-	// or the last trunk (FIN field is 1)
+	// If FIR is 0 and FIN is 0, this is a intermediate trunk
 
 	if ( aTranFir == 0 && aTranFin == 0 )
 		{
-		
-		
+		//// if we lost the first trunk of data but receive intermediate one
 		if ( ! mEncounteredFirst )
 			{
 			Weird("dnp3_first_pseudo_application_layer_trunk_missing");
@@ -304,20 +270,19 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		if ( len != MAX_PACKET_SIZE_CRC )
 			{
 			// This is not a last transport segment, so the
-			// length of the TCP payload should be exactly 292
+			// length of the TCP payload should be exactly MAX_PACKET_SIZE_CRC
 			// bytes.
 			Weird("dnp3_unexpected_payload_size");
 			return -6;
 			}
-		//// Since this DNP3 Pseudo Application Layer Data is either a middle trunk of the last trunk,
-		//// we have to concate bytes in "data" into the previous data trunk in order to form the complete 
-		//// logicl DNP3 Application layer fragment
-
-		
-		//// Add bytes in "data" into previous trunk
-		//// This piece of code has some differences from the code included in DNP3_CopyDataBlock,
-		//// So I left it as it is.
-
+		///// When parsing the first trunk of application layer fragment, I manually make Binpac 
+		////   allocate the size of flow buffer 1 byte larger than what is delivered from interp->NewData
+		////  We continue this trick. 
+		////  I manually set the flow buffer as 1 bytes larger than what binpac will receive from 
+		////   Interp->NewData 
+		////  Note that increaseBuffer is the wrap-up function that I added into DNP3_Flow in binpac 
+		////   to call AddFrame function of FlowBuffer class
+		////  Also, we did not deliver pseudo Link layer data to binpac as it is intermediate trunk
 		if(m_orig == true)
 			{
                         //upflow = interp->upflow();
@@ -344,6 +309,11 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	if ( aTranFir == 0 && aTranFin == 1 ) // If this is the last segment.
 		{
 		mEncounteredFirst = false;
+	
+		///// When the last trunk of application layer fragment comes, I manually make Binpac 
+		////   allocate the size of flow buffer exactly the same as  what is delivered from interp->NewData
+		////  So binpac analyzer will begin parsing all buffered data
+		////  Also, we did not deliver pseudo Link layer data to binpac as it is the last trunk
 
 		if(m_orig == true)
 			{
@@ -369,8 +339,6 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	// logic DNP3 application layer fragment
 	if ( (aTranFir == 1) && (aTranFin == 1) )
 		{
-		//// can directly use gDNP3Data
-		////u_char* tran_data = new u_char[len]; // Definitely not more than original data payload.
 	
 		if( mEncounteredFirst == true )
 			{
@@ -378,7 +346,6 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			/// but the finish one is missing
 			//// so we should clear out the memory used before; abondon the former 
 			//     truncated network packets
-			//  But this newly received packets should be delivered to the binpac as usuall
 			if(m_orig == true)
                         	{
                         	//printf("test buffer size %d\n", upflow->get_bufferBytes());
@@ -393,21 +360,14 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
                         	}
 	
 			Weird("dnp3_missing_finish_packet");
+			mEncounteredFirst = false;
 			}
-		
+		//// LEN_FIELD_INDEX + 1 incidate the MSB of the length field, should be 0 in this case
 		pseudoLink[LEN_FIELD_INDEX + 1]= 0x00;
-		/*
-		printf("\n\nHeader sent to Binpac \n");
-                for(j =  0 ; j < PSEUDO_LINK_LEN_EX ; j ++)
-                {
-                        printf("Ox%x ", pseudoLink[j]);
-                }
-                printf("\n");
-		*/
+	
 
 		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
-		mEncounteredFirst = false;
 	
 		}
 	//// ** End: Perform some checkings on DNP3 Serical Transport Layer Data **////
@@ -415,37 +375,50 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 
 	//// send data in Pseudo Application Layer to binpac
 	int byteRemain = 0;
-	int trunkLen = 0;
-	const u_char* trunkStart = NULL;
+	int blockLen = 0;
+	const u_char* blockStart = NULL;
 
 	
 	//printf("App sent to Binpac %d \n", len);
 
+	//// Pseudo Link Layer is already sent; so remove the Pseudo Link
+	//// In a single DNP3 Pseudo Application Layer Data trunk, data is divided into 
+	//// smaller data block of 18 bytes, in which 16 bytes are data and 2 bytes are CRC
+	//// It may look like:
+	//// Data Block #1 (16 bytes) CRC (2 bytes)  
+	//// Data Block #2 (16 bytes) CRC (2 bytes)  
+	//// ...
+	//// Last  Data Block  (1 ~ 16 bytes) CRC (2 bytes)
+	//// Also note that the first byte in first data block is the Pseudo Transport Layer Data, which
+	////  should not be sent to binpac analyzer
+
 	for(i = 0 ; i < ( len - (PSEUDO_LINK_LEN + CRC_LEN) ) ; )
 		{
+		//// number of bytes remained unsent
 		byteRemain = len - (PSEUDO_LINK_LEN + CRC_LEN) - i ;
-		trunkStart = data + (PSEUDO_LINK_LEN + CRC_LEN) + i ;	
+		//// starting pointer of the current data block
+		blockStart = data + (PSEUDO_LINK_LEN + CRC_LEN) + i ;	
 	
 		if( byteRemain < (DNP3_APP_DATA_BLK + CRC_LEN) )
 			{
-			trunkLen = byteRemain - CRC_LEN;
+			blockLen = byteRemain - CRC_LEN;
 			
-			if( i == 0)
+			if( i == 0) // this if statement is used to remove the Pseudo Transport Layer
 				{
-				trunkLen = trunkLen - PSEUDO_TRAN_LEN;
-				trunkStart = trunkStart + PSEUDO_TRAN_LEN;
+				blockLen = blockLen - PSEUDO_TRAN_LEN;
+				blockStart = blockStart + PSEUDO_TRAN_LEN;
 				}
 			
 			i = i + byteRemain ; 
 			}
 		else		
 			{
-			trunkLen = DNP3_APP_DATA_BLK;
+			blockLen = DNP3_APP_DATA_BLK;
 			
-			if( i == 0)
+			if( i == 0) // this if statement is used to remove the Pseudo Transport Layer
 				{
-				trunkLen = trunkLen - PSEUDO_TRAN_LEN;
-				trunkStart = trunkStart + PSEUDO_TRAN_LEN;
+				blockLen = blockLen - PSEUDO_TRAN_LEN;
+				blockStart = blockStart + PSEUDO_TRAN_LEN;
 				}
 			
 			i = i + DNP3_APP_DATA_BLK + CRC_LEN;
@@ -455,11 +428,12 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		/*
                 for(j =  0 ; j < trunkLen ; j ++)
                 {
-                        printf("Ox%x ", trunkStart[j]);
+                        printf("Ox%x ", blockStart[j]);
                 }
                 printf("\n");	
 		*/
-		interp->NewData(m_orig, trunkStart, trunkStart + trunkLen);
+		//// then we deliver data block one by one
+		interp->NewData(m_orig, blockStart, blockStart + blockLen);
 		}
 	//printf("\n\n");
 
@@ -487,10 +461,10 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 	// DNP3 Packet :  DNP3 Pseudo Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
 	// THe structure of the DNP3 Packet is (can be found in page 8 of DNP3 Specification Volum 4, Data Link Layer)
 	// 0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB (each field is a byte) 
-	// User Data Block 1 (16 bytes) CRC (2 bytes)
-	// User Data Block 2 (16 bytes) CRC (2 bytes)
+	// Data Block 1 (16 bytes) CRC (2 bytes)
+	// Data Block 2 (16 bytes) CRC (2 bytes)
 	// .....
-	// Last  User Data Block  (1 ~ 16 bytes) CRC (2 bytes)
+	// Last  Data Block  (1 ~ 16 bytes) CRC (2 bytes)
 	
 	//// first 8 bytes are calcuated for a CRC
 	for(i = 0; i < 8; i++)

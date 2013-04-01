@@ -49,53 +49,45 @@ export {
 	global log_traceroute: event(rec: Traceroute::Info);
 }
 
-# Track hosts that have sent low TTL packets and which hosts they 
-# sent them to.
-global low_ttlers: set[addr, addr] = {} &create_expire=2min &synchronized;
-
-function traceroute_detected(src: addr, dst: addr)
-	{
-	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst]);
-	NOTICE([$note=Traceroute::Detected,
-	        $msg=fmt("%s seems to be running traceroute", src),
-	        $src=src, $dst=dst,
-	        $identifier=cat(src)]);
-	}
-
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute]);
 
-	Metrics::add_filter("traceroute.time_exceeded", 
-	                    [$log=F,
-	                     $every=icmp_time_exceeded_interval,
-	                     $measure=set(Metrics::UNIQUE),
+	local r1: Measurement::Reducer = [$stream="traceroute.time_exceeded", $apply=set(Measurement::UNIQUE)];
+	local r2: Measurement::Reducer = [$stream="traceroute.low_ttl_packet", $apply=set(Measurement::SUM)];
+	Measurement::create([$epoch=icmp_time_exceeded_interval,
+	                     $reducers=set(r1, r2),
+	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
+	                     	{
+	                     	# Give a threshold value of zero depending on if the host 
+	                     	# sends a low ttl packet.
+	                     	if ( require_low_ttl_packets && result["traceroute.low_ttl_packet"]$sum == 0 )
+	                     		return 0;
+	                     	else
+	                     		return result["traceroute.time_exceeded"]$unique;
+	                     	},
 	                     $threshold=icmp_time_exceeded_threshold,
-	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
-	                     	local parts = split1(index$str, /-/);
+	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) =
+	                     	{
+	                     	local parts = split1(key$str, /-/);
 	                     	local src = to_addr(parts[1]);
 	                     	local dst = to_addr(parts[2]);
-	                     	if ( require_low_ttl_packets )
-	                     		{
-	                     		when ( [src, dst] in low_ttlers )
-	                     			{
-	                     			traceroute_detected(src, dst);
-	                     			}
-	                     		}
-	                     	else
-	                     		traceroute_detected(src, dst);
-	                     }]);
+	                     	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst]);
+	                     	NOTICE([$note=Traceroute::Detected,
+	                     	        $msg=fmt("%s seems to be running traceroute", src),
+	                     	        $src=src, $dst=dst,
+	                     	        $identifier=cat(src)]);
+	                     	}]);
 	}
 
 # Low TTL packets are detected with a signature.
 event signature_match(state: signature_state, msg: string, data: string)
 	{
 	if ( state$sig_id == /traceroute-detector.*/ )
-		add low_ttlers[state$conn$id$orig_h, state$conn$id$resp_h];
+		Measurement::add_data("traceroute.low_ttl_packet", [$str=cat(state$conn$id$orig_h,"-",state$conn$id$resp_h)], [$num=1]);
 	}
 
 event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
 	{
-	Metrics::add_data("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h)], [$str=cat(c$id$orig_h)]);
+	Measurement::add_data("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h)], [$str=cat(c$id$orig_h)]);
 	}

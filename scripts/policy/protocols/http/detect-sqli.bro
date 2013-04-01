@@ -50,11 +50,11 @@ export {
 		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
 }
 
-function format_sqli_samples(samples: vector of string): string
+function format_sqli_samples(samples: vector of Measurement::DataPoint): string
 	{
 	local ret = "SQL Injection samples\n---------------------";
 	for ( i in samples )
-		ret += "\n" + samples[i];
+		ret += "\n" + samples[i]$str;
 	return ret;
 	}
 
@@ -63,31 +63,41 @@ event bro_init() &priority=3
 	# Add filters to the metrics so that the metrics framework knows how to 
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
-	Metrics::add_filter("http.sqli.attacker",
-	                    [$every=sqli_requests_interval,
-	                     $measure=set(Metrics::SUM),
+	local r1: Measurement::Reducer = [$stream="http.sqli.attacker", $apply=set(Measurement::SUM), $samples=collect_SQLi_samples];
+	Measurement::create([$epoch=sqli_requests_interval,
+	                     $reducers=set(r1),
+	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
+	                     	{ 
+	                     	return double_to_count(result["http.sqli.attacker"]$sum);
+	                     	},
 	                     $threshold=sqli_requests_threshold,
-	                     $samples=collect_SQLi_samples,
-	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) = 
+	                     	{
+	                     	local r = result["http.sqli.attacker"];
 	                     	NOTICE([$note=SQL_Injection_Attacker,
 	                     	        $msg="An SQL injection attacker was discovered!",
-	                     	        $email_body_sections=vector(format_sqli_samples(val$samples)),
-	                     	        $src=index$host,
-	                     	        $identifier=cat(index$host)]);
-	                     }]);
+	                     	        $email_body_sections=vector(format_sqli_samples(r$samples)),
+	                     	        $src=key$host,
+	                     	        $identifier=cat(key$host)]);
+	                     	}]);
 
-	Metrics::add_filter("http.sqli.victim",
-	                    [$every=sqli_requests_interval,
-	                     $measure=set(Metrics::SUM),
+	local r2: Measurement::Reducer = [$stream="http.sqli.victim", $apply=set(Measurement::SUM), $samples=collect_SQLi_samples];
+	Measurement::create([$epoch=sqli_requests_interval,
+	                     $reducers=set(r2),
+	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
+	                     	{ 
+	                     	return double_to_count(result["http.sqli.victim"]$sum);
+	                     	},
 	                     $threshold=sqli_requests_threshold,
-	                     $samples=collect_SQLi_samples,
-	                     $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = {
+	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) = 
+	                     	{
+	                     	local r = result["http.sqli.victim"];
 	                     	NOTICE([$note=SQL_Injection_Victim,
 	                     	        $msg="An SQL injection victim was discovered!",
-	                     	        $email_body_sections=vector(format_sqli_samples(val$samples)),
-	                     	        $src=index$host,
-	                     	        $identifier=cat(index$host)]);
-	                     }]);
+	                     	        $email_body_sections=vector(format_sqli_samples(r$samples)),
+	                     	        $src=key$host,
+	                     	        $identifier=cat(key$host)]);
+	                     	}]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -97,7 +107,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
-		Metrics::add_data("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
+		Measurement::add_data("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
+		Measurement::add_data("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
 		}
 	}

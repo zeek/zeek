@@ -1,3 +1,4 @@
+@load base/utils/queue
 
 module Measurement;
 
@@ -29,7 +30,10 @@ hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal
 		{
 		if ( ! rv?$sample_queue )
 			rv$sample_queue = Queue::init([$max_len=r$samples]);
-		Queue::push(rv$sample_queue, data$str);
+		if ( ! rv?$samples )
+			rv$samples = vector();
+		Queue::put(rv$sample_queue, data);
+		Queue::get_vector(rv$sample_queue, rv$samples);
 		}
 	}
 

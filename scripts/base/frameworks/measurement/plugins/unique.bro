@@ -10,7 +10,7 @@ export {
 	redef record ResultVal += {
 		## If cardinality is being tracked, the number of unique
 		## items is tracked here.
-		unique: count &optional;
+		unique: count &default=0;
 	};
 }
 

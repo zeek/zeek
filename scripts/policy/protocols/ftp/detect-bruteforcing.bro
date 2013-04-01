@@ -27,9 +27,9 @@ event bro_init()
 	{
 	Metrics::add_filter("ftp.failed_auth", [$every=bruteforce_measurement_interval,
 	                                        $measure=set(Metrics::UNIQUE),
-	                                        $threshold_val_func(val: Metrics::ResultVal) = { return val$num; },
+	                                        $threshold_val_func(val: Metrics::Result) = { return val$num; },
 	                                        $threshold=bruteforce_threshold,
-	                                        $threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal) = 
+	                                        $threshold_crossed(index: Metrics::Index, val: Metrics::Result) = 
 	                                        	{
 	                                        	local dur = duration_to_mins_secs(val$end-val$begin);
 	                                        	local plural = val$unique>1 ? "s" : "";

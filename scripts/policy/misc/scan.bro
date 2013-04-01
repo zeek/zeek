@@ -52,59 +52,64 @@ export {
 }
 
 
-function check_addr_scan_threshold(index: Metrics::Index, val: Metrics::ResultVal): bool
-	{
-	# We don't need to do this if no custom thresholds are defined.
-	if ( |addr_scan_custom_thresholds| == 0 )
-		return F;
-
-	local service = to_port(index$str);
-	return ( service in addr_scan_custom_thresholds &&
-	         val$sum > addr_scan_custom_thresholds[service] );
-	}
-
-function addr_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
-	{
-	local side = Site::is_local_addr(index$host) ? "local" : "remote";
-	local dur = duration_to_mins_secs(val$end-val$begin);
-	local message=fmt("%s scanned at least %d unique hosts on port %s in %s", index$host, val$unique, index$str, dur);
-
-	NOTICE([$note=Address_Scan,
-	        $src=index$host,
-	        $p=to_port(index$str),
-	        $sub=side,
-	        $msg=message,
-	        $identifier=cat(index$host)]);
-	}
-
-function port_scan_threshold_crossed(index: Metrics::Index, val: Metrics::ResultVal)
-	{
-	local side = Site::is_local_addr(index$host) ? "local" : "remote";
-	local dur = duration_to_mins_secs(val$end-val$begin);
-	local message = fmt("%s scanned at least %d unique ports of host %s in %s", index$host, val$unique, index$str, dur);
-
-	NOTICE([$note=Port_Scan, 
-	        $src=index$host,
-	        $dst=to_addr(index$str),
-	        $sub=side,
-	        $msg=message,
-	        $identifier=cat(index$host)]);
-	}
+#function check_addr_scan_threshold(key: Measurement::Key, val: Measurement::Result): bool
+#	{
+#	# We don't need to do this if no custom thresholds are defined.
+#	if ( |addr_scan_custom_thresholds| == 0 )
+#		return F;
+#
+#	local service = to_port(key$str);
+#	return ( service in addr_scan_custom_thresholds &&
+#	         val$sum > addr_scan_custom_thresholds[service] );
+#	}
 
 event bro_init() &priority=5
 	{
-	# Note: addr scans are trcked similar to:  table[src_ip, port] of set(dst);	
-	Metrics::add_filter("scan.addr.fail", [$every=addr_scan_interval,
-	                                       $measure=set(Metrics::UNIQUE),
-	                                       $threshold_func=check_addr_scan_threshold,
-	                                       $threshold=addr_scan_threshold,
-	                                       $threshold_crossed=addr_scan_threshold_crossed]); 
+	local r1: Measurement::Reducer = [$stream="scan.addr.fail", $apply=set(Measurement::UNIQUE)];
+	Measurement::create([$epoch=addr_scan_interval,
+	                     $reducers=set(r1),
+	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
+	                     	{
+	                     	return double_to_count(result["scan.addr.fail"]$unique);
+	                     	},
+	                     #$threshold_func=check_addr_scan_threshold,
+	                     $threshold=addr_scan_threshold,
+	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) =
+	                     	{
+	                     	local r = result["scan.addr.fail"];
+	                     	local side = Site::is_local_addr(key$host) ? "local" : "remote";
+	                     	local dur = duration_to_mins_secs(r$end-r$begin);
+	                     	local message=fmt("%s scanned at least %d unique hosts on port %s in %s", key$host, r$unique, key$str, dur);
+	                     	NOTICE([$note=Address_Scan,
+	                     	        $src=key$host,
+	                     	        $p=to_port(key$str),
+	                     	        $sub=side,
+	                     	        $msg=message,
+	                     	        $identifier=cat(key$host)]);
+	                     	}]); 
 
 	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
-	Metrics::add_filter("scan.port.fail", [$every=port_scan_interval,
-	                                       $measure=set(Metrics::UNIQUE),
-	                                       $threshold=port_scan_threshold,
-	                                       $threshold_crossed=port_scan_threshold_crossed]); 
+	local r2: Measurement::Reducer = [$stream="scan.port.fail", $apply=set(Measurement::UNIQUE)];
+	Measurement::create([$epoch=port_scan_interval,
+	                     $reducers=set(r2),
+	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
+	                     	{ 
+	                     	return double_to_count(result["scan.port.fail"]$unique);
+	                     	},
+	                     $threshold=port_scan_threshold,
+	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) =
+	                          {
+	                          local r = result["scan.port.fail"];
+	                          local side = Site::is_local_addr(key$host) ? "local" : "remote";
+	                          local dur = duration_to_mins_secs(r$end-r$begin);
+	                          local message = fmt("%s scanned at least %d unique ports of host %s in %s", key$host, r$unique, key$str, dur);
+	                          NOTICE([$note=Port_Scan, 
+	                                  $src=key$host,
+	                                  $dst=to_addr(key$str),
+	                                  $sub=side,
+	                                  $msg=message,
+	                                  $identifier=cat(key$host)]);
+	                          }]); 
 	}
 
 function add_metrics(id: conn_id, reverse: bool)
@@ -145,10 +150,10 @@ function add_metrics(id: conn_id, reverse: bool)
 	#	return F;
 	
 	if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
-		Metrics::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
+		Measurement::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
 
 	if ( hook Scan::port_scan_policy(scanner, victim, scanned_port) )
-		Metrics::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
+		Measurement::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
 	}
 
 function is_failed_conn(c: connection): bool

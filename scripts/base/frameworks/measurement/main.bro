@@ -255,6 +255,11 @@ function reset(m: Measurement)
 
 function create(m: Measurement)
 	{
+	if ( (m?$threshold || m?$threshold_series) && ! m?$threshold_val )
+		{
+		Reporter::error("Measurement given a threshold with no $threshold_val function");
+		}
+
 	if ( ! m?$id )
 		m$id=unique_id("");
 	local tmp: table[Key] of Thresholding = table();
@@ -364,9 +369,6 @@ function threshold_crossed(m: Measurement, key: Key, result: Result)
 	# If there is no callback, there is no point in any of this.
 	if ( ! m?$threshold_crossed )
 		return;
-
-	#if ( val?$sample_queue )
-	#	val$samples = Queue::get_str_vector(val$sample_queue);
 
 	# Add in the extra ResultVals to make threshold_crossed callbacks easier to write.
 	if ( |m$reducers| != |result| )

@@ -27,6 +27,12 @@ function sum_threshold(data_id: string): threshold_function
 		};
 	}
 
+hook init_resultval_hook(r: Reducer, rv: ResultVal)
+	{
+	if ( SUM in r$apply && ! rv?$sum )
+		rv$sum = 0;
+	}
+
 hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
 	{
 	if ( SUM in r$apply )

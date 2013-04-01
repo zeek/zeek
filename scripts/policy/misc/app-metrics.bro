@@ -8,21 +8,27 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
+		## Timestamp when the log line was finished and written.
 		ts:         time   &log;
+		## Time interval that the log line covers.
+		ts_delta:   interval &log;
+		## The name of the "app", like "facebook" or "netflix".
 		app:        string &log;
+		## The number of unique local hosts using the app.
 		uniq_hosts: count  &log;
+		## The number of hits to the app in total.
 		hits:       count  &log;
+		## The total number of bytes received by users of the app.
 		bytes:      count  &log;
 	};
 
 	## The frequency of logging the stats collected by this script.
-	const break_interval = 1min &redef;
+	const break_interval = 15mins &redef;
 }
 
 redef record connection += {
 	resp_hostname: string &optional;
 };
-
 
 event bro_init() &priority=3
 	{
@@ -32,10 +38,11 @@ event bro_init() &priority=3
 	local r2: Measurement::Reducer = [$stream="apps.hits",  $apply=set(Measurement::UNIQUE)];
 	Measurement::create([$epoch=break_interval, 
 	                     $reducers=set(r1, r2),
-	                     $period_finished(data: Measurement::ResultTable) = 
+	                     $epoch_finished(data: Measurement::ResultTable) = 
 	                     	{
 	                     	local l: Info;
 	                     	l$ts = network_time();
+	                     	l$ts_delta = break_interval;
 	                     	for ( key in data )
 	                     		{
 	                     		local result = data[key];
@@ -48,7 +55,7 @@ event bro_init() &priority=3
 	                     	}]);
 	}
 
-function do_metric(id: conn_id, hostname: string, size: count)
+function do_measurement(id: conn_id, hostname: string, size: count)
 	{
 	if ( /\.youtube\.com$/ in hostname && size > 512*1024 )
 		{
@@ -92,11 +99,11 @@ event ssl_established(c: connection)
 event connection_finished(c: connection)
 	{
 	if ( c?$resp_hostname )
-		do_metric(c$id, c$resp_hostname, c$resp$size);
+		do_measurement(c$id, c$resp_hostname, c$resp$size);
 	}
 
 event HTTP::log_http(rec: HTTP::Info)
 	{
 	if( rec?$host )
-		do_metric(rec$id, rec$host, rec$response_body_len);
+		do_measurement(rec$id, rec$host, rec$response_body_len);
 	}

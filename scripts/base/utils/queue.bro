@@ -1,4 +1,4 @@
-##! A FIFO string queue.
+##! A FIFO queue.
 
 module Queue;
 
@@ -23,17 +23,17 @@ export {
 
 	## Push a string onto the top of a queue.
 	## 
-	## q: The queue to push the string into.
+	## q: The queue to put the value into.
 	## 
-	## val: The string to push 
-	global push:       function(q: Queue, val: any);
+	## val: The value to insert into the queue. 
+	global put:       function(q: Queue, val: any);
 
 	## Pop a string from the bottom of a queue.
 	##
-	## q: The queue to pop the string from.
+	## q: The queue to get the string from.
 	##
-	## Returns: The string popped from the queue.
-	global pop:        function(q: Queue): any;
+	## Returns: The value gotten from the queue.
+	global get:        function(q: Queue): any;
 
 	## Merge two queue's together.  If any settings are applied 
 	## to the queues, the settings from q1 are used for the new
@@ -53,23 +53,14 @@ export {
 	## Returns: The length of the queue.
 	global len:     function(q: Queue): count;
 	
-	## Get the contents of the queue as a string vector.
+	## Get the contents of the queue as a vector.
 	## 
 	## q: The queue.
 	##
-	## Returns: A :bro:type:`vector of string` containing the 
-	##          current contents of q.
-	global get_str_vector: function(q: Queue): vector of string;
+	## ret: A vector containing the 
+	##      current contents of q as the type of ret.
+	global get_vector: function(q: Queue, ret: vector of any);
 
-	## Get the contents of the queue as a count vector.  Use care
-	## with this function.  If the data put into the queue wasn't 
-	## integers you will get conversion errors.
-	## 
-	## q: The queue.
-	##
-	## Returns: A :bro:type:`vector of count` containing the 
-	##          current contents of q.
-	global get_cnt_vector: function(q: Queue): vector of count;
 }
 
 redef record Queue += {
@@ -96,15 +87,15 @@ function init(s: Settings): Queue
 	return q;
 	}
 
-function push(q: Queue, val: any)
+function put(q: Queue, val: any)
 	{
 	if ( q$settings?$max_len && len(q) >= q$settings$max_len )
-		pop(q);
+		get(q);
 	q$vals[q$top] = val;
 	++q$top;
 	}
 
-function pop(q: Queue): any
+function get(q: Queue): any
 	{
 	local ret = q$vals[q$bottom];
 	delete q$vals[q$bottom];
@@ -120,9 +111,9 @@ function merge(q1: Queue, q2: Queue): Queue
 	for ( ignored_val in q1$vals )
 		{
 		if ( i in q1$vals )
-			push(ret, q1$vals[i]);
+			put(ret, q1$vals[i]);
 		if ( j in q2$vals )
-			push(ret, q2$vals[j]);
+			put(ret, q2$vals[j]);
 		++i;
 		++j;
 		}
@@ -134,9 +125,8 @@ function len(q: Queue): count
 	return |q$vals|;
 	}
 
-function get_str_vector(q: Queue): vector of string
+function get_vector(q: Queue, ret: vector of any)
 	{
-	local ret: vector of string;
 	local i = q$bottom;
 	local j = 0;
 	# Really dumb hack, this is only to provide
@@ -147,32 +137,7 @@ function get_str_vector(q: Queue): vector of string
 		if ( i >= q$top )
 			break;
 
-		ret[j] = cat(q$vals[i]);
+		ret[j] = q$vals[i];
 		++j; ++i;
 		}
-	return ret;
 	}
-
-function get_cnt_vector(q: Queue): vector of count
-	{
-	local ret: vector of count;
-	local i = q$bottom;
-	local j = 0;
-	# Really dumb hack, this is only to provide
-	# the iteration for the correct number of 
-	# values in q$vals.
-	for ( ignored_val in q$vals )
-		{
-		if ( i >= q$top )
-			break;
-
-		# TODO: this is terrible and should be replaced by 
-		#       a more generic version of the various 
-		#       functions to get vectors of values.
-		#       (the way "any" works right now makes this impossible though)
-		ret[j] = to_count(cat(q$vals[i]));
-		++j; ++i;
-		}
-	return ret;
-	}
-

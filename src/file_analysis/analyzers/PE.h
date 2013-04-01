@@ -14,16 +14,18 @@ namespace file_analysis {
  */
 class PE_Analyzer : Action {
 public:
-	static Action* Instantiate(const RecordVal* args, Info* info);
+	static Action* Instantiate(RecordVal* args, Info* info);
 
 	~PE_Analyzer();
 
 	virtual bool DeliverStream(const u_char* data, uint64 len);
 
 protected:
-
-	PE_Analyzer(Info* arg_info);
+	PE_Analyzer(RecordVal* args, Info* info, uint64 fsize);
 	binpac::PE::File* interp;
+	binpac::PE::MockConnection* conn;
+
+	uint64 fsize;
 };
 
 } // namespace file_analysis

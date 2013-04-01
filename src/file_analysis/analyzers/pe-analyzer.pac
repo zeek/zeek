@@ -1,16 +1,26 @@
 
+%extern{
+#include "Event.h"
+#include "file_analysis.bif.func_h"
+%}
 
-refine connection File += {
+refine flow File += {
 
 	function proc_sig(sig: bytestring) : bool
 		%{
-		if ( strcmp("MZ", (const char *) ${sig}.data()) == 0 )
-			printf("yep: %s\n", ${sig}.data());
+		//val_list* vl = new val_list;
+		//StringVal *sigval = new StringVal(${sig}.length(), (const char*) ${sig}.begin());
+		//vl->append(sigval);
+		//mgr.QueueEvent(FileAnalysis::windows_pe_sig, vl);
+
+		BifEvent::FileAnalysis::generate_windows_pe_sig((Analyzer *) connection()->bro_analyzer(), 
+		                                                (Val *) connection()->bro_analyzer()->GetInfo(),
+		                                                new StringVal(${sig}.length(), (const char*) ${sig}.begin()));
 		return true;
 		%}
 
 };
 
 refine typeattr DOSStub += &let {
-	proc : bool = $context.connection.proc_sig(signature);
+	proc : bool = $context.flow.proc_sig(signature);
 };

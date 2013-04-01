@@ -1,7 +1,7 @@
 
-type TheFile() = record {
-	barf: DOSStub;
-} &byteorder=bigendian &length=-1;
+type TheFile(fsize: uint64) = record {
+	dos_stub: DOSStub;
+} &byteorder=bigendian &length=fsize;
 
 type DOSStub() = record {
 	signature                : bytestring &length=2;

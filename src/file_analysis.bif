@@ -125,3 +125,7 @@ function FileAnalysis::eof%(source: string%): any
 	file_mgr->EndOfFile(source->CheckString());
 	return 0;
 	%}
+
+# Define file analysis framework events.
+
+event FileAnalysis::windows_pe_sig%(fi: FileAnalysis::Info, sig: string%);

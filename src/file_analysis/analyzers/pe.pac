@@ -2,19 +2,19 @@
 %include bro.pac
 
 analyzer PE withcontext {
-	connection: File;
-	flow:       Bytes;
+	connection: MockConnection;
+	flow:       File;
 };
 
-connection File(bro_analyzer: BroFileAnalyzer) {
-	upflow = Bytes(true);
-	downflow = Bytes(false);
+connection MockConnection(bro_analyzer: BroFileAnalyzer) {
+	upflow = File(0);
+	downflow = File(0);
 };
 
 %include pe-file.pac
 
-flow Bytes(is_orig: bool) {
-	flowunit = TheFile() withcontext(connection, this);
+flow File(fsize: uint64) {
+	flowunit = TheFile(fsize) withcontext(connection, this);
 }
  
 %include pe-analyzer.pac

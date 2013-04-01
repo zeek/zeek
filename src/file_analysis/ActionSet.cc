@@ -5,6 +5,8 @@
 #include "DataEvent.h"
 #include "Hash.h"
 
+#include "analyzers/PE.h"
+
 using namespace file_analysis;
 
 // keep in order w/ declared enum values in file_analysis.bif
@@ -14,6 +16,8 @@ static ActionInstantiator action_factory[] = {
 	SHA1::Instantiate,
 	SHA256::Instantiate,
 	DataEvent::Instantiate,
+
+	PE_Analyzer::Instantiate,
 };
 
 static void action_del_func(void* v)

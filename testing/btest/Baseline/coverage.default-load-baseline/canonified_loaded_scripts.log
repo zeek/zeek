@@ -38,6 +38,7 @@ scripts/base/init-default.bro
   scripts/base/utils/files.bro
   scripts/base/utils/numbers.bro
   scripts/base/utils/paths.bro
+  scripts/base/utils/queue.bro
   scripts/base/utils/strings.bro
   scripts/base/utils/thresholds.bro
   scripts/base/utils/urls.bro

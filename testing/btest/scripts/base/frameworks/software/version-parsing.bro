@@ -21,7 +21,7 @@ global matched_software: table[string] of Software::Description = {
 	["Java1.2.2-JDeveloper"] =
 		[$name="Java", $version=[$major=1,$minor=2,$minor2=2,$addl="JDeveloper"], $unparsed_version=""],
 	["Java/1.6.0_13"] = 
-		[$name="Java", $version=[$major=1,$minor=6,$minor2=0,$addl="13"], $unparsed_version=""],
+		[$name="Java", $version=[$major=1,$minor=6,$minor2=0,$minor3=13], $unparsed_version=""],
 	["Python-urllib/3.1"] = 
 		[$name="Python-urllib", $version=[$major=3,$minor=1], $unparsed_version=""],
 	["libwww-perl/5.820"] = 
@@ -39,9 +39,9 @@ global matched_software: table[string] of Software::Description = {
 	["The Bat! (v2.00.9) Personal"] =
 		[$name="The Bat!", $version=[$major=2,$minor=0,$minor2=9,$addl="Personal"], $unparsed_version=""],
 	["Flash/10,2,153,1"] =
-		[$name="Flash", $version=[$major=10,$minor=2,$minor2=153,$addl="1"], $unparsed_version=""],
+		[$name="Flash", $version=[$major=10,$minor=2,$minor2=153,$minor3=1], $unparsed_version=""],
 	["mt2/1.2.3.967 Oct 13 2010-13:40:24 ord-pixel-x2 pid 0x35a3 13731"] = 
-		[$name="mt2", $version=[$major=1,$minor=2,$minor2=3,$addl="967"], $unparsed_version=""],
+		[$name="mt2", $version=[$major=1,$minor=2,$minor2=3,$minor3=967,$addl="Oct"], $unparsed_version=""],
 	["CacheFlyServe v26b"] =
 		[$name="CacheFlyServe", $version=[$major=26,$addl="b"], $unparsed_version=""],
 	["Apache/2.0.46 (Win32) mod_ssl/2.0.46 OpenSSL/0.9.7b mod_jk2/2.0.4"] =
@@ -54,7 +54,7 @@ global matched_software: table[string] of Software::Description = {
 	["Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8H7 Safari/6533.18.5"] =
 		[$name="Safari", $version=[$major=5,$minor=0,$minor2=2,$addl="Mobile"], $unparsed_version=""],
 	["Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.205 Safari/534.16"] = 
-		[$name="Chrome", $version=[$major=10,$minor=0,$minor2=648,$addl="205"], $unparsed_version=""],
+		[$name="Chrome", $version=[$major=10,$minor=0,$minor2=648,$minor3=205], $unparsed_version=""],
 	["Opera/9.80 (Windows NT 6.1; U; sv) Presto/2.7.62 Version/11.01"] =
 		[$name="Opera", $version=[$major=11,$minor=1], $unparsed_version=""],
 	["Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.11) Gecko/20101013 Lightning/1.0b2 Thunderbird/3.1.5"] =
@@ -62,7 +62,7 @@ global matched_software: table[string] of Software::Description = {
 	["iTunes/9.0 (Macintosh; Intel Mac OS X 10.5.8) AppleWebKit/531.9"] = 
 		[$name="iTunes", $version=[$major=9,$minor=0,$addl="Macintosh"], $unparsed_version=""],
 	["Java1.3.1_04"] =
-		[$name="Java", $version=[$major=1,$minor=3,$minor2=1,$addl="04"], $unparsed_version=""],
+		[$name="Java", $version=[$major=1,$minor=3,$minor2=1,$minor3=4], $unparsed_version=""],
 	["Mozilla/5.0 (Linux; U; Android 2.3.3; zh-tw; HTC Pyramid Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"] = 
 		[$name="Safari", $version=[$major=4,$minor=0,$addl="Mobile"], $unparsed_version=""],
 	["Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_6; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27"] =

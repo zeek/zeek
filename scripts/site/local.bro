@@ -17,13 +17,6 @@
 # information.
 @load frameworks/software/vulnerable
 
-# Example vulnerable software.  This needs to be updated and maintained over
-# time as new vulnerabilities are discovered.
-redef Software::vulnerable_versions += {
-	["Flash"] = [$major=10,$minor=2,$minor2=153,$addl="1"],
-	["Java"] = [$major=1,$minor=6,$minor2=0,$addl="22"],
-};
-
 # Detect software changing (e.g. attacker installing hacked SSHD).
 @load frameworks/software/version-changes
 

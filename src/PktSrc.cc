@@ -231,6 +231,15 @@ void PktSrc::Process()
 				data += get_link_header_size(datalink);
 				data += 4; // Skip the vlan header
 				pkt_hdr_size = 0;
+
+				// Check for 802.1ah (Q-in-Q) containing IP.
+				// Only do a second layer of vlan tag
+				// stripping because there is no
+				// specification that allows for deeper
+				// nesting.
+				if ( ((data[2] << 8) + data[3]) == 0x0800 )
+					data += 4;
+
 				break;
 
 			// PPPoE carried over the ethernet frame.

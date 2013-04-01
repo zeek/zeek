@@ -5651,6 +5651,15 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 %%{
 #include "HyperLogLog.h"
 static map<BroString, CardinalityCounter*> hll_counters;
+
+BroString* convert_index_to_string(Val* index)
+        {
+        ODesc d;
+        index->Describe(&d);
+        BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+        s->SetUseFreeToDelete(1);
+        return s;
+        }
 %%}
 
 ## Initializes the hash for the HyperLogLog cardinality counting algorithm.

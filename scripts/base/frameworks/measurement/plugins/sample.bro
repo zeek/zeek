@@ -1,3 +1,4 @@
+@load base/frameworks/measurement
 @load base/utils/queue
 
 module Measurement;
@@ -10,40 +11,41 @@ export {
 	};
 
 	redef record ResultVal += {
-		## A sample of something being measured.  This is helpful in 
-		## some cases for collecting information to do further detection
-		## or better logging for forensic purposes.
-		samples: vector of Measurement::DataPoint &optional;
+		# This is the queue where samples
+		# are maintained.  Use the :bro:see:`Measurement::get_samples`
+		## function to get a vector of the samples.
+		samples: Queue::Queue &optional;
 	};
+
+	## Get a vector of sample DataPoint values from a ResultVal.
+	global get_samples: function(rv: ResultVal): vector of DataPoint;
 }
 
-redef record ResultVal += {
-	# Internal use only.  This is the queue where samples
-	# are maintained since the queue is self managing for
-	# the number of samples requested.
-	sample_queue: Queue::Queue &optional;
-};
+function get_samples(rv: ResultVal): vector of DataPoint
+	{
+	local s: vector of DataPoint = vector();
+	if ( rv?$samples )
+		Queue::get_vector(rv$samples, s);
+	return s;
+	}
 
 hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
 	{
 	if ( r$samples > 0 )
 		{
-		if ( ! rv?$sample_queue )
-			rv$sample_queue = Queue::init([$max_len=r$samples]);
 		if ( ! rv?$samples )
-			rv$samples = vector();
-		Queue::put(rv$sample_queue, data);
-		Queue::get_vector(rv$sample_queue, rv$samples);
+			rv$samples = Queue::init([$max_len=r$samples]);
+		Queue::put(rv$samples, data);
 		}
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
-	# Merge $sample_queue
-	if ( rv1?$sample_queue && rv2?$sample_queue )
-		result$sample_queue = Queue::merge(rv1$sample_queue, rv2$sample_queue);
-	else if ( rv1?$sample_queue )
-		result$sample_queue = rv1$sample_queue;
-	else if ( rv2?$sample_queue )
-		result$sample_queue = rv2$sample_queue;
+	# Merge $samples
+	if ( rv1?$samples && rv2?$samples )
+		result$samples = Queue::merge(rv1$samples, rv2$samples);
+	else if ( rv1?$samples )
+		result$samples = rv1$samples;
+	else if ( rv2?$samples )
+		result$samples = rv2$samples;
 	}

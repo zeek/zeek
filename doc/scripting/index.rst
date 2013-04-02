@@ -1,7 +1,7 @@
 
-=========
-Scripting
-=========
+===================
+Writing Bro Scripts
+===================
 
 .. toctree::
     :maxdepth: 2

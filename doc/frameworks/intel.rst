@@ -1,5 +1,7 @@
-Intel Framework
-===============
+
+======================
+Intelligence Framework
+======================
 
 Intro
 -----

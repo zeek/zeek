@@ -31,7 +31,7 @@ add_custom_target(broxygen
                           ${DOC_SOURCE_WORKDIR}/scripts
                   # append to the master index of all policy scripts
                   COMMAND cat ${MASTER_POLICY_INDEX} >>
-                          ${DOC_SOURCE_WORKDIR}/scripts/index.rst
+                          ${DOC_SOURCE_WORKDIR}/scripts/scripts.rst
                   # append to the master index of all policy packages
                   COMMAND cat ${MASTER_PACKAGE_INDEX} >>
                           ${DOC_SOURCE_WORKDIR}/scripts/packages.rst

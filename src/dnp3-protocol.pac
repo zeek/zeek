@@ -6,120 +6,24 @@
 
 type DNP3_PDU(is_orig: bool) = case is_orig of {
 	true    ->  request:  DNP3_Request;
-	#true    ->  request:  DNP3_Req;
-	#true    ->  request:  DNP3_ReqWrap;
 	false   ->  response: DNP3_Response;
 } &byteorder = bigendian;
 
 type Header_Block = record {
-	empty : Empty;
+	#empty : Empty;
 	start: uint16 &check(start == 0x0564);
 	#len: uint8;
 	len: uint16;
-	ctrl: uint8;   #since this ctrl function code is not used here, I use it to store high 8-bit of len, if len > 255
+	ctrl: uint8;  
 	dest_addr: uint16;
 	src_addr: uint16;
-}  &let{
-	#buffer_bytes1 : uint32 = $context.flow.get_bufferBytes() ;
-	# body : 
-}
+} 
   &byteorder = littleendian
   #&length = 8;
   &length = 9;
 
-type PseudoTran = record {
-	pseudoTran : uint8;
-}
-&length = 1
-;
-
-
-# Related to dnp3 application layer data
-
-type Req_Reassemble = record {
-	addin_header1 : Header_Block;
-	data : bytestring &restofdata ;
-	#req : DCE_RPC_Body(addin_header1)  withinput $context.flow.get_data(data) $if( 0 == 0);	
-} &let {
-	req : DCE_RPC_Body(addin_header1)  withinput $context.flow.get_data(data) &if( 0 == 0);	
-};
-
-type DCE_RPC_Body(header: Header_Block) = case header.ctrl of {
-        0x01     -> bind        : bytestring &length = 2 ;
-        default          -> other       : bytestring &restofdata;
-};
-
-type DNP3_ReqWrap = record {
-	#first : DNP3_Req ;
-	second : bytestring &restofdata ;
-	#second : bytestring &length = 42 ;
-}
-&let{
-	buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-	ready : bool = $context.flow.buffer_ready();
-	body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
-}
-&byteorder = bigendian
-&length = 28
-;
-
-type DNP3_Req = record {
-	#empty: Empty;
-	addin_header : Header_Block;
-	app_header : DNP3_Application_Request_Header;
-	data: Body ;
-	#data: bytestring &until($input.length()==0); 
-	#data: bytestring &restofdata ;
-	#data: Debug_Byte ;
-	#data: bytestring &length = 8 ;
-	#data: AByte[] &until($element.last);	
-} &let{
-	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-	#incBuff : bool = $context.flow.increaseBuffer(18) ;	
-	#available : bool = $context.flow.buffer_available();
-	#ready : bool = $context.flow.buffer_ready();
-	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-	#body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
-	#body : bytestring =  $context.flow.get_bufferContents() ;
-	#body : Body withinput $context.flow.getPreviousBuffer(18) ;
-
-	
-}
-  &byteorder = bigendian 
-  #&length = 28 + 10 
-  &length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
-  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1 - 10
-  #&length = -1
-;
-
-type Empty = record{
-	dump : empty;
-}
-&let{
-	#buffer_bytes : uint32 = $context.flow.get_bufferBytes() ;
-        #ready : bool = $context.flow.buffer_ready();
-        #ready : uint32 = $context.flow.GetwheretoBuffer();
-	
-        #body : Body withinput $context.flow.get_bufferContents() &if ( ready == true ) ;
-	#body : Body withinput $context.flow.getPreviousBuffer(8) &if ( ready == 23 );
-	#hook : bool = $context.flow.modifLength(28);
-}
-;
-
-type Body = record {
-	#payload : bytestring &length = 46;
-	payload : bytestring &restofdata;
-}
-;
-
-type AByte = record{
-	value : uint8 ;
-};
-
-
 type DNP3_Request = record {
 	addin_header: Header_Block;  ## added by Hui Lin in Bro code
-	#tran_layer: PseudoTran;
 	app_header: DNP3_Application_Request_Header;
 	data: case ( app_header.function_code ) of {
 		CONFIRM -> none_coonfirm: empty;
@@ -159,10 +63,7 @@ type DNP3_Request = record {
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
-  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
   &length= 9 + addin_header.len - 5 - 1
-  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5
-  #&length = -1 	
 ;
 
 type Debug_Byte = record {
@@ -171,7 +72,6 @@ type Debug_Byte = record {
 
 type DNP3_Response = record {
 	addin_header: Header_Block;
-	##tran_layer: uint8;	
 	app_header: DNP3_Application_Response_Header;
 	data: case ( app_header.function_code ) of {
 		RESPONSE -> response_objects: Response_Objects(app_header.function_code)[];
@@ -180,9 +80,7 @@ type DNP3_Response = record {
 		default -> unknown: Debug_Byte;
 	};
 } &byteorder = bigendian
-  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5 - 1
   &length= 9 + addin_header.len - 5 - 1
-  #&length= 8 + addin_header.len + addin_header.ctrl * 0x100 - 5
 ;
 
 type DNP3_Application_Request_Header = record {
@@ -191,12 +89,10 @@ type DNP3_Application_Request_Header = record {
 	function_code       : uint8 ;
 } 
 &length = 2 
-#&length = 3 
 ;
 
 type DNP3_Application_Response_Header = record {
 	empty: bytestring &length = 0;
-	#tran_layer : uint8;
 	application_control  : uint8;
 	function_code	: uint8;
 	internal_indications : uint16;
@@ -212,7 +108,7 @@ type Request_Objects(function_code: uint8) = record {
 							&check( object_header.qualifer_field == 0x0f && object_header.number_of_item == 0x01);
 		default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 	};
-	# dump_data is always empty; however, I use it for checking some conditions;
+	# dump_data is always empty; I intend to use it for checking some conditions;
 	# However, in the current binpac implementation, &check is not implemented
 	dump_data: case (function_code) of {
 		OPEN_FILE -> open_file_dump: empty &check(object_header.object_type_field == 0x4603);

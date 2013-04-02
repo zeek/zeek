@@ -33,6 +33,11 @@ public:
 	double GetTimeoutInterval() const;
 
 	/**
+	 * @return value of the "source" field from #val record.
+	 */
+	string GetSource() const;
+
+	/**
 	 * @return value of the "file_id" field from #val record.
 	 */
 	FileID GetFileID() const { return file_id; }

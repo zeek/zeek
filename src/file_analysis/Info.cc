@@ -185,6 +185,13 @@ double Info::GetTimeoutInterval() const
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
+string Info::GetSource() const
+	{
+	Val* v = val->Lookup(source_idx);
+	if ( ! v ) return "";
+	return v->AsStringVal()->CheckString();
+	}
+
 RecordVal* Info::GetResults(RecordVal* args) const
 	{
 	TableVal* actions_table = val->Lookup(actions_idx)->AsTableVal();
@@ -242,18 +249,6 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_BOF, this);
 
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
-
-	/* Leaving out this optimization (I think) for now to keep things simpler.
-	// If first chunk satisfies desired size, do everything now without copying.
-	if ( bof_buffer.chunks.empty() && len >= desired_size )
-		{
-		bof_buffer.full = bof_buffer.replayed = true;
-		val->Assign(bof_buffer_idx, new StringVal(new BroString(data, len, 0)));
-		file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
-		// TODO: libmagic stuff
-		return false;
-		}
-	*/
 
 	bof_buffer.chunks.push_back(new BroString(data, len, 0));
 	bof_buffer.size += len;

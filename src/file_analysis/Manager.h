@@ -130,6 +130,7 @@ protected:
 	typedef set<string> StrSet;
 	typedef map<FileID, Info*> IDMap;
 	typedef queue<PendingFile*> PendingQueue;
+	typedef queue<int> HandleCache;
 
 	/**
 	 * @return the Info object mapped to \a unique or a null pointer if analysis
@@ -165,21 +166,23 @@ protected:
 	bool IsIgnored(const string& unique);
 
 	/**
-	 * @return whether file analysis is disabled for the given analyzer.
-	 */
-	static bool IsDisabled(AnalyzerTag::Tag tag);
-
-	/**
 	 * Queues \c get_file_handle event in order to retrieve unique file handle.
 	 * @return true if there is a handler for the event, else false.
 	 */
-	static bool QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
-	                             bool is_orig);
+	bool QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
+	                      bool is_orig);
+
+	/**
+	 * @return whether file analysis is disabled for the given analyzer.
+	 */
+	static bool IsDisabled(AnalyzerTag::Tag tag);
 
 	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
 	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	PendingQueue pending; /**< Files awaiting a unique handle. */
+	HandleCache cache; /**< The number of times a received file handle can be
+	                        used to pop the #pending queue. */
 
 	static TableVal* disabled; /**< Table of disabled analyzers. */
 };

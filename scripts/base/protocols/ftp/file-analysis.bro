@@ -18,9 +18,6 @@ export {
 
 		local info: FTP::Info = ftp_data_expected[c$id$resp_h, c$id$resp_p];
 
-		local rval = fmt("%s %s %s", ANALYZER_FTP_DATA, c$start_time,
-		                 id_string(c$id));
-
 		if ( info$passive )
 			# FTP client initiates data channel.
 			if ( is_orig )
@@ -28,12 +25,14 @@ export {
 				return "";
 			else
 				# Do care about FTP server data.
-				return rval;
+				return cat(ANALYZER_FTP_DATA, " ", c$start_time, " ",
+				           id_string(c$id));
 		else
 			# FTP server initiates dta channel.
 			if ( is_orig )
 				# Do care about FTP server data.
-				return rval;
+				return cat(ANALYZER_FTP_DATA, " ", c$start_time, " ",
+				           id_string(c$id));
 			else
 				# Don't care about FTP client data.
 				return "";

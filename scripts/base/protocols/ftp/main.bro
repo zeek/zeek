@@ -56,10 +56,10 @@ export {
 		tags:             set[string] &log &default=set();
 		
 		## Current working directory that this session is in.  By making
-		## the default value '/.', we can indicate that unless something
+		## the default value '.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
-		cwd:                string  &default="/.";
+		cwd:                string  &default=".";
 		
 		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
@@ -172,7 +172,12 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), build_path_compressed(s$cwd, arg));
+			{
+			local comp_path = build_path_compressed(s$cwd, arg);
+			if ( s$cwd[0] != "/" )
+				comp_path = cat("/", comp_path);
+			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), comp_path);
+			}
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;

@@ -1,5 +1,5 @@
-@load ./sum
 @load ./variance
+@load base/frameworks/measurement
 
 module Measurement;
 

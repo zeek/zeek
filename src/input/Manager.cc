@@ -299,6 +299,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	ReaderBackend::ReaderInfo* rinfo = new ReaderBackend::ReaderInfo();
 	rinfo->source = copy_string(source.c_str());
+	rinfo->name = copy_string(name.c_str());
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
 	switch ( mode->InternalInt() )
@@ -1175,6 +1176,9 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	if ( i->stream_type == EVENT_STREAM )
 		{
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "%s is event, sending end of data", i->name.c_str());
+#endif
 		// just signal the end of the data source
 		SendEndOfData(i);
 		return;
@@ -1281,6 +1285,10 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 
 void Manager::SendEndOfData(const Stream *i)
 	{
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s",
+		i->name.c_str());
+#endif
 	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
 	}
 

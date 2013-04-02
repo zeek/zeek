@@ -29,6 +29,8 @@ export {
 		minor:  count  &optional;
 		## Minor subversion number
 		minor2: count  &optional;
+		## Minor updates number
+		minor3: count  &optional;
 		## Additional version string (e.g. "beta42")
 		addl:   string &optional;
 	} &log;
@@ -146,10 +148,10 @@ function parse(unparsed_version: string): Description
 			if ( /^[\/\-\._v\(]/ in sv )
 				sv = strip(sub(version_parts[2], /^\(?[\/\-\._v\(]/, ""));
 			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 3);
-			if ( 4 in version_numbers && version_numbers[4] != "" )
-				v$addl = strip(version_numbers[4]);
+			if ( 5 in version_numbers && version_numbers[5] != "" )
+				v$addl = strip(version_numbers[5]);
 			else if ( 3 in version_parts && version_parts[3] != "" &&
-				  version_parts[3] != ")" )
+			          version_parts[3] != ")" )
 				{
 				if ( /^[[:blank:]]*\([a-zA-Z0-9\-\._[:blank:]]*\)/ in version_parts[3] )
 					{
@@ -177,7 +179,9 @@ function parse(unparsed_version: string): Description
 						
 					}
 				}
-		
+			
+			if ( 4 in version_numbers && version_numbers[4] != "" )
+				v$minor3 = extract_count(version_numbers[4]);
 			if ( 3 in version_numbers && version_numbers[3] != "" )
 				v$minor2 = extract_count(version_numbers[3]);
 			if ( 2 in version_numbers && version_numbers[2] != "" )
@@ -332,8 +336,25 @@ function cmp_versions(v1: Version, v2: Version): int
 			return v1?$minor2 ? 1 : -1;
 		}
 
+	if ( v1?$minor3 && v2?$minor3 )
+		{
+		if ( v1$minor3 < v2$minor3 )
+			return -1;
+		if ( v1$minor3 > v2$minor3 )
+			return 1;
+		}
+	else
+		{
+		if ( !v1?$minor3 && !v2?$minor3 )
+			{ }
+		else
+			return v1?$minor3 ? 1 : -1;
+		}
+
 	if ( v1?$addl && v2?$addl )
+		{
 		return strcmp(v1$addl, v2$addl);
+		}
 	else
 		{
 		if ( !v1?$addl && !v2?$addl )
@@ -341,6 +362,9 @@ function cmp_versions(v1: Version, v2: Version): int
 		else
 			return v1?$addl ? 1 : -1;
 		}
+
+	# A catcher return that should never be reached...hopefully
+	return 0;
 	}
 
 function software_endpoint_name(id: conn_id, host: addr): string
@@ -351,10 +375,11 @@ function software_endpoint_name(id: conn_id, host: addr): string
 # Convert a version into a string "a.b.c-x".
 function software_fmt_version(v: Version): string
 	{
-	return fmt("%d.%d.%d%s", 
-	           v?$major ? v$major : 0,
-	           v?$minor ? v$minor : 0,
-	           v?$minor2 ? v$minor2 : 0,
+	return fmt("%s%s%s%s%s", 
+	           v?$major ? fmt("%d", v$major) : "0",
+	           v?$minor ? fmt(".%d", v$minor) : "",
+	           v?$minor2 ? fmt(".%d", v$minor2) : "",
+	           v?$minor3 ? fmt(".%d", v$minor3) : "",
 	           v?$addl ? fmt("-%s", v$addl) : "");
 	}
 

@@ -271,8 +271,7 @@ public:
 
 	static bool Available()
 		{
-		return (dns_request || dns_full_request) &&
-			! FLAGS_use_binpac;
+		return (dns_request || dns_full_request);
 		}
 
 protected:

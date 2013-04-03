@@ -46,7 +46,7 @@ protected:
 //		{ return new Syslog_TCP_Analyzer_binpac(conn); }
 //
 //	static bool Available()
-//		{ return (Syslog_request || Syslog_full_request) && FLAGS_use_binpac; }
+//		{ return (Syslog_request || Syslog_full_request); }
 //
 //protected:
 //	binpac::Syslog_on_TCP::Syslog_TCP_Conn* interp;

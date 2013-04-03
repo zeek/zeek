@@ -114,8 +114,6 @@ vector<string> params;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 
-int FLAGS_use_binpac = false;
-
 extern std::list<BroDoc*> docs_generated;
 
 // Keep copy of command line
@@ -203,8 +201,6 @@ void usage()
 #ifdef USE_IDMEF
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
-
-	fprintf(stderr, "    --use-binpac                   | use new-style BinPAC parsers when available\n");
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
@@ -496,8 +492,6 @@ int main(int argc, char** argv)
 #endif
 
 		{"pseudo-realtime",	optional_argument, 0,	'E'},
-
-		{"use-binpac",		no_argument, 		&FLAGS_use_binpac, 1},
 
 		{0,			0,			0,	0},
 	};

@@ -35,6 +35,4 @@ inline StringVal* bytestring_to_val(const_bytestring const &str)
 
 } // namespace binpac
 
-extern int FLAGS_use_binpac;
-
 #endif

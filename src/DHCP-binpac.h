@@ -19,7 +19,7 @@ public:
 		{ return new DHCP_Analyzer_binpac(conn); }
 
 	static bool Available()
-		{ return dhcp_request && FLAGS_use_binpac; }
+		{ return dhcp_request; }
 
 protected:
 	binpac::DHCP::DHCP_Conn* interp;

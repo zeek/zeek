@@ -34,17 +34,11 @@ void Manager::ReceiveHandle(const string& handle)
 	if ( pending.empty() )
 		reporter->InternalError("File analysis underflow");
 
-	int use_count = cache.front();
-	cache.pop();
-
-	for ( int i = 0; i < use_count; ++i )
-		{
-		PendingFile* pf = pending.front();
-		if ( ! handle.empty() )
-			pf->Finish(handle);
-		delete pf;
-		pending.pop();
-		}
+	PendingFile* pf = pending.front();
+	if ( ! handle.empty() )
+		pf->Finish(handle);
+	delete pf;
+	pending.pop();
 	}
 
 void Manager::EventDrainDone()
@@ -336,49 +330,10 @@ bool Manager::IsDisabled(AnalyzerTag::Tag tag)
 	return rval;
 	}
 
-static bool CheckArgEquality(AnalyzerTag::Tag tag, Connection* conn,
-                             bool is_orig, val_list* other_args)
-	{
-	if ( ! other_args ) return false;
-	if ( (*other_args)[0]->AsCount() != (bro_uint_t) tag ) return false;
-	if ( (*other_args)[2]->AsBool() != is_orig ) return false;
-
-	RecordVal* id = (*other_args)[1]->AsRecordVal()->Lookup(
-	        connection_type->FieldOffset("id"))->AsRecordVal();
-
-	PortVal* orig_p = id->Lookup(
-	        conn_id->FieldOffset("orig_p"))->AsPortVal();
-
-	if ( orig_p->Port() != ntohs(conn->OrigPort()) ) return false;
-	if ( orig_p->PortType() != conn->ConnTransport() ) return false;
-
-	PortVal* resp_p = id->Lookup(
-	        conn_id->FieldOffset("resp_p"))->AsPortVal();
-
-	if ( resp_p->Port() != ntohs(conn->RespPort()) ) return false;
-
-	if ( id->Lookup(conn_id->FieldOffset("orig_h"))->AsAddr() !=
-	     conn->OrigAddr() ) return false;
-
-	if ( id->Lookup(conn_id->FieldOffset("resp_h"))->AsAddr() !=
-	     conn->RespAddr() ) return false;
-
-	return true;
-	}
-
 bool Manager::QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
                                bool is_orig)
 	{
 	if ( ! get_file_handle ) return false;
-
-	if ( mgr.Tail() == get_file_handle &&
-	     CheckArgEquality(tag, conn, is_orig, mgr.TailArgs()) )
-		{
-		cache.front()++;
-		return true;
-		}
-
-	cache.push(1);
 
 	val_list* vl = new val_list();
 	vl->append(new Val(tag, TYPE_COUNT));

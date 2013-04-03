@@ -118,9 +118,6 @@ public:
 
 	void Describe(ODesc* d) const;
 
-	EventHandlerPtr Tail() { return tail ? tail->handler : EventHandlerPtr(); }
-	val_list* TailArgs() { return tail ? tail->args : 0; }
-
 protected:
 	void QueueEvent(Event* event);
 

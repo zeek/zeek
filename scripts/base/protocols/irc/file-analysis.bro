@@ -15,7 +15,7 @@ export {
 	function get_file_handle(c: connection, is_orig: bool): string
 		{
 		if ( is_orig ) return "";
-		return cat(ANALYZER_IRC_DATA, " ", c$start_time, " ",
+		return fmt("%s %s %s", ANALYZER_IRC_DATA, c$start_time,
 		           id_string(c$id));
 		}
 }

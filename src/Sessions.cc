@@ -19,8 +19,6 @@
 #include "ICMP.h"
 #include "UDP.h"
 
-#include "DNS-binpac.h"
-
 #include "SteppingStone.h"
 #include "BackDoor.h"
 #include "InterConn.h"

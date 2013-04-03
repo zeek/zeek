@@ -21,7 +21,6 @@
 #include "FTP.h"
 #include "FileAnalyzer.h"
 #include "DNS.h"
-#include "DNS-binpac.h"
 #include "DHCP-binpac.h"
 #include "Telnet.h"
 #include "Rlogin.h"
@@ -50,11 +49,6 @@ BuiltinAnalyzers builtin_analyzers;
 #define DEFINE_ANALYZER(name, factory) \
 	AddComponent(new Component(name, factory))
 
-#define DEFINE_ANALYZER_VERSION_BINPAC(name, factory) \
-	AddComponent(new Component(name, factory, 0, FLAGS_use_binpac))
-#define DEFINE_ANALYZER_VERSION_NON_BINPAC(name, factory) \
-	AddComponent(new Component(name, factory, 0, ! FLAGS_use_binpac))
-
 void BuiltinAnalyzers::Init()
 	{
 	plugin::Description desc;
@@ -74,7 +68,7 @@ void BuiltinAnalyzers::Init()
 	DEFINE_ANALYZER("BITTORRENT", BitTorrent_Analyzer::InstantiateAnalyzer);
 	DEFINE_ANALYZER("BITTORRENTTRACKER", BitTorrentTracker_Analyzer::InstantiateAnalyzer);
 	DEFINE_ANALYZER("DCE_RPC", DCE_RPC_Analyzer::InstantiateAnalyzer);
-	DEFINE_ANALYZER_VERSION_NON_BINPAC("DNS", DNS_Analyzer::InstantiateAnalyzer);
+	DEFINE_ANALYZER("DNS", DNS_Analyzer::InstantiateAnalyzer);
 	DEFINE_ANALYZER("FINGER", Finger_Analyzer::InstantiateAnalyzer);
 	DEFINE_ANALYZER("FTP", FTP_Analyzer::InstantiateAnalyzer);
 	DEFINE_ANALYZER("GNUTELLA", Gnutella_Analyzer::InstantiateAnalyzer);
@@ -96,8 +90,6 @@ void BuiltinAnalyzers::Init()
 	DEFINE_ANALYZER("TELNET", Telnet_Analyzer::InstantiateAnalyzer);
 
 	DEFINE_ANALYZER("DHCP_BINPAC", DHCP_Analyzer_binpac::InstantiateAnalyzer);
-	DEFINE_ANALYZER_VERSION_BINPAC("DNS_TCP_BINPAC", DNS_TCP_Analyzer_binpac::InstantiateAnalyzer);
-	DEFINE_ANALYZER_VERSION_BINPAC("DNS_UDP_BINPAC", DNS_UDP_Analyzer_binpac::InstantiateAnalyzer);
 	DEFINE_ANALYZER("SYSLOG_BINPAC", Syslog_Analyzer_binpac::InstantiateAnalyzer);
 	DEFINE_ANALYZER("MODBUS", ModbusTCP_Analyzer::InstantiateAnalyzer);
 

@@ -144,14 +144,8 @@ binpac_target(dce_rpc_simple.pac
     dce_rpc-protocol.pac epmapper.pac)
 binpac_target(dhcp.pac
     dhcp-protocol.pac dhcp-analyzer.pac)
-binpac_target(dns.pac
-    dns-protocol.pac dns-analyzer.pac)
-binpac_target(dns_tcp.pac
-    dns.pac)
 binpac_target(gtpv1.pac
     gtpv1-protocol.pac gtpv1-analyzer.pac)
-# binpac_target(http.pac
-#    http-protocol.pac http-analyzer.pac)
 binpac_target(ncp.pac)
 binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
@@ -159,8 +153,6 @@ binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
 binpac_target(socks.pac
     socks-protocol.pac socks-analyzer.pac)
-# binpac_target(ssl.pac
-#    ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
@@ -258,7 +250,6 @@ set(bro_SRCS
     DFA.cc
     DHCP-binpac.cc
     DNS.cc
-    DNS-binpac.cc
     DNS_Mgr.cc
     DbgBreakpoint.cc
     DbgHelp.cc

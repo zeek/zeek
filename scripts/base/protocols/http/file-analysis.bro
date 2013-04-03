@@ -18,11 +18,11 @@ export {
 		if ( ! c?$http ) return "";
 
 		if ( c$http$range_request )
-			return cat(ANALYZER_HTTP, " ", is_orig, " ", c$id$orig_h,
-			           " ", build_url(c$http));
+			return fmt("%s %s %s %s", ANALYZER_HTTP, is_orig, c$id$orig_h,
+			           build_url(c$http));
 
-		return cat(ANALYZER_HTTP, " ", c$start_time, " ", is_orig,
-		           " ", c$http$trans_depth, " ", id_string(c$id));
+		return fmt("%s %s %s %s %s", ANALYZER_HTTP, c$start_time, is_orig,
+		           c$http$trans_depth, id_string(c$id));
 		}
 }
 

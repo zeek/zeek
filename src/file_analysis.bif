@@ -128,4 +128,5 @@ function FileAnalysis::eof%(source: string%): any
 
 # Define file analysis framework events.
 
-event FileAnalysis::windows_pe_sig%(fi: FileAnalysis::Info, sig: string%);
+#event FileAnalysis::windows_pe_dosstub%(fi: FileAnalysis::Info, sig: string, checksum: count%);
+event FileAnalysis::windows_pe_dosstub%(checksum: count%);

@@ -1,7 +1,8 @@
 
 type TheFile(fsize: uint64) = record {
 	dos_stub: DOSStub;
-} &byteorder=bigendian &length=fsize;
+	blah: bytestring &length=1316134912 &transient;
+} &transient &byteorder=littleendian;
 
 type DOSStub() = record {
 	signature                : bytestring &length=2;
@@ -23,4 +24,4 @@ type DOSStub() = record {
 	OEMinfo                  : uint16;
 	Reserved2                : uint16[10];
 	AddressOfNewExeHeader    : uint32;
-} &byteorder=bigendian;
+} &byteorder=littleendian &length=64;

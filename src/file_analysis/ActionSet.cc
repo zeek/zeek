@@ -11,13 +11,11 @@ using namespace file_analysis;
 
 // keep in order w/ declared enum values in file_analysis.bif
 static ActionInstantiator action_factory[] = {
-	Extract::Instantiate,
-	MD5::Instantiate,
-	SHA1::Instantiate,
-	SHA256::Instantiate,
-	DataEvent::Instantiate,
-
-	PE_Analyzer::Instantiate,
+	file_analysis::Extract::Instantiate,
+	file_analysis::MD5::Instantiate,
+	file_analysis::SHA1::Instantiate,
+	file_analysis::SHA256::Instantiate,
+	file_analysis::DataEvent::Instantiate,
 };
 
 static void action_del_func(void* v)

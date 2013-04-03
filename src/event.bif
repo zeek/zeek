@@ -6986,7 +6986,8 @@ event bro_script_loaded%(path: string, level: count%);
 ## belongs.  All incoming data to the framework is buffered, and depends
 ## on a handler for this event to return a string value that uniquely
 ## identifies a file.  Among all handlers of this event, exactly one must
-## call :bro:see:`return_file_handle`.
+## call :bro:see:`return_file_handle`.  Handlers of this event must not
+## change any global state.
 ##
 ## tag: The analyzer which is carrying the file data.
 ##

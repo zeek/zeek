@@ -13,6 +13,11 @@ namespace file_analysis {
 class Info;
 declare(PDict,Action);
 
+/**
+ * A set of file analysis actions indexed by ActionArgs.  Allows queueing
+ * of addition/removals so that those modifications can happen at well-defined
+ * times (e.g. to make sure a loop iterator isn't invalidated).
+ */
 class ActionSet {
 public:
 

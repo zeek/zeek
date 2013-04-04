@@ -836,6 +836,7 @@ int main(int argc, char** argv)
 
 	yyparse();
 
+	analyzer_mgr->InitBifs();
 	plugin_mgr->InitPluginsBif();
 
 	if ( print_plugins )

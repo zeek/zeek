@@ -89,12 +89,18 @@ void Manager::Init()
 	for ( std::list<Component*>::const_iterator i = analyzers.begin(); i != analyzers.end(); i++ )
 		RegisterAnalyzerComponent(*i);
 
-	// Caache these tags.
+	// Cache these tags.
 	analyzer_backdoor = GetAnalyzerTag("BACKDOOR");
 	analyzer_connsize = GetAnalyzerTag("CONNSIZE");
 	analyzer_interconn = GetAnalyzerTag("INTERCONN");
 	analyzer_stepping = GetAnalyzerTag("STEPPINGSTONE");
 	analyzer_tcpstats = GetAnalyzerTag("TCPSTATS");
+
+	}
+
+void Manager::InitBifs()
+	{
+	#include "analyzer.bif.init.cc"
 	}
 
 void Manager::DumpDebug()

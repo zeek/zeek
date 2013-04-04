@@ -548,14 +548,12 @@ void builtin_error(const char* msg, BroObj* arg)
 		reporter->Error(msg, arg);
 	}
 
-#include "analyzer.bif.func_h"
 #include "bro.bif.func_h"
 #include "logging.bif.func_h"
 #include "input.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 
-#include "analyzer.bif.func_def"
 #include "bro.bif.func_def"
 #include "logging.bif.func_def"
 #include "input.bif.func_def"
@@ -571,7 +569,6 @@ void init_builtin_funcs()
 	var_sizes = internal_type("var_sizes")->AsTableType();
 	gap_info = internal_type("gap_info")->AsRecordType();
 
-#include "analyzer.bif.func_init"
 #include "bro.bif.func_init"
 #include "logging.bif.func_init"
 #include "input.bif.func_init"

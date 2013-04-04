@@ -29,6 +29,8 @@
 #include "../net_util.h"
 #include "../IP.h"
 
+#include "analyzer/analyzer.bif.h"
+
 namespace analyzer {
 
 /**
@@ -58,6 +60,12 @@ public:
 	 * are parsed.
 	 */
 	void Init();
+
+	/**
+	 * Initializes the analyze-related BiFs. Must be called after scripts
+	 * are parsed.
+	 */
+	void InitBifs();
 
 	/**
 	 * Finished the manager's operations.

@@ -238,7 +238,6 @@ TableType* record_field_table;
 
 StringVal* cmd_line_bpf_filter;
 
-#include "analyzer.bif.netvar_def"
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"

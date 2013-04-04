@@ -103,7 +103,6 @@ target_link_libraries(bifcl)
 include(BifCl)
 
 set(BIF_SRCS
-    analyzer.bif
     bro.bif
     logging.bif
     input.bif
@@ -157,6 +156,17 @@ binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
+
+########################################################################
+## Including subdirectories.
+########################################################################
+
+add_subdirectory(analyzer)
+
+set(bro_SUBDIRS
+    $<TARGET_OBJECTS:bro_analyzer>
+)
+
 
 ########################################################################
 ## Including plug-ins that are compiled in statically.
@@ -389,11 +399,6 @@ set(bro_SRCS
     plugin/Manager.cc
     plugin/Plugin.cc
 
-    analyzer/Analyzer.cc
-    analyzer/Manager.cc
-    analyzer/Component.cc
-    analyzer/Tag.cc
-
     protocols/BuiltInAnalyzers.cc
 
     nb_dns.c
@@ -402,7 +407,7 @@ set(bro_SRCS
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 
-add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_PLUGIN_OBJECT_LIBS})
+add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_PLUGIN_OBJECT_LIBS} ${bro_SUBDIRS})
 
 target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 

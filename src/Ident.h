@@ -16,9 +16,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Ident_Analyzer(conn); }
 
-	static bool Available()
-		{ return ident_request || ident_reply || ident_error; }
-
 protected:
 	const char* ParsePair(const char* line, const char* end_of_line,
 				int& p1, int &p2);

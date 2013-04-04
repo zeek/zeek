@@ -35,8 +35,6 @@ public:
 		return new IRC_Analyzer(conn);
 		}
 
-	static bool Available();
-
 protected:
 	int orig_status;
 	int orig_zip_status;

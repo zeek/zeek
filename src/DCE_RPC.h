@@ -177,9 +177,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
-	static bool Available()
-		{ return DCE_RPC_Session::any_dce_rpc_event(); }
-
 protected:
 	DCE_RPC_Session* session;
 	bool speculative;

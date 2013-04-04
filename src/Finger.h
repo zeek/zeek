@@ -19,8 +19,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Finger_Analyzer(conn); }
 
-	static bool Available()	{ return finger_request || finger_reply; }
-
 protected:
 	ContentLine_Analyzer* content_line_orig;
 	ContentLine_Analyzer* content_line_resp;

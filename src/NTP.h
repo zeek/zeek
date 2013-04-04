@@ -42,8 +42,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NTP_Analyzer(conn); }
 
-	static bool Available()	{ return ntp_message; }
-
 protected:
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,

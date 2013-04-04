@@ -15,9 +15,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SSH_Analyzer(conn); }
 
-	static bool Available()
-		{ return  ssh_client_version || ssh_server_version; }
-
 private:
 	ContentLine_Analyzer* orig;
 	ContentLine_Analyzer* resp;

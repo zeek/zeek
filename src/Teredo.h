@@ -22,10 +22,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
 
-	static bool Available()
-		{ return BifConst::Tunnel::enable_teredo &&
-		         BifConst::Tunnel::max_depth > 0; }
-
 	/**
 	 * Emits a weird only if the analyzer has previously been able to
 	 * decapsulate a Teredo packet in both directions or if *force* param is

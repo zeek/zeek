@@ -18,9 +18,6 @@ public:
 		return new FTP_Analyzer(conn);
 		}
 
-	static bool Available()	{ return ftp_request || ftp_reply; }
-
-
 protected:
 	NVT_Analyzer* nvt_orig;
 	NVT_Analyzer* nvt_resp;

@@ -15,10 +15,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new AYIYA_Analyzer(conn); }
 
-	static bool Available()
-		{ return BifConst::Tunnel::enable_ayiya &&
-		         BifConst::Tunnel::max_depth > 0; }
-
 protected:
 	friend class AnalyzerTimer;
 	void ExpireTimer(double t);

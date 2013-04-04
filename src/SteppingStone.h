@@ -54,8 +54,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SteppingStone_Analyzer(conn); }
 
-	static bool Available()	{ return stp_correlate_pair; }
-
 protected:
 	// We support both packet and stream input and can be put in place even
 	// if the TCP analyzer is not yet reassebmling.

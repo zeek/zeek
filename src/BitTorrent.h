@@ -20,9 +20,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new BitTorrent_Analyzer(conn); }
 
-	static bool Available()
-		{ return bittorrent_peer_handshake || bittorrent_peer_piece; }
-
 protected:
 	void DeliverWeird(const char* msg, bool orig);
 

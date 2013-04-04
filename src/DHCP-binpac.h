@@ -18,9 +18,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DHCP_Analyzer_binpac(conn); }
 
-	static bool Available()
-		{ return dhcp_request; }
-
 protected:
 	binpac::DHCP::DHCP_Conn* interp;
 };

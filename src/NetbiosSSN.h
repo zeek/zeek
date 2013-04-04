@@ -160,13 +160,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
 
-	static bool Available()
-		{
-		return NetbiosSSN_Interpreter::any_netbios_ssn_event() ||
-			SMB_Session::any_smb_event() ||
-			DCE_RPC_Session::any_dce_rpc_event();
-		}
-
 protected:
 	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, int gen_event);

@@ -18,9 +18,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Syslog_Analyzer_binpac(conn); }
 
-	static bool Available()
-		{ return syslog_message; }
-
 protected:
 	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
@@ -44,9 +41,6 @@ protected:
 //
 //	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 //		{ return new Syslog_TCP_Analyzer_binpac(conn); }
-//
-//	static bool Available()
-//		{ return (Syslog_request || Syslog_full_request); }
 //
 //protected:
 //	binpac::Syslog_on_TCP::Syslog_TCP_Conn* interp;

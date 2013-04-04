@@ -91,8 +91,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new TCP_Analyzer(conn); }
 
-	static bool Available()	{ return true; }
-
 protected:
 	friend class TCP_ApplicationAnalyzer;
 	friend class TCP_Reassembler;
@@ -364,8 +362,6 @@ public:
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new TCPStats_Analyzer(conn); }
-
-	static bool Available()	{ return conn_stats || tcp_rexmit; }
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,

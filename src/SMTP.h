@@ -52,12 +52,6 @@ public:
 		return new SMTP_Analyzer(conn);
 		}
 
-	static bool Available()
-		{
-		return smtp_request || smtp_reply ||
-			smtp_data || smtp_unexpected;
-		}
-
 protected:
 
 	void ProcessLine(int length, const char* line, bool orig);

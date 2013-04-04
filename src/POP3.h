@@ -73,11 +73,6 @@ public:
 		return new POP3_Analyzer(conn);
 		}
 
-	static bool Available()
-		{
-		return pop3_request || pop3_reply || pop3_data || pop3_unexpected;
-		}
-
 protected:
 	int masterState;
 	int subState;

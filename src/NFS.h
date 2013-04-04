@@ -77,16 +77,6 @@ public:
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NFS_Analyzer(conn); }
-
-	static bool Available()
-		{
-		return ( nfs_proc_null || nfs_proc_not_implemented || nfs_proc_getattr ||
-		         nfs_proc_lookup || nfs_proc_read || nfs_proc_readlink ||
-		         nfs_proc_write || nfs_proc_create || nfs_proc_mkdir ||
-		         nfs_proc_remove || nfs_proc_rmdir || nfs_proc_readdir ||
-		         nfs_reply_status ||
-		         rpc_dialogue || rpc_call || rpc_reply );
-		}
 };
 
 

@@ -62,12 +62,6 @@ public:
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Rlogin_Analyzer(conn); }
-
-	static bool Available()
-		{
-		return login_failure || login_success ||
-			login_input_line || login_output_line;
-		}
 };
 
 #endif

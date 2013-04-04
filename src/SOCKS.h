@@ -28,11 +28,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SOCKS_Analyzer(conn); }
 
-	static bool Available()
-		{
-		return socks_request || socks_reply;
-		}
-
 protected:
 
 	bool orig_done;

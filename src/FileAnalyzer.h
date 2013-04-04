@@ -18,8 +18,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new File_Analyzer(conn); }
 
-	static bool Available()	{ return file_transferred; }
-
 protected:
 	void Identify();
 

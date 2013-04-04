@@ -37,8 +37,6 @@ public:
 	// as pointer to an Analyzer.
 	analyzer::Analyzer* AsAnalyzer()	{ return as_analyzer; }
 
-	static bool Available()	{ return true; }
-
 protected:
 	void PIA_Done();
 	void PIA_DeliverPacket(int len, const u_char* data, bool is_orig,

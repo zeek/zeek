@@ -22,8 +22,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new ICMP_Analyzer(conn); }
 
-	static bool Available()	{ return true; }
-
 protected:
 	ICMP_Analyzer(analyzer::Tag tag, Connection* conn);
 

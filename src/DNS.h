@@ -269,11 +269,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
-	static bool Available()
-		{
-		return (dns_request || dns_full_request);
-		}
-
 protected:
 	DNS_Interpreter* interp;
 	Contents_DNS* contents_dns_orig;

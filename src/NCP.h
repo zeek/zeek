@@ -105,8 +105,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NCP_Analyzer(conn); }
 
-	static bool Available()	{ return NCP_Session::any_ncp_event(); }
-
 protected:
 
 	NCP_Session* session;

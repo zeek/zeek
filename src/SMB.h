@@ -198,12 +198,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SMB_Analyzer(conn); }
 
-	static bool Available()
-		{
-		return SMB_Session::any_smb_event() ||
-			DCE_RPC_Session::any_dce_rpc_event();
-		}
-
 protected:
 	SMB_Session* smb_session;
 	Contents_SMB* o_smb;

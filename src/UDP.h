@@ -23,8 +23,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
 
-	static bool Available() { return true; }
-
 protected:
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,

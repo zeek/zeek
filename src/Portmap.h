@@ -31,9 +31,6 @@ public:
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
-
-	static bool Available()
-		{ return pm_request || rpc_call; }
 };
 
 #endif

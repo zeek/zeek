@@ -22,38 +22,6 @@ IRC_Analyzer::IRC_Analyzer(Connection* conn)
 	AddSupportAnalyzer(new ContentLine_Analyzer(conn, false));
 	}
 
-bool IRC_Analyzer::Available()
-	{
-	static bool did_avail = false;
-	static bool avail = false;
-
-	if ( ! did_avail )
-		{
-		// It's a lot of events, but for consistency with other
-		// analyzers we need to check for all of them.
-		avail = irc_request || irc_reply ||
-			irc_message || irc_quit_message ||
-			irc_privmsg_message || irc_notice_message ||
-			irc_squery_message || irc_join_message ||
-			irc_part_message || irc_nick_message ||
-			irc_invalid_nick || irc_network_info ||
-			irc_server_info || irc_channel_info || irc_who_line ||
-			irc_who_message || irc_whois_message ||
-			irc_whois_user_line || irc_whois_operator_line ||
-			irc_whois_channel_line || irc_oper_message ||
-			irc_oper_response || irc_kick_message ||
-			irc_error_message || irc_invite_message ||
-			irc_mode_message || irc_squit_message ||
-			irc_names_info || irc_dcc_message ||
-			irc_global_users || irc_user_message ||
-			irc_channel_topic || irc_password_message;
-
-		did_avail = true;
-		}
-
-	return avail;
-	}
-
 void IRC_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();

@@ -53,9 +53,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new BitTorrentTracker_Analyzer(conn); }
 
-	static bool Available()
-		{ return bt_tracker_request || bt_tracker_response; }
-
 protected:
 	void ClientRequest(int len, const u_char* data);
 	void ServerReply(int len, const u_char* data);

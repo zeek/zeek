@@ -43,13 +43,6 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Gnutella_Analyzer(conn); }
 
-	static bool Available()
-		{
-		return gnutella_text_msg || gnutella_binary_msg ||
-			gnutella_partial_binary_msg || gnutella_establish ||
-			gnutella_not_establish || gnutella_http_notify;
-		}
-
 private:
 	int NextLine(const u_char* data, int len);
 

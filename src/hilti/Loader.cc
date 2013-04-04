@@ -210,6 +210,10 @@ Loader::Loader()
 
 	::hilti::init();
 	::binpac::init();
+
+	hlt_config cfg = *hlt_config_get();
+	cfg.fiber_stack_size = 10 * 1024;;
+	hlt_config_set(&cfg);
 	}
 
 void Loader::AddLibraryPath(const char* dirs)
@@ -409,7 +413,7 @@ bool Loader::Compile()
 
 	DBG_LOG(DBG_PAC2, "compiling & linking all HILTI code into a single LLVM module");
 
-	auto llvm_module = pimpl->pac2_context->linkModules("<all Bro JIT code>", pimpl->hilti_modules);
+	auto llvm_module = pimpl->pac2_context->linkModules("<all Bro JIT code>", pimpl->hilti_modules, false);
 
 	if ( ! llvm_module )
 		{

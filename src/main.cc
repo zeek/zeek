@@ -1123,6 +1123,9 @@ int main(int argc, char** argv)
 #endif
 
 		double time_net_start = current_time(true);;
+
+		fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
+
 		net_run();
 		double time_net_done = current_time(true);;
 

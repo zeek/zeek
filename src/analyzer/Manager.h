@@ -114,6 +114,11 @@ public:
 	bool DisableAnalyzer(EnumVal* tag);
 
 	/**
+	 * Disables all currently registered analyzers.
+	 */
+	void DisableAllAnalyzers();
+
+	/**
 	 * Returns true if an analyzer is enabled.
 	 *
 	 * @param tag The analyzer's tag.

@@ -224,6 +224,14 @@ bool Manager::DisableAnalyzer(EnumVal* val)
 	return true;
 	}
 
+void Manager::DisableAllAnalyzers()
+	{
+	DBG_LOG(DBG_ANALYZER, "Disabling all analyzers");
+
+	for ( analyzer_map_by_tag::const_iterator i = analyzers_by_tag.begin(); i != analyzers_by_tag.end(); i++ )
+		i->second->SetEnabled(false);
+	}
+
 bool Manager::IsEnabled(Tag tag)
 	{
 	if ( ! tag )

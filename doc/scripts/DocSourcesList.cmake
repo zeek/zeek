@@ -16,7 +16,7 @@ rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro internal)
 rest_target(${psd} base/init-default.bro internal)
 rest_target(${psd} base/init-bare.bro internal)
 
-rest_target(${CMAKE_BINARY_DIR}/src base/analyzer.bif.bro)
+rest_target(${CMAKE_BINARY_DIR}/src base/analyzer/analyzer.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/src base/bro.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/src base/const.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/src base/event.bif.bro)

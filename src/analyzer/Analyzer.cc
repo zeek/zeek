@@ -7,7 +7,38 @@
 #include "../PIA.h"
 #include "../Event.h"
 
+namespace analyzer {
+
+
+class AnalyzerTimer : public Timer {
+public:
+	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
+			double arg_t, int arg_do_expire, TimerType arg_type);
+
+	virtual ~AnalyzerTimer();
+
+	void Dispatch(double t, int is_expire);
+
+protected:
+	AnalyzerTimer()	{}
+
+	void Init(Analyzer* analyzer, analyzer_timer_func timer, int do_expire);
+
+	Analyzer* analyzer;
+	analyzer_timer_func timer;
+	int do_expire;
+};
+
+}
+
 using namespace analyzer;
+
+AnalyzerTimer::AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
+			     double arg_t, int arg_do_expire, TimerType arg_type)
+	: Timer(arg_t, arg_type)
+	{
+	Init(arg_analyzer, arg_timer, arg_do_expire);
+	}
 
 AnalyzerTimer::~AnalyzerTimer()
 	{

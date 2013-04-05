@@ -1556,12 +1556,6 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-// The following need to be consistent with bro.init.
-#define CONTENTS_NONE 0
-#define CONTENTS_ORIG 1
-#define CONTENTS_RESP 2
-#define CONTENTS_BOTH 3
-
 void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
 	{
 	if ( direction == CONTENTS_NONE )

@@ -16,7 +16,6 @@ public:
 		{ return new AYIYA_Analyzer(conn); }
 
 protected:
-	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
 
 	binpac::AYIYA::AYIYA_Conn* interp;

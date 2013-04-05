@@ -47,7 +47,6 @@ public:
 		}
 
 protected:
-	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
 
 	bool valid_orig;

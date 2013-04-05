@@ -19,7 +19,6 @@ public:
 		{ return new Syslog_Analyzer_binpac(conn); }
 
 protected:
-	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
 
 	int did_session_done;

@@ -16,7 +16,6 @@ public:
 		{ return new GTPv1_Analyzer(conn); }
 
 protected:
-	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
 
 	binpac::GTPv1::GTPv1_Conn* interp;

@@ -171,10 +171,7 @@ bool Manager::EnableAnalyzer(Tag tag)
 	Component* p = Lookup(tag);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to enable non-existing analyzer");
 		return false;
-		}
 
 	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
@@ -187,10 +184,7 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 	Component* p = Lookup(val);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to enable non-existing analyzer");
 		return false;
-		}
 
 	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
@@ -203,10 +197,7 @@ bool Manager::DisableAnalyzer(Tag tag)
 	Component* p = Lookup(tag);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to disable non-existing analyzer");
 		return false;
-		}
 
 	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
@@ -219,10 +210,7 @@ bool Manager::DisableAnalyzer(EnumVal* val)
 	Component* p = Lookup(val);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to disable non-existing analyzer");
 		return false;
-		}
 
 	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
@@ -246,10 +234,7 @@ bool Manager::IsEnabled(Tag tag)
 	Component* p = Lookup(tag);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to check non-existing analyzer");
 		return false;
-		}
 
 	return p->Enabled();
 	}
@@ -259,10 +244,7 @@ bool Manager::IsEnabled(EnumVal* val)
 	Component* p = Lookup(val);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to check non-existing analyzer");
 		return false;
-		}
 
 	return p->Enabled();
 	}
@@ -273,11 +255,8 @@ bool Manager::RegisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	Component* p = Lookup(val);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to register port for non-existing analyzer");
 		return false;
-		}
-
+	
 	return RegisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 
@@ -286,10 +265,7 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	Component* p = Lookup(val);
 
 	if ( ! p  )
-		{
-		DBG_LOG(DBG_ANALYZER, "Asked to unregister port fork non-existing analyzer");
 		return false;
-		}
 
 	return UnregisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}

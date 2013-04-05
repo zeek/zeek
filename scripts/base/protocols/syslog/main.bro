@@ -38,7 +38,7 @@ redef record connection += {
 event bro_init() &priority=5
 	{
 	Log::create_stream(Syslog::LOG, [$columns=Info]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG_BINPAC, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, ports);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5

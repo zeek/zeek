@@ -152,8 +152,6 @@ binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
 binpac_target(socks.pac
     socks-protocol.pac socks-analyzer.pac)
-binpac_target(syslog.pac
-    syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
 
@@ -349,7 +347,6 @@ set(bro_SRCS
     Stats.cc
     SteppingStone.cc
     Stmt.cc
-    Syslog-binpac.cc
     TCP.cc
     TCP_Endpoint.cc
     TCP_Reassembler.cc

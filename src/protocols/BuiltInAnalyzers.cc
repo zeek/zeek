@@ -37,7 +37,6 @@
 #include "POP3.h"
 #include "SOCKS.h"
 #include "SSH.h"
-#include "Syslog-binpac.h"
 #include "Teredo.h"
 #include "ConnSizeAnalyzer.h"
 #include "GTPv1.h"
@@ -90,7 +89,6 @@ void BuiltinAnalyzers::Init()
 	DEFINE_ANALYZER("TELNET", Telnet_Analyzer::InstantiateAnalyzer);
 
 	DEFINE_ANALYZER("DHCP_BINPAC", DHCP_Analyzer_binpac::InstantiateAnalyzer);
-	DEFINE_ANALYZER("SYSLOG_BINPAC", Syslog_Analyzer_binpac::InstantiateAnalyzer);
 	DEFINE_ANALYZER("MODBUS", ModbusTCP_Analyzer::InstantiateAnalyzer);
 
 	DEFINE_ANALYZER("AYIYA", AYIYA_Analyzer::InstantiateAnalyzer);

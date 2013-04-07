@@ -5650,44 +5650,36 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 
 %%{
 #include "HyperLogLog.h"
-static map<BroString, CardinalityCounter*> hll_counters;
-
-BroString* convert_index_to_string(Val* index)
-        {
-        ODesc d;
-        index->Describe(&d);
-        BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-        s->SetUseFreeToDelete(1);
-        return s;
-        }
 %%}
 
 ## Initializes the hash for the HyperLogLog cardinality counting algorithm.
 ## It returns true if it was successful in creating a structure and false
 ## if it wasn't.
 
-function hll_cardinality_init%(err: double,index: any%): bool
+function hll_cardinality_init%(err: double%): opaque of cardinality
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
+	CardinalityCounter* c = new CardinalityCounter(err);
+	CardinalityVal* cv = new CardinalityVal();
 
-	if ( hll_counters.count(*s) < 1 )
-		{
-		hll_counters[*s] = new CardinalityCounter(err);
-		status = 1;
-		}
+	if ( !c )  
+		reporter->Error("Failed initialize Cardinality counter");
+	else 
+		cv->Init(c);
 
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	return cv;
 	%}
 
 ## Adds an element to the HyperLogLog data structure located at index.
 
 ##elem->Type() to get the type of elem.
 
-function hll_cardinality_add%(elem: any, index: any%): bool
+function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	%{
-	BroString* s = convert_index_to_string(index);
+	if ( !((CardinalityVal*) handle)->IsValid() ) {
+		reporter->Error("Need valid handle");
+		return new Val(0, TYPE_BOOL);
+	}
+
 	int status = 0;
 	uint64_t a = 123456;
 
@@ -5696,19 +5688,13 @@ function hll_cardinality_add%(elem: any, index: any%): bool
 	CompositeHash* hll_hash = new CompositeHash(tl);
 	Unref(tl);
 
-	if( hll_counters.count(*s) > 0 )
-		{
-		CardinalityCounter* h = hll_counters[*s];
-		HashKey* key = hll_hash->ComputeHash(elem, 1);
-		a = key->Hash();
-		h->addElement(a);
-		status = 1;
-		delete key;
-		}
+	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+	HashKey* key = hll_hash->ComputeHash(elem, 1);
+	a = key->Hash();
+	h->addElement(a);
 
 	delete hll_hash;
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	return new Val(1, TYPE_BOOL);
 	%}
 
 ## The data structure at index1 will contain the combined count for the
@@ -5716,135 +5702,68 @@ function hll_cardinality_add%(elem: any, index: any%): bool
 ## It returns true if it either cloned the value at index2 into index1
 ## or if it merged the two data structures together.
 
-function hll_cardinality_merge_into%(index1: any, index2: any%): bool
+function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: opaque of cardinality%): bool
 	%{
-	BroString* s1 = convert_index_to_string(index1);
-	BroString* s2 = convert_index_to_string(index2);
-	int status = 0;
+	CardinalityVal* v1 = (CardinalityVal*) handle1;
+	CardinalityVal* v2 = (CardinalityVal*) handle2;
 
-	if(hll_counters.count(*s1) < 1)
-		{
-		if(hll_counters.count(*s2) < 1)
-			{
-			status = 0;
-			}
-		else
-			{
-			uint64_t m = (*hll_counters[*s2]).getM();
-			CardinalityCounter* newInst = new CardinalityCounter(m);
-			hll_counters[*s1] = newInst;
-			(*newInst).merge(hll_counters[*s2]);
-			status = 1;
-			}
-		}
-	else
-		{
-		if(hll_counters.count(*s2) < 1)
-			{
-			status = 0;
-			}
-		else
-			{
-			if((*hll_counters[*s2]).getM() == (*hll_counters[*s1]).getM())
-				{
-				status = 1;
-				(*hll_counters[*s1]).merge(hll_counters[*s2]);
-				}
-			}
-		}
+	if ( !v1->IsValid() || !v2->IsValid() ) {
+		reporter->Error("need valid handles");
+		return new Val(0, TYPE_BOOL);
+	}
 
-	delete s1;
-	delete s2;
-	return new Val(status, TYPE_BOOL);
+	CardinalityCounter* h1 = v1->Get();
+	CardinalityCounter* h2 = v2->Get();
 
+	h1->merge(h2);
+
+	return new Val(1, TYPE_BOOL);
 	%}
 
 ## Returns true if it destroyed something. False if it didn't.
-function hll_cardinality_destroy%(index: any%): bool
-	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if(hll_counters.count(*s) > 0)
-		{
-		hll_counters.erase(*s);
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
-	%}
+#function hll_cardinality_destroy%(handle: opaque of cardinality%): bool
+#	%{
+#	if ( !((CardinalityVal*) handle)->IsValid() ) {
+#		reporter->Error("Need valid handle");
+#		return new Val(0, TYPE_BOOL);
+#	}
+#	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+#	delete h;
+#	h = 0;
+#	return new Val(1, TYPE_BOOL);
+#	%}
 
 ## Returns the cardinality estimate. Returns -1.0 if there is nothing in that index.
-function hll_cardinality_estimate%(index: any%): double
+function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 	%{
-	BroString* s = convert_index_to_string(index);
-	double estimate = -1.0;
+	if ( !((CardinalityVal*) handle)->IsValid() ) {
+		reporter->Error("Need valid handle");
+		return new Val(0, TYPE_BOOL);
+	}
+	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
 
-	if(hll_counters.count(*s) > 0)
-		{
-		estimate = (*hll_counters[*s]).size();
-		}
+	double estimate = h->size();
 
-	delete s;
 	return new Val(estimate, TYPE_DOUBLE);	
-	%}
-
-##I'm really not sure about the notation of this function...
-
-function hll_cardinality_keys%(%): string_set
-	%{
-	TableVal* a = new TableVal(string_set);
-	map<BroString, CardinalityCounter*>::iterator it;
-	int i = 0;
-
-	for(it = hll_counters.begin() ; it != hll_counters.end(); it++)
-		{
-		BroString* s = (BroString*) &(it->first);
-		a->Assign(new StringVal(s), 0);
-		}
-	return a;
 	%}
 
 ## Stores the data structure at index2 into index1. Deletes the data structure at index1
 ## if there was any. Returns True if the data structure at index1 was changed in any way.
 
-function hll_cardinality_clone%(index1: any, index2: any%): bool
+function hll_cardinality_clone%(handle: opaque of cardinality%): opaque of cardinality
 	%{
-	BroString* s1 = convert_index_to_string(index1);
-	BroString* s2 = convert_index_to_string(index2);
-	int status = 0;
+	if ( !((CardinalityVal*) handle)->IsValid() ) {
+		reporter->Error("Need valid handle");
+		return new Val(0, TYPE_BOOL);
+	}
+	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
 
-	if(hll_counters.count(*s2) < 1)
-		{
-		if(hll_counters.count(*s1) < 1)
-			{
-			status = 0;
-			}
-		else
-			{
-			delete hll_counters[*s1];
-			status = 1;
-			}
-		}
-	else
-		{
-		uint64_t m = (*hll_counters[*s2]).getM();
-		CardinalityCounter* newInst = new CardinalityCounter(m);
-		int i = 0;
-		(*newInst).merge(hll_counters[*s2]);
-		if(hll_counters.count(*s1) < 1)
-			{
-			hll_counters[*s1] = newInst;
-			}
-		else
-			{
-			delete hll_counters[*s1];
-			hll_counters[*s1] = newInst;
-			}
-		status = 1;
-		}
-	delete s1;
-	delete s2;
-	return new Val(status, TYPE_BOOL);
+
+	uint64_t m = h->getM();
+	CardinalityCounter* h2 = new CardinalityCounter(m);
+	int i = 0;
+	h2->merge(h);
+	CardinalityVal* cv = new CardinalityVal();
+	cv->Init(h2);
+	return cv;
 	%}

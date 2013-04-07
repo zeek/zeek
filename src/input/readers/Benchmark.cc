@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "../../threading/Manager.h"
 
@@ -71,7 +72,9 @@ string Benchmark::RandomString(const int len)
 double Benchmark::CurrTime()
 	{
 	struct timeval tv;
-	assert ( gettimeofday(&tv, 0) >= 0 );
+	if ( gettimeofday(&tv, 0) != 0 ) {
+		FatalError(Fmt("Could not get time: %d", errno));
+	}
 
 	return double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 	}

@@ -4984,14 +4984,22 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 		{
 		ListVal* v = new ListVal(TYPE_ANY);
 
+		const type_list* tl = type->AsTypeList()->Types();
+		if ( exprs.length() != tl->length() )
+			{
+			Error("index mismatch", t);
+			return 0;
+			}
+
 		loop_over_list(exprs, i)
 			{
-			Val* vi = exprs[i]->InitVal(t, 0);
+			Val* vi = exprs[i]->InitVal((*tl)[i], 0);
 			if ( ! vi )
 				{
 				Unref(v);
 				return 0;
 				}
+				
 			v->Append(vi);
 			}
 		return v;

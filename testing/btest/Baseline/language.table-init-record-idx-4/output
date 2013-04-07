@@ -1,0 +1,25 @@
+following should all be true...
+T
+T
+T
+T
+T
+T
+T
+T
+1
+1
+1
+following should all be false...
+F
+F
+F
+now here's the foo table...
+{
+[[a=foo, b=2], 2] = 2,
+[[a=baz, b=6], 6] = 6,
+[[a=bar, b=4], 4] = 4,
+[[a=baz, b=5], 5] = 5,
+[[a=bar, b=3], 3] = 3,
+[[a=foo, b=1], 1] = 1
+}

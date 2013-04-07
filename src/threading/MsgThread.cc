@@ -161,16 +161,16 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 // Set by Bro's main signal handler.
 extern int signal_val;
 
-void MsgThread::OnPrepareStop()
+void MsgThread::OnSignalStop()
 	{
 	if ( finished || Killed() )
 		return;
 
-	// Signal thread to terminate and wait until it has acknowledged.
+	// Signal thread to terminate.
 	SendIn(new FinishMessage(this, network_time), true);
 	}
 
-void MsgThread::OnStop()
+void MsgThread::OnWaitForStop()
 	{
 	int signal_count = 0;
 	int old_signal_val = signal_val;

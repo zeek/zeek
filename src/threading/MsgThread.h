@@ -228,8 +228,8 @@ protected:
 	 *
 	 */
 	virtual void Run();
-	virtual void OnStop();
-	virtual void OnPrepareStop();
+	virtual void OnWaitForStop();
+	virtual void OnSignalStop();
 	virtual void OnKill();
 
 private:

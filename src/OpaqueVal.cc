@@ -2,6 +2,28 @@
 #include "Reporter.h"
 #include "Serializer.h"
 
+
+CardinalityVal::CardinalityVal() 
+	{
+	valid = false;
+	}
+
+CardinalityVal::~CardinalityVal() 
+	{
+	if ( valid  && c ) 
+		delete c;
+	}
+
+bool CardinalityVal::Init(CardinalityCounter* arg_c)
+	{
+	if ( valid )
+		return false;
+
+	valid = true;
+	c = arg_c;
+	return valid;
+	}
+
 bool HashVal::IsValid() const
 	{
 	return valid;

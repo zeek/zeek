@@ -24,9 +24,6 @@
 @load frameworks/intel/smtp.bro
 @load frameworks/intel/ssl.bro
 @load frameworks/intel/where-locations.bro
-@load frameworks/metrics/conn-example.bro
-@load frameworks/metrics/http-example.bro
-@load frameworks/metrics/ssl-example.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load integration/barnyard2/__load__.bro

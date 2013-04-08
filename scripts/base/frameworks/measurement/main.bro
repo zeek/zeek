@@ -1,6 +1,4 @@
-##! The metrics framework provides a way to count and measure data.  
-
-@load base/utils/queue
+##! The measurement framework provides a way to count and measure data.  
 
 module Measurement;
 
@@ -12,7 +10,7 @@ export {
 
 	## Represents a thing which is having measurement results collected for it.
 	type Key: record {
-		## A non-address related metric or a sub-key for an address based metric.
+		## A non-address related measurement or a sub-key for an address based measurement.
 		## An example might be successful SSH connections by client IP address
 		## where the client string would be the key value.
 		## Another example might be number of HTTP requests to a particular

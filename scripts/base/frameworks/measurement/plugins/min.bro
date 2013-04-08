@@ -1,3 +1,4 @@
+@load base/frameworks/measurement
 
 module Measurement;
 

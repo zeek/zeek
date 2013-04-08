@@ -1,4 +1,5 @@
 @load ./average
+@load base/frameworks/measurement
 
 module Measurement;
 

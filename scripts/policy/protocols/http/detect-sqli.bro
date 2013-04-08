@@ -76,7 +76,7 @@ event bro_init() &priority=3
 	                     	local r = result["http.sqli.attacker"];
 	                     	NOTICE([$note=SQL_Injection_Attacker,
 	                     	        $msg="An SQL injection attacker was discovered!",
-	                     	        $email_body_sections=vector(format_sqli_samples(r$samples)),
+	                     	        $email_body_sections=vector(format_sqli_samples(Measurement::get_samples(r))),
 	                     	        $src=key$host,
 	                     	        $identifier=cat(key$host)]);
 	                     	}]);
@@ -94,7 +94,7 @@ event bro_init() &priority=3
 	                     	local r = result["http.sqli.victim"];
 	                     	NOTICE([$note=SQL_Injection_Victim,
 	                     	        $msg="An SQL injection victim was discovered!",
-	                     	        $email_body_sections=vector(format_sqli_samples(r$samples)),
+	                     	        $email_body_sections=vector(format_sqli_samples(Measurement::get_samples(r))),
 	                     	        $src=key$host,
 	                     	        $identifier=cat(key$host)]);
 	                     	}]);

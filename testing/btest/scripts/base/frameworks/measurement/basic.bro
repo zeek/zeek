@@ -10,7 +10,8 @@ event bro_init() &priority=5
 	                                             Measurement::MAX, 
 	                                             Measurement::MIN, 
 	                                             Measurement::STD_DEV,
-	                                             Measurement::UNIQUE)];
+	                                             Measurement::UNIQUE,
+						     Measurement::HLLUNIQUE)];
 	Measurement::create([$epoch=3secs,
 	                     $reducers=set(r1),
 	                     $epoch_finished(data: Measurement::ResultTable) = 
@@ -18,7 +19,7 @@ event bro_init() &priority=5
 	                     	for ( key in data )
 	                     		{
 	                     		local r = data[key]["test.metric"];
-	                     		print fmt("Host: %s - num:%d - sum:%.1f - var:%.1f - avg:%.1f - max:%.1f - min:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$variance, r$average, r$max, r$min, r$std_dev, r$unique);
+	                     		print fmt("Host: %s - num:%d - sum:%.1f - var:%.1f - avg:%.1f - max:%.1f - min:%.1f - std_dev:%.1f - unique:%d - hllunique:%.1f", key$host, r$num, r$sum, r$variance, r$average, r$max, r$min, r$std_dev, r$unique, hll_cardinality_estimate(r$hllunique));
 	                     		}
 	                     	}
 		 ]);

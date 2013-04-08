@@ -6,3 +6,4 @@
 @load ./sum
 @load ./unique
 @load ./variance
+@load ./hll_unique

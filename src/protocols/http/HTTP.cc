@@ -16,7 +16,7 @@
 #include "plugin/Plugin.h"
 
 BRO_PLUGIN_BEGIN(HTTP)
-	BRO_PLUGIN_DESCRIPTION = "HTTP Analyzer";
+	BRO_PLUGIN_DESCRIPTION("HTTP Analyzer");
 	BRO_PLUGIN_ANALYZER("HTTP", HTTP_Analyzer::InstantiateAnalyzer);
 	BRO_PLUGIN_BIF_FILE(events);
 	BRO_PLUGIN_BIF_FILE(functions);

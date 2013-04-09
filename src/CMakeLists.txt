@@ -117,7 +117,7 @@ foreach (bift ${BIF_SRCS})
     bif_target(${bift})
 endforeach ()
 
-add_custom_target(generate_standard_bifs DEPENDS ${ALL_BIF_OUTPUTS})
+add_custom_target(generate_bifs DEPENDS ${ALL_BIF_OUTPUTS})
 
 ########################################################################
 ## BinPAC-dependent targets
@@ -159,19 +159,15 @@ binpac_target(modbus.pac
 ## Including subdirectories.
 ########################################################################
 
+set(bro_PLUGIN_OBJECT_LIBS CACHE INTERNAL "plugin object libraries" FORCE)
+
 add_subdirectory(analyzer)
+add_subdirectory(protocols)
 
 set(bro_SUBDIRS
     $<TARGET_OBJECTS:bro_analyzer>
+    ${bro_PLUGIN_OBJECT_LIBS}
 )
-
-
-########################################################################
-## Including plug-ins that are compiled in statically.
-########################################################################
-
-set(bro_PLUGIN_OBJECT_LIBS CACHE INTERNAL "plugin object libraries" FORCE)
-add_subdirectory(protocols)
 
 ########################################################################
 ## bro target
@@ -403,8 +399,7 @@ set(bro_SRCS
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
-
-add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_PLUGIN_OBJECT_LIBS} ${bro_SUBDIRS})
+add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
 
 target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 

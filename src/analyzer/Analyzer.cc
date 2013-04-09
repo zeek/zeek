@@ -72,28 +72,56 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 
 analyzer::ID Analyzer::id_counter = 0;;
 
-const string& Analyzer::GetAnalyzerName() const
+const char* Analyzer::GetAnalyzerName() const
 	{
+	assert(tag);
 	return analyzer_mgr->GetAnalyzerName(tag);
+	}
+
+void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
+	{
+	assert(! tag || tag == arg_tag);
+	tag = arg_tag;
 	}
 
 bool Analyzer::IsAnalyzer(const char* name)
 	{
-	return analyzer_mgr->GetAnalyzerName(tag) == name;
+	assert(tag);
+	return strcmp(analyzer_mgr->GetAnalyzerName(tag), name) == 0;
 	}
 
 // Used in debugging output.
 static string fmt_analyzer(Analyzer* a)
 	{
-	return a->GetAnalyzerName() + fmt("[%d]", a->GetID());
+	return string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID());
 	}
 
-Analyzer::Analyzer(const char* name, Connection* arg_conn)
+Analyzer::Analyzer(const char* name, Connection* conn)
+	{
+	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
+
+	if ( ! tag )
+		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
+
+	CtorInit(tag, conn);
+	}
+
+Analyzer::Analyzer(const Tag& tag, Connection* conn)
+	{
+	CtorInit(tag, conn);
+	}
+
+Analyzer::Analyzer(Connection* conn)
+	{
+	CtorInit(Tag(), conn);
+	}
+
+void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	{
 	// Don't Ref conn here to avoid circular ref'ing. It can't be deleted
 	// before us.
 	conn = arg_conn;
-	tag = analyzer_mgr->GetAnalyzerTag(name);
+	tag = arg_tag;
 	id = ++id_counter;
 	protocol_confirmed = false;
 	skip = false;
@@ -104,10 +132,6 @@ Analyzer::Analyzer(const char* name, Connection* arg_conn)
 	resp_supporters = 0;
 	signature = 0;
 	output_handler = 0;
-
-	if ( ! tag )
-		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
-
 	}
 
 Analyzer::~Analyzer()
@@ -417,7 +441,7 @@ void Analyzer::RemoveChildAnalyzer(ID id)
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
-			DBG_LOG(DBG_ANALYZER, "%s  disabling child %s", GetAnalyzerName().c_str(), id,
+			DBG_LOG(DBG_ANALYZER, "%s  disabling child %s", GetAnalyzerName(), id,
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// See comment above.
 			(*i)->removing = true;
@@ -468,7 +492,7 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 	return 0;
 	}
 
-Analyzer* Analyzer::FindChild(const string& name)
+Analyzer* Analyzer::FindChild(const char* name)
 	{
 	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
 	return tag ? FindChild(tag) : 0;
@@ -625,9 +649,12 @@ void Analyzer::ProtocolConfirmation()
 	if ( protocol_confirmed )
 		return;
 
+	EnumVal* tval = tag.AsEnumVal();
+	Ref(tval);
+
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(tag.AsEnumVal());
+	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
 
 	// We immediately raise the event so that the analyzer can quickly
@@ -653,9 +680,12 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	else
 		r = new StringVal(reason);
 
+	EnumVal* tval = tag.AsEnumVal();
+	Ref(tval);
+
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(tag.AsEnumVal());
+	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
 	vl->append(r);
 

@@ -2,8 +2,6 @@
 #ifndef ANALYZER_PLUGIN_COMPONENT_H
 #define ANALYZER_PLUGIN_COMPONENT_H
 
-#include <string>
-
 #include "Tag.h"
 #include "plugin/Component.h"
 
@@ -21,8 +19,6 @@ class Analyzer;
  *
  * A plugin can provide a specific protocol analyzer by registering this
  * analyzer component, describing the analyzer.
- *
- * This class is safe to copy by value.
  */
 class Component : public plugin::Component {
 public:
@@ -58,13 +54,23 @@ public:
 	 * connections has generally not seen much testing yet as virtually
 	 * no existing analyzer supports it.
 	 */
-	Component(std::string name, factory_callback factory, Tag::subtype_t subtype = 0, bool enabled = true, bool partial = false);
+	Component(const char* name, factory_callback factory, Tag::subtype_t subtype = 0, bool enabled = true, bool partial = false);
+
+	/**
+	 * Copy constructor.
+	 */
+	Component(const Component& other);
+
+	/**
+	 * Destructor.
+	 */
+	~Component();
 
 	/**
 	 * Returns the name of the analyzer. This name is unique across all
 	 * analyzers and used to identify it.
 	 */
-	const std::string& Name() const	{ return name; }
+	const char* Name() const	{ return name; }
 
 	/**
 	 * Returns the analyzer's factory function.
@@ -74,7 +80,7 @@ public:
 	/**
 	 * Returns whether the analyzer supports partial connections. Partial
 	 * connections are those where Bro starts processing payload
-	 * mid-stream, after missing the beginning. 
+	 * mid-stream, after missing the beginning.
 	 */
 	bool Partial() const	{ return partial; }
 
@@ -89,7 +95,7 @@ public:
 	 * generated for each new Components, and hence unique across all of
 	 * them.
 	 */
-	analyzer::Tag Tag() const	{ return tag; }
+	analyzer::Tag Tag() const;
 
 	/**
 	 * Enables or disables this analyzer.
@@ -105,15 +111,17 @@ public:
 	 */
 	virtual void Describe(ODesc* d);
 
+	Component& operator=(const Component& other);
+
 private:
-	std::string name;	// The analyzer's name.
+	const char* name;	// The analyzer's name.
 	factory_callback factory;	// The analyzer's factory callback.
 	bool partial;	// True if the analyzer supports partial connections.
 	analyzer::Tag tag;	// The automatically assigned analyzer tag.
 	bool enabled;	// True if the analyzer is enabled.
 
 	// Global counter used to generate unique tags.
-	static analyzer::Tag::type_t type_counter; 
+	static analyzer::Tag::type_t type_counter;
 };
 
 }

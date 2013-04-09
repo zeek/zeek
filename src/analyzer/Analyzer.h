@@ -61,12 +61,31 @@ public:
 	/**
 	 * Constructor.
 	 *
-	 * @param name A name for the protocol the analyzer is parsing. The
-	 * name must match the one the corresponding Component registers.
+	 * @param name The name for the type of analyzer. The name must match
+	 * the one the corresponding Component registers.
 	 *
 	 * @param conn The connection the analyzer is associated with.
 	 */
 	Analyzer(const char* name, Connection* conn);
+
+	/**
+	 * Constructor.
+	 *
+	 * @param tag The tag for the type of analyzer. The tag must map to
+	 * the name the corresponding Component registers.
+	 *
+	 * @param conn The connection the analyzer is associated with.
+	 */
+	Analyzer(const Tag& tag, Connection* conn);
+
+	/**
+	 * Constructor. As this version of the constructor does not receive a
+	 * name or tag, setTag() must be called before the instance can be
+	 * used.
+	 *
+	 * @param conn The connection the analyzer is associated with.
+	 */
+	Analyzer(Connection* conn);
 
 	/**
 	 * Destructor.
@@ -285,14 +304,22 @@ public:
 	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
-	Tag GetAnalyzerTag() const		{ return tag; }
+	Tag GetAnalyzerTag() const		{ assert(tag); return tag; }
+
+	/**
+	 * Sets the tag associated with the analyzer's type. Note that this
+	 * can be called only right after construction, if the constructor
+	 * did not receive a name or tag. The method cannot be used to change
+	 * an existing tag.
+	 */
+	void SetAnalyzerTag(const Tag& tag);
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is
 	 * what's passed to the constructor and usally corresponds to the
 	 * protocol name, e.g., "HTTP".
 	 */
-	const string& GetAnalyzerName() const;
+	const char* GetAnalyzerName() const;
 
 	/**
 	 * Returns true if this analyzer's type matches the name passes in.
@@ -377,7 +404,7 @@ public:
 	 * @return The first analyzer of the given type found, or null if
 	 * none.
 	 */
-	Analyzer* FindChild(const string& name);
+	Analyzer* FindChild(const char* name);
 
 	/**
 	 * Returns a list of all direct child analyzers.
@@ -573,6 +600,9 @@ private:
 	// Internal method to eventually delete a child analyzer that's
 	// already Done().
 	void DeleteChild(analyzer_list::iterator i);
+
+	// Helper for the ctors.
+	void CtorInit(const Tag& tag, Connection* conn);
 
 	Tag tag;
 	ID id;

@@ -80,8 +80,10 @@ void EventRegistry::PrintDebug()
 	while ( (v = handlers.NextEntry(k, c)) )
 		{
 		delete k;
-		fprintf(stderr, "Registered event %s (%s handler)\n", v->Name(),
-				v->LocalHandler()? "local" : "no");
+		fprintf(stderr, "Registered event %s (%s handler / %s)\n", v->Name(),
+				v->LocalHandler()? "local" : "no",
+				*v ? "active" : "not active"
+				);
 		}
 	}
 

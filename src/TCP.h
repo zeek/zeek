@@ -267,6 +267,10 @@ public:
 	: Analyzer(name, conn)
 		{ tcp = 0; }
 
+	TCP_ApplicationAnalyzer(Connection* conn)
+	: Analyzer(conn)
+		{ tcp = 0; }
+
 	virtual ~TCP_ApplicationAnalyzer()	{ }
 
 	// This may be nil if we are not directly associated with a TCP

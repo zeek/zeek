@@ -50,11 +50,9 @@ BuiltinAnalyzers builtin_analyzers;
 
 void BuiltinAnalyzers::Init()
 	{
-	plugin::Description desc;
-	desc.name = "Core-Analyzers";
-	desc.description = "Built-in protocol analyzers";
-	desc.version = BRO_PLUGIN_VERSION_BUILTIN;
-	SetDescription(desc);
+	SetName("Core-Analyzers");
+	SetDescription("Built-in protocol analyzers");
+	SetVersion(BRO_PLUGIN_VERSION_BUILTIN);
 
 	DEFINE_ANALYZER("PIA_TCP", PIA_TCP::InstantiateAnalyzer);
 	DEFINE_ANALYZER("PIA_UDP", PIA_UDP::InstantiateAnalyzer);

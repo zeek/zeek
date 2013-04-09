@@ -814,8 +814,8 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	plugin_mgr = new plugin::Manager();
-	plugin_mgr->InitPlugins();
 
+	plugin_mgr->InitPlugins();
 	analyzer_mgr->Init();
 
 	if ( events_file )

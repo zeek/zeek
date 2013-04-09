@@ -9,33 +9,86 @@
 
 using namespace plugin;
 
-Description::Description()
+BifItem::BifItem(const BifItem& other)
 	{
-	name = "<NAME-NOT-SET>";
+	id = copy_string(other.id);
+	type = other.type;
+	}
 
-	// These will be reset by the BRO_PLUGIN_* macros.
-	version = -9999;
-	api_version = -9999;
+BifItem& BifItem::operator=(const BifItem& other)
+	{
+	if ( this != &other )
+		{
+		id = copy_string(other.id);
+		type = other.type;
+		}
+
+	return *this;
+	}
+
+BifItem::~BifItem()
+	{
+	delete [] id;
 	}
 
 Plugin::Plugin()
 	{
+	name = copy_string("<NAME-NOT-SET>");
+	description = copy_string("");
+
+	// These will be reset by the BRO_PLUGIN_* macros.
+	version = -9999;
+	api_version = -9999;
+
 	Manager::RegisterPlugin(this);
-	}
-
-Description Plugin::GetDescription() const
-	{
-	return description;
-	}
-
-void Plugin::SetDescription(Description& desc)
-	{
-	description = desc;
 	}
 
 Plugin::~Plugin()
 	{
 	Done();
+
+	delete [] name;
+	delete [] description;
+	}
+
+const char* Plugin::Name()
+	{
+	return name;
+	}
+
+void Plugin::SetName(const char* arg_name)
+	{
+	name = copy_string(arg_name);
+	}
+
+const char* Plugin::Description()
+	{
+	return description;
+	}
+
+void Plugin::SetDescription(const char* arg_description)
+	{
+	description = copy_string(arg_description);
+	}
+
+int Plugin::Version()
+	{
+	return version;
+	}
+
+void Plugin::SetVersion(int arg_version)
+	{
+	version = arg_version;
+	}
+
+int Plugin::APIVersion()
+	{
+	return api_version;
+	}
+
+void Plugin::SetAPIVersion(int arg_version)
+	{
+	api_version = arg_version;
 	}
 
 void Plugin::Init()
@@ -50,17 +103,26 @@ void Plugin::InitBif()
 
 		for ( bif_init_func_result::const_iterator i = items.begin(); i != items.end(); i++ )
 			{
-			BifItem bi;
-			bi.id = (*i).first;
-			bi.type = (BifItem::Type)(*i).second;
+			BifItem bi((*i).first, (BifItem::Type)(*i).second);
 			bif_items.push_back(bi);
 			}
 		}
 	}
 
-const Plugin::bif_item_list& Plugin::BifItems()
+Plugin::bif_item_list Plugin::BifItems()
 	{
-	return bif_items;
+	bif_item_list l1 = bif_items;
+	bif_item_list l2 = CustomBifItems();
+
+	for ( bif_item_list::const_iterator i = l2.begin(); i != l2.end(); i++ )
+		l1.push_back(*i);
+
+	return l1;
+	}
+
+Plugin::bif_item_list Plugin::CustomBifItems()
+	{
+	return bif_item_list();
 	}
 
 void Plugin::Done()
@@ -89,24 +151,18 @@ void Plugin::AddBifInitFunction(bif_init_func c)
 void Plugin::Describe(ODesc* d)
 	{
 	d->Add("Plugin: ");
-	d->Add(description.name);
+	d->Add(name);
 
-	if ( description.description.size() )
+	if ( description && *description )
 		{
 		d->Add(" - ");
-		d->Add(description.description);
+		d->Add(description);
 		}
 
-	if ( description.version != BRO_PLUGIN_VERSION_BUILTIN )
+	if ( version != BRO_PLUGIN_VERSION_BUILTIN )
 		{
 		d->Add(" (version ");
-		d->Add(description.version);
-
-		if ( description.url.size() )
-			{
-			d->Add(", from ");
-			d->Add(description.url);
-			}
+		d->Add(version);
 
 		d->Add(")");
 		}
@@ -125,11 +181,13 @@ void Plugin::Describe(ODesc* d)
 		d->Add("\n");
 		}
 
-	for ( bif_item_list::const_iterator i = bif_items.begin(); i != bif_items.end(); i++ )
+	bif_item_list items = BifItems();
+
+	for ( bif_item_list::const_iterator i = items.begin(); i != items.end(); i++ )
 		{
 		const char* type = 0;
 
-		switch ( (*i).type ) {
+		switch ( (*i).GetType() ) {
 		case BifItem::FUNCTION:
 			type = "Function";
 			break;
@@ -158,7 +216,7 @@ void Plugin::Describe(ODesc* d)
 		d->Add("[");
 		d->Add(type);
 		d->Add("] ");
-		d->Add((*i).id);
+		d->Add((*i).GetID());
 		d->Add("\n");
 		}
 	}

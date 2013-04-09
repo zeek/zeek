@@ -31,7 +31,7 @@ Tag::Tag(EnumVal* arg_val)
 	subtype = (i >> 31) & 0xffffffff;
 	}
 
-Tag::Tag(const Tag& other) : type(other.type), subtype(other.subtype)
+Tag::Tag(const Tag& other)
 	{
 	type = other.type;
 	subtype = other.subtype;
@@ -46,6 +46,27 @@ Tag::Tag()
 	type = 0;
 	subtype = 0;
 	val = 0;
+	}
+
+Tag::~Tag()
+	{
+	Unref(val);
+	val = 0;
+	}
+
+Tag& Tag::operator=(const Tag& other)
+	{
+	if ( this != &other )
+		{
+		type = other.type;
+		subtype = other.subtype;
+		val = other.val;
+
+		if ( val )
+			Ref(val);
+		}
+
+	return *this;
 	}
 
 EnumVal* Tag::AsEnumVal() const

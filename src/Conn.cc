@@ -413,7 +413,7 @@ analyzer::Analyzer* Connection::FindAnalyzer(analyzer::Tag tag)
 	return root_analyzer ? root_analyzer->FindChild(tag) : 0;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(const string& name)
+analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 	{
 	return root_analyzer->FindChild(name);
 	}

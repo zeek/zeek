@@ -42,6 +42,10 @@ namespace analyzer {
  * sets up their initial analyzer tree, including adding the right \c PIA,
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
+ *
+ * Note that we keep the public interface of this class free of std::*
+ * classes. This allows to external analyzer code to potentially use a
+ * different C++ standard library.
  */
 class Manager {
 public:
@@ -232,7 +236,7 @@ public:
 	 *
 	 * @return The name, or an empty string if the tag is invalid.
 	 */
-	const string& GetAnalyzerName(Tag tag);
+	const char* GetAnalyzerName(Tag tag);
 
 	/**
 	 * Translates an script-level analyzer tag into corresponding
@@ -243,17 +247,7 @@ public:
 	 *
 	 * @return The name, or an empty string if the tag is invalid.
 	 */
-	const string& GetAnalyzerName(Val* val);
-
-	/**
-	 * Translates an analyzer name into the corresponding tag.
-	 *
-	 * @param name The name.
-	 *
-	 * @return The tag. If the name does not correspond to a valid
-	 * analyzer, the returned tag will evaluate to false.
-	 */
-	Tag GetAnalyzerTag(const string& name);
+	const char* GetAnalyzerName(Val* val);
 
 	/**
 	 * Translates an analyzer name into the corresponding tag.
@@ -327,7 +321,7 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
-				TransportProto proto, const string& analyzer,
+				TransportProto proto, const char* analyzer,
 				double timeout);
 
 	/**

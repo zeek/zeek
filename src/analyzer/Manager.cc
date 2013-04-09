@@ -108,7 +108,7 @@ void Manager::DumpDebug()
 #ifdef DEBUG
 	DBG_LOG(DBG_ANALYZER, "Available analyzers after bro_init():");
 	for ( analyzer_map_by_name::const_iterator i = analyzers_by_name.begin(); i != analyzers_by_name.end(); i++ )
-		DBG_LOG(DBG_ANALYZER, "    %s (%s)", i->second->Name().c_str(), IsEnabled(i->second->Tag()) ? "enabled" : "disabled");
+		DBG_LOG(DBG_ANALYZER, "    %s (%s)", i->second->Name(), IsEnabled(i->second->Tag()) ? "enabled" : "disabled");
 
 	DBG_LOG(DBG_ANALYZER, "");
 	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
@@ -118,7 +118,7 @@ void Manager::DumpDebug()
 		string s;
 
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += GetAnalyzerName(*j) + " ";
+			s += string(GetAnalyzerName(*j)) + " ";
 
 		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
 		}
@@ -128,7 +128,7 @@ void Manager::DumpDebug()
 		string s;
 
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += GetAnalyzerName(*j) + " ";
+			s += string(GetAnalyzerName(*j)) + " ";
 
 		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
@@ -151,10 +151,10 @@ void Manager::Done()
 void Manager::RegisterAnalyzerComponent(Component* component)
 	{
 	if ( Lookup(component->Name()) )
-		reporter->FatalError("Analyzer %s defined more than once", component->Name().c_str());
+		reporter->FatalError("Analyzer %s defined more than once", component->Name());
 
 	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s (tag %s)",
-		component->Name().c_str(), component->Tag().AsString().c_str());
+		component->Name(), component->Tag().AsString().c_str());
 
 	analyzers_by_name.insert(std::make_pair(component->Name(), component));
 	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
@@ -173,7 +173,7 @@ bool Manager::EnableAnalyzer(Tag tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name());
 	p->SetEnabled(true);
 
 	return true;
@@ -186,7 +186,7 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name());
 	p->SetEnabled(true);
 
 	return true;
@@ -199,7 +199,7 @@ bool Manager::DisableAnalyzer(Tag tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name());
 	p->SetEnabled(false);
 
 	return true;
@@ -212,7 +212,7 @@ bool Manager::DisableAnalyzer(EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
+	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name());
 	p->SetEnabled(false);
 
 	return true;
@@ -256,7 +256,7 @@ bool Manager::RegisterAnalyzerForPort(EnumVal* val, PortVal* port)
 
 	if ( ! p  )
 		return false;
-	
+
 	return RegisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 
@@ -275,8 +275,8 @@ bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port
 	tag_set* l = LookupPort(proto, port, true);
 
 #ifdef DEBUG
-	std::string name = GetAnalyzerName(tag);
-	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name.c_str(), port, proto);
+	const char* name = GetAnalyzerName(tag);
+	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
 	l->insert(tag);
@@ -288,8 +288,8 @@ bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 po
 	tag_set* l = LookupPort(proto, port, true);
 
 #ifdef DEBUG
-	std::string name = GetAnalyzerName(tag);
-	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name.c_str(), port, proto);
+	const char* name = GetAnalyzerName(tag);
+	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
 	l->erase(tag);
@@ -312,6 +312,8 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 	if ( ! a )
 		reporter->InternalError("analyzer instantiation failed");
 
+	a->SetAnalyzerTag(tag);
+
 	return a;
 	}
 
@@ -321,9 +323,9 @@ Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	return tag ? InstantiateAnalyzer(tag, conn) : 0;
 	}
 
-const string& Manager::GetAnalyzerName(Tag tag)
+const char* Manager::GetAnalyzerName(Tag tag)
 	{
-	static string error = "<error>";
+	static const char* error = "<error>";
 
 	if ( ! tag )
 		return error;
@@ -336,15 +338,9 @@ const string& Manager::GetAnalyzerName(Tag tag)
 	return c->Name();
 	}
 
-const string& Manager::GetAnalyzerName(Val* val)
+const char* Manager::GetAnalyzerName(Val* val)
 	{
 	return GetAnalyzerName(Tag(val->AsEnumVal()));
-	}
-
-Tag Manager::GetAnalyzerTag(const string& name)
-	{
-	Component* c = Lookup(name);
-	return c ? c->Tag() : Tag();
 	}
 
 Tag Manager::GetAnalyzerTag(const char* name)
@@ -356,12 +352,6 @@ Tag Manager::GetAnalyzerTag(const char* name)
 EnumType* Manager::GetTagEnumType()
 	{
 	return tag_enum_type;
-	}
-
-Component* Manager::Lookup(const string& name)
-	{
-	analyzer_map_by_name::const_iterator i = analyzers_by_name.find(to_upper(name));
-	return i != analyzers_by_name.end() ? i->second : 0;
 	}
 
 Component* Manager::Lookup(const char* name)
@@ -474,7 +464,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			root->AddChildAnalyzer(analyzer, false);
 
 			DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
-				     analyzer_mgr->GetAnalyzerName(*i).c_str());
+				     analyzer_mgr->GetAnalyzerName(*i));
 			}
 
 		}
@@ -500,7 +490,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 					root->AddChildAnalyzer(analyzer, false);
 					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
-						     analyzer_mgr->GetAnalyzerName(*j).c_str(), resp_port);
+						     analyzer_mgr->GetAnalyzerName(*j), resp_port);
 					}
 				}
 			}
@@ -622,7 +612,7 @@ void Manager::ExpireScheduledAnalyzers()
 			conns.erase(i);
 
 			DBG_LOG(DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
-				analyzer_mgr->GetAnalyzerName(a->analyzer).c_str(),
+				analyzer_mgr->GetAnalyzerName(a->analyzer),
 				fmt_conn_id(a->conn.orig, 0, a->conn.resp, a->conn.resp_p));
 
 			delete a;
@@ -661,7 +651,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 			uint16 resp_p,
-			TransportProto proto, const string& analyzer,
+			TransportProto proto, const char* analyzer,
 			double timeout)
 	{
 	Tag tag = GetAnalyzerTag(analyzer);

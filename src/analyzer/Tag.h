@@ -54,6 +54,11 @@ public:
 	Tag();
 
 	/**
+	 * Destructor.
+	 */
+	~Tag();
+
+	/**
 	 * Returns the tag's main type.
 	 */
 	type_t Type() const 	{ return type; }
@@ -80,6 +85,11 @@ public:
 	 * legal analyzer type.
 	 */
 	operator bool() const	{ return *this != Tag(); }
+
+	/**
+	 * Assignment operator.
+	 */
+        Tag& operator=(const Tag& other);
 
 	/**
 	 * Compares two tags for equality.

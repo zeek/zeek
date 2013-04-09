@@ -14,7 +14,7 @@
 class BroFile;
 class Connection;
 class TCP_Analyzer;
-class Analyzer;
+namespace analyzer { class Analyzer; }
 
 const int STOP_ON_GAP = 1;
 const int PUNT_ON_PARTIAL = 1;
@@ -26,7 +26,7 @@ public:
 		Forward,	// forward to destination analyzer's children
 	};
 
-	TCP_Reassembler(Analyzer* arg_dst_analyzer,
+	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 			TCP_Analyzer* arg_tcp_analyzer, Type arg_type,
 			bool arg_is_orig, TCP_Endpoint* arg_endp);
 
@@ -34,7 +34,7 @@ public:
 
 	void Done();
 
-	void SetDstAnalyzer(Analyzer* analyzer)	{ dst_analyzer = analyzer; }
+	void SetDstAnalyzer(analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
 	void SetType(Type arg_type)	{ type = arg_type; }
 
 	TCP_Analyzer* GetTCPAnalyzer()	{ return tcp_analyzer; }
@@ -125,7 +125,7 @@ private:
 
 	BroFile* record_contents_file;	// file on which to reassemble contents
 
-	Analyzer* dst_analyzer;
+	analyzer::Analyzer* dst_analyzer;
 	TCP_Analyzer* tcp_analyzer;
 
 	Type type;

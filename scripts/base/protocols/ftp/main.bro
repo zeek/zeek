@@ -96,11 +96,10 @@ redef record connection += {
 };
 
 # Configure DPD
-const ports = { 21/tcp, 2811/tcp } &redef; # 2811/tcp is GridFTP.
 redef capture_filters += { ["ftp"] = "port 21 and port 2811" };
-redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
-redef likely_server_ports += { 21/tcp, 2811/tcp };
+const ports = { 21/tcp, 2811/tcp };
+redef likely_server_ports += { ports };
 
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
@@ -108,6 +107,7 @@ global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
 event bro_init() &priority=5
 	{
 	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
 
 ## A set of commands where the argument can be expected to refer
@@ -228,7 +228,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 			{
 			c$ftp$passive=F;
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FILE, 5mins);
+			Analyzer::schedule_analyzer(id$resp_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
 			}
 		else
 			{
@@ -281,7 +281,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
+			Analyzer::schedule_analyzer(id$orig_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
 			}
 		else
 			{
@@ -312,7 +312,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	}
 
 
-event expected_connection_seen(c: connection, a: count) &priority=10
+event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )

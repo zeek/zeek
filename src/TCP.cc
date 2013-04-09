@@ -32,7 +32,7 @@ static const int ORIG = 1;
 static const int RESP = 2;
 
 TCP_Analyzer::TCP_Analyzer(Connection* conn)
-: TransportLayerAnalyzer(AnalyzerTag::TCP, conn)
+: TransportLayerAnalyzer("TCP", conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
@@ -1551,12 +1551,10 @@ void TCP_Analyzer::DeleteTimer(double /* t */)
 	sessions->Remove(Conn());
 	}
 
-
-// The following need to be consistent with bro.init.
-#define CONTENTS_NONE 0
-#define CONTENTS_ORIG 1
-#define CONTENTS_RESP 2
-#define CONTENTS_BOTH 3
+void TCP_Analyzer::ConnDeleteTimer(double t)
+	{
+	Conn()->DeleteTimer(t);
+	}
 
 void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
 	{
@@ -1847,7 +1845,7 @@ void TCP_ApplicationAnalyzer::Init()
 	{
 	Analyzer::Init();
 
-	if ( Parent()->GetTag() == AnalyzerTag::TCP )
+	if ( Parent()->IsAnalyzer("TCP") )
 		SetTCP(static_cast<TCP_Analyzer*>(Parent()));
 	}
 
@@ -1870,7 +1868,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 						const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_DPD, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
@@ -1883,7 +1881,7 @@ void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
 
 void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 	{
-	SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
+	analyzer::SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
 	for ( ; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->EndpointEOF(is_orig);
 	}
@@ -1891,7 +1889,7 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, int gen_event)
 	{
-	SupportAnalyzer* sa =
+	analyzer::SupportAnalyzer* sa =
 		endpoint->IsOrig() ? orig_supporters : resp_supporters;
 
 	for ( ; sa; sa = sa->Sibling() )
@@ -1901,30 +1899,30 @@ void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 
 void TCP_ApplicationAnalyzer::ConnectionFinished(int half_finished)
 	{
-	for ( SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 
-	for ( SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
 			->ConnectionFinished(half_finished);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionReset()
 	{
-	for ( SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 
-	for ( SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->ConnectionReset();
 	}
 
 void TCP_ApplicationAnalyzer::PacketWithRST()
 	{
-	for ( SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 
-	for ( SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
+	for ( analyzer::SupportAnalyzer* sa = resp_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 	}
 
@@ -2060,7 +2058,7 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	}
 
 TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::TCPStats, c)
+: TCP_ApplicationAnalyzer("TCPSTATS", c)
 	{
 	}
 

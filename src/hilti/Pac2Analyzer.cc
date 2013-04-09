@@ -18,7 +18,7 @@ using namespace binpac;
 
 using std::shared_ptr;
 
-Pac2_Analyzer::Pac2_Analyzer(Analyzer* analyzer)
+Pac2_Analyzer::Pac2_Analyzer(analyzer::Analyzer* analyzer)
 	{
 	orig.cookie.analyzer = analyzer;
 	orig.cookie.is_orig = true;
@@ -56,13 +56,13 @@ void Pac2_Analyzer::Done()
 	Init();
 	}
 
-static inline void debug_msg(Analyzer* analyzer, const char* msg, int len, const u_char* data, bool is_orig)
+static inline void debug_msg(analyzer::Analyzer* analyzer, const char* msg, int len, const u_char* data, bool is_orig)
 	{
 #ifdef DEBUG
 	if ( data )
 		{
 		DBG_LOG(DBG_PAC2, "[%s/%lu/%s] %s: |%s|",
-			hilti_loader->AnalyzerName(analyzer->GetTag()).c_str(), analyzer->GetID(),
+			analyzer->GetAnalyzerName(), analyzer->GetID(),
 			(is_orig ? "orig" : "resp"), msg,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 		}
@@ -70,7 +70,7 @@ static inline void debug_msg(Analyzer* analyzer, const char* msg, int len, const
 	else
 		{
 		DBG_LOG(DBG_PAC2, "[%s/%lu/%s] %s",
-			hilti_loader->AnalyzerName(analyzer->GetTag()).c_str(), analyzer->GetID(),
+			analyzer->GetAnalyzerName(), analyzer->GetID(),
 			(is_orig ? "orig" : "resp"), msg);
 		}
 #endif
@@ -95,7 +95,7 @@ int Pac2_Analyzer::FeedChunk(int len, const u_char* data, bool is_orig, bool eod
 
 	if ( ! endp->parser )
 		{
-		endp->parser = hilti_loader->ParserForAnalyzer(endp->cookie.analyzer->GetTag(), is_orig);
+		endp->parser = hilti_loader->ParserForAnalyzer(endp->cookie.analyzer->GetAnalyzerTag(), is_orig);
 		assert(endp->parser);
 		GC_CCTOR(endp->parser, hlt_Parser);
 		}
@@ -194,18 +194,13 @@ void Pac2_Analyzer::ParseError(const string& msg, bool is_orig)
 	reporter::weird(endp->cookie.analyzer->Conn(), s);
 	}
 
-Analyzer* Pac2_TCP_Analyzer::InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+analyzer::Analyzer* Pac2_TCP_Analyzer::InstantiateAnalyzer(Connection* conn)
 	{
-	return new Pac2_TCP_Analyzer(conn, tag);
+	return new Pac2_TCP_Analyzer(conn);
 	}
 
-bool Pac2_TCP_Analyzer::Available(const AnalyzerTag& tag)
-	{
-	return true;
-	}
-
-Pac2_TCP_Analyzer::Pac2_TCP_Analyzer(Connection* conn, const AnalyzerTag& tag)
-	: Pac2_Analyzer(this), TCP_ApplicationAnalyzer(tag, conn)
+Pac2_TCP_Analyzer::Pac2_TCP_Analyzer(Connection* conn)
+	: Pac2_Analyzer(this), TCP_ApplicationAnalyzer(conn)
 	{
 	skip_orig = skip_resp = false;
 	}
@@ -303,18 +298,13 @@ void Pac2_TCP_Analyzer::PacketWithRST()
 	TCP_ApplicationAnalyzer::PacketWithRST();
 	}
 
-Analyzer* Pac2_UDP_Analyzer::InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+analyzer::Analyzer* Pac2_UDP_Analyzer::InstantiateAnalyzer(Connection* conn)
 	{
-	return new Pac2_UDP_Analyzer(conn, tag);
+	return new Pac2_UDP_Analyzer(conn);
 	}
 
-bool Pac2_UDP_Analyzer::Available(const AnalyzerTag& tag)
-	{
-	return true;
-	}
-
-Pac2_UDP_Analyzer::Pac2_UDP_Analyzer(Connection* conn, const AnalyzerTag& tag)
-	: Pac2_Analyzer(this), Analyzer(tag, conn)
+Pac2_UDP_Analyzer::Pac2_UDP_Analyzer(Connection* conn)
+	: Pac2_Analyzer(this), Analyzer(conn)
 	{
 	}
 

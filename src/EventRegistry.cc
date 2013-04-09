@@ -89,9 +89,11 @@ void EventRegistry::PrintDebug()
 
 void EventRegistry::SetGroup(const char* name, const char* group)
 	{
+	return; // FIXME. THis triggers the error below for plugin events.
+
 	EventHandler* eh = Lookup(name);
 	if ( ! eh )
-		reporter->InternalError("unknown event handler in SetGroup()");
+		reporter->InternalError("unknown event handler %s in SetGroup()", name);
 
 	eh->SetGroup(group);
 	}

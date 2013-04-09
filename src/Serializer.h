@@ -28,7 +28,7 @@ class Packet;
 class Serializer {
 public:
 	// Currently ID serialization is the only method which may suspend.
-	bool Serialize(SerialInfo* info, const ID& id);
+	bool Serialize(SerialInfo* info, const ::ID& id);
 	bool Serialize(SerialInfo* info, const char* func, val_list* args);
 	bool Serialize(SerialInfo* info, const StateAccess& s);
 	bool Serialize(SerialInfo* info, const Connection& c);
@@ -110,7 +110,7 @@ protected:
 	// Callbacks for unserialized objects.
 
 	// id points to ID in global scope, val is unserialized value.
-	virtual void GotID(ID* id, Val* val) = 0;
+	virtual void GotID(::ID* id, Val* val) = 0;
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args) = 0;
 	virtual void GotFunctionCall(const char* name, double time,
@@ -266,7 +266,7 @@ public:
 
 protected:
 	virtual void ReportError(const char* msg)	{ reporter->Error("%s", msg); }
-	virtual void GotID(ID* id, Val* val)	{ }
+	virtual void GotID(::ID* id, Val* val)	{ }
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args)	{ }
 	virtual void GotFunctionCall(const char* name, double time,
@@ -292,7 +292,7 @@ public:
 
 protected:
 	virtual void ReportError(const char* msg);
-	virtual void GotID(ID* id, Val* val);
+	virtual void GotID(::ID* id, Val* val);
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args);
 	virtual void GotFunctionCall(const char* name, double time,
@@ -322,7 +322,7 @@ public:
 	bool Convert(const char* file_in, const char* file_out);
 
 protected:
-	virtual void GotID(ID* id, Val* val);
+	virtual void GotID(::ID* id, Val* val);
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args);
 	virtual void GotFunctionCall(const char* name, double time,
@@ -361,7 +361,7 @@ public:
 	virtual const char* Tag()	{ return "EventPlayer"; }
 
 protected:
-	virtual void GotID(ID* id, Val* val)	{}
+	virtual void GotID(::ID* id, Val* val)	{}
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args);
 	virtual void GotFunctionCall(const char* name, double time,

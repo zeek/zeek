@@ -100,45 +100,7 @@ target_link_libraries(bifcl)
 ########################################################################
 ## bifcl-dependent targets
 
-# A macro to define a command that uses the BIF compiler to produce
-# C++ segments and Bro language declarations from .bif file
-# The outputs are appended to list ALL_BIF_OUTPUTS
-# Outputs that should be installed are appended to INSTALL_BIF_OUTPUTS
-macro(BIF_TARGET bifInput)
-    get_bif_output_files(${bifInput} bifOutputs)
-    add_custom_command(OUTPUT ${bifOutputs}
-                       COMMAND bifcl
-                       ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
-                       # In order be able to run bro from the build directory,
-                       # the generated bro script needs to be inside a
-                       # a directory tree named the same way it will be
-                       # referenced from an @load.
-                       COMMAND "${CMAKE_COMMAND}"
-                       ARGS -E copy ${bifInput}.bro base/${bifInput}.bro
-                       COMMAND "${CMAKE_COMMAND}"
-                       ARGS -E remove -f ${bifInput}.bro
-                       DEPENDS ${bifInput}
-                       DEPENDS bifcl
-                       COMMENT "[BIFCL] Processing ${bifInput}"
-    )
-    list(APPEND ALL_BIF_OUTPUTS ${bifOutputs})
-    list(APPEND INSTALL_BIF_OUTPUTS
-         ${CMAKE_CURRENT_BINARY_DIR}/base/${bifInput}.bro)
-endmacro(BIF_TARGET)
-
-# returns a list of output files that bifcl will produce
-# for given input file in ${outputFileVar}
-macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
-    set(${outputFileVar}
-        base/${inputFile}.bro
-        ${inputFile}.func_def
-        ${inputFile}.func_h
-        ${inputFile}.func_init
-        ${inputFile}.netvar_def
-        ${inputFile}.netvar_h
-        ${inputFile}.netvar_init
-    )
-endmacro(GET_BIF_OUTPUT_FILES)
+include(BifCl)
 
 set(BIF_SRCS
     bro.bif
@@ -161,33 +123,13 @@ add_custom_target(generate_bifs DEPENDS ${ALL_BIF_OUTPUTS})
 ########################################################################
 ## BinPAC-dependent targets
 
-set(BINPAC_AUXSRC
-    binpac.pac
-    bro.pac
-    binpac_bro.h
-)
+include(BinPAC)
 
-# A macro to define a command that uses the BinPac compiler to
-# produce C++ code that implements a protocol parser/analyzer
-# The outputs of the command are appended to list ALL_BINPAC_OUTPUTS
-# All arguments to this macro are appended to list ALL_BINPAC_INPUTS
-macro(BINPAC_TARGET pacFile)
-    get_filename_component(basename ${pacFile} NAME_WE)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
-                              ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc
-                       COMMAND ${BinPAC_EXE}
-                       ARGS -q -d ${CMAKE_CURRENT_BINARY_DIR}
-                            -I ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
-                       DEPENDS ${BinPAC_EXE} ${pacFile}
-                               ${BINPAC_AUXSRC} ${ARGN}
-                       COMMENT "[BINPAC] Processing ${pacFile}"
-    )
-    list(APPEND ALL_BINPAC_INPUTS ${ARGV})
-    list(APPEND ALL_BINPAC_OUTPUTS
-         ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
-         ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc) 
-endmacro(BINPAC_TARGET)
+set(BINPAC_AUXSRC
+    ${CMAKE_SOURCE_DIR}/src/binpac.pac
+    ${CMAKE_SOURCE_DIR}/src/bro.pac
+    ${CMAKE_SOURCE_DIR}/src/binpac_bro.h
+)
 
 binpac_target(binpac-lib.pac)
 binpac_target(binpac_bro-lib.pac)
@@ -202,14 +144,8 @@ binpac_target(dce_rpc_simple.pac
     dce_rpc-protocol.pac epmapper.pac)
 binpac_target(dhcp.pac
     dhcp-protocol.pac dhcp-analyzer.pac)
-binpac_target(dns.pac
-    dns-protocol.pac dns-analyzer.pac)
-binpac_target(dns_tcp.pac
-    dns.pac)
 binpac_target(gtpv1.pac
     gtpv1-protocol.pac gtpv1-analyzer.pac)
-binpac_target(http.pac
-    http-protocol.pac http-analyzer.pac)
 binpac_target(ncp.pac)
 binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
@@ -217,12 +153,27 @@ binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
 binpac_target(socks.pac
     socks-protocol.pac socks-analyzer.pac)
-binpac_target(ssl.pac
-    ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
-binpac_target(syslog.pac
-    syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
+
+########################################################################
+## Including subdirectories.
+########################################################################
+
+add_subdirectory(analyzer)
+
+set(bro_PLUGIN_OBJECT_LIBS CACHE INTERNAL "plugin object libraries" FORCE)
+add_subdirectory(protocols)
+
+if ( ENABLE_HILTI )
+    add_subdirectory(hilti)
+    add_dependencies(brohilti generate_analyzer.bif)
+endif()
+
+set(bro_SUBDIRS
+    $<TARGET_OBJECTS:bro_analyzer>
+    ${bro_PLUGIN_OBJECT_LIBS}
+)
 
 ########################################################################
 ## bro target
@@ -286,7 +237,6 @@ set(bro_SRCS
     net_util.cc
     util.cc
     module_util.cc
-    Analyzer.cc
     Anon.cc
     ARP.cc
     Attr.cc
@@ -310,7 +260,6 @@ set(bro_SRCS
     DFA.cc
     DHCP-binpac.cc
     DNS.cc
-    DNS-binpac.cc
     DNS_Mgr.cc
     DbgBreakpoint.cc
     DbgHelp.cc
@@ -321,7 +270,6 @@ set(bro_SRCS
     Desc.cc
     Dict.cc
     Discard.cc
-    DPM.cc
     EquivClass.cc
     Event.cc
     EventHandler.cc
@@ -338,8 +286,6 @@ set(bro_SRCS
     Func.cc
     Gnutella.cc
     GTPv1.cc
-    HTTP.cc
-    HTTP-binpac.cc
     Hash.cc
     ICMP.cc
     ID.cc
@@ -394,7 +340,6 @@ set(bro_SRCS
     SMTP.cc
     SOCKS.cc
     SSH.cc
-    SSL.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc
@@ -404,7 +349,6 @@ set(bro_SRCS
     Stats.cc
     SteppingStone.cc
     Stmt.cc
-    Syslog-binpac.cc
     TCP.cc
     TCP_Endpoint.cc
     TCP_Reassembler.cc
@@ -452,16 +396,19 @@ set(bro_SRCS
     input/readers/Raw.cc
     input/readers/Benchmark.cc
 
+    plugin/Component.cc
+    plugin/Manager.cc
+    plugin/Plugin.cc
+
+    protocols/BuiltInAnalyzers.cc
+
     nb_dns.c
     digest.h
 )
 
-if ( ENABLE_HILTI )
-    add_subdirectory(hilti)
-endif()
-
 collect_headers(bro_HEADERS ${bro_SRCS})
-add_executable(bro ${bro_SRCS} ${bro_HEADERS})
+add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+
 target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 
 if ( ENABLE_HILTI )
@@ -499,3 +446,6 @@ install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)
 
+include(BroPlugin)
+bro_plugin_bif_create_loader(bif_loader ${CMAKE_BINARY_DIR}/scripts/base/bif/plugins)
+add_dependencies(bro bif_loader)

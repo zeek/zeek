@@ -24,6 +24,7 @@ if ( ENABLE_HILTI )
      Loader.cc
      Pac2AST.cc
      Pac2Analyzer.cc
+     Plugin.cc
      Runtime.cc
      )
 

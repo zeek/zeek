@@ -71,17 +71,8 @@ public:
 	virtual void Done();
 	void StatTimer(double t, int is_expire);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new BackDoor_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{
-		return backdoor_stats || rlogin_signature_found ||
-			telnet_signature_found || ssh_signature_found ||
-			root_backdoor_signature_found || ftp_signature_found ||
-			napster_signature_found || kazaa_signature_found ||
-			http_signature_found || http_proxy_signature_found;
-		}
 
 protected:
 	// We support both packet and stream input, and can be instantiated

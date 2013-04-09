@@ -10,7 +10,7 @@
 #include "ContentLine.h"
 
 Finger_Analyzer::Finger_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::Finger, conn)
+: TCP_ApplicationAnalyzer("FINGER", conn)
 	{
 	did_deliver = 0;
 	content_line_orig = new ContentLine_Analyzer(conn, true);

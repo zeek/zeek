@@ -11,7 +11,7 @@
 
 Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 						Rsh_Analyzer* arg_analyzer)
-: ContentLine_Analyzer(AnalyzerTag::Contents_Rsh, conn, orig)
+: ContentLine_Analyzer("CONTENTS_RSH", conn, orig)
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
@@ -138,7 +138,7 @@ void Contents_Rsh_Analyzer::BadProlog()
 	}
 
 Rsh_Analyzer::Rsh_Analyzer(Connection* conn)
-: Login_Analyzer(AnalyzerTag::Rsh, conn)
+: Login_Analyzer("RSH", conn)
 	{
 	contents_orig = new Contents_Rsh_Analyzer(conn, true, this);
 	contents_resp = new Contents_Rsh_Analyzer(conn, false, this);

@@ -117,19 +117,13 @@ redef capture_filters += {
 	["netbios-ns"] = "udp port 137",
 };
 
-const dns_ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
-redef dpd_config += { [ANALYZER_DNS] = [$ports = dns_ports] };
-
-const dns_udp_ports = { 53/udp, 137/udp, 5353/udp, 5355/udp };
-const dns_tcp_ports = { 53/tcp };
-redef dpd_config += { [ANALYZER_DNS_UDP_BINPAC] = [$ports = dns_udp_ports] };
-redef dpd_config += { [ANALYZER_DNS_TCP_BINPAC] = [$ports = dns_tcp_ports] };
-
-redef likely_server_ports += { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 
 function new_session(c: connection, trans_id: count): Info

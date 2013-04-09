@@ -1,7 +1,7 @@
 #include "GTPv1.h"
 
 GTPv1_Analyzer::GTPv1_Analyzer(Connection* conn)
-: Analyzer(AnalyzerTag::GTPv1, conn)
+: Analyzer("GTPV1", conn)
 	{
 	interp = new binpac::GTPv1::GTPv1_Conn(this);
 	}

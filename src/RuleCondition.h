@@ -111,7 +111,7 @@ public:
 
 	virtual void PrintDebug();
 private:
-	ID* id;
+	::ID* id;
 };
 
 

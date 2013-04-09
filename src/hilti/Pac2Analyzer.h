@@ -16,7 +16,7 @@ namespace hilti {
 
 class Pac2_Analyzer {
 public:
-	Pac2_Analyzer(Analyzer* analyzer);
+	Pac2_Analyzer(analyzer::Analyzer* analyzer);
 	virtual ~Pac2_Analyzer();
 
 	void Init();
@@ -31,7 +31,7 @@ public:
 	void FlipRoles();
 
 	struct Cookie {
-		Analyzer* analyzer;
+		analyzer::Analyzer* analyzer;
 		bool is_orig;
 	};
 
@@ -52,7 +52,7 @@ private:
 
 class Pac2_TCP_Analyzer : public Pac2_Analyzer, public TCP_ApplicationAnalyzer {
 public:
-	Pac2_TCP_Analyzer(Connection* conn, const AnalyzerTag& tag);
+	Pac2_TCP_Analyzer(Connection* conn);
 	virtual ~Pac2_TCP_Analyzer();
 
 	// Overriden from Analyzer.
@@ -71,17 +71,16 @@ public:
 	void ConnectionReset() override;
 	void PacketWithRST() override;
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag);
-	static bool Available(const AnalyzerTag& tag);
+	static Analyzer* InstantiateAnalyzer(Connection* conn);
 
 private:
 	bool skip_orig;
 	bool skip_resp;
 };
 
-class Pac2_UDP_Analyzer : public Pac2_Analyzer, public Analyzer {
+class Pac2_UDP_Analyzer : public Pac2_Analyzer, public analyzer::Analyzer {
 public:
-	Pac2_UDP_Analyzer(Connection* conn, const AnalyzerTag& tag);
+	Pac2_UDP_Analyzer(Connection* conn);
 	virtual ~Pac2_UDP_Analyzer();
 
 	// Overriden from Analyzer.
@@ -93,8 +92,7 @@ public:
 	void EndOfData(bool is_orig) override;
 	void FlipRoles() override;
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag);
-	static bool Available(const AnalyzerTag& tag);
+	static Analyzer* InstantiateAnalyzer(Connection* conn);
 };
 
 }

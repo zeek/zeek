@@ -19,18 +19,16 @@
 #include "ICMP.h"
 #include "UDP.h"
 
-#include "DNS-binpac.h"
-#include "HTTP-binpac.h"
-
 #include "SteppingStone.h"
 #include "BackDoor.h"
 #include "InterConn.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
-#include "DPM.h"
 
 #include "PacketSort.h"
 #include "TunnelEncapsulation.h"
+
+#include "analyzer/Manager.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -967,7 +965,7 @@ void NetSessions::Remove(Connection* c)
 		TCP_Analyzer* ta = (TCP_Analyzer*) c->GetRootAnalyzer();
 		if ( ta && c->ConnTransport() == TRANSPORT_TCP )
 			{
-			assert(ta->GetTag() == AnalyzerTag::TCP);
+			assert(ta->IsAnalyzer("TCP"));
 			TCP_Endpoint* to = ta->Orig();
 			TCP_Endpoint* tr = ta->Resp();
 
@@ -1178,7 +1176,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
 	conn->SetTransport(tproto);
-	dpm->BuildInitialAnalyzerTree(tproto, conn, data);
+	analyzer_mgr->BuildInitialAnalyzerTree(conn);
 
 	bool external = conn->IsExternal();
 

@@ -21,7 +21,7 @@ static const char* smtp_cmd_word[] = {
 
 
 SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SMTP, conn)
+: TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = 0;
 	expect_recver = 1;

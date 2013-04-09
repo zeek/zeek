@@ -45,14 +45,13 @@ redef capture_filters += { ["irc-6668"] = "port 6668" };
 redef capture_filters += { ["irc-6669"] = "port 6669" };
 
 # DPD configuration.
-const irc_ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
-redef dpd_config += { [ANALYZER_IRC] = [$ports = irc_ports] };
-
-redef likely_server_ports += { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
+const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);
 	}
 	
 function new_session(c: connection): Info

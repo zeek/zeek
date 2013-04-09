@@ -300,7 +300,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 	}
 
 Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)
-: RPC_Analyzer(AnalyzerTag::Portmapper, conn, new PortmapperInterp(this))
+: RPC_Analyzer("PORTMAPPER", conn, new PortmapperInterp(this))
 	{
 	orig_rpc = resp_rpc = 0;
 	}

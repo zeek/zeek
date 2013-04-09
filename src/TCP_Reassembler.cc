@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include "TCP_Reassembler.h"
 #include "TCP.h"
 #include "TCP_Endpoint.h"
@@ -25,7 +25,7 @@ static uint64 last_ack_bytes = 0;
 static uint64 last_gap_events = 0;
 static uint64 last_gap_bytes = 0;
 
-TCP_Reassembler::TCP_Reassembler(Analyzer* arg_dst_analyzer,
+TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
 				TCP_Reassembler::Type arg_type,
 				bool arg_is_orig, TCP_Endpoint* arg_endp)

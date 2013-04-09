@@ -8,7 +8,7 @@
 
 
 Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
-: ContentLine_Analyzer(AnalyzerTag::Contents_Rlogin, conn, orig)
+: ContentLine_Analyzer("CONTENTLINE", conn, orig)
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
@@ -204,7 +204,7 @@ void Contents_Rlogin_Analyzer::BadProlog()
 
 
 Rlogin_Analyzer::Rlogin_Analyzer(Connection* conn)
-: Login_Analyzer(AnalyzerTag::Rlogin, conn)
+: Login_Analyzer("RLOGIN", conn)
 	{
 	Contents_Rlogin_Analyzer* orig =
 		new Contents_Rlogin_Analyzer(conn, true, this);

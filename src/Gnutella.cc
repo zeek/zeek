@@ -7,10 +7,10 @@
 #include <algorithm>
 
 #include "NetVar.h"
-#include "HTTP.h"
 #include "Gnutella.h"
 #include "Event.h"
 #include "PIA.h"
+#include "analyzer/Manager.h"
 
 GnutellaMsgState::GnutellaMsgState()
 	{
@@ -30,7 +30,7 @@ GnutellaMsgState::GnutellaMsgState()
 
 
 Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::Gnutella, conn)
+: TCP_ApplicationAnalyzer("GNUTELLA", conn)
 	{
 	state = 0;
 	new_state = 0;
@@ -129,15 +129,16 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		ConnectionEvent(gnutella_http_notify, vl);
 		}
 
-	if ( HTTP_Analyzer::Available(AnalyzerTag::HTTP) )
+	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
+
+	if ( a )
 		{
-		Analyzer* a = new HTTP_Analyzer(Conn());
 		Parent()->AddChildAnalyzer(a);
 
-		if ( Parent()->GetTag() == AnalyzerTag::TCP )
+		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			PIA* pia = static_cast<TransportLayerAnalyzer *>(Parent())->GetPIA();
+			PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
 			if ( pia )
 				static_cast<PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}

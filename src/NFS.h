@@ -9,7 +9,7 @@
 
 class NFS_Interp : public RPC_Interpreter {
 public:
-	NFS_Interp(Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
+	NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
@@ -75,18 +75,8 @@ public:
 	NFS_Analyzer(Connection* conn);
 	virtual void Init();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NFS_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{
-		return ( nfs_proc_null || nfs_proc_not_implemented || nfs_proc_getattr ||
-		         nfs_proc_lookup || nfs_proc_read || nfs_proc_readlink ||
-		         nfs_proc_write || nfs_proc_create || nfs_proc_mkdir ||
-		         nfs_proc_remove || nfs_proc_rmdir || nfs_proc_readdir ||
-		         nfs_reply_status ||
-		         rpc_dialogue || rpc_call || rpc_reply );
-		}
 };
 
 

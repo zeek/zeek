@@ -153,7 +153,7 @@ int InterConnEndpoint::IsNormalKeystrokeInterarrival(double t) const
 	}
 
 InterConn_Analyzer::InterConn_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::InterConn, c)
+: TCP_ApplicationAnalyzer("INTERCONN", c)
 	{
 	orig_endp = resp_endp = 0;
 	orig_stream_pos = resp_stream_pos = 1;

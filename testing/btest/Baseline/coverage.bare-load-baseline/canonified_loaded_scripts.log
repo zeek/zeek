@@ -3,19 +3,19 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2012-07-20-14-34-11
+#open	2013-04-01-19-44-31
 #fields	name
 #types	string
 scripts/base/init-bare.bro
-  build/src/base/const.bif.bro
-  build/src/base/types.bif.bro
-  build/src/base/strings.bif.bro
-  build/src/base/bro.bif.bro
-  build/src/base/reporter.bif.bro
-  build/src/base/event.bif.bro
+  build/scripts/base/bif/const.bif.bro
+  build/scripts/base/bif/types.bif.bro
+  build/scripts/base/bif/strings.bif.bro
+  build/scripts/base/bif/bro.bif.bro
+  build/scripts/base/bif/reporter.bif.bro
+  build/scripts/base/bif/event.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/./main.bro
-      build/src/base/logging.bif.bro
+      build/scripts/base/bif/logging.bif.bro
     scripts/base/frameworks/logging/./postprocessors/__load__.bro
       scripts/base/frameworks/logging/./postprocessors/./scp.bro
       scripts/base/frameworks/logging/./postprocessors/./sftp.bro
@@ -25,9 +25,16 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/logging/./writers/none.bro
   scripts/base/frameworks/input/__load__.bro
     scripts/base/frameworks/input/./main.bro
-      build/src/base/input.bif.bro
+      build/scripts/base/bif/input.bif.bro
     scripts/base/frameworks/input/./readers/ascii.bro
     scripts/base/frameworks/input/./readers/raw.bro
     scripts/base/frameworks/input/./readers/benchmark.bro
+  scripts/base/frameworks/analyzer/__load__.bro
+    scripts/base/frameworks/analyzer/./main.bro
+      build/scripts/base/bif/analyzer.bif.bro
+  build/scripts/base/bif/plugins/__load__.bro
+    build/scripts/base/bif/plugins/./HTTP.events.bif.bro
+    build/scripts/base/bif/plugins/./HTTP.functions.bif.bro
+    build/scripts/base/bif/plugins/./SSL.events.bif.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2012-07-20-14-34-11
+#close	2013-04-01-19-44-31

@@ -50,11 +50,8 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new BitTorrentTracker_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{ return bt_tracker_request || bt_tracker_response; }
 
 protected:
 	void ClientRequest(int len, const u_char* data);

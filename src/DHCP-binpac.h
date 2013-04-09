@@ -6,7 +6,7 @@
 #include "dhcp_pac.h"
 
 
-class DHCP_Analyzer_binpac : public Analyzer {
+class DHCP_Analyzer_binpac : public analyzer::Analyzer {
 public:
 	DHCP_Analyzer_binpac(Connection* conn);
 	virtual ~DHCP_Analyzer_binpac();
@@ -15,11 +15,8 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DHCP_Analyzer_binpac(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{ return dhcp_request && FLAGS_use_binpac; }
 
 protected:
 	binpac::DHCP::DHCP_Conn* interp;

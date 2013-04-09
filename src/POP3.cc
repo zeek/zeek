@@ -26,7 +26,7 @@ static const char* pop3_cmd_word[] = {
 
 
 POP3_Analyzer::POP3_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::POP3, conn)
+: TCP_ApplicationAnalyzer("POP3", conn)
 	{
 	masterState = POP3_START;
 	subState = POP3_WOK;

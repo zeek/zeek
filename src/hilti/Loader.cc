@@ -11,11 +11,14 @@ extern "C" {
 
 #include "config.h"
 
+#include "Plugin.h"
+
 #include "../Scope.h"
+#include "../RE.h"
 #include "../ID.h"
 #include "../Desc.h"
 #include "../Func.h"
-#include "../Analyzer.h"
+#include "../analyzer/Analyzer.h"
 #undef List
 
 // #include "../NetVar.h"
@@ -55,10 +58,10 @@ namespace BifConst { namespace Pac2 {  extern int use_cache;  }  }
 #include "Pac2AST.h"
 #include "Pac2Analyzer.h"
 #include "Converter.h"
-#include "DPM.h"
 #include "LocalReporter.h"
 #include "Runtime.h"
 #include "net_util.h"
+#include "analyzer/Manager.h"
 
 using namespace bro::hilti;
 using namespace binpac;
@@ -96,7 +99,7 @@ struct bro::hilti::Pac2ModuleInfo {
 struct bro::hilti::Pac2AnalyzerInfo {
 	string location;				// Location where the analyzer was defined.
 	string name;					// Name of the analyzer.
-	uint32 subtype;					// AnalyzerTag subtype for this analyzer.
+	analyzer::Tag tag;				// analyzer::Tag for this analyzer.
 	TransportProto proto;				// The transport layer the analyzer uses.
 	std::list<Port> ports;				// The ports associated with the analyzer.
 	string unit_name_orig;				// The fully-qualified name of the unit type to parse the originator side.
@@ -125,6 +128,7 @@ struct bro::hilti::Pac2EventInfo
 
 	// Information parsed directly from the *.evt file.
 	string name;		// The name of the event.
+	string path;		// The hook path as specified in the evt file.
 	std::list<string> exprs;	// The argument expressions.
 	string hook;		// The name of the hook triggering the event.
 	string location;	// Location string where event is defined.
@@ -168,7 +172,7 @@ struct Loader::PIMPL
 	pac2_module_list pac2_modules;			// All loaded modules. Indexed by their paths.
 	pac2_event_list  pac2_events;			// All events found in the *.evt files.
 	pac2_analyzer_list pac2_analyzers;		// All analyzers found in the *.evt files.
-	pac2_analyzer_vector pac2_analyzers_by_subtype;	// All analyzers indexed by their AnalyzerTag subtype.
+	pac2_analyzer_vector pac2_analyzers_by_subtype;	// All analyzers indexed by their analyzer::Tag subtype.
 
 	// The generated raise() module.
 	shared_ptr<::hilti::CompilerContext>         hilti_context = nullptr; // Context for the raise() function module.
@@ -184,16 +188,57 @@ struct Loader::PIMPL
 
 	shared_ptr<TypeConverter> type_converter;
 	shared_ptr<ValueConverter> value_converter;
+
+	shared_ptr<Plugin> plugin;
 	};
 
 Loader::Loader()
 	{
+	pimpl = new PIMPL;
+	pre_scripts_init_run = false;
+	post_scripts_init_run = false;
+	}
+
+Loader::~Loader()
+	{
+	delete pimpl->pac2_ast;
+	delete pimpl;
+	}
+
+void Loader::AddLibraryPath(const char* dirs)
+	{
+	assert(! pre_scripts_init_run);
+	assert(! post_scripts_init_run);
+
+	for ( auto dir : ::util::strsplit(dirs, ":") )
+		pimpl->import_paths.push_back(dir);
+	}
+
+bool Loader::InitPreScripts()
+	{
+	assert(! pre_scripts_init_run);
+	assert(! post_scripts_init_run);
+
+	pimpl->plugin = std::make_shared<Plugin>();
+
+	if ( ! SearchFiles("evt", [&](std::istream& in, const string& path) -> bool { return LoadPac2Events(in, path); }) )
+		return false;
+
+	pre_scripts_init_run = true;
+
+	return true;
+	}
+
+bool Loader::InitPostScripts()
+	{
+	assert(pre_scripts_init_run);
+	assert(! post_scripts_init_run);
+
 	std::set<string> cg_debug;
 
 	for ( auto t : ::util::strsplit(BifConst::Pac2::cg_debug->CheckString(), ":") )
 		cg_debug.insert(t);
 
-	pimpl = new PIMPL;
 	pimpl->pac2_ast = new Pac2AST;
 	pimpl->compile_all = BifConst::Pac2::compile_all;
 	pimpl->dump_debug = BifConst::Pac2::dump_debug;
@@ -223,22 +268,19 @@ Loader::Loader()
 	hlt_config cfg = *hlt_config_get();
 	cfg.fiber_stack_size = 10 * 1024;;
 	hlt_config_set(&cfg);
-	}
 
-void Loader::AddLibraryPath(const char* dirs)
-	{
-	for ( auto dir : ::util::strsplit(dirs, ":") )
-		pimpl->import_paths.push_back(dir);
-	}
+	post_scripts_init_run = true;
 
-Loader::~Loader()
-	{
-	delete pimpl->pac2_ast;
-	delete pimpl;
+	return true;
 	}
 
 bool Loader::Load()
 	{
+	assert(pre_scripts_init_run);
+	assert(post_scripts_init_run);
+
+	pre_scripts_init_run = true;
+
 	for ( auto dir : pimpl->import_paths )
 		{
 		pimpl->hilti_options.libdirs_hlt.push_back(dir);
@@ -258,9 +300,6 @@ bool Loader::Load()
 	pimpl->value_converter = std::make_shared<ValueConverter>(pimpl->hilti_mbuilder);
 
 	if ( ! SearchFiles("pac2", [&](std::istream& in, const string& path) -> bool { return LoadPac2Module(in, path); }) )
-		return false;
-
-	if ( ! SearchFiles("evt", [&](std::istream& in, const string& path) -> bool { return LoadPac2Events(in, path); }) )
 		return false;
 
 	return true;
@@ -300,6 +339,88 @@ bool Loader::SearchFiles(const char* ext, std::function<bool (std::istream& in, 
 
 bool Loader::Compile()
 	{
+	assert(pre_scripts_init_run);
+	assert(post_scripts_init_run);
+
+	for ( auto ev : pimpl->pac2_events )
+		{
+		// If we find the path directly, it's a unit type; then add a "%done"
+		// to form the hook name.
+		auto unit_type = pimpl->pac2_ast->LookupUnit(ev->path);
+
+		string hook;
+		string hook_local;
+		string unit;
+
+		if ( unit_type )
+			{
+			hook += ev->path + "::%done";
+			hook_local = "%done";
+			unit = ev->path;
+			}
+
+		else
+			{
+			// Strip the last element of the path, the remainder must
+			// refer to a unit.
+			auto p = ::util::strsplit(ev->path, "::");
+			if ( p.size() )
+				{
+				hook_local = p.back();
+				p.pop_back();
+				unit = ::util::strjoin(p, "::");
+				unit_type = pimpl->pac2_ast->LookupUnit(unit);
+				hook = ev->path;
+				}
+			}
+
+		if ( ! unit_type )
+			{
+			reporter::error(::util::fmt("unknown unit type in %s", hook));
+			return 0;
+			}
+
+		ev->hook = hook;
+		ev->hook_local = hook_local;
+		ev->unit = unit;
+		ev->unit_type = unit_type;
+		ev->unit_module = unit_type->firstParent<::binpac::Module>();
+		assert(ev->unit_module);
+
+		if ( ! CreateExpressionAccessors(ev) )
+			return 0;
+
+		RegisterBroEvent(ev);
+		}
+
+	for ( auto a : pimpl->pac2_analyzers )
+		{
+		if ( a->unit_name_orig.size() )
+			{
+			a->unit_orig = pimpl->pac2_ast->LookupUnit(a->unit_name_orig);
+
+			if ( ! a->unit_orig )
+				{
+				reporter::error(::util::fmt("unknown unit type %s with analyzer %s", a->unit_name_orig, a->name));
+				return false;
+				}
+			}
+
+		if ( a->unit_name_resp.size() )
+			{
+			a->unit_resp = pimpl->pac2_ast->LookupUnit(a->unit_name_resp);
+
+			if ( ! a->unit_resp )
+				{
+				reporter::error(::util::fmt("unknown unit type with analyzer %s", a->unit_name_resp, a->name));
+				return false;
+				}
+			}
+
+		for ( auto p : a->ports )
+			analyzer_mgr->RegisterAnalyzerForPort(a->tag, p.proto, p.port);
+		}
+
 	// Compile all the *.pac2 modules we have loaded directly.
 	for ( auto m : pimpl->pac2_modules )
 		{
@@ -808,6 +929,7 @@ bool Loader::LoadPac2Events(std::istream& in, const string& path)
 
 			DBG_LOG(DBG_PAC2, "finished processing event definition for %s", ev->name.c_str());
 			pimpl->pac2_events.push_back(ev);
+			pimpl->plugin->AddEvent(ev->name);
 			}
 
 		else
@@ -927,28 +1049,6 @@ shared_ptr<Pac2AnalyzerInfo> Loader::ParsePac2AnalyzerSpec(const string& chunk)
 				a->unit_name_resp = unit;
 				break;
 			}
-
-			if ( a->unit_name_orig.size() )
-				{
-				a->unit_orig = pimpl->pac2_ast->LookupUnit(a->unit_name_orig);
-
-				if ( ! a->unit_orig )
-					{
-					reporter::error(::util::fmt("unknown unit type %s with analyzer %s", a->unit_name_orig, a->name));
-					return 0;
-					}
-				}
-
-			if ( a->unit_name_resp.size() )
-				{
-				a->unit_resp = pimpl->pac2_ast->LookupUnit(a->unit_name_resp);
-
-				if ( ! a->unit_resp )
-					{
-					reporter::error(::util::fmt("unknown unit type with analyzer %s", a->unit_name_resp, a->name));
-					return 0;
-					}
-				}
 			}
 
 		else if ( looking_at(chunk, i, "ports") )
@@ -1068,98 +1168,26 @@ shared_ptr<Pac2EventInfo> Loader::ParsePac2EventSpec(const string& chunk)
 		return 0;
 		}
 
-	// If we find the path directly, it's a unit type; then add a "%done"
-	// to form the hook name.
-	string hook;
-	string hook_local;
-	string unit;
-	auto unit_type = pimpl->pac2_ast->LookupUnit(path);
-
-	if ( unit_type )
-		{
-		hook += path + "::%done";
-		hook_local = "%done";
-		unit = path;
-		}
-
-	else
-		{
-		// Strip the last element of the path, the remainder must
-		// refer to a unit.
-		auto p = ::util::strsplit(path, "::");
-		if ( p.size() )
-			{
-			hook_local = p.back();
-			p.pop_back();
-			unit = ::util::strjoin(p, "::");
-			unit_type = pimpl->pac2_ast->LookupUnit(unit);
-			hook = path;
-			}
-		}
-
-	if ( ! unit_type )
-		{
-		reporter::error(::util::fmt("unknown unit type in %s", hook));
-		return 0;
-		}
-
 	ev->name = name;
+	ev->path = path;
 	ev->exprs = exprs;
-	ev->hook = hook;
-	ev->hook_local = hook_local;
 	ev->location = reporter::current_location();
-	ev->unit = unit;
-	ev->unit_type = unit_type;
-	ev->unit_module = unit_type->firstParent<::binpac::Module>();
-	assert(ev->unit_module);
 
-	if ( ! CreateExpressionAccessors(ev) )
-		return 0;
-
-	RegisterBroEvent(ev);
+	// These are set later.
+	ev->hook = "<unset>";
+	ev->hook_local = "<unset>";
+	ev->unit = "<unset>";
+	ev->unit_type = 0;
+	ev->unit_module = 0;
 
 	return ev;
 	}
 
 void Loader::RegisterBroAnalyzer(shared_ptr<Pac2AnalyzerInfo> a)
 	{
-	AnalyzerTag::MainType mtype = AnalyzerTag::Error;
-	analyzer_config_factory_callback factory = 0;
-	analyzer_config_available_callback available = 0;
-
-	switch ( a->proto ) {
-	case TRANSPORT_TCP:
-		mtype = AnalyzerTag::PAC2_TCP;
-		factory = Pac2_TCP_Analyzer::InstantiateAnalyzer;
-		available = Pac2_TCP_Analyzer::Available;
-		break;
-
-	case TRANSPORT_UDP:
-		mtype = AnalyzerTag::PAC2_UDP;
-		factory = Pac2_UDP_Analyzer::InstantiateAnalyzer;
-		available = Pac2_UDP_Analyzer::Available;
-		break;
-
-	default:
-		reporter::error("unsupported protocol in analyzer");
-		return;
-	}
-
-	a->subtype = pimpl->pac2_analyzers_by_subtype.size();
+	analyzer::Tag::subtype_t stype = pimpl->pac2_analyzers_by_subtype.size();
 	pimpl->pac2_analyzers_by_subtype.push_back(a);
-
-	auto tag = AnalyzerTag(mtype, a->subtype);
-
-	dpm->AddAnalyzer(tag,
-			 a->name.c_str(),
-			 factory,
-			 available,
-			 0,
-			 false);
-
-	for ( auto p : a->ports )
-		dpm->RegisterAnalyzerForPort(tag, p.proto, p.port);
-
+	a->tag = pimpl->plugin->AddAnalyzer(a->name, a->proto, stype);
 	}
 
 void Loader::RegisterBroEvent(shared_ptr<Pac2EventInfo> ev)
@@ -1518,25 +1546,13 @@ void Loader::ExtractParsers(hlt_list* parsers)
 		}
 	}
 
-string Loader::AnalyzerName(const AnalyzerTag& tag)
+string Loader::AnalyzerName(const analyzer::Tag& tag)
 	{
-	if ( tag.Type() != AnalyzerTag::PAC2_TCP && tag.Type() != AnalyzerTag::PAC2_UDP )
-		return "<not a pac2 analyzer>";
-
-	if ( tag.Subtype() >= pimpl->pac2_analyzers_by_subtype.size() )
-		return "<unknown pac2 sub-analyzer>";
-
 	return pimpl->pac2_analyzers_by_subtype[tag.Subtype()]->name;
 	}
 
-struct __binpac_parser* Loader::ParserForAnalyzer(const AnalyzerTag& tag, bool is_orig)
+struct __binpac_parser* Loader::ParserForAnalyzer(const analyzer::Tag& tag, bool is_orig)
 	{
-	if ( tag.Type() != AnalyzerTag::PAC2_TCP && tag.Type() != AnalyzerTag::PAC2_UDP )
-		return 0;
-
-	if ( tag.Subtype() >= pimpl->pac2_analyzers_by_subtype.size() )
-		return 0;
-
 	if ( is_orig )
 		return pimpl->pac2_analyzers_by_subtype[tag.Subtype()]->parser_orig;
 	else
@@ -1579,7 +1595,7 @@ void Loader::DumpDebug()
 		for ( auto p : a->ports )
 			ports.push_back(p);
 
-		std::cerr << "    " << a->name << " [" << proto << ", subtype " << a->subtype << "] [" << a->location << "]" << std::endl;
+		std::cerr << "    " << a->name << " [" << proto << ", subtype " << a->tag.Subtype() << "] [" << a->location << "]" << std::endl;
 		std::cerr << "        Ports      : " << (ports.size() ? ::util::strjoin(ports, ", ") : "none") << std::endl;
 		std::cerr << "        Orig parser: " << (a->unit_orig ? a->unit_orig->id()->pathAsString() : "none" ) << " ";
 

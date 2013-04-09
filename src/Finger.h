@@ -16,10 +16,8 @@ public:
 	// Line-based input.
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Finger_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)	{ return finger_request || finger_reply; }
 
 protected:
 	ContentLine_Analyzer* content_line_orig;

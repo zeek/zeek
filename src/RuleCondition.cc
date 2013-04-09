@@ -18,9 +18,9 @@ static inline bool is_established(const TCP_Endpoint* e)
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
 
-	if ( ! root || root->GetTag() != AnalyzerTag::TCP )
+	if ( ! root || ! root->IsAnalyzer("TCP") )
 		return false;
 
 	TCP_Analyzer* ta = static_cast<TCP_Analyzer*>(root);

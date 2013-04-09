@@ -3327,8 +3327,6 @@ function lookup_connection%(cid: conn_id%): connection
 	%}
 
 %%{
-#include "HTTP.h"
-
 const char* conn_id_string(Val* c)
 	{
 	Val* id = (*(c->AsRecord()))[0];
@@ -3343,58 +3341,6 @@ const char* conn_id_string(Val* c)
 	                               resp_h.AsString().c_str(), resp_p);
 	}
 %%}
-
-## Skips the data of the HTTP entity.
-##
-## c: The HTTP connection.
-##
-## is_orig: If true, the client data is skipped, and the server data otherwise.
-##
-## .. bro:see:: skip_smtp_data
-function skip_http_entity_data%(c: connection, is_orig: bool%): any
-	%{
-	AnalyzerID id = mgr.CurrentAnalyzer();
-	if ( id )
-		{
-		Analyzer* ha = c->FindAnalyzer(id);
-
-		if ( ha )
-			{
-			if ( ha->GetTag() == AnalyzerTag::HTTP )
-				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
-			else
-				reporter->Error("non-HTTP analyzer associated with connection record");
-			}
-		else
-			reporter->Error("could not find analyzer for skip_http_entity_data");
-
-		}
-	else
-		reporter->Error("no analyzer associated with connection record");
-
-	return 0;
-	%}
-
-## Unescapes all characters in a URI (decode every ``%xx`` group).
-##
-## URI: The URI to unescape.
-##
-## Returns: The unescaped URI with all ``%xx`` groups decoded.
-##
-## .. note::
-##
-##      Unescaping reserved characters may cause loss of information. RFC 2396:
-##      A URI is always in an "escaped" form, since escaping or unescaping a
-##      completed URI might change its semantics.  Normally, the only time
-##      escape encodings can safely be made is when the URI is being created
-##      from its component parts.
-function unescape_URI%(URI: string%): string
-	%{
-	const u_char* line = URI->Bytes();
-	const u_char* const line_end = line + URI->Len();
-
-	return new StringVal(unescape_URI(line, line_end, 0));
-	%}
 
 ## Writes the current packet to a file.
 ##
@@ -4074,35 +4020,8 @@ function file_mode%(mode: count%): string
 # ===========================================================================
 
 %%{
-#include "DPM.h"
+#include "analyzer/Manager.h"
 %%}
-
-## Schedules an analyzer for a future connection from a given IP address and
-## port. The function ignores the scheduling request if the connection did
-## not occur within the specified time interval.
-##
-## orig: The IP address originating a connection in the future.
-##
-## resp: The IP address responding to a connection from *orig*.
-##
-## resp_p: The destination port at *resp*.
-##
-## analyzer: The analyzer ID.
-##
-## tout: The timeout interval after which to ignore the scheduling request.
-##
-## Returns: True (unconditionally).
-##
-## .. bro:see:: disable_analyzer analyzer_name
-##
-## .. todo:: The return value should be changed to any.
-function expect_connection%(orig: addr, resp: addr, resp_p: port,
-				analyzer: count, tout: interval%) : any
-	%{
-	dpm->ExpectConnection(orig->AsAddr(), resp->AsAddr(), resp_p->Port(),
-			      resp_p->PortType(), analyzer, tout, 0);
-	return new Val(1, TYPE_BOOL);
-	%}
 
 ## Disables the analyzer which raised the current event (if the analyzer
 ## belongs to the given connection).
@@ -4124,7 +4043,7 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 		return new Val(0, TYPE_BOOL);
 		}
 
-	Analyzer* a = c->FindAnalyzer(aid);
+	analyzer::Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
 		reporter->Error("connection does not have analyzer specified to disable");
@@ -4133,18 +4052,6 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 
 	a->Remove();
 	return new Val(1, TYPE_BOOL);
-	%}
-
-## Translate an analyzer type to an ASCII string.
-##
-## aid: The analyzer ID.
-##
-## Returns: The analyzer *aid* as string.
-##
-## .. bro:see:: expect_connection disable_analyzer current_analyzer
-function analyzer_name%(aid: count%) : string
-	%{
-	return new StringVal(Analyzer::GetTagName(aid));
 	%}
 
 ## Informs Bro that it should skip any further processing of the contents of
@@ -4321,7 +4228,7 @@ function get_login_state%(cid: conn_id%): count
 	if ( ! c )
 		return new Val(0, TYPE_BOOL);
 
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
+	analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
 		return new Val(0, TYPE_BOOL);
 
@@ -4346,7 +4253,7 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 	if ( ! c )
 		return new Val(0, TYPE_BOOL);
 
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
+	analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
 		return new Val(0, TYPE_BOOL);
 
@@ -4377,7 +4284,7 @@ function get_orig_seq%(cid: conn_id%): count
 	if ( c->ConnTransport() != TRANSPORT_TCP )
 		return new Val(0, TYPE_COUNT);
 
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
 		return new Val(static_cast<TCP_Analyzer*>(tc)->OrigSeq(),
 				TYPE_COUNT);
@@ -4407,7 +4314,7 @@ function get_resp_seq%(cid: conn_id%): count
 	if ( c->ConnTransport() != TRANSPORT_TCP )
 		return new Val(0, TYPE_COUNT);
 
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
 		return new Val(static_cast<TCP_Analyzer*>(tc)->RespSeq(),
 				TYPE_COUNT);
@@ -4429,7 +4336,7 @@ function get_resp_seq%(cid: conn_id%): count
 ## .. bro:see:: skip_http_entity_data
 function skip_smtp_data%(c: connection%): any
 	%{
-	Analyzer* sa = c->FindAnalyzer(AnalyzerTag::SMTP);
+	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
 	if ( sa )
 		static_cast<SMTP_Analyzer*>(sa)->SkipData();
 	return 0;

@@ -3,7 +3,7 @@
 #ifndef udp_h
 #define udp_h
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include <netinet/udp.h>
 
 typedef enum {
@@ -11,7 +11,7 @@ typedef enum {
 	UDP_ACTIVE,	// packets seen
 } UDP_EndpointState;
 
-class UDP_Analyzer : public TransportLayerAnalyzer {
+class UDP_Analyzer : public analyzer::TransportLayerAnalyzer {
 public:
 	UDP_Analyzer(Connection* conn);
 	virtual ~UDP_Analyzer();
@@ -20,10 +20,8 @@ public:
 
 	virtual void UpdateConnVal(RecordVal *conn_val);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag) { return true; }
 
 protected:
 	virtual void Done();

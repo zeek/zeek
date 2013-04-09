@@ -4,14 +4,13 @@
 #include "TCP.h"
 
 ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig)
-: TCP_SupportAnalyzer(AnalyzerTag::ContentLine, conn, orig)
+: TCP_SupportAnalyzer("CONTENTLINE", conn, orig)
 	{
 	InitState();
 	}
 
-ContentLine_Analyzer::ContentLine_Analyzer(AnalyzerTag tag,
-						Connection* conn, bool orig)
-: TCP_SupportAnalyzer(tag, conn, orig)
+ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, bool orig)
+: TCP_SupportAnalyzer(name, conn, orig)
 	{
 	InitState();
 	}

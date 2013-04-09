@@ -35,14 +35,12 @@ struct ntpdata {
 	struct l_fixedpt xmt;
 };
 
-class NTP_Analyzer : public Analyzer {
+class NTP_Analyzer : public analyzer::Analyzer {
 public:
 	NTP_Analyzer(Connection* conn);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NTP_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)	{ return ntp_message; }
 
 protected:
 	virtual void Done();

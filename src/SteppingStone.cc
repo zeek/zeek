@@ -157,7 +157,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
 	}
 
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SteppingStone, c)
+: TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
 	stp_manager = sessions->GetSTPManager();
 

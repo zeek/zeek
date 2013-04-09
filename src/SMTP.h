@@ -47,15 +47,9 @@ public:
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{
 		return new SMTP_Analyzer(conn);
-		}
-
-	static bool Available(const AnalyzerTag& tag)
-		{
-		return smtp_request || smtp_reply ||
-			smtp_data || smtp_unexpected;
 		}
 
 protected:

@@ -17,8 +17,8 @@ public:
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
 
 	// Register/unregister the ID/connection to be saved by WriteAll().
-	void Register(ID* id);
-	void Unregister(ID* id);
+	void Register(::ID* id);
+	void Unregister(::ID* id);
 	void Register(Connection* conn);
 	void Unregister(Connection* conn);
 
@@ -59,7 +59,7 @@ protected:
 	friend class RemoteSerializer;
 	friend class IncrementalWriteTimer;
 
-	virtual void GotID(ID* id, Val* val);
+	virtual void GotID(::ID* id, Val* val);
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args);
 	virtual void GotFunctionCall(const char* name, double time,
@@ -90,11 +90,11 @@ protected:
 	bool RunSerialization(SerialStatus* status);
 
 	// Helpers for RunSerialization.
-	bool DoIDSerialization(SerialStatus* status, ID* id);
+	bool DoIDSerialization(SerialStatus* status, ::ID* id);
 	bool DoConnSerialization(SerialStatus* status, Connection* conn);
 	bool DoAccessSerialization(SerialStatus* status, StateAccess* access);
 
-	typedef PDict(ID) id_map;
+	typedef PDict(::ID) id_map;
 
 	declare(PDict, Connection);
 	typedef PDict(Connection) conn_map;
@@ -133,7 +133,7 @@ protected:
 
 		// The ID/Conn we're currently serializing.
 		union {
-			ID* id;
+			::ID* id;
 			Connection* conn;
 		} current;
 

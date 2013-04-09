@@ -134,7 +134,7 @@ event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection_contents partial_connection
+##    scheduled_analyzer_applied new_connection_contents partial_connection
 ##
 ## .. note::
 ##
@@ -168,7 +168,7 @@ event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection partial_connection
+##    scheduled_analyzer_applied new_connection partial_connection
 event new_connection_contents%(c: connection%);
 
 ## Generated for an unsuccessful connection attempt. This event is raised when
@@ -183,7 +183,7 @@ event new_connection_contents%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_attempt%(c: connection%);
 
@@ -199,7 +199,7 @@ event connection_attempt%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_established%(c: connection%);
 
@@ -215,7 +215,7 @@ event connection_established%(c: connection%);
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection new_connection_contents
+##    scheduled_analyzer_applied new_connection new_connection_contents
 ##
 event partial_connection%(c: connection%);
 
@@ -231,7 +231,7 @@ event partial_connection%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_partial_close%(c: connection%);
 
@@ -244,7 +244,7 @@ event connection_partial_close%(c: connection%);
 ##    connection_established connection_external connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_finished%(c: connection%);
 
@@ -258,7 +258,7 @@ event connection_finished%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK  connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_half_finished%(c: connection%);
 
@@ -270,7 +270,7 @@ event connection_half_finished%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending  connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## c: The connection.
@@ -294,7 +294,7 @@ event connection_rejected%(c: connection%);
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected  connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection new_connection_contents
+##    scheduled_analyzer_applied new_connection new_connection_contents
 ##    partial_connection
 event connection_reset%(c: connection%);
 
@@ -306,7 +306,7 @@ event connection_reset%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection bro_done
 event connection_pending%(c: connection%);
 
@@ -323,7 +323,7 @@ event connection_pending%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection udp_inactivity_timeout
 ##    tcp_inactivity_timeout icmp_inactivity_timeout conn_stats
 event connection_state_remove%(c: connection%);
@@ -339,7 +339,7 @@ event connection_state_remove%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## .. note::
@@ -360,7 +360,7 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ##    connection_established connection_external connection_finished
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## .. note::
@@ -379,7 +379,7 @@ event connection_first_ACK%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
-##    connection_state_remove connection_status_update expected_connection_seen
+##    connection_state_remove connection_status_update scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## .. note::
@@ -402,7 +402,7 @@ event connection_timeout%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_reused%(c: connection%);
 
@@ -416,7 +416,7 @@ event connection_reused%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
-##    connection_state_remove  connection_timeout expected_connection_seen
+##    connection_state_remove  connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_status_update%(c: connection%);
 
@@ -446,7 +446,7 @@ event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: co
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_EOF%(c: connection, is_orig: bool%);
 
@@ -481,7 +481,7 @@ event connection_external%(c: connection, tag: string%);
 ##
 ## .. todo:: We don't have a good way to document the automatically generated
 ##    ``ANALYZER_*`` constants right now.
-event expected_connection_seen%(c: connection, a: count%);
+event scheduled_analyzer_applied%(c: connection, a: Analyzer::Tag%);
 
 ## Generated for every packet Bro sees. This is a very low-level and expensive
 ## event that should be avoided when at all possible. It's usually infeasible to
@@ -841,8 +841,8 @@ event gap_report%(dt: interval, info: gap_info%);
 ## c: The connection.
 ##
 ## atype: The type of the analyzer confirming that its protocol is in
-##        use. The value is one of the ``ANALYZER_*`` constants. For example,
-##        ``ANALYZER_HTTP`` means the HTTP analyzers determined that it's indeed
+##        use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
+##        ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
 ##        parsing an HTTP connection.
 ##
 ## aid:   A unique integer ID identifying the specific *instance* of the
@@ -857,7 +857,7 @@ event gap_report%(dt: interval, info: gap_info%);
 ##    Bro's default scripts use this event to determine the ``service`` column
 ##    of :bro:type:`Conn::Info`: once confirmed, the protocol will be listed
 ##    there (and thus in ``conn.log``).
-event protocol_confirmation%(c: connection, atype: count, aid: count%);
+event protocol_confirmation%(c: connection, atype: Analyzer::Tag, aid: count%);
 
 ## Generated when a protocol analyzer determines that a connection it is parsing
 ## is not conforming to the protocol it expects. Bro's dynamic protocol
@@ -869,8 +869,8 @@ event protocol_confirmation%(c: connection, atype: count, aid: count%);
 ## c: The connection.
 ##
 ## atype: The type of the analyzer confirming that its protocol is in
-##        use. The value is one of the ``ANALYZER_*`` constants. For example,
-##        ``ANALYZER_HTTP`` means the HTTP analyzers determined that it's indeed
+##        use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
+##        ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
 ##        parsing an HTTP connection.
 ##
 ## aid:   A unique integer ID identifying the specific *instance* of the
@@ -888,7 +888,7 @@ event protocol_confirmation%(c: connection, atype: count, aid: count%);
 ##    :bro:id:`disable_analyzer` if it's parsing the wrong protocol. That's
 ##    however a script-level decision and not done automatically by the event
 ##    engine.
-event protocol_violation%(c: connection, atype: count, aid: count, reason: string%);
+event protocol_violation%(c: connection, atype: Analyzer::Tag, aid: count, reason: string%);
 
 ## Generated for each packet sent by a UDP flow's originator. This a potentially
 ## expensive event due to the volume of UDP traffic and should be used with
@@ -1389,8 +1389,8 @@ event arp_reply%(mac_src: string, mac_dst: string, SPA: addr, SHA: string,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event bad_arp%(SPA: addr, SHA: string, TPA: addr, THA: string, explanation: string%);
 
 ## TODO.
@@ -1636,8 +1636,8 @@ event bt_tracker_weird%(c: connection, is_orig: bool, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event finger_request%(c: connection, full: bool, username: string, hostname: string%);
 
 ## Generated for Finger replies.
@@ -1653,8 +1653,8 @@ event finger_request%(c: connection, full: bool, username: string, hostname: str
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event finger_reply%(c: connection, reply_line: string%);
 
 
@@ -1669,8 +1669,8 @@ event finger_reply%(c: connection, reply_line: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event gnutella_text_msg%(c: connection, orig: bool, headers: string%);
 
 ## TODO.
@@ -1683,8 +1683,8 @@ event gnutella_text_msg%(c: connection, orig: bool, headers: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event gnutella_binary_msg%(c: connection, orig: bool, msg_type: count,
 				ttl: count, hops: count, msg_len: count,
 				payload: string, payload_len: count,
@@ -1700,8 +1700,8 @@ event gnutella_binary_msg%(c: connection, orig: bool, msg_type: count,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event gnutella_partial_binary_msg%(c: connection, orig: bool,
 					msg: string, len: count%);
 
@@ -1715,8 +1715,8 @@ event gnutella_partial_binary_msg%(c: connection, orig: bool,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event gnutella_establish%(c: connection%);
 
 ## TODO.
@@ -1729,8 +1729,8 @@ event gnutella_establish%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event gnutella_not_establish%(c: connection%);
 
 ## TODO.
@@ -1743,8 +1743,8 @@ event gnutella_not_establish%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event gnutella_http_notify%(c: connection%);
 
 ## Generated for Ident requests.
@@ -1762,8 +1762,8 @@ event gnutella_http_notify%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event ident_request%(c: connection, lport: port, rport: port%);
 
 ## Generated for Ident replies.
@@ -1785,8 +1785,8 @@ event ident_request%(c: connection, lport: port, rport: port%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event ident_reply%(c: connection, lport: port, rport: port, user_id: string, system: string%);
 
 ## Generated for Ident error replies.
@@ -1806,8 +1806,8 @@ event ident_reply%(c: connection, lport: port, rport: port, user_id: string, sys
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event ident_error%(c: connection, lport: port, rport: port, line: string%);
 
 ## Generated for Telnet/Rlogin login failures. The *login* analyzer inspects
@@ -1840,8 +1840,8 @@ event ident_error%(c: connection, lport: port, rport: port, line: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_failure%(c: connection, user: string, client_user: string, password: string, line: string%);
 
 ## Generated for successful Telnet/Rlogin logins. The *login* analyzer inspects
@@ -1874,8 +1874,8 @@ event login_failure%(c: connection, user: string, client_user: string, password:
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_success%(c: connection, user: string, client_user: string, password: string, line: string%);
 
 ## Generated for lines of input on Telnet/Rlogin sessions. The line will have
@@ -1890,8 +1890,8 @@ event login_success%(c: connection, user: string, client_user: string, password:
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_input_line%(c: connection, line: string%);
 
 ## Generated for lines of output on Telnet/Rlogin sessions. The line will have
@@ -1906,8 +1906,8 @@ event login_input_line%(c: connection, line: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_output_line%(c: connection, line: string%);
 
 ## Generated when tracking of Telnet/Rlogin authentication failed. As Bro's
@@ -1932,8 +1932,8 @@ event login_output_line%(c: connection, line: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_confused%(c: connection, msg: string, line: string%);
 
 ## Generated after getting confused while tracking a Telnet/Rlogin
@@ -1952,8 +1952,8 @@ event login_confused%(c: connection, msg: string, line: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_confused_text%(c: connection, line: string%);
 
 ## Generated for clients transmitting a terminal type in a Telnet session.  This
@@ -1968,8 +1968,8 @@ event login_confused_text%(c: connection, line: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_terminal%(c: connection, terminal: string%);
 
 ## Generated for clients transmitting an X11 DISPLAY in a Telnet session. This
@@ -1984,8 +1984,8 @@ event login_terminal%(c: connection, terminal: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_display%(c: connection, display: string%);
 
 ## Generated when a Telnet authentication has been successful. The Telnet
@@ -2008,8 +2008,8 @@ event login_display%(c: connection, display: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event authentication_accepted%(name: string, c: connection%);
 
 ## Generated when a Telnet authentication has been unsuccessful. The Telnet
@@ -2032,8 +2032,8 @@ event authentication_accepted%(name: string, c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event authentication_rejected%(name: string, c: connection%);
 
 ## Generated for Telnet/Rlogin sessions when a pattern match indicates
@@ -2055,8 +2055,8 @@ event authentication_rejected%(name: string, c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event authentication_skipped%(c: connection%);
 
 ## Generated for clients transmitting a terminal prompt in a Telnet session.
@@ -2075,8 +2075,8 @@ event authentication_skipped%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event login_prompt%(c: connection, prompt: string%);
 
 ## Generated for Telnet sessions when encryption is activated. The Telnet
@@ -2126,8 +2126,8 @@ event inconsistent_option%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event bad_option%(c: connection%);
 
 ## Generated for a Telnet option that's incorrectly terminated.
@@ -2144,8 +2144,8 @@ event bad_option%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event bad_option_termination%(c: connection%);
 
 ## Generated for client side commands on an RSH connection.
@@ -2174,8 +2174,8 @@ event bad_option_termination%(c: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event rsh_request%(c: connection, client_user: string, server_user: string, line: string, new_session: bool%);
 
 ## Generated for client side commands on an RSH connection.
@@ -2202,8 +2202,8 @@ event rsh_request%(c: connection, client_user: string, server_user: string, line
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event rsh_reply%(c: connection, client_user: string, server_user: string, line: string%);
 
 ## Generated for client-side FTP commands.
@@ -2569,8 +2569,8 @@ event mime_content_hash%(c: connection, content_len: count, hash_value: string%)
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status: rpc_status, start_time: time, call_len: count, reply_len: count%);
 
 ## Generated for RPC *call* messages.
@@ -2595,8 +2595,8 @@ event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status:
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count, call_len: count%);
 
 ## Generated for RPC *reply* messages.
@@ -2618,8 +2618,8 @@ event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);
 
 ## Generated for Portmapper requests of type *null*.
@@ -2637,8 +2637,8 @@ event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_request_null%(r: connection%);
 
 ## Generated for Portmapper request/reply dialogues of type *set*.
@@ -2662,8 +2662,8 @@ event pm_request_null%(r: connection%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_request_set%(r: connection, m: pm_mapping, success: bool%);
 
 ## Generated for Portmapper request/reply dialogues of type *unset*.
@@ -2687,8 +2687,8 @@ event pm_request_set%(r: connection, m: pm_mapping, success: bool%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_request_unset%(r: connection, m: pm_mapping, success: bool%);
 
 ## Generated for Portmapper request/reply dialogues of type *getport*.
@@ -2710,8 +2710,8 @@ event pm_request_unset%(r: connection, m: pm_mapping, success: bool%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_request_getport%(r: connection, pr: pm_port_request, p: port%);
 
 ## Generated for Portmapper request/reply dialogues of type *dump*.
@@ -2731,8 +2731,8 @@ event pm_request_getport%(r: connection, pr: pm_port_request, p: port%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_request_dump%(r: connection, m: pm_mappings%);
 
 ## Generated for Portmapper request/reply dialogues of type *callit*.
@@ -2754,8 +2754,8 @@ event pm_request_dump%(r: connection, m: pm_mappings%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_request_callit%(r: connection, call: pm_callit_request, p: port%);
 
 ## Generated for failed Portmapper requests of type *null*.
@@ -2776,8 +2776,8 @@ event pm_request_callit%(r: connection, call: pm_callit_request, p: port%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_attempt_null%(r: connection, status: rpc_status%);
 
 ## Generated for failed Portmapper requests of type *set*.
@@ -2800,8 +2800,8 @@ event pm_attempt_null%(r: connection, status: rpc_status%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_attempt_set%(r: connection, status: rpc_status, m: pm_mapping%);
 
 ## Generated for failed Portmapper requests of type *unset*.
@@ -2824,8 +2824,8 @@ event pm_attempt_set%(r: connection, status: rpc_status, m: pm_mapping%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_attempt_unset%(r: connection, status: rpc_status, m: pm_mapping%);
 
 ## Generated for failed Portmapper requests of type *getport*.
@@ -2848,8 +2848,8 @@ event pm_attempt_unset%(r: connection, status: rpc_status, m: pm_mapping%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_attempt_getport%(r: connection, status: rpc_status, pr: pm_port_request%);
 
 ## Generated for failed Portmapper requests of type *dump*.
@@ -2870,8 +2870,8 @@ event pm_attempt_getport%(r: connection, status: rpc_status, pr: pm_port_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_attempt_dump%(r: connection, status: rpc_status%);
 
 ## Generated for failed Portmapper requests of type *callit*.
@@ -2894,8 +2894,8 @@ event pm_attempt_dump%(r: connection, status: rpc_status%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_request%);
 
 ## Generated for Portmapper requests or replies that include an invalid port
@@ -2918,8 +2918,8 @@ event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_requ
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pm_bad_port%(r: connection, bad_p: count%);
 
 ## Generated for NFSv3 request/reply dialogues of type *null*. The event is
@@ -2941,8 +2941,8 @@ event pm_bad_port%(r: connection, bad_p: count%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *getattr*. The event is
@@ -2969,8 +2969,8 @@ event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NFS3::fattr_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *lookup*. The event is
@@ -2997,8 +2997,8 @@ event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NF
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_lookup%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::lookup_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *read*. The event is
@@ -3025,8 +3025,8 @@ event nfs_proc_lookup%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, rep: NFS3::read_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *readlink*. The event is
@@ -3053,8 +3053,8 @@ event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, r
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS3::readlink_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *write*. The event is
@@ -3082,8 +3082,8 @@ event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t, rep: NFS3::write_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *create*. The event is
@@ -3110,8 +3110,8 @@ event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *mkdir*. The event is
@@ -3138,8 +3138,8 @@ event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *remove*. The event is
@@ -3166,8 +3166,8 @@ event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *rmdir*. The event is
@@ -3194,8 +3194,8 @@ event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of type *readdir*. The event is
@@ -3222,8 +3222,8 @@ event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_readdir%(c: connection, info: NFS3::info_t, req: NFS3::readdirargs_t, rep: NFS3::readdir_reply_t%);
 
 ## Generated for NFSv3 request/reply dialogues of a type that Bro's NFSv3
@@ -3245,8 +3245,8 @@ event nfs_proc_readdir%(c: connection, info: NFS3::info_t, req: NFS3::readdirarg
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_proc_not_implemented%(c: connection, info: NFS3::info_t, proc: NFS3::proc_t%);
 
 ## Generated for each NFSv3 reply message received, reporting just the
@@ -3263,8 +3263,8 @@ event nfs_proc_not_implemented%(c: connection, info: NFS3::info_t, proc: NFS3::p
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 
 ## Generated for all NTP messages. Different from many other of Bro's events,
@@ -3284,8 +3284,8 @@ event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
 
 ## Generated for all NetBIOS SSN and DGM messages. Bro's NetBIOS analyzer
@@ -3316,8 +3316,8 @@ event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_message%(c: connection, is_orig: bool, msg_type: count, data_len: count%);
 
 ## Generated for NetBIOS messages of type *session request*. Bro's NetBIOS
@@ -3344,8 +3344,8 @@ event netbios_session_message%(c: connection, is_orig: bool, msg_type: count, da
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_request%(c: connection, msg: string%);
 
 ## Generated for NetBIOS messages of type *positive session response*. Bro's
@@ -3372,8 +3372,8 @@ event netbios_session_request%(c: connection, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_accepted%(c: connection, msg: string%);
 
 ## Generated for NetBIOS messages of type *negative session response*. Bro's
@@ -3400,8 +3400,8 @@ event netbios_session_accepted%(c: connection, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_rejected%(c: connection, msg: string%);
 
 ## Generated for NetBIOS messages of type *session message* that are not
@@ -3435,8 +3435,8 @@ event netbios_session_rejected%(c: connection, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_raw_message%(c: connection, is_orig: bool, msg: string%);
 
 ## Generated for NetBIOS messages of type *retarget response*. Bro's NetBIOS
@@ -3465,8 +3465,8 @@ event netbios_session_raw_message%(c: connection, is_orig: bool, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_ret_arg_resp%(c: connection, msg: string%);
 
 ## Generated for NetBIOS messages of type *keep-alive*. Bro's NetBIOS analyzer
@@ -3493,8 +3493,8 @@ event netbios_session_ret_arg_resp%(c: connection, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event netbios_session_keepalive%(c: connection, msg: string%);
 
 ## Generated for all SMB/CIFS messages.
@@ -3526,8 +3526,8 @@ event netbios_session_keepalive%(c: connection, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_message%(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body_length: count, body: string%);
 
 ## Generated for SMB/CIFS messages of type *tree connect andx*.
@@ -3553,8 +3553,8 @@ event smb_message%(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_tree_connect_andx%(c: connection, hdr: smb_hdr, path: string, service: string%);
 
 ## Generated for SMB/CIFS messages of type *tree disconnect*.
@@ -3576,8 +3576,8 @@ event smb_com_tree_connect_andx%(c: connection, hdr: smb_hdr, path: string, serv
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_tree_disconnect%(c: connection, hdr: smb_hdr%);
 
 ## Generated for SMB/CIFS messages of type *nt create andx*.
@@ -3601,8 +3601,8 @@ event smb_com_tree_disconnect%(c: connection, hdr: smb_hdr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_nt_create_andx%(c: connection, hdr: smb_hdr, name: string%);
 
 ## Generated for SMB/CIFS messages of type *nt transaction*.
@@ -3630,8 +3630,8 @@ event smb_com_nt_create_andx%(c: connection, hdr: smb_hdr, name: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_transaction%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
 
 ## Generated for SMB/CIFS messages of type *nt transaction 2*.
@@ -3659,8 +3659,8 @@ event smb_com_transaction%(c: connection, hdr: smb_hdr, trans: smb_trans, data: 
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_transaction2%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
 
 ## Generated for SMB/CIFS messages of type *transaction mailslot*.
@@ -3688,8 +3688,8 @@ event smb_com_transaction2%(c: connection, hdr: smb_hdr, trans: smb_trans, data:
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_trans_mailslot%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
 
 ## Generated for SMB/CIFS messages of type *transaction rap*.
@@ -3717,8 +3717,8 @@ event smb_com_trans_mailslot%(c: connection, hdr: smb_hdr, trans: smb_trans, dat
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_trans_rap%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
 
 ## Generated for SMB/CIFS messages of type *transaction pipe*.
@@ -3746,8 +3746,8 @@ event smb_com_trans_rap%(c: connection, hdr: smb_hdr, trans: smb_trans, data: sm
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_trans_pipe%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
 
 ## Generated for SMB/CIFS messages of type *read andx*.
@@ -3771,8 +3771,8 @@ event smb_com_trans_pipe%(c: connection, hdr: smb_hdr, trans: smb_trans, data: s
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_read_andx%(c: connection, hdr: smb_hdr, data: string%);
 
 ## Generated for SMB/CIFS messages of type *read andx*.
@@ -3796,8 +3796,8 @@ event smb_com_read_andx%(c: connection, hdr: smb_hdr, data: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_write_andx%(c: connection, hdr: smb_hdr, data: string%);
 
 ## Generated for SMB/CIFS messages of type *get dfs referral*.
@@ -3824,8 +3824,8 @@ event smb_com_write_andx%(c: connection, hdr: smb_hdr, data: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_get_dfs_referral%(c: connection, hdr: smb_hdr, max_referral_level: count, file_name: string%);
 
 ## Generated for SMB/CIFS messages of type *negotiate*.
@@ -3846,8 +3846,8 @@ event smb_get_dfs_referral%(c: connection, hdr: smb_hdr, max_referral_level: cou
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_negotiate%(c: connection, hdr: smb_hdr%);
 
 ## Generated for SMB/CIFS messages of type *negotiate response*.
@@ -3870,8 +3870,8 @@ event smb_com_negotiate%(c: connection, hdr: smb_hdr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_negotiate_response%(c: connection, hdr: smb_hdr, dialect_index: count%);
 
 ## Generated for SMB/CIFS messages of type *setup andx*.
@@ -3893,8 +3893,8 @@ event smb_com_negotiate_response%(c: connection, hdr: smb_hdr, dialect_index: co
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_setup_andx%(c: connection, hdr: smb_hdr%);
 
 ## Generated for SMB/CIFS messages of type *generic andx*.
@@ -3916,8 +3916,8 @@ event smb_com_setup_andx%(c: connection, hdr: smb_hdr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_generic_andx%(c: connection, hdr: smb_hdr%);
 
 ## Generated for SMB/CIFS messages of type *close*.
@@ -3939,8 +3939,8 @@ event smb_com_generic_andx%(c: connection, hdr: smb_hdr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_close%(c: connection, hdr: smb_hdr%);
 
 ## Generated for SMB/CIFS messages of type *logoff andx*.
@@ -3962,8 +3962,8 @@ event smb_com_close%(c: connection, hdr: smb_hdr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_com_logoff_andx%(c: connection, hdr: smb_hdr%);
 
 ## Generated for SMB/CIFS messages that indicate an error. This event is
@@ -3988,8 +3988,8 @@ event smb_com_logoff_andx%(c: connection, hdr: smb_hdr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event smb_error%(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, data: string%);
 
 ## Generated for all DNS messages.
@@ -4500,8 +4500,8 @@ event dns_end%(c: connection, msg: dns_msg%) &group="dns";
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr%);
 
 ## Generated for DHCP messages of type *offer*.
@@ -4535,8 +4535,8 @@ event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr%);
 
 ## Generated for DHCP messages of type *request*.
@@ -4566,8 +4566,8 @@ event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr%);
 
 ## Generated for DHCP messages of type *decline*.
@@ -4593,8 +4593,8 @@ event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: add
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_decline%(c: connection, msg: dhcp_msg%);
 
 ## Generated for DHCP messages of type *acknowledgment*.
@@ -4628,8 +4628,8 @@ event dhcp_decline%(c: connection, msg: dhcp_msg%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr%);
 
 ## Generated for DHCP messages of type *negative acknowledgment*.
@@ -4655,8 +4655,8 @@ event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_li
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_nak%(c: connection, msg: dhcp_msg%);
 
 ## Generated for DHCP messages of type *release*.
@@ -4682,8 +4682,8 @@ event dhcp_nak%(c: connection, msg: dhcp_msg%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_release%(c: connection, msg: dhcp_msg%);
 
 ## Generated for DHCP messages of type *inform*.
@@ -4709,241 +4709,9 @@ event dhcp_release%(c: connection, msg: dhcp_msg%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dhcp_inform%(c: connection, msg: dhcp_msg%);
-
-## Generated for HTTP requests. Bro supports persistent and pipelined HTTP
-## sessions and raises corresponding events as it parses client/server
-## dialogues. This event is generated as soon as a request's initial line has
-## been parsed, and before any :bro:id:`http_header` events are raised.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## method: The HTTP method extracted from the request (e.g., ``GET``, ``POST``).
-##
-## original_URI: The unprocessed URI as specified in the request.
-##
-## unescaped_URI: The URI with all percent-encodings decoded.
-##
-## version: The version number specified in the request (e.g., ``1.1``).
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data http_event http_header http_message_done http_reply http_stats
-##    truncate_http_URI
-event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%) &group="http-request";
-
-## Generated for HTTP replies. Bro supports persistent and pipelined HTTP
-## sessions and raises corresponding events as it parses client/server
-## dialogues. This event is generated as soon as a reply's initial line has
-## been parsed, and before any :bro:id:`http_header` events are raised.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## version: The version number specified in the reply (e.g., ``1.1``).
-##
-## code: The numerical response code returned by the server.
-##
-## reason: The textual description returned by the server along with *code*.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data http_event http_header http_message_done http_request
-##    http_stats
-event http_reply%(c: connection, version: string, code: count, reason: string%) &group="http-reply";
-
-## Generated for HTTP headers. Bro supports persistent and pipelined HTTP
-## sessions and raises corresponding events as it parses client/server
-## dialogues.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the header was sent by the originator of the TCP connection.
-##
-## name: The name of the header.
-##
-## value: The value of the header.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data http_event  http_message_done http_reply http_request
-##    http_stats
-##
-## .. note:: This event is also raised for headers found in nested body
-##    entities.
-event http_header%(c: connection, is_orig: bool, name: string, value: string%) &group="http-header";
-
-## Generated for HTTP headers, passing on all headers of an HTTP message at
-## once. Bro supports persistent and pipelined HTTP sessions and raises
-## corresponding events as it parses client/server dialogues.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the header was sent by the originator of the TCP connection.
-##
-## hlist: A *table* containing all headers extracted from the current entity.
-##        The table is indexed by the position of the header (1 for the first,
-##        2 for the second, etc.).
-##
-## .. bro:see::  http_begin_entity http_content_type http_end_entity http_entity_data
-##    http_event http_header http_message_done http_reply http_request http_stats
-##
-## .. note:: This event is also raised for headers found in nested body
-##    entities.
-event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%) &group="http-header";
-
-## Generated when starting to parse an HTTP body entity. This event is generated
-## at least once for each non-empty (client or server) HTTP body; and
-## potentially more than once if the body contains further nested MIME
-## entities. Bro raises this event just before it starts parsing each entity's
-## content.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the entity was sent by the originator of the TCP
-##          connection.
-##
-## .. bro:see:: http_all_headers  http_content_type http_end_entity http_entity_data
-##    http_event http_header http_message_done http_reply http_request http_stats
-##    mime_begin_entity
-event http_begin_entity%(c: connection, is_orig: bool%) &group="http-body";
-
-## Generated when finishing parsing an HTTP body entity. This event is generated
-## at least once for each non-empty (client or server) HTTP body; and
-## potentially more than once if the body contains further nested MIME
-## entities. Bro raises this event at the point when it has finished parsing an
-## entity's content.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the entity was sent by the originator of the TCP
-##          connection.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_entity_data
-##    http_event http_header http_message_done http_reply http_request
-##    http_stats   mime_end_entity
-event http_end_entity%(c: connection, is_orig: bool%) &group="http-body";
-
-## Generated when parsing an HTTP body entity, passing on the data. This event
-## can potentially be raised many times for each entity, each time passing a
-## chunk of the data of not further defined size.
-##
-## A common idiom for using this event is to first *reassemble* the data
-## at the scripting layer by concatenating it to a successively growing
-## string; and only perform further content analysis once the corresponding
-## :bro:id:`http_end_entity` event has been raised. Note, however, that doing so
-## can be quite expensive for HTTP tranders. At the very least, one should
-## impose an upper size limit on how much data is being buffered.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the entity was sent by the originator of the TCP
-##          connection.
-##
-## length: The length of *data*.
-##
-## data: One chunk of raw entity data.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_event http_header http_message_done http_reply http_request http_stats
-##    mime_entity_data http_entity_data_delivery_size skip_http_data
-event http_entity_data%(c: connection, is_orig: bool, length: count, data: string%) &group="http-body";
-
-## Generated for reporting an HTTP body's content type.  This event is
-## generated at the end of parsing an HTTP header, passing on the MIME
-## type as specified by the ``Content-Type`` header. If that header is
-## missing, this event is still raised with a default value of ``text/plain``.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the entity was sent by the originator of the TCP
-##          connection.
-##
-## ty: The main type.
-##
-## subty: The subtype.
-##
-## .. bro:see:: http_all_headers http_begin_entity  http_end_entity http_entity_data
-##    http_event http_header http_message_done http_reply http_request http_stats
-##
-## .. note:: This event is also raised for headers found in nested body
-##    entities.
-event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string%) &group="http-body";
-
-## Generated once at the end of parsing an HTTP message. Bro supports persistent
-## and pipelined HTTP sessions and raises corresponding events as it parses
-## client/server dialogues. A "message" is one top-level HTTP entity, such as a
-## complete request or reply. Each message can have further nested sub-entities
-## inside. This event is raised once all sub-entities belonging to a top-level
-## message have been processed (and their corresponding ``http_entity_*`` events
-## generated).
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## is_orig: True if the entity was sent by the originator of the TCP
-##          connection.
-##
-## stat: Further meta information about the message.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data http_event http_header  http_reply http_request http_stats
-event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%) &group="http-body";
-
-## Generated for errors found when decoding HTTP requests or replies.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
-## for more information about the HTTP protocol.
-##
-## c: The connection.
-##
-## event_type: A string describing the general category of the problem found
-##             (e.g., ``illegal format``).
-##
-## detail: Further more detailed description of the error.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data  http_header http_message_done http_reply http_request
-##    http_stats mime_event
-event http_event%(c: connection, event_type: string, detail: string%);
-
-## Generated at the end of an HTTP session to report statistics about it. This
-## event is raised after all of an HTTP session's requests and replies have been
-## fully processed.
-##
-## c: The connection.
-##
-## stats: Statistics summarizing HTTP-level properties of the finished
-##        connection.
-##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data http_event http_header http_message_done http_reply
-##    http_request
-event http_stats%(c: connection, stats: http_stats_rec%);
 
 ## Generated when seeing an SSH client's version identification. The SSH
 ## protocol starts with a clear-text handshake message that reports client and
@@ -4983,202 +4751,6 @@ event ssh_client_version%(c: connection, version: string%);
 ##    encrypted, Bro cannot further analyze SSH sessions.
 event ssh_server_version%(c: connection, version: string%);
 
-## Generated for an SSL/TLS client's initial *hello* message.  SSL/TLS sessions
-## start with an unencrypted handshake, and Bro extracts as much information out
-## of that as it can. This event provides access to the initial information
-## sent by the client.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
-## more information about the SSL/TLS protocol.
-##
-## c: The connection.
-##
-## version: The protocol version as extracted from the client's message.  The
-##          values are standardized as part of the SSL/TLS protocol. The
-##          :bro:id:`SSL::version_strings` table maps them to descriptive names.
-##
-## possible_ts: The current time as sent by the client. Note that SSL/TLS does
-##              not require clocks to be set correctly, so treat with care.
-##
-## session_id: The session ID sent by the client (if any).
-##
-## ciphers: The list of ciphers the client offered to use. The values are
-##          standardized as part of the SSL/TLS protocol. The
-##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
-##
-## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
-
-## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
-## start with an unencrypted handshake, and Bro extracts as much information out
-## of that as it can. This event provides access to the initial information
-## sent by the client.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
-## more information about the SSL/TLS protocol.
-##
-## c: The connection.
-##
-## version: The protocol version as extracted from the server's message.
-##          The values are standardized as part of the SSL/TLS protocol. The
-##          :bro:id:`SSL::version_strings` table maps them to descriptive names.
-##
-## possible_ts: The current time as sent by the server. Note that SSL/TLS does
-##              not require clocks to be set correctly, so treat with care.
-##
-## session_id: The session ID as sent back by the server (if any).
-##
-## cipher: The cipher chosen by the server.  The values are standardized as part
-##         of the SSL/TLS protocol. The :bro:id:`SSL::cipher_desc` table maps
-##         them to descriptive names.
-##
-## comp_method: The compression method chosen by the client. The values are
-##              standardized as part of the SSL/TLS protocol.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
-
-## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
-## sessions start with an unencrypted handshake, and Bro extracts as much
-## information out of that as it can. This event provides access to any
-## extensions either side sends as part of an extended *hello* message.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## code: The numerical code of the extension.  The values are standardized as
-##       part of the SSL/TLS protocol. The :bro:id:`SSL::extensions` table maps
-##       them to descriptive names.
-##
-## val: The raw extension value that was sent in the message.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
-
-## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
-## an unencrypted handshake, and Bro extracts as much information out of that
-## as it can. This event signals the time when an SSL/TLS has finished the
-## handshake and its endpoints consider it as fully established. Typically,
-## everything from now on will be encrypted.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
-## more information about the SSL/TLS protocol.
-##
-## c: The connection.
-##
-## .. bro:see:: ssl_alert ssl_client_hello  ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-event ssl_established%(c: connection%);
-
-## Generated for SSL/TLS alert records. SSL/TLS sessions start with an
-## unencrypted handshake, and Bro extracts as much information out of that as
-## it can. If during that handshake, an endpoint encounters a fatal error, it
-## sends an *alert* record, that in turn triggers this event. After an *alert*,
-## any endpoint may close the connection immediately.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
-## more information about the SSL/TLS protocol.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## level: The severity level, as sent in the *alert*. The values are defined as
-##        part of the SSL/TLS protocol.
-##
-## desc: A numerical value identifying the cause of the *alert*. The values are
-##       defined as part of the SSL/TLS protocol.
-##
-## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
-
-## Generated for SSL/TLS handshake messages that are a part of the
-## stateless-server session resumption mechanism. SSL/TLS sessions start with
-## an unencrypted handshake, and Bro extracts as much information out of that
-## as it can. This event is raised when an SSL/TLS server passes a session
-## ticket to the client that can later be used for resuming the session. The
-## mechanism is described in :rfc:`4507`
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
-## more information about the SSL/TLS protocol.
-##
-## c: The connection.
-##
-## ticket_lifetime_hint: A hint from the server about how long the ticket
-##                       should be stored by the client.
-##
-## ticket: The raw ticket data.
-##
-## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    x509_certificate x509_error x509_extension ssl_alert
-event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
-
-## Generated for X509 certificates seen in SSL/TLS connections. During the
-## initial SSL/TLS handshake, certificates are exchanged in the clear. Bro
-## raises this event for each certificate seen (including both a site's primary
-## cert, and further certs sent as part of the validation chain).
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## cert: The parsed certificate.
-##
-## chain_idx: The index in the validation chain that this cert has. Index zero
-##            indicates an endpoint's primary cert, while higher indices
-##            indicate the place in the validation chain (which has length
-##            *chain_len*).
-##
-## chain_len: The total length of the validation chain that this cert is part
-##            of.
-##
-## der_cert: The complete cert encoded in `DER
-##           <http://en.wikipedia.org/wiki/Distinguished_Encoding_Rules>`__
-##           format.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello  x509_error x509_extension x509_verify
-event x509_certificate%(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string%);
-
-## Generated for X509 extensions seen in a certificate.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## data: The raw data associated with the extension.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello x509_certificate x509_error  x509_verify
-event x509_extension%(c: connection, is_orig: bool, data: string%);
-
-## Generated when errors occur during parsing an X509 certificate.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## err: An error code describing what went wrong. :bro:id:`SSL::x509_errors`
-##      maps error codes to a textual description.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello x509_certificate  x509_extension x509_err2str x509_verify
-event x509_error%(c: connection, is_orig: bool, err: count%);
-
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_request
@@ -5186,8 +4758,8 @@ event x509_error%(c: connection, is_orig: bool, err: count%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dce_rpc_message%(c: connection, is_orig: bool, ptype: dce_rpc_ptype, msg: string%);
 
 ## TODO.
@@ -5197,8 +4769,8 @@ event dce_rpc_message%(c: connection, is_orig: bool, ptype: dce_rpc_ptype, msg: 
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dce_rpc_bind%(c: connection, uuid: string%);
 
 ## TODO.
@@ -5208,8 +4780,8 @@ event dce_rpc_bind%(c: connection, uuid: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dce_rpc_request%(c: connection, opnum: count, stub: string%);
 
 ## TODO.
@@ -5219,8 +4791,8 @@ event dce_rpc_request%(c: connection, opnum: count, stub: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event dce_rpc_response%(c: connection, opnum: count, stub: string%);
 
 ## TODO.
@@ -5230,8 +4802,8 @@ event dce_rpc_response%(c: connection, opnum: count, stub: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
 
 ## Generated for NCP requests (Netware Core Protocol).
@@ -5251,8 +4823,8 @@ event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event ncp_request%(c: connection, frame_type: count, length: count, func: count%);
 
 ## Generated for NCP replies (Netware Core Protocol).
@@ -5276,8 +4848,8 @@ event ncp_request%(c: connection, frame_type: count, length: count, func: count%
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event ncp_reply%(c: connection, frame_type: count, length: count, req_frame: count, req_func: count, completion_code: count%);
 
 ## Generated for client-side commands on POP3 connections.
@@ -5299,8 +4871,8 @@ event ncp_reply%(c: connection, frame_type: count, length: count, req_frame: cou
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_request%(c: connection, is_orig: bool,
 			command: string, arg: string%);
 
@@ -5326,8 +4898,8 @@ event pop3_request%(c: connection, is_orig: bool,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
 
 ## Generated for server-side multi-line responses on POP3 connections. POP3
@@ -5349,8 +4921,8 @@ event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_data%(c: connection, is_orig: bool, data: string%);
 
 ## Generated for errors encountered on POP3 sessions. If the POP3 analyzer
@@ -5373,8 +4945,8 @@ event pop3_data%(c: connection, is_orig: bool, data: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_unexpected%(c: connection, is_orig: bool,
 			msg: string, detail: string%);
 
@@ -5400,8 +4972,8 @@ event pop3_unexpected%(c: connection, is_orig: bool,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_terminate%(c: connection, is_orig: bool, msg: string%);
 
 ## Generated for successful authentications on POP3 connections.
@@ -5423,8 +4995,8 @@ event pop3_terminate%(c: connection, is_orig: bool, msg: string%);
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_login_success%(c: connection, is_orig: bool,
 				user: string, password: string%);
 
@@ -5447,8 +5019,8 @@ event pop3_login_success%(c: connection, is_orig: bool,
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
 event pop3_login_failure%(c: connection, is_orig: bool,
 				user: string, password: string%);
 
@@ -6255,23 +5827,6 @@ event irc_password_message%(c: connection, is_orig: bool, password: string%);
 ## TODO.
 ##
 event file_transferred%(c: connection, prefix: string, descr: string, mime_type: string%);
-
-## Generated for monitored Syslog messages.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Syslog>`__ for more
-## information about the Syslog protocol.
-##
-## c: The connection record for the underlying transport-layer session/flow.
-##
-## facility: The "facility" included in the message.
-##
-## severity: The "severity" included in the message.
-##
-## msg: The message logged.
-##
-## .. note:: Bro currently parses only UDP syslog traffic. Support for TCP
-##    syslog will be added soon.
-event syslog_message%(c: connection, facility: count, severity: count, msg: string%);
 
 ## Generated when a signature matches. Bro's signature engine provides
 ## high-performance pattern matching separately from the normal script

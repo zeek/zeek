@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
-#include "util-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +49,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "DPM.h"
 #include "BroDoc.h"
 #include "Brofiler.h"
 
@@ -58,6 +56,9 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
+#include "analyzer/Manager.h"
+#include "analyzer/Tag.h"
+#include "plugin/Manager.h"
 
 #include "binpac_bro.h"
 
@@ -92,6 +93,8 @@ TimerMgr* timer_mgr;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
+plugin::Manager* plugin_mgr = 0;
+analyzer::Manager* analyzer_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -105,7 +108,6 @@ ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
-DPM* dpm = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
@@ -116,8 +118,6 @@ char* command_line_policy = 0;
 vector<string> params;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
-
-int FLAGS_use_binpac = false;
 
 extern std::list<BroDoc*> docs_generated;
 
@@ -182,6 +182,7 @@ void usage()
 	fprintf(stderr, "    -I|--print-id <ID name>        | print out given ID\n");
 	fprintf(stderr, "    -K|--md5-hashkey <hashkey>     | set key for MD5-keyed hashing\n");
 	fprintf(stderr, "    -L|--rule-benchmark            | benchmark for rules\n");
+	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
@@ -189,7 +190,6 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -X|--disable-analyzer <name>   | disable the named analyzer\n");
 	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -207,8 +207,6 @@ void usage()
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
-	fprintf(stderr, "    --use-binpac                   | use new-style BinPAC parsers when available\n");
-
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
@@ -217,7 +215,7 @@ void usage()
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
 	fprintf(stderr, "\n");
-	fprintf(stderr, "    Supported log formats : ");
+	fprintf(stderr, "    Supported log formats: ");
 
 	bool first = true;
 	list<string> fmts = logging::Manager::SupportedFormats();
@@ -238,14 +236,38 @@ void usage()
 	fprintf(stderr, "\n");
 
 #ifdef HAVE_HILTI
-	fprintf(stderr, "    HILTI/BinPAC++ support: yes\n");
+       fprintf(stderr, "    HILTI/BinPAC++ support: yes\n");
 #else
-	fprintf(stderr, "    HILTI/BinPAC++ support: no\n");
+       fprintf(stderr, "    HILTI/BinPAC++ support: no\n");
 #endif
 
-	fprintf(stderr, "\n");
-
 	exit(1);
+	}
+
+void show_plugins(int level)
+	{
+	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+
+	if ( ! plugins.size() )
+		{
+		printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
+		return;
+		}
+
+	ODesc d;
+
+	if ( level == 1 )
+		d.SetShort();
+
+	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
+		{
+		(*i)->Describe(&d);
+
+		if ( ! d.IsShort() )
+			d.Add("\n");
+		}
+
+	printf("%s", d.Description());
 	}
 
 void done_with_network()
@@ -277,7 +299,7 @@ void done_with_network()
 
 	terminating = true;
 
-	dpm->Done();
+	analyzer_mgr->Done();
 	timer_mgr->Expire();
 	dns_mgr->Flush();
 	mgr.Drain();
@@ -339,6 +361,8 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	plugin_mgr->FinishPlugins();
+
 	delete timer_mgr;
 	delete dns_mgr;
 	delete persistence_serializer;
@@ -348,8 +372,9 @@ void terminate_bro()
 	delete event_registry;
 	delete secondary_path;
 	delete remote_serializer;
-	delete dpm;
+	delete analyzer_mgr;
 	delete log_mgr;
+	delete plugin_mgr;
 	delete thread_mgr;
 	delete reporter;
 
@@ -399,8 +424,6 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
-	double time_start = current_time(true);;
-
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -429,7 +452,7 @@ int main(int argc, char** argv)
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
 	int RE_level = 4;
-	std::set<string> disabled_analyzers;
+	int print_plugins = 0;
 
 	static struct option long_opts[] = {
 		{"bare-mode",	no_argument,		0,	'b'},
@@ -458,6 +481,7 @@ int main(int argc, char** argv)
 		{"set-seed",		required_argument,	0,	'J'},
 		{"md5-hashkey",		required_argument,	0,	'K'},
 		{"rule-benchmark",	no_argument,		0,	'L'},
+		{"print-plugins",	no_argument,		0,	'N'},
 		{"optimize",		no_argument,		0,	'O'},
 		{"prime-dns",		no_argument,		0,	'P'},
 		{"replay",		required_argument,	0,	'R'},
@@ -466,7 +490,6 @@ int main(int argc, char** argv)
 		{"watchdog",		no_argument,		0,	'W'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
-		{"disable-analyzer",	required_argument,	0,	'X'},
 
 #ifdef	DEBUG
 		{"debug",		required_argument,	0,	'B'},
@@ -480,8 +503,6 @@ int main(int argc, char** argv)
 #endif
 
 		{"pseudo-realtime",	optional_argument, 0,	'E'},
-
-		{"use-binpac",		no_argument, 		&FLAGS_use_binpac, 1},
 
 		{0,			0,			0,	0},
 	};
@@ -513,7 +534,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -628,6 +649,10 @@ int main(int argc, char** argv)
 			++rule_bench;
 			break;
 
+		case 'N':
+			++print_plugins;
+			break;
+
 		case 'O':
 			optimize = 1;
 			break;
@@ -684,10 +709,12 @@ int main(int argc, char** argv)
 		case 'x':
 			bst_file = optarg;
 			break;
-
+#if 0 // broken
 		case 'X':
-			disabled_analyzers.insert(optarg);
+			bst_file = optarg;
+			to_xml = 1;
 			break;
+#endif
 
 		case 'Z':
 			generate_documentation = 1;
@@ -767,7 +794,7 @@ int main(int argc, char** argv)
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
 	     interfaces.length() == 0 &&
-	     ! (id_name || bst_file) && ! command_line_policy )
+	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
 
 	// Process remaining arguments.  X=Y arguments indicate script
@@ -781,6 +808,8 @@ int main(int argc, char** argv)
 			add_input_file(argv[optind++]);
 		}
 
+	push_scope(0);
+
 	dns_mgr = new DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
@@ -791,18 +820,44 @@ int main(int argc, char** argv)
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
+
+	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
-    	input_mgr = new input::Manager();
+	input_mgr = new input::Manager();
+	plugin_mgr = new plugin::Manager();
+
+#ifdef HAVE_HILTI
+	hilti_loader = new bro::hilti::Loader();
+
+	string path = bro_path();
+
+	while ( true )
+		{
+		size_t e = path.find(":");
+
+		if ( e == string::npos )
+			break;
+
+		string p = path.substr(0, e) + "/pac2";
+		hilti_loader->AddLibraryPath(p.c_str());
+
+		path = path.substr(e + 1, string::npos);
+		}
+
+	path += "/pac2";
+	hilti_loader->AddLibraryPath(path.c_str());
+
+	if ( ! hilti_loader->InitPreScripts() )
+		exit(1);
+#endif
+
+	plugin_mgr->InitPlugins();
+	analyzer_mgr->Init();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
-
-	push_scope(0);
-
-	dpm = new DPM;
-	dpm->PreScriptInit();
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -816,6 +871,15 @@ int main(int argc, char** argv)
 #endif
 
 	yyparse();
+
+	analyzer_mgr->InitBifs();
+	plugin_mgr->InitPluginsBif();
+
+	if ( print_plugins )
+		{
+		show_plugins(print_plugins);
+		exit(1);
+		}
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}
@@ -1009,25 +1073,8 @@ int main(int argc, char** argv)
 		network_time = current_time();
 
 #ifdef HAVE_HILTI
-	hilti_loader = new bro::hilti::Loader();
-
-	string path = bro_path();
-
-	while ( true )
-		{
-		size_t e = path.find(":");
-
-		if ( e == string::npos )
-			break;
-
-		string p = path.substr(0, e) + "/pac2";
-		hilti_loader->AddLibraryPath(p.c_str());
-
-		path = path.substr(e + 1, string::npos);
-		}
-
-	path += "/pac2";
-	hilti_loader->AddLibraryPath(path.c_str());
+	if ( ! hilti_loader->InitPostScripts() )
+		exit(1);
 
 	if ( ! hilti_loader->Load() )
 		exit(1);
@@ -1090,14 +1137,11 @@ int main(int argc, char** argv)
 		mgr.QueueEvent(bro_script_loaded, vl);
 		}
 
-	for ( std::set<string>::iterator i = disabled_analyzers.begin(); i != disabled_analyzers.end(); i++ )
-		dpm->DisableAnalyzer(*i);
-
-	dpm->PostScriptInit();
-
 	reporter->ReportViaEvents(true);
 
 	mgr.Drain();
+
+	analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 
@@ -1122,16 +1166,7 @@ int main(int argc, char** argv)
 
 #endif
 
-		double time_net_start = current_time(true);;
-
-		fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
-
 		net_run();
-		double time_net_done = current_time(true);;
-
-		fprintf(stderr, "# total time %.6f, initialization %.6f, processing %.6f\n",
-			time_net_done - time_start, time_net_start - time_start, time_net_done - time_net_start);
-
 		done_with_network();
 		net_delete();
 

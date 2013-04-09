@@ -1,12 +1,13 @@
 #ifndef Teredo_h
 #define Teredo_h
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include "NetVar.h"
+#include "Reporter.h"
 
-class Teredo_Analyzer : public Analyzer {
+class Teredo_Analyzer : public analyzer::Analyzer {
 public:
-	Teredo_Analyzer(Connection* conn) : Analyzer(AnalyzerTag::Teredo, conn),
+	Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
 	                                    valid_orig(false), valid_resp(false)
 		{}
 
@@ -18,12 +19,8 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{ return BifConst::Tunnel::enable_teredo &&
-		         BifConst::Tunnel::max_depth > 0; }
 
 	/**
 	 * Emits a weird only if the analyzer has previously been able to
@@ -50,7 +47,6 @@ public:
 		}
 
 protected:
-	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
 
 	bool valid_orig;

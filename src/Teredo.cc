@@ -1,5 +1,7 @@
 
 #include "Teredo.h"
+#include "TunnelEncapsulation.h"
+#include "Conn.h"
 #include "IP.h"
 #include "Reporter.h"
 

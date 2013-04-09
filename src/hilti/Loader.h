@@ -46,6 +46,7 @@
 #endif
 
 class BroType;
+struct __hlt_list;
 
 using std::string;
 
@@ -103,12 +104,31 @@ public:
 
 	/**
 	 * Adds one or more paths to find further *.pac2 and *.hlt library
-	 * modules. The path will be passed to the compiler.
+	 * modules. The path will be passed to the compiler. Note that this
+	 * must be called only before InitPreScripts().
 	 *
 	 * paths: The directories to search. Multiple directories can be
 	 * given at once by separating them with a colon.
 	 */
 	void AddLibraryPath(const char* dir);
+
+	/**
+	 * Initializes parts of the loader that don't require Bro's scripts
+	 * bein parsed yet. Note that all AddLibraryPath() calls must have
+	 * been finished at this time.
+	 *
+	 * @return False if an error occured.
+	 *
+	 */
+	bool InitPreScripts();
+
+	/**
+	 * Initializes the remaining parts of the loader that require Bro's
+	 * scripts being parsed already.
+	 *
+	 * @return False if an error occured.
+	 */
+	bool InitPostScripts();
 
 	/**
 	 * Compiles all *.pac2 analyzers found in any of the library paths.
@@ -138,7 +158,7 @@ public:
 	 * Returns the BinPAC++ name for a given analyzer. Returns an error
 	 * string if the string doesn't correspond to a BinPAC++ analyzer.
 	 */
-	string AnalyzerName(const AnalyzerTag& tag);
+	string AnalyzerName(const analyzer::Tag& tag);
 
 	/**
 	 * Returns the BinPAC++ parser object for an analyzer.
@@ -152,7 +172,7 @@ public:
 	 * Note that this is a HILTI ref'cnted object. When storing the
 	 * pointer, make sure to cctor it.
 	 */
-	struct __binpac_parser* ParserForAnalyzer(const AnalyzerTag& tag, bool is_orig);
+	struct __binpac_parser* ParserForAnalyzer(const analyzer::Tag& tag, bool is_orig);
 
 	/** Dumps a summary all BinPAC++/HILTI analyzers/events/code to standard error.
 	 */
@@ -301,11 +321,14 @@ protected:
 	 * Adds information from BinPAC+s binpac_parsers() list to our
 	 * analyzer data structures.
 	 */
-	void ExtractParsers(hlt_list* parsers);
+	void ExtractParsers(__hlt_list* parsers);
 
 #endif
 
 private:
+	bool pre_scripts_init_run;
+	bool post_scripts_init_run;
+
 	// We pimpl here to avoid having to declare the internal types, which
 	// partially depend on BinPAC++ headers.
 	struct PIMPL;

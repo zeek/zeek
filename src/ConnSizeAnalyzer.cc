@@ -9,7 +9,7 @@
 
 
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
-: Analyzer(AnalyzerTag::ConnSize, c)
+: Analyzer("CONNSIZE", c)
 	{
 	}
 

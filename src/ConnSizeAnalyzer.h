@@ -4,11 +4,11 @@
 #ifndef CONNSTATS_H
 #define CONNSTATS_H
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include "NetVar.h"
 
 
-class ConnSize_Analyzer : public Analyzer {
+class ConnSize_Analyzer : public analyzer::Analyzer {
 public:
 	ConnSize_Analyzer(Connection* c);
 	virtual ~ConnSize_Analyzer();
@@ -20,10 +20,8 @@ public:
 	virtual void UpdateConnVal(RecordVal *conn_val);
 	virtual void FlipRoles();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)	{ return BifConst::use_conn_size_analyzer ; }
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,

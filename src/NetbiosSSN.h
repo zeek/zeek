@@ -62,7 +62,7 @@ struct NetbiosDGM_RawMsgHdr {
 
 class NetbiosSSN_Interpreter {
 public:
-	NetbiosSSN_Interpreter(Analyzer* analyzer, SMB_Session* smb_session);
+	NetbiosSSN_Interpreter(analyzer::Analyzer* analyzer, SMB_Session* smb_session);
 
 	int ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, int is_query);
@@ -108,7 +108,7 @@ protected:
 			u_char*& xname, int& xlen);
 
 protected:
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	SMB_Session* smb_session;
 };
 
@@ -157,15 +157,8 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{
-		return NetbiosSSN_Interpreter::any_netbios_ssn_event() ||
-			SMB_Session::any_smb_event() ||
-			DCE_RPC_Session::any_dce_rpc_event();
-		}
 
 protected:
 	virtual void ConnectionClosed(TCP_Endpoint* endpoint,

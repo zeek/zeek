@@ -39,7 +39,7 @@ protected:
 
 class SMB_Session {
 public:
-	SMB_Session(Analyzer* analyzer);
+	SMB_Session(analyzer::Analyzer* analyzer);
 	~SMB_Session();
 
 	void Deliver(int is_orig, int len, const u_char* msg);
@@ -158,7 +158,7 @@ protected:
 	Val* BuildTransactionVal(binpac::SMB::SMB_transaction_response const &trans);
 	Val* BuildTransactionDataVal(binpac::SMB::SMB_transaction_data* data);
 
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	DCE_RPC_Session* dce_rpc_session;
 	enum IPC_named_pipe IPC_pipe;
 	int is_IPC;
@@ -195,14 +195,8 @@ public:
 	SMB_Analyzer(Connection* conn);
 	~SMB_Analyzer();
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SMB_Analyzer(conn); }
-
-	static bool Available(const AnalyzerTag& tag)
-		{
-		return SMB_Session::any_smb_event() ||
-			DCE_RPC_Session::any_dce_rpc_event();
-		}
 
 protected:
 	SMB_Session* smb_session;

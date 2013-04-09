@@ -1,7 +1,7 @@
 #include "AYIYA.h"
 
 AYIYA_Analyzer::AYIYA_Analyzer(Connection* conn)
-: Analyzer(AnalyzerTag::AYIYA, conn)
+: Analyzer("AYIYA", conn)
 	{
 	interp = new binpac::AYIYA::AYIYA_Conn(this);
 	}

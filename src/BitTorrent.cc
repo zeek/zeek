@@ -4,7 +4,7 @@
 #include "TCP_Reassembler.h"
 
 BitTorrent_Analyzer::BitTorrent_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::BitTorrent, c)
+: TCP_ApplicationAnalyzer("BITTORRENT", c)
 	{
 	interp = new binpac::BitTorrent::BitTorrent_Conn(this);
 	stop_orig = stop_resp = false;

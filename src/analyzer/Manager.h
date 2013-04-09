@@ -1,0 +1,441 @@
+/**
+ * The central management unit for registering and instantiating analyzers.
+ *
+ * For each protocol that Bro supports, there's one class derived from
+ * analyzer::Analyzer. Once we have decided that a connection's payload is to
+ * be parsed as a given protocol, we instantiate the corresponding
+ * analyzer-derived class and add the new instance as a child node into the
+ * connection's analyzer tree.
+ *
+ * In addition to the analyzer-derived class itself, for each protocol
+ * there's also "meta-class" derived from analyzer::Component that describes
+ * the analyzer, including status information on if that particular protocol
+ * analysis is currently enabled.
+ *
+ * To identify an analyzer (or to be precise: a component), the manager
+ * maintains mappings of (1) analyzer::Tag to component, and (2)
+ * human-readable analyzer name to component.
+ */
+#ifndef ANALYZER_MANAGER_H
+#define ANALYZER_MANAGER_H
+
+#include <queue>
+
+#include "Analyzer.h"
+#include "Component.h"
+#include "Tag.h"
+
+#include "../Dict.h"
+#include "../net_util.h"
+#include "../IP.h"
+
+#include "analyzer/analyzer.bif.h"
+
+namespace analyzer {
+
+/**
+ * Class maintaining and scheduling available protocol analyzers.
+ *
+ * The manager maintains a registry of all available protocol analyzers,
+ * including a mapping between their textual names and analyzer::Tag. It
+ * instantantiates new analyzers on demand. For new connections, the manager
+ * sets up their initial analyzer tree, including adding the right \c PIA,
+ * respecting well-known ports, and tracking any analyzers specifically
+ * scheduled for individidual connections.
+ *
+ * Note that we keep the public interface of this class free of std::*
+ * classes. This allows to external analyzer code to potentially use a
+ * different C++ standard library.
+ */
+class Manager {
+public:
+	/**
+	 * Constructor.
+	 */
+	Manager();
+
+	/**
+	 * Destructor.
+	 */
+	~Manager();
+
+	/**
+	 * Initializes the manager's operation. Must be called before scripts
+	 * are parsed.
+	 */
+	void Init();
+
+	/**
+	 * Initializes the analyze-related BiFs. Must be called after scripts
+	 * are parsed.
+	 */
+	void InitBifs();
+
+	/**
+	 * Finished the manager's operations.
+	 */
+	void Done();
+
+	/**
+	 * Dumps out the state of all registered analyzers to the \c analyzer
+	 * debug stream. Should be called only after any \c bro_init events
+	 * have executed to ensure that any of their changes are applied.
+	 */
+	void DumpDebug(); // Called after bro_init() events.
+
+	/**
+	 * Enables an analyzer type. Only enabled analyzers will be
+	 * instantiated for new connections.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @return True if sucessful.
+	 */
+	bool EnableAnalyzer(Tag tag);
+
+	/**
+	 * Enables an analyzer type. Only enabled analyzers will be
+	 * instantiated for new connections.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 *
+	 * @return True if sucessful.
+	 */
+	bool EnableAnalyzer(EnumVal* tag);
+
+	/**
+	 * Enables an analyzer type. Disabled analyzers will not be
+	 * instantiated for new connections.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @return True if sucessful.
+	 */
+	bool DisableAnalyzer(Tag tag);
+
+	/**
+	 * Enables an analyzer type. Disabled analyzers will not be
+	 * instantiated for new connections.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 *
+	 * @return True if sucessful.
+	 */
+	bool DisableAnalyzer(EnumVal* tag);
+
+	/**
+	 * Disables all currently registered analyzers.
+	 */
+	void DisableAllAnalyzers();
+
+	/**
+	 * Returns true if an analyzer is enabled.
+	 *
+	 * @param tag The analyzer's tag.
+	 */
+	bool IsEnabled(Tag tag);
+
+	/**
+	 * Returns true if an analyzer is enabled.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 */
+	bool IsEnabled(EnumVal* tag);
+
+	/**
+	 * Registers a well-known port for an analyzer. Once registered,
+	 * connection on that port will start with a corresponding analyzer
+	 * assigned.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 *
+	 * @param port The well-known port.
+	 *
+	 * @return True if sucessful.
+	 */
+	bool RegisterAnalyzerForPort(EnumVal* tag, PortVal* port);
+
+	/**
+	 * Registers a well-known port for an analyzer. Once registered,
+	 * connection on that port will start with a corresponding analyzer
+	 * assigned.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @param proto The port's protocol.
+	 *
+	 * @param port The port's number.
+	 *
+	 * @return True if sucessful.
+	 */
+	bool RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
+
+	/**
+	 * Unregisters a well-known port for an anlyzers.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 *
+	 * @param port The well-known port.
+	 *
+	 * @return True if sucessful (incl. when the port wasn't actually
+	 * registered for the analyzer).
+	 *
+	 */
+	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
+
+	/**
+	 * Unregisters a well-known port for an anlyzers.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @param proto The port's protocol.
+	 *
+	 * @param port The port's number.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Analyzer::Tag.
+	 */
+	bool UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
+
+	/**
+	 * Instantiates a new analyzer instance for a connection.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @param conn The connection the analyzer is to be associated with.
+	 *
+	 * @return The new analyzer instance. Note that the analyzer will not
+	 * have been added to the connection's analyzer tree yet. Returns
+	 * null if tag is invalid or the requested analyzer is disabled.
+	 */
+	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c); // Null if disabled or not available.
+
+	/**
+	 * Instantiates a new analyzer instance for a connection.
+	 *
+	 * @param name The name of the analyzer.
+	 *
+	 * @param conn The connection the analyzer is to be associated with.
+	 *
+	 * @return The new analyzer instance. Note that the analyzer will not
+	 * have been added to the connection's analyzer tree yet. Returns
+	 * null if the name is not known or if the requested analyzer that is
+	 * disabled.
+	 */
+	Analyzer* InstantiateAnalyzer(const char* name, Connection* c); // Null if disabled or not available.
+
+	/**
+	 * Translates an analyzer tag into corresponding analyzer name.
+	 *
+	 * @param tag The analyzer tag.
+	 *
+	 * @return The name, or an empty string if the tag is invalid.
+	 */
+	const char* GetAnalyzerName(Tag tag);
+
+	/**
+	 * Translates an script-level analyzer tag into corresponding
+	 * analyzer name.
+	 *
+	 * @param val The analyzer tag as an script-level enum value of type
+	 * \c Analyzer::Tag.
+	 *
+	 * @return The name, or an empty string if the tag is invalid.
+	 */
+	const char* GetAnalyzerName(Val* val);
+
+	/**
+	 * Translates an analyzer name into the corresponding tag.
+	 *
+	 * @param name The name.
+	 *
+	 * @return The tag. If the name does not correspond to a valid
+	 * analyzer, the returned tag will evaluate to false.
+	 */
+	Tag GetAnalyzerTag(const char* name);
+
+	/**
+	 * Returns the enum type that corresponds to the script-level type \c
+	 * Analyzer::Tag.
+	 */
+	EnumType* GetTagEnumType();
+
+	/**
+	 * Given the first packet of a connection, builds its initial
+	 * analyzer tree.
+	 *
+	 * @param conn The connection to add the initial set of analyzers to.
+	 *
+	 * @return False if the tree cannot be build; that's usually an
+	 * internally error.
+	 */
+	bool BuildInitialAnalyzerTree(Connection* conn);
+
+	/**
+	 * Schedules a particular analyzer for an upcoming connection. Once
+	 * the connection is seen, BuildInitAnalyzerTree() will add the
+	 * specified analyzer to its tree.
+	 *
+	 * @param orig The connection's anticipated originator address.
+	 * 0.0.0.0 can be used as a wildcard matching any originator.
+	 *
+	 * @param resp The connection's anticipated responder address (no
+	 * wilcard).
+	 *
+	 * @param resp_p The connection's anticipated responder port.
+	 *
+	 * @param proto The connection's anticipated transport protocol.
+	 *
+	 * @param analyzer The analyzer to use once the connection is seen.
+	 *
+	 * @param timeout An interval after which to timeout the request to
+	 * schedule this analyzer. Must be non-zero.
+	 */
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
+				TransportProto proto, Tag analyzer, double timeout);
+
+	/**
+	 * Schedules a particular analyzer for an upcoming connection. Once
+	 * the connection is seen, BuildInitAnalyzerTree() will add the
+	 * specified analyzer to its tree.
+	 *
+	 * @param orig The connection's anticipated originator address. 0 can
+	 * be used as a wildcard matching any originator.
+	 *
+	 * @param resp The The connection's anticipated responder address (no
+	 * wilcard).
+	 *
+	 * @param resp_p The connection's anticipated responder port.
+	 *
+	 * @param proto The connection's anticipated transport protocol.
+	 *
+	 * @param analyzer The name of the analyzer to use once the
+	 * connection is seen.
+	 *
+	 * @param timeout An interval after which to timeout the request to
+	 * schedule this analyzer. Must be non-zero.
+	 */
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
+				TransportProto proto, const char* analyzer,
+				double timeout);
+
+	/**
+	 * Schedules a particular analyzer for an upcoming connection. Once
+	 * the connection is seen, BuildInitAnalyzerTree() will add the
+	 * specified analyzer to its tree.
+	 *
+	 * @param orig The connection's anticipated originator address. 0 can
+	 * be used as a wildcard matching any originator.
+	 *
+	 * @param resp The connection's anticipated responder address (no
+	 * wilcard).
+	 *
+	 * @param resp_p The connection's anticipated responder port.
+	 *
+	 * @param analyzer The analyzer to use once the connection is seen as
+	 * an enum value of script-type \c Analyzer::Tag.
+	 *
+	 * @param timeout An interval after which to timeout the request to
+	 * schedule this analyzer. Must be non-zero.
+	 */
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
+			      Val* analyzer, double timeout);
+
+private:
+	typedef set<Tag> tag_set;
+	typedef map<string, Component*> analyzer_map_by_name;
+	typedef map<Tag, Component*>  analyzer_map_by_tag;
+	typedef map<int, Component*>  analyzer_map_by_val;
+	typedef map<uint32, tag_set*> analyzer_map_by_port;
+
+	void RegisterAnalyzerComponent(Component* component); // Takes ownership.
+
+	Component* Lookup(const string& name);
+	Component* Lookup(const char* name);
+	Component* Lookup(const Tag& tag);
+	Component* Lookup(EnumVal* val);
+
+	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
+	tag_set* LookupPort(TransportProto proto, uint32 port, bool add_if_not_found);
+
+	tag_set GetScheduled(const Connection* conn);
+	void ExpireScheduledAnalyzers();
+
+	analyzer_map_by_port analyzers_by_port_tcp;
+	analyzer_map_by_port analyzers_by_port_udp;
+	analyzer_map_by_name analyzers_by_name;
+	analyzer_map_by_tag  analyzers_by_tag;
+	analyzer_map_by_val  analyzers_by_val;
+
+	Tag analyzer_backdoor;
+	Tag analyzer_connsize;
+	Tag analyzer_interconn;
+	Tag analyzer_stepping;
+	Tag analyzer_tcpstats;
+
+	EnumType* tag_enum_type;
+
+	//// Data structures to track analyzed scheduled for future connections.
+
+	// The index for a scheduled connection.
+	struct ConnIndex {
+		IPAddr orig;
+		IPAddr resp;
+		uint16 resp_p;
+		uint16 proto;
+
+		ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
+			     uint16 _resp_p, uint16 _proto);
+		ConnIndex();
+
+		bool operator<(const ConnIndex& other) const;
+	};
+
+	// Information associated with a scheduled connection.
+	struct ScheduledAnalyzer {
+		ConnIndex conn;
+		Tag analyzer;
+		double timeout;
+
+		struct Comparator {
+			bool operator() (ScheduledAnalyzer* a, ScheduledAnalyzer* b) {
+				return a->timeout > b->timeout;
+			}
+		};
+	};
+
+	typedef std::multimap<ConnIndex, ScheduledAnalyzer*> conns_map;
+	typedef std::priority_queue<ScheduledAnalyzer*,
+				    vector<ScheduledAnalyzer*>,
+				    ScheduledAnalyzer::Comparator> conns_queue;
+
+	conns_map conns;
+	conns_queue conns_by_timeout;
+};
+
+}
+
+extern analyzer::Manager* analyzer_mgr;
+
+// Macros for anayzer debug logging which include the connection id into the
+// message.
+#ifdef DEBUG
+# define DBG_ANALYZER(conn, txt) \
+	DBG_LOG(DBG_ANALYZER, "%s " txt, \
+		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
+		conn->RespAddr(), ntohs(conn->RespPort())));
+# define DBG_ANALYZER_ARGS(conn, fmt, args...) \
+	DBG_LOG(DBG_ANALYZER, "%s " fmt, \
+		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
+		conn->RespAddr(), ntohs(conn->RespPort())), ##args);
+#else
+# define DBG_ANALYZER(conn, txt)
+# define DBG_ANALYZER_ARGS(conn, fmt, args...)
+#endif
+
+#endif

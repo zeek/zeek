@@ -100,11 +100,11 @@ public:
 	// stack of location so that the most recent is always the one that
 	// will be assumed to be the current one. The pointer must remain
 	// valid until the location is popped.
-	void PushLocation(const Location* location)
-		{ locations.push_back(std::pair<const Location*, const Location*>(location, 0)); }
+	void PushLocation(const ::Location* location)
+		{ locations.push_back(std::pair<const ::Location*, const ::Location*>(location, 0)); }
 
-	void PushLocation(const Location* loc1, const Location* loc2)
-		{ locations.push_back(std::pair<const Location*, const Location*>(loc1, loc2)); }
+	void PushLocation(const ::Location* loc1, const ::Location* loc2)
+		{ locations.push_back(std::pair<const ::Location*, const ::Location*>(loc1, loc2)); }
 
 	// Removes the top-most location information from stack.
 	void PopLocation()
@@ -133,7 +133,7 @@ private:
 	bool warnings_to_stderr;
 	bool errors_to_stderr;
 
-	std::list<std::pair<const Location*, const Location*> > locations;
+	std::list<std::pair<const ::Location*, const ::Location*> > locations;
 };
 
 extern Reporter* reporter;

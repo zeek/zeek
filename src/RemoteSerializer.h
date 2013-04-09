@@ -84,7 +84,7 @@ public:
 	bool SendAccess(SerialInfo* info, PeerID pid, const StateAccess& access);
 
 	// Sends ID.
-	bool SendID(SerialInfo* info, PeerID peer, const ID& id);
+	bool SendID(SerialInfo* info, PeerID peer, const ::ID& id);
 
 	// Sends the internal connection state.
 	bool SendConnection(SerialInfo* info, PeerID peer, const Connection& c);
@@ -119,8 +119,8 @@ public:
 	void SendFinalSyncPoint();
 
 	// Registers the ID to be &synchronized.
-	void Register(ID* id);
-	void Unregister(ID* id);
+	void Register(::ID* id);
+	void Unregister(::ID* id);
 
 	// Stop/restart propagating state updates.
 	void SuspendStateUpdates()	{ --propagate_accesses; }
@@ -251,7 +251,7 @@ protected:
 				EventHandlerPtr event, val_list* args);
 	virtual void GotFunctionCall(const char* name, double time,
 				Func* func, val_list* args);
-	virtual void GotID(ID* id, Val* val);
+	virtual void GotID(::ID* id, Val* val);
 	virtual void GotStateAccess(StateAccess* s);
 	virtual void GotTimer(Timer* t);
 	virtual void GotConnection(Connection* c);
@@ -301,7 +301,7 @@ protected:
 	bool SendAllSynchronized(Peer* peer, SerialInfo* info);
 	bool SendCall(SerialInfo* info, Peer* peer, const char* name, val_list* vl);
 	bool SendAccess(SerialInfo* info, Peer* peer, const StateAccess& access);
-	bool SendID(SerialInfo* info, Peer* peer, const ID& id);
+	bool SendID(SerialInfo* info, Peer* peer, const ::ID& id);
 	bool SendCapabilities(Peer* peer);
 	bool SendPacket(SerialInfo* info, Peer* peer, const Packet& p);
 	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals);

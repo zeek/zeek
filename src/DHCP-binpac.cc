@@ -1,7 +1,7 @@
 #include "DHCP-binpac.h"
 
 DHCP_Analyzer_binpac::DHCP_Analyzer_binpac(Connection* conn)
-: Analyzer(AnalyzerTag::DHCP_BINPAC, conn)
+: Analyzer("DHCP", conn)
 	{
 	interp = new binpac::DHCP::DHCP_Conn(this);
 	}

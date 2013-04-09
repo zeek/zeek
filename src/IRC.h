@@ -30,12 +30,10 @@ public:
 	*/
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn, const AnalyzerTag& tag)
+	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{
 		return new IRC_Analyzer(conn);
 		}
-
-	static bool Available(const AnalyzerTag& tag);
 
 protected:
 	int orig_status;

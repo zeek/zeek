@@ -17,7 +17,7 @@ public:
 	SegmentStatsReporter()	{ }
 	virtual ~SegmentStatsReporter()	{ }
 
-	virtual void SegmentProfile(const char* name, const Location* loc,
+	virtual void SegmentProfile(const char* name, const ::Location* loc,
 					double dtime, int dmem) = 0;
 };
 
@@ -43,7 +43,7 @@ public:
 		}
 
 	SegmentProfiler(SegmentStatsReporter* arg_reporter,
-				const Location* arg_loc)
+				const ::Location* arg_loc)
 		{
 		reporter = arg_reporter;
 		if ( reporter )
@@ -66,7 +66,7 @@ protected:
 
 	SegmentStatsReporter* reporter;
 	const char* name;
-	const Location* loc;
+	const ::Location* loc;
 	struct rusage initial_rusage;
 };
 
@@ -80,7 +80,7 @@ public:
 	BroFile* File()	{ return file; }
 
 protected:
-	void SegmentProfile(const char* name, const Location* loc,
+	void SegmentProfile(const char* name, const ::Location* loc,
 				double dtime, int dmem);
 
 private:
@@ -98,10 +98,10 @@ public:
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
 	void FunctionSeen(const Func* func);
-	void LocationSeen(const Location* loc);
+	void LocationSeen(const ::Location* loc);
 
 protected:
-	void SegmentProfile(const char* name, const Location* loc,
+	void SegmentProfile(const char* name, const ::Location* loc,
 				double dtime, int dmem);
 
 	TableVal* load_samples;

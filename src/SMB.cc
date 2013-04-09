@@ -93,7 +93,7 @@ static int lookup_IPC_name(BroString* name)
 	return IPC_NONE;
 	}
 
-SMB_Session::SMB_Session(Analyzer* arg_analyzer)
+SMB_Session::SMB_Session(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	dce_rpc_session = 0;
@@ -1104,7 +1104,7 @@ bool SMB_Session::CheckRPC(int is_orig, int data_count, const u_char *data)
 	}
 
 Contents_SMB::Contents_SMB(Connection* conn, bool orig, SMB_Session* s)
-: TCP_SupportAnalyzer(AnalyzerTag::Contents_SMB, conn, orig)
+: TCP_SupportAnalyzer("CONTENTS_SMB", conn, orig)
 	{
 	smb_session = s;
 	msg_buf = 0;
@@ -1221,7 +1221,7 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 SMB_Analyzer::SMB_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SMB, conn)
+: TCP_ApplicationAnalyzer("SMB", conn)
 	{
 	smb_session = new SMB_Session(this);
 	o_smb = new Contents_SMB(conn, true, smb_session);

@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#include "Analyzer.h"
+#include "analyzer/Analyzer.h"
 #include "RuleMatcher.h"
 #include "DFA.h"
 #include "NetVar.h"
@@ -159,7 +159,7 @@ void RuleHdrTest::PrintDebug()
 	fprintf(stderr, "\n");
 	}
 
-RuleEndpointState::RuleEndpointState(Analyzer* arg_analyzer, bool arg_is_orig,
+RuleEndpointState::RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
 					  RuleEndpointState* arg_opposite,
 					  ::PIA* arg_PIA)
 	{
@@ -562,7 +562,7 @@ static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
 	return false;
 	}
 
-RuleEndpointState* RuleMatcher::InitEndpoint(Analyzer* analyzer,
+RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 						const IP_Hdr* ip, int caplen,
 						RuleEndpointState* opposite,
 						bool from_orig, PIA* pia)
@@ -1300,7 +1300,7 @@ uint32 id_to_uint(const char* id)
 	return 0;
 	}
 
-void RuleMatcherState::InitEndpointMatcher(Analyzer* analyzer, const IP_Hdr* ip,
+void RuleMatcherState::InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
 					int caplen, bool from_orig, PIA* pia)
 	{
 	if ( ! rule_matcher )

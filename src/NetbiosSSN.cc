@@ -43,7 +43,7 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
 	}
 
 
-NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(Analyzer* arg_analyzer,
+NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(analyzer::Analyzer* arg_analyzer,
 						SMB_Session* arg_smb_session)
 	{
 	analyzer = arg_analyzer;
@@ -340,7 +340,7 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 
 Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
 					NetbiosSSN_Interpreter* arg_interp)
-: TCP_SupportAnalyzer(AnalyzerTag::Contents_NetbiosSSN, conn, orig)
+: TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
 	type = flags = msg_size = 0;
@@ -455,7 +455,7 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer(AnalyzerTag::NetbiosSSN, conn)
+: TCP_ApplicationAnalyzer("NETBIOS", conn)
 	{
 	smb_session = new SMB_Session(this);
 	interp = new NetbiosSSN_Interpreter(this, smb_session);

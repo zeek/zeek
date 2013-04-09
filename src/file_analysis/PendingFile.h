@@ -3,7 +3,7 @@
 
 #include "AnalyzerTags.h"
 #include "Conn.h"
-#include "Info.h"
+#include "File.h"
 
 namespace file_analysis {
 
@@ -23,7 +23,7 @@ protected:
 	PendingFile(Connection* arg_conn,
 	            AnalyzerTag::Tag arg_tag = AnalyzerTag::Error);
 
-	Info* GetInfo(const string& handle) const;
+	File* GetFile(const string& handle) const;
 
 	Connection* conn;
 	AnalyzerTag::Tag tag;

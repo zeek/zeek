@@ -6997,6 +6997,24 @@ event bro_script_loaded%(path: string, level: count%);
 ## .. bro:see:: return_file_handle
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
 
+## This event is generated each time file analysis is ending for a given file.
+##
+## f: The file.
+event file_state_remove%(f: fa_file%);
+
+## This event is generated each time file analysis generates a digest of the
+## file contents.
+##
+## f: The file.
+##
+## kind: The type of digest algorithm.
+##
+## hash: The result of the hashing.
+##
+## .. bro:see:: FileAnalysis::add_action FileAnalysis::ACTION_MD5
+##    FileAnalysis::ACTION_SHA1 FileAnalysis::ACTION_SHA256
+event file_hash%(f: fa_file, kind: string, hash: string%);
+
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 

@@ -8,10 +8,10 @@ namespace file_analysis {
 
 typedef BifEnum::FileAnalysis::Action ActionTag;
 
-class Info;
+class File;
 
 /**
- * Base class for actions that can be attached to a file_analysis::Info object.
+ * Base class for actions that can be attached to a file_analysis::File object.
  */
 class Action {
 public:
@@ -67,9 +67,9 @@ public:
 	RecordVal* Args() const { return args; }
 
 	/**
-	 * @return the file_analysis::Info object to which the action is attached.
+	 * @return the file_analysis::File object to which the action is attached.
 	 */
-	Info* GetInfo() const { return info; }
+	File* GetFile() const { return file; }
 
 	/**
 	 * @return the action tag equivalent of the 'act' field from the ActionArgs
@@ -84,17 +84,17 @@ public:
 
 protected:
 
-	Action(RecordVal* arg_args, Info* arg_info)
+	Action(RecordVal* arg_args, File* arg_file)
 	    : tag(Action::ArgsTag(arg_args)), args(arg_args->Ref()->AsRecordVal()),
-	      info(arg_info)
+	      file(arg_file)
 		{}
 
 	ActionTag tag;
 	RecordVal* args;
-	Info* info;
+	File* file;
 };
 
-typedef Action* (*ActionInstantiator)(RecordVal* args, Info* info);
+typedef Action* (*ActionInstantiator)(RecordVal* args, File* file);
 
 } // namespace file_analysis
 

@@ -3,18 +3,17 @@
 
 redef test_file_analysis_source = "HTTP";
 
-redef test_get_file_name = function(info: FileAnalysis::Info): string
+redef test_get_file_name = function(f: fa_file): string
 	{
-	return fmt("%s-file", info$file_id);
+	return fmt("%s-file", f$id);
 	};
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	{
 	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	for ( act in test_file_actions )
-		FileAnalysis::remove_action(info$file_id, act);
-	local filename = test_get_file_name(info);
-	FileAnalysis::remove_action(info$file_id,
-	                             [$act=FileAnalysis::ACTION_EXTRACT,
-	                              $extract_filename=filename]);
+		FileAnalysis::remove_action(f, act);
+	local filename = test_get_file_name(f);
+	FileAnalysis::remove_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+	                                $extract_filename=filename]);
 	}

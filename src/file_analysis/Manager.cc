@@ -2,7 +2,7 @@
 #include <string>
 
 #include "Manager.h"
-#include "Info.h"
+#include "File.h"
 #include "Action.h"
 #include "Var.h"
 #include "Event.h"
@@ -66,18 +66,18 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      const string& unique)
 	{
-	DataIn(data, len, offset, GetInfo(unique));
+	DataIn(data, len, offset, GetFile(unique));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     Info* info)
+                     File* file)
 	{
-	if ( ! info ) return;
+	if ( ! file ) return;
 
-	info->DataIn(data, len, offset);
+	file->DataIn(data, len, offset);
 
-	if ( info->IsComplete() )
-		RemoveFile(info->GetUnique());
+	if ( file->IsComplete() )
+		RemoveFile(file->GetUnique());
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
@@ -90,17 +90,17 @@ void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
 	{
-	DataIn(data, len, GetInfo(unique));
+	DataIn(data, len, GetFile(unique));
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, Info* info)
+void Manager::DataIn(const u_char* data, uint64 len, File* file)
 	{
-	if ( ! info ) return;
+	if ( ! file ) return;
 
-	info->DataIn(data, len);
+	file->DataIn(data, len);
 
-	if ( info->IsComplete() )
-		RemoveFile(info->GetUnique());
+	if ( file->IsComplete() )
+		RemoveFile(file->GetUnique());
 	}
 
 void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
@@ -131,14 +131,14 @@ void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
 
 void Manager::Gap(uint64 offset, uint64 len, const string& unique)
 	{
-	Gap(offset, len, GetInfo(unique));
+	Gap(offset, len, GetFile(unique));
 	}
 
-void Manager::Gap(uint64 offset, uint64 len, Info* info)
+void Manager::Gap(uint64 offset, uint64 len, File* file)
 	{
-	if ( ! info ) return;
+	if ( ! file ) return;
 
-	info->Gap(offset, len);
+	file->Gap(offset, len);
 	}
 
 void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
@@ -151,22 +151,32 @@ void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 
 void Manager::SetSize(uint64 size, const string& unique)
 	{
-	SetSize(size, GetInfo(unique));
+	SetSize(size, GetFile(unique));
 	}
 
-void Manager::SetSize(uint64 size, Info* info)
+void Manager::SetSize(uint64 size, File* file)
 	{
-	if ( ! info ) return;
+	if ( ! file ) return;
 
-	info->SetTotalBytes(size);
+	file->SetTotalBytes(size);
 
-	if ( info->IsComplete() )
-		RemoveFile(info->GetUnique());
+	if ( file->IsComplete() )
+		RemoveFile(file->GetUnique());
 	}
 
-void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
+void Manager::FileEvent(EventHandlerPtr h, File* file)
 	{
-	if ( IsIgnored(info->GetUnique()) ) return;
+	if ( IsIgnored(file->GetUnique()) ) return;
+	if ( ! h ) return;
+
+	val_list * vl = new val_list();
+	vl->append(file->GetVal()->Ref());
+	mgr.Dispatch(new Event(h, vl));
+	}
+
+void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, File* file)
+	{
+	if ( IsIgnored(file->GetUnique()) ) return;
 
 	const ID* id = global_scope()->Lookup("FileAnalysis::policy");
 	assert(id);
@@ -174,9 +184,7 @@ void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
 
 	val_list vl(2);
 	vl.append(new EnumVal(t, BifType::Enum::FileAnalysis::Trigger));
-	vl.append(info->val->Ref());
-
-	info->postpone_timeout = false;
+	vl.append(file->val->Ref());
 
 	Val* result = hook->Call(&vl);
 	Unref(result);
@@ -184,43 +192,43 @@ void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info)
 
 bool Manager::PostponeTimeout(const FileID& file_id) const
 	{
-	Info* info = Lookup(file_id);
+	File* file = Lookup(file_id);
 
-	if ( ! info ) return false;
+	if ( ! file ) return false;
 
-	info->postpone_timeout = true;
+	file->postpone_timeout = true;
 	return true;
 	}
 
 bool Manager::AddAction(const FileID& file_id, RecordVal* args) const
 	{
-	Info* info = Lookup(file_id);
+	File* file = Lookup(file_id);
 
-	if ( ! info ) return false;
+	if ( ! file ) return false;
 
-	return info->AddAction(args);
+	return file->AddAction(args);
 	}
 
 bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
 	{
-	Info* info = Lookup(file_id);
+	File* file = Lookup(file_id);
 
-	if ( ! info ) return false;
+	if ( ! file ) return false;
 
-	return info->RemoveAction(args);
+	return file->RemoveAction(args);
 	}
 
-Info* Manager::GetInfo(const string& unique, Connection* conn,
+File* Manager::GetFile(const string& unique, Connection* conn,
                        AnalyzerTag::Tag tag)
 	{
 	if ( IsIgnored(unique) ) return 0;
 
-	Info* rval = str_map[unique];
+	File* rval = str_map[unique];
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new Info(unique, conn, tag);
-		FileID id = rval->GetFileID();
+		rval = str_map[unique] = new File(unique, conn, tag);
+		FileID id = rval->GetID();
 
 		if ( id_map[id] )
 			{
@@ -242,7 +250,7 @@ Info* Manager::GetInfo(const string& unique, Connection* conn,
 	return rval;
 	}
 
-Info* Manager::Lookup(const FileID& file_id) const
+File* Manager::Lookup(const FileID& file_id) const
 	{
 	IDMap::const_iterator it = id_map.find(file_id);
 
@@ -253,25 +261,27 @@ Info* Manager::Lookup(const FileID& file_id) const
 
 void Manager::Timeout(const FileID& file_id, bool is_terminating)
 	{
-	Info* info = Lookup(file_id);
+	File* file = Lookup(file_id);
 
-	if ( ! info ) return;
+	if ( ! file ) return;
 
-	file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TIMEOUT, info);
+	file->postpone_timeout = false;
 
-	if ( info->postpone_timeout && ! is_terminating )
+	file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TIMEOUT, file);
+
+	if ( file->postpone_timeout && ! is_terminating )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Postpone file analysis timeout for %s",
-		        info->GetFileID().c_str());
-		info->UpdateLastActivityTime();
-		info->ScheduleInactivityTimer();
+		        file->GetID().c_str());
+		file->UpdateLastActivityTime();
+		file->ScheduleInactivityTimer();
 		return;
 		}
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
-	        info->GetFileID().c_str());
+	        file->GetID().c_str());
 
-	RemoveFile(info->GetUnique());
+	RemoveFile(file->GetUnique());
 	}
 
 bool Manager::IgnoreFile(const FileID& file_id)
@@ -295,7 +305,7 @@ bool Manager::RemoveFile(const string& unique)
 
 	it->second->EndOfFile();
 
-	FileID id = it->second->GetFileID();
+	FileID id = it->second->GetID();
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", id.c_str());
 

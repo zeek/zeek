@@ -1,14 +1,15 @@
 #include <string>
 #include <openssl/md5.h>
 
-#include "Info.h"
-#include "InfoTimer.h"
+#include "File.h"
+#include "FileTimer.h"
 #include "FileID.h"
 #include "Manager.h"
 #include "Reporter.h"
 #include "Val.h"
 #include "Type.h"
 #include "Analyzer.h"
+#include "Event.h"
 
 using namespace file_analysis;
 
@@ -32,33 +33,32 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 	return v;
 	}
 
-int Info::file_id_idx = -1;
-int Info::parent_file_id_idx = -1;
-int Info::source_idx = -1;
-int Info::conns_idx = -1;
-int Info::last_active_idx = -1;
-int Info::seen_bytes_idx = -1;
-int Info::total_bytes_idx = -1;
-int Info::missing_bytes_idx = -1;
-int Info::overflow_bytes_idx = -1;
-int Info::timeout_interval_idx = -1;
-int Info::bof_buffer_size_idx = -1;
-int Info::bof_buffer_idx = -1;
-int Info::file_type_idx = -1;
-int Info::mime_type_idx = -1;
-int Info::actions_idx = -1;
+int File::id_idx = -1;
+int File::parent_id_idx = -1;
+int File::source_idx = -1;
+int File::conns_idx = -1;
+int File::last_active_idx = -1;
+int File::seen_bytes_idx = -1;
+int File::total_bytes_idx = -1;
+int File::missing_bytes_idx = -1;
+int File::overflow_bytes_idx = -1;
+int File::timeout_interval_idx = -1;
+int File::bof_buffer_size_idx = -1;
+int File::bof_buffer_idx = -1;
+int File::file_type_idx = -1;
+int File::mime_type_idx = -1;
 
-magic_t Info::magic = 0;
-magic_t Info::magic_mime = 0;
+magic_t File::magic = 0;
+magic_t File::magic_mime = 0;
 
-string Info::salt;
+string File::salt;
 
-void Info::StaticInit()
+void File::StaticInit()
 	{
-	if ( file_id_idx != -1 ) return;
+	if ( id_idx != -1 ) return;
 
-	file_id_idx = Idx("file_id");
-	parent_file_id_idx = Idx("parent_file_id");
+	id_idx = Idx("id");
+	parent_id_idx = Idx("parent_id");
 	source_idx = Idx("source");
 	conns_idx = Idx("conns");
 	last_active_idx = Idx("last_active");
@@ -71,7 +71,6 @@ void Info::StaticInit()
 	bof_buffer_idx = Idx("bof_buffer");
 	file_type_idx = Idx("file_type");
 	mime_type_idx = Idx("mime_type");
-	actions_idx = Idx("actions");
 
 	bro_init_magic(&magic, MAGIC_NONE);
 	bro_init_magic(&magic_mime, MAGIC_MIME);
@@ -79,26 +78,26 @@ void Info::StaticInit()
 	salt = BifConst::FileAnalysis::salt->CheckString();
 	}
 
-Info::Info(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
-    : file_id(""), unique(unique), val(0), postpone_timeout(false),
+File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
+    : id(""), unique(unique), val(0), postpone_timeout(false),
       first_chunk(true), need_type(false), need_reassembly(false), done(false),
       actions(this)
 	{
 	StaticInit();
 
-	char id[20];
+	char tmp[20];
 	uint64 hash[2];
 	string msg(unique + salt);
 	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
 	    reinterpret_cast<u_char*>(hash));
-	uitoa_n(hash[0], id, sizeof(id), 62);
+	uitoa_n(hash[0], tmp, sizeof(tmp), 62);
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new Info object %s (%s)", id,
+	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new File object %s (%s)", tmp,
 	        unique.c_str());
 
-	val = new RecordVal(BifType::Record::FileAnalysis::Info);
-	val->Assign(file_id_idx, new StringVal(id));
-	file_id = FileID(id);
+	val = new RecordVal(fa_file_type);
+	val->Assign(id_idx, new StringVal(tmp));
+	id = FileID(tmp);
 
 	if ( conn )
 		{
@@ -113,23 +112,23 @@ Info::Info(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
 	UpdateLastActivityTime();
 	}
 
-Info::~Info()
+File::~File()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying Info object %s", file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
 	}
 
-void Info::UpdateLastActivityTime()
+void File::UpdateLastActivityTime()
 	{
 	val->Assign(last_active_idx, new Val(network_time, TYPE_TIME));
 	}
 
-double Info::GetLastActivityTime() const
+double File::GetLastActivityTime() const
 	{
 	return val->Lookup(last_active_idx)->AsTime();
 	}
 
-void Info::UpdateConnectionFields(Connection* conn)
+void File::UpdateConnectionFields(Connection* conn)
 	{
 	if ( ! conn ) return;
 
@@ -155,7 +154,7 @@ void Info::UpdateConnectionFields(Connection* conn)
 	Unref(idx);
 	}
 
-uint64 Info::LookupFieldDefaultCount(int idx) const
+uint64 File::LookupFieldDefaultCount(int idx) const
 	{
 	Val* v = val->LookupWithDefault(idx);
 	uint64 rval = v->AsCount();
@@ -163,7 +162,7 @@ uint64 Info::LookupFieldDefaultCount(int idx) const
 	return rval;
 	}
 
-double Info::LookupFieldDefaultInterval(int idx) const
+double File::LookupFieldDefaultInterval(int idx) const
 	{
 	Val* v = val->LookupWithDefault(idx);
 	double rval = v->AsInterval();
@@ -171,46 +170,31 @@ double Info::LookupFieldDefaultInterval(int idx) const
 	return rval;
 	}
 
-int Info::Idx(const string& field)
+int File::Idx(const string& field)
 	{
-	int rval = BifType::Record::FileAnalysis::Info->FieldOffset(field.c_str());
+	int rval = fa_file_type->FieldOffset(field.c_str());
 	if ( rval < 0 )
-		reporter->InternalError("Unknown FileAnalysis::Info field: %s",
-		                        field.c_str());
+		reporter->InternalError("Unknown fa_file field: %s", field.c_str());
 	return rval;
 	}
 
-double Info::GetTimeoutInterval() const
+double File::GetTimeoutInterval() const
 	{
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
-RecordVal* Info::GetResults(RecordVal* args) const
-	{
-	TableVal* actions_table = val->Lookup(actions_idx)->AsTableVal();
-	RecordVal* rval = actions_table->Lookup(args)->AsRecordVal();
-
-	if ( ! rval )
-		{
-		rval = new RecordVal(BifType::Record::FileAnalysis::ActionResults);
-		actions_table->Assign(args, rval);
-		}
-
-	return rval;
-	}
-
-void Info::IncrementByteCount(uint64 size, int field_idx)
+void File::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
 	val->Assign(field_idx, new Val(old + size, TYPE_COUNT));
 	}
 
-void Info::SetTotalBytes(uint64 size)
+void File::SetTotalBytes(uint64 size)
 	{
 	val->Assign(total_bytes_idx, new Val(size, TYPE_COUNT));
 	}
 
-bool Info::IsComplete() const
+bool File::IsComplete() const
 	{
 	Val* total = val->Lookup(total_bytes_idx);
 	if ( ! total ) return false;
@@ -219,22 +203,22 @@ bool Info::IsComplete() const
 	return false;
 	}
 
-void Info::ScheduleInactivityTimer() const
+void File::ScheduleInactivityTimer() const
 	{
-	timer_mgr->Add(new InfoTimer(network_time, file_id, GetTimeoutInterval()));
+	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
-bool Info::AddAction(RecordVal* args)
+bool File::AddAction(RecordVal* args)
 	{
 	return done ? false : actions.QueueAddAction(args);
 	}
 
-bool Info::RemoveAction(const RecordVal* args)
+bool File::RemoveAction(const RecordVal* args)
 	{
 	return done ? false : actions.QueueRemoveAction(args);
 	}
 
-bool Info::BufferBOF(const u_char* data, uint64 len)
+bool File::BufferBOF(const u_char* data, uint64 len)
 	{
 	if ( bof_buffer.full || bof_buffer.replayed ) return false;
 
@@ -267,7 +251,7 @@ bool Info::BufferBOF(const u_char* data, uint64 len)
 	return true;
 	}
 
-bool Info::DetectTypes(const u_char* data, uint64 len)
+bool File::DetectTypes(const u_char* data, uint64 len)
 	{
 	const char* desc = bro_magic_buffer(magic, data, len);
 	const char* mime = bro_magic_buffer(magic_mime, data, len);
@@ -281,7 +265,7 @@ bool Info::DetectTypes(const u_char* data, uint64 len)
 	return desc || mime;
 	}
 
-void Info::ReplayBOF()
+void File::ReplayBOF()
 	{
 	if ( bof_buffer.replayed ) return;
 	bof_buffer.replayed = true;
@@ -307,7 +291,7 @@ void Info::ReplayBOF()
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
 	}
 
-void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
+void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
 	actions.DrainModifications();
 
@@ -344,7 +328,7 @@ void Info::DataIn(const u_char* data, uint64 len, uint64 offset)
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
-void Info::DataIn(const u_char* data, uint64 len)
+void File::DataIn(const u_char* data, uint64 len)
 	{
 	actions.DrainModifications();
 
@@ -383,7 +367,7 @@ void Info::DataIn(const u_char* data, uint64 len)
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
-void Info::EndOfFile()
+void File::EndOfFile()
 	{
 	if ( done ) return;
 
@@ -403,15 +387,12 @@ void Info::EndOfFile()
 			actions.QueueRemoveAction(act->Args());
 		}
 
-	if ( IsComplete() )
-		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_DONE, this);
-	else
-		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_EOF, this);
+	file_mgr->FileEvent(file_state_remove, this);
 
 	actions.DrainModifications();
 	}
 
-void Info::Gap(uint64 offset, uint64 len)
+void File::Gap(uint64 offset, uint64 len)
 	{
 	actions.DrainModifications();
 

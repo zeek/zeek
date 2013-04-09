@@ -26,29 +26,29 @@ export {
 
 global extract_count: count = 0;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	&priority=5
 	{
 	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( extract_file_types !in info$mime_type ) return;
+	if ( ! f?$mime_type ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( extract_file_types !in f$mime_type ) return;
 
-	for ( act in info$actions )
-		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
+	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
+		return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
 	                          extract_count);
 	++extract_count;
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
-	                                        $extract_filename=fname]);
+	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+	                             $extract_filename=fname]);
 
-	if ( ! info?$conns ) return;
+	if ( ! f?$conns ) return;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( ! c?$http ) next;
 
@@ -56,21 +56,21 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	&priority=5
 	{
 	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
 	                          extract_count);
 	local extracting: bool = F;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( ! c?$http ) next;
 
@@ -78,9 +78,8 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 			{
 			if ( ! extracting )
 				{
-				FileAnalysis::add_action(info$file_id,
-				                         [$act=FileAnalysis::ACTION_EXTRACT,
-		                                  $extract_filename=fname]);
+				FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                                     $extract_filename=fname]);
 				extracting = T;
 				++extract_count;
 				}

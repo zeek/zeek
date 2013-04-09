@@ -24,21 +24,21 @@ redef record Info += {
 	extract_file:          bool &default=F;
 };
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	&priority=5
 	{
 	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "FTP_DATA" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "FTP_DATA" ) return;
+	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
 	                          extract_count);
 	local extracting: bool = F;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( [cid$resp_h, cid$resp_p] !in ftp_data_expected ) next;
 
@@ -48,61 +48,56 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 
 		if ( ! extracting )
 			{
-			FileAnalysis::add_action(info$file_id,
-			                         [$act=FileAnalysis::ACTION_EXTRACT,
-			                          $extract_filename=fname]);
+			FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+			                             $extract_filename=fname]);
 			extracting = T;
 			++extract_count;
 			}
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	&priority=5
 	{
 	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "FTP_DATA" ) return;
-	if ( extract_file_types !in info$mime_type ) return;
+	if ( ! f?$mime_type ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "FTP_DATA" ) return;
+	if ( extract_file_types !in f$mime_type ) return;
 
-	for ( act in info$actions )
-		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
+	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
+		return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
+	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
 	                          extract_count);
 	++extract_count;
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
-	                                        $extract_filename=fname]);
+	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+	                             $extract_filename=fname]);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=-5
+event file_state_remove(f: fa_file) &priority=4
 	{
-	if ( trig != FileAnalysis::TRIGGER_EOF &&
-	     trig != FileAnalysis::TRIGGER_DONE ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "FTP_DATA" ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "FTP_DATA" ) return;
+	if ( ! f?$info ) return;
 
-	for ( act in info$actions )
-		if ( act$act == FileAnalysis::ACTION_EXTRACT )
-			{
-			local s: FTP::Info;
-			s$ts = network_time();
-			s$tags = set();
-			s$user = "<ftp-data>";
-			s$extraction_file = act$extract_filename;
+	for ( filename in f$info$extracted_files )
+		{
+		local s: FTP::Info;
+		s$ts = network_time();
+		s$tags = set();
+		s$user = "<ftp-data>";
+		s$extraction_file = filename;
 
-			if ( info?$conns )
-				for ( cid in info$conns )
-					{
-					s$uid = info$conns[cid]$uid;
-					s$id = cid;
-					break;
-					}
+		if ( f?$conns )
+			for ( cid in f$conns )
+				{
+				s$uid = f$conns[cid]$uid;
+				s$id = cid;
+				}
 
-			Log::write(FTP::LOG, s);
-			}
+		Log::write(FTP::LOG, s);
+		}
 	}
 
 event log_ftp(rec: Info) &priority=-10

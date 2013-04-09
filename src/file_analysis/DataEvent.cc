@@ -7,13 +7,13 @@
 
 using namespace file_analysis;
 
-DataEvent::DataEvent(RecordVal* args, Info* info,
+DataEvent::DataEvent(RecordVal* args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
-    : Action(args, info), chunk_event(ce), stream_event(se)
+    : Action(args, file), chunk_event(ce), stream_event(se)
 	{
 	}
 
-Action* DataEvent::Instantiate(RecordVal* args, Info* info)
+Action* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
 	using BifType::Record::FileAnalysis::ActionArgs;
 
@@ -36,7 +36,7 @@ Action* DataEvent::Instantiate(RecordVal* args, Info* info)
 	if ( stream_val )
 		stream = event_registry->Lookup(stream_val->AsFunc()->Name());
 
-	return new DataEvent(args, info, chunk, stream);
+	return new DataEvent(args, file, chunk, stream);
 	}
 
 bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
@@ -44,10 +44,10 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	if ( ! chunk_event ) return true;
 
 	val_list* args = new val_list;
-	args->append(info->GetVal()->Ref());
+	args->append(file->GetVal()->Ref());
 	args->append(new StringVal(new BroString(data, len, 0)));
 	args->append(new Val(offset, TYPE_COUNT));
-	mgr.QueueEvent(chunk_event, args);
+	mgr.Dispatch(new Event(chunk_event, args));
 
 	return true;
 	}
@@ -57,9 +57,9 @@ bool DataEvent::DeliverStream(const u_char* data, uint64 len)
 	if ( ! stream_event ) return true;
 
 	val_list* args = new val_list;
-	args->append(info->GetVal()->Ref());
+	args->append(file->GetVal()->Ref());
 	args->append(new StringVal(new BroString(data, len, 0)));
-	mgr.QueueEvent(stream_event, args);
+	mgr.Dispatch(new Event(stream_event, args));
 
 	return true;
 	}

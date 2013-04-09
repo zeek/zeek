@@ -2,15 +2,13 @@
 
 #include "Hash.h"
 #include "util.h"
+#include "Event.h"
 
 using namespace file_analysis;
 
-Hash::Hash(RecordVal* args, Info* info, HashVal* hv, const char* field)
-	: Action(args, info), hash(hv), fed(false)
+Hash::Hash(RecordVal* args, File* file, HashVal* hv, const char* arg_kind)
+	: Action(args, file), hash(hv), fed(false), kind(arg_kind)
 	{
-	using BifType::Record::FileAnalysis::ActionResults;
-	if ( (result_field_idx = ActionResults->FieldOffset(field)) < 0 )
-		reporter->InternalError("Missing ActionResults field: %s", field);
 	hash->Init();
 	}
 
@@ -45,6 +43,10 @@ void Hash::Finalize()
 	{
 	if ( ! hash->IsValid() || ! fed ) return;
 
-	StringVal* sv = hash->Get();
-	info->GetResults(args)->Assign(result_field_idx, sv);
+	val_list* vl = new val_list();
+	vl->append(file->GetVal()->Ref());
+	vl->append(new StringVal(kind));
+	vl->append(hash->Get());
+
+	mgr.Dispatch(new Event(file_hash, vl));
 	}

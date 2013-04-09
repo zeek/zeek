@@ -62,6 +62,7 @@ EventMgr::EventMgr()
 	current_aid = 0;
 	src_val = 0;
 	draining = 0;
+	bypass_queue = false;
 	}
 
 EventMgr::~EventMgr()

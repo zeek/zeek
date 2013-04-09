@@ -12,9 +12,10 @@
 #include "Val.h"
 #include "Analyzer.h"
 #include "Timer.h"
+#include "EventHandler.h"
 
-#include "Info.h"
-#include "InfoTimer.h"
+#include "File.h"
+#include "FileTimer.h"
 #include "FileID.h"
 #include "PendingFile.h"
 
@@ -24,6 +25,9 @@ namespace file_analysis {
  * Main entry point for interacting with file analysis.
  */
 class Manager {
+friend class FileTimer;
+friend class PendingFile;
+
 public:
 
 	Manager();
@@ -56,7 +60,7 @@ public:
     void DataIn(const u_char* data, uint64 len, uint64 offset,
                 const string& unique);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
-                Info* info);
+                File* file);
 
 	/**
 	 * Pass in sequential file data.
@@ -64,7 +68,7 @@ public:
 	void DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 	            Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, const string& unique);
-	void DataIn(const u_char* data, uint64 len, Info* info);
+	void DataIn(const u_char* data, uint64 len, File* file);
 
 	/**
 	 * Signal the end of file data.
@@ -79,7 +83,7 @@ public:
 	void Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
 	         bool is_orig);
 	void Gap(uint64 offset, uint64 len, const string& unique);
-	void Gap(uint64 offset, uint64 len, Info* info);
+	void Gap(uint64 offset, uint64 len, File* file);
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
@@ -87,7 +91,7 @@ public:
 	void SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 	             bool is_orig);
 	void SetSize(uint64 size, const string& unique);
-	void SetSize(uint64 size, Info* info);
+	void SetSize(uint64 size, File* file);
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -119,42 +123,44 @@ public:
 	/**
 	 * Calls the \c FileAnalysis::policy hook.
 	 */
-	void EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info);
+	void EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, File* file);
+
+	/**
+	 * Dispatches an event related to the file's life-cycle.
+	 */
+	 void FileEvent(EventHandlerPtr h, File* file);
 
 protected:
 
-	friend class InfoTimer;
-	friend class PendingFile;
-
-	typedef map<string, Info*> StrMap;
+	typedef map<string, File*> StrMap;
 	typedef set<string> StrSet;
-	typedef map<FileID, Info*> IDMap;
+	typedef map<FileID, File*> IDMap;
 	typedef queue<PendingFile*> PendingQueue;
 
 	/**
-	 * @return the Info object mapped to \a unique or a null pointer if analysis
-	 *         is being ignored for the associated file.  An Info object may be
+	 * @return the File object mapped to \a unique or a null pointer if analysis
+	 *         is being ignored for the associated file.  An File object may be
 	 *         created if a mapping doesn't exist, and if it did exist, the
 	 *         activity time is refreshed along with any connection-related
 	 *         fields.
 	 */
-	Info* GetInfo(const string& unique, Connection* conn = 0,
+	File* GetFile(const string& unique, Connection* conn = 0,
 	              AnalyzerTag::Tag tag = AnalyzerTag::Error);
 
 	/**
-	 * @return the Info object mapped to \a file_id, or a null pointer if no
+	 * @return the File object mapped to \a file_id, or a null pointer if no
 	 *         mapping exists.
 	 */
-	Info* Lookup(const FileID& file_id) const;
+	File* Lookup(const FileID& file_id) const;
 
 	/**
-	 * Evaluate timeout policy for a file and remove the Info object mapped to
+	 * Evaluate timeout policy for a file and remove the File object mapped to
 	 * \a file_id if needed.
 	 */
 	void Timeout(const FileID& file_id, bool is_terminating = ::terminating);
 
 	/**
-	 * Immediately remove file_analysis::Info object associated with \a unique.
+	 * Immediately remove file_analysis::File object associated with \a unique.
 	 * @return false if file string did not map to anything, else true.
 	 */
 	bool RemoveFile(const string& unique);
@@ -176,8 +182,8 @@ protected:
 	static bool QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
 	                             bool is_orig);
 
-	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
-	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
+	StrMap str_map; /**< Map unique string to file_analysis::File. */
+	IDMap id_map;   /**< Map file ID to file_analysis::File records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	PendingQueue pending; /**< Files awaiting a unique handle. */
 

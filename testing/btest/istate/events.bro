@@ -38,10 +38,10 @@ redef tcp_close_delay = 0secs;
 
 # File analysis that populates fields in the http.log would make the sender's
 # log differ from the receiver's since hooks don't get sent to peers.
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
+hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	&priority=10
 	{
-	FileAnalysis::stop(info$file_id);
+	FileAnalysis::stop(f);
 	}
 
 @TEST-END-FILE

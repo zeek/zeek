@@ -128,6 +128,7 @@ protected:
 	TimerMgr* current_mgr;
 	RecordVal* src_val;
 	bool draining;
+	bool bypass_queue;
 };
 
 extern EventMgr mgr;

@@ -6,10 +6,10 @@ PK^C^D^T\0\0\0^H\0\xae
 FileAnalysis::TRIGGER_TYPE
 file type is set
 mime type is set
-FileAnalysis::TRIGGER_EOF
+FILE_STATE_REMOVE
 wqKMAamJVSb, 42208, 0
 [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp]
 source: IRC_DATA
-SHA1: 8abe0239263fd7326eb803d4465cf494f8bea218
 MD5: 8c0803242f549c2780cb88b9a9215c65
+SHA1: 8abe0239263fd7326eb803d4465cf494f8bea218
 SHA256: e4f0b0b9d7580e7a22dc1093c8db4df7d0115a4f3b03cc2875cc69705f0d0204

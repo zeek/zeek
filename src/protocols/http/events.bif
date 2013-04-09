@@ -20,7 +20,7 @@
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done ply http_stats
 ##    truncate_http_URI
-event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%) &group="http-request";
+event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%);
 
 ## Generated for HTTP replies. Bro supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
@@ -41,7 +41,7 @@ event http_request%(c: connection, method: string, original_URI: string, unescap
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_request
 ##    http_stats
-event http_reply%(c: connection, version: string, code: count, reason: string%) &group="http-reply";
+event http_reply%(c: connection, version: string, code: count, reason: string%);
 
 ## Generated for HTTP headers. Bro supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
@@ -64,7 +64,7 @@ event http_reply%(c: connection, version: string, code: count, reason: string%) 
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
-event http_header%(c: connection, is_orig: bool, name: string, value: string%) &group="http-header";
+event http_header%(c: connection, is_orig: bool, name: string, value: string%);
 
 ## Generated for HTTP headers, passing on all headers of an HTTP message at
 ## once. Bro supports persistent and pipelined HTTP sessions and raises
@@ -86,7 +86,7 @@ event http_header%(c: connection, is_orig: bool, name: string, value: string%) &
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
-event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%) &group="http-header";
+event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 
 ## Generated when starting to parse an HTTP body entity. This event is generated
 ## at least once for each non-empty (client or server) HTTP body; and
@@ -105,7 +105,7 @@ event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%) 
 ## .. bro:see:: http_all_headers  http_content_type http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    mime_begin_entity
-event http_begin_entity%(c: connection, is_orig: bool%) &group="http-body";
+event http_begin_entity%(c: connection, is_orig: bool%);
 
 ## Generated when finishing parsing an HTTP body entity. This event is generated
 ## at least once for each non-empty (client or server) HTTP body; and
@@ -124,7 +124,7 @@ event http_begin_entity%(c: connection, is_orig: bool%) &group="http-body";
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_entity_data
 ##    http_event http_header http_message_done http_reply http_request
 ##    http_stats   mime_end_entity
-event http_end_entity%(c: connection, is_orig: bool%) &group="http-body";
+event http_end_entity%(c: connection, is_orig: bool%);
 
 ## Generated when parsing an HTTP body entity, passing on the data. This event
 ## can potentially be raised many times for each entity, each time passing a
@@ -152,7 +152,7 @@ event http_end_entity%(c: connection, is_orig: bool%) &group="http-body";
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    mime_entity_data http_entity_data_delivery_size skip_http_data
-event http_entity_data%(c: connection, is_orig: bool, length: count, data: string%) &group="http-body";
+event http_entity_data%(c: connection, is_orig: bool, length: count, data: string%);
 
 ## Generated for reporting an HTTP body's content type.  This event is
 ## generated at the end of parsing an HTTP header, passing on the MIME
@@ -176,7 +176,7 @@ event http_entity_data%(c: connection, is_orig: bool, length: count, data: strin
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
-event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string%) &group="http-body";
+event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string%);
 
 ## Generated once at the end of parsing an HTTP message. Bro supports persistent
 ## and pipelined HTTP sessions and raises corresponding events as it parses
@@ -198,7 +198,7 @@ event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header  http_reply http_request http_stats
-event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%) &group="http-body";
+event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%);
 
 ## Generated for errors found when decoding HTTP requests or replies.
 ##

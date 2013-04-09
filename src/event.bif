@@ -2219,7 +2219,7 @@ event rsh_reply%(c: connection, client_user: string, server_user: string, line: 
 ##
 ## .. bro:see:: ftp_reply fmt_ftp_port parse_eftp_port
 ##    parse_ftp_epsv parse_ftp_pasv parse_ftp_port
-event ftp_request%(c: connection, command: string, arg: string%) &group="ftp";
+event ftp_request%(c: connection, command: string, arg: string%);
 
 ## Generated for server-side FTP replies.
 ##
@@ -2239,7 +2239,7 @@ event ftp_request%(c: connection, command: string, arg: string%) &group="ftp";
 ##
 ## .. bro:see:: ftp_request fmt_ftp_port parse_eftp_port
 ##    parse_ftp_epsv parse_ftp_pasv parse_ftp_port
-event ftp_reply%(c: connection, code: count, msg: string, cont_resp: bool%) &group="ftp";
+event ftp_reply%(c: connection, code: count, msg: string, cont_resp: bool%);
 
 ## Generated for client-side SMTP commands.
 ##
@@ -2264,7 +2264,7 @@ event ftp_reply%(c: connection, code: count, msg: string, cont_resp: bool%) &gro
 ##    smtp_data smtp_reply
 ##
 ## .. note:: Bro does not support the newer ETRN extension yet.
-event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%) &group="smtp";
+event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%);
 
 ## Generated for server-side SMTP commands.
 ##
@@ -2295,7 +2295,7 @@ event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%)
 ##    smtp_data  smtp_request
 ##
 ## .. note:: Bro doesn't support the newer ETRN extension yet.
-event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool%) &group="smtp";
+event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool%);
 
 ## Generated for DATA transmitted on SMTP sessions. This event is raised for
 ## subsequent chunks of raw data following the ``DATA`` SMTP command until the
@@ -2320,7 +2320,7 @@ event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: s
 ## .. note:: This event receives the unprocessed raw data. There is a separate
 ##    set of ``mime_*`` events that strip out the outer MIME-layer of emails and
 ##    provide structured access to their content.
-event smtp_data%(c: connection, is_orig: bool, data: string%) &group="smtp";
+event smtp_data%(c: connection, is_orig: bool, data: string%);
 
 ## Generated for unexpected activity on SMTP sessions. The SMTP analyzer tracks
 ## the state of SMTP sessions and reports commands and other activity with this
@@ -2340,7 +2340,7 @@ event smtp_data%(c: connection, is_orig: bool, data: string%) &group="smtp";
 ## detail: The actual SMTP line triggering the event.
 ##
 ## .. bro:see:: smtp_data  smtp_request smtp_reply
-event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string%) &group="smtp";
+event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string%);
 
 ## Generated when starting to parse an email MIME entity. MIME is a
 ## protocol-independent data format for encoding text and files, along with
@@ -4014,7 +4014,7 @@ event smb_error%(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, data:
 ##    dns_mapping_unverified dns_mapping_valid  dns_query_reply dns_rejected
 ##    dns_request non_dns_request  dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%) &group="dns";
+event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 
 ## Generated for DNS requests. For requests with multiple queries, this event
 ## is raised once for each.
@@ -4041,7 +4041,7 @@ event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%) &gro
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%) &group="dns";
+event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
 ## Generated for DNS replies that reject a query. This event is raised if a DNS
 ## reply either indicates failure via its status code or does not pass on any
@@ -4070,7 +4070,7 @@ event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%) &group="dns";
+event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
 ## Generated for DNS replies with an *ok* status code but no question section.
 ##
@@ -4097,7 +4097,7 @@ event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qc
 ##    dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_query_reply%(c: connection, msg: dns_msg, query: string,
-			qtype: count, qclass: count%) &group="dns";
+			qtype: count, qclass: count%);
 
 ## Generated when the DNS analyzer processes what seems to be a non-DNS packet.
 ##
@@ -4108,7 +4108,7 @@ event dns_query_reply%(c: connection, msg: dns_msg, query: string,
 ##
 ## .. note:: This event is deprecated and superseded by Bro's dynamic protocol
 ##    detection framework.
-event non_dns_request%(c: connection, msg: string%) &group="dns";
+event non_dns_request%(c: connection, msg: string%);
 
 ## Generated for DNS replies of type *A*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
@@ -4133,7 +4133,7 @@ event non_dns_request%(c: connection, msg: string%) &group="dns";
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
+event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 
 ## Generated for DNS replies of type *AAAA*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4158,7 +4158,7 @@ event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &grou
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
+event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 
 ## Generated for DNS replies of type *A6*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
@@ -4183,7 +4183,7 @@ event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &g
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
+event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 
 ## Generated for DNS replies of type *NS*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
@@ -4208,7 +4208,7 @@ event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &gro
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%) &group="dns";
+event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
 
 ## Generated for DNS replies of type *CNAME*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4233,7 +4233,7 @@ event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%)
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%) &group="dns";
+event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
 
 ## Generated for DNS replies of type *PTR*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4258,7 +4258,7 @@ event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: strin
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%) &group="dns";
+event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
 
 ## Generated for DNS replies of type *CNAME*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4283,7 +4283,7 @@ event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%) &group="dns";
+event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%);
 
 ## Generated for DNS replies of type *WKS*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4306,7 +4306,7 @@ event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 
 ## Generated for DNS replies of type *HINFO*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4329,7 +4329,7 @@ event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns"
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 
 ## Generated for DNS replies of type *MX*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
@@ -4356,7 +4356,7 @@ event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dn
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, preference: count%) &group="dns";
+event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, preference: count%);
 
 ## Generated for DNS replies of type *TXT*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4381,7 +4381,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%) &group="dns";
+event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%);
 
 ## Generated for DNS replies of type *SRV*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4404,7 +4404,7 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%)
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 
 ## Generated for DNS replies of type *EDNS*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4427,7 +4427,7 @@ event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns"
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%) &group="dns";
+event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 
 ## Generated for DNS replies of type *TSIG*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -4450,7 +4450,7 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%) &gr
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_TSIG_addl%(c: connection, msg: dns_msg, ans: dns_tsig_additional%) &group="dns";
+event dns_TSIG_addl%(c: connection, msg: dns_msg, ans: dns_tsig_additional%);
 
 ## Generated at the end of processing a DNS packet. This event is the last
 ## ``dns_*`` event that will be raised for a DNS query/reply and signals that
@@ -4472,7 +4472,7 @@ event dns_TSIG_addl%(c: connection, msg: dns_msg, ans: dns_tsig_additional%) &gr
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_end%(c: connection, msg: dns_msg%) &group="dns";
+event dns_end%(c: connection, msg: dns_msg%);
 
 ## Generated for DHCP messages of type *discover*.
 ##
@@ -6610,7 +6610,7 @@ event gaobot_signature_found%(c: connection%);
 ##
 ## .. todo:: Unclear what this event is for; it's never raised. We should just
 ##    remove it.
-event dns_full_request%(%) &group="dns";
+event dns_full_request%(%);
 
 ## Deprecated. Will be removed.
 event anonymization_mapping%(orig: addr, mapped: addr%);

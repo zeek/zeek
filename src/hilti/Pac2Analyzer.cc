@@ -231,6 +231,9 @@ void Pac2_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	if ( (! is_orig) && skip_resp )
 		return;
 
+	if ( TCP() && TCP()->IsPartial() )
+		return;
+
 	int rc = FeedChunk(len, data, is_orig, false);
 
 	if ( rc >= 0 )

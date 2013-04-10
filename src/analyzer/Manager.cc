@@ -581,7 +581,11 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		conn->SetLifetime(non_analyzed_lifetime);
 
 	for ( tag_set::iterator i = expected.begin(); i != expected.end(); i++ )
-		conn->Event(scheduled_analyzer_applied, 0, i->AsEnumVal());
+		{
+		EnumVal* tag = i->AsEnumVal();
+		Ref(tag);
+		conn->Event(scheduled_analyzer_applied, 0, tag);
+		}
 
 	return true;
 	}

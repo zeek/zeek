@@ -424,6 +424,8 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
+	double time_start = current_time(true);;
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -1166,7 +1168,17 @@ int main(int argc, char** argv)
 
 #endif
 
+		double time_net_start = current_time(true);;
+
+		fprintf(stderr, "# total time %.6f, initialization %.6f\n",
+			time_net_start - time_start, time_net_start - time_start);
+
 		net_run();
+		double time_net_done = current_time(true);;
+
+		fprintf(stderr, "# total time %.6f, initialization %.6f, processing %.6f\n",
+			time_net_done - time_start, time_net_start - time_start, time_net_done - time_net_start);
+
 		done_with_network();
 		net_delete();
 

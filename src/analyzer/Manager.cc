@@ -161,7 +161,7 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 	analyzers_by_val.insert(std::make_pair(component->Tag().AsEnumVal()->InternalInt(), component));
 
 	// Install enum "Analyzer::ANALYZER_*"
-	string name = to_upper(component->Name());
+	string name = to_upper(strreplace(component->Name(), "::", "_"));
 	string id = fmt("ANALYZER_%s", name.c_str());
 	tag_enum_type->AddName("Analyzer", id.c_str(), component->Tag().AsEnumVal()->InternalInt(), true);
 	}
@@ -581,7 +581,11 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		conn->SetLifetime(non_analyzed_lifetime);
 
 	for ( tag_set::iterator i = expected.begin(); i != expected.end(); i++ )
-		conn->Event(scheduled_analyzer_applied, 0, i->AsEnumVal());
+		{
+		EnumVal* tag = i->AsEnumVal();
+		Ref(tag);
+		conn->Event(scheduled_analyzer_applied, 0, tag);
+		}
 
 	return true;
 	}

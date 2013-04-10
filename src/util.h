@@ -136,6 +136,7 @@ int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
 extern bool is_printable(const char* s, int len);
+extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
 
 extern const char* fmt_bytes(const char* data, int len);
 

@@ -530,6 +530,23 @@ bool is_printable(const char* s, int len)
 	return true;
 	}
 
+string strreplace(const string& s, const string& o, const string& n)
+	{
+	string r = s;
+
+	while ( true )
+		{
+		size_t i = r.find(o);
+
+		if ( i == std::string::npos )
+			break;
+
+		r.replace(i, o.size(), n);
+		}
+
+	return r;
+	}
+
 const char* fmt_bytes(const char* data, int len)
 	{
 	static char buf[1024];

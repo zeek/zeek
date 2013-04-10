@@ -12,7 +12,7 @@ Tag::Tag(type_t arg_type, subtype_t arg_subtype)
 
 	type = arg_type;
 	subtype = arg_subtype;
-	int64_t i = (int64)(type) | ((int64)subtype << 31);
+	int64_t i = (int64)(type) | ((int64)subtype << 16);
 
 	EnumType* etype = analyzer_mgr->GetTagEnumType();
 	Ref(etype);
@@ -28,7 +28,7 @@ Tag::Tag(EnumVal* arg_val)
 
 	int64 i = val->InternalInt();
 	type = i & 0xffffffff;
-	subtype = (i >> 31) & 0xffffffff;
+	subtype = (i >> 16) & 0xffffffff;
 	}
 
 Tag::Tag(const Tag& other)

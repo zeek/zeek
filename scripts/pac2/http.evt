@@ -1,0 +1,27 @@
+
+analyzer pac2::HTTP over TCP:
+    parse originator with HTTP::Requests,
+    parse responder with HTTP::Replies,
+    port 80/tcp;
+
+on HTTP::RequestLine   -> event http_request($conn, self.method, self.uri, self.uri, self.version.number);
+on HTTP::ReplyLine     -> event http_reply($conn, self.version.number, self.status, self.reason);
+on HTTP::Header        -> event http_header($conn, $is_orig, self.name, self.content);
+on HTTP::Message       -> event http_message_done_no_stats($conn, $is_orig);
+on HTTP::Body::%init   -> event http_begin_entity($conn, $is_orig);
+on HTTP::Body::%done   -> event http_end_entity($conn, $is_orig);
+on HTTP::Content::data -> event http_entity_data($conn, $is_orig, |self.data|, self.data);
+
+# event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
+# event http_reply(c: connection, version: string, code: count, reason: string)
+# event http_header(c: connection, is_orig: bool, name: string, value: string)
+# event http_all_headers(c: connection, is_orig: bool, hlist: mime_header_list)
+# event http_begin_entity(c: connection, is_orig: bool)
+# event http_end_entity(c: connection, is_orig: bool)
+# event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
+# event http_content_type(c: connection, is_orig: bool, ty: string, subty: string)
+# event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
+# event http_event event(c: connection, # event_type: string, detail: string);
+# event http_stats(c: connection, stats: http_stats_rec);
+# event http_signature_found(c: connection);
+# event http_proxy_signature_found(c: connection);

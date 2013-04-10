@@ -94,7 +94,7 @@ public:
 	bool EnableAnalyzer(Tag tag);
 
 	/**
-	 * Enables an analyzer type. Only enabled analyzers will be
+	 * Enables analyzer type. Only enabled analyzers will be
 	 * instantiated for new connections.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
@@ -105,7 +105,7 @@ public:
 	bool EnableAnalyzer(EnumVal* tag);
 
 	/**
-	 * Enables an analyzer type. Disabled analyzers will not be
+	 * Disables an analyzer type. Disabled analyzers will not be
 	 * instantiated for new connections.
 	 *
 	 * @param tag The analyzer's tag.
@@ -115,7 +115,7 @@ public:
 	bool DisableAnalyzer(Tag tag);
 
 	/**
-	 * Enables an analyzer type. Disabled analyzers will not be
+	 * Disables an analyzer type. Disabled analyzers will not be
 	 * instantiated for new connections.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c

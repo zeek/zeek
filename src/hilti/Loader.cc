@@ -102,6 +102,7 @@ struct bro::hilti::Pac2AnalyzerInfo {
 	analyzer::Tag tag;				// analyzer::Tag for this analyzer.
 	TransportProto proto;				// The transport layer the analyzer uses.
 	std::list<Port> ports;				// The ports associated with the analyzer.
+	string replaces;				// Name of another analyzer this one replaces.
 	string unit_name_orig;				// The fully-qualified name of the unit type to parse the originator side.
 	string unit_name_resp;				// The fully-qualified name of the unit type to parse the originator side.
 	shared_ptr<binpac::type::Unit> unit_orig;	// The type of the unit to parse the originator side.
@@ -261,6 +262,28 @@ bool Loader::InitPostScripts()
 	pimpl->pac2_options.verify = ! BifConst::Pac2::no_verify;
 	pimpl->pac2_options.cg_debug = cg_debug;
 	pimpl->pac2_options.module_cache = BifConst::Pac2::use_cache ? ".cache" : "";
+
+	for ( auto a : pimpl->pac2_analyzers )
+		{
+		if ( a->replaces.empty() )
+			continue;
+
+		analyzer::Tag tag = analyzer_mgr->GetAnalyzerTag(a->replaces.c_str());
+
+		if ( tag )
+			{
+			DBG_LOG(DBG_PAC2, "disabling %s for %s",
+				a->replaces.c_str(), a->name.c_str());
+
+			analyzer_mgr->DisableAnalyzer(tag);
+			}
+
+		else
+			{
+			DBG_LOG(DBG_PAC2, "%s replaces %s, but we that does not exist",
+				a->name.c_str(), a->replaces.c_str());
+			}
+		}
 
 	::hilti::init();
 	::binpac::init();
@@ -1088,6 +1111,16 @@ shared_ptr<Pac2AnalyzerInfo> Loader::ParsePac2AnalyzerSpec(const string& chunk)
 				return 0;
 
 			a->ports.push_back(p);
+			}
+
+		else if ( looking_at(chunk, i, "replaces") )
+			{
+			eat_token(chunk, &i, "replaces");
+
+			string id;
+
+			if ( ! extract_id(chunk, &i, &a->replaces) )
+				return 0;
 			}
 
 		if ( looking_at(chunk, i, ";") )

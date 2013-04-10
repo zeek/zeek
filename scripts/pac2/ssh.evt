@@ -1,7 +1,8 @@
 
 analyzer pac2::SSH over TCP:
     parse with SSH::Banner,
-    port 22/tcp;
+    port 22/tcp,
+    replaces SSH;
 
 on SSH::Banner -> event ssh::banner($conn, $is_orig, self.version, self.software);
 

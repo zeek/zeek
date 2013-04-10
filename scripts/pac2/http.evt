@@ -2,7 +2,8 @@
 analyzer pac2::HTTP over TCP:
     parse originator with HTTP::Requests,
     parse responder with HTTP::Replies,
-    port 80/tcp;
+    port 80/tcp,
+    replaces HTTP;
 
 on HTTP::RequestLine   -> event http_request($conn, self.method, self.uri, self.uri, self.version.number);
 on HTTP::ReplyLine     -> event http_reply($conn, self.version.number, self.status, self.reason);

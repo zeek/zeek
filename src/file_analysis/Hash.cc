@@ -48,5 +48,5 @@ void Hash::Finalize()
 	vl->append(new StringVal(kind));
 	vl->append(hash->Get());
 
-	mgr.Dispatch(new Event(file_hash, vl));
+	mgr.QueueEvent(file_hash, vl);
 	}

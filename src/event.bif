@@ -6981,12 +6981,15 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
 
+## Marks a point in the event stream at which the event queue started flushing.
+event event_queue_flush_point%(%);
+
 ## This event is handled to provide feedback to the file analysis framework
 ## about how to identify the logical "file" to which some data/input
 ## belongs.  All incoming data to the framework is buffered, and depends
 ## on a handler for this event to return a string value that uniquely
-## identifies a file.  Among all handlers of this event, exactly one must
-## call :bro:see:`return_file_handle`.
+## identifies a file.  Among all handlers of this event, the last one to
+## call :bro:see:`set_file_handle` will "win".
 ##
 ## tag: The analyzer which is carrying the file data.
 ##
@@ -6994,7 +6997,7 @@ event bro_script_loaded%(path: string, level: count%);
 ##
 ## is_orig: The direction the file data is flowing over the connection.
 ##
-## .. bro:see:: return_file_handle
+## .. bro:see:: set_file_handle
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
 
 # TODO: document

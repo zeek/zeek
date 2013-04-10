@@ -6,7 +6,6 @@
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"
-#include "file_analysis/Manager.h"
 
 EventMgr mgr;
 
@@ -111,6 +110,9 @@ void EventMgr::Dispatch()
 
 void EventMgr::Drain()
 	{
+	if ( event_queue_flush_point )
+		QueueEvent(event_queue_flush_point, new val_list());
+
 	SegmentProfiler(segment_logger, "draining-events");
 
 	draining = true;
@@ -125,8 +127,6 @@ void EventMgr::Drain()
 	// processing, we ensure that it's done at a regular basis by checking
 	// them here.
 	Trigger::EvaluatePending();
-
-	file_mgr->EventDrainDone();
 	}
 
 void EventMgr::Describe(ODesc* d) const

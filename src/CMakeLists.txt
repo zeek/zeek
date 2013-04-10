@@ -452,7 +452,6 @@ set(bro_SRCS
     file_analysis/Manager.cc
     file_analysis/File.cc
     file_analysis/FileTimer.cc
-    file_analysis/PendingFile.cc
     file_analysis/FileID.h
     file_analysis/Action.h
     file_analysis/ActionSet.cc

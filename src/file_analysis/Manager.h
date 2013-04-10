@@ -17,7 +17,6 @@
 #include "File.h"
 #include "FileTimer.h"
 #include "FileID.h"
-#include "PendingFile.h"
 
 namespace file_analysis {
 
@@ -26,7 +25,6 @@ namespace file_analysis {
  */
 class Manager {
 friend class FileTimer;
-friend class PendingFile;
 
 public:
 
@@ -40,17 +38,9 @@ public:
 	void Terminate();
 
 	/**
-	 * Associates a handle with the next element in the #pending queue, which
-	 * will immediately push that element all the way through the file analysis
-	 * framework, possibly evaluating any policy hooks.
+	 * Take in a unique file handle string to identifiy incoming file data.
 	 */
-	void ReceiveHandle(const string& handle);
-
-	/**
-	 * Called when all events have been drained from the event queue.
-	 * There should be no pending file input/data at this point.
-	 */
-	void EventDrainDone();
+	void SetHandle(const string& handle);
 
 	/**
 	 * Pass in non-sequential file data.
@@ -121,7 +111,7 @@ public:
 	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
 
 	/**
-	 * Dispatches an event related to the file's life-cycle.
+	 * Queues an event related to the file's life-cycle.
 	 */
 	 void FileEvent(EventHandlerPtr h, File* file);
 
@@ -130,7 +120,6 @@ protected:
 	typedef map<string, File*> StrMap;
 	typedef set<string> StrSet;
 	typedef map<FileID, File*> IDMap;
-	typedef queue<PendingFile*> PendingQueue;
 
 	/**
 	 * @return the File object mapped to \a unique or a null pointer if analysis
@@ -166,21 +155,21 @@ protected:
 	bool IsIgnored(const string& unique);
 
 	/**
+	 * Sets #current_handle to a unique file handle string based on what the
+	 * \c get_file_handle event derives from the connection params.  The
+	 * event queue is flushed so that we can get the handle value immediately.
+	 */
+	void GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig);
+
+	/**
 	 * @return whether file analysis is disabled for the given analyzer.
 	 */
 	static bool IsDisabled(AnalyzerTag::Tag tag);
 
-	/**
-	 * Queues \c get_file_handle event in order to retrieve unique file handle.
-	 * @return true if there is a handler for the event, else false.
-	 */
-	static bool QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
-	                             bool is_orig);
-
 	StrMap str_map; /**< Map unique string to file_analysis::File. */
 	IDMap id_map;   /**< Map file ID to file_analysis::File records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	PendingQueue pending; /**< Files awaiting a unique handle. */
+	string current_handle; /**< Last file handle set by get_file_handle event.*/
 
 	static TableVal* disabled; /**< Table of disabled analyzers. */
 };

@@ -267,7 +267,7 @@ void File::ReplayBOF()
 	DetectTypes(bs->Bytes(), bs->Len());
 
 	file_mgr->FileEvent(file_new, this);
-	//mgr.Drain();
+	mgr.Drain(); // need immediate feedback about actions to add
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
@@ -282,7 +282,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 		// TODO: this should all really be delayed until we attempt reassembly
 		DetectTypes(data, len);
 		file_mgr->FileEvent(file_new, this);
-		//mgr.Drain();
+		mgr.Drain(); // need immediate feedback about actions to add
 		actions.DrainModifications();
 		first_chunk = false;
 		}
@@ -319,7 +319,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		{
 		DetectTypes(data, len);
 		file_mgr->FileEvent(file_new, this);
-		//mgr.Drain();
+		mgr.Drain(); // need immediate feedback about actions to add
 		actions.DrainModifications();
 		missed_bof = false;
 		}

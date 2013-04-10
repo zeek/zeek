@@ -4342,31 +4342,6 @@ function skip_smtp_data%(c: connection%): any
 	return 0;
 	%}
 
-## Enables all event handlers in a given group. One can tag event handlers with
-## the :bro:attr:`&group` attribute to logically group them together, e.g,
-## ``event foo() &group="bar"``. This function enables all event handlers that
-## belong to such a group.
-##
-## group: The group.
-##
-## .. bro:see:: disable_event_group
-function enable_event_group%(group: string%) : any
-	%{
-	event_registry->EnableGroup(group->CheckString(), true);
-	return 0;
-	%}
-
-## Disables all event handlers in a given group.
-##
-## group: The group.
-##
-## .. bro:see:: enable_event_group
-function disable_event_group%(group: string%) : any
-	%{
-	event_registry->EnableGroup(group->CheckString(), false);
-	return 0;
-	%}
-
 # ===========================================================================
 #
 #                            Files and Directories

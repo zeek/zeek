@@ -87,17 +87,6 @@ void EventRegistry::PrintDebug()
 		}
 	}
 
-void EventRegistry::SetGroup(const char* name, const char* group)
-	{
-	return; // FIXME. THis triggers the error below for plugin events.
-
-	EventHandler* eh = Lookup(name);
-	if ( ! eh )
-		reporter->InternalError("unknown event handler %s in SetGroup()", name);
-
-	eh->SetGroup(group);
-	}
-
 void EventRegistry::SetErrorHandler(const char* name)
 	{
 	EventHandler* eh = Lookup(name);
@@ -105,20 +94,5 @@ void EventRegistry::SetErrorHandler(const char* name)
 		reporter->InternalError("unknown event handler in SetErrorHandler()");
 
 	eh->SetErrorHandler();
-	}
-
-void EventRegistry::EnableGroup(const char* group, bool enable)
-	{
-	IterCookie* c = handlers.InitForIteration();
-
-	HashKey* k;
-	EventHandler* v;
-	while ( (v = handlers.NextEntry(k, c)) )
-		{
-		delete k;
-
-		if ( v->Group() && strcmp(v->Group(), group) == 0 )
-			v->SetEnable(enable);
-		}
 	}
 

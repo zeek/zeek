@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-04-01-19-44-31
+#open	2013-04-09-22-37-59
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -36,5 +36,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/./HTTP.events.bif.bro
     build/scripts/base/bif/plugins/./HTTP.functions.bif.bro
     build/scripts/base/bif/plugins/./SSL.events.bif.bro
+    build/scripts/base/bif/plugins/./Syslog.events.bif.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-04-01-19-44-31
+#close	2013-04-09-22-37-59

@@ -62,11 +62,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "binpac_bro.h"
 
-#ifdef HAVE_HILTI
-#include "hilti/Loader.h"
-bro::hilti::Loader* hilti_loader = 0;
-#endif
-
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -234,12 +229,6 @@ void usage()
 		}
 
 	fprintf(stderr, "\n");
-
-#ifdef HAVE_HILTI
-       fprintf(stderr, "    HILTI/BinPAC++ support: yes\n");
-#else
-       fprintf(stderr, "    HILTI/BinPAC++ support: no\n");
-#endif
 
 	exit(1);
 	}
@@ -826,31 +815,6 @@ int main(int argc, char** argv)
 	input_mgr = new input::Manager();
 	plugin_mgr = new plugin::Manager();
 
-#ifdef HAVE_HILTI
-	hilti_loader = new bro::hilti::Loader();
-
-	string path = bro_path();
-
-	while ( true )
-		{
-		size_t e = path.find(":");
-
-		if ( e == string::npos )
-			break;
-
-		string p = path.substr(0, e) + "/pac2";
-		hilti_loader->AddLibraryPath(p.c_str());
-
-		path = path.substr(e + 1, string::npos);
-		}
-
-	path += "/pac2";
-	hilti_loader->AddLibraryPath(path.c_str());
-
-	if ( ! hilti_loader->InitPreScripts() )
-		exit(1);
-#endif
-
 	plugin_mgr->InitPlugins();
 	analyzer_mgr->Init();
 
@@ -1071,17 +1035,6 @@ int main(int argc, char** argv)
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
 		network_time = current_time();
-
-#ifdef HAVE_HILTI
-	if ( ! hilti_loader->InitPostScripts() )
-		exit(1);
-
-	if ( ! hilti_loader->Load() )
-		exit(1);
-
-	if ( ! hilti_loader->Compile() )
-		exit(1);
-#endif
 
 	EventHandlerPtr bro_init = internal_handler("bro_init");
 	if ( bro_init )	//### this should be a function

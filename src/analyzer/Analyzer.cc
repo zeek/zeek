@@ -84,11 +84,10 @@ void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
 	tag = arg_tag;
 	}
 
-
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return analyzer_mgr->GetAnalyzerName(tag) == name;
+	return strcmp(analyzer_mgr->GetAnalyzerName(tag), name) == 0;
 	}
 
 // Used in debugging output.
@@ -650,9 +649,12 @@ void Analyzer::ProtocolConfirmation()
 	if ( protocol_confirmed )
 		return;
 
+	EnumVal* tval = tag.AsEnumVal();
+	Ref(tval);
+
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(tag.AsEnumVal());
+	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
 
 	// We immediately raise the event so that the analyzer can quickly
@@ -678,9 +680,12 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	else
 		r = new StringVal(reason);
 
+	EnumVal* tval = tag.AsEnumVal();
+	Ref(tval);
+
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(tag.AsEnumVal());
+	vl->append(tval);
 	vl->append(new Val(id, TYPE_COUNT));
 	vl->append(r);
 

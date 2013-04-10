@@ -235,9 +235,9 @@ void init_alternative_mode()
     	fprintf(fp_func_init, "\n");
     	fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin);
     	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "std::list<std::pair<std::string, int> > __bif_%s_init()\n", name);
+    	fprintf(fp_func_init, "std::list<std::pair<const char*, int> > __bif_%s_init()\n", name);
     	fprintf(fp_func_init, "\t{\n");
-    	fprintf(fp_func_init, "\tstd::list<std::pair<std::string, int> > bifs;\n");
+    	fprintf(fp_func_init, "\tstd::list<std::pair<const char*, int> > bifs;\n");
     	fprintf(fp_func_init, "\n");
         }
 	}

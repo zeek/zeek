@@ -256,7 +256,7 @@ bool Manager::RegisterAnalyzerForPort(EnumVal* val, PortVal* port)
 
 	if ( ! p  )
 		return false;
-	
+
 	return RegisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 

@@ -160,9 +160,9 @@ binpac_target(modbus.pac
 ## Including subdirectories.
 ########################################################################
 
-add_subdirectory(analyzer)
-
 set(bro_PLUGIN_OBJECT_LIBS CACHE INTERNAL "plugin object libraries" FORCE)
+
+add_subdirectory(analyzer)
 add_subdirectory(protocols)
 
 if ( ENABLE_HILTI )

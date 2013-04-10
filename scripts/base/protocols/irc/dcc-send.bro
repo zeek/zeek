@@ -41,10 +41,8 @@ global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
 
 global extract_count: count = 0;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "IRC_DATA" ) return;
 	if ( ! f?$conns ) return;
@@ -136,10 +134,8 @@ function log_dcc(f: fa_file)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_type(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "IRC_DATA" ) return;
@@ -159,10 +155,8 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 	set_dcc_extraction_file(f, fname);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=-5
+event file_type(f: fa_file) &priority=-5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "IRC_DATA" ) return;
 

@@ -16,10 +16,8 @@ export {
 	const default_entity_excerpt_len = 0 &redef;
 }
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;
 
@@ -27,10 +25,8 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 		f$bof_buffer_size = default_entity_excerpt_len;
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_bof_buffer(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_BOF_BUFFER ) return;
 	if ( ! f?$bof_buffer ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;

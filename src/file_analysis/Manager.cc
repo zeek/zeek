@@ -174,22 +174,6 @@ void Manager::FileEvent(EventHandlerPtr h, File* file)
 	mgr.Dispatch(new Event(h, vl));
 	}
 
-void Manager::EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, File* file)
-	{
-	if ( IsIgnored(file->GetUnique()) ) return;
-
-	const ID* id = global_scope()->Lookup("FileAnalysis::policy");
-	assert(id);
-	const Func* hook = id->ID_Val()->AsFunc();
-
-	val_list vl(2);
-	vl.append(new EnumVal(t, BifType::Enum::FileAnalysis::Trigger));
-	vl.append(file->val->Ref());
-
-	Val* result = hook->Call(&vl);
-	Unref(result);
-	}
-
 bool Manager::PostponeTimeout(const FileID& file_id) const
 	{
 	File* file = Lookup(file_id);
@@ -237,7 +221,7 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 			}
 
 		id_map[id] = rval;
-		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_NEW, rval);
+		FileEvent(file_new, rval);
 		rval->ScheduleInactivityTimer();
 		if ( IsIgnored(unique) ) return 0;
 		}
@@ -267,7 +251,7 @@ void Manager::Timeout(const FileID& file_id, bool is_terminating)
 
 	file->postpone_timeout = false;
 
-	file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TIMEOUT, file);
+	FileEvent(file_timeout, file);
 
 	if ( file->postpone_timeout && ! is_terminating )
 		{

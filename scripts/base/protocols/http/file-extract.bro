@@ -18,18 +18,15 @@ export {
 		extraction_file:  string &log &optional;
 		
 		## Indicates if the response body is to be extracted or not.  Must be 
-		## set before or by the first :bro:enum:`FileAnalysis::TRIGGER_NEW`
-		## for the file content.
+		## set before or by the first :bro:see:`file_new` for the file content.
 		extract_file:     bool &default=F;
 	};
 }
 
 global extract_count: count = 0;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_type(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
@@ -56,10 +53,8 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
 	if ( ! f?$conns ) return;

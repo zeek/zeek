@@ -24,10 +24,8 @@ redef record Info += {
 	extract_file:          bool &default=F;
 };
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "FTP_DATA" ) return;
 	if ( ! f?$conns ) return;
@@ -56,10 +54,8 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_type(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "FTP_DATA" ) return;

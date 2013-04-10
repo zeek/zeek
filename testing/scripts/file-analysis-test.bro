@@ -20,46 +20,73 @@ event file_stream(f: fa_file, data: string)
 		print "file_stream", f$id, |data|, data;
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
+event file_new(f: fa_file)
 	{
-	print trig;
+	print "FILE_NEW";
 
-	switch ( trig ) {
-	case FileAnalysis::TRIGGER_NEW:
-		print f$id, f$seen_bytes, f$missing_bytes;
+	print f$id, f$seen_bytes, f$missing_bytes;
 
-		if ( test_file_analysis_source == "" ||
-		     f$source == test_file_analysis_source )
-			{
-			for ( act in test_file_actions )
-				FileAnalysis::add_action(f, act);
+	if ( test_file_analysis_source == "" ||
+	     f$source == test_file_analysis_source )
+		{
+		for ( act in test_file_actions )
+			FileAnalysis::add_action(f, act);
 
-			local filename: string = test_get_file_name(f);
-			if ( filename != "" )
-				FileAnalysis::add_action(f,
-				                         [$act=FileAnalysis::ACTION_EXTRACT,
-				                          $extract_filename=filename]);
-			FileAnalysis::add_action(f,
-			                         [$act=FileAnalysis::ACTION_DATA_EVENT,
-			                          $chunk_event=file_chunk,
-			                          $stream_event=file_stream]);
-
-			}
-		break;
-
-	case FileAnalysis::TRIGGER_BOF_BUFFER:
-		if ( f?$bof_buffer )
-			print f$bof_buffer[0:10];
-		break;
-
-	case FileAnalysis::TRIGGER_TYPE:
-		# not actually printing the values due to libmagic variances
-		if ( f?$file_type )
-			print "file type is set";
-		if ( f?$mime_type )
-			print "mime type is set";
-		break;
+		local filename: string = test_get_file_name(f);
+		if ( filename != "" )
+			FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+			                             $extract_filename=filename]);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_DATA_EVENT,
+		                             $chunk_event=file_chunk,
+		                             $stream_event=file_stream]);
+		}
 	}
+
+event file_over_new_connection(f: fa_file)
+	{
+	print "FILE_OVER_NEW_CONNECTION";
+	}
+
+event file_timeout(f: fa_file)
+	{
+	print "FILE_TIMEOUT";
+	}
+
+event file_bof(f: fa_file)
+	{
+	print "FILE_BOF";
+	}
+
+event file_bof_buffer(f: fa_file)
+	{
+	print "FILE_BOF_BUFFER";
+	if ( f?$bof_buffer )
+		print f$bof_buffer[0:10];
+	}
+
+event file_type(f: fa_file) &priority=-5
+	{
+	}
+
+event file_type(f: fa_file)
+	{
+	print "FILE_TYPE";
+	# not actually printing the values due to libmagic variances
+	if ( f?$file_type )
+		{
+		print "file type is set";
+		f$file_type = "set";
+		}
+	if ( f?$mime_type )
+		{
+		print "mime type is set";
+		f$mime_type = "set";
+		}
+	}
+
+event file_gap(f: fa_file)
+	{
+	print "FILE_GAP";
 	}
 
 event file_state_remove(f: fa_file)
@@ -83,18 +110,6 @@ event file_state_remove(f: fa_file)
 		print fmt("SHA1: %s", f$info$sha1);
 	if ( f$info?$sha256 )
 		print fmt("SHA256: %s", f$info$sha256);
-	}
-
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=-5
-	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-
-	# avoids libmagic variances across systems
-	if ( f?$mime_type )
-		f$mime_type = "set";
-	if ( f?$file_type )
-		f$file_type = "set";
 	}
 
 event bro_init()

@@ -104,12 +104,6 @@ export {
 		sha256: string &log &optional;
 	} &redef;
 
-	## Evaluated every time a significant event occurs during the course of
-	## file analysis.  Fields of the *info* argument may be modified or
-	## other actions may be added or removed inside the body of any handlers
-	## of this hook.
-	global policy: hook(trig: Trigger, f: fa_file);
-
 	## A table that can be used to disable file analysis completely for
 	## any files transferred over given network protocol analyzers.
 	const disable: table[AnalyzerTag] of bool = table() &redef;
@@ -127,10 +121,9 @@ export {
 	const salt = "I recommend changing this." &redef;
 
 	## Postpones the timeout of file analysis for a given file.
-	## When used within a :bro:see:`FileAnalysis::policy` handler for
-	## :bro:see:`FileAnalysis::TRIGGER_TIMEOUT`, the analysis will delay
-	## timing out for the period of time indicated by the *timeout_interval*
-	## field of :bro:see:`fa_file`.
+	## When used within a :bro:see:`file_timeout` handler for, the analysis
+	## the analysis will delay timing out for the period of time indicated by
+	## the *timeout_interval* field of :bro:see:`fa_file`.
 	##
 	## f: the file.
 	##
@@ -309,10 +302,8 @@ event bro_init() &priority=5
 	                   [$columns=Info, $ev=log_file_analysis]);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_timeout(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TIMEOUT ) return;
 	set_info(f);
 	f$info$timedout = T;
 	}

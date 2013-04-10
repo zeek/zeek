@@ -8,9 +8,8 @@ redef test_get_file_name = function(f: fa_file): string
 	return fmt("%s-file", f$id);
 	};
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
+event file_type(f: fa_file)
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	for ( act in test_file_actions )
 		FileAnalysis::remove_action(f, act);
 	local filename = test_get_file_name(f);

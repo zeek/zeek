@@ -1,9 +1,9 @@
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 cwR7l6Zctxb, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 Hello^M^J^M^J ^M
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE
@@ -13,12 +13,12 @@ source: SMTP
 MD5: 92bca2e6cdcde73647125da7dccbdd07
 SHA1: b7e497be8a9f5e2c4b6980fceb015360f98f4a13
 SHA256: 785a8a044d1454ec88837108f443bbb30cc4f529393ffd57118261036bfe59f5
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 ZAOEQmRyxv1, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 <html xmlns
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE
@@ -28,12 +28,12 @@ source: SMTP
 MD5: d194c6359c85bb88b54caee18b1e9b44
 SHA1: e54af6c6616525611364b80bd6557a7ea21dae94
 SHA256: b9556e92ddbe52379b64804136f830d111cafe7fcd78e54817fe40f3bc24268d
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 Ltd7QO7jEv3, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 Version 4.9
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE

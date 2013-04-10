@@ -6997,6 +6997,19 @@ event bro_script_loaded%(path: string, level: count%);
 ## .. bro:see:: return_file_handle
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
 
+# TODO: document
+event file_new%(f: fa_file%);
+# TODO: give the new connection
+event file_over_new_connection%(f: fa_file%);
+event file_timeout%(f: fa_file%);
+event file_bof%(f: fa_file%);
+# TODO: give buffer? (unless we remove the event completely)
+event file_bof_buffer%(f: fa_file%);
+# TODO: give mime type? (unless we remove the event completely)
+event file_type%(f: fa_file%);
+# TODO: give size of gap
+event file_gap%(f: fa_file%);
+
 ## This event is generated each time file analysis is ending for a given file.
 ##
 ## f: The file.

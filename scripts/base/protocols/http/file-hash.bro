@@ -23,10 +23,8 @@ export {
 	                   &redef;
 }
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_type(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;

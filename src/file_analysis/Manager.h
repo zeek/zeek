@@ -101,8 +101,8 @@ public:
 	bool IgnoreFile(const FileID& file_id);
 
 	/**
-	 * If called during \c FileAnalysis::policy evaluation for a
-	 * \c FileAnalysis::TRIGGER_TIMEOUT, requests deferral of analysis timeout.
+	 * If called during a \c file_timeout event handler, requests deferral of
+	 * analysis timeout.
 	 */
 	bool PostponeTimeout(const FileID& file_id) const;
 
@@ -119,11 +119,6 @@ public:
 	 * @return true if the action is active at the time of call, else false.
 	 */
 	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
-
-	/**
-	 * Calls the \c FileAnalysis::policy hook.
-	 */
-	void EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, File* file);
 
 	/**
 	 * Dispatches an event related to the file's life-cycle.

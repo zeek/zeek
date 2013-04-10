@@ -1,9 +1,9 @@
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 v5HLI7MxPQh, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 hello world
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE
@@ -14,12 +14,12 @@ source: HTTP
 MD5: 5eb63bbbe01eeed093cb22bb8f5acdc3
 SHA1: 2aae6c35c94fcfb415dbe95f408b9ce91ee846ed
 SHA256: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 PZS1XGHkIf1, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 {^J  "origin
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE

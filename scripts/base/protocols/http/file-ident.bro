@@ -34,10 +34,8 @@ export {
 	const ignored_incorrect_file_type_urls = /^$/ &redef;
 }
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_type(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
@@ -68,16 +66,14 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_over_new_connection(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW_CONN ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
 	if ( ! f?$conns ) return;
 
-	# Spread the mime around (e.g. for partial content, TRIGGER_TYPE only
+	# Spread the mime around (e.g. for partial content, file_type event only
 	# happens once for the first connection, but if there's subsequent
 	# connections to transfer the same file, they'll be lacking the mime_type
 	# field if we don't do this).

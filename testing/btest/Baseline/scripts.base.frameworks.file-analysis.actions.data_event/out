@@ -1,9 +1,9 @@
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 Cx92a0ym5R8, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 ^J0.26 | 201
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 file_stream, Cx92a0ym5R8, 1500, ^J0.26 | 2012-08-24 15:10:04 -0700^J^J  * Fixing update-changes, which could pick the wrong control file. (Robin Sommer)^J^J  * Fixing GPG signing script. (Robin Sommer)^J^J0.25 | 2012-08-01 13:55:46 -0500^J^J  * Fix configure script to exit with non-zero status on error (Jon Siwek)^J^J0.24 | 2012-07-05 12:50:43 -0700^J^J  * Raise minimum required CMake version to 2.6.3 (Jon Siwek)^J^J  * Adding script to delete old fully-merged branches. (Robin Sommer)^J^J0.23-2 | 2012-01-25 13:24:01 -0800^J^J  * Fix a bro-cut error message. (Daniel Thayer)^J^J0.23 | 2012-01-11 12:16:11 -0800^J^J  * Tweaks to release scripts, plus a new one for signing files.^J    (Robin Sommer)^J^J0.22 | 2012-01-10 16:45:19 -0800^J^J  * Tweaks for OpenBSD support. (Jon Siwek)^J^J  * bro-cut extensions and fixes.  (Robin Sommer)^J    ^J    - If no field names are given on the command line, we now pass through^J      all fields. Adresses #657.^J^J    - Removing some GNUism from awk script. Addresses #653.^J^J    - Added option for time output in UTC. Addresses #668.^J^J    - Added output field separator option -F. Addresses #649.^J^J    - Fixing option -c: only some header lines were passed through^J      rather than all. (Robin Sommer)^J^J  * Fix parallel make portability. (Jon Siwek)^J^J0.21-9 | 2011-11-07 05:44:14 -0800^J^J  * Fixing compiler warnings. Addresses #388. (Jon Siwek)^J^J0.21-2 | 2011-11-02 18:12:13 -0700^J^J  * Fix for misnaming temp file in update-changes script. (Robin Sommer)^J^J0.21-1 | 2011-11-02 18:10:39 -0700^J^J  * Little fix for make-relea

@@ -147,8 +147,7 @@ void File::UpdateConnectionFields(Connection* conn)
 		{
 		conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
 		if ( ! is_first )
-			file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_NEW_CONN,
-			                         this);
+			file_mgr->FileEvent(file_over_new_connection, this);
 		}
 
 	Unref(idx);
@@ -223,21 +222,9 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 	if ( bof_buffer.full || bof_buffer.replayed ) return false;
 
 	if ( bof_buffer.chunks.size() == 0 )
-		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_BOF, this);
+		file_mgr->FileEvent(file_bof, this);
 
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
-
-	/* Leaving out this optimization (I think) for now to keep things simpler.
-	// If first chunk satisfies desired size, do everything now without copying.
-	if ( bof_buffer.chunks.empty() && len >= desired_size )
-		{
-		bof_buffer.full = bof_buffer.replayed = true;
-		val->Assign(bof_buffer_idx, new StringVal(new BroString(data, len, 0)));
-		file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
-		// TODO: libmagic stuff
-		return false;
-		}
-	*/
 
 	bof_buffer.chunks.push_back(new BroString(data, len, 0));
 	bof_buffer.size += len;
@@ -281,11 +268,10 @@ void File::ReplayBOF()
 	val->Assign(bof_buffer_idx, new StringVal(bs));
 	bool have_type = DetectTypes(bs->Bytes(), bs->Len());
 
-	using BifEnum::FileAnalysis::TRIGGER_BOF_BUFFER;
-	file_mgr->EvaluatePolicy(TRIGGER_BOF_BUFFER, this);
+	file_mgr->FileEvent(file_bof_buffer, this);
 
 	if ( have_type )
-		file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
+		file_mgr->FileEvent(file_type, this);
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
@@ -299,7 +285,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 		{
 		if ( DetectTypes(data, len) )
 			{
-			file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
+			file_mgr->FileEvent(file_type, this);
 			actions.DrainModifications();
 			}
 
@@ -338,7 +324,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		{
 		if ( DetectTypes(data, len) )
 			{
-			file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_TYPE, this);
+			file_mgr->FileEvent(file_type, this);
 			actions.DrainModifications();
 			}
 
@@ -409,7 +395,7 @@ void File::Gap(uint64 offset, uint64 len)
 			actions.QueueRemoveAction(act->Args());
 		}
 
-	file_mgr->EvaluatePolicy(BifEnum::FileAnalysis::TRIGGER_GAP, this);
+	file_mgr->FileEvent(file_gap, this);
 
 	actions.DrainModifications();
 	IncrementByteCount(len, missing_bytes_idx);

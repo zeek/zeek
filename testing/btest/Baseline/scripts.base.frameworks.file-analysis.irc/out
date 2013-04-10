@@ -1,9 +1,9 @@
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 wqKMAamJVSb, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 PK^C^D^T\0\0\0^H\0\xae
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE

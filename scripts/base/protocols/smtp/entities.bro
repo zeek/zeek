@@ -95,10 +95,8 @@ event mime_begin_entity(c: connection) &priority=10
 	set_session(c, T);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;
 	if ( ! f?$conns ) return;
@@ -165,10 +163,8 @@ function check_md5_by_type(f: fa_file)
 	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
-	&priority=5
+event file_type(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
 	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;

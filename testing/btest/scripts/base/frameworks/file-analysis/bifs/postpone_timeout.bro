@@ -16,17 +16,13 @@ redef test_get_file_name = function(f: fa_file): string
 
 redef exit_only_after_terminate = T;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
+event file_new(f: fa_file)
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-
-	f$timeout_interval=2sec;
+	f$timeout_interval = 2sec;
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, f: fa_file)
+event file_timeout(f: fa_file)
 	{
-	if ( trig != FileAnalysis::TRIGGER_TIMEOUT ) return;
-
 	if ( timeout_cnt < 1 )
 		FileAnalysis::postpone_timeout(f);
 	else

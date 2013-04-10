@@ -1,9 +1,9 @@
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 Cx92a0ym5R8, 0, 0
-FileAnalysis::TRIGGER_BOF
-FileAnalysis::TRIGGER_BOF_BUFFER
+FILE_BOF
+FILE_BOF_BUFFER
 ^J0.26 | 201
-FileAnalysis::TRIGGER_TYPE
+FILE_TYPE
 file type is set
 mime type is set
 FILE_STATE_REMOVE

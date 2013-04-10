@@ -31,6 +31,8 @@ bool CardinalityVal::DoSerialize(SerialInfo* info) const
 	bool valid = true;
 
 	valid &= SERIALIZE(c->m);
+	valid &= SERIALIZE(c->V);
+	valid &= SERIALIZE(c->alpha_m);
 	for ( int i = 0; i < c->m; i++ ) 
 		{
 		valid &= SERIALIZE(c->buckets[i]);
@@ -51,6 +53,9 @@ bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 	bool valid = UNSERIALIZE(&m);
 
 	c = new CardinalityCounter(m);
+	valid &= UNSERIALIZE(&c->V);
+	valid &= UNSERIALIZE(&c->alpha_m);
+
 	uint8_t* buckets = c->buckets;
 	for ( int i = 0; i < m; i++ ) 
 		{

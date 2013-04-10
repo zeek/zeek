@@ -1,16 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#ifndef hyperloglog_h
+#define hyperloglog_h
+
 #include <stdint.h>
+#include <opaqueval.h>
 
 /*
  *  "conf" is how confident the estimate given by the counter is.
  *  
- *  In other words, if the cardinality is estimated to be 100 with 2% error margin and conf is
+ *  In other words, if the cardinality is estimated to be 100 with 2% error margin and HLL_CONFis
  *  0.95, then we are 95% sure that the actual cardinality is between 98 and 102.
  */
-#define conf .95
+#define HLL_CONF .95
 
-class CardinalityVal;
 
 class CardinalityCounter {
  friend class CardinalityVal;
@@ -114,3 +117,5 @@ class CardinalityCounter {
    */
   uint64_t getM();
 };
+
+#endif 

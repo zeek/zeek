@@ -18,7 +18,7 @@ int CardinalityCounter::optimalB(double error)
 			answer++;
 			k = pow(2, (answer - initial_estimate)/2);
 			}
-		while (erf(k/sqrt(2)) < conf);
+		while (erf(k/sqrt(2)) < HLL_CONF);
 
 		return answer;
 	}
@@ -67,9 +67,6 @@ CardinalityCounter :: CardinalityCounter(double error_margin)
 CardinalityCounter::~CardinalityCounter() 
 	{
 	delete [] buckets;
-	delete &m;
-	delete &V;
-	delete &alpha_m;
 	}
 
 uint8_t CardinalityCounter::rank(uint64_t hash_modified)

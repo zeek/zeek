@@ -10,14 +10,23 @@ export {
 	redef record ResultVal += {
 		## If cardinality is being tracked, the number of unique
 		## items is tracked here.
-		hllunique: opaque of cardinality &default=hll_cardinality_init(0.01);
+		hllunique: count &default=0;
 	};
 }
 
+redef record ResultVal += {
+	# Internal use only.  This is not meant to be publically available 
+	# because probabilistic data structures have to be examined using
+	# specialized bifs.
+	card: opaque of cardinality &default=hll_cardinality_init(0.01);
+};
+
+
 hook init_resultval_hook(r: Reducer, rv: ResultVal)
 	{
-	if ( HLLUNIQUE in r$apply && ! rv?$hllunique )
-		rv$hllunique = hll_cardinality_init(0.01);
+	if ( HLLUNIQUE in r$apply && ! rv?$card )
+		rv$card = hll_cardinality_init(0.01);
+		rv$hllunique = 0;
 	}
 
 
@@ -25,15 +34,17 @@ hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal
 	{
 	if ( HLLUNIQUE in r$apply )
 		{
-		hll_cardinality_add(rv$hllunique, data);
+		hll_cardinality_add(rv$card, data);
+		rv$hllunique = double_to_count(hll_cardinality_estimate(rv$card));
 		}
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
 	local rhll = hll_cardinality_init(0.01);
-	hll_cardinality_merge_into(rhll, rv1$hllunique);
-	hll_cardinality_merge_into(rhll, rv2$hllunique);
+	hll_cardinality_merge_into(rhll, rv1$card);
+	hll_cardinality_merge_into(rhll, rv2$card);
 
-	result$hllunique = rhll;
+	result$card = rhll;
+	result$hllunique = double_to_count(hll_cardinality_estimate(rhll));
 	}

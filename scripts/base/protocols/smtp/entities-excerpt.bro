@@ -12,7 +12,8 @@ export {
 	};
 	
 	## This is the default value for how much of the entity body should be
-	## included for all MIME entities.
+	## included for all MIME entities.  The lesser of this value and
+	## :bro:see:`default_file_bof_buffer_size` will be used.
 	const default_entity_excerpt_len = 0 &redef;
 }
 
@@ -20,16 +21,7 @@ event file_new(f: fa_file) &priority=5
 	{
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;
-
-	if ( default_entity_excerpt_len > f$bof_buffer_size )
-		f$bof_buffer_size = default_entity_excerpt_len;
-	}
-
-event file_bof_buffer(f: fa_file) &priority=5
-	{
 	if ( ! f?$bof_buffer ) return;
-	if ( ! f?$source ) return;
-	if ( f$source != "SMTP" ) return;
 	if ( ! f?$conns ) return;
 
 	for ( cid in f$conns )

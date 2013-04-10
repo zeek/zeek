@@ -8,7 +8,7 @@ redef test_get_file_name = function(f: fa_file): string
 	return fmt("%s-file", f$id);
 	};
 
-event file_type(f: fa_file)
+event file_new(f: fa_file) &priority=-10
 	{
 	for ( act in test_file_actions )
 		FileAnalysis::remove_action(f, act);

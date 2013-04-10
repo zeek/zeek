@@ -316,6 +316,9 @@ type connection: record {
 	tunnel: EncapsulatingConnVector &optional;
 };
 
+const default_file_timeout_interval: interval = 2 mins &redef;
+const default_file_bof_buffer_size: count = 1024 &redef;
+
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
 ## byte stream that is e.g. pulled from a network connection or possibly
@@ -356,11 +359,11 @@ type fa_file: record {
 
 	## The amount of time between receiving new data for this file that
 	## the analysis engine will wait before giving up on it.
-	timeout_interval: interval &default=2mins;
+	timeout_interval: interval &default=default_file_timeout_interval;
 
 	## The number of bytes at the beginning of a file to save for later
 	## inspection in *bof_buffer* field.
-	bof_buffer_size: count &default=1024;
+	bof_buffer_size: count &default=default_file_bof_buffer_size;
 
 	## The content of the beginning of a file up to *bof_buffer_size* bytes.
 	## This is also the buffer that's used for file/mime type detection.

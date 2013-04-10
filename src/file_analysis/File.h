@@ -155,12 +155,12 @@ protected:
 	 */
 	bool DetectTypes(const u_char* data, uint64 len);
 
-	FileID id;                 /**< A pretty hash that likely identifies file*/
+	FileID id;                 /**< A pretty hash that likely identifies file */
 	string unique;             /**< A string that uniquely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool first_chunk;          /**< Track first non-linear chunk. */
-	bool need_type;            /**< Flags next data input to be magic typed. */
+	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
 	ActionSet actions;

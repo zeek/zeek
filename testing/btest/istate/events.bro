@@ -41,8 +41,9 @@ redef tcp_close_delay = 0secs;
 # of a full value and expect the remote side to associate that unique ID with
 # a value it received at an earlier time.  So sometimes modifications the sender# makes to the value aren't seen on the receiver (in this case, the mime_type
 # field).
-event file_new(f: fa_file)
+event file_new(f: fa_file) &priority=10
 	{
+	delete f$mime_type;
 	FileAnalysis::stop(f);
 	}
 

@@ -15,11 +15,7 @@ redef test_get_file_name = function(f: fa_file): string
 	};
 
 redef exit_only_after_terminate = T;
-
-event file_new(f: fa_file)
-	{
-	f$timeout_interval = 2sec;
-	}
+redef default_file_timeout_interval = 2sec;
 
 event file_timeout(f: fa_file)
 	{

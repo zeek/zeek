@@ -34,11 +34,11 @@ export {
 	const ignored_incorrect_file_type_urls = /^$/ &redef;
 }
 
-event file_type(f: fa_file) &priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
+	if ( ! f?$mime_type ) return;
 	if ( ! f?$conns ) return;
 
 	for ( cid in f$conns )
@@ -68,9 +68,9 @@ event file_type(f: fa_file) &priority=5
 
 event file_over_new_connection(f: fa_file) &priority=5
 	{
-	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
+	if ( ! f?$mime_type ) return;
 	if ( ! f?$conns ) return;
 
 	# Spread the mime around (e.g. for partial content, file_type event only
@@ -80,9 +80,7 @@ event file_over_new_connection(f: fa_file) &priority=5
 	for ( cid in f$conns )
 		{
 		local c: connection = f$conns[cid];
-
 		if ( ! c?$http ) next;
-
 		c$http$mime_type = f$mime_type;
 		}
 	}

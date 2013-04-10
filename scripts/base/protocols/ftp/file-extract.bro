@@ -24,15 +24,26 @@ redef record Info += {
 	extract_file:          bool &default=F;
 };
 
+function get_extraction_name(f: fa_file): string
+	{
+	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
+	++extract_count;
+	return r;
+	}
+
 event file_new(f: fa_file) &priority=5
 	{
 	if ( ! f?$source ) return;
 	if ( f$source != "FTP_DATA" ) return;
-	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
-	                          extract_count);
-	local extracting: bool = F;
+	if ( f?$mime_type && extract_file_types in f$mime_type )
+		{
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=get_extraction_name(f)]);
+		return;
+		}
+
+	if ( ! f?$conns ) return;
 
 	for ( cid in f$conns )
 		{
@@ -44,31 +55,10 @@ event file_new(f: fa_file) &priority=5
 
 		if ( ! s$extract_file ) next;
 
-		if ( ! extracting )
-			{
-			FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-			                             $extract_filename=fname]);
-			extracting = T;
-			++extract_count;
-			}
-		}
-	}
-
-event file_type(f: fa_file) &priority=5
-	{
-	if ( ! f?$mime_type ) return;
-	if ( ! f?$source ) return;
-	if ( f$source != "FTP_DATA" ) return;
-	if ( extract_file_types !in f$mime_type ) return;
-
-	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=get_extraction_name(f)]);
 		return;
-
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
-	                          extract_count);
-	++extract_count;
-	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-	                             $extract_filename=fname]);
+		}
 	}
 
 event file_state_remove(f: fa_file) &priority=4

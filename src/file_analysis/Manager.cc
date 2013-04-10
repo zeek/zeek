@@ -221,7 +221,6 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 			}
 
 		id_map[id] = rval;
-		FileEvent(file_new, rval);
 		rval->ScheduleInactivityTimer();
 		if ( IsIgnored(unique) ) return 0;
 		}

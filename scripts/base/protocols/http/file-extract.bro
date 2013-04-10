@@ -25,32 +25,11 @@ export {
 
 global extract_count: count = 0;
 
-event file_type(f: fa_file) &priority=5
+function get_extraction_name(f: fa_file): string
 	{
-	if ( ! f?$mime_type ) return;
-	if ( ! f?$source ) return;
-	if ( f$source != "HTTP" ) return;
-	if ( extract_file_types !in f$mime_type ) return;
-
-	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
-		return;
-
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
-	                          extract_count);
+	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
 	++extract_count;
-	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-	                             $extract_filename=fname]);
-
-	if ( ! f?$conns ) return;
-
-	for ( cid in f$conns )
-		{
-		local c: connection = f$conns[cid];
-
-		if ( ! c?$http ) next;
-
-		c$http$extraction_file = fname;
-		}
+	return r;
 	}
 
 event file_new(f: fa_file) &priority=5
@@ -59,27 +38,47 @@ event file_new(f: fa_file) &priority=5
 	if ( f$source != "HTTP" ) return;
 	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
-	                          extract_count);
+	local fname: string;
+	local c: connection;
+
+	if ( f?$mime_type && extract_file_types in f$mime_type )
+		{
+		fname = get_extraction_name(f);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=fname]);
+
+		for ( cid in f$conns )
+			{
+			c = f$conns[cid];
+			if ( ! c?$http ) next;
+			c$http$extraction_file = fname;
+			}
+
+		return;
+		}
+
 	local extracting: bool = F;
 
 	for ( cid in f$conns )
 		{
-		local c: connection = f$conns[cid];
+		c = f$conns[cid];
 
 		if ( ! c?$http ) next;
 
-		if ( c$http$extract_file )
-			{
-			if ( ! extracting )
-				{
-				FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                                     $extract_filename=fname]);
-				extracting = T;
-				++extract_count;
-				}
+		if ( ! c$http$extract_file ) next;
 
+		fname = get_extraction_name(f);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=fname]);
+		extracting = T;
+		break;
+		}
+
+	if ( extracting )
+		for ( cid in f$conns )
+			{
+			c = f$conns[cid];
+			if ( ! c?$http ) next;
 			c$http$extraction_file = fname;
 			}
-		}
 	}

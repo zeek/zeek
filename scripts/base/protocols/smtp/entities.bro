@@ -88,6 +88,13 @@ function set_session(c: connection, new_entity: bool)
 		}
 	}
 
+function get_extraction_name(f: fa_file): string
+	{
+	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
+	++extract_count;
+	return r;
+	}
+
 event mime_begin_entity(c: connection) &priority=10
 	{
 	if ( ! c?$smtp ) return;
@@ -101,8 +108,7 @@ event file_new(f: fa_file) &priority=5
 	if ( f$source != "SMTP" ) return;
 	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
-	                          extract_count);
+	local fname: string;
 	local extracting: bool = F;
 
 	for ( cid in f$conns )
@@ -116,6 +122,7 @@ event file_new(f: fa_file) &priority=5
 			{
 			if ( ! extracting )
 				{
+				fname = get_extraction_name(f);
 				FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
 				                             $extract_filename=fname]);
 				extracting = T;
@@ -137,9 +144,7 @@ function check_extract_by_type(f: fa_file)
 	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
 		return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, f$id,
-	                          extract_count);
-	++extract_count;
+	local fname: string = get_extraction_name(f);
 	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
 	                             $extract_filename=fname]);
 
@@ -148,9 +153,7 @@ function check_extract_by_type(f: fa_file)
 	for ( cid in f$conns )
 		{
 		local c: connection = f$conns[cid];
-
 		if ( ! c?$smtp ) next;
-
 		c$smtp$current_entity$extraction_file = fname;
 		}
 	}
@@ -163,11 +166,11 @@ function check_md5_by_type(f: fa_file)
 	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
 	}
 
-event file_type(f: fa_file) &priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;
+	if ( ! f?$mime_type ) return;
 
 	if ( f?$conns )
 		for ( cid in f$conns )

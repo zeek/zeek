@@ -23,28 +23,29 @@ export {
 	                   &redef;
 }
 
-event file_type(f: fa_file) &priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( ! f?$mime_type ) return;
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
 
-	if ( generate_md5 in f$mime_type )
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
-	else if ( f?$conns )
+	if ( f?$mime_type && generate_md5 in f$mime_type )
 		{
-		for ( cid in f$conns )
-			{
-			local c: connection = f$conns[cid];
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+		return;
+		}
 
-			if ( ! c?$http ) next;
+	if ( ! f?$conns ) return;
 
-			if ( c$http$calc_md5 )
-				{
-				FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
-				return;
-				}
-			}
+	for ( cid in f$conns )
+		{
+		local c: connection = f$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		if ( ! c$http$calc_md5 ) next;
+
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+		return;
 		}
 	}
 

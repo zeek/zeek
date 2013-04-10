@@ -80,7 +80,7 @@ void File::StaticInit()
 
 File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
     : id(""), unique(unique), val(0), postpone_timeout(false),
-      first_chunk(true), need_type(false), need_reassembly(false), done(false),
+      first_chunk(true), missed_bof(false), need_reassembly(false), done(false),
       actions(this)
 	{
 	StaticInit();
@@ -221,9 +221,6 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 	{
 	if ( bof_buffer.full || bof_buffer.replayed ) return false;
 
-	if ( bof_buffer.chunks.size() == 0 )
-		file_mgr->FileEvent(file_bof, this);
-
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
 	bof_buffer.chunks.push_back(new BroString(data, len, 0));
@@ -260,18 +257,17 @@ void File::ReplayBOF()
 	if ( bof_buffer.chunks.empty() )
 		{
 		// Since we missed the beginning, try file type detect on next data in.
-		need_type = true;
+		missed_bof = true;
 		return;
 		}
 
 	BroString* bs = concatenate(bof_buffer.chunks);
 	val->Assign(bof_buffer_idx, new StringVal(bs));
-	bool have_type = DetectTypes(bs->Bytes(), bs->Len());
 
-	file_mgr->FileEvent(file_bof_buffer, this);
+	DetectTypes(bs->Bytes(), bs->Len());
 
-	if ( have_type )
-		file_mgr->FileEvent(file_type, this);
+	file_mgr->FileEvent(file_new, this);
+	//mgr.Drain();
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
@@ -283,12 +279,11 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 
 	if ( first_chunk )
 		{
-		if ( DetectTypes(data, len) )
-			{
-			file_mgr->FileEvent(file_type, this);
-			actions.DrainModifications();
-			}
-
+		// TODO: this should all really be delayed until we attempt reassembly
+		DetectTypes(data, len);
+		file_mgr->FileEvent(file_new, this);
+		//mgr.Drain();
+		actions.DrainModifications();
 		first_chunk = false;
 		}
 
@@ -320,15 +315,13 @@ void File::DataIn(const u_char* data, uint64 len)
 
 	if ( BufferBOF(data, len) ) return;
 
-	if ( need_type )
+	if ( missed_bof )
 		{
-		if ( DetectTypes(data, len) )
-			{
-			file_mgr->FileEvent(file_type, this);
-			actions.DrainModifications();
-			}
-
-		need_type = false;
+		DetectTypes(data, len);
+		file_mgr->FileEvent(file_new, this);
+		//mgr.Drain();
+		actions.DrainModifications();
+		missed_bof = false;
 		}
 
 	Action* act = 0;

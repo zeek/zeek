@@ -40,37 +40,15 @@ event file_new(f: fa_file)
 		                             $chunk_event=file_chunk,
 		                             $stream_event=file_stream]);
 		}
-	}
 
-event file_over_new_connection(f: fa_file)
-	{
-	print "FILE_OVER_NEW_CONNECTION";
-	}
-
-event file_timeout(f: fa_file)
-	{
-	print "FILE_TIMEOUT";
-	}
-
-event file_bof(f: fa_file)
-	{
-	print "FILE_BOF";
-	}
-
-event file_bof_buffer(f: fa_file)
-	{
-	print "FILE_BOF_BUFFER";
 	if ( f?$bof_buffer )
+		{
+		print "FILE_BOF_BUFFER";
 		print f$bof_buffer[0:10];
-	}
+		}
 
-event file_type(f: fa_file) &priority=-5
-	{
-	}
-
-event file_type(f: fa_file)
-	{
-	print "FILE_TYPE";
+	if ( f?$file_type || f?$mime_type )
+		print "FILE_TYPE";
 	# not actually printing the values due to libmagic variances
 	if ( f?$file_type )
 		{
@@ -82,6 +60,16 @@ event file_type(f: fa_file)
 		print "mime type is set";
 		f$mime_type = "set";
 		}
+	}
+
+event file_over_new_connection(f: fa_file)
+	{
+	print "FILE_OVER_NEW_CONNECTION";
+	}
+
+event file_timeout(f: fa_file)
+	{
+	print "FILE_TIMEOUT";
 	}
 
 event file_gap(f: fa_file)

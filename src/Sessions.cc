@@ -495,6 +495,17 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
 
+	static int count = 0;
+	if ( ++count % 10000 == 0 )
+		{
+		unsigned int total, malloced;
+		get_memory_usage(&total, &malloced);
+
+		fprintf(stderr, "# conns=%u/%u/%u mem=%uM/%uM\n",
+			tcp_conns.Length(), udp_conns.Length(), icmp_conns.Length(),
+			total / 1024 / 1024, malloced / 1024 / 1024);
+		}
+
 	switch ( proto ) {
 	case IPPROTO_TCP:
 		{

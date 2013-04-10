@@ -3,6 +3,10 @@
 #
 # - Continued headers
 # - b":" instead of /:/
+# - decode URIs
+# - {transfer,content}-encoding: gzip, deflate
+# - connection: keep-alive, close
+# - software versions
 
 module HTTP;
 
@@ -43,7 +47,7 @@ type Reply = unit {
 
 type Version = unit {
     :        /HTTP\//;
-    number: /[0-9]+\.[0-9]+/;
+    number: /[0-9]+\.[0-9]*/;
 };
 
 export type RequestLine = unit {
@@ -79,6 +83,8 @@ type Message = unit(body_default: bool) {
 
     var content_length: uint64;
     var content_type: bytes;
+    var content_type_main: bytes;
+    var content_type_sub: bytes;
     var transfer_encoding: bytes;
     var multipart_boundary: bytes;
 
@@ -93,7 +99,7 @@ type Message = unit(body_default: bool) {
         if ( self?.content_length )
             self.delivery_mode = DeliveryMode::Length;
 
-        if ( self?.content_type && (self.content_type).startswith(b"multipart/") ) {
+        if ( self?.content_type_main && self.content_type_main == b"multipart" ) {
             local boundary : bytes;
 
             boundary = self.content_type.match(/boundary="([^"]*)"/, 1);
@@ -120,18 +126,21 @@ type Header = unit(msg: Message) {
     :        NewLine;
 
     on content {
-        if ( self.name == b"content-length" ) {
+        if ( self.name == b"CONTENT-LENGTH" ) {
             msg.content_length = dec_to_uint(self.content);
             msg.has_body = True;
             }
 
-        if ( self.name == b"transfer-encoding" ) {
+        if ( self.name == b"TRANSFER-ENCODING" ) {
             msg.transfer_encoding = self.content;
             msg.has_body = True;
             }
 
-        if ( self.name == b"content-type" )
+        if ( self.name == b"CONTENT-TYPE" ) {
             msg.content_type = self.content;
+            msg.content_type_main = self.content.match(/ *([^\/]*)\//, 1);
+            msg.content_type_sub  = self.content.match(/ *[^\/]*\/([^ ]*)/, 1);
+            }
         }
 };
 
@@ -150,14 +159,23 @@ type Body = unit(msg: Message, delivery_mode: DeliveryMode) {
     };
 
     var data: sink;
+	var data_len: uint64;
     var content: Content;
 
     on %init {
-        if ( msg.content_type != b"" )
-            self.data.connect_mime_type(msg.content_type);
+        if ( msg?.content_type_main && msg.content_type_main != b"" && msg.content_type_sub != b"" )
+            self.data.connect_mime_type(msg.content_type_main + b"/" + msg.content_type_sub);
 
+        self.content = new Content;
         self.data.connect(self.content);
         }
+
+	on %done {
+	    # FIXME: Currently the sink becomes invalid after parsing for
+		# the current instance finished. That's not great. See
+		# ParserBuilder::_finalizeParseObject() to fix.
+		self.data_len = |self.data|;
+		}
 };
 
 export type Content = unit {

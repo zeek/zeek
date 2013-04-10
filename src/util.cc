@@ -1456,6 +1456,7 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	{
 	unsigned int ret_total;
 
+#undef HAVE_MALLINFO
 #ifdef HAVE_MALLINFO
 	// For memory, getrusage() gives bogus results on Linux. Grmpf.
 	struct mallinfo mi = mallinfo();

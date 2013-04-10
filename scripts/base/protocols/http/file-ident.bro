@@ -74,12 +74,18 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
 	{
+	if ( data == "" )
+		return;
+	
 	if ( c$http$first_chunk && ! c$http?$mime_type )
 			c$http$mime_type = split1(identify_data(data, T), /;/)[1];
 	}
 	
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-10
 	{
+	if ( data == "" )
+		return;
+	
 	if ( c$http$first_chunk )
 		c$http$first_chunk=F;
 	}

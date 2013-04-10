@@ -288,10 +288,6 @@ bool Loader::InitPostScripts()
 	::hilti::init();
 	::binpac::init();
 
-	hlt_config cfg = *hlt_config_get();
-	cfg.fiber_stack_size = 10 * 1024;;
-	hlt_config_set(&cfg);
-
 	post_scripts_init_run = true;
 
 	return true;
@@ -606,6 +602,10 @@ bool Loader::Compile()
 	hilti_context->installFunctionTable(libbro_function_table);
 
 	DBG_LOG(DBG_PAC2, "initializing HILTI runtime");
+
+	hlt_config cfg = *hlt_config_get();
+	cfg.fiber_stack_size = 500 * 1024;
+	hlt_config_set(&cfg);
 
 	hlt_init_jit(hilti_context, llvm_module, ee);
 

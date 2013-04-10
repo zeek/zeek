@@ -189,7 +189,7 @@ event http_request(c: connection, method: string, original_URI: string,
 	set_state(c, T, T);
 	
 	c$http$method = method;
-	c$http$uri = unescaped_URI;
+	c$http$uri = unescape_URI(original_URI);
 
 	if ( method !in http_methods )
 		event conn_weird("unknown_HTTP_method", c, method);
@@ -298,7 +298,19 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
-event http_message_done_no_stats(c: connection, is_orig: bool) &priority = -5
+#### BinPAC++ versions
+
+event http_message_done_pac2(c: connection, is_orig: bool, body_length: count) &priority = 5
+	{
+	set_state(c, F, is_orig);
+	
+	if ( is_orig )
+		c$http$request_body_len = body_length;
+	else
+		c$http$response_body_len = body_length;
+	}
+
+event http_message_done_pac2(c: connection, is_orig: bool, body_length: count) &priority = -5
 	{
 	# The reply body is done so we're ready to log.
 	if ( ! is_orig )
@@ -312,6 +324,8 @@ event http_message_done_no_stats(c: connection, is_orig: bool) &priority = -5
 			}
 		}
 	}
+
+####
 
 event connection_state_remove(c: connection) &priority=-5
 	{

@@ -35,6 +35,9 @@ export {
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
 	{
 	if ( is_orig || ! c?$http ) return;
+
+	if ( data == "" )
+		return;
 	
 	if ( c$http$first_chunk )
 		{
@@ -63,6 +66,23 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 
 ## When the file finishes downloading, finish the hash and generate a notice.
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-3
+	{
+	if ( is_orig || ! c?$http ) return;
+	
+	if ( c$http?$md5_handle )
+		{
+		local url = build_url_http(c$http);
+		c$http$md5 = md5_hash_finish(c$http$md5_handle);
+		delete c$http$md5_handle;
+		
+		NOTICE([$note=MD5, $msg=fmt("%s %s %s", c$id$orig_h, c$http$md5, url),
+		        $sub=c$http$md5, $conn=c]);
+		}
+	}
+
+#### BinPAC++ versions
+
+event http_message_done_pac2(c: connection, is_orig: bool, body_length: count) &priority = 5
 	{
 	if ( is_orig || ! c?$http ) return;
 	

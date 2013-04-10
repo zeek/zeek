@@ -5,24 +5,26 @@ analyzer pac2::HTTP over TCP:
     port 80/tcp,
     replaces HTTP;
 
-on HTTP::RequestLine   -> event http_request($conn, self.method, self.uri, self.uri, self.version.number);
-on HTTP::ReplyLine     -> event http_reply($conn, self.version.number, self.status, self.reason);
-on HTTP::Header        -> event http_header($conn, $is_orig, self.name, self.content);
-on HTTP::Message       -> event http_message_done_no_stats($conn, $is_orig);
-on HTTP::Body::%init   -> event http_begin_entity($conn, $is_orig);
-on HTTP::Body::%done   -> event http_end_entity($conn, $is_orig);
-on HTTP::Content::data -> event http_entity_data($conn, $is_orig, |self.data|, self.data);
+on HTTP::Message::%done        -> event http_end_entity($conn, $is_orig);
+on HTTP::Message::%init        -> event http_begin_entity($conn, $is_orig);
+on HTTP::Content::data         -> event http_entity_data($conn, $is_orig, |self.data|, self.data);
+on HTTP::Header                -> event http_header($conn, $is_orig, self.name, self.content);
+on HTTP::Message               -> event http_message_done_pac2($conn, $is_orig, (self.has_body ? self.body.data_len : 0));
+on HTTP::Message::content_type -> event http_content_type($conn, $is_orig, self.content_type_main, self.content_type_sub);
+on HTTP::ReplyLine             -> event http_reply($conn, self.version.number, self.status, self.reason);
+on HTTP::RequestLine           -> event http_request($conn, self.method, self.uri, self.uri, self.version.number);
 
-# event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
-# event http_reply(c: connection, version: string, code: count, reason: string)
-# event http_header(c: connection, is_orig: bool, name: string, value: string)
-# event http_all_headers(c: connection, is_orig: bool, hlist: mime_header_list)
-# event http_begin_entity(c: connection, is_orig: bool)
-# event http_end_entity(c: connection, is_orig: bool)
-# event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
-# event http_content_type(c: connection, is_orig: bool, ty: string, subty: string)
-# event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
-# event http_event event(c: connection, # event_type: string, detail: string);
-# event http_stats(c: connection, stats: http_stats_rec);
+## event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
+## event http_reply(c: connection, version: string, code: count, reason: string)
+## event http_header(c: connection, is_orig: bool, name: string, value: string)
+## event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
+## event http_content_type(c: connection, is_orig: bool, ty: string, subty: string)
+## event http_begin_entity(c: connection, is_orig: bool)
+## event http_end_entity(c: connection, is_orig: bool)
+## event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
+
 # event http_signature_found(c: connection);
 # event http_proxy_signature_found(c: connection);
+# event http_event event(c: connection, # event_type: string, detail: string);
+# event http_stats(c: connection, stats: http_stats_rec);
+# event http_all_headers(c: connection, is_orig: bool, hlist: mime_header_list)

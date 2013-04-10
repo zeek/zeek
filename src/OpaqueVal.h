@@ -11,17 +11,17 @@ class CardinalityCounter;
 
 class CardinalityVal: public OpaqueVal {
 public:
-	CardinalityVal();
-	~CardinalityVal();
 	bool Init(CardinalityCounter*);
 	bool IsValid() const { return valid; };
 	CardinalityCounter* Get() { return c; };
+	CardinalityVal();
+	~CardinalityVal();
 
 private:
 	bool valid;
 	CardinalityCounter* c;
 
-//	DECLARE_SERIAL(CardinalityVal); Fixme?
+	DECLARE_SERIAL(CardinalityVal); 
 };
 
 

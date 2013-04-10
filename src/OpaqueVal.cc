@@ -1,9 +1,10 @@
 #include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Serializer.h"
+#include "HyperLogLog.h"
 
 
-CardinalityVal::CardinalityVal() 
+CardinalityVal::CardinalityVal() : OpaqueVal(new OpaqueType("cardinality"))
 	{
 	valid = false;
 	}
@@ -12,6 +13,49 @@ CardinalityVal::~CardinalityVal()
 	{
 	if ( valid  && c ) 
 		delete c;
+	}
+
+IMPLEMENT_SERIAL(CardinalityVal, SER_CARDINALITY_VAL);
+
+bool CardinalityVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_CARDINALITY_VAL, OpaqueVal);
+
+	if ( ! IsValid() )
+		return true;
+
+	assert(c);
+
+	bool valid = true;
+
+	valid &= SERIALIZE(c->m);
+	for ( int i = 0; i < c->m; i++ ) 
+		{
+		valid &= SERIALIZE(c->buckets[i]);
+		}
+
+	return valid;
+	}
+
+bool CardinalityVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+
+	if ( ! IsValid() )
+		return true;
+
+	uint64_t m;
+	bool valid = UNSERIALIZE(&m);
+
+	c = new CardinalityCounter(m);
+	uint8_t* buckets = c->buckets;
+	for ( int i = 0; i < m; i++ ) 
+		{
+		uint8_t* currbucket = buckets + i;
+		valid &= UNSERIALIZE( currbucket );
+		}
+
+	return valid;
 	}
 
 bool CardinalityVal::Init(CardinalityCounter* arg_c)

@@ -11,14 +11,16 @@ CardinalityVal::CardinalityVal() : OpaqueVal(new OpaqueType("cardinality"))
 
 CardinalityVal::~CardinalityVal() 
 	{
-	if ( valid  && c ) 
+	if ( valid  && c != 0 ) 
 		delete c;
+	c = 0;
+	valid = false;
 	}
-
 IMPLEMENT_SERIAL(CardinalityVal, SER_CARDINALITY_VAL);
 
 bool CardinalityVal::DoSerialize(SerialInfo* info) const
 	{
+	printf("Serializing\n");
 	DO_SERIALIZE(SER_CARDINALITY_VAL, OpaqueVal);
 
 	if ( ! IsValid() )
@@ -39,6 +41,7 @@ bool CardinalityVal::DoSerialize(SerialInfo* info) const
 
 bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 	{
+	printf("Unserializing\n");
 	DO_UNSERIALIZE(OpaqueVal);
 
 	if ( ! IsValid() )
@@ -56,7 +59,7 @@ bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 		}
 
 	return valid;
-	}
+	}  
 
 bool CardinalityVal::Init(CardinalityCounter* arg_c)
 	{

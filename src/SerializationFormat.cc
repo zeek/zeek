@@ -107,6 +107,16 @@ bool BinarySerializationFormat::Read(int* v, const char* tag)
 	return true;
 	}
 
+bool BinarySerializationFormat::Read(uint8* v, const char* tag)
+	{
+	if ( ! ReadData(v, sizeof(*v)) )
+		return false;
+
+	*v = ntohs(*v);
+	DBG_LOG(DBG_SERIAL, "Read uint8 %hu [%s]", *v, tag);
+	return true;
+	}
+
 bool BinarySerializationFormat::Read(uint16* v, const char* tag)
 	{
 	if ( ! ReadData(v, sizeof(*v)) )
@@ -301,6 +311,13 @@ bool BinarySerializationFormat::Write(char v, const char* tag)
 	return WriteData(&v, 1);
 	}
 
+bool BinarySerializationFormat::Write(uint8 v, const char* tag)
+	{
+	DBG_LOG(DBG_SERIAL, "Write uint8 %hu [%s]", v, tag);
+	v = htons(v);
+	return WriteData(&v, sizeof(v));
+	}
+
 bool BinarySerializationFormat::Write(uint16 v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write uint16 %hu [%s]", v, tag);
@@ -447,6 +464,12 @@ bool XMLSerializationFormat::Read(int* v, const char* tag)
 	return false;
 	}
 
+bool XMLSerializationFormat::Read(uint8* v, const char* tag)
+	{
+	reporter->InternalError("no reading of xml");
+	return false;
+	}
+
 bool XMLSerializationFormat::Read(uint16* v, const char* tag)
 	{
 	reporter->InternalError("no reading of xml");
@@ -529,6 +552,13 @@ bool XMLSerializationFormat::Write(char v, const char* tag)
 	{
 	return WriteElem(tag, "char", &v, 1);
 	}
+
+bool XMLSerializationFormat::Write(uint8 v, const char* tag)
+	{
+	const char* tmp = fmt("%" PRIu8, v);
+	return WriteElem(tag, "uint8", tmp, strlen(tmp));
+	}
+
 
 bool XMLSerializationFormat::Write(uint16 v, const char* tag)
 	{

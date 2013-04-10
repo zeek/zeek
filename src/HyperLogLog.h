@@ -10,7 +10,10 @@
  */
 #define conf .95
 
+class CardinalityVal;
+
 class CardinalityCounter {
+ friend class CardinalityVal;
 
  private:
   /*

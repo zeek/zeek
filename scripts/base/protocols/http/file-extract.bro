@@ -44,8 +44,8 @@ event file_new(f: fa_file) &priority=5
 	if ( f?$mime_type && extract_file_types in f$mime_type )
 		{
 		fname = get_extraction_name(f);
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                             $extract_filename=fname]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                               $extract_filename=fname]);
 
 		for ( cid in f$conns )
 			{
@@ -68,8 +68,8 @@ event file_new(f: fa_file) &priority=5
 		if ( ! c$http$extract_file ) next;
 
 		fname = get_extraction_name(f);
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                             $extract_filename=fname]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                               $extract_filename=fname]);
 		extracting = T;
 		break;
 		}

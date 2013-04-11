@@ -23,24 +23,24 @@ function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): b
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::add_action`.
-function FileAnalysis::__add_action%(file_id: string, args: any%): bool
+## :bro:see:`FileAnalysis::add_analyzer`.
+function FileAnalysis::__add_analyzer%(file_id: string, args: any%): bool
 	%{
 	using file_analysis::FileID;
-	using BifType::Record::FileAnalysis::ActionArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(ActionArgs);
-	bool result = file_mgr->AddAction(FileID(file_id->CheckString()), rv);
+	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	bool result = file_mgr->AddAnalyzer(FileID(file_id->CheckString()), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::remove_action`.
-function FileAnalysis::__remove_action%(file_id: string, args: any%): bool
+## :bro:see:`FileAnalysis::remove_analyzer`.
+function FileAnalysis::__remove_analyzer%(file_id: string, args: any%): bool
 	%{
 	using file_analysis::FileID;
-	using BifType::Record::FileAnalysis::ActionArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(ActionArgs);
-	bool result = file_mgr->RemoveAction(FileID(file_id->CheckString()), rv);
+	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	bool result = file_mgr->RemoveAnalyzer(FileID(file_id->CheckString()), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}

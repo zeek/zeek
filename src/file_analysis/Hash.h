@@ -6,14 +6,14 @@
 #include "Val.h"
 #include "OpaqueVal.h"
 #include "File.h"
-#include "Action.h"
+#include "Analyzer.h"
 
 namespace file_analysis {
 
 /**
- * An action to produce a hash of file contents.
+ * An analyzer to produce a hash of file contents.
  */
-class Hash : public Action {
+class Hash : public file_analysis::Analyzer {
 public:
 
 	virtual ~Hash();
@@ -38,7 +38,7 @@ protected:
 class MD5 : public Hash {
 public:
 
-	static Action* Instantiate(RecordVal* args, File* file)
+	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return file_hash ? new MD5(args, file) : 0; }
 
 protected:
@@ -51,7 +51,7 @@ protected:
 class SHA1 : public Hash {
 public:
 
-	static Action* Instantiate(RecordVal* args, File* file)
+	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return file_hash ? new SHA1(args, file) : 0; }
 
 protected:
@@ -64,7 +64,7 @@ protected:
 class SHA256 : public Hash {
 public:
 
-	static Action* Instantiate(RecordVal* args, File* file)
+	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return file_hash ? new SHA256(args, file) : 0; }
 
 protected:

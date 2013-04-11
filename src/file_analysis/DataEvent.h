@@ -5,17 +5,17 @@
 
 #include "Val.h"
 #include "File.h"
-#include "Action.h"
+#include "Analyzer.h"
 
 namespace file_analysis {
 
 /**
- * An action to send file data to script-layer events.
+ * An analyzer to send file data to script-layer events.
  */
-class DataEvent : public Action {
+class DataEvent : public file_analysis::Analyzer {
 public:
 
-	static Action* Instantiate(RecordVal* args, File* file);
+	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
 
 	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset);
 

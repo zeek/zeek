@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	file_analysis
-#open	2013-04-11-17-29-51
-#fields	id	parent_id	source	last_active	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timeout_interval	bof_buffer_size	mime_type	timedout	conn_uids	actions_taken	extracted_files	md5	sha1	sha256
+#open	2013-04-11-19-37-28
+#fields	id	parent_id	source	last_active	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timeout_interval	bof_buffer_size	mime_type	timedout	conn_uids	analyzers	extracted_files	md5	sha1	sha256
 #types	string	string	string	time	count	count	count	count	interval	count	string	bool	table[string]	table[enum]	table[string]	string	string	string
-Cx92a0ym5R8	-	HTTP	1362692527.009775	4705	4705	0	0	120.000000	1024	set	F	UWkUyAuUGXf	FileAnalysis::ACTION_SHA1,FileAnalysis::ACTION_EXTRACT,FileAnalysis::ACTION_DATA_EVENT,FileAnalysis::ACTION_MD5,FileAnalysis::ACTION_SHA256	Cx92a0ym5R8-file	397168fd09991a0e712254df7bc639ac	1dd7ac0398df6cbc0696445a91ec681facf4dc47	4e7c7ef0984119447e743e3ec77e1de52713e345cde03fe7df753a35849bed18
-#close	2013-04-11-17-29-51
+Cx92a0ym5R8	-	HTTP	1362692527.009775	4705	4705	0	0	120.000000	1024	set	F	UWkUyAuUGXf	FileAnalysis::ANALYZER_SHA1,FileAnalysis::ANALYZER_EXTRACT,FileAnalysis::ANALYZER_DATA_EVENT,FileAnalysis::ANALYZER_MD5,FileAnalysis::ANALYZER_SHA256	Cx92a0ym5R8-file	397168fd09991a0e712254df7bc639ac	1dd7ac0398df6cbc0696445a91ec681facf4dc47	4e7c7ef0984119447e743e3ec77e1de52713e345cde03fe7df753a35849bed18
+#close	2013-04-11-19-37-28

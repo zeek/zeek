@@ -9,18 +9,18 @@ using namespace file_analysis;
 
 DataEvent::DataEvent(RecordVal* args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
-    : Action(args, file), chunk_event(ce), stream_event(se)
+    : file_analysis::Analyzer(args, file), chunk_event(ce), stream_event(se)
 	{
 	}
 
-Action* DataEvent::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
-	using BifType::Record::FileAnalysis::ActionArgs;
+	using BifType::Record::FileAnalysis::AnalyzerArgs;
 
 	const char* chunk_field = "chunk_event";
 	const char* stream_field = "stream_event";
-	int chunk_off = ActionArgs->FieldOffset(chunk_field);
-	int stream_off = ActionArgs->FieldOffset(stream_field);
+	int chunk_off = AnalyzerArgs->FieldOffset(chunk_field);
+	int stream_off = AnalyzerArgs->FieldOffset(stream_field);
 
 	Val* chunk_val = args->Lookup(chunk_off);
 	Val* stream_val = args->Lookup(stream_off);

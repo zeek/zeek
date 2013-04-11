@@ -5,17 +5,17 @@
 
 #include "Val.h"
 #include "File.h"
-#include "Action.h"
+#include "Analyzer.h"
 
 namespace file_analysis {
 
 /**
- * An action to simply extract files to disk.
+ * An analyzer to extract files to disk.
  */
-class Extract : public Action {
+class Extract : public file_analysis::Analyzer {
 public:
 
-	static Action* Instantiate(RecordVal* args, File* file);
+	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
 
 	virtual ~Extract();
 

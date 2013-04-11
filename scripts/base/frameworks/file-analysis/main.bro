@@ -12,13 +12,13 @@ export {
 		LOG
 	};
 
-	## A structure which represents a desired file analysis action to take.
-	type ActionArgs: record {
-		## The type of action.
-		act: Action;
+	## A structure which represents a desired type of file analysis.
+	type AnalyzerArgs: record {
+		## The type of analysis.
+		tag: Analyzer;
 
 		## The local filename to which to write an extracted file.  Must be
-		## set when *act* is :bro:see:`FileAnalysis::ACTION_EXTRACT`.
+		## set when *tag* is :bro:see:`FileAnalysis::ANALYZER_EXTRACT`.
 		extract_filename: string &optional;
 
 		## An event which will be generated for all new file contents,
@@ -60,8 +60,7 @@ export {
 		missing_bytes: count &log &default=0;
 
 		## The number of not all-in-sequence bytes in the file stream that
-		## were delivered to file actions/analyzers due to reassembly buffer
-		## overflow.
+		## were delivered to file analyzers due to reassembly buffer overflow.
 		overflow_bytes: count &log &default=0;
 
 		## The amount of time between receiving new data for this file that
@@ -83,10 +82,10 @@ export {
 		## Connection UIDS over which the file was transferred.
 		conn_uids: set[string] &log;
 
-		## A set of action types taken during the file analysis.
-		actions_taken: set[Action] &log;
+		## A set of analysis types done during the file analysis.
+		analyzers: set[Analyzer] &log;
 
-		## Local filenames of file extraction actions.
+		## Local filenames of extracted files.
 		extracted_files: set[string] &log;
 
 		## An MD5 digest of the file contents.
@@ -139,26 +138,26 @@ export {
 	##          for the *id* isn't currently active.
 	global postpone_timeout: function(f: fa_file): bool;
 
-	## Adds an action to the analysis of a given file.
+	## Adds an analyzer to the analysis of a given file.
 	##
 	## f: the file.
 	##
-	## args: the action type to add along with any arguments it takes.
+	## args: the analyzer type to add along with any arguments it takes.
 	##
-	## Returns: true if the action will be added, or false if analysis
+	## Returns: true if the analyzer will be added, or false if analysis
 	##          for the *id* isn't currently active or the *args*
-	##          were invalid for the action type.
-	global add_action: function(f: fa_file, args: ActionArgs): bool;
+	##          were invalid for the analyzer type.
+	global add_analyzer: function(f: fa_file, args: AnalyzerArgs): bool;
 
-	## Removes an action from the analysis of a given file.
+	## Removes an analyzer from the analysis of a given file.
 	##
 	## f: the file.
 	##
-	## args: the action (type and args) to remove.
+	## args: the analyzer (type and args) to remove.
 	##
-	## Returns: true if the action will be removed, or false if analysis
+	## Returns: true if the analyzer will be removed, or false if analysis
 	##          for the *id* isn't currently active.
-	global remove_action: function(f: fa_file, args: ActionArgs): bool;
+	global remove_analyzer: function(f: fa_file, args: AnalyzerArgs): bool;
 
 	## Stops/ignores any further analysis of a given file.
 	##
@@ -260,22 +259,22 @@ function postpone_timeout(f: fa_file): bool
 	return __postpone_timeout(f$id);
 	}
 
-function add_action(f: fa_file, args: ActionArgs): bool
+function add_analyzer(f: fa_file, args: AnalyzerArgs): bool
 	{
-	if ( ! __add_action(f$id, args) ) return F;
+	if ( ! __add_analyzer(f$id, args) ) return F;
 
 	set_info(f);
-	add f$info$actions_taken[args$act];
+	add f$info$analyzers[args$tag];
 
-	if ( args$act == FileAnalysis::ACTION_EXTRACT )
+	if ( args$tag == FileAnalysis::ANALYZER_EXTRACT )
 		add f$info$extracted_files[args$extract_filename];
 
 	return T;
 	}
 
-function remove_action(f: fa_file, args: ActionArgs): bool
+function remove_analyzer(f: fa_file, args: AnalyzerArgs): bool
 	{
-	return __remove_action(f$id, args);
+	return __remove_analyzer(f$id, args);
 	}
 
 function stop(f: fa_file): bool

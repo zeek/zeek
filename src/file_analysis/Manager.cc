@@ -3,7 +3,7 @@
 
 #include "Manager.h"
 #include "File.h"
-#include "Action.h"
+#include "Analyzer.h"
 #include "Var.h"
 #include "Event.h"
 
@@ -167,22 +167,22 @@ bool Manager::SetTimeoutInterval(const FileID& file_id, double interval) const
 	return true;
 	}
 
-bool Manager::AddAction(const FileID& file_id, RecordVal* args) const
+bool Manager::AddAnalyzer(const FileID& file_id, RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file ) return false;
 
-	return file->AddAction(args);
+	return file->AddAnalyzer(args);
 	}
 
-bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
+bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file ) return false;
 
-	return file->RemoveAction(args);
+	return file->RemoveAnalyzer(args);
 	}
 
 File* Manager::GetFile(const string& unique, Connection* conn,

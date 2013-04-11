@@ -8,7 +8,7 @@
 #include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
-#include "ActionSet.h"
+#include "AnalyzerSet.h"
 #include "FileID.h"
 #include "BroString.h"
 
@@ -79,35 +79,35 @@ public:
 	void ScheduleInactivityTimer() const;
 
 	/**
-	 * Queues attaching an action.  Only one action per type can be attached at
-	 * a time unless the arguments differ.
-	 * @return false if action can't be instantiated, else true.
+	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
+	 * at a time unless the arguments differ.
+	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAction(RecordVal* args);
+	bool AddAnalyzer(RecordVal* args);
 
 	/**
-	 * Queues removal of an action.
-	 * @return true if action was active at time of call, else false.
+	 * Queues removal of an analyzer.
+	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAction(const RecordVal* args);
+	bool RemoveAnalyzer(const RecordVal* args);
 
 	/**
-	 * Pass in non-sequential data and deliver to attached actions/analyzers.
+	 * Pass in non-sequential data and deliver to attached analyzers.
 	 */
 	void DataIn(const u_char* data, uint64 len, uint64 offset);
 
 	/**
-	 * Pass in sequential data and deliver to attached actions/analyzers.
+	 * Pass in sequential data and deliver to attached analyzers.
 	 */
 	void DataIn(const u_char* data, uint64 len);
 
 	/**
-	 * Inform attached actions/analyzers about end of file being seen.
+	 * Inform attached analyzers about end of file being seen.
 	 */
 	void EndOfFile();
 
 	/**
-	 * Inform attached actions/analyzers about a gap in file stream.
+	 * Inform attached analyzers about a gap in file stream.
 	 */
 	void Gap(uint64 offset, uint64 len);
 
@@ -184,7 +184,7 @@ protected:
 	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
-	ActionSet actions;
+	AnalyzerSet analyzers;
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), replayed(false), size(0) {}

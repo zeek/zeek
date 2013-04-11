@@ -4,11 +4,12 @@
 #include "File.h"
 #include "FileTimer.h"
 #include "FileID.h"
+#include "Analyzer.h"
 #include "Manager.h"
 #include "Reporter.h"
 #include "Val.h"
 #include "Type.h"
-#include "Analyzer.h"
+#include "../Analyzer.h"
 #include "Event.h"
 
 using namespace file_analysis;
@@ -77,7 +78,7 @@ void File::StaticInit()
 File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
     : id(""), unique(unique), val(0), postpone_timeout(false),
       first_chunk(true), missed_bof(false), need_reassembly(false), done(false),
-      actions(this)
+      analyzers(this)
 	{
 	StaticInit();
 
@@ -98,7 +99,7 @@ File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
 	if ( conn )
 		{
 		// add source and connection fields
-		val->Assign(source_idx, new StringVal(Analyzer::GetTagName(tag)));
+		val->Assign(source_idx, new StringVal(::Analyzer::GetTagName(tag)));
 		UpdateConnectionFields(conn);
 		}
 	else
@@ -215,14 +216,14 @@ void File::ScheduleInactivityTimer() const
 	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAction(RecordVal* args)
+bool File::AddAnalyzer(RecordVal* args)
 	{
-	return done ? false : actions.QueueAddAction(args);
+	return done ? false : analyzers.QueueAdd(args);
 	}
 
-bool File::RemoveAction(const RecordVal* args)
+bool File::RemoveAnalyzer(const RecordVal* args)
 	{
-	return done ? false : actions.QueueRemoveAction(args);
+	return done ? false : analyzers.QueueRemove(args);
 	}
 
 bool File::BufferBOF(const u_char* data, uint64 len)
@@ -286,7 +287,7 @@ void File::ReplayBOF()
 
 void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 
 	if ( first_chunk )
 		{
@@ -296,16 +297,16 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 		first_chunk = false;
 		}
 
-	Action* act = 0;
-	IterCookie* c = actions.InitForIteration();
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
 
-	while ( (act = actions.NextEntry(c)) )
+	while ( (a = analyzers.NextEntry(c)) )
 		{
-		if ( ! act->DeliverChunk(data, len, offset) )
-			actions.QueueRemoveAction(act->Args());
+		if ( ! a->DeliverChunk(data, len, offset) )
+			analyzers.QueueRemove(a->Args());
 		}
 
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 
 	// TODO: check reassembly requirement based on buffer size in record
 	if ( need_reassembly )
@@ -320,7 +321,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 
 void File::DataIn(const u_char* data, uint64 len)
 	{
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 
 	if ( BufferBOF(data, len) ) return;
 
@@ -331,25 +332,25 @@ void File::DataIn(const u_char* data, uint64 len)
 		missed_bof = false;
 		}
 
-	Action* act = 0;
-	IterCookie* c = actions.InitForIteration();
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
 
-	while ( (act = actions.NextEntry(c)) )
+	while ( (a = analyzers.NextEntry(c)) )
 		{
-		if ( ! act->DeliverStream(data, len) )
+		if ( ! a->DeliverStream(data, len) )
 			{
-			actions.QueueRemoveAction(act->Args());
+			analyzers.QueueRemove(a->Args());
 			continue;
 			}
 
 		uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
 		                LookupFieldDefaultCount(missing_bytes_idx);
 
-		if ( ! act->DeliverChunk(data, len, offset) )
-			actions.QueueRemoveAction(act->Args());
+		if ( ! a->DeliverChunk(data, len, offset) )
+			analyzers.QueueRemove(a->Args());
 		}
 
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
@@ -357,42 +358,42 @@ void File::EndOfFile()
 	{
 	if ( done ) return;
 
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 
 	// Send along anything that's been buffered, but never flushed.
 	ReplayBOF();
 
 	done = true;
 
-	Action* act = 0;
-	IterCookie* c = actions.InitForIteration();
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
 
-	while ( (act = actions.NextEntry(c)) )
+	while ( (a = analyzers.NextEntry(c)) )
 		{
-		if ( ! act->EndOfFile() )
-			actions.QueueRemoveAction(act->Args());
+		if ( ! a->EndOfFile() )
+			analyzers.QueueRemove(a->Args());
 		}
 
 	FileEvent(file_state_remove);
 
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 	}
 
 void File::Gap(uint64 offset, uint64 len)
 	{
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 
 	// If we were buffering the beginning of the file, a gap means we've got
 	// as much contiguous stuff at the beginning as possible, so work with that.
 	ReplayBOF();
 
-	Action* act = 0;
-	IterCookie* c = actions.InitForIteration();
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
 
-	while ( (act = actions.NextEntry(c)) )
+	while ( (a = analyzers.NextEntry(c)) )
 		{
-		if ( ! act->Undelivered(offset, len) )
-			actions.QueueRemoveAction(act->Args());
+		if ( ! a->Undelivered(offset, len) )
+			analyzers.QueueRemove(a->Args());
 		}
 
 	if ( FileEventAvailable(file_gap) )
@@ -404,7 +405,7 @@ void File::Gap(uint64 offset, uint64 len)
 		FileEvent(file_gap, vl);
 		}
 
-	actions.DrainModifications();
+	analyzers.DrainModifications();
 	IncrementByteCount(len, missing_bytes_idx);
 	}
 
@@ -430,6 +431,6 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 		{
 		// immediate feedback is required for these events.
 		mgr.Drain();
-		actions.DrainModifications();
+		analyzers.DrainModifications();
 		}
 	}

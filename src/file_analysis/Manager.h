@@ -102,18 +102,18 @@ public:
 	bool SetTimeoutInterval(const FileID& file_id, double interval) const;
 
 	/**
-	 * Queue attachment of an action to the file identifier.  Multiple actions
-	 * of a given type can be attached per file identifier at a time as long as
-	 * the arguments differ.
-	 * @return false if the action failed to be instantiated, else true.
+	 * Queue attachment of an analzer to the file identifier.  Multiple
+	 * analyzers of a given type can be attached per file identifier at a time
+	 * as long as the arguments differ.
+	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool AddAction(const FileID& file_id, RecordVal* args) const;
+	bool AddAnalyzer(const FileID& file_id, RecordVal* args) const;
 
 	/**
-	 * Queue removal of an action for a given file identifier.
-	 * @return true if the action is active at the time of call, else false.
+	 * Queue removal of an analyzer for a given file identifier.
+	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
+	bool RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const;
 
 	/**
 	 * @return whether the file mapped to \a unique is being ignored.

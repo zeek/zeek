@@ -6,7 +6,7 @@
 using namespace file_analysis;
 
 Extract::Extract(RecordVal* args, File* file, const string& arg_filename)
-    : Action(args, file), filename(arg_filename)
+    : file_analysis::Analyzer(args, file), filename(arg_filename)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
@@ -25,11 +25,11 @@ Extract::~Extract()
 		safe_close(fd);
 	}
 
-Action* Extract::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	{
-	using BifType::Record::FileAnalysis::ActionArgs;
+	using BifType::Record::FileAnalysis::AnalyzerArgs;
 	const char* field = "extract_filename";
-	Val* v = args->Lookup(ActionArgs->FieldOffset(field));
+	Val* v = args->Lookup(AnalyzerArgs->FieldOffset(field));
 
 	if ( ! v ) return 0;
 

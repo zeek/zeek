@@ -142,12 +142,12 @@ type Thresholding: record {
 	threshold_series_index: count &default=0;
 };
 
+# Internal use only.  For tracking thresholds per measurement and key.
+global threshold_tracker: table[string] of table[Key] of Thresholding &optional;
+
 redef record Measurement += {
 	# Internal use only (mostly for cluster coherency).
 	id: string &optional;
-
-	# Internal use only.  For tracking tresholds per key.
-	threshold_tracker: table[Key] of Thresholding &optional;
 };
 
 # Store of measurements indexed on the measurement id.
@@ -249,6 +249,7 @@ function reset(m: Measurement)
 		delete result_store[m$id];
 
 	result_store[m$id] = table();
+	threshold_tracker[m$id] = table();
 	}
 
 function create(m: Measurement)
@@ -260,8 +261,7 @@ function create(m: Measurement)
 
 	if ( ! m?$id )
 		m$id=unique_id("");
-	local tmp: table[Key] of Thresholding = table();
-	m$threshold_tracker = tmp;
+	threshold_tracker[m$id] = table();
 	measurement_store[m$id] = m;
 
 	for ( reducer in m$reducers )
@@ -322,12 +322,6 @@ function check_thresholds(m: Measurement, key: Key, result: Result, modify_pct: 
 	if ( ! (m?$threshold || m?$threshold_series) )
 		return F;
 
-	if ( key !in m$threshold_tracker )
-		{
-		local tmp: Thresholding;
-		m$threshold_tracker[key] = tmp;
-		}
-
 	# Add in the extra ResultVals to make threshold_vals easier to write.
 	if ( |m$reducers| != |result| )
 		{
@@ -343,7 +337,17 @@ function check_thresholds(m: Measurement, key: Key, result: Result, modify_pct: 
 	if ( modify_pct < 1.0 && modify_pct > 0.0 )
 		watch = double_to_count(floor(watch/modify_pct));
 
-	local tt = m$threshold_tracker[key];
+	if ( m$id !in threshold_tracker )
+		threshold_tracker[m$id] = table();
+	local t_tracker = threshold_tracker[m$id];
+
+	if ( key !in t_tracker )
+		{
+		local ttmp: Thresholding;
+		t_tracker[key] = ttmp;
+		}
+	local tt = threshold_tracker[m$id][key];
+
 	if ( m?$threshold && ! tt$is_threshold_crossed && watch >= m$threshold )
 		{
 		# Value crossed the threshold.
@@ -379,7 +383,7 @@ function threshold_crossed(m: Measurement, key: Key, result: Result)
 		}
 
 	m$threshold_crossed(key, result);
-	local tt = m$threshold_tracker[key];
+	local tt = threshold_tracker[m$id][key];
 	tt$is_threshold_crossed = T;
 
 	# Bump up to the next threshold series index if a threshold series is being used.

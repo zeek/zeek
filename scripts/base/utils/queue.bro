@@ -21,14 +21,14 @@ export {
 	## Returns: An opaque queue record.
 	global init:       function(s: Settings): Queue;
 
-	## Push a string onto the top of a queue.
+	## Put a string onto the beginning of a queue.
 	## 
 	## q: The queue to put the value into.
 	## 
 	## val: The value to insert into the queue. 
 	global put:       function(q: Queue, val: any);
 
-	## Pop a string from the bottom of a queue.
+	## Get a string from the end of a queue.
 	##
 	## q: The queue to get the string from.
 	##

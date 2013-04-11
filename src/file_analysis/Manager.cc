@@ -157,6 +157,16 @@ bool Manager::PostponeTimeout(const FileID& file_id) const
 	return true;
 	}
 
+bool Manager::SetTimeoutInterval(const FileID& file_id, double interval) const
+	{
+	File* file = Lookup(file_id);
+
+	if ( ! file ) return false;
+
+	file->SetTimeoutInterval(interval);
+	return true;
+	}
+
 bool Manager::AddAction(const FileID& file_id, RecordVal* args) const
 	{
 	File* file = Lookup(file_id);

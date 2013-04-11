@@ -97,6 +97,11 @@ public:
 	bool PostponeTimeout(const FileID& file_id) const;
 
 	/**
+	 * Set's an inactivity threshold for the file.
+	 */
+	bool SetTimeoutInterval(const FileID& file_id, double interval) const;
+
+	/**
 	 * Queue attachment of an action to the file identifier.  Multiple actions
 	 * of a given type can be attached per file identifier at a time as long as
 	 * the arguments differ.

@@ -189,6 +189,11 @@ double File::GetTimeoutInterval() const
 	return LookupFieldDefaultInterval(timeout_interval_idx);
 	}
 
+void File::SetTimeoutInterval(double interval)
+	{
+	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
+	}
+
 void File::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);

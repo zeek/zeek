@@ -14,6 +14,15 @@ function FileAnalysis::__postpone_timeout%(file_id: string%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
+## :bro:see:`FileAnalysis::set_timeout_interval`.
+function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): bool
+	%{
+	using file_analysis::FileID;
+	bool result = file_mgr->SetTimeoutInterval(FileID(file_id->CheckString()),
+	                                           t);
+	return new Val(result, TYPE_BOOL);
+	%}
+
 ## :bro:see:`FileAnalysis::add_action`.
 function FileAnalysis::__add_action%(file_id: string, args: any%): bool
 	%{

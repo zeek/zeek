@@ -120,10 +120,23 @@ export {
 	## generate two handles that would hash to the same file id.
 	const salt = "I recommend changing this." &redef;
 
+	## Sets the *timeout_interval* field of :bro:see:`fa_file`, which is
+	## used to determine the length of inactivity that is allowed for a file
+	## before internal state related to it is cleaned up.
+	##
+	## f: the file.
+	##
+	## t: the amount of time the file can remain inactive before discarding.
+	##
+	## Returns: true if the timeout interval was set, or false if analysis
+	##          for the *id* isn't currently active.
+	global set_timeout_interval: function(f: fa_file, t: interval): bool;
+
 	## Postpones the timeout of file analysis for a given file.
 	## When used within a :bro:see:`file_timeout` handler for, the analysis
 	## the analysis will delay timing out for the period of time indicated by
-	## the *timeout_interval* field of :bro:see:`fa_file`.
+	## the *timeout_interval* field of :bro:see:`fa_file`, which can be set
+	## with :bro:see:`FileAnalysis::set_timeout_interval`.
 	##
 	## f: the file.
 	##
@@ -241,6 +254,11 @@ function set_info(f: fa_file)
 	if ( f?$conns )
 		for ( cid in f$conns )
 			add f$info$conn_uids[f$conns[cid]$uid];
+	}
+
+function set_timeout_interval(f: fa_file, t: interval): bool
+	{
+	return __set_timeout_interval(f$id, t);
 	}
 
 function postpone_timeout(f: fa_file): bool

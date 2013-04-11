@@ -35,6 +35,11 @@ public:
 	double GetTimeoutInterval() const;
 
 	/**
+	 * Set the "timeout_interval" field from #val record to \a interval seconds.
+	 */
+	void SetTimeoutInterval(double interval);
+
+	/**
 	 * @return value of the "id" field from #val record.
 	 */
 	FileID GetID() const { return id; }

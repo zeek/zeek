@@ -6981,12 +6981,15 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
 
+## Marks a point in the event stream at which the event queue started flushing.
+event event_queue_flush_point%(%);
+
 ## This event is handled to provide feedback to the file analysis framework
 ## about how to identify the logical "file" to which some data/input
 ## belongs.  All incoming data to the framework is buffered, and depends
 ## on a handler for this event to return a string value that uniquely
-## identifies a file.  Among all handlers of this event, exactly one must
-## call :bro:see:`return_file_handle`.
+## identifies a file.  Among all handlers of this event, the last one to
+## call :bro:see:`set_file_handle` will "win".
 ##
 ## tag: The analyzer which is carrying the file data.
 ##
@@ -6994,8 +6997,34 @@ event bro_script_loaded%(path: string, level: count%);
 ##
 ## is_orig: The direction the file data is flowing over the connection.
 ##
-## .. bro:see:: return_file_handle
+## .. bro:see:: set_file_handle
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
+
+# TODO: document
+event file_new%(f: fa_file%);
+# TODO: give the new connection
+event file_over_new_connection%(f: fa_file%);
+event file_timeout%(f: fa_file%);
+# TODO: give size of gap
+event file_gap%(f: fa_file%);
+
+## This event is generated each time file analysis is ending for a given file.
+##
+## f: The file.
+event file_state_remove%(f: fa_file%);
+
+## This event is generated each time file analysis generates a digest of the
+## file contents.
+##
+## f: The file.
+##
+## kind: The type of digest algorithm.
+##
+## hash: The result of the hashing.
+##
+## .. bro:see:: FileAnalysis::add_action FileAnalysis::ACTION_MD5
+##    FileAnalysis::ACTION_SHA1 FileAnalysis::ACTION_SHA256
+event file_hash%(f: fa_file, kind: string, hash: string%);
 
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);

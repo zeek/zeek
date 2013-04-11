@@ -4,7 +4,7 @@
 #include <string>
 
 #include "Val.h"
-#include "Info.h"
+#include "File.h"
 #include "Action.h"
 
 namespace file_analysis {
@@ -15,7 +15,7 @@ namespace file_analysis {
 class Extract : public Action {
 public:
 
-	static Action* Instantiate(RecordVal* args, Info* info);
+	static Action* Instantiate(RecordVal* args, File* file);
 
 	virtual ~Extract();
 
@@ -23,7 +23,7 @@ public:
 
 protected:
 
-	Extract(RecordVal* args, Info* info, const string& arg_filename);
+	Extract(RecordVal* args, File* file, const string& arg_filename);
 
 	string filename;
 	int fd;

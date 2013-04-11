@@ -1,2 +1,7 @@
-FileAnalysis::TRIGGER_NEW
+FILE_NEW
 Cx92a0ym5R8, 0, 0
+FILE_BOF_BUFFER
+^J0.26 | 201
+FILE_TYPE
+file type is set
+mime type is set

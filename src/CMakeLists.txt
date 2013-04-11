@@ -454,9 +454,8 @@ set(bro_SRCS
     input/readers/Binary.cc
 
     file_analysis/Manager.cc
-    file_analysis/Info.cc
-    file_analysis/InfoTimer.cc
-    file_analysis/PendingFile.cc
+    file_analysis/File.cc
+    file_analysis/FileTimer.cc
     file_analysis/FileID.h
     file_analysis/Action.h
     file_analysis/ActionSet.cc

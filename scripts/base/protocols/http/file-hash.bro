@@ -23,67 +23,46 @@ export {
 	                   &redef;
 }
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
 
-	if ( generate_md5 in info$mime_type )
-		FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
-	else if ( info?$conns )
+	if ( f?$mime_type && generate_md5 in f$mime_type )
 		{
-		for ( cid in info$conns )
-			{
-			local c: connection = info$conns[cid];
-
-			if ( ! c?$http ) next;
-
-			if ( c$http$calc_md5 )
-				{
-				FileAnalysis::add_action(info$file_id,
-				                         [$act=FileAnalysis::ACTION_MD5]);
-				return;
-				}
-			}
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+		return;
 		}
-	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
-	{
-	if ( trig != FileAnalysis::TRIGGER_DONE &&
-	     trig != FileAnalysis::TRIGGER_EOF ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$conns ) return;
 
-	local act: FileAnalysis::ActionArgs = [$act=FileAnalysis::ACTION_MD5];
-
-	if ( act !in info$actions ) return;
-
-	local result = info$actions[act];
-
-	if ( ! result?$md5 ) return;
-
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( ! c?$http ) next;
 
-		c$http$md5 = result$md5;
+		if ( ! c$http$calc_md5 ) next;
+
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+		return;
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_state_remove(f: fa_file) &priority=4
 	{
-	if ( trig != FileAnalysis::TRIGGER_GAP ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( ! f?$conns ) return;
+	if ( ! f?$info ) return;
+	if ( ! f$info?$md5 ) return;
 
-	FileAnalysis::remove_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
+	for ( cid in f$conns )
+		{
+		local c: connection = f$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		c$http$md5 = f$info$md5;
+		}
 	}

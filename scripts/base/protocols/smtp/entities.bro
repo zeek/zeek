@@ -88,6 +88,13 @@ function set_session(c: connection, new_entity: bool)
 		}
 	}
 
+function get_extraction_name(f: fa_file): string
+	{
+	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
+	++extract_count;
+	return r;
+	}
+
 event mime_begin_entity(c: connection) &priority=10
 	{
 	if ( ! c?$smtp ) return;
@@ -95,21 +102,18 @@ event mime_begin_entity(c: connection) &priority=10
 	set_session(c, T);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "SMTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "SMTP" ) return;
+	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
-	                          extract_count);
+	local fname: string;
 	local extracting: bool = F;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( ! c?$smtp ) next;
 		if ( ! c$smtp?$current_entity ) next;
@@ -118,9 +122,9 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 			{
 			if ( ! extracting )
 				{
-				FileAnalysis::add_action(info$file_id,
-				                         [$act=FileAnalysis::ACTION_EXTRACT,
-				                          $extract_filename=fname]);
+				fname = get_extraction_name(f);
+				FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+				                             $extract_filename=fname]);
 				extracting = T;
 				++extract_count;
 				}
@@ -129,116 +133,79 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 			}
 
 		if ( c$smtp$current_entity$calc_md5 )
-			FileAnalysis::add_action(info$file_id,
-			                         [$act=FileAnalysis::ACTION_MD5]);
+			FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
 		}
 	}
 
-function check_extract_by_type(info: FileAnalysis::Info)
+function check_extract_by_type(f: fa_file)
 	{
-	if ( extract_file_types !in info$mime_type ) return;
+	if ( extract_file_types !in f$mime_type ) return;
 
-	for ( act in info$actions )
-		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
+	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
+		return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
-	                          extract_count);
-	++extract_count;
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
-	                         $extract_filename=fname]);
+	local fname: string = get_extraction_name(f);
+	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+	                             $extract_filename=fname]);
 
-	if ( ! info?$conns ) return;
+	if ( ! f?$conns ) return;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
-
+		local c: connection = f$conns[cid];
 		if ( ! c?$smtp ) next;
-
 		c$smtp$current_entity$extraction_file = fname;
 		}
 	}
 
-function check_md5_by_type(info: FileAnalysis::Info)
+function check_md5_by_type(f: fa_file)
 	{
 	if ( never_calc_md5 ) return;
-	if ( generate_md5 !in info$mime_type ) return;
+	if ( generate_md5 !in f$mime_type ) return;
 
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_MD5]);
+	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "SMTP" ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "SMTP" ) return;
+	if ( ! f?$mime_type ) return;
 
-	if ( info?$conns )
-		for ( cid in info$conns )
+	if ( f?$conns )
+		for ( cid in f$conns )
 			{
-			local c: connection = info$conns[cid];
+			local c: connection = f$conns[cid];
 
 			if ( ! c?$smtp ) next;
 			if ( ! c$smtp?$current_entity ) next;
 
-			c$smtp$current_entity$mime_type = info$mime_type;
+			c$smtp$current_entity$mime_type = f$mime_type;
 			}
 
-	check_extract_by_type(info);
-	check_md5_by_type(info);
+	check_extract_by_type(f);
+	check_md5_by_type(f);
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_state_remove(f: fa_file) &priority=4
 	{
-	if ( trig != FileAnalysis::TRIGGER_GAP ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "SMTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "SMTP" ) return;
+	if ( ! f?$conns ) return;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( ! c?$smtp ) next;
 		if ( ! c$smtp?$current_entity ) next;
+		# Only log if there was some content.
+		if ( f$seen_bytes == 0 ) next;
 
-		FileAnalysis::remove_action(info$file_id,
-		                            [$act=FileAnalysis::ACTION_MD5]);
-		}
-	}
+		if ( f?$info && f$info?$md5 )
+			c$smtp$current_entity$md5 = f$info$md5;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
-	{
-	if ( trig != FileAnalysis::TRIGGER_EOF &&
-	     trig != FileAnalysis::TRIGGER_DONE ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "SMTP" ) return;
-	if ( ! info?$conns ) return;
-
-	for ( cid in info$conns )
-		{
-		local c: connection = info$conns[cid];
-
-		if ( ! c?$smtp ) next;
-		if ( ! c$smtp?$current_entity ) next;
-		# Only log is there was some content.
-		if ( info$seen_bytes == 0 ) next;
-
-		local act: FileAnalysis::ActionArgs = [$act=FileAnalysis::ACTION_MD5];
-
-		if ( act in info$actions )
-			{
-			local result = info$actions[act];
-			if ( result?$md5 )
-				c$smtp$current_entity$md5 = result$md5;
-			}
-
-		c$smtp$current_entity$content_len = info$seen_bytes;
-
+		c$smtp$current_entity$content_len = f$seen_bytes;
 		Log::write(SMTP::ENTITIES_LOG, c$smtp$current_entity);
 		delete c$smtp$current_entity;
 		return;

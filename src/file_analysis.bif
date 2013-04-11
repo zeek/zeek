@@ -6,75 +6,6 @@ module FileAnalysis;
 #include "file_analysis/Manager.h"
 %%}
 
-type Info: record;
-type ActionArgs: record;
-type ActionResults: record;
-
-## An enumeration of significant things that can occur over the course of
-## analyzing files.  The :bro:see:`FileAnalysis::policy` hook is called each
-## time a trigger occurs.
-enum Trigger %{
-
-	## Raised when any part of a new file is detected.
-	TRIGGER_NEW,
-
-	## Raised when file is detected being transported over a new network
-	## connection (other than the first).
-	TRIGGER_NEW_CONN,
-
-	## Raised when file analysis has likely seen a complete file.  That
-	## is when a number of bytes indicated by the *total_bytes* field of
-	## :bro:see:`FileAnalysis::Info` have been processed.
-	TRIGGER_DONE,
-
-	## Raised when file analysis for a given file is aborted due
-	## to not seeing any data for it recently.  Note that this doesn't
-	## necessarily mean the full file wasn't seen (e.g. if the
-	## :bro:see:`FileAnalysis::Info` record indicates the file *total_bytes*
-	## isn't known).  Use :bro:see:`FileAnalysis::postpone_timeout`
-	## during a :bro:see:`FileAnalysis::policy` handler for this trigger to
-	## defer the timeout until later.
-	TRIGGER_TIMEOUT,
-
-	## Raised when the beginning of a file is detected.
-	TRIGGER_BOF,
-
-	## Raised when the beginning of a file is available in the *bof_buffer*
-	## field of :bro:see:`FileAnalysis::Info` and that beginning
-	## is at least the number of bytes indicated by the *bof_buffer_size* field.
-	TRIGGER_BOF_BUFFER,
-
-	## Raised when an initial guess at the file/mime type of a file is matched.
-	TRIGGER_TYPE,
-
-	## Raised to signal that no more file data is incoming and it couldn't be
-	## determined whether the full file was actually seen and analyzed.
-	TRIGGER_EOF,
-
-	## Raised when there's a missing chunk of data in the file stream.
-	TRIGGER_GAP,
-%}
-
-## An enumeration of various file analysis actions that can be taken.
-enum Action %{
-
-	## Extract a file to local filesystem
-	ACTION_EXTRACT,
-
-	## Calculate an MD5 digest of the file's contents.
-	ACTION_MD5,
-
-	## Calculate an SHA1 digest of the file's contents.
-	ACTION_SHA1,
-
-	## Calculate an SHA256 digest of the file's contents.
-	ACTION_SHA256,
-
-	## Deliver the file contents to the script-layer in an event.
-	ACTION_DATA_EVENT,
-	ACTION_PE_ANALYZER,
-%}
-
 ## :bro:see:`FileAnalysis::postpone_timeout`.
 function FileAnalysis::__postpone_timeout%(file_id: string%): bool
 	%{
@@ -146,6 +77,24 @@ function FileAnalysis::__set_size%(source: string, size: count%): any
 function FileAnalysis::__eof%(source: string%): any
 	%{
 	file_mgr->EndOfFile(source->CheckString());
+	return 0;
+	%}
+
+module GLOBAL;
+
+## For use within a :bro:see:`get_file_handle` handler to return a unique
+## identifier to associate with some buffered input to the file analysis
+## framework.  The buffered data will then immediately be allowed to pass
+## pass through the file analysis framework and execute any policy hooks
+## that are available.  If an empty string is returned, that signifies that
+## the buffered data will be discarded with no further action taken on it.
+##
+## handle: A string that uniquely identifies a file.
+##
+## .. bro:see:: get_file_handle FileAnalysis::policy
+function set_file_handle%(handle: string%): any
+	%{
+	file_mgr->SetHandle(handle->CheckString());
 	return 0;
 	%}
 

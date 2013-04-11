@@ -34,24 +34,22 @@ export {
 	const ignored_incorrect_file_type_urls = /^$/ &redef;
 }
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( ! f?$mime_type ) return;
+	if ( ! f?$conns ) return;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( ! c?$http ) next;
 
-		c$http$mime_type = info$mime_type;
+		c$http$mime_type = f$mime_type;
 
-		local mime_str: string = split1(info$mime_type, /;/)[1];
+		local mime_str: string = split1(f$mime_type, /;/)[1];
 
 		if ( mime_str !in mime_types_extensions ) next;
 		if ( ! c$http?$uri ) next;
@@ -68,26 +66,22 @@ hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_over_new_connection(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW_CONN ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( ! f?$mime_type ) return;
+	if ( ! f?$conns ) return;
 
-	# Spread the mime around (e.g. for partial content, TRIGGER_TYPE only
+	# Spread the mime around (e.g. for partial content, file_type event only
 	# happens once for the first connection, but if there's subsequent
 	# connections to transfer the same file, they'll be lacking the mime_type
 	# field if we don't do this).
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
-
+		local c: connection = f$conns[cid];
 		if ( ! c?$http ) next;
-
-		c$http$mime_type = info$mime_type;
+		c$http$mime_type = f$mime_type;
 		}
 	}
 

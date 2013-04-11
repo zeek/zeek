@@ -12,6 +12,7 @@ extern RecordType* conn_id;
 extern RecordType* endpoint;
 extern RecordType* endpoint_stats;
 extern RecordType* connection_type;
+extern RecordType* fa_file_type;
 extern RecordType* icmp_conn;
 extern RecordType* icmp_context;
 extern RecordType* signature_state;

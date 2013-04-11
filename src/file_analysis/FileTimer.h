@@ -1,5 +1,5 @@
-#ifndef FILE_ANALYSIS_INFOTIMER_H
-#define FILE_ANALYSIS_INFOTIMER_H
+#ifndef FILE_ANALYSIS_FILETIMER_H
+#define FILE_ANALYSIS_FILETIMER_H
 
 #include <string>
 #include "Timer.h"
@@ -10,13 +10,13 @@ namespace file_analysis {
 /**
  * Timer to periodically check if file analysis for a given file is inactive.
  */
-class InfoTimer : public Timer {
+class FileTimer : public Timer {
 public:
 
-	InfoTimer(double t, const FileID& id, double interval);
+	FileTimer(double t, const FileID& id, double interval);
 
 	/**
-	 * Check inactivity of file_analysis::Info corresponding to #file_id,
+	 * Check inactivity of file_analysis::File corresponding to #file_id,
 	 * reschedule if active, else call file_analysis::Manager::Timeout.
 	 */
 	void Dispatch(double t, int is_expire);

@@ -4,7 +4,7 @@
 #include <string>
 
 #include "Val.h"
-#include "Info.h"
+#include "File.h"
 #include "Action.h"
 
 namespace file_analysis {
@@ -15,7 +15,7 @@ namespace file_analysis {
 class DataEvent : public Action {
 public:
 
-	static Action* Instantiate(RecordVal* args, Info* info);
+	static Action* Instantiate(RecordVal* args, File* file);
 
 	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset);
 
@@ -23,7 +23,7 @@ public:
 
 protected:
 
-	DataEvent(RecordVal* args, Info* info,
+	DataEvent(RecordVal* args, File* file,
 	          EventHandlerPtr ce, EventHandlerPtr se);
 
 	EventHandlerPtr chunk_event;

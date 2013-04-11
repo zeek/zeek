@@ -1,5 +1,5 @@
 #include "ActionSet.h"
-#include "Info.h"
+#include "File.h"
 #include "Action.h"
 #include "Extract.h"
 #include "DataEvent.h"
@@ -25,7 +25,7 @@ static void action_del_func(void* v)
 	delete (Action*) v;
 	}
 
-ActionSet::ActionSet(Info* arg_info) : info(arg_info)
+ActionSet::ActionSet(File* arg_file) : file(arg_file)
 	{
 	TypeList* t = new TypeList();
 	t->Append(BifType::Record::FileAnalysis::ActionArgs->Ref());
@@ -54,7 +54,7 @@ bool ActionSet::AddAction(RecordVal* args)
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate action %d skipped for file id"
 		        " %s: already exists", Action::ArgsTag(args),
-		        info->GetFileID().c_str());
+		        file->GetID().c_str());
 		delete key;
 		return true;
 		}
@@ -94,7 +94,7 @@ bool ActionSet::Add::Perform(ActionSet* set)
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d skipped for file id"
 		        " %s: already exists", act->Tag(),
-		        act->GetInfo()->GetFileID().c_str());
+		        act->GetFile()->GetID().c_str());
 		Abort();
 		return true;
 		}
@@ -116,12 +116,12 @@ bool ActionSet::RemoveAction(ActionTag tag, HashKey* key)
 	if ( ! act )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Skip remove action %d for file id %s",
-		        tag, info->GetFileID().c_str());
+		        tag, file->GetID().c_str());
 		return false;
 		}
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Remove action %d for file id %s", act->Tag(),
-	        info->GetFileID().c_str());
+	        file->GetID().c_str());
 	delete act;
 	return true;
 	}
@@ -151,12 +151,12 @@ HashKey* ActionSet::GetKey(const RecordVal* args) const
 
 Action* ActionSet::InstantiateAction(RecordVal* args) const
 	{
-	Action* act = action_factory[Action::ArgsTag(args)](args, info);
+	Action* act = action_factory[Action::ArgsTag(args)](args, file);
 
 	if ( ! act )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate action %d failed for file id",
-		        " %s", Action::ArgsTag(args), info->GetFileID().c_str());
+		        " %s", Action::ArgsTag(args), file->GetID().c_str());
 		return 0;
 		}
 
@@ -166,11 +166,9 @@ Action* ActionSet::InstantiateAction(RecordVal* args) const
 void ActionSet::InsertAction(Action* act, HashKey* key)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Add action %d for file id %s", act->Tag(),
-	        info->GetFileID().c_str());
+	        file->GetID().c_str());
 	action_map.Insert(key, act);
 	delete key;
-	info->GetVal()->Lookup(Info::actions_idx)->AsTableVal()->Assign(act->Args(),
-	        new RecordVal(BifType::Record::FileAnalysis::ActionResults));
 	}
 
 void ActionSet::DrainModifications()
@@ -178,7 +176,7 @@ void ActionSet::DrainModifications()
 	if ( mod_queue.empty() ) return;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Start flushing action mod queue of file id %s",
-	        info->GetFileID().c_str());
+	        file->GetID().c_str());
 	do
 		{
 		Modification* mod = mod_queue.front();
@@ -187,5 +185,5 @@ void ActionSet::DrainModifications()
 		mod_queue.pop();
 		} while ( ! mod_queue.empty() );
 	DBG_LOG(DBG_FILE_ANALYSIS, "End flushing action mod queue of file id %s",
-	        info->GetFileID().c_str());
+	        file->GetID().c_str());
 	}

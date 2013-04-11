@@ -8,7 +8,7 @@
 
 redef test_file_analysis_source = "HTTP";
 
-redef test_get_file_name = function(info: FileAnalysis::Info): string
+redef test_get_file_name = function(f: fa_file): string
 	{
-	return fmt("%s-file", info$file_id);
+	return fmt("%s-file", f$id);
 	};

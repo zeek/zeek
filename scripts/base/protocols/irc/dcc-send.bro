@@ -41,64 +41,29 @@ global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
 
 global extract_count: count = 0;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+function set_dcc_mime(f: fa_file)
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "IRC_DATA" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
-	                          extract_count);
-	local extracting: bool = F;
-
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
 
 		local s = dcc_expected_transfers[cid$resp_h, cid$resp_p];
 
-		if ( ! s$extract_file ) next;
-
-		if ( ! extracting )
-			{
-			FileAnalysis::add_action(info$file_id,
-			                         [$act=FileAnalysis::ACTION_EXTRACT,
-			                          $extract_filename=fname]);
-			extracting = T;
-			++extract_count;
-			}
-
-		s$extraction_file = fname;
+		s$dcc_mime_type = f$mime_type;
 		}
 	}
 
-function set_dcc_mime(info: FileAnalysis::Info)
+function set_dcc_extraction_file(f: fa_file, filename: string)
 	{
-	if ( ! info?$conns ) return;
+	if ( ! f?$conns ) return;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
-
-		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
-
-		local s = dcc_expected_transfers[cid$resp_h, cid$resp_p];
-
-		s$dcc_mime_type = info$mime_type;
-		}
-	}
-
-function set_dcc_extraction_file(info: FileAnalysis::Info, filename: string)
-	{
-	if ( ! info?$conns ) return;
-
-	for ( cid in info$conns )
-		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 
 		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
 
@@ -108,13 +73,67 @@ function set_dcc_extraction_file(info: FileAnalysis::Info, filename: string)
 		}
 	}
 
-function log_dcc(info: FileAnalysis::Info)
+function get_extraction_name(f: fa_file): string
 	{
-	if ( ! info?$conns ) return;
+	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
+	++extract_count;
+	return r;
+	}
 
-	for ( cid in info$conns )
+# this handler sets the IRC::Info mime type
+event file_new(f: fa_file) &priority=5
+	{
+	if ( ! f?$source ) return;
+	if ( f$source != "IRC_DATA" ) return;
+	if ( ! f?$mime_type ) return;
+
+	set_dcc_mime(f);
+	}
+
+# this handler check if file extraction is desired
+event file_new(f: fa_file) &priority=5
+	{
+	if ( ! f?$source ) return;
+	if ( f$source != "IRC_DATA" ) return;
+
+	local fname: string;
+
+	if ( f?$mime_type && extract_file_types in f$mime_type )
 		{
-		local c: connection = info$conns[cid];
+		fname = get_extraction_name(f);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=fname]);
+		set_dcc_extraction_file(f, fname);
+		return;
+		}
+
+	if ( ! f?$conns ) return;
+
+	for ( cid in f$conns )
+		{
+		local c: connection = f$conns[cid];
+
+		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
+
+		local s = dcc_expected_transfers[cid$resp_h, cid$resp_p];
+
+		if ( ! s$extract_file ) next;
+
+		fname = get_extraction_name(f);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=fname]);
+		s$extraction_file = fname;
+		return;
+		}
+	}
+
+function log_dcc(f: fa_file)
+	{
+	if ( ! f?$conns ) return;
+
+	for ( cid in f$conns )
+		{
+		local c: connection = f$conns[cid];
 
 		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
 
@@ -137,37 +156,12 @@ function log_dcc(info: FileAnalysis::Info)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=-5
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "IRC_DATA" ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "IRC_DATA" ) return;
 
-	set_dcc_mime(info);
-
-	if ( extract_file_types !in info$mime_type ) return;
-
-	for ( act in info$actions )
-		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
-
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
-	                          extract_count);
-	++extract_count;
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
-	                                        $extract_filename=fname]);
-	set_dcc_extraction_file(info, fname);
-	}
-
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=-5
-	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "IRC_DATA" ) return;
-
-	log_dcc(info);
+	log_dcc(f);
 	}
 
 event irc_dcc_message(c: connection, is_orig: bool,

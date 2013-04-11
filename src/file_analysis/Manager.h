@@ -12,11 +12,11 @@
 #include "Val.h"
 #include "Analyzer.h"
 #include "Timer.h"
+#include "EventHandler.h"
 
-#include "Info.h"
-#include "InfoTimer.h"
+#include "File.h"
+#include "FileTimer.h"
 #include "FileID.h"
-#include "PendingFile.h"
 
 namespace file_analysis {
 
@@ -24,6 +24,8 @@ namespace file_analysis {
  * Main entry point for interacting with file analysis.
  */
 class Manager {
+friend class FileTimer;
+
 public:
 
 	Manager();
@@ -36,17 +38,9 @@ public:
 	void Terminate();
 
 	/**
-	 * Associates a handle with the next element in the #pending queue, which
-	 * will immediately push that element all the way through the file analysis
-	 * framework, possibly evaluating any policy hooks.
+	 * Take in a unique file handle string to identifiy incoming file data.
 	 */
-	void ReceiveHandle(const string& handle);
-
-	/**
-	 * Called when all events have been drained from the event queue.
-	 * There should be no pending file input/data at this point.
-	 */
-	void EventDrainDone();
+	void SetHandle(const string& handle);
 
 	/**
 	 * Pass in non-sequential file data.
@@ -56,7 +50,7 @@ public:
     void DataIn(const u_char* data, uint64 len, uint64 offset,
                 const string& unique);
     void DataIn(const u_char* data, uint64 len, uint64 offset,
-                Info* info);
+                File* file);
 
 	/**
 	 * Pass in sequential file data.
@@ -64,7 +58,7 @@ public:
 	void DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 	            Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, const string& unique);
-	void DataIn(const u_char* data, uint64 len, Info* info);
+	void DataIn(const u_char* data, uint64 len, File* file);
 
 	/**
 	 * Signal the end of file data.
@@ -79,7 +73,7 @@ public:
 	void Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
 	         bool is_orig);
 	void Gap(uint64 offset, uint64 len, const string& unique);
-	void Gap(uint64 offset, uint64 len, Info* info);
+	void Gap(uint64 offset, uint64 len, File* file);
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
@@ -87,7 +81,7 @@ public:
 	void SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 	             bool is_orig);
 	void SetSize(uint64 size, const string& unique);
-	void SetSize(uint64 size, Info* info);
+	void SetSize(uint64 size, File* file);
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -97,8 +91,8 @@ public:
 	bool IgnoreFile(const FileID& file_id);
 
 	/**
-	 * If called during \c FileAnalysis::policy evaluation for a
-	 * \c FileAnalysis::TRIGGER_TIMEOUT, requests deferral of analysis timeout.
+	 * If called during a \c file_timeout event handler, requests deferral of
+	 * analysis timeout.
 	 */
 	bool PostponeTimeout(const FileID& file_id) const;
 
@@ -117,44 +111,40 @@ public:
 	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
 
 	/**
-	 * Calls the \c FileAnalysis::policy hook.
+	 * Queues an event related to the file's life-cycle.
 	 */
-	void EvaluatePolicy(BifEnum::FileAnalysis::Trigger t, Info* info);
+	 void FileEvent(EventHandlerPtr h, File* file);
 
 protected:
 
-	friend class InfoTimer;
-	friend class PendingFile;
-
-	typedef map<string, Info*> StrMap;
+	typedef map<string, File*> StrMap;
 	typedef set<string> StrSet;
-	typedef map<FileID, Info*> IDMap;
-	typedef queue<PendingFile*> PendingQueue;
+	typedef map<FileID, File*> IDMap;
 
 	/**
-	 * @return the Info object mapped to \a unique or a null pointer if analysis
-	 *         is being ignored for the associated file.  An Info object may be
+	 * @return the File object mapped to \a unique or a null pointer if analysis
+	 *         is being ignored for the associated file.  An File object may be
 	 *         created if a mapping doesn't exist, and if it did exist, the
 	 *         activity time is refreshed along with any connection-related
 	 *         fields.
 	 */
-	Info* GetInfo(const string& unique, Connection* conn = 0,
+	File* GetFile(const string& unique, Connection* conn = 0,
 	              AnalyzerTag::Tag tag = AnalyzerTag::Error);
 
 	/**
-	 * @return the Info object mapped to \a file_id, or a null pointer if no
+	 * @return the File object mapped to \a file_id, or a null pointer if no
 	 *         mapping exists.
 	 */
-	Info* Lookup(const FileID& file_id) const;
+	File* Lookup(const FileID& file_id) const;
 
 	/**
-	 * Evaluate timeout policy for a file and remove the Info object mapped to
+	 * Evaluate timeout policy for a file and remove the File object mapped to
 	 * \a file_id if needed.
 	 */
 	void Timeout(const FileID& file_id, bool is_terminating = ::terminating);
 
 	/**
-	 * Immediately remove file_analysis::Info object associated with \a unique.
+	 * Immediately remove file_analysis::File object associated with \a unique.
 	 * @return false if file string did not map to anything, else true.
 	 */
 	bool RemoveFile(const string& unique);
@@ -165,21 +155,21 @@ protected:
 	bool IsIgnored(const string& unique);
 
 	/**
+	 * Sets #current_handle to a unique file handle string based on what the
+	 * \c get_file_handle event derives from the connection params.  The
+	 * event queue is flushed so that we can get the handle value immediately.
+	 */
+	void GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig);
+
+	/**
 	 * @return whether file analysis is disabled for the given analyzer.
 	 */
 	static bool IsDisabled(AnalyzerTag::Tag tag);
 
-	/**
-	 * Queues \c get_file_handle event in order to retrieve unique file handle.
-	 * @return true if there is a handler for the event, else false.
-	 */
-	static bool QueueHandleEvent(AnalyzerTag::Tag tag, Connection* conn,
-	                             bool is_orig);
-
-	StrMap str_map; /**< Map unique strings to \c FileAnalysis::Info records. */
-	IDMap id_map;   /**< Map file IDs to \c FileAnalysis::Info records. */
+	StrMap str_map; /**< Map unique string to file_analysis::File. */
+	IDMap id_map;   /**< Map file ID to file_analysis::File records. */
 	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	PendingQueue pending; /**< Files awaiting a unique handle. */
+	string current_handle; /**< Last file handle set by get_file_handle event.*/
 
 	static TableVal* disabled; /**< Table of disabled analyzers. */
 };

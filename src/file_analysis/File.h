@@ -1,5 +1,5 @@
-#ifndef FILE_ANALYSIS_INFO_H
-#define FILE_ANALYSIS_INFO_H
+#ifndef FILE_ANALYSIS_FILE_H
+#define FILE_ANALYSIS_FILE_H
 
 #include <string>
 #include <vector>
@@ -15,12 +15,14 @@
 namespace file_analysis {
 
 /**
- * Wrapper class around \c FileAnalysis::Info record values from script layer.
+ * Wrapper class around \c fa_file record values from script layer.
  */
-class Info {
+class File {
+friend class Manager;
+
 public:
 
-	~Info();
+	~File();
 
 	/**
 	 * @return the #val record.
@@ -33,16 +35,9 @@ public:
 	double GetTimeoutInterval() const;
 
 	/**
-	 * @return value of the "file_id" field from #val record.
+	 * @return value of the "id" field from #val record.
 	 */
-	FileID GetFileID() const { return file_id; }
-
-	/**
-	 * @return looks up the value of the "actions" field in the #val record at
-	 *         the index corresponding to \a args.  If there was no value at
-	 *         the index, it is created.
-	 */
-	RecordVal* GetResults(RecordVal* args) const;
+	FileID GetID() const { return id; }
 
 	/**
 	 * @return the string which uniquely identifies the file.
@@ -113,12 +108,10 @@ public:
 
 protected:
 
-	friend class Manager;
-
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	Info(const string& unique, Connection* conn = 0,
+	File(const string& unique, Connection* conn = 0,
 	     AnalyzerTag::Tag tag = AnalyzerTag::Error);
 
 	/**
@@ -162,12 +155,12 @@ protected:
 	 */
 	bool DetectTypes(const u_char* data, uint64 len);
 
-	FileID file_id;            /**< A pretty hash that likely identifies file*/
+	FileID id;                 /**< A pretty hash that likely identifies file */
 	string unique;             /**< A string that uniquely identifies file */
-	RecordVal* val;            /**< \c FileAnalysis::Info from script layer. */
+	RecordVal* val;            /**< \c fa_file from script layer. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool first_chunk;          /**< Track first non-linear chunk. */
-	bool need_type;            /**< Flags next data input to be magic typed. */
+	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
 	ActionSet actions;
@@ -198,9 +191,8 @@ protected:
 
 	static string salt;
 
-public:
-	static int file_id_idx;
-	static int parent_file_id_idx;
+	static int id_idx;
+	static int parent_id_idx;
 	static int source_idx;
 	static int conns_idx;
 	static int last_active_idx;
@@ -213,7 +205,6 @@ public:
 	static int bof_buffer_idx;
 	static int file_type_idx;
 	static int mime_type_idx;
-	static int actions_idx;
 };
 
 } // namespace file_analysis

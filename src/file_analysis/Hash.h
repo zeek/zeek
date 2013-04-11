@@ -5,7 +5,7 @@
 
 #include "Val.h"
 #include "OpaqueVal.h"
-#include "Info.h"
+#include "File.h"
 #include "Action.h"
 
 namespace file_analysis {
@@ -26,51 +26,51 @@ public:
 
 protected:
 
-	Hash(RecordVal* args, Info* info, HashVal* hv, const char* field);
+	Hash(RecordVal* args, File* file, HashVal* hv, const char* kind);
 
 	void Finalize();
 
 	HashVal* hash;
 	bool fed;
-	int result_field_idx;
+	const char* kind;
 };
 
 class MD5 : public Hash {
 public:
 
-	static Action* Instantiate(RecordVal* args, Info* info)
-		{ return new MD5(args, info); }
+	static Action* Instantiate(RecordVal* args, File* file)
+		{ return file_hash ? new MD5(args, file) : 0; }
 
 protected:
 
-	MD5(RecordVal* args, Info* info)
-		: Hash(args, info, new MD5Val(), "md5")
+	MD5(RecordVal* args, File* file)
+		: Hash(args, file, new MD5Val(), "md5")
 		{}
 };
 
 class SHA1 : public Hash {
 public:
 
-	static Action* Instantiate(RecordVal* args, Info* info)
-		{ return new SHA1(args, info); }
+	static Action* Instantiate(RecordVal* args, File* file)
+		{ return file_hash ? new SHA1(args, file) : 0; }
 
 protected:
 
-	SHA1(RecordVal* args, Info* info)
-		: Hash(args, info, new SHA1Val(), "sha1")
+	SHA1(RecordVal* args, File* file)
+		: Hash(args, file, new SHA1Val(), "sha1")
 		{}
 };
 
 class SHA256 : public Hash {
 public:
 
-	static Action* Instantiate(RecordVal* args, Info* info)
-		{ return new SHA256(args, info); }
+	static Action* Instantiate(RecordVal* args, File* file)
+		{ return file_hash ? new SHA256(args, file) : 0; }
 
 protected:
 
-	SHA256(RecordVal* args, Info* info)
-		: Hash(args, info, new SHA256Val(), "sha256")
+	SHA256(RecordVal* args, File* file)
+		: Hash(args, file, new SHA256Val(), "sha256")
 		{}
 };
 

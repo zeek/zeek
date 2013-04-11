@@ -226,3 +226,28 @@ type gtp_rai: record;
 type gtp_qos_profile: record;
 type gtp_private_extension: record;
 type gtp_gsn_addr: record;
+
+module FileAnalysis;
+
+type ActionArgs: record;
+
+## An enumeration of various file analysis actions that can be taken.
+enum Action %{
+
+	## Extract a file to local filesystem
+	ACTION_EXTRACT,
+
+	## Calculate an MD5 digest of the file's contents.
+	ACTION_MD5,
+
+	## Calculate an SHA1 digest of the file's contents.
+	ACTION_SHA1,
+
+	## Calculate an SHA256 digest of the file's contents.
+	ACTION_SHA256,
+
+	## Deliver the file contents to the script-layer in an event.
+	ACTION_DATA_EVENT,
+%}
+
+module GLOBAL;

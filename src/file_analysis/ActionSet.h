@@ -10,7 +10,7 @@
 
 namespace file_analysis {
 
-class Info;
+class File;
 declare(PDict,Action);
 
 /**
@@ -21,7 +21,7 @@ declare(PDict,Action);
 class ActionSet {
 public:
 
-	ActionSet(Info* arg_info);
+	ActionSet(File* arg_file);
 
 	~ActionSet();
 
@@ -63,7 +63,7 @@ protected:
 	void InsertAction(Action* act, HashKey* key);
 	bool RemoveAction(ActionTag tag, HashKey* key);
 
-	Info* info;
+	File* file;
 	CompositeHash* action_hash; /**< ActionArgs hashes Action map lookup. */
 	PDict(Action) action_map;   /**< Actions indexed by ActionArgs. */
 

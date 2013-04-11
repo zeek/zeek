@@ -18,74 +18,67 @@ export {
 		extraction_file:  string &log &optional;
 		
 		## Indicates if the response body is to be extracted or not.  Must be 
-		## set before or by the first :bro:enum:`FileAnalysis::TRIGGER_NEW`
-		## for the file content.
+		## set before or by the first :bro:see:`file_new` for the file content.
 		extract_file:     bool &default=F;
 	};
 }
 
 global extract_count: count = 0;
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+function get_extraction_name(f: fa_file): string
 	{
-	if ( trig != FileAnalysis::TRIGGER_TYPE ) return;
-	if ( ! info?$mime_type ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( extract_file_types !in info$mime_type ) return;
-
-	for ( act in info$actions )
-		if ( act$act == FileAnalysis::ACTION_EXTRACT ) return;
-
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
-	                          extract_count);
+	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
 	++extract_count;
-	FileAnalysis::add_action(info$file_id, [$act=FileAnalysis::ACTION_EXTRACT,
-	                                        $extract_filename=fname]);
-
-	if ( ! info?$conns ) return;
-
-	for ( cid in info$conns )
-		{
-		local c: connection = info$conns[cid];
-
-		if ( ! c?$http ) next;
-
-		c$http$extraction_file = fname;
-		}
+	return r;
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "HTTP" ) return;
-	if ( ! info?$conns ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( ! f?$conns ) return;
 
-	local fname: string = fmt("%s-%s-%d.dat", extraction_prefix, info$file_id,
-	                          extract_count);
+	local fname: string;
+	local c: connection;
+
+	if ( f?$mime_type && extract_file_types in f$mime_type )
+		{
+		fname = get_extraction_name(f);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=fname]);
+
+		for ( cid in f$conns )
+			{
+			c = f$conns[cid];
+			if ( ! c?$http ) next;
+			c$http$extraction_file = fname;
+			}
+
+		return;
+		}
+
 	local extracting: bool = F;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		c = f$conns[cid];
 
 		if ( ! c?$http ) next;
 
-		if ( c$http$extract_file )
-			{
-			if ( ! extracting )
-				{
-				FileAnalysis::add_action(info$file_id,
-				                         [$act=FileAnalysis::ACTION_EXTRACT,
-		                                  $extract_filename=fname]);
-				extracting = T;
-				++extract_count;
-				}
+		if ( ! c$http$extract_file ) next;
 
+		fname = get_extraction_name(f);
+		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+		                             $extract_filename=fname]);
+		extracting = T;
+		break;
+		}
+
+	if ( extracting )
+		for ( cid in f$conns )
+			{
+			c = f$conns[cid];
+			if ( ! c?$http ) next;
 			c$http$extraction_file = fname;
 			}
-		}
 	}

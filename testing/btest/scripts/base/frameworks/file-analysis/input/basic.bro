@@ -5,9 +5,9 @@
 
 redef exit_only_after_terminate = T;
 
-redef test_get_file_name = function(info: FileAnalysis::Info): string
+redef test_get_file_name = function(f: fa_file): string
     {
-    return fmt("%s-file", info$file_id);
+    return fmt("%s-file", f$id);
     };
 
 @TEST-START-FILE input.log
@@ -42,10 +42,7 @@ event bro_init()
 	Input::remove("input");
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=-10
+event file_state_remove(f: fa_file) &priority=-10
 	{
-	if ( trig != FileAnalysis::TRIGGER_EOF ) return;
 	terminate();
 	}
-

@@ -3,13 +3,13 @@
 @load base/utils/urls
 @load ./where-locations
 
-event intel_mime_data(info: FileAnalysis::Info, data: string)
+event intel_mime_data(f: fa_file, data: string)
 	{
-	if ( ! info?$conns ) return;
+	if ( ! f?$conns ) return;
 
-	for ( cid in info$conns )
+	for ( cid in f$conns )
 		{
-		local c: connection = info$conns[cid];
+		local c: connection = f$conns[cid];
 		local urls = find_all_urls_without_scheme(data);
 		for ( url in urls )
 			{
@@ -21,14 +21,11 @@ event intel_mime_data(info: FileAnalysis::Info, data: string)
 		}
 	}
 
-hook FileAnalysis::policy(trig: FileAnalysis::Trigger, info: FileAnalysis::Info)
-	&priority=5
+event file_new(f: fa_file) &priority=5
 	{
-	if ( trig != FileAnalysis::TRIGGER_NEW ) return;
-	if ( ! info?$source ) return;
-	if ( info$source != "SMTP" ) return;
+	if ( ! f?$source ) return;
+	if ( f$source != "SMTP" ) return;
 
-	FileAnalysis::add_action(info$file_id,
-	                         [$act=FileAnalysis::ACTION_DATA_EVENT,
-	                          $stream_event=intel_mime_data]);
+	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_DATA_EVENT,
+	                             $stream_event=intel_mime_data]);
 	}

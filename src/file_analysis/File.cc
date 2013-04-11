@@ -45,10 +45,8 @@ int File::overflow_bytes_idx = -1;
 int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
-int File::file_type_idx = -1;
 int File::mime_type_idx = -1;
 
-magic_t File::magic = 0;
 magic_t File::magic_mime = 0;
 
 string File::salt;
@@ -69,10 +67,8 @@ void File::StaticInit()
 	timeout_interval_idx = Idx("timeout_interval");
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
-	file_type_idx = Idx("file_type");
 	mime_type_idx = Idx("mime_type");
 
-	bro_init_magic(&magic, MAGIC_NONE);
 	bro_init_magic(&magic_mime, MAGIC_MIME);
 
 	salt = BifConst::FileAnalysis::salt->CheckString();
@@ -247,18 +243,22 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 	return true;
 	}
 
-bool File::DetectTypes(const u_char* data, uint64 len)
+bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	const char* desc = bro_magic_buffer(magic, data, len);
 	const char* mime = bro_magic_buffer(magic_mime, data, len);
 
-	if ( desc )
-		val->Assign(file_type_idx, new StringVal(desc));
-
 	if ( mime )
-		val->Assign(mime_type_idx, new StringVal(mime));
+		{
+		const char* mime_end = strchr(mime, ';');
 
-	return desc || mime;
+		if ( mime_end )
+			// strip off charset
+			val->Assign(mime_type_idx, new StringVal(mime_end - mime, mime));
+		else
+			val->Assign(mime_type_idx, new StringVal(mime));
+		}
+
+	return mime;
 	}
 
 void File::ReplayBOF()
@@ -276,7 +276,7 @@ void File::ReplayBOF()
 	BroString* bs = concatenate(bof_buffer.chunks);
 	val->Assign(bof_buffer_idx, new StringVal(bs));
 
-	DetectTypes(bs->Bytes(), bs->Len());
+	DetectMIME(bs->Bytes(), bs->Len());
 
 	FileEvent(file_new);
 
@@ -291,7 +291,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	if ( first_chunk )
 		{
 		// TODO: this should all really be delayed until we attempt reassembly
-		DetectTypes(data, len);
+		DetectMIME(data, len);
 		FileEvent(file_new);
 		first_chunk = false;
 		}
@@ -326,7 +326,7 @@ void File::DataIn(const u_char* data, uint64 len)
 
 	if ( missed_bof )
 		{
-		DetectTypes(data, len);
+		DetectMIME(data, len);
 		FileEvent(file_new);
 		missed_bof = false;
 		}

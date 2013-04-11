@@ -10,7 +10,7 @@ BEGIN { FS="\t"; OFS="\t"; type_col = -1; desc_col = -1 }
         {
         if ( $i == "mime_type" )
             type_col = i-1;
-        if ( $i == "mime_desc" || $i == "file_type" )
+        if ( $i == "mime_desc" )
             desc_col = i-1;
         }
 }

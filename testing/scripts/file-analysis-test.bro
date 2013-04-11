@@ -47,17 +47,11 @@ event file_new(f: fa_file)
 		print f$bof_buffer[0:10];
 		}
 
-	if ( f?$file_type || f?$mime_type )
-		print "FILE_TYPE";
-	# not actually printing the values due to libmagic variances
-	if ( f?$file_type )
-		{
-		print "file type is set";
-		f$file_type = "set";
-		}
 	if ( f?$mime_type )
 		{
+		print "FILE_TYPE";
 		print "mime type is set";
+		# not actually printing the values due to libmagic variances
 		f$mime_type = "set";
 		}
 	}

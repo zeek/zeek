@@ -49,7 +49,7 @@ event file_new(f: fa_file) &priority=5
 
 		c$http$mime_type = f$mime_type;
 
-		local mime_str: string = split1(f$mime_type, /;/)[1];
+		local mime_str: string = c$http$mime_type;
 
 		if ( mime_str !in mime_types_extensions ) next;
 		if ( ! c$http?$uri ) next;

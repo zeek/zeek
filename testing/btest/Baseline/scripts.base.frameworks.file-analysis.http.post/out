@@ -3,7 +3,6 @@ v5HLI7MxPQh, 0, 0
 FILE_BOF_BUFFER
 hello world
 FILE_TYPE
-file type is set
 mime type is set
 FILE_STATE_REMOVE
 v5HLI7MxPQh, 11, 0
@@ -18,7 +17,6 @@ PZS1XGHkIf1, 0, 0
 FILE_BOF_BUFFER
 {^J  "origin
 FILE_TYPE
-file type is set
 mime type is set
 FILE_STATE_REMOVE
 PZS1XGHkIf1, 366, 0

@@ -72,11 +72,6 @@ export {
 		## inspection in *bof_buffer* field.
 		bof_buffer_size: count &log &optional;
 
-		## A file type provided by libmagic against the *bof_buffer*, or
-		## in the cases where no buffering of the beginning of file occurs,
-		## an initial guess of the file type based on the first data seen.
-		file_type: string &log &optional;
-
 		## A mime type provided by libmagic against the *bof_buffer*, or
 		## in the cases where no buffering of the beginning of file occurs,
 		## an initial guess of the mime type based on the first data seen.
@@ -249,7 +244,6 @@ function set_info(f: fa_file)
 	f$info$overflow_bytes = f$overflow_bytes;
 	f$info$timeout_interval = f$timeout_interval;
 	f$info$bof_buffer_size = f$bof_buffer_size;
-	if ( f?$file_type ) f$info$file_type = f$file_type;
 	if ( f?$mime_type ) f$info$mime_type = f$mime_type;
 	if ( f?$conns )
 		for ( cid in f$conns )

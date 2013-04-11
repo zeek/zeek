@@ -170,11 +170,11 @@ protected:
 	void ReplayBOF();
 
 	/**
-	 * Does file/mime type detection and assigns types (if available) to
-	 * corresponding fields in #val.
-	 * @return whether a file or mime type was available.
+	 * Does mime type detection and assigns type (if available) to \c mime_type
+	 * field in #val.
+	 * @return whether mime type was available.
 	 */
-	bool DetectTypes(const u_char* data, uint64 len);
+	bool DetectMIME(const u_char* data, uint64 len);
 
 	FileID id;                 /**< A pretty hash that likely identifies file */
 	string unique;             /**< A string that uniquely identifies file */
@@ -207,7 +207,6 @@ protected:
 	 */
 	static void StaticInit();
 
-	static magic_t magic;
 	static magic_t magic_mime;
 
 	static string salt;
@@ -224,7 +223,6 @@ protected:
 	static int timeout_interval_idx;
 	static int bof_buffer_size_idx;
 	static int bof_buffer_idx;
-	static int file_type_idx;
 	static int mime_type_idx;
 };
 

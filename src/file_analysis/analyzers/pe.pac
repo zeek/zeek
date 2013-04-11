@@ -7,14 +7,14 @@ analyzer PE withcontext {
 };
 
 connection MockConnection(bro_analyzer: BroFileAnalyzer) {
-	upflow = File(0);
-	downflow = File(0);
+	upflow = File;
+	downflow = File;
 };
 
 %include pe-file.pac
 
-flow File(fsize: uint64) {
-	flowunit = TheFile(fsize) withcontext(connection, this);
+flow File {
+	flowunit = TheFile withcontext(connection, this);
 }
  
 %include pe-analyzer.pac

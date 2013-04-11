@@ -21,11 +21,9 @@ public:
 	virtual bool DeliverStream(const u_char* data, uint64 len);
 
 protected:
-	PE_Analyzer(RecordVal* args, Info* info, uint64 fsize);
+	PE_Analyzer(RecordVal* args, Info* info);
 	binpac::PE::File* interp;
 	binpac::PE::MockConnection* conn;
-
-	uint64 fsize;
 };
 
 } // namespace file_analysis

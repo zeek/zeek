@@ -153,3 +153,5 @@ function FileAnalysis::__eof%(source: string%): any
 
 #event FileAnalysis::windows_pe_dosstub%(fi: FileAnalysis::Info, sig: string, checksum: count%);
 event FileAnalysis::windows_pe_dosstub%(checksum: count%);
+event FileAnalysis::windows_pe_timestamp%(ts: time%);
+

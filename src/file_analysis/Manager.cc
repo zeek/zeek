@@ -147,17 +147,6 @@ void Manager::SetSize(uint64 size, File* file)
 		RemoveFile(file->GetUnique());
 	}
 
-void Manager::FileEvent(EventHandlerPtr h, File* file)
-	{
-	if ( ! h ) return;
-	if ( IsIgnored(file->GetUnique()) ) return;
-
-	val_list * vl = new val_list();
-	vl->append(file->GetVal()->Ref());
-
-	mgr.QueueEvent(h, vl);
-	}
-
 bool Manager::PostponeTimeout(const FileID& file_id) const
 	{
 	File* file = Lookup(file_id);
@@ -235,8 +224,7 @@ void Manager::Timeout(const FileID& file_id, bool is_terminating)
 
 	file->postpone_timeout = false;
 
-	FileEvent(file_timeout, file);
-	mgr.Drain(); // need immediate feedback about whether to postpone
+	file->FileEvent(file_timeout);
 
 	if ( file->postpone_timeout && ! is_terminating )
 		{

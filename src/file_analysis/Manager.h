@@ -111,9 +111,9 @@ public:
 	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
 
 	/**
-	 * Queues an event related to the file's life-cycle.
+	 * @return whether the file mapped to \a unique is being ignored.
 	 */
-	 void FileEvent(EventHandlerPtr h, File* file);
+	bool IsIgnored(const string& unique);
 
 protected:
 
@@ -148,11 +148,6 @@ protected:
 	 * @return false if file string did not map to anything, else true.
 	 */
 	bool RemoveFile(const string& unique);
-
-	/**
-	 * @return whether the file mapped to \a unique is being ignored.
-	 */
-	bool IsIgnored(const string& unique);
 
 	/**
 	 * Sets #current_handle to a unique file handle string based on what the

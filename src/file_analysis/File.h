@@ -106,6 +106,22 @@ public:
 	 */
 	void Gap(uint64 offset, uint64 len);
 
+	/**
+	 * @return true if event has a handler and the file isn't ignored.
+	 */
+	bool FileEventAvailable(EventHandlerPtr h);
+
+	/**
+	 * Raises an event related to the file's life-cycle, the only parameter
+	 * to that event is the \c fa_file record..
+	 */
+	void FileEvent(EventHandlerPtr h);
+
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 */
+	void FileEvent(EventHandlerPtr h, val_list* vl);
+
 protected:
 
 	/**

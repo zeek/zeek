@@ -7000,17 +7000,48 @@ event event_queue_flush_point%(%);
 ## .. bro:see:: set_file_handle
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
 
-# TODO: document
+## Indicates that a analysis of a new file has begun. The analysis can be
+## augmented at this time via :bro:see:`FileAnalysis::add_action`.
+##
+## f: The file.
+##
+## .. bro:see:: file_over_new_connection file_timeout file_gap file_state_remove
 event file_new%(f: fa_file%);
-# TODO: give the new connection
-event file_over_new_connection%(f: fa_file%);
+
+## Indicates that a file has been seen being transferred over a connection
+## different from the original.
+##
+## f: The file.
+##
+## c: The new connection over which the file is seen being transferred.
+##
+## .. bro:see:: file_new file_timeout file_gap file_state_remove
+event file_over_new_connection%(f: fa_file, c: connection%);
+
+## Indicates that file analysis has timed out because no activity was seen
+## for the file in a while.
+##
+## f: The file.
+##
+## .. bro:see:: file_new file_over_new_connection file_gap file_state_remove
+## default_file_timeout_interval
 event file_timeout%(f: fa_file%);
-# TODO: give size of gap
-event file_gap%(f: fa_file%);
+
+## Indicates that a chunk of the file is missing.
+##
+## f: The file.
+##
+## offset: The byte offset from the start of the file at which the gap begins.
+##
+## len: The number of missing bytes.
+##
+## .. bro:see:: file_new file_over_new_connection file_timeout file_state_remove
+event file_gap%(f: fa_file, offset: count, len: count%);
 
 ## This event is generated each time file analysis is ending for a given file.
 ##
 ## f: The file.
+## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
 event file_state_remove%(f: fa_file%);
 
 ## This event is generated each time file analysis generates a digest of the

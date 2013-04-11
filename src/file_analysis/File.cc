@@ -145,9 +145,16 @@ void File::UpdateConnectionFields(Connection* conn)
 	Val* idx = get_conn_id_val(conn);
 	if ( ! conns->AsTableVal()->Lookup(idx) )
 		{
-		conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
-		if ( ! is_first )
-			file_mgr->FileEvent(file_over_new_connection, this);
+		Val* conn_val = conn->BuildConnVal();
+		conns->AsTableVal()->Assign(idx, conn_val);
+
+		if ( ! is_first && FileEventAvailable(file_over_new_connection) )
+			{
+			val_list* vl = new val_list();
+			vl->append(val->Ref());
+			vl->append(conn_val->Ref());
+			FileEvent(file_over_new_connection, vl);
+			}
 		}
 
 	Unref(idx);
@@ -266,8 +273,7 @@ void File::ReplayBOF()
 
 	DetectTypes(bs->Bytes(), bs->Len());
 
-	file_mgr->FileEvent(file_new, this);
-	mgr.Drain(); // need immediate feedback about actions to add
+	FileEvent(file_new);
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
@@ -281,9 +287,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 		{
 		// TODO: this should all really be delayed until we attempt reassembly
 		DetectTypes(data, len);
-		file_mgr->FileEvent(file_new, this);
-		mgr.Drain(); // need immediate feedback about actions to add
-		actions.DrainModifications();
+		FileEvent(file_new);
 		first_chunk = false;
 		}
 
@@ -318,9 +322,7 @@ void File::DataIn(const u_char* data, uint64 len)
 	if ( missed_bof )
 		{
 		DetectTypes(data, len);
-		file_mgr->FileEvent(file_new, this);
-		mgr.Drain(); // need immediate feedback about actions to add
-		actions.DrainModifications();
+		FileEvent(file_new);
 		missed_bof = false;
 		}
 
@@ -366,7 +368,7 @@ void File::EndOfFile()
 			actions.QueueRemoveAction(act->Args());
 		}
 
-	file_mgr->FileEvent(file_state_remove, this);
+	FileEvent(file_state_remove);
 
 	actions.DrainModifications();
 	}
@@ -388,8 +390,41 @@ void File::Gap(uint64 offset, uint64 len)
 			actions.QueueRemoveAction(act->Args());
 		}
 
-	file_mgr->FileEvent(file_gap, this);
+	if ( FileEventAvailable(file_gap) )
+		{
+		val_list* vl = new val_list();
+		vl->append(val->Ref());
+		vl->append(new Val(offset, TYPE_COUNT));
+		vl->append(new Val(len, TYPE_COUNT));
+		FileEvent(file_gap, vl);
+		}
 
 	actions.DrainModifications();
 	IncrementByteCount(len, missing_bytes_idx);
+	}
+
+bool File::FileEventAvailable(EventHandlerPtr h)
+	{
+	return h && ! file_mgr->IsIgnored(unique);
+	}
+
+void File::FileEvent(EventHandlerPtr h)
+	{
+	if ( ! FileEventAvailable(h) ) return;
+
+	val_list* vl = new val_list();
+	vl->append(val->Ref());
+	FileEvent(h, vl);
+	}
+
+void File::FileEvent(EventHandlerPtr h, val_list* vl)
+	{
+	mgr.QueueEvent(h, vl);
+
+	if ( h == file_new || h == file_timeout )
+		{
+		// immediate feedback is required for these events.
+		mgr.Drain();
+		actions.DrainModifications();
+		}
 	}

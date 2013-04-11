@@ -62,7 +62,7 @@ event file_new(f: fa_file)
 		}
 	}
 
-event file_over_new_connection(f: fa_file)
+event file_over_new_connection(f: fa_file, c: connection)
 	{
 	print "FILE_OVER_NEW_CONNECTION";
 	}
@@ -72,7 +72,7 @@ event file_timeout(f: fa_file)
 	print "FILE_TIMEOUT";
 	}
 
-event file_gap(f: fa_file)
+event file_gap(f: fa_file, offset: count, len: count)
 	{
 	print "FILE_GAP";
 	}

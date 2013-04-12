@@ -2,8 +2,8 @@ FILE_NEW
 v5HLI7MxPQh, 0, 0
 FILE_BOF_BUFFER
 hello world
-FILE_TYPE
-mime type is set
+MIME_TYPE
+text/plain
 FILE_STATE_REMOVE
 v5HLI7MxPQh, 11, 0
 [orig_h=141.142.228.5, orig_p=53595/tcp, resp_h=54.243.55.129, resp_p=80/tcp]
@@ -16,8 +16,8 @@ FILE_NEW
 PZS1XGHkIf1, 0, 0
 FILE_BOF_BUFFER
 {^J  "origin
-FILE_TYPE
-mime type is set
+MIME_TYPE
+text/plain
 FILE_STATE_REMOVE
 PZS1XGHkIf1, 366, 0
 [orig_h=141.142.228.5, orig_p=53595/tcp, resp_h=54.243.55.129, resp_p=80/tcp]

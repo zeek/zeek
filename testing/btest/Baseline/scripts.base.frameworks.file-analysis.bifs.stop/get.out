@@ -2,5 +2,5 @@ FILE_NEW
 Cx92a0ym5R8, 0, 0
 FILE_BOF_BUFFER
 ^J0.26 | 201
-FILE_TYPE
-mime type is set
+MIME_TYPE
+text/plain

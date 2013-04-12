@@ -56,8 +56,6 @@ export {
 		
 		## Libmagic "sniffed" file type if the command indicates a file transfer.
 		mime_type:        string      &log &optional;
-		## Libmagic "sniffed" file description if the command indicates a file transfer.
-		mime_desc:        string      &log &optional;
 		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;
 		
@@ -205,7 +203,6 @@ function ftp_message(s: Info)
 	# and may not be used in all commands so they need reset to "blank" 
 	# values after logging.
 	delete s$mime_type;
-	delete s$mime_desc;
 	delete s$file_size;
 	# Same with data channel.
 	delete s$data_channel;
@@ -353,7 +350,6 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		{
 		local s = ftp_data_expected[id$resp_h, id$resp_p];
 		s$mime_type = split1(mime_type, /;/)[1];
-		s$mime_desc = descr;
 		}
 	}
 

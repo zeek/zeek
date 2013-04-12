@@ -6,5 +6,5 @@
 #open	2013-03-22-14-38-21
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	string	string	string
-1315799856.264750	UWkUyAuUGXf	10.0.1.104	64216	193.40.5.162	80	1	GET	lepo.it.da.ut.ee	/~cect/teoreetilised seminarid_2010/arheoloogia_uurimisr\xfchma_seminar/Joyce et al - The Languages of Archaeology ~ Dialogue, Narrative and Writing.pdf	-	Wget/1.12 (darwin10.8.0)	0	346	404	Not Found	-	-	-	(empty)	-	-	-	text/html; charset=iso-8859-1	-	-
+1315799856.264750	UWkUyAuUGXf	10.0.1.104	64216	193.40.5.162	80	1	GET	lepo.it.da.ut.ee	/~cect/teoreetilised seminarid_2010/arheoloogia_uurimisr\xfchma_seminar/Joyce et al - The Languages of Archaeology ~ Dialogue, Narrative and Writing.pdf	-	Wget/1.12 (darwin10.8.0)	0	346	404	Not Found	-	-	-	(empty)	-	-	-	text/html	-	-
 #close	2013-03-22-14-38-21

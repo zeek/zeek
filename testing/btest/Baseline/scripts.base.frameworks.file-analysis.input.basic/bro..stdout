@@ -2,8 +2,8 @@ FILE_NEW
 nYgPNGLrZf9, 0, 0
 FILE_BOF_BUFFER
 #separator 
-FILE_TYPE
-mime type is set
+MIME_TYPE
+text/plain
 FILE_STATE_REMOVE
 nYgPNGLrZf9, 311, 0
 source: ../input.log

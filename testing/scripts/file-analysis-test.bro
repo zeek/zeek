@@ -49,10 +49,8 @@ event file_new(f: fa_file)
 
 	if ( f?$mime_type )
 		{
-		print "FILE_TYPE";
-		print "mime type is set";
-		# not actually printing the values due to libmagic variances
-		f$mime_type = "set";
+		print "MIME_TYPE";
+		print f$mime_type;
 		}
 	}
 

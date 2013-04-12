@@ -2,8 +2,8 @@ FILE_NEW
 Cx92a0ym5R8, 0, 0
 FILE_BOF_BUFFER
 ^J0.26 | 201
-FILE_TYPE
-mime type is set
+MIME_TYPE
+text/plain
 FILE_STATE_REMOVE
 Cx92a0ym5R8, 4705, 0
 [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]

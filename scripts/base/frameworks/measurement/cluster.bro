@@ -132,8 +132,11 @@ event Measurement::cluster_measurement_request(uid: string, mid: string)
 	#print fmt("WORKER %s: received the cluster_measurement_request event for %s.", Cluster::node, id);
 	
 	# Initiate sending all of the data for the requested measurement.
-	event Measurement::send_data(uid, mid, result_store[mid]);
-	
+	if ( mid in result_store )
+		event Measurement::send_data(uid, mid, result_store[mid]);
+	else
+		event Measurement::send_data(uid, mid, table());
+
 	# Lookup the actual measurement and reset it, the reference to the data
 	# currently stored will be maintained internally by the send_data event.
 	if ( mid in measurement_store )

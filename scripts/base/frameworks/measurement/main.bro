@@ -293,14 +293,19 @@ function add_data(id: string, key: Key, point: DataPoint)
 			key = r$normalize_key(copy(key));
 		
 		local m = measurement_store[r$mid];
-		local results = result_store[m$id];
+		
+		if ( r$mid !in result_store )
+			result_store[m$id] = table();
+		local results = result_store[r$mid];
+
 		if ( key !in results )
 			results[key] = table();
-		if ( id !in results[key] )
-			results[key][id] = init_resultval(r);
-
 		local result = results[key];
+
+		if ( id !in result )
+			result[id] = init_resultval(r);
 		local result_val = result[id];
+
 		++result_val$num;
 		# Continually update the $end field.
 		result_val$end=network_time();

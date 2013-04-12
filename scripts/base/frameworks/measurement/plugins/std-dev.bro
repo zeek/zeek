@@ -11,7 +11,7 @@ export {
 
 	redef record ResultVal += {
 		## For numeric data, this calculates the standard deviation.
-		std_dev: double &optional;
+		std_dev: double &default=0.0;
 	};
 }
 
@@ -28,8 +28,6 @@ hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal
 		{
 		if ( rv?$variance )
 			calc_std_dev(rv);
-		else
-			rv$std_dev = 0.0;
 		}
 	}
 

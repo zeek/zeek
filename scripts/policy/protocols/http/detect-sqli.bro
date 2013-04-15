@@ -1,7 +1,7 @@
 ##! SQL injection attack detection in HTTP.
 
 @load base/frameworks/notice
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 @load base/protocols/http
 
 module HTTP;
@@ -50,7 +50,7 @@ export {
 		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
 }
 
-function format_sqli_samples(samples: vector of Measurement::DataPoint): string
+function format_sqli_samples(samples: vector of SumStats::Observation): string
 	{
 	local ret = "SQL Injection samples\n---------------------";
 	for ( i in samples )
@@ -63,41 +63,41 @@ event bro_init() &priority=3
 	# Add filters to the metrics so that the metrics framework knows how to 
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
-	local r1: Measurement::Reducer = [$stream="http.sqli.attacker", $apply=set(Measurement::SUM), $samples=collect_SQLi_samples];
-	Measurement::create([$epoch=sqli_requests_interval,
-	                     $reducers=set(r1),
-	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
-	                     	{ 
-	                     	return double_to_count(result["http.sqli.attacker"]$sum);
-	                     	},
-	                     $threshold=sqli_requests_threshold,
-	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) = 
-	                     	{
-	                     	local r = result["http.sqli.attacker"];
-	                     	NOTICE([$note=SQL_Injection_Attacker,
-	                     	        $msg="An SQL injection attacker was discovered!",
-	                     	        $email_body_sections=vector(format_sqli_samples(Measurement::get_samples(r))),
-	                     	        $src=key$host,
-	                     	        $identifier=cat(key$host)]);
-	                     	}]);
+	local r1: SumStats::Reducer = [$stream="http.sqli.attacker", $apply=set(SumStats::SUM), $samples=collect_SQLi_samples];
+	SumStats::create([$epoch=sqli_requests_interval,
+	                  $reducers=set(r1),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{ 
+	                  	return double_to_count(result["http.sqli.attacker"]$sum);
+	                  	},
+	                  $threshold=sqli_requests_threshold,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	local r = result["http.sqli.attacker"];
+	                  	NOTICE([$note=SQL_Injection_Attacker,
+	                  	        $msg="An SQL injection attacker was discovered!",
+	                  	        $email_body_sections=vector(format_sqli_samples(SumStats::get_samples(r))),
+	                  	        $src=key$host,
+	                  	        $identifier=cat(key$host)]);
+	                  	}]);
 
-	local r2: Measurement::Reducer = [$stream="http.sqli.victim", $apply=set(Measurement::SUM), $samples=collect_SQLi_samples];
-	Measurement::create([$epoch=sqli_requests_interval,
-	                     $reducers=set(r2),
-	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
-	                     	{ 
-	                     	return double_to_count(result["http.sqli.victim"]$sum);
-	                     	},
-	                     $threshold=sqli_requests_threshold,
-	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) = 
-	                     	{
-	                     	local r = result["http.sqli.victim"];
-	                     	NOTICE([$note=SQL_Injection_Victim,
-	                     	        $msg="An SQL injection victim was discovered!",
-	                     	        $email_body_sections=vector(format_sqli_samples(Measurement::get_samples(r))),
-	                     	        $src=key$host,
-	                     	        $identifier=cat(key$host)]);
-	                     	}]);
+	local r2: SumStats::Reducer = [$stream="http.sqli.victim", $apply=set(SumStats::SUM), $samples=collect_SQLi_samples];
+	SumStats::create([$epoch=sqli_requests_interval,
+	                  $reducers=set(r2),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{ 
+	                  	return double_to_count(result["http.sqli.victim"]$sum);
+	                  	},
+	                  $threshold=sqli_requests_threshold,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	local r = result["http.sqli.victim"];
+	                  	NOTICE([$note=SQL_Injection_Victim,
+	                  	        $msg="An SQL injection victim was discovered!",
+	                  	        $email_body_sections=vector(format_sqli_samples(SumStats::get_samples(r))),
+	                  	        $src=key$host,
+	                  	        $identifier=cat(key$host)]);
+	                  	}]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -107,7 +107,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Measurement::add_data("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
-		Measurement::add_data("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
+		SumStats::observe("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
+		SumStats::observe("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
 		}
 	}

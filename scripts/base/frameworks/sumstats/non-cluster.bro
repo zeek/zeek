@@ -1,8 +1,8 @@
 @load ./main
 
-module Measurement;
+module SumStats;
 
-event Measurement::finish_epoch(m: Measurement)
+event SumStats::finish_epoch(m: SumStats)
 	{
 	if ( m$id in result_store )
 		{
@@ -13,11 +13,11 @@ event Measurement::finish_epoch(m: Measurement)
 		reset(m);
 		}
 
-	schedule m$epoch { Measurement::finish_epoch(m) };
+	schedule m$epoch { SumStats::finish_epoch(m) };
 	}
 	
 	
-function data_added(m: Measurement, key: Key, result: Result)
+function data_added(m: SumStats, key: Key, result: Result)
 	{
 	if ( check_thresholds(m, key, result, 1.0) )
 		threshold_crossed(m, key, result);

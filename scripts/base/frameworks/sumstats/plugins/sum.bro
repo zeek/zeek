@@ -1,6 +1,6 @@
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -14,13 +14,13 @@ export {
 		sum: double &default=0.0;
 	};
 
-	type threshold_function: function(key: Measurement::Key, result: Measurement::Result): count;
+	type threshold_function: function(key: SumStats::Key, result: SumStats::Result): count;
 	global sum_threshold: function(data_id: string): threshold_function;
 }
 
 function sum_threshold(data_id: string): threshold_function
 	{
-	return function(key: Measurement::Key, result: Measurement::Result): count
+	return function(key: SumStats::Key, result: SumStats::Result): count
 		{
 		print fmt("data_id: %s", data_id);
 		print result;
@@ -34,7 +34,7 @@ hook init_resultval_hook(r: Reducer, rv: ResultVal)
 		rv$sum = 0;
 	}
 
-hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
+hook add_to_reducer_hook(r: Reducer, val: double, data: Observation, rv: ResultVal)
 	{
 	if ( SUM in r$apply )
 		rv$sum += val;

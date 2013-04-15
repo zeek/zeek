@@ -5,6 +5,7 @@
 ##! Requires that :bro:id:`use_conn_size_analyzer` is set to T!  The heuristic
 ##! is not attempted if the connection size analyzer isn't enabled.
 
+@load base/protocols/conn
 @load base/frameworks/notice
 @load base/utils/site
 @load base/utils/thresholds
@@ -115,7 +116,7 @@ function check_ssh_connection(c: connection, done: bool)
 		     # Responder must have sent fewer than 40 packets.
 		     c$resp$num_pkts < 40 &&
 		     # If there was a content gap we can't reliably do this heuristic.
-		     c$conn$missed_bytes == 0)# && 
+		     c?$conn && c$conn$missed_bytes == 0)# && 
 		     # Only "normal" connections can count.
 		     #c$conn?$conn_state && c$conn$conn_state in valid_states )
 			{

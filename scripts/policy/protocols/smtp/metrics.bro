@@ -18,12 +18,12 @@ event bro_init() &priority=5
 	{
 	Metrics::add_filter("smtp.mailfrom", [$every=breaks,
 	                                      $measure=set(Metrics::SUM),
-	                                      $pred(index: Metrics::Index, data: Metrics::DataPoint) = { 
+	                                      $pred(index: Metrics::Index, data: Metrics::Observation) = { 
 	                                      	return addr_matches_host(index$host, LOCAL_HOSTS); 
 	                                      }]);
 	Metrics::add_filter("smtp.messages", [$every=breaks,
 	                                      $measure=set(Metrics::SUM),
-	                                      $pred(index: Metrics::Index, data: Metrics::DataPoint) = { 
+	                                      $pred(index: Metrics::Index, data: Metrics::Observation) = { 
 	                                      	return addr_matches_host(index$host, LOCAL_HOSTS); 
 	                                      }]);
 	}

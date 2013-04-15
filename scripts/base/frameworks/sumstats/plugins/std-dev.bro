@@ -1,7 +1,7 @@
 @load ./variance
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -22,7 +22,7 @@ function calc_std_dev(rv: ResultVal)
 	}
 
 # This depends on the variance plugin which uses priority -5
-hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal) &priority=-10
+hook add_to_reducer_hook(r: Reducer, val: double, data: Observation, rv: ResultVal) &priority=-10
 	{
 	if ( STD_DEV in r$apply )
 		{

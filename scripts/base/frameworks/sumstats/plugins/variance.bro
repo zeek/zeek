@@ -1,7 +1,7 @@
 @load ./average
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -29,7 +29,7 @@ function calc_variance(rv: ResultVal)
 	}
 
 # Reduced priority since this depends on the average
-hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal) &priority=-5
+hook add_to_reducer_hook(r: Reducer, val: double, data: Observation, rv: ResultVal) &priority=-5
 	{
 	if ( VARIANCE in r$apply )
 		{

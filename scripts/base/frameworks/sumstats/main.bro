@@ -120,7 +120,7 @@ export {
 	};
 	
 	## Create a summary statistic.
-	global create: function(m: SumStats::SumStat);
+	global create: function(ss: SumStats::SumStat);
 
 	## Add data into an observation stream. This should be 
 	## called when a script has measured some point value.
@@ -158,13 +158,13 @@ type Thresholding: record {
 # Internal use only.  For tracking thresholds per sumstat and key.
 global threshold_tracker: table[string] of table[Key] of Thresholding &optional;
 
-redef record SumStats += {
+redef record SumStat += {
 	# Internal use only (mostly for cluster coherency).
 	id: string &optional;
 };
 
 # Store of sumstats indexed on the sumstat id.
-global stats_store: table[string] of SumStats = table();
+global stats_store: table[string] of SumStat = table();
 
 # Store of reducers indexed on the data point stream id.
 global reducer_store: table[string] of set[Reducer] = table();
@@ -179,7 +179,7 @@ global thresholds_store: table[string, Key] of bool = table();
 # key values are updated and the new val is given as the `val` argument.
 # It's only prototyped here because cluster and non-cluster have separate 
 # implementations.
-global data_added: function(m: SumStats, key: Key, result: Result);
+global data_added: function(ss: SumStat, key: Key, result: Result);
 
 # Prototype the hook point for plugins to do calculations.
 global add_to_reducer_hook: hook(r: Reducer, val: double, data: Observation, rv: ResultVal);
@@ -190,7 +190,7 @@ global compose_resultvals_hook: hook(result: ResultVal, rv1: ResultVal, rv2: Res
 
 # Event that is used to "finish" measurements and adapt the measurement
 # framework for clustered or non-clustered usage.
-global finish_epoch: event(m: SumStats);
+global finish_epoch: event(ss: SumStat);
 
 function key2str(key: Key): string
 	{

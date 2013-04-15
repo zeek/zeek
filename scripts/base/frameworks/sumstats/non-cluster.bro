@@ -2,23 +2,23 @@
 
 module SumStats;
 
-event SumStats::finish_epoch(m: SumStats)
+event SumStats::finish_epoch(ss: SumStat)
 	{
-	if ( m$id in result_store )
+	if ( ss$id in result_store )
 		{
-		local data = result_store[m$id];
-		if ( m?$epoch_finished )
-			m$epoch_finished(data);
+		local data = result_store[ss$id];
+		if ( ss?$epoch_finished )
+			ss$epoch_finished(data);
 
-		reset(m);
+		reset(ss);
 		}
 
-	schedule m$epoch { SumStats::finish_epoch(m) };
+	schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
 	
 	
-function data_added(m: SumStats, key: Key, result: Result)
+function data_added(ss: SumStat, key: Key, result: Result)
 	{
-	if ( check_thresholds(m, key, result, 1.0) )
-		threshold_crossed(m, key, result);
+	if ( check_thresholds(ss, key, result, 1.0) )
+		threshold_crossed(ss, key, result);
 	}

@@ -35,34 +35,34 @@ export {
 
 	## Event sent by the manager in a cluster to initiate the 
 	## collection of metrics values for a measurement.
-	global cluster_measurement_request: event(uid: string, mid: string);
+	global cluster_ss_request: event(uid: string, ssid: string);
 
 	## Event sent by nodes that are collecting metrics after receiving
 	## a request for the metric measurement from the manager.
-	global cluster_measurement_response: event(uid: string, mid: string, data: ResultTable, done: bool);
+	global cluster_ss_response: event(uid: string, ssid: string, data: ResultTable, done: bool);
 
 	## This event is sent by the manager in a cluster to initiate the
 	## collection of a single key value from a measurement.  It's typically
 	## used to get intermediate updates before the break interval triggers
 	## to speed detection of a value crossing a threshold.
-	global cluster_key_request: event(uid: string, mid: string, key: Key);
+	global cluster_key_request: event(uid: string, ssid: string, key: Key);
 
 	## This event is sent by nodes in response to a 
 	## :bro:id:`SumStats::cluster_key_request` event.
-	global cluster_key_response: event(uid: string, mid: string, key: Key, result: Result);
+	global cluster_key_response: event(uid: string, ssid: string, key: Key, result: Result);
 
 	## This is sent by workers to indicate that they crossed the percent of the 
 	## current threshold by the percentage defined globally in 
 	## :bro:id:`SumStats::cluster_request_global_view_percent`
-	global cluster_key_intermediate_response: event(mid: string, key: SumStats::Key);
+	global cluster_key_intermediate_response: event(ssid: string, key: SumStats::Key);
 
 	## This event is scheduled internally on workers to send result chunks.
-	global send_data: event(uid: string, mid: string, data: ResultTable);
+	global send_data: event(uid: string, ssid: string, data: ResultTable);
 }
 
 # Add events to the cluster framework to make this work.
-redef Cluster::manager2worker_events += /SumStats::cluster_(measurement_request|key_request)/;
-redef Cluster::worker2manager_events += /SumStats::cluster_(measurement_response|key_response|key_intermediate_response)/;
+redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|key_request)/;
+redef Cluster::worker2manager_events += /SumStats::cluster_(ss_response|key_response|key_intermediate_response)/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 # This variable is maintained to know what keys have recently sent as 
@@ -99,7 +99,7 @@ function data_added(ss: SumStat, key: Key, result: Result)
 		}
 	}
 
-event SumStats::send_data(uid: string, mid: string, data: ResultTable)
+event SumStats::send_data(uid: string, ssid: string, data: ResultTable)
 	{
 	#print fmt("WORKER %s: sending data for uid %s...", Cluster::node, uid);
 
@@ -121,39 +121,39 @@ event SumStats::send_data(uid: string, mid: string, data: ResultTable)
 	if ( |data| == 0 )
 		done = T;
 	
-	event SumStats::cluster_measurement_response(uid, mid, local_data, done);
+	event SumStats::cluster_ss_response(uid, ssid, local_data, done);
 	if ( ! done )
-		schedule 0.01 sec { SumStats::send_data(uid, mid, data) };
+		schedule 0.01 sec { SumStats::send_data(uid, ssid, data) };
 	}
 
-event SumStats::cluster_measurement_request(uid: string, mid: string)
+event SumStats::cluster_ss_request(uid: string, ssid: string)
 	{
-	#print fmt("WORKER %s: received the cluster_measurement_request event for %s.", Cluster::node, id);
+	#print fmt("WORKER %s: received the cluster_ss_request event for %s.", Cluster::node, id);
 	
 	# Initiate sending all of the data for the requested measurement.
-	if ( mid in result_store )
-		event SumStats::send_data(uid, mid, result_store[mid]);
+	if ( ssid in result_store )
+		event SumStats::send_data(uid, ssid, result_store[ssid]);
 	else
-		event SumStats::send_data(uid, mid, table());
+		event SumStats::send_data(uid, ssid, table());
 
 	# Lookup the actual measurement and reset it, the reference to the data
 	# currently stored will be maintained internally by the send_data event.
-	if ( mid in stats_store )
-		reset(stats_store[mid]);
+	if ( ssid in stats_store )
+		reset(stats_store[ssid]);
 	}
 	
-event SumStats::cluster_key_request(uid: string, mid: string, key: Key)
+event SumStats::cluster_key_request(uid: string, ssid: string, key: Key)
 	{
-	if ( mid in result_store && key in result_store[mid] )
+	if ( ssid in result_store && key in result_store[ssid] )
 		{
 		#print fmt("WORKER %s: received the cluster_key_request event for %s=%s.", Cluster::node, key2str(key), data);
-		event SumStats::cluster_key_response(uid, mid, key, result_store[mid][key]);
+		event SumStats::cluster_key_response(uid, ssid, key, result_store[ssid][key]);
 		}
 	else
 		{
 		# We need to send an empty response if we don't have the data so that the manager
 		# can know that it heard back from all of the workers.
-		event SumStats::cluster_key_response(uid, mid, key, table());
+		event SumStats::cluster_key_response(uid, ssid, key, table());
 		}
 	}
 
@@ -195,16 +195,16 @@ event SumStats::finish_epoch(ss: SumStat)
 		#print fmt("%.6f MANAGER: breaking %s measurement for %s metric", network_time(), measurement$name, measurement$id);
 		local uid = unique_id("");
 		
-		if ( uid in measurement_results )
-			delete measurement_results[uid];
+		if ( uid in stats_results )
+			delete stats_results[uid];
 		stats_results[uid] = table();
 		
 		# Request data from peers.
-		event SumStats::cluster_measurement_request(uid, ss$id);
+		event SumStats::cluster_ss_request(uid, ss$id);
 		}
 
 	# Schedule the next finish_epoch event.
-	schedule m$epoch { SumStats::finish_epoch(m) };
+	schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
 
 # This is unlikely to be called often, but it's here in case there are measurements
@@ -252,7 +252,7 @@ event SumStats::cluster_key_intermediate_response(ssid: string, key: Key)
 	#print fmt("MANAGER: requesting key data for %s", key2str(key));
 
 	if ( ssid in outstanding_global_views &&
-	     |outstanding_global_views[mid]| > max_outstanding_global_views )
+	     |outstanding_global_views[ssid]| > max_outstanding_global_views )
 		{
 		# Don't do this intermediate update.  Perhaps at some point in the future 
 		# we will queue and randomly select from these ignored intermediate
@@ -266,7 +266,7 @@ event SumStats::cluster_key_intermediate_response(ssid: string, key: Key)
 	event SumStats::cluster_key_request(uid, ssid, key);
 	}
 
-event SumStats::cluster_measurement_response(uid: string, ssid: string, data: ResultTable, done: bool)
+event SumStats::cluster_ss_response(uid: string, ssid: string, data: ResultTable, done: bool)
 	{
 	#print fmt("MANAGER: receiving results from %s", get_event_peer()$descr);
 

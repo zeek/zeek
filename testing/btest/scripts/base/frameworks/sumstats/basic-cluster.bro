@@ -22,14 +22,14 @@ global n = 0;
 
 event bro_init() &priority=5
 	{
-	local r1: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE)];
+	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE)];
 	SumStats::create([$epoch=5secs,
 	                  $reducers=set(r1),
 	                  $epoch_finished(rt: SumStats::ResultTable) =
 	                  	{
 	                  	for ( key in rt )
 	                  		{
-	                  		local r = rt[key]["test.metric"];
+	                  		local r = rt[key]["test"];
 	                  		print fmt("Host: %s - num:%d - sum:%.1f - avg:%.1f - max:%.1f - min:%.1f - var:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$average, r$max, r$min, r$variance, r$std_dev, r$unique);
 	                  		}
 
@@ -49,23 +49,23 @@ event ready_for_data()
 	{
 	if ( Cluster::node == "worker-1" )
 		{
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=34]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=30]);
-		SumStats::observe("test.metric", [$host=6.5.4.3], [$num=1]);
-		SumStats::observe("test.metric", [$host=7.2.1.5], [$num=54]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=34]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=30]);
+		SumStats::observe("test", [$host=6.5.4.3], [$num=1]);
+		SumStats::observe("test", [$host=7.2.1.5], [$num=54]);
 		}
 	if ( Cluster::node == "worker-2" )
 		{
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=75]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=30]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=3]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=57]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=52]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=61]);
-		SumStats::observe("test.metric", [$host=1.2.3.4], [$num=95]);
-		SumStats::observe("test.metric", [$host=6.5.4.3], [$num=5]);
-		SumStats::observe("test.metric", [$host=7.2.1.5], [$num=91]);
-		SumStats::observe("test.metric", [$host=10.10.10.10], [$num=5]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=75]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=30]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=3]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=57]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=52]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=61]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=95]);
+		SumStats::observe("test", [$host=6.5.4.3], [$num=5]);
+		SumStats::observe("test", [$host=7.2.1.5], [$num=91]);
+		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
 		}
 	}
 

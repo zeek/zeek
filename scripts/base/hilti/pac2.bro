@@ -22,11 +22,14 @@ export {
 	## defined or not.
 	const compile_all = F &redef;
 
-	## Debug level for compilation.
-	const debug = T &redef;
+	## Enable debug mode for code generation.
+	const debug = F &redef;
 
-	## Optimization level for code generation.
-	const optimize = F &redef;
+	## Enable optimization for code generation.
+	const optimize = T &redef;
+
+	## Profiling level for code generation.
+	const profile = 0 &redef;
 
 	## Tags for codegen debug output as colon-separated string.
 	const cg_debug = "" &redef;

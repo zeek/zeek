@@ -39,6 +39,7 @@ namespace BifConst { namespace Pac2 {  extern int save_hilti;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_llvm;  }  }
 namespace BifConst { namespace Pac2 {  extern int debug;  }  }
 namespace BifConst { namespace Pac2 {  extern int optimize;  }  }
+namespace BifConst { namespace Pac2 {  extern int profile;  }  }
 namespace BifConst { namespace Pac2 {  extern int use_cache;  }  }
 /// End of NetVar.h declarations.
 
@@ -166,6 +167,7 @@ struct Loader::PIMPL
 	bool save_pac2;		// Saves all generated BinPAC++ modules into a file, set from BifConst::Pac2::save_pac2.
 	bool save_hilti;	// Saves all HILTI modules into a file, set from BifConst::Pac2::save_hilti.
 	bool save_llvm;		// Saves the final linked LLVM code into a file, set from BifConst::Pac2::save_llvm.
+	unsigned int profile;	// True to enable run-time profiling.
 
 	std::list<string> import_paths;
 	Pac2AST* pac2_ast;
@@ -242,6 +244,7 @@ bool Loader::InitPostScripts()
 
 	pimpl->pac2_ast = new Pac2AST;
 	pimpl->compile_all = BifConst::Pac2::compile_all;
+	pimpl->profile = BifConst::Pac2::profile;
 	pimpl->dump_debug = BifConst::Pac2::dump_debug;
 	pimpl->dump_code = BifConst::Pac2::dump_code;
 	pimpl->dump_code_pre_finalize = BifConst::Pac2::dump_code_pre_finalize;
@@ -253,12 +256,14 @@ bool Loader::InitPostScripts()
 
 	pimpl->hilti_options.debug = BifConst::Pac2::debug;
 	pimpl->hilti_options.optimize = BifConst::Pac2::optimize;
+	pimpl->hilti_options.profile = BifConst::Pac2::profile;
 	pimpl->hilti_options.verify = ! BifConst::Pac2::no_verify;
 	pimpl->hilti_options.cg_debug = cg_debug;
 	pimpl->hilti_options.module_cache = BifConst::Pac2::use_cache ? ".cache" : "";
 
 	pimpl->pac2_options.debug = BifConst::Pac2::debug;
 	pimpl->pac2_options.optimize = BifConst::Pac2::optimize;
+	pimpl->pac2_options.profile = BifConst::Pac2::profile;
 	pimpl->pac2_options.verify = ! BifConst::Pac2::no_verify;
 	pimpl->pac2_options.cg_debug = cg_debug;
 	pimpl->pac2_options.module_cache = BifConst::Pac2::use_cache ? ".cache" : "";
@@ -604,7 +609,8 @@ bool Loader::Compile()
 	DBG_LOG(DBG_PAC2, "initializing HILTI runtime");
 
 	hlt_config cfg = *hlt_config_get();
-	cfg.fiber_stack_size = 500 * 1024;
+	cfg.fiber_stack_size = 5000 * 1024;
+	cfg.profiling = pimpl->profile;
 	hlt_config_set(&cfg);
 
 	hlt_init_jit(hilti_context, llvm_module, ee);
@@ -1324,7 +1330,7 @@ bool Loader::CreatePac2Hook(Pac2EventInfo* ev)
 	::binpac::parameter_list raise_params = {
 		std::make_shared<::binpac::type::function::Parameter>(std::make_shared<::binpac::ID>("self"),
 								      std::make_shared<::binpac::type::Unknown>(std::make_shared<::binpac::ID>(ev->unit)),
-								      true, false, nullptr),
+								      false, false, nullptr),
 	};
 
 	auto raise_type = std::make_shared<::binpac::type::Function>(raise_result, raise_params, ::binpac::type::function::BINPAC_HILTI);
@@ -1406,7 +1412,7 @@ shared_ptr<binpac::declaration::Function> Loader::CreatePac2ExpressionAccessor(s
 	::binpac::parameter_list func_params = {
 		std::make_shared<::binpac::type::function::Parameter>(std::make_shared<::binpac::ID>("self"),
 								      std::make_shared<::binpac::type::Unknown>(std::make_shared<::binpac::ID>(ev->unit)),
-								      true, false, nullptr),
+								      false, false, nullptr),
 	};
 
 	auto ftype = std::make_shared<::binpac::type::Function>(func_result, func_params, ::binpac::type::function::HILTI);
@@ -1428,7 +1434,7 @@ shared_ptr<::hilti::declaration::Function> Loader::DeclareHiltiExpressionAccesso
 	auto result = ::hilti::builder::function::result(rtype);
 
 	::hilti::builder::function::parameter_list args = {
-		::hilti::builder::function::parameter("self", ::hilti::builder::reference::type(::hilti::builder::type::byName(ev->unit)), true, nullptr),
+		::hilti::builder::function::parameter("self", ::hilti::builder::reference::type(::hilti::builder::type::byName(ev->unit)), false, nullptr),
 		};
 
 	auto func = ModuleBuilder()->declareFunction(fname, result, args);
@@ -1460,12 +1466,15 @@ bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 	auto result = ::hilti::builder::function::result(::hilti::builder::void_::type());
 
 	::hilti::builder::function::parameter_list args = {
-		::hilti::builder::function::parameter("self", ::hilti::builder::reference::type(::hilti::builder::type::byName(ev->unit)), true, nullptr),
-		::hilti::builder::function::parameter("cookie", ::hilti::builder::type::byName("LibBro::Cookie"), true, nullptr)
+		::hilti::builder::function::parameter("self", ::hilti::builder::reference::type(::hilti::builder::type::byName(ev->unit)), false, nullptr),
+		::hilti::builder::function::parameter("cookie", ::hilti::builder::type::byName("LibBro::Cookie"), false, nullptr)
 		};
 
 	auto func = ModuleBuilder()->pushFunction(fname, result, args);
 	ModuleBuilder()->exportID(fname);
+
+	Builder()->addInstruction(::hilti::instruction::profiler::Start,
+				  ::hilti::builder::string::create(string("bro/") + fname));
 
 	::hilti::builder::tuple::element_list vals;
 
@@ -1509,6 +1518,9 @@ bool Loader::CreateHiltiEventFunction(Pac2EventInfo* ev)
 				  ::hilti::builder::id::create("LibBro::raise_event"),
 				  ::hilti::builder::tuple::create({ ::hilti::builder::bytes::create(ev->name),
 				                                    ::hilti::builder::tuple::create(vals) } ));
+
+	Builder()->addInstruction(::hilti::instruction::profiler::Stop,
+				  ::hilti::builder::string::create(string("bro/") + fname));
 
 	ModuleBuilder()->popFunction();
 

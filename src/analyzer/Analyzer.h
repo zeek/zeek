@@ -28,22 +28,38 @@ typedef list<Analyzer*> analyzer_list;
 typedef uint32 ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
-	/**
-	 * XXX
-	 */
+/**
+ * Class to receive processed output from an anlyzer.
+ */
 class OutputHandler {
 public:
+	/**
+	 * Destructor.
+	 */
 	virtual	~OutputHandler() { }
 
+	/**
+	 * Hook for receiving packet data. Parameters are the same as for
+	 * Analyzer::DeliverPacket().
+	 */
 	virtual void DeliverPacket(int len, const u_char* data,
 				   bool orig, int seq,
 				   const IP_Hdr* ip, int caplen)
 		{ }
+
+	/**
+	 * Hook for receiving stream data. Parameters are the same as for
+	 * Analyzer::DeliverStream().
+	 */
 	virtual void DeliverStream(int len, const u_char* data,
 				   bool orig)	{ }
+
+	/**
+	 * Hook for receiving notification of stream gaps. Parameters are the
+	 * same as for Analyzer::Undelivered().
+	 */
 	virtual void Undelivered(int seq, int len, bool orig)	{ }
 };
-
 
 /**
  * Main analyzer interface.

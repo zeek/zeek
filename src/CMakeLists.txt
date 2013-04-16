@@ -411,4 +411,5 @@ set(BRO_EXE bro
 
 include(BroPlugin)
 bro_plugin_bif_create_loader(bif_loader ${CMAKE_BINARY_DIR}/scripts/base/bif/plugins)
+add_dependencies(bif_loader ${bro_SUBDIRS})
 add_dependencies(bro bif_loader)

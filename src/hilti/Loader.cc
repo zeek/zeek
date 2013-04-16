@@ -39,7 +39,7 @@ namespace BifConst { namespace Pac2 {  extern int save_hilti;  }  }
 namespace BifConst { namespace Pac2 {  extern int save_llvm;  }  }
 namespace BifConst { namespace Pac2 {  extern int debug;  }  }
 namespace BifConst { namespace Pac2 {  extern int optimize;  }  }
-namespace BifConst { namespace Pac2 {  extern int profile;  }  }
+namespace BifConst { namespace Pac2 {  extern bro_uint_t profile;  }  }
 namespace BifConst { namespace Pac2 {  extern int use_cache;  }  }
 /// End of NetVar.h declarations.
 
@@ -609,7 +609,7 @@ bool Loader::Compile()
 	DBG_LOG(DBG_PAC2, "initializing HILTI runtime");
 
 	hlt_config cfg = *hlt_config_get();
-	cfg.fiber_stack_size = 5000 * 1024;
+	cfg.fiber_stack_size = 2000 * 1024;
 	cfg.profiling = pimpl->profile;
 	hlt_config_set(&cfg);
 

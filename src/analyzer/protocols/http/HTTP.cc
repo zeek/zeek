@@ -13,15 +13,6 @@
 #include "Event.h"
 #include "MIME.h"
 
-#include "plugin/Plugin.h"
-
-BRO_PLUGIN_BEGIN(HTTP)
-	BRO_PLUGIN_DESCRIPTION("HTTP Analyzer");
-	BRO_PLUGIN_ANALYZER("HTTP", HTTP_Analyzer::InstantiateAnalyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
-
 const bool DEBUG_http = false;
 
 // The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a

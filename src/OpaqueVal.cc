@@ -20,47 +20,48 @@ IMPLEMENT_SERIAL(CardinalityVal, SER_CARDINALITY_VAL);
 
 bool CardinalityVal::DoSerialize(SerialInfo* info) const
 	{
-	printf("Serializing\n");
 	DO_SERIALIZE(SER_CARDINALITY_VAL, OpaqueVal);
 
+	bool serialvalid = true;
+	serialvalid &= SERIALIZE(&valid);
+
 	if ( ! IsValid() )
-		return true;
+		return serialvalid;
 
 	assert(c);
 
-	bool valid = true;
-
-	valid &= SERIALIZE(c->m);
-	valid &= SERIALIZE(c->V);
-	valid &= SERIALIZE(c->alpha_m);
+	serialvalid &= SERIALIZE(c->m);
+	serialvalid &= SERIALIZE(c->V);
+	serialvalid &= SERIALIZE(c->alpha_m);
 	for ( int i = 0; i < c->m; i++ ) 
 		{
-		valid &= SERIALIZE(c->buckets[i]);
+		serialvalid &= SERIALIZE(c->buckets[i]);
 		}
 
-	return valid;
+	return serialvalid;
 	}
 
 bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 	{
-	printf("Unserializing\n");
 	DO_UNSERIALIZE(OpaqueVal);
 
+	bool serialvalid = UNSERIALIZE(&valid);
+	
 	if ( ! IsValid() )
-		return true;
+		return serialvalid;
 
 	uint64_t m;
-	bool valid = UNSERIALIZE(&m);
 
+	serialvalid &= UNSERIALIZE(&m);
 	c = new CardinalityCounter(m);
-	valid &= UNSERIALIZE(&c->V);
-	valid &= UNSERIALIZE(&c->alpha_m);
+	serialvalid &= UNSERIALIZE(&c->V);
+	serialvalid &= UNSERIALIZE(&c->alpha_m);
 
 	uint8_t* buckets = c->buckets;
 	for ( int i = 0; i < m; i++ ) 
 		{
 		uint8_t* currbucket = buckets + i;
-		valid &= UNSERIALIZE( currbucket );
+		serialvalid &= UNSERIALIZE( currbucket );
 		}
 
 	return valid;

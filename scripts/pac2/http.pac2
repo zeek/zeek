@@ -10,6 +10,8 @@
 
 module HTTP;
 
+import BinPAC;
+
 type DeliveryMode = enum { EndOfData, Length, Multipart, Chunked };
 
 const Token      = /[^ \t\r\n]+/;
@@ -82,6 +84,7 @@ type Message = unit(body_default: bool) {
     body:       Body(self, self.delivery_mode) if ( self.has_body );
 
     var content_length: uint64;
+	var content_encoding: bytes;
     var content_type: bytes;
     var content_type_main: bytes;
     var content_type_sub: bytes;
@@ -136,6 +139,9 @@ type Header = unit(msg: Message) {
             msg.has_body = True;
             }
 
+        if ( self.name == b"CONTENT-ENCODING" )
+            msg.content_encoding = self.content;
+
         if ( self.name == b"CONTENT-TYPE" ) {
             msg.content_type = self.content;
             msg.content_type_main = self.content.match(/ *([^\/]*)\//, 1);
@@ -166,9 +172,17 @@ type Body = unit(msg: Message, delivery_mode: DeliveryMode) {
         if ( msg?.content_type_main && msg.content_type_main != b"" && msg.content_type_sub != b"" )
             self.data.connect_mime_type(msg.content_type_main + b"/" + msg.content_type_sub);
 
+        if ( msg?.content_encoding ) {
+		    if ( msg.content_encoding == b"gzip" )
+                self.data.add_filter(BinPAC::Filter::GZIP);
+
+		    if ( msg.content_encoding == b"deflate" )
+                self.data.add_filter(BinPAC::Filter::ZLIB);
+        }
+
         self.content = new Content;
         self.data.connect(self.content);
-        }
+    }
 
 	on %done {
 	    # FIXME: Currently the sink becomes invalid after parsing for

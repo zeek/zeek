@@ -162,7 +162,6 @@ binpac_target(modbus.pac
 set(bro_PLUGIN_OBJECT_LIBS CACHE INTERNAL "plugin object libraries" FORCE)
 
 add_subdirectory(analyzer)
-add_subdirectory(protocols)
 
 set(bro_SUBDIRS
     $<TARGET_OBJECTS:bro_analyzer>
@@ -392,7 +391,7 @@ set(bro_SRCS
     plugin/Manager.cc
     plugin/Plugin.cc
 
-    protocols/BuiltInAnalyzers.cc
+    analyzer/protocols/BuiltInAnalyzers.cc
 
     nb_dns.c
     digest.h

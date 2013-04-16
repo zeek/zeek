@@ -5,7 +5,7 @@
 #include "BuiltInAnalyzers.h"
 #include "analyzer/Component.h"
 
-#include "../binpac_bro.h"
+#include "../../binpac_bro.h"
 
 #include "AYIYA.h"
 #include "BackDoor.h"

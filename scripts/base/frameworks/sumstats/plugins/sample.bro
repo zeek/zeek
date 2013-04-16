@@ -29,13 +29,13 @@ function get_samples(rv: ResultVal): vector of Observation
 	return s;
 	}
 
-hook add_to_reducer_hook(r: Reducer, val: double, data: Observation, rv: ResultVal)
+hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( r$samples > 0 )
 		{
 		if ( ! rv?$samples )
 			rv$samples = Queue::init([$max_len=r$samples]);
-		Queue::put(rv$samples, data);
+		Queue::put(rv$samples, obs);
 		}
 	}
 

@@ -29,7 +29,7 @@ function calc_variance(rv: ResultVal)
 	}
 
 # Reduced priority since this depends on the average
-hook add_to_reducer_hook(r: Reducer, val: double, data: Observation, rv: ResultVal) &priority=-5
+hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &priority=-5
 	{
 	if ( VARIANCE in r$apply )
 		{

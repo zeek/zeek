@@ -14,7 +14,7 @@ export {
 	};
 }
 
-hook add_to_reducer_hook(r: Reducer, val: double, data: Observation, rv: ResultVal)
+hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( MIN in r$apply )
 		{

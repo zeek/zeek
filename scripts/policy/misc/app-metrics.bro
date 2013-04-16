@@ -32,7 +32,7 @@ redef record connection += {
 
 event bro_init() &priority=3
 	{
-	Log::create_stream(AppSumStats::LOG, [$columns=Info]);
+	Log::create_stream(AppStats::LOG, [$columns=Info]);
 
 	local r1: SumStats::Reducer = [$stream="apps.bytes", $apply=set(SumStats::SUM)];
 	local r2: SumStats::Reducer = [$stream="apps.hits",  $apply=set(SumStats::UNIQUE)];

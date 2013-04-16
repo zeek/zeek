@@ -1,0 +1,10 @@
+
+- introduce namespace into analyzers
+- fill events.bif
+- add functions.bif where needed
+- move ARP
+- move NetFlow
+- update *.h guards
+- cleanup analyzer descriptions
+- can now lower-case the analyzer name in plugin
+

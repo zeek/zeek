@@ -36,6 +36,9 @@
 #define BRO_PLUGIN_ANALYZER(tag, factory) \
 	AddComponent(new ::analyzer::Component(tag, factory));
 
+#define BRO_PLUGIN_SUPPORT_ANALYZER(tag) \
+	AddComponent(new ::analyzer::Component(tag, 0));
+
 #define BRO_PLUGIN_ANALYZER_EXT(tag, factory, enabled, partial) \
 	AddComponent(new ::analyzer::Component(tag, factory, 0, enabled, partial));
 

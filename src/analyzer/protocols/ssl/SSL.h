@@ -3,7 +3,7 @@
 
 #include "events.bif.h"
 
-#include "TCP.h"
+#include "analyzer/protocols/tcp/TCP.h"
 #include "ssl_pac.h"
 
 class SSL_Analyzer : public TCP_ApplicationAnalyzer {

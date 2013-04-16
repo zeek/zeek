@@ -1,6 +1,6 @@
 
 #include "SSL.h"
-#include "TCP_Reassembler.h"
+#include "analyzer/protocols/tcp/TCP_Reassembler.h"
 #include "Reporter.h"
 #include "util.h"
 

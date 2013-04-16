@@ -1,16 +1,17 @@
 
 #include "Manager.h"
 
-#include "PIA.h"
 #include "Hash.h"
-#include "ICMP.h"
-#include "UDP.h"
-#include "TCP.h"
 #include "Val.h"
-#include "BackDoor.h"
-#include "InterConn.h"
-#include "SteppingStone.h"
-#include "ConnSizeAnalyzer.h"
+
+#include "analyzer/protocols/backdoor/BackDoor.h"
+#include "analyzer/protocols/conn-size/ConnSize.h"
+#include "analyzer/protocols/icmp/ICMP.h"
+#include "analyzer/protocols/interconn/InterConn.h"
+#include "analyzer/protocols/pia/PIA.h"
+#include "analyzer/protocols/stepping-stone/SteppingStone.h"
+#include "analyzer/protocols/tcp/TCP.h"
+#include "analyzer/protocols/udp/UDP.h"
 
 #include "plugin/Manager.h"
 
@@ -153,15 +154,16 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 	if ( Lookup(component->Name()) )
 		reporter->FatalError("Analyzer %s defined more than once", component->Name());
 
-	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s (tag %s)",
-		component->Name(), component->Tag().AsString().c_str());
+	string name = to_upper(component->Name());
 
-	analyzers_by_name.insert(std::make_pair(component->Name(), component));
+	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s (tag %s)",
+		name.c_str(), component->Tag().AsString().c_str());
+
+	analyzers_by_name.insert(std::make_pair(name, component));
 	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
 	analyzers_by_val.insert(std::make_pair(component->Tag().AsEnumVal()->InternalInt(), component));
 
 	// Install enum "Analyzer::ANALYZER_*"
-	string name = to_upper(component->Name());
 	string id = fmt("ANALYZER_%s", name.c_str());
 	tag_enum_type->AddName("Analyzer", id.c_str(), component->Tag().AsEnumVal()->InternalInt(), true);
 	}
@@ -306,7 +308,9 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 	if ( ! c->Enabled() )
 		return 0;
 
-	assert(c->Factory());
+	if ( ! c->Factory() )
+		reporter->InternalError("analyzer %s cannot be instantiated dynamically", GetAnalyzerName(tag));
+
 	Analyzer* a = c->Factory()(conn);
 
 	if ( ! a )

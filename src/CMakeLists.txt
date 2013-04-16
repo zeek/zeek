@@ -133,27 +133,8 @@ set(BINPAC_AUXSRC
 binpac_target(binpac-lib.pac)
 binpac_target(binpac_bro-lib.pac)
 
-binpac_target(ayiya.pac
-    ayiya-protocol.pac ayiya-analyzer.pac)
-binpac_target(bittorrent.pac
-    bittorrent-protocol.pac bittorrent-analyzer.pac)
-binpac_target(dce_rpc.pac
-    dce_rpc-protocol.pac dce_rpc-analyzer.pac epmapper.pac)
-binpac_target(dce_rpc_simple.pac
-    dce_rpc-protocol.pac epmapper.pac)
-binpac_target(dhcp.pac
-    dhcp-protocol.pac dhcp-analyzer.pac)
-binpac_target(gtpv1.pac
-    gtpv1-protocol.pac gtpv1-analyzer.pac)
-binpac_target(ncp.pac)
 binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
-binpac_target(smb.pac
-    smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
-binpac_target(socks.pac
-    socks-protocol.pac socks-analyzer.pac)
-binpac_target(modbus.pac
-    modbus-protocol.pac modbus-analyzer.pac)
 
 ########################################################################
 ## Including subdirectories.
@@ -233,11 +214,7 @@ set(bro_SRCS
     Anon.cc
     ARP.cc
     Attr.cc
-    AYIYA.cc
-    BackDoor.cc
     Base64.cc
-    BitTorrent.cc
-    BitTorrentTracker.cc
     BPF_Program.cc
     BroDoc.cc
     BroDocObj.cc
@@ -247,13 +224,7 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
-    ConnSizeAnalyzer.cc
-    ContentLine.cc
-    DCE_RPC.cc
     DFA.cc
-    DHCP-binpac.cc
-    DNS.cc
-    DNS_Mgr.cc
     DbgBreakpoint.cc
     DbgHelp.cc
     DbgWatch.cc
@@ -263,45 +234,30 @@ set(bro_SRCS
     Desc.cc
     Dict.cc
     Discard.cc
+    DNS_Mgr.cc
     EquivClass.cc
     Event.cc
     EventHandler.cc
     EventLauncher.cc
     EventRegistry.cc
     Expr.cc
-    FTP.cc
     File.cc
-    FileAnalyzer.cc
-    Finger.cc
     FlowSrc.cc
     Frag.cc
     Frame.cc
     Func.cc
-    Gnutella.cc
-    GTPv1.cc
     Hash.cc
-    ICMP.cc
     ID.cc
-    Ident.cc
     IntSet.cc
-    InterConn.cc
     IOSource.cc
     IP.cc
     IPAddr.cc
-    IRC.cc
     List.cc
     Reporter.cc
-    Login.cc
     MIME.cc
-    Modbus.cc
-    NCP.cc
     NFA.cc
-    NFS.cc
-    NTP.cc
-    NVT.cc
     Net.cc
     NetVar.cc
-    NetbiosSSN.cc
     Obj.cc
     OpaqueVal.cc
     OSFinger.cc
@@ -309,30 +265,20 @@ set(bro_SRCS
     PacketSort.cc
     PersistenceSerializer.cc
     PktSrc.cc
-    PIA.cc
     PolicyFile.cc
-    POP3.cc
-    Portmap.cc
     PrefixTable.cc
     PriorityQueue.cc
     Queue.cc
     RandTest.cc
     RE.cc
-    RPC.cc
     Reassem.cc
     RemoteSerializer.cc
-    Rlogin.cc
-    RSH.cc
     Rule.cc
     RuleAction.cc
     RuleCondition.cc
     RuleMatcher.cc
     ScriptAnaly.cc
     SmithWaterman.cc
-    SMB.cc
-    SMTP.cc
-    SOCKS.cc
-    SSH.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc
@@ -340,23 +286,14 @@ set(bro_SRCS
     Sessions.cc
     StateAccess.cc
     Stats.cc
-    SteppingStone.cc
     Stmt.cc
-    TCP.cc
-    TCP_Endpoint.cc
-    TCP_Reassembler.cc
-    Telnet.cc
-    Teredo.cc
     Timer.cc
     Traverse.cc
     Trigger.cc
     TunnelEncapsulation.cc
     Type.cc
-    UDP.cc
     Val.cc
     Var.cc
-    XDR.cc
-    ZIP.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     cq.c
@@ -390,8 +327,6 @@ set(bro_SRCS
     plugin/Component.cc
     plugin/Manager.cc
     plugin/Plugin.cc
-
-    analyzer/protocols/BuiltInAnalyzers.cc
 
     nb_dns.c
     digest.h

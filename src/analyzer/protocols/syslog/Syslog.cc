@@ -1,6 +1,6 @@
 
 #include "Syslog.h"
-#include "TCP_Reassembler.h"
+#include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
 Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
 : Analyzer("SYSLOG", conn)

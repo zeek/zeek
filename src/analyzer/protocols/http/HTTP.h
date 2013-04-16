@@ -3,14 +3,15 @@
 #ifndef http_h
 #define http_h
 
-#include "TCP.h"
-#include "ContentLine.h"
+#include "analyzer/protocols/tcp/TCP.h"
+#include "analyzer/protocols/tcp/ContentLine.h"
+#include "analyzer/protocols/zip/ZIP.h"
 #include "MIME.h"
 #include "binpac_bro.h"
-#include "ZIP.h"
 #include "IPAddr.h"
-#include "HTTP.h"
 #include "events.bif.h"
+
+#include "HTTP.h"
 
 enum CHUNKED_TRANSFER_STATE {
 	NON_CHUNKED_TRANSFER,

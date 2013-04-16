@@ -207,7 +207,7 @@ void init_alternative_mode()
 
 	for ( char* p = guard; *p; p++ )
 		{
-		if ( strchr("/.", *p) )
+		if ( strchr("/.-", *p) )
 			*p = '_';
 		}
 

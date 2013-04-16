@@ -16,12 +16,12 @@
 #include "Reporter.h"
 #include "OSFinger.h"
 
-#include "ICMP.h"
-#include "UDP.h"
+#include "analyzer/protocols/icmp/ICMP.h"
+#include "analyzer/protocols/udp/UDP.h"
 
-#include "SteppingStone.h"
-#include "BackDoor.h"
-#include "InterConn.h"
+#include "analyzer/protocols/stepping-stone/SteppingStone.h"
+#include "analyzer/protocols/backdoor/BackDoor.h"
+#include "analyzer/protocols/interconn/InterConn.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
 

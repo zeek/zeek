@@ -12,6 +12,8 @@
 #include "Stats.h"
 #include "NetVar.h"
 #include "TunnelEncapsulation.h"
+#include "analyzer/protocols/tcp/Stats.h"
+
 #include <utility>
 
 struct pcap_pkthdr;

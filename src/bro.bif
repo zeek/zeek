@@ -2914,7 +2914,7 @@ function decode_base64_custom%(s: string, a: string%): string
 	%}
 
 %%{
-#include "DCE_RPC.h"
+#include "analyzer/protocols/dce-rpc/DCE_RPC.h"
 
 typedef struct {
 	uint32 time_low;
@@ -4262,7 +4262,7 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 	%}
 
 %%{
-#include "TCP.h"
+#include "analyzer/protocols/tcp/TCP.h"
 %%}
 
 ## Get the originator sequence number of a TCP connection. Sequence numbers
@@ -4326,7 +4326,7 @@ function get_resp_seq%(cid: conn_id%): count
 	%}
 
 %%{
-#include "SMTP.h"
+#include "analyzer/protocols/smtp/SMTP.h"
 %%}
 
 ## Skips SMTP data until the next email in a connection.

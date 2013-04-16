@@ -8,7 +8,7 @@ using std::string;
 #include "Conn.h"
 #include "Event.h"
 #include "NetVar.h"
-#include "PIA.h"
+#include "analyzer/protocols/pia/PIA.h"
 
 #include "analyzer/Manager.h"
 

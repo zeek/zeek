@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-04-09-22-37-59
+#open	2013-04-17-03-50-16
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -33,9 +33,45 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/analyzer/./main.bro
       build/scripts/base/bif/analyzer.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
+    build/scripts/base/bif/plugins/./AYIYA.events.bif.bro
+    build/scripts/base/bif/plugins/./BACKDOOR.events.bif.bro
+    build/scripts/base/bif/plugins/./BITTORRENT.events.bif.bro
+    build/scripts/base/bif/plugins/./BackDoor.events.bif.bro
+    build/scripts/base/bif/plugins/./BitTorrent.events.bif.bro
+    build/scripts/base/bif/plugins/./ConnSize.events.bif.bro
+    build/scripts/base/bif/plugins/./DCE_RPC.events.bif.bro
+    build/scripts/base/bif/plugins/./DHCP.events.bif.bro
+    build/scripts/base/bif/plugins/./DNS.events.bif.bro
+    build/scripts/base/bif/plugins/./FTP.events.bif.bro
+    build/scripts/base/bif/plugins/./File.events.bif.bro
+    build/scripts/base/bif/plugins/./FileAnalyzer.events.bif.bro
+    build/scripts/base/bif/plugins/./Finger.events.bif.bro
+    build/scripts/base/bif/plugins/./GTPV1.events.bif.bro
+    build/scripts/base/bif/plugins/./Gnutella.events.bif.bro
     build/scripts/base/bif/plugins/./HTTP.events.bif.bro
     build/scripts/base/bif/plugins/./HTTP.functions.bif.bro
+    build/scripts/base/bif/plugins/./ICMP.events.bif.bro
+    build/scripts/base/bif/plugins/./IRC.events.bif.bro
+    build/scripts/base/bif/plugins/./Ident.events.bif.bro
+    build/scripts/base/bif/plugins/./InterConn.events.bif.bro
+    build/scripts/base/bif/plugins/./Login.events.bif.bro
+    build/scripts/base/bif/plugins/./Modbus.events.bif.bro
+    build/scripts/base/bif/plugins/./NCP.events.bif.bro
+    build/scripts/base/bif/plugins/./NTP.events.bif.bro
+    build/scripts/base/bif/plugins/./NetbiosSSN.events.bif.bro
+    build/scripts/base/bif/plugins/./PIA.events.bif.bro
+    build/scripts/base/bif/plugins/./POP3.events.bif.bro
+    build/scripts/base/bif/plugins/./RPC.events.bif.bro
+    build/scripts/base/bif/plugins/./SMB.events.bif.bro
+    build/scripts/base/bif/plugins/./SMTP.events.bif.bro
+    build/scripts/base/bif/plugins/./SOCKS.events.bif.bro
+    build/scripts/base/bif/plugins/./SSH.events.bif.bro
     build/scripts/base/bif/plugins/./SSL.events.bif.bro
+    build/scripts/base/bif/plugins/./SteppingStone.events.bif.bro
     build/scripts/base/bif/plugins/./Syslog.events.bif.bro
+    build/scripts/base/bif/plugins/./TCP.events.bif.bro
+    build/scripts/base/bif/plugins/./Teredo.events.bif.bro
+    build/scripts/base/bif/plugins/./UDP.events.bif.bro
+    build/scripts/base/bif/plugins/./ZIP.events.bif.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-04-09-22-37-59
+#close	2013-04-17-03-50-16

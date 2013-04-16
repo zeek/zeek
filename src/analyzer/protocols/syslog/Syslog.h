@@ -2,8 +2,8 @@
 #ifndef Syslog_h
 #define Syslog_h
 
-#include "UDP.h"
-#include "TCP.h"
+#include "analyzer/protocols/udp/UDP.h"
+#include "analyzer/protocols/tcp/TCP.h"
 
 #include "syslog_pac.h"
 

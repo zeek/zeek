@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-04-02-04-22-32
+#open	2013-04-16-03-43-22
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -68,23 +68,23 @@ scripts/base/init-default.bro
     scripts/base/frameworks/software/main.bro
   scripts/base/frameworks/communication/__load__.bro
     scripts/base/frameworks/communication/main.bro
-  scripts/base/frameworks/measurement/__load__.bro
-    scripts/base/frameworks/measurement/main.bro
-    scripts/base/frameworks/measurement/plugins/__load__.bro
-      scripts/base/frameworks/measurement/plugins/average.bro
-      scripts/base/frameworks/measurement/plugins/max.bro
-      scripts/base/frameworks/measurement/plugins/min.bro
-      scripts/base/frameworks/measurement/plugins/sample.bro
-      scripts/base/frameworks/measurement/plugins/std-dev.bro
-        scripts/base/frameworks/measurement/plugins/variance.bro
-      scripts/base/frameworks/measurement/plugins/sum.bro
-      scripts/base/frameworks/measurement/plugins/unique.bro
-    scripts/base/frameworks/measurement/non-cluster.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
     scripts/base/frameworks/intel/input.bro
   scripts/base/frameworks/reporter/__load__.bro
     scripts/base/frameworks/reporter/main.bro
+  scripts/base/frameworks/sumstats/__load__.bro
+    scripts/base/frameworks/sumstats/main.bro
+    scripts/base/frameworks/sumstats/plugins/__load__.bro
+      scripts/base/frameworks/sumstats/plugins/average.bro
+      scripts/base/frameworks/sumstats/plugins/max.bro
+      scripts/base/frameworks/sumstats/plugins/min.bro
+      scripts/base/frameworks/sumstats/plugins/sample.bro
+      scripts/base/frameworks/sumstats/plugins/variance.bro
+      scripts/base/frameworks/sumstats/plugins/std-dev.bro
+      scripts/base/frameworks/sumstats/plugins/sum.bro
+      scripts/base/frameworks/sumstats/plugins/unique.bro
+    scripts/base/frameworks/sumstats/non-cluster.bro
   scripts/base/frameworks/tunnels/__load__.bro
     scripts/base/frameworks/tunnels/main.bro
   scripts/base/protocols/conn/__load__.bro
@@ -130,4 +130,4 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-04-02-04-22-32
+#close	2013-04-16-03-43-22

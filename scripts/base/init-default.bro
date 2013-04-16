@@ -29,9 +29,9 @@
 @load base/frameworks/communication
 @load base/frameworks/control
 @load base/frameworks/cluster
-@load base/frameworks/measurement
 @load base/frameworks/intel
 @load base/frameworks/reporter
+@load base/frameworks/sumstats
 @load base/frameworks/tunnels
 
 @load base/protocols/conn

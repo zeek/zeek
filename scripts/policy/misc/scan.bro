@@ -5,7 +5,7 @@
 ##!            All the authors of the old scan.bro
 
 @load base/frameworks/notice
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
 @load base/utils/time
 
@@ -52,7 +52,7 @@ export {
 }
 
 
-#function check_addr_scan_threshold(key: Measurement::Key, val: Measurement::Result): bool
+#function check_addr_scan_threshold(key: SumStats::Key, val: SumStats::Result): bool
 #	{
 #	# We don't need to do this if no custom thresholds are defined.
 #	if ( |addr_scan_custom_thresholds| == 0 )
@@ -65,54 +65,54 @@ export {
 
 event bro_init() &priority=5
 	{
-	local r1: Measurement::Reducer = [$stream="scan.addr.fail", $apply=set(Measurement::UNIQUE)];
-	Measurement::create([$epoch=addr_scan_interval,
-	                     $reducers=set(r1),
-	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
-	                     	{
-	                     	return double_to_count(result["scan.addr.fail"]$unique);
-	                     	},
-	                     #$threshold_func=check_addr_scan_threshold,
-	                     $threshold=addr_scan_threshold,
-	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) =
-	                     	{
-	                     	local r = result["scan.addr.fail"];
-	                     	local side = Site::is_local_addr(key$host) ? "local" : "remote";
-	                     	local dur = duration_to_mins_secs(r$end-r$begin);
-	                     	local message=fmt("%s scanned at least %d unique hosts on port %s in %s", key$host, r$unique, key$str, dur);
-	                     	NOTICE([$note=Address_Scan,
-	                     	        $src=key$host,
-	                     	        $p=to_port(key$str),
-	                     	        $sub=side,
-	                     	        $msg=message,
-	                     	        $identifier=cat(key$host)]);
-	                     	}]); 
+	local r1: SumStats::Reducer = [$stream="scan.addr.fail", $apply=set(SumStats::UNIQUE)];
+	SumStats::create([$epoch=addr_scan_interval,
+	                  $reducers=set(r1),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	return double_to_count(result["scan.addr.fail"]$unique);
+	                  	},
+	                  #$threshold_func=check_addr_scan_threshold,
+	                  $threshold=addr_scan_threshold,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	local r = result["scan.addr.fail"];
+	                  	local side = Site::is_local_addr(key$host) ? "local" : "remote";
+	                  	local dur = duration_to_mins_secs(r$end-r$begin);
+	                  	local message=fmt("%s scanned at least %d unique hosts on port %s in %s", key$host, r$unique, key$str, dur);
+	                  	NOTICE([$note=Address_Scan,
+	                  	        $src=key$host,
+	                  	        $p=to_port(key$str),
+	                  	        $sub=side,
+	                  	        $msg=message,
+	                  	        $identifier=cat(key$host)]);
+	                  	}]); 
 
 	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
-	local r2: Measurement::Reducer = [$stream="scan.port.fail", $apply=set(Measurement::UNIQUE)];
-	Measurement::create([$epoch=port_scan_interval,
-	                     $reducers=set(r2),
-	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
-	                     	{ 
-	                     	return double_to_count(result["scan.port.fail"]$unique);
-	                     	},
-	                     $threshold=port_scan_threshold,
-	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) =
-	                          {
-	                          local r = result["scan.port.fail"];
-	                          local side = Site::is_local_addr(key$host) ? "local" : "remote";
-	                          local dur = duration_to_mins_secs(r$end-r$begin);
-	                          local message = fmt("%s scanned at least %d unique ports of host %s in %s", key$host, r$unique, key$str, dur);
-	                          NOTICE([$note=Port_Scan, 
-	                                  $src=key$host,
-	                                  $dst=to_addr(key$str),
-	                                  $sub=side,
-	                                  $msg=message,
-	                                  $identifier=cat(key$host)]);
-	                          }]); 
+	local r2: SumStats::Reducer = [$stream="scan.port.fail", $apply=set(SumStats::UNIQUE)];
+	SumStats::create([$epoch=port_scan_interval,
+	                  $reducers=set(r2),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{ 
+	                  	return double_to_count(result["scan.port.fail"]$unique);
+	                  	},
+	                  $threshold=port_scan_threshold,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	local r = result["scan.port.fail"];
+	                  	local side = Site::is_local_addr(key$host) ? "local" : "remote";
+	                  	local dur = duration_to_mins_secs(r$end-r$begin);
+	                  	local message = fmt("%s scanned at least %d unique ports of host %s in %s", key$host, r$unique, key$str, dur);
+	                  	NOTICE([$note=Port_Scan, 
+	                  	        $src=key$host,
+	                  	        $dst=to_addr(key$str),
+	                  	        $sub=side,
+	                  	        $msg=message,
+	                  	        $identifier=cat(key$host)]);
+	                  	}]); 
 	}
 
-function add_metrics(id: conn_id, reverse: bool)
+function add_sumstats(id: conn_id, reverse: bool)
 	{
 	local scanner      = id$orig_h;
 	local victim       = id$resp_h;
@@ -150,10 +150,10 @@ function add_metrics(id: conn_id, reverse: bool)
 	#	return F;
 	
 	if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
-		Measurement::add_data("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
+		SumStats::observe("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
 
 	if ( hook Scan::port_scan_policy(scanner, victim, scanned_port) )
-		Measurement::add_data("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
+		SumStats::observe("scan.port.fail", [$host=scanner, $str=cat(victim)], [$str=cat(scanned_port)]);
 	}
 
 function is_failed_conn(c: connection): bool
@@ -193,7 +193,7 @@ event connection_attempt(c: connection)
 	if ( "H" in c$history )
 		is_reverse_scan = T;
 	
-	add_metrics(c$id, is_reverse_scan);
+	add_sumstats(c$id, is_reverse_scan);
 	}
 
 ## Generated for a rejected TCP connection. This event 
@@ -206,7 +206,7 @@ event connection_rejected(c: connection)
 	if ( "s" in c$history )
 		is_reverse_scan = T;
 	
-	add_metrics(c$id, is_reverse_scan);
+	add_sumstats(c$id, is_reverse_scan);
 	}
 
 ## Generated when an endpoint aborted a TCP connection. 
@@ -215,16 +215,16 @@ event connection_rejected(c: connection)
 event connection_reset(c: connection)
 	{
 	if ( is_failed_conn(c) )
-		add_metrics(c$id, F);
+		add_sumstats(c$id, F);
 	else if ( is_reverse_failed_conn(c) )
-		add_metrics(c$id, T);
+		add_sumstats(c$id, T);
 	}
 
 ## Generated for each still-open connection when Bro terminates.
 event connection_pending(c: connection)
 	{
 	if ( is_failed_conn(c) )
-		add_metrics(c$id, F);
+		add_sumstats(c$id, F);
 	else if ( is_reverse_failed_conn(c) )
-		add_metrics(c$id, T);
+		add_sumstats(c$id, T);
 	}

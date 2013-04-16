@@ -1,7 +1,7 @@
 @load ./variance
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -11,7 +11,7 @@ export {
 
 	redef record ResultVal += {
 		## For numeric data, this calculates the standard deviation.
-		std_dev: double &optional;
+		std_dev: double &default=0.0;
 	};
 }
 
@@ -22,15 +22,10 @@ function calc_std_dev(rv: ResultVal)
 	}
 
 # This depends on the variance plugin which uses priority -5
-hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal) &priority=-10
+hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &priority=-10
 	{
 	if ( STD_DEV in r$apply )
-		{
-		if ( rv?$variance )
-			calc_std_dev(rv);
-		else
-			rv$std_dev = 0.0;
-		}
+		calc_std_dev(rv);
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal) &priority=-10

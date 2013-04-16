@@ -32,9 +32,13 @@
 @load integration/collective-intel/__load__.bro
 @load integration/collective-intel/main.bro
 @load misc/analysis-groups.bro
+@load misc/app-metrics.bro
 @load misc/capture-loss.bro
+@load misc/detect-traceroute/__load__.bro
+@load misc/detect-traceroute/main.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
+@load misc/scan.bro
 @load misc/stats.bro
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
@@ -42,6 +46,7 @@
 @load protocols/conn/weirds.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
+@load protocols/ftp/detect-bruteforcing.bro
 @load protocols/ftp/detect.bro
 @load protocols/ftp/software.bro
 @load protocols/http/detect-MHR.bro

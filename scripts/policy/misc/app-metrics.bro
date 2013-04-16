@@ -1,8 +1,8 @@
 @load base/protocols/http
 @load base/protocols/ssl
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
-module AppMeasurement;
+module AppStats;
 
 export {
 	redef enum Log::ID += { LOG };
@@ -32,60 +32,60 @@ redef record connection += {
 
 event bro_init() &priority=3
 	{
-	Log::create_stream(AppMeasurement::LOG, [$columns=Info]);
+	Log::create_stream(AppStats::LOG, [$columns=Info]);
 
-	local r1: Measurement::Reducer = [$stream="apps.bytes", $apply=set(Measurement::SUM)];
-	local r2: Measurement::Reducer = [$stream="apps.hits",  $apply=set(Measurement::UNIQUE)];
-	Measurement::create([$epoch=break_interval, 
-	                     $reducers=set(r1, r2),
-	                     $epoch_finished(data: Measurement::ResultTable) = 
-	                     	{
-	                     	local l: Info;
-	                     	l$ts = network_time();
-	                     	l$ts_delta = break_interval;
-	                     	for ( key in data )
-	                     		{
-	                     		local result = data[key];
-	                     		l$app        = key$str;
-	                     		l$bytes      = double_to_count(floor(result["apps.bytes"]$sum));
-	                     		l$hits       = result["apps.hits"]$num;
-	                     		l$uniq_hosts = result["apps.hits"]$unique;
-	                     		Log::write(LOG, l);
-	                     		}
-	                     	}]);
+	local r1: SumStats::Reducer = [$stream="apps.bytes", $apply=set(SumStats::SUM)];
+	local r2: SumStats::Reducer = [$stream="apps.hits",  $apply=set(SumStats::UNIQUE)];
+	SumStats::create([$epoch=break_interval, 
+	                  $reducers=set(r1, r2),
+	                  $epoch_finished(data: SumStats::ResultTable) = 
+	                  	{
+	                  	local l: Info;
+	                  	l$ts = network_time();
+	                  	l$ts_delta = break_interval;
+	                  	for ( key in data )
+	                  		{
+	                  		local result = data[key];
+	                  		l$app        = key$str;
+	                  		l$bytes      = double_to_count(floor(result["apps.bytes"]$sum));
+	                  		l$hits       = result["apps.hits"]$num;
+	                  		l$uniq_hosts = result["apps.hits"]$unique;
+	                  		Log::write(LOG, l);
+	                  		}
+	                  	}]);
 	}
 
-function do_measurement(id: conn_id, hostname: string, size: count)
+function add_sumstats(id: conn_id, hostname: string, size: count)
 	{
 	if ( /\.youtube\.com$/ in hostname && size > 512*1024 )
 		{
-		Measurement::add_data("apps.bytes", [$str="youtube"], [$num=size]);
-		Measurement::add_data("apps.hits",  [$str="youtube"], [$str=cat(id$orig_h)]);
+		SumStats::observe("apps.bytes", [$str="youtube"], [$num=size]);
+		SumStats::observe("apps.hits",  [$str="youtube"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /(\.facebook\.com|\.fbcdn\.net)$/ in hostname && size > 20 )
 		{
-		Measurement::add_data("apps.bytes", [$str="facebook"], [$num=size]);
-		Measurement::add_data("apps.hits",  [$str="facebook"], [$str=cat(id$orig_h)]);
+		SumStats::observe("apps.bytes", [$str="facebook"], [$num=size]);
+		SumStats::observe("apps.hits",  [$str="facebook"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /\.google\.com$/ in hostname && size > 20 ) 
 		{
-		Measurement::add_data("apps.bytes", [$str="google"], [$num=size]);
-		Measurement::add_data("apps.hits",  [$str="google"], [$str=cat(id$orig_h)]);
+		SumStats::observe("apps.bytes", [$str="google"], [$num=size]);
+		SumStats::observe("apps.hits",  [$str="google"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /\.nflximg\.com$/ in hostname && size > 200*1024 ) 
 		{
-		Measurement::add_data("apps.bytes", [$str="netflix"], [$num=size]);
-		Measurement::add_data("apps.hits",  [$str="netflix"], [$str=cat(id$orig_h)]);
+		SumStats::observe("apps.bytes", [$str="netflix"], [$num=size]);
+		SumStats::observe("apps.hits",  [$str="netflix"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /\.(pandora|p-cdn)\.com$/ in hostname && size > 512*1024 )
 		{
-		Measurement::add_data("apps.bytes", [$str="pandora"], [$num=size]);
-		Measurement::add_data("apps.hits",  [$str="pandora"], [$str=cat(id$orig_h)]);
+		SumStats::observe("apps.bytes", [$str="pandora"], [$num=size]);
+		SumStats::observe("apps.hits",  [$str="pandora"], [$str=cat(id$orig_h)]);
 		}
 	else if ( /\.gmail\.com$/ in hostname && size > 20 )
 		{
-		Measurement::add_data("apps.bytes", [$str="gmail"], [$num=size]);
-		Measurement::add_data("apps.hits",  [$str="gmail"], [$str=cat(id$orig_h)]);
+		SumStats::observe("apps.bytes", [$str="gmail"], [$num=size]);
+		SumStats::observe("apps.hits",  [$str="gmail"], [$str=cat(id$orig_h)]);
 		}
 }
 
@@ -99,11 +99,11 @@ event ssl_established(c: connection)
 event connection_finished(c: connection)
 	{
 	if ( c?$resp_hostname )
-		do_measurement(c$id, c$resp_hostname, c$resp$size);
+		add_sumstats(c$id, c$resp_hostname, c$resp$size);
 	}
 
 event HTTP::log_http(rec: HTTP::Info)
 	{
 	if( rec?$host )
-		do_measurement(rec$id, rec$host, rec$response_body_len);
+		add_sumstats(rec$id, rec$host, rec$response_body_len);
 	}

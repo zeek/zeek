@@ -2,7 +2,7 @@
 ##! bruteforcing over SSH.
 
 @load base/protocols/ssh
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 @load base/frameworks/notice
 @load base/frameworks/intel
 
@@ -42,27 +42,27 @@ export {
 
 event bro_init()
 	{
-	local r1: Measurement::Reducer = [$stream="ssh.login.failure", $apply=set(Measurement::SUM)];
-	Measurement::create([$epoch=guessing_timeout,
-	                     $reducers=set(r1),
-	                     $threshold_val(key: Measurement::Key, result: Measurement::Result) =
-	                     	{ 
-	                     	return double_to_count(result["ssh.login.failure"]$sum);
-	                     	},
-	                     $threshold=password_guesses_limit,
-	                     $threshold_crossed(key: Measurement::Key, result: Measurement::Result) = 
-	                     	{
-	                     	local r = result["ssh.login.failure"];
-	                     	# Generate the notice.
-	                     	NOTICE([$note=Password_Guessing, 
-	                     	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
-	                     	        $src=key$host,
-	                     	        $identifier=cat(key$host)]);
-	                     	# Insert the guesser into the intel framework.
-	                     	Intel::insert([$host=key$host,
-	                     	               $meta=[$source="local", 
-	                     	                      $desc=fmt("Bro observed %d apparently failed SSH connections.", r$num)]]);
-	                     	}]);
+	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM)];
+	SumStats::create([$epoch=guessing_timeout,
+	                  $reducers=set(r1),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{ 
+	                  	return double_to_count(result["ssh.login.failure"]$sum);
+	                  	},
+	                  $threshold=password_guesses_limit,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	local r = result["ssh.login.failure"];
+	                  	# Generate the notice.
+	                  	NOTICE([$note=Password_Guessing, 
+	                  	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
+	                  	        $src=key$host,
+	                  	        $identifier=cat(key$host)]);
+	                  	# Insert the guesser into the intel framework.
+	                  	Intel::insert([$host=key$host,
+	                  	               $meta=[$source="local", 
+	                  	                      $desc=fmt("Bro observed %d apparently failed SSH connections.", r$num)]]);
+	                  	}]);
 	}
 
 event SSH::heuristic_successful_login(c: connection)
@@ -82,5 +82,5 @@ event SSH::heuristic_failed_login(c: connection)
 	# be ignored.
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
-		Measurement::add_data("ssh.login.failure", [$host=id$orig_h], [$num=1]);
+		SumStats::observe("ssh.login.failure", [$host=id$orig_h], [$num=1]);
 	}

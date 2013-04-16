@@ -1,5 +1,6 @@
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -30,11 +31,11 @@ hook init_resultval_hook(r: Reducer, rv: ResultVal)
 	}
 
 
-hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
+hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( HLLUNIQUE in r$apply )
 		{
-		hll_cardinality_add(rv$card, data);
+		hll_cardinality_add(rv$card, obs);
 		rv$hllunique = double_to_count(hll_cardinality_estimate(rv$card));
 		}
 	}

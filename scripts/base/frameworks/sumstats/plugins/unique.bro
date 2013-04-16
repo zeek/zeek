@@ -1,6 +1,6 @@
-@load base/frameworks/measurement
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -20,16 +20,16 @@ redef record ResultVal += {
 	# because we don't want to trust that we can inspect the values 
 	# since we will like move to a probalistic data structure in the future.
 	# TODO: in the future this will optionally be a hyperloglog structure
-	unique_vals: set[DataPoint] &optional;
+	unique_vals: set[Observation] &optional;
 };
 
-hook add_to_reducer_hook(r: Reducer, val: double, data: DataPoint, rv: ResultVal)
+hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( UNIQUE in r$apply )
 		{
 		if ( ! rv?$unique_vals ) 
 			rv$unique_vals=set();
-		add rv$unique_vals[data];
+		add rv$unique_vals[obs];
 		rv$unique = |rv$unique_vals|;
 		}
 	}

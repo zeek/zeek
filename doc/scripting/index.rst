@@ -501,3 +501,50 @@ Telling Bro to raise an event in your own Logging stream is as simple as exporti
    :language: bro
    :linenos:
    :lines: 4-62
+
+
+Notice Framework
+================
+
+While Bro's Logging Framework provides an easy and systematic way to generate logs, there still exists a need to indicate when a specific behavior has been detected and a method to allow that detection to come to someone's attention.  To that end, the Notice Framework is in place to allow script writers a codified means through which they can raise a notice and a system through which an operator can opt-in to receive the notice.  Bro holds to the philosophy that it is up to the individual operator to indicate the behaviors in which they are interested and as such Bro ships with a large number of policy scripts which detect behavior that may be of interest but it does not presume to guess as to which behaviors are "action-able".  In effect, Bro works to separate the act of detection and the responsibility of reporting.  With the Notice Framework it's simple to raise a notice for any behavior that is detected.
+
+To raise a notice in Bro, you only need to indicate to Bro that you are provide a specific ``Notice::Type`` by exporting it and then make a call to ``NOTICE()`` supplying it with an appropriate ``Notice::Info`` record.  Often times the call to ``NOTICE()`` includes just the ``Notice::Type``, and a concise message.  There are however, significantly more options available when raising notices as seen in the table below.  The only field in the table below whose attributes make it a required field is the ``note`` field.  Still, good manners are always important and including a concise message in ``$msg`` and, where necessary, the contents of the connection record in ``$conn`` along with the ``Notice::Type`` tend to comprise the minimum of information required for an notice to be considered useful.  If the ``$conn`` variable is supplied the Notice Framework will auto-populate the ``$id`` and ``$src`` fields as well.  Other fields that are commonly included, ``$identifier`` and ``$suppress_for`` are built around the automated suppression feature of the Notice Framework which we will cover shortly.  
+
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
+| Field               | Type                                                             | Attributes     | Use                                    |
+|=====================+==================================================================+================+========================================+
+| ts                  | time                                                             | &log &optional | The time of the notice                 |
+| uid                 | string                                                           | &log &optional | A unique connection ID                 |
+| id                  | conn_id                                                          | &log &optional | A 4-tuple to identify endpoints        |
+| conn                | connection                                                       | &optional      | Shorthand for the uid and id           |
+| iconn               | icmp_conn                                                        | &optional      | Shorthand for the uid and id           |
+| proto               | transport_proto                                                  | &log &optional | Transport protocol                     |
+| note                | Notice::Type                                                     | &log           | The Notice::Type of the notice         |
+| msg                 | string                                                           | &log &optional | Human readable message                 |
+| sub                 | string                                                           | &log &optional | Human readable message                 |
+| src                 | addr                                                             | &log &optional | Source address if no conn_id           |
+| dst                 | addr                                                             | &log &optional | Destination addr if no conn_id         |
+| p                   | port                                                             | &log &optional | Port if no conn_id                     |
+| n                   | count                                                            | &log &optional | Count or status code                   |
+| src_peer            | event_peer                                                       | &log &optional | Peer that raised the notice            |
+| peer_descr          | string                                                           | &log &optional | Text description of the src_peer       |
+| actions             | set[Notice::Action]                                              | &log &optional | Actions applied to the notice          |
+| policy_items        | set[count]                                                       | &log &optional | Policy items that have been applied    |
+| email_body_sections | vector                                                           | &optinal       | Body of the email for email notices.   |
+| email_delay_tokens  | set[string]                                                      | &optional      | Delay functionality for email notices. |
+| identifier          | string                                                           | &optional      | A unique string identifier             |
+| suppress_for        | interval                                                         | &log &optional | Length of time to suppress a notice.   |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
+
+One of the default policy scripts raises a notice when an SSH login has been heuristically detected and the originating hostname is one that would raise suspicion.  Effectively, the script attempts to define a list of hosts from which you would never want to see SSH traffic originating, dns servers, mail servers, etc.  To accomplish this, the script adhere's to the seperation of detection and reporting by detecting a behavior and raising a notice.  Whether or not that notice is acted upon is decided by the local Notice Policy, but the script attempts to supply as much information as possible while staying concise.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssh/interesting-hostnames.bro
+   :language: bro
+   :linenos:
+   :lines: 1-46
+
+While much of the script relates to the actual detection, the parts specific to the Notice Framework are actually quite interesting in themselves.  On line 12 the script's ``export`` block adds the value ``SSH::Interesting_Hostname_Login`` to the enumerable constant ``Notice::Type`` to indicate to the Bro core that a new type of notice is being defined.  The script then calls ``NOTICE()`` and defines the ``$note``, ``$msg``, ``$sub`` and ``$conn`` fields.  Line 39 also includes a ternary if statement that modifies the ``$msg`` text depending on whether the host is a local address and whether it is the client or the server.  This use of ``fmt()`` and a ternary operators is a concise way to lend readability to the notices that are generated without the need for branching ``if`` statements that each raise a specific notice.
+
+
+
+

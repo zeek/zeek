@@ -20,7 +20,7 @@
 #
 # Many of the compressed formats were extraced from IDARC 1.23 source code.
 #
-0	string/b	MZ
+0	string/b	MZ DOS MZ
 !:mime	application/x-dosexec
 # All non-DOS EXE extensions have the relocation table more than 0x40 bytes into the file.
 >0x18	leshort <0x40 MS-DOS executable

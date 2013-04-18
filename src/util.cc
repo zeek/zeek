@@ -1568,7 +1568,7 @@ void bro_init_magic(magic_t* cookie_ptr, int flags)
 	if ( ! cookie_ptr || *cookie_ptr )
 		return;
 
-	*cookie_ptr = magic_open(flags);
+	*cookie_ptr = magic_open(flags|MAGIC_NO_CHECK_TOKENS);
 
 	// Use our custom database for mime types, but the default database
 	// from libmagic for the verbose file type.

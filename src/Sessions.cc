@@ -20,8 +20,13 @@
 #include "analyzer/protocols/udp/UDP.h"
 
 #include "analyzer/protocols/stepping-stone/SteppingStone.h"
+#include "analyzer/protocols/stepping-stone/events.bif.h"
 #include "analyzer/protocols/backdoor/BackDoor.h"
+#include "analyzer/protocols/backdoor/events.bif.h"
 #include "analyzer/protocols/interconn/InterConn.h"
+#include "analyzer/protocols/interconn/events.bif.h"
+#include "analyzer/protocols/arp/ARP.h"
+#include "analyzer/protocols/arp/events.bif.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
 
@@ -102,7 +107,7 @@ NetSessions::NetSessions()
 	fragments.SetDeleteFunc(bro_obj_delete_func);
 
 	if ( stp_correlate_pair )
-		stp_manager = new SteppingStoneManager();
+		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
 		stp_manager = 0;
 
@@ -141,7 +146,7 @@ NetSessions::NetSessions()
 		pkt_profiler = 0;
 
 	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new ARP_Analyzer();
+		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = 0;
 	}
@@ -254,7 +259,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
 			}
 
-		else if ( ARP_Analyzer::IsARP(pkt, hdr_size) )
+		else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt, hdr_size) )
 			{
 			if ( arp_analyzer )
 				arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
@@ -521,9 +526,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ICMP4_counterpart(icmpp->icmp_type,
-						icmpp->icmp_code,
-						id.is_one_way);
+		id.dst_port = analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
+								icmpp->icmp_code,
+								id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -537,9 +542,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ICMP6_counterpart(icmpp->icmp_type,
-						icmpp->icmp_code,
-						id.is_one_way);
+		id.dst_port = analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
+								icmpp->icmp_code,
+								id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -962,12 +967,12 @@ void NetSessions::Remove(Connection* c)
 		{
 		c->CancelTimers();
 
-		TCP_Analyzer* ta = (TCP_Analyzer*) c->GetRootAnalyzer();
+		analyzer::tcp::TCP_Analyzer* ta = (analyzer::tcp::TCP_Analyzer*) c->GetRootAnalyzer();
 		if ( ta && c->ConnTransport() == TRANSPORT_TCP )
 			{
 			assert(ta->IsAnalyzer("TCP"));
-			TCP_Endpoint* to = ta->Orig();
-			TCP_Endpoint* tr = ta->Resp();
+			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			tcp_stats.StateLeft(to->state, tr->state);
 			}

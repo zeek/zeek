@@ -6,9 +6,12 @@
 #include "Event.h"
 #include "Rlogin.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::login;
 
 Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
-: ContentLine_Analyzer("CONTENTLINE", conn, orig)
+: tcp::ContentLine_Analyzer("CONTENTLINE", conn, orig)
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
@@ -26,7 +29,7 @@ Contents_Rlogin_Analyzer::~Contents_Rlogin_Analyzer()
 
 void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 	{
-	TCP_Analyzer* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
 
 	int endp_state = IsOrig() ? tcp->OrigState() : tcp->RespState();
@@ -40,10 +43,10 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 
 		switch ( state ) {
 		case RLOGIN_FIRST_NULL:
-			if ( endp_state == TCP_ENDPOINT_PARTIAL ||
+			if ( endp_state == tcp::TCP_ENDPOINT_PARTIAL ||
 			     // We can be in closed if the data's due to
 			     // a dataful FIN being the first thing we see.
-			     endp_state == TCP_ENDPOINT_CLOSED )
+			     endp_state == tcp::TCP_ENDPOINT_CLOSED )
 				{
 				state = RLOGIN_UNKNOWN;
 				++len, --data;	// put back c and reprocess
@@ -85,10 +88,10 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		case RLOGIN_SERVER_ACK:
-			if ( endp_state == TCP_ENDPOINT_PARTIAL ||
+			if ( endp_state == tcp::TCP_ENDPOINT_PARTIAL ||
 			     // We can be in closed if the data's due to
 			     // a dataful FIN being the first thing we see.
-			     endp_state == TCP_ENDPOINT_CLOSED )
+			     endp_state == tcp::TCP_ENDPOINT_CLOSED )
 				{
 				state = RLOGIN_UNKNOWN;
 				++len, --data;	// put back c and reprocess

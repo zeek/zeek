@@ -7,6 +7,9 @@
 #include "Sessions.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::ntp;
 
 NTP_Analyzer::NTP_Analyzer(Connection* conn)
 	: Analyzer("NTP", conn)

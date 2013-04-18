@@ -13,8 +13,10 @@
 
 class BroFile;
 class Connection;
+
+namespace analyzer { namespace tcp {
+
 class TCP_Analyzer;
-namespace analyzer { class Analyzer; }
 
 const int STOP_ON_GAP = 1;
 const int PUNT_ON_PARTIAL = 1;
@@ -26,7 +28,7 @@ public:
 		Forward,	// forward to destination analyzer's children
 	};
 
-	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
+	TCP_Reassembler(Analyzer* arg_dst_analyzer,
 			TCP_Analyzer* arg_tcp_analyzer, Type arg_type,
 			bool arg_is_orig, TCP_Endpoint* arg_endp);
 
@@ -34,7 +36,7 @@ public:
 
 	void Done();
 
-	void SetDstAnalyzer(analyzer::Analyzer* analyzer)	{ dst_analyzer = analyzer; }
+	void SetDstAnalyzer(Analyzer* analyzer)	{ dst_analyzer = analyzer; }
 	void SetType(Type arg_type)	{ type = arg_type; }
 
 	TCP_Analyzer* GetTCPAnalyzer()	{ return tcp_analyzer; }
@@ -69,6 +71,8 @@ public:
 	// Skip up to seq, as if there's a content gap.
 	// Can be used to skip HTTP data for performance considerations.
 	void SkipToSeq(int seq);
+} } // namespace analyzer::* 
+
 #endif
 
 	int DataSent(double t, int seq, int len, const u_char* data,
@@ -95,6 +99,8 @@ public:
 #ifdef ENABLE_SEQ_TO_SKIP
 	bool IsSkippedContents(int seq, int length) const
 		{ return seq + length <= seq_to_skip; }
+} } // namespace analyzer::* 
+
 #endif
 
 private:
@@ -125,11 +131,13 @@ private:
 
 	BroFile* record_contents_file;	// file on which to reassemble contents
 
-	analyzer::Analyzer* dst_analyzer;
+	Analyzer* dst_analyzer;
 	TCP_Analyzer* tcp_analyzer;
 
 	Type type;
 	bool is_orig;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -7,6 +7,10 @@
 #include "Portmap.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::rpc;
+
 #define PMAPPROC_NULL 0
 #define PMAPPROC_SET 1
 #define PMAPPROC_UNSET 2

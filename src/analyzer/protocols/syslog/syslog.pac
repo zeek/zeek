@@ -1,10 +1,10 @@
 
-%extern{
-        #include "events.bif.h"
-%}
-
 %include binpac.pac
 %include bro.pac
+
+%extern{
+#include "events.bif.h"
+%}
 
 analyzer Syslog withcontext {
 	connection:	Syslog_Conn;

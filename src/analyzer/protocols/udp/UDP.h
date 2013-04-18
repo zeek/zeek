@@ -6,6 +6,8 @@
 #include "analyzer/Analyzer.h"
 #include <netinet/udp.h>
 
+namespace analyzer { namespace udp {
+
 typedef enum {
 	UDP_INACTIVE,	// no packet seen
 	UDP_ACTIVE,	// packets seen
@@ -44,5 +46,7 @@ private:
 #define HIST_ORIG_CORRUPT_PKT 0x4
 #define HIST_RESP_CORRUPT_PKT 0x8
 };
+
+} } // namespace analyzer::* 
 
 #endif

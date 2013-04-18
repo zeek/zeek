@@ -11,11 +11,12 @@
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/login/NVT.h"
-#include "MIME.h"
-
+#include "analyzer/protocols/mime/MIME.h"
 
 #undef POP3_CMD_DEF
 #define POP3_CMD_DEF(cmd)	POP3_CMD_##cmd,
+
+namespace analyzer { namespace pop3 {
 
 typedef enum {
 #include "POP3_cmd.def"
@@ -60,7 +61,7 @@ typedef enum {
 	POP3_WOK,
 } POP3_SubState;
 
-class POP3_Analyzer : public TCP_ApplicationAnalyzer {
+class POP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	POP3_Analyzer(Connection* conn);
 	~POP3_Analyzer();
@@ -103,11 +104,13 @@ protected:
 	void POP3Event(EventHandlerPtr event, bool is_orig,
 			const char* arg1 = 0, const char* arg2 = 0);
 
-	MIME_Mail* mail;
+	mime::MIME_Mail* mail;
 	list<string> cmds;
 
 private:
 	bool backOff;
 };
+
+} } // namespace analyzer::* 
 
 #endif

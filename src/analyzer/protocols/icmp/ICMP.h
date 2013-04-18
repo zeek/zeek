@@ -6,6 +6,8 @@
 #include "RuleMatcher.h"
 #include "analyzer/Analyzer.h"
 
+namespace analyzer { namespace icmp {
+
 typedef enum {
 	ICMP_INACTIVE,	// no packet seen
 	ICMP_ACTIVE,	// packets seen
@@ -91,5 +93,7 @@ private:
 // to ICMP_ECHOREPLY is ICMP_ECHO).
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
+
+} } // namespace analyzer::* 
 
 #endif

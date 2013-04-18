@@ -5,6 +5,8 @@
 
 #include "analyzer/protocols/tcp/TCP.h"
 
+namespace analyzer { namespace login {
+
 typedef enum {
 	LOGIN_STATE_AUTHENTICATE,	// trying to authenticate
 
@@ -19,7 +21,7 @@ typedef enum {
 // Maximum # lines look after login for failure.
 #define MAX_LOGIN_LOOKAHEAD 10
 
-class Login_Analyzer : public TCP_ApplicationAnalyzer {
+class Login_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	Login_Analyzer(const char* name, Connection* conn);
 	~Login_Analyzer();
@@ -81,5 +83,7 @@ protected:
 	int is_VMS;
 	int saw_ploy;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -12,6 +12,10 @@
 #include "analyzer/protocols/pia/PIA.h"
 #include "analyzer/Manager.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::gnutella;
+
 GnutellaMsgState::GnutellaMsgState()
 	{
 	buffer = "";
@@ -30,7 +34,7 @@ GnutellaMsgState::GnutellaMsgState()
 
 
 Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("GNUTELLA", conn)
+: tcp::TCP_ApplicationAnalyzer("GNUTELLA", conn)
 	{
 	state = 0;
 	new_state = 0;
@@ -50,7 +54,7 @@ Gnutella_Analyzer::~Gnutella_Analyzer()
 
 void Gnutella_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
@@ -138,9 +142,9 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.
-			PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
+			pia::PIA* pia = static_cast<analyzer::TransportLayerAnalyzer *>(Parent())->GetPIA();
 			if ( pia )
-				static_cast<PIA_TCP *>(pia)->ReplayStreamBuffer(a);
+				static_cast<pia::PIA_TCP *>(pia)->ReplayStreamBuffer(a);
 			}
 
 		Parent()->RemoveChildAnalyzer(this);
@@ -328,7 +332,7 @@ void Gnutella_Analyzer::DeliverMessages(int len, const u_char* data, bool orig)
 
 void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	ms = orig ? orig_msg_state : resp_msg_state;
 	ms->current_offset = 0;

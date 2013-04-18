@@ -11,6 +11,10 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::tcp;
+
 namespace { // local namespace
 	const bool DEBUG_tcp_data_sent = false;
 	const bool DEBUG_tcp_connection_close = false;
@@ -954,7 +958,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
-		PIA_TCP* pia = static_cast<PIA_TCP*>(Conn()->GetPrimaryPIA());
+		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= ORIG;
@@ -962,7 +966,7 @@ void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
 
 	if ( ! is_orig && ! (first_packet_seen & RESP) )
 		{
-		PIA_TCP* pia = static_cast<PIA_TCP*>(Conn()->GetPrimaryPIA());
+		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
 		if ( pia )
 			pia->FirstPacket(is_orig, ip);
 		first_packet_seen |= RESP;

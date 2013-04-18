@@ -4,11 +4,15 @@
 #include "Reporter.h"
 #include "util.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::file;
+
 magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;
 
 File_Analyzer::File_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("FILE", conn)
+: tcp::TCP_ApplicationAnalyzer("FILE", conn)
 	{
 	buffer_len = 0;
 
@@ -18,7 +22,7 @@ File_Analyzer::File_Analyzer(Connection* conn)
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	int n = min(len, BUFFER_SIZE - buffer_len);
 
@@ -35,7 +39,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void File_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( buffer_len && buffer_len != BUFFER_SIZE )
 		Identify();

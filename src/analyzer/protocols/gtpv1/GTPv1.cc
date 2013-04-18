@@ -1,4 +1,10 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "GTPv1.h"
+
+#include "events.bif.h"
+
+using namespace analyzer::gtpv1;
 
 GTPv1_Analyzer::GTPv1_Analyzer(Connection* conn)
 : Analyzer("GTPV1", conn)

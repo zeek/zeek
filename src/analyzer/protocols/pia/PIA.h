@@ -8,6 +8,8 @@
 
 class RuleEndpointState;
 
+namespace analyzer { namespace pia {
+
 // Abstract PIA class providing common functionality for both TCP and UDP.
 // Accepts only packet input.
 //
@@ -115,10 +117,10 @@ protected:
 
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
 // packets before passing payload on to children).
-class PIA_TCP : public PIA, public TCP_ApplicationAnalyzer {
+class PIA_TCP : public PIA, public tcp::TCP_ApplicationAnalyzer {
 public:
 	PIA_TCP(Connection* conn)
-		: PIA(this), TCP_ApplicationAnalyzer("PIA_TCP", conn)
+		: PIA(this), tcp::TCP_ApplicationAnalyzer("PIA_TCP", conn)
 		{ stream_mode = false; SetConn(conn); }
 
 	virtual ~PIA_TCP();
@@ -168,5 +170,7 @@ private:
 
 	bool stream_mode;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -12,8 +12,9 @@ namespace binpac  {
    }
 }
 
+namespace analyzer { namespace socks {
 
-class SOCKS_Analyzer : public TCP_ApplicationAnalyzer {
+class SOCKS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SOCKS_Analyzer(Connection* conn);
 	~SOCKS_Analyzer();
@@ -33,8 +34,10 @@ protected:
 	bool orig_done;
 	bool resp_done;
 
-	PIA_TCP *pia;
+	pia::PIA_TCP *pia;
 	binpac::SOCKS::SOCKS_Conn* interp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

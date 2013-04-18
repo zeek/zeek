@@ -7,7 +7,11 @@
 #include "Net.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
-InterConnEndpoint::InterConnEndpoint(TCP_Endpoint* e)
+#include "events.bif.h"
+
+using namespace analyzer::interconn;
+
+InterConnEndpoint::InterConnEndpoint(tcp::TCP_Endpoint* e)
 	{
 	endp = e;
 	max_top_seq = 0;
@@ -30,7 +34,7 @@ int InterConnEndpoint::DataSent(double t, int seq, int len, int caplen,
 	if ( len <= 0 )
 		return 0;
 
-	if ( endp->state == TCP_ENDPOINT_PARTIAL )
+	if ( endp->state == tcp::TCP_ENDPOINT_PARTIAL )
 		is_partial = 1;
 
 	int ack = endp->AckSeq() - endp->StartSeq();
@@ -153,7 +157,7 @@ int InterConnEndpoint::IsNormalKeystrokeInterarrival(double t) const
 	}
 
 InterConn_Analyzer::InterConn_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("INTERCONN", c)
+: tcp::TCP_ApplicationAnalyzer("INTERCONN", c)
 	{
 	orig_endp = resp_endp = 0;
 	orig_stream_pos = resp_stream_pos = 1;
@@ -172,7 +176,7 @@ InterConn_Analyzer::~InterConn_Analyzer()
 
 void InterConn_Analyzer::Init()
 	{
-	TCP_ApplicationAnalyzer::Init();
+	tcp::TCP_ApplicationAnalyzer::Init();
 
 	assert(TCP());
 	orig_endp = new InterConnEndpoint(TCP()->Orig());
@@ -182,7 +186,7 @@ void InterConn_Analyzer::Init()
 void InterConn_Analyzer::DeliverPacket(int len, const u_char* data,
 			bool is_orig, int seq, const IP_Hdr* ip, int caplen)
 	{
-	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig,
+	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig,
 						seq, ip, caplen);
 
 	if ( is_orig )
@@ -193,7 +197,7 @@ void InterConn_Analyzer::DeliverPacket(int len, const u_char* data,
 
 void InterConn_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( is_orig )
 		{
@@ -218,7 +222,7 @@ void InterConn_Analyzer::Done()
 		RemoveEvent();
 		}
 
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
 void InterConn_Analyzer::StatTimer(double t, int is_expire)

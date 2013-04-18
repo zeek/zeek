@@ -13,6 +13,10 @@ using namespace std;
 
 #include "analyzer/Manager.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::dce_rpc;
+
 #define xbyte(b, n) (((const u_char*) (b))[n])
 
 #define extract_uint16(little_endian, bytes) \
@@ -27,7 +31,7 @@ static int uuid_index[] = {
 	12, 13, 14, 15
 };
 
-const char* uuid_to_string(const u_char* uuid_data)
+const char* analyzer::dce_rpc::uuid_to_string(const u_char* uuid_data)
 	{
 	static char s[1024];
 	char* sp = s;
@@ -443,7 +447,7 @@ void DCE_RPC_Session::DeliverEpmapperMapResponse(
 
 Contents_DCE_RPC_Analyzer::Contents_DCE_RPC_Analyzer(Connection* conn,
 		bool orig, DCE_RPC_Session* arg_session, bool speculative)
-: TCP_SupportAnalyzer("CONTENTS_DCE_RPC", conn, orig)
+: tcp::TCP_SupportAnalyzer("CONTENTS_DCE_RPC", conn, orig)
 	{
 	session = arg_session;
 	msg_buf = 0;
@@ -475,10 +479,10 @@ Contents_DCE_RPC_Analyzer::~Contents_DCE_RPC_Analyzer()
 
 void Contents_DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	TCP_Analyzer* tcp =
-		static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	tcp::TCP_Analyzer* tcp =
+		static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 
 	if ( tcp->HadGap(orig) || tcp->IsPartial() )
 		return;
@@ -567,7 +571,7 @@ bool Contents_DCE_RPC_Analyzer::ParseHeader()
 	}
 
 DCE_RPC_Analyzer::DCE_RPC_Analyzer(Connection* conn, bool arg_speculative)
-: TCP_ApplicationAnalyzer("DCE_RPC", conn)
+: tcp::TCP_ApplicationAnalyzer("DCE_RPC", conn)
 	{
 	session = new DCE_RPC_Session(this);
 	speculative = arg_speculative;

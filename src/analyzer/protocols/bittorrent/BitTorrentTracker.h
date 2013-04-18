@@ -7,6 +7,8 @@
 
 #define BTTRACKER_BUF 2048
 
+namespace analyzer { namespace bittorrent {
+
 // If the following is defined, then the analyzer will store all of
 // the headers seen in tracker messages.
 //#define BTTRACKER_STORE_HEADERS 1
@@ -40,7 +42,7 @@ enum btt_benc_states {
 	BENC_STATE_STR2,
 };
 
-class BitTorrentTracker_Analyzer : public TCP_ApplicationAnalyzer {
+class BitTorrentTracker_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	BitTorrentTracker_Analyzer(Connection* conn);
 	virtual ~BitTorrentTracker_Analyzer();
@@ -125,5 +127,7 @@ protected:
 	// True on protocol violation.
 	bool stop_orig, stop_resp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

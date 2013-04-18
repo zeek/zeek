@@ -10,6 +10,10 @@
 #include "RE.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::login;
+
 static RE_Matcher* re_skip_authentication = 0;
 static RE_Matcher* re_direct_login_prompts;
 static RE_Matcher* re_login_prompts;
@@ -21,7 +25,7 @@ static RE_Matcher* re_login_timeouts;
 static RE_Matcher* init_RE(ListVal* l);
 
 Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
-: TCP_ApplicationAnalyzer(name, conn)
+: tcp::TCP_ApplicationAnalyzer(name, conn)
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
 	num_user_lines_seen = lines_scanned = 0;
@@ -65,7 +69,7 @@ Login_Analyzer::~Login_Analyzer()
 
 void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	char* str = new char[length+1];
 
@@ -102,8 +106,8 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state == LOGIN_STATE_AUTHENTICATE )
 		{
-		if ( TCP()->OrigState() == TCP_ENDPOINT_PARTIAL ||
-		     TCP()->RespState() == TCP_ENDPOINT_PARTIAL )
+		if ( TCP()->OrigState() == tcp::TCP_ENDPOINT_PARTIAL ||
+		     TCP()->RespState() == tcp::TCP_ENDPOINT_PARTIAL )
 			state = LOGIN_STATE_CONFUSED;	// unknown login state
 		else
 			{
@@ -361,7 +365,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 void Login_Analyzer::EndpointEOF(bool orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(orig);
+	tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
 
 	if ( state == LOGIN_STATE_AUTHENTICATE && HaveTypeahead() )
 		{

@@ -7,9 +7,11 @@
 #include "Timer.h"
 #include "NetVar.h"
 
+namespace analyzer { namespace interconn {
+
 class InterConnEndpoint : public BroObj {
 public:
-	InterConnEndpoint(TCP_Endpoint* e);
+	InterConnEndpoint(tcp::TCP_Endpoint* e);
 
 	int DataSent(double t, int seq, int len, int caplen, const u_char* data,
 		     const IP_Hdr* ip, const struct tcphdr* tp);
@@ -21,7 +23,7 @@ protected:
 	int IsPotentialKeystrokePacket(int len) const;
 	int IsNormalKeystrokeInterarrival(double t) const;
 
-	TCP_Endpoint* endp;
+	tcp::TCP_Endpoint* endp;
 	double last_keystroke_time;
 	int max_top_seq;
 	uint32 num_pkts;
@@ -38,7 +40,7 @@ protected:
 };
 
 
-class InterConn_Analyzer : public TCP_ApplicationAnalyzer {
+class InterConn_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	InterConn_Analyzer(Connection* c);
 	~InterConn_Analyzer();
@@ -80,5 +82,7 @@ public:
 protected:
 	InterConn_Analyzer* analyzer;
 };
+
+} } // namespace analyzer::* 
 
 #endif

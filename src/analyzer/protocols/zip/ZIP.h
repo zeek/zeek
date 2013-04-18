@@ -8,7 +8,9 @@
 #include "zlib.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
-class ZIP_Analyzer : public TCP_SupportAnalyzer {
+namespace analyzer { namespace zip {
+
+class ZIP_Analyzer : public tcp::TCP_SupportAnalyzer {
 public:
 	enum Method { GZIP, DEFLATE };
 
@@ -25,5 +27,7 @@ protected:
 	int zip_status;
 	Method method;
 };
+
+} } // namespace analyzer::* 
 
 #endif

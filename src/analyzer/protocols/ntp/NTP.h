@@ -5,11 +5,12 @@
 
 #include "analyzer/protocols/udp/UDP.h"
 
-
 // The following are from the tcpdump distribution, credited there
 // to the U of MD implementation.
 
 #define JAN_1970	2208988800.0	/* 1970 - 1900 in seconds */
+
+namespace analyzer { namespace ntp {
 
 struct l_fixedpt {
 	unsigned int int_part;
@@ -62,5 +63,7 @@ protected:
 	friend class ConnectionTimer;
 	void ExpireTimer(double t);
 };
+
+} } // namespace analyzer::* 
 
 #endif

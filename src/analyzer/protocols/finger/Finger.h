@@ -4,10 +4,11 @@
 #define finger_h
 
 #include "analyzer/protocols/tcp/TCP.h"
+#include "analyzer/protocols/tcp/ContentLine.h"
 
-class ContentLine_Analyzer;
+namespace analyzer { namespace finger {
 
-class Finger_Analyzer : public TCP_ApplicationAnalyzer {
+class Finger_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	Finger_Analyzer(Connection* conn);
 	virtual ~Finger_Analyzer()	{}
@@ -20,9 +21,11 @@ public:
 		{ return new Finger_Analyzer(conn); }
 
 protected:
-	ContentLine_Analyzer* content_line_orig;
-	ContentLine_Analyzer* content_line_resp;
+	tcp::ContentLine_Analyzer* content_line_orig;
+	tcp::ContentLine_Analyzer* content_line_resp;
 	int did_deliver;
 };
+
+} } // namespace analyzer::* 
 
 #endif

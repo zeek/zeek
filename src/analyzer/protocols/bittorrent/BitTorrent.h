@@ -7,7 +7,9 @@
 
 #include "bittorrent_pac.h"
 
-class BitTorrent_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace bittorrent {
+
+class BitTorrent_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	BitTorrent_Analyzer(Connection* conn);
 	virtual ~BitTorrent_Analyzer();
@@ -27,5 +29,7 @@ protected:
 	bool stop_orig, stop_resp;
 	uint64 stream_len_orig, stream_len_resp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

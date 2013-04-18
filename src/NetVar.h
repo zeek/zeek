@@ -96,7 +96,6 @@ extern RecordType* http_stats_rec;
 extern RecordType* http_message_stat;
 extern int truncate_http_URI;
 
-extern int pm_request;
 extern RecordType* pm_mapping;
 extern TableType* pm_mappings;
 extern RecordType* pm_port_request;

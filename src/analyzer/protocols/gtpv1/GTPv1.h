@@ -3,6 +3,8 @@
 
 #include "gtpv1_pac.h"
 
+namespace analyzer { namespace gtpv1 {
+
 class GTPv1_Analyzer : public analyzer::Analyzer {
 public:
 	GTPv1_Analyzer(Connection* conn);
@@ -20,5 +22,7 @@ protected:
 
 	binpac::GTPv1::GTPv1_Conn* interp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -12,6 +12,8 @@ using namespace std;
 #include "BroString.h"
 #include "analyzer/Analyzer.h"
 
+namespace analyzer { namespace mime {
+
 // MIME: Multipurpose Internet Mail Extensions
 // Follows RFC 822 & 2822 (Internet Mail), 2045-2049 (MIME)
 // See related files: SMTP.h and SMTP.cc
@@ -272,5 +274,7 @@ extern int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* fi
 extern int MIME_get_value(int len, const char* data, BroString*& buf);
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
+
+} } // namespace analyzer::* 
 
 #endif

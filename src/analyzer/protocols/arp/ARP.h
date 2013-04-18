@@ -24,7 +24,9 @@
 #endif
 
 #include "NetVar.h"
+#include "PacketSort.h"
 
+namespace analyzer { namespace arp {
 
 class ARP_Analyzer : public BroObj {
 public:
@@ -52,5 +54,7 @@ protected:
 	EventHandlerPtr arp_request;
 	EventHandlerPtr arp_reply;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -5,6 +5,8 @@
 
 #include "Login.h"
 
+namespace analyzer { namespace login {
+
 class Telnet_Analyzer : public Login_Analyzer {
 public:
 	Telnet_Analyzer(Connection* conn);
@@ -13,5 +15,7 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Telnet_Analyzer(conn); }
 };
+
+} } // namespace analyzer::* 
 
 #endif

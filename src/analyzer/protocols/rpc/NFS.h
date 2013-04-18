@@ -7,6 +7,8 @@
 #include "XDR.h"
 #include "Event.h"
 
+namespace analyzer { namespace rpc {
+
 class NFS_Interp : public RPC_Interpreter {
 public:
 	NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
@@ -79,5 +81,7 @@ public:
 		{ return new NFS_Analyzer(conn); }
 };
 
+
+} } // namespace analyzer::* 
 
 #endif

@@ -12,6 +12,10 @@
 #include "Sessions.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::dns;
+
 DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
@@ -993,7 +997,7 @@ Val* DNS_MsgInfo::BuildTSIG_Val()
 
 Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 				DNS_Interpreter* arg_interp)
-: TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
+: tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig)
 	{
 	interp = arg_interp;
 
@@ -1080,7 +1084,7 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 DNS_Analyzer::DNS_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("DNS", conn)
+: tcp::TCP_ApplicationAnalyzer("DNS", conn)
 	{
 	interp = new DNS_Interpreter(this);
 	contents_dns_orig = contents_dns_resp = 0;
@@ -1112,7 +1116,7 @@ void DNS_Analyzer::Init()
 
 void DNS_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP && ! did_session_done )
 		Event(udp_session_done);
@@ -1123,7 +1127,7 @@ void DNS_Analyzer::Done()
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen)
 	{
-	TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 	if ( orig )
 		{
@@ -1141,10 +1145,10 @@ void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	}
 
 
-void DNS_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+void DNS_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint, tcp::TCP_Endpoint* peer,
 					int gen_event)
 	{
-	TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
+	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
 	assert(contents_dns_orig && contents_dns_resp);
 	contents_dns_orig->Flush();

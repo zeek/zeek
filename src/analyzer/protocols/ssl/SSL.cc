@@ -4,8 +4,12 @@
 #include "Reporter.h"
 #include "util.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::ssl;
+
 SSL_Analyzer::SSL_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("SSL", c)
+: tcp::TCP_ApplicationAnalyzer("SSL", c)
 	{
 	interp = new binpac::SSL::SSL_Conn(this);
 	had_gap = false;
@@ -18,7 +22,7 @@ SSL_Analyzer::~SSL_Analyzer()
 
 void SSL_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -26,13 +30,13 @@ void SSL_Analyzer::Done()
 
 void SSL_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 	if ( TCP()->IsPartial() )
@@ -55,7 +59,7 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void SSL_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}

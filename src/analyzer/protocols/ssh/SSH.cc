@@ -9,15 +9,19 @@
 #include "Event.h"
 #include "analyzer/protocols/tcp/ContentLine.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::ssh;
+
 SSH_Analyzer::SSH_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("SSH", c)
+: tcp::TCP_ApplicationAnalyzer("SSH", c)
 	{
-	orig = new ContentLine_Analyzer(c, true);
+	orig = new tcp::ContentLine_Analyzer(c, true);
 	orig->SetSkipPartial(true);
 	orig->SetCRLFAsEOL(LF_as_EOL);
 	AddSupportAnalyzer(orig);
 
-	resp = new ContentLine_Analyzer(c, false);
+	resp = new tcp::ContentLine_Analyzer(c, false);
 	resp->SetSkipPartial(true);
 	resp->SetCRLFAsEOL(LF_as_EOL);
 	AddSupportAnalyzer(resp);
@@ -25,7 +29,7 @@ SSH_Analyzer::SSH_Analyzer(Connection* c)
 
 void SSH_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 
 	// We're all done processing this endpoint - flag it as such,
 	// before we even determine whether we have any event generation
@@ -38,7 +42,7 @@ void SSH_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	if ( TCP() )
 		{
 		// Don't try to parse version if there has already been a gap.
-		TCP_Endpoint* endp = is_orig ? TCP()->Orig() : TCP()->Resp();
+		tcp::TCP_Endpoint* endp = is_orig ? TCP()->Orig() : TCP()->Resp();
 		if ( endp->HadGap() )
 			return;
 		}

@@ -6,6 +6,8 @@
 #include "Login.h"
 #include "analyzer/protocols/tcp/ContentLine.h"
 
+namespace analyzer { namespace login {
+
 typedef enum {
 	RLOGIN_FIRST_NULL,	// waiting to see first NUL
 	RLOGIN_CLIENT_USER_NAME,	// scanning client user name up to NUL
@@ -29,7 +31,7 @@ typedef enum {
 
 class Rlogin_Analyzer;
 
-class Contents_Rlogin_Analyzer : public ContentLine_Analyzer {
+class Contents_Rlogin_Analyzer : public tcp::ContentLine_Analyzer {
 public:
 	Contents_Rlogin_Analyzer(Connection* conn, bool orig,
 					Rlogin_Analyzer* analyzer);
@@ -63,5 +65,7 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Rlogin_Analyzer(conn); }
 };
+
+} } // namespace analyzer::* 
 
 #endif

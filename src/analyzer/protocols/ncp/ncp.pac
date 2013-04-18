@@ -2,6 +2,10 @@
 
 %include bro.pac
 
+%extern{
+#include "events.bif.h"
+%}
+
 analyzer NCP withcontext {};
 
 type ncp_request(length: uint32) = record {

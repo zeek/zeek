@@ -6,6 +6,10 @@
 #include "Val.h"
 #include "Reporter.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::smb;
+
 namespace {
 	const bool DEBUG_smb_ipc = true;
 }
@@ -1093,7 +1097,7 @@ bool SMB_Session::CheckRPC(int is_orig, int data_count, const u_char *data)
 	if ( LooksLikeRPC(data_count, data) )
 		{
 		if ( ! dce_rpc_session )
-			dce_rpc_session = new DCE_RPC_Session(analyzer);
+			dce_rpc_session = new dce_rpc::DCE_RPC_Session(analyzer);
 
 		dce_rpc_session->DeliverPDU(is_orig, data_count, data);
 
@@ -1104,7 +1108,7 @@ bool SMB_Session::CheckRPC(int is_orig, int data_count, const u_char *data)
 	}
 
 Contents_SMB::Contents_SMB(Connection* conn, bool orig, SMB_Session* s)
-: TCP_SupportAnalyzer("CONTENTS_SMB", conn, orig)
+: tcp::TCP_SupportAnalyzer("CONTENTS_SMB", conn, orig)
 	{
 	smb_session = s;
 	msg_buf = 0;
@@ -1145,7 +1149,7 @@ void Contents_SMB::DeliverSMB(int len, const u_char* data)
 
 void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	while ( len > 0 )
 		{
@@ -1221,7 +1225,7 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 SMB_Analyzer::SMB_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("SMB", conn)
+: tcp::TCP_ApplicationAnalyzer("SMB", conn)
 	{
 	smb_session = new SMB_Session(this);
 	o_smb = new Contents_SMB(conn, true, smb_session);

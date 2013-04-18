@@ -6,11 +6,14 @@
 #include "NetVar.h"
 #include "Event.h"
 #include "analyzer/protocols/zip/ZIP.h"
-
 #include "analyzer/Manager.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::irc;
+
 IRC_Analyzer::IRC_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("IRC", conn)
+: tcp::TCP_ApplicationAnalyzer("IRC", conn)
 	{
 	invalid_msg_count = 0;
 	invalid_msg_max_count = 20;
@@ -18,18 +21,18 @@ IRC_Analyzer::IRC_Analyzer(Connection* conn)
 	resp_status = WAIT_FOR_REGISTRATION;
 	orig_zip_status = NO_ZIP;
 	resp_zip_status = NO_ZIP;
-	AddSupportAnalyzer(new ContentLine_Analyzer(conn, true));
-	AddSupportAnalyzer(new ContentLine_Analyzer(conn, false));
+	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, true));
+	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, false));
 	}
 
 void IRC_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	// check line size
 	if ( length > 512 )
@@ -1158,8 +1161,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		orig_zip_status = ZIP_LOADED;
 		resp_zip_status = ZIP_LOADED;
-		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), true));
-		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), false));
+		AddSupportAnalyzer(new zip::ZIP_Analyzer(Conn(), true));
+		AddSupportAnalyzer(new zip::ZIP_Analyzer(Conn(), false));
 		}
 
 	return;

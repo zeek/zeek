@@ -7,6 +7,7 @@
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
 
+namespace analyzer { namespace conn_size {
 
 class ConnSize_Analyzer : public analyzer::Analyzer {
 public:
@@ -33,5 +34,7 @@ protected:
 	uint64_t orig_pkts;
 	uint64_t resp_pkts;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -5,6 +5,8 @@
 
 #include "analyzer/protocols/tcp/TCP.h"
 
+namespace analyzer { namespace tcp {
+
 #define CR_as_EOL 1
 #define LF_as_EOL 2
 
@@ -103,5 +105,7 @@ protected:
 	// Whether to skip partial conns.
 	unsigned int skip_partial:1;
 };
+
+} } // namespace analyzer::* 
 
 #endif

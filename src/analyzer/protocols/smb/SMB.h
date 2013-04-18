@@ -10,6 +10,8 @@
 #include "analyzer/protocols/dce-rpc/DCE_RPC.h"
 #include "smb_pac.h"
 
+namespace analyzer { namespace smb {
+
 enum IPC_named_pipe {
 	IPC_NONE,
 	IPC_LOCATOR,
@@ -43,15 +45,6 @@ public:
 	~SMB_Session();
 
 	void Deliver(int is_orig, int len, const u_char* msg);
-
-	static bool any_smb_event()
-		{
-		return smb_message ||
-			smb_com_tree_connect_andx ||
-			smb_com_nt_create_andx || smb_com_transaction ||
-			smb_com_transaction2 || smb_com_read_andx ||
-			smb_com_write_andx;
-		}
 
 protected:
 	void ParseMessage(int is_orig, int cmd,
@@ -159,7 +152,7 @@ protected:
 	Val* BuildTransactionDataVal(binpac::SMB::SMB_transaction_data* data);
 
 	analyzer::Analyzer* analyzer;
-	DCE_RPC_Session* dce_rpc_session;
+	dce_rpc::DCE_RPC_Session* dce_rpc_session;
 	enum IPC_named_pipe IPC_pipe;
 	int is_IPC;
 	int req_cmd;
@@ -170,7 +163,7 @@ protected:
 	binpac::SMB::SMB_andx* andx_[2];
 };
 
-class Contents_SMB : public TCP_SupportAnalyzer {
+class Contents_SMB : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_SMB(Connection* conn, bool orig, SMB_Session* smb_session);
 	~Contents_SMB();
@@ -190,7 +183,7 @@ protected:
 	int buf_len;	// size off msg_buf
 };
 
-class SMB_Analyzer : public TCP_ApplicationAnalyzer {
+class SMB_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SMB_Analyzer(Connection* conn);
 	~SMB_Analyzer();
@@ -203,5 +196,7 @@ protected:
 	Contents_SMB* o_smb;
 	Contents_SMB* r_smb;
 };
+
+} } // namespace analyzer::* 
 
 #endif

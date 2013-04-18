@@ -6,7 +6,9 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/ContentLine.h"
 
-class Ident_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace ident {
+
+class Ident_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	Ident_Analyzer(Connection* conn);
 	virtual void Done();
@@ -25,11 +27,13 @@ protected:
 	void BadRequest(int length, const char* line);
 	void BadReply(int length, const char* line);
 
-	ContentLine_Analyzer* orig_ident;
-	ContentLine_Analyzer* resp_ident;
+	tcp::ContentLine_Analyzer* orig_ident;
+	tcp::ContentLine_Analyzer* resp_ident;
 
 	unsigned int did_deliver:1;
 	unsigned int did_bad_reply:1;
 };
+
+} } // namespace analyzer::* 
 
 #endif

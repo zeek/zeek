@@ -3,6 +3,10 @@
 #include "ContentLine.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::tcp;
+
 ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig)
 : TCP_SupportAnalyzer("CONTENTLINE", conn, orig)
 	{

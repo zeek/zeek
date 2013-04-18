@@ -8,6 +8,8 @@
 
 class NetSessions;
 
+namespace analyzer { namespace stepping_stone {
+
 class SteppingStoneEndpoint;
 class SteppingStoneManager;
 
@@ -16,7 +18,7 @@ declare(PDict,SteppingStoneEndpoint);
 
 class SteppingStoneEndpoint : public BroObj {
 public:
-	SteppingStoneEndpoint(TCP_Endpoint* e, SteppingStoneManager* m);
+	SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m);
 	~SteppingStoneEndpoint();
 	void Done();
 
@@ -27,7 +29,7 @@ protected:
 	void Event(EventHandlerPtr f, int id1, int id2 = -1);
 	void CreateEndpEvent(int is_orig);
 
-	TCP_Endpoint* endp;
+	tcp::TCP_Endpoint* endp;
 	int stp_max_top_seq;
 	double stp_last_time;
 	double stp_resume_time;
@@ -43,7 +45,7 @@ protected:
 	PDict(SteppingStoneEndpoint) stp_outbound_endps;
 };
 
-class SteppingStone_Analyzer : public TCP_ApplicationAnalyzer {
+class SteppingStone_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SteppingStone_Analyzer(Connection* c);
 	virtual ~SteppingStone_Analyzer() {};
@@ -84,5 +86,7 @@ protected:
 	PQueue(SteppingStoneEndpoint) ordered_endps;
 	int endp_cnt;
 };
+
+} } // namespace analyzer::* 
 
 #endif /* steppingstone_h */

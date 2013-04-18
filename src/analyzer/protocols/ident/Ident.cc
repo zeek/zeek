@@ -8,13 +8,17 @@
 #include "Ident.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::ident;
+
 Ident_Analyzer::Ident_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("IDENT", conn)
+: tcp::TCP_ApplicationAnalyzer("IDENT", conn)
 	{
 	did_bad_reply = did_deliver = 0;
 
-	orig_ident = new ContentLine_Analyzer(conn, true);
-	resp_ident = new ContentLine_Analyzer(conn, false);
+	orig_ident = new tcp::ContentLine_Analyzer(conn, true);
+	resp_ident = new tcp::ContentLine_Analyzer(conn, false);
 
 	orig_ident->SetIsNULSensitive(true);
 	resp_ident->SetIsNULSensitive(true);
@@ -25,29 +29,29 @@ Ident_Analyzer::Ident_Analyzer(Connection* conn)
 
 void Ident_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( TCP() )
 		if ( (! did_deliver || orig_ident->HasPartialLine()) &&
-		     (TCP()->OrigState() == TCP_ENDPOINT_CLOSED ||
-		      TCP()->OrigPrevState() == TCP_ENDPOINT_CLOSED) &&
-		     TCP()->OrigPrevState() != TCP_ENDPOINT_PARTIAL &&
-		     TCP()->RespPrevState() != TCP_ENDPOINT_PARTIAL &&
-		     TCP()->OrigPrevState() != TCP_ENDPOINT_INACTIVE &&
-		     TCP()->RespPrevState() != TCP_ENDPOINT_INACTIVE )
+		     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
+		      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) &&
+		     TCP()->OrigPrevState() != tcp::TCP_ENDPOINT_PARTIAL &&
+		     TCP()->RespPrevState() != tcp::TCP_ENDPOINT_PARTIAL &&
+		     TCP()->OrigPrevState() != tcp::TCP_ENDPOINT_INACTIVE &&
+		     TCP()->RespPrevState() != tcp::TCP_ENDPOINT_INACTIVE )
 			Weird("partial_ident_request");
 	}
 
 void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 
 	int remote_port, local_port;
 	const char* line = (const char*) data;
 	const char* orig_line = line;
 	const char* end_of_line = line + length;
 
-	TCP_Endpoint* s = 0;
+	tcp::TCP_Endpoint* s = 0;
 
 	if ( TCP() )
 		s = is_orig ? TCP()->Orig() : TCP()->Resp();
@@ -60,9 +64,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		line = ParsePair(line, end_of_line, remote_port, local_port);
 		if ( ! line )
 			{
-			if ( s && s->state == TCP_ENDPOINT_CLOSED &&
-			     (s->prev_state == TCP_ENDPOINT_INACTIVE ||
-			      s->prev_state == TCP_ENDPOINT_PARTIAL) )
+			if ( s && s->state == tcp::TCP_ENDPOINT_CLOSED &&
+			     (s->prev_state == tcp::TCP_ENDPOINT_INACTIVE ||
+			      s->prev_state == tcp::TCP_ENDPOINT_PARTIAL) )
 				// not surprising the request is mangled.
 				return;
 
@@ -95,9 +99,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		if ( ! line || line == end_of_line || line[0] != ':' )
 			{
-			if ( s && s->state == TCP_ENDPOINT_CLOSED &&
-			     (s->prev_state == TCP_ENDPOINT_INACTIVE ||
-			      s->prev_state == TCP_ENDPOINT_PARTIAL) )
+			if ( s && s->state == tcp::TCP_ENDPOINT_CLOSED &&
+			     (s->prev_state == tcp::TCP_ENDPOINT_INACTIVE ||
+			      s->prev_state == tcp::TCP_ENDPOINT_PARTIAL) )
 				// not surprising the request is mangled.
 				return;
 

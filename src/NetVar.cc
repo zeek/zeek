@@ -93,7 +93,6 @@ RecordType* http_stats_rec;
 RecordType* http_message_stat;
 int truncate_http_URI;
 
-int pm_request;
 RecordType* pm_mapping;
 TableType* pm_mappings;
 RecordType* pm_port_request;
@@ -407,14 +406,6 @@ void init_net_var()
 	http_stats_rec = internal_type("http_stats_rec")->AsRecordType();
 	http_message_stat = internal_type("http_message_stat")->AsRecordType();
 	truncate_http_URI = opt_internal_int("truncate_http_URI");
-
-	pm_request = pm_request_null || pm_request_set ||
-		pm_request_unset || pm_request_getport ||
-		pm_request_dump || pm_request_callit ||
-		pm_attempt_null || pm_attempt_set ||
-		pm_attempt_unset || pm_attempt_getport ||
-		pm_attempt_dump || pm_attempt_callit ||
-		pm_bad_port;
 
 	pm_mapping = internal_type("pm_mapping")->AsRecordType();
 	pm_mappings = internal_type("pm_mappings")->AsTableType();

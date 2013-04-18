@@ -9,6 +9,8 @@
 #include "Event.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
+#include "events.bif.h"
+
 #define IS_3_BYTE_OPTION(c) (c >= 251 && c <= 254)
 
 #define TELNET_OPT_SB 250
@@ -23,6 +25,8 @@
 #define TELNET_OPT_DONT 254
 
 #define TELNET_IAC 255
+
+using namespace analyzer::login;
 
 TelnetOption::TelnetOption(NVT_Analyzer* arg_endp, unsigned int arg_code)
 	{
@@ -287,7 +291,7 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
 			break;
 			}
 
-		static_cast<TCP_ApplicationAnalyzer*>
+		static_cast<tcp::TCP_ApplicationAnalyzer*>
 			(endp->Parent())->SetEnv(endp->IsOrig(),
 							var_name, var_val);
 		}
@@ -360,7 +364,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 
 NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
-: ContentLine_Analyzer("NVT", conn, orig)
+: tcp::ContentLine_Analyzer("NVT", conn, orig)
 	{
 	peer = 0;
 	is_suboption = last_was_IAC = pending_IAC = 0;

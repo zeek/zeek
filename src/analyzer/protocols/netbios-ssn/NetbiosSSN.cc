@@ -9,6 +9,10 @@
 #include "Sessions.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::netbios_ssn;
+
 double netbios_ssn_session_timeout = 15.0;
 
 #define MAKE_INT16(dest, src) dest = *src; dest <<=8; src++; dest |= *src; src++;
@@ -44,7 +48,7 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
 
 
 NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(analyzer::Analyzer* arg_analyzer,
-						SMB_Session* arg_smb_session)
+					       smb::SMB_Session* arg_smb_session)
 	{
 	analyzer = arg_analyzer;
 	smb_session = arg_smb_session;
@@ -340,7 +344,7 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 
 Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
 					NetbiosSSN_Interpreter* arg_interp)
-: TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
+: tcp::TCP_SupportAnalyzer("CONTENTS_NETBIOSSSN", conn, orig)
 	{
 	interp = arg_interp;
 	type = flags = msg_size = 0;
@@ -365,7 +369,7 @@ void Contents_NetbiosSSN::Flush()
 
 void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	if ( state == NETBIOS_SSN_TYPE )
 		{
@@ -455,9 +459,9 @@ void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
 	}
 
 NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("NETBIOS", conn)
+: tcp::TCP_ApplicationAnalyzer("NETBIOS", conn)
 	{
-	smb_session = new SMB_Session(this);
+	smb_session = new smb::SMB_Session(this);
 	interp = new NetbiosSSN_Interpreter(this, smb_session);
 	orig_netbios = resp_netbios = 0;
 	did_session_done = 0;
@@ -485,7 +489,7 @@ NetbiosSSN_Analyzer::~NetbiosSSN_Analyzer()
 
 void NetbiosSSN_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 	interp->Timeout();
 
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP && ! did_session_done )
@@ -496,15 +500,15 @@ void NetbiosSSN_Analyzer::Done()
 
 void NetbiosSSN_Analyzer::EndpointEOF(bool orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(orig);
+	tcp::TCP_ApplicationAnalyzer::EndpointEOF(orig);
 
 	(orig ? orig_netbios : resp_netbios)->Flush();
 	}
 
-void NetbiosSSN_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint,
-				TCP_Endpoint* peer, int gen_event)
+void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+				tcp::TCP_Endpoint* peer, int gen_event)
 	{
-	TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
+	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
 	// Question: Why do we flush *both* endpoints upon connection close?
 	// orig_netbios->Flush();
@@ -514,7 +518,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen)
 	{
-	TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 	if ( orig )
 		interp->ParseMessageUDP(data, len, 1);

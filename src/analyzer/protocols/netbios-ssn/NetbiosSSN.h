@@ -7,6 +7,8 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/smb/SMB.h"
 
+namespace analyzer { namespace netbios_ssn {
+
 typedef enum {
 	NETBIOS_SSN_MSG = 0x0,
 	NETBIOS_DGM_DIRECT_UNIQUE = 0x10,
@@ -62,7 +64,7 @@ struct NetbiosDGM_RawMsgHdr {
 
 class NetbiosSSN_Interpreter {
 public:
-	NetbiosSSN_Interpreter(analyzer::Analyzer* analyzer, SMB_Session* smb_session);
+	NetbiosSSN_Interpreter(analyzer::Analyzer* analyzer, smb::SMB_Session* smb_session);
 
 	int ParseMessage(unsigned int type, unsigned int flags,
 			const u_char* data, int len, int is_query);
@@ -72,17 +74,6 @@ public:
 	int ParseMessageUDP(const u_char* data, int len, int is_query);
 
 	void Timeout()	{ }
-
-	static bool any_netbios_ssn_event()
-		{
-		return netbios_session_message ||
-			netbios_session_request ||
-			netbios_session_accepted ||
-			netbios_session_rejected ||
-			netbios_session_raw_message ||
-			netbios_session_ret_arg_resp ||
-			netbios_session_keepalive;
-		}
 
 protected:
 	int ParseSessionMsg(const u_char* data, int len, int is_query);
@@ -109,7 +100,7 @@ protected:
 
 protected:
 	analyzer::Analyzer* analyzer;
-	SMB_Session* smb_session;
+	smb::SMB_Session* smb_session;
 };
 
 
@@ -122,7 +113,7 @@ typedef enum {
 } NetbiosSSN_State;
 
 // ### This should be merged with TCP_Contents_RPC, TCP_Contents_DNS.
-class Contents_NetbiosSSN : public TCP_SupportAnalyzer {
+class Contents_NetbiosSSN : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NetbiosSSN(Connection* conn, bool orig,
 				NetbiosSSN_Interpreter* interp);
@@ -148,7 +139,7 @@ protected:
 	NetbiosSSN_State state;
 };
 
-class NetbiosSSN_Analyzer : public TCP_ApplicationAnalyzer {
+class NetbiosSSN_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	NetbiosSSN_Analyzer(Connection* conn);
 	~NetbiosSSN_Analyzer();
@@ -161,14 +152,14 @@ public:
 		{ return new NetbiosSSN_Analyzer(conn); }
 
 protected:
-	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event);
+	virtual void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+					tcp::TCP_Endpoint* peer, int gen_event);
 	virtual void EndpointEOF(bool is_orig);
 
 	void ExpireTimer(double t);
 
 	NetbiosSSN_Interpreter* interp;
-	SMB_Session* smb_session;
+	smb::SMB_Session* smb_session;
 	Contents_NetbiosSSN* orig_netbios;
 	Contents_NetbiosSSN* resp_netbios;
 	int did_session_done;
@@ -176,5 +167,7 @@ protected:
 
 // FIXME: Doesn't really fit into new analyzer structure. What to do?
 int IsReuse(double t, const u_char* pkt);
+
+} } // namespace analyzer::* 
 
 #endif

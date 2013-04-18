@@ -9,6 +9,10 @@
 %include binpac.pac
 %include bro.pac
 
+%extern{
+#include "events.bif.h"
+%}
+
 analyzer ModbusTCP withcontext {
 	connection: ModbusTCP_Conn;
 	flow:       ModbusTCP_Flow;

@@ -7,7 +7,9 @@
 
 #include <magic.h>
 
-class File_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace file {
+
+class File_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	File_Analyzer(Connection* conn);
 
@@ -28,5 +30,7 @@ protected:
 	static magic_t magic;
 	static magic_t magic_mime;
 };
+
+} } // namespace analyzer::* 
 
 #endif

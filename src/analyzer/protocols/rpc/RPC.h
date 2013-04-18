@@ -6,6 +6,8 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/udp/UDP.h"
 
+namespace analyzer { namespace rpc {
+
 enum {
 	RPC_CALL = 0,
 	RPC_REPLY = 1,
@@ -176,7 +178,7 @@ protected:
 };
 
 /* Support Analyzer for reassembling RPC-over-TCP messages */
-class Contents_RPC : public TCP_SupportAnalyzer {
+class Contents_RPC : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
 	virtual ~Contents_RPC();
@@ -222,7 +224,7 @@ protected:
 	int resync_toskip;
 };
 
-class RPC_Analyzer : public TCP_ApplicationAnalyzer {
+class RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	RPC_Analyzer(const char* name, Connection* conn,
 			RPC_Interpreter* arg_interp);
@@ -241,5 +243,7 @@ protected:
 	Contents_RPC* orig_rpc;
 	Contents_RPC* resp_rpc;
 };
+
+} } // namespace analyzer::* 
 
 #endif

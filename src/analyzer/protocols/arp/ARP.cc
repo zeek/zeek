@@ -5,6 +5,9 @@
 #include "Event.h"
 #include "Reporter.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::arp;
 
 ARP_Analyzer::ARP_Analyzer()
 	{

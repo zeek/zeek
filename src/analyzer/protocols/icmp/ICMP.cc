@@ -10,7 +10,11 @@
 #include "ICMP.h"
 #include "Conn.h"
 
+#include "events.bif.h"
+
 #include <netinet/icmp6.h>
+
+using namespace analyzer::icmp;
 
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
 : TransportLayerAnalyzer("ICMP", c)
@@ -828,7 +832,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 	return vv;
 	}
 
-int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+int analyzer::icmp::ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 
@@ -855,7 +859,7 @@ int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	}
 	}
 
-int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+int analyzer::icmp::ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 

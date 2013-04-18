@@ -9,6 +9,10 @@
 #include "NFS.h"
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::rpc;
+
 int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100003 )

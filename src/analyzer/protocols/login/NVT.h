@@ -5,7 +5,6 @@
 
 #include "analyzer/protocols/tcp/ContentLine.h"
 
-
 #define TELNET_OPTION_BINARY 0
 #define TELNET_OPTION_TERMINAL 24
 #define TELNET_OPTION_AUTHENTICATE 37
@@ -13,8 +12,9 @@
 #define TELNET_OPTION_ENVIRON 39
 #define NUM_TELNET_OPTIONS 5
 
-class NVT_Analyzer;
+namespace analyzer { namespace login {
 
+class NVT_Analyzer;
 
 class TelnetOption {
 public:
@@ -123,7 +123,7 @@ protected:
 	void InconsistentOption(unsigned int type);
 };
 
-class NVT_Analyzer : public ContentLine_Analyzer {
+class NVT_Analyzer : public tcp::ContentLine_Analyzer {
 public:
 	NVT_Analyzer(Connection* conn, bool orig);
 	~NVT_Analyzer();
@@ -169,5 +169,7 @@ protected:
 	TelnetOption* options[NUM_TELNET_OPTIONS];
 	int num_options;
 };
+
+} } // namespace analyzer::* 
 
 #endif

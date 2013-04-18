@@ -6,6 +6,8 @@
 #include "Reporter.h"
 #include "digest.h"
 
+#include "events.bif.h"
+
 // Here are a few things to do:
 //
 // 1. Add a Bro internal function 'stop_deliver_data_of_entity' so
@@ -16,43 +18,9 @@
 // headers of form: <name>=<value>; <param_1>=<param_val_1>;
 // <param_2>=<param_val_2>; ... (so that
 
+namespace analyzer { namespace mime {
+
 static const data_chunk_t null_data_chunk = { 0, 0 };
-
-int is_null_data_chunk(data_chunk_t b)
-	{
-	return b.data == 0;
-	}
-
-int fputs(data_chunk_t b, FILE* fp)
-	{
-	for ( int i = 0; i < b.length; ++i )
-		if ( fputc(b.data[i], fp) == EOF )
-			return EOF;
-	return 0;
-	}
-
-StringVal* new_string_val(int length, const char* data)
-	{
-	return new StringVal(length, data);
-	}
-
-StringVal* new_string_val(const char* data, const char* end_of_data)
-	{
-	return new StringVal(end_of_data - data, data);
-	}
-
-StringVal* new_string_val(const data_chunk_t buf)
-	{
-	return new_string_val(buf.length, buf.data);
-	}
-
-data_chunk_t get_data_chunk(BroString* s)
-	{
-	data_chunk_t b;
-	b.length = s->Len();
-	b.data = (const char*) s->Bytes();
-	return b;
-	}
 
 int mime_header_only = 0;
 int mime_decode_data = 1;
@@ -129,6 +97,319 @@ static const char* MIMEContentEncodingName[] = {
 	0,
 };
 
+int is_null_data_chunk(data_chunk_t b)
+	{
+	return b.data == 0;
+	}
+
+int is_lws(char ch)
+	{
+	return ch == 9 || ch == 32;
+	}
+
+StringVal* new_string_val(int length, const char* data)
+	{
+	return new StringVal(length, data);
+	}
+
+StringVal* new_string_val(const char* data, const char* end_of_data)
+	{
+	return new StringVal(end_of_data - data, data);
+	}
+
+StringVal* new_string_val(const data_chunk_t buf)
+	{
+	return new_string_val(buf.length, buf.data);
+	}
+
+static data_chunk_t get_data_chunk(BroString* s)
+	{
+	data_chunk_t b;
+	b.length = s->Len();
+	b.data = (const char*) s->Bytes();
+	return b;
+	}
+
+int fputs(data_chunk_t b, FILE* fp)
+	{
+	for ( int i = 0; i < b.length; ++i )
+		if ( fputc(b.data[i], fp) == EOF )
+			return EOF;
+	return 0;
+	}
+
+int strcasecmp_n(data_chunk_t s, const char* t)
+	{
+	return ::strcasecmp_n(s.length, s.data, t);
+	}
+
+int MIME_count_leading_lws(int len, const char* data)
+	{
+	int i;
+	for ( i = 0; i < len; ++i )
+		if ( ! is_lws(data[i]) )
+			break;
+	return i;
+	}
+
+int MIME_count_trailing_lws(int len, const char* data)
+	{
+	int i;
+	for ( i = 0; i < len; ++i )
+		if ( ! is_lws(data[len - 1 - i]) )
+			break;
+	return i;
+	}
+
+// See RFC 2822, page 11
+int MIME_skip_comments(int len, const char* data)
+	{
+	if ( len == 0 || data[0] != '(' )
+		return 0;
+
+	int par = 0;
+	for ( int i = 0; i < len; ++i )
+		{
+		switch ( data[i] ) {
+		case '(':
+			++par;
+			break;
+
+		case ')':
+			--par;
+			if ( par == 0 )
+				return i + 1;
+			break;
+
+		case '\\':
+			++i;
+			break;
+		}
+		}
+
+	return len;
+	}
+
+// Skip over lws and comments, but not tspecials. Do not use this
+// function in quoted-string or comments.
+int MIME_skip_lws_comments(int len, const char* data)
+	{
+	int i = 0;
+	while ( i < len )
+		{
+		if ( is_lws(data[i]) )
+			++i;
+		else
+			{
+			if ( data[i] == '(' )
+				i += MIME_skip_comments(len - i, data + i);
+			else
+				return i;
+			}
+		}
+
+	return len;
+	}
+
+int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
+	{
+	int i = MIME_skip_lws_comments(len, data);
+	while ( i < len )
+		{
+		int j;
+		if ( MIME_is_field_name_char(data[i]) )
+			{
+			name->data = data + i;
+
+			for ( j = i; j < len; ++j )
+				if ( ! MIME_is_field_name_char(data[j]) )
+					break;
+
+			name->length = j - i;
+			return j;
+			}
+
+		j = MIME_skip_lws_comments(len - i, data + i);
+		i += (j > 0) ? j : 1;
+		}
+
+	return -1;
+	}
+
+// See RFC 2045, page 12.
+int MIME_is_tspecial (char ch)
+	{
+	return ch == '(' || ch == ')' || ch == '<' || ch == '>' || ch == '@' ||
+	       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
+	       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
+	}
+
+int MIME_is_field_name_char (char ch)
+	{
+	return ch >= 33 && ch <= 126 && ch != ':';
+	}
+
+int MIME_is_token_char (char ch)
+	{
+	return ch >= 33 && ch <= 126 && ! MIME_is_tspecial(ch);
+	}
+
+// See RFC 2045, page 12.
+// A token is composed of characters that are not SPACE, CTLs or tspecials
+int MIME_get_token(int len, const char* data, data_chunk_t* token)
+	{
+	int i = MIME_skip_lws_comments(len, data);
+	while ( i < len )
+		{
+		int j;
+
+		if ( MIME_is_token_char(data[i]) )
+			{
+			token->data = (data + i);
+			for ( j = i; j < len; ++j )
+				{
+				if ( ! MIME_is_token_char(data[j]) )
+					break;
+				}
+
+			token->length = j - i;
+			return j;
+			}
+
+		j = MIME_skip_lws_comments(len - i, data + i);
+		i += (j > 0) ? j : 1;
+		}
+
+	return -1;
+	}
+
+int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second)
+	{
+	int offset;
+	const char* data_start = data;
+
+	offset = MIME_get_token(len, data, first);
+	if ( offset < 0 )
+		{
+		// DEBUG_MSG("first token missing in slash token pair");
+		return -1;
+		}
+
+	data += offset;
+	len -= offset;
+
+	offset = MIME_skip_lws_comments(len, data);
+	if ( offset < 0 || offset >= len || data[offset] != '/' )
+		{
+		// DEBUG_MSG("/ not found in slash token pair");
+		return -1;
+		}
+
+	++offset;
+	data += offset;
+	len -= offset;
+
+	offset = MIME_get_token(len, data, second);
+	if ( offset < 0 )
+		{
+		// DEBUG_MSG("second token missing in slash token pair");
+		return -1;
+		}
+
+	data += offset;
+	len -= offset;
+
+	return data - data_start;
+	}
+
+// See RFC 2822, page 13.
+int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
+	{
+	int offset = MIME_skip_lws_comments(len, data);
+
+	len -= offset;
+	data += offset;
+
+	if ( len <= 0 || *data != '"' )
+		return -1;
+
+	for ( int i = 1; i < len; ++i )
+		{
+		switch ( data[i] ) {
+		case '"':
+			str->data = data + 1;
+			str->length = i - 1;
+			return offset + i + 1;
+
+		case '\\':
+			++i;
+			break;
+		}
+		}
+
+	return -1;
+	}
+
+int MIME_get_value(int len, const char* data, BroString*& buf)
+	{
+	int offset = MIME_skip_lws_comments(len, data);
+
+	len -= offset;
+	data += offset;
+
+	if ( len > 0 && *data == '"' )
+		{
+		data_chunk_t str;
+		int end = MIME_get_quoted_string(len, data, &str);
+		if ( end < 0 )
+			return -1;
+
+		buf = MIME_decode_quoted_pairs(str);
+		return offset + end;
+		}
+
+	else
+		{
+		data_chunk_t str;
+		int end = MIME_get_token(len, data, &str);
+		if ( end < 0 )
+			return -1;
+
+		buf = new BroString((const u_char*)str.data, str.length, 1);
+		return offset + end;
+		}
+	}
+
+// Decode each quoted-pair: a '\' followed by a character by the
+// quoted character. The decoded string is returned.
+
+BroString* MIME_decode_quoted_pairs(data_chunk_t buf)
+	{
+	const char* data = buf.data;
+	char* dest = new char[buf.length+1];
+	int j = 0;
+	for ( int i = 0; i < buf.length; ++i )
+		if ( data[i] == '\\' )
+			{
+			if ( ++i < buf.length )
+				dest[j++] = data[i];
+			else
+				{
+				// a trailing '\' -- don't know what
+				// to do with it -- ignore it.
+				}
+			}
+		else
+			dest[j++] = data[i];
+	dest[j] = 0;
+
+	return new BroString(1, (byte_vec) dest, j);
+	}
+
+
+} } // namespace analyzer::*
+
+using namespace analyzer::mime;
 
 MIME_Multiline::MIME_Multiline()
 	{
@@ -1193,276 +1474,3 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 		}
 	}
 
-
-int strcasecmp_n(data_chunk_t s, const char* t)
-	{
-	return strcasecmp_n(s.length, s.data, t);
-	}
-
-int is_lws(char ch)
-	{
-	return ch == 9 || ch == 32;
-	}
-
-int MIME_count_leading_lws(int len, const char* data)
-	{
-	int i;
-	for ( i = 0; i < len; ++i )
-		if ( ! is_lws(data[i]) )
-			break;
-	return i;
-	}
-
-int MIME_count_trailing_lws(int len, const char* data)
-	{
-	int i;
-	for ( i = 0; i < len; ++i )
-		if ( ! is_lws(data[len - 1 - i]) )
-			break;
-	return i;
-	}
-
-// See RFC 2822, page 11
-int MIME_skip_comments(int len, const char* data)
-	{
-	if ( len == 0 || data[0] != '(' )
-		return 0;
-
-	int par = 0;
-	for ( int i = 0; i < len; ++i )
-		{
-		switch ( data[i] ) {
-		case '(':
-			++par;
-			break;
-
-		case ')':
-			--par;
-			if ( par == 0 )
-				return i + 1;
-			break;
-
-		case '\\':
-			++i;
-			break;
-		}
-		}
-
-	return len;
-	}
-
-// Skip over lws and comments, but not tspecials. Do not use this
-// function in quoted-string or comments.
-int MIME_skip_lws_comments(int len, const char* data)
-	{
-	int i = 0;
-	while ( i < len )
-		{
-		if ( is_lws(data[i]) )
-			++i;
-		else
-			{
-			if ( data[i] == '(' )
-				i += MIME_skip_comments(len - i, data + i);
-			else
-				return i;
-			}
-		}
-
-	return len;
-	}
-
-int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
-	{
-	int i = MIME_skip_lws_comments(len, data);
-	while ( i < len )
-		{
-		int j;
-		if ( MIME_is_field_name_char(data[i]) )
-			{
-			name->data = data + i;
-
-			for ( j = i; j < len; ++j )
-				if ( ! MIME_is_field_name_char(data[j]) )
-					break;
-
-			name->length = j - i;
-			return j;
-			}
-
-		j = MIME_skip_lws_comments(len - i, data + i);
-		i += (j > 0) ? j : 1;
-		}
-
-	return -1;
-	}
-
-// See RFC 2045, page 12.
-int MIME_is_tspecial (char ch)
-	{
-	return ch == '(' || ch == ')' || ch == '<' || ch == '>' || ch == '@' ||
-	       ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '"' ||
-	       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
-	}
-
-int MIME_is_field_name_char (char ch)
-	{
-	return ch >= 33 && ch <= 126 && ch != ':';
-	}
-
-int MIME_is_token_char (char ch)
-	{
-	return ch >= 33 && ch <= 126 && ! MIME_is_tspecial(ch);
-	}
-
-// See RFC 2045, page 12.
-// A token is composed of characters that are not SPACE, CTLs or tspecials
-int MIME_get_token(int len, const char* data, data_chunk_t* token)
-	{
-	int i = MIME_skip_lws_comments(len, data);
-	while ( i < len )
-		{
-		int j;
-
-		if ( MIME_is_token_char(data[i]) )
-			{
-			token->data = (data + i);
-			for ( j = i; j < len; ++j )
-				{
-				if ( ! MIME_is_token_char(data[j]) )
-					break;
-				}
-
-			token->length = j - i;
-			return j;
-			}
-
-		j = MIME_skip_lws_comments(len - i, data + i);
-		i += (j > 0) ? j : 1;
-		}
-
-	return -1;
-	}
-
-int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second)
-	{
-	int offset;
-	const char* data_start = data;
-
-	offset = MIME_get_token(len, data, first);
-	if ( offset < 0 )
-		{
-		// DEBUG_MSG("first token missing in slash token pair");
-		return -1;
-		}
-
-	data += offset;
-	len -= offset;
-
-	offset = MIME_skip_lws_comments(len, data);
-	if ( offset < 0 || offset >= len || data[offset] != '/' )
-		{
-		// DEBUG_MSG("/ not found in slash token pair");
-		return -1;
-		}
-
-	++offset;
-	data += offset;
-	len -= offset;
-
-	offset = MIME_get_token(len, data, second);
-	if ( offset < 0 )
-		{
-		// DEBUG_MSG("second token missing in slash token pair");
-		return -1;
-		}
-
-	data += offset;
-	len -= offset;
-
-	return data - data_start;
-	}
-
-// See RFC 2822, page 13.
-int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
-	{
-	int offset = MIME_skip_lws_comments(len, data);
-
-	len -= offset;
-	data += offset;
-
-	if ( len <= 0 || *data != '"' )
-		return -1;
-
-	for ( int i = 1; i < len; ++i )
-		{
-		switch ( data[i] ) {
-		case '"':
-			str->data = data + 1;
-			str->length = i - 1;
-			return offset + i + 1;
-
-		case '\\':
-			++i;
-			break;
-		}
-		}
-
-	return -1;
-	}
-
-int MIME_get_value(int len, const char* data, BroString*& buf)
-	{
-	int offset = MIME_skip_lws_comments(len, data);
-
-	len -= offset;
-	data += offset;
-
-	if ( len > 0 && *data == '"' )
-		{
-		data_chunk_t str;
-		int end = MIME_get_quoted_string(len, data, &str);
-		if ( end < 0 )
-			return -1;
-
-		buf = MIME_decode_quoted_pairs(str);
-		return offset + end;
-		}
-
-	else
-		{
-		data_chunk_t str;
-		int end = MIME_get_token(len, data, &str);
-		if ( end < 0 )
-			return -1;
-
-		buf = new BroString((const u_char*)str.data, str.length, 1);
-		return offset + end;
-		}
-	}
-
-// Decode each quoted-pair: a '\' followed by a character by the
-// quoted character. The decoded string is returned.
-
-BroString* MIME_decode_quoted_pairs(data_chunk_t buf)
-	{
-	const char* data = buf.data;
-	char* dest = new char[buf.length+1];
-	int j = 0;
-	for ( int i = 0; i < buf.length; ++i )
-		if ( data[i] == '\\' )
-			{
-			if ( ++i < buf.length )
-				dest[j++] = data[i];
-			else
-				{
-				// a trailing '\' -- don't know what
-				// to do with it -- ignore it.
-				}
-			}
-		else
-			dest[j++] = data[i];
-	dest[j] = 0;
-
-	return new BroString(1, (byte_vec) dest, j);
-	}

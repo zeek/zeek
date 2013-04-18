@@ -35,8 +35,10 @@ extern const char* current_rule_file;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 
-namespace analyzer { class Analyzer; }
-class PIA;
+namespace analyzer {
+	namespace pia { class PIA; }
+	class Analyzer;
+}
 
 // RuleHdrTest and associated things:
 
@@ -152,7 +154,7 @@ public:
 	// Returns -1 if no chunk has been fed yet at all.
 	int PayloadSize()	{ return payload_size; }
 
-	::PIA* PIA() const	{ return pia; }
+	analyzer::pia::PIA* PIA() const	{ return pia; }
 
 private:
 	friend class RuleMatcher;
@@ -160,7 +162,7 @@ private:
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
 	RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
-			  RuleEndpointState* arg_opposite, ::PIA* arg_PIA);
+			  RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher {
 		RE_Match_State* state;
@@ -173,7 +175,7 @@ private:
 	bool is_orig;
 	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
-	::PIA* pia;
+	analyzer::pia::PIA* pia;
 
 	matcher_list matchers;
 	rule_hdr_test_list hdr_tests;
@@ -208,7 +210,7 @@ public:
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
 	RuleEndpointState* InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-		int caplen, RuleEndpointState* opposite, bool is_orig, PIA* pia);
+					int caplen, RuleEndpointState* opposite, bool is_orig, analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
 	void FinishEndpoint(RuleEndpointState* state);
@@ -311,7 +313,7 @@ public:
 
 	// ip may be nil.
 	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-				int caplen, bool from_orig, PIA* pia = 0);
+				 int caplen, bool from_orig, analyzer::pia::PIA* pia = 0);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

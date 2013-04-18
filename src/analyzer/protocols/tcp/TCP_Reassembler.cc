@@ -8,6 +8,10 @@
 // Only needed for gap_report events.
 #include "Event.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::tcp;
+
 // Note, sequence numbers are relative. I.e., they start with 1.
 
 // TODO: The Reassembler should start using 64 bit ints for keeping track of

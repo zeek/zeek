@@ -6,7 +6,9 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "ssl_pac.h"
 
-class SSL_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace ssl {
+
+class SSL_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SSL_Analyzer(Connection* conn);
 	virtual ~SSL_Analyzer();
@@ -16,7 +18,7 @@ public:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
 
-	// Overriden from TCP_ApplicationAnalyzer.
+	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
@@ -34,5 +36,7 @@ protected:
 	bool had_gap;
 
 };
+
+} } // namespace analyzer::* 
 
 #endif

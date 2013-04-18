@@ -4232,7 +4232,7 @@ function get_login_state%(cid: conn_id%): count
 	if ( ! la )
 		return new Val(0, TYPE_BOOL);
 
-	return new Val(int(static_cast<Login_Analyzer*>(la)->LoginState()),
+	return new Val(int(static_cast<analyzer::login::Login_Analyzer*>(la)->LoginState()),
 			TYPE_COUNT);
 	%}
 
@@ -4257,7 +4257,7 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 	if ( ! la )
 		return new Val(0, TYPE_BOOL);
 
-	static_cast<Login_Analyzer*>(la)->SetLoginState(login_state(new_state));
+	static_cast<analyzer::login::Login_Analyzer*>(la)->SetLoginState(analyzer::login::login_state(new_state));
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4286,7 +4286,7 @@ function get_orig_seq%(cid: conn_id%): count
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return new Val(static_cast<TCP_Analyzer*>(tc)->OrigSeq(),
+		return new Val(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq(),
 				TYPE_COUNT);
 	else
 		{
@@ -4316,7 +4316,7 @@ function get_resp_seq%(cid: conn_id%): count
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return new Val(static_cast<TCP_Analyzer*>(tc)->RespSeq(),
+		return new Val(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq(),
 				TYPE_COUNT);
 	else
 		{
@@ -4338,7 +4338,7 @@ function skip_smtp_data%(c: connection%): any
 	%{
 	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
 	if ( sa )
-		static_cast<SMTP_Analyzer*>(sa)->SkipData();
+		static_cast<analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
 	return 0;
 	%}
 

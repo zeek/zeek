@@ -4,7 +4,9 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "modbus_pac.h"
 
-class ModbusTCP_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace modbus {
+
+class ModbusTCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	ModbusTCP_Analyzer(Connection* conn);
 	virtual ~ModbusTCP_Analyzer();
@@ -21,5 +23,7 @@ public:
 protected:
 	binpac::ModbusTCP::ModbusTCP_Conn* interp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

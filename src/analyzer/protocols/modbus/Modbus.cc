@@ -2,6 +2,10 @@
 #include "Modbus.h"
 #include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::modbus;
+
 ModbusTCP_Analyzer::ModbusTCP_Analyzer(Connection* c)
 	: TCP_ApplicationAnalyzer("MODBUS", c)
 	{

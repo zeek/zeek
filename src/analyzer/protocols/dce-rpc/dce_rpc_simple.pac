@@ -1,5 +1,9 @@
 %include bro.pac
 
+%extern{
+#include "events.bif.h"
+%}
+
 analyzer DCE_RPC_Simple withcontext {};
 
 %include dce_rpc-protocol.pac

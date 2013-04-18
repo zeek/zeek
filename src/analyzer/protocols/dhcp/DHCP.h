@@ -5,6 +5,8 @@
 
 #include "dhcp_pac.h"
 
+namespace analyzer { namespace dhcp {
+
 class DHCP_Analyzer : public analyzer::Analyzer {
 public:
 	DHCP_Analyzer(Connection* conn);
@@ -20,5 +22,7 @@ public:
 protected:
 	binpac::DHCP::DHCP_Conn* interp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

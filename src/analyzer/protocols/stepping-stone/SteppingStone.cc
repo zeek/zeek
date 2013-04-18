@@ -11,7 +11,11 @@
 #include "SteppingStone.h"
 #include "util.h"
 
-SteppingStoneEndpoint::SteppingStoneEndpoint(TCP_Endpoint* e, SteppingStoneManager* m)
+#include "events.bif.h"
+
+using namespace analyzer::stepping_stone;
+
+SteppingStoneEndpoint::SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m)
 	{
 	endp = e;
 	stp_max_top_seq = 0;
@@ -157,7 +161,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
 	}
 
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
+: tcp::TCP_ApplicationAnalyzer("STEPPINGSTONE", c)
 	{
 	stp_manager = sessions->GetSTPManager();
 
@@ -167,7 +171,7 @@ SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
 
 void SteppingStone_Analyzer::Init()
 	{
-	TCP_ApplicationAnalyzer::Init();
+	tcp::TCP_ApplicationAnalyzer::Init();
 
 	assert(TCP());
 	orig_endp = new SteppingStoneEndpoint(TCP()->Orig(), stp_manager);
@@ -178,7 +182,7 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 						bool is_orig, int seq,
 						const IP_Hdr* ip, int caplen)
 	{
-	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
+	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
 						ip, caplen);
 
 	if ( is_orig )
@@ -190,7 +194,7 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
 						bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( is_orig )
 		{
@@ -209,7 +213,7 @@ void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
 
 void SteppingStone_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	orig_endp->Done();
 	resp_endp->Done();

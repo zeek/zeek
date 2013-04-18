@@ -15,6 +15,10 @@
 #include "Reporter.h"
 #include "analyzer/protocols/login/NVT.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::pop3;
+
 #undef POP3_CMD_DEF
 #define POP3_CMD_DEF(cmd)	#cmd,
 
@@ -26,7 +30,7 @@ static const char* pop3_cmd_word[] = {
 
 
 POP3_Analyzer::POP3_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("POP3", conn)
+: tcp::TCP_ApplicationAnalyzer("POP3", conn)
 	{
 	masterState = POP3_START;
 	subState = POP3_WOK;
@@ -41,8 +45,8 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 
 	mail = 0;
 
-	AddSupportAnalyzer(new ContentLine_Analyzer(conn, true));
-	AddSupportAnalyzer(new ContentLine_Analyzer(conn, false));
+	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, true));
+	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, false));
 	}
 
 POP3_Analyzer::~POP3_Analyzer()
@@ -51,7 +55,7 @@ POP3_Analyzer::~POP3_Analyzer()
 
 void POP3_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( mail )
 		EndData();
@@ -60,7 +64,7 @@ void POP3_Analyzer::Done()
 
 void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	if ( (TCP() && TCP()->IsPartial()) || backOff )
 		return;
@@ -802,7 +806,7 @@ void POP3_Analyzer::AuthSuccessfull()
 void POP3_Analyzer::BeginData()
 	{
 	delete mail;
-	mail = new MIME_Mail(this);
+	mail = new mime::MIME_Mail(this);
 	}
 
 void POP3_Analyzer::EndData()

@@ -11,6 +11,10 @@
 #include "RPC.h"
 #include "Sessions.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::rpc;
+
 namespace { // local namespace
 	const bool DEBUG_rpc_resync = false;
 }
@@ -373,7 +377,7 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 
 Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 				RPC_Interpreter* arg_interp)
-	: TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
+	: tcp::TCP_SupportAnalyzer("CONTENTS_RPC", conn, orig)
 	{
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
@@ -385,7 +389,7 @@ Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 
 void Contents_RPC::Init()
 	{
-	TCP_SupportAnalyzer::Init();
+	tcp::TCP_SupportAnalyzer::Init();
 	}
 
 Contents_RPC::~Contents_RPC()
@@ -394,7 +398,7 @@ Contents_RPC::~Contents_RPC()
 
 void Contents_RPC::Undelivered(int seq, int len, bool orig)
 	{
-	TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
 	}
 
@@ -413,12 +417,12 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		// is fully established we are in sync (since it's the first chunk 
 		// of data after the SYN if its not established we need to 
 		// resync.
-		TCP_Analyzer* tcp =
-			static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		tcp::TCP_Analyzer* tcp =
+			static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 		assert(tcp);
 
 		if ( (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-							TCP_ENDPOINT_ESTABLISHED )
+							tcp::TCP_ENDPOINT_ESTABLISHED )
 			{
 			NeedResync();
 			}
@@ -578,7 +582,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 
 void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 	uint32 marker;
 	bool last_frag;
 
@@ -675,7 +679,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 				RPC_Interpreter* arg_interp)
-: TCP_ApplicationAnalyzer(name, conn)
+: tcp::TCP_ApplicationAnalyzer(name, conn)
 	{
 	interp = arg_interp;
 
@@ -692,7 +696,7 @@ RPC_Analyzer::~RPC_Analyzer()
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen)
 	{
-	TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = min(len, caplen);
 
 	if ( orig )
@@ -709,7 +713,7 @@ void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 void RPC_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->Timeout();
 	}

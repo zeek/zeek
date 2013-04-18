@@ -11,6 +11,8 @@
 #define GNUTELLA_MSG_SIZE     23
 #define GNUTELLA_MAX_PAYLOAD  1024
 
+namespace analyzer { namespace gnutella {
+
 class GnutellaMsgState {
 public:
 	GnutellaMsgState ();
@@ -32,7 +34,7 @@ public:
 };
 
 
-class Gnutella_Analyzer : public TCP_ApplicationAnalyzer {
+class Gnutella_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	Gnutella_Analyzer(Connection* conn);
 	~Gnutella_Analyzer();
@@ -66,5 +68,7 @@ private:
 	GnutellaMsgState* resp_msg_state;
 	GnutellaMsgState* ms;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -1,0 +1,289 @@
+
+## Generated when reassembly starts for a TCP connection. This event is raised
+## at the moment when Bro's TCP analyzer enables stream reassembly for a
+## connection.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK connection_half_finished connection_partial_close
+##    connection_pending connection_rejected connection_reset connection_reused
+##    connection_state_remove connection_status_update connection_timeout
+##    expected_connection_seen new_connection partial_connection
+event new_connection_contents%(c: connection%);
+
+## Generated for an unsuccessful connection attempt. This event is raised when
+## an originator unsuccessfully attempted to establish a connection.
+## "Unsuccessful" is defined as at least :bro:id:`tcp_attempt_delay` seconds
+## having elapsed since the originator first sent a connection establishment
+## packet to the destination without seeing a reply.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_established
+##    connection_external connection_finished connection_first_ACK
+##    connection_half_finished connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+event connection_attempt%(c: connection%);
+
+## Generated when a SYN-ACK packet is seen in response to a SYN packet during
+## a TCP handshake.  The final ACK of the handshake in response to SYN-ACK may
+## or may not occur later, one way to tell is to check the *history* field of
+## :bro:type:`connection` to see if the originator sent an ACK, indicated by
+## 'A' in the history string.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_external connection_finished connection_first_ACK
+##    connection_half_finished connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+event connection_established%(c: connection%);
+
+## Generated for a new active TCP connection if Bro did not see the initial
+## handshake. This event is raised when Bro has observed traffic from each
+## endpoint, but the activity did not begin with the usual connection
+## establishment.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK connection_half_finished connection_partial_close
+##    connection_pending connection_rejected connection_reset connection_reused
+##    connection_state_remove connection_status_update connection_timeout
+##    expected_connection_seen new_connection new_connection_contents
+##
+event partial_connection%(c: connection%);
+
+## Generated when a previously inactive endpoint attempts to close a TCP
+## connection via a normal FIN handshake or an abort RST sequence. When the
+## endpoint sent one of these packets, Bro waits
+## :bro:id:`tcp_partial_close_delay` prior to generating the event, to give
+## the other endpoint a chance to close the connection normally.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK connection_half_finished connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+event connection_partial_close%(c: connection%);
+
+## Generated for a TCP connection that finished normally. The event is raised
+## when a regular FIN handshake from both endpoints was observed.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_first_ACK
+##    connection_half_finished connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+event connection_finished%(c: connection%);
+
+## Generated when one endpoint of a TCP connection attempted to gracefully close
+## the connection, but the other endpoint is in the TCP_INACTIVE state. This can
+## happen due to split routing, in which Bro only sees one side of a connection.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK  connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+event connection_half_finished%(c: connection%);
+
+## Generated for a rejected TCP connection. This event is raised when an
+## originator attempted to setup a TCP connection but the responder replied
+## with a RST packet denying it.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK connection_half_finished connection_partial_close
+##    connection_pending  connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+##
+## c: The connection.
+##
+## .. note::
+##
+##    If the responder does not respond at all, :bro:id:`connection_attempt` is
+##    raised instead. If the responder initially accepts the connection but
+##    aborts it later, Bro first generates :bro:id:`connection_established`
+##    and then :bro:id:`connection_reset`.
+event connection_rejected%(c: connection%);
+
+## Generated when an endpoint aborted a TCP connection. The event is raised
+## when one endpoint of an established TCP connection aborted by sending a RST
+## packet.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK connection_half_finished connection_partial_close
+##    connection_pending connection_rejected  connection_reused
+##    connection_state_remove connection_status_update connection_timeout
+##    expected_connection_seen new_connection new_connection_contents
+##    partial_connection
+event connection_reset%(c: connection%);
+
+## Generated for each still-open TCP connection when Bro terminates.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_first_ACK connection_half_finished connection_partial_close
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection bro_done
+event connection_pending%(c: connection%);
+
+## Generated for a SYN packet. Bro raises this event for every SYN packet seen
+## by its TCP analyzer.
+##
+## c: The connection.
+##
+## pkt: Information extracted from the SYN packet.
+##
+## .. bro:see:: connection_EOF  connection_attempt connection_established
+##    connection_external connection_finished connection_first_ACK
+##    connection_half_finished connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+##
+## .. note::
+##
+##    This event has quite low-level semantics and can potentially be expensive
+##    to generate. It should only be used if one really needs the specific
+##    information passed into the handler via the ``pkt`` argument. If not,
+##    handling one of the other ``connection_*`` events is typically the
+##    better approach.
+event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
+
+## Generated for the first ACK packet seen for a TCP connection from
+## its *originator*.
+##
+## c: The connection.
+##
+## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+##    connection_established connection_external connection_finished
+##    connection_half_finished connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+##
+## .. note::
+##
+##    This event has quite low-level semantics and should be used only rarely.
+event connection_first_ACK%(c: connection%);
+
+## Generated at the end of reassembled TCP connections. The TCP reassembler
+## raised the event once for each endpoint of a connection when it finished
+## reassembling the corresponding side of the communication.
+##
+## c: The connection.
+##
+## is_orig: True if the event is raised for the originator side.
+##
+## .. bro:see::  connection_SYN_packet connection_attempt connection_established
+##    connection_external connection_finished connection_first_ACK
+##    connection_half_finished connection_partial_close connection_pending
+##    connection_rejected connection_reset connection_reused connection_state_remove
+##    connection_status_update connection_timeout expected_connection_seen
+##    new_connection new_connection_contents partial_connection
+event connection_EOF%(c: connection, is_orig: bool%);
+
+## Generated for every TCP packet. This is a very low-level and expensive event
+## that should be avoided when at all possible. It's usually infeasible to
+## handle when processing even medium volumes of traffic in real-time.  It's
+## slightly better than :bro:id:`new_packet` because it affects only TCP, but
+## not much. That said, if you work from a trace and want to do some
+## packet-level analysis, it may come in handy.
+##
+## c: The connection the packet is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## flags: A string with the packet's TCP flags. In the string, each character
+##        corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
+##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.
+##
+## seq: The packet's TCP sequence number.
+##
+## ack: The packet's ACK number.
+##
+## len: The length of the TCP payload, as specified in the packet header.
+##
+## payload: The raw TCP payload. Note that this may be shorter than *len* if
+##          the packet was not fully captured.
+##
+## .. bro:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
+event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string%);
+
+## Generated for each option found in a TCP header. Like many of the ``tcp_*``
+## events, this is a very low-level event and potentially expensive as it may
+## be raised very often.
+##
+## c: The connection the packet is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## opt: The numerical option number, as found in the TCP header.
+##
+## optlen: The length of the options value.
+##
+## .. bro:see:: tcp_packet tcp_contents tcp_rexmit
+##
+## .. note:: There is currently no way to get the actual option value, if any.
+event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
+
+## Generated for each chunk of reassembled TCP payload. When content delivery is
+## enabled for a TCP connection (via :bro:id:`tcp_content_delivery_ports_orig`,
+## :bro:id:`tcp_content_delivery_ports_resp`,
+## :bro:id:`tcp_content_deliver_all_orig`,
+## :bro:id:`tcp_content_deliver_all_resp`), this event is raised for each chunk
+## of in-order payload reconstructed from the packet stream. Note that this
+## event is potentially expensive if many connections carry significant amounts
+## of data as then all that data needs to be passed on to the scripting layer.
+##
+## c: The connection the payload is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## seq: The sequence number corresponding to the first byte of the payload
+##      chunk.
+##
+## contents: The raw payload, which will be non-empty.
+##
+## .. bro:see:: tcp_packet tcp_option tcp_rexmit
+##    tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
+##    tcp_content_deliver_all_resp tcp_content_deliver_all_orig
+##
+## .. note::
+##
+##    The payload received by this event is the same that is also passed into
+##    application-layer protocol analyzers internally. Subsequent invocations of
+##    this event for the same connection receive non-overlapping in-order chunks
+##    of its TCP payload stream. It is however undefined what size each chunk
+##    has; while Bro passes the data on as soon as possible, specifics depend on
+##    network-level effects such as latency, acknowledgements, reordering, etc.
+event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
+
+## TODO.
+event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
+

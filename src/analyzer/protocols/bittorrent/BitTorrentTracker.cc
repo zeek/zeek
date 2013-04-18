@@ -3,6 +3,8 @@
 #include "BitTorrentTracker.h"
 #include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+
 #include <sys/types.h>
 #include <regex.h>
 
@@ -11,6 +13,8 @@
 # define FMT_INT "%" PRId64
 # define FMT_UINT "%" PRIu64
 
+using namespace analyzer::bittorrent;
+
 static TableType* bt_tracker_headers = 0;
 static RecordType* bittorrent_peer;
 static TableType* bittorrent_peer_set;
@@ -18,7 +22,7 @@ static RecordType* bittorrent_benc_value;
 static TableType* bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("BITTORRENT", c)
+: tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
 	{
 	if ( ! bt_tracker_headers )
 		{
@@ -74,13 +78,13 @@ BitTorrentTracker_Analyzer::~BitTorrentTracker_Analyzer()
 
 void BitTorrentTracker_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 	}
 
 void BitTorrentTracker_Analyzer::DeliverStream(int len, const u_char* data,
 						bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -205,7 +209,7 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 
 void BitTorrentTracker_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	ProtocolViolation("BitTorrentTracker: cannot recover from content gap");
 
@@ -217,7 +221,7 @@ void BitTorrentTracker_Analyzer::Undelivered(int seq, int len, bool orig)
 
 void BitTorrentTracker_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	}
 
 void BitTorrentTracker_Analyzer::InitBencParser(void)

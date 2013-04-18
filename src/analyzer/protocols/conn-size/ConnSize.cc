@@ -6,7 +6,9 @@
 #include "ConnSize.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
+#include "events.bif.h"
 
+using namespace analyzer::conn_size;
 
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
 : Analyzer("CONNSIZE", c)

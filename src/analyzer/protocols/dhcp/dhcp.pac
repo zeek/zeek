@@ -1,5 +1,9 @@
 %include bro.pac
 
+%extern{
+#include "events.bif.h"
+%}
+
 analyzer DHCP withcontext {
 	connection:	DHCP_Conn;
 	flow:		DHCP_Flow;

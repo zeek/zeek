@@ -2,8 +2,12 @@
 
 #include "ZIP.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::zip;
+
 ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
-: TCP_SupportAnalyzer("ZIP", conn, orig)
+: tcp::TCP_SupportAnalyzer("ZIP", conn, orig)
 	{
 	zip = 0;
 	zip_status = Z_OK;
@@ -44,7 +48,7 @@ void ZIP_Analyzer::Done()
 
 void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
 	if ( ! len || zip_status != Z_OK )
 		return;

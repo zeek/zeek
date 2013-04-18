@@ -23,6 +23,8 @@
 
 #include "ncp_pac.h"
 
+namespace analyzer { namespace ncp {
+
 // Create a general NCP_Session class so that it can be used in
 // case the RPC conversation is tunneled through other connections,
 // e.g., through an SMB session.
@@ -81,7 +83,7 @@ protected:
 	void compute_msg_length();
 };
 
-class Contents_NCP_Analyzer : public TCP_SupportAnalyzer {
+class Contents_NCP_Analyzer : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* session);
 	~Contents_NCP_Analyzer();
@@ -97,7 +99,7 @@ protected:
 	bool resync;
 };
 
-class NCP_Analyzer : public TCP_ApplicationAnalyzer {
+class NCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	NCP_Analyzer(Connection* conn);
 	virtual ~NCP_Analyzer();
@@ -111,5 +113,7 @@ protected:
 	Contents_NCP_Analyzer * o_ncp;
 	Contents_NCP_Analyzer * r_ncp;
 };
+
+} } // namespace analyzer::* 
 
 #endif /* ncp_h */

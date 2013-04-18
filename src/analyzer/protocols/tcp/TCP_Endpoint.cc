@@ -9,6 +9,10 @@
 #include "File.h"
 #include "Val.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::tcp;
+
 TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	{
 	contents_processor = 0;

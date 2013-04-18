@@ -9,25 +9,29 @@
 #include "Event.h"
 #include "analyzer/protocols/tcp/ContentLine.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::finger;
+
 Finger_Analyzer::Finger_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("FINGER", conn)
+: tcp::TCP_ApplicationAnalyzer("FINGER", conn)
 	{
 	did_deliver = 0;
-	content_line_orig = new ContentLine_Analyzer(conn, true);
+	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
 	content_line_orig->SetIsNULSensitive(true);
-	content_line_resp = new ContentLine_Analyzer(conn, false);
+	content_line_resp = new tcp::ContentLine_Analyzer(conn, false);
 	AddSupportAnalyzer(content_line_orig);
 	AddSupportAnalyzer(content_line_resp);
 	}
 
 void Finger_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( TCP() )
 		if ( (! did_deliver || content_line_orig->HasPartialLine()) &&
-		     (TCP()->OrigState() == TCP_ENDPOINT_CLOSED ||
-		      TCP()->OrigPrevState() == TCP_ENDPOINT_CLOSED) )
+		     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
+		      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) )
 			// ### should include the partial text
 			Weird("partial_finger_request");
 	}

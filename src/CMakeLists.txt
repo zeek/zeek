@@ -133,9 +133,6 @@ set(BINPAC_AUXSRC
 binpac_target(binpac-lib.pac)
 binpac_target(binpac_bro-lib.pac)
 
-binpac_target(netflow.pac
-    netflow-protocol.pac netflow-analyzer.pac)
-
 ########################################################################
 ## Including subdirectories.
 ########################################################################
@@ -212,7 +209,6 @@ set(bro_SRCS
     util.cc
     module_util.cc
     Anon.cc
-    ARP.cc
     Attr.cc
     Base64.cc
     BPF_Program.cc
@@ -254,7 +250,6 @@ set(bro_SRCS
     IPAddr.cc
     List.cc
     Reporter.cc
-    MIME.cc
     NFA.cc
     Net.cc
     NetVar.cc

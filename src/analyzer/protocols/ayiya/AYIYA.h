@@ -3,6 +3,8 @@
 
 #include "ayiya_pac.h"
 
+namespace analyzer { namespace ayiya {
+
 class AYIYA_Analyzer : public analyzer::Analyzer {
 public:
 	AYIYA_Analyzer(Connection* conn);
@@ -20,5 +22,7 @@ protected:
 
 	binpac::AYIYA::AYIYA_Conn* interp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

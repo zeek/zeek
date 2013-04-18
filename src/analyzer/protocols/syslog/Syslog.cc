@@ -2,6 +2,10 @@
 #include "Syslog.h"
 #include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::syslog;
+
 Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
 : Analyzer("SYSLOG", conn)
 	{
@@ -45,35 +49,35 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, int 
 //				t + Syslog_session_timeout, 1, TIMER_Syslog_EXPIRE);
 //	}
 
-//Syslog_TCP_Analyzer::Syslog_TCP_Analyzer(Connection* conn)
-//: TCP_ApplicationAnalyzer(conn)
+//Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)
+//: tcp::TCP_ApplicationAnalyzer(conn)
 //	{
 //	interp = new binpac::Syslog_on_TCP::Syslog_TCP_Conn(this);
 //	}
 
-//Syslog_TCP_Analyzer::~Syslog_TCP_Analyzer()
+//Syslog_tcp::TCP_Analyzer::~Syslog_tcp::TCP_Analyzer()
 //	{
 //	delete interp;
 //	}
 
-//void Syslog_TCP_Analyzer::Done()
+//void Syslog_tcp::TCP_Analyzer::Done()
 //	{
-//	TCP_ApplicationAnalyzer::Done();
+//	tcp::TCP_ApplicationAnalyzer::Done();
 //
 //	interp->FlowEOF(true);
 //	interp->FlowEOF(false);
 //	}
 
-//void Syslog_TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
+//void Syslog_tcp::TCP_Analyzer::EndpointEOF(tcp::TCP_Reassembler* endp)
 //	{
-//	TCP_ApplicationAnalyzer::EndpointEOF(endp);
+//	tcp::TCP_ApplicationAnalyzer::EndpointEOF(endp);
 //	interp->FlowEOF(endp->IsOrig());
 //	}
 
-//void Syslog_TCP_Analyzer::DeliverStream(int len, const u_char* data,
+//void Syslog_tcp::TCP_Analyzer::DeliverStream(int len, const u_char* data,
 //						bool orig)
 //	{
-//	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+//	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 //
 //	assert(TCP());
 //
@@ -84,8 +88,8 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, int 
 //	interp->NewData(orig, data, data + len);
 //	}
 
-//void Syslog_TCP_Analyzer::Undelivered(int seq, int len, bool orig)
+//void Syslog_tcp::TCP_Analyzer::Undelivered(int seq, int len, bool orig)
 //	{
-//	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+//	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 //	interp->NewGap(orig, len);
 //	}

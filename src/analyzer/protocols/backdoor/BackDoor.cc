@@ -7,7 +7,11 @@
 #include "Net.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
-BackDoorEndpoint::BackDoorEndpoint(TCP_Endpoint* e)
+#include "events.bif.h"
+
+using namespace analyzer::backdoor;
+
+BackDoorEndpoint::BackDoorEndpoint(tcp::TCP_Endpoint* e)
 	{
 	endp = e;
 	is_partial = 0;
@@ -53,7 +57,7 @@ int BackDoorEndpoint::DataSent(double /* t */, int seq,
 	if ( len <= 0 )
 		return 0;
 
-	if ( endp->state == TCP_ENDPOINT_PARTIAL )
+	if ( endp->state == tcp::TCP_ENDPOINT_PARTIAL )
 		is_partial = 1;
 
 	int ack = endp->AckSeq() - endp->StartSeq();
@@ -681,7 +685,7 @@ int BackDoorEndpoint::CheckForString(const char* str,
 
 
 BackDoor_Analyzer::BackDoor_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("BACKDOOR", c)
+: tcp::TCP_ApplicationAnalyzer("BACKDOOR", c)
 	{
 	orig_endp = resp_endp = 0;
 
@@ -701,7 +705,7 @@ BackDoor_Analyzer::~BackDoor_Analyzer()
 
 void BackDoor_Analyzer::Init()
 	{
-	TCP_ApplicationAnalyzer::Init();
+	tcp::TCP_ApplicationAnalyzer::Init();
 
 	assert(TCP());
 	orig_endp = new BackDoorEndpoint(TCP()->Orig());
@@ -740,7 +744,7 @@ void BackDoor_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void BackDoor_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( ! IsFinished() )
 		{

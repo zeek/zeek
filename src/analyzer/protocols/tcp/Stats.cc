@@ -2,6 +2,10 @@
 #include "Stats.h"
 #include "File.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::tcp;
+
 TCPStateStats::TCPStateStats()
 	{
 	for ( int i = 0; i < TCP_ENDPOINT_RESET + 1; ++i )

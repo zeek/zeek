@@ -3,6 +3,8 @@
 %extern{
 #include <string>
 using std::string;
+
+#include "events.bif.h"
 %}
 
 enum ContentType {

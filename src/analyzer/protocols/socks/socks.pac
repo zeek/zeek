@@ -3,6 +3,8 @@
 
 %extern{
 #include "SOCKS.h"
+
+#include "events.bif.h"
 %}
 
 analyzer SOCKS withcontext {

@@ -5,6 +5,8 @@
 
 %extern{
 #define MSGLEN_LIMIT 0x40000
+
+#include "events.bif.h"
 %}
 
 analyzer BitTorrent withcontext {

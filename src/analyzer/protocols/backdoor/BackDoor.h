@@ -8,9 +8,11 @@
 #include "NetVar.h"
 #include "analyzer/protocols/login/Login.h"
 
+namespace analyzer { namespace backdoor {
+
 class BackDoorEndpoint {
 public:
-	BackDoorEndpoint(TCP_Endpoint* e);
+	BackDoorEndpoint(tcp::TCP_Endpoint* e);
 
 	int DataSent(double t, int seq, int len, int caplen, const u_char* data,
 		     const IP_Hdr* ip, const struct tcphdr* tp);
@@ -44,7 +46,7 @@ protected:
 	int CheckForFullString(const char* str, const u_char* data, int len);
 	int CheckForString(const char* str, const u_char* data, int len);
 
-	TCP_Endpoint* endp;
+	tcp::TCP_Endpoint* endp;
 	int is_partial;
 	int max_top_seq;
 
@@ -62,7 +64,7 @@ protected:
 	uint32 num_7bit_ascii;
 };
 
-class BackDoor_Analyzer : public TCP_ApplicationAnalyzer {
+class BackDoor_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	BackDoor_Analyzer(Connection* c);
 	~BackDoor_Analyzer();
@@ -104,5 +106,7 @@ public:
 protected:
 	BackDoor_Analyzer* analyzer;
 };
+
+} } // namespace analyzer::* 
 
 #endif

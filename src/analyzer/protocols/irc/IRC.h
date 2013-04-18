@@ -4,10 +4,12 @@
 #define irc_h
 #include "analyzer/protocols/tcp/TCP.h"
 
+namespace analyzer { namespace irc {
+
 /**
 * \brief Main class for analyzing IRC traffic.
 */
-class IRC_Analyzer : public TCP_ApplicationAnalyzer {
+class IRC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 	enum { WAIT_FOR_REGISTRATION, REGISTERED, };
 	enum { NO_ZIP, ACCEPT_ZIP, ZIP_LOADED, };
 public:
@@ -59,5 +61,7 @@ private:
 	vector<string> SplitWords(const string input, const char split);
 
 };
+
+} } // namespace analyzer::* 
 
 #endif

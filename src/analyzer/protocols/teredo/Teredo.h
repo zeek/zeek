@@ -5,6 +5,8 @@
 #include "NetVar.h"
 #include "Reporter.h"
 
+namespace analyzer { namespace teredo {
+
 class Teredo_Analyzer : public analyzer::Analyzer {
 public:
 	Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
@@ -88,5 +90,7 @@ protected:
 	const u_char* auth;
 	const Teredo_Analyzer* analyzer;
 };
+
+} } // namespace analyzer::* 
 
 #endif

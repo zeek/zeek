@@ -14,11 +14,14 @@
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.
 // - TCP_ApplicationAnalyzer is an abstract base class for analyzers for a
 //   protocol running on top of TCP.
+// 
+namespace analyzer { namespace pia { class PIA_TCP; } };
 
-class PIA_TCP;
+namespace analyzer { namespace tcp {
+
+class TCP_Endpoint;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
-class TCP_Endpoint;
 
 class TCP_Flags {
 public:
@@ -94,7 +97,7 @@ public:
 protected:
 	friend class TCP_ApplicationAnalyzer;
 	friend class TCP_Reassembler;
-	friend class PIA_TCP;
+	friend class analyzer::pia::PIA_TCP;
 
 	// Analyzer interface.
 	virtual void Init();
@@ -223,7 +226,7 @@ protected:
 	void ConnectionReset();
 	void PacketWithRST();
 
-	void SetReassembler(TCP_Reassembler* rorig, TCP_Reassembler* rresp);
+	void SetReassembler(tcp::TCP_Reassembler* rorig, tcp::TCP_Reassembler* rresp);
 
 	Val* BuildSYNPacketVal(int is_orig,
 				const IP_Hdr* ip, const struct tcphdr* tcp);
@@ -356,7 +359,7 @@ protected:
 	int endian_type;
 };
 
-class TCPStats_Analyzer : public TCP_ApplicationAnalyzer {
+class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	TCPStats_Analyzer(Connection* c);
 	~TCPStats_Analyzer();
@@ -374,5 +377,7 @@ protected:
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;
 };
+
+} } // namespace analyzer::* 
 
 #endif

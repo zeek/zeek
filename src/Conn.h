@@ -245,9 +245,9 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, PIA* pia);
+	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
 	analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
-	PIA* GetPrimaryPIA()	{ return primary_PIA; }
+	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
@@ -319,7 +319,7 @@ protected:
 	uint32 hist_seen;
 
 	analyzer::TransportLayerAnalyzer* root_analyzer;
-	PIA* primary_PIA;
+	analyzer::pia::PIA* primary_PIA;
 
 	uint64 uid;	// Globally unique connection ID.
 };

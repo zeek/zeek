@@ -10,6 +10,10 @@
 #include "Reporter.h"
 #include "analyzer/protocols/tcp/ContentLine.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::smtp;
+
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	#cmd,
 
@@ -21,7 +25,7 @@ static const char* smtp_cmd_word[] = {
 
 
 SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("SMTP", conn)
+: tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = 0;
 	expect_recver = 1;
@@ -40,12 +44,12 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 	line_after_gap = 0;
 	mail = 0;
 	UpdateState(first_cmd, 0);
-	ContentLine_Analyzer* cl_orig = new ContentLine_Analyzer(conn, true);
+	tcp::ContentLine_Analyzer* cl_orig = new tcp::ContentLine_Analyzer(conn, true);
 	cl_orig->SetIsNULSensitive(true);
 	cl_orig->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_orig);
 
-	ContentLine_Analyzer* cl_resp = new ContentLine_Analyzer(conn, false);
+	tcp::ContentLine_Analyzer* cl_resp = new tcp::ContentLine_Analyzer(conn, false);
 	cl_resp->SetIsNULSensitive(true);
 	cl_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(cl_resp);
@@ -53,7 +57,7 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 
 void SMTP_Analyzer::ConnectionFinished(int half_finished)
 	{
-	TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
+	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
 	if ( ! half_finished && mail )
 		EndData();
@@ -66,7 +70,7 @@ SMTP_Analyzer::~SMTP_Analyzer()
 
 void SMTP_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( mail )
 		EndData();
@@ -74,7 +78,7 @@ void SMTP_Analyzer::Done()
 
 void SMTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( len <= 0 )
 		return;
@@ -107,7 +111,7 @@ void SMTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 
 void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	// NOTE: do not use IsOrig() here, because of TURN command.
 	int is_sender = orig_is_sender ? orig : ! orig;
@@ -868,7 +872,7 @@ void SMTP_Analyzer::BeginData()
 		delete mail;
 		}
 
-	mail = new MIME_Mail(this);
+	mail = new mime::MIME_Mail(this);
 	}
 
 void SMTP_Analyzer::EndData()

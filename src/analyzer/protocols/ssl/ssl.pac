@@ -5,12 +5,12 @@
 #  - ssl-analyzer.pac: contains the SSL analyzer code
 #  - ssl-record-layer.pac: describes the SSL record layer
 
-%extern{
-	#include "events.bif.h"
-%}
-
 %include binpac.pac
 %include bro.pac
+
+%extern{
+#include "events.bif.h"
+%}
 
 analyzer SSL withcontext {
 	connection: SSL_Conn;

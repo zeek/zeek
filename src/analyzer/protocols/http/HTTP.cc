@@ -11,7 +11,11 @@
 #include "NetVar.h"
 #include "HTTP.h"
 #include "Event.h"
-#include "MIME.h"
+#include "analyzer/protocols/mime/MIME.h"
+
+#include "events.bif.h"
+
+using namespace analyzer::http;
 
 const bool DEBUG_http = false;
 
@@ -77,7 +81,7 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 	if ( end_of_data )
 		{
 		// Multipart entities may have trailers
-		if ( content_type != CONTENT_TYPE_MULTIPART )
+		if ( content_type != mime::CONTENT_TYPE_MULTIPART )
 			IllegalFormat("data trailing the end of entity");
 		return;
 		}
@@ -93,8 +97,8 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 		}
 
 	// Entity body.
-	if ( content_type == CONTENT_TYPE_MULTIPART ||
-	     content_type == CONTENT_TYPE_MESSAGE )
+	if ( content_type == mime::CONTENT_TYPE_MULTIPART ||
+	     content_type == mime::CONTENT_TYPE_MESSAGE )
 		DeliverBody(len, data, trailing_CRLF);
 
 	else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -177,14 +181,14 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 	{
 	if ( encoding == GZIP || encoding == DEFLATE )
 		{
-		ZIP_Analyzer::Method method =
+		zip::ZIP_Analyzer::Method method =
 			encoding == GZIP ?
-				ZIP_Analyzer::GZIP : ZIP_Analyzer::DEFLATE;
+				zip::ZIP_Analyzer::GZIP : zip::ZIP_Analyzer::DEFLATE;
 
 		if ( ! zip )
 			{
 			// We don't care about the direction here.
-			zip = new ZIP_Analyzer(
+			zip = new zip::ZIP_Analyzer(
 				http_message->MyHTTP_Analyzer()->Conn(),
 						false, method);
 			zip->SetOutputHandler(new UncompressedOutput(this));
@@ -291,12 +295,12 @@ void HTTP_Entity::SetPlainDelivery(int64_t length)
 	// expect_data_length.
 	}
 
-void HTTP_Entity::SubmitHeader(MIME_Header* h)
+void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 	{
-	if ( strcasecmp_n(h->get_name(), "content-length") == 0 )
+	if ( mime::strcasecmp_n(h->get_name(), "content-length") == 0 )
 		{
 		data_chunk_t vt = h->get_value_token();
-		if ( ! is_null_data_chunk(vt) )
+		if ( ! mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
 			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
@@ -308,8 +312,8 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 
 	// Figure out content-length for HTTP 206 Partial Content response
 	// that uses multipart/byteranges content-type.
-	else if ( strcasecmp_n(h->get_name(), "content-range") == 0 && Parent() &&
-	          Parent()->MIMEContentType() == CONTENT_TYPE_MULTIPART &&
+	else if ( mime::strcasecmp_n(h->get_name(), "content-range") == 0 && Parent() &&
+	          Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
 		data_chunk_t vt = h->get_value_token();
@@ -367,19 +371,19 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 			}
 		}
 
-	else if ( strcasecmp_n(h->get_name(), "transfer-encoding") == 0 )
+	else if ( mime::strcasecmp_n(h->get_name(), "transfer-encoding") == 0 )
 		{
 		data_chunk_t vt = h->get_value_token();
-		if ( strcasecmp_n(vt, "chunked") == 0 )
+		if ( mime::strcasecmp_n(vt, "chunked") == 0 )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
-	else if ( strcasecmp_n(h->get_name(), "content-encoding") == 0 )
+	else if ( mime::strcasecmp_n(h->get_name(), "content-encoding") == 0 )
 		{
 		data_chunk_t vt = h->get_value_token();
-		if ( strcasecmp_n(vt, "gzip") == 0 )
+		if ( mime::strcasecmp_n(vt, "gzip") == 0 )
 			encoding = GZIP;
-		if ( strcasecmp_n(vt, "deflate") == 0 )
+		if ( mime::strcasecmp_n(vt, "deflate") == 0 )
 			encoding = DEFLATE;
 		}
 
@@ -413,8 +417,8 @@ void HTTP_Entity::SubmitAllHeaders()
 		return;
 		}
 
-	if ( content_type == CONTENT_TYPE_MULTIPART ||
-	     content_type == CONTENT_TYPE_MESSAGE )
+	if ( content_type == mime::CONTENT_TYPE_MULTIPART ||
+	     content_type == mime::CONTENT_TYPE_MESSAGE )
 		{
 		// Do nothing.
 		// Make sure that we check for multiple/message contents first,
@@ -463,7 +467,7 @@ void HTTP_Entity::SubmitAllHeaders()
 	}
 
 HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
-				ContentLine_Analyzer* arg_cl, bool arg_is_orig,
+				tcp::ContentLine_Analyzer* arg_cl, bool arg_is_orig,
 				int expect_body, int64_t init_header_length)
 : MIME_Message (arg_analyzer)
 	{
@@ -546,7 +550,7 @@ int HTTP_Message::Undelivered(int64_t len)
 	return 0;
 	}
 
-void HTTP_Message::BeginEntity(MIME_Entity* entity)
+void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 	{
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f: begin entity (%d)\n", network_time, is_orig);
@@ -562,7 +566,7 @@ void HTTP_Message::BeginEntity(MIME_Entity* entity)
 		}
 	}
 
-void HTTP_Message::EndEntity(MIME_Entity* entity)
+void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	{
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f: end entity (%d)\n", network_time, is_orig);
@@ -588,12 +592,12 @@ void HTTP_Message::EndEntity(MIME_Entity* entity)
 		Done();
 	}
 
-void HTTP_Message::SubmitHeader(MIME_Header* h)
+void HTTP_Message::SubmitHeader(mime::MIME_Header* h)
 	{
 	MyHTTP_Analyzer()->HTTP_Header(is_orig, h);
 	}
 
-void HTTP_Message::SubmitAllHeaders(MIME_HeaderList& hlist)
+void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	{
 	if ( http_all_headers )
 		{
@@ -620,7 +624,7 @@ void HTTP_Message::SubmitAllHeaders(MIME_HeaderList& hlist)
 		}
 	}
 
-void HTTP_Message::SubmitTrailingHeaders(MIME_HeaderList& /* hlist */)
+void HTTP_Message::SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */)
 	{
 	// Do nothing for now.
 	}
@@ -664,15 +668,15 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 	const char* category = "";
 
 	switch ( event_type ) {
-	case MIME_EVENT_ILLEGAL_FORMAT:
+	case mime::MIME_EVENT_ILLEGAL_FORMAT:
 		category = "illegal format";
 		break;
 
-	case MIME_EVENT_ILLEGAL_ENCODING:
+	case mime::MIME_EVENT_ILLEGAL_ENCODING:
 		category = "illegal encoding";
 		break;
 
-	case MIME_EVENT_CONTENT_GAP:
+	case mime::MIME_EVENT_CONTENT_GAP:
 		category = "content gap";
 		break;
 
@@ -787,7 +791,7 @@ void HTTP_Message::Weird(const char* msg)
 	}
 
 HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("HTTP", conn)
+: tcp::TCP_ApplicationAnalyzer("HTTP", conn)
 	{
 	num_requests = num_replies = 0;
 	num_request_lines = num_reply_lines = 0;
@@ -807,10 +811,10 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	reply_code = 0;
 	reply_reason_phrase = 0;
 
-	content_line_orig = new ContentLine_Analyzer(conn, true);
+	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
 
-	content_line_resp = new ContentLine_Analyzer(conn, false);
+	content_line_resp = new tcp::ContentLine_Analyzer(conn, false);
 	content_line_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(content_line_resp);
 	}
@@ -828,7 +832,7 @@ void HTTP_Analyzer::Done()
 	if ( IsFinished() )
 		return;
 
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	RequestMade(1, "message interrupted when connection done");
 	ReplyMade(1, "message interrupted when connection done");
@@ -850,7 +854,7 @@ void HTTP_Analyzer::Done()
 
 void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( TCP() && TCP()->IsPartial() )
 		return;
@@ -858,7 +862,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
 
-	ContentLine_Analyzer* content_line =
+	tcp::ContentLine_Analyzer* content_line =
 		is_orig ? content_line_orig : content_line_resp;
 
 	if ( content_line->IsPlainDelivery() )
@@ -907,7 +911,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				if ( ! RequestExpected() )
 					HTTP_Event("crud_trailing_HTTP_request",
-						   new_string_val(line, end_of_line));
+						   mime::new_string_val(line, end_of_line));
 				else
 					{
 					// We do see HTTP requests with a
@@ -986,20 +990,20 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	// DEBUG_MSG("Undelivered from %d: %d bytes\n", seq, length);
 
 	HTTP_Message* msg =
 		is_orig ? request_message : reply_message;
 
-	ContentLine_Analyzer* content_line =
+	tcp::ContentLine_Analyzer* content_line =
 		is_orig ? content_line_orig : content_line_resp;
 
 	if ( ! content_line->IsSkippedContents(seq, len) )
 		{
 		if ( msg )
-			msg->SubmitEvent(MIME_EVENT_CONTENT_GAP,
+			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
 				fmt("seq=%d, len=%d", seq, len));
 		}
 
@@ -1030,7 +1034,7 @@ void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 
 void HTTP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 
 	// DEBUG_MSG("%.6f eof\n", network_time);
 
@@ -1042,7 +1046,7 @@ void HTTP_Analyzer::EndpointEOF(bool is_orig)
 
 void HTTP_Analyzer::ConnectionFinished(int half_finished)
 	{
-	TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
+	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
 	// DEBUG_MSG("%.6f connection finished\n", network_time);
 	RequestMade(1, "message ends as connection is finished");
@@ -1051,7 +1055,7 @@ void HTTP_Analyzer::ConnectionFinished(int half_finished)
 
 void HTTP_Analyzer::ConnectionReset()
 	{
-	TCP_ApplicationAnalyzer::ConnectionReset();
+	tcp::TCP_ApplicationAnalyzer::ConnectionReset();
 
 	RequestMade(1, "message interrupted by RST");
 	ReplyMade(1, "message interrupted by RST");
@@ -1059,7 +1063,7 @@ void HTTP_Analyzer::ConnectionReset()
 
 void HTTP_Analyzer::PacketWithRST()
 	{
-	TCP_ApplicationAnalyzer::PacketWithRST();
+	tcp::TCP_ApplicationAnalyzer::PacketWithRST();
 
 	RequestMade(1, "message interrupted by RST");
 	ReplyMade(1, "message interrupted by RST");
@@ -1203,10 +1207,10 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 			version_end = version_start + 3;
 			if ( skip_whitespace(version_end, end_of_line) != end_of_line )
 				HTTP_Event("crud after HTTP version is ignored",
-					   new_string_val(line, end_of_line));
+					   mime::new_string_val(line, end_of_line));
 			}
 		else
-			HTTP_Event("bad_HTTP_version", new_string_val(line, end_of_line));
+			HTTP_Event("bad_HTTP_version", mime::new_string_val(line, end_of_line));
 		}
 
 	// NormalizeURI(line, end_of_uri);
@@ -1230,7 +1234,7 @@ double HTTP_Analyzer::HTTP_Version(int len, const char* data)
 		}
 	else
 		{
-	        HTTP_Event("bad_HTTP_version", new_string_val(len, data));
+	        HTTP_Event("bad_HTTP_version", mime::new_string_val(len, data));
 		return 0;
 		}
 	}
@@ -1409,20 +1413,20 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		// ##TODO: some server replies with an HTML document
 		// without a status line and a MIME header, when the
 		// request is malformed.
-		HTTP_Event("bad_HTTP_reply", new_string_val(line, end_of_line));
+		HTTP_Event("bad_HTTP_reply", mime::new_string_val(line, end_of_line));
 		return 0;
 		}
 
 	SetVersion(reply_version, HTTP_Version(end_of_line - rest, rest));
 
 	for ( ; rest < end_of_line; ++rest )
-		if ( is_lws(*rest) )
+		if ( mime::is_lws(*rest) )
 			break;
 
 	if ( rest >= end_of_line )
 		{
 		HTTP_Event("HTTP_reply_code_missing",
-				new_string_val(line, end_of_line));
+				mime::new_string_val(line, end_of_line));
 		return 0;
 		}
 
@@ -1431,20 +1435,20 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 	if ( rest + 3 > end_of_line )
 		{
 		HTTP_Event("HTTP_reply_code_missing",
-			new_string_val(line, end_of_line));
+			mime::new_string_val(line, end_of_line));
 		return 0;
 		}
 
 	reply_code = HTTP_ReplyCode(rest);
 
 	for ( rest += 3; rest < end_of_line; ++rest )
-		if ( is_lws(*rest) )
+		if ( mime::is_lws(*rest) )
 			break;
 
 	if ( rest >= end_of_line )
 		{
 		HTTP_Event("HTTP_reply_reason_phrase_missing",
-			new_string_val(line, end_of_line));
+			mime::new_string_val(line, end_of_line));
 		// Tolerate missing reason phrase?
 		return 1;
 		}
@@ -1491,7 +1495,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 	return HTTP_BODY_EXPECTED;
 	}
 
-void HTTP_Analyzer::HTTP_Header(int is_orig, MIME_Header* h)
+void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 	{
 #if 0
 	// ### Only call ParseVersion if we're tracking versions:
@@ -1508,16 +1512,16 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, MIME_Header* h)
 	// side, and if seen assume the connection to be persistent.
 	// This seems fairly safe - at worst, the client does indeed
 	// send additional requests, and the server ignores them.
-	if ( is_orig && strcasecmp_n(h->get_name(), "connection") == 0 )
+	if ( is_orig && mime::strcasecmp_n(h->get_name(), "connection") == 0 )
 		{
-		if ( strcasecmp_n(h->get_value_token(), "keep-alive") == 0 )
+		if ( mime::strcasecmp_n(h->get_value_token(), "keep-alive") == 0 )
 			keep_alive = 1;
 		}
 
 	if ( ! is_orig &&
-	     strcasecmp_n(h->get_name(), "connection") == 0 )
+	     mime::strcasecmp_n(h->get_name(), "connection") == 0 )
 	        {
-		if ( strcasecmp_n(h->get_value_token(), "close") == 0 )
+		if ( mime::strcasecmp_n(h->get_value_token(), "close") == 0 )
 		        connection_close = 1;
 		}
 
@@ -1540,8 +1544,8 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, MIME_Header* h)
 		val_list* vl = new val_list();
 		vl->append(BuildConnVal());
 		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new_string_val(h->get_name())->ToUpper());
-		vl->append(new_string_val(h->get_value()));
+		vl->append(mime::new_string_val(h->get_name())->ToUpper());
+		vl->append(mime::new_string_val(h->get_value()));
 		if ( DEBUG_http )
 			DEBUG_MSG("%.6f http_header\n", network_time);
 		ConnectionEvent(http_header, vl);
@@ -1570,7 +1574,7 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 	while ( len > 0 )
 		{
 		// Skip white space.
-		while ( len && is_lws(*data) )
+		while ( len && mime::is_lws(*data) )
 			{
 			++data;
 			--len;
@@ -1583,7 +1587,7 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 			// Find end of comment.
 			const char* data_start = data;
 			const char* eoc =
-				data + MIME_skip_lws_comments(len, data);
+				data + mime::MIME_skip_lws_comments(len, data);
 
 			// Split into parts.
 			// (This may get confused by nested comments,
@@ -1593,7 +1597,7 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 			while ( 1 )
 				{
 				// Eat spaces.
-				while ( data < eoc && is_lws(*data) )
+				while ( data < eoc && mime::is_lws(*data) )
 					++data;
 
 				// Find end of token.
@@ -1606,7 +1610,7 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 					break;
 
 				// Delete spaces at end of token.
-				for ( ; eot > data && is_lws(*(eot-1)); --eot )
+				for ( ; eot > data && mime::is_lws(*(eot-1)); --eot )
 					;
 
 				if ( data != eot && software_version_found )
@@ -1619,7 +1623,7 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 			continue;
 			}
 
-		offset = MIME_get_slash_token_pair(len, data,
+		offset = mime::MIME_get_slash_token_pair(len, data,
 						&product, &product_version);
 		if ( offset < 0 )
 			{
@@ -1627,10 +1631,10 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 			// so we do not complain in the final version
 			if ( num_version == 0 )
 				HTTP_Event("bad_HTTP_version",
-						new_string_val(len, data));
+						mime::new_string_val(len, data));
 
 			// Try to simply skip next token.
-			offset = MIME_get_token(len, data, &product);
+			offset = mime::MIME_get_token(len, data, &product);
 			if ( offset < 0 )
 				break;
 
@@ -1694,7 +1698,7 @@ void HTTP_Analyzer::HTTP_MessageDone(int is_orig, HTTP_Message* /* message */)
 		ReplyMade(0, "message ends normally");
 	}
 
-void HTTP_Analyzer::InitHTTPMessage(ContentLine_Analyzer* cl, HTTP_Message*& message,
+void HTTP_Analyzer::InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*& message,
 		bool is_orig, int expect_body, int64_t init_header_length)
 	{
 	if ( message )
@@ -1718,24 +1722,24 @@ void HTTP_Analyzer::SkipEntityData(int is_orig)
 		msg->SkipEntityData();
 	}
 
-int is_reserved_URI_char(unsigned char ch)
+int analyzer::http::is_reserved_URI_char(unsigned char ch)
 	{ // see RFC 2396 (definition of URI)
 	return strchr(";/?:@&=+$,", ch) != 0;
 	}
 
-int is_unreserved_URI_char(unsigned char ch)
+int analyzer::http::is_unreserved_URI_char(unsigned char ch)
 	{ // see RFC 2396 (definition of URI)
 	return isalnum(ch) || strchr("-_.!~*\'()", ch) != 0;
 	}
 
-void escape_URI_char(unsigned char ch, unsigned char*& p)
+void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
 	{
 	*p++ = '%';
 	*p++ = encode_hex((ch >> 4) & 0xf);
 	*p++ = encode_hex(ch & 0xf);
 	}
 
-BroString* unescape_URI(const u_char* line, const u_char* line_end,
+BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_end,
 			analyzer::Analyzer* analyzer)
 	{
 	byte_vec decoded_URI = new u_char[line_end - line + 1];

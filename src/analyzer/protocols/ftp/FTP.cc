@@ -11,18 +11,22 @@
 #include "analyzer/Manager.h"
 #include "analyzer/protocols/login/NVT.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::ftp;
+
 FTP_Analyzer::FTP_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("FTP", conn)
+: tcp::TCP_ApplicationAnalyzer("FTP", conn)
 	{
 	pending_reply = 0;
 
-	nvt_orig = new NVT_Analyzer(conn, true);
+	nvt_orig = new login::NVT_Analyzer(conn, true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetCRLFAsEOL(LF_as_EOL);
 	nvt_orig->SetIsNULSensitive(LF_as_EOL);
 
-	nvt_resp = new NVT_Analyzer(conn, false);
+	nvt_resp = new login::NVT_Analyzer(conn, false);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetCRLFAsEOL(LF_as_EOL);
@@ -37,11 +41,11 @@ FTP_Analyzer::FTP_Analyzer(Connection* conn)
 
 void FTP_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( nvt_orig->HasPartialLine() &&
-	     (TCP()->OrigState() == TCP_ENDPOINT_CLOSED ||
-	      TCP()->OrigPrevState() == TCP_ENDPOINT_CLOSED) )
+	     (TCP()->OrigState() == tcp::TCP_ENDPOINT_CLOSED ||
+	      TCP()->OrigPrevState() == tcp::TCP_ENDPOINT_CLOSED) )
 		// ### should include the partial text
 		Weird("partial_ftp_request");
 	}
@@ -56,7 +60,7 @@ static uint32 get_reply_code(int len, const char* line)
 
 void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
 
 	if ( (orig && ! ftp_request) || (! orig && ! ftp_reply) )
 		return;

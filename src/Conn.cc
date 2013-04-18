@@ -935,7 +935,7 @@ error:
 	return false;
 	}
 
-void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, PIA* pia)
+void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;

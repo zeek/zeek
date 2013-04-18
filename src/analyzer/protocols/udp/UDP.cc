@@ -10,6 +10,10 @@
 #include "Reporter.h"
 #include "Conn.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::udp;
+
 UDP_Analyzer::UDP_Analyzer(Connection* conn)
 : TransportLayerAnalyzer("UDP", conn)
 	{

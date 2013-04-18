@@ -1,4 +1,9 @@
+
 #include "AYIYA.h"
+#include "Func.h"
+#include "events.bif.h"
+
+using namespace analyzer::ayiya;
 
 AYIYA_Analyzer::AYIYA_Analyzer(Connection* conn)
 : Analyzer("AYIYA", conn)

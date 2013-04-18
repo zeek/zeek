@@ -5,6 +5,14 @@
 
 #include "IPAddr.h"
 
+class Connection;
+class IP_Hdr;
+
+namespace analyzer { namespace tcp {
+
+class TCP_Analyzer;
+class TCP_Reassembler;
+
 typedef enum {
 	TCP_ENDPOINT_INACTIVE,	// no SYN (or other packets) seen for this side
 	TCP_ENDPOINT_SYN_SENT,	// SYN seen, but no ack
@@ -15,11 +23,6 @@ typedef enum {
 	TCP_ENDPOINT_CLOSED,	// FIN seen
 	TCP_ENDPOINT_RESET	// RST seen
 } EndpointState;
-
-class Connection;
-class TCP_Reassembler;
-class IP_Hdr;
-class TCP_Analyzer;
 
 // One endpoint of a TCP connection.
 class TCP_Endpoint {
@@ -156,5 +159,7 @@ protected:
 #define ENDIAN_LITTLE 1
 #define ENDIAN_BIG 2
 #define ENDIAN_CONFUSED 3
+
+} } // namespace analyzer::* 
 
 #endif

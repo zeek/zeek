@@ -8,9 +8,13 @@
 
 #include "NetVar.h"
 #include "analyzer/protocols/tcp/TCP.h"
+#include "analyzer/protocols/dce-rpc/events.bif.h"
 #include "IPAddr.h"
 
 #include "dce_rpc_simple_pac.h"
+
+
+namespace analyzer { namespace dce_rpc {
 
 class UUID {
 public:
@@ -145,7 +149,7 @@ protected:
 	} mapped;
 };
 
-class Contents_DCE_RPC_Analyzer : public TCP_SupportAnalyzer {
+class Contents_DCE_RPC_Analyzer : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_DCE_RPC_Analyzer(Connection* conn, bool orig, DCE_RPC_Session* session,
 		bool speculative);
@@ -169,7 +173,7 @@ protected:
 	DCE_RPC_Session* session;
 };
 
-class DCE_RPC_Analyzer : public TCP_ApplicationAnalyzer {
+class DCE_RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	DCE_RPC_Analyzer(Connection* conn, bool speculative = false);
 	~DCE_RPC_Analyzer();
@@ -181,5 +185,7 @@ protected:
 	DCE_RPC_Session* session;
 	bool speculative;
 };
+
+} } // namespace analyzer::* 
 
 #endif /* dce_rpc_h */

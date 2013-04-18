@@ -4,6 +4,8 @@
 
 #include "TCP_Endpoint.h"
 
+namespace analyzer { namespace tcp {
+
 // A TCPStateStats object tracks the distribution of TCP states for
 // the currently active connections.  
 class TCPStateStats {
@@ -63,5 +65,7 @@ public:
 private:
 	unsigned int state_cnt[TCP_ENDPOINT_RESET+1][TCP_ENDPOINT_RESET+1];
 };
+
+} } // namespace analyzer::* 
 
 #endif

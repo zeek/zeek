@@ -6,7 +6,9 @@
 #include "analyzer/protocols/login/NVT.h"
 #include "analyzer/protocols/tcp/TCP.h"
 
-class FTP_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace ftp {
+
+class FTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	FTP_Analyzer(Connection* conn);
 
@@ -19,8 +21,8 @@ public:
 		}
 
 protected:
-	NVT_Analyzer* nvt_orig;
-	NVT_Analyzer* nvt_resp;
+	login::NVT_Analyzer* nvt_orig;
+	login::NVT_Analyzer* nvt_resp;
 	uint32 pending_reply;	// code associated with multi-line reply, or 0
 	string auth_requested;	// AUTH method requested
 };
@@ -46,5 +48,7 @@ protected:
 	// a TLS/SSL handshake token).
 	bool first_token;
 };
+
+} } // namespace analyzer::* 
 
 #endif

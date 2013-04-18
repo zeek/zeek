@@ -15,6 +15,8 @@
 
 #include "plugin/Manager.h"
 
+#include "protocols/tcp/events.bif.h"
+
 using namespace analyzer;
 
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
@@ -414,35 +416,35 @@ Manager::tag_set* Manager::LookupPort(PortVal* val, bool add_if_not_found)
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
 	Analyzer* analyzer = 0;
-	TCP_Analyzer* tcp = 0;
-	UDP_Analyzer* udp = 0;
-	ICMP_Analyzer* icmp = 0;
+	tcp::TCP_Analyzer* tcp = 0;
+	udp::UDP_Analyzer* udp = 0;
+	icmp::ICMP_Analyzer* icmp = 0;
 	TransportLayerAnalyzer* root = 0;
 	tag_set expected;
-	PIA* pia = 0;
+	pia::PIA* pia = 0;
 	bool analyzed = false;
 	bool check_port = false;
 
 	switch ( conn->ConnTransport() ) {
 
 	case TRANSPORT_TCP:
-		root = tcp = new TCP_Analyzer(conn);
-		pia = new PIA_TCP(conn);
+		root = tcp = new tcp::TCP_Analyzer(conn);
+		pia = new pia::PIA_TCP(conn);
 		expected = GetScheduled(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
 
 	case TRANSPORT_UDP:
-		root = udp = new UDP_Analyzer(conn);
-		pia = new PIA_UDP(conn);
+		root = udp = new udp::UDP_Analyzer(conn);
+		pia = new pia::PIA_UDP(conn);
 		expected = GetScheduled(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
 
 	case TRANSPORT_ICMP: {
-		root = icmp = new ICMP_Analyzer(conn);
+		root = icmp = new icmp::ICMP_Analyzer(conn);
 		DBG_ANALYZER(conn, "activated ICMP analyzer");
 		analyzed = true;
 		break;
@@ -531,12 +533,12 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		if ( IsEnabled(analyzer_backdoor) )
 			// Add a BackDoor analyzer if requested.  This analyzer
 			// can handle both reassembled and non-reassembled input.
-			tcp->AddChildAnalyzer(new BackDoor_Analyzer(conn), false);
+			tcp->AddChildAnalyzer(new backdoor::BackDoor_Analyzer(conn), false);
 
 		if ( IsEnabled(analyzer_interconn) )
 			// Add a InterConn analyzer if requested.  This analyzer
 			// can handle both reassembled and non-reassembled input.
-			tcp->AddChildAnalyzer(new InterConn_Analyzer(conn), false);
+			tcp->AddChildAnalyzer(new interconn::InterConn_Analyzer(conn), false);
 
 		if ( IsEnabled(analyzer_stepping) )
 			{
@@ -550,25 +552,25 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 				{
 				AddrVal src(conn->OrigAddr());
 				if ( ! stp_skip_src->Lookup(&src) )
-					tcp->AddChildAnalyzer(new SteppingStone_Analyzer(conn), false);
+					tcp->AddChildAnalyzer(new stepping_stone::SteppingStone_Analyzer(conn), false);
 				}
 			}
 
 		if ( IsEnabled(analyzer_tcpstats) )
 			// Add TCPStats analyzer. This needs to see packets so
 			// we cannot add it as a normal child.
-			tcp->AddChildPacketAnalyzer(new TCPStats_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new tcp::TCPStats_Analyzer(conn));
 
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			tcp->AddChildPacketAnalyzer(new ConnSize_Analyzer(conn));
+			tcp->AddChildPacketAnalyzer(new conn_size::ConnSize_Analyzer(conn));
 		}
 
 	else
 		{
 		if ( IsEnabled(analyzer_connsize) )
 			// Add ConnSize analyzer. Needs to see packets, not stream.
-			root->AddChildAnalyzer(new ConnSize_Analyzer(conn));
+			root->AddChildAnalyzer(new conn_size::ConnSize_Analyzer(conn));
 		}
 
 	if ( pia )

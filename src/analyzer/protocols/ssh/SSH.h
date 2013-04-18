@@ -6,7 +6,9 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/ContentLine.h"
 
-class SSH_Analyzer : public TCP_ApplicationAnalyzer {
+namespace analyzer { namespace ssh {
+
+class SSH_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SSH_Analyzer(Connection* conn);
 
@@ -16,8 +18,10 @@ public:
 		{ return new SSH_Analyzer(conn); }
 
 private:
-	ContentLine_Analyzer* orig;
-	ContentLine_Analyzer* resp;
+	tcp::ContentLine_Analyzer* orig;
+	tcp::ContentLine_Analyzer* resp;
 };
+
+} } // namespace analyzer::* 
 
 #endif

@@ -5,6 +5,10 @@
 #include "Telnet.h"
 #include "NVT.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::login;
+
 Telnet_Analyzer::Telnet_Analyzer(Connection* conn)
 : Login_Analyzer("TELNET", conn)
 	{

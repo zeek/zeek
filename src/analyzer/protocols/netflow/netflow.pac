@@ -4,6 +4,8 @@
 #include "net_util.h"
 #include "Event.h"
 extern RecordType* conn_id;
+
+#include "events.bif.h"
 %}
 
 %include bro.pac

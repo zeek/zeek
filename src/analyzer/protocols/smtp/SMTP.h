@@ -7,11 +7,12 @@
 using namespace std;
 
 #include "analyzer/protocols/tcp/TCP.h"
-#include "MIME.h"
-
+#include "analyzer/protocols/mime/MIME.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	SMTP_CMD_##cmd,
+
+namespace analyzer { namespace smtp {
 
 typedef enum {
 #include "SMTP_cmd.def"
@@ -35,7 +36,7 @@ typedef enum {
 } SMTP_State;
 
 
-class SMTP_Analyzer : public TCP_ApplicationAnalyzer {
+class SMTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	SMTP_Analyzer(Connection* conn);
 	~SMTP_Analyzer();
@@ -87,7 +88,9 @@ protected:
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap
 
-	MIME_Mail* mail;
+	mime::MIME_Mail* mail;
 };
+
+} } // namespace analyzer::* 
 
 #endif

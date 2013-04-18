@@ -6,6 +6,8 @@
 #include "analyzer/protocols/tcp/TCP.h"
 #include "binpac_bro.h"
 
+namespace analyzer { namespace dns {
+
 typedef enum {
 	DNS_OP_QUERY = 0,		///< standard query
 	DNS_OP_IQUERY = 1,		///< reverse query
@@ -229,7 +231,7 @@ typedef enum {
 
 // Support analyzer which chunks the TCP stream into "packets".
 // ### This should be merged with TCP_Contents_RPC.
-class Contents_DNS : public TCP_SupportAnalyzer {
+class Contents_DNS : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
 	~Contents_DNS();
@@ -251,7 +253,7 @@ protected:
 };
 
 // Works for both TCP and UDP.
-class DNS_Analyzer : public TCP_ApplicationAnalyzer {
+class DNS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	DNS_Analyzer(Connection* conn);
 	~DNS_Analyzer();
@@ -261,8 +263,8 @@ public:
 
 	virtual void Init();
 	virtual void Done();
-	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event);
+	virtual void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
+					tcp::TCP_Endpoint* peer, int gen_event);
 
 	void ExpireTimer(double t);
 
@@ -278,5 +280,7 @@ protected:
 
 // FIXME: Doesn't really fit into new analyzer structure. What to do?
 int IsReuse(double t, const u_char* pkt);
+
+} } // namespace analyzer::* 
 
 #endif

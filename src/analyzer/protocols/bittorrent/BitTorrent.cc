@@ -3,8 +3,12 @@
 #include "BitTorrent.h"
 #include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::bittorrent;
+
 BitTorrent_Analyzer::BitTorrent_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("BITTORRENT", c)
+: tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
 	{
 	interp = new binpac::BitTorrent::BitTorrent_Conn(this);
 	stop_orig = stop_resp = false;
@@ -18,7 +22,7 @@ BitTorrent_Analyzer::~BitTorrent_Analyzer()
 
 void BitTorrent_Analyzer::Done()
 	{
-	TCP_ApplicationAnalyzer::Done();
+	tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
@@ -29,7 +33,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	uint64& this_stream_len = orig ? stream_len_orig : stream_len_resp;
 	bool& this_stop = orig ? stop_orig : stop_resp;
 
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
 	assert(TCP());
 
@@ -66,7 +70,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void BitTorrent_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	// TODO: Code commented out for now. I think that shoving data that
 	// is definitely wrong into the parser seems like a really bad idea.
@@ -108,7 +112,7 @@ void BitTorrent_Analyzer::Undelivered(int seq, int len, bool orig)
 
 void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 

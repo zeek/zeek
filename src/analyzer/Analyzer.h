@@ -13,11 +13,12 @@
 
 class Rule;
 class Connection;
-class PIA;
 class IP_Hdr;
-class TCP_ApplicationAnalyzer;
 
 namespace analyzer {
+
+namespace tcp { class TCP_ApplicationAnalyzer; }
+namespace pia { class PIA; }
 
 class Analyzer;
 class AnalyzerTimer;
@@ -546,7 +547,7 @@ protected:
 	friend class AnalyzerTimer;
 	friend class Manager;
 	friend class ::Connection;
-	friend class ::TCP_ApplicationAnalyzer;
+	friend class tcp::TCP_ApplicationAnalyzer;
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if
@@ -825,13 +826,13 @@ public:
 	 * transport-layer input and determine which protocol analyzer(s) to
 	 * use for parsing it.
 	 */
-	void SetPIA(PIA* arg_PIA)	{ pia = arg_PIA; }
+	void SetPIA(pia::PIA* arg_PIA)	{ pia = arg_PIA; }
 
 	/**
 	 * Returns the associated PIA, or null of none. Does not take
 	 * ownership.
 	 */
-	PIA* GetPIA() const		{ return pia; }
+	pia::PIA* GetPIA() const		{ return pia; }
 
 	/**
 	 * Helper to raise a \c packet_contents event.
@@ -843,7 +844,7 @@ public:
 	void PacketContents(const u_char* data, int len);
 
 private:
-	PIA* pia;
+	pia::PIA* pia;
 };
 
 }

@@ -5,6 +5,8 @@
 
 #include "RPC.h"
 
+namespace analyzer { namespace rpc {
+
 class PortmapperInterp : public RPC_Interpreter {
 public:
 	PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
@@ -32,5 +34,7 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 };
+
+} } // namespace analyzer::* 
 
 #endif

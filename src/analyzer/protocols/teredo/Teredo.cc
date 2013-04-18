@@ -5,6 +5,10 @@
 #include "IP.h"
 #include "Reporter.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::teredo;
+
 void Teredo_Analyzer::Done()
 	{
 	Analyzer::Done();

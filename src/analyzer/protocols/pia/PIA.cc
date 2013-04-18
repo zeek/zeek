@@ -2,6 +2,10 @@
 #include "RuleMatcher.h"
 #include "analyzer/protocols/tcp/TCP_Reassembler.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::pia;
+
 PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
 	{
 	current_packet.data = 0;
@@ -163,11 +167,11 @@ PIA_TCP::~PIA_TCP()
 
 void PIA_TCP::Init()
 	{
-	TCP_ApplicationAnalyzer::Init();
+	tcp::TCP_ApplicationAnalyzer::Init();
 
 	if ( Parent()->IsAnalyzer("TCP") )
 		{
-		TCP_Analyzer* tcp = static_cast<TCP_Analyzer*>(Parent());
+		tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_Analyzer*>(Parent());
 		SetTCP(tcp);
 		tcp->SetPIA(this);
 		}
@@ -223,7 +227,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 
 void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
+	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
 	if ( stream_buffer.state == SKIPPING )
 		return;
@@ -253,7 +257,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 
 void PIA_TCP::Undelivered(int seq, int len, bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
+	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( stream_buffer.state == BUFFERING )
 		// We use data=nil to mark an undelivered.
@@ -294,7 +298,7 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	//
 	// Here's what we do:
 	//
-	//   (1) We create new TCP_Reassemblers and feed them the buffered
+	//   (1) We create new tcp::TCP_Reassemblers and feed them the buffered
 	//       packets.
 	//
 	//   (2) The reassembler will give us their results via the
@@ -322,14 +326,14 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		return;
 		}
 
-	TCP_Analyzer* tcp = (TCP_Analyzer*) Parent();
+	tcp::TCP_Analyzer* tcp = (tcp::TCP_Analyzer*) Parent();
 
-	TCP_Reassembler* reass_orig =
-		new TCP_Reassembler(this, tcp, TCP_Reassembler::Direct,
+	tcp::TCP_Reassembler* reass_orig =
+		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
 					true, tcp->Orig());
 
-	TCP_Reassembler* reass_resp =
-		new TCP_Reassembler(this, tcp, TCP_Reassembler::Direct,
+	tcp::TCP_Reassembler* reass_resp =
+		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
 					false, tcp->Resp());
 
 	int orig_seq = 0;
@@ -365,8 +369,8 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 	reass_orig->AckReceived(orig_seq);
 	reass_resp->AckReceived(resp_seq);
 
-	reass_orig->SetType(TCP_Reassembler::Forward);
-	reass_resp->SetType(TCP_Reassembler::Forward);
+	reass_orig->SetType(tcp::TCP_Reassembler::Forward);
+	reass_resp->SetType(tcp::TCP_Reassembler::Forward);
 
 	tcp->SetReassembler(reass_orig, reass_resp);
 	}

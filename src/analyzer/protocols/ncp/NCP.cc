@@ -6,7 +6,12 @@
 #include <string>
 #include <map>
 
+#include "NCP.h"
+
+#include "events.bif.h"
+
 using namespace std;
+using namespace analyzer::ncp;
 
 #include "NCP.h"
 #include "Sessions.h"
@@ -150,15 +155,15 @@ void NCP_FrameBuffer::compute_msg_length()
 	}
 
 Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig, NCP_Session* arg_session)
-: TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
+: tcp::TCP_SupportAnalyzer("CONTENTS_NCP", conn, orig)
 	{
 	session = arg_session;
 	resync = true;
 
-	TCP_Analyzer* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	if ( tcp )
 		resync = (orig ? tcp->OrigState() : tcp->RespState()) !=
-						TCP_ENDPOINT_ESTABLISHED;
+						tcp::TCP_ENDPOINT_ESTABLISHED;
 	}
 
 Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
@@ -167,9 +172,9 @@ Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
 
 void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-	TCP_Analyzer* tcp = static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 
 	if ( tcp && tcp->HadGap(orig) )
 		return;
@@ -208,14 +213,14 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 
 void Contents_NCP_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
-	TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 
 	buffer.Reset();
 	resync = true;
 	}
 
 NCP_Analyzer::NCP_Analyzer(Connection* conn)
-: TCP_ApplicationAnalyzer("NCP", conn)
+: tcp::TCP_ApplicationAnalyzer("NCP", conn)
 	{
 	session = new NCP_Session(this);
 	o_ncp = new Contents_NCP_Analyzer(conn, true, session);

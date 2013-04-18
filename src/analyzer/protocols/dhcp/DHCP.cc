@@ -1,6 +1,10 @@
 
 #include "DHCP.h"
 
+#include "events.bif.h"
+
+using namespace analyzer::dhcp;
+
 DHCP_Analyzer::DHCP_Analyzer(Connection* conn)
 : Analyzer("DHCP", conn)
 	{

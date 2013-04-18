@@ -8,11 +8,11 @@
 
 BRO_PLUGIN_BEGIN(Login)
 	BRO_PLUGIN_DESCRIPTION("Telnet/Rsh/Rlogin Analyzer");
-	BRO_PLUGIN_ANALYZER("TELNET", Telnet_Analyzer::InstantiateAnalyzer);
-	BRO_PLUGIN_ANALYZER("RSH", Rsh_Analyzer::InstantiateAnalyzer);
-	BRO_PLUGIN_ANALYZER("RLOGIN", Rlogin_Analyzer::InstantiateAnalyzer);
-	BRO_PLUGIN_ANALYZER("NVT", 0);
-	BRO_PLUGIN_ANALYZER("Login", 0);
+	BRO_PLUGIN_ANALYZER("TELNET", login::Telnet_Analyzer);
+	BRO_PLUGIN_ANALYZER("RSH", login::Rsh_Analyzer);
+	BRO_PLUGIN_ANALYZER("RLOGIN", login::Rlogin_Analyzer);
+	BRO_PLUGIN_ANALYZER_BARE("NVT");
+	BRO_PLUGIN_ANALYZER_BARE("Login");
 	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_Rsh");
 	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_Rlogin");
 	BRO_PLUGIN_BIF_FILE(events);

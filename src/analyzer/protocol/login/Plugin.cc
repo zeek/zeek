@@ -7,10 +7,10 @@
 #include "Rlogin.h"
 
 BRO_PLUGIN_BEGIN(Login)
-	BRO_PLUGIN_DESCRIPTION("Telnet/Rsh/Rlogin Analyzer");
-	BRO_PLUGIN_ANALYZER("TELNET", login::Telnet_Analyzer);
-	BRO_PLUGIN_ANALYZER("RSH", login::Rsh_Analyzer);
-	BRO_PLUGIN_ANALYZER("RLOGIN", login::Rlogin_Analyzer);
+	BRO_PLUGIN_DESCRIPTION("Telnet/Rsh/Rlogin analyzers");
+	BRO_PLUGIN_ANALYZER("Telnet", login::Telnet_Analyzer);
+	BRO_PLUGIN_ANALYZER("Rsh", login::Rsh_Analyzer);
+	BRO_PLUGIN_ANALYZER("Rlogin", login::Rlogin_Analyzer);
 	BRO_PLUGIN_ANALYZER_BARE("NVT");
 	BRO_PLUGIN_ANALYZER_BARE("Login");
 	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_Rsh");

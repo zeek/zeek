@@ -136,14 +136,6 @@ void Manager::DumpDebug()
 		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
 
-#if 0
-	ODesc d;
-	tag_enum_type->Describe(&d);
-
-	DBG_LOG(DBG_ANALYZER, "");
-	DBG_LOG(DBG_ANALYZER, "Analyzer::Tag type: %s", d.Description());
-#endif
-
 #endif
 	}
 
@@ -153,20 +145,20 @@ void Manager::Done()
 
 void Manager::RegisterAnalyzerComponent(Component* component)
 	{
-	if ( Lookup(component->Name()) )
-		reporter->FatalError("Analyzer %s defined more than once", component->Name());
+	const char* cname = component->CanonicalName();
 
-	string name = to_upper(component->Name());
+	if ( Lookup(cname) )
+		reporter->FatalError("Analyzer %s defined more than once", cname);
 
 	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s (tag %s)",
-		name.c_str(), component->Tag().AsString().c_str());
+		component->Name(), component->Tag().AsString().c_str());
 
-	analyzers_by_name.insert(std::make_pair(name, component));
+	analyzers_by_name.insert(std::make_pair(cname, component));
 	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
 	analyzers_by_val.insert(std::make_pair(component->Tag().AsEnumVal()->InternalInt(), component));
 
 	// Install enum "Analyzer::ANALYZER_*"
-	string id = fmt("ANALYZER_%s", name.c_str());
+	string id = fmt("ANALYZER_%s", cname);
 	tag_enum_type->AddName("Analyzer", id.c_str(), component->Tag().AsEnumVal()->InternalInt(), true);
 	}
 
@@ -341,7 +333,7 @@ const char* Manager::GetAnalyzerName(Tag tag)
 	if ( ! c )
 		reporter->InternalError("request for name of unknown analyzer tag %s", tag.AsString().c_str());
 
-	return c->Name();
+	return c->CanonicalName();
 	}
 
 const char* Manager::GetAnalyzerName(Val* val)

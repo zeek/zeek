@@ -68,9 +68,19 @@ public:
 
 	/**
 	 * Returns the name of the analyzer. This name is unique across all
-	 * analyzers and used to identify it.
+	 * analyzers and used to identify it. The returned name is derived
+	 * from what's passed to the constructor but upper-cased and
+	 * canonified to allow being part of a script-level ID.
 	 */
 	const char* Name() const	{ return name; }
+
+	/**
+	 * Returns a canonocalized version of the analyzer's name.  The
+	 * returned name is derived from what's passed to the constructor but
+	 * upper-cased and transformed to allow being part of a script-level
+	 * ID.
+	 */
+	const char* CanonicalName() const	{ return canon_name; }
 
 	/**
 	 * Returns the analyzer's factory function.
@@ -115,6 +125,7 @@ public:
 
 private:
 	const char* name;	// The analyzer's name.
+	const char* canon_name;	// The analyzer's canonical name.
 	factory_callback factory;	// The analyzer's factory callback.
 	bool partial;	// True if the analyzer supports partial connections.
 	analyzer::Tag tag;	// The automatically assigned analyzer tag.

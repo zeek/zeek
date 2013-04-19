@@ -112,7 +112,6 @@ bool BinarySerializationFormat::Read(uint8* v, const char* tag)
 	if ( ! ReadData(v, sizeof(*v)) )
 		return false;
 
-	*v = ntohs(*v);
 	DBG_LOG(DBG_SERIAL, "Read uint8 %hu [%s]", *v, tag);
 	return true;
 	}
@@ -314,7 +313,6 @@ bool BinarySerializationFormat::Write(char v, const char* tag)
 bool BinarySerializationFormat::Write(uint8 v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write uint8 %hu [%s]", v, tag);
-	v = htons(v);
 	return WriteData(&v, sizeof(v));
 	}
 

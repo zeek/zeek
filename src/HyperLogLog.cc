@@ -43,7 +43,7 @@ CardinalityCounter::CardinalityCounter(uint64_t size)
 	V = m;
 	}
  
-CardinalityCounter :: CardinalityCounter(double error_margin)
+CardinalityCounter::CardinalityCounter(double error_margin)
 	{
 	int b = optimalB(error_margin);
 	m = (uint64_t) pow(2, b);
@@ -101,9 +101,9 @@ void CardinalityCounter::addElement(uint64_t hash)
 double CardinalityCounter::size()
 	{
 	double answer = 0;
-	for (int i = 0; i < m; i++)
+	for (int i = 0; i < m; i++) 
 		answer += pow(2, -(int)buckets[i]);
-  
+
   	answer = 1/answer;
   	answer = alpha_m*m*m*answer;
 

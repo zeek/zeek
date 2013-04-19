@@ -65,7 +65,9 @@ void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 	{
 	if ( IsDisabled(tag) ) return;
 	GetFileHandle(tag, conn, is_orig);
-	DataIn(data, len, GetFile(current_handle, conn, tag));
+	// Sequential data input shouldn't be going over multiple conns, so don't
+	// do the check to update connection set.
+	DataIn(data, len, GetFile(current_handle, conn, tag, false));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
@@ -186,7 +188,7 @@ bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 	}
 
 File* Manager::GetFile(const string& unique, Connection* conn,
-                       AnalyzerTag::Tag tag)
+                       AnalyzerTag::Tag tag, bool update_conn)
 	{
 	if ( unique.empty() ) return 0;
 	if ( IsIgnored(unique) ) return 0;
@@ -211,7 +213,8 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 	else
 		{
 		rval->UpdateLastActivityTime();
-		rval->UpdateConnectionFields(conn);
+		if ( update_conn )
+			rval->UpdateConnectionFields(conn);
 		}
 
 	return rval;

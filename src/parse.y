@@ -79,7 +79,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Var.h"
-/* #include "analyzer/protocols/dns/DNS.h" */
+/* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"

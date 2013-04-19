@@ -11,7 +11,7 @@
 #include "Sessions.h"
 #include "Reporter.h"
 #include "Timer.h"
-#include "analyzer/protocols/pia/PIA.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"

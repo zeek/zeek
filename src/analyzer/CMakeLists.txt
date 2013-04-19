@@ -4,7 +4,7 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_subdirectory(protocols)
+add_subdirectory(protocol)
 
 set(analyzer_SRCS
     Analyzer.cc

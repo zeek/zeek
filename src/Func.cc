@@ -38,7 +38,7 @@
 #include "Func.h"
 #include "Frame.h"
 #include "Var.h"
-#include "analyzer/protocols/login/Login.h"
+#include "analyzer/protocol/login/Login.h"
 #include "Sessions.h"
 #include "RE.h"
 #include "Serializer.h"

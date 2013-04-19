@@ -4,14 +4,14 @@
 #include "Hash.h"
 #include "Val.h"
 
-#include "analyzer/protocols/backdoor/BackDoor.h"
-#include "analyzer/protocols/conn-size/ConnSize.h"
-#include "analyzer/protocols/icmp/ICMP.h"
-#include "analyzer/protocols/interconn/InterConn.h"
-#include "analyzer/protocols/pia/PIA.h"
-#include "analyzer/protocols/stepping-stone/SteppingStone.h"
-#include "analyzer/protocols/tcp/TCP.h"
-#include "analyzer/protocols/udp/UDP.h"
+#include "analyzer/protocol/backdoor/BackDoor.h"
+#include "analyzer/protocol/conn-size/ConnSize.h"
+#include "analyzer/protocol/icmp/ICMP.h"
+#include "analyzer/protocol/interconn/InterConn.h"
+#include "analyzer/protocol/pia/PIA.h"
+#include "analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/udp/UDP.h"
 
 #include "plugin/Manager.h"
 

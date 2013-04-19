@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "RuleCondition.h"
-#include "analyzer/protocols/tcp/TCP.h"
+#include "analyzer/protocol/tcp/TCP.h"
 #include "Scope.h"
 
 static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)

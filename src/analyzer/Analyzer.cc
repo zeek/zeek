@@ -4,7 +4,7 @@
 #include "Analyzer.h"
 #include "Manager.h"
 
-#include "analyzer/protocols/pia/PIA.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "../Event.h"
 
 namespace analyzer {

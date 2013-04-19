@@ -1,7 +1,0 @@
-
-- update *.h guards
-- cleanup analyzer descriptions
-- can now lower-case the analyzer name in plugin
-- not sure cmake dependencies work right yet
-- rename analyzers/protocols to analyzer/protocol
-

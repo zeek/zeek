@@ -13,8 +13,8 @@ export {
 function get_file_handle(c: connection, is_orig: bool): string
 	{
 	if ( ! c?$smtp ) return "";
-	return fmt("%s %s %s %s", ANALYZER_SMTP, c$start_time,
-	           c$smtp$trans_depth, c$smtp_state$mime_level);
+	return cat(ANALYZER_SMTP, " ", c$start_time, " ", c$smtp$trans_depth, " ",
+	           c$smtp_state$mime_level);
 	}
 
 module GLOBAL;

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef rpc_h
-#define rpc_h
+#ifndef ANALYZER_PROTOCOL_RPC_RPC_H
+#define ANALYZER_PROTOCOL_RPC_RPC_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/udp/UDP.h"

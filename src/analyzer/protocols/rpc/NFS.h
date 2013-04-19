@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef nfs_h
-#define nfs_h
+#ifndef ANALYZER_PROTOCOL_RPC_NFS_H
+#define ANALYZER_PROTOCOL_RPC_NFS_H
 
 #include "RPC.h"
 #include "XDR.h"

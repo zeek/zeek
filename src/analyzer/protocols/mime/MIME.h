@@ -1,5 +1,5 @@
-#ifndef mime_h
-#define mime_h
+#ifndef ANALYZER_PROTOCOL_MIME_MIME_H
+#define ANALYZER_PROTOCOL_MIME_MIME_H
 
 #include <assert.h>
 #include <openssl/md5.h>

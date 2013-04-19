@@ -1,7 +1,7 @@
 // Analyzer for connections that transfer binary data.
 
-#ifndef FILEANALYZER_H
-#define FILEANALYZER_H
+#ifndef ANALYZER_PROTOCOL_FILE_FILE_H
+#define ANALYZER_PROTOCOL_FILE_FILE_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 

@@ -1,5 +1,5 @@
-#ifndef TCP_REASSEMBLER_H
-#define TCP_REASSEMBLER_H
+#ifndef ANALYZER_PROTOCOL_TCP_TCP_REASSEMBLER_H
+#define ANALYZER_PROTOCOL_TCP_TCP_REASSEMBLER_H
 
 #include "Reassem.h"
 #include "TCP_Endpoint.h"

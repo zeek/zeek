@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef gnutella_h
-#define gnutella_h
+#ifndef ANALYZER_PROTOCOL_GNUTELLA_GNUTELLA_H
+#define ANALYZER_PROTOCOL_GNUTELLA_GNUTELLA_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef portmap_h
-#define portmap_h
+#ifndef ANALYZER_PROTOCOL_RPC_PORTMAP_H
+#define ANALYZER_PROTOCOL_RPC_PORTMAP_H
 
 #include "RPC.h"
 

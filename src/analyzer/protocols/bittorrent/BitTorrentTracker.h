@@ -1,7 +1,7 @@
 // This code contributed by Nadi Sarrar.
 
-#ifndef bittorrenttracker_h
-#define bittorrenttracker_h
+#ifndef ANALYZER_PROTOCOL_BITTORRENT_BITTORRENTTRACKER_H
+#define ANALYZER_PROTOCOL_BITTORRENT_BITTORRENTTRACKER_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 

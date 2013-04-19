@@ -1,5 +1,5 @@
-#ifndef Teredo_h
-#define Teredo_h
+#ifndef ANALYZER_PROTOCOL_TEREDO_TEREDO_H
+#define ANALYZER_PROTOCOL_TEREDO_TEREDO_H
 
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"

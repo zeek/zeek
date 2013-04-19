@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef tcpendpoint_h
-#define tcpendpoint_h
+#ifndef ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
+#define ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
 
 #include "IPAddr.h"
 

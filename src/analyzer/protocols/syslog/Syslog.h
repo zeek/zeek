@@ -1,6 +1,6 @@
 
-#ifndef Syslog_h
-#define Syslog_h
+#ifndef ANALYZER_PROTOCOL_SYSLOG_SYSLOG_H
+#define ANALYZER_PROTOCOL_SYSLOG_SYSLOG_H
 
 #include "analyzer/protocols/udp/UDP.h"
 #include "analyzer/protocols/tcp/TCP.h"

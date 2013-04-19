@@ -1,5 +1,5 @@
-#ifndef dhcp_binpac_h
-#define dhcp_binpac_h
+#ifndef ANALYZER_PROTOCOL_DHCP_DHCP_H
+#define ANALYZER_PROTOCOL_DHCP_DHCP_H
 
 #include "analyzer/protocols/udp/UDP.h"
 

@@ -1,5 +1,5 @@
-#ifndef socks_h
-#define socks_h
+#ifndef ANALYZER_PROTOCOL_SOCKS_SOCKS_H
+#define ANALYZER_PROTOCOL_SOCKS_SOCKS_H
 
 // SOCKS v4 analyzer.
 

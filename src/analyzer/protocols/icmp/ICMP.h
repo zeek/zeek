@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef icmp_h
-#define icmp_h
+#ifndef ANALYZER_PROTOCOL_ICMP_ICMP_H
+#define ANALYZER_PROTOCOL_ICMP_ICMP_H
 
 #include "RuleMatcher.h"
 #include "analyzer/Analyzer.h"

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef xdr_h
-#define xdr_h
+#ifndef ANALYZER_PROTOCOL_RPC_XDR_H
+#define ANALYZER_PROTOCOL_RPC_XDR_H
 
 #include <sys/types.h>
 #include <netinet/in.h>

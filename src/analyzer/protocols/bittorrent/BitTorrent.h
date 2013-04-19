@@ -1,7 +1,7 @@
 // This code contributed by Nadi Sarrar.
 
-#ifndef bittorrent_h
-#define bittorrent_h
+#ifndef ANALYZER_PROTOCOL_BITTORRENT_BITTORRENT_H
+#define ANALYZER_PROTOCOL_BITTORRENT_BITTORRENT_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 

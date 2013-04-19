@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef smb_h
-#define smb_h
+#ifndef ANALYZER_PROTOCOL_SMB_SMB_H
+#define ANALYZER_PROTOCOL_SMB_SMB_H
 
 // SMB (CIFS) analyzer.
 // Reference: http://www.snia.org/tech_activities/CIFS/CIFS-TR-1p00_FINAL.pdf

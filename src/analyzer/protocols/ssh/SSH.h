@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ssh_h
-#define ssh_h
+#ifndef ANALYZER_PROTOCOL_SSH_SSH_H
+#define ANALYZER_PROTOCOL_SSH_SSH_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/ContentLine.h"

@@ -1,5 +1,5 @@
-#ifndef AYIYA_h
-#define AYIYA_h
+#ifndef ANALYZER_PROTOCOL_AYIYA_AYIYA_H
+#define ANALYZER_PROTOCOL_AYIYA_AYIYA_H
 
 #include "ayiya_pac.h"
 

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef netbios_ssn_h
-#define netbios_ssn_h
+#ifndef ANALYZER_PROTOCOL_NETBIOS_SSN_NETBIOSSSN_H
+#define ANALYZER_PROTOCOL_NETBIOS_SSN_NETBIOSSSN_H
 
 #include "analyzer/protocols/udp/UDP.h"
 #include "analyzer/protocols/tcp/TCP.h"

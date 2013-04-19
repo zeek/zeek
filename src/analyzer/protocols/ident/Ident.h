@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ident_h
-#define ident_h
+#ifndef ANALYZER_PROTOCOL_IDENT_IDENT_H
+#define ANALYZER_PROTOCOL_IDENT_IDENT_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/ContentLine.h"

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ntp_h
-#define ntp_h
+#ifndef ANALYZER_PROTOCOL_NTP_NTP_H
+#define ANALYZER_PROTOCOL_NTP_NTP_H
 
 #include "analyzer/protocols/udp/UDP.h"
 

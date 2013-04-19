@@ -1,7 +1,7 @@
 // Support-analyzer to split a reassembled stream into lines.
 
-#ifndef CONTENTLINE_H
-#define CONTENTLINE_H
+#ifndef ANALYZER_PROTOCOL_TCP_CONTENTLINE_H
+#define ANALYZER_PROTOCOL_TCP_CONTENTLINE_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 

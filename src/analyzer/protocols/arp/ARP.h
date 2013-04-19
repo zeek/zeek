@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef arp_h
-#define arp_h
+#ifndef ANALYZER_PROTOCOL_ARP_ARP_H
+#define ANALYZER_PROTOCOL_ARP_ARP_H
 
 #include "config.h"
 #include <sys/types.h>

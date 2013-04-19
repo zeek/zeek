@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef zip_h
-#define zip_h
+#ifndef ANALYZER_PROTOCOL_ZIP_ZIP_H
+#define ANALYZER_PROTOCOL_ZIP_ZIP_H
 
 #include "config.h"
 

@@ -1,5 +1,5 @@
-#ifndef GTPv1_h
-#define GTPv1_h
+#ifndef ANALYZER_PROTOCOL_GTPV1_GTPV1_H
+#define ANALYZER_PROTOCOL_GTPV1_GTPV1_H
 
 #include "gtpv1_pac.h"
 

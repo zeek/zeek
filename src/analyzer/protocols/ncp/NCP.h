@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ncp_h
-#define ncp_h
+#ifndef ANALYZER_PROTOCOL_NCP_NCP_H
+#define ANALYZER_PROTOCOL_NCP_NCP_H
 
 // A very crude analyzer for NCP (Netware Core Protocol)
 //
@@ -73,7 +73,7 @@ protected:
 	int buf_len;	// size off msg_buf
 };
 
-#define NCP_TCPIP_HEADER_LENGTH 8
+#define ANALYZER_PROTOCOL_NCP_NCP_HEADER_LENGTH 8
 
 class NCP_FrameBuffer : public FrameBuffer {
 public:

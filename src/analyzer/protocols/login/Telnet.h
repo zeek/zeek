@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef telnet_h
-#define telnet_h
+#ifndef ANALYZER_PROTOCOL_LOGIN_TELNET_H
+#define ANALYZER_PROTOCOL_LOGIN_TELNET_H
 
 #include "Login.h"
 

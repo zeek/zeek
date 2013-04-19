@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef login_h
-#define login_h
+#ifndef ANALYZER_PROTOCOL_LOGIN_LOGIN_H
+#define ANALYZER_PROTOCOL_LOGIN_LOGIN_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 

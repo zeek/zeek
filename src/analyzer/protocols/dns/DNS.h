@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef dns_h
-#define dns_h
+#ifndef ANALYZER_PROTOCOL_DNS_DNS_H
+#define ANALYZER_PROTOCOL_DNS_DNS_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "binpac_bro.h"

@@ -1,5 +1,5 @@
-#ifndef ssl_h
-#define ssl_h
+#ifndef ANALYZER_PROTOCOL_SSL_SSL_H
+#define ANALYZER_PROTOCOL_SSL_SSL_H
 
 #include "events.bif.h"
 

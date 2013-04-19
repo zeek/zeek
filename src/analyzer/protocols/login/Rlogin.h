@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef rlogin_h
-#define rlogin_h
+#ifndef ANALYZER_PROTOCOL_LOGIN_RLOGIN_H
+#define ANALYZER_PROTOCOL_LOGIN_RLOGIN_H
 
 #include "Login.h"
 #include "analyzer/protocols/tcp/ContentLine.h"

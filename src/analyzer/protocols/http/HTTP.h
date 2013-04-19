@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef http_h
-#define http_h
+#ifndef ANALYZER_PROTOCOL_HTTP_HTTP_H
+#define ANALYZER_PROTOCOL_HTTP_HTTP_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/ContentLine.h"

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef nvt_h
-#define nvt_h
+#ifndef ANALYZER_PROTOCOL_LOGIN_NVT_H
+#define ANALYZER_PROTOCOL_LOGIN_NVT_H
 
 #include "analyzer/protocols/tcp/ContentLine.h"
 

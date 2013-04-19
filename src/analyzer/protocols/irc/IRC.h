@@ -1,7 +1,7 @@
 // An IRC analyzer contributed by Roland Gruber.
 
-#ifndef irc_h
-#define irc_h
+#ifndef ANALYZER_PROTOCOL_IRC_IRC_H
+#define ANALYZER_PROTOCOL_IRC_IRC_H
 #include "analyzer/protocols/tcp/TCP.h"
 
 namespace analyzer { namespace irc {

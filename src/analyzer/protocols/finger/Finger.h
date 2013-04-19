@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef finger_h
-#define finger_h
+#ifndef ANALYZER_PROTOCOL_FINGER_FINGER_H
+#define ANALYZER_PROTOCOL_FINGER_FINGER_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "analyzer/protocols/tcp/ContentLine.h"

@@ -1,7 +1,7 @@
 // An analyzer for application-layer protocol-detection.
 
-#ifndef PIA_H
-#define PIA_H
+#ifndef ANALYZER_PROTOCOL_PIA_PIA_H
+#define ANALYZER_PROTOCOL_PIA_PIA_H
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/protocols/tcp/TCP.h"

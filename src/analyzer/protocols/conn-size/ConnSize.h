@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
-#ifndef CONNSTATS_H
-#define CONNSTATS_H
+#ifndef ANALYZER_PROTOCOL_CONN_SIZE_CONNSIZE_H
+#define ANALYZER_PROTOCOL_CONN_SIZE_CONNSIZE_H
 
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"

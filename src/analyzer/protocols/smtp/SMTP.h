@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef smtp_h
-#define smtp_h
+#ifndef ANALYZER_PROTOCOL_SMTP_SMTP_H
+#define ANALYZER_PROTOCOL_SMTP_SMTP_H
 
 #include <list>
 using namespace std;

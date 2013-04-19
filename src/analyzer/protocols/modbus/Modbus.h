@@ -1,5 +1,5 @@
-#ifndef MODBUS_H
-#define MODBUS_H
+#ifndef ANALYZER_PROTOCOL_MODBUS_MODBUS_H
+#define ANALYZER_PROTOCOL_MODBUS_MODBUS_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "modbus_pac.h"

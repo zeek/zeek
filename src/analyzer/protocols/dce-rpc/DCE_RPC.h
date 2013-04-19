@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef dce_rpc_h
-#define dce_rpc_h
+#ifndef ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_H
+#define ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_H
 
 // NOTE: This is a somewhat crude analyzer for DCE/RPC (used on Microsoft
 // Windows systems) and shouldn't be considered as stable.
@@ -88,7 +88,7 @@ enum DCE_RPC_PTYPE {
 };
 */
 
-#define DCE_RPC_HEADER_LENGTH 16
+#define ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_HEADER_LENGTH 16
 
 class DCE_RPC_Header {
 public:

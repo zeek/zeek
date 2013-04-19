@@ -1,5 +1,4 @@
 
-- add functions.bif where needed
 - update *.h guards
 - cleanup analyzer descriptions
 - can now lower-case the analyzer name in plugin

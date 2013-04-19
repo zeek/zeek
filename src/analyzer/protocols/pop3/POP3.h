@@ -2,8 +2,8 @@
 //
 // An analyser for the POP3 protocol.
 
-#ifndef pop3_h
-#define pop3_h
+#ifndef ANALYZER_PROTOCOL_POP3_POP3_H
+#define ANALYZER_PROTOCOL_POP3_POP3_H
 
 #include <vector>
 #include <string>

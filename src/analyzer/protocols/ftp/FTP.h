@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ftp_h
-#define ftp_h
+#ifndef ANALYZER_PROTOCOL_FTP_FTP_H
+#define ANALYZER_PROTOCOL_FTP_FTP_H
 
 #include "analyzer/protocols/login/NVT.h"
 #include "analyzer/protocols/tcp/TCP.h"

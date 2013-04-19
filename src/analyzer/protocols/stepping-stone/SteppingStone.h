@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef steppingstone_h
-#define steppingstone_h
+#ifndef ANALYZER_PROTOCOL_STEPPING_STONE_STEPPINGSTONE_H
+#define ANALYZER_PROTOCOL_STEPPING_STONE_STEPPINGSTONE_H
 
 #include "Queue.h"
 #include "analyzer/protocols/tcp/TCP.h"

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef interconn_h
-#define interconn_h
+#ifndef ANALYZER_PROTOCOL_INTERCONN_INTERCONN_H
+#define ANALYZER_PROTOCOL_INTERCONN_INTERCONN_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "Timer.h"

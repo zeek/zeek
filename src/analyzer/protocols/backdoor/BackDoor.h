@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef backdoor_h
-#define backdoor_h
+#ifndef ANALYZER_PROTOCOL_BACKDOOR_BACKDOOR_H
+#define ANALYZER_PROTOCOL_BACKDOOR_BACKDOOR_H
 
 #include "analyzer/protocols/tcp/TCP.h"
 #include "Timer.h"

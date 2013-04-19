@@ -161,14 +161,20 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	int i;
 	int j;
 	int newFrame = 0;
+
+	if( len < 10 ){
+		Weird("Unpected_DNP3_packet_size");
+		return -1;
+	}
 	
 	///// the first two bytes should always be 0x0564	
 	///// This is used as DPD signature
 	if( data[0] != 0x05 || data[1] != 0x64 )
 		return -1;
 
+	//// This indicate that the whole DNP3 packet contains the only Psuedo Link Layer Data
+	////  This is usually used in Serial Link era to detect the machine status
 	if( len == 10){
-		printf("purely data link layer ignore \n");
 		return -1;
 	}
 

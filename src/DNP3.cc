@@ -161,11 +161,16 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	int i;
 	int j;
 	int newFrame = 0;
-
+	
 	///// the first two bytes should always be 0x0564	
 	///// This is used as DPD signature
 	if( data[0] != 0x05 || data[1] != 0x64 )
 		return -1;
+
+	if( len == 10){
+		printf("purely data link layer ignore \n");
+		return -1;
+	}
 
 	u_char control_field = data[CRTL_FIELD_INDEX];
 	// Double check the orig. in case that the first received traffic is response

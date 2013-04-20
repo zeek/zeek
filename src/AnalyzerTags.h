@@ -31,7 +31,7 @@ namespace AnalyzerTag {
 
 		// Application-layer analyzers, binpac-generated.
 		DHCP_BINPAC, DNS_TCP_BINPAC, DNS_UDP_BINPAC,
-		HTTP_BINPAC, SSL, SYSLOG_BINPAC,
+		HTTP_BINPAC, SSL, SYSLOG_BINPAC, MYSQL_BINPAC,
 		Modbus,
 
 		// Decapsulation analyzers.

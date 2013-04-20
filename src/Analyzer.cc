@@ -42,6 +42,7 @@
 #include "Teredo.h"
 #include "ConnSizeAnalyzer.h"
 #include "GTPv1.h"
+#include "MySQL-binpac.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -125,6 +126,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::HTTP_BINPAC, "HTTP_BINPAC",
 		HTTP_Analyzer_binpac::InstantiateAnalyzer,
 		HTTP_Analyzer_binpac::Available, 0, false },
+	{ AnalyzerTag::MYSQL_BINPAC, "MYSQL_BINPAC",
+		MySQL_Analyzer_binpac::InstantiateAnalyzer,
+		MySQL_Analyzer_binpac::Available, 0, false },
 	{ AnalyzerTag::SSL, "SSL",
 		SSL_Analyzer::InstantiateAnalyzer,
 		SSL_Analyzer::Available, 0, false },

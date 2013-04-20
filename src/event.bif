@@ -2538,6 +2538,11 @@ event mime_event%(c: connection, event_type: string, detail: string%);
 ##    sessions, there's no corresponding event for that currently.
 event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
 
+## TODO: dox
+event mysql_command_request%(c: connection%);
+event mysql_command_response%(c: connection%);
+event mysql_initial_handshake%(c: connection%);
+event mysql_handshake_response%(c: connection%);
 ## Generated for RPC request/reply *pairs*. The RPC analyzer associates request
 ## and reply by their transaction identifiers and raises this event once both
 ## have been seen. If there's not a reply, this event will still be generated

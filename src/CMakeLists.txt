@@ -220,6 +220,8 @@ binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
+binpac_target(mysql.pac
+    mysql-protocol.pac mysql-analyzer.pac)
 
 ########################################################################
 ## bro target
@@ -352,6 +354,7 @@ set(bro_SRCS
     Login.cc
     MIME.cc
     Modbus.cc
+    MySQL-binpac.cc
     NCP.cc
     NFA.cc
     NFS.cc

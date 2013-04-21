@@ -18,7 +18,7 @@ public:
 		{ return new MySQL_Analyzer_binpac(conn); }
 
 	static bool Available()
-		{ return (mysql_request); }
+		{ return (mysql_command_request || mysql_command_response || mysql_server_version || mysql_handshake_response || mysql_login); }
 
 protected:
 	binpac::MySQL::MySQL_Conn* interp;

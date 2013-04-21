@@ -1,4 +1,4 @@
-### Connection phase
+###
 #
 # All information is from the MySQL internals documentation at:
 # <http://dev.mysql.com/doc/internals/en/connection-phase.html>
@@ -79,131 +79,114 @@ enum command_consts {
      COM_BINLOG_DUMP_GTID    = 0x1e
 };
 
-refine connection MySQL_Conn += {
-       %member{
-		int conn_phase_done_;
-       %}
-       
-       %init{
-		conn_phase_done_=0;
-       %}
-
-       function conn_phase_done() : int %{ return conn_phase_done_; %}
-};       
-
-
-type FixedLengthInteger1 = record {data: bytestring &length=1;} &byteorder=littleendian, &let {value: int = bytestring_to_int(data, 10);};
-type FixedLengthInteger2 = record {data: bytestring &length=2;} &byteorder=littleendian, &let {value: int = bytestring_to_int(data, 10);};
-type FixedLengthInteger3 = record {data: bytestring &length=3;} &byteorder=littleendian, &let {value: int = bytestring_to_int(data, 10);};
-type FixedLengthInteger4 = record {data: bytestring &length=4;} &byteorder=littleendian, &let {value: int = bytestring_to_int(data, 10);};
-#type FixedLengthInteger6 = bytestring &length=6 &byteorder=littlendian;
-type FixedLengthInteger8 = record {data: bytestring &length=8;} &byteorder=littleendian, &let {value: int = bytestring_to_int(data, 10);};
-type LengthEncodedInteger = record {
-     length: FixedLengthInteger1;
-     tmp:    case length.value of {
-     	  0xfc    -> int2: FixedLengthInteger2;
-	  0xfd    -> int3: FixedLengthInteger3;
-	  0xfe    -> int8: FixedLengthInteger8;
-     };
-} &let {
-  value: int = (length.value < 0xfc) ? length.value : (length.value == 0xfc) ? int2.value : (length.value == 0xfd) ? int3.value : int8.value;
+enum states {
+     CONNECTION_PHASE = 0,
+     COMMAND_PHASE = 1
 };
 
-type RestOfLine = RE/.*/;
+type NUL_String = RE/[^\0]*/;
 
 type MySQLPDU(is_orig: bool) = record {
-     length:      FixedLengthInteger3;
-     sequence_id: FixedLengthInteger1;
-     : case $context.connection.conn_phase_done() of {
-         0 -> conn_packet: Connection_Packet(is_orig);
-	 1 -> cmd_packet:  Command_Packet(is_orig);
+     length1:     uint8;
+     # TODO: there are actually 3 bytes for the length here, 
+     #       but if I include the others, it won't process.
+     #       Currently limited to packets with a length < 256
+     # length2:   uint8;
+     # length3:	  uint8;
+     rest:	  MySQL_Packet(is_orig);
+} &let { 
+     # Length doesn't inclue the 3 bytes for the length and a byte
+     # for the sequence_id, hence +4.
+     length: uint32 = (length1 + 4);
+     # length: uint32 = ((length3 << 16) + (length2 << 8) + length1 + 4);
+}, &length=length;
+
+type MySQL_Packet(is_orig: bool) = record {
+     # See MySQLPDU TODO
+     unused_length: uint16;
+     sequence_id: uint8;
+     nul: case (sequence_id) of {
+       0 -> initial_packet: Initial_Packet;
+       default -> noninitial_packet: Noninitial_Packet(is_orig);
+      };
+} &byteorder=bigendian;
+
+type Noninitial_Packet(is_orig: bool) = record {
+     nul: case(is_orig) of {
+         0 -> command_response: Command_Response_Packet;
+	 1 -> response_or_request: Response_Or_Request_Packet;
      };
 };
 
-type Connection_Packet(is_orig: bool) = record {
-     : case is_orig of {
-       0 -> initial_handshake_packet: Initial_Handshake_Packet;
-       1 -> handshake_response_packet: Handshake_Response_Packet;
-     };
+type Response_Or_Request_Packet = record {
+     nul: case($context.connection.get_state()) of {
+	   0 -> handshake_response: Handshake_Response_Packet;
+	   1 -> additional_command: Command_Request_Packet;
+	   };
 };
 
-type Handshake_Response_Packet = record {
-     #todo:		       bytestring &restofdata;
+type Initial_Packet = record {
+     nul: case($context.connection.get_state()) of {
+       	 0 -> initial_handshake: Initial_Handshake_Packet;
+	 1 -> command_request: Command_Request_Packet;
+	 };
 };
-
 type Initial_Handshake_Packet = record {
-     protocol_version: FixedLengthInteger1;
-     :   case protocol_version.value of {
-     	  0x0a -> handshake10: Handshake_v10;
-	  0x09 -> handshake9: Handshake_v9;
+     protocol_version: uint8;
+     nul: case(protocol_version) of {
+     	  10 -> handshake10: Handshake_v10;
+	  9  -> handshake9: Handshake_v9;
+	  default -> error: ERR_Packet;
      };
 };
 
 type Handshake_v10 = record {
-     server_version: 	      bytestring &oneline;
-     connection_id:  	      FixedLengthInteger4;
-     auth_plugin_data_part_1: bytestring &length=8;
-     :			      FixedLengthInteger1;
-     capability_flags:	      FixedLengthInteger2;
-     #todo:		      bytestring &restofdata;
+     server_version:    NUL_String;
+     todo:		bytestring &restofdata;
 };
 
 type Handshake_v9 = record {
-     server_version: bytestring &oneline;
-     connection_id:  FixedLengthInteger4;
-     scramble:       bytestring &oneline;
+     todo:	        bytestring &restofdata;
 };
 
-type Command_Packet(is_orig: bool) = record {
-     : case is_orig of {
-       0 -> command_response: Command_Response_Packet;
-       1 -> command_request: Command_Request_Packet;
-     };
-};
+type Handshake_Response_Packet = record {
+     todo_cap_flags:    uint32;
+     todo_max_pkt_size: uint32;
+     todo_char_set:	uint8;
+     :			bytestring &length=23;
+     username:		NUL_String;
+     todo:		bytestring &restofdata;
+} &byteorder=bigendian;
 
 type Command_Request_Packet = record {
-     command:       FixedLengthInteger1;
-};
-
-type OK_Packet(expect_status: bool, expect_warnings: bool) = record {
-     affected_rows:  LengthEncodedInteger;
-     last_insert_id: LengthEncodedInteger;
-     tmp:   case expect_status of {
-     	true    -> status_flags: FixedLengthInteger2;
+     command:       uint8;
+     arg: case(command) of {
+        COM_INIT_DB   -> init_db_arg:   bytestring &restofdata;
+	COM_QUERY     -> query_arg:     bytestring &restofdata;
+	COM_CREATE_DB -> create_db_arg: bytestring &restofdata;
+	COM_DROP_DB   -> drop_db_arg:   bytestring &restofdata;
+        default       -> no_arg:        empty;
      };
-     tmp2:   case expect_warnings of {
-     	true    -> warnings: FixedLengthInteger2;
-     };
-     # info:	bytestring &restofdata;
-};
-
-type ERR_Packet(expect_warnings: bool) = record {
-     error_code: FixedLengthInteger2;
-     tmp:  case expect_warnings of {
-        true   -> sql_state: SQLState;
-     };
-     # error_message: bytestring &restofdata;
-};
-
-type EOF_Packet(expect_warnings: bool) = record {
-     tmp: case expect_warnings of {
-        true    -> warning_count: FixedLengthInteger2;
-     };
-     tmp2: case expect_warnings of {
-        true    -> status_flags: FixedLengthInteger2;
-     };
-};
-
-type SQLState = record {
-     : bytestring &length=1;
-     sql_state: bytestring &length=5;
 };
 
 type Command_Response_Packet = record {
-     header:	  FixedLengthInteger1;
-     tmp:    case header.value of {
-     	  0x00 -> data_ok:  OK_Packet(1, 1);
-	  0xfe -> data_eof: EOF_Packet(1);
-	  0xff -> data_err: ERR_Packet(1);
+     pkt_type:	uint8;
+     response: case(pkt_type) of {
+       0x00 -> data_ok:  OK_Packet;
+       0xfe -> data_eof: EOF_Packet;
+       0xff -> data_err: ERR_Packet;
      };
 };
+
+type OK_Packet = record {
+     todo: bytestring &restofdata;
+};
+
+type ERR_Packet = record {
+     todo: bytestring &restofdata;
+};
+
+type EOF_Packet = record {
+     todo: bytestring &restofdata;
+};
+

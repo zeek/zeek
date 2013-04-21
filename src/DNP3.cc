@@ -3,16 +3,15 @@
 #include "TCP_Reassembler.h"
 
 
-#define MAX_PACKET_SIZE_NOCRC 258  // the length of each trunk of DNP3 Pseudo App Layer Data excluding CRC 
-#define MAX_PACKET_SIZE_CRC 292    // the length of each trunk of DNP3 Pseudo App Layer Data including CRC
 #define PSEUDO_LINK_LEN 8          // the length of DNP3 Pseudo Link Layer
 #define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
-#define LEN_FIELD_INDEX 2          // index of len field of DNP3 Pseudo Link Layer 
-#define CRTL_FIELD_INDEX 3         // index of ctrl field of DNP3 Pseudo Link Layer
+#define PSEUDO_LINK_LEN_FIELD_INDEX 2          // index of len field of DNP3 Pseudo Link Layer 
+#define PSEUDO_LINK_CRTL_FIELD_INDEX 3         // index of ctrl field of DNP3 Pseudo Link Layer
 #define PSEUDO_TRAN_INDEX 10       // index of DNP3 Pseudo Transport Layer 
 #define PSEUDO_TRAN_LEN 1          // The length of DNP3 Pseudo Transport Layer
-
-#define DNP3_APP_DATA_BLK 16       // maximum length of a data block in DNP3 Pseudo App Layer
+#define PSEUDO_APP_MAX_SIZE_NOCRC 258  // the length of each trunk of DNP3 Pseudo App Layer Data excluding CRC 
+#define PSEUDO_APP_MAX_SIZE_CRC 292    // the length of each trunk of DNP3 Pseudo App Layer Data including CRC
+#define PSEUDO_APP_DATA_BLK_SIZE 16       // maximum length of a data block in DNP3 Pseudo App Layer
 #define CRC_LEN 2                  // length of CRC 
 #define CRC_GEN_POLY 0xA6BC        // Generation Polynomial to calculate 16-bit CRC
 
@@ -74,6 +73,8 @@ void DNP3_Analyzer::Done()
 //
 // 2. Packing DNP3 Network Packet into TCP/IP stack
 //
+// (From now on, I will call the original DNP3 Link Layer, Transport Layer and Application Layer used in serial link 
+//  as Pseudo Link Layer, Pseudo Transport Layer and Pseudo Application Layer)
 // For a long DNP3 application layer fragment, we may find it tramistted 
 // over IP network in the following format: 
 // Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #1
@@ -178,11 +179,11 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		return -1;
 	}
 
-	u_char control_field = data[CRTL_FIELD_INDEX];
+	u_char control_field = data[PSEUDO_LINK_CRTL_FIELD_INDEX];
 	// Double check the orig. in case that the first received traffic is response
 	// Such as unsolicited response, a response issued to the control center without receiving any requests
 	// I input m_orig into binpac to indicate the flow direction
-	bool m_orig = ( (data[CRTL_FIELD_INDEX] & 0x80) == 0x80 );	
+	bool m_orig = ( (data[PSEUDO_LINK_CRTL_FIELD_INDEX] & 0x80) == 0x80 );	
 
 
 
@@ -192,7 +193,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	for(i = 0; i < PSEUDO_LINK_LEN ; i++)
 		{
 		pseudoLink[j] = data[i];
-		if(j == LEN_FIELD_INDEX) j++;
+		if(j == PSEUDO_LINK_LEN_FIELD_INDEX) j++;
 	
 		j++;
 		}
@@ -232,8 +233,8 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 
 		//// In this case
 		// LEN field value should be 0x00FF
-		// The whole length of the DNP3 Packet including all three pseudo layers are MAX_PACKET_SIZE_CRC
-		if( len != MAX_PACKET_SIZE_CRC )
+		// The whole length of the DNP3 Packet including all three pseudo layers are PSEUDO_APP_MAX_SIZE_CRC
+		if( len != PSEUDO_APP_MAX_SIZE_CRC )
 			{
 			Weird("dnp3_unexpected_packet_size");
 			return -4;
@@ -244,8 +245,8 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		//// Based on this field, Binpac will allocate the size of flow buffer 
 		////  1 byte larger than what is delivered from interp->NewData
 		//// As a result, Binpac will buffer the current data and wait for more data to come 
-		pseudoLink[LEN_FIELD_INDEX + 1] = 0x01;
-                pseudoLink[LEN_FIELD_INDEX] = 0x00;	
+		pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX + 1] = 0x01;
+                pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] = 0x00;	
 		
 		//// Send the pseudoLink layer data to binpac
 		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
@@ -278,10 +279,10 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			return -5;
 			}
 		
-		if ( len != MAX_PACKET_SIZE_CRC )
+		if ( len != PSEUDO_APP_MAX_SIZE_CRC )
 			{
 			// This is not a last transport segment, so the
-			// length of the TCP payload should be exactly MAX_PACKET_SIZE_CRC
+			// length of the TCP payload should be exactly PSEUDO_APP_MAX_SIZE_CRC
 			// bytes.
 			Weird("dnp3_unexpected_payload_size");
 			return -6;
@@ -298,9 +299,9 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			{
                         //upflow = interp->upflow();
                         //printf("test buffer size %d\n", upflow->get_bufferBytes());
-                        newFrame = MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
+                        newFrame = PSEUDO_APP_MAX_SIZE_NOCRC + 1 + upflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
                         //printf("new frame size is %d \n", newFrame);
-                        upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + upflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
+                        upflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 1 + upflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
                         //printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
                         upflow_count++;
                 	}
@@ -308,9 +309,9 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			{
                         downflow = interp->downflow();
                         //printf("down test buffer size %d\n", downflow->get_bufferBytes());
-                        newFrame = MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
+                        newFrame = PSEUDO_APP_MAX_SIZE_NOCRC + 1 + downflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
                         //printf("down new frame size is %d \n", newFrame);
-                        downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 1 + downflow_count * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
+                        downflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 1 + downflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
                         //printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
                         downflow_count++;
                 	}
@@ -329,17 +330,17 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		if(m_orig == true)
 			{
                        	//printf("test buffer size %d\n", upflow->get_bufferBytes());
-	                upflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 
-					(upflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
-						pseudoLink[LEN_FIELD_INDEX] -5 - 1 );
+	                upflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 
+					(upflow_count - 1) * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
+						pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] -5 - 1 );
         	        upflow_count = 0;
                 	}
 	        else
 			{
         	        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
-                        downflow->increaseBuffer( MAX_PACKET_SIZE_NOCRC + 
-					(downflow_count - 1) * (MAX_PACKET_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
-						pseudoLink[LEN_FIELD_INDEX] - 5 - 1 );
+                        downflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 
+					(downflow_count - 1) * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
+						pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] - 5 - 1 );
                       	downflow_count = 0;
                		}
 			
@@ -373,8 +374,8 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			Weird("dnp3_missing_finish_packet");
 			mEncounteredFirst = false;
 			}
-		//// LEN_FIELD_INDEX + 1 incidate the MSB of the length field, should be 0 in this case
-		pseudoLink[LEN_FIELD_INDEX + 1]= 0x00;
+		//// PSEUDO_LINK_LEN_FIELD_INDEX + 1 incidate the MSB of the length field, should be 0 in this case
+		pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX + 1]= 0x00;
 	
 
 		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
@@ -410,7 +411,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		//// starting pointer of the current data block
 		blockStart = data + (PSEUDO_LINK_LEN + CRC_LEN) + i ;	
 	
-		if( byteRemain < (DNP3_APP_DATA_BLK + CRC_LEN) )
+		if( byteRemain < (PSEUDO_APP_DATA_BLK_SIZE + CRC_LEN) )
 			{
 			blockLen = byteRemain - CRC_LEN;
 			
@@ -424,7 +425,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			}
 		else		
 			{
-			blockLen = DNP3_APP_DATA_BLK;
+			blockLen = PSEUDO_APP_DATA_BLK_SIZE;
 			
 			if( i == 0) // this if statement is used to remove the Pseudo Transport Layer
 				{
@@ -432,7 +433,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 				blockStart = blockStart + PSEUDO_TRAN_LEN;
 				}
 			
-			i = i + DNP3_APP_DATA_BLK + CRC_LEN;
+			i = i + PSEUDO_APP_DATA_BLK_SIZE + CRC_LEN;
 			}
 
 		
@@ -548,7 +549,8 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 
 	return 0;
 	}
-//// NOTE I copy codes for the codes for DNP3_CalcCRC and DNP3_PrecomputeCRC from the internet as this is common method to calculate CRC values; is it all right?
+//
+
 void DNP3_Analyzer::DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial)
 	{
 	unsigned int i, j, CRC;

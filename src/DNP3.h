@@ -5,6 +5,8 @@
 #include "TCP.h"
 #include "dnp3_pac.h"
 
+//#define CRC_GEN_POLY 0xA6BC        // Generation Polynomial to calculate 16-bit CRC
+
 class DNP3_Analyzer : public TCP_ApplicationAnalyzer {
 public:
 	DNP3_Analyzer(Connection* conn);
@@ -48,7 +50,26 @@ protected:
 	int DNP3_CheckCRC(int len, const u_char* data);
 	unsigned int DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert);	
 	void DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial);
+	/*
+	inline void DNP3_PrecomputeCRC()
+		{
+		unsigned int i, j, CRC;
 
+        	for(i = 0; i < 256; i++) 
+                	{
+	                CRC = i;
+        	        for (j = 0; j < 8; ++j) 
+                	        {
+                        	if(CRC & 0x0001) 
+                                	CRC = (CRC >> 1) ^ CRC_GEN_POLY;
+	                        else 
+        	                        CRC >>= 1;
+                	        }
+	                //apTable[i] = CRC;
+	                DNP3_CrcTable[i] = CRC;
+        	        }
+		}
+	*/
 	binpac::DNP3::DNP3_Conn* interp;
 	binpac::DNP3::DNP3_Flow* upflow;
 	binpac::DNP3::DNP3_Flow* downflow;

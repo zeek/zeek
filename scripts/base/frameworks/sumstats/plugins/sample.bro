@@ -29,7 +29,7 @@ function get_samples(rv: ResultVal): vector of Observation
 	return s;
 	}
 
-hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( r$samples > 0 )
 		{

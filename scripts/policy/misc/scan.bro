@@ -1,4 +1,4 @@
-##! Scan detection
+##! TCP Scan detection
 ##!
 ##! ..Authors: Sheharbano Khattak
 ##!            Seth Hall
@@ -47,21 +47,8 @@ export {
 	const addr_scan_custom_thresholds: table[port] of count &redef;
 
 	global Scan::addr_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
-	
 	global Scan::port_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
 }
-
-
-#function check_addr_scan_threshold(key: SumStats::Key, val: SumStats::Result): bool
-#	{
-#	# We don't need to do this if no custom thresholds are defined.
-#	if ( |addr_scan_custom_thresholds| == 0 )
-#		return F;
-#
-#	local service = to_port(key$str);
-#	return ( service in addr_scan_custom_thresholds &&
-#	         val$sum > addr_scan_custom_thresholds[service] );
-#	}
 
 event bro_init() &priority=5
 	{
@@ -124,30 +111,6 @@ function add_sumstats(id: conn_id, reverse: bool)
 		victim       = id$orig_h;
 		scanned_port = id$orig_p;
 		}
-
-	# Defaults to be implemented with a hook...
-	#local transport_layer_proto = get_port_transport_proto(service);
-	#if ( suppress_UDP_scan_checks && (transport_layer_proto == udp) )
-	#	return F;
-	#else if ( suppress_TCP_scan_checks && (transport_layer_proto == tcp) )
-	#	return F;
-	#else if ( suppress_ICMP_scan_checks && (transport_layer_proto == icmp) )
-	#	return F;
-
-	# TODO: all of this whitelist/blacklist will be done 
-	#       through the upcoming hook mechanism
-	# Blacklisting/whitelisting services
-	#if ( |analyze_services| > 0 )
-	#	{
-	#	if ( service !in analyze_services )
-	#		return F;
-	#	}
-	#else if ( service in skip_services )
-	#	return F;
-	#
-	## Blacklisting/whitelisting subnets
-	#if ( |analyze_subnets| > 0 && host !in analyze_subnets )
-	#	return F;
 	
 	if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
 		SumStats::observe("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);

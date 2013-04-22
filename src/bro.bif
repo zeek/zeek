@@ -5642,3 +5642,30 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		}
 	%}
 
+
+
+%%{
+#include "Topk.h"
+%%}
+
+function topk_init%(size: count%): opaque of topk
+	%{
+	Topk::TopkVal* v = new Topk::TopkVal(size);
+	return v;
+	%}
+
+function topk_add%(handle: opaque of topk, value: any%): any
+	%{
+	assert(handle);
+	Topk::TopkVal* h = (Topk::TopkVal*) handle;
+	h->Encountered(value);
+
+	return 0;
+	%}
+
+function topk_get_top%(handle: opaque of topk, k: count%): any
+	%{
+	assert(handle);
+	Topk::TopkVal* h = (Topk::TopkVal*) handle;
+	return h->getTopK(k);	
+	%}

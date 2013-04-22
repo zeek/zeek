@@ -6,6 +6,7 @@
 #include <list>
 #include "Val.h"
 #include "CompHash.h"
+#include "OpaqueVal.h"
 
 // This class implements the top-k algorithm. Or - to be more precise - my interpretation of it.
 
@@ -30,11 +31,11 @@ struct Element {
 
 declare(PDict, Element);
 
-class Topk {
+class TopkVal : public OpaqueVal {
 
 public:
-	Topk(uint64 size);
-	~Topk();
+	TopkVal(uint64 size);
+	~TopkVal();
 	void Encountered(Val* value); // we saw something
 	VectorVal* getTopK(int k); // returns vector
 
@@ -47,8 +48,6 @@ private:
 	PDict(Element)* elementDict;
 	uint64 size; // how many elements are we tracking?
 	uint64 numElements; // how many elements do we have at the moment
-
-
 };
 
 };

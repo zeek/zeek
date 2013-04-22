@@ -19,7 +19,7 @@ Element::~Element()
 	value=0;
 	}
 
-HashKey* Topk::GetHash(Val* v) 
+HashKey* TopkVal::GetHash(Val* v) 
 	{
 	TypeList* tl = new TypeList(v->Type());
 	tl->Append(v->Type());
@@ -31,15 +31,16 @@ HashKey* Topk::GetHash(Val* v)
 	return key;
 	}
 
-Topk::Topk(uint64 arg_size)
+TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(new OpaqueType("topk"))
 	{
 	elementDict = new PDict(Element);
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
 	type = 0;
+	numElements = 0;
 	}
 
-Topk::~Topk()
+TopkVal::~TopkVal()
 	{
 	elementDict->Clear();
 	delete elementDict;
@@ -57,7 +58,7 @@ Topk::~Topk()
 	type = 0;
 	}
 
-VectorVal* Topk::getTopK(int k) // returns vector
+VectorVal* TopkVal::getTopK(int k) // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -75,17 +76,23 @@ VectorVal* Topk::getTopK(int k) // returns vector
 	
 	int read = 0;
 	std::list<Bucket*>::iterator it = buckets.end();
+	it--;
 	while (read < k )
 		{
+		//printf("Bucket %llu\n", (*it)->count);
 		std::list<Element*>::iterator eit = (*it)->elements.begin();
 		while (eit != (*it)->elements.end() ) 
 			{
+			//printf("Size: %ld\n", (*it)->elements.size());
 			t->Assign(read, (*eit)->value->Ref());
 			read++;
+			eit++;
 			}
 
 		if ( it == buckets.begin() )
 			break;
+
+		it--;
 		}
 
 
@@ -93,13 +100,14 @@ VectorVal* Topk::getTopK(int k) // returns vector
 	return t;
 	}
 
-void Topk::Encountered(Val* encountered) 
+void TopkVal::Encountered(Val* encountered) 
 	{
 	// ok, let's see if we already know this one.
 	
+	//printf("NumElements: %d\n", numElements);
 	// check type compatibility
 	if ( numElements == 0 ) 
-		type = encountered->Type()->Ref();
+		type = encountered->Type()->Ref()->Ref();
 	else
 		if ( !same_type(type, encountered->Type()) ) 
 			{
@@ -161,6 +169,7 @@ void Topk::Encountered(Val* encountered)
 			e->epsilon = b->count;
 			b->elements.insert(b->elements.end(), e);
 			elementDict->Insert(key, e);
+			e->parent = b;
 			// fallthrough, increment operation has to run!
 			}
 
@@ -172,7 +181,7 @@ void Topk::Encountered(Val* encountered)
 	
 	}
 
-void Topk::IncrementCounter(Element* e) 
+void TopkVal::IncrementCounter(Element* e) 
 	{
 	Bucket* currBucket = e->parent;
 	uint64 currcount = currBucket->count;

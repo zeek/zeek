@@ -3,21 +3,6 @@
 Writing Bro Scripts
 ===================
 
-.. toctree::
-    :maxdepth: 2
-    :numbered:
-
-    Understanding Bro Scripts
-    The Event Queue and Event Handlers
-    The Connection Record Datatype
-    Data Types and Data Structures
-    Scope
-    Global Variables
-    Constants
-    Local Variables
-    Data Structures
-
-
 Understanding Bro Scripts
 =========================
 
@@ -479,8 +464,8 @@ The output of the script aligns with what we expect so now it's time to integrat
 Now, if we run the new version of the script, instead of generating logging information to stdout, no output is created.  Instead the output is all in factor.log, properly formatted and organized.
 
 .. btest:: framework_logging_factorial_02
-
-   @TEST-EXEC: btest-rst-cmd bro ${TESTBASE}/doc/manual/framework_logging_factorial_02.bro
+   
+   @TEST-EXEC: btest-rst-include ${TESTBASE}/Baseline/doc.manual.framework_logging_factorial_02/factor.log   
 
 While the previous example is a simplistic one, it serves to demonstrate the small pieces of script that need to be in place in order to generate logs.  For example, it's common to call ``Log::create_stream()`` in ``bro_init()`` and while in a live example, determining when to call ``Log::write()`` would likely be done in an event handler, in this case we use ``bro_done()``.  
 
@@ -492,6 +477,11 @@ If you've already spent time with a deployment of Bro, you've likely had the opp
    :lines: 43-60
 
 To dynamically alter the file in which a stream writes its logs a filter can specify function returns a string to be used as the filename for the current call to ``Log::write()``. The definition for this function has to take as its parameters a Log::ID called id, a string called path and the appropriate record type for the logs called "rec".  You can see the definition of ``mod5`` used in this example on line one conforms to that requirement.  The function simply returns "factor-mod5" if the factorial is divisible evenly by 5, otherwise, it returns "factor-non5".  In the additional ``bro_init()`` event handler, we define a locally scoped ``Log::Filter`` and assign it a record that defines the ``name`` and ``path_func`` fields.  We then call ``Log::add_filter()`` to add the filter to the ``Factor::LOG`` Log::ID and call ``Log::remove_filter()`` to remove the ``default`` filter for Factor::LOG.  Had we not removed the ``default`` filter, we'd have ended up with three log files:  factor-mod5.log with all the factorials that are a factors of 5, factor-non5.log with the factorials that are not factors of 5, and factor.log which would have included all factorials.  
+
+.. btest:: framework_logging_factorial_02
+   
+   @TEST-EXEC: btest-rst-include ${TESTBASE}/Baseline/doc.manual.framework_logging_factorial_03/factor-mod5.log  
+   @TEST-EXEC: btest-rst-include ${TESTBASE}/Baseline/doc.manual.framework_logging_factorial_03/factor-non5.log  
 
 The ability of Bro to generate easily customizable and extensible logs which remain easily parsable is a big part of the reason Bro has gained a large measure of respect.  In fact, it's difficult at times to think of something that Bro doesn't log and as such, it is often advantageous for analysts and systems architects to instead hook into the logging framework to be able to perform custom actions based upon the data being sent to the Logging Frame.  To that end, every default log stream in Bro generates a custom event that can be handled by anyone wishing to act upon the data being sent to the stream.  By convention these events are usually in the format ``log_x`` where x is the name of the logging stream; as such the event raised for every log sent to the Logging Framework by the HTTP parser would be ``log_http``.  In fact, we've already seen a script handle the ``log_http`` event when we broke down how the ``detect-MHR.bro`` script worked.  In that example, as each log entry was sent to the logging framework, post-processing was taking place in the ``log_http`` event.  Instead of using an external script to parse the ``http.log`` file and do post-processing for the entry, post-processing can be done in real time in Bro.  
 
@@ -512,27 +502,47 @@ To raise a notice in Bro, you only need to indicate to Bro that you are provide 
 
 +---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | Field               | Type                                                             | Attributes     | Use                                    |
-|=====================+==================================================================+================+========================================+
++=====================+==================================================================+================+========================================+
 | ts                  | time                                                             | &log &optional | The time of the notice                 |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | uid                 | string                                                           | &log &optional | A unique connection ID                 |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | id                  | conn_id                                                          | &log &optional | A 4-tuple to identify endpoints        |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | conn                | connection                                                       | &optional      | Shorthand for the uid and id           |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | iconn               | icmp_conn                                                        | &optional      | Shorthand for the uid and id           |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | proto               | transport_proto                                                  | &log &optional | Transport protocol                     |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | note                | Notice::Type                                                     | &log           | The Notice::Type of the notice         |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | msg                 | string                                                           | &log &optional | Human readable message                 |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | sub                 | string                                                           | &log &optional | Human readable message                 |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | src                 | addr                                                             | &log &optional | Source address if no conn_id           |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | dst                 | addr                                                             | &log &optional | Destination addr if no conn_id         |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | p                   | port                                                             | &log &optional | Port if no conn_id                     |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | n                   | count                                                            | &log &optional | Count or status code                   |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | src_peer            | event_peer                                                       | &log &optional | Peer that raised the notice            |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | peer_descr          | string                                                           | &log &optional | Text description of the src_peer       |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | actions             | set[Notice::Action]                                              | &log &optional | Actions applied to the notice          |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | policy_items        | set[count]                                                       | &log &optional | Policy items that have been applied    |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | email_body_sections | vector                                                           | &optinal       | Body of the email for email notices.   |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | email_delay_tokens  | set[string]                                                      | &optional      | Delay functionality for email notices. |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | identifier          | string                                                           | &optional      | A unique string identifier             |
++---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | suppress_for        | interval                                                         | &log &optional | Length of time to suppress a notice.   |
 +---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 
@@ -545,6 +555,6 @@ One of the default policy scripts raises a notice when an SSH login has been heu
 
 While much of the script relates to the actual detection, the parts specific to the Notice Framework are actually quite interesting in themselves.  On line 12 the script's ``export`` block adds the value ``SSH::Interesting_Hostname_Login`` to the enumerable constant ``Notice::Type`` to indicate to the Bro core that a new type of notice is being defined.  The script then calls ``NOTICE()`` and defines the ``$note``, ``$msg``, ``$sub`` and ``$conn`` fields.  Line 39 also includes a ternary if statement that modifies the ``$msg`` text depending on whether the host is a local address and whether it is the client or the server.  This use of ``fmt()`` and a ternary operators is a concise way to lend readability to the notices that are generated without the need for branching ``if`` statements that each raise a specific notice.
 
+The opt-in system for notices is managed through writing ``Notice::policy`` hooks.  A ``Notice::policy`` hook takes as its argument a ``Notice::Info`` which will hold the same information your script provided in its call to ``NOTICE()``.  With access to the ``Notice::Info`` record for a specific notice you can include predicates in your hook to alter the Policy for handling notices on your system.  The simplest kind of ``Notice::policy`` hooks simply check the value of ``$note`` in the ``Notice::Info`` record being passed into the hook and performing an action based on the answer.  The hook below adds the ``Notice::ACTION_EMAIL`` action for the SSH::Interesting_Hostname_Login notice raised in the interesting-hostnames.bro script.  
 
-
-
+Much like event handlers, it's possible to have multiple Notice::policy hooks for the same Notice.    

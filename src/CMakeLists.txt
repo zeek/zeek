@@ -408,6 +408,7 @@ set(bro_SRCS
     Telnet.cc
     Teredo.cc
     Timer.cc
+    Topk.cc
     Traverse.cc
     Trigger.cc
     TunnelEncapsulation.cc

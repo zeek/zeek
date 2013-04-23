@@ -34,7 +34,7 @@ hook init_resultval_hook(r: Reducer, rv: ResultVal)
 		rv$sum = 0;
 	}
 
-hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( SUM in r$apply )
 		rv$sum += val;

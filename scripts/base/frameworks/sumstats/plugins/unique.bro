@@ -23,7 +23,7 @@ redef record ResultVal += {
 	unique_vals: set[Observation] &optional;
 };
 
-hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( UNIQUE in r$apply )
 		{

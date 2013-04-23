@@ -1,9 +1,9 @@
 @load ./average
+@load ./hll_unique
 @load ./max
 @load ./min
 @load ./sample
-@load ./variance
 @load ./std-dev
 @load ./sum
 @load ./unique
-@load ./hll_unique
+@load ./variance

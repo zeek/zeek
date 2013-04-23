@@ -22,7 +22,7 @@ function calc_std_dev(rv: ResultVal)
 	}
 
 # This depends on the variance plugin which uses priority -5
-hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &priority=-10
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &priority=-10
 	{
 	if ( STD_DEV in r$apply )
 		calc_std_dev(rv);

@@ -182,7 +182,7 @@ global thresholds_store: table[string, Key] of bool = table();
 global data_added: function(ss: SumStat, key: Key, result: Result);
 
 # Prototype the hook point for plugins to do calculations.
-global add_to_reducer_hook: hook(r: Reducer, val: double, data: Observation, rv: ResultVal);
+global observe_hook: hook(r: Reducer, val: double, data: Observation, rv: ResultVal);
 # Prototype the hook point for plugins to initialize any result values.
 global init_resultval_hook: hook(r: Reducer, rv: ResultVal);
 # Prototype the hook point for plugins to merge Results.
@@ -323,7 +323,7 @@ function observe(id: string, key: Key, obs: Observation)
 		if ( obs?$num || obs?$dbl )
 			val = obs?$dbl ? obs$dbl : obs$num;
 
-		hook add_to_reducer_hook(r, val, obs, result_val);
+		hook observe_hook(r, val, obs, result_val);
 		data_added(ss, key, result);
 		}
 	}

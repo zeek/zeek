@@ -31,7 +31,7 @@ hook init_resultval_hook(r: Reducer, rv: ResultVal)
 	}
 
 
-hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( HLLUNIQUE in r$apply )
 		{

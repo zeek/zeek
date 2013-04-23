@@ -14,7 +14,7 @@ export {
 	};
 }
 
-hook add_to_reducer_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( AVERAGE in r$apply )
 		{

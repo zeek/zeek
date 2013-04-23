@@ -37,6 +37,7 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 int File::id_idx = -1;
 int File::parent_id_idx = -1;
 int File::source_idx = -1;
+int File::is_orig_idx = -1;
 int File::conns_idx = -1;
 int File::last_active_idx = -1;
 int File::seen_bytes_idx = -1;
@@ -59,6 +60,7 @@ void File::StaticInit()
 	id_idx = Idx("id");
 	parent_id_idx = Idx("parent_id");
 	source_idx = Idx("source");
+	is_orig_idx = Idx("is_orig");
 	conns_idx = Idx("conns");
 	last_active_idx = Idx("last_active");
 	seen_bytes_idx = Idx("seen_bytes");
@@ -75,7 +77,8 @@ void File::StaticInit()
 	salt = BifConst::FileAnalysis::salt->CheckString();
 	}
 
-File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
+File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag,
+           bool is_orig)
     : id(""), unique(unique), val(0), postpone_timeout(false),
       first_chunk(true), missed_bof(false), need_reassembly(false), done(false),
       analyzers(this)
@@ -98,8 +101,9 @@ File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag)
 
 	if ( conn )
 		{
-		// add source and connection fields
+		// add source, connection, is_orig fields
 		val->Assign(source_idx, new StringVal(::Analyzer::GetTagName(tag)));
+		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn);
 		}
 	else

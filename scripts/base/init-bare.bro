@@ -341,6 +341,10 @@ type fa_file: record {
 	## path which was read, or some other input source.
 	source: string &optional;
 
+	## If the source of this file is is a network connection, this field
+	## may be set to indicate the directionality.
+	is_orig: bool &optional;
+
 	## The set of connections over which the file was transferred.
 	conns: table[conn_id] of connection &optional;
 

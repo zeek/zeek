@@ -46,6 +46,10 @@ export {
 		## path which was read, or some other input source.
 		source: string &log &optional;
 
+		## If the source of this file is is a network connection, this field
+		## may be set to indicate the directionality.
+		is_orig: bool &log &optional;
+
 		## The time at which the last activity for the file was seen.
 		last_active: time &log;
 
@@ -236,6 +240,7 @@ function set_info(f: fa_file)
 	f$info$id = f$id;
 	if ( f?$parent_id ) f$info$parent_id = f$parent_id;
 	if ( f?$source ) f$info$source = f$source;
+	if ( f?$is_orig ) f$info$is_orig = f$is_orig;
 	f$info$last_active = f$last_active;
 	f$info$seen_bytes = f$seen_bytes;
 	if ( f?$total_bytes ) f$info$total_bytes = f$total_bytes;

@@ -40,7 +40,7 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 	if ( IsDisabled(tag) ) return;
 
 	GetFileHandle(tag, conn, is_orig);
-	DataIn(data, len, offset, GetFile(current_handle, conn, tag));
+	DataIn(data, len, offset, GetFile(current_handle, conn, tag, is_orig));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
@@ -67,7 +67,7 @@ void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 	GetFileHandle(tag, conn, is_orig);
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
-	DataIn(data, len, GetFile(current_handle, conn, tag, false));
+	DataIn(data, len, GetFile(current_handle, conn, tag, is_orig, false));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
@@ -110,7 +110,7 @@ void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
 	if ( IsDisabled(tag) ) return;
 
 	GetFileHandle(tag, conn, is_orig);
-	Gap(offset, len, GetFile(current_handle, conn, tag));
+	Gap(offset, len, GetFile(current_handle, conn, tag, is_orig));
 	}
 
 void Manager::Gap(uint64 offset, uint64 len, const string& unique)
@@ -131,7 +131,7 @@ void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 	if ( IsDisabled(tag) ) return;
 
 	GetFileHandle(tag, conn, is_orig);
-	SetSize(size, GetFile(current_handle, conn, tag));
+	SetSize(size, GetFile(current_handle, conn, tag, is_orig));
 	}
 
 void Manager::SetSize(uint64 size, const string& unique)
@@ -188,7 +188,7 @@ bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 	}
 
 File* Manager::GetFile(const string& unique, Connection* conn,
-                       AnalyzerTag::Tag tag, bool update_conn)
+                       AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
 	{
 	if ( unique.empty() ) return 0;
 	if ( IsIgnored(unique) ) return 0;
@@ -197,7 +197,7 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new File(unique, conn, tag);
+		rval = str_map[unique] = new File(unique, conn, tag, is_orig);
 		FileID id = rval->GetID();
 
 		if ( id_map[id] )

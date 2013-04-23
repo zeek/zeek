@@ -133,7 +133,7 @@ protected:
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
 	File(const string& unique, Connection* conn = 0,
-	     AnalyzerTag::Tag tag = AnalyzerTag::Error);
+	     AnalyzerTag::Tag tag = AnalyzerTag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -214,6 +214,7 @@ protected:
 	static int id_idx;
 	static int parent_id_idx;
 	static int source_idx;
+	static int is_orig_idx;
 	static int conns_idx;
 	static int last_active_idx;
 	static int seen_bytes_idx;

@@ -135,7 +135,7 @@ protected:
 	 */
 	File* GetFile(const string& unique, Connection* conn = 0,
 	              AnalyzerTag::Tag tag = AnalyzerTag::Error,
-	              bool update_conn = true);
+	              bool is_orig = false, bool update_conn = true);
 
 	/**
 	 * @return the File object mapped to \a file_id, or a null pointer if no

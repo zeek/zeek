@@ -555,6 +555,41 @@ One of the default policy scripts raises a notice when an SSH login has been heu
 
 While much of the script relates to the actual detection, the parts specific to the Notice Framework are actually quite interesting in themselves.  On line 12 the script's ``export`` block adds the value ``SSH::Interesting_Hostname_Login`` to the enumerable constant ``Notice::Type`` to indicate to the Bro core that a new type of notice is being defined.  The script then calls ``NOTICE()`` and defines the ``$note``, ``$msg``, ``$sub`` and ``$conn`` fields.  Line 39 also includes a ternary if statement that modifies the ``$msg`` text depending on whether the host is a local address and whether it is the client or the server.  This use of ``fmt()`` and a ternary operators is a concise way to lend readability to the notices that are generated without the need for branching ``if`` statements that each raise a specific notice.
 
-The opt-in system for notices is managed through writing ``Notice::policy`` hooks.  A ``Notice::policy`` hook takes as its argument a ``Notice::Info`` which will hold the same information your script provided in its call to ``NOTICE()``.  With access to the ``Notice::Info`` record for a specific notice you can include predicates in your hook to alter the Policy for handling notices on your system.  The simplest kind of ``Notice::policy`` hooks simply check the value of ``$note`` in the ``Notice::Info`` record being passed into the hook and performing an action based on the answer.  The hook below adds the ``Notice::ACTION_EMAIL`` action for the SSH::Interesting_Hostname_Login notice raised in the interesting-hostnames.bro script.  
+The opt-in system for notices is managed through writing ``Notice::policy`` hooks.  A ``Notice::policy`` hook takes as its argument a ``Notice::Info`` record which will hold the same information your script provided in its call to ``NOTICE()``.  With access to the ``Notice::Info`` record for a specific notice you can include logic such as in statements in the body of your hook to alter the Policy for handling notices on your system.  Notice hooks are akin to functions and event handlers and share the same structure; You can even think of hooks as multi-bodied functions.  You define the hook and Bro will take care of passing in the ``Notice::Info`` record.  The simplest kind of ``Notice::policy`` hooks simply check the value of ``$note`` in the ``Notice::Info`` record being passed into the hook and performing an action based on the answer.  The hook below adds the ``Notice::ACTION_EMAIL`` action for the SSH::Interesting_Hostname_Login notice raised in the interesting-hostnames.bro script.  
 
-Much like event handlers, it's possible to have multiple Notice::policy hooks for the same Notice.    
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_notice_hook_01.bro
+   :language: bro
+   :linenos:
+   :lines: 6-12
+
+In the example above we've added ``Notice::ACTION_EMAIL`` to the ``n$actions`` set.  This set, defined in the Notice Framework scripts, can only have entries from the Notice::Action type which is itself an enumerable that defines the values shown in the table below along with their corresponding meanings.  The ``Notice::ACTION_LOG`` action writes the notice to the ``Notice::LOG`` logging stream which, in the default configuration, will write each notice to the notice.log file and take no further action.  The ``Notice::ACTION_EMAIL`` action will send an email to the address or addresses defined in the ``Notice::mail_dest`` variable with the particulars of the notice as the body of the email.  The last action, ``Notice::ACTION_ALARM`` sends the notice to the ``Notice::ALARM_LOG`` logging stream which is then rotated hourly and its contents emailed in readable ASCII to the addresses in ``Notice::mail_dest``.  
+
++--------------+-----------------------------------------------------+
+| ACTION_NONE  | Take no action                                      | 
++--------------+-----------------------------------------------------+
+| ACTION_LOG   | Send the notice to the Notice::LOG logging stream.  |
++--------------+-----------------------------------------------------+
+| ACTION_EMAIL | Send an email with the notice in the body.          |
++--------------+-----------------------------------------------------+
+| ACTION_ALARM | Send the notice to the Notice::Alarm_LOG stream.    |
++--------------+-----------------------------------------------------+
+
+While actions like the ``Notice::ACTION_EMAIL`` action have appeal for quick alerts and response, a caveat of its use is to make sure the notices configured with this action also have a suppression.  A suppression is a means through which notices can be ignored after they are initially raised if the author of the script has set an identifier.    An identifier is a unique string of information collected from the connection relative to the behavior that has been observed by Bro.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
+   :language: bro
+   :linenos:
+   :lines: 59-62
+
+In the ``expiring-certs.bro`` script which identifies when SSL certificates are set to expire and raises notices when it crosses a pre-defined threshold, the call to ``NOTICE()`` above also sets the ``$identfier`` entry by concatenating the responder ip, port, and the hash of the certificate.  The selection of responder ip, port and certificate hash fits perfectly into an appropriate identifier as it creates a unique identifier with which the suppression can be matched.  Were we to take out any of the entities used for the identifier, for example the certificate hash, we could be setting our suppression too broadly, causing an analyst to miss a notice that should have been raised.  Depending on the available data for the identifier, it can be useful to set the ``$suppress_for`` variable as well.  The ``expiring-certs.bro`` script sets ``$suppress_for`` to ``1day``, telling the Notice Framework to suppress the notice for 24 hours after the first notice is raised.  Once that time limit has passed, another notice can be raised which will again set the ``1day`` suppression time.   Suppressing for a specific amount of time has benefits beyond simply not filling up an analyst's email inbox; keeping the notice alerts timely and succinct helps avoid a case where an analyst might see the notice and, due to over exposure, ignore it.  
+
+The ``$suppress_for`` variable can also be altered in a ``Notice::policy`` hook, allowing a deployment to better suit the environment in which it is be run.  Using the example of ``expiring-certs.bro``, we can write a ``Notice::policy`` hook for ``SSL::Certificate_Expires_Soon`` to configure the ``$suppress_for`` variable to a shorter time.  
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_notice_suppression_01.bro
+   :language: bro
+   :linenos:
+   :lines: 6-12
+
+
+
+

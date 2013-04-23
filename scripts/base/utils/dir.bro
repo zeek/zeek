@@ -23,11 +23,11 @@ export {
 
 event Dir::monitor_ev(dir: string, last_files: set[string], callback: function(fname: string))
 	{
-	when ( local result = Exec::run([$cmd=fmt("ls \"%s\"", str_shell_escape(dir))]) )
+	when ( local result = Exec::run([$cmd=fmt("ls -i \"%s/\"", str_shell_escape(dir))]) )
 		{
 		if ( result$exit_code != 0 )
 			{
-			Reporter::warning("Requested monitoring of non-existent directory.");
+			Reporter::warning(fmt("Requested monitoring of non-existent directory (%s).", dir));
 			return;
 			}
 
@@ -35,9 +35,10 @@ event Dir::monitor_ev(dir: string, last_files: set[string], callback: function(f
 		local files = result$stdout;
 		for ( i in files )
 			{
-			if ( files[i] !in last_files )
-				callback(build_path_compressed(dir, files[i]));
-			add current_files[files[i]];
+			local parts = split1(files[i], / /);
+			if ( parts[1] !in last_files )
+				callback(build_path_compressed(dir, parts[2]));
+			add current_files[parts[1]];
 			}
 		schedule polling_interval { Dir::monitor_ev(dir, current_files, callback) };
 		}

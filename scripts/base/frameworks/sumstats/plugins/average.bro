@@ -1,5 +1,6 @@
+@load base/frameworks/sumstats
 
-module Measurement;
+module SumStats;
 
 export {
 	redef enum Calculation += { 
@@ -7,24 +8,24 @@ export {
 		AVERAGE
 	};
 
-	redef record Result += {
+	redef record ResultVal += {
 		## For numeric data, this calculates the average of all values.
-		average: double &log &optional;
+		average: double &optional;
 	};
 }
 
-hook add_to_reducer(r: Reducer, val: double, data: DataPoint, result: Result)
+hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( AVERAGE in r$apply )
 		{
-		if ( ! result?$average ) 
-			result$average = val;
+		if ( ! rv?$average )
+			rv$average = val;
 		else
-			result$average += (val - result$average) / result$num;
+			rv$average += (val - rv$average) / rv$num;
 		}
 	}
 
-hook compose_resultvals_hook(result: Result, rv1: Result, rv2: Result)
+hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
 	if ( rv1?$average && rv2?$average )
 		result$average = ((rv1$average*rv1$num) + (rv2$average*rv2$num))/(rv1$num+rv2$num);

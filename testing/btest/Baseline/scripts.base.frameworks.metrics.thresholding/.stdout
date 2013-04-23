@@ -1,0 +1,8 @@
+THRESHOLD_SERIES: hit a threshold series value at 3 for metric_index(host=1.2.3.4)
+THRESHOLD_FUNC: hit a threshold function value at 3 for metric_index(host=1.2.3.4)
+THRESHOLD_FUNC: hit a threshold function value at 2 for metric_index(host=6.5.4.3)
+THRESHOLD_FUNC: hit a threshold function value at 1 for metric_index(host=7.2.1.5)
+THRESHOLD: hit a threshold value at 6 for metric_index(host=1.2.3.4)
+THRESHOLD_SERIES: hit a threshold series value at 6 for metric_index(host=1.2.3.4)
+THRESHOLD: hit a threshold value at 1001 for metric_index(host=7.2.1.5)
+THRESHOLD_SERIES: hit a threshold series value at 1001 for metric_index(host=7.2.1.5)

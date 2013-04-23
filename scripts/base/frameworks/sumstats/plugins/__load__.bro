@@ -4,5 +4,6 @@
 @load ./sample
 @load ./std-dev
 @load ./sum
+@load ./topk
 @load ./unique
 @load ./variance

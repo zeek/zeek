@@ -38,10 +38,12 @@ public:
 	~TopkVal();
 	void Encountered(Val* value); // we saw something
 	VectorVal* getTopK(int k); // returns vector
+	uint64_t getCount(Val* value) const;
+	uint64_t getEpsilon(Val* value) const;
 
 private:
 	void IncrementCounter(Element* e);
-	HashKey* GetHash(Val*); // this probably should go somewhere else.
+	HashKey* GetHash(Val*) const; // this probably should go somewhere else.
 		
 	BroType* type;
 	std::list<Bucket*> buckets;

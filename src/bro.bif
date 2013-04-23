@@ -5669,3 +5669,18 @@ function topk_get_top%(handle: opaque of topk, k: count%): any
 	Topk::TopkVal* h = (Topk::TopkVal*) handle;
 	return h->getTopK(k);	
 	%}
+
+function topk_count%(handle: opaque of topk, value: any%): count
+	%{
+	assert(handle);
+	Topk::TopkVal* h = (Topk::TopkVal*) handle;
+	return new Val(h->getCount(value), TYPE_COUNT);
+	%}
+
+function topk_epsilon%(handle: opaque of topk, value: any%): count
+	%{
+	assert(handle);
+	Topk::TopkVal* h = (Topk::TopkVal*) handle;
+	return new Val(h->getEpsilon(value), TYPE_COUNT);
+	%}
+

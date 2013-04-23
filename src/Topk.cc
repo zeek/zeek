@@ -19,7 +19,7 @@ Element::~Element()
 	value=0;
 	}
 
-HashKey* TopkVal::GetHash(Val* v) 
+HashKey* TopkVal::GetHash(Val* v) const
 	{
 	TypeList* tl = new TypeList(v->Type());
 	tl->Append(v->Type());
@@ -58,7 +58,8 @@ TopkVal::~TopkVal()
 	type = 0;
 	}
 
-VectorVal* TopkVal::getTopK(int k) // returns vector
+
+VectorVal* TopkVal::getTopK(int k)  // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -100,6 +101,34 @@ VectorVal* TopkVal::getTopK(int k) // returns vector
 	return t;
 	}
 
+uint64_t TopkVal::getCount(Val* value) const
+	{
+	HashKey* key = GetHash(value);
+	Element* e = (Element*) elementDict->Lookup(key);
+
+	if ( e == 0 ) 
+		{
+		reporter->Error("getCount for element that is not in top-k");	
+		return 0;
+		}
+
+	return e->parent->count;
+	}
+
+uint64_t TopkVal::getEpsilon(Val* value) const
+	{
+	HashKey* key = GetHash(value);
+	Element* e = (Element*) elementDict->Lookup(key);
+
+	if ( e == 0 ) 
+		{
+		reporter->Error("getEpsilon for element that is not in top-k");	
+		return 0;
+		}
+
+	return e->epsilon;
+	}
+	
 void TopkVal::Encountered(Val* encountered) 
 	{
 	// ok, let's see if we already know this one.

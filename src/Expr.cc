@@ -4317,6 +4317,10 @@ Val* ScheduleExpr::Eval(Frame* f) const
 	if ( args )
 		{
 		TimerMgr* tmgr = mgr.CurrentTimerMgr();
+
+		if ( ! tmgr )
+			tmgr = timer_mgr;
+
 		tmgr->Add(new ScheduleTimer(event->Handler(), args, dt, tmgr));
 		}
 

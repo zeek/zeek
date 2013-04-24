@@ -496,14 +496,24 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	Dictionary* d = 0;
 
 	static int count = 0;
+	static double last_time = 0;
 	if ( ++count % 10000 == 0 )
 		{
 		unsigned int total, malloced;
 		get_memory_usage(&total, &malloced);
 
-		fprintf(stderr, "# conns=%u/%u/%u mem=%uM/%uM\n",
+		double rate = 0;
+		double ct = current_time();
+
+		if ( last_time )
+			rate = 10000 / (current_time() - last_time);
+
+		last_time = ct;
+
+		fprintf(stderr, "# conns=%u/%u/%u mem=%uM/%uM packets/sec=%.2f\n",
 			tcp_conns.Length(), udp_conns.Length(), icmp_conns.Length(),
-			total / 1024 / 1024, malloced / 1024 / 1024);
+			total / 1024 / 1024, malloced / 1024 / 1024, rate
+			);
 		}
 
 	switch ( proto ) {

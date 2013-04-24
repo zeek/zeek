@@ -59,7 +59,7 @@ TopkVal::~TopkVal()
 	}
 
 
-VectorVal* TopkVal::getTopK(int k)  // returns vector
+VectorVal* TopkVal::getTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -76,7 +76,7 @@ VectorVal* TopkVal::getTopK(int k)  // returns vector
 	// in any case - just to make this future-proof (and I am lazy) - this can return more than k.
 	
 	int read = 0;
-	std::list<Bucket*>::iterator it = buckets.end();
+	std::list<Bucket*>::const_iterator it = buckets.end();
 	it--;
 	while (read < k )
 		{

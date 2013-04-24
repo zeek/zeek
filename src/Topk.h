@@ -37,7 +37,7 @@ public:
 	TopkVal(uint64 size);
 	~TopkVal();
 	void Encountered(Val* value); // we saw something
-	VectorVal* getTopK(int k); // returns vector
+	VectorVal* getTopK(int k) const; // returns vector
 	uint64_t getCount(Val* value) const;
 	uint64_t getEpsilon(Val* value) const;
 

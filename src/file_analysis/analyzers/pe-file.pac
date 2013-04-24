@@ -1,12 +1,15 @@
 
 type TheFile = record {
-	dos_header : DOS_Header;
-	dos_code   : bytestring &length=(dos_header.AddressOfNewExeHeader - 64);
-	pe_header  : IMAGE_NT_HEADERS;
-	pad        : bytestring &length=1316134912 &transient;
+	dos_header     : DOS_Header;
+	dos_code       : bytestring &length=dos_code_len;
+	pe_header      : IMAGE_NT_HEADERS;
+	sections_table : IMAGE_SECTION_HEADER[] &length=pe_header.file_header.NumberOfSections*40 &transient;
+	#pad            : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
+	#data_sections  : DATA_SECTIONS[pe_header.file_header.NumberOfSections];
+	#pad            : bytestring &restofdata;
 } &let {
-	dos_code_len: uint32 = (dos_header.AddressOfNewExeHeader - 64);
-} &transient &byteorder=littleendian;
+	dos_code_len: uint32 = dos_header.AddressOfNewExeHeader - 64;
+} &byteorder=littleendian;
 
 type DOS_Header = record {
 	signature                : bytestring &length=2;
@@ -32,9 +35,9 @@ type DOS_Header = record {
 
 type IMAGE_NT_HEADERS = record {
 	PESignature           : uint32;
-	FileHeader            : IMAGE_FILE_HEADER;
-	OptionalHeader        : OPTIONAL_HEADER(FileHeader.SizeOfOptionalHeader);
-} &byteorder=littleendian &length=FileHeader.SizeOfOptionalHeader+offsetof(OptionalHeader);
+	file_header           : IMAGE_FILE_HEADER;
+	OptionalHeader        : IMAGE_OPTIONAL_HEADER(file_header.SizeOfOptionalHeader);
+} &byteorder=littleendian &length=file_header.SizeOfOptionalHeader+offsetof(OptionalHeader);
 
 type IMAGE_FILE_HEADER = record {
 	Machine               : uint16;
@@ -46,16 +49,8 @@ type IMAGE_FILE_HEADER = record {
 	Characteristics       : uint16;
 };
 
-type OPTIONAL_HEADER(len: uint16) = record {
-	OptionalHeaderMagic   : uint16;
-	Header                : case OptionalHeaderMagic of {
-		0x0b01  -> OptionalHeader32 : IMAGE_OPTIONAL_HEADER32;
-		0x0b02  -> OptionalHeader64 : IMAGE_OPTIONAL_HEADER64;
-		default -> InvalidPEFile    : bytestring &restofdata;
-	};
-} &length=len;
-
-type IMAGE_OPTIONAL_HEADER32 = record {
+type IMAGE_OPTIONAL_HEADER(len: uint16) = record {
+	magic                   : uint16;
 	major_linker_version    : uint8;
 	minor_linker_version    : uint8;
 	size_of_code            : uint32;
@@ -79,14 +74,56 @@ type IMAGE_OPTIONAL_HEADER32 = record {
 	checksum                : uint32;
 	subsystem               : uint16;
 	dll_characteristics     : uint16;
-	size_of_stack_reserve   : uint32;
-	size_of_stack_commit    : uint32;
-	size_of_heap_reserve    : uint32;
-	size_of_heap_commit     : uint32;
+	mem: case magic of {
+		0x0b01  -> i32 : MEM_INFO32;
+		0x0b02  -> i64 : MEM_INFO64;
+		default -> InvalidPEFile : bytestring &length=0;
+	};
 	loader_flags            : uint32;
 	number_of_rva_and_sizes : uint32;
-} &byteorder=littleendian;
+} &byteorder=littleendian &length=len;
 
-type IMAGE_OPTIONAL_HEADER64 = record {
+type MEM_INFO32 = record {
+	size_of_stack_reserve : uint32;
+	size_of_stack_commit  : uint32;
+	size_of_heap_reserve  : uint32;
+	size_of_heap_commit   : uint32;
+} &byteorder=littleendian &length=16;
 
-} &byteorder=littleendian;
+type MEM_INFO64 = record {
+	size_of_stack_reserve : uint64;
+	size_of_stack_commit  : uint64;
+	size_of_heap_reserve  : uint64;
+	size_of_heap_commit   : uint64;
+} &byteorder=littleendian &length=32;
+
+type IMAGE_SECTION_HEADER = record {
+	name                      : bytestring &length=8;
+	virtual_size              : uint32;
+	virtual_addr              : uint32;
+	size_of_raw_data          : uint32;
+	ptr_to_raw_data           : uint32;
+	non_used_ptr_to_relocs    : uint32;
+	non_used_ptr_to_line_nums : uint32;
+	non_used_num_of_relocs    : uint16;
+	non_used_num_of_line_nums : uint16;
+	characteristics           : uint32;
+} &byteorder=littleendian &length=40;
+
+
+type IMAGE_DATA_DIRECTORY = record {
+	virtual_address : uint32;
+	size            : uint16;
+};
+
+type IMAGE_IMPORT_DIRECTORY = record {
+	rva_import_lookup_table : uint32;
+	time_date_stamp         : uint32;
+	forwarder_chain         : uint32;
+	rva_module_name         : uint32;
+	rva_import_addr_table   : uint32;
+};
+
+type DATA_SECTIONS = record {
+	blah: bytestring &length=10;
+};

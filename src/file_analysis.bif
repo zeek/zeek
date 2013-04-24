@@ -97,10 +97,3 @@ function set_file_handle%(handle: string%): any
 	file_mgr->SetHandle(handle->CheckString());
 	return 0;
 	%}
-
-# Define file analysis framework events.
-
-#event FileAnalysis::windows_pe_dosstub%(fi: FileAnalysis::Info, sig: string, checksum: count%);
-event FileAnalysis::windows_pe_dosstub%(checksum: count%);
-event FileAnalysis::windows_pe_timestamp%(ts: time%);
-

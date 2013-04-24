@@ -17,7 +17,7 @@ static ActionInstantiator action_factory[] = {
 	file_analysis::SHA256::Instantiate,
 	file_analysis::DataEvent::Instantiate,
 
-	PE_Analyzer::Instantiate,
+	file_analysis::PE_Analyzer::Instantiate,
 };
 
 static void action_del_func(void* v)

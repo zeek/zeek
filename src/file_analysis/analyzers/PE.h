@@ -4,7 +4,7 @@
 #include <string>
 
 #include "Val.h"
-#include "../Info.h"
+#include "../File.h"
 #include "pe_pac.h"
 
 namespace file_analysis {
@@ -14,16 +14,19 @@ namespace file_analysis {
  */
 class PE_Analyzer : Action {
 public:
-	static Action* Instantiate(RecordVal* args, Info* info);
+	static Action* Instantiate(RecordVal* args, File* file);
 
 	~PE_Analyzer();
 
 	virtual bool DeliverStream(const u_char* data, uint64 len);
 
+	virtual bool EndOfFile();
+
 protected:
-	PE_Analyzer(RecordVal* args, Info* info);
+	PE_Analyzer(RecordVal* args, File* file);
 	binpac::PE::File* interp;
 	binpac::PE::MockConnection* conn;
+	bool done;
 };
 
 } // namespace file_analysis

@@ -7026,6 +7026,12 @@ event file_state_remove%(f: fa_file%);
 ##    FileAnalysis::ACTION_SHA1 FileAnalysis::ACTION_SHA256
 event file_hash%(f: fa_file, kind: string, hash: string%);
 
+
+event file_pe_dosstub%(f: fa_file, checksum: count%);
+event file_pe_timestamp%(f: fa_file, ts: time%);
+event file_pe_section_header%(f: fa_file, h: PESectionHeader%);
+
+
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 

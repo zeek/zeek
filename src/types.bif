@@ -163,6 +163,8 @@ type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
 
+type PESectionHeader: record;
+
 module Log;
 
 enum Writer %{
@@ -248,6 +250,9 @@ enum Action %{
 
 	## Deliver the file contents to the script-layer in an event.
 	ACTION_DATA_EVENT,
+
+	## Windows executable analyzer
+	ACTION_PE_ANALYZER,
 %}
 
 module GLOBAL;

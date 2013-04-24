@@ -2486,6 +2486,20 @@ type irc_join_info: record {
 ## .. bro:see:: irc_join_message
 type irc_join_list: set[irc_join_info];
 
+## Record for Portable Executable (PE) section headers.
+type PESectionHeader: record {
+	name                      : string;
+	virtual_size              : count;
+	virtual_addr              : count;
+	size_of_raw_data          : count;
+	ptr_to_raw_data           : count;
+	non_used_ptr_to_relocs    : count;
+	non_used_ptr_to_line_nums : count;
+	non_used_num_of_relocs    : count;
+	non_used_num_of_line_nums : count;
+	characteristics           : count;
+};
+
 ## Deprecated.
 ##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere

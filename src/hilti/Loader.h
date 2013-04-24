@@ -185,6 +185,11 @@ public:
 	 */
 	void DumpCode(bool all);
 
+	/**
+	 * Dumps HILTI memory statistics to stdandard errror.
+	 */
+	 void DumpMemoryStatistics();
+
 protected:
 
 #ifdef HILTI_CXX11

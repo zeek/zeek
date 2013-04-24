@@ -30,6 +30,10 @@
 
 #include "analyzer/Manager.h"
 
+#ifdef HAVE_HILTI
+#include "hilti/Loader.h"
+#endif
+
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
 // port or one of these.
@@ -495,6 +499,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
 
+#ifdef HAVE_HILTI
 	static int count = 0;
 	static double last_time = 0;
 	if ( ++count % 10000 == 0 )
@@ -510,11 +515,13 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		last_time = ct;
 
-		fprintf(stderr, "# conns=%u/%u/%u mem=%uM/%uM packets/sec=%.2f\n",
+		fprintf(stderr, "# conns=%u/%u/%u mem=%uM/%uM packets/sec=%.2f / HILTI: ",
 			tcp_conns.Length(), udp_conns.Length(), icmp_conns.Length(),
-			total / 1024 / 1024, malloced / 1024 / 1024, rate
-			);
+			total / 1024 / 1024, malloced / 1024 / 1024, rate);
+
+		hilti_loader->DumpMemoryStatistics();
 		}
+#endif
 
 	switch ( proto ) {
 	case IPPROTO_TCP:

@@ -1,1 +1,1 @@
-./configure --enable-debug --enable-hilti --with-hilti-config=/home/robin/work/binpacpp/hilti2/build/tools/hilti-config --disable-dataseries --disable-perftools
+./configure --enable-hilti --with-hilti-config=/home/robin/work/binpacpp/hilti2/build/tools/hilti-config

@@ -609,7 +609,7 @@ bool Loader::Compile()
 	DBG_LOG(DBG_PAC2, "initializing HILTI runtime");
 
 	hlt_config cfg = *hlt_config_get();
-	cfg.fiber_stack_size = 2000 * 1024;
+	cfg.fiber_stack_size = 5000 * 1024;
 	cfg.profiling = pimpl->profile;
 	hlt_config_set(&cfg);
 
@@ -1779,5 +1779,25 @@ void Loader::DumpCode(bool all)
 			pimpl->hilti_context->print(m, std::cerr);
 			}
 		}
+	}
+
+void Loader::DumpMemoryStatistics()
+	{
+	hlt_memory_stats stats = hlt_memory_statistics();
+	uint64_t heap = stats.size_heap / 1024 / 1024;
+	uint64_t alloced = stats.size_alloced / 1024 / 1024;
+	uint64_t size_stacks = stats.size_stacks / 1024 / 1024;
+	uint64_t num_stacks = stats.num_stacks;
+	uint64_t total_refs = stats.num_refs;
+	uint64_t current_allocs = stats.num_allocs - stats.num_deallocs;
+
+	fprintf(stderr,
+		"%" PRIu64 "M heap, "
+		"%" PRIu64 "M alloced, "
+		"%" PRIu64 "M in %" PRIu64 " stacks, "
+		"%" PRIu64 " allocations, "
+		"%" PRIu64 " totals refs"
+		"\n",
+		heap, alloced, size_stacks, num_stacks, current_allocs, total_refs);
 	}
 

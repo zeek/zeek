@@ -155,6 +155,7 @@ int Pac2_Analyzer::FeedChunk(int len, const u_char* data, bool is_orig, bool eod
 			assert(! excpt2);
 			ParseError(e, is_orig);
 			hlt_free(e);
+			GC_DTOR(s, hlt_string);
 			GC_DTOR(excpt, hlt_exception);
 			excpt = 0;
 			error = true;

@@ -30,7 +30,7 @@ event file_new(f: fa_file) &priority=5
 
 	if ( f?$mime_type && generate_md5 in f$mime_type )
 		{
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_MD5]);
 		return;
 		}
 
@@ -44,7 +44,7 @@ event file_new(f: fa_file) &priority=5
 
 		if ( ! c$http$calc_md5 ) next;
 
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_MD5]);
 		return;
 		}
 	}

@@ -7,7 +7,7 @@
 using namespace file_analysis;
 
 Hash::Hash(RecordVal* args, File* file, HashVal* hv, const char* arg_kind)
-	: Action(args, file), hash(hv), fed(false), kind(arg_kind)
+	: file_analysis::Analyzer(args, file), hash(hv), fed(false), kind(arg_kind)
 	{
 	hash->Init();
 	}

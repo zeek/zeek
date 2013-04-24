@@ -2,9 +2,8 @@ FILE_NEW
 cwR7l6Zctxb, 0, 0
 FILE_BOF_BUFFER
 Hello^M^J^M^J ^M
-FILE_TYPE
-file type is set
-mime type is set
+MIME_TYPE
+text/plain
 FILE_STATE_REMOVE
 cwR7l6Zctxb, 79, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
@@ -16,9 +15,8 @@ FILE_NEW
 ZAOEQmRyxv1, 0, 0
 FILE_BOF_BUFFER
 <html xmlns
-FILE_TYPE
-file type is set
-mime type is set
+MIME_TYPE
+text/html
 FILE_STATE_REMOVE
 ZAOEQmRyxv1, 1918, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
@@ -30,9 +28,8 @@ FILE_NEW
 Ltd7QO7jEv3, 0, 0
 FILE_BOF_BUFFER
 Version 4.9
-FILE_TYPE
-file type is set
-mime type is set
+MIME_TYPE
+text/plain
 FILE_STATE_REMOVE
 Ltd7QO7jEv3, 10823, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]

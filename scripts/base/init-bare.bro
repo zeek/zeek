@@ -316,7 +316,12 @@ type connection: record {
 	tunnel: EncapsulatingConnVector &optional;
 };
 
+## Default amount of time a file can be inactive before the file analysis
+## gives up and discards any internal state related to the file.
 const default_file_timeout_interval: interval = 2 mins &redef;
+
+## Default amount of bytes that file analysis will buffer before raising
+## :bro:see:`file_new`.
 const default_file_bof_buffer_size: count = 1024 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
@@ -336,6 +341,10 @@ type fa_file: record {
 	## path which was read, or some other input source.
 	source: string &optional;
 
+	## If the source of this file is is a network connection, this field
+	## may be set to indicate the directionality.
+	is_orig: bool &optional;
+
 	## The set of connections over which the file was transferred.
 	conns: table[conn_id] of connection &optional;
 
@@ -353,8 +362,7 @@ type fa_file: record {
 	missing_bytes: count &default=0;
 
 	## The number of not all-in-sequence bytes in the file stream that
-	## were delivered to file actions/analyzers due to reassembly buffer
-	## overflow.
+	## were delivered to file analyzers due to reassembly buffer overflow.
 	overflow_bytes: count &default=0;
 
 	## The amount of time between receiving new data for this file that
@@ -368,11 +376,6 @@ type fa_file: record {
 	## The content of the beginning of a file up to *bof_buffer_size* bytes.
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
-
-	## A file type provided by libmagic against the *bof_buffer*, or
-	## in the cases where no buffering of the beginning of file occurs,
-	## an initial guess of the file type based on the first data seen.
-	file_type: string &optional;
 
 	## A mime type provided by libmagic against the *bof_buffer*, or
 	## in the cases where no buffering of the beginning of file occurs,

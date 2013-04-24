@@ -3,7 +3,7 @@
 
 #include "Manager.h"
 #include "File.h"
-#include "Action.h"
+#include "Analyzer.h"
 #include "Var.h"
 #include "Event.h"
 
@@ -40,7 +40,7 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 	if ( IsDisabled(tag) ) return;
 
 	GetFileHandle(tag, conn, is_orig);
-	DataIn(data, len, offset, GetFile(current_handle, conn, tag));
+	DataIn(data, len, offset, GetFile(current_handle, conn, tag, is_orig));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
@@ -65,7 +65,9 @@ void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
 	{
 	if ( IsDisabled(tag) ) return;
 	GetFileHandle(tag, conn, is_orig);
-	DataIn(data, len, GetFile(current_handle, conn, tag));
+	// Sequential data input shouldn't be going over multiple conns, so don't
+	// do the check to update connection set.
+	DataIn(data, len, GetFile(current_handle, conn, tag, is_orig, false));
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
@@ -108,7 +110,7 @@ void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
 	if ( IsDisabled(tag) ) return;
 
 	GetFileHandle(tag, conn, is_orig);
-	Gap(offset, len, GetFile(current_handle, conn, tag));
+	Gap(offset, len, GetFile(current_handle, conn, tag, is_orig));
 	}
 
 void Manager::Gap(uint64 offset, uint64 len, const string& unique)
@@ -129,7 +131,7 @@ void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 	if ( IsDisabled(tag) ) return;
 
 	GetFileHandle(tag, conn, is_orig);
-	SetSize(size, GetFile(current_handle, conn, tag));
+	SetSize(size, GetFile(current_handle, conn, tag, is_orig));
 	}
 
 void Manager::SetSize(uint64 size, const string& unique)
@@ -147,17 +149,6 @@ void Manager::SetSize(uint64 size, File* file)
 		RemoveFile(file->GetUnique());
 	}
 
-void Manager::FileEvent(EventHandlerPtr h, File* file)
-	{
-	if ( ! h ) return;
-	if ( IsIgnored(file->GetUnique()) ) return;
-
-	val_list * vl = new val_list();
-	vl->append(file->GetVal()->Ref());
-
-	mgr.QueueEvent(h, vl);
-	}
-
 bool Manager::PostponeTimeout(const FileID& file_id) const
 	{
 	File* file = Lookup(file_id);
@@ -168,26 +159,36 @@ bool Manager::PostponeTimeout(const FileID& file_id) const
 	return true;
 	}
 
-bool Manager::AddAction(const FileID& file_id, RecordVal* args) const
+bool Manager::SetTimeoutInterval(const FileID& file_id, double interval) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file ) return false;
 
-	return file->AddAction(args);
+	file->SetTimeoutInterval(interval);
+	return true;
 	}
 
-bool Manager::RemoveAction(const FileID& file_id, const RecordVal* args) const
+bool Manager::AddAnalyzer(const FileID& file_id, RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file ) return false;
 
-	return file->RemoveAction(args);
+	return file->AddAnalyzer(args);
+	}
+
+bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
+	{
+	File* file = Lookup(file_id);
+
+	if ( ! file ) return false;
+
+	return file->RemoveAnalyzer(args);
 	}
 
 File* Manager::GetFile(const string& unique, Connection* conn,
-                       AnalyzerTag::Tag tag)
+                       AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
 	{
 	if ( unique.empty() ) return 0;
 	if ( IsIgnored(unique) ) return 0;
@@ -196,7 +197,7 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new File(unique, conn, tag);
+		rval = str_map[unique] = new File(unique, conn, tag, is_orig);
 		FileID id = rval->GetID();
 
 		if ( id_map[id] )
@@ -212,7 +213,8 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 	else
 		{
 		rval->UpdateLastActivityTime();
-		rval->UpdateConnectionFields(conn);
+		if ( update_conn )
+			rval->UpdateConnectionFields(conn);
 		}
 
 	return rval;
@@ -235,8 +237,7 @@ void Manager::Timeout(const FileID& file_id, bool is_terminating)
 
 	file->postpone_timeout = false;
 
-	FileEvent(file_timeout, file);
-	mgr.Drain(); // need immediate feedback about whether to postpone
+	file->FileEvent(file_timeout);
 
 	if ( file->postpone_timeout && ! is_terminating )
 		{

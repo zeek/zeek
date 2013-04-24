@@ -8,7 +8,7 @@
 #include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
-#include "ActionSet.h"
+#include "AnalyzerSet.h"
 #include "FileID.h"
 #include "BroString.h"
 
@@ -33,6 +33,11 @@ public:
 	 * @return value (seconds) of the "timeout_interval" field from #val record.
 	 */
 	double GetTimeoutInterval() const;
+
+	/**
+	 * Set the "timeout_interval" field from #val record to \a interval seconds.
+	 */
+	void SetTimeoutInterval(double interval);
 
 	/**
 	 * @return value of the "id" field from #val record.
@@ -74,37 +79,53 @@ public:
 	void ScheduleInactivityTimer() const;
 
 	/**
-	 * Queues attaching an action.  Only one action per type can be attached at
-	 * a time unless the arguments differ.
-	 * @return false if action can't be instantiated, else true.
+	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
+	 * at a time unless the arguments differ.
+	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAction(RecordVal* args);
+	bool AddAnalyzer(RecordVal* args);
 
 	/**
-	 * Queues removal of an action.
-	 * @return true if action was active at time of call, else false.
+	 * Queues removal of an analyzer.
+	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAction(const RecordVal* args);
+	bool RemoveAnalyzer(const RecordVal* args);
 
 	/**
-	 * Pass in non-sequential data and deliver to attached actions/analyzers.
+	 * Pass in non-sequential data and deliver to attached analyzers.
 	 */
 	void DataIn(const u_char* data, uint64 len, uint64 offset);
 
 	/**
-	 * Pass in sequential data and deliver to attached actions/analyzers.
+	 * Pass in sequential data and deliver to attached analyzers.
 	 */
 	void DataIn(const u_char* data, uint64 len);
 
 	/**
-	 * Inform attached actions/analyzers about end of file being seen.
+	 * Inform attached analyzers about end of file being seen.
 	 */
 	void EndOfFile();
 
 	/**
-	 * Inform attached actions/analyzers about a gap in file stream.
+	 * Inform attached analyzers about a gap in file stream.
 	 */
 	void Gap(uint64 offset, uint64 len);
+
+	/**
+	 * @return true if event has a handler and the file isn't ignored.
+	 */
+	bool FileEventAvailable(EventHandlerPtr h);
+
+	/**
+	 * Raises an event related to the file's life-cycle, the only parameter
+	 * to that event is the \c fa_file record..
+	 */
+	void FileEvent(EventHandlerPtr h);
+
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 */
+	void FileEvent(EventHandlerPtr h, val_list* vl);
 
 protected:
 
@@ -112,7 +133,7 @@ protected:
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
 	File(const string& unique, Connection* conn = 0,
-	     AnalyzerTag::Tag tag = AnalyzerTag::Error);
+	     AnalyzerTag::Tag tag = AnalyzerTag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
@@ -149,11 +170,11 @@ protected:
 	void ReplayBOF();
 
 	/**
-	 * Does file/mime type detection and assigns types (if available) to
-	 * corresponding fields in #val.
-	 * @return whether a file or mime type was available.
+	 * Does mime type detection and assigns type (if available) to \c mime_type
+	 * field in #val.
+	 * @return whether mime type was available.
 	 */
-	bool DetectTypes(const u_char* data, uint64 len);
+	bool DetectMIME(const u_char* data, uint64 len);
 
 	FileID id;                 /**< A pretty hash that likely identifies file */
 	string unique;             /**< A string that uniquely identifies file */
@@ -163,7 +184,7 @@ protected:
 	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
-	ActionSet actions;
+	AnalyzerSet analyzers;
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), replayed(false), size(0) {}
@@ -186,7 +207,6 @@ protected:
 	 */
 	static void StaticInit();
 
-	static magic_t magic;
 	static magic_t magic_mime;
 
 	static string salt;
@@ -194,6 +214,7 @@ protected:
 	static int id_idx;
 	static int parent_id_idx;
 	static int source_idx;
+	static int is_orig_idx;
 	static int conns_idx;
 	static int last_active_idx;
 	static int seen_bytes_idx;
@@ -203,7 +224,6 @@ protected:
 	static int timeout_interval_idx;
 	static int bof_buffer_size_idx;
 	static int bof_buffer_idx;
-	static int file_type_idx;
 	static int mime_type_idx;
 };
 

@@ -1,8 +1,7 @@
 FILE_NEW
 oDwT1BbzjM1, 0, 0
-FILE_TYPE
-file type is set
-mime type is set
+MIME_TYPE
+application/x-dosexec
 FILE_STATE_REMOVE
 oDwT1BbzjM1, 1022920, 0
 [orig_h=192.168.72.14, orig_p=3254/tcp, resp_h=65.54.95.206, resp_p=80/tcp]
@@ -10,9 +9,8 @@ total bytes: 1022920
 source: HTTP
 FILE_NEW
 oDwT1BbzjM1, 0, 0
-FILE_TYPE
-file type is set
-mime type is set
+MIME_TYPE
+application/octet-stream
 FILE_TIMEOUT
 FILE_TIMEOUT
 FILE_STATE_REMOVE

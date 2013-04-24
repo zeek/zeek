@@ -97,23 +97,28 @@ public:
 	bool PostponeTimeout(const FileID& file_id) const;
 
 	/**
-	 * Queue attachment of an action to the file identifier.  Multiple actions
-	 * of a given type can be attached per file identifier at a time as long as
-	 * the arguments differ.
-	 * @return false if the action failed to be instantiated, else true.
+	 * Set's an inactivity threshold for the file.
 	 */
-	bool AddAction(const FileID& file_id, RecordVal* args) const;
+	bool SetTimeoutInterval(const FileID& file_id, double interval) const;
 
 	/**
-	 * Queue removal of an action for a given file identifier.
-	 * @return true if the action is active at the time of call, else false.
+	 * Queue attachment of an analzer to the file identifier.  Multiple
+	 * analyzers of a given type can be attached per file identifier at a time
+	 * as long as the arguments differ.
+	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool RemoveAction(const FileID& file_id, const RecordVal* args) const;
+	bool AddAnalyzer(const FileID& file_id, RecordVal* args) const;
 
 	/**
-	 * Queues an event related to the file's life-cycle.
+	 * Queue removal of an analyzer for a given file identifier.
+	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	 void FileEvent(EventHandlerPtr h, File* file);
+	bool RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const;
+
+	/**
+	 * @return whether the file mapped to \a unique is being ignored.
+	 */
+	bool IsIgnored(const string& unique);
 
 protected:
 
@@ -129,7 +134,8 @@ protected:
 	 *         fields.
 	 */
 	File* GetFile(const string& unique, Connection* conn = 0,
-	              AnalyzerTag::Tag tag = AnalyzerTag::Error);
+	              AnalyzerTag::Tag tag = AnalyzerTag::Error,
+	              bool is_orig = false, bool update_conn = true);
 
 	/**
 	 * @return the File object mapped to \a file_id, or a null pointer if no
@@ -148,11 +154,6 @@ protected:
 	 * @return false if file string did not map to anything, else true.
 	 */
 	bool RemoveFile(const string& unique);
-
-	/**
-	 * @return whether the file mapped to \a unique is being ignored.
-	 */
-	bool IsIgnored(const string& unique);
 
 	/**
 	 * Sets #current_handle to a unique file handle string based on what the

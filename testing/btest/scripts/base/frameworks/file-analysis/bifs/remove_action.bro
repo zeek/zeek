@@ -10,9 +10,9 @@ redef test_get_file_name = function(f: fa_file): string
 
 event file_new(f: fa_file) &priority=-10
 	{
-	for ( act in test_file_actions )
-		FileAnalysis::remove_action(f, act);
+	for ( tag in test_file_analyzers )
+		FileAnalysis::remove_analyzer(f, tag);
 	local filename = test_get_file_name(f);
-	FileAnalysis::remove_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
+	FileAnalysis::remove_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
 	                                $extract_filename=filename]);
 	}

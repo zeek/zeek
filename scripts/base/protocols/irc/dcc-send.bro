@@ -101,8 +101,8 @@ event file_new(f: fa_file) &priority=5
 	if ( f?$mime_type && extract_file_types in f$mime_type )
 		{
 		fname = get_extraction_name(f);
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                             $extract_filename=fname]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                               $extract_filename=fname]);
 		set_dcc_extraction_file(f, fname);
 		return;
 		}
@@ -120,8 +120,8 @@ event file_new(f: fa_file) &priority=5
 		if ( ! s$extract_file ) next;
 
 		fname = get_extraction_name(f);
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                             $extract_filename=fname]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                               $extract_filename=fname]);
 		s$extraction_file = fname;
 		return;
 		}

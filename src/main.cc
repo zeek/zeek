@@ -206,6 +206,7 @@ void usage()
 	fprintf(stderr, "    --use-binpac                   | use new-style BinPAC parsers when available\n");
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
+	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");

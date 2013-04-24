@@ -38,8 +38,8 @@ event file_new(f: fa_file) &priority=5
 
 	if ( f?$mime_type && extract_file_types in f$mime_type )
 		{
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                             $extract_filename=get_extraction_name(f)]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                           $extract_filename=get_extraction_name(f)]);
 		return;
 		}
 
@@ -55,8 +55,8 @@ event file_new(f: fa_file) &priority=5
 
 		if ( ! s$extract_file ) next;
 
-		FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-		                             $extract_filename=get_extraction_name(f)]);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                           $extract_filename=get_extraction_name(f)]);
 		return;
 		}
 	}

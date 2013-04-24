@@ -49,7 +49,7 @@ event file_new(f: fa_file) &priority=5
 
 		c$http$mime_type = f$mime_type;
 
-		local mime_str: string = split1(f$mime_type, /;/)[1];
+		local mime_str: string = c$http$mime_type;
 
 		if ( mime_str !in mime_types_extensions ) next;
 		if ( ! c$http?$uri ) next;
@@ -66,23 +66,18 @@ event file_new(f: fa_file) &priority=5
 		}
 	}
 
-event file_over_new_connection(f: fa_file) &priority=5
+event file_over_new_connection(f: fa_file, c: connection) &priority=5
 	{
 	if ( ! f?$source ) return;
 	if ( f$source != "HTTP" ) return;
 	if ( ! f?$mime_type ) return;
-	if ( ! f?$conns ) return;
+	if ( ! c?$http ) return;
 
 	# Spread the mime around (e.g. for partial content, file_type event only
 	# happens once for the first connection, but if there's subsequent
 	# connections to transfer the same file, they'll be lacking the mime_type
 	# field if we don't do this).
-	for ( cid in f$conns )
-		{
-		local c: connection = f$conns[cid];
-		if ( ! c?$http ) next;
-		c$http$mime_type = f$mime_type;
-		}
+	c$http$mime_type = f$mime_type;
 	}
 
 # Tracks byte-range request / partial content response mime types, indexed

@@ -11,7 +11,7 @@ export {
 
 function get_handle_string(c: connection): string
 	{
-	return fmt("%s %s %s", ANALYZER_FTP_DATA, c$start_time, id_string(c$id));
+	return cat(ANALYZER_FTP_DATA, " ", c$start_time, " ", id_string(c$id));
 	}
 
 function get_file_handle(c: connection, is_orig: bool): string

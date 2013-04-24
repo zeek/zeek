@@ -123,8 +123,9 @@ event file_new(f: fa_file) &priority=5
 			if ( ! extracting )
 				{
 				fname = get_extraction_name(f);
-				FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-				                             $extract_filename=fname]);
+				FileAnalysis::add_analyzer(f,
+				                           [$tag=FileAnalysis::ANALYZER_EXTRACT,
+				                            $extract_filename=fname]);
 				extracting = T;
 				++extract_count;
 				}
@@ -133,7 +134,7 @@ event file_new(f: fa_file) &priority=5
 			}
 
 		if ( c$smtp$current_entity$calc_md5 )
-			FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+			FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_MD5]);
 		}
 	}
 
@@ -141,12 +142,12 @@ function check_extract_by_type(f: fa_file)
 	{
 	if ( extract_file_types !in f$mime_type ) return;
 
-	if ( f?$info && FileAnalysis::ACTION_EXTRACT in f$info$actions_taken )
+	if ( f?$info && FileAnalysis::ANALYZER_EXTRACT in f$info$analyzers )
 		return;
 
 	local fname: string = get_extraction_name(f);
-	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_EXTRACT,
-	                             $extract_filename=fname]);
+	FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+	                               $extract_filename=fname]);
 
 	if ( ! f?$conns ) return;
 
@@ -163,7 +164,7 @@ function check_md5_by_type(f: fa_file)
 	if ( never_calc_md5 ) return;
 	if ( generate_md5 !in f$mime_type ) return;
 
-	FileAnalysis::add_action(f, [$act=FileAnalysis::ACTION_MD5]);
+	FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_MD5]);
 	}
 
 event file_new(f: fa_file) &priority=5

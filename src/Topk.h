@@ -40,12 +40,13 @@ public:
 	VectorVal* getTopK(int k) const; // returns vector
 	uint64_t getCount(Val* value) const;
 	uint64_t getEpsilon(Val* value) const;
+	void Merge(const TopkVal* value);
 
 protected:
 	TopkVal(); // for deserialize
 
 private:
-	void IncrementCounter(Element* e);
+	void IncrementCounter(Element* e, unsigned int count = 1);
 	HashKey* GetHash(Val*) const; // this probably should go somewhere else.
 		
 	BroType* type;

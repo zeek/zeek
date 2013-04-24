@@ -71,6 +71,97 @@ TopkVal::~TopkVal()
 	type = 0;
 	}
 
+void TopkVal::Merge(const TopkVal* value)
+	{
+
+	if ( type == 0 )
+		{
+		assert(numElements == 0);
+		type = value->type->Ref();
+		}
+	else
+		if ( !same_type(type, value->type) )
+			{
+			reporter->Error("Tried to merge top-k elements of differing types. Aborted");
+			return;
+			}
+
+	std::list<Bucket*>::const_iterator it = value->buckets.begin();
+	while ( it != value->buckets.end() )
+		{
+		Bucket* b = *it;
+		uint64_t currcount = b->count;
+		std::list<Element*>::const_iterator eit = b->elements.begin();
+		
+		while ( eit != b->elements.end() )
+			{
+			Element* e = *eit;
+			// lookup if we already know this one...
+			HashKey* key = GetHash(e->value);
+			Element* olde = (Element*) elementDict->Lookup(key);
+
+			if ( olde == 0 ) 
+				{
+				olde = new Element();
+				olde->epsilon=0;
+				olde->value = e->value->Ref();
+				// insert at bucket position 0
+				if ( buckets.size() > 0 ) 
+					{
+					assert (buckets.front()-> count > 0 );
+					}
+
+				Bucket* newbucket = new Bucket();
+				newbucket->count = 0;
+				newbucket->bucketPos = buckets.insert(buckets.begin(), newbucket);
+
+				olde->parent = newbucket;
+				newbucket->elements.insert(newbucket->elements.end(), olde);
+
+				elementDict->Insert(key, olde);
+				numElements++;
+
+				}
+
+			// now that we are sure that the old element is present - increment epsilon
+			olde->epsilon += e->epsilon;
+			// and increment position...
+			IncrementCounter(olde, currcount);
+			delete key;
+
+			eit++;
+			}
+
+		it++;
+		}
+
+	// now we have added everything. And our top-k table could be too big.
+	// prune everything...
+	
+	assert(size > 0);
+	while ( numElements > size ) 
+		{
+		assert(buckets.size() > 0 );
+		Bucket* b = buckets.front();
+		assert(b->elements.size() > 0);
+
+		Element* e = b->elements.front();
+		HashKey* key = GetHash(e->value);
+		elementDict->RemoveEntry(key);
+		delete e;
+
+		b->elements.pop_front();
+		
+		if ( b->elements.size() == 0 ) 
+			{
+			delete b;
+			buckets.pop_front();
+			}
+
+		numElements--;
+		}
+
+	}
 
 bool TopkVal::DoSerialize(SerialInfo* info) const
 	{
@@ -318,7 +409,8 @@ void TopkVal::Encountered(Val* encountered)
 	
 	}
 
-void TopkVal::IncrementCounter(Element* e) 
+// increment by count
+void TopkVal::IncrementCounter(Element* e, unsigned int count) 
 	{
 	Bucket* currBucket = e->parent;
 	uint64 currcount = currBucket->count;
@@ -330,11 +422,11 @@ void TopkVal::IncrementCounter(Element* e)
 
 	bucketIter++;
 
-	if ( bucketIter != buckets.end() ) 
-		{
-		if ( (*bucketIter)->count == currcount+1 )
-			nextBucket = *bucketIter;
-		}
+	while ( bucketIter != buckets.end() && (*bucketIter)->count < currcount+count ) 
+		bucketIter++;
+
+	if ( bucketIter != buckets.end() && (*bucketIter)->count == currcount+count )
+		nextBucket = *bucketIter;
 
 	if ( nextBucket == 0 ) 
 		{
@@ -342,7 +434,7 @@ void TopkVal::IncrementCounter(Element* e)
 		// create it...
 
 		Bucket* b = new Bucket();
-		b->count = currcount+1;
+		b->count = currcount+count;
 
 		std::list<Bucket*>::iterator nextBucketPos = buckets.insert(bucketIter, b);
 		b->bucketPos = nextBucketPos; // and give it the iterator we know now.

@@ -87,6 +87,34 @@ event bro_init()
 	topk_add(k1, "f");
 	s = topk_get_top(k1, 3);
 	print s;
+	print topk_count(k1, "c");
+	print topk_epsilon(k1, "c");
+	print topk_count(k1, "e");
+	print topk_epsilon(k1, "d");
+	print topk_count(k1, "d");
+	print topk_epsilon(k1, "d");
 	
+	local k3 = topk_init(2);
+	topk_merge(k3, k1);
+
+	s = topk_get_top(k3, 3);
+	print s;
+	print topk_count(k3, "c");
+	print topk_epsilon(k3, "c");
+	print topk_count(k3, "e");
+	print topk_epsilon(k3, "e");
+	print topk_count(k3, "d");
+	print topk_epsilon(k3, "d");
+	
+	topk_merge(k3, k1);
+
+	s = topk_get_top(k3, 3);
+	print s;
+	print topk_count(k3, "c");
+	print topk_epsilon(k3, "c");
+	print topk_count(k3, "e");
+	print topk_epsilon(k3, "e");
+	print topk_count(k3, "d");
+	print topk_epsilon(k3, "d");
 
 }

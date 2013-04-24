@@ -1725,6 +1725,11 @@ void TCP_Analyzer::ConnectionReset()
 	is_active = 0;
 	}
 
+int TCP_Analyzer::IsPartial() const
+	{
+	return is_partial;
+	}
+
 bool TCP_Analyzer::HadGap(bool is_orig) const
 	{
 	TCP_Endpoint* endp = is_orig ? orig : resp;

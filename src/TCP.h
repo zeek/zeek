@@ -51,7 +51,9 @@ public:
 	int IsClosed() const	{ return orig->did_close || resp->did_close; }
 	int BothClosed() const	{ return orig->did_close && resp->did_close; }
 
-	int IsPartial() const	{ return is_partial; }
+	// FIXME: This methods used to be defined inline but then I'm seeing
+	// inconsistent results with the optimizder turned on.
+	int IsPartial() const;
 
 	bool HadGap(bool orig) const;
 

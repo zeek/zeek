@@ -41,6 +41,9 @@ public:
 	uint64_t getCount(Val* value) const;
 	uint64_t getEpsilon(Val* value) const;
 
+protected:
+	TopkVal(); // for deserialize
+
 private:
 	void IncrementCounter(Element* e);
 	HashKey* GetHash(Val*) const; // this probably should go somewhere else.
@@ -50,6 +53,8 @@ private:
 	PDict(Element)* elementDict;
 	uint64 size; // how many elements are we tracking?
 	uint64 numElements; // how many elements do we have at the moment
+
+	DECLARE_SERIAL(TopkVal); 
 };
 
 };

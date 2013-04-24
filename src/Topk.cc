@@ -3,8 +3,12 @@
 #include "Topk.h"
 #include "CompHash.h"
 #include "Reporter.h"
+#include "Serializer.h"
+
 
 namespace Topk {
+
+IMPLEMENT_SERIAL(TopkVal, SER_TOPK_VAL);
 
 static void topk_element_hash_delete_func(void* val)
 	{
@@ -40,6 +44,15 @@ TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(new OpaqueType("topk"))
 	numElements = 0;
 	}
 
+TopkVal::TopkVal() : OpaqueVal(new OpaqueType("topk"))
+	{
+	elementDict = new PDict(Element);
+	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
+	size = 0;
+	type = 0;
+	numElements = 0;
+	}
+
 TopkVal::~TopkVal()
 	{
 	elementDict->Clear();
@@ -56,6 +69,101 @@ TopkVal::~TopkVal()
 	if ( type ) 
 		Unref(type);
 	type = 0;
+	}
+
+
+bool TopkVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_TOPK_VAL, OpaqueVal);
+
+	bool v = true;
+
+	v &= SERIALIZE(size);
+	v &= SERIALIZE(numElements);
+	bool type_present = (type != 0);
+	v &= SERIALIZE(type_present);
+	if ( type_present )
+		v &= type->Serialize(info);
+	else 
+		assert(numElements == 0);
+
+	int i = 0;
+	std::list<Bucket*>::const_iterator it = buckets.begin();
+	while ( it != buckets.end() ) 
+		{
+		Bucket* b = *it;
+		uint32_t elements_count = b->elements.size();
+		v &= SERIALIZE(elements_count);
+		v &= SERIALIZE(b->count);
+		std::list<Element*>::const_iterator eit = b->elements.begin();
+		while ( eit != b->elements.end() ) 
+			{
+			Element* element = *eit;
+			v &= SERIALIZE(element->epsilon);
+			v &= element->value->Serialize(info);
+
+			eit++;
+			i++;
+			}
+
+		it++;
+		}
+
+	assert(i == numElements);
+
+	return v;
+	}
+
+bool TopkVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+
+	bool v = true;
+
+	v &= UNSERIALIZE(&size);
+	v &= UNSERIALIZE(&numElements);
+	bool type_present = false;
+	v &= UNSERIALIZE(&type_present);
+	if ( type_present ) 
+		{
+		type = BroType::Unserialize(info);
+		assert(type);
+		}
+	else
+		assert(numElements == 0);
+
+	int i = 0;
+	while ( i < numElements ) 
+		{
+		Bucket* b = new Bucket();
+		uint32_t elements_count;
+		v &= UNSERIALIZE(&elements_count);
+		v &= UNSERIALIZE(&b->count);
+		b->bucketPos = buckets.insert(buckets.end(), b);
+
+		for ( int j = 0; j < elements_count; j++ ) 
+			{
+			Element* e = new Element();
+			v &= UNSERIALIZE(&e->epsilon);
+			e->value = Val::Unserialize(info, type);
+			e->parent = b;
+
+			b->elements.insert(b->elements.end(), e);
+
+			HashKey* key = GetHash(e->value);
+			assert (  elementDict->Lookup(key) == 0 );
+
+			elementDict->Insert(key, e);
+			delete key;
+
+		
+			i++;
+			}
+		}
+
+	assert(i == numElements);
+
+	return v;
 	}
 
 

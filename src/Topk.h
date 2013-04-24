@@ -40,6 +40,7 @@ public:
 	VectorVal* getTopK(int k) const; // returns vector
 	uint64_t getCount(Val* value) const;
 	uint64_t getEpsilon(Val* value) const;
+	uint64_t getSize() const { return size; }
 	void Merge(const TopkVal* value);
 
 protected:

@@ -5684,6 +5684,13 @@ function topk_epsilon%(handle: opaque of topk, value: any%): count
 	return new Val(h->getEpsilon(value), TYPE_COUNT);
 	%}
 
+function topk_size%(handle: opaque of topk%): count
+	%{
+	assert(handle);
+	Topk::TopkVal* h = (Topk::TopkVal*) handle;
+	return new Val(h->getSize(), TYPE_COUNT);
+	%}
+
 function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
 	%{
 	assert(handle1);

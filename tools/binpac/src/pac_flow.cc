@@ -235,7 +235,7 @@ void FlowDecl::GenProcessFunc(Output *out_h, Output *out_cc)
 		out_cc->println("%s->DiscardData();",
 			env_->LValue(flow_buffer_id));
 		}
-	out_cc->println("throw e;");
+	out_cc->println("throw;");
 	out_cc->println("}");
 	out_cc->dec_indent();
 

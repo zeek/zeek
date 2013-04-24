@@ -2560,10 +2560,22 @@ RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 		Attributes* a = record_type->FieldDecl(i)->attrs;
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : 0;
 		Val* def = def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+		BroType* type = record_type->FieldDecl(i)->type;
+
+		if ( def && type->Tag() == TYPE_RECORD &&
+		     def->Type()->Tag() == TYPE_RECORD &&
+		     ! same_type(def->Type(), type) )
+			{
+			Val* tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
+			if ( tmp )
+				{
+				Unref(def);
+				def = tmp;
+				}
+			}
 
 		if ( ! def && ! (a && a->FindAttr(ATTR_OPTIONAL)) )
 			{
-			BroType* type = record_type->FieldDecl(i)->type;
 			TypeTag tag = type->Tag();
 
 			if ( tag == TYPE_RECORD )

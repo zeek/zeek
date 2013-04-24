@@ -4026,7 +4026,27 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 			     Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
 
 			if ( def )
-				val->Assign(i, def->AttrExpr()->Eval(0));
+				{
+				Val* def_val = def->AttrExpr()->Eval(0);
+				BroType* def_type = def_val->Type();
+				BroType* field_type = Type()->AsRecordType()->FieldType(i);
+
+				if ( def_type->Tag() == TYPE_RECORD &&
+				     field_type->Tag() == TYPE_RECORD &&
+				     ! same_type(def_type, field_type) )
+					{
+					Val* tmp = def_val->AsRecordVal()->CoerceTo(
+					        field_type->AsRecordType());
+
+					if ( tmp )
+						{
+						Unref(def_val);
+						def_val = tmp;
+						}
+					}
+
+				val->Assign(i, def_val);
+				}
 			else
 				val->Assign(i, 0);
 			}
@@ -4297,6 +4317,10 @@ Val* ScheduleExpr::Eval(Frame* f) const
 	if ( args )
 		{
 		TimerMgr* tmgr = mgr.CurrentTimerMgr();
+
+		if ( ! tmgr )
+			tmgr = timer_mgr;
+
 		tmgr->Add(new ScheduleTimer(event->Handler(), args, dt, tmgr));
 		}
 

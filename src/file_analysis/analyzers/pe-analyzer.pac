@@ -9,10 +9,7 @@ refine flow File += {
 
 	function proc_the_file(): bool
 		%{
-		printf("ending the flow!\n");
-		connection()->bro_analyzer()->EndOfFile();
-		connection()->FlowEOF(true);
-		connection()->FlowEOF(false);
+		throw binpac::HaltParser();
 		return true;
 		%}
 

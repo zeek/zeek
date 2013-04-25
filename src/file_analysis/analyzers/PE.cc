@@ -7,37 +7,28 @@
 
 using namespace file_analysis;
 
-PE_Analyzer::PE_Analyzer(RecordVal* args, File* file)
-    : Action(args, file)
+PE::PE(RecordVal* args, File* file)
+    : file_analysis::Analyzer(args, file)
 	{
 	conn = new binpac::PE::MockConnection(this);
 	interp = new binpac::PE::File(conn);
 	done=false;
 	}
 
-PE_Analyzer::~PE_Analyzer()
+PE::~PE()
 	{
 	delete interp;
 	}
 
-Action* PE_Analyzer::Instantiate(RecordVal* args, File* file)
+bool PE::DeliverStream(const u_char* data, uint64 len)
 	{
-	return new PE_Analyzer(args, file);
-	}
-
-bool PE_Analyzer::DeliverStream(const u_char* data, uint64 len)
-	{
-	printf("deliver stream\n");
-	if (done)
-	{
-		printf("analyzer done\n");
-		return false;
-	}
-
-	Action::DeliverStream(data, len);
 	try
 		{
 		interp->NewData(data, data + len);
+		}
+	catch ( const binpac::HaltParser &e )
+		{
+		return false;
 		}
 	catch ( const binpac::Exception& e )
 		{
@@ -48,9 +39,9 @@ bool PE_Analyzer::DeliverStream(const u_char* data, uint64 len)
 	return true;
 	}
 
-bool PE_Analyzer::EndOfFile()
+bool PE::EndOfFile()
 	{
 	printf("end of file!\n");
-	done=true;
+	//throw binpac::HaltParser();
 	return false;
 	}

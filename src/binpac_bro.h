@@ -7,7 +7,7 @@ class PortVal;
 
 #include "util.h"
 #include "Analyzer.h"
-#include "file_analysis/Action.h"
+#include "file_analysis/Analyzer.h"
 #include "Val.h"
 #include "event.bif.func_h"
 
@@ -16,7 +16,7 @@ class PortVal;
 namespace binpac {
 
 typedef Analyzer* BroAnalyzer;
-typedef file_analysis::Action BroFileAnalyzer;
+typedef file_analysis::Analyzer BroFileAnalyzer;
 typedef Val* BroVal;
 typedef PortVal* BroPortVal;
 typedef StringVal* BroStringVal;

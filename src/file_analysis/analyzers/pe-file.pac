@@ -6,7 +6,6 @@ type TheFile = record {
 	sections_table : IMAGE_SECTION_HEADER[] &length=pe_header.file_header.NumberOfSections*40 &transient;
 	#pad            : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
 	#data_sections  : DATA_SECTIONS[pe_header.file_header.NumberOfSections];
-	#pad            : bytestring &restofdata;
 } &let {
 	dos_code_len: uint32 = dos_header.AddressOfNewExeHeader - 64;
 } &byteorder=littleendian;
@@ -75,9 +74,9 @@ type IMAGE_OPTIONAL_HEADER(len: uint16) = record {
 	subsystem               : uint16;
 	dll_characteristics     : uint16;
 	mem: case magic of {
-		0x0b01  -> i32 : MEM_INFO32;
-		0x0b02  -> i64 : MEM_INFO64;
-		default -> InvalidPEFile : bytestring &length=0;
+		0x0b01  -> i32           : MEM_INFO32;
+		0x0b02  -> i64           : MEM_INFO64;
+		default -> InvalidPEFile : empty;
 	};
 	loader_flags            : uint32;
 	number_of_rva_and_sizes : uint32;

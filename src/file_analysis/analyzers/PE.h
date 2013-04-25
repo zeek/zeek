@@ -12,18 +12,19 @@ namespace file_analysis {
 /**
  * An action to simply extract files to disk.
  */
-class PE_Analyzer : Action {
+class PE : public file_analysis::Analyzer {
 public:
-	static Action* Instantiate(RecordVal* args, File* file);
+	~PE();
 
-	~PE_Analyzer();
+	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
+		{ return new PE(args, file); }
 
 	virtual bool DeliverStream(const u_char* data, uint64 len);
 
 	virtual bool EndOfFile();
 
 protected:
-	PE_Analyzer(RecordVal* args, File* file);
+	PE(RecordVal* args, File* file);
 	binpac::PE::File* interp;
 	binpac::PE::MockConnection* conn;
 	bool done;

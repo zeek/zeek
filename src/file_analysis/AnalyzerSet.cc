@@ -4,6 +4,7 @@
 #include "Extract.h"
 #include "DataEvent.h"
 #include "Hash.h"
+#include "analyzers/PE.h"
 
 using namespace file_analysis;
 
@@ -14,6 +15,7 @@ static AnalyzerInstantiator analyzer_factory[] = {
 	file_analysis::SHA1::Instantiate,
 	file_analysis::SHA256::Instantiate,
 	file_analysis::DataEvent::Instantiate,
+	file_analysis::PE::Instantiate,
 };
 
 static void analyzer_del_func(void* v)

@@ -163,6 +163,7 @@ type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
 
+type PEHeader: record;
 type PESectionHeader: record;
 
 module Log;
@@ -250,6 +251,9 @@ enum Analyzer %{
 
 	## Deliver the file contents to the script-layer in an event.
 	ANALYZER_DATA_EVENT,
+
+	## Pass the file to the PE analyzer.
+	ANALYZER_PE,
 %}
 
 module GLOBAL;

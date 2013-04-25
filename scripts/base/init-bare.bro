@@ -2489,6 +2489,41 @@ type irc_join_info: record {
 ## .. bro:see:: irc_join_message
 type irc_join_list: set[irc_join_info];
 
+type PEHeader: record {
+#	Machine               : count;
+#	TimeDateStamp         : time;
+#	magic                   : uint16;
+#	major_linker_version    : uint8;
+#	minor_linker_version    : uint8;
+#	size_of_code            : uint32;
+#	size_of_init_data       : uint32;
+#	size_of_uninit_data     : uint32;
+#	addr_of_entry_point     : uint32;
+#	base_of_code            : uint32;
+#	base_of_data            : uint32;
+#	image_base              : uint32;
+#	section_alignment       : uint32;
+#	file_alignment          : uint32;
+#	os_version_major        : uint16;
+#	os_version_minor        : uint16;
+#	major_image_version     : uint16;
+#	minor_image_version     : uint16;
+#	major_subsys_version    : uint16;
+#	minor_subsys_version    : uint16;
+#	win32_version           : uint32;
+#	size_of_image           : uint32;
+#	checksum                : uint32;
+#	subsystem               : uint16;
+#	mem: case magic of {
+#		0x0b01  -> i32           : MEM_INFO32;
+#		0x0b02  -> i64           : MEM_INFO64;
+#		default -> InvalidPEFile : empty;
+#	};
+#	loader_flags            : uint32;
+#	number_of_rva_and_sizes : uint32;
+#
+};
+
 ## Record for Portable Executable (PE) section headers.
 type PESectionHeader: record {
 	name                      : string;

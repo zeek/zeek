@@ -43,15 +43,6 @@ export {
 
 global internal_vulnerable_versions: table[string] of set[VulnerableVersionRange] = table();
 
-event Control::configuration_update()
-	{
-	internal_vulnerable_versions = table();
-
-	# Copy the const vulnerable versions into the global modifiable one.
-	for ( sw in vulnerable_versions )
-		internal_vulnerable_versions[sw] = vulnerable_versions[sw];
-	}
-
 function decode_vulnerable_version_range(vuln_sw: string): VulnerableVersionRange
 	{
 	# Create a max value with a dunce value only because the $max field
@@ -115,9 +106,25 @@ event grab_vulnerable_versions(i: count)
 		}
 	}
 
-event bro_init()
+function update_vulnerable_sw()
 	{
+	internal_vulnerable_versions = table();
+
+	# Copy the const vulnerable versions into the global modifiable one.
+	for ( sw in vulnerable_versions )
+		internal_vulnerable_versions[sw] = vulnerable_versions[sw];
+
 	event grab_vulnerable_versions(1);
+	}
+
+event bro_init() &priority=3
+	{
+	update_vulnerable_sw();
+	}
+
+event Control::configuration_update() &priority=3
+	{
+	update_vulnerable_sw();
 	}
 
 event log_software(rec: Info)

@@ -1,7 +1,7 @@
 ##! SQL injection attack detection in HTTP.
 
 @load base/frameworks/notice
-@load base/frameworks/metrics
+@load base/frameworks/sumstats
 @load base/protocols/http
 
 module HTTP;
@@ -15,13 +15,6 @@ export {
 		SQL_Injection_Victim,
 	};
 	
-	redef enum Metrics::ID += {
-		## Metric to track SQL injection attackers.
-		SQLI_ATTACKER,
-		## Metrics to track SQL injection victims.
-		SQLI_VICTIM,
-	};
-
 	redef enum Tags += {
 		## Indicator of a URI based SQL injection attack.
 		URI_SQLI,
@@ -42,6 +35,11 @@ export {
 	## At the end of each interval the counter is reset.
 	const sqli_requests_interval = 5min &redef;
 
+	## Collecting samples will add extra data to notice emails
+	## by collecting some sample SQL injection url paths.  Disable
+	## sample collection by setting this value to 0.
+	const collect_SQLi_samples = 5 &redef;
+
 	## Regular expression is used to match URI based SQL injections.
 	const match_sql_injection_uri = 
 		  /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*?([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
@@ -52,20 +50,54 @@ export {
 		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
 }
 
+function format_sqli_samples(samples: vector of SumStats::Observation): string
+	{
+	local ret = "SQL Injection samples\n---------------------";
+	for ( i in samples )
+		ret += "\n" + samples[i]$str;
+	return ret;
+	}
+
 event bro_init() &priority=3
 	{
 	# Add filters to the metrics so that the metrics framework knows how to 
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
-	
-	Metrics::add_filter(SQLI_ATTACKER, [$log=F,
-	                                   $notice_threshold=sqli_requests_threshold,
-	                                   $break_interval=sqli_requests_interval,
-	                                   $note=SQL_Injection_Attacker]);
-	Metrics::add_filter(SQLI_VICTIM, [$log=F,
-	                                 $notice_threshold=sqli_requests_threshold,
-	                                 $break_interval=sqli_requests_interval,
-	                                 $note=SQL_Injection_Victim]);
+	local r1: SumStats::Reducer = [$stream="http.sqli.attacker", $apply=set(SumStats::SUM), $samples=collect_SQLi_samples];
+	SumStats::create([$epoch=sqli_requests_interval,
+	                  $reducers=set(r1),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{ 
+	                  	return double_to_count(result["http.sqli.attacker"]$sum);
+	                  	},
+	                  $threshold=sqli_requests_threshold,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	local r = result["http.sqli.attacker"];
+	                  	NOTICE([$note=SQL_Injection_Attacker,
+	                  	        $msg="An SQL injection attacker was discovered!",
+	                  	        $email_body_sections=vector(format_sqli_samples(SumStats::get_samples(r))),
+	                  	        $src=key$host,
+	                  	        $identifier=cat(key$host)]);
+	                  	}]);
+
+	local r2: SumStats::Reducer = [$stream="http.sqli.victim", $apply=set(SumStats::SUM), $samples=collect_SQLi_samples];
+	SumStats::create([$epoch=sqli_requests_interval,
+	                  $reducers=set(r2),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{ 
+	                  	return double_to_count(result["http.sqli.victim"]$sum);
+	                  	},
+	                  $threshold=sqli_requests_threshold,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	local r = result["http.sqli.victim"];
+	                  	NOTICE([$note=SQL_Injection_Victim,
+	                  	        $msg="An SQL injection victim was discovered!",
+	                  	        $email_body_sections=vector(format_sqli_samples(SumStats::get_samples(r))),
+	                  	        $src=key$host,
+	                  	        $identifier=cat(key$host)]);
+	                  	}]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -75,7 +107,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data(SQLI_ATTACKER, [$host=c$id$orig_h], 1);
-		Metrics::add_data(SQLI_VICTIM, [$host=c$id$resp_h], 1);
+		SumStats::observe("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
+		SumStats::observe("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
 		}
 	}

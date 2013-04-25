@@ -3,6 +3,11 @@
 module SumStats;
 
 export {
+	redef record Reducer += {
+		## The threshold when we switch to hll
+		hll_error_margin: double &default=0.01;
+	};
+
 	redef enum Calculation += { 
 		## Calculate the number of unique values.
 		HLLUNIQUE
@@ -19,14 +24,18 @@ redef record ResultVal += {
 	# Internal use only.  This is not meant to be publically available 
 	# because probabilistic data structures have to be examined using
 	# specialized bifs.
-	card: opaque of cardinality &default=hll_cardinality_init(0.01);
+	card: opaque of cardinality &optional;
+
+	# we need this in the compose hook.
+	hll_error_margin: double &optional;
 };
 
 
 hook init_resultval_hook(r: Reducer, rv: ResultVal)
 	{
 	if ( HLLUNIQUE in r$apply && ! rv?$card )
-		rv$card = hll_cardinality_init(0.01);
+		rv$card = hll_cardinality_init(r$hll_error_margin);
+		rv$hll_error_margin = r$hll_error_margin;
 		rv$hllunique = 0;
 	}
 
@@ -42,7 +51,7 @@ hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
-	local rhll = hll_cardinality_init(0.01);
+	local rhll = hll_cardinality_init(rv1$hll_error_margin);
 	hll_cardinality_merge_into(rhll, rv1$card);
 	hll_cardinality_merge_into(rhll, rv2$card);
 

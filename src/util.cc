@@ -1585,7 +1585,8 @@ void bro_init_magic(magic_t* cookie_ptr, int flags)
 		{
 		const char* err = magic_error(*cookie_ptr);
 		if ( ! err ) err = "unknown";
-		reporter->InternalError("can't load magic file: %s", err);
+		const char* db_name = database ? database : "<default>";
+		reporter->InternalError("can't load magic file %s: %s", db_name, err);
 		magic_close(*cookie_ptr);
 		*cookie_ptr = 0;
 		}

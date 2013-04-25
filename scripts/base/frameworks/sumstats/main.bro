@@ -133,6 +133,20 @@ export {
 	## obs: The data point to send into the stream.
 	global observe: function(id: string, key: SumStats::Key, obs: SumStats::Observation);
 
+	## This record is primarily used for internal threshold tracking.
+	type Thresholding: record {
+		# Internal use only.  Indicates if a simple threshold was already crossed.
+		is_threshold_crossed: bool &default=F;
+
+		# Internal use only.  Current key for threshold series.
+		threshold_series_index: count &default=0;
+	};
+
+	## This event is generated when thresholds are reset for a SumStat.
+	## 
+	## ssid: SumStats ID that thresholds were reset for.
+	global thresholds_reset: event(ssid: string);
+
 	## Helper function to represent a :bro:type:`SumStats::Key` value as 
 	## a simple string.
 	## 
@@ -144,15 +158,7 @@ export {
 
 redef record Reducer += {
 	# Internal use only.  Provides a reference back to the related SumStats by it's ID.
-	mid: string &optional;
-};
-
-type Thresholding: record {
-	# Internal use only.  Indicates if a simple threshold was already crossed.
-	is_threshold_crossed: bool &default=F;
-
-	# Internal use only.  Current key for threshold series.
-	threshold_series_index: count &default=0;
+	sid: string &optional;
 };
 
 # Internal use only.  For tracking thresholds per sumstat and key.
@@ -257,7 +263,12 @@ function reset(ss: SumStat)
 		delete result_store[ss$id];
 
 	result_store[ss$id] = table();
-	threshold_tracker[ss$id] = table();
+
+	if ( ss?$threshold || ss?$threshold_series )
+		{
+		threshold_tracker[ss$id] = table();
+		event SumStats::thresholds_reset(ss$id);
+		}
 	}
 
 function create(ss: SumStat)
@@ -274,7 +285,7 @@ function create(ss: SumStat)
 
 	for ( reducer in ss$reducers )
 		{
-		reducer$mid = ss$id;
+		reducer$sid = ss$id;
 		if ( reducer$stream !in reducer_store )
 			reducer_store[reducer$stream] = set();
 		add reducer_store[reducer$stream][reducer];
@@ -292,19 +303,36 @@ function observe(id: string, key: Key, obs: Observation)
 	# Try to add the data to all of the defined reducers.
 	for ( r in reducer_store[id] )
 		{
+		if ( r?$normalize_key )
+			key = r$normalize_key(copy(key));
+
 		# If this reducer has a predicate, run the predicate 
 		# and skip this key if the predicate return false.
 		if ( r?$pred && ! r$pred(key, obs) )
 			next;
 		
-		if ( r?$normalize_key )
-			key = r$normalize_key(copy(key));
+		local ss = stats_store[r$sid];
 		
-		local ss = stats_store[r$mid];
-		
-		if ( r$mid !in result_store )
+		# If there is a threshold and no epoch_finished callback
+		# we don't need to continue counting since the data will
+		# never be accessed.  This was leading
+		# to some state management issues when measuring 
+		# uniqueness.
+		# NOTE: this optimization could need removed in the 
+		#       future if on demand access is provided to the
+		#       SumStats results.
+		if ( ! ss?$epoch_finished &&
+		     r$sid in threshold_tracker &&
+		     key in threshold_tracker[r$sid] &&
+		     ( ss?$threshold && 
+		       threshold_tracker[r$sid][key]$is_threshold_crossed ) ||
+		     ( ss?$threshold_series &&
+		       threshold_tracker[r$sid][key]$threshold_series_index+1 == |ss$threshold_series| ) )
+			next;
+
+		if ( r$sid !in result_store )
 			result_store[ss$id] = table();
-		local results = result_store[r$mid];
+		local results = result_store[r$sid];
 
 		if ( key !in results )
 			results[key] = table();

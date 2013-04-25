@@ -1,4 +1,5 @@
 @load ./average
+@load ./hll_unique
 @load ./max
 @load ./min
 @load ./sample

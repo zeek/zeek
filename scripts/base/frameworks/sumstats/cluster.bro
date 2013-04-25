@@ -1,7 +1,7 @@
-##! This implements transparent cluster support for the metrics framework.
+##! This implements transparent cluster support for the SumStats framework.
 ##! Do not load this file directly.  It's only meant to be loaded automatically
 ##! and will be depending on if the cluster framework has been enabled.
-##! The goal of this script is to make metric calculation completely and
+##! The goal of this script is to make sumstats calculation completely and
 ##! transparently automated when running on a cluster.
 
 @load base/frameworks/cluster
@@ -11,7 +11,7 @@ module SumStats;
 
 export {
 	## Allows a user to decide how large of result groups the 
-	## workers should transmit values for cluster metric aggregation.
+	## workers should transmit values for cluster stats aggregation.
 	const cluster_send_in_groups_of = 50 &redef;
 	
 	## The percent of the full threshold value that needs to be met 
@@ -34,11 +34,11 @@ export {
 	const enable_intermediate_updates = T &redef;
 
 	## Event sent by the manager in a cluster to initiate the 
-	## collection of metrics values for a sumstat.
+	## collection of values for a sumstat.
 	global cluster_ss_request: event(uid: string, ssid: string);
 
-	## Event sent by nodes that are collecting metrics after receiving
-	## a request for the metric sumstat from the manager.
+	## Event sent by nodes that are collecting sumstats after receiving
+	## a request for the sumstat from the manager.
 	global cluster_ss_response: event(uid: string, ssid: string, data: ResultTable, done: bool);
 
 	## This event is sent by the manager in a cluster to initiate the
@@ -58,10 +58,14 @@ export {
 
 	## This event is scheduled internally on workers to send result chunks.
 	global send_data: event(uid: string, ssid: string, data: ResultTable);
+
+	## This event is generated when a threshold is crossed.
+	global cluster_threshold_crossed: event(ssid: string, key: SumStats::Key, thold: Thresholding);
 }
 
 # Add events to the cluster framework to make this work.
-redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|key_request)/;
+redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|key_request|threshold_crossed)/;
+redef Cluster::manager2worker_events += /SumStats::thresholds_reset/;
 redef Cluster::worker2manager_events += /SumStats::cluster_(ss_response|key_response|key_intermediate_response)/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
@@ -78,7 +82,7 @@ event bro_init() &priority=-100
 	reducer_store = table();
 	}
 
-# This is done on all non-manager node types in the event that a metric is 
+# This is done on all non-manager node types in the event that a sumstat is 
 # being collected somewhere other than a worker.
 function data_added(ss: SumStat, key: Key, result: Result)
 	{
@@ -117,7 +121,7 @@ event SumStats::send_data(uid: string, ssid: string, data: ResultTable)
 		}
 	
 	local done = F;
-	# If data is empty, this metric is done.
+	# If data is empty, this sumstat is done.
 	if ( |data| == 0 )
 		done = T;
 	
@@ -157,6 +161,19 @@ event SumStats::cluster_key_request(uid: string, ssid: string, key: Key)
 		}
 	}
 
+event SumStats::cluster_threshold_crossed(ssid: string, key: SumStats::Key, thold: Thresholding)
+	{
+	if ( ssid !in threshold_tracker )
+		threshold_tracker[ssid] = table();
+
+	threshold_tracker[ssid][key] = thold;
+	}
+
+event SumStats::thresholds_reset(ssid: string)
+	{
+	threshold_tracker[ssid] = table();
+	}
+
 @endif
 
 
@@ -192,7 +209,7 @@ event SumStats::finish_epoch(ss: SumStat)
 	{
 	if ( network_time() > zero_time )
 		{
-		#print fmt("%.6f MANAGER: breaking %s sumstat for %s metric", network_time(), ss$name, ss$id);
+		#print fmt("%.6f MANAGER: breaking %s sumstat for %s sumstat", network_time(), ss$name, ss$id);
 		local uid = unique_id("");
 		
 		if ( uid in stats_results )
@@ -212,7 +229,10 @@ event SumStats::finish_epoch(ss: SumStat)
 function data_added(ss: SumStat, key: Key, result: Result)
 	{
 	if ( check_thresholds(ss, key, result, 1.0) )
+		{
 		threshold_crossed(ss, key, result);
+		event SumStats::cluster_threshold_crossed(ss$id, key, threshold_tracker[ss$id][key]);
+		}
 	}
 	
 event SumStats::cluster_key_response(uid: string, ssid: string, key: Key, result: Result)
@@ -235,7 +255,10 @@ event SumStats::cluster_key_response(uid: string, ssid: string, key: Key, result
 		local ss = stats_store[ssid];
 		local ir = key_requests[uid];
 		if ( check_thresholds(ss, key, ir, 1.0) )
+			{
 			threshold_crossed(ss, key, ir);
+			event SumStats::cluster_threshold_crossed(ss$id, key, threshold_tracker[ss$id][key]);
+			}
 
 		delete done_with[uid];
 		delete key_requests[uid];
@@ -292,6 +315,7 @@ event SumStats::cluster_ss_response(uid: string, ssid: string, data: ResultTable
 			if ( check_thresholds(ss, key, local_data[key], 1.0) )
 				{
 				threshold_crossed(ss, key, local_data[key]);
+				event SumStats::cluster_threshold_crossed(ss$id, key, threshold_tracker[ss$id][key]);
 				}
 			}
 		}

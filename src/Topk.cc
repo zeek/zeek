@@ -26,12 +26,13 @@ Element::~Element()
 HashKey* TopkVal::GetHash(Val* v) const
 	{
 	TypeList* tl = new TypeList(v->Type());
-	tl->Append(v->Type());
+	tl->Append(v->Type()->Ref());
 	CompositeHash* topk_hash = new CompositeHash(tl);
 	Unref(tl);
 
 	HashKey* key = topk_hash->ComputeHash(v, 1);
 	assert(key);
+	delete topk_hash;
 	return key;
 	}
 
@@ -311,6 +312,7 @@ uint64_t TopkVal::getCount(Val* value) const
 		return 0;
 		}
 
+	delete key;
 	return e->parent->count;
 	}
 
@@ -325,6 +327,7 @@ uint64_t TopkVal::getEpsilon(Val* value) const
 		return 0;
 		}
 
+	delete key;
 	return e->epsilon;
 	}
 	

@@ -39,11 +39,13 @@ export {
 	## The log record for the traceroute log.
 	type Info: record {
 		## Timestamp
-		ts:   time &log;
+		ts:    time &log;
 		## Address initiaing the traceroute.
-		src:  addr &log;
+		src:   addr &log;
 		## Destination address of the traceroute.
-		dst:  addr &log;
+		dst:   addr &log;
+		## Protocol used for the traceroute.
+		proto: string &log;
 	};
 
 	global log_traceroute: event(rec: Traceroute::Info);
@@ -69,14 +71,15 @@ event bro_init() &priority=5
 	                  $threshold=icmp_time_exceeded_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	local parts = split1(key$str, /-/);
+	                  	local parts = split_n(key$str, /-/, F, 2);
 	                  	local src = to_addr(parts[1]);
 	                  	local dst = to_addr(parts[2]);
-	                  	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst]);
+	                  	local proto = parts[3];
+	                  	Log::write(LOG, [$ts=network_time(), $src=src, $dst=dst, $proto=proto]);
 	                  	NOTICE([$note=Traceroute::Detected,
-	                  	        $msg=fmt("%s seems to be running traceroute", src),
-	                  	        $src=src, $dst=dst,
-	                  	        $identifier=cat(src)]);
+	                  	        $msg=fmt("%s seems to be running traceroute using %s", src, proto),
+	                  	        $src=src,
+	                  	        $identifier=cat(src,proto)]);
 	                  	}]);
 	}
 
@@ -84,10 +87,12 @@ event bro_init() &priority=5
 event signature_match(state: signature_state, msg: string, data: string)
 	{
 	if ( state$sig_id == /traceroute-detector.*/ )
-		SumStats::observe("traceroute.low_ttl_packet", [$str=cat(state$conn$id$orig_h,"-",state$conn$id$resp_h)], [$num=1]);
+		{
+		SumStats::observe("traceroute.low_ttl_packet", [$str=cat(state$conn$id$orig_h,"-",state$conn$id$resp_h,"-",get_port_transport_proto(state$conn$id$resp_p))], [$num=1]);
+		}
 	}
 
 event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
 	{
-	SumStats::observe("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h)], [$str=cat(c$id$orig_h)]);
+	SumStats::observe("traceroute.time_exceeded", [$str=cat(context$id$orig_h,"-",context$id$resp_h,"-",get_port_transport_proto(context$id$resp_p))], [$str=cat(c$id$orig_h)]);
 	}

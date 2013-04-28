@@ -1,7 +1,7 @@
-##! This script detects large number of ICMP Time Exceeded messages heading
-##! toward hosts that have sent low TTL packets.
-##! It generates a notice when the number of ICMP Time Exceeded 
-##! messages for a source-destination pair exceeds threshold
+##! This script detects a large number of ICMP Time Exceeded messages heading toward
+##! hosts that have sent low TTL packets. It generates a notice when the number of
+##! ICMP Time Exceeded messages for a source-destination pair exceeds a
+##! threshold.
 @load base/frameworks/sumstats
 @load base/frameworks/signatures
 @load-sigs ./detect-low-ttls.sig
@@ -22,10 +22,10 @@ export {
 
 	## By default this script requires that any host detected running traceroutes
 	## first send low TTL packets (TTL < 10) to the traceroute destination host.
-	## Changing this this setting to `F` will relax the detection a bit by 
+	## Changing this this setting to `F` will relax the detection a bit by
 	## solely relying on ICMP time-exceeded messages to detect traceroute.
 	const require_low_ttl_packets = T &redef;
-	
+
 	## Defines the threshold for ICMP Time Exceeded messages for a src-dst pair.
 	## This threshold only comes into play after a host is found to be
 	## sending low ttl packets.
@@ -61,7 +61,7 @@ event bro_init() &priority=5
 	                  $reducers=set(r1, r2),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	# Give a threshold value of zero depending on if the host 
+	                  	# Give a threshold value of zero depending on if the host
 	                  	# sends a low ttl packet.
 	                  	if ( require_low_ttl_packets && result["traceroute.low_ttl_packet"]$sum == 0 )
 	                  		return 0;

@@ -3,7 +3,7 @@
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Sums the values given.  For string values,
 		## this will be the number of strings given.
 		SUM

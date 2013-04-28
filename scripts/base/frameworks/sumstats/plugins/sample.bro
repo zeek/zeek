@@ -10,10 +10,8 @@ export {
 	};
 
 	redef record ResultVal += {
-		## This is the queue where samples
-		## are maintained.  Use the 
-		## :bro:see:`SumStats::get_samples` function
-		## to get a vector of the samples.
+		## This is the queue where samples are maintained.  Use the
+		## :bro:see:`SumStats::get_samples` function to get a vector of the samples.
 		samples: Queue::Queue &optional;
 	};
 

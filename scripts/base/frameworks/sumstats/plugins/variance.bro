@@ -4,7 +4,7 @@
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Find the variance of the values.
 		VARIANCE
 	};

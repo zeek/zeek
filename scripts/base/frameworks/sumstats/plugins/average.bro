@@ -3,7 +3,7 @@
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Calculate the average of the values.
 		AVERAGE
 	};

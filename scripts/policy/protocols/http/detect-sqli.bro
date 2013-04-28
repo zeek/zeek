@@ -14,22 +14,22 @@ export {
 		## it.  This is tracked by IP address as opposed to hostname.
 		SQL_Injection_Victim,
 	};
-	
+
 	redef enum Tags += {
 		## Indicator of a URI based SQL injection attack.
 		URI_SQLI,
-		## Indicator of client body based SQL injection attack.  This is 
+		## Indicator of client body based SQL injection attack.  This is
 		## typically the body content of a POST request. Not implemented yet.
 		POST_SQLI,
 		## Indicator of a cookie based SQL injection attack. Not implemented yet.
 		COOKIE_SQLI,
 	};
-	
+
 	## Defines the threshold that determines if an SQL injection attack
-	## is ongoing based on the number of requests that appear to be SQL 
+	## is ongoing based on the number of requests that appear to be SQL
 	## injection attacks.
 	const sqli_requests_threshold = 50 &redef;
-	
+
 	## Interval at which to watch for the
 	## :bro:id:`HTTP::sqli_requests_threshold` variable to be crossed.
 	## At the end of each interval the counter is reset.
@@ -41,7 +41,7 @@ export {
 	const collect_SQLi_samples = 5 &redef;
 
 	## Regular expression is used to match URI based SQL injections.
-	const match_sql_injection_uri = 
+	const match_sql_injection_uri =
 		  /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*?([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
 		| /[\?&][^[:blank:]\x00-\x37\|]+?=[\-0-9%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+([xX]?[oO][rR]|[nN]?[aA][nN][dD])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+['"]?(([^a-zA-Z&]+)?=|[eE][xX][iI][sS][tT][sS])/
 		| /[\?&][^[:blank:]\x00-\x37]+?=[\-0-9%]*([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]([[:blank:]\x00-\x37]|\/\*.*?\*\/)*(-|=|\+|\|\|)([[:blank:]\x00-\x37]|\/\*.*?\*\/)*([0-9]|\(?[cC][oO][nN][vV][eE][rR][tT]|[cC][aA][sS][tT])/
@@ -60,18 +60,18 @@ function format_sqli_samples(samples: vector of SumStats::Observation): string
 
 event bro_init() &priority=3
 	{
-	# Add filters to the metrics so that the metrics framework knows how to 
+	# Add filters to the metrics so that the metrics framework knows how to
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
 	local r1: SumStats::Reducer = [$stream="http.sqli.attacker", $apply=set(SumStats::SUM), $samples=collect_SQLi_samples];
 	SumStats::create([$epoch=sqli_requests_interval,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
-	                  	{ 
+	                  	{
 	                  	return double_to_count(result["http.sqli.attacker"]$sum);
 	                  	},
 	                  $threshold=sqli_requests_threshold,
-	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	local r = result["http.sqli.attacker"];
 	                  	NOTICE([$note=SQL_Injection_Attacker,
@@ -85,11 +85,11 @@ event bro_init() &priority=3
 	SumStats::create([$epoch=sqli_requests_interval,
 	                  $reducers=set(r2),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
-	                  	{ 
+	                  	{
 	                  	return double_to_count(result["http.sqli.victim"]$sum);
 	                  	},
 	                  $threshold=sqli_requests_threshold,
-	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	local r = result["http.sqli.victim"];
 	                  	NOTICE([$note=SQL_Injection_Victim,
@@ -106,7 +106,7 @@ event http_request(c: connection, method: string, original_URI: string,
 	if ( match_sql_injection_uri in unescaped_URI )
 		{
 		add c$http$tags[URI_SQLI];
-		
+
 		SumStats::observe("http.sqli.attacker", [$host=c$id$orig_h], [$str=original_URI]);
 		SumStats::observe("http.sqli.victim",   [$host=c$id$resp_h], [$str=original_URI]);
 		}

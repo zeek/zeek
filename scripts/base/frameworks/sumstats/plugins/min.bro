@@ -3,7 +3,7 @@
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Find the minimum value.
 		MIN
 	};
@@ -18,7 +18,7 @@ hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( MIN in r$apply )
 		{
-		if ( ! rv?$min ) 
+		if ( ! rv?$min )
 			rv$min = val;
 		else if ( val < rv$min )
 			rv$min = val;

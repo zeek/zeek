@@ -1,5 +1,5 @@
-##! The summary statistics framework provides a way to 
-##! summarize large streams of data into simple reduced 
+##! The summary statistics framework provides a way to
+##! summarize large streams of data into simple reduced
 ##! measurements.
 
 module SumStats;
@@ -10,24 +10,24 @@ export {
 		PLACEHOLDER
 	};
 
-	## Represents a thing which is having summarization 
+	## Represents a thing which is having summarization
 	## results collected for it.
 	type Key: record {
-		## A non-address related summarization or a sub-key for 
-		## an address based summarization. An example might be 
+		## A non-address related summarization or a sub-key for
+		## an address based summarization. An example might be
 		## successful SSH connections by client IP address
 		## where the client string would be the key value.
-		## Another example might be number of HTTP requests to 
-		## a particular value in a Host header.  This is an 
-		## example of a non-host based metric since multiple 
-		## IP addresses could respond for the same Host 
+		## Another example might be number of HTTP requests to
+		## a particular value in a Host header.  This is an
+		## example of a non-host based metric since multiple
+		## IP addresses could respond for the same Host
 		## header value.
 		str:  string &optional;
-	
+
 		## Host is the value to which this metric applies.
 		host: addr &optional;
 	};
-	
+
 	## Represents data being added for a single observation.
 	## Only supply a single field at a time!
 	type Observation: record {
@@ -40,17 +40,17 @@ export {
 	};
 
 	type Reducer: record {
-		## Observation stream identifier for the reducer 
+		## Observation stream identifier for the reducer
 		## to attach to.
 		stream:         string;
 
 		## The calculations to perform on the data points.
 		apply:          set[Calculation];
-		
-		## A predicate so that you can decide per key if you 
+
+		## A predicate so that you can decide per key if you
 		## would like to accept the data being inserted.
 		pred:           function(key: SumStats::Key, obs: SumStats::Observation): bool &optional;
-		
+
 		## A function to normalize the key.  This can be used to aggregate or
 		## normalize the entire key.
 		normalize_key:  function(key: SumStats::Key): Key &optional;
@@ -59,11 +59,11 @@ export {
 	## Value calculated for an observation stream fed into a reducer.
 	## Most of the fields are added by plugins.
 	type ResultVal: record {
-		## The time when the first observation was added to 
+		## The time when the first observation was added to
 		## this result value.
 		begin:  time;
 
-		## The time when the last observation was added to 
+		## The time when the last observation was added to
 		## this result value.
 		end:    time;
 
@@ -74,55 +74,56 @@ export {
 	## Type to store results for multiple reducers.
 	type Result: table[string] of ResultVal;
 
-	## Type to store a table of sumstats results indexed 
+	## Type to store a table of sumstats results indexed
 	## by keys.
 	type ResultTable: table[Key] of Result;
 
-	## SumStats represent an aggregation of reducers along with 
+	## SumStats represent an aggregation of reducers along with
 	## mechanisms to handle various situations like the epoch ending
 	## or thresholds being crossed.
-	## It's best to not access any global state outside 
-	## of the variables given to the callbacks because there 
-	## is no assurance provided as to where the callbacks 
+	##
+	## It's best to not access any global state outside
+	## of the variables given to the callbacks because there
+	## is no assurance provided as to where the callbacks
 	## will be executed on clusters.
 	type SumStat: record {
-		## The interval at which this filter should be "broken" 
-		## and the '$epoch_finished' callback called.  The 
+		## The interval at which this filter should be "broken"
+		## and the '$epoch_finished' callback called.  The
 		## results are also reset at this time so any threshold
-		## based detection needs to be set to a 
-		## value that should be expected to happen within 
+		## based detection needs to be set to a
+		## value that should be expected to happen within
 		## this epoch.
 		epoch:              interval;
 
 		## The reducers for the SumStat
 		reducers:           set[Reducer];
 
-		## Provide a function to calculate a value from the 
-		## :bro:see:`Result` structure which will be used 
-		## for thresholding.  
+		## Provide a function to calculate a value from the
+		## :bro:see:`Result` structure which will be used
+		## for thresholding.
 		## This is required if a $threshold value is given.
 		threshold_val:      function(key: SumStats::Key, result: SumStats::Result): count &optional;
 
-		## The threshold value for calling the 
+		## The threshold value for calling the
 		## $threshold_crossed callback.
 		threshold:          count             &optional;
-		
-		## A series of thresholds for calling the 
+
+		## A series of thresholds for calling the
 		## $threshold_crossed callback.
 		threshold_series:   vector of count   &optional;
 
 		## A callback that is called when a threshold is crossed.
 		threshold_crossed:  function(key: SumStats::Key, result: SumStats::Result) &optional;
-		
-		## A callback with the full collection of Results for 
+
+		## A callback with the full collection of Results for
 		## this SumStat.
 		epoch_finished:    function(rt: SumStats::ResultTable) &optional;
 	};
-	
+
 	## Create a summary statistic.
 	global create: function(ss: SumStats::SumStat);
 
-	## Add data into an observation stream. This should be 
+	## Add data into an observation stream. This should be
 	## called when a script has measured some point value.
 	##
 	## id: The observation stream identifier that the data
@@ -143,13 +144,13 @@ export {
 	};
 
 	## This event is generated when thresholds are reset for a SumStat.
-	## 
+	##
 	## ssid: SumStats ID that thresholds were reset for.
 	global thresholds_reset: event(ssid: string);
 
-	## Helper function to represent a :bro:type:`SumStats::Key` value as 
+	## Helper function to represent a :bro:type:`SumStats::Key` value as
 	## a simple string.
-	## 
+	##
 	## key: The metric key that is to be converted into a string.
 	##
 	## Returns: A string representation of the metric key.
@@ -181,16 +182,17 @@ global result_store: table[string] of ResultTable = table();
 # Store of threshold information.
 global thresholds_store: table[string, Key] of bool = table();
 
-# This is called whenever
-# key values are updated and the new val is given as the `val` argument.
-# It's only prototyped here because cluster and non-cluster have separate 
-# implementations.
+# This is called whenever key values are updated and the new val is given as the
+# `val` argument. It's only prototyped here because cluster and non-cluster have
+# separate  implementations.
 global data_added: function(ss: SumStat, key: Key, result: Result);
 
 # Prototype the hook point for plugins to do calculations.
 global observe_hook: hook(r: Reducer, val: double, data: Observation, rv: ResultVal);
+
 # Prototype the hook point for plugins to initialize any result values.
 global init_resultval_hook: hook(r: Reducer, rv: ResultVal);
+
 # Prototype the hook point for plugins to merge Results.
 global compose_resultvals_hook: hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal);
 
@@ -252,7 +254,7 @@ function compose_results(r1: Result, r2: Result): Result
 				result[data_id] = r2[data_id];
 			}
 		}
-	
+
 	return result;
 	}
 
@@ -306,25 +308,25 @@ function observe(id: string, key: Key, obs: Observation)
 		if ( r?$normalize_key )
 			key = r$normalize_key(copy(key));
 
-		# If this reducer has a predicate, run the predicate 
+		# If this reducer has a predicate, run the predicate
 		# and skip this key if the predicate return false.
 		if ( r?$pred && ! r$pred(key, obs) )
 			next;
-		
+
 		local ss = stats_store[r$sid];
-		
+
 		# If there is a threshold and no epoch_finished callback
 		# we don't need to continue counting since the data will
 		# never be accessed.  This was leading
-		# to some state management issues when measuring 
+		# to some state management issues when measuring
 		# uniqueness.
-		# NOTE: this optimization could need removed in the 
+		# NOTE: this optimization could need removed in the
 		#       future if on demand access is provided to the
 		#       SumStats results.
 		if ( ! ss?$epoch_finished &&
 		     r$sid in threshold_tracker &&
 		     key in threshold_tracker[r$sid] &&
-		     ( ss?$threshold && 
+		     ( ss?$threshold &&
 		       threshold_tracker[r$sid][key]$is_threshold_crossed ) ||
 		     ( ss?$threshold_series &&
 		       threshold_tracker[r$sid][key]$threshold_series_index+1 == |ss$threshold_series| ) )
@@ -356,7 +358,7 @@ function observe(id: string, key: Key, obs: Observation)
 		}
 	}
 
-# This function checks if a threshold has been crossed.  It is also used as a method to implement 
+# This function checks if a threshold has been crossed.  It is also used as a method to implement
 # mid-break-interval threshold crossing detection for cluster deployments.
 function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: double): bool
 	{
@@ -399,7 +401,7 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 	     |ss$threshold_series| >= tt$threshold_series_index &&
 	     watch >= ss$threshold_series[tt$threshold_series_index] )
 		{
-		# A threshold series was given and the value crossed the next 
+		# A threshold series was given and the value crossed the next
 		# value in the series.
 		return T;
 		}

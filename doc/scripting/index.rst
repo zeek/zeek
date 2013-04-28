@@ -590,6 +590,36 @@ The ``$suppress_for`` variable can also be altered in a ``Notice::policy`` hook,
    :linenos:
    :lines: 6-12
 
+While ``Notice::policy`` hooks allow you to build custom predicate-based policies for a deployment, there are bound to be times where you don't require the full expressiveness that a hook allows.  In short, there will be notice policy considerations where a broad decision can be made based on the ``Notice::Type`` alone.  To facilitate these types of decisions, the Notice Framework supports Notice Policy shortcuts.  These shortcuts are implemented through the means of a group of data structures that map specific, pre-defined details and actions to the effective name of a notice.  Primarily implemented as a set or table of enumerables of ``Notice::Type``, Notice Policy shortcuts can be placed as a single directive in your ``local.bro`` file as a conscise readable configuration.  As these variables are all constants, it bears mentioning that these variables are all set at parsetime before Bro is fully up and running and not set dynamically.
 
++------------------------------------+-----------------------------------------------------+-------------------------------------+
+| Name                               | Description                                         | Data Type                           |
++====================================+=====================================================+=====================================+ 
+| Notice::ignored_types              | Ignore the Notice::Type entirely                    | set[Notice::Type]                   |
++------------------------------------+-----------------------------------------------------+-------------------------------------+
+| Notice::emailed_types              | Set Notice::ACTION_EMAIL to this Notice::Type       | set[Notice::Type]                   |
++------------------------------------+-----------------------------------------------------+-------------------------------------+
+| Notice::alarmed_types              | Set Notice::ACTION_ALARM to this Notice::Type       | set[Notice::Type]                   | 
++------------------------------------+-----------------------------------------------------+-------------------------------------+
+| Notice::not_suppressed_types       | Remove suppression from this Notice::Type           | set[Notice::Type]                   | 
++------------------------------------+-----------------------------------------------------+-------------------------------------+
+| Notice::type_suppression_intervals | Alter the $suppress_for value for this Notice::Type | table[Notice::Type] of interval     |
++------------------------------------+-----------------------------------------------------+-------------------------------------+
+
+
+
+The table above details the five Notice Policy shortcuts, their meaning and the data type used to implement them.  With the exception of ``Notice::type_suppression_intervals`` a ``set`` data type is employed to hold the ``Notice::Type`` of the notice upon which a shortcut should applied.  The first three shortcuts are fairly self explanatory, applying an action to the ``Notice::Type`` elements in the set, while the latter two shortcuts alter details of the suppression being applied to the Notice.  The shortcut ``Notice::not_suppressed_types`` can be used to remove the configured suppression from a notice while ``Notice::type_suppression_intervals`` can be used to alter the suppression interval defined by $suppress_for in the call to ``NOTICE()``.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_notice_shortcuts_01.bro
+   :language: bro
+   :linenos:
+   :lines: 7-10
+
+The Notice Policy shortcut above adds the ``Notice::Types`` of SSH::Interesting_Hostname_Login and SSH::Login to the Notice::emailed_types set while the shortcut below alters the length of time for which those notices will be suppressed.
+
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_notice_shortcuts_02.bro
+   :language: bro
+   :linenos:
+   :lines: 7-10
 
 

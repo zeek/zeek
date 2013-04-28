@@ -1,4 +1,9 @@
 
+2.1-487 | 2013-05-01 18:03:22 -0700
+
+  * Always apply tcp_connection_attempt timer, even if no
+    connection_attempt() event handler is defined. (Robin Sommer)
+
 2.1-486 | 2013-05-01 15:28:45 -0700
 
   * New framework for computing summary statistics in

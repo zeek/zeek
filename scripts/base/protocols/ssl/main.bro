@@ -67,11 +67,6 @@ export {
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
 
-	## The openssl command line utility.  If it's in the path the default
-	## value will work, otherwise a full path string can be supplied for the
-	## utility.
-	const openssl_util = "openssl" &redef;
-
 	## The maximum amount of time a script can delay records from being logged.
 	const max_log_delay = 15secs &redef;
 

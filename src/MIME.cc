@@ -810,7 +810,7 @@ void MIME_Entity::StartDecodeBase64()
 	if ( base64_decoder )
 		reporter->InternalError("previous Base64 decoder not released!");
 
-	base64_decoder = new Base64Decoder(message->GetAnalyzer());
+	base64_decoder = new Base64Converter(message->GetAnalyzer());
 	}
 
 void MIME_Entity::FinishDecodeBase64()

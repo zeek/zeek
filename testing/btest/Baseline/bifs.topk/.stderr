@@ -6,5 +6,6 @@ error: getCount for element that is not in top-k
 error: getEpsilon for element that is not in top-k
 error: getCount for element that is not in top-k
 error: getEpsilon for element that is not in top-k
+warning: TopkVal::getSum() was used on a pruned data structure. Result values do not represent total element count
 error: getCount for element that is not in top-k
 error: getEpsilon for element that is not in top-k

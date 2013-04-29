@@ -43,6 +43,7 @@ TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(new OpaqueType("topk"))
 	size = arg_size;
 	type = 0;
 	numElements = 0;
+	pruned = false;
 	}
 
 TopkVal::TopkVal() : OpaqueVal(new OpaqueType("topk"))
@@ -72,7 +73,7 @@ TopkVal::~TopkVal()
 	type = 0;
 	}
 
-void TopkVal::Merge(const TopkVal* value)
+void TopkVal::Merge(const TopkVal* value, bool doPrune)
 	{
 
 	if ( type == 0 )
@@ -140,26 +141,31 @@ void TopkVal::Merge(const TopkVal* value)
 	// prune everything...
 	
 	assert(size > 0);
-	while ( numElements > size ) 
+
+	if ( doPrune )
 		{
-		assert(buckets.size() > 0 );
-		Bucket* b = buckets.front();
-		assert(b->elements.size() > 0);
-
-		Element* e = b->elements.front();
-		HashKey* key = GetHash(e->value);
-		elementDict->RemoveEntry(key);
-		delete e;
-
-		b->elements.pop_front();
-		
-		if ( b->elements.size() == 0 ) 
+		while ( numElements > size ) 
 			{
-			delete b;
-			buckets.pop_front();
-			}
+			pruned = true;
+			assert(buckets.size() > 0 );
+			Bucket* b = buckets.front();
+			assert(b->elements.size() > 0);
 
-		numElements--;
+			Element* e = b->elements.front();
+			HashKey* key = GetHash(e->value);
+			elementDict->RemoveEntry(key);
+			delete e;
+
+			b->elements.pop_front();
+			
+			if ( b->elements.size() == 0 ) 
+				{
+				delete b;
+				buckets.pop_front();
+				}
+
+			numElements--;
+			}
 		}
 
 	}
@@ -329,6 +335,24 @@ uint64_t TopkVal::getEpsilon(Val* value) const
 
 	delete key;
 	return e->epsilon;
+	}
+
+uint64_t TopkVal::getSum() const
+	{
+	uint64_t sum = 0;
+
+	std::list<Bucket*>::const_iterator it = buckets.begin();
+	while ( it != buckets.end() ) 
+		{
+		sum += (*it)->elements.size() * (*it)->count;
+
+		it++;
+		}
+
+	if ( pruned ) 
+		reporter->Warning("TopkVal::getSum() was used on a pruned data structure. Result values do not represent total element count");
+
+	return sum;
 	}
 	
 void TopkVal::Encountered(Val* encountered) 

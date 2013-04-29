@@ -35,8 +35,18 @@ hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
-	result$topk = topk_init(topk_size(rv1$topk));
+	if ( rv1?$topk ) 
+		{
+		result$topk = topk_init(topk_size(rv1$topk));
 
-	topk_merge(result$topk, rv1$topk);
-	topk_merge(result$topk, rv2$topk);
+		topk_merge(result$topk, rv1$topk);
+		if ( rv2?$topk )
+			topk_merge(result$topk, rv2$topk);
+		}
+	else if ( rv2?$topk ) 
+		{
+		result$topk = topk_init(topk_size(rv2$topk));
+		topk_merge(result$topk, rv2$topk);
+		}
+		
 	}

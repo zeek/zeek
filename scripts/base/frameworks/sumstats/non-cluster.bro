@@ -15,8 +15,8 @@ event SumStats::finish_epoch(ss: SumStat)
 
 	schedule ss$epoch { SumStats::finish_epoch(ss) };
 	}
-	
-	
+
+
 function data_added(ss: SumStat, key: Key, result: Result)
 	{
 	if ( check_thresholds(ss, key, result, 1.0) )

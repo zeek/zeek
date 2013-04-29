@@ -36,9 +36,9 @@ event bro_init() &priority=3
 
 	local r1: SumStats::Reducer = [$stream="apps.bytes", $apply=set(SumStats::SUM)];
 	local r2: SumStats::Reducer = [$stream="apps.hits",  $apply=set(SumStats::UNIQUE)];
-	SumStats::create([$epoch=break_interval, 
+	SumStats::create([$epoch=break_interval,
 	                  $reducers=set(r1, r2),
-	                  $epoch_finished(data: SumStats::ResultTable) = 
+	                  $epoch_finished(data: SumStats::ResultTable) =
 	                  	{
 	                  	local l: Info;
 	                  	l$ts = network_time();
@@ -67,12 +67,12 @@ function add_sumstats(id: conn_id, hostname: string, size: count)
 		SumStats::observe("apps.bytes", [$str="facebook"], [$num=size]);
 		SumStats::observe("apps.hits",  [$str="facebook"], [$str=cat(id$orig_h)]);
 		}
-	else if ( /\.google\.com$/ in hostname && size > 20 ) 
+	else if ( /\.google\.com$/ in hostname && size > 20 )
 		{
 		SumStats::observe("apps.bytes", [$str="google"], [$num=size]);
 		SumStats::observe("apps.hits",  [$str="google"], [$str=cat(id$orig_h)]);
 		}
-	else if ( /\.nflximg\.com$/ in hostname && size > 200*1024 ) 
+	else if ( /\.nflximg\.com$/ in hostname && size > 200*1024 )
 		{
 		SumStats::observe("apps.bytes", [$str="netflix"], [$num=size]);
 		SumStats::observe("apps.hits",  [$str="netflix"], [$str=cat(id$orig_h)]);

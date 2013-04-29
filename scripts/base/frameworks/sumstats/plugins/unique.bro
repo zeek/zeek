@@ -3,7 +3,7 @@
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Calculate the number of unique values.
 		UNIQUE
 	};
@@ -16,8 +16,8 @@ export {
 }
 
 redef record ResultVal += {
-	# Internal use only.  This is not meant to be publically available 
-	# because we don't want to trust that we can inspect the values 
+	# Internal use only.  This is not meant to be publically available
+	# because we don't want to trust that we can inspect the values
 	# since we will like move to a probalistic data structure in the future.
 	# TODO: in the future this will optionally be a hyperloglog structure
 	unique_vals: set[Observation] &optional;
@@ -27,7 +27,7 @@ hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( UNIQUE in r$apply )
 		{
-		if ( ! rv?$unique_vals ) 
+		if ( ! rv?$unique_vals )
 			rv$unique_vals=set();
 		add rv$unique_vals[obs];
 		rv$unique = |rv$unique_vals|;
@@ -40,7 +40,7 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 		{
 		if ( rv1?$unique_vals )
 			result$unique_vals = rv1$unique_vals;
-		
+
 		if ( rv2?$unique_vals )
 			if ( ! result?$unique_vals )
 				result$unique_vals = rv2$unique_vals;

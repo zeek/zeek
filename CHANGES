@@ -1,4 +1,18 @@
 
+2.1-394 | 2013-04-27 15:02:31 -0700
+
+  * Fixed a bug in the vulnerable software script and added a test.
+    (Seth Hall)
+
+  * Fix schedule statements used outside event handlers. Addresses
+    #974. (Jon Siwek)
+
+  * Fix record coercion for default inner record fields. Addresses
+    #973. (Jon Siwek)
+
+  * Add bytestring_to_count function to bro.bif. Addresses #968. (Yun
+    Zheng Hu)
+
 2.1-386 | 2013-03-22 12:41:50 -0700
 
   * Added reverse() function to strings.bif. (Yun Zheng Hu)

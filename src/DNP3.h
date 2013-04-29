@@ -7,6 +7,9 @@
 
 //#define CRC_GEN_POLY 0xA6BC        // Generation Polynomial to calculate 16-bit CRC
 
+#define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
+#define PSEUDO_TRAN_LEN 1      // the length of DNP3 Pseudo Transport Layer
+
 class DNP3_Analyzer : public TCP_ApplicationAnalyzer {
 public:
 	DNP3_Analyzer(Connection* conn);
@@ -46,7 +49,7 @@ public:
 				dnp3_debug_byte ; }
 
 protected:
-	int DNP3_ProcessData(int len, const u_char* data);
+	int DNP3_ProcessData(int len, const u_char* data, bool orig);
 	int DNP3_CheckCRC(int len, const u_char* data);
 	unsigned int DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert);	
 	void DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial);
@@ -80,6 +83,14 @@ protected:
 
 //// for the use of calculating CRC values
 	unsigned int DNP3_CrcTable[256];
+	//// This pseudoLink stores the PseudoLink Layer data which is usually 8 bytes (plus 2 more CRC)
+	//// It is possible that TCP carry part of this PseudoLInk Layer, we use this member to buffer 
+	////  the incompleted data
+	//u_char pseudoLink[PSEUDO_LINK_LEN_EX];
+	u_char pseudoLinkResp[PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN];
+	unsigned int pseudoLinkRespInd;
+	u_char pseudoLinkOrig[PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN];
+	unsigned int pseudoLinkOrigInd;
 	
 };
 

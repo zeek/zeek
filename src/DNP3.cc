@@ -4,11 +4,11 @@
 
 
 #define PSEUDO_LINK_LEN 8          // the length of DNP3 Pseudo Link Layer
-#define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
+//#define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
 #define PSEUDO_LINK_LEN_FIELD_INDEX 2          // index of len field of DNP3 Pseudo Link Layer 
 #define PSEUDO_LINK_CRTL_FIELD_INDEX 3         // index of ctrl field of DNP3 Pseudo Link Layer
 #define PSEUDO_TRAN_INDEX 10       // index of DNP3 Pseudo Transport Layer 
-#define PSEUDO_TRAN_LEN 1          // The length of DNP3 Pseudo Transport Layer
+//#define PSEUDO_TRAN_LEN 1          // The length of DNP3 Pseudo Transport Layer
 #define PSEUDO_APP_MAX_SIZE_NOCRC 258  // the length of each trunk of DNP3 Pseudo App Layer Data excluding CRC 
 #define PSEUDO_APP_MAX_SIZE_CRC 292    // the length of each trunk of DNP3 Pseudo App Layer Data including CRC
 #define PSEUDO_APP_DATA_BLK_SIZE 16       // maximum length of a data block in DNP3 Pseudo App Layer
@@ -20,7 +20,18 @@ DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer(AnalyzerTa
 	mEncounteredFirst = false;
 
 	//// precompute CrcTable
-	this->DNP3_PrecomputeCRC(DNP3_CrcTable, CRC_GEN_POLY);  
+	this->DNP3_PrecomputeCRC(DNP3_CrcTable, CRC_GEN_POLY); 
+
+	/// initialization
+	for(int i = 0; i < ( PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN); i++)
+		{
+		pseudoLinkResp[i] = 0;
+		pseudoLinkOrig[i] = 0;	
+		} 
+
+	pseudoLinkRespInd = 0;
+	pseudoLinkOrigInd = 0;
+
 	
 	interp = new binpac::DNP3::DNP3_Conn(this);
 
@@ -120,7 +131,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	//// Checkec the CRC values included in the DNP3 packets
 	DNP3_CheckCRC(len, data);
 
-	DNP3_ProcessData(len, data);
+	DNP3_ProcessData(len, data, orig);
 	return ;
 	
 }
@@ -154,19 +165,148 @@ void DNP3_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 //                                                   \/
 //                                            Binpac DNP3 Analyzer
 
-int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
+int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 	{
 	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
 
-	u_char pseudoLink[PSEUDO_LINK_LEN_EX] ;
+	//u_char pseudoLink[PSEUDO_LINK_LEN_EX] ;
 	int i;
 	int j;
 	int newFrame = 0;
 
-	if( len < 10 ){
-		Weird("Unpected_DNP3_packet_size");
+	printf("debug test orig: %d \n", orig);
+
+	//// Handling the truncated TCP payload
+	if( orig == true )
+		{
+		if( (pseudoLinkOrigInd == 0) && len < PSEUDO_LINK_LEN  )
+			{
+			for(i  = 0; i < len ; i++)
+				{
+				pseudoLinkOrig[pseudoLinkOrigInd] = data[i];
+				pseudoLinkOrigInd ++;
+				if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_FIELD_INDEX)
+                                	pseudoLinkOrigInd++;
+				}
+			}
+		else if( pseudoLinkOrigInd > 0)
+			{
+			i = 0;
+			for(; pseudoLinkOrigInd < (PSEUDO_LINK_LEN_EX  + PSEUDO_TRAN_LEN); )
+				{
+				pseudoLinkOrig[pseudoLinkOrigInd] = data[i];
+				i++;
+				pseudoLinkOrigInd++;
+				if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_FIELD_INDEX) 
+					pseudoLinkOrigInd++;
+				if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_EX) 
+					i =  i + 2;
+
+
+				if(i >= len) 
+					{
+					break;	
+					}
+				}
+			/// added if for the request link status message
+			if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_EX)
+				{
+				if(pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX] == 0)
+					{
+					pseudoLinkOrigInd = 0;
+					return -1;
+					}
+				}
+			if(pseudoLinkOrigInd == (PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN))
+				{
+				pseudoLinkOrigInd = 0;
+				}
+			}
+		}
+	else
+		{
+		if( (pseudoLinkRespInd == 0) && len < PSEUDO_LINK_LEN  )
+			{
+			for(i  = 0; i < len ; i++)
+				{
+				pseudoLinkResp[pseudoLinkRespInd] = data[i];
+				pseudoLinkRespInd ++;
+				if(pseudoLinkRespInd == PSEUDO_LINK_LEN_FIELD_INDEX)
+                                	pseudoLinkRespInd++;
+				}
+			}
+		else if( pseudoLinkRespInd > 0)
+			{
+			i = 0;
+			for(; pseudoLinkRespInd < (PSEUDO_LINK_LEN_EX  + PSEUDO_TRAN_LEN); )
+				{
+				pseudoLinkResp[pseudoLinkRespInd] = data[i];
+				i++;
+				pseudoLinkRespInd++;
+				if(pseudoLinkRespInd == PSEUDO_LINK_LEN_FIELD_INDEX) 
+					pseudoLinkRespInd++;
+				if(pseudoLinkRespInd == PSEUDO_LINK_LEN_EX) 
+					i =  i + 2;
+
+
+				if(i >= len) 
+					{
+					break;	
+					}
+				}
+			/// added if for the request link status message
+			if(pseudoLinkRespInd == PSEUDO_LINK_LEN_EX)
+				{
+				if(pseudoLinkResp[PSEUDO_LINK_LEN_FIELD_INDEX] == 0)
+					{
+					pseudoLinkRespInd = 0;
+					return -1;
+					}
+				}
+			}
+			if(pseudoLinkRespInd == (PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN))
+				{
+				pseudoLinkRespInd = 0;
+				}
+
+		}
+
+	//// Handling the truncated TCP payload
+
+
+	//// Request Link Status message only contains pseudo link layer
+	if( len == (PSEUDO_LINK_LEN + CRC_LEN))
+		{
 		return -1;
-	}
+		}
+
+	//// The original LEN field on Pseudo Link Layer has only 1 byte;
+	//// I increase this field into two bytes to help me buffer more coming application layer data
+	j = 0;
+	for(i = 0; i < PSEUDO_LINK_LEN ; i++)
+		{
+		/*
+		pseudoLink[j] = data[i];
+		if(j == PSEUDO_LINK_LEN_FIELD_INDEX) j++;
+	
+		j++;
+		*/
+
+		if(orig == true)
+			{
+			pseudoLinkOrig[j] = data[i];
+                	if(j == PSEUDO_LINK_LEN_FIELD_INDEX) j++;
+			j++;
+			}
+		else
+			{
+			pseudoLinkResp[j] = data[i];
+                	if(j == PSEUDO_LINK_LEN_FIELD_INDEX) j++;
+			j++;
+			}
+
+		}
+
 	
 	///// the first two bytes should always be 0x0564	
 	///// This is used as DPD signature
@@ -185,19 +325,12 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 	// I input m_orig into binpac to indicate the flow direction
 	bool m_orig = ( (data[PSEUDO_LINK_CRTL_FIELD_INDEX] & 0x80) == 0x80 );	
 
-
-
-	//// The original LEN field on Pseudo Link Layer has only 1 byte;
-	//// I increase this field into two bytes to help me buffer more coming application layer data
-	j = 0;
-	for(i = 0; i < PSEUDO_LINK_LEN ; i++)
+	if(orig != m_orig)
 		{
-		pseudoLink[j] = data[i];
-		if(j == PSEUDO_LINK_LEN_FIELD_INDEX) j++;
-	
-		j++;
+		Weird("flow_direction_weird");
 		}
 
+	printf("debug test orig: %d \n", m_orig);	
 	
 	//// ** Perform some checkings on DNP3 Pseudo Transport Layer Data **////
 	//// These restrictions can be found in "DNP3 Specification Volume 3, Transport Function"
@@ -245,18 +378,38 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		//// Based on this field, Binpac will allocate the size of flow buffer 
 		////  1 byte larger than what is delivered from interp->NewData
 		//// As a result, Binpac will buffer the current data and wait for more data to come 
-		pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX + 1] = 0x01;
-                pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] = 0x00;	
-		
+		//pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX + 1] = 0x01;
+                //pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] = 0x00;	
+
+		if(orig == true) 
+			{
+			pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX + 1] = 0x01;
+                	pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX] = 0x00;	
+			}
+		else 
+			{
+			pseudoLinkResp[PSEUDO_LINK_LEN_FIELD_INDEX + 1] = 0x01;
+                	pseudoLinkResp[PSEUDO_LINK_LEN_FIELD_INDEX] = 0x00;	
+			}
+
+	
 		//// Send the pseudoLink layer data to binpac
-		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
+		//interp->NewData(orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
+		if(orig == true)
+			{
+			interp->NewData(orig, pseudoLinkOrig, pseudoLinkOrig + PSEUDO_LINK_LEN_EX);
+			}
+		else
+			{
+			interp->NewData(orig, pseudoLinkResp, pseudoLinkResp + PSEUDO_LINK_LEN_EX);
+			}
 
 		///// In order to manipulate flow_buffer class, we need to get its pointer here
 		////  Note that we can only call interp->upflow() after interp->NewData, otherwise
 		////  Null pointer is returned. 
 		////  upflow and downflow is used to calculate the number of trunk that we encounter 
 		////  so far
-		if( m_orig == true)
+		if( orig == true)
 			{
                         upflow_count ++;
                         upflow = interp->upflow();
@@ -295,7 +448,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		////  Note that increaseBuffer is the wrap-up function that I added into DNP3_Flow in binpac 
 		////   to call AddFrame function of FlowBuffer class
 		////  Also, we did not deliver pseudo Link layer data to binpac as it is intermediate trunk
-		if(m_orig == true)
+		if(orig == true)
 			{
                         //upflow = interp->upflow();
                         //printf("test buffer size %d\n", upflow->get_bufferBytes());
@@ -327,12 +480,13 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 		////  So binpac analyzer will begin parsing all buffered data
 		////  Also, we did not deliver pseudo Link layer data to binpac as it is the last trunk
 
-		if(m_orig == true)
+		if(orig == true)
 			{
                        	//printf("test buffer size %d\n", upflow->get_bufferBytes());
 	                upflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 
 					(upflow_count - 1) * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
-						pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] -5 - 1 );
+						//pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] -5 - 1 );
+						pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX] -5 - 1 );
         	        upflow_count = 0;
                 	}
 	        else
@@ -340,7 +494,8 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
         	        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
                         downflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 
 					(downflow_count - 1) * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
-						pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] - 5 - 1 );
+						//pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] - 5 - 1 );
+						pseudoLinkResp[PSEUDO_LINK_LEN_FIELD_INDEX] - 5 - 1 );
                       	downflow_count = 0;
                		}
 			
@@ -358,7 +513,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			/// but the finish one is missing
 			//// so we should clear out the memory used before; abondon the former 
 			//     truncated network packets
-			if(m_orig == true)
+			if(orig == true)
                         	{
                         	//printf("test buffer size %d\n", upflow->get_bufferBytes());
 	                        upflow->discardBuffer();
@@ -375,10 +530,20 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
 			mEncounteredFirst = false;
 			}
 		//// PSEUDO_LINK_LEN_FIELD_INDEX + 1 incidate the MSB of the length field, should be 0 in this case
-		pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX + 1]= 0x00;
+		//pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX + 1]= 0x00;
+		if(orig == true)
+			{
+			pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX + 1]= 0x00;
+			interp->NewData(orig, pseudoLinkOrig, pseudoLinkOrig + PSEUDO_LINK_LEN_EX);
+			}
+		else
+			{
+			pseudoLinkResp[PSEUDO_LINK_LEN_FIELD_INDEX + 1]= 0x00;
+			interp->NewData(orig, pseudoLinkResp, pseudoLinkResp + PSEUDO_LINK_LEN_EX);
+			}
 	
 
-		interp->NewData(m_orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
+		//interp->NewData(orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
 	
 		}
@@ -445,7 +610,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data)
                 printf("\n");	
 		*/
 		//// then we deliver data block one by one
-		interp->NewData(m_orig, blockStart, blockStart + blockLen);
+		interp->NewData(orig, blockStart, blockStart + blockLen);
 		}
 	//printf("\n\n");
 

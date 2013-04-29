@@ -26,12 +26,13 @@ Element::~Element()
 HashKey* TopkVal::GetHash(Val* v) const
 	{
 	TypeList* tl = new TypeList(v->Type());
-	tl->Append(v->Type());
+	tl->Append(v->Type()->Ref());
 	CompositeHash* topk_hash = new CompositeHash(tl);
 	Unref(tl);
 
 	HashKey* key = topk_hash->ComputeHash(v, 1);
 	assert(key);
+	delete topk_hash;
 	return key;
 	}
 
@@ -178,7 +179,7 @@ bool TopkVal::DoSerialize(SerialInfo* info) const
 	else 
 		assert(numElements == 0);
 
-	int i = 0;
+	uint64_t i = 0;
 	std::list<Bucket*>::const_iterator it = buckets.begin();
 	while ( it != buckets.end() ) 
 		{
@@ -223,7 +224,7 @@ bool TopkVal::DoUnserialize(UnserialInfo* info)
 	else
 		assert(numElements == 0);
 
-	int i = 0;
+	uint64_t i = 0;
 	while ( i < numElements ) 
 		{
 		Bucket* b = new Bucket();
@@ -232,7 +233,7 @@ bool TopkVal::DoUnserialize(UnserialInfo* info)
 		v &= UNSERIALIZE(&b->count);
 		b->bucketPos = buckets.insert(buckets.end(), b);
 
-		for ( int j = 0; j < elements_count; j++ ) 
+		for ( uint64_t j = 0; j < elements_count; j++ ) 
 			{
 			Element* e = new Element();
 			v &= UNSERIALIZE(&e->epsilon);
@@ -311,6 +312,7 @@ uint64_t TopkVal::getCount(Val* value) const
 		return 0;
 		}
 
+	delete key;
 	return e->parent->count;
 	}
 
@@ -325,6 +327,7 @@ uint64_t TopkVal::getEpsilon(Val* value) const
 		return 0;
 		}
 
+	delete key;
 	return e->epsilon;
 	}
 	

@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <magic.h>
 
 #include "AnalyzerTags.h"
 #include "Conn.h"
@@ -206,8 +205,6 @@ protected:
 	 * Initializes static member.
 	 */
 	static void StaticInit();
-
-	static magic_t magic_mime;
 
 	static string salt;
 

@@ -370,6 +370,9 @@ struct CompareString
 		}
 	};
 
+extern magic_t magic_desc_cookie;
+extern magic_t magic_mime_cookie;
+
 void bro_init_magic(magic_t* cookie_ptr, int flags);
 const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
 

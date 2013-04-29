@@ -49,8 +49,6 @@ int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::mime_type_idx = -1;
 
-magic_t File::magic_mime = 0;
-
 string File::salt;
 
 void File::StaticInit()
@@ -71,8 +69,6 @@ void File::StaticInit()
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
 	mime_type_idx = Idx("mime_type");
-
-	bro_init_magic(&magic_mime, MAGIC_MIME);
 
 	salt = BifConst::FileAnalysis::salt->CheckString();
 	}
@@ -250,7 +246,7 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	const char* mime = bro_magic_buffer(magic_mime, data, len);
+	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
 
 	if ( mime )
 		{

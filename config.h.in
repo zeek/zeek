@@ -123,6 +123,9 @@
 /* Use the ElasticSearch writer. */
 #cmakedefine USE_ELASTICSEARCH
 
+/* Use the SQLite reader. */
+#cmakedefine USE_SQLITE
+
 /* Version number of package */
 #define VERSION "@VERSION@"
 

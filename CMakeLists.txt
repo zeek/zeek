@@ -142,6 +142,21 @@ if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
   list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
 endif()
 
+set(USE_SQLITE false)
+find_package(SQLite)
+
+if (NOT DISABLE_SQLITE AND SQLITE_FOUND AND SQLite_VERSION)
+    set(SQLite_min 3.7.14)
+    if (SQLite_VERSION VERSION_LESS SQLite_min)
+        message(STATUS "WARNING: insufficient SQLite version detected.  "
+                       "Found ${SQLite_VERSION}, need ${SQLite_min}")
+    else ()
+        set(USE_SQLITE true)
+        include_directories(BEFORE ${SQLite_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${SQLite_LIBRARIES})
+    endif ()
+endif ()
+
 if (ENABLE_PERFTOOLS_DEBUG)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
@@ -238,6 +253,7 @@ message(
     "\n"
     "\nDataSeries:        ${USE_DATASERIES}"
     "\nElasticSearch:     ${USE_ELASTICSEARCH}"
+    "\nSQLite:            ${USE_SQLITE}"
     "\n"
     "\n================================================================\n"
 )

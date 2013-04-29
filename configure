@@ -65,7 +65,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-dataseries=PATH path to DataSeries and Lintel libraries
     --with-xml2=PATH       path to libxml2 installation (for DataSeries)
     --with-curl=PATH       path to libcurl install root (for ElasticSearch)
-    --with-sqlite          path to SQLite install root
+    --with-sqlite=PATH     path to SQLite install root
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging

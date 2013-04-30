@@ -1,4 +1,9 @@
 
+2.1-397 | 2013-04-29 21:19:00 -0700
+
+  * Fixing memory leaks in CompHash implementation. Addresses #987.
+    (Robin Sommer)
+
 2.1-394 | 2013-04-27 15:02:31 -0700
 
   * Fixed a bug in the vulnerable software script and added a test.

@@ -830,7 +830,10 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				}
 
 			for ( int i = 0; i < n; ++i )
+				{
 				tv->Assign(keys[i], t->IsSet() ? 0 : values[i]);
+				Unref(keys[i]);
+				}
 
 			pval = tv;
 			}

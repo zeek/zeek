@@ -1,4 +1,4 @@
-@load base/frameworks/sumstats
+@load base/frameworks/sumstats/main
 @load base/utils/queue
 
 module SumStats;

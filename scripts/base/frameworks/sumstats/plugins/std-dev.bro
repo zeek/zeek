@@ -1,5 +1,5 @@
+@load base/frameworks/sumstats/main
 @load ./variance
-@load base/frameworks/sumstats
 
 module SumStats;
 

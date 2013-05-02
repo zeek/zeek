@@ -101,7 +101,7 @@ void CardinalityCounter::addElement(uint64_t hash)
 double CardinalityCounter::size()
 	{
 	double answer = 0;
-	for (int i = 0; i < m; i++) 
+	for (unsigned int i = 0; i < m; i++) 
 		answer += pow(2, -(int)buckets[i]);
 
   	answer = 1/answer;
@@ -119,7 +119,7 @@ void CardinalityCounter::merge(CardinalityCounter* c)
 	{
 	uint8_t* temp = (*c).getBuckets();
 	V = 0;
-	for (int i = 0; i < m; i++)
+	for (unsigned int i = 0; i < m; i++)
 		{
     		if (temp[i] > buckets[i])
       			buckets[i] = temp[i];

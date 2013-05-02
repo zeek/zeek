@@ -4,7 +4,7 @@
 #define hyperloglog_h
 
 #include <stdint.h>
-#include <opaqueval.h>
+#include <OpaqueVal.h>
 
 /*
  *  "conf" is how confident the estimate given by the counter is.

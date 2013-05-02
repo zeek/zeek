@@ -33,7 +33,7 @@ bool CardinalityVal::DoSerialize(SerialInfo* info) const
 	serialvalid &= SERIALIZE(c->m);
 	serialvalid &= SERIALIZE(c->V);
 	serialvalid &= SERIALIZE(c->alpha_m);
-	for ( int i = 0; i < c->m; i++ ) 
+	for ( unsigned int i = 0; i < c->m; i++ ) 
 		serialvalid &= SERIALIZE( c->buckets[i] );
 
 	return serialvalid;
@@ -56,7 +56,7 @@ bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 	serialvalid &= UNSERIALIZE(&c->alpha_m);
 
 	uint8_t* buckets = c->buckets;
-	for ( int i = 0; i < m; i++ ) 
+	for ( unsigned int i = 0; i < m; i++ ) 
 		{
 		uint8_t* currbucket = buckets + i;
 		serialvalid &= UNSERIALIZE( currbucket );

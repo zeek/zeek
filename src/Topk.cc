@@ -274,7 +274,7 @@ VectorVal* TopkVal::getTopK(int k) const // returns vector
 		}
 
 	TypeList* vector_index = new TypeList(type);
-	vector_index->Append(type);
+	vector_index->Append(type->Ref());
 	VectorType* v = new VectorType(vector_index);
 	VectorVal* t = new VectorVal(v);
 
@@ -362,7 +362,7 @@ void TopkVal::Encountered(Val* encountered)
 	//printf("NumElements: %d\n", numElements);
 	// check type compatibility
 	if ( numElements == 0 ) 
-		type = encountered->Type()->Ref()->Ref();
+		type = encountered->Type()->Ref();
 	else
 		if ( !same_type(type, encountered->Type()) ) 
 			{

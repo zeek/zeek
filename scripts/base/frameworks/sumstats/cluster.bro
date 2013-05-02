@@ -97,7 +97,7 @@ function data_added(ss: SumStat, key: Key, result: Result)
 	     check_thresholds(ss, key, result, cluster_request_global_view_percent) )
 		{
 		# kick off intermediate update
-		event SumStats::cluster_key_intermediate_response(ss$id, copy(key));
+		event SumStats::cluster_key_intermediate_response(ss$id, key);
 		++recent_global_view_keys[ss$id, key];
 		}
 	}

@@ -97,7 +97,7 @@ function data_added(ss: SumStat, key: Key, result: Result)
 	     check_thresholds(ss, key, result, cluster_request_global_view_percent) )
 		{
 		# kick off intermediate update
-		event SumStats::cluster_key_intermediate_response(ss$id, key);
+		event SumStats::cluster_key_intermediate_response(ss$id, copy(key));
 		++recent_global_view_keys[ss$id, key];
 		}
 	}
@@ -124,7 +124,7 @@ event SumStats::send_data(uid: string, ssid: string, data: ResultTable)
 	if ( |data| == 0 )
 		done = T;
 
-	event SumStats::cluster_ss_response(uid, ssid, local_data, done);
+	event SumStats::cluster_ss_response(uid, ssid, copy(local_data), done);
 	if ( ! done )
 		schedule 0.01 sec { SumStats::send_data(uid, ssid, data) };
 	}
@@ -150,7 +150,7 @@ event SumStats::cluster_key_request(uid: string, ssid: string, key: Key)
 	if ( ssid in result_store && key in result_store[ssid] )
 		{
 		#print fmt("WORKER %s: received the cluster_key_request event for %s=%s.", Cluster::node, key2str(key), data);
-		event SumStats::cluster_key_response(uid, ssid, key, result_store[ssid][key]);
+		event SumStats::cluster_key_response(uid, ssid, key, copy(result_store[ssid][key]));
 		}
 	else
 		{

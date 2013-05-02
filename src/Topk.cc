@@ -178,6 +178,7 @@ bool TopkVal::DoSerialize(SerialInfo* info) const
 
 	v &= SERIALIZE(size);
 	v &= SERIALIZE(numElements);
+	v &= SERIALIZE(pruned);
 	bool type_present = (type != 0);
 	v &= SERIALIZE(type_present);
 	if ( type_present )
@@ -220,6 +221,7 @@ bool TopkVal::DoUnserialize(UnserialInfo* info)
 
 	v &= UNSERIALIZE(&size);
 	v &= UNSERIALIZE(&numElements);
+	v &= UNSERIALIZE(&pruned);
 	bool type_present = false;
 	v &= UNSERIALIZE(&type_present);
 	if ( type_present ) 

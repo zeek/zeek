@@ -1,4 +1,15 @@
 
+2.1-492 | 2013-05-02 12:46:26 -0700
+
+  * Work-around for sumstats framework not propagating updates after
+    intermediate check in cluster environments. (Bernhard Amann)
+
+  * Always apply tcp_connection_attempt. Before this change it was
+    only applied when a connection_attempt() event handler was
+    defined. (Robin Sommer)
+
+  * Fixing coverage.bare-mode-errors test. (Robin Sommer)
+
 2.1-487 | 2013-05-01 18:03:22 -0700
 
   * Always apply tcp_connection_attempt timer, even if no

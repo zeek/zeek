@@ -124,6 +124,7 @@ event SumStats::send_data(uid: string, ssid: string, data: ResultTable)
 	if ( |data| == 0 )
 		done = T;
 
+	# Note: copy is needed to compensate serialization caching issue. This should be changed to something else later.
 	event SumStats::cluster_ss_response(uid, ssid, copy(local_data), done);
 	if ( ! done )
 		schedule 0.01 sec { SumStats::send_data(uid, ssid, data) };
@@ -150,6 +151,8 @@ event SumStats::cluster_key_request(uid: string, ssid: string, key: Key)
 	if ( ssid in result_store && key in result_store[ssid] )
 		{
 		#print fmt("WORKER %s: received the cluster_key_request event for %s=%s.", Cluster::node, key2str(key), data);
+
+		# Note: copy is needed to compensate serialization caching issue. This should be changed to something else later.
 		event SumStats::cluster_key_response(uid, ssid, key, copy(result_store[ssid][key]));
 		}
 	else

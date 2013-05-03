@@ -3125,13 +3125,12 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t), type(t)
+OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
 	{
 	}
 
 OpaqueVal::~OpaqueVal()
 	{
-	Unref(type);
 	}
 
 IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);

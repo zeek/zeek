@@ -149,6 +149,11 @@ RecordType* OS_version;
 EnumType* OS_version_inference;
 TableVal* generate_OS_version_event;
 
+OpaqueType* md5_type;
+OpaqueType* sha1_type;
+OpaqueType* sha256_type;
+OpaqueType* entropy_type;
+
 double table_expire_interval;
 double table_expire_delay;
 int table_incremental_step;
@@ -253,6 +258,11 @@ void init_event_handlers()
 
 void init_general_global_var()
 	{
+  md5_type = new OpaqueType("md5");
+  sha1_type = new OpaqueType("sha1");
+  sha256_type = new OpaqueType("sha256");
+  entropy_type = new OpaqueType("entropy");
+
 	table_expire_interval = opt_internal_double("table_expire_interval");
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");

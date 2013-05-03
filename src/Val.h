@@ -1024,9 +1024,6 @@ protected:
 	OpaqueVal() { }
 
 	DECLARE_SERIAL(OpaqueVal);
-
-private:
-  OpaqueType* type;
 };
 
 // Checks the given value for consistency with the given type.  If an

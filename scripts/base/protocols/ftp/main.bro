@@ -56,10 +56,10 @@ export {
 		tags:             set[string] &log &default=set();
 		
 		## Current working directory that this session is in.  By making
-		## the default value '/.', we can indicate that unless something
+		## the default value '.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
-		cwd:                string  &default="/.";
+		cwd:                string  &default=".";
 		
 		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
@@ -172,7 +172,13 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), build_path_compressed(s$cwd, arg));
+			{
+			local comp_path = build_path_compressed(s$cwd, arg);
+			if ( comp_path[0] != "/" )
+				comp_path = cat("/", comp_path);
+
+			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), comp_path);
+			}
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
@@ -240,16 +246,13 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5
 	{
-	# TODO: figure out what to do with continued FTP response (not used much)
-	#if ( cont_resp ) return;
-
-	local id = c$id;
 	set_ftp_session(c);
-	
 	c$ftp$cmdarg = get_pending_cmd(c$ftp$pending_commands, code, msg);
-	
 	c$ftp$reply_code = code;
 	c$ftp$reply_msg = msg;
+
+	# TODO: figure out what to do with continued FTP response (not used much)
+	if ( cont_resp ) return;
 	
 	# TODO: do some sort of generic clear text login processing here.
 	local response_xyz = parse_ftp_reply_code(code);
@@ -278,10 +281,10 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			c$ftp$passive=T;
 			
 			if ( code == 229 && data$h == [::] )
-				data$h = id$resp_h;
+				data$h = c$id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;
-			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
+			expect_connection(c$id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
 		else
 			{

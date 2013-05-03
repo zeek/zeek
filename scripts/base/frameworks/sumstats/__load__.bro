@@ -1,4 +1,5 @@
 @load ./main
+@load ./plugins
 
 # The cluster framework must be loaded first.
 @load base/frameworks/cluster

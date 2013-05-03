@@ -126,6 +126,9 @@ Changed Functionality
 - Removed the byte_len() and length() bif functions. Use the "|...|"
   operator instead.
 
+- The SSH::Login notice has been superseded by an corresponding
+  intelligence framework observation (SSH::SUCCESSFUL_LOGIN).
+
 Bro 2.1
 -------
 
@@ -208,6 +211,27 @@ New Functionality
   formats as prototypes for collecting experience with alternative
   outputs. We do not yet recommend them for production (but welcome
   feedback!)
+
+- Summary statistics framework. [Extend]
+
+- A number of new applications build on top of the summary statistics
+  framework:
+
+    * Scan detection: Detectors for port and address scans return. See
+      policy/misc/scan.bro.
+
+    * Tracerouter detector: policy/misc/detect-traceroute
+
+    * Web application detection/measurement: policy/misc/app-metrics.bro
+
+    * FTP brute-forcing detector: policy/protocols/ftp/detect-bruteforcing.bro
+
+    * HTTP-based SQL injection detector: policy/protocols/http/detect-sqli.bro
+      (existed before, but now ported to the new framework)
+
+    * SSH brute-forcing detector feeding the intelligence framework:
+      policy/protocols/ssh/detect-bruteforcing.bro
+
 
 
 Changed Functionality

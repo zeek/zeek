@@ -2,7 +2,7 @@
 ##! bruteforcing over SSH.
 
 @load base/protocols/ssh
-@load base/frameworks/metrics
+@load base/frameworks/sumstats
 @load base/frameworks/notice
 @load base/frameworks/intel
 
@@ -10,7 +10,7 @@ module SSH;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates that a host has been identified as crossing the 
+		## Indicates that a host has been identified as crossing the
 		## :bro:id:`SSH::password_guesses_limit` threshold with heuristically
 		## determined failed logins.
 		Password_Guessing,
@@ -19,10 +19,10 @@ export {
 		## currently implemented.
 		Login_By_Password_Guesser,
 	};
-	
-	redef enum Metrics::ID  += {
-		## Metric is to measure failed logins.
-		FAILED_LOGIN,
+
+	redef enum Intel::Where += {
+		## An indicator of the login for the intel framework.
+		SSH::SUCCESSFUL_LOGIN,
 	};
 
 	## The number of failed SSH connections before a host is designated as
@@ -33,47 +33,54 @@ export {
 	## model of a password guesser.
 	const guessing_timeout = 30 mins &redef;
 
-	## This value can be used to exclude hosts or entire networks from being 
+	## This value can be used to exclude hosts or entire networks from being
 	## tracked as potential "guessers".  There are cases where the success
-	## heuristic fails and this acts as the whitelist.  The index represents 
+	## heuristic fails and this acts as the whitelist.  The index represents
 	## client subnets and the yield value represents server subnets.
 	const ignore_guessers: table[subnet] of subnet &redef;
-
-	## Tracks hosts identified as guessing passwords.
-	global password_guessers: set[addr] 
-		&read_expire=guessing_timeout+1hr &synchronized &redef;
 }
 
 event bro_init()
 	{
-	Metrics::add_filter(FAILED_LOGIN, [$name="detect-bruteforcing", $log=F,
-	                                   $note=Password_Guessing,
-	                                   $notice_threshold=password_guesses_limit,
-	                                   $notice_freq=1hr,
-	                                   $break_interval=guessing_timeout]);
+	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM)];
+	SumStats::create([$epoch=guessing_timeout,
+	                  $reducers=set(r1),
+	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	return double_to_count(result["ssh.login.failure"]$sum);
+	                  	},
+	                  $threshold=password_guesses_limit,
+	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	local r = result["ssh.login.failure"];
+	                  	# Generate the notice.
+	                  	NOTICE([$note=Password_Guessing,
+	                  	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
+	                  	        $src=key$host,
+	                  	        $identifier=cat(key$host)]);
+	                  	# Insert the guesser into the intel framework.
+	                  	Intel::insert([$host=key$host,
+	                  	               $meta=[$source="local",
+	                  	                      $desc=fmt("Bro observed %d apparently failed SSH connections.", r$num)]]);
+	                  	}]);
 	}
 
 event SSH::heuristic_successful_login(c: connection)
 	{
 	local id = c$id;
-	
-	# TODO: This is out for the moment pending some more additions to the 
-	#       metrics framework.
-	#if ( id$orig_h in password_guessers )
-	#	{
-	#	NOTICE([$note=Login_By_Password_Guesser,
-	#	        $conn=c,
-	#	        $msg=fmt("Successful SSH login by password guesser %s", id$orig_h)]);
-	#	}
+
+	Intel::seen([$host=id$orig_h,
+	             $conn=c,
+	             $where=SSH::SUCCESSFUL_LOGIN]);
 	}
 
 event SSH::heuristic_failed_login(c: connection)
 	{
 	local id = c$id;
-	
-	# Add data to the FAILED_LOGIN metric unless this connection should 
+
+	# Add data to the FAILED_LOGIN metric unless this connection should
 	# be ignored.
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
-		Metrics::add_data(FAILED_LOGIN, [$host=id$orig_h], 1);
+		SumStats::observe("ssh.login.failure", [$host=id$orig_h], [$num=1]);
 	}

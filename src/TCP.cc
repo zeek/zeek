@@ -566,7 +566,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			else
 				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
 
-			if ( connection_attempt )
+			if ( tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
 					t + tcp_attempt_delay, 1,
 					TIMER_TCP_ATTEMPT);
@@ -1497,24 +1497,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 
 		if ( resp->state == TCP_ENDPOINT_INACTIVE )
 			{
-			if ( (orig->state == TCP_ENDPOINT_SYN_SENT ||
-			      orig->state == TCP_ENDPOINT_SYN_ACK_SENT) )
-				{
-				if ( ! connection_attempt )
-					{
-					// Time out the connection attempt,
-					// since the AttemptTimer isn't going
-					// to do it for us, and we don't want
-					// to clog the data structures with
-					// old, failed attempts.
-					Event(connection_timeout);
-					is_active = 0;
-					sessions->Remove(Conn());
-					return;
-					}
-				}
-
-			else if ( orig->state == TCP_ENDPOINT_INACTIVE )
+			if ( orig->state == TCP_ENDPOINT_INACTIVE )
 				{
 				// Nothing ever happened on this connection.
 				// This can occur when we see a trashed

@@ -1,4 +1,9 @@
 
+2.1-496 | 2013-05-03 15:54:47 -0700
+
+  * Fix memory leak and unnecessary allocations in OpaqueVal.
+    Addresses #986. (Matthias Vallentin)
+
 2.1-492 | 2013-05-02 12:46:26 -0700
 
   * Work-around for sumstats framework not propagating updates after

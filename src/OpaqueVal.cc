@@ -1,4 +1,5 @@
 #include "OpaqueVal.h"
+#include "NetVar.h"
 #include "Reporter.h"
 #include "Serializer.h"
 
@@ -70,6 +71,10 @@ bool HashVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(OpaqueVal);
 	return UNSERIALIZE(&valid);
+	}
+
+MD5Val::MD5Val() : HashVal(md5_type)
+	{
 	}
 
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
@@ -189,6 +194,10 @@ bool MD5Val::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+SHA1Val::SHA1Val() : HashVal(sha1_type)
+	{
+	}
+
 void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
 	{
 	SHA_CTX h;
@@ -295,6 +304,10 @@ bool SHA1Val::DoUnserialize(UnserialInfo* info)
 		return false;
 
 	return true;
+	}
+
+SHA256Val::SHA256Val() : HashVal(sha256_type)
+	{
 	}
 
 void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
@@ -410,6 +423,9 @@ bool SHA256Val::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+EntropyVal::EntropyVal() : OpaqueVal(entropy_type)
+	{
+	}
 
 bool EntropyVal::Feed(const void* data, size_t size)
 	{

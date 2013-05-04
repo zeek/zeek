@@ -13,36 +13,39 @@ module Scan;
 
 export {
 	redef enum Notice::Type += {
-		## Address scans detect that a host appears to be scanning some number
-		## of hosts on a single port. This notice is generated when more than 
-		## :bro:id:`addr_scan_threshold` unique hosts are seen over the 
-		## previous :bro:id:`addr_scan_interval` time range.
+		## Address scans detect that a host appears to be scanning some number of
+		## destinations on a single port. This notice is generated when more than
+		## :bro:id:`addr_scan_threshold` unique hosts are seen over the previous
+		## :bro:id:`addr_scan_interval` time range.
 		Address_Scan,
-		## Port scans detect that an attacking host appears to be scanning a 
-		## single victim host on several ports.  This notice is generated when 
-		## an attacking host attempts to connect to :bro:id:`port_scan_threshold` 
-		## unique ports on a single host over the previous 
+
+		## Port scans detect that an attacking host appears to be scanning a
+		## single victim host on several ports.  This notice is generated when
+		## an attacking host attempts to connect to :bro:id:`port_scan_threshold`
+		## unique ports on a single host over the previous
 		## :bro:id:`port_scan_interval` time range.
 		Port_Scan,
 	};
 
-	## Failed connection attempts are tracked over this time interval for the address 
-	## scan detection.  A higher interval will detect slower scanners, but may 
-	## also yield more false positives.
+	## Failed connection attempts are tracked over this time interval for the address
+	## scan detection.  A higher interval will detect slower scanners, but may also
+	## yield more false positives.
 	const addr_scan_interval = 5min &redef;
-	## Failed connection attempts are tracked over this time interval for the port 
-	## scan detection.  A higher interval will detect slower scanners, but may 
-	## also yield more false positives.
+
+	## Failed connection attempts are tracked over this time interval for the port scan
+	## detection.  A higher interval will detect slower scanners, but may also yield
+	## more false positives.
 	const port_scan_interval = 5min &redef;
 
-	## The threshold of a unique number of hosts a scanning host has to have failed 
+	## The threshold of a unique number of hosts a scanning host has to have failed
 	## connections with on a single port.
 	const addr_scan_threshold = 25 &redef;
+
 	## The threshold of a number of unique ports a scanning host has to have failed
 	## connections with on a single victim host.
 	const port_scan_threshold = 15 &redef;
 
-	## Custom thresholds based on service for address scan.  This is primarily 
+	## Custom thresholds based on service for address scan.  This is primarily
 	## useful for setting reduced thresholds for specific ports.
 	const addr_scan_custom_thresholds: table[port] of count &redef;
 
@@ -73,14 +76,14 @@ event bro_init() &priority=5
 	                  	        $sub=side,
 	                  	        $msg=message,
 	                  	        $identifier=cat(key$host)]);
-	                  	}]); 
+	                  	}]);
 
 	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
 	local r2: SumStats::Reducer = [$stream="scan.port.fail", $apply=set(SumStats::UNIQUE)];
 	SumStats::create([$epoch=port_scan_interval,
 	                  $reducers=set(r2),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
-	                  	{ 
+	                  	{
 	                  	return double_to_count(result["scan.port.fail"]$unique);
 	                  	},
 	                  $threshold=port_scan_threshold,
@@ -90,13 +93,13 @@ event bro_init() &priority=5
 	                  	local side = Site::is_local_addr(key$host) ? "local" : "remote";
 	                  	local dur = duration_to_mins_secs(r$end-r$begin);
 	                  	local message = fmt("%s scanned at least %d unique ports of host %s in %s", key$host, r$unique, key$str, dur);
-	                  	NOTICE([$note=Port_Scan, 
+	                  	NOTICE([$note=Port_Scan,
 	                  	        $src=key$host,
 	                  	        $dst=to_addr(key$str),
 	                  	        $sub=side,
 	                  	        $msg=message,
 	                  	        $identifier=cat(key$host)]);
-	                  	}]); 
+	                  	}]);
 	}
 
 function add_sumstats(id: conn_id, reverse: bool)
@@ -111,7 +114,7 @@ function add_sumstats(id: conn_id, reverse: bool)
 		victim       = id$orig_h;
 		scanned_port = id$orig_p;
 		}
-	
+
 	if ( hook Scan::addr_scan_policy(scanner, victim, scanned_port) )
 		SumStats::observe("scan.addr.fail", [$host=scanner, $str=cat(scanned_port)], [$str=cat(victim)]);
 
@@ -121,7 +124,7 @@ function add_sumstats(id: conn_id, reverse: bool)
 
 function is_failed_conn(c: connection): bool
 	{
-	# Sr || ( (hR || ShR) && (data not sent in any direction) ) 
+	# Sr || ( (hR || ShR) && (data not sent in any direction) )
 	if ( (c$orig$state == TCP_SYN_SENT && c$resp$state == TCP_RESET) ||
 	     (((c$orig$state == TCP_RESET && c$resp$state == TCP_SYN_ACK_SENT) ||
 	       (c$orig$state == TCP_RESET && c$resp$state == TCP_ESTABLISHED && "S" in c$history )
@@ -134,7 +137,7 @@ function is_failed_conn(c: connection): bool
 function is_reverse_failed_conn(c: connection): bool
 	{
 	# reverse scan i.e. conn dest is the scanner
-	# sR || ( (Hr || sHr) && (data not sent in any direction) ) 
+	# sR || ( (Hr || sHr) && (data not sent in any direction) )
 	if ( (c$resp$state == TCP_SYN_SENT && c$orig$state == TCP_RESET) ||
 	     (((c$resp$state == TCP_RESET && c$orig$state == TCP_SYN_ACK_SENT) ||
 	       (c$resp$state == TCP_RESET && c$orig$state == TCP_ESTABLISHED && "s" in c$history )
@@ -144,37 +147,34 @@ function is_reverse_failed_conn(c: connection): bool
 	return F;
 	}
 
-## Generated for an unsuccessful connection attempt. This 
-## event is raised when an originator unsuccessfully attempted 
-## to establish a connection. “Unsuccessful” is defined as at least 
-## tcp_attempt_delay seconds having elapsed since the originator 
-## first sent a connection establishment packet to the destination 
-## without seeing a reply.
+## Generated for an unsuccessful connection attempt. This
+## event is raised when an originator unsuccessfully attempted
+## to establish a connection. “Unsuccessful” is defined as at least
+## tcp_attempt_delay seconds having elapsed since the originator first sent a
+## connection establishment packet to the destination without seeing a reply.
 event connection_attempt(c: connection)
 	{
 	local is_reverse_scan = F;
 	if ( "H" in c$history )
 		is_reverse_scan = T;
-	
+
 	add_sumstats(c$id, is_reverse_scan);
 	}
 
-## Generated for a rejected TCP connection. This event 
-## is raised when an originator attempted to setup a TCP 
-## connection but the responder replied with a RST packet 
+## Generated for a rejected TCP connection. This event is raised when an originator
+## attempted to setup a TCP connection but the responder replied with a RST packet
 ## denying it.
 event connection_rejected(c: connection)
 	{
 	local is_reverse_scan = F;
 	if ( "s" in c$history )
 		is_reverse_scan = T;
-	
+
 	add_sumstats(c$id, is_reverse_scan);
 	}
 
-## Generated when an endpoint aborted a TCP connection. 
-## The event is raised when one endpoint of an *established* 
-## TCP connection aborted by sending a RST packet.
+## Generated when an endpoint aborted a TCP connection. The event is raised when
+## one endpoint of an *established* TCP connection aborted by sending a RST packet.
 event connection_reset(c: connection)
 	{
 	if ( is_failed_conn(c) )

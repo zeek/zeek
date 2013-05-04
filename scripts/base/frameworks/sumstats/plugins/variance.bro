@@ -1,10 +1,10 @@
+@load base/frameworks/sumstats/main
 @load ./average
-@load base/frameworks/sumstats
 
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Find the variance of the values.
 		VARIANCE
 	};

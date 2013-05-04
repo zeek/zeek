@@ -1,10 +1,10 @@
+@load base/frameworks/sumstats/main
 @load ./variance
-@load base/frameworks/sumstats
 
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Find the standard deviation of the values.
 		STD_DEV
 	};

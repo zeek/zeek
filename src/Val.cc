@@ -1749,7 +1749,7 @@ Val* TableVal::Default(Val* index)
 
 	if ( def_val->Type()->Tag() != TYPE_FUNC ||
 	     same_type(def_val->Type(), Type()->YieldType()) )
-		return def_val->Ref();
+		return def_attr->AttrExpr()->IsConst() ? def_val->Ref() : def_val->Clone();
 
 	const Func* f = def_val->AsFunc();
 	val_list* vl = new val_list();

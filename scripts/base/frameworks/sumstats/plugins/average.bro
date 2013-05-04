@@ -1,9 +1,9 @@
-@load base/frameworks/sumstats
+@load base/frameworks/sumstats/main
 
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Calculate the average of the values.
 		AVERAGE
 	};

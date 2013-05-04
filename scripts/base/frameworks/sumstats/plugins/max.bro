@@ -1,9 +1,9 @@
-@load base/frameworks/sumstats
+@load base/frameworks/sumstats/main
 
 module SumStats;
 
 export {
-	redef enum Calculation += { 
+	redef enum Calculation += {
 		## Find the maximum value.
 		MAX
 	};
@@ -18,7 +18,7 @@ hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
 	if ( MAX in r$apply )
 		{
-		if ( ! rv?$max ) 
+		if ( ! rv?$max )
 			rv$max = val;
 		else if ( val > rv$max )
 			rv$max = val;

@@ -5,7 +5,7 @@
 #include "HyperLogLog.h"
 
 
-CardinalityVal::CardinalityVal() : OpaqueVal(new OpaqueType("cardinality"))
+CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{
 	valid = false;
 	}

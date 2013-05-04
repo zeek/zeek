@@ -1,4 +1,10 @@
 
+2.1-498 | 2013-05-03 17:44:08 -0700
+
+  * Table lookups return copy of non-const &default vals. This
+    prevents unintentional modifications to the &default value itself.
+    Addresses #981.  (Jon Siwek)
+
 2.1-496 | 2013-05-03 15:54:47 -0700
 
   * Fix memory leak and unnecessary allocations in OpaqueVal.

@@ -1,5 +1,5 @@
+@load base/frameworks/sumstats/main
 @load ./average
-@load base/frameworks/sumstats
 
 module SumStats;
 

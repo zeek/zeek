@@ -243,6 +243,7 @@ OpaqueType* md5_type;
 OpaqueType* sha1_type;
 OpaqueType* sha256_type;
 OpaqueType* entropy_type;
+OpaqueType* topk_type;
 
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
@@ -308,6 +309,7 @@ void init_general_global_var()
 	sha1_type = new OpaqueType("sha1");
 	sha256_type = new OpaqueType("sha256");
 	entropy_type = new OpaqueType("entropy");
+	topk_type = new OpaqueType("topk");
 	}
 
 void init_net_var()

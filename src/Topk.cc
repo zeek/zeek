@@ -4,6 +4,7 @@
 #include "CompHash.h"
 #include "Reporter.h"
 #include "Serializer.h"
+#include "NetVar.h"
 
 
 namespace Topk {
@@ -36,7 +37,7 @@ HashKey* TopkVal::GetHash(Val* v) const
 	return key;
 	}
 
-TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(new OpaqueType("topk"))
+TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(topk_type)
 	{
 	elementDict = new PDict(Element);
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
@@ -46,7 +47,7 @@ TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(new OpaqueType("topk"))
 	pruned = false;
 	}
 
-TopkVal::TopkVal() : OpaqueVal(new OpaqueType("topk"))
+TopkVal::TopkVal() : OpaqueVal(topk_type)
 	{
 	elementDict = new PDict(Element);
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);

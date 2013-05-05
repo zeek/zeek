@@ -585,7 +585,7 @@ In the ``expiring-certs.bro`` script which identifies when SSL certificates are 
 
 The ``$suppress_for`` variable can also be altered in a ``Notice::policy`` hook, allowing a deployment to better suit the environment in which it is be run.  Using the example of ``expiring-certs.bro``, we can write a ``Notice::policy`` hook for ``SSL::Certificate_Expires_Soon`` to configure the ``$suppress_for`` variable to a shorter time.  
 
-.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_notice_suppression_01.bro
+.. rootedliteralinclude:: ${BRO_SRC_ROOT}/testing/btest/doc/manual/framework_notice_hook_suppression_01.bro
    :language: bro
    :linenos:
    :lines: 6-12

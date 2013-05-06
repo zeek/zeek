@@ -240,6 +240,11 @@ TableType* record_field_table;
 
 StringVal* cmd_line_bpf_filter;
 
+OpaqueType* md5_type;
+OpaqueType* sha1_type;
+OpaqueType* sha256_type;
+OpaqueType* entropy_type;
+
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
@@ -300,6 +305,11 @@ void init_general_global_var()
 
 	cmd_line_bpf_filter =
 		internal_val("cmd_line_bpf_filter")->AsStringVal();
+
+	md5_type = new OpaqueType("md5");
+	sha1_type = new OpaqueType("sha1");
+	sha256_type = new OpaqueType("sha256");
+	entropy_type = new OpaqueType("entropy");
 	}
 
 void init_net_var()
@@ -350,7 +360,7 @@ void init_net_var()
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
 	x509_type = internal_type("X509")->AsRecordType();
-	
+
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");

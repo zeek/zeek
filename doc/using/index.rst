@@ -29,7 +29,7 @@ The ``bro-cut`` utility can be used in place of other tools to build terminal co
 
 .. btest:: using_bro_bro_cut_02
 
-   @TEST-EXEC: cat ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/conn.log | btest-rst-cmd bro-cut id.orig_h id.orig_p id.resp_h duration 
+   @TEST-EXEC: cat ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/conn.log | btest-rst-cmd -c "cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration " bro-cut id.orig_h id.orig_p id.resp_h duration 
 
 
 While the output is similar, the advantages to using bro-cut over awk lay in that,  while awk is flexible and powerful, ``bro-cut`` was specifically designed to work with log files.  Firstly, the ``bro-cut`` output includes only the log file entries, while the ``awk`` output includes the header parts of the log file, which would require the user to use a secondary utility to suppress those lines.  Secondly, since ``bro-cut`` uses the field descriptors to identify and extract data, it allows for flexibility independent of the format and contents of the log file.  It's not uncommon for a Bro configuration to add extra fields to various log files as required by the environment.  In this case, the fields in the ``awk`` command would have to be altered to compensate for the new position whereas the ``bro-cut`` output would not change.
@@ -44,25 +44,36 @@ The ``bro-cut`` accepts the flag ``-d`` to convert the epoch time values in the 
 
 .. btest:: using_bro_bro_cut_time_01
 
-   @TEST-EXEC: btest-rst-cmd bro-cut -d ts uid host uri < ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/http.log
+   @TEST-EXEC: btest-rst-cmd -c "bro-cut -d ts uid host uri < http.log" bro-cut -d ts uid host uri < ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/http.log
 
 Often times log files from multiple sources are stored in UTC time to allow easy correlation.  Converting the timestamp from a log file to UTC can be accomplished with the ``-u`` command.  
 
 .. btest:: using_bro_bro_cut_time_02
 
-   @TEST-EXEC: btest-rst-cmd bro-cut -u ts uid host uri < ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/http.log
+   @TEST-EXEC: btest-rst-cmd -c "bro-cut -u ts uid host uri < http.log" bro-cut -u ts uid host uri < ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/http.log
 
 The default time format when using the ``-d`` or ``-u`` is the ``strftime`` format string %Y-%m-%dT%H:%M:%S%z which results in a string with year, month, day of month, followed by hour, minutes, seconds and the timezone offset.  The default ``strftime`` can be altered by using the ``-D`` and ``-U`` flags. For example, to format the timestamp in the US-typical "Middle Endian" you could use a format string of: %d-%m-%YT%H:%M:%S%z
 
 .. btest:: using_bro_bro_cut_time_03
 
-   @TEST-EXEC: btest-rst-cmd bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/http.log
+   @TEST-EXEC: btest-rst-cmd -c "bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log" bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_01/http.log
 
 ----------------------
 Working with Log Files
 ----------------------
 
-As Bro runs, it deposits its log files in 
+While Bro can do signature based analysis, its primary focus is on behavioral detection which alters the practice of log review from "reactionary review" to a process a little more akin to a hunting trip.  A common progression of review includes correlating a session across multiple log files.  As a connection is processed by Bro, a unique identifier is assigned to each session.  This unique identifier is almost always included in any log file entry specific to that connection and can be used to cross-reference log files.  
 
+A simple example would be to cross-reference a UID seen in a ``conn.log`` file.  Here, we're looking for the connection with the largest number of bytes from the responder by redirecting the output for ``cat conn.log`` into bro-cut to extract the UID and the resp_bytes, then sorting that output by the resp_bytes field.
 
+.. btest:: using_bro_practical_02
 
+   @TEST-EXEC: cat ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_02/conn.log | bro-cut uid resp_bytes | btest-rst-cmd -c "cat conn.log | bro-cut uid resp_bytes | btest-rst-cmd sort -nrk2" sort -nrk2
+   
+With the UID of the largest response, it can be crossreferenced with the UIDs in the ``http.log`` file.
+
+.. btest:: using_bro_practical_03
+
+   @TEST-EXEC: cat ${TESTBASE}/Baseline/doc.manual.using_bro_sandbox_02/http.log | bro-cut uid id.resp_h method status_code host uri | btest-rst-cmd -c "cat http.log | bro-cut uid id.resp_h method status_code host uri | grep j4u32Pc5bif" grep j4u32Pc5bif
+
+As you can see there are multiple HTTP GET requests within the session that Bro identified and logged.  Given that HTTP is a stream protocol, it can have multiple GET/POST/etc requests in a stream and Bro is able to extract and track that information for you, giving you an in-depth and structured view into HTTP traffic on your network.

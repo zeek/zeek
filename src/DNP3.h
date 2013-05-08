@@ -83,10 +83,12 @@ protected:
 
 //// for the use of calculating CRC values
 	unsigned int DNP3_CrcTable[256];
-	//// This pseudoLink stores the PseudoLink Layer data which is usually 8 bytes (plus 2 more CRC)
+	//// This pseudoLink_ array stores the PseudoLink Layer data, which is usually 8 bytes (plus 2 more CRC), 
+	////  plus the PseudoTran Layer data, which is usually 1 byte. 
 	//// It is possible that TCP carry part of this PseudoLInk Layer, we use this member to buffer 
 	////  the incompleted data
-	//u_char pseudoLink[PSEUDO_LINK_LEN_EX];
+	//// An array is used for each direction
+	////  pseudoLink_Ind is the index to indicate how many bytes are filled in the pseudoLink_ array
 	u_char pseudoLinkResp[PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN];
 	unsigned int pseudoLinkRespInd;
 	u_char pseudoLinkOrig[PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN];

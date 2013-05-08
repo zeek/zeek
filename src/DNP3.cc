@@ -4,11 +4,9 @@
 
 
 #define PSEUDO_LINK_LEN 8          // the length of DNP3 Pseudo Link Layer
-//#define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
 #define PSEUDO_LINK_LEN_FIELD_INDEX 2          // index of len field of DNP3 Pseudo Link Layer 
 #define PSEUDO_LINK_CRTL_FIELD_INDEX 3         // index of ctrl field of DNP3 Pseudo Link Layer
 #define PSEUDO_TRAN_INDEX 10       // index of DNP3 Pseudo Transport Layer 
-//#define PSEUDO_TRAN_LEN 1          // The length of DNP3 Pseudo Transport Layer
 #define PSEUDO_APP_MAX_SIZE_NOCRC 258  // the length of each trunk of DNP3 Pseudo App Layer Data excluding CRC 
 #define PSEUDO_APP_MAX_SIZE_CRC 292    // the length of each trunk of DNP3 Pseudo App Layer Data including CRC
 #define PSEUDO_APP_DATA_BLK_SIZE 16       // maximum length of a data block in DNP3 Pseudo App Layer
@@ -122,7 +120,6 @@ void DNP3_Analyzer::Done()
 void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 
-	//printf("\nEntering Deliverstream\n");
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 	//int newFrame = 0;
 
@@ -169,17 +166,16 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 	{
 	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer : DNP3 Pseudo Application Layer
 
-	//u_char pseudoLink[PSEUDO_LINK_LEN_EX] ;
 	int i;
 	int j;
 	int newFrame = 0;
 
-	printf("debug test orig: %d \n", orig);
 
 	//// Handling the truncated TCP payload
-	if( orig == true )
+	if( orig == true )   
 		{
-		if( (pseudoLinkOrigInd == 0) && len < PSEUDO_LINK_LEN  )
+		if( (pseudoLinkOrigInd == 0) && len < PSEUDO_LINK_LEN  ) 
+			// the first time that we encounter the truncated TCP payload
 			{
 			for(i  = 0; i < len ; i++)
 				{
@@ -190,6 +186,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 				}
 			}
 		else if( pseudoLinkOrigInd > 0)
+			// we encountered truncated TCP payload before, so keep on filling the array
 			{
 			i = 0;
 			for(; pseudoLinkOrigInd < (PSEUDO_LINK_LEN_EX  + PSEUDO_TRAN_LEN); )
@@ -198,17 +195,18 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 				i++;
 				pseudoLinkOrigInd++;
 				if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_FIELD_INDEX) 
+					// here I manually increase the length field into 2 bytes
 					pseudoLinkOrigInd++;
 				if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_EX) 
+					// use this code to avoid including 2 bytes CRC values into the array
 					i =  i + 2;
-
 
 				if(i >= len) 
 					{
 					break;	
 					}
 				}
-			/// added if for the request link status message
+			/// "request link status" message contains only the PseudoLink Layer data
 			if(pseudoLinkOrigInd == PSEUDO_LINK_LEN_EX)
 				{
 				if(pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX] == 0)
@@ -330,7 +328,6 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 		Weird("flow_direction_weird");
 		}
 
-	printf("debug test orig: %d \n", m_orig);	
 	
 	//// ** Perform some checkings on DNP3 Pseudo Transport Layer Data **////
 	//// These restrictions can be found in "DNP3 Specification Volume 3, Transport Function"
@@ -450,22 +447,15 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 		////  Also, we did not deliver pseudo Link layer data to binpac as it is intermediate trunk
 		if(orig == true)
 			{
-                        //upflow = interp->upflow();
-                        //printf("test buffer size %d\n", upflow->get_bufferBytes());
                         newFrame = PSEUDO_APP_MAX_SIZE_NOCRC + 1 + upflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
-                        //printf("new frame size is %d \n", newFrame);
                         upflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 1 + upflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
-                        //printf("after increas it ? test buffer size %d\n", upflow->get_bufferBytes());
                         upflow_count++;
                 	}
                 else
 			{
                         downflow = interp->downflow();
-                        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
                         newFrame = PSEUDO_APP_MAX_SIZE_NOCRC + 1 + downflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX);
-                        //printf("down new frame size is %d \n", newFrame);
                         downflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 1 + downflow_count * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) );
-                        //printf("down after increas it ? test buffer size %d\n", downflow->get_bufferBytes());
                         downflow_count++;
                 	}
 		
@@ -482,19 +472,15 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 
 		if(orig == true)
 			{
-                       	//printf("test buffer size %d\n", upflow->get_bufferBytes());
 	                upflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 
 					(upflow_count - 1) * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
-						//pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] -5 - 1 );
 						pseudoLinkOrig[PSEUDO_LINK_LEN_FIELD_INDEX] -5 - 1 );
         	        upflow_count = 0;
                 	}
 	        else
 			{
-        	        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
                         downflow->increaseBuffer( PSEUDO_APP_MAX_SIZE_NOCRC + 
 					(downflow_count - 1) * (PSEUDO_APP_MAX_SIZE_NOCRC - PSEUDO_LINK_LEN_EX) + 
-						//pseudoLink[PSEUDO_LINK_LEN_FIELD_INDEX] - 5 - 1 );
 						pseudoLinkResp[PSEUDO_LINK_LEN_FIELD_INDEX] - 5 - 1 );
                       	downflow_count = 0;
                		}
@@ -515,13 +501,11 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 			//     truncated network packets
 			if(orig == true)
                         	{
-                        	//printf("test buffer size %d\n", upflow->get_bufferBytes());
 	                        upflow->discardBuffer();
         	                upflow_count = 0;
                 	        }
                 	else
                         	{
-	                        //printf("down test buffer size %d\n", downflow->get_bufferBytes());
         	                downflow->discardBuffer();
                 	        downflow_count = 0;
                         	}
@@ -543,7 +527,6 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 			}
 	
 
-		//interp->NewData(orig, pseudoLink, pseudoLink + PSEUDO_LINK_LEN_EX);
 
 	
 		}
@@ -556,7 +539,6 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 	const u_char* blockStart = NULL;
 
 	
-	//printf("App sent to Binpac %d \n", len);
 
 	//// Pseudo Link Layer is already sent; so remove the Pseudo Link
 	//// In a single DNP3 Pseudo Application Layer Data trunk, data is divided into 
@@ -602,17 +584,9 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 			}
 
 		
-		/*
-                for(j =  0 ; j < trunkLen ; j ++)
-                {
-                        printf("Ox%x ", blockStart[j]);
-                }
-                printf("\n");	
-		*/
 		//// then we deliver data block one by one
 		interp->NewData(orig, blockStart, blockStart + blockLen);
 		}
-	//printf("\n\n");
 
 	return 0;	
 	}
@@ -655,7 +629,6 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 	cal_crc[1] = (crc_result & 0xff00) >> 8;
 	if( cal_crc[0] != data[8] || cal_crc[1] != data[9] )
 		{
-		printf("header: calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], data[8], data[9]);
 		Weird("Invalid CRC Values");
 		return -2;
 		}
@@ -685,7 +658,6 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 			cal_crc[1] = (crc_result & 0xff00) >> 8;
 			if( cal_crc[0] != buffer[16] || cal_crc[1] != buffer[17] )
 				{
-				printf("calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[16], buffer[17]);
 				Weird("Invalid CRC Values");
 				return -2;
 				}	
@@ -704,7 +676,6 @@ int DNP3_Analyzer::DNP3_CheckCRC(int len, const u_char* data)
 			cal_crc[1] = (crc_result & 0xff00) >> 8;
 			if( cal_crc[0] != buffer[last_length - 2] || cal_crc[1] != buffer[last_length - 1] )
 				{
-				printf("last calculated crc: %x %x ; crc: %x %x\n", cal_crc[0], cal_crc[1], buffer[last_length -2 ], buffer[last_length -1 ]);
 				Weird("Invalid CRC Values in last data block");
 				return -2;
 				}	

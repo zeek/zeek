@@ -311,11 +311,7 @@ int DNP3_Analyzer::DNP3_ProcessData(int len, const u_char* data, bool orig)
 	if( data[0] != 0x05 || data[1] != 0x64 )
 		return -1;
 
-	//// This indicate that the whole DNP3 packet contains the only Psuedo Link Layer Data
-	////  This is usually used in Serial Link era to detect the machine status
-	if( len == 10){
-		return -1;
-	}
+	
 
 	u_char control_field = data[PSEUDO_LINK_CRTL_FIELD_INDEX];
 	// Double check the orig. in case that the first received traffic is response

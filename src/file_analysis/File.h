@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef FILE_ANALYSIS_FILE_H
 #define FILE_ANALYSIS_FILE_H
 
@@ -17,10 +19,7 @@ namespace file_analysis {
  * Wrapper class around \c fa_file record values from script layer.
  */
 class File {
-friend class Manager;
-
 public:
-
 	~File();
 
 	/**
@@ -127,6 +126,7 @@ public:
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
 protected:
+	friend class Manager;
 
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
@@ -175,6 +175,17 @@ protected:
 	 */
 	bool DetectMIME(const u_char* data, uint64 len);
 
+	/**
+	 * @return the field offset in #val record corresponding to \a field_name.
+	 */
+	static int Idx(const string& field_name);
+
+	/**
+	 * Initializes static member.
+	 */
+	static void StaticInit();
+
+private:
 	FileID id;                 /**< A pretty hash that likely identifies file */
 	string unique;             /**< A string that uniquely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
@@ -195,16 +206,6 @@ protected:
 		uint64 size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
-
-	/**
-	 * @return the field offset in #val record corresponding to \a field_name.
-	 */
-	static int Idx(const string& field_name);
-
-	/**
-	 * Initializes static member.
-	 */
-	static void StaticInit();
 
 	static string salt;
 

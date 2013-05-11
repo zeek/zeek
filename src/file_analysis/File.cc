@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include <string>
 #include <openssl/md5.h>
 
@@ -53,7 +55,8 @@ string File::salt;
 
 void File::StaticInit()
 	{
-	if ( id_idx != -1 ) return;
+	if ( id_idx != -1 )
+		return;
 
 	id_idx = Idx("id");
 	parent_id_idx = Idx("parent_id");
@@ -75,9 +78,9 @@ void File::StaticInit()
 
 File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag,
            bool is_orig)
-    : id(""), unique(unique), val(0), postpone_timeout(false),
-      first_chunk(true), missed_bof(false), need_reassembly(false), done(false),
-      analyzers(this)
+	: id(""), unique(unique), val(0), postpone_timeout(false),
+		first_chunk(true), missed_bof(false), need_reassembly(false), done(false),
+		analyzers(this)
 	{
 	StaticInit();
 
@@ -127,7 +130,8 @@ double File::GetLastActivityTime() const
 
 void File::UpdateConnectionFields(Connection* conn)
 	{
-	if ( ! conn ) return;
+	if ( ! conn )
+		return;
 
 	Val* conns = val->Lookup(conns_idx);
 
@@ -136,7 +140,8 @@ void File::UpdateConnectionFields(Connection* conn)
 	if ( ! conns )
 		{
 		is_first = true;
-		val->Assign(conns_idx, conns = empty_connection_table());
+		conns = empty_connection_table();
+		val->Assign(conns_idx, conns);
 		}
 
 	Val* idx = get_conn_id_val(conn);
@@ -178,6 +183,7 @@ int File::Idx(const string& field)
 	int rval = fa_file_type->FieldOffset(field.c_str());
 	if ( rval < 0 )
 		reporter->InternalError("Unknown fa_file field: %s", field.c_str());
+
 	return rval;
 	}
 
@@ -205,9 +211,12 @@ void File::SetTotalBytes(uint64 size)
 bool File::IsComplete() const
 	{
 	Val* total = val->Lookup(total_bytes_idx);
-	if ( ! total ) return false;
+	if ( ! total )
+		return false;
+
 	if ( LookupFieldDefaultCount(seen_bytes_idx) >= total->AsCount() )
 		return true;
+
 	return false;
 	}
 
@@ -228,7 +237,8 @@ bool File::RemoveAnalyzer(const RecordVal* args)
 
 bool File::BufferBOF(const u_char* data, uint64 len)
 	{
-	if ( bof_buffer.full || bof_buffer.replayed ) return false;
+	if ( bof_buffer.full || bof_buffer.replayed )
+		return false;
 
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
@@ -264,7 +274,9 @@ bool File::DetectMIME(const u_char* data, uint64 len)
 
 void File::ReplayBOF()
 	{
-	if ( bof_buffer.replayed ) return;
+	if ( bof_buffer.replayed )
+		return;
+
 	bof_buffer.replayed = true;
 
 	if ( bof_buffer.chunks.empty() )
@@ -310,9 +322,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 
 	// TODO: check reassembly requirement based on buffer size in record
 	if ( need_reassembly )
-		{
-		// TODO
-		}
+		reporter->InternalError("file_analyzer::File TODO: reassembly not yet supported");
 
 	// TODO: reassembly overflow stuff, increment overflow count, eval trigger
 
@@ -323,7 +333,8 @@ void File::DataIn(const u_char* data, uint64 len)
 	{
 	analyzers.DrainModifications();
 
-	if ( BufferBOF(data, len) ) return;
+	if ( BufferBOF(data, len) )
+		return;
 
 	if ( missed_bof )
 		{
@@ -356,7 +367,8 @@ void File::DataIn(const u_char* data, uint64 len)
 
 void File::EndOfFile()
 	{
-	if ( done ) return;
+	if ( done )
+		return;
 
 	analyzers.DrainModifications();
 
@@ -416,7 +428,8 @@ bool File::FileEventAvailable(EventHandlerPtr h)
 
 void File::FileEvent(EventHandlerPtr h)
 	{
-	if ( ! FileEventAvailable(h) ) return;
+	if ( ! FileEventAvailable(h) )
+		return;
 
 	val_list* vl = new val_list();
 	vl->append(val->Ref());

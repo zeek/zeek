@@ -1,8 +1,9 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "Manager.h"
 #include "File.h"
 
 using namespace file_analysis;
-
 
 FileTimer::FileTimer(double t, const FileID& id, double interval)
     : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
@@ -15,7 +16,8 @@ void FileTimer::Dispatch(double t, int is_expire)
 	{
 	File* file = file_mgr->Lookup(file_id);
 
-	if ( ! file ) return;
+	if ( ! file )
+		return;
 
 	double last_active = file->GetLastActivityTime();
 	double inactive_time = t > last_active ? t - last_active : 0.0;

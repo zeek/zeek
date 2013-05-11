@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include <vector>
 #include <string>
 
@@ -25,6 +27,7 @@ void Manager::Terminate()
 	vector<FileID> keys;
 	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
 		keys.push_back(it->first);
+
 	for ( size_t i = 0; i < keys.size(); ++i )
 		Timeout(keys[i], true);
 	}
@@ -37,7 +40,8 @@ void Manager::SetHandle(const string& handle)
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) ) return;
+	if ( IsDisabled(tag) )
+		return;
 
 	GetFileHandle(tag, conn, is_orig);
 	DataIn(data, len, offset, GetFile(current_handle, conn, tag, is_orig));
@@ -52,7 +56,8 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      File* file)
 	{
-	if ( ! file ) return;
+	if ( ! file )
+		return;
 
 	file->DataIn(data, len, offset);
 
@@ -63,8 +68,11 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
                      Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) ) return;
+	if ( IsDisabled(tag) )
+		return;
+
 	GetFileHandle(tag, conn, is_orig);
+
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
 	DataIn(data, len, GetFile(current_handle, conn, tag, is_orig, false));
@@ -77,7 +85,8 @@ void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
 
 void Manager::DataIn(const u_char* data, uint64 len, File* file)
 	{
-	if ( ! file ) return;
+	if ( ! file )
+		return;
 
 	file->DataIn(data, len);
 
@@ -93,7 +102,8 @@ void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
 
 void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) ) return;
+	if ( IsDisabled(tag) )
+		return;
 
 	GetFileHandle(tag, conn, is_orig);
 	EndOfFile(current_handle);
@@ -107,7 +117,8 @@ void Manager::EndOfFile(const string& unique)
 void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
                   Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) ) return;
+	if ( IsDisabled(tag) )
+		return;
 
 	GetFileHandle(tag, conn, is_orig);
 	Gap(offset, len, GetFile(current_handle, conn, tag, is_orig));
@@ -120,7 +131,8 @@ void Manager::Gap(uint64 offset, uint64 len, const string& unique)
 
 void Manager::Gap(uint64 offset, uint64 len, File* file)
 	{
-	if ( ! file ) return;
+	if ( ! file )
+		return;
 
 	file->Gap(offset, len);
 	}
@@ -128,7 +140,8 @@ void Manager::Gap(uint64 offset, uint64 len, File* file)
 void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
                       bool is_orig)
 	{
-	if ( IsDisabled(tag) ) return;
+	if ( IsDisabled(tag) )
+		return;
 
 	GetFileHandle(tag, conn, is_orig);
 	SetSize(size, GetFile(current_handle, conn, tag, is_orig));
@@ -141,7 +154,8 @@ void Manager::SetSize(uint64 size, const string& unique)
 
 void Manager::SetSize(uint64 size, File* file)
 	{
-	if ( ! file ) return;
+	if ( ! file )
+		return;
 
 	file->SetTotalBytes(size);
 
@@ -153,7 +167,8 @@ bool Manager::PostponeTimeout(const FileID& file_id) const
 	{
 	File* file = Lookup(file_id);
 
-	if ( ! file ) return false;
+	if ( ! file )
+		return false;
 
 	file->postpone_timeout = true;
 	return true;
@@ -163,7 +178,8 @@ bool Manager::SetTimeoutInterval(const FileID& file_id, double interval) const
 	{
 	File* file = Lookup(file_id);
 
-	if ( ! file ) return false;
+	if ( ! file )
+		return false;
 
 	file->SetTimeoutInterval(interval);
 	return true;
@@ -173,7 +189,8 @@ bool Manager::AddAnalyzer(const FileID& file_id, RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
-	if ( ! file ) return false;
+	if ( ! file )
+		return false;
 
 	return file->AddAnalyzer(args);
 	}
@@ -182,7 +199,8 @@ bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
-	if ( ! file ) return false;
+	if ( ! file )
+		return false;
 
 	return file->RemoveAnalyzer(args);
 	}
@@ -190,8 +208,11 @@ bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 File* Manager::GetFile(const string& unique, Connection* conn,
                        AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
 	{
-	if ( unique.empty() ) return 0;
-	if ( IsIgnored(unique) ) return 0;
+	if ( unique.empty() )
+		return 0;
+
+	if ( IsIgnored(unique) )
+		return 0;
 
 	File* rval = str_map[unique];
 
@@ -208,11 +229,14 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 
 		id_map[id] = rval;
 		rval->ScheduleInactivityTimer();
-		if ( IsIgnored(unique) ) return 0;
+
+		if ( IsIgnored(unique) )
+			return 0;
 		}
 	else
 		{
 		rval->UpdateLastActivityTime();
+
 		if ( update_conn )
 			rval->UpdateConnectionFields(conn);
 		}
@@ -224,7 +248,8 @@ File* Manager::Lookup(const FileID& file_id) const
 	{
 	IDMap::const_iterator it = id_map.find(file_id);
 
-	if ( it == id_map.end() ) return 0;
+	if ( it == id_map.end() )
+		return 0;
 
 	return it->second;
 	}
@@ -233,7 +258,8 @@ void Manager::Timeout(const FileID& file_id, bool is_terminating)
 	{
 	File* file = Lookup(file_id);
 
-	if ( ! file ) return;
+	if ( ! file )
+		return;
 
 	file->postpone_timeout = false;
 
@@ -258,7 +284,8 @@ bool Manager::IgnoreFile(const FileID& file_id)
 	{
 	IDMap::iterator it = id_map.find(file_id);
 
-	if ( it == id_map.end() ) return false;
+	if ( it == id_map.end() )
+		return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
 
@@ -271,7 +298,8 @@ bool Manager::RemoveFile(const string& unique)
 	{
 	StrMap::iterator it = str_map.find(unique);
 
-	if ( it == str_map.end() ) return false;
+	if ( it == str_map.end() )
+		return false;
 
 	it->second->EndOfFile();
 
@@ -317,7 +345,8 @@ bool Manager::IsDisabled(AnalyzerTag::Tag tag)
 	Val* yield = disabled->Lookup(index);
 	Unref(index);
 
-	if ( ! yield ) return false;
+	if ( ! yield )
+		return false;
 
 	bool rval = yield->AsBool();
 	Unref(yield);

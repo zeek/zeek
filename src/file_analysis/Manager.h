@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef FILE_ANALYSIS_MANAGER_H
 #define FILE_ANALYSIS_MANAGER_H
 
@@ -24,12 +26,8 @@ namespace file_analysis {
  * Main entry point for interacting with file analysis.
  */
 class Manager {
-friend class FileTimer;
-
 public:
-
 	Manager();
-
 	~Manager();
 
 	/**
@@ -45,12 +43,12 @@ public:
 	/**
 	 * Pass in non-sequential file data.
 	 */
-    void DataIn(const u_char* data, uint64 len, uint64 offset,
-                AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
-    void DataIn(const u_char* data, uint64 len, uint64 offset,
-                const string& unique);
-    void DataIn(const u_char* data, uint64 len, uint64 offset,
-                File* file);
+	void DataIn(const u_char* data, uint64 len, uint64 offset,
+		    AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
+	void DataIn(const u_char* data, uint64 len, uint64 offset,
+		    const string& unique);
+	void DataIn(const u_char* data, uint64 len, uint64 offset,
+		    File* file);
 
 	/**
 	 * Pass in sequential file data.
@@ -121,6 +119,7 @@ public:
 	bool IsIgnored(const string& unique);
 
 protected:
+	friend class FileTimer;
 
 	typedef map<string, File*> StrMap;
 	typedef set<string> StrSet;
@@ -167,10 +166,11 @@ protected:
 	 */
 	static bool IsDisabled(AnalyzerTag::Tag tag);
 
-	StrMap str_map; /**< Map unique string to file_analysis::File. */
-	IDMap id_map;   /**< Map file ID to file_analysis::File records. */
-	StrSet ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	string current_handle; /**< Last file handle set by get_file_handle event.*/
+private:
+	StrMap str_map;	/**< Map unique string to file_analysis::File. */
+	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
+	StrSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
+	string current_handle;	/**< Last file handle set by get_file_handle event.*/
 
 	static TableVal* disabled; /**< Table of disabled analyzers. */
 };

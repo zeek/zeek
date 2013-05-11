@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef FILE_ANALYSIS_FILETIMER_H
 #define FILE_ANALYSIS_FILETIMER_H
 
@@ -12,7 +14,6 @@ namespace file_analysis {
  */
 class FileTimer : public Timer {
 public:
-
 	FileTimer(double t, const FileID& id, double interval);
 
 	/**
@@ -21,8 +22,7 @@ public:
 	 */
 	void Dispatch(double t, int is_expire);
 
-protected:
-
+private:
 	FileID file_id;
 };
 

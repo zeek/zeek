@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include <string>
 
 #include "Hash.h"
@@ -19,7 +21,8 @@ Hash::~Hash()
 
 bool Hash::DeliverStream(const u_char* data, uint64 len)
 	{
-	if ( ! hash->IsValid() ) return false;
+	if ( ! hash->IsValid() )
+		return false;
 
 	if ( ! fed )
 		fed = len > 0;
@@ -41,10 +44,11 @@ bool Hash::Undelivered(uint64 offset, uint64 len)
 
 void Hash::Finalize()
 	{
-	if ( ! hash->IsValid() || ! fed ) return;
+	if ( ! hash->IsValid() || ! fed )
+		return;
 
 	val_list* vl = new val_list();
-	vl->append(file->GetVal()->Ref());
+	vl->append(GetFile()->GetVal()->Ref());
 	vl->append(new StringVal(kind));
 	vl->append(hash->Get());
 

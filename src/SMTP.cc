@@ -90,6 +90,7 @@ void SMTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 		// ongoing mail transaction.
 		if ( mail )
 			mail->Undelivered(len);
+
 		EndData();
 		}
 

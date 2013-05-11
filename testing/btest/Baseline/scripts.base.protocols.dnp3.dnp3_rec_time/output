@@ -1,20 +1,4 @@
-
-
-Header sent to Binpac 
-Ox5 Ox64 Ox8 Ox0 Oxc4 Ox2 Ox0 Ox3 Ox0 
-App sent to Binpac 15 
-Oxc1 Ox18 
-
-
 dnp3_header_block, T, 25605, 8, 196, 2, 3
 dnp3_application_request_header, T, 193, 24
-
-
-Header sent to Binpac 
-Ox5 Ox64 Oxa Ox0 Ox44 Ox3 Ox0 Ox2 Ox0 
-App sent to Binpac 17 
-Oxc1 Ox81 Ox0 Ox0 
-
-
 dnp3_header_block, F, 25605, 10, 68, 3, 2
 dnp3_application_response_header, F, 193, 129, 0

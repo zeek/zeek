@@ -1,4 +1,12 @@
 
+2.1-502 | 2013-05-10 19:29:37 -0700
+
+  * Allow default function/hook/event parameters. Addresses #972. (Jon
+    Siwek)
+
+  * Change the endianness parameter of bytestring_to_count() BIF to
+    default to false (big endian). (Jon Siwek)
+
 2.1-500 | 2013-05-10 19:22:24 -0700
 
   * Fix to prevent merge-hook of SumStat's unique plugin from damaging

@@ -52,4 +52,7 @@ event bro_init()
 	print bytestring_to_count("\x00\x00\x00\x00\x00\x00\x00\x00", T); # 0
 	print bytestring_to_count("\x00\x00\x00\x00\x00\x00\x00\x00", F); # 0
 
+	# test the default endianness parameter
+	print bytestring_to_count("\x00\x00\x00\x00\x00\x00\xff\xff"); # 65535
+
 	}

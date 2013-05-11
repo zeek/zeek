@@ -2472,7 +2472,7 @@ function bytestring_to_double%(s: string%): double
 ##
 ## Returns: The value contained in *s*, or 0 if the conversion failed.
 ##
-function bytestring_to_count%(s: string, is_le: bool%): count
+function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	%{
 #ifdef HOST_BIGENDIAN
 	static const bool host_bigendian = true;

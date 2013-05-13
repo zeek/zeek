@@ -1,4 +1,43 @@
 
+2.1-498 | 2013-05-03 17:44:08 -0700
+
+  * Table lookups return copy of non-const &default vals. This
+    prevents unintentional modifications to the &default value itself.
+    Addresses #981.  (Jon Siwek)
+
+2.1-496 | 2013-05-03 15:54:47 -0700
+
+  * Fix memory leak and unnecessary allocations in OpaqueVal.
+    Addresses #986. (Matthias Vallentin)
+
+2.1-492 | 2013-05-02 12:46:26 -0700
+
+  * Work-around for sumstats framework not propagating updates after
+    intermediate check in cluster environments. (Bernhard Amann)
+
+  * Always apply tcp_connection_attempt. Before this change it was
+    only applied when a connection_attempt() event handler was
+    defined. (Robin Sommer)
+
+  * Fixing coverage.bare-mode-errors test. (Robin Sommer)
+
+2.1-487 | 2013-05-01 18:03:22 -0700
+
+  * Always apply tcp_connection_attempt timer, even if no
+    connection_attempt() event handler is defined. (Robin Sommer)
+
+2.1-486 | 2013-05-01 15:28:45 -0700
+
+  * New framework for computing summary statistics in
+    base/framework/sumstats. This replaces the metrics frameworks, and
+    comes with a number of applications build on top, see NEWS. More
+    documentation to follow. (Seth Hall)
+
+2.1-397 | 2013-04-29 21:19:00 -0700
+
+  * Fixing memory leaks in CompHash implementation. Addresses #987.
+    (Robin Sommer)
+
 2.1-394 | 2013-04-27 15:02:31 -0700
 
   * Fixed a bug in the vulnerable software script and added a test.

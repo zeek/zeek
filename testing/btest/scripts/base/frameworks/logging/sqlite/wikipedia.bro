@@ -1,4 +1,5 @@
 #
+# @TEST-REQUIRES: has-writer SQLite && which sqlite3
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: bro -r $TRACES/wikipedia.trace Log::default_writer=Log::WRITER_SQLITE

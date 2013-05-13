@@ -31,7 +31,7 @@ protected:
 			     threading::Value** vals);
 	virtual bool DoSetBuf(bool enabled) { return true; }
 	virtual bool DoRotate(const char* rotated_path, double open,
-			      double close, bool terminating) { return true; }
+			      double close, bool terminating);
 	virtual bool DoFlush(double network_time)	{ return true; }
 	virtual bool DoFinish(double network_time)	{ return true; }
 	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }

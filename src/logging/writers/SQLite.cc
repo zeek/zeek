@@ -150,7 +150,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	string create = "CREATE TABLE IF NOT EXISTS "+dbname+" (\n"; 
 		//"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
-	for ( int i = 0; i < num_fields; ++i )
+	for ( unsigned int i = 0; i < num_fields; ++i )
 		{
 			const Field* field = fields[i];
 			
@@ -195,7 +195,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 		string insert = "VALUES (";
 		string names = "INSERT INTO "+dbname+" ( ";
 	
-		for ( int i = 0; i < num_fields; i++ )
+		for ( unsigned int i = 0; i < num_fields; i++ )
 			{
 			bool ac = true;
 
@@ -252,7 +252,7 @@ int SQLite::AddParams(Value* val, int pos)
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
-		return sqlite3_bind_int(st, pos, val->val.int_val ? 1 : 0 );
+		return sqlite3_bind_int(st, pos, val->val.int_val != 0 ? 1 : 0 );
 
 	case TYPE_INT:
 		return sqlite3_bind_int(st, pos, val->val.int_val);
@@ -377,4 +377,16 @@ bool SQLite::DoWrite(int num_fields, const Field* const * fields, Value** vals)
 	return true;
 	}
 
+bool SQLite::DoRotate(const char* rotated_path, double open, double close, bool terminating)
+        {
+        if ( ! FinishedRotation("/dev/null", Info().path, open, close, terminating))
+                {
+                Error(Fmt("error rotating %s", Info().path));
+                return false;
+                }
+
+        return true;
+        }
+
 #endif /* USE_SQLITE */
+

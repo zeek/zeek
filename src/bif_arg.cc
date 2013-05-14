@@ -30,11 +30,13 @@ BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, int arg_type)
 	type_str = "";
 	}
 
-BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str)
+BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str,
+                               const char* arg_attr_str)
 	{
 	name = arg_name;
 	type = TYPE_OTHER;
 	type_str = arg_type_str;
+	attr_str = arg_attr_str;
 
 	for ( int i = 0; builtin_func_arg_type[i].bif_type[0] != '\0'; ++i )
 		if ( ! strcmp(builtin_func_arg_type[i].bif_type, arg_type_str) )
@@ -46,7 +48,8 @@ BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str)
 
 void BuiltinFuncArg::PrintBro(FILE* fp)
 	{
-	fprintf(fp, "%s: %s%s", name, builtin_func_arg_type[type].bro_type, type_str);
+	fprintf(fp, "%s: %s%s %s", name, builtin_func_arg_type[type].bro_type,
+	        type_str, attr_str);
 	}
 
 void BuiltinFuncArg::PrintCDef(FILE* fp, int n)

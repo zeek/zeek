@@ -1,0 +1,15 @@
+foo_func, test
+foo_func, hello
+bar_func, hmm, hi, 5
+bar_func, cool, beans, 5
+bar_func, cool, beans, 13
+foo_hook, test
+foo_hook, hello
+bar_hook, hmm, hi, 5
+bar_hook, cool, beans, 5
+bar_hook, cool, beans, 13
+foo_event, test
+foo_event, hello
+bar_event, hmm, hi, 5
+bar_event, cool, beans, 5
+bar_event, cool, beans, 13

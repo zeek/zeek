@@ -671,8 +671,24 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 
 	arg_types = new TypeList();
 
+	bool has_default_arg = false;
+
 	for ( int i = 0; i < args->NumFields(); ++i )
+		{
+		const TypeDecl* td = args->FieldDecl(i);
+
+		if ( td->attrs && td->attrs->FindAttr(ATTR_DEFAULT) )
+			has_default_arg = true;
+
+		else if ( has_default_arg )
+			{
+			const char* err_str = fmt("required parameter '%s' must precede "
+			                          "default parameters", td->id);
+			args->Error(err_str);
+			}
+
 		arg_types->Append(args->FieldType(i)->Ref());
+		}
 	}
 
 string FuncType::FlavorString() const
@@ -708,7 +724,7 @@ BroType* FuncType::YieldType()
 
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
-	return check_and_promote_exprs(index, arg_types) ?
+	return check_and_promote_args(index, args) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 

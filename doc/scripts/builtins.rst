@@ -459,6 +459,31 @@ The Bro scripting language supports the following built-in types.
 
         print greeting("Dave");
 
+    Function parameters may specify default values as long as they appear
+    last in the parameter list:
+
+    .. code:: bro
+
+        global foo: function(s: string, t: string &default="abc", u: count &default=0);
+
+    If a function was previously declared with default parameters, the
+    default expressions can be omitted when implementing the function
+    body and they will still be used for function calls that lack those
+    arguments.
+
+    .. code:: bro
+
+        function foo(s: string, t: string, u: count)
+            {
+            print s, t, u;
+            }
+
+    And calls to the function may omit the defaults from the argument list:
+
+    .. code:: bro
+
+        foo("test");
+
 .. bro:type:: event
 
     Event handlers are nearly identical in both syntax and semantics to
@@ -597,10 +622,10 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &default
 
-    Uses a default value for a record field or container elements. For
-    example, ``table[int] of string &default="foo" }`` would create a
-    table that returns the :bro:type:`string` ``"foo"`` for any
-    non-existing index.
+    Uses a default value for a record field, a function/hook/event
+    parameter, or container elements.  For example, ``table[int] of
+    string &default="foo" }`` would create a table that returns the
+    :bro:type:`string` ``"foo"`` for any non-existing index.
 
 .. bro:attr:: &redef
 

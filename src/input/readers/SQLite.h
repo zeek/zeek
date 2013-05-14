@@ -14,7 +14,7 @@
 #include "../ReaderBackend.h"
 #include "../../threading/AsciiFormatter.h"
 
-#include "sqlite3.h"
+#include "../external/sqlite3.h"
 
 
 namespace input { namespace reader {

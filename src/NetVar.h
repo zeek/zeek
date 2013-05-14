@@ -243,6 +243,12 @@ extern TableType* record_field_table;
 
 extern StringVal* cmd_line_bpf_filter;
 
+class OpaqueType;
+extern OpaqueType* md5_type;
+extern OpaqueType* sha1_type;
+extern OpaqueType* sha256_type;
+extern OpaqueType* entropy_type;
+
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();
 

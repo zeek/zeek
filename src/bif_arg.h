@@ -25,7 +25,13 @@ extern const char* builtin_func_arg_type_bro_name[];
 class BuiltinFuncArg {
 public:
 	BuiltinFuncArg(const char* arg_name, int arg_type);
-	BuiltinFuncArg(const char* arg_name, const char* arg_type_str);
+	BuiltinFuncArg(const char* arg_name, const char* arg_type_str,
+	               const char* arg_attr_str = "");
+
+	void SetAttrStr(const char* arg_attr_str)
+		{
+		attr_str = arg_attr_str;
+		};
 
 	const char* Name() const	{ return name; }
 	int Type() const		{ return type; }
@@ -39,6 +45,7 @@ protected:
 	const char* name;
 	int type;
 	const char* type_str;
+	const char* attr_str;
 };
 
 #endif

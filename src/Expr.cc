@@ -4026,7 +4026,27 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 			     Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
 
 			if ( def )
-				val->Assign(i, def->AttrExpr()->Eval(0));
+				{
+				Val* def_val = def->AttrExpr()->Eval(0);
+				BroType* def_type = def_val->Type();
+				BroType* field_type = Type()->AsRecordType()->FieldType(i);
+
+				if ( def_type->Tag() == TYPE_RECORD &&
+				     field_type->Tag() == TYPE_RECORD &&
+				     ! same_type(def_type, field_type) )
+					{
+					Val* tmp = def_val->AsRecordVal()->CoerceTo(
+					        field_type->AsRecordType());
+
+					if ( tmp )
+						{
+						Unref(def_val);
+						def_val = tmp;
+						}
+					}
+
+				val->Assign(i, def_val);
+				}
 			else
 				val->Assign(i, 0);
 			}
@@ -4297,6 +4317,10 @@ Val* ScheduleExpr::Eval(Frame* f) const
 	if ( args )
 		{
 		TimerMgr* tmgr = mgr.CurrentTimerMgr();
+
+		if ( ! tmgr )
+			tmgr = timer_mgr;
+
 		tmgr->Add(new ScheduleTimer(event->Handler(), args, dt, tmgr));
 		}
 
@@ -5452,6 +5476,50 @@ int check_and_promote_exprs(ListExpr*& elements, TypeList* types)
 		}
 
 	return 1;
+	}
+
+int check_and_promote_args(ListExpr*& args, RecordType* types)
+	{
+	expr_list& el = args->Exprs();
+	int ntypes = types->NumFields();
+
+	// give variadic BIFs automatic pass
+	if ( ntypes == 1 && types->FieldDecl(0)->type->Tag() == TYPE_ANY )
+		return 1;
+
+	if ( el.length() < ntypes )
+		{
+		expr_list def_elements;
+
+		// Start from rightmost parameter, work backward to fill in missing
+		// arguments using &default expressions.
+		for ( int i = ntypes - 1; i >= el.length(); --i )
+			{
+			TypeDecl* td = types->FieldDecl(i);
+			Attr* def_attr = td->attrs ? td->attrs->FindAttr(ATTR_DEFAULT) : 0;
+
+			if ( ! def_attr )
+				{
+				types->Error("parameter mismatch", args);
+				return 0;
+				}
+
+			def_elements.insert(def_attr->AttrExpr());
+			}
+
+		loop_over_list(def_elements, i)
+			el.append(def_elements[i]->Ref());
+		}
+
+	TypeList* tl = new TypeList();
+
+	for ( int i = 0; i < types->NumFields(); ++i )
+		tl->Append(types->FieldType(i)->Ref());
+
+	int rval = check_and_promote_exprs(args, tl);
+	Unref(tl);
+
+	return rval;
 	}
 
 int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type)

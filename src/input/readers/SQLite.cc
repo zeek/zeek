@@ -101,7 +101,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 					fullpath.c_str(),
 					&db,
 					SQLITE_OPEN_READWRITE | 
-					SQLITE_OPEN_FULLMUTEX // perhaps change to nomutex
+					SQLITE_OPEN_NOMUTEX 
 					,
 					NULL)) )
 		return false;

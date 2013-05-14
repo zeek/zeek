@@ -140,7 +140,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 					&db,
 					SQLITE_OPEN_READWRITE | 
 					SQLITE_OPEN_CREATE |
-					SQLITE_OPEN_NOMUTEX // perhaps change to nomutex
+					SQLITE_OPEN_NOMUTEX 
 					,
 					NULL)) )
 		return false;
@@ -166,9 +166,15 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 			sqlite3_free(fieldname);
 
 			string type = GetTableType(field->type, field->subtype);
+			if ( type == "" )
+				{
+				InternalError(Fmt("Could not determine type for field %lu:%s", i, fieldname));
+				return false;
+				}
 
 			create += " "+type;
-			/* if ( !field->optional ) {
+
+			/* if ( !field->optional ) {  
 				create += " NOT NULL";
 			} */
 		}
@@ -287,9 +293,8 @@ int SQLite::AddParams(Value* val, int pos)
 		if ( ! val->val.string_val.length || val->val.string_val.length == 0 ) 
 			return sqlite3_bind_null(st, pos);
 
-		return sqlite3_bind_text(st, pos, val->val.string_val.data, val->val.string_val.length, SQLITE_TRANSIENT); // FIXME who deletes this
+		return sqlite3_bind_text(st, pos, val->val.string_val.data, val->val.string_val.length, SQLITE_TRANSIENT); 
 		}
-
 	case TYPE_TABLE:
 		{
 		ODesc desc;
@@ -308,9 +313,6 @@ int SQLite::AddParams(Value* val, int pos)
 					desc.AddRaw(set_separator);
 
 				io->Describe(&desc, val->val.set_val.vals[j], fields[pos]->name); 
-				// yes, giving NULL here is not really really pretty....
-				// it works however, because tables cannot contain tables...
-				// or vectors.
 				}
 
 		desc.RemoveEscapeSequence(set_separator);		

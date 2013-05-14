@@ -67,6 +67,7 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 		}
 	
 	local num_samples = rv1$num_samples;
+	result$num_samples = num_samples;
 
 	if ( |rv1$sample_vector| > num_samples || |rv2$sample_vector| > num_samples )
 		{

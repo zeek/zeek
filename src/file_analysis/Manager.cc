@@ -325,7 +325,8 @@ void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
 	{
 	current_handle.clear();
 
-	if ( ! get_file_handle ) return;
+	if ( ! get_file_handle )
+		return;
 
 	val_list* vl = new val_list();
 	vl->append(new Val(tag, TYPE_COUNT));

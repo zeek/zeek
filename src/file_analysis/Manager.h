@@ -172,7 +172,7 @@ private:
 	StrSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
 	string current_handle;	/**< Last file handle set by get_file_handle event.*/
 
-	static TableVal* disabled; /**< Table of disabled analyzers. */
+	static TableVal* disabled;	/**< Table of disabled analyzers. */
 };
 
 } // namespace file_analysis

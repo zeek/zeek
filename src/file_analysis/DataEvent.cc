@@ -19,10 +19,8 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
 	using BifType::Record::FileAnalysis::AnalyzerArgs;
 
-	const char* chunk_field = "chunk_event";
-	const char* stream_field = "stream_event";
-	int chunk_off = AnalyzerArgs->FieldOffset(chunk_field);
-	int stream_off = AnalyzerArgs->FieldOffset(stream_field);
+	int chunk_off = AnalyzerArgs->FieldOffset("chunk_event");
+	int stream_off = AnalyzerArgs->FieldOffset("stream_event");
 
 	Val* chunk_val = args->Lookup(chunk_off);
 	Val* stream_val = args->Lookup(stream_off);

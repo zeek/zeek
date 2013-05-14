@@ -30,8 +30,7 @@ Extract::~Extract()
 file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	{
 	using BifType::Record::FileAnalysis::AnalyzerArgs;
-	const char* field = "extract_filename";
-	Val* v = args->Lookup(AnalyzerArgs->FieldOffset(field));
+	Val* v = args->Lookup(AnalyzerArgs->FieldOffset("extract_filename"));
 
 	if ( ! v )
 		return 0;

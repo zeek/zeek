@@ -2,8 +2,6 @@
 
 #include "config.h"
 
-#ifdef USE_SQLITE
-
 #include <string>
 #include <errno.h>
 #include <vector>
@@ -387,6 +385,4 @@ bool SQLite::DoRotate(const char* rotated_path, double open, double close, bool 
 
         return true;
         }
-
-#endif /* USE_SQLITE */
 

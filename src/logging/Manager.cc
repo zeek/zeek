@@ -26,9 +26,7 @@
 #include "writers/DataSeries.h"
 #endif
 
-#ifdef USE_SQLITE
 #include "writers/SQLite.h"
-#endif
 
 using namespace logging;
 
@@ -44,6 +42,7 @@ struct WriterDefinition {
 WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
+	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
 
 #ifdef USE_ELASTICSEARCH
 	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
@@ -51,9 +50,6 @@ WriterDefinition log_writers[] = {
 
 #ifdef USE_DATASERIES
 	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
-#endif
-#ifdef USE_SQLITE
-	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
 #endif
 
 	// End marker, don't touch.

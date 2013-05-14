@@ -2,8 +2,6 @@
 
 #include "config.h"
 
-#ifdef USE_SQLITE
-
 #include "SQLite.h"
 #include "NetVar.h"
 
@@ -321,4 +319,3 @@ bool SQLite::DoUpdate()
 	return true;
 	}
 
-#endif /* USE_SQLITE */

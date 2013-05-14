@@ -6,15 +6,13 @@
 
 #include "config.h"
 
-#ifdef USE_SQLITE
-
 #include <iostream>
 #include <vector>
 
 #include "../ReaderBackend.h"
 #include "../../threading/AsciiFormatter.h"
 
-#include "../external/sqlite3.h"
+#include "../../external/sqlite3.h"
 
 
 namespace input { namespace reader {
@@ -56,8 +54,6 @@ private:
 
 }
 }
-
-#endif /* USE_SQLITE */
 
 #endif /* INPUT_READERS_POSTGRES_H */
 

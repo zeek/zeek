@@ -8,10 +8,9 @@
 
 #include "config.h"
 
-#ifdef USE_SQLITE
 
 #include "../WriterBackend.h"
-#include "sqlite3.h"
+#include "../../external/sqlite3.h"
 #include "../../threading/AsciiFormatter.h"
 
 namespace logging { namespace writer {
@@ -58,8 +57,6 @@ private:
 
 }
 }
-
-#endif /* USE_SQLITE */
 
 #endif /* LOGGING_WRITER_SQLITE_H */
 

@@ -1,5 +1,5 @@
 # @TEST-EXEC: cat conn.sql | sqlite3 conn.sqlite
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
@@ -67,6 +67,7 @@ COMMIT;
 
 @load base/protocols/conn
 
+redef exit_only_after_terminate = T; 
 redef Input::accept_unsupported_types = T;
 
 global outfile: file;

@@ -1,5 +1,5 @@
 # @TEST-EXEC: cat port.sql | sqlite3 port.sqlite
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/socks.trace %INPUT
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
@@ -14,6 +14,8 @@ INSERT INTO "port" VALUES(5353,'udp');
 INSERT INTO "port" VALUES(6162,'tcp');
 COMMIT;
 @TEST-END-FILE
+
+redef exit_only_after_terminate = T;
 
 global outfile: file;
 

@@ -2119,12 +2119,16 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 	case TYPE_ENUM: {
 		// well, this is kind of stupid, because EnumType just mangles the module name and the var name together again...
 		// but well
-		string module = extract_module_name(val->val.string_val.data);
-		string var = extract_var_name(val->val.string_val.data);
+		// convert to string first to not have to deal with missing \0's...
+		string module_string(val->val.string_val.data, val->val.string_val.length);
+		string var_string(val->val.string_val.data, val->val.string_val.length);
+
+		string module = extract_module_name(module_string.c_str());
+		string var = extract_var_name(var_string.c_str());
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
-			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s",
-			                        module.c_str(), var.c_str());
+			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s, var size: %d",
+			                        module.c_str(), var.c_str(), var.size());
 
 		return new EnumVal(index, request_type->Ref()->AsEnumType() );
 		}

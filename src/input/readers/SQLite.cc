@@ -140,7 +140,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 
 		char *out = new char[length];
 		memcpy(out, text, length);
-
+		
 		val->val.string_val.length = length;
 		val->val.string_val.data = out;
 		break;
@@ -250,7 +250,7 @@ bool SQLite::DoUpdate()
 
 
 
-	for ( unsigned int i = 0; i < numcolumns; ++i ) 
+	for ( int i = 0; i < numcolumns; ++i ) 
 		{
 		const char *name = sqlite3_column_name(st, i);
 

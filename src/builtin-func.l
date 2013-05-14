@@ -26,6 +26,7 @@ int check_c_mode(int t)
 %}
 
 WS	[ \t]+
+OWS	[ \t]*
  /* Note, bifcl only accepts a single "::" in IDs while the policy
     layer acceptes multiple. (But the policy layer doesn't have 
 	a hierachy. */
@@ -101,7 +102,13 @@ HEX	[0-9a-fA-F]+
 	return TOK_ID;
 	}
 
-&{ID}	{
+  /*
+  Hacky way to pass along arbitrary attribute expressions since the BIF parser
+  has little understanding of valid Bro expressions.  With this pattern, the
+  attribute expression should stop when it reaches another attribute, another
+  function argument, or the end of the function declaration.
+  */
+&{ID}({OWS}={OWS}[^&%;,]+)?	{
 	int t = check_c_mode(TOK_ATTR);
 
 	if ( t == TOK_ATTR )

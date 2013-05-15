@@ -196,7 +196,7 @@ void MsgThread::OnWaitForStop()
 	uint64_t last_size = 0;
 	uint64_t cur_size = 0;
 
-	while ( ! (main_finished || Killed() ) )
+	while ( ! main_finished )
 		{
 		// Terminate if we get another kill signal.
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
@@ -221,8 +221,10 @@ void MsgThread::OnWaitForStop()
 			signal_val = 0;
 			}
 
-		queue_in.WakeUp();
-		while ( HasOut() && !Killed() ) 
+		if ( !Killed() ) 
+			queue_in.WakeUp();
+
+		while ( HasOut() ) 
 			{
 			Message* msg = RetrieveOut();
 			assert ( msg );

@@ -1,3 +1,7 @@
+#
+# @TEST-REQUIRES: has-reader SQLite 
+# @TEST-GROUP: sqlite
+#
 # @TEST-EXEC: cat conn.sql | sqlite3 conn.sqlite
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5

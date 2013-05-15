@@ -4,7 +4,8 @@
 #
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: sed '1d' .stderr | sort > cmpfile
+# @TEST-EXEC: btest-diff cmpfile
 
 @TEST-START-FILE ssh.sql
 PRAGMA foreign_keys=OFF;
@@ -56,7 +57,7 @@ export {
 		se: set[string];
 		vc: vector of count;
 		vs: vector of string;
-		vn: vector of string &optional;
+		vh: vector of string &optional;
 	} &log;
 }
 
@@ -71,20 +72,27 @@ event line(description: Input::EventDescription, tpe: Input::Event, p: SSH::Log)
 	print outfile, |p$vs|;
 	}
 
+event term_me()
+	{
+	terminate();
+	}
+
 event bro_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from ssh;",
 		 ["dbname"] = "ssh"
 	};
+	
+	local config_strings2: table[string] of string = {
+		 ["query"] = "select b, g, h from ssh;",
+		 ["dbname"] = "ssh"
+	};
 
 	outfile = open("../out");
 	Input::add_event([$source="../ssh", $name="ssh", $fields=SSH::Log, $ev=line, $reader=Input::READER_SQLITE, $want_record=T, $config=config_strings]);
-	}
+	Input::add_event([$source="../ssh", $name="ssh2", $fields=SSH::Log, $ev=line, $reader=Input::READER_SQLITE, $want_record=T, $config=config_strings2]);
 
-event Input::end_of_data(name: string, source:string)
-	{
-	print outfile, "End of data";
-	close(outfile);
-	terminate();
+	schedule +1secs { term_me() };
+
 	}

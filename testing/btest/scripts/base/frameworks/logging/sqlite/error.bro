@@ -2,11 +2,39 @@
 # @TEST-REQUIRES: has-writer SQLite 
 # @TEST-GROUP: sqlite
 #
+# @TEST-EXEC: cat ssh.sql | sqlite3 ssh.sqlite
 # @TEST-EXEC: bro -b %INPUT
-# @TEST-EXEC: sqlite3 ssh.sqlite 'select * from ssh' > ssh.select
-# @TEST-EXEC: btest-diff ssh.select
+# @TEST-EXEC: btest-diff .stderr
 #
 # Testing all possible types.
+#
+
+@TEST-START-FILE ssh.sql
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE ssh (
+'b' boolean,
+'i' integer,
+'e' text,
+'c' integer,
+'p' integer,
+'sn' text,
+'a' text,
+'d' double precision,
+'t' double precision,
+'iv' double precision,
+'s' text,
+'sc' text,
+'ss' text,
+'se' text,
+'vc' text,
+'ve' text
+);
+INSERT INTO "ssh" VALUES(1,-42,'SSH::LOG',21,123,'10.0.0.0/24','1.2.3.4',3.14,1.36859359634203600879e+09,100.0,'hurz','2,4,1,3','CC,AA,BB','(empty)','10,20,30','(empty)');
+COMMIT;
+@TEST-END-FILE
+
+ 
 
 redef LogSQLite::unset_field = "(unset)";
 

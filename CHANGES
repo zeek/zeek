@@ -1,4 +1,11 @@
 
+2.1-619 | 2013-05-15 16:01:42 -0700
+
+  * SQLite reader and writer combo. This allows to read/write
+    persistent data from on disk SQLite databases. The current
+    interface is quite low-level, we'll add higher-level abstractions
+    in the future. (Bernhard Amann)
+
 2.1-576 | 2013-05-15 14:29:09 -0700
 
   * Initial version of new file analysis framework. This moves most of

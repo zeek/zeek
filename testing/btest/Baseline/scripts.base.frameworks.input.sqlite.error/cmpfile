@@ -1,0 +1,6 @@
+>>>
+error: ../ssh/Input::READER_SQLITE: Init failed
+error: ../ssh/Input::READER_SQLITE: Required field vh not found after SQLite statement
+error: ../ssh/Input::READER_SQLITE: SQLite call failed: no such column: g
+error: ../ssh/Input::READER_SQLITE: terminating thread
+received termination signal

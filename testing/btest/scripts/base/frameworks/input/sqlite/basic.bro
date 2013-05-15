@@ -1,5 +1,4 @@
 #
-# @TEST-REQUIRES: has-reader SQLite 
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: cat conn.sql | sqlite3 conn.sqlite

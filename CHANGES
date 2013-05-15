@@ -1,4 +1,9 @@
 
+2.1-626 | 2013-05-15 16:09:31 -0700
+
+  * Add "reservoir" sampler for SumStats framework. This maintains
+    a set of N uniquely distributed random samples. (Bernhard Amann)
+
 2.1-619 | 2013-05-15 16:01:42 -0700
 
   * SQLite reader and writer combo. This allows to read/write

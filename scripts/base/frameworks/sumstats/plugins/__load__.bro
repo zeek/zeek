@@ -1,4 +1,5 @@
 @load ./average
+@load ./last
 @load ./max
 @load ./min
 @load ./sample

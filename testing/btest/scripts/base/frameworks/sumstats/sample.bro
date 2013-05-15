@@ -13,7 +13,7 @@ event bro_init() &priority=5
 	                     		{
 					print key$host;
 	                     		local r = data[key]["test.metric"];
-	                     		print r$sample_vector;
+	                     		print r$samples;
 					print r$sample_elements;
 	                     		}
 	                     	}

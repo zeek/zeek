@@ -5,7 +5,7 @@ module SumStats;
 
 export {
 	redef enum Calculation += {
-		## Keep last X observations in Queue
+		## Keep last X observations in a queue
 		LAST
 	};
 
@@ -16,15 +16,15 @@ export {
 
 	redef record ResultVal += {
 		## This is the queue where elements are maintained.  Use the
-		## :bro:see:`SumStats::get_elements` function to get a vector of the samples.
+		## :bro:see:`SumStats::get_elements` function to get a vector of the current element values.
 		last_elements: Queue::Queue &optional;
 	};
 
 	## Get a vector of element values from a ResultVal.
-	global get_elements: function(rv: ResultVal): vector of Observation;
+	global get_last_elements: function(rv: ResultVal): vector of Observation;
 }
 
-function get_elements(rv: ResultVal): vector of Observation
+function get_last_elements(rv: ResultVal): vector of Observation
 	{
 	local s: vector of Observation = vector();
 	if ( rv?$last_elements )

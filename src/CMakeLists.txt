@@ -459,7 +459,7 @@ collect_headers(bro_HEADERS ${bro_SRCS})
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)

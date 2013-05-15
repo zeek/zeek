@@ -170,7 +170,10 @@ inline T Queue<T>::Get()
 		return 0;
 		}
 	else if ( messages[read_ptr].empty() ) 
+		{
+		safe_unlock(&mutex[read_ptr]);
 		return 0;
+		}
 
 	T data = messages[read_ptr].front();
 	messages[read_ptr].pop();

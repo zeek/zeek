@@ -71,6 +71,10 @@ export {
 		
 		## All of the headers that may indicate if the request was proxied.
 		proxied:                 set[string] &log &optional;
+
+		## Indicates if this request can assume 206 partial content in
+		## response.
+		range_request:           bool &default=F;
 	};
 	
 	## Structure to maintain state for an HTTP connection with multiple 
@@ -235,6 +239,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		else if ( name == "HOST" )
 			# The split is done to remove the occasional port value that shows up here.
 			c$http$host = split1(value, /:/)[1];
+
+		else if ( name == "RANGE" )
+			c$http$range_request = T;
 		
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;

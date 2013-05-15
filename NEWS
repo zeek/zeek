@@ -55,6 +55,36 @@ New Functionality
 
         global foo: function(s: string, t: string &default="abc", u: count &default=0);
 
+- The new file analysis framework moves most of the processing of file
+  content from script-land into the core, where it belongs. Much of
+  this is an internal change, the framework comes with the following
+  user-visibible functionality (some of that was already available
+  before, but done differently):
+
+  [TODO: This will probably change with further script updates.]
+
+      - A binary input reader interfaces the input framework with file
+        analysis, allowing to inject files on disk into Bro's
+        processing.
+
+      - Supports for analyzing data transfereed via HTTP range
+        requests.
+
+      - HTTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+
+      - SMTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+        * Provide access to start of entity data.
+
+      - FTP data transfers: Identify MIME type; record to disk.
+
+      - IRC DCC transfers: Record to disk.
+
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 

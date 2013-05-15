@@ -9,6 +9,7 @@ RecordType* conn_id;
 RecordType* endpoint;
 RecordType* endpoint_stats;
 RecordType* connection_type;
+RecordType* fa_file_type;
 RecordType* icmp_conn;
 RecordType* icmp_context;
 RecordType* SYN_packet;
@@ -250,6 +251,7 @@ OpaqueType* entropy_type;
 #include "logging.bif.netvar_def"
 #include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
+#include "file_analysis.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -317,11 +319,13 @@ void init_net_var()
 #include "logging.bif.netvar_init"
 #include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
+#include "file_analysis.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
 	endpoint_stats = internal_type("endpoint_stats")->AsRecordType();
 	connection_type = internal_type("connection")->AsRecordType();
+	fa_file_type = internal_type("fa_file")->AsRecordType();
 	icmp_conn = internal_type("icmp_conn")->AsRecordType();
 	icmp_context = internal_type("icmp_context")->AsRecordType();
 	signature_state = internal_type("signature_state")->AsRecordType();

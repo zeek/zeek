@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: *.tgz
+Disallow: *.gz
+Disallow: *.tbz
+Disallow: *.bz2

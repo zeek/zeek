@@ -1,4 +1,12 @@
 
+2.1-576 | 2013-05-15 14:29:09 -0700
+
+  * Initial version of new file analysis framework. This moves most of
+    the processing of file content from script-land into the core,
+    where it belongs. Much of this is an internal change, and at this
+    point the new code has essentially feature-equality with the old
+    one. More script-level changes to come. (Jon Siwek)
+
 2.1-502 | 2013-05-10 19:29:37 -0700
 
   * Allow default function/hook/event parameters. Addresses #972. (Jon

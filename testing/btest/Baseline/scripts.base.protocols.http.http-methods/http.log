@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2012-12-07-04-43-19
+#open	2013-03-25-20-20-22
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	string	string	file
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	string	string	string
 1354328870.191989	UWkUyAuUGXf	128.2.6.136	46562	173.194.75.103	80	1	OPTIONS	www.google.com	*	-	-	0	962	405	Method Not Allowed	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328874.237327	arKYeMETxOg	128.2.6.136	46563	173.194.75.103	80	1	OPTIONS	www.google.com	HTTP/1.1	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328874.299063	k6kgXLOoSKl	128.2.6.136	46564	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
@@ -55,4 +55,4 @@
 1354328932.692706	ydiZblvsYri	128.2.6.136	46608	173.194.75.103	80	1	HEAD	www.google.com	/HTTP/1.1	-	-	0	0	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	-
 1354328932.754657	HFYOnBqSE5e	128.2.6.136	46609	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
 1354328932.796568	JcUvhfWUMgd	128.2.6.136	46610	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	text/html	-	-
-#close	2012-12-07-04-43-19
+#close	2013-03-25-20-20-22

@@ -135,10 +135,7 @@ void BasicThread::WaitForStop()
 	if ( ! started )
 		return;
 
-	if ( terminating )
-		return;
-
-	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate ...", name);
+	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
 
 	OnWaitForStop();
 

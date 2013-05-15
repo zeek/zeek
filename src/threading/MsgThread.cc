@@ -234,7 +234,8 @@ void MsgThread::OnWaitForStop()
 			delete msg;
 			}
 
-		usleep(1000);
+		if ( !Killed() ) 
+			usleep(1000);
 		}
 
 	signal_val = old_signal_val;

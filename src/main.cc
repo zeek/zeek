@@ -60,6 +60,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "binpac_bro.h"
 
+#include "external/sqlite3.h"
+
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -724,6 +726,8 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
+	sqlite3_initialize();
+
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
@@ -1081,6 +1085,8 @@ int main(int argc, char** argv)
 #ifdef USE_CURL
 		curl_global_cleanup();
 #endif
+
+		sqlite3_shutdown();
 
 		terminate_bro();
 

@@ -26,6 +26,8 @@
 #include "writers/DataSeries.h"
 #endif
 
+#include "writers/SQLite.h"
+
 using namespace logging;
 
 // Structure describing a log writer type.
@@ -40,6 +42,7 @@ struct WriterDefinition {
 WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
+	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
 
 #ifdef USE_ELASTICSEARCH
 	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },

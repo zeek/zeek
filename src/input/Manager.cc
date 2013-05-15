@@ -8,6 +8,7 @@
 #include "readers/Ascii.h"
 #include "readers/Raw.h"
 #include "readers/Benchmark.h"
+#include "readers/SQLite.h"
 
 #include "Event.h"
 #include "EventHandler.h"
@@ -34,6 +35,7 @@ ReaderDefinition input_readers[] = {
 	{ BifEnum::Input::READER_ASCII, "Ascii", 0, reader::Ascii::Instantiate },
 	{ BifEnum::Input::READER_RAW, "Raw", 0, reader::Raw::Instantiate },
 	{ BifEnum::Input::READER_BENCHMARK, "Benchmark", 0, reader::Benchmark::Instantiate },
+	{ BifEnum::Input::READER_SQLITE, "SQLite", 0, reader::SQLite::Instantiate },
 
 	// End marker
 	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }
@@ -2114,18 +2116,24 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		}
 
 	case TYPE_ENUM: {
-		// well, this is kind of stupid, because EnumType just mangles the module name and the var name together again...
-		// but well
-		string module = extract_module_name(val->val.string_val.data);
-		string var = extract_var_name(val->val.string_val.data);
+		// Convert to string first to not have to deal with missing
+		// \0's...
+		string module_string(val->val.string_val.data, val->val.string_val.length);
+		string var_string(val->val.string_val.data, val->val.string_val.length);
+
+		string module = extract_module_name(module_string.c_str());
+		string var = extract_var_name(var_string.c_str());
+
+		// Well, this is kind of stupid, because EnumType just
+		// mangles the module name and the var name together again...
+		// but well.
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
-			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s",
-			                        module.c_str(), var.c_str());
+			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s, var size: %zu",
+			                        module.c_str(), var.c_str(), var.size());
 
-		return new EnumVal(index, request_type->Ref()->AsEnumType() );
+		return new EnumVal(index, request_type->Ref()->AsEnumType());
 		}
-
 
 	default:
 		reporter->InternalError("unsupported type for input_read");

@@ -183,7 +183,7 @@ macro(BINPAC_TARGET pacFile)
     list(APPEND ALL_BINPAC_INPUTS ${ARGV})
     list(APPEND ALL_BINPAC_OUTPUTS
          ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
-         ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc) 
+         ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc)
 endmacro(BINPAC_TARGET)
 
 binpac_target(binpac-lib.pac)
@@ -437,6 +437,7 @@ set(bro_SRCS
     logging/WriterFrontend.cc
     logging/writers/Ascii.cc
     logging/writers/DataSeries.cc
+    logging/writers/SQLite.cc
     logging/writers/ElasticSearch.cc
     logging/writers/None.cc
 
@@ -446,6 +447,9 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/SQLite.cc
+
+    external/sqlite3.c
 
     nb_dns.c
     digest.h

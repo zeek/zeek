@@ -60,7 +60,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "binpac_bro.h"
 
-#include "external/sqlite3.h"
+#include "3rdparty/sqlite3.h"
 
 Brofiler brofiler;
 

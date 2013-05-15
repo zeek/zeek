@@ -9,9 +9,9 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
-#include "../../threading/AsciiFormatter.h"
 
-#include "../../external/sqlite3.h"
+#include "threading/AsciiFormatter.h"
+#include "3rdparty/sqlite3.h"
 
 namespace input { namespace reader {
 

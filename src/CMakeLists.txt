@@ -449,7 +449,7 @@ set(bro_SRCS
     input/readers/Benchmark.cc
     input/readers/SQLite.cc
 
-    external/sqlite3.c
+    3rdparty/sqlite3.c
 
     nb_dns.c
     digest.h

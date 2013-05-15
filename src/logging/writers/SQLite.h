@@ -8,8 +8,9 @@
 #include "config.h"
 
 #include "../WriterBackend.h"
-#include "../../external/sqlite3.h"
-#include "../../threading/AsciiFormatter.h"
+
+#include "threading/AsciiFormatter.h"
+#include "3rdparty/sqlite3.h"
 
 namespace logging { namespace writer {
 

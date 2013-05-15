@@ -21,10 +21,10 @@ export {
 	};
 
 	## Get a vector of element values from a ResultVal.
-	global get_last_elements: function(rv: ResultVal): vector of Observation;
+	global get_last: function(rv: ResultVal): vector of Observation;
 }
 
-function get_last_elements(rv: ResultVal): vector of Observation
+function get_last(rv: ResultVal): vector of Observation
 	{
 	local s: vector of Observation = vector();
 	if ( rv?$last_elements )

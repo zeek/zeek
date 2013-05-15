@@ -5,8 +5,8 @@
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 15
-
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: cat manager-1/.stdout | sort > out
+# @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
@@ -31,7 +31,9 @@ event bro_init() &priority=5
 	                  		{
 					print key$host;
 	                     		local r = rt[key]["test"];
-	                     		print r$samples;
+					for ( sample in r$samples ) {
+						print r$samples[sample];
+					}
 					print r$sample_elements;
 	                  		}
 

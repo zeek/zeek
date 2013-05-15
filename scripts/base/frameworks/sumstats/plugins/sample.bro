@@ -108,6 +108,7 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 			}
 
 		local totalcount = rv1$sample_elements + rv2$sample_elements;
+		result$sample_elements = totalcount;
 
 		for ( i in other_vector ) 
 			{

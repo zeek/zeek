@@ -1268,25 +1268,18 @@ bool Manager::Flush(EnumVal* id)
 	return true;
 	}
 
-void Manager::Terminate()
+void Manager::FlushBuffers()
 	{
-	// Make sure we process all the pending rotations.
-
-	while ( rotations_pending > 0 )
-		{
-		thread_mgr->ForceProcessing(); // A blatant layering violation ...
-		usleep(1000);
-		}
-
-	if ( rotations_pending < 0 )
-		reporter->InternalError("Negative pending log rotations: %d", rotations_pending);
-
+	// Flush out cached entries in Frontend
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
 			continue;
 
-		Flush((*s)->id);
+		for ( Stream::WriterMap::iterator i = (*s)->writers.begin();
+			      i != (*s)->writers.end(); i++ )
+			i->second->writer->FlushWriteBuffer();
+
 		}
 	}
 

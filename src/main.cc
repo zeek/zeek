@@ -319,7 +319,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
-	log_mgr->Terminate();
+	log_mgr->FlushBuffers();
 	thread_mgr->Terminate();
 
 	mgr.Drain();

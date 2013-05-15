@@ -150,10 +150,10 @@ public:
 	bool Flush(EnumVal* id);
 
 	/**
-	 * Prepares the log manager to terminate. This will flush all log
-	 * stream.
+	 * Flushes all buffers that are currently held by writer frontends
+	 * out to the threads. Does not call the thread flush operation.
 	 */
-	void Terminate();
+	void FlushBuffers();
 
 	/**
 	 * Returns a list of supported output formats.

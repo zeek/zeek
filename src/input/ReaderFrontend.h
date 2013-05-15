@@ -67,7 +67,7 @@ public:
 	 * This method must only be called from the main thread.
 	 */
 	void Update();
-
+	
 	/**
 	 * Finalizes reading from this stream.
 	 *
@@ -75,7 +75,7 @@ public:
 	 * the corresponding message there. This method must only be called
 	 * from the main thread.
 	 */
-	void Close();
+	void Stop();
 
 	/**
 	 * Disables the reader frontend. From now on, all method calls that

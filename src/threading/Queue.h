@@ -155,14 +155,11 @@ inline Queue<T>::~Queue()
 template<typename T>
 inline T Queue<T>::Get()
 	{
-	if ( (reader && reader->Killed()) || (writer && writer->Killed()) )
-		return 0;
-
 	safe_lock(&mutex[read_ptr]);
 
 	int old_read_ptr = read_ptr;
 
-	if ( messages[read_ptr].empty() )
+	if ( messages[read_ptr].empty() && !( (reader && reader->Killed()) || (writer && writer->Killed())) )
 		{
 		struct timespec ts;
 		ts.tv_sec = time(0) + 5;
@@ -172,6 +169,8 @@ inline T Queue<T>::Get()
 		safe_unlock(&mutex[read_ptr]);
 		return 0;
 		}
+	else if ( messages[read_ptr].empty() ) 
+		return 0;
 
 	T data = messages[read_ptr].front();
 	messages[read_ptr].pop();

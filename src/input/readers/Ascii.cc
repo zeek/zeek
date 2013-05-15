@@ -73,10 +73,8 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 Ascii::~Ascii()
 	{
-	/* printf("Destructor called\n");
-	if ( file ) 
-		DoClose();
-	delete ascii; */
+	DoClose();
+	delete ascii; 
 	}
 
 void Ascii::DoClose()

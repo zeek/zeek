@@ -333,7 +333,7 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 		{
 		delete msg;
 		return;
-		}
+		} 
 
 	queue_out.Put(msg);
 

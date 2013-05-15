@@ -122,15 +122,10 @@ void Manager::Process()
 		if ( do_beat )
 			t->Heartbeat();
 
-		while ( t->HasOut() && ! t->Killed() )
+		while ( t->HasOut() )
 			{
 			Message* msg = t->RetrieveOut();
-
-			if ( ! msg )
-				{
-				assert(t->Killed());
-				break;
-				}
+			assert(msg);
 
 			if ( msg->Process() )
 				{

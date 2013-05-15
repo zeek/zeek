@@ -1,3 +1,6 @@
+#
+# @TEST-GROUP: sqlite
+#
 # @TEST-EXEC: cat port.sql | sqlite3 port.sqlite
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5

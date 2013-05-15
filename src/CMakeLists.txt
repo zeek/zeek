@@ -145,6 +145,7 @@ set(BIF_SRCS
     logging.bif
     input.bif
     event.bif
+    file_analysis.bif
     const.bif
     types.bif
     strings.bif
@@ -446,6 +447,17 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/Binary.cc
+
+    file_analysis/Manager.cc
+    file_analysis/File.cc
+    file_analysis/FileTimer.cc
+    file_analysis/FileID.h
+    file_analysis/Analyzer.h
+    file_analysis/AnalyzerSet.cc
+    file_analysis/Extract.cc
+    file_analysis/Hash.cc
+    file_analysis/DataEvent.cc
 
     nb_dns.c
     digest.h

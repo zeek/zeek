@@ -6981,6 +6981,83 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
 
+## Marks a point in the event stream at which the event queue started flushing.
+event event_queue_flush_point%(%);
+
+## This event is handled to provide feedback to the file analysis framework
+## about how to identify the logical "file" to which some data/input
+## belongs.  All incoming data to the framework is buffered, and depends
+## on a handler for this event to return a string value that uniquely
+## identifies a file.  Among all handlers of this event, the last one to
+## call :bro:see:`set_file_handle` will "win".
+##
+## tag: The analyzer which is carrying the file data.
+##
+## c: The connection which is carrying the file data.
+##
+## is_orig: The direction the file data is flowing over the connection.
+##
+## .. bro:see:: set_file_handle
+event get_file_handle%(tag: count, c: connection, is_orig: bool%);
+
+## Indicates that an analysis of a new file has begun. The analysis can be
+## augmented at this time via :bro:see:`FileAnalysis::add_analyzer`.
+##
+## f: The file.
+##
+## .. bro:see:: file_over_new_connection file_timeout file_gap file_state_remove
+event file_new%(f: fa_file%);
+
+## Indicates that a file has been seen being transferred over a connection
+## different from the original.
+##
+## f: The file.
+##
+## c: The new connection over which the file is seen being transferred.
+##
+## .. bro:see:: file_new file_timeout file_gap file_state_remove
+event file_over_new_connection%(f: fa_file, c: connection%);
+
+## Indicates that file analysis has timed out because no activity was seen
+## for the file in a while.
+##
+## f: The file.
+##
+## .. bro:see:: file_new file_over_new_connection file_gap file_state_remove
+##    default_file_timeout_interval FileAnalysis::postpone_timeout
+##    FileAnalysis::set_timeout_interval
+event file_timeout%(f: fa_file%);
+
+## Indicates that a chunk of the file is missing.
+##
+## f: The file.
+##
+## offset: The byte offset from the start of the file at which the gap begins.
+##
+## len: The number of missing bytes.
+##
+## .. bro:see:: file_new file_over_new_connection file_timeout file_state_remove
+event file_gap%(f: fa_file, offset: count, len: count%);
+
+## This event is generated each time file analysis is ending for a given file.
+##
+## f: The file.
+## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
+event file_state_remove%(f: fa_file%);
+
+## This event is generated each time file analysis generates a digest of the
+## file contents.
+##
+## f: The file.
+##
+## kind: The type of digest algorithm.
+##
+## hash: The result of the hashing.
+##
+## .. bro:see:: FileAnalysis::add_analyzer FileAnalysis::ANALYZER_MD5
+##    FileAnalysis::ANALYZER_SHA1 FileAnalysis::ANALYZER_SHA256
+event file_hash%(f: fa_file, kind: string, hash: string%);
+
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-04-22-18-02-50
+#open	2013-05-14-00-01-43
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -29,6 +29,10 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/input/readers/ascii.bro
     scripts/base/frameworks/input/readers/raw.bro
     scripts/base/frameworks/input/readers/benchmark.bro
+    scripts/base/frameworks/input/readers/binary.bro
+  scripts/base/frameworks/file-analysis/__load__.bro
+    scripts/base/frameworks/file-analysis/main.bro
+      build/src/base/file_analysis.bif.bro
 scripts/base/init-default.bro
   scripts/base/utils/site.bro
     scripts/base/utils/patterns.bro
@@ -98,6 +102,7 @@ scripts/base/init-default.bro
   scripts/base/protocols/ftp/__load__.bro
     scripts/base/protocols/ftp/utils-commands.bro
     scripts/base/protocols/ftp/main.bro
+    scripts/base/protocols/ftp/file-analysis.bro
     scripts/base/protocols/ftp/file-extract.bro
     scripts/base/protocols/ftp/gridftp.bro
       scripts/base/protocols/ssl/__load__.bro
@@ -107,12 +112,14 @@ scripts/base/init-default.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/main.bro
     scripts/base/protocols/http/utils.bro
+    scripts/base/protocols/http/file-analysis.bro
     scripts/base/protocols/http/file-ident.bro
     scripts/base/protocols/http/file-hash.bro
     scripts/base/protocols/http/file-extract.bro
   scripts/base/protocols/irc/__load__.bro
     scripts/base/protocols/irc/main.bro
     scripts/base/protocols/irc/dcc-send.bro
+    scripts/base/protocols/irc/file-analysis.bro
   scripts/base/protocols/modbus/__load__.bro
     scripts/base/protocols/modbus/consts.bro
     scripts/base/protocols/modbus/main.bro
@@ -120,6 +127,7 @@ scripts/base/init-default.bro
     scripts/base/protocols/smtp/main.bro
     scripts/base/protocols/smtp/entities.bro
     scripts/base/protocols/smtp/entities-excerpt.bro
+    scripts/base/protocols/smtp/file-analysis.bro
   scripts/base/protocols/socks/__load__.bro
     scripts/base/protocols/socks/consts.bro
     scripts/base/protocols/socks/main.bro
@@ -130,4 +138,4 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-04-22-18-02-50
+#close	2013-05-14-00-01-43

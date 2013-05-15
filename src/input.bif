@@ -57,3 +57,6 @@ const autospread: double;
 const addfactor: count;
 const stopspreadat: count;
 const timedspread: double;
+
+module InputBinary;
+const chunk_size: count;

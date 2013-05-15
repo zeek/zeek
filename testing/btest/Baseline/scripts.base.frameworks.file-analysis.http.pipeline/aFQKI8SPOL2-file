@@ -1,0 +1,63 @@
+/*
+*************************************************
+
+MOZILLA.ORG
+Enhanced Screen Styles
+(Only applicable if JavaScript is enabled)
+
+Created by the friendly folks at Happy Cog
+http://www.happycog.com/
+
+*************************************************
+*/
+
+
+#quick-search label { position:absolute; left: 48px; top:14px; text-transform:uppercase; font-weight:bold; color:#dddfe0; font-size: 85%; /* 14px x 0.85 = 12px */}
+
+
+/* community feed */
+#community-sub .rows li.over { background-color: #f5f6f6; }
+#community-sub { position:relative; z-index:200; }
+
+
+/* project carousel */
+.project-carousel { background:#CBCCCC url(/images/template/screen/bg_project_carousel.png) repeat-y right top; margin-right:-461px; padding:6px 0 6px 6px; position:relative; }
+.project-carousel .pagination { position:absolute; right:471px; top:1em; padding-right:47px; }
+.project-carousel .prev, .project-carousel .next { width:18px; height:21px; float:left; overflow:hidden; background:transparent url(/images/template/widgets/carousel-arrows.png) no-repeat 0 -21px; text-indent:-999px; position:absolute; top:0; right:0; }
+.project-carousel .prev:hover, .project-carousel .next:hover { border-bottom:none; }
+	.project-carousel .prev { width:19px; right:18px; }
+	.project-carousel .next { background-position:-18px -21px; width:19px; }
+		.project-carousel .next.disabled { background-position:-18px top; }
+		.project-carousel .prev.disabled { background-position:left top; }
+.projects-wrap { background: #dee0e1 url(/images/template/screen/bg_projects.png) repeat-y right center; height:14em; }
+	.projects-wrap .projects-fade-left { background:transparent url(/images/template/widgets/carousel-fade.png) repeat-y 0 0; position:absolute; padding:0 0 0 20px; height:10em; z-index:100; }
+	.projects-wrap .projects-fade-right { background:transparent url(/images/template/widgets/carousel-fade.png) repeat-y 0 100%; position:absolute; padding:0 0 0 20px; height:10em; z-index:100; }
+.projects { background:none; height:10em; margin:0 451px 0 0; overflow:hidden; padding:2em 0; position:relative; }
+.project { overflow:visible; height:auto; margin:0; }
+.project-first { padding-left:20px; }
+
+/* project carousel */
+#home #sub { position:relative; }
+
+/* browser specific css */
+.projects {
+	border-radius:0;
+	-moz-border-radius:0;
+	-webkit-border-radius:0;
+}
+.projects-wrap {
+	border-radius:10px;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+
+	border-top-right-radius:0;
+	-moz-border-top-right-radius:0;
+	-webkit-border-top-right-radius:0;
+
+	border-bottom-right-radius:0;
+	-moz-border-bottom-right-radius:0;
+	-webkit-border-bottom-right-radius:0;
+}
+
+/* debug */
+/*#sub { display:none; }*/

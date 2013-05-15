@@ -1,0 +1,7 @@
+# See COPYING file in this directory for original libmagic copyright.
+#------------------------------------------------------------------------------
+# $File$
+# pkgadd:  file(1) magic for SysV R4 PKG Datastreams
+#
+0       string          #\ PaCkAgE\ DaTaStReAm  pkg Datastream (SVR4)
+!:mime	application/x-svr4-package

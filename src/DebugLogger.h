@@ -26,6 +26,7 @@ enum DebugStream {
 	DBG_LOGGING,	// Logging streams
 	DBG_INPUT,	// Input streams
 	DBG_THREADING,	// Threading system
+	DBG_FILE_ANALYSIS,	// File analysis
 
 	NUM_DBGS // Has to be last
 };

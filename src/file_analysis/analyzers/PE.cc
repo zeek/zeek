@@ -41,7 +41,5 @@ bool PE::DeliverStream(const u_char* data, uint64 len)
 
 bool PE::EndOfFile()
 	{
-	printf("end of file!\n");
-	//throw binpac::HaltParser();
 	return false;
 	}

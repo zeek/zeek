@@ -6,8 +6,10 @@ type TheFile = record {
 	sections_table : IMAGE_SECTION_HEADER[] &length=pe_header.file_header.NumberOfSections*40 &transient;
 	#pad            : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
 	#data_sections  : DATA_SECTIONS[pe_header.file_header.NumberOfSections];
+	data_sections  : DATA_SECTIONS[] &length=data_len;
 } &let {
 	dos_code_len: uint32 = dos_header.AddressOfNewExeHeader - 64;
+	data_len: uint32 = pe_header.optional_header.size_of_init_data;
 } &byteorder=littleendian;
 
 type DOS_Header = record {
@@ -33,10 +35,10 @@ type DOS_Header = record {
 } &byteorder=littleendian &length=64;
 
 type IMAGE_NT_HEADERS = record {
-	PESignature           : uint32;
-	file_header           : IMAGE_FILE_HEADER;
-	OptionalHeader        : IMAGE_OPTIONAL_HEADER(file_header.SizeOfOptionalHeader);
-} &byteorder=littleendian &length=file_header.SizeOfOptionalHeader+offsetof(OptionalHeader);
+	PESignature     : uint32;
+	file_header     : IMAGE_FILE_HEADER;
+	optional_header : IMAGE_OPTIONAL_HEADER(file_header.SizeOfOptionalHeader) &length=file_header.SizeOfOptionalHeader;
+} &byteorder=littleendian &length=file_header.SizeOfOptionalHeader+offsetof(optional_header);
 
 type IMAGE_FILE_HEADER = record {
 	Machine               : uint16;
@@ -124,5 +126,5 @@ type IMAGE_IMPORT_DIRECTORY = record {
 };
 
 type DATA_SECTIONS = record {
-	blah: bytestring &length=10;
+	blah: uint8;
 };

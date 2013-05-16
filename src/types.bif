@@ -163,8 +163,10 @@ type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
 
-type PEHeader: record;
-type PESectionHeader: record;
+type PE::DOSHeader: record;
+type PE::FileHeader: record;
+type PE::OptionalHeader: record;
+type PE::SectionHeader: record;
 
 module Log;
 

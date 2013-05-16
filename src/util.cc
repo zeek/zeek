@@ -1024,8 +1024,10 @@ void get_script_subpath(const std::string& full_filename, const char** subpath)
 		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
 	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
 		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
-	else if ( (p = my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
 
 	// if root path found, remove path separators until next path component
 	if ( p != std::string::npos )

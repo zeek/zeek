@@ -30,7 +30,7 @@
 #define BRO_PLUGIN_VERSION(x) SetVersion(x)
 
 #define BRO_PLUGIN_BIF_FILE(file)			\
-		std::list<std::pair<const char*, int> >  __bif_##file##_init();	\
+		extern std::list<std::pair<const char*, int> >  __bif_##file##_init();	\
 		AddBifInitFunction(&__bif_##file##_init);
 
 #define BRO_PLUGIN_ANALYZER(tag, cls) \

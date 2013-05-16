@@ -59,6 +59,17 @@ refine flow File += {
 		return true;
 		%}
 
+	function proc_dos_code(code: bytestring): bool
+		%{
+		if ( pe_dos_code )
+			{
+			BifEvent::generate_pe_dos_code((Analyzer *) connection()->bro_analyzer(), 
+			                               connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+			                               new StringVal(code.length(), (const char*) code.data()));
+			}
+		return true;
+		%}
+
 	function proc_nt_headers(h: IMAGE_NT_HEADERS): bool
 		%{
 		if ( ${h.PESignature} != 17744 ) // Number is uint32 version of "PE\0\0"
@@ -169,6 +180,10 @@ refine flow File += {
 
 refine typeattr DOS_Header += &let {
 	proc : bool = $context.flow.proc_dos_header(this);
+};
+
+refine typeattr DOS_Code += &let {
+	proc : bool = $context.flow.proc_dos_code(code);
 };
 
 refine typeattr IMAGE_NT_HEADERS += &let {

@@ -1,7 +1,7 @@
 
 type TheFile = record {
 	dos_header     : DOS_Header;
-	dos_code       : bytestring &length=dos_code_len;
+	dos_code       : DOS_Code(dos_code_len);
 	pe_header      : IMAGE_NT_HEADERS;
 	sections_table : IMAGE_SECTION_HEADER[] &length=pe_header.file_header.NumberOfSections*40 &transient;
 	#pad            : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
@@ -33,6 +33,10 @@ type DOS_Header = record {
 	Reserved2                : uint16[10];
 	AddressOfNewExeHeader    : uint32;
 } &byteorder=littleendian &length=64;
+
+type DOS_Code(len: uint32) = record {
+	code : bytestring &length=len;
+};
 
 type IMAGE_NT_HEADERS = record {
 	PESignature     : uint32;

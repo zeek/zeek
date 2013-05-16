@@ -467,7 +467,7 @@ set(bro_SRCS
     file_analysis/Hash.cc
     file_analysis/DataEvent.cc
 
-    "3rdparty/sqlite3.c"
+    3rdparty/sqlite3.c
 
     nb_dns.c
     digest.h

@@ -228,8 +228,12 @@ binpac_target(modbus.pac
 find_package (Threads)
 
 # Avoid CMake warning about "3rdparty" looking like a number.
+
 cmake_policy(PUSH)
+
+if (POLICY CMP0012)
 cmake_policy(SET CMP0012 NEW)
+endif ()
 
 # This macro stores associated headers for any C/C++ source files given
 # as arguments (past _var) as a list in the CMake variable named "_var".

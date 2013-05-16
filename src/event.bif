@@ -7000,7 +7000,7 @@ event event_queue_flush_point%(%);
 ## .. bro:see:: set_file_handle
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
 
-## Indicates that a analysis of a new file has begun. The analysis can be
+## Indicates that an analysis of a new file has begun. The analysis can be
 ## augmented at this time via :bro:see:`FileAnalysis::add_analyzer`.
 ##
 ## f: The file.

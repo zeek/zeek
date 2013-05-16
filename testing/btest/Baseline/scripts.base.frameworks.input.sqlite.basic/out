@@ -1,0 +1,137 @@
+[ts=1300475167.096535, uid=dnGM1AdIVyh, id=[orig_h=141.142.220.202, orig_p=5353/unknown, resp_h=224.0.0.251, resp_p=5353/unknown], proto=udp, service=dns, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=73, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475167.097012, uid=fv9q7WjEgp1, id=[orig_h=fe80::217:f2ff:fed7:cf65, orig_p=5353/unknown, resp_h=ff02::fb, resp_p=5353/unknown], proto=udp, service=<uninitialized>, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=199, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475167.099816, uid=0Ox0H56yl88, id=[orig_h=141.142.220.50, orig_p=5353/unknown, resp_h=224.0.0.251, resp_p=5353/unknown], proto=udp, service=<uninitialized>, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=179, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475168.853899, uid=rvmSc7rDQub, id=[orig_h=141.142.220.118, orig_p=43927/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000435, orig_bytes=38, resp_bytes=89, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=117, tunnel_parents={
+
+}]
+0
+[ts=1300475168.854378, uid=ogkztouSArh, id=[orig_h=141.142.220.118, orig_p=37676/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.00042, orig_bytes=52, resp_bytes=99, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=80, resp_pkts=1, resp_ip_bytes=127, tunnel_parents={
+
+}]
+0
+[ts=1300475168.854837, uid=0UIDdXFt7Tb, id=[orig_h=141.142.220.118, orig_p=40526/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000392, orig_bytes=38, resp_bytes=183, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=211, tunnel_parents={
+
+}]
+0
+[ts=1300475168.857956, uid=WqFYV51UIq7, id=[orig_h=141.142.220.118, orig_p=32902/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000317, orig_bytes=38, resp_bytes=89, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=117, tunnel_parents={
+
+}]
+0
+[ts=1300475168.858306, uid=ylcqZpbz6K2, id=[orig_h=141.142.220.118, orig_p=59816/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000343, orig_bytes=52, resp_bytes=99, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=80, resp_pkts=1, resp_ip_bytes=127, tunnel_parents={
+
+}]
+0
+[ts=1300475168.858713, uid=blhldTzA7Y6, id=[orig_h=141.142.220.118, orig_p=59714/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000375, orig_bytes=38, resp_bytes=183, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=211, tunnel_parents={
+
+}]
+0
+[ts=1300475168.891644, uid=Sc34cGJo3Kg, id=[orig_h=141.142.220.118, orig_p=58206/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000339, orig_bytes=38, resp_bytes=89, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=117, tunnel_parents={
+
+}]
+0
+[ts=1300475168.892037, uid=RzvFrfXSRfk, id=[orig_h=141.142.220.118, orig_p=38911/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000335, orig_bytes=52, resp_bytes=99, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=80, resp_pkts=1, resp_ip_bytes=127, tunnel_parents={
+
+}]
+0
+[ts=1300475168.892414, uid=GaaFI58mpbe, id=[orig_h=141.142.220.118, orig_p=59746/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000421, orig_bytes=38, resp_bytes=183, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=211, tunnel_parents={
+
+}]
+0
+[ts=1300475168.893988, uid=tr7M6tvAIQa, id=[orig_h=141.142.220.118, orig_p=45000/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000384, orig_bytes=38, resp_bytes=89, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=117, tunnel_parents={
+
+}]
+0
+[ts=1300475168.894422, uid=gV0TcSc2pb4, id=[orig_h=141.142.220.118, orig_p=48479/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000317, orig_bytes=52, resp_bytes=99, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=80, resp_pkts=1, resp_ip_bytes=127, tunnel_parents={
+
+}]
+0
+[ts=1300475168.894787, uid=MOG0z4PYOhk, id=[orig_h=141.142.220.118, orig_p=48128/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000423, orig_bytes=38, resp_bytes=183, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=66, resp_pkts=1, resp_ip_bytes=211, tunnel_parents={
+
+}]
+0
+[ts=1300475168.901749, uid=PlehgEduUyj, id=[orig_h=141.142.220.118, orig_p=56056/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000402, orig_bytes=36, resp_bytes=131, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=64, resp_pkts=1, resp_ip_bytes=159, tunnel_parents={
+
+}]
+0
+[ts=1300475168.902195, uid=4eZgk09f2Re, id=[orig_h=141.142.220.118, orig_p=55092/unknown, resp_h=141.142.2.2, resp_p=53/unknown], proto=udp, service=dns, duration=0.000374, orig_bytes=36, resp_bytes=198, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=64, resp_pkts=1, resp_ip_bytes=226, tunnel_parents={
+
+}]
+0
+[ts=1300475169.899438, uid=3xwJPc7mQ9a, id=[orig_h=141.142.220.44, orig_p=5353/unknown, resp_h=224.0.0.251, resp_p=5353/unknown], proto=udp, service=dns, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=85, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475170.862384, uid=yxTcvvTKWQ4, id=[orig_h=141.142.220.226, orig_p=137/unknown, resp_h=141.142.220.255, resp_p=137/unknown], proto=udp, service=dns, duration=2.613017, orig_bytes=350, resp_bytes=0, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=7, orig_ip_bytes=546, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475171.675372, uid=8bLW3XNfhCj, id=[orig_h=fe80::3074:17d5:2052:c324, orig_p=65373/unknown, resp_h=ff02::1:3, resp_p=5355/unknown], proto=udp, service=dns, duration=0.100096, orig_bytes=66, resp_bytes=0, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=2, orig_ip_bytes=162, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475171.677081, uid=rqjhiiRPjEe, id=[orig_h=141.142.220.226, orig_p=55131/unknown, resp_h=224.0.0.252, resp_p=5355/unknown], proto=udp, service=dns, duration=0.100021, orig_bytes=66, resp_bytes=0, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=2, orig_ip_bytes=122, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475173.116749, uid=hTPyfL3QSGa, id=[orig_h=fe80::3074:17d5:2052:c324, orig_p=54213/unknown, resp_h=ff02::1:3, resp_p=5355/unknown], proto=udp, service=dns, duration=0.099801, orig_bytes=66, resp_bytes=0, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=2, orig_ip_bytes=162, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475173.117362, uid=EruUQ9AJRj4, id=[orig_h=141.142.220.226, orig_p=55671/unknown, resp_h=224.0.0.252, resp_p=5355/unknown], proto=udp, service=dns, duration=0.099849, orig_bytes=66, resp_bytes=0, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=2, orig_ip_bytes=122, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475173.153679, uid=sw1bKJOMjuk, id=[orig_h=141.142.220.238, orig_p=56641/unknown, resp_h=141.142.220.255, resp_p=137/unknown], proto=udp, service=dns, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=<uninitialized>, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=78, resp_pkts=0, resp_ip_bytes=0, tunnel_parents={
+
+}]
+0
+[ts=1300475168.724007, uid=NPHCuyWykE7, id=[orig_h=141.142.220.118, orig_p=48649/unknown, resp_h=208.80.152.118, resp_p=80/unknown], proto=tcp, service=http, duration=0.119905, orig_bytes=525, resp_bytes=232, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=4, orig_ip_bytes=741, resp_pkts=3, resp_ip_bytes=396, tunnel_parents={
+
+}]
+0
+[ts=1300475168.892936, uid=VapPqRhPgJ4, id=[orig_h=141.142.220.118, orig_p=50000/unknown, resp_h=208.80.152.3, resp_p=80/unknown], proto=tcp, service=http, duration=0.229603, orig_bytes=1148, resp_bytes=734, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=6, orig_ip_bytes=1468, resp_pkts=4, resp_ip_bytes=950, tunnel_parents={
+
+}]
+0
+[ts=1300475168.859163, uid=3607hh8C3bc, id=[orig_h=141.142.220.118, orig_p=49998/unknown, resp_h=208.80.152.3, resp_p=80/unknown], proto=tcp, service=http, duration=0.215893, orig_bytes=1130, resp_bytes=734, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=6, orig_ip_bytes=1450, resp_pkts=4, resp_ip_bytes=950, tunnel_parents={
+
+}]
+0
+[ts=1300475168.855305, uid=tgYMrIvzDSg, id=[orig_h=141.142.220.118, orig_p=49996/unknown, resp_h=208.80.152.3, resp_p=80/unknown], proto=tcp, service=http, duration=0.218501, orig_bytes=1171, resp_bytes=733, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=6, orig_ip_bytes=1491, resp_pkts=4, resp_ip_bytes=949, tunnel_parents={
+
+}]
+0
+[ts=1300475168.895267, uid=xQsjPwNBrXd, id=[orig_h=141.142.220.118, orig_p=50001/unknown, resp_h=208.80.152.3, resp_p=80/unknown], proto=tcp, service=http, duration=0.227284, orig_bytes=1178, resp_bytes=734, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=6, orig_ip_bytes=1498, resp_pkts=4, resp_ip_bytes=950, tunnel_parents={
+
+}]
+0
+[ts=1300475168.902635, uid=Ap3GzMI1vM9, id=[orig_h=141.142.220.118, orig_p=35642/unknown, resp_h=208.80.152.2, resp_p=80/unknown], proto=tcp, service=http, duration=0.120041, orig_bytes=534, resp_bytes=412, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=4, orig_ip_bytes=750, resp_pkts=3, resp_ip_bytes=576, tunnel_parents={
+
+}]
+0
+[ts=1300475168.85533, uid=FTVcgrmNy52, id=[orig_h=141.142.220.118, orig_p=49997/unknown, resp_h=208.80.152.3, resp_p=80/unknown], proto=tcp, service=http, duration=0.21972, orig_bytes=1125, resp_bytes=734, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=6, orig_ip_bytes=1445, resp_pkts=4, resp_ip_bytes=950, tunnel_parents={
+
+}]
+0
+[ts=1300475169.780331, uid=1xFx4PGdeq5, id=[orig_h=141.142.220.235, orig_p=6705/unknown, resp_h=173.192.163.128, resp_p=80/unknown], proto=tcp, service=<uninitialized>, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=OTH, local_orig=<uninitialized>, missed_bytes=0, history=h, orig_pkts=0, orig_ip_bytes=0, resp_pkts=1, resp_ip_bytes=48, tunnel_parents={
+
+}]
+0
+[ts=1300475168.652003, uid=WIG1ud65z22, id=[orig_h=141.142.220.118, orig_p=35634/unknown, resp_h=208.80.152.2, resp_p=80/unknown], proto=tcp, service=<uninitialized>, duration=0.061329, orig_bytes=463, resp_bytes=350, conn_state=OTH, local_orig=<uninitialized>, missed_bytes=0, history=DdA, orig_pkts=2, orig_ip_bytes=567, resp_pkts=1, resp_ip_bytes=402, tunnel_parents={
+
+}]
+0
+[ts=1300475168.892913, uid=o2gAkl4V7sa, id=[orig_h=141.142.220.118, orig_p=49999/unknown, resp_h=208.80.152.3, resp_p=80/unknown], proto=tcp, service=http, duration=0.220961, orig_bytes=1137, resp_bytes=733, conn_state=S1, local_orig=<uninitialized>, missed_bytes=0, history=ShADad, orig_pkts=6, orig_ip_bytes=1457, resp_pkts=4, resp_ip_bytes=949, tunnel_parents={
+
+}]
+0
+End of data

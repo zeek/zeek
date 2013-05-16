@@ -19,6 +19,7 @@ Binary::Binary(ReaderFrontend *frontend)
 	if ( ! chunk_size )
 		{
 		chunk_size = BifConst::InputBinary::chunk_size;
+
 		if ( ! chunk_size )
 			chunk_size = 1024;
 		}
@@ -99,12 +100,14 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 		return false;
 		}
 
-	// do Initialization
+	// do initialization
 	fname = info.source;
 
-	if ( ! OpenInput() ) return false;
+	if ( ! OpenInput() )
+		return false;
 
-	if ( UpdateModificationTime() == -1 ) return false;
+	if ( UpdateModificationTime() == -1 )
+		return false;
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "Binary reader created, will perform first update");
@@ -198,6 +201,7 @@ bool Binary::DoUpdate()
 				}
 
 			CloseInput();
+
 			if ( ! OpenInput() )
 				return false;
 

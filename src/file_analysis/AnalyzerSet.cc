@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "AnalyzerSet.h"
 #include "File.h"
 #include "Analyzer.h"
@@ -41,6 +43,7 @@ AnalyzerSet::~AnalyzerSet()
 		delete mod;
 		mod_queue.pop();
 		}
+
 	delete analyzer_hash;
 	}
 
@@ -110,6 +113,7 @@ bool AnalyzerSet::Remove(FA_Tag tag, HashKey* key)
 	{
 	file_analysis::Analyzer* a =
 	    (file_analysis::Analyzer*) analyzer_map.Remove(key);
+
 	delete key;
 
 	if ( ! a )
@@ -121,6 +125,7 @@ bool AnalyzerSet::Remove(FA_Tag tag, HashKey* key)
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Remove analyzer %d for file id %s", a->Tag(),
 	        file->GetID().c_str());
+
 	delete a;
 	return true;
 	}
@@ -145,6 +150,7 @@ HashKey* AnalyzerSet::GetKey(const RecordVal* args) const
 	HashKey* key = analyzer_hash->ComputeHash(args, 1);
 	if ( ! key )
 		reporter->InternalError("AnalyzerArgs type mismatch");
+
 	return key;
 	}
 
@@ -174,7 +180,8 @@ void AnalyzerSet::Insert(file_analysis::Analyzer* a, HashKey* key)
 
 void AnalyzerSet::DrainModifications()
 	{
-	if ( mod_queue.empty() ) return;
+	if ( mod_queue.empty() )
+		return;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Start analyzer mod queue flush of file id %s",
 	        file->GetID().c_str());

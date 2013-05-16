@@ -3,8 +3,9 @@
 #ifndef INPUT_READERS_BINARY_H
 #define INPUT_READERS_BINARY_H
 
-#include "../ReaderBackend.h"
 #include <fstream>
+
+#include "../ReaderBackend.h"
 
 namespace input { namespace reader {
 

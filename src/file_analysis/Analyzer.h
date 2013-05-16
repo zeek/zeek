@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef FILE_ANALYSIS_ANALYZER_H
 #define FILE_ANALYSIS_ANALYZER_H
 
@@ -15,7 +17,6 @@ class File;
  */
 class Analyzer {
 public:
-
 	virtual ~Analyzer()
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %d", tag);
@@ -83,13 +84,13 @@ public:
 		}
 
 protected:
-
 	Analyzer(RecordVal* arg_args, File* arg_file)
 	    : tag(file_analysis::Analyzer::ArgsTag(arg_args)),
 	      args(arg_args->Ref()->AsRecordVal()),
 	      file(arg_file)
 		{}
 
+private:
 	FA_Tag tag;
 	RecordVal* args;
 	File* file;

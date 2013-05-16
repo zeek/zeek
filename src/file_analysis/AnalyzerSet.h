@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef FILE_ANALYSIS_ANALYZERSET_H
 #define FILE_ANALYSIS_ANALYZERSET_H
 
@@ -20,7 +22,6 @@ declare(PDict,Analyzer);
  */
 class AnalyzerSet {
 public:
-
 	AnalyzerSet(File* arg_file);
 
 	~AnalyzerSet();
@@ -57,12 +58,12 @@ public:
 		{ return analyzer_map.NextEntry(c); }
 
 protected:
-
 	HashKey* GetKey(const RecordVal* args) const;
 	file_analysis::Analyzer* InstantiateAnalyzer(RecordVal* args) const;
 	void Insert(file_analysis::Analyzer* a, HashKey* key);
 	bool Remove(FA_Tag tag, HashKey* key);
 
+private:
 	File* file;
 	CompositeHash* analyzer_hash;                /**< AnalyzerArgs hashes. */
 	PDict(file_analysis::Analyzer) analyzer_map; /**< Indexed by AnalyzerArgs. */

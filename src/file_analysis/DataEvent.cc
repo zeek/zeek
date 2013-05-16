@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include <string>
 
 #include "DataEvent.h"
@@ -17,10 +19,8 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
 	using BifType::Record::FileAnalysis::AnalyzerArgs;
 
-	const char* chunk_field = "chunk_event";
-	const char* stream_field = "stream_event";
-	int chunk_off = AnalyzerArgs->FieldOffset(chunk_field);
-	int stream_off = AnalyzerArgs->FieldOffset(stream_field);
+	int chunk_off = AnalyzerArgs->FieldOffset("chunk_event");
+	int stream_off = AnalyzerArgs->FieldOffset("stream_event");
 
 	Val* chunk_val = args->Lookup(chunk_off);
 	Val* stream_val = args->Lookup(stream_off);
@@ -44,7 +44,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	if ( ! chunk_event ) return true;
 
 	val_list* args = new val_list;
-	args->append(file->GetVal()->Ref());
+	args->append(GetFile()->GetVal()->Ref());
 	args->append(new StringVal(new BroString(data, len, 0)));
 	args->append(new Val(offset, TYPE_COUNT));
 
@@ -58,7 +58,7 @@ bool DataEvent::DeliverStream(const u_char* data, uint64 len)
 	if ( ! stream_event ) return true;
 
 	val_list* args = new val_list;
-	args->append(file->GetVal()->Ref());
+	args->append(GetFile()->GetVal()->Ref());
 	args->append(new StringVal(new BroString(data, len, 0)));
 
 	mgr.QueueEvent(stream_event, args);

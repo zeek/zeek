@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef FILE_ANALYSIS_FILEID_H
 #define FILE_ANALYSIS_FILEID_H
 

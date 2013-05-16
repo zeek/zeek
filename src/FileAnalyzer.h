@@ -6,7 +6,6 @@
 #include "TCP.h"
 
 #include <string>
-#include <magic.h>
 
 class File_Analyzer : public TCP_ApplicationAnalyzer {
 public:
@@ -31,9 +30,6 @@ protected:
 	static const int BUFFER_SIZE = 1024;
 	char buffer[BUFFER_SIZE];
 	int buffer_len;
-
-	static magic_t magic;
-	static magic_t magic_mime;
 };
 
 class IRC_Data : public File_Analyzer {

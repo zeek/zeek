@@ -299,10 +299,12 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 			                  http_message->MyHTTP_Analyzer()->GetTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
 			                  http_message->IsOrig());
+
 		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
 		                 http_message->MyHTTP_Analyzer()->GetTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
 		                 http_message->IsOrig());
+
 		offset += len;
 		}
 	else
@@ -312,6 +314,7 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 			                  http_message->MyHTTP_Analyzer()->GetTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
 			                  http_message->IsOrig());
+
 		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
 		                 http_message->MyHTTP_Analyzer()->GetTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
@@ -407,6 +410,7 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 				              instance_length) )
 					instance_length = 0;
 				}
+
 			is_partial_content = true;
 			offset = f;
 			content_length = len;
@@ -642,6 +646,7 @@ void HTTP_Message::EndEntity(MIME_Entity* entity)
 	// SubmitAllHeaders (through EndOfData).
 	if ( entity == top_level )
 		Done();
+
 	else if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
 		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetTag(),
 		                    MyHTTP_Analyzer()->Conn(), is_orig);
@@ -904,6 +909,7 @@ void HTTP_Analyzer::Done()
 		}
 
 	file_mgr->EndOfFile(GetTag(), Conn(), true);
+
 	/* TODO: this might be nice to have, but reply code is cleared by now.
 	if ( HTTP_ReplyCode() != 206 )
 		// multipart/byteranges may span multiple connections

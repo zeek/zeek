@@ -849,11 +849,7 @@ extern "C" {
 ## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
 function identify_data%(data: string, return_mime: bool%): string
 	%{
-	static magic_t magic_mime = 0;
-	static magic_t magic_descr = 0;
-
-	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
-	bro_init_magic(magic, return_mime ? MAGIC_MIME : MAGIC_NONE);
+	magic_t* magic = return_mime ? &magic_mime_cookie : &magic_desc_cookie;
 
 	if( ! *magic )
 		return new StringVal("<unknown>");
@@ -2473,7 +2469,7 @@ function bytestring_to_double%(s: string%): double
 ##
 ## Returns: The value contained in *s*, or 0 if the conversion failed.
 ##
-function bytestring_to_count%(s: string, is_le: bool%): count
+function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	%{
 #ifdef HOST_BIGENDIAN
 	static const bool host_bigendian = true;

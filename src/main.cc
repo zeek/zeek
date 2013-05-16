@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 #include <openssl/md5.h>
+#include <magic.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -62,7 +63,12 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "binpac_bro.h"
 
+#include "3rdparty/sqlite3.h"
+
 Brofiler brofiler;
+
+magic_t magic_desc_cookie = 0;
+magic_t magic_mime_cookie = 0;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -730,6 +736,11 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
+	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
+	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
+
+	sqlite3_initialize();
+
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
@@ -1088,6 +1099,8 @@ int main(int argc, char** argv)
 #ifdef USE_CURL
 		curl_global_cleanup();
 #endif
+
+		sqlite3_shutdown();
 
 		terminate_bro();
 

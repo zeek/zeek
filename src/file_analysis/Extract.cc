@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include <string>
 
 #include "Extract.h"
@@ -28,17 +30,18 @@ Extract::~Extract()
 file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	{
 	using BifType::Record::FileAnalysis::AnalyzerArgs;
-	const char* field = "extract_filename";
-	Val* v = args->Lookup(AnalyzerArgs->FieldOffset(field));
+	Val* v = args->Lookup(AnalyzerArgs->FieldOffset("extract_filename"));
 
-	if ( ! v ) return 0;
+	if ( ! v )
+		return 0;
 
 	return new Extract(args, file, v->AsString()->CheckString());
 	}
 
 bool Extract::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
-	if ( ! fd ) return false;
+	if ( ! fd )
+		return false;
 
 	safe_pwrite(fd, data, len, offset);
 	return true;

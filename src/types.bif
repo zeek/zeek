@@ -175,6 +175,7 @@ enum Writer %{
 	WRITER_NONE,
 	WRITER_ASCII,
 	WRITER_DATASERIES,
+	WRITER_SQLITE,
 	WRITER_ELASTICSEARCH,
 %}
 
@@ -202,6 +203,7 @@ enum Reader %{
 	READER_RAW,
 	READER_BENCHMARK,
 	READER_BINARY,
+	READER_SQLITE,
 %}
 
 enum Event %{
@@ -231,31 +233,3 @@ type gtp_rai: record;
 type gtp_qos_profile: record;
 type gtp_private_extension: record;
 type gtp_gsn_addr: record;
-
-module FileAnalysis;
-
-type AnalyzerArgs: record;
-
-## An enumeration of various file analysis actions that can be taken.
-enum Analyzer %{
-
-	## Extract a file to local filesystem
-	ANALYZER_EXTRACT,
-
-	## Calculate an MD5 digest of the file's contents.
-	ANALYZER_MD5,
-
-	## Calculate an SHA1 digest of the file's contents.
-	ANALYZER_SHA1,
-
-	## Calculate an SHA256 digest of the file's contents.
-	ANALYZER_SHA256,
-
-	## Deliver the file contents to the script-layer in an event.
-	ANALYZER_DATA_EVENT,
-
-	## Pass the file to the PE analyzer.
-	ANALYZER_PE,
-%}
-
-module GLOBAL;

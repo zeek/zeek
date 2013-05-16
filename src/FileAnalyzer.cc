@@ -5,16 +5,10 @@
 #include "Reporter.h"
 #include "util.h"
 
-magic_t File_Analyzer::magic = 0;
-magic_t File_Analyzer::magic_mime = 0;
-
 File_Analyzer::File_Analyzer(AnalyzerTag::Tag tag, Connection* conn)
 : TCP_ApplicationAnalyzer(tag, conn)
 	{
 	buffer_len = 0;
-
-	bro_init_magic(&magic, MAGIC_NONE);
-	bro_init_magic(&magic_mime, MAGIC_MIME);
 	}
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
@@ -49,19 +43,13 @@ void File_Analyzer::Done()
 
 void File_Analyzer::Identify()
 	{
-	const char* descr = 0;
-	const char* mime = 0;
-
-	if ( magic )
-		descr = bro_magic_buffer(magic, buffer, buffer_len);
-
-	if ( magic_mime )
-		mime = bro_magic_buffer(magic_mime, buffer, buffer_len);
+	const char* desc = bro_magic_buffer(magic_desc_cookie, buffer, buffer_len);
+	const char* mime = bro_magic_buffer(magic_mime_cookie, buffer, buffer_len);
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(new StringVal(buffer_len, buffer));
-	vl->append(new StringVal(descr ? descr : "<unknown>"));
+	vl->append(new StringVal(desc ? desc : "<unknown>"));
 	vl->append(new StringVal(mime ? mime : "<unknown>"));
 	ConnectionEvent(file_transferred, vl);
 	}

@@ -1,4 +1,20 @@
 
+2.1-640 | 2013-05-15 17:24:09 -0700
+
+  * Support for cleaning up threads that have terminated. (Bernhard
+    Amann and Robin Sommer). Includes:
+
+        - Both logging and input frameworks now clean up threads once
+          they aren't further needed anymnore.
+
+        - New function Log::remove_stream() that removes a logging
+          stream, stopping all writer threads that are associated with
+          it. Note, however, that removing a *filter* from a stream
+          still doesn't clean up any threads. The problem is that
+          because of the output paths potentially being created
+          dynamically it's unclear if the writer thread will still be
+          needed in the future.
+
 2.1-626 | 2013-05-15 16:09:31 -0700
 
   * Add "reservoir" sampler for SumStats framework. This maintains

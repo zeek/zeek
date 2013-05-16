@@ -78,3 +78,5 @@
 @load tuning/defaults/warnings.bro
 @load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
+
+redef LogElasticSearch::server_host = "";

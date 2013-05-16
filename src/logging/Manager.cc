@@ -377,6 +377,38 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	return true;
 	}
 
+bool Manager::RemoveStream(EnumVal* id)
+	{
+	unsigned int idx = id->AsEnum();
+
+	if ( idx >= streams.size() || ! streams[idx] )
+		return false;
+
+	Stream* stream = streams[idx];
+
+	if ( ! stream )
+		return false;
+
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
+		{
+		WriterInfo* winfo = i->second;
+
+		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'",
+			winfo->writer->Name(), stream->name.c_str());
+
+		winfo->writer->Stop();
+		delete winfo->writer;
+		delete winfo;
+		}
+
+	stream->writers.clear();
+	delete stream;
+	streams[idx] = 0;
+
+	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", stream->name.c_str());
+	return true;
+	}
+
 bool Manager::EnableStream(EnumVal* id)
 	{
 	Stream* stream = FindStream(id);
@@ -1239,25 +1271,17 @@ bool Manager::Flush(EnumVal* id)
 	return true;
 	}
 
-void Manager::Terminate()
+void Manager::FlushBuffers()
 	{
-	// Make sure we process all the pending rotations.
-
-	while ( rotations_pending > 0 )
-		{
-		thread_mgr->ForceProcessing(); // A blatant layering violation ...
-		usleep(1000);
-		}
-
-	if ( rotations_pending < 0 )
-		reporter->InternalError("Negative pending log rotations: %d", rotations_pending);
-
+	// Flush out cached entries in Frontend
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
 			continue;
 
-		Flush((*s)->id);
+		for ( Stream::WriterMap::iterator i = (*s)->writers.begin();
+		      i != (*s)->writers.end(); i++ )
+			i->second->writer->FlushWriteBuffer();
 		}
 	}
 

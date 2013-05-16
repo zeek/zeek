@@ -138,6 +138,12 @@ void WriterFrontend::Stop()
 	{
 	FlushWriteBuffer();
 	SetDisable();
+
+	if ( backend )
+		{
+		backend->SignalStop();
+		backend = 0; // Thread manager will clean it up once it finishes.
+		}
 	}
 
 void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)

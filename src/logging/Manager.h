@@ -48,6 +48,16 @@ public:
 	bool CreateStream(EnumVal* id, RecordVal* stream);
 
 	/**
+	 * Remove a log stream, stopping all threads.
+	 *
+	 * @param id  The enum value corresponding the log stream.
+	 *
+	 * This methods corresponds directly to the internal BiF defined in
+	 * logging.bif, which just forwards here.
+	 */
+	bool RemoveStream(EnumVal* id);
+
+	/**
 	 * Enables a log log stream.
 	 *
 	 * @param id  The enum value corresponding the log stream.
@@ -140,10 +150,10 @@ public:
 	bool Flush(EnumVal* id);
 
 	/**
-	 * Prepares the log manager to terminate. This will flush all log
-	 * stream.
+	 * Flushes all buffers that are currently held by writer frontends
+	 * out to the threads. Does not call the thread flush operation.
 	 */
-	void Terminate();
+	void FlushBuffers();
 
 	/**
 	 * Returns a list of supported output formats.

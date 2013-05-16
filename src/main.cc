@@ -330,7 +330,7 @@ void terminate_bro()
 	mgr.Drain();
 
 	file_mgr->Terminate();
-	log_mgr->Terminate();
+	log_mgr->FlushBuffers();
 	thread_mgr->Terminate();
 
 	mgr.Drain();

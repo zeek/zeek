@@ -6,7 +6,7 @@
 #include "RSH.h"
 #include "Rlogin.h"
 
-BRO_PLUGIN_BEGIN(Login)
+BRO_PLUGIN_BEGIN(Bro, Login)
 	BRO_PLUGIN_DESCRIPTION("Telnet/Rsh/Rlogin analyzers");
 	BRO_PLUGIN_ANALYZER("Telnet", login::Telnet_Analyzer);
 	BRO_PLUGIN_ANALYZER("Rsh", login::Rsh_Analyzer);

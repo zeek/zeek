@@ -3,7 +3,7 @@
 
 #include "NetbiosSSN.h"
 
-BRO_PLUGIN_BEGIN(NetBIOS)
+BRO_PLUGIN_BEGIN(Bro, NetBIOS)
 	BRO_PLUGIN_DESCRIPTION("NetBIOS analyzer (support only SSN currently)");
 	BRO_PLUGIN_ANALYZER("NetbiosSSN", netbios_ssn::NetbiosSSN_Analyzer);
 	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_NetbiosSSN");

@@ -3,7 +3,7 @@
 
 #include "TCP.h"
 
-BRO_PLUGIN_BEGIN(TCP)
+BRO_PLUGIN_BEGIN(Bro, TCP)
 	BRO_PLUGIN_DESCRIPTION("TCP analyzer");
 	BRO_PLUGIN_ANALYZER("TCP", tcp::TCP_Analyzer);
 	BRO_PLUGIN_ANALYZER("TCPStats", tcp::TCPStats_Analyzer);

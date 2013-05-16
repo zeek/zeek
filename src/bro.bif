@@ -2626,8 +2626,6 @@ function decode_base64_custom%(s: string, a: string%): string
 	%}
 
 %%{
-#include "analyzer/protocol/dce-rpc/DCE_RPC.h"
-
 typedef struct {
 	uint32 time_low;
 	uint16 time_mid;

@@ -9,14 +9,14 @@
 
 #define _BRO_PLUGIN_VERSION_DEFAULT -1
 
-#define BRO_PLUGIN_BEGIN(_name)					\
-	namespace plugin { namespace _name {			\
+#define BRO_PLUGIN_BEGIN(_ns, _name)				\
+	namespace plugin { namespace _ns ## _ ## _name {\
 		class Plugin : public plugin::Plugin {		\
 		protected:					\
 			void Init()				\
 			{					\
-			SetName(#_name);			\
-			SetVersion(_BRO_PLUGIN_VERSION_DEFAULT);	\
+			SetName(#_ns "::" #_name);		\
+			SetVersion(_BRO_PLUGIN_VERSION_DEFAULT);\
 			SetAPIVersion(BRO_PLUGIN_API_VERSION);
 
 #define BRO_PLUGIN_END				\

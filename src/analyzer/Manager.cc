@@ -4,18 +4,18 @@
 #include "Hash.h"
 #include "Val.h"
 
-#include "analyzer/protocol/backdoor/BackDoor.h"
-#include "analyzer/protocol/conn-size/ConnSize.h"
-#include "analyzer/protocol/icmp/ICMP.h"
-#include "analyzer/protocol/interconn/InterConn.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/stepping-stone/SteppingStone.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "protocol/backdoor/BackDoor.h"
+#include "protocol/conn-size/ConnSize.h"
+#include "protocol/icmp/ICMP.h"
+#include "protocol/interconn/InterConn.h"
+#include "protocol/pia/PIA.h"
+#include "protocol/stepping-stone/SteppingStone.h"
+#include "protocol/tcp/TCP.h"
+#include "protocol/udp/UDP.h"
 
 #include "plugin/Manager.h"
 
-#include "protocols/tcp/events.bif.h"
+#include "protocol/tcp/events.bif.h"
 
 using namespace analyzer;
 

@@ -4,7 +4,7 @@
 #include "BitTorrent.h"
 #include "BitTorrentTracker.h"
 
-BRO_PLUGIN_BEGIN(BitTorrent)
+BRO_PLUGIN_BEGIN(Bro, BitTorrent)
 	BRO_PLUGIN_DESCRIPTION("BitTorrent Analyzer");
 	BRO_PLUGIN_ANALYZER("BitTorrent", bittorrent::BitTorrent_Analyzer);
 	BRO_PLUGIN_ANALYZER("BitTorrentTracker", bittorrent::BitTorrent_Analyzer);

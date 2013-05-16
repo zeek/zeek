@@ -3,6 +3,9 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+# This collects generated bif and pac files from subdirectories.
+set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FORCE)
+
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
@@ -114,10 +117,8 @@ set(BIF_SRCS
 )
 
 foreach (bift ${BIF_SRCS})
-    bif_target(${bift})
+    bif_target(${bift} "standard")
 endforeach ()
-
-add_custom_target(generate_bifs DEPENDS ${ALL_BIF_OUTPUTS})
 
 ########################################################################
 ## BinPAC-dependent targets
@@ -131,7 +132,10 @@ set(BINPAC_AUXSRC
 )
 
 binpac_target(binpac-lib.pac)
+list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
+
 binpac_target(binpac_bro-lib.pac)
+list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
 ########################################################################
 ## Including subdirectories.
@@ -156,7 +160,7 @@ find_package (Threads)
 macro(COLLECT_HEADERS _var)
     foreach (src ${ARGN})
         get_filename_component(ext ${src} EXT)
-        if (${ext} STREQUAL ".cc" OR ${ext} STREQUAL ".c")
+        if ("${ext}" STREQUAL ".cc" OR "${ext}" STREQUAL ".c")
             get_filename_component(base ${src} NAME_WE)
             get_filename_component(dir ${src} PATH)
             if (NOT "${dir}")
@@ -189,10 +193,8 @@ set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
-    ${ALL_BIF_OUTPUTS}
     ${BINPAC_AUXSRC}
-    ${ALL_BINPAC_INPUTS}
-    ${ALL_BINPAC_OUTPUTS}
+    ${BINPAC_OUTPUTS}
     ${TRANSFORMED_BISON_OUTPUTS}
     ${FLEX_RuleScanner_OUTPUTS}
     ${FLEX_RuleScanner_INPUT}
@@ -333,12 +335,20 @@ add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
 target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)
 
-include(BroPlugin)
-bro_plugin_bif_create_loader(bif_loader ${CMAKE_BINARY_DIR}/scripts/base/bif/plugins)
-add_dependencies(bif_loader ${bro_SUBDIRS})
-add_dependencies(bro bif_loader)
+add_custom_target(generate_outputs DEPENDS ${bro_ALL_GENERATED_OUTPUTS})
+
+# Build __load__.bro files for plugins/*.bif.bro.
+bro_bif_create_loader(bif_loader_plugins ${CMAKE_BINARY_DIR}/scripts/base/bif/plugins)
+add_dependencies(bif_loader_plugins ${bro_SUBDIRS})
+add_dependencies(bro bif_loader_plugins)
+
+# Install *.bif.bro.
+install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
+
+# Make clean removes the bif directory.
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/scripts/base/bif)
+

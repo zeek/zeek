@@ -156,6 +156,11 @@ public:
 	void FlushBuffers();
 
 	/**
+	 * Signals the manager to shutdown at Bro's termination.
+	 */
+	void Terminate();
+
+	/**
 	 * Returns a list of supported output formats.
 	 */
 	static list<string> SupportedFormats();

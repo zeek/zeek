@@ -1285,6 +1285,11 @@ void Manager::FlushBuffers()
 		}
 	}
 
+void Manager::Terminate()
+	{
+	FlushBuffers();
+	}
+
 // Timer which on dispatching rotates the filter.
 class RotationTimer : public Timer {
 public:

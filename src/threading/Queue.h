@@ -113,8 +113,9 @@ private:
 
 inline static void safe_lock(pthread_mutex_t* mutex)
 	{
-	if ( pthread_mutex_lock(mutex) != 0 )
-		reporter->FatalErrorWithCore("cannot lock mutex");
+	int res = pthread_mutex_lock(mutex);
+	if ( res != 0 )
+		reporter->FatalErrorWithCore("cannot lock mutex: %d(%s)", res, strerror(res));
 	}
 
 inline static void safe_unlock(pthread_mutex_t* mutex)

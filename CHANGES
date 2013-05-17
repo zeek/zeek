@@ -1,4 +1,9 @@
 
+2.1-654 | 2013-05-17 13:49:52 -0700
+
+  * Tweaks to sqlite3 configuration to address threading issues.
+    (Bernhard Amann)
+
 2.1-651 | 2013-05-17 13:37:16 -0700
 
   * Fix uninitialized DPM member. (Jon Siwek)

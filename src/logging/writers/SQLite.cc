@@ -35,13 +35,16 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 
 	db = 0;
 	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
+	st = 0;
 	}
 
 SQLite::~SQLite()
 	{
 	if ( db != 0 )
 		{
-		sqlite3_close(db);
+		sqlite3_finalize(st);
+		if ( !sqlite3_close(db) ) 
+			Error("Sqlite could not close connection");
 		db = 0;
 		}
 

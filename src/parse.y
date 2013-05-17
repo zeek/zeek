@@ -1081,8 +1081,7 @@ decl:
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
 
 			if ( generate_documentation &&
-				! streq("capture_filters", $2->Name()) &&
-				! streq("dpd_config", $2->Name()) )
+				! streq("capture_filters", $2->Name()) )
 				{
 				ID* fake_id = create_dummy_id($2, $2->Type());
 				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);

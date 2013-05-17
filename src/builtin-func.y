@@ -287,7 +287,7 @@ void record_bif_item(const char* id, int type)
 
 %left ',' ':'
 
-%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws type
+%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws type attr_list opt_attr_list
 %type <val> TOK_ATOM TOK_BOOL
 
 %union	{
@@ -372,7 +372,8 @@ type_def_types: TOK_RECORD
 			{ set_definition_type(TYPE_DEF, "Table"); }
 	;
 
-event_def:	event_prefix opt_ws plain_head opt_attr end_of_head ';'
+event_def:	event_prefix opt_ws plain_head opt_attr_list
+			{ fprintf(fp_bro_init, "%s", $4); } end_of_head ';'
 			{
 			print_event_c_prototype(fp_func_h, true);
 			print_event_c_prototype(fp_func_def, false);
@@ -459,20 +460,17 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			record_bif_item(decl.bro_fullname.c_str(), 3);
 			}
 
-
-/* Currently support only boolean and string values */
-opt_attr_init:	/* nothing */
-	|	'=' opt_ws TOK_BOOL opt_ws
-			{
-			fprintf(fp_bro_init, "=%s%c%s", $2, ($3) ? 'T' : 'F', $4);
-			}
-	|	'=' opt_ws TOK_CSTR opt_ws
-			{ fprintf(fp_bro_init, "=%s%s%s", $2, $3, $4); }
+attr_list:
+		attr_list TOK_ATTR
+			{ $$ = concat($1, $2); }
+	|
+		TOK_ATTR
 	;
 
-opt_attr:	/* nothing */
-	|	opt_attr TOK_ATTR { fprintf(fp_bro_init, "%s", $2); }
-		opt_ws opt_attr_init
+opt_attr_list:
+		attr_list
+	|	/* nothing */
+		{ $$ = ""; }
 	;
 
 func_prefix:	TOK_FUNCTION
@@ -584,9 +582,10 @@ args:		args_1
 			{ /* empty, to avoid yacc complaint about type clash */ }
 	;
 
-args_1:		args_1 ',' opt_ws arg opt_ws
-	|	opt_ws arg opt_ws
-			{ /* empty */ }
+args_1:		args_1 ',' opt_ws arg opt_ws opt_attr_list
+			{ if ( ! args.empty() ) args[args.size()-1]->SetAttrStr($6); }
+	|	opt_ws arg opt_ws opt_attr_list
+			{ if ( ! args.empty() ) args[args.size()-1]->SetAttrStr($4); }
 	;
 
 // TODO: Migrate all other compound types to this rule. Once the BiF language

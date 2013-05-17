@@ -1,4 +1,123 @@
 
+2.1-641 | 2013-05-15 18:15:09 -0700
+
+  * Test update. (Robin Sommer)
+
+2.1-640 | 2013-05-15 17:24:09 -0700
+
+  * Support for cleaning up threads that have terminated. (Bernhard
+    Amann and Robin Sommer). Includes:
+
+      - Both logging and input frameworks now clean up threads once
+        they aren't further needed anymnore.
+
+      - New function Log::remove_stream() that removes a logging
+        stream, stopping all writer threads that are associated with
+        it. Note, however, that removing a *filter* from a stream
+        still doesn't clean up any threads. The problem is that
+        because of the output paths potentially being created
+        dynamically it's unclear if the writer thread will still be
+        needed in the future.
+
+2.1-626 | 2013-05-15 16:09:31 -0700
+
+  * Add "reservoir" sampler for SumStats framework. This maintains
+    a set of N uniquely distributed random samples. (Bernhard Amann)
+
+2.1-619 | 2013-05-15 16:01:42 -0700
+
+  * SQLite reader and writer combo. This allows to read/write
+    persistent data from on disk SQLite databases. The current
+    interface is quite low-level, we'll add higher-level abstractions
+    in the future. (Bernhard Amann)
+
+2.1-576 | 2013-05-15 14:29:09 -0700
+
+  * Initial version of new file analysis framework. This moves most of
+    the processing of file content from script-land into the core,
+    where it belongs. Much of this is an internal change, and at this
+    point the new code has essentially feature-equality with the old
+    one. More script-level changes to come. (Jon Siwek)
+
+2.1-502 | 2013-05-10 19:29:37 -0700
+
+  * Allow default function/hook/event parameters. Addresses #972. (Jon
+    Siwek)
+
+  * Change the endianness parameter of bytestring_to_count() BIF to
+    default to false (big endian). (Jon Siwek)
+
+2.1-500 | 2013-05-10 19:22:24 -0700
+
+  * Fix to prevent merge-hook of SumStat's unique plugin from damaging
+    source data. (Bernhard Amann)
+
+2.1-498 | 2013-05-03 17:44:08 -0700
+
+  * Table lookups return copy of non-const &default vals. This
+    prevents unintentional modifications to the &default value itself.
+    Addresses #981.  (Jon Siwek)
+
+2.1-496 | 2013-05-03 15:54:47 -0700
+
+  * Fix memory leak and unnecessary allocations in OpaqueVal.
+    Addresses #986. (Matthias Vallentin)
+
+2.1-492 | 2013-05-02 12:46:26 -0700
+
+  * Work-around for sumstats framework not propagating updates after
+    intermediate check in cluster environments. (Bernhard Amann)
+
+  * Always apply tcp_connection_attempt. Before this change it was
+    only applied when a connection_attempt() event handler was
+    defined. (Robin Sommer)
+
+  * Fixing coverage.bare-mode-errors test. (Robin Sommer)
+
+2.1-487 | 2013-05-01 18:03:22 -0700
+
+  * Always apply tcp_connection_attempt timer, even if no
+    connection_attempt() event handler is defined. (Robin Sommer)
+
+2.1-486 | 2013-05-01 15:28:45 -0700
+
+  * New framework for computing summary statistics in
+    base/framework/sumstats. This replaces the metrics frameworks, and
+    comes with a number of applications build on top, see NEWS. More
+    documentation to follow. (Seth Hall)
+
+2.1-397 | 2013-04-29 21:19:00 -0700
+
+  * Fixing memory leaks in CompHash implementation. Addresses #987.
+    (Robin Sommer)
+
+2.1-394 | 2013-04-27 15:02:31 -0700
+
+  * Fixed a bug in the vulnerable software script and added a test.
+    (Seth Hall)
+
+  * Fix schedule statements used outside event handlers. Addresses
+    #974. (Jon Siwek)
+
+  * Fix record coercion for default inner record fields. Addresses
+    #973. (Jon Siwek)
+
+  * Add bytestring_to_count function to bro.bif. Addresses #968. (Yun
+    Zheng Hu)
+
+2.1-386 | 2013-03-22 12:41:50 -0700
+
+  * Added reverse() function to strings.bif. (Yun Zheng Hu)
+    
+2.1-384 | 2013-03-22 12:10:14 -0700
+
+  * Fix record constructors in table initializer indices.  Addresses
+    #660. (Jon Siwek)
+
+2.1-382 | 2013-03-22 12:01:34 -0700
+
+  * Add support for 802.1ah (Q-in-Q). Addresses #641. (Seth Hall)
+    
 2.1-380 | 2013-03-18 12:18:10 -0700
 
   * Fix gcc compile warnings in base64 encoder and benchmark reader.

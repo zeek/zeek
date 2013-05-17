@@ -110,6 +110,7 @@ set(BIF_SRCS
     logging.bif
     input.bif
     event.bif
+    file_analysis.bif
     const.bif
     types.bif
     strings.bif
@@ -155,6 +156,14 @@ set(bro_SUBDIRS
 
 find_package (Threads)
 
+# Avoid CMake warning about "3rdparty" looking like a number.
+
+cmake_policy(PUSH)
+
+if (POLICY CMP0012)
+cmake_policy(SET CMP0012 NEW)
+endif ()
+
 # This macro stores associated headers for any C/C++ source files given
 # as arguments (past _var) as a list in the CMake variable named "_var".
 macro(COLLECT_HEADERS _var)
@@ -173,6 +182,8 @@ macro(COLLECT_HEADERS _var)
         endif ()
     endforeach ()
 endmacro(COLLECT_HEADERS _var)
+
+cmake_policy(POP)
 
 # define a command that's used to run the make_dbg_constants.pl script
 # building the bro binary depends on the outputs of this script
@@ -311,6 +322,7 @@ set(bro_SRCS
     logging/WriterFrontend.cc
     logging/writers/Ascii.cc
     logging/writers/DataSeries.cc
+    logging/writers/SQLite.cc
     logging/writers/ElasticSearch.cc
     logging/writers/None.cc
 
@@ -320,6 +332,20 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/Binary.cc
+    input/readers/SQLite.cc
+
+    file_analysis/Manager.cc
+    file_analysis/File.cc
+    file_analysis/FileTimer.cc
+    file_analysis/FileID.h
+    file_analysis/Analyzer.h
+    file_analysis/AnalyzerSet.cc
+    file_analysis/Extract.cc
+    file_analysis/Hash.cc
+    file_analysis/DataEvent.cc
+
+    3rdparty/sqlite3.c
 
     plugin/Component.cc
     plugin/Manager.cc
@@ -332,7 +358,7 @@ set(bro_SRCS
 collect_headers(bro_HEADERS ${bro_SRCS})
 add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
 
-target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 install(TARGETS bro DESTINATION bin)
 

@@ -300,7 +300,7 @@ type connection: record {
 	## one protocol analyzer is able to parse the same data. If so, all will
 	## be recorded. Also note that the recorced services are independent of any
 	## transport-level protocols.
-        service: set[string];
+	service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
@@ -315,6 +315,73 @@ type connection: record {
 	## and re-assigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 };
+
+## Default amount of time a file can be inactive before the file analysis
+## gives up and discards any internal state related to the file.
+const default_file_timeout_interval: interval = 2 mins &redef;
+
+## Default amount of bytes that file analysis will buffer before raising
+## :bro:see:`file_new`.
+const default_file_bof_buffer_size: count = 1024 &redef;
+
+## A file that Bro is analyzing.  This is Bro's type for describing the basic
+## internal metadata collected about a "file", which is essentially just a
+## byte stream that is e.g. pulled from a network connection or possibly
+## some other input source.
+type fa_file: record {
+	## An identifier associated with a single file.
+	id: string;
+
+	## Identifier associated with a container file from which this one was
+	## extracted as part of the file analysis.
+	parent_id: string &optional;
+
+	## An identification of the source of the file data.  E.g. it may be
+	## a network protocol over which it was transferred, or a local file
+	## path which was read, or some other input source.
+	source: string &optional;
+
+	## If the source of this file is is a network connection, this field
+	## may be set to indicate the directionality.
+	is_orig: bool &optional;
+
+	## The set of connections over which the file was transferred.
+	conns: table[conn_id] of connection &optional;
+
+	## The time at which the last activity for the file was seen.
+	last_active: time;
+
+	## Number of bytes provided to the file analysis engine for the file.
+	seen_bytes: count &default=0;
+
+	## Total number of bytes that are supposed to comprise the full file.
+	total_bytes: count &optional;
+
+	## The number of bytes in the file stream that were completely missed
+	## during the process of analysis e.g. due to dropped packets.
+	missing_bytes: count &default=0;
+
+	## The number of not all-in-sequence bytes in the file stream that
+	## were delivered to file analyzers due to reassembly buffer overflow.
+	overflow_bytes: count &default=0;
+
+	## The amount of time between receiving new data for this file that
+	## the analysis engine will wait before giving up on it.
+	timeout_interval: interval &default=default_file_timeout_interval;
+
+	## The number of bytes at the beginning of a file to save for later
+	## inspection in *bof_buffer* field.
+	bof_buffer_size: count &default=default_file_bof_buffer_size;
+
+	## The content of the beginning of a file up to *bof_buffer_size* bytes.
+	## This is also the buffer that's used for file/mime type detection.
+	bof_buffer: string &optional;
+
+	## A mime type provided by libmagic against the *bof_buffer*, or
+	## in the cases where no buffering of the beginning of file occurs,
+	## an initial guess of the mime type based on the first data seen.
+	mime_type: string &optional;
+} &redef;
 
 ## Fields of a SYN packet.
 ##
@@ -3003,6 +3070,7 @@ const snaplen = 8192 &redef;
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer
+@load base/frameworks/file-analysis
 
 # Load BiF defined by plugins.
 @load base/bif/plugins

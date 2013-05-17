@@ -57,3 +57,11 @@ const autospread: double;
 const addfactor: count;
 const stopspreadat: count;
 const timedspread: double;
+
+module InputBinary;
+const chunk_size: count;
+
+module InputSQLite;
+const set_separator: string;
+const unset_field: string;
+const empty_field: string;

@@ -5,6 +5,7 @@
 #include "Event.h"
 #include "Reporter.h"
 #include "digest.h"
+#include "file_analysis/Manager.h"
 
 #include "events.bif.h"
 
@@ -136,6 +137,13 @@ int fputs(data_chunk_t b, FILE* fp)
 		if ( fputc(b.data[i], fp) == EOF )
 			return EOF;
 	return 0;
+	}
+
+void MIME_Mail::Undelivered(int len)
+	{
+	// is_orig param not available, doesn't matter as long as it's consistent
+	file_mgr->Gap(cur_entity_len, len, analyzer->GetAnalyzerTag(), analyzer->Conn(),
+	              false);
 	}
 
 int strcasecmp_n(data_chunk_t s, const char* t)
@@ -1300,6 +1308,8 @@ void MIME_Mail::Done()
 		}
 
 	MIME_Message::Done();
+
+	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	}
 
 MIME_Mail::~MIME_Mail()
@@ -1311,12 +1321,15 @@ MIME_Mail::~MIME_Mail()
 
 void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	{
+	cur_entity_len = 0;
+
 	if ( mime_begin_entity )
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		analyzer->ConnectionEvent(mime_begin_entity, vl);
 		}
+
 	buffer_start = data_start = 0;
 	ASSERT(entity_content.size() == 0);
 	}
@@ -1346,6 +1359,8 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		vl->append(analyzer->BuildConnVal());
 		analyzer->ConnectionEvent(mime_end_entity, vl);
 		}
+
+	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	}
 
 void MIME_Mail::SubmitHeader(MIME_Header* h)
@@ -1403,6 +1418,11 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		analyzer->ConnectionEvent(mime_segment_data, vl);
 		}
 
+	// is_orig param not available, doesn't matter as long as it's consistent
+	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), false);
+
+	cur_entity_len += len;
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}
 
@@ -1473,4 +1493,3 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 		analyzer->ConnectionEvent(mime_event, vl);
 		}
 	}
-

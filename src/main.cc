@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 #include <openssl/md5.h>
+#include <magic.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -60,9 +61,16 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
 
+#include "file_analysis/Manager.h"
+
 #include "binpac_bro.h"
 
+#include "3rdparty/sqlite3.h"
+
 Brofiler brofiler;
+
+magic_t magic_desc_cookie = 0;
+magic_t magic_mime_cookie = 0;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -90,6 +98,7 @@ threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
 plugin::Manager* plugin_mgr = 0;
 analyzer::Manager* analyzer_mgr = 0;
+file_analysis::Manager* file_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -203,6 +212,7 @@ void usage()
 #endif
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
+	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -345,6 +355,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	file_mgr->Terminate();
 	log_mgr->Terminate();
 	thread_mgr->Terminate();
 
@@ -365,6 +376,7 @@ void terminate_bro()
 	delete log_mgr;
 	delete plugin_mgr;
 	delete thread_mgr;
+	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;
@@ -757,6 +769,11 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
+	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
+	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
+
+	sqlite3_initialize();
+
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
@@ -814,6 +831,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	plugin_mgr = new plugin::Manager();
+	file_mgr = new file_analysis::Manager();
 
 	plugin_mgr->InitPlugins();
 	analyzer_mgr->Init();
@@ -1126,6 +1144,8 @@ int main(int argc, char** argv)
 #ifdef USE_CURL
 		curl_global_cleanup();
 #endif
+
+		sqlite3_shutdown();
 
 		terminate_bro();
 

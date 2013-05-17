@@ -110,6 +110,9 @@ void EventMgr::Dispatch()
 
 void EventMgr::Drain()
 	{
+	if ( event_queue_flush_point )
+		QueueEvent(event_queue_flush_point, new val_list());
+
 	SegmentProfiler(segment_logger, "draining-events");
 
 	draining = true;

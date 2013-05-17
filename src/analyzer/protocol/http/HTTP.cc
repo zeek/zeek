@@ -12,6 +12,7 @@
 #include "HTTP.h"
 #include "Event.h"
 #include "analyzer/protocol/mime/MIME.h"
+#include "file_analysis/Manager.h"
 
 #include "events.bif.h"
 
@@ -45,9 +46,13 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	expect_data_length = 0;
 	body_length = 0;
 	header_length = 0;
-	deliver_body = (http_entity_data != 0);
+	deliver_body = true;
 	encoding = IDENTITY;
 	zip = 0;
+	is_partial_content = false;
+	offset = 0;
+	instance_length = -1; // unspecified
+	send_size = true;
 	}
 
 void HTTP_Entity::EndOfData()
@@ -237,6 +242,11 @@ int HTTP_Entity::Undelivered(int64_t len)
 	if ( end_of_data && in_header )
 		return 0;
 
+	file_mgr->Gap(body_length, len,
+	              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+	              http_message->MyHTTP_Analyzer()->Conn(),
+	              http_message->IsOrig());
+
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{
 		if ( chunked_transfer_state == EXPECT_CHUNK_DATA &&
@@ -281,6 +291,41 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	{
 	if ( deliver_body )
 		MIME_Entity::SubmitData(len, buf);
+
+	if ( send_size && ( encoding == GZIP || encoding == DEFLATE ) )
+		// Auto-decompress in DeliverBody invalidates sizes derived from headers
+		send_size = false;
+
+	if ( is_partial_content )
+		{
+		if ( send_size && instance_length > 0 )
+			file_mgr->SetSize(instance_length,
+			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                  http_message->MyHTTP_Analyzer()->Conn(),
+			                  http_message->IsOrig());
+
+		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
+		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                 http_message->MyHTTP_Analyzer()->Conn(),
+		                 http_message->IsOrig());
+
+		offset += len;
+		}
+	else
+		{
+		if ( send_size && content_length > 0 )
+			file_mgr->SetSize(content_length,
+			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                  http_message->MyHTTP_Analyzer()->Conn(),
+			                  http_message->IsOrig());
+
+		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                 http_message->MyHTTP_Analyzer()->Conn(),
+		                 http_message->IsOrig());
+		}
+
+	send_size = false;
 	}
 
 void HTTP_Entity::SetPlainDelivery(int64_t length)
@@ -311,9 +356,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		}
 
 	// Figure out content-length for HTTP 206 Partial Content response
-	// that uses multipart/byteranges content-type.
-	else if ( mime::strcasecmp_n(h->get_name(), "content-range") == 0 && Parent() &&
-	          Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART &&
+	else if ( mime::strcasecmp_n(h->get_name(), "content-range") == 0 &&
 		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
 		{
 		data_chunk_t vt = h->get_value_token();
@@ -337,7 +380,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			}
 
 		string byte_range_resp_spec = byte_range.substr(0, p);
-		string instance_length = byte_range.substr(p + 1);
+		string instance_length_str = byte_range.substr(p + 1);
 
 		p = byte_range_resp_spec.find("-");
 		if ( p == string::npos )
@@ -352,7 +395,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		if ( DEBUG_http )
 			DEBUG_MSG("Parsed Content-Range: %s %s-%s/%s\n", byte_unit.c_str(),
 		              first_byte_pos.c_str(), last_byte_pos.c_str(),
-		              instance_length.c_str());
+		              instance_length_str.c_str());
 
 		int64_t f, l;
 		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), 0, 10, f);
@@ -363,7 +406,19 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
 
 		if ( len > 0 )
+			{
+			if ( instance_length_str != "*" )
+				{
+				if ( ! atoi_n(instance_length_str.size(),
+				              instance_length_str.c_str(), 0, 10,
+				              instance_length) )
+					instance_length = 0;
+				}
+
+			is_partial_content = true;
+			offset = f;
 			content_length = len;
+			}
 		else
 			{
 			http_message->Weird("HTTP_non_positive_content_range");
@@ -516,6 +571,11 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 	// DEBUG_MSG("%.6f HTTP message done.\n", network_time);
 	top_level->EndOfData();
 
+	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
+		// multipart/byteranges may span multiple connections
+		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                    MyHTTP_Analyzer()->Conn(), is_orig);
+
 	if ( http_message_done )
 		{
 		val_list* vl = new val_list;
@@ -590,6 +650,10 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	// SubmitAllHeaders (through EndOfData).
 	if ( entity == top_level )
 		Done();
+
+	else if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
+		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                    MyHTTP_Analyzer()->Conn(), is_orig);
 	}
 
 void HTTP_Message::SubmitHeader(mime::MIME_Header* h)
@@ -645,9 +709,6 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 
 int HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
-	if ( ! http_entity_data )
-		return 0;
-
 	if ( ! data_buffer )
 		if ( ! InitBuffer(mime_segment_length) )
 			return 0;
@@ -850,6 +911,14 @@ void HTTP_Analyzer::Done()
 		Unref(unanswered_requests.front());
 		unanswered_requests.pop();
 		}
+
+	file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
+
+	/* TODO: this might be nice to have, but reply code is cleared by now.
+	if ( HTTP_ReplyCode() != 206 )
+		// multipart/byteranges may span multiple connections
+		file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), false);
+	*/
 	}
 
 void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)

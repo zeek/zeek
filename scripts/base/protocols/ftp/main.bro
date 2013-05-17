@@ -16,7 +16,8 @@ export {
 	
 	## List of commands that should have their command/response pairs logged.
 	const logged_commands = {
-		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
+		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT", "PORT", "PASV", "EPRT",
+		"EPSV"
 	} &redef;
 	
 	## This setting changes if passwords used in FTP sessions are captured or not.
@@ -24,6 +25,18 @@ export {
 	
 	## User IDs that can be considered "anonymous".
 	const guest_ids = { "anonymous", "ftp", "ftpuser", "guest" } &redef;
+
+	## The expected endpoints of an FTP data channel.
+	type ExpectedDataChannel: record {
+		## Whether PASV mode is toggled for control channel.
+		passive: bool &log;
+		## The host that will be initiating the data connection.
+		orig_h: addr &log;
+		## The host that will be accepting the data connection.
+		resp_h: addr &log;
+		## The port at which the acceptor is listening for the data connection.
+		resp_p: port &log;
+	};
 	
 	type Info: record {
 		## Time when the command was sent.
@@ -43,8 +56,6 @@ export {
 		
 		## Libmagic "sniffed" file type if the command indicates a file transfer.
 		mime_type:        string      &log &optional;
-		## Libmagic "sniffed" file description if the command indicates a file transfer.
-		mime_desc:        string      &log &optional;
 		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;
 		
@@ -53,13 +64,16 @@ export {
 		## Reply message from the server in response to the command.
 		reply_msg:        string      &log &optional;
 		## Arbitrary tags that may indicate a particular attribute of this command.
-		tags:             set[string] &log &default=set();
-		
+		tags:             set[string] &log;
+
+		## Expected FTP data channel.
+		data_channel:     ExpectedDataChannel &log &optional;
+
 		## Current working directory that this session is in.  By making
-		## the default value '/.', we can indicate that unless something
+		## the default value '.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
-		cwd:                string  &default="/.";
+		cwd:                string  &default=".";
 		
 		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
@@ -93,6 +107,7 @@ export {
 # Add the state tracking information variable to the connection record
 redef record connection += {
 	ftp: Info &optional;
+	ftp_data_reuse: bool &default=F;
 };
 
 # Configure DPD
@@ -102,7 +117,7 @@ const ports = { 21/tcp, 2811/tcp };
 redef likely_server_ports += { ports };
 
 # Establish the variable for tracking expected connections.
-global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
+global ftp_data_expected: table[addr, port] of Info &read_expire=5mins;
 
 event bro_init() &priority=5
 	{
@@ -172,7 +187,13 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), build_path_compressed(s$cwd, arg));
+			{
+			local comp_path = build_path_compressed(s$cwd, arg);
+			if ( comp_path[0] != "/" )
+				comp_path = cat("/", comp_path);
+
+			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), comp_path);
+			}
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
@@ -180,7 +201,7 @@ function ftp_message(s: Info)
 			delete s$arg;
 		else
 			s$arg=arg;
-		
+
 		Log::write(FTP::LOG, s);
 		}
 	
@@ -188,10 +209,20 @@ function ftp_message(s: Info)
 	# and may not be used in all commands so they need reset to "blank" 
 	# values after logging.
 	delete s$mime_type;
-	delete s$mime_desc;
 	delete s$file_size;
+	# Same with data channel.
+	delete s$data_channel;
 	# Tags are cleared everytime too.
-	delete s$tags;
+	s$tags = set();
+	}
+
+function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
+	{
+	s$passive = chan$passive;
+	s$data_channel = chan;
+	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
+	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p, Analyzer::ANALYZER_FTP_DATA,
+				    5mins);
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5
@@ -226,9 +257,8 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 
 		if ( data$valid )
 			{
-			c$ftp$passive=F;
-			ftp_data_expected[data$h, data$p] = c$ftp;
-			Analyzer::schedule_analyzer(id$resp_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
+			add_expected_data_channel(c$ftp, [$passive=F, $orig_h=id$resp_h,
+			                                  $resp_h=data$h, $resp_p=data$p]);
 			}
 		else
 			{
@@ -240,16 +270,13 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5
 	{
-	# TODO: figure out what to do with continued FTP response (not used much)
-	#if ( cont_resp ) return;
-
-	local id = c$id;
 	set_ftp_session(c);
-	
 	c$ftp$cmdarg = get_pending_cmd(c$ftp$pending_commands, code, msg);
-	
 	c$ftp$reply_code = code;
 	c$ftp$reply_msg = msg;
+
+	# TODO: figure out what to do with continued FTP response (not used much)
+	if ( cont_resp ) return;
 	
 	# TODO: do some sort of generic clear text login processing here.
 	local response_xyz = parse_ftp_reply_code(code);
@@ -278,10 +305,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			c$ftp$passive=T;
 			
 			if ( code == 229 && data$h == [::] )
-				data$h = id$resp_h;
-			
-			ftp_data_expected[data$h, data$p] = c$ftp;
-			Analyzer::schedule_analyzer(id$orig_h, data$h, data$p, Analyzer::ANALYZER_FILE, 5mins);
+			add_expected_data_channel(c$ftp, [$passive=T, $orig_h=c$id$orig_h,
+			                          $resp_h=data$h, $resp_p=data$p]);
 			}
 		else
 			{
@@ -311,7 +336,6 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		}
 	}
 
-
 event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	{
 	local id = c$id;
@@ -327,18 +351,21 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		{
 		local s = ftp_data_expected[id$resp_h, id$resp_p];
 		s$mime_type = split1(mime_type, /;/)[1];
-		s$mime_desc = descr;
 		}
 	}
-	
-event file_transferred(c: connection, prefix: string, descr: string,
-			mime_type: string) &priority=-5
+
+event connection_reused(c: connection) &priority=5
 	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
-		delete ftp_data_expected[id$resp_h, id$resp_p];
+	if ( "ftp-data" in c$service )
+		c$ftp_data_reuse = T;
 	}
 	
+event connection_state_remove(c: connection) &priority=-5
+	{
+	if ( c$ftp_data_reuse ) return;
+	delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
+	}
+
 # Use state remove event to cover connections terminated by RST.
 event connection_state_remove(c: connection) &priority=-5
 	{

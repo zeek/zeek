@@ -195,6 +195,7 @@ extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
 extern const char* bro_path();
+extern const char* bro_magic_path();
 extern const char* bro_prefixes();
 std::string dot_canon(std::string path, std::string file, std::string prefix = "");
 const char* normalize_path(const char* path);
@@ -308,6 +309,10 @@ inline size_t pad_size(size_t size)
 // thread-safe as long as no two threads write to the same descriptor.
 extern bool safe_write(int fd, const char* data, int len);
 
+// Same as safe_write(), but for pwrite().
+extern bool safe_pwrite(int fd, const unsigned char* data, size_t len,
+                        size_t offset);
+
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);
 
@@ -371,6 +376,9 @@ struct CompareString
 		return strcmp(a, b) < 0;
 		}
 	};
+
+extern magic_t magic_desc_cookie;
+extern magic_t magic_mime_cookie;
 
 void bro_init_magic(magic_t* cookie_ptr, int flags);
 const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);

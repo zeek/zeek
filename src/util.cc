@@ -872,6 +872,16 @@ const char* bro_path()
 	return path;
 	}
 
+const char* bro_magic_path()
+	{
+	const char* path = getenv("BROMAGIC");
+
+	if ( ! path )
+		path = BRO_MAGIC_INSTALL_PATH;
+
+	return path;
+	}
+
 const char* bro_prefixes()
 	{
 	int len = 1;	// room for \0
@@ -1401,6 +1411,31 @@ bool safe_write(int fd, const char* data, int len)
 	return true;
 	}
 
+bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
+	{
+	while ( len != 0 )
+		{
+		ssize_t n = pwrite(fd, data, len, offset);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		offset +=n;
+		len -= n;
+		}
+
+	return true;
+	}
+
 void safe_close(int fd)
 	{
 	/*
@@ -1543,18 +1578,29 @@ void bro_init_magic(magic_t* cookie_ptr, int flags)
 	if ( ! cookie_ptr || *cookie_ptr )
 		return;
 
-	*cookie_ptr = magic_open(flags);
+	*cookie_ptr = magic_open(flags|MAGIC_NO_CHECK_TOKENS);
+
+	// Use our custom database for mime types, but the default database
+	// from libmagic for the verbose file type.
+	const char* database = (flags & MAGIC_MIME) ? bro_magic_path() : 0;
 
 	if ( ! *cookie_ptr )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		reporter->Error("can't init libmagic: %s", err ? err : "unknown");
+		if ( ! err )
+			err = "unknown";
+
+		reporter->InternalError("can't init libmagic: %s", err);
 		}
 
-	else if ( magic_load(*cookie_ptr, 0) < 0 )
+	else if ( magic_load(*cookie_ptr, database) < 0 )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		reporter->Error("can't load magic file: %s", err ? err : "unknown");
+		if ( ! err )
+			err = "unknown";
+
+		const char* db_name = database ? database : "<default>";
+		reporter->InternalError("can't load magic file %s: %s", db_name, err);
 		magic_close(*cookie_ptr);
 		*cookie_ptr = 0;
 		}

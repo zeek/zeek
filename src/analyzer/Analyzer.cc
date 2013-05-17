@@ -9,7 +9,6 @@
 
 namespace analyzer {
 
-
 class AnalyzerTimer : public Timer {
 public:
 	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,

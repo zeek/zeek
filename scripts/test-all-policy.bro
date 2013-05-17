@@ -24,9 +24,6 @@
 @load frameworks/intel/smtp.bro
 @load frameworks/intel/ssl.bro
 @load frameworks/intel/where-locations.bro
-@load frameworks/metrics/conn-example.bro
-@load frameworks/metrics/http-example.bro
-@load frameworks/metrics/ssl-example.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load integration/barnyard2/__load__.bro
@@ -34,9 +31,14 @@
 @load integration/barnyard2/types.bro
 @load integration/collective-intel/__load__.bro
 @load integration/collective-intel/main.bro
+@load misc/analysis-groups.bro
+@load misc/app-metrics.bro
 @load misc/capture-loss.bro
+@load misc/detect-traceroute/__load__.bro
+@load misc/detect-traceroute/main.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
+@load misc/scan.bro
 @load misc/stats.bro
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
@@ -44,6 +46,7 @@
 @load protocols/conn/weirds.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
+@load protocols/ftp/detect-bruteforcing.bro
 @load protocols/ftp/detect.bro
 @load protocols/ftp/software.bro
 @load protocols/http/detect-MHR.bro
@@ -75,3 +78,5 @@
 @load tuning/defaults/warnings.bro
 @load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
+
+redef LogElasticSearch::server_host = "";

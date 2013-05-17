@@ -133,7 +133,7 @@ protected:
 	int GetDataBuffer();
 	void DataOctet(char ch);
 	void DataOctets(int len, const char* data);
-	void SubmitData(int len, const char* buf);
+	virtual void SubmitData(int len, const char* buf);
 
 	virtual void SubmitHeader(MIME_Header* h);
 	// Submit all headers in member "headers".
@@ -240,6 +240,7 @@ public:
 	int RequestBuffer(int* plen, char** pbuf);
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail);
+	void Undelivered(int len);
 
 protected:
 	int min_overlap_length;
@@ -254,6 +255,8 @@ protected:
 	vector<const BroString*> all_content;
 
 	BroString* data_buffer;
+
+	uint64 cur_entity_len;
 };
 
 

@@ -1,4 +1,13 @@
 
+2.1-651 | 2013-05-17 13:37:16 -0700
+
+  * Fix uninitialized DPM member. (Jon Siwek)
+
+  * Fix issue with transaction ID reuse in a single DNS connection. (Seth Hall)
+
+  * New function added to the queue.bro script to support peeking at
+    the new gettable item in the queue without removing it. (Seth Hall)
+
 2.1-647 | 2013-05-17 07:47:14 -0700
 
   * Fixing Broxygen generation to have BROMAGIC set. (Robin Sommer)

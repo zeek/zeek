@@ -1,4 +1,8 @@
 
+2.1-656 | 2013-05-17 15:58:07 -0700
+
+  * Fix mutex lock problem for writers. (Bernhard Amann)
+    
 2.1-654 | 2013-05-17 13:49:52 -0700
 
   * Tweaks to sqlite3 configuration to address threading issues.

@@ -86,8 +86,6 @@ macro(REST_TARGET srcDir broInput)
         set(group "")
     endif ()
 
-    message("${broInput} ${extension} -> ${group}")
-
     if (NOT "${group}" STREQUAL "")
         # add group to master group list if not already in it
         list(FIND MASTER_GROUP_LIST ${group} _found)

@@ -1,4 +1,13 @@
 
+2.1-647 | 2013-05-17 07:47:14 -0700
+
+  * Fixing Broxygen generation to have BROMAGIC set. (Robin Sommer)
+    
+  * Fix for 'fchmod undeclared here' on FreeBSD. (Robin Sommer)
+    
+  * CMake policy fix to avoid errors with older versions. (Robin
+    Sommer)
+
 2.1-641 | 2013-05-15 18:15:09 -0700
 
   * Test update. (Robin Sommer)

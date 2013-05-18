@@ -6,6 +6,8 @@
 
 using namespace analyzer;
 
+Tag Tag::Error;
+
 Tag::Tag(type_t arg_type, subtype_t arg_subtype)
 	{
 	assert(arg_type > 0);

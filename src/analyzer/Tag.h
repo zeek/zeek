@@ -115,6 +115,8 @@ public:
 		return type != other.type ? type < other.type : (subtype < other.subtype);
 		}
 
+	static Tag Error;
+
 protected:
 	friend class analyzer::Manager;
 	friend class analyzer::Component;

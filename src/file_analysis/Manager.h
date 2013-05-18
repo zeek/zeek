@@ -134,7 +134,7 @@ protected:
 	 *         fields.
 	 */
 	File* GetFile(const string& unique, Connection* conn = 0,
-	              analyzer::Tag tag = AnalyzerTag::Error,
+	              analyzer::Tag tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true);
 
 	/**

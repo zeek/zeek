@@ -30,27 +30,23 @@ enum Analyzer %{
 ## :bro:see:`FileAnalysis::postpone_timeout`.
 function FileAnalysis::__postpone_timeout%(file_id: string%): bool
 	%{
-	using file_analysis::FileID;
-	bool result = file_mgr->PostponeTimeout(FileID(file_id->CheckString()));
+	bool result = file_mgr->PostponeTimeout(file_id->CheckString());
 	return new Val(result, TYPE_BOOL);
 	%}
 
 ## :bro:see:`FileAnalysis::set_timeout_interval`.
 function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{
-	using file_analysis::FileID;
-	bool result = file_mgr->SetTimeoutInterval(FileID(file_id->CheckString()),
-	                                           t);
+	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
 	return new Val(result, TYPE_BOOL);
 	%}
 
 ## :bro:see:`FileAnalysis::add_analyzer`.
 function FileAnalysis::__add_analyzer%(file_id: string, args: any%): bool
 	%{
-	using file_analysis::FileID;
 	using BifType::Record::FileAnalysis::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	bool result = file_mgr->AddAnalyzer(FileID(file_id->CheckString()), rv);
+	bool result = file_mgr->AddAnalyzer(file_id->CheckString(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
@@ -58,10 +54,9 @@ function FileAnalysis::__add_analyzer%(file_id: string, args: any%): bool
 ## :bro:see:`FileAnalysis::remove_analyzer`.
 function FileAnalysis::__remove_analyzer%(file_id: string, args: any%): bool
 	%{
-	using file_analysis::FileID;
 	using BifType::Record::FileAnalysis::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	bool result = file_mgr->RemoveAnalyzer(FileID(file_id->CheckString()), rv);
+	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
@@ -69,45 +64,8 @@ function FileAnalysis::__remove_analyzer%(file_id: string, args: any%): bool
 ## :bro:see:`FileAnalysis::stop`.
 function FileAnalysis::__stop%(file_id: string%): bool
 	%{
-	using file_analysis::FileID;
-	bool result = file_mgr->IgnoreFile(FileID(file_id->CheckString()));
+	bool result = file_mgr->IgnoreFile(file_id->CheckString());
 	return new Val(result, TYPE_BOOL);
-	%}
-
-## :bro:see:`FileAnalysis::data_stream`.
-function FileAnalysis::__data_stream%(source: string, data: string%): any
-	%{
-	file_mgr->DataIn(data->Bytes(), data->Len(), source->CheckString());
-	return 0;
-	%}
-
-## :bro:see:`FileAnalysis::data_chunk`.
-function FileAnalysis::__data_chunk%(source: string, data: string,
-                                     offset: count%): any
-	%{
-	file_mgr->DataIn(data->Bytes(), data->Len(), offset, source->CheckString());
-	return 0;
-	%}
-
-## :bro:see:`FileAnalysis::gap`.
-function FileAnalysis::__gap%(source: string, offset: count, len: count%): any
-	%{
-	file_mgr->Gap(offset, len, source->CheckString());
-	return 0;
-	%}
-
-## :bro:see:`FileAnalysis::set_size`.
-function FileAnalysis::__set_size%(source: string, size: count%): any
-	%{
-	file_mgr->SetSize(size, source->CheckString());
-	return 0;
-	%}
-
-## :bro:see:`FileAnalysis::eof`.
-function FileAnalysis::__eof%(source: string%): any
-	%{
-	file_mgr->EndOfFile(source->CheckString());
-	return 0;
 	%}
 
 module GLOBAL;

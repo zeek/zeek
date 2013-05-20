@@ -10,7 +10,6 @@
 #include "Conn.h"
 #include "Val.h"
 #include "AnalyzerSet.h"
-#include "FileID.h"
 #include "BroString.h"
 
 namespace file_analysis {
@@ -40,12 +39,7 @@ public:
 	/**
 	 * @return value of the "id" field from #val record.
 	 */
-	FileID GetID() const { return id; }
-
-	/**
-	 * @return the string which uniquely identifies the file.
-	 */
-	string GetUnique() const { return unique; }
+	string GetID() const { return id; }
 
 	/**
 	 * @return value of "last_active" field in #val record;
@@ -131,7 +125,7 @@ protected:
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
 	 */
-	File(const string& unique, Connection* conn = 0,
+	File(const string& file_id, Connection* conn = 0,
 	     AnalyzerTag::Tag tag = AnalyzerTag::Error, bool is_orig = false);
 
 	/**
@@ -186,8 +180,7 @@ protected:
 	static void StaticInit();
 
 private:
-	FileID id;                 /**< A pretty hash that likely identifies file */
-	string unique;             /**< A string that uniquely identifies file */
+	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool first_chunk;          /**< Track first non-linear chunk. */
@@ -206,8 +199,6 @@ private:
 		uint64 size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
-
-	static string salt;
 
 	static int id_idx;
 	static int parent_id_idx;

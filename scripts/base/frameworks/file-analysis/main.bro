@@ -171,58 +171,6 @@ export {
 	##          rest of it's contents, or false if analysis for the *id*
 	##          isn't currently active.
 	global stop: function(f: fa_file): bool;
-
-	## Sends a sequential stream of data in for file analysis.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## data: bytestring contents of the file to analyze.
-	global data_stream: function(source: string, data: string);
-
-	## Sends a non-sequential chunk of data in for file analysis.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## data: bytestring contents of the file to analyze.
-	##
-	## offset: the offset within the file that this chunk starts.
-	global data_chunk: function(source: string, data: string, offset: count);
-
-	## Signals a content gap in the file bytestream.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## offset: the offset within the file that this gap starts.
-	##
-	## len: the number of bytes that are missing.
-	global gap: function(source: string, offset: count, len: count);
-
-	## Signals the total size of a file.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## size: the number of bytes that comprise the full file.
-	global set_size: function(source: string, size: count);
-
-	## Signals the end of a file.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	global eof: function(source: string);
 }
 
 redef record fa_file += {
@@ -285,31 +233,6 @@ function remove_analyzer(f: fa_file, args: AnalyzerArgs): bool
 function stop(f: fa_file): bool
 	{
 	return __stop(f$id);
-	}
-
-function data_stream(source: string, data: string)
-	{
-	__data_stream(source, data);
-	}
-
-function data_chunk(source: string, data: string, offset: count)
-	{
-	__data_chunk(source, data, offset);
-	}
-
-function gap(source: string, offset: count, len: count)
-	{
-	__gap(source, offset, len);
-	}
-
-function set_size(source: string, size: count)
-	{
-	__set_size(source, size);
-	}
-
-function eof(source: string)
-	{
-	__eof(source);
 	}
 
 event bro_init() &priority=5

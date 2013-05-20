@@ -5,7 +5,6 @@
 
 #include <string>
 #include "Timer.h"
-#include "FileID.h"
 
 namespace file_analysis {
 
@@ -14,7 +13,7 @@ namespace file_analysis {
  */
 class FileTimer : public Timer {
 public:
-	FileTimer(double t, const FileID& id, double interval);
+	FileTimer(double t, const string& id, double interval);
 
 	/**
 	 * Check inactivity of file_analysis::File corresponding to #file_id,
@@ -23,7 +22,7 @@ public:
 	void Dispatch(double t, int is_expire);
 
 private:
-	FileID file_id;
+	string file_id;
 };
 
 } // namespace file_analysis

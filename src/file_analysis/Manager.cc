@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <openssl/md5.h>
 
 #include "Manager.h"
 #include "File.h"
@@ -24,7 +25,7 @@ Manager::~Manager()
 
 void Manager::Terminate()
 	{
-	vector<FileID> keys;
+	vector<string> keys;
 	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
 		keys.push_back(it->first);
 
@@ -32,66 +33,60 @@ void Manager::Terminate()
 		Timeout(keys[i], true);
 	}
 
+string Manager::HashHandle(const string& handle) const
+	{
+	static string salt;
+
+	if ( salt.empty() )
+		salt = BifConst::FileAnalysis::salt->CheckString();
+
+	char tmp[20];
+	uint64 hash[2];
+	string msg(handle + salt);
+
+	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
+	    reinterpret_cast<u_char*>(hash));
+	uitoa_n(hash[0], tmp, sizeof(tmp), 62);
+
+	return tmp;
+	}
+
 void Manager::SetHandle(const string& handle)
 	{
-	current_handle = handle;
+	if ( handle.empty() )
+		return;
+
+	current_file_id = HashHandle(handle);
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) )
-		return;
+	File* file = GetFile(conn, tag, is_orig);
 
-	GetFileHandle(tag, conn, is_orig);
-	DataIn(data, len, offset, GetFile(current_handle, conn, tag, is_orig));
-	}
-
-void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     const string& unique)
-	{
-	DataIn(data, len, offset, GetFile(unique));
-	}
-
-void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     File* file)
-	{
 	if ( ! file )
 		return;
 
 	file->DataIn(data, len, offset);
 
 	if ( file->IsComplete() )
-		RemoveFile(file->GetUnique());
+		RemoveFile(file->GetID());
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
                      Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) )
-		return;
-
-	GetFileHandle(tag, conn, is_orig);
-
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
-	DataIn(data, len, GetFile(current_handle, conn, tag, is_orig, false));
-	}
+	File* file = GetFile(conn, tag, is_orig, false);
 
-void Manager::DataIn(const u_char* data, uint64 len, const string& unique)
-	{
-	DataIn(data, len, GetFile(unique));
-	}
-
-void Manager::DataIn(const u_char* data, uint64 len, File* file)
-	{
 	if ( ! file )
 		return;
 
 	file->DataIn(data, len);
 
 	if ( file->IsComplete() )
-		RemoveFile(file->GetUnique());
+		RemoveFile(file->GetID());
 	}
 
 void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
@@ -102,35 +97,16 @@ void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
 
 void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) )
-		return;
-
+	// Don't need to create a file if we're just going to remove it right away.
 	GetFileHandle(tag, conn, is_orig);
-	EndOfFile(current_handle);
-	}
-
-void Manager::EndOfFile(const string& unique)
-	{
-	RemoveFile(unique);
+	RemoveFile(current_file_id);
 	}
 
 void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
                   Connection* conn, bool is_orig)
 	{
-	if ( IsDisabled(tag) )
-		return;
+	File* file = GetFile(conn, tag, is_orig);
 
-	GetFileHandle(tag, conn, is_orig);
-	Gap(offset, len, GetFile(current_handle, conn, tag, is_orig));
-	}
-
-void Manager::Gap(uint64 offset, uint64 len, const string& unique)
-	{
-	Gap(offset, len, GetFile(unique));
-	}
-
-void Manager::Gap(uint64 offset, uint64 len, File* file)
-	{
 	if ( ! file )
 		return;
 
@@ -140,30 +116,18 @@ void Manager::Gap(uint64 offset, uint64 len, File* file)
 void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
                       bool is_orig)
 	{
-	if ( IsDisabled(tag) )
-		return;
+	File* file = GetFile(conn, tag, is_orig);
 
-	GetFileHandle(tag, conn, is_orig);
-	SetSize(size, GetFile(current_handle, conn, tag, is_orig));
-	}
-
-void Manager::SetSize(uint64 size, const string& unique)
-	{
-	SetSize(size, GetFile(unique));
-	}
-
-void Manager::SetSize(uint64 size, File* file)
-	{
 	if ( ! file )
 		return;
 
 	file->SetTotalBytes(size);
 
 	if ( file->IsComplete() )
-		RemoveFile(file->GetUnique());
+		RemoveFile(file->GetID());
 	}
 
-bool Manager::PostponeTimeout(const FileID& file_id) const
+bool Manager::PostponeTimeout(const string& file_id) const
 	{
 	File* file = Lookup(file_id);
 
@@ -174,7 +138,7 @@ bool Manager::PostponeTimeout(const FileID& file_id) const
 	return true;
 	}
 
-bool Manager::SetTimeoutInterval(const FileID& file_id, double interval) const
+bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	{
 	File* file = Lookup(file_id);
 
@@ -185,7 +149,7 @@ bool Manager::SetTimeoutInterval(const FileID& file_id, double interval) const
 	return true;
 	}
 
-bool Manager::AddAnalyzer(const FileID& file_id, RecordVal* args) const
+bool Manager::AddAnalyzer(const string& file_id, RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
@@ -195,7 +159,7 @@ bool Manager::AddAnalyzer(const FileID& file_id, RecordVal* args) const
 	return file->AddAnalyzer(args);
 	}
 
-bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
+bool Manager::RemoveAnalyzer(const string& file_id, const RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
@@ -205,32 +169,27 @@ bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 	return file->RemoveAnalyzer(args);
 	}
 
-File* Manager::GetFile(const string& unique, Connection* conn,
-                       AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
+File* Manager::GetFile(Connection* conn, AnalyzerTag::Tag tag, bool is_orig,
+                       bool update_conn)
 	{
-	if ( unique.empty() )
+	// sets current_file_id for us
+	GetFileHandle(tag, conn, is_orig);
+
+	if ( current_file_id.empty() )
 		return 0;
 
-	if ( IsIgnored(unique) )
+	if ( IsIgnored(current_file_id) )
 		return 0;
 
-	File* rval = str_map[unique];
+	File* rval = id_map[current_file_id];
 
 	if ( ! rval )
 		{
-		rval = str_map[unique] = new File(unique, conn, tag, is_orig);
-		FileID id = rval->GetID();
-
-		if ( id_map[id] )
-			{
-			reporter->Error("Evicted duplicate file ID: %s", id.c_str());
-			RemoveFile(unique);
-			}
-
-		id_map[id] = rval;
+		rval = id_map[current_file_id] = new File(current_file_id, conn, tag,
+		                                          is_orig);
 		rval->ScheduleInactivityTimer();
 
-		if ( IsIgnored(unique) )
+		if ( IsIgnored(current_file_id) )
 			return 0;
 		}
 	else
@@ -244,7 +203,7 @@ File* Manager::GetFile(const string& unique, Connection* conn,
 	return rval;
 	}
 
-File* Manager::Lookup(const FileID& file_id) const
+File* Manager::Lookup(const string& file_id) const
 	{
 	IDMap::const_iterator it = id_map.find(file_id);
 
@@ -254,7 +213,7 @@ File* Manager::Lookup(const FileID& file_id) const
 	return it->second;
 	}
 
-void Manager::Timeout(const FileID& file_id, bool is_terminating)
+void Manager::Timeout(const string& file_id, bool is_terminating)
 	{
 	File* file = Lookup(file_id);
 
@@ -277,53 +236,50 @@ void Manager::Timeout(const FileID& file_id, bool is_terminating)
 	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
 	        file->GetID().c_str());
 
-	RemoveFile(file->GetUnique());
+	RemoveFile(file->GetID());
 	}
 
-bool Manager::IgnoreFile(const FileID& file_id)
+bool Manager::IgnoreFile(const string& file_id)
+	{
+	if ( id_map.find(file_id) == id_map.end() )
+		return false;
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
+
+	ignored.insert(file_id);
+
+	return true;
+	}
+
+bool Manager::RemoveFile(const string& file_id)
 	{
 	IDMap::iterator it = id_map.find(file_id);
 
 	if ( it == id_map.end() )
 		return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
-
-	ignored.insert(it->second->GetUnique());
-
-	return true;
-	}
-
-bool Manager::RemoveFile(const string& unique)
-	{
-	StrMap::iterator it = str_map.find(unique);
-
-	if ( it == str_map.end() )
-		return false;
+	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", file_id.c_str());
 
 	it->second->EndOfFile();
 
-	FileID id = it->second->GetID();
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", id.c_str());
-
-	if ( ! id_map.erase(id) )
-		reporter->Error("No mapping for fileID %s", id.c_str());
-
-	ignored.erase(unique);
 	delete it->second;
-	str_map.erase(unique);
+	id_map.erase(file_id);
+	ignored.erase(file_id);
+
 	return true;
 	}
 
-bool Manager::IsIgnored(const string& unique)
+bool Manager::IsIgnored(const string& file_id)
 	{
-	return ignored.find(unique) != ignored.end();
+	return ignored.find(file_id) != ignored.end();
 	}
 
 void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
 	{
-	current_handle.clear();
+	current_file_id.clear();
+
+	if ( IsDisabled(tag) )
+		return;
 
 	if ( ! get_file_handle )
 		return;

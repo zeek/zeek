@@ -87,7 +87,7 @@ export {
 		conn_uids: set[string] &log;
 
 		## A set of analysis types done during the file analysis.
-		analyzers: set[Analyzer] &log;
+		analyzers: set[Analyzer];
 
 		## Local filenames of extracted files.
 		extracted_files: set[string] &log;

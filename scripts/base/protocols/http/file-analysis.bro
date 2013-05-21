@@ -25,6 +25,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 module GLOBAL;
 
 event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
+	&priority=5
 	{
 	if ( tag != ANALYZER_HTTP ) return;
 	set_file_handle(HTTP::get_file_handle(c, is_orig));

@@ -39,8 +39,6 @@ export {
 
 global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
 
-global extract_count: count = 0;
-
 function set_dcc_mime(f: fa_file)
 	{
 	if ( ! f?$conns ) return;
@@ -75,8 +73,7 @@ function set_dcc_extraction_file(f: fa_file, filename: string)
 
 function get_extraction_name(f: fa_file): string
 	{
-	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
-	++extract_count;
+	local r = fmt("%s-%s.dat", extraction_prefix, f$id);
 	return r;
 	}
 

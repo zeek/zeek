@@ -153,23 +153,15 @@ void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
 		RemoveFile(file->GetID());
 	}
 
-bool Manager::PostponeTimeout(const string& file_id) const
-	{
-	File* file = Lookup(file_id);
-
-	if ( ! file )
-		return false;
-
-	file->postpone_timeout = true;
-	return true;
-	}
-
 bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file )
 		return false;
+
+	if ( interval > 0 )
+		file->postpone_timeout = true;
 
 	file->SetTimeoutInterval(interval);
 	return true;

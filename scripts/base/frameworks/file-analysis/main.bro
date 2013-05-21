@@ -120,7 +120,9 @@ export {
 
 	## Sets the *timeout_interval* field of :bro:see:`fa_file`, which is
 	## used to determine the length of inactivity that is allowed for a file
-	## before internal state related to it is cleaned up.
+	## before internal state related to it is cleaned up.  When used within a
+	## :bro:see:`file_timeout` handler, the analysis will delay timing out
+	## again for the period specified by *t*.
 	##
 	## f: the file.
 	##
@@ -129,18 +131,6 @@ export {
 	## Returns: true if the timeout interval was set, or false if analysis
 	##          for the *id* isn't currently active.
 	global set_timeout_interval: function(f: fa_file, t: interval): bool;
-
-	## Postpones the timeout of file analysis for a given file.
-	## When used within a :bro:see:`file_timeout` handler for, the analysis
-	## the analysis will delay timing out for the period of time indicated by
-	## the *timeout_interval* field of :bro:see:`fa_file`, which can be set
-	## with :bro:see:`FileAnalysis::set_timeout_interval`.
-	##
-	## f: the file.
-	##
-	## Returns: true if the timeout will be postponed, or false if analysis
-	##          for the *id* isn't currently active.
-	global postpone_timeout: function(f: fa_file): bool;
 
 	## Adds an analyzer to the analysis of a given file.
 	##
@@ -205,11 +195,6 @@ function set_info(f: fa_file)
 function set_timeout_interval(f: fa_file, t: interval): bool
 	{
 	return __set_timeout_interval(f$id, t);
-	}
-
-function postpone_timeout(f: fa_file): bool
-	{
-	return __postpone_timeout(f$id);
 	}
 
 function add_analyzer(f: fa_file, args: AnalyzerArgs): bool

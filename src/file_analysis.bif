@@ -27,13 +27,6 @@ enum Analyzer %{
 	ANALYZER_DATA_EVENT,
 %}
 
-## :bro:see:`FileAnalysis::postpone_timeout`.
-function FileAnalysis::__postpone_timeout%(file_id: string%): bool
-	%{
-	bool result = file_mgr->PostponeTimeout(file_id->CheckString());
-	return new Val(result, TYPE_BOOL);
-	%}
-
 ## :bro:see:`FileAnalysis::set_timeout_interval`.
 function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{

@@ -89,12 +89,6 @@ public:
 	bool IgnoreFile(const string& file_id);
 
 	/**
-	 * If called during a \c file_timeout event handler, requests deferral of
-	 * analysis timeout.
-	 */
-	bool PostponeTimeout(const string& file_id) const;
-
-	/**
 	 * Set's an inactivity threshold for the file.
 	 */
 	bool SetTimeoutInterval(const string& file_id, double interval) const;

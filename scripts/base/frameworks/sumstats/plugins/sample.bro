@@ -1,9 +1,14 @@
-@load base/frameworks/sumstats
 @load base/utils/queue
+@load ../main
 
 module SumStats;
 
 export {
+	redef enum Calculation += {
+		## Collect a sample of the last few observations.
+		SAMPLE
+	};
+
 	redef record Reducer += {
 		## A number of sample Observations to collect.
 		samples: count &default=0;
@@ -27,14 +32,14 @@ function get_samples(rv: ResultVal): vector of Observation
 	return s;
 	}
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( r$samples > 0 )
+	register_observe_plugin(SAMPLE, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
 		if ( ! rv?$samples )
 			rv$samples = Queue::init([$max_len=r$samples]);
 		Queue::put(rv$samples, obs);
-		}
+		});
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)

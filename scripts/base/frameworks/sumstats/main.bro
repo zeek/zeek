@@ -87,6 +87,10 @@ export {
 	## is no assurance provided as to where the callbacks
 	## will be executed on clusters.
 	type SumStat: record {
+		## An arbitrary name for the sumstat so that it can 
+		## be referred to later.
+		name:               string;
+		
 		## The interval at which this filter should be "broken"
 		## and the '$epoch_finished' callback called.  The
 		## results are also reset at this time so any threshold
@@ -102,22 +106,22 @@ export {
 		## :bro:see:`Result` structure which will be used
 		## for thresholding.
 		## This is required if a $threshold value is given.
-		threshold_val:      function(key: SumStats::Key, result: SumStats::Result): count &optional;
+		threshold_val:      function(key: SumStats::Key, result: SumStats::Result): double &optional;
 
 		## The threshold value for calling the
 		## $threshold_crossed callback.
-		threshold:          count             &optional;
+		threshold:          double            &optional;
 
 		## A series of thresholds for calling the
 		## $threshold_crossed callback.
-		threshold_series:   vector of count   &optional;
+		threshold_series:   vector of double  &optional;
 
 		## A callback that is called when a threshold is crossed.
 		threshold_crossed:  function(key: SumStats::Key, result: SumStats::Result) &optional;
 
 		## A callback with the full collection of Results for
 		## this SumStat.
-		epoch_finished:    function(rt: SumStats::ResultTable) &optional;
+		epoch_finished:     function(rt: SumStats::ResultTable) &optional;
 	};
 
 	## Create a summary statistic.
@@ -134,19 +138,37 @@ export {
 	## obs: The data point to send into the stream.
 	global observe: function(id: string, key: SumStats::Key, obs: SumStats::Observation);
 
-	## This record is primarily used for internal threshold tracking.
-	type Thresholding: record {
-		# Internal use only.  Indicates if a simple threshold was already crossed.
-		is_threshold_crossed: bool &default=F;
+	## Dynamically request a sumstat.  This function should be
+	## used sparingly and not as a replacement for the callbacks 
+	## from the :bro:see:`SumStat` record.  The function is only
+	## available for use within "when" statements as an asynchronous
+	## function.
+	##
+	## ss_name: SumState name.
+	##
+	## Returns: The result table for the requested sumstat.
+	global request: function(ss_name: string): ResultTable;
 
-		# Internal use only.  Current key for threshold series.
-		threshold_series_index: count &default=0;
-	};
+	## Dynamically request a sumstat key.  This function should be
+	## used sparingly and not as a replacement for the callbacks 
+	## from the :bro:see:`SumStat` record.  The function is only
+	## available for use within "when" statements as an asynchronous
+	## function.
+	##
+	## ss_name: SumStat name.
+	##
+	## key: The SumStat key being requested.
+	##
+	## Returns: The result for the requested sumstat key.
+	global request_key: function(ss_name: string, key: Key): Result;
+
+	## This record is primarily used for internal threshold tracking.
+	type Thresholding: record {};
 
 	## This event is generated when thresholds are reset for a SumStat.
 	##
-	## ssid: SumStats ID that thresholds were reset for.
-	global thresholds_reset: event(ssid: string);
+	## name: SumStats name that thresholds were reset for.
+	global thresholds_reset: event(name: string);
 
 	## Helper function to represent a :bro:type:`SumStats::Key` value as
 	## a simple string.
@@ -157,18 +179,42 @@ export {
 	global key2str: function(key: SumStats::Key): string;
 }
 
+# The function prototype for plugins to do calculations.
+type ObserveFunc: function(r: Reducer, val: double, data: Observation, rv: ResultVal);
+
 redef record Reducer += {
-	# Internal use only.  Provides a reference back to the related SumStats by it's ID.
-	sid: string &optional;
+	# Internal use only.  Provides a reference back to the related SumStats by its name.
+	ssname: string &optional;
+
+	calc_funcs: vector of Calculation &optional;
 };
+
+redef record Thresholding += {
+	# Internal use only.  Indicates if a simple threshold was already crossed.
+	is_threshold_crossed: bool &default=F;
+
+	# Internal use only.  Current key for threshold series.
+	threshold_series_index: count &default=0;
+};
+
 
 # Internal use only.  For tracking thresholds per sumstat and key.
 global threshold_tracker: table[string] of table[Key] of Thresholding &optional;
 
 redef record SumStat += {
+	# Internal use only.
+	ssname: string &optional;
+
 	# Internal use only (mostly for cluster coherency).
 	id: string &optional;
 };
+
+# Prototype the hook point for plugins to initialize any result values.
+global init_resultval_hook: hook(r: Reducer, rv: ResultVal);
+
+# Prototype the hook point for plugins to merge Results.
+global compose_resultvals_hook: hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal);
+
 
 # Store of sumstats indexed on the sumstat id.
 global stats_store: table[string] of SumStat = table();
@@ -182,19 +228,19 @@ global result_store: table[string] of ResultTable = table();
 # Store of threshold information.
 global thresholds_store: table[string, Key] of bool = table();
 
+# Store the calculations.
+global calc_store: table[Calculation] of ObserveFunc = table();
+
+# Store the dependencies for Calculations.
+global calc_deps: table[Calculation] of vector of Calculation = table();
+
+# Hook for registering observation calculation plugins.
+global register_observe_plugins: hook();
+
 # This is called whenever key values are updated and the new val is given as the
 # `val` argument. It's only prototyped here because cluster and non-cluster have
 # separate  implementations.
 global data_added: function(ss: SumStat, key: Key, result: Result);
-
-# Prototype the hook point for plugins to do calculations.
-global observe_hook: hook(r: Reducer, val: double, data: Observation, rv: ResultVal);
-
-# Prototype the hook point for plugins to initialize any result values.
-global init_resultval_hook: hook(r: Reducer, rv: ResultVal);
-
-# Prototype the hook point for plugins to merge Results.
-global compose_resultvals_hook: hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal);
 
 # Event that is used to "finish" measurements and adapt the measurement
 # framework for clustered or non-clustered usage.
@@ -208,6 +254,24 @@ function key2str(key: Key): string
 	if ( key?$str )
 		out = fmt("%s%sstr=%s", out, |out|==0 ? "" : ", ", key$str);
 	return fmt("sumstats_key(%s)", out);
+	}
+
+function register_observe_plugin(calc: Calculation, func: ObserveFunc)
+	{
+	calc_store[calc] = func;
+	}
+
+function add_observe_plugin_dependency(calc: Calculation, depends_on: Calculation)
+	{
+	if ( calc !in calc_deps )
+		calc_deps[calc] = vector();
+	calc_deps[calc][|calc_deps[calc]|] = depends_on;
+	}
+
+event bro_init() &priority=100000
+	{
+	# Call all of the plugin registration hooks
+	hook register_observe_plugins();
 	}
 
 function init_resultval(r: Reducer): ResultVal
@@ -234,25 +298,17 @@ function compose_results(r1: Result, r2: Result): Result
 	{
 	local result: Result = table();
 
-	if ( |r1| > |r2| )
+	for ( id in r1 )
 		{
-		for ( data_id in r1 )
-			{
-			if ( data_id in r2 )
-				result[data_id] = compose_resultvals(r1[data_id], r2[data_id]);
-			else
-				result[data_id] = r1[data_id];
-			}
+		result[id] = r1[id];
 		}
-	else
+
+	for ( id in r2 )
 		{
-		for ( data_id in r2 )
-			{
-			if ( data_id in r1 )
-				result[data_id] = compose_resultvals(r1[data_id], r2[data_id]);
-			else
-				result[data_id] = r2[data_id];
-			}
+		if ( id in r1 )
+			result[id] = compose_resultvals(r1[id], r2[id]);
+		else
+			result[id] = r2[id];
 		}
 
 	return result;
@@ -261,16 +317,40 @@ function compose_results(r1: Result, r2: Result): Result
 
 function reset(ss: SumStat)
 	{
-	if ( ss$id in result_store )
-		delete result_store[ss$id];
+	if ( ss$name in result_store )
+		delete result_store[ss$name];
 
-	result_store[ss$id] = table();
+	result_store[ss$name] = table();
 
 	if ( ss?$threshold || ss?$threshold_series )
 		{
-		threshold_tracker[ss$id] = table();
-		event SumStats::thresholds_reset(ss$id);
+		threshold_tracker[ss$name] = table();
+		event SumStats::thresholds_reset(ss$name);
 		}
+	}
+
+# This could potentially recurse forever, but plugin authors 
+# should be making sure they aren't causing reflexive dependencies.
+function add_calc_deps(calcs: vector of Calculation, c: Calculation)
+	{
+	#print fmt("Checking for deps for %s", c);
+	for ( i in calc_deps[c] )
+		{
+		local skip_calc=F;
+		for ( j in calcs )
+			{
+			if ( calcs[j] == calc_deps[c][i] )
+				skip_calc=T;
+			}
+		if ( ! skip_calc )
+			{
+			if ( calc_deps[c][i] in calc_deps )
+				add_calc_deps(calcs, calc_deps[c][i]);
+			calcs[|c|] = calc_deps[c][i];
+			#print fmt("add dep for %s [%s] ", c, calc_deps[c][i]);
+			}
+		}
+
 	}
 
 function create(ss: SumStat)
@@ -280,14 +360,32 @@ function create(ss: SumStat)
 		Reporter::error("SumStats given a threshold with no $threshold_val function");
 		}
 
-	if ( ! ss?$id )
-		ss$id=unique_id("");
-	threshold_tracker[ss$id] = table();
-	stats_store[ss$id] = ss;
+	threshold_tracker[ss$name] = table();
+	stats_store[ss$name] = ss;
 
 	for ( reducer in ss$reducers )
 		{
-		reducer$sid = ss$id;
+		reducer$ssname = ss$name;
+		reducer$calc_funcs = vector();
+		for ( calc in reducer$apply )
+			{
+			# Add in dependencies recursively.
+			if ( calc in calc_deps )
+				add_calc_deps(reducer$calc_funcs, calc);
+
+			# Don't add this calculation to the vector if 
+			# it was already added by something else as a 
+			# dependency.
+			local skip_calc=F;
+			for ( j in reducer$calc_funcs )
+				{
+				if ( calc == reducer$calc_funcs[j] )
+					skip_calc=T;
+				}
+			if ( ! skip_calc )
+				reducer$calc_funcs[|reducer$calc_funcs|] = calc;
+			}
+
 		if ( reducer$stream !in reducer_store )
 			reducer_store[reducer$stream] = set();
 		add reducer_store[reducer$stream][reducer];
@@ -313,7 +411,7 @@ function observe(id: string, key: Key, obs: Observation)
 		if ( r?$pred && ! r$pred(key, obs) )
 			next;
 
-		local ss = stats_store[r$sid];
+		local ss = stats_store[r$ssname];
 
 		# If there is a threshold and no epoch_finished callback
 		# we don't need to continue counting since the data will
@@ -324,17 +422,21 @@ function observe(id: string, key: Key, obs: Observation)
 		#       future if on demand access is provided to the
 		#       SumStats results.
 		if ( ! ss?$epoch_finished &&
-		     r$sid in threshold_tracker &&
-		     key in threshold_tracker[r$sid] &&
 		     ( ss?$threshold &&
-		       threshold_tracker[r$sid][key]$is_threshold_crossed ) ||
+		       r$ssname in threshold_tracker &&
+		       key in threshold_tracker[r$ssname] &&
+		       threshold_tracker[r$ssname][key]$is_threshold_crossed ) ||
 		     ( ss?$threshold_series &&
-		       threshold_tracker[r$sid][key]$threshold_series_index+1 == |ss$threshold_series| ) )
+		       r$ssname in threshold_tracker &&
+		       key in threshold_tracker[r$ssname] &&
+		       threshold_tracker[r$ssname][key]$threshold_series_index == |ss$threshold_series| ) )
+			{
 			next;
+			}
 
-		if ( r$sid !in result_store )
-			result_store[ss$id] = table();
-		local results = result_store[r$sid];
+		if ( r$ssname !in result_store )
+			result_store[r$ssname] = table();
+		local results = result_store[r$ssname];
 
 		if ( key !in results )
 			results[key] = table();
@@ -350,10 +452,13 @@ function observe(id: string, key: Key, obs: Observation)
 
 		# If a string was given, fall back to 1.0 as the value.
 		local val = 1.0;
-		if ( obs?$num || obs?$dbl )
-			val = obs?$dbl ? obs$dbl : obs$num;
+		if ( obs?$num )
+			val = obs$num;
+		else if ( obs?$dbl )
+			val = obs$dbl;
 
-		hook observe_hook(r, val, obs, result_val);
+		for ( i in r$calc_funcs )
+			calc_store[r$calc_funcs[i]](r, val, obs, result_val);
 		data_added(ss, key, result);
 		}
 	}
@@ -366,6 +471,8 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 		return F;
 
 	# Add in the extra ResultVals to make threshold_vals easier to write.
+	# This length comparison should work because we just need to make 
+	# sure that we have the same number of reducers and results.
 	if ( |ss$reducers| != |result| )
 		{
 		for ( reducer in ss$reducers )
@@ -378,11 +485,11 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 	local watch = ss$threshold_val(key, result);
 
 	if ( modify_pct < 1.0 && modify_pct > 0.0 )
-		watch = double_to_count(floor(watch/modify_pct));
+		watch = watch/modify_pct;
 
-	if ( ss$id !in threshold_tracker )
-		threshold_tracker[ss$id] = table();
-	local t_tracker = threshold_tracker[ss$id];
+	if ( ss$name !in threshold_tracker )
+		threshold_tracker[ss$name] = table();
+	local t_tracker = threshold_tracker[ss$name];
 
 	if ( key !in t_tracker )
 		{
@@ -398,7 +505,7 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 		}
 
 	if ( ss?$threshold_series &&
-	     |ss$threshold_series| >= tt$threshold_series_index &&
+	     |ss$threshold_series| > tt$threshold_series_index &&
 	     watch >= ss$threshold_series[tt$threshold_series_index] )
 		{
 		# A threshold series was given and the value crossed the next
@@ -426,7 +533,7 @@ function threshold_crossed(ss: SumStat, key: Key, result: Result)
 		}
 
 	ss$threshold_crossed(key, result);
-	local tt = threshold_tracker[ss$id][key];
+	local tt = threshold_tracker[ss$name][key];
 	tt$is_threshold_crossed = T;
 
 	# Bump up to the next threshold series index if a threshold series is being used.

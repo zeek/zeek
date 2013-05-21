@@ -17,7 +17,7 @@ export {
 
 	## How many rejected usernames or passwords are required before being
 	## considered to be bruteforcing.
-	const bruteforce_threshold = 20 &redef;
+	const bruteforce_threshold: double = 20 &redef;
 
 	## The time period in which the threshold needs to be crossed before
 	## being reset.
@@ -28,11 +28,12 @@ export {
 event bro_init()
 	{
 	local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE)];
-	SumStats::create([$epoch=bruteforce_measurement_interval,
+	SumStats::create([$name="ftp-detect-bruteforcing",
+	                  $epoch=bruteforce_measurement_interval,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return result["ftp.failed_auth"]$num;
+	                  	return result["ftp.failed_auth"]$num+0.0;
 	                  	},
 	                  $threshold=bruteforce_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

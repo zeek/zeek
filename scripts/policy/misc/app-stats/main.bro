@@ -1,3 +1,6 @@
+#! AppStats collects information about web applications in use
+#! on the network.  
+
 @load base/protocols/http
 @load base/protocols/ssl
 @load base/frameworks/sumstats
@@ -30,13 +33,17 @@ redef record connection += {
 	resp_hostname: string &optional;
 };
 
+global add_sumstats: hook(id: conn_id, hostname: string, size: count);
+
+
 event bro_init() &priority=3
 	{
 	Log::create_stream(AppStats::LOG, [$columns=Info]);
 
 	local r1: SumStats::Reducer = [$stream="apps.bytes", $apply=set(SumStats::SUM)];
 	local r2: SumStats::Reducer = [$stream="apps.hits",  $apply=set(SumStats::UNIQUE)];
-	SumStats::create([$epoch=break_interval,
+	SumStats::create([$name="app-metrics",
+	                  $epoch=break_interval,
 	                  $reducers=set(r1, r2),
 	                  $epoch_finished(data: SumStats::ResultTable) =
 	                  	{
@@ -55,41 +62,6 @@ event bro_init() &priority=3
 	                  	}]);
 	}
 
-function add_sumstats(id: conn_id, hostname: string, size: count)
-	{
-	if ( /\.youtube\.com$/ in hostname && size > 512*1024 )
-		{
-		SumStats::observe("apps.bytes", [$str="youtube"], [$num=size]);
-		SumStats::observe("apps.hits",  [$str="youtube"], [$str=cat(id$orig_h)]);
-		}
-	else if ( /(\.facebook\.com|\.fbcdn\.net)$/ in hostname && size > 20 )
-		{
-		SumStats::observe("apps.bytes", [$str="facebook"], [$num=size]);
-		SumStats::observe("apps.hits",  [$str="facebook"], [$str=cat(id$orig_h)]);
-		}
-	else if ( /\.google\.com$/ in hostname && size > 20 )
-		{
-		SumStats::observe("apps.bytes", [$str="google"], [$num=size]);
-		SumStats::observe("apps.hits",  [$str="google"], [$str=cat(id$orig_h)]);
-		}
-	else if ( /\.nflximg\.com$/ in hostname && size > 200*1024 )
-		{
-		SumStats::observe("apps.bytes", [$str="netflix"], [$num=size]);
-		SumStats::observe("apps.hits",  [$str="netflix"], [$str=cat(id$orig_h)]);
-		}
-	else if ( /\.(pandora|p-cdn)\.com$/ in hostname && size > 512*1024 )
-		{
-		SumStats::observe("apps.bytes", [$str="pandora"], [$num=size]);
-		SumStats::observe("apps.hits",  [$str="pandora"], [$str=cat(id$orig_h)]);
-		}
-	else if ( /\.gmail\.com$/ in hostname && size > 20 )
-		{
-		SumStats::observe("apps.bytes", [$str="gmail"], [$num=size]);
-		SumStats::observe("apps.hits",  [$str="gmail"], [$str=cat(id$orig_h)]);
-		}
-}
-
-
 event ssl_established(c: connection)
 	{
 	if ( c?$ssl && c$ssl?$server_name )
@@ -99,11 +71,11 @@ event ssl_established(c: connection)
 event connection_finished(c: connection)
 	{
 	if ( c?$resp_hostname )
-		add_sumstats(c$id, c$resp_hostname, c$resp$size);
+		hook add_sumstats(c$id, c$resp_hostname, c$resp$size);
 	}
 
 event HTTP::log_http(rec: HTTP::Info)
 	{
 	if( rec?$host )
-		add_sumstats(rec$id, rec$host, rec$response_body_len);
+		hook add_sumstats(rec$id, rec$host, rec$response_body_len);
 	}

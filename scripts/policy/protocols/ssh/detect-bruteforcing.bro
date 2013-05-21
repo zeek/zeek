@@ -27,7 +27,7 @@ export {
 
 	## The number of failed SSH connections before a host is designated as
 	## guessing passwords.
-	const password_guesses_limit = 30 &redef;
+	const password_guesses_limit: double = 30 &redef;
 
 	## The amount of time to remember presumed non-successful logins to build
 	## model of a password guesser.
@@ -43,11 +43,12 @@ export {
 event bro_init()
 	{
 	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=guessing_timeout,
+	SumStats::create([$name="detect-ssh-bruteforcing",
+	                  $epoch=guessing_timeout,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["ssh.login.failure"]$sum);
+	                  	return result["ssh.login.failure"]$sum;
 	                  	},
 	                  $threshold=password_guesses_limit,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

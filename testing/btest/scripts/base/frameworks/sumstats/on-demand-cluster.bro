@@ -23,19 +23,9 @@ global n = 0;
 event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE)];
-	SumStats::create([$name="test",
-	                  $epoch=5secs,
-	                  $reducers=set(r1),
-	                  $epoch_finished(rt: SumStats::ResultTable) =
-	                  	{
-	                  	for ( key in rt )
-	                  		{
-	                  		local r = rt[key]["test"];
-	                  		print fmt("Host: %s - num:%d - sum:%.1f - avg:%.1f - max:%.1f - min:%.1f - var:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$average, r$max, r$min, r$variance, r$std_dev, r$unique);
-	                  		}
-
-	                  	terminate();
-	                  	}]);
+	SumStats::create([$name="test sumstat",
+	                  $epoch=1hr,
+	                  $reducers=set(r1)]);
 	}
 
 event remote_connection_closed(p: event_peer)
@@ -59,25 +49,45 @@ event ready_for_data()
 		{
 		SumStats::observe("test", [$host=1.2.3.4], [$num=75]);
 		SumStats::observe("test", [$host=1.2.3.4], [$num=30]);
-		SumStats::observe("test", [$host=1.2.3.4], [$num=3]);
-		SumStats::observe("test", [$host=1.2.3.4], [$num=57]);
-		SumStats::observe("test", [$host=1.2.3.4], [$num=52]);
-		SumStats::observe("test", [$host=1.2.3.4], [$num=61]);
-		SumStats::observe("test", [$host=1.2.3.4], [$num=95]);
-		SumStats::observe("test", [$host=6.5.4.3], [$num=5]);
 		SumStats::observe("test", [$host=7.2.1.5], [$num=91]);
 		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
 		}
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+
+event on_demand2()
+	{
+	local host = 7.2.1.5;
+	when ( local result = SumStats::request_key("test sumstat", [$host=host]) )
+		{
+		print "SumStat key request";
+		print fmt("    Host: %s -> %.0f", host, result["test"]$sum);
+		terminate();
+		}
+	}
+
+event on_demand()
+	{
+	when ( local results = SumStats::request("test sumstat") )
+		{
+		print "Complete SumStat request";
+		for ( key in results )
+			print fmt("    Host: %s -> %.0f", key$host, results[key]["test"]$sum);
+
+		event on_demand2();
+		}
+	}
 
 global peer_count = 0;
 event remote_connection_handshake_done(p: event_peer) &priority=-5
 	{
 	++peer_count;
 	if ( peer_count == 2 )
-		event ready_for_data();
+		{
+		if ( Cluster::local_node_type() == Cluster::MANAGER )
+			event ready_for_data();
+		
+		schedule 1sec { on_demand() };
+		}
 	}
 
-@endif

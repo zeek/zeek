@@ -11,6 +11,13 @@
 # Load the scan detection script.
 @load misc/scan
 
+# Log some information about web applications being used by users 
+# on your network.
+@load misc/app-metrics
+
+# Detect traceroute being run on the network.  
+@load misc/detect-traceroute
+
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined
 # as "local".  Refer to the software framework's documentation for more 

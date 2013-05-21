@@ -1,4 +1,4 @@
-@load base/frameworks/sumstats
+@load ../main
 
 module SumStats;
 
@@ -23,15 +23,15 @@ redef record ResultVal += {
 	unique_vals: set[Observation] &optional;
 };
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( UNIQUE in r$apply )
+	register_observe_plugin(UNIQUE, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
 		if ( ! rv?$unique_vals )
 			rv$unique_vals=set();
 		add rv$unique_vals[obs];
 		rv$unique = |rv$unique_vals|;
-		}
+		});
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)

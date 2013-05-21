@@ -27,6 +27,17 @@ public:
 	RecordVal* GetVal() const { return val; }
 
 	/**
+	 * @return the value of the "source" field from #val record or an empty
+	 * string if it's not initialized.
+	 */
+	string GetSource() const;
+
+	/**
+	 * Set the "source" field from #val record to \a source.
+	 */
+	void SetSource(const string& source);
+
+	/**
 	 * @return value (seconds) of the "timeout_interval" field from #val record.
 	 */
 	double GetTimeoutInterval() const;

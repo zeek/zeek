@@ -62,7 +62,8 @@ void Manager::SetHandle(const string& handle)
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
                      AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	{
-	File* file = GetFile(conn, tag, is_orig);
+	GetFileHandle(tag, conn, is_orig);
+	File* file = GetFile(current_file_id, conn, tag, is_orig);
 
 	if ( ! file )
 		return;
@@ -76,12 +77,30 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
                      Connection* conn, bool is_orig)
 	{
+	GetFileHandle(tag, conn, is_orig);
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
-	File* file = GetFile(conn, tag, is_orig, false);
+	File* file = GetFile(current_file_id, conn, tag, is_orig, false);
 
 	if ( ! file )
 		return;
+
+	file->DataIn(data, len);
+
+	if ( file->IsComplete() )
+		RemoveFile(file->GetID());
+	}
+
+void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
+                     const string& source)
+	{
+	File* file = GetFile(file_id);
+
+	if ( ! file )
+		return;
+
+	if ( file->GetSource().empty() )
+		file->SetSource(source);
 
 	file->DataIn(data, len);
 
@@ -102,10 +121,16 @@ void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
 	RemoveFile(current_file_id);
 	}
 
+void Manager::EndOfFile(const string& file_id)
+	{
+	RemoveFile(file_id);
+	}
+
 void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
                   Connection* conn, bool is_orig)
 	{
-	File* file = GetFile(conn, tag, is_orig);
+	GetFileHandle(tag, conn, is_orig);
+	File* file = GetFile(current_file_id, conn, tag, is_orig);
 
 	if ( ! file )
 		return;
@@ -116,7 +141,8 @@ void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
 void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
                       bool is_orig)
 	{
-	File* file = GetFile(conn, tag, is_orig);
+	GetFileHandle(tag, conn, is_orig);
+	File* file = GetFile(current_file_id, conn, tag, is_orig);
 
 	if ( ! file )
 		return;
@@ -169,27 +195,23 @@ bool Manager::RemoveAnalyzer(const string& file_id, const RecordVal* args) const
 	return file->RemoveAnalyzer(args);
 	}
 
-File* Manager::GetFile(Connection* conn, AnalyzerTag::Tag tag, bool is_orig,
-                       bool update_conn)
+File* Manager::GetFile(const string& file_id, Connection* conn,
+                       AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
 	{
-	// sets current_file_id for us
-	GetFileHandle(tag, conn, is_orig);
-
-	if ( current_file_id.empty() )
+	if ( file_id.empty() )
 		return 0;
 
-	if ( IsIgnored(current_file_id) )
+	if ( IsIgnored(file_id) )
 		return 0;
 
-	File* rval = id_map[current_file_id];
+	File* rval = id_map[file_id];
 
 	if ( ! rval )
 		{
-		rval = id_map[current_file_id] = new File(current_file_id, conn, tag,
-		                                          is_orig);
+		rval = id_map[file_id] = new File(file_id, conn, tag, is_orig);
 		rval->ScheduleInactivityTimer();
 
-		if ( IsIgnored(current_file_id) )
+		if ( IsIgnored(file_id) )
 			return 0;
 		}
 	else

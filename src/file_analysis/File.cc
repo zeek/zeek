@@ -85,13 +85,9 @@ File::File(const string& file_id, Connection* conn, AnalyzerTag::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		val->Assign(source_idx, new StringVal(::Analyzer::GetTagName(tag)));
+		SetSource(::Analyzer::GetTagName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn);
-		}
-	else
-		{
-		// TODO: what to use as source field? (input framework interface)
 		}
 
 	UpdateLastActivityTime();
@@ -170,6 +166,18 @@ int File::Idx(const string& field)
 		reporter->InternalError("Unknown fa_file field: %s", field.c_str());
 
 	return rval;
+	}
+
+string File::GetSource() const
+	{
+	Val* v = val->Lookup(source_idx);
+
+	return v ? v->AsString()->CheckString() : string();
+	}
+
+void File::SetSource(const string& source)
+	{
+	val->Assign(source_idx, new StringVal(source.c_str()));
 	}
 
 double File::GetTimeoutInterval() const

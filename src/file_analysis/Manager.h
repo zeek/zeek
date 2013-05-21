@@ -57,10 +57,17 @@ public:
 	            Connection* conn, bool is_orig);
 
 	/**
+	 * Pass in sequential file data from external source (e.g. input framework).
+	 */
+	void DataIn(const u_char* data, uint64 len, const string& file_id,
+	            const string& source);
+
+	/**
 	 * Signal the end of file data.
 	 */
 	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn);
 	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
+	void EndOfFile(const string& file_id);
 
 	/**
 	 * Signal a gap in the file data stream.
@@ -118,13 +125,13 @@ protected:
 	typedef map<string, File*> IDMap;
 
 	/**
-	 * @return the File object mapped to #current_file_id or a null pointer if
+	 * @return the File object mapped to \a file_id or a null pointer if
 	 *         analysis is being ignored for the associated file.  An File
 	 *         object may be created if a mapping doesn't exist, and if it did
 	 *         exist, the activity time is refreshed along with any
 	 *         connection-related fields.
 	 */
-	File* GetFile(Connection* conn = 0,
+	File* GetFile(const string& file_id, Connection* conn = 0,
 	              AnalyzerTag::Tag tag = AnalyzerTag::Error,
 	              bool is_orig = false, bool update_conn = true);
 

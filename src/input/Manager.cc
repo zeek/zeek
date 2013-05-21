@@ -15,6 +15,7 @@
 #include "EventHandler.h"
 #include "NetVar.h"
 #include "Net.h"
+#include "../file_analysis/Manager.h"
 
 
 #include "CompHash.h"
@@ -148,6 +149,14 @@ public:
         ~EventStream();
 };
 
+class Manager::AnalysisStream: public Manager::Stream {
+public:
+	string file_id;
+
+	AnalysisStream();
+	~AnalysisStream();
+};
+
 Manager::TableStream::TableStream() : Manager::Stream::Stream()
 	{
 	stream_type = TABLE_STREAM;
@@ -196,6 +205,15 @@ Manager::TableStream::~TableStream()
 		lastDict->Clear();;
 	        delete lastDict;
 		}
+	}
+
+Manager::AnalysisStream::AnalysisStream() : Manager::Stream::Stream()
+	{
+	stream_type = ANALYSIS_STREAM;
+	}
+
+Manager::AnalysisStream::~AnalysisStream()
+	{
 	}
 
 Manager::Manager()
@@ -274,7 +292,8 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	RecordType* rtype = description->Type()->AsRecordType();
 	if ( ! ( same_type(rtype, BifType::Record::Input::TableDescription, 0)
-		|| same_type(rtype, BifType::Record::Input::EventDescription, 0) ) )
+		|| same_type(rtype, BifType::Record::Input::EventDescription, 0)
+		|| same_type(rtype, BifType::Record::Input::AnalysisDescription, 0) ) )
 		{
 		reporter->Error("Streamdescription argument not of right type for new input stream");
 		return false;
@@ -680,6 +699,40 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	return true;
 	}
 
+bool Manager::CreateAnalysisStream(RecordVal* fval)
+	{
+	RecordType* rtype = fval->Type()->AsRecordType();
+	if ( ! same_type(rtype, BifType::Record::Input::AnalysisDescription, 0) )
+		{
+		reporter->Error("AnalysisDescription argument not of right type");
+		return false;
+		}
+
+	AnalysisStream* stream = new AnalysisStream();
+		{
+		if ( ! CreateStream(stream, fval) )
+			{
+			delete stream;
+			return false;
+			}
+		}
+
+	stream->file_id = file_mgr->HashHandle(stream->name);
+
+	assert(stream->reader);
+
+	// reader takes in a byte stream as the only field
+	Field** fields = new Field*[1];
+	fields[0] = new Field("bytestream", 0, TYPE_STRING, TYPE_VOID, false);
+	stream->reader->Init(1, fields);
+
+	readers[stream->reader] = stream;
+
+	DBG_LOG(DBG_INPUT, "Successfully created analysis stream %s",
+		stream->name.c_str());
+
+	return true;
+	}
 
 bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 	{
@@ -966,6 +1019,15 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 		readFields = SendEventStreamEvent(i, type, vals);
 		}
 
+	else if ( i->stream_type == ANALYSIS_STREAM )
+		{
+		readFields = 1;
+		assert(vals[0]->type == TYPE_STRING);
+		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                 vals[0]->val.string_val.length,
+		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
+		}
+
 	else
 		assert(false);
 
@@ -1179,7 +1241,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	DBG_LOG(DBG_INPUT, "Got EndCurrentSend stream %s", i->name.c_str());
 #endif
 
-	if ( i->stream_type == EVENT_STREAM )
+	if ( i->stream_type != TABLE_STREAM )
 		{
 		// just signal the end of the data source
 		SendEndOfData(i);
@@ -1288,6 +1350,9 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 void Manager::SendEndOfData(const Stream *i)
 	{
 	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
+
+	if ( i->stream_type == ANALYSIS_STREAM )
+		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
@@ -1308,6 +1373,15 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		{
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 		readFields = SendEventStreamEvent(i, type, vals);
+		}
+
+	else if ( i->stream_type == ANALYSIS_STREAM )
+		{
+		readFields = 1;
+		assert(vals[0]->type == TYPE_STRING);
+		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                 vals[0]->val.string_val.length,
+		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else
@@ -1574,6 +1648,12 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		{
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 		readVals = SendEventStreamEvent(i, type, vals);
+		success = true;
+		}
+
+	else if ( i->stream_type == ANALYSIS_STREAM )
+		{
+		// can't do anything
 		success = true;
 		}
 

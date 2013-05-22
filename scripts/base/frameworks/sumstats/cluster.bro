@@ -33,7 +33,7 @@ export {
 
 	## Event sent by nodes that are collecting sumstats after receiving a request for
 	## the sumstat from the manager.
-	global cluster_ss_response: event(uid: string, ss_name: string, data: ResultTable, done: bool);
+	global cluster_ss_response: event(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool);
 
 	## This event is sent by the manager in a cluster to initiate the collection of
 	## a single key value from a sumstat.  It's typically used to get intermediate
@@ -115,7 +115,7 @@ event SumStats::send_data(uid: string, ss_name: string, data: ResultTable, clean
 
 	# Note: copy is needed to compensate serialization caching issue. This should be
 	# changed to something else later. 
-	event SumStats::cluster_ss_response(uid, ss_name, copy(local_data), done);
+	event SumStats::cluster_ss_response(uid, ss_name, copy(local_data), done, cleanup);
 	if ( ! done )
 		schedule 0.01 sec { SumStats::send_data(uid, ss_name, incoming_data, T) };
 	}
@@ -175,7 +175,7 @@ event SumStats::thresholds_reset(ss_name: string)
 # This variable is maintained by manager nodes as they collect and aggregate
 # results.
 # Index on a uid.
-global stats_results: table[string] of ResultTable &create_expire=1min &default=table();
+global stats_results: table[string] of ResultTable &create_expire=1min;
 
 # This variable is maintained by manager nodes to track how many "dones" they
 # collected per collection unique id.  Once the number of results for a uid
@@ -292,13 +292,20 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 	event SumStats::cluster_key_request(uid, ss_name, key, T);
 	}
 
-event SumStats::cluster_ss_response(uid: string, ss_name: string, data: ResultTable, done: bool)
+event SumStats::cluster_ss_response(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool)
 	{
 	#print fmt("MANAGER: receiving results from %s", get_event_peer()$descr);
 
 	# Mark another worker as being "done" for this uid.
 	if ( done )
 		++done_with[uid];
+
+	# We had better only be getting requests for stuff that exists.
+	if ( ss_name !in stats_store )
+		return;
+
+	if ( uid !in stats_results )
+		stats_results[uid] = table();
 
 	local local_data = stats_results[uid];
 	local ss = stats_store[ss_name];
@@ -324,8 +331,7 @@ event SumStats::cluster_ss_response(uid: string, ss_name: string, data: ResultTa
 		}
 
 	# If the data has been collected from all peers, we are done and ready to finish.
-	if ( Cluster::worker_count == done_with[uid] &&
-	     /^dyn-/ !in uid )
+	if ( cleanup && Cluster::worker_count == done_with[uid] )
 		{
 		if ( ss?$epoch_finished )
 			ss$epoch_finished(local_data);

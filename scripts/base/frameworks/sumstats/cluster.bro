@@ -164,7 +164,7 @@ event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, t
 
 event SumStats::thresholds_reset(ss_name: string)
 	{
-	threshold_tracker[ss_name] = table();
+	delete threshold_tracker[ss_name];
 	}
 
 @endif

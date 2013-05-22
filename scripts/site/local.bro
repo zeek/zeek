@@ -13,7 +13,7 @@
 
 # Log some information about web applications being used by users 
 # on your network.
-@load misc/app-metrics
+@load misc/app-stats
 
 # Detect traceroute being run on the network.  
 @load misc/detect-traceroute

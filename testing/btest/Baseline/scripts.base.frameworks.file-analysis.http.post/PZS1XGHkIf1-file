@@ -1,0 +1,17 @@
+{
+  "origin": "10.142.133.148",
+  "files": {},
+  "form": null,
+  "url": "http://httpbin.org/post",
+  "args": {},
+  "headers": {
+    "Content-Length": "11",
+    "Connection": "close",
+    "Accept": "*/*",
+    "User-Agent": "curl/7.29.0",
+    "Host": "httpbin.org",
+    "Content-Type": "application/x-www-form-urlencoded"
+  },
+  "json": null,
+  "data": "hello world"
+}

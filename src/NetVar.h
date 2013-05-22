@@ -12,6 +12,7 @@ extern RecordType* conn_id;
 extern RecordType* endpoint;
 extern RecordType* endpoint_stats;
 extern RecordType* connection_type;
+extern RecordType* fa_file_type;
 extern RecordType* icmp_conn;
 extern RecordType* icmp_context;
 extern RecordType* signature_state;
@@ -243,6 +244,12 @@ extern TableType* record_field_table;
 
 extern StringVal* cmd_line_bpf_filter;
 
+class OpaqueType;
+extern OpaqueType* md5_type;
+extern OpaqueType* sha1_type;
+extern OpaqueType* sha256_type;
+extern OpaqueType* entropy_type;
+
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();
 
@@ -255,5 +262,6 @@ extern void init_net_var();
 #include "logging.bif.netvar_h"
 #include "input.bif.netvar_h"
 #include "reporter.bif.netvar_h"
+#include "file_analysis.bif.netvar_h"
 
 #endif

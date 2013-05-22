@@ -9,44 +9,29 @@ export {
 	redef record SMTP::EntityInfo += {
 		## The entity body excerpt.
 		excerpt:    string &log &default="";
-		
-		## Internal tracking to know how much of the body should be included
-		## in the excerpt.
-		excerpt_len: count &optional;
 	};
 	
 	## This is the default value for how much of the entity body should be
-	## included for all MIME entities.
+	## included for all MIME entities.  The lesser of this value and
+	## :bro:see:`default_file_bof_buffer_size` will be used.
 	const default_entity_excerpt_len = 0 &redef;
-	
-	## This table defines how much of various entity bodies should be 
-	## included in excerpts.
-	const entity_excerpt_len: table[string] of count = {} 
-		&redef
-		&default = default_entity_excerpt_len;
 }
 
-event mime_segment_data(c: connection, length: count, data: string) &priority=-1
+event file_new(f: fa_file) &priority=5
 	{
-	if ( ! c?$smtp ) return;
-	
-	if ( c$smtp$current_entity$content_len == 0 )
-		c$smtp$current_entity$excerpt_len = entity_excerpt_len[c$smtp$current_entity$mime_type];
-	}
+	if ( ! f?$source ) return;
+	if ( f$source != "SMTP" ) return;
+	if ( ! f?$bof_buffer ) return;
+	if ( ! f?$conns ) return;
 
-event mime_segment_data(c: connection, length: count, data: string) &priority=-2
-	{
-	if ( ! c?$smtp ) return;
-	
-	local ent = c$smtp$current_entity;
-	if ( ent$content_len < ent$excerpt_len )
+	for ( cid in f$conns )
 		{
-		if ( ent$content_len + length < ent$excerpt_len )
-			ent$excerpt = cat(ent$excerpt, data);
-		else
-			{
-			local x_bytes = ent$excerpt_len - ent$content_len;
-			ent$excerpt = cat(ent$excerpt, sub_bytes(data, 1, x_bytes));
-			}
+		local c: connection = f$conns[cid];
+
+		if ( ! c?$smtp ) next;
+
+		if ( default_entity_excerpt_len > 0 )
+			c$smtp$current_entity$excerpt =
+			        f$bof_buffer[0:default_entity_excerpt_len];
 		}
 	}

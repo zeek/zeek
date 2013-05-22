@@ -85,9 +85,14 @@ void SMTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 	Unexpected(is_orig, "content gap", buf_len, buf);
 
 	if ( state == SMTP_IN_DATA )
+		{
 		// Record the SMTP data gap and terminate the
 		// ongoing mail transaction.
+		if ( mail )
+			mail->Undelivered(len);
+
 		EndData();
+		}
 
 	if ( line_after_gap )
 		{

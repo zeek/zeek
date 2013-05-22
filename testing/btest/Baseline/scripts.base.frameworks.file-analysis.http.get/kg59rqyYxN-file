@@ -1,0 +1,11 @@
+{
+  "origin": "10.224.189.238",
+  "headers": {
+    "Host": "httpbin.org",
+    "Connection": "close",
+    "Accept": "*/*",
+    "User-Agent": "curl/7.29.0"
+  },
+  "gzipped": true,
+  "method": "GET"
+}

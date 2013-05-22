@@ -68,12 +68,6 @@ public:
 	 */
 	int NumThreads() const { return all_threads.size(); }
 
-	/** Manually triggers processing of any thread input. This can be useful
-	 *  if the main thread is waiting for a specific message from a child.
-	 *  Usually, though, one should avoid using it.
-	 */
-	void ForceProcessing() { Process(); }
-
 	/**
 	 * Signals a specific threads to terminate immediately.
 	 */

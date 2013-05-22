@@ -71,8 +71,10 @@ event on_demand()
 	when ( local results = SumStats::request("test sumstat") )
 		{
 		print "Complete SumStat request";
-		for ( key in results )
-			print fmt("    Host: %s -> %.0f", key$host, results[key]["test"]$sum);
+		print fmt("    Host: %s -> %.0f", 6.5.4.3, results[[$host=6.5.4.3]]["test"]$sum);
+		print fmt("    Host: %s -> %.0f", 10.10.10.10, results[[$host=10.10.10.10]]["test"]$sum);
+		print fmt("    Host: %s -> %.0f", 1.2.3.4, results[[$host=1.2.3.4]]["test"]$sum);
+		print fmt("    Host: %s -> %.0f", 7.2.1.5, results[[$host=7.2.1.5]]["test"]$sum);
 
 		event on_demand2();
 		}
@@ -86,7 +88,7 @@ event remote_connection_handshake_done(p: event_peer) &priority=-5
 		{
 		if ( Cluster::local_node_type() == Cluster::MANAGER )
 			event ready_for_data();
-		
+
 		schedule 1sec { on_demand() };
 		}
 	}

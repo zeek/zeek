@@ -113,7 +113,9 @@ event SumStats::send_data(uid: string, ss_name: string, data: ResultTable, clean
 	if ( |incoming_data| == 0 )
 		done = T;
 
-	event SumStats::cluster_ss_response(uid, ss_name, local_data, done);
+	# Note: copy is needed to compensate serialization caching issue. This should be
+	# changed to something else later. 
+	event SumStats::cluster_ss_response(uid, ss_name, copy(local_data), done);
 	if ( ! done )
 		schedule 0.01 sec { SumStats::send_data(uid, ss_name, incoming_data, T) };
 	}
@@ -139,7 +141,10 @@ event SumStats::cluster_key_request(uid: string, ss_name: string, key: Key, clea
 	if ( ss_name in result_store && key in result_store[ss_name] )
 		{
 		#print fmt("WORKER %s: received the cluster_key_request event for %s=%s.", Cluster::node, key2str(key), data);
-		event SumStats::cluster_key_response(uid, ss_name, key, result_store[ss_name][key], cleanup);
+
+		# Note: copy is needed to compensate serialization caching issue. This should be
+		# changed to something else later. 
+		event SumStats::cluster_key_response(uid, ss_name, key, copy(result_store[ss_name][key]), cleanup);
 		}
 	else
 		{

@@ -71,32 +71,33 @@ public:
 	void Start();
 
 	/**
-	 * Signals the thread to prepare for stopping. This must be called
-	 * before Stop() and allows the thread to trigger shutting down
-	 * without yet blocking for doing so.
+	 * Signals the thread to prepare for stopping, but doesn't block to
+	 * wait for that to happen. Use WaitForStop() for that.
+	 *
+	 * The method lets Terminating() now return true, it does however not
+	 * force the thread to terminate. It's up to the Run() method to to
+	 * query Terminating() and exit eventually.
 	 *
 	 * Calling this method has no effect if Start() hasn't been executed
 	 * yet.
 	 *
 	 * Only Bro's main thread must call this method.
 	 */
-	void PrepareStop();
+	void SignalStop();
 
 	/**
-	 * Signals the thread to stop. The method lets Terminating() now
-	 * return true. It does however not force the thread to terminate.
-	 * It's up to the Run() method to to query Terminating() and exit
-	 * eventually.
+	 * Waits until a thread has stopped after receiving SignalStop().
 	 *
 	 * Calling this method has no effect if Start() hasn't been executed
-	 * yet.
+	 * yet. If this is executed without calling SignalStop() first,
+	 * results are undefined.
 	 *
 	 * Only Bro's main thread must call this method.
 	 */
-	void Stop();
+	void WaitForStop();
 
 	/**
-	 * Returns true if Stop() has been called.
+	 * Returns true if WaitForStop() has been called and finished.
 	 *
 	 * This method is safe to call from any thread.
 	 */
@@ -145,18 +146,19 @@ protected:
 	virtual void OnStart()	{}
 
 	/**
-	 * Executed with PrepareStop() (and before OnStop()). This is a hook
-	 * into preparing the thread for stopping. It will be called from
-	 * Bro's main thread before the thread has been signaled to stop.
+	 * Executed with SignalStop(). This is a hook into preparing the
+	 * thread for stopping. It will be called from Bro's main thread
+	 * before the thread has been signaled to stop.
 	 */
-	virtual void OnPrepareStop()	{}
+	virtual void OnSignalStop()	{}
 
 	/**
-	 * Executed with Stop() (and after OnPrepareStop()). This is a hook
-	 * into stopping the thread. It will be called from Bro's main thread
-	 * after the thread has been signaled to stop.
+	 * Executed with WaitForStop(). This is a hook into waiting for the
+	 * thread to stop. It must be overridden by derived classes and only
+	 * return once the thread has indeed finished processing. The method
+	 * will be called from Bro's main thread.
 	 */
-	virtual void OnStop()	{}
+	virtual void OnWaitForStop() = 0;
 
 	/**
 	 * Executed with Kill(). This is a hook into killing the thread.

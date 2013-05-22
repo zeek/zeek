@@ -32,7 +32,15 @@
 @load integration/collective-intel/__load__.bro
 @load integration/collective-intel/main.bro
 @load misc/analysis-groups.bro
-@load misc/app-metrics.bro
+@load misc/app-stats/__load__.bro
+@load misc/app-stats/main.bro
+@load misc/app-stats/plugins/__load__.bro
+@load misc/app-stats/plugins/facebook.bro
+@load misc/app-stats/plugins/gmail.bro
+@load misc/app-stats/plugins/google.bro
+@load misc/app-stats/plugins/netflix.bro
+@load misc/app-stats/plugins/pandora.bro
+@load misc/app-stats/plugins/youtube.bro
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
@@ -78,3 +86,5 @@
 @load tuning/defaults/warnings.bro
 @load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
+
+redef LogElasticSearch::server_host = "";

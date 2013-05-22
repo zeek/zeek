@@ -4,7 +4,7 @@
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT 
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff manager-1/.stdout
 
 @TEST-START-FILE cluster-layout.bro
@@ -21,8 +21,15 @@ event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
 	SumStats::create([$name="test",
-	                  $epoch=1hr,
+	                  $epoch=10secs,
 	                  $reducers=set(r1),
+	                  $epoch_finished(data: SumStats::ResultTable) = 
+	                  	{
+	                  	print "End of epoch handler was called";
+	                  	for ( res in data ) 
+	                  		print data[res]["test.metric"]$sum;
+	                  	terminate();
+	                  	},
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	return result["test.metric"]$sum;
@@ -31,7 +38,6 @@ event bro_init() &priority=5
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	print fmt("A test metric threshold was crossed with a value of: %.1f", result["test.metric"]$sum);
-	                  	terminate();
 	                  	}]);
 	}
 
@@ -53,8 +59,13 @@ event remote_connection_handshake_done(p: event_peer)
 	if ( p$descr == "manager-1" )
 		{
 		if ( Cluster::node == "worker-1" )
+			{
 			schedule 0.1sec { do_stats(1) };
+			schedule 5secs { do_stats(60) };
+			}
 		if ( Cluster::node == "worker-2" )
-			schedule 0.5sec { do_stats(99) };
+			schedule 0.5sec { do_stats(40) };
 		}
 	}
+
+

@@ -117,20 +117,7 @@ void BasicThread::Start()
 	OnStart();
 	}
 
-void BasicThread::PrepareStop()
-	{
-	if ( ! started )
-		return;
-
-	if ( terminating )
-		return;
-
-	DBG_LOG(DBG_THREADING, "Preparing thread %s to terminate ...", name);
-
-	OnPrepareStop();
-	}
-
-void BasicThread::Stop()
+void BasicThread::SignalStop()
 	{
 	if ( ! started )
 		return;
@@ -140,7 +127,17 @@ void BasicThread::Stop()
 
 	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
 
-	OnStop();
+	OnSignalStop();
+	}
+
+void BasicThread::WaitForStop()
+	{
+	if ( ! started )
+		return;
+
+	DBG_LOG(DBG_THREADING, "Waiting for thread %s to terminate and process last queue items...", name);
+
+	OnWaitForStop();
 
 	terminating = true;
 	}
@@ -150,11 +147,12 @@ void BasicThread::Join()
 	if ( ! started )
 		return;
 
+	if ( ! pthread )
+		return;
+
 	assert(terminating);
 
-	DBG_LOG(DBG_THREADING, "Joining thread %s ...", name);
-
-	if ( pthread && pthread_join(pthread, 0) != 0  )
+	if ( pthread_join(pthread, 0) != 0  )
 		reporter->FatalError("Failure joining thread %s", name);
 
 	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);

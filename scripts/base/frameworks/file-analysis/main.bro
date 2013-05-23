@@ -22,11 +22,13 @@ export {
 		extract_filename: string &optional;
 
 		## An event which will be generated for all new file contents,
-		## chunk-wise.
+		## chunk-wise.  Used when *tag* is
+		## :bro:see:`FileAnalysis::ANALYZER_DATA_EVENT`.
 		chunk_event: event(f: fa_file, data: string, off: count) &optional;
 
 		## An event which will be generated for all new file contents,
-		## stream-wise.
+		## stream-wise.  Used when *tag* is
+		## :bro:see:`FileAnalysis::ANALYZER_DATA_EVENT`.
 		stream_event: event(f: fa_file, data: string) &optional;
 	} &redef;
 

@@ -101,20 +101,21 @@ export {
 	##
 	## is_query: Indicator for if this is being called for a query or a response.
 	global set_session: hook(c: connection, msg: dns_msg, is_query: bool);
+
+	## A record type which tracks the status of DNS queries for a given
+	## :bro:type:`connection`.
+	type State: record {
+		## Indexed by query id, returns Info record corresponding to
+		## query/response which haven't completed yet.
+		pending: table[count] of Queue::Queue;
+
+		## This is the list of DNS responses that have completed based on the
+		## number of responses declared and the number received.  The contents
+		## of the set are transaction IDs.
+		finished_answers: set[count];
+	};
 }
 
-## A record type which tracks the status of DNS queries for a given
-## :bro:type:`connection`.
-type State: record {
-	## Indexed by query id, returns Info record corresponding to
-	## query/response which haven't completed yet.
-	pending: table[count] of Queue::Queue;
-
-	## This is the list of DNS responses that have completed based on the
-	## number of responses declared and the number received.  The contents
-	## of the set are transaction IDs.
-	finished_answers: set[count];
-};
 
 redef record connection += {
 	dns:       Info  &optional;

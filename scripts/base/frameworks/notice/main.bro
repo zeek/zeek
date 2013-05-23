@@ -431,9 +431,6 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		}
 	}
 
-## This determines if a notice is being suppressed.  It is only used
-## internally as part of the mechanics for the global :bro:id:`NOTICE`
-## function.
 function is_being_suppressed(n: Notice::Info): bool
 	{
 	if ( n?$identifier && [n$note, n$identifier] in suppressing )

@@ -195,7 +195,7 @@ export {
 	##
 	## Returns: True if a new stream was successfully removed.
 	##
-	## .. bro:see:: Log:create_stream
+	## .. bro:see:: Log::create_stream
 	global remove_stream: function(id: ID) : bool;
 
 	## Enables a previously disabled logging stream.  Disabled streams

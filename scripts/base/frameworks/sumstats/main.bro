@@ -189,22 +189,30 @@ redef record Reducer += {
 	calc_funcs: vector of Calculation &optional;
 };
 
-redef record Thresholding += {
-	# Internal use only.  Indicates if a simple threshold was already crossed.
-	is_threshold_crossed: bool &default=F;
-
-	# Internal use only.  Current key for threshold series.
-	threshold_series_index: count &default=0;
-};
-
-
 # Internal use only.  For tracking thresholds per sumstat and key.
-global threshold_tracker: table[string] of table[Key] of Thresholding &optional;
+# In the case of a single threshold, 0 means the threshold isn't crossed.
+# In the case of a threshold series, the number tracks the threshold offset.
+global threshold_tracker: table[string] of table[Key] of count;
 
-redef record SumStat += {
-	# Internal use only.
-	ssname: string &optional;
-};
+function increment_threshold_tracker(ss_name: string, key: Key)
+	{
+	if ( ss_name !in threshold_tracker )
+		threshold_tracker[ss_name] = table();
+	if ( key !in threshold_tracker[ss_name] )
+		threshold_tracker[ss_name][key] = 0;
+
+	++threshold_tracker[ss_name][key];
+	}
+
+function get_threshold_index(ss_name: string, key: Key): count
+	{
+	if ( ss_name !in threshold_tracker )
+		return 0;
+	if ( key !in threshold_tracker[ss_name] )
+		return 0;
+
+	return threshold_tracker[ss_name][key];
+	}
 
 # Prototype the hook point for plugins to initialize any result values.
 global init_resultval_hook: hook(r: Reducer, rv: ResultVal);
@@ -318,8 +326,7 @@ function reset(ss: SumStat)
 
 	result_store[ss$name] = table();
 
-	if ( (ss?$threshold || ss?$threshold_series) && 
-	     ss$name in threshold_tracker )
+	if ( ss$name in threshold_tracker )
 		{
 		delete threshold_tracker[ss$name];
 		threshold_tracker[ss$name] = table();
@@ -359,6 +366,9 @@ function create(ss: SumStat)
 		}
 
 	stats_store[ss$name] = ss;
+
+	if ( ss?$threshold || ss?$threshold_series )
+		threshold_tracker[ss$name] = table();
 
 	for ( reducer in ss$reducers )
 		{
@@ -420,13 +430,11 @@ function observe(id: string, key: Key, obs: Observation)
 		#       SumStats results.
 		if ( ! ss?$epoch_finished &&
 		     ( ss?$threshold &&
-		       r$ssname in threshold_tracker &&
 		       key in threshold_tracker[r$ssname] &&
-		       threshold_tracker[r$ssname][key]$is_threshold_crossed ) ||
+		       threshold_tracker[r$ssname][key] != 0 ) ||
 		     ( ss?$threshold_series &&
-		       r$ssname in threshold_tracker &&
 		       key in threshold_tracker[r$ssname] &&
-		       threshold_tracker[r$ssname][key]$threshold_series_index == |ss$threshold_series| ) )
+		       threshold_tracker[r$ssname][key] == |ss$threshold_series| ) )
 			{
 			next;
 			}
@@ -464,7 +472,7 @@ function observe(id: string, key: Key, obs: Observation)
 # mid-break-interval threshold crossing detection for cluster deployments.
 function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: double): bool
 	{
-	if ( ! (ss?$threshold || ss?$threshold_series) )
+	if ( ! (ss?$threshold || ss?$threshold_series || ss?$threshold_crossed) )
 		return F;
 
 	# Add in the extra ResultVals to make threshold_vals easier to write.
@@ -484,42 +492,25 @@ function check_thresholds(ss: SumStat, key: Key, result: Result, modify_pct: dou
 	if ( modify_pct < 1.0 && modify_pct > 0.0 )
 		watch = watch/modify_pct;
 
-	if ( ss$name !in threshold_tracker )
-		threshold_tracker[ss$name] = table();
-	local t_tracker = threshold_tracker[ss$name];
+	local t_index = get_threshold_index(ss$name, key);
 
-	if ( ss?$threshold )
+	if ( ss?$threshold &&
+	     t_index == 0 && # Check that the threshold hasn't already been crossed.
+	     watch >= ss$threshold )
 		{
-		local tt: Thresholding;
-		if ( key in t_tracker )
-			tt = t_tracker[key];
-		
-		if ( ! tt$is_threshold_crossed && 
-		     watch >= ss$threshold )
-			{
-			t_tracker[key] = tt;
-
-			# Value crossed the threshold.
-			return T;
-			}
+		# Value crossed the threshold.
+		return T;
 		}
 
-	if ( ss?$threshold_series )
+	if ( ss?$threshold_series &&
+	     |ss$threshold_series| > t_index && # Check if there are more thresholds.
+	     watch >= ss$threshold_series[t_index] )
 		{
-		local tt2: Thresholding;
-		if ( key in t_tracker )
-			tt2 = t_tracker[key];
-
-		if ( |ss$threshold_series| > tt2$threshold_series_index &&
-		     watch >= ss$threshold_series[tt2$threshold_series_index] )
-			{
-			t_tracker[key] = tt2;
-
-			# A threshold series was given and the value crossed the next
-			# value in the series.
-			return T;
-			}
+		# A threshold series was given and the value crossed the next
+		# value in the series.
+		return T;
 		}
+
 	return F;
 	}
 
@@ -528,6 +519,8 @@ function threshold_crossed(ss: SumStat, key: Key, result: Result)
 	# If there is no callback, there is no point in any of this.
 	if ( ! ss?$threshold_crossed )
 		return;
+
+	increment_threshold_tracker(ss$name,key);
 
 	# Add in the extra ResultVals to make threshold_crossed callbacks easier to write.
 	if ( |ss$reducers| != |result| )
@@ -540,11 +533,5 @@ function threshold_crossed(ss: SumStat, key: Key, result: Result)
 		}
 
 	ss$threshold_crossed(key, result);
-	local tt = threshold_tracker[ss$name][key];
-	tt$is_threshold_crossed = T;
-
-	# Bump up to the next threshold series index if a threshold series is being used.
-	if ( ss?$threshold_series )
-		++tt$threshold_series_index;
 	}
 

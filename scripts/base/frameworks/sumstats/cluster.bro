@@ -54,7 +54,7 @@ export {
 	global send_data: event(uid: string, ss_name: string, data: ResultTable, cleanup: bool);
 
 	## This event is generated when a threshold is crossed.
-	global cluster_threshold_crossed: event(ss_name: string, key: SumStats::Key, thold: Thresholding);
+	global cluster_threshold_crossed: event(ss_name: string, key: SumStats::Key, thold_index: count);
 }
 
 # Add events to the cluster framework to make this work.
@@ -154,12 +154,12 @@ event SumStats::cluster_key_request(uid: string, ss_name: string, key: Key, clea
 		}
 	}
 
-event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, thold: Thresholding)
+event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, thold_index: count)
 	{
 	if ( ss_name !in threshold_tracker )
 		threshold_tracker[ss_name] = table();
 
-	threshold_tracker[ss_name][key] = thold;
+	threshold_tracker[ss_name][key] = thold_index;
 	}
 
 event SumStats::thresholds_reset(ss_name: string)

@@ -303,6 +303,7 @@ set(bro_SRCS
     Base64.cc
     BitTorrent.cc
     BitTorrentTracker.cc
+    BitVector.cc
     BPF_Program.cc
     BroDoc.cc
     BroDocObj.cc

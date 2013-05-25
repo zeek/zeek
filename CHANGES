@@ -1,4 +1,11 @@
 
+2.1-659 | 2013-05-24 17:24:18 -0700
+
+  * Fix broken/missing documentation. (Jon Siwek)
+    
+  * Fixing test that would fail without ES/curl support. (Robin
+    Sommer)
+
 2.1-656 | 2013-05-17 15:58:07 -0700
 
   * Fix mutex lock problem for writers. (Bernhard Amann)

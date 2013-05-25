@@ -2923,7 +2923,7 @@ function bytestring_to_hexstr%(bytestring: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64_custom, decode_base64
+## .. bro:see:: encode_base64_custom decode_base64
 function encode_base64%(s: string%): string
 	%{
 	BroString* t = encode_base64(s->AsString());
@@ -2946,7 +2946,7 @@ function encode_base64%(s: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64, decode_base64_custom
+## .. bro:see:: encode_base64 decode_base64_custom
 function encode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
@@ -2965,7 +2965,7 @@ function encode_base64_custom%(s: string, a: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom, encode_base64
+## .. bro:see:: decode_base64_custom encode_base64
 function decode_base64%(s: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString());
@@ -2988,7 +2988,7 @@ function decode_base64%(s: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64, encode_base64_custom
+## .. bro:see:: decode_base64 encode_base64_custom
 function decode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());

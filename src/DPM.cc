@@ -34,7 +34,7 @@ ExpectedConn::ExpectedConn(const ExpectedConn& c)
 	}
 
 DPM::DPM()
-: expected_conns_queue(AssignedAnalyzer::compare)
+	: active_analyzers(0), expected_conns_queue(AssignedAnalyzer::compare)
 	{
 	}
 

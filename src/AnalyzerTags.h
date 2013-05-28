@@ -41,7 +41,7 @@ namespace AnalyzerTag {
 		GTPv1,
 
 		// Other
-		File, Backdoor, InterConn, SteppingStone, TCPStats,
+		File, IRC_Data, FTP_Data, Backdoor, InterConn, SteppingStone, TCPStats,
 		ConnSize,
 
 		// Support-analyzers

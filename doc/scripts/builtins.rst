@@ -402,6 +402,31 @@ The Bro scripting language supports the following built-in types.
         if ( r?$s )
             ...
 
+.. bro:type:: opaque
+
+    A data type whose actual representation/implementation is
+    intentionally hidden, but whose values may be passed to certain
+    functions that can actually access the internal/hidden resources.
+    Opaque types are differentiated from each other by qualifying them
+    like ``opaque of md5`` or ``opaque of sha1``.  Any valid identifier
+    can be used as the type qualifier.
+
+    An example use of this type is the set of built-in functions which
+    perform hashing:
+
+    .. code:: bro
+
+        local handle: opaque of md5 = md5_hash_init();
+        md5_hash_update(handle, "test");
+        md5_hash_update(handle, "testing");
+        print md5_hash_finish(handle);
+
+    Here the opaque type is used to provide a handle to a particular
+    resource which is calculating an MD5 checksum incrementally over
+    time, but the details of that resource aren't relevant, it's only
+    necessary to have a handle as a way of identifying it and
+    distinguishing it from other such resources.
+
 .. bro:type:: file
 
     Bro supports writing to files, but not reading from them.  For
@@ -458,6 +483,31 @@ The Bro scripting language supports the following built-in types.
     .. code:: bro
 
         print greeting("Dave");
+
+    Function parameters may specify default values as long as they appear
+    last in the parameter list:
+
+    .. code:: bro
+
+        global foo: function(s: string, t: string &default="abc", u: count &default=0);
+
+    If a function was previously declared with default parameters, the
+    default expressions can be omitted when implementing the function
+    body and they will still be used for function calls that lack those
+    arguments.
+
+    .. code:: bro
+
+        function foo(s: string, t: string, u: count)
+            {
+            print s, t, u;
+            }
+
+    And calls to the function may omit the defaults from the argument list:
+
+    .. code:: bro
+
+        foo("test");
 
 .. bro:type:: event
 
@@ -597,10 +647,10 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &default
 
-    Uses a default value for a record field or container elements. For
-    example, ``table[int] of string &default="foo" }`` would create a
-    table that returns the :bro:type:`string` ``"foo"`` for any
-    non-existing index.
+    Uses a default value for a record field, a function/hook/event
+    parameter, or container elements.  For example, ``table[int] of
+    string &default="foo" }`` would create a table that returns the
+    :bro:type:`string` ``"foo"`` for any non-existing index.
 
 .. bro:attr:: &redef
 

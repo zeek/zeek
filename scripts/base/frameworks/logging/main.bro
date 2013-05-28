@@ -189,6 +189,15 @@ export {
 	## .. bro:see:: Log::add_default_filter Log::remove_default_filter
 	global create_stream: function(id: ID, stream: Stream) : bool;
 
+	## Removes a logging stream completely, stopping all the threads.
+	##
+	## id: The ID enum to be associated with the new logging stream.
+	##
+	## Returns: True if a new stream was successfully removed.
+	##
+	## .. bro:see:: Log::create_stream
+	global remove_stream: function(id: ID) : bool;
+
 	## Enables a previously disabled logging stream.  Disabled streams
 	## will not be written to until they are enabled again.  New streams
 	## are enabled by default.
@@ -440,6 +449,12 @@ function create_stream(id: ID, stream: Stream) : bool
 	active_streams[id] = stream;
 
 	return add_default_filter(id);
+	}
+
+function remove_stream(id: ID) : bool
+	{
+	delete active_streams[id];
+	return __remove_stream(id);
 	}
 
 function disable_stream(id: ID) : bool

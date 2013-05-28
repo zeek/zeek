@@ -17,6 +17,7 @@
 #include "Reporter.h"
 #include "IPAddr.h"
 #include "util.h"
+#include "file_analysis/Manager.h"
 
 using namespace std;
 
@@ -622,7 +623,7 @@ function md5_hmac%(...%): string
 ## ``md5_hash_update(c$http$md5_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`md5_hash_finish` returns the final hash value.
-## 
+##
 ## Returns: The opaque handle associated with this hash computation.
 ##
 ## .. bro:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
@@ -848,11 +849,7 @@ extern "C" {
 ## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
 function identify_data%(data: string, return_mime: bool%): string
 	%{
-	static magic_t magic_mime = 0;
-	static magic_t magic_descr = 0;
-
-	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
-	bro_init_magic(magic, return_mime ? MAGIC_MIME : MAGIC_NONE);
+	magic_t* magic = return_mime ? &magic_mime_cookie : &magic_desc_cookie;
 
 	if( ! *magic )
 		return new StringVal("<unknown>");
@@ -2464,6 +2461,97 @@ function bytestring_to_double%(s: string%): double
 	return new Val(ntohd(d), TYPE_DOUBLE);
 	%}
 
+## Converts a string of bytes to a :bro:type:`count`.
+##
+## s: A string of bytes containing the binary representation of the value.
+##
+## is_le: If true, *s* is assumed to be in little endian format, else it's big endian.
+##
+## Returns: The value contained in *s*, or 0 if the conversion failed.
+##
+function bytestring_to_count%(s: string, is_le: bool &default=F%): count
+	%{
+#ifdef HOST_BIGENDIAN
+	static const bool host_bigendian = true;
+#else
+	static const bool host_bigendian = false;
+#endif
+	const u_char *p = s->Bytes();
+	unsigned int i;
+
+	switch ( s->Len() ) {
+	case sizeof(uint8):
+		{
+		uint8 value = 0;
+		memcpy(&value, p, sizeof(uint8));
+		return new Val(value, TYPE_COUNT);
+		}
+
+	case sizeof(uint16):
+		{
+		uint16 value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+			{
+			char buf[sizeof(uint16)];
+			char *d = &buf[sizeof(uint16)-1];
+
+			for ( i = 0; i < sizeof(uint16); i++ )
+				*d-- = *p++;
+
+			memcpy(&value, buf, sizeof(uint16));
+			}
+		else
+			memcpy(&value, p, sizeof(uint16));
+
+		return new Val(value, TYPE_COUNT);
+		}
+
+	case sizeof(uint32):
+		{
+		uint32 value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+			{
+			char buf[sizeof(uint32)];
+			char *d = &buf[sizeof(uint32)-1];
+
+			for ( i = 0; i < sizeof(uint32); i++ )
+				*d-- = *p++;
+			
+			memcpy(&value, buf, sizeof(uint32));
+			}
+		else
+			memcpy(&value, p, sizeof(uint32));
+
+		return new Val(value, TYPE_COUNT);
+		}
+
+	case sizeof(uint64):
+		{
+		uint64 value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+			{
+			char buf[sizeof(uint64)];
+			char *d = &buf[sizeof(uint64)-1];
+
+			for ( i = 0; i < sizeof(uint64); i++ )
+				*d-- = *p++;
+			
+			memcpy(&value, buf, sizeof(uint64));
+			}
+		else
+			memcpy(&value, p, sizeof(uint64));
+
+		return new Val(value, TYPE_COUNT);
+		}
+	}
+
+	builtin_error("unsupported byte length for bytestring_to_count");
+	return new Val(0, TYPE_COUNT);
+	%}
+
 ## Converts a reverse pointer name to an address. For example,
 ## ``1.0.168.192.in-addr.arpa`` to ``192.168.0.1``.
 ##
@@ -2835,7 +2923,7 @@ function bytestring_to_hexstr%(bytestring: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64_custom, decode_base64
+## .. bro:see:: encode_base64_custom decode_base64
 function encode_base64%(s: string%): string
 	%{
 	BroString* t = encode_base64(s->AsString());
@@ -2858,7 +2946,7 @@ function encode_base64%(s: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64, decode_base64_custom
+## .. bro:see:: encode_base64 decode_base64_custom
 function encode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
@@ -2877,7 +2965,7 @@ function encode_base64_custom%(s: string, a: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom, encode_base64
+## .. bro:see:: decode_base64_custom encode_base64
 function decode_base64%(s: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString());
@@ -2900,7 +2988,7 @@ function decode_base64%(s: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64, encode_base64_custom
+## .. bro:see:: decode_base64 encode_base64_custom
 function decode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());

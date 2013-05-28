@@ -1082,13 +1082,14 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init);
 // match, promote it as necessary (modifying the ref parameter accordingly)
 // and return 1.
 //
-// The second and third forms are for promoting a list of
+// The second, third, and fourth forms are for promoting a list of
 // expressions (which is updated in place) to either match a list of
 // types or a single type.
 //
 // Note, the type is not "const" because it can be ref'd.
 extern int check_and_promote_expr(Expr*& e, BroType* t);
 extern int check_and_promote_exprs(ListExpr*& elements, TypeList* types);
+extern int check_and_promote_args(ListExpr*& args, RecordType* types);
 extern int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type);
 
 // Returns a fully simplified form of the expression.  Note that passed

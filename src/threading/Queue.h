@@ -113,8 +113,9 @@ private:
 
 inline static void safe_lock(pthread_mutex_t* mutex)
 	{
-	if ( pthread_mutex_lock(mutex) != 0 )
-		reporter->FatalErrorWithCore("cannot lock mutex");
+	int res = pthread_mutex_lock(mutex);
+	if ( res != 0 )
+		reporter->FatalErrorWithCore("cannot lock mutex: %d(%s)", res, strerror(res));
 	}
 
 inline static void safe_unlock(pthread_mutex_t* mutex)
@@ -155,20 +156,23 @@ inline Queue<T>::~Queue()
 template<typename T>
 inline T Queue<T>::Get()
 	{
-	if ( (reader && reader->Killed()) || (writer && writer->Killed()) )
-		return 0;
-
 	safe_lock(&mutex[read_ptr]);
 
 	int old_read_ptr = read_ptr;
 
-	if ( messages[read_ptr].empty() )
+	if ( messages[read_ptr].empty() && ! ((reader && reader->Killed()) || (writer && writer->Killed())) )
 		{
 		struct timespec ts;
 		ts.tv_sec = time(0) + 5;
 		ts.tv_nsec = 0;
 
 		pthread_cond_timedwait(&has_data[read_ptr], &mutex[read_ptr], &ts);
+		safe_unlock(&mutex[read_ptr]);
+		return 0;
+		}
+
+	else if ( messages[read_ptr].empty() )
+		{
 		safe_unlock(&mutex[read_ptr]);
 		return 0;
 		}

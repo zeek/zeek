@@ -74,7 +74,7 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
-set(libmagic_req 5.03)
+set(libmagic_req 5.04)
 if ( LibMagic_VERSION VERSION_LESS ${libmagic_req} )
     message(FATAL_ERROR "libmagic of at least version ${libmagic_req} required "
                         "(found ${LibMagic_VERSION})")

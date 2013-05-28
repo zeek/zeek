@@ -1,6 +1,6 @@
 Process finished event
 input
-1
+Exit code != 0
 Input::EVENT_NEW
 ..:
 F
@@ -14,13 +14,13 @@ Input::EVENT_NEW
 stderr.bro
 F
 Input::EVENT_NEW
-ls: ../nonexistant: No such file or directory
+stderr output contained nonexistant
 T
 Input::EVENT_NEW
-ls: ../nonexistant2: No such file or directory
+stderr output contained nonexistant
 T
 Input::EVENT_NEW
-ls: ../nonexistant3: No such file or directory
+stderr output contained nonexistant
 T
 done
 End of Data event

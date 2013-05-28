@@ -291,11 +291,10 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	return true;
 	}
 
-
 int64_t Raw::GetLine(FILE* arg_file)
 	{
 	errno = 0;
-	uint64_t pos = 0;
+	int pos = 0; // strstr_n only works on ints - so no use to use something bigger here
 
 	if ( buf == 0 )
 		buf = new char[block_size];
@@ -311,9 +310,12 @@ int64_t Raw::GetLine(FILE* arg_file)
 		if ( pos == 0 && errno != 0 )
 			break;
 
-		char* token = strnstr(buf, separator.c_str(), block_size*repeats-pos);
-
-		if ( token == 0 ) 
+		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
+		// to deal with situations where the separator is multi-character and split over multiple
+		// reads...
+		int found = strstr_n(pos, (unsigned char*) buf, separator.size(), (unsigned char*) separator.c_str());
+		
+		if ( found == -1 ) 
 			{
 			// we did not find it and have to search again in the next try. resize buffer....
 			// but first check if we encountered the file end - because if we did this was it.
@@ -342,16 +344,15 @@ int64_t Raw::GetLine(FILE* arg_file)
 			buf = new char[block_size];
 
 
-			if ( token - outbuf < pos  ) 
+			if ( found < pos ) 
 				{
 				// we have leftovers. copy them into the buffer for the next line
 				buf = new char[block_size];
-				memcpy(buf, token + sep_length, -(token - outbuf + sep_length) +pos);
-				bufpos =  -(token - outbuf + sep_length) +pos;
+				memcpy(buf, buf + found + sep_length, pos - found - sep_length);
+				bufpos =  pos - found - sep_length;
 				}
 			
-			pos = token-outbuf;
-			return  pos;
+			return  found;
 			}
 
 		}

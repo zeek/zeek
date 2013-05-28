@@ -18,7 +18,7 @@ using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
-const int Raw::block_size = 512; // how big do we expect our chunks of data to be... 
+const int Raw::block_size = 4096; // how big do we expect our chunks of data to be... 
 
 
 Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
@@ -102,7 +102,6 @@ bool Raw::Execute()
 			dup2(pipes[stderr_out], stderr_fileno);
 			}
 
-		//execv("/usr/bin/uname",test);
 		execl("/bin/sh", "sh", "-c", fname.c_str(), NULL);
 		fprintf(stderr, "Exec failed :(......\n");
 		exit(255);
@@ -294,7 +293,8 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 int64_t Raw::GetLine(FILE* arg_file)
 	{
 	errno = 0;
-	int pos = 0; // strstr_n only works on ints - so no use to use something bigger here
+	int pos = 0; // strstr_n only works on ints - so no use to use something different here
+	int offset = 0;
 
 	if ( buf == 0 )
 		buf = new char[block_size];
@@ -303,9 +303,10 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 	for (;;)
 		{
-		size_t readbytes = fread(buf+bufpos, 1, block_size-bufpos, arg_file);
+		size_t readbytes = fread(buf+bufpos+offset, 1, block_size-bufpos, arg_file);
 		pos += bufpos + readbytes;
-		bufpos = 0; // read full block size in next read...
+		//printf("Pos: %d\n", pos);
+		bufpos = offset = 0; // read full block size in next read...
 
 		if ( pos == 0 && errno != 0 )
 			break;
@@ -336,6 +337,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 			memcpy(newbuf, buf, block_size*(repeats-1));
 			delete buf;
 			buf = newbuf;
+			offset = block_size*(repeats-1);
 			}
 		else
 			{
@@ -348,11 +350,11 @@ int64_t Raw::GetLine(FILE* arg_file)
 				{
 				// we have leftovers. copy them into the buffer for the next line
 				buf = new char[block_size];
-				memcpy(buf, buf + found + sep_length, pos - found - sep_length);
+				memcpy(buf, outbuf + found + sep_length, pos - found - sep_length);
 				bufpos =  pos - found - sep_length;
 				}
 			
-			return  found;
+			return found;
 			}
 
 		}
@@ -511,7 +513,7 @@ bool Raw::DoUpdate()
 
 	// and let's check if the child process is still alive
 	int return_code;
-	if ( waitpid(childpid, &return_code, WNOHANG) != 0 ) {
+	if ( childpid != -1 && waitpid(childpid, &return_code, WNOHANG) != 0 ) {
 		// child died :(
 		bool signal = false;
 		int code = 0;

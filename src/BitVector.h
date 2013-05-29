@@ -3,11 +3,12 @@
 
 #include <iterator>
 #include <vector>
+#include "SerialObj.h"
 
 /**
  * A vector of bits.
  */
-class BitVector {
+class BitVector : SerialObj {
 public:
   typedef size_t block_type;
   typedef size_t size_type;
@@ -42,7 +43,7 @@ public:
   typedef bool const_reference;
 
   /**
-   * Constructs an empty bit vector.
+   * Default-constructs an empty bit vector.
    */
   BitVector();
 
@@ -253,6 +254,12 @@ public:
    */
   size_type find_next(size_type i) const;
 
+  bool Serialize(SerialInfo* info) const;
+  static BitVector* Unserialize(UnserialInfo* info);
+
+protected:
+  DECLARE_SERIAL(BitVector);
+
 private:
   /**
    * Computes the block index for a given bit position.
@@ -286,7 +293,7 @@ private:
    */
   static size_type bits_to_blocks(size_type bits)
     {
-    return bits / bits_per_block 
+    return bits / bits_per_block
       + static_cast<size_type>(bits % bits_per_block != 0);
     }
 

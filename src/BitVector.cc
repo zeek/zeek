@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <limits>
+#include "Serializer.h"
 
 BitVector::size_type BitVector::npos = static_cast<BitVector::size_type>(-1);
 BitVector::block_type BitVector::bits_per_block =
@@ -62,7 +63,7 @@ BitVector::Reference& BitVector::Reference::operator=(Reference const& other)
 
 BitVector::Reference& BitVector::Reference::operator|=(bool x)
   {
-  if (x) 
+  if (x)
     block_ |= mask_;
   return *this;
   }
@@ -73,7 +74,7 @@ BitVector::Reference& BitVector::Reference::operator&=(bool x)
     block_ &= ~mask_;
   return *this;
   }
-    
+
 BitVector::Reference& BitVector::Reference::operator^=(bool x)
   {
   if (x)
@@ -452,4 +453,56 @@ BitVector::size_type BitVector::find_from(size_type i) const
   if (i >= blocks())
     return npos;
   return i * bits_per_block + lowest_bit(bits_[i]);
+  }
+
+bool BitVector::Serialize(SerialInfo* info) const
+  {
+  return SerialObj::Serialize(info);
+  }
+
+BitVector* BitVector::Unserialize(UnserialInfo* info)
+  {
+  return reinterpret_cast<BitVector*>(
+      SerialObj::Unserialize(info, SER_BITVECTOR));
+  }
+
+IMPLEMENT_SERIAL(BitVector, SER_BITVECTOR);
+
+bool BitVector::DoSerialize(SerialInfo* info) const
+  {
+  DO_SERIALIZE(SER_BITVECTOR, SerialObj);
+
+  if ( ! SERIALIZE(static_cast<uint64>(bits_.size())) )
+    return false;
+
+  for (size_t i = 0; i < bits_.size(); ++i)
+    if ( ! SERIALIZE(static_cast<uint64>(bits_[i])) )
+      return false;
+
+  return SERIALIZE(static_cast<uint64>(num_bits_));
+  }
+
+bool BitVector::DoUnserialize(UnserialInfo* info)
+  {
+  DO_UNSERIALIZE(SerialObj);
+
+  uint64 size;
+  if ( ! UNSERIALIZE(&size) )
+    return false;
+
+  bits_.resize(static_cast<size_t>(size));
+  uint64 block;
+  for ( size_t i = 0; i < bits_.size(); ++i )
+    {
+    if ( ! UNSERIALIZE(&block) )
+      return false;
+    bits_[i] = static_cast<block_type>(block);
+    }
+
+  uint64 num_bits;
+  if ( ! UNSERIALIZE(&num_bits) )
+    return false;
+  num_bits_ = static_cast<size_type>(num_bits);
+
+  return true;
   }

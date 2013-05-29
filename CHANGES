@@ -1,4 +1,8 @@
 
+2.1-664 | 2013-05-28 21:37:46 -0700
+
+  * Dangling pointer fix. Addresses #1004. (Jon Siwek)
+
 2.1-659 | 2013-05-24 17:24:18 -0700
 
   * Fix broken/missing documentation. (Jon Siwek)

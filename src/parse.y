@@ -546,6 +546,15 @@ expr:
 					$$ = new RecordConstructorExpr($4, ctor_type);
 					break;
 				case TYPE_TABLE:
+					if ( ctor_type->IsTable() )
+						{
+						$1->Error("constructor type not implemented");
+						YYERROR;
+						}
+					else
+						$$ = new SetConstructorExpr($4, 0, ctor_type);
+
+					break;
 				case TYPE_VECTOR:
 				default:
 					$1->Error("constructor type not implemented");

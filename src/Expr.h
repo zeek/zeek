@@ -782,7 +782,8 @@ protected:
 
 class SetConstructorExpr : public UnaryExpr {
 public:
-	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
+	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
+	                   BroType* arg_type = 0);
 	~SetConstructorExpr()	{ Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }

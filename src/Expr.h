@@ -57,6 +57,7 @@ extern const char* expr_name(BroExprTag t);
 class Stmt;
 class Frame;
 class ListExpr;
+class NameExpr;
 class CallExpr;
 class EventExpr;
 
@@ -163,6 +164,17 @@ public:
 		{
 		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
 		return (ListExpr*) this;
+		}
+
+	const NameExpr* AsNameExpr() const
+		{
+		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+		return (const NameExpr*) this;
+		}
+	NameExpr* AsNameExpr()
+		{
+		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+		return (NameExpr*) this;
 		}
 
 	void Describe(ODesc* d) const;
@@ -729,7 +741,8 @@ protected:
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	RecordConstructorExpr(ListExpr* constructor_list);
+	RecordConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	~RecordConstructorExpr();
 
 protected:
 	friend class Expr;
@@ -741,6 +754,8 @@ protected:
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(RecordConstructorExpr);
+
+	RecordType* ctor_type; // type inferred from the ctor expression list args
 };
 
 class TableConstructorExpr : public UnaryExpr {

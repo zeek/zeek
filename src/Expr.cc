@@ -3573,37 +3573,30 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	expr_list& cle = constructor_list->Exprs();
 
-	loop_over_list(cle, i)
+	if ( indices->length() == 1 )
 		{
-		Expr* ce = cle[i];
+		if ( ! check_and_promote_exprs_to_type(constructor_list,
+		                                       (*indices)[0]) )
+			ExprError("inconsistent type in set constructor");
+		}
 
-		if ( ce->Tag() == EXPR_LIST )
+	else if ( indices->length() > 1 )
+		{
+		// check/promote each expression in composite index
+		loop_over_list(cle, i)
 			{
-			// check promote each expression in composite index
-			expr_list& el = ce->AsListExpr()->Exprs();
+			Expr* ce = cle[i];
+			ListExpr* le = ce->AsListExpr();
 
-			if ( el.length() != indices->length() )
+			if ( ce->Tag() == EXPR_LIST &&
+			     check_and_promote_exprs(le, type->AsTableType()->Indices()) )
 				{
-				ExprError("inconsistent index type length in set constructor");
-				return;
+				if ( le != cle[i] )
+					cle.replace(i, le);
+				continue;
 				}
 
-			loop_over_list(el, j)
-				{
-				Expr* e = el[j];
-
-				if ( ! check_and_promote_expr(e, (*indices)[j]) )
-					{
-					ExprError("inconsistent index type in set constructor");
-					return;
-					}
-				}
-			}
-
-		else if ( indices->length() == 1 )
-			{
-			if ( ! check_and_promote_expr(ce, (*indices)[0]) )
-				ExprError("inconsistent index type in set constructor");
+			ExprError("inconsistent types in set constructor");
 			}
 		}
 	}

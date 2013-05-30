@@ -818,7 +818,7 @@ protected:
 
 class VectorConstructorExpr : public UnaryExpr {
 public:
-	VectorConstructorExpr(ListExpr* constructor_list);
+	VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
 
 	Val* Eval(Frame* f) const;
 

@@ -3717,31 +3717,50 @@ bool SetConstructorExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list)
+VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list,
+                                             BroType* arg_type)
 : UnaryExpr(EXPR_VECTOR_CONSTRUCTOR, constructor_list)
 	{
 	if ( IsError() )
 		return;
 
-	if ( constructor_list->Exprs().length() == 0 )
+	if ( arg_type )
 		{
-		// vector().
-		SetType(new ::VectorType(base_type(TYPE_ANY)));
-		return;
-		}
+		if ( arg_type->Tag() != TYPE_VECTOR )
+			{
+			Error("bad vector constructor type", arg_type);
+			SetError();
+			return;
+			}
 
-	BroType* t = merge_type_list(constructor_list);
-	if ( t )
-		{
-		SetType(new VectorType(t->Ref()));
-
-		if ( ! check_and_promote_exprs_to_type(constructor_list, t) )
-			ExprError("inconsistent types in vector constructor");
-
-		Unref(t);
+		SetType(arg_type->Ref());
 		}
 	else
-		SetError();
+		{
+		if ( constructor_list->Exprs().length() == 0 )
+			{
+			// vector().
+			SetType(new ::VectorType(base_type(TYPE_ANY)));
+			return;
+			}
+
+		BroType* t = merge_type_list(constructor_list);
+
+		if ( t )
+			{
+			SetType(new VectorType(t->Ref()));
+			Unref(t);
+			}
+		else
+			{
+			SetError();
+			return;
+			}
+		}
+
+	if ( ! check_and_promote_exprs_to_type(constructor_list,
+	                                       type->AsVectorType()->YieldType()) )
+		ExprError("inconsistent types in vector constructor");
 	}
 
 Val* VectorConstructorExpr::Eval(Frame* f) const

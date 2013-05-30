@@ -555,6 +555,9 @@ expr:
 					break;
 
 				case TYPE_VECTOR:
+					$$ = new VectorConstructorExpr($4, ctor_type);
+					break;
+
 				default:
 					$1->Error("constructor type not implemented");
 					YYERROR;

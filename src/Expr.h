@@ -58,6 +58,7 @@ class Stmt;
 class Frame;
 class ListExpr;
 class NameExpr;
+class AssignExpr;
 class CallExpr;
 class EventExpr;
 
@@ -175,6 +176,17 @@ public:
 		{
 		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
 		return (NameExpr*) this;
+		}
+
+	const AssignExpr* AsAssignExpr() const
+		{
+		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+		return (const AssignExpr*) this;
+		}
+	AssignExpr* AsAssignExpr()
+		{
+		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+		return (AssignExpr*) this;
 		}
 
 	void Describe(ODesc* d) const;
@@ -760,7 +772,8 @@ protected:
 
 class TableConstructorExpr : public UnaryExpr {
 public:
-	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
+	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
+	                     BroType* arg_type = 0);
 	~TableConstructorExpr()	{ Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }

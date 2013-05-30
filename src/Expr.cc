@@ -3461,27 +3461,75 @@ bool RecordConstructorExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
-						attr_list* arg_attrs)
+						attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_TABLE_CONSTRUCTOR, constructor_list)
 	{
 	if ( IsError() )
 		return;
 
-	if ( constructor_list->Exprs().length() == 0 )
-		SetType(new TableType(new TypeList(base_type(TYPE_ANY)), 0));
+	if ( arg_type )
+		{
+		if ( ! arg_type->IsTable() )
+			{
+			Error("bad table constructor type", arg_type);
+			SetError();
+			return;
+			}
+
+		SetType(arg_type->Ref());
+		}
 	else
 		{
-		SetType(init_type(constructor_list));
+		if ( constructor_list->Exprs().length() == 0 )
+			SetType(new TableType(new TypeList(base_type(TYPE_ANY)), 0));
+		else
+			{
+			SetType(init_type(constructor_list));
 
-		if ( ! type )
-			SetError();
+			if ( ! type )
+				SetError();
 
-		else if ( type->Tag() != TYPE_TABLE ||
-			  type->AsTableType()->IsSet() )
-			SetError("values in table(...) constructor do not specify a table");
+			else if ( type->Tag() != TYPE_TABLE ||
+				  type->AsTableType()->IsSet() )
+				SetError("values in table(...) constructor do not specify a table");
+			}
 		}
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+
+	type_list* indices = type->AsTableType()->Indices()->Types();
+	expr_list& cle = constructor_list->Exprs();
+
+	// check and promote all index expressions in ctor list
+	loop_over_list(cle, i)
+		{
+		if ( cle[i]->Tag() != EXPR_ASSIGN )
+			continue;
+
+		Expr* idx_expr = cle[i]->AsAssignExpr()->Op1();
+
+		if ( idx_expr->Tag() != EXPR_LIST )
+			continue;
+
+		expr_list& idx_exprs = idx_expr->AsListExpr()->Exprs();
+
+		if ( idx_exprs.length() != indices->length() )
+			continue;
+
+		loop_over_list(idx_exprs, j)
+			{
+			Expr* idx = idx_exprs[j];
+
+			if ( check_and_promote_expr(idx, (*indices)[j]) )
+				{
+				if ( idx != idx_exprs[j] )
+					idx_exprs.replace(j, idx);
+				continue;
+				}
+
+			ExprError("inconsistent types in table constructor");
+			}
+		}
 	}
 
 Val* TableConstructorExpr::Eval(Frame* f) const

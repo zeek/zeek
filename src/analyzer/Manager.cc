@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Manager.h"
 
@@ -85,9 +86,9 @@ Manager::~Manager()
 		}
 	}
 
-void Manager::Init()
+void Manager::InitPreScript()
 	{
-	std::list<Component*> analyzers = plugin_mgr->Components<Component>(plugin::component::ANALYZER);
+	std::list<Component*> analyzers = plugin_mgr->Components<Component>();
 
 	for ( std::list<Component*>::const_iterator i = analyzers.begin(); i != analyzers.end(); i++ )
 		RegisterAnalyzerComponent(*i);
@@ -98,10 +99,9 @@ void Manager::Init()
 	analyzer_interconn = GetAnalyzerTag("INTERCONN");
 	analyzer_stepping = GetAnalyzerTag("STEPPINGSTONE");
 	analyzer_tcpstats = GetAnalyzerTag("TCPSTATS");
-
 	}
 
-void Manager::InitBifs()
+void Manager::InitPostScript()
 	{
 	#include "analyzer.bif.init.cc"
 	}

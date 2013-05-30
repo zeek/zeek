@@ -1,4 +1,4 @@
-// Main analyzer interface.
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef ANALYZER_ANALYZER_H
 #define ANALYZER_ANALYZER_H

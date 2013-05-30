@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 /**
  * The central management unit for registering and instantiating analyzers.
  *
@@ -60,16 +62,16 @@ public:
 	~Manager();
 
 	/**
-	 * Initializes the manager's operation. Must be called before scripts
-	 * are parsed.
+	 * First-stage initializion of the manager. This is called early on
+	 * during Bro's initialization, before any scripts are processed.
 	 */
-	void Init();
+	void InitPreScript();
 
 	/**
-	 * Initializes the analyze-related BiFs. Must be called after scripts
-	 * are parsed.
+	 * Second-stage initialization of the manager. This is called late
+	 * during Bro's initialization after any scripts are processed.
 	 */
-	void InitBifs();
+	void InitPostScript();
 
 	/**
 	 * Finished the manager's operations.

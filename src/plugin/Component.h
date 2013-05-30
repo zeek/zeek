@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef PLUGIN_COMPONENT_H
 #define PLUGIN_COMPONENT_H
@@ -7,25 +8,55 @@ class ODesc;
 namespace plugin {
 
 namespace component {
-	enum Type {
-		READER,
-		WRITER,
-		ANALYZER
+
+/**
+ * Component types. 
+ */
+enum Type {
+	READER,	/// An input reader (not currently used).
+	WRITER,	/// An logging writer (not currenly used).
+	ANALYZER	/// A protocol analyzer.
 	};
 }
 
+#if 0
 namespace input    { class PluginComponent; }
 namespace logging  { class PluginComponent; }
 namespace analyzer { class PluginComponent; }
+#endif
 
+/**
+ * Base class for plugin components. A component is a specific piece of
+ * functionality that a plugin provides, such as a protocol analyzer or a log
+ * writer. 
+ */
 class Component
 {
 public:
+	/**
+	 * Constructor.
+	 *
+	 * @param type The type of the compoment.
+	 */
 	Component(component::Type type);
+
+	/**
+	 * Destructor.
+	 */
 	virtual ~Component();
 
+	/**
+	 * Returns the compoment's type.
+	 */
 	component::Type Type() const;
 
+	/**
+	 * Returns a textual representation of the component. The default
+	 * version just output the type. Derived version should call the
+	 * parent's implementation and that add further information.
+	 *
+	 * @param d The description object to use.
+	 */
 	virtual void Describe(ODesc* d);
 
 private:

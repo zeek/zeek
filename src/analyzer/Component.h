@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef ANALYZER_PLUGIN_COMPONENT_H
 #define ANALYZER_PLUGIN_COMPONENT_H

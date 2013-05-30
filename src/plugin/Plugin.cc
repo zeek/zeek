@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include <cassert>
 
@@ -8,6 +9,12 @@
 #include "../Desc.h"
 
 using namespace plugin;
+
+BifItem::BifItem(const std::string& arg_id, Type arg_type)
+	{
+	id = copy_string(arg_id.c_str());
+	type = arg_type;
+	}
 
 BifItem::BifItem(const BifItem& other)
 	{
@@ -91,11 +98,11 @@ void Plugin::SetAPIVersion(int arg_version)
 	api_version = arg_version;
 	}
 
-void Plugin::Init()
+void Plugin::InitPreScript()
 	{
 	}
 
-void Plugin::InitBif()
+void Plugin::InitPostScript()
 	{
 	for ( bif_init_func_list::const_iterator f = bif_inits.begin(); f != bif_inits.end(); f++ )
 		{

@@ -826,15 +826,14 @@ int main(int argc, char** argv)
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
-
 	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	plugin_mgr = new plugin::Manager();
 	file_mgr = new file_analysis::Manager();
 
-	plugin_mgr->InitPlugins();
-	analyzer_mgr->Init();
+	plugin_mgr->InitPreScript();
+	analyzer_mgr->InitPreScript();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -854,8 +853,8 @@ int main(int argc, char** argv)
 
 	yyparse();
 
-	analyzer_mgr->InitBifs();
-	plugin_mgr->InitPluginsBif();
+	analyzer_mgr->InitPostScript();
+	plugin_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{

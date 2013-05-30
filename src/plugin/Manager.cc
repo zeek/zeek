@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Manager.h"
 
@@ -35,22 +36,22 @@ bool Manager::RegisterPlugin(Plugin *plugin)
 	return true;
 	}
 
-void Manager::InitPlugins()
+void Manager::InitPreScript()
 	{
 	assert(! init);
 
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
-		(*i)->Init();
+		(*i)->InitPreScript();
 
 	init = true;
 	}
 
-void Manager::InitPluginsBif()
+void Manager::InitPostScript()
 	{
 	assert(init);
 
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
-		(*i)->InitBif();
+		(*i)->InitPostScript();
 
 	init = true;
 	}

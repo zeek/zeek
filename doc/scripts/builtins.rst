@@ -402,6 +402,31 @@ The Bro scripting language supports the following built-in types.
         if ( r?$s )
             ...
 
+.. bro:type:: opaque
+
+    A data type whose actual representation/implementation is
+    intentionally hidden, but whose values may be passed to certain
+    functions that can actually access the internal/hidden resources.
+    Opaque types are differentiated from each other by qualifying them
+    like ``opaque of md5`` or ``opaque of sha1``.  Any valid identifier
+    can be used as the type qualifier.
+
+    An example use of this type is the set of built-in functions which
+    perform hashing:
+
+    .. code:: bro
+
+        local handle: opaque of md5 = md5_hash_init();
+        md5_hash_update(handle, "test");
+        md5_hash_update(handle, "testing");
+        print md5_hash_finish(handle);
+
+    Here the opaque type is used to provide a handle to a particular
+    resource which is calculating an MD5 checksum incrementally over
+    time, but the details of that resource aren't relevant, it's only
+    necessary to have a handle as a way of identifying it and
+    distinguishing it from other such resources.
+
 .. bro:type:: file
 
     Bro supports writing to files, but not reading from them.  For

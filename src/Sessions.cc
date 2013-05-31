@@ -1162,12 +1162,12 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
 		return 0;
 
+	ConnID flip_id = *id;
+
 	if ( flip )
 		{
 		// Make a guess that we're seeing the tail half of
 		// an analyzable connection.
-		ConnID flip_id = *id;
-
 		const IPAddr ta = flip_id.src_addr;
 		flip_id.src_addr = flip_id.dst_addr;
 		flip_id.dst_addr = ta;

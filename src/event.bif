@@ -936,6 +936,7 @@ event file_gap%(f: fa_file, offset: count, len: count%);
 ## This event is generated each time file analysis is ending for a given file.
 ##
 ## f: The file.
+##
 ## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
 event file_state_remove%(f: fa_file%);
 

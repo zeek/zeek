@@ -150,12 +150,6 @@ public:
 	bool Flush(EnumVal* id);
 
 	/**
-	 * Flushes all buffers that are currently held by writer frontends
-	 * out to the threads. Does not call the thread flush operation.
-	 */
-	void FlushBuffers();
-
-	/**
 	 * Signals the manager to shutdown at Bro's termination.
 	 */
 	void Terminate();

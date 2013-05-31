@@ -16,24 +16,31 @@ export {
 
 	## Initialize a queue record structure.
 	##
-	## s: A :bro:record:`Settings` record configuring the queue.
+	## s: A record which configures the queue.
 	##
 	## Returns: An opaque queue record.
-	global init:       function(s: Settings): Queue;
+	global init:       function(s: Settings &default=[]): Queue;
 
-	## Put a string onto the beginning of a queue.
+	## Put a value onto the beginning of a queue.
 	##
 	## q: The queue to put the value into.
 	##
 	## val: The value to insert into the queue.
 	global put:       function(q: Queue, val: any);
 
-	## Get a string from the end of a queue.
+	## Get a value from the end of a queue.
 	##
-	## q: The queue to get the string from.
+	## q: The queue to get the value from.
 	##
 	## Returns: The value gotten from the queue.
 	global get:        function(q: Queue): any;
+
+	## Peek at the value at the end of the queue without removing it.
+	##
+	## q: The queue to get the value from.
+	##
+	## Returns: The value at the end of the queue.
+	global peek:      function(q: Queue): any;
 
 	## Merge two queue's together.  If any settings are applied
 	## to the queues, the settings from q1 are used for the new
@@ -101,6 +108,11 @@ function get(q: Queue): any
 	delete q$vals[q$bottom];
 	++q$bottom;
 	return ret;
+	}
+
+function peek(q: Queue): any
+	{
+	return q$vals[q$bottom];
 	}
 
 function merge(q1: Queue, q2: Queue): Queue

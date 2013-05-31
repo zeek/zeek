@@ -1271,9 +1271,8 @@ bool Manager::Flush(EnumVal* id)
 	return true;
 	}
 
-void Manager::FlushBuffers()
+void Manager::Terminate()
 	{
-	// Flush out cached entries in Frontend
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
@@ -1281,13 +1280,8 @@ void Manager::FlushBuffers()
 
 		for ( Stream::WriterMap::iterator i = (*s)->writers.begin();
 		      i != (*s)->writers.end(); i++ )
-			i->second->writer->FlushWriteBuffer();
+			i->second->writer->Stop();
 		}
-	}
-
-void Manager::Terminate()
-	{
-	FlushBuffers();
 	}
 
 // Timer which on dispatching rotates the filter.

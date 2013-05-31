@@ -1,4 +1,42 @@
 
+2.1-664 | 2013-05-28 21:37:46 -0700
+
+  * Dangling pointer fix. Addresses #1004. (Jon Siwek)
+
+2.1-659 | 2013-05-24 17:24:18 -0700
+
+  * Fix broken/missing documentation. (Jon Siwek)
+    
+  * Fixing test that would fail without ES/curl support. (Robin
+    Sommer)
+
+2.1-656 | 2013-05-17 15:58:07 -0700
+
+  * Fix mutex lock problem for writers. (Bernhard Amann)
+    
+2.1-654 | 2013-05-17 13:49:52 -0700
+
+  * Tweaks to sqlite3 configuration to address threading issues.
+    (Bernhard Amann)
+
+2.1-651 | 2013-05-17 13:37:16 -0700
+
+  * Fix uninitialized DPM member. (Jon Siwek)
+
+  * Fix issue with transaction ID reuse in a single DNS connection. (Seth Hall)
+
+  * New function added to the queue.bro script to support peeking at
+    the new gettable item in the queue without removing it. (Seth Hall)
+
+2.1-647 | 2013-05-17 07:47:14 -0700
+
+  * Fixing Broxygen generation to have BROMAGIC set. (Robin Sommer)
+    
+  * Fix for 'fchmod undeclared here' on FreeBSD. (Robin Sommer)
+    
+  * CMake policy fix to avoid errors with older versions. (Robin
+    Sommer)
+
 2.1-641 | 2013-05-15 18:15:09 -0700
 
   * Test update. (Robin Sommer)

@@ -1,4 +1,6 @@
 
+include(BroSubdir)
+
 include_directories(BEFORE
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
@@ -14,5 +16,7 @@ set(analyzer_SRCS
 )
 
 bif_target(analyzer.bif)
-add_library(bro_analyzer OBJECT ${analyzer_SRCS} ${BIF_OUTPUT_CC})
+
+bro_add_subdir_library(analyzer ${analyzer_SRCS} ${BIF_OUTPUT_CC})
 add_dependencies(bro_analyzer generate_outputs)
+

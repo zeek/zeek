@@ -6,6 +6,10 @@ include_directories(BEFORE
 # This collects generated bif and pac files from subdirectories.
 set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FORCE)
 
+# If TRUE, use CMake's object libraries for sub-directories instead of
+# static libraries. This requires CMake >= 2.8.8.
+set(bro_HAVE_OBJECT_LIBRARIES FALSE)
+
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
@@ -142,13 +146,14 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 ## Including subdirectories.
 ########################################################################
 
-set(bro_PLUGIN_OBJECT_LIBS CACHE INTERNAL "plugin object libraries" FORCE)
+set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
+set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
 add_subdirectory(analyzer)
 
 set(bro_SUBDIRS
-    $<TARGET_OBJECTS:bro_analyzer>
-    ${bro_PLUGIN_OBJECT_LIBS}
+    ${bro_SUBDIR_LIBS}
+    ${bro_PLUGIN_LIBS}
 )
 
 ########################################################################
@@ -356,9 +361,14 @@ set(bro_SRCS
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
-add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
 
-target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+if ( bro_HAVE_OBJECT_LIBRARIES )
+    add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+    target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+else ()
+    add_executable(bro ${bro_SRCS} ${bro_HEADERS})
+    target_link_libraries(bro ${brodeps} ${bro_SUBDIRS} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+endif ()
 
 install(TARGETS bro DESTINATION bin)
 

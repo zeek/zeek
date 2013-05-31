@@ -8,7 +8,7 @@ set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FO
 
 # If TRUE, use CMake's object libraries for sub-directories instead of
 # static libraries. This requires CMake >= 2.8.8.
-set(bro_HAVE_OBJECT_LIBRARIES FALSE)
+set(bro_HAVE_OBJECT_LIBRARIES TRUE)
 
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)

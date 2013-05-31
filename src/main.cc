@@ -853,8 +853,8 @@ int main(int argc, char** argv)
 
 	yyparse();
 
-	analyzer_mgr->InitPostScript();
 	plugin_mgr->InitPostScript();
+	analyzer_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{

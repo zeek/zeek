@@ -37,7 +37,7 @@
 	namespace plugin { namespace _ns ## _ ## _name {\
 		class Plugin : public plugin::Plugin {		\
 		protected:					\
-			void Init()				\
+			void InitPreScript()				\
 			{					\
 			SetName(#_ns "::" #_name);		\
 			SetVersion(_BRO_PLUGIN_VERSION_DEFAULT);\

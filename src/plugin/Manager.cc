@@ -52,8 +52,6 @@ void Manager::InitPostScript()
 
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		(*i)->InitPostScript();
-
-	init = true;
 	}
 
 void Manager::FinishPlugins()

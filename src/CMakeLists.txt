@@ -304,6 +304,7 @@ set(bro_SRCS
     BitTorrent.cc
     BitTorrentTracker.cc
     BitVector.cc
+    BloomFilter.cc
     BPF_Program.cc
     BroDoc.cc
     BroDocObj.cc

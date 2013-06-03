@@ -14,7 +14,7 @@ class Manager;
 class Component;
 
 /**
- * Class to identify an analyzdr type.
+ * Class to identify an analyzer type.
  *
  * Each analyzer type gets a tag consisting of a main type and subtype. The
  * former is an identifier that's unique all analyzer classes. The latter is

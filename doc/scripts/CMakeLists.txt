@@ -45,12 +45,6 @@ macro(REST_TARGET srcDir broInput)
 
     set(sumTextSrc ${absSrcPath})
     set(ogSourceFile ${absSrcPath})
-    if (${extension} STREQUAL ".bif.bro")
-        # set(ogSourceFile ${BIF_SRC_DIR}/${basename})
-        # the summary text is taken at configure time, but .bif.bro files
-        # may not have been generated yet, so read .bif file instead
-        set(sumTextSrc ${ogSourceFile})
-    endif ()
 
     if (NOT relDstDir)
         set(docName "${basename}")

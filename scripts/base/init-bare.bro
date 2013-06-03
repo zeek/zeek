@@ -2946,7 +2946,7 @@ const dpd_buffer_size = 1024 &redef;
 const dpd_match_only_beginning = T &redef;
 
 ## If true, don't consider any ports for deciding which protocol analyzer to
-## use. 
+## use.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
 ##    dpd_match_only_beginning
@@ -3065,12 +3065,12 @@ module GLOBAL;
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
-# Load these frameworks here because it uses fairly deep integration with
+# Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/file-analysis
 
-# Load BiF defined by plugins.
+# Load BiFs defined by plugins.
 @load base/bif/plugins

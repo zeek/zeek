@@ -2,25 +2,25 @@
 ##!
 ##! The analyzer framework allows to dynamically enable or disable analyzers, as
 ##! well as to manage the well-known ports which automatically active a particular
-##! analyzer for new connections.  
-##! 
+##! analyzer for new connections.
+##!
 ##! Protocol analyzers are identified by unique tags of type
 ##! :bro:type:`Analyzer::Tag`, such as :bro:enum:`Analyzer::ANALYZER_HTTP` and
 ##! :bro:enum:`Analyzer::ANALYZER_HTTP`. These tags are defined internally by the
-##! analyzers themselves, and documented in their analyzer-specific description along with the
-##! events that they generate.
+##! analyzers themselves, and documented in their analyzer-specific description
+##! along with the events that they generate.
 ##!
 ##! .. todo: ``The ANALYZER_*`` are in fact not yet documented, we need to add that
-##!    to Broxygen. 
+##!    to Broxygen.
 module Analyzer;
 
 export {
 	## If true, all available analyzers are initially disabled at startup. One can
-	## then selectively enable them with :bro:id:`enable_analyzer`. 
+	## then selectively enable them with :bro:id:`enable_analyzer`.
 	global disable_all = F &redef;
 
 	## Enables an analyzer. Once enabled, the analyzer may be used for analysis of
-	## future connections as decided by Bro's dynamic protocol detection.  
+	## future connections as decided by Bro's dynamic protocol detection.
 	##
 	## tag: The tag of the analyzer to enable.
 	##
@@ -28,11 +28,11 @@ export {
 	global enable_analyzer: function(tag: Analyzer::Tag) : bool;
 
 	## Disables an analyzer. Once disabled, the analyzer will not be used
-	## further for analysis of future connections. 
+	## further for analysis of future connections.
 	##
-	## tag: The tag of the analyzer to disable. 
+	## tag: The tag of the analyzer to disable.
 	##
-	## Returns: True if the analyzer was successfully disabled.  
+	## Returns: True if the analyzer was successfully disabled.
 	global disable_analyzer: function(tag: Analyzer::Tag) : bool;
 
 	## Registers a set of well-known ports for an analyzer. If a future connection
@@ -40,50 +40,50 @@ export {
 	## to parsing it. The function *adds* to all ports already registered, it doesn't
 	## replace them .
 	##
-	## tag: The tag of the analyzer. 
+	## tag: The tag of the analyzer.
 	##
-	## ports: The set of well-known ports to associate with the analyzer.  
+	## ports: The set of well-known ports to associate with the analyzer.
 	##
-	## Returns: True if the ports were sucessfully registered. 
+	## Returns: True if the ports were sucessfully registered.
 	global register_for_ports: function(tag: Analyzer::Tag, ports: set[port]) : bool;
 
 	## Registers an individual well-known port for an analyzer. If a future connection
 	## on this ports is seen, the analyzer will be automatically assigned to parsing
-	## it. The function *adds* to all ports already registered, it doesn't
-	## replace them .
+	## it. The function *adds* to all ports already registered, it doesn't replace
+	## them.
 	##
-	## tag: The tag of the analyzer. 
+	## tag: The tag of the analyzer.
 	##
-	## p: The well-known port to associate with the analyzer.  
+	## p: The well-known port to associate with the analyzer.
 	##
 	## Returns: True if the port was sucessfully registered.
 	global register_for_port: function(tag: Analyzer::Tag, p: port) : bool;
 
 	## Returns a set of all well-known ports currently registered for a
-	## specific analyzer.  
-	## 
-	## tag: The tag of the analyzer. 
+	## specific analyzer.
+	##
+	## tag: The tag of the analyzer.
 	##
 	## Returns: The set of ports.
 	global registered_ports: function(tag: Analyzer::Tag) : set[port];
 
-	## Returns a table of all ports-to-analyzer mappings currently registered. 
-	## 
+	## Returns a table of all ports-to-analyzer mappings currently registered.
+	##
 	## Returns: A table mapping each analyzer to the set of ports
 	## registered for it.
-	global all_registered_ports: function() : table[Analyzer::Tag] of set[port]; 
+	global all_registered_ports: function() : table[Analyzer::Tag] of set[port];
 
-	## Translates an analyzer type to a string with the analyzer's.
+	## Translates an analyzer type to a string with the analyzer's name.
 	##
 	## tag: The analyzer tag.
 	##
-	## Returns: The analyzer name corresponding to the tag. 
+	## Returns: The analyzer name corresponding to the tag.
 	global name: function(tag: Analyzer::Tag) : string;
 
 	## Schedules an analyzer for a future connection originating from a given IP
-	## address and port.     
+	## address and port.
 	##
-	## orig: The IP address originating a connection in the future. 
+	## orig: The IP address originating a connection in the future.
 	## 0.0.0.0 can be used as a wildcard to match any originator address.
 	##
 	## resp: The IP address responding to a connection from *orig*.
@@ -99,8 +99,8 @@ export {
 	global schedule_analyzer: function(orig: addr, resp: addr, resp_p: port,
 					   analyzer: Analyzer::Tag, tout: interval) : bool;
 
-	## A set of analyzers to disable by at startup. The default set
-	## contains legacy analyzers that are no longer supported.
+	## A set of analyzers to disable by default at startup. The default set contains
+	## legacy analyzers that are no longer supported.
 	global disabled_analyzers: set[Analyzer::Tag] = {
 		ANALYZER_INTERCONN,
 		ANALYZER_STEPPINGSTONE,
@@ -115,11 +115,11 @@ export {
 
 global ports: table[Analyzer::Tag] of set[port];
 
-event bro_init() &priority=-5
+event bro_init() &priority=5
 	{
 	if ( disable_all )
 		__disable_all_analyzers();
-	
+
 	for ( a in disabled_analyzers )
 		disable_analyzer(a);
 	}
@@ -137,8 +137,8 @@ function disable_analyzer(tag: Analyzer::Tag) : bool
 function register_for_ports(tag: Analyzer::Tag, ports: set[port]) : bool
 	{
 	local rc = T;
-	
-	for ( p in ports ) 
+
+	for ( p in ports )
 		{
 		if ( ! register_for_port(tag, p) )
 			rc = F;
@@ -154,7 +154,7 @@ function register_for_port(tag: Analyzer::Tag, p: port) : bool
 
 	if ( tag !in ports )
 		ports[tag] = set();
-	
+
 	add ports[tag][p];
 	return T;
 	}

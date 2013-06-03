@@ -1,6 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-
 #include "ARP.h"
 #include "Event.h"
 #include "Reporter.h"

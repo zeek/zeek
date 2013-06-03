@@ -50,8 +50,6 @@ public:
 	analyzer::Tag ChildAnalyzer() const { return child_analyzer; }
 
 private:
-	// FIXME: This is in fact an analyzer::ID but we can't include "analyzer/Analyzer.h"
-	// at this point due to circular dependenides. Fix that!
 	analyzer::Tag analyzer;
 	analyzer::Tag child_analyzer;
 };

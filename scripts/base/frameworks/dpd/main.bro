@@ -23,12 +23,12 @@ export {
 		analyzer:       string          &log;
 		## The textual reason for the analysis failure.
 		failure_reason: string          &log;
-		
-		## Disabled analyzer IDs.  This is only for internal tracking 
+
+		## Disabled analyzer IDs.  This is only for internal tracking
 		## so as to not attempt to disable analyzers multiple times.
 		disabled_aids:  set[count];
 	};
-	
+
 	## Ignore violations which go this many bytes into the connection.
 	## Set to 0 to never ignore protocol violations.
 	const ignore_violations_after = 10 * 1024 &redef;
@@ -41,11 +41,6 @@ redef record connection += {
 event bro_init() &priority=5
 	{
 	Log::create_stream(DPD::LOG, [$columns=Info]);
-	}
-
-function foo() : string
-	{
-	return "HTTP";
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=10
@@ -66,10 +61,10 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
 	# for the protocol violation.
 	if ( analyzer !in c$service )
 		return;
-		
+
 	delete c$service[analyzer];
 	add c$service[fmt("-%s", analyzer)];
-	
+
 	local info: Info;
 	info$ts=network_time();
 	info$uid=c$uid;
@@ -88,7 +83,7 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 	local size = c$orig$size + c$resp$size;
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
-	
+
 	# Disable the analyzer that raised the last core-generated event.
 	disable_analyzer(c$id, aid);
 	add c$dpd$disabled_aids[aid];

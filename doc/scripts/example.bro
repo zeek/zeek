@@ -58,7 +58,7 @@ global example_ports = {
 event bro_init()
 	{
 	# Registering a well-known port is self-documenting and
-	# go into the generated doc's "Port Analysis" section
+	# goes into the generated doc's "Port Analysis" section.
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, example_ports);
 	}
 

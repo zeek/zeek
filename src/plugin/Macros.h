@@ -16,8 +16,8 @@
 #define BRO_PLUGIN_VERSION_BUILTIN -1
 
 /**
- * The current plugin API version. Plugins that won't match this versions
- * will be rejected.
+ * The current plugin API version. Plugins that won't match this version will
+ * be rejected.
  */
 #define BRO_PLUGIN_API_VERSION      1
 

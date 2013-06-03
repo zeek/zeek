@@ -1,4 +1,14 @@
 
+2.1-675 | 2013-06-02 20:03:19 -0700
+
+  * Fix a compiler warning. (Robin Sommer)
+
+  * Allow named vector/set/table/record constructors. Addresses #983.
+    (Jon Siwek)
+
+  * Adding Makefile target test-all that also runs the BroControl test
+    suite.  (Robin Sommer)
+
 2.1-664 | 2013-05-28 21:37:46 -0700
 
   * Dangling pointer fix. Addresses #1004. (Jon Siwek)

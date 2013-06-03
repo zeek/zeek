@@ -11,6 +11,9 @@
  */
 class CounterVector : SerialObj {
 public:
+  typedef size_t size_type;
+  typedef uint64 count_type;
+
   /**
    * Constructs a counter vector having cells of a given width.
    *
@@ -70,21 +73,24 @@ private:
 };
 
 /**
- * The abstract base class for hash policies.
+ * The abstract base class for hash policies that hash elements *k* times.
  * @tparam Codomain An integral type.
  */
 class HashPolicy {
 public:
-  typedef hash_t hash_type;
+  typedef hash_t HashType;
+  typedef std::vector<HashType> HashVector;
+
   virtual ~HashPolicy() { }
-  size_t k() const { return k; }
-  virtual std::vector<hash_type> Hash(const void* x, size_t n) const = 0;
+  size_t k() const { return k_; }
+  virtual HashVector Hash(const void* x, size_t n) const = 0;
+
 protected:
   /**
    * A functor that computes a universal hash function.
    * @tparam Codomain An integral type.
    */
-  template <typename Codomain = hash_type>
+  template <typename Codomain = HashType>
   class Hasher {
   public:
     template <typename Domain>
@@ -104,8 +110,9 @@ protected:
   };
 
   HashPolicy(size_t k) : k_(k) { }
+
 private:
-  size_t k_;
+  const size_t k_;
 };
 
 /**
@@ -114,18 +121,12 @@ private:
 class DefaultHashing : public HashPolicy {
 public:
   DefaultHashing(size_t k) : HashPolicy(k), hashers_(k) { }
-  virtual ~DoubleHashing() { }
+  virtual ~DefaultHashing() { }
 
-  virtual std::vector<hash_type> Hash(const void* x, size_t n) const
-    {
-    std::vector<hash_type> h(k(), 0);
-    for (size_t i = 0; i < h.size(); ++i)
-      h[i] = hashers_[i](x, n);
-    return h;
-    }
+  virtual HashVector Hash(const void* x, size_t n) const;
 
 private:
-  std::vector< Hasher<hash_type> > hashers_;
+  std::vector< Hasher<HashType> > hashers_;
 };
 
 /**
@@ -133,22 +134,14 @@ private:
  */
 class DoubleHashing : public HashPolicy {
 public:
-  DoubleHashing(size_t k) : HashPolicy(k), hashers_(k) { }
+  DoubleHashing(size_t k) : HashPolicy(k) { }
   virtual ~DoubleHashing() { }
 
-  virtual std::vector<hash_type> Hash(const void* x, size_t n) const
-    {
-    Codomain h1 = hasher1_(x);
-    Codomain h2 = hasher2_(x);
-    std::vector<hash_type> h(k(), 0);
-    for (size_t i = 0; i < h.size(); ++i)
-      h[i] = h1 + i * h2;
-    return h;
-    }
+  virtual HashVector Hash(const void* x, size_t n) const;
 
 private:
-  Hasher<hash_type> hasher1_;
-  Hasher<hash_type> hasher2_;
+  Hasher<HashType> hasher1_;
+  Hasher<HashType> hasher2_;
 };
 
 /**
@@ -166,7 +159,7 @@ public:
   void Add(const T& x)
     {
     ++elements_;
-    AddImpl(hash_->Hash(x));
+    AddImpl(hash_->Hash(&x, sizeof(x)));
     }
 
   /**
@@ -179,7 +172,7 @@ public:
   template <typename T>
   size_t Count(const T& x) const
     {
-    return CountImpl(hash_->Hash(x));
+    return CountImpl(hash_->Hash(&x, sizeof(x)));
     }
 
   /**
@@ -193,8 +186,6 @@ public:
     }
 
 protected:
-  typedef std::vector<HashPolicy::hash_value> HashVector;
-
   /**
    * Default-constructs a Bloom filter.
    */
@@ -206,17 +197,12 @@ protected:
    */
   BloomFilter(HashPolicy* hash);
 
-  virtual void AddImpl(const HashVector& hashes) = 0;
+  virtual void AddImpl(const HashPolicy::HashVector& hashes) = 0;
 
-  virtual size_t CountImpl(const HashVector& hashes) const = 0;
-
-  std::vector<HashPolicy::hash_value> Hash(const T& x) const
-    {
-    return hash_->Hash(&x, sizeof(x));
-    }
+  virtual size_t CountImpl(const HashPolicy::HashVector& hashes) const = 0;
 
 private:
-  HashPolicy<T>* hash_;  // Owned by *this.
+  HashPolicy* hash_;  // Owned by *this.
 
   size_t elements_;
 };
@@ -230,19 +216,9 @@ public:
   BasicBloomFilter(HashPolicy* hash);
 
 protected:
-  virtual void AddImpl(const HashVector& h)
-    {
-    for ( size_t i = 0; i < h.size(); ++i )
-      bits_.set(h[i] % h.size());
-    }
+  virtual void AddImpl(const HashPolicy::HashVector& h);
 
-  virtual size_t CountImpl(const HashVector& h) const
-    {
-    for ( size_t i = 0; i < h.size(); ++i )
-      if ( ! bits_[h[i] % h.size()] )
-        return 0;
-    return 1;
-    }
+  virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
 
 private:
   BitVector bits_;
@@ -253,11 +229,14 @@ private:
  */
 class CountingBloomFilter : public BloomFilter {
 public:
-  CountingBloomFilter(unsigned width);
-  CountingBloomFilter(HashPolicy* hash);
+  CountingBloomFilter(unsigned width, HashPolicy* hash);
 
 protected:
   CountingBloomFilter();
+
+  virtual void AddImpl(const HashPolicy::HashVector& h);
+
+  virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
 
 private:
   CounterVector cells_;

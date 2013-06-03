@@ -34,6 +34,9 @@ export {
 	## For the most part, fields here are derived from ones of the same name
 	## in :bro:see:`fa_file`.
 	type Info: record {
+		## The time when the file was first seen.
+		ts: time &log;
+
 		## An identifier associated with a single file.
 		id: string &log;
 
@@ -233,25 +236,35 @@ function set_info(f: fa_file)
 	{
 	if ( ! f?$info )
 		{
-		local tmp: Info;
+		local tmp: Info = Info($ts=network_time());
 		f$info = tmp;
 		}
 
+	f$info$ts = network_time();
 	f$info$id = f$id;
-	if ( f?$parent_id ) f$info$parent_id = f$parent_id;
-	if ( f?$source ) f$info$source = f$source;
-	if ( f?$is_orig ) f$info$is_orig = f$is_orig;
+	if ( f?$parent_id )
+		f$info$parent_id = f$parent_id;
+	if ( f?$source )
+		f$info$source = f$source;
+	if ( f?$is_orig )
+		f$info$is_orig = f$is_orig;
 	f$info$last_active = f$last_active;
 	f$info$seen_bytes = f$seen_bytes;
-	if ( f?$total_bytes ) f$info$total_bytes = f$total_bytes;
+	if ( f?$total_bytes ) 
+		f$info$total_bytes = f$total_bytes;
 	f$info$missing_bytes = f$missing_bytes;
 	f$info$overflow_bytes = f$overflow_bytes;
 	f$info$timeout_interval = f$timeout_interval;
 	f$info$bof_buffer_size = f$bof_buffer_size;
-	if ( f?$mime_type ) f$info$mime_type = f$mime_type;
+	if ( f?$mime_type ) 
+		f$info$mime_type = f$mime_type;
 	if ( f?$conns )
+		{
 		for ( cid in f$conns )
+			{
 			add f$info$conn_uids[f$conns[cid]$uid];
+			}
+		}
 	}
 
 function set_timeout_interval(f: fa_file, t: interval): bool
@@ -324,21 +337,6 @@ event file_timeout(f: fa_file) &priority=5
 	f$info$timedout = T;
 	}
 
-event file_hash(f: fa_file, kind: string, hash: string) &priority=5
-	{
-	set_info(f);
-	switch ( kind ) {
-	case "md5":
-		f$info$md5 = hash;
-		break;
-	case "sha1":
-		f$info$sha1 = hash;
-		break;
-	case "sha256":
-		f$info$sha256 = hash;
-		break;
-	}
-	}
 
 event file_state_remove(f: fa_file) &priority=5
 	{

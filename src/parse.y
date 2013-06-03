@@ -522,10 +522,52 @@ expr:
 			$$ = new VectorConstructorExpr($3);
 			}
 
-	|	expr '(' opt_expr_list ')'
+	|	expr '('
 			{
-			set_location(@1, @4);
-			$$ = new CallExpr($1, $3, in_hook > 0);
+			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+				++in_init;
+			}
+
+		opt_expr_list
+			{
+			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+				--in_init;
+			}
+
+		')'
+			{
+			set_location(@1, @6);
+
+			BroType* ctor_type = 0;
+
+			if ( $1->Tag() == EXPR_NAME &&
+			     (ctor_type = $1->AsNameExpr()->Id()->AsType()) )
+				{
+				switch ( ctor_type->Tag() ) {
+				case TYPE_RECORD:
+					$$ = new RecordConstructorExpr($4, ctor_type);
+					break;
+
+				case TYPE_TABLE:
+					if ( ctor_type->IsTable() )
+						$$ = new TableConstructorExpr($4, 0, ctor_type);
+					else
+						$$ = new SetConstructorExpr($4, 0, ctor_type);
+
+					break;
+
+				case TYPE_VECTOR:
+					$$ = new VectorConstructorExpr($4, ctor_type);
+					break;
+
+				default:
+					$1->Error("constructor type not implemented");
+					YYERROR;
+				}
+				}
+
+			else
+				$$ = new CallExpr($1, $4, in_hook > 0);
 			}
 
 	|	TOK_HOOK { ++in_hook; } expr

@@ -46,6 +46,19 @@ New Functionality
   have changed their signatures to work with opaques types rather
   than global state as it was before.
 
+- The scripting language now supports a constructing sets, tables,
+  vectors, and records by name:
+
+        type MyRecordType: record {
+            c: count;
+            s: string &optional;
+        };
+
+        global r: MyRecordType = record($c = 7);
+
+        type MySet: set[MyRec];
+        global s = MySet([$c=1], [$c=2]);
+
 - Strings now support the subscript operator to extract individual
   characters and substrings (e.g., s[4], s[1,5]). The index expression
   can take up to two indices for the start and end index of the

@@ -50,7 +50,7 @@
 			}			\
 		};				\
 						\
-	static Plugin __plugin;			\
+	Plugin __plugin;			\
 	} }
 
 /**

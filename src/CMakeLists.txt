@@ -8,7 +8,7 @@ set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FO
 
 # If TRUE, use CMake's object libraries for sub-directories instead of
 # static libraries. This requires CMake >= 2.8.8.
-set(bro_HAVE_OBJECT_LIBRARIES TRUE)
+set(bro_HAVE_OBJECT_LIBRARIES FALSE)
 
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
@@ -156,6 +156,20 @@ set(bro_SUBDIRS
     ${bro_PLUGIN_LIBS}
 )
 
+if ( NOT bro_HAVE_OBJECT_LIBRARIES )
+    foreach (_plugin ${bro_PLUGIN_LIBS})
+        string(REGEX REPLACE "plugin-" "" _plugin "${_plugin}")
+        string(REGEX REPLACE "-" "_" _plugin "${_plugin}")
+        set(_decl "namespace plugin { namespace ${_plugin} { class Plugin; extern Plugin __plugin; } };")
+        set(_use "i += (size_t)(&(plugin::${_plugin}::__plugin));")
+        set(__BRO_DECL_PLUGINS "${__BRO_DECL_PLUGINS}${_decl}\n")
+        set(__BRO_USE_PLUGINS "${__BRO_USE_PLUGINS}${_use}\n")
+    endforeach()
+
+    configure_file(plugins.cc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.cc)
+    set(PLUGIN_INIT ${CMAKE_CURRENT_BINARY_DIR}/plugins.cc)
+endif()
+
 ########################################################################
 ## bro target
 
@@ -222,6 +236,7 @@ set(bro_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+    ${PLUGIN_INIT}
     main.cc
     net_util.cc
     util.cc
@@ -367,7 +382,7 @@ if ( bro_HAVE_OBJECT_LIBRARIES )
     target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 else ()
     add_executable(bro ${bro_SRCS} ${bro_HEADERS})
-    target_link_libraries(bro ${brodeps} ${bro_SUBDIRS} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+    target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()
 
 install(TARGETS bro DESTINATION bin)

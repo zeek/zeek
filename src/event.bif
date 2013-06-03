@@ -107,8 +107,9 @@ event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
-##    connection_state_remove connection_status_update expected_connection_seen
-##    new_connection new_connection_contents partial_connection
+##    connection_state_remove connection_status_update
+##    scheduled_analyzer_applied new_connection new_connection_contents
+##    partial_connection
 ##
 ## .. note::
 ##
@@ -201,14 +202,15 @@ event connection_external%(c: connection, tag: string%);
 event udp_session_done%(u: connection%);
 
 ## Generated when a connection is seen that is marked as being expected.
-## The function :bro:id:`expect_connection` tells Bro to expect a particular
-## connection to come up, and which analyzer to associate with it. Once the
-## first packet of such a connection is indeed seen, this event is raised.
+## The function :bro:id:`Analyzer::schedule_analyzer` tells Bro to expect a
+## particular connection to come up, and which analyzer to associate with it.
+## Once the first packet of such a connection is indeed seen, this event is
+## raised.
 ##
 ## c: The connection.
 ##
 ## a: The analyzer that was scheduled for the connection with the
-##    :bro:id:`expect_connection` call. When the event is raised, that
+##    :bro:id:`Analyzer::schedule_analyzer` call. When the event is raised, that
 ##    analyzer will already have been activated to process the connection. The
 ##    ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``.
 ##

@@ -28,7 +28,7 @@ class Component;
  * assigns them their main types), and analyzer::Component creates new
  * tags.
  *
- * The Tag class supports all operations necessary to act at the index in a
+ * The Tag class supports all operations necessary to act as an index in a
  * \c std::map.
  */
 class Tag  {
@@ -90,7 +90,7 @@ public:
 	/**
 	 * Assignment operator.
 	 */
-        Tag& operator=(const Tag& other);
+	Tag& operator=(const Tag& other);
 
 	/**
 	 * Compares two tags for equality.

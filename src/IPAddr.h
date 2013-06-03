@@ -452,11 +452,6 @@ inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
 HashKey* BuildConnIDHashKey(const ConnID& id);
 
 /**
-  * Returns a hash key for a given ExpectedConn instance. Passes ownership to caller.
-  */
-HashKey* BuildExpectedConnHashKey(const analyzer::ExpectedConn& c);
-
-/**
  * Class storing both IPv4 and IPv6 prefixes
  * (i.e., \c 192.168.1.1/16 and \c FD00::/8.
  */

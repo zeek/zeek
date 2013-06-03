@@ -18,7 +18,7 @@
 ## version: The version number specified in the request (e.g., ``1.1``).
 ##
 ## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
-##    http_entity_data http_event http_header http_message_done ply http_stats
+##    http_entity_data http_event http_header http_message_done http_reply http_stats
 ##    truncate_http_URI
 event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%);
 

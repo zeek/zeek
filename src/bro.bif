@@ -3699,7 +3699,7 @@ function file_mode%(mode: count%): string
 ## Returns: True if the connection identified by *cid* exists and has analyzer
 ##          *aid*.
 ##
-## .. bro:see:: expect_connection analyzer_name
+## .. bro:see:: Analyzer::schedule_analyzer Analyzer::name
 function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	%{
 	Connection* c = sessions->FindConnection(cid);

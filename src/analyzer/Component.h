@@ -40,10 +40,10 @@ public:
 	 * returns a new instance.
 	 *
 	 * @param subtype A subtype associated with this component that
-	 * further. The subtype will be integrated into the analyzer::Tag
-	 * that the manager associates with this analyzer, and analyzer
-	 * instances can accordingly access it via analyzer::Tag(). If not
-	 * used, leave at zero.
+	 * further distinguishes it. The subtype will be integrated into
+	 * the analyzer::Tag that the manager associates with this analyzer,
+	 * and analyzer instances can accordingly access it via analyzer::Tag().
+	 * If not used, leave at zero.
 	 *
 	 * @param enabled If false the analyzer starts out as disabled and
 	 * hence won't be used. It can still be enabled later via the

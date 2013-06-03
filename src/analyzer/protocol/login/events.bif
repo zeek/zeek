@@ -87,7 +87,8 @@ event rsh_reply%(c: connection, client_user: string, server_user: string, line: 
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_failure%(c: connection, user: string, client_user: string, password: string, line: string%);
 
 ## Generated for successful Telnet/Rlogin logins. The *login* analyzer inspects
@@ -121,7 +122,8 @@ event login_failure%(c: connection, user: string, client_user: string, password:
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_success%(c: connection, user: string, client_user: string, password: string, line: string%);
 
 ## Generated for lines of input on Telnet/Rlogin sessions. The line will have
@@ -137,7 +139,8 @@ event login_success%(c: connection, user: string, client_user: string, password:
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_input_line%(c: connection, line: string%);
 
 ## Generated for lines of output on Telnet/Rlogin sessions. The line will have
@@ -153,7 +156,8 @@ event login_input_line%(c: connection, line: string%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_output_line%(c: connection, line: string%);
 
 ## Generated when tracking of Telnet/Rlogin authentication failed. As Bro's
@@ -179,7 +183,8 @@ event login_output_line%(c: connection, line: string%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_confused%(c: connection, msg: string, line: string%);
 
 ## Generated after getting confused while tracking a Telnet/Rlogin
@@ -199,7 +204,8 @@ event login_confused%(c: connection, msg: string, line: string%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_confused_text%(c: connection, line: string%);
 
 ## Generated for clients transmitting a terminal type in a Telnet session.  This
@@ -215,7 +221,8 @@ event login_confused_text%(c: connection, line: string%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_terminal%(c: connection, terminal: string%);
 
 ## Generated for clients transmitting an X11 DISPLAY in a Telnet session. This
@@ -231,7 +238,8 @@ event login_terminal%(c: connection, terminal: string%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_display%(c: connection, display: string%);
 
 ## Generated when a Telnet authentication has been successful. The Telnet
@@ -255,7 +263,8 @@ event login_display%(c: connection, display: string%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event authentication_accepted%(name: string, c: connection%);
 
 ## Generated when a Telnet authentication has been unsuccessful. The Telnet
@@ -279,7 +288,8 @@ event authentication_accepted%(name: string, c: connection%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event authentication_rejected%(name: string, c: connection%);
 
 ## Generated for Telnet/Rlogin sessions when a pattern match indicates
@@ -302,7 +312,8 @@ event authentication_rejected%(name: string, c: connection%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event authentication_skipped%(c: connection%);
 
 ## Generated for clients transmitting a terminal prompt in a Telnet session.
@@ -322,7 +333,8 @@ event authentication_skipped%(c: connection%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event login_prompt%(c: connection, prompt: string%);
 
 ## Generated for Telnet sessions when encryption is activated. The Telnet
@@ -373,7 +385,8 @@ event inconsistent_option%(c: connection%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event bad_option%(c: connection%);
 
 ## Generated for a Telnet option that's incorrectly terminated.
@@ -391,5 +404,6 @@ event bad_option%(c: connection%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event bad_option_termination%(c: connection%);

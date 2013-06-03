@@ -22,11 +22,13 @@ export {
 		extract_filename: string &optional;
 
 		## An event which will be generated for all new file contents,
-		## chunk-wise.
+		## chunk-wise.  Used when *tag* is
+		## :bro:see:`FileAnalysis::ANALYZER_DATA_EVENT`.
 		chunk_event: event(f: fa_file, data: string, off: count) &optional;
 
 		## An event which will be generated for all new file contents,
-		## stream-wise.
+		## stream-wise.  Used when *tag* is
+		## :bro:see:`FileAnalysis::ANALYZER_DATA_EVENT`.
 		stream_event: event(f: fa_file, data: string) &optional;
 	} &redef;
 
@@ -90,7 +92,7 @@ export {
 		conn_uids: set[string] &log;
 
 		## A set of analysis types done during the file analysis.
-		analyzers: set[Analyzer] &log;
+		analyzers: set[Analyzer];
 
 		## Local filenames of extracted files.
 		extracted_files: set[string] &log;
@@ -123,7 +125,9 @@ export {
 
 	## Sets the *timeout_interval* field of :bro:see:`fa_file`, which is
 	## used to determine the length of inactivity that is allowed for a file
-	## before internal state related to it is cleaned up.
+	## before internal state related to it is cleaned up.  When used within a
+	## :bro:see:`file_timeout` handler, the analysis will delay timing out
+	## again for the period specified by *t*.
 	##
 	## f: the file.
 	##
@@ -132,18 +136,6 @@ export {
 	## Returns: true if the timeout interval was set, or false if analysis
 	##          for the *id* isn't currently active.
 	global set_timeout_interval: function(f: fa_file, t: interval): bool;
-
-	## Postpones the timeout of file analysis for a given file.
-	## When used within a :bro:see:`file_timeout` handler for, the analysis
-	## the analysis will delay timing out for the period of time indicated by
-	## the *timeout_interval* field of :bro:see:`fa_file`, which can be set
-	## with :bro:see:`FileAnalysis::set_timeout_interval`.
-	##
-	## f: the file.
-	##
-	## Returns: true if the timeout will be postponed, or false if analysis
-	##          for the *id* isn't currently active.
-	global postpone_timeout: function(f: fa_file): bool;
 
 	## Adds an analyzer to the analysis of a given file.
 	##
@@ -174,58 +166,6 @@ export {
 	##          rest of it's contents, or false if analysis for the *id*
 	##          isn't currently active.
 	global stop: function(f: fa_file): bool;
-
-	## Sends a sequential stream of data in for file analysis.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## data: bytestring contents of the file to analyze.
-	global data_stream: function(source: string, data: string);
-
-	## Sends a non-sequential chunk of data in for file analysis.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## data: bytestring contents of the file to analyze.
-	##
-	## offset: the offset within the file that this chunk starts.
-	global data_chunk: function(source: string, data: string, offset: count);
-
-	## Signals a content gap in the file bytestream.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## offset: the offset within the file that this gap starts.
-	##
-	## len: the number of bytes that are missing.
-	global gap: function(source: string, offset: count, len: count);
-
-	## Signals the total size of a file.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	##
-	## size: the number of bytes that comprise the full file.
-	global set_size: function(source: string, size: count);
-
-	## Signals the end of a file.
-	## Meant for use when providing external file analysis input (e.g.
-	## from the input framework).
-	##
-	## source: a string that uniquely identifies the logical file that the
-	##         data is a part of and describes its source.
-	global eof: function(source: string);
 }
 
 redef record fa_file += {
@@ -272,11 +212,6 @@ function set_timeout_interval(f: fa_file, t: interval): bool
 	return __set_timeout_interval(f$id, t);
 	}
 
-function postpone_timeout(f: fa_file): bool
-	{
-	return __postpone_timeout(f$id);
-	}
-
 function add_analyzer(f: fa_file, args: AnalyzerArgs): bool
 	{
 	if ( ! __add_analyzer(f$id, args) ) return F;
@@ -298,31 +233,6 @@ function remove_analyzer(f: fa_file, args: AnalyzerArgs): bool
 function stop(f: fa_file): bool
 	{
 	return __stop(f$id);
-	}
-
-function data_stream(source: string, data: string)
-	{
-	__data_stream(source, data);
-	}
-
-function data_chunk(source: string, data: string, offset: count)
-	{
-	__data_chunk(source, data, offset);
-	}
-
-function gap(source: string, offset: count, len: count)
-	{
-	__gap(source, offset, len);
-	}
-
-function set_size(source: string, size: count)
-	{
-	__set_size(source, size);
-	}
-
-function eof(source: string)
-	{
-	__eof(source);
 	}
 
 event bro_init() &priority=5

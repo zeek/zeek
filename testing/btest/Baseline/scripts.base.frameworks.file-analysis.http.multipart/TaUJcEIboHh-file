@@ -1,0 +1,21 @@
+{
+  "data": "",
+  "form": {
+    "example": "test",
+    "example2": "test2",
+    "example3": "test3"
+  },
+  "origin": "141.142.228.5",
+  "json": null,
+  "url": "http://httpbin.org/post",
+  "args": {},
+  "headers": {
+    "Content-Type": "multipart/form-data; boundary=----------------------------4ebf00fbcf09",
+    "User-Agent": "curl/7.30.0",
+    "Connection": "close",
+    "Accept": "*/*",
+    "Content-Length": "350",
+    "Host": "httpbin.org"
+  },
+  "files": {}
+}

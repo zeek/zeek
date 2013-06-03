@@ -9,5 +9,5 @@
 1311189164.119437	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	-	-	NICK	bloed	-	-	-	-	-
 1311189164.119437	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	-	USER	sdkfje	sdkfje Montreal.QC.CA.Undernet.org dkdkrwq	-	-	-	-
 1311189174.474127	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	JOIN	#easymovies	(empty)	-	-	-	-
-1311189316.326025	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	DCC	#easymovies	(empty)	ladyvampress-default(2011-07-07)-OS.zip	42208	FAKE_MIME	irc-dcc-item-wqKMAamJVSb-0.dat
+1311189316.326025	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	DCC	#easymovies	(empty)	ladyvampress-default(2011-07-07)-OS.zip	42208	application/zip	irc-dcc-item-wqKMAamJVSb.dat
 #close	2013-03-27-18-49-16

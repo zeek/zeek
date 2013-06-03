@@ -17,6 +17,11 @@ class File;
  */
 class Analyzer {
 public:
+
+	/**
+	 * Destructor.  Nothing special about it. Virtual since we definitely expect
+	 * to delete instances of derived classes via pointers to this class.
+	 */
 	virtual ~Analyzer()
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %d", tag);
@@ -24,7 +29,10 @@ public:
 		}
 
 	/**
-	 * Subclasses may override this to receive file data non-sequentially.
+	 * Subclasses may override this metod to receive file data non-sequentially.
+	 * @param data points to start of a chunk of file data.
+	 * @param len length in bytes of the chunk of data pointed to by \a data.
+	 * @param offset the byte offset within full file that data chunk starts.
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
@@ -32,7 +40,9 @@ public:
 		{ return true; }
 
 	/**
-	 * Subclasses may override this to receive file sequentially.
+	 * Subclasses may override this method to receive file sequentially.
+	 * @param data points to start of the next chunk of file data.
+	 * @param len length in bytes of the chunk of data pointed to by \a data.
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
@@ -40,7 +50,7 @@ public:
 		{ return true; }
 
 	/**
-	 * Subclasses may override this to specifically handle an EOF signal,
+	 * Subclasses may override this method to specifically handle an EOF signal,
 	 * which means no more data is going to be incoming and the analyzer
 	 * may be deleted/cleaned up soon.
 	 * @return true if the analyzer is still in a valid state to continue
@@ -50,7 +60,10 @@ public:
 		{ return true; }
 
 	/**
-	 * Subclasses may override this to handle missing data in a file stream.
+	 * Subclasses may override this method to handle missing data in a file.
+	 * @param offset the byte offset within full file at which the missing
+	 *        data chunk occurs.
+	 * @param len the number of missing bytes.
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
@@ -73,8 +86,10 @@ public:
 	File* GetFile() const { return file; }
 
 	/**
+	 * Retrieves an analyzer tag field from full analyzer argument record.
+	 * @param args an \c AnalyzerArgs (script-layer type) value.
 	 * @return the analyzer tag equivalent of the 'tag' field from the
-	 *         AnalyzerArgs value \a args.
+	 *         \c AnalyzerArgs value \a args.
 	 */
 	static FA_Tag ArgsTag(const RecordVal* args)
 		{
@@ -84,6 +99,13 @@ public:
 		}
 
 protected:
+
+	/**
+	 * Constructor.  Only derived classes are meant to be instantiated.
+	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
+	 *        tunable options, if any, related to a particular analyzer type.
+	 * @param arg_file the file to which the the analyzer is being attached.
+	 */
 	Analyzer(RecordVal* arg_args, File* arg_file)
 	    : tag(file_analysis::Analyzer::ArgsTag(arg_args)),
 	      args(arg_args->Ref()->AsRecordVal()),
@@ -91,9 +113,10 @@ protected:
 		{}
 
 private:
-	FA_Tag tag;
-	RecordVal* args;
-	File* file;
+
+	FA_Tag tag; /**< The particular analyzer type of the analyzer instance. */
+	RecordVal* args; /**< \c AnalyzerArgs val gives tunable analyzer params. */
+	File* file; /**< The file to which the analyzer is attached. */
 };
 
 typedef file_analysis::Analyzer* (*AnalyzerInstantiator)(RecordVal* args,

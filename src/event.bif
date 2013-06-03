@@ -7024,7 +7024,7 @@ event file_over_new_connection%(f: fa_file, c: connection%);
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_gap file_state_remove
-##    default_file_timeout_interval FileAnalysis::postpone_timeout
+##    default_file_timeout_interval FileAnalysis::set_timeout_interval
 ##    FileAnalysis::set_timeout_interval
 event file_timeout%(f: fa_file%);
 

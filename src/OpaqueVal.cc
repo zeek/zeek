@@ -1,4 +1,6 @@
 #include "OpaqueVal.h"
+
+#include "BloomFilter.h"
 #include "NetVar.h"
 #include "Reporter.h"
 #include "Serializer.h"
@@ -515,3 +517,24 @@ bool EntropyVal::DoUnserialize(UnserialInfo* info)
 
 	return true;
 	}
+
+BloomFilterVal::BloomFilterVal(OpaqueType* t) : OpaqueVal(t)
+	{
+	}
+
+IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
+
+bool BloomFilterVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
+	// TODO: implement.
+	return true;
+  }
+
+bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+	// TODO: implement.
+	return true;
+  }
+

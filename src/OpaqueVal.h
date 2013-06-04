@@ -7,6 +7,8 @@
 #include "Val.h"
 #include "digest.h"
 
+class BloomFilter;
+
 class HashVal : public OpaqueVal {
 public:
 	virtual bool IsValid() const;
@@ -105,6 +107,20 @@ protected:
 
 private:
 	RandTest state;
+};
+
+class BloomFilterVal : public OpaqueVal {
+public:
+	BloomFilterVal();
+
+protected:
+	friend class Val;
+	BloomFilterVal(OpaqueType* t);
+
+	DECLARE_SERIAL(BloomFilterVal);
+
+private:
+	BloomFilter* bloom_filter_;
 };
 
 #endif

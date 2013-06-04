@@ -65,7 +65,7 @@ public:
 protected:
   DECLARE_SERIAL(CounterVector);
 
-  CounterVector();
+  CounterVector() { }
 
 private:
   BitVector bits_;
@@ -82,7 +82,7 @@ public:
   typedef std::vector<HashType> HashVector;
 
   virtual ~HashPolicy() { }
-  size_t k() const { return k_; }
+  size_t K() const { return k_; }
   virtual HashVector Hash(const void* x, size_t n) const = 0;
 
 protected:
@@ -130,7 +130,7 @@ private:
 };
 
 /**
- * The *double-hashing* policy. Uses a linear combination of 2 hash functions.
+ * The *double-hashing* policy. Uses a linear combination of two hash functions.
  */
 class DoubleHashing : public HashPolicy {
 public:
@@ -185,25 +185,20 @@ public:
     return elements_;
     }
 
-protected:
-  /**
-   * Default-constructs a Bloom filter.
-   */
-	BloomFilter();
+  bool Serialize(SerialInfo* info) const;
+  static BloomFilter* Unserialize(UnserialInfo* info);
 
-  /**
-   * Constructs a BloomFilter.
-   * @param hash The hashing policy.
-   */
-  BloomFilter(HashPolicy* hash);
+protected:
+  DECLARE_SERIAL(BloomFilter);
+
+	BloomFilter() { };
+  BloomFilter(HashPolicy* hash) : hash_(hash) { }
 
   virtual void AddImpl(const HashPolicy::HashVector& hashes) = 0;
-
   virtual size_t CountImpl(const HashPolicy::HashVector& hashes) const = 0;
 
 private:
-  HashPolicy* hash_;  // Owned by *this.
-
+  HashPolicy* hash_;
   size_t elements_;
 };
 
@@ -212,12 +207,17 @@ private:
  */
 class BasicBloomFilter : public BloomFilter {
 public:
-  BasicBloomFilter();
-  BasicBloomFilter(HashPolicy* hash);
+  static size_t Cells(double fp, size_t capacity);
+  static size_t K(size_t cells, size_t capacity);
+
+  BasicBloomFilter(size_t cells, HashPolicy* hash);
 
 protected:
-  virtual void AddImpl(const HashPolicy::HashVector& h);
+  DECLARE_SERIAL(BasicBloomFilter);
 
+  BasicBloomFilter() { }
+
+  virtual void AddImpl(const HashPolicy::HashVector& h);
   virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
 
 private:
@@ -232,10 +232,11 @@ public:
   CountingBloomFilter(unsigned width, HashPolicy* hash);
 
 protected:
+  DECLARE_SERIAL(CountingBloomFilter);
+
   CountingBloomFilter();
 
   virtual void AddImpl(const HashPolicy::HashVector& h);
-
   virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
 
 private:

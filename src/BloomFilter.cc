@@ -10,6 +10,42 @@ T round(double x) { return (x > 0.0) ? (x + 0.5) : (x - 0.5); }
 } // namespace <anonymous>
 
 
+CounterVector::CounterVector(size_t width, size_t cells)
+  : bits_(new BitVector(width * cells)), width_(width)
+  {
+  }
+
+CounterVector::~CounterVector()
+  {
+  delete bits_;
+  }
+
+bool CounterVector::Increment(size_type cell, count_type value)
+  {
+  // TODO
+  assert(! "not yet implemented");
+  return false;
+  }
+
+bool CounterVector::Decrement(size_type cell, count_type value)
+  {
+  // TODO
+  assert(! "not yet implemented");
+  return false;
+  }
+
+CounterVector::count_type CounterVector::Count(size_type cell) const
+  {
+  // TODO
+  assert(! "not yet implemented");
+  return 0;
+  }
+
+CounterVector::size_type CounterVector::Size() const
+  {
+  return bits_->Blocks() / width_;
+  }
+
 IMPLEMENT_SERIAL(CounterVector, SER_COUNTERVECTOR)
 
 bool CounterVector::DoSerialize(SerialInfo* info) const

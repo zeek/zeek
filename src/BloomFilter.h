@@ -9,7 +9,7 @@
 /**
  * A vector of counters, each of which have a fixed number of bits.
  */
-class CounterVector : SerialObj {
+class CounterVector : public SerialObj {
 public:
   typedef size_t size_type;
   typedef uint64 count_type;
@@ -18,8 +18,12 @@ public:
    * Constructs a counter vector having cells of a given width.
    *
    * @param width The number of bits that each cell occupies.
+   *
+   * @param cells The number of cells in the bitvector.
    */
-  explicit CounterVector(unsigned width);
+  CounterVector(size_t width, size_t cells = 1024);
+
+  ~CounterVector();
 
   /**
    * Increments a given cell.
@@ -68,7 +72,7 @@ protected:
   CounterVector() { }
 
 private:
-  BitVector bits_;
+  BitVector* bits_;
   unsigned width_;
 };
 

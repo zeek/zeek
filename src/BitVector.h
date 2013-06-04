@@ -24,7 +24,7 @@ public:
     Reference(block_type& block, block_type i);
 
   public:
-    Reference& flip();
+    Reference& Flip();
     operator bool() const;
     bool operator~() const;
     Reference& operator=(bool x);
@@ -110,7 +110,7 @@ public:
    * sequence.
    */
   template <typename ForwardIterator>
-  void append(ForwardIterator first, ForwardIterator last)
+  void Append(ForwardIterator first, ForwardIterator last)
     {
     if (first == last)
       return;
@@ -119,7 +119,7 @@ public:
     typename std::iterator_traits<ForwardIterator>::difference_type delta =
       std::distance(first, last);
 
-    bits_.reserve(blocks() + delta);
+    bits_.reserve(Blocks() + delta);
     if (excess == 0)
       {
       bits_.back() |= (*first << excess);
@@ -140,24 +140,24 @@ public:
    * Appends the bits in a given block.
    * @param block The block containing bits to append.
    */
-  void append(block_type block);
+  void Append(block_type block);
 
   /** Appends a single bit to the end of the bit vector.
    * @param bit The value of the bit.
    */
-  void push_back(bool bit);
+  void PushBack(bool bit);
 
   /**
    * Clears all bits in the bitvector.
    */
-  void clear();
+  void Clear();
 
   /**
    * Resizes the bit vector to a new number of bits.
    * @param n The new number of bits of the bit vector.
    * @param value The bit value of new values, if the vector expands.
    */
-  void resize(size_type n, bool value = false);
+  void Resize(size_type n, bool value = false);
 
   /**
    * Sets a bit at a specific position to a given value.
@@ -165,39 +165,39 @@ public:
    * @param bit The value assigned to position *i*.
    * @return A reference to the bit vector instance.
    */
-  BitVector& set(size_type i, bool bit = true);
+  BitVector& Set(size_type i, bool bit = true);
 
   /**
    * Sets all bits to 1.
    * @return A reference to the bit vector instance.
    */
-  BitVector& set();
+  BitVector& Set();
 
   /**
    * Resets a bit at a specific position, i.e., sets it to 0.
    * @param i The bit position.
    * @return A reference to the bit vector instance.
    */
-  BitVector& reset(size_type i);
+  BitVector& Reset(size_type i);
 
   /**
    * Sets all bits to 0.
    * @return A reference to the bit vector instance.
    */
-  BitVector& reset();
+  BitVector& Reset();
 
   /**
    * Toggles/flips a bit at a specific position.
    * @param i The bit position.
    * @return A reference to the bit vector instance.
    */
-  BitVector& flip(size_type i);
+  BitVector& Flip(size_type i);
 
   /**
    * Computes the complement.
    * @return A reference to the bit vector instance.
    */
-  BitVector& flip();
+  BitVector& Flip();
 
   /** Retrieves a single bit.
    * @param i The bit position.
@@ -217,32 +217,32 @@ public:
    * count* or *Hamming weight*.
    * @return The number of bits set to 1.
    */
-  size_type count() const;
+  size_type Count() const;
 
   /**
    * Retrieves the number of blocks of the underlying storage.
-   * @param The number of blocks that represent `size()` bits.
+   * @param The number of blocks that represent `Size()` bits.
    */
-  size_type blocks() const;
+  size_type Blocks() const;
 
   /**
    * Retrieves the number of bits the bitvector consist of.
    * @return The length of the bit vector in bits.
    */
-  size_type size() const;
+  size_type Size() const;
 
   /**
    * Checks whether the bit vector is empty.
    * @return `true` iff the bitvector has zero length.
    */
-  bool empty() const;
+  bool Empty() const;
 
   /**
    * Finds the bit position of of the first 1-bit.
    * @return The position of the first bit that equals to one or `npos` if no
    * such bit exists.
    */
-  size_type find_first() const;
+  size_type FindFirst() const;
 
   /**
    * Finds the next 1-bit from a given starting position.
@@ -252,7 +252,7 @@ public:
    * @return The position of the first bit that equals to 1 after position
    * *i*  or `npos` if no such bit exists.
    */
-  size_type find_next(size_type i) const;
+  size_type FindNext(size_type i) const;
 
   bool Serialize(SerialInfo* info) const;
   static BitVector* Unserialize(UnserialInfo* info);

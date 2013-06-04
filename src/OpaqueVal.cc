@@ -518,23 +518,31 @@ bool EntropyVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+BloomFilterVal::BloomFilterVal() : OpaqueVal(bloomfilter_type)
+	{
+	}
+
 BloomFilterVal::BloomFilterVal(OpaqueType* t) : OpaqueVal(t)
 	{
 	}
+
+BloomFilterVal::~BloomFilterVal()
+  {
+  if ( bloom_filter_ )
+    delete bloom_filter_;
+  }
 
 IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
 
 bool BloomFilterVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
-	// TODO: implement.
-	return true;
+	return SERIALIZE(bloom_filter_);
   }
 
 bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(OpaqueVal);
-	// TODO: implement.
-	return true;
+	bloom_filter_ = BloomFilter::Unserialize(info);
+	return bloom_filter_ == NULL;
   }
-

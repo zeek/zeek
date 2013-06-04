@@ -46,12 +46,23 @@ CounterVector::size_type CounterVector::Size() const
   return bits_->Blocks() / width_;
   }
 
+bool CounterVector::Serialize(SerialInfo* info) const
+  {
+  return SerialObj::Serialize(info);
+  }
+
+CounterVector* CounterVector::Unserialize(UnserialInfo* info)
+  {
+  return reinterpret_cast<CounterVector*>(
+      SerialObj::Unserialize(info, SER_COUNTERVECTOR));
+  }
+
 IMPLEMENT_SERIAL(CounterVector, SER_COUNTERVECTOR)
 
 bool CounterVector::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_COUNTERVECTOR, SerialObj);
-  if ( ! SERIALIZE(&bits_) )
+  if ( ! SERIALIZE(bits_) )
     return false;
 	return SERIALIZE(static_cast<uint64>(width_));
   }
@@ -60,9 +71,9 @@ bool CounterVector::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
 	return false;
-	// TODO: Ask Robin how to unserialize non-pointer members.
-  //if ( ! UNSERIALIZE(&bits_) )
-  //  return false;
+	bits_ = BitVector::Unserialize(info);
+  if ( ! bits_ )
+    return false;
   uint64 width;
   if ( ! UNSERIALIZE(&width) )
     return false;
@@ -90,6 +101,18 @@ HashPolicy::HashVector DoubleHashing::Hash(const void* x, size_t n) const
   return h;
   }
 
+
+BloomFilter::BloomFilter(size_t k)
+  : hash_(new hash_policy(k))
+  {
+  }
+
+BloomFilter::~BloomFilter()
+  {
+  if ( hash_ )
+    delete hash_;
+  }
+
 bool BloomFilter::Serialize(SerialInfo* info) const
   {
   return SerialObj::Serialize(info);
@@ -101,24 +124,21 @@ BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
       SerialObj::Unserialize(info, SER_BLOOMFILTER));
   }
 
-// FIXME: should abstract base classes also have IMPLEMENT_SERIAL?
-//IMPLEMENT_SERIAL(BloomFilter, SER_BLOOMFILTER)
-
 bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-	// TODO: Make the hash policy serializable.
-  //if ( ! SERIALIZE(hash_) )
-  //  return false;
-  return SERIALIZE(static_cast<uint64>(elements_));
+  if ( ! SERIALIZE(static_cast<uint16>(hash_->K())) )
+    return false;
+  return SERIALIZE(static_cast<uint16>(elements_));
   }
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
-	// TODO: Make the hash policy serializable.
-  //if ( ! hash_ = HashPolicy::Unserialize(info) )
-  //  return false;
+	uint16 k;
+	if ( ! UNSERIALIZE(&k) )
+	  return false;
+	hash_ = new hash_policy(static_cast<size_t>(k));
 	uint64 elements;
   if ( UNSERIALIZE(&elements) )
     return false;
@@ -126,7 +146,7 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	return true;
   }
 
-size_t BasicBloomFilter::Cells(double fp, size_t capacity)
+size_t BasicBloomFilter::M(double fp, size_t capacity)
   {
   double ln2 = std::log(2);
   return std::ceil(-(capacity * std::log(fp) / ln2 / ln2));
@@ -138,9 +158,16 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
   return round<size_t>(frac * std::log(2));
   }
 
-BasicBloomFilter::BasicBloomFilter(size_t cells, HashPolicy* hash)
-  : BloomFilter(hash), bits_(cells)
+BasicBloomFilter::BasicBloomFilter(double fp, size_t capacity)
+  : BloomFilter(K(M(fp, capacity), capacity))
   {
+  bits_ = new BitVector(M(fp, capacity));
+  }
+
+BasicBloomFilter::BasicBloomFilter(size_t cells, size_t capacity)
+  : BloomFilter(K(cells, capacity))
+  {
+  bits_ = new BitVector(cells);
   }
 
 IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
@@ -148,38 +175,50 @@ IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
 bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
-	// TODO: Make the hash policy serializable.
-  //if ( ! SERIALIZE(&bits_) )
-  //  return false;
-  return true;
+  return SERIALIZE(bits_);
   }
 
 bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
-	// TODO: Non-pointer member deserialization?
-	return true;
+	bits_ = BitVector::Unserialize(info);
+	return bits_ == NULL;
   }
 
 void BasicBloomFilter::AddImpl(const HashPolicy::HashVector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    bits_.set(h[i] % h.size());
+    bits_->Set(h[i] % h.size());
   }
 
 size_t BasicBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    if ( ! bits_[h[i] % h.size()] )
+    if ( ! (*bits_)[h[i] % h.size()] )
       return 0;
   return 1;
   }
 
 
+IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
+
+bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
+  return SERIALIZE(cells_);
+  }
+
+bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(BloomFilter);
+	cells_ = CounterVector::Unserialize(info);
+	return cells_ == NULL;
+  }
+
 void CountingBloomFilter::AddImpl(const HashPolicy::HashVector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    cells_.Increment(h[i] % h.size(), 1);
+    cells_->Increment(h[i] % h.size(), 1);
   }
 
 size_t CountingBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
@@ -188,7 +227,7 @@ size_t CountingBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
     std::numeric_limits<CounterVector::size_type>::max();
   for ( size_t i = 0; i < h.size(); ++i )
     {
-    CounterVector::size_type cnt = cells_.Count(h[i] % h.size());
+    CounterVector::size_type cnt = cells_->Count(h[i] % h.size());
     if ( cnt  < min )
       min = cnt;
     }

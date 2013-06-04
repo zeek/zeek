@@ -112,6 +112,7 @@ private:
 class BloomFilterVal : public OpaqueVal {
 public:
 	BloomFilterVal();
+	~BloomFilterVal();
 
 protected:
 	friend class Val;

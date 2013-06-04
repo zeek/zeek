@@ -151,9 +151,13 @@ private:
 /**
  * The abstract base class for Bloom filters.
  */
-class BloomFilter : SerialObj {
+class BloomFilter : public SerialObj {
 public:
-  virtual ~BloomFilter() { delete hash_; }
+  // At this point we won't let the user choose the hash policy, but we might
+  // open up the interface in the future.
+  typedef DoubleHashing hash_policy;
+
+  virtual ~BloomFilter();
 
   /**
    * Adds an element of type T to the Bloom filter.
@@ -193,10 +197,10 @@ public:
   static BloomFilter* Unserialize(UnserialInfo* info);
 
 protected:
-  DECLARE_SERIAL(BloomFilter);
+  DECLARE_ABSTRACT_SERIAL(BloomFilter);
 
 	BloomFilter() { };
-  BloomFilter(HashPolicy* hash) : hash_(hash) { }
+  BloomFilter(size_t k);
 
   virtual void AddImpl(const HashPolicy::HashVector& hashes) = 0;
   virtual size_t CountImpl(const HashPolicy::HashVector& hashes) const = 0;
@@ -211,10 +215,42 @@ private:
  */
 class BasicBloomFilter : public BloomFilter {
 public:
-  static size_t Cells(double fp, size_t capacity);
+  /**
+   * Computes the number of cells based a given false-positive rate and
+   * capacity. In the literature, this parameter often has the name *M*.
+   *
+   * @param fp The false-positive rate.
+   *
+   * @param capacity The number of exepected elements.
+   *
+   * Returns: The number cells needed to support a false-positive rate of *fp*
+   * with at most *capacity* elements.
+   */
+  static size_t M(double fp, size_t capacity);
+
+  /**
+   * Computes the optimal number of hash functions based on the number cells
+   * and expected number of elements.
+   *
+   * @param cells The number of cells (*m*).
+   *
+   * @param capacity The maximum number of elements.
+   *
+   * Returns: the optimal number of hash functions for a false-positive rate of
+   * *fp* for at most *capacity* elements.
+   */
   static size_t K(size_t cells, size_t capacity);
 
-  BasicBloomFilter(size_t cells, HashPolicy* hash);
+  /**
+   * Constructs a basic Bloom filter with a given false-positive rate and
+   * capacity.
+   */
+  BasicBloomFilter(double fp, size_t capacity);
+
+  /**
+   * Constructs a basic Bloom filter with a given number of cells and capacity.
+   */
+  BasicBloomFilter(size_t cells, size_t capacity);
 
 protected:
   DECLARE_SERIAL(BasicBloomFilter);
@@ -225,7 +261,7 @@ protected:
   virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
 
 private:
-  BitVector bits_;
+  BitVector* bits_;
 };
 
 /**
@@ -233,18 +269,18 @@ private:
  */
 class CountingBloomFilter : public BloomFilter {
 public:
-  CountingBloomFilter(unsigned width, HashPolicy* hash);
+  CountingBloomFilter(unsigned width);
 
 protected:
   DECLARE_SERIAL(CountingBloomFilter);
 
-  CountingBloomFilter();
+  CountingBloomFilter() { }
 
   virtual void AddImpl(const HashPolicy::HashVector& h);
   virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
 
 private:
-  CounterVector cells_;
+  CounterVector* cells_;
 };
 
 #endif

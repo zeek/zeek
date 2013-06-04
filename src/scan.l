@@ -8,6 +8,8 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
+#include <sys/param.h>
+#include <unistd.h>
 #include <libgen.h>
 
 #include "input.h"
@@ -345,7 +347,19 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @PATH	{
-	RET_CONST(new StringVal(current_scanned_file_path.c_str()));
+	string rval = current_scanned_file_path;
+
+	if ( ! rval.empty() && rval[0] == '.' )
+		{
+		char path[MAXPATHLEN];
+
+		if ( ! getcwd(path, MAXPATHLEN) )
+			reporter->Error("getcwd failed: %s", strerror(errno));
+		else
+			rval = string(path) + "/" + rval;
+		}
+
+	RET_CONST(new StringVal(rval.c_str()));
 	}
 
 @load{WS}{FILE}	{

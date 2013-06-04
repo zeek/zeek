@@ -80,7 +80,7 @@ private:
  * components, a plugin can also provide of script-level elements defined in
  * *.bif files.
  *
- * Currently, all plugins ard compiled statically into the final Bro binary.
+ * Currently, all plugins are compiled statically into the final Bro binary.
  * Later, we will extend the infrastructure to also support plugins loaded
  * dynamically as shared libraries.
  */
@@ -110,7 +110,7 @@ public:
 	const char* Description();
 
 	/**
-	 * Returns the version of the plugin. 
+	 * Returns the version of the plugin.
 	 */
 	int Version();
 
@@ -124,8 +124,6 @@ public:
 
 	/**
 	 * Returns a list of all components the plugin provides.
-	 * BRO_PLUGIN_VERSION_BUILTIN indiciates that it's a plugin compiled
-	 * in statically.
 	 */
 	component_list Components();
 

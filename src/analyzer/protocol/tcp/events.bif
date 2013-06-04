@@ -10,7 +10,7 @@
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection partial_connection
+##    scheduled_analyzer_applied new_connection partial_connection
 event new_connection_contents%(c: connection%);
 
 ## Generated for an unsuccessful connection attempt. This event is raised when
@@ -25,7 +25,7 @@ event new_connection_contents%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_attempt%(c: connection%);
 
@@ -41,7 +41,7 @@ event connection_attempt%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_established%(c: connection%);
 
@@ -57,7 +57,7 @@ event connection_established%(c: connection%);
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection new_connection_contents
+##    scheduled_analyzer_applied new_connection new_connection_contents
 ##
 event partial_connection%(c: connection%);
 
@@ -73,7 +73,7 @@ event partial_connection%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_partial_close%(c: connection%);
 
@@ -86,7 +86,7 @@ event connection_partial_close%(c: connection%);
 ##    connection_established connection_external connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_finished%(c: connection%);
 
@@ -100,7 +100,7 @@ event connection_finished%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK  connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_half_finished%(c: connection%);
 
@@ -112,7 +112,7 @@ event connection_half_finished%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending  connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## c: The connection.
@@ -136,7 +136,7 @@ event connection_rejected%(c: connection%);
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected  connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
-##    expected_connection_seen new_connection new_connection_contents
+##    scheduled_analyzer_applied new_connection new_connection_contents
 ##    partial_connection
 event connection_reset%(c: connection%);
 
@@ -148,7 +148,7 @@ event connection_reset%(c: connection%);
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection bro_done
 event connection_pending%(c: connection%);
 
@@ -163,7 +163,7 @@ event connection_pending%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## .. note::
@@ -184,7 +184,7 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ##    connection_established connection_external connection_finished
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 ##
 ## .. note::
@@ -204,7 +204,7 @@ event connection_first_ACK%(c: connection%);
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
-##    connection_status_update connection_timeout expected_connection_seen
+##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
 event connection_EOF%(c: connection, is_orig: bool%);
 

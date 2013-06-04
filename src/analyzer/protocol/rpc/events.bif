@@ -675,7 +675,8 @@ event pm_bad_port%(r: connection, bad_p: count%);
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status: rpc_status, start_time: time, call_len: count, reply_len: count%);
 
 ## Generated for RPC *call* messages.
@@ -701,7 +702,8 @@ event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status:
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count, call_len: count%);
 
 ## Generated for RPC *reply* messages.
@@ -724,5 +726,6 @@ event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count,
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
+##    call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+##    signature.
 event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);

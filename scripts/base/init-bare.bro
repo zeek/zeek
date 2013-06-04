@@ -226,7 +226,7 @@ type endpoint_stats: record {
 ## for a connection, it assigns it a unique ID that can be used to reference
 ## that instance.
 ##
-## .. bro:see:: analyzer_name disable_analyzer protocol_confirmation
+## .. bro:see:: Analyzer::name Analyzer::disable_analyzer protocol_confirmation
 ##    protocol_violation
 ##
 ## .. todo::While we declare an alias for the type here, the events/functions still

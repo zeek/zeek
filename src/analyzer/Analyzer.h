@@ -509,31 +509,31 @@ public:
 	virtual void UpdateConnVal(RecordVal *conn_val);
 
 	/**
-	 * Convinience function that forwards directly to
+	 * Convenience function that forwards directly to
 	 * Connection::BuildConnVal().
 	 */
 	RecordVal* BuildConnVal();
 
 	/**
-	 * Convinience function that forwards directly to the corresponding
+	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
 	void Event(EventHandlerPtr f, const char* name = 0);
 
 	/**
-	 * Convinience function that forwards directly to the corresponding
+	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
 	void Event(EventHandlerPtr f, Val* v1, Val* v2 = 0);
 
 	/**
-	 * Convinience function that forwards directly to
+	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
 	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
 
 	/**
-	 * Convinience function that forwards directly to the corresponding
+	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Weird().
 	 */
 	void Weird(const char* name, const char* addl = "");

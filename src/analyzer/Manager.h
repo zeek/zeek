@@ -91,7 +91,7 @@ public:
 	 *
 	 * @param tag The analyzer's tag.
 	 *
-	 * @return True if sucessful.
+	 * @return True if successful.
 	 */
 	bool EnableAnalyzer(Tag tag);
 
@@ -102,7 +102,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 *
-	 * @return True if sucessful.
+	 * @return True if successful.
 	 */
 	bool EnableAnalyzer(EnumVal* tag);
 
@@ -112,7 +112,7 @@ public:
 	 *
 	 * @param tag The analyzer's tag.
 	 *
-	 * @return True if sucessful.
+	 * @return True if successful.
 	 */
 	bool DisableAnalyzer(Tag tag);
 
@@ -123,7 +123,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 *
-	 * @return True if sucessful.
+	 * @return True if successful.
 	 */
 	bool DisableAnalyzer(EnumVal* tag);
 
@@ -157,7 +157,7 @@ public:
 	 *
 	 * @param port The well-known port.
 	 *
-	 * @return True if sucessful.
+	 * @return True if successful.
 	 */
 	bool RegisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
@@ -172,7 +172,7 @@ public:
 	 *
 	 * @param port The port's number.
 	 *
-	 * @return True if sucessful.
+	 * @return True if successful.
 	 */
 	bool RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
 
@@ -184,7 +184,7 @@ public:
 	 *
 	 * @param port The well-known port.
 	 *
-	 * @return True if sucessful (incl. when the port wasn't actually
+	 * @return True if successful (incl. when the port wasn't actually
 	 * registered for the analyzer).
 	 *
 	 */
@@ -215,7 +215,7 @@ public:
 	 * have been added to the connection's analyzer tree yet. Returns
 	 * null if tag is invalid or the requested analyzer is disabled.
 	 */
-	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c); // Null if disabled or not available.
+	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -229,7 +229,7 @@ public:
 	 * null if the name is not known or if the requested analyzer that is
 	 * disabled.
 	 */
-	Analyzer* InstantiateAnalyzer(const char* name, Connection* c); // Null if disabled or not available.
+	Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
 
 	/**
 	 * Translates an analyzer tag into corresponding analyzer name.

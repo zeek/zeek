@@ -70,10 +70,10 @@
 #define BRO_PLUGIN_VERSION(v) SetVersion(v)
 
 /**
- * Adds scrip-level items defined in a \c *.bif file to what the plugin
+ * Adds script-level items defined in a \c *.bif file to what the plugin
  * provides.
  *
- * @param file A string with the name of \c *.bif file. When loaded, the the
+ * @param file A string with the name of \c *.bif file. When loaded, the
  * plugin will make all items defined in the file available to Bro's script
  * interpreter.
  */
@@ -82,7 +82,7 @@
 		AddBifInitFunction(&__bif_##file##_init);
 
 /**
- * Defines a component implementating a protocol analyzer.
+ * Defines a component implementing a protocol analyzer.
  *
  * @param tag A string with the analyzer's tag. This must be unique across
  * all loaded analyzers and will translate into a corresponding \c ANALYZER_*
@@ -95,12 +95,12 @@
 	AddComponent(new ::analyzer::Component(tag, ::analyzer::cls::InstantiateAnalyzer));
 
 /**
- * Defines a component implementating an protocol analyzer class that will
+ * Defines a component implementing a protocol analyzer class that will
  * not be instantiated dynamically. This is for two use-cases: (1) abstract
  * analyzer base classes that aren't instantiated directly; and (2) analyzers
  * that are only instantiated explicitly by other Bro components, but not
- * dynmically by the manager based on their tag (e.g., the ZIP analyzer is
- * attached by the HTTP analyzer when corresponding content is found). 
+ * dynamically by the manager based on their tag (e.g., the ZIP analyzer is
+ * attached by the HTTP analyzer when corresponding content is found).
  *
  * @param tag A string with the analyzer's tag. This must be unique across
  * all loaded analyzers and will translate into a corresponding \c ANALYZER_*
@@ -111,7 +111,7 @@
 
 /**
  * Defines a component implementating a support analyzer.
- * 
+ *
  * @param tag A string with the analyzer's tag. This must be unique across
  * all loaded analyzers and will translate into a corresponding \c ANALYZER_*
  * constant at the script-layer.

@@ -344,6 +344,10 @@ when	return TOK_WHEN;
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
+@PATH	{
+	RET_CONST(new StringVal(current_scanned_file_path.c_str()));
+	}
+
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
 	if ( generate_documentation )

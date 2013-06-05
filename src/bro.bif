@@ -5730,3 +5730,92 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		}
 	%}
 
+# ===========================================================================
+#
+#                           Bloom Filter Functions
+#
+# ===========================================================================
+
+%%{
+#include "BloomFilter.h"
+%%}
+
+## Initializes a Bloom filter data structure.
+##
+## fp: The desired false-positive rate.
+##
+## capacity: the maximum number of elements that guarantees a false-positive
+## rate of *fp*.
+##
+## Returns: A Bloom filter handle.
+function bloomfilter_init%(fp: double, capacity: count,
+                           max: count &default=1%): opaque of bloomfilter
+  %{
+  BloomFilter* bf;
+  if ( max == 1 )
+    {
+    bf = new BasicBloomFilter(fp, capacity);
+    }
+  else
+    {
+    uint16 width = 0;
+    while ( max >>= 1 )
+      ++width;
+    bf = new CountingBloomFilter(fp, capacity, width);
+    }
+  return new BloomFilterVal(bf);
+  %}
+
+## Adds an element to a Bloom filter.
+##
+## bf: The Bloom filter handle.
+##
+## x: The element to add.
+function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
+  %{
+  BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+  if ( ! bfv->Type() || ! bfv->Typify(x->Type()) )
+    reporter->Error("failed to set Bloom filter type");
+  else if ( bfv->Type() != x->Type() )
+    reporter->Error("incompatible Bloom filter types");
+  bfv->Add(x);
+  return 0;
+  %}
+
+## Retrieves the counter for a given element in a Bloom filter.
+##
+## bf: The Bloom filter handle.
+##
+## x: The element to count.
+##
+## Returns: the counter associated with *x* in *bf*.
+function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
+  %{
+  BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+  if ( ! bfv->Type() )
+    reporter->Error("cannot perform lookup on untyped Bloom filter");
+  else if ( bfv->Type() != x->Type() )
+    reporter->Error("incompatible Bloom filter types");
+	return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
+  %}
+
+## Merges two Bloom filters.
+##
+## bf1: The first Bloom filter handle.
+##
+## bf2: The second Bloom filter handle.
+##
+## Returns: The union of *bf1* and *bf2*.
+function bloomfilter_merge%(bf1: opaque of bloomfilter,
+                            bf2: opaque of bloomfilter%): opaque of bloomfilter
+  %{
+  const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
+  const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
+  if ( ! bfv1->Type() )
+    reporter->Error("The first Bloom filter has not yet been typed");
+  if ( ! bfv2->Type() )
+    reporter->Error("The second Bloom filter has not yet been typed");
+  else if ( bfv1->Type() != bfv2->Type() )
+    reporter->Error("incompatible Bloom filter types");
+	return BloomFilterVal::Merge(bfv1, bfv2);
+  %}

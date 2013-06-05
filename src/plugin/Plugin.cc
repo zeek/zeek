@@ -46,6 +46,7 @@ Plugin::Plugin()
 	// These will be reset by the BRO_PLUGIN_* macros.
 	version = -9999;
 	api_version = -9999;
+	dynamic = false;
 
 	Manager::RegisterPlugin(this);
 	}
@@ -80,7 +81,7 @@ void Plugin::SetDescription(const char* arg_description)
 
 int Plugin::Version()
 	{
-	return version;
+	return dynamic ? version : 0;
 	}
 
 void Plugin::SetVersion(int arg_version)
@@ -93,9 +94,19 @@ int Plugin::APIVersion()
 	return api_version;
 	}
 
+bool Plugin::DynamicPlugin()
+	{
+	return dynamic;
+	}
+
 void Plugin::SetAPIVersion(int arg_version)
 	{
 	api_version = arg_version;
+	}
+
+void Plugin::SetDynamicPlugin(bool arg_dynamic)
+	{
+	dynamic = arg_dynamic;
 	}
 
 void Plugin::InitPreScript()
@@ -166,12 +177,16 @@ void Plugin::Describe(ODesc* d)
 		d->Add(description);
 		}
 
-	if ( version != BRO_PLUGIN_VERSION_BUILTIN )
+	if ( dynamic )
 		{
-		d->Add(" (version ");
-		d->Add(version);
-
-		d->Add(")");
+		if ( version > 0 )
+			{
+			d->Add(" (version ");
+			d->Add(version);
+			d->Add(")");
+			}
+		else
+			d->Add(" (version not set)");
 		}
 
 	else

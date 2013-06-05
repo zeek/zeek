@@ -11,17 +11,10 @@
 #include "analyzer/Component.h"
 
 /**
- * Place-holder API version for plugins compiled in statically.
- */
-#define BRO_PLUGIN_VERSION_BUILTIN -1
-
-/**
  * The current plugin API version. Plugins that won't match this version will
  * be rejected.
  */
 #define BRO_PLUGIN_API_VERSION      1
-
-#define _BRO_PLUGIN_VERSION_DEFAULT -1
 
 /**
  * Starts the definition of a new plugin.
@@ -40,8 +33,12 @@
 			void InitPreScript()				\
 			{					\
 			SetName(#_ns "::" #_name);		\
-			SetVersion(_BRO_PLUGIN_VERSION_DEFAULT);\
-			SetAPIVersion(BRO_PLUGIN_API_VERSION);
+			SetVersion(-1);\
+			SetAPIVersion(BRO_PLUGIN_API_VERSION);\
+			SetDynamicPlugin(false);
+// TODO: The SetDynamicPlugin() call is currently hardcoded to false. Change
+// once we have dynamic plugins as well.
+
 
 /**
  * Ends the definition of a plugin.

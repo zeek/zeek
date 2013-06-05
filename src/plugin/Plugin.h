@@ -110,15 +110,23 @@ public:
 	const char* Description();
 
 	/**
-	 * Returns the version of the plugin.
+	 * Returns the version of the plugin. Version are only meaningful for
+	 * dynamically compiled plugins; for statically compiled ones, this
+	 * will always return 0.
 	 */
 	int Version();
 
 	/**
+	 * Returns true if this is a dynamically linked in plugin.
+	 */
+	bool DynamicPlugin();
+
+	/**
 	 * Returns the internal API version that this plugin relies on. Only
-	 * plugins that match Bro's BRO_PLUGIN_API_VERSION may be used. For
+	 * plugins that match Bro's current API version may be used. For
 	 * statically compiled plugins this is automatically the case, but
-	 * dynamically loaded plugins could later cause a mismatch.
+	 * dynamically loaded plugins may cause a mismatch if they were
+	 * compiled for a different Bro version.
 	 */
 	int APIVersion();
 
@@ -198,6 +206,13 @@ protected:
 	void SetAPIVersion(int version);
 
 	/**
+	 * Marks the plugin as statically or dynamically linked.
+	 *
+	 * @param dynamic True if this is a dynamically linked plugin.
+	 */
+	void SetDynamicPlugin(bool dynamic);
+
+	/**
 	 * Takes ownership.
 	 */
 	void AddComponent(Component* c);
@@ -225,6 +240,7 @@ private:
 	const char* description;
 	int version;
 	int api_version;
+	bool dynamic;
 
 	component_list components;
 	bif_item_list bif_items;

@@ -269,7 +269,8 @@ private:
  */
 class CountingBloomFilter : public BloomFilter {
 public:
-  CountingBloomFilter(unsigned width);
+  CountingBloomFilter(double fp, size_t capacity, size_t width);
+  CountingBloomFilter(size_t cells, size_t capacity, size_t width);
 
 protected:
   DECLARE_SERIAL(CountingBloomFilter);

@@ -110,18 +110,32 @@ private:
 };
 
 class BloomFilterVal : public OpaqueVal {
+  BloomFilterVal(const BloomFilterVal&);
+  BloomFilterVal& operator=(const BloomFilterVal&);
 public:
-	BloomFilterVal();
+	static BloomFilterVal* Merge(const BloomFilterVal* first,
+                               const BloomFilterVal* second);
+
+	BloomFilterVal(BloomFilter* bf);
 	~BloomFilterVal();
+
+	bool Typify(BroType* type);
+	BroType* Type() const;
+
+	void Add(const Val* val);
+	size_t Count(const Val* val) const;
 
 protected:
 	friend class Val;
+	BloomFilterVal();
 	BloomFilterVal(OpaqueType* t);
 
 	DECLARE_SERIAL(BloomFilterVal);
 
 private:
-	BloomFilter* bloom_filter_;
+  BroType* type_;
+  CompositeHash* hash_;
+  BloomFilter* bloom_filter_;
 };
 
 #endif

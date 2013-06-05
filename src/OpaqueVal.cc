@@ -518,31 +518,87 @@ bool EntropyVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-BloomFilterVal::BloomFilterVal() : OpaqueVal(bloomfilter_type)
+BloomFilterVal::BloomFilterVal(BloomFilter* bf)
+  : OpaqueVal(bloomfilter_type), bloom_filter_(bf)
 	{
 	}
 
-BloomFilterVal::BloomFilterVal(OpaqueType* t) : OpaqueVal(t)
+BloomFilterVal::BloomFilterVal(OpaqueType* t)
+  : OpaqueVal(t)
 	{
 	}
+
+bool BloomFilterVal::Typify(BroType* type)
+  {
+  if ( type_ )
+    return false;
+  type_ = type;
+  TypeList* tl = new TypeList(type_);
+  tl->Append(type_);
+  hash_ = new CompositeHash(tl);
+  Unref(tl);
+  return true;
+  }
+
+BroType* BloomFilterVal::Type() const
+  {
+  return type_;
+  }
+
+void BloomFilterVal::Add(const Val* val)
+  {
+  HashKey* key = hash_->ComputeHash(val, 1);
+  bloom_filter_->Add(key->Hash());
+  }
+
+size_t BloomFilterVal::Count(const Val* val) const
+  {
+  HashKey* key = hash_->ComputeHash(val, 1);
+  return bloom_filter_->Count(key->Hash());
+  }
+
+BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* first,
+                                      const BloomFilterVal* second)
+{
+  assert(! "not yet implemented");
+  return NULL;
+  }
 
 BloomFilterVal::~BloomFilterVal()
   {
+  if ( type_ )
+    Unref(type_);
+  if ( hash_ )
+    delete hash_;
   if ( bloom_filter_ )
     delete bloom_filter_;
   }
+
+BloomFilterVal::BloomFilterVal()
+  : OpaqueVal(bloomfilter_type)
+	{
+	}
 
 IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
 
 bool BloomFilterVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
+	if ( ! SERIALIZE(type_) )
+	  return false;
 	return SERIALIZE(bloom_filter_);
   }
 
 bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(OpaqueVal);
+	type_ = BroType::Unserialize(info);
+	if ( ! type_ )
+	  return false;
+  TypeList* tl = new TypeList(type_);
+  tl->Append(type_);
+  hash_ = new CompositeHash(tl);
+  Unref(tl);
 	bloom_filter_ = BloomFilter::Unserialize(info);
 	return bloom_filter_ == NULL;
   }

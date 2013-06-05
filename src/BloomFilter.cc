@@ -199,6 +199,21 @@ size_t BasicBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
   return 1;
   }
 
+CountingBloomFilter::CountingBloomFilter(double fp, size_t capacity,
+                                         size_t width)
+  : BloomFilter(BasicBloomFilter::K(BasicBloomFilter::M(fp, capacity),
+                                    capacity))
+  {
+  cells_ = new CounterVector(width, BasicBloomFilter::M(fp, capacity));
+  }
+
+CountingBloomFilter::CountingBloomFilter(size_t cells, size_t capacity,
+                                         size_t width)
+  : BloomFilter(BasicBloomFilter::K(cells, capacity))
+  {
+  cells_ = new CounterVector(width, cells);
+  }
+
 
 IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
 

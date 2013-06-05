@@ -1,6 +1,4 @@
-dpd_config, {
-
-}
+|Analyzer::all_registered_ports()|, 0
 signature_match [orig_h=2001:470:1f11:81f:c999:d94:aa7c:2e3e, orig_p=49185/tcp, resp_h=2001:470:4867:99::21, resp_p=21/tcp] - matched my_ftp_client
 ftp_reply [2001:470:4867:99::21]:21 - 220 ftp.NetBSD.org FTP server (NetBSD-ftpd 20100320) ready.
 ftp_request [2001:470:1f11:81f:c999:d94:aa7c:2e3e]:49185 - USER anonymous

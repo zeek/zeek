@@ -9,7 +9,6 @@
 #include <queue>
 
 #include "Net.h"
-#include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Analyzer.h"
@@ -19,6 +18,8 @@
 #include "File.h"
 #include "FileTimer.h"
 #include "FileID.h"
+
+#include "analyzer/Tag.h"
 
 namespace file_analysis {
 
@@ -44,7 +45,7 @@ public:
 	 * Pass in non-sequential file data.
 	 */
 	void DataIn(const u_char* data, uint64 len, uint64 offset,
-		    AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
+		    analyzer::Tag tag, Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, uint64 offset,
 		    const string& unique);
 	void DataIn(const u_char* data, uint64 len, uint64 offset,
@@ -53,7 +54,7 @@ public:
 	/**
 	 * Pass in sequential file data.
 	 */
-	void DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+	void DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 	            Connection* conn, bool is_orig);
 	void DataIn(const u_char* data, uint64 len, const string& unique);
 	void DataIn(const u_char* data, uint64 len, File* file);
@@ -61,14 +62,14 @@ public:
 	/**
 	 * Signal the end of file data.
 	 */
-	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn);
-	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
+	void EndOfFile(analyzer::Tag tag, Connection* conn);
+	void EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig);
 	void EndOfFile(const string& unique);
 
 	/**
 	 * Signal a gap in the file data stream.
 	 */
-	void Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
+	void Gap(uint64 offset, uint64 len, analyzer::Tag tag, Connection* conn,
 	         bool is_orig);
 	void Gap(uint64 offset, uint64 len, const string& unique);
 	void Gap(uint64 offset, uint64 len, File* file);
@@ -76,7 +77,7 @@ public:
 	/**
 	 * Provide the expected number of bytes that comprise a file.
 	 */
-	void SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+	void SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
 	             bool is_orig);
 	void SetSize(uint64 size, const string& unique);
 	void SetSize(uint64 size, File* file);
@@ -133,7 +134,7 @@ protected:
 	 *         fields.
 	 */
 	File* GetFile(const string& unique, Connection* conn = 0,
-	              AnalyzerTag::Tag tag = AnalyzerTag::Error,
+	              analyzer::Tag tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true);
 
 	/**
@@ -159,12 +160,12 @@ protected:
 	 * \c get_file_handle event derives from the connection params.  The
 	 * event queue is flushed so that we can get the handle value immediately.
 	 */
-	void GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig);
+	void GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig);
 
 	/**
 	 * @return whether file analysis is disabled for the given analyzer.
 	 */
-	static bool IsDisabled(AnalyzerTag::Tag tag);
+	static bool IsDisabled(analyzer::Tag tag);
 
 private:
 	StrMap str_map;	/**< Map unique string to file_analysis::File. */

@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 88
+%expect 85
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -23,7 +23,7 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
-%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
+%token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN
 
 %token TOK_DEBUG
@@ -79,7 +79,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Var.h"
-#include "DNS.h"
+/* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"
@@ -1123,8 +1123,7 @@ decl:
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
 
 			if ( generate_documentation &&
-				! streq("capture_filters", $2->Name()) &&
-				! streq("dpd_config", $2->Name()) )
+				! streq("capture_filters", $2->Name()) )
 				{
 				ID* fake_id = create_dummy_id($2, $2->Type());
 				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
@@ -1404,8 +1403,6 @@ attr:
 			{ $$ = new Attr(ATTR_MERGEABLE); }
 	|	TOK_ATTR_PRIORITY '=' expr
 			{ $$ = new Attr(ATTR_PRIORITY, $3); }
-	|	TOK_ATTR_GROUP '=' expr
-			{ $$ = new Attr(ATTR_GROUP, $3); }
 	|	TOK_ATTR_TYPE_COLUMN '=' expr
 			{ $$ = new Attr(ATTR_TYPE_COLUMN, $3); }
 	|	TOK_ATTR_LOG

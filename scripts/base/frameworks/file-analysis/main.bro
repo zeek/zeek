@@ -1,7 +1,7 @@
 ##! An interface for driving the analysis of files, possibly independent of
 ##! any network protocol over which they're transported.
 
-@load base/file_analysis.bif
+@load base/bif/file_analysis.bif
 @load base/frameworks/logging
 
 module FileAnalysis;
@@ -104,7 +104,7 @@ export {
 
 	## A table that can be used to disable file analysis completely for
 	## any files transferred over given network protocol analyzers.
-	const disable: table[AnalyzerTag] of bool = table() &redef;
+	const disable: table[Analyzer::Tag] of bool = table() &redef;
 
 	## Event that can be handled to access the Info record as it is sent on
 	## to the logging framework.

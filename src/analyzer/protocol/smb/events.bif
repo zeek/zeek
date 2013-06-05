@@ -1,0 +1,495 @@
+## Generated for all SMB/CIFS messages.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## is_orig: True if the message was sent by the originator of the underlying
+##       transport-level connection.
+##
+## cmd: A string mnemonic of the SMB command code.
+##
+## body_length: The length of the SMB message body, i.e. the data starting after
+##         the SMB header.
+##
+## body: The raw SMB message body, i.e., the data starting after the SMB header.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction smb_com_transaction2
+##    smb_com_tree_connect_andx smb_com_tree_disconnect smb_com_write_andx smb_error
+##    smb_get_dfs_referral
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_message%(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body_length: count, body: string%);
+
+## Generated for SMB/CIFS messages of type *tree connect andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## path: The ``path`` attribute specified in the message.
+##
+## service: The ``service`` attribute specified in the message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction smb_com_transaction2
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_tree_connect_andx%(c: connection, hdr: smb_hdr, path: string, service: string%);
+
+## Generated for SMB/CIFS messages of type *tree disconnect*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction smb_com_transaction2
+##    smb_com_tree_connect_andx  smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_tree_disconnect%(c: connection, hdr: smb_hdr%);
+
+## Generated for SMB/CIFS messages of type *nt create andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## name: The ``name`` attribute specified in the message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_read_andx
+##    smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_nt_create_andx%(c: connection, hdr: smb_hdr, name: string%);
+
+## Generated for SMB/CIFS messages of type *nt transaction*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## trans: The parsed transaction header.
+##
+## data: The raw transaction data.
+##
+## is_orig: True if the message was sent by the originator of the connection.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe
+##    smb_com_trans_rap smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_transaction%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+
+## Generated for SMB/CIFS messages of type *nt transaction 2*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## trans: The parsed transaction header.
+##
+## data: The raw transaction data.
+##
+## is_orig: True if the message was sent by the originator of the connection.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe
+##    smb_com_trans_rap smb_com_transaction smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_transaction2%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+
+## Generated for SMB/CIFS messages of type *transaction mailslot*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## trans: The parsed transaction header.
+##
+## data: The raw transaction data.
+##
+## is_orig: True if the message was sent by the originator of the connection.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_trans_mailslot%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+
+## Generated for SMB/CIFS messages of type *transaction rap*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## trans: The parsed transaction header.
+##
+## data: The raw transaction data.
+##
+## is_orig: True if the message was sent by the originator of the connection.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe  smb_com_transaction smb_com_transaction2
+##    smb_com_tree_connect_andx smb_com_tree_disconnect smb_com_write_andx smb_error
+##    smb_get_dfs_referral smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_trans_rap%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+
+## Generated for SMB/CIFS messages of type *transaction pipe*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## trans: The parsed transaction header.
+##
+## data: The raw transaction data.
+##
+## is_orig: True if the message was sent by the originator of the connection.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_trans_pipe%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+
+## Generated for SMB/CIFS messages of type *read andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## data: Always empty.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_read_andx%(c: connection, hdr: smb_hdr, data: string%);
+
+## Generated for SMB/CIFS messages of type *read andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## data: Always empty.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction smb_com_transaction2
+##    smb_com_tree_connect_andx smb_com_tree_disconnect  smb_error
+##    smb_get_dfs_referral smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_write_andx%(c: connection, hdr: smb_hdr, data: string%);
+
+## Generated for SMB/CIFS messages of type *get dfs referral*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## max_referral_level: The ``max_referral_level`` attribute specified in the
+##                     message.
+##
+## file_name: The ``filene_name`` attribute specified in the message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction smb_com_transaction2
+##    smb_com_tree_connect_andx smb_com_tree_disconnect smb_com_write_andx smb_error
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_get_dfs_referral%(c: connection, hdr: smb_hdr, max_referral_level: count, file_name: string%);
+
+## Generated for SMB/CIFS messages of type *negotiate*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate_response smb_com_nt_create_andx smb_com_read_andx smb_com_setup_andx
+##    smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap smb_com_transaction
+##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
+##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_negotiate%(c: connection, hdr: smb_hdr%);
+
+## Generated for SMB/CIFS messages of type *negotiate response*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## dialect_index: The ``dialect`` indicated in the message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate  smb_com_nt_create_andx smb_com_read_andx smb_com_setup_andx
+##    smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap smb_com_transaction
+##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
+##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_negotiate_response%(c: connection, hdr: smb_hdr, dialect_index: count%);
+
+## Generated for SMB/CIFS messages of type *setup andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx  smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_setup_andx%(c: connection, hdr: smb_hdr%);
+
+## Generated for SMB/CIFS messages of type *generic andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## .. bro:see:: smb_com_close  smb_com_logoff_andx smb_com_negotiate
+##    smb_com_negotiate_response smb_com_nt_create_andx smb_com_read_andx
+##    smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_generic_andx%(c: connection, hdr: smb_hdr%);
+
+## Generated for SMB/CIFS messages of type *close*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## .. bro:see::  smb_com_generic_andx smb_com_logoff_andx smb_com_negotiate
+##    smb_com_negotiate_response smb_com_nt_create_andx smb_com_read_andx
+##    smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_close%(c: connection, hdr: smb_hdr%);
+
+## Generated for SMB/CIFS messages of type *logoff andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_negotiate
+##    smb_com_negotiate_response smb_com_nt_create_andx smb_com_read_andx
+##    smb_com_setup_andx smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
+##    smb_com_transaction smb_com_transaction2 smb_com_tree_connect_andx
+##    smb_com_tree_disconnect smb_com_write_andx smb_error smb_get_dfs_referral
+##    smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_com_logoff_andx%(c: connection, hdr: smb_hdr%);
+
+## Generated for SMB/CIFS messages that indicate an error. This event is
+## triggered by an SMB header including a status that signals an error.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## cmd: The SMB command code.
+##
+## cmd_str: A string mnemonic of the SMB command code.
+##
+## data: The raw SMB message body, i.e., the data starting after the SMB header.
+##
+## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
+##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
+##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
+##    smb_com_trans_pipe smb_com_trans_rap smb_com_transaction smb_com_transaction2
+##    smb_com_tree_connect_andx smb_com_tree_disconnect smb_com_write_andx
+##    smb_get_dfs_referral smb_message
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event smb_error%(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, data: string%);
+

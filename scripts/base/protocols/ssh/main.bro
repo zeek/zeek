@@ -71,10 +71,11 @@ export {
 }
 
 # Configure DPD and the packet filter
-redef capture_filters += { ["ssh"] = "tcp port 22" };
-redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
-redef likely_server_ports += { 22/tcp };
+const ports = { 22/tcp };
+ 
+redef capture_filters += { ["ssh"] = "tcp port 22" };
+redef likely_server_ports += { ports };
 
 redef record connection += {
 	ssh: Info &optional;
@@ -83,6 +84,7 @@ redef record connection += {
 event bro_init() &priority=5
 {
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 }
 
 function set_session(c: connection)

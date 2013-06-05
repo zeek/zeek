@@ -4,6 +4,6 @@
 
 event bro_init()
 	{
-	local a = 1;
-	print analyzer_name(a);
+	local a = Analyzer::ANALYZER_PIA_TCP;
+	print Analyzer::name(a);
 	}

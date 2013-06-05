@@ -11,7 +11,7 @@ export {
 
 function get_handle_string(c: connection): string
 	{
-	return cat(ANALYZER_FTP_DATA, " ", c$start_time, " ", id_string(c$id));
+	return cat(Analyzer::ANALYZER_FTP_DATA, " ", c$start_time, " ", id_string(c$id));
 	}
 
 function get_file_handle(c: connection, is_orig: bool): string
@@ -40,8 +40,8 @@ function get_file_handle(c: connection, is_orig: bool): string
 
 module GLOBAL;
 
-event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
+event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool)
 	{
-	if ( tag != ANALYZER_FTP_DATA ) return;
+	if ( tag != Analyzer::ANALYZER_FTP_DATA ) return;
 	set_file_handle(FTP::get_file_handle(c, is_orig));
 	}

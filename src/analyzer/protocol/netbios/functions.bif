@@ -1,0 +1,50 @@
+
+## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
+##
+## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF"``.
+##
+## Returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
+##
+## .. bro:see:: decode_netbios_name_type
+function decode_netbios_name%(name: string%): string
+	%{
+	char buf[16];
+	char result[16];
+	const u_char* s = name->Bytes();
+	int i, j;
+
+	for ( i = 0, j = 0; i < 16; ++i )
+		{
+		char c0 = (j < name->Len()) ? toupper(s[j++]) : 'A';
+		char c1 = (j < name->Len()) ? toupper(s[j++]) : 'A';
+		buf[i] = ((c0 - 'A') << 4) + (c1 - 'A');
+		}
+
+	for ( i = 0; i < 15; ++i )
+		{
+		if ( isalnum(buf[i]) || ispunct(buf[i]) ||
+		     // \x01\x02 is seen in at least one case as the first two bytes.
+		     // I think that any \x01 and \x02 should always be passed through.
+		     buf[i] < 3 )
+			result[i] = buf[i];
+		else
+			break;
+		}
+
+	return new StringVal(i, result);
+	%}
+
+## Converts a NetBIOS name type to its corresponding numeric value.
+## See http://support.microsoft.com/kb/163409.
+##
+## name: The NetBIOS name type.
+##
+## Returns: The numeric value of *name*.
+##
+## .. bro:see:: decode_netbios_name
+function decode_netbios_name_type%(name: string%): count
+	%{
+	const u_char* s = name->Bytes();
+	char return_val = ((toupper(s[30]) - 'A') << 4) + (toupper(s[31]) - 'A');
+	return new Val(return_val, TYPE_COUNT);
+	%}

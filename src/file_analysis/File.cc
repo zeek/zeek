@@ -11,8 +11,10 @@
 #include "Reporter.h"
 #include "Val.h"
 #include "Type.h"
-#include "../Analyzer.h"
 #include "Event.h"
+
+#include "analyzer/Analyzer.h"
+#include "analyzer/Manager.h"
 
 using namespace file_analysis;
 
@@ -76,7 +78,7 @@ void File::StaticInit()
 	salt = BifConst::FileAnalysis::salt->CheckString();
 	}
 
-File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag,
+File::File(const string& unique, Connection* conn, analyzer::Tag tag,
            bool is_orig)
 	: id(""), unique(unique), val(0), postpone_timeout(false),
 		first_chunk(true), missed_bof(false), need_reassembly(false), done(false),
@@ -101,7 +103,7 @@ File::File(const string& unique, Connection* conn, AnalyzerTag::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		val->Assign(source_idx, new StringVal(::Analyzer::GetTagName(tag)));
+		val->Assign(source_idx, new StringVal(analyzer_mgr->GetAnalyzerName(tag)));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn);
 		}

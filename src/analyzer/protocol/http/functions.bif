@@ -1,0 +1,56 @@
+
+%%{
+#include "protocol/http/HTTP.h"
+%%}
+
+## Skips the data of the HTTP entity.
+##
+## c: The HTTP connection.
+##
+## is_orig: If true, the client data is skipped, and the server data otherwise.
+##
+## .. bro:see:: skip_smtp_data
+function skip_http_entity_data%(c: connection, is_orig: bool%): any
+	%{
+	analyzer::ID id = mgr.CurrentAnalyzer();
+	if ( id )
+		{
+		analyzer::Analyzer* ha = c->FindAnalyzer(id);
+
+		if ( ha )
+			{
+			if ( ha->IsAnalyzer("HTTP") )
+				static_cast<analyzer::http::HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
+			else
+				reporter->Error("non-HTTP analyzer associated with connection record");
+			}
+		else
+			reporter->Error("could not find analyzer for skip_http_entity_data");
+
+		}
+	else
+		reporter->Error("no analyzer associated with connection record");
+
+	return 0;
+	%}
+
+## Unescapes all characters in a URI (decode every ``%xx`` group).
+##
+## URI: The URI to unescape.
+##
+## Returns: The unescaped URI with all ``%xx`` groups decoded.
+##
+## .. note::
+##
+##      Unescaping reserved characters may cause loss of information. RFC 2396:
+##      A URI is always in an "escaped" form, since escaping or unescaping a
+##      completed URI might change its semantics.  Normally, the only time
+##      escape encodings can safely be made is when the URI is being created
+##      from its component parts.
+function unescape_URI%(URI: string%): string
+	%{
+	const u_char* line = URI->Bytes();
+	const u_char* const line_end = line + URI->Len();
+
+	return new StringVal(analyzer::http::unescape_URI(line, line_end, 0));
+	%}

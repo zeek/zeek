@@ -38,7 +38,7 @@ void Manager::SetHandle(const string& handle)
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
+                     analyzer::Tag tag, Connection* conn, bool is_orig)
 	{
 	if ( IsDisabled(tag) )
 		return;
@@ -65,7 +65,7 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 		RemoveFile(file->GetUnique());
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+void Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
                      Connection* conn, bool is_orig)
 	{
 	if ( IsDisabled(tag) )
@@ -94,13 +94,13 @@ void Manager::DataIn(const u_char* data, uint64 len, File* file)
 		RemoveFile(file->GetUnique());
 	}
 
-void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
+void Manager::EndOfFile(analyzer::Tag tag, Connection* conn)
 	{
 	EndOfFile(tag, conn, true);
 	EndOfFile(tag, conn, false);
 	}
 
-void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
+void Manager::EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig)
 	{
 	if ( IsDisabled(tag) )
 		return;
@@ -114,7 +114,7 @@ void Manager::EndOfFile(const string& unique)
 	RemoveFile(unique);
 	}
 
-void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
+void Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
                   Connection* conn, bool is_orig)
 	{
 	if ( IsDisabled(tag) )
@@ -137,7 +137,7 @@ void Manager::Gap(uint64 offset, uint64 len, File* file)
 	file->Gap(offset, len);
 	}
 
-void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+void Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
                       bool is_orig)
 	{
 	if ( IsDisabled(tag) )
@@ -206,7 +206,7 @@ bool Manager::RemoveAnalyzer(const FileID& file_id, const RecordVal* args) const
 	}
 
 File* Manager::GetFile(const string& unique, Connection* conn,
-                       AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
+                       analyzer::Tag tag, bool is_orig, bool update_conn)
 	{
 	if ( unique.empty() )
 		return 0;
@@ -321,15 +321,18 @@ bool Manager::IsIgnored(const string& unique)
 	return ignored.find(unique) != ignored.end();
 	}
 
-void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
+void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
 	{
 	current_handle.clear();
 
 	if ( ! get_file_handle )
 		return;
 
+	EnumVal* tagval = tag.AsEnumVal();
+	Ref(tagval);
+
 	val_list* vl = new val_list();
-	vl->append(new Val(tag, TYPE_COUNT));
+	vl->append(tagval);
 	vl->append(c->BuildConnVal());
 	vl->append(new Val(is_orig, TYPE_BOOL));
 
@@ -337,7 +340,7 @@ void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	}
 
-bool Manager::IsDisabled(AnalyzerTag::Tag tag)
+bool Manager::IsDisabled(analyzer::Tag tag)
 	{
 	if ( ! disabled )
 		disabled = internal_const_val("FileAnalysis::disable")->AsTableVal();

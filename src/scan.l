@@ -346,7 +346,7 @@ when	return TOK_WHEN;
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
-@PATH	{
+@DIR	{
 	string rval = current_scanned_file_path;
 
 	if ( ! rval.empty() && rval[0] == '.' )
@@ -354,12 +354,24 @@ when	return TOK_WHEN;
 		char path[MAXPATHLEN];
 
 		if ( ! getcwd(path, MAXPATHLEN) )
-			reporter->Error("getcwd failed: %s", strerror(errno));
+			reporter->InternalError("getcwd failed: %s", strerror(errno));
 		else
 			rval = string(path) + "/" + rval;
 		}
 
 	RET_CONST(new StringVal(rval.c_str()));
+	}
+
+@FILENAME	{
+	char* filename_copy = copy_string(::filename);
+	const char* bname = basename(filename_copy);
+
+	if ( ! bname )
+		reporter->InternalError("basename failed: %s", strerror(errno));
+
+	StringVal* rval = new StringVal(bname);
+	delete [] filename_copy;
+	RET_CONST(rval);
 	}
 
 @load{WS}{FILE}	{

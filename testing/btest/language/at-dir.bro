@@ -3,8 +3,8 @@
 # @TEST-EXEC: bro -b ./pathtest.bro >out2
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out2
 
-print @PATH;
+print @DIR;
 
 @TEST-START-FILE pathtest.bro
-print @PATH;
+print @DIR;
 @TEST-END-FILE

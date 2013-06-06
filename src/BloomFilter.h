@@ -96,15 +96,7 @@ protected:
    */
   class Hasher {
   public:
-    template <typename T>
-    HashType operator()(const T& x) const
-      {
-      return h3_(&x, sizeof(x));
-      }
-    HashType operator()(const void* x, size_t n) const
-      {
-      return h3_(x, n);
-      }
+    HashType operator()(const void* x, size_t n) const { return h3_(x, n); }
   private:
     // FIXME: The hardcoded value of 36 comes from UHASH_KEY_SIZE defined in
     // Hash.h. I do not know how this value impacts the hash function behavior

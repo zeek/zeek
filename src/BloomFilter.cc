@@ -93,8 +93,8 @@ HashPolicy::HashVector DefaultHashing::Hash(const void* x, size_t n) const
 
 HashPolicy::HashVector DoubleHashing::Hash(const void* x, size_t n) const
   {
-  HashType h1 = hasher1_(x);
-  HashType h2 = hasher2_(x);
+  HashType h1 = hasher1_(x, n);
+  HashType h2 = hasher2_(x, n);
   HashVector h(K(), 0);
   for ( size_t i = 0; i < h.size(); ++i )
     h[i] = h1 + i * h2;

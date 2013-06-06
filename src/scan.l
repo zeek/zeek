@@ -8,6 +8,8 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
+#include <sys/param.h>
+#include <unistd.h>
 #include <libgen.h>
 
 #include "input.h"
@@ -341,6 +343,34 @@ when	return TOK_WHEN;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
+
+@DIR	{
+	string rval = current_scanned_file_path;
+
+	if ( ! rval.empty() && rval[0] == '.' )
+		{
+		char path[MAXPATHLEN];
+
+		if ( ! getcwd(path, MAXPATHLEN) )
+			reporter->InternalError("getcwd failed: %s", strerror(errno));
+		else
+			rval = string(path) + "/" + rval;
+		}
+
+	RET_CONST(new StringVal(rval.c_str()));
+	}
+
+@FILENAME	{
+	char* filename_copy = copy_string(::filename);
+	const char* bname = basename(filename_copy);
+
+	if ( ! bname )
+		reporter->InternalError("basename failed: %s", strerror(errno));
+
+	StringVal* rval = new StringVal(bname);
+	delete [] filename_copy;
+	RET_CONST(rval);
+	}
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".

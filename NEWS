@@ -68,6 +68,10 @@ New Functionality
 
         global foo: function(s: string, t: string &default="abc", u: count &default=0);
 
+- Scripts can now use two new "magic constants" @DIR and @FILENAME
+  that expand to the directory path of the current script and just the
+  script file name without path, respectively. (Jon Siwek)
+
 - The new file analysis framework moves most of the processing of file
   content from script-land into the core, where it belongs. Much of
   this is an internal change, the framework comes with the following

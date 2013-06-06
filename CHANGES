@@ -1,4 +1,10 @@
 
+2.1-736 | 2013-06-06 10:05:20 -0700
+
+  * New "magic constants" @DIR and @FILENAME that expand to the
+    directory path of the current script and just the script file name
+    without path, respectively. (Jon Siwek)
+
 2.1-731 | 2013-06-04 21:19:08 -0700
 
   * Reorginization of internal protocol analyzer code. We're moving

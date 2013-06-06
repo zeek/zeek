@@ -3,13 +3,6 @@
 #include <cmath>
 #include "Serializer.h"
 
-// Backport C++11's std::round().
-namespace {
-template <typename T>
-T round(double x) { return (x > 0.0) ? (x + 0.5) : (x - 0.5); }
-} // namespace <anonymous>
-
-
 CounterVector::CounterVector(size_t width, size_t cells)
   : bits_(new BitVector(width * cells)), width_(width)
   {
@@ -155,7 +148,7 @@ size_t BasicBloomFilter::M(double fp, size_t capacity)
 size_t BasicBloomFilter::K(size_t cells, size_t capacity)
   {
   double frac = static_cast<double>(cells) / static_cast<double>(capacity);
-  return round<size_t>(frac * std::log(2));
+  return std::ceil(frac * std::log(2));
   }
 
 BasicBloomFilter::BasicBloomFilter(double fp, size_t capacity)

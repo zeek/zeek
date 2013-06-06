@@ -5751,6 +5751,11 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 function bloomfilter_init%(fp: double, capacity: count,
                            max: count &default=1%): opaque of bloomfilter
   %{
+  if ( fp < 0.0 || fp > 1.0 )
+    {
+    reporter->Error("false-positive rate must take value between 0 and 1");
+    return NULL;
+    }
   BloomFilter* bf;
   if ( max == 1 )
     {

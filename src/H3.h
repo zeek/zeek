@@ -66,7 +66,6 @@ template<class T, int N> class H3 {
     T byte_lookup[N][H3_BYTE_RANGE];
 public:
     H3();
-    ~H3() { free(byte_lookup); }
     T operator()(const void* data, size_t size, size_t offset = 0) const
     {
 	const unsigned char *p = static_cast<const unsigned char*>(data);

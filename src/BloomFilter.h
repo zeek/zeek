@@ -188,7 +188,7 @@ public:
 protected:
   DECLARE_ABSTRACT_SERIAL(BloomFilter);
 
-	BloomFilter() { };
+	BloomFilter();
   BloomFilter(size_t k);
 
   virtual void AddImpl(const HashPolicy::HashVector& hashes) = 0;
@@ -244,7 +244,7 @@ public:
 protected:
   DECLARE_SERIAL(BasicBloomFilter);
 
-  BasicBloomFilter() { }
+  BasicBloomFilter();
 
   virtual void AddImpl(const HashPolicy::HashVector& h);
   virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
@@ -264,7 +264,7 @@ public:
 protected:
   DECLARE_SERIAL(CountingBloomFilter);
 
-  CountingBloomFilter() { }
+  CountingBloomFilter();
 
   virtual void AddImpl(const HashPolicy::HashVector& h);
   virtual size_t CountImpl(const HashPolicy::HashVector& h) const;

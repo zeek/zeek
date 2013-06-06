@@ -95,6 +95,11 @@ HashPolicy::HashVector DoubleHashing::Hash(const void* x, size_t n) const
   }
 
 
+BloomFilter::BloomFilter()
+  : hash_(NULL)
+  {
+  }
+
 BloomFilter::BloomFilter(size_t k)
   : hash_(new hash_policy(k))
   {
@@ -151,6 +156,11 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
   return std::ceil(frac * std::log(2));
   }
 
+BasicBloomFilter::BasicBloomFilter()
+  : bits_(NULL)
+  {
+  }
+
 BasicBloomFilter::BasicBloomFilter(double fp, size_t capacity)
   : BloomFilter(K(M(fp, capacity), capacity))
   {
@@ -190,6 +200,11 @@ size_t BasicBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
     if ( ! (*bits_)[h[i] % bits_->Size()] )
       return 0;
   return 1;
+  }
+
+CountingBloomFilter::CountingBloomFilter()
+  : cells_(NULL)
+  {
   }
 
 CountingBloomFilter::CountingBloomFilter(double fp, size_t capacity,

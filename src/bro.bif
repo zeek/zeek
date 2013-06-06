@@ -5026,16 +5026,11 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
   %{
   BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
   if ( ! bfv->Type() && ! bfv->Typify(x->Type()) )
-    {
     reporter->Error("failed to set Bloom filter type");
-    return NULL;
-    }
   else if ( bfv->Type() != x->Type() )
-    {
     reporter->Error("incompatible Bloom filter types");
-    return NULL;
-    }
-  bfv->Add(x);
+  else
+    bfv->Add(x);
   return NULL;
   %}
 
@@ -5048,12 +5043,14 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ## Returns: the counter associated with *x* in *bf*.
 function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
   %{
-  BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+  const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
   if ( ! bfv->Type() )
     reporter->Error("cannot perform lookup on untyped Bloom filter");
   else if ( bfv->Type() != x->Type() )
     reporter->Error("incompatible Bloom filter types");
-	return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
+  else
+    return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
+  return new Val(0, TYPE_COUNT);
   %}
 
 ## Merges two Bloom filters.
@@ -5068,11 +5065,9 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
   %{
   const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
   const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
-  if ( ! bfv1->Type() )
-    reporter->Error("first Bloom filter has not yet been typed");
-  if ( ! bfv2->Type() )
-    reporter->Error("second Bloom filter has not yet been typed");
-  else if ( bfv1->Type() != bfv2->Type() )
+  if ( bfv1->Type() != bfv2->Type() )
     reporter->Error("incompatible Bloom filter types");
-	return BloomFilterVal::Merge(bfv1, bfv2);
+  else
+    return BloomFilterVal::Merge(bfv1, bfv2);
+  return NULL;
   %}

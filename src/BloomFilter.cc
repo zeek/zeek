@@ -140,7 +140,7 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	  return false;
 	hash_ = new hash_policy(static_cast<size_t>(k));
 	uint64 elements;
-  if ( UNSERIALIZE(&elements) )
+  if ( ! UNSERIALIZE(&elements) )
     return false;
   elements_ = static_cast<size_t>(elements);
 	return true;

@@ -533,6 +533,7 @@ bool BloomFilterVal::Typify(BroType* type)
   if ( type_ )
     return false;
   type_ = type;
+  type_->Ref();
   TypeList* tl = new TypeList(type_);
   tl->Append(type_);
   hash_ = new CompositeHash(tl);

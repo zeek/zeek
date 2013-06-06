@@ -94,15 +94,14 @@ protected:
    * A functor that computes a universal hash function.
    * @tparam Codomain An integral type.
    */
-  template <typename Codomain = HashType>
   class Hasher {
   public:
-    template <typename Domain>
-    Codomain operator()(const Domain& x) const
+    template <typename T>
+    HashType operator()(const T& x) const
       {
       return h3_(&x, sizeof(x));
       }
-    Codomain operator()(const void* x, size_t n) const
+    HashType operator()(const void* x, size_t n) const
       {
       return h3_(x, n);
       }
@@ -110,7 +109,7 @@ protected:
     // FIXME: The hardcoded value of 36 comes from UHASH_KEY_SIZE defined in
     // Hash.h. I do not know how this value impacts the hash function behavior
     // so I'll just copy it verbatim. (Matthias)
-    H3<Codomain, 36> h3_;
+    H3<HashType, 36> h3_;
   };
 
   HashPolicy(size_t k) : k_(k) { }
@@ -125,12 +124,11 @@ private:
 class DefaultHashing : public HashPolicy {
 public:
   DefaultHashing(size_t k) : HashPolicy(k), hashers_(k) { }
-  virtual ~DefaultHashing() { }
 
   virtual HashVector Hash(const void* x, size_t n) const;
 
 private:
-  std::vector< Hasher<HashType> > hashers_;
+  std::vector<Hasher> hashers_;
 };
 
 /**
@@ -139,13 +137,12 @@ private:
 class DoubleHashing : public HashPolicy {
 public:
   DoubleHashing(size_t k) : HashPolicy(k) { }
-  virtual ~DoubleHashing() { }
 
   virtual HashVector Hash(const void* x, size_t n) const;
 
 private:
-  Hasher<HashType> hasher1_;
-  Hasher<HashType> hasher2_;
+  Hasher hasher1_;
+  Hasher hasher2_;
 };
 
 /**

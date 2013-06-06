@@ -188,13 +188,13 @@ bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 void BasicBloomFilter::AddImpl(const HashPolicy::HashVector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    bits_->Set(h[i] % h.size());
+    bits_->Set(h[i] % bits_->Size());
   }
 
 size_t BasicBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    if ( ! (*bits_)[h[i] % h.size()] )
+    if ( ! (*bits_)[h[i] % bits_->Size()] )
       return 0;
   return 1;
   }
@@ -233,7 +233,7 @@ bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 void CountingBloomFilter::AddImpl(const HashPolicy::HashVector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    cells_->Increment(h[i] % h.size(), 1);
+    cells_->Increment(h[i] % cells_->Size(), 1);
   }
 
 size_t CountingBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
@@ -242,7 +242,7 @@ size_t CountingBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
     std::numeric_limits<CounterVector::size_type>::max();
   for ( size_t i = 0; i < h.size(); ++i )
     {
-    CounterVector::size_type cnt = cells_->Count(h[i] % h.size());
+    CounterVector::size_type cnt = cells_->Count(h[i] % cells_->Size());
     if ( cnt  < min )
       min = cnt;
     }

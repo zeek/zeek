@@ -21,7 +21,6 @@
 
 using namespace std;
 
-RecordType* ftp_port;
 RecordType* net_stats;
 RecordType* bro_resources;
 RecordType* matcher_stats;
@@ -1783,26 +1782,6 @@ function get_matcher_stats%(%): matcher_stats
 	return r;
 	%}
 
-## Returns statistics about TCP gaps.
-##
-## Returns: A record with TCP gap statistics.
-##
-## .. bro:see:: do_profiling
-##              net_stats
-##              resource_usage
-##              dump_rule_stats
-##              get_matcher_stats
-function get_gap_summary%(%): gap_info
-	%{
-	RecordVal* r = new RecordVal(gap_info);
-	r->Assign(0, new Val(tot_ack_events, TYPE_COUNT));
-	r->Assign(1, new Val(tot_ack_bytes, TYPE_COUNT));
-	r->Assign(2, new Val(tot_gap_events, TYPE_COUNT));
-	r->Assign(3, new Val(tot_gap_bytes, TYPE_COUNT));
-
-	return r;
-	%}
-
 ## Generates a table of the size of all global variables. The table index is
 ## the variable name and the value is the variable size in bytes.
 ##
@@ -2629,273 +2608,6 @@ function addr_to_ptr_name%(a: addr%): string
 	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
-
-%%{
-static Val* parse_port(const char* line)
-	{
-	RecordVal* r = new RecordVal(ftp_port);
-
-	int bytes[6];
-	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
-			&bytes[0], &bytes[1], &bytes[2],
-			&bytes[3], &bytes[4], &bytes[5]) == 6 )
-		{
-		int good = 1;
-
-		for ( int i = 0; i < 6; ++i )
-			if ( bytes[i] < 0 || bytes[i] > 255 )
-				{
-				good = 0;
-				break;
-				}
-
-		uint32 addr = (bytes[0] << 24) | (bytes[1] << 16) |
-				(bytes[2] << 8) | bytes[3];
-		uint32 port = (bytes[4] << 8) | bytes[5];
-
-		// Since port is unsigned, no need to check for < 0.
-		if ( port > 65535 )
-			{
-			port = 0;
-			good = 0;
-			}
-
-		r->Assign(0, new AddrVal(htonl(addr)));
-		r->Assign(1, new PortVal(port, TRANSPORT_TCP));
-		r->Assign(2, new Val(good, TYPE_BOOL));
-		}
-	else
-		{
-		r->Assign(0, new AddrVal(uint32(0)));
-		r->Assign(1, new PortVal(0, TRANSPORT_TCP));
-		r->Assign(2, new Val(0, TYPE_BOOL));
-		}
-
-	return r;
-	}
-
-static Val* parse_eftp(const char* line)
-	{
-	RecordVal* r = new RecordVal(ftp_port);
-
-	int net_proto = 0;	// currently not used
-	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
-	int port = 0;
-	int good = 0;
-
-	if ( line )
-		{
-		while ( isspace(*line) )	// skip whitespace
-			++line;
-
-		char delimiter = *line;
-		char* next_delim;
-
-		if ( *line )
-			{
-			good = 1;
-			++line;	// skip delimiter
-
-			net_proto = strtol(line, &next_delim, 10);
-			if ( *next_delim != delimiter )
-				good = 0;
-
-			line = next_delim;
-			if ( *line )
-				++line;
-
-			if ( *line && *line != delimiter )
-				{
-				const char* nptr = strchr(line, delimiter);
-				if ( nptr == NULL )
-					{
-					nptr = line + strlen(line);
-					good = 0;
-					}
-
-				string s(line, nptr-line); // extract IP address
-				IPAddr tmp(s);
-				// on error, "tmp" will have all 128 bits zero
-				if ( tmp == addr )
-					good = 0;
-
-				addr = tmp;
-				}
-
-			line = strchr(line, delimiter);
-
-			if ( line != NULL )
-				{
-				++line;	// now the port
-				port = strtol(line, &next_delim, 10);
-				if ( *next_delim != delimiter )
-					good = 0;
-				}
-
-			}
-
-		}
-
-	r->Assign(0, new AddrVal(addr));
-	r->Assign(1, new PortVal(port, TRANSPORT_TCP));
-	r->Assign(2, new Val(good, TYPE_BOOL));
-
-	return r;
-	}
-%%}
-
-## Converts a string representation of the FTP PORT command to an ``ftp_port``.
-##
-## s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
-##
-## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
-##
-## .. bro:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
-function parse_ftp_port%(s: string%): ftp_port
-	%{
-	return parse_port(s->CheckString());
-	%}
-
-## Converts a string representation of the FTP EPRT command to an ``ftp_port``.
-## See `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_.
-## The format is ``EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>``,
-## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
-##
-## s: The string of the FTP EPRT command, e.g., ``"|1|10.0.0.1|1055|"``.
-##
-## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
-##
-## .. bro:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
-function parse_eftp_port%(s: string%): ftp_port
-	%{
-	return parse_eftp(s->CheckString());
-	%}
-
-## Converts the result of the FTP PASV command to an ``ftp_port``.
-##
-## str: The string containing the result of the FTP PASV command.
-##
-## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
-##
-## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
-function parse_ftp_pasv%(str: string%): ftp_port
-	%{
-	const char* s = str->CheckString();
-	const char* line = strchr(s, '(');
-	if ( line )
-		++line;	// move past '('
-	else if ( (line = strstr(s, "PORT")) )
-		line += 5;	// Skip over
-	else if ( (line = strchr(s, ',')) )
-		{ // Look for comma-separated list.
-		while ( --line >= s && isdigit(*line) )
-			;	// Back up over preceding digits.
-		++line;	// now points to first digit, or beginning of s
-		}
-
-	return parse_port(line);
-	%}
-
-## Converts the result of the FTP EPSV command to an ``ftp_port``.
-## See `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_.
-## The format is ``<text> (<d><d><d><tcp-port><d>)``, where ``<d>`` is a
-## delimiter in the ASCII range 33-126 (usually ``|``).
-##
-## str: The string containing the result of the FTP EPSV command.
-##
-## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
-##
-## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
-function parse_ftp_epsv%(str: string%): ftp_port
-	%{
-	const char* s = str->CheckString();
-	const char* line = strchr(s, '(');
-	if ( line )
-		++line; // move past '('
-	return parse_eftp(line);
-	%}
-
-## Formats an IP address and TCP port as an FTP PORT command. For example,
-## ``10.0.0.1`` and ``1055/tcp`` yields ``"10,0,0,1,4,31"``.
-##
-## a: The IP address.
-##
-## p: The TCP port.
-##
-## Returns: The FTP PORT string.
-##
-## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
-function fmt_ftp_port%(a: addr, p: port%): string
-	%{
-	const uint32* addr;
-	int len = a->AsAddr().GetBytes(&addr);
-	if ( len == 1 )
-		{
-		uint32 a = ntohl(addr[0]);
-		uint32 pn = p->Port();
-		return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
-						a >> 24, (a >> 16) & 0xff,
-						(a >> 8) & 0xff, a & 0xff,
-						pn >> 8, pn & 0xff));
-		}
-	else
-		{
-		builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
-		              @ARG@[0]);
-		return new StringVal("");
-		}
-	%}
-
-## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
-##
-## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF"``.
-##
-## Returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
-##
-## .. bro:see:: decode_netbios_name_type
-function decode_netbios_name%(name: string%): string
-	%{
-	char buf[16];
-	char result[16];
-	const u_char* s = name->Bytes();
-	int i, j;
-
-	for ( i = 0, j = 0; i < 16; ++i )
-		{
-		char c0 = (j < name->Len()) ? toupper(s[j++]) : 'A';
-		char c1 = (j < name->Len()) ? toupper(s[j++]) : 'A';
-		buf[i] = ((c0 - 'A') << 4) + (c1 - 'A');
-		}
-
-	for ( i = 0; i < 15; ++i )
-		{
-		if ( isalnum(buf[i]) || ispunct(buf[i]) ||
-		     // \x01\x02 is seen in at least one case as the first two bytes.
-		     // I think that any \x01 and \x02 should always be passed through.
-		     buf[i] < 3 )
-			result[i] = buf[i];
-		else
-			break;
-		}
-
-	return new StringVal(i, result);
-	%}
-
-## Converts a NetBIOS name type to its corresponding numeric value.
-## See http://support.microsoft.com/kb/163409.
-##
-## name: The NetBIOS name type.
-##
-## Returns: The numeric value of *name*.
-##
-## .. bro:see:: decode_netbios_name
-function decode_netbios_name_type%(name: string%): count
-	%{
-	const u_char* s = name->Bytes();
-	char return_val = ((toupper(s[30]) - 'A') << 4) + (toupper(s[31]) - 'A');
-	return new Val(return_val, TYPE_COUNT);
-	%}
-
 ## Converts a string of bytes into its hexadecimal representation.
 ## For example, ``"04"`` would be converted to ``"3034"``.
 ##
@@ -2923,7 +2635,7 @@ function bytestring_to_hexstr%(bytestring: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64_custom, decode_base64
+## .. bro:see:: encode_base64_custom decode_base64
 function encode_base64%(s: string%): string
 	%{
 	BroString* t = encode_base64(s->AsString());
@@ -2946,7 +2658,7 @@ function encode_base64%(s: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64, decode_base64_custom
+## .. bro:see:: encode_base64 decode_base64_custom
 function encode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
@@ -2965,7 +2677,7 @@ function encode_base64_custom%(s: string, a: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_custom, encode_base64
+## .. bro:see:: decode_base64_custom encode_base64
 function decode_base64%(s: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString());
@@ -2988,7 +2700,7 @@ function decode_base64%(s: string%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64, encode_base64_custom
+## .. bro:see:: decode_base64 encode_base64_custom
 function decode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
@@ -3002,8 +2714,6 @@ function decode_base64_custom%(s: string, a: string%): string
 	%}
 
 %%{
-#include "DCE_RPC.h"
-
 typedef struct {
 	uint32 time_low;
 	uint16 time_mid;
@@ -3415,8 +3125,6 @@ function lookup_connection%(cid: conn_id%): connection
 	%}
 
 %%{
-#include "HTTP.h"
-
 const char* conn_id_string(Val* c)
 	{
 	Val* id = (*(c->AsRecord()))[0];
@@ -3431,58 +3139,6 @@ const char* conn_id_string(Val* c)
 	                               resp_h.AsString().c_str(), resp_p);
 	}
 %%}
-
-## Skips the data of the HTTP entity.
-##
-## c: The HTTP connection.
-##
-## is_orig: If true, the client data is skipped, and the server data otherwise.
-##
-## .. bro:see:: skip_smtp_data
-function skip_http_entity_data%(c: connection, is_orig: bool%): any
-	%{
-	AnalyzerID id = mgr.CurrentAnalyzer();
-	if ( id )
-		{
-		Analyzer* ha = c->FindAnalyzer(id);
-
-		if ( ha )
-			{
-			if ( ha->GetTag() == AnalyzerTag::HTTP )
-				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
-			else
-				reporter->Error("non-HTTP analyzer associated with connection record");
-			}
-		else
-			reporter->Error("could not find analyzer for skip_http_entity_data");
-
-		}
-	else
-		reporter->Error("no analyzer associated with connection record");
-
-	return 0;
-	%}
-
-## Unescapes all characters in a URI (decode every ``%xx`` group).
-##
-## URI: The URI to unescape.
-##
-## Returns: The unescaped URI with all ``%xx`` groups decoded.
-##
-## .. note::
-##
-##      Unescaping reserved characters may cause loss of information. RFC 2396:
-##      A URI is always in an "escaped" form, since escaping or unescaping a
-##      completed URI might change its semantics.  Normally, the only time
-##      escape encodings can safely be made is when the URI is being created
-##      from its component parts.
-function unescape_URI%(URI: string%): string
-	%{
-	const u_char* line = URI->Bytes();
-	const u_char* const line_end = line + URI->Len();
-
-	return new StringVal(unescape_URI(line, line_end, 0));
-	%}
 
 ## Writes the current packet to a file.
 ##
@@ -3931,138 +3587,6 @@ function lookup_asn%(a: addr%) : count
 	return new Val(0, TYPE_COUNT);
 	%}
 
-%%{
-#include <openssl/x509.h>
-#include <openssl/asn1.h>
-#include <openssl/x509_vfy.h>
-
-// This is the indexed map of X509 certificate stores.
-static map<Val*, X509_STORE*> x509_stores;
-
-// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
-// here we assume d2i_X509 does not write to <data>, so it is safe to
-// convert data to a non-const pointer.  Could some X509 guru verify
-// this?
-
-X509* d2i_X509_(X509** px, const u_char** in, int len)
-	{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-	  return d2i_X509(px, in, len);
-#else
-	  return d2i_X509(px, (u_char**)in, len);
-#endif
-	}
-
-%%}
-
-
-## Verifies a certificate.
-##
-## der_cert: The X.509 certificate in DER format.
-##
-## cert_stack: Specifies a certificate chain to validate against, with index 0
-##             typically being the root CA. Bro uses the Mozilla root CA list
-##             by default.
-##
-## root_certs: A list of additional root certificates that extends
-##             *cert_stack*.
-##
-## Returns: A status code of the verification which can be converted into an
-##          ASCII string via :bro:id:`x509_err2str`.
-##
-## .. bro:see:: x509_err2str
-function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: table_string_of_string%): count
-	%{
-	X509_STORE* ctx = 0;
-	int i = 0;
-
-	// If this certificate store was built previously, just reuse the old one.
-	if ( x509_stores.count(root_certs) > 0 )
-		ctx = x509_stores[root_certs];
-
-	if ( ! ctx ) // lookup to see if we have this one built already!
-		{
-		ctx = X509_STORE_new();
-		TableVal* root_certs2 = root_certs->AsTableVal();
-		ListVal* idxs = root_certs2->ConvertToPureList();
-
-		// Build the validation store
-		for ( i = 0; i < idxs->Length(); ++i )
-			{
-			Val* key = idxs->Index(i);
-			StringVal *sv = root_certs2->Lookup(key)->AsStringVal();
-			const uint8* data = sv->Bytes();
-			X509* x = d2i_X509_(NULL, &data, sv->Len());
-			if ( ! x )
-				{
-				builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-				}
-			X509_STORE_add_cert(ctx, x);
-			}
-		delete idxs;
-
-		// Save the newly constructed certificate store into the cacheing map.
-		x509_stores[root_certs] = ctx;
-		}
-
-	const uint8 *cert_data = der_cert->Bytes();
-	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
-	if ( ! cert )
-		{
-		builtin_error(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-		}
-
-	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
-	if ( ! untrusted_certs )
-		{
-		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-		}
-
-	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
-	for ( i = 0; i < (int) cert_stack_vec->Size(); ++i )
-		{
-		StringVal *sv = cert_stack_vec->Lookup(i)->AsStringVal();
-		const uint8 *data = sv->Bytes();
-		X509* x = d2i_X509_(NULL, &data, sv->Len());
-		if ( ! x )
-			{
-			X509_free(cert);
-			sk_X509_pop_free(untrusted_certs, X509_free);
-			builtin_error(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-			}
-		sk_X509_push(untrusted_certs, x);
-		}
-
-	X509_STORE_CTX csc;
-	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
-	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
-
-	int result = X509_verify_cert(&csc);
-	X509_STORE_CTX_cleanup(&csc);
-
-	if ( untrusted_certs )
-		sk_X509_pop_free(untrusted_certs, X509_free);
-	X509_free(cert);
-
-	return new Val((uint64) csc.error, TYPE_COUNT);
-	%}
-
-## Converts a certificate verification error code into an ASCII string.
-##
-## err_num: The error code.
-##
-## Returns: A string representation of *err_num*.
-##
-## .. bro:see:: x509_verify
-function x509_err2str%(err_num: count%): string
-	%{
-	return new StringVal(X509_verify_cert_error_string(err_num));
-	%}
-
 ## Converts UNIX file permissions given by a mode to an ASCII string.
 ##
 ## mode: The permissions (an octal number like 0644 converted to decimal).
@@ -4162,35 +3686,8 @@ function file_mode%(mode: count%): string
 # ===========================================================================
 
 %%{
-#include "DPM.h"
+#include "analyzer/Manager.h"
 %%}
-
-## Schedules an analyzer for a future connection from a given IP address and
-## port. The function ignores the scheduling request if the connection did
-## not occur within the specified time interval.
-##
-## orig: The IP address originating a connection in the future.
-##
-## resp: The IP address responding to a connection from *orig*.
-##
-## resp_p: The destination port at *resp*.
-##
-## analyzer: The analyzer ID.
-##
-## tout: The timeout interval after which to ignore the scheduling request.
-##
-## Returns: True (unconditionally).
-##
-## .. bro:see:: disable_analyzer analyzer_name
-##
-## .. todo:: The return value should be changed to any.
-function expect_connection%(orig: addr, resp: addr, resp_p: port,
-				analyzer: count, tout: interval%) : any
-	%{
-	dpm->ExpectConnection(orig->AsAddr(), resp->AsAddr(), resp_p->Port(),
-				 resp_p->PortType(), (AnalyzerTag::Tag) analyzer, tout, 0);
-	return new Val(1, TYPE_BOOL);
-	%}
 
 ## Disables the analyzer which raised the current event (if the analyzer
 ## belongs to the given connection).
@@ -4202,7 +3699,7 @@ function expect_connection%(orig: addr, resp: addr, resp_p: port,
 ## Returns: True if the connection identified by *cid* exists and has analyzer
 ##          *aid*.
 ##
-## .. bro:see:: expect_connection analyzer_name
+## .. bro:see:: Analyzer::schedule_analyzer Analyzer::name
 function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4212,7 +3709,7 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 		return new Val(0, TYPE_BOOL);
 		}
 
-	Analyzer* a = c->FindAnalyzer(aid);
+	analyzer::Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
 		reporter->Error("connection does not have analyzer specified to disable");
@@ -4221,18 +3718,6 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 
 	a->Remove();
 	return new Val(1, TYPE_BOOL);
-	%}
-
-## Translate an analyzer type to an ASCII string.
-##
-## aid: The analyzer ID.
-##
-## Returns: The analyzer *aid* as string.
-##
-## .. bro:see:: expect_connection disable_analyzer current_analyzer
-function analyzer_name%(aid: count%) : string
-	%{
-	return new StringVal(Analyzer::GetTagName((AnalyzerTag::Tag) aid));
 	%}
 
 ## Informs Bro that it should skip any further processing of the contents of
@@ -4289,81 +3774,6 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Associates a file handle with a connection for writing TCP byte stream
-## contents.
-##
-## cid: The connection ID.
-##
-## direction: Controls what sides of the connection to record. The argument can
-##            take one of the four values:
-##
-##            - ``CONTENTS_NONE``: Stop recording the connection's content.
-##            - ``CONTENTS_ORIG``: Record the data sent by the connection
-##                                 originator (often the client).
-##            - ``CONTENTS_RESP``: Record the data sent by the connection
-##                                 responder (often the server).
-##            - ``CONTENTS_BOTH``: Record the data sent in both directions.
-##                                 Results in the two directions being
-##                                 intermixed in the file, in the order the
-##                                 data was seen by Bro.
-##
-## f: The file handle of the file to write the contents to.
-##
-## Returns: Returns false if *cid* does not point to an active connection, and
-##          true otherwise.
-##
-## .. note::
-##
-##     The data recorded to the file reflects the byte stream, not the
-##     contents of individual packets. Reordering and duplicates are
-##     removed. If any data is missing, the recording stops at the
-##     missing data; this can happen, e.g., due to an
-##     :bro:id:`ack_above_hole` event.
-##
-## .. bro:see:: get_contents_file set_record_packets
-function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	c->GetRootAnalyzer()->SetContentsFile(direction, f);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-## Returns the file handle of the contents file of a connection.
-##
-## cid: The connection ID.
-##
-## direction: Controls what sides of the connection to record. See
-##            :bro:id:`set_contents_file` for possible values.
-##
-## Returns: The :bro:type:`file` handle for the contents file of the
-##          connection identified by *cid*. If the connection exists
-##          but there is no contents file for *direction*, then the function
-##          generates an error and returns a file handle to ``stderr``.
-##
-## .. bro:see:: set_contents_file set_record_packets
-function get_contents_file%(cid: conn_id, direction: count%): file
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
-
-	if ( f )
-		{
-		Ref(f);
-		return new Val(f);
-		}
-
-	// Return some sort of error value.
-	if ( ! c )
-		builtin_error("unknown connection id in get_contents_file()", cid);
-	else
-		builtin_error("no contents file for given direction");
-
-	return new Val(new BroFile(stderr, "-", "w"));
-	%}
-
 ## Sets an individual inactivity timeout for a connection and thus
 ## overrides the global inactivity timeout.
 ##
@@ -4382,170 +3792,6 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	c->SetInactivityTimeout(t);
 
 	return new Val(old_timeout, TYPE_INTERVAL);
-	%}
-
-## Returns the state of the given login (Telnet or Rlogin) connection.
-##
-## cid: The connection ID.
-##
-## Returns: False if the connection is not active or is not tagged as a
-##          login analyzer. Otherwise the function returns the state, which can
-##          be one of:
-##
-##              - ``LOGIN_STATE_AUTHENTICATE``: The connection is in its
-##                initial authentication dialog.
-##              - ``LOGIN_STATE_LOGGED_IN``: The analyzer believes the user has
-##                successfully authenticated.
-##              - ``LOGIN_STATE_SKIP``: The analyzer has skipped any further
-##                processing of the connection.
-##              - ``LOGIN_STATE_CONFUSED``: The analyzer has concluded that it
-##                does not correctly know the state of the connection, and/or
-##                the username associated with it.
-##
-## .. bro:see:: set_login_state
-function get_login_state%(cid: conn_id%): count
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
-	if ( ! la )
-		return new Val(0, TYPE_BOOL);
-
-	return new Val(int(static_cast<Login_Analyzer*>(la)->LoginState()),
-			TYPE_COUNT);
-	%}
-
-## Sets the login state of a connection with a login analyzer.
-##
-## cid: The connection ID.
-##
-## new_state: The new state of the login analyzer. See
-##            :bro:id:`get_login_state` for possible values.
-##
-## Returns: Returns false if *cid* is not an active connection
-##          or is not tagged as a login analyzer, and true otherwise.
-##
-## .. bro:see:: get_login_state
-function set_login_state%(cid: conn_id, new_state: count%): bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
-	if ( ! la )
-		return new Val(0, TYPE_BOOL);
-
-	static_cast<Login_Analyzer*>(la)->SetLoginState(login_state(new_state));
-	return new Val(1, TYPE_BOOL);
-	%}
-
-%%{
-#include "TCP.h"
-%%}
-
-## Get the originator sequence number of a TCP connection. Sequence numbers
-## are absolute (i.e., they reflect the values seen directly in packet headers;
-## they are not relative to the beginning of the connection).
-##
-## cid: The connection ID.
-##
-## Returns: The highest sequence number sent by a connection's originator, or 0
-##          if *cid* does not point to an active TCP connection.
-##
-## .. bro:see:: get_resp_seq
-function get_orig_seq%(cid: conn_id%): count
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_COUNT);
-
-	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return new Val(0, TYPE_COUNT);
-
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
-	if ( tc )
-		return new Val(static_cast<TCP_Analyzer*>(tc)->OrigSeq(),
-				TYPE_COUNT);
-	else
-		{
-		reporter->Error("connection does not have TCP analyzer");
-		return new Val(0, TYPE_COUNT);
-		}
-	%}
-
-## Get the responder sequence number of a TCP connection. Sequence numbers
-## are absolute (i.e., they reflect the values seen directly in packet headers;
-## they are not relative to the beginning of the connection).
-##
-## cid: The connection ID.
-##
-## Returns: The highest sequence number sent by a connection's responder, or 0
-##          if *cid* does not point to an active TCP connection.
-##
-## .. bro:see:: get_orig_seq
-function get_resp_seq%(cid: conn_id%): count
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_COUNT);
-
-	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return new Val(0, TYPE_COUNT);
-
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
-	if ( tc )
-		return new Val(static_cast<TCP_Analyzer*>(tc)->RespSeq(),
-				TYPE_COUNT);
-	else
-		{
-		reporter->Error("connection does not have TCP analyzer");
-		return new Val(0, TYPE_COUNT);
-		}
-	%}
-
-%%{
-#include "SMTP.h"
-%%}
-
-## Skips SMTP data until the next email in a connection.
-##
-## c: The SMTP connection.
-##
-## .. bro:see:: skip_http_entity_data
-function skip_smtp_data%(c: connection%): any
-	%{
-	Analyzer* sa = c->FindAnalyzer(AnalyzerTag::SMTP);
-	if ( sa )
-		static_cast<SMTP_Analyzer*>(sa)->SkipData();
-	return 0;
-	%}
-
-## Enables all event handlers in a given group. One can tag event handlers with
-## the :bro:attr:`&group` attribute to logically group them together, e.g,
-## ``event foo() &group="bar"``. This function enables all event handlers that
-## belong to such a group.
-##
-## group: The group.
-##
-## .. bro:see:: disable_event_group
-function enable_event_group%(group: string%) : any
-	%{
-	event_registry->EnableGroup(group->CheckString(), true);
-	return 0;
-	%}
-
-## Disables all event handlers in a given group.
-##
-## group: The group.
-##
-## .. bro:see:: enable_event_group
-function disable_event_group%(group: string%) : any
-	%{
-	event_registry->EnableGroup(group->CheckString(), false);
-	return 0;
 	%}
 
 # ===========================================================================

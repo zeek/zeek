@@ -4,9 +4,10 @@
 
 # @TEST-EXEC: bro -r $TRACES/irc-dcc-send.trace %INPUT
 # @TEST-EXEC: btest-diff irc.log
-# @TEST-EXEC: btest-diff irc-dcc-item-wqKMAamJVSb-0.dat
+# @TEST-EXEC: mv irc-dcc-item-*-0.dat irc-dcc-item.dat
+# @TEST-EXEC: btest-diff irc-dcc-item.dat
 # @TEST-EXEC: bro -r $TRACES/irc-dcc-send.trace %INPUT IRC::extraction_prefix="test"
-# @TEST-EXEC: test -e test-wqKMAamJVSb-0.dat
+# @TEST-EXEC: test -e test-*-0.dat
 
 redef IRC::extract_file_types=/.*/;
 

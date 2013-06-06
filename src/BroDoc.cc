@@ -35,12 +35,14 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 
 	downloadable_filename = source_filename;
 
+#if 0
 	size_t ext_pos = downloadable_filename.find(".bif.bro");
 	if ( std::string::npos != ext_pos )
 		downloadable_filename.erase(ext_pos + 4);
+#endif
 
 	reST_filename = doc_title;
-	ext_pos = reST_filename.find(".bro");
+	size_t ext_pos = reST_filename.find(".bro");
 
 	if ( std::string::npos == ext_pos )
 		reST_filename += ".rst";

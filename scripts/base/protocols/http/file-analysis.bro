@@ -15,17 +15,17 @@ function get_file_handle(c: connection, is_orig: bool): string
 	if ( ! c?$http ) return "";
 
 	if ( c$http$range_request )
-		return cat(ANALYZER_HTTP, " ", is_orig, " ", c$id$orig_h, " ",
+		return cat(Analyzer::ANALYZER_HTTP, " ", is_orig, " ", c$id$orig_h, " ",
 		           build_url(c$http));
 
-	return cat(ANALYZER_HTTP, " ", c$start_time, " ", is_orig, " ",
+	return cat(Analyzer::ANALYZER_HTTP, " ", c$start_time, " ", is_orig, " ",
 	           c$http$trans_depth, " ", id_string(c$id));
 	}
 
 module GLOBAL;
 
-event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
+event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool)
 	{
-	if ( tag != ANALYZER_HTTP ) return;
+	if ( tag != Analyzer::ANALYZER_HTTP ) return;
 	set_file_handle(HTTP::get_file_handle(c, is_orig));
 	}

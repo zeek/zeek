@@ -217,6 +217,11 @@ public:
 		return tag == TYPE_TABLE && (YieldType() == 0);
 		}
 
+	int IsTable() const
+		{
+		return tag == TYPE_TABLE && (YieldType() != 0);
+		}
+
 	BroType* Ref()		{ ::Ref(this); return this; }
 
 	virtual void Describe(ODesc* d) const;

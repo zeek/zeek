@@ -149,7 +149,7 @@ export {
 	global end_of_data: event(name: string, source:string);
 }
 
-@load base/input.bif
+@load base/bif/input.bif
 
 
 module Input;

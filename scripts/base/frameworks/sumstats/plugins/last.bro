@@ -16,7 +16,8 @@ export {
 
 	redef record ResultVal += {
 		## This is the queue where elements are maintained.  Use the
-		## :bro:see:`SumStats::get_elements` function to get a vector of the current element values.
+		## :bro:see:`SumStats::get_last` function to get a vector of
+		## the current element values.
 		last_elements: Queue::Queue &optional;
 	};
 

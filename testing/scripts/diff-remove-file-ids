@@ -1,0 +1,33 @@
+#! /usr/bin/awk -f
+#
+# A diff canonifier that removes all file IDs from file_analysis.log
+
+BEGIN {
+    FS="\t";
+    OFS="\t";
+    process = 0;
+    }
+
+$1 == "#path" && $2 == "file_analysis" {
+    process = 1;
+    }
+
+process && column1 > 0 && column2 > 0 {
+    $column1 = "XXXXXXXXXXX";
+    $column2 = "XXXXXXXXXXX";
+    }
+
+/^#/ {
+    for ( i = 0; i < NF; ++i ) {
+        if ( $i == "id" )
+            column1 = i - 1;
+
+        if ( $i == "parent_id" )
+            column2 = i - 1;
+        }
+    }
+
+{ print }
+
+
+

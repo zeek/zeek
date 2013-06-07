@@ -1,13 +1,16 @@
 # @TEST-EXEC: bro -r $TRACES/http/multipart.trace $SCRIPTS/file-analysis-test.bro %INPUT >out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff TJdltRTxco1-file
-# @TEST-EXEC: btest-diff QJO04kPdawk-file
-# @TEST-EXEC: btest-diff dDH5dHdsRH4-file
-# @TEST-EXEC: btest-diff TaUJcEIboHh-file
+# @TEST-EXEC: btest-diff 1-file
+# @TEST-EXEC: btest-diff 2-file
+# @TEST-EXEC: btest-diff 3-file
+# @TEST-EXEC: btest-diff 4-file
 
 redef test_file_analysis_source = "HTTP";
 
+global cnt: count = 0;
+
 redef test_get_file_name = function(f: fa_file): string
 	{
-	return fmt("%s-file", f$id);
+	++cnt;
+	return fmt("%d-file", cnt);
 	};

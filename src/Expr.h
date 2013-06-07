@@ -57,6 +57,8 @@ extern const char* expr_name(BroExprTag t);
 class Stmt;
 class Frame;
 class ListExpr;
+class NameExpr;
+class AssignExpr;
 class CallExpr;
 class EventExpr;
 
@@ -159,10 +161,35 @@ public:
 		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
 		return (const ListExpr*) this;
 		}
+
 	ListExpr* AsListExpr()
 		{
 		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
 		return (ListExpr*) this;
+		}
+
+	const NameExpr* AsNameExpr() const
+		{
+		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+		return (const NameExpr*) this;
+		}
+
+	NameExpr* AsNameExpr()
+		{
+		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+		return (NameExpr*) this;
+		}
+
+	const AssignExpr* AsAssignExpr() const
+		{
+		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+		return (const AssignExpr*) this;
+		}
+
+	AssignExpr* AsAssignExpr()
+		{
+		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+		return (AssignExpr*) this;
 		}
 
 	void Describe(ODesc* d) const;
@@ -729,7 +756,8 @@ protected:
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	RecordConstructorExpr(ListExpr* constructor_list);
+	RecordConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	~RecordConstructorExpr();
 
 protected:
 	friend class Expr;
@@ -741,11 +769,14 @@ protected:
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(RecordConstructorExpr);
+
+	RecordType* ctor_type; // type inferred from the ctor expression list args
 };
 
 class TableConstructorExpr : public UnaryExpr {
 public:
-	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
+	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
+	                     BroType* arg_type = 0);
 	~TableConstructorExpr()	{ Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
@@ -767,7 +798,8 @@ protected:
 
 class SetConstructorExpr : public UnaryExpr {
 public:
-	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
+	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
+	                   BroType* arg_type = 0);
 	~SetConstructorExpr()	{ Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
@@ -789,7 +821,7 @@ protected:
 
 class VectorConstructorExpr : public UnaryExpr {
 public:
-	VectorConstructorExpr(ListExpr* constructor_list);
+	VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
 
 	Val* Eval(Frame* f) const;
 

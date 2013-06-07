@@ -6,9 +6,9 @@ module Conn;
 export {
 	## Define inactivity timeouts by the service detected being used over
 	## the connection.
-	const analyzer_inactivity_timeouts: table[AnalyzerTag] of interval = {
+	const analyzer_inactivity_timeouts: table[Analyzer::Tag] of interval = {
 		# For interactive services, allow longer periods of inactivity.
-		[[ANALYZER_SSH, ANALYZER_FTP]] = 1 hrs,
+		[[Analyzer::ANALYZER_SSH, Analyzer::ANALYZER_FTP]] = 1 hrs,
 	} &redef;
 	
 	## Define inactivity timeouts based on common protocol ports.
@@ -18,7 +18,7 @@ export {
 	
 }
 	
-event protocol_confirmation(c: connection, atype: count, aid: count)
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count)
 	{
 	if ( atype in analyzer_inactivity_timeouts )
 		set_inactivity_timeout(c$id, analyzer_inactivity_timeouts[atype]);

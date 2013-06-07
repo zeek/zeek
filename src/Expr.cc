@@ -3320,11 +3320,19 @@ bool HasFieldExpr::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&not_used) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
 	}
 
-RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
+RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list,
+					     BroType* arg_type)
 : UnaryExpr(EXPR_RECORD_CONSTRUCTOR, constructor_list)
 	{
 	if ( IsError() )
 		return;
+
+	if ( arg_type && arg_type->Tag() != TYPE_RECORD )
+		{
+		Error("bad record constructor type", arg_type);
+		SetError();
+		return;
+		}
 
 	// Spin through the list, which should be comprised of
 	// either record's or record-field-assign, and build up a
@@ -3365,7 +3373,17 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 			}
 		}
 
-	SetType(new RecordType(record_types));
+	ctor_type = new RecordType(record_types);
+
+	if ( arg_type )
+		SetType(arg_type->Ref());
+	else
+		SetType(ctor_type->Ref());
+	}
+
+RecordConstructorExpr::~RecordConstructorExpr()
+	{
+	Unref(ctor_type);
 	}
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
@@ -3391,7 +3409,7 @@ Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 Val* RecordConstructorExpr::Fold(Val* v) const
 	{
 	ListVal* lv = v->AsListVal();
-	RecordType* rt = type->AsRecordType();
+	RecordType* rt = ctor_type->AsRecordType();
 
 	if ( lv->Length() != rt->NumFields() )
 		Internal("inconsistency evaluating record constructor");
@@ -3400,6 +3418,19 @@ Val* RecordConstructorExpr::Fold(Val* v) const
 
 	for ( int i = 0; i < lv->Length(); ++i )
 		rv->Assign(i, lv->Index(i)->Ref());
+
+	if ( ! same_type(rt, type) )
+		{
+		RecordVal* new_val = rv->CoerceTo(type->AsRecordType());
+
+		if ( new_val )
+			{
+			Unref(rv);
+			rv = new_val;
+			}
+		else
+			Internal("record constructor coercion failed");
+		}
 
 	return rv;
 	}
@@ -3416,37 +3447,89 @@ IMPLEMENT_SERIAL(RecordConstructorExpr, SER_RECORD_CONSTRUCTOR_EXPR);
 bool RecordConstructorExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_RECORD_CONSTRUCTOR_EXPR, UnaryExpr);
+	SERIALIZE_OPTIONAL(ctor_type);
 	return true;
 	}
 
 bool RecordConstructorExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
+	BroType* t = 0;
+	UNSERIALIZE_OPTIONAL(t, RecordType::Unserialize(info));
+	ctor_type = t->AsRecordType();
 	return true;
 	}
 
 TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
-						attr_list* arg_attrs)
+					   attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_TABLE_CONSTRUCTOR, constructor_list)
 	{
 	if ( IsError() )
 		return;
 
-	if ( constructor_list->Exprs().length() == 0 )
-		SetType(new TableType(new TypeList(base_type(TYPE_ANY)), 0));
+	if ( arg_type )
+		{
+		if ( ! arg_type->IsTable() )
+			{
+			Error("bad table constructor type", arg_type);
+			SetError();
+			return;
+			}
+
+		SetType(arg_type->Ref());
+		}
 	else
 		{
-		SetType(init_type(constructor_list));
+		if ( constructor_list->Exprs().length() == 0 )
+			SetType(new TableType(new TypeList(base_type(TYPE_ANY)), 0));
+		else
+			{
+			SetType(init_type(constructor_list));
 
-		if ( ! type )
-			SetError();
+			if ( ! type )
+				SetError();
 
-		else if ( type->Tag() != TYPE_TABLE ||
-			  type->AsTableType()->IsSet() )
-			SetError("values in table(...) constructor do not specify a table");
+			else if ( type->Tag() != TYPE_TABLE ||
+				  type->AsTableType()->IsSet() )
+				SetError("values in table(...) constructor do not specify a table");
+			}
 		}
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+
+	type_list* indices = type->AsTableType()->Indices()->Types();
+	const expr_list& cle = constructor_list->Exprs();
+
+	// check and promote all index expressions in ctor list
+	loop_over_list(cle, i)
+		{
+		if ( cle[i]->Tag() != EXPR_ASSIGN )
+			continue;
+
+		Expr* idx_expr = cle[i]->AsAssignExpr()->Op1();
+
+		if ( idx_expr->Tag() != EXPR_LIST )
+			continue;
+
+		expr_list& idx_exprs = idx_expr->AsListExpr()->Exprs();
+
+		if ( idx_exprs.length() != indices->length() )
+			continue;
+
+		loop_over_list(idx_exprs, j)
+			{
+			Expr* idx = idx_exprs[j];
+
+			if ( check_and_promote_expr(idx, (*indices)[j]) )
+				{
+				if ( idx != idx_exprs[j] )
+					idx_exprs.replace(j, idx);
+				continue;
+				}
+
+			ExprError("inconsistent types in table constructor");
+			}
+		}
 	}
 
 Val* TableConstructorExpr::Eval(Frame* f) const
@@ -3502,16 +3585,30 @@ bool TableConstructorExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
-					attr_list* arg_attrs)
+				       attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_SET_CONSTRUCTOR, constructor_list)
 	{
 	if ( IsError() )
 		return;
 
-	if ( constructor_list->Exprs().length() == 0 )
-		SetType(new ::SetType(new TypeList(base_type(TYPE_ANY)), 0));
+	if ( arg_type )
+		{
+		if ( ! arg_type->IsSet() )
+			{
+			Error("bad set constructor type", arg_type);
+			SetError();
+			return;
+			}
+
+		SetType(arg_type->Ref());
+		}
 	else
-		SetType(init_type(constructor_list));
+		{
+		if ( constructor_list->Exprs().length() == 0 )
+			SetType(new ::SetType(new TypeList(base_type(TYPE_ANY)), 0));
+		else
+			SetType(init_type(constructor_list));
+		}
 
 	if ( ! type )
 		SetError();
@@ -3520,6 +3617,37 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 		SetError("values in set(...) constructor do not specify a set");
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+
+	type_list* indices = type->AsTableType()->Indices()->Types();
+	expr_list& cle = constructor_list->Exprs();
+
+	if ( indices->length() == 1 )
+		{
+		if ( ! check_and_promote_exprs_to_type(constructor_list,
+		                                       (*indices)[0]) )
+			ExprError("inconsistent type in set constructor");
+		}
+
+	else if ( indices->length() > 1 )
+		{
+		// Check/promote each expression in composite index.
+		loop_over_list(cle, i)
+			{
+			Expr* ce = cle[i];
+			ListExpr* le = ce->AsListExpr();
+
+			if ( ce->Tag() == EXPR_LIST &&
+			     check_and_promote_exprs(le, type->AsTableType()->Indices()) )
+				{
+				if ( le != cle[i] )
+					cle.replace(i, le);
+
+				continue;
+				}
+
+			ExprError("inconsistent types in set constructor");
+			}
+		}
 	}
 
 Val* SetConstructorExpr::Eval(Frame* f) const
@@ -3590,31 +3718,50 @@ bool SetConstructorExpr::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list)
+VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list,
+					     BroType* arg_type)
 : UnaryExpr(EXPR_VECTOR_CONSTRUCTOR, constructor_list)
 	{
 	if ( IsError() )
 		return;
 
-	if ( constructor_list->Exprs().length() == 0 )
+	if ( arg_type )
 		{
-		// vector().
-		SetType(new ::VectorType(base_type(TYPE_ANY)));
-		return;
-		}
+		if ( arg_type->Tag() != TYPE_VECTOR )
+			{
+			Error("bad vector constructor type", arg_type);
+			SetError();
+			return;
+			}
 
-	BroType* t = merge_type_list(constructor_list);
-	if ( t )
-		{
-		SetType(new VectorType(t->Ref()));
-
-		if ( ! check_and_promote_exprs_to_type(constructor_list, t) )
-			ExprError("inconsistent types in vector constructor");
-
-		Unref(t);
+		SetType(arg_type->Ref());
 		}
 	else
-		SetError();
+		{
+		if ( constructor_list->Exprs().length() == 0 )
+			{
+			// vector().
+			SetType(new ::VectorType(base_type(TYPE_ANY)));
+			return;
+			}
+
+		BroType* t = merge_type_list(constructor_list);
+
+		if ( t )
+			{
+			SetType(new VectorType(t->Ref()));
+			Unref(t);
+			}
+		else
+			{
+			SetError();
+			return;
+			}
+		}
+
+	if ( ! check_and_promote_exprs_to_type(constructor_list,
+					       type->AsVectorType()->YieldType()) )
+		ExprError("inconsistent types in vector constructor");
 	}
 
 Val* VectorConstructorExpr::Eval(Frame* f) const

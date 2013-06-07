@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
 #include "AnalyzerSet.h"
@@ -166,7 +165,7 @@ protected:
 	 *        direction.
 	 */
 	File(const string& file_id, Connection* conn = 0,
-	     AnalyzerTag::Tag tag = AnalyzerTag::Error, bool is_orig = false);
+	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the

@@ -1,4 +1,42 @@
 
+2.1-736 | 2013-06-06 10:05:20 -0700
+
+  * New "magic constants" @DIR and @FILENAME that expand to the
+    directory path of the current script and just the script file name
+    without path, respectively. (Jon Siwek)
+
+2.1-731 | 2013-06-04 21:19:08 -0700
+
+  * Reorginization of internal protocol analyzer code. We're moving
+    them to a modularized structure, based on a plugin model. Along
+    with this change comes generic plugin infrastructure that we'll
+    later extend to other Bro component as well. For now all plugins
+    are compiled in statically, but in the future we plan to also
+    enable dynamic loading at run time. (Robin Sommer)
+
+  * Ignoring file ids in external tests. (Robin Sommer)
+
+2.1-675 | 2013-06-02 20:03:19 -0700
+
+  * Fix a compiler warning. (Robin Sommer)
+
+  * Allow named vector/set/table/record constructors. Addresses #983.
+    (Jon Siwek)
+
+  * Adding Makefile target test-all that also runs the BroControl test
+    suite.  (Robin Sommer)
+
+2.1-664 | 2013-05-28 21:37:46 -0700
+
+  * Dangling pointer fix. Addresses #1004. (Jon Siwek)
+
+2.1-659 | 2013-05-24 17:24:18 -0700
+
+  * Fix broken/missing documentation. (Jon Siwek)
+    
+  * Fixing test that would fail without ES/curl support. (Robin
+    Sommer)
+
 2.1-656 | 2013-05-17 15:58:07 -0700
 
   * Fix mutex lock problem for writers. (Bernhard Amann)

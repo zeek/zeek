@@ -13,15 +13,15 @@ export {
 function get_file_handle(c: connection, is_orig: bool): string
 	{
 	if ( ! c?$smtp ) return "";
-	return cat(ANALYZER_SMTP, " ", c$start_time, " ", c$smtp$trans_depth, " ",
+	return cat(Analyzer::ANALYZER_SMTP, " ", c$start_time, " ", c$smtp$trans_depth, " ",
 	           c$smtp_state$mime_level);
 	}
 
 module GLOBAL;
 
-event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
+event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool)
 	&priority=5
 	{
-	if ( tag != ANALYZER_SMTP ) return;
+	if ( tag != Analyzer::ANALYZER_SMTP ) return;
 	set_file_handle(SMTP::get_file_handle(c, is_orig));
 	}

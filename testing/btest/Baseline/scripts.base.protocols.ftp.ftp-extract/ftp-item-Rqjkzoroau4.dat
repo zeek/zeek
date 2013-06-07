@@ -1,6 +1,0 @@
-total 98028
-lrwxrwxr-x  1 root  wheel         32 Aug 16  2009 .message -> pub/NetBSD/README.export-control
-drwxr-x--x  3 root  wheel        512 Aug 16  2009 etc
--rw-rw-r--  1 600   netbsd  50158695 Feb 21 03:10 ls-lRA.gz
-drwxr-xr-x  7 root  wheel        512 Aug 20  2009 pub
--rw-rw-r--  1 root  wheel         77 Aug 16  2009 robots.txt

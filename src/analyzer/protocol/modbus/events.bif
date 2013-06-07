@@ -1,0 +1,295 @@
+## Generated for any modbus message regardless if the particular function
+## is further supported or not.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## is_orig: True if the event is raised for the originator side.
+event modbus_message%(c: connection, headers: ModbusHeaders, is_orig: bool%);
+
+## Generated for any modbus exception message.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## code: The exception code.
+event modbus_exception%(c: connection, headers: ModbusHeaders, code: count%);
+
+## Generated for a Modbus read coils request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address where of the first coil to be read.
+##
+## quantity: The number of coils to be read.
+event modbus_read_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read coils response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## coils: The coil values returned from the device.
+event modbus_read_coils_response%(c: connection, headers: ModbusHeaders, coils: ModbusCoils%);
+
+## Generated for a Modbus read discrete inputs request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil to be read.
+##
+## quantity: The number of coils to be read.
+event modbus_read_discrete_inputs_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read discrete inputs response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## coils: The coil values returned from the device.
+event modbus_read_discrete_inputs_response%(c: connection, headers: ModbusHeaders, coils: ModbusCoils%);
+
+## Generated for a Modbus read holding registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be read.
+##
+## quantity: The number of registers to be read.
+event modbus_read_holding_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read holding registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## registers: The register values returned from the device.
+event modbus_read_holding_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
+
+## Generated for a Modbus read input registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be read.
+##
+## quantity: The number of registers to be read.
+event modbus_read_input_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read input registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## registers: The register values returned from the device.
+event modbus_read_input_registers_response%(c: connection, headers: ModbusHeaders, registers: ModbusRegisters%);
+
+## Generated for a Modbus write single coil request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the coil to be written.
+##
+## value: The value to be written to the coil.
+event modbus_write_single_coil_request%(c: connection, headers: ModbusHeaders, address: count, value: bool%);
+
+## Generated for a Modbus write single coil response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the coil that was written.
+##
+## value: The value that was written to the coil.
+event modbus_write_single_coil_response%(c: connection, headers: ModbusHeaders, address: count, value: bool%);
+
+## Generated for a Modbus write single register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register to be written.
+##
+## value: The value to be written to the register.
+event modbus_write_single_register_request%(c: connection, headers: ModbusHeaders, address: count, value: count%);
+
+## Generated for a Modbus write single register response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register that was written.
+##
+## value: The value that was written to the register.
+event modbus_write_single_register_response%(c: connection, headers: ModbusHeaders, address: count, value: count%);
+
+## Generated for a Modbus write multiple coils request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil to be written.
+##
+## value: The values to be written to the coils.
+event modbus_write_multiple_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, coils: ModbusCoils%);
+
+## Generated for a Modbus write multiple coils response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first coil that was written.
+##
+## quantity: The quantity of coils that were written.
+event modbus_write_multiple_coils_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus write multiple registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register to be written.
+##
+## registers: The values to be written to the registers.
+event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, start_address: count, registers: ModbusRegisters%);
+
+## Generated for a Modbus write multiple registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The memory address of the first register that was written.
+##
+## quantity: The quantity of registers that were written.
+event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
+
+## Generated for a Modbus read file record request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus read file record response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus write file record request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus write file record response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## .. note: This event is incomplete.  The information from the data structure is not
+##          yet passed through to the event.
+event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for a Modbus mask write register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register where the masks should be applied.
+##
+## and_mask: The value of the logical AND mask to apply to the register.
+##
+## or_mask: The value of the logical OR mask to apply to the register.
+event modbus_mask_write_register_request%(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count%);
+
+## Generated for a Modbus mask write register request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## address: The memory address of the register where the masks were applied.
+##
+## and_mask: The value of the logical AND mask applied register.
+##
+## or_mask: The value of the logical OR mask applied to the register.
+event modbus_mask_write_register_response%(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count%);
+
+## Generated for a Modbus read/write multiple registers request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## read_start_address: The memory address of the first register to be read.
+##
+## read_quantity: The number of registers to read.
+##
+## write_start_address: The memory address of the first register to be written.
+##
+## write_registers: The values to be written to the registers.
+event modbus_read_write_multiple_registers_request%(c: connection, headers: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters%);
+
+## Generated for a Modbus read/write multiple registers response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## written_registers: The register values read from the registers specified in the request.
+event modbus_read_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters%);
+
+## Generated for a Modbus read FIFO queue request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## start_address: The address of the FIFO queue to read.
+event modbus_read_fifo_queue_request%(c: connection, headers: ModbusHeaders, start_address: count%);
+
+## Generated for a Modbus read FIFO queue response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## fifos: The register values read from the FIFO queue on the device.
+event modbus_read_fifo_queue_response%(c: connection, headers: ModbusHeaders, fifos: ModbusRegisters%);
+

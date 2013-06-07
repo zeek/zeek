@@ -10,7 +10,6 @@ EventHandler::EventHandler(const char* arg_name)
 	used = false;
 	local = 0;
 	type = 0;
-	group = 0;
 	error_handler = false;
 	enabled = true;
 	}
@@ -19,7 +18,6 @@ EventHandler::~EventHandler()
 	{
 	Unref(local);
 	delete [] name;
-	delete [] group;
 	}
 
 EventHandler::operator bool() const

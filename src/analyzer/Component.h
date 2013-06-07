@@ -120,7 +120,7 @@ public:
 	 * Generates a human-readable description of the component's main
 	 * parameters. This goes into the output of \c "bro -NN".
 	 */
-	virtual void Describe(ODesc* d);
+	virtual void Describe(ODesc* d) const;
 
 	Component& operator=(const Component& other);
 

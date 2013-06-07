@@ -102,24 +102,24 @@ public:
 	/**
 	 * Returns the name of the plugin.
 	 */
-	const char* Name();
+	const char* Name() const;
 
 	/**
 	 * Returns a short textual description of the plugin, if provided.
 	 */
-	const char* Description();
+	const char* Description() const;
 
 	/**
 	 * Returns the version of the plugin. Version are only meaningful for
 	 * dynamically compiled plugins; for statically compiled ones, this
 	 * will always return 0.
 	 */
-	int Version();
+	int Version() const;
 
 	/**
 	 * Returns true if this is a dynamically linked in plugin.
 	 */
-	bool DynamicPlugin();
+	bool DynamicPlugin() const;
 
 	/**
 	 * Returns the internal API version that this plugin relies on. Only
@@ -128,18 +128,18 @@ public:
 	 * dynamically loaded plugins may cause a mismatch if they were
 	 * compiled for a different Bro version.
 	 */
-	int APIVersion();
+	int APIVersion() const;
 
 	/**
 	 * Returns a list of all components the plugin provides.
 	 */
-	component_list Components();
+	component_list Components() const;
 
 	/**
 	 * Returns a list of all BiF items that the plugin provides. This
 	 * must be called only after InitBif() has been executed.
 	 */
-	bif_item_list BifItems();
+	bif_item_list BifItems() const;
 
 	/**
 	 * First-stage initialization of the plugin called early during Bro's
@@ -171,7 +171,7 @@ public:
 	 * is disabled, the rendering will include a list of all components
 	 * and BiF items.
 	 */
-	void Describe(ODesc* d);
+	void Describe(ODesc* d) const;
 
 protected:
 	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
@@ -225,7 +225,7 @@ protected:
 	 * for informational purpuses only and will show up in the result of
 	 * BifItems() as well as in the Describe() output.
 	 */
-	virtual bif_item_list CustomBifItems() ;
+	virtual bif_item_list CustomBifItems() const;
 
 	/**
 	 * Internal function adding an entry point for registering

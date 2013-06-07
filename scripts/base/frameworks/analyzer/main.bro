@@ -9,9 +9,7 @@
 ##! :bro:enum:`Analyzer::ANALYZER_HTTP`. These tags are defined internally by
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
-##!
-##! .. todo: ``The ANALYZER_*`` are in fact not yet documented, we need to
-##!    add that to Broxygen.
+
 module Analyzer;
 
 export {

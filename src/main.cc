@@ -868,6 +868,8 @@ int main(int argc, char** argv)
 
 	if ( generate_documentation )
 		{
+		CreateProtoAnalyzerDoc("proto-analyzers.rst");
+
 		std::list<BroDoc*>::iterator it;
 
 		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )

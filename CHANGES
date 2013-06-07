@@ -1,4 +1,9 @@
 
+2.1-738 | 2013-06-07 08:38:13 -0700
+
+  * Remove invalid free on non-allocated pointer in hash function
+    object. Addresses #1018. (Matthias Vallentin)
+
 2.1-736 | 2013-06-06 10:05:20 -0700
 
   * New "magic constants" @DIR and @FILENAME that expand to the

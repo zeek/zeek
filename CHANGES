@@ -1,4 +1,9 @@
 
+2.1-741 | 2013-06-07 17:28:50 -0700
+
+  * Fixing typo that could cause an assertion to falsely trigger.
+    (Robin Sommer)
+
 2.1-740 | 2013-06-07 16:37:32 -0700
 
   * Fix for CMake 2.6.x. (Robin Sommer)

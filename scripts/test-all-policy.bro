@@ -31,7 +31,6 @@
 @load integration/barnyard2/types.bro
 @load integration/collective-intel/__load__.bro
 @load integration/collective-intel/main.bro
-@load misc/analysis-groups.bro
 @load misc/app-metrics.bro
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro

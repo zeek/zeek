@@ -5,8 +5,14 @@
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
+#endif
+
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -114,6 +120,7 @@ extern char* skip_digits(char* s);
 extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
+extern std::string to_upper(const std::string& s);
 extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
 extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);

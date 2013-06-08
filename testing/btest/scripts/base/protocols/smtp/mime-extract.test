@@ -1,10 +1,12 @@
 # @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
 # @TEST-EXEC: btest-diff smtp_entities.log
-# @TEST-EXEC: btest-diff smtp-entity-cwR7l6Zctxb-0.dat
-# @TEST-EXEC: btest-diff smtp-entity-Ltd7QO7jEv3-1.dat
+# @TEST-EXEC: mv smtp-entity-*-0.dat smtp-entity-0.dat
+# @TEST-EXEC: mv smtp-entity-*-1.dat smtp-entity-1.dat
+# @TEST-EXEC: btest-diff smtp-entity-0.dat
+# @TEST-EXEC: btest-diff smtp-entity-1.dat
 # @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT SMTP::extraction_prefix="test"
-# @TEST-EXEC: test -e test-cwR7l6Zctxb-0.dat
-# @TEST-EXEC: test -e test-Ltd7QO7jEv3-1.dat
+# @TEST-EXEC: test -e test-*-0.dat
+# @TEST-EXEC: test -e test-*-1.dat
 
 @load base/protocols/smtp
 

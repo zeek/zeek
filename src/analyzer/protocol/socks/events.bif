@@ -1,0 +1,29 @@
+## Generated when a SOCKS request is analyzed.
+##
+## c: The parent connection of the proxy.
+##
+## version: The version of SOCKS this message used.
+##
+## request_type: The type of the request.
+##
+## sa: Address that the tunneled traffic should be sent to.
+##
+## p: The destination port for the proxied traffic.
+##
+## user: Username given for the SOCKS connection.  This is not yet implemented
+##       for SOCKSv5.
+event socks_request%(c: connection, version: count, request_type: count, sa: SOCKS::Address, p: port, user: string%);
+
+## Generated when a SOCKS reply is analyzed.
+##
+## c: The parent connection of the proxy.
+##
+## version: The version of SOCKS this message used.
+##
+## reply: The status reply from the server.
+##
+## sa: The address that the server sent the traffic to.
+##
+## p: The destination port for the proxied traffic.
+event socks_reply%(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port%);
+

@@ -359,15 +359,16 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 		}
 
-	if ( errno == 0 ) {
-		assert(false);
-	} else if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR ) {
+	if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR ) {
 		return -2;
 	} else {
 		// an error code we did no expect. This probably is bad.
 		Error(Fmt("Reader encountered unexpected error code %d", errno));
 		return -3;
 	}
+
+	InternalError("Internal control flow execution");
+	assert(false);
 
 	}
 
@@ -546,7 +547,6 @@ bool Raw::DoUpdate()
 			EndCurrentSend();
 
 		SendEvent("InputRaw::process_finished", 4, vals);
-		
 	}
 
 

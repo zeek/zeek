@@ -79,6 +79,11 @@ public:
 	 */
 	bool RemoveStream(const string &id);
 
+	/**
+	 * Signals the manager to shutdown at Bro's termination.
+	 */
+	void Terminate();	
+
 protected:
 	friend class ReaderFrontend;
 	friend class PutMessage;

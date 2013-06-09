@@ -357,6 +357,7 @@ void terminate_bro()
 
 	file_mgr->Terminate();
 	log_mgr->Terminate();
+	input_mgr->Terminate();
 	thread_mgr->Terminate();
 
 	mgr.Drain();

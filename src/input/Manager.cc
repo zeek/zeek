@@ -1289,6 +1289,7 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 	SendEndOfData(i);
 	}
 
+
 void Manager::SendEndOfData(const Stream *i)
 	{
 #ifdef DEBUG
@@ -2173,4 +2174,19 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader)
 		return s->second;
 
 	return 0;
+	}
+
+// function is called on Bro shutdown.
+// sinal all frontends that they will cease operation.
+void Manager::Terminate() 
+	{
+	for (map<ReaderFrontend*, Stream*>::iterator i = readers.begin(); i != readers.end(); ++i )
+		{
+		if ( i->second->removed ) 
+			continue;
+
+		i->second->removed = true;
+		i->second->reader->Stop();
+		}
+ 
 	}

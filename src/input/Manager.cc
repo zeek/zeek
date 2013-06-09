@@ -1308,6 +1308,11 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		return;
 		}
 
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "Put for stream %s",
+		i->name.c_str());
+#endif
+
 	int readFields = 0;
 
 	if ( i->stream_type == TABLE_STREAM )
@@ -1631,6 +1636,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 		return false;
 		}
 
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent for event %s with num_vals vals",
+		name.c_str(), num_vals);
+#endif	
+
 	RecordType *type = handler->FType()->Args();
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
@@ -1643,7 +1653,8 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 	for ( int i = 0; i < num_vals; i++)
 		vl->append(ValueToVal(vals[i], type->FieldType(i)));
 
-	mgr.Dispatch(new Event(handler, vl));
+	//mgr.Dispatch(new Event(handler, vl));
+	mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
 
 	for ( int i = 0; i < num_vals; i++ )
 		delete vals[i];
@@ -1656,6 +1667,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 	{
 	val_list* vl = new val_list;
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
+		numvals);
+#endif	
 
 	va_list lP;
 	va_start(lP, numvals);
@@ -1670,6 +1686,11 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
 	{
 	val_list* vl = new val_list;
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent with %d vals (list)",
+		events.size());
+#endif	
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
 		{

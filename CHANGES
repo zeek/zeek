@@ -1,4 +1,18 @@
 
+2.1-741 | 2013-06-07 17:28:50 -0700
+
+  * Fixing typo that could cause an assertion to falsely trigger.
+    (Robin Sommer)
+
+2.1-740 | 2013-06-07 16:37:32 -0700
+
+  * Fix for CMake 2.6.x. (Robin Sommer)
+
+2.1-738 | 2013-06-07 08:38:13 -0700
+
+  * Remove invalid free on non-allocated pointer in hash function
+    object. Addresses #1018. (Matthias Vallentin)
+
 2.1-736 | 2013-06-06 10:05:20 -0700
 
   * New "magic constants" @DIR and @FILENAME that expand to the

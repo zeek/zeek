@@ -24,7 +24,7 @@ Tag::Tag(type_t arg_type, subtype_t arg_subtype)
 
 Tag::Tag(EnumVal* arg_val)
 	{
-	assert(val);
+	assert(arg_val);
 
 	val = arg_val;
 	Ref(val);

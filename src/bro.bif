@@ -4993,6 +4993,13 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ## capacity: the maximum number of elements that guarantees a false-positive
 ## rate of *fp*.
 ##
+## max: The maximum counter value associated with each each element in the
+## Bloom filter. If greater than 1, each element in the set has a counter of
+## *w = ceil(log_2(max))* bits. Each bit in the underlying bit vector then
+## becomes a cell of size *w* bits. Since the number number of cells is a
+## function ## of *fp* and *capacity*, it is important to consider the effects
+## on space when tuning this value.
+##
 ## Returns: A Bloom filter handle.
 function bloomfilter_init%(fp: double, capacity: count,
                            max: count &default=1%): opaque of bloomfilter

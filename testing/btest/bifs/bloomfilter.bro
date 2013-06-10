@@ -21,8 +21,8 @@ event bro_init()
   bloomfilter_add(bf_str, "bar");
   print bloomfilter_lookup(bf_str, "foo");
   print bloomfilter_lookup(bf_str, "bar");
-  print bloomfilter_lookup(bf_str, "baz");
-  print bloomfilter_lookup(bf_str, "qux");
+  print bloomfilter_lookup(bf_str, "baz"); # FP
+  print bloomfilter_lookup(bf_str, "qux"); # FP
   bloomfilter_add(bf_str, 0.5); # Type mismatch
   bloomfilter_add(bf_str, 100); # Type mismatch
 

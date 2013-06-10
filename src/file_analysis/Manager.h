@@ -17,8 +17,11 @@
 
 #include "File.h"
 #include "FileTimer.h"
+#include "Component.h"
 
 #include "analyzer/Tag.h"
+
+#include "file_analysis/file_analysis.bif.h"
 
 namespace file_analysis {
 
@@ -37,6 +40,18 @@ public:
 	 * Destructor.  Times out any currently active file analyses.
 	 */
 	~Manager();
+
+	/**
+	 * First-stage initializion of the manager. This is called early on
+	 * during Bro's initialization, before any scripts are processed.
+	 */
+	void InitPreScript();
+
+	/**
+	 * Second-stage initialization of the manager. This is called late
+	 * during Bro's initialization after any scripts are processed.
+	 */
+	void InitPostScript();
 
 	/**
 	 * Times out any active file analysis to prepare for shutdown.
@@ -182,6 +197,23 @@ public:
 	 */
 	bool IsIgnored(const string& file_id);
 
+	/**
+	 * Instantiates a new file analyzer instance for the file.
+	 * @param tag The file analyzer's tag.
+	 * @param args The file analzer argument/option values.
+	 * @param f The file analzer is to be associated with.
+	 * @return The new analyzer instance or null if tag is invalid.
+	 */
+	Analyzer* InstantiateAnalyzer(int tag, RecordVal* args, File* f) const;
+
+	/**
+	 * Translates a script-level file analyzer tag in to corresponding file
+	 * analyzer name.
+	 * @param tag The enum val of a file analyzer.
+	 * @return The human-readable name of the file analyzer.
+	 */
+	const char* GetAnalyzerName(int tag) const;
+
 protected:
 	friend class FileTimer;
 
@@ -255,11 +287,23 @@ protected:
 	static bool IsDisabled(analyzer::Tag tag);
 
 private:
+	typedef map<string, Component*> analyzer_map_by_name;
+	typedef map<analyzer::Tag, Component*> analyzer_map_by_tag;
+	typedef map<int, Component*> analyzer_map_by_val;
+
+	void RegisterAnalyzerComponent(Component* component);
+
 	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
 	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
-	string current_file_id;	/**< Hash of what get_file_handle event sets.*/
+	string current_file_id;	/**< Hash of what get_file_handle event sets. */
+	EnumType* tag_enum_type; /**< File analyzer tag type. */
+
+	analyzer_map_by_name analyzers_by_name;
+	analyzer_map_by_tag analyzers_by_tag;
+	analyzer_map_by_val analyzers_by_val;
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
+	static string salt; /**< A salt added to file handles before hashing. */
 };
 
 } // namespace file_analysis

@@ -260,6 +260,5 @@ extern void init_net_var();
 #include "logging.bif.netvar_h"
 #include "input.bif.netvar_h"
 #include "reporter.bif.netvar_h"
-#include "file_analysis.bif.netvar_h"
 
 #endif

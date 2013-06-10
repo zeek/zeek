@@ -15,15 +15,10 @@ namespace component {
 enum Type {
 	READER,	/// An input reader (not currently used).
 	WRITER,	/// An logging writer (not currenly used).
-	ANALYZER	/// A protocol analyzer.
+	ANALYZER,	/// A protocol analyzer.
+	FILE_ANALYZER	/// A file analyzer.
 	};
 }
-
-#if 0
-namespace input    { class PluginComponent; }
-namespace logging  { class PluginComponent; }
-namespace analyzer { class PluginComponent; }
-#endif
 
 /**
  * Base class for plugin components. A component is a specific piece of

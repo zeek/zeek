@@ -114,7 +114,6 @@ set(BIF_SRCS
     logging.bif
     input.bif
     event.bif
-    file_analysis.bif
     const.bif
     types.bif
     strings.bif
@@ -150,6 +149,7 @@ set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
 add_subdirectory(analyzer)
+add_subdirectory(file_analysis)
 
 set(bro_SUBDIRS
     ${bro_SUBDIR_LIBS}
@@ -355,20 +355,12 @@ set(bro_SRCS
     input/readers/Binary.cc
     input/readers/SQLite.cc
 
-    file_analysis/Manager.cc
-    file_analysis/File.cc
-    file_analysis/FileTimer.cc
-    file_analysis/Analyzer.h
-    file_analysis/AnalyzerSet.cc
-    file_analysis/Extract.cc
-    file_analysis/Hash.cc
-    file_analysis/DataEvent.cc
-
     3rdparty/sqlite3.c
 
     plugin/Component.cc
     plugin/Manager.cc
     plugin/Plugin.cc
+    plugin/Macros.h
 
     nb_dns.c
     digest.h

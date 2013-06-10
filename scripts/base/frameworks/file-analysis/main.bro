@@ -15,7 +15,7 @@ export {
 	## A structure which represents a desired type of file analysis.
 	type AnalyzerArgs: record {
 		## The type of analysis.
-		tag: Analyzer;
+		tag: FileAnalysis::Tag;
 
 		## The local filename to which to write an extracted file.  Must be
 		## set when *tag* is :bro:see:`FileAnalysis::ANALYZER_EXTRACT`.
@@ -89,7 +89,7 @@ export {
 		conn_uids: set[string] &log;
 
 		## A set of analysis types done during the file analysis.
-		analyzers: set[Analyzer];
+		analyzers: set[FileAnalysis::Tag];
 
 		## Local filenames of extracted files.
 		extracted_files: set[string] &log;

@@ -39,6 +39,10 @@ void Component::Describe(ODesc* d)
 		d->Add("Analyzer");
 		break;
 
+	case component::FILE_ANALYZER:
+		d->Add("File Analyzer");
+		break;
+
 	default:
 		reporter->InternalError("unknown component type in plugin::Component::Describe");
 	}

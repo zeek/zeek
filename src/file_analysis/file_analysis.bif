@@ -1,4 +1,4 @@
-##! Internal functions and types used by the logging framework.
+##! Internal functions and types used by the file analysis framework.
 
 module FileAnalysis;
 
@@ -7,25 +7,6 @@ module FileAnalysis;
 %%}
 
 type AnalyzerArgs: record;
-
-## An enumeration of various file analysis actions that can be taken.
-enum Analyzer %{
-
-	## Extract a file to local filesystem
-	ANALYZER_EXTRACT,
-
-	## Calculate an MD5 digest of the file's contents.
-	ANALYZER_MD5,
-
-	## Calculate an SHA1 digest of the file's contents.
-	ANALYZER_SHA1,
-
-	## Calculate an SHA256 digest of the file's contents.
-	ANALYZER_SHA256,
-
-	## Deliver the file contents to the script-layer in an event.
-	ANALYZER_DATA_EVENT,
-%}
 
 ## :bro:see:`FileAnalysis::set_timeout_interval`.
 function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): bool
@@ -76,3 +57,5 @@ function set_file_handle%(handle: string%): any
 	file_mgr->SetHandle(handle->CheckString());
 	return 0;
 	%}
+
+const FileAnalysis::salt: string;

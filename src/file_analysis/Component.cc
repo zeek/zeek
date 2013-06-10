@@ -6,18 +6,17 @@
 #include "../Desc.h"
 #include "../util.h"
 
-using namespace analyzer;
+using namespace file_analysis;
 
-Tag::type_t Component::type_counter = 0;
+analyzer::Tag::type_t Component::type_counter = 0;
 
-Component::Component(const char* arg_name, factory_callback arg_factory, Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial)
-	: plugin::Component(plugin::component::ANALYZER)
+Component::Component(const char* arg_name, factory_callback arg_factory,
+                     analyzer::Tag::subtype_t arg_subtype)
+	: plugin::Component(plugin::component::FILE_ANALYZER)
 	{
 	name = copy_string(arg_name);
 	canon_name = canonify_name(arg_name);
 	factory = arg_factory;
-	enabled = arg_enabled;
-	partial = arg_partial;
 
 	tag = analyzer::Tag(++type_counter, arg_subtype);
 	}
@@ -28,8 +27,6 @@ Component::Component(const Component& other)
 	name = copy_string(other.name);
 	canon_name = copy_string(other.canon_name);
 	factory = other.factory;
-	enabled = other.enabled;
-	partial = other.partial;
 	tag = other.tag;
 	}
 
@@ -57,7 +54,6 @@ void Component::Describe(ODesc* d)
 		d->Add(", ");
 		}
 
-	d->Add(enabled ? "enabled" : "disabled");
 	d->Add(")");
 	}
 
@@ -67,8 +63,6 @@ Component& Component::operator=(const Component& other)
 		{
 		name = copy_string(other.name);
 		factory = other.factory;
-		enabled = other.enabled;
-		partial = other.partial;
 		tag = other.tag;
 		}
 

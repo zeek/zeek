@@ -383,4 +383,12 @@ extern magic_t magic_mime_cookie;
 void bro_init_magic(magic_t* cookie_ptr, int flags);
 const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
 
+/**
+ * Canonicalizes a name by converting it to uppercase letters and replacing
+ * all non-alphanumeric characters with an underscore.
+ * @param name The string to canonicalize.
+ * @return The canonicalized version of \a name which caller may later delete[].
+ */
+const char* canonify_name(const char* name);
+
 #endif

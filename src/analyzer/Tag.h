@@ -8,6 +8,11 @@
 
 class EnumVal;
 
+namespace file_analysis {
+class Manager;
+class Component;
+}
+
 namespace analyzer {
 
 class Manager;
@@ -24,7 +29,7 @@ class Component;
  * subtype form an analyzer "tag". Each unique tag corresponds to a single
  * "analyzer" from the user's perspective. At the script layer, these tags
  * are mapped into enums of type \c Analyzer::Tag. Internally, the
- * analyzer::Mangager maintains the mapping of tag to analyzer (and it also
+ * analyzer::Manager maintains the mapping of tag to analyzer (and it also
  * assigns them their main types), and analyzer::Component creates new
  * tags.
  *
@@ -121,9 +126,11 @@ public:
 protected:
 	friend class analyzer::Manager;
 	friend class analyzer::Component;
+	friend class file_analysis::Manager;
+	friend class file_analysis::Component;
 
 	/**
-	 * Constructor. Note 
+	 * Constructor.
 	 *
 	 * @param type The main type. Note that the \a analyzer::Manager
 	 * manages the value space internally, so noone else should assign

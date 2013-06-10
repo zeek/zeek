@@ -10,6 +10,8 @@
 #include "File.h"
 #include "Analyzer.h"
 
+#include "events.bif.h"
+
 namespace file_analysis {
 
 /**

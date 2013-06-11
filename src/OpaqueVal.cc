@@ -572,10 +572,21 @@ size_t BloomFilterVal::Count(const Val* val) const
   return bloom_filter_->Count(key->Hash());
   }
 
-BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* first,
-                                      const BloomFilterVal* second)
+BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
+                                      const BloomFilterVal* y)
   {
-  assert(! "not yet implemented");
+  if ( x->Type() != y->Type() )
+    {
+    reporter->InternalError("cannot merge Bloom filters with different types");
+    return NULL;
+    }
+
+  BloomFilterVal* result;
+  if ( (result = DoMerge<BasicBloomFilter>(x, y)) )
+    return result;
+  else if ( (result = DoMerge<CountingBloomFilter>(x, y)) )
+    return result;
+
   return NULL;
   }
 

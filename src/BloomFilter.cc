@@ -124,9 +124,7 @@ BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
 bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-  if ( ! SERIALIZE(static_cast<uint16>(hash_->K())) )
-    return false;
-  return SERIALIZE(static_cast<uint64>(elements_));
+  return SERIALIZE(static_cast<uint16>(hash_->K()));
   }
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
@@ -136,10 +134,6 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	if ( ! UNSERIALIZE(&k) )
 	  return false;
 	hash_ = new hash_policy(static_cast<size_t>(k));
-	uint64 elements;
-  if ( ! UNSERIALIZE(&elements) )
-    return false;
-  elements_ = static_cast<size_t>(elements);
 	return true;
   }
 
@@ -153,6 +147,17 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
   {
   double frac = static_cast<double>(cells) / static_cast<double>(capacity);
   return std::ceil(frac * std::log(2));
+  }
+
+BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
+                                          const BasicBloomFilter* y)
+  {
+  BasicBloomFilter* result = new BasicBloomFilter();
+  result->bits_ = new BitVector(*x->bits_ | *y->bits_);
+  // TODO: implement the hasher pool and make sure the new result gets the same
+  // number of (equal) hash functions.
+  //assert(x->hash_ == y->hash_);
+  return result;
   }
 
 BasicBloomFilter::BasicBloomFilter()
@@ -200,6 +205,14 @@ size_t BasicBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
       return 0;
   return 1;
   }
+
+
+CountingBloomFilter* CountingBloomFilter::Merge(const CountingBloomFilter* x,
+                                                const CountingBloomFilter* y)
+{
+  assert(! "not yet implemented");
+  return NULL;
+}
 
 CountingBloomFilter::CountingBloomFilter()
   : cells_(NULL)

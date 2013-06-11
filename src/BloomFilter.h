@@ -155,7 +155,6 @@ public:
   template <typename T>
   void Add(const T& x)
     {
-    ++elements_;
     AddImpl(hash_->Hash(&x, sizeof(x)));
     }
 
@@ -172,16 +171,6 @@ public:
     return CountImpl(hash_->Hash(&x, sizeof(x)));
     }
 
-  /**
-   * Retrieves the number of elements added to the Bloom filter.
-   *
-   * @return The number of elements in this Bloom filter.
-   */
-  size_t Size() const
-    {
-    return elements_;
-    }
-
   bool Serialize(SerialInfo* info) const;
   static BloomFilter* Unserialize(UnserialInfo* info);
 
@@ -196,7 +185,6 @@ protected:
 
 private:
   HashPolicy* hash_;
-  size_t elements_;
 };
 
 /**
@@ -230,6 +218,9 @@ public:
    */
   static size_t K(size_t cells, size_t capacity);
 
+  static BasicBloomFilter* Merge(const BasicBloomFilter* x,
+                                 const BasicBloomFilter* y);
+
   /**
    * Constructs a basic Bloom filter with a given false-positive rate and
    * capacity.
@@ -258,6 +249,9 @@ private:
  */
 class CountingBloomFilter : public BloomFilter {
 public:
+  static CountingBloomFilter* Merge(const CountingBloomFilter* x,
+                                    const CountingBloomFilter* y);
+
   CountingBloomFilter(double fp, size_t capacity, size_t width);
   CountingBloomFilter(size_t cells, size_t capacity, size_t width);
 

@@ -113,10 +113,10 @@ class BloomFilterVal : public OpaqueVal {
   BloomFilterVal(const BloomFilterVal&);
   BloomFilterVal& operator=(const BloomFilterVal&);
 public:
-	static BloomFilterVal* Merge(const BloomFilterVal* first,
-                               const BloomFilterVal* second);
+  static BloomFilterVal* Merge(const BloomFilterVal* x,
+                               const BloomFilterVal* y);
 
-	BloomFilterVal(BloomFilter* bf);
+	explicit BloomFilterVal(BloomFilter* bf);
 	~BloomFilterVal();
 
 	bool Typify(BroType* type);
@@ -133,6 +133,17 @@ protected:
 	DECLARE_SERIAL(BloomFilterVal);
 
 private:
+  template <typename T>
+  static BloomFilterVal* DoMerge(const BloomFilterVal* x,
+                                 const BloomFilterVal* y)
+    {
+    const T* a = dynamic_cast<const T*>(x->bloom_filter_);
+    const T* b = dynamic_cast<const T*>(y->bloom_filter_);
+    if ( a && b )
+      return new BloomFilterVal(T::Merge(a, b));
+    return NULL;
+    }
+
   BroType* type_;
   CompositeHash* hash_;
   BloomFilter* bloom_filter_;

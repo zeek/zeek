@@ -8,7 +8,7 @@
 /**
  * A vector of bits.
  */
-class BitVector : SerialObj {
+class BitVector : public SerialObj {
 public:
   typedef size_t block_type;
   typedef size_t size_type;

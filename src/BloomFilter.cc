@@ -55,7 +55,7 @@ IMPLEMENT_SERIAL(CounterVector, SER_COUNTERVECTOR)
 bool CounterVector::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_COUNTERVECTOR, SerialObj);
-  if ( ! SERIALIZE(bits_) )
+  if ( ! bits_->Serialize(info) )
     return false;
 	return SERIALIZE(static_cast<uint64>(width_));
   }
@@ -63,14 +63,13 @@ bool CounterVector::DoSerialize(SerialInfo* info) const
 bool CounterVector::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
-	return false;
 	bits_ = BitVector::Unserialize(info);
   if ( ! bits_ )
     return false;
   uint64 width;
   if ( ! UNSERIALIZE(&width) )
     return false;
-	width_ = static_cast<unsigned>(width);
+	width_ = static_cast<size_t>(width);
 	return true;
   }
 
@@ -127,7 +126,7 @@ bool BloomFilter::DoSerialize(SerialInfo* info) const
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
   if ( ! SERIALIZE(static_cast<uint16>(hash_->K())) )
     return false;
-  return SERIALIZE(static_cast<uint16>(elements_));
+  return SERIALIZE(static_cast<uint64>(elements_));
   }
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
@@ -178,14 +177,14 @@ IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
 bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
-  return SERIALIZE(bits_);
+  return bits_->Serialize(info);
   }
 
 bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
 	bits_ = BitVector::Unserialize(info);
-	return bits_ == NULL;
+	return bits_ != NULL;
   }
 
 void BasicBloomFilter::AddImpl(const HashPolicy::HashVector& h)
@@ -227,15 +226,15 @@ IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
 
 bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
 	{
-	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
-  return SERIALIZE(cells_);
+	DO_SERIALIZE(SER_COUNTINGBLOOMFILTER, BloomFilter);
+  return cells_->Serialize(info);
   }
 
 bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
 	cells_ = CounterVector::Unserialize(info);
-	return cells_ == NULL;
+	return cells_ != NULL;
   }
 
 void CountingBloomFilter::AddImpl(const HashPolicy::HashVector& h)

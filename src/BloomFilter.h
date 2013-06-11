@@ -73,7 +73,7 @@ protected:
 
 private:
   BitVector* bits_;
-  unsigned width_;
+  size_t width_;
 };
 
 /**

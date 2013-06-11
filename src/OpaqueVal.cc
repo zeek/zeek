@@ -574,7 +574,7 @@ size_t BloomFilterVal::Count(const Val* val) const
 
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* first,
                                       const BloomFilterVal* second)
-{
+  {
   assert(! "not yet implemented");
   return NULL;
   }
@@ -594,14 +594,15 @@ IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
 bool BloomFilterVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
-	if ( ! SERIALIZE(type_) )
+	if ( ! type_->Serialize(info) )
 	  return false;
-	return SERIALIZE(bloom_filter_);
+	return bloom_filter_->Serialize(info);
   }
 
 bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(OpaqueVal);
+
 	type_ = BroType::Unserialize(info);
 	if ( ! type_ )
 	  return false;
@@ -609,6 +610,7 @@ bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
   tl->Append(type_);
   hash_ = new CompositeHash(tl);
   Unref(tl);
+
 	bloom_filter_ = BloomFilter::Unserialize(info);
-	return bloom_filter_ == NULL;
+	return bloom_filter_ != NULL;
   }

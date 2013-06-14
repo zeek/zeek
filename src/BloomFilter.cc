@@ -82,7 +82,7 @@ HashPolicy::Hasher::Hasher(size_t seed)
 HashPolicy::HashType
 HashPolicy::Hasher::operator()(const void* x, size_t n) const
   {
-  return h3_(x, n);
+  return n == 0 ? 0 : h3_(x, n);
   }
 
 HashPolicy::HashVector DefaultHashing::Hash(const void* x, size_t n) const

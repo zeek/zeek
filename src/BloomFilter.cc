@@ -74,6 +74,17 @@ bool CounterVector::DoUnserialize(UnserialInfo* info)
   }
 
 
+HashPolicy::Hasher::Hasher(size_t seed)
+  : h3_(seed)
+{
+}
+
+HashPolicy::HashType
+HashPolicy::Hasher::operator()(const void* x, size_t n) const
+  {
+  return h3_(x, n);
+  }
+
 HashPolicy::HashVector DefaultHashing::Hash(const void* x, size_t n) const
   {
   HashVector h(K(), 0);

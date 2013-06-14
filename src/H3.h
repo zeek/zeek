@@ -65,7 +65,7 @@
 template<class T, int N> class H3 {
     T byte_lookup[N][H3_BYTE_RANGE];
 public:
-    H3()
+    H3(T seed = bro_random())
 			{
 			T bit_lookup[N * CHAR_BIT];
 
@@ -74,7 +74,7 @@ public:
 				bit_lookup[bit] = 0;
 				for ( size_t i = 0; i < sizeof(T)/2; i++ )
 					// assume random() returns at least 16 random bits
-					bit_lookup[bit] = (bit_lookup[bit] << 16) | (bro_random() & 0xFFFF);
+					bit_lookup[bit] = (bit_lookup[bit] << 16) | (seed & 0xFFFF);
 				}
 
 				for ( size_t byte = 0; byte < N; byte++ )

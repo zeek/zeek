@@ -65,53 +65,52 @@
 template<class T, int N> class H3 {
     T byte_lookup[N][H3_BYTE_RANGE];
 public:
-    H3();
-    T operator()(const void* data, size_t size, size_t offset = 0) const
-    {
-	const unsigned char *p = static_cast<const unsigned char*>(data);
-	T result = 0;
+    H3()
+			{
+			T bit_lookup[N * CHAR_BIT];
 
-	// loop optmized with Duff's Device
-	register unsigned n = (size + 7) / 8;
-	switch (size % 8) {
-	case 0:	do { result ^= byte_lookup[offset++][*p++];
-	case 7:	     result ^= byte_lookup[offset++][*p++];
-	case 6:	     result ^= byte_lookup[offset++][*p++];
-	case 5:	     result ^= byte_lookup[offset++][*p++];
-	case 4:	     result ^= byte_lookup[offset++][*p++];
-	case 3:	     result ^= byte_lookup[offset++][*p++];
-	case 2:	     result ^= byte_lookup[offset++][*p++];
-	case 1:	     result ^= byte_lookup[offset++][*p++];
-		} while (--n > 0);
-	}
+			for ( size_t bit = 0; bit < N * CHAR_BIT; bit++ )
+			  {
+				bit_lookup[bit] = 0;
+				for ( size_t i = 0; i < sizeof(T)/2; i++ )
+					// assume random() returns at least 16 random bits
+					bit_lookup[bit] = (bit_lookup[bit] << 16) | (bro_random() & 0xFFFF);
+				}
 
-	return result;
-    }
+				for ( size_t byte = 0; byte < N; byte++ )
+					{
+					for ( unsigned val = 0; val < H3_BYTE_RANGE; val++ )
+						{
+						byte_lookup[byte][val] = 0;
+						for ( size_t bit = 0; bit < CHAR_BIT; bit++ )
+							// Does this mean byte_lookup[*][0] == 0? -RP
+							if (val & (1 << bit))
+								byte_lookup[byte][val] ^= bit_lookup[byte*CHAR_BIT+bit];
+						}
+					}
+			}
+
+	T operator()(const void* data, size_t size, size_t offset = 0) const
+		{
+		const unsigned char *p = static_cast<const unsigned char*>(data);
+		T result = 0;
+
+		// loop optmized with Duff's Device
+		register unsigned n = (size + 7) / 8;
+		switch (size % 8) {
+		case 0:	do { result ^= byte_lookup[offset++][*p++];
+	  case 7:      result ^= byte_lookup[offset++][*p++];
+		case 6:      result ^= byte_lookup[offset++][*p++];
+		case 5:      result ^= byte_lookup[offset++][*p++];
+		case 4:      result ^= byte_lookup[offset++][*p++];
+		case 3:      result ^= byte_lookup[offset++][*p++];
+		case 2:      result ^= byte_lookup[offset++][*p++];
+		case 1:      result ^= byte_lookup[offset++][*p++];
+				} while (--n > 0);
+			}
+
+		return result;
+		}
 };
-
-template<class T, int N>
-H3<T,N>::H3()
-{
-    T bit_lookup[N * CHAR_BIT];
-
-    for (size_t bit = 0; bit < N * CHAR_BIT; bit++) {
-	bit_lookup[bit] = 0;
-	for (size_t i = 0; i < sizeof(T)/2; i++) {
-	    // assume random() returns at least 16 random bits
-	    bit_lookup[bit] = (bit_lookup[bit] << 16) | (bro_random() & 0xFFFF);
-	}
-    }
-
-    for (size_t byte = 0; byte < N; byte++) {
-        for (unsigned val = 0; val < H3_BYTE_RANGE; val++) {
-            byte_lookup[byte][val] = 0;
-            for (size_t bit = 0; bit < CHAR_BIT; bit++) {
-		// Does this mean byte_lookup[*][0] == 0? -RP
-	        if (val & (1 << bit))
-		    byte_lookup[byte][val] ^= bit_lookup[byte*CHAR_BIT+bit];
-            }
-        }
-    }
-}
 
 #endif //H3_H

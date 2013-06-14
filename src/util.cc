@@ -716,6 +716,8 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
+static bool first_seed_saved = false;
+static unsigned int first_seed = 0;
 
 static void bro_srandom(unsigned int seed, bool deterministic)
 	{
@@ -800,6 +802,12 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 
 	bro_srandom(seed, seeds_done);
 
+	if ( ! first_seed_saved )
+    {
+    first_seed = seed;
+    first_seed_saved = true;
+    }
+
 	if ( ! hmac_key_set )
 		{
 		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
@@ -810,6 +818,11 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 		reporter->Error("Could not write seeds to file '%s'.\n",
 				write_file);
 	}
+
+unsigned int initial_seed()
+  {
+  return first_seed;
+}
 
 bool have_random_seed()
 	{

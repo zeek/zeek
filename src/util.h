@@ -165,6 +165,11 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
+// Retrieves the initial seed computed after the very first call to
+// init_random_seed(). Repeated calls to init_random_seed() will not affect the
+// return value of this function.
+unsigned int initial_seed();
+
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
 

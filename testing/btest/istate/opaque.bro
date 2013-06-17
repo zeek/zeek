@@ -82,7 +82,7 @@ event bro_init()
   if ( ! entropy_test_add(entropy_handle, "f") )
     print out, "entropy_test_add() failed";
 
-  bloomfilter_handle = bloomfilter_init(0.1, 100);
+  bloomfilter_handle = bloomfilter_basic_init(0.1, 100);
   for ( e in bloomfilter_elements )
     bloomfilter_add(bloomfilter_handle, e);
   }

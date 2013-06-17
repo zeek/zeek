@@ -3,141 +3,9 @@
 
 #include <vector>
 #include "BitVector.h"
-#include "Hash.h"
-#include "H3.h"
+#include "HashPolicy.h"
 
-/**
- * A vector of counters, each of which have a fixed number of bits.
- */
-class CounterVector : public SerialObj {
-public:
-  typedef size_t size_type;
-  typedef uint64 count_type;
-
-  /**
-   * Constructs a counter vector having cells of a given width.
-   *
-   * @param width The number of bits that each cell occupies.
-   *
-   * @param cells The number of cells in the bitvector.
-   */
-  CounterVector(size_t width, size_t cells = 1024);
-
-  ~CounterVector();
-
-  /**
-   * Increments a given cell.
-   *
-   * @param cell The cell to increment.
-   *
-   * @param value The value to add to the current counter in *cell*.
-   *
-   * @return `true` if adding *value* to the counter in *cell* succeeded.
-   */
-  bool Increment(size_type cell, count_type value);
-
-  /**
-   * Decrements a given cell.
-   *
-   * @param cell The cell to decrement.
-   *
-   * @param value The value to subtract from the current counter in *cell*.
-   *
-   * @return `true` if subtracting *value* from the counter in *cell* succeeded.
-   */
-  bool Decrement(size_type cell, count_type value);
-
-  /**
-   * Retrieves the counter of a given cell.
-   *
-   * @param cell The cell index to retrieve the count for.
-   *
-   * @return The counter associated with *cell*.
-   */
-  count_type Count(size_type cell) const;
-
-  /**
-   * Retrieves the number of cells in the storage.
-   *
-   * @return The number of cells.
-   */
-  size_type Size() const;
-
-  bool Serialize(SerialInfo* info) const;
-  static CounterVector* Unserialize(UnserialInfo* info);
-
-protected:
-  DECLARE_SERIAL(CounterVector);
-
-  CounterVector() { }
-
-private:
-  BitVector* bits_;
-  size_t width_;
-};
-
-/**
- * The abstract base class for hash policies that hash elements *k* times.
- * @tparam Codomain An integral type.
- */
-class HashPolicy {
-public:
-  typedef hash_t HashType;
-  typedef std::vector<HashType> HashVector;
-
-  virtual ~HashPolicy() { }
-  size_t K() const { return k_; }
-  virtual HashVector Hash(const void* x, size_t n) const = 0;
-
-protected:
-  /**
-   * A functor that computes a universal hash function.
-   * @tparam Codomain An integral type.
-   */
-  class Hasher {
-  public:
-    Hasher(size_t seed);
-
-    HashType operator()(const void* x, size_t n) const;
-  private:
-    // FIXME: The hardcoded value of 36 comes from UHASH_KEY_SIZE defined in
-    // Hash.h. I do not know how this value impacts the hash function behavior
-    // so I'll just copy it verbatim. (Matthias)
-    H3<HashType, 36> h3_;
-  };
-
-  HashPolicy(size_t k) : k_(k) { }
-
-private:
-  const size_t k_;
-};
-
-/**
- * The *default* hashing policy. Performs *k* hash function computations.
- */
-class DefaultHashing : public HashPolicy {
-public:
-  DefaultHashing(size_t k) : HashPolicy(k), hashers_(k) { }
-
-  virtual HashVector Hash(const void* x, size_t n) const;
-
-private:
-  std::vector<Hasher> hashers_;
-};
-
-/**
- * The *double-hashing* policy. Uses a linear combination of two hash functions.
- */
-class DoubleHashing : public HashPolicy {
-public:
-  DoubleHashing(size_t k) : HashPolicy(k) { }
-
-  virtual HashVector Hash(const void* x, size_t n) const;
-
-private:
-  Hasher hasher1_;
-  Hasher hasher2_;
-};
+class CounterVector;
 
 /**
  * The abstract base class for Bloom filters.
@@ -146,8 +14,6 @@ class BloomFilter : public SerialObj {
 public:
   // At this point we won't let the user choose the hash policy, but we might
   // open up the interface in the future.
-  typedef DoubleHashing hash_policy;
-
   virtual ~BloomFilter();
 
   /**
@@ -180,13 +46,19 @@ protected:
   DECLARE_ABSTRACT_SERIAL(BloomFilter);
 
 	BloomFilter();
-  BloomFilter(size_t k);
 
-  virtual void AddImpl(const HashPolicy::HashVector& hashes) = 0;
-  virtual size_t CountImpl(const HashPolicy::HashVector& hashes) const = 0;
+	/**
+	 * Constructs a Bloom filter.
+	 *
+	 * @param hash_policy The hash policy to use for this Bloom filter.
+	 */
+  BloomFilter(const HashPolicy* hash_policy);
+
+  virtual void AddImpl(const HashPolicy::hash_vector& hashes) = 0;
+  virtual size_t CountImpl(const HashPolicy::hash_vector& hashes) const = 0;
 
 private:
-  HashPolicy* hash_;
+  const HashPolicy* hash_;
 };
 
 /**
@@ -224,23 +96,17 @@ public:
                                  const BasicBloomFilter* y);
 
   /**
-   * Constructs a basic Bloom filter with a given false-positive rate and
-   * capacity.
-   */
-  BasicBloomFilter(double fp, size_t capacity);
-
-  /**
    * Constructs a basic Bloom filter with a given number of cells and capacity.
    */
-  BasicBloomFilter(size_t cells, size_t capacity);
+  BasicBloomFilter(const HashPolicy* hash_policy, size_t cells);
 
 protected:
   DECLARE_SERIAL(BasicBloomFilter);
 
   BasicBloomFilter();
 
-  virtual void AddImpl(const HashPolicy::HashVector& h);
-  virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
+  virtual void AddImpl(const HashPolicy::hash_vector& h);
+  virtual size_t CountImpl(const HashPolicy::hash_vector& h) const;
 
 private:
   BitVector* bits_;
@@ -254,16 +120,16 @@ public:
   static CountingBloomFilter* Merge(const CountingBloomFilter* x,
                                     const CountingBloomFilter* y);
 
-  CountingBloomFilter(double fp, size_t capacity, size_t width);
-  CountingBloomFilter(size_t cells, size_t capacity, size_t width);
+  CountingBloomFilter(const HashPolicy* hash_policy, size_t cells,
+                      size_t width);
 
 protected:
   DECLARE_SERIAL(CountingBloomFilter);
 
   CountingBloomFilter();
 
-  virtual void AddImpl(const HashPolicy::HashVector& h);
-  virtual size_t CountImpl(const HashPolicy::HashVector& h) const;
+  virtual void AddImpl(const HashPolicy::hash_vector& h);
+  virtual size_t CountImpl(const HashPolicy::hash_vector& h) const;
 
 private:
   CounterVector* cells_;

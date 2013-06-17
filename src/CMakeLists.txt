@@ -255,6 +255,7 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
+    CounterVector.cc
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc
@@ -278,6 +279,7 @@ set(bro_SRCS
     Frame.cc
     Func.cc
     Hash.cc
+    HashPolicy.cc
     ID.cc
     IntSet.cc
     IOSource.cc

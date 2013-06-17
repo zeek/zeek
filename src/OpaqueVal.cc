@@ -605,6 +605,7 @@ IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
 bool BloomFilterVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
+	assert( type_ );
 	if ( ! type_->Serialize(info) )
 	  return false;
 	return bloom_filter_->Serialize(info);

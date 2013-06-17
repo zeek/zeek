@@ -1,117 +1,16 @@
 #include "BloomFilter.h"
 
 #include <cmath>
+#include "CounterVector.h"
 #include "Serializer.h"
-
-CounterVector::CounterVector(size_t width, size_t cells)
-  : bits_(new BitVector(width * cells)), width_(width)
-  {
-  }
-
-CounterVector::~CounterVector()
-  {
-  delete bits_;
-  }
-
-bool CounterVector::Increment(size_type cell, count_type value)
-  {
-  // TODO
-  assert(! "not yet implemented");
-  return false;
-  }
-
-bool CounterVector::Decrement(size_type cell, count_type value)
-  {
-  // TODO
-  assert(! "not yet implemented");
-  return false;
-  }
-
-CounterVector::count_type CounterVector::Count(size_type cell) const
-  {
-  // TODO
-  assert(! "not yet implemented");
-  return 0;
-  }
-
-CounterVector::size_type CounterVector::Size() const
-  {
-  return bits_->Blocks() / width_;
-  }
-
-bool CounterVector::Serialize(SerialInfo* info) const
-  {
-  return SerialObj::Serialize(info);
-  }
-
-CounterVector* CounterVector::Unserialize(UnserialInfo* info)
-  {
-  return reinterpret_cast<CounterVector*>(
-      SerialObj::Unserialize(info, SER_COUNTERVECTOR));
-  }
-
-IMPLEMENT_SERIAL(CounterVector, SER_COUNTERVECTOR)
-
-bool CounterVector::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COUNTERVECTOR, SerialObj);
-  if ( ! bits_->Serialize(info) )
-    return false;
-	return SERIALIZE(static_cast<uint64>(width_));
-  }
-
-bool CounterVector::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-	bits_ = BitVector::Unserialize(info);
-  if ( ! bits_ )
-    return false;
-  uint64 width;
-  if ( ! UNSERIALIZE(&width) )
-    return false;
-	width_ = static_cast<size_t>(width);
-	return true;
-  }
-
-
-HashPolicy::Hasher::Hasher(size_t seed)
-  : h3_(seed)
-{
-}
-
-HashPolicy::HashType
-HashPolicy::Hasher::operator()(const void* x, size_t n) const
-  {
-  return n == 0 ? 0 : h3_(x, n);
-  }
-
-HashPolicy::HashVector DefaultHashing::Hash(const void* x, size_t n) const
-  {
-  HashVector h(K(), 0);
-  for ( size_t i = 0; i < h.size(); ++i )
-    h[i] = hashers_[i](x, n);
-  return h;
-  }
-
-
-HashPolicy::HashVector DoubleHashing::Hash(const void* x, size_t n) const
-  {
-  HashType h1 = hasher1_(x, n);
-  HashType h2 = hasher2_(x, n);
-  HashVector h(K(), 0);
-  for ( size_t i = 0; i < h.size(); ++i )
-    h[i] = h1 + i * h2;
-  return h;
-  }
-
 
 BloomFilter::BloomFilter()
   : hash_(NULL)
   {
   }
 
-BloomFilter::BloomFilter(size_t k)
-  : hash_(new hash_policy(k))
+BloomFilter::BloomFilter(const HashPolicy* hash_policy)
+  : hash_(hash_policy)
   {
   }
 
@@ -135,7 +34,11 @@ BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
 bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-  return SERIALIZE(static_cast<uint16>(hash_->K()));
+	// FIXME: Since we have a fixed hashing policy, we just serialize the
+	// information needed to reconstruct it.
+  if ( ! SERIALIZE(static_cast<uint16>(hash_->K())) )
+    return false;
+  return SERIALIZE_STR(hash_->Name().c_str(), hash_->Name().size());
   }
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
@@ -144,9 +47,14 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	uint16 k;
 	if ( ! UNSERIALIZE(&k) )
 	  return false;
-	hash_ = new hash_policy(static_cast<size_t>(k));
+  const char* name;
+  if ( ! UNSERIALIZE_STR(&name, 0) )
+    return false;
+	// FIXME: for now Bloom filters always use double hashing.
+	hash_ = new DefaultHashing(k, name);
 	return true;
   }
+
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)
   {
@@ -163,11 +71,9 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
                                           const BasicBloomFilter* y)
   {
+  // TODO: Ensure that x and y use the same HashPolicy before proceeding.
   BasicBloomFilter* result = new BasicBloomFilter();
   result->bits_ = new BitVector(*x->bits_ | *y->bits_);
-  // TODO: implement the hasher pool and make sure the new result gets the same
-  // number of (equal) hash functions.
-  //assert(x->hash_ == y->hash_);
   return result;
   }
 
@@ -176,16 +82,10 @@ BasicBloomFilter::BasicBloomFilter()
   {
   }
 
-BasicBloomFilter::BasicBloomFilter(double fp, size_t capacity)
-  : BloomFilter(K(M(fp, capacity), capacity))
+BasicBloomFilter::BasicBloomFilter(const HashPolicy* hash_policy, size_t cells)
+  : BloomFilter(hash_policy),
+    bits_(new BitVector(cells))
   {
-  bits_ = new BitVector(M(fp, capacity));
-  }
-
-BasicBloomFilter::BasicBloomFilter(size_t cells, size_t capacity)
-  : BloomFilter(K(cells, capacity))
-  {
-  bits_ = new BitVector(cells);
   }
 
 IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
@@ -203,13 +103,13 @@ bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	return bits_ != NULL;
   }
 
-void BasicBloomFilter::AddImpl(const HashPolicy::HashVector& h)
+void BasicBloomFilter::AddImpl(const HashPolicy::hash_vector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
     bits_->Set(h[i] % bits_->Size());
   }
 
-size_t BasicBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
+size_t BasicBloomFilter::CountImpl(const HashPolicy::hash_vector& h) const
   {
   for ( size_t i = 0; i < h.size(); ++i )
     if ( ! (*bits_)[h[i] % bits_->Size()] )
@@ -230,17 +130,9 @@ CountingBloomFilter::CountingBloomFilter()
   {
   }
 
-CountingBloomFilter::CountingBloomFilter(double fp, size_t capacity,
-                                         size_t width)
-  : BloomFilter(BasicBloomFilter::K(BasicBloomFilter::M(fp, capacity),
-                                    capacity))
-  {
-  cells_ = new CounterVector(width, BasicBloomFilter::M(fp, capacity));
-  }
-
-CountingBloomFilter::CountingBloomFilter(size_t cells, size_t capacity,
-                                         size_t width)
-  : BloomFilter(BasicBloomFilter::K(cells, capacity))
+CountingBloomFilter::CountingBloomFilter(const HashPolicy* hash_policy,
+                                         size_t cells, size_t width)
+  : BloomFilter(hash_policy)
   {
   cells_ = new CounterVector(width, cells);
   }
@@ -261,18 +153,19 @@ bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	return cells_ != NULL;
   }
 
-void CountingBloomFilter::AddImpl(const HashPolicy::HashVector& h)
+void CountingBloomFilter::AddImpl(const HashPolicy::hash_vector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
     cells_->Increment(h[i] % cells_->Size(), 1);
   }
 
-size_t CountingBloomFilter::CountImpl(const HashPolicy::HashVector& h) const
+size_t CountingBloomFilter::CountImpl(const HashPolicy::hash_vector& h) const
   {
   CounterVector::size_type min =
     std::numeric_limits<CounterVector::size_type>::max();
   for ( size_t i = 0; i < h.size(); ++i )
     {
+    // TODO: Use partitioning.
     CounterVector::size_type cnt = cells_->Count(h[i] % cells_->Size());
     if ( cnt  < min )
       min = cnt;

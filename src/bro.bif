@@ -5009,7 +5009,6 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
   size_t cells = BasicBloomFilter::M(fp, capacity);
   size_t optimal_k = BasicBloomFilter::K(cells, capacity);
   const HashPolicy* hp = new DefaultHashing(optimal_k, name->CheckString());
-  fprintf(stderr, "constructing Bloom filter with %llu hash fns and %llu cells\n", optimal_k, cells);
   return new BloomFilterVal(new BasicBloomFilter(hp, cells));
   %}
 

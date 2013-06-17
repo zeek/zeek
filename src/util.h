@@ -173,9 +173,12 @@ unsigned int initial_seed();
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
 
+// A simple linear congruence PRNG. It takes its state as argument and returns
+// a new random value, which can serve as state for subsequent calls.
+long int bro_prng(long int state);
+
 // Replacement for the system random(), to which is normally falls back
-// except when a seed has been given. In that case, we use our own
-// predictable PRNG.
+// except when a seed has been given. In that case, the function bro_prng.
 long int bro_random();
 
 // Calls the system srandom() function with the given seed if not running

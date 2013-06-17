@@ -829,22 +829,29 @@ bool have_random_seed()
 	return bro_rand_determistic;
 	}
 
+long int bro_prng(long int state)
+  {
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	static const long int m = 2147483647;
+	static const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	state = a * ( state % q ) - r * ( state / q );
+
+	if ( state <= 0 )
+		state += m;
+
+	return state;
+  }
+
 long int bro_random()
 	{
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.
-	const long int m = 2147483647;
-	const long int a = 16807;
-	const long int q = m / a;
-	const long int r = m % a;
-
-	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
-
-	if ( bro_rand_state <= 0 )
-		bro_rand_state += m;
+  bro_rand_state = bro_prng(bro_rand_state);
 
 	return bro_rand_state;
 	}

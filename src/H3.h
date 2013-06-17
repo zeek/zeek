@@ -72,6 +72,7 @@ public:
 		for ( size_t bit = 0; bit < N * CHAR_BIT; bit++ )
 			{
 			bit_lookup[bit] = 0;
+			seed = bro_prng(seed);
 			for ( size_t i = 0; i < sizeof(T)/2; i++ )
 				// assume random() returns at least 16 random bits
 				bit_lookup[bit] = (bit_lookup[bit] << 16) | (seed & 0xFFFF);

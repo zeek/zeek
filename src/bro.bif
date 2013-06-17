@@ -5008,7 +5008,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 
   size_t cells = BasicBloomFilter::M(fp, capacity);
   size_t optimal_k = BasicBloomFilter::K(cells, capacity);
-  const HashPolicy* hp = new DefaultHashing(optimal_k, name->CheckString());
+  const HashPolicy* hp = HashPolicy::Create(optimal_k, name->CheckString());
   return new BloomFilterVal(new BasicBloomFilter(hp, cells));
   %}
 
@@ -5029,7 +5029,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 function bloomfilter_counting_init%(k: count, cells: count, max: count,
                                     name: string &default=""%): opaque of bloomfilter
   %{
-  const HashPolicy* hp = new DefaultHashing(k, name->CheckString());
+  const HashPolicy* hp = HashPolicy::Create(k, name->CheckString());
   uint16 width = 0;
   while ( max >>= 1 )
     ++width;

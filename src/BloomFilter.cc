@@ -34,8 +34,6 @@ BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
 bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-	// FIXME: Since we have a fixed hashing policy, we just serialize the
-	// information needed to reconstruct it.
   if ( ! SERIALIZE(static_cast<uint16>(hash_->K())) )
     return false;
   return SERIALIZE_STR(hash_->Name().c_str(), hash_->Name().size());
@@ -50,8 +48,7 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
   const char* name;
   if ( ! UNSERIALIZE_STR(&name, 0) )
     return false;
-	// FIXME: for now Bloom filters always use double hashing.
-	hash_ = new DefaultHashing(k, name);
+	hash_ = HashPolicy::Create(k, name);
 	return true;
   }
 

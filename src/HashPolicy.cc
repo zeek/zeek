@@ -32,6 +32,11 @@ size_t Hasher::compute_seed(size_t seed, const std::string& extra)
   }
 
 
+HashPolicy* HashPolicy::Create(size_t k, const std::string& name)
+  {
+  return new DefaultHashing(k, name);
+  }
+
 HashPolicy::HashPolicy(size_t k, const std::string& name)
   : k_(k), name_(name)
 	{

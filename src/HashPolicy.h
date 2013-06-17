@@ -42,6 +42,13 @@ private:
  */
 class HashPolicy {
 public:
+  /**
+   * Constructs the hashing policy used by the implementation. This factory
+   * function exists because the HashingPolicy class hierachy is not yet
+   * serializable.
+   */
+	static HashPolicy* Create(size_t k, const std::string& name);
+
   typedef Hasher::hash_type hash_type;
   typedef std::vector<hash_type> hash_vector;
 

@@ -605,9 +605,13 @@ IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
 bool BloomFilterVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
-	assert( type_ );
-	if ( ! type_->Serialize(info) )
+
+	bool is_typed = type_ != NULL;
+	if ( ! SERIALIZE(is_typed) )
 	  return false;
+	if ( is_typed && ! type_->Serialize(info) )
+	  return false;
+
 	return bloom_filter_->Serialize(info);
   }
 
@@ -615,13 +619,16 @@ bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(OpaqueVal);
 
-	type_ = BroType::Unserialize(info);
-	if ( ! type_ )
+	bool is_typed;
+	if ( ! UNSERIALIZE(&is_typed) )
 	  return false;
-  TypeList* tl = new TypeList(type_);
-  tl->Append(type_);
-  hash_ = new CompositeHash(tl);
-  Unref(tl);
+	if ( is_typed )
+    {
+      BroType* type = BroType::Unserialize(info);
+      if ( ! Typify(type) )
+        return false;
+      Unref(type);
+    }
 
 	bloom_filter_ = BloomFilter::Unserialize(info);
 	return bloom_filter_ != NULL;

@@ -473,7 +473,7 @@ bool BitVector::DoSerialize(SerialInfo* info) const
   if ( ! SERIALIZE(static_cast<uint64>(bits_.size())) )
     return false;
 
-  for (size_t i = 0; i < bits_.size(); ++i)
+  for ( size_t i = 0; i < bits_.size(); ++i )
     if ( ! SERIALIZE(static_cast<uint64>(bits_[i])) )
       return false;
 

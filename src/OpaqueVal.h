@@ -139,9 +139,7 @@ private:
     {
     const T* a = dynamic_cast<const T*>(x->bloom_filter_);
     const T* b = dynamic_cast<const T*>(y->bloom_filter_);
-    if ( a && b )
-      return new BloomFilterVal(T::Merge(a, b));
-    return NULL;
+    return a && b ? new BloomFilterVal(T::Merge(a, b)) : NULL;
     }
 
   BroType* type_;

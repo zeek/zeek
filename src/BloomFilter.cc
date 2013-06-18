@@ -49,6 +49,7 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
   if ( ! UNSERIALIZE_STR(&name, 0) )
     return false;
 	hash_ = HashPolicy::Create(k, name);
+	delete [] name;
 	return true;
   }
 

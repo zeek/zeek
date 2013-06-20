@@ -3036,6 +3036,34 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	 return Resize(new_num_elements);
 	 }
 
+int VectorVal::AddTo(Val* v, int is_first_init) const
+	{
+	if ( v->Type()->Tag() != TYPE_VECTOR )
+		{
+		v->Error("not a vector");
+		return 0;
+		}
+
+	VectorVal* vv = v->AsVectorVal();
+
+	if ( ! same_type(type, vv->Type()) )
+		{
+		type->Error("vector type clash", vv->Type());
+		return 0;
+		}
+
+	for ( int i = 0; i < Size(); ++i )
+		{
+		Val* vi = Lookup(i);
+
+		if ( vi && ! vv->Assign(vv->Size(), vi->Ref()) )
+			type->AsVectorType()->YieldType()->Error("vector yield type clash",
+			                           vv->Type()->AsVectorType()->YieldType());
+		}
+
+	return 1;
+	}
+
 bool VectorVal::AddProperties(Properties arg_props)
 	{
 	if ( ! MutableVal::AddProperties(arg_props) )

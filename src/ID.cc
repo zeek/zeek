@@ -128,39 +128,57 @@ void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
 
 void ID::SetVal(Val* v, init_class c)
 	{
-	if ( c == INIT_NONE || c == INIT_FULL )
+	switch ( c ) {
+	case INIT_NONE:
+		// fallthrough
+
+	case INIT_FULL:
 		{
 		SetVal(v);
 		return;
 		}
 
-	if ( type->Tag() != TYPE_TABLE &&
-	     (type->Tag() != TYPE_PATTERN || c == INIT_REMOVE) )
+	case INIT_EXTRA:
 		{
-		if ( c == INIT_EXTRA )
-			Error("+= initializer only applies to tables, sets and patterns", v);
+		if ( type->Tag() != TYPE_TABLE && type->Tag() != TYPE_VECTOR &&
+		     type->Tag() != TYPE_PATTERN )
+			{
+			Error("+= initializer only applies to tables, sets, vectors,"
+			      " and patterns", v);
+			break;
+			}
+
+		if ( ! val )
+			{
+			SetVal(v);
+			return;
+			}
 		else
-			Error("-= initializer only applies to tables and sets", v);
+			v->AddTo(val, 0);
+
+		break;
 		}
 
-	else
+	case INIT_REMOVE:
 		{
-		if ( c == INIT_EXTRA )
+		if ( type->Tag() != TYPE_TABLE )
 			{
-			if ( ! val )
-				{
-				SetVal(v);
-				return;
-				}
-			else
-				v->AddTo(val, 0);
+			Error("-= initializer only applies to tables and sets", v);
+			break;
 			}
-		else
-			{
-			if ( val )
-				v->RemoveFrom(val);
-			}
+
+		if ( val )
+			v->RemoveFrom(val);
+
+		break;
 		}
+
+	default:
+		{
+		reporter->InternalError("Unimplemented init_class");
+		break;
+		}
+	}
 
 	Unref(v);
 	}

@@ -999,6 +999,8 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
+	int AddTo(Val* v, int is_first_init) const;
+
 protected:
 	friend class Val;
 	VectorVal()	{ }

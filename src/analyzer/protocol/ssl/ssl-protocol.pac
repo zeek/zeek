@@ -693,7 +693,7 @@ refine connection SSL_Conn += {
 					head2 : uint8) : int
 		%{
 		if ( head0 >= 20 && head0 <= 23 &&
-		     head1 == 0x03 && head2 <  0x03 )
+		     head1 == 0x03 && head2 <= 0x03 )
 			// This is most probably SSL version 3.
 			return (head1 << 8) | head2;
 

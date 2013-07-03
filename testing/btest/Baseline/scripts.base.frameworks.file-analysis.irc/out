@@ -1,11 +1,11 @@
 FILE_NEW
-A3OSdqG9zvk, 0, 0
+file #0, 0, 0
 FILE_BOF_BUFFER
 PK^C^D^T\0\0\0^H\0\xae
 MIME_TYPE
 application/zip
 FILE_STATE_REMOVE
-A3OSdqG9zvk, 42208, 0
+file #0, 42208, 0
 [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp]
 source: IRC_DATA
 MD5: 8c0803242f549c2780cb88b9a9215c65

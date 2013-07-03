@@ -23,7 +23,6 @@ class Analyzer;
  */
 class Component : public plugin::Component {
 public:
-	typedef bool (*available_callback)();
 	typedef Analyzer* (*factory_callback)(Connection* conn);
 
 	/**

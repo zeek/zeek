@@ -834,6 +834,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
+	file_mgr->InitPreScript();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -855,6 +856,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
+	file_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{

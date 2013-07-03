@@ -13,8 +13,6 @@ export {
 	const extraction_prefix = "ftp-item" &redef;
 }
 
-global extract_count: count = 0;
-
 redef record Info += {
 	## On disk file where it was extracted to.
 	extraction_file:       string &log &optional;
@@ -26,8 +24,7 @@ redef record Info += {
 
 function get_extraction_name(f: fa_file): string
 	{
-	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
-	++extract_count;
+	local r = fmt("%s-%s.dat", extraction_prefix, f$id);
 	return r;
 	}
 

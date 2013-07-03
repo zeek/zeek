@@ -66,8 +66,6 @@ export {
 	global log_mime: event(rec: EntityInfo);
 }
 
-global extract_count: count = 0;
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(SMTP::ENTITIES_LOG, [$columns=EntityInfo, $ev=log_mime]);
@@ -90,8 +88,7 @@ function set_session(c: connection, new_entity: bool)
 
 function get_extraction_name(f: fa_file): string
 	{
-	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
-	++extract_count;
+	local r = fmt("%s-%s.dat", extraction_prefix, f$id);
 	return r;
 	}
 
@@ -127,7 +124,6 @@ event file_new(f: fa_file) &priority=5
 				                           [$tag=FileAnalysis::ANALYZER_EXTRACT,
 				                            $extract_filename=fname]);
 				extracting = T;
-				++extract_count;
 				}
 
 			c$smtp$current_entity$extraction_file = fname;

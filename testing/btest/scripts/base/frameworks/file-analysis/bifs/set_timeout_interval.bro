@@ -20,7 +20,7 @@ redef default_file_timeout_interval = 2sec;
 event file_timeout(f: fa_file)
 	{
 	if ( timeout_cnt < 1 )
-		FileAnalysis::postpone_timeout(f);
+		FileAnalysis::set_timeout_interval(f, f$timeout_interval);
 	else
 		terminate();
 	++timeout_cnt;

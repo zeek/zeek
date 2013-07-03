@@ -1,4 +1,45 @@
 
+2.1-755 | 2013-07-03 16:22:43 -0700
+
+  * Add a general file analysis overview/how-to document. (Jon Siwek)
+
+  * Improve file analysis doxygen comments. (Jon Siwek)
+
+  * Improve tracking of HTTP file extraction. http.log now has files
+    taken from request and response bodies in different fields for
+    each, and can now track multiple files per body. That is, the
+    "extraction_file" field is now "extracted_request_files" and
+    "extracted_response_files". Addresses #988. (Jon Siwek)
+
+  * Fix HTTP multipart body file analysis. Each part now gets assigned
+    a different file handle/id. (Jon Siwek)
+
+  * Remove logging of analyzers field of FileAnalysis::Info. (Jon
+    Siwek)
+
+  * Remove extraction counter in default file extraction scripts. (Jon
+    Siwek)
+
+  * Remove FileAnalysis::postpone_timeout.
+    FileAnalysis::set_timeout_interval can now perform same function.
+    (Jon Siwek)
+
+  * Make default get_file_handle handlers &priority=5 so they're
+    easier to override. (Jon Siwek)
+
+  * Add input interface to forward data for file analysis. The new
+    Input::add_analysis function is used to automatically forward
+    input data on to the file analysis framework. (Jon Siwek)
+
+  * File analysis framework interface simplifications. (Jon Siwek)
+    
+    - Remove script-layer data input interface (will be managed directly
+      by input framework later).
+
+    - Only track files internally by file id hash.  Chance of collision
+      too small to justify also tracking unique file string. 
+
+
 2.1-741 | 2013-06-07 17:28:50 -0700
 
   * Fixing typo that could cause an assertion to falsely trigger.

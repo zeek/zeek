@@ -1,4 +1,19 @@
 
+2.1-780 | 2013-07-03 16:46:26 -0700
+
+  * Rewrite of the RAW input reader for improved robustness and new
+    features. (Bernhard Amann) This includes:
+
+        - Send "end_of_data" event for all kind of streams.
+        - Send "process_finished" event with exit code of child
+          process at process termination.
+        - Expose name of input stream to readers.
+        - Better error handling.
+        - New "force_kill" option which SIGKILLs processes on reader termination.
+        - Supports reading from stdout and stderr simultaneously.
+        - Support sending data to stdin of child process.
+        - Streaming reads from external commands work without blocking.
+
 2.1-762 | 2013-07-03 16:33:22 -0700
 
   * Fix to correct support for TLS 1.2. Addresses #1020. (Seth Hall,

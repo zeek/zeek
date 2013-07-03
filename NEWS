@@ -73,10 +73,12 @@ New Functionality
   script file name without path, respectively. (Jon Siwek)
 
 - The new file analysis framework moves most of the processing of file
-  content from script-land into the core, where it belongs. Much of
-  this is an internal change, the framework comes with the following
-  user-visibible functionality (some of that was already available
-  before, but done differently):
+  content from script-land into the core, where it belongs. See
+  doc/file-analysis.rst for more information.
+
+  Much of this is an internal change, but the framework also comes
+  with the following user-visibible functionality (some of that was
+  already available before, but done differently):
 
   [TODO: This will probably change with further script updates.]
 

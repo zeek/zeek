@@ -1,4 +1,14 @@
 
+2.1-757 | 2013-07-03 16:28:10 -0700
+
+  * Fix redef of table index from clearing table.
+
+    `redef foo["x"] = 1` now acts like `redef foo += { ["x"] = 1 }`
+    instead of `redef foo = { ["x"] = 1 }`.
+
+    Addresses #1013. (Jon Siwek)
+
+
 2.1-755 | 2013-07-03 16:22:43 -0700
 
   * Add a general file analysis overview/how-to document. (Jon Siwek)

@@ -1,4 +1,9 @@
 
+2.1-762 | 2013-07-03 16:33:22 -0700
+
+  * Fix to correct support for TLS 1.2. Addresses #1020. (Seth Hall,
+    with help from Rafal Lesniak).
+
 2.1-760 | 2013-07-03 16:31:36 -0700
 
   * Teach broxygen to generate protocol analyzer plugin reference.

@@ -52,7 +52,7 @@ public:
 	 *
 	 * @param d The description object to use.
 	 */
-	virtual void Describe(ODesc* d);
+	virtual void Describe(ODesc* d) const;
 
 private:
 	component::Type type;

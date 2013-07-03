@@ -4,6 +4,8 @@
 #include "ID.h"
 #include "BroDocObj.h"
 
+map<string, BroDocObj*> doc_ids = map<string, BroDocObj*>();
+
 BroDocObj* BroDocObj::last = 0;
 
 BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST,
@@ -16,6 +18,7 @@ BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST,
 	is_fake_id = is_fake;
 	use_role = 0;
 	FormulateShortDesc();
+	doc_ids[id->Name()] = this;
 	}
 
 BroDocObj::~BroDocObj()

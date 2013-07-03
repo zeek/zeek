@@ -21,7 +21,7 @@ component::Type Component::Type() const
 	return type;
 	}
 
-void Component::Describe(ODesc* d)
+void Component::Describe(ODesc* d) const
 	{
 	d->Add("    ");
 	d->Add("[");

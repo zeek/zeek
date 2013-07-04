@@ -116,13 +116,6 @@ const ports = {
 
 redef likely_server_ports += { ports };
 
-# A queue that buffers log records.
-global log_delay_queue: table[count] of Info;
-# The top queue index where records are added.
-global log_delay_queue_head = 0;
-# The bottom queue index that points to the next record to be flushed.
-global log_delay_queue_tail = 0;
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
@@ -138,24 +131,15 @@ function set_session(c: connection)
 
 function delay_log(info: Info, token: string)
 	{
-	info$delay_tokens = set();
+	if ( ! info?$delay_tokens )
+		info$delay_tokens = set();
 	add info$delay_tokens[token];
-
-	log_delay_queue[log_delay_queue_head] = info;
-	++log_delay_queue_head;
 	}
 
 function undelay_log(info: Info, token: string)
 	{
-	if ( token in info$delay_tokens )
+	if ( info?$delay_tokens && token in info$delay_tokens )
 		delete info$delay_tokens[token];
-	}
-
-global log_record: function(info: Info);
-
-event delay_logging(info: Info)
-	{
-	log_record(info);
 	}
 
 function log_record(info: Info)
@@ -166,26 +150,14 @@ function log_record(info: Info)
 		}
 	else
 		{
-		for ( unused_index in log_delay_queue )
+		when ( |info$delay_tokens| == 0 )
 			{
-			if ( log_delay_queue_head == log_delay_queue_tail )
-				return;
-			if ( |log_delay_queue[log_delay_queue_tail]$delay_tokens| > 0 )
-				{
-				if ( info$ts + max_log_delay > network_time() )
-					{
-					schedule 1sec { delay_logging(info) };
-					return;
-					}
-				else
-					{
-					Reporter::info(fmt("SSL delay tokens not released in time (%s)",
-					                   info$delay_tokens));
-					}
-				}
-			Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
-			delete log_delay_queue[log_delay_queue_tail];
-			++log_delay_queue_tail;
+			log_record(info);
+			}
+		timeout max_log_delay
+			{
+			Reporter::info(fmt("SSL delay tokens not released in time (%s tokens remaining)",
+			                   |info$delay_tokens|));
 			}
 		}
 	}
@@ -294,16 +266,4 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
 	{
 	if ( c?$ssl )
 		finish(c);
-	}
-
-event bro_done()
-	{
-	if ( |log_delay_queue| == 0 )
-		return;
-	for ( unused_index in log_delay_queue )
-		{
-		Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
-		delete log_delay_queue[log_delay_queue_tail];
-		++log_delay_queue_tail;
-		}
 	}

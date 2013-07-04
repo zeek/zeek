@@ -1,4 +1,9 @@
 
+2.1-782 | 2013-07-03 17:00:39 -0700
+
+  * Remove the SSL log queueing mechanism that was included with the
+    log delay mechanism. (Seth Hall)
+
 2.1-780 | 2013-07-03 16:46:26 -0700
 
   * Rewrite of the RAW input reader for improved robustness and new

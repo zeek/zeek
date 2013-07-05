@@ -17,6 +17,23 @@ export {
 	## anything else.
 	const default_writer = WRITER_ASCII &redef;
 
+	## Default separator between fields for logwriters.
+	## Can be overwritten by individual writers.
+	const separator = "\t" &redef;
+
+	## Separator between set elements.
+	## Can be overwritten by individual writers.
+	const set_separator = "," &redef;
+
+	## String to use for empty fields. This should be different from
+        ## *unset_field* to make the output non-ambigious. 
+	## Can be overwritten by individual writers.
+	const empty_field = "(empty)" &redef;
+
+	## String to use for an unset &optional field.
+	## Can be overwritten by individual writers.
+	const unset_field = "-" &redef;	
+
 	## Type defining the content of a logging stream.
 	type Stream: record {
 		## A record type defining the log's columns.
@@ -171,6 +188,15 @@ export {
 	##
 	## .. bro:see:: Log::add_default_filter Log::remove_default_filter
 	global create_stream: function(id: ID, stream: Stream) : bool;
+
+	## Removes a logging stream completely, stopping all the threads.
+	##
+	## id: The ID enum to be associated with the new logging stream.
+	##
+	## Returns: True if a new stream was successfully removed.
+	##
+	## .. bro:see:: Log::create_stream
+	global remove_stream: function(id: ID) : bool;
 
 	## Enables a previously disabled logging stream.  Disabled streams
 	## will not be written to until they are enabled again.  New streams
@@ -340,7 +366,7 @@ export {
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load base/logging.bif # Needs Filter and Stream defined.
+@load base/bif/logging.bif # Needs Filter and Stream defined.
 
 module Log;
 
@@ -423,6 +449,12 @@ function create_stream(id: ID, stream: Stream) : bool
 	active_streams[id] = stream;
 
 	return add_default_filter(id);
+	}
+
+function remove_stream(id: ID) : bool
+	{
+	delete active_streams[id];
+	return __remove_stream(id);
 	}
 
 function disable_stream(id: ID) : bool

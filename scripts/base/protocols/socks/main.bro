@@ -34,9 +34,13 @@ export {
 	global log_socks: event(rec: Info);
 }
 
+const ports = { 1080/tcp };
+redef likely_server_ports += { ports };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SOCKS, ports);
 	}
 
 redef record connection += {
@@ -45,7 +49,6 @@ redef record connection += {
 
 # Configure DPD
 redef capture_filters += { ["socks"] = "tcp port 1080" };
-redef dpd_config += { [ANALYZER_SOCKS] = [$ports = set(1080/tcp)] };
 redef likely_server_ports += { 1080/tcp };
 
 function set_session(c: connection, version: count)
@@ -67,7 +70,7 @@ event socks_request(c: connection, version: count, request_type: count,
 	# proxied connection.  We treat this as a singular "tunnel".
 	local cid = copy(c$id);
 	cid$orig_p = 0/tcp;
-	Tunnel::register([$cid=cid, $tunnel_type=Tunnel::SOCKS, $payload_proxy=T]);
+	Tunnel::register([$cid=cid, $tunnel_type=Tunnel::SOCKS]);
 	}
 
 event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port) &priority=5

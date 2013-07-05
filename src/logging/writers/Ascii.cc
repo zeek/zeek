@@ -19,37 +19,40 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	fd = 0;
 	ascii_done = false;
+	tsv = false;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 
-	separator_len = BifConst::LogAscii::separator->Len();
-	separator = new char[separator_len];
-	memcpy(separator, BifConst::LogAscii::separator->Bytes(),
-	       separator_len);
+	separator.assign(
+			(const char*) BifConst::LogAscii::separator->Bytes(),
+			BifConst::LogAscii::separator->Len()
+			);
 
-	set_separator_len = BifConst::LogAscii::set_separator->Len();
-	set_separator = new char[set_separator_len];
-	memcpy(set_separator, BifConst::LogAscii::set_separator->Bytes(),
-	       set_separator_len);
+	set_separator.assign(
+			(const char*) BifConst::LogAscii::set_separator->Bytes(),
+			BifConst::LogAscii::set_separator->Len()
+			);
 
-	empty_field_len = BifConst::LogAscii::empty_field->Len();
-	empty_field = new char[empty_field_len];
-	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(),
-	       empty_field_len);
+	empty_field.assign(
+			(const char*) BifConst::LogAscii::empty_field->Bytes(),
+			BifConst::LogAscii::empty_field->Len()
+			);
 
-	unset_field_len = BifConst::LogAscii::unset_field->Len();
-	unset_field = new char[unset_field_len];
-	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(),
-	       unset_field_len);
+	unset_field.assign(
+			(const char*) BifConst::LogAscii::unset_field->Bytes(),
+			BifConst::LogAscii::unset_field->Len()
+			);
 
-	meta_prefix_len = BifConst::LogAscii::meta_prefix->Len();
-	meta_prefix = new char[meta_prefix_len];
-	memcpy(meta_prefix, BifConst::LogAscii::meta_prefix->Bytes(),
-	       meta_prefix_len);
+	meta_prefix.assign(
+			(const char*) BifConst::LogAscii::meta_prefix->Bytes(),
+			BifConst::LogAscii::meta_prefix->Len()
+			);
 
 	desc.EnableEscaping();
-	desc.AddEscapeSequence(separator, separator_len);
+	desc.AddEscapeSequence(separator);
+
+	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
 	}
 
 Ascii::~Ascii()
@@ -60,17 +63,12 @@ Ascii::~Ascii()
 		abort();
 		}
 
-	delete [] separator;
-	delete [] set_separator;
-	delete [] empty_field;
-	delete [] unset_field;
-	delete [] meta_prefix;
+	delete ascii;
 	}
 
 bool Ascii::WriteHeaderField(const string& key, const string& val)
 	{
-	string str = string(meta_prefix, meta_prefix_len) +
-		key + string(separator, separator_len) + val + "\n";
+	string str = meta_prefix + key + separator + val + "\n";
 
 	return safe_write(fd, str.c_str(), str.length());
 	}
@@ -80,7 +78,7 @@ void Ascii::CloseFile(double t)
 	if ( ! fd )
 		return;
 
-	if ( include_meta )
+	if ( include_meta && ! tsv )
 		WriteHeaderField("close", Timestamp(0));
 
 	safe_close(fd);
@@ -108,40 +106,65 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		return false;
 		}
 
+	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
+		{
+		if ( strcmp(i->first, "tsv") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				tsv = true;
+
+			else if ( strcmp(i->second, "F") == 0 )
+				tsv = false;
+
+			else
+				{
+				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+		}
+
 	if ( include_meta )
 		{
 		string names;
 		string types;
 
-		string str = string(meta_prefix, meta_prefix_len)
-			+ "separator " // Always use space as separator here.
-			+ get_escaped_string(string(separator, separator_len), false)
-			+ "\n";
-
-		if ( ! safe_write(fd, str.c_str(), str.length()) )
-			goto write_error;
-
-		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
-		            string(set_separator, set_separator_len), false)) &&
-		        WriteHeaderField("empty_field", get_escaped_string(
-		            string(empty_field, empty_field_len), false)) &&
-		        WriteHeaderField("unset_field", get_escaped_string(
-		            string(unset_field, unset_field_len), false)) &&
-		        WriteHeaderField("path", get_escaped_string(path, false)) &&
-		        WriteHeaderField("open", Timestamp(0))) )
-			goto write_error;
-
 		for ( int i = 0; i < num_fields; ++i )
 			{
 			if ( i > 0 )
 				{
-				names += string(separator, separator_len);
-				types += string(separator, separator_len);
+				names += separator;
+				types += separator;
 				}
 
 			names += string(fields[i]->name);
 			types += fields[i]->TypeName().c_str();
 			}
+
+		if ( tsv )
+			{
+			// A single TSV-style line is all we need.
+			string str = names + "\n";
+			if ( ! safe_write(fd, str.c_str(), str.length()) )
+				goto write_error;
+
+			return true;
+			}
+
+		string str = meta_prefix
+			+ "separator " // Always use space as separator here.
+			+ get_escaped_string(separator, false)
+			+ "\n";
+
+		if ( ! safe_write(fd, str.c_str(), str.length()) )
+			goto write_error;
+
+		if ( ! (WriteHeaderField("set_separator", get_escaped_string(set_separator, false)) &&
+			WriteHeaderField("empty_field", get_escaped_string(empty_field, false)) &&
+			WriteHeaderField("unset_field", get_escaped_string(unset_field, false)) &&
+			WriteHeaderField("path", get_escaped_string(path, false)) &&
+			WriteHeaderField("open", Timestamp(0))) )
+			goto write_error;
 
 		if ( ! (WriteHeaderField("fields", names)
 			&& WriteHeaderField("types", types)) )
@@ -169,154 +192,11 @@ bool Ascii::DoFinish(double network_time)
 		abort();
 		}
 
+	DoFlush(network_time);
+
 	ascii_done = true;
 
 	CloseFile(network_time);
-
-	return true;
-	}
-
-
-bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
-	{
-	if ( ! val->present )
-		{
-		desc->AddN(unset_field, unset_field_len);
-		return true;
-		}
-
-	switch ( val->type ) {
-
-	case TYPE_BOOL:
-		desc->Add(val->val.int_val ? "T" : "F");
-		break;
-
-	case TYPE_INT:
-		desc->Add(val->val.int_val);
-		break;
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		desc->Add(val->val.uint_val);
-		break;
-
-	case TYPE_PORT:
-		desc->Add(val->val.port_val.port);
-		break;
-
-	case TYPE_SUBNET:
-		desc->Add(Render(val->val.subnet_val));
-		break;
-
-	case TYPE_ADDR:
-		desc->Add(Render(val->val.addr_val));
-		break;
-
-	case TYPE_DOUBLE:
-		// Rendering via Add() truncates trailing 0s after the
-		// decimal point. The difference with TIME/INTERVAL is mainly
-		// to keep the log format consistent.
-		desc->Add(val->val.double_val);
-		break;
-
-	case TYPE_INTERVAL:
-	case TYPE_TIME:
-		// Rendering via Render() keeps trailing 0s after the decimal
-		// point. The difference with DOUBLEis mainly to keep the log
-		// format consistent.
-		desc->Add(Render(val->val.double_val));
-		break;
-
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
-		{
-		int size = val->val.string_val.length;
-		const char* data = val->val.string_val.data;
-
-		if ( ! size )
-			{
-			desc->AddN(empty_field, empty_field_len);
-			break;
-			}
-
-		if ( size == unset_field_len && memcmp(data, unset_field, size) == 0 )
-			{
-			// The value we'd write out would match exactly the
-			// place-holder we use for unset optional fields. We
-			// escape the first character so that the output
-			// won't be ambigious.
-			static const char hex_chars[] = "0123456789abcdef";
-			char hex[6] = "\\x00";
-			hex[2] = hex_chars[((*data) & 0xf0) >> 4];
-			hex[3] = hex_chars[(*data) & 0x0f];
-			desc->AddRaw(hex, 4);
-
-			++data;
-			--size;
-			}
-
-		if ( size )
-			desc->AddN(data, size);
-
-		break;
-		}
-
-	case TYPE_TABLE:
-		{
-		if ( ! val->val.set_val.size )
-			{
-			desc->AddN(empty_field, empty_field_len);
-			break;
-			}
-
-		desc->AddEscapeSequence(set_separator, set_separator_len);
-		for ( int j = 0; j < val->val.set_val.size; j++ )
-			{
-			if ( j > 0 )
-				desc->AddRaw(set_separator, set_separator_len);
-
-			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
-				{
-				desc->RemoveEscapeSequence(set_separator, set_separator_len);
-				return false;
-				}
-			}
-		desc->RemoveEscapeSequence(set_separator, set_separator_len);
-
-		break;
-		}
-
-	case TYPE_VECTOR:
-		{
-		if ( ! val->val.vector_val.size )
-			{
-			desc->AddN(empty_field, empty_field_len);
-			break;
-			}
-
-		desc->AddEscapeSequence(set_separator, set_separator_len);
-		for ( int j = 0; j < val->val.vector_val.size; j++ )
-			{
-			if ( j > 0 )
-				desc->AddRaw(set_separator, set_separator_len);
-
-			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
-				{
-				desc->RemoveEscapeSequence(set_separator, set_separator_len);
-				return false;
-				}
-			}
-		desc->RemoveEscapeSequence(set_separator, set_separator_len);
-
-		break;
-		}
-
-	default:
-		Error(Fmt("unsupported field format %d for %s", val->type, field->name));
-		return false;
-	}
 
 	return true;
 	}
@@ -332,9 +212,9 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		if ( i > 0 )
-			desc.AddRaw(separator, separator_len);
+			desc.AddRaw(separator);
 
-		if ( ! DoWriteOne(&desc, vals[i], fields[i]) )
+		if ( ! ascii->Describe(&desc, vals[i], fields[i]->name) )
 			return false;
 		}
 
@@ -343,7 +223,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	const char* bytes = (const char*)desc.Bytes();
 	int len = desc.Len();
 
-	if ( strncmp(bytes, meta_prefix, meta_prefix_len) == 0 )
+	if ( strncmp(bytes, meta_prefix.data(), meta_prefix.size()) == 0 )
 		{
 		// It would so escape the first character.
 		char buf[16];

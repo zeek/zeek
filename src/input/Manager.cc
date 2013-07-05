@@ -8,15 +8,16 @@
 #include "readers/Ascii.h"
 #include "readers/Raw.h"
 #include "readers/Benchmark.h"
+#include "readers/Binary.h"
+#include "readers/SQLite.h"
 
 #include "Event.h"
 #include "EventHandler.h"
 #include "NetVar.h"
 #include "Net.h"
-
-
 #include "CompHash.h"
 
+#include "../file_analysis/Manager.h"
 #include "../threading/SerialTypes.h"
 
 using namespace input;
@@ -34,6 +35,8 @@ ReaderDefinition input_readers[] = {
 	{ BifEnum::Input::READER_ASCII, "Ascii", 0, reader::Ascii::Instantiate },
 	{ BifEnum::Input::READER_RAW, "Raw", 0, reader::Raw::Instantiate },
 	{ BifEnum::Input::READER_BENCHMARK, "Benchmark", 0, reader::Benchmark::Instantiate },
+	{ BifEnum::Input::READER_BINARY, "Binary", 0, reader::Binary::Instantiate },
+	{ BifEnum::Input::READER_SQLITE, "SQLite", 0, reader::SQLite::Instantiate },
 
 	// End marker
 	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }
@@ -144,6 +147,14 @@ public:
         ~EventStream();
 };
 
+class Manager::AnalysisStream: public Manager::Stream {
+public:
+	string file_id;
+
+	AnalysisStream();
+	~AnalysisStream();
+};
+
 Manager::TableStream::TableStream() : Manager::Stream::Stream()
 	{
 	stream_type = TABLE_STREAM;
@@ -192,6 +203,15 @@ Manager::TableStream::~TableStream()
 		lastDict->Clear();;
 	        delete lastDict;
 		}
+	}
+
+Manager::AnalysisStream::AnalysisStream() : Manager::Stream::Stream()
+	{
+	stream_type = ANALYSIS_STREAM;
+	}
+
+Manager::AnalysisStream::~AnalysisStream()
+	{
 	}
 
 Manager::Manager()
@@ -270,7 +290,8 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	RecordType* rtype = description->Type()->AsRecordType();
 	if ( ! ( same_type(rtype, BifType::Record::Input::TableDescription, 0)
-		|| same_type(rtype, BifType::Record::Input::EventDescription, 0) ) )
+		|| same_type(rtype, BifType::Record::Input::EventDescription, 0)
+		|| same_type(rtype, BifType::Record::Input::AnalysisDescription, 0) ) )
 		{
 		reporter->Error("Streamdescription argument not of right type for new input stream");
 		return false;
@@ -299,6 +320,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	ReaderBackend::ReaderInfo* rinfo = new ReaderBackend::ReaderInfo();
 	rinfo->source = copy_string(source.c_str());
+	rinfo->name = copy_string(name.c_str());
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
 	switch ( mode->InternalInt() )
@@ -393,7 +415,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	bool allow_file_func = false;
 
-	if ( ! etype->IsEvent() )
+	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 		{
 		reporter->Error("stream event is a function, not an event");
 		return false;
@@ -483,7 +505,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(fields); // ref'd by lookupwithdefault
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
-	stream->event = event_registry->Lookup(event->GetID()->Name());
+	stream->event = event_registry->Lookup(event->Name());
 	stream->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
@@ -566,7 +588,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		{
 		FuncType* etype = event->FType()->AsFuncType();
 
-		if ( ! etype->IsEvent() )
+		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
 			return false;
@@ -644,7 +666,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->tab = dst->AsTableVal();
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
-	stream->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->currDict = new PDict(InputHash);
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 	stream->lastDict = new PDict(InputHash);
@@ -676,6 +698,40 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	return true;
 	}
 
+bool Manager::CreateAnalysisStream(RecordVal* fval)
+	{
+	RecordType* rtype = fval->Type()->AsRecordType();
+
+	if ( ! same_type(rtype, BifType::Record::Input::AnalysisDescription, 0) )
+		{
+		reporter->Error("AnalysisDescription argument not of right type");
+		return false;
+		}
+
+	AnalysisStream* stream = new AnalysisStream();
+
+	if ( ! CreateStream(stream, fval) )
+		{
+		delete stream;
+		return false;
+		}
+
+	stream->file_id = file_mgr->HashHandle(stream->name);
+
+	assert(stream->reader);
+
+	// reader takes in a byte stream as the only field
+	Field** fields = new Field*[1];
+	fields[0] = new Field("bytestream", 0, TYPE_STRING, TYPE_VOID, false);
+	stream->reader->Init(1, fields);
+
+	readers[stream->reader] = stream;
+
+	DBG_LOG(DBG_INPUT, "Successfully created analysis stream %s",
+		stream->name.c_str());
+
+	return true;
+	}
 
 bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 	{
@@ -743,6 +799,8 @@ bool Manager::RemoveStream(Stream *i)
 	DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
 		i->name.c_str());
 
+	i->reader->Stop();
+
 	return true;
 	}
 
@@ -787,22 +845,23 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 
 		if ( ! IsCompatibleType(rec->FieldType(i)) )
 			{
-			// If the field is a file or a function type
+			// If the field is a file, function, or opaque
 			// and it is optional, we accept it nevertheless.
 			// This allows importing logfiles containing this
 			// stuff that we actually cannot read :)
 			if ( allow_file_func )
 				{
 				if ( ( rec->FieldType(i)->Tag() == TYPE_FILE ||
-				       rec->FieldType(i)->Tag() == TYPE_FUNC ) &&
+				       rec->FieldType(i)->Tag() == TYPE_FUNC ||
+				       rec->FieldType(i)->Tag() == TYPE_OPAQUE ) &&
 				       rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in table definition for ReaderFrontend. Ignoring field.", type_name(rec->FieldType(i)->Tag()));
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()));
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in table definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
+			reporter->Error("Incompatible type \"%s\" in type definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
 			return false;
 			}
 
@@ -957,6 +1016,15 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 		{
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 		readFields = SendEventStreamEvent(i, type, vals);
+		}
+
+	else if ( i->stream_type == ANALYSIS_STREAM )
+		{
+		readFields = 1;
+		assert(vals[0]->type == TYPE_STRING);
+		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                 vals[0]->val.string_val.length,
+		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else
@@ -1172,8 +1240,11 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	DBG_LOG(DBG_INPUT, "Got EndCurrentSend stream %s", i->name.c_str());
 #endif
 
-	if ( i->stream_type == EVENT_STREAM )
+	if ( i->stream_type != TABLE_STREAM )
 		{
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "%s is event, sending end of data", i->name.c_str());
+#endif
 		// just signal the end of the data source
 		SendEndOfData(i);
 		return;
@@ -1278,9 +1349,17 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 	SendEndOfData(i);
 	}
 
+
 void Manager::SendEndOfData(const Stream *i)
 	{
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s",
+		i->name.c_str());
+#endif
 	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
+
+	if ( i->stream_type == ANALYSIS_STREAM )
+		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
@@ -1292,6 +1371,11 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		return;
 		}
 
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "Put for stream %s",
+		i->name.c_str());
+#endif
+
 	int readFields = 0;
 
 	if ( i->stream_type == TABLE_STREAM )
@@ -1301,6 +1385,15 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		{
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 		readFields = SendEventStreamEvent(i, type, vals);
+		}
+
+	else if ( i->stream_type == ANALYSIS_STREAM )
+		{
+		readFields = 1;
+		assert(vals[0]->type == TYPE_STRING);
+		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
+		                 vals[0]->val.string_val.length,
+		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
 		}
 
 	else
@@ -1570,6 +1663,12 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		success = true;
 		}
 
+	else if ( i->stream_type == ANALYSIS_STREAM )
+		{
+		// can't do anything
+		success = true;
+		}
+
 	else
 		{
 		assert(false);
@@ -1615,6 +1714,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 		return false;
 		}
 
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent for event %s with num_vals vals",
+		name.c_str(), num_vals);
+#endif
+
 	RecordType *type = handler->FType()->Args();
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
@@ -1627,7 +1731,7 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 	for ( int i = 0; i < num_vals; i++)
 		vl->append(ValueToVal(vals[i], type->FieldType(i)));
 
-	mgr.Dispatch(new Event(handler, vl));
+	mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
 
 	for ( int i = 0; i < num_vals; i++ )
 		delete vals[i];
@@ -1640,6 +1744,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 	{
 	val_list* vl = new val_list;
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
+		numvals);
+#endif
 
 	va_list lP;
 	va_start(lP, numvals);
@@ -1654,6 +1763,11 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
 	{
 	val_list* vl = new val_list;
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent with %d vals (list)",
+		events.size());
+#endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
 		{
@@ -2106,25 +2220,31 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 		VectorType* vt = new VectorType(type->Ref());
 		VectorVal* v = new VectorVal(vt);
 		for (  int i = 0; i < val->val.vector_val.size; i++ )
-			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
+			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ));
 
 		Unref(vt);
 		return v;
 		}
 
 	case TYPE_ENUM: {
-		// well, this is kind of stupid, because EnumType just mangles the module name and the var name together again...
-		// but well
-		string module = extract_module_name(val->val.string_val.data);
-		string var = extract_var_name(val->val.string_val.data);
+		// Convert to string first to not have to deal with missing
+		// \0's...
+		string module_string(val->val.string_val.data, val->val.string_val.length);
+		string var_string(val->val.string_val.data, val->val.string_val.length);
+
+		string module = extract_module_name(module_string.c_str());
+		string var = extract_var_name(var_string.c_str());
+
+		// Well, this is kind of stupid, because EnumType just
+		// mangles the module name and the var name together again...
+		// but well.
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
-			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s",
-			                        module.c_str(), var.c_str());
+			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s, var size: %zu",
+			                        module.c_str(), var.c_str(), var.size());
 
-		return new EnumVal(index, request_type->Ref()->AsEnumType() );
+		return new EnumVal(index, request_type->Ref()->AsEnumType());
 		}
-
 
 	default:
 		reporter->InternalError("unsupported type for input_read");
@@ -2152,4 +2272,19 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader)
 		return s->second;
 
 	return 0;
+	}
+
+// Function is called on Bro shutdown.
+// Signal all frontends that they will cease operation.
+void Manager::Terminate()
+	{
+	for ( map<ReaderFrontend*, Stream*>::iterator i = readers.begin(); i != readers.end(); ++i )
+		{
+		if ( i->second->removed )
+			continue;
+
+		i->second->removed = true;
+		i->second->reader->Stop();
+		}
+
 	}

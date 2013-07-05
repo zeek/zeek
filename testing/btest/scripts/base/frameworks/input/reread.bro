@@ -1,6 +1,3 @@
-# (uses listen.bro just to ensure input sources are more reliably fully-read).
-# @TEST-SERIALIZE: comm
-#
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 2
@@ -59,8 +56,9 @@ F	-48	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz
 @TEST-END-FILE
 
 @load base/protocols/ssh
-@load frameworks/communication/listen
+@load base/frameworks/communication  # let network-time run
 
+redef exit_only_after_terminate = T;
 redef InputAscii::empty_field = "EMPTY";
 
 module A;

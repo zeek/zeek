@@ -4,13 +4,13 @@
 print sha256_hash("one");
 print sha256_hash("one", "two", "three");
 
-sha256_hash_init("a");
-sha256_hash_init("b");
+local a = sha256_hash_init();
+local b = sha256_hash_init();
 
-sha256_hash_update("a", "one");
-sha256_hash_update("b", "one");
-sha256_hash_update("b", "two");
-sha256_hash_update("b", "three");
+sha256_hash_update(a, "one");
+sha256_hash_update(b, "one");
+sha256_hash_update(b, "two");
+sha256_hash_update(b, "three");
 
-print sha256_hash_finish("a");
-print sha256_hash_finish("b");
+print sha256_hash_finish(a);
+print sha256_hash_finish(b);

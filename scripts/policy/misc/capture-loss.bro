@@ -8,7 +8,6 @@
 ##! for a sequence number that's above a gap).
 
 @load base/frameworks/notice
-@load base/frameworks/metrics
 
 module CaptureLoss;
 

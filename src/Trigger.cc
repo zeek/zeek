@@ -217,8 +217,15 @@ bool Trigger::Eval()
 			Name());
 
 	Unref(v);
+	v = 0;
 	stmt_flow_type flow;
-	v = body->Exec(f, flow);
+
+	try
+		{
+		v = body->Exec(f, flow);
+		}
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 
 	if ( is_return )
 		{
@@ -235,6 +242,7 @@ bool Trigger::Eval()
 
 		trigger->Cache(frame->GetCall(), v);
 		trigger->Release();
+		frame->ClearTrigger();
 		}
 
 	Unref(v);
@@ -300,7 +308,14 @@ void Trigger::Timeout()
 		{
 		stmt_flow_type flow;
 		Frame* f = frame->Clone();
-		Val* v = timeout_stmts->Exec(f, flow);
+		Val* v = 0;
+
+		try
+			{
+			v = timeout_stmts->Exec(f, flow);
+			}
+		catch ( InterpreterException& e )
+			{ /* Already reported. */ }
 
 		if ( is_return )
 			{
@@ -316,6 +331,7 @@ void Trigger::Timeout()
 #endif
 			trigger->Cache(frame->GetCall(), v);
 			trigger->Release();
+			frame->ClearTrigger();
 			}
 
 		Unref(v);
@@ -382,7 +398,7 @@ void Trigger::Attach(Trigger *trigger)
 
 void Trigger::Cache(const CallExpr* expr, Val* v)
 	{
-	if ( disabled )
+	if ( disabled || ! v )
 		return;
 
 	ValCache::iterator i = cache.find(expr);
@@ -408,6 +424,12 @@ Val* Trigger::Lookup(const CallExpr* expr)
 
 	ValCache::iterator i = cache.find(expr);
 	return (i != cache.end()) ? i->second : 0;
+	}
+
+void Trigger::Disable()
+	{
+	UnregisterAll();
+	disabled = true;
 	}
 
 const char* Trigger::Name() const

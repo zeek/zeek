@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: btest-diff out
 
 event bro_init()

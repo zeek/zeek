@@ -1,0 +1,2 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-ceorce-orphan/record-ceorce-orphan.bro, line 19: orphaned field "wtf" in record coercion ((coerce [$a=test, $b=42, $wtf=1.0 sec] to record { a:string; b:count; c:interval; }))
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-ceorce-orphan/record-ceorce-orphan.bro, line 21: orphaned field "wtf" in record coercion ((coerce [$a=test, $b=42, $wtf=1.0 sec] to record { a:string; b:count; c:interval; }))

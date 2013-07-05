@@ -1,9 +1,9 @@
 #
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event bro_init()
 	{
-	local a = 1;
-	print analyzer_name(a);
+	local a = Analyzer::ANALYZER_PIA_TCP;
+	print Analyzer::name(a);
 	}

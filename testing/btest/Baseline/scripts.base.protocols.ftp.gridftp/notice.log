@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	notice
-#open	2012-10-05-21-45-15
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.host	metric_index.str	metric_index.network
-#types	time	string	addr	port	addr	port	enum	enum	string	string	addr	addr	port	count	string	table[enum]	table[count]	interval	bool	string	string	string	double	double	addr	string	subnet
-1348168976.558309	arKYeMETxOg	192.168.57.103	35391	192.168.57.101	55968	tcp	GridFTP::Data_Channel	GridFTP data channel over threshold 2 bytes	-	192.168.57.103	192.168.57.101	55968	-	bro	Notice::ACTION_LOG	6	3600.000000	F	-	-	-	-	-	-	-	-
-#close	2012-10-05-21-45-15
+#open	2013-04-02-02-19-21
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	enum	enum	string	string	addr	addr	port	count	string	table[enum]	interval	bool	string	string	string	double	double
+1348168976.558309	arKYeMETxOg	192.168.57.103	35391	192.168.57.101	55968	tcp	GridFTP::Data_Channel	GridFTP data channel over threshold 2 bytes	-	192.168.57.103	192.168.57.101	55968	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+#close	2013-04-02-02-19-21

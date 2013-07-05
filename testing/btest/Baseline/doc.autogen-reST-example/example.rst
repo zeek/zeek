@@ -73,9 +73,9 @@ Events
 
 Functions
 #########
-=============================================== =======================================
-:bro:id:`Example::a_function`: :bro:type:`func` Summarize purpose of "a_function" here.
-=============================================== =======================================
+=================================================== =======================================
+:bro:id:`Example::a_function`: :bro:type:`function` Summarize purpose of "a_function" here.
+=================================================== =======================================
 
 Redefinitions
 #############
@@ -109,17 +109,6 @@ Notices
 
 Configuration Changes
 #####################
-Port Analysis
-^^^^^^^^^^^^^
-Loading this script makes the following changes to :bro:see:`dpd_config`.
-
-SSL::
-
-    [ports={
-        443/tcp,
-        562/tcp
-    }]
-
 Packet Filter
 ^^^^^^^^^^^^^
 Loading this script makes the following changes to :bro:see:`capture_filters`.

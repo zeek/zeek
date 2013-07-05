@@ -1,7 +1,6 @@
 ##! Core script support for logging syslog messages.  This script represents 
 ##! one syslog message as one logged record.
 
-@load base/frameworks/protocols
 @load ./consts
 
 module Syslog;
@@ -27,10 +26,10 @@ export {
 	};
 }
 
-global analyzers = { ANALYZER_SYSLOG_BINPAC };
-redef Protocols::analyzer_map += { ["SYSLOG"] = analyzers };
-global ports = { 514/udp };
-redef Protocols::common_ports += { ["SYSLOG"] = ports };
+redef capture_filters += { ["syslog"] = "port 514" };
+
+const ports = { 514/udp };
+redef likely_server_ports += { ports };
 
 redef record connection += {
 	syslog: Info &optional;
@@ -39,6 +38,7 @@ redef record connection += {
 event bro_init() &priority=5
 	{
 	Log::create_stream(Syslog::LOG, [$columns=Info]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, ports);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5

@@ -86,6 +86,11 @@ public:
 		const char* source;
 
 		/**
+		 * The name of the input stream.
+		 */
+		const char* name;
+
+		/**
 		 * A map of key/value pairs corresponding to the relevant
 		 * filter's "config" table.
 		 */
@@ -99,12 +104,14 @@ public:
 		ReaderInfo()
 			{
 			source = 0;
+			name = 0;
 			mode = MODE_NONE;
 			}
 
 		ReaderInfo(const ReaderInfo& other)
 			{
 			source = other.source ? copy_string(other.source) : 0;
+			name = other.name ? copy_string(other.name) : 0;
 			mode = other.mode;
 
 			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
@@ -315,21 +322,6 @@ protected:
 	 */
 	void EndCurrentSend();
 
-	/**
-	 *  Convert a string into a TransportProto. This is just a utility
-	 *  function for Readers.
-	 *
-	 * @param proto the transport protocol
-	 */
-	TransportProto StringToProto(const string &proto);
-
-	/**
-	 * Convert a string into a Value::addr_t.  This is just a utility
-	 * function for Readers.
-	 *
-	 * @param addr containing an ipv4 or ipv6 address
-	 */
-	threading::Value::addr_t StringToAddr(const string &addr);
 
 private:
 	// Frontend that instantiated us. This object must not be accessed

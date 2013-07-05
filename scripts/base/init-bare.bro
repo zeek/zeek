@@ -1,5 +1,5 @@
-@load base/const.bif
-@load base/types.bif
+@load base/bif/const.bif.bro
+@load base/bif/types.bif
 
 # Type declarations
 
@@ -222,17 +222,6 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
-## A unique analyzer instance ID. Each time instantiates a protocol analyzers
-## for a connection, it assigns it a unique ID that can be used to reference
-## that instance.
-##
-## .. bro:see:: analyzer_name disable_analyzer protocol_confirmation
-##    protocol_violation
-##
-## .. todo::While we declare an alias for the type here, the events/functions still
-##    use ``count``. That should be changed.
-type AnalyzerID: count;
-
 module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
@@ -240,7 +229,7 @@ export {
 		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
 		## tunnel the ports will be set to 0. The direction (i.e., orig and
 		## resp) are set according to the first tunneled packet seen
-		## and not according to the side that established the tunnel. 
+		## and not according to the side that established the tunnel.
 		cid: conn_id;
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type;
@@ -300,7 +289,7 @@ type connection: record {
 	## one protocol analyzer is able to parse the same data. If so, all will
 	## be recorded. Also note that the recorced services are independent of any
 	## transport-level protocols.
-        service: set[string];
+	service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
@@ -315,6 +304,73 @@ type connection: record {
 	## and re-assigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 };
+
+## Default amount of time a file can be inactive before the file analysis
+## gives up and discards any internal state related to the file.
+const default_file_timeout_interval: interval = 2 mins &redef;
+
+## Default amount of bytes that file analysis will buffer before raising
+## :bro:see:`file_new`.
+const default_file_bof_buffer_size: count = 1024 &redef;
+
+## A file that Bro is analyzing.  This is Bro's type for describing the basic
+## internal metadata collected about a "file", which is essentially just a
+## byte stream that is e.g. pulled from a network connection or possibly
+## some other input source.
+type fa_file: record {
+	## An identifier associated with a single file.
+	id: string;
+
+	## Identifier associated with a container file from which this one was
+	## extracted as part of the file analysis.
+	parent_id: string &optional;
+
+	## An identification of the source of the file data.  E.g. it may be
+	## a network protocol over which it was transferred, or a local file
+	## path which was read, or some other input source.
+	source: string &optional;
+
+	## If the source of this file is is a network connection, this field
+	## may be set to indicate the directionality.
+	is_orig: bool &optional;
+
+	## The set of connections over which the file was transferred.
+	conns: table[conn_id] of connection &optional;
+
+	## The time at which the last activity for the file was seen.
+	last_active: time;
+
+	## Number of bytes provided to the file analysis engine for the file.
+	seen_bytes: count &default=0;
+
+	## Total number of bytes that are supposed to comprise the full file.
+	total_bytes: count &optional;
+
+	## The number of bytes in the file stream that were completely missed
+	## during the process of analysis e.g. due to dropped packets.
+	missing_bytes: count &default=0;
+
+	## The number of not all-in-sequence bytes in the file stream that
+	## were delivered to file analyzers due to reassembly buffer overflow.
+	overflow_bytes: count &default=0;
+
+	## The amount of time between receiving new data for this file that
+	## the analysis engine will wait before giving up on it.
+	timeout_interval: interval &default=default_file_timeout_interval;
+
+	## The number of bytes at the beginning of a file to save for later
+	## inspection in *bof_buffer* field.
+	bof_buffer_size: count &default=default_file_bof_buffer_size;
+
+	## The content of the beginning of a file up to *bof_buffer_size* bytes.
+	## This is also the buffer that's used for file/mime type detection.
+	bof_buffer: string &optional;
+
+	## A mime type provided by libmagic against the *bof_buffer*, or
+	## in the cases where no buffering of the beginning of file occurs,
+	## an initial guess of the mime type based on the first data seen.
+	mime_type: string &optional;
+} &redef;
 
 ## Fields of a SYN packet.
 ##
@@ -646,9 +702,9 @@ type entropy_test_result: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load base/strings.bif
-@load base/bro.bif
-@load base/reporter.bif
+@load base/bif/strings.bif
+@load base/bif/bro.bif
+@load base/bif/reporter.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -1435,6 +1491,184 @@ type teredo_hdr: record {
 	auth:   teredo_auth &optional;   ##< Teredo authentication header.
 	origin: teredo_origin &optional; ##< Teredo origin indication header.
 	hdr:    pkt_hdr;                 ##< IPv6 and transport protocol headers.
+};
+
+## A GTPv1 (GPRS Tunneling Protocol) header.
+type gtpv1_hdr: record {
+	## The 3-bit version field, which for GTPv1 should be 1.
+	version:   count;
+	## Protocol Type value differentiates GTP (value 1) from GTP' (value 0).
+	pt_flag:   bool;
+	## Reserved field, should be 0.
+	rsv:       bool;
+	## Extension Header flag.  When 0, the *next_type* field may or may not
+	## be present, but shouldn't be meaningful.  When 1, *next_type* is
+	## present and meaningful.
+	e_flag:    bool;
+	## Sequence Number flag.  When 0, the *seq* field may or may not
+	## be present, but shouldn't be meaningful.  When 1, *seq* is
+	## present and meaningful.
+	s_flag:    bool;
+	## N-PDU flag.  When 0, the *n_pdu* field may or may not
+	## be present, but shouldn't be meaningful.  When 1, *n_pdu* is
+	## present and meaningful.
+	pn_flag:   bool;
+	## Message Type.  A value of 255 indicates user-plane data is encapsulated.
+	msg_type:  count;
+	## Length of the GTP packet payload (the rest of the packet following the
+	## mandatory 8-byte GTP header).
+	length:    count;
+	## Tunnel Endpoint Identifier.  Unambiguously identifies a tunnel endpoint
+	## in receiving GTP-U or GTP-C protocol entity.
+	teid:      count;
+	## Sequence Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field is
+	## set.
+	seq:       count &optional;
+	## N-PDU Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field is set.
+	n_pdu:     count &optional;
+	## Next Extension Header Type.  Set if any *e_flag*, *s_flag*, or *pn_flag*
+	## field is set.
+	next_type: count &optional;
+};
+
+type gtp_cause: count;
+type gtp_imsi: count;
+type gtp_teardown_ind: bool;
+type gtp_nsapi: count;
+type gtp_recovery: count;
+type gtp_teid1: count;
+type gtp_teid_control_plane: count;
+type gtp_charging_id: count;
+type gtp_charging_gateway_addr: addr;
+type gtp_trace_reference: count;
+type gtp_trace_type: count;
+type gtp_tft: string;
+type gtp_trigger_id: string;
+type gtp_omc_id: string;
+type gtp_reordering_required: bool;
+type gtp_proto_config_options: string;
+type gtp_charging_characteristics: count;
+type gtp_selection_mode: count;
+type gtp_access_point_name: string;
+type gtp_msisdn: string;
+
+type gtp_gsn_addr: record {
+	## If the GSN Address information element has length 4 or 16, then this
+	## field is set to be the informational element's value interpreted as
+	## an IPv4 or IPv6 address, respectively.
+	ip: addr &optional;
+	## This field is set if it's not an IPv4 or IPv6 address.
+	other: string &optional;
+};
+
+type gtp_end_user_addr: record {
+	pdp_type_org: count;
+	pdp_type_num: count;
+	## Set if the End User Address information element is IPv4/IPv6.
+	pdp_ip: addr &optional;
+	## Set if the End User Address information element isn't IPv4/IPv6.
+	pdp_other_addr: string &optional;
+};
+
+type gtp_rai: record {
+	mcc: count;
+	mnc: count;
+	lac: count;
+	rac: count;
+};
+
+type gtp_qos_profile: record {
+	priority: count;
+	data: string;
+};
+
+type gtp_private_extension: record {
+	id: count;
+	value: string;
+};
+
+type gtp_create_pdp_ctx_request_elements: record {
+	imsi:             gtp_imsi &optional;
+	rai:              gtp_rai &optional;
+	recovery:         gtp_recovery &optional;
+	select_mode:      gtp_selection_mode &optional;
+	data1:            gtp_teid1;
+	cp:               gtp_teid_control_plane &optional;
+	nsapi:            gtp_nsapi;
+	linked_nsapi:     gtp_nsapi &optional;
+	charge_character: gtp_charging_characteristics &optional;
+	trace_ref:        gtp_trace_reference &optional;
+	trace_type:       gtp_trace_type &optional;
+	end_user_addr:    gtp_end_user_addr &optional;
+	ap_name:          gtp_access_point_name &optional;
+	opts:             gtp_proto_config_options &optional;
+	signal_addr:      gtp_gsn_addr;
+	user_addr:        gtp_gsn_addr;
+	msisdn:           gtp_msisdn &optional;
+	qos_prof:         gtp_qos_profile;
+	tft:              gtp_tft &optional;
+	trigger_id:       gtp_trigger_id &optional;
+	omc_id:           gtp_omc_id &optional;
+	ext:              gtp_private_extension &optional;
+};
+
+type gtp_create_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	reorder_req:    gtp_reordering_required &optional;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	end_user_addr:  gtp_end_user_addr &optional;
+	opts:           gtp_proto_config_options &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_update_pdp_ctx_request_elements: record {
+	imsi:          gtp_imsi &optional;
+	rai:           gtp_rai &optional;
+	recovery:      gtp_recovery &optional;
+	data1:         gtp_teid1;
+	cp:            gtp_teid_control_plane &optional;
+	nsapi:         gtp_nsapi;
+	trace_ref:     gtp_trace_reference &optional;
+	trace_type:    gtp_trace_type &optional;
+	cp_addr:       gtp_gsn_addr;
+	user_addr:     gtp_gsn_addr;
+	qos_prof:      gtp_qos_profile;
+	tft:           gtp_tft &optional;
+	trigger_id:    gtp_trigger_id &optional;
+	omc_id:        gtp_omc_id &optional;
+	ext:           gtp_private_extension &optional;
+	end_user_addr: gtp_end_user_addr &optional;
+};
+
+type gtp_update_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_request_elements: record {
+	teardown_ind: gtp_teardown_ind &optional;
+	nsapi:        gtp_nsapi;
+	ext:          gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_response_elements: record {
+	cause: gtp_cause;
+	ext:   gtp_private_extension &optional;
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
@@ -2456,7 +2690,7 @@ type ModbusHeaders: record {
 
 module SOCKS;
 export {
-	## This record is for a SOCKS client or server to provide either a 
+	## This record is for a SOCKS client or server to provide either a
 	## name or an address to represent a desired or established connection.
 	type Address: record {
 		host: addr   &optional;
@@ -2465,7 +2699,7 @@ export {
 }
 module GLOBAL;
 
-@load base/event.bif
+@load base/bif/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
@@ -2557,6 +2791,15 @@ const gap_report_freq = 1.0 sec &redef;
 ## .. bro:see:: content_gap gap_report partial_connection
 const report_gaps_for_partial = F &redef;
 
+## Flag to prevent Bro from exiting automatically when input is exhausted.
+## Normally Bro terminates when all packets sources have gone dry
+## and  communication isn't enabled. If this flag is set, Bro's main loop will
+## instead keep idleing until :bro:see::`terminate` is explicitly called.
+##
+## This is mainly for testing purposes when termination behaviour needs to be
+## controlled for reproducing results.
+const exit_only_after_terminate = F &redef;
+
 ## The CA certificate file to authorize remote Bros/Broccolis.
 ##
 ## .. bro:see:: ssl_private_key ssl_passphrase
@@ -2646,34 +2889,11 @@ const remote_trace_sync_peers = 0 &redef;
 ## consistency check.
 const remote_check_sync_consistency = F &redef;
 
-## Analyzer tags. The core automatically defines constants
-## ``ANALYZER_<analyzer-name>*``, e.g., ``ANALYZER_HTTP``.
-##
-## .. bro:see:: dpd_config
-##
-## .. todo::We should autodoc these automaticallty generated constants.
-type AnalyzerTag: count;
-
-## Set of ports activating a particular protocol analysis.
-##
-## .. bro:see:: dpd_config
-type dpd_protocol_config: record {
-	ports: set[port] &optional;	##< Set of ports.
-};
-
-## Port configuration for Bro's "dynamic protocol detection". Protocol
-## analyzers can be activated via either well-known ports or content analysis.
-## This table defines the ports.
-##
-## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning dpd_ignore_ports
-const dpd_config: table[AnalyzerTag] of dpd_protocol_config = {} &redef;
-
 ## Reassemble the beginning of all TCP connections before doing
 ## signature-matching. Enabling this provides more accurate matching at the
 ## expensive of CPU cycles.
 ##
-## .. bro:see:: dpd_config dpd_buffer_size
+## .. bro:see:: dpd_buffer_size
 ##    dpd_match_only_beginning dpd_ignore_ports
 ##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
@@ -2688,37 +2908,30 @@ const dpd_reassemble_first_packets = T &redef;
 ## activated afterwards. Then only analyzers that can deal with partial
 ## connections will be able to analyze the session.
 ##
-## .. bro:see:: dpd_reassemble_first_packets dpd_config dpd_match_only_beginning
+## .. bro:see:: dpd_reassemble_first_packets dpd_match_only_beginning
 ##    dpd_ignore_ports
 const dpd_buffer_size = 1024 &redef;
 
 ## If true, stops signature matching if dpd_buffer_size has been reached.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_config dpd_ignore_ports
+##    dpd_ignore_ports
 ##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
 ##    only signatures used for dynamic protocol detection.
 const dpd_match_only_beginning = T &redef;
 
 ## If true, don't consider any ports for deciding which protocol analyzer to
-## use. If so, the value of :bro:see:`dpd_config` is ignored.
+## use.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning dpd_config
+##    dpd_match_only_beginning
 const dpd_ignore_ports = F &redef;
 
 ## Ports which the core considers being likely used by servers. For ports in
 ## this set, is may heuristically decide to flip the direction of the
 ## connection if it misses the initial handshake.
 const likely_server_ports: set[port] &redef;
-
-## Deprated. Set of all ports for which we know an analyzer, built by
-## :doc:`/scripts/base/frameworks/dpd/main`.
-##
-## .. todo::This should be defined by :doc:`/scripts/base/frameworks/dpd/main`
-##    itself we still need it.
-global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 
 ## Per-incident timer managers are drained after this amount of inactivity.
 const timer_mgr_inactivity_timeout = 1 min &redef;
@@ -2773,6 +2986,9 @@ export {
 	## Toggle whether to do IPv6-in-Teredo decapsulation.
 	const enable_teredo = T &redef;
 
+	## Toggle whether to do GTPv1 decapsulation.
+	const enable_gtpv1 = T &redef;
+
 	## With this option set, the Teredo analysis will first check to see if
 	## other protocol analyzers have confirmed that they think they're
 	## parsing the right protocol and only continue with Teredo tunnel
@@ -2789,17 +3005,48 @@ export {
 	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
 	const delay_teredo_confirmation = T &redef;
 
+	## With this set, the GTP analyzer waits until the most-recent upflow
+	## and downflow packets are a valid GTPv1 encapsulation before
+	## issuing :bro:see:`protocol_confirmation`.  If it's false, the
+	## first occurence of a packet with valid GTPv1 encapsulation causes
+	## confirmation.  Since the same inner connection can be carried
+	## differing outer upflow/downflow connections, setting to false
+	## may work better.
+	const delay_gtp_confirmation = F &redef;
+
 	## How often to cleanup internal state for inactive IP tunnels.
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
 module GLOBAL;
 
+module Reporter;
+export {
+	## Tunable for sending reporter info messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const info_to_stderr = T &redef;
+
+	## Tunable for sending reporter warning messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const warnings_to_stderr = T &redef;
+
+	## Tunable for sending reporter error messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const errors_to_stderr = T &redef;
+}
+module GLOBAL;
+
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
-# Load the logging framework here because it uses fairly deep integration with
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+
+# Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
-
 @load base/frameworks/input
-
+@load base/frameworks/analyzer
+@load base/frameworks/file-analysis

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT  >output 2>&1
+# @TEST-EXEC: bro -b %INPUT  >output 2>&1
 # @TEST-EXEC: btest-diff output
 
 # Demo policy for string functions

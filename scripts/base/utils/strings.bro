@@ -6,7 +6,7 @@
 ## characters.
 function is_string_binary(s: string): bool
 	{
-	return byte_len(gsub(s, /[\x00-\x7f]/, "")) * 100 / |s| >= 25;
+	return |gsub(s, /[\x00-\x7f]/, "")| * 100 / |s| >= 25;
 	}
 
 ## Joins a set of string together, with elements delimited by a constant string.

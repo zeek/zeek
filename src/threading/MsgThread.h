@@ -228,8 +228,8 @@ protected:
 	 *
 	 */
 	virtual void Run();
-	virtual void OnStop();
-	virtual void OnPrepareStop();
+	virtual void OnWaitForStop();
+	virtual void OnSignalStop();
 	virtual void OnKill();
 
 private:
@@ -289,7 +289,8 @@ private:
 	 */
 	bool MightHaveOut() { return queue_out.MaybeReady(); }
 
-	/** Flags that the child process has finished processing. Called from child.
+	/** Sends a message to the main thread signaling that the child process
+	 *  has finished processing. Called from child.
 	 */
 	void Finished();
 
@@ -299,7 +300,8 @@ private:
 	uint64_t cnt_sent_in;	// Counts message sent to child.
 	uint64_t cnt_sent_out;	// Counts message sent by child.
 
-	bool finished;	// Set to true by Finished message.
+	bool main_finished;	// Main thread is finished, meaning child_finished propagated back through message queue.
+	bool child_finished;	// Child thread is finished.
 	bool failed;	// Set to true when a command failed.
 };
 
@@ -390,7 +392,7 @@ protected:
 	 * @param name: A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 *
-	 * @param arg_object: An object to store with the message. 
+	 * @param arg_object: An object to store with the message.
 	 */
 	InputMessage(const char* name, O* arg_object) : BasicInputMessage(name)
 		{ object = arg_object; }
@@ -400,7 +402,7 @@ private:
 };
 
 /**
- * A paremeterized OututMessage that stores a pointer to an argument object.
+ * A parameterized OutputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
 template<typename O>
@@ -419,7 +421,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 *
-	 * @param arg_object An object to store with the message. 
+	 * @param arg_object An object to store with the message.
 	 */
 	OutputMessage(const char* name, O* arg_object) : BasicOutputMessage(name)
 		{ object = arg_object; }

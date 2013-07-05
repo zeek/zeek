@@ -39,7 +39,7 @@ export {
 		## The node type doing all the actual traffic analysis.
 		WORKER,
 		## A node acting as a traffic recorder using the
-		## `Time Machine <http://tracker.bro-ids.org/time-machine>`_ software.
+		## `Time Machine <http://tracker.bro.org/time-machine>`_ software.
 		TIME_MACHINE,
 	};
 	

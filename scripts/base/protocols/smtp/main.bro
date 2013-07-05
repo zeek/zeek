@@ -1,5 +1,4 @@
 @load base/frameworks/notice
-@load base/frameworks/protocols
 @load base/utils/addrs
 @load base/utils/directions-and-hosts
 
@@ -82,14 +81,16 @@ redef record connection += {
 	smtp_state: State &optional;
 };
 
-global analyzers = { ANALYZER_SMTP };
-redef Protocols::analyzer_map += { ["SMTP"] = analyzers };
-const ports = { 25/tcp, 587/tcp } &redef;
-redef Protocols::common_ports += { ["SMTP"] = ports };
+# Configure DPD
+redef capture_filters += { ["smtp"] = "tcp port 25 or tcp port 587" };
+
+const ports = { 25/tcp, 587/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
 	}
 	
 function find_address_in_smtp_header(header: string): string

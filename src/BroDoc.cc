@@ -8,6 +8,9 @@
 #include "BroDoc.h"
 #include "BroDocObj.h"
 #include "util.h"
+#include "plugin/Manager.h"
+#include "analyzer/Manager.h"
+#include "analyzer/Component.h"
 
 BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	{
@@ -35,12 +38,14 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 
 	downloadable_filename = source_filename;
 
+#if 0
 	size_t ext_pos = downloadable_filename.find(".bif.bro");
 	if ( std::string::npos != ext_pos )
 		downloadable_filename.erase(ext_pos + 4);
+#endif
 
 	reST_filename = doc_title;
-	ext_pos = reST_filename.find(".bro");
+	size_t ext_pos = reST_filename.find(".bro");
 
 	if ( std::string::npos == ext_pos )
 		reST_filename += ".rst";
@@ -162,84 +167,77 @@ void BroDoc::SetPacketFilter(const std::string& s)
 		packet_filter.clear();
 	}
 
-void BroDoc::AddPortAnalysis(const std::string& analyzer,
-			const std::string& ports)
-	{
-	std::string reST_string = analyzer + "::\n" + ports + "\n\n";
-	port_analysis.push_back(reST_string);
-	}
-
 void BroDoc::WriteDocFile() const
 	{
-	WriteToDoc(".. Automatically generated.  Do not edit.\n\n");
+	WriteToDoc(reST_file, ".. Automatically generated.  Do not edit.\n\n");
 
-	WriteToDoc(":tocdepth: 3\n\n");
+	WriteToDoc(reST_file, ":tocdepth: 3\n\n");
 
-	WriteSectionHeading(doc_title.c_str(), '=');
+	WriteSectionHeading(reST_file, doc_title.c_str(), '=');
 
-	WriteStringList(".. bro:namespace:: %s\n", modules);
+	WriteStringList(reST_file, ".. bro:namespace:: %s\n", modules);
 
-	WriteToDoc("\n");
+	WriteToDoc(reST_file, "\n");
 
-	// WriteSectionHeading("Overview", '-');
-	WriteStringList("%s\n", summary);
+	// WriteSectionHeading(reST_file, "Overview", '-');
+	WriteStringList(reST_file, "%s\n", summary);
 
-	WriteToDoc("\n");
+	WriteToDoc(reST_file, "\n");
 
 	if ( ! modules.empty() )
 		{
-		WriteToDoc(":Namespace%s: ", (modules.size() > 1 ? "s" : ""));
-		// WriteStringList(":bro:namespace:`%s`", modules);
-		WriteStringList("``%s``, ", "``%s``", modules);
-		WriteToDoc("\n");
+		WriteToDoc(reST_file, ":Namespace%s: ", (modules.size() > 1 ? "s" : ""));
+		// WriteStringList(reST_file, ":bro:namespace:`%s`", modules);
+		WriteStringList(reST_file, "``%s``, ", "``%s``", modules);
+		WriteToDoc(reST_file, "\n");
 		}
 
 	if ( ! imports.empty() )
 		{
-		WriteToDoc(":Imports: ");
+		WriteToDoc(reST_file, ":Imports: ");
 		std::list<std::string>::const_iterator it;
 		for ( it = imports.begin(); it != imports.end(); ++it )
 			{
 			if ( it != imports.begin() )
-				WriteToDoc(", ");
+				WriteToDoc(reST_file, ", ");
 
 			string pretty(*it);
 			size_t pos = pretty.find("/index");
 			if ( pos != std::string::npos && pos + 6 == pretty.size() )
 				pretty = pretty.substr(0, pos);
-			WriteToDoc(":doc:`%s </scripts/%s>`", pretty.c_str(), it->c_str());
+			WriteToDoc(reST_file, ":doc:`%s </scripts/%s>`", pretty.c_str(), it->c_str());
 			}
-		WriteToDoc("\n");
+		WriteToDoc(reST_file, "\n");
 		}
 
-	WriteToDoc(":Source File: :download:`%s`\n",
+	WriteToDoc(reST_file, ":Source File: :download:`%s`\n",
 		downloadable_filename.c_str());
 
-	WriteToDoc("\n");
+	WriteToDoc(reST_file, "\n");
 
 	WriteInterface("Summary", '~', '#', true, true);
 
 	if ( ! notices.empty() )
-		WriteBroDocObjList(notices, "Notices", '#');
+		WriteBroDocObjList(reST_file, notices, "Notices", '#');
 
 	if ( port_analysis.size() || packet_filter.size() )
-		WriteSectionHeading("Configuration Changes", '#');
+		WriteSectionHeading(reST_file, "Configuration Changes", '#');
 
 	if ( ! port_analysis.empty() )
 		{
-		WriteSectionHeading("Port Analysis", '^');
-		WriteToDoc("Loading this script makes the following changes to "
+		WriteSectionHeading(reST_file, "Port Analysis", '^');
+		WriteToDoc(reST_file, "Loading this script makes the following changes to "
 		           ":bro:see:`dpd_config`.\n\n");
-		WriteStringList("%s, ", "%s", port_analysis);
+		WriteStringList(reST_file, "%s, ", "%s", port_analysis);
 		}
 
 	if ( ! packet_filter.empty() )
 		{
-		WriteSectionHeading("Packet Filter", '^');
-		WriteToDoc("Loading this script makes the following changes to "
+		WriteSectionHeading(reST_file, "Packet Filter", '^');
+		WriteToDoc(reST_file, "Loading this script makes the following changes to "
 		           ":bro:see:`capture_filters`.\n\n");
-		WriteToDoc("Filters added::\n\n");
-		WriteToDoc("%s\n", packet_filter.c_str());
+		WriteToDoc(reST_file, "Filters added::\n\n");
+		WriteToDoc(reST_file, "%s\n", packet_filter.c_str());
 		}
 
 	WriteInterface("Detailed Interface", '~', '#', true, false);
@@ -265,22 +263,23 @@ void BroDoc::WriteDocFile() const
 void BroDoc::WriteInterface(const char* heading, char underline,
 			char sub, bool isPublic, bool isShort) const
 	{
-	WriteSectionHeading(heading, underline);
-	WriteBroDocObjList(options, isPublic, "Options", sub, isShort);
-	WriteBroDocObjList(constants, isPublic, "Constants", sub, isShort);
-	WriteBroDocObjList(state_vars, isPublic, "State Variables", sub, isShort);
-	WriteBroDocObjList(types, isPublic, "Types", sub, isShort);
-	WriteBroDocObjList(events, isPublic, "Events", sub, isShort);
-	WriteBroDocObjList(functions, isPublic, "Functions", sub, isShort);
-	WriteBroDocObjList(redefs, isPublic, "Redefinitions", sub, isShort);
+	WriteSectionHeading(reST_file, heading, underline);
+	WriteBroDocObjList(reST_file, options, isPublic, "Options", sub, isShort);
+	WriteBroDocObjList(reST_file, constants, isPublic, "Constants", sub, isShort);
+	WriteBroDocObjList(reST_file, state_vars, isPublic, "State Variables", sub, isShort);
+	WriteBroDocObjList(reST_file, types, isPublic, "Types", sub, isShort);
+	WriteBroDocObjList(reST_file, events, isPublic, "Events", sub, isShort);
+	WriteBroDocObjList(reST_file, hooks, isPublic, "Hooks", sub, isShort);
+	WriteBroDocObjList(reST_file, functions, isPublic, "Functions", sub, isShort);
+	WriteBroDocObjList(reST_file, redefs, isPublic, "Redefinitions", sub, isShort);
 	}
 
-void BroDoc::WriteStringList(const char* format, const char* last_format,
-			const std::list<std::string>& l) const
+void BroDoc::WriteStringList(FILE* f, const char* format, const char* last_format,
+			const std::list<std::string>& l)
 	{
 	if ( l.empty() )
 		{
-		WriteToDoc("\n");
+		WriteToDoc(f, "\n");
 		return;
 		}
 
@@ -289,12 +288,12 @@ void BroDoc::WriteStringList(const char* format, const char* last_format,
 	last--;
 
 	for ( it = l.begin(); it != last; ++it )
-		WriteToDoc(format, it->c_str());
+		WriteToDoc(f, format, it->c_str());
 
-	WriteToDoc(last_format, last->c_str());
+	WriteToDoc(f, last_format, last->c_str());
 	}
 
-void BroDoc::WriteBroDocObjTable(const BroDocObjList& l) const
+void BroDoc::WriteBroDocObjTable(FILE* f, const BroDocObjList& l)
 	{
 	int max_id_col = 0;
 	int max_com_col = 0;
@@ -314,38 +313,38 @@ void BroDoc::WriteBroDocObjTable(const BroDocObjList& l) const
 		}
 
 	// Start table.
-	WriteRepeatedChar('=', max_id_col);
-	WriteToDoc(" ");
+	WriteRepeatedChar(f, '=', max_id_col);
+	WriteToDoc(f, " ");
 
 	if ( max_com_col == 0 )
-		WriteToDoc("=");
+		WriteToDoc(f, "=");
 	else
-		WriteRepeatedChar('=', max_com_col);
+		WriteRepeatedChar(f, '=', max_com_col);
 
-	WriteToDoc("\n");
+	WriteToDoc(f, "\n");
 
 	for ( it = l.begin(); it != l.end(); ++it )
 		{
 		if ( it != l.begin() )
-			WriteToDoc("\n\n");
-		(*it)->WriteReSTCompact(reST_file, max_id_col);
+			WriteToDoc(f, "\n\n");
+		(*it)->WriteReSTCompact(f, max_id_col);
 		}
 
 	// End table.
-	WriteToDoc("\n");
-	WriteRepeatedChar('=', max_id_col);
-	WriteToDoc(" ");
+	WriteToDoc(f, "\n");
+	WriteRepeatedChar(f, '=', max_id_col);
+	WriteToDoc(f, " ");
 
 	if ( max_com_col == 0 )
-		WriteToDoc("=");
+		WriteToDoc(f, "=");
 	else
-		WriteRepeatedChar('=', max_com_col);
+		WriteRepeatedChar(f, '=', max_com_col);
 
-	WriteToDoc("\n\n");
+	WriteToDoc(f, "\n\n");
 	}
 
-void BroDoc::WriteBroDocObjList(const BroDocObjList& l, bool wantPublic,
-			const char* heading, char underline, bool isShort) const
+void BroDoc::WriteBroDocObjList(FILE* f, const BroDocObjList& l, bool wantPublic,
+			const char* heading, char underline, bool isShort)
 	{
 	if ( l.empty() )
 		return;
@@ -363,7 +362,7 @@ void BroDoc::WriteBroDocObjList(const BroDocObjList& l, bool wantPublic,
 	if ( it == l.end() )
 		return;
 
-	WriteSectionHeading(heading, underline);
+	WriteSectionHeading(f, heading, underline);
 
 	BroDocObjList filtered_list;
 
@@ -374,13 +373,13 @@ void BroDoc::WriteBroDocObjList(const BroDocObjList& l, bool wantPublic,
 		}
 
 	if ( isShort )
-		WriteBroDocObjTable(filtered_list);
+		WriteBroDocObjTable(f, filtered_list);
 	else
-		WriteBroDocObjList(filtered_list);
+		WriteBroDocObjList(f, filtered_list);
 	}
 
-void BroDoc::WriteBroDocObjList(const BroDocObjMap& m, bool wantPublic,
-			const char* heading, char underline, bool isShort) const
+void BroDoc::WriteBroDocObjList(FILE* f, const BroDocObjMap& m, bool wantPublic,
+			const char* heading, char underline, bool isShort)
 	{
 	BroDocObjMap::const_iterator it;
 	BroDocObjList l;
@@ -388,24 +387,24 @@ void BroDoc::WriteBroDocObjList(const BroDocObjMap& m, bool wantPublic,
 	for ( it = m.begin(); it != m.end(); ++it )
 		l.push_back(it->second);
 
-	WriteBroDocObjList(l, wantPublic, heading, underline, isShort);
+	WriteBroDocObjList(f, l, wantPublic, heading, underline, isShort);
 	}
 
-void BroDoc::WriteBroDocObjList(const BroDocObjList& l, const char* heading,
-			char underline) const
+void BroDoc::WriteBroDocObjList(FILE* f, const BroDocObjList& l, const char* heading,
+			char underline)
 	{
-	WriteSectionHeading(heading, underline);
-	WriteBroDocObjList(l);
+	WriteSectionHeading(f, heading, underline);
+	WriteBroDocObjList(f, l);
 	}
 
-void BroDoc::WriteBroDocObjList(const BroDocObjList& l) const
+void BroDoc::WriteBroDocObjList(FILE* f, const BroDocObjList& l)
 	{
 	for ( BroDocObjList::const_iterator it = l.begin(); it != l.end(); ++it )
-		(*it)->WriteReST(reST_file);
+		(*it)->WriteReST(f);
 	}
 
-void BroDoc::WriteBroDocObjList(const BroDocObjMap& m, const char* heading,
-			char underline) const
+void BroDoc::WriteBroDocObjList(FILE* f, const BroDocObjMap& m, const char* heading,
+			char underline)
 	{
 	BroDocObjMap::const_iterator it;
 	BroDocObjList l;
@@ -413,28 +412,28 @@ void BroDoc::WriteBroDocObjList(const BroDocObjMap& m, const char* heading,
 	for ( it = m.begin(); it != m.end(); ++it )
 		l.push_back(it->second);
 
-	WriteBroDocObjList(l, heading, underline);
+	WriteBroDocObjList(f, l, heading, underline);
 	}
 
-void BroDoc::WriteToDoc(const char* format, ...) const
+void BroDoc::WriteToDoc(FILE* f, const char* format, ...)
 	{
 	va_list argp;
 	va_start(argp, format);
-	vfprintf(reST_file, format, argp);
+	vfprintf(f, format, argp);
 	va_end(argp);
 	}
 
-void BroDoc::WriteSectionHeading(const char* heading, char underline) const
+void BroDoc::WriteSectionHeading(FILE* f, const char* heading, char underline)
 	{
-	WriteToDoc("%s\n", heading);
-	WriteRepeatedChar(underline, strlen(heading));
-	WriteToDoc("\n");
+	WriteToDoc(f, "%s\n", heading);
+	WriteRepeatedChar(f, underline, strlen(heading));
+	WriteToDoc(f, "\n");
 	}
 
-void BroDoc::WriteRepeatedChar(char c, size_t n) const
+void BroDoc::WriteRepeatedChar(FILE* f, char c, size_t n)
 	{
 	for ( size_t i = 0; i < n; ++i )
-		WriteToDoc("%c", c);
+		WriteToDoc(f, "%c", c);
 	}
 
 void BroDoc::FreeBroDocObjPtrList(BroDocObjList& l)
@@ -455,4 +454,144 @@ void BroDoc::AddFunction(BroDocObj* o)
 		}
 	else
 		functions[o->Name()]->Combine(o);
+	}
+
+static void WritePluginSectionHeading(FILE* f, const plugin::Plugin* p)
+	{
+	string name = p->Name();
+
+	fprintf(f, "%s\n", name.c_str());
+	for ( size_t i = 0; i < name.size(); ++i )
+		fprintf(f, "-");
+	fprintf(f, "\n\n");
+
+	fprintf(f, "%s\n\n", p->Description());
+	}
+
+static void WriteAnalyzerComponent(FILE* f, const analyzer::Component* c)
+	{
+	EnumType* atag = analyzer_mgr->GetTagEnumType();
+	string tag = fmt("ANALYZER_%s", c->CanonicalName());
+
+	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
+		reporter->InternalError("missing analyzer tag for %s", tag.c_str());
+
+	fprintf(f, ":bro:enum:`Analyzer::%s`\n\n", tag.c_str());
+	}
+
+static void WritePluginComponents(FILE* f, const plugin::Plugin* p)
+	{
+	plugin::Plugin::component_list components = p->Components();
+	plugin::Plugin::component_list::const_iterator it;
+
+	fprintf(f, "Components\n");
+	fprintf(f, "++++++++++\n\n");
+
+	for ( it = components.begin(); it != components.end(); ++it )
+		{
+		switch ( (*it)->Type() ) {
+		case plugin::component::ANALYZER:
+			WriteAnalyzerComponent(f,
+			        dynamic_cast<const analyzer::Component*>(*it));
+			break;
+		case plugin::component::READER:
+			reporter->InternalError("docs for READER component unimplemented");
+		case plugin::component::WRITER:
+			reporter->InternalError("docs for WRITER component unimplemented");
+		default:
+			reporter->InternalError("docs for unknown component unimplemented");
+		}
+		}
+	}
+
+static void WritePluginBifItems(FILE* f, const plugin::Plugin* p,
+                                plugin::BifItem::Type t, const string& heading)
+	{
+	plugin::Plugin::bif_item_list bifitems = p->BifItems();
+	plugin::Plugin::bif_item_list::iterator it = bifitems.begin();
+
+	while ( it != bifitems.end() )
+		{
+		if ( it->GetType() != t )
+			it = bifitems.erase(it);
+		else
+			++it;
+		}
+
+	if ( bifitems.empty() )
+		return;
+
+	fprintf(f, "%s\n", heading.c_str());
+	for ( size_t i = 0; i < heading.size(); ++i )
+		fprintf(f, "+");
+	fprintf(f, "\n\n");
+
+	for ( it = bifitems.begin(); it != bifitems.end(); ++it )
+		{
+		BroDocObj* o = doc_ids[it->GetID()];
+
+		if ( o )
+			o->WriteReST(f);
+		else
+			reporter->Warning("No docs for ID: %s\n", it->GetID());
+		}
+	}
+
+static void WriteAnalyzerTagDefn(FILE* f, EnumType* e)
+	{
+	e = new CommentedEnumType(e);
+	e->SetTypeID(copy_string("Analyzer::Tag"));
+
+	ID* dummy_id = new ID(copy_string("Analyzer::Tag"), SCOPE_GLOBAL, true);
+	dummy_id->SetType(e);
+	dummy_id->MakeType();
+
+	list<string>* r = new list<string>();
+	r->push_back("Unique identifiers for protocol analyzers.");
+
+	BroDocObj bdo(dummy_id, r, true);
+
+	bdo.WriteReST(f);
+	}
+
+static bool IsAnalyzerPlugin(const plugin::Plugin* p)
+	{
+	plugin::Plugin::component_list components = p->Components();
+	plugin::Plugin::component_list::const_iterator it;
+
+	for ( it = components.begin(); it != components.end(); ++it )
+		if ( (*it)->Type() != plugin::component::ANALYZER )
+			return false;
+
+	return true;
+	}
+
+void CreateProtoAnalyzerDoc(const char* filename)
+	{
+	FILE* f = fopen(filename, "w");
+
+	fprintf(f, "Protocol Analyzer Reference\n");
+	fprintf(f, "===========================\n\n");
+
+	WriteAnalyzerTagDefn(f, analyzer_mgr->GetTagEnumType());
+
+	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list::const_iterator it;
+
+	for ( it = plugins.begin(); it != plugins.end(); ++it )
+		{
+		if ( ! IsAnalyzerPlugin(*it) )
+			continue;
+
+		WritePluginSectionHeading(f, *it);
+		WritePluginComponents(f, *it);
+		WritePluginBifItems(f, *it, plugin::BifItem::CONSTANT,
+		                    "Options/Constants");
+		WritePluginBifItems(f, *it, plugin::BifItem::GLOBAL, "Globals");
+		WritePluginBifItems(f, *it, plugin::BifItem::TYPE, "Types");
+		WritePluginBifItems(f, *it, plugin::BifItem::EVENT, "Events");
+		WritePluginBifItems(f, *it, plugin::BifItem::FUNCTION, "Functions");
+		}
+
+	fclose(f);
 	}

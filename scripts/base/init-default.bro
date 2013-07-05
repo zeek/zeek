@@ -12,14 +12,17 @@
 @load base/utils/numbers
 @load base/utils/paths
 @load base/utils/patterns
+@load base/utils/queue
 @load base/utils/strings
 @load base/utils/thresholds
+@load base/utils/time
 @load base/utils/urls
 
 # This has some deep interplay between types and BiFs so it's 
 # loaded in base/init-bare.bro
 #@load base/frameworks/logging
 @load base/frameworks/notice
+@load base/frameworks/analyzer
 @load base/frameworks/dpd
 @load base/frameworks/signatures
 @load base/frameworks/packet-filter
@@ -27,10 +30,9 @@
 @load base/frameworks/communication
 @load base/frameworks/control
 @load base/frameworks/cluster
-@load base/frameworks/metrics
 @load base/frameworks/intel
 @load base/frameworks/reporter
-@load base/frameworks/protocols
+@load base/frameworks/sumstats
 @load base/frameworks/tunnels
 
 @load base/protocols/conn

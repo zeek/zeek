@@ -1,0 +1,159 @@
+
+%%{
+#include "analyzer/protocol/tcp/TCP.h"
+%%}
+
+## Get the originator sequence number of a TCP connection. Sequence numbers
+## are absolute (i.e., they reflect the values seen directly in packet headers;
+## they are not relative to the beginning of the connection).
+##
+## cid: The connection ID.
+##
+## Returns: The highest sequence number sent by a connection's originator, or 0
+##          if *cid* does not point to an active TCP connection.
+##
+## .. bro:see:: get_resp_seq
+function get_orig_seq%(cid: conn_id%): count
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_COUNT);
+
+	if ( c->ConnTransport() != TRANSPORT_TCP )
+		return new Val(0, TYPE_COUNT);
+
+	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
+	if ( tc )
+		return new Val(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq(),
+				TYPE_COUNT);
+	else
+		{
+		reporter->Error("connection does not have TCP analyzer");
+		return new Val(0, TYPE_COUNT);
+		}
+	%}
+
+## Get the responder sequence number of a TCP connection. Sequence numbers
+## are absolute (i.e., they reflect the values seen directly in packet headers;
+## they are not relative to the beginning of the connection).
+##
+## cid: The connection ID.
+##
+## Returns: The highest sequence number sent by a connection's responder, or 0
+##          if *cid* does not point to an active TCP connection.
+##
+## .. bro:see:: get_orig_seq
+function get_resp_seq%(cid: conn_id%): count
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_COUNT);
+
+	if ( c->ConnTransport() != TRANSPORT_TCP )
+		return new Val(0, TYPE_COUNT);
+
+	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
+	if ( tc )
+		return new Val(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq(),
+				TYPE_COUNT);
+	else
+		{
+		reporter->Error("connection does not have TCP analyzer");
+		return new Val(0, TYPE_COUNT);
+		}
+	%}
+
+## Returns statistics about TCP gaps.
+##
+## Returns: A record with TCP gap statistics.
+##
+## .. bro:see:: do_profiling
+##              net_stats
+##              resource_usage
+##              dump_rule_stats
+##              get_matcher_stats
+function get_gap_summary%(%): gap_info
+	%{
+	RecordVal* r = new RecordVal(gap_info);
+	r->Assign(0, new Val(tot_ack_events, TYPE_COUNT));
+	r->Assign(1, new Val(tot_ack_bytes, TYPE_COUNT));
+	r->Assign(2, new Val(tot_gap_events, TYPE_COUNT));
+	r->Assign(3, new Val(tot_gap_bytes, TYPE_COUNT));
+
+	return r;
+	%}
+
+## Associates a file handle with a connection for writing TCP byte stream
+## contents.
+##
+## cid: The connection ID.
+##
+## direction: Controls what sides of the connection to record. The argument can
+##            take one of the four values:
+##
+##            - ``CONTENTS_NONE``: Stop recording the connection's content.
+##            - ``CONTENTS_ORIG``: Record the data sent by the connection
+##                                 originator (often the client).
+##            - ``CONTENTS_RESP``: Record the data sent by the connection
+##                                 responder (often the server).
+##            - ``CONTENTS_BOTH``: Record the data sent in both directions.
+##                                 Results in the two directions being
+##                                 intermixed in the file, in the order the
+##                                 data was seen by Bro.
+##
+## f: The file handle of the file to write the contents to.
+##
+## Returns: Returns false if *cid* does not point to an active connection, and
+##          true otherwise.
+##
+## .. note::
+##
+##     The data recorded to the file reflects the byte stream, not the
+##     contents of individual packets. Reordering and duplicates are
+##     removed. If any data is missing, the recording stops at the
+##     missing data; this can happen, e.g., due to an
+##     :bro:id:`ack_above_hole` event.
+##
+## .. bro:see:: get_contents_file set_record_packets
+function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	c->GetRootAnalyzer()->SetContentsFile(direction, f);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Returns the file handle of the contents file of a connection.
+##
+## cid: The connection ID.
+##
+## direction: Controls what sides of the connection to record. See
+##            :bro:id:`set_contents_file` for possible values.
+##
+## Returns: The :bro:type:`file` handle for the contents file of the
+##          connection identified by *cid*. If the connection exists
+##          but there is no contents file for *direction*, then the function
+##          generates an error and returns a file handle to ``stderr``.
+##
+## .. bro:see:: set_contents_file set_record_packets
+function get_contents_file%(cid: conn_id, direction: count%): file
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
+
+	if ( f )
+		{
+		Ref(f);
+		return new Val(f);
+		}
+
+	// Return some sort of error value.
+	if ( ! c )
+		builtin_error("unknown connection id in get_contents_file()", cid);
+	else
+		builtin_error("no contents file for given direction");
+
+	return new Val(new BroFile(stderr, "-", "w"));
+	%}

@@ -608,6 +608,7 @@ class StringVal : public Val {
 public:
 	StringVal(BroString* s);
 	StringVal(const char* s);
+	StringVal(const string& s);
 	StringVal(int length, const char* s);
 
 	Val* SizeVal() const
@@ -968,18 +969,16 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
-	bool Assign(unsigned int index, Val* element, const Expr* assigner,
-			Opcode op = OP_ASSIGN);
-	bool Assign(Val* index, Val* element, const Expr* assigner,
-			Opcode op = OP_ASSIGN)
+	bool Assign(unsigned int index, Val* element, Opcode op = OP_ASSIGN);
+	bool Assign(Val* index, Val* element, Opcode op = OP_ASSIGN)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element, assigner, op);
+				element, op);
 		}
 
 	// Assigns the value to how_many locations starting at index.
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
-			  Val* element, const Expr* assigner);
+			  Val* element);
 
 	// Returns nil if no element was at that value.
 	// Lookup does NOT grow the vector to this size.
@@ -1013,6 +1012,20 @@ protected:
 	VectorType* vector_type;
 };
 
+// Base class for values with types that are managed completely internally,
+// with no further script-level operators provided (other than bif
+// functions). See OpaqueVal.h for derived classes.
+class OpaqueVal : public Val {
+public:
+	OpaqueVal(OpaqueType* t);
+	virtual ~OpaqueVal();
+
+protected:
+	friend class Val;
+	OpaqueVal() { }
+
+	DECLARE_SERIAL(OpaqueVal);
+};
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version,

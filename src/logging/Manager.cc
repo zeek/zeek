@@ -26,6 +26,8 @@
 #include "writers/DataSeries.h"
 #endif
 
+#include "writers/SQLite.h"
+
 using namespace logging;
 
 // Structure describing a log writer type.
@@ -40,6 +42,7 @@ struct WriterDefinition {
 WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
+	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
 
 #ifdef USE_ELASTICSEARCH
 	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
@@ -327,7 +330,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		// Make sure the event is prototyped as expected.
 		FuncType* etype = event->FType()->AsFuncType();
 
-		if ( ! etype->IsEvent() )
+		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
 			return false;
@@ -365,12 +368,44 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->id = id->Ref()->AsEnumVal();
 	streams[idx]->enabled = true;
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
-	streams[idx]->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : 0;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
 
+	return true;
+	}
+
+bool Manager::RemoveStream(EnumVal* id)
+	{
+	unsigned int idx = id->AsEnum();
+
+	if ( idx >= streams.size() || ! streams[idx] )
+		return false;
+
+	Stream* stream = streams[idx];
+
+	if ( ! stream )
+		return false;
+
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
+		{
+		WriterInfo* winfo = i->second;
+
+		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'",
+			winfo->writer->Name(), stream->name.c_str());
+
+		winfo->writer->Stop();
+		delete winfo->writer;
+		delete winfo;
+		}
+
+	stream->writers.clear();
+	delete stream;
+	streams[idx] = 0;
+
+	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", stream->name.c_str());
 	return true;
 	}
 
@@ -1238,23 +1273,14 @@ bool Manager::Flush(EnumVal* id)
 
 void Manager::Terminate()
 	{
-	// Make sure we process all the pending rotations.
-
-	while ( rotations_pending > 0 )
-		{
-		thread_mgr->ForceProcessing(); // A blatant layering violation ...
-		usleep(1000);
-		}
-
-	if ( rotations_pending < 0 )
-		reporter->InternalError("Negative pending log rotations: %d", rotations_pending);
-
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
 			continue;
 
-		Flush((*s)->id);
+		for ( Stream::WriterMap::iterator i = (*s)->writers.begin();
+		      i != (*s)->writers.end(); i++ )
+			i->second->writer->Stop();
 		}
 	}
 

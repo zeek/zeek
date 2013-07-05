@@ -25,6 +25,7 @@ Frameworks
    notice
    logging
    input
+   file-analysis
    cluster
    signatures
 
@@ -45,7 +46,7 @@ Script Reference
    scripts/packages
    scripts/index
    scripts/builtins
-   scripts/bifs
+   scripts/proto-analyzers
 
 Other Bro Components
 --------------------
@@ -53,7 +54,7 @@ Other Bro Components
 The following are snapshots of documentation for components that come
 with this version of Bro (|version|). Since they can also be used
 independently, see the `download page
-<http://bro-ids.org/download/index.html>`_ for documentation of any
+<http://bro.org/download/index.html>`_ for documentation of any
 current, independent component releases.
 
 .. toctree::

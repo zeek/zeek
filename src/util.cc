@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -296,6 +297,13 @@ void to_upper(char* s)
 			*s = toupper(*s);
 		++s;
 		}
+	}
+
+string to_upper(const std::string& s)
+	{
+	string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+	return t;
 	}
 
 const char* strchr_n(const char* s, const char* end_of_s, char ch)
@@ -864,6 +872,16 @@ const char* bro_path()
 	return path;
 	}
 
+const char* bro_magic_path()
+	{
+	const char* path = getenv("BROMAGIC");
+
+	if ( ! path )
+		path = BRO_MAGIC_INSTALL_PATH;
+
+	return path;
+	}
+
 const char* bro_prefixes()
 	{
 	int len = 1;	// room for \0
@@ -1016,8 +1034,10 @@ void get_script_subpath(const std::string& full_filename, const char** subpath)
 		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
 	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
 		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
-	else if ( (p = my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
 
 	// if root path found, remove path separators until next path component
 	if ( p != std::string::npos )
@@ -1391,6 +1411,31 @@ bool safe_write(int fd, const char* data, int len)
 	return true;
 	}
 
+bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
+	{
+	while ( len != 0 )
+		{
+		ssize_t n = pwrite(fd, data, len, offset);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		offset +=n;
+		len -= n;
+		}
+
+	return true;
+	}
+
 void safe_close(int fd)
 	{
 	/*
@@ -1416,7 +1461,7 @@ void safe_close(int fd)
 		}
 	}
 
-void out_of_memory(const char* where)
+extern "C" void out_of_memory(const char* where)
 	{
 	fprintf(stderr, "out of memory in %s.\n", where);
 
@@ -1527,3 +1572,63 @@ void operator delete[](void* v)
 	}
 
 #endif
+
+void bro_init_magic(magic_t* cookie_ptr, int flags)
+	{
+	if ( ! cookie_ptr || *cookie_ptr )
+		return;
+
+	*cookie_ptr = magic_open(flags|MAGIC_NO_CHECK_TOKENS);
+
+	// Use our custom database for mime types, but the default database
+	// from libmagic for the verbose file type.
+	const char* database = (flags & MAGIC_MIME) ? bro_magic_path() : 0;
+
+	if ( ! *cookie_ptr )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		if ( ! err )
+			err = "unknown";
+
+		reporter->InternalError("can't init libmagic: %s", err);
+		}
+
+	else if ( magic_load(*cookie_ptr, database) < 0 )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		if ( ! err )
+			err = "unknown";
+
+		const char* db_name = database ? database : "<default>";
+		reporter->InternalError("can't load magic file %s: %s", db_name, err);
+		magic_close(*cookie_ptr);
+		*cookie_ptr = 0;
+		}
+	}
+
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
+	{
+	const char* rval = magic_buffer(cookie, buffer, length);
+	if ( ! rval )
+		{
+		const char* err = magic_error(cookie);
+		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
+		}
+
+	return rval;
+	}
+
+const char* canonify_name(const char* name)
+	{
+	unsigned int len = strlen(name);
+	char* nname = new char[len + 1];
+
+	for ( unsigned int i = 0; i < len; i++ )
+		{
+		char c = isalnum(name[i]) ? name[i] : '_';
+		nname[i] = toupper(c);
+		}
+
+	nname[len] = '\0';
+	return nname;
+	}

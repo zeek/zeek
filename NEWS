@@ -13,9 +13,96 @@ Bro 2.2
 New Functionality
 ~~~~~~~~~~~~~~~~~
 
+- GPRS Tunnelling Protocol (GTPv1) decapsulation.
+
 - GridFTP support. TODO: Extend.
 
 - ssl.log now also records the subject client and issuer certificates.
+
+- Hooks: TODO: Briefly summarize the documention from
+  doc/scripts/builtins.rst here.
+
+- The ASCII writer can now output CSV files on a per filter basis.
+
+- Bro's language now has a working "switch" statement that generally
+  behaves like C-style switches except case labels can be comprised of
+  multiple literal constants delimited by commas.  Only atomic types
+  are allowed for now.  Case label bodies that don't execute a
+  "return" or "break" statement will fall through to subsequent cases.
+  A default case label is allowed.
+
+- Bro's language now has a new set of types "opaque of X". Opaque
+  values can be passed around like other values but they can only be
+  manipulated with BiF functions, not with other operators. Currently,
+  the following opaque types are supported:
+
+        - opaque of md5
+        - opaque of sha1
+        - opaque of sha256
+        - opaquey of entropy.
+
+  They go along with the corrsponding BiF functions md5_*, sha1_*,
+  sha256_*, and entropy_*, respectively. Note that these functions
+  have changed their signatures to work with opaques types rather
+  than global state as it was before.
+
+- The scripting language now supports a constructing sets, tables,
+  vectors, and records by name:
+
+        type MyRecordType: record {
+            c: count;
+            s: string &optional;
+        };
+
+        global r: MyRecordType = record($c = 7);
+
+        type MySet: set[MyRec];
+        global s = MySet([$c=1], [$c=2]);
+
+- Strings now support the subscript operator to extract individual
+  characters and substrings (e.g., s[4], s[1,5]). The index expression
+  can take up to two indices for the start and end index of the
+  substring to return (e.g. "mystring[1,3]").
+
+- Functions now support default parameters, e.g.:
+
+        global foo: function(s: string, t: string &default="abc", u: count &default=0);
+
+- Scripts can now use two new "magic constants" @DIR and @FILENAME
+  that expand to the directory path of the current script and just the
+  script file name without path, respectively. (Jon Siwek)
+
+- The new file analysis framework moves most of the processing of file
+  content from script-land into the core, where it belongs. See
+  doc/file-analysis.rst for more information.
+
+  Much of this is an internal change, but the framework also comes
+  with the following user-visibible functionality (some of that was
+  already available before, but done differently):
+
+  [TODO: This will probably change with further script updates.]
+
+      - A binary input reader interfaces the input framework with file
+        analysis, allowing to inject files on disk into Bro's
+        processing.
+
+      - Supports for analyzing data transfereed via HTTP range
+        requests.
+
+      - HTTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+
+      - SMTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+        * Provide access to start of entity data.
+
+      - FTP data transfers: Identify MIME type; record to disk.
+
+      - IRC DCC transfers: Record to disk.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
@@ -30,6 +117,10 @@ Changed Functionality
           make_connection_persistent(), generate_idmef(),
           split_complete()
 
+        - md5_*, sha1_*, sha256_*, and entropy_* have all changed
+        their signatures to work with opaque types (see above).
+
+
 - Removed a now unused argument from "do_split" helper function.
 
 - "this" is no longer a reserved keyword.
@@ -43,6 +134,53 @@ Changed Functionality
   'Logging::default_alarm_mail_interval'. When using BroControl, the
   value can now be set with the new broctl.cfg option
   "MailAlarmsInterval".
+
+- We have completely reworded the "notice_policy" mechanism. It now no
+  linger uses a record of policy items but a "hook", a new language
+  element that's roughly equivalent to a function with multiple
+  bodies. The documentation [TODO: insert link] describes how to use
+  the new notice policy. For existing code, the two main changes are:
+
+    - What used to be a "redef" of "Notice::policy" now becomes a hook
+      implementation. Example:
+
+      Old:
+
+        redef Notice::policy += {
+            [$pred(n: Notice::Info) = {
+                return n$note == SSH::Login && n$id$resp_h == 10.0.0.1;
+                },
+            $action = Notice::ACTION_EMAIL]
+            };
+
+      New:
+
+        hook Notice::policy(n: Notice::Info)
+            {
+            if ( n$note == SSH::Login && n$id$resp_h == 10.0.0.1 )
+                add n$actions[Notice::ACTION_EMAIL];
+            }
+
+    - notice() is now likewise a hook, no longer an event. If you have
+      handlers for that event, you'll likely just need to change the
+      type accordingly. Example:
+
+      Old:
+
+        event notice(n: Notice::Info) { ... }
+
+      New:
+
+        hook notice(n: Notice::Info) { ... }
+
+- The notice_policy.log is gone. That's a result of the new notice
+  policy setup.
+
+- Removed the byte_len() and length() bif functions. Use the "|...|"
+  operator instead.
+
+- The SSH::Login notice has been superseded by an corresponding
+  intelligence framework observation (SSH::SUCCESSFUL_LOGIN).
 
 Bro 2.1
 -------
@@ -127,6 +265,27 @@ New Functionality
   outputs. We do not yet recommend them for production (but welcome
   feedback!)
 
+- Summary statistics framework. [Extend]
+
+- A number of new applications build on top of the summary statistics
+  framework:
+
+    * Scan detection: Detectors for port and address scans return. See
+      policy/misc/scan.bro.
+
+    * Tracerouter detector: policy/misc/detect-traceroute
+
+    * Web application detection/measurement: policy/misc/app-metrics.bro
+
+    * FTP brute-forcing detector: policy/protocols/ftp/detect-bruteforcing.bro
+
+    * HTTP-based SQL injection detector: policy/protocols/http/detect-sqli.bro
+      (existed before, but now ported to the new framework)
+
+    * SSH brute-forcing detector feeding the intelligence framework:
+      policy/protocols/ssh/detect-bruteforcing.bro
+
+
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
@@ -210,7 +369,7 @@ Bro 2.0
 As the version number jump suggests, Bro 2.0 is a major upgrade and
 lots of things have changed. We have assembled a separate upgrade
 guide with the most important changes compared to Bro 1.5 at
-http://www.bro-ids.org/documentation/upgrade.html. You can find
+http://www.bro.org/documentation/upgrade.html. You can find
 the offline version of that document in ``doc/upgrade.rst.``.
 
 Compared to the earlier 2.0 Beta version, the major changes in the
@@ -218,7 +377,7 @@ final release are:
 
     * The default scripts now come with complete reference
       documentation. See
-      http://www.bro-ids.org/documentation/index.html.
+      http://www.bro.org/documentation/index.html.
 
     * libz and libmagic are now required dependencies.
 

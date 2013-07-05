@@ -6,6 +6,7 @@
 #define LOGGING_WRITER_ASCII_H
 
 #include "../WriterBackend.h"
+#include "threading/AsciiFormatter.h"
 
 namespace logging { namespace writer {
 
@@ -32,7 +33,6 @@ protected:
 
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
-	bool DoWriteOne(ODesc* desc, threading::Value* val, const threading::Field* field);
 	bool WriteHeaderField(const string& key, const string& value);
 	void CloseFile(double t);
 	string Timestamp(double t); // Uses current time if t is zero.
@@ -45,21 +45,15 @@ private:
 	// Options set from the script-level.
 	bool output_to_stdout;
 	bool include_meta;
+	bool tsv;
 
-	char* separator;
-	int separator_len;
+	string separator;
+	string set_separator;
+	string empty_field;
+	string unset_field;
+	string meta_prefix;
 
-	char* set_separator;
-	int set_separator_len;
-
-	char* empty_field;
-	int empty_field_len;
-
-	char* unset_field;
-	int unset_field_len;
-
-	char* meta_prefix;
-	int meta_prefix_len;
+	AsciiFormatter* ascii;
 };
 
 }

@@ -1,6 +1,4 @@
-dpd_config, {
-
-}
+|Analyzer::all_registered_ports()|, 0
 signature_match [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp] - matched my_ftp_client
 ftp_reply 199.233.217.249:21 - 220 ftp.NetBSD.org FTP server (NetBSD-ftpd 20100320) ready.
 ftp_request 141.142.220.235:50003 - USER anonymous

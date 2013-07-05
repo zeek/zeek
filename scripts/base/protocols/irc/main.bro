@@ -2,8 +2,6 @@
 ##! IRC commands along with the associated response and some additional 
 ##! metadata about the connection if it's available.
 
-@load base/frameworks/protocols
-
 module IRC;
 
 export {
@@ -40,14 +38,20 @@ redef record connection += {
 	irc:  Info &optional;
 };
 
-global analyzers = { ANALYZER_IRC };
-redef Protocols::analyzer_map += { ["IRC"] = analyzers };
-global ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp, 7000/tcp };
-redef Protocols::common_ports += { ["IRC"] = ports };
+# Some common IRC ports.
+redef capture_filters += { ["irc-6666"] = "port 6666" };
+redef capture_filters += { ["irc-6667"] = "port 6667" };
+redef capture_filters += { ["irc-6668"] = "port 6668" };
+redef capture_filters += { ["irc-6669"] = "port 6669" };
+
+# DPD configuration.
+const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);
 	}
 	
 function new_session(c: connection): Info

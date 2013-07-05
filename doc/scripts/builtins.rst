@@ -246,6 +246,31 @@ The Bro scripting language supports the following built-in types.
             [5] = "five",
         };
 
+    A table constructor (equivalent to above example) can also be used
+    to create a table:
+
+    .. code:: bro
+
+        global t2: table[count] of string = table(
+            [11] = "eleven",
+            [5] = "five"
+        );
+
+    Table constructors can also be explicitly named by a type, which is
+    useful for when a more complex index type could otherwise be
+    ambiguous:
+
+    .. code:: bro
+
+        type MyRec: record {
+            a: count &optional;
+            b: count;
+        };
+
+        type MyTable: table[MyRec] of string;
+
+        global t3 = MyTable([[$b=5]] = "b5", [[$b=7]] = "b7");
+
     Accessing table elements if provided by enclosing values within square
     brackets (``[]``), for example:
 
@@ -308,6 +333,28 @@ The Bro scripting language supports the following built-in types.
     The types are explicitly shown in the example above, but they could
     have been left to type inference.
 
+    A set constructor (equivalent to above example) can also be used to
+    create a set:
+
+    .. code:: bro
+
+        global s3: set[port] = set(21/tcp, 23/tcp, 80/tcp, 443/tcp);
+
+    Set constructors can also be explicitly named by a type, which is
+    useful for when a more complex index type could otherwise be
+    ambiguous:
+
+    .. code:: bro
+
+        type MyRec: record {
+            a: count &optional;
+            b: count;
+        };
+
+        type MySet: set[MyRec];
+
+        global s4 = MySet([$b=1], [$b=2]);
+
     Set membership is tested with ``in``:
 
     .. code:: bro
@@ -348,6 +395,21 @@ The Bro scripting language supports the following built-in types.
     .. code:: bro
 
         global v: vector of string = vector("one", "two", "three");
+
+    Vector constructors can also be explicitly named by a type, which
+    is useful for when a more complex yield type could otherwise be
+    ambiguous.
+
+    .. code:: bro
+
+        type MyRec: record {
+            a: count &optional;
+            b: count;
+        };
+
+        type MyVec: vector of MyRec;
+
+        global v2 = MyVec([$b=1], [$b=2], [$b=3]);
 
     Adding an element to a vector involves accessing/assigning it:
 
@@ -402,6 +464,44 @@ The Bro scripting language supports the following built-in types.
         if ( r?$s )
             ...
 
+    Records can also be created using a constructor syntax:
+
+    .. code:: bro
+
+        global r2: MyRecordType = record($c = 7);
+
+    And the constructor can be explicitly named by type, too, which
+    is arguably more readable code:
+
+    .. code:: bro
+
+        global r3 = MyRecordType($c = 42);
+
+.. bro:type:: opaque
+
+    A data type whose actual representation/implementation is
+    intentionally hidden, but whose values may be passed to certain
+    functions that can actually access the internal/hidden resources.
+    Opaque types are differentiated from each other by qualifying them
+    like ``opaque of md5`` or ``opaque of sha1``.  Any valid identifier
+    can be used as the type qualifier.
+
+    An example use of this type is the set of built-in functions which
+    perform hashing:
+
+    .. code:: bro
+
+        local handle: opaque of md5 = md5_hash_init();
+        md5_hash_update(handle, "test");
+        md5_hash_update(handle, "testing");
+        print md5_hash_finish(handle);
+
+    Here the opaque type is used to provide a handle to a particular
+    resource which is calculating an MD5 checksum incrementally over
+    time, but the details of that resource aren't relevant, it's only
+    necessary to have a handle as a way of identifying it and
+    distinguishing it from other such resources.
+
 .. bro:type:: file
 
     Bro supports writing to files, but not reading from them.  For
@@ -416,10 +516,6 @@ The Bro scripting language supports the following built-in types.
 
     Writing to files like this for logging usually isn't recommended, for better
     logging support see :doc:`/logging`.
-
-.. bro:type:: func
-
-    See :bro:type:`function`.
 
 .. bro:type:: function
 
@@ -463,6 +559,31 @@ The Bro scripting language supports the following built-in types.
 
         print greeting("Dave");
 
+    Function parameters may specify default values as long as they appear
+    last in the parameter list:
+
+    .. code:: bro
+
+        global foo: function(s: string, t: string &default="abc", u: count &default=0);
+
+    If a function was previously declared with default parameters, the
+    default expressions can be omitted when implementing the function
+    body and they will still be used for function calls that lack those
+    arguments.
+
+    .. code:: bro
+
+        function foo(s: string, t: string, u: count)
+            {
+            print s, t, u;
+            }
+
+    And calls to the function may omit the defaults from the argument list:
+
+    .. code:: bro
+
+        foo("test");
+
 .. bro:type:: event
 
     Event handlers are nearly identical in both syntax and semantics to
@@ -504,6 +625,87 @@ The Bro scripting language supports the following built-in types.
     identifier and the body of each will be executed in turn.  Ordering
     of execution can be influenced with :bro:attr:`&priority`.
 
+.. bro:type:: hook
+
+    A hook is another flavor of function that shares characteristics of
+    both a :bro:type:`function` and a :bro:type:`event`.  They are like
+    events in that many handler bodies can be defined for the same hook
+    identifier and the order of execution can be enforced with
+    :bro:attr:`&priority`.  They are more like functions in the way they
+    are invoked/called, because, unlike events, their execution is
+    immediate and they do not get scheduled through an event queue.
+    Also, a unique feature of a hook is that a given hook handler body
+    can short-circuit the execution of remaining hook handlers simply by
+    exiting from the body as a result of a ``break`` statement (as
+    opposed to a ``return`` or just reaching the end of the body).
+
+    A hook type is declared like::
+
+        hook( argument* )
+
+    where *argument* is a (possibly empty) comma-separated list of
+    arguments.  For example:
+
+    .. code:: bro
+
+        global myhook: hook(s: string)
+
+    Here ``myhook`` is the hook type identifier and no hook handler
+    bodies have been defined for it yet.  To define some hook handler
+    bodies the syntax looks like:
+
+    .. code:: bro
+
+        hook myhook(s: string) &priority=10
+            {
+            print "priority 10 myhook handler", s;
+            s = "bye";
+            }
+
+        hook myhook(s: string)
+            {
+            print "break out of myhook handling", s;
+            break;
+            }
+
+        hook myhook(s: string) &priority=-5
+            {
+            print "not going to happen", s;
+            }
+
+    Note that the first (forward) declaration of ``myhook`` as a hook
+    type isn't strictly required.  Argument types must match for all
+    hook handlers and any forward declaration of a given hook.
+
+    To invoke immediate execution of all hook handler bodies, they
+    are called similarly to a function, except preceded by the ``hook``
+    keyword:
+
+    .. code:: bro
+
+        hook myhook("hi");
+
+    or
+
+    .. code:: bro
+
+        if ( hook myhook("hi") )
+            print "all handlers ran";
+
+    And the output would look like::
+
+        priority 10 myhook handler, hi
+        break out of myhook handling, bye
+
+    Note how the modification to arguments can be seen by remaining
+    hook handlers.
+
+    The return value of a hook call is an implicit :bro:type:`bool`
+    value with ``T`` meaning that all handlers for the hook were
+    executed and ``F`` meaning that only some of the handlers may have
+    executed due to one handler body exiting as a result of a ``break``
+    statement.
+
 Attributes
 ----------
 
@@ -520,10 +722,10 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &default
 
-    Uses a default value for a record field or container elements. For
-    example, ``table[int] of string &default="foo" }`` would create a
-    table that returns the :bro:type:`string` ``"foo"`` for any
-    non-existing index.
+    Uses a default value for a record field, a function/hook/event
+    parameter, or container elements.  For example, ``table[int] of
+    string &default="foo" }`` would create a table that returns the
+    :bro:type:`string` ``"foo"`` for any non-existing index.
 
 .. bro:attr:: &redef
 
@@ -586,19 +788,11 @@ scripting language supports the following built-in attributes.
     ``&synchronized`` variable is automatically propagated to all peers
     when it changes.
 
-.. bro:attr:: &postprocessor
-
-.. TODO: needs to be documented.
-
 .. bro:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
 
 .. TODO: needs to be documented in more detail.
-
-.. bro:attr:: &match
-
-.. TODO: needs to be documented.
 
 .. bro:attr:: &raw_output
 
@@ -633,6 +827,3 @@ scripting language supports the following built-in attributes.
 
 .. TODO: needs documented
 
-.. bro:attr:: (&tracked)
-
-.. TODO: needs documented or removed if it's not used anywhere.

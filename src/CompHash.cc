@@ -77,7 +77,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		*kp = ( v ? 1 : 0);
 		kp0 = reinterpret_cast<char*>(kp+1);
 
-		if ( ! v ) 
+		if ( ! v )
 			return kp0;
 		}
 
@@ -181,16 +181,24 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 				Val* key = lv->Index(i);
 				if ( ! (kp1 = SingleValHash(type_check, kp1, key->Type(), key,
 				                            false)) )
+					{
+					Unref(lv);
 					return 0;
+					}
 
 				if ( ! v->Type()->IsSet() )
 					{
 					Val* val = tv->Lookup(key);
 					if ( ! (kp1 = SingleValHash(type_check, kp1, val->Type(),
 								    val, false)) )
+						{
+						Unref(lv);
 						return 0;
+						}
 					}
 				}
+
+			Unref(lv);
 			}
 			break;
 
@@ -273,6 +281,9 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 	{
+	if ( ! v )
+		reporter->InternalError("null value given to CompositeHash::ComputeHash");
+
 	if ( is_singleton )
 		return ComputeSingletonHash(v, type_check);
 
@@ -451,15 +462,26 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				Val* key = lv->Index(i);
 				sz = SingleTypeKeySize(key->Type(), key, type_check, sz, false,
 				                       calc_static_size);
-				if ( ! sz ) return 0;
+				if ( ! sz )
+					{
+					Unref(lv);
+					return 0;
+					}
+
 				if ( ! bt->IsSet() )
 					{
 					Val* val = tv->Lookup(key);
 					sz = SingleTypeKeySize(val->Type(), val, type_check, sz,
 					                       false, calc_static_size);
-					if ( ! sz ) return 0;
+					if ( ! sz )
+						{
+						Unref(lv);
+						return 0;
+						}
 					}
 				}
+
+			Unref(lv);
 
 			break;
 			}
@@ -827,7 +849,10 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				}
 
 			for ( int i = 0; i < n; ++i )
+				{
 				tv->Assign(keys[i], t->IsSet() ? 0 : values[i]);
+				Unref(keys[i]);
+				}
 
 			pval = tv;
 			}
@@ -853,7 +878,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				if ( have_val )
 					kp1 = RecoverOneVal(k, kp1, k_end, vt->YieldType(), value,
 					                    false);
-				vv->Assign(index, value, 0);
+				vv->Assign(index, value);
 				}
 
 			pval = vv;

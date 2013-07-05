@@ -6,7 +6,7 @@ Notice Framework
 
     One of the easiest ways to customize Bro is writing a local notice
     policy. Bro can detect a large number of potentially interesting
-    situations, and the notice policy tells which of them the user wants to be
+    situations, and the notice policy hook which of them the user wants to be
     acted upon in some manner. In particular, the notice policy can specify
     actions to be taken, such as sending an email or compiling regular
     alarm emails.  This page gives an introduction into writing such a notice
@@ -24,8 +24,8 @@ of interest for the user. However, none of these scripts determines the
 importance of what it finds itself. Instead, the scripts only flag situations
 as *potentially* interesting, leaving it to the local configuration to define
 which of them are in fact actionable. This decoupling of detection and
-reporting allows Bro to address the different needs that sites have:
-definitions of what constitutes an attack or even a compromise differ quite a
+reporting allows Bro to address the different needs that sites have.
+Definitions of what constitutes an attack or even a compromise differ quite a
 bit between environments, and activity deemed malicious at one site might be
 fully acceptable at another.
 
@@ -40,7 +40,7 @@ More information about raising notices can be found in the `Raising Notices`_
 section.
 
 Once a notice is raised, it can have any number of actions applied to it by
-the :bro:see:`Notice::policy` set which is described in the `Notice Policy`_
+writing :bro:see:`Notice::policy` hooks which is described in the `Notice Policy`_
 section below. Such actions can be to send a mail to the configured
 address(es) or to simply ignore the notice. Currently, the following actions
 are defined:
@@ -68,13 +68,7 @@ are defined:
       - Send an email to the email address or addresses given in the
         :bro:see:`Notice::mail_page_dest` variable.
 
-    * - Notice::ACTION_NO_SUPPRESS
-      - This action will disable the built in notice suppression for the
-        notice. Keep in mind that this action will need to be applied to
-        every notice that shouldn't be suppressed including each of the future
-        notices that would have normally been suppressed.
-
-How these notice actions are applied to notices is discussed in the 
+How these notice actions are applied to notices is discussed in the
 `Notice Policy`_ and `Notice Policy Shortcuts`_ sections.
 
 Processing Notices
@@ -83,105 +77,46 @@ Processing Notices
 Notice Policy
 *************
 
-The predefined set :bro:see:`Notice::policy` provides the mechanism for
-applying actions and other behavior modifications to notices. Each entry
-of :bro:see:`Notice::policy` is a record of the type
-:bro:see:`Notice::PolicyItem` which defines a condition to be matched
-against all raised notices and one or more of a variety of behavior
-modifiers. The notice policy is defined by adding any number of
-:bro:see:`Notice::PolicyItem` records to the :bro:see:`Notice::policy`
-set.
+The hook :bro:see:`Notice::policy` provides the mechanism for applying
+actions and generally modifying the notice before it's sent onward to
+the action plugins.  Hooks can be thought of as multi-bodied functions
+and using them looks very similar to handling events.  The difference
+is that they don't go through the event queue like events.  Users should
+directly make modifications to the :bro:see:`Notice::Info` record
+given as the argument to the hook.
 
 Here's a simple example which tells Bro to send an email for all notices of
-type :bro:see:`SSH::Login` if the server is 10.0.0.1:
+type :bro:see:`SSH::Password_Guessing` if the server is 10.0.0.1:
 
 .. code:: bro
 
-    redef Notice::policy += {
-      [$pred(n: Notice::Info) = {
-         return n$note == SSH::Login && n$id$resp_h == 10.0.0.1;
-       },
-       $action = Notice::ACTION_EMAIL]
-      };
+    hook Notice::policy(n: Notice::Info)
+      {
+      if ( n$note == SSH::Password_Guessing && n$id$resp_h == 10.0.0.1 )
+        add n$actions[Notice::ACTION_EMAIL];
+      }
 
 .. note::
 
-    Keep in mind that the semantics of the SSH::Login notice are
-    such that it is only raised when Bro heuristically detects a successful
-    login. No apparently failed logins will raise this notice.
+    Keep in mind that the semantics of the SSH::Password_Guessing notice are
+    such that it is only raised when Bro heuristically detects a failed
+    login.
 
-While the syntax might look a bit convoluted at first, it provides a lot of
-flexibility due to having access to Bro's full programming language.
-
-Predicate Field
-^^^^^^^^^^^^^^^
-
-The :bro:see:`Notice::PolicyItem` record type has a field name ``$pred``
-which defines the entry's condition in the form of a predicate written
-as a Bro function. The function is passed the notice as a
-:bro:see:`Notice::Info` record and it returns a boolean value indicating
-if the entry is applicable to that particular notice.
-
-.. note::
-
-    The lack of a predicate in a ``Notice::PolicyItem`` is implicitly true
-    (``T``) since an implicit false (``F``) value would never be used.
-
-Bro evaluates the predicates of each entry in the order defined by the
-``$priority`` field in :bro:see:`Notice::PolicyItem` records. The valid
-values are 0-10 with 10 being earliest evaluated. If ``$priority`` is
-omitted, the default priority is 5.
-
-Behavior Modification Fields
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-There are a set of fields in the :bro:see:`Notice::PolicyItem` record type that
-indicate ways that either the notice or notice processing should be modified
-if the predicate field (``$pred``) evaluated to true (``T``). Those fields are
-explained in more detail in the following table.
-
-.. list-table::
-    :widths: 20 30 20
-    :header-rows: 1
-
-    * - Field
-      - Description
-      - Example
-
-    * - ``$action=<Notice::Action>``
-      - Each :bro:see:`Notice::PolicyItem` can have a single action
-        applied to the notice with this field.
-      - ``$action = Notice::ACTION_EMAIL``
-
-    * - ``$suppress_for=<interval>`` 
-      - This field makes it possible for a user to modify the behavior of the
-        notice framework's automated suppression of intrinsically similar
-        notices. More information about the notice framework's automated
-        suppression can be found in the `Automated Suppression`_ section of
-        this document.
-      - ``$suppress_for = 10mins``
-
-    * - ``$halt=<bool>``
-      - This field can be used for modification of the notice policy
-        evaluation. To stop processing of notice policy items before
-        evaluating all of them, set this field to ``T`` and make the ``$pred``
-        field return ``T``. :bro:see:`Notice::PolicyItem` records defined at
-        a higher priority as defined by the ``$priority`` field will still be
-        evaluated but those at a lower priority won't.
-      - ``$halt = T``
-
-
+Hooks can also have priorities applied to order their execution like events
+with a default priority of 0.  Greater values are executed first.  Setting
+a hook body to run before default hook bodies might look like this:
 
 .. code:: bro
 
-    redef Notice::policy += {
-      [$pred(n: Notice::Info) = {
-         return n$note == SSH::Login && n$id$resp_h == 10.0.0.1;
-       },
-       $action = Notice::ACTION_EMAIL,
-       $priority=5]
-      };
+    hook Notice::policy(n: Notice::Info) &priority=5
+      {
+      if ( n$note == SSH::Password_Guessing && n$id$resp_h == 10.0.0.1 )
+        add n$actions[Notice::ACTION_EMAIL];
+      }
 
+Hooks can also abort later hook bodies with the ``break`` keyword. This
+is primarily useful if one wants to completely preempt processing by
+lower priority :bro:see:`Notice::policy` hooks.
 
 Notice Policy Shortcuts
 ***********************
@@ -189,7 +124,7 @@ Notice Policy Shortcuts
 Although the notice framework provides a great deal of flexibility and
 configurability there are many times that the full expressiveness isn't needed
 and actually becomes a hindrance to achieving results. The framework provides
-a default :bro:see:`Notice::policy` suite as a way of giving users the
+a default :bro:see:`Notice::policy` hook body as a way of giving users the
 shortcuts to easily apply many common actions to notices.
 
 These are implemented as sets and tables indexed with a
@@ -238,16 +173,16 @@ Raising Notices
 
 A script should raise a notice for any occurrence that a user may want
 to be notified about or take action on. For example, whenever the base
-SSH analysis scripts sees an SSH session where it is heuristically
-guessed to be a successful login, it raises a Notice of the type
-:bro:see:`SSH::Login`. The code in the base SSH analysis script looks
-like this:
+SSH analysis scripts sees enough failed logins to a given host, it
+raises a notice of the type :bro:see:`SSH::Password_Guessing`.  The code
+in the base SSH analysis script which raises the notice looks like this:
 
 .. code:: bro
 
-    NOTICE([$note=SSH::Login, 
-            $msg="Heuristically detected successful SSH login.",
-            $conn=c]);
+    NOTICE([$note=Password_Guessing,
+            $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
+            $src=key$host,
+            $identifier=cat(key$host)]);
 
 :bro:see:`NOTICE` is a normal function in the global namespace which
 wraps a function within the ``Notice`` namespace. It takes a single
@@ -263,7 +198,7 @@ fields used when raising notices are described in the following table:
 
     * - ``$note``
       - This field is required and is an enum value which represents the
-        notice type.  
+        notice type.
 
     * - ``$msg``
       - This is a human readable message which is meant to provide more
@@ -355,9 +290,9 @@ certificates.
 
 .. code:: bro
 
-    NOTICE([$note=SSL::Invalid_Server_Cert, 
+    NOTICE([$note=SSL::Invalid_Server_Cert,
             $msg=fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status),
-            $sub=c$ssl$subject, 
+            $sub=c$ssl$subject,
             $conn=c,
             $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$validation_status,c$ssl$cert_hash)]);
 
@@ -377,19 +312,45 @@ Setting the ``$identifier`` field is left to those raising notices because
 it's assumed that the script author who is raising the notice understands the
 full problem set and edge cases of the notice which may not be readily
 apparent to users. If users don't want the suppression to take place or simply
-want a different interval, they can always modify it with the
-:bro:see:`Notice::policy`.
+want a different interval, they can set a notice's suppression
+interval to ``0secs`` or delete the value from the ``$identifier`` field in
+a :bro:see:`Notice::policy` hook.
 
 
 Extending Notice Framework
 --------------------------
 
-Adding Custom Notice Actions
-****************************
+There are a couple of mechanism currently for extending the notice framework
+and adding new capability.
 
 Extending Notice Emails
 ***********************
 
+If there is extra information that you would like to add to emails, that is
+possible to add by writing :bro:see:`Notice::policy` hooks.
+
+There is a field in the :bro:see:`Notice::Info` record named
+``$email_body_sections`` which will be included verbatim when email is being
+sent. An example of including some information from an HTTP request is
+included below.
+
+.. code:: bro
+
+    hook Notice::policy(n: Notice::Info)
+      {
+      if ( n?$conn && n$conn?$http && n$conn$http?$host )
+        n$email_body_sections[|email_body_sections|] = fmt("HTTP host header: %s", n$conn$http$host);
+      }
+
+
 Cluster Considerations
 ----------------------
+
+As a user/developer of Bro, the main cluster concern with the notice framework
+is understanding what runs where. When a notice is generated on a worker, the
+worker checks to see if the notice shoudl be suppressed based on information
+locally maintained in the worker process. If it's not being
+suppressed, the worker forwards the notice directly to the manager and does no more
+local processing. The manager then runs the :bro:see:`Notice::policy` hook and
+executes all of the actions determined to be run.
 

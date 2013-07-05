@@ -5,14 +5,16 @@
 
 #include "EventRegistry.h"
 #include "Serializer.h"
-#include "AnalyzerTags.h"
+
+#include "analyzer/Tag.h"
+#include "analyzer/Analyzer.h"
 
 class EventMgr;
 
 class Event : public BroObj {
 public:
 	Event(EventHandlerPtr handler, val_list* args,
-		SourceID src = SOURCE_LOCAL, AnalyzerID aid = 0,
+		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 		TimerMgr* mgr = 0, BroObj* obj = 0);
 	~Event();
 
@@ -20,7 +22,7 @@ public:
 	Event* NextEvent() const	{ return next_event; }
 
 	SourceID Source() const		{ return src; }
-	AnalyzerID Analyzer() const	{ return aid; }
+	analyzer::ID Analyzer() const	{ return aid; }
 	TimerMgr* Mgr() const		{ return mgr; }
 
 	void Describe(ODesc* d) const;
@@ -62,7 +64,7 @@ protected:
 	EventHandlerPtr handler;
 	val_list* args;
 	SourceID src;
-	AnalyzerID aid;
+	analyzer::ID aid;
 	TimerMgr* mgr;
 	BroObj* obj;
 	Event* next_event;
@@ -77,7 +79,7 @@ public:
 	~EventMgr();
 
 	void QueueEvent(EventHandlerPtr h, val_list* vl,
-			SourceID src = SOURCE_LOCAL, AnalyzerID aid = 0,
+			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0)
 		{
 		if ( h )
@@ -105,7 +107,7 @@ public:
 
 	// Returns the ID of the analyzer which raised the last event, or 0 if
 	// non-analyzer event.
-	AnalyzerID CurrentAnalyzer() const	{ return current_aid; }
+	analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
 
 	// Returns the timer mgr associated with the last raised event.
 	TimerMgr* CurrentTimerMgr() const	{ return current_mgr; }
@@ -124,7 +126,7 @@ protected:
 	Event* head;
 	Event* tail;
 	SourceID current_src;
-	AnalyzerID current_aid;
+	analyzer::ID current_aid;
 	TimerMgr* current_mgr;
 	RecordVal* src_val;
 	bool draining;

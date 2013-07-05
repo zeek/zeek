@@ -1,0 +1,239 @@
+## Generated for DHCP messages of type *discover*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## req_addr: The specific address requested by the client.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr%);
+
+## Generated for DHCP messages of type *offer*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: TODO.
+##
+## mask: The subnet mask specified by the message.
+##
+## router: The list of routers specified by the message.
+##
+## lease: The least interval specified by the message.
+##
+## serv_addr: The server address specified by the message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr%);
+
+## Generated for DHCP messages of type *request*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## req_addr: The client address specified by the message.
+##
+## serv_addr: The server address specified by the message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr%);
+
+## Generated for DHCP messages of type *decline*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_decline%(c: connection, msg: dhcp_msg%);
+
+## Generated for DHCP messages of type *acknowledgment*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## mask: The subnet mask specified by the message.
+##
+## router: The list of routers specified by the message.
+##
+## lease: The least interval specified by the message.
+##
+## serv_addr: The server address specified by the message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr%);
+
+## Generated for DHCP messages of type *negative acknowledgment*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_nak%(c: connection, msg: dhcp_msg%);
+
+## Generated for DHCP messages of type *release*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_release%(c: connection, msg: dhcp_msg%);
+
+## Generated for DHCP messages of type *inform*.
+##
+## See `Wikipedia
+## <http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol>`__ for
+## more information about the DHCP protocol.
+##
+## c: The connection record describing the underlying UDP flow.
+##
+## msg: The parsed type-independent part of the DHCP message.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request
+##
+## .. note:: Bro does not support broadcast packets (as used by the DHCP
+##    protocol). It treats broadcast addresses just like any other and
+##    associates packets into transport-level flows in the same way as usual.
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event dhcp_inform%(c: connection, msg: dhcp_msg%);
+

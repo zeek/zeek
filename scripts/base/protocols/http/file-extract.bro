@@ -2,8 +2,7 @@
 ##! the message body from the server can be extracted with this script.
 
 @load ./main
-@load ./file-ident
-@load base/utils/files
+@load ./file-analysis
 
 module HTTP;
 
@@ -15,46 +14,87 @@ export {
 	const extraction_prefix = "http-item" &redef;
 
 	redef record Info += {
-		## On-disk file where the response body was extracted to.
-		extraction_file:  file &log &optional;
+		## On-disk location where files in request body were extracted.
+		extracted_request_files: vector of string &log &optional;
+
+		## On-disk location where files in response body were extracted.
+		extracted_response_files: vector of string &log &optional;
 		
 		## Indicates if the response body is to be extracted or not.  Must be 
-		## set before or by the first :bro:id:`http_entity_data` event for the
-		## content.
+		## set before or by the first :bro:see:`file_new` for the file content.
 		extract_file:     bool &default=F;
 	};
 }
 
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
+function get_extraction_name(f: fa_file): string
 	{
-	# Client body extraction is not currently supported in this script.
-	if ( is_orig )
-		return;
-	
-	if ( c$http$first_chunk )
-		{
-		if ( c$http?$mime_type &&
-		     extract_file_types in c$http$mime_type )
-			{
-			c$http$extract_file = T;
-			}
-			
-		if ( c$http$extract_file )
-			{
-			local suffix = fmt("%s_%d.dat", is_orig ? "orig" : "resp", c$http_state$current_response);
-			local fname = generate_extraction_filename(extraction_prefix, c, suffix);
-			
-			c$http$extraction_file = open(fname);
-			enable_raw_output(c$http$extraction_file);
-			}
-		}
-
-	if ( c$http?$extraction_file )
-		print c$http$extraction_file, data;
+	local r = fmt("%s-%s.dat", extraction_prefix, f$id);
+	return r;
 	}
 
-event http_end_entity(c: connection, is_orig: bool)
+function add_extraction_file(c: connection, is_orig: bool, fn: string)
 	{
-	if ( c$http?$extraction_file )
-		close(c$http$extraction_file);
+	if ( is_orig )
+		{
+		if ( ! c$http?$extracted_request_files )
+			c$http$extracted_request_files = vector();
+		c$http$extracted_request_files[|c$http$extracted_request_files|] = fn;
+		}
+	else
+		{
+		if ( ! c$http?$extracted_response_files )
+			c$http$extracted_response_files = vector();
+		c$http$extracted_response_files[|c$http$extracted_response_files|] = fn;
+		}
+	}
+
+event file_new(f: fa_file) &priority=5
+	{
+	if ( ! f?$source ) return;
+	if ( f$source != "HTTP" ) return;
+	if ( ! f?$conns ) return;
+
+	local fname: string;
+	local c: connection;
+
+	if ( f?$mime_type && extract_file_types in f$mime_type )
+		{
+		fname = get_extraction_name(f);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                               $extract_filename=fname]);
+
+		for ( cid in f$conns )
+			{
+			c = f$conns[cid];
+			if ( ! c?$http ) next;
+			add_extraction_file(c, f$is_orig, fname);
+			}
+
+		return;
+		}
+
+	local extracting: bool = F;
+
+	for ( cid in f$conns )
+		{
+		c = f$conns[cid];
+
+		if ( ! c?$http ) next;
+
+		if ( ! c$http$extract_file ) next;
+
+		fname = get_extraction_name(f);
+		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+		                               $extract_filename=fname]);
+		extracting = T;
+		break;
+		}
+
+	if ( extracting )
+		for ( cid in f$conns )
+			{
+			c = f$conns[cid];
+			if ( ! c?$http ) next;
+			add_extraction_file(c, f$is_orig, fname);
+			}
 	}

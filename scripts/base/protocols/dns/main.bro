@@ -1,7 +1,7 @@
 ##! Base DNS analysis script which tracks and logs DNS queries along with
 ##! their responses.
 
-@load base/frameworks/protocols
+@load base/utils/queue
 @load ./consts
 
 module DNS;
@@ -68,23 +68,10 @@ export {
 		ready:         bool            &default=F;
 		## The total number of resource records in a reply message's answer
 		## section.
-		total_answers: count           &default=0;
+		total_answers: count           &optional;
 		## The total number of resource records in a reply message's answer,
 		## authority, and additional sections.
 		total_replies: count           &optional;
-	};
-
-	## A record type which tracks the status of DNS queries for a given
-	## :bro:type:`connection`.
-	type State: record {
-		## Indexed by query id, returns Info record corresponding to
-		## query/response which haven't completed yet.
-		pending: table[count] of Info &optional;
-
-		## This is the list of DNS responses that have completed based on the
-		## number of responses declared and the number received.  The contents
-		## of the set are transaction IDs.
-		finished_answers: set[count] &optional;
 	};
 
 	## An event that can be handled to access the :bro:type:`DNS::Info`
@@ -103,34 +90,57 @@ export {
 	##
 	## reply: The specific response information according to RR type/class.
 	global do_reply: event(c: connection, msg: dns_msg, ans: dns_answer, reply: string);
+
+	## A hook that is called whenever a session is being set.
+	## This can be used if additional initialization logic needs to happen
+	## when creating a new session value.
+	##
+	## c: The connection involved in the new session
+	## 
+	## msg: The DNS message header information.
+	##
+	## is_query: Indicator for if this is being called for a query or a response.
+	global set_session: hook(c: connection, msg: dns_msg, is_query: bool);
+
+	## A record type which tracks the status of DNS queries for a given
+	## :bro:type:`connection`.
+	type State: record {
+		## Indexed by query id, returns Info record corresponding to
+		## query/response which haven't completed yet.
+		pending: table[count] of Queue::Queue;
+
+		## This is the list of DNS responses that have completed based on the
+		## number of responses declared and the number received.  The contents
+		## of the set are transaction IDs.
+		finished_answers: set[count];
+	};
 }
+
 
 redef record connection += {
 	dns:       Info  &optional;
 	dns_state: State &optional;
 };
 
-# Not attaching ANALYZER_DNS_UDP_BINPAC and ANALYZER_DNS_TCP_BINPAC right now.
-global analyzers = { ANALYZER_DNS };
-redef Protocols::analyzer_map += { ["DNS"] = analyzers };
-global ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
-redef Protocols::common_ports += { ["DNS"] = ports };
+# DPD configuration.
+redef capture_filters += {
+	["dns"] = "port 53",
+	["mdns"] = "udp and port 5353",
+	["llmns"] = "udp and port 5355",
+	["netbios-ns"] = "udp port 137",
+};
+
+const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 
 function new_session(c: connection, trans_id: count): Info
 	{
-	if ( ! c?$dns_state )
-		{
-		local state: State;
-		state$pending=table();
-		state$finished_answers=set();
-		c$dns_state = state;
-		}
-
 	local info: Info;
 	info$ts       = network_time();
 	info$id       = c$id;
@@ -140,18 +150,37 @@ function new_session(c: connection, trans_id: count): Info
 	return info;
 	}
 
-function set_session(c: connection, msg: dns_msg, is_query: bool)
+hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 	{
-	if ( ! c?$dns_state || msg$id !in c$dns_state$pending )
+	if ( ! c?$dns_state )
 		{
-		c$dns_state$pending[msg$id] = new_session(c, msg$id);
-		# Try deleting this transaction id from the set of finished answers.
-		# Sometimes hosts will reuse ports and transaction ids and this should
-		# be considered to be a legit scenario (although bad practice).
-		delete c$dns_state$finished_answers[msg$id];
+		local state: State;
+		c$dns_state = state;
 		}
 
-	c$dns = c$dns_state$pending[msg$id];
+	if ( msg$id !in c$dns_state$pending )
+		c$dns_state$pending[msg$id] = Queue::init();
+	
+	local info: Info;
+	# If this is either a query or this is the reply but
+	# no Info records are in the queue (we missed the query?)
+	# we need to create an Info record and put it in the queue.  
+	if ( is_query ||
+	     Queue::len(c$dns_state$pending[msg$id]) == 0 )
+		{
+		info = new_session(c, msg$id);
+		Queue::put(c$dns_state$pending[msg$id], info);
+		}
+
+	if ( is_query )
+		# If this is a query, assign the newly created info variable
+		# so that the world looks correct to anything else handling
+		# this query.
+		c$dns = info;
+	else
+		# Peek at the next item in the queue for this trans_id and 
+		# assign it to c$dns since this is a response.
+		c$dns = Queue::peek(c$dns_state$pending[msg$id]);
 
 	if ( ! is_query )
 		{
@@ -179,7 +208,7 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
-	set_session(c, msg, is_orig);
+	hook set_session(c, msg, is_orig);
 	}
 
 event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
@@ -188,9 +217,6 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 		{
 		c$dns$AA    = msg$AA;
 		c$dns$RA    = msg$RA;
-
-		if ( msg$id in c$dns_state$finished_answers )
-			event conn_weird("dns_reply_seen_after_done", c, "");
 
 		if ( reply != "" )
 			{
@@ -206,7 +232,6 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 		if ( c$dns?$answers && c$dns?$total_answers &&
 		     |c$dns$answers| == c$dns$total_answers )
 			{
-			add c$dns_state$finished_answers[c$dns$trans_id];
 			# Indicate this request/reply pair is ready to be logged.
 			c$dns$ready = T;
 			}
@@ -219,7 +244,8 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 		{
 		Log::write(DNS::LOG, c$dns);
 		# This record is logged and no longer pending.
-		delete c$dns_state$pending[c$dns$trans_id];
+		Queue::get(c$dns_state$pending[c$dns$trans_id]);
+		delete c$dns;
 		}
 	}
 
@@ -231,15 +257,14 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	c$dns$qclass_name = classes[qclass];
 	c$dns$qtype       = qtype;
 	c$dns$qtype_name  = query_types[qtype];
+	c$dns$Z           = msg$Z;
 
 	# Decode netbios name queries
 	# Note: I'm ignoring the name type for now.  Not sure if this should be
 	#       worked into the query/response in some fashion.
 	if ( c$id$resp_p == 137/udp )
 		query = decode_netbios_name(query);
-	c$dns$query    = query;
-
-	c$dns$Z = msg$Z;
+	c$dns$query = query;
 	}
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
@@ -327,6 +352,13 @@ event connection_state_remove(c: connection) &priority=-5
 	# If Bro is expiring state, we should go ahead and log all unlogged
 	# request/response pairs now.
 	for ( trans_id in c$dns_state$pending )
-		Log::write(DNS::LOG, c$dns_state$pending[trans_id]);
+		{
+		local infos: vector of Info;
+		Queue::get_vector(c$dns_state$pending[trans_id], infos);
+		for ( i in infos )
+			{
+			Log::write(DNS::LOG, infos[i]);
+			}
+		}
 	}
 

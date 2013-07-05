@@ -1,0 +1,11 @@
+# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp4_udp_2152_inside.pcap %INPUT >out
+# @TEST-EXEC: btest-diff out
+
+# In telecoms there is never a GTP tunnel within another GTP tunnel.
+# So if we find inside a GTP tunnel anohter IP/UDP packet with port 2152,
+# it is just a UDP packet, but not another GTP tunnel.
+
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string)
+    {
+    print "protocol_violation", c$id, reason;
+    }

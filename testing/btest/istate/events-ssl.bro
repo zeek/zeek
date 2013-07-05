@@ -11,8 +11,8 @@
 # @TEST-EXEC: cat receiver/http.log | $SCRIPTS/diff-remove-timestamps >receiver.http.log
 # @TEST-EXEC: cmp sender.http.log receiver.http.log
 # 
-# @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps >events.snd.log
-# @TEST-EXEC: bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps  >events.rec.log
+# @TEST-EXEC: bro -x sender/events.bst | sed 's/^event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps >events.snd.log
+# @TEST-EXEC: bro -x receiver/events.bst | sed 's/^event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps  >events.rec.log
 # @TEST-EXEC: btest-diff events.rec.log
 # @TEST-EXEC: btest-diff events.snd.log
 # @TEST-EXEC: cmp events.rec.log events.snd.log
@@ -40,7 +40,19 @@ redef tcp_close_delay = 0secs;
 redef ssl_ca_certificate = "../ca_cert.pem";
 redef ssl_private_key = "../bro.pem";
 redef ssl_passphrase = "my-password";
-                                                                                                                                    
+
+# File-analysis fields in http.log won't get set on receiver side correctly,
+# one problem is with the way serialization may send a unique ID in place
+# of a full value and expect the remote side to associate that unique ID with
+# a value it received at an earlier time.  So sometimes modifications the sender
+# makes to the value aren't seen on the receiver (in this case, the mime_type
+# field).
+event file_new(f: fa_file) &priority=10
+	{
+	delete f$mime_type;
+	FileAnalysis::stop(f);
+	}
+
 @TEST-END-FILE
 
 #############
@@ -55,7 +67,7 @@ event bro_init()
 redef peer_description = "events-rcv";
 
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T, $ssl=T, $retry=1sec]
+    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match|file_.*/, $connect=T, $ssl=T, $retry=1sec]
 };
 
 redef ssl_ca_certificate = "../ca_cert.pem";

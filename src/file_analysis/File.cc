@@ -116,11 +116,8 @@ void File::UpdateConnectionFields(Connection* conn)
 
 	Val* conns = val->Lookup(conns_idx);
 
-	bool is_first = false;
-
 	if ( ! conns )
 		{
-		is_first = true;
 		conns = empty_connection_table();
 		val->Assign(conns_idx, conns);
 		}
@@ -131,7 +128,7 @@ void File::UpdateConnectionFields(Connection* conn)
 		Val* conn_val = conn->BuildConnVal();
 		conns->AsTableVal()->Assign(idx, conn_val);
 
-		if ( ! is_first && FileEventAvailable(file_over_new_connection) )
+		if ( FileEventAvailable(file_over_new_connection) )
 			{
 			val_list* vl = new val_list();
 			vl->append(val->Ref());

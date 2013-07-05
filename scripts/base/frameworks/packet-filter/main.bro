@@ -5,7 +5,7 @@
 ##! :bro:id:`capture_filters` and :bro:id:`restrict_filters` variables.
 
 @load base/frameworks/notice
-@load base/frameworks/protocols
+@load base/frameworks/analyzer
 @load ./utils
 
 module PacketFilter;
@@ -64,13 +64,13 @@ export {
 	## The maximum amount of time that you'd like to allow for BPF filters to compile.
 	## If this time is exceeded, compensation measures may be taken by the framework
 	## to reduce the filter size.  This threshold being crossed also results in
-	## the :bro:enum:`PacketFilter::Too_Long_To_Compile_Filter` notice.
+	## the :bro:see:`PacketFilter::Too_Long_To_Compile_Filter` notice.
 	const max_filter_compile_time = 100msec &redef;
 	
 	## Install a BPF filter to exclude some traffic.  The filter should positively
 	## match what is to be excluded, it will be wrapped in a "not".
 	##
-	## filter_id: A somewhat arbitrary string that can be used to identify 
+	## filter_id: An arbitrary string that can be used to identify 
 	##            the filter.
 	##
 	## filter: A BPF expression of traffic that should be excluded.
@@ -83,7 +83,7 @@ export {
 	## the BPF filter.  The filter should match the traffic you don't want
 	## to see (it will be wrapped in a "not" condition).
 	##
-	## filter_id: A somewhat arbitrary string that can be used to identify 
+	## filter_id: An arbitrary string that can be used to identify 
 	##            the filter.
 	##
 	## filter: A BPF expression of traffic that should be excluded.
@@ -119,11 +119,8 @@ export {
 
 global dynamic_restrict_filters: table[string] of string = {};
 
-# Set the default capture filter.
-redef capture_filters += { ["default"] = default_capture_filter };
-
-# Track if a filter is currenlty building so functions that would ultimately 
-# install a filter immediately can still be used buy they won't try to build or
+# Track if a filter is currently building so functions that would ultimately 
+# install a filter immediately can still be used but they won't try to build or
 # install the filter.
 global currently_building = F;
 
@@ -239,7 +236,7 @@ function build(): string
 		cfilter = combine_filters(cfilter, "or", capture_filters[id]);
 	
 	if ( enable_auto_protocol_capture_filters )
-		cfilter = combine_filters(cfilter, "or", Protocols::to_bpf());
+		cfilter = combine_filters(cfilter, "or", Analyzer::get_bpf());
 	
 	# Apply the restriction filters.
 	local rfilter = "";
@@ -269,6 +266,10 @@ function install(): bool
 	
 	local tmp_filter = build();
 	
+	# No need to proceed if the filter hasn't changed.
+	if ( tmp_filter == current_filter )
+		return F;
+
 	local ts = current_time();
 	if ( ! precompile_pcap_filter(DefaultPcapFilter, tmp_filter) )
 		{
@@ -283,8 +284,8 @@ function install(): bool
 	local diff = current_time()-ts;
 	if ( diff > max_filter_compile_time )
 		NOTICE([$note=Too_Long_To_Compile_Filter,
-		        $msg=fmt("A BPF filter is taking longer than %0.6f seconds to compile", diff)]);
-	
+		        $msg=fmt("A BPF filter is taking longer than %0.1f seconds to compile", diff)]);
+
 	# Set it to the current filter if it passed precompiling
 	current_filter = tmp_filter;
 	

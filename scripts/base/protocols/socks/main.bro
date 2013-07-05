@@ -47,10 +47,6 @@ redef record connection += {
 	socks: SOCKS::Info &optional;
 };
 
-# Configure DPD
-redef capture_filters += { ["socks"] = "tcp port 1080" };
-redef likely_server_ports += { 1080/tcp };
-
 function set_session(c: connection, version: count)
 	{
 	if ( ! c?$socks )

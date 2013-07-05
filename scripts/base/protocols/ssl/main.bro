@@ -94,26 +94,10 @@ redef record Info += {
 		delay_tokens: set[string] &optional;
 };
 
-redef capture_filters += {
-	["ssl"] = "tcp port 443",
-	["nntps"] = "tcp port 563",
-	["imap4-ssl"] = "tcp port 585",
-	["sshell"] = "tcp port 614",
-	["ldaps"] = "tcp port 636",
-	["ftps-data"] = "tcp port 989",
-	["ftps"] = "tcp port 990",
-	["telnets"] = "tcp port 992",
-	["imaps"] = "tcp port 993",
-	["ircs"] = "tcp port 994",
-	["pop3s"] = "tcp port 995",
-	["xmpps"] = "tcp port 5223",
-};
-
 const ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-} &redef;
-
+};
 redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
@@ -154,7 +138,7 @@ function log_record(info: Info)
 			{
 			log_record(info);
 			}
-		timeout max_log_delay
+		timeout SSL::max_log_delay
 			{
 			Reporter::info(fmt("SSL delay tokens not released in time (%s tokens remaining)",
 			                   |info$delay_tokens|));

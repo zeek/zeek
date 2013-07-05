@@ -38,13 +38,6 @@ redef record connection += {
 	irc:  Info &optional;
 };
 
-# Some common IRC ports.
-redef capture_filters += { ["irc-6666"] = "port 6666" };
-redef capture_filters += { ["irc-6667"] = "port 6667" };
-redef capture_filters += { ["irc-6668"] = "port 6668" };
-redef capture_filters += { ["irc-6669"] = "port 6669" };
-
-# DPD configuration.
 const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
 redef likely_server_ports += { ports };
 

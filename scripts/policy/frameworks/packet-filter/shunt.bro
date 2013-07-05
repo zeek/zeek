@@ -1,6 +1,5 @@
 @load base/frameworks/notice
-@load ./main
-@load ./utils
+@load base/frameworks/packet-filter
 
 module PacketFilter;
 

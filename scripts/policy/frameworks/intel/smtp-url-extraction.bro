@@ -26,6 +26,6 @@ event file_new(f: fa_file) &priority=5
 	if ( ! f?$source ) return;
 	if ( f$source != "SMTP" ) return;
 
-	FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_DATA_EVENT,
+	Files::add_analyzer(f, [$tag=Files::ANALYZER_DATA_EVENT,
 	                               $stream_event=intel_mime_data]);
 	}

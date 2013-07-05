@@ -71,10 +71,14 @@ export {
 		
 		## All of the headers that may indicate if the request was proxied.
 		proxied:                 set[string] &log &optional;
-
+		
 		## Indicates if this request can assume 206 partial content in
 		## response.
-		range_request:           bool &default=F;
+		range_request:           bool      &default=F;
+		## Number of MIME entities in the HTTP request message body so far.
+		orig_mime_depth:         count     &default=0;
+		## Number of MIME entities in the HTTP response message body so far.
+		resp_mime_depth:         count     &default=0;
 	};
 	
 	## Structure to maintain state for an HTTP connection with multiple 
@@ -283,6 +287,16 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 	}
 	
+event http_begin_entity(c: connection, is_orig: bool) &priority=5
+	{
+	set_state(c, F, is_orig);
+
+	if ( is_orig )
+		++c$http$orig_mime_depth;
+	else
+		++c$http$resp_mime_depth;
+	}
+
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
 	{
 	set_state(c, F, is_orig);

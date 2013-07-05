@@ -7001,7 +7001,7 @@ event event_queue_flush_point%(%);
 event get_file_handle%(tag: count, c: connection, is_orig: bool%);
 
 ## Indicates that an analysis of a new file has begun. The analysis can be
-## augmented at this time via :bro:see:`FileAnalysis::add_analyzer`.
+## augmented at this time via :bro:see:`Files::add_analyzer`.
 ##
 ## f: The file.
 ##
@@ -7024,8 +7024,8 @@ event file_over_new_connection%(f: fa_file, c: connection%);
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_gap file_state_remove
-##    default_file_timeout_interval FileAnalysis::set_timeout_interval
-##    FileAnalysis::set_timeout_interval
+##    default_file_timeout_interval Files::set_timeout_interval
+##    Files::set_timeout_interval
 event file_timeout%(f: fa_file%);
 
 ## Indicates that a chunk of the file is missing.
@@ -7055,8 +7055,8 @@ event file_state_remove%(f: fa_file%);
 ##
 ## hash: The result of the hashing.
 ##
-## .. bro:see:: FileAnalysis::add_analyzer FileAnalysis::ANALYZER_MD5
-##    FileAnalysis::ANALYZER_SHA1 FileAnalysis::ANALYZER_SHA256
+## .. bro:see:: Files::add_analyzer Files::ANALYZER_MD5
+##    Files::ANALYZER_SHA1 Files::ANALYZER_SHA256
 event file_hash%(f: fa_file, kind: string, hash: string%);
 
 ## Deprecated. Will be removed.

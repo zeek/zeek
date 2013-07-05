@@ -11,8 +11,8 @@ redef test_get_file_name = function(f: fa_file): string
 event file_new(f: fa_file) &priority=-10
 	{
 	for ( tag in test_file_analyzers )
-		FileAnalysis::remove_analyzer(f, tag);
+		Files::remove_analyzer(f, tag);
 	local filename = test_get_file_name(f);
-	FileAnalysis::remove_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+	Files::remove_analyzer(f, [$tag=Files::ANALYZER_EXTRACT,
 	                                $extract_filename=filename]);
 	}

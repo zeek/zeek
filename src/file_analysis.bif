@@ -1,6 +1,6 @@
 ##! Internal functions and types used by the logging framework.
 
-module FileAnalysis;
+module Files;
 
 %%{
 #include "file_analysis/Manager.h"
@@ -27,35 +27,35 @@ enum Analyzer %{
 	ANALYZER_DATA_EVENT,
 %}
 
-## :bro:see:`FileAnalysis::set_timeout_interval`.
-function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): bool
+## :bro:see:`Files::set_timeout_interval`.
+function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{
 	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::add_analyzer`.
-function FileAnalysis::__add_analyzer%(file_id: string, args: any%): bool
+## :bro:see:`Files::add_analyzer`.
+function Files::__add_analyzer%(file_id: string, args: any%): bool
 	%{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::remove_analyzer`.
-function FileAnalysis::__remove_analyzer%(file_id: string, args: any%): bool
+## :bro:see:`Files::remove_analyzer`.
+function Files::__remove_analyzer%(file_id: string, args: any%): bool
 	%{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::stop`.
-function FileAnalysis::__stop%(file_id: string%): bool
+## :bro:see:`Files::stop`.
+function Files::__stop%(file_id: string%): bool
 	%{
 	bool result = file_mgr->IgnoreFile(file_id->CheckString());
 	return new Val(result, TYPE_BOOL);

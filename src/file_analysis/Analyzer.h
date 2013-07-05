@@ -8,7 +8,7 @@
 
 namespace file_analysis {
 
-typedef BifEnum::FileAnalysis::Analyzer FA_Tag;
+typedef BifEnum::Files::Analyzer FA_Tag;
 
 class File;
 
@@ -93,7 +93,7 @@ public:
 	 */
 	static FA_Tag ArgsTag(const RecordVal* args)
 		{
-		using BifType::Record::FileAnalysis::AnalyzerArgs;
+		using BifType::Record::Files::AnalyzerArgs;
 		return static_cast<FA_Tag>(
 		              args->Lookup(AnalyzerArgs->FieldOffset("tag"))->AsEnum());
 		}

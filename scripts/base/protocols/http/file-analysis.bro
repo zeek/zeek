@@ -1,53 +1,58 @@
 @load ./main
 @load ./utils
 @load base/utils/conn-ids
-@load base/frameworks/file-analysis/main
+@load base/frameworks/files
 
 module HTTP;
 
 export {
-	redef record HTTP::Info += {
-		## Number of MIME entities in the HTTP request message body so far.
-		request_mime_level: count &default=0;
-		## Number of MIME entities in the HTTP response message body so far.
-		response_mime_level: count &default=0;
+	redef record Info += {
+		## The sniffed mime type of the data being sent by the client.
+		client_mime_type: string &log &optional;
+
+		## The sniffed mime type of the data being returned by the server.
+		mime_type:        string &log &optional;
 	};
 
 	## Default file handle provider for HTTP.
 	global get_file_handle: function(c: connection, is_orig: bool): string;
 }
 
-event http_begin_entity(c: connection, is_orig: bool) &priority=5
-	{
-	if ( ! c?$http ) return;
-
-	if ( is_orig )
-		++c$http$request_mime_level;
-	else
-		++c$http$response_mime_level;
-	}
-
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( ! c?$http ) return "";
+	if ( ! c?$http ) 
+		return "";
 
-	local mime_level: count =
-	        is_orig ? c$http$request_mime_level : c$http$response_mime_level;
-	local mime_level_str: string = mime_level > 1 ? cat(mime_level) : "";
-
+	local mime_depth = is_orig ? c$http$orig_mime_depth : c$http$resp_mime_depth;
 	if ( c$http$range_request )
-		return cat(ANALYZER_HTTP, " ", is_orig, " ", c$id$orig_h, " ",
-		           build_url(c$http));
-
-	return cat(ANALYZER_HTTP, " ", c$start_time, " ", is_orig, " ",
-	           c$http$trans_depth, mime_level_str, " ", id_string(c$id));
+		{
+		return cat(ANALYZER_HTTP, is_orig, c$id$orig_h, mime_depth, build_url(c$http));
+		}
+	else
+		{
+		return cat(ANALYZER_HTTP, c$start_time, is_orig, 
+		           c$http$trans_depth, mime_depth, id_string(c$id));
+		}
 	}
 
-module GLOBAL;
-
-event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
-	&priority=5
+event bro_init() &priority=5
 	{
-	if ( tag != ANALYZER_HTTP ) return;
-	set_file_handle(HTTP::get_file_handle(c, is_orig));
+	Files::register_protocol(ANALYZER_HTTP, HTTP::get_file_handle);
+	}
+
+event file_over_new_connection(f: fa_file, c: connection) &priority=5
+	{
+	if ( c?$http )
+		{
+		#if (!f?$mime_type)
+		#	print f;
+#
+		#if ( f$is_orig )
+		#	c$http$client_mime_type = f$mime_type;
+		#else
+		#	c$http$mime_type = f$mime_type;
+
+		if ( c$http?$filename )
+			f$info$filename = c$http$filename;
+		}
 	}

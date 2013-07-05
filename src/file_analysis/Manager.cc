@@ -38,7 +38,7 @@ string Manager::HashHandle(const string& handle) const
 	static string salt;
 
 	if ( salt.empty() )
-		salt = BifConst::FileAnalysis::salt->CheckString();
+		salt = BifConst::Files::salt->CheckString();
 
 	char tmp[20];
 	uint64 hash[2];
@@ -310,7 +310,7 @@ void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
 bool Manager::IsDisabled(AnalyzerTag::Tag tag)
 	{
 	if ( ! disabled )
-		disabled = internal_const_val("FileAnalysis::disable")->AsTableVal();
+		disabled = internal_const_val("Files::disable")->AsTableVal();
 
 	Val* index = new Val(tag, TYPE_COUNT);
 	Val* yield = disabled->Lookup(index);

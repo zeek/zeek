@@ -1,7 +1,7 @@
 @load ./main
 @load ./entities
 @load base/utils/conn-ids
-@load base/frameworks/file-analysis/main
+@load base/frameworks/files
 
 module SMTP;
 
@@ -12,16 +12,11 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( ! c?$smtp ) return "";
-	return cat(ANALYZER_SMTP, " ", c$start_time, " ", c$smtp$trans_depth, " ",
-	           c$smtp_state$mime_level);
+	return cat(ANALYZER_SMTP, c$start_time, c$smtp$trans_depth,
+	           c$smtp_state$mime_depth);
 	}
 
-module GLOBAL;
-
-event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
-	&priority=5
+event bro_init() &priority=5
 	{
-	if ( tag != ANALYZER_SMTP ) return;
-	set_file_handle(SMTP::get_file_handle(c, is_orig));
+	Files::register_protocol(ANALYZER_SMTP, SMTP::get_file_handle);
 	}

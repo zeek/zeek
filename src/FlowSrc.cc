@@ -9,7 +9,7 @@
 
 #include "FlowSrc.h"
 #include "Net.h"
-#include "netflow_pac.h"
+#include "analyzer/protocol/netflow/netflow_pac.h"
 #include <errno.h>
 
 FlowSrc::FlowSrc()

@@ -94,11 +94,6 @@ redef record Info += {
 		delay_tokens: set[string] &optional;
 };
 
-event bro_init() &priority=5
-	{
-	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
-	}
-
 redef capture_filters += {
 	["ssl"] = "tcp port 443",
 	["nntps"] = "tcp port 563",
@@ -117,23 +112,15 @@ redef capture_filters += {
 const ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
+} &redef;
 
-redef dpd_config += {
-	[[ANALYZER_SSL]] = [$ports = ports]
-};
+redef likely_server_ports += { ports };
 
-redef likely_server_ports += {
-	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
-
-# A queue that buffers log records.
-global log_delay_queue: table[count] of Info;
-# The top queue index where records are added.
-global log_delay_queue_head = 0;
-# The bottom queue index that points to the next record to be flushed.
-global log_delay_queue_tail = 0;
+event bro_init() &priority=5
+	{
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ports);
+	}
 
 function set_session(c: connection)
 	{
@@ -144,24 +131,15 @@ function set_session(c: connection)
 
 function delay_log(info: Info, token: string)
 	{
-	info$delay_tokens = set();
+	if ( ! info?$delay_tokens )
+		info$delay_tokens = set();
 	add info$delay_tokens[token];
-
-	log_delay_queue[log_delay_queue_head] = info;
-	++log_delay_queue_head;
 	}
 
 function undelay_log(info: Info, token: string)
 	{
-	if ( token in info$delay_tokens )
+	if ( info?$delay_tokens && token in info$delay_tokens )
 		delete info$delay_tokens[token];
-	}
-
-global log_record: function(info: Info);
-
-event delay_logging(info: Info)
-	{
-	log_record(info);
 	}
 
 function log_record(info: Info)
@@ -172,26 +150,14 @@ function log_record(info: Info)
 		}
 	else
 		{
-		for ( unused_index in log_delay_queue )
+		when ( |info$delay_tokens| == 0 )
 			{
-			if ( log_delay_queue_head == log_delay_queue_tail )
-				return;
-			if ( |log_delay_queue[log_delay_queue_tail]$delay_tokens| > 0 )
-				{
-				if ( info$ts + max_log_delay > network_time() )
-					{
-					schedule 1sec { delay_logging(info) };
-					return;
-					}
-				else
-					{
-					Reporter::info(fmt("SSL delay tokens not released in time (%s)",
-					                   info$delay_tokens));
-					}
-				}
-			Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
-			delete log_delay_queue[log_delay_queue_tail];
-			++log_delay_queue_tail;
+			log_record(info);
+			}
+		timeout max_log_delay
+			{
+			Reporter::info(fmt("SSL delay tokens not released in time (%s tokens remaining)",
+			                   |info$delay_tokens|));
 			}
 		}
 	}
@@ -288,28 +254,16 @@ event ssl_established(c: connection) &priority=-5
 	finish(c);
 	}
 
-event protocol_confirmation(c: connection, atype: count, aid: count) &priority=5
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
 	# Check by checking for existence of c$ssl record.
-	if ( c?$ssl && analyzer_name(atype) == "SSL" )
+	if ( c?$ssl && atype == Analyzer::ANALYZER_SSL )
 		c$ssl$analyzer_id = aid;
 	}
 
-event protocol_violation(c: connection, atype: count, aid: count,
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
 	if ( c?$ssl )
 		finish(c);
-	}
-
-event bro_done()
-	{
-	if ( |log_delay_queue| == 0 )
-		return;
-	for ( unused_index in log_delay_queue )
-		{
-		Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
-		delete log_delay_queue[log_delay_queue_tail];
-		++log_delay_queue_tail;
-		}
 	}

@@ -12,7 +12,7 @@
 
 broPolicies=${BRO_SCRIPT_SOURCE_PATH}:${BRO_SCRIPT_SOURCE_PATH}/policy:${BRO_SCRIPT_SOURCE_PATH}/site
 
-broGenPolicies=${CMAKE_BINARY_DIR}/src
+broGenPolicies=${CMAKE_BINARY_DIR}/scripts
 
 installedPolicies=${BRO_SCRIPT_INSTALL_PATH}:${BRO_SCRIPT_INSTALL_PATH}/site
 

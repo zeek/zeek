@@ -9,7 +9,6 @@
 #include <queue>
 
 #include "Net.h"
-#include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Analyzer.h"
@@ -18,6 +17,11 @@
 
 #include "File.h"
 #include "FileTimer.h"
+#include "Component.h"
+
+#include "analyzer/Tag.h"
+
+#include "file_analysis/file_analysis.bif.h"
 
 namespace file_analysis {
 
@@ -36,6 +40,18 @@ public:
 	 * Destructor.  Times out any currently active file analyses.
 	 */
 	~Manager();
+
+	/**
+	 * First-stage initializion of the manager. This is called early on
+	 * during Bro's initialization, before any scripts are processed.
+	 */
+	void InitPreScript();
+
+	/**
+	 * Second-stage initialization of the manager. This is called late
+	 * during Bro's initialization after any scripts are processed.
+	 */
+	void InitPostScript();
 
 	/**
 	 * Times out any active file analysis to prepare for shutdown.
@@ -67,7 +83,7 @@ public:
 	 *        or false if is being sent in the opposite direction.
 	 */
 	void DataIn(const u_char* data, uint64 len, uint64 offset,
-		    AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
+		    analyzer::Tag tag, Connection* conn, bool is_orig);
 
 	/**
 	 * Pass in sequential file data.
@@ -78,7 +94,7 @@ public:
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
 	 */
-	void DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+	void DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 	            Connection* conn, bool is_orig);
 
 	/**
@@ -99,7 +115,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn);
+	void EndOfFile(analyzer::Tag tag, Connection* conn);
 
 	/**
 	 * Signal the end of file data being transferred over a connection in
@@ -107,7 +123,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig);
+	void EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig);
 
 	/**
 	 * Signal the end of file data being transferred using the file identifier.
@@ -124,7 +140,7 @@ public:
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
 	 */
-	void Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag, Connection* conn,
+	void Gap(uint64 offset, uint64 len, analyzer::Tag tag, Connection* conn,
 	         bool is_orig);
 
 	/**
@@ -135,7 +151,7 @@ public:
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
 	 */
-	void SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+	void SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
 	             bool is_orig);
 
 	/**
@@ -181,6 +197,23 @@ public:
 	 */
 	bool IsIgnored(const string& file_id);
 
+	/**
+	 * Instantiates a new file analyzer instance for the file.
+	 * @param tag The file analyzer's tag.
+	 * @param args The file analzer argument/option values.
+	 * @param f The file analzer is to be associated with.
+	 * @return The new analyzer instance or null if tag is invalid.
+	 */
+	Analyzer* InstantiateAnalyzer(int tag, RecordVal* args, File* f) const;
+
+	/**
+	 * Translates a script-level file analyzer tag in to corresponding file
+	 * analyzer name.
+	 * @param tag The enum val of a file analyzer.
+	 * @return The human-readable name of the file analyzer.
+	 */
+	const char* GetAnalyzerName(int tag) const;
+
 protected:
 	friend class FileTimer;
 
@@ -205,7 +238,7 @@ protected:
 	 *         connection-related fields.
 	 */
 	File* GetFile(const string& file_id, Connection* conn = 0,
-	              AnalyzerTag::Tag tag = AnalyzerTag::Error,
+	              analyzer::Tag tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true);
 
 	/**
@@ -241,7 +274,7 @@ protected:
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
 	 */
-	void GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig);
+	void GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given
@@ -251,14 +284,26 @@ protected:
 	 * @return whether file analysis is disabled for the analyzer given by
 	 *         \a tag.
 	 */
-	static bool IsDisabled(AnalyzerTag::Tag tag);
+	static bool IsDisabled(analyzer::Tag tag);
 
 private:
+	typedef map<string, Component*> analyzer_map_by_name;
+	typedef map<analyzer::Tag, Component*> analyzer_map_by_tag;
+	typedef map<int, Component*> analyzer_map_by_val;
+
+	void RegisterAnalyzerComponent(Component* component);
+
 	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
 	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
-	string current_file_id;	/**< Hash of what get_file_handle event sets.*/
+	string current_file_id;	/**< Hash of what get_file_handle event sets. */
+	EnumType* tag_enum_type;	/**< File analyzer tag type. */
+
+	analyzer_map_by_name analyzers_by_name;
+	analyzer_map_by_tag analyzers_by_tag;
+	analyzer_map_by_val analyzers_by_val;
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
+	static string salt; /**< A salt added to file handles before hashing. */
 };
 
 } // namespace file_analysis

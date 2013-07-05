@@ -1,4 +1,124 @@
 
+2.1-784 | 2013-07-04 22:28:48 -0400
+
+  * Add a call to lookup_connection in SSH scripts to update connval. (Seth Hall)
+
+  * Updating submodule(s). (Robin Sommer)
+
+2.1-782 | 2013-07-03 17:00:39 -0700
+
+  * Remove the SSL log queueing mechanism that was included with the
+    log delay mechanism. (Seth Hall)
+
+2.1-780 | 2013-07-03 16:46:26 -0700
+
+  * Rewrite of the RAW input reader for improved robustness and new
+    features. (Bernhard Amann) This includes:
+
+        - Send "end_of_data" event for all kind of streams.
+        - Send "process_finished" event with exit code of child
+          process at process termination.
+        - Expose name of input stream to readers.
+        - Better error handling.
+        - New "force_kill" option which SIGKILLs processes on reader termination.
+        - Supports reading from stdout and stderr simultaneously.
+        - Support sending data to stdin of child process.
+        - Streaming reads from external commands work without blocking.
+
+2.1-762 | 2013-07-03 16:33:22 -0700
+
+  * Fix to correct support for TLS 1.2. Addresses #1020. (Seth Hall,
+    with help from Rafal Lesniak).
+
+2.1-760 | 2013-07-03 16:31:36 -0700
+
+  * Teach broxygen to generate protocol analyzer plugin reference.
+    (Jon Siwek)
+
+  * Adding 'const' to a number of C++ methods. (Jon Siwek)
+
+2.1-757 | 2013-07-03 16:28:10 -0700
+
+  * Fix redef of table index from clearing table.
+
+    `redef foo["x"] = 1` now acts like `redef foo += { ["x"] = 1 }`
+    instead of `redef foo = { ["x"] = 1 }`.
+
+    Addresses #1013. (Jon Siwek)
+
+
+2.1-755 | 2013-07-03 16:22:43 -0700
+
+  * Add a general file analysis overview/how-to document. (Jon Siwek)
+
+  * Improve file analysis doxygen comments. (Jon Siwek)
+
+  * Improve tracking of HTTP file extraction. http.log now has files
+    taken from request and response bodies in different fields for
+    each, and can now track multiple files per body. That is, the
+    "extraction_file" field is now "extracted_request_files" and
+    "extracted_response_files". Addresses #988. (Jon Siwek)
+
+  * Fix HTTP multipart body file analysis. Each part now gets assigned
+    a different file handle/id. (Jon Siwek)
+
+  * Remove logging of analyzers field of FileAnalysis::Info. (Jon
+    Siwek)
+
+  * Remove extraction counter in default file extraction scripts. (Jon
+    Siwek)
+
+  * Remove FileAnalysis::postpone_timeout.
+    FileAnalysis::set_timeout_interval can now perform same function.
+    (Jon Siwek)
+
+  * Make default get_file_handle handlers &priority=5 so they're
+    easier to override. (Jon Siwek)
+
+  * Add input interface to forward data for file analysis. The new
+    Input::add_analysis function is used to automatically forward
+    input data on to the file analysis framework. (Jon Siwek)
+
+  * File analysis framework interface simplifications. (Jon Siwek)
+    
+    - Remove script-layer data input interface (will be managed directly
+      by input framework later).
+
+    - Only track files internally by file id hash.  Chance of collision
+      too small to justify also tracking unique file string. 
+
+
+2.1-741 | 2013-06-07 17:28:50 -0700
+
+  * Fixing typo that could cause an assertion to falsely trigger.
+    (Robin Sommer)
+
+2.1-740 | 2013-06-07 16:37:32 -0700
+
+  * Fix for CMake 2.6.x. (Robin Sommer)
+
+2.1-738 | 2013-06-07 08:38:13 -0700
+
+  * Remove invalid free on non-allocated pointer in hash function
+    object. Addresses #1018. (Matthias Vallentin)
+
+2.1-736 | 2013-06-06 10:05:20 -0700
+
+  * New "magic constants" @DIR and @FILENAME that expand to the
+    directory path of the current script and just the script file name
+    without path, respectively. (Jon Siwek)
+
+2.1-731 | 2013-06-04 21:19:08 -0700
+
+  * Reorginization of internal protocol analyzer code. We're moving
+    them to a modularized structure, based on a plugin model. Along
+    with this change comes generic plugin infrastructure that we'll
+    later extend to other Bro component as well. For now all plugins
+    are compiled in statically, but in the future we plan to also
+    enable dynamic loading at run time. (Robin Sommer)
+
+  * Ignoring file ids in external tests. (Robin Sommer)
+
 2.1-675 | 2013-06-02 20:03:19 -0700
 
   * Fix a compiler warning. (Robin Sommer)

@@ -187,7 +187,7 @@ private:
 	};
 
 	typedef queue<Modification*> ModQueue;
-	ModQueue mod_queue; /**< A queue of analyzer additions/removals requests. */
+	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
 };
 
 } // namespace file_analysiss

@@ -125,7 +125,6 @@ export {
 	## A file analyis input stream type used to forward input data to the
 	## file analysis framework.
 	type AnalysisDescription: record {
-
 		## String that allows the reader to find the source.
 		## For `READER_ASCII`, this is the filename.
 		source: string;
@@ -186,7 +185,7 @@ export {
 	global end_of_data: event(name: string, source:string);
 }
 
-@load base/input.bif
+@load base/bif/input.bif
 
 
 module Input;

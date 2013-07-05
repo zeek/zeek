@@ -10,12 +10,18 @@
 #include "Var.h"
 #include "Event.h"
 
+#include "plugin/Manager.h"
+
 using namespace file_analysis;
 
 TableVal* Manager::disabled = 0;
+string Manager::salt;
 
 Manager::Manager()
 	{
+	tag_enum_type = new EnumType("FileAnalysis::Tag");
+	::ID* id = install_ID("Tag", "FileAnalysis", true, true);
+	add_type(id, tag_enum_type, 0, 0);
 	}
 
 Manager::~Manager()
@@ -23,9 +29,44 @@ Manager::~Manager()
 	Terminate();
 	}
 
+void Manager::InitPreScript()
+	{
+	std::list<Component*> analyzers = plugin_mgr->Components<Component>();
+
+	for ( std::list<Component*>::const_iterator i = analyzers.begin();
+	      i != analyzers.end(); ++i )
+	      RegisterAnalyzerComponent(*i);
+	}
+
+void Manager::RegisterAnalyzerComponent(Component* component)
+	{
+	const char* cname = component->CanonicalName();
+
+	if ( tag_enum_type->Lookup("FileAnalysis", cname) != -1 )
+		reporter->FatalError("File Analyzer %s defined more than once", cname);
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Registering analyzer %s (tag %s)",
+			component->Name(), component->Tag().AsString().c_str());
+
+	analyzers_by_name.insert(std::make_pair(cname, component));
+	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
+	analyzers_by_val.insert(std::make_pair(
+	        component->Tag().AsEnumVal()->InternalInt(), component));
+
+	string id = fmt("ANALYZER_%s", cname);
+	tag_enum_type->AddName("FileAnalysis", id.c_str(),
+						   component->Tag().AsEnumVal()->InternalInt(), true);
+	}
+
+void Manager::InitPostScript()
+	{
+	#include "file_analysis.bif.init.cc"
+	}
+
 void Manager::Terminate()
 	{
 	vector<string> keys;
+
 	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
 		keys.push_back(it->first);
 
@@ -35,8 +76,6 @@ void Manager::Terminate()
 
 string Manager::HashHandle(const string& handle) const
 	{
-	static string salt;
-
 	if ( salt.empty() )
 		salt = BifConst::Files::salt->CheckString();
 
@@ -60,7 +99,7 @@ void Manager::SetHandle(const string& handle)
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
+                     analyzer::Tag tag, Connection* conn, bool is_orig)
 	{
 	GetFileHandle(tag, conn, is_orig);
 	File* file = GetFile(current_file_id, conn, tag, is_orig);
@@ -74,7 +113,7 @@ void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 		RemoveFile(file->GetID());
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, AnalyzerTag::Tag tag,
+void Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
                      Connection* conn, bool is_orig)
 	{
 	GetFileHandle(tag, conn, is_orig);
@@ -108,13 +147,13 @@ void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
 		RemoveFile(file->GetID());
 	}
 
-void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn)
+void Manager::EndOfFile(analyzer::Tag tag, Connection* conn)
 	{
 	EndOfFile(tag, conn, true);
 	EndOfFile(tag, conn, false);
 	}
 
-void Manager::EndOfFile(AnalyzerTag::Tag tag, Connection* conn, bool is_orig)
+void Manager::EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig)
 	{
 	// Don't need to create a file if we're just going to remove it right away.
 	GetFileHandle(tag, conn, is_orig);
@@ -126,7 +165,7 @@ void Manager::EndOfFile(const string& file_id)
 	RemoveFile(file_id);
 	}
 
-void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
+void Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
                   Connection* conn, bool is_orig)
 	{
 	GetFileHandle(tag, conn, is_orig);
@@ -138,7 +177,7 @@ void Manager::Gap(uint64 offset, uint64 len, AnalyzerTag::Tag tag,
 	file->Gap(offset, len);
 	}
 
-void Manager::SetSize(uint64 size, AnalyzerTag::Tag tag, Connection* conn,
+void Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
                       bool is_orig)
 	{
 	GetFileHandle(tag, conn, is_orig);
@@ -188,7 +227,7 @@ bool Manager::RemoveAnalyzer(const string& file_id, const RecordVal* args) const
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
-                       AnalyzerTag::Tag tag, bool is_orig, bool update_conn)
+                       analyzer::Tag tag, bool is_orig, bool update_conn)
 	{
 	if ( file_id.empty() )
 		return 0;
@@ -288,7 +327,7 @@ bool Manager::IsIgnored(const string& file_id)
 	return ignored.find(file_id) != ignored.end();
 	}
 
-void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
+void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
 	{
 	current_file_id.clear();
 
@@ -298,8 +337,11 @@ void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
 	if ( ! get_file_handle )
 		return;
 
+	EnumVal* tagval = tag.AsEnumVal();
+	Ref(tagval);
+
 	val_list* vl = new val_list();
-	vl->append(new Val(tag, TYPE_COUNT));
+	vl->append(tagval);
 	vl->append(c->BuildConnVal());
 	vl->append(new Val(is_orig, TYPE_BOOL));
 
@@ -307,7 +349,7 @@ void Manager::GetFileHandle(AnalyzerTag::Tag tag, Connection* c, bool is_orig)
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	}
 
-bool Manager::IsDisabled(AnalyzerTag::Tag tag)
+bool Manager::IsDisabled(analyzer::Tag tag)
 	{
 	if ( ! disabled )
 		disabled = internal_const_val("Files::disable")->AsTableVal();
@@ -323,4 +365,32 @@ bool Manager::IsDisabled(AnalyzerTag::Tag tag)
 	Unref(yield);
 
 	return rval;
+	}
+
+Analyzer* Manager::InstantiateAnalyzer(int tag, RecordVal* args, File* f) const
+	{
+	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+
+	if ( it == analyzers_by_val.end() )
+		reporter->InternalError("cannot instantiate unknown file analyzer: %d",
+		                        tag);
+
+	Component* c = it->second;
+
+	if ( ! c->Factory() )
+		reporter->InternalError("file analyzer %s cannot be instantiated "
+								"dynamically", c->CanonicalName());
+
+	return c->Factory()(args, f);
+	}
+
+const char* Manager::GetAnalyzerName(int tag) const
+	{
+	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+
+	if ( it == analyzers_by_val.end() )
+		reporter->InternalError("cannot get name of unknown file analyzer: %d",
+		                        tag);
+
+	return it->second->CanonicalName();
 	}

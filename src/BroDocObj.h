@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <string>
 #include <list>
+#include <map>
 
 #include "ID.h"
 
@@ -133,5 +134,10 @@ protected:
 
 private:
 };
+
+/**
+ * Map identifiers to their broxygen documentation objects.
+ */
+extern map<string, BroDocObj*> doc_ids;
 
 #endif

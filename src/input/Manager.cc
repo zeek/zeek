@@ -15,11 +15,9 @@
 #include "EventHandler.h"
 #include "NetVar.h"
 #include "Net.h"
-#include "../file_analysis/Manager.h"
-
-
 #include "CompHash.h"
 
+#include "../file_analysis/Manager.h"
 #include "../threading/SerialTypes.h"
 
 using namespace input;
@@ -322,6 +320,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	ReaderBackend::ReaderInfo* rinfo = new ReaderBackend::ReaderInfo();
 	rinfo->source = copy_string(source.c_str());
+	rinfo->name = copy_string(name.c_str());
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
 	switch ( mode->InternalInt() )
@@ -702,6 +701,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 bool Manager::CreateAnalysisStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->Type()->AsRecordType();
+
 	if ( ! same_type(rtype, BifType::Record::Input::AnalysisDescription, 0) )
 		{
 		reporter->Error("AnalysisDescription argument not of right type");
@@ -709,12 +709,11 @@ bool Manager::CreateAnalysisStream(RecordVal* fval)
 		}
 
 	AnalysisStream* stream = new AnalysisStream();
+
+	if ( ! CreateStream(stream, fval) )
 		{
-		if ( ! CreateStream(stream, fval) )
-			{
-			delete stream;
-			return false;
-			}
+		delete stream;
+		return false;
 		}
 
 	stream->file_id = file_mgr->HashHandle(stream->name);
@@ -1243,6 +1242,9 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	if ( i->stream_type != TABLE_STREAM )
 		{
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "%s is event, sending end of data", i->name.c_str());
+#endif
 		// just signal the end of the data source
 		SendEndOfData(i);
 		return;
@@ -1347,8 +1349,13 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 	SendEndOfData(i);
 	}
 
+
 void Manager::SendEndOfData(const Stream *i)
 	{
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s",
+		i->name.c_str());
+#endif
 	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
 
 	if ( i->stream_type == ANALYSIS_STREAM )
@@ -1363,6 +1370,11 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 		reporter->InternalError("Unknown reader in Put");
 		return;
 		}
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "Put for stream %s",
+		i->name.c_str());
+#endif
 
 	int readFields = 0;
 
@@ -1702,6 +1714,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 		return false;
 		}
 
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent for event %s with num_vals vals",
+		name.c_str(), num_vals);
+#endif
+
 	RecordType *type = handler->FType()->Args();
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
@@ -1714,7 +1731,7 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 	for ( int i = 0; i < num_vals; i++)
 		vl->append(ValueToVal(vals[i], type->FieldType(i)));
 
-	mgr.Dispatch(new Event(handler, vl));
+	mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
 
 	for ( int i = 0; i < num_vals; i++ )
 		delete vals[i];
@@ -1727,6 +1744,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 	{
 	val_list* vl = new val_list;
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
+		numvals);
+#endif
 
 	va_list lP;
 	va_start(lP, numvals);
@@ -1741,6 +1763,11 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...)
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events)
 	{
 	val_list* vl = new val_list;
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "SendEvent with %d vals (list)",
+		events.size());
+#endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
 		{
@@ -2245,4 +2272,19 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader)
 		return s->second;
 
 	return 0;
+	}
+
+// Function is called on Bro shutdown.
+// Signal all frontends that they will cease operation.
+void Manager::Terminate()
+	{
+	for ( map<ReaderFrontend*, Stream*>::iterator i = readers.begin(); i != readers.end(); ++i )
+		{
+		if ( i->second->removed )
+			continue;
+
+		i->second->removed = true;
+		i->second->reader->Stop();
+		}
+
 	}

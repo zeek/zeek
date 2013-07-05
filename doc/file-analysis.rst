@@ -10,7 +10,7 @@ File Analysis
     script-layer depending on which network protocol was involved in the
     file transfer.  Scripts written to analyze files over one protocol
     would have to be copied and modified to fit other protocols.  The
-    file analysis framework (FAF) is an attempt to provide a generalized
+    file analysis framework (FAF) instead provides a generalized
     presentation of file-related information.  The information regarding
     the protocol involved in transporting a file over the network is
     still available, but it no longer has to dictate how one organizes

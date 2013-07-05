@@ -71,10 +71,11 @@ export {
 }
 
 # Configure DPD and the packet filter
-redef capture_filters += { ["ssh"] = "tcp port 22" };
-redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
-redef likely_server_ports += { 22/tcp };
+const ports = { 22/tcp };
+ 
+redef capture_filters += { ["ssh"] = "tcp port 22" };
+redef likely_server_ports += { ports };
 
 redef record connection += {
 	ssh: Info &optional;
@@ -83,6 +84,7 @@ redef record connection += {
 event bro_init() &priority=5
 {
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 }
 
 function set_session(c: connection)
@@ -116,7 +118,7 @@ function check_ssh_connection(c: connection, done: bool)
 		     # Responder must have sent fewer than 40 packets.
 		     c$resp$num_pkts < 40 &&
 		     # If there was a content gap we can't reliably do this heuristic.
-		     c?$conn && c$conn$missed_bytes == 0)# &&
+		     c?$conn && c$conn$missed_bytes == 0 )# &&
 		     # Only "normal" connections can count.
 		     #c$conn?$conn_state && c$conn$conn_state in valid_states )
 			{
@@ -176,6 +178,7 @@ event ssh_watcher(c: connection)
 	if ( ! connection_exists(id) )
 		return;
 
+	lookup_connection(c$id);
 	check_ssh_connection(c, F);
 	if ( ! c$ssh$done )
 		schedule +15secs { ssh_watcher(c) };

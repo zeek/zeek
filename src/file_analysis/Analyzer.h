@@ -5,10 +5,13 @@
 
 #include "Val.h"
 #include "NetVar.h"
+#include "analyzer/Tag.h"
+
+#include "file_analysis/file_analysis.bif.h"
 
 namespace file_analysis {
 
-typedef BifEnum::Files::Analyzer FA_Tag;
+typedef int FA_Tag;
 
 class File;
 
@@ -94,8 +97,7 @@ public:
 	static FA_Tag ArgsTag(const RecordVal* args)
 		{
 		using BifType::Record::Files::AnalyzerArgs;
-		return static_cast<FA_Tag>(
-		              args->Lookup(AnalyzerArgs->FieldOffset("tag"))->AsEnum());
+		return args->Lookup(AnalyzerArgs->FieldOffset("tag"))->AsEnum();
 		}
 
 protected:
@@ -114,13 +116,10 @@ protected:
 
 private:
 
-	FA_Tag tag; /**< The particular analyzer type of the analyzer instance. */
-	RecordVal* args; /**< \c AnalyzerArgs val gives tunable analyzer params. */
-	File* file; /**< The file to which the analyzer is attached. */
+	FA_Tag tag;	/**< The particular analyzer type of the analyzer instance. */
+	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
+	File* file;	/**< The file to which the analyzer is attached. */
 };
-
-typedef file_analysis::Analyzer* (*AnalyzerInstantiator)(RecordVal* args,
-                                                         File* file);
 
 } // namespace file_analysis
 

@@ -9,7 +9,7 @@
 ##! Note that this framework deals with the handling of internally generated
 ##! reporter messages, for the interface in to actually creating interface
 ##! into actually creating reporter messages from the scripting layer, use
-##! the built-in functions in :doc:`/scripts/base/reporter.bif`.
+##! the built-in functions in :doc:`/scripts/base/bif/reporter.bif`.
 
 module Reporter;
 

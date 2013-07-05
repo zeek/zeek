@@ -1,0 +1,482 @@
+## Generated for all DNS messages.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## is_orig:  True if the message was sent by the originator of the connection.
+##
+## msg: The parsed DNS message header.
+##
+## len: The length of the message's raw representation (i.e., the DNS payload).
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid  dns_query_reply dns_rejected
+##    dns_request non_dns_request  dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
+
+## Generated for DNS requests. For requests with multiple queries, this event
+## is raised once for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## query: The queried name.
+##
+## qtype: The queried resource record type.
+##
+## qclass: The queried resource record class.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
+
+## Generated for DNS replies that reject a query. This event is raised if a DNS
+## reply either indicates failure via its status code or does not pass on any
+## answers to a query. Note that all of the event's parameters are parsed out of
+## the reply; there's no stateful correlation with the query.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## query: The queried name.
+##
+## qtype: The queried resource record type.
+##
+## qclass: The queried resource record class.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
+
+## Generated for DNS replies with an *ok* status code but no question section.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## query: The queried name.
+##
+## qtype: The queried resource record type.
+##
+## qclass: The queried resource record class.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_rejected
+##    dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_query_reply%(c: connection, msg: dns_msg, query: string,
+			qtype: count, qclass: count%);
+
+## Generated for DNS replies of type *A*. For replies with multiple answers, an
+## individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## a: The address returned by the reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
+##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
+##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
+
+## Generated for DNS replies of type *AAAA*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## a: The address returned by the reply.
+##
+## .. bro:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
+##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
+##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
+
+## Generated for DNS replies of type *A6*. For replies with multiple answers, an
+## individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## a: The address returned by the reply.
+##
+## .. bro:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
+##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
+##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
+
+## Generated for DNS replies of type *NS*. For replies with multiple answers, an
+## individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## name: The name returned by the reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
+##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
+
+## Generated for DNS replies of type *CNAME*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## name: The name returned by the reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
+##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
+##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
+
+## Generated for DNS replies of type *PTR*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## name: The name returned by the reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
+##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
+
+## Generated for DNS replies of type *CNAME*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## soa: The parsed SOA value.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SRV_reply
+##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%);
+
+## Generated for DNS replies of type *WKS*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply  dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
+
+## Generated for DNS replies of type *HINFO*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
+##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
+##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
+##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
+
+## Generated for DNS replies of type *MX*. For replies with multiple answers, an
+## individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## name: The name returned by the reply.
+##
+## preference: The preference for *name* specified by the reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
+##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, preference: count%);
+
+## Generated for DNS replies of type *TXT*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## str: The textual information returned by the reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%);
+
+## Generated for DNS replies of type *SRV*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
+
+## Generated for DNS replies of type *EDNS*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The parsed EDNS reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
+##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
+##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
+##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
+
+## Generated for DNS replies of type *TSIG*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The parsed TSIG reply.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply  dns_TXT_reply dns_WKS_reply dns_end dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_TSIG_addl%(c: connection, msg: dns_msg, ans: dns_tsig_additional%);
+
+## Generated at the end of processing a DNS packet. This event is the last
+## ``dns_*`` event that will be raised for a DNS query/reply and signals that
+## all resource records have been passed on.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_full_request
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_end%(c: connection, msg: dns_msg%);
+
+## Deprecated. Will be removed.
+##
+## .. todo:: Unclear what this event is for; it's never raised. We should just
+##    remove it.
+event dns_full_request%(%);
+
+## msg: The raw DNS payload.
+##
+## .. note:: This event is deprecated and superseded by Bro's dynamic protocol
+##    detection framework.
+event non_dns_request%(c: connection, msg: string%);

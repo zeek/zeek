@@ -9,8 +9,10 @@
 #include "Reporter.h"
 #include "Val.h"
 #include "Type.h"
-#include "../Analyzer.h"
 #include "Event.h"
+
+#include "analyzer/Analyzer.h"
+#include "analyzer/Manager.h"
 
 using namespace file_analysis;
 
@@ -70,7 +72,7 @@ void File::StaticInit()
 	mime_type_idx = Idx("mime_type");
 	}
 
-File::File(const string& file_id, Connection* conn, AnalyzerTag::Tag tag,
+File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
            bool is_orig)
 	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
 	  missed_bof(false), need_reassembly(false), done(false), analyzers(this)
@@ -85,7 +87,7 @@ File::File(const string& file_id, Connection* conn, AnalyzerTag::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		SetSource(::Analyzer::GetTagName(tag));
+		SetSource(analyzer_mgr->GetAnalyzerName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn);
 		}

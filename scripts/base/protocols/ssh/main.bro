@@ -118,7 +118,7 @@ function check_ssh_connection(c: connection, done: bool)
 		     # Responder must have sent fewer than 40 packets.
 		     c$resp$num_pkts < 40 &&
 		     # If there was a content gap we can't reliably do this heuristic.
-		     c?$conn && c$conn$missed_bytes == 0)# &&
+		     c?$conn && c$conn$missed_bytes == 0 )# &&
 		     # Only "normal" connections can count.
 		     #c$conn?$conn_state && c$conn$conn_state in valid_states )
 			{
@@ -178,6 +178,7 @@ event ssh_watcher(c: connection)
 	if ( ! connection_exists(id) )
 		return;
 
+	lookup_connection(c$id);
 	check_ssh_connection(c, F);
 	if ( ! c$ssh$done )
 		schedule +15secs { ssh_watcher(c) };

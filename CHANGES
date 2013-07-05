@@ -1,4 +1,10 @@
 
+2.1-784 | 2013-07-04 22:28:48 -0400
+
+  * Add a call to lookup_connection in SSH scripts to update connval. (Seth Hall)
+
+  * Updating submodule(s). (Robin Sommer)
+
 2.1-782 | 2013-07-03 17:00:39 -0700
 
   * Remove the SSL log queueing mechanism that was included with the

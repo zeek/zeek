@@ -13,7 +13,7 @@ export {
 	};
 	
 	## This is the interval between individual statistics collection.
-	const stats_collection_interval = 10secs;
+	const stats_collection_interval = 5min;
 }
 
 event net_stats_update(last_stat: NetStats)

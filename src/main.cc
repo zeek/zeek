@@ -1114,6 +1114,7 @@ int main(int argc, char** argv)
 
 	reporter->ReportViaEvents(true);
 
+	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
 
 	analyzer_mgr->DumpDebug();

@@ -110,20 +110,17 @@ redef record connection += {
 	ftp_data_reuse: bool &default=F;
 };
 
-# Configure DPD
-redef capture_filters += { ["ftp"] = "port 21 and port 2811" };
-
 const ports = { 21/tcp, 2811/tcp };
 redef likely_server_ports += { ports };
-
-# Establish the variable for tracking expected connections.
-global ftp_data_expected: table[addr, port] of Info &read_expire=5mins;
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
+
+# Establish the variable for tracking expected connections.
+global ftp_data_expected: table[addr, port] of Info &read_expire=5mins;
 
 ## A set of commands where the argument can be expected to refer
 ## to a file or directory.

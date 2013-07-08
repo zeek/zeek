@@ -26,14 +26,12 @@ export {
 	};
 }
 
-redef capture_filters += { ["syslog"] = "port 514" };
-
-const ports = { 514/udp };
-redef likely_server_ports += { ports };
-
 redef record connection += {
 	syslog: Info &optional;
 };
+
+const ports = { 514/udp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{

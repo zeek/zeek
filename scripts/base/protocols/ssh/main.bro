@@ -70,16 +70,12 @@ export {
 	global log_ssh: event(rec: Info);
 }
 
-# Configure DPD and the packet filter
-
-const ports = { 22/tcp };
- 
-redef capture_filters += { ["ssh"] = "tcp port 22" };
-redef likely_server_ports += { ports };
-
 redef record connection += {
 	ssh: Info &optional;
 };
+
+const ports = { 22/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 {

@@ -104,6 +104,10 @@ New Functionality
 
       - IRC DCC transfers: Record to disk.
 
+- New packet filter framework supports BPF-based load-balancing,
+  shunting, and sampling; plus plugin support to customize filters
+  dynamically.
+
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -181,6 +185,10 @@ Changed Functionality
 
 - The SSH::Login notice has been superseded by an corresponding
   intelligence framework observation (SSH::SUCCESSFUL_LOGIN).
+
+- PacketFilter::all_packets has been replaced with
+  PacketFilter::enable_auto_protocol_capture_filters.
+
 
 Bro 2.1
 -------

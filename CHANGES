@@ -1,4 +1,25 @@
 
+2.1-797 | 2013-07-07 20:45:07 -0700
+
+  * Rewrite of the packet filter framework. (Seth Hall)
+
+    This includes:
+
+    - Plugin interface for adding filtering mechanisms.
+
+    - Integrated the packet filter framework with the analyzer
+      framework to retrieve well-known ports from there.
+
+    - Support for BPF-based load balancing (IPv4 and IPv6).  This will
+      tie in with upcoming BroControl support for configuring this.
+
+    - Support for BPF-based connection sampling.
+
+    - Support for "shunting" traffic with BPF filters.
+
+    - Replaced PacketFilter::all_packets with
+      PacketFilter::enable_auto_protocol_capture_filters.
+
 2.1-784 | 2013-07-04 22:28:48 -0400
 
   * Add a call to lookup_connection in SSH scripts to update connval. (Seth Hall)

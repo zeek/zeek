@@ -123,18 +123,11 @@ redef record connection += {
 	http_state:  State &optional;
 };
 
-# DPD configuration.
-redef capture_filters +=  {
-	["http"] = "tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888)"
-};
-
 const ports = {
 	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3128/tcp,
 	8000/tcp, 8080/tcp, 8888/tcp,
 };
-
 redef likely_server_ports += { ports };
-
 
 # Initialize the HTTP logging stream and ports.
 event bro_init() &priority=5

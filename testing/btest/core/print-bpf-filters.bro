@@ -4,5 +4,7 @@
 # @TEST-EXEC: cat packet_filter.log >>output
 # @TEST-EXEC: bro -r $TRACES/mixed-vlan-mpls.trace PacketFilter::restricted_filter="vlan" >>output
 # @TEST-EXEC: cat packet_filter.log >>output
+# @TEST-EXEC: bro -r $TRACES/empty.trace PacketFilter::enable_auto_protocol_capture_filters=T >>output
+# @TEST-EXEC: cat packet_filter.log >>output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff conn.log

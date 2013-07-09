@@ -49,13 +49,15 @@ function log_dcc(f: fa_file)
 		delete irc$dcc_file_name;
 		delete irc$dcc_file_size;
 		delete irc$dcc_mime_type;
+
+		delete dcc_expected_transfers[cid$resp_h, cid$resp_p];
 		return;
 		}
 	}
 
 event file_new(f: fa_file) &priority=-5
 	{
-	if ( f?$source && f$source == "IRC_DATA" ) 
+	if ( f$source == "IRC_DATA" ) 
 		log_dcc(f);
 	}
 

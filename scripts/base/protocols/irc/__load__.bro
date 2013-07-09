@@ -1,3 +1,3 @@
 @load ./main
-#@load ./dcc-send
-@load ./file-analysis
+@load ./dcc-send
+@load ./files

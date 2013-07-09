@@ -75,10 +75,6 @@ export {
 		## Indicates if this request can assume 206 partial content in
 		## response.
 		range_request:           bool      &default=F;
-		## Number of MIME entities in the HTTP request message body so far.
-		orig_mime_depth:         count     &default=0;
-		## Number of MIME entities in the HTTP response message body so far.
-		resp_mime_depth:         count     &default=0;
 	};
 	
 	## Structure to maintain state for an HTTP connection with multiple 
@@ -104,8 +100,8 @@ export {
 	} &redef;
 
 	## A list of HTTP methods. Other methods will generate a weird. Note
-        ## that the HTTP analyzer will only accept methods consisting solely
-        ## of letters ``[A-Za-z]``.
+	## that the HTTP analyzer will only accept methods consisting solely
+	## of letters ``[A-Za-z]``.
 	const http_methods: set[string] = {
 		"GET", "POST", "HEAD", "OPTIONS",
 		"PUT", "DELETE", "TRACE", "CONNECT",
@@ -275,25 +271,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				}
 			}
 		}
-	
-	else # server headers
-		{
-		if ( name == "CONTENT-DISPOSITION" &&
-		     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
-			c$http$filename = extract_filename_from_content_disposition(value);
-		}
+
 	}
 	
-event http_begin_entity(c: connection, is_orig: bool) &priority=5
-	{
-	set_state(c, F, is_orig);
-
-	if ( is_orig )
-		++c$http$orig_mime_depth;
-	else
-		++c$http$resp_mime_depth;
-	}
-
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
 	{
 	set_state(c, F, is_orig);

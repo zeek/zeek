@@ -9,6 +9,7 @@ module SMTP;
 
 export {
 	type Entity: record {
+		## Filename for the entity if discovered from a header.
 		filename: string &optional;
 	};
 
@@ -26,8 +27,6 @@ export {
 
 event mime_begin_entity(c: connection) &priority=10
 	{
-	#print fmt("%s : begin entity", c$uid);
-
 	c$smtp$entity = Entity();
 	++c$smtp_state$mime_depth;
 	}

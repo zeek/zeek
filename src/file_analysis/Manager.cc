@@ -19,8 +19,8 @@ string Manager::salt;
 
 Manager::Manager()
 	{
-	tag_enum_type = new EnumType("FileAnalysis::Tag");
-	::ID* id = install_ID("Tag", "FileAnalysis", true, true);
+	tag_enum_type = new EnumType("Files::Tag");
+	::ID* id = install_ID("Tag", "Files", true, true);
 	add_type(id, tag_enum_type, 0, 0);
 	}
 
@@ -42,7 +42,7 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 	{
 	const char* cname = component->CanonicalName();
 
-	if ( tag_enum_type->Lookup("FileAnalysis", cname) != -1 )
+	if ( tag_enum_type->Lookup("Files", cname) != -1 )
 		reporter->FatalError("File Analyzer %s defined more than once", cname);
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Registering analyzer %s (tag %s)",
@@ -54,7 +54,7 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 	        component->Tag().AsEnumVal()->InternalInt(), component));
 
 	string id = fmt("ANALYZER_%s", cname);
-	tag_enum_type->AddName("FileAnalysis", id.c_str(),
+	tag_enum_type->AddName("Files", id.c_str(),
 						   component->Tag().AsEnumVal()->InternalInt(), true);
 	}
 

@@ -19,9 +19,15 @@ function generate_extraction_filename(prefix: string, c: connection, suffix: str
 ## the filename.
 function extract_filename_from_content_disposition(data: string): string
 	{
-	local filename = sub(data, /^.*[nN][aA][mM][eE][[:blank:]]*=[[:blank:]]*/, "");
+	local filename = sub(data, /^.*[nN][aA][mM][eE][[:blank:]]*\*?=[[:blank:]]*/, "");
+	
 	# Remove quotes around the filename if they are there.
 	if ( /^\"/ in filename )
-		filename =  split_n(filename, /\"/, F, 2)[2];
-	return filename;
+		filename = split_n(filename, /\"/, F, 2)[2];
+
+	# Remove the language and encoding if it's there.
+	if ( /^[a-zA-Z0-9\!#$%&+-^_`{}~]+'[a-zA-Z0-9\!#$%&+-^_`{}~]*'/ in filename )
+		filename = sub(filename, /^.+'.*'/, "");
+
+	return unescape_URI(filename);
 	}

@@ -377,6 +377,23 @@ struct CompareString
 		}
 	};
 
+// Older versions of libmagic may not define the MAGIC_NO_CHECK_BUILTIN
+// convenience macro and other newer versions seem to have a typo that makes
+// it unusable, so just make a different one now with all known flags for
+// builtin libmagic components that should be disabled so that Bro only
+// uses the custom magic database shipped with it.
+#define DISABLE_LIBMAGIC_BUILTIN_CHECKS  ( \
+    MAGIC_NO_CHECK_COMPRESS | \
+    MAGIC_NO_CHECK_TAR  | \
+/*  MAGIC_NO_CHECK_SOFT | */ \
+    MAGIC_NO_CHECK_APPTYPE  | \
+    MAGIC_NO_CHECK_ELF  | \
+    MAGIC_NO_CHECK_TEXT | \
+    MAGIC_NO_CHECK_CDF  | \
+    MAGIC_NO_CHECK_TOKENS   | \
+    MAGIC_NO_CHECK_ENCODING \
+)
+
 extern magic_t magic_desc_cookie;
 extern magic_t magic_mime_cookie;
 

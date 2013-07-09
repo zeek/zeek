@@ -3,7 +3,9 @@
 #ifndef FILE_ANALYSIS_FILE_H
 #define FILE_ANALYSIS_FILE_H
 
+#include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Conn.h"
@@ -239,7 +241,9 @@ private:
 	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
+	bool did_file_new_event;   /**< Whether the file_new event has been done. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzer. */
+	queue<pair<EventHandlerPtr, val_list*> > fonc_queue;
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), replayed(false), size(0) {}

@@ -75,7 +75,8 @@ void File::StaticInit()
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
            bool is_orig)
 	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
-	  missed_bof(false), need_reassembly(false), done(false), analyzers(this)
+	  missed_bof(false), need_reassembly(false), done(false),
+	  did_file_new_event(false), analyzers(this)
 	{
 	StaticInit();
 
@@ -99,6 +100,7 @@ File::~File()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
+	assert(fonc_queue.empty());
 	}
 
 void File::UpdateLastActivityTime()
@@ -135,7 +137,12 @@ void File::UpdateConnectionFields(Connection* conn)
 			val_list* vl = new val_list();
 			vl->append(val->Ref());
 			vl->append(conn_val->Ref());
-			FileEvent(file_over_new_connection, vl);
+
+			if ( did_file_new_event )
+				FileEvent(file_over_new_connection, vl);
+			else
+				fonc_queue.push(pair<EventHandlerPtr, val_list*>(
+				        file_over_new_connection, vl));
 			}
 		}
 
@@ -431,6 +438,18 @@ void File::FileEvent(EventHandlerPtr h)
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
 	mgr.QueueEvent(h, vl);
+
+	if ( h == file_new )
+		{
+		did_file_new_event = true;
+
+		while ( ! fonc_queue.empty() )
+			{
+			pair<EventHandlerPtr, val_list*> p = fonc_queue.front();
+			mgr.QueueEvent(p.first, p.second);
+			fonc_queue.pop();
+			}
+		}
 
 	if ( h == file_new || h == file_timeout )
 		{

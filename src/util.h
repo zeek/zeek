@@ -5,8 +5,14 @@
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
+#endif
+
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -114,6 +120,7 @@ extern char* skip_digits(char* s);
 extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
+extern std::string to_upper(const std::string& s);
 extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
 extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);
@@ -188,6 +195,7 @@ extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
 extern const char* bro_path();
+extern const char* bro_magic_path();
 extern const char* bro_prefixes();
 std::string dot_canon(std::string path, std::string file, std::string prefix = "");
 const char* normalize_path(const char* path);
@@ -301,6 +309,10 @@ inline size_t pad_size(size_t size)
 // thread-safe as long as no two threads write to the same descriptor.
 extern bool safe_write(int fd, const char* data, int len);
 
+// Same as safe_write(), but for pwrite().
+extern bool safe_pwrite(int fd, const unsigned char* data, size_t len,
+                        size_t offset);
+
 // Wraps close(2) to emit error messages and abort on unrecoverable errors.
 extern void safe_close(int fd);
 
@@ -365,7 +377,18 @@ struct CompareString
 		}
 	};
 
+extern magic_t magic_desc_cookie;
+extern magic_t magic_mime_cookie;
+
 void bro_init_magic(magic_t* cookie_ptr, int flags);
 const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
+
+/**
+ * Canonicalizes a name by converting it to uppercase letters and replacing
+ * all non-alphanumeric characters with an underscore.
+ * @param name The string to canonicalize.
+ * @return The canonicalized version of \a name which caller may later delete[].
+ */
+const char* canonify_name(const char* name);
 
 #endif

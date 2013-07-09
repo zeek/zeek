@@ -26,19 +26,17 @@ export {
 	};
 }
 
-redef capture_filters += { ["syslog"] = "port 514" };
-const ports = { 514/udp } &redef;
-redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = ports] };
-
-redef likely_server_ports += { 514/udp };
-
 redef record connection += {
 	syslog: Info &optional;
 };
 
+const ports = { 514/udp };
+redef likely_server_ports += { ports };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(Syslog::LOG, [$columns=Info]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, ports);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5

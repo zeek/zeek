@@ -3,7 +3,6 @@
 #ifndef INPUT_READERS_RAW_H
 #define INPUT_READERS_RAW_H
 
-#include <iostream>
 #include <vector>
 
 #include "../ReaderBackend.h"
@@ -30,17 +29,49 @@ protected:
 private:
 	bool OpenInput();
 	bool CloseInput();
-	bool GetLine(string& str);
+	int64_t GetLine(FILE* file);
+	bool Execute();
+	void WriteToStdin();
 
 	string fname; // Source with a potential "|" removed.
-	istream* in;
 	FILE* file;
+	FILE* stderrfile;
 	bool execute;
 	bool firstrun;
 	time_t mtime;
 
 	// options set from the script-level.
 	string separator;
+	unsigned int sep_length; // length of the separator
+
+	static const int block_size;
+	int bufpos;
+	char* buf;
+	char* outbuf;
+
+	int stdin_fileno;
+	int stdout_fileno;
+	int stderr_fileno;
+
+	string stdin_string;
+	uint64_t stdin_towrite;
+
+	bool use_stderr;
+
+	bool forcekill;
+
+	int pipes[6];
+	pid_t childpid;
+
+	enum IoChannels {
+		stdout_in = 0,
+		stdout_out = 1,
+		stdin_in = 2,
+		stdin_out = 3,
+		stderr_in = 4,
+		stderr_out = 5
+	};
+
 };
 
 }

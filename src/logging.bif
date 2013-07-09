@@ -18,6 +18,12 @@ function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
+function Log::__remove_stream%(id: Log::ID%) : bool
+	%{
+	bool result = log_mgr->RemoveStream(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
 function Log::__enable_stream%(id: Log::ID%) : bool
 	%{
 	bool result = log_mgr->EnableStream(id->AsEnumVal());
@@ -81,6 +87,14 @@ const extent_size: count;
 const dump_schema: bool;
 const use_integer_for_time: bool;
 const num_threads: count;
+
+# Options for the SQLite writer
+
+module LogSQLite;
+
+const set_separator: string;
+const empty_field: string;
+const unset_field: string;
 
 # Options for the ElasticSearch writer.
 

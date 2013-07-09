@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -b -s myftp -r $TRACES/ftp-ipv4.trace %INPUT >dpd-ipv4.out
-# @TEST-EXEC: bro -b -s myftp -r $TRACES/ipv6-ftp.trace %INPUT >dpd-ipv6.out
-# @TEST-EXEC: bro -b -r $TRACES/ftp-ipv4.trace %INPUT >nosig-ipv4.out
-# @TEST-EXEC: bro -b -r $TRACES/ipv6-ftp.trace %INPUT >nosig-ipv6.out
+# @TEST-EXEC: bro -b -s myftp -r $TRACES/ftp/ipv4.trace %INPUT >dpd-ipv4.out
+# @TEST-EXEC: bro -b -s myftp -r $TRACES/ftp/ipv6.trace %INPUT >dpd-ipv6.out
+# @TEST-EXEC: bro -b -r $TRACES/ftp/ipv4.trace %INPUT >nosig-ipv4.out
+# @TEST-EXEC: bro -b -r $TRACES/ftp/ipv6.trace %INPUT >nosig-ipv6.out
 # @TEST-EXEC: btest-diff dpd-ipv4.out
 # @TEST-EXEC: btest-diff dpd-ipv6.out
 # @TEST-EXEC: btest-diff nosig-ipv4.out
@@ -33,7 +33,7 @@ signature my_ftp_server {
 event bro_init()
 	{
 	# no analyzer attached to any port by default, depends entirely on sigs
-	print "dpd_config", dpd_config;
+	print "|Analyzer::all_registered_ports()|", |Analyzer::all_registered_ports()|;
 	}
 
 event signature_match(state: signature_state, msg: string, data: string)

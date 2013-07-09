@@ -66,7 +66,7 @@ event file_new(f: fa_file)
 		}
 	}
 
-event file_over_new_connection(f: fa_file, c: connection)
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
 	{
 	print "FILE_OVER_NEW_CONNECTION";
 	}

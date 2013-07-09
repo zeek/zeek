@@ -90,7 +90,7 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 		// add source, connection, is_orig fields
 		SetSource(analyzer_mgr->GetAnalyzerName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
-		UpdateConnectionFields(conn);
+		UpdateConnectionFields(conn, is_orig);
 		}
 
 	UpdateLastActivityTime();
@@ -113,7 +113,7 @@ double File::GetLastActivityTime() const
 	return val->Lookup(last_active_idx)->AsTime();
 	}
 
-void File::UpdateConnectionFields(Connection* conn)
+void File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	{
 	if ( ! conn )
 		return;
@@ -137,6 +137,7 @@ void File::UpdateConnectionFields(Connection* conn)
 			val_list* vl = new val_list();
 			vl->append(val->Ref());
 			vl->append(conn_val->Ref());
+			vl->append(new Val(is_orig, TYPE_BOOL));
 
 			if ( did_file_new_event )
 				FileEvent(file_over_new_connection, vl);

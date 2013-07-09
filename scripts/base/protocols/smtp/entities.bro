@@ -31,7 +31,7 @@ event mime_begin_entity(c: connection) &priority=10
 	++c$smtp_state$mime_depth;
 	}
 
-event file_over_new_connection(f: fa_file, c: connection) &priority=5
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
 	if ( f$source != "SMTP" ) 
 		return;

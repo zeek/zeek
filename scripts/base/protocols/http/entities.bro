@@ -53,7 +53,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 	}
 
-event file_over_new_connection(f: fa_file, c: connection) &priority=5
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
 	if ( f$source == "HTTP" && c$http?$entity ) 
 		{

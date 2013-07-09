@@ -27,7 +27,7 @@ event bro_init() &priority=5
 	Files::register_protocol(Analyzer::ANALYZER_IRC_DATA, IRC::get_file_handle);
 	}
 
-event file_over_new_connection(f: fa_file, c: connection) &priority=5
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
 	if ( [c$id$resp_h, c$id$resp_p] !in dcc_expected_transfers ) 
 		return;

@@ -28,7 +28,7 @@ event bro_init() &priority=5
 	}
 
 
-event file_over_new_connection(f: fa_file, c: connection) &priority=5
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
 	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected ) 
 		return;

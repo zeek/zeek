@@ -173,8 +173,9 @@ protected:
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
 	 * \c conn_id and UID taken from \a conn.
 	 * @param conn the connection over which a part of the file has been seen.
+	 * @param is_orig true if the connection originator is sending the file.
 	 */
-	void UpdateConnectionFields(Connection* conn);
+	void UpdateConnectionFields(Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.

@@ -27,7 +27,7 @@ event bro_init() &priority=5
 	Files::register_protocol(Analyzer::ANALYZER_SMTP, SMTP::get_file_handle);
 	}
 
-event file_over_new_connection(f: fa_file, c: connection) &priority=5
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
 	if ( c?$smtp )
 		c$smtp$fuids[|c$smtp$fuids|] = f$id;

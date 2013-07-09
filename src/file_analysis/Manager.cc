@@ -250,7 +250,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 		rval->UpdateLastActivityTime();
 
 		if ( update_conn )
-			rval->UpdateConnectionFields(conn);
+			rval->UpdateConnectionFields(conn, is_orig);
 		}
 
 	return rval;

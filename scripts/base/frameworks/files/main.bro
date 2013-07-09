@@ -293,7 +293,7 @@ event file_new(f: fa_file) &priority=10
 	set_info(f);
 	}
 
-event file_over_new_connection(f: fa_file, c: connection) &priority=10
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=10
 	{
 	set_info(f);
 	add f$info$conn_uids[c$uid];

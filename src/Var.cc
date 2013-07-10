@@ -243,10 +243,7 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 
 	else
 		{
-		if ( t->Tag() == TYPE_RECORD || t->Tag() == TYPE_TABLE ||
-		     t->Tag() == TYPE_VECTOR )
-			current_scope()->AddInit(id);
-
+		current_scope()->AddInit(id);
 		return new NullStmt;
 		}
 	}

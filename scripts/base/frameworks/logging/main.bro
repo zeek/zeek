@@ -17,6 +17,23 @@ export {
 	## anything else.
 	const default_writer = WRITER_ASCII &redef;
 
+	## Default separator between fields for logwriters.
+	## Can be overwritten by individual writers.
+	const separator = "\t" &redef;
+
+	## Separator between set elements.
+	## Can be overwritten by individual writers.
+	const set_separator = "," &redef;
+
+	## String to use for empty fields. This should be different from
+        ## *unset_field* to make the output non-ambigious. 
+	## Can be overwritten by individual writers.
+	const empty_field = "(empty)" &redef;
+
+	## String to use for an unset &optional field.
+	## Can be overwritten by individual writers.
+	const unset_field = "-" &redef;	
+
 	## Type defining the content of a logging stream.
 	type Stream: record {
 		## A record type defining the log's columns.

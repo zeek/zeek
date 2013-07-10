@@ -240,7 +240,7 @@ export {
 		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
 		## tunnel the ports will be set to 0. The direction (i.e., orig and
 		## resp) are set according to the first tunneled packet seen
-		## and not according to the side that established the tunnel. 
+		## and not according to the side that established the tunnel.
 		cid: conn_id;
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type;
@@ -1488,6 +1488,146 @@ type gtpv1_hdr: record {
 	next_type: count &optional;
 };
 
+type gtp_cause: count;
+type gtp_imsi: count;
+type gtp_teardown_ind: bool;
+type gtp_nsapi: count;
+type gtp_recovery: count;
+type gtp_teid1: count;
+type gtp_teid_control_plane: count;
+type gtp_charging_id: count;
+type gtp_charging_gateway_addr: addr;
+type gtp_trace_reference: count;
+type gtp_trace_type: count;
+type gtp_tft: string;
+type gtp_trigger_id: string;
+type gtp_omc_id: string;
+type gtp_reordering_required: bool;
+type gtp_proto_config_options: string;
+type gtp_charging_characteristics: count;
+type gtp_selection_mode: count;
+type gtp_access_point_name: string;
+type gtp_msisdn: string;
+
+type gtp_gsn_addr: record {
+	## If the GSN Address information element has length 4 or 16, then this
+	## field is set to be the informational element's value interpreted as
+	## an IPv4 or IPv6 address, respectively.
+	ip: addr &optional;
+	## This field is set if it's not an IPv4 or IPv6 address.
+	other: string &optional;
+};
+
+type gtp_end_user_addr: record {
+	pdp_type_org: count;
+	pdp_type_num: count;
+	## Set if the End User Address information element is IPv4/IPv6.
+	pdp_ip: addr &optional;
+	## Set if the End User Address information element isn't IPv4/IPv6.
+	pdp_other_addr: string &optional;
+};
+
+type gtp_rai: record {
+	mcc: count;
+	mnc: count;
+	lac: count;
+	rac: count;
+};
+
+type gtp_qos_profile: record {
+	priority: count;
+	data: string;
+};
+
+type gtp_private_extension: record {
+	id: count;
+	value: string;
+};
+
+type gtp_create_pdp_ctx_request_elements: record {
+	imsi:             gtp_imsi &optional;
+	rai:              gtp_rai &optional;
+	recovery:         gtp_recovery &optional;
+	select_mode:      gtp_selection_mode &optional;
+	data1:            gtp_teid1;
+	cp:               gtp_teid_control_plane &optional;
+	nsapi:            gtp_nsapi;
+	linked_nsapi:     gtp_nsapi &optional;
+	charge_character: gtp_charging_characteristics &optional;
+	trace_ref:        gtp_trace_reference &optional;
+	trace_type:       gtp_trace_type &optional;
+	end_user_addr:    gtp_end_user_addr &optional;
+	ap_name:          gtp_access_point_name &optional;
+	opts:             gtp_proto_config_options &optional;
+	signal_addr:      gtp_gsn_addr;
+	user_addr:        gtp_gsn_addr;
+	msisdn:           gtp_msisdn &optional;
+	qos_prof:         gtp_qos_profile;
+	tft:              gtp_tft &optional;
+	trigger_id:       gtp_trigger_id &optional;
+	omc_id:           gtp_omc_id &optional;
+	ext:              gtp_private_extension &optional;
+};
+
+type gtp_create_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	reorder_req:    gtp_reordering_required &optional;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	end_user_addr:  gtp_end_user_addr &optional;
+	opts:           gtp_proto_config_options &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_update_pdp_ctx_request_elements: record {
+	imsi:          gtp_imsi &optional;
+	rai:           gtp_rai &optional;
+	recovery:      gtp_recovery &optional;
+	data1:         gtp_teid1;
+	cp:            gtp_teid_control_plane &optional;
+	nsapi:         gtp_nsapi;
+	trace_ref:     gtp_trace_reference &optional;
+	trace_type:    gtp_trace_type &optional;
+	cp_addr:       gtp_gsn_addr;
+	user_addr:     gtp_gsn_addr;
+	qos_prof:      gtp_qos_profile;
+	tft:           gtp_tft &optional;
+	trigger_id:    gtp_trigger_id &optional;
+	omc_id:        gtp_omc_id &optional;
+	ext:           gtp_private_extension &optional;
+	end_user_addr: gtp_end_user_addr &optional;
+};
+
+type gtp_update_pdp_ctx_response_elements: record {
+	cause:          gtp_cause;
+	recovery:       gtp_recovery &optional;
+	data1:          gtp_teid1 &optional;
+	cp:             gtp_teid_control_plane &optional;
+	charging_id:    gtp_charging_id &optional;
+	cp_addr:        gtp_gsn_addr &optional;
+	user_addr:      gtp_gsn_addr &optional;
+	qos_prof:       gtp_qos_profile &optional;
+	charge_gateway: gtp_charging_gateway_addr &optional;
+	ext:            gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_request_elements: record {
+	teardown_ind: gtp_teardown_ind &optional;
+	nsapi:        gtp_nsapi;
+	ext:          gtp_private_extension &optional;
+};
+
+type gtp_delete_pdp_ctx_response_elements: record {
+	cause: gtp_cause;
+	ext:   gtp_private_extension &optional;
+};
+
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
 ## index in this table. For each such filter, the corresponding event is raised for
 ## all matching packets.
@@ -2507,7 +2647,7 @@ type ModbusHeaders: record {
 
 module SOCKS;
 export {
-	## This record is for a SOCKS client or server to provide either a 
+	## This record is for a SOCKS client or server to provide either a
 	## name or an address to represent a desired or established connection.
 	type Address: record {
 		host: addr   &optional;
@@ -2607,6 +2747,15 @@ const gap_report_freq = 1.0 sec &redef;
 ##
 ## .. bro:see:: content_gap gap_report partial_connection
 const report_gaps_for_partial = F &redef;
+
+## Flag to prevent Bro from exiting automatically when input is exhausted.
+## Normally Bro terminates when all packets sources have gone dry
+## and  communication isn't enabled. If this flag is set, Bro's main loop will
+## instead keep idleing until :bro:see::`terminate` is explicitly called.
+##
+## This is mainly for testing purposes when termination behaviour needs to be
+## controlled for reproducing results.
+const exit_only_after_terminate = F &redef;
 
 ## The CA certificate file to authorize remote Bros/Broccolis.
 ##
@@ -2855,6 +3004,25 @@ export {
 	## How often to cleanup internal state for inactive IP tunnels.
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
+module GLOBAL;
+
+module Reporter;
+export {
+	## Tunable for sending reporter info messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const info_to_stderr = T &redef;
+
+	## Tunable for sending reporter warning messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const warnings_to_stderr = T &redef;
+
+	## Tunable for sending reporter error messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const errors_to_stderr = T &redef;
+}
 module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.

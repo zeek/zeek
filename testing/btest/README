@@ -1,7 +1,7 @@
 This a test suite of small "unit tests" that verify individual pieces of Bro
 functionality.  They all utilize BTest, a simple framework/driver for
 writing unit tests.  More information about BTest can be found at
-http://www.bro-ids.org/development/btest.html
+http://www.bro.org/development/btest.html
 
 The test suite's BTest configuration is handled through the
 ``btest.cfg`` file.  Of particular interest is the "TestDirs" settings,
@@ -61,7 +61,7 @@ Adding Tests
 =============
 
 See either the `BTest documentation
-<http://www.bro-ids.org/development/btest.html>`_ or the existing unit
+<http://www.bro.org/development/btest.html>`_ or the existing unit
 tests for examples of what they actually look like.  The essential
 components of a new test include:
 

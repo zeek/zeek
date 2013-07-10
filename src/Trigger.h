@@ -49,7 +49,7 @@ public:
 
 	// Disable this trigger completely. Needed because Unref'ing the trigger
 	// may not immediately delete it as other references may still exist.
-	void Disable()	{ disabled = true; }
+	void Disable();
 
 	virtual void Describe(ODesc* d) const { d->Add("<trigger>"); }
 
@@ -79,7 +79,6 @@ private:
 	friend class TriggerTimer;
 
 	void Init();
-	void DeleteTrigger();
 	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();

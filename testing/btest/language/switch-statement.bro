@@ -143,17 +143,19 @@ function switch_empty(v: count): string
 	return "n/a";
 	}
 
-function switch_break(v: count): string
+function switch_fallthrough(v: count): string
 	{
 	local rval = "";
 	switch ( v ) {
 	case 1:
 		rval += "test";
+		fallthrough;
 	case 2:
 		rval += "testing";
-		break;
+		fallthrough;
 	case 3:
 		rval += "tested";
+		break;
 	}
 	return rval + "return";
 	}
@@ -164,12 +166,16 @@ function switch_default(v: count): string
 	switch ( v ) {
 	case 1:
 		rval += "1";
+		fallthrough;
 	case 2:
 		rval += "2";
+		break;
 	case 3:
 		rval += "3";
+		fallthrough;
 	default:
 		rval += "d";
+		break;
 	}
 	return rval + "r";
 	}
@@ -180,13 +186,16 @@ function switch_default_placement(v: count): string
 	switch ( v ) {
 	case 1:
 		rval += "1";
+		fallthrough;
 	default:
 		rval += "d";
+		fallthrough;
 	case 2:
 		rval += "2";
 		break;
 	case 3:
 		rval += "3";
+		break;
 	}
 	return rval + "r";
 	}
@@ -246,11 +255,11 @@ event bro_init()
 	test_switch( switch_subnet([fe80::1]/96) , "[fe80::0]" );
 	test_switch( switch_subnet(192.168.1.100/16) , "192.168.0.0/16" );
 	test_switch( switch_empty(2) , "n/a" );
-	test_switch( switch_break(1) , "testtestingreturn" );
-	test_switch( switch_break(2) , "testingreturn" );
-	test_switch( switch_break(3) , "testedreturn" );
-	test_switch( switch_default(1) , "123dr" );
-	test_switch( switch_default(2) , "23dr" );
+	test_switch( switch_fallthrough(1) , "testtestingtestedreturn" );
+	test_switch( switch_fallthrough(2) , "testingtestedreturn" );
+	test_switch( switch_fallthrough(3) , "testedreturn" );
+	test_switch( switch_default(1) , "12r" );
+	test_switch( switch_default(2) , "2r" );
 	test_switch( switch_default(3) , "3dr" );
 	test_switch( switch_default(4) , "dr" );
 	test_switch( switch_default_placement(1) , "1d2r" );

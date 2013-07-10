@@ -421,7 +421,8 @@ void net_run()
 	set_processing_status("RUNNING", "net_run");
 
 	while ( io_sources.Size() ||
-		(packet_sorter && ! packet_sorter->Empty()) )
+		(packet_sorter && ! packet_sorter->Empty()) ||
+		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
 		double ts;
 		IOSource* src = io_sources.FindSoonest(&ts);

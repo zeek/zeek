@@ -17,6 +17,8 @@
 
 @if ( Cluster::is_enabled() )
 @load ./cluster
+@else
+@load ./non-cluster
 @endif
 
 # Load here so that it can check whether clustering is enabled.

@@ -23,7 +23,7 @@ const char* stmt_name(BroStmtTag t)
 		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
-		"<init>",
+		"<init>", "fallthrough",
 		"null",
 	};
 
@@ -584,6 +584,32 @@ bool IfStmt::DoUnserialize(UnserialInfo* info)
 	return s2 != 0;
 	}
 
+static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
+	{
+	if ( ! stmt )
+		return STMT_NULL;
+
+	if ( stmt->Tag() != STMT_LIST )
+		return stmt->Tag();
+
+	const StmtList* stmts = stmt->AsStmtList();
+	int len = stmts->Stmts().length();
+
+	if ( len == 0 )
+		return STMT_LIST;
+
+	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
+	}
+
+Case::Case(ListExpr* c, Stmt* arg_s)
+    : cases(simplify_expr_list(c, SIMPLIFY_GENERAL)), s(arg_s)
+	{
+	BroStmtTag t = get_last_stmt_tag(Body());
+
+	if ( t != STMT_BREAK && t != STMT_FALLTHROUGH && t != STMT_RETURN )
+		Error("case block must end in break/fallthrough/return statement");
+	}
+
 Case::~Case()
 	{
 	Unref(cases);
@@ -802,15 +828,12 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		flow = FLOW_NEXT;
 		rval = c->Body()->Exec(f, flow);
 
-		if ( flow == FLOW_BREAK )
-			{
-			flow = FLOW_NEXT;
-			break;
-			}
-
-		if ( flow == FLOW_RETURN )
+		if ( flow == FLOW_BREAK  || flow == FLOW_RETURN )
 			break;
 		}
+
+	if ( flow != FLOW_RETURN )
+		flow = FLOW_NEXT;
 
 	return rval;
 	}
@@ -1467,6 +1490,47 @@ bool BreakStmt::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+Val* FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+	{
+	RegisterAccess();
+	flow = FLOW_FALLTHROUGH;
+	return 0;
+	}
+
+int FallthroughStmt::IsPure() const
+	{
+	return 1;
+	}
+
+void FallthroughStmt::Describe(ODesc* d) const
+	{
+	Stmt::Describe(d);
+	Stmt::DescribeDone(d);
+	}
+
+TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+IMPLEMENT_SERIAL(FallthroughStmt, SER_FALLTHROUGH_STMT);
+
+bool FallthroughStmt::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_FALLTHROUGH_STMT, Stmt);
+	return true;
+	}
+
+bool FallthroughStmt::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(Stmt);
+	return true;
+	}
+
 ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 	{
 	Scope* s = current_scope();
@@ -1789,13 +1853,21 @@ Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		ID* aggr = (*inits)[i];
 		BroType* t = aggr->Type();
 
-		Val* v;
-		if ( t->Tag() == TYPE_RECORD )
+		Val* v = 0;
+
+		switch ( t->Tag() ) {
+		case TYPE_RECORD:
 			v = new RecordVal(t->AsRecordType());
-		else if ( aggr->Type()->Tag() == TYPE_VECTOR )
+			break;
+		case TYPE_VECTOR:
 			v = new VectorVal(t->AsVectorType());
-		else
+			break;
+		case TYPE_TABLE:
 			v = new TableVal(t->AsTableType(), aggr->Attrs());
+			break;
+		default:
+			break;
+		}
 
 		f->SetElement(aggr->Offset(), v);
 		}

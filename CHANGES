@@ -1,4 +1,8 @@
 
+2.1-802 | 2013-07-10 10:55:14 -0700
+
+  * Const adjustment for methods. (Jon Siwek)
+
 2.1-798 | 2013-07-08 13:05:37 -0700
 
   * Rewrite of the packet filter framework. (Seth Hall)

@@ -10,3 +10,4 @@ signature dpd_smtp_server {
   ip-proto == tcp
   payload /^[[:space:]]*220[[:space:]-]/
   tcp-state responder
+}

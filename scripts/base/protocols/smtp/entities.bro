@@ -33,12 +33,12 @@ event mime_begin_entity(c: connection) &priority=10
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( f$source != "SMTP" ) 
-		return;
-
-	if ( c$smtp$entity?$filename )
-		f$info$filename = c$smtp$entity$filename;
-	f$info$depth = c$smtp_state$mime_depth;
+	if ( f$source == "SMTP" && c?$smtp ) 
+		{
+		if ( c$smtp?$entity && c$smtp$entity?$filename )
+			f$info$filename = c$smtp$entity$filename;
+		f$info$depth = c$smtp_state$mime_depth;
+		}
 	}
 
 event mime_one_header(c: connection, h: mime_header_rec) &priority=5

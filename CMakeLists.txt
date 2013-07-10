@@ -18,7 +18,7 @@ get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
 set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
-set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic)
+set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
@@ -201,9 +201,8 @@ CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
-install(DIRECTORY ./magic/ DESTINATION ${BRO_MAGIC_INSTALL_PATH} FILES_MATCHING
-        PATTERN "COPYING" EXCLUDE
-        PATTERN "*"
+install(DIRECTORY ./magic/database/
+        DESTINATION ${BRO_MAGIC_INSTALL_PATH}
 )
 
 ########################################################################

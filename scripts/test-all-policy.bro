@@ -24,6 +24,7 @@
 @load frameworks/intel/smtp.bro
 @load frameworks/intel/ssl.bro
 @load frameworks/intel/where-locations.bro
+@load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load integration/barnyard2/__load__.bro
@@ -35,6 +36,7 @@
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
+@load misc/load-balancing.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
 @load misc/scan.bro

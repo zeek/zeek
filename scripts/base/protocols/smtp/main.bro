@@ -81,9 +81,6 @@ redef record connection += {
 	smtp_state: State &optional;
 };
 
-# Configure DPD
-redef capture_filters += { ["smtp"] = "tcp port 25 or tcp port 587" };
-
 const ports = { 25/tcp, 587/tcp };
 redef likely_server_ports += { ports };
 

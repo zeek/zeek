@@ -2,3 +2,5 @@
 @load ./main
 @load ./files
 @load ./gridftp
+
+@load-sigs ./dpd.sig

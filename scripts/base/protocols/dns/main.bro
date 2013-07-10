@@ -122,14 +122,6 @@ redef record connection += {
 	dns_state: State &optional;
 };
 
-# DPD configuration.
-redef capture_filters += {
-	["dns"] = "port 53",
-	["mdns"] = "udp and port 5353",
-	["llmns"] = "udp and port 5355",
-	["netbios-ns"] = "udp port 137",
-};
-
 const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
 redef likely_server_ports += { ports };
 

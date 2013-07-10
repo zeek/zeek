@@ -46,5 +46,6 @@
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
+@load base/protocols/tunnels
 
 @load base/misc/find-checksum-offloading

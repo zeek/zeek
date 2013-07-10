@@ -3,8 +3,6 @@
 
 module DPD;
 
-@load-sigs ./dpd.sig
-
 export {
 	## Add the DPD logging stream identifier.
 	redef enum Log::ID += { LOG };

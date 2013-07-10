@@ -1,6 +1,7 @@
 #include "BloomFilter.h"
 
 #include <cmath>
+#include <limits>
 #include "CounterVector.h"
 #include "Serializer.h"
 

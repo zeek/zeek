@@ -20,6 +20,7 @@ export {
 	                         /application\/pdf/ |
 	                         /application\/x-shockwave-flash/ |
 	                         /application\/x-java-applet/ |
+	                         /application\/jar/ |
 	                         /video\/mp4/ &redef;
 
 	## The malware hash registry runs each malware sample through several A/V engines.

@@ -100,7 +100,12 @@ File::~File()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
-	assert(fonc_queue.empty());
+	// Queue may not be empty in the case where only content gaps were seen.
+	while ( ! fonc_queue.empty() )
+		{
+		delete_vals(fonc_queue.front().second);
+		fonc_queue.pop();
+		}
 	}
 
 void File::UpdateLastActivityTime()

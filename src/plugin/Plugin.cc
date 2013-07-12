@@ -47,6 +47,7 @@ Plugin::Plugin()
 	version = -9999;
 	api_version = -9999;
 	dynamic = false;
+	base_dir = 0;
 
 	Manager::RegisterPlugin(this);
 	}
@@ -57,6 +58,7 @@ Plugin::~Plugin()
 
 	delete [] name;
 	delete [] description;
+	delete [] base_dir;
 	}
 
 const char* Plugin::Name() const
@@ -66,6 +68,7 @@ const char* Plugin::Name() const
 
 void Plugin::SetName(const char* arg_name)
 	{
+	delete [] name;
 	name = copy_string(arg_name);
 	}
 
@@ -76,6 +79,7 @@ const char* Plugin::Description() const
 
 void Plugin::SetDescription(const char* arg_description)
 	{
+	delete [] description;
 	description = copy_string(arg_description);
 	}
 
@@ -99,6 +103,11 @@ bool Plugin::DynamicPlugin() const
 	return dynamic;
 	}
 
+const char* Plugin::PluginDirectory() const
+	{
+	return base_dir;
+	}
+
 void Plugin::SetAPIVersion(int arg_version)
 	{
 	api_version = arg_version;
@@ -107,6 +116,12 @@ void Plugin::SetAPIVersion(int arg_version)
 void Plugin::SetDynamicPlugin(bool arg_dynamic)
 	{
 	dynamic = arg_dynamic;
+	}
+
+void Plugin::SetPluginDirectory(const char* dir)
+	{
+	delete [] base_dir;
+	base_dir = copy_string(dir);
 	}
 
 void Plugin::InitPreScript()
@@ -181,7 +196,7 @@ void Plugin::Describe(ODesc* d) const
 		{
 		if ( version > 0 )
 			{
-			d->Add(" (version ");
+			d->Add(" (dynamic, version ");
 			d->Add(version);
 			d->Add(")");
 			}

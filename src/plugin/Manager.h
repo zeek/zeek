@@ -30,24 +30,17 @@ public:
 	~Manager();
 
 	/**
-	 * Loads a plugin dynamically from a file. This must be called only
-	 * before InitPluginsPreScript()
+	 * Loads all plugins dynamically from a set of directories. Multiple
+	 * directories are split by ':'. If a directory does not contain a
+	 * plugin itself, the method searches for plugins recursively. For
+	 * plugins found, the method loads the plugin's shared library and
+	 * makes its scripts available to the interpreter.
 	 *
-	 * This is not currently implemented.
-	 *
-	 * @param file The path to the plugin to load.
-	 */
-	bool LoadPlugin(const std::string& file);
-
-	/**
-	 * Loads plugins dynamically found in a directory. This must be
-	 * called only before InitPluginsPreScript().
-	 *
-	 * This is not currently implemented.
+	 * This must be called only before InitPluginsPreScript().
 	 *
 	 * @param dir The directory to search for plugins.
 	 */
-	bool LoadPluginsFrom(const std::string& dir);
+	void LoadPluginsFrom(const std::string& dir);
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
@@ -93,10 +86,31 @@ public:
 	 */
 	static bool RegisterPlugin(Plugin *plugin);
 
+protected:
+	/**
+	 * Loads a plugin dynamically from a given directory. It loads the
+	 * plugin's shared library, and makes its scripts available to the
+	 * interpreter. Different from LoadPluginsFrom() this method does not
+	 * further descend the directory tree recursively to search for
+	 * plugins.
+	 *
+	 * This must be called only before InitPluginsPreScript()
+	 *
+	 * @param file The path to the plugin to load.
+	 *
+	 * @return 0 if there's a plugin in this directory, but there was a
+	 * problem loading it; -1 if there's no plugin at all in this
+	 * directory; 1 if there's a plugin in this directory and we loaded
+	 * it successfully.
+	 */
+	int LoadPlugin(const std::string& dir);
+
 private:
+
 	static plugin_list* PluginsInternal();
 
 	bool init;
+	static string current_dir;
 };
 
 template<class T>

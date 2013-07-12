@@ -1,0 +1,2 @@
+
+event foo_message%(c: connection, data: string%);

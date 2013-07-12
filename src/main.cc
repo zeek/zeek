@@ -211,7 +211,8 @@ void usage()
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
-	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
+	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
+	fprintf(stderr, "    $BROPLUGINS                    | plugin search path (%s)\n", bro_plugin_path());
 	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
@@ -798,6 +799,9 @@ int main(int argc, char** argv)
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
 
+	plugin_mgr = new plugin::Manager();
+	plugin_mgr->LoadPluginsFrom(bro_plugin_path());
+
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
 	     interfaces.length() == 0 &&
@@ -830,7 +834,6 @@ int main(int argc, char** argv)
 	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
-	plugin_mgr = new plugin::Manager();
 	file_mgr = new file_analysis::Manager();
 
 	plugin_mgr->InitPreScript();

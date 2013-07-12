@@ -122,6 +122,12 @@ public:
 	bool DynamicPlugin() const;
 
 	/**
+	 * For dynamic plugins, returns the base directory from which it was
+	 * loaded. For static plugins, returns null.
+	 **/
+	const char* PluginDirectory() const;
+
+	/**
 	 * Returns the internal API version that this plugin relies on. Only
 	 * plugins that match Bro's current API version may be used. For
 	 * statically compiled plugins this is automatically the case, but
@@ -174,6 +180,8 @@ public:
 	void Describe(ODesc* d) const;
 
 protected:
+	friend class Manager;
+
 	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
 	typedef bif_init_func_result (*bif_init_func)();
 
@@ -213,6 +221,15 @@ protected:
 	void SetDynamicPlugin(bool dynamic);
 
 	/**
+	 * Sets the base directory from which the plugin was loaded. This
+	 * should be called only from the manager for dynamic plugins.
+	 *
+	 * @param dir The directory. The functions makes an internal copy of
+	 * string.
+	 */
+	void SetPluginDirectory(const char* dir);
+
+	/**
 	 * Takes ownership.
 	 */
 	void AddComponent(Component* c);
@@ -238,6 +255,7 @@ private:
 
 	const char* name;
 	const char* description;
+	const char* base_dir;
 	int version;
 	int api_version;
 	bool dynamic;

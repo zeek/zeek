@@ -9,14 +9,23 @@ module HTTP;
 
 export {
 	type Entity: record {
-		## Depth of the entity if multiple entities are sent in a single transaction.
-		depth: count &default=0;
-
 		## Filename for the entity if discovered from a header.
 		filename: string &optional;
 	};
 
 	redef record Info += {
+		## An ordered vector of file unique IDs.
+		orig_fuids:     vector of string &log &optional;
+
+		## An ordered vector of mime types.
+		orig_mime_types: vector of string &log &optional;
+
+		## An ordered vector of file unique IDs.
+		resp_fuids:     vector of string &log &optional;
+
+		## An ordered vector of mime types.
+		resp_mime_types: vector of string &log &optional;
+
 		## The current entity being seen.
 		entity:          Entity    &optional;
 
@@ -36,7 +45,7 @@ event http_begin_entity(c: connection, is_orig: bool) &priority=10
 	else
 		++c$http$resp_mime_depth;
 
-	c$http$entity = Entity($depth = is_orig ? c$http$orig_mime_depth : c$http$resp_mime_depth);
+	c$http$entity = Entity();
 	}
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=3
@@ -55,12 +64,43 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( f$source == "HTTP" && c$http?$entity ) 
+	if ( f$source == "HTTP" && c?$http ) 
 		{
-		f$info$depth = c$http$entity$depth;
-		if ( c$http$entity?$filename )
+		if ( c$http?$entity && c$http$entity?$filename )
 			f$info$filename = c$http$entity$filename;
+
+		if ( f$is_orig )
+			{
+			if ( ! c$http?$resp_mime_types )
+				c$http$resp_fuids = string_vec(f$id);
+			else
+				c$http$orig_fuids[|c$http$orig_fuids|] = f$id;
+
+			if ( f?$mime_type )
+				{
+				if ( ! c$http?$orig_mime_types )
+					c$http$orig_mime_types = string_vec(f$mime_type);
+				else
+					c$http$orig_mime_types[|c$http$orig_mime_types|] = f$mime_type;
+				}
+			}
+		else
+			{
+			if ( ! c$http?$resp_mime_types )
+				c$http$resp_fuids = string_vec(f$id);
+			else
+				c$http$resp_fuids[|c$http$resp_fuids|] = f$id;
+
+			if ( f?$mime_type )
+				{
+				if ( ! c$http?$resp_mime_types )
+					c$http$resp_mime_types = string_vec(f$mime_type);
+				else
+					c$http$resp_mime_types[|c$http$resp_mime_types|] = f$mime_type;
+				}
+			}
 		}
+
 	}
 
 event http_end_entity(c: connection, is_orig: bool) &priority=5

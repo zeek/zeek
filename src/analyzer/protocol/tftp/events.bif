@@ -1,0 +1,9 @@
+
+## Generated for TFTP file requests.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+## 
+event tftp_read_request%(c: connection, filename: string, trans_type: string%);
+
+
+event tftp_write_request%(c: connection, filename: string, trans_type: string%);

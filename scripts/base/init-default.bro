@@ -47,6 +47,7 @@
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
+@load base/protocols/tftp
 @load base/protocols/tunnels
 
 @load base/files/hash

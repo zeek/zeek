@@ -19,8 +19,8 @@ string Manager::salt;
 
 Manager::Manager()
 	{
-	tag_enum_type = new EnumType("FileAnalysis::Tag");
-	::ID* id = install_ID("Tag", "FileAnalysis", true, true);
+	tag_enum_type = new EnumType("Files::Tag");
+	::ID* id = install_ID("Tag", "Files", true, true);
 	add_type(id, tag_enum_type, 0, 0);
 	}
 
@@ -42,7 +42,7 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 	{
 	const char* cname = component->CanonicalName();
 
-	if ( tag_enum_type->Lookup("FileAnalysis", cname) != -1 )
+	if ( tag_enum_type->Lookup("Files", cname) != -1 )
 		reporter->FatalError("File Analyzer %s defined more than once", cname);
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Registering analyzer %s (tag %s)",
@@ -54,7 +54,7 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 	        component->Tag().AsEnumVal()->InternalInt(), component));
 
 	string id = fmt("ANALYZER_%s", cname);
-	tag_enum_type->AddName("FileAnalysis", id.c_str(),
+	tag_enum_type->AddName("Files", id.c_str(),
 						   component->Tag().AsEnumVal()->InternalInt(), true);
 	}
 
@@ -77,7 +77,7 @@ void Manager::Terminate()
 string Manager::HashHandle(const string& handle) const
 	{
 	if ( salt.empty() )
-		salt = BifConst::FileAnalysis::salt->CheckString();
+		salt = BifConst::Files::salt->CheckString();
 
 	char tmp[20];
 	uint64 hash[2];
@@ -250,7 +250,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 		rval->UpdateLastActivityTime();
 
 		if ( update_conn )
-			rval->UpdateConnectionFields(conn);
+			rval->UpdateConnectionFields(conn, is_orig);
 		}
 
 	return rval;
@@ -352,7 +352,7 @@ void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
 bool Manager::IsDisabled(analyzer::Tag tag)
 	{
 	if ( ! disabled )
-		disabled = internal_const_val("FileAnalysis::disable")->AsTableVal();
+		disabled = internal_const_val("Files::disable")->AsTableVal();
 
 	Val* index = new Val(tag, TYPE_COUNT);
 	Val* yield = disabled->Lookup(index);

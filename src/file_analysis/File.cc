@@ -75,7 +75,8 @@ void File::StaticInit()
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
            bool is_orig)
 	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
-	  missed_bof(false), need_reassembly(false), done(false), analyzers(this)
+	  missed_bof(false), need_reassembly(false), done(false),
+	  did_file_new_event(false), analyzers(this)
 	{
 	StaticInit();
 
@@ -89,7 +90,7 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 		// add source, connection, is_orig fields
 		SetSource(analyzer_mgr->GetAnalyzerName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
-		UpdateConnectionFields(conn);
+		UpdateConnectionFields(conn, is_orig);
 		}
 
 	UpdateLastActivityTime();
@@ -99,6 +100,12 @@ File::~File()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
+	// Queue may not be empty in the case where only content gaps were seen.
+	while ( ! fonc_queue.empty() )
+		{
+		delete_vals(fonc_queue.front().second);
+		fonc_queue.pop();
+		}
 	}
 
 void File::UpdateLastActivityTime()
@@ -111,18 +118,15 @@ double File::GetLastActivityTime() const
 	return val->Lookup(last_active_idx)->AsTime();
 	}
 
-void File::UpdateConnectionFields(Connection* conn)
+void File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	{
 	if ( ! conn )
 		return;
 
 	Val* conns = val->Lookup(conns_idx);
 
-	bool is_first = false;
-
 	if ( ! conns )
 		{
-		is_first = true;
 		conns = empty_connection_table();
 		val->Assign(conns_idx, conns);
 		}
@@ -133,12 +137,18 @@ void File::UpdateConnectionFields(Connection* conn)
 		Val* conn_val = conn->BuildConnVal();
 		conns->AsTableVal()->Assign(idx, conn_val);
 
-		if ( ! is_first && FileEventAvailable(file_over_new_connection) )
+		if ( FileEventAvailable(file_over_new_connection) )
 			{
 			val_list* vl = new val_list();
 			vl->append(val->Ref());
 			vl->append(conn_val->Ref());
-			FileEvent(file_over_new_connection, vl);
+			vl->append(new Val(is_orig, TYPE_BOOL));
+
+			if ( did_file_new_event )
+				FileEvent(file_over_new_connection, vl);
+			else
+				fonc_queue.push(pair<EventHandlerPtr, val_list*>(
+				        file_over_new_connection, vl));
 			}
 		}
 
@@ -434,6 +444,18 @@ void File::FileEvent(EventHandlerPtr h)
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
 	mgr.QueueEvent(h, vl);
+
+	if ( h == file_new )
+		{
+		did_file_new_event = true;
+
+		while ( ! fonc_queue.empty() )
+			{
+			pair<EventHandlerPtr, val_list*> p = fonc_queue.front();
+			mgr.QueueEvent(p.first, p.second);
+			fonc_queue.pop();
+			}
+		}
 
 	if ( h == file_new || h == file_timeout )
 		{

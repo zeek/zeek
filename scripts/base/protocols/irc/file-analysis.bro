@@ -1,6 +1,6 @@
-@load ./dcc-send.bro
+@load ./dcc-send
 @load base/utils/conn-ids
-@load base/frameworks/file-analysis/main
+@load base/frameworks/files
 
 module IRC;
 
@@ -11,15 +11,13 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( is_orig ) return "";
-	return cat(Analyzer::ANALYZER_IRC_DATA, " ", c$start_time, " ", id_string(c$id));
+	if ( [c$id$resp_h, c$id$resp_p] !in dcc_expected_transfers ) 
+		return "";
+
+	return cat(ANALYZER_IRC_DATA, c$start_time, c$id, is_orig);
 	}
 
-module GLOBAL;
-
-event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool)
-	&priority=5
+event bro_init() &priority=5
 	{
-	if ( tag != Analyzer::ANALYZER_IRC_DATA ) return;
-	set_file_handle(IRC::get_file_handle(c, is_orig));
+	Files::register_protocol(ANALYZER_IRC_DATA, IRC::get_file_handle);
 	}

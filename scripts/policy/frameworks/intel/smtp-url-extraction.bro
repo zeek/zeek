@@ -1,11 +1,12 @@
 @load base/frameworks/intel
-@load base/protocols/smtp/file-analysis
+@load base/protocols/smtp
 @load base/utils/urls
 @load ./where-locations
 
 event intel_mime_data(f: fa_file, data: string)
 	{
-	if ( ! f?$conns ) return;
+	if ( ! f?$conns ) 
+		return;
 
 	for ( cid in f$conns )
 		{
@@ -21,11 +22,8 @@ event intel_mime_data(f: fa_file, data: string)
 		}
 	}
 
-event file_new(f: fa_file) &priority=5
+event file_new(f: fa_file)
 	{
-	if ( ! f?$source ) return;
-	if ( f$source != "SMTP" ) return;
-
-	FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_DATA_EVENT,
-	                               $stream_event=intel_mime_data]);
+	if ( f$source == "SMTP" )
+		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT, [$stream_event=intel_mime_data]);
 	}

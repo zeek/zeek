@@ -15,7 +15,7 @@ static void analyzer_del_func(void* v)
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
 	TypeList* t = new TypeList();
-	t->Append(BifType::Record::FileAnalysis::AnalyzerArgs->Ref());
+	t->Append(BifType::Record::Files::AnalyzerArgs->Ref());
 	analyzer_hash = new CompositeHash(t);
 	Unref(t);
 	analyzer_map.SetDeleteFunc(analyzer_del_func);

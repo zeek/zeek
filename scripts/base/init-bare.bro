@@ -328,7 +328,7 @@ type fa_file: record {
 	## An identification of the source of the file data.  E.g. it may be
 	## a network protocol over which it was transferred, or a local file
 	## path which was read, or some other input source.
-	source: string &optional;
+	source: string;
 
 	## If the source of this file is is a network connection, this field
 	## may be set to indicate the directionality.
@@ -3049,4 +3049,4 @@ const snaplen = 8192 &redef;
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer
-@load base/frameworks/file-analysis
+@load base/frameworks/files

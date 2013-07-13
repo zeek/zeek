@@ -71,10 +71,10 @@ export {
 		
 		## All of the headers that may indicate if the request was proxied.
 		proxied:                 set[string] &log &optional;
-
+		
 		## Indicates if this request can assume 206 partial content in
 		## response.
-		range_request:           bool &default=F;
+		range_request:           bool      &default=F;
 	};
 	
 	## Structure to maintain state for an HTTP connection with multiple 
@@ -100,8 +100,8 @@ export {
 	} &redef;
 
 	## A list of HTTP methods. Other methods will generate a weird. Note
-        ## that the HTTP analyzer will only accept methods consisting solely
-        ## of letters ``[A-Za-z]``.
+	## that the HTTP analyzer will only accept methods consisting solely
+	## of letters ``[A-Za-z]``.
 	const http_methods: set[string] = {
 		"GET", "POST", "HEAD", "OPTIONS",
 		"PUT", "DELETE", "TRACE", "CONNECT",
@@ -264,13 +264,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 				}
 			}
 		}
-	
-	else # server headers
-		{
-		if ( name == "CONTENT-DISPOSITION" &&
-		     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
-			c$http$filename = extract_filename_from_content_disposition(value);
-		}
+
 	}
 	
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5

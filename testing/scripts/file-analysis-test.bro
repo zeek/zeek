@@ -1,7 +1,7 @@
 
 global test_file_analysis_source: string = "" &redef;
 
-global test_file_analyzers: set[FileAnalysis::AnalyzerArgs];
+global test_file_analyzers: set[Files::AnalyzerArgs];
 
 global test_get_file_name: function(f: fa_file): string =
 	function(f: fa_file): string { return ""; } &redef;
@@ -42,13 +42,13 @@ event file_new(f: fa_file)
 	     f$source == test_file_analysis_source )
 		{
 		for ( tag in test_file_analyzers )
-			FileAnalysis::add_analyzer(f, tag);
+			Files::add_analyzer(f, tag);
 
 		local filename: string = test_get_file_name(f);
 		if ( filename != "" )
-			FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
+			Files::add_analyzer(f, [$tag=Files::ANALYZER_EXTRACT,
 			                               $extract_filename=filename]);
-		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_DATA_EVENT,
+		Files::add_analyzer(f, [$tag=Files::ANALYZER_DATA_EVENT,
 		                               $chunk_event=file_chunk,
 		                               $stream_event=file_stream]);
 		}
@@ -66,7 +66,7 @@ event file_new(f: fa_file)
 		}
 	}
 
-event file_over_new_connection(f: fa_file, c: connection)
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
 	{
 	print "FILE_OVER_NEW_CONNECTION";
 	}
@@ -106,7 +106,7 @@ event file_state_remove(f: fa_file)
 
 event bro_init()
 	{
-	add test_file_analyzers[[$tag=FileAnalysis::ANALYZER_MD5]];
-	add test_file_analyzers[[$tag=FileAnalysis::ANALYZER_SHA1]];
-	add test_file_analyzers[[$tag=FileAnalysis::ANALYZER_SHA256]];
+	add test_file_analyzers[[$tag=Files::ANALYZER_MD5]];
+	add test_file_analyzers[[$tag=Files::ANALYZER_SHA1]];
+	add test_file_analyzers[[$tag=Files::ANALYZER_SHA256]];
 	}

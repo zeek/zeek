@@ -1,7 +1,6 @@
 @load ./utils-commands
 @load ./main
-@load ./file-analysis
-@load ./file-extract
+@load ./files
 @load ./gridftp
 
 @load-sigs ./dpd.sig

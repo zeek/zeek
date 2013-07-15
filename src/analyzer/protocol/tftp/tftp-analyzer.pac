@@ -13,24 +13,12 @@ flow TFTP_Flow
 {
 	datagram = TFTP_Message withcontext(connection, this);
 
-	function process_tftp_message(m: TFTP_Message): bool
-		%{
-		//printf("blah: %d\n", ${m.opcode});
-		//BifEvent::generate_syslog_message(connection()->bro_analyzer(),
-		//                                  connection()->bro_analyzer()->Conn(),
-		//                                  ${m.PRI.facility},
-		//                                  ${m.PRI.severity},
-		//                                  new StringVal(${m.msg}.length(), (const char*) //${m.msg}.begin())
-		//                                  );
-		return true;
-		%}
-
 	function process_read_request(m: ReadRequest): bool
 		%{
 		BifEvent::generate_tftp_read_request(connection()->bro_analyzer(),
 		                                     connection()->bro_analyzer()->Conn(),
-		                                     bytestring_to_val(${m.file}),
-		                                     bytestring_to_val(${m.type}));
+		                                     bytestring_to_val(${m.file.str}),
+		                                     bytestring_to_val(${m.type.str}));
 		return true;
 		%}
 
@@ -38,26 +26,34 @@ flow TFTP_Flow
 		%{
 		BifEvent::generate_tftp_write_request(connection()->bro_analyzer(),
 		                                      connection()->bro_analyzer()->Conn(),
-		                                      bytestring_to_val(${m.file}),
-		                                      bytestring_to_val(${m.type}));
+		                                      bytestring_to_val(${m.file.str}),
+		                                      bytestring_to_val(${m.type.str}));
 		return true;
 		%}
 
 	function process_datachunk(m: DataChunk): bool
 		%{
-		//file_mgr->DataIn(reinterpret_cast<const u_char*>(${m.data}.begin(), 
-		//                 (uint64) ${m.data}.length(), 
-		//                 (uint64) ${m.block}*512,
-		//                 connection()->bro_analyzer()->GetAnalyzerTag(),
-		//                 connection()->bro_analyzer()->Conn(),
-		//                 true));
+		file_mgr->DataIn(${m.data}.begin(), 
+		                 ${m.data}.length(),
+		                 (uint64) ${m.block}*512,
+		                 connection()->bro_analyzer()->GetAnalyzerTag(), 
+		                 connection()->bro_analyzer()->Conn(),
+		                 true);
 		return true;
 		%}
 
-};
+	function process_ack(m: Acknowledgment): bool
+		%{
+		${m.block}
+		return true;
+		%}
 
-refine typeattr TFTP_Message += &let {
-	proc_tftp_message = $context.flow.process_tftp_message(this);
+	function process_failure(opcode: uint16): bool
+		%{
+		connection()->bro_analyzer()->ProtocolViolation(fmt("Unknown opcode: %d", opcode));
+		return true;
+		%}
+
 };
 
 refine typeattr ReadRequest += &let {
@@ -70,4 +66,8 @@ refine typeattr WriteRequest += &let {
 
 refine typeattr DataChunk += &let {
 	proc_datachunk = $context.flow.process_datachunk(this);
+};
+
+refine typeattr FAILURE += &let {
+	proc_failure = $context.flow.process_failure(opcode);
 };

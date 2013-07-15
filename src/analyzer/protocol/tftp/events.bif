@@ -5,5 +5,5 @@
 ## 
 event tftp_read_request%(c: connection, filename: string, trans_type: string%);
 
-
 event tftp_write_request%(c: connection, filename: string, trans_type: string%);
+

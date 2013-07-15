@@ -7,8 +7,8 @@
 %}
 
 analyzer TFTP withcontext {
-	connection:	TFTP_Conn;
-	flow:		TFTP_Flow;
+	connection: TFTP_Conn;
+	flow:       TFTP_Flow;
 };
 
 %include tftp-protocol.pac

@@ -12,6 +12,9 @@ export {
 
 	## Default file handle provider for FTP.
 	global get_file_handle: function(c: connection, is_orig: bool): string;
+
+	## Describe the file being transferred.
+	global describe_file: function(f: fa_file): string;
 }
 
 function get_file_handle(c: connection, is_orig: bool): string
@@ -22,9 +25,25 @@ function get_file_handle(c: connection, is_orig: bool): string
 	return cat(Analyzer::ANALYZER_FTP_DATA, c$start_time, c$id, is_orig);
 	}
 
+function describe_file(f: fa_file): string
+	{
+	# This shouldn't be needed, but just in case...
+	if ( f$source != "FTP" )
+		return "";
+
+	for ( cid in f$conns )
+		{
+		if ( f$conns[cid]?$ftp )
+			return FTP::describe(f$conns[cid]$ftp);
+		}
+	return "";
+	}
+
 event bro_init() &priority=5
 	{
-	Files::register_protocol(Analyzer::ANALYZER_FTP_DATA, FTP::get_file_handle);
+	Files::register_protocol(Analyzer::ANALYZER_FTP_DATA,
+	                         [$get_file_handle = FTP::get_file_handle,
+	                          $describe        = FTP::describe_file]);
 	}
 
 

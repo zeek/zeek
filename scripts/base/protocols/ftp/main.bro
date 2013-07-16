@@ -63,8 +63,6 @@ export {
 		reply_code:       count       &log &optional;
 		## Reply message from the server in response to the command.
 		reply_msg:        string      &log &optional;
-		## Arbitrary tags that may indicate a particular attribute of this command.
-		tags:             set[string] &log;
 
 		## Expected FTP data channel.
 		data_channel:     ExpectedDataChannel &log &optional;
@@ -171,36 +169,21 @@ function set_ftp_session(c: connection)
 
 function ftp_message(s: Info)
 	{
-	# If it either has a tag associated with it (something detected)
-	# or it's a deliberately logged command.
-	if ( |s$tags| > 0 || (s?$cmdarg && s$cmdarg$cmd in logged_commands) )
+	s$ts=s$cmdarg$ts;
+	s$command=s$cmdarg$cmd;
+	s$arg=s$cmdarg$arg;
+	if ( s$arg == "" )
+		delete s$arg;
+
+	if ( s?$password &&
+	     ! s$capture_password &&
+	     to_lower(s$user) !in guest_ids )
 		{
-		if ( s?$password &&
-		     ! s$capture_password &&
-		     to_lower(s$user) !in guest_ids )
-			{
-			s$password = "<hidden>";
-			}
-
-		local arg = s$cmdarg$arg;
-		if ( s$cmdarg$cmd in file_cmds )
-			{
-			local comp_path = build_path_compressed(s$cwd, arg);
-			if ( comp_path[0] != "/" )
-				comp_path = cat("/", comp_path);
-
-			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), comp_path);
-			}
-
-		s$ts=s$cmdarg$ts;
-		s$command=s$cmdarg$cmd;
-		if ( arg == "" )
-			delete s$arg;
-		else
-			s$arg=arg;
-
-		Log::write(FTP::LOG, s);
+		s$password = "<hidden>";
 		}
+
+	if ( s?$cmdarg && s$command in logged_commands)
+		Log::write(FTP::LOG, s);
 
 	# The MIME and file_size fields are specific to file transfer commands
 	# and may not be used in all commands so they need reset to "blank"
@@ -209,8 +192,6 @@ function ftp_message(s: Info)
 	delete s$file_size;
 	# Same with data channel.
 	delete s$data_channel;
-	# Tags are cleared everytime too.
-	s$tags = set();
 	}
 
 function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
@@ -218,8 +199,9 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	s$passive = chan$passive;
 	s$data_channel = chan;
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
-	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p, Analyzer::ANALYZER_FTP_DATA,
-				    5mins);
+	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p, 
+	                            Analyzer::ANALYZER_FTP_DATA,
+	                            5mins);
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5

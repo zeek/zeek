@@ -43,3 +43,8 @@ function __name%(atype: Analyzer::Tag%) : string
 	%{
 	return new StringVal(analyzer_mgr->GetAnalyzerName(atype));
 	%}
+
+function __tag%(name: string%) : Analyzer::Tag
+	%{
+	return new Val(analyzer_mgr->GetAnalyzerTag(name->CheckString()), TYPE_ENUM);
+	%}

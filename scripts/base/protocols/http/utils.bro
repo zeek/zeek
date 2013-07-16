@@ -32,6 +32,9 @@ export {
 	##
 	## Returns: A URL prefixed with "http://".
 	global build_url_http: function(rec: Info): string;
+
+	## Create an extremely shortened representation of a log line.
+	global describe: function(rec: Info): string;
 }
 
 
@@ -61,4 +64,9 @@ function build_url(rec: Info): string
 function build_url_http(rec: Info): string
 	{
 	return fmt("http://%s", build_url(rec));
+	}
+
+function describe(rec: Info): string
+	{
+	return build_url_http(rec);
 	}

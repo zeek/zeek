@@ -14,6 +14,9 @@ export {
 
 	## Default file handle provider for SMTP.
 	global get_file_handle: function(c: connection, is_orig: bool): string;
+
+	## Default file describer for SMTP.
+	global describe_file: function(f: fa_file): string;
 }
 
 function get_file_handle(c: connection, is_orig: bool): string
@@ -22,9 +25,25 @@ function get_file_handle(c: connection, is_orig: bool): string
 	           c$smtp_state$mime_depth);
 	}
 
+function describe_file(f: fa_file): string
+	{
+	# This shouldn't be needed, but just in case...
+	if ( f$source != "SMTP" )
+		return "";
+
+	for ( cid in f$conns )
+		{
+		local c = f$conns[cid];
+		return SMTP::describe(c$smtp);
+		}
+	return "";
+	}
+
 event bro_init() &priority=5
 	{
-	Files::register_protocol(Analyzer::ANALYZER_SMTP, SMTP::get_file_handle);
+	Files::register_protocol(Analyzer::ANALYZER_SMTP, 
+	                         [$get_file_handle = SMTP::get_file_handle,
+	                          $describe        = SMTP::describe_file]);
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5

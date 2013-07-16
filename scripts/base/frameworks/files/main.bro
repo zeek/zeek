@@ -2,6 +2,7 @@
 ##! any network protocol over which they're transported.
 
 @load base/bif/file_analysis.bif
+@load base/frameworks/analyzer
 @load base/frameworks/logging
 @load base/utils/site
 
@@ -173,17 +174,36 @@ export {
 	## Returns: The analyzer name corresponding to the tag.
 	global analyzer_name: function(tag: Files::Tag): string;
 
+	## Provides a text description regarding metadata of the file.
+	## For example, with HTTP it would return a URL.
+	##
+	## f: The file to be described.
+	##
+	## Returns a text description regarding metadata of the file.
+	global describe: function(f: fa_file): string;
+
+	type ProtoRegistration: record {
+		## A callback to generate a file handle on demand when
+		## one is needed by the core.
+		get_file_handle: function(c: connection, is_orig: bool): string;
+		
+		## A callback to "describe" a file.  In the case of an HTTP
+		## transfer the most obvious description would be the URL.
+		## It's like an extremely compressed version of the normal log.
+		describe: function(f: fa_file): string
+				&default=function(f: fa_file): string { return ""; };
+	};
+
 	## Register callbacks for protocols that work with the Files framework.  
 	## The callbacks must uniquely identify a file and each protocol can 
 	## only have a single callback registered for it.
 	## 
 	## tag: Tag for the protocol analyzer having a callback being registered.
 	##
-	## callback: Function that can generate a file handle for the protocol analyzer
-	##           defined previously.
+	## reg: A :bro:see:`ProtoRegistration` record.
 	##
 	## Returns: true if the protocol being registered was not previously registered.
-	global register_protocol: function(tag: Files::Tag, callback: function(c: connection, is_orig: bool): string): bool;
+	global register_protocol: function(tag: Analyzer::Tag, reg: ProtoRegistration): bool;
 
 	## Register a callback for file analyzers to use if they need to do some manipulation
 	## when they are being added to a file before the core code takes over.  This is 
@@ -210,8 +230,7 @@ redef record AnalyzerArgs += {
 };
 
 # Store the callbacks for protocol analyzers that have files.
-global registered_protocols: table[Files::Tag] of function(c: connection, is_orig: bool): string = table()
-		&default=function(c: connection, is_orig: bool): string { return cat(c$uid, is_orig); };
+global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table();
 
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
@@ -321,15 +340,28 @@ event file_state_remove(f: fa_file) &priority=-10
 	Log::write(Files::LOG, f$info);
 	}
 
-function register_protocol(tag: Files::Tag, callback: function(c: connection, is_orig: bool): string): bool
+function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool
 	{
 	local result = (tag !in registered_protocols);
-	registered_protocols[tag] = callback;
+	registered_protocols[tag] = reg;
 	return result;
 	}
 
-event get_file_handle(tag: Files::Tag, c: connection, is_orig: bool) &priority=5
+function describe(f: fa_file): string
 	{
+	local tag = Analyzer::get_tag(f$source);
+	if ( tag !in registered_protocols )
+		return "";
+
 	local handler = registered_protocols[tag];
-	set_file_handle(handler(c, is_orig));
+	return handler$describe(f);
+	}
+
+event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool) &priority=5
+	{
+	if ( tag !in registered_protocols )
+		return;
+
+	local handler = registered_protocols[tag];
+	set_file_handle(handler$get_file_handle(c, is_orig));
 	}

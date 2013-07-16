@@ -1,4 +1,27 @@
 
+2.1-814 | 2013-07-15 18:18:20 -0700
+
+  * Fixing raw reader crash when accessing nonexistant file, and
+    memory leak when reading from file. Addresses #1038. (Bernhard
+    Amann)
+
+2.1-811 | 2013-07-14 08:01:54 -0700
+
+  * Bump sqlite to 3.7.17. (Bernhard Amann)
+
+  * Small test fixes. (Seth Hall)
+
+  * Fix a bug where the same analyzer tag was reused for two different
+    analyzers. (Seth Hall)
+
+  * Moved DPD signatures into script specific directories. Left out
+    the BitTorrent signatures pending further updates to that
+    analyzer. (Seth Hall)
+
+2.1-802 | 2013-07-10 10:55:14 -0700
+
+  * Const adjustment for methods. (Jon Siwek)
+
 2.1-798 | 2013-07-08 13:05:37 -0700
 
   * Rewrite of the packet filter framework. (Seth Hall)

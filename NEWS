@@ -189,6 +189,8 @@ Changed Functionality
 - PacketFilter::all_packets has been replaced with
   PacketFilter::enable_auto_protocol_capture_filters.
 
+- We removed the BitTorrent DPD signatures pending further updates to
+  that analyzer.
 
 Bro 2.1
 -------

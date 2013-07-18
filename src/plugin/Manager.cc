@@ -30,9 +30,18 @@ bool Manager::LoadPluginsFrom(const std::string& dir)
 	return false;
 	}
 
+static bool plugin_cmp(const Plugin* a, const Plugin* b)
+	{
+	return a->Name() < b->Name();
+	}
+
 bool Manager::RegisterPlugin(Plugin *plugin)
 	{
 	Manager::PluginsInternal()->push_back(plugin);
+
+	// Sort plugins by name to make sure we have a deterministic order.
+	PluginsInternal()->sort(plugin_cmp);
+
 	return true;
 	}
 

@@ -647,6 +647,23 @@ bool is_file(const std::string& path)
 	return S_ISREG(st.st_mode);
 	}
 
+string strreplace(const string& s, const string& o, const string& n)
+	{
+	string r = s;
+
+	while ( true )
+		{
+		size_t i = r.find(o);
+
+		if ( i == std::string::npos )
+			break;
+
+		r.replace(i, o.size(), n);
+		}
+
+	return r;
+}
+
 int hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
 

@@ -152,6 +152,9 @@ bool is_dir(const std::string& path);
 // Returns true if path exists and is a file.
 bool is_file(const std::string& path);
 
+// Replaces all occurences of *o* in *s* with *n*.
+extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
+
 extern uint8 shared_hmac_md5_key[16];
 
 extern int hmac_key_set;

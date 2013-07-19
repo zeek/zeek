@@ -3,38 +3,28 @@
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2013-07-18-00-18-33
+#open	2013-07-19-02-54-13
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1374106713.105591	-	ip or not ip	T	T
-#close	2013-07-18-00-18-33
+1374202453.158981	-	ip or not ip	T	T
+#close	2013-07-19-02-54-13
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2013-07-18-00-18-33
+#open	2013-07-19-02-54-13
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1374106713.385541	-	port 42	T	T
-#close	2013-07-18-00-18-33
+1374202453.437816	-	port 42	T	T
+#close	2013-07-19-02-54-13
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2013-07-18-00-18-33
+#open	2013-07-19-02-54-13
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1374106713.664282	-	(vlan) and (ip or not ip)	T	T
-#close	2013-07-18-00-18-33
-#separator \x09
-#set_separator	,
-#empty_field	(empty)
-#unset_field	-
-#path	packet_filter
-#open	2013-07-18-00-18-33
-#fields	ts	node	filter	init	success
-#types	time	string	string	bool	bool
-1374106713.957005	-	((((((((((((((((((((((tcp and port 5223) or (tcp and port 585)) or (tcp and port 614)) or (tcp and port 993)) or (tcp and port 636)) or (tcp and port 989)) or (tcp and port 995)) or (tcp and port 443)) or (tcp and port 563)) or (tcp and port 990)) or (tcp and port 992)) or ((tcp and port 2811) or (tcp and port 21))) or ((((tcp and port 6669) or (tcp and port 6666)) or (tcp and port 6668)) or (tcp and port 6667))) or ((udp and port 2152) or (udp and port 2123))) or (tcp and port 22)) or (tcp and port 1080)) or ((((((((tcp and port 631) or (tcp and port 8888)) or (tcp and port 3128)) or (tcp and port 80)) or (tcp and port 1080)) or (tcp and port 8000)) or (tcp and port 81)) or (tcp and port 8080))) or (udp and port 5072)) or ((tcp and port 25) or (tcp and port 587))) or (tcp and port 502)) or (udp and port 514)) or (((((udp and port 5355) or (tcp and port 53)) or (udp and port 5353)) or (udp and port 137)) or (udp and port 53))) or (udp and port 3544)	T	T
-#close	2013-07-18-00-18-33
+1374202453.715717	-	(vlan) and (ip or not ip)	T	T
+#close	2013-07-19-02-54-13

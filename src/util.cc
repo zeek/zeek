@@ -79,6 +79,26 @@ std::string extract_ip_and_len(const std::string& i, int* len)
 	}
 
 /**
+* Given a MAC address, formats it as 00:de:ad:be:ef
+* Supports both EUI-48 and EUI-64. If it's neither, returns
+* an empty string.
+*
+* @param m EUI-48 or EUI-64 MAC address to format, as a char array
+* @return A string of the formatted MAC
+*/
+char* format_mac(const unsigned char* m)
+{  
+	char* buf = new char[24];
+	if (m[6] == 0 && m[7] == 0) // EUI-48
+		snprintf(buf, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
+			 m[0], m[1], m[2], m[3], m[4], m[5]);
+	else
+		snprintf(buf, 24, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+			 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]);
+	return buf;
+}
+
+/**
  * Takes a string, unescapes all characters that are escaped as hex codes
  * (\x##) and turns them into the equivalent ascii-codes. Returns a string
  * containing no escaped values

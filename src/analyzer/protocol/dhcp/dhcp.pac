@@ -1,3 +1,4 @@
+%include binpac.pac
 %include bro.pac
 
 %extern{

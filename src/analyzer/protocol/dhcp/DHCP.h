@@ -19,6 +19,9 @@ public:
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new DHCP_Analyzer(conn); }
 
+	static bool Available()
+		{ return dhcp_discover || dhcp_offer || dhcp_request || dhcp_decline || dhcp_ack || dhcp_nak || dhcp_release || dhcp_inform; }
+
 protected:
 	binpac::DHCP::DHCP_Conn* interp;
 };

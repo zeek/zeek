@@ -106,6 +106,7 @@ std::string get_escaped_string(const std::string& str, bool escape_all);
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
+extern char* format_mac(const unsigned char* m);
 
 // Returns the character corresponding to the given escape sequence (s points
 // just past the '\'), and updates s to point just beyond the last character

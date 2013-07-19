@@ -10,6 +10,6 @@
 # The order in the output of enable_auto_protocol_capture_filters isn't
 # stable, for reasons not clear. We canonify it first.
 # @TEST-EXEC: bro -r $TRACES/empty.trace PacketFilter::enable_auto_protocol_capture_filters=T
-# @TEST-EXEC: cat packet_filter.log | bro-cut filter | sed 's#[()]##g' | tr ' ' '\n' | sort | uniq -c >output2
+# @TEST-EXEC: cat packet_filter.log | bro-cut filter | sed 's#[()]##g' | tr ' ' '\n' | sort | uniq -c | awk '{print $1, $2}' >output2
 # @TEST-EXEC: btest-diff output2
 

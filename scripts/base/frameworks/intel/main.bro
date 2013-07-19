@@ -10,13 +10,14 @@ module Intel;
 export {
 	redef enum Log::ID += { LOG };
 	
-	## String data needs to be further categoried since it could represent
-	## and number of types of data.
-	type StrType: enum {
+	## Enum type to represent various types of intelligence data.
+	type Type: enum {
+		## An IP address.
+		ADDR,
 		## A complete URL without the prefix "http://".
 		URL,
-		## User-Agent string, typically HTTP or mail message body.
-		USER_AGENT,
+		## Software name.
+		SOFTWARE,
 		## Email address.
 		EMAIL,
 		## DNS domain name.
@@ -44,18 +45,15 @@ export {
 	
 	## Represents a piece of intelligence.
 	type Item: record {
-		## The IP address if the intelligence is about an IP address.
-		host:        addr           &optional;
-		## The network if the intelligence is about a CIDR block.
-		net:         subnet         &optional;
-		## The string if the intelligence is about a string.
-		str:         string         &optional;
-		## The type of data that is in the string if the $str field is set.
-		str_type:    StrType        &optional;
+		## The intelligence indicator.
+		indicator:      string;
+
+		## The type of data that the indicator field represents.
+		indicator_type: Type;
 		
-		## Metadata for the item.  Typically represents more deeply \
+		## Metadata for the item.  Typically represents more deeply
 		## descriptive data for a piece of intelligence.
-		meta:        MetaData;
+		meta:           MetaData;
 	};
 	
 	## Enum to represent where data came from when it was discovered.
@@ -69,19 +67,22 @@ export {
 	## exclusive.  These records *must* represent either an IP address being
 	## seen or a string being seen.
 	type Seen: record {
-		## The IP address if the data seen is an IP address.
-		host:      addr          &log &optional;
 		## The string if the data is about a string.
-		str:       string        &log &optional;
-		## The type of data that is in the string if the $str field is set.
-		str_type:  StrType       &log &optional;
+		indicator:       string        &log &optional;
+
+		## The type of data that the indicator represents.
+		indicator_type:  Type          &log &optional;
+
+		## If the indicator type was :bro:enum:`Intel::ADDR`, then this 
+		## field will be present.
+		host:            addr          &optional;
 
 		## Where the data was discovered.
-		where:     Where         &log;
+		where:           Where         &log;
 		
 		## If the data was discovered within a connection, the 
 		## connection record should go into get to give context to the data.
-		conn:      connection    &optional;
+		conn:            connection    &optional;
 	};
 
 	## Record used for the logging framework representing a positive
@@ -100,7 +101,7 @@ export {
 		## Where the data was seen.
 		seen:     Seen           &log;
 		## Sources which supplied data that resulted in this match.
-		sources:  set[string]    &log;
+		sources:  set[string]    &log &default=string_set();
 	};
 
 	## Intelligence data manipulation functions.
@@ -135,8 +136,8 @@ const have_full_data = T &redef;
 
 # The in memory data structure for holding intelligence.
 type DataStore: record {
-	net_data:    table[subnet] of set[MetaData];
-	string_data: table[string, StrType] of set[MetaData];
+	host_data:    table[addr] of set[MetaData];
+	string_data:  table[string, Type] of set[MetaData];
 };
 global data_store: DataStore &redef;
 
@@ -144,8 +145,8 @@ global data_store: DataStore &redef;
 # This is primarily for workers to do the initial quick matches and store
 # a minimal amount of data for the full match to happen on the manager.
 type MinDataStore: record {
-	net_data:    set[subnet];
-	string_data: set[string, StrType];
+	host_data:    set[addr];
+	string_data:  set[string, Type];
 };
 global min_data_store: MinDataStore &redef;
 
@@ -157,15 +158,13 @@ event bro_init() &priority=5
 
 function find(s: Seen): bool
 	{
-	if ( s?$host && 
-	     ((have_full_data && s$host in data_store$net_data) || 
-	      (s$host in min_data_store$net_data)))
+	if ( s?$host )
 		{
-		return T;
+		return ((s$host in min_data_store$host_data) || 
+		        (have_full_data && s$host in data_store$host_data));
 		}
-	else if ( s?$str && s?$str_type &&
-	          ((have_full_data && [s$str, s$str_type] in data_store$string_data) ||
-	           ([s$str, s$str_type] in min_data_store$string_data)))
+	else if ( ([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data) ||
+	           (have_full_data && [to_lower(s$indicator), s$indicator_type] in data_store$string_data) )
 		{
 		return T;
 		}
@@ -177,8 +176,7 @@ function find(s: Seen): bool
 
 function get_items(s: Seen): set[Item]
 	{
-	local item: Item;
-	local return_data: set[Item] = set();
+	local return_data: set[Item];
 
 	if ( ! have_full_data )
 		{
@@ -191,26 +189,23 @@ function get_items(s: Seen): set[Item]
 	if ( s?$host )
 		{
 		# See if the host is known about and it has meta values
-		if ( s$host in data_store$net_data )
+		if ( s$host in data_store$host_data )
 			{
-			for ( m in data_store$net_data[s$host] )
+			for ( m in data_store$host_data[s$host] )
 				{
-				# TODO: the lookup should be finding all and not just most specific
-				#       and $host/$net should have the correct value.
-				item = [$host=s$host, $meta=m];
-				add return_data[item];
+				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=m)];
 				}
 			}
 		}
-	else if ( s?$str && s?$str_type )
+	else
 		{
+		local lower_indicator = to_lower(s$indicator);
 		# See if the string is known about and it has meta values
-		if ( [s$str, s$str_type] in data_store$string_data )
+		if ( [lower_indicator, s$indicator_type] in data_store$string_data )
 			{
-			for ( m in data_store$string_data[s$str, s$str_type] )
+			for ( m in data_store$string_data[lower_indicator, s$indicator_type] )
 				{
-				item = [$str=s$str, $str_type=s$str_type, $meta=m];
-				add return_data[item];
+				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=m)];
 				}
 			}
 		}
@@ -222,6 +217,12 @@ function Intel::seen(s: Seen)
 	{
 	if ( find(s) )
 		{
+		if ( s?$host )
+			{
+			s$indicator = cat(s$host);
+			s$indicator_type = Intel::ADDR;
+			}
+
 		if ( have_full_data )
 			{
 			local items = get_items(s);
@@ -250,8 +251,7 @@ function has_meta(check: MetaData, metas: set[MetaData]): bool
 
 event Intel::match(s: Seen, items: set[Item]) &priority=5
 	{
-	local empty_set: set[string] = set();
-	local info: Info = [$ts=network_time(), $seen=s, $sources=empty_set];
+	local info: Info = [$ts=network_time(), $seen=s];
 
 	if ( s?$conn )
 		{
@@ -267,52 +267,37 @@ event Intel::match(s: Seen, items: set[Item]) &priority=5
 
 function insert(item: Item)
 	{
-	if ( item?$str && !item?$str_type )
-		{
-		event reporter_warning(network_time(), fmt("You must provide a str_type for strings or this item doesn't make sense.  Item: %s", item), "");
-		return;
-		}
-
 	# Create and fill out the meta data item.
 	local meta = item$meta;
 	local metas: set[MetaData];
 
-	if ( item?$host )
+	# All intelligence is case insensitive at the moment.
+	local lower_indicator = to_lower(item$indicator);
+
+	if ( item$indicator_type == ADDR )
 		{
-		local host = mask_addr(item$host, is_v4_addr(item$host) ? 32 : 128);
+		local host = to_addr(item$indicator);
 		if ( have_full_data )
 			{
-			if ( host !in data_store$net_data )
-				data_store$net_data[host] = set();
+			if ( host !in data_store$host_data )
+				data_store$host_data[host] = set();
 
-			metas = data_store$net_data[host];
+			metas = data_store$host_data[host];
 			}
 
-		add min_data_store$net_data[host];
+		add min_data_store$host_data[host];
 		}
-	else if ( item?$net )
+	else
 		{
 		if ( have_full_data )
 			{
-			if ( item$net !in data_store$net_data )
-				data_store$net_data[item$net] = set();
+			if ( [lower_indicator, item$indicator_type] !in data_store$string_data )
+				data_store$string_data[lower_indicator, item$indicator_type] = set();
 
-			metas = data_store$net_data[item$net];
+			metas = data_store$string_data[lower_indicator, item$indicator_type];
 			}
 
-		add min_data_store$net_data[item$net];
-		}
-	else if ( item?$str )
-		{
-		if ( have_full_data )
-			{
-			if ( [item$str, item$str_type] !in data_store$string_data )
-				data_store$string_data[item$str, item$str_type] = set();
-
-			metas = data_store$string_data[item$str, item$str_type];
-			}
-
-		add min_data_store$string_data[item$str, item$str_type];
+		add min_data_store$string_data[lower_indicator, item$indicator_type];
 		}
 
 	local updated = F;

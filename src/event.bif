@@ -6565,16 +6565,15 @@ event dnp3_debug_bufferBytes%(c: connection , is_orig: bool, buffer_bytes: count
 
 ## Generated for the request header in Pseudo Application Layer. 
 ## The request header contains two fields: 
-##    app_control: application control field.
 ##    fc: function code.
-event dnp3_application_request_header%(c: connection, is_orig: bool, app_control: count, fc: count%);
+event dnp3_application_request_header%(c: connection, is_orig: bool, fc: count%);
 
 ## Generated for the response header in Pseudo Application Layer.
 ## The response header contains three fields:
 ##    app_control: application control field.
 ##    fc: function code.
 ##    iin: internal indication number  
-event dnp3_application_response_header%(c: connection, is_orig: bool, app_control: count, fc: count, iin: count%);
+event dnp3_application_response_header%(c: connection, is_orig: bool, fc: count, iin: count%);
 
 ## Generated for the object header found in both DNP3 requests and responses
 ##    obj_type: type of object, which is classified based on an 8-bit group number and an 8-bit variation number

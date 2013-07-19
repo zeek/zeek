@@ -5,11 +5,6 @@
 #include "TCP.h"
 #include "dnp3_pac.h"
 
-//#define CRC_GEN_POLY 0xA6BC        // Generation Polynomial to calculate 16-bit CRC
-
-#define PSEUDO_LINK_LEN_EX 9       // the length of DNP3 Pseudo Link Layer that extend len field into 2 bytes
-#define PSEUDO_TRAN_LEN 1      // the length of DNP3 Pseudo Transport Layer
-
 class DNP3_Analyzer : public TCP_ApplicationAnalyzer {
 public:
 	DNP3_Analyzer(Connection* conn);
@@ -49,51 +44,35 @@ public:
 				dnp3_debug_byte ; }
 
 protected:
-	int DNP3_ProcessData(int len, const u_char* data, bool orig);
-	int DNP3_CheckCRC(int len, const u_char* data);
-	unsigned int DNP3_CalcCRC(u_char* aInput, size_t aLength, const unsigned int* apTable, unsigned int aStart, bool aInvert);	
-	void DNP3_PrecomputeCRC(unsigned int* apTable, unsigned int aPolynomial);
-	/*
-	inline void DNP3_PrecomputeCRC()
+	static const int MAX_BUFFER_SIZE = 300;
+
+	struct Endpoint
 		{
-		unsigned int i, j, CRC;
+		u_char buffer[MAX_BUFFER_SIZE];
+		int buffer_len;
+		bool in_hdr;
+		int tpflags;
+		int pkt_length;
+		int pkt_cnt;
+		bool encountered_first_chunk;
+		};
 
-        	for(i = 0; i < 256; i++) 
-                	{
-	                CRC = i;
-        	        for (j = 0; j < 8; ++j) 
-                	        {
-                        	if(CRC & 0x0001) 
-                                	CRC = (CRC >> 1) ^ CRC_GEN_POLY;
-	                        else 
-        	                        CRC >>= 1;
-                	        }
-	                //apTable[i] = CRC;
-	                DNP3_CrcTable[i] = CRC;
-        	        }
-		}
-	*/
+	bool ProcessData(int len, const u_char* data, bool orig);
+	void ClearEndpointState(bool orig);
+	bool AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len);
+	bool ParseAppLayer(Endpoint* endp);
+	bool CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where);
+	unsigned int CalcCRC(int len, const u_char* data);
+
 	binpac::DNP3::DNP3_Conn* interp;
-	binpac::DNP3::DNP3_Flow* upflow;
-	binpac::DNP3::DNP3_Flow* downflow;
 
-	unsigned int upflow_count;
-	unsigned int downflow_count;
-	bool mEncounteredFirst;
+	Endpoint orig_state;
+	Endpoint resp_state;
 
-//// for the use of calculating CRC values
-	unsigned int DNP3_CrcTable[256];
-	//// This pseudoLink_ array stores the PseudoLink Layer data, which is usually 8 bytes (plus 2 more CRC), 
-	////  plus the PseudoTran Layer data, which is usually 1 byte. 
-	//// It is possible that TCP carry part of this PseudoLInk Layer, we use this member to buffer 
-	////  the incompleted data
-	//// An array is used for each direction
-	////  pseudoLink_Ind is the index to indicate how many bytes are filled in the pseudoLink_ array
-	u_char pseudoLinkResp[PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN];
-	unsigned int pseudoLinkRespInd;
-	u_char pseudoLinkOrig[PSEUDO_LINK_LEN_EX + PSEUDO_TRAN_LEN];
-	unsigned int pseudoLinkOrigInd;
-	
+	static void PrecomputeCRCTable();
+
+	static bool crc_table_initialized;
+	static unsigned int crc_table[256];
 };
 
 #endif

@@ -494,7 +494,7 @@ const char* fmt_bytes(const char* data, int len)
 
 	for ( int i = 0; i < len && p - buf < int(sizeof(buf)); ++i )
 		{
-		if ( isprint(data[i]) )
+		if ( false )
 			*p++ = data[i];
 		else
 			p += snprintf(p, sizeof(buf) - (p - buf),

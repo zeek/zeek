@@ -6,25 +6,8 @@ connection DNP3_Conn(bro_analyzer: BroAnalyzer) {
 
 flow DNP3_Flow(is_orig: bool) {
 	flowunit = DNP3_PDU(is_orig) withcontext (connection, this);
-	
-	function increaseBuffer(addBuffer: uint32): bool
-		%{
-		flow_buffer_->GrowFrame(addBuffer);
-		return true;
-		%}
-	function discardBuffer(): bool
-		%{
-		flow_buffer_->DiscardData();
-		return true;
-		%}
 
-	function get_bufferBytes(): uint32
-		%{
-		return flow_buffer_->data_length();
-		%}
-	
-
-	function get_dnp3_header_block(start: uint16, len: uint8, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool
+	function get_dnp3_header_block(start: uint16, len: uint16, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool
 		%{
 		if ( ::dnp3_header_block )
 			{
@@ -35,9 +18,9 @@ flow DNP3_Flow(is_orig: bool) {
 			}
 
 		return true;
-		%}	
-	
-	function get_dnp3_application_request_header(app_control: uint8, fc: uint8): bool
+		%}
+
+	function get_dnp3_application_request_header(fc: uint8): bool
 		%{
 		if ( ::dnp3_application_request_header )
 			{
@@ -45,16 +28,13 @@ flow DNP3_Flow(is_orig: bool) {
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
-				//bytestring_to_val(app_control ),
-				//bytestring_to_val(fc )
-				app_control,
 				fc
 				);
 			}
 		return true;
 		%}
 
-	function get_dnp3_application_response_header(app_control: uint8, fc: uint8, iin: uint16): bool
+	function get_dnp3_application_response_header(fc: uint8, iin: uint16): bool
 		%{
 		if ( ::dnp3_application_response_header )
 			{
@@ -62,9 +42,6 @@ flow DNP3_Flow(is_orig: bool) {
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
-				//bytestring_to_val(app_control ),
-				//bytestring_to_val(fc )
-				app_control,
 				fc,
 				iin
 				);
@@ -110,7 +87,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
-	
+
 	#g0
 	function get_dnp3_attribute_common(data_type_code: uint8, leng: uint8, attribute_obj: const_bytestring): bool
 		%{
@@ -614,6 +591,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
 	# g33v2
 	function get_dnp3_frozen_analog_input_event_16woTime(flag: uint8, frozen_value: int16): bool
 		%{
@@ -641,6 +619,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
 	# g33v4
 	function get_dnp3_frozen_analog_input_event_16wTime(flag: uint8, frozen_value: int16, time48: const_bytestring): bool
 		%{
@@ -654,6 +633,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
 	# g33v5
 	function get_dnp3_frozen_analog_input_event_SPwoTime(flag: uint8, frozen_value: uint32): bool
 		%{
@@ -667,6 +647,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
 	# g33v6
 	function get_dnp3_frozen_analog_input_event_DPwoTime(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32): bool
 		%{
@@ -680,6 +661,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
 	# g33v7
 	function get_dnp3_frozen_analog_input_event_SPwTime(flag: uint8, frozen_value: uint32, time48: const_bytestring): bool
 		%{
@@ -693,6 +675,7 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
 	# g33v8
 	function get_dnp3_frozen_analog_input_event_DPwTime(flag: uint8, frozen_value_low: uint32, frozen_value_high: uint32, time48: const_bytestring): bool
 		%{
@@ -742,11 +725,11 @@ refine typeattr Header_Block += &let {
 };
 
 refine typeattr DNP3_Application_Request_Header += &let {
-	process_request: bool =  $context.flow.get_dnp3_application_request_header(application_control, function_code);
+	process_request: bool =  $context.flow.get_dnp3_application_request_header(function_code);
 };
 
 refine typeattr DNP3_Application_Response_Header += &let {
-	process_request: bool =  $context.flow.get_dnp3_application_response_header(application_control, function_code, internal_indications);
+	process_request: bool =  $context.flow.get_dnp3_application_response_header(function_code, internal_indications);
 };
 
 refine typeattr Object_Header += &let {

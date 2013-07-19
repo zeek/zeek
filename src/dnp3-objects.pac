@@ -656,7 +656,7 @@ type Default_Wrap(obj_type: uint32) = record {
 # contains different objects format
 # corresponding to the DNP3Spec-V6-Part2-Objects
 
-# g0: group 0 objects are used to retrieve substation attributes; 
+# g0: group 0 objects are used to retrieve substation attributes;
 # all variations including variation 249 255, share the same structure;
 type AttributeCommon = record {
 	data_type_code: uint8;
@@ -1266,11 +1266,9 @@ type File_Control_Cmd_Status(obj_size: uint32) = record {
 type File_Transport(obj_size: uint32) = record {
 	file_handle: uint32;
 	block_num: uint32;
-	#file_data: bytestring &restofdata;
+	# file_data: bytestring &restofdata;
 	file_data: bytestring &length = (obj_size - 8);
-} 
-&byteorder = littleendian
-;
+} &byteorder = littleendian;
 
 # g70v6
 type File_Transport_Status(obj_size: uint32) = record {

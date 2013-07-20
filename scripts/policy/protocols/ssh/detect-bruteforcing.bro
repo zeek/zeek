@@ -42,7 +42,7 @@ export {
 
 event bro_init()
 	{
-	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM)];
+	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM, SumStats::SAMPLE), $num_samples=5];
 	SumStats::create([$name="detect-ssh-bruteforcing",
 	                  $epoch=guessing_timeout,
 	                  $reducers=set(r1),
@@ -54,9 +54,15 @@ event bro_init()
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	local r = result["ssh.login.failure"];
+	                  	local sub_msg = fmt("Sampled servers: ");
+	                  	for ( i in r$samples )
+	                  		{
+	                  		sub_msg = fmt("%s%s %s", sub_msg, i==0 ? "":",", r$samples[i]$str);
+	                  		}
 	                  	# Generate the notice.
 	                  	NOTICE([$note=Password_Guessing,
 	                  	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
+	                  	        $sub=sub_msg,
 	                  	        $src=key$host,
 	                  	        $identifier=cat(key$host)]);
 	                  	# Insert the guesser into the intel framework.
@@ -83,5 +89,5 @@ event SSH::heuristic_failed_login(c: connection)
 	# be ignored.
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
-		SumStats::observe("ssh.login.failure", [$host=id$orig_h], [$num=1]);
+		SumStats::observe("ssh.login.failure", [$host=id$orig_h], [$str=cat(id$resp_h)]);
 	}

@@ -122,6 +122,12 @@ export {
 		## A callback with the full collection of Results for
 		## this SumStat.
 		epoch_finished:     function(rt: SumStats::ResultTable) &optional;
+		#epoch_finished:     function(num_keys: count) &optional;
+
+		## A callback that receives each of the results at the
+		## end of the analysis epoch.  The function will be 
+		## called once for each key.
+		#epoch_finished_result:     function(key::SumStats::Key, result: SumStats::Result) &optional;
 	};
 
 	## Create a summary statistic.
@@ -161,9 +167,6 @@ export {
 	##
 	## Returns: The result for the requested sumstat key.
 	global request_key: function(ss_name: string, key: Key): Result;
-
-	## This record is primarily used for internal threshold tracking.
-	type Thresholding: record {};
 
 	## This event is generated when thresholds are reset for a SumStat.
 	##
@@ -429,6 +432,7 @@ function observe(id: string, key: Key, obs: Observation)
 		#       future if on demand access is provided to the
 		#       SumStats results.
 		if ( ! ss?$epoch_finished &&
+			 r$ssname in threshold_tracker &&
 		     ( ss?$threshold &&
 		       key in threshold_tracker[r$ssname] &&
 		       threshold_tracker[r$ssname][key] != 0 ) ||

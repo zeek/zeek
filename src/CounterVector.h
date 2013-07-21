@@ -19,6 +19,8 @@ public:
    * @param width The number of bits that each cell occupies.
    *
    * @param cells The number of cells in the bitvector.
+   *
+   * @pre `cells > 0 && width > 0`
    */
   CounterVector(size_t width, size_t cells = 1024);
 
@@ -32,6 +34,8 @@ public:
    * @param value The value to add to the current counter in *cell*.
    *
    * @return `true` if adding *value* to the counter in *cell* succeeded.
+   *
+   * @pre `cell < Size()`
    */
   bool Increment(size_type cell, count_type value);
 
@@ -43,6 +47,8 @@ public:
    * @param value The value to subtract from the current counter in *cell*.
    *
    * @return `true` if subtracting *value* from the counter in *cell* succeeded.
+   *
+   * @pre `cell < Size()`
    */
   bool Decrement(size_type cell, count_type value);
 
@@ -52,6 +58,8 @@ public:
    * @param cell The cell index to retrieve the count for.
    *
    * @return The counter associated with *cell*.
+   *
+   * @pre `cell < Size()`
    */
   count_type Count(size_type cell) const;
 
@@ -61,6 +69,13 @@ public:
    * @return The number of cells.
    */
   size_type Size() const;
+
+  /**
+   * Computes the maximum counter value.
+   *
+   * @return The maximum counter value based on the width.
+   */
+  size_t Max() const;
 
   bool Serialize(SerialInfo* info) const;
   static CounterVector* Unserialize(UnserialInfo* info);

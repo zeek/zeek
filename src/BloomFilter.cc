@@ -6,19 +6,19 @@
 #include "Serializer.h"
 
 BloomFilter::BloomFilter()
-  : hash_(NULL)
+  : hasher_(NULL)
   {
   }
 
-BloomFilter::BloomFilter(const HashPolicy* hash_policy)
-  : hash_(hash_policy)
+BloomFilter::BloomFilter(const Hasher* hasher)
+  : hasher_(hasher)
   {
   }
 
 BloomFilter::~BloomFilter()
   {
-  if ( hash_ )
-    delete hash_;
+  if ( hasher_ )
+    delete hasher_;
   }
 
 bool BloomFilter::Serialize(SerialInfo* info) const
@@ -35,9 +35,9 @@ BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
 bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-  if ( ! SERIALIZE(static_cast<uint16>(hash_->K())) )
+  if ( ! SERIALIZE(static_cast<uint16>(hasher_->K())) )
     return false;
-  return SERIALIZE_STR(hash_->Name().c_str(), hash_->Name().size());
+  return SERIALIZE_STR(hasher_->Name().c_str(), hasher_->Name().size());
   }
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
@@ -49,7 +49,7 @@ bool BloomFilter::DoUnserialize(UnserialInfo* info)
   const char* name;
   if ( ! UNSERIALIZE_STR(&name, 0) )
     return false;
-	hash_ = HashPolicy::Create(k, name);
+	hasher_ = Hasher::Create(k, name);
 	delete [] name;
 	return true;
   }
@@ -70,7 +70,7 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
                                           const BasicBloomFilter* y)
   {
-  // TODO: Ensure that x and y use the same HashPolicy before proceeding.
+  // TODO: Ensure that x and y use the same Hasher before proceeding.
   BasicBloomFilter* result = new BasicBloomFilter();
   result->bits_ = new BitVector(*x->bits_ | *y->bits_);
   return result;
@@ -81,8 +81,8 @@ BasicBloomFilter::BasicBloomFilter()
   {
   }
 
-BasicBloomFilter::BasicBloomFilter(const HashPolicy* hash_policy, size_t cells)
-  : BloomFilter(hash_policy),
+BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
+  : BloomFilter(hasher),
     bits_(new BitVector(cells))
   {
   }
@@ -102,13 +102,13 @@ bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	return bits_ != NULL;
   }
 
-void BasicBloomFilter::AddImpl(const HashPolicy::hash_vector& h)
+void BasicBloomFilter::AddImpl(const Hasher::digest_vector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
     bits_->Set(h[i] % bits_->Size());
   }
 
-size_t BasicBloomFilter::CountImpl(const HashPolicy::hash_vector& h) const
+size_t BasicBloomFilter::CountImpl(const Hasher::digest_vector& h) const
   {
   for ( size_t i = 0; i < h.size(); ++i )
     if ( ! (*bits_)[h[i] % bits_->Size()] )
@@ -129,9 +129,9 @@ CountingBloomFilter::CountingBloomFilter()
   {
   }
 
-CountingBloomFilter::CountingBloomFilter(const HashPolicy* hash_policy,
+CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
                                          size_t cells, size_t width)
-  : BloomFilter(hash_policy)
+  : BloomFilter(hasher)
   {
   cells_ = new CounterVector(width, cells);
   }
@@ -152,13 +152,13 @@ bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	return cells_ != NULL;
   }
 
-void CountingBloomFilter::AddImpl(const HashPolicy::hash_vector& h)
+void CountingBloomFilter::AddImpl(const Hasher::digest_vector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
     cells_->Increment(h[i] % cells_->Size(), 1);
   }
 
-size_t CountingBloomFilter::CountImpl(const HashPolicy::hash_vector& h) const
+size_t CountingBloomFilter::CountImpl(const Hasher::digest_vector& h) const
   {
   CounterVector::size_type min =
     std::numeric_limits<CounterVector::size_type>::max();

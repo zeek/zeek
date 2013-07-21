@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "BitVector.h"
-#include "HashPolicy.h"
+#include "Hasher.h"
 
 class CounterVector;
 
@@ -12,7 +12,7 @@ class CounterVector;
  */
 class BloomFilter : public SerialObj {
 public:
-  // At this point we won't let the user choose the hash policy, but we might
+  // At this point we won't let the user choose the hasher, but we might
   // open up the interface in the future.
   virtual ~BloomFilter();
 
@@ -23,7 +23,7 @@ public:
   template <typename T>
   void Add(const T& x)
     {
-    AddImpl(hash_->Hash(&x, sizeof(x)));
+    AddImpl((*hasher_)(x));
     }
 
   /**
@@ -36,7 +36,7 @@ public:
   template <typename T>
   size_t Count(const T& x) const
     {
-    return CountImpl(hash_->Hash(&x, sizeof(x)));
+    return CountImpl((*hasher_)(x));
     }
 
   bool Serialize(SerialInfo* info) const;
@@ -50,15 +50,15 @@ protected:
 	/**
 	 * Constructs a Bloom filter.
 	 *
-	 * @param hash_policy The hash policy to use for this Bloom filter.
+	 * @param hasher The hasher to use for this Bloom filter.
 	 */
-  BloomFilter(const HashPolicy* hash_policy);
+  BloomFilter(const Hasher* hasher);
 
-  virtual void AddImpl(const HashPolicy::hash_vector& hashes) = 0;
-  virtual size_t CountImpl(const HashPolicy::hash_vector& hashes) const = 0;
+  virtual void AddImpl(const Hasher::digest_vector& hashes) = 0;
+  virtual size_t CountImpl(const Hasher::digest_vector& hashes) const = 0;
 
 private:
-  const HashPolicy* hash_;
+  const Hasher* hasher_;
 };
 
 /**
@@ -98,15 +98,15 @@ public:
   /**
    * Constructs a basic Bloom filter with a given number of cells and capacity.
    */
-  BasicBloomFilter(const HashPolicy* hash_policy, size_t cells);
+  BasicBloomFilter(const Hasher* hasher, size_t cells);
 
 protected:
   DECLARE_SERIAL(BasicBloomFilter);
 
   BasicBloomFilter();
 
-  virtual void AddImpl(const HashPolicy::hash_vector& h);
-  virtual size_t CountImpl(const HashPolicy::hash_vector& h) const;
+  virtual void AddImpl(const Hasher::digest_vector& h);
+  virtual size_t CountImpl(const Hasher::digest_vector& h) const;
 
 private:
   BitVector* bits_;
@@ -120,16 +120,15 @@ public:
   static CountingBloomFilter* Merge(const CountingBloomFilter* x,
                                     const CountingBloomFilter* y);
 
-  CountingBloomFilter(const HashPolicy* hash_policy, size_t cells,
-                      size_t width);
+  CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
 
 protected:
   DECLARE_SERIAL(CountingBloomFilter);
 
   CountingBloomFilter();
 
-  virtual void AddImpl(const HashPolicy::hash_vector& h);
-  virtual size_t CountImpl(const HashPolicy::hash_vector& h) const;
+  virtual void AddImpl(const Hasher::digest_vector& h);
+  virtual size_t CountImpl(const Hasher::digest_vector& h) const;
 
 private:
   CounterVector* cells_;

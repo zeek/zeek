@@ -1,6 +1,4 @@
 ##! A module for executing external command line programs.
-##! This requires code that is still in topic branches and 
-##! definitely won't currently work on any released version of Bro.
 
 @load base/frameworks/input
 
@@ -8,15 +6,13 @@ module Exec;
 
 export {
 	type Command: record {
-		## The command line to execute.
-		## Use care to avoid injection attacks!
+		## The command line to execute.  Use care to avoid injection attacks.
+		## I.e. if the command uses untrusted/variable data, sanitize it.
 		cmd:         string;
-		## Provide standard in to the program as a
-		## string.
+		## Provide standard in to the program as a string.
 		stdin:       string      &default="";
-		## If additional files are required to be read 
-		## in as part of the output of the command they
-		## can be defined here.
+		## If additional files are required to be read in as part of the output
+		## of the command they can be defined here.
 		read_files:  set[string] &optional;
 	};
 
@@ -27,7 +23,7 @@ export {
 		signal_exit:  bool             &default=F;
 		## Each line of standard out.
 		stdout:       vector of string &optional;
-		## Each line of standard error. 
+		## Each line of standard error.
 		stderr:       vector of string &optional;
 		## If additional files were requested to be read in
 		## the content of the files will be available here.
@@ -35,7 +31,7 @@ export {
 	};
 
 	## Function for running command line programs and getting
-	## output.  This is an asynchronous function which is meant 
+	## output.  This is an asynchronous function which is meant
 	## to be run with the `when` statement.
 	##
 	## cmd: The command to run.  Use care to avoid injection attacks!
@@ -56,12 +52,12 @@ redef record Command += {
 global results: table[string] of Result = table();
 global finished_commands: set[string];
 global currently_tracked_files: set[string] = set();
-type OneLine: record { 
+type OneLine: record {
 	s: string;
 	is_stderr: bool;
 };
 
-type FileLine: record { 
+type FileLine: record {
 	s: string;
 };
 
@@ -93,7 +89,7 @@ event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s
 	local result = results[name];
 	if ( ! result?$files )
 		result$files = table();
-	
+
 	if ( track_file !in result$files )
 		result$files[track_file] = vector(s);
 	else
@@ -136,16 +132,16 @@ function run(cmd: Command): Result
 			}
 		}
 
-	local config_strings: table[string] of string = { 
+	local config_strings: table[string] of string = {
 		["stdin"]       = cmd$stdin,
 		["read_stderr"] = "1",
 	};
-	Input::add_event([$name=cmd$uid, 
-	                  $source=fmt("%s |", cmd$cmd), 
-	                  $reader=Input::READER_RAW, 
-	                  $fields=Exec::OneLine, 
-	                  $ev=Exec::line, 
-	                  $want_record=F, 
+	Input::add_event([$name=cmd$uid,
+	                  $source=fmt("%s |", cmd$cmd),
+	                  $reader=Input::READER_RAW,
+	                  $fields=Exec::OneLine,
+	                  $ev=Exec::line,
+	                  $want_record=F,
 	                  $config=config_strings]);
 
 	return when ( cmd$uid in finished_commands )

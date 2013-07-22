@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-07-10-21-18-31
+#open	2013-07-22-16-01-22
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -90,12 +90,17 @@ scripts/base/init-bare.bro
 scripts/base/init-default.bro
   scripts/base/utils/site.bro
     scripts/base/utils/patterns.bro
+  scripts/base/utils/active-http.bro
+    scripts/base/utils/exec.bro
   scripts/base/utils/addrs.bro
   scripts/base/utils/conn-ids.bro
+  scripts/base/utils/dir.bro
+    scripts/base/frameworks/reporter/__load__.bro
+      scripts/base/frameworks/reporter/main.bro
+    scripts/base/utils/paths.bro
   scripts/base/utils/directions-and-hosts.bro
   scripts/base/utils/files.bro
   scripts/base/utils/numbers.bro
-  scripts/base/utils/paths.bro
   scripts/base/utils/queue.bro
   scripts/base/utils/strings.bro
   scripts/base/utils/thresholds.bro
@@ -129,8 +134,6 @@ scripts/base/init-default.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
     scripts/base/frameworks/intel/input.bro
-  scripts/base/frameworks/reporter/__load__.bro
-    scripts/base/frameworks/reporter/main.bro
   scripts/base/frameworks/sumstats/__load__.bro
     scripts/base/frameworks/sumstats/main.bro
     scripts/base/frameworks/sumstats/plugins/__load__.bro
@@ -195,4 +198,4 @@ scripts/base/init-default.bro
   scripts/base/protocols/tunnels/__load__.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-07-10-21-18-31
+#close	2013-07-22-16-01-22

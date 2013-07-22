@@ -1,21 +1,21 @@
-##! A module for performing active HTTP requests and 
+##! A module for performing active HTTP requests and
 ##! getting the reply at runtime.
 
 @load ./exec
 
 module ActiveHTTP;
- 
+
 export {
 	## The default timeout for HTTP requests.
 	const default_max_time = 1min &redef;
- 
+
 	## The default HTTP method/verb to use for requests.
 	const default_method = "GET" &redef;
- 
- 	type Response: record {
+
+	type Response: record {
 		## Numeric response code from the server.
 		code:      count;
-		## String response messgae from the server.
+		## String response message from the server.
 		msg:       string;
 		## Full body of the response.
 		body:      string                  &optional;
@@ -29,24 +29,24 @@ export {
 		## The HTTP method/verb to use for the request.
 		method:          string                  &default=default_method;
 		## Data to send to the server in the client body.  Keep in
-		## mind that you will probably need to set the $method field
+		## mind that you will probably need to set the *method* field
 		## to "POST" or "PUT".
 		client_data:     string                  &optional;
-		## Arbitrary headers to pass to the server.  Some headers 
+		## Arbitrary headers to pass to the server.  Some headers
 		## will be included by libCurl.
 		#custom_headers: table[string] of string &optional;
 		## Timeout for the request.
 		max_time:        interval                &default=default_max_time;
-		## Additional curl command line arguments.  Be very careful 
+		## Additional curl command line arguments.  Be very careful
 		## with this option since shell injection could take place
 		## if careful handling of untrusted data is not applied.
 		addl_curl_args:  string                  &optional;
 	};
 
 	## Perform an HTTP request according to the :bro:type:`Request` record.
-	## This is an asynchronous function and must be called within a "when" 
+	## This is an asynchronous function and must be called within a "when"
 	## statement.
-	## 
+	##
 	## req: A record instance representing all options for an HTTP request.
 	##
 	## Returns: A record with the full response message.
@@ -55,7 +55,7 @@ export {
 
 function request2curl(r: Request, bodyfile: string, headersfile: string): string
 	{
-	local cmd = fmt("curl -s -g -o \"%s\" -D \"%s\" -X \"%s\"", 
+	local cmd = fmt("curl -s -g -o \"%s\" -D \"%s\" -X \"%s\"",
 	                str_shell_escape(bodyfile),
 	                str_shell_escape(headersfile),
 	                str_shell_escape(r$method));
@@ -91,7 +91,7 @@ function request(req: Request): ActiveHTTP::Response
 		# If there is no response line then nothing else will work either.
 		if ( ! (result?$files && headersfile in result$files) )
 			Reporter::error(fmt("There was a failure when requesting \"%s\" with ActiveHTTP.", req$url));
-		
+
 		local headers = result$files[headersfile];
 		for ( i in headers )
 			{

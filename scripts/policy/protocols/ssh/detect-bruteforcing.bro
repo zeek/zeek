@@ -55,9 +55,11 @@ event bro_init()
 	                  	{
 	                  	local r = result["ssh.login.failure"];
 	                  	local sub_msg = fmt("Sampled servers: ");
-	                  	for ( i in r$samples )
+	                  	local samples = r$samples;
+	                  	for ( i in samples )
 	                  		{
-	                  		sub_msg = fmt("%s%s %s", sub_msg, i==0 ? "":",", r$samples[i]$str);
+	                  		if ( samples[i]?$str )
+	                  			sub_msg = fmt("%s%s %s", sub_msg, i==0 ? "":",", samples[i]$str);
 	                  		}
 	                  	# Generate the notice.
 	                  	NOTICE([$note=Password_Guessing,

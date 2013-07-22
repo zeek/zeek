@@ -185,5 +185,6 @@ event expected_connection_seen(c: connection, a: Analyzer::Tag) &priority=10
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
+	if ( [c$id$resp_h, c$id$resp_p] in dcc_expected_transfers )
+		delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
 	}

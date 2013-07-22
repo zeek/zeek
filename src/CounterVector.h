@@ -71,11 +71,38 @@ public:
   size_type Size() const;
 
   /**
+   * Retrieves the counter width.
+   *
+   * @return The number of bits per counter.
+   */
+  size_t Width() const;
+
+  /**
    * Computes the maximum counter value.
    *
    * @return The maximum counter value based on the width.
    */
   size_t Max() const;
+
+  /**
+   * Merges another counter vector into this instance by *adding* the counters
+   * of each cells.
+   *
+   * @param other The counter vector to merge into this instance.
+   *
+   * @return A reference to `*this`.
+   *
+   * @pre `Size() == other.Size() && Width() == other.Width()`
+   */
+  CounterVector& Merge(const CounterVector& other);
+
+  /**
+   * An alias for ::Merge.
+   */
+  CounterVector& operator|=(const CounterVector& other);
+
+  friend CounterVector operator|(const CounterVector& x,
+                                 const CounterVector& y);
 
   bool Serialize(SerialInfo* info) const;
   static CounterVector* Unserialize(UnserialInfo* info);

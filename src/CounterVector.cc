@@ -43,9 +43,9 @@ bool CounterVector::Decrement(size_type cell, count_type value)
   size_t lsb = cell * width_;
   for ( size_t i = 0; i < width_; ++i )
     {
-    bool b1 = bits_[lsb + i];
+    bool b1 = (*bits_)[lsb + i];
     bool b2 = value & (1 << i);
-    bits_[lsb + i] = b1 ^ b2 ^ carry;
+    (*bits_)[lsb + i] = b1 ^ b2 ^ carry;
     carry = ( b1 && b2 ) || ( carry && ( b1 != b2 ) );
     }
   return carry;
@@ -67,11 +67,49 @@ CounterVector::size_type CounterVector::Size() const
   return bits_->Size() / width_;
   }
 
+size_t CounterVector::Width() const
+  {
+  return width_;
+  }
+
 size_t CounterVector::Max() const
   {
   return std::numeric_limits<size_t>::max()
     >> (std::numeric_limits<size_t>::digits - width_);
   }
+
+CounterVector& CounterVector::Merge(const CounterVector& other)
+  {
+  assert(Size() == other.Size());
+  assert(Width() == other.Width());
+  for ( size_t cell = 0; cell < Size(); ++cell )
+    {
+    size_t lsb = cell * width_;
+    bool carry = false;
+    for ( size_t i = 0; i < width_; ++i )
+      {
+      bool b1 = (*bits_)[lsb + i];
+      bool b2 = (*other.bits_)[lsb + i];
+      (*bits_)[lsb + i] = b1 ^ b2 ^ carry;
+      carry = ( b1 && b2 ) || ( carry && ( b1 != b2 ) );
+      }
+    if ( carry )
+      for ( size_t i = 0; i < width_; ++i )
+        bits_->Set(lsb + i);
+    }
+  return *this;
+  }
+
+CounterVector& CounterVector::operator|=(const CounterVector& other)
+{
+  return Merge(other);
+}
+
+CounterVector operator|(const CounterVector& x, const CounterVector& y)
+{
+  CounterVector cv(x);
+  return cv |= y;
+}
 
 bool CounterVector::Serialize(SerialInfo* info) const
   {

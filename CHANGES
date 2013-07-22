@@ -1,4 +1,12 @@
 
+2.1-824 | 2013-07-22 14:25:14 -0400
+
+  * Fixed a scriptland state issue that manifested especially badly on proxies. (Seth Hall)
+
+  * Another test fix. (Robin Sommer)
+
+  * Canonyfying the output of core.print-bpf-filters. (Robin Sommer)
+
 2.1-820 | 2013-07-18 12:30:04 -0700
 
   * Extending external canonifier to remove fractional values from

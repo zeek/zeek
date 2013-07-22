@@ -58,6 +58,7 @@
 #define H3_H
 
 #include <climits>
+#include <cstring>
 
 // The number of values representable by a byte.
 #define H3_BYTE_RANGE (UCHAR_MAX+1)
@@ -112,6 +113,17 @@ public:
 
 		return result;
 		}
+
+	friend bool operator==(const H3& x, const H3& y)
+		{
+		return ! std::memcmp(x.byte_lookup, y.byte_lookup, N * H3_BYTE_RANGE);
+		}
+
+	friend bool operator!=(const H3& x, const H3& y)
+		{
+		return ! (x == y);
+		}
+
 private:
 	T byte_lookup[N][H3_BYTE_RANGE];
 };

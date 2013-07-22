@@ -31,6 +31,10 @@ public:
 
   virtual digest_vector Hash(const void* x, size_t n) const = 0;
 
+  virtual Hasher* Clone() const = 0;
+
+  virtual bool Equals(const Hasher* other) const = 0;
+
   size_t K() const { return k_; }
   const std::string& Name() const { return name_; }
 
@@ -64,6 +68,16 @@ protected:
       return hash(x, n);
     }
 
+    friend bool operator==(const UHF& x, const UHF& y)
+    {
+      return x.h_ == y.h_;
+    }
+
+    friend bool operator!=(const UHF& x, const UHF& y)
+    {
+      return ! (x == y);
+    }
+
     digest hash(const void* x, size_t n) const;
 
   private:
@@ -87,6 +101,8 @@ public:
   DefaultHasher(size_t k, const std::string& name);
 
   virtual digest_vector Hash(const void* x, size_t n) const /* final */;
+  virtual DefaultHasher* Clone() const /* final */;
+  virtual bool Equals(const Hasher* other) const /* final */;
 
 private:
   std::vector<UHF> hash_functions_;
@@ -100,6 +116,8 @@ public:
   DoubleHasher(size_t k, const std::string& name);
 
   virtual digest_vector Hash(const void* x, size_t n) const /* final */;
+  virtual DoubleHasher* Clone() const /* final */;
+  virtual bool Equals(const Hasher* other) const /* final */;
 
 private:
   UHF h1_;

@@ -39,8 +39,6 @@ export {
 
 global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
 
-global extract_count: count = 0;
-
 function set_dcc_mime(f: fa_file)
 	{
 	if ( ! f?$conns ) return;
@@ -75,8 +73,7 @@ function set_dcc_extraction_file(f: fa_file, filename: string)
 
 function get_extraction_name(f: fa_file): string
 	{
-	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
-	++extract_count;
+	local r = fmt("%s-%s.dat", extraction_prefix, f$id);
 	return r;
 	}
 
@@ -188,5 +185,6 @@ event expected_connection_seen(c: connection, a: Analyzer::Tag) &priority=10
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
+	if ( [c$id$resp_h, c$id$resp_p] in dcc_expected_transfers )
+		delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
 	}

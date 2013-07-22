@@ -3,3 +3,5 @@
 @load ./file-analysis
 @load ./file-extract
 @load ./gridftp
+
+@load-sigs ./dpd.sig

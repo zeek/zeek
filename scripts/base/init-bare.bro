@@ -222,17 +222,6 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
-## A unique analyzer instance ID. Each time instantiates a protocol analyzers
-## for a connection, it assigns it a unique ID that can be used to reference
-## that instance.
-##
-## .. bro:see:: Analyzer::name Analyzer::disable_analyzer protocol_confirmation
-##    protocol_violation
-##
-## .. todo::While we declare an alias for the type here, the events/functions still
-##    use ``count``. That should be changed.
-type AnalyzerID: count;
-
 module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
@@ -776,19 +765,6 @@ global signature_files = "" &add_func = add_signature_file;
 
 ## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
-
-# todo::testing to see if I can remove these without causing problems.
-#const ftp = 21/tcp;
-#const ssh = 22/tcp;
-#const telnet = 23/tcp;
-#const smtp = 25/tcp;
-#const domain = 53/tcp;	# note, doesn't include UDP version
-#const gopher = 70/tcp;
-#const finger = 79/tcp;
-#const http = 80/tcp;
-#const ident = 113/tcp;
-#const bgp = 179/tcp;
-#const rlogin = 513/tcp;
 
 # TCP values for :bro:see:`endpoint` *state* field.
 # todo::these should go into an enum to make them autodoc'able.
@@ -3065,12 +3041,12 @@ module GLOBAL;
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/file-analysis
-
-# Load BiFs defined by plugins.
-@load base/bif/plugins

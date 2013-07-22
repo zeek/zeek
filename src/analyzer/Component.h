@@ -23,7 +23,6 @@ class Analyzer;
  */
 class Component : public plugin::Component {
 public:
-	typedef bool (*available_callback)();
 	typedef Analyzer* (*factory_callback)(Connection* conn);
 
 	/**
@@ -73,7 +72,7 @@ public:
 	 * from what's passed to the constructor but upper-cased and
 	 * canonified to allow being part of a script-level ID.
 	 */
-	const char* Name() const	{ return name; }
+	virtual const char* Name() const	{ return name; }
 
 	/**
 	 * Returns a canonocalized version of the analyzer's name.  The
@@ -120,7 +119,7 @@ public:
 	 * Generates a human-readable description of the component's main
 	 * parameters. This goes into the output of \c "bro -NN".
 	 */
-	virtual void Describe(ODesc* d);
+	virtual void Describe(ODesc* d) const;
 
 	Component& operator=(const Component& other);
 

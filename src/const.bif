@@ -23,5 +23,3 @@ const Tunnel::delay_gtp_confirmation: bool;
 const Tunnel::ip_tunnel_timeout: interval;
 
 const Threading::heartbeat_interval: interval;
-
-const FileAnalysis::salt: string;

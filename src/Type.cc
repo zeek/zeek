@@ -1334,6 +1334,16 @@ EnumType::EnumType(const string& arg_name)
 	counter = 0;
 	}
 
+EnumType::EnumType(EnumType* e)
+: BroType(TYPE_ENUM)
+	{
+	name = e->name;
+	counter = e->counter;
+
+	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+		names[copy_string(it->first)] = it->second;
+	}
+
 EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )

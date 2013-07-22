@@ -59,7 +59,7 @@ Plugin::~Plugin()
 	delete [] description;
 	}
 
-const char* Plugin::Name()
+const char* Plugin::Name() const
 	{
 	return name;
 	}
@@ -69,7 +69,7 @@ void Plugin::SetName(const char* arg_name)
 	name = copy_string(arg_name);
 	}
 
-const char* Plugin::Description()
+const char* Plugin::Description() const
 	{
 	return description;
 	}
@@ -79,7 +79,7 @@ void Plugin::SetDescription(const char* arg_description)
 	description = copy_string(arg_description);
 	}
 
-int Plugin::Version()
+int Plugin::Version() const
 	{
 	return dynamic ? version : 0;
 	}
@@ -89,12 +89,12 @@ void Plugin::SetVersion(int arg_version)
 	version = arg_version;
 	}
 
-int Plugin::APIVersion()
+int Plugin::APIVersion() const
 	{
 	return api_version;
 	}
 
-bool Plugin::DynamicPlugin()
+bool Plugin::DynamicPlugin() const
 	{
 	return dynamic;
 	}
@@ -127,7 +127,7 @@ void Plugin::InitPostScript()
 		}
 	}
 
-Plugin::bif_item_list Plugin::BifItems()
+Plugin::bif_item_list Plugin::BifItems() const
 	{
 	bif_item_list l1 = bif_items;
 	bif_item_list l2 = CustomBifItems();
@@ -138,7 +138,7 @@ Plugin::bif_item_list Plugin::BifItems()
 	return l1;
 	}
 
-Plugin::bif_item_list Plugin::CustomBifItems()
+Plugin::bif_item_list Plugin::CustomBifItems() const
 	{
 	return bif_item_list();
 	}
@@ -151,14 +151,23 @@ void Plugin::Done()
 	components.clear();
 	}
 
-Plugin::component_list Plugin::Components()
+Plugin::component_list Plugin::Components() const
 	{
 	return components;
+	}
+
+static bool component_cmp(const Component* a, const Component* b)
+	{
+	return a->Name() < b->Name();
 	}
 
 void Plugin::AddComponent(Component* c)
 	{
 	components.push_back(c);
+
+	// Sort components by name to make sure we have a deterministic
+	// order.
+	components.sort(component_cmp);
 	}
 
 void Plugin::AddBifInitFunction(bif_init_func c)
@@ -166,7 +175,7 @@ void Plugin::AddBifInitFunction(bif_init_func c)
 	bif_inits.push_back(c);
 	}
 
-void Plugin::Describe(ODesc* d)
+void Plugin::Describe(ODesc* d) const
 	{
 	d->Add("Plugin: ");
 	d->Add(name);

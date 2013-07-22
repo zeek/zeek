@@ -4,25 +4,11 @@
 #include "Manager.h"
 
 #include "../Desc.h"
+#include "../util.h"
 
 using namespace analyzer;
 
 Tag::type_t Component::type_counter = 0;
-
-static const char* canonify_name(const char* name)
-	{
-	unsigned int len = strlen(name);
-	char* nname = new char[len + 1];
-
-	for ( unsigned int i = 0; i < len; i++ )
-		{
-		char c = isalnum(name[i]) ? name[i] : '_';
-		nname[i] = toupper(c);
-		}
-
-	nname[len] = '\0';
-	return nname;
-	}
 
 Component::Component(const char* arg_name, factory_callback arg_factory, Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial)
 	: plugin::Component(plugin::component::ANALYZER)
@@ -58,7 +44,7 @@ analyzer::Tag Component::Tag() const
 	return tag;
 	}
 
-void Component::Describe(ODesc* d)
+void Component::Describe(ODesc* d) const
 	{
 	plugin::Component::Describe(d);
 	d->Add(name);

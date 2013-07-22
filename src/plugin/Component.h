@@ -15,15 +15,10 @@ namespace component {
 enum Type {
 	READER,	/// An input reader (not currently used).
 	WRITER,	/// An logging writer (not currenly used).
-	ANALYZER	/// A protocol analyzer.
+	ANALYZER,	/// A protocol analyzer.
+	FILE_ANALYZER	/// A file analyzer.
 	};
 }
-
-#if 0
-namespace input    { class PluginComponent; }
-namespace logging  { class PluginComponent; }
-namespace analyzer { class PluginComponent; }
-#endif
 
 /**
  * Base class for plugin components. A component is a specific piece of
@@ -51,13 +46,19 @@ public:
 	component::Type Type() const;
 
 	/**
+	 * Returns a descriptive name for the analyzer. This name must be
+	 * unique across all components of the same type.
+	 */
+	virtual const char* Name() const = 0;
+
+	/**
 	 * Returns a textual representation of the component. The default
 	 * version just output the type. Derived version should call the
 	 * parent's implementation and that add further information.
 	 *
 	 * @param d The description object to use.
 	 */
-	virtual void Describe(ODesc* d);
+	virtual void Describe(ODesc* d) const;
 
 private:
 	component::Type type;

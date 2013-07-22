@@ -29,9 +29,6 @@ redef record connection += {
 	modbus: Info &optional;
 };
 
-# Configure DPD and the packet filter.
-redef capture_filters += { ["modbus"] = "tcp port 502" };
-
 const ports = { 502/tcp };
 redef likely_server_ports += { ports };
 

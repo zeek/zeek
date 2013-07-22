@@ -357,6 +357,7 @@ void terminate_bro()
 
 	file_mgr->Terminate();
 	log_mgr->Terminate();
+	input_mgr->Terminate();
 	thread_mgr->Terminate();
 
 	mgr.Drain();
@@ -834,6 +835,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
+	file_mgr->InitPreScript();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -855,6 +857,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
+	file_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{
@@ -868,6 +871,8 @@ int main(int argc, char** argv)
 
 	if ( generate_documentation )
 		{
+		CreateProtoAnalyzerDoc("proto-analyzers.rst");
+
 		std::list<BroDoc*>::iterator it;
 
 		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
@@ -1109,6 +1114,7 @@ int main(int argc, char** argv)
 
 	reporter->ReportViaEvents(true);
 
+	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
 
 	analyzer_mgr->DumpDebug();

@@ -21,7 +21,7 @@ component::Type Component::Type() const
 	return type;
 	}
 
-void Component::Describe(ODesc* d)
+void Component::Describe(ODesc* d) const
 	{
 	d->Add("    ");
 	d->Add("[");
@@ -37,6 +37,10 @@ void Component::Describe(ODesc* d)
 
 	case component::ANALYZER:
 		d->Add("Analyzer");
+		break;
+
+	case component::FILE_ANALYZER:
+		d->Add("File Analyzer");
 		break;
 
 	default:

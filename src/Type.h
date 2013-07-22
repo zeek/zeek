@@ -523,6 +523,7 @@ protected:
 class EnumType : public BroType {
 public:
 	EnumType(const string& arg_name);
+	EnumType(EnumType* e);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -567,6 +568,7 @@ protected:
 class CommentedEnumType: public EnumType {
 public:
 	CommentedEnumType(const string& arg_name) : EnumType(arg_name) {}
+	CommentedEnumType(EnumType* e) : EnumType(e) {}
 	~CommentedEnumType();
 
 	void DescribeReST(ODesc* d) const;

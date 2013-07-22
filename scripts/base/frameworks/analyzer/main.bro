@@ -9,9 +9,9 @@
 ##! :bro:enum:`Analyzer::ANALYZER_HTTP`. These tags are defined internally by
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
-##!
-##! .. todo: ``The ANALYZER_*`` are in fact not yet documented, we need to
-##!    add that to Broxygen.
+
+@load base/frameworks/packet-filter/utils
+
 module Analyzer;
 
 export {
@@ -98,7 +98,21 @@ export {
 	##
 	## Returns: True if succesful.
 	global schedule_analyzer: function(orig: addr, resp: addr, resp_p: port,
-					   analyzer: Analyzer::Tag, tout: interval) : bool;
+	                                   analyzer: Analyzer::Tag, tout: interval) : bool;
+
+	## Automatically creates a BPF filter for the specified protocol based
+	## on the data supplied for the protocol through the
+	## :bro:see:`Analyzer::register_for_ports` function.
+	##
+	## tag: The analyzer tag.
+	##
+	## Returns: BPF filter string.
+	global analyzer_to_bpf: function(tag: Analyzer::Tag): string;
+
+	## Create a BPF filter which matches all of the ports defined
+	## by the various protocol analysis scripts as "registered ports"
+	## for the protocol.
+	global get_bpf: function(): string;
 
 	## A set of analyzers to disable by default at startup. The default set
 	## contains legacy analyzers that are no longer supported.
@@ -177,5 +191,27 @@ function schedule_analyzer(orig: addr, resp: addr, resp_p: port,
 			   analyzer: Analyzer::Tag, tout: interval) : bool
 	{
 	return __schedule_analyzer(orig, resp, resp_p, analyzer, tout);
+	}
+
+function analyzer_to_bpf(tag: Analyzer::Tag): string
+	{
+	# Return an empty string if an undefined analyzer was given.
+	if ( tag !in ports )
+		return "";
+
+	local output = "";
+	for ( p in ports[tag] )
+		output = PacketFilter::combine_filters(output, "or", PacketFilter::port_to_bpf(p));
+	return output;
+	}
+
+function get_bpf(): string
+	{
+	local output = "";
+	for ( tag in ports )
+		{
+		output = PacketFilter::combine_filters(output, "or", analyzer_to_bpf(tag));
+		}
+	return output;
 	}
 

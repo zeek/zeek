@@ -22,7 +22,7 @@ static RecordType* bittorrent_benc_value;
 static TableType* bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
-: tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
+: tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
 	{
 	if ( ! bt_tracker_headers )
 		{

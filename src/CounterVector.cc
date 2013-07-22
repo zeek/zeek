@@ -5,7 +5,8 @@
 #include "Serializer.h"
 
 CounterVector::CounterVector(size_t width, size_t cells)
-  : bits_(new BitVector(width * cells)), width_(width)
+  : bits_(new BitVector(width * cells)),
+    width_(width)
   {
   }
 
@@ -80,7 +81,7 @@ CounterVector::count_type CounterVector::Count(size_type cell) const
 
 CounterVector::size_type CounterVector::Size() const
   {
-  return bits_->Blocks() / width_;
+  return bits_->Size() / width_;
   }
 
 size_t CounterVector::Max() const

@@ -37,7 +37,7 @@ public:
    *
    * @pre `cell < Size()`
    */
-  bool Increment(size_type cell, count_type value);
+  bool Increment(size_type cell, count_type value = 1);
 
   /**
    * Decrements a given cell.
@@ -50,7 +50,7 @@ public:
    *
    * @pre `cell < Size()`
    */
-  bool Decrement(size_type cell, count_type value);
+  bool Decrement(size_type cell, count_type value = 1);
 
   /**
    * Retrieves the counter of a given cell.

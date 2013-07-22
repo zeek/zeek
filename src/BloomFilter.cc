@@ -131,9 +131,9 @@ CountingBloomFilter::CountingBloomFilter()
 
 CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
                                          size_t cells, size_t width)
-  : BloomFilter(hasher)
+  : BloomFilter(hasher),
+    cells_(new CounterVector(width, cells))
   {
-  cells_ = new CounterVector(width, cells);
   }
 
 
@@ -152,10 +152,12 @@ bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	return cells_ != NULL;
   }
 
+// TODO: Use partitioning in add/count to allow for reusing CMS bounds.
+
 void CountingBloomFilter::AddImpl(const Hasher::digest_vector& h)
   {
   for ( size_t i = 0; i < h.size(); ++i )
-    cells_->Increment(h[i] % cells_->Size(), 1);
+    cells_->Increment(h[i] % cells_->Size());
   }
 
 size_t CountingBloomFilter::CountImpl(const Hasher::digest_vector& h) const
@@ -164,7 +166,6 @@ size_t CountingBloomFilter::CountImpl(const Hasher::digest_vector& h) const
     std::numeric_limits<CounterVector::size_type>::max();
   for ( size_t i = 0; i < h.size(); ++i )
     {
-    // TODO: Use partitioning.
     CounterVector::size_type cnt = cells_->Count(h[i] % cells_->Size());
     if ( cnt  < min )
       min = cnt;

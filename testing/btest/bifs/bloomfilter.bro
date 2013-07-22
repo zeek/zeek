@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-event bro_init()
+function test_basic_bloom_filter()
   {
   # Basic usage with counts.
   local bf_cnt = bloomfilter_basic_init(0.1, 1000);
@@ -35,4 +35,28 @@ event bro_init()
   # Invalid parameters.
   local bf_bug0 = bloomfilter_basic_init(-0.5, 42);
   local bf_bug1 = bloomfilter_basic_init(1.1, 42);
+  }
+
+function test_counting_bloom_filter()
+  {
+  local bf = bloomfilter_counting_init(3, 16, 3);
+  bloomfilter_add(bf, "foo");
+  print bloomfilter_lookup(bf, "foo");    # 1
+  bloomfilter_add(bf, "foo");
+  print bloomfilter_lookup(bf, "foo");    # 2
+  bloomfilter_add(bf, "foo");
+  print bloomfilter_lookup(bf, "foo");    # 3
+  bloomfilter_add(bf, "foo");
+  print bloomfilter_lookup(bf, "foo");    # still 3
+
+  bloomfilter_add(bf, "bar");
+  bloomfilter_add(bf, "bar");
+  print bloomfilter_lookup(bf, "bar");    # 2
+  print bloomfilter_lookup(bf, "foo");    # still 3
+  }
+
+event bro_init()
+  {
+  test_basic_bloom_filter();
+  test_counting_bloom_filter();
   }

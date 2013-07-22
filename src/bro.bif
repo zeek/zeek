@@ -5029,8 +5029,14 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 function bloomfilter_counting_init%(k: count, cells: count, max: count,
                                     name: string &default=""%): opaque of bloomfilter
   %{
+  if ( max == 0 )
+    {
+    reporter->Error("max counter value must be greater than 0");
+    return NULL;
+    }
+
   const Hasher* h = Hasher::Create(k, name->CheckString());
-  uint16 width = 0;
+  uint16 width = 1;
   while ( max >>= 1 )
     ++width;
   return new BloomFilterVal(new CountingBloomFilter(h, cells, width));

@@ -150,8 +150,7 @@ public:
 	bool Flush(EnumVal* id);
 
 	/**
-	 * Prepares the log manager to terminate. This will flush all log
-	 * stream.
+	 * Signals the manager to shutdown at Bro's termination.
 	 */
 	void Terminate();
 

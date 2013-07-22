@@ -1,29 +1,29 @@
 #include "config.h"
 
 #include "RuleCondition.h"
-#include "TCP.h"
+#include "analyzer/protocol/tcp/TCP.h"
 #include "Scope.h"
 
-static inline bool is_established(const TCP_Endpoint* e)
+static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	{
 	// We more or less follow Snort here: an established session
 	// is one for which the initial handshake has succeded (but we
 	// add partial connections).  The connection tear-down is part
 	// of the connection.
-	return e->state != TCP_ENDPOINT_INACTIVE &&
-	       e->state != TCP_ENDPOINT_SYN_SENT &&
-	       e->state != TCP_ENDPOINT_SYN_ACK_SENT;
+	return e->state != analyzer::tcp::TCP_ENDPOINT_INACTIVE &&
+	       e->state != analyzer::tcp::TCP_ENDPOINT_SYN_SENT &&
+	       e->state != analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
 	}
 
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
 					const u_char* data, int len)
 	{
-	Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
+	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
 
-	if ( ! root || root->GetTag() != AnalyzerTag::TCP )
+	if ( ! root || ! root->IsAnalyzer("TCP") )
 		return false;
 
-	TCP_Analyzer* ta = static_cast<TCP_Analyzer*>(root);
+	analyzer::tcp::TCP_Analyzer* ta = static_cast<analyzer::tcp::TCP_Analyzer*>(root);
 
 	if ( tcpstates & STATE_STATELESS )
 		return true;

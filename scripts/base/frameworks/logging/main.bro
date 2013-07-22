@@ -195,7 +195,7 @@ export {
 	##
 	## Returns: True if a new stream was successfully removed.
 	##
-	## .. bro:see:: Log:create_stream
+	## .. bro:see:: Log::create_stream
 	global remove_stream: function(id: ID) : bool;
 
 	## Enables a previously disabled logging stream.  Disabled streams
@@ -366,7 +366,7 @@ export {
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load base/logging.bif # Needs Filter and Stream defined.
+@load base/bif/logging.bif # Needs Filter and Stream defined.
 
 module Log;
 
@@ -454,7 +454,6 @@ function create_stream(id: ID, stream: Stream) : bool
 function remove_stream(id: ID) : bool
 	{
 	delete active_streams[id];
-
 	return __remove_stream(id);
 	}
 

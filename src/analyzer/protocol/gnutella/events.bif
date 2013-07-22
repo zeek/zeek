@@ -1,0 +1,88 @@
+## TODO.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+## information about the Gnutella protocol.
+##
+## .. bro:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
+##    gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
+##
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event gnutella_text_msg%(c: connection, orig: bool, headers: string%);
+
+## TODO.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+## information about the Gnutella protocol.
+##
+## .. bro:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
+##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event gnutella_binary_msg%(c: connection, orig: bool, msg_type: count,
+				ttl: count, hops: count, msg_len: count,
+				payload: string, payload_len: count,
+				trunc: bool, complete: bool%);
+
+## TODO.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+## information about the Gnutella protocol.
+##
+## .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
+##    gnutella_not_establish  gnutella_signature_found gnutella_text_msg
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event gnutella_partial_binary_msg%(c: connection, orig: bool,
+					msg: string, len: count%);
+
+## TODO.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+## information about the Gnutella protocol.
+##
+## .. bro:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
+##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event gnutella_establish%(c: connection%);
+
+## TODO.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+## information about the Gnutella protocol.
+##
+## .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
+##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event gnutella_not_establish%(c: connection%);
+
+## TODO.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+## information about the Gnutella protocol.
+##
+## .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
+##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+##
+## .. todo:: Bro's current default configuration does not activate the protocol
+##    analyzer that generates this event; the corresponding script has not yet
+##    been ported to Bro 2.x. To still enable this event, one needs to
+##    register a port for it or add a DPD payload signature.
+event gnutella_http_notify%(c: connection%);

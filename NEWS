@@ -46,10 +46,67 @@ New Functionality
   have changed their signatures to work with opaques types rather
   than global state as it was before.
 
+- The scripting language now supports a constructing sets, tables,
+  vectors, and records by name:
+
+        type MyRecordType: record {
+            c: count;
+            s: string &optional;
+        };
+
+        global r: MyRecordType = record($c = 7);
+
+        type MySet: set[MyRec];
+        global s = MySet([$c=1], [$c=2]);
+
 - Strings now support the subscript operator to extract individual
   characters and substrings (e.g., s[4], s[1,5]). The index expression
   can take up to two indices for the start and end index of the
   substring to return (e.g. "mystring[1,3]").
+
+- Functions now support default parameters, e.g.:
+
+        global foo: function(s: string, t: string &default="abc", u: count &default=0);
+
+- Scripts can now use two new "magic constants" @DIR and @FILENAME
+  that expand to the directory path of the current script and just the
+  script file name without path, respectively. (Jon Siwek)
+
+- The new file analysis framework moves most of the processing of file
+  content from script-land into the core, where it belongs. See
+  doc/file-analysis.rst for more information.
+
+  Much of this is an internal change, but the framework also comes
+  with the following user-visibible functionality (some of that was
+  already available before, but done differently):
+
+  [TODO: This will probably change with further script updates.]
+
+      - A binary input reader interfaces the input framework with file
+        analysis, allowing to inject files on disk into Bro's
+        processing.
+
+      - Supports for analyzing data transfereed via HTTP range
+        requests.
+
+      - HTTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+
+      - SMTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+        * Provide access to start of entity data.
+
+      - FTP data transfers: Identify MIME type; record to disk.
+
+      - IRC DCC transfers: Record to disk.
+
+- New packet filter framework supports BPF-based load-balancing,
+  shunting, and sampling; plus plugin support to customize filters
+  dynamically.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
@@ -125,6 +182,15 @@ Changed Functionality
 
 - Removed the byte_len() and length() bif functions. Use the "|...|"
   operator instead.
+
+- The SSH::Login notice has been superseded by an corresponding
+  intelligence framework observation (SSH::SUCCESSFUL_LOGIN).
+
+- PacketFilter::all_packets has been replaced with
+  PacketFilter::enable_auto_protocol_capture_filters.
+
+- We removed the BitTorrent DPD signatures pending further updates to
+  that analyzer.
 
 Bro 2.1
 -------
@@ -208,6 +274,27 @@ New Functionality
   formats as prototypes for collecting experience with alternative
   outputs. We do not yet recommend them for production (but welcome
   feedback!)
+
+- Summary statistics framework. [Extend]
+
+- A number of new applications build on top of the summary statistics
+  framework:
+
+    * Scan detection: Detectors for port and address scans return. See
+      policy/misc/scan.bro.
+
+    * Tracerouter detector: policy/misc/detect-traceroute
+
+    * Web application detection/measurement: policy/misc/app-metrics.bro
+
+    * FTP brute-forcing detector: policy/protocols/ftp/detect-bruteforcing.bro
+
+    * HTTP-based SQL injection detector: policy/protocols/http/detect-sqli.bro
+      (existed before, but now ported to the new framework)
+
+    * SSH brute-forcing detector feeding the intelligence framework:
+      policy/protocols/ssh/detect-bruteforcing.bro
+
 
 
 Changed Functionality

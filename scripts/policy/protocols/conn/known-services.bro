@@ -87,7 +87,7 @@ function known_services_done(c: connection)
 		event log_it(network_time(), id$resp_h, id$resp_p, c$service);
 	}
 	
-event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-5
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
 	{
 	known_services_done(c);
 	}

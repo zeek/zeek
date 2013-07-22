@@ -30,9 +30,9 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 
 	for ( int i = 0, j = 0; (i < len) && ( j < blen ); )
 		{
-			uint32_t bit32 = ((i < len ? data[i++] : 0) << 16) +
-					 ((i < len ? data[i++] : 0 & i++) << 8) +
-					 ( i < len ? data[i++] : 0 & i++);
+			uint32_t bit32 = data[i++]  << 16;
+			bit32 += (i++ < len ? data[i-1] : 0) << 8; 
+			bit32 += i++ < len ? data[i-1] : 0;
 
 			buf[j++] = alphabet[(bit32 >> 18) & 0x3f];
 			buf[j++] = alphabet[(bit32 >> 12) & 0x3f];
@@ -82,9 +82,7 @@ int* Base64Converter::InitBase64Table(const string& alphabet)
 	return base64_table;
 	}
 
-
-
-Base64Converter::Base64Converter(Analyzer* arg_analyzer, const string& arg_alphabet)
+Base64Converter::Base64Converter(analyzer::Analyzer* arg_analyzer, const string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{

@@ -15,7 +15,18 @@ global outfile: file;
 event line(description: Input::EventDescription, tpe: Input::Event, s: string, is_stderr: bool)
 	{
 	print outfile, tpe;
-	print outfile, s;
+	if ( is_stderr ) 
+		{
+		# work around localized error messages. and if some localization does not include the filename... well... that would be bad :)
+		if ( strstr(s, "nonexistant") > 0 ) 
+			{
+			print outfile, "stderr output contained nonexistant";
+			}
+		}
+	else
+		{
+		print outfile, s;
+		}
 	print outfile, is_stderr;
 
 	try = try + 1;
@@ -38,7 +49,8 @@ event InputRaw::process_finished(name: string, source:string, exit_code:count, s
 	{
 	print outfile, "Process finished event";
 	print outfile, name;
-	print outfile, exit_code;
+	if ( exit_code != 0 ) 
+		print outfile, "Exit code != 0";
 	}
 
 event bro_init()

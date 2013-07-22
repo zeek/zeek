@@ -1,0 +1,17 @@
+
+## Generated for monitored Syslog messages.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Syslog>`__ for more
+## information about the Syslog protocol.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## facility: The "facility" included in the message.
+##
+## severity: The "severity" included in the message.
+##
+## msg: The message logged.
+##
+## .. note:: Bro currently parses only UDP syslog traffic. Support for TCP
+##    syslog will be added soon.
+event syslog_message%(c: connection, facility: count, severity: count, msg: string%);

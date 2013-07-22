@@ -1,0 +1,17 @@
+## Deprecated. Will be removed.
+event stp_create_endp%(c: connection, e: int, is_orig: bool%);
+
+# ##### Internal events. Not further documented.
+
+## Event internal to the stepping stone detector.
+event stp_resume_endp%(e: int%);
+
+## Event internal to the stepping stone detector.
+event stp_correlate_pair%(e1: int, e2: int%);
+
+## Event internal to the stepping stone detector.
+event stp_remove_pair%(e1: int, e2: int%);
+
+## Event internal to the stepping stone detector.
+event stp_remove_endp%(e: int%);
+

@@ -77,7 +77,7 @@ public:
 	 * The method lets Terminating() now return true, it does however not
 	 * force the thread to terminate. It's up to the Run() method to to
 	 * query Terminating() and exit eventually.
-	 * 
+	 *
 	 * Calling this method has no effect if Start() hasn't been executed
 	 * yet.
 	 *

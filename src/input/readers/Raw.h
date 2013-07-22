@@ -45,7 +45,7 @@ private:
 	unsigned int sep_length; // length of the separator
 
 	static const int block_size;
-	uint64_t bufpos;
+	int bufpos;
 	char* buf;
 	char* outbuf;
 

@@ -208,7 +208,7 @@ protected:
 	EnumVal* stream;
 	EnumVal* writer;
 
-	WriterBackend* backend;	// The backend we have instanatiated.
+	WriterBackend* backend;	// The backend we have instantiated.
 	bool disabled;	// True if disabled.
 	bool initialized;	// True if initialized.
 	bool buf;	// True if buffering is enabled (default).

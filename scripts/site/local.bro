@@ -8,6 +8,9 @@
 # Apply the default tuning scripts for common tuning settings.
 @load tuning/defaults
 
+# Load the scan detection script.
+@load misc/scan
+
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined
 # as "local".  Refer to the software framework's documentation for more 

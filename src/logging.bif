@@ -88,6 +88,14 @@ const dump_schema: bool;
 const use_integer_for_time: bool;
 const num_threads: count;
 
+# Options for the SQLite writer
+
+module LogSQLite;
+
+const set_separator: string;
+const empty_field: string;
+const unset_field: string;
+
 # Options for the ElasticSearch writer.
 
 module LogElasticSearch;

@@ -1,0 +1,2 @@
+# @TEST-EXEC: bro -r $TRACES/tls1.2.trace %INPUT
+# @TEST-EXEC: btest-diff ssl.log

@@ -9,6 +9,7 @@ class BitVector;
  * A vector of counters, each of which have a fixed number of bits.
  */
 class CounterVector : public SerialObj {
+  CounterVector& operator=(const CounterVector&);
 public:
   typedef size_t size_type;
   typedef uint64 count_type;
@@ -23,6 +24,13 @@ public:
    * @pre `cells > 0 && width > 0`
    */
   CounterVector(size_t width, size_t cells = 1024);
+
+	/**
+	 * Copy-constructs a counter vector.
+	 *
+	 * @param other The counter vector to copy.
+	 */
+  CounterVector(const CounterVector& other);
 
   ~CounterVector();
 

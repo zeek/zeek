@@ -10,6 +10,12 @@ CounterVector::CounterVector(size_t width, size_t cells)
   {
   }
 
+CounterVector::CounterVector(const CounterVector& other)
+	: bits_(new BitVector(*other.bits_)),
+	  width_(other.width_)
+  {
+  }
+
 CounterVector::~CounterVector()
   {
   delete bits_;

@@ -64,7 +64,7 @@ DefaultHasher* DefaultHasher::Clone() const
 	return new DefaultHasher(*this);
 	}
 
-bool DefaultHasher::Equals(const Hasher* other) const /* final */
+bool DefaultHasher::Equals(const Hasher* other) const
 	{
 	if ( typeid(*this) != typeid(*other) )
 		return false;
@@ -94,7 +94,7 @@ DoubleHasher* DoubleHasher::Clone() const
 	return new DoubleHasher(*this);
 	}
 
-bool DoubleHasher::Equals(const Hasher* other) const /* final */
+bool DoubleHasher::Equals(const Hasher* other) const
 	{
 	if ( typeid(*this) != typeid(*other) )
 		return false;

@@ -35,11 +35,21 @@ function test_basic_bloom_filter()
   # Invalid parameters.
   local bf_bug0 = bloomfilter_basic_init(-0.5, 42);
   local bf_bug1 = bloomfilter_basic_init(1.1, 42);
+
+  # Merging
+  local bf_cnt2 = bloomfilter_basic_init(0.1, 1000);
+  bloomfilter_add(bf_cnt2, 42);
+  bloomfilter_add(bf_cnt, 100);
+  local bf_merged = bloomfilter_merge(bf_cnt, bf_cnt2);
+  print bloomfilter_lookup(bf_merged, 42);
+  print bloomfilter_lookup(bf_merged, 84);
+  print bloomfilter_lookup(bf_merged, 100);
+  print bloomfilter_lookup(bf_merged, 168);
   }
 
 function test_counting_bloom_filter()
   {
-  local bf = bloomfilter_counting_init(3, 16, 3);
+  local bf = bloomfilter_counting_init(3, 32, 3);
   bloomfilter_add(bf, "foo");
   print bloomfilter_lookup(bf, "foo");    # 1
   bloomfilter_add(bf, "foo");
@@ -49,10 +59,21 @@ function test_counting_bloom_filter()
   bloomfilter_add(bf, "foo");
   print bloomfilter_lookup(bf, "foo");    # still 3
 
+
   bloomfilter_add(bf, "bar");
   bloomfilter_add(bf, "bar");
   print bloomfilter_lookup(bf, "bar");    # 2
   print bloomfilter_lookup(bf, "foo");    # still 3
+
+  # Merging
+  local bf2 = bloomfilter_counting_init(3, 32, 3);
+  bloomfilter_add(bf2, "baz");
+  bloomfilter_add(bf2, "baz");
+  bloomfilter_add(bf2, "bar");
+  local bf_merged = bloomfilter_merge(bf, bf2);
+  print bloomfilter_lookup(bf_merged, "foo");
+  print bloomfilter_lookup(bf_merged, "bar");
+  print bloomfilter_lookup(bf_merged, "baz");
   }
 
 event bro_init()

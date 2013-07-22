@@ -57,7 +57,6 @@ protected:
   virtual void AddImpl(const Hasher::digest_vector& hashes) = 0;
   virtual size_t CountImpl(const Hasher::digest_vector& hashes) const = 0;
 
-private:
   const Hasher* hasher_;
 };
 

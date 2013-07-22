@@ -3,6 +3,7 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
+#include "BloomFilter.h"
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
@@ -137,9 +138,23 @@ private:
   static BloomFilterVal* DoMerge(const BloomFilterVal* x,
                                  const BloomFilterVal* y)
     {
-    const T* a = dynamic_cast<const T*>(x->bloom_filter_);
-    const T* b = dynamic_cast<const T*>(y->bloom_filter_);
-    return a && b ? new BloomFilterVal(T::Merge(a, b)) : NULL;
+    if ( typeid(*x->bloom_filter_) != typeid(*y->bloom_filter_) )
+      {
+      reporter->InternalError("cannot merge different Bloom filter types");
+      return NULL;
+      }
+    if ( typeid(T) != typeid(*x->bloom_filter_) )
+      return NULL;
+    const T* a = static_cast<const T*>(x->bloom_filter_);
+    const T* b = static_cast<const T*>(y->bloom_filter_);
+    BloomFilterVal* merged = new BloomFilterVal(T::Merge(a, b));
+    assert(merged);
+    if ( ! merged->Typify(x->Type()) )
+      {
+      reporter->InternalError("failed to set type on merged Bloom filter");
+      return NULL;
+      }
+    return merged;
     }
 
   BroType* type_;

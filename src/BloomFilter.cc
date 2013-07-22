@@ -70,8 +70,13 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
                                           const BasicBloomFilter* y)
   {
-  // TODO: Ensure that x and y use the same Hasher before proceeding.
+  if ( ! x->hasher_->Equals(y->hasher_) )
+    {
+    reporter->InternalError("incompatible hashers during Bloom filter merge");
+    return NULL;
+    }
   BasicBloomFilter* result = new BasicBloomFilter();
+  result->hasher_ = x->hasher_->Clone();
   result->bits_ = new BitVector(*x->bits_ | *y->bits_);
   return result;
   }
@@ -119,10 +124,17 @@ size_t BasicBloomFilter::CountImpl(const Hasher::digest_vector& h) const
 
 CountingBloomFilter* CountingBloomFilter::Merge(const CountingBloomFilter* x,
                                                 const CountingBloomFilter* y)
-{
-  assert(! "not yet implemented");
-  return NULL;
-}
+  {
+  if ( ! x->hasher_->Equals(y->hasher_) )
+    {
+    reporter->InternalError("incompatible hashers during Bloom filter merge");
+    return NULL;
+    }
+  CountingBloomFilter* result = new CountingBloomFilter();
+  result->hasher_ = x->hasher_->Clone();
+  result->cells_ = new CounterVector(*x->cells_ | *y->cells_);
+  return result;
+  }
 
 CountingBloomFilter::CountingBloomFilter()
   : cells_(NULL)

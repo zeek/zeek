@@ -1,6 +1,5 @@
 #include "OpaqueVal.h"
 
-#include "BloomFilter.h"
 #include "NetVar.h"
 #include "Reporter.h"
 #include "Serializer.h"
@@ -587,6 +586,7 @@ BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
   else if ( (result = DoMerge<CountingBloomFilter>(x, y)) )
     return result;
 
+  reporter->InternalError("failed to merge Bloom filters");
   return NULL;
   }
 

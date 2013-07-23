@@ -1,7 +1,7 @@
 
 global test_file_analysis_source: string = "" &redef;
 
-global test_file_analyzers: set[Files::AnalyzerArgs];
+global test_file_analyzers: set[Files::Tag];
 
 global test_get_file_name: function(f: fa_file): string =
 	function(f: fa_file): string { return ""; } &redef;
@@ -46,11 +46,11 @@ event file_new(f: fa_file)
 
 		local filename: string = test_get_file_name(f);
 		if ( filename != "" )
-			Files::add_analyzer(f, [$tag=Files::ANALYZER_EXTRACT,
-			                               $extract_filename=filename]);
-		Files::add_analyzer(f, [$tag=Files::ANALYZER_DATA_EVENT,
-		                               $chunk_event=file_chunk,
-		                               $stream_event=file_stream]);
+			Files::add_analyzer(f, Files::ANALYZER_EXTRACT,
+			                       [$extract_filename=filename]);
+		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT,
+		                       [$chunk_event=file_chunk,
+		                        $stream_event=file_stream]);
 		}
 
 	if ( f?$bof_buffer )
@@ -106,7 +106,7 @@ event file_state_remove(f: fa_file)
 
 event bro_init()
 	{
-	add test_file_analyzers[[$tag=Files::ANALYZER_MD5]];
-	add test_file_analyzers[[$tag=Files::ANALYZER_SHA1]];
-	add test_file_analyzers[[$tag=Files::ANALYZER_SHA256]];
+	add test_file_analyzers[Files::ANALYZER_MD5];
+	add test_file_analyzers[Files::ANALYZER_SHA1];
+	add test_file_analyzers[Files::ANALYZER_SHA256];
 	}

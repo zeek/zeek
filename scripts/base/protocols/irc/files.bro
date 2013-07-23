@@ -16,9 +16,6 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( [c$id$resp_h, c$id$resp_p] !in dcc_expected_transfers ) 
-		return "";
-
 	return cat(Analyzer::ANALYZER_IRC_DATA, c$start_time, c$id, is_orig);
 	}
 

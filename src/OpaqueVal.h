@@ -3,9 +3,17 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
+#include <typeinfo>
+
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
+
+#include "probabilistic/BloomFilter.h"
+
+namespace probabilistic {
+	class BloomFilter;
+}
 
 class HashVal : public OpaqueVal {
 public:
@@ -105,6 +113,58 @@ protected:
 
 private:
 	RandTest state;
+};
+
+class BloomFilterVal : public OpaqueVal {
+  BloomFilterVal(const BloomFilterVal&);
+  BloomFilterVal& operator=(const BloomFilterVal&);
+public:
+  static BloomFilterVal* Merge(const BloomFilterVal* x,
+                               const BloomFilterVal* y);
+
+	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
+	~BloomFilterVal();
+
+	bool Typify(BroType* type);
+	BroType* Type() const;
+
+	void Add(const Val* val);
+	size_t Count(const Val* val) const;
+
+protected:
+	friend class Val;
+	BloomFilterVal();
+	BloomFilterVal(OpaqueType* t);
+
+	DECLARE_SERIAL(BloomFilterVal);
+
+private:
+  template <typename T>
+  static BloomFilterVal* DoMerge(const BloomFilterVal* x,
+                                 const BloomFilterVal* y)
+    {
+    if ( typeid(*x->bloom_filter_) != typeid(*y->bloom_filter_) )
+      {
+      reporter->InternalError("cannot merge different Bloom filter types");
+      return NULL;
+      }
+    if ( typeid(T) != typeid(*x->bloom_filter_) )
+      return NULL;
+    const T* a = static_cast<const T*>(x->bloom_filter_);
+    const T* b = static_cast<const T*>(y->bloom_filter_);
+    BloomFilterVal* merged = new BloomFilterVal(T::Merge(a, b));
+    assert(merged);
+    if ( ! merged->Typify(x->Type()) )
+      {
+      reporter->InternalError("failed to set type on merged Bloom filter");
+      return NULL;
+      }
+    return merged;
+    }
+
+  BroType* type_;
+  CompositeHash* hash_;
+  probabilistic::BloomFilter* bloom_filter_;
 };
 
 #endif

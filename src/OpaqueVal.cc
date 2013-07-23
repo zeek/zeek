@@ -1,4 +1,5 @@
 #include "OpaqueVal.h"
+
 #include "NetVar.h"
 #include "Reporter.h"
 #include "Serializer.h"
@@ -515,3 +516,120 @@ bool EntropyVal::DoUnserialize(UnserialInfo* info)
 
 	return true;
 	}
+
+BloomFilterVal::BloomFilterVal()
+  : OpaqueVal(bloomfilter_type),
+    type_(NULL),
+    hash_(NULL),
+    bloom_filter_(NULL)
+	{
+	}
+
+BloomFilterVal::BloomFilterVal(OpaqueType* t)
+  : OpaqueVal(t),
+    type_(NULL),
+    hash_(NULL),
+    bloom_filter_(NULL)
+	{
+	}
+
+BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
+  : OpaqueVal(bloomfilter_type),
+    type_(NULL),
+    hash_(NULL),
+    bloom_filter_(bf)
+	{
+	}
+
+bool BloomFilterVal::Typify(BroType* type)
+  {
+  if ( type_ )
+    return false;
+  type_ = type;
+  type_->Ref();
+  TypeList* tl = new TypeList(type_);
+  tl->Append(type_);
+  hash_ = new CompositeHash(tl);
+  Unref(tl);
+  return true;
+  }
+
+BroType* BloomFilterVal::Type() const
+  {
+  return type_;
+  }
+
+void BloomFilterVal::Add(const Val* val)
+  {
+  HashKey* key = hash_->ComputeHash(val, 1);
+  bloom_filter_->Add(key->Hash());
+  }
+
+size_t BloomFilterVal::Count(const Val* val) const
+  {
+  HashKey* key = hash_->ComputeHash(val, 1);
+  return bloom_filter_->Count(key->Hash());
+  }
+
+BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
+                                      const BloomFilterVal* y)
+  {
+  if ( x->Type() != y->Type() )
+    {
+    reporter->InternalError("cannot merge Bloom filters with different types");
+    return NULL;
+    }
+
+  BloomFilterVal* result;
+  if ( (result = DoMerge<probabilistic::BasicBloomFilter>(x, y)) )
+    return result;
+  else if ( (result = DoMerge<probabilistic::CountingBloomFilter>(x, y)) )
+    return result;
+
+  reporter->InternalError("failed to merge Bloom filters");
+  return NULL;
+  }
+
+BloomFilterVal::~BloomFilterVal()
+  {
+  if ( type_ )
+    Unref(type_);
+  if ( hash_ )
+    delete hash_;
+  if ( bloom_filter_ )
+    delete bloom_filter_;
+  }
+
+IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
+
+bool BloomFilterVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
+
+	bool is_typed = type_ != NULL;
+	if ( ! SERIALIZE(is_typed) )
+	  return false;
+	if ( is_typed && ! type_->Serialize(info) )
+	  return false;
+
+	return bloom_filter_->Serialize(info);
+  }
+
+bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+
+	bool is_typed;
+	if ( ! UNSERIALIZE(&is_typed) )
+	  return false;
+	if ( is_typed )
+    {
+      BroType* type = BroType::Unserialize(info);
+      if ( ! Typify(type) )
+        return false;
+      Unref(type);
+    }
+
+	bloom_filter_ = probabilistic::BloomFilter::Unserialize(info);
+	return bloom_filter_ != NULL;
+  }

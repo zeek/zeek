@@ -150,6 +150,7 @@ set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
 add_subdirectory(analyzer)
 add_subdirectory(file_analysis)
+add_subdirectory(probabilistic)
 
 set(bro_SUBDIRS
     ${bro_SUBDIR_LIBS}

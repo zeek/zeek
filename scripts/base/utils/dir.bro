@@ -5,6 +5,10 @@
 module Dir;
 
 export {
+	## The default interval this module checks for files in directories when
+	## using the :bro:see:`Dir::monitor` function.
+	const polling_interval = 30sec &redef;
+
 	## Register a directory to monitor with a callback that is called 
 	## every time a previously unseen file is seen.  If a file is deleted
 	## and seen to be gone, the file is available for being seen again in 
@@ -14,14 +18,15 @@ export {
 	##
 	## callback: Callback that gets executed with each file name 
 	##           that is found.  Filenames are provided with the full path.
-	global monitor: function(dir: string, callback: function(fname: string));
-
-	## The interval this module checks for files in directories when using 
-	## the :bro:see:`Dir::monitor` function.
-	const polling_interval = 30sec &redef;
+	##
+	## poll_interval: An interval at which to check for new files.
+	global monitor: function(dir: string, callback: function(fname: string),
+	                         poll_interval: interval &default=polling_interval);
 }
 
-event Dir::monitor_ev(dir: string, last_files: set[string], callback: function(fname: string))
+event Dir::monitor_ev(dir: string, last_files: set[string],
+                      callback: function(fname: string),
+                      poll_interval: interval)
 	{
 	when ( local result = Exec::run([$cmd=fmt("ls -i \"%s/\"", str_shell_escape(dir))]) )
 		{
@@ -32,7 +37,11 @@ event Dir::monitor_ev(dir: string, last_files: set[string], callback: function(f
 			}
 
 		local current_files: set[string] = set();
-		local files = result$stdout;
+		local files: vector of string = vector();
+
+		if ( result?$stdout )
+			files = result$stdout;
+
 		for ( i in files )
 			{
 			local parts = split1(files[i], / /);
@@ -40,13 +49,18 @@ event Dir::monitor_ev(dir: string, last_files: set[string], callback: function(f
 				callback(build_path_compressed(dir, parts[2]));
 			add current_files[parts[1]];
 			}
-		schedule polling_interval { Dir::monitor_ev(dir, current_files, callback) };
+
+		schedule poll_interval
+			{
+			Dir::monitor_ev(dir, current_files, callback, poll_interval)
+			};
 		}
 	}
 
-function monitor(dir: string, callback: function(fname: string))
+function monitor(dir: string, callback: function(fname: string),
+                 poll_interval: interval &default=polling_interval)
 	{
-	event Dir::monitor_ev(dir, set(), callback);
+	event Dir::monitor_ev(dir, set(), callback, poll_interval);
 	}
 
 

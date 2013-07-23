@@ -90,7 +90,10 @@ function request(req: Request): ActiveHTTP::Response
 		{
 		# If there is no response line then nothing else will work either.
 		if ( ! (result?$files && headersfile in result$files) )
+			{
 			Reporter::error(fmt("There was a failure when requesting \"%s\" with ActiveHTTP.", req$url));
+			return resp;
+			}
 
 		local headers = result$files[headersfile];
 		for ( i in headers )

@@ -121,6 +121,22 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	return new Val(0, TYPE_COUNT);
 	%}
 
+## Removes all elements from a Bloom filter. This function sets resets all bits
+## in the underlying bitvector to 0 but does not change the parameterization of
+## the Bloom filter, such as the element type and the hasher seed.
+##
+## bf: The Bloom filter handle.
+function bloomfilter_clear%(bf: opaque of bloomfilter%): any
+	%{
+	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+
+	if ( bfv->Type() ) // Untyped Bloom filters are already empty.
+		bfv->Clear();
+
+	return 0;
+	%}
+
+
 ## Merges two Bloom filters.
 ##
 ## bf1: The first Bloom filter handle.

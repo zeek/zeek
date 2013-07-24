@@ -78,6 +78,11 @@ public:
 	count_type Count(size_type cell) const;
 
 	/**
+	 * Sets all counters to 0.
+	 */
+	void Clear();
+
+	/**
 	 * Retrieves the number of cells in the storage.
 	 *
 	 * @return The number of cells.

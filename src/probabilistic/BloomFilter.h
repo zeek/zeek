@@ -48,6 +48,11 @@ public:
 		}
 
 	/**
+	 * Removes all elements, i.e., resets all bits in the underlying bit vector.
+	 */
+	virtual void Clear() = 0;
+
+	/**
 	 * Serializes the Bloom filter.
 	 *
 	 * @param info The serializaton information to use.
@@ -147,6 +152,9 @@ public:
 	 */
 	static size_t K(size_t cells, size_t capacity);
 
+	// Overridden from BloomFilter.
+	virtual void Clear();
+
 	/**
 	 * Merges two basic Bloom filters.
 	 *
@@ -187,6 +195,9 @@ public:
 	 * @param width The maximal bit-width of counter values.
 	 */
 	CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
+
+	// Overridden from BloomFilter.
+	virtual void Clear();
 
 	/**
 	 * Merges two counting Bloom filters.

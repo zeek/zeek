@@ -578,6 +578,11 @@ size_t BloomFilterVal::Count(const Val* val) const
 	return cnt;
 	}
 
+void BloomFilterVal::Clear()
+	{
+	bloom_filter->Clear();
+	}
+
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
                                       const BloomFilterVal* y)
 	{

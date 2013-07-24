@@ -70,6 +70,11 @@ bool CounterVector::Decrement(size_type cell, count_type value)
 	return carry;
 	}
 
+void CounterVector::Clear()
+	{
+	bits->Clear();
+	}
+
 CounterVector::count_type CounterVector::Count(size_type cell) const
 	{
 	assert(cell < Size());

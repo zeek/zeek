@@ -74,6 +74,11 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 	return std::ceil(frac * std::log(2));
 	}
 
+void BasicBloomFilter::Clear()
+	{
+	bits->Clear();
+	}
+
 BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
                                           const BasicBloomFilter* y)
 	{
@@ -190,4 +195,9 @@ size_t CountingBloomFilter::CountImpl(const Hasher::digest_vector& h) const
 		}
 
 	return min;
+	}
+
+void CountingBloomFilter::Clear()
+	{
+	cells->Clear();
 	}

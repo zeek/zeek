@@ -578,22 +578,48 @@ size_t BloomFilterVal::Count(const Val* val) const
 	return cnt;
 	}
 
+void BloomFilterVal::Clear()
+	{
+	bloom_filter->Clear();
+	}
+
+bool BloomFilterVal::Empty() const
+	{
+	return bloom_filter->Empty();
+	}
+
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
-                                      const BloomFilterVal* y)
+				      const BloomFilterVal* y)
 	{
 	if ( ! same_type(x->Type(), y->Type()) )
-		reporter->InternalError("cannot merge Bloom filters with different types");
+		{
+		reporter->Error("cannot merge Bloom filters with different types");
+		return 0;
+		}
 
-	BloomFilterVal* result;
+	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
+		{
+		reporter->Error("cannot merge different Bloom filter types");
+		return 0;
+		}
 
-	if ( (result = DoMerge<probabilistic::BasicBloomFilter>(x, y)) )
-		return result;
+	probabilistic::BloomFilter* copy = x->bloom_filter->Clone();
 
-	else if ( (result = DoMerge<probabilistic::CountingBloomFilter>(x, y)) )
-		return result;
+	if ( ! copy->Merge(y->bloom_filter) )
+		{
+		reporter->Error("failed to merge Bloom filter");
+		return 0;
+		}
 
-	reporter->InternalError("failed to merge Bloom filters");
-	return 0;
+	BloomFilterVal* merged = new BloomFilterVal(copy);
+
+	if ( ! merged->Typify(x->Type()) )
+		{
+		reporter->Error("failed to set type on merged Bloom filter");
+		return 0;
+		}
+
+	return merged;
 	}
 
 BloomFilterVal::~BloomFilterVal()

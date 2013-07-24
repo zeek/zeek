@@ -74,16 +74,25 @@ public:
 	 *
 	 * @param k The number of hash functions to apply.
 	 *
-	 * @param name The hasher's name.
+	 * @param name The hasher's name. Hashers with the same name should
+	 * provide consistent results.
 	 *
 	 * @return Returns a new hasher instance.
 	 */
 	static Hasher* Create(size_t k, const std::string& name);
 
 protected:
+	/**
+	 * Constructor.
+	 *
+	 * @param k the number of hash functions.
+	 *
+	 * @param name A name for the hasher. Hashers with the same name
+	 * should provide consistent results.
+	 */
 	Hasher(size_t k, const std::string& name);
 
-	private:
+private:
 	const size_t k;
 	std::string name;
 };

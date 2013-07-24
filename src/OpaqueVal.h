@@ -125,6 +125,8 @@ public:
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
+	void Clear();
+	bool Empty() const;
 
 	static BloomFilterVal* Merge(const BloomFilterVal* x,
 				     const BloomFilterVal* y);
@@ -140,28 +142,6 @@ private:
 	// Disable.
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
-
-	template <typename T>
-	static BloomFilterVal* DoMerge(const BloomFilterVal* x,
-				       const BloomFilterVal* y)
-		{
-		if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
-			reporter->InternalError("cannot merge different Bloom filter types");
-
-		if ( typeid(T) != typeid(*x->bloom_filter) )
-			return 0;
-
-		const T* a = static_cast<const T*>(x->bloom_filter);
-		const T* b = static_cast<const T*>(y->bloom_filter);
-
-		BloomFilterVal* merged = new BloomFilterVal(T::Merge(a, b));
-		assert(merged);
-
-		if ( ! merged->Typify(x->Type()) )
-			reporter->InternalError("failed to set type on merged Bloom filter");
-
-		return merged;
-		}
 
 	BroType* type;
 	CompositeHash* hash;

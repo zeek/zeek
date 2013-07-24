@@ -1,9 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "BloomFilter.h"
-
+#include <typeinfo>
 #include <cmath>
 #include <limits>
+
+#include "BloomFilter.h"
+
 #include "CounterVector.h"
 #include "Serializer.h"
 
@@ -74,17 +76,48 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 	return std::ceil(frac * std::log(2));
 	}
 
-BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
-                                          const BasicBloomFilter* y)
+bool BasicBloomFilter::Empty() const
 	{
-	if ( ! x->hasher->Equals(y->hasher) )
-		reporter->InternalError("incompatible hashers during BasicBloomFilter merge");
+	return bits->AllZero();
+	}
 
-	BasicBloomFilter* result = new BasicBloomFilter();
-	result->hasher = x->hasher->Clone();
-	result->bits = new BitVector(*x->bits | *y->bits);
+void BasicBloomFilter::Clear()
+	{
+	bits->Clear();
+	}
 
-	return result;
+bool BasicBloomFilter::Merge(const BloomFilter* other)
+	{
+	if ( typeid(*this) != typeid(*other) )
+		return false;
+
+	const BasicBloomFilter* o = static_cast<const BasicBloomFilter*>(other);
+
+	if ( ! hasher->Equals(o->hasher) )
+		{
+		reporter->Error("incompatible hashers in BasicBloomFilter merge");
+		return false;
+		}
+
+	else if ( bits->Size() != o->bits->Size() )
+		{
+		reporter->Error("different bitvector size in BasicBloomFilter merge");
+		return false;
+		}
+
+	(*bits) |= *o->bits;
+
+	return true;
+	}
+
+BasicBloomFilter* BasicBloomFilter::Clone() const
+	{
+	BasicBloomFilter* copy = new BasicBloomFilter();
+
+	copy->hasher = hasher->Clone();
+	copy->bits = new BitVector(*bits);
+
+	return copy;
 	}
 
 BasicBloomFilter::BasicBloomFilter()
@@ -130,19 +163,6 @@ size_t BasicBloomFilter::CountImpl(const Hasher::digest_vector& h) const
 	return 1;
 	}
 
-CountingBloomFilter* CountingBloomFilter::Merge(const CountingBloomFilter* x,
-						const CountingBloomFilter* y)
-	{
-	if ( ! x->hasher->Equals(y->hasher) )
-		reporter->InternalError("incompatible hashers during CountingBloomFilter merge");
-
-	CountingBloomFilter* result = new CountingBloomFilter();
-	result->hasher = x->hasher->Clone();
-	result->cells = new CounterVector(*x->cells | *y->cells);
-
-	return result;
-	}
-
 CountingBloomFilter::CountingBloomFilter()
 	{
 	cells = 0;
@@ -153,6 +173,50 @@ CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
 	: BloomFilter(hasher)
 	{
 	cells = new CounterVector(width, arg_cells);
+	}
+
+bool CountingBloomFilter::Empty() const
+	{
+	return cells->AllZero();
+	}
+
+void CountingBloomFilter::Clear()
+	{
+	cells->Clear();
+	}
+
+bool CountingBloomFilter::Merge(const BloomFilter* other)
+	{
+	if ( typeid(*this) != typeid(*other) )
+		return false;
+
+	const CountingBloomFilter* o = static_cast<const CountingBloomFilter*>(other);
+
+	if ( ! hasher->Equals(o->hasher) )
+		{
+		reporter->Error("incompatible hashers in CountingBloomFilter merge");
+		return false;
+		}
+
+	else if ( cells->Size() != o->cells->Size() )
+		{
+		reporter->Error("different bitvector size in CountingBloomFilter merge");
+		return false;
+		}
+
+	(*cells) |= *o->cells;
+
+	return true;
+	}
+
+CountingBloomFilter* CountingBloomFilter::Clone() const
+	{
+	CountingBloomFilter* copy = new CountingBloomFilter();
+
+	copy->hasher = hasher->Clone();
+	copy->cells = new CounterVector(*cells);
+
+	return copy;
 	}
 
 IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)

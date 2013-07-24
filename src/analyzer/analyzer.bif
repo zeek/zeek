@@ -46,5 +46,6 @@ function __name%(atype: Analyzer::Tag%) : string
 
 function __tag%(name: string%) : Analyzer::Tag
 	%{
-	return new Val(analyzer_mgr->GetAnalyzerTag(name->CheckString()), TYPE_ENUM);
+	analyzer::Tag t = analyzer_mgr->GetAnalyzerTag(name->CheckString());
+	return t.AsEnumVal()->Ref();
 	%}

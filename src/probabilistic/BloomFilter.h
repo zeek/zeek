@@ -53,6 +53,22 @@ public:
 	virtual void Clear() = 0;
 
 	/**
+	 * Merges another Bloom filter into a copy of this one.
+	 *
+	 * @param other The other Bloom filter.
+	 *
+	 * @return `true` on success.
+	 */
+	virtual bool Merge(const BloomFilter* other) = 0;
+
+	/**
+	 * Constructs a copy of this Bloom filter.
+	 *
+	 * @return A copy of `*this`.
+	 */
+	virtual BloomFilter* Clone() const = 0;
+
+	/**
 	 * Serializes the Bloom filter.
 	 *
 	 * @param info The serializaton information to use.
@@ -154,14 +170,8 @@ public:
 
 	// Overridden from BloomFilter.
 	virtual void Clear();
-
-	/**
-	 * Merges two basic Bloom filters.
-	 *
-	 * @return The merged Bloom filter.
-	 */
-	static BasicBloomFilter* Merge(const BasicBloomFilter* x,
-				       const BasicBloomFilter* y);
+	virtual bool Merge(const BloomFilter* other);
+	virtual BasicBloomFilter* Clone() const;
 
 protected:
 	DECLARE_SERIAL(BasicBloomFilter);
@@ -198,14 +208,8 @@ public:
 
 	// Overridden from BloomFilter.
 	virtual void Clear();
-
-	/**
-	 * Merges two counting Bloom filters.
-	 *
-	 * @return The merged Bloom filter.
-	 */
-	static CountingBloomFilter* Merge(const CountingBloomFilter* x,
-					  const CountingBloomFilter* y);
+	virtual bool Merge(const BloomFilter* other);
+	virtual CountingBloomFilter* Clone() const;
 
 protected:
 	DECLARE_SERIAL(CountingBloomFilter);

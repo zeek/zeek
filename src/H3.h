@@ -66,17 +66,29 @@
 template <typename T, int N>
 class H3 {
 public:
-	H3(T seed = bro_random())
+	H3()
+		{
+		Init(false, 0);
+		}
+
+	H3(T seed)
+		{
+		Init(true, seed);
+		}
+
+	void Init(bool have_seed, T seed)
 		{
 		T bit_lookup[N * CHAR_BIT];
 
 		for ( size_t bit = 0; bit < N * CHAR_BIT; bit++ )
 			{
 			bit_lookup[bit] = 0;
-			seed = bro_prng(seed);
 			for ( size_t i = 0; i < sizeof(T)/2; i++ )
+				{
+				seed = have_seed ? bro_prng(seed) : bro_random();
 				// assume random() returns at least 16 random bits
 				bit_lookup[bit] = (bit_lookup[bit] << 16) | (seed & 0xFFFF);
+				}
 			}
 
 		for ( size_t byte = 0; byte < N; byte++ )

@@ -20,7 +20,7 @@ export {
 }
 
 
-event protocol_violation(c: connection, atype: count, aid: count,
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=4
 	{
 	if ( ! c?$dpd ) return;

@@ -32,10 +32,10 @@ void Manager::Terminate()
 	// Signal all to stop.
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->PrepareStop();
+		(*i)->SignalStop();
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-		(*i)->Stop();
+		(*i)->WaitForStop();
 
 	// Then join them all.
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
@@ -122,15 +122,10 @@ void Manager::Process()
 		if ( do_beat )
 			t->Heartbeat();
 
-		while ( t->HasOut() && ! t->Killed() )
+		while ( t->HasOut() )
 			{
 			Message* msg = t->RetrieveOut();
-
-			if ( ! msg )
-				{
-				assert(t->Killed());
-				break;
-				}
+			assert(msg);
 
 			if ( msg->Process() )
 				{
@@ -141,11 +136,38 @@ void Manager::Process()
 			else
 				{
 				reporter->Error("%s failed, terminating thread", msg->Name());
-				t->Stop();
+				t->SignalStop();
 				}
 
 			delete msg;
 			}
+		}
+
+	all_thread_list to_delete;
+
+	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+		{
+		BasicThread* t = *i;
+
+		if ( ! t->Killed() )
+			continue;
+
+		to_delete.push_back(t);
+		}
+
+	for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ )
+		{
+		BasicThread* t = *i;
+
+		all_threads.remove(t);
+
+		MsgThread* mt = dynamic_cast<MsgThread *>(t);
+
+		if ( mt )
+			msg_threads.remove(mt);
+
+		t->Join();
+		delete t;
 		}
 
 //	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);

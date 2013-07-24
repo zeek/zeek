@@ -38,7 +38,7 @@
 #include "Func.h"
 #include "Frame.h"
 #include "Var.h"
-#include "Login.h"
+#include "analyzer/protocol/login/Login.h"
 #include "Sessions.h"
 #include "RE.h"
 #include "Serializer.h"
@@ -560,9 +560,11 @@ void builtin_error(const char* msg, BroObj* arg)
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
+// TODO: Add a nicer mechanism to pull in subdirectory bifs automatically.
+#include "probabilistic/bloom-filter.bif.h"
+
 void init_builtin_funcs()
 	{
-	ftp_port = internal_type("ftp_port")->AsRecordType();
 	bro_resources = internal_type("bro_resources")->AsRecordType();
 	net_stats = internal_type("NetStats")->AsRecordType();
 	matcher_stats = internal_type("matcher_stats")->AsRecordType();
@@ -574,6 +576,9 @@ void init_builtin_funcs()
 #include "input.bif.func_init"
 #include "reporter.bif.func_init"
 #include "strings.bif.func_init"
+
+// TODO: Add a nicer mechanism to pull in subdirectory bifs automatically.
+#include "probabilistic/bloom-filter.bif.init.cc"
 
 	did_builtin_init = true;
 	}

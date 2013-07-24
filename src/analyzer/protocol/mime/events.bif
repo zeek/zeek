@@ -1,0 +1,196 @@
+## Generated when starting to parse an email MIME entity. MIME is a
+## protocol-independent data format for encoding text and files, along with
+## corresponding metadata, for transmission. Bro raises this event when it
+## begins parsing a MIME entity extracted from an email protocol.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## .. bro:see:: mime_all_data mime_all_headers  mime_content_hash mime_end_entity
+##    mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
+##    http_begin_entity
+##
+## .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
+##    however, it raises :bro:id:`http_begin_entity` instead.
+event mime_begin_entity%(c: connection%);
+
+## Generated when finishing parsing an email MIME entity.  MIME is a
+## protocol-independent data format for encoding text and files, along with
+## corresponding metadata, for transmission. Bro raises this event when it
+## finished parsing a MIME entity extracted from an email protocol.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+##    mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
+##    http_end_entity
+##
+## .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
+##    however, it raises :bro:id:`http_end_entity` instead.
+event mime_end_entity%(c: connection%);
+
+## Generated for individual MIME headers extracted from email MIME
+## entities.  MIME is a protocol-independent data format for encoding text and
+## files, along with corresponding metadata, for transmission.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## h: The parsed MIME header.
+##
+## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+##    mime_end_entity mime_entity_data mime_event  mime_segment_data
+##    http_header  http_all_headers
+##
+## .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+##    however, it raises :bro:id:`http_header` instead.
+event mime_one_header%(c: connection, h: mime_header_rec%);
+
+## Generated for MIME headers extracted from email MIME entities, passing all
+## headers at once.  MIME is a protocol-independent data format for encoding
+## text and files, along with corresponding metadata, for transmission.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## hlist: A *table* containing all headers extracted from the current entity.
+##        The table is indexed by the position of the header (1 for the first,
+##        2 for the second, etc.).
+##
+## .. bro:see:: mime_all_data  mime_begin_entity mime_content_hash mime_end_entity
+##    mime_entity_data mime_event mime_one_header mime_segment_data
+##    http_header  http_all_headers
+##
+## .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+##    however, it raises :bro:id:`http_header` instead.
+event mime_all_headers%(c: connection, hlist: mime_header_list%);
+
+## Generated for chunks of decoded MIME data from email MIME entities.  MIME
+## is a protocol-independent data format for encoding text and files, along with
+## corresponding metadata, for transmission. As Bro parses the data of an
+## entity, it raises a sequence of these events, each coming as soon as a new
+## chunk of data is available. In contrast, there is also
+## :bro:id:`mime_entity_data`, which passes all of an entities data at once
+## in a single block. While the latter is more convenient to handle,
+## ``mime_segment_data`` is more efficient as Bro does not need to buffer
+## the data. Thus, if possible, this event should be preferred.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## length: The length of *data*.
+##
+## data: The raw data of one segment of the current entity.
+##
+## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+##    mime_end_entity mime_entity_data mime_event mime_one_header http_entity_data
+##    mime_segment_length mime_segment_overlap_length
+##
+## .. note:: Bro also extracts MIME data from HTTP sessions. For those,
+##    however, it raises :bro:id:`http_entity_data` (sic!) instead.
+event mime_segment_data%(c: connection, length: count, data: string%);
+
+## Generated for data decoded from an email MIME entity. This event delivers
+## the complete content of a single MIME entity. In contrast, there is also
+## :bro:id:`mime_segment_data`, which passes on a sequence of data chunks as
+## they come in. While ``mime_entity_data`` is more convenient to handle,
+## ``mime_segment_data`` is more efficient as Bro does not need to buffer the
+## data. Thus, if possible, the latter should be preferred.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## length: The length of *data*.
+##
+## data: The raw data of the complete entity.
+##
+## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+##    mime_end_entity  mime_event mime_one_header mime_segment_data
+##
+## .. note:: While Bro also decodes MIME entities extracted from HTTP
+##    sessions, there's no corresponding event for that currently.
+event mime_entity_data%(c: connection, length: count, data: string%);
+
+## Generated for passing on all data decoded from a single email MIME
+## message. If an email message has more than one MIME entity, this event
+## combines all their data into a single value for analysis. Note that because
+## of the potentially significant buffering necessary, using this event can be
+## expensive.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## length: The length of *data*.
+##
+## data: The raw data of all MIME entities concatenated.
+##
+## .. bro:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
+##    mime_entity_data mime_event mime_one_header mime_segment_data
+##
+## .. note:: While Bro also decodes MIME entities extracted from HTTP
+##    sessions, there's no corresponding event for that currently.
+event mime_all_data%(c: connection, length: count, data: string%);
+
+## Generated for errors found when decoding email MIME entities.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## event_type: A string describing the general category of the problem found
+##    (e.g., ``illegal format``).
+##
+## detail: Further more detailed description of the error.
+##
+## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+##    mime_end_entity mime_entity_data  mime_one_header mime_segment_data http_event
+##
+## .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+##    however, it raises :bro:id:`http_event` instead.
+event mime_event%(c: connection, event_type: string, detail: string%);
+
+## Generated for decoded MIME entities extracted from email messages, passing on
+## their MD5 checksums. Bro computes the MD5 over the complete decoded data of
+## each MIME entity.
+##
+## Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## content_len: The length of the entity being hashed.
+##
+## hash_value: The MD5 hash.
+##
+## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
+##    mime_entity_data mime_event mime_one_header mime_segment_data
+##
+## .. note:: While Bro also decodes MIME entities extracted from HTTP
+##    sessions, there's no corresponding event for that currently.
+event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
+

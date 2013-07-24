@@ -39,14 +39,14 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	if ( rv1?$unique_vals || rv2?$unique_vals )
 		{
 		if ( rv1?$unique_vals )
-			result$unique_vals = rv1$unique_vals;
+			result$unique_vals = copy(rv1$unique_vals);
 
 		if ( rv2?$unique_vals )
 			if ( ! result?$unique_vals )
-				result$unique_vals = rv2$unique_vals;
+				result$unique_vals = copy(rv2$unique_vals);
 			else
 				for ( val2 in rv2$unique_vals )
-					add result$unique_vals[val2];
+					add result$unique_vals[copy(val2)];
 
 		result$unique = |result$unique_vals|;
 		}

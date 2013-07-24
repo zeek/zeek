@@ -1049,6 +1049,11 @@ StringVal::StringVal(const char* s) : Val(TYPE_STRING)
 	val.string_val = new BroString(s);
 	}
 
+StringVal::StringVal(const string& s) : Val(TYPE_STRING)
+	{
+	val.string_val = new BroString(s.c_str());
+	}
+
 StringVal* StringVal::ToUpper()
 	{
 	val.string_val->ToUpper();

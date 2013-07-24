@@ -13,7 +13,7 @@ int num_events_queued = 0;
 int num_events_dispatched = 0;
 
 Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
-		SourceID arg_src, AnalyzerID arg_aid, TimerMgr* arg_mgr,
+		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
 		BroObj* arg_obj)
 	{
 	handler = arg_handler;
@@ -110,6 +110,9 @@ void EventMgr::Dispatch()
 
 void EventMgr::Drain()
 	{
+	if ( event_queue_flush_point )
+		QueueEvent(event_queue_flush_point, new val_list());
+
 	SegmentProfiler(segment_logger, "draining-events");
 
 	draining = true;

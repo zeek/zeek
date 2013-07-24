@@ -74,9 +74,6 @@ export {
 	const mail_path_capture = ALL_HOSTS &redef;
 		
 	global log_smtp: event(rec: Info);
-	
-	## Configure the default ports for SMTP analysis.
-	const ports = { 25/tcp, 587/tcp } &redef;
 }
 
 redef record connection += { 
@@ -84,15 +81,13 @@ redef record connection += {
 	smtp_state: State &optional;
 };
 
-# Configure DPD
-redef capture_filters += { ["smtp"] = "tcp port 25 or tcp port 587" };
-redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
-
-redef likely_server_ports += { 25/tcp, 587/tcp };
+const ports = { 25/tcp, 587/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
 	}
 	
 function find_address_in_smtp_header(header: string): string

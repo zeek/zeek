@@ -1,4 +1,287 @@
 
+2.1-824 | 2013-07-22 14:25:14 -0400
+
+  * Fixed a scriptland state issue that manifested especially badly on proxies. (Seth Hall)
+
+  * Another test fix. (Robin Sommer)
+
+  * Canonyfying the output of core.print-bpf-filters. (Robin Sommer)
+
+2.1-820 | 2013-07-18 12:30:04 -0700
+
+  * Extending external canonifier to remove fractional values from
+    capture_loss.log. (Robin Sommer)
+
+  * Canonifying internal order for plugins and their components to
+    make it deterministic. (Robin Sommer)
+
+  * Small raw reader tweaks that got left our earlier. (Robin Sommer)
+    
+2.1-814 | 2013-07-15 18:18:20 -0700
+
+  * Fixing raw reader crash when accessing nonexistant file, and
+    memory leak when reading from file. Addresses #1038. (Bernhard
+    Amann)
+
+2.1-811 | 2013-07-14 08:01:54 -0700
+
+  * Bump sqlite to 3.7.17. (Bernhard Amann)
+
+  * Small test fixes. (Seth Hall)
+
+  * Fix a bug where the same analyzer tag was reused for two different
+    analyzers. (Seth Hall)
+
+  * Moved DPD signatures into script specific directories. Left out
+    the BitTorrent signatures pending further updates to that
+    analyzer. (Seth Hall)
+
+2.1-802 | 2013-07-10 10:55:14 -0700
+
+  * Const adjustment for methods. (Jon Siwek)
+
+2.1-798 | 2013-07-08 13:05:37 -0700
+
+  * Rewrite of the packet filter framework. (Seth Hall)
+
+    This includes:
+
+    - Plugin interface for adding filtering mechanisms.
+
+    - Integrated the packet filter framework with the analyzer
+      framework to retrieve well-known ports from there.
+
+    - Support for BPF-based load balancing (IPv4 and IPv6).  This will
+      tie in with upcoming BroControl support for configuring this.
+
+    - Support for BPF-based connection sampling.
+
+    - Support for "shunting" traffic with BPF filters.
+
+    - Replaced PacketFilter::all_packets with
+      PacketFilter::enable_auto_protocol_capture_filters.
+
+2.1-784 | 2013-07-04 22:28:48 -0400
+
+  * Add a call to lookup_connection in SSH scripts to update connval. (Seth Hall)
+
+  * Updating submodule(s). (Robin Sommer)
+
+2.1-782 | 2013-07-03 17:00:39 -0700
+
+  * Remove the SSL log queueing mechanism that was included with the
+    log delay mechanism. (Seth Hall)
+
+2.1-780 | 2013-07-03 16:46:26 -0700
+
+  * Rewrite of the RAW input reader for improved robustness and new
+    features. (Bernhard Amann) This includes:
+
+        - Send "end_of_data" event for all kind of streams.
+        - Send "process_finished" event with exit code of child
+          process at process termination.
+        - Expose name of input stream to readers.
+        - Better error handling.
+        - New "force_kill" option which SIGKILLs processes on reader termination.
+        - Supports reading from stdout and stderr simultaneously.
+        - Support sending data to stdin of child process.
+        - Streaming reads from external commands work without blocking.
+
+2.1-762 | 2013-07-03 16:33:22 -0700
+
+  * Fix to correct support for TLS 1.2. Addresses #1020. (Seth Hall,
+    with help from Rafal Lesniak).
+
+2.1-760 | 2013-07-03 16:31:36 -0700
+
+  * Teach broxygen to generate protocol analyzer plugin reference.
+    (Jon Siwek)
+
+  * Adding 'const' to a number of C++ methods. (Jon Siwek)
+
+2.1-757 | 2013-07-03 16:28:10 -0700
+
+  * Fix redef of table index from clearing table.
+
+    `redef foo["x"] = 1` now acts like `redef foo += { ["x"] = 1 }`
+    instead of `redef foo = { ["x"] = 1 }`.
+
+    Addresses #1013. (Jon Siwek)
+
+
+2.1-755 | 2013-07-03 16:22:43 -0700
+
+  * Add a general file analysis overview/how-to document. (Jon Siwek)
+
+  * Improve file analysis doxygen comments. (Jon Siwek)
+
+  * Improve tracking of HTTP file extraction. http.log now has files
+    taken from request and response bodies in different fields for
+    each, and can now track multiple files per body. That is, the
+    "extraction_file" field is now "extracted_request_files" and
+    "extracted_response_files". Addresses #988. (Jon Siwek)
+
+  * Fix HTTP multipart body file analysis. Each part now gets assigned
+    a different file handle/id. (Jon Siwek)
+
+  * Remove logging of analyzers field of FileAnalysis::Info. (Jon
+    Siwek)
+
+  * Remove extraction counter in default file extraction scripts. (Jon
+    Siwek)
+
+  * Remove FileAnalysis::postpone_timeout.
+    FileAnalysis::set_timeout_interval can now perform same function.
+    (Jon Siwek)
+
+  * Make default get_file_handle handlers &priority=5 so they're
+    easier to override. (Jon Siwek)
+
+  * Add input interface to forward data for file analysis. The new
+    Input::add_analysis function is used to automatically forward
+    input data on to the file analysis framework. (Jon Siwek)
+
+  * File analysis framework interface simplifications. (Jon Siwek)
+    
+    - Remove script-layer data input interface (will be managed directly
+      by input framework later).
+
+    - Only track files internally by file id hash.  Chance of collision
+      too small to justify also tracking unique file string. 
+
+
+2.1-741 | 2013-06-07 17:28:50 -0700
+
+  * Fixing typo that could cause an assertion to falsely trigger.
+    (Robin Sommer)
+
+2.1-740 | 2013-06-07 16:37:32 -0700
+
+  * Fix for CMake 2.6.x. (Robin Sommer)
+
+2.1-738 | 2013-06-07 08:38:13 -0700
+
+  * Remove invalid free on non-allocated pointer in hash function
+    object. Addresses #1018. (Matthias Vallentin)
+
+2.1-736 | 2013-06-06 10:05:20 -0700
+
+  * New "magic constants" @DIR and @FILENAME that expand to the
+    directory path of the current script and just the script file name
+    without path, respectively. (Jon Siwek)
+
+2.1-731 | 2013-06-04 21:19:08 -0700
+
+  * Reorginization of internal protocol analyzer code. We're moving
+    them to a modularized structure, based on a plugin model. Along
+    with this change comes generic plugin infrastructure that we'll
+    later extend to other Bro component as well. For now all plugins
+    are compiled in statically, but in the future we plan to also
+    enable dynamic loading at run time. (Robin Sommer)
+
+  * Ignoring file ids in external tests. (Robin Sommer)
+
+2.1-675 | 2013-06-02 20:03:19 -0700
+
+  * Fix a compiler warning. (Robin Sommer)
+
+  * Allow named vector/set/table/record constructors. Addresses #983.
+    (Jon Siwek)
+
+  * Adding Makefile target test-all that also runs the BroControl test
+    suite.  (Robin Sommer)
+
+2.1-664 | 2013-05-28 21:37:46 -0700
+
+  * Dangling pointer fix. Addresses #1004. (Jon Siwek)
+
+2.1-659 | 2013-05-24 17:24:18 -0700
+
+  * Fix broken/missing documentation. (Jon Siwek)
+    
+  * Fixing test that would fail without ES/curl support. (Robin
+    Sommer)
+
+2.1-656 | 2013-05-17 15:58:07 -0700
+
+  * Fix mutex lock problem for writers. (Bernhard Amann)
+    
+2.1-654 | 2013-05-17 13:49:52 -0700
+
+  * Tweaks to sqlite3 configuration to address threading issues.
+    (Bernhard Amann)
+
+2.1-651 | 2013-05-17 13:37:16 -0700
+
+  * Fix uninitialized DPM member. (Jon Siwek)
+
+  * Fix issue with transaction ID reuse in a single DNS connection. (Seth Hall)
+
+  * New function added to the queue.bro script to support peeking at
+    the new gettable item in the queue without removing it. (Seth Hall)
+
+2.1-647 | 2013-05-17 07:47:14 -0700
+
+  * Fixing Broxygen generation to have BROMAGIC set. (Robin Sommer)
+    
+  * Fix for 'fchmod undeclared here' on FreeBSD. (Robin Sommer)
+    
+  * CMake policy fix to avoid errors with older versions. (Robin
+    Sommer)
+
+2.1-641 | 2013-05-15 18:15:09 -0700
+
+  * Test update. (Robin Sommer)
+
+2.1-640 | 2013-05-15 17:24:09 -0700
+
+  * Support for cleaning up threads that have terminated. (Bernhard
+    Amann and Robin Sommer). Includes:
+
+      - Both logging and input frameworks now clean up threads once
+        they aren't further needed anymnore.
+
+      - New function Log::remove_stream() that removes a logging
+        stream, stopping all writer threads that are associated with
+        it. Note, however, that removing a *filter* from a stream
+        still doesn't clean up any threads. The problem is that
+        because of the output paths potentially being created
+        dynamically it's unclear if the writer thread will still be
+        needed in the future.
+
+2.1-626 | 2013-05-15 16:09:31 -0700
+
+  * Add "reservoir" sampler for SumStats framework. This maintains
+    a set of N uniquely distributed random samples. (Bernhard Amann)
+
+2.1-619 | 2013-05-15 16:01:42 -0700
+
+  * SQLite reader and writer combo. This allows to read/write
+    persistent data from on disk SQLite databases. The current
+    interface is quite low-level, we'll add higher-level abstractions
+    in the future. (Bernhard Amann)
+
+2.1-576 | 2013-05-15 14:29:09 -0700
+
+  * Initial version of new file analysis framework. This moves most of
+    the processing of file content from script-land into the core,
+    where it belongs. Much of this is an internal change, and at this
+    point the new code has essentially feature-equality with the old
+    one. More script-level changes to come. (Jon Siwek)
+
+2.1-502 | 2013-05-10 19:29:37 -0700
+
+  * Allow default function/hook/event parameters. Addresses #972. (Jon
+    Siwek)
+
+  * Change the endianness parameter of bytestring_to_count() BIF to
+    default to false (big endian). (Jon Siwek)
+
+2.1-500 | 2013-05-10 19:22:24 -0700
+
+  * Fix to prevent merge-hook of SumStat's unique plugin from damaging
+    source data. (Bernhard Amann)
+
 2.1-498 | 2013-05-03 17:44:08 -0700
 
   * Table lookups return copy of non-const &default vals. This

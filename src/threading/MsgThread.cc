@@ -30,6 +30,20 @@ private:
 	double network_time;
 };
 
+// Signals main thread that operations shut down.
+class FinishedMessage : public OutputMessage<MsgThread>
+{
+public:
+	FinishedMessage(MsgThread* thread)
+		: OutputMessage<MsgThread>("FinishedMessage", thread)
+		{ }
+
+	virtual bool Process() {
+		Object()->main_finished = true;
+		return true;
+	}
+};
+
 /// Sends a heartbeat to the child thread.
 class HeartbeatMessage : public InputMessage<MsgThread>
 {
@@ -153,7 +167,8 @@ bool ReporterMessage::Process()
 MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 	{
 	cnt_sent_in = cnt_sent_out = 0;
-	finished = false;
+	main_finished = false;
+	child_finished = false;
 	failed = false;
 	thread_mgr->AddMsgThread(this);
 	}
@@ -161,16 +176,16 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 // Set by Bro's main signal handler.
 extern int signal_val;
 
-void MsgThread::OnPrepareStop()
+void MsgThread::OnSignalStop()
 	{
-	if ( finished || Killed() )
+	if ( main_finished || Killed() )
 		return;
 
-	// Signal thread to terminate and wait until it has acknowledged.
+	// Signal thread to terminate.
 	SendIn(new FinishMessage(this, network_time), true);
 	}
 
-void MsgThread::OnStop()
+void MsgThread::OnWaitForStop()
 	{
 	int signal_count = 0;
 	int old_signal_val = signal_val;
@@ -180,7 +195,7 @@ void MsgThread::OnStop()
 	uint64_t last_size = 0;
 	uint64_t cur_size = 0;
 
-	while ( ! (finished || Killed() ) )
+	while ( ! main_finished )
 		{
 		// Terminate if we get another kill signal.
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
@@ -205,9 +220,22 @@ void MsgThread::OnStop()
 			signal_val = 0;
 			}
 
-		queue_in.WakeUp();
+		if ( ! Killed() )
+			queue_in.WakeUp();
 
-		usleep(1000);
+		while ( HasOut() )
+			{
+			Message* msg = RetrieveOut();
+			assert ( msg );
+
+			if ( ! msg->Process() )
+				reporter->Error("%s failed during thread termination", msg->Name());
+
+			delete msg;
+			}
+
+		if ( ! Killed() )
+			usleep(1000);
 		}
 
 	signal_val = old_signal_val;
@@ -237,9 +265,8 @@ void MsgThread::HeartbeatInChild()
 
 void MsgThread::Finished()
 	{
-	// This is thread-safe "enough", we're the only one ever writing
-	// there.
-	finished = true;
+	child_finished = true;
+	SendOut(new FinishedMessage(this));
 	}
 
 void MsgThread::Info(const char* msg)
@@ -344,7 +371,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 
 void MsgThread::Run()
 	{
-	while ( ! (finished || Killed() ) )
+	while ( ! (child_finished || Killed() ) )
 		{
 		BasicInputMessage* msg = RetrieveIn();
 
@@ -368,10 +395,10 @@ void MsgThread::Run()
 			}
 		}
 
-	// In case we haven't send the finish method yet, do it now. Reading
+	// In case we haven't sent the finish method yet, do it now. Reading
 	// global network_time here should be fine, it isn't changing
 	// anymore.
-	if ( ! finished && ! Killed() )
+	if ( ! child_finished && ! Killed() )
 		{
 		OnFinish(network_time);
 		Finished();

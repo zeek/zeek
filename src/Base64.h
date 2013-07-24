@@ -7,7 +7,8 @@
 
 #include "util.h"
 #include "BroString.h"
-#include "Analyzer.h"
+#include "Reporter.h"
+#include "analyzer/Analyzer.h"
 
 // Maybe we should have a base class for generic decoders?
 class Base64Converter {
@@ -15,7 +16,7 @@ public:
 	// <analyzer> is used for error reporting, and it should be zero when
 	// the decoder is called by the built-in function decode_base64() or encode_base64().
 	// Empty alphabet indicates the default base64 alphabet.
-	Base64Converter(Analyzer* analyzer, const string& alphabet = "");
+	Base64Converter(analyzer::Analyzer* analyzer, const string& alphabet = "");
 	~Base64Converter();
 
 	// A note on Decode():
@@ -62,7 +63,7 @@ protected:
 	int base64_after_padding;
 	int* base64_table;
 	int errored;	// if true, we encountered an error - skip further processing
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 
 };
 

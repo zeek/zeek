@@ -192,6 +192,8 @@ bool Ascii::DoFinish(double network_time)
 		abort();
 		}
 
+	DoFlush(network_time);
+
 	ascii_done = true;
 
 	CloseFile(network_time);

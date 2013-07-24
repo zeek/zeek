@@ -8,6 +8,8 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
+#include <sys/param.h>
+#include <unistd.h>
 #include <libgen.h>
 
 #include "input.h"
@@ -22,9 +24,11 @@
 #include "PolicyFile.h"
 #include "broparse.h"
 #include "BroDoc.h"
-#include "Analyzer.h"
-#include "AnalyzerTags.h"
 #include "Reporter.h"
+#include "RE.h"
+#include "Net.h"
+
+#include "analyzer/Analyzer.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
@@ -66,9 +70,6 @@ void clear_reST_doc_comments();
 
 // Adds changes to capture_filter to the current script's reST documentation.
 static void check_capture_filter_changes();
-
-// Adds changes to dpd_config to the current script's reST documentation.
-static void check_dpd_config_changes();
 
 static const char* canon_doc_comment(const char* comment)
 	{
@@ -328,7 +329,6 @@ when	return TOK_WHEN;
 &encrypt	return TOK_ATTR_ENCRYPT;
 &error_handler	return TOK_ATTR_ERROR_HANDLER;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
-&group		return TOK_ATTR_GROUP;
 &log		return TOK_ATTR_LOG;
 &mergeable	return TOK_ATTR_MERGEABLE;
 &optional	return TOK_ATTR_OPTIONAL;
@@ -343,6 +343,34 @@ when	return TOK_WHEN;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
+
+@DIR	{
+	string rval = current_scanned_file_path;
+
+	if ( ! rval.empty() && rval[0] == '.' )
+		{
+		char path[MAXPATHLEN];
+
+		if ( ! getcwd(path, MAXPATHLEN) )
+			reporter->InternalError("getcwd failed: %s", strerror(errno));
+		else
+			rval = string(path) + "/" + rval;
+		}
+
+	RET_CONST(new StringVal(rval.c_str()));
+	}
+
+@FILENAME	{
+	char* filename_copy = copy_string(::filename);
+	const char* bname = basename(filename_copy);
+
+	if ( ! bname )
+		reporter->InternalError("basename failed: %s", strerror(errno));
+
+	StringVal* rval = new StringVal(bname);
+	delete [] filename_copy;
+	RET_CONST(rval);
+	}
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
@@ -552,7 +580,7 @@ YYLTYPE GetCurrentLocation()
 static int load_files(const char* orig_file)
 	{
 	// Whether we pushed on a FileInfo that will restore the
-	// current module after the final file has been scanned. 
+	// current module after the final file has been scanned.
 	bool did_module_restore = false;
 
 	const char* full_filename = "<internal error>";
@@ -822,7 +850,6 @@ int yywrap()
 	while ( input_files.length() > 0 )
 		{
 		check_capture_filter_changes();
-		check_dpd_config_changes();
 
 		if ( load_files(input_files[0]) )
 			{
@@ -838,7 +865,6 @@ int yywrap()
 		}
 
 	check_capture_filter_changes();
-	check_dpd_config_changes();
 
 	// For each file scanned so far, and for each @prefix, look for a
 	// prefixed and flattened version of the loaded file in BROPATH. The
@@ -1001,51 +1027,6 @@ static void check_capture_filter_changes()
 		last_reST_doc->SetPacketFilter(desc.Description());
 		capture_filters->ID_Val()->AsTableVal()->RemoveAll();
 		}
-	}
-
-static void check_dpd_config_changes()
-	{
-	if ( ! generate_documentation )
-		return;
-
-	// Lookup the "dpd_config" identifier, if it has any defined value,
-	// add it to the script's documentation, and clear the table so that
-	// it doesn't taint the documentation for subsequent scripts.
-	ID* dpd_config = global_scope()->Lookup("dpd_config");
-	if ( ! dpd_config )
-		return;
-
-	TableVal* dpd_table = dpd_config->ID_Val()->AsTableVal();
-	ListVal* dpd_list = dpd_table->ConvertToList();
-
-	for ( int i = 0; i < dpd_list->Length(); ++i )
-		{
-		Val* key = dpd_list->Index(i);
-		if ( ! key )
-			continue;
-
-		Val* v = dpd_table->Lookup(key);
-		if ( ! v )
-			continue;
-
-		int tag = key->AsListVal()->Index(0)->AsCount();
-		ODesc valdesc;
-		valdesc.SetIndentSpaces(4);
-		valdesc.PushIndent();
-		v->Describe(&valdesc);
-
-		if ( tag < AnalyzerTag::Error || tag > AnalyzerTag::LastAnalyzer )
-			{
-			fprintf(stderr, "Warning: skipped bad analyzer tag: %i\n", tag);
-			continue;
-			}
-
-		last_reST_doc->AddPortAnalysis(
-			Analyzer::GetTagName((AnalyzerTag::Tag)tag),
-			valdesc.Description());
-		}
-
-	dpd_table->RemoveAll();
 	}
 
 void print_current_reST_doc_comments()

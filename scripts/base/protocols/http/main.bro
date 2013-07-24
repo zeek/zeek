@@ -71,6 +71,10 @@ export {
 		
 		## All of the headers that may indicate if the request was proxied.
 		proxied:                 set[string] &log &optional;
+
+		## Indicates if this request can assume 206 partial content in
+		## response.
+		range_request:           bool &default=F;
 	};
 	
 	## Structure to maintain state for an HTTP connection with multiple 
@@ -119,28 +123,18 @@ redef record connection += {
 	http_state:  State &optional;
 };
 
-# Initialize the HTTP logging stream.
-event bro_init() &priority=5
-	{
-	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http]);
-	}
-
-# DPD configuration.
 const ports = {
 	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3128/tcp,
 	8000/tcp, 8080/tcp, 8888/tcp,
 };
-redef dpd_config += { 
-	[[ANALYZER_HTTP, ANALYZER_HTTP_BINPAC]] = [$ports = ports],
-};
-redef capture_filters +=  {
-	["http"] = "tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888)"
-};
+redef likely_server_ports += { ports };
 
-redef likely_server_ports += { 
-	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp,
-	8000/tcp, 8080/tcp, 8888/tcp,
-};
+# Initialize the HTTP logging stream and ports.
+event bro_init() &priority=5
+	{
+	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, ports);
+	}
 
 function code_in_range(c: count, min: count, max: count) : bool
 	{
@@ -235,6 +229,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		else if ( name == "HOST" )
 			# The split is done to remove the occasional port value that shows up here.
 			c$http$host = split1(value, /:/)[1];
+
+		else if ( name == "RANGE" )
+			c$http$range_request = T;
 		
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;

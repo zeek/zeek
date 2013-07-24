@@ -1,0 +1,132 @@
+
+%%{
+#include <openssl/x509.h>
+#include <openssl/asn1.h>
+#include <openssl/x509_vfy.h>
+
+// This is the indexed map of X509 certificate stores.
+static map<Val*, X509_STORE*> x509_stores;
+
+// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
+// here we assume d2i_X509 does not write to <data>, so it is safe to
+// convert data to a non-const pointer.  Could some X509 guru verify
+// this?
+
+X509* d2i_X509_(X509** px, const u_char** in, int len)
+	{
+#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
+	  return d2i_X509(px, in, len);
+#else
+	  return d2i_X509(px, (u_char**)in, len);
+#endif
+	}
+
+%%}
+
+
+## Verifies a certificate.
+##
+## der_cert: The X.509 certificate in DER format.
+##
+## cert_stack: Specifies a certificate chain to validate against, with index 0
+##             typically being the root CA. Bro uses the Mozilla root CA list
+##             by default.
+##
+## root_certs: A list of additional root certificates that extends
+##             *cert_stack*.
+##
+## Returns: A status code of the verification which can be converted into an
+##          ASCII string via :bro:id:`x509_err2str`.
+##
+## .. bro:see:: x509_err2str
+function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: table_string_of_string%): count
+	%{
+	X509_STORE* ctx = 0;
+	int i = 0;
+
+	// If this certificate store was built previously, just reuse the old one.
+	if ( x509_stores.count(root_certs) > 0 )
+		ctx = x509_stores[root_certs];
+
+	if ( ! ctx ) // lookup to see if we have this one built already!
+		{
+		ctx = X509_STORE_new();
+		TableVal* root_certs2 = root_certs->AsTableVal();
+		ListVal* idxs = root_certs2->ConvertToPureList();
+
+		// Build the validation store
+		for ( i = 0; i < idxs->Length(); ++i )
+			{
+			Val* key = idxs->Index(i);
+			StringVal *sv = root_certs2->Lookup(key)->AsStringVal();
+			const uint8* data = sv->Bytes();
+			X509* x = d2i_X509_(NULL, &data, sv->Len());
+			if ( ! x )
+				{
+				builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+				}
+			X509_STORE_add_cert(ctx, x);
+			}
+		delete idxs;
+
+		// Save the newly constructed certificate store into the cacheing map.
+		x509_stores[root_certs] = ctx;
+		}
+
+	const uint8 *cert_data = der_cert->Bytes();
+	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
+	if ( ! cert )
+		{
+		builtin_error(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		}
+
+	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
+	if ( ! untrusted_certs )
+		{
+		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		}
+
+	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
+	for ( i = 0; i < (int) cert_stack_vec->Size(); ++i )
+		{
+		StringVal *sv = cert_stack_vec->Lookup(i)->AsStringVal();
+		const uint8 *data = sv->Bytes();
+		X509* x = d2i_X509_(NULL, &data, sv->Len());
+		if ( ! x )
+			{
+			X509_free(cert);
+			sk_X509_pop_free(untrusted_certs, X509_free);
+			builtin_error(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+			}
+		sk_X509_push(untrusted_certs, x);
+		}
+
+	X509_STORE_CTX csc;
+	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
+	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
+
+	int result = X509_verify_cert(&csc);
+	X509_STORE_CTX_cleanup(&csc);
+
+	if ( untrusted_certs )
+		sk_X509_pop_free(untrusted_certs, X509_free);
+	X509_free(cert);
+
+	return new Val((uint64) csc.error, TYPE_COUNT);
+	%}
+
+## Converts a certificate verification error code into an ASCII string.
+##
+## err_num: The error code.
+##
+## Returns: A string representation of *err_num*.
+##
+## .. bro:see:: x509_verify
+function x509_err2str%(err_num: count%): string
+	%{
+	return new StringVal(X509_verify_cert_error_string(err_num));
+	%}

@@ -24,6 +24,7 @@
 @load frameworks/intel/smtp.bro
 @load frameworks/intel/ssl.bro
 @load frameworks/intel/where-locations.bro
+@load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load integration/barnyard2/__load__.bro
@@ -31,11 +32,11 @@
 @load integration/barnyard2/types.bro
 @load integration/collective-intel/__load__.bro
 @load integration/collective-intel/main.bro
-@load misc/analysis-groups.bro
 @load misc/app-metrics.bro
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
+@load misc/load-balancing.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
 @load misc/scan.bro
@@ -78,3 +79,5 @@
 @load tuning/defaults/warnings.bro
 @load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
+
+redef LogElasticSearch::server_host = "";

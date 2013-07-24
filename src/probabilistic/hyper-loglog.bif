@@ -1,0 +1,131 @@
+# ===========================================================================
+#
+#                           HyperLogLog Functions
+#
+# ===========================================================================
+
+
+%%{
+#include "probabilistic/HyperLogLog.h"
+
+using namespace probabilistic;
+%%}
+
+module GLOBAL;
+
+## Initializes the hash for the HyperLogLog cardinality counting algorithm.
+## It returns true if it was successful in creating a structure and false
+## if it wasn't.
+
+function hll_cardinality_init%(err: double%): opaque of cardinality
+	%{
+	CardinalityCounter* c = new CardinalityCounter(err);
+	CardinalityVal* cv = new CardinalityVal();
+
+	if ( !c )  
+		reporter->Error("Failed initialize Cardinality counter");
+	else 
+		cv->Init(c);
+
+	return cv;
+	%}
+
+## Adds an element to the HyperLogLog data structure located at index.
+
+##elem->Type() to get the type of elem.
+
+function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
+	%{
+	if ( !((CardinalityVal*) handle)->IsValid() ) {
+		reporter->Error("Need valid handle");
+		return new Val(0, TYPE_BOOL);
+	}
+
+	int status = 0;
+	uint64_t a = 123456;
+
+	TypeList* tl = new TypeList(elem->Type());
+	tl->Append(elem->Type());
+	CompositeHash* hll_hash = new CompositeHash(tl);
+	Unref(tl);
+
+	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+	HashKey* key = hll_hash->ComputeHash(elem, 1);
+	a = key->Hash();
+	h->addElement(a);
+
+	delete hll_hash;
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## The data structure at index1 will contain the combined count for the
+## elements measured by index1 and index2.
+## It returns true if it either cloned the value at index2 into index1
+## or if it merged the two data structures together.
+
+function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: opaque of cardinality%): bool
+	%{
+	CardinalityVal* v1 = (CardinalityVal*) handle1;
+	CardinalityVal* v2 = (CardinalityVal*) handle2;
+
+	if ( !v1->IsValid() || !v2->IsValid() ) {
+		reporter->Error("need valid handles");
+		return new Val(0, TYPE_BOOL);
+	}
+
+	CardinalityCounter* h1 = v1->Get();
+	CardinalityCounter* h2 = v2->Get();
+
+	h1->merge(h2);
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Returns true if it destroyed something. False if it didn't.
+#function hll_cardinality_destroy%(handle: opaque of cardinality%): bool
+#	%{
+#	if ( !((CardinalityVal*) handle)->IsValid() ) {
+#		reporter->Error("Need valid handle");
+#		return new Val(0, TYPE_BOOL);
+#	}
+#	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+#	delete h;
+#	h = 0;
+#	return new Val(1, TYPE_BOOL);
+#	%}
+
+## Returns the cardinality estimate. Returns -1.0 if there is nothing in that index.
+function hll_cardinality_estimate%(handle: opaque of cardinality%): double
+	%{
+	if ( !((CardinalityVal*) handle)->IsValid() ) {
+		reporter->Error("Need valid handle");
+		return new Val(0, TYPE_BOOL);
+	}
+	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+
+	double estimate = h->size();
+
+	return new Val(estimate, TYPE_DOUBLE);	
+	%}
+
+## Stores the data structure at index2 into index1. Deletes the data structure at index1
+## if there was any. Returns True if the data structure at index1 was changed in any way.
+
+function hll_cardinality_clone%(handle: opaque of cardinality%): opaque of cardinality
+	%{
+	if ( !((CardinalityVal*) handle)->IsValid() ) {
+		reporter->Error("Need valid handle");
+		return new Val(0, TYPE_BOOL);
+	}
+	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+
+
+	uint64_t m = h->getM();
+	CardinalityCounter* h2 = new CardinalityCounter(m);
+	int i = 0;
+	h2->merge(h);
+	CardinalityVal* cv = new CardinalityVal();
+	cv->Init(h2);
+	return cv;
+	%}
+

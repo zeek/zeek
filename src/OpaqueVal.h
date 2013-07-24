@@ -126,6 +126,7 @@ public:
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
 	void Clear();
+	bool Empty() const;
 
 	static BloomFilterVal* Merge(const BloomFilterVal* x,
 				     const BloomFilterVal* y);

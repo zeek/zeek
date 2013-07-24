@@ -583,6 +583,11 @@ void BloomFilterVal::Clear()
 	bloom_filter->Clear();
 	}
 
+bool BloomFilterVal::Empty() const
+	{
+	return bloom_filter->Empty();
+	}
+
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
 		const BloomFilterVal* y)
 	{

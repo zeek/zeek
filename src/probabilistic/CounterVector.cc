@@ -70,6 +70,11 @@ bool CounterVector::Decrement(size_type cell, count_type value)
 	return carry;
 	}
 
+bool CounterVector::AllZero() const
+	{
+	return bits->AllZero();
+	}
+
 void CounterVector::Clear()
 	{
 	bits->Clear();

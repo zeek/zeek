@@ -78,6 +78,12 @@ public:
 	count_type Count(size_type cell) const;
 
 	/**
+	 * Checks whether all counters are 0.
+	 * @return `true` iff all counters have the value 0.
+	 */
+	bool AllZero() const;
+
+	/**
 	 * Sets all counters to 0.
 	 */
 	void Clear();

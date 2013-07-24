@@ -254,6 +254,12 @@ public:
 	bool Empty() const;
 
 	/**
+	 * Checks whether all bits are 0.
+	 * @return `true` iff all bits in all blocks are 0.
+	 */
+	bool AllZero() const;
+
+	/**
 	 * Finds the bit position of of the first 1-bit.
 	 * @return The position of the first bit that equals to one or `npos` if no
 	 * such bit exists.

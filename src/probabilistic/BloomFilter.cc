@@ -74,6 +74,11 @@ size_t BasicBloomFilter::K(size_t cells, size_t capacity)
 	return std::ceil(frac * std::log(2));
 	}
 
+bool BasicBloomFilter::Empty() const
+	{
+	return bits->AllZero();
+	}
+
 void BasicBloomFilter::Clear()
 	{
 	bits->Clear();
@@ -165,6 +170,11 @@ CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
 	: BloomFilter(hasher)
 	{
 	cells = new CounterVector(width, arg_cells);
+	}
+
+bool CountingBloomFilter::Empty() const
+	{
+	return cells->AllZero();
 	}
 
 void CountingBloomFilter::Clear()

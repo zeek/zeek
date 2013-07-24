@@ -48,6 +48,13 @@ public:
 		}
 
 	/**
+	 * Checks whether the Bloom filter is empty.
+	 *
+	 * @return `true` if the Bloom filter contains no elements.
+	 */
+	virtual bool Empty() const = 0;
+
+	/**
 	 * Removes all elements, i.e., resets all bits in the underlying bit vector.
 	 */
 	virtual void Clear() = 0;
@@ -169,6 +176,7 @@ public:
 	static size_t K(size_t cells, size_t capacity);
 
 	// Overridden from BloomFilter.
+	virtual bool Empty() const;
 	virtual void Clear();
 	virtual bool Merge(const BloomFilter* other);
 	virtual BasicBloomFilter* Clone() const;
@@ -207,6 +215,7 @@ public:
 	CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
 
 	// Overridden from BloomFilter.
+	virtual bool Empty() const;
 	virtual void Clear();
 	virtual bool Merge(const BloomFilter* other);
 	virtual CountingBloomFilter* Clone() const;

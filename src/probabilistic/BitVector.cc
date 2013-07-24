@@ -463,6 +463,14 @@ bool BitVector::Empty() const
 	return bits.empty();
 	}
 
+bool BitVector::AllZero() const
+	{
+	for ( size_t i = 0; i < bits.size(); ++i )
+		if ( bits[i] )
+			return false;
+	return true;
+	}
+
 BitVector::size_type BitVector::FindFirst() const
 	{
 	return find_from(0);

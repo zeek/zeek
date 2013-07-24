@@ -1321,6 +1321,7 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	const char* n;
 	if ( ! UNSERIALIZE_STR(&n, 0) )
 		return false;
+
 	name = n;
 	delete [] n;
 

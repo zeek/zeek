@@ -803,10 +803,10 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	bro_srandom(seed, seeds_done);
 
 	if ( ! first_seed_saved )
-    {
-    first_seed = seed;
-    first_seed_saved = true;
-    }
+		{
+		first_seed = seed;
+		first_seed_saved = true;
+		}
 
 	if ( ! hmac_key_set )
 		{
@@ -820,9 +820,9 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	}
 
 unsigned int initial_seed()
-  {
-  return first_seed;
-}
+	{
+	return first_seed;
+	}
 
 bool have_random_seed()
 	{
@@ -830,7 +830,7 @@ bool have_random_seed()
 	}
 
 long int bro_prng(long int state)
-  {
+	{
 	// Use our own simple linear congruence PRNG to make sure we are
 	// predictable across platforms.
 	static const long int m = 2147483647;
@@ -844,14 +844,14 @@ long int bro_prng(long int state)
 		state += m;
 
 	return state;
-  }
+	}
 
 long int bro_random()
 	{
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-  bro_rand_state = bro_prng(bro_rand_state);
+	bro_rand_state = bro_prng(bro_rand_state);
 
 	return bro_rand_state;
 	}

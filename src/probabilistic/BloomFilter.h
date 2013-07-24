@@ -1,5 +1,7 @@
-#ifndef BloomFilter_h
-#define BloomFilter_h
+// See the file "COPYING" in the main distribution directory for copyright.
+
+#ifndef PROBABILISTIC_BLOOMFILTER_H
+#define PROBABILISTIC_BLOOMFILTER_H
 
 #include <vector>
 #include "BitVector.h"
@@ -11,42 +13,65 @@ class CounterVector;
 
 /**
  * The abstract base class for Bloom filters.
+ *
+ * At this point we won't let the user choose the hasher, but we might open
+ * up the interface in the future.
  */
 class BloomFilter : public SerialObj {
 public:
-  // At this point we won't let the user choose the hasher, but we might
-  // open up the interface in the future.
-  virtual ~BloomFilter();
+	/**
+	 * Destructor.
+	 */
+	virtual ~BloomFilter();
 
-  /**
-   * Adds an element of type T to the Bloom filter.
-   * @param x The element to add
-   */
-  template <typename T>
-  void Add(const T& x)
-    {
-    AddImpl((*hasher_)(x));
-    }
+	/**
+	 * Adds an element of type T to the Bloom filter.
+	 * @param x The element to add
+	 */
+	template <typename T>
+	void Add(const T& x)
+		{
+		AddImpl((*hasher)(x));
+		}
 
-  /**
-   * Retrieves the associated count of a given value.
-   *
-   * @param x The value of type `T` to check.
-   *
-   * @return The counter associated with *x*.
-   */
-  template <typename T>
-  size_t Count(const T& x) const
-    {
-    return CountImpl((*hasher_)(x));
-    }
+	/**
+	 * Retrieves the associated count of a given value.
+	 *
+	 * @param x The value of type `T` to check.
+	 *
+	 * @return The counter associated with *x*.
+	 */
+	template <typename T>
+	size_t Count(const T& x) const
+		{
+		return CountImpl((*hasher)(x));
+		}
 
-  bool Serialize(SerialInfo* info) const;
-  static BloomFilter* Unserialize(UnserialInfo* info);
+	/**
+	 * Serializes the Bloom filter.
+	 *
+	 * @param info The serializaton information to use.
+	 *
+	 * @return True if successful.
+	 */
+	bool Serialize(SerialInfo* info) const;
+
+	/**
+	 * Unserializes a Bloom filter.
+	 *
+	 * @param info The serializaton information to use.
+	 *
+	 * @return The unserialized Bloom filter, or null if an error
+	 * occured.
+	 */
+	static BloomFilter* Unserialize(UnserialInfo* info);
 
 protected:
-  DECLARE_ABSTRACT_SERIAL(BloomFilter);
+	DECLARE_ABSTRACT_SERIAL(BloomFilter);
 
+	/**
+	 * Default constructor.
+	 */
 	BloomFilter();
 
 	/**
@@ -54,12 +79,28 @@ protected:
 	 *
 	 * @param hasher The hasher to use for this Bloom filter.
 	 */
-  BloomFilter(const Hasher* hasher);
+	BloomFilter(const Hasher* hasher);
 
-  virtual void AddImpl(const Hasher::digest_vector& hashes) = 0;
-  virtual size_t CountImpl(const Hasher::digest_vector& hashes) const = 0;
+	/**
+	 * Abstract method for implementinng the *Add* operation.
+	 *
+	 * @param hashes A set of *k* hashes for the item to add, computed by
+	 * the internal hasher object.
+	 *
+	 */
+	virtual void AddImpl(const Hasher::digest_vector& hashes) = 0;
 
-  const Hasher* hasher_;
+	/**
+	 * Abstract method for implementing the *Count* operation.
+	 *
+	 * @param hashes A set of *k* hashes for the item to add, computed by
+	 * the internal hasher object.
+	 *
+	 * @return Returns the counter associated with the hashed element.
+	 */
+	virtual size_t CountImpl(const Hasher::digest_vector& hashes) const = 0;
+
+	const Hasher* hasher;
 };
 
 /**
@@ -67,50 +108,67 @@ protected:
  */
 class BasicBloomFilter : public BloomFilter {
 public:
-  /**
-   * Computes the number of cells based a given false-positive rate and
-   * capacity. In the literature, this parameter often has the name *M*.
-   *
-   * @param fp The false-positive rate.
-   *
-   * @param capacity The number of exepected elements.
-   *
-   * Returns: The number cells needed to support a false-positive rate of *fp*
-   * with at most *capacity* elements.
-   */
-  static size_t M(double fp, size_t capacity);
+	/**
+	 * Constructs a basic Bloom filter with a given number of cells. The
+	 * ideal number of cells can be computed with *M*.
+	 *
+	 * @param hasher The hasher to use. The ideal number of hash
+	 * functions can be computed with *K*.
+	 *
+	 * @param cells The number of cells.
+	 */
+	BasicBloomFilter(const Hasher* hasher, size_t cells);
 
-  /**
-   * Computes the optimal number of hash functions based on the number cells
-   * and expected number of elements.
-   *
-   * @param cells The number of cells (*m*).
-   *
-   * @param capacity The maximum number of elements.
-   *
-   * Returns: the optimal number of hash functions for a false-positive rate of
-   * *fp* for at most *capacity* elements.
-   */
-  static size_t K(size_t cells, size_t capacity);
+	/**
+	 * Computes the number of cells based on a given false positive rate
+	 * and capacity. In the literature, this parameter often has the name
+	 * *M*.
+	 *
+	 * @param fp The false positive rate.
+	 *
+	 * @param capacity The expected number of elements that will be
+	 * stored.
+	 *
+	 * Returns: The number cells needed to support a false positive rate
+	 * of *fp* with at most *capacity* elements.
+	 */
+	static size_t M(double fp, size_t capacity);
 
-  static BasicBloomFilter* Merge(const BasicBloomFilter* x,
-                                 const BasicBloomFilter* y);
+	/**
+	 * Computes the optimal number of hash functions based on the number cells
+	 * and expected number of elements.
+	 *
+	 * @param cells The number of cells (*m*).
+	 *
+	 * @param capacity The maximum number of elements.
+	 *
+	 * Returns: the optimal number of hash functions for a false-positive
+	 * rate of *fp* for at most *capacity* elements.
+	 */
+	static size_t K(size_t cells, size_t capacity);
 
-  /**
-   * Constructs a basic Bloom filter with a given number of cells and capacity.
-   */
-  BasicBloomFilter(const Hasher* hasher, size_t cells);
+	/**
+	 * Merges two basic Bloom filters.
+	 *
+	 * @return The merged Bloom filter.
+	 */
+	static BasicBloomFilter* Merge(const BasicBloomFilter* x,
+				       const BasicBloomFilter* y);
 
 protected:
-  DECLARE_SERIAL(BasicBloomFilter);
+	DECLARE_SERIAL(BasicBloomFilter);
 
-  BasicBloomFilter();
+	/**
+	 * Default constructor.
+	 */
+	BasicBloomFilter();
 
-  virtual void AddImpl(const Hasher::digest_vector& h);
-  virtual size_t CountImpl(const Hasher::digest_vector& h) const;
+	// Overridden from BloomFilter.
+	virtual void AddImpl(const Hasher::digest_vector& h);
+	virtual size_t CountImpl(const Hasher::digest_vector& h) const;
 
 private:
-  BitVector* bits_;
+	BitVector* bits;
 };
 
 /**
@@ -118,21 +176,40 @@ private:
  */
 class CountingBloomFilter : public BloomFilter {
 public:
-  static CountingBloomFilter* Merge(const CountingBloomFilter* x,
-                                    const CountingBloomFilter* y);
+	/**
+	 * Constructs a counting Bloom filter.
+	 *
+	 * @param hasher The hasher to use. The ideal number of hash
+	 * functions can be computed with *K*.
+	 *
+	 * @param cells The number of cells to use.
+	 *
+	 * @param width The maximal bit-width of counter values.
+	 */
+	CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
 
-  CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
+	/**
+	 * Merges two counting Bloom filters.
+	 *
+	 * @return The merged Bloom filter.
+	 */
+	static CountingBloomFilter* Merge(const CountingBloomFilter* x,
+					  const CountingBloomFilter* y);
 
 protected:
-  DECLARE_SERIAL(CountingBloomFilter);
+	DECLARE_SERIAL(CountingBloomFilter);
 
-  CountingBloomFilter();
+	/**
+	 * Default constructor.
+	 */
+	CountingBloomFilter();
 
-  virtual void AddImpl(const Hasher::digest_vector& h);
-  virtual size_t CountImpl(const Hasher::digest_vector& h) const;
+	// Overridden from BloomFilter.
+	virtual void AddImpl(const Hasher::digest_vector& h);
+	virtual size_t CountImpl(const Hasher::digest_vector& h) const;
 
 private:
-  CounterVector* cells_;
+	CounterVector* cells;
 };
 
 }

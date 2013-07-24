@@ -31,18 +31,19 @@ module GLOBAL;
 ## Returns: A Bloom filter handle.
 function bloomfilter_basic_init%(fp: double, capacity: count,
                                  name: string &default=""%): opaque of bloomfilter
-  %{
-  if ( fp < 0.0 || fp > 1.0 )
-    {
-    reporter->Error("false-positive rate must take value between 0 and 1");
-    return NULL;
-    }
+	%{
+	if ( fp < 0.0 || fp > 1.0 )
+		{
+		reporter->Error("false-positive rate must take value between 0 and 1");
+		return 0;
+		}
 
-  size_t cells = BasicBloomFilter::M(fp, capacity);
-  size_t optimal_k = BasicBloomFilter::K(cells, capacity);
-  const Hasher* h = Hasher::Create(optimal_k, name->CheckString());
-  return new BloomFilterVal(new BasicBloomFilter(h, cells));
-  %}
+	size_t cells = BasicBloomFilter::M(fp, capacity);
+	size_t optimal_k = BasicBloomFilter::K(cells, capacity);
+	const Hasher* h = Hasher::Create(optimal_k, name->CheckString());
+
+	return new BloomFilterVal(new BasicBloomFilter(h, cells));
+	%}
 
 ## Creates a counting Bloom filter.
 ##
@@ -59,20 +60,22 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 ##
 ## Returns: A Bloom filter handle.
 function bloomfilter_counting_init%(k: count, cells: count, max: count,
-                                    name: string &default=""%): opaque of bloomfilter
-  %{
-  if ( max == 0 )
-    {
-    reporter->Error("max counter value must be greater than 0");
-    return NULL;
-    }
+				    name: string &default=""%): opaque of bloomfilter
+	%{
+	if ( max == 0 )
+		{
+		reporter->Error("max counter value must be greater than 0");
+		return 0;
+		}
 
-  const Hasher* h = Hasher::Create(k, name->CheckString());
-  uint16 width = 1;
-  while ( max >>= 1 )
-    ++width;
-  return new BloomFilterVal(new CountingBloomFilter(h, cells, width));
-  %}
+	const Hasher* h = Hasher::Create(k, name->CheckString());
+
+	uint16 width = 1;
+	while ( max >>= 1 )
+		++width;
+
+	return new BloomFilterVal(new CountingBloomFilter(h, cells, width));
+	%}
 
 ## Adds an element to a Bloom filter.
 ##
@@ -80,16 +83,20 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 ##
 ## x: The element to add.
 function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
-  %{
-  BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
-  if ( ! bfv->Type() && ! bfv->Typify(x->Type()) )
-    reporter->Error("failed to set Bloom filter type");
-  else if ( bfv->Type() != x->Type() )
-    reporter->Error("incompatible Bloom filter types");
-  else
-    bfv->Add(x);
-  return NULL;
-  %}
+	%{
+	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+
+	if ( ! bfv->Type() && ! bfv->Typify(x->Type()) )
+		reporter->Error("failed to set Bloom filter type");
+
+	else if ( ! same_type(bfv->Type(), x->Type()) )
+		reporter->Error("incompatible Bloom filter types");
+
+	else
+		bfv->Add(x);
+
+	return 0;
+	%}
 
 ## Retrieves the counter for a given element in a Bloom filter.
 ##
@@ -99,16 +106,20 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ##
 ## Returns: the counter associated with *x* in *bf*.
 function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
-  %{
-  const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
-  if ( ! bfv->Type() )
-    reporter->Error("cannot perform lookup on untyped Bloom filter");
-  else if ( bfv->Type() != x->Type() )
-    reporter->Error("incompatible Bloom filter types");
-  else
-    return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
-  return new Val(0, TYPE_COUNT);
-  %}
+	%{
+	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
+
+	if ( ! bfv->Type() )
+		reporter->Error("cannot perform lookup on untyped Bloom filter");
+
+	else if ( ! same_type(bfv->Type(), x->Type()) )
+		reporter->Error("incompatible Bloom filter types");
+
+	else
+		return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
+
+	return new Val(0, TYPE_COUNT);
+	%}
 
 ## Merges two Bloom filters.
 ##
@@ -118,13 +129,16 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 ##
 ## Returns: The union of *bf1* and *bf2*.
 function bloomfilter_merge%(bf1: opaque of bloomfilter,
-                            bf2: opaque of bloomfilter%): opaque of bloomfilter
-  %{
-  const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
-  const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
-  if ( bfv1->Type() != bfv2->Type() )
-    reporter->Error("incompatible Bloom filter types");
-  else
-    return BloomFilterVal::Merge(bfv1, bfv2);
-  return NULL;
-  %}
+			    bf2: opaque of bloomfilter%): opaque of bloomfilter
+	%{
+	const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
+	const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
+
+	if ( ! same_type(bfv1->Type(), bfv2->Type()) )
+		{
+		reporter->Error("incompatible Bloom filter types");
+		return 0;
+		}
+
+	return BloomFilterVal::Merge(bfv1, bfv2);
+	%}

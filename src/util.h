@@ -166,15 +166,15 @@ extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
 // Retrieves the initial seed computed after the very first call to
-// init_random_seed(). Repeated calls to init_random_seed() will not affect the
-// return value of this function.
+// init_random_seed(). Repeated calls to init_random_seed() will not affect
+// the return value of this function.
 unsigned int initial_seed();
 
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
 
-// A simple linear congruence PRNG. It takes its state as argument and returns
-// a new random value, which can serve as state for subsequent calls.
+// A simple linear congruence PRNG. It takes its state as argument and
+// returns a new random value, which can serve as state for subsequent calls.
 long int bro_prng(long int state);
 
 // Replacement for the system random(), to which is normally falls back

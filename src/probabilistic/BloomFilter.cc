@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "BloomFilter.h"
 
 #include <cmath>
@@ -8,181 +10,184 @@
 using namespace probabilistic;
 
 BloomFilter::BloomFilter()
-  : hasher_(NULL)
-  {
-  }
+	{
+	hasher = 0;
+	}
 
-BloomFilter::BloomFilter(const Hasher* hasher)
-  : hasher_(hasher)
-  {
-  }
+BloomFilter::BloomFilter(const Hasher* arg_hasher)
+	{
+	hasher = arg_hasher;
+	}
 
 BloomFilter::~BloomFilter()
-  {
-  if ( hasher_ )
-    delete hasher_;
-  }
+	{
+	delete hasher;
+	}
 
 bool BloomFilter::Serialize(SerialInfo* info) const
-  {
-  return SerialObj::Serialize(info);
-  }
+	{
+	return SerialObj::Serialize(info);
+	}
 
 BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
-  {
-  return reinterpret_cast<BloomFilter*>(
-      SerialObj::Unserialize(info, SER_BLOOMFILTER));
-  }
+	{
+	return reinterpret_cast<BloomFilter*>(SerialObj::Unserialize(info, SER_BLOOMFILTER));
+	}
 
 bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-  if ( ! SERIALIZE(static_cast<uint16>(hasher_->K())) )
-    return false;
-  return SERIALIZE_STR(hasher_->Name().c_str(), hasher_->Name().size());
-  }
+
+	if ( ! SERIALIZE(static_cast<uint16>(hasher->K())) )
+		return false;
+
+	return SERIALIZE_STR(hasher->Name().c_str(), hasher->Name().size());
+	}
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
+
 	uint16 k;
 	if ( ! UNSERIALIZE(&k) )
-	  return false;
-  const char* name;
-  if ( ! UNSERIALIZE_STR(&name, 0) )
-    return false;
-	hasher_ = Hasher::Create(k, name);
+		return false;
+
+	const char* name;
+	if ( ! UNSERIALIZE_STR(&name, 0) )
+		return false;
+
+	hasher = Hasher::Create(k, name);
+
 	delete [] name;
 	return true;
-  }
-
+	}
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)
-  {
-  double ln2 = std::log(2);
-  return std::ceil(-(capacity * std::log(fp) / ln2 / ln2));
-  }
+	{
+	double ln2 = std::log(2);
+	return std::ceil(-(capacity * std::log(fp) / ln2 / ln2));
+	}
 
 size_t BasicBloomFilter::K(size_t cells, size_t capacity)
-  {
-  double frac = static_cast<double>(cells) / static_cast<double>(capacity);
-  return std::ceil(frac * std::log(2));
-  }
+	{
+	double frac = static_cast<double>(cells) / static_cast<double>(capacity);
+	return std::ceil(frac * std::log(2));
+	}
 
 BasicBloomFilter* BasicBloomFilter::Merge(const BasicBloomFilter* x,
                                           const BasicBloomFilter* y)
-  {
-  if ( ! x->hasher_->Equals(y->hasher_) )
-    {
-    reporter->InternalError("incompatible hashers during Bloom filter merge");
-    return NULL;
-    }
-  BasicBloomFilter* result = new BasicBloomFilter();
-  result->hasher_ = x->hasher_->Clone();
-  result->bits_ = new BitVector(*x->bits_ | *y->bits_);
-  return result;
-  }
+	{
+	if ( ! x->hasher->Equals(y->hasher) )
+		reporter->InternalError("incompatible hashers during BasicBloomFilter merge");
+
+	BasicBloomFilter* result = new BasicBloomFilter();
+	result->hasher = x->hasher->Clone();
+	result->bits = new BitVector(*x->bits | *y->bits);
+
+	return result;
+	}
 
 BasicBloomFilter::BasicBloomFilter()
-  : bits_(NULL)
-  {
-  }
+	{
+	bits = 0;
+	}
 
 BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
-  : BloomFilter(hasher),
-    bits_(new BitVector(cells))
-  {
-  }
+	: BloomFilter(hasher)
+	{
+	bits = new BitVector(cells);
+	}
 
 IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
 
 bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
-  return bits_->Serialize(info);
-  }
+	return bits->Serialize(info);
+	}
 
 bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
-	bits_ = BitVector::Unserialize(info);
-	return bits_ != NULL;
-  }
+	bits = BitVector::Unserialize(info);
+	return (bits != 0);
+	}
 
 void BasicBloomFilter::AddImpl(const Hasher::digest_vector& h)
-  {
-  for ( size_t i = 0; i < h.size(); ++i )
-    bits_->Set(h[i] % bits_->Size());
-  }
+	{
+	for ( size_t i = 0; i < h.size(); ++i )
+		bits->Set(h[i] % bits->Size());
+	}
 
 size_t BasicBloomFilter::CountImpl(const Hasher::digest_vector& h) const
-  {
-  for ( size_t i = 0; i < h.size(); ++i )
-    if ( ! (*bits_)[h[i] % bits_->Size()] )
-      return 0;
-  return 1;
-  }
+	{
+	for ( size_t i = 0; i < h.size(); ++i )
+		{
+		if ( ! (*bits)[h[i] % bits->Size()] )
+			return 0;
+		}
 
+	return 1;
+	}
 
 CountingBloomFilter* CountingBloomFilter::Merge(const CountingBloomFilter* x,
-                                                const CountingBloomFilter* y)
-  {
-  if ( ! x->hasher_->Equals(y->hasher_) )
-    {
-    reporter->InternalError("incompatible hashers during Bloom filter merge");
-    return NULL;
-    }
-  CountingBloomFilter* result = new CountingBloomFilter();
-  result->hasher_ = x->hasher_->Clone();
-  result->cells_ = new CounterVector(*x->cells_ | *y->cells_);
-  return result;
-  }
+						const CountingBloomFilter* y)
+	{
+	if ( ! x->hasher->Equals(y->hasher) )
+		reporter->InternalError("incompatible hashers during CountingBloomFilter merge");
+
+	CountingBloomFilter* result = new CountingBloomFilter();
+	result->hasher = x->hasher->Clone();
+	result->cells = new CounterVector(*x->cells | *y->cells);
+
+	return result;
+	}
 
 CountingBloomFilter::CountingBloomFilter()
-  : cells_(NULL)
-  {
-  }
+	{
+	cells = 0;
+	}
 
 CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
-                                         size_t cells, size_t width)
-  : BloomFilter(hasher),
-    cells_(new CounterVector(width, cells))
-  {
-  }
-
+					 size_t arg_cells, size_t width)
+	: BloomFilter(hasher)
+	{
+	cells = new CounterVector(width, arg_cells);
+	}
 
 IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
 
 bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_COUNTINGBLOOMFILTER, BloomFilter);
-  return cells_->Serialize(info);
-  }
+	return cells->Serialize(info);
+	}
 
 bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BloomFilter);
-	cells_ = CounterVector::Unserialize(info);
-	return cells_ != NULL;
-  }
+	cells = CounterVector::Unserialize(info);
+	return (cells != 0);
+	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.
-
 void CountingBloomFilter::AddImpl(const Hasher::digest_vector& h)
-  {
-  for ( size_t i = 0; i < h.size(); ++i )
-    cells_->Increment(h[i] % cells_->Size());
-  }
+	{
+	for ( size_t i = 0; i < h.size(); ++i )
+		cells->Increment(h[i] % cells->Size());
+	}
 
 size_t CountingBloomFilter::CountImpl(const Hasher::digest_vector& h) const
-  {
-  CounterVector::size_type min =
-    std::numeric_limits<CounterVector::size_type>::max();
-  for ( size_t i = 0; i < h.size(); ++i )
-    {
-    CounterVector::size_type cnt = cells_->Count(h[i] % cells_->Size());
-    if ( cnt  < min )
-      min = cnt;
-    }
-  return min;
-  }
+	{
+	CounterVector::size_type min =
+		std::numeric_limits<CounterVector::size_type>::max();
+
+	for ( size_t i = 0; i < h.size(); ++i )
+		{
+		CounterVector::size_type cnt = cells->Count(h[i] % cells->Size());
+		if ( cnt  < min )
+			min = cnt;
+		}
+
+	return min;
+	}

@@ -560,7 +560,7 @@ void builtin_error(const char* msg, BroObj* arg)
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
-// TODO: Add a nicer mechanism to pull subdirectory bifs automatically.
+// TODO: Add a nicer mechanism to pull in subdirectory bifs automatically.
 #include "probabilistic/bloom-filter.bif.h"
 
 void init_builtin_funcs()
@@ -577,7 +577,7 @@ void init_builtin_funcs()
 #include "reporter.bif.func_init"
 #include "strings.bif.func_init"
 
-// TODO: Add a nicer mechanism to pull subdirectory bifs automatically.
+// TODO: Add a nicer mechanism to pull in subdirectory bifs automatically.
 #include "probabilistic/bloom-filter.bif.init.cc"
 
 	did_builtin_init = true;

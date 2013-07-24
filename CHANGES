@@ -1,4 +1,17 @@
 
+2.1-880 | 2013-07-24 15:49:31 -0700
+
+  * Support for Bloom filter. (Matthias Vallentin)
+
+    Bro now provides the following BiFs:
+
+        bloomfilter_basic_init(fp: double, capacity: count, name: string &default=""): opaque of bloomfilter
+        bloomfilter_counting_init(k: count, cells: count, max: count, name: string &default=""): opaque of bloomfilter
+        bloomfilter_add(bf: opaque of bloomfilter, x: any)
+        bloomfilter_lookup(bf: opaque of bloomfilter, x: any): count
+        bloomfilter_merge(bf1: opaque of bloomfilter, bf2: opaque of bloomfilter): opaque of bloomfilter
+        bloomfilter_clear(bf: opaque of bloomfilter)
+
 2.1-824 | 2013-07-22 14:25:14 -0400
 
   * Fixed a scriptland state issue that manifested especially badly on proxies. (Seth Hall)

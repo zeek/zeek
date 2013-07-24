@@ -716,6 +716,8 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
+static bool first_seed_saved = false;
+static unsigned int first_seed = 0;
 
 static void bro_srandom(unsigned int seed, bool deterministic)
 	{
@@ -800,6 +802,12 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 
 	bro_srandom(seed, seeds_done);
 
+	if ( ! first_seed_saved )
+		{
+		first_seed = seed;
+		first_seed_saved = true;
+		}
+
 	if ( ! hmac_key_set )
 		{
 		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
@@ -811,9 +819,31 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				write_file);
 	}
 
+unsigned int initial_seed()
+	{
+	return first_seed;
+	}
+
 bool have_random_seed()
 	{
 	return bro_rand_determistic;
+	}
+
+long int bro_prng(long int state)
+	{
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	static const long int m = 2147483647;
+	static const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	state = a * ( state % q ) - r * ( state / q );
+
+	if ( state <= 0 )
+		state += m;
+
+	return state;
 	}
 
 long int bro_random()
@@ -821,17 +851,7 @@ long int bro_random()
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.
-	const long int m = 2147483647;
-	const long int a = 16807;
-	const long int q = m / a;
-	const long int r = m % a;
-
-	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
-
-	if ( bro_rand_state <= 0 )
-		bro_rand_state += m;
+	bro_rand_state = bro_prng(bro_rand_state);
 
 	return bro_rand_state;
 	}

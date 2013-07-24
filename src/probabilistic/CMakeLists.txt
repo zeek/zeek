@@ -10,9 +10,12 @@ set(probabilistic_SRCS
     BitVector.cc
     BloomFilter.cc
     CounterVector.cc
-    Hasher.cc)
+    Hasher.cc
+    HyperLogLog.cc)
 
 bif_target(bloom-filter.bif)
+set(BIF_OUTPUT_CC_SAVE ${BIF_OUTPUT_CC})
+bif_target(hyper-loglog.bif)
 
-bro_add_subdir_library(probabilistic ${probabilistic_SRCS} ${BIF_OUTPUT_CC})
+bro_add_subdir_library(probabilistic ${probabilistic_SRCS} ${BIF_OUTPUT_CC_SAVE} ${BIF_OUTPUT_CC})
 add_dependencies(bro_probabilistic generate_outputs)

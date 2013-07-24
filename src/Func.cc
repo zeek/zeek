@@ -562,6 +562,7 @@ void builtin_error(const char* msg, BroObj* arg)
 
 // TODO: Add a nicer mechanism to pull in subdirectory bifs automatically.
 #include "probabilistic/bloom-filter.bif.h"
+#include "probabilistic/hyper-loglog.bif.h"
 
 void init_builtin_funcs()
 	{
@@ -579,6 +580,7 @@ void init_builtin_funcs()
 
 // TODO: Add a nicer mechanism to pull in subdirectory bifs automatically.
 #include "probabilistic/bloom-filter.bif.init.cc"
+#include "probabilistic/hyper-loglog.bif.init.cc"
 
 	did_builtin_init = true;
 	}

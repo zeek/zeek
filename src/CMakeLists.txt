@@ -277,7 +277,6 @@ set(bro_SRCS
     Frame.cc
     Func.cc
     Hash.cc
-    HyperLogLog.cc
     ID.cc
     IntSet.cc
     IOSource.cc

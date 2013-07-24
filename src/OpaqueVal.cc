@@ -4,7 +4,7 @@
 #include "NetVar.h"
 #include "Reporter.h"
 #include "Serializer.h"
-#include "HyperLogLog.h"
+#include "probabilistic/HyperLogLog.h"
 
 
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
@@ -54,7 +54,7 @@ bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 	uint64_t m;
 
 	serialvalid &= UNSERIALIZE(&m);
-	c = new CardinalityCounter(m);
+	c = new probabilistic::CardinalityCounter(m);
 	serialvalid &= UNSERIALIZE(&c->V);
 	serialvalid &= UNSERIALIZE(&c->alpha_m);
 
@@ -67,7 +67,7 @@ bool CardinalityVal::DoUnserialize(UnserialInfo* info)
 	return valid;
 	}  
 
-bool CardinalityVal::Init(CardinalityCounter* arg_c)
+bool CardinalityVal::Init(probabilistic::CardinalityCounter* arg_c)
 	{
 	if ( valid )
 		return false;

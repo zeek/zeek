@@ -5,7 +5,7 @@
 #include "HyperLogLog.h"
 #include <iostream>
 
-using namespace std;
+using namespace probabilistic;
 
 int CardinalityCounter::optimalB(double error)
 	{

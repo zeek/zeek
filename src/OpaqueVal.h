@@ -10,27 +10,26 @@
 #include "digest.h"
 #include "probabilistic/BloomFilter.h"
 
-class CardinalityCounter;
+namespace probabilistic {
+	class BloomFilter;
+	class CardinalityCounter;
+}
 
 class CardinalityVal: public OpaqueVal {
 public:
 	CardinalityVal();
 	~CardinalityVal();
-	bool Init(CardinalityCounter*);
+	bool Init(probabilistic::CardinalityCounter*);
 	bool IsValid() const { return valid; };
-	CardinalityCounter* Get() { return c; };
+	probabilistic::CardinalityCounter* Get() { return c; };
 
 private:
 	bool valid;
-	CardinalityCounter* c;
+	probabilistic::CardinalityCounter* c;
 
 	DECLARE_SERIAL(CardinalityVal); 
 };
 
-
-namespace probabilistic {
-	class BloomFilter;
-}
 
 class HashVal : public OpaqueVal {
 public:

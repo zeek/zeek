@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <OpaqueVal.h>
 
+namespace probabilistic {
+
 /*
  *  "conf" is how confident the estimate given by the counter is.
  *  
@@ -117,5 +119,7 @@ class CardinalityCounter {
    */
   uint64_t getM();
 };
+
+}
 
 #endif 

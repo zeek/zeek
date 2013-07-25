@@ -1,16 +1,13 @@
 
-2.1-880 | 2013-07-24 15:49:31 -0700
+2.1-826 | 2013-07-25 10:12:26 -0700
 
-  * Support for Bloom filter. (Matthias Vallentin)
+  * bif files declared with bif_target() are now automatically
+    compiled in. No more manual includes to pull them in. (Robin
+    Sommer)
 
-    Bro now provides the following BiFs:
-
-        bloomfilter_basic_init(fp: double, capacity: count, name: string &default=""): opaque of bloomfilter
-        bloomfilter_counting_init(k: count, cells: count, max: count, name: string &default=""): opaque of bloomfilter
-        bloomfilter_add(bf: opaque of bloomfilter, x: any)
-        bloomfilter_lookup(bf: opaque of bloomfilter, x: any): count
-        bloomfilter_merge(bf1: opaque of bloomfilter, bf2: opaque of bloomfilter): opaque of bloomfilter
-        bloomfilter_clear(bf: opaque of bloomfilter)
+  * Covenience make target in testing/btest to update the three
+    coverage tests that usually need tweaking when scripts get
+    added/removed. (Robin Sommer)
 
 2.1-824 | 2013-07-22 14:25:14 -0400
 

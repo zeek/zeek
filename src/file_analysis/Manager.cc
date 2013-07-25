@@ -60,7 +60,6 @@ void Manager::RegisterAnalyzerComponent(Component* component)
 
 void Manager::InitPostScript()
 	{
-	#include "file_analysis.bif.init.cc"
 	}
 
 void Manager::Terminate()

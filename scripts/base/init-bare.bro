@@ -705,8 +705,6 @@ type entropy_test_result: record {
 @load base/bif/strings.bif
 @load base/bif/bro.bif
 @load base/bif/reporter.bif
-@load base/bif/bloom-filter.bif
-@load base/bif/hyper-loglog.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -3052,3 +3050,5 @@ const snaplen = 8192 &redef;
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/file-analysis
+
+@load base/bif

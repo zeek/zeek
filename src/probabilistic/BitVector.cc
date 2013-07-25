@@ -463,6 +463,17 @@ bool BitVector::Empty() const
 	return bits.empty();
 	}
 
+bool BitVector::AllZero() const
+	{
+	for ( size_t i = 0; i < bits.size(); ++i )
+		{
+		if ( bits[i] )
+			return false;
+		}
+
+	return true;
+	}
+
 BitVector::size_type BitVector::FindFirst() const
 	{
 	return find_from(0);
@@ -557,11 +568,11 @@ bool BitVector::DoUnserialize(UnserialInfo* info)
 		bits[i] = static_cast<block_type>(block);
 		}
 
-	uint64 num_bits;
-	if ( ! UNSERIALIZE(&num_bits) )
+	uint64 n;
+	if ( ! UNSERIALIZE(&n) )
 		return false;
 
-	num_bits = static_cast<size_type>(num_bits);
+	num_bits = static_cast<size_type>(n);
 
 	return true;
 	}

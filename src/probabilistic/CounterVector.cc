@@ -70,6 +70,16 @@ bool CounterVector::Decrement(size_type cell, count_type value)
 	return carry;
 	}
 
+bool CounterVector::AllZero() const
+	{
+	return bits->AllZero();
+	}
+
+void CounterVector::Clear()
+	{
+	bits->Clear();
+	}
+
 CounterVector::count_type CounterVector::Count(size_type cell) const
 	{
 	assert(cell < Size());
@@ -173,11 +183,11 @@ bool CounterVector::DoUnserialize(UnserialInfo* info)
 	if ( ! bits )
 		return false;
 
-	uint64 width;
-	if ( ! UNSERIALIZE(&width) )
+	uint64 w;
+	if ( ! UNSERIALIZE(&w) )
 		return false;
 
-	width = static_cast<size_t>(width);
+	width = static_cast<size_t>(w);
 
 	return true;
 	}

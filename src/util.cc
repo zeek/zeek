@@ -829,7 +829,7 @@ bool have_random_seed()
 	return bro_rand_determistic;
 	}
 
-long int bro_prng(long int state)
+unsigned int bro_prng(unsigned int  state)
 	{
 	// Use our own simple linear congruence PRNG to make sure we are
 	// predictable across platforms.

@@ -103,7 +103,6 @@ void Manager::InitPreScript()
 
 void Manager::InitPostScript()
 	{
-	#include "analyzer.bif.init.cc"
 	}
 
 void Manager::DumpDebug()

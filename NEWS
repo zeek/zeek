@@ -117,8 +117,9 @@ New Functionality
     bloomfilter_add(bf: opaque of bloomfilter, x: any)
     bloomfilter_lookup(bf: opaque of bloomfilter, x: any): count
     bloomfilter_merge(bf1: opaque of bloomfilter, bf2: opaque of bloomfilter): opaque of bloomfilter
+    bloomfilter_clear(bf: opaque of bloomfilter)
 
-  See TODO for full documentation.
+  See <INSERT LINK> for full documentation.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~

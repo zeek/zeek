@@ -13,9 +13,6 @@ class CounterVector;
 
 /**
  * The abstract base class for Bloom filters.
- *
- * At this point we won't let the user choose the hasher, but we might open
- * up the interface in the future.
  */
 class BloomFilter : public SerialObj {
 public:

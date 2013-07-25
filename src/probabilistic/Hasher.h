@@ -5,6 +5,7 @@
 
 #include "Hash.h"
 #include "H3.h"
+#include "SerialObj.h"
 
 namespace probabilistic {
 
@@ -12,7 +13,7 @@ namespace probabilistic {
  * Abstract base class for hashers. A hasher creates a family of hash
  * functions to hash an element *k* times.
  */
-class Hasher {
+class Hasher : public SerialObj {
 public:
 	typedef hash_t digest;
 	typedef std::vector<digest> digest_vector;
@@ -69,24 +70,18 @@ public:
 	 */
 	const std::string& Name() const { return name; }
 
-	/**
-	 * Constructs the hasher used by the implementation. This hardcodes a
-	 * specific hashing policy. It exists only because the HashingPolicy
-	 * class hierachy is not yet serializable.
-	 *
-	 * @param k The number of hash functions to apply.
-	 *
-	 * @param name The hasher's name.
-	 *
-	 * @return Returns a new hasher instance.
-	 */
-	static Hasher* Create(size_t k, const std::string& name);
+	bool Serialize(SerialInfo* info) const;
+	static Hasher* Unserialize(UnserialInfo* info);
 
 protected:
+	DECLARE_ABSTRACT_SERIAL(Hasher);
+
+	Hasher() { }
+
 	Hasher(size_t k, const std::string& name);
 
 private:
-	const size_t k;
+	size_t k;
 	std::string name;
 };
 
@@ -106,7 +101,7 @@ public:
 	 * seed to compute the seed for t to compute the seed NUL-terminated
 	 * string as additional seed.
 	 */
-	UHF(size_t seed, const std::string& extra = "");
+	UHF(size_t seed = 0, const std::string& extra = "");
 
 	template <typename T>
 	Hasher::digest operator()(const T& x) const
@@ -175,7 +170,11 @@ public:
 	virtual DefaultHasher* Clone() const /* final */;
 	virtual bool Equals(const Hasher* other) const /* final */;
 
+	DECLARE_SERIAL(DefaultHasher);
+
 private:
+	DefaultHasher() { }
+
 	std::vector<UHF> hash_functions;
 };
 
@@ -199,7 +198,11 @@ public:
 	virtual DoubleHasher* Clone() const /* final */;
 	virtual bool Equals(const Hasher* other) const /* final */;
 
+	DECLARE_SERIAL(DoubleHasher);
+
 private:
+	DoubleHasher() { }
+
 	UHF h1;
 	UHF h2;
 };

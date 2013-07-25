@@ -8,7 +8,7 @@ namespace binpac {
 
 class FlowBuffer {
 public:
-	enum LineBreakStyle { 
+	enum LineBreakStyle {
 		CR_OR_LF, 	// CR or LF or CRLF
 		STRICT_CRLF, 	// CR followed by LF
 		CR_LF_NUL,	// CR or LF or CR-LF or CR-NUL
@@ -19,6 +19,14 @@ public:
 
 	void NewData(const_byteptr begin, const_byteptr end);
 	void NewGap(int length);
+
+	// Interface for delayed parsing. Sometimes BinPAC doesn't get the
+	// buffering right and then one can use these to feed parts
+	// individually and assemble them internally. After calling
+	// FinishBuffer(), one can send the uppper-layer flow an FlowEOF() to
+	// trigger parsing.
+	void BufferData(const_byteptr data, const_byteptr end);
+	void FinishBuffer();
 
 	// Discard unprocessed data
 	void DiscardData();

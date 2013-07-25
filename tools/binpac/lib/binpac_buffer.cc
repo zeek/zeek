@@ -137,6 +137,19 @@ void FlowBuffer::NewFrame(int frame_length, bool chunked)
 	MarkOrCopyFrame();
 	}
 
+void FlowBuffer::BufferData(const_byteptr data, const_byteptr end)
+	{
+	mode_ = FRAME_MODE;
+	frame_length_ += (end - data);
+	MarkOrCopyFrame();
+	NewData(data, end);
+	}
+
+void FlowBuffer::FinishBuffer()
+	{
+	message_complete_ = true;
+	}
+
 void FlowBuffer::GrowFrame(int length)
 	{
 	BINPAC_ASSERT(frame_length_ >= 0);

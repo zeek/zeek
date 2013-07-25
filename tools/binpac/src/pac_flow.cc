@@ -68,7 +68,7 @@ void FlowDecl::ProcessDataUnitElement(AnalyzerDataUnit *dataunit_elem)
 		{
 		dataunit_->data_type()->MarkIncrementalInput();
 
-		flow_buffer_var_field_ = new PrivVarField(
+		flow_buffer_var_field_ = new PubVarField(
 			flow_buffer_id->clone(),
 			FlowDecl::flow_buffer_type()->Clone());
 		type_->AddField(flow_buffer_var_field_);

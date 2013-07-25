@@ -1,4 +1,14 @@
 
+2.1-826 | 2013-07-25 10:12:26 -0700
+
+  * bif files declared with bif_target() are now automatically
+    compiled in. No more manual includes to pull them in. (Robin
+    Sommer)
+
+  * Covenience make target in testing/btest to update the three
+    coverage tests that usually need tweaking when scripts get
+    added/removed. (Robin Sommer)
+
 2.1-824 | 2013-07-22 14:25:14 -0400
 
   * Fixed a scriptland state issue that manifested especially badly on proxies. (Seth Hall)

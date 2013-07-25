@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-07-05-05-20-50
+#open	2013-07-25-17-10-49
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -87,6 +87,7 @@ scripts/base/init-bare.bro
   scripts/base/frameworks/file-analysis/__load__.bro
     scripts/base/frameworks/file-analysis/main.bro
       build/scripts/base/bif/file_analysis.bif.bro
+  build/scripts/base/bif/__load__.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2013-07-05-05-20-50
+#close	2013-07-25-17-10-49

@@ -1,4 +1,9 @@
 
+2.1-888 | 2013-07-25 12:02:41 -0700
+
+  * Protection about broken traces with empty pcap headers. (Matt
+    Thompson)
+
 2.1-887 | 2013-07-25 11:33:27 -0700
 
   * Support for Bloom filter. (Matthias Vallentin)

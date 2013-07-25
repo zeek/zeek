@@ -568,11 +568,11 @@ bool BitVector::DoUnserialize(UnserialInfo* info)
 		bits[i] = static_cast<block_type>(block);
 		}
 
-	uint64 num_bits;
-	if ( ! UNSERIALIZE(&num_bits) )
+	uint64 n;
+	if ( ! UNSERIALIZE(&n) )
 		return false;
 
-	num_bits = static_cast<size_type>(num_bits);
+	num_bits = static_cast<size_type>(n);
 
 	return true;
 	}

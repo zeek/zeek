@@ -656,11 +656,11 @@ bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 
 	if ( is_typed )
 		{
-		BroType* type = BroType::Unserialize(info);
-		if ( ! Typify(type) )
+		BroType* t = BroType::Unserialize(info);
+		if ( ! Typify(t) )
 			return false;
 
-		Unref(type);
+		Unref(t);
 		}
 
 	bloom_filter = probabilistic::BloomFilter::Unserialize(info);

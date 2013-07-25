@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-07-25-17-17-11
+#open	2013-07-25-17-54-33
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -23,28 +23,28 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_File.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Finger.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
     build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_ICMP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
@@ -197,4 +197,4 @@ scripts/base/init-default.bro
   scripts/base/protocols/tunnels/__load__.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-07-25-17-17-11
+#close	2013-07-25-17-54-33

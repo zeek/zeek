@@ -139,7 +139,9 @@ export {
 	##
 	## f: the file.
 	##
-	## args: the analyzer type to add along with any arguments it takes.
+	## tag: the analyzer type.
+	##
+	## args: any parameters the analyzer takes.
 	##
 	## Returns: true if the analyzer will be added, or false if analysis
 	##          for the *id* isn't currently active or the *args*
@@ -156,7 +158,9 @@ export {
 	##
 	## Returns: true if the analyzer will be removed, or false if analysis
 	##          for the *id* isn't currently active.
-	global remove_analyzer: function(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool;
+	global remove_analyzer: function(f: fa_file,
+	                                 tag: Files::Tag,
+	                                 args: AnalyzerArgs &default=AnalyzerArgs()): bool;
 
 	## Stops/ignores any further analysis of a given file.
 	##

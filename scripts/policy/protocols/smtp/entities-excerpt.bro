@@ -1,12 +1,12 @@
 ##! This script is for optionally adding a body excerpt to the SMTP
 ##! entities log.
 
-@load ./entities
+@load base/protocols/smtp/entities
 
 module SMTP;
 
 export {
-	redef record SMTP::EntityInfo += {
+	redef record SMTP::Entity+= {
 		## The entity body excerpt.
 		excerpt:    string &log &default="";
 	};
@@ -31,7 +31,6 @@ event file_new(f: fa_file) &priority=5
 		if ( ! c?$smtp ) next;
 
 		if ( default_entity_excerpt_len > 0 )
-			c$smtp$current_entity$excerpt =
-			        f$bof_buffer[0:default_entity_excerpt_len];
+			c$smtp$entity$excerpt = f$bof_buffer[0:default_entity_excerpt_len];
 		}
 	}

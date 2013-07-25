@@ -1,3 +1,7 @@
+@load base/files/extract
+@load base/files/hash
+
+redef FileExtract::prefix = "./";
 
 global test_file_analysis_source: string = "" &redef;
 

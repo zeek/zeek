@@ -63,7 +63,9 @@ public:
 	size_t K() const	{ return k; }
 
 	/**
-	 * Returns the hasher's name. TODO: What's this?
+	 * Returns the hasher's name. If not empty, the hasher uses this descriptor
+	 * to seed its *k* hash functions. Otherwise the hasher mixes in the initial
+	 * seed derived from the environment variable `$BRO_SEED`.
 	 */
 	const std::string& Name() const { return name; }
 
@@ -83,7 +85,7 @@ public:
 protected:
 	Hasher(size_t k, const std::string& name);
 
-	private:
+private:
 	const size_t k;
 	std::string name;
 };
@@ -166,7 +168,7 @@ public:
 	 *
 	 * @param name The name of the hasher.
 	 */
-	DefaultHasher(size_t k, const std::string& name);
+	DefaultHasher(size_t k, const std::string& name = "");
 
 	// Overridden from Hasher.
 	virtual digest_vector Hash(const void* x, size_t n) const /* final */;
@@ -190,7 +192,7 @@ public:
 	 *
 	 * @param name The name of the hasher.
 	 */
-	DoubleHasher(size_t k, const std::string& name);
+	DoubleHasher(size_t k, const std::string& name = "");
 
 	// Overridden from Hasher.
 	virtual digest_vector Hash(const void* x, size_t n) const /* final */;

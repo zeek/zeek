@@ -1,4 +1,8 @@
 
+2.1-895 | 2013-07-29 14:07:35 -0700
+
+  * Adding a test for a DNSKEY RR. (Robin Sommer)
+
 2.1-894 | 2013-07-29 16:44:41 -0400
 
   * Updates for the Intel Framework. (Seth Hall)

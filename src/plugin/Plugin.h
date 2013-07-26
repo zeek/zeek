@@ -22,8 +22,6 @@ class BifItem {
 public:
 	/**
 	 * Type of the item.
-	 *
-	 * The values here must match the integers that \c bifcl generated.
 	 */
 	enum Type { FUNCTION = 1, EVENT = 2, CONSTANT = 3, GLOBAL = 4, TYPE = 5 };
 
@@ -35,7 +33,7 @@ public:
 	 *
 	 * @param type The type of the item.
 	 */
-	BifItem(const std::string& id, Type type);
+	BifItem(const char* id, Type type);
 
 	/**
 	 * Copy constructor.
@@ -88,6 +86,8 @@ class Plugin {
 public:
 	typedef std::list<Component *> component_list;
 	typedef std::list<BifItem> bif_item_list;
+	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
+	typedef void (*bif_init_func)(Plugin *);
 
 	/**
 	 * Constructor.
@@ -179,11 +179,21 @@ public:
 	 */
 	void Describe(ODesc* d) const;
 
+	/**
+	 * Registering an individual BiF that the plugin defines.  The
+	 * information is for informational purpuses only and will show up in
+	 * the result of BifItems() as well as in the Describe() output.
+	 * Another way to add this information is via overriding
+	 * CustomBifItems().
+	 *
+	 * @param name The name of the BiF item.
+	 *
+	 * @param type The item's type.
+	 */
+	void AddBifItem(const char* name, BifItem::Type type);
+
 protected:
 	friend class Manager;
-
-	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
-	typedef bif_init_func_result (*bif_init_func)();
 
 	/**
 	 * Sets the plugins name.
@@ -248,7 +258,7 @@ protected:
 	 * Internal function adding an entry point for registering
 	 * auto-generated BiFs.
 	 */
-	void AddBifInitFunction(bif_init_func c);
+	void __AddBifInitFunction(bif_init_func c);
 
 private:
 	typedef std::list<bif_init_func> bif_init_func_list;

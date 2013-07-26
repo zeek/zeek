@@ -267,12 +267,12 @@ void print_event_c_body(FILE *fp)
 	//fprintf(fp, "%s // end namespace\n", decl.generate_c_namespace_end.c_str());
 	}
 
-void record_bif_item(const char* id, int type)
+void record_bif_item(const char* id, const char* type)
 	{
 	if ( ! plugin )
 		return;
 
-	fprintf(fp_func_init, "\tbifs.push_back(std::make_pair(\"%s\", %d));\n", id, type);
+	fprintf(fp_func_init, "\tplugin->AddBifItem(\"%s\", plugin::BifItem::%s);\n", id, type);
 	}
 
 %}
@@ -358,7 +358,7 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
 				type_name.c_str());
 
-			record_bif_item(decl.bro_fullname.c_str(), 5);
+			record_bif_item(decl.bro_fullname.c_str(), "TYPE");
 			}
 	;
 
@@ -401,7 +401,7 @@ enum_def:	enum_def_1 enum_list TOK_RPB
 				"\t%s = internal_type(\"%s\")->AsEnumType();\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
-			record_bif_item(decl.bro_fullname.c_str(), 5);
+			record_bif_item(decl.bro_fullname.c_str(), "TYPE");
 			}
 	;
 
@@ -457,7 +457,7 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
 				accessor);
 
-			record_bif_item(decl.bro_fullname.c_str(), 3);
+			record_bif_item(decl.bro_fullname.c_str(), "CONSTANT");
 			}
 
 attr_list:
@@ -545,7 +545,7 @@ head_1:		TOK_ID opt_ws arg_begin
 					"Val* %s(Frame* frame, val_list* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
-				record_bif_item(decl.bro_fullname.c_str(), 1);
+				record_bif_item(decl.bro_fullname.c_str(), "FUNCTION");
 				}
 			else if ( definition_type == EVENT_DEF )
 				{
@@ -562,7 +562,7 @@ head_1:		TOK_ID opt_ws arg_begin
 					"\t%s = internal_handler(\"%s\");\n",
 					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
-				record_bif_item(decl.bro_fullname.c_str(), 2);
+				record_bif_item(decl.bro_fullname.c_str(), "EVENT");
 
 				// C++ prototypes of bro_event_* functions will
 				// be generated later.

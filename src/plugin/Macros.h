@@ -72,8 +72,8 @@
  * interpreter.
  */
 #define BRO_PLUGIN_BIF_FILE(file)			\
-		extern std::list<std::pair<const char*, int> >  __bif_##file##_init();	\
-		AddBifInitFunction(&__bif_##file##_init);
+		extern void __bif_##file##_init(plugin::Plugin*);	\
+		__AddBifInitFunction(&__bif_##file##_init);
 
 /**
  * Defines a component implementing a protocol analyzer.

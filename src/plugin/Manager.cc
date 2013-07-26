@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <glob.h>
 #include <dlfcn.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 #include "Manager.h"
@@ -72,14 +73,20 @@ void Manager::LoadPluginsFrom(const string& dir)
 		{
 		struct stat st;
 
-		if( stat(dp->d_name, &st) < 0 )
+		if ( strcmp(dp->d_name, "..") == 0
+		     || strcmp(dp->d_name, ".") == 0 )
+			continue;
+
+		string path = dir + "/" + dp->d_name;
+
+		if( stat(path.c_str(), &st) < 0 )
 			{
-			DBG_LOG(DBG_PLUGINS, "cannot stat %s/%s", dir.c_str(), dp->d_name);
+			DBG_LOG(DBG_PLUGINS, "cannot stat %s: %s", path.c_str(), strerror(errno));
 			continue;
 			}
 
 		if ( st.st_mode & S_IFDIR )
-			LoadPluginsFrom(dir + dp->d_name);
+			LoadPluginsFrom(path);
 		}
 	}
 

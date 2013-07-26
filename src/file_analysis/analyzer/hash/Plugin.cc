@@ -23,8 +23,8 @@ protected:
 		AddComponent(new ::file_analysis::Component("SHA256",
 		        ::file_analysis::SHA256::Instantiate));
 
-		extern std::list<std::pair<const char*, int> > __bif_events_init();
-		AddBifInitFunction(&__bif_events_init);
+		extern void __bif_events_init(plugin::Plugin*);
+		__AddBifInitFunction(&__bif_events_init);
 		}
 };
 

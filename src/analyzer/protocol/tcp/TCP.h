@@ -294,8 +294,8 @@ public:
 	// TCP_ENDPOINT_RESET.  If gen_event is true and the connection
 	// is now fully closed, a connection_finished event will be
 	// generated; otherwise not.
-	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event);
+	virtual void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
+					analyzer::tcp::TCP_Endpoint* peer, int gen_event);
 	virtual void ConnectionFinished(int half_finished);
 	virtual void ConnectionReset();
 

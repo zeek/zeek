@@ -10,9 +10,9 @@
 
 using namespace plugin;
 
-BifItem::BifItem(const std::string& arg_id, Type arg_type)
+BifItem::BifItem(const char* arg_id, Type arg_type)
 	{
-	id = copy_string(arg_id.c_str());
+	id = copy_string(arg_id);
 	type = arg_type;
 	}
 
@@ -131,15 +131,7 @@ void Plugin::InitPreScript()
 void Plugin::InitPostScript()
 	{
 	for ( bif_init_func_list::const_iterator f = bif_inits.begin(); f != bif_inits.end(); f++ )
-		{
-		bif_init_func_result items = (**f)();
-
-		for ( bif_init_func_result::const_iterator i = items.begin(); i != items.end(); i++ )
-			{
-			BifItem bi((*i).first, (BifItem::Type)(*i).second);
-			bif_items.push_back(bi);
-			}
-		}
+		(**f)(this);
 	}
 
 Plugin::bif_item_list Plugin::BifItems() const
@@ -176,9 +168,15 @@ void Plugin::AddComponent(Component* c)
 	components.push_back(c);
 	}
 
-void Plugin::AddBifInitFunction(bif_init_func c)
+void Plugin::__AddBifInitFunction(bif_init_func c)
 	{
 	bif_inits.push_back(c);
+	}
+
+void Plugin::AddBifItem(const char* name, BifItem::Type type)
+	{
+	BifItem bi(name, (BifItem::Type)type);
+	bif_items.push_back(bi);
 	}
 
 void Plugin::Describe(ODesc* d) const

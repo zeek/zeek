@@ -354,7 +354,7 @@ set(bro_SRCS
     Login.cc
     MIME.cc
     Modbus.cc
-    MySQL-binpac.cc
+    MySQL.cc
     NCP.cc
     NFA.cc
     NFS.cc

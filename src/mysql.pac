@@ -14,6 +14,6 @@ connection MySQL_Conn(bro_analyzer: BroAnalyzer) {
 %include mysql-protocol.pac
 
 flow MySQL_Flow(is_orig: bool) {
-	flowunit = MySQLPDU(is_orig) withcontext(connection, this);
+	flowunit = MySQL_PDU(is_orig) withcontext(connection, this);
 };
 %include mysql-analyzer.pac

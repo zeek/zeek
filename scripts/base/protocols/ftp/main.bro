@@ -102,6 +102,8 @@ export {
 	global log_ftp: event(rec: Info);
 }
 
+@load ./utils
+
 # Add the state tracking information variable to the connection record
 redef record connection += {
 	ftp: Info &optional;
@@ -171,7 +173,11 @@ function ftp_message(s: Info)
 	{
 	s$ts=s$cmdarg$ts;
 	s$command=s$cmdarg$cmd;
-	s$arg=s$cmdarg$arg;
+
+	s$arg = s$cmdarg$arg;
+	if ( s$cmdarg$cmd in file_cmds )
+		s$arg = build_url_ftp(s);
+	
 	if ( s$arg == "" )
 		delete s$arg;
 

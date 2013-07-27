@@ -1,12 +1,12 @@
 
-type TheFile = record {
-	dos_header     : DOS_Header;
-	dos_code       : DOS_Code(dos_code_len);
-	pe_header      : IMAGE_NT_HEADERS;
-	sections_table : IMAGE_SECTION_HEADER[] &length=pe_header.file_header.NumberOfSections*40 &transient;
-	#pad            : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
-	#data_sections  : DATA_SECTIONS[pe_header.file_header.NumberOfSections];
-	data_sections  : DATA_SECTIONS[] &length=data_len;
+type TheFile(part: uint8) = record {
+	dos_header      : DOS_Header;
+	dos_code        : DOS_Code(dos_code_len);
+	pe_header       : IMAGE_NT_HEADERS;
+	section_headers : IMAGE_SECTION_HEADER[] &length=pe_header.optional_header.size_of_headers;
+	#pad             : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
+	#data_sections   : DATA_SECTIONS[pe_header.file_header.NumberOfSections];
+	#data_sections   : DATA_SECTIONS[] &length=data_len;
 } &let {
 	dos_code_len: uint32 = dos_header.AddressOfNewExeHeader - 64;
 	data_len: uint32 = pe_header.optional_header.size_of_init_data;

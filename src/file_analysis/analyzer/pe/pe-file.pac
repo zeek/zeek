@@ -1,5 +1,5 @@
 
-type TheFile(part: uint8) = record {
+type TheFile = record {
 	dos_header      : DOS_Header;
 	dos_code        : DOS_Code(dos_code_len);
 	pe_header       : IMAGE_NT_HEADERS;

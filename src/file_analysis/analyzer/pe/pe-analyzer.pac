@@ -3,6 +3,7 @@
 #include "Event.h"
 #include "file_analysis/File.h"
 #include "file_analysis.bif.func_h"
+#include "events.bif.h"
 %}
 
 refine flow File += {
@@ -52,7 +53,7 @@ refine flow File += {
 			dh->Assign(15, new Val(${h.OEMinfo}, TYPE_COUNT));
 			dh->Assign(16, new Val(${h.AddressOfNewExeHeader}, TYPE_COUNT));
 
-			BifEvent::generate_pe_dos_header((Analyzer *) connection()->bro_analyzer(), 
+			BifEvent::generate_pe_dos_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                 connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                                 dh);
 			}
@@ -63,7 +64,7 @@ refine flow File += {
 		%{
 		if ( pe_dos_code )
 			{
-			BifEvent::generate_pe_dos_code((Analyzer *) connection()->bro_analyzer(), 
+			BifEvent::generate_pe_dos_code((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                               connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                               new StringVal(code.length(), (const char*) code.data()));
 			}
@@ -90,7 +91,7 @@ refine flow File += {
 			fh->Assign(2, new Val(${h.PointerToSymbolTable}, TYPE_COUNT));
 			fh->Assign(3, new Val(${h.NumberOfSymbols}, TYPE_COUNT));
 			fh->Assign(4, characteristics_to_bro(${h.Characteristics}, 16));
-			BifEvent::generate_pe_file_header((Analyzer *) connection()->bro_analyzer(), 
+			BifEvent::generate_pe_file_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                  connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                                  fh);
 			}
@@ -138,7 +139,7 @@ refine flow File += {
 			oh->Assign(23, characteristics_to_bro(${h.dll_characteristics}, 16));
 			oh->Assign(24, new Val(${h.loader_flags}, TYPE_COUNT));
 			oh->Assign(25, new Val(${h.number_of_rva_and_sizes}, TYPE_COUNT));
-			BifEvent::generate_pe_optional_header((Analyzer *) connection()->bro_analyzer(), 
+			BifEvent::generate_pe_optional_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                      connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                                      oh);
 			}
@@ -170,7 +171,7 @@ refine flow File += {
 			section_header->Assign(8, new Val(${h.non_used_num_of_line_nums}, TYPE_COUNT));
 			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
 
-			BifEvent::generate_pe_section_header((Analyzer *) connection()->bro_analyzer(), 
+			BifEvent::generate_pe_section_header((analyzer::Analyzer *) connection()->bro_analyzer(), 
 			                                     connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
 			                                     section_header);
 			}

@@ -1,0 +1,32 @@
+## Deprecated. Will be removed.
+event backdoor_stats%(c: connection, os: backdoor_endp_stats, rs: backdoor_endp_stats%);
+
+## Deprecated. Will be removed.
+event backdoor_remove_conn%(c: connection%);
+
+## Deprecated. Will be removed.
+event ftp_signature_found%(c: connection%);
+
+## Deprecated. Will be removed.
+event gnutella_signature_found%(c: connection%);
+
+## Deprecated. Will be removed.
+event http_signature_found%(c: connection%);
+
+## Deprecated. Will be removed.
+event irc_signature_found%(c: connection%);
+
+## Deprecated. Will be removed.
+event telnet_signature_found%(c: connection, is_orig: bool, len: count%);
+
+## Deprecated. Will be removed.
+event ssh_signature_found%(c: connection, is_orig: bool%);
+
+## Deprecated. Will be removed.
+event rlogin_signature_found%(c: connection, is_orig: bool, num_null: count, len: count%);
+
+## Deprecated. Will be removed.
+event smtp_signature_found%(c: connection%);
+
+## Deprecated. Will be removed.
+event http_proxy_signature_found%(c: connection%);

@@ -16,21 +16,24 @@
 #include "Reporter.h"
 #include "OSFinger.h"
 
-#include "ICMP.h"
-#include "UDP.h"
+#include "analyzer/protocol/icmp/ICMP.h"
+#include "analyzer/protocol/udp/UDP.h"
 
-#include "DNS-binpac.h"
-#include "HTTP-binpac.h"
-
-#include "SteppingStone.h"
-#include "BackDoor.h"
-#include "InterConn.h"
+#include "analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "analyzer/protocol/stepping-stone/events.bif.h"
+#include "analyzer/protocol/backdoor/BackDoor.h"
+#include "analyzer/protocol/backdoor/events.bif.h"
+#include "analyzer/protocol/interconn/InterConn.h"
+#include "analyzer/protocol/interconn/events.bif.h"
+#include "analyzer/protocol/arp/ARP.h"
+#include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
-#include "DPM.h"
 
 #include "PacketSort.h"
 #include "TunnelEncapsulation.h"
+
+#include "analyzer/Manager.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -104,7 +107,7 @@ NetSessions::NetSessions()
 	fragments.SetDeleteFunc(bro_obj_delete_func);
 
 	if ( stp_correlate_pair )
-		stp_manager = new SteppingStoneManager();
+		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
 		stp_manager = 0;
 
@@ -143,7 +146,7 @@ NetSessions::NetSessions()
 		pkt_profiler = 0;
 
 	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new ARP_Analyzer();
+		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = 0;
 	}
@@ -256,7 +259,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
 			}
 
-		else if ( ARP_Analyzer::IsARP(pkt, hdr_size) )
+		else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt, hdr_size) )
 			{
 			if ( arp_analyzer )
 				arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
@@ -523,9 +526,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ICMP4_counterpart(icmpp->icmp_type,
-						icmpp->icmp_code,
-						id.is_one_way);
+		id.dst_port = analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
+								icmpp->icmp_code,
+								id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -539,9 +542,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ICMP6_counterpart(icmpp->icmp_type,
-						icmpp->icmp_code,
-						id.is_one_way);
+		id.dst_port = analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
+								icmpp->icmp_code,
+								id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -964,12 +967,12 @@ void NetSessions::Remove(Connection* c)
 		{
 		c->CancelTimers();
 
-		TCP_Analyzer* ta = (TCP_Analyzer*) c->GetRootAnalyzer();
+		analyzer::tcp::TCP_Analyzer* ta = (analyzer::tcp::TCP_Analyzer*) c->GetRootAnalyzer();
 		if ( ta && c->ConnTransport() == TRANSPORT_TCP )
 			{
-			assert(ta->GetTag() == AnalyzerTag::TCP);
-			TCP_Endpoint* to = ta->Orig();
-			TCP_Endpoint* tr = ta->Resp();
+			assert(ta->IsAnalyzer("TCP"));
+			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			tcp_stats.StateLeft(to->state, tr->state);
 			}
@@ -1159,12 +1162,12 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
 		return 0;
 
+	ConnID flip_id = *id;
+
 	if ( flip )
 		{
 		// Make a guess that we're seeing the tail half of
 		// an analyzable connection.
-		ConnID flip_id = *id;
-
 		const IPAddr ta = flip_id.src_addr;
 		flip_id.src_addr = flip_id.dst_addr;
 		flip_id.dst_addr = ta;
@@ -1178,7 +1181,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
 	conn->SetTransport(tproto);
-	dpm->BuildInitialAnalyzerTree(tproto, conn, data);
+	analyzer_mgr->BuildInitialAnalyzerTree(conn);
 
 	bool external = conn->IsExternal();
 

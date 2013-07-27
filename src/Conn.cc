@@ -11,9 +11,10 @@
 #include "Sessions.h"
 #include "Reporter.h"
 #include "Timer.h"
-#include "PIA.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
+#include "analyzer/Analyzer.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -402,14 +403,19 @@ RecordVal* Connection::BuildConnVal()
 	return conn_val;
 	}
 
-Analyzer* Connection::FindAnalyzer(AnalyzerID id)
+analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
 	return root_analyzer ? root_analyzer->FindChild(id) : 0;
 	}
 
-Analyzer* Connection::FindAnalyzer(AnalyzerTag::Tag tag)
+analyzer::Analyzer* Connection::FindAnalyzer(analyzer::Tag tag)
 	{
 	return root_analyzer ? root_analyzer->FindChild(tag) : 0;
+	}
+
+analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
+	{
+	return root_analyzer->FindChild(name);
 	}
 
 void Connection::AppendAddl(const char* str)
@@ -540,7 +546,7 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 	}
 
 int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
-					Analyzer* analyzer)
+					analyzer::Analyzer* analyzer)
 	{
 	if ( ! software_version_found && ! software_parse_error )
 		return 1;
@@ -578,7 +584,7 @@ int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
 	}
 
 int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
-					const char* full, int len, Analyzer* analyzer)
+					const char* full, int len, analyzer::Analyzer* analyzer)
 	{
 	// Skip leading white space.
 	while ( len && isspace(*full) )
@@ -602,7 +608,7 @@ int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
 	return 1;
 	}
 
-void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, const char* name)
+void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
 	{
 	if ( ! f )
 		return;
@@ -615,7 +621,7 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, const char* name)
 	ConnectionEvent(f, analyzer, vl);
 	}
 
-void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
+void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
 	{
 	if ( ! f )
 		{
@@ -634,7 +640,7 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
 	ConnectionEvent(f, analyzer, vl);
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
 	{
 	if ( ! f )
 		{
@@ -929,7 +935,7 @@ error:
 	return false;
 	}
 
-void Connection::SetRootAnalyzer(TransportLayerAnalyzer* analyzer, PIA* pia)
+void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;

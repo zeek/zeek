@@ -4,3 +4,5 @@
 @load ./file-ident
 @load ./file-hash
 @load ./file-extract
+
+@load-sigs ./dpd.sig

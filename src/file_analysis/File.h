@@ -6,11 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "AnalyzerTags.h"
 #include "Conn.h"
 #include "Val.h"
 #include "AnalyzerSet.h"
-#include "FileID.h"
 #include "BroString.h"
 
 namespace file_analysis {
@@ -20,12 +18,29 @@ namespace file_analysis {
  */
 class File {
 public:
+
+	/**
+	 * Destructor.  Nothing fancy, releases a reference to the wrapped
+	 * \c fa_file value.
+	 */
 	~File();
 
 	/**
-	 * @return the #val record.
+	 * @return the wrapped \c fa_file record value, #val.
 	 */
 	RecordVal* GetVal() const { return val; }
+
+	/**
+	 * @return the value of the "source" field from #val record or an empty
+	 * string if it's not initialized.
+	 */
+	string GetSource() const;
+
+	/**
+	 * Set the "source" field from #val record to \a source.
+	 * @param source the new value of the "source" field.
+	 */
+	void SetSource(const string& source);
 
 	/**
 	 * @return value (seconds) of the "timeout_interval" field from #val record.
@@ -34,18 +49,14 @@ public:
 
 	/**
 	 * Set the "timeout_interval" field from #val record to \a interval seconds.
+	 * @param interval the new value of the "timeout_interval" field.
 	 */
 	void SetTimeoutInterval(double interval);
 
 	/**
 	 * @return value of the "id" field from #val record.
 	 */
-	FileID GetID() const { return id; }
-
-	/**
-	 * @return the string which uniquely identifies the file.
-	 */
-	string GetUnique() const { return unique; }
+	string GetID() const { return id; }
 
 	/**
 	 * @return value of "last_active" field in #val record;
@@ -59,13 +70,15 @@ public:
 
 	/**
 	 * Set "total_bytes" field of #val record to \a size.
+	 * @param size the new value of the "total_bytes" field.
 	 */
 	void SetTotalBytes(uint64 size);
 
 	/**
-	 * Compares "seen_bytes" field to "total_bytes" field of #val record
-	 * and returns true if the comparison indicates the full file was seen.
-	 * If "total_bytes" hasn't been set yet, it returns false.
+	 * Compares "seen_bytes" field to "total_bytes" field of #val record to
+	 * determine if the full file has been seen.
+	 * @return false if "total_bytes" hasn't been set yet or "seen_bytes" is
+	 *         less than it, else true.
 	 */
 	bool IsComplete() const;
 
@@ -79,23 +92,30 @@ public:
 	/**
 	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
 	 * at a time unless the arguments differ.
+	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
 	bool AddAnalyzer(RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
+	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
 	bool RemoveAnalyzer(const RecordVal* args);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.
+	 * @param data pointer to start of a chunk of file data.
+	 * @param len number of bytes in the data chunk.
+	 * @param offset number of bytes from start of file at which chunk occurs.
 	 */
 	void DataIn(const u_char* data, uint64 len, uint64 offset);
 
 	/**
 	 * Pass in sequential data and deliver to attached analyzers.
+	 * @param data pointer to start of a chunk of file data.
+	 * @param len number of bytes in the data chunk.
 	 */
 	void DataIn(const u_char* data, uint64 len);
 
@@ -106,10 +126,13 @@ public:
 
 	/**
 	 * Inform attached analyzers about a gap in file stream.
+	 * @param offset number of bytes in to file at which missing chunk starts.
+	 * @param len length in bytes of the missing chunk of file data.
 	 */
 	void Gap(uint64 offset, uint64 len);
 
 	/**
+	 * @param h pointer to an event handler.
 	 * @return true if event has a handler and the file isn't ignored.
 	 */
 	bool FileEventAvailable(EventHandlerPtr h);
@@ -117,11 +140,14 @@ public:
 	/**
 	 * Raises an event related to the file's life-cycle, the only parameter
 	 * to that event is the \c fa_file record..
+	 * @param h pointer to an event handler.
 	 */
 	void FileEvent(EventHandlerPtr h);
 
 	/**
 	 * Raises an event related to the file's life-cycle.
+	 * @param h pointer to an event handler.
+	 * @param vl list of argument values to pass to event call.
 	 */
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
@@ -130,35 +156,51 @@ protected:
 
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
+	 * @param file_id an identifier string for the file in pretty hash form
+	 *        (similar to connection uids).
+	 * @param conn a network connection over which the file is transferred.
+	 * @param tag the network protocol over which the file is transferred.
+	 * @param is_orig true if the file is being transferred from the originator
+	 *        of the connection to the responder.  False indicates the other
+	 *        direction.
 	 */
-	File(const string& unique, Connection* conn = 0,
-	     AnalyzerTag::Tag tag = AnalyzerTag::Error, bool is_orig = false);
+	File(const string& file_id, Connection* conn = 0,
+	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
 	 * \c conn_id and UID taken from \a conn.
+	 * @param conn the connection over which a part of the file has been seen.
 	 */
 	void UpdateConnectionFields(Connection* conn);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.
+	 * @param size number of bytes by which to increment.
+	 * @param field_idx the index of the field in \c fa_file to increment.
 	 */
 	void IncrementByteCount(uint64 size, int field_idx);
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
 	 * \a idx which automatically unrefs the Val and returns a converted value.
+	 * @param idx the index of a field of type "count" in \c fa_file.
+	 * @return the value of the field, which may be it &default.
 	 */
 	uint64 LookupFieldDefaultCount(int idx) const;
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
 	 * \a idx which automatically unrefs the Val and returns a converted value.
+	 * @param idx the index of a field of type "interval" in \c fa_file.
+	 * @return the value of the field, which may be it &default.
 	 */
 	double LookupFieldDefaultInterval(int idx) const;
 
 	/**
 	 * Buffers incoming data at the beginning of a file.
+	 * @param data pointer to a data chunk to buffer.
+	 * @param len number of bytes in the data chunk.
 	 * @return true if buffering is still required, else false
 	 */
 	bool BufferBOF(const u_char* data, uint64 len);
@@ -171,11 +213,15 @@ protected:
 	/**
 	 * Does mime type detection and assigns type (if available) to \c mime_type
 	 * field in #val.
+	 * @param data pointer to a chunk of file data.
+	 * @param len number of bytes in the data chunk.
 	 * @return whether mime type was available.
 	 */
 	bool DetectMIME(const u_char* data, uint64 len);
 
 	/**
+	 * Lookup a record field index/offset by name.
+	 * @param field_name the name of the \c fa_file record field.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
 	static int Idx(const string& field_name);
@@ -186,15 +232,14 @@ protected:
 	static void StaticInit();
 
 private:
-	FileID id;                 /**< A pretty hash that likely identifies file */
-	string unique;             /**< A string that uniquely identifies file */
+	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool first_chunk;          /**< Track first non-linear chunk. */
 	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
-	AnalyzerSet analyzers;
+	AnalyzerSet analyzers;     /**< A set of attached file analyzer. */
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), replayed(false), size(0) {}
@@ -206,8 +251,6 @@ private:
 		uint64 size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
-
-	static string salt;
 
 	static int id_idx;
 	static int parent_id_idx;

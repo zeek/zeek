@@ -12,13 +12,14 @@ export {
 function get_file_handle(c: connection, is_orig: bool): string
 	{
 	if ( is_orig ) return "";
-	return cat(ANALYZER_IRC_DATA, " ", c$start_time, " ", id_string(c$id));
+	return cat(Analyzer::ANALYZER_IRC_DATA, " ", c$start_time, " ", id_string(c$id));
 	}
 
 module GLOBAL;
 
-event get_file_handle(tag: AnalyzerTag, c: connection, is_orig: bool)
+event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool)
+	&priority=5
 	{
-	if ( tag != ANALYZER_IRC_DATA ) return;
+	if ( tag != Analyzer::ANALYZER_IRC_DATA ) return;
 	set_file_handle(IRC::get_file_handle(c, is_orig));
 	}

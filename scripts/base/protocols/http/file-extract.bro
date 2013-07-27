@@ -14,8 +14,11 @@ export {
 	const extraction_prefix = "http-item" &redef;
 
 	redef record Info += {
-		## On-disk file where the response body was extracted to.
-		extraction_file:  string &log &optional;
+		## On-disk location where files in request body were extracted.
+		extracted_request_files: vector of string &log &optional;
+
+		## On-disk location where files in response body were extracted.
+		extracted_response_files: vector of string &log &optional;
 		
 		## Indicates if the response body is to be extracted or not.  Must be 
 		## set before or by the first :bro:see:`file_new` for the file content.
@@ -23,13 +26,26 @@ export {
 	};
 }
 
-global extract_count: count = 0;
-
 function get_extraction_name(f: fa_file): string
 	{
-	local r = fmt("%s-%s-%d.dat", extraction_prefix, f$id, extract_count);
-	++extract_count;
+	local r = fmt("%s-%s.dat", extraction_prefix, f$id);
 	return r;
+	}
+
+function add_extraction_file(c: connection, is_orig: bool, fn: string)
+	{
+	if ( is_orig )
+		{
+		if ( ! c$http?$extracted_request_files )
+			c$http$extracted_request_files = vector();
+		c$http$extracted_request_files[|c$http$extracted_request_files|] = fn;
+		}
+	else
+		{
+		if ( ! c$http?$extracted_response_files )
+			c$http$extracted_response_files = vector();
+		c$http$extracted_response_files[|c$http$extracted_response_files|] = fn;
+		}
 	}
 
 event file_new(f: fa_file) &priority=5
@@ -51,7 +67,7 @@ event file_new(f: fa_file) &priority=5
 			{
 			c = f$conns[cid];
 			if ( ! c?$http ) next;
-			c$http$extraction_file = fname;
+			add_extraction_file(c, f$is_orig, fname);
 			}
 
 		return;
@@ -79,6 +95,6 @@ event file_new(f: fa_file) &priority=5
 			{
 			c = f$conns[cid];
 			if ( ! c?$http ) next;
-			c$http$extraction_file = fname;
+			add_extraction_file(c, f$is_orig, fname);
 			}
 	}

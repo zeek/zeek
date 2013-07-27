@@ -97,7 +97,6 @@ extern RecordType* http_stats_rec;
 extern RecordType* http_message_stat;
 extern int truncate_http_URI;
 
-extern int pm_request;
 extern RecordType* pm_mapping;
 extern TableType* pm_mappings;
 extern RecordType* pm_port_request;
@@ -213,7 +212,6 @@ extern TableType* irc_join_list;
 extern RecordType* irc_join_info;
 extern TableVal* irc_servers;
 
-extern TableVal* dpd_config;
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
 extern int dpd_match_only_beginning;
@@ -249,6 +247,7 @@ extern OpaqueType* md5_type;
 extern OpaqueType* sha1_type;
 extern OpaqueType* sha256_type;
 extern OpaqueType* entropy_type;
+extern OpaqueType* bloomfilter_type;
 
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();
@@ -262,6 +261,5 @@ extern void init_net_var();
 #include "logging.bif.netvar_h"
 #include "input.bif.netvar_h"
 #include "reporter.bif.netvar_h"
-#include "file_analysis.bif.netvar_h"
 
 #endif

@@ -56,6 +56,18 @@ public:
 	bool CreateEventStream(RecordVal* description);
 
 	/**
+	 * Creates a new input stream which will forward the data from the data
+	 * source on to the file analysis framework.  The internal BiF defined
+	 * in input.bif just forward here.  For an input reader to be compatible
+	 * with this method, it must be able to accept a filter of a single string
+	 * type (i.e. they read a byte stream).
+	 *
+	 * @param description A record of the script type \c
+	 * Input::AnalysisDescription
+	 */
+	bool CreateAnalysisStream(RecordVal* description);
+
+	/**
 	 * Force update on a input stream. Forces a re-read of the whole
 	 * input source. Usually used when an input stream is opened in
 	 * managed mode. Otherwise, this can be used to trigger a input
@@ -78,6 +90,11 @@ public:
 	 * input.bif, which just forwards here.
 	 */
 	bool RemoveStream(const string &id);
+
+	/**
+	 * Signals the manager to shutdown at Bro's termination.
+	 */
+	void Terminate();
 
 protected:
 	friend class ReaderFrontend;
@@ -138,6 +155,7 @@ private:
 	class Stream;
 	class TableStream;
 	class EventStream;
+	class AnalysisStream;
 
 	// Actual RemoveStream implementation -- the function's public and
 	// protected definitions are wrappers around this function.
@@ -202,7 +220,7 @@ private:
 	Stream* FindStream(const string &name);
 	Stream* FindStream(ReaderFrontend* reader);
 
-	enum StreamType { TABLE_STREAM, EVENT_STREAM };
+	enum StreamType { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
 
 	map<ReaderFrontend*, Stream*> readers;
 

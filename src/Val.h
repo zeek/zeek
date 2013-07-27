@@ -608,6 +608,7 @@ class StringVal : public Val {
 public:
 	StringVal(BroString* s);
 	StringVal(const char* s);
+	StringVal(const string& s);
 	StringVal(int length, const char* s);
 
 	Val* SizeVal() const

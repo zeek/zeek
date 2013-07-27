@@ -61,7 +61,10 @@ distclean:
 	rm -rf $(BUILD)
 
 test:
-	@(cd testing && make )
+	@( cd testing && make )
+
+test-all: test
+	test -d aux/broctl && ( cd aux/broctl && make test )
 
 configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )

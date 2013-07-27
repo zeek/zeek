@@ -246,6 +246,31 @@ The Bro scripting language supports the following built-in types.
             [5] = "five",
         };
 
+    A table constructor (equivalent to above example) can also be used
+    to create a table:
+
+    .. code:: bro
+
+        global t2: table[count] of string = table(
+            [11] = "eleven",
+            [5] = "five"
+        );
+
+    Table constructors can also be explicitly named by a type, which is
+    useful for when a more complex index type could otherwise be
+    ambiguous:
+
+    .. code:: bro
+
+        type MyRec: record {
+            a: count &optional;
+            b: count;
+        };
+
+        type MyTable: table[MyRec] of string;
+
+        global t3 = MyTable([[$b=5]] = "b5", [[$b=7]] = "b7");
+
     Accessing table elements if provided by enclosing values within square
     brackets (``[]``), for example:
 
@@ -308,6 +333,28 @@ The Bro scripting language supports the following built-in types.
     The types are explicitly shown in the example above, but they could
     have been left to type inference.
 
+    A set constructor (equivalent to above example) can also be used to
+    create a set:
+
+    .. code:: bro
+
+        global s3: set[port] = set(21/tcp, 23/tcp, 80/tcp, 443/tcp);
+
+    Set constructors can also be explicitly named by a type, which is
+    useful for when a more complex index type could otherwise be
+    ambiguous:
+
+    .. code:: bro
+
+        type MyRec: record {
+            a: count &optional;
+            b: count;
+        };
+
+        type MySet: set[MyRec];
+
+        global s4 = MySet([$b=1], [$b=2]);
+
     Set membership is tested with ``in``:
 
     .. code:: bro
@@ -348,6 +395,21 @@ The Bro scripting language supports the following built-in types.
     .. code:: bro
 
         global v: vector of string = vector("one", "two", "three");
+
+    Vector constructors can also be explicitly named by a type, which
+    is useful for when a more complex yield type could otherwise be
+    ambiguous.
+
+    .. code:: bro
+
+        type MyRec: record {
+            a: count &optional;
+            b: count;
+        };
+
+        type MyVec: vector of MyRec;
+
+        global v2 = MyVec([$b=1], [$b=2], [$b=3]);
 
     Adding an element to a vector involves accessing/assigning it:
 
@@ -401,6 +463,44 @@ The Bro scripting language supports the following built-in types.
 
         if ( r?$s )
             ...
+
+    Records can also be created using a constructor syntax:
+
+    .. code:: bro
+
+        global r2: MyRecordType = record($c = 7);
+
+    And the constructor can be explicitly named by type, too, which
+    is arguably more readable code:
+
+    .. code:: bro
+
+        global r3 = MyRecordType($c = 42);
+
+.. bro:type:: opaque
+
+    A data type whose actual representation/implementation is
+    intentionally hidden, but whose values may be passed to certain
+    functions that can actually access the internal/hidden resources.
+    Opaque types are differentiated from each other by qualifying them
+    like ``opaque of md5`` or ``opaque of sha1``.  Any valid identifier
+    can be used as the type qualifier.
+
+    An example use of this type is the set of built-in functions which
+    perform hashing:
+
+    .. code:: bro
+
+        local handle: opaque of md5 = md5_hash_init();
+        md5_hash_update(handle, "test");
+        md5_hash_update(handle, "testing");
+        print md5_hash_finish(handle);
+
+    Here the opaque type is used to provide a handle to a particular
+    resource which is calculating an MD5 checksum incrementally over
+    time, but the details of that resource aren't relevant, it's only
+    necessary to have a handle as a way of identifying it and
+    distinguishing it from other such resources.
 
 .. bro:type:: file
 

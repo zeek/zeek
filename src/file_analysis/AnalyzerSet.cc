@@ -3,22 +3,9 @@
 #include "AnalyzerSet.h"
 #include "File.h"
 #include "Analyzer.h"
-#include "Extract.h"
-#include "DataEvent.h"
-#include "Hash.h"
-#include "analyzers/PE.h"
+#include "Manager.h"
 
 using namespace file_analysis;
-
-// keep in order w/ declared enum values in file_analysis.bif
-static AnalyzerInstantiator analyzer_factory[] = {
-	file_analysis::Extract::Instantiate,
-	file_analysis::MD5::Instantiate,
-	file_analysis::SHA1::Instantiate,
-	file_analysis::SHA256::Instantiate,
-	file_analysis::DataEvent::Instantiate,
-	file_analysis::PE::Instantiate,
-};
 
 static void analyzer_del_func(void* v)
 	{
@@ -156,14 +143,13 @@ HashKey* AnalyzerSet::GetKey(const RecordVal* args) const
 
 file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(RecordVal* args) const
 	{
-	file_analysis::Analyzer* a =
-	    analyzer_factory[file_analysis::Analyzer::ArgsTag(args)](args, file);
+	FA_Tag tag = file_analysis::Analyzer::ArgsTag(args);
+	file_analysis::Analyzer* a = file_mgr->InstantiateAnalyzer(tag, args, file);
 
 	if ( ! a )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate analyzer %d failed for file id",
-		        " %s", file_analysis::Analyzer::ArgsTag(args),
-		        file->GetID().c_str());
+		reporter->Error("Failed file analyzer %s instantiation for file id %s",
+		                file_mgr->GetAnalyzerName(tag), file->GetID().c_str());
 		return 0;
 		}
 

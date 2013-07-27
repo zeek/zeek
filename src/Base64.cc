@@ -82,9 +82,7 @@ int* Base64Converter::InitBase64Table(const string& alphabet)
 	return base64_table;
 	}
 
-
-
-Base64Converter::Base64Converter(Analyzer* arg_analyzer, const string& arg_alphabet)
+Base64Converter::Base64Converter(analyzer::Analyzer* arg_analyzer, const string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{

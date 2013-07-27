@@ -148,8 +148,6 @@ void net_init(name_list& interfaces, name_list& readfiles,
 	        const char* writefile, const char* filter,
 			const char* secondary_filter, int do_watchdog)
 	{
-	init_net_var();
-
 	if ( readfiles.length() > 0 || flowfiles.length() > 0 )
 		{
 		reading_live = pseudo_realtime > 0.0;

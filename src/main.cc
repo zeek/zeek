@@ -858,6 +858,9 @@ int main(int argc, char** argv)
 
 	yyparse();
 
+	init_general_global_var();
+	init_net_var();
+
 	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
@@ -895,8 +898,6 @@ int main(int argc, char** argv)
 		}
 
 	reporter->InitOptions();
-
-	init_general_global_var();
 
 	if ( user_pcap_filter )
 		{

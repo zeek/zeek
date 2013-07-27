@@ -35,7 +35,7 @@ export {
 	global perform_query: function(q: Query);
 }
 
-# This commanad is used internally to send commands to timemachine.
+# This command is used internally to send commands to timemachine.
 global TimeMachine::command: event(cmd: string);
 const feed_id = unique_id("feed-") &redef;
 
@@ -118,14 +118,13 @@ function build_query(q: Query): string
 function perform_query(q: Query)
 	{
 	local query = build_query(q);
-	#print query;
 	event TimeMachine::command(query);
 	}
 
 	
 function dump_conn(c: connection)
 	{
-	perform_query([$to_file=fmt("crap/%s-%s:%d-%s:%d.pcap", c$uid, c$id$orig_h, port_to_count(c$id$orig_p), c$id$resp_h, port_to_count(c$id$resp_p)),
+	perform_query([$to_file=fmt("bro/%s-%s:%d-%s:%d.pcap", c$uid, c$id$orig_h, port_to_count(c$id$orig_p), c$id$resp_h, port_to_count(c$id$resp_p)),
 	               $host1=c$id$orig_h, $port1=c$id$orig_p,
 	               $host2=c$id$resp_h, $port2=c$id$resp_p,
 	               $subscribe=T]);

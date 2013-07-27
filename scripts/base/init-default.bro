@@ -32,7 +32,7 @@
 @load base/frameworks/metrics
 @load base/frameworks/intel
 @load base/frameworks/reporter
-@load base/frameworks/timemachine
+@load base/frameworks/time-machine
 @load base/frameworks/tunnels
 
 @load base/protocols/conn

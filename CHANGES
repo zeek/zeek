@@ -1,4 +1,14 @@
 
+2.1-939 | 2013-07-29 15:42:38 -0700
+
+  * Added Exec, Dir, and ActiveHTTP modules. (Seth Hall)
+
+    base/utils/exec.bro provides a module to start external processes
+    asynchronously and retrieve their output on termination.
+    base/utils/dir.bro uses it to monitor a directory for changes, and
+    base/utils/active-http.bro for providing an interface for querying
+    remote web servers.
+
 2.1-930 | 2013-07-29 15:06:07 -0700
 
   * Major file analysis overhaul in naming and appearance, along with

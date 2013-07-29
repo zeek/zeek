@@ -81,6 +81,13 @@ export {
 	## Returns: The analyzer name corresponding to the tag.
 	global name: function(tag: Analyzer::Tag) : string;
 
+	## Translates an analyzer's name to a tag enum value.
+	##
+	## name: The analyzer name.
+	##
+	## Returns: The analyzer tag corresponding to the name.
+	global get_tag: function(name: string): Analyzer::Tag;
+
 	## Schedules an analyzer for a future connection originating from a given IP
 	## address and port.
 	##
@@ -185,6 +192,11 @@ function all_registered_ports(): table[Analyzer::Tag] of set[port]
 function name(atype: Analyzer::Tag) : string
 	{
 	return __name(atype);
+	}
+
+function get_tag(name: string): Analyzer::Tag
+	{
+	return __tag(name);
 	}
 
 function schedule_analyzer(orig: addr, resp: addr, resp_p: port,

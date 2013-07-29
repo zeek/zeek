@@ -25,6 +25,8 @@
 @load frameworks/intel/seen/smtp.bro
 @load frameworks/intel/seen/ssl.bro
 @load frameworks/intel/seen/where-locations.bro
+@load frameworks/files/detect-MHR.bro
+@load frameworks/files/hash-all-files.bro
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
@@ -51,7 +53,6 @@
 @load protocols/ftp/detect-bruteforcing.bro
 @load protocols/ftp/detect.bro
 @load protocols/ftp/software.bro
-@load protocols/http/detect-MHR.bro
 @load protocols/http/detect-sqli.bro
 @load protocols/http/detect-webapps.bro
 @load protocols/http/header-names.bro
@@ -63,6 +64,7 @@
 @load protocols/modbus/track-memmap.bro
 @load protocols/smtp/blocklists.bro
 @load protocols/smtp/detect-suspicious-orig.bro
+@load protocols/smtp/entities-excerpt.bro
 @load protocols/smtp/software.bro
 @load protocols/ssh/detect-bruteforcing.bro
 @load protocols/ssh/geo-data.bro

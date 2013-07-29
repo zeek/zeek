@@ -85,10 +85,11 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/analyzer/main.bro
       scripts/base/frameworks/packet-filter/utils.bro
       build/scripts/base/bif/analyzer.bif.bro
-  scripts/base/frameworks/file-analysis/__load__.bro
-    scripts/base/frameworks/file-analysis/main.bro
+  scripts/base/frameworks/files/__load__.bro
+    scripts/base/frameworks/files/main.bro
       build/scripts/base/bif/file_analysis.bif.bro
-  build/scripts/base/bif/__load__.bro
+      scripts/base/utils/site.bro
+        scripts/base/utils/patterns.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2013-07-25-17-54-33
+#close	2013-07-25-19-59-47

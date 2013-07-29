@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-07-25-17-54-33
+#open	2013-07-23-05-48-10
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -85,13 +85,12 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/analyzer/main.bro
       scripts/base/frameworks/packet-filter/utils.bro
       build/scripts/base/bif/analyzer.bif.bro
-  scripts/base/frameworks/file-analysis/__load__.bro
-    scripts/base/frameworks/file-analysis/main.bro
+  scripts/base/frameworks/files/__load__.bro
+    scripts/base/frameworks/files/main.bro
       build/scripts/base/bif/file_analysis.bif.bro
-  build/scripts/base/bif/__load__.bro
+      scripts/base/utils/site.bro
+        scripts/base/utils/patterns.bro
 scripts/base/init-default.bro
-  scripts/base/utils/site.bro
-    scripts/base/utils/patterns.bro
   scripts/base/utils/addrs.bro
   scripts/base/utils/conn-ids.bro
   scripts/base/utils/directions-and-hosts.bro
@@ -159,8 +158,8 @@ scripts/base/init-default.bro
   scripts/base/protocols/ftp/__load__.bro
     scripts/base/protocols/ftp/utils-commands.bro
     scripts/base/protocols/ftp/main.bro
-    scripts/base/protocols/ftp/file-analysis.bro
-    scripts/base/protocols/ftp/file-extract.bro
+    scripts/base/protocols/ftp/utils.bro
+    scripts/base/protocols/ftp/files.bro
     scripts/base/protocols/ftp/gridftp.bro
       scripts/base/protocols/ssl/__load__.bro
         scripts/base/protocols/ssl/consts.bro
@@ -168,15 +167,13 @@ scripts/base/init-default.bro
         scripts/base/protocols/ssl/mozilla-ca-list.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/main.bro
+    scripts/base/protocols/http/entities.bro
     scripts/base/protocols/http/utils.bro
-    scripts/base/protocols/http/file-analysis.bro
-    scripts/base/protocols/http/file-ident.bro
-    scripts/base/protocols/http/file-hash.bro
-    scripts/base/protocols/http/file-extract.bro
+    scripts/base/protocols/http/files.bro
   scripts/base/protocols/irc/__load__.bro
     scripts/base/protocols/irc/main.bro
     scripts/base/protocols/irc/dcc-send.bro
-    scripts/base/protocols/irc/file-analysis.bro
+    scripts/base/protocols/irc/files.bro
   scripts/base/protocols/modbus/__load__.bro
     scripts/base/protocols/modbus/consts.bro
     scripts/base/protocols/modbus/main.bro
@@ -184,8 +181,7 @@ scripts/base/init-default.bro
   scripts/base/protocols/smtp/__load__.bro
     scripts/base/protocols/smtp/main.bro
     scripts/base/protocols/smtp/entities.bro
-    scripts/base/protocols/smtp/entities-excerpt.bro
-    scripts/base/protocols/smtp/file-analysis.bro
+    scripts/base/protocols/smtp/files.bro
   scripts/base/protocols/socks/__load__.bro
     scripts/base/protocols/socks/consts.bro
     scripts/base/protocols/socks/main.bro
@@ -195,6 +191,10 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
+  scripts/base/files/hash/__load__.bro
+    scripts/base/files/hash/main.bro
+  scripts/base/files/extract/__load__.bro
+    scripts/base/files/extract/main.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-07-25-17-54-33
+#close	2013-07-23-05-48-10

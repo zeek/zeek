@@ -55,7 +55,7 @@ void Raw::DoClose()
 	if ( file != 0 )
 		CloseInput();
 
-	if ( buf != 0 ) 
+	if ( buf != 0 )
 		{
 		// we still have output that has not been flushed. Throw away.
 		delete buf;
@@ -169,8 +169,8 @@ bool Raw::OpenInput()
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
 			return false;
 			}
-		}
 		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
+		}
 
 	return true;
 	}
@@ -468,7 +468,7 @@ bool Raw::DoUpdate()
 		if ( length == -3 )
 			return false;
 
-		else if ( length == -2 || length == -1 ) 
+		else if ( length == -2 || length == -1 )
 			// no data ready or eof
 			break;
 

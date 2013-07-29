@@ -3,9 +3,17 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
+#include <typeinfo>
+
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
+
+#include "probabilistic/BloomFilter.h"
+
+namespace probabilistic {
+	class BloomFilter;
+}
 
 class HashVal : public OpaqueVal {
 public:
@@ -106,5 +114,38 @@ protected:
 private:
 	RandTest state;
 };
+
+class BloomFilterVal : public OpaqueVal {
+public:
+	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
+	virtual ~BloomFilterVal();
+
+	BroType* Type() const;
+	bool Typify(BroType* type);
+
+	void Add(const Val* val);
+	size_t Count(const Val* val) const;
+	void Clear();
+	bool Empty() const;
+
+	static BloomFilterVal* Merge(const BloomFilterVal* x,
+				     const BloomFilterVal* y);
+
+protected:
+	friend class Val;
+	BloomFilterVal();
+	BloomFilterVal(OpaqueType* t);
+
+	DECLARE_SERIAL(BloomFilterVal);
+
+private:
+	// Disable.
+	BloomFilterVal(const BloomFilterVal&);
+	BloomFilterVal& operator=(const BloomFilterVal&);
+
+	BroType* type;
+	CompositeHash* hash;
+	probabilistic::BloomFilter* bloom_filter;
+	};
 
 #endif

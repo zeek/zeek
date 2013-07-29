@@ -17,6 +17,7 @@ rest_target(${psd} base/init-default.bro internal)
 rest_target(${psd} base/init-bare.bro internal)
 
 rest_target(${CMAKE_BINARY_DIR}/scripts base/bif/analyzer.bif.bro)
+rest_target(${CMAKE_BINARY_DIR}/scripts base/bif/bloom-filter.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/scripts base/bif/bro.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/scripts base/bif/const.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/scripts base/bif/event.bif.bro)

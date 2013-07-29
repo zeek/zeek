@@ -55,6 +55,13 @@ void Raw::DoClose()
 	if ( file != 0 )
 		CloseInput();
 
+	if ( buf != 0 )
+		{
+		// we still have output that has not been flushed. Throw away.
+		delete buf;
+		buf = 0;
+		}
+
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
 		// kill child process
@@ -157,12 +164,12 @@ bool Raw::OpenInput()
 	else
 		{
 		file = fopen(fname.c_str(), "r");
-		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
 		if ( ! file )
 			{
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
 			return false;
 			}
+		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
 		}
 
 	return true;
@@ -322,12 +329,14 @@ int64_t Raw::GetLine(FILE* arg_file)
 			// but first check if we encountered the file end - because if we did this was it.
 			if ( feof(arg_file) != 0 )
 				{
-				outbuf = buf;
-				buf = 0;
 				if ( pos == 0 )
 					return -1; // signal EOF - and that we had no more data.
 				else
+					{
+					outbuf = buf;
+					buf = 0;
 					return pos;
+					}
 				}
 
 			repeats++;
@@ -342,15 +351,13 @@ int64_t Raw::GetLine(FILE* arg_file)
 			{
 			outbuf = buf;
 			buf = 0;
-			buf = new char[block_size];
-
 
 			if ( found < pos )
 				{
 				// we have leftovers. copy them into the buffer for the next line
 				buf = new char[block_size];
 				memcpy(buf, outbuf + found + sep_length, pos - found - sep_length);
-				bufpos =  pos - found - sep_length;
+				bufpos = pos - found - sep_length;
 				}
 
 			return found;
@@ -368,7 +375,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 		return -3;
 		}
 
-	InternalError("Internal control flow execution");
+	InternalError("Internal control flow execution error in raw reader");
 	assert(false);
 	}
 

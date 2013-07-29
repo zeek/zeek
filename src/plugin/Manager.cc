@@ -164,12 +164,20 @@ int Manager::LoadPlugin(const std::string& dir)
 	return 1;
 	}
 
+static bool plugin_cmp(const Plugin* a, const Plugin* b)
+	{
+	return a->Name() < b->Name();
+	}
+
 bool Manager::RegisterPlugin(Plugin *plugin)
 	{
 	Manager::PluginsInternal()->push_back(plugin);
 
 	if ( current_dir.size() )
 		plugin->SetPluginDirectory(current_dir.c_str());
+
+	// Sort plugins by name to make sure we have a deterministic order.
+	PluginsInternal()->sort(plugin_cmp);
 
 	return true;
 	}

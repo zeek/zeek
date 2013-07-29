@@ -4975,4 +4975,3 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 			(enum ip_addr_anonymization_class_t) anon_class));
 		}
 	%}
-

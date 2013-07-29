@@ -394,3 +394,8 @@ const char* Manager::GetAnalyzerName(int tag) const
 
 	return it->second->CanonicalName();
 	}
+
+EnumType* Manager::GetTagEnumType()
+	{
+	return tag_enum_type;
+	}

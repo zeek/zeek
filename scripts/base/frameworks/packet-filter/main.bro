@@ -109,7 +109,7 @@ export {
 
 	## Enables the old filtering approach of "only watch common ports for
 	## analyzed protocols".
-        ##
+	##
 	## Unless you know what you are doing, leave this set to F.
 	const enable_auto_protocol_capture_filters = F &redef;
 

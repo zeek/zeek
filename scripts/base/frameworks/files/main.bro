@@ -204,7 +204,7 @@ export {
 	## 
 	## tag: Tag for the protocol analyzer having a callback being registered.
 	##
-	## reg: A :bro:see:`ProtoRegistration` record.
+	## reg: A :bro:see:`Files::ProtoRegistration` record.
 	##
 	## Returns: true if the protocol being registered was not previously registered.
 	global register_protocol: function(tag: Analyzer::Tag, reg: ProtoRegistration): bool;

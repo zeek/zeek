@@ -82,9 +82,9 @@ attached, they start receiving the contents of the file as Bro extracts
 it from an ongoing network connection.  What they do with the file
 contents is up to the particular file analyzer implementation, but
 they'll typically either report further information about the file via
-events (e.g. :bro:see:`FileAnalysis::ANALYZER_MD5` will report the
+events (e.g. :bro:see:`Files::ANALYZER_MD5` will report the
 file's MD5 checksum via :bro:see:`file_hash` once calculated) or they'll
-have some side effect (e.g. :bro:see:`FileAnalysis::ANALYZER_EXTRACT`
+have some side effect (e.g. :bro:see:`Files::ANALYZER_EXTRACT`
 will write the contents of the file out to the local file system).
 
 In the future there may be file analyzers that automatically attach to
@@ -98,7 +98,7 @@ explicit attachment decision:
         {
         print "new file", f$id;
         if ( f?$mime_type && f$mime_type == "text/plain" )
-            FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_MD5]);
+            Files::add_analyzer(f, Files::ANALYZER_MD5);
         }
 
     event file_hash(f: fa_file, kind: string, hash: string)
@@ -113,26 +113,27 @@ output::
     file_hash, Cx92a0ym5R8, md5, 397168fd09991a0e712254df7bc639ac
 
 Some file analyzers might have tunable parameters that need to be
-specified in the call to :bro:see:`FileAnalysis::add_analyzer`:
+specified in the call to :bro:see:`Files::add_analyzer`:
 
 .. code:: bro
 
     event file_new(f: fa_file)
         {
-        FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
-                                       $extract_filename="./myfile"]);
+        Files::add_analyzer(f, Files::ANALYZER_EXTRACT,
+                            [$extract_filename="myfile"]);
         }
 
 In this case, the file extraction analyzer doesn't generate any further
-events, but does have the side effect of writing out the file contents
-to the local file system at the specified location of ``./myfile``.  Of
-course, for a network with more than a single file being transferred,
-it's probably preferable to specify a different extraction path for each
-file, unlike this example.
+events, but does have the effect of writing out the file contents to the
+local file system at the location resulting from the concatenation of
+the path specified by :bro:see:`FileExtract::prefix` and the string,
+``myfile``.  Of course, for a network with more than a single file being
+transferred, it's probably preferable to specify a different extraction
+path for each file, unlike this example.
 
 Regardless of which file analyzers end up acting on a file, general
 information about the file (e.g. size, time of last data transferred,
-MIME type, etc.) are logged in ``file_analysis.log``.
+MIME type, etc.) are logged in ``files.log``.
 
 Input Framework Integration
 ===========================
@@ -150,7 +151,7 @@ a network interface it's monitoring.  It only requires a call to
     event file_new(f: fa_file)
         {
         print "new file", f$id;
-        FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_MD5]);
+        Files::add_analyzer(f, Files::ANALYZER_MD5);
         }
 
     event file_state_remove(f: fa_file)

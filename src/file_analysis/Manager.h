@@ -214,6 +214,12 @@ public:
 	 */
 	const char* GetAnalyzerName(int tag) const;
 
+	/**
+	 * Returns the enum type that corresponds to the script-level type
+	 * \c Files::Tag.
+	 */
+	EnumType* GetTagEnumType();
+
 protected:
 	friend class FileTimer;
 

@@ -27,7 +27,7 @@ Quick Start
 Load the package of scripts that sends data into the Intelligence
 Framework to be checked by loading this script in local.bro::
 
-	@load policy/frameworks/intel
+	@load policy/frameworks/intel/seen
 
 Refer to the "Loading Intelligence" section below to see the format
 for Intelligence Framework text files, then load those text files with
@@ -100,7 +100,7 @@ The full package of hook scripts that Bro ships with for sending this
 "seen" data into the intelligence framework can be loading by adding
 this line to local.bro::
 
-	@load policy/frameworks/intel
+	@load policy/frameworks/intel/seen
 
 Intelligence Matches
 ********************

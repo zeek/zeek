@@ -63,9 +63,6 @@ export {
 		IN_ANYWHERE,
 	};
 
-	## The $host field and combination of $str and $str_type fields are mutually 
-	## exclusive.  These records *must* represent either an IP address being
-	## seen or a string being seen.
 	type Seen: record {
 		## The string if the data is about a string.
 		indicator:       string        &log &optional;

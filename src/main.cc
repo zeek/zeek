@@ -840,6 +840,12 @@ int main(int argc, char** argv)
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 
+	if ( print_plugins )
+		{
+		show_plugins(print_plugins);
+		exit(1);
+		}
+
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
 
@@ -864,12 +870,6 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
-
-	if ( print_plugins )
-		{
-		show_plugins(print_plugins);
-		exit(1);
-		}
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}

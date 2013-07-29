@@ -1,4 +1,29 @@
 
+2.1-894 | 2013-07-29 16:44:41 -0400
+
+  * Updates for the Intel Framework. (Seth Hall)
+
+      - policy/frameworks/intel/seen is the new location for the 
+        scripts that push data into the intel framework for checking.
+
+      - The new policy/frameworks/intel/do_notice script adds an 
+        example mechanism for data driven notices.
+
+      - Remove the Intel insertion after heuristically detecting SSH 
+        bruteforcing.
+     
+      - Intel importing format has changed (refer to docs).
+
+      - All string matching is now case insensitive.
+
+      - SMTP intel script has been updated to extract email
+        addresses correctly.
+
+      - Small fix sneaking into the smtp base script to actually
+        extract individual email addresses in the To: field
+        correctly.
+
+
 2.1-888 | 2013-07-25 12:02:41 -0700
 
   * Protection about broken traces with empty pcap headers. (Matt

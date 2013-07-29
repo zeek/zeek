@@ -13,8 +13,8 @@ event intel_mime_data(f: fa_file, data: string)
 		local urls = find_all_urls_without_scheme(data);
 		for ( url in urls )
 			{
-			Intel::seen([$str=url,
-			             $str_type=Intel::URL,
+			Intel::seen([$indicator=url,
+			             $indicator_type=Intel::URL,
 			             $conn=c,
 			             $where=SMTP::IN_MESSAGE]);
 			}

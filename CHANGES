@@ -1,4 +1,44 @@
 
+2.1-930 | 2013-07-29 15:06:07 -0700
+
+  * Major file analysis overhaul in naming and appearance, along with
+    fixes and test updates. (Seth Hall and Jon Siwek)
+
+    Includes:
+
+    * Added protocol description functions that provide a super
+      compressed log representation. (Seth Hall)
+
+    * Added mime types to http.log (Seth Hall)
+      
+    * Add jar files to the default MHR lookups. (Seth Hall)
+      
+    * Adding CAB files for MHR checking. (Seth Hall)
+      
+    * Improve malware hash registry script.
+
+        - Include a link to a virustotal search in the notice sub message field.
+        - Give all information returned from Team Cymru in the notice message.
+        - Add more file types to match on to the default set.
+
+    * Make the custom libmagic database a git submodule.
+
+    * Add an is_orig parameter to file_over_new_connection event.
+
+    * Recorrected the module name to Files.
+
+    * Added Files::analyzer_name to get a more readable name for a
+      file analyzer.
+
+    * Improved and just overall better handled multipart mime
+      transfers in HTTP and SMTP.  HTTP now has orig_fuids and
+      resp_fuids log fields since multiple "files" can be transferred
+      with multipart mime in a single request/response pair.  SMTP has
+      an fuids field which has file unique IDs for all parts
+      transferred. FTP and IRC have a log field named fuid added
+      because only a single file can be transferred per irc and ftp
+      log line.
+
 2.1-895 | 2013-07-29 14:07:35 -0700
 
   * Adding a test for a DNSKEY RR. (Robin Sommer)

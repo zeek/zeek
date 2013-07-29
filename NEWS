@@ -80,7 +80,7 @@ New Functionality
   with the following user-visibible functionality (some of that was
   already available before, but done differently):
 
-  [TODO: This will probably change with further script updates.]
+  [TODO: Update with changes from 984e9793db56.]
 
       - A binary input reader interfaces the input framework with file
         analysis, allowing to inject files on disk into Bro's

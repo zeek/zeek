@@ -1,5 +1,5 @@
 @load ./main
 @load ./dcc-send
-@load ./file-analysis
+@load ./files
 
 @load-sigs ./dpd.sig

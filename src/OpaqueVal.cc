@@ -589,32 +589,33 @@ bool BloomFilterVal::Empty() const
 	}
 
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
-		const BloomFilterVal* y)
+				      const BloomFilterVal* y)
 	{
 	if ( ! same_type(x->Type(), y->Type()) )
 		{
-		reporter->InternalError("cannot merge Bloom filters with different types");
+		reporter->Error("cannot merge Bloom filters with different types");
 		return 0;
 		}
 
 	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
 		{
-		reporter->InternalError("cannot merge different Bloom filter types");
+		reporter->Error("cannot merge different Bloom filter types");
 		return 0;
 		}
 
 	probabilistic::BloomFilter* copy = x->bloom_filter->Clone();
-	bool success = copy->Merge(y->bloom_filter);
-	if ( ! success )
+
+	if ( ! copy->Merge(y->bloom_filter) )
 		{
-		reporter->InternalError("failed to merge Bloom filter");
+		reporter->Error("failed to merge Bloom filter");
 		return 0;
 		}
 
 	BloomFilterVal* merged = new BloomFilterVal(copy);
+
 	if ( ! merged->Typify(x->Type()) )
 		{
-		reporter->InternalError("failed to set type on merged Bloom filter");
+		reporter->Error("failed to set type on merged Bloom filter");
 		return 0;
 		}
 
@@ -655,11 +656,11 @@ bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 
 	if ( is_typed )
 		{
-		BroType* type = BroType::Unserialize(info);
-		if ( ! Typify(type) )
+		BroType* t = BroType::Unserialize(info);
+		if ( ! Typify(t) )
 			return false;
 
-		Unref(type);
+		Unref(t);
 		}
 
 	bloom_filter = probabilistic::BloomFilter::Unserialize(info);

@@ -29,7 +29,7 @@ Extract::~Extract()
 
 file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 	Val* v = args->Lookup(AnalyzerArgs->FieldOffset("extract_filename"));
 
 	if ( ! v )

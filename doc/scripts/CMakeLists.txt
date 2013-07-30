@@ -99,7 +99,7 @@ macro(REST_TARGET srcDir broInput)
         COMMAND "${CMAKE_COMMAND}"
         ARGS -E remove_directory .state
         # generate the reST documentation using bro
-        COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic ${CMAKE_BINARY_DIR}/src/bro
+        COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic/database ${CMAKE_BINARY_DIR}/src/bro
         ARGS -b -Z ${broInput} || (rm -rf .state *.log *.rst && exit 1)
         # move generated doc into a new directory tree that
         # defines the final structure of documents
@@ -130,7 +130,7 @@ add_custom_command(OUTPUT proto-analyzers.rst
     COMMAND "${CMAKE_COMMAND}"
     ARGS -E remove_directory .state
     # generate the reST documentation using bro
-    COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic ${CMAKE_BINARY_DIR}/src/bro
+    COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic/database ${CMAKE_BINARY_DIR}/src/bro
     ARGS -b -Z base/init-bare.bro || (rm -rf .state *.log *.rst && exit 1)
     # move generated doc into a new directory tree that
     # defines the final structure of documents

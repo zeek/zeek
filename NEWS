@@ -80,7 +80,7 @@ New Functionality
   with the following user-visibible functionality (some of that was
   already available before, but done differently):
 
-  [TODO: This will probably change with further script updates.]
+  [TODO: Update with changes from 984e9793db56.]
 
       - A binary input reader interfaces the input framework with file
         analysis, allowing to inject files on disk into Bro's
@@ -117,8 +117,15 @@ New Functionality
     bloomfilter_add(bf: opaque of bloomfilter, x: any)
     bloomfilter_lookup(bf: opaque of bloomfilter, x: any): count
     bloomfilter_merge(bf1: opaque of bloomfilter, bf2: opaque of bloomfilter): opaque of bloomfilter
+    bloomfilter_clear(bf: opaque of bloomfilter)
 
-  See TODO for full documentation.
+  See <INSERT LINK> for full documentation.
+
+- base/utils/exec.bro provides a module to start external processes
+  asynchronously and retrieve their output on termination.
+  base/utils/dir.bro uses it to monitor a directory for changes, and
+  base/utils/active-http.bro for providing an interface for querying
+  remote web servers.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~

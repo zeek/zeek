@@ -1,9 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "BloomFilter.h"
-
+#include <typeinfo>
 #include <cmath>
 #include <limits>
+
+#include "BloomFilter.h"
+
 #include "CounterVector.h"
 #include "Serializer.h"
 
@@ -74,18 +76,19 @@ void BasicBloomFilter::Clear()
 bool BasicBloomFilter::Merge(const BloomFilter* other)
 	{
 	if ( typeid(*this) != typeid(*other) )
-		return 0;
+		return false;
 
 	const BasicBloomFilter* o = static_cast<const BasicBloomFilter*>(other);
 
 	if ( ! hasher->Equals(o->hasher) )
 		{
-		reporter->InternalError("incompatible hashers in BasicBloomFilter merge");
+		reporter->Error("incompatible hashers in BasicBloomFilter merge");
 		return false;
 		}
+
 	else if ( bits->Size() != o->bits->Size() )
 		{
-		reporter->InternalError("different bitvector size in BasicBloomFilter merge");
+		reporter->Error("different bitvector size in BasicBloomFilter merge");
 		return false;
 		}
 
@@ -172,18 +175,19 @@ void CountingBloomFilter::Clear()
 bool CountingBloomFilter::Merge(const BloomFilter* other)
 	{
 	if ( typeid(*this) != typeid(*other) )
-		return 0;
+		return false;
 
 	const CountingBloomFilter* o = static_cast<const CountingBloomFilter*>(other);
 
 	if ( ! hasher->Equals(o->hasher) )
 		{
-		reporter->InternalError("incompatible hashers in CountingBloomFilter merge");
+		reporter->Error("incompatible hashers in CountingBloomFilter merge");
 		return false;
 		}
+
 	else if ( cells->Size() != o->cells->Size() )
 		{
-		reporter->InternalError("different bitvector size in CountingBloomFilter merge");
+		reporter->Error("different bitvector size in CountingBloomFilter merge");
 		return false;
 		}
 

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-07-10-21-18-31
+#open	2013-07-29-22-37-53
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -12,6 +12,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/strings.bif.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
+  build/scripts/base/bif/bloom-filter.bif.bro
   build/scripts/base/bif/event.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
@@ -84,18 +85,24 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/analyzer/main.bro
       scripts/base/frameworks/packet-filter/utils.bro
       build/scripts/base/bif/analyzer.bif.bro
-  scripts/base/frameworks/file-analysis/__load__.bro
-    scripts/base/frameworks/file-analysis/main.bro
+  scripts/base/frameworks/files/__load__.bro
+    scripts/base/frameworks/files/main.bro
       build/scripts/base/bif/file_analysis.bif.bro
+      scripts/base/utils/site.bro
+        scripts/base/utils/patterns.bro
+  build/scripts/base/bif/__load__.bro
 scripts/base/init-default.bro
-  scripts/base/utils/site.bro
-    scripts/base/utils/patterns.bro
+  scripts/base/utils/active-http.bro
+    scripts/base/utils/exec.bro
   scripts/base/utils/addrs.bro
   scripts/base/utils/conn-ids.bro
+  scripts/base/utils/dir.bro
+    scripts/base/frameworks/reporter/__load__.bro
+      scripts/base/frameworks/reporter/main.bro
+    scripts/base/utils/paths.bro
   scripts/base/utils/directions-and-hosts.bro
   scripts/base/utils/files.bro
   scripts/base/utils/numbers.bro
-  scripts/base/utils/paths.bro
   scripts/base/utils/queue.bro
   scripts/base/utils/strings.bro
   scripts/base/utils/thresholds.bro
@@ -129,8 +136,6 @@ scripts/base/init-default.bro
   scripts/base/frameworks/intel/__load__.bro
     scripts/base/frameworks/intel/main.bro
     scripts/base/frameworks/intel/input.bro
-  scripts/base/frameworks/reporter/__load__.bro
-    scripts/base/frameworks/reporter/main.bro
   scripts/base/frameworks/sumstats/__load__.bro
     scripts/base/frameworks/sumstats/main.bro
     scripts/base/frameworks/sumstats/plugins/__load__.bro
@@ -157,8 +162,8 @@ scripts/base/init-default.bro
   scripts/base/protocols/ftp/__load__.bro
     scripts/base/protocols/ftp/utils-commands.bro
     scripts/base/protocols/ftp/main.bro
-    scripts/base/protocols/ftp/file-analysis.bro
-    scripts/base/protocols/ftp/file-extract.bro
+      scripts/base/protocols/ftp/utils.bro
+    scripts/base/protocols/ftp/files.bro
     scripts/base/protocols/ftp/gridftp.bro
       scripts/base/protocols/ssl/__load__.bro
         scripts/base/protocols/ssl/consts.bro
@@ -166,15 +171,13 @@ scripts/base/init-default.bro
         scripts/base/protocols/ssl/mozilla-ca-list.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/main.bro
+    scripts/base/protocols/http/entities.bro
     scripts/base/protocols/http/utils.bro
-    scripts/base/protocols/http/file-analysis.bro
-    scripts/base/protocols/http/file-ident.bro
-    scripts/base/protocols/http/file-hash.bro
-    scripts/base/protocols/http/file-extract.bro
+    scripts/base/protocols/http/files.bro
   scripts/base/protocols/irc/__load__.bro
     scripts/base/protocols/irc/main.bro
     scripts/base/protocols/irc/dcc-send.bro
-    scripts/base/protocols/irc/file-analysis.bro
+    scripts/base/protocols/irc/files.bro
   scripts/base/protocols/modbus/__load__.bro
     scripts/base/protocols/modbus/consts.bro
     scripts/base/protocols/modbus/main.bro
@@ -182,8 +185,7 @@ scripts/base/init-default.bro
   scripts/base/protocols/smtp/__load__.bro
     scripts/base/protocols/smtp/main.bro
     scripts/base/protocols/smtp/entities.bro
-    scripts/base/protocols/smtp/entities-excerpt.bro
-    scripts/base/protocols/smtp/file-analysis.bro
+    scripts/base/protocols/smtp/files.bro
   scripts/base/protocols/socks/__load__.bro
     scripts/base/protocols/socks/consts.bro
     scripts/base/protocols/socks/main.bro
@@ -193,6 +195,10 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
+  scripts/base/files/hash/__load__.bro
+    scripts/base/files/hash/main.bro
+  scripts/base/files/extract/__load__.bro
+    scripts/base/files/extract/main.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-07-10-21-18-31
+#close	2013-07-29-22-37-53

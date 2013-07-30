@@ -13,6 +13,6 @@ set(probabilistic_SRCS
     Hasher.cc)
 
 bif_target(bloom-filter.bif)
+bro_add_subdir_library(probabilistic ${probabilistic_SRCS})
 
-bro_add_subdir_library(probabilistic ${probabilistic_SRCS} ${BIF_OUTPUT_CC})
 add_dependencies(bro_probabilistic generate_outputs)

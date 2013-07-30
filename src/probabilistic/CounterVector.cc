@@ -183,11 +183,11 @@ bool CounterVector::DoUnserialize(UnserialInfo* info)
 	if ( ! bits )
 		return false;
 
-	uint64 width;
-	if ( ! UNSERIALIZE(&width) )
+	uint64 w;
+	if ( ! UNSERIALIZE(&w) )
 		return false;
 
-	width = static_cast<size_t>(width);
+	width = static_cast<size_t>(w);
 
 	return true;
 	}

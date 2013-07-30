@@ -175,7 +175,7 @@ extern bool have_random_seed();
 
 // A simple linear congruence PRNG. It takes its state as argument and
 // returns a new random value, which can serve as state for subsequent calls.
-long int bro_prng(long int state);
+unsigned int bro_prng(unsigned int state);
 
 // Replacement for the system random(), to which is normally falls back
 // except when a seed has been given. In that case, the function bro_prng.

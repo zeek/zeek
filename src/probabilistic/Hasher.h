@@ -78,6 +78,14 @@ protected:
 
 	Hasher() { }
 
+	/**
+	 * Constructor.
+	 *
+	 * @param k the number of hash functions.
+	 *
+	 * @param name A name for the hasher. Hashers with the same name
+	 * should provide consistent results.
+	 */
 	Hasher(size_t k, const std::string& name);
 
 private:

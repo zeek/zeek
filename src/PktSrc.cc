@@ -77,6 +77,12 @@ int PktSrc::ExtractNextPacket()
 
 	data = last_data = pcap_next(pd, &hdr);
 
+	if ( data && (hdr.len == 0 || hdr.caplen == 0) )
+		{
+		sessions->Weird("empty_pcap_header", &hdr, data);
+		return 0;
+		}
+
 	if ( data )
 		next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
 

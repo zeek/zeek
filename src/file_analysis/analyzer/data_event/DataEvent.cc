@@ -17,7 +17,7 @@ DataEvent::DataEvent(RecordVal* args, File* file,
 
 file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 
 	int chunk_off = AnalyzerArgs->FieldOffset("chunk_event");
 	int stream_off = AnalyzerArgs->FieldOffset("stream_event");

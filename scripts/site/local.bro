@@ -64,7 +64,14 @@
 # Detect logins using "interesting" hostnames.
 @load protocols/ssh/interesting-hostnames
 
-# Detect MD5 sums in Team Cymru's Malware Hash Registry.
-@load protocols/http/detect-MHR
 # Detect SQL injection attacks.
 @load protocols/http/detect-sqli
+
+#### Network File Handling ####
+
+# Enable MD5 and SHA1 hashing for all files.
+@load frameworks/files/hash-all-files
+
+# Detect SHA1 sums in Team Cymru's Malware Hash Registry.
+@load frameworks/files/detect-MHR
+

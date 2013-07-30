@@ -1,6 +1,6 @@
 ##! Internal functions and types used by the file analysis framework.
 
-module FileAnalysis;
+module Files;
 
 %%{
 #include "file_analysis/Manager.h"
@@ -8,38 +8,44 @@ module FileAnalysis;
 
 type AnalyzerArgs: record;
 
-## :bro:see:`FileAnalysis::set_timeout_interval`.
-function FileAnalysis::__set_timeout_interval%(file_id: string, t: interval%): bool
+## :bro:see:`Files::set_timeout_interval`.
+function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{
 	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::add_analyzer`.
-function FileAnalysis::__add_analyzer%(file_id: string, args: any%): bool
+## :bro:see:`Files::add_analyzer`.
+function Files::__add_analyzer%(file_id: string, args: any%): bool
 	%{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::remove_analyzer`.
-function FileAnalysis::__remove_analyzer%(file_id: string, args: any%): bool
+## :bro:see:`Files::remove_analyzer`.
+function Files::__remove_analyzer%(file_id: string, args: any%): bool
 	%{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`FileAnalysis::stop`.
-function FileAnalysis::__stop%(file_id: string%): bool
+## :bro:see:`Files::stop`.
+function Files::__stop%(file_id: string%): bool
 	%{
 	bool result = file_mgr->IgnoreFile(file_id->CheckString());
 	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::analyzer_name`.
+function Files::__analyzer_name%(tag: Files::Tag%) : string
+	%{
+	return new StringVal(file_mgr->GetAnalyzerName(tag->InternalInt()));
 	%}
 
 module GLOBAL;
@@ -58,4 +64,4 @@ function set_file_handle%(handle: string%): any
 	return 0;
 	%}
 
-const FileAnalysis::salt: string;
+const Files::salt: string;

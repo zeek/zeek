@@ -1593,12 +1593,26 @@ void operator delete[](void* v)
 
 #endif
 
+// Being selective of which components of MAGIC_NO_CHECK_BUILTIN are actually
+// known to be problematic, but keeping rest of libmagic's builtin checks.
+#define DISABLE_LIBMAGIC_BUILTIN_CHECKS  ( \
+/*  MAGIC_NO_CHECK_COMPRESS | */ \
+/*  MAGIC_NO_CHECK_TAR  | */ \
+/*  MAGIC_NO_CHECK_SOFT | */ \
+/*  MAGIC_NO_CHECK_APPTYPE  | */ \
+/*  MAGIC_NO_CHECK_ELF  | */ \
+/*  MAGIC_NO_CHECK_TEXT | */ \
+    MAGIC_NO_CHECK_CDF  | \
+    MAGIC_NO_CHECK_TOKENS  \
+/*  MAGIC_NO_CHECK_ENCODING */ \
+)
+
 void bro_init_magic(magic_t* cookie_ptr, int flags)
 	{
 	if ( ! cookie_ptr || *cookie_ptr )
 		return;
 
-	*cookie_ptr = magic_open(flags|MAGIC_NO_CHECK_TOKENS);
+	*cookie_ptr = magic_open(flags|DISABLE_LIBMAGIC_BUILTIN_CHECKS);
 
 	// Use our custom database for mime types, but the default database
 	// from libmagic for the verbose file type.

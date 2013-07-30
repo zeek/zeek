@@ -1,4 +1,90 @@
 
+2.1-945 | 2013-07-30 10:05:10 -0700
+
+  * Make hashers serializable. (Matthias Vallentin)
+
+  * Add docs and use default value for hasher names. (Matthias
+    Vallentin)
+
+2.1-939 | 2013-07-29 15:42:38 -0700
+
+  * Added Exec, Dir, and ActiveHTTP modules. (Seth Hall)
+
+    base/utils/exec.bro provides a module to start external processes
+    asynchronously and retrieve their output on termination.
+    base/utils/dir.bro uses it to monitor a directory for changes, and
+    base/utils/active-http.bro for providing an interface for querying
+    remote web servers.
+
+2.1-930 | 2013-07-29 15:06:07 -0700
+
+  * Major file analysis overhaul in naming and appearance, along with
+    fixes and test updates. (Seth Hall and Jon Siwek)
+
+    Includes:
+
+    * Added protocol description functions that provide a super
+      compressed log representation. (Seth Hall)
+
+    * Added mime types to http.log (Seth Hall)
+      
+    * Add jar files to the default MHR lookups. (Seth Hall)
+      
+    * Adding CAB files for MHR checking. (Seth Hall)
+      
+    * Improve malware hash registry script.
+
+        - Include a link to a virustotal search in the notice sub message field.
+        - Give all information returned from Team Cymru in the notice message.
+        - Add more file types to match on to the default set.
+
+    * Make the custom libmagic database a git submodule.
+
+    * Add an is_orig parameter to file_over_new_connection event.
+
+    * Recorrected the module name to Files.
+
+    * Added Files::analyzer_name to get a more readable name for a
+      file analyzer.
+
+    * Improved and just overall better handled multipart mime
+      transfers in HTTP and SMTP.  HTTP now has orig_fuids and
+      resp_fuids log fields since multiple "files" can be transferred
+      with multipart mime in a single request/response pair.  SMTP has
+      an fuids field which has file unique IDs for all parts
+      transferred. FTP and IRC have a log field named fuid added
+      because only a single file can be transferred per irc and ftp
+      log line.
+
+2.1-895 | 2013-07-29 14:07:35 -0700
+
+  * Adding a test for a DNSKEY RR. (Robin Sommer)
+
+2.1-894 | 2013-07-29 16:44:41 -0400
+
+  * Updates for the Intel Framework. (Seth Hall)
+
+      - policy/frameworks/intel/seen is the new location for the 
+        scripts that push data into the intel framework for checking.
+
+      - The new policy/frameworks/intel/do_notice script adds an 
+        example mechanism for data driven notices.
+
+      - Remove the Intel insertion after heuristically detecting SSH 
+        bruteforcing.
+     
+      - Intel importing format has changed (refer to docs).
+
+      - All string matching is now case insensitive.
+
+      - SMTP intel script has been updated to extract email
+        addresses correctly.
+
+      - Small fix sneaking into the smtp base script to actually
+        extract individual email addresses in the To: field
+        correctly.
+
+
 2.1-888 | 2013-07-25 12:02:41 -0700
 
   * Protection about broken traces with empty pcap headers. (Matt

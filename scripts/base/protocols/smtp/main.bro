@@ -72,7 +72,10 @@ export {
 	##    ALL_HOSTS - always capture the entire path.
 	##    NO_HOSTS - never capture the path.
 	const mail_path_capture = ALL_HOSTS &redef;
-		
+	
+	## Create an extremely shortened representation of a log line.
+	global describe: function(rec: Info): string;
+
 	global log_smtp: event(rec: Info);
 }
 
@@ -223,7 +226,10 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		{
 		if ( ! c$smtp?$to )
 			c$smtp$to = set();
-		add c$smtp$to[h$value];
+
+		local to_parts = split(h$value, /[[:blank:]]*,[[:blank:]]*/);
+		for ( i in to_parts )
+			add c$smtp$to[to_parts[i]];
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )
@@ -267,4 +273,30 @@ event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$smtp )
 		smtp_message(c);
+	}
+
+function describe(rec: Info): string
+	{
+	if ( rec?$mailfrom && rec?$rcptto )
+		{
+		local one_to = "";
+		for ( to in rec$rcptto )
+			{
+			one_to = to;
+			break;
+			}
+		local abbrev_subject = "";
+		if ( rec?$subject )
+			{
+			if ( |rec$subject| > 20 )
+				{
+				abbrev_subject = rec$subject[0:20] + "...";
+				}
+			}
+
+		return fmt("%s -> %s%s%s", rec$mailfrom, one_to,
+			(|rec$rcptto|>1 ? fmt(" (plus %d others)", |rec$rcptto|-1) : ""),
+			(abbrev_subject != "" ? fmt(": %s", abbrev_subject) : ""));
+		}
+		return "";
 	}

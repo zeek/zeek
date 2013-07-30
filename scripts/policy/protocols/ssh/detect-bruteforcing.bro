@@ -58,10 +58,6 @@ event bro_init()
 	                  	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
 	                  	        $src=key$host,
 	                  	        $identifier=cat(key$host)]);
-	                  	# Insert the guesser into the intel framework.
-	                  	Intel::insert([$host=key$host,
-	                  	               $meta=[$source="local",
-	                  	                      $desc=fmt("Bro observed %d apparently failed SSH connections.", r$num)]]);
 	                  	}]);
 	}
 

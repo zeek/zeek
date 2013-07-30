@@ -4,23 +4,24 @@
 #include <stdint.h>
 #include "HyperLogLog.h"
 #include <iostream>
+#include "Reporter.h"
 
 using namespace probabilistic;
 
 int CardinalityCounter::optimalB(double error)
 	{
-		double initial_estimate = 2*(log(1.04)-log(error))/log(2);
-		int answer = (int) floor(initial_estimate);
-		double k;
+	double initial_estimate = 2*(log(1.04)-log(error))/log(2);
+	int answer = (int) floor(initial_estimate);
+	double k;
 
-		do
-			{
-			answer++;
-			k = pow(2, (answer - initial_estimate)/2);
-			}
-		while (erf(k/sqrt(2)) < HLL_CONF);
+	do
+		{
+		answer++;
+		k = pow(2, (answer - initial_estimate)/2);
+		}
+	while (erf(k/sqrt(2)) < HLL_CONF);
 
-		return answer;
+	return answer;
 	}
 
 CardinalityCounter::CardinalityCounter(uint64_t size)
@@ -28,14 +29,16 @@ CardinalityCounter::CardinalityCounter(uint64_t size)
 	m = size;
 	buckets = new uint8_t[m];
 
-	if(m == 16)
+	if (m == 16)
 		alpha_m = 0.673;
-	else if(m == 32)
+	else if (m == 32)
 		alpha_m = 0.697;
-	else if(m == 64)
+	else if (m == 64)
 		alpha_m = 0.709;
-	else
+	else if (m >= 128)
 		alpha_m = 0.7213/(1+1.079/m);
+	else 
+		reporter->InternalError("Invalid size %lld. Size either has to be 16, 32, 64 or bigger than 128", size);
 
 	for (uint64_t i = 0; i < m; i++)
 		buckets[i] = 0;
@@ -55,8 +58,10 @@ CardinalityCounter::CardinalityCounter(double error_margin)
 		alpha_m = 0.697;
 	else if(m == 64)
 		alpha_m = 0.709;
-	else
+	else if(m >= 128)
 		alpha_m = 0.7213/(1+1.079/m);
+	else 
+		reporter->InternalError("Invalid m %lld calculated for error margin %f", m, error_margin);
 
 	for (uint64_t i = 0; i < m; i++)
 		buckets[i] = 0;
@@ -96,7 +101,7 @@ void CardinalityCounter::addElement(uint64_t hash)
   
 	if (temp > buckets[index])
     		buckets[index] = temp;
-}
+	}
 
 double CardinalityCounter::size()
 	{
@@ -113,7 +118,7 @@ double CardinalityCounter::size()
 		return answer;
 	else
 		return -pow(2,64)*log(1-answer/pow(2,64));
-}
+	}
 
 void CardinalityCounter::merge(CardinalityCounter* c)
 	{

@@ -15,22 +15,6 @@ namespace probabilistic {
 	class CardinalityCounter;
 }
 
-class CardinalityVal: public OpaqueVal {
-public:
-	CardinalityVal();
-	~CardinalityVal();
-	bool Init(probabilistic::CardinalityCounter*);
-	bool IsValid() const { return valid; };
-	probabilistic::CardinalityCounter* Get() { return c; };
-
-private:
-	bool valid;
-	probabilistic::CardinalityCounter* c;
-
-	DECLARE_SERIAL(CardinalityVal); 
-};
-
-
 class HashVal : public OpaqueVal {
 public:
 	virtual bool IsValid() const;
@@ -163,5 +147,27 @@ private:
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 	};
+
+
+class CardinalityVal: public OpaqueVal {
+public:
+	explicit CardinalityVal(probabilistic::CardinalityCounter*);
+	virtual ~CardinalityVal();
+	
+	BroType* Type() const;
+	bool Typify(BroType* type);
+
+	probabilistic::CardinalityCounter* Get() { return c; };
+
+protected:
+	CardinalityVal();
+
+private:
+	BroType* type;
+	CompositeHash* hash;
+	probabilistic::CardinalityCounter* c;
+
+	DECLARE_SERIAL(CardinalityVal); 
+};
 
 #endif

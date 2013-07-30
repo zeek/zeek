@@ -14,64 +14,88 @@ using namespace probabilistic;
 module GLOBAL;
 
 ## Initializes the hash for the HyperLogLog cardinality counting algorithm.
-## It returns true if it was successful in creating a structure and false
-## if it wasn't.
-
+##
+## err: the desired error rate (e.g. 0.01).
+##
+## Returns: a hll cardinality handle.
+##
+## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
+##    hll_cardinality_copy
 function hll_cardinality_init%(err: double%): opaque of cardinality
 	%{
 	CardinalityCounter* c = new CardinalityCounter(err);
-	CardinalityVal* cv = new CardinalityVal();
-
-	if ( !c )  
-		reporter->Error("Failed initialize Cardinality counter");
-	else 
-		cv->Init(c);
+	CardinalityVal* cv = new CardinalityVal(c);
 
 	return cv;
 	%}
 
-## Adds an element to the HyperLogLog data structure located at index.
-
-##elem->Type() to get the type of elem.
-
+## Adds an element to the HyperLogLog data structure
+##
+## handle: the hll handle.
+##
+## elem: the element to add
+##
+## Returns: 1 on success
+##
+## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into 
+##    hll_cardinality_init hll_cardinality_copy
 function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	%{
-	if ( !((CardinalityVal*) handle)->IsValid() ) {
-		reporter->Error("Need valid handle");
+	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+
+	if ( ! cv->Type() && ! cv->Typify(elem->Type()) )
+		{
+		reporter->Error("failed to set HLL type");
 		return new Val(0, TYPE_BOOL);
-	}
+		}
+	else if ( ! same_type(cv->Type(), elem->Type()) )
+		{
+		reporter->Error("incompatible HLL data type");
+		return new Val(0, TYPE_BOOL);
+		}
 
 	int status = 0;
-	uint64_t a = 123456;
 
 	TypeList* tl = new TypeList(elem->Type());
 	tl->Append(elem->Type());
 	CompositeHash* hll_hash = new CompositeHash(tl);
 	Unref(tl);
 
-	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
 	HashKey* key = hll_hash->ComputeHash(elem, 1);
-	a = key->Hash();
-	h->addElement(a);
+	uint64_t hash = key->Hash();
+
+	CardinalityCounter* h = cv->Get();
+	h->addElement(hash);
 
 	delete hll_hash;
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## The data structure at index1 will contain the combined count for the
-## elements measured by index1 and index2.
-## It returns true if it either cloned the value at index2 into index1
-## or if it merged the two data structures together.
-
+## Merges the second hll data structure into the first
+##
+## .. note:: The same restrictions as for bloom-filter merging apply
+##
+## handle1: the first hll handle, which will contain the merged result
+##
+## handle2: the second hll handle, which will be merged into the first
+##
+## Returns: 1 on success
+##
+## .. bro:see:: hll_cardinality_estimate  hll_cardinality_add
+##    hll_cardinality_init hll_cardinality_copy
 function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: opaque of cardinality%): bool
 	%{
-	CardinalityVal* v1 = (CardinalityVal*) handle1;
-	CardinalityVal* v2 = (CardinalityVal*) handle2;
+	CardinalityVal* v1 = static_cast<CardinalityVal*>(handle1);
+	CardinalityVal* v2 = static_cast<CardinalityVal*>(handle2);
 
-	if ( !v1->IsValid() || !v2->IsValid() ) {
-		reporter->Error("need valid handles");
+	if ( ( v1->Type() != v2->Type() ) && // both 0 is ok
+	     ( v1->Type() != 0 ) && // any one 0 also is ok
+	     ( v2->Type() != 0 ) &&
+	     ! same_type(v1->Type(), v2->Type()) )
+		{
+		reporter->Error("incompatible HLL types");
 		return new Val(0, TYPE_BOOL);
-	}
+		}
 
 	CardinalityCounter* h1 = v1->Get();
 	CardinalityCounter* h2 = v2->Get();
@@ -81,51 +105,42 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Returns true if it destroyed something. False if it didn't.
-#function hll_cardinality_destroy%(handle: opaque of cardinality%): bool
-#	%{
-#	if ( !((CardinalityVal*) handle)->IsValid() ) {
-#		reporter->Error("Need valid handle");
-#		return new Val(0, TYPE_BOOL);
-#	}
-#	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
-#	delete h;
-#	h = 0;
-#	return new Val(1, TYPE_BOOL);
-#	%}
-
-## Returns the cardinality estimate. Returns -1.0 if there is nothing in that index.
+## Estimate the cardinality of the HLL data structure.
+##
+## handle: the hll handle
+##
+## Returns the cardinality estimate. Returns -1.0 if the structure is empty 
+##
+## .. bro:see:: hll_cardinality_merge_into hll_cardinality_add
+##    hll_cardinality_init hll_cardinality_copy
 function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 	%{
-	if ( !((CardinalityVal*) handle)->IsValid() ) {
-		reporter->Error("Need valid handle");
-		return new Val(0, TYPE_BOOL);
-	}
-	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
+	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+	CardinalityCounter* h = cv->Get();
 
 	double estimate = h->size();
 
 	return new Val(estimate, TYPE_DOUBLE);	
 	%}
 
-## Stores the data structure at index2 into index1. Deletes the data structure at index1
-## if there was any. Returns True if the data structure at index1 was changed in any way.
-
-function hll_cardinality_clone%(handle: opaque of cardinality%): opaque of cardinality
+## Copy a hll data structure
+##
+## handle: data structure to copy
+##
+## Returns: copy of handle
+##
+## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
+##    hll_cardinality_init
+function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardinality
 	%{
-	if ( !((CardinalityVal*) handle)->IsValid() ) {
-		reporter->Error("Need valid handle");
-		return new Val(0, TYPE_BOOL);
-	}
-	CardinalityCounter* h = ((CardinalityVal*) handle)->Get();
-
+	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+	CardinalityCounter* h = cv->Get();
 
 	uint64_t m = h->getM();
 	CardinalityCounter* h2 = new CardinalityCounter(m);
 	int i = 0;
 	h2->merge(h);
-	CardinalityVal* cv = new CardinalityVal();
-	cv->Init(h2);
-	return cv;
+	CardinalityVal* out = new CardinalityVal(h2);
+	return out;
 	%}
 

@@ -7,75 +7,6 @@
 #include "probabilistic/HyperLogLog.h"
 
 
-CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
-	{
-	valid = false;
-	}
-
-CardinalityVal::~CardinalityVal() 
-	{
-	if ( valid  && c != 0 ) 
-		delete c;
-	c = 0;
-	valid = false;
-	}
-IMPLEMENT_SERIAL(CardinalityVal, SER_CARDINALITY_VAL);
-
-bool CardinalityVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_CARDINALITY_VAL, OpaqueVal);
-
-	bool serialvalid = true;
-	serialvalid &= SERIALIZE(&valid);
-
-	if ( ! IsValid() )
-		return serialvalid;
-
-	assert(c);
-
-	serialvalid &= SERIALIZE(c->m);
-	serialvalid &= SERIALIZE(c->V);
-	serialvalid &= SERIALIZE(c->alpha_m);
-	for ( unsigned int i = 0; i < c->m; i++ ) 
-		serialvalid &= SERIALIZE( c->buckets[i] );
-
-	return serialvalid;
-	}
-
-bool CardinalityVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	bool serialvalid = UNSERIALIZE(&valid);
-	
-	if ( ! IsValid() )
-		return serialvalid;
-
-	uint64_t m;
-
-	serialvalid &= UNSERIALIZE(&m);
-	c = new probabilistic::CardinalityCounter(m);
-	serialvalid &= UNSERIALIZE(&c->V);
-	serialvalid &= UNSERIALIZE(&c->alpha_m);
-
-	uint8_t* buckets = c->buckets;
-	for ( unsigned int i = 0; i < m; i++ ) 
-		{
-		uint8_t* currbucket = buckets + i;
-		serialvalid &= UNSERIALIZE( currbucket );
-		}
-	return valid;
-	}  
-
-bool CardinalityVal::Init(probabilistic::CardinalityCounter* arg_c)
-	{
-	if ( valid )
-		return false;
-
-	valid = true;
-	c = arg_c;
-	return valid;
-	}
 
 bool HashVal::IsValid() const
 	{
@@ -737,4 +668,106 @@ bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
 
 	bloom_filter = probabilistic::BloomFilter::Unserialize(info);
 	return bloom_filter != 0;
+	}
+
+CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
+	{
+	c = 0;
+	type = 0;
+	hash = 0;
+	}
+
+CardinalityVal::CardinalityVal(probabilistic::CardinalityCounter* arg_c) : OpaqueVal(cardinality_type)
+	{
+	c = arg_c;
+	type = 0;
+	hash = 0;
+	}
+
+CardinalityVal::~CardinalityVal() 
+	{
+	Unref(type);
+	delete c;
+	delete hash;
+	}
+
+IMPLEMENT_SERIAL(CardinalityVal, SER_CARDINALITY_VAL);
+
+bool CardinalityVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_CARDINALITY_VAL, OpaqueVal);
+
+	bool valid = true;
+
+	bool is_typed = (type != 0);
+
+	valid &= SERIALIZE(is_typed);
+
+	if ( is_typed )
+		valid &= type->Serialize(info);
+
+	assert(c);
+
+	valid &= SERIALIZE(c->m);
+	valid &= SERIALIZE(c->V);
+	valid &= SERIALIZE(c->alpha_m);
+	for ( unsigned int i = 0; i < c->m; i++ ) 
+		valid &= SERIALIZE( c->buckets[i] );
+
+	return valid;
+	}
+
+bool CardinalityVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+
+	uint64_t m;
+	bool valid = true;
+
+	bool is_typed;
+	if ( ! UNSERIALIZE(&is_typed) )
+		return false;
+
+	if ( is_typed )
+		{
+		BroType* t = BroType::Unserialize(info);
+		if ( ! Typify(t) )
+			return false;
+
+		Unref(t);
+		}
+
+	valid &= UNSERIALIZE(&m);
+	c = new probabilistic::CardinalityCounter(m);
+	valid &= UNSERIALIZE(&c->V);
+	valid &= UNSERIALIZE(&c->alpha_m);
+
+	uint8_t* buckets = c->buckets;
+	for ( unsigned int i = 0; i < m; i++ ) 
+		{
+		uint8_t* currbucket = buckets + i;
+		valid &= UNSERIALIZE( currbucket );
+		}
+	return valid;
+	}  
+
+bool CardinalityVal::Typify(BroType* arg_type)
+	{
+	if ( type )
+		return false;
+
+	type = arg_type;
+	type->Ref();
+
+	TypeList* tl = new TypeList(type);
+	tl->Append(type);
+	hash = new CompositeHash(tl);
+	Unref(tl);
+
+	return true;
+	}
+
+BroType* CardinalityVal::Type() const
+	{
+	return type;
 	}

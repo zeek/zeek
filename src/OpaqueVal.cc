@@ -591,7 +591,10 @@ bool BloomFilterVal::Empty() const
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
 				      const BloomFilterVal* y)
 	{
-	if ( ! same_type(x->Type(), y->Type()) )
+	if ( ( x->Type() != y->Type() ) && // both 0 is ok
+	     ( x->Type() != 0 ) && // any one 0 also is ok
+	     ( y->Type() != 0 ) &&
+	     ! same_type(x->Type(), y->Type()) )
 		{
 		reporter->Error("cannot merge Bloom filters with different types");
 		return 0;

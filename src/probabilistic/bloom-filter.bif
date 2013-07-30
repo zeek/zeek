@@ -186,7 +186,10 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 	const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
 	const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
 
-	if ( ! same_type(bfv1->Type(), bfv2->Type()) )
+	if ( ( bfv1->Type() != bfv2->Type() ) && // both 0 is ok
+	     (bfv1->Type() != 0) && 
+	     (bfv2->Type() != 0) && 
+	     ! same_type(bfv1->Type(), bfv2->Type()) )
 		{
 		reporter->Error("incompatible Bloom filter types");
 		return 0;

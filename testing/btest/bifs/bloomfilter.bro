@@ -45,6 +45,11 @@ function test_basic_bloom_filter()
   print bloomfilter_lookup(bf_merged, 84);
   print bloomfilter_lookup(bf_merged, 100);
   print bloomfilter_lookup(bf_merged, 168);
+
+  #empty filter tests
+  local bf_empty = bloomfilter_basic_init(0.1, 1000);
+  local bf_empty_merged = bloomfilter_merge(bf_merged, bf_empty);
+  print bloomfilter_lookup(bf_empty_merged, 42);
   }
 
 function test_counting_bloom_filter()

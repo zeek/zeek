@@ -1,4 +1,11 @@
 
+2.1-945 | 2013-07-30 10:05:10 -0700
+
+  * Make hashers serializable. (Matthias Vallentin)
+
+  * Add docs and use default value for hasher names. (Matthias
+    Vallentin)
+
 2.1-939 | 2013-07-29 15:42:38 -0700
 
   * Added Exec, Dir, and ActiveHTTP modules. (Seth Hall)

@@ -40,28 +40,15 @@ bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
 
-	if ( ! SERIALIZE(static_cast<uint16>(hasher->K())) )
-		return false;
-
-	return SERIALIZE_STR(hasher->Name().c_str(), hasher->Name().size());
+	return hasher->Serialize(info);
 	}
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
 
-	uint16 k;
-	if ( ! UNSERIALIZE(&k) )
-		return false;
-
-	const char* name;
-	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return false;
-
-	hasher = Hasher::Create(k, name);
-
-	delete [] name;
-	return true;
+	hasher = Hasher::Unserialize(info);
+	return hasher != 0;
 	}
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)

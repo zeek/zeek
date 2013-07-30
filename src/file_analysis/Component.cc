@@ -8,17 +8,17 @@
 
 using namespace file_analysis;
 
-analyzer::Tag::type_t Component::type_counter = 0;
+file_analysis::Tag::type_t Component::type_counter = 0;
 
 Component::Component(const char* arg_name, factory_callback arg_factory,
-                     analyzer::Tag::subtype_t arg_subtype)
+                     file_analysis::Tag::subtype_t arg_subtype)
 	: plugin::Component(plugin::component::FILE_ANALYZER)
 	{
 	name = copy_string(arg_name);
 	canon_name = canonify_name(arg_name);
 	factory = arg_factory;
 
-	tag = analyzer::Tag(++type_counter, arg_subtype);
+	tag = file_analysis::Tag(++type_counter, arg_subtype);
 	}
 
 Component::Component(const Component& other)
@@ -36,7 +36,7 @@ Component::~Component()
 	delete [] canon_name;
 	}
 
-analyzer::Tag Component::Tag() const
+file_analysis::Tag Component::Tag() const
 	{
 	return tag;
 	}

@@ -341,7 +341,7 @@ const char* Manager::GetAnalyzerName(Val* val)
 	return GetAnalyzerName(Tag(val->AsEnumVal()));
 	}
 
-Tag Manager::GetAnalyzerTag(const char* name)
+analyzer::Tag Manager::GetAnalyzerTag(const char* name)
 	{
 	Component* c = Lookup(name);
 	return c ? c->Tag() : Tag();

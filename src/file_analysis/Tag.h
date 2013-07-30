@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_TAG_H
-#define ANALYZER_TAG_H
+#ifndef FILE_ANALYZER_TAG_H
+#define FILE_ANALYZER_TAG_H
 
 #include "config.h"
 #include "util.h"
@@ -9,17 +9,17 @@
 
 class EnumVal;
 
-namespace analyzer {
+namespace file_analysis {
 
 class Manager;
 class Component;
 
 /**
- * Class to identify a protocol analyzer type.
+ * Class to identify a file analyzer type.
  *
- * The script-layer analogue is Analyzer::Tag.
+ * The script-layer analogue is Files::Tag.
  */
-class Tag : public ::Tag  {
+class Tag : public ::Tag {
 public:
 	/*
 	 * Copy constructor.
@@ -43,6 +43,7 @@ public:
 	 * TODO: make this conversion operator "explicit" (C++11) or use a
 	 *       "safe bool" idiom (not necessary if "explicit" is available),
 	 *       otherwise this may allow nonsense/undesired comparison operations.
+	 *
 	 */
 	operator bool() const	{ return *this != Tag(); }
 
@@ -76,7 +77,7 @@ public:
 		}
 
 	/**
-	 * Returns the \c Analyzer::Tag enum that corresponds to this tag.
+	 * Returns the \c Files::Tag enum that corresponds to this tag.
 	 * The returned value does not have its ref-count increased.
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
@@ -86,15 +87,15 @@ public:
 	static Tag Error;
 
 protected:
-	friend class analyzer::Manager;
-	friend class analyzer::Component;
+	friend class file_analysis::Manager;
+	friend class file_analysis::Component;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param type The main type. Note that the \a analyzer::Manager
+	 * @param type The main type. Note that the \a file_analysis::Manager
 	 * manages the value space internally, so noone else should assign
-	 * any main types.
+	 * main tyoes.
 	 *
 	 * @param subtype The sub type, which is left to an analyzer for
 	 * interpretation. By default it's set to zero.
@@ -104,7 +105,7 @@ protected:
 	/**
 	 * Constructor.
 	 *
-	 * @param val An enum value of script type \c Analyzer::Tag.
+	 * @param val An enum value of script type \c Files::Tag.
 	 */
 	Tag(EnumVal* val) : ::Tag(val) {}
 };

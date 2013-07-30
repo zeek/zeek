@@ -315,6 +315,7 @@ set(bro_SRCS
     StateAccess.cc
     Stats.cc
     Stmt.cc
+    Tag.cc
     Timer.cc
     Traverse.cc
     Trigger.cc

@@ -3,7 +3,7 @@
 #ifndef FILE_ANALYZER_PLUGIN_COMPONENT_H
 #define FILE_ANALYZER_PLUGIN_COMPONENT_H
 
-#include "analyzer/Tag.h"
+#include "Tag.h"
 #include "plugin/Component.h"
 
 #include "Val.h"
@@ -41,12 +41,12 @@ public:
 	 *
 	 * @param subtype A subtype associated with this component that
 	 * further distinguishes it. The subtype will be integrated into
-	 * the analyzer::Tag that the manager associates with this analyzer,
-	 * and analyzer instances can accordingly access it via analyzer::Tag().
-	 * If not used, leave at zero.
+	 * the file_analysis::Tag that the manager associates with this analyzer,
+	 * and analyzer instances can accordingly access it via
+	 * file_analysis::Tag().  If not used, leave at zero.
 	 */
 	Component(const char* name, factory_callback factory,
-	          analyzer::Tag::subtype_t subtype = 0);
+	          file_analysis::Tag::subtype_t subtype = 0);
 
 	/**
 	 * Copy constructor.
@@ -84,7 +84,7 @@ public:
 	 * generated for each new Components, and hence unique across all of
 	 * them.
 	 */
-	analyzer::Tag Tag() const;
+	file_analysis::Tag Tag() const;
 
 	/**
 	 * Generates a human-readable description of the component's main
@@ -98,10 +98,10 @@ private:
 	const char* name;	// The analyzer's name.
 	const char* canon_name;	// The analyzer's canonical name.
 	factory_callback factory;	// The analyzer's factory callback.
-	analyzer::Tag tag;	// The automatically assigned analyzer tag.
+	file_analysis::Tag tag;	// The automatically assigned analyzer tag.
 
 	// Global counter used to generate unique tags.
-	static analyzer::Tag::type_t type_counter;
+	static file_analysis::Tag::type_t type_counter;
 };
 
 }

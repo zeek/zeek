@@ -294,7 +294,7 @@ protected:
 
 private:
 	typedef map<string, Component*> analyzer_map_by_name;
-	typedef map<analyzer::Tag, Component*> analyzer_map_by_tag;
+	typedef map<file_analysis::Tag, Component*> analyzer_map_by_tag;
 	typedef map<int, Component*> analyzer_map_by_val;
 
 	void RegisterAnalyzerComponent(Component* component);

@@ -8,7 +8,7 @@
 
 using namespace analyzer;
 
-Tag::type_t Component::type_counter = 0;
+analyzer::Tag::type_t Component::type_counter = 0;
 
 Component::Component(const char* arg_name, factory_callback arg_factory, Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial)
 	: plugin::Component(plugin::component::ANALYZER)

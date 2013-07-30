@@ -6,10 +6,13 @@ event SumStats::finish_epoch(ss: SumStat)
 	{
 	if ( ss$name in result_store )
 		{
-		local data = result_store[ss$name];
-		if ( ss?$epoch_finished )
-			ss$epoch_finished(data);
-
+		if ( ss?$epoch_result )
+			{
+			local data = result_store[ss$name];
+			# TODO: don't block here.
+			for ( key in data )
+				ss$epoch_result(network_time(), key, data[key]);
+			}
 		reset(ss);
 		}
 

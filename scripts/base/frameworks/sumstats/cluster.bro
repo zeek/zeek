@@ -39,10 +39,10 @@ export {
 	## a single key value from a sumstat.  It's typically used to get intermediate
 	## updates before the break interval triggers to speed detection of a value
 	## crossing a threshold.
-	global cluster_key_request: event(uid: string, ss_name: string, key: Key, cleanup: bool);
+	global cluster_keys_request: event(uid: string, ss_name: string, key: set[Key], cleanup: bool);
 
 	## This event is sent by nodes in response to a
-	## :bro:id:`SumStats::cluster_key_request` event.
+	## :bro:id:`SumStats::cluster_keys_request` event.
 	global cluster_key_response: event(uid: string, ss_name: string, key: Key, result: Result, cleanup: bool);
 
 	## This is sent by workers to indicate that they crossed the percent
@@ -89,68 +89,71 @@ function data_added(ss: SumStat, key: Key, result: Result)
 		}
 	}
 
-event SumStats::send_data(uid: string, ss_name: string, data: ResultTable, cleanup: bool)
+#event SumStats::send_data(uid: string, ss_name: string, data: ResultTable, cleanup: bool)
+#	{
+#	#print fmt("WORKER %s: sending data for uid %s...", Cluster::node, uid);
+#
+#	local local_data: ResultTable = table();
+#	local incoming_data: ResultTable = cleanup ? data : copy(data);
+#
+#	local num_added = 0;
+#	for ( key in incoming_data )
+#		{
+#		local_data[key] = incoming_data[key];
+#		delete incoming_data[key];
+#
+#		# Only send cluster_send_in_groups_of at a time.  Queue another
+#		# event to send the next group.
+#		if ( cluster_send_in_groups_of == ++num_added )
+#			break;
+#		}
+#
+#	local done = F;
+#	# If data is empty, this sumstat is done.
+#	if ( |incoming_data| == 0 )
+#		done = T;
+#
+#	# Note: copy is needed to compensate serialization caching issue. This should be
+#	# changed to something else later. 
+#	event SumStats::cluster_ss_response(uid, ss_name, copy(local_data), done, cleanup);
+#	if ( ! done )
+#		schedule 0.01 sec { SumStats::send_data(uid, ss_name, incoming_data, T) };
+#	}
+
+#event SumStats::cluster_ss_request(uid: string, ss_name: string, cleanup: bool)
+#	{
+#	#print fmt("WORKER %s: received the cluster_ss_request event for %s.", Cluster::node, id);
+#
+#	# Initiate sending all of the data for the requested stats.
+#	if ( ss_name in result_store )
+#		event SumStats::send_data(uid, ss_name, result_store[ss_name], cleanup);
+#	else
+#		event SumStats::send_data(uid, ss_name, table(), cleanup);
+#
+#	# Lookup the actual sumstats and reset it, the reference to the data
+#	# currently stored will be maintained internally by the send_data event.
+#	if ( ss_name in stats_store && cleanup )
+#		reset(stats_store[ss_name]);
+#	}
+
+event SumStats::cluster_keys_request(uid: string, ss_name: string, keys: set[Key], cleanup: bool)
 	{
-	#print fmt("WORKER %s: sending data for uid %s...", Cluster::node, uid);
-
-	local local_data: ResultTable = table();
-	local incoming_data: ResultTable = cleanup ? data : copy(data);
-
-	local num_added = 0;
-	for ( key in incoming_data )
+	for ( key in keys )
 		{
-		local_data[key] = incoming_data[key];
-		delete incoming_data[key];
+		if ( ss_name in result_store && key in result_store[ss_name] )
+			{
+			#print fmt("WORKER %s: received the cluster_keys_request event for %s=%s.", Cluster::node, key2str(key), data);
 
-		# Only send cluster_send_in_groups_of at a time.  Queue another
-		# event to send the next group.
-		if ( cluster_send_in_groups_of == ++num_added )
-			break;
-		}
-
-	local done = F;
-	# If data is empty, this sumstat is done.
-	if ( |incoming_data| == 0 )
-		done = T;
-
-	# Note: copy is needed to compensate serialization caching issue. This should be
-	# changed to something else later. 
-	event SumStats::cluster_ss_response(uid, ss_name, copy(local_data), done, cleanup);
-	if ( ! done )
-		schedule 0.01 sec { SumStats::send_data(uid, ss_name, incoming_data, T) };
-	}
-
-event SumStats::cluster_ss_request(uid: string, ss_name: string, cleanup: bool)
-	{
-	#print fmt("WORKER %s: received the cluster_ss_request event for %s.", Cluster::node, id);
-
-	# Initiate sending all of the data for the requested stats.
-	if ( ss_name in result_store )
-		event SumStats::send_data(uid, ss_name, result_store[ss_name], cleanup);
-	else
-		event SumStats::send_data(uid, ss_name, table(), cleanup);
-
-	# Lookup the actual sumstats and reset it, the reference to the data
-	# currently stored will be maintained internally by the send_data event.
-	if ( ss_name in stats_store && cleanup )
-		reset(stats_store[ss_name]);
-	}
-
-event SumStats::cluster_key_request(uid: string, ss_name: string, key: Key, cleanup: bool)
-	{
-	if ( ss_name in result_store && key in result_store[ss_name] )
-		{
-		#print fmt("WORKER %s: received the cluster_key_request event for %s=%s.", Cluster::node, key2str(key), data);
-
-		# Note: copy is needed to compensate serialization caching issue. This should be
-		# changed to something else later. 
-		event SumStats::cluster_key_response(uid, ss_name, key, copy(result_store[ss_name][key]), cleanup);
-		}
-	else
-		{
-		# We need to send an empty response if we don't have the data so that the manager
-		# can know that it heard back from all of the workers.
-		event SumStats::cluster_key_response(uid, ss_name, key, table(), cleanup);
+			# Note: copy is needed to compensate serialization caching issue. This should be
+			# changed to something else later. 
+			event SumStats::cluster_key_response(uid, ss_name, key, copy(result_store[ss_name][key]), cleanup);
+			}
+		else
+			{
+			# We need to send an empty response if we don't have the data so that the manager
+			# can know that it heard back from all of the workers.
+			event SumStats::cluster_key_response(uid, ss_name, key, table(), cleanup);
+			}
 		}
 	}
 
@@ -252,6 +255,10 @@ event SumStats::cluster_key_response(uid: string, ss_name: string, key: Key, res
 			threshold_crossed(ss, key, ir);
 			event SumStats::cluster_threshold_crossed(ss$name, key, threshold_tracker[ss$name][key]);
 			}
+		if ()
+			{
+			
+			}
 
 		if ( cleanup )
 			{
@@ -289,7 +296,7 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 
 	local uid = unique_id("");
 	done_with[uid] = 0;
-	event SumStats::cluster_key_request(uid, ss_name, key, T);
+	event SumStats::cluster_keys_request(uid, ss_name, set(key), T);
 	}
 
 event SumStats::cluster_ss_response(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool)
@@ -378,7 +385,7 @@ function request_key(ss_name: string, key: Key): Result
 	done_with[uid] = 0;
 	key_requests[uid] = table();
 
-	event SumStats::cluster_key_request(uid, ss_name, key, F);
+	event SumStats::cluster_keys_request(uid, ss_name, set(key), F);
 	return when ( uid in done_with && Cluster::worker_count == done_with[uid] )
 		{
 		local result = key_requests[uid];

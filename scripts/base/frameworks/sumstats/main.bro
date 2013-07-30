@@ -74,10 +74,6 @@ export {
 	## Type to store results for multiple reducers.
 	type Result: table[string] of ResultVal;
 
-	## Type to store a table of sumstats results indexed
-	## by keys.
-	type ResultTable: table[Key] of Result;
-
 	## SumStats represent an aggregation of reducers along with
 	## mechanisms to handle various situations like the epoch ending
 	## or thresholds being crossed.
@@ -92,7 +88,7 @@ export {
 		name:               string;
 		
 		## The interval at which this filter should be "broken"
-		## and the '$epoch_finished' callback called.  The
+		## and the '$epoch_result' callback called.  The
 		## results are also reset at this time so any threshold
 		## based detection needs to be set to a
 		## value that should be expected to happen within
@@ -119,15 +115,10 @@ export {
 		## A callback that is called when a threshold is crossed.
 		threshold_crossed:  function(key: SumStats::Key, result: SumStats::Result) &optional;
 
-		## A callback with the full collection of Results for
-		## this SumStat.
-		epoch_finished:     function(rt: SumStats::ResultTable) &optional;
-		#epoch_finished:     function(num_keys: count) &optional;
-
 		## A callback that receives each of the results at the
 		## end of the analysis epoch.  The function will be 
 		## called once for each key.
-		#epoch_finished_result:     function(key::SumStats::Key, result: SumStats::Result) &optional;
+		epoch_result:       function(ts: time, key::SumStats::Key, result: SumStats::Result) &optional;
 	};
 
 	## Create a summary statistic.
@@ -143,17 +134,6 @@ export {
 	##
 	## obs: The data point to send into the stream.
 	global observe: function(id: string, key: SumStats::Key, obs: SumStats::Observation);
-
-	## Dynamically request a sumstat.  This function should be
-	## used sparingly and not as a replacement for the callbacks 
-	## from the :bro:see:`SumStat` record.  The function is only
-	## available for use within "when" statements as an asynchronous
-	## function.
-	##
-	## ss_name: SumState name.
-	##
-	## Returns: The result table for the requested sumstat.
-	global request: function(ss_name: string): ResultTable;
 
 	## Dynamically request a sumstat key.  This function should be
 	## used sparingly and not as a replacement for the callbacks 
@@ -181,6 +161,9 @@ export {
 	## Returns: A string representation of the metric key.
 	global key2str: function(key: SumStats::Key): string;
 }
+
+# Type to store a table of sumstats results indexed by keys.
+type ResultTable: table[Key] of Result;
 
 # The function prototype for plugins to do calculations.
 type ObserveFunc: function(r: Reducer, val: double, data: Observation, rv: ResultVal);
@@ -423,7 +406,7 @@ function observe(id: string, key: Key, obs: Observation)
 
 		local ss = stats_store[r$ssname];
 
-		# If there is a threshold and no epoch_finished callback
+		# If there is a threshold and no epoch_result callback
 		# we don't need to continue counting since the data will
 		# never be accessed.  This was leading
 		# to some state management issues when measuring
@@ -431,7 +414,7 @@ function observe(id: string, key: Key, obs: Observation)
 		# NOTE: this optimization could need removed in the
 		#       future if on demand access is provided to the
 		#       SumStats results.
-		if ( ! ss?$epoch_finished &&
+		if ( ! ss?$epoch_result &&
 			 r$ssname in threshold_tracker &&
 		     ( ss?$threshold &&
 		       key in threshold_tracker[r$ssname] &&

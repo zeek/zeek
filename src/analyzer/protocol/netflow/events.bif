@@ -1,0 +1,18 @@
+## Generated for a received NetFlow v5 header.  Bro's NetFlow processor raises
+## this event whenever it either receives a NetFlow header on the port it's
+## listening on, or reads one from a trace file.
+##
+## h: The parsed NetFlow header.
+##
+## .. bro:see:: netflow_v5_record
+event netflow_v5_header%(h: nf_v5_header%);
+
+## Generated for a received NetFlow v5 record.  Bro's NetFlow processor raises
+## this event whenever it either receives a NetFlow record on the port it's
+## listening on, or reads one from a trace file.
+##
+## r: The parsed NetFlow record.
+##
+## .. bro:see:: netflow_v5_record
+event netflow_v5_record%(r: nf_v5_record%);
+

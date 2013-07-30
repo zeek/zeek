@@ -5,8 +5,14 @@
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
+#endif
+
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -114,6 +120,7 @@ extern char* skip_digits(char* s);
 extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
+extern std::string to_upper(const std::string& s);
 extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
 extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);
@@ -158,12 +165,20 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
+// Retrieves the initial seed computed after the very first call to
+// init_random_seed(). Repeated calls to init_random_seed() will not affect
+// the return value of this function.
+unsigned int initial_seed();
+
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
 
+// A simple linear congruence PRNG. It takes its state as argument and
+// returns a new random value, which can serve as state for subsequent calls.
+unsigned int bro_prng(unsigned int state);
+
 // Replacement for the system random(), to which is normally falls back
-// except when a seed has been given. In that case, we use our own
-// predictable PRNG.
+// except when a seed has been given. In that case, the function bro_prng.
 long int bro_random();
 
 // Calls the system srandom() function with the given seed if not running
@@ -375,5 +390,13 @@ extern magic_t magic_mime_cookie;
 
 void bro_init_magic(magic_t* cookie_ptr, int flags);
 const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
+
+/**
+ * Canonicalizes a name by converting it to uppercase letters and replacing
+ * all non-alphanumeric characters with an underscore.
+ * @param name The string to canonicalize.
+ * @return The canonicalized version of \a name which caller may later delete[].
+ */
+const char* canonify_name(const char* name);
 
 #endif

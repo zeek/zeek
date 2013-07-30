@@ -1,0 +1,22 @@
+
+// A work-around the problem that for static libraries unused globals
+// aren't linked into the final binary. CMake automatically inserts
+// code here to reference the globals that initializes each of the
+// statically compiled plugins.
+//
+// Note: This won't be necessary anymore once we can assume CMake >2.8.8
+// as a required depencendy. If so, switch bro_HAVE_OBJECT_LIBRARIES
+// in src/CMakeLists.txt to TRUE and remove this.
+
+#include <stdlib.h>
+
+${__BRO_DECL_PLUGINS}
+
+size_t __make_sure_to_use_plugin_globals()
+{
+    // This function is never actually called.
+
+	size_t i = 0;
+    ${__BRO_USE_PLUGINS}
+	return i;
+}

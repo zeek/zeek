@@ -156,6 +156,12 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 	if ( do_init )
 		{
+		if ( c == INIT_NONE && dt == VAR_REDEF && t->IsTable() &&
+		     init && init->Tag() == EXPR_ASSIGN )
+			// e.g. 'redef foo["x"] = 1' is missing an init class, but the
+			// intention clearly isn't to overwrite entire existing table val.
+			c = INIT_EXTRA;
+
 		if ( (c == INIT_EXTRA && id->FindAttr(ATTR_ADD_FUNC)) ||
 		     (c == INIT_REMOVE && id->FindAttr(ATTR_DEL_FUNC)) )
 			// Just apply the function.

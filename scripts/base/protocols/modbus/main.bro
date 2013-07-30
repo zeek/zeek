@@ -29,14 +29,13 @@ redef record connection += {
 	modbus: Info &optional;
 };
 
-# Configure DPD and the packet filter.
-redef capture_filters += { ["modbus"] = "tcp port 502" };
-redef dpd_config += { [ANALYZER_MODBUS] = [$ports = set(502/tcp)] };
-redef likely_server_ports += { 502/tcp };
+const ports = { 502/tcp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(Modbus::LOG, [$columns=Info, $ev=log_modbus]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_MODBUS, ports);
 	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=5

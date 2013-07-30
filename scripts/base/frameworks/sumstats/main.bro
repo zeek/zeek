@@ -99,7 +99,7 @@ export {
 		reducers:           set[Reducer];
 
 		## Provide a function to calculate a value from the
-		## :bro:see:`Result` structure which will be used
+		## :bro:see:`SumStats::Result` structure which will be used
 		## for thresholding.
 		## This is required if a $threshold value is given.
 		threshold_val:      function(key: SumStats::Key, result: SumStats::Result): double &optional;

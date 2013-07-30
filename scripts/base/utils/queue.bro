@@ -16,7 +16,7 @@ export {
 
 	## Initialize a queue record structure.
 	##
-	## s: A :bro:record:`Settings` record configuring the queue.
+	## s: A record which configures the queue.
 	##
 	## Returns: An opaque queue record.
 	global init:       function(s: Settings &default=[]): Queue;

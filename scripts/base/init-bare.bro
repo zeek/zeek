@@ -1,5 +1,5 @@
-@load base/const.bif
-@load base/types.bif
+@load base/bif/const.bif.bro
+@load base/bif/types.bif
 
 # Type declarations
 
@@ -222,17 +222,6 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
-## A unique analyzer instance ID. Each time instantiates a protocol analyzers
-## for a connection, it assigns it a unique ID that can be used to reference
-## that instance.
-##
-## .. bro:see:: analyzer_name disable_analyzer protocol_confirmation
-##    protocol_violation
-##
-## .. todo::While we declare an alias for the type here, the events/functions still
-##    use ``count``. That should be changed.
-type AnalyzerID: count;
-
 module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
@@ -339,7 +328,7 @@ type fa_file: record {
 	## An identification of the source of the file data.  E.g. it may be
 	## a network protocol over which it was transferred, or a local file
 	## path which was read, or some other input source.
-	source: string &optional;
+	source: string;
 
 	## If the source of this file is is a network connection, this field
 	## may be set to indicate the directionality.
@@ -713,9 +702,10 @@ type entropy_test_result: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load base/strings.bif
-@load base/bro.bif
-@load base/reporter.bif
+@load base/bif/strings.bif
+@load base/bif/bro.bif
+@load base/bif/reporter.bif
+@load base/bif/bloom-filter.bif
 
 ## Deprecated. This is superseded by the new logging framework.
 global log_file_name: function(tag: string): string &redef;
@@ -776,19 +766,6 @@ global signature_files = "" &add_func = add_signature_file;
 
 ## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
-
-# todo::testing to see if I can remove these without causing problems.
-#const ftp = 21/tcp;
-#const ssh = 22/tcp;
-#const telnet = 23/tcp;
-#const smtp = 25/tcp;
-#const domain = 53/tcp;	# note, doesn't include UDP version
-#const gopher = 70/tcp;
-#const finger = 79/tcp;
-#const http = 80/tcp;
-#const ident = 113/tcp;
-#const bgp = 179/tcp;
-#const rlogin = 513/tcp;
 
 # TCP values for :bro:see:`endpoint` *state* field.
 # todo::these should go into an enum to make them autodoc'able.
@@ -2723,7 +2700,7 @@ export {
 }
 module GLOBAL;
 
-@load base/event.bif
+@load base/bif/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
@@ -2913,34 +2890,11 @@ const remote_trace_sync_peers = 0 &redef;
 ## consistency check.
 const remote_check_sync_consistency = F &redef;
 
-## Analyzer tags. The core automatically defines constants
-## ``ANALYZER_<analyzer-name>*``, e.g., ``ANALYZER_HTTP``.
-##
-## .. bro:see:: dpd_config
-##
-## .. todo::We should autodoc these automaticallty generated constants.
-type AnalyzerTag: count;
-
-## Set of ports activating a particular protocol analysis.
-##
-## .. bro:see:: dpd_config
-type dpd_protocol_config: record {
-	ports: set[port] &optional;	##< Set of ports.
-};
-
-## Port configuration for Bro's "dynamic protocol detection". Protocol
-## analyzers can be activated via either well-known ports or content analysis.
-## This table defines the ports.
-##
-## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning dpd_ignore_ports
-const dpd_config: table[AnalyzerTag] of dpd_protocol_config = {} &redef;
-
 ## Reassemble the beginning of all TCP connections before doing
 ## signature-matching. Enabling this provides more accurate matching at the
 ## expensive of CPU cycles.
 ##
-## .. bro:see:: dpd_config dpd_buffer_size
+## .. bro:see:: dpd_buffer_size
 ##    dpd_match_only_beginning dpd_ignore_ports
 ##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
@@ -2955,37 +2909,30 @@ const dpd_reassemble_first_packets = T &redef;
 ## activated afterwards. Then only analyzers that can deal with partial
 ## connections will be able to analyze the session.
 ##
-## .. bro:see:: dpd_reassemble_first_packets dpd_config dpd_match_only_beginning
+## .. bro:see:: dpd_reassemble_first_packets dpd_match_only_beginning
 ##    dpd_ignore_ports
 const dpd_buffer_size = 1024 &redef;
 
 ## If true, stops signature matching if dpd_buffer_size has been reached.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_config dpd_ignore_ports
+##    dpd_ignore_ports
 ##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
 ##    only signatures used for dynamic protocol detection.
 const dpd_match_only_beginning = T &redef;
 
 ## If true, don't consider any ports for deciding which protocol analyzer to
-## use. If so, the value of :bro:see:`dpd_config` is ignored.
+## use.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning dpd_config
+##    dpd_match_only_beginning
 const dpd_ignore_ports = F &redef;
 
 ## Ports which the core considers being likely used by servers. For ports in
 ## this set, is may heuristically decide to flip the direction of the
 ## connection if it misses the initial handshake.
 const likely_server_ports: set[port] &redef;
-
-## Deprated. Set of all ports for which we know an analyzer, built by
-## :doc:`/scripts/base/frameworks/dpd/main`.
-##
-## .. todo::This should be defined by :doc:`/scripts/base/frameworks/dpd/main`
-##    itself we still need it.
-global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 
 ## Per-incident timer managers are drained after this amount of inactivity.
 const timer_mgr_inactivity_timeout = 1 min &redef;
@@ -3095,10 +3042,14 @@ module GLOBAL;
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
-# Load the logging framework here because it uses fairly deep integration with
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+
+# Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
-
 @load base/frameworks/input
+@load base/frameworks/analyzer
+@load base/frameworks/files
 
-@load base/frameworks/file-analysis
+@load base/bif

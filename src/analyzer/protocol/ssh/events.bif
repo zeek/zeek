@@ -1,0 +1,38 @@
+## Generated when seeing an SSH client's version identification. The SSH
+## protocol starts with a clear-text handshake message that reports client and
+## server protocol/software versions. This event provides access to what the
+## client sent.
+##
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Secure_Shell>`__ for more
+## information about the SSH protocol.
+##
+## c: The connection.
+##
+## version: The version string the client sent (e.g., `SSH-2.0-libssh-0.11`).
+##
+## .. bro:see:: ssh_server_version
+##
+## .. note:: As everything after the initial version handshake proceeds
+##    encrypted, Bro cannot further analyze SSH sessions.
+event ssh_client_version%(c: connection, version: string%);
+
+## Generated when seeing an SSH server's version identification. The SSH
+## protocol starts with a clear-text handshake message that reports client and
+## server protocol/software versions. This event provides access to what the
+## server sent.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Secure_Shell>`__ for more
+## information about the SSH protocol.
+##
+## c: The connection.
+##
+## version: The version string the server sent (e.g.,
+##          ``SSH-1.99-OpenSSH_3.9p1``).
+##
+## .. bro:see:: ssh_client_version
+##
+## .. note:: As everything coming after the initial version handshake proceeds
+##    encrypted, Bro cannot further analyze SSH sessions.
+event ssh_server_version%(c: connection, version: string%);
+

@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 88
+%expect 85
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -23,7 +23,7 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
-%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
+%token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN
 
 %token TOK_DEBUG
@@ -79,7 +79,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Var.h"
-#include "DNS.h"
+/* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"
@@ -522,10 +522,52 @@ expr:
 			$$ = new VectorConstructorExpr($3);
 			}
 
-	|	expr '(' opt_expr_list ')'
+	|	expr '('
 			{
-			set_location(@1, @4);
-			$$ = new CallExpr($1, $3, in_hook > 0);
+			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+				++in_init;
+			}
+
+		opt_expr_list
+			{
+			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+				--in_init;
+			}
+
+		')'
+			{
+			set_location(@1, @6);
+
+			BroType* ctor_type = 0;
+
+			if ( $1->Tag() == EXPR_NAME &&
+			     (ctor_type = $1->AsNameExpr()->Id()->AsType()) )
+				{
+				switch ( ctor_type->Tag() ) {
+				case TYPE_RECORD:
+					$$ = new RecordConstructorExpr($4, ctor_type);
+					break;
+
+				case TYPE_TABLE:
+					if ( ctor_type->IsTable() )
+						$$ = new TableConstructorExpr($4, 0, ctor_type);
+					else
+						$$ = new SetConstructorExpr($4, 0, ctor_type);
+
+					break;
+
+				case TYPE_VECTOR:
+					$$ = new VectorConstructorExpr($4, ctor_type);
+					break;
+
+				default:
+					$1->Error("constructor type not implemented");
+					YYERROR;
+				}
+				}
+
+			else
+				$$ = new CallExpr($1, $4, in_hook > 0);
 			}
 
 	|	TOK_HOOK { ++in_hook; } expr
@@ -1081,8 +1123,7 @@ decl:
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
 
 			if ( generate_documentation &&
-				! streq("capture_filters", $2->Name()) &&
-				! streq("dpd_config", $2->Name()) )
+				! streq("capture_filters", $2->Name()) )
 				{
 				ID* fake_id = create_dummy_id($2, $2->Type());
 				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
@@ -1362,8 +1403,6 @@ attr:
 			{ $$ = new Attr(ATTR_MERGEABLE); }
 	|	TOK_ATTR_PRIORITY '=' expr
 			{ $$ = new Attr(ATTR_PRIORITY, $3); }
-	|	TOK_ATTR_GROUP '=' expr
-			{ $$ = new Attr(ATTR_GROUP, $3); }
 	|	TOK_ATTR_TYPE_COLUMN '=' expr
 			{ $$ = new Attr(ATTR_TYPE_COLUMN, $3); }
 	|	TOK_ATTR_LOG

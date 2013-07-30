@@ -5,9 +5,12 @@
 ##! you actually want.
 
 @load base/utils/site
+@load base/utils/active-http
 @load base/utils/addrs
 @load base/utils/conn-ids
+@load base/utils/dir
 @load base/utils/directions-and-hosts
+@load base/utils/exec
 @load base/utils/files
 @load base/utils/numbers
 @load base/utils/paths
@@ -22,6 +25,7 @@
 # loaded in base/init-bare.bro
 #@load base/frameworks/logging
 @load base/frameworks/notice
+@load base/frameworks/analyzer
 @load base/frameworks/dpd
 @load base/frameworks/signatures
 @load base/frameworks/packet-filter
@@ -40,10 +44,15 @@
 @load base/protocols/http
 @load base/protocols/irc
 @load base/protocols/modbus
+@load base/protocols/pop3
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
+@load base/protocols/tunnels
+
+@load base/files/hash
+@load base/files/extract
 
 @load base/misc/find-checksum-offloading

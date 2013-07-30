@@ -122,6 +122,34 @@ export {
 		config: table[string] of string &default=table();
 	};
 
+	## A file analyis input stream type used to forward input data to the
+	## file analysis framework.
+	type AnalysisDescription: record {
+		## String that allows the reader to find the source.
+		## For `READER_ASCII`, this is the filename.
+		source: string;
+
+		## Reader to use for this steam.  Compatible readers must be
+		## able to accept a filter of a single string type (i.e.
+		## they read a byte stream).
+		reader: Reader &default=Input::READER_BINARY;
+
+		## Read mode to use for this stream
+		mode: Mode &default=default_mode;
+
+		## Descriptive name that uniquely identifies the input source.
+		## Can be used used to remove a stream at a later time.
+		## This will also be used for the unique *source* field of
+		## :bro:see:`fa_file`.  Most of the time, the best choice for this
+		## field will be the same value as the *source* field.
+		name: string;
+
+		## A key/value table that will be passed on the reader.
+		## Interpretation of the values is left to the writer, but
+		## usually they will be used for configuration purposes.
+		config: table[string] of string &default=table();
+	};
+
 	## Create a new table input from a given source. Returns true on success.
 	##
 	## description: `TableDescription` record describing the source.
@@ -131,6 +159,14 @@ export {
 	##
 	## description: `TableDescription` record describing the source.
 	global add_event: function(description: Input::EventDescription) : bool;
+
+	## Create a new file analysis input from a given source.  Data read from
+	## the source is automatically forwarded to the file analysis framework.
+	##
+	## description: A record describing the source
+	##
+	## Returns: true on sucess.
+	global add_analysis: function(description: Input::AnalysisDescription) : bool;
 
 	## Remove a input stream. Returns true on success and false if the named stream was
 	## not found.
@@ -149,7 +185,7 @@ export {
 	global end_of_data: event(name: string, source:string);
 }
 
-@load base/input.bif
+@load base/bif/input.bif
 
 
 module Input;
@@ -162,6 +198,11 @@ function add_table(description: Input::TableDescription) : bool
 function add_event(description: Input::EventDescription) : bool
 	{
 	return __create_event_stream(description);
+	}
+
+function add_analysis(description: Input::AnalysisDescription) : bool
+	{
+	return __create_analysis_stream(description);
 	}
 
 function remove(id: string) : bool

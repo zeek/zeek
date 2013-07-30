@@ -1,44 +1,60 @@
+@load base/files/extract
+@load base/files/hash
+
+redef FileExtract::prefix = "./";
 
 global test_file_analysis_source: string = "" &redef;
 
-global test_file_analyzers: set[FileAnalysis::AnalyzerArgs];
+global test_file_analyzers: set[Files::Tag];
 
 global test_get_file_name: function(f: fa_file): string =
 	function(f: fa_file): string { return ""; } &redef;
 
 global test_print_file_data_events: bool = F &redef;
 
+global file_count: count = 0;
+
+global file_map: table[string] of count;
+
+function canonical_file_name(f: fa_file): string
+	{
+	return fmt("file #%d", file_map[f$id]);
+	}
+
 event file_chunk(f: fa_file, data: string, off: count)
 	{
 	if ( test_print_file_data_events )
-		print "file_chunk", f$id, |data|, off, data;
+		print "file_chunk", canonical_file_name(f), |data|, off, data;
 	}
 
 event file_stream(f: fa_file, data: string)
 	{
 	if ( test_print_file_data_events )
-		print "file_stream", f$id, |data|, data;
+		print "file_stream", canonical_file_name(f), |data|, data;
 	}
 
 event file_new(f: fa_file)
 	{
 	print "FILE_NEW";
 
-	print f$id, f$seen_bytes, f$missing_bytes;
+	file_map[f$id] = file_count;
+	++file_count;
+
+	print canonical_file_name(f), f$seen_bytes, f$missing_bytes;
 
 	if ( test_file_analysis_source == "" ||
 	     f$source == test_file_analysis_source )
 		{
 		for ( tag in test_file_analyzers )
-			FileAnalysis::add_analyzer(f, tag);
+			Files::add_analyzer(f, tag);
 
 		local filename: string = test_get_file_name(f);
 		if ( filename != "" )
-			FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT,
-			                               $extract_filename=filename]);
-		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_DATA_EVENT,
-		                               $chunk_event=file_chunk,
-		                               $stream_event=file_stream]);
+			Files::add_analyzer(f, Files::ANALYZER_EXTRACT,
+			                       [$extract_filename=filename]);
+		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT,
+		                       [$chunk_event=file_chunk,
+		                        $stream_event=file_stream]);
 		}
 
 	if ( f?$bof_buffer )
@@ -54,7 +70,7 @@ event file_new(f: fa_file)
 		}
 	}
 
-event file_over_new_connection(f: fa_file, c: connection)
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
 	{
 	print "FILE_OVER_NEW_CONNECTION";
 	}
@@ -72,7 +88,7 @@ event file_gap(f: fa_file, offset: count, len: count)
 event file_state_remove(f: fa_file)
 	{
 	print "FILE_STATE_REMOVE";
-	print f$id, f$seen_bytes, f$missing_bytes;
+	print canonical_file_name(f), f$seen_bytes, f$missing_bytes;
 	if ( f?$conns )
 		for ( cid in f$conns )
 			print cid;
@@ -94,7 +110,7 @@ event file_state_remove(f: fa_file)
 
 event bro_init()
 	{
-	add test_file_analyzers[[$tag=FileAnalysis::ANALYZER_MD5]];
-	add test_file_analyzers[[$tag=FileAnalysis::ANALYZER_SHA1]];
-	add test_file_analyzers[[$tag=FileAnalysis::ANALYZER_SHA256]];
+	add test_file_analyzers[Files::ANALYZER_MD5];
+	add test_file_analyzers[Files::ANALYZER_SHA1];
+	add test_file_analyzers[Files::ANALYZER_SHA256];
 	}

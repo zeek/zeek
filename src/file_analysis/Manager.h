@@ -177,18 +177,22 @@ public:
 	 * analyzers of a given type can be attached per file identifier at a time
 	 * as long as the arguments differ.
 	 * @param file_id the file identifier/hash.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool AddAnalyzer(const string& file_id, RecordVal* args) const;
+	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+	                 RecordVal* args) const;
 
 	/**
 	 * Queue removal of an analyzer for a given file identifier.
 	 * @param file_id the file identifier/hash.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	bool RemoveAnalyzer(const string& file_id, const RecordVal* args) const;
+	bool RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+	                    RecordVal* args) const;
 
 	/**
 	 * Tells whether analysis for a file is active or ignored.
@@ -204,15 +208,43 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(int tag, RecordVal* args, File* f) const;
+	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
 
 	/**
 	 * Translates a script-level file analyzer tag in to corresponding file
 	 * analyzer name.
-	 * @param tag The enum val of a file analyzer.
+	 * @param v The enum val of a file analyzer.
 	 * @return The human-readable name of the file analyzer.
 	 */
-	const char* GetAnalyzerName(int tag) const;
+	const char* GetAnalyzerName(Val* v) const;
+
+	/**
+	 * Translates a script-level file analyzer tag in to corresponding file
+	 * analyzer name.
+	 * @param tag The analyzer tag of a file analyzer.
+	 * @return The human-readable name of the file analyzer.
+	 */
+	const char* GetAnalyzerName(file_analysis::Tag tag) const;
+
+	/**
+	 * Translates an analyzer name into the corresponding tag.
+	 *
+	 * @param name The name.
+	 *
+	 * @return The tag. If the name does not correspond to a valid
+	 * analyzer, the returned tag will evaluate to false.
+	 */
+	file_analysis::Tag GetAnalyzerTag(const char* name) const;
+
+	/**
+	 * Translates an analyzer enum value into the corresponding tag.
+	 *
+	 * @param v the enum val of the file analyzer.
+	 *
+	 * @return The tag. If the val does not correspond to a valid
+	 * analyzer, the returned tag will evaluate to false.
+	 */
+	file_analysis::Tag GetAnalyzerTag(Val* v) const;
 
 	/**
 	 * Returns the enum type that corresponds to the script-level type

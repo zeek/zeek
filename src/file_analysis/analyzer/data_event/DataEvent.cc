@@ -6,12 +6,15 @@
 #include "EventRegistry.h"
 #include "Event.h"
 #include "util.h"
+#include "file_analysis/Manager.h"
 
 using namespace file_analysis;
 
 DataEvent::DataEvent(RecordVal* args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
-    : file_analysis::Analyzer(args, file), chunk_event(ce), stream_event(se)
+    : file_analysis::Analyzer(file_mgr->GetAnalyzerTag("DATA_EVENT"),
+	                          args, file),
+	chunk_event(ce), stream_event(se)
 	{
 	}
 

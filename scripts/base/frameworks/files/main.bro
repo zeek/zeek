@@ -228,11 +228,6 @@ redef record fa_file += {
 	info: Info &optional;
 };
 
-redef record AnalyzerArgs += {
-	# This is used interally for the core file analyzer api.
-	tag: Files::Tag &optional;
-};
-
 # Store the callbacks for protocol analyzers that have files.
 global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table();
 
@@ -275,14 +270,12 @@ function set_timeout_interval(f: fa_file, t: interval): bool
 
 function add_analyzer(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool
 	{
-	# This is to construct the correct args for the core API.
-	args$tag = tag;
 	add f$info$analyzers[Files::analyzer_name(tag)];
 
 	if ( tag in analyzer_add_callbacks )
 		analyzer_add_callbacks[tag](f, args);
 
-	if ( ! __add_analyzer(f$id, args) )
+	if ( ! __add_analyzer(f$id, tag, args) )
 		{
 		Reporter::warning(fmt("Analyzer %s not added successfully to file %s.", tag, f$id));
 		return F;
@@ -297,8 +290,7 @@ function register_analyzer_add_callback(tag: Files::Tag, callback: function(f: f
 
 function remove_analyzer(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool
 	{
-	args$tag = tag;
-	return __remove_analyzer(f$id, args);
+	return __remove_analyzer(f$id, tag, args);
 	}
 
 function stop(f: fa_file): bool

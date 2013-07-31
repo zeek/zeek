@@ -206,24 +206,26 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
-bool Manager::AddAnalyzer(const string& file_id, RecordVal* args) const
+bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+                          RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->AddAnalyzer(args);
+	return file->AddAnalyzer(tag, args);
 	}
 
-bool Manager::RemoveAnalyzer(const string& file_id, const RecordVal* args) const
+bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+                             RecordVal* args) const
 	{
 	File* file = Lookup(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->RemoveAnalyzer(args);
+	return file->RemoveAnalyzer(tag, args);
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
@@ -367,13 +369,13 @@ bool Manager::IsDisabled(analyzer::Tag tag)
 	return rval;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(int tag, RecordVal* args, File* f) const
+Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	{
-	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+	analyzer_map_by_tag::const_iterator it = analyzers_by_tag.find(tag);
 
-	if ( it == analyzers_by_val.end() )
-		reporter->InternalError("cannot instantiate unknown file analyzer: %d",
-		                        tag);
+	if ( it == analyzers_by_tag.end() )
+		reporter->InternalError("cannot instantiate unknown file analyzer: %s",
+		                        tag.AsString().c_str());
 
 	Component* c = it->second;
 
@@ -384,15 +386,41 @@ Analyzer* Manager::InstantiateAnalyzer(int tag, RecordVal* args, File* f) const
 	return c->Factory()(args, f);
 	}
 
-const char* Manager::GetAnalyzerName(int tag) const
+const char* Manager::GetAnalyzerName(Val* v) const
 	{
-	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+	return GetAnalyzerName(file_analysis::Tag(v->AsEnumVal()));
+	}
 
-	if ( it == analyzers_by_val.end() )
-		reporter->InternalError("cannot get name of unknown file analyzer: %d",
-		                        tag);
+const char* Manager::GetAnalyzerName(file_analysis::Tag tag) const
+	{
+	analyzer_map_by_tag::const_iterator it = analyzers_by_tag.find(tag);
+
+	if ( it == analyzers_by_tag.end() )
+		reporter->InternalError("cannot get name of unknown file analyzer: %s",
+		                        tag.AsString().c_str());
 
 	return it->second->CanonicalName();
+	}
+
+file_analysis::Tag Manager::GetAnalyzerTag(const char* name) const
+	{
+	analyzer_map_by_name::const_iterator it = analyzers_by_name.find(name);
+
+	if ( it == analyzers_by_name.end() )
+		return file_analysis::Tag();
+
+	return it->second->Tag();
+	}
+
+file_analysis::Tag Manager::GetAnalyzerTag(Val* v) const
+	{
+	analyzer_map_by_val::const_iterator it =
+	    analyzers_by_val.find(v->AsEnumVal()->InternalInt());
+
+	if ( it == analyzers_by_val.end() )
+		return file_analysis::Tag();
+
+	return it->second->Tag();
 	}
 
 EnumType* Manager::GetTagEnumType()

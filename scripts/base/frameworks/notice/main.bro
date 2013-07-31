@@ -83,7 +83,7 @@ export {
 
 		## Frequently files can be "described" to give a bit more context.
 		## This field will typically be automatically filled out from an
-		## fa_file record.  For example, if a notice was related to a 
+		## fa_file record.  For example, if a notice was related to a
 		## file over HTTP, the URL of the request would be shown.
 		file_desc:      string          &log &optional;
 
@@ -483,12 +483,12 @@ function apply_policy(n: Notice::Info)
 		{
 		if ( ! n?$fuid )
 			n$fuid = n$f$id;
-		
+
 		if ( ! n?$file_mime_type && n$f?$mime_type )
 			n$file_mime_type = n$f$mime_type;
 
 		n$file_desc = Files::describe(n$f);
-		
+
 		if ( n$f?$conns && |n$f$conns| == 1 )
 			{
 			for ( id in n$f$conns )
@@ -550,8 +550,8 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$suppress_for )
 		n$suppress_for = default_suppression_interval;
 
-	# Delete the connection and file records if they're there so we 
-	# aren't sending that to remote machines.  It can cause problems 
+	# Delete the connection and file records if they're there so we
+	# aren't sending that to remote machines.  It can cause problems
 	# due to the size of those records.
 	if ( n?$conn )
 		delete n$conn;

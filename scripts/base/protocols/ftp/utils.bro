@@ -13,7 +13,7 @@ export {
 	##
 	## Returns: A URL, not prefixed by "ftp://".
 	global build_url: function(rec: Info): string;
-	
+
 	## Creates a URL from an :bro:type:`FTP::Info` record.
 	##
 	## rec: An :bro:type:`FTP::Info` record.
@@ -36,7 +36,7 @@ function build_url(rec: Info): string
 
 	return fmt("%s%s", addr_to_uri(rec$id$resp_h), comp_path);
 	}
-	
+
 function build_url_ftp(rec: Info): string
 	{
 	return fmt("ftp://%s", build_url(rec));

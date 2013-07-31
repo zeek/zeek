@@ -10,7 +10,7 @@ export {
 		## The entity body excerpt.
 		excerpt:    string &log &default="";
 	};
-	
+
 	## This is the default value for how much of the entity body should be
 	## included for all MIME entities.  The lesser of this value and
 	## :bro:see:`default_file_bof_buffer_size` will be used.

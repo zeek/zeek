@@ -2,7 +2,7 @@
 ##!
 ##! There is a major problem with this script in the cluster context because
 ##! we might see A send B a message that a DCC connection is to be expected,
-##! but that connection will actually be between B and C which could be 
+##! but that connection will actually be between B and C which could be
 ##! analyzed on a different worker.
 ##!
 
@@ -44,7 +44,7 @@ function log_dcc(f: fa_file)
 		Log::write(IRC::LOG, irc);
 		irc$command = tmp;
 
-		# Delete these values in case another DCC transfer 
+		# Delete these values in case another DCC transfer
 		# happens during the IRC session.
 		delete irc$dcc_file_name;
 		delete irc$dcc_file_size;
@@ -57,7 +57,7 @@ function log_dcc(f: fa_file)
 
 event file_new(f: fa_file) &priority=-5
 	{
-	if ( f$source == "IRC_DATA" ) 
+	if ( f$source == "IRC_DATA" )
 		log_dcc(f);
 	}
 

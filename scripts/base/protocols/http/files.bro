@@ -16,7 +16,7 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( ! c?$http ) 
+	if ( ! c?$http )
 		return "";
 
 	if ( c$http$range_request && ! is_orig )
@@ -29,7 +29,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 	else
 		{
 		local mime_depth = is_orig ? c$http$orig_mime_depth : c$http$resp_mime_depth;
-		return cat(Analyzer::ANALYZER_HTTP, c$start_time, is_orig, 
+		return cat(Analyzer::ANALYZER_HTTP, c$start_time, is_orig,
 		           c$http$trans_depth, mime_depth, id_string(c$id));
 		}
 	}

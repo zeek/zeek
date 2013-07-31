@@ -114,7 +114,7 @@ function ftp_message(s: Info)
 	s$arg = s$cmdarg$arg;
 	if ( s$cmdarg$cmd in file_cmds )
 		s$arg = build_url_ftp(s);
-	
+
 	if ( s$arg == "" )
 		delete s$arg;
 
@@ -142,7 +142,7 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	s$passive = chan$passive;
 	s$data_channel = chan;
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
-	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p, 
+	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
 	                            Analyzer::ANALYZER_FTP_DATA,
 	                            5mins);
 	}

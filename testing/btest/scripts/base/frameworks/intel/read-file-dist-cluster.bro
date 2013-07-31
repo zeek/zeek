@@ -19,10 +19,10 @@ redef Cluster::nodes = {
 @TEST-END-FILE
 
 @TEST-START-FILE intel.dat
-#fields	host	net	str	str_type	meta.source	meta.desc	meta.url
-1.2.3.4	-	-	-	source1	this host is just plain baaad	http://some-data-distributor.com/1234
-1.2.3.4	-	-	-	source1	this host is just plain baaad	http://some-data-distributor.com/1234
--	-	e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distributor.com/100000
+#fields	indicator	indicator_type	meta.source	meta.desc	meta.url
+1.2.3.4	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1234
+1.2.3.4	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1234
+e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distributor.com/100000
 @TEST-END-FILE
 
 @load base/frameworks/control
@@ -41,7 +41,7 @@ redef enum Intel::Where += {
 event do_it()
 	{
 	Intel::seen([$host=1.2.3.4, $where=Intel::IN_A_TEST]);
-	Intel::seen([$str="e@mail.com", $str_type=Intel::EMAIL, $where=Intel::IN_A_TEST]);
+	Intel::seen([$indicator="e@mail.com", $indicator_type=Intel::EMAIL, $where=Intel::IN_A_TEST]);
 	}
 
 event bro_init()

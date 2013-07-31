@@ -226,7 +226,10 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		{
 		if ( ! c$smtp?$to )
 			c$smtp$to = set();
-		add c$smtp$to[h$value];
+
+		local to_parts = split(h$value, /[[:blank:]]*,[[:blank:]]*/);
+		for ( i in to_parts )
+			add c$smtp$to[to_parts[i]];
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )

@@ -554,7 +554,7 @@ bool BloomFilterVal::Typify(BroType* arg_type)
 	type->Ref();
 
 	TypeList* tl = new TypeList(type);
-	tl->Append(type);
+	tl->Append(type->Ref());
 	hash = new CompositeHash(tl);
 	Unref(tl);
 
@@ -760,7 +760,7 @@ bool CardinalityVal::Typify(BroType* arg_type)
 	type->Ref();
 
 	TypeList* tl = new TypeList(type);
-	tl->Append(type);
+	tl->Append(type->Ref());
 	hash = new CompositeHash(tl);
 	Unref(tl);
 

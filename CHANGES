@@ -1,4 +1,14 @@
 
+2.1-820 | 2013-07-18 12:30:04 -0700
+
+  * Extending external canonifier to remove fractional values from
+    capture_loss.log. (Robin Sommer)
+
+  * Canonifying internal order for plugins and their components to
+    make it deterministic. (Robin Sommer)
+
+  * Small raw reader tweaks that got left our earlier. (Robin Sommer)
+    
 2.1-814 | 2013-07-15 18:18:20 -0700
 
   * Fixing raw reader crash when accessing nonexistant file, and

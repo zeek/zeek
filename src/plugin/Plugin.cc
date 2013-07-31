@@ -156,9 +156,18 @@ Plugin::component_list Plugin::Components() const
 	return components;
 	}
 
+static bool component_cmp(const Component* a, const Component* b)
+	{
+	return a->Name() < b->Name();
+	}
+
 void Plugin::AddComponent(Component* c)
 	{
 	components.push_back(c);
+
+	// Sort components by name to make sure we have a deterministic
+	// order.
+	components.sort(component_cmp);
 	}
 
 void Plugin::AddBifInitFunction(bif_init_func c)

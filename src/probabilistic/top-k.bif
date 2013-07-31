@@ -1,0 +1,122 @@
+# ===========================================================================
+#
+#                                  Top-K Functions
+#
+# ===========================================================================
+
+
+%%{
+#include "probabilistic/Topk.h"
+%%}
+
+## Creates a top-k data structure which tracks size elements.
+##
+## Returns: Opaque pointer to the data structure.
+function topk_init%(size: count%): opaque of topk
+	%{
+	probabilistic::TopkVal* v = new probabilistic::TopkVal(size);
+	return v;
+	%}
+
+## Add a new observed object to the data structure. The first
+## added object sets the type of data tracked by the top-k data
+## structure. All following values have to be of the same type
+function topk_add%(handle: opaque of topk, value: any%): any
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	h->Encountered(value);
+
+	return 0;
+	%}
+
+## Get the first k elements of the top-k data structure
+##
+## Returns: vector of the first k elements
+function topk_get_top%(handle: opaque of topk, k: count%): any
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return h->getTopK(k);	
+	%}
+
+## Get an overestimated count of how often value has been encountered.
+## value has to be part of the currently tracked elements, otherwise
+## 0 will be returned and an error message will be added to reporter.
+##
+## Returns: Overestimated number for how often the element has been encountered
+function topk_count%(handle: opaque of topk, value: any%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->getCount(value), TYPE_COUNT);
+	%}
+
+## Get a  the maximal overestimation for count. Same restrictiosn as for topk_count
+## apply.
+##
+## Returns: Number which represents the maximal overesimation for the count of this element.
+function topk_epsilon%(handle: opaque of topk, value: any%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->getEpsilon(value), TYPE_COUNT);
+	%}
+
+## Get the number of elements this data structure is supposed to track (given on init).
+## Note that the actual number of elements in the data structure can be lower or higher
+## than this. (higher due to non-pruned merges)
+## 
+## Returns: size given during initialization 
+function topk_size%(handle: opaque of topk%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->getSize(), TYPE_COUNT);
+	%}
+
+## Get the sum of all counts of all elements in the data structure. Is equal to the number
+## of all inserted objects if the data structure never has been pruned. Do not use after
+## calling topk_merge_prune (will throw a warning message if used afterwards)
+##
+## Returns: sum of all counts
+function topk_sum%(handle: opaque of topk%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->getSum(), TYPE_COUNT);
+	%}
+
+## Merge the second topk data structure into the first. Does not remove any elements, the
+## resulting data structure can be bigger than the maximum size given on initialization.
+function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
+	%{
+	assert(handle1);
+	assert(handle2);
+
+	probabilistic::TopkVal* h1 = (probabilistic::TopkVal*) handle1;
+	probabilistic::TopkVal* h2 = (probabilistic::TopkVal*) handle2;
+
+	h1->Merge(h2);
+
+	return 0;
+	%}
+
+## Merge the second topk data structure into the first and prunes the final data structure
+## back to the size given on initialization. Use with care and only when being aware of the
+## restrictions this imposed. Do not call topk_size or topk_add afterwards, results will
+## probably not be what you expect.
+function topk_merge_prune%(handle1: opaque of topk, handle2: opaque of topk%): any
+	%{
+	assert(handle1);
+	assert(handle2);
+
+	probabilistic::TopkVal* h1 = (probabilistic::TopkVal*) handle1;
+	probabilistic::TopkVal* h2 = (probabilistic::TopkVal*) handle2;
+
+	h1->Merge(h2, true);
+
+	return 0;
+	%}
+
+

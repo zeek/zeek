@@ -10,7 +10,7 @@
 
 // This class implements the top-k algorithm. Or - to be more precise - my interpretation of it.
 
-namespace Topk {
+namespace probabilistic {
 
 struct Element;
 

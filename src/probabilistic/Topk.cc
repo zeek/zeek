@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Topk.h"
+#include "probabilistic/Topk.h"
 #include "CompHash.h"
 #include "Reporter.h"
 #include "Serializer.h"
 #include "NetVar.h"
 
 
-namespace Topk {
+namespace probabilistic {
 
 IMPLEMENT_SERIAL(TopkVal, SER_TOPK_VAL);
 

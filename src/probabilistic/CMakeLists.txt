@@ -10,9 +10,11 @@ set(probabilistic_SRCS
     BitVector.cc
     BloomFilter.cc
     CounterVector.cc
-    Hasher.cc)
+    Hasher.cc
+    Topk.cc)
 
 bif_target(bloom-filter.bif)
+bif_target(top-k.bif)
 bro_add_subdir_library(probabilistic ${probabilistic_SRCS})
 
 add_dependencies(bro_probabilistic generate_outputs)

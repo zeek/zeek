@@ -2,8 +2,8 @@
 ##! This script ignores large swaths of the protocol, since it is rather
 ##! noisy on most networks, and focuses on the end-result: assigned leases.
 ##! 
-##! To enable further analysis and log output for DHCP, see the optional
-##! scripts in the policy/protocols/dhcp directory.
+##! If you'd like to track known DHCP devices and to log the hostname
+##! supplied by the client, see policy/protocols/dhcp/known-devices.bro
 
 @load ./utils.bro
 
@@ -45,13 +45,13 @@ redef record connection += {
 const ports = { 67/udp, 68/udp };
 redef likely_server_ports += { 67/udp };
 
-event bro_init() &priority=5
+event bro_init()
 	{
 	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string) &priority=5
+event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string)
 	{
 	local info: Info;
 	info$ts          = network_time();
@@ -65,10 +65,6 @@ event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_lis
 		info$mac = msg$h_addr;
 	
 	c$dhcp = info;
-	}
 
-# We let policy scripts add stuff too, so we run this at a lower priority
-event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string) &priority=1
-	{
 	Log::write(DHCP::LOG, c$dhcp);
 	}

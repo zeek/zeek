@@ -897,7 +897,7 @@ event event_queue_flush_point%(%);
 event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 
 ## Indicates that an analysis of a new file has begun. The analysis can be
-## augmented at this time via :bro:see:`FileAnalysis::add_analyzer`.
+## augmented at this time via :bro:see:`Files::add_analyzer`.
 ##
 ## f: The file.
 ##
@@ -911,8 +911,10 @@ event file_new%(f: fa_file%);
 ##
 ## c: The new connection over which the file is seen being transferred.
 ##
+## is_orig: true if the originator of *c* is the one sending the file.
+##
 ## .. bro:see:: file_new file_timeout file_gap file_state_remove
-event file_over_new_connection%(f: fa_file, c: connection%);
+event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
 
 ## Indicates that file analysis has timed out because no activity was seen
 ## for the file in a while.
@@ -920,8 +922,8 @@ event file_over_new_connection%(f: fa_file, c: connection%);
 ## f: The file.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_gap file_state_remove
-##    default_file_timeout_interval FileAnalysis::set_timeout_interval
-##    FileAnalysis::set_timeout_interval
+##    default_file_timeout_interval Files::set_timeout_interval
+##    Files::set_timeout_interval
 event file_timeout%(f: fa_file%);
 
 ## Indicates that a chunk of the file is missing.

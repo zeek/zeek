@@ -1311,19 +1311,20 @@ IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
 bool OpaqueType::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_OPAQUE_TYPE, BroType);
-	return SERIALIZE(name);
+	return SERIALIZE_STR(name.c_str(), name.size());
 	}
 
 bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BroType);
 
-	char const* n;
+	const char* n;
 	if ( ! UNSERIALIZE_STR(&n, 0) )
 		return false;
 
 	name = n;
 	delete [] n;
+
 	return true;
 	}
 

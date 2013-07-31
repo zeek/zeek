@@ -16,3 +16,6 @@
 [submodule "cmake"]
 	path = cmake
 	url = git://git.bro-ids.org/cmake
+[submodule "magic"]
+	path = magic
+	url = git://git.bro.org/bromagic

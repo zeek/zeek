@@ -1,0 +1,196 @@
+# ===========================================================================
+#
+#                           Bloom Filter Functions
+#
+# ===========================================================================
+
+%%{
+
+// TODO: This is currently included from the top-level src directory, hence
+// paths are relative to there. We need a better mechanisms to pull in
+// BiFs defined in sub directories.
+#include "probabilistic/BloomFilter.h"
+#include "OpaqueVal.h"
+
+using namespace probabilistic;
+
+%%}
+
+module GLOBAL;
+
+## Creates a basic Bloom filter.
+##
+## .. note:: A Bloom filter can have a name associated with it. In the future,
+##    Bloom filters with the same name will be compatible across indepedent Bro
+##    instances, i.e., it will be possible to merge them. Currently, however, that is
+##    not yet supported.
+##
+## fp: The desired false-positive rate.
+##
+## capacity: the maximum number of elements that guarantees a false-positive
+## rate of *fp*.
+##
+## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
+## the filter will remain tied to the current Bro process.
+##
+## Returns: A Bloom filter handle.
+##
+## .. bro:see:: bloomfilter_counting_init  bloomfilter_add bloomfilter_lookup
+##    bloomfilter_clear bloomfilter_merge
+function bloomfilter_basic_init%(fp: double, capacity: count,
+                                 name: string &default=""%): opaque of bloomfilter
+	%{
+	if ( fp < 0.0 || fp > 1.0 )
+		{
+		reporter->Error("false-positive rate must take value between 0 and 1");
+		return 0;
+		}
+
+	size_t cells = BasicBloomFilter::M(fp, capacity);
+	size_t optimal_k = BasicBloomFilter::K(cells, capacity);
+	const Hasher* h = new DefaultHasher(optimal_k, name->CheckString());
+
+	return new BloomFilterVal(new BasicBloomFilter(h, cells));
+	%}
+
+## Creates a counting Bloom filter.
+##
+## .. note:: A Bloom filter can have a name associated with it. In the future,
+##    Bloom filters with the same name will be compatible across indepedent Bro
+##    instances, i.e., it will be possible to merge them. Currently, however, that is
+##    not yet supported.
+##
+## k: The number of hash functions to use.
+##
+## cells: The number of cells of the underlying counter vector. As there's no
+## single answer to what's the best parameterization for a counting Bloom filter,
+## we refer to the Bloom filter literature here for choosing an appropiate value.
+##
+## max: The maximum counter value associated with each each element described
+## by *w = ceil(log_2(max))* bits. Each bit in the underlying counter vector
+## becomes a cell of size *w* bits.
+##
+## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
+## the filter will remain tied to the current Bro process.
+##
+## Returns: A Bloom filter handle.
+##
+## .. bro:see:: bloomfilter_basic_init bloomfilter_add bloomfilter_lookup
+##    bloomfilter_clear bloomfilter_merge
+function bloomfilter_counting_init%(k: count, cells: count, max: count,
+				    name: string &default=""%): opaque of bloomfilter
+	%{
+	if ( max == 0 )
+		{
+		reporter->Error("max counter value must be greater than 0");
+		return 0;
+		}
+
+	const Hasher* h = new DefaultHasher(k, name->CheckString());
+
+	uint16 width = 1;
+	while ( max >>= 1 )
+		++width;
+
+	return new BloomFilterVal(new CountingBloomFilter(h, cells, width));
+	%}
+
+## Adds an element to a Bloom filter.
+##
+## bf: The Bloom filter handle.
+##
+## x: The element to add.
+##
+## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init loomfilter_lookup
+##    bloomfilter_clear bloomfilter_merge
+function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
+	%{
+	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+
+	if ( ! bfv->Type() && ! bfv->Typify(x->Type()) )
+		reporter->Error("failed to set Bloom filter type");
+
+	else if ( ! same_type(bfv->Type(), x->Type()) )
+		reporter->Error("incompatible Bloom filter types");
+
+	else
+		bfv->Add(x);
+
+	return 0;
+	%}
+
+## Retrieves the counter for a given element in a Bloom filter.
+##
+## bf: The Bloom filter handle.
+##
+## x: The element to count.
+##
+## Returns: the counter associated with *x* in *bf*.
+##
+## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init
+##    bloomfilter_add bloomfilter_clear bloomfilter_merge
+function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
+	%{
+	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
+
+	if ( bfv->Empty() )
+		return new Val(0, TYPE_COUNT);
+
+	if ( ! bfv->Type() )
+		reporter->Error("cannot perform lookup on untyped Bloom filter");
+
+	else if ( ! same_type(bfv->Type(), x->Type()) )
+		reporter->Error("incompatible Bloom filter types");
+
+	else
+		return new Val(static_cast<uint64>(bfv->Count(x)), TYPE_COUNT);
+
+	return new Val(0, TYPE_COUNT);
+	%}
+
+## Removes all elements from a Bloom filter. This function resets all bits in the
+## underlying bitvector back to 0 but does not change the parameterization of the
+## Bloom filter, such as the element type and the hasher seed.
+##
+## bf: The Bloom filter handle.
+##
+## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init
+##    bloomfilter_add bloomfilter_lookup bloomfilter_merge
+function bloomfilter_clear%(bf: opaque of bloomfilter%): any
+	%{
+	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+
+	if ( bfv->Type() ) // Untyped Bloom filters are already empty.
+		bfv->Clear();
+
+	return 0;
+	%}
+
+## Merges two Bloom filters.
+##
+## .. note:: Currently Bloom filters created by different Bro instances cannot
+##    be merged. In the future, this will be supported as long as both filters
+##    are created with the same name.
+##
+## bf1: The first Bloom filter handle.
+##
+## bf2: The second Bloom filter handle.
+##
+## Returns: The union of *bf1* and *bf2*.
+##
+## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init
+##    bloomfilter_add bloomfilter_lookup bloomfilter_clear
+function bloomfilter_merge%(bf1: opaque of bloomfilter,
+			    bf2: opaque of bloomfilter%): opaque of bloomfilter
+	%{
+	const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
+	const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
+
+	if ( ! same_type(bfv1->Type(), bfv2->Type()) )
+		{
+		reporter->Error("incompatible Bloom filter types");
+		return 0;
+		}
+
+	return BloomFilterVal::Merge(bfv1, bfv2);
+	%}

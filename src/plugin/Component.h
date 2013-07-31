@@ -46,6 +46,12 @@ public:
 	component::Type Type() const;
 
 	/**
+	 * Returns a descriptive name for the analyzer. This name must be
+	 * unique across all components of the same type.
+	 */
+	virtual const char* Name() const = 0;
+
+	/**
 	 * Returns a textual representation of the component. The default
 	 * version just output the type. Derived version should call the
 	 * parent's implementation and that add further information.

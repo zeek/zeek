@@ -4976,8 +4976,6 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		}
 	%}
 
-
-
 %%{
 #include "Topk.h"
 %%}

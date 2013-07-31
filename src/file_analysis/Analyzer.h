@@ -96,7 +96,7 @@ public:
 	 */
 	static FA_Tag ArgsTag(const RecordVal* args)
 		{
-		using BifType::Record::FileAnalysis::AnalyzerArgs;
+		using BifType::Record::Files::AnalyzerArgs;
 		return args->Lookup(AnalyzerArgs->FieldOffset("tag"))->AsEnum();
 		}
 

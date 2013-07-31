@@ -72,7 +72,7 @@ public:
 	 * from what's passed to the constructor but upper-cased and
 	 * canonified to allow being part of a script-level ID.
 	 */
-	const char* Name() const	{ return name; }
+	virtual const char* Name() const	{ return name; }
 
 	/**
 	 * Returns a canonocalized version of the analyzer's name.  The

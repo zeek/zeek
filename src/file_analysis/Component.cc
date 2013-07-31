@@ -41,7 +41,7 @@ analyzer::Tag Component::Tag() const
 	return tag;
 	}
 
-void Component::Describe(ODesc* d)
+void Component::Describe(ODesc* d) const
 	{
 	plugin::Component::Describe(d);
 	d->Add(name);

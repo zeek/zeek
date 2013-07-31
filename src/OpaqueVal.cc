@@ -771,3 +771,11 @@ BroType* CardinalityVal::Type() const
 	{
 	return type;
 	}
+
+void CardinalityVal::Add(const Val* val)
+	{
+	HashKey* key = hash->ComputeHash(val, 1);
+	c->addElement(key->Hash());
+	delete key;
+	}
+

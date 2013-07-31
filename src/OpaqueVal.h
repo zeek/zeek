@@ -154,6 +154,8 @@ public:
 	explicit CardinalityVal(probabilistic::CardinalityCounter*);
 	virtual ~CardinalityVal();
 	
+	void Add(const Val* val);
+	
 	BroType* Type() const;
 	bool Typify(BroType* type);
 

@@ -54,20 +54,7 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 		return new Val(0, TYPE_BOOL);
 		}
 
-	int status = 0;
-
-	TypeList* tl = new TypeList(elem->Type());
-	tl->Append(elem->Type());
-	CompositeHash* hll_hash = new CompositeHash(tl);
-	Unref(tl);
-
-	HashKey* key = hll_hash->ComputeHash(elem, 1);
-	uint64_t hash = key->Hash();
-
-	CardinalityCounter* h = cv->Get();
-	h->addElement(hash);
-
-	delete hll_hash;
+	cv->Add(elem);
 	return new Val(1, TYPE_BOOL);
 	%}
 

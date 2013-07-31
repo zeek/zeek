@@ -18,7 +18,7 @@ namespace probabilistic {
 
 
 class CardinalityCounter {
- friend class CardinalityVal;
+ friend class ::CardinalityVal;
 
  private:
   /*

@@ -57,13 +57,17 @@ event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_lis
 	info$ts          = network_time();
 	info$id          = c$id;
 	info$uid         = c$uid;
-	info$assigned_ip = reverse_ip(msg$yiaddr);
 	info$lease_time  = lease;
 	info$trans_id    = msg$xid;
 
 	if ( msg$h_addr != "" )
 		info$mac = msg$h_addr;
-	
+
+	if ( reverse_ip(msg$yiaddr) != 0.0.0.0 )
+		info$assigned_ip = reverse_ip(msg$yiaddr);
+	else
+		info$assigned_ip = c$id$orig_h;
+
 	c$dhcp = info;
 
 	Log::write(DHCP::LOG, c$dhcp);

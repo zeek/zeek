@@ -242,6 +242,8 @@ extern TableType* record_field_table;
 
 extern StringVal* cmd_line_bpf_filter;
 
+extern StringVal* global_hash_seed;
+
 class OpaqueType;
 extern OpaqueType* md5_type;
 extern OpaqueType* sha1_type;

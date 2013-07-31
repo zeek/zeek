@@ -15,14 +15,21 @@ function test_basic_bloom_filter()
   bloomfilter_add(bf_cnt, 0.5); # Type mismatch
   bloomfilter_add(bf_cnt, "foo"); # Type mismatch
 
+  # Alternative constructor.
+  local bf_dbl = bloomfilter_basic_init2(4, 10);
+  bloomfilter_add(bf_dbl, 4.2);
+  bloomfilter_add(bf_dbl, 3.14);
+  print bloomfilter_lookup(bf_dbl, 4.2);
+  print bloomfilter_lookup(bf_dbl, 3.14);
+
   # Basic usage with strings.
   local bf_str = bloomfilter_basic_init(0.9, 10);
   bloomfilter_add(bf_str, "foo");
   bloomfilter_add(bf_str, "bar");
   print bloomfilter_lookup(bf_str, "foo");
   print bloomfilter_lookup(bf_str, "bar");
-  print bloomfilter_lookup(bf_str, "b4z"); # FP
-  print bloomfilter_lookup(bf_str, "quux"); # FP
+  print bloomfilter_lookup(bf_str, "b4zzz"); # FP
+  print bloomfilter_lookup(bf_str, "quuux"); # FP
   bloomfilter_add(bf_str, 0.5); # Type mismatch
   bloomfilter_add(bf_str, 100); # Type mismatch
 

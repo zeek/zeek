@@ -3,10 +3,33 @@
 #include <typeinfo>
 
 #include "Hasher.h"
+#include "NetVar.h"
 #include "digest.h"
 #include "Serializer.h"
 
 using namespace probabilistic;
+
+size_t Hasher::MakeSeed(const void* data, size_t size)
+	{
+	u_char buf[SHA256_DIGEST_LENGTH];
+	SHA256_CTX ctx;
+	sha256_init(&ctx);
+
+	if ( data )
+		sha256_update(&ctx, data, size);
+
+	else if ( global_hash_seed && global_hash_seed->Len() > 0 )
+		sha256_update(&ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
+
+	else
+		{
+		unsigned int first_seed = initial_seed();
+		sha256_update(&ctx, &first_seed, sizeof(first_seed));
+		}
+
+	sha256_final(&ctx, buf);
+	return *reinterpret_cast<size_t*>(buf); // Use the first bytes as seed.
+	}
 
 bool Hasher::Serialize(SerialInfo* info) const
 	{
@@ -25,7 +48,7 @@ bool Hasher::DoSerialize(SerialInfo* info) const
 	if ( ! SERIALIZE(static_cast<uint16>(k)) )
 		return false;
 
-	return SERIALIZE_STR(name.c_str(), name.size());
+	return SERIALIZE(static_cast<uint64>(seed));
 	}
 
 bool Hasher::DoUnserialize(UnserialInfo* info)
@@ -39,26 +62,24 @@ bool Hasher::DoUnserialize(UnserialInfo* info)
 	k = serial_k;
 	assert(k > 0);
 
-	const char* serial_name;
-	if ( ! UNSERIALIZE_STR(&serial_name, 0) )
+	uint64 serial_seed;
+	if ( ! UNSERIALIZE(&serial_seed) )
 		return false;
 
-	name = serial_name;
-	delete [] serial_name;
+	seed = serial_seed;
 
 	return true;
 	}
 
-Hasher::Hasher(size_t k, const std::string& arg_name)
-	: k(k)
+Hasher::Hasher(size_t arg_k, size_t arg_seed)
 	{
-	k = k;
-	name = arg_name;
+	k = arg_k;
+	seed = arg_seed;
 	}
 
 
-UHF::UHF(size_t seed, const std::string& extra)
-	: h(compute_seed(seed, extra))
+UHF::UHF(size_t seed)
+	: h(seed)
 	{
 	}
 
@@ -68,33 +89,11 @@ Hasher::digest UHF::hash(const void* x, size_t n) const
 	return n == 0 ? 0 : h(x, n);
 	}
 
-size_t UHF::compute_seed(size_t seed, const std::string& extra)
+DefaultHasher::DefaultHasher(size_t k, size_t seed)
+	: Hasher(k, seed)
 	{
-	u_char buf[SHA256_DIGEST_LENGTH];
-	SHA256_CTX ctx;
-	sha256_init(&ctx);
-
-	if ( extra.empty() )
-		{
-		unsigned int first_seed = initial_seed();
-		sha256_update(&ctx, &first_seed, sizeof(first_seed));
-		}
-
-	else
-		sha256_update(&ctx, extra.c_str(), extra.size());
-
-	sha256_update(&ctx, &seed, sizeof(seed));
-	sha256_final(&ctx, buf);
-
-	// Take the first sizeof(size_t) bytes as seed.
-	return *reinterpret_cast<size_t*>(buf);
-	}
-
-DefaultHasher::DefaultHasher(size_t k, const std::string& name)
-	: Hasher(k, name)
-	{
-	for ( size_t i = 0; i < k; ++i )
-		hash_functions.push_back(UHF(i, name));
+	for ( size_t i = 1; i <= k; ++i )
+		hash_functions.push_back(UHF(Seed() + bro_prng(i)));
 	}
 
 Hasher::digest_vector DefaultHasher::Hash(const void* x, size_t n) const
@@ -137,13 +136,13 @@ bool DefaultHasher::DoUnserialize(UnserialInfo* info)
 
 	hash_functions.clear();
 	for ( size_t i = 0; i < K(); ++i )
-		hash_functions.push_back(UHF(i, Name()));
+		hash_functions.push_back(UHF(Seed() + bro_prng(i)));
 
 	return true;
 	}
 
-DoubleHasher::DoubleHasher(size_t k, const std::string& name)
-	: Hasher(k, name), h1(1, name), h2(2, name)
+DoubleHasher::DoubleHasher(size_t k, size_t seed)
+	: Hasher(k, seed), h1(seed + bro_prng(1)), h2(seed + bro_prng(2))
 	{
 	}
 
@@ -187,8 +186,8 @@ bool DoubleHasher::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(Hasher);
 
-	h1 = UHF(1, Name());
-	h2 = UHF(2, Name());
+	h1 = UHF(Seed() + bro_prng(1));
+	h2 = UHF(Seed() + bro_prng(2));
 
 	return true;
 	}

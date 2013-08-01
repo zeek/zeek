@@ -18,7 +18,8 @@ TableVal* Manager::disabled = 0;
 string Manager::salt;
 
 Manager::Manager()
-	: ComponentManager<file_analysis::Tag, file_analysis::Component>("Files")
+	: plugin::ComponentManager<file_analysis::Tag,
+	                           file_analysis::Component>("Files")
 	{
 	}
 

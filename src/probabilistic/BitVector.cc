@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "BitVector.h"
-
+#include <openssl/sha.h>
 #include <cassert>
 #include <limits>
+
+#include "BitVector.h"
 #include "Serializer.h"
+#include "digest.h"
 
 using namespace probabilistic;
 
@@ -494,10 +496,15 @@ size_t BitVector::Hash() const
 	{
 	size_t hash = 0;
 
-	for ( size_type i = 0; i < Blocks(); ++i )
-		hash += bits[i];
+	u_char buf[SHA256_DIGEST_LENGTH];
+	SHA256_CTX ctx;
+	sha256_init(&ctx);
 
-	return hash;
+	for ( size_type i = 0; i < Blocks(); ++i )
+		sha256_update(&ctx, &bits[i], sizeof(bits[i]));
+
+	sha256_final(&ctx, buf);
+	return *reinterpret_cast<size_t*>(buf); // Use the first bytes as seed.
 	}
 
 BitVector::size_type BitVector::lowest_bit(block_type block)

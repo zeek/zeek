@@ -122,6 +122,21 @@ New Functionality
 
   See <INSERT LINK> for full documentation.
 
+- Bro now provides a probabilistic data structure for computing
+  "top k" elements. The corresponding functions are:
+
+    topk_init(size: count): opaque of topk
+    topk_add(handle: opaque of topk, value: any)
+    topk_get_top(handle: opaque of topk, k: count)
+    topk_count(handle: opaque of topk, value: any): count
+    topk_epsilon(handle: opaque of topk, value: any): count
+    topk_size(handle: opaque of topk): count
+    topk_sum(handle: opaque of topk): count
+    topk_merge(handle1: opaque of topk, handle2: opaque of topk)
+    topk_merge_prune(handle1: opaque of topk, handle2: opaque of topk)
+
+  See <INSERT LINK> for full documentation.
+
 - base/utils/exec.bro provides a module to start external processes
   asynchronously and retrieve their output on termination.
   base/utils/dir.bro uses it to monitor a directory for changes, and

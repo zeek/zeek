@@ -3044,7 +3044,7 @@ const snaplen = 8192 &redef;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
 ## the same value here will make the hashes compatible between independent Bro
-## instances. If left unset, Bro will use a temporary local seed.  
+## instances. If left unset, Bro will use a temporary local seed.
 const global_hash_seed: string = "" &redef;
 
 # Load BiFs defined by plugins.

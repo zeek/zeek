@@ -19,21 +19,23 @@ static void topk_element_hash_delete_func(void* val)
 
 Element::~Element() 
 	{
-	if ( value ) 
-		Unref(value);
-	value=0;
+	Unref(value);
+	}
+
+void TopkVal::Typify(BroType* t) 
+	{
+	assert(!hash && !type);
+	type = t->Ref();
+	TypeList* tl = new TypeList(t);
+	tl->Append(t->Ref());
+	hash = new CompositeHash(tl);
+	Unref(tl);
 	}
 
 HashKey* TopkVal::GetHash(Val* v) const
 	{
-	TypeList* tl = new TypeList(v->Type());
-	tl->Append(v->Type()->Ref());
-	CompositeHash* topk_hash = new CompositeHash(tl);
-	Unref(tl);
-
-	HashKey* key = topk_hash->ComputeHash(v, 1);
+	HashKey* key = hash->ComputeHash(v, 1);
 	assert(key);
-	delete topk_hash;
 	return key;
 	}
 
@@ -45,6 +47,7 @@ TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(topk_type)
 	type = 0;
 	numElements = 0;
 	pruned = false;
+	hash = 0;
 	}
 
 TopkVal::TopkVal() : OpaqueVal(topk_type)
@@ -54,6 +57,7 @@ TopkVal::TopkVal() : OpaqueVal(topk_type)
 	size = 0;
 	type = 0;
 	numElements = 0;
+	hash = 0;
 	}
 
 TopkVal::~TopkVal()
@@ -69,9 +73,8 @@ TopkVal::~TopkVal()
 		bi++;
 		}
 
-	if ( type ) 
-		Unref(type);
-	type = 0;
+	Unref(type);
+	delete hash;
 	}
 
 void TopkVal::Merge(const TopkVal* value, bool doPrune)
@@ -80,7 +83,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 	if ( type == 0 )
 		{
 		assert(numElements == 0);
-		type = value->type->Ref();
+		Typify(value->type);
 		}
 	else
 		if ( !same_type(type, value->type) )
@@ -227,7 +230,10 @@ bool TopkVal::DoUnserialize(UnserialInfo* info)
 	v &= UNSERIALIZE(&type_present);
 	if ( type_present ) 
 		{
-		type = BroType::Unserialize(info);
+		BroType* deserialized_type = BroType::Unserialize(info);
+
+		Typify(deserialized_type);
+		Unref(deserialized_type);
 		assert(type);
 		}
 	else
@@ -268,7 +274,7 @@ bool TopkVal::DoUnserialize(UnserialInfo* info)
 	}
 
 
-VectorVal* TopkVal::getTopK(int k) const // returns vector
+VectorVal* TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -310,14 +316,14 @@ VectorVal* TopkVal::getTopK(int k) const // returns vector
 	return t;
 	}
 
-uint64_t TopkVal::getCount(Val* value) const
+uint64_t TopkVal::GetCount(Val* value) const
 	{
 	HashKey* key = GetHash(value);
 	Element* e = (Element*) elementDict->Lookup(key);
 
 	if ( e == 0 ) 
 		{
-		reporter->Error("getCount for element that is not in top-k");	
+		reporter->Error("GetCount for element that is not in top-k");	
 		return 0;
 		}
 
@@ -325,14 +331,14 @@ uint64_t TopkVal::getCount(Val* value) const
 	return e->parent->count;
 	}
 
-uint64_t TopkVal::getEpsilon(Val* value) const
+uint64_t TopkVal::GetEpsilon(Val* value) const
 	{
 	HashKey* key = GetHash(value);
 	Element* e = (Element*) elementDict->Lookup(key);
 
 	if ( e == 0 ) 
 		{
-		reporter->Error("getEpsilon for element that is not in top-k");	
+		reporter->Error("GetEpsilon for element that is not in top-k");	
 		return 0;
 		}
 
@@ -340,7 +346,7 @@ uint64_t TopkVal::getEpsilon(Val* value) const
 	return e->epsilon;
 	}
 
-uint64_t TopkVal::getSum() const
+uint64_t TopkVal::GetSum() const
 	{
 	uint64_t sum = 0;
 
@@ -353,7 +359,7 @@ uint64_t TopkVal::getSum() const
 		}
 
 	if ( pruned ) 
-		reporter->Warning("TopkVal::getSum() was used on a pruned data structure. Result values do not represent total element count");
+		reporter->Warning("TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count");
 
 	return sum;
 	}
@@ -362,10 +368,8 @@ void TopkVal::Encountered(Val* encountered)
 	{
 	// ok, let's see if we already know this one.
 	
-	//printf("NumElements: %d\n", numElements);
-	// check type compatibility
 	if ( numElements == 0 ) 
-		type = encountered->Type()->Ref();
+		Typify(encountered->Type());
 	else
 		if ( !same_type(type, encountered->Type()) ) 
 			{

@@ -16,21 +16,23 @@ function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%}
 
 ## :bro:see:`Files::add_analyzer`.
-function Files::__add_analyzer%(file_id: string, args: any%): bool
+function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
 	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	bool result = file_mgr->AddAnalyzer(file_id->CheckString(), rv);
+	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
+	                                    file_mgr->GetComponentTag(tag), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
 
 ## :bro:see:`Files::remove_analyzer`.
-function Files::__remove_analyzer%(file_id: string, args: any%): bool
+function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
 	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(), rv);
+	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
+	                                       file_mgr->GetComponentTag(tag) , rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
@@ -45,7 +47,7 @@ function Files::__stop%(file_id: string%): bool
 ## :bro:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	return new StringVal(file_mgr->GetAnalyzerName(tag->InternalInt()));
+	return new StringVal(file_mgr->GetComponentName(tag));
 	%}
 
 module GLOBAL;

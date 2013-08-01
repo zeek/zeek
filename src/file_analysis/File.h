@@ -10,6 +10,7 @@
 
 #include "Conn.h"
 #include "Val.h"
+#include "Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
 
@@ -94,17 +95,19 @@ public:
 	/**
 	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
 	 * at a time unless the arguments differ.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(RecordVal* args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(const RecordVal* args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.

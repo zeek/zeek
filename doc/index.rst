@@ -47,6 +47,7 @@ Script Reference
    scripts/index
    scripts/builtins
    scripts/proto-analyzers
+   scripts/file-analyzers
 
 Other Bro Components
 --------------------

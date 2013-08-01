@@ -11,6 +11,7 @@
 #include "plugin/Manager.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Component.h"
+#include "file_analysis/Manager.h"
 
 BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	{
@@ -479,6 +480,17 @@ static void WriteAnalyzerComponent(FILE* f, const analyzer::Component* c)
 	fprintf(f, ":bro:enum:`Analyzer::%s`\n\n", tag.c_str());
 	}
 
+static void WriteAnalyzerComponent(FILE* f, const file_analysis::Component* c)
+	{
+	EnumType* atag = file_mgr->GetTagEnumType();
+	string tag = fmt("ANALYZER_%s", c->CanonicalName());
+
+	if ( atag->Lookup("Files", tag.c_str()) < 0 )
+		reporter->InternalError("missing analyzer tag for %s", tag.c_str());
+
+	fprintf(f, ":bro:enum:`Files::%s`\n\n", tag.c_str());
+	}
+
 static void WritePluginComponents(FILE* f, const plugin::Plugin* p)
 	{
 	plugin::Plugin::component_list components = p->Components();
@@ -493,6 +505,10 @@ static void WritePluginComponents(FILE* f, const plugin::Plugin* p)
 		case plugin::component::ANALYZER:
 			WriteAnalyzerComponent(f,
 			        dynamic_cast<const analyzer::Component*>(*it));
+			break;
+		case plugin::component::FILE_ANALYZER:
+			WriteAnalyzerComponent(f,
+			        dynamic_cast<const file_analysis::Component*>(*it));
 			break;
 		case plugin::component::READER:
 			reporter->InternalError("docs for READER component unimplemented");
@@ -537,30 +553,35 @@ static void WritePluginBifItems(FILE* f, const plugin::Plugin* p,
 		}
 	}
 
-static void WriteAnalyzerTagDefn(FILE* f, EnumType* e)
+static void WriteAnalyzerTagDefn(FILE* f, EnumType* e, const string& module)
 	{
+	string tag_id= module + "::Tag";
 	e = new CommentedEnumType(e);
-	e->SetTypeID(copy_string("Analyzer::Tag"));
+	e->SetTypeID(copy_string(tag_id.c_str()));
 
-	ID* dummy_id = new ID(copy_string("Analyzer::Tag"), SCOPE_GLOBAL, true);
+	ID* dummy_id = new ID(copy_string(tag_id.c_str()), SCOPE_GLOBAL, true);
 	dummy_id->SetType(e);
 	dummy_id->MakeType();
 
 	list<string>* r = new list<string>();
-	r->push_back("Unique identifiers for protocol analyzers.");
+	r->push_back("Unique identifiers for analyzers.");
 
 	BroDocObj bdo(dummy_id, r, true);
 
 	bdo.WriteReST(f);
 	}
 
-static bool IsAnalyzerPlugin(const plugin::Plugin* p)
+static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,
+                            bool match_empty = false)
 	{
 	plugin::Plugin::component_list components = p->Components();
 	plugin::Plugin::component_list::const_iterator it;
 
+	if ( components.empty() )
+		return match_empty;
+
 	for ( it = components.begin(); it != components.end(); ++it )
-		if ( (*it)->Type() != plugin::component::ANALYZER )
+		if ( (*it)->Type() != t )
 			return false;
 
 	return true;
@@ -573,14 +594,44 @@ void CreateProtoAnalyzerDoc(const char* filename)
 	fprintf(f, "Protocol Analyzer Reference\n");
 	fprintf(f, "===========================\n\n");
 
-	WriteAnalyzerTagDefn(f, analyzer_mgr->GetTagEnumType());
+	WriteAnalyzerTagDefn(f, analyzer_mgr->GetTagEnumType(), "Analyzer");
 
 	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
 	plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )
 		{
-		if ( ! IsAnalyzerPlugin(*it) )
+		if ( ! ComponentsMatch(*it, plugin::component::ANALYZER, true) )
+			continue;
+
+		WritePluginSectionHeading(f, *it);
+		WritePluginComponents(f, *it);
+		WritePluginBifItems(f, *it, plugin::BifItem::CONSTANT,
+		                    "Options/Constants");
+		WritePluginBifItems(f, *it, plugin::BifItem::GLOBAL, "Globals");
+		WritePluginBifItems(f, *it, plugin::BifItem::TYPE, "Types");
+		WritePluginBifItems(f, *it, plugin::BifItem::EVENT, "Events");
+		WritePluginBifItems(f, *it, plugin::BifItem::FUNCTION, "Functions");
+		}
+
+	fclose(f);
+	}
+
+void CreateFileAnalyzerDoc(const char* filename)
+	{
+	FILE* f = fopen(filename, "w");
+
+	fprintf(f, "File Analyzer Reference\n");
+	fprintf(f, "=======================\n\n");
+
+	WriteAnalyzerTagDefn(f, file_mgr->GetTagEnumType(), "Files");
+
+	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list::const_iterator it;
+
+	for ( it = plugins.begin(); it != plugins.end(); ++it )
+		{
+		if ( ! ComponentsMatch(*it, plugin::component::FILE_ANALYZER) )
 			continue;
 
 		WritePluginSectionHeading(f, *it);

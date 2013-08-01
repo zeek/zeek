@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <typeinfo>
+#include <openssl/md5.h>
 
 #include "Hasher.h"
 #include "NetVar.h"
@@ -82,15 +83,30 @@ Hasher::Hasher(size_t arg_k, size_t arg_seed)
 	seed = arg_seed;
 	}
 
-UHF::UHF(size_t seed)
-	: h(seed)
+UHF::UHF(size_t arg_seed)
+	: h(arg_seed)
 	{
+	seed = arg_seed;
 	}
 
+// This function is almost equivalent to HashKey::HashBytes except that it
+// does not depend on global state and that we mix in the seed multiple
+// times.
 Hasher::digest UHF::hash(const void* x, size_t n) const
 	{
-	assert(n <= UHASH_KEY_SIZE);
-	return n == 0 ? 0 : h(x, n);
+	if ( n <= UHASH_KEY_SIZE )
+		return n == 0 ? 0 : h(x, n);
+
+	unsigned char d[16];
+	MD5(reinterpret_cast<const unsigned char*>(x), n, d);
+
+	const unsigned char* s = reinterpret_cast<const unsigned char*>(&seed);
+	for ( size_t i = 0; i < 16; ++i )
+		d[i] ^= s[i % sizeof(seed)];
+
+	MD5(d, 16, d);
+
+	return d[0];
 	}
 
 DefaultHasher::DefaultHasher(size_t k, size_t seed)

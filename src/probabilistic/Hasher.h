@@ -123,9 +123,9 @@ public:
 	 * Constructs an H3 hash function seeded with a given seed and an
 	 * optional extra seed to replace the initial Bro seed.
 	 *
-	 * @param seed The seed to use for this instance.
+	 * @param arg_seed The seed to use for this instance.
 	 */
-	UHF(size_t seed = 0);
+	UHF(size_t arg_seed = 0);
 
 	template <typename T>
 	Hasher::digest operator()(const T& x) const
@@ -171,6 +171,7 @@ private:
 	static size_t compute_seed(size_t seed);
 
 	H3<Hasher::digest, UHASH_KEY_SIZE> h;
+	size_t seed;
 };
 
 

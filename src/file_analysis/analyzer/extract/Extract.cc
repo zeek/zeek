@@ -9,7 +9,7 @@
 using namespace file_analysis;
 
 Extract::Extract(RecordVal* args, File* file, const string& arg_filename)
-    : file_analysis::Analyzer(file_mgr->GetAnalyzerTag("EXTRACT"), args, file),
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), args, file),
 	  filename(arg_filename)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);

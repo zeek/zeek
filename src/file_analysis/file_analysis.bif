@@ -21,7 +21,7 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
-	                                    file_mgr->GetAnalyzerTag(tag), rv);
+	                                    file_mgr->GetComponentTag(tag), rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
@@ -32,7 +32,7 @@ function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%)
 	using BifType::Record::Files::AnalyzerArgs;
 	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
-	                                       file_mgr->GetAnalyzerTag(tag) , rv);
+	                                       file_mgr->GetComponentTag(tag) , rv);
 	Unref(rv);
 	return new Val(result, TYPE_BOOL);
 	%}
@@ -47,7 +47,7 @@ function Files::__stop%(file_id: string%): bool
 ## :bro:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	return new StringVal(file_mgr->GetAnalyzerName(tag));
+	return new StringVal(file_mgr->GetComponentName(tag));
 	%}
 
 module GLOBAL;

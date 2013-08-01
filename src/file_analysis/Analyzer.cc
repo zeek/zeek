@@ -6,6 +6,6 @@
 file_analysis::Analyzer::~Analyzer()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %s",
-	        file_mgr->GetAnalyzerName(tag));
+	        file_mgr->GetComponentName(tag));
 	Unref(args);
 	}

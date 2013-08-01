@@ -6,6 +6,8 @@
 #include "config.h"
 #include "util.h"
 #include "../Tag.h"
+#include "plugin/TaggedComponent.h"
+#include "plugin/ComponentManager.h"
 
 class EnumVal;
 
@@ -87,7 +89,8 @@ public:
 
 protected:
 	friend class analyzer::Manager;
-	friend class analyzer::Component;
+	friend class plugin::ComponentManager<Tag, Component>;
+	friend class plugin::TaggedComponent<Tag>;
 
 	/**
 	 * Constructor.

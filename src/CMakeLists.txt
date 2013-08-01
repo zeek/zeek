@@ -363,6 +363,8 @@ set(bro_SRCS
     3rdparty/sqlite3.c
 
     plugin/Component.cc
+    plugin/ComponentManager.h
+    plugin/TaggedComponent.h
     plugin/Manager.cc
     plugin/Plugin.cc
     plugin/Macros.h

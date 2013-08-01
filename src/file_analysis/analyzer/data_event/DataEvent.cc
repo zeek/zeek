@@ -12,7 +12,7 @@ using namespace file_analysis;
 
 DataEvent::DataEvent(RecordVal* args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
-    : file_analysis::Analyzer(file_mgr->GetAnalyzerTag("DATA_EVENT"),
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
 	                          args, file),
 	chunk_event(ce), stream_event(se)
 	{

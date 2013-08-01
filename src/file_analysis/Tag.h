@@ -6,12 +6,13 @@
 #include "config.h"
 #include "util.h"
 #include "../Tag.h"
+#include "plugin/TaggedComponent.h"
+#include "plugin/ComponentManager.h"
 
 class EnumVal;
 
 namespace file_analysis {
 
-class Manager;
 class Component;
 
 /**
@@ -87,15 +88,15 @@ public:
 	static Tag Error;
 
 protected:
-	friend class file_analysis::Manager;
-	friend class file_analysis::Component;
+	friend class plugin::ComponentManager<Tag, Component>;
+	friend class plugin::TaggedComponent<Tag>;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param type The main type. Note that the \a file_analysis::Manager
 	 * manages the value space internally, so noone else should assign
-	 * main tyoes.
+	 * main types.
 	 *
 	 * @param subtype The sub type, which is left to an analyzer for
 	 * interpretation. By default it's set to zero.

@@ -88,7 +88,7 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		SetSource(analyzer_mgr->GetAnalyzerName(tag));
+		SetSource(analyzer_mgr->GetComponentName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn, is_orig);
 		}

@@ -1,4 +1,17 @@
 
+2.1-971 | 2013-08-01 13:28:32 -0700
+
+  * Fix some build errors. (Jon Siwek)
+
+  * Internal refactoring of how plugin components are tagged/managed.
+    (Jon Siwek)
+
+  * Fix various documentation, mostly related to file analysis. (Jon
+    Siwek)
+
+  * Changing the Bloom filter hashing so that it's independent of
+    CompositeHash. (Robin Sommer)
+
 2.1-951 | 2013-08-01 11:19:23 -0400
 
   * Small fix to deal with a bug in the SSL log delay mechanism.

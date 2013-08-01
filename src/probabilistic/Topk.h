@@ -129,9 +129,30 @@ protected:
 	TopkVal();
 
 private:
+	/**
+	 * Increment the counter for a specific element
+	 *
+	 * @param e element to increment counter for
+	 *
+	 * @param count increment counter by this much
+	 */
 	void IncrementCounter(Element* e, unsigned int count = 1);
-	HashKey* GetHash(Val*) const; // this probably should go somewhere else.
-	void Typify(BroType*);
+
+	/**
+	 * get the hashkey for a specific value
+	 *
+	 * @param v value to generate key for
+	 *
+	 * @returns HashKey for value
+	 */
+	HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
+
+	/**
+	 * Set the type that this TopK instance tracks
+	 *
+	 * @param t type that is tracked
+	 */
+	void Typify(BroType* t);
 
 	BroType* type;
 	CompositeHash* hash;

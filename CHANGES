@@ -1,4 +1,8 @@
 
+2.1-1007 | 2013-08-01 15:41:54 -0700
+
+  * More function documentation. (Bernhard Amann)
+
 2.1-1004 | 2013-08-01 14:37:43 -0700
 
   * Adding a probabilistic data structure for computing "top k"

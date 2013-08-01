@@ -564,7 +564,7 @@ static void WriteAnalyzerTagDefn(FILE* f, EnumType* e, const string& module)
 	dummy_id->MakeType();
 
 	list<string>* r = new list<string>();
-	r->push_back("Unique identifiers for protocol analyzers.");
+	r->push_back("Unique identifiers for analyzers.");
 
 	BroDocObj bdo(dummy_id, r, true);
 
@@ -622,7 +622,7 @@ void CreateFileAnalyzerDoc(const char* filename)
 	FILE* f = fopen(filename, "w");
 
 	fprintf(f, "File Analyzer Reference\n");
-	fprintf(f, "===========================\n\n");
+	fprintf(f, "=======================\n\n");
 
 	WriteAnalyzerTagDefn(f, file_mgr->GetTagEnumType(), "Files");
 

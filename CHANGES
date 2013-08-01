@@ -1,4 +1,9 @@
 
+2.1-948 | 2013-07-31 20:08:28 -0700
+
+  * Fix segfault caused by merging an empty bloom-filter with a
+    bloom-filter already containing values. (Bernhard Amann)
+
 2.1-945 | 2013-07-30 10:05:10 -0700
 
   * Make hashers serializable. (Matthias Vallentin)

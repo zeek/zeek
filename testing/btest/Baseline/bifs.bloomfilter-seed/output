@@ -1,0 +1,8 @@
+bf1, global_seed, 1
+bf2, global_seed, 5
+bf3, my_seed, 5
+bf4, my_seed, 6
+bf1, global_seed, 5
+bf2, global_seed, 6
+bf3, my_seed, 5
+bf4, my_seed, 6

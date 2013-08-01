@@ -490,6 +490,16 @@ BitVector::size_type BitVector::FindNext(size_type i) const
 	return block ? bi * bits_per_block + lowest_bit(block) : find_from(bi + 1);
 	}
 
+size_t BitVector::Hash() const
+	{
+	size_t hash = 0;
+
+	for ( size_type i = 0; i < Blocks(); ++i )
+		hash += bits[i];
+
+	return hash;
+	}
+
 BitVector::size_type BitVector::lowest_bit(block_type block)
 	{
 	block_type x = block - (block & (block - 1));

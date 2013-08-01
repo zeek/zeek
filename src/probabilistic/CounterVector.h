@@ -126,6 +126,13 @@ public:
 	 */
 	CounterVector& operator|=(const CounterVector& other);
 
+	/** Computes a hash value of the internal representation.
+	  * This is mainly for debugging/testing purposes.
+	  *
+	  * @return The hash.
+	  */
+	size_t Hash() const;
+
 	/**
 	 * Serializes the bit vector.
 	 *

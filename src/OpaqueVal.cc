@@ -566,14 +566,14 @@ BroType* BloomFilterVal::Type() const
 void BloomFilterVal::Add(const Val* val)
 	{
 	HashKey* key = hash->ComputeHash(val, 1);
-	bloom_filter->Add(key->Hash());
+	bloom_filter->Add(key);
 	delete key;
 	}
 
 size_t BloomFilterVal::Count(const Val* val) const
 	{
 	HashKey* key = hash->ComputeHash(val, 1);
-	size_t cnt = bloom_filter->Count(key->Hash());
+	size_t cnt = bloom_filter->Count(key);
 	delete key;
 	return cnt;
 	}
@@ -586,6 +586,11 @@ void BloomFilterVal::Clear()
 bool BloomFilterVal::Empty() const
 	{
 	return bloom_filter->Empty();
+	}
+
+string BloomFilterVal::InternalState() const
+	{
+	return bloom_filter->InternalState();
 	}
 
 BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,

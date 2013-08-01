@@ -31,6 +31,11 @@ size_t Hasher::MakeSeed(const void* data, size_t size)
 	return *reinterpret_cast<size_t*>(buf); // Use the first bytes as seed.
 	}
 
+Hasher::digest_vector Hasher::Hash(const HashKey* key) const
+	{
+	return Hash(key->Key(), key->Size());
+	}
+
 bool Hasher::Serialize(SerialInfo* info) const
 	{
 	return SerialObj::Serialize(info);
@@ -76,7 +81,6 @@ Hasher::Hasher(size_t arg_k, size_t arg_seed)
 	k = arg_k;
 	seed = arg_seed;
 	}
-
 
 UHF::UHF(size_t seed)
 	: h(seed)

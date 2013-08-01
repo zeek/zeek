@@ -20,11 +20,6 @@ module GLOBAL;
 
 ## Creates a basic Bloom filter.
 ##
-## .. note:: A Bloom filter can have a name associated with it. In the future,
-##    Bloom filters with the same name will be compatible across indepedent Bro
-##    instances, i.e., it will be possible to merge them. Currently, however, that is
-##    not yet supported.
-##
 ## fp: The desired false-positive rate.
 ##
 ## capacity: the maximum number of elements that guarantees a false-positive
@@ -61,11 +56,6 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 ## alternative to bloomfilter_basic_init where the user has full control over
 ## the number of hash functions and cells in the underlying bit vector.
 ##
-## .. note:: A Bloom filter can have a name associated with it. In the future,
-##    Bloom filters with the same name will be compatible across indepedent Bro
-##    instances, i.e., it will be possible to merge them. Currently, however, that is
-##    not yet supported.
-##
 ## k: The number of hash functions to use.
 ##
 ## cells: The number of cells of the underlying bit vector.
@@ -101,11 +91,6 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 	%}
 
 ## Creates a counting Bloom filter.
-##
-## .. note:: A Bloom filter can have a name associated with it. In the future,
-##    Bloom filters with the same name will be compatible across indepedent Bro
-##    instances, i.e., it will be possible to merge them. Currently, however, that is
-##    not yet supported.
 ##
 ## k: The number of hash functions to use.
 ##
@@ -249,4 +234,14 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 		}
 
 	return BloomFilterVal::Merge(bfv1, bfv2);
+	%}
+
+## Returns a string with a representation of a Bloom filter's internal
+## state. This is for debugging/testing purposes only.
+## 
+## bf: The Bloom filter handle.
+function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
+	%{
+	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+	return new StringVal(bfv->InternalState());
 	%}

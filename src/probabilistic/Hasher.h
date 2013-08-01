@@ -51,6 +51,15 @@ public:
 		}
 
 	/**
+	 * Computes hash values for an element.
+	 *
+	 * @param x The key of the value to hash.
+	 *
+	 * @return Vector of *k* hash values.
+	 */
+	digest_vector Hash(const HashKey* key) const;
+
+	/**
 	 * Computes the hashes for a set of bytes.
 	 *
 	 * @param x Pointer to first byte to hash.

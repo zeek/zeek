@@ -454,7 +454,16 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 
 	local uid = unique_id("");
 	done_with[uid] = 0;
-	event SumStats::cluster_get_result(uid, ss_name, key, T);
+	event SumStats::cluster_get_result(uid, ss_name, key, F);
+	when ( uid in done_with && Cluster::worker_count == done_with[uid] )
+		{
+		handle_end_of_result_collection(uid, ss_name, key, F);
+		}
+	timeout 1.1min
+		{
+		Reporter::warning(fmt("Dynamic SumStat intermediate key request for %s (%s) took longer than 1 minute and was automatically cancelled.", ss_name, key));
+		}
+
 	}
 
 #event SumStats::cluster_ss_response(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool)

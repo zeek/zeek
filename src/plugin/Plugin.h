@@ -255,6 +255,12 @@ protected:
 	virtual bif_item_list CustomBifItems() const;
 
 	/**
+	 * Initializes the BiF items added with AddBifItem(). Internal method
+	 * that will be called by the manager at the right time.
+	 */
+	void InitBifs();
+
+	/**
 	 * Internal function adding an entry point for registering
 	 * auto-generated BiFs.
 	 */

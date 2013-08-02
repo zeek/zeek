@@ -50,7 +50,13 @@ public:
 	void InitPreScript();
 
 	/**
-	 * Second-stage initialization of the manager. This is called late
+	 * Second-stage initialization of the manager. This is called in
+	 * between pre- and post-script to make BiFs available.
+	 */
+	void InitBifs();
+
+	/**
+	 * Third-stage initialization of the manager. This is called late
 	 * during Bro's initialization after any scripts are processed, and
 	 * forwards to the corresponding Plugin methods.
 	 */

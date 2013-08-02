@@ -130,6 +130,10 @@ void Plugin::InitPreScript()
 
 void Plugin::InitPostScript()
 	{
+	}
+
+void Plugin::InitBifs()
+	{
 	for ( bif_init_func_list::const_iterator f = bif_inits.begin(); f != bif_inits.end(); f++ )
 		(**f)(this);
 	}

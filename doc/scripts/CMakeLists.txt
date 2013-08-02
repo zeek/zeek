@@ -124,28 +124,34 @@ endmacro(REST_TARGET)
 # Schedule Bro scripts for which to generate documentation.
 include(DocSourcesList.cmake)
 
-# This reST target is independent of a particular Bro script...
-add_custom_command(OUTPUT proto-analyzers.rst
-    # delete any leftover state from previous bro runs
-    COMMAND "${CMAKE_COMMAND}"
-    ARGS -E remove_directory .state
-    # generate the reST documentation using bro
-    COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic/database ${CMAKE_BINARY_DIR}/src/bro
-    ARGS -b -Z base/init-bare.bro || (rm -rf .state *.log *.rst && exit 1)
-    # move generated doc into a new directory tree that
-    # defines the final structure of documents
-    COMMAND "${CMAKE_COMMAND}"
-    ARGS -E make_directory ${dstDir}
-    COMMAND "${CMAKE_COMMAND}"
-    ARGS -E copy proto-analyzers.rst ${dstDir}
-    # clean up the build directory
-    COMMAND rm
-    ARGS -rf .state *.log *.rst
-    DEPENDS bro
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "[Bro] Generating reST docs for proto-analyzers.rst"
-)
-list(APPEND ALL_REST_OUTPUTS proto-analyzers.rst)
+# Macro for generating reST docs that are independent of any particular Bro
+# script.
+macro(INDEPENDENT_REST_TARGET reST_file)
+    add_custom_command(OUTPUT ${reST_file}
+        # delete any leftover state from previous bro runs
+        COMMAND "${CMAKE_COMMAND}"
+        ARGS -E remove_directory .state
+        # generate the reST documentation using bro
+        COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic/database ${CMAKE_BINARY_DIR}/src/bro
+        ARGS -b -Z base/init-bare.bro || (rm -rf .state *.log *.rst && exit 1)
+        # move generated doc into a new directory tree that
+        # defines the final structure of documents
+        COMMAND "${CMAKE_COMMAND}"
+        ARGS -E make_directory ${dstDir}
+        COMMAND "${CMAKE_COMMAND}"
+        ARGS -E copy ${reST_file} ${dstDir}
+        # clean up the build directory
+        COMMAND rm
+        ARGS -rf .state *.log *.rst
+        DEPENDS bro
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "[Bro] Generating reST docs for ${reST_file}"
+    )
+    list(APPEND ALL_REST_OUTPUTS ${reST_file})
+endmacro(INDEPENDENT_REST_TARGET)
+
+independent_rest_target(proto-analyzers.rst)
+independent_rest_target(file-analyzers.rst)
 
 # create temporary list of all docs to include in the master policy/index file
 file(WRITE ${MASTER_POLICY_INDEX} "${MASTER_POLICY_INDEX_TEXT}")

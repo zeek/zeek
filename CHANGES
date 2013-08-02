@@ -1,4 +1,54 @@
 
+2.1-1007 | 2013-08-01 15:41:54 -0700
+
+  * More function documentation. (Bernhard Amann)
+
+2.1-1004 | 2013-08-01 14:37:43 -0700
+
+  * Adding a probabilistic data structure for computing "top k"
+    elements. (Bernhard Amann)
+
+    The corresponding functions are:
+
+        topk_init(size: count): opaque of topk
+        topk_add(handle: opaque of topk, value: any)
+        topk_get_top(handle: opaque of topk, k: count)
+        topk_count(handle: opaque of topk, value: any): count
+        topk_epsilon(handle: opaque of topk, value: any): count
+        topk_size(handle: opaque of topk): count
+        topk_sum(handle: opaque of topk): count
+        topk_merge(handle1: opaque of topk, handle2: opaque of topk)
+        topk_merge_prune(handle1: opaque of topk, handle2: opaque of topk)
+
+2.1-971 | 2013-08-01 13:28:32 -0700
+
+  * Fix some build errors. (Jon Siwek)
+
+  * Internal refactoring of how plugin components are tagged/managed.
+    (Jon Siwek)
+
+  * Fix various documentation, mostly related to file analysis. (Jon
+    Siwek)
+
+  * Changing the Bloom filter hashing so that it's independent of
+    CompositeHash. (Robin Sommer)
+
+2.1-951 | 2013-08-01 11:19:23 -0400
+
+  * Small fix to deal with a bug in the SSL log delay mechanism.
+
+2.1-948 | 2013-07-31 20:08:28 -0700
+
+  * Fix segfault caused by merging an empty bloom-filter with a
+    bloom-filter already containing values. (Bernhard Amann)
+
+2.1-945 | 2013-07-30 10:05:10 -0700
+
+  * Make hashers serializable. (Matthias Vallentin)
+
+  * Add docs and use default value for hasher names. (Matthias
+    Vallentin)
+
 2.1-939 | 2013-07-29 15:42:38 -0700
 
   * Added Exec, Dir, and ActiveHTTP modules. (Seth Hall)

@@ -531,22 +531,19 @@ type record_field_table: table[string] of record_field;
 # dependent on the names remaining as they are now.
 
 ## Set of BPF capture filters to use for capturing, indexed by a user-definable
-## ID (which must be unique). If Bro is *not* configured to examine
-## :bro:id:`PacketFilter::all_packets`, all packets matching at least
-## one of the filters in this table (and all in :bro:id:`restrict_filters`)
-## will be analyzed.
+## ID (which must be unique). If Bro is *not* configured with
+## :bro:id:`PacketFilter::enable_auto_protocol_capture_filters`,
+## all packets matching at least one of the filters in this table (and all in
+## :bro:id:`restrict_filters`) will be analyzed.
 ##
-## .. bro:see:: PacketFilter PacketFilter::all_packets
+## .. bro:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
 ##    PacketFilter::unrestricted_filter restrict_filters
 global capture_filters: table[string] of string &redef;
 
 ## Set of BPF filters to restrict capturing, indexed by a user-definable ID (which
-## must be unique). If Bro is *not* configured to examine
-## :bro:id:`PacketFilter::all_packets`, only packets matching *all* of the
-## filters in this table (and any in :bro:id:`capture_filters`) will be
-## analyzed.
+## must be unique).
 ##
-## .. bro:see:: PacketFilter PacketFilter::all_packets
+## .. bro:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
 ##    PacketFilter::unrestricted_filter capture_filters
 global restrict_filters: table[string] of string &redef;
 
@@ -3041,6 +3038,11 @@ module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
+
+## Seed for hashes computed internally for probabilistic data structures. Using
+## the same value here will make the hashes compatible between independent Bro
+## instances. If left unset, Bro will use a temporary local seed.
+const global_hash_seed: string = "" &redef;
 
 # Load BiFs defined by plugins.
 @load base/bif/plugins

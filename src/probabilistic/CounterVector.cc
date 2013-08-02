@@ -153,6 +153,11 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y)
 
 }
 
+size_t CounterVector::Hash() const
+	{
+	return bits->Hash();
+	}
+
 bool CounterVector::Serialize(SerialInfo* info) const
 	{
 	return SerialObj::Serialize(info);

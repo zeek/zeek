@@ -19,6 +19,7 @@
 ##! sizes are not logged, but at the benefit of saving CPU cycles that
 ##! otherwise go to analyzing the large (and likely benign) connections.
 
+@load ./info
 @load ./main
 @load base/protocols/conn
 @load base/protocols/ssl

@@ -70,12 +70,12 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 	Ref(analyzer->Conn());
 	}
 
-analyzer::ID Analyzer::id_counter = 0;;
+analyzer::ID Analyzer::id_counter = 0;
 
 const char* Analyzer::GetAnalyzerName() const
 	{
 	assert(tag);
-	return analyzer_mgr->GetAnalyzerName(tag);
+	return analyzer_mgr->GetComponentName(tag);
 	}
 
 void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
@@ -87,7 +87,7 @@ void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return strcmp(analyzer_mgr->GetAnalyzerName(tag), name) == 0;
+	return strcmp(analyzer_mgr->GetComponentName(tag), name) == 0;
 	}
 
 // Used in debugging output.
@@ -98,7 +98,7 @@ static string fmt_analyzer(Analyzer* a)
 
 Analyzer::Analyzer(const char* name, Connection* conn)
 	{
-	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
+	Tag tag = analyzer_mgr->GetComponentTag(name);
 
 	if ( ! tag )
 		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
@@ -494,7 +494,7 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 
 Analyzer* Analyzer::FindChild(const char* name)
 	{
-	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
+	Tag tag = analyzer_mgr->GetComponentTag(name);
 	return tag ? FindChild(tag) : 0;
 	}
 

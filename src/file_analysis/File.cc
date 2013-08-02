@@ -88,7 +88,7 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		SetSource(analyzer_mgr->GetAnalyzerName(tag));
+		SetSource(analyzer_mgr->GetComponentName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn, is_orig);
 		}
@@ -231,14 +231,14 @@ void File::ScheduleInactivityTimer() const
 	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAnalyzer(RecordVal* args)
+bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueAdd(args);
+	return done ? false : analyzers.QueueAdd(tag, args);
 	}
 
-bool File::RemoveAnalyzer(const RecordVal* args)
+bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueRemove(args);
+	return done ? false : analyzers.QueueRemove(tag, args);
 	}
 
 bool File::BufferBOF(const u_char* data, uint64 len)
@@ -321,7 +321,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	analyzers.DrainModifications();
@@ -356,7 +356,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		{
 		if ( ! a->DeliverStream(data, len) )
 			{
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 			continue;
 			}
 
@@ -364,7 +364,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		                LookupFieldDefaultCount(missing_bytes_idx);
 
 		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	analyzers.DrainModifications();
@@ -389,7 +389,7 @@ void File::EndOfFile()
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->EndOfFile() )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	FileEvent(file_state_remove);
@@ -411,7 +411,7 @@ void File::Gap(uint64 offset, uint64 len)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->Undelivered(offset, len) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	if ( FileEventAvailable(file_gap) )

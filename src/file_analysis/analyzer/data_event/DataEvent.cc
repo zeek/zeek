@@ -6,18 +6,21 @@
 #include "EventRegistry.h"
 #include "Event.h"
 #include "util.h"
+#include "file_analysis/Manager.h"
 
 using namespace file_analysis;
 
 DataEvent::DataEvent(RecordVal* args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
-    : file_analysis::Analyzer(args, file), chunk_event(ce), stream_event(se)
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
+	                          args, file),
+	chunk_event(ce), stream_event(se)
 	{
 	}
 
 file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
-	using BifType::Record::FileAnalysis::AnalyzerArgs;
+	using BifType::Record::Files::AnalyzerArgs;
 
 	int chunk_off = AnalyzerArgs->FieldOffset("chunk_event");
 	int stream_off = AnalyzerArgs->FieldOffset("stream_event");

@@ -75,7 +75,8 @@ void File::StaticInit()
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
            bool is_orig)
 	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
-	  missed_bof(false), need_reassembly(false), done(false), analyzers(this)
+	  missed_bof(false), need_reassembly(false), done(false),
+	  did_file_new_event(false), analyzers(this)
 	{
 	StaticInit();
 
@@ -87,9 +88,9 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		SetSource(analyzer_mgr->GetAnalyzerName(tag));
+		SetSource(analyzer_mgr->GetComponentName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
-		UpdateConnectionFields(conn);
+		UpdateConnectionFields(conn, is_orig);
 		}
 
 	UpdateLastActivityTime();
@@ -99,6 +100,13 @@ File::~File()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
+
+	// Queue may not be empty in the case where only content gaps were seen.
+	while ( ! fonc_queue.empty() )
+		{
+		delete_vals(fonc_queue.front().second);
+		fonc_queue.pop();
+		}
 	}
 
 void File::UpdateLastActivityTime()
@@ -111,18 +119,15 @@ double File::GetLastActivityTime() const
 	return val->Lookup(last_active_idx)->AsTime();
 	}
 
-void File::UpdateConnectionFields(Connection* conn)
+void File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	{
 	if ( ! conn )
 		return;
 
 	Val* conns = val->Lookup(conns_idx);
 
-	bool is_first = false;
-
 	if ( ! conns )
 		{
-		is_first = true;
 		conns = empty_connection_table();
 		val->Assign(conns_idx, conns);
 		}
@@ -133,12 +138,18 @@ void File::UpdateConnectionFields(Connection* conn)
 		Val* conn_val = conn->BuildConnVal();
 		conns->AsTableVal()->Assign(idx, conn_val);
 
-		if ( ! is_first && FileEventAvailable(file_over_new_connection) )
+		if ( FileEventAvailable(file_over_new_connection) )
 			{
 			val_list* vl = new val_list();
 			vl->append(val->Ref());
 			vl->append(conn_val->Ref());
-			FileEvent(file_over_new_connection, vl);
+			vl->append(new Val(is_orig, TYPE_BOOL));
+
+			if ( did_file_new_event )
+				FileEvent(file_over_new_connection, vl);
+			else
+				fonc_queue.push(pair<EventHandlerPtr, val_list*>(
+				        file_over_new_connection, vl));
 			}
 		}
 
@@ -220,14 +231,14 @@ void File::ScheduleInactivityTimer() const
 	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAnalyzer(RecordVal* args)
+bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueAdd(args);
+	return done ? false : analyzers.QueueAdd(tag, args);
 	}
 
-bool File::RemoveAnalyzer(const RecordVal* args)
+bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueRemove(args);
+	return done ? false : analyzers.QueueRemove(tag, args);
 	}
 
 bool File::BufferBOF(const u_char* data, uint64 len)
@@ -310,7 +321,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	analyzers.DrainModifications();
@@ -345,7 +356,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		{
 		if ( ! a->DeliverStream(data, len) )
 			{
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 			continue;
 			}
 
@@ -353,7 +364,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		                LookupFieldDefaultCount(missing_bytes_idx);
 
 		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	analyzers.DrainModifications();
@@ -378,7 +389,7 @@ void File::EndOfFile()
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->EndOfFile() )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	FileEvent(file_state_remove);
@@ -400,7 +411,7 @@ void File::Gap(uint64 offset, uint64 len)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->Undelivered(offset, len) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	if ( FileEventAvailable(file_gap) )
@@ -434,6 +445,18 @@ void File::FileEvent(EventHandlerPtr h)
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
 	mgr.QueueEvent(h, vl);
+
+	if ( h == file_new )
+		{
+		did_file_new_event = true;
+
+		while ( ! fonc_queue.empty() )
+			{
+			pair<EventHandlerPtr, val_list*> p = fonc_queue.front();
+			mgr.QueueEvent(p.first, p.second);
+			fonc_queue.pop();
+			}
+		}
 
 	if ( h == file_new || h == file_timeout )
 		{

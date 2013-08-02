@@ -4,6 +4,7 @@ FILE_BOF_BUFFER
 Hello^M^J^M^J ^M
 MIME_TYPE
 text/plain
+FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 79, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
@@ -17,6 +18,7 @@ FILE_BOF_BUFFER
 <html xmlns
 MIME_TYPE
 text/html
+FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #1, 1918, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
@@ -30,6 +32,7 @@ FILE_BOF_BUFFER
 Version 4.9
 MIME_TYPE
 text/plain
+FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #2, 10823, 0
 [orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]

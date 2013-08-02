@@ -12,12 +12,12 @@ export {
 		## Apply BPF filters to each worker in a way that causes them to
 		## automatically flow balance traffic between them.
 		AUTO_BPF,
-		## Load balance traffic across the workers by making each one apply
-		## a restrict filter to only listen to a single MAC address.  This
-		## is a somewhat common deployment option for sites doing network
-		## based load balancing with MAC address rewriting and passing the
-		## traffic to a single interface.  Multiple MAC addresses will show
-		## up on the same interface and need filtered to a single address.
+		# Load balance traffic across the workers by making each one apply
+		# a restrict filter to only listen to a single MAC address.  This
+		# is a somewhat common deployment option for sites doing network
+		# based load balancing with MAC address rewriting and passing the
+		# traffic to a single interface.  Multiple MAC addresses will show
+		# up on the same interface and need filtered to a single address.
 		#MAC_ADDR_BPF,
 	};
 

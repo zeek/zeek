@@ -3,11 +3,14 @@
 #ifndef FILE_ANALYSIS_FILE_H
 #define FILE_ANALYSIS_FILE_H
 
+#include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Conn.h"
 #include "Val.h"
+#include "Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
 
@@ -92,17 +95,19 @@ public:
 	/**
 	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
 	 * at a time unless the arguments differ.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(RecordVal* args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(const RecordVal* args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.
@@ -171,8 +176,9 @@ protected:
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
 	 * \c conn_id and UID taken from \a conn.
 	 * @param conn the connection over which a part of the file has been seen.
+	 * @param is_orig true if the connection originator is sending the file.
 	 */
-	void UpdateConnectionFields(Connection* conn);
+	void UpdateConnectionFields(Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.
@@ -239,7 +245,9 @@ private:
 	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
+	bool did_file_new_event;   /**< Whether the file_new event has been done. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzer. */
+	queue<pair<EventHandlerPtr, val_list*> > fonc_queue;
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), replayed(false), size(0) {}

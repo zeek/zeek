@@ -18,7 +18,8 @@
 #include "File.h"
 #include "FileTimer.h"
 #include "Component.h"
-
+#include "Tag.h"
+#include "plugin/ComponentManager.h"
 #include "analyzer/Tag.h"
 
 #include "file_analysis/file_analysis.bif.h"
@@ -28,7 +29,7 @@ namespace file_analysis {
 /**
  * Main entry point for interacting with file analysis.
  */
-class Manager {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 
 	/**
@@ -177,18 +178,22 @@ public:
 	 * analyzers of a given type can be attached per file identifier at a time
 	 * as long as the arguments differ.
 	 * @param file_id the file identifier/hash.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool AddAnalyzer(const string& file_id, RecordVal* args) const;
+	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+	                 RecordVal* args) const;
 
 	/**
 	 * Queue removal of an analyzer for a given file identifier.
 	 * @param file_id the file identifier/hash.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	bool RemoveAnalyzer(const string& file_id, const RecordVal* args) const;
+	bool RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+	                    RecordVal* args) const;
 
 	/**
 	 * Tells whether analysis for a file is active or ignored.
@@ -204,15 +209,7 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(int tag, RecordVal* args, File* f) const;
-
-	/**
-	 * Translates a script-level file analyzer tag in to corresponding file
-	 * analyzer name.
-	 * @param tag The enum val of a file analyzer.
-	 * @return The human-readable name of the file analyzer.
-	 */
-	const char* GetAnalyzerName(int tag) const;
+	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
 
 protected:
 	friend class FileTimer;
@@ -247,7 +244,7 @@ protected:
 	 * @return the File object mapped to \a file_id, or a null pointer if no
 	 *         mapping exists.
 	 */
-	File* Lookup(const string& file_id) const;
+	File* LookupFile(const string& file_id) const;
 
 	/**
 	 * Evaluate timeout policy for a file and remove the File object mapped to
@@ -287,20 +284,10 @@ protected:
 	static bool IsDisabled(analyzer::Tag tag);
 
 private:
-	typedef map<string, Component*> analyzer_map_by_name;
-	typedef map<analyzer::Tag, Component*> analyzer_map_by_tag;
-	typedef map<int, Component*> analyzer_map_by_val;
-
-	void RegisterAnalyzerComponent(Component* component);
 
 	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
 	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
-	EnumType* tag_enum_type;	/**< File analyzer tag type. */
-
-	analyzer_map_by_name analyzers_by_name;
-	analyzer_map_by_tag analyzers_by_tag;
-	analyzer_map_by_val analyzers_by_val;
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
 	static string salt; /**< A salt added to file handles before hashing. */

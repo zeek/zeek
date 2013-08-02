@@ -1,4 +1,133 @@
 
+2.1-1007 | 2013-08-01 15:41:54 -0700
+
+  * More function documentation. (Bernhard Amann)
+
+2.1-1004 | 2013-08-01 14:37:43 -0700
+
+  * Adding a probabilistic data structure for computing "top k"
+    elements. (Bernhard Amann)
+
+    The corresponding functions are:
+
+        topk_init(size: count): opaque of topk
+        topk_add(handle: opaque of topk, value: any)
+        topk_get_top(handle: opaque of topk, k: count)
+        topk_count(handle: opaque of topk, value: any): count
+        topk_epsilon(handle: opaque of topk, value: any): count
+        topk_size(handle: opaque of topk): count
+        topk_sum(handle: opaque of topk): count
+        topk_merge(handle1: opaque of topk, handle2: opaque of topk)
+        topk_merge_prune(handle1: opaque of topk, handle2: opaque of topk)
+
+2.1-971 | 2013-08-01 13:28:32 -0700
+
+  * Fix some build errors. (Jon Siwek)
+
+  * Internal refactoring of how plugin components are tagged/managed.
+    (Jon Siwek)
+
+  * Fix various documentation, mostly related to file analysis. (Jon
+    Siwek)
+
+  * Changing the Bloom filter hashing so that it's independent of
+    CompositeHash. (Robin Sommer)
+
+2.1-951 | 2013-08-01 11:19:23 -0400
+
+  * Small fix to deal with a bug in the SSL log delay mechanism.
+
+2.1-948 | 2013-07-31 20:08:28 -0700
+
+  * Fix segfault caused by merging an empty bloom-filter with a
+    bloom-filter already containing values. (Bernhard Amann)
+
+2.1-945 | 2013-07-30 10:05:10 -0700
+
+  * Make hashers serializable. (Matthias Vallentin)
+
+  * Add docs and use default value for hasher names. (Matthias
+    Vallentin)
+
+2.1-939 | 2013-07-29 15:42:38 -0700
+
+  * Added Exec, Dir, and ActiveHTTP modules. (Seth Hall)
+
+    base/utils/exec.bro provides a module to start external processes
+    asynchronously and retrieve their output on termination.
+    base/utils/dir.bro uses it to monitor a directory for changes, and
+    base/utils/active-http.bro for providing an interface for querying
+    remote web servers.
+
+2.1-930 | 2013-07-29 15:06:07 -0700
+
+  * Major file analysis overhaul in naming and appearance, along with
+    fixes and test updates. (Seth Hall and Jon Siwek)
+
+    Includes:
+
+    * Added protocol description functions that provide a super
+      compressed log representation. (Seth Hall)
+
+    * Added mime types to http.log (Seth Hall)
+      
+    * Add jar files to the default MHR lookups. (Seth Hall)
+      
+    * Adding CAB files for MHR checking. (Seth Hall)
+      
+    * Improve malware hash registry script.
+
+        - Include a link to a virustotal search in the notice sub message field.
+        - Give all information returned from Team Cymru in the notice message.
+        - Add more file types to match on to the default set.
+
+    * Make the custom libmagic database a git submodule.
+
+    * Add an is_orig parameter to file_over_new_connection event.
+
+    * Recorrected the module name to Files.
+
+    * Added Files::analyzer_name to get a more readable name for a
+      file analyzer.
+
+    * Improved and just overall better handled multipart mime
+      transfers in HTTP and SMTP.  HTTP now has orig_fuids and
+      resp_fuids log fields since multiple "files" can be transferred
+      with multipart mime in a single request/response pair.  SMTP has
+      an fuids field which has file unique IDs for all parts
+      transferred. FTP and IRC have a log field named fuid added
+      because only a single file can be transferred per irc and ftp
+      log line.
+
+2.1-895 | 2013-07-29 14:07:35 -0700
+
+  * Adding a test for a DNSKEY RR. (Robin Sommer)
+
+2.1-894 | 2013-07-29 16:44:41 -0400
+
+  * Updates for the Intel Framework. (Seth Hall)
+
+      - policy/frameworks/intel/seen is the new location for the 
+        scripts that push data into the intel framework for checking.
+
+      - The new policy/frameworks/intel/do_notice script adds an 
+        example mechanism for data driven notices.
+
+      - Remove the Intel insertion after heuristically detecting SSH 
+        bruteforcing.
+     
+      - Intel importing format has changed (refer to docs).
+
+      - All string matching is now case insensitive.
+
+      - SMTP intel script has been updated to extract email
+        addresses correctly.
+
+      - Small fix sneaking into the smtp base script to actually
+        extract individual email addresses in the To: field
+        correctly.
+
+
 2.1-888 | 2013-07-25 12:02:41 -0700
 
   * Protection about broken traces with empty pcap headers. (Matt

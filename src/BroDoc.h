@@ -413,4 +413,10 @@ private:
  */
 void CreateProtoAnalyzerDoc(const char* filename);
 
+/**
+ * Writes out plugin index documentation for all file analyzer plugins.
+ * @param filename the name of the file to write.
+ */
+void CreateFileAnalyzerDoc(const char* filename);
+
 #endif

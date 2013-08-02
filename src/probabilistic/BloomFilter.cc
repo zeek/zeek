@@ -9,6 +9,8 @@
 #include "CounterVector.h"
 #include "Serializer.h"
 
+#include "../util.h"
+
 using namespace probabilistic;
 
 BloomFilter::BloomFilter()
@@ -40,28 +42,15 @@ bool BloomFilter::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
 
-	if ( ! SERIALIZE(static_cast<uint16>(hasher->K())) )
-		return false;
-
-	return SERIALIZE_STR(hasher->Name().c_str(), hasher->Name().size());
+	return hasher->Serialize(info);
 	}
 
 bool BloomFilter::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
 
-	uint16 k;
-	if ( ! UNSERIALIZE(&k) )
-		return false;
-
-	const char* name;
-	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return false;
-
-	hasher = Hasher::Create(k, name);
-
-	delete [] name;
-	return true;
+	hasher = Hasher::Unserialize(info);
+	return hasher != 0;
 	}
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)
@@ -120,6 +109,11 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 	return copy;
 	}
 
+std::string BasicBloomFilter::InternalState() const
+	{
+	return fmt("%" PRIu64, (uint64_t)bits->Hash());
+	}
+
 BasicBloomFilter::BasicBloomFilter()
 	{
 	bits = 0;
@@ -146,14 +140,18 @@ bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
 	return (bits != 0);
 	}
 
-void BasicBloomFilter::AddImpl(const Hasher::digest_vector& h)
+void BasicBloomFilter::Add(const HashKey* key)
 	{
+	Hasher::digest_vector h = hasher->Hash(key);
+
 	for ( size_t i = 0; i < h.size(); ++i )
 		bits->Set(h[i] % bits->Size());
 	}
 
-size_t BasicBloomFilter::CountImpl(const Hasher::digest_vector& h) const
+size_t BasicBloomFilter::Count(const HashKey* key) const
 	{
+	Hasher::digest_vector h = hasher->Hash(key);
+
 	for ( size_t i = 0; i < h.size(); ++i )
 		{
 		if ( ! (*bits)[h[i] % bits->Size()] )
@@ -219,6 +217,11 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 	return copy;
 	}
 
+string CountingBloomFilter::InternalState() const
+	{
+	return fmt("%" PRIu64, (uint64_t)cells->Hash());
+	}
+
 IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
 
 bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
@@ -235,14 +238,18 @@ bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
 	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.
-void CountingBloomFilter::AddImpl(const Hasher::digest_vector& h)
+void CountingBloomFilter::Add(const HashKey* key)
 	{
+	Hasher::digest_vector h = hasher->Hash(key);
+
 	for ( size_t i = 0; i < h.size(); ++i )
 		cells->Increment(h[i] % cells->Size());
 	}
 
-size_t CountingBloomFilter::CountImpl(const Hasher::digest_vector& h) const
+size_t CountingBloomFilter::Count(const HashKey* key) const
 	{
+	Hasher::digest_vector h = hasher->Hash(key);
+
 	CounterVector::size_type min =
 		std::numeric_limits<CounterVector::size_type>::max();
 

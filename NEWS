@@ -80,7 +80,7 @@ New Functionality
   with the following user-visibible functionality (some of that was
   already available before, but done differently):
 
-  [TODO: This will probably change with further script updates.]
+  [TODO: Update with changes from 984e9793db56.]
 
       - A binary input reader interfaces the input framework with file
         analysis, allowing to inject files on disk into Bro's
@@ -113,6 +113,7 @@ New Functionality
   the frequency of elements. The corresponding functions are:
 
     bloomfilter_basic_init(fp: double, capacity: count, name: string &default=""): opaque of bloomfilter
+    bloomfilter_basic_init2(k: count, cells: count, name: string &default=""): opaque of bloomfilter
     bloomfilter_counting_init(k: count, cells: count, max: count, name: string &default=""): opaque of bloomfilter
     bloomfilter_add(bf: opaque of bloomfilter, x: any)
     bloomfilter_lookup(bf: opaque of bloomfilter, x: any): count
@@ -120,6 +121,27 @@ New Functionality
     bloomfilter_clear(bf: opaque of bloomfilter)
 
   See <INSERT LINK> for full documentation.
+
+- Bro now provides a probabilistic data structure for computing
+  "top k" elements. The corresponding functions are:
+
+    topk_init(size: count): opaque of topk
+    topk_add(handle: opaque of topk, value: any)
+    topk_get_top(handle: opaque of topk, k: count)
+    topk_count(handle: opaque of topk, value: any): count
+    topk_epsilon(handle: opaque of topk, value: any): count
+    topk_size(handle: opaque of topk): count
+    topk_sum(handle: opaque of topk): count
+    topk_merge(handle1: opaque of topk, handle2: opaque of topk)
+    topk_merge_prune(handle1: opaque of topk, handle2: opaque of topk)
+
+  See <INSERT LINK> for full documentation.
+
+- base/utils/exec.bro provides a module to start external processes
+  asynchronously and retrieve their output on termination.
+  base/utils/dir.bro uses it to monitor a directory for changes, and
+  base/utils/active-http.bro for providing an interface for querying
+  remote web servers.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~

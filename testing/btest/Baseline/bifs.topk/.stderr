@@ -1,0 +1,11 @@
+error: GetCount for element that is not in top-k
+error: GetEpsilon for element that is not in top-k
+error: GetCount for element that is not in top-k
+error: GetEpsilon for element that is not in top-k
+error: GetCount for element that is not in top-k
+error: GetEpsilon for element that is not in top-k
+error: GetCount for element that is not in top-k
+error: GetEpsilon for element that is not in top-k
+warning: TopkVal::GetSum() was used on a pruned data structure. Result values do not represent total element count
+error: GetCount for element that is not in top-k
+error: GetEpsilon for element that is not in top-k

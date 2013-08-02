@@ -14,7 +14,7 @@ FileTimer::FileTimer(double t, const string& id, double interval)
 
 void FileTimer::Dispatch(double t, int is_expire)
 	{
-	File* file = file_mgr->Lookup(file_id);
+	File* file = file_mgr->LookupFile(file_id);
 
 	if ( ! file )
 		return;

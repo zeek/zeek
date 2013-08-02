@@ -11,6 +11,9 @@
 
 #include "../util.h"
 
+// TODO: remove code within these ifdefs after debugging.
+#define BLOOMFILTER_DEBUG
+
 using namespace probabilistic;
 
 BloomFilter::BloomFilter()
@@ -144,9 +147,18 @@ void BasicBloomFilter::Add(const HashKey* key)
 	{
 	Hasher::digest_vector h = hasher->Hash(key);
 
+#ifdef BLOOMFILTER_DEBUG
 	for ( size_t i = 0; i < h.size(); ++i )
-		bits->Set(h[i] % bits->Size());
-	}
+		{
+		BitVector::size_type pos = h[i] % bits->Size();
+		fprintf(stderr, "setting bit %lu (was %u)\n", pos, !!(*bits)[pos]);
+		bits->Set(pos);
+		}
+#else
+		for ( size_t i = 0; i < h.size(); ++i )
+			bits->Set(h[i] % bits->Size());
+#endif
+		}
 
 size_t BasicBloomFilter::Count(const HashKey* key) const
 	{

@@ -4,17 +4,18 @@
 redef exit_only_after_terminate=T;
 
 
-event on_demand()
-	{
-	when ( local results = SumStats::request("test") )
-		{
-		print "Complete SumStat request";
-		for ( key in results )
-			{
-			print fmt("    Host: %s -> %.0f", key$host, results[key]["test.reducer"]$sum);
-			}
-		}
-	}
+## Requesting a full sumstats resulttable is not supported yet.
+#event on_demand()
+#	{
+#	when ( local results = SumStats::request("test") )
+#		{
+#		print "Complete SumStat request";
+#		for ( key in results )
+#			{
+#			print fmt("    Host: %s -> %.0f", key$host, results[key]["test.reducer"]$sum);
+#			}
+#		}
+#	}
 
 event on_demand_key()
 	{
@@ -39,7 +40,7 @@ event bro_init() &priority=5
 	SumStats::observe("test.reducer", [$host=1.2.3.4], [$num=42]);
 	SumStats::observe("test.reducer", [$host=4.3.2.1], [$num=7]);
 
-	schedule 0.1 secs { on_demand() };
+	#schedule 0.1 secs { on_demand() };
 	schedule 1 secs { on_demand_key() };
 	}
 

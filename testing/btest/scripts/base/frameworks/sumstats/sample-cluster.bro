@@ -23,21 +23,18 @@ event bro_init() &priority=5
 	SumStats::create([$name="test",
 	                  $epoch=5secs,
 	                  $reducers=set(r1),
-	                  $epoch_finished(rt: SumStats::ResultTable) =
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	local hosts: vector of addr = vector(6.5.4.3, 10.10.10.10, 1.2.3.4, 7.2.1.5);
-	                  	for ( i in hosts )
-	                  		{
-	                  		local key = [$host=hosts[i]];
-	                  		local r = rt[key]["test"];
+	                  	local r = result["test"];
+	                  	print fmt("Host: %s  Sampled observations: %d", key$host, r$sample_elements);
+	                  	local sample_nums: vector of count = vector();
+	                  	for ( sample in r$samples ) 
+	                  		sample_nums[|sample_nums|] =r$samples[sample]$num;
 
-	                  		print fmt("Host: %s  Sampled observations: %d", key$host, r$sample_elements);
-	                  		local sample_nums: vector of count = vector();
-	                  		for ( sample in r$samples ) 
-	                  			sample_nums[|sample_nums|] =r$samples[sample]$num;
-
-	                  		print fmt("    %s", sort(sample_nums));
-	                  		}
+	                  	print fmt("    %s", sort(sample_nums));
+	                  	},
+                      $epoch_finished(ts: time) =
+                      	{
 	                  	terminate();
 	                  	}]);
 	}

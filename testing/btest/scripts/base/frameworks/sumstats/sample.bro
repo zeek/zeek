@@ -8,15 +8,12 @@ event bro_init() &priority=5
 	SumStats::create([$name="test",
 	                  $epoch=3secs,
 	                  $reducers=set(r1),
-	                  $epoch_finished(data: SumStats::ResultTable) = 
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	for ( key in data )
-	                  		{
-	                  		print key$host;
-	                  		local r = data[key]["test.metric"];
-	                  		print r$samples;
-	                  		print r$sample_elements;
-	                  		}
+	                  	print key$host;
+	                  	local r = result["test.metric"];
+	                  	print r$samples;
+	                  	print r$sample_elements;
 	                  	}]);
 
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=5]);

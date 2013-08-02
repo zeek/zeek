@@ -22,7 +22,7 @@ global n = 0;
 
 event bro_init() &priority=5
 	{
-	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE)];
+	local r1 = SumStats::Reducer($stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE));
 	SumStats::create([$name="test sumstat",
 	                  $epoch=1hr,
 	                  $reducers=set(r1)]);
@@ -61,23 +61,24 @@ event on_demand2()
 	when ( local result = SumStats::request_key("test sumstat", [$host=host]) )
 		{
 		print "SumStat key request";
-		print fmt("    Host: %s -> %.0f", host, result["test"]$sum);
+		if ( "test" in result )
+			print fmt("    Host: %s -> %.0f", host, result["test"]$sum);
 		terminate();
 		}
 	}
 
 event on_demand()
 	{
-	when ( local results = SumStats::request("test sumstat") )
-		{
-		print "Complete SumStat request";
-		print fmt("    Host: %s -> %.0f", 6.5.4.3, results[[$host=6.5.4.3]]["test"]$sum);
-		print fmt("    Host: %s -> %.0f", 10.10.10.10, results[[$host=10.10.10.10]]["test"]$sum);
-		print fmt("    Host: %s -> %.0f", 1.2.3.4, results[[$host=1.2.3.4]]["test"]$sum);
-		print fmt("    Host: %s -> %.0f", 7.2.1.5, results[[$host=7.2.1.5]]["test"]$sum);
+	#when ( local results = SumStats::request("test sumstat") )
+	#	{
+	#	print "Complete SumStat request";
+	#	print fmt("    Host: %s -> %.0f", 6.5.4.3, results[[$host=6.5.4.3]]["test"]$sum);
+	#	print fmt("    Host: %s -> %.0f", 10.10.10.10, results[[$host=10.10.10.10]]["test"]$sum);
+	#	print fmt("    Host: %s -> %.0f", 1.2.3.4, results[[$host=1.2.3.4]]["test"]$sum);
+	#	print fmt("    Host: %s -> %.0f", 7.2.1.5, results[[$host=7.2.1.5]]["test"]$sum);
 
 		event on_demand2();
-		}
+	#	}
 	}
 
 global peer_count = 0;

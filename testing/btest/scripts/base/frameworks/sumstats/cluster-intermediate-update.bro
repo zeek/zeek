@@ -23,11 +23,13 @@ event bro_init() &priority=5
 	SumStats::create([$name="test",
 	                  $epoch=10secs,
 	                  $reducers=set(r1),
-	                  $epoch_finished(data: SumStats::ResultTable) = 
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	print result["test.metric"]$sum;
+	                  	},
+	                  $epoch_finished(ts: time) = 
 	                  	{
 	                  	print "End of epoch handler was called";
-	                  	for ( res in data ) 
-	                  		print data[res]["test.metric"]$sum;
 	                  	terminate();
 	                  	},
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =

@@ -118,7 +118,12 @@ export {
 		## A callback that receives each of the results at the
 		## end of the analysis epoch.  The function will be 
 		## called once for each key.
-		epoch_result:       function(ts: time, key::SumStats::Key, result: SumStats::Result) &optional;
+		epoch_result:       function(ts: time, key: SumStats::Key, result: SumStats::Result) &optional;
+	
+		## A callback that will be called when a single collection 
+		## interval is completed.  The ts value will be the time of 
+		## when the collection started.
+		epoch_finished:     function(ts:time) &optional;
 	};
 
 	## Create a summary statistic.

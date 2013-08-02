@@ -45,20 +45,16 @@ event bro_init() &priority=3
 	SumStats::create([$name="app-metrics",
 	                  $epoch=break_interval,
 	                  $reducers=set(r1, r2),
-	                  $epoch_finished(data: SumStats::ResultTable) =
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	local l: Info;
-	                  	l$ts = network_time();
-	                  	l$ts_delta = break_interval;
-	                  	for ( key in data )
-	                  		{
-	                  		local result = data[key];
-	                  		l$app        = key$str;
-	                  		l$bytes      = double_to_count(floor(result["apps.bytes"]$sum));
-	                  		l$hits       = result["apps.hits"]$num;
-	                  		l$uniq_hosts = result["apps.hits"]$unique;
-	                  		Log::write(LOG, l);
-	                  		}
+	                  	l$ts         = network_time();
+	                  	l$ts_delta   = break_interval;
+	                  	l$app        = key$str;
+	                  	l$bytes      = double_to_count(floor(result["apps.bytes"]$sum));
+	                  	l$hits       = result["apps.hits"]$num;
+	                  	l$uniq_hosts = result["apps.hits"]$unique;
+	                  	Log::write(LOG, l);
 	                  	}]);
 	}
 

@@ -1,7 +1,2 @@
-Complete SumStat request
-    Host: 6.5.4.3 -> 1
-    Host: 10.10.10.10 -> 5
-    Host: 1.2.3.4 -> 169
-    Host: 7.2.1.5 -> 145
 SumStat key request
     Host: 7.2.1.5 -> 145

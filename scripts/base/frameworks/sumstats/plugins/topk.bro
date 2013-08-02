@@ -18,16 +18,18 @@ export {
 
 }
 
+hook register_observe_plugins()
+	{
+	register_observe_plugin(TOPK, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+		{
+		topk_add(rv$topk, obs);
+		});
+	}
+
 hook init_resultval_hook(r: Reducer, rv: ResultVal)
 	{
 	if ( TOPK in r$apply && ! rv?$topk )
 		rv$topk = topk_init(r$topk_size);
-	}
-
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
-	{
-	if ( TOPK in r$apply )
-		topk_add(rv$topk, obs);
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)

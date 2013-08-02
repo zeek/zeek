@@ -95,7 +95,7 @@ extern DebugLogger debug_logger;
 #define DBG_LOG_VERBOSE(args...)
 #define DBG_PUSH(stream)
 #define DBG_POP(stream)
-#define PLUGIN_DBG_LOG(args) debug_logger.Log(__plugin, args)
+#define PLUGIN_DBG_LOG(plugin, args...)
 #endif
 
 #endif

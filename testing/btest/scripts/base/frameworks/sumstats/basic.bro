@@ -11,16 +11,14 @@ event bro_init() &priority=5
 	                                          SumStats::MIN, 
 	                                          SumStats::STD_DEV,
 	                                          SumStats::UNIQUE)];
-	SumStats::create([$epoch=3secs,
-	                     $reducers=set(r1),
-	                     $epoch_finished(data: SumStats::ResultTable) = 
-	                     	{
-	                     	for ( key in data )
-	                     		{
-	                     		local r = data[key]["test.metric"];
-	                     		print fmt("Host: %s - num:%d - sum:%.1f - var:%.1f - avg:%.1f - max:%.1f - min:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$variance, r$average, r$max, r$min, r$std_dev, r$unique);
-	                     		}
-	                     	}
+	SumStats::create([$name="test",
+	                  $epoch=3secs,
+	                  $reducers=set(r1),
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	local r = result["test.metric"];
+	                  	print fmt("Host: %s - num:%d - sum:%.1f - var:%.1f - avg:%.1f - max:%.1f - min:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$variance, r$average, r$max, r$min, r$std_dev, r$unique);
+	                  	}
 		 ]);
 
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=5]);

@@ -73,7 +73,7 @@ global recent_global_view_keys: table[string, Key] of count &create_expire=1min 
 
 # Result tables indexed on a uid that are currently being sent to the
 # manager.
-global sending_results: table[string] of ResultTable = table();
+global sending_results: table[string] of ResultTable = table() &create_expire=1min;
 
 # This is done on all non-manager node types in the event that a sumstat is
 # being collected somewhere other than a worker.
@@ -171,7 +171,7 @@ event SumStats::cluster_ss_request(uid: string, ss_name: string, cleanup: bool)
 	#print fmt("WORKER %s: received the cluster_ss_request event for %s.", Cluster::node, id);
 
 	# Create a back store for the result
-	sending_results[uid] = (ss_name in result_store) ? copy(result_store[ss_name]) : table();
+	sending_results[uid] = (ss_name in result_store) ? result_store[ss_name] : table();
 
 	# Lookup the actual sumstats and reset it, the reference to the data
 	# currently stored will be maintained internally from the 

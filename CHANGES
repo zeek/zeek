@@ -1,4 +1,8 @@
 
+2.1-1027 | 2013-08-03 01:57:37 -0400
+
+  * Fix a major memory issue in the SumStats framework.
+
 2.1-1026 | 2013-08-02 22:35:09 -0400
 
   * Fix the SumStats top-k plugin and test. (Seth Hall)

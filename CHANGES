@@ -1,4 +1,8 @@
 
+2.1-1009 | 2013-08-02 17:19:08 -0700
+
+  * A number of exec module and raw input reader fixes. (Jon Siwek)
+    
 2.1-1007 | 2013-08-01 15:41:54 -0700
 
   * More function documentation. (Bernhard Amann)

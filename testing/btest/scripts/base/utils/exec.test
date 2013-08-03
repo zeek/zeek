@@ -1,11 +1,11 @@
 # @TEST-EXEC: btest-bg-run bro bro -b ../exectest.bro
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stdout
 
 @TEST-START-FILE exectest.bro
 
 @load base/utils/exec
-
+@load base/frameworks/communication # let network-time run. otherwise there are no heartbeats...
 redef exit_only_after_terminate = T;
 
 global c: count = 0;
@@ -14,7 +14,7 @@ function check_exit_condition()
 	{
 	c += 1;
 
-	if ( c == 4 )
+	if ( c == 3 )
 		terminate();
 	}
 
@@ -32,7 +32,8 @@ event bro_init()
 	test_cmd("test1", [$cmd="bash ../somescript.sh",
 	                   $read_files=set("out1", "out2")]);
 	test_cmd("test2", [$cmd="bash ../nofiles.sh"]);
-	test_cmd("test3", [$cmd="bash ../suicide.sh"]);
+	# Not sure of a portable way to test signals yet.
+	#test_cmd("test3", [$cmd="bash ../suicide.sh"]);
 	test_cmd("test4", [$cmd="bash ../stdin.sh", $stdin="hibye"]);
 	}
 

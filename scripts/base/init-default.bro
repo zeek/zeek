@@ -39,6 +39,7 @@
 @load base/frameworks/tunnels
 
 @load base/protocols/conn
+@load base/protocols/dhcp
 @load base/protocols/dns
 @load base/protocols/ftp
 @load base/protocols/http

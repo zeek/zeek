@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	known_devices
+#open	2013-07-31-21-27-41
+#fields	ts	mac	dhcp_host_name
+#types	time	string	string
+1370200443.344965	90:b1:1c:99:49:29	btest.is.cool
+1374432420.186878	90:b1:1c:99:49:29	(empty)
+#close	2013-07-31-21-27-41

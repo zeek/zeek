@@ -47,6 +47,7 @@
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
+@load misc/known-devices.bro
 @load misc/load-balancing.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
@@ -56,6 +57,7 @@
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
 @load protocols/conn/weirds.bro
+@load protocols/dhcp/known-devices-and-hostnames.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect-bruteforcing.bro

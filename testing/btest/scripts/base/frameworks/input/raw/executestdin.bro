@@ -39,6 +39,5 @@ event bro_init()
 	try = 0;
 	outfile = open("../out");
 	Input::add_event([$source="cat > ../test.txt |", $reader=Input::READER_RAW, $mode=Input::STREAM, $name="input", $fields=Val, $ev=line, $want_record=F, $config=config_strings]);
-	Input::remove("input");
 	Input::add_event([$source="cat |", $reader=Input::READER_RAW, $mode=Input::STREAM, $name="input2", $fields=Val, $ev=line, $want_record=F, $config=config_strings]);
 	}

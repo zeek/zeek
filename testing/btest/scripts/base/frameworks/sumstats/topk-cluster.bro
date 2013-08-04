@@ -23,27 +23,24 @@ event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", 
 	                               $apply=set(SumStats::TOPK)];
-	SumStats::create([$epoch=5secs,
-	                     $reducers=set(r1),
-	                     $epoch_finished(data: SumStats::ResultTable) = 
-	                     	{
-	                     	for ( key in data )
-	                     		{
-	                     		local r = data[key]["test.metric"];
-					
-					local s: vector of SumStats::Observation;
-					s = topk_get_top(r$topk, 5);
-				
-					print fmt("Top entries for key %s", key$str);
-					for ( element in s ) 
-						{
-						print fmt("Num: %d, count: %d, epsilon: %d", s[element]$num, topk_count(r$topk, s[element]), topk_epsilon(r$topk, s[element]));
-						}
-
-					terminate();
-	                     		}
-	                     	}
-		 ]);
+	SumStats::create([$name="topk-test", 
+	                  $epoch=5secs,
+	                  $reducers=set(r1),
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	local r = result["test.metric"];
+	                  	local s: vector of SumStats::Observation;
+	                  	s = topk_get_top(r$topk, 5);
+	                  	print fmt("Top entries for key %s", key$str);
+	                  	for ( element in s ) 
+	                  		{
+	                  		print fmt("Num: %d, count: %d, epsilon: %d", s[element]$num, topk_count(r$topk, s[element]), topk_epsilon(r$topk, s[element]));
+	                  		}
+	                  	},
+	                  $epoch_finished(ts: time) = 
+	                  	{
+	                  	terminate();
+	                  	}]);
 
 
 	}

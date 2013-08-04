@@ -1,5 +1,5 @@
-@load base/frameworks/sumstats/main
 @load ./variance
+@load ../main
 
 module SumStats;
 
@@ -21,11 +21,18 @@ function calc_std_dev(rv: ResultVal)
 		rv$std_dev = sqrt(rv$variance);
 	}
 
-# This depends on the variance plugin which uses priority -5
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &priority=-10
+hook std_dev_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 	{
-	if ( STD_DEV in r$apply )
+	calc_std_dev(rv);
+	}
+
+hook register_observe_plugins() &priority=-10
+	{
+	register_observe_plugin(STD_DEV, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+		{
 		calc_std_dev(rv);
+		});
+	add_observe_plugin_dependency(STD_DEV, VARIANCE);
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal) &priority=-10

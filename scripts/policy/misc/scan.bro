@@ -40,15 +40,11 @@ export {
 
 	## The threshold of a unique number of hosts a scanning host has to have failed
 	## connections with on a single port.
-	const addr_scan_threshold = 25 &redef;
+	const addr_scan_threshold = 25.0 &redef;
 
 	## The threshold of a number of unique ports a scanning host has to have failed
 	## connections with on a single victim host.
-	const port_scan_threshold = 15 &redef;
-
-	## Custom thresholds based on service for address scan.  This is primarily
-	## useful for setting reduced thresholds for specific ports.
-	const addr_scan_custom_thresholds: table[port] of count &redef;
+	const port_scan_threshold = 15.0 &redef;
 
 	global Scan::addr_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
 	global Scan::port_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
@@ -57,11 +53,12 @@ export {
 event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="scan.addr.fail", $apply=set(SumStats::UNIQUE)];
-	SumStats::create([$epoch=addr_scan_interval,
+	SumStats::create([$name="addr-scan",
+	                  $epoch=addr_scan_interval,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["scan.addr.fail"]$unique);
+	                  	return result["scan.addr.fail"]$unique+0.0;
 	                  	},
 	                  #$threshold_func=check_addr_scan_threshold,
 	                  $threshold=addr_scan_threshold,
@@ -81,11 +78,12 @@ event bro_init() &priority=5
 
 	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
 	local r2: SumStats::Reducer = [$stream="scan.port.fail", $apply=set(SumStats::UNIQUE)];
-	SumStats::create([$epoch=port_scan_interval,
+	SumStats::create([$name="port-scan",
+	                  $epoch=port_scan_interval,
 	                  $reducers=set(r2),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["scan.port.fail"]$unique);
+	                  	return result["scan.port.fail"]$unique+0.0;
 	                  	},
 	                  $threshold=port_scan_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

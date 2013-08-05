@@ -1,0 +1,8 @@
+## This event is generated each time file analysis performs
+## entropy testing on a file.
+##
+## f: The file.
+##
+## ent: The results of the entropy testing.
+##
+event file_entropy%(f: fa_file, ent: entropy_test_result%);

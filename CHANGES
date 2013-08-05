@@ -1,4 +1,8 @@
 
+2.1-1036 | 2013-08-05 17:29:11 -0400
+
+  * Fix the SSL infinite loop I just created. (Seth Hall)
+
 2.1-1035 | 2013-08-05 16:44:50 -0400
 
   * Change to SSL log delay to cause the log to write even if delay times out. (Seth Hall)

@@ -138,6 +138,7 @@ function log_record(info: Info)
 		timeout 15secs
 			{
 			# We are just going to log the record anyway.
+			delete info$delay_tokens;
 			log_record(info);
 			}
 		}

@@ -190,8 +190,14 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 
 			// Make sure header checksum is correct.
 			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
-				return false;
-
+				return false;	
+	
+			// (Hui Lin) Make sure that the DNP3 packet includes Pseudo Transport and Pseudo Application Layer data
+			if ( ( endp->buffer[PSEUDO_LENGTH_INDEX] + 3 ) == (u_char)PSEUDO_LINK_LAYER_LEN  )
+				{
+                		ClearEndpointState(orig);
+				return true;
+				}
 			// Double check the direction in case the first
 			// received packet is a response.
 			u_char ctrl = endp->buffer[PSEUDO_CONTROL_FIELD_INDEX];
@@ -208,6 +214,8 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			// BinPAC.
 			if ( ++endp->pkt_cnt == 1 )
 				interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
+
+			
 
 			}
 

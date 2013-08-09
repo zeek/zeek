@@ -219,14 +219,18 @@ flow DHCP_Flow(is_orig: bool) {
 			}
 
 		Unref(dhcp_msg_val_);
-		RecordVal* r = new RecordVal(dhcp_msg);
 
+		const char* mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
+
+		RecordVal* r = new RecordVal(dhcp_msg);
 		r->Assign(0, new Val(${msg.op}, TYPE_COUNT));
 		r->Assign(1, new Val(${msg.type}, TYPE_COUNT));
 		r->Assign(2, new Val(${msg.xid}, TYPE_COUNT));
-		r->Assign(3, new StringVal(fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length())));
+		r->Assign(3, new StringVal(mac_str));
 		r->Assign(4, new AddrVal(${msg.ciaddr}));
 		r->Assign(5, new AddrVal(${msg.yiaddr}));
+
+		delete [] mac_str;
 
 		dhcp_msg_val_ = r;
 

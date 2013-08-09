@@ -1,4 +1,10 @@
 
+2.1-1039 | 2013-08-09 15:30:15 -0700
+
+  * Fix mem leak in DHCP analyzer. (Jon Siwek)
+    
+  * Fix a unit test outdated by recent sumstats changes. (Jon Siwek)
+    
 2.1-1036 | 2013-08-05 17:29:11 -0400
 
   * Fix the SSL infinite loop I just created. (Seth Hall)

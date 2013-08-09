@@ -6,17 +6,16 @@
 #include "Stats.h"
 #include "Scope.h"
 #include "cq.h"
-#include "ConnCompressor.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
-
+#include "threading/Manager.h"
 
 int killed_by_inactivity = 0;
 
-uint32 tot_ack_events = 0;
-uint32 tot_ack_bytes = 0;
-uint32 tot_gap_events = 0;
-uint32 tot_gap_bytes = 0;
+uint64 tot_ack_events = 0;
+uint64 tot_ack_bytes = 0;
+uint64 tot_gap_events = 0;
+uint64 tot_gap_bytes = 0;
 
 
 class ProfileTimer : public Timer {
@@ -129,19 +128,6 @@ void ProfileLogger::Log()
 		expensive ? sessions->ConnectionMemoryUsageConnVals() / 1024 : 0
 		));
 
-	const ConnCompressor::Sizes& cs = conn_compressor->Size();
-
-	file->Write(fmt("%.6f ConnCompressor: pending=%d pending_in_mem=%d full_conns=%d pending+real=%d mem=%dK avg=%.1f/%.1f\n",
-		network_time,
-		cs.pending_valid,
-		cs.pending_in_mem,
-		cs.connections,
-		cs.hash_table_size,
-		cs.memory / 1024,
-		cs.memory / double(cs.pending_valid),
-		cs.memory / double(cs.pending_in_mem)
-		));
-
 	SessionStats s;
 	sessions->GetStats(s);
 
@@ -215,6 +201,25 @@ void ProfileLogger::Log()
 			file->Write(fmt("%.06f         %s = %d\n", network_time,
 					timer_type_to_string((TimerType) i),
 					current_timers[i]));
+		}
+
+	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));
+
+	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
+	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
+	      i != thread_stats.end(); ++i ) 
+		{
+		threading::MsgThread::Stats s = i->second;
+		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
+				" (#queue r/w: in=%" PRIu64 "/%" PRIu64 " out=%" PRIu64 "/%" PRIu64 ")"
+			        "\n",
+			    network_time,
+			    i->first.c_str(),
+			    s.sent_in, s.sent_out,
+			    s.pending_in, s.pending_out,
+			    s.queue_in_stats.num_reads, s.queue_in_stats.num_writes,
+			    s.queue_out_stats.num_reads, s.queue_out_stats.num_writes
+			    ));
 		}
 
 	// Script-level state.
@@ -333,7 +338,7 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	load_samples->Assign(new StringVal(func->GetID()->Name()), 0);
+	load_samples->Assign(new StringVal(func->Name()), 0);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
@@ -383,84 +388,6 @@ void SegmentProfiler::Report()
 
 	reporter->SegmentProfile(name, loc, dtime, dmem);
 	}
-
-
-TCPStateStats::TCPStateStats()
-	{
-	for ( int i = 0; i < TCP_ENDPOINT_RESET + 1; ++i )
-		for ( int j = 0; j < TCP_ENDPOINT_RESET + 1; ++j )
-			state_cnt[i][j] = 0;
-	}
-
-void TCPStateStats::ChangeState(EndpointState o_prev, EndpointState o_now,
-				EndpointState r_prev, EndpointState r_now)
-	{
-	--state_cnt[o_prev][r_prev];
-	++state_cnt[o_now][r_now];
-	}
-
-void TCPStateStats::FlipState(EndpointState orig, EndpointState resp)
-	{
-	--state_cnt[orig][resp];
-	++state_cnt[resp][orig];
-	}
-
-unsigned int TCPStateStats::NumStatePartial() const
-	{
-	unsigned int sum = 0;
-	for ( int i = 0; i < TCP_ENDPOINT_RESET + 1; ++i )
-		{
-		sum += state_cnt[TCP_ENDPOINT_PARTIAL][i];
-		sum += state_cnt[i][TCP_ENDPOINT_PARTIAL];
-		}
-
-	return sum;
-	}
-
-void TCPStateStats::PrintStats(BroFile* file, const char* prefix)
-	{
-	file->Write(prefix);
-	file->Write("        Inact.  Syn.    SA      Part.   Est.    Fin.    Rst.\n");
-
-	for ( int i = 0; i < TCP_ENDPOINT_RESET + 1; ++i )
-		{
-		file->Write(prefix);
-
-		switch ( i ) {
-#define STATE_STRING(state, str) \
-	case state: \
-		file->Write(str); \
-		break;
-
-		STATE_STRING(TCP_ENDPOINT_INACTIVE, "Inact.");
-		STATE_STRING(TCP_ENDPOINT_SYN_SENT, "Syn.  ");
-		STATE_STRING(TCP_ENDPOINT_SYN_ACK_SENT, "SA    ");
-		STATE_STRING(TCP_ENDPOINT_PARTIAL, "Part. ");
-		STATE_STRING(TCP_ENDPOINT_ESTABLISHED, "Est.  ");
-		STATE_STRING(TCP_ENDPOINT_CLOSED, "Fin.  ");
-		STATE_STRING(TCP_ENDPOINT_RESET, "Rst.  ");
-
-		}
-
-		file->Write("  ");
-
-		for ( int j = 0; j < TCP_ENDPOINT_RESET + 1; ++j )
-			{
-			unsigned int n = state_cnt[i][j];
-			if ( n > 0 )
-				{
-				char buf[32];
-				safe_snprintf(buf, sizeof(buf), "%-8d", state_cnt[i][j]);
-				file->Write(buf);
-				}
-			else
-				file->Write("        ");
-			}
-
-		file->Write("\n");
-		}
-	}
-
 
 PacketProfiler::PacketProfiler(unsigned int mode, double freq,
 				BroFile* arg_file)

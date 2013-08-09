@@ -3,10 +3,12 @@
 #empty_field	(empty)
 #unset_field	-
 #path	/dev/stdout
+#open	2012-07-20-01-49-21
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1324314328.844271	1.2.3.4	1234	2.3.4.5	80	success	unknown
-1324314328.844271	1.2.3.4	1234	2.3.4.5	80	failure	US
-1324314328.844271	1.2.3.4	1234	2.3.4.5	80	failure	UK
-1324314328.844271	1.2.3.4	1234	2.3.4.5	80	success	BR
-1324314328.844271	1.2.3.4	1234	2.3.4.5	80	failure	MX
+1342748961.732599	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1342748961.732599	1.2.3.4	1234	2.3.4.5	80	failure	US
+1342748961.732599	1.2.3.4	1234	2.3.4.5	80	failure	UK
+1342748961.732599	1.2.3.4	1234	2.3.4.5	80	success	BR
+1342748961.732599	1.2.3.4	1234	2.3.4.5	80	failure	MX
+#close	2012-07-20-01-49-21

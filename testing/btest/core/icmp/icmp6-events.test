@@ -1,0 +1,128 @@
+# These tests all check that ICMP6 events get raised with correct arguments.
+
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-udp.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-toobig.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-timeexceeded.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-paramprob.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-ping.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-redirect.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-router-advert.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-neighbor-advert.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-router-solicit.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-neighbor-solicit.pcap %INPUT >>output 2>&1
+
+# @TEST-EXEC: btest-diff output
+
+event icmp_sent(c: connection, icmp: icmp_conn)
+    {
+    print "icmp_sent";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    }
+
+event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
+    {
+    print "icmp_echo_request (id=" + fmt("%d", id) + ", seq=" + fmt("%d", seq) + ", payload=" + payload + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    }
+
+event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
+    {
+    print "icmp_echo_reply (id=" + fmt("%d", id) + ", seq=" + fmt("%d", seq) + ", payload=" + payload + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    }
+
+event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_unreachable (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }
+
+event icmp_packet_too_big(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_packet_too_big (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }
+
+event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_time_exceeded (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }
+
+event icmp_parameter_problem(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_parameter_problem (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }
+
+event icmp_redirect(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options)
+    {
+    print "icmp_redirect (tgt=" + fmt("%s", tgt) + ", dest=" + fmt("%s", dest) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+	print "  options: " + fmt("%s", options);
+    }
+
+event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_error_message (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }
+
+event icmp_neighbor_solicitation(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options)
+    {
+    print "icmp_neighbor_solicitation (tgt=" + fmt("%s", tgt) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+	print "  options: " + fmt("%s", options);
+    }
+
+event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options)
+    {
+    print "icmp_neighbor_advertisement (tgt=" + fmt("%s", tgt) + ")";
+	print "    router=" + fmt("%s", router);
+	print "    solicited=" + fmt("%s", solicited);
+	print "    override=" + fmt("%s", override);
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+	print "  options: " + fmt("%s", options);
+    }
+
+event icmp_router_solicitation(c: connection, icmp: icmp_conn, options: icmp6_nd_options)
+    {
+    print "icmp_router_solicitation";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+	print "  options: " + fmt("%s", options);
+    }
+
+event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options)
+    {
+    print "icmp_router_advertisement";
+	print "    cur_hop_limit=" + fmt("%s", cur_hop_limit);
+	print "    managed=" + fmt("%s", managed);
+	print "    other=" + fmt("%s", other);
+	print "    home_agent=" + fmt("%s", home_agent);
+	print "    pref=" + fmt("%s", pref);
+	print "    proxy=" + fmt("%s", proxy);
+	print "    rsv=" + fmt("%s", rsv);
+	print "    router_lifetime=" + fmt("%s", router_lifetime);
+	print "    reachable_time=" + fmt("%s", reachable_time);
+	print "    retrans_timer=" + fmt("%s", retrans_timer);
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+	print "  options: " + fmt("%s", options);
+    }

@@ -1,0 +1,3 @@
+[orig_h=141.142.220.118, orig_p=35642/tcp, resp_h=208.80.152.2, resp_p=80/tcp]
+works
+GET /images/wikimedia-button.png HTTP/1.1^M^JHost: meta.wikimedia.org^M^JUser-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.15) Geck...

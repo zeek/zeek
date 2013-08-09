@@ -1,19 +1,80 @@
 
-=============================
-Upgrading From Bro 1.5 to 2.0
-=============================
+==========================================
+Upgrading From the Previous Version of Bro
+==========================================
 
 .. rst-class:: opening
 
-   This guide details differences between Bro versions 1.5 and 2.0
+   This guide details specific differences between Bro versions
    that may be important for users to know as they work on updating
    their Bro deployment/configuration to the later version.
 
 .. contents::
 
 
-Introduction
-============
+Upgrading From Bro 2.0 to 2.1
+=============================
+
+In Bro 2.1, IPv6 is enabled by default.  Therefore, when building Bro from
+source, the "--enable-brov6" configure option has been removed because it
+is no longer relevant.  
+
+Other configure changes include renaming the "--enable-perftools" option
+to "--enable-perftools-debug" to indicate that the option is only relevant
+for debugging the heap.  One other change involves what happens when
+tcmalloc (part of Google perftools) is found at configure time.  On Linux,
+it will automatically be linked with Bro, but on other platforms you
+need to use the "--enable-perftools" option to enable linking to tcmalloc.
+
+There are a couple of changes to the Bro scripting language to better
+support IPv6. First, IPv6 literals appearing in a Bro script must now be
+enclosed in square brackets (for example, ``[fe80::db15]``). For subnet
+literals, the slash "/" appears after the closing square bracket (for
+example, ``[fe80:1234::]/32``). Second, when an IP address variable or IP
+address literal is enclosed in pipes (for example, ``|[fe80::db15]|``) the
+result is now the size of the address in bits (32 for IPv4 and 128 for IPv6).
+
+In the Bro scripting language, "match" and "using" are no longer reserved
+keywords.
+
+Some built-in functions have been removed: "addr_to_count" (use
+"addr_to_counts" instead), "bro_has_ipv6" (this is no longer relevant
+because Bro now always supports IPv6), "active_connection" (use
+"connection_exists" instead), and "connection_record" (use "lookup_connection"
+instead).
+
+The "NFS3::mode2string" built-in function has been renamed to "file_mode".
+
+Some built-in functions have been changed:  "exit" (now takes the exit code
+as a parameter), "to_port" (now takes a string as parameter instead
+of a count and transport protocol, but "count_to_port" is still available),
+"connect" (now takes an additional string parameter specifying the zone of
+a non-global IPv6 address), and "listen" (now takes three additional
+parameters to enable listening on IPv6 addresses).
+
+Some Bro script variables have been renamed:  "LogAscii::header_prefix"
+has been renamed to "LogAscii::meta_prefix", "LogAscii::include_header"
+has been renamed to "LogAscii::include_meta".
+
+Some Bro script variables have been removed: "tunnel_port",
+"parse_udp_tunnels", "use_connection_compressor", "cc_handle_resets",
+"cc_handle_only_syns", and "cc_instantiate_on_data".
+
+A couple events have changed:  the "icmp_redirect" event now includes
+the target and destination addresses and any Neighbor Discovery options
+in the message, and the last parameter of the "dns_AAAA_reply" event has
+been removed because it was unused.
+
+The format of the ASCII log files has changed very slightly.  Two new lines
+are automatically added, one to record the time when the log was opened,
+and the other to record the time when the log was closed.
+
+In BroControl, the option (in broctl.cfg) "CFlowAddr" was renamed
+to "CFlowAddress".
+
+
+Upgrading From Bro 1.5 to 2.0
+=============================
 
 As the version number jump suggests, Bro 2.0 is a major upgrade and
 lots of things have changed. Most importantly, we have rewritten
@@ -55,13 +116,13 @@ renamed to ``scripts/`` and contains major subdirectories ``base/``,
 further.
 
 The contents of the new ``scripts/`` directory, like the old/flat
-``policy/`` still gets installed under under the ``share/bro``
+``policy/`` still gets installed under the ``share/bro``
 subdirectory of the installation prefix path just like previous
 versions.  For example, if Bro was compiled like ``./configure
 --prefix=/usr/local/bro && make && make install``, then the script
 hierarchy can be found in ``/usr/local/bro/share/bro``.
 
-THe main
+The main
 subdirectories of that hierarchy are as follows:
 
 - ``base/`` contains all scripts that are loaded by Bro by default
@@ -132,7 +193,7 @@ Logging Framework
 
 - The new logging framework makes it possible to extend, customize,
   and filter logs very easily. See the :doc:`logging framework <logging>`
-  more information on usage.
+  for more information on usage.
 
 - A common pattern found in the new scripts is to store logging stream
   records for protocols inside the ``connection`` records so that
@@ -193,7 +254,7 @@ Variable Naming
 
 - Identifiers may have been renamed to conform to new `scripting
   conventions
-  <http://www.bro-ids.org/development/script-conventions.html>`_
+  <http://www.bro.org/development/script-conventions.html>`_
 
 
 BroControl
@@ -209,8 +270,8 @@ live analysis.
 BroControl now has an extensive plugin interface for adding new
 commands and options. Note that this is still considered experimental.
 
-We have remove the ``analysis`` command, and BroControl does currently
-not not send daily alarm summaries anymore (this may be restored
+We have removed the ``analysis`` command, and BroControl currently
+does not send daily alarm summaries anymore (this may be restored
 later).
 
 Removed Functionality
@@ -233,11 +294,11 @@ Development Infrastructure
 ==========================
 
 Bro development has moved from using SVN to Git for revision control.
-Users that like to use the latest Bro developments by checking it out
+Users that want to use the latest Bro development snapshot by checking it out
 from the source repositories should see the `development process
-<http://www.bro-ids.org/development/process.html>`_. Note that all the various
-sub-components now reside on their own repositories. However, the
-top-level Bro repository includes them as git submodules so it's easu
+<http://www.bro.org/development/process.html>`_. Note that all the various
+sub-components now reside in their own repositories. However, the
+top-level Bro repository includes them as git submodules so it's easy
 to check them all out simultaneously.
 
 Bro now uses `CMake <http://www.cmake.org>`_ for its build system so

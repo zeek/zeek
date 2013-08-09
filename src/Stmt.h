@@ -17,6 +17,8 @@
 class StmtList;
 class ForStmt;
 
+declare(PDict, int);
+
 class Stmt : public BroObj {
 public:
 	BroStmtTag Tag() const	{ return tag; }
@@ -44,6 +46,12 @@ public:
 		return (StmtList*) this;
 		}
 
+	const StmtList* AsStmtList() const
+		{
+		CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
+		return (const StmtList*) this;
+		}
+
 	ForStmt* AsForStmt()
 		{
 		CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
@@ -52,6 +60,7 @@ public:
 
 	void RegisterAccess() const	{ last_access = network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
+	uint32 GetAccessCount() const { return access_count; }
 
 	virtual void Describe(ODesc* d) const;
 
@@ -186,7 +195,7 @@ protected:
 
 class Case : public BroObj {
 public:
-	Case(ListExpr* c, Stmt* arg_s)	{ cases = c; s = arg_s; }
+	Case(ListExpr* c, Stmt* arg_s);
 	~Case();
 
 	const ListExpr* Cases() const	{ return cases; }
@@ -225,7 +234,7 @@ public:
 
 protected:
 	friend class Stmt;
-	SwitchStmt()	{ cases = 0; }
+	SwitchStmt()	{ cases = 0; default_case_idx = -1; comp_hash = 0; }
 
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 	Stmt* DoSimplify();
@@ -233,7 +242,23 @@ protected:
 
 	DECLARE_SERIAL(SwitchStmt);
 
+	// Initialize composite hash and case label map.
+	void Init();
+
+	// Adds an entry in case_label_map for the given value to associate it
+	// with the given index in the cases list.  If the entry already exists,
+	// returns false, else returns true.
+	bool AddCaseLabelMapping(const Val* v, int idx);
+
+	// Returns index of a case label that's equal to the value, or
+	// default_case_idx if no case label matches (which may be -1 if there's
+	// no default label).
+	int FindCaseLabelMatch(const Val* v) const;
+
 	case_list* cases;
+	int default_case_idx;
+	CompositeHash* comp_hash;
+	PDict(int) case_label_map;
 };
 
 class AddStmt : public ExprStmt {
@@ -343,6 +368,21 @@ public:
 
 protected:
 	DECLARE_SERIAL(BreakStmt);
+};
+
+class FallthroughStmt : public Stmt {
+public:
+	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
+
+	Val* Exec(Frame* f, stmt_flow_type& flow) const;
+	int IsPure() const;
+
+	void Describe(ODesc* d) const;
+
+	TraversalCode Traverse(TraversalCallback* cb) const;
+
+protected:
+	DECLARE_SERIAL(FallthroughStmt);
 };
 
 class ReturnStmt : public ExprStmt {

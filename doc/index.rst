@@ -11,8 +11,8 @@ Guides
    :maxdepth: 1
 
    INSTALL
-   quickstart
    upgrade
+   quickstart
    faq
    reporting-problems
 
@@ -24,6 +24,8 @@ Frameworks
 
    notice
    logging
+   input
+   file-analysis
    cluster
    signatures
 
@@ -41,10 +43,11 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
-   scripts/builtins
-   scripts/bifs
    scripts/packages
    scripts/index
+   scripts/builtins
+   scripts/proto-analyzers
+   scripts/file-analyzers
 
 Other Bro Components
 --------------------
@@ -52,7 +55,7 @@ Other Bro Components
 The following are snapshots of documentation for components that come
 with this version of Bro (|version|). Since they can also be used
 independently, see the `download page
-<http://bro-ids.org/download/index.html>`_ for documentation of any
+<http://bro.org/download/index.html>`_ for documentation of any
 current, independent component releases.
 
 .. toctree::

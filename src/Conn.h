@@ -11,7 +11,11 @@
 #include "Serializer.h"
 #include "PersistenceSerializer.h"
 #include "RuleMatcher.h"
-#include "AnalyzerTags.h"
+#include "IPAddr.h"
+#include "TunnelEncapsulation.h"
+
+#include "analyzer/Tag.h"
+#include "analyzer/Analyzer.h"
 
 class Connection;
 class ConnectionTimer;
@@ -19,8 +23,9 @@ class NetSessions;
 class LoginConn;
 class RuleHdrTest;
 class Specific_RE_Matcher;
-class TransportLayerAnalyzer;
 class RuleEndpointState;
+
+namespace analyzer { class TransportLayerAnalyzer; }
 
 typedef enum {
 	NUL_IN_LINE,
@@ -32,60 +37,33 @@ typedef enum {
 typedef void (Connection::*timer_func)(double t);
 
 struct ConnID {
-	const uint32* src_addr;
-	const uint32* dst_addr;
+	IPAddr src_addr;
+	IPAddr dst_addr;
 	uint32 src_port;
 	uint32 dst_port;
-	bool is_one_way;	// if true, don't canonicalize
-
-	// Returns a ListVal suitable for looking up a connection in
-	// a hash table.  addr/ports are expected to be in network order.
-	// Unless is_one_way is true, the lookup sorts src and dst,
-	// so src_addr/src_port and dst_addr/dst_port just have to
-	// reflect the two different sides of the connection,
-	// neither has to be the particular source/destination
-	// or originator/responder.
-	HashKey* BuildConnKey() const;
-
-	// The structure used internally for hashing.
-	struct Key {
-		uint32 ip1[NUM_ADDR_WORDS];
-		uint32 ip2[NUM_ADDR_WORDS];
-		uint16 port1;
-		uint16 port2;
-	};
+	bool is_one_way;	// if true, don't canonicalize order
 };
 
-static inline int addr_port_canon_lt(const uint32* a1, uint32 p1,
-					const uint32* a2, uint32 p2)
+static inline int addr_port_canon_lt(const IPAddr& addr1, uint32 p1,
+					const IPAddr& addr2, uint32 p2)
 	{
-#ifdef BROv6
-	// Because it's a canonical ordering, not a strict ordering,
-	// we can choose to give more weight to the least significant
-	// word than to the most significant word.  This matters
-	// because for the common case of IPv4 addresses embedded in
-	// a IPv6 address, the top three words are identical, so we can
-	// save a few cycles by first testing the bottom word.
-	return a1[3] < a2[3] ||
-		(a1[3] == a2[3] &&
-		 (a1[2] < a2[2] ||
-		  (a1[2] == a2[2] &&
-		   (a1[1] < a2[1] ||
-		    (a1[1] == a2[1] &&
-		     (a1[0] < a2[0] ||
-		      (a1[0] == a2[0] &&
-		       p1 < p2)))))));
-#else
-	return *a1 < *a2 || (*a1 == *a2 && p1 < p2);
-#endif
+	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
 
-class Analyzer;
+namespace analyzer { class Analyzer; }
 
 class Connection : public BroObj {
 public:
-	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id);
+	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+	           uint32 flow, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
+
+	// Invoked when an encapsulation is discovered. It records the
+	// encapsulation with the connection and raises a "tunnel_changed"
+	// event if it's different from the previous encapsulation (or the
+	// first encountered). encap can be null to indicate no
+	// encapsulation.
+	void CheckEncapsulation(const EncapsulationStack* encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -119,16 +97,17 @@ public:
 	double LastTime() const			{ return last_time; }
 	void SetLastTime(double t) 		{ last_time = t; }
 
-	const uint32* OrigAddr() const		{ return orig_addr; }
-	const uint32* RespAddr() const		{ return resp_addr; }
+	const IPAddr& OrigAddr() const		{ return orig_addr; }
+	const IPAddr& RespAddr() const		{ return resp_addr; }
 
 	uint32 OrigPort() const			{ return orig_port; }
 	uint32 RespPort() const			{ return resp_port; }
 
 	void FlipRoles();
 
-	Analyzer* FindAnalyzer(AnalyzerID id);
-	Analyzer* FindAnalyzer(AnalyzerTag::Tag tag);	// find first in tree.
+	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
+	analyzer::Analyzer* FindAnalyzer(analyzer::Tag tag);	// find first in tree.
+	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }
 
@@ -185,16 +164,16 @@ public:
 
 	// Raises a software_version_found event based on the
 	// given string (returns false if it's not parseable).
-	int VersionFoundEvent(const uint32* addr, const char* s, int len,
-				Analyzer* analyzer = 0);
+	int VersionFoundEvent(const IPAddr& addr, const char* s, int len,
+				analyzer::Analyzer* analyzer = 0);
 
 	// Raises a software_unparsed_version_found event.
-	int UnparsedVersionFoundEvent(const uint32* addr,
-			const char* full_descr, int len, Analyzer* analyzer);
+	int UnparsedVersionFoundEvent(const IPAddr& addr,
+			const char* full_descr, int len, analyzer::Analyzer* analyzer);
 
-	void Event(EventHandlerPtr f, Analyzer* analyzer, const char* name = 0);
-	void Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2 = 0);
-	void ConnectionEvent(EventHandlerPtr f, Analyzer* analyzer,
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = 0);
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = 0);
+	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list* vl);
 
 	void Weird(const char* name, const char* addl = "");
@@ -266,38 +245,21 @@ public:
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
-	void SetRootAnalyzer(TransportLayerAnalyzer* analyzer, PIA* pia);
-	TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
-	PIA* GetPrimaryPIA()	{ return primary_PIA; }
+	void SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia);
+	analyzer::TransportLayerAnalyzer* GetRootAnalyzer()	{ return root_analyzer; }
+	analyzer::pia::PIA* GetPrimaryPIA()	{ return primary_PIA; }
 
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	// If the connection compressor is activated, we need a special memory
-	// layout for connections. (See ConnCompressor.h)
-	void* operator new(size_t size)
-		{
-		if ( ! use_connection_compressor )
-			return ::operator new(size);
-
-		void* c = ::operator new(size + 4);
-
-		// We have to turn off the is_pending bit.  By setting the
-		// first four bytes to zero, we'll achieve this.
-		*((uint32*) c) = 0;
-
-		return ((char *) c) + 4;
-		}
-
-	void operator delete(void* ptr)
-		{
-		if ( ! use_connection_compressor )
-			::operator delete(ptr);
-		else
-			::operator delete(((char*) ptr) - 4);
-		}
-
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
+
+	uint64 GetUID() const { return uid; }
+
+	const EncapsulationStack* GetEncapsulation() const
+		{ return encapsulation; }
+
+	void CheckFlowLabel(bool is_orig, uint32 flow_label);
 
 protected:
 
@@ -325,14 +287,16 @@ protected:
 	TimerMgr::Tag* conn_timer_mgr;
 	timer_list timers;
 
-	uint32 orig_addr[NUM_ADDR_WORDS];	// in network order
-	uint32 resp_addr[NUM_ADDR_WORDS];	// in network order
+	IPAddr orig_addr;
+	IPAddr resp_addr;
 	uint32 orig_port, resp_port;	// in network order
 	TransportProto proto;
+	uint32 orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
 	LoginConn* login_conn;	// either nil, or this
+	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;
@@ -344,6 +308,7 @@ protected:
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int persistent:1;
 	unsigned int record_current_packet:1, record_current_content:1;
+	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
 
 	// Count number of connections.
 	static unsigned int total_connections;
@@ -353,8 +318,8 @@ protected:
 	string history;
 	uint32 hist_seen;
 
-	TransportLayerAnalyzer* root_analyzer;
-	PIA* primary_PIA;
+	analyzer::TransportLayerAnalyzer* root_analyzer;
+	analyzer::pia::PIA* primary_PIA;
 
 	uint64 uid;	// Globally unique connection ID.
 };

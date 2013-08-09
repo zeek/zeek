@@ -3,17 +3,26 @@
 #ifndef util_h
 #define util_h
 
+// Expose C99 functionality from inttypes.h, which would otherwise not be
+// available in C++.
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+
+#include <inttypes.h>
+#include <stdint.h>
+
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <magic.h>
 #include "config.h"
-
-// Expose C99 functionality from inttypes.h, which would otherwise not be
-// available in C++.
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
 
 #if __STDC__
 #define myattribute __attribute__
@@ -37,7 +46,7 @@
 
 #endif
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 #include <google/heap-checker.h>
 #include <google/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;
@@ -73,7 +82,7 @@ typedef int32 ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId32
 #define PRI_PTR_COMPAT_UINT PRIu32
 #else
-# error "Unusual pointer size. Please report to bro@bro-ids.org."
+# error "Unusual pointer size. Please report to bro@bro.org."
 #endif
 
 extern "C"
@@ -89,6 +98,10 @@ void delete_each(T* t)
 		delete *it;
 	}
 
+std::string extract_ip(const std::string& i);
+std::string extract_ip_and_len(const std::string& i, int* len);
+
+std::string get_unescaped_string(const std::string& str);
 std::string get_escaped_string(const std::string& str, bool escape_all);
 
 extern char* copy_string(const char* s);
@@ -107,6 +120,7 @@ extern char* skip_digits(char* s);
 extern char* get_word(char*& s);
 extern void get_word(int length, const char* s, int& pwlen, const char*& pw);
 extern void to_upper(char* s);
+extern std::string to_upper(const std::string& s);
 extern const char* strchr_n(const char* s, const char* end_of_s, char ch);
 extern const char* strrchr_n(const char* s, const char* end_of_s, char ch);
 extern int decode_hex(char ch);
@@ -133,18 +147,14 @@ extern const char* fmt_access_time(double time);
 extern bool ensure_dir(const char *dirname);
 
 // Returns true if path exists and is a directory.
-bool is_dir(const char* path); 
+bool is_dir(const char* path);
 
 extern uint8 shared_hmac_md5_key[16];
-extern void hash_md5(size_t size, const unsigned char* bytes,
-			unsigned char digest[16]);
 
 extern int hmac_key_set;
 extern unsigned char shared_hmac_md5_key[16];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
-
-extern const char* md5_digest_print(const unsigned char digest[16]);
 
 // Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
 // it is used (to provide determinism).  If load_file is given, the seeds
@@ -155,13 +165,25 @@ extern const char* md5_digest_print(const unsigned char digest[16]);
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
+// Retrieves the initial seed computed after the very first call to
+// init_random_seed(). Repeated calls to init_random_seed() will not affect
+// the return value of this function.
+unsigned int initial_seed();
+
 // Returns true if the user explicitly set a seed via init_random_seed();
 extern bool have_random_seed();
 
+// A simple linear congruence PRNG. It takes its state as argument and
+// returns a new random value, which can serve as state for subsequent calls.
+unsigned int bro_prng(unsigned int state);
+
 // Replacement for the system random(), to which is normally falls back
-// except when a seed has been given. In that case, we use our own
-// predictable PRNG.
+// except when a seed has been given. In that case, the function bro_prng.
 long int bro_random();
+
+// Calls the system srandom() function with the given seed if not running
+// in deterministic mode, else it updates the state of the deterministic PRNG.
+void bro_srandom(unsigned int seed);
 
 extern uint64 rand64bit();
 
@@ -181,6 +203,7 @@ extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
 extern const char* bro_path();
+extern const char* bro_magic_path();
 extern const char* bro_prefixes();
 std::string dot_canon(std::string path, std::string file, std::string prefix = "");
 const char* normalize_path(const char* path);
@@ -197,9 +220,22 @@ extern FILE* rotate_file(const char* name, RecordVal* rotate_info);
 // This mimics the script-level function with the same name.
 const char* log_file_name(const char* tag);
 
+// Parse a time string of the form "HH:MM" (as used for the rotation base
+// time) into a double representing the number of seconds. Returns -1 if the
+// string cannot be parsed. The function's result is intended to be used with
+// calc_next_rotate().
+//
+// This function is not thread-safe.
+double parse_rotate_base_time(const char* rotate_base_time);
+
 // Calculate the duration until the next time a file is to be rotated, based
-// on the given rotate_interval and rotate_base_time.
-double calc_next_rotate(double rotate_interval, const char* rotate_base_time);
+// on the given rotate_interval and rotate_base_time. 'current' the the
+// current time to be used as base, 'rotate_interval' the rotation interval,
+// and 'base' the value returned by parse_rotate_base_time(). For the latter,
+// if the function returned -1, that's fine, calc_next_rotate() handles that.
+//
+// This function is thread-safe.
+double calc_next_rotate(double current, double rotate_interval, double base);
 
 // Terminates processing gracefully, similar to pressing CTRL-C.
 void terminate_processing();
@@ -276,7 +312,19 @@ inline size_t pad_size(size_t size)
 
 #define padded_sizeof(x) (pad_size(sizeof(x)))
 
-extern void out_of_memory(const char* where);
+// Like write() but handles interrupted system calls by restarting. Returns
+// true if the write was successful, otherwise sets errno. This function is
+// thread-safe as long as no two threads write to the same descriptor.
+extern bool safe_write(int fd, const char* data, int len);
+
+// Same as safe_write(), but for pwrite().
+extern bool safe_pwrite(int fd, const unsigned char* data, size_t len,
+                        size_t offset);
+
+// Wraps close(2) to emit error messages and abort on unrecoverable errors.
+extern void safe_close(int fd);
+
+extern "C" void out_of_memory(const char* where);
 
 inline void* safe_realloc(void* ptr, size_t size)
 	{
@@ -325,4 +373,30 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 // handed out by malloc.
 extern void get_memory_usage(unsigned int* total,
 			     unsigned int* malloced);
+
+// Class to be used as a third argument for STL maps to be able to use
+// char*'s as keys. Otherwise the pointer values will be compared instead of
+// the actual string values.
+struct CompareString
+	{
+	bool operator()(char const *a, char const *b) const
+		{
+		return strcmp(a, b) < 0;
+		}
+	};
+
+extern magic_t magic_desc_cookie;
+extern magic_t magic_mime_cookie;
+
+void bro_init_magic(magic_t* cookie_ptr, int flags);
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
+
+/**
+ * Canonicalizes a name by converting it to uppercase letters and replacing
+ * all non-alphanumeric characters with an underscore.
+ * @param name The string to canonicalize.
+ * @return The canonicalized version of \a name which caller may later delete[].
+ */
+const char* canonify_name(const char* name);
+
 #endif

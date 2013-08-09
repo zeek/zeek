@@ -1,6 +1,7 @@
+# @TEST-SERIALIZE: comm
 #
-# @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
-# @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro
+# @TEST-EXEC: btest-bg-run sender   bro -b %INPUT ../sender.bro
+# @TEST-EXEC: btest-bg-run receiver bro -b %INPUT ../receiver.bro
 # @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: btest-diff sender/vars.log
@@ -26,6 +27,7 @@ global foo13  =  { [1,"ABC"] = 101, [2,"DEF"] = 102, [3,"GHI"] = 103 } &persiste
 global foo14  =  { [12345] = foo11, [12346] = foo11 } &persistent &synchronized;
 global foo15 = 42/udp &persistent &synchronized;
 global foo16: vector of count = [1,2,3] &persistent &synchronized;
+global foo18: count &persistent &synchronized;  # not initialized
  
 type type1: record {
     a: string;
@@ -69,6 +71,7 @@ event bro_done()
 	print out, foo15;
 	print out, foo16;
 	print out, foo17;
+	print out, foo18;
 	}
 
 
@@ -127,7 +130,8 @@ function modify()
 	delete foo17$e;
 	
 	foo2 = 1234567;
-}
+	foo18 = 122112;
+	}
 
 @load frameworks/communication/listen
 
@@ -147,13 +151,16 @@ redef Communication::nodes += {
 
 @TEST-START-FILE receiver.bro
 
+@load base/frameworks/communication
+
 event bro_init()
     {
     capture_events("events.bst");
     }
 	
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /.*/, $connect=T, $sync=T]
+    ["foo"] = [$host = 127.0.0.1, $events = /.*/, $connect=T, $sync=T,
+               $retry=1sec]
 };
 
 event remote_connection_closed(p: event_peer)

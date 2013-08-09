@@ -46,12 +46,34 @@ directions:
 http://securityonion.blogspot.com/2011/10/when-is-full-packet-capture-not-full.html
 
 What does an error message like ``internal error: NB-DNS error`` mean?
----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 That often means that DNS is not set up correctly on the system
 running Bro. Try verifying from the command line that DNS lookups
 work, e.g., ``host www.google.com``.
 
+I am using OpenBSD and having problems installing Bro?
+------------------------------------------------------
+
+One potential issue is that the top-level Makefile may not work with
+OpenBSD's default make program, in which case you can either install
+the ``gmake`` package and use it instead or first change into the
+``build/`` directory before doing either ``make`` or ``make install``
+such that the CMake-generated Makefile's are used directly.
+
+Generally, please note that we do not regularly test OpenBSD builds.
+We appreciate any patches that improve Bro's support for this
+platform.
+
+How do BroControl options affect Bro script variables?
+------------------------------------------------------
+
+Some (but not all) BroControl options override a corresponding Bro script variable.
+For example, setting the BroControl option "LogRotationInterval" will override
+the value of the Bro script variable "Log::default_rotation_interval".
+See the :doc:`BroControl Documentation <components/broctl/README>` to find out
+which BroControl options override Bro script variables, and for more discussion
+on site-specific customization.
 
 Usage
 =====
@@ -59,34 +81,30 @@ Usage
 How can I identify backscatter?
 -------------------------------
 
-Identifying backscatter via connections labeled as ``OTH`` is not
-a reliable means to detect backscatter. Use rather the following
-procedure:
-
-* Enable connection history via ``redef record_state_history=T`` to
-  track all control/data packet types in connection logs.
-
-* Backscatter is now visible in terms of connections that never had an
-  initial ``SYN`` but started instead with a ``SYN-ACK`` or ``RST``
-  (though this latter generally is just discarded).
+Identifying backscatter via connections labeled as ``OTH`` is not a reliable
+means to detect backscatter. Backscatter is however visible by interpreting
+the contents of the ``history`` field in the ``conn.log`` file. The basic idea
+is to watch for connections that never had an initial ``SYN`` but started
+instead with a ``SYN-ACK`` or ``RST`` (though this latter generally is just
+discarded). Here are some history fields which provide backscatter examples:
+``hAFf``, ``r``. Refer to the conn protocol analysis scripts to interpret the
+individual character meanings in the history field.
 
 Is there help for understanding Bro's resource consumption?
 -----------------------------------------------------------
 
 There are two scripts that collect statistics on resource usage:
-``stats.bro`` and ``profiling.bro``. The former is quite lightweight,
-while the latter should only be used for debugging. Furthermore,
-there's also ``print-globals.bro``, which prints the size of all
-global script variable at termination.
+``misc/stats.bro`` and ``misc/profiling.bro``. The former is quite
+lightweight, while the latter should only be used for debugging.
 
 How can I capture packets as an unprivileged user?
 --------------------------------------------------
 
-Normally, unprivileged users cannot capture packets from a network
-interface, which means they would not be able to use Bro to read/analyze
-live traffic.  However, there are ways to enable packet capture
-permission for non-root users, which is worth doing in the context of
-using Bro to monitor live traffic
+Normally, unprivileged users cannot capture packets from a network interface,
+which means they would not be able to use Bro to read/analyze live traffic.
+However, there are operating system specific ways to enable packet capture
+permission for non-root users, which is worth doing in the context of using
+Bro to monitor live traffic.
 
 With Linux Capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -147,8 +165,8 @@ alteration tools.
 Bro has two options to workaround such situations and ignore bad checksums:
 
 1) The ``-C`` command line option to ``bro``.
-2) An option called ``ignore_checksums`` that can be redefined at the policy
-   policy script layer (e.g. in your ``$PREFIX/share/bro/site/local/bro``):
+2) An option called ``ignore_checksums`` that can be redefined at the
+   policy script layer (e.g. in your ``$PREFIX/share/bro/site/local.bro``):
 
     .. code:: bro
 

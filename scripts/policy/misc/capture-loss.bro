@@ -8,7 +8,6 @@
 ##! for a sequence number that's above a gap).
 
 @load base/frameworks/notice
-@load base/frameworks/metrics
 
 module CaptureLoss;
 
@@ -17,7 +16,7 @@ export {
 	
 	redef enum Notice::Type += {
 		## Report if the detected capture loss exceeds the percentage
-		## threshold 
+		## threshold.
 		Too_Much_Loss
 	};
 	
@@ -42,9 +41,9 @@ export {
 	const watch_interval = 15mins &redef;
 	
 	## The percentage of missed data that is considered "too much" 
-	## when the :bro:enum:`Too_Much_Loss` notice should be generated.
-	## The value is expressed as a double between 0 and 1 with 1 being
-	## 100%
+	## when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
+	## generated. The value is expressed as a double between 0 and 1 with 1
+	## being 100%
 	const too_much_loss: double = 0.1 &redef;
 }
 

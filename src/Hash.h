@@ -7,7 +7,7 @@
 
 #include "BroString.h"
 
-#define UHASH_KEY_SIZE 32
+#define UHASH_KEY_SIZE 36
 
 typedef uint64 hash_t;
 

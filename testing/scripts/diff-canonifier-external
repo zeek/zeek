@@ -2,7 +2,17 @@
 #
 # Default canonifier used with the trace-based tests in testing/external/*.
 
+addl="cat"
+
+if [ "$1" == "capture_loss.log" ]; then
+    addl="`dirname $0`/diff-remove-fractions"
+fi
+
 `dirname $0`/diff-remove-timestamps \
     | `dirname $0`/diff-remove-uids \
-    | `dirname $0`/diff-remove-mime-types \
+    | `dirname $0`/diff-remove-file-ids \
     | `dirname $0`/diff-remove-x509-names \
+    | `dirname $0`/diff-canon-notice-policy \
+    | `dirname $0`/diff-sort \
+    | eval $addl
+

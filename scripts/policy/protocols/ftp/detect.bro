@@ -7,7 +7,7 @@ module FTP;
 
 export {
 	redef enum Notice::Type += {
-		## This indicates that a successful response to a "SITE EXEC" 
+		## Indicates that a successful response to a "SITE EXEC" 
 		## command/arg pair was seen.
 		Site_Exec_Success,
 	};

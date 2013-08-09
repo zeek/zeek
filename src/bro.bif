@@ -1,19 +1,26 @@
-# Definitions of Bro built-in functions.
+##! A collection of built-in functions that implement a variety of things
+##! such as general programming algorithms, string processing, math functions,
+##! introspection, type conversion, file/directory manipulation, packet
+##! filtering, inter-process communication and controlling protocol analyzer
+##! behavior.
 
 %%{ // C segment
 #include <math.h>
-
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
+#include <time.h>
 
+#include "digest.h"
 #include "Reporter.h"
+#include "IPAddr.h"
+#include "util.h"
+#include "file_analysis/Manager.h"
 
 using namespace std;
 
-RecordType* ftp_port;
 RecordType* net_stats;
 RecordType* bro_resources;
 RecordType* matcher_stats;
@@ -174,35 +181,8 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			// This makes only a very slight difference, so not
 			// clear it would e worth the hassle.
 
-			addr_type u = v->AsAddr();
-#ifdef BROv6
-			// We explicitly convert the address to host order
-			// in a copy, because if we just call ntohl() for
-			// our invocation on snprintf() below, on some systems
-			// it turns a 32-bit value (Linux), whereas on
-			// others it returns a long (FreeBSD); the latter
-			// gets us in trouble if we have longs > 32 bits,
-			// because then the format specifier needs to be %lx
-			// rather than %x ....... what a pain!
-			//
-			// Also note that we don't change u in-place because
-			// that would alter the byte order of the underlying
-			// value.  (Speaking of which, I'm not clear on why
-			// we're allowed to assign a const addr_type to an
-			// addr_type above, both g++ allows it.)
-			uint32 host_order_u[4];
-			host_order_u[0] = ntohl(u[0]);
-			host_order_u[1] = ntohl(u[1]);
-			host_order_u[2] = ntohl(u[2]);
-			host_order_u[3] = ntohl(u[3]);
-
-			snprintf(out_buf, sizeof(out_buf), "%08x%08x%08x%08x",
-					host_order_u[0], host_order_u[1],
-					host_order_u[2], host_order_u[3]);
-#else
-			u = ntohl(u);
-			snprintf(out_buf, sizeof(out_buf), "%08x", u);
-#endif
+			snprintf(out_buf, sizeof(out_buf), "%s",
+			         v->AsAddr().AsHexString().c_str());
 			}
 
 		else if ( ! check_fmt_type(t, ok_d_fmt) )
@@ -317,470 +297,48 @@ static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
 	}
 %%}
 
-function length%(v: any%): count
-	%{
-	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
-
-	if ( tv )
-		return new Val(tv->Size(), TYPE_COUNT);
-
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
-		return new Val(v->AsVectorVal()->Size(), TYPE_COUNT);
-
-	else
-		{
-		builtin_error("length() requires a table/set/vector argument");
-		return new Val(0, TYPE_COUNT);
-		}
-	%}
-
-function same_object%(o1: any, o2: any%): bool
-	%{
-	return new Val(o1 == o2, TYPE_BOOL);
-	%}
-
-function clear_table%(v: any%): any
-	%{
-	if ( v->Type()->Tag() == TYPE_TABLE )
-		v->AsTableVal()->RemoveAll();
-	else
-		builtin_error("clear_table() requires a table/set argument");
-
-	return 0;
-	%}
-
-function cat%(...%): string
-	%{
-	ODesc d;
-	loop_over_list(@ARG@, i)
-		@ARG@[i]->Describe(&d);
-
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(true);
-
-	return new StringVal(s);
-	%}
-
-function record_type_to_vector%(rt: string%): string_vec
-	%{
-	VectorVal* result =
-		new VectorVal(internal_type("string_vec")->AsVectorType());
-
-	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
-
-	if ( type )
-		{
-		for ( int i = 0; i < type->NumFields(); ++i )
-			{
-			StringVal* val = new StringVal(type->FieldName(i));
-			result->Assign(i+1, val, 0);
-			}
-		}
-
-	return result;
-	%}
-
-
-function cat_sep%(sep: string, def: string, ...%): string
-	%{
-	ODesc d;
-	int pre_size = 0;
-
-	loop_over_list(@ARG@, i)
-		{
-		// Skip named parameters.
-		if ( i < 2 )
-			continue;
-
-		if ( i > 2 )
-			d.Add(sep->CheckString(), 0);
-
-		Val* v = @ARG@[i];
-		if ( v->Type()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
-			v = def;
-
-		v->Describe(&d);
-		}
-
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(true);
-
-	return new StringVal(s);
-	%}
-
-function fmt%(...%): string
-	%{
-	if ( @ARGC@ == 0 )
-		return new StringVal("");
-
-	Val* fmt_v = @ARG@[0];
-	if ( fmt_v->Type()->Tag() != TYPE_STRING )
-		return bro_cat(frame, @ARGS@);
-
-	const char* fmt = fmt_v->AsString()->CheckString();
-	ODesc d;
-	int n = 0;
-
-	while ( next_fmt(fmt, @ARGS@, &d, n) )
-		;
-
-	if ( n < @ARGC@ - 1 )
-		builtin_error("too many arguments for format", fmt_v);
-
-	else if ( n >= @ARGC@ )
-		builtin_error("too few arguments for format", fmt_v);
-
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(true);
-
-	return new StringVal(s);
-	%}
-
-function type_name%(t: any%): string
-	%{
-	ODesc d;
-	t->Type()->Describe(&d);
-
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(true);
-
-	return new StringVal(s);
-	%}
-
-function to_int%(str: string%): int
-	%{
-	const char* s = str->CheckString();
-	char* end_s;
-
-	long l = strtol(s, &end_s, 10);
-	int i = int(l);
-
-#if 0
-	// Not clear we should complain.  For example, is " 205 "
-	// a legal conversion?
-	if ( s[0] == '\0' || end_s[0] != '\0' )
-		builtin_error("bad conversion to integer", @ARG@[0]);
-#endif
-
-	return new Val(i, TYPE_INT);
-	%}
-
-function int_to_count%(n: int%): count
-	%{
-	if ( n < 0 )
-		{
-		builtin_error("bad conversion to count", @ARG@[0]);
-		n = 0;
-		}
-	return new Val(n, TYPE_COUNT);
-	%}
-
-function double_to_count%(d: double%): count
-	%{
-	if ( d < 0.0 )
-		builtin_error("bad conversion to count", @ARG@[0]);
-
-	return new Val(bro_uint_t(rint(d)), TYPE_COUNT);
-	%}
-
-function to_count%(str: string%): count
-	%{
-	const char* s = str->CheckString();
-	char* end_s;
-
-	uint64 u = (uint64) strtoll(s, &end_s, 10);
-
-	if ( s[0] == '\0' || end_s[0] != '\0' )
-    	{
-		builtin_error("bad conversion to count", @ARG@[0]);
-        u = 0;
-        }
-
-	return new Val(u, TYPE_COUNT);
-	%}
-
-function interval_to_double%(i: interval%): double
-	%{
-	return new Val(i, TYPE_DOUBLE);
-	%}
-
-function time_to_double%(t: time%): double
-	%{
-	return new Val(t, TYPE_DOUBLE);
-	%}
-
-function double_to_time%(d: double%): time
-	%{
-	return new Val(d, TYPE_TIME);
-	%}
-
-function double_to_interval%(d: double%): interval
-	%{
-	return new Val(d, TYPE_INTERVAL);
-	%}
-
-function addr_to_count%(a: addr%): count
-	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		{
-		builtin_error("conversion of non-IPv4 address to count", @ARG@[0]);
-		return new Val(0, TYPE_COUNT);
-		}
-
-	uint32 addr = to_v4_addr(a);
-#else
-	uint32 addr = a;
-#endif
-	return new Val(ntohl(addr), TYPE_COUNT);
-	%}
-
-function port_to_count%(p: port%): count
-	%{
-	return new Val(p->Port(), TYPE_COUNT);
-	%}
-
-function count_to_port%(c: count, t: transport_proto%): port
-	%{
-	return new PortVal(c, (TransportProto)(t->InternalInt()));
-	%}
-
-function floor%(d: double%): double
-	%{
-	return new Val(floor(d), TYPE_DOUBLE);
-	%}
-
-function to_addr%(ip: string%): addr
-	%{
-	char* s = ip->AsString()->Render();
-	Val* ret = new AddrVal(s);
-	delete [] s;
-	return ret;
-	%}
-
-function count_to_v4_addr%(ip: count%): addr
-	%{
-	if ( ip > 4294967295LU )
-		{
-		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
-		return new AddrVal(uint32(0));
-		}
-
-	return new AddrVal(htonl(uint32(ip)));
-	%}
-
-# Interprets the first 4 bytes of 'b' as an IPv4 address in network order.
-function raw_bytes_to_v4_addr%(b: string%): addr
-	%{
-	uint32 a = 0;
-
-	if ( b->Len() < 4 )
-		builtin_error("too short a string as input to raw_bytes_to_v4_addr()");
-
-	else
-		{
-		const u_char* bp = b->Bytes();
-		a = (bp[0] << 24) | (bp[1] << 16) | (bp[2] << 8) | bp[3];
-		}
-
-	return new AddrVal(htonl(a));
-	%}
-
-function to_port%(num: count, proto: transport_proto%): port
-	%{
-	return new PortVal(num, (TransportProto)proto->AsEnum());
-	%}
-
-function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
-	%{
-	return new SubNetVal(mask_addr(a, top_bits_to_keep), top_bits_to_keep);
-	%}
-
-# Take some top bits (e.g. subnet address) from a1 and the other
-# bits (intra-subnet part) from a2 and merge them to get a new address.
-# This is useful for anonymizing at subnet level while preserving
-# serial scans.
-function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
-	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a1) || ! is_v4_addr(a2) )
-		{
-		builtin_error("cannot use remask_addr on IPv6 addresses");
-		return new AddrVal(a1);
-		}
-
-	uint32 x1 = to_v4_addr(a1);
-	uint32 x2 = to_v4_addr(a2);
-#else
-	uint32 x1 = a1;
-	uint32 x2 = a2;
-#endif
-	return new AddrVal(
-		mask_addr(x1, top_bits_from_a1) |
-		(x2 ^ mask_addr(x2, top_bits_from_a1)) );
-	%}
-
-function is_tcp_port%(p: port%): bool
-	%{
-	return new Val(p->IsTCP(), TYPE_BOOL);
-	%}
-
-function is_udp_port%(p: port%): bool
-	%{
-	return new Val(p->IsUDP(), TYPE_BOOL);
-	%}
-
-function is_icmp_port%(p: port%): bool
-	%{
-	return new Val(p->IsICMP(), TYPE_BOOL);
-	%}
-
-function reading_live_traffic%(%): bool
-	%{
-	return new Val(reading_live, TYPE_BOOL);
-	%}
-
-function reading_traces%(%): bool
-	%{
-	return new Val(reading_traces, TYPE_BOOL);
-	%}
-
-function open%(f: string%): file
-	%{
-	const char* file = f->CheckString();
-
-	if ( streq(file, "-") )
-		return new Val(new BroFile(stdout, "-", "w"));
-	else
-		return new Val(new BroFile(file, "w"));
-	%}
-
-function open_for_append%(f: string%): file
-	%{
-	return new Val(new BroFile(f->CheckString(), "a"));
-	%}
-
-function close%(f: file%): bool
-	%{
-	return new Val(f->Close(), TYPE_BOOL);
-	%}
-
-function write_file%(f: file, data: string%): bool
-	%{
-	if ( ! f )
-		return new Val(0, TYPE_BOOL);
-
-	return new Val(f->Write((const char*) data->Bytes(), data->Len()),
-			TYPE_BOOL);
-	%}
-
-function set_buf%(f: file, buffered: bool%): any
-	%{
-	f->SetBuf(buffered);
-	return new Val(0, TYPE_VOID);
-	%}
-
-function flush_all%(%): bool
-	%{
-	return new Val(fflush(0) == 0, TYPE_BOOL);
-	%}
-
-function mkdir%(f: string%): bool
-	%{
-	const char* filename = f->CheckString();
-	if ( mkdir(filename, 0777) < 0 && errno != EEXIST )
-		{
-		builtin_error("cannot create directory", @ARG@[0]);
-		return new Val(0, TYPE_BOOL);
-		}
-	else
-		return new Val(1, TYPE_BOOL);
-	%}
-
-function active_file%(f: file%): bool
-	%{
-	return new Val(f->IsOpen(), TYPE_BOOL);
-	%}
-
-function active_connection%(id: conn_id%): bool
-	%{
-	Connection* c = sessions->FindConnection(id);
-	return new Val(c ? 1 : 0, TYPE_BOOL);
-	%}
-
-# Note, you *must* first make sure that the connection is active
-# (e.g., by calling active_connection()) before invoking this.
-function connection_record%(cid: conn_id%): connection
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( c )
-		return c->BuildConnVal();
-	else
-		{
-		// Hard to recover from this until we have union types ...
-		builtin_error("connection ID not a known connection (fatal)", cid);
-		exit(0);
-		return 0;
-		}
-	%}
-
-%%{
-EnumVal* map_conn_type(TransportProto tp)
-	{
-	switch ( tp ) {
-	case TRANSPORT_UNKNOWN:
-		return new EnumVal(0, transport_proto);
-		break;
-
-	case TRANSPORT_TCP:
-		return new EnumVal(1, transport_proto);
-		break;
-
-	case TRANSPORT_UDP:
-		return new EnumVal(2, transport_proto);
-		break;
-
-	case TRANSPORT_ICMP:
-		return new EnumVal(3, transport_proto);
-		break;
-
-	default:
-		reporter->InternalError("bad connection type in map_conn_type()");
-	}
-
-	// Cannot be reached;
-	assert(false);
-	return 0; // Make compiler happy.
-	}
-%%}
-
-function get_conn_transport_proto%(cid: conn_id%): transport_proto
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		{
-		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return new EnumVal(0, transport_proto);
-		}
-
-	return map_conn_type(c->ConnTransport());
-	%}
-
-function get_port_transport_proto%(p: port%): transport_proto
-	%{
-	return map_conn_type(p->PortType());
-	%}
-
+# ===========================================================================
+#
+#                                    Core
+#
+# ===========================================================================
+
+## Returns the current wall-clock time.
+##
+## In general, you should use :bro:id:`network_time` instead
+## unless you are using Bro for non-networking uses (such as general
+## scripting; not particularly recommended), because otherwise your script
+## may behave very differently on live traffic versus played-back traffic
+## from a save file.
+##
+## Returns: The wall-clock time.
+##
+## .. bro:see:: network_time
 function current_time%(%): time
 	%{
 	return new Val(current_time(), TYPE_TIME);
 	%}
 
+## Returns the timestamp of the last packet processed. This function returns
+## the timestamp of the most recently read packet, whether read from a
+## live network interface or from a save file.
+##
+## Returns: The timestamp of the packet processed.
+##
+## .. bro:see:: current_time
 function network_time%(%): time
 	%{
 	return new Val(network_time, TYPE_TIME);
 	%}
 
+## Returns a system environment variable.
+##
+## var: The name of the variable whose value to request.
+##
+## Returns: The system environment variable identified by *var*, or an empty
+##          string if it is not defined.
+##
+## .. bro:see:: setenv
 function getenv%(var: string%): string
 	%{
 	const char* env_val = getenv(var->CheckString());
@@ -789,50 +347,42 @@ function getenv%(var: string%): string
 	return new StringVal(env_val);
 	%}
 
+## Sets a system environment variable.
+##
+## var: The name of the variable.
+##
+## val: The (new) value of the variable *var*.
+##
+## Returns: True on success.
+##
+## .. bro:see:: getenv
 function setenv%(var: string, val: string%): bool
 	%{
-	int result = setenv(var->AsString()->CheckString(), 
+	int result = setenv(var->AsString()->CheckString(),
 	                    val->AsString()->CheckString(), 1);
-	
+
 	if ( result < 0 )
 		return new Val(0, TYPE_BOOL);
 	return new Val(1, TYPE_BOOL);
 	%}
 
-function sqrt%(x: double%): double
+## Shuts down the Bro process immediately.
+##
+## code: The exit code to return with.
+##
+## .. bro:see:: terminate
+function exit%(code: int%): any
 	%{
-	if ( x < 0 )
-		{
-		reporter->Error("negative sqrt argument");
-		return new Val(-1.0, TYPE_DOUBLE);
-		}
-
-	return new Val(sqrt(x), TYPE_DOUBLE);
-	%}
-
-function exp%(d: double%): double
-	%{
-	return new Val(exp(d), TYPE_DOUBLE);
-	%}
-
-# Natural log.
-function ln%(d: double%): double
-	%{
-	return new Val(log(d), TYPE_DOUBLE);
-	%}
-
-# Common log.
-function log10%(d: double%): double
-	%{
-	return new Val(log10(d), TYPE_DOUBLE);
-	%}
-
-function exit%(%): int
-	%{
-	exit(0);
+	exit(code);
 	return 0;
 	%}
 
+## Gracefully shut down Bro by terminating outstanding processing.
+##
+## Returns: True after successful termination and false when Bro is still in
+##          the process of shutting down.
+##
+## .. bro:see:: exit bro_is_terminating
 function terminate%(%): bool
 	%{
 	if ( terminating )
@@ -889,17 +439,47 @@ static int do_system(const char* s)
 	}
 %%}
 
+## Invokes a command via the ``system`` function of the OS.
+## The command runs in the background with ``stdout`` redirecting to
+## ``stderr``. Here is a usage example:
+## ``system(fmt("rm \"%s\"", str_shell_escape(sniffed_data)));``
+##
+## str: The command to execute.
+##
+## Returns: The return value from the OS ``system`` function.
+##
+## .. bro:see:: system_env str_shell_escape piped_exec
+##
+## .. note::
+##
+##      Note that this corresponds to the status of backgrounding the
+##      given command, not to the exit status of the command itself. A
+##      value of 127 corresponds to a failure to execute ``sh``, and -1
+##      to an internal system failure.
 function system%(str: string%): int
 	%{
 	int result = do_system(str->CheckString());
 	return new Val(result, TYPE_INT);
 	%}
 
-function system_env%(str: string, env: any%): int
+## Invokes a command via the ``system`` function of the OS with a prepared
+## environment. The function is essentially the same as :bro:id:`system`,
+## but changes the environment before invoking the command.
+##
+## str: The command to execute.
+##
+## env: A :bro:type:`table` with the environment variables in the form
+##      of key-value pairs. Each specified environment variable name
+##      will be automatically prepended with ``BRO_ARG_``.
+##
+## Returns: The return value from the OS ``system`` function.
+##
+## .. bro:see:: system str_shell_escape piped_exec
+function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
-		builtin_error("system_env() requires a table/set argument");
+		builtin_error("system_env() requires a table argument");
 		return new Val(-1, TYPE_INT);
 		}
 
@@ -913,532 +493,1161 @@ function system_env%(str: string, env: any%): int
 	return new Val(result, TYPE_INT);
 	%}
 
-
-%%{
-static Val* parse_eftp(const char* line)
-	{
-	RecordVal* r = new RecordVal(ftp_port);
-
-	int net_proto = 0;	// currently not used
-	uint32 addr = 0;
-	int port = 0;
-	int good = 0;
-
-	if ( line )
-		{
-		while ( isspace(*line) )	// skip whitespace
-			++line;
-
-		char delimiter = *line;
-		good = 1;
-		char* next_delim;
-
-		++line;	// cut off delimiter
-		net_proto = strtol(line, &next_delim, 10);	// currently ignored
-		if ( *next_delim != delimiter )
-			good = 0;
-
-		line = next_delim + 1;
-		if ( *line != delimiter )	// default of 0 is ok
-			{
-			addr = dotted_to_addr(line);
-			if ( addr == 0 )
-				good = 0;
-			}
-
-		// FIXME: check for garbage between IP and delimiter.
-		line = strchr(line, delimiter);
-
-		++line;	// now the port
-		port = strtol(line, &next_delim, 10);
-		if ( *next_delim != delimiter )
-			good = 0;
-		}
-
-	r->Assign(0, new AddrVal(addr));
-	r->Assign(1, new PortVal(port, TRANSPORT_TCP));
-	r->Assign(2, new Val(good, TYPE_BOOL));
-
-	return r;
-	}
-%%}
-
-%%{
-static Val* parse_port(const char* line)
-	{
-	RecordVal* r = new RecordVal(ftp_port);
-
-	int bytes[6];
-	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
-			&bytes[0], &bytes[1], &bytes[2],
-			&bytes[3], &bytes[4], &bytes[5]) == 6 )
-		{
-		int good = 1;
-
-		for ( int i = 0; i < 6; ++i )
-			if ( bytes[i] < 0 || bytes[i] > 255 )
-				{
-				good = 0;
-				break;
-				}
-
-		uint32 addr = (bytes[0] << 24) | (bytes[1] << 16) |
-				(bytes[2] << 8) | bytes[3];
-		uint32 port = (bytes[4] << 8) | bytes[5];
-
-		// Since port is unsigned, no need to check for < 0.
-		if ( port > 65535 )
-			{
-			port = 0;
-			good = 0;
-			}
-
-		r->Assign(0, new AddrVal(htonl(addr)));
-		r->Assign(1, new PortVal(port, TRANSPORT_TCP));
-		r->Assign(2, new Val(good, TYPE_BOOL));
-		}
-	else
-		{
-		r->Assign(0, new AddrVal(uint32(0)));
-		r->Assign(1, new PortVal(0, TRANSPORT_TCP));
-		r->Assign(2, new Val(0, TYPE_BOOL));
-		}
-
-	return r;
-	}
-%%}
-
-# Returns true if the given connection exists, false otherwise.
-function connection_exists%(c: conn_id%): bool
+## Opens a program with ``popen`` and writes a given string to the returned
+## stream to send it to the opened process's stdin.
+##
+## program: The program to execute.
+##
+## to_write: Data to pipe to the opened program's process via ``stdin``.
+##
+## Returns: True on success.
+##
+## .. bro:see:: system system_env
+function piped_exec%(program: string, to_write: string%): bool
 	%{
-	if ( sessions->FindConnection(c) )
-		return new Val(1, TYPE_BOOL);
-	else
-		return new Val(0, TYPE_BOOL);
-	%}
+	const char* prog = program->CheckString();
 
-# For a given connection ID, returns the corresponding "connection" record.
-# Generates a run-time error and returns a dummy value if the connection
-# doesn't exist.
-function lookup_connection%(cid: conn_id%): connection
-	%{
-	Connection* conn = sessions->FindConnection(cid);
-	if ( conn )
-		return conn->BuildConnVal();
-
-	builtin_error("connection ID not a known connection", cid);
-
-	// Return a dummy connection record.
-	RecordVal* c = new RecordVal(connection_type);
-
-	RecordVal* id_val = new RecordVal(conn_id);
-	id_val->Assign(0, new AddrVal((unsigned int) 0));
-	id_val->Assign(1, new PortVal(ntohs(0), TRANSPORT_UDP));
-	id_val->Assign(2, new AddrVal((unsigned int) 0));
-	id_val->Assign(3, new PortVal(ntohs(0), TRANSPORT_UDP));
-	c->Assign(0, id_val);
-
-	RecordVal* orig_endp = new RecordVal(endpoint);
-	orig_endp->Assign(0, new Val(0, TYPE_COUNT));
-	orig_endp->Assign(1, new Val(int(0), TYPE_COUNT));
-
-	RecordVal* resp_endp = new RecordVal(endpoint);
-	resp_endp->Assign(0, new Val(0, TYPE_COUNT));
-	resp_endp->Assign(1, new Val(int(0), TYPE_COUNT));
-
-	c->Assign(1, orig_endp);
-	c->Assign(2, resp_endp);
-
-	c->Assign(3, new Val(network_time, TYPE_TIME));
-	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
-	c->Assign(5, new TableVal(string_set));	// service
-	c->Assign(6, new StringVal(""));	// addl
-	c->Assign(7, new Val(0, TYPE_COUNT));	// hot
-	c->Assign(8, new StringVal(""));	// history
-
-	return c;
-	%}
-
-function skip_further_processing%(cid: conn_id%): bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	c->SetSkip(1);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function set_record_packets%(cid: conn_id, do_record: bool%): bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	c->SetRecordPackets(do_record);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	c->GetRootAnalyzer()->SetContentsFile(direction, f);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function get_contents_file%(cid: conn_id, direction: count%): file
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
-
-	if ( f )
-		{
-		Ref(f);
-		return new Val(f);
-		}
-
-	// Return some sort of error value.
-	if ( ! c )
-		builtin_error("unknown connection id in get_contents_file()", cid);
-	else
-		builtin_error("no contents file for given direction");
-
-	return new Val(new BroFile(stderr, "-", "w"));
-	%}
-
-function get_file_name%(f: file%): string
-	%{
+	FILE* f = popen(prog, "w");
 	if ( ! f )
+		{
+		reporter->Error("Failed to popen %s", prog);
+		return new Val(0, TYPE_BOOL);
+		}
+
+	const u_char* input_data = to_write->Bytes();
+	int input_data_len = to_write->Len();
+
+	int bytes_written = fwrite(input_data, 1, input_data_len, f);
+
+	pclose(f);
+
+	if ( bytes_written != input_data_len )
+		{
+		reporter->Error("Failed to write all given data to %s", prog);
+		return new Val(0, TYPE_BOOL);
+		}
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+%%{
+#include "OpaqueVal.h"
+%%}
+
+## Computes the MD5 hash value of the provided list of arguments.
+##
+## Returns: The MD5 hash value of the concatenated arguments.
+##
+## .. bro:see:: md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##
+## .. note::
+##
+##      This function performs a one-shot computation of its arguments.
+##      For incremental hash computation, see :bro:id:`md5_hash_init` and
+##      friends.
+function md5_hash%(...%): string
+	%{
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5Val::digest(@ARG@, digest);
+	return new StringVal(md5_digest_print(digest));
+	%}
+
+## Computes the SHA1 hash value of the provided list of arguments.
+##
+## Returns: The SHA1 hash value of the concatenated arguments.
+##
+## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##
+## .. note::
+##
+##      This function performs a one-shot computation of its arguments.
+##      For incremental hash computation, see :bro:id:`sha1_hash_init` and
+##      friends.
+function sha1_hash%(...%): string
+	%{
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	SHA1Val::digest(@ARG@, digest);
+	return new StringVal(sha1_digest_print(digest));
+	%}
+
+## Computes the SHA256 hash value of the provided list of arguments.
+##
+## Returns: The SHA256 hash value of the concatenated arguments.
+##
+## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash_init sha256_hash_update sha256_hash_finish
+##
+## .. note::
+##
+##      This function performs a one-shot computation of its arguments.
+##      For incremental hash computation, see :bro:id:`sha256_hash_init` and
+##      friends.
+function sha256_hash%(...%): string
+	%{
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	SHA256Val::digest(@ARG@, digest);
+	return new StringVal(sha256_digest_print(digest));
+	%}
+
+## Computes an HMAC-MD5 hash value of the provided list of arguments. The HMAC
+## secret key is generated from available entropy when Bro starts up, or it can
+## be specified for repeatability using the ``-K`` command line flag.
+##
+## Returns: The HMAC-MD5 hash value of the concatenated arguments.
+##
+## .. bro:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function md5_hmac%(...%): string
+	%{
+	unsigned char hmac[MD5_DIGEST_LENGTH];
+	MD5Val::hmac(@ARG@, shared_hmac_md5_key, hmac);
+	return new StringVal(md5_digest_print(hmac));
+	%}
+
+## Constructs an MD5 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`md5_hash_update` and
+## eventually need to call :bro:id:`md5_hash_finish` to finish the computation
+## and get the hash digest as result.
+##
+## For example, when computing incremental MD5 values of transferred files in
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$md5_handle = md5_hash_init()`` once before invoking
+## ``md5_hash_update(c$http$md5_handle, some_more_data)`` in the
+## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :bro:id:`md5_hash_finish` returns the final hash value.
+##
+## Returns: The opaque handle associated with this hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function md5_hash_init%(%): opaque of md5
+	%{
+	HashVal* digest = new MD5Val();
+	digest->Init();
+	return digest;
+	%}
+
+## Constructs an SHA1 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`sha1_hash_update` and
+## finally need to call :bro:id:`sha1_hash_finish` to finish the computation
+## and get the hash digest as result.
+##
+## For example, when computing incremental SHA1 values of transferred files in
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha1_handle = sha1_hash_init()`` ## once before invoking
+## ``sha1_hash_update(c$http$sha1_handle, some_more_data)`` in the
+## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :bro:id:`sha1_hash_finish` returns the final hash value.
+##
+## Returns: The opaque handle associated with this hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function sha1_hash_init%(%): opaque of sha1
+	%{
+	HashVal* digest = new SHA1Val();
+	digest->Init();
+	return digest;
+	%}
+
+## Constructs an SHA256 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :bro:id:`sha256_hash_update` and
+## finally need to call :bro:id:`sha256_hash_finish` to finish the computation
+## and get the hash digest as result.
+##
+## For example, when computing incremental SHA256 values of transferred files in
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha256_handle = sha256_hash_init()`` ## once before invoking
+## ``sha256_hash_update(c$http$sha256_handle, some_more_data)`` in the
+## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :bro:id:`sha256_hash_finish` returns the final hash value.
+##
+## Returns: The opaque handle associated with this hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_update sha256_hash_finish
+function sha256_hash_init%(%): opaque of sha256
+	%{
+	HashVal* digest = new SHA256Val();
+	digest->Init();
+	return digest;
+	%}
+
+## Updates the MD5 value associated with a given index. It is required to
+## call :bro:id:`md5_hash_init` once before calling this
+## function.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## data: The data to add to the hash computation.
+##
+## Returns: True on success.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function md5_hash_update%(handle: opaque of md5, data: string%): bool
+	%{
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
+	%}
+
+## Updates the SHA1 value associated with a given index. It is required to
+## call :bro:id:`sha1_hash_init` once before calling this
+## function.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## data: The data to add to the hash computation.
+##
+## Returns: True on success.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
+	%{
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
+	%}
+
+## Updates the SHA256 value associated with a given index. It is required to
+## call :bro:id:`sha256_hash_init` once before calling this
+## function.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## data: The data to add to the hash computation.
+##
+## Returns: True on success.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_finish
+function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
+	%{
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return new Val(rc, TYPE_BOOL);
+	%}
+
+## Returns the final MD5 digest of an incremental hash computation.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## Returns: The hash value associated with the computation of *handle*.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function md5_hash_finish%(handle: opaque of md5%): string
+	%{
+	return static_cast<HashVal*>(handle)->Get();
+	%}
+
+## Returns the final SHA1 digest of an incremental hash computation.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## Returns: The hash value associated with the computation of *handle*.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function sha1_hash_finish%(handle: opaque of sha1%): string
+	%{
+	return static_cast<HashVal*>(handle)->Get();
+	%}
+
+## Returns the final SHA256 digest of an incremental hash computation.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## Returns: The hash value associated with the computation of *handle*.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update
+function sha256_hash_finish%(handle: opaque of sha256%): string
+	%{
+	return static_cast<HashVal*>(handle)->Get();
+	%}
+
+## Generates a random number.
+##
+## max: The maximum value of the random number.
+##
+## Returns: a random positive integer in the interval *[0, max)*.
+##
+## .. bro:see:: srand
+##
+## .. note::
+##
+##      This function is a wrapper about the function ``random``
+##      provided by the OS.
+function rand%(max: count%): count
+	%{
+	int result;
+	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
+	return new Val(result, TYPE_COUNT);
+	%}
+
+## Sets the seed for subsequent :bro:id:`rand` calls.
+##
+## seed: The seed for the PRNG.
+##
+## .. bro:see:: rand
+##
+## .. note::
+##
+##      This function is a wrapper about the function ``srandom``
+##      provided by the OS.
+function srand%(seed: count%): any
+	%{
+	bro_srandom(seed);
+	return 0;
+	%}
+
+%%{
+#include <syslog.h>
+%%}
+
+## Send a string to syslog.
+##
+## s: The string to log via syslog
+function syslog%(s: string%): any
+	%{
+	reporter->Syslog("%s", s->CheckString());
+	return 0;
+	%}
+
+%%{
+extern "C" {
+#include <magic.h>
+}
+%%}
+
+## Determines the MIME type of a piece of data using ``libmagic``.
+##
+## data: The data to find the MIME type for.
+##
+## return_mime: If true, the function returns a short MIME type string (e.g.,
+##              ``text/plain`` instead of a more elaborate textual description).
+##
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
+function identify_data%(data: string, return_mime: bool%): string
+	%{
+	magic_t* magic = return_mime ? &magic_mime_cookie : &magic_desc_cookie;
+
+	if( ! *magic )
+		return new StringVal("<unknown>");
+
+	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
+
+	return new StringVal(desc ? desc : "<unknown>");
+	%}
+
+## Performs an entropy test on the given data.
+## See http://www.fourmilab.ch/random.
+##
+## data: The data to compute the entropy for.
+##
+## Returns: The result of the entropy test, which contains the following
+##          fields.
+##
+##              - ``entropy``: The information density expressed as a number of
+##                bits per character.
+##
+##              - ``chi_square``: The chi-square test value expressed as an
+##                absolute number and a percentage which indicates how
+##                frequently a truly random sequence would exceed the value
+##                calculated, i.e., the degree to which the sequence tested is
+##                suspected of being non-random.
+##
+##                If the percentage is greater than 99% or less than 1%, the
+##                sequence is almost certainly not random. If the percentage is
+##                between 99% and 95% or between 1% and 5%, the sequence is
+##                suspect. Percentages between 90\% and 95\% and 5\% and 10\%
+##                indicate the sequence is "almost suspect."
+##
+##              - ``mean``: The arithmetic mean of all the bytes. If the data
+##                are close to random, it should be around 127.5.
+##
+##              - ``monte_carlo_pi``: Each successive sequence of six bytes is
+##                used as 24-bit *x* and *y* coordinates within a square. If
+##                the distance of the randomly-generated point is less than the
+##                radius of a circle inscribed within the square, the six-byte
+##                sequence is considered a "hit." The percentage of hits can
+##                be used to calculate the value of pi. For very large streams
+##                the value will approach the correct value of pi if the
+##                sequence is close to random.
+##
+##              - ``serial_correlation``: This quantity measures the extent to
+##                which each byte in the file depends upon the previous byte.
+##                For random sequences this value will be close to zero.
+##
+## .. bro:see:: entropy_test_init entropy_test_add entropy_test_finish
+function find_entropy%(data: string%): entropy_test_result
+	%{
+	double montepi, scc, ent, mean, chisq;
+	montepi = scc = ent = mean = chisq = 0.0;
+	EntropyVal e;
+	e.Feed(data->Bytes(), data->Len());
+	e.Get(&ent, &chisq, &mean, &montepi, &scc);
+
+	RecordVal* ent_result = new RecordVal(entropy_test_result);
+	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	return ent_result;
+	%}
+
+## Initializes data structures for incremental entropy calculation.
+##
+## Returns: An opaque handle to be used in subsequent operations.
+##
+## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
+function entropy_test_init%(%): opaque of entropy
+	%{
+	return new EntropyVal();
+	%}
+
+## Adds data to an incremental entropy calculation.
+##
+## handle: The opaque handle representing the entropy calculation state.
+##
+## data: The data to add to the entropy calculation.
+##
+## Returns: True on success.
+##
+## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
+function entropy_test_add%(handle: opaque of entropy, data: string%): bool
+	%{
+	bool status = static_cast<EntropyVal*>(handle)->Feed(data->Bytes(),
+	                                                     data->Len());
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Finishes an incremental entropy calculation. Before using this function,
+## one needs to obtain an opaque handle with :bro:id:`entropy_test_init` and
+## add data to it via :bro:id:`entropy_test_add`.
+##
+## handle: The opaque handle representing the entropy calculation state.
+##
+## Returns: The result of the entropy test. See :bro:id:`find_entropy` for a
+##          description of the individual components.
+##
+## .. bro:see:: find_entropy entropy_test_init entropy_test_add
+function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
+	%{
+	double montepi, scc, ent, mean, chisq;
+	montepi = scc = ent = mean = chisq = 0.0;
+	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
+
+	RecordVal* ent_result = new RecordVal(entropy_test_result);
+	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	return ent_result;
+	%}
+
+## Creates an identifier that is unique with high probability.
+##
+## prefix: A custom string prepended to the result.
+##
+## .. bro:see:: unique_id_from
+function unique_id%(prefix: string%) : string
+	%{
+	char tmp[20];
+	uint64 uid = calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
+	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	%}
+
+## Creates an identifier that is unique with high probability.
+##
+## pool: A seed for determinism.
+##
+## prefix: A custom string prepended to the result.
+##
+## .. bro:see:: unique_id
+function unique_id_from%(pool: int, prefix: string%) : string
+	%{
+	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
+
+	char tmp[20];
+	uint64 uid = calculate_unique_id(pool);
+	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	%}
+
+# ===========================================================================
+#
+#                             Generic Programming
+#
+# ===========================================================================
+
+## Removes all elements from a set or table.
+##
+## v: The set or table
+function clear_table%(v: any%): any
+	%{
+	if ( v->Type()->Tag() == TYPE_TABLE )
+		v->AsTableVal()->RemoveAll();
+	else
+		builtin_error("clear_table() requires a table/set argument");
+
+	return 0;
+	%}
+
+## Checks whether two objects reference the same internal object. This function
+## uses equality comparison of C++ raw pointer values to determine if the two
+## objects are the same.
+##
+## o1: The first object.
+##
+## o2: The second object.
+##
+## Returns: True if *o1* and *o2* are equal.
+function same_object%(o1: any, o2: any%): bool
+	%{
+	return new Val(o1 == o2, TYPE_BOOL);
+	%}
+
+## Returns the number of bytes that a value occupies in memory.
+##
+## v: The value
+##
+## Returns: The number of bytes that *v* occupies.
+function val_size%(v: any%): count
+	%{
+	return new Val(v->MemoryAllocation(), TYPE_COUNT);
+	%}
+
+## Resizes a vector.
+##
+## aggr: The vector instance.
+##
+## newsize: The new size of *aggr*.
+##
+## Returns: The old size of *aggr*, or 0 if *aggr* is not a :bro:type:`vector`.
+function resize%(aggr: any, newsize: count%) : count
+	%{
+	if ( aggr->Type()->Tag() != TYPE_VECTOR )
+		{
+		builtin_error("resize() operates on vectors");
+		return 0;
+		}
+
+	return new Val(aggr->AsVectorVal()->Resize(newsize), TYPE_COUNT);
+	%}
+
+## Tests whether a boolean vector (``vector of bool``) has *any* true
+## element.
+##
+## v: The boolean vector instance.
+##
+## Returns: True if any element in *v* is true.
+##
+## .. bro:see:: all_set
+function any_set%(v: any%) : bool
+	%{
+	if ( v->Type()->Tag() != TYPE_VECTOR ||
+	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+		{
+		builtin_error("any_set() requires vector of bool");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	VectorVal* vv = v->AsVectorVal();
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
+		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
+			return new Val(true, TYPE_BOOL);
+
+	return new Val(false, TYPE_BOOL);
+	%}
+
+## Tests whether *all* elements of a boolean vector (``vector of bool``) are
+## true.
+##
+## v: The boolean vector instance.
+##
+## Returns: True iff all elements in *v* are true.
+##
+## .. bro:see:: any_set
+##
+## .. note::
+##
+##      Missing elements count as false.
+function all_set%(v: any%) : bool
+	%{
+	if ( v->Type()->Tag() != TYPE_VECTOR ||
+	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+		{
+		builtin_error("all_set() requires vector of bool");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	VectorVal* vv = v->AsVectorVal();
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
+		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
+			return new Val(false, TYPE_BOOL);
+
+	return new Val(true, TYPE_BOOL);
+	%}
+
+%%{
+static Func* sort_function_comp = 0;
+static Val** index_map = 0;	// used for indirect sorting to support order()
+
+bool sort_function(Val* a, Val* b)
+	{
+	// Sort missing values as "high".
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	val_list sort_func_args;
+	sort_func_args.append(a->Ref());
+	sort_func_args.append(b->Ref());
+
+	Val* result = sort_function_comp->Call(&sort_func_args);
+	int int_result = result->CoerceToInt();
+	Unref(result);
+
+	sort_func_args.remove_nth(1);
+	sort_func_args.remove_nth(0);
+
+	return int_result < 0;
+	}
+
+bool indirect_sort_function(int a, int b)
+	{
+	return sort_function(index_map[a], index_map[b]);
+	}
+
+bool int_sort_function (Val* a, Val* b)
+	{
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	int ia = a->CoerceToInt();
+	int ib = b->CoerceToInt();
+
+	return ia < ib;
+	}
+
+bool indirect_int_sort_function(int a, int b)
+	{
+	return int_sort_function(index_map[a], index_map[b]);
+	}
+%%}
+
+## Sorts a vector in place. The second argument is a comparison function that
+## takes two arguments: if the vector type is ``vector of T``, then the
+## comparison function must be ``function(a: T, b: T): int``, which returns
+## a value less than zero if ``a < b`` for some type-specific notion of the
+## less-than operator.  The comparison function is optional if the type
+## is an integral type (int, count, etc.).
+##
+## v: The vector instance to sort.
+##
+## Returns: The vector, sorted from minimum to maximum value. If the vector
+##          could not be sorted, then the original vector is returned instead.
+##
+## .. bro:see:: order
+function sort%(v: any, ...%) : any
+	%{
+	v->Ref();	// we always return v
+
+	if ( v->Type()->Tag() != TYPE_VECTOR )
+		{
+		builtin_error("sort() requires vector");
+		return v;
+		}
+
+	BroType* elt_type = v->Type()->YieldType();
+	Func* comp = 0;
+
+	if ( @ARG@.length() > 2 )
+		builtin_error("sort() called with extraneous argument");
+
+	if ( @ARG@.length() == 2 )
+		{
+		Val* comp_val = @ARG@[1];
+		if ( ! IsFunc(comp_val->Type()->Tag()) )
+			{
+			builtin_error("second argument to sort() needs to be comparison function");
+			return v;
+			}
+
+		comp = comp_val->AsFunc();
+		}
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+		builtin_error("comparison function required for sort() with non-integral types");
+
+	vector<Val*>& vv = *v->AsVector();
+
+	if ( comp )
+		{
+		FuncType* comp_type = comp->FType()->AsFuncType();
+		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
+		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+			{
+			builtin_error("invalid comparison function in call to sort()");
+			return v;
+			}
+
+		sort_function_comp = comp;
+
+		sort(vv.begin(), vv.end(), sort_function);
+		}
+	else
+		sort(vv.begin(), vv.end(), int_sort_function);
+
+	return v;
+	%}
+
+## Returns the order of the elements in a vector according to some
+## comparison function. See :bro:id:`sort` for details about the comparison
+## function.
+##
+## v: The vector whose order to compute.
+##
+## Returns: A ``vector of count`` with the indices of the ordered elements.
+##          For example, the elements of *v* in order are (assuming ``o``
+##          is the vector returned by ``order``):  v[o[0]], v[o[1]], etc.
+##
+## .. bro:see:: sort
+function order%(v: any, ...%) : index_vec
+	%{
+	VectorVal* result_v = new VectorVal(
+	    internal_type("index_vec")->AsVectorType());
+
+	if ( v->Type()->Tag() != TYPE_VECTOR )
+		{
+		builtin_error("order() requires vector");
+		return result_v;
+		}
+
+	BroType* elt_type = v->Type()->YieldType();
+	Func* comp = 0;
+
+	if ( @ARG@.length() > 2 )
+		builtin_error("order() called with extraneous argument");
+
+	if ( @ARG@.length() == 2 )
+		{
+		Val* comp_val = @ARG@[1];
+		if ( ! IsFunc(comp_val->Type()->Tag()) )
+			{
+			builtin_error("second argument to order() needs to be comparison function");
+			return v;
+			}
+
+		comp = comp_val->AsFunc();
+		}
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+		builtin_error("comparison function required for order() with non-integral types");
+
+	vector<Val*>& vv = *v->AsVector();
+	int n = vv.size();
+
+	// Set up initial mapping of indices directly to corresponding
+	// elements.
+	vector<int> ind_vv(n);
+	index_map = new Val*[n];
+	int i;
+	for ( i = 0; i < n; ++i )
+		{
+		ind_vv[i] = i;
+		index_map[i] = vv[i];
+		}
+
+	if ( comp )
+		{
+		FuncType* comp_type = comp->FType()->AsFuncType();
+		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
+		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+			{
+			builtin_error("invalid comparison function in call to order()");
+			return v;
+			}
+
+		sort_function_comp = comp;
+
+		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
+		}
+	else
+		sort(ind_vv.begin(), ind_vv.end(), indirect_int_sort_function);
+
+	delete [] index_map;
+	index_map = 0;
+
+	// Now spin through ind_vv to read out the rearrangement.
+	for ( i = 0; i < n; ++i )
+		{
+		int ind = ind_vv[i];
+		result_v->Assign(i, new Val(ind, TYPE_COUNT));
+		}
+
+	return result_v;
+	%}
+
+# ===========================================================================
+#
+#                              String Processing
+#
+# ===========================================================================
+
+## Returns the concatenation of the string representation of its arguments. The
+## arguments can be of any type. For example, ``cat("foo", 3, T)`` returns
+## ``"foo3T"``.
+##
+## Returns: A string concatentation of all arguments.
+function cat%(...%): string
+	%{
+	ODesc d;
+	loop_over_list(@ARG@, i)
+		@ARG@[i]->Describe(&d);
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+## Concatenates all arguments, with a separator placed between each one. This
+## function is similar to :bro:id:`cat`, but places a separator between each
+## given argument. If any of the variable arguments is an empty string it is
+## replaced by a given default string instead.
+##
+## sep: The separator to place between each argument.
+##
+## def: The default string to use when an argument is the empty string.
+##
+## Returns: A concatenation of all arguments with *sep* between each one and
+##          empty strings replaced with *def*.
+##
+## .. bro:see:: cat string_cat cat_string_array cat_string_array_n
+function cat_sep%(sep: string, def: string, ...%): string
+	%{
+	ODesc d;
+	int pre_size = 0;
+
+	loop_over_list(@ARG@, i)
+		{
+		// Skip named parameters.
+		if ( i < 2 )
+			continue;
+
+		if ( i > 2 )
+			d.Add(sep->CheckString(), 0);
+
+		Val* v = @ARG@[i];
+		if ( v->Type()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
+			v = def;
+
+		v->Describe(&d);
+		}
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+## Produces a formatted string à la ``printf``. The first argument is the
+## *format string* and specifies how subsequent arguments are converted for
+## output. It is composed of zero or more directives: ordinary characters (not
+## ``%``), which are copied unchanged to the output, and conversion
+## specifications, each of which fetches zero or more subsequent arguments.
+## Conversion specifications begin with ``%`` and the arguments must properly
+## correspond to the specifier. After the ``%``, the following characters
+## may appear in sequence:
+##
+##    - ``%``: Literal ``%``
+##
+##    - ``-``: Left-align field
+##
+##    - ``[0-9]+``: The field width (< 128)
+##
+##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
+##
+##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
+##
+##    - ``[DTdxsefg]``: Format specifier
+##
+##        - ``[DT]``: ISO timestamp with microsecond precision
+##
+##        - ``d``: Signed/Unsigned integer (using C-style ``%lld``/``%llu``
+##                 for ``int``/``count``)
+##
+##        - ``x``: Unsigned hexadecimal (using C-style ``%llx``);
+##                 addresses/ports are converted to host-byte order
+##
+##        - ``s``: String (byte values less than 32 or greater than 126
+##                 will be escaped)
+##
+##        - ``[efg]``: Double
+##
+## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`
+##          returns an empty string. Given no format string or the wrong
+##          number of additional arguments for the given format specifier,
+##          :bro:id:`fmt` generates a run-time error.
+##
+## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+function fmt%(...%): string
+	%{
+	if ( @ARGC@ == 0 )
 		return new StringVal("");
 
-	return new StringVal(f->Name());
-	%}
+	Val* fmt_v = @ARG@[0];
 
-# Set an individual inactivity timeout for this connection
-# (overrides the global inactivity_timeout).  Returns previous
-# timeout interval.
-function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_INTERVAL);
+	// Type of fmt_v will be string here, check_built_in_call() in Func.cc
+	// checks that.
 
-	double old_timeout = c->InactivityTimeout();
-	c->SetInactivityTimeout(t);
+	const char* fmt = fmt_v->AsString()->CheckString();
+	ODesc d;
+	int n = 0;
 
-	return new Val(old_timeout, TYPE_INTERVAL);
-	%}
+	while ( next_fmt(fmt, @ARGS@, &d, n) )
+		;
 
-function get_login_state%(cid: conn_id%): count
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
-	if ( ! la )
-		return new Val(0, TYPE_BOOL);
-
-	return new Val(int(static_cast<Login_Analyzer*>(la)->LoginState()),
-			TYPE_COUNT);
-	%}
-
-function set_login_state%(cid: conn_id, new_state: count%): bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_BOOL);
-
-	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
-	if ( ! la )
-		return new Val(0, TYPE_BOOL);
-
-	static_cast<Login_Analyzer*>(la)->SetLoginState(login_state(new_state));
-	return new Val(1, TYPE_BOOL);
-	%}
-
-%%{
-#include "TCP.h"
-%%}
-
-function get_orig_seq%(cid: conn_id%): count
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_COUNT);
-
-	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return new Val(0, TYPE_COUNT);
-
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
-	if ( tc )
-		return new Val(static_cast<TCP_Analyzer*>(tc)->OrigSeq(),
-				TYPE_COUNT);
-	else
+	if ( n < @ARGC@ - 1 )
 		{
-		reporter->Error("connection does not have TCP analyzer");
-		return new Val(0, TYPE_COUNT);
+		builtin_error("too many arguments for format", fmt_v);
+		return new StringVal("");
 		}
-	%}
 
-function get_resp_seq%(cid: conn_id%): count
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		return new Val(0, TYPE_COUNT);
-
-	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return new Val(0, TYPE_COUNT);
-
-	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
-	if ( tc )
-		return new Val(static_cast<TCP_Analyzer*>(tc)->RespSeq(),
-				TYPE_COUNT);
-	else
+	else if ( n >= @ARGC@ )
 		{
-		reporter->Error("connection does not have TCP analyzer");
-		return new Val(0, TYPE_COUNT);
-		}
-	%}
-
-# These convert addresses <-> n3.n2.n1.n0.in-addr.arpa
-function ptr_name_to_addr%(s: string%): addr
-	%{
-	int a[4];
-	uint32 addr;
-
-	if ( sscanf(s->CheckString(),
-			"%d.%d.%d.%d.in-addr.arpa",
-			a, a+1, a+2, a+3) != 4 )
-		{
-		builtin_error("bad PTR name", @ARG@[0]);
-		addr = 0;
-		}
-	else
-		addr = (a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
-
-	return new AddrVal(htonl(addr));
-	%}
-
-function addr_to_ptr_name%(a: addr%): string
-	%{
-	// ## Question:
-	// uint32 addr = ntohl((*args)[0]->InternalUnsigned());
-	uint32 addr;
-#ifdef BROv6
-	if ( is_v4_addr(a) )
-		addr = a[3];
-	else
-		{
-		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
-		addr = 0;
-		}
-#else
-	addr = a;
-#endif
-
-	addr = ntohl(addr);
-	uint32 a3 = (addr >> 24) & 0xff;
-	uint32 a2 = (addr >> 16) & 0xff;
-	uint32 a1 = (addr >> 8) & 0xff;
-	uint32 a0 = addr & 0xff;
-
-	char buf[256];
-	sprintf(buf, "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
-
-	return new StringVal(buf);
-	%}
-
-# Transforms n0.n1.n2.n3 -> addr.
-function parse_dotted_addr%(s: string%): addr
-	%{
-	return new AddrVal(dotted_to_addr(s->CheckString()));
-	%}
-
-function parse_ftp_port%(s: string%): ftp_port
-	%{
-	return parse_port(s->CheckString());
-	%}
-
-function parse_eftp_port%(s: string%): ftp_port
-	%{
-	return parse_eftp(s->CheckString());
-	%}
-
-function parse_ftp_pasv%(str: string%): ftp_port
-	%{
-	const char* s = str->CheckString();
-	const char* line = strchr(s, '(');
-	if ( line )
-		++line;	// move past '('
-	else if ( (line = strstr(s, "PORT")) )
-		line += 5;	// Skip over
-	else if ( (line = strchr(s, ',')) )
-		{ // Look for comma-separated list.
-		while ( --line >= s && isdigit(*line) )
-			;	// Back up over preceding digits.
-		++line;	// now points to first digit, or beginning of s
+		builtin_error("too few arguments for format", fmt_v);
+		return new StringVal("");
 		}
 
-	return parse_port(line);
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
 	%}
 
-function parse_ftp_epsv%(str: string%): ftp_port
-	%{
-	const char* s = str->CheckString();
-	const char* line = strchr(s, '(');
-	if ( line )
-		++line; // move past '('
-	return parse_eftp(line);
-	%}
-
-function fmt_ftp_port%(a: addr, p: port%): string
-	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
-
-	uint32 addr = to_v4_addr(a);
-#else
-	uint32 addr = a;
-#endif
-	addr = ntohl(addr);
-	uint32 pn = p->Port();
-	return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
-					addr >> 24, (addr >> 16) & 0xff,
-					(addr >> 8) & 0xff, addr & 0xff,
-					pn >> 8, pn & 0xff));
-	%}
-
-function decode_netbios_name%(name: string%): string
-	%{
-	char buf[16];
-	char result[16];
-	const u_char* s = name->Bytes();
-	int i, j;
-
-	for ( i = 0, j = 0; i < 16; ++i )
-		{
-		char c0 = (j < name->Len()) ? toupper(s[j++]) : 'A';
-		char c1 = (j < name->Len()) ? toupper(s[j++]) : 'A';
-		buf[i] = ((c0 - 'A') << 4) + (c1 - 'A');
-		}
-
-	for ( i = 0; i < 15; ++i )
-		{
-		if ( isalnum(buf[i]) || ispunct(buf[i]) ||
-		     // \x01\x02 is seen in at least one case as the first two bytes.
-		     // I think that any \x01 and \x02 should always be passed through.
-		     buf[i] < 3 )
-			result[i] = buf[i];
-		else
-			break;
-		}
-
-	return new StringVal(i, result);
-	%}
-
-function decode_netbios_name_type%(name: string%): count
-	%{
-	const u_char* s = name->Bytes();
-	char return_val = ((toupper(s[30]) - 'A') << 4) + (toupper(s[31]) - 'A');
-	return new Val(return_val, TYPE_COUNT);
-	%}
-
-%%{
-#include "HTTP.h"
-
-const char* conn_id_string(Val* c)
-	{
-	Val* id = (*(c->AsRecord()))[0];
-	const val_list* vl = id->AsRecord();
-
-	addr_type orig_h = (*vl)[0]->AsAddr();
-	uint32 orig_p = (*vl)[1]->AsPortVal()->Port();
-	addr_type resp_h = (*vl)[2]->AsAddr();
-	uint32 resp_p = (*vl)[3]->AsPortVal()->Port();
-
-	return fmt("%s/%u -> %s/%u\n", dotted_addr(orig_h), orig_p, dotted_addr(resp_h), resp_p);
-	}
-%%}
-
-# Skip data of the HTTP entity on the connection
-function skip_http_entity_data%(c: connection, is_orig: bool%): any
-	%{
-	AnalyzerID id = mgr.CurrentAnalyzer();
-	if ( id )
-		{
-		Analyzer* ha = c->FindAnalyzer(id);
-
-		if ( ha )
-			{
-			if ( ha->GetTag() == AnalyzerTag::HTTP )
-				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
-			else
-				reporter->Error("non-HTTP analyzer associated with connection record");
-			}
-		else
-			reporter->Error("could not find analyzer for skip_http_entity_data");
-
-		}
-	else
-		reporter->Error("no analyzer associated with connection record");
-
-	return 0;
-	%}
-
-# Unescape all characters in the URI, i.e. decode every %xx group.
+# ===========================================================================
 #
-# Note that unescaping reserved characters may cause loss of
-# information (see below).
+#                                    Math
 #
-# RFC 2396: A URI is always in an "escaped" form, since escaping or
-# unescaping a completed URI might change its semantics.  Normally,
-# the only time escape encodings can safely be made is when the URI
-# is being created from its component parts.
+# ===========================================================================
 
-function unescape_URI%(URI: string%): string
+## Computes the greatest integer less than the given :bro:type:`double` value.
+## For example, ``floor(3.14)`` returns ``3.0``, and ``floor(-3.14)``
+## returns ``-4.0``.
+##
+## d: The :bro:type:`double` to manipulate.
+##
+## Returns: The next lowest integer of *d* as :bro:type:`double`.
+##
+## .. bro:see:: sqrt exp ln log10
+function floor%(d: double%): double
 	%{
-	const u_char* line = URI->Bytes();
-	const u_char* const line_end = line + URI->Len();
-
-	return new StringVal(unescape_URI(line, line_end, 0));
+	return new Val(floor(d), TYPE_DOUBLE);
 	%}
 
-%%{
-#include "SMTP.h"
-%%}
-
-# Skip smtp_data till next mail
-function skip_smtp_data%(c: connection%): any
+## Computes the square root of a :bro:type:`double`.
+##
+## x: The number to compute the square root of.
+##
+## Returns: The square root of *x*.
+##
+## .. bro:see:: floor exp ln log10
+function sqrt%(x: double%): double
 	%{
-	Analyzer* sa = c->FindAnalyzer(AnalyzerTag::SMTP);
-	if ( sa )
-		static_cast<SMTP_Analyzer*>(sa)->SkipData();
-	return 0;
+	if ( x < 0 )
+		{
+		reporter->Error("negative sqrt argument");
+		return new Val(-1.0, TYPE_DOUBLE);
+		}
+
+	return new Val(sqrt(x), TYPE_DOUBLE);
 	%}
 
-
-function bytestring_to_hexstr%(bytestring: string%): string
+## Computes the exponential function.
+##
+## d: The argument to the exponential function.
+##
+## Returns: *e* to the power of *d*.
+##
+## .. bro:see:: floor sqrt ln log10
+function exp%(d: double%): double
 	%{
-	bro_uint_t len = bytestring->AsString()->Len();
-	const u_char* bytes = bytestring->AsString()->Bytes();
-	char hexstr[(2 * len) + 1];
+	return new Val(exp(d), TYPE_DOUBLE);
+	%}
 
-	hexstr[0] = 0;
-	for ( bro_uint_t i = 0; i < len; ++i )
-		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
+## Computes the natural logarithm of a number.
+##
+## d: The argument to the logarithm.
+##
+## Returns: The natural logarithm of *d*.
+##
+## .. bro:see:: exp floor sqrt log10
+function ln%(d: double%): double
+	%{
+	return new Val(log(d), TYPE_DOUBLE);
+	%}
 
-	return new StringVal(hexstr);
+## Computes the common logarithm of a number.
+##
+## d: The argument to the logarithm.
+##
+## Returns: The common logarithm of *d*.
+##
+## .. bro:see:: exp floor sqrt ln
+function log10%(d: double%): double
+	%{
+	return new Val(log10(d), TYPE_DOUBLE);
+	%}
+
+# ===========================================================================
+#
+#                                Introspection
+#
+# ===========================================================================
+
+## Determines whether *c* has been received externally. For example,
+## Broccoli or the Time Machine can send packets to Bro via a mechanism that is
+## one step lower than sending events. This function checks whether the packets
+## of a connection stem from one of these external *packet sources*.
+##
+## c: The connection to test.
+##
+## Returns: True if *c* has been received externally.
+function is_external_connection%(c: connection%) : bool
+	%{
+	return new Val(c && c->IsExternal(), TYPE_BOOL);
+	%}
+
+## Returns the ID of the analyzer which raised the current event.
+##
+## Returns: The ID of the analyzer which raised the current event, or 0 if
+##          none.
+function current_analyzer%(%) : count
+	%{
+	return new Val(mgr.CurrentAnalyzer(), TYPE_COUNT);
+	%}
+
+## Returns Bro's process ID.
+##
+## Returns: Bro's process ID.
+function getpid%(%) : count
+	%{
+	return new Val(getpid(), TYPE_COUNT);
 	%}
 
 %%{
 extern const char* bro_version();
 %%}
 
+## Returns the Bro version string.
+##
+## Returns: Bro's version, e.g., 2.0-beta-47-debug.
+function bro_version%(%): string
+	%{
+	return new StringVal(bro_version());
+	%}
+
+## Converts a record type name to a vector of strings, where each element is
+## the name of a record field. Nested records are flattened.
+##
+## rt: The name of the record type.
+##
+## Returns: A string vector with the field names of *rt*.
+function record_type_to_vector%(rt: string%): string_vec
+	%{
+	VectorVal* result =
+		new VectorVal(internal_type("string_vec")->AsVectorType());
+
+	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+
+	if ( type )
+		{
+		for ( int i = 0; i < type->NumFields(); ++i )
+			{
+			StringVal* val = new StringVal(type->FieldName(i));
+			result->Assign(i+1, val);
+			}
+		}
+
+	return result;
+	%}
+
+## Returns the type name of an arbitrary Bro variable.
+##
+## t: An arbitrary object.
+##
+## Returns: The type name of *t*.
+function type_name%(t: any%): string
+	%{
+	ODesc d;
+	t->Type()->Describe(&d);
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+## Checks whether Bro reads traffic from one or more network interfaces (as
+## opposed to from a network trace in a file). Note that this function returns
+## true even after Bro has stopped reading network traffic, for example due to
+## receiving a termination signal.
+##
+## Returns: True if reading traffic from a network interface.
+##
+## .. bro:see:: reading_traces
+function reading_live_traffic%(%): bool
+	%{
+	return new Val(reading_live, TYPE_BOOL);
+	%}
+
+## Checks whether Bro reads traffic from a trace file (as opposed to from a
+## network interface).
+##
+## Returns: True if reading traffic from a network trace.
+##
+## .. bro:see:: reading_live_traffic
+function reading_traces%(%): bool
+	%{
+	return new Val(reading_traces, TYPE_BOOL);
+	%}
+
+## Returns packet capture statistics. Statistics include the number of
+## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## link (not always available).
+##
+## Returns: A record of packet statistics.
+##
+## .. bro:see:: do_profiling
+##              resource_usage
+##              get_matcher_stats
+##              dump_rule_stats
+##              get_gap_summary
 function net_stats%(%): NetStats
 	%{
 	unsigned int recv = 0;
@@ -1464,6 +1673,17 @@ function net_stats%(%): NetStats
 	return ns;
 	%}
 
+## Returns Bro process statistics. Statistics include real/user/sys CPU time,
+## memory usage, page faults, number of TCP/UDP/ICMP connections, timers,
+## and events queued/dispatched.
+##
+## Returns: A record with resource usage statistics.
+##
+## .. bro:see:: do_profiling
+##              net_stats
+##              get_matcher_stats
+##              dump_rule_stats
+##              get_gap_summary
 function resource_usage%(%): bro_resources
 	%{
 	struct rusage r;
@@ -1530,6 +1750,18 @@ function resource_usage%(%): bro_resources
 	return res;
 	%}
 
+## Returns statistics about the regular expression engine. Statistics include
+## the number of distinct matchers, DFA states, DFA state transitions, memory
+## usage of DFA states, cache hits/misses, and average number of NFA states
+## across all matchers.
+##
+## Returns: A record with matcher statistics.
+##
+## .. bro:see:: do_profiling
+##              net_stats
+##              resource_usage
+##              dump_rule_stats
+##              get_gap_summary
 function get_matcher_stats%(%): matcher_stats
 	%{
 	RuleMatcher::Stats s;
@@ -1550,22 +1782,12 @@ function get_matcher_stats%(%): matcher_stats
 	return r;
 	%}
 
-function get_gap_summary%(%): gap_info
-	%{
-	RecordVal* r = new RecordVal(gap_info);
-	r->Assign(0, new Val(tot_ack_events, TYPE_COUNT));
-	r->Assign(1, new Val(tot_ack_bytes, TYPE_COUNT));
-	r->Assign(2, new Val(tot_gap_events, TYPE_COUNT));
-	r->Assign(3, new Val(tot_gap_bytes, TYPE_COUNT));
-
-	return r;
-	%}
-
-function val_size%(v: any%): count
-	%{
-	return new Val(v->MemoryAllocation(), TYPE_COUNT);
-	%}
-
+## Generates a table of the size of all global variables. The table index is
+## the variable name and the value is the variable size in bytes.
+##
+## Returns: A table that maps variable names to their sizes.
+##
+## .. bro:see:: global_ids
 function global_sizes%(%): var_sizes
 	%{
 	TableVal* sizes = new TableVal(var_sizes);
@@ -1586,6 +1808,14 @@ function global_sizes%(%): var_sizes
 	return sizes;
 	%}
 
+## Generates a table with information about all global identifiers. The table
+## value is a record containing the type name of the identifier, whether it is
+## exported, a constant, an enum constant, redefinable, and its value (if it
+## has one).
+##
+## Returns: A table that maps identifier names to information about them.
+##
+## .. bro:see:: global_sizes
 function global_ids%(%): id_table
 	%{
 	TableVal* ids = new TableVal(id_table);
@@ -1620,6 +1850,31 @@ function global_ids%(%): id_table
 	return ids;
 	%}
 
+## Returns the value of a global identifier.
+##
+## id: The global identifier.
+##
+## Returns the value of *id*. If *id* does not describe a valid identifier, the
+## function returns the string ``"<unknown id>"`` or ``"<no ID value>"``.
+function lookup_ID%(id: string%) : any
+	%{
+	ID* i = global_scope()->Lookup(id->CheckString());
+	if ( ! i )
+		return new StringVal("<unknown id>");
+
+	if ( ! i->ID_Val() )
+		return new StringVal("<no ID value>");
+
+	return i->ID_Val()->Ref();
+	%}
+
+## Generates metadata about a record's fields. The returned information
+## includes the field name, whether it is logged, its value (if it has one),
+## and its default value (if specified).
+##
+## rec: The record to inspect.
+##
+## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
 	TableVal* fields = new TableVal(record_field_table);
@@ -1658,196 +1913,771 @@ function record_fields%(rec: any%): record_field_table
 	return fields;
 	%}
 
-%%{
-#include "Anon.h"
-%%}
-
-# Preserve prefix as original one in anonymization.
-function preserve_prefix%(a: addr, width: count%): any
+## Enables detailed collection of profiling statistics. Statistics include
+## CPU/memory usage, connections, TCP states/reassembler, DNS lookups,
+## timers, and script-level state. The script variable :bro:id:`profiling_file`
+## holds the name of the file.
+##
+## .. bro:see:: net_stats
+##              resource_usage
+##              get_matcher_stats
+##              dump_rule_stats
+##              get_gap_summary
+function do_profiling%(%) : any
 	%{
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
-	if ( ip_anon )
-		{
-#ifdef BROv6
-		if ( ! is_v4_addr(a) )
-			builtin_error("preserve_prefix() not supported for IPv6 addresses");
-		else
-			ip_anon->PreservePrefix(a[3], width);
-#else
-		ip_anon->PreservePrefix(a, width);
-#endif
-		}
-
+	if ( profiling_logger )
+		profiling_logger->Log();
 
 	return 0;
 	%}
 
-function preserve_subnet%(a: subnet%): any
+## Checks whether a given IP address belongs to a local interface.
+##
+## ip: The IP address to check.
+##
+## Returns: True if *ip* belongs to a local interface.
+function is_local_interface%(ip: addr%) : bool
 	%{
-	DEBUG_MSG("%s/%d\n", dotted_addr(a->AsAddr()), a->Width());
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
-	if ( ip_anon )
+	if ( ip->AsAddr().IsLoopback() )
+		return new Val(1, TYPE_BOOL);
+
+	list<IPAddr> addrs;
+
+	char host[MAXHOSTNAMELEN];
+
+	strcpy(host, "localhost");
+	gethostname(host, MAXHOSTNAMELEN);
+	host[MAXHOSTNAMELEN-1] = '\0';
+
+	struct hostent* ent = gethostbyname2(host, AF_INET);
+
+	if ( ent )
 		{
-#ifdef BROv6
-		if ( ! is_v4_addr(a->AsAddr()) )
-			builtin_error("preserve_subnet() not supported for IPv6 addresses");
-		else
-			ip_anon->PreservePrefix(a->AsAddr()[3], a->Width());
-#else
-		ip_anon->PreservePrefix(a->AsAddr(), a->Width());
-#endif
+		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
+			addrs.push_back(IPAddr(IPv4, (uint32*)ent->h_addr_list[len],
+			                       IPAddr::Network));
 		}
 
-	return 0;
+	ent = gethostbyname2(host, AF_INET6);
+
+	if ( ent )
+		{
+		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
+			addrs.push_back(IPAddr(IPv6, (uint32*)ent->h_addr_list[len],
+			                       IPAddr::Network));
+		}
+
+	list<IPAddr>::const_iterator it;
+	for ( it = addrs.begin(); it != addrs.end(); ++it )
+		{
+		if ( *it == ip->AsAddr() )
+			return new Val(1, TYPE_BOOL);
+		}
+
+	return new Val(0, TYPE_BOOL);
 	%}
 
-# Anonymize given IP address.
-function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
+## Write rule matcher statistics (DFA states, transitions, memory usage, cache
+## hits/misses) to a file.
+##
+## f: The file to write to.
+##
+## Returns: True (unconditionally).
+##
+## .. bro:see:: do_profiling
+##              resource_usage
+##              get_matcher_stats
+##              net_stats
+##              get_gap_summary
+##
+## .. todo:: The return value should be changed to any or check appropriately.
+function dump_rule_stats%(f: file%): bool
 	%{
-	int anon_class = cl->InternalInt();
-	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
-		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
+	if ( rule_matcher )
+		rule_matcher->DumpStats(f);
 
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Checks if Bro is terminating.
+##
+## Returns: True if Bro is in the process of shutting down.
+##
+## .. bro:see:: terminate
+function bro_is_terminating%(%): bool
+	%{
+	return new Val(terminating, TYPE_BOOL);
+	%}
+
+## Returns the hostname of the machine Bro runs on.
+##
+## Returns: The hostname of the machine Bro runs on.
+function gethostname%(%) : string
+	%{
+	char buffer[MAXHOSTNAMELEN];
+	if ( gethostname(buffer, MAXHOSTNAMELEN) < 0 )
+		strcpy(buffer, "<unknown>");
+
+	buffer[MAXHOSTNAMELEN-1] = '\0';
+	return new StringVal(buffer);
+	%}
+
+## Returns whether an address is IPv4 or not.
+##
+## a: the address to check.
+##
+## Returns: true if *a* is an IPv4 address, else false.
+function is_v4_addr%(a: addr%): bool
+	%{
+	if ( a->AsAddr().GetFamily() == IPv4 )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	%}
+
+## Returns whether an address is IPv6 or not.
+##
+## a: the address to check.
+##
+## Returns: true if *a* is an IPv6 address, else false.
+function is_v6_addr%(a: addr%): bool
+	%{
+	if ( a->AsAddr().GetFamily() == IPv6 )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	%}
+
+# ===========================================================================
+#
+#                                 Conversion
+#
+# ===========================================================================
+
+## Converts the *data* field of :bro:type:`ip6_routing` records that have
+## *rtype* of 0 into a vector of addresses.
+##
+## s: The *data* field of an :bro:type:`ip6_routing` record that has
+##    an *rtype* of 0.
+##
+## Returns: The vector of addresses contained in the routing header data.
+function routing0_data_to_addrs%(s: string%): addr_vec
+	%{
+	VectorVal* rval = new VectorVal(internal_type("addr_vec")->AsVectorType());
+
+	int len = s->Len();
+	const u_char* bytes = s->Bytes();
+	bytes += 4; // go past 32-bit reserved field
+	len -= 4;
+
+	if ( ( len % 16 ) != 0 )
+		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
+
+	while ( len > 0 )
 		{
-		builtin_error("anonymize_addr() not supported for IPv6 addresses");
-		return 0;
+		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
+		rval->Assign(rval->Size(), new AddrVal(a));
+		bytes += 16;
+		len -= 16;
+		}
+
+	return rval;
+	%}
+
+## Converts an :bro:type:`addr` to an :bro:type:`index_vec`.
+##
+## a: The address to convert into a vector of counts.
+##
+## Returns: A vector containing the host-order address representation,
+##          four elements in size for IPv6 addresses, or one element for IPv4.
+##
+## .. bro:see:: counts_to_addr
+function addr_to_counts%(a: addr%): index_vec
+	%{
+	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
+	const uint32* bytes;
+	int len = a->AsAddr().GetBytes(&bytes);
+
+	for ( int i = 0; i < len; ++i )
+		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT));
+
+	return rval;
+	%}
+
+## Converts an :bro:type:`index_vec` to an :bro:type:`addr`.
+##
+## v: The vector containing host-order IP address representation,
+##    one element for IPv4 addresses, four elements for IPv6 addresses.
+##
+## Returns: An IP address.
+##
+## .. bro:see:: addr_to_counts
+function counts_to_addr%(v: index_vec%): addr
+	%{
+	if ( v->AsVector()->size() == 1 )
+		{
+		return new AddrVal(htonl((*v->AsVector())[0]->AsCount()));
+		}
+	else if ( v->AsVector()->size() == 4 )
+		{
+		uint32 bytes[4];
+		for ( int i = 0; i < 4; ++i )
+			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
+		return new AddrVal(bytes);
 		}
 	else
-		return new AddrVal(anonymize_ip(a[3],
-			(enum ip_addr_anonymization_class_t) anon_class));
-#else
-	return new AddrVal(anonymize_ip(a,
-		(enum ip_addr_anonymization_class_t) anon_class));
-#endif
+		{
+		builtin_error("invalid vector size", @ARG@[0]);
+		uint32 bytes[4];
+		memset(bytes, 0, sizeof(bytes));
+		return new AddrVal(bytes);
+		}
 	%}
 
-%%{
-static void hash_md5_val(val_list& vlist, unsigned char digest[16])
-	{
-	md5_state_s h;
+## Converts a :bro:type:`string` to an :bro:type:`int`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as :bro:type:`int`.
+##
+## .. bro:see:: to_addr to_port to_subnet
+function to_int%(str: string%): int
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
 
-	md5_init(&h);
-	loop_over_list(vlist, i)
+	long l = strtol(s, &end_s, 10);
+	int i = int(l);
+
+#if 0
+	// Not clear we should complain.  For example, is " 205 "
+	// a legal conversion?
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		builtin_error("bad conversion to integer", @ARG@[0]);
+#endif
+
+	return new Val(i, TYPE_INT);
+	%}
+
+
+## Converts a (positive) :bro:type:`int` to a :bro:type:`count`.
+##
+## n: The :bro:type:`int` to convert.
+##
+## Returns: The :bro:type:`int` *n* as unsigned integer, or 0 if *n* < 0.
+function int_to_count%(n: int%): count
+	%{
+	if ( n < 0 )
 		{
-		Val* v = vlist[i];
-		if ( v->Type()->Tag() == TYPE_STRING )
+		builtin_error("bad conversion to count", @ARG@[0]);
+		n = 0;
+		}
+	return new Val(n, TYPE_COUNT);
+	%}
+
+## Converts a :bro:type:`double` to a :bro:type:`count`.
+##
+## d: The :bro:type:`double` to convert.
+##
+## Returns: The :bro:type:`double` *d* as unsigned integer, or 0 if *d* < 0.0.
+##
+## .. bro:see:: double_to_time
+function double_to_count%(d: double%): count
+	%{
+	if ( d < 0.0 )
+		builtin_error("bad conversion to count", @ARG@[0]);
+
+	return new Val(bro_uint_t(rint(d)), TYPE_COUNT);
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`count`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as unsigned integer, or 0 if *str* has
+##          an invalid format.
+##
+## .. bro:see:: to_addr to_int to_port to_subnet
+function to_count%(str: string%): count
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+
+	uint64 u = (uint64) strtoll(s, &end_s, 10);
+
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+    	{
+		builtin_error("bad conversion to count", @ARG@[0]);
+        u = 0;
+        }
+
+	return new Val(u, TYPE_COUNT);
+	%}
+
+## Converts an :bro:type:`interval` to a :bro:type:`double`.
+##
+## i: The :bro:type:`interval` to convert.
+##
+## Returns: The :bro:type:`interval` *i* as :bro:type:`double`.
+##
+## .. bro:see:: double_to_interval
+function interval_to_double%(i: interval%): double
+	%{
+	return new Val(i, TYPE_DOUBLE);
+	%}
+
+## Converts a :bro:type:`time` value to a :bro:type:`double`.
+##
+## t: The :bro:type:`time` to convert.
+##
+## Returns: The :bro:type:`time` value *t* as :bro:type:`double`.
+##
+## .. bro:see:: double_to_time
+function time_to_double%(t: time%): double
+	%{
+	return new Val(t, TYPE_DOUBLE);
+	%}
+
+## Converts a :bro:type:`double` value to a :bro:type:`time`.
+##
+## d: The :bro:type:`double` to convert.
+##
+## Returns: The :bro:type:`double` value *d* as :bro:type:`time`.
+##
+## .. bro:see:: time_to_double double_to_count
+function double_to_time%(d: double%): time
+	%{
+	return new Val(d, TYPE_TIME);
+	%}
+
+## Converts a :bro:type:`double` to an :bro:type:`interval`.
+##
+## d: The :bro:type:`double` to convert.
+##
+## Returns: The :bro:type:`double` *d* as :bro:type:`interval`.
+##
+## .. bro:see:: interval_to_double
+function double_to_interval%(d: double%): interval
+	%{
+	return new Val(d, TYPE_INTERVAL);
+	%}
+
+## Converts a :bro:type:`port` to a :bro:type:`count`.
+##
+## p: The :bro:type:`port` to convert.
+##
+## Returns: The :bro:type:`port` *p* as :bro:type:`count`.
+##
+## .. bro:see:: count_to_port
+function port_to_count%(p: port%): count
+	%{
+	return new Val(p->Port(), TYPE_COUNT);
+	%}
+
+## Converts a :bro:type:`count` and ``transport_proto`` to a :bro:type:`port`.
+##
+## num: The :bro:type:`port` number.
+##
+## proto: The transport protocol.
+##
+## Returns: The :bro:type:`count` *num* as :bro:type:`port`.
+##
+## .. bro:see:: port_to_count
+function count_to_port%(num: count, proto: transport_proto%): port
+	%{
+	return new PortVal(num, (TransportProto)proto->AsEnum());
+	%}
+
+## Converts a :bro:type:`string` to an :bro:type:`addr`.
+##
+## ip: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *ip* as :bro:type:`addr`, or the unspecified
+##          address ``::`` if the input string does not parse correctly.
+##
+## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+##    to_subnet
+function to_addr%(ip: string%): addr
+	%{
+	char* s = ip->AsString()->Render();
+	Val* ret = new AddrVal(s);
+	delete [] s;
+	return ret;
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`subnet`.
+##
+## sn: The subnet to convert.
+##
+## Returns: The *sn* string as a :bro:type:`subnet`, or the unspecified subnet
+##          ``::/0`` if the input string does not parse correctly.
+##
+## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+##    to_addr
+function to_subnet%(sn: string%): subnet
+	%{
+	char* s = sn->AsString()->Render();
+	Val* ret = new SubNetVal(s);
+	delete [] s;
+	return ret;
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`double`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as double, or 0 if *str* has
+##          an invalid format.
+##
+function to_double%(str: string%): double
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+
+	double d = strtod(s, &end_s);
+
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		{
+		builtin_error("bad conversion to double", @ARG@[0]);
+		d = 0;
+		}
+
+	return new Val(d, TYPE_DOUBLE);
+	%}
+
+## Converts a :bro:type:`count` to an :bro:type:`addr`.
+##
+## ip: The :bro:type:`count` to convert.
+##
+## Returns: The :bro:type:`count` *ip* as :bro:type:`addr`.
+##
+## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
+function count_to_v4_addr%(ip: count%): addr
+	%{
+	if ( ip > 4294967295LU )
+		{
+		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
+		return new AddrVal(uint32(0));
+		}
+
+	return new AddrVal(htonl(uint32(ip)));
+	%}
+
+## Converts a :bro:type:`string` of bytes into an IPv4 address. In particular,
+## this function interprets the first 4 bytes of the string as an IPv4 address
+## in network order.
+##
+## b: The raw bytes (:bro:type:`string`) to convert.
+##
+## Returns: The byte :bro:type:`string` *b* as :bro:type:`addr`.
+##
+## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
+function raw_bytes_to_v4_addr%(b: string%): addr
+	%{
+	uint32 a = 0;
+
+	if ( b->Len() < 4 )
+		builtin_error("too short a string as input to raw_bytes_to_v4_addr()");
+
+	else
+		{
+		const u_char* bp = b->Bytes();
+		a = (bp[0] << 24) | (bp[1] << 16) | (bp[2] << 8) | bp[3];
+		}
+
+	return new AddrVal(htonl(a));
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`port`.
+##
+## s: The :bro:type:`string` to convert.
+##
+## Returns: A :bro:type:`port` converted from *s*.
+##
+## .. bro:see:: to_addr to_count to_int to_subnet
+function to_port%(s: string%): port
+    %{
+    int port = 0;
+    if ( s->Len() < 10 )
+        {
+        char* slash;
+        errno = 0;
+        port = strtol(s->CheckString(), &slash, 10);
+        if ( ! errno )
+            {
+            ++slash;
+            if ( streq(slash, "tcp") )
+                return new PortVal(port, TRANSPORT_TCP);
+            else if ( streq(slash, "udp") )
+                return new PortVal(port, TRANSPORT_UDP);
+            else if ( streq(slash, "icmp") )
+                return new PortVal(port, TRANSPORT_ICMP);
+            }
+        }
+
+    builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
+    return new PortVal(port, TRANSPORT_UNKNOWN);
+	%}
+
+## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
+##
+## s: A string of bytes containing the binary representation of a double value.
+##
+## Returns: The double value contained in *s*, or 0 if the conversion
+##          failed.
+##
+function bytestring_to_double%(s: string%): double
+	%{
+	if ( s->Len() != sizeof(double) )
+		{
+		builtin_error("bad conversion to double");
+		return new Val(0.0, TYPE_DOUBLE);
+		}
+
+	// See #908 for a discussion of portability.
+	double d;
+	memcpy(&d, s->Bytes(), sizeof(double));
+	return new Val(ntohd(d), TYPE_DOUBLE);
+	%}
+
+## Converts a string of bytes to a :bro:type:`count`.
+##
+## s: A string of bytes containing the binary representation of the value.
+##
+## is_le: If true, *s* is assumed to be in little endian format, else it's big endian.
+##
+## Returns: The value contained in *s*, or 0 if the conversion failed.
+##
+function bytestring_to_count%(s: string, is_le: bool &default=F%): count
+	%{
+#ifdef HOST_BIGENDIAN
+	static const bool host_bigendian = true;
+#else
+	static const bool host_bigendian = false;
+#endif
+	const u_char *p = s->Bytes();
+	unsigned int i;
+
+	switch ( s->Len() ) {
+	case sizeof(uint8):
+		{
+		uint8 value = 0;
+		memcpy(&value, p, sizeof(uint8));
+		return new Val(value, TYPE_COUNT);
+		}
+
+	case sizeof(uint16):
+		{
+		uint16 value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
 			{
-			const BroString* str = v->AsString();
-			md5_append(&h, str->Bytes(), str->Len());
+			char buf[sizeof(uint16)];
+			char *d = &buf[sizeof(uint16)-1];
+
+			for ( i = 0; i < sizeof(uint16); i++ )
+				*d-- = *p++;
+
+			memcpy(&value, buf, sizeof(uint16));
+			}
+		else
+			memcpy(&value, p, sizeof(uint16));
+
+		return new Val(value, TYPE_COUNT);
+		}
+
+	case sizeof(uint32):
+		{
+		uint32 value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+			{
+			char buf[sizeof(uint32)];
+			char *d = &buf[sizeof(uint32)-1];
+
+			for ( i = 0; i < sizeof(uint32); i++ )
+				*d-- = *p++;
+			
+			memcpy(&value, buf, sizeof(uint32));
+			}
+		else
+			memcpy(&value, p, sizeof(uint32));
+
+		return new Val(value, TYPE_COUNT);
+		}
+
+	case sizeof(uint64):
+		{
+		uint64 value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+			{
+			char buf[sizeof(uint64)];
+			char *d = &buf[sizeof(uint64)-1];
+
+			for ( i = 0; i < sizeof(uint64); i++ )
+				*d-- = *p++;
+			
+			memcpy(&value, buf, sizeof(uint64));
+			}
+		else
+			memcpy(&value, p, sizeof(uint64));
+
+		return new Val(value, TYPE_COUNT);
+		}
+	}
+
+	builtin_error("unsupported byte length for bytestring_to_count");
+	return new Val(0, TYPE_COUNT);
+	%}
+
+## Converts a reverse pointer name to an address. For example,
+## ``1.0.168.192.in-addr.arpa`` to ``192.168.0.1``.
+##
+## s: The string with the reverse pointer name.
+##
+## Returns: The IP address corresponding to *s*.
+##
+## .. bro:see:: addr_to_ptr_name to_addr
+function ptr_name_to_addr%(s: string%): addr
+	%{
+	if ( s->Len() != 72 )
+		{
+		int a[4];
+		uint32 addr;
+		char ss[13]; // this will contain "in-addr.arpa"
+
+		if ( sscanf(s->CheckString(),
+			"%d.%d.%d.%d.%12s",
+			a, a+1, a+2, a+3, ss) != 5
+			|| strcmp(ss, "in-addr.arpa") != 0 )
+			{
+			builtin_error("bad PTR name", @ARG@[0]);
+			addr = 0;
+			}
+		else
+			addr = (a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
+
+		return new AddrVal(htonl(addr));
+		}
+	else
+		{
+		uint32 addr6[4];
+		uint32 b[32];
+		char ss[9]; // this will contain "ip6.arpa"
+		if ( sscanf(s->CheckString(),
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x.%8s",
+			b+31, b+30, b+29, b+28, b+27, b+26, b+25, b+24,
+			b+23, b+22, b+21, b+20, b+19, b+18, b+17, b+16,
+			b+15, b+14, b+13, b+12, b+11, b+10, b+9, b+8,
+			b+7, b+6, b+5, b+4, b+3, b+2, b+1, b, ss) != 33
+			|| strcmp(ss, "ip6.arpa") != 0 )
+			{
+			builtin_error("bad PTR name", @ARG@[0]);
+			memset(addr6, 0, sizeof addr6);
 			}
 		else
 			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			md5_append(&h, (const md5_byte_t *) d.Bytes(), d.Len());
+			for ( unsigned int i = 0; i < 4; ++i )
+				{
+				uint32 a = 0;
+				for ( unsigned int j = 1; j <= 8; ++j )
+					a |= b[8*i+j-1] << (32-j*4);
+
+				addr6[i] = htonl(a);
+				}
 			}
+
+		return new AddrVal(addr6);
 		}
-	md5_finish(&h, digest);
-	}
-
-static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
-	{
-	hash_md5_val(vlist, digest);
-	for ( int i = 0; i < 16; ++i )
-		digest[i] = digest[i] ^ shared_hmac_md5_key[i];
-	hash_md5(16, digest, digest);
-	}
-%%}
-
-function md5_hash%(...%): string
-	%{
-	unsigned char digest[16];
-	hash_md5_val(@ARG@, digest);
-	return new StringVal(md5_digest_print(digest));
 	%}
 
-function md5_hmac%(...%): string
+## Converts an IP address to a reverse pointer name. For example,
+## ``192.168.0.1`` to ``1.0.168.192.in-addr.arpa``.
+##
+## a: The IP address to convert to a reverse pointer name.
+##
+## Returns: The reverse pointer representation of *a*.
+##
+## .. bro:see:: ptr_name_to_addr to_addr
+function addr_to_ptr_name%(a: addr%): string
 	%{
-	unsigned char digest[16];
-	hmac_md5_val(@ARG@, digest);
-	return new StringVal(md5_digest_print(digest));
+	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
-%%{
-static map<BroString, md5_state_s> md5_states;
-
-BroString* convert_index_to_string(Val* index)
-	{
-	ODesc d;
-	index->Describe(&d);
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(1);
-	return s;
-	}
-%%}
-
-function md5_hash_init%(index: any%): bool
+## Converts a string of bytes into its hexadecimal representation.
+## For example, ``"04"`` would be converted to ``"3034"``.
+##
+## bytestring: The string of bytes.
+##
+## Returns: The hexadecimal representation of *bytestring*.
+##
+## .. bro:see:: hexdump
+function bytestring_to_hexstr%(bytestring: string%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
+	bro_uint_t len = bytestring->AsString()->Len();
+	const u_char* bytes = bytestring->AsString()->Bytes();
+	char hexstr[(2 * len) + 1];
 
-	if ( md5_states.count(*s) < 1 )
-		{
-		md5_state_s h;
-		md5_init(&h);
-		md5_states[*s] = h;
-		status = 1;
-		}
+	hexstr[0] = 0;
+	for ( bro_uint_t i = 0; i < len; ++i )
+		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
 
-	delete s;
-	return new Val(status, TYPE_BOOL);
+	return new StringVal(hexstr);
 	%}
 
-function md5_hash_update%(index: any, data: string%): bool
+## Encodes a Base64-encoded string.
+##
+## s: The string to encode
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64_custom decode_base64
+function encode_base64%(s: string%): string
 	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( md5_states.count(*s) > 0 )
-		{
-		md5_append(&md5_states[*s], data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
-	%}
-
-function md5_hash_finish%(index: any%): string
-	%{
-	BroString* s = convert_index_to_string(index);
-	StringVal* printable_digest;
-
-	if ( md5_states.count(*s) > 0 )
-		{
-		unsigned char digest[16];
-		md5_finish(&md5_states[*s], digest);
-		md5_states.erase(*s);
-		printable_digest = new StringVal(md5_digest_print(digest));
-		}
+	BroString* t = encode_base64(s->AsString());
+	if ( t )
+		return new StringVal(t);
 	else
-		printable_digest = new StringVal("");
-
-	delete s;
-	return printable_digest;
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
 	%}
 
-# Wrappings for rand() and srand()
-function rand%(max: count%): count
+## Encodes a Base64-encoded string with a custom alphabet.
+##
+## s: The string to encode
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The encoded version of *s*.
+##
+## .. bro:see:: encode_base64 decode_base64_custom
+function encode_base64_custom%(s: string, a: string%): string
 	%{
-	int result;
-	result = bro_uint_t(double(max) * double(rand()) / (RAND_MAX + 1.0));
-	return new Val(result, TYPE_COUNT);
+	BroString* t = encode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in encoding string %s", s->CheckString());
+		return new StringVal("");
+		}
 	%}
 
-function srand%(seed: count%): any
-	%{
-	srand(seed);
-	return 0;
-	%}
-
+## Decodes a Base64-encoded string.
+##
+## s: The Base64-encoded string.
+##
+## Returns: The decoded version of *s*.
+##
+## .. bro:see:: decode_base64_custom encode_base64
 function decode_base64%(s: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString());
@@ -1860,6 +2690,17 @@ function decode_base64%(s: string%): string
 		}
 	%}
 
+## Decodes a Base64-encoded string with a custom alphabet.
+##
+## s: The Base64-encoded string.
+##
+## a: The custom alphabet. The empty string indicates the default alphabet. The
+##    length of *a* must be 64. For example, a custom alphabet could be
+##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
+##
+## Returns: The decoded version of *s*.
+##
+## .. bro:see:: decode_base64 encode_base64_custom
 function decode_base64_custom%(s: string, a: string%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
@@ -1873,8 +2714,6 @@ function decode_base64_custom%(s: string, a: string%): string
 	%}
 
 %%{
-#include "DCE_RPC.h"
-
 typedef struct {
 	uint32 time_low;
 	uint16 time_mid;
@@ -1885,6 +2724,14 @@ typedef struct {
 } bro_uuid_t;
 %%}
 
+## Converts a bytes representation of a UUID into its string form. For example,
+## given a string of 16 bytes, it produces an output string in this format:
+## ``550e8400-e29b-41d4-a716-446655440000``.
+## See `<http://en.wikipedia.org/wiki/Universally_unique_identifier>`_.
+##
+## uuid: The 16 bytes of the UUID.
+##
+## Returns: The string representation of *uuid*.
 function uuid_to_string%(uuid: string%): string
 	%{
 	if ( uuid->Len() != 16 )
@@ -1909,11 +2756,20 @@ function uuid_to_string%(uuid: string%): string
 	return new StringVal(s);
 	%}
 
-
-# The following functions convert strings into patterns at run-time. As the
-# computed NFAs and DFAs cannot be cleanly deallocated (at least for now),
-# they can only be used at initialization time.
-
+## Merges and compiles two regular expressions at initialization time.
+##
+## p1: The first pattern.
+##
+## p2: The second pattern.
+##
+## Returns: The compiled pattern of the concatenation of *p1* and *p2*.
+##
+## .. bro:see:: convert_for_pattern string_to_pattern
+##
+## .. note::
+##
+##      This function must be called at Bro startup time, e.g., in the event
+##      :bro:id:`bro_init`.
 function merge_pattern%(p1: pattern, p2: pattern%): pattern
 	%{
 	if ( bro_start_network_time != 0.0 )
@@ -1952,6 +2808,17 @@ char* to_pat_str(int sn, const char* ss)
 	}
 %%}
 
+## Escapes a string so that it becomes a valid :bro:type:`pattern` and can be
+## used with the :bro:id:`string_to_pattern`. Any character from the set
+## ``^$-:"\/|*+?.(){}[]`` is prefixed with a ``\``.
+##
+## s: The string to escape.
+##
+## Returns: An escaped version of *s* that has the structure of a valid
+##          :bro:type:`pattern`.
+##
+## .. bro:see:: merge_pattern string_to_pattern
+##
 function convert_for_pattern%(s: string%): string
 	%{
 	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
@@ -1960,6 +2827,22 @@ function convert_for_pattern%(s: string%): string
 	return ret;
 	%}
 
+## Converts a :bro:type:`string` into a :bro:type:`pattern`.
+##
+## s: The string to convert.
+##
+## convert: If true, *s* is first passed through the function
+##          :bro:id:`convert_for_pattern` to escape special characters of
+##          patterns.
+##
+## Returns: *s* as :bro:type:`pattern`.
+##
+## .. bro:see:: convert_for_pattern merge_pattern
+##
+## .. note::
+##
+##      This function must be called at Bro startup time, e.g., in the event
+##      :bro:id:`bro_init`.
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
 	if ( bro_start_network_time != 0.0 )
@@ -1987,354 +2870,283 @@ function string_to_pattern%(s: string, convert: bool%): pattern
 	return new PatternVal(re);
 	%}
 
-# Precompile a pcap filter.
-function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
+## Formats a given time value according to a format string.
+##
+## fmt: The format string. See ``man strftime`` for the syntax.
+##
+## d: The time value.
+##
+## Returns: The time *d* formatted according to *fmt*.
+function strftime%(fmt: string, d: time%) : string
 	%{
-	bool success = true;
+	static char buffer[128];
 
-	loop_over_list(pkt_srcs, i)
+	time_t t = time_t(d);
+
+	if ( strftime(buffer, 128, fmt->CheckString(), localtime(&t)) == 0 )
+		return new StringVal("<strftime error>");
+
+	return new StringVal(buffer);
+	%}
+
+
+## Parse a textual representation of a date/time value into a ``time`` type value.
+##
+## fmt: The format string used to parse the following *d* argument. See ``man strftime``
+##      for the syntax.
+##
+## d: The string representing the time.
+##
+## Returns: The time value calculated from parsing *d* with *fmt*.
+function strptime%(fmt: string, d: string%) : time
+	%{
+	const time_t timeval = time_t(NULL);
+	struct tm t = *localtime(&timeval);
+
+	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
 		{
-		pkt_srcs[i]->ClearErrorMsg();
-
-		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
-							s->CheckString()) )
-			{
-			reporter->Error("precompile_pcap_filter: %s",
-				pkt_srcs[i]->ErrorMsg());
-			success = false;
-			}
+		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		return new Val(0.0, TYPE_TIME);
 		}
 
-	return new Val(success, TYPE_BOOL);
+	double ret = mktime(&t);
+	return new Val(ret, TYPE_TIME);
 	%}
 
-# Install precompiled pcap filter.
-function install_pcap_filter%(id: PcapFilterID%): bool
+
+# ===========================================================================
+#
+#                           Network Type Processing
+#
+# ===========================================================================
+
+## Masks an address down to the number of given upper bits. For example,
+## ``mask_addr(1.2.3.4, 18)`` returns ``1.2.0.0``.
+##
+## a: The address to mask.
+##
+## top_bits_to_keep: The number of top bits to keep in *a*; must be greater
+##                   than 0 and less than 33 for IPv4, or 129 for IPv6.
+##
+## Returns: The address *a* masked down to *top_bits_to_keep* bits.
+##
+## .. bro:see:: remask_addr
+function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	%{
-	bool success = true;
+	return new SubNetVal(a->AsAddr(), top_bits_to_keep);
+	%}
 
-	loop_over_list(pkt_srcs, i)
+## Takes some top bits (such as a subnet address) from one address and the other
+## bits (intra-subnet part) from a second address and merges them to get a new
+## address. This is useful for anonymizing at subnet level while preserving
+## serial scans.
+##
+## a1: The address to mask with *top_bits_from_a1*.
+##
+## a2: The address to take the remaining bits from.
+##
+## top_bits_from_a1: The number of top bits to keep in *a1*; must be greater
+##                   than 0 and less than 129.  This value is always interpreted
+##                   relative to the IPv6 bit width (v4-mapped addresses start
+##                   at bit number 96).
+##
+## Returns: The address *a* masked down to *top_bits_to_keep* bits.
+##
+## .. bro:see:: mask_addr
+function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
+	%{
+	IPAddr addr1(a1->AsAddr());
+	addr1.Mask(top_bits_from_a1);
+	IPAddr addr2(a2->AsAddr());
+	addr2.ReverseMask(top_bits_from_a1);
+	return new AddrVal(addr1|addr2);
+	%}
+
+## Checks whether a given :bro:type:`port` has TCP as transport protocol.
+##
+## p: The :bro:type:`port` to check.
+##
+## Returns: True iff *p* is a TCP port.
+##
+## .. bro:see:: is_udp_port is_icmp_port
+function is_tcp_port%(p: port%): bool
+	%{
+	return new Val(p->IsTCP(), TYPE_BOOL);
+	%}
+
+## Checks whether a given :bro:type:`port` has UDP as transport protocol.
+##
+## p: The :bro:type:`port` to check.
+##
+## Returns: True iff *p* is a UDP port.
+##
+## .. bro:see:: is_icmp_port is_tcp_port
+function is_udp_port%(p: port%): bool
+	%{
+	return new Val(p->IsUDP(), TYPE_BOOL);
+	%}
+
+## Checks whether a given :bro:type:`port` has ICMP as transport protocol.
+##
+## p: The :bro:type:`port` to check.
+##
+## Returns: True iff *p* is an ICMP port.
+##
+## .. bro:see:: is_tcp_port is_udp_port
+function is_icmp_port%(p: port%): bool
+	%{
+	return new Val(p->IsICMP(), TYPE_BOOL);
+	%}
+
+%%{
+EnumVal* map_conn_type(TransportProto tp)
+	{
+	switch ( tp ) {
+	case TRANSPORT_UNKNOWN:
+		return new EnumVal(0, transport_proto);
+		break;
+
+	case TRANSPORT_TCP:
+		return new EnumVal(1, transport_proto);
+		break;
+
+	case TRANSPORT_UDP:
+		return new EnumVal(2, transport_proto);
+		break;
+
+	case TRANSPORT_ICMP:
+		return new EnumVal(3, transport_proto);
+		break;
+
+	default:
+		reporter->InternalError("bad connection type in map_conn_type()");
+	}
+
+	// Cannot be reached;
+	assert(false);
+	return 0; // Make compiler happy.
+	}
+%%}
+
+## Extracts the transport protocol from a connection.
+##
+## cid: The connection identifier.
+##
+## Returns: The transport protocol of the connection identified by *cid*.
+##
+## .. bro:see:: get_port_transport_proto
+##              get_orig_seq get_resp_seq
+function get_conn_transport_proto%(cid: conn_id%): transport_proto
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
 		{
-		pkt_srcs[i]->ClearErrorMsg();
-
-		if ( ! pkt_srcs[i]->SetFilter(id->ForceAsInt()) )
-			success = false;
+		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
+		return new EnumVal(0, transport_proto);
 		}
 
-	return new Val(success, TYPE_BOOL);
+	return map_conn_type(c->ConnTransport());
 	%}
 
-# If last pcap function failed, returns a descriptive error message
-function pcap_error%(%): string
+## Extracts the transport protocol from a :bro:type:`port`.
+##
+## p: The port.
+##
+## Returns: The transport protocol of the port *p*.
+##
+## .. bro:see:: get_conn_transport_proto
+##              get_orig_seq get_resp_seq
+function get_port_transport_proto%(p: port%): transport_proto
 	%{
-	loop_over_list(pkt_srcs, i)
-		{
-		const char* err = pkt_srcs[i]->ErrorMsg();
-		if ( *err )
-			return new StringVal(err);
-		}
-
-	return new StringVal("no error");
+	return map_conn_type(p->PortType());
 	%}
 
-# Install filter to drop packets from a source (addr/subnet) with a given
-# probability (0.0-1.0) if none of the given TCP flags is set.
-function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
+## Checks whether a connection is (still) active.
+##
+## c: The connection id to check.
+##
+## Returns: True if the connection identified by *c* exists.
+##
+## .. bro:see:: lookup_connection
+function connection_exists%(c: conn_id%): bool
 	%{
-	sessions->GetPacketFilter()->AddSrc(ip, tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
-	%{
-	sessions->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-# Remove the filter for the source.
-function uninstall_src_addr_filter%(ip: addr%) : bool
-	%{
-	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip), TYPE_BOOL);
-	%}
-
-function uninstall_src_net_filter%(snet: subnet%) : bool
-	%{
-	return new Val(sessions->GetPacketFilter()->RemoveSrc(snet), TYPE_BOOL);
-	%}
-
-# Same for destination.
-function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
-	%{
-	sessions->GetPacketFilter()->AddDst(ip, tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
-	%{
-	sessions->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function uninstall_dst_addr_filter%(ip: addr%) : bool
-	%{
-	return new Val(sessions->GetPacketFilter()->RemoveDst(ip), TYPE_BOOL);
-	%}
-
-function uninstall_dst_net_filter%(snet: subnet%) : bool
-	%{
-	return new Val(sessions->GetPacketFilter()->RemoveDst(snet), TYPE_BOOL);
-	%}
-
-function checkpoint_state%(%) : bool
-	%{
-	return new Val(persistence_serializer->WriteState(true), TYPE_BOOL);
-	%}
-
-function dump_config%(%) : bool
-	%{
-	return new Val(persistence_serializer->WriteConfig(true), TYPE_BOOL);
-	%}
-
-function rescan_state%(%) : bool
-	%{
-	return new Val(persistence_serializer->ReadAll(false, true), TYPE_BOOL);
-	%}
-
-function capture_events%(filename: string%) : bool
-	%{
-	if ( ! event_serializer )
-		event_serializer = new FileSerializer();
+	if ( sessions->FindConnection(c) )
+		return new Val(1, TYPE_BOOL);
 	else
-		event_serializer->Close();
-
-	return new Val(event_serializer->Open(
-		(const char*) filename->CheckString()), TYPE_BOOL);
-	%}
-
-function capture_state_updates%(filename: string%) : bool
-	%{
-	if ( ! state_serializer )
-		state_serializer = new FileSerializer();
-	else
-		state_serializer->Close();
-
-	return new Val(state_serializer->Open(
-		(const char*) filename->CheckString()), TYPE_BOOL);
-	%}
-
-function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bool%) : count
-	%{
-	return new Val(uint32(remote_serializer->Connect(ip, p->Port(),
-				our_class->CheckString(), retry, ssl)),
-			TYPE_COUNT);
-	%}
-
-function disconnect%(p: event_peer%) : bool
-    %{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->CloseConnection(id), TYPE_BOOL);
-	%}
-
-function request_remote_events%(p: event_peer, handlers: pattern%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->RequestEvents(id, handlers),
-			TYPE_BOOL);
-	%}
-
-function request_remote_sync%(p: event_peer, auth: bool%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
-	%}
-
-function request_remote_logs%(p: event_peer%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
-	%}
-
-function set_accept_state%(p: event_peer, accept: bool%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SetAcceptState(id, accept),
-			TYPE_BOOL);
-	%}
-
-function set_compression_level%(p: event_peer, level: count%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SetCompressionLevel(id, level),
-			TYPE_BOOL);
-	%}
-
-function listen%(ip: addr, p: port, ssl: bool %) : bool
-	%{
-	return new Val(remote_serializer->Listen(ip, p->Port(), ssl), TYPE_BOOL);
-	%}
-
-function is_remote_event%(%) : bool
-	%{
-	return new Val(mgr.CurrentSource() != SOURCE_LOCAL, TYPE_BOOL);
-	%}
-
-function send_state%(p: event_peer%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(persistence_serializer->SendState(id, true), TYPE_BOOL);
-	%}
-
-# Send the value of the given global ID to the peer (which might
-# then install it locally).
-function send_id%(p: event_peer, id: string%) : bool
-	%{
-	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
-
-	ID* i = global_scope()->Lookup(id->CheckString());
-	if ( ! i )
-		{
-		reporter->Error("send_id: no global id %s", id->CheckString());
 		return new Val(0, TYPE_BOOL);
-		}
-
-	SerialInfo info(remote_serializer);
-	return new Val(remote_serializer->SendID(&info, pid, *i), TYPE_BOOL);
 	%}
 
-# Gracely shut down communication.
-function terminate_communication%(%) : bool
+## Returns the :bro:type:`connection` record for a given connection identifier.
+##
+## cid: The connection ID.
+##
+## Returns: The :bro:type:`connection` record for *cid*. If *cid* does not point
+##          to an existing connection, the function generates a run-time error
+##          and returns a dummy value.
+##
+## .. bro:see:: connection_exists
+function lookup_connection%(cid: conn_id%): connection
 	%{
-	return new Val(remote_serializer->Terminate(), TYPE_BOOL);
+	Connection* conn = sessions->FindConnection(cid);
+	if ( conn )
+		return conn->BuildConnVal();
+
+	builtin_error("connection ID not a known connection", cid);
+
+	// Return a dummy connection record.
+	RecordVal* c = new RecordVal(connection_type);
+
+	RecordVal* id_val = new RecordVal(conn_id);
+	id_val->Assign(0, new AddrVal((unsigned int) 0));
+	id_val->Assign(1, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(2, new AddrVal((unsigned int) 0));
+	id_val->Assign(3, new PortVal(ntohs(0), TRANSPORT_UDP));
+	c->Assign(0, id_val);
+
+	RecordVal* orig_endp = new RecordVal(endpoint);
+	orig_endp->Assign(0, new Val(0, TYPE_COUNT));
+	orig_endp->Assign(1, new Val(int(0), TYPE_COUNT));
+
+	RecordVal* resp_endp = new RecordVal(endpoint);
+	resp_endp->Assign(0, new Val(0, TYPE_COUNT));
+	resp_endp->Assign(1, new Val(int(0), TYPE_COUNT));
+
+	c->Assign(1, orig_endp);
+	c->Assign(2, resp_endp);
+
+	c->Assign(3, new Val(network_time, TYPE_TIME));
+	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
+	c->Assign(5, new TableVal(string_set));	// service
+	c->Assign(6, new StringVal(""));	// addl
+	c->Assign(7, new Val(0, TYPE_COUNT));	// hot
+	c->Assign(8, new StringVal(""));	// history
+
+	return c;
 	%}
 
-function complete_handshake%(p: event_peer%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->CompleteHandshake(id), TYPE_BOOL);
-	%}
+%%{
+const char* conn_id_string(Val* c)
+	{
+	Val* id = (*(c->AsRecord()))[0];
+	const val_list* vl = id->AsRecord();
 
-function send_ping%(p: event_peer, seq: count%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SendPing(id, seq), TYPE_BOOL);
-	%}
+	const IPAddr& orig_h = (*vl)[0]->AsAddr();
+	uint32 orig_p = (*vl)[1]->AsPortVal()->Port();
+	const IPAddr& resp_h = (*vl)[2]->AsAddr();
+	uint32 resp_p = (*vl)[3]->AsPortVal()->Port();
 
-function send_current_packet%(p: event_peer%) : bool
-	%{
-	Packet pkt("");
+	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
+	                               resp_h.AsString().c_str(), resp_p);
+	}
+%%}
 
-	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&pkt.hdr, &pkt.pkt) )
-		return new Val(0, TYPE_BOOL);
-
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-
-	pkt.time = pkt.hdr->ts.tv_sec + double(pkt.hdr->ts.tv_usec) / 1e6;
-	pkt.hdr_size = current_pktsrc->HdrSize();
-	pkt.link_type = current_pktsrc->LinkType();
-
-	SerialInfo info(remote_serializer);
-	return new Val(remote_serializer->SendPacket(&info, id, pkt), TYPE_BOOL);
-	%}
-
-function do_profiling%(%) : bool
-	%{
-	if ( profiling_logger )
-		profiling_logger->Log();
-
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function get_event_peer%(%) : event_peer
-	%{
-	SourceID src = mgr.CurrentSource();
-
-	if ( src == SOURCE_LOCAL )
-		{
-		RecordVal* p = mgr.GetLocalPeerVal();
-		Ref(p);
-		return p;
-		}
-
-	if ( ! remote_serializer )
-		reporter->InternalError("remote_serializer not initialized");
-
-	Val* v = remote_serializer->GetPeerVal(src);
-	if ( ! v )
-		{
-		reporter->Error("peer %d does not exist anymore", int(src));
-		RecordVal* p = mgr.GetLocalPeerVal();
-		Ref(p);
-		return p;
-		}
-
-	return v;
-	%}
-
-function get_local_event_peer%(%) : event_peer
-	%{
-	RecordVal* p = mgr.GetLocalPeerVal();
-	Ref(p);
-	return p;
-	%}
-
-
-function send_capture_filter%(p: event_peer, s: string%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
-	%}
-
-function make_connection_persistent%(c: connection%) : bool
-	%{
-	c->MakePersistent();
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function is_local_interface%(ip: addr%) : bool
-	%{
-	static uint32* addrs;
-	static int len = -1;
-
-	if ( len < 0 )
-		{
-		char host[MAXHOSTNAMELEN];
-
-		strcpy(host, "localhost");
-		gethostname(host, MAXHOSTNAMELEN);
-		host[MAXHOSTNAMELEN-1] = '\0';
-
-		struct hostent* ent = gethostbyname(host);
-
-		for ( len = 0; ent->h_addr_list[len]; ++len )
-			;
-
-		addrs = new uint32[len + 1];
-		for ( int i = 0; i < len; i++ )
-			addrs[i] = *(uint32*) ent->h_addr_list[i];
-
-		addrs[len++] = 0x0100007f; // 127.0.0.1
-		}
-
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
-		{
-		builtin_error("is_local_interface() only supports IPv4 addresses");
-		return new Val(0, TYPE_BOOL);
-		}
-
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	for ( int i = 0; i < len; i++ )
-		if ( addrs[i] == ip4 )
-			return new Val(1, TYPE_BOOL);
-
-	return new Val(0, TYPE_BOOL);
-	%}
-
+## Writes the current packet to a file.
+##
+## file_name: The name of the file to write the packet to.
+##
+## Returns: True on success.
+##
+## .. bro:see:: dump_packet get_current_packet send_current_packet
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const struct pcap_pkthdr* hdr;
@@ -2353,6 +3165,12 @@ function dump_current_packet%(file_name: string%) : bool
 	return new Val(! addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
 
+## Returns the currently processed PCAP packet.
+##
+## Returns: The currently processed packet, which is a record
+##          containing the timestamp, ``snaplen``, and packet data.
+##
+## .. bro:see:: dump_current_packet dump_packet send_current_packet
 function get_current_packet%(%) : pcap_packet
 	%{
 	const struct pcap_pkthdr* hdr;
@@ -2379,6 +3197,15 @@ function get_current_packet%(%) : pcap_packet
 	return pkt;
 	%}
 
+## Writes a given packet to a file.
+##
+## pkt: The PCAP packet.
+##
+## file_name: The name of the file to write *pkt* to.
+##
+## Returns: True on success
+##
+## .. bro:see:: get_current_packet dump_current_packet send_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
 	struct pcap_pkthdr hdr;
@@ -2396,425 +3223,6 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	addl_pkt_dumper->Dump(&hdr, (*pkt_vl)[4]->AsString()->Bytes());
 
 	return new Val(addl_pkt_dumper->IsError(), TYPE_BOOL);
-	%}
-
-# The return value is the old size of the vector.
-# ### Need better type checking on the argument here and in subsequent
-# vector builtins -- probably need to update "bif" code generator.
-function resize%(aggr: any, newsize: count%) : count
-	%{
-	if ( aggr->Type()->Tag() != TYPE_VECTOR )
-		{
-		builtin_error("resize() operates on vectors");
-		return 0;
-		}
-
-	return new Val(aggr->AsVectorVal()->Resize(newsize), TYPE_COUNT);
-	%}
-
-# Returns true if any element is T.
-function any_set%(v: any%) : bool
-	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
-		{
-		builtin_error("any_set() requires vector of bool");
-		return new Val(false, TYPE_BOOL);
-		}
-
-	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
-			return new Val(true, TYPE_BOOL);
-
-	return new Val(false, TYPE_BOOL);
-	%}
-
-# Returns true if all elements are T (missing counts as F).
-function all_set%(v: any%) : bool
-	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
-		{
-		builtin_error("all_set() requires vector of bool");
-		return new Val(false, TYPE_BOOL);
-		}
-
-	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
-			return new Val(false, TYPE_BOOL);
-
-	return new Val(true, TYPE_BOOL);
-	%}
-
-# sort() takes a vector and comparison function on the elements and
-# sorts the vector in place.  It returns the original vector.
-
-%%{
-static Func* sort_function_comp = 0;
-static Val** index_map = 0;	// used for indirect sorting to support order()
-
-bool sort_function(Val* a, Val* b)
-	{
-	// Sort missing values as "high".
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	val_list sort_func_args;
-	sort_func_args.append(a->Ref());
-	sort_func_args.append(b->Ref());
-
-	Val* result = sort_function_comp->Call(&sort_func_args);
-	int int_result = result->CoerceToInt();
-	Unref(result);
-
-	sort_func_args.remove_nth(1);
-	sort_func_args.remove_nth(0);
-
-	return int_result < 0;
-	}
-
-bool indirect_sort_function(int a, int b)
-	{
-	return sort_function(index_map[a], index_map[b]);
-	}
-
-bool int_sort_function (Val* a, Val* b)
-	{
-	if ( ! a )
-		return 0;
-	if ( ! b )
-		return 1;
-
-	int ia = a->CoerceToInt();
-	int ib = b->CoerceToInt();
-
-	return ia < ib;
-	}
-
-bool indirect_int_sort_function(int a, int b)
-	{
-	return int_sort_function(index_map[a], index_map[b]);
-	}
-%%}
-
-function sort%(v: any, ...%) : any
-	%{
-	v->Ref();	// we always return v
-
-	if ( v->Type()->Tag() != TYPE_VECTOR )
-		{
-		builtin_error("sort() requires vector");
-		return v;
-		}
-
-	BroType* elt_type = v->Type()->YieldType();
-	Func* comp = 0;
-
-	if ( @ARG@.length() > 2 )
-		builtin_error("sort() called with extraneous argument");
-
-	if ( @ARG@.length() == 2 )
-		{
-		Val* comp_val = @ARG@[1];
-		if ( ! IsFunc(comp_val->Type()->Tag()) )
-			{
-			builtin_error("second argument to sort() needs to be comparison function");
-			return v;
-			}
-
-		comp = comp_val->AsFunc();
-		}
-
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
-
-	vector<Val*>& vv = *v->AsVector();
-
-	if ( comp )
-		{
-		FuncType* comp_type = comp->FType()->AsFuncType();
-		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
-			{
-			builtin_error("invalid comparison function in call to sort()");
-			return v;
-			}
-
-		sort_function_comp = comp;
-
-		sort(vv.begin(), vv.end(), sort_function);
-		}
-	else
-		sort(vv.begin(), vv.end(), int_sort_function);
-
-	return v;
-	%}
-
-function order%(v: any, ...%) : index_vec
-	%{
-	VectorVal* result_v =
-		new VectorVal(new VectorType(base_type(TYPE_COUNT)));
-
-	if ( v->Type()->Tag() != TYPE_VECTOR )
-		{
-		builtin_error("order() requires vector");
-		return result_v;
-		}
-
-	BroType* elt_type = v->Type()->YieldType();
-	Func* comp = 0;
-
-	if ( @ARG@.length() > 2 )
-		builtin_error("order() called with extraneous argument");
-
-	if ( @ARG@.length() == 2 )
-		{
-		Val* comp_val = @ARG@[1];
-		if ( ! IsFunc(comp_val->Type()->Tag()) )
-			{
-			builtin_error("second argument to order() needs to be comparison function");
-			return v;
-			}
-
-		comp = comp_val->AsFunc();
-		}
-
-	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
-
-	vector<Val*>& vv = *v->AsVector();
-	int n = vv.size();
-
-	// Set up initial mapping of indices directly to corresponding
-	// elements.  We stay zero-based until after the sorting.
-	vector<int> ind_vv(n);
-	index_map = new Val*[n];
-	int i;
-	for ( i = 0; i < n; ++i )
-		{
-		ind_vv[i] = i;
-		index_map[i] = vv[i];
-		}
-
-	if ( comp )
-		{
-		FuncType* comp_type = comp->FType()->AsFuncType();
-		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
-			{
-			builtin_error("invalid comparison function in call to sort()");
-			return v;
-			}
-
-		sort_function_comp = comp;
-
-		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
-		}
-	else
-		sort(ind_vv.begin(), ind_vv.end(), indirect_int_sort_function);
-
-	delete [] index_map;
-	index_map = 0;
-
-	// Now spin through ind_vv to read out the rearrangement,
-	// adjusting indices as we do so.
-	for ( i = 0; i < n; ++i )
-		{
-		int ind = ind_vv[i];
-		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
-		}
-
-	return result_v;
-	%}
-
-%%{
-// Experimental code to add support for IDMEF XML output based on
-// notices.  For now, we're implementing it as a builtin you can call on an
-// notices record.
-
-#ifdef USE_IDMEF
-extern "C" {
-#include <libidmef/idmefxml.h>
-}
-#endif
-
-#include <sys/socket.h>
-
-char* port_to_string(PortVal* port)
-	{
-	char buf[256];	// to hold sprintf results on port numbers
-	snprintf(buf, sizeof(buf), "%u", port->Port());
-	return copy_string(buf);
-	}
-
-%%}
-
-function generate_idmef%(src_ip: addr, src_port: port,
-				dst_ip: addr, dst_port: port%) : bool
-	%{
-#ifdef USE_IDMEF
-	xmlNodePtr message =
-		newIDMEF_Message(newAttribute("version","1.0"),
-			newAlert(newCreateTime(NULL),
-			newSource(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(dotted_addr(src_ip))),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(src_port)),
-					NULL), NULL),
-			newTarget(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(dotted_addr(dst_ip))),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(dst_port)),
-					NULL), NULL), NULL), NULL);
-
-	// if ( validateCurrentDoc() )
-	printCurrentMessage(stderr);
-	return new Val(1, TYPE_BOOL);
-#else
-	builtin_error("Bro was not configured for IDMEF support");
-	return new Val(0, TYPE_BOOL);
-#endif
-	%}
-
-function dump_rule_stats%(f: file%): bool
-	%{
-	if ( rule_matcher )
-		rule_matcher->DumpStats(f);
-
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function bro_is_terminating%(%): bool
-	%{
-	return new Val(terminating, TYPE_BOOL);
-	%}
-
-function rotate_file%(f: file%): rotate_info
-	%{
-	RecordVal* info = f->Rotate();
-	if ( info )
-		return info;
-
-	// Record indicating error.
-	info = new RecordVal(rotate_info);
-	info->Assign(0, new StringVal(""));
-	info->Assign(1, new StringVal(""));
-	info->Assign(2, new Val(0, TYPE_TIME));
-	info->Assign(3, new Val(0, TYPE_TIME));
-
-	return info;
-	%}
-
-function rotate_file_by_name%(f: string%): rotate_info
-	%{
-	RecordVal* info = new RecordVal(rotate_info);
-
-	bool is_pkt_dumper = false;
-	bool is_addl_pkt_dumper = false;
-
-	// Special case: one of current dump files.
-	if ( pkt_dumper && streq(pkt_dumper->FileName(), f->CheckString()) )
-		{
-		is_pkt_dumper = true;
-		pkt_dumper->Close();
-		}
-
-	if ( addl_pkt_dumper &&
-	     streq(addl_pkt_dumper->FileName(), f->CheckString()) )
-		{
-		is_addl_pkt_dumper = true;
-		addl_pkt_dumper->Close();
-		}
-
-	FILE* file = rotate_file(f->CheckString(), info);
-	if ( ! file )
-		{
-		// Record indicating error.
-		info->Assign(0, new StringVal(""));
-		info->Assign(1, new StringVal(""));
-		info->Assign(2, new Val(0, TYPE_TIME));
-		info->Assign(3, new Val(0, TYPE_TIME));
-		return info;
-		}
-
-	fclose(file);
-
-	if ( is_pkt_dumper )
-		{
-		info->Assign(2, new Val(pkt_dumper->OpenTime(), TYPE_TIME));
-		pkt_dumper->Open();
-		}
-
-	if ( is_addl_pkt_dumper )
-		info->Assign(2, new Val(addl_pkt_dumper->OpenTime(), TYPE_TIME));
-
-	return info;
-	%}
-
-function calc_next_rotate%(i: interval%) : interval
-	%{
-	const char* base_time = log_rotate_base_time ?
-		log_rotate_base_time->AsString()->CheckString() : 0;
-	return new Val(calc_next_rotate(i, base_time), TYPE_INTERVAL);
-	%}
-
-function file_size%(f: string%) : double
-	%{
-	struct stat s;
-
-	if ( stat(f->CheckString(), &s) < 0 )
-		return new Val(-1.0, TYPE_DOUBLE);
-
-	return new Val(double(s.st_size), TYPE_DOUBLE);
-	%}
-
-function strftime%(fmt: string, d: time%) : string
-	%{
-	static char buffer[128];
-
-	time_t t = time_t(d);
-
-	if ( strftime(buffer, 128, fmt->CheckString(), localtime(&t)) == 0 )
-		return new StringVal("<strftime error>");
-
-	return new StringVal(buffer);
-	%}
-
-function match_signatures%(c: connection, pattern_type: int, s: string,
-				bol: bool, eol: bool,
-				from_orig: bool, clear: bool%) : bool
-	%{
-	if ( ! rule_matcher )
-		return new Val(0, TYPE_BOOL);
-
-	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
-			from_orig, bol, eol, clear);
-
-	return new Val(1, TYPE_BOOL);
-	%}
-
-function gethostname%(%) : string
-	%{
-	char buffer[MAXHOSTNAMELEN];
-	if ( gethostname(buffer, MAXHOSTNAMELEN) < 0 )
-		strcpy(buffer, "<unknown>");
-
-	buffer[MAXHOSTNAMELEN-1] = '\0';
-	return new StringVal(buffer);
 	%}
 
 %%{
@@ -2882,8 +3290,15 @@ private:
 };
 %%}
 
-# These two functions issue DNS lookups asynchronously and delay the
-# function result.  Therefore, they can only be called inside a when-condition.
+## Issues an asynchronous reverse DNS lookup and delays the function result.
+## This function can therefore only be called inside a ``when`` condition,
+## e.g., ``when ( local host = lookup_addr(10.0.0.1) ) { f(host); }``.
+##
+## host: The IP address to lookup.
+##
+## Returns: The DNS name of *host*.
+##
+## .. bro:see:: lookup_hostname
 function lookup_addr%(host: addr%) : string
 	%{
 	// FIXME: It should be easy to adapt the function to synchronous
@@ -2899,32 +3314,49 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-#ifdef BROv6
-	if ( ! is_v4_addr(host) )
-		{
-		// FIXME: This is a temporary work-around until we get this
-		// fixed. We warn the user once, and always trigger a timeout.
-		// Ticket #355 records the problem.
-		static bool warned = false;
-		if ( ! warned )
-			{
-			reporter->Warning("lookup_addr() only supports IPv4 addresses currently");
-			warned = true;
-			}
-
-		trigger->Timeout();
-		return 0;
-		}
-
-	dns_mgr->AsyncLookupAddr(to_v4_addr(host),
+	dns_mgr->AsyncLookupAddr(host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
-#else
-	dns_mgr->AsyncLookupAddr(host,
-			new LookupHostCallback(trigger, frame->GetCall(), true));
-#endif
 	return 0;
 	%}
 
+## Issues an asynchronous TEXT DNS lookup and delays the function result.
+## This function can therefore only be called inside a ``when`` condition,
+## e.g., ``when ( local h = lookup_hostname_txt("www.bro.org") ) { f(h); }``.
+##
+## host: The hostname to lookup.
+##
+## Returns: The DNS TXT record associated with *host*.
+##
+## .. bro:see:: lookup_hostname
+function lookup_hostname_txt%(host: string%) : string
+	%{
+	// FIXME: Is should be easy to adapt the function to synchronous
+	// lookups if we're reading a trace.
+	Trigger* trigger = frame->GetTrigger();
+
+	if ( ! trigger)
+		{
+		builtin_error("lookup_hostname_txt() can only be called inside a when-condition");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	dns_mgr->AsyncLookupNameText(host->CheckString(),
+				 new LookupHostCallback(trigger, frame->GetCall(), true));
+	return 0;
+	%}
+
+## Issues an asynchronous DNS lookup and delays the function result.
+## This function can therefore only be called inside a ``when`` condition,
+## e.g., ``when ( local h = lookup_hostname("www.bro.org") ) { f(h); }``.
+##
+## host: The hostname to lookup.
+##
+## Returns: A set of DNS A and AAAA records associated with *host*.
+##
+## .. bro:see:: lookup_addr
 function lookup_hostname%(host: string%) : addr_set
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
@@ -2945,110 +3377,6 @@ function lookup_hostname%(host: string%) : addr_set
 	return 0;
 	%}
 
-# Stop Bro's packet processing.
-function suspend_processing%(%) : any
-	%{
-	net_suspend_processing();
-	return 0;
-	%}
-
-# Resume Bro's packet processing.
-function continue_processing%(%) : any
-	%{
-	net_continue_processing();
-	return 0;
-	%}
-
-%%{
-#include "DPM.h"
-%%}
-
-# Schedule analyzer for a future connection.
-function expect_connection%(orig: addr, resp: addr, resp_p: port,
-				analyzer: count, tout: interval%) : bool
-	%{
-	dpm->ExpectConnection(orig, resp, resp_p->Port(), resp_p->PortType(),
-				(AnalyzerTag::Tag) analyzer, tout, 0);
-	return new Val(1, TYPE_BOOL);
-	%}
-
-# Disables the analyzer which raised the current event (if the analyzer
-# belongs to the given connection).
-function disable_analyzer%(cid: conn_id, aid: count%) : bool
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( ! c )
-		{
-		reporter->Error("cannot find connection");
-		return new Val(0, TYPE_BOOL);
-		}
-
-	Analyzer* a = c->FindAnalyzer(aid);
-	if ( ! a )
-		{
-		reporter->Error("connection does not have analyzer specified to disable");
-		return new Val(0, TYPE_BOOL);
-		}
-
-	a->Remove();
-	return new Val(1, TYPE_BOOL);
-	%}
-
-# Translate analyzer type into an ASCII string.
-function analyzer_name%(aid: count%) : string
-	%{
-	return new StringVal(Analyzer::GetTagName((AnalyzerTag::Tag) aid));
-	%}
-
-function lookup_ID%(id: string%) : any
-	%{
-	ID* i = global_scope()->Lookup(id->CheckString());
-	if ( ! i )
-		return new StringVal("<unknown id>");
-
-	if ( ! i->ID_Val() )
-		return new StringVal("<no ID value>");
-
-	return i->ID_Val()->Ref();
-	%}
-
-# Stop propagating &synchronized accesses.
-function suspend_state_updates%(%) : any
-	%{
-	if ( remote_serializer )
-		remote_serializer->SuspendStateUpdates();
-	return 0;
-	%}
-
-# Resume propagating &synchronized accesses.
-function resume_state_updates%(%) : any
-	%{
-	if ( remote_serializer )
-		remote_serializer->ResumeStateUpdates();
-	return 0;
-	%}
-
-# Return ID of analyzer which raised current event, or 0 if none.
-function current_analyzer%(%) : count
-	%{
-	return new Val(mgr.CurrentAnalyzer(), TYPE_COUNT);
-	%}
-
-# Returns Bro's process id.
-function getpid%(%) : count
-	%{
-	return new Val(getpid(), TYPE_COUNT);
-	%}
-%%{
-#include <syslog.h>
-%%}
-
-function syslog%(s: string%): any
-	%{
-	reporter->Syslog("%s", s->CheckString());
-	return 0;
-	%}
-
 %%{
 #ifdef USE_GEOIP
 extern "C" {
@@ -3063,7 +3391,7 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
 	if ( ! geoip )
-		reporter->Warning("Failed to open GeoIP database: %s",
+		reporter->Info("Failed to open GeoIP database: %s",
 		                  GeoIPDBFileName[type]);
 	return geoip;
 	}
@@ -3071,7 +3399,14 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 #endif
 %%}
 
-# Return a record with the city, region, and country of an IPv4 address.
+## Performs a geo-lookup of an IP address.
+## Requires Bro to be built with ``libgeoip``.
+##
+## a: The IP address to lookup.
+##
+## Returns: A record with country, region, city, latitude, and longitude.
+##
+## .. bro:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
 	RecordVal* location = new RecordVal(geo_location);
@@ -3096,12 +3431,10 @@ function lookup_location%(a: addr%) : geo_location
 			if ( ! geoip )
 				builtin_error("Can't initialize GeoIP City/Country database");
 			else
-				reporter->Warning("Fell back to GeoIP Country database");
+				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;
-
-#ifdef BROv6
 
 #ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
 		geoip_v6 = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
@@ -3115,16 +3448,13 @@ function lookup_location%(a: addr%) : geo_location
 #endif
 		if ( ! geoip_v6 )
 			builtin_error("Can't initialize GeoIPv6 City/Country database");
-#endif
 		}
 
-#ifdef BROv6
-
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && ! is_v4_addr(a) )
+	if ( geoip_v6 && a->AsAddr().GetFamily() == IPv6 )
 		{
 		geoipv6_t ga;
-		memcpy(&ga, a, 16);
+		a->AsAddr().CopyIPv6(&ga);
 		if ( have_cityv6_db )
 			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
 		else
@@ -3133,24 +3463,15 @@ function lookup_location%(a: addr%) : geo_location
 	else
 #endif
 
-	if ( geoip && is_v4_addr(a) )
+	if ( geoip && a->AsAddr().GetFamily() == IPv4 )
 		{
-		uint32 addr = to_v4_addr(a);
+		const uint32* bytes;
+		a->AsAddr().GetBytes(&bytes);
 		if ( have_city_db )
-			gir = GeoIP_record_by_ipnum(geoip, ntohl(addr));
+			gir = GeoIP_record_by_ipnum(geoip, ntohl(*bytes));
 		else
-			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(addr));
+			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(*bytes));
 		}
-
-#else // not BROv6
-	if ( geoip )
-		{
-		if ( have_city_db )
-			gir = GeoIP_record_by_ipnum(geoip, ntohl(a));
-		else
-			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(a));
-		}
-#endif
 
 	if ( gir )
 		{
@@ -3199,6 +3520,14 @@ function lookup_location%(a: addr%) : geo_location
 	return location;
 	%}
 
+## Performs an AS lookup of an IP address.
+## Requires Bro to be built with ``libgeoip``.
+##
+## a: The IP address to lookup.
+##
+## Returns: The number of the AS that contains *a*.
+##
+## .. bro:see:: lookup_location
 function lookup_asn%(a: addr%) : count
 	%{
 #ifdef USE_GEOIP
@@ -3216,28 +3545,23 @@ function lookup_asn%(a: addr%) : count
 
 	if ( geoip_asn )
 		{
-#ifdef BROv6
-
 // IPv6 support showed up in 1.4.5.
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( ! is_v4_addr(a) )
+		if ( a->AsAddr().GetFamily() == IPv6 )
 			{
 			geoipv6_t ga;
-			memcpy(&ga, a, 16);
+			a->AsAddr().CopyIPv6(&ga);
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
 			}
 		else
 #endif
 
-		if ( is_v4_addr(a) )
+		if ( a->AsAddr().GetFamily() == IPv4 )
 			{
-			uint32 addr = to_v4_addr(a);
-			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
+			const uint32* bytes;
+			a->AsAddr().GetBytes(&bytes);
+			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(*bytes));
 			}
-
-#else // not BROv6
-		gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(a));
-#endif
 		}
 
 	if ( gir )
@@ -3263,292 +3587,13 @@ function lookup_asn%(a: addr%) : count
 	return new Val(0, TYPE_COUNT);
 	%}
 
-# Returns true if connection has been received externally.
-function is_external_connection%(c: connection%) : bool
-	%{
-	return new Val(c && c->IsExternal(), TYPE_BOOL);
-	%}
-
-# Function equivalent of the &disable_print_hook attribute.
-function disable_print_hook%(f: file%): any
-	%{
-	f->DisablePrintHook();
-	return 0;
-	%}
-
-# Function equivalent of the &raw_output attribute.
-function enable_raw_output%(f: file%): any
-	%{
-	f->EnableRawOutput();
-	return 0;
-	%}
-
-%%{
-extern "C" {
-#include <magic.h>
-}
-%%}
-
-function identify_data%(data: string, return_mime: bool%): string
-	%{
-	const char* descr = "";
-
-	static magic_t magic_mime = 0;
-	static magic_t magic_descr = 0;
-
-	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
-
-	if( ! *magic )
-		{
-		*magic = magic_open(return_mime ? MAGIC_MIME : MAGIC_NONE);
-
-		if ( ! *magic )
-			{
-			reporter->Error("can't init libmagic: %s", magic_error(*magic));
-			return new StringVal("");
-			}
-
-		if ( magic_load(*magic, 0) < 0 )
-			{
-			reporter->Error("can't load magic file: %s", magic_error(*magic));
-			magic_close(*magic);
-			*magic = 0;
-			return new StringVal("");
-			}
-		}
-
-	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-
-	return new StringVal(descr);
-	%}
-
-function enable_event_group%(group: string%) : any
-	%{
-	event_registry->EnableGroup(group->CheckString(), true);
-	return 0;
-	%}
-
-function disable_event_group%(group: string%) : any
-	%{
-	event_registry->EnableGroup(group->CheckString(), false);
-	return 0;
-	%}
-
-
-%%{
-#include <RandTest.h>
-static map<BroString, RandTest*> entropy_states;
-%%}
-
-function find_entropy%(data: string%): entropy_test_result
-	%{
-	double montepi, scc, ent, mean, chisq;
-	montepi = scc = ent = mean = chisq = 0.0;
-	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	RandTest *rt = new RandTest();
-
-	rt->add((char*) data->Bytes(), data->Len());
-	rt->end(&ent, &chisq, &mean, &montepi, &scc);
-	delete rt;
-
-	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
-	return ent_result;
-	%}
-
-function entropy_test_init%(index: any%): bool
-	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( entropy_states.count(*s) < 1 )
-		{
-		entropy_states[*s] = new RandTest();
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
-	%}
-
-function entropy_test_add%(index: any, data: string%): bool
-	%{
-	BroString* s = convert_index_to_string(index);
-	int status = 0;
-
-	if ( entropy_states.count(*s) > 0 )
-		{
-		entropy_states[*s]->add((char*) data->Bytes(), data->Len());
-		status = 1;
-		}
-
-	delete s;
-	return new Val(status, TYPE_BOOL);
-	%}
-
-function entropy_test_finish%(index: any%): entropy_test_result
-	%{
-	BroString* s = convert_index_to_string(index);
-	double montepi, scc, ent, mean, chisq;
-	montepi = scc = ent = mean = chisq = 0.0;
-	RecordVal* ent_result = new RecordVal(entropy_test_result);
-
-	if ( entropy_states.count(*s) > 0 )
-		{
-		RandTest *rt = entropy_states[*s];
-		rt->end(&ent, &chisq, &mean, &montepi, &scc);
-		entropy_states.erase(*s);
-		delete rt;
-		}
-
-	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
-
-	delete s;
-	return ent_result;
-	%}
-
-function bro_has_ipv6%(%) : bool
-    %{
-#ifdef BROv6
-	return new Val(1, TYPE_BOOL);
-#else
-	return new Val(0, TYPE_BOOL);
-#endif
-    %}
-
-function unique_id%(prefix: string%) : string
-	%{
-	char tmp[20];
-	uint64 uid = calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
-	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
-	%}
-
-function unique_id_from%(pool: int, prefix: string%) : string
-	%{
-	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
-
-	char tmp[20];
-	uint64 uid = calculate_unique_id(pool);
-	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
-	%}
-%%{
-#include <openssl/x509.h>
-#include <openssl/asn1.h>
-#include <openssl/x509_vfy.h>
-
-// This is the indexed map of X509 certificate stores.
-static map<Val*, X509_STORE*> x509_stores;
-
-// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
-// here we assume d2i_X509 does not write to <data>, so it is safe to
-// convert data to a non-const pointer.  Could some X509 guru verify
-// this?
-
-X509* d2i_X509_(X509** px, const u_char** in, int len)
-	{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-	  return d2i_X509(px, in, len);
-#else
-	  return d2i_X509(px, (u_char**)in, len);
-#endif
-	}
-
-%%}
-
-
-function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: table_string_of_string%): count
-	%{
-	X509_STORE* ctx = 0;
-	int i = 0;
-
-	// If this certificate store was built previously, just reuse the old one.
-	if ( x509_stores.count(root_certs) > 0 )
-		ctx = x509_stores[root_certs];
-
-	if ( ! ctx ) // lookup to see if we have this one built already!
-		{
-		ctx = X509_STORE_new();
-		TableVal* root_certs2 = root_certs->AsTableVal();
-		ListVal* idxs = root_certs2->ConvertToPureList();
-
-		// Build the validation store
-		for ( i = 0; i < idxs->Length(); ++i )
-			{
-			Val* key = idxs->Index(i);
-			StringVal *sv = root_certs2->Lookup(key)->AsStringVal();
-			const uint8* data = sv->Bytes();
-			X509* x = d2i_X509_(NULL, &data, sv->Len());
-			if ( ! x )
-				{
-				builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-				}
-			X509_STORE_add_cert(ctx, x);
-			}
-		delete idxs;
-
-		// Save the newly constructed certificate store into the cacheing map.
-		x509_stores[root_certs] = ctx;
-		}
-
-	const uint8 *cert_data = der_cert->Bytes();
-	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
-	if ( ! cert )
-		{
-		builtin_error(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-		}
-
-	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
-	if ( ! untrusted_certs )
-		{
-		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-		}
-
-	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
-	for ( i = 0; i < (int) cert_stack_vec->Size(); ++i )
-		{
-		StringVal *sv = cert_stack_vec->Lookup(i)->AsStringVal();
-		const uint8 *data = sv->Bytes();
-		X509* x = d2i_X509_(NULL, &data, sv->Len());
-		if ( ! x )
-			{
-			X509_free(cert);
-			sk_X509_pop_free(untrusted_certs, X509_free);
-			builtin_error(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-			}
-		sk_X509_push(untrusted_certs, x);
-		}
-
-	X509_STORE_CTX csc;
-	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
-	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
-
-	int result = X509_verify_cert(&csc);
-	X509_STORE_CTX_cleanup(&csc);
-
-	if ( untrusted_certs )
-		sk_X509_pop_free(untrusted_certs, X509_free);
-	X509_free(cert);
-
-	return new Val((uint64) csc.error, TYPE_COUNT);
-	%}
-
-function x509_err2str%(err_num: count%): string
-	%{
-	return new StringVal(X509_verify_cert_error_string(err_num));
-	%}
-
-function NFS3::mode2string%(mode: count%): string
+## Converts UNIX file permissions given by a mode to an ASCII string.
+##
+## mode: The permissions (an octal number like 0644 converted to decimal).
+##
+## Returns: A string representation of *mode* in the format
+##          ``rw[xsS]rw[xsS]rw[xtT]``.
+function file_mode%(mode: count%): string
 	%{
 	char str[12];
 	char *p = str;
@@ -3634,41 +3679,727 @@ function NFS3::mode2string%(mode: count%): string
 	return new StringVal(str);
 	%}
 
-## Opens a program with popen() and writes a given string to the returned
-## stream to send it to the opened process's stdin.
-## program: a string naming the program to execute
-## to_write: a string to pipe to the opened program's process over stdin
-## Returns: F if popen'ing the program failed, else T
-function piped_exec%(program: string, to_write: string%): bool
+# ===========================================================================
+#
+#                        Controlling Analyzer Behavior
+#
+# ===========================================================================
+
+%%{
+#include "analyzer/Manager.h"
+%%}
+
+## Disables the analyzer which raised the current event (if the analyzer
+## belongs to the given connection).
+##
+## cid: The connection identifier.
+##
+## aid: The analyzer ID.
+##
+## Returns: True if the connection identified by *cid* exists and has analyzer
+##          *aid*.
+##
+## .. bro:see:: Analyzer::schedule_analyzer Analyzer::name
+function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	%{
-	const char* prog = program->CheckString();
-
-	FILE* f = popen(prog, "w");
-	if ( ! f )
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
 		{
-		reporter->Error("Failed to popen %s", prog);
+		reporter->Error("cannot find connection");
 		return new Val(0, TYPE_BOOL);
 		}
 
-	const u_char* input_data = to_write->Bytes();
-	int input_data_len = to_write->Len();
-
-	int bytes_written = fwrite(input_data, 1, input_data_len, f);
-
-	pclose(f);
-
-	if ( bytes_written != input_data_len )
+	analyzer::Analyzer* a = c->FindAnalyzer(aid);
+	if ( ! a )
 		{
-		reporter->Error("Failed to write all given data to %s", prog);
+		reporter->Error("connection does not have analyzer specified to disable");
 		return new Val(0, TYPE_BOOL);
 		}
 
+	a->Remove();
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Enables the communication system. Note that by default,
-## communication is off until explicitly enabled, and all other calls
-## to communication-related BiFs' will be ignored until done so.
+## Informs Bro that it should skip any further processing of the contents of
+## a given connection. In particular, Bro will refrain from reassembling the
+## TCP byte stream and from generating events relating to any analyzers that
+## have been processing the connection.
+##
+## cid: The connection ID.
+##
+## Returns: False if *cid* does not point to an active connection, and true
+##          otherwise.
+##
+## .. note::
+##
+##     Bro will still generate connection-oriented events such as
+##     :bro:id:`connection_finished`.
+function skip_further_processing%(cid: conn_id%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	c->SetSkip(1);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Controls whether packet contents belonging to a connection should be
+## recorded (when ``-w`` option is provided on the command line).
+##
+## cid: The connection identifier.
+##
+## do_record: True to enable packet contents, and false to disable for the
+##            connection identified by *cid*.
+##
+## Returns: False if *cid* does not point to an active connection, and true
+##          otherwise.
+##
+## .. bro:see:: skip_further_processing
+##
+## .. note::
+##
+##     This is independent of whether Bro processes the packets of this
+##     connection, which is controlled separately by
+##     :bro:id:`skip_further_processing`.
+##
+## .. bro:see:: get_contents_file set_contents_file
+function set_record_packets%(cid: conn_id, do_record: bool%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	c->SetRecordPackets(do_record);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Sets an individual inactivity timeout for a connection and thus
+## overrides the global inactivity timeout.
+##
+## cid: The connection ID.
+##
+## t: The new inactivity timeout for the connection identified by *cid*.
+##
+## Returns: The previous timeout interval.
+function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_INTERVAL);
+
+	double old_timeout = c->InactivityTimeout();
+	c->SetInactivityTimeout(t);
+
+	return new Val(old_timeout, TYPE_INTERVAL);
+	%}
+
+# ===========================================================================
+#
+#                            Files and Directories
+#
+# ===========================================================================
+
+## Opens a file for writing. If a file with the same name already exists, this
+## function overwrites it (as opposed to :bro:id:`open_for_append`).
+##
+## f: The path to the file.
+##
+## Returns: A :bro:type:`file` handle for subsequent operations.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all mkdir enable_raw_output
+function open%(f: string%): file
+	%{
+	const char* file = f->CheckString();
+
+	if ( streq(file, "-") )
+		return new Val(new BroFile(stdout, "-", "w"));
+	else
+		return new Val(new BroFile(file, "w"));
+	%}
+
+## Opens a file for writing or appending. If a file with the same name already
+## exists, this function appends to it (as opposed to :bro:id:`open`).
+##
+## f: The path to the file.
+##
+## Returns: A :bro:type:`file` handle for subsequent operations.
+##
+## .. bro:see:: active_file open close write_file
+##              get_file_name set_buf flush_all mkdir enable_raw_output
+function open_for_append%(f: string%): file
+	%{
+	return new Val(new BroFile(f->CheckString(), "a"));
+	%}
+
+## Closes an open file and flushes any buffered content.
+##
+## f: A :bro:type:`file` handle to an open file.
+##
+## Returns: True on success.
+##
+## .. bro:see:: active_file open open_for_append write_file
+##              get_file_name set_buf flush_all mkdir enable_raw_output
+function close%(f: file%): bool
+	%{
+	return new Val(f->Close(), TYPE_BOOL);
+	%}
+
+## Writes data to an open file.
+##
+## f: A :bro:type:`file` handle to an open file.
+##
+## data: The data to write to *f*.
+##
+## Returns: True on success.
+##
+## .. bro:see:: active_file open open_for_append close
+##              get_file_name set_buf flush_all mkdir enable_raw_output
+function write_file%(f: file, data: string%): bool
+	%{
+	if ( ! f )
+		return new Val(0, TYPE_BOOL);
+
+	return new Val(f->Write((const char*) data->Bytes(), data->Len()),
+			TYPE_BOOL);
+	%}
+
+## Alters the buffering behavior of a file.
+##
+## f: A :bro:type:`file` handle to an open file.
+##
+## buffered: When true, *f* is fully buffered, i.e., bytes are saved in a
+##           buffer until the block size has been reached. When
+##           false, *f* is line buffered, i.e., bytes are saved up until a
+##           newline occurs.
+##
+## .. bro:see:: active_file open open_for_append close
+##              get_file_name write_file flush_all mkdir enable_raw_output
+function set_buf%(f: file, buffered: bool%): any
+	%{
+	f->SetBuf(buffered);
+	return new Val(0, TYPE_VOID);
+	%}
+
+## Flushes all open files to disk.
+##
+## Returns: True on success.
+##
+## .. bro:see:: active_file open open_for_append close
+##              get_file_name write_file set_buf mkdir enable_raw_output
+function flush_all%(%): bool
+	%{
+	return new Val(fflush(0) == 0, TYPE_BOOL);
+	%}
+
+## Creates a new directory.
+##
+## f: The directory name.
+##
+## Returns: Returns true if the operation succeeds, or false if the
+##           creation fails or if *f* exists already.
+##
+## .. bro:see:: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
+function mkdir%(f: string%): bool
+	%{
+	const char* filename = f->CheckString();
+	if ( mkdir(filename, 0777) < 0 && errno != EEXIST )
+		{
+		builtin_error("cannot create directory", @ARG@[0]);
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+## Checks whether a given file is open.
+##
+## f: The file to check.
+##
+## Returns: True if *f* is an open :bro:type:`file`.
+##
+## .. todo:: Rename to ``is_open``.
+function active_file%(f: file%): bool
+	%{
+	return new Val(f->IsOpen(), TYPE_BOOL);
+	%}
+
+## Gets the filename associated with a file handle.
+##
+## f: The file handle to inquire the name for.
+##
+## Returns: The filename associated with *f*.
+##
+## .. bro:see:: open
+function get_file_name%(f: file%): string
+	%{
+	if ( ! f )
+		return new StringVal("");
+
+	return new StringVal(f->Name());
+	%}
+
+## Rotates a file.
+##
+## f: An open file handle.
+##
+## Returns: Rotation statistics which include the original file name, the name
+##          after the rotation, and the time when *f* was opened/closed.
+##
+## .. bro:see:: rotate_file_by_name calc_next_rotate
+function rotate_file%(f: file%): rotate_info
+	%{
+	RecordVal* info = f->Rotate();
+	if ( info )
+		return info;
+
+	// Record indicating error.
+	info = new RecordVal(rotate_info);
+	info->Assign(0, new StringVal(""));
+	info->Assign(1, new StringVal(""));
+	info->Assign(2, new Val(0, TYPE_TIME));
+	info->Assign(3, new Val(0, TYPE_TIME));
+
+	return info;
+	%}
+
+## Rotates a file identified by its name.
+##
+## f: The name of the file to rotate
+##
+## Returns: Rotation statistics which include the original file name, the name
+##          after the rotation, and the time when *f* was opened/closed.
+##
+## .. bro:see:: rotate_file calc_next_rotate
+function rotate_file_by_name%(f: string%): rotate_info
+	%{
+	RecordVal* info = new RecordVal(rotate_info);
+
+	bool is_pkt_dumper = false;
+	bool is_addl_pkt_dumper = false;
+
+	// Special case: one of current dump files.
+	if ( pkt_dumper && streq(pkt_dumper->FileName(), f->CheckString()) )
+		{
+		is_pkt_dumper = true;
+		pkt_dumper->Close();
+		}
+
+	if ( addl_pkt_dumper &&
+	     streq(addl_pkt_dumper->FileName(), f->CheckString()) )
+		{
+		is_addl_pkt_dumper = true;
+		addl_pkt_dumper->Close();
+		}
+
+	FILE* file = rotate_file(f->CheckString(), info);
+	if ( ! file )
+		{
+		// Record indicating error.
+		info->Assign(0, new StringVal(""));
+		info->Assign(1, new StringVal(""));
+		info->Assign(2, new Val(0, TYPE_TIME));
+		info->Assign(3, new Val(0, TYPE_TIME));
+		return info;
+		}
+
+	fclose(file);
+
+	if ( is_pkt_dumper )
+		{
+		info->Assign(2, new Val(pkt_dumper->OpenTime(), TYPE_TIME));
+		pkt_dumper->Open();
+		}
+
+	if ( is_addl_pkt_dumper )
+		info->Assign(2, new Val(addl_pkt_dumper->OpenTime(), TYPE_TIME));
+
+	return info;
+	%}
+
+## Calculates the duration until the next time a file is to be rotated, based
+## on a given rotate interval.
+##
+## i: The rotate interval to base the calculation on.
+##
+## Returns: The duration until the next file rotation time.
+##
+## .. bro:see:: rotate_file rotate_file_by_name
+function calc_next_rotate%(i: interval%) : interval
+	%{
+	const char* base_time = log_rotate_base_time ?
+		log_rotate_base_time->AsString()->CheckString() : 0;
+
+	double base = parse_rotate_base_time(base_time);
+	return new Val(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);
+	%}
+
+## Returns the size of a given file.
+##
+## f: The name of the file whose size to lookup.
+##
+## Returns: The size of *f* in bytes.
+function file_size%(f: string%) : double
+	%{
+	struct stat s;
+
+	if ( stat(f->CheckString(), &s) < 0 )
+		return new Val(-1.0, TYPE_DOUBLE);
+
+	return new Val(double(s.st_size), TYPE_DOUBLE);
+	%}
+
+## Disables sending :bro:id:`print_hook` events to remote peers for a given
+## file. In a
+## distributed setup, communicating Bro instances generate the event
+## :bro:id:`print_hook` for each print statement and send it to the remote
+## side. When disabled for a particular file, these events will not be
+## propagated to other peers.
+##
+## f: The file to disable :bro:id:`print_hook` events for.
+##
+## .. bro:see:: enable_raw_output
+function disable_print_hook%(f: file%): any
+	%{
+	f->DisablePrintHook();
+	return 0;
+	%}
+
+## Prevents escaping of non-ASCII characters when writing to a file.
+## This function is equivalent to :bro:attr:`&raw_output`.
+##
+## f: The file to disable raw output for.
+##
+## .. bro:see:: disable_print_hook
+function enable_raw_output%(f: file%): any
+	%{
+	f->EnableRawOutput();
+	return 0;
+	%}
+
+# ===========================================================================
+#
+#                              Packet Filtering
+#
+# ===========================================================================
+
+## Precompiles a PCAP filter and binds it to a given identifier.
+##
+## id: The PCAP identifier to reference the filter *s* later on.
+##
+## s: The PCAP filter. See ``man tcpdump`` for valid expressions.
+##
+## Returns: True if *s* is valid and precompiles successfully.
+##
+## .. bro:see:: install_pcap_filter
+##          install_src_addr_filter
+##          install_src_net_filter
+##          uninstall_src_addr_filter
+##          uninstall_src_net_filter
+##          install_dst_addr_filter
+##          install_dst_net_filter
+##          uninstall_dst_addr_filter
+##          uninstall_dst_net_filter
+##          pcap_error
+function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
+	%{
+	bool success = true;
+
+	loop_over_list(pkt_srcs, i)
+		{
+		pkt_srcs[i]->ClearErrorMsg();
+
+		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
+							s->CheckString()) )
+			{
+			reporter->Error("precompile_pcap_filter: %s",
+				pkt_srcs[i]->ErrorMsg());
+			success = false;
+			}
+		}
+
+	return new Val(success, TYPE_BOOL);
+	%}
+
+## Installs a PCAP filter that has been precompiled with
+## :bro:id:`precompile_pcap_filter`.
+##
+## id: The PCAP filter id of a precompiled filter.
+##
+## Returns: True if the filter associated with *id* has been installed
+##          successfully.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+function install_pcap_filter%(id: PcapFilterID%): bool
+	%{
+	bool success = true;
+
+	loop_over_list(pkt_srcs, i)
+		{
+		pkt_srcs[i]->ClearErrorMsg();
+
+		if ( ! pkt_srcs[i]->SetFilter(id->ForceAsInt()) )
+			success = false;
+		}
+
+	return new Val(success, TYPE_BOOL);
+	%}
+
+## Returns a string representation of the last PCAP error.
+##
+## Returns: A descriptive error message of the PCAP function that failed.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+function pcap_error%(%): string
+	%{
+	loop_over_list(pkt_srcs, i)
+		{
+		const char* err = pkt_srcs[i]->ErrorMsg();
+		if ( *err )
+			return new StringVal(err);
+		}
+
+	return new StringVal("no error");
+	%}
+
+## Installs a filter to drop packets from a given IP source address with
+## a certain probability if none of a given set of TCP flags are set.
+## Note that for IPv6 packets with a Destination options header that has
+## the Home Address option, this filters out against that home address.
+##
+## ip: The IP address to drop.
+##
+## tcp_flags: If none of these TCP flags are set, drop packets from *ip* with
+##            probability *prob*.
+##
+## prob: The probability [0.0, 1.0] used to drop packets from *ip*.
+##
+## Returns: True (unconditionally).
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+##
+## .. todo:: The return value should be changed to any.
+function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Installs a filter to drop packets originating from a given subnet with
+## a certain probability if none of a given set of TCP flags are set.
+##
+## snet: The subnet to drop packets from.
+##
+## tcp_flags: If none of these TCP flags are set, drop packets from *snet* with
+##            probability *prob*.
+##
+## prob: The probability [0.0, 1.0] used to drop packets from *snet*.
+##
+## Returns: True (unconditionally).
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+##
+## .. todo:: The return value should be changed to any.
+function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Removes a source address filter.
+##
+## ip: The IP address for which a source filter was previously installed.
+##
+## Returns: True on success.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+function uninstall_src_addr_filter%(ip: addr%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip->AsAddr()), TYPE_BOOL);
+	%}
+
+## Removes a source subnet filter.
+##
+## snet: The subnet for which a source filter was previously installed.
+##
+## Returns: True on success.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+function uninstall_src_net_filter%(snet: subnet%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveSrc(snet), TYPE_BOOL);
+	%}
+
+## Installs a filter to drop packets destined to a given IP address with
+## a certain probability if none of a given set of TCP flags are set.
+## Note that for IPv6 packets with a routing type header and non-zero
+## segments left, this filters out against the final destination of the
+## packet according to the routing extension header.
+##
+## ip: Drop packets to this IP address.
+##
+## tcp_flags: If none of these TCP flags are set, drop packets to *ip* with
+##            probability *prob*.
+##
+## prob: The probability [0.0, 1.0] used to drop packets to *ip*.
+##
+## Returns: True (unconditionally).
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+##
+## .. todo:: The return value should be changed to any.
+function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Installs a filter to drop packets destined to a given subnet with
+## a certain probability if none of a given set of TCP flags are set.
+##
+## snet: Drop packets to this subnet.
+##
+## tcp_flags: If none of these TCP flags are set, drop packets to *snet* with
+##            probability *prob*.
+##
+## prob: The probability [0.0, 1.0] used to drop packets to *snet*.
+##
+## Returns: True (unconditionally).
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              uninstall_dst_addr_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+##
+## .. todo:: The return value should be changed to any.
+function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Removes a destination address filter.
+##
+## ip: The IP address for which a destination filter was previously installed.
+##
+## Returns: True on success.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_net_filter
+##              pcap_error
+function uninstall_dst_addr_filter%(ip: addr%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveDst(ip->AsAddr()), TYPE_BOOL);
+	%}
+
+## Removes a destination subnet filter.
+##
+## snet: The subnet for which a destination filter was previously installed.
+##
+## Returns: True on success.
+##
+## .. bro:see:: precompile_pcap_filter
+##              install_pcap_filter
+##              install_src_addr_filter
+##              install_src_net_filter
+##              uninstall_src_addr_filter
+##              uninstall_src_net_filter
+##              install_dst_addr_filter
+##              install_dst_net_filter
+##              uninstall_dst_addr_filter
+##              pcap_error
+function uninstall_dst_net_filter%(snet: subnet%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveDst(snet), TYPE_BOOL);
+	%}
+
+# ===========================================================================
+#
+#                                Communication
+#
+# ===========================================================================
+
+## Enables the communication system. By default, the communication is off until
+## explicitly enabled, and all other calls to communication-related functions
+## will be ignored until done so.
 function enable_communication%(%): any
 	%{
 	if ( bro_start_network_time != 0.0 )
@@ -3686,8 +4417,561 @@ function enable_communication%(%): any
 	return 0;
 	%}
 
-## Returns the Bro version string
-function bro_version%(%): string
+## Flushes in-memory state tagged with the :bro:attr:`&persistent` attribute
+## to disk. The function writes the state to the file ``.state/state.bst`` in
+## the directory where Bro was started.
+##
+## Returns: True on success.
+##
+## .. bro:see:: rescan_state
+function checkpoint_state%(%) : bool
 	%{
-	return new StringVal(bro_version());
+	return new Val(persistence_serializer->WriteState(true), TYPE_BOOL);
+	%}
+
+## Reads persistent state and populates the in-memory data structures
+## accordingly. Persistent state is read from the ``.state`` directory.
+## This function is the dual to :bro:id:`checkpoint_state`.
+##
+## Returns: True on success.
+##
+## .. bro:see:: checkpoint_state
+function rescan_state%(%) : bool
+	%{
+	return new Val(persistence_serializer->ReadAll(false, true), TYPE_BOOL);
+	%}
+
+## Writes the binary event stream generated by the core to a given file.
+## Use the ``-x <filename>`` command line switch to replay saved events.
+##
+## filename: The name of the file which stores the events.
+##
+## Returns: True if opening the target file succeeds.
+##
+## .. bro:see:: capture_state_updates
+function capture_events%(filename: string%) : bool
+	%{
+	if ( ! event_serializer )
+		event_serializer = new FileSerializer();
+	else
+		event_serializer->Close();
+
+	return new Val(event_serializer->Open(
+		(const char*) filename->CheckString()), TYPE_BOOL);
+	%}
+
+## Writes state updates generated by :bro:attr:`&synchronized` variables to a
+## file.
+##
+## filename: The name of the file which stores the state updates.
+##
+## Returns: True if opening the target file succeeds.
+##
+## .. bro:see:: capture_events
+function capture_state_updates%(filename: string%) : bool
+	%{
+	if ( ! state_serializer )
+		state_serializer = new FileSerializer();
+	else
+		state_serializer->Close();
+
+	return new Val(state_serializer->Open(
+		(const char*) filename->CheckString()), TYPE_BOOL);
+	%}
+
+## Establishes a connection to a remote Bro or Broccoli instance.
+##
+## ip: The IP address of the remote peer.
+##
+## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
+##          ``zone_id`` can given here.  An empty string, ``""``, means
+##          not to add any ``zone_id``.
+##
+## p: The port of the remote peer.
+##
+## our_class: If a non-empty string, then the remote (listening) peer checks it
+##            against its class name in its peer table and terminates the
+##            connection if they don't match.
+##
+## retry: If the connection fails, try to reconnect with the peer after this
+##        time interval.
+##
+## ssl: If true, use SSL to encrypt the session.
+##
+## Returns: A locally unique ID of the new peer.
+##
+## .. bro:see:: disconnect
+##              listen
+##              request_remote_events
+##              request_remote_sync
+##              request_remote_logs
+##              request_remote_events
+##              set_accept_state
+##              set_compression_level
+##              send_state
+##              send_id
+function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count
+	%{
+	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(),
+	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
+	               retry, ssl)),
+			TYPE_COUNT);
+	%}
+
+## Terminate the connection with a peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## Returns: True on success.
+##
+## .. bro:see:: connect listen
+function disconnect%(p: event_peer%) : bool
+    %{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->CloseConnection(id), TYPE_BOOL);
+	%}
+
+## Subscribes to all events from a remote peer whose names match a given
+## pattern.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## handlers: The pattern describing the events to request from peer *p*.
+##
+## Returns: True on success.
+##
+## .. bro:see:: request_remote_sync
+##              request_remote_logs
+##              set_accept_state
+function request_remote_events%(p: event_peer, handlers: pattern%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestEvents(id, handlers),
+			TYPE_BOOL);
+	%}
+
+## Requests synchronization of IDs with a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## auth: If true, the local instance considers its current state authoritative
+##       and sends it to *p* right after the handshake.
+##
+## Returns: True on success.
+##
+## .. bro:see:: request_remote_events
+##              request_remote_logs
+##              set_accept_state
+function request_remote_sync%(p: event_peer, auth: bool%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
+	%}
+
+## Requests logs from a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## Returns: True on success.
+##
+## .. bro:see:: request_remote_events
+##              request_remote_sync
+function request_remote_logs%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
+	%}
+
+## Sets a boolean flag indicating whether Bro accepts state from a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## accept: True if Bro accepts state from peer *p*, or false otherwise.
+##
+## Returns: True on success.
+##
+## .. bro:see:: request_remote_events
+##              request_remote_sync
+##              set_compression_level
+function set_accept_state%(p: event_peer, accept: bool%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SetAcceptState(id, accept),
+			TYPE_BOOL);
+	%}
+
+## Sets the compression level of the session with a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## level: Allowed values are in the range *[0, 9]*, where 0 is the default and
+##        means no compression.
+##
+## Returns: True on success.
+##
+## .. bro:see:: set_accept_state
+function set_compression_level%(p: event_peer, level: count%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SetCompressionLevel(id, level),
+			TYPE_BOOL);
+	%}
+
+## Listens on a given IP address and port for remote connections.
+##
+## ip: The IP address to bind to.
+##
+## p: The TCP port to listen on.
+##
+## ssl: If true, Bro uses SSL to encrypt the session.
+##
+## ipv6: If true, enable listening on IPv6 addresses.
+##
+## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
+##          ``zone_id`` can given here.  An empty string, ``""``, means
+##          not to add any ``zone_id``.
+##
+## retry_interval: If address *ip* is found to be already in use, this is
+##                 the interval at which to automatically retry binding.
+##
+## Returns: True on success.
+##
+## .. bro:see:: connect disconnect
+function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool
+	%{
+	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval), TYPE_BOOL);
+	%}
+
+## Checks whether the last raised event came from a remote peer.
+##
+## Returns: True if the last raised event came from a remote peer.
+function is_remote_event%(%) : bool
+	%{
+	return new Val(mgr.CurrentSource() != SOURCE_LOCAL, TYPE_BOOL);
+	%}
+
+## Sends all persistent state to a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## Returns: True on success.
+##
+## .. bro:see:: send_id send_ping send_current_packet send_capture_filter
+function send_state%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(persistence_serializer->SendState(id, true), TYPE_BOOL);
+	%}
+
+## Sends a global identifier to a remote peer, which then might install it
+## locally.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## id: The identifier to send.
+##
+## Returns: True on success.
+##
+## .. bro:see:: send_state send_ping send_current_packet send_capture_filter
+function send_id%(p: event_peer, id: string%) : bool
+	%{
+	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
+
+	ID* i = global_scope()->Lookup(id->CheckString());
+	if ( ! i )
+		{
+		reporter->Error("send_id: no global id %s", id->CheckString());
+		return new Val(0, TYPE_BOOL);
+		}
+
+	SerialInfo info(remote_serializer);
+	return new Val(remote_serializer->SendID(&info, pid, *i), TYPE_BOOL);
+	%}
+
+## Gracefully finishes communication by first making sure that all remaining
+## data from parent and child has been sent out.
+##
+## Returns: True if the termination process has been started successfully.
+function terminate_communication%(%) : bool
+	%{
+	return new Val(remote_serializer->Terminate(), TYPE_BOOL);
+	%}
+
+## Signals a remote peer that the local Bro instance finished the initial
+## handshake.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## Returns: True on success.
+function complete_handshake%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->CompleteHandshake(id), TYPE_BOOL);
+	%}
+
+## Sends a ping event to a remote peer. In combination with an event handler
+## for :bro:id:`remote_pong`, this function can be used to measure latency
+## between two peers.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## seq: A sequence number (also included by :bro:id:`remote_pong`).
+##
+## Returns: True if sending the ping succeeds.
+##
+## .. bro:see:: send_state send_id send_current_packet send_capture_filter
+function send_ping%(p: event_peer, seq: count%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SendPing(id, seq), TYPE_BOOL);
+	%}
+
+## Sends the currently processed packet to a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## Returns: True if sending the packet succeeds.
+##
+## .. bro:see:: send_id send_state send_ping send_capture_filter
+##              dump_packet dump_current_packet get_current_packet
+function send_current_packet%(p: event_peer%) : bool
+	%{
+	Packet pkt("");
+
+	if ( ! current_pktsrc ||
+	     ! current_pktsrc->GetCurrentPacket(&pkt.hdr, &pkt.pkt) )
+		return new Val(0, TYPE_BOOL);
+
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+
+	pkt.time = pkt.hdr->ts.tv_sec + double(pkt.hdr->ts.tv_usec) / 1e6;
+	pkt.hdr_size = current_pktsrc->HdrSize();
+	pkt.link_type = current_pktsrc->LinkType();
+
+	SerialInfo info(remote_serializer);
+	return new Val(remote_serializer->SendPacket(&info, id, pkt), TYPE_BOOL);
+	%}
+
+## Returns the peer who generated the last event.
+##
+## Returns: The ID of the peer who generated the last event.
+##
+## .. bro:see:: get_local_event_peer
+function get_event_peer%(%) : event_peer
+	%{
+	SourceID src = mgr.CurrentSource();
+
+	if ( src == SOURCE_LOCAL )
+		{
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	if ( ! remote_serializer )
+		reporter->InternalError("remote_serializer not initialized");
+
+	Val* v = remote_serializer->GetPeerVal(src);
+	if ( ! v )
+		{
+		reporter->Error("peer %d does not exist anymore", int(src));
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	return v;
+	%}
+
+## Returns the local peer ID.
+##
+## Returns: The peer ID of the local Bro instance.
+##
+## .. bro:see:: get_event_peer
+function get_local_event_peer%(%) : event_peer
+	%{
+	RecordVal* p = mgr.GetLocalPeerVal();
+	Ref(p);
+	return p;
+	%}
+
+## Sends a capture filter to a remote peer.
+##
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## s: The capture filter.
+##
+## Returns: True if sending the packet succeeds.
+##
+## .. bro:see:: send_id send_state send_ping send_current_packet
+function send_capture_filter%(p: event_peer, s: string%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
+	%}
+
+## Stops Bro's packet processing. This function is used to synchronize
+## distributed trace processing with communication enabled
+## (*pseudo-realtime* mode).
+##
+## .. bro:see:: continue_processing suspend_state_updates resume_state_updates
+function suspend_processing%(%) : any
+	%{
+	net_suspend_processing();
+	return 0;
+	%}
+
+## Resumes Bro's packet processing.
+##
+## .. bro:see:: suspend_processing suspend_state_updates resume_state_updates
+function continue_processing%(%) : any
+	%{
+	net_continue_processing();
+	return 0;
+	%}
+
+## Stops propagating :bro:attr:`&synchronized` accesses.
+##
+## .. bro:see:: suspend_processing continue_processing resume_state_updates
+function suspend_state_updates%(%) : any
+	%{
+	if ( remote_serializer )
+		remote_serializer->SuspendStateUpdates();
+	return 0;
+	%}
+
+## Resumes propagating :bro:attr:`&synchronized` accesses.
+##
+## .. bro:see:: suspend_processing continue_processing suspend_state_updates
+function resume_state_updates%(%) : any
+	%{
+	if ( remote_serializer )
+		remote_serializer->ResumeStateUpdates();
+	return 0;
+	%}
+
+# ===========================================================================
+#
+#                             Internal Functions
+#
+# ===========================================================================
+
+## Manually triggers the signature engine for a given connection.
+## This is an internal function.
+function match_signatures%(c: connection, pattern_type: int, s: string,
+				bol: bool, eol: bool,
+				from_orig: bool, clear: bool%) : bool
+	%{
+	if ( ! rule_matcher )
+		return new Val(0, TYPE_BOOL);
+
+	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
+			from_orig, bol, eol, clear);
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+# ===========================================================================
+#
+#                            Deprecated Functions
+#
+# ===========================================================================
+
+
+
+%%{
+#include "Anon.h"
+%%}
+
+## Preserves the prefix of an IP address in anonymization.
+##
+## a: The address to preserve.
+##
+## width: The number of bits from the top that should remain intact.
+##
+## .. bro:see:: preserve_subnet anonymize_addr
+##
+## .. todo:: Currently dysfunctional.
+function preserve_prefix%(a: addr, width: count%): any
+	%{
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		{
+		if ( a->AsAddr().GetFamily() == IPv6 )
+			builtin_error("preserve_prefix() not supported for IPv6 addresses");
+		else
+			{
+			const uint32* bytes;
+			a->AsAddr().GetBytes(&bytes);
+			ip_anon->PreservePrefix(*bytes, width);
+			}
+		}
+
+
+	return 0;
+	%}
+
+## Preserves the prefix of a subnet in anonymization.
+##
+## a: The subnet to preserve.
+##
+## width: The number of bits from the top that should remain intact.
+##
+## .. bro:see:: preserve_prefix anonymize_addr
+##
+## .. todo:: Currently dysfunctional.
+function preserve_subnet%(a: subnet%): any
+	%{
+	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		{
+		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
+			builtin_error("preserve_subnet() not supported for IPv6 addresses");
+		else
+			{
+			const uint32* bytes;
+			a->AsSubNet().Prefix().GetBytes(&bytes);
+			ip_anon->PreservePrefix(*bytes, a->AsSubNet().Length());
+			}
+		}
+
+	return 0;
+	%}
+
+## Anonymizes an IP address.
+##
+## a: The address to anonymize.
+##
+## cl: The anonymization class, which can take on three different values:
+##
+##     - ``ORIG_ADDR``: Tag *a* as an originator address.
+##
+##     - ``RESP_ADDR``: Tag *a* as an responder address.
+##
+##     - ``OTHER_ADDR``: Tag *a* as an arbitrary address.
+##
+## Returns: An anonymized version of *a*.
+##
+## .. bro:see:: preserve_prefix preserve_subnet
+##
+## .. todo:: Currently dysfunctional.
+function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
+	%{
+	int anon_class = cl->InternalInt();
+	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
+		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
+
+	if ( a->AsAddr().GetFamily() == IPv6 )
+		{
+		builtin_error("anonymize_addr() not supported for IPv6 addresses");
+		return 0;
+		}
+	else
+		{
+		const uint32* bytes;
+		a->AsAddr().GetBytes(&bytes);
+		return new AddrVal(anonymize_ip(*bytes,
+			(enum ip_addr_anonymization_class_t) anon_class));
+		}
 	%}

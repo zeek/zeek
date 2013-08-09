@@ -1,0 +1,6 @@
+Connected to Bro instance at: localhost:47757
+Received bro_addr(1.2.3.4)
+Received bro_subnet(10.0.0.0/16)
+Received bro_addr(2607:f8b0:4009:802::1014)
+Received bro_subnet(2607:f8b0::/32)
+Terminating

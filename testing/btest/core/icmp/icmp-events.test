@@ -1,0 +1,44 @@
+# These tests all check that ICMP6 events get raised with correct arguments.
+
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp-destunreach-udp.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp-timeexceeded.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp-ping.pcap %INPUT >>output 2>&1
+
+# @TEST-EXEC: btest-diff output
+
+event icmp_sent(c: connection, icmp: icmp_conn)
+    {
+    print "icmp_sent";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    }
+
+event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
+    {
+    print "icmp_echo_request (id=" + fmt("%d", id) + ", seq=" + fmt("%d", seq) + ", payload=" + payload + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    }
+
+event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
+    {
+    print "icmp_echo_reply (id=" + fmt("%d", id) + ", seq=" + fmt("%d", seq) + ", payload=" + payload + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    }
+
+event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_unreachable (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }
+
+event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
+    {
+    print "icmp_time_exceeded (code=" + fmt("%d", code) + ")";
+    print "  conn_id: " + fmt("%s", c$id);
+    print "  icmp_conn: " + fmt("%s", icmp);
+    print "  icmp_context: " + fmt("%s", context);
+    }

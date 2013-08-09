@@ -1,0 +1,12 @@
+# @TEST-REQUIRES: grep -q "#undef ENABLE_MOBILE_IPV6" $BUILD/config.h
+# @TEST-EXEC: bro -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT
+# @TEST-EXEC: btest-diff weird.log
+
+event mobile_ipv6_message(p: pkt_hdr)
+	{
+	if ( ! p?$ip6 ) return;
+
+	for ( i in p$ip6$exts )
+		if ( p$ip6$exts[i]$id == IPPROTO_MOBILITY )
+			print p$ip6;
+	}

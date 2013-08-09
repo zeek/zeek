@@ -1,0 +1,7 @@
+type inference (PASS)
+add interval (PASS)
+subtract interval (PASS)
+inequality (PASS)
+equality (PASS)
+subtract time (PASS)
+size operator (PASS)

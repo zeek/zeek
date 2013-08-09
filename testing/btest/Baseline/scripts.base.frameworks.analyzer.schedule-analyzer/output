@@ -1,0 +1,5 @@
+APPLIED:, 1299491995.0, [orig_h=10.0.0.2, orig_p=20/tcp, resp_h=10.0.0.3, resp_p=6/tcp], Analyzer::ANALYZER_DNS
+APPLIED:, 1299491995.0, [orig_h=10.0.0.2, orig_p=20/tcp, resp_h=10.0.0.3, resp_p=6/tcp], Analyzer::ANALYZER_FTP
+APPLIED:, 1299491995.0, [orig_h=10.0.0.2, orig_p=20/tcp, resp_h=10.0.0.3, resp_p=6/tcp], Analyzer::ANALYZER_HTTP
+APPLIED:, 1299491995.0, [orig_h=10.0.0.2, orig_p=20/tcp, resp_h=10.0.0.3, resp_p=6/tcp], Analyzer::ANALYZER_SSH
+APPLIED:, 1299499195.0, [orig_h=10.0.0.2, orig_p=20/tcp, resp_h=10.0.0.3, resp_p=8/tcp], Analyzer::ANALYZER_DNS

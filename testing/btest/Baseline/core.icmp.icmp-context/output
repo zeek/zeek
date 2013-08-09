@@ -1,0 +1,12 @@
+icmp_unreachable (code=0)
+  conn_id: [orig_h=10.0.0.1, orig_p=3/icmp, resp_h=10.0.0.2, resp_p=0/icmp]
+  icmp_conn: [orig_h=10.0.0.1, resp_h=10.0.0.2, itype=3, icode=0, len=0, hlim=64, v6=F]
+  icmp_context: [id=[orig_h=::, orig_p=0/unknown, resp_h=::, resp_p=0/unknown], len=0, proto=0, frag_offset=0, bad_hdr_len=T, bad_checksum=F, MF=F, DF=F]
+icmp_unreachable (code=0)
+  conn_id: [orig_h=10.0.0.1, orig_p=3/icmp, resp_h=10.0.0.2, resp_p=0/icmp]
+  icmp_conn: [orig_h=10.0.0.1, resp_h=10.0.0.2, itype=3, icode=0, len=20, hlim=64, v6=F]
+  icmp_context: [id=[orig_h=10.0.0.2, orig_p=0/unknown, resp_h=10.0.0.1, resp_p=0/unknown], len=20, proto=0, frag_offset=0, bad_hdr_len=T, bad_checksum=F, MF=F, DF=F]
+icmp_unreachable (code=3)
+  conn_id: [orig_h=192.168.1.102, orig_p=3/icmp, resp_h=192.168.1.1, resp_p=3/icmp]
+  icmp_conn: [orig_h=192.168.1.102, resp_h=192.168.1.1, itype=3, icode=3, len=148, hlim=128, v6=F]
+  icmp_context: [id=[orig_h=192.168.1.1, orig_p=53/udp, resp_h=192.168.1.102, resp_p=59207/udp], len=163, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F]

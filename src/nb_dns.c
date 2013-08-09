@@ -124,7 +124,7 @@ nb_dns_init(char *errstr)
 	nd->s = -1;
 
 	/* XXX should be able to init static hostent struct some other way */
-	(void)gethostbyname("localhost.");
+	(void)gethostbyname("localhost");
 
 	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
 		snprintf(errstr, NB_DNS_ERRSIZE, "res_init() failed");
@@ -186,7 +186,7 @@ _nb_dns_cmpsockaddr(register struct sockaddr *sa1,
 #endif
 	static const char serr[] = "answer from wrong nameserver (%d)";
 
-	if (sa1->sa_family != sa1->sa_family) {
+	if (sa1->sa_family != sa2->sa_family) {
 		snprintf(errstr, NB_DNS_ERRSIZE, serr, 1);
 		return (-1);
 	}
@@ -265,6 +265,7 @@ _nb_dns_mkquery(register struct nb_dns_info *nd, register const char *name,
 	default:
 		snprintf(errstr, NB_DNS_ERRSIZE,
 		    "_nb_dns_mkquery: bad family %d", atype);
+		free(ne);
 		return (-1);
 	}
 
@@ -307,31 +308,32 @@ nb_dns_host_request(register struct nb_dns_info *nd, register const char *name,
     register void *cookie, register char *errstr)
 {
 
-	return (nb_dns_host_request2(nd, name, AF_INET, cookie, errstr));
+	return (nb_dns_host_request2(nd, name, AF_INET, 0, cookie, errstr));
 }
 
 int
 nb_dns_host_request2(register struct nb_dns_info *nd, register const char *name,
-    register int af, register void *cookie, register char *errstr)
+    register int af, register int qtype, register void *cookie, register char *errstr)
 {
-	register int qtype;
+	if (qtype != 16) {
 
-	switch (af) {
+		switch (af) {
 
-	case AF_INET:
-		qtype = T_A;
-		break;
+		case AF_INET:
+			qtype = T_A;
+			break;
 
 #ifdef AF_INET6
-	case AF_INET6:
-		qtype = T_AAAA;
-		break;
+		case AF_INET6:
+			qtype = T_AAAA;
+			break;
 #endif
 
-	default:
-		snprintf(errstr, NB_DNS_ERRSIZE,
-		    "nb_dns_host_request2(): uknown address family %d", af);
-		return (-1);
+		default:
+			snprintf(errstr, NB_DNS_ERRSIZE,
+			    "nb_dns_host_request2(): unknown address family %d", af);
+			return (-1);
+		}
 	}
 	return (_nb_dns_mkquery(nd, name, af, qtype, cookie, errstr));
 }
@@ -381,7 +383,7 @@ nb_dns_addr_request2(register struct nb_dns_info *nd, char *addrp,
 			size -= i;
 			cp += i;
 		}
-		snprintf(cp, size, "ip6.int");
+		snprintf(cp, size, "ip6.arpa");
 		break;
 #endif
 
@@ -579,6 +581,7 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 				nr->host_errno = NO_RECOVERY;
 				return (-1);
 			}
+
 			memcpy(bp, rdata, rdlen);
 			*hap++ = bp;
 			bp += rdlen;
@@ -586,6 +589,20 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 
 			/* Keep looking for more A records */
 			break;
+
+		case T_TXT:
+			if (bp + rdlen >= ep) {
+				snprintf(errstr, NB_DNS_ERRSIZE,
+				    "nb_dns_activity(): overflow 1 for txt");
+				nr->host_errno = NO_RECOVERY;
+				return (-1);
+			}
+
+			memcpy(bp, rdata, rdlen);
+			he->h_name = bp+1; /* First char is a control character. */
+			nr->hostent = he;
+			nr->ttl = rttl;
+			return (1);
 
 		case T_PTR:
 			n = dn_expand((const u_char *)msg,

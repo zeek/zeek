@@ -1,0 +1,23 @@
+Update_finished for input, try 1
+{
+[2, idxmodified] = [b=T, s=test2],
+[1, idx1] = [b=T, s=testmodified]
+}
+Update_finished for input, try 2
+{
+[2, idxmodified] = [b=T, s=test2],
+[1, idx1] = [b=F, s=testmodified]
+}
+Update_finished for input, try 3
+{
+[2, idxmodified] = [b=F, s=test2],
+[1, idx1] = [b=F, s=testmodified]
+}
+Update_finished for input, try 4
+{
+[2, idxmodified] = [b=F, s=test2]
+}
+Update_finished for input, try 5
+{
+[1, idx1] = [b=T, s=testmodified]
+}

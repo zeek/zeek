@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT  >output 2>&1
+# @TEST-EXEC: bro -b %INPUT  >output 2>&1
 # @TEST-EXEC: btest-diff output
 
 # Demo policy for the sizeof operator "|x|".
@@ -20,6 +20,7 @@ type example_record: record {
 };
 
 global a:  addr = 1.2.3.4;
+global a6: addr = [::1];
 global b:  bool = T;
 global c:  count = 10;
 global d:  double = -1.23;
@@ -52,8 +53,10 @@ v[4] = "World";
 # Print out the sizes of the various vals:
 #-----------------------------------------
 
-# Size of addr: returns integer representation for IPv4, 0 for IPv6.
-print fmt("Address %s: %d", a, |a|);
+# Size of addr: returns number of bits required to represent the address
+# which is 32 for IPv4 or 128 for IPv6
+print fmt("IPv4 Address %s: %d", a, |a|);
+print fmt("IPv6 Address %s: %d", a6, |a6|);
 
 # Size of boolean: returns 1 or 0.
 print fmt("Boolean %s: %d", b, |b|);

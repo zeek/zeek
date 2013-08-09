@@ -1,0 +1,4 @@
+new_connection, [orig_h=192.168.3.103, orig_p=54102/tcp, resp_h=128.146.216.51, resp_p=80/tcp]
+callback, [orig_h=192.168.3.103, orig_p=54102/tcp, resp_h=128.146.216.51, resp_p=80/tcp], 0
+callback, [orig_h=192.168.3.103, orig_p=54102/tcp, resp_h=128.146.216.51, resp_p=80/tcp], 1
+callback, [orig_h=192.168.3.103, orig_p=54102/tcp, resp_h=128.146.216.51, resp_p=80/tcp], 2

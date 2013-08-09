@@ -1,6 +1,6 @@
-#! Notice extension that mails out a pretty-printed version of alarm.log
-#! in regular intervals, formatted for better human readability. If activated,
-#! that replaces the default summary mail having the raw log output.
+##! Notice extension that mails out a pretty-printed version of alarm.log
+##! in regular intervals, formatted for better human readability. If activated,
+##! that replaces the default summary mail having the raw log output.
 
 @load base/frameworks/cluster
 @load ../main
@@ -14,9 +14,8 @@ export {
 	## Address to send the pretty-printed reports to. Default if not set is
 	## :bro:id:`Notice::mail_dest`.
 	const mail_dest_pretty_printed = "" &redef;
-	
 	## If an address from one of these networks is reported, we mark
-	## the entry with an addition quote symbol (i.e., ">"). Many MUAs
+	## the entry with an additional quote symbol (i.e., ">"). Many MUAs
 	## then highlight such lines differently.
 	global flag_nets: set[subnet] &redef;
 	
@@ -102,11 +101,11 @@ event bro_init()
 	# This replaces the standard non-pretty-printing filter.
 	Log::add_filter(Notice::ALARM_LOG,
 			[$name="alarm-mail", $writer=Log::WRITER_NONE,
-			 $interv=Log::default_rotation_interval,
+			 $interv=Log::default_mail_alarms_interval,
 			 $postprocessor=pp_postprocessor]);
 	}
 
-event notice(n: Notice::Info) &priority=-5
+hook notice(n: Notice::Info) &priority=-5
 	{
 	if ( ! want_pp() )
 		return;

@@ -1,0 +1,6 @@
+event statement
+event part1
+event part2
+schedule statement in bro_init
+schedule statement in global
+schedule statement another in bro_init

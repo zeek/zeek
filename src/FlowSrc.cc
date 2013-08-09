@@ -9,7 +9,7 @@
 
 #include "FlowSrc.h"
 #include "Net.h"
-#include "netflow_pac.h"
+#include "analyzer/protocol/netflow/netflow_pac.h"
 #include <errno.h>
 
 FlowSrc::FlowSrc()
@@ -58,7 +58,7 @@ void FlowSrc::Process()
 
 void FlowSrc::Close()
 	{
-	close(selectable_fd);
+	safe_close(selectable_fd);
 	}
 
 

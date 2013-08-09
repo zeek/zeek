@@ -10,7 +10,6 @@ EventHandler::EventHandler(const char* arg_name)
 	used = false;
 	local = 0;
 	type = 0;
-	group = 0;
 	error_handler = false;
 	enabled = true;
 	}
@@ -19,7 +18,6 @@ EventHandler::~EventHandler()
 	{
 	Unref(local);
 	delete [] name;
-	delete [] group;
 	}
 
 EventHandler::operator bool() const
@@ -96,7 +94,7 @@ EventHandler* EventHandler::Unserialize(UnserialInfo* info)
 	{
 	char* name;
 	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return false;
+		return 0;
 
 	EventHandler* h = event_registry->Lookup(name);
 	if ( ! h )

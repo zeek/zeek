@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
+#include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -15,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +29,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <libgen.h>
+#include <openssl/md5.h>
+#include <openssl/sha.h>
 
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
@@ -35,11 +39,82 @@
 #include "input.h"
 #include "util.h"
 #include "Obj.h"
-#include "md5.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
+
+/**
+ * Return IP address without enclosing brackets and any leading 0x.
+ */
+std::string extract_ip(const std::string& i)
+	{
+	std::string s(skip_whitespace(i.c_str()));
+	if ( s.size() > 0 && s[0] == '[' )
+		s.erase(0, 1);
+
+	if ( s.size() > 1 && s.substr(0, 2) == "0x" )
+		s.erase(0, 2);
+
+	size_t pos = 0;
+	if ( (pos = s.find(']')) != std::string::npos )
+		s = s.substr(0, pos);
+
+	return s;
+	}
+
+/**
+ * Given a subnet string, return IP address and subnet length separately.
+ */
+std::string extract_ip_and_len(const std::string& i, int* len)
+	{
+	size_t pos = i.find('/');
+	if ( pos == std::string::npos )
+		return i;
+
+	if ( len )
+		*len = atoi(i.substr(pos + 1).c_str());
+
+	return extract_ip(i.substr(0, pos));
+	}
+
+/**
+ * Takes a string, unescapes all characters that are escaped as hex codes
+ * (\x##) and turns them into the equivalent ascii-codes. Returns a string
+ * containing no escaped values
+ *
+ * @param str string to unescape
+ * @return A str::string without escaped characters.
+ */
+std::string get_unescaped_string(const std::string& arg_str)
+	{
+	const char* str = arg_str.c_str();
+	char* buf = new char [arg_str.length() + 1]; // it will at most have the same length as str.
+	char* bufpos = buf;
+	size_t pos = 0;
+
+	while ( pos < arg_str.length() )
+		{
+		if ( str[pos] == '\\' && str[pos+1] == 'x' &&
+		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) )
+			{
+				*bufpos = (decode_hex(str[pos+2]) << 4) +
+					decode_hex(str[pos+3]);
+
+				pos += 4;
+				bufpos++;
+			}
+		else
+			*bufpos++ = str[pos++];
+		}
+
+	*bufpos = 0;
+	string outstring(buf, bufpos - buf);
+
+	delete [] buf;
+
+	return outstring;
+	}
 
 /**
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
@@ -52,28 +127,31 @@
  * @return A std::string containing a list of escaped hex values of the form
  * \x## */
 std::string get_escaped_string(const std::string& str, bool escape_all)
-{
-    char tbuf[16];
-    string esc = "";
+	{
+	char tbuf[16];
+	string esc = "";
 
-    for ( size_t i = 0; i < str.length(); ++i )
-        {
-	char c = str[i];
-
-	if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+	for ( size_t i = 0; i < str.length(); ++i )
 		{
-		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-		esc += tbuf;
-		}
-	else
-		esc += c;
-	}
+		char c = str[i];
 
-    return esc;
-}
+		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+			{
+			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+			esc += tbuf;
+			}
+		else
+			esc += c;
+		}
+
+	return esc;
+	}
 
 char* copy_string(const char* s)
 	{
+	if ( ! s )
+		return 0;
+
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
 	return c;
@@ -219,6 +297,13 @@ void to_upper(char* s)
 			*s = toupper(*s);
 		++s;
 		}
+	}
+
+string to_upper(const std::string& s)
+	{
+	string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+	return t;
 	}
 
 const char* strchr_n(const char* s, const char* end_of_s, char ch)
@@ -375,7 +460,10 @@ template<class T> int atoi_n(int len, const char* s, const char** end, int base,
 
 // Instantiate the ones we need.
 template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
+template int atoi_n<uint16_t>(int len, const char* s, const char** end, int base, uint16_t& result);
+template int atoi_n<uint32_t>(int len, const char* s, const char** end, int base, uint32_t& result);
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
+template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
 
 char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 	{
@@ -545,24 +633,6 @@ bool is_dir(const char* path)
 	return S_ISDIR(st.st_mode);
 	}
 
-void hash_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
-	{
-	md5_state_s h;
-	md5_init(&h);
-	md5_append(&h, bytes, size);
-	md5_finish(&h, digest);
-	}
-
-const char* md5_digest_print(const unsigned char digest[16])
-	{
-	static char digest_print[256];
-
-	for ( int i = 0; i < 16; ++i )
-		snprintf(digest_print + i * 2, 3, "%02x", digest[i]);
-
-	return digest_print;
-	}
-
 int hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
 
@@ -571,12 +641,12 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	if ( ! hmac_key_set )
 		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
-	hash_md5(size, bytes, digest);
+	MD5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
 		digest[i] ^= shared_hmac_md5_key[i];
 
-	hash_md5(16, digest, digest);
+	MD5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32* seed,
@@ -646,19 +716,30 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
+static bool first_seed_saved = false;
+static unsigned int first_seed = 0;
 
-static void bro_srand(unsigned int seed, bool deterministic)
+static void bro_srandom(unsigned int seed, bool deterministic)
 	{
 	bro_rand_state = seed;
 	bro_rand_determistic = deterministic;
 
-	srand(seed);
+	srandom(seed);
+	}
+
+void bro_srandom(unsigned int seed)
+	{
+	if ( bro_rand_determistic )
+		bro_rand_state = seed;
+	else
+		srandom(seed);
 	}
 
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 16;
 	uint32 buf[bufsiz];
+	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 
@@ -689,7 +770,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			{
 			int amt = read(fd, buf + pos,
 					sizeof(uint32) * (bufsiz - pos));
-			close(fd);
+			safe_close(fd);
 
 			if ( amt > 0 )
 				pos += amt / sizeof(uint32);
@@ -719,11 +800,17 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			seeds_done = true;
 		}
 
-	bro_srand(seed, seeds_done);
+	bro_srandom(seed, seeds_done);
+
+	if ( ! first_seed_saved )
+		{
+		first_seed = seed;
+		first_seed_saved = true;
+		}
 
 	if ( ! hmac_key_set )
 		{
-		hash_md5(sizeof(buf), (u_char*) buf, shared_hmac_md5_key);
+		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
 		hmac_key_set = 1;
 		}
 
@@ -732,9 +819,31 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				write_file);
 	}
 
+unsigned int initial_seed()
+	{
+	return first_seed;
+	}
+
 bool have_random_seed()
 	{
 	return bro_rand_determistic;
+	}
+
+unsigned int bro_prng(unsigned int  state)
+	{
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	static const long int m = 2147483647;
+	static const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	state = a * ( state % q ) - r * ( state / q );
+
+	if ( state <= 0 )
+		state += m;
+
+	return state;
 	}
 
 long int bro_random()
@@ -742,17 +851,7 @@ long int bro_random()
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.
-	const long int m = 2147483647;
-	const long int a = 16807;
-	const long int q = m / a;
-	const long int r = m % a;
-
-	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
-
-	if ( bro_rand_state <= 0 )
-		bro_rand_state += m;
+	bro_rand_state = bro_prng(bro_rand_state);
 
 	return bro_rand_state;
 	}
@@ -789,6 +888,16 @@ const char* bro_path()
 			BRO_SCRIPT_INSTALL_PATH ":"
 			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
 			BRO_SCRIPT_INSTALL_PATH "/site";
+
+	return path;
+	}
+
+const char* bro_magic_path()
+	{
+	const char* path = getenv("BROMAGIC");
+
+	if ( ! path )
+		path = BRO_MAGIC_INSTALL_PATH;
 
 	return path;
 	}
@@ -945,8 +1054,10 @@ void get_script_subpath(const std::string& full_filename, const char** subpath)
 		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
 	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
 		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
-	else if ( (p = my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
 
 	// if root path found, remove path separators until next path component
 	if ( p != std::string::npos )
@@ -1096,18 +1207,8 @@ const char* log_file_name(const char* tag)
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
-double calc_next_rotate(double interval, const char* rotate_base_time)
+double parse_rotate_base_time(const char* rotate_base_time)
 	{
-	double current = network_time;
-
-	// Calculate start of day.
-	time_t teatime = time_t(current);
-
-	struct tm t;
-	t = *localtime(&teatime);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
-
 	double base = -1;
 
 	if ( rotate_base_time && rotate_base_time[0] != '\0' )
@@ -1118,6 +1219,19 @@ double calc_next_rotate(double interval, const char* rotate_base_time)
 		else
 			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
 		}
+
+	return base;
+	}
+
+double calc_next_rotate(double current, double interval, double base)
+	{
+	// Calculate start of day.
+	time_t teatime = time_t(current);
+
+	struct tm t;
+	t = *localtime_r(&teatime, &t);
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round
@@ -1168,7 +1282,7 @@ void _set_processing_status(const char* status)
 		len -= n;
 		}
 
-	close(fd);
+	safe_close(fd);
 
 	errno = old_errno;
 	}
@@ -1293,9 +1407,89 @@ uint64 calculate_unique_id(size_t pool)
 	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
-void out_of_memory(const char* where)
+bool safe_write(int fd, const char* data, int len)
 	{
-	reporter->FatalError("out of memory in %s.\n", where);
+	while ( len > 0 )
+		{
+		int n = write(fd, data, len);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		len -= n;
+		}
+
+	return true;
+	}
+
+bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
+	{
+	while ( len != 0 )
+		{
+		ssize_t n = pwrite(fd, data, len, offset);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		offset +=n;
+		len -= n;
+		}
+
+	return true;
+	}
+
+void safe_close(int fd)
+	{
+	/*
+	 * Failure cases of close(2) are ...
+	 * EBADF: Indicative of programming logic error that needs to be fixed, we
+	 *        should always be attempting to close a valid file descriptor.
+	 * EINTR: Ignore signal interruptions, most implementations will actually
+	 *        reclaim the open descriptor and POSIX standard doesn't leave many
+	 *        options by declaring the state of the descriptor as "unspecified".
+	 *        Attempting to inspect actual state or re-attempt close() is not
+	 *        thread safe.
+	 * EIO:   Again the state of descriptor is "unspecified", but don't recover
+	 *        from an I/O error, safe_write() won't either.
+	 *
+	 * Note that we don't use the reporter here to allow use from different threads.
+	 */
+	if ( close(fd) < 0 && errno != EINTR )
+		{
+		char buf[128];
+		strerror_r(errno, buf, sizeof(buf));
+		fprintf(stderr, "safe_close error %d: %s\n", errno, buf);
+		abort();
+		}
+	}
+
+extern "C" void out_of_memory(const char* where)
+	{
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( reporter )
+		// Guess that might fail here if memory is really tight ...
+		reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)
@@ -1398,3 +1592,77 @@ void operator delete[](void* v)
 	}
 
 #endif
+
+// Being selective of which components of MAGIC_NO_CHECK_BUILTIN are actually
+// known to be problematic, but keeping rest of libmagic's builtin checks.
+#define DISABLE_LIBMAGIC_BUILTIN_CHECKS  ( \
+/*  MAGIC_NO_CHECK_COMPRESS | */ \
+/*  MAGIC_NO_CHECK_TAR  | */ \
+/*  MAGIC_NO_CHECK_SOFT | */ \
+/*  MAGIC_NO_CHECK_APPTYPE  | */ \
+/*  MAGIC_NO_CHECK_ELF  | */ \
+/*  MAGIC_NO_CHECK_TEXT | */ \
+    MAGIC_NO_CHECK_CDF  | \
+    MAGIC_NO_CHECK_TOKENS  \
+/*  MAGIC_NO_CHECK_ENCODING */ \
+)
+
+void bro_init_magic(magic_t* cookie_ptr, int flags)
+	{
+	if ( ! cookie_ptr || *cookie_ptr )
+		return;
+
+	*cookie_ptr = magic_open(flags|DISABLE_LIBMAGIC_BUILTIN_CHECKS);
+
+	// Use our custom database for mime types, but the default database
+	// from libmagic for the verbose file type.
+	const char* database = (flags & MAGIC_MIME) ? bro_magic_path() : 0;
+
+	if ( ! *cookie_ptr )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		if ( ! err )
+			err = "unknown";
+
+		reporter->InternalError("can't init libmagic: %s", err);
+		}
+
+	else if ( magic_load(*cookie_ptr, database) < 0 )
+		{
+		const char* err = magic_error(*cookie_ptr);
+		if ( ! err )
+			err = "unknown";
+
+		const char* db_name = database ? database : "<default>";
+		reporter->InternalError("can't load magic file %s: %s", db_name, err);
+		magic_close(*cookie_ptr);
+		*cookie_ptr = 0;
+		}
+	}
+
+const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
+	{
+	const char* rval = magic_buffer(cookie, buffer, length);
+	if ( ! rval )
+		{
+		const char* err = magic_error(cookie);
+		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
+		}
+
+	return rval;
+	}
+
+const char* canonify_name(const char* name)
+	{
+	unsigned int len = strlen(name);
+	char* nname = new char[len + 1];
+
+	for ( unsigned int i = 0; i < len; i++ )
+		{
+		char c = isalnum(name[i]) ? name[i] : '_';
+		nname[i] = toupper(c);
+		}
+
+	nname[len] = '\0';
+	return nname;
+	}

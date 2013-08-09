@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	metrics
+#open	2012-07-20-01-50-41
+#fields	ts	metric_id	filter_name	index.host	index.str	index.network	value
+#types	time	enum	string	addr	string	subnet	count
+1342749041.601712	TEST_METRIC	foo-bar	6.5.4.3	-	-	4
+1342749041.601712	TEST_METRIC	foo-bar	7.2.1.5	-	-	2
+1342749041.601712	TEST_METRIC	foo-bar	1.2.3.4	-	-	6
+#close	2012-07-20-01-50-49

@@ -11,34 +11,10 @@
 #include "Sessions.h"
 #include "Reporter.h"
 #include "Timer.h"
-#include "PIA.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
-
-HashKey* ConnID::BuildConnKey() const
-	{
-	Key key;
-
-	// Lookup up connection based on canonical ordering, which is
-	// the smaller of <src addr, src port> and <dst addr, dst port>
-	// followed by the other.
-	if ( is_one_way ||
-	     addr_port_canon_lt(src_addr, src_port, dst_addr, dst_port) )
-		{
-		copy_addr(src_addr, key.ip1);
-		copy_addr(dst_addr, key.ip2);
-		key.port1 = src_port;
-		key.port2 = dst_port;
-		}
-	else
-		{
-		copy_addr(dst_addr, key.ip1);
-		copy_addr(src_addr, key.ip2);
-		key.port1 = dst_port;
-		key.port2 = src_port;
-		}
-
-	return new HashKey(&key, sizeof(key));
-	}
+#include "TunnelEncapsulation.h"
+#include "analyzer/Analyzer.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -137,17 +113,22 @@ unsigned int Connection::external_connections = 0;
 
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
-Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
+Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+                       uint32 flow, const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
 	start_time = last_time = t;
 
-	copy_addr(id->src_addr, orig_addr);
-	copy_addr(id->dst_addr, resp_addr);
+	orig_addr = id->src_addr;
+	resp_addr = id->dst_addr;
 	orig_port = id->src_port;
 	resp_port = id->dst_port;
 	proto = TRANSPORT_UNKNOWN;
+	orig_flow_label = flow;
+	resp_flow_label = 0;
+	saw_first_orig_packet = 1;
+	saw_first_resp_packet = 0;
 
 	conn_val = 0;
 	login_conn = 0;
@@ -181,6 +162,11 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 
 	uid = 0; // Will set later.
 
+	if ( arg_encap )
+		encapsulation = new EncapsulationStack(*arg_encap);
+	else
+		encapsulation = 0;
+
 	if ( conn_timer_mgr )
 		{
 		++external_connections;
@@ -208,10 +194,38 @@ Connection::~Connection()
 	delete key;
 	delete root_analyzer;
 	delete conn_timer_mgr;
+	delete encapsulation;
 
 	--current_connections;
 	if ( conn_timer_mgr )
 		--external_connections;
+	}
+
+void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
+	{
+	if ( encapsulation && arg_encap )
+		{
+		if ( *encapsulation != *arg_encap )
+			{
+			Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+			delete encapsulation;
+			encapsulation = new EncapsulationStack(*arg_encap);
+			}
+		}
+
+	else if ( encapsulation )
+		{
+		EncapsulationStack empty;
+		Event(tunnel_changed, 0, empty.GetVectorVal());
+		delete encapsulation;
+		encapsulation = 0;
+		}
+
+	else if ( arg_encap )
+		{
+		Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+		encapsulation = new EncapsulationStack(*arg_encap);
+		}
 	}
 
 void Connection::Done()
@@ -349,10 +363,12 @@ RecordVal* Connection::BuildConnVal()
 		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
+		orig_endp->Assign(4, new Val(orig_flow_label, TYPE_COUNT));
 
 		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
+		resp_endp->Assign(4, new Val(resp_flow_label, TYPE_COUNT));
 
 		conn_val->Assign(0, id_val);
 		conn_val->Assign(1, orig_endp);
@@ -368,6 +384,9 @@ RecordVal* Connection::BuildConnVal()
 
 		char tmp[20];
 		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+
+		if ( encapsulation && encapsulation->Depth() > 0 )
+			conn_val->Assign(10, encapsulation->GetVectorVal());
 		}
 
 	if ( root_analyzer )
@@ -384,14 +403,19 @@ RecordVal* Connection::BuildConnVal()
 	return conn_val;
 	}
 
-Analyzer* Connection::FindAnalyzer(AnalyzerID id)
+analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
 	return root_analyzer ? root_analyzer->FindChild(id) : 0;
 	}
 
-Analyzer* Connection::FindAnalyzer(AnalyzerTag::Tag tag)
+analyzer::Analyzer* Connection::FindAnalyzer(analyzer::Tag tag)
 	{
 	return root_analyzer ? root_analyzer->FindChild(tag) : 0;
+	}
+
+analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
+	{
+	return root_analyzer->FindChild(name);
 	}
 
 void Connection::AppendAddl(const char* str)
@@ -521,8 +545,8 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 	return sw;
 	}
 
-int Connection::VersionFoundEvent(const uint32* addr, const char* s, int len,
-					Analyzer* analyzer)
+int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
+					analyzer::Analyzer* analyzer)
 	{
 	if ( ! software_version_found && ! software_parse_error )
 		return 1;
@@ -559,8 +583,8 @@ int Connection::VersionFoundEvent(const uint32* addr, const char* s, int len,
 	return 1;
 	}
 
-int Connection::UnparsedVersionFoundEvent(const uint32* addr,
-					const char* full, int len, Analyzer* analyzer)
+int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
+					const char* full, int len, analyzer::Analyzer* analyzer)
 	{
 	// Skip leading white space.
 	while ( len && isspace(*full) )
@@ -584,7 +608,7 @@ int Connection::UnparsedVersionFoundEvent(const uint32* addr,
 	return 1;
 	}
 
-void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, const char* name)
+void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
 	{
 	if ( ! f )
 		return;
@@ -597,7 +621,7 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, const char* name)
 	ConnectionEvent(f, analyzer, vl);
 	}
 
-void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
+void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
 	{
 	if ( ! f )
 		{
@@ -616,7 +640,7 @@ void Connection::Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2)
 	ConnectionEvent(f, analyzer, vl);
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
 	{
 	if ( ! f )
 		{
@@ -693,14 +717,21 @@ TimerMgr* Connection::GetTimerMgr() const
 
 void Connection::FlipRoles()
 	{
-	uint32 tmp_addr[NUM_ADDR_WORDS];
-	copy_addr(resp_addr, tmp_addr);
-	copy_addr(orig_addr, resp_addr);
-	copy_addr(tmp_addr, orig_addr);
+	IPAddr tmp_addr = resp_addr;
+	orig_addr = resp_addr;
+	resp_addr = tmp_addr;
 
 	uint32 tmp_port = resp_port;
 	resp_port = orig_port;
 	orig_port = tmp_port;
+
+	bool tmp_bool = saw_first_resp_packet;
+	saw_first_resp_packet = saw_first_orig_packet;
+	saw_first_orig_packet = tmp_bool;
+
+	uint32 tmp_flow = resp_flow_label;
+	resp_flow_label = orig_flow_label;
+	orig_flow_label = tmp_flow;
 
 	Unref(conn_val);
 	conn_val = 0;
@@ -752,14 +783,14 @@ void Connection::Describe(ODesc* d) const
 		}
 
 	d->SP();
-	d->Add(dotted_addr(orig_addr));
+	d->Add(orig_addr);
 	d->Add(":");
 	d->Add(ntohs(orig_port));
 
 	d->SP();
 	d->AddSP("->");
 
-	d->Add(dotted_addr(resp_addr));
+	d->Add(resp_addr);
 	d->Add(":");
 	d->Add(ntohs(resp_port));
 
@@ -782,9 +813,8 @@ bool Connection::DoSerialize(SerialInfo* info) const
 
 	// First we write the members which are needed to
 	// create the HashKey.
-	for ( int j = 0; j < NUM_ADDR_WORDS; ++j )
-		if ( ! SERIALIZE(orig_addr[j]) || ! SERIALIZE(resp_addr[j]) )
-			return false;
+	if ( ! SERIALIZE(orig_addr) || ! SERIALIZE(resp_addr) )
+		return false;
 
 	if ( ! SERIALIZE(orig_port) || ! SERIALIZE(resp_port) )
 		return false;
@@ -830,21 +860,21 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 
 	// Build the hash key first. Some of the recursive *::Unserialize()
 	// functions may need it.
-	for ( int i = 0; i < NUM_ADDR_WORDS; ++i )
-		if ( ! UNSERIALIZE(&orig_addr[i]) || ! UNSERIALIZE(&resp_addr[i]) )
-			goto error;
+	ConnID id;
+
+	if ( ! UNSERIALIZE(&orig_addr) || ! UNSERIALIZE(&resp_addr) )
+		goto error;
 
 	if ( ! UNSERIALIZE(&orig_port) || ! UNSERIALIZE(&resp_port) )
 		goto error;
 
-	ConnID id;
 	id.src_addr = orig_addr;
 	id.dst_addr = resp_addr;
 	// This doesn't work for ICMP. But I guess this is not really important.
 	id.src_port = orig_port;
 	id.dst_port = resp_port;
 	id.is_one_way = 0;	// ### incorrect for ICMP
-	key = id.BuildConnKey();
+	key = BuildConnIDHashKey(id);
 
 	int len;
 	if ( ! UNSERIALIZE(&len) )
@@ -905,8 +935,40 @@ error:
 	return false;
 	}
 
-void Connection::SetRootAnalyzer(TransportLayerAnalyzer* analyzer, PIA* pia)
+void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;
+	}
+
+void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
+	{
+	uint32& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
+
+	if ( my_flow_label != flow_label )
+		{
+		if ( conn_val )
+			{
+			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
+			endp->Assign(4, new Val(flow_label, TYPE_COUNT));
+			}
+
+		if ( connection_flow_label_changed &&
+		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
+			{
+			val_list* vl = new val_list(4);
+			vl->append(BuildConnVal());
+			vl->append(new Val(is_orig, TYPE_BOOL));
+			vl->append(new Val(my_flow_label, TYPE_COUNT));
+			vl->append(new Val(flow_label, TYPE_COUNT));
+			ConnectionEvent(connection_flow_label_changed, 0, vl);
+			}
+
+		my_flow_label = flow_label;
+		}
+
+	if ( is_orig )
+		saw_first_orig_packet = 1;
+	else
+		saw_first_resp_packet = 1;
 	}

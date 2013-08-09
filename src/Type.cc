@@ -15,10 +15,9 @@
 
 extern int generate_documentation;
 
+// Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
-	static char errbuf[512];
-
 	static const char* type_names[int(NUM_TYPES)] = {
 		"void",
 		"bool", "int", "count", "counter",
@@ -31,16 +30,14 @@ const char* type_name(TypeTag t)
 		"table", "union", "record", "types",
 		"func",
 		"file",
+		"opaque",
 		"vector",
 		"type",
 		"error",
 	};
 
 	if ( int(t) >= NUM_TYPES )
-		{
-		snprintf(errbuf, sizeof(errbuf), "%d: not a type tag", int(t));
-		return errbuf;
-		}
+		return "type_name(): not a type tag";
 
 	return type_names[int(t)];
 	}
@@ -100,6 +97,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	case TYPE_LIST:
 	case TYPE_FUNC:
 	case TYPE_FILE:
+	case TYPE_OPAQUE:
 	case TYPE_VECTOR:
 	case TYPE_TYPE:
 		internal_tag = TYPE_INTERNAL_OTHER;
@@ -118,8 +116,17 @@ BroType::~BroType()
 		delete [] type_id;
 	}
 
-int BroType::MatchesIndex(ListExpr*& /* index */) const
+int BroType::MatchesIndex(ListExpr*& index) const
 	{
+	if ( Tag() == TYPE_STRING )
+		{
+		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
+			return DOES_NOT_MATCH_INDEX;
+
+		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT)) )
+			return MATCHES_INDEX_SCALAR;
+		}
+
 	return DOES_NOT_MATCH_INDEX;
 	}
 
@@ -655,22 +662,59 @@ bool SetType::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, int arg_is_event)
+FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
 : BroType(TYPE_FUNC)
 	{
 	args = arg_args;
 	yield = arg_yield;
-	is_event = arg_is_event;
+	flavor = arg_flavor;
 
 	arg_types = new TypeList();
 
+	bool has_default_arg = false;
+
 	for ( int i = 0; i < args->NumFields(); ++i )
+		{
+		const TypeDecl* td = args->FieldDecl(i);
+
+		if ( td->attrs && td->attrs->FindAttr(ATTR_DEFAULT) )
+			has_default_arg = true;
+
+		else if ( has_default_arg )
+			{
+			const char* err_str = fmt("required parameter '%s' must precede "
+			                          "default parameters", td->id);
+			args->Error(err_str);
+			}
+
 		arg_types->Append(args->FieldType(i)->Ref());
+		}
+	}
+
+string FuncType::FlavorString() const
+	{
+	switch ( flavor ) {
+
+	case FUNC_FLAVOR_FUNCTION:
+		return "function";
+
+	case FUNC_FLAVOR_EVENT:
+		return "event";
+
+	case FUNC_FLAVOR_HOOK:
+		return "hook";
+
+	default:
+		reporter->InternalError("Invalid function flavor");
+		return "invalid_func_flavor";
+	}
 	}
 
 FuncType::~FuncType()
 	{
+	Unref(args);
 	Unref(arg_types);
+	Unref(yield);
 	}
 
 BroType* FuncType::YieldType()
@@ -680,11 +724,11 @@ BroType* FuncType::YieldType()
 
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
-	return check_and_promote_exprs(index, arg_types) ?
+	return check_and_promote_args(index, args) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
-int FuncType::CheckArgs(const type_list* args) const
+int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
 	const type_list* my_args = arg_types->Types();
 
@@ -692,7 +736,7 @@ int FuncType::CheckArgs(const type_list* args) const
 		return 0;
 
 	for ( int i = 0; i < my_args->length(); ++i )
-		if ( ! same_type((*args)[i], (*my_args)[i]) )
+		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
 			return 0;
 
 	return 1;
@@ -702,7 +746,7 @@ void FuncType::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		{
-		d->Add(is_event ? "event" : "function");
+		d->Add(FlavorString());
 		d->Add("(");
 		args->DescribeFields(d);
 		d->Add(")");
@@ -716,7 +760,7 @@ void FuncType::Describe(ODesc* d) const
 	else
 		{
 		d->Add(int(Tag()));
-		d->Add(is_event);
+		d->Add(flavor);
 		d->Add(yield != 0);
 		args->DescribeFields(d);
 		if ( yield )
@@ -727,7 +771,7 @@ void FuncType::Describe(ODesc* d) const
 void FuncType::DescribeReST(ODesc* d) const
 	{
 	d->Add(":bro:type:`");
-	d->Add(is_event ? "event" : "function");
+	d->Add(FlavorString());
 	d->Add("`");
 	d->Add(" (");
 	args->DescribeFieldsReST(d, true);
@@ -759,9 +803,30 @@ bool FuncType::DoSerialize(SerialInfo* info) const
 
 	SERIALIZE_OPTIONAL(yield);
 
+	int ser_flavor = 0;
+
+	switch ( flavor ) {
+
+	case FUNC_FLAVOR_FUNCTION:
+		ser_flavor = 0;
+		break;
+
+	case FUNC_FLAVOR_EVENT:
+		ser_flavor = 1;
+		break;
+
+	case FUNC_FLAVOR_HOOK:
+		ser_flavor = 2;
+		break;
+
+	default:
+		reporter->InternalError("Invalid function flavor serialization");
+		break;
+	}
+
 	return args->Serialize(info) &&
 		arg_types->Serialize(info) &&
-		SERIALIZE(is_event);
+		SERIALIZE(ser_flavor);
 	}
 
 bool FuncType::DoUnserialize(UnserialInfo* info)
@@ -778,7 +843,27 @@ bool FuncType::DoUnserialize(UnserialInfo* info)
 	if ( ! arg_types )
 		return false;
 
-	return UNSERIALIZE(&is_event);
+	int ser_flavor = 0;
+
+	if ( ! UNSERIALIZE(&ser_flavor) )
+		return false;
+
+	switch ( ser_flavor ) {
+	case 0:
+		flavor = FUNC_FLAVOR_FUNCTION;
+		break;
+	case 1:
+		flavor = FUNC_FLAVOR_EVENT;
+		break;
+	case 2:
+		flavor = FUNC_FLAVOR_HOOK;
+		break;
+	default:
+		reporter->InternalError("Invalid function flavor unserialization");
+		break;
+	}
+
+	return true;
 	}
 
 TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
@@ -914,7 +999,7 @@ Val* RecordType::FieldDefault(int field) const
 	const TypeDecl* td = FieldDecl(field);
 
 	if ( ! td->attrs )
-		return false;
+		return 0;
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
@@ -1206,10 +1291,58 @@ bool FileType::DoUnserialize(UnserialInfo* info)
 	return yield != 0;
 	}
 
-EnumType::EnumType()
+OpaqueType::OpaqueType(const string& arg_name) : BroType(TYPE_OPAQUE)
+	{
+	name = arg_name;
+	}
+
+void OpaqueType::Describe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->AddSP("opaque of");
+	else
+		d->Add(int(Tag()));
+
+	d->Add(name.c_str());
+	}
+
+IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
+
+bool OpaqueType::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_OPAQUE_TYPE, BroType);
+	return SERIALIZE_STR(name.c_str(), name.size());
+	}
+
+bool OpaqueType::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(BroType);
+
+	const char* n;
+	if ( ! UNSERIALIZE_STR(&n, 0) )
+		return false;
+
+	name = n;
+	delete [] n;
+
+	return true;
+	}
+
+EnumType::EnumType(const string& arg_name)
 : BroType(TYPE_ENUM)
 	{
+	name = arg_name;
 	counter = 0;
+	}
+
+EnumType::EnumType(EnumType* e)
+: BroType(TYPE_ENUM)
+	{
+	name = e->name;
+	counter = e->counter;
+
+	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+		names[copy_string(it->first)] = it->second;
 	}
 
 EnumType::~EnumType()
@@ -1329,6 +1462,13 @@ const char* EnumType::Lookup(bro_int_t value)
 			return iter->first;
 
 	return 0;
+	}
+
+void EnumType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(name.c_str());
+	d->Add("`");
 	}
 
 void CommentedEnumType::DescribeReST(ODesc* d) const
@@ -1471,6 +1611,16 @@ bool VectorType::DoUnserialize(UnserialInfo* info)
 	return yield_type != 0;
 	}
 
+void VectorType::Describe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->AddSP("vector of");
+	else
+		d->Add(int(Tag()));
+
+	yield_type->Describe(d);
+	}
+
 BroType* base_type(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
@@ -1589,7 +1739,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t2;
 
-		if ( ft1->IsEvent() != ft2->IsEvent() )
+		if ( ft1->Flavor() != ft2->Flavor() )
 			return 0;
 
 		if ( t1->YieldType() || t2->YieldType() )
@@ -1599,7 +1749,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 				return 0;
 			}
 
-		return same_type(ft1->Args(), ft2->Args(), is_init);
+		return ft1->CheckArgs(ft2->ArgTypes()->Types(), is_init);
 		}
 
 	case TYPE_RECORD:
@@ -1641,6 +1791,13 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_VECTOR:
 	case TYPE_FILE:
 		return same_type(t1->YieldType(), t2->YieldType(), is_init);
+
+	case TYPE_OPAQUE:
+		{
+		const OpaqueType* ot1 = (const OpaqueType*) t1;
+		const OpaqueType* ot2 = (const OpaqueType*) t2;
+		return ot1->Name() == ot2->Name() ? 1 : 0;
+		}
 
 	case TYPE_TYPE:
 		return same_type(t1, t2, is_init);
@@ -1731,6 +1888,7 @@ int is_assignable(BroType* t)
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
+	case TYPE_OPAQUE:
 	case TYPE_TABLE:
 	case TYPE_TYPE:
 		return 1;
@@ -1858,13 +2016,8 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		if ( t1->IsSet() )
 			return new SetType(tl3, 0);
-		else if ( tg1 == TYPE_TABLE )
-			return new TableType(tl3, y3);
 		else
-			{
-			reporter->InternalError("bad tag in merge_types");
-			return 0;
-			}
+			return new TableType(tl3, y3);
 		}
 
 	case TYPE_FUNC:
@@ -1881,7 +2034,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		BroType* yield = t1->YieldType() ?
 			merge_types(t1->YieldType(), t2->YieldType()) : 0;
 
-		return new FuncType(args->AsRecordType(), yield, ft1->IsEvent());
+		return new FuncType(args->AsRecordType(), yield, ft1->Flavor());
 		}
 
 	case TYPE_RECORD:
@@ -2120,4 +2273,19 @@ BroType* init_type(Expr* init)
 		}
 
 	return new SetType(t->AsTypeList(), 0);
+	}
+
+bool is_atomic_type(const BroType* t)
+	{
+	switch ( t->InternalType() ) {
+	case TYPE_INTERNAL_INT:
+	case TYPE_INTERNAL_UNSIGNED:
+	case TYPE_INTERNAL_DOUBLE:
+	case TYPE_INTERNAL_STRING:
+	case TYPE_INTERNAL_ADDR:
+	case TYPE_INTERNAL_SUBNET:
+		return true;
+	default:
+		return false;
+	}
 	}

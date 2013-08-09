@@ -4,6 +4,7 @@
 #define reassem_h
 
 #include "Obj.h"
+#include "IPAddr.h"
 
 class DataBlock {
 public:
@@ -25,8 +26,7 @@ enum ReassemblerType { REASSEM_IP, REASSEM_TCP };
 
 class Reassembler : public BroObj {
 public:
-	Reassembler(int init_seq, const uint32* ip_addr,
-			ReassemblerType arg_type);
+	Reassembler(int init_seq, ReassemblerType arg_type);
 	virtual ~Reassembler();
 
 	void NewBlock(double t, int seq, int len, const u_char* data);

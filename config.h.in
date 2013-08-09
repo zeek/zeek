@@ -1,6 +1,3 @@
-/* enable IPV6 processing */
-#cmakedefine BROv6
-
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
    pcap_compile_nopcap */
 #cmakedefine DONT_HAVE_LIBPCAP_PCAP_FREECODE
@@ -32,8 +29,8 @@
 /* Define if you have the <net/ethernet.h> header file. */
 #cmakedefine HAVE_NET_ETHERNET_H
 
-/* We are on a OpenBSD system */
-#cmakedefine HAVE_OPENBSD
+/* Define if you have the <net/ethertypes.h> header file. */
+#cmakedefine HAVE_NET_ETHERTYPES_H
 
 /* have os-proto.h */
 #cmakedefine HAVE_OS_PROTO_H
@@ -112,7 +109,19 @@
 #cmakedefine HAVE_GEOIP_CITY_EDITION_REV0_V6
 
 /* Use Google's perftools */
-#cmakedefine USE_PERFTOOLS
+#cmakedefine USE_PERFTOOLS_DEBUG
+
+/* Analyze Mobile IPv6 traffic */
+#cmakedefine ENABLE_MOBILE_IPV6
+
+/* Use libCurl. */
+#cmakedefine USE_CURL
+
+/* Use the DataSeries writer. */
+#cmakedefine USE_DATASERIES
+
+/* Use the ElasticSearch writer. */
+#cmakedefine USE_ELASTICSEARCH
 
 /* Version number of package */
 #define VERSION "@VERSION@"
@@ -145,3 +154,58 @@
 
 /* Define u_int8_t */
 #cmakedefine u_int8_t @u_int8_t@
+
+/* OpenBSD's bpf.h may not declare this data link type, but it's supposed to be
+   used consistently for the same purpose on all platforms. */
+#cmakedefine HAVE_DLT_PPP_SERIAL
+#ifndef HAVE_DLT_PPP_SERIAL
+#define DLT_PPP_SERIAL @DLT_PPP_SERIAL@
+#endif
+
+/* IPv6 Next Header values defined by RFC 3542 */
+#cmakedefine HAVE_IPPROTO_HOPOPTS
+#ifndef HAVE_IPPROTO_HOPOPTS
+#define IPPROTO_HOPOPTS 0
+#endif
+#cmakedefine HAVE_IPPROTO_IPV6
+#ifndef HAVE_IPPROTO_IPV6
+#define IPPROTO_IPV6 41
+#endif
+#cmakedefine HAVE_IPPROTO_IPV4
+#ifndef HAVE_IPPROTO_IPV4
+#define IPPROTO_IPV4 4
+#endif
+#cmakedefine HAVE_IPPROTO_ROUTING
+#ifndef HAVE_IPPROTO_ROUTING
+#define IPPROTO_ROUTING 43
+#endif
+#cmakedefine HAVE_IPPROTO_FRAGMENT
+#ifndef HAVE_IPPROTO_FRAGMENT
+#define IPPROTO_FRAGMENT 44
+#endif
+#cmakedefine HAVE_IPPROTO_ESP
+#ifndef HAVE_IPPROTO_ESP
+#define IPPROTO_ESP 50
+#endif
+#cmakedefine HAVE_IPPROTO_AH
+#ifndef HAVE_IPPROTO_AH
+#define IPPROTO_AH 51
+#endif
+#cmakedefine HAVE_IPPROTO_ICMPV6
+#ifndef HAVE_IPPROTO_ICMPV6
+#define IPPROTO_ICMPV6 58
+#endif
+#cmakedefine HAVE_IPPROTO_NONE
+#ifndef HAVE_IPPROTO_NONE
+#define IPPROTO_NONE 59
+#endif
+#cmakedefine HAVE_IPPROTO_DSTOPTS
+#ifndef HAVE_IPPROTO_DSTOPTS
+#define IPPROTO_DSTOPTS 60
+#endif
+
+/* IPv6 options structure defined by RFC 3542 */
+#cmakedefine HAVE_IP6_OPT
+
+/* Common IPv6 extension structure */
+#cmakedefine HAVE_IP6_EXT

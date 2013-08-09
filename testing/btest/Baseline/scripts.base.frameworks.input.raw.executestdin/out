@@ -1,0 +1,36 @@
+[source=cat |, reader=Input::READER_RAW, mode=Input::STREAM, name=input2, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (2 == try) 
+{ 
+Input::remove(input2);
+close(outfile);
+terminate();
+}
+
+}, config={
+[stdin] = hello^Jthere^A^B^C^D^E^A^B^Cyay
+}]
+Input::EVENT_NEW
+hello
+[source=cat |, reader=Input::READER_RAW, mode=Input::STREAM, name=input2, fields=<no value description>, want_record=F, ev=line
+{ 
+print outfile, A::description;
+print outfile, A::tpe;
+print outfile, A::s;
+try = try + 1;
+if (2 == try) 
+{ 
+Input::remove(input2);
+close(outfile);
+terminate();
+}
+
+}, config={
+[stdin] = hello^Jthere^A^B^C^D^E^A^B^Cyay
+}]
+Input::EVENT_NEW
+there^A^B^C^D^E^A^B^Cyay

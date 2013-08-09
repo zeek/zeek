@@ -1,3 +1,4 @@
+##! Declaration of various types that the Bro core uses internally.
 
 enum dce_rpc_ptype %{
 	DCE_RPC_REQUEST,
@@ -134,8 +135,8 @@ enum createmode_t %{
 	EXCLUSIVE = 2,
 %}
 
-# Decleare record types that we want to access from the even engine. These are
-# defined in bro.init.
+# Declare record types that we want to access from the event engine. These are
+# defined in init-bare.bro.
 type info_t: record;
 type fattr_t: record;
 type diropargs_t: record;
@@ -155,16 +156,75 @@ type readdir_reply_t: record;
 
 type fsstat_t: record;
 
+
+module GLOBAL;
+
+type ModbusHeaders: record;
+type ModbusCoils: vector;
+type ModbusRegisters: vector;
+
 module Log;
 
 enum Writer %{
 	WRITER_DEFAULT,
 	WRITER_NONE,
 	WRITER_ASCII,
+	WRITER_DATASERIES,
+	WRITER_SQLITE,
+	WRITER_ELASTICSEARCH,
 %}
 
 enum ID %{
 	Unknown,
 %}
 
+module Tunnel;
+enum Type %{
+	NONE,
+	IP,
+	AYIYA,
+	TEREDO,
+	SOCKS,
+	GTPv1,
+%}
+
+type EncapsulatingConn: record;
+
+module Input;
+
+enum Reader %{
+	READER_DEFAULT,
+	READER_ASCII,
+	READER_RAW,
+	READER_BENCHMARK,
+	READER_BINARY,
+	READER_SQLITE,
+%}
+
+enum Event %{
+	EVENT_NEW,
+	EVENT_CHANGED,
+	EVENT_REMOVED,
+%}
+
+enum Mode %{
+	MANUAL = 0,
+	REREAD = 1,
+	STREAM = 2,
+%}
+
 module GLOBAL;
+
+type gtpv1_hdr: record;
+type gtp_create_pdp_ctx_request_elements: record;
+type gtp_create_pdp_ctx_response_elements: record;
+type gtp_update_pdp_ctx_request_elements: record;
+type gtp_update_pdp_ctx_response_elements: record;
+type gtp_delete_pdp_ctx_request_elements: record;
+type gtp_delete_pdp_ctx_response_elements: record;
+
+type gtp_end_user_addr: record;
+type gtp_rai: record;
+type gtp_qos_profile: record;
+type gtp_private_extension: record;
+type gtp_gsn_addr: record;

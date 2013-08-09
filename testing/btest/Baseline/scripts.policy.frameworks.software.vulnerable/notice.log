@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2013-07-25-19-54-45
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	table[enum]	interval	bool	string	string	string	double	double
+1374782085.726121	-	-	-	-	-	-	-	-	-	Software::Vulnerable_Version	1.2.3.4 is running Java 1.7.0.15 which is vulnerable.	Java 1.7.0.15	1.2.3.4	-	-	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+1374782085.726121	-	-	-	-	-	-	-	-	-	Software::Vulnerable_Version	1.2.3.5 is running Java 1.6.0.43 which is vulnerable.	Java 1.6.0.43	1.2.3.5	-	-	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+#close	2013-07-25-19-54-45

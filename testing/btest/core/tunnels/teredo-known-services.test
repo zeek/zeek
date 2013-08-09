@@ -1,0 +1,11 @@
+# @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap base/frameworks/dpd base/protocols/tunnels protocols/conn/known-services Tunnel::delay_teredo_confirmation=T "Site::local_nets+={192.168.1.0/24}"
+# @TEST-EXEC: test ! -e known_services.log
+# @TEST-EXEC: bro -b -r $TRACES/tunnels/false-teredo.pcap base/frameworks/dpd base/protocols/tunnels protocols/conn/known-services Tunnel::delay_teredo_confirmation=F "Site::local_nets+={192.168.1.0/24}"
+# @TEST-EXEC: btest-diff known_services.log
+
+# The first case using Tunnel::delay_teredo_confirmation=T doesn't produce
+# a known services.log since valid Teredo encapsulations from both endpoints
+# of a connection is never witnessed and a protocol_confirmation never issued.
+
+# The second case issues protocol_confirmations more hastily and so bogus
+# entries in known-services.log are more likely to appear.

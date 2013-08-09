@@ -1,0 +1,159 @@
+
+0.26 | 2012-08-24 15:10:04 -0700
+
+  * Fixing update-changes, which could pick the wrong control file. (Robin Sommer)
+
+  * Fixing GPG signing script. (Robin Sommer)
+
+0.25 | 2012-08-01 13:55:46 -0500
+
+  * Fix configure script to exit with non-zero status on error (Jon Siwek)
+
+0.24 | 2012-07-05 12:50:43 -0700
+
+  * Raise minimum required CMake version to 2.6.3 (Jon Siwek)
+
+  * Adding script to delete old fully-merged branches. (Robin Sommer)
+
+0.23-2 | 2012-01-25 13:24:01 -0800
+
+  * Fix a bro-cut error message. (Daniel Thayer)
+
+0.23 | 2012-01-11 12:16:11 -0800
+
+  * Tweaks to release scripts, plus a new one for signing files.
+    (Robin Sommer)
+
+0.22 | 2012-01-10 16:45:19 -0800
+
+  * Tweaks for OpenBSD support. (Jon Siwek)
+
+  * bro-cut extensions and fixes.  (Robin Sommer)
+    
+    - If no field names are given on the command line, we now pass through
+      all fields. Adresses #657.
+
+    - Removing some GNUism from awk script. Addresses #653.
+
+    - Added option for time output in UTC. Addresses #668.
+
+    - Added output field separator option -F. Addresses #649.
+
+    - Fixing option -c: only some header lines were passed through
+      rather than all. (Robin Sommer)
+
+  * Fix parallel make portability. (Jon Siwek)
+
+0.21-9 | 2011-11-07 05:44:14 -0800
+
+  * Fixing compiler warnings. Addresses #388. (Jon Siwek)
+
+0.21-2 | 2011-11-02 18:12:13 -0700
+
+  * Fix for misnaming temp file in update-changes script. (Robin Sommer)
+
+0.21-1 | 2011-11-02 18:10:39 -0700
+
+  * Little fix for make-release script, which could pick out the wrong
+    tag. (Robin Sommer)
+
+0.21 | 2011-10-27 17:40:45 -0700
+
+  * Fixing bro-cut's usage message and argument error handling. (Robin Sommer)
+
+  * Bugfix in update-changes script. (Robin Sommer)
+
+  * update-changes now ignores commits it did itself. (Robin Sommer)
+
+  * Fix a bug in the update-changes script. (Robin Sommer)
+
+  * bro-cut now always installs to $prefix/bin by `make install`. (Jon Siwek)
+
+  * Options to adjust time format for bro-cut. (Robin Sommer)
+
+    The default with -d is now ISO format. The new option "-D <fmt>"
+    specifies a custom strftime()-style format string. Alternatively,
+    the environment variable BRO_CUT_TIMEFMT can set the format as
+    well.
+
+  * bro-cut now understands the field separator header. (Robin Sommer)
+
+  * Renaming options -h/-H -> -c/-C, and doing some general cleanup.
+
+0.2 | 2011-10-25 19:53:57 -0700
+
+  * Adding support for replacing version string in a setup.py. (Robin
+    Sommer)
+
+  * Change generated root cert DN indices format for RFC2253
+    compliance. (Jon Siwek)
+
+  * New tool devel-tools/check-release to run before making releases.
+    (Robin Sommer)
+
+  * devel-tools/update-changes gets a new option -a to amend to
+    previous commit if possible. Default is now not to (used to be the
+    opposite). (Robin Sommer)
+
+  * Change Mozilla trust root generation to index certs by subject DN. (Jon Siwek)
+
+  * Change distclean to only remove build dir. (Jon Siwek)
+
+  * Make dist now cleans the copied source (Jon Siwek)
+
+  * Small tweak to make-release for forced git-clean. (Jon Siwek)
+
+  * Fix to not let updates scripts loose their executable permissions.
+    (Robin Sommer)
+
+  * devel-tools/update-changes now looks for a 'release' tag to
+    idenfify the stable version, and 'beta' for the beta versions.
+    (Robin Sommer).
+
+  * Distribution cleanup. (Robin Sommer)
+
+  * New script devel-tools/make-release to create source tar balls.
+    (Robin Sommer)
+
+  * Removing bdcat. With the new log format, this isn't very useful
+    anymore. (Robin Sommer)
+
+  * Adding script that shows all pending git fastpath commits. (Robin
+    Sommer)
+
+  * Script to measure CPU time by loading an increasing set of
+    scripts. (Robin Sommer)
+
+  * extract-conn script now deals wit *.gz files. (Robin Sommer)
+
+  * Tiny update to output a valid CA list file for SSL cert
+    validation. (Seth Hall)
+
+  * Adding "install-aux" target. Addresses #622. (Jon Siwek)
+
+  * Distribution cleanup. (Jon Siwek and Robin Sommer)
+
+  * FindPCAP now links against thread library when necessary (e.g.
+    PF_RING's libpcap) (Jon Siwek)
+
+  * Install binaries with an RPATH (Jon Siwek)
+
+  * Workaround for FreeBSD CMake port missing debug flags (Jon Siwek)
+
+  * Rewrite of the update-changes script. (Robin Sommer)
+
+0.1-1 | 2011-06-14 21:12:41 -0700
+
+  * Add a script for generating Mozilla's CA list for the SSL analyzer.
+    (Seth Hall)
+
+0.1 | 2011-04-01 16:28:22 -0700
+
+  * Converting build process to CMake. (Jon Siwek)
+
+  * Removing cf/hf/ca-* from distribution. The README has a note where
+    to find them now. (Robin Sommer)
+
+  * General cleanup. (Robin Sommer)
+
+  * Initial import of bro/aux from SVN r7088. (Jon Siwek)

@@ -1,0 +1,34 @@
+# Extent Types ...
+<ExtentType name="DataSeries: ExtentIndex">
+  <field type="int64" name="offset" />
+  <field type="variable32" name="extenttype" />
+</ExtentType>
+
+<ExtentType name="DataSeries: XmlType">
+  <field type="variable32" name="xmltype" />
+</ExtentType>
+
+<ExtentType name="ssh" version="1.0" namespace="bro.org">
+	<field type="double" name="t" pack_relative="t" pack_scale="1e-6" print_format="%.6f" pack_scale_warn="no"/>
+	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
+	<field type="int64" name="id.orig_p" />
+	<field type="variable32" name="id.resp_h" pack_unique="yes"/>
+	<field type="int64" name="id.resp_p" />
+	<field type="variable32" name="status" pack_unique="yes"/>
+	<field type="variable32" name="country" pack_unique="yes"/>
+</ExtentType>
+<!-- t : time -->
+<!-- id.orig_h : addr -->
+<!-- id.orig_p : port -->
+<!-- id.resp_h : addr -->
+<!-- id.resp_p : port -->
+<!-- status : string -->
+<!-- country : string -->
+
+# Extent, type='ssh'
+t id.orig_h id.orig_p id.resp_h id.resp_p status country
+1342748962.493341 1.2.3.4 1234 2.3.4.5 80 success unknown
+1342748962.493341 1.2.3.4 1234 2.3.4.5 80 failure US
+1342748962.493341 1.2.3.4 1234 2.3.4.5 80 failure UK
+1342748962.493341 1.2.3.4 1234 2.3.4.5 80 success BR
+1342748962.493341 1.2.3.4 1234 2.3.4.5 80 failure MX

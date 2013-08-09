@@ -2,7 +2,9 @@
 #define sigs_h
 
 #include <limits.h>
+#include <vector>
 
+#include "IPAddr.h"
 #include "BroString.h"
 #include "List.h"
 #include "RE.h"
@@ -33,8 +35,10 @@ extern const char* current_rule_file;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 
-class Analyzer;
-class PIA;
+namespace analyzer {
+	namespace pia { class PIA; }
+	class Analyzer;
+}
 
 // RuleHdrTest and associated things:
 
@@ -59,17 +63,19 @@ declare(PList, BroString);
 typedef PList(BroString) bstr_list;
 
 // Get values from Bro's script-level variables.
-extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to);
+extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
+                                vector<IPPrefix>* prefix_vector = 0);
 extern char* id_to_str(const char* id);
 extern uint32 id_to_uint(const char* id);
 
 class RuleHdrTest {
 public:
 	enum Comp { LE, GE, LT, GT, EQ, NE };
-	enum Prot { NOPROT, IP, ICMP, TCP, UDP };
+	enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 
 	RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -86,6 +92,7 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
+	vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32 offset;
 	uint32 size;
 
@@ -135,7 +142,7 @@ class RuleEndpointState {
 public:
 	~RuleEndpointState();
 
-	Analyzer* GetAnalyzer()	const	{ return analyzer; }
+	analyzer::Analyzer* GetAnalyzer()	const	{ return analyzer; }
 	bool IsOrig()		{ return is_orig; }
 
 	// For flipping roles.
@@ -147,15 +154,15 @@ public:
 	// Returns -1 if no chunk has been fed yet at all.
 	int PayloadSize()	{ return payload_size; }
 
-	::PIA* PIA() const	{ return pia; }
+	analyzer::pia::PIA* PIA() const	{ return pia; }
 
 private:
 	friend class RuleMatcher;
 
 	// Constructor is private; use RuleMatcher::InitEndpoint()
 	// for creating an instance.
-	RuleEndpointState(Analyzer* arg_analyzer, bool arg_is_orig,
-			  RuleEndpointState* arg_opposite, ::PIA* arg_PIA);
+	RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig,
+			  RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher {
 		RE_Match_State* state;
@@ -166,9 +173,9 @@ private:
 	typedef PList(Matcher) matcher_list;
 
 	bool is_orig;
-	Analyzer* analyzer;
+	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
-	::PIA* pia;
+	analyzer::pia::PIA* pia;
 
 	matcher_list matchers;
 	rule_hdr_test_list hdr_tests;
@@ -202,8 +209,8 @@ public:
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
-	RuleEndpointState* InitEndpoint(Analyzer* analyzer, const IP_Hdr* ip,
-		int caplen, RuleEndpointState* opposite, bool is_orig, PIA* pia);
+	RuleEndpointState* InitEndpoint(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
+					int caplen, RuleEndpointState* opposite, bool is_orig, analyzer::pia::PIA* pia);
 
 	// Finish matching for this stream.
 	void FinishEndpoint(RuleEndpointState* state);
@@ -305,8 +312,8 @@ public:
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
-	void InitEndpointMatcher(Analyzer* analyzer, const IP_Hdr* ip,
-				int caplen, bool from_orig, PIA* pia = 0);
+	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
+				 int caplen, bool from_orig, analyzer::pia::PIA* pia = 0);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

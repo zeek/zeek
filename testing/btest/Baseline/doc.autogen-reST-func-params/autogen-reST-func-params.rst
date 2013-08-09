@@ -1,13 +1,14 @@
 .. Automatically generated.  Do not edit.
 
+:tocdepth: 3
+
 autogen-reST-func-params.bro
 ============================
 
-:download:`Original Source File <autogen-reST-func-params.bro>`
 
-Overview
---------
 
+
+:Source File: :download:`autogen-reST-func-params.bro`
 
 Summary
 ~~~~~~~
@@ -19,14 +20,14 @@ Types
 
 Functions
 #########
-===================================== ======================================
-:bro:id:`test_func`: :bro:type:`func` This is a global function declaration.
-===================================== ======================================
+========================================= ======================================
+:bro:id:`test_func`: :bro:type:`function` This is a global function declaration.
+========================================= ======================================
 
-Public Interface
-----------------
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
 Types
-~~~~~
+#####
 .. bro:type:: test_rec
 
    :Type: :bro:type:`record`
@@ -40,7 +41,7 @@ Types
          :returns: A string.
 
 Functions
-~~~~~~~~~
+#########
 .. bro:id:: test_func
 
    :Type: :bro:type:`function` (i: :bro:type:`int`, j: :bro:type:`int`) : :bro:type:`string`

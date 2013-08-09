@@ -1,0 +1,3 @@
+[orig_h=1.2.0.2, orig_p=2527/tcp, resp_h=1.2.0.3, resp_p=6649/tcp]
+orig:, [size=175, state=1, num_pkts=4, num_bytes_ip=395, flow_label=0]
+resp:, [size=0, state=6, num_pkts=5, num_bytes_ip=236, flow_label=0]

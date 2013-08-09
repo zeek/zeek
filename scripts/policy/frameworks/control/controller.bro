@@ -1,3 +1,10 @@
+##! This is a utility script that implements the controller interface for the
+##! control framework.  It's intended to be run to control a remote Bro 
+##! and then shutdown.
+##!
+##! It's intended to be used from the command line like this::
+##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
+
 @load base/frameworks/control
 @load base/frameworks/communication
 
@@ -18,8 +25,8 @@ event bro_init() &priority=5
 	
 	# Establish the communication configuration and only request response
 	# messages.
-	Communication::nodes["control"] = [$host=host, $p=host_port,
-	                                   $sync=F, $connect=T,
+	Communication::nodes["control"] = [$host=host, $zone_id=zone_id,
+	                                   $p=host_port, $sync=F, $connect=T,
 	                                   $class="control", $events=Control::controllee_events];
 	}
 

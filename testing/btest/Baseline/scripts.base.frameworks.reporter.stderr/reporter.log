@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#open	2013-01-18-18-29-30
+#fields	ts	level	message	location
+#types	time	enum	string	string
+0.000000	Reporter::ERROR	no such index (test[3])	/Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/scripts.base.frameworks.reporter.stderr/stderr.bro, line 9
+#close	2013-01-18-18-29-30

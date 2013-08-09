@@ -34,7 +34,7 @@ Let's look at an example signature first:
 
 This signature asks Bro to match the regular expression ``.*root`` on
 all TCP connections going to port 80. When the signature triggers, Bro
-will raise an event ``signature_match`` of the form:
+will raise an event :bro:id:`signature_match` of the form:
 
 .. code:: bro
 
@@ -45,19 +45,24 @@ triggered the match, ``msg`` is the string specified by the
 signature's event statement (``Found root!``), and data is the last
 piece of payload which triggered the pattern match.
 
-To turn such ``signature_match`` events into actual alarms, you can
-load Bro's ``signature.bro`` script. This script contains a default
-event handler that raises ``SensitiveSignature`` :doc:`Notices <notice>`
+To turn such :bro:id:`signature_match` events into actual alarms, you can
+load Bro's :doc:`/scripts/base/frameworks/signatures/main` script.
+This script contains a default event handler that raises
+:bro:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
 (as well as others; see the beginning of the script).
 
-As signatures are independent of Bro's policy scripts, they are put
-into their own file(s). There are two ways to specify which files
-contain signatures: By using the ``-s`` flag when you invoke Bro, or
-by extending the Bro variable ``signatures_files`` using the ``+=``
-operator. If a signature file is given without a path, it is searched
-along the normal ``BROPATH``. The default extension of the file name
-is ``.sig``, and Bro appends that automatically when neccesary.
-
+As signatures are independent of Bro's policy scripts, they are put into
+their own file(s). There are three ways to specify which files contain
+signatures: By using the ``-s`` flag when you invoke Bro, or by
+extending the Bro variable :bro:id:`signature_files` using the ``+=``
+operator, or by using the ``@load-sigs`` directive inside a Bro script.
+If a signature file is given without a full path, it is searched for
+along the normal ``BROPATH``.  Additionally, the ``@load-sigs``
+directive can be used to load signature files in a path relative to the
+Bro script in which it's placed, e.g. ``@load-sigs ./mysigs.sig`` will
+expect that signature file in the same directory as the Bro script. The
+default extension of the file name is ``.sig``, and Bro appends that
+automatically when necessary.
 
 Signature language
 ==================
@@ -78,9 +83,8 @@ Header Conditions
 ~~~~~~~~~~~~~~~~~
 
 Header conditions limit the applicability of the signature to a subset
-of traffic that contains matching packet headers. For TCP, this match
-is performed only for the first packet of a connection. For other
-protocols, it is done on each individual packet.
+of traffic that contains matching packet headers.  This type of matching
+is performed only for the first packet of a connection.
 
 There are pre-defined header conditions for some of the most used
 header fields. All of them generally have the format ``<keyword> <cmp>
@@ -90,14 +94,22 @@ one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``; and
 against. The following keywords are defined:
 
 ``src-ip``/``dst-ip <cmp> <address-list>``
-    Source and destination address, repectively. Addresses can be
-    given as IP addresses or CIDR masks.
+    Source and destination address, respectively. Addresses can be given
+    as IPv4 or IPv6 addresses or CIDR masks.  For IPv6 addresses/masks
+    the colon-hexadecimal representation of the address must be enclosed
+    in square brackets (e.g. ``[fe80::1]`` or ``[fe80::0]/16``).
 
-``src-port``/``dst-port`` ``<int-list>``
-    Source and destination port, repectively.
+``src-port``/``dst-port <cmp> <int-list>``
+    Source and destination port, respectively.
 
-``ip-proto tcp|udp|icmp``
-    IP protocol.
+``ip-proto <cmp> tcp|udp|icmp|icmp6|ip|ip6``
+    IPv4 header's Protocol field or the Next Header field of the final
+    IPv6 header (i.e. either Next Header field in the fixed IPv6 header
+    if no extension headers are present or that field from the last
+    extension header in the chain).  Note that the IP-in-IP forms of
+    tunneling are automatically decapsulated by default and signatures
+    apply to only the inner-most packet, so specifying ``ip`` or ``ip6``
+    is a no-op.
 
 For lists of multiple values, they are sequentially compared against
 the corresponding header field. If at least one of the comparisons
@@ -111,30 +123,32 @@ condition can be defined either as
 
     header <proto>[<offset>:<size>] [& <integer>] <cmp> <value-list>
 
-This compares the value found at the given position of the packet
-header with a list of values. ``offset`` defines the position of the
-value within the header of the protocol defined by ``proto`` (which
-can be ``ip``, ``tcp``, ``udp`` or ``icmp``). ``size`` is either 1, 2,
-or 4 and specifies the value to have a size of this many bytes. If the
-optional ``& <integer>`` is given, the packet's value is first masked
-with the integer before it is compared to the value-list. ``cmp`` is
-one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``. ``value-list`` is
-a list of comma-separated integers similar to those described above.
-The integers within the list may be followed by an additional ``/
-mask`` where ``mask`` is a value from 0 to 32. This corresponds to the
-CIDR notation for netmasks and is translated into a corresponding
-bitmask applied to the packet's value prior to the comparison (similar
-to the optional ``& integer``).
+This compares the value found at the given position of the packet header
+with a list of values. ``offset`` defines the position of the value
+within the header of the protocol defined by ``proto`` (which can be
+``ip``, ``ip6``, ``tcp``, ``udp``, ``icmp`` or ``icmp6``). ``size`` is
+either 1, 2, or 4 and specifies the value to have a size of this many
+bytes. If the optional ``& <integer>`` is given, the packet's value is
+first masked with the integer before it is compared to the value-list.
+``cmp`` is one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``.
+``value-list`` is a list of comma-separated integers similar to those
+described above.  The integers within the list may be followed by an
+additional ``/ mask`` where ``mask`` is a value from 0 to 32. This
+corresponds to the CIDR notation for netmasks and is translated into a
+corresponding bitmask applied to the packet's value prior to the
+comparison (similar to the optional ``& integer``).  IPv6 address values
+are not allowed in the value-list, though you can still inspect any 1,
+2, or 4 byte section of an IPv6 header using this keyword.
 
-Putting all together, this is an example conditiation that is
-equivalent to ``dst- ip == 1.2.3.4/16, 5.6.7.8/24``:
+Putting it all together, this is an example condition that is
+equivalent to ``dst-ip == 1.2.3.4/16, 5.6.7.8/24``:
 
 .. code:: bro-sig
 
     header ip[16:4] == 1.2.3.4/16, 5.6.7.8/24
 
-Internally, the predefined header conditions are in fact just
-short-cuts and mappend into a generic condition.
+Note that the analogous example for IPv6 isn't currently possible since
+4 bytes is the max width of a value that can be compared.
 
 Content Conditions
 ~~~~~~~~~~~~~~~~~~
@@ -143,7 +157,7 @@ Content conditions are defined by regular expressions. We
 differentiate two kinds of content conditions: first, the expression
 may be declared with the ``payload`` statement, in which case it is
 matched against the raw payload of a connection (for reassembled TCP
-streams) or of a each packet (for ICMP, UDP, and non-reassembled TCP).
+streams) or of each packet (for ICMP, UDP, and non-reassembled TCP).
 Second, it may be prefixed with an analyzer-specific label, in which
 case the expression is matched against the data as extracted by the
 corresponding analyzer.
@@ -208,7 +222,7 @@ To define dependencies between signatures, there are two conditions:
 
 ``requires-reverse-signature [!] <id>``
     Similar to ``requires-signature``, but ``id`` has to match for the
-    opposite direction of the same connection, compared the current
+    opposite direction of the same connection, compared to the current
     signature. This allows to model the notion of requests and
     replies.
 
@@ -224,20 +238,10 @@ matched. The following context conditions are defined:
     confirming the match. If false is returned, no signature match is
     going to be triggered. The function has to be of type ``function
     cond(state: signature_state, data: string): bool``. Here,
-    ``content`` may contain the most recent content chunk available at
+    ``data`` may contain the most recent content chunk available at
     the time the signature was matched. If no such chunk is available,
-    ``content`` will be the empty string. ``signature_state`` is
-    defined as follows:
-
-    .. code:: bro
-
-        type signature_state: record {
-            id: string;          # ID of the signature
-            conn: connection;    # Current connection
-            is_orig: bool;       # True if current endpoint is originator
-            payload_size: count; # Payload size of the first packet
-            };
-
+    ``data`` will be the empty string. See :bro:type:`signature_state`
+    for its definition.
 
 ``payload-size <cmp> <integer>``
     Compares the integer to the size of the payload of a packet. For
@@ -265,7 +269,7 @@ Actions define what to do if a signature matches. Currently, there are
 two actions defined:
 
 ``event <string>``
-    Raises a ``signature_match`` event. The event handler has the
+    Raises a :bro:id:`signature_match` event. The event handler has the
     following type:
 
     .. code:: bro
@@ -338,11 +342,11 @@ Things to keep in mind when writing signatures
   signature engine and can be matched with ``\r`` and ``\n``,
   respectively. Generally, Bro follows `flex's regular expression
   syntax
-  <http://www.gnu.org/software/flex/manual/html_chapter/flex_7.html>`_.
-  See the DPD signatures in ``policy/sigs/dpd.bro`` for some examples
+  <http://flex.sourceforge.net/manual/Patterns.html>`_.
+  See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 
-* The data argument of the ``signature_match`` handler might not carry
+* The data argument of the :bro:id:`signature_match` handler might not carry
   the full text matched by the regular expression. Bro performs the
   matching incrementally as packets come in; when the signature
   eventually fires, it can only pass on the most recent chunk of data.

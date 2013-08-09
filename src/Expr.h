@@ -57,6 +57,8 @@ extern const char* expr_name(BroExprTag t);
 class Stmt;
 class Frame;
 class ListExpr;
+class NameExpr;
+class AssignExpr;
 class CallExpr;
 class EventExpr;
 
@@ -159,10 +161,35 @@ public:
 		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
 		return (const ListExpr*) this;
 		}
+
 	ListExpr* AsListExpr()
 		{
 		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
 		return (ListExpr*) this;
+		}
+
+	const NameExpr* AsNameExpr() const
+		{
+		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+		return (const NameExpr*) this;
+		}
+
+	NameExpr* AsNameExpr()
+		{
+		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
+		return (NameExpr*) this;
+		}
+
+	const AssignExpr* AsAssignExpr() const
+		{
+		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+		return (const AssignExpr*) this;
+		}
+
+	AssignExpr* AsAssignExpr()
+		{
+		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
+		return (AssignExpr*) this;
 		}
 
 	void Describe(ODesc* d) const;
@@ -198,7 +225,7 @@ protected:
 
 class NameExpr : public Expr {
 public:
-	NameExpr(ID* id);
+	NameExpr(ID* id, bool const_init = false);
 	~NameExpr();
 
 	ID* Id() const		{ return id; }
@@ -220,6 +247,7 @@ protected:
 	DECLARE_SERIAL(NameExpr);
 
 	ID* id;
+	bool in_const_init;
 };
 
 class ConstExpr : public Expr {
@@ -608,10 +636,6 @@ public:
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
 	Expr* MakeLvalue();
 
-	// Only overridden to avoid special vector handling which doesn't apply
-	// for this class.
-	Val* Eval(Val* v) const;
-
 protected:
 	friend class Expr;
 	RefExpr()	{ }
@@ -623,7 +647,7 @@ class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0);
+	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
 	virtual ~AssignExpr()	{ Unref(val); }
 
 	Expr* Simplify(SimplifyType simp_type);
@@ -638,7 +662,7 @@ protected:
 	friend class Expr;
 	AssignExpr()	{ }
 
-	bool TypeCheck();
+	bool TypeCheck(attr_list* attrs = 0);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	DECLARE_SERIAL(AssignExpr);
@@ -649,7 +673,7 @@ protected:
 
 class IndexExpr : public BinaryExpr {
 public:
-	IndexExpr(Expr* op1, ListExpr* op2);
+	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
 
 	int CanAdd() const;
 	int CanDel() const;
@@ -732,7 +756,8 @@ protected:
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	RecordConstructorExpr(ListExpr* constructor_list);
+	RecordConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	~RecordConstructorExpr();
 
 protected:
 	friend class Expr;
@@ -744,12 +769,17 @@ protected:
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(RecordConstructorExpr);
+
+	RecordType* ctor_type; // type inferred from the ctor expression list args
 };
 
 class TableConstructorExpr : public UnaryExpr {
 public:
-	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
+	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
+	                     BroType* arg_type = 0);
 	~TableConstructorExpr()	{ Unref(attrs); }
+
+	Attributes* Attrs() { return attrs; }
 
 	Val* Eval(Frame* f) const;
 
@@ -768,8 +798,11 @@ protected:
 
 class SetConstructorExpr : public UnaryExpr {
 public:
-	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs);
+	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
+	                   BroType* arg_type = 0);
 	~SetConstructorExpr()	{ Unref(attrs); }
+
+	Attributes* Attrs() { return attrs; }
 
 	Val* Eval(Frame* f) const;
 
@@ -788,7 +821,7 @@ protected:
 
 class VectorConstructorExpr : public UnaryExpr {
 public:
-	VectorConstructorExpr(ListExpr* constructor_list);
+	VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
 
 	Val* Eval(Frame* f) const;
 
@@ -821,32 +854,6 @@ protected:
 	DECLARE_SERIAL(FieldAssignExpr);
 
 	string field_name;
-};
-
-class RecordMatchExpr : public BinaryExpr {
-public:
-	RecordMatchExpr(Expr* op1 /* record to match */, 
-			Expr* op2 /* cases to match against */);	
-
-protected:
-	friend class Expr;
-	RecordMatchExpr()
-		{
-		pred_field_index = result_field_index =
-			priority_field_index = 0;
-		}
-
-	virtual Val* Fold(Val* v1, Val* v2) const;
-	void ExprDescribe(ODesc*) const;
-
-	DECLARE_SERIAL(RecordMatchExpr);
-
-	// The following are used to hold the field offset of
-	// $pred, $result, $priority, so the names only need to
-	// be looked up at compile-time.
-	int pred_field_index;
-	int result_field_index;
-	int priority_field_index;
 };
 
 class ArithCoerceExpr : public UnaryExpr {
@@ -989,7 +996,7 @@ protected:
 
 class CallExpr : public Expr {
 public:
-	CallExpr(Expr* func, ListExpr* args);
+	CallExpr(Expr* func, ListExpr* args, bool in_hook = false);
 	~CallExpr();
 
 	Expr* Func() const	{ return func; }
@@ -1107,13 +1114,14 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init);
 // match, promote it as necessary (modifying the ref parameter accordingly)
 // and return 1.
 //
-// The second and third forms are for promoting a list of
+// The second, third, and fourth forms are for promoting a list of
 // expressions (which is updated in place) to either match a list of
 // types or a single type.
 //
 // Note, the type is not "const" because it can be ref'd.
 extern int check_and_promote_expr(Expr*& e, BroType* t);
 extern int check_and_promote_exprs(ListExpr*& elements, TypeList* types);
+extern int check_and_promote_args(ListExpr*& args, RecordType* types);
 extern int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type);
 
 // Returns a fully simplified form of the expression.  Note that passed

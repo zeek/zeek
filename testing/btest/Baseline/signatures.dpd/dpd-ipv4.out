@@ -1,0 +1,77 @@
+|Analyzer::all_registered_ports()|, 0
+signature_match [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp] - matched my_ftp_client
+ftp_reply 199.233.217.249:21 - 220 ftp.NetBSD.org FTP server (NetBSD-ftpd 20100320) ready.
+ftp_request 141.142.220.235:50003 - USER anonymous
+ftp_reply 199.233.217.249:21 - 331 Guest login ok, type your name as password.
+signature_match [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp] - matched my_ftp_server
+ftp_request 141.142.220.235:50003 - PASS test
+ftp_reply 199.233.217.249:21 - 230 
+ftp_reply 199.233.217.249:21 - 0     The NetBSD Project FTP Server located in Redwood City, CA, USA
+ftp_reply 199.233.217.249:21 - 0     1 Gbps connectivity courtesy of                          ,        ,
+ftp_reply 199.233.217.249:21 - 0     Internet Systems Consortium                 WELCOME!    /(        )`
+ftp_reply 199.233.217.249:21 - 0                                                             \ \___   / |
+ftp_reply 199.233.217.249:21 - 0       +--- Currently Supported Platforms ----+              /- _  `-/  '
+ftp_reply 199.233.217.249:21 - 0       |  acorn[26,32], algor, alpha, amd64,  |             (/\/ \ \   /\
+ftp_reply 199.233.217.249:21 - 0       |   amiga[,ppc], arc, atari, bebox,    |             / /   | `    \
+ftp_reply 199.233.217.249:21 - 0       |   cats, cesfic, cobalt, dreamcast,   |             O O   ) /    |
+ftp_reply 199.233.217.249:21 - 0       |  evb[arm,mips,ppc,sh3], hp[300,700], |             `-^--'`<     '
+ftp_reply 199.233.217.249:21 - 0       |       hpc[arm,mips,sh], i386,        |            (_.)  _  )   /
+ftp_reply 199.233.217.249:21 - 0       |      ibmnws, iyonix, luna68k,        |              .___/`    /
+ftp_reply 199.233.217.249:21 - 0       |    mac[m68k,ppc], mipsco, mmeye,     |               `-----' /
+ftp_reply 199.233.217.249:21 - 0       |      mvme[m68k,ppc], netwinders,     |  <----.     __ / __   \
+ftp_reply 199.233.217.249:21 - 0       |   news[m68k,mips], next68k, ofppc,   |  <----|====O)))==) \) /====
+ftp_reply 199.233.217.249:21 - 0       | playstation2, pmax, prep, sandpoint, |  <----'    `--' `.__,' \
+ftp_reply 199.233.217.249:21 - 0       |  sbmips, sgimips, shark, sparc[,64], |               |        |
+ftp_reply 199.233.217.249:21 - 0       |      sun[2,3], vax, x68k, xen        |                \       /
+ftp_reply 199.233.217.249:21 - 0       +--------------------------------------+           ______( (_  / \_____
+ftp_reply 199.233.217.249:21 - 0       See our website at http://www.NetBSD.org/        ,'  ,-----'   |       \
+ftp_reply 199.233.217.249:21 - 0        We log all FTP transfers and commands.          `--{__________)  (FL) \/
+ftp_reply 199.233.217.249:21 - 0 230-
+ftp_reply 199.233.217.249:21 - 0     EXPORT NOTICE
+ftp_reply 199.233.217.249:21 - 0     
+ftp_reply 199.233.217.249:21 - 0     Please note that portions of this FTP site contain cryptographic
+ftp_reply 199.233.217.249:21 - 0     software controlled under the Export Administration Regulations (EAR).
+ftp_reply 199.233.217.249:21 - 0     
+ftp_reply 199.233.217.249:21 - 0     None of this software may be downloaded or otherwise exported or
+ftp_reply 199.233.217.249:21 - 0     re-exported into (or to a national or resident of) Cuba, Iran, Libya,
+ftp_reply 199.233.217.249:21 - 0     Sudan, North Korea, Syria or any other country to which the U.S. has
+ftp_reply 199.233.217.249:21 - 0     embargoed goods.
+ftp_reply 199.233.217.249:21 - 0     
+ftp_reply 199.233.217.249:21 - 0     By downloading or using said software, you are agreeing to the
+ftp_reply 199.233.217.249:21 - 0     foregoing and you are representing and warranting that you are not
+ftp_reply 199.233.217.249:21 - 0     located in, under the control of, or a national or resident of any
+ftp_reply 199.233.217.249:21 - 0     such country or on any such list.
+ftp_reply 199.233.217.249:21 - 230 Guest login ok, access restrictions apply.
+ftp_request 141.142.220.235:50003 - SYST 
+ftp_reply 199.233.217.249:21 - 215 UNIX Type: L8 Version: NetBSD-ftpd 20100320
+ftp_request 141.142.220.235:50003 - PASV 
+ftp_reply 199.233.217.249:21 - 227 Entering Passive Mode (199,233,217,249,221,90)
+ftp_request 141.142.220.235:50003 - LIST 
+ftp_reply 199.233.217.249:21 - 150 Opening ASCII mode data connection for '/bin/ls'.
+ftp_reply 199.233.217.249:21 - 226 Transfer complete.
+ftp_request 141.142.220.235:50003 - TYPE I
+ftp_reply 199.233.217.249:21 - 200 Type set to I.
+ftp_request 141.142.220.235:50003 - PASV 
+ftp_reply 199.233.217.249:21 - 227 Entering Passive Mode (199,233,217,249,221,91)
+ftp_request 141.142.220.235:50003 - RETR robots.txt
+ftp_reply 199.233.217.249:21 - 150 Opening BINARY mode data connection for 'robots.txt' (77 bytes).
+ftp_reply 199.233.217.249:21 - 226 Transfer complete.
+ftp_request 141.142.220.235:50003 - TYPE A
+ftp_reply 199.233.217.249:21 - 200 Type set to A.
+ftp_request 141.142.220.235:50003 - PORT 141,142,220,235,131,46
+ftp_reply 199.233.217.249:21 - 200 PORT command successful.
+ftp_request 141.142.220.235:50003 - LIST 
+ftp_reply 199.233.217.249:21 - 150 Opening ASCII mode data connection for '/bin/ls'.
+ftp_reply 199.233.217.249:21 - 226 Transfer complete.
+ftp_request 141.142.220.235:50003 - TYPE I
+ftp_reply 199.233.217.249:21 - 200 Type set to I.
+ftp_request 141.142.220.235:50003 - PORT 141,142,220,235,147,203
+ftp_reply 199.233.217.249:21 - 200 PORT command successful.
+ftp_request 141.142.220.235:50003 - RETR robots.txt
+ftp_reply 199.233.217.249:21 - 150 Opening BINARY mode data connection for 'robots.txt' (77 bytes).
+ftp_reply 199.233.217.249:21 - 226 Transfer complete.
+ftp_request 141.142.220.235:50003 - QUIT 
+ftp_reply 199.233.217.249:21 - 221 
+ftp_reply 199.233.217.249:21 - 0     Data traffic for this session was 154 bytes in 2 files.
+ftp_reply 199.233.217.249:21 - 0     Total traffic for this session was 4037 bytes in 4 transfers.
+ftp_reply 199.233.217.249:21 - 221 Thank you for using the FTP service on ftp.NetBSD.org.

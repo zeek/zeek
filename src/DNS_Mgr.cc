@@ -46,13 +46,15 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
 class DNS_Mgr_Request {
 public:
-	DNS_Mgr_Request(const char* h)	{ host = copy_string(h); addr = 0; }
-	DNS_Mgr_Request(uint32 a)		{ addr = a; host = 0; }
+	DNS_Mgr_Request(const char* h, int af, bool is_txt)
+		{ host = copy_string(h); fam = af; qtype = is_txt ? 16 : 0; }
+	DNS_Mgr_Request(const IPAddr& a)		{ addr = a; host = 0; fam = 0; }
 	~DNS_Mgr_Request()			{ delete [] host; }
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return host; }
-	uint32 ReqAddr() const		{ return addr; }
+	const IPAddr& ReqAddr() const		{ return addr; }
+	const bool ReqIsTxt() const	{ return qtype == 16; }
 
 	int MakeRequest(nb_dns_info* nb_dns);
 	int RequestPending() const	{ return request_pending; }
@@ -61,8 +63,9 @@ public:
 
 protected:
 	char* host;	// if non-nil, this is a host request
-	uint32 addr;
-	uint32 ttl;
+	int fam;	// address family query type for host requests
+	int qtype;	// Query type
+	IPAddr addr;
 	int request_pending;
 };
 
@@ -75,15 +78,20 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 
 	char err[NB_DNS_ERRSIZE];
 	if ( host )
-		return nb_dns_host_request(nb_dns, host, (void*) this, err) >= 0;
+		return nb_dns_host_request2(nb_dns, host, fam, qtype, (void*) this, err) >= 0;
 	else
-		return nb_dns_addr_request(nb_dns, addr, (void*) this, err) >= 0;
+		{
+		const uint32* bytes;
+		int len = addr.GetBytes(&bytes);
+		return nb_dns_addr_request2(nb_dns, (char*) bytes,
+				len == 1 ? AF_INET : AF_INET6, (void*) this, err) >= 0;
+		}
 	}
 
 class DNS_Mapping {
 public:
 	DNS_Mapping(const char* host, struct hostent* h, uint32 ttl);
-	DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl);
+	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32 ttl);
 	DNS_Mapping(FILE* f);
 
 	int NoMapping() const		{ return no_mapping; }
@@ -93,9 +101,11 @@ public:
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return req_host; }
-	uint32 ReqAddr() const		{ return req_addr; }
-	const char* ReqStr() const
-		{ return req_host ? req_host : dotted_addr(ReqAddr());  }
+	IPAddr ReqAddr() const		{ return req_addr; }
+	string ReqStr() const
+		{
+		return req_host ? req_host : req_addr;
+		}
 
 	ListVal* Addrs();
 	TableVal* AddrsSet();	// addresses returned as a set
@@ -109,7 +119,14 @@ public:
 	int Valid() const		{ return ! failed; }
 
 	bool Expired() const
-		{ return current_time() > (creation_time + req_ttl); }
+		{
+		if ( req_host && num_addrs == 0)
+			return false; // nothing to expire
+
+		return current_time() > (creation_time + req_ttl);
+		}
+
+	int Type() const { return map_type; }
 
 protected:
 	friend class DNS_Mgr;
@@ -121,7 +138,7 @@ protected:
 	int init_failed;
 
 	char* req_host;
-	uint32 req_addr;
+	IPAddr req_addr;
 	uint32 req_ttl;
 
 	int num_names;
@@ -129,11 +146,12 @@ protected:
 	StringVal* host_val;
 
 	int num_addrs;
-	uint32* addrs;
+	IPAddr* addrs;
 	ListVal* addrs_val;
 
 	int failed;
 	double creation_time;
+	int map_type;
 };
 
 void DNS_Mgr_mapping_delete_func(void* v)
@@ -154,14 +172,13 @@ DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_host = copy_string(host);
-	req_addr = 0;
 	req_ttl = ttl;
 
 	if ( names && ! names[0] )
 		names[0] = copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl)
+DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_addr = addr;
@@ -175,7 +192,6 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	init_failed = 1;
 
 	req_host = 0;
-	req_addr = 0;
 
 	char buf[512];
 
@@ -188,14 +204,15 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	char req_buf[512+1], name_buf[512+1];
 	int is_req_host;
 
-	if ( sscanf(buf, "%lf %d %512s %d %512s %d", &creation_time, &is_req_host,
-		    req_buf, &failed, name_buf, &num_addrs) != 6 )
+	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %"PRIu32, &creation_time,
+	     &is_req_host, req_buf, &failed, name_buf, &map_type, &num_addrs,
+	     &req_ttl) != 8 )
 		return;
 
 	if ( is_req_host )
 		req_host = copy_string(req_buf);
 	else
-		req_addr = dotted_to_addr(req_buf);
+		req_addr = IPAddr(req_buf);
 
 	num_names = 1;
 	names = new char*[num_names];
@@ -203,7 +220,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new uint32[num_addrs];
+		addrs = new IPAddr[num_addrs];
 
 		for ( int i = 0; i < num_addrs; ++i )
 			{
@@ -217,7 +234,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			if ( newline )
 				*newline = '\0';
 
-			addrs[i] = dotted_to_addr(buf);
+			addrs[i] = IPAddr(buf);
 			}
 		}
 	else
@@ -280,14 +297,6 @@ StringVal* DNS_Mapping::Host()
 	return host_val;
 	}
 
-// Converts an array of 4 bytes in network order to the corresponding
-// 32-bit network long.
-static uint32 raw_bytes_to_addr(const unsigned char b[4])
-	{
-	uint32 l = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
-	return uint32(htonl(l));
-	}
-
 void DNS_Mapping::Init(struct hostent* h)
 	{
 	no_mapping = 0;
@@ -296,12 +305,13 @@ void DNS_Mapping::Init(struct hostent* h)
 	host_val = 0;
 	addrs_val = 0;
 
-	if ( ! h || h->h_addrtype != AF_INET || h->h_length != 4 )
+	if ( ! h )
 		{
 		Clear();
 		return;
 		}
 
+	map_type = h->h_addrtype;
 	num_names = 1;	// for now, just use official name
 	names = new char*[num_names];
 	names[0] = h->h_name ? copy_string(h->h_name) : 0;
@@ -311,10 +321,14 @@ void DNS_Mapping::Init(struct hostent* h)
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new uint32[num_addrs];
+		addrs = new IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
-			addrs[i] = raw_bytes_to_addr(
-					(unsigned char*)h->h_addr_list[i]);
+			if ( h->h_addrtype == AF_INET )
+				addrs[i] = IPAddr(IPv4, (uint32*)h->h_addr_list[i],
+				                  IPAddr::Network);
+			else if ( h->h_addrtype == AF_INET6 )
+				addrs[i] = IPAddr(IPv6, (uint32*)h->h_addr_list[i],
+				                  IPAddr::Network);
 		}
 	else
 		addrs = 0;
@@ -330,18 +344,19 @@ void DNS_Mapping::Clear()
 	host_val = 0;
 	addrs_val = 0;
 	no_mapping = 0;
+	map_type = 0;
 	failed = 1;
 	}
 
 void DNS_Mapping::Save(FILE* f) const
 	{
-	fprintf(f, "%.0f %d %s %d %s %d\n", creation_time, req_host != 0,
-		req_host ? req_host : dotted_addr(req_addr),
+	fprintf(f, "%.0f %d %s %d %s %d %d %"PRIu32"\n", creation_time, req_host != 0,
+		req_host ? req_host : req_addr.AsString().c_str(),
 		failed, (names && names[0]) ? names[0] : "*",
-		num_addrs);
+		map_type, num_addrs, req_ttl);
 
 	for ( int i = 0; i < num_addrs; ++i )
-		fprintf(f, "%s\n", dotted_addr(addrs[i]));
+		fprintf(f, "%s\n", addrs[i].AsString().c_str());
 	}
 
 
@@ -350,9 +365,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	did_init = 0;
 
 	mode = arg_mode;
-
-	host_mappings.SetDeleteFunc(DNS_Mgr_mapping_delete_func);
-	addr_mappings.SetDeleteFunc(DNS_Mgr_mapping_delete_func);
 
 	char err[NB_DNS_ERRSIZE];
 	nb_dns = nb_dns_init(err);
@@ -440,16 +452,25 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 
 	if ( mode != DNS_PRIME )
 		{
-		DNS_Mapping* d = host_mappings.Lookup(name);
+		HostMap::iterator it = host_mappings.find(name);
 
-		if ( d )
+		if ( it != host_mappings.end() )
 			{
-			if ( d->Valid() )
-				return d->Addrs()->ConvertToSet();
-			else
+			DNS_Mapping* d4 = it->second.first;
+			DNS_Mapping* d6 = it->second.second;
+
+			if ( (d4 && d4->Failed()) || (d6 && d6->Failed()) )
 				{
 				reporter->Warning("no such host: %s", name);
 				return empty_addr_set();
+				}
+			else if ( d4 && d6 )
+				{
+				TableVal* tv4 = d4->AddrsSet();
+				TableVal* tv6 = d6->AddrsSet();
+				tv4->AddTo(tv6, false);
+				Unref(tv4);
+				return tv6;
 				}
 			}
 		}
@@ -457,7 +478,8 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 	// Not found, or priming.
 	switch ( mode ) {
 	case DNS_PRIME:
-		requests.append(new DNS_Mgr_Request(name));
+		requests.append(new DNS_Mgr_Request(name, AF_INET, false));
+		requests.append(new DNS_Mgr_Request(name, AF_INET6, false));
 		return empty_addr_set();
 
 	case DNS_FORCE:
@@ -465,7 +487,8 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return 0;
 
 	case DNS_DEFAULT:
-		requests.append(new DNS_Mgr_Request(name));
+		requests.append(new DNS_Mgr_Request(name, AF_INET, false));
+		requests.append(new DNS_Mgr_Request(name, AF_INET6, false));
 		Resolve();
 		return LookupHost(name);
 
@@ -475,24 +498,25 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 	}
 	}
 
-Val* DNS_Mgr::LookupAddr(uint32 addr)
+Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
 	if ( ! did_init )
 		Init();
 
 	if ( mode != DNS_PRIME )
 		{
-		HashKey h(&addr, 1);
-		DNS_Mapping* d = addr_mappings.Lookup(&h);
+		AddrMap::iterator it = addr_mappings.find(addr);
 
-		if ( d )
+		if ( it != addr_mappings.end() )
 			{
+			DNS_Mapping* d = it->second;
 			if ( d->Valid() )
 				return d->Host();
 			else
 				{
-				reporter->Warning("can't resolve IP address: %s", dotted_addr(addr));
-				return new StringVal(dotted_addr(addr));
+				string s(addr);
+				reporter->Warning("can't resolve IP address: %s", s.c_str());
+				return new StringVal(s.c_str());
 				}
 			}
 		}
@@ -505,7 +529,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache",
-				dotted_addr(addr));
+		    addr.AsString().c_str());
 		return 0;
 
 	case DNS_DEFAULT:
@@ -615,6 +639,7 @@ int DNS_Mgr::Save()
 
 	Save(f, host_mappings);
 	Save(f, addr_mappings);
+	// Save(f, text_mappings); // We don't save the TXT mappings (yet?).
 
 	fclose(f);
 
@@ -672,7 +697,7 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	{
 	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : 0;
-	u_int32_t ttl = r->ttl;
+	u_int32_t ttl = (r && r->host_errno == 0) ? r->ttl : 0;
 
 	DNS_Mapping* new_dm;
 	DNS_Mapping* prev_dm;
@@ -681,28 +706,62 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	if ( dr->ReqHost() )
 		{
 		new_dm = new DNS_Mapping(dr->ReqHost(), h, ttl);
-		prev_dm = host_mappings.Insert(dr->ReqHost(), new_dm);
+		prev_dm = 0;
 
-		if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
+		if ( dr->ReqIsTxt() )
 			{
-			// Put previous, valid entry back - CompareMappings
-			// will generate a corresponding warning.
-			(void) host_mappings.Insert(dr->ReqHost(), prev_dm);
-			++keep_prev;
+			TextMap::iterator it = text_mappings.find(dr->ReqHost());
+			if ( it == text_mappings.end() )
+				text_mappings[dr->ReqHost()] = new_dm;
+			}
+		else
+			{
+			HostMap::iterator it = host_mappings.find(dr->ReqHost());
+			if ( it == host_mappings.end() )
+				{
+				host_mappings[dr->ReqHost()].first =
+					new_dm->Type() == AF_INET ? new_dm : 0;
+
+				host_mappings[dr->ReqHost()].second =
+					new_dm->Type() == AF_INET ? 0 : new_dm;
+				}
+			else
+				{
+				if ( new_dm->Type() == AF_INET )
+					{
+					prev_dm = it->second.first;
+					it->second.first = new_dm;
+					}
+				else
+					{
+					prev_dm = it->second.second;
+					it->second.second = new_dm;
+					}
+				}
+
+			if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
+				{
+				// Put previous, valid entry back - CompareMappings
+				// will generate a corresponding warning.
+				if ( prev_dm->Type() == AF_INET )
+					host_mappings[dr->ReqHost()].first = prev_dm;
+				else
+					host_mappings[dr->ReqHost()].second = prev_dm;
+
+				++keep_prev;
+				}
 			}
 		}
 	else
 		{
 		new_dm = new DNS_Mapping(dr->ReqAddr(), h, ttl);
-		uint32 tmp_addr = dr->ReqAddr();
-		HashKey k(&tmp_addr, 1);
-		prev_dm = addr_mappings.Insert(&k, new_dm);
+		AddrMap::iterator it = addr_mappings.find(dr->ReqAddr());
+		prev_dm = (it == addr_mappings.end()) ? 0 : it->second;
+		addr_mappings[dr->ReqAddr()] = new_dm;
 
 		if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
 			{
-			uint32 tmp_addr = dr->ReqAddr();
-			HashKey k2(&tmp_addr, 1);
-			(void) addr_mappings.Insert(&k2, prev_dm);
+			addr_mappings[dr->ReqAddr()] = prev_dm;
 			++keep_prev;
 			}
 		}
@@ -774,17 +833,13 @@ ListVal* DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		addr_type al1_i = al1->Index(i)->AsAddr();
+		const IPAddr& al1_i = al1->Index(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			addr_type al2_j = al2->Index(j)->AsAddr();
-#ifdef BROv6
-			if ( addr_eq(al1_i, al2_j) )
-#else
+			const IPAddr& al2_j = al2->Index(j)->AsAddr();
 			if ( al1_i == al2_j )
-#endif
 				break;
 			}
 
@@ -800,8 +855,8 @@ void DNS_Mgr::DumpAddrList(FILE* f, ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		addr_type al_i = al->Index(i)->AsAddr();
-		fprintf(f, "%s%s", i > 0 ? "," : "", dotted_addr(al_i));
+		const IPAddr& al_i = al->Index(i)->AsAddr();
+		fprintf(f, "%s%s", i > 0 ? "," : "", al_i.AsString().c_str());
 		}
 	}
 
@@ -814,12 +869,20 @@ void DNS_Mgr::LoadCache(FILE* f)
 	for ( ; ! m->NoMapping() && ! m->InitFailed(); m = new DNS_Mapping(f) )
 		{
 		if ( m->ReqHost() )
-			host_mappings.Insert(m->ReqHost(), m);
+			{
+			if ( host_mappings.find(m->ReqHost()) == host_mappings.end() )
+				{
+				host_mappings[m->ReqHost()].first = 0;
+				host_mappings[m->ReqHost()].second = 0;
+				}
+			if ( m->Type() == AF_INET )
+				host_mappings[m->ReqHost()].first = m;
+			else
+				host_mappings[m->ReqHost()].second = m;
+			}
 		else
 			{
-			uint32 tmp_addr = m->ReqAddr();
-			HashKey h(&tmp_addr, 1);
-			addr_mappings.Insert(&h, m);
+			addr_mappings[m->ReqAddr()] = m;
 			}
 		}
 
@@ -830,26 +893,41 @@ void DNS_Mgr::LoadCache(FILE* f)
 	fclose(f);
 	}
 
-void DNS_Mgr::Save(FILE* f, PDict(DNS_Mapping)& m)
+void DNS_Mgr::Save(FILE* f, const AddrMap& m)
 	{
-	IterCookie* cookie = m.InitForIteration();
-	DNS_Mapping* dm;
-
-	while ( (dm = m.NextEntry(cookie)) )
-		dm->Save(f);
+	for ( AddrMap::const_iterator it = m.begin(); it != m.end(); ++it )
+		{
+		if ( it->second )
+			it->second->Save(f);
+		}
 	}
 
-const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
+void DNS_Mgr::Save(FILE* f, const HostMap& m)
 	{
-	HashKey h(&addr, 1);
-	DNS_Mapping* d = dns_mgr->addr_mappings.Lookup(&h);
+	HostMap::const_iterator it;
 
-	if ( ! d )
+	for ( it = m.begin(); it != m.end(); ++it )
+		{
+		if ( it->second.first )
+			it->second.first->Save(f);
+
+		if ( it->second.second )
+			it->second.second->Save(f);
+		}
+	}
+
+const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
+	{
+	AddrMap::iterator it = dns_mgr->addr_mappings.find(addr);
+
+	if ( it == addr_mappings.end() )
 		return 0;
+
+	DNS_Mapping* d = it->second;
 
 	if ( d->Expired() )
 		{
-		dns_mgr->addr_mappings.Remove(&h);
+		dns_mgr->addr_mappings.erase(it);
 		delete d;
 		return 0;
 		}
@@ -861,23 +939,55 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 
 TableVal* DNS_Mgr::LookupNameInCache(string name)
 	{
-	DNS_Mapping* d = dns_mgr->host_mappings.Lookup(name.c_str());
-
-	if ( ! d || ! d->names )
+	HostMap::iterator it = dns_mgr->host_mappings.find(name);
+	if ( it == dns_mgr->host_mappings.end() )
+		{
+		it = dns_mgr->host_mappings.begin();
 		return 0;
+		}
+
+	DNS_Mapping* d4 = it->second.first;
+	DNS_Mapping* d6 = it->second.second;
+
+	if ( ! d4 || ! d4->names || ! d6 || ! d6->names )
+		return 0;
+
+	if ( d4->Expired() || d6->Expired() )
+		{
+		dns_mgr->host_mappings.erase(it);
+		delete d4;
+		delete d6;
+		return 0;
+		}
+
+	TableVal* tv4 = d4->AddrsSet();
+	TableVal* tv6 = d6->AddrsSet();
+	tv4->AddTo(tv6, false);
+	Unref(tv4);
+	return tv6;
+	}
+
+const char* DNS_Mgr::LookupTextInCache(string name)
+	{
+	TextMap::iterator it = dns_mgr->text_mappings.find(name);
+	if ( it == dns_mgr->text_mappings.end() )
+		return 0;
+
+	DNS_Mapping* d = it->second;
 
 	if ( d->Expired() )
 		{
-		HashKey h(name.c_str());
-		dns_mgr->host_mappings.Remove(&h);
+		dns_mgr->text_mappings.erase(it);
 		delete d;
 		return 0;
 		}
 
-	return d->AddrsSet();
+	// The escapes in the following strings are to avoid having it
+	// interpreted as a trigraph sequence.
+	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
-void DNS_Mgr::AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
@@ -946,6 +1056,35 @@ void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
+void DNS_Mgr::AsyncLookupNameText(string name, LookupCallback* callback)
+	{
+	if ( ! did_init )
+		Init();
+
+	// Do we already know the answer?
+	TableVal* addrs;
+
+	AsyncRequest* req = 0;
+
+	// Have we already a request waiting for this host?
+	AsyncRequestTextMap::iterator i = asyncs_texts.find(name);
+	if ( i != asyncs_texts.end() )
+		req = i->second;
+	else
+		{
+		// A new one.
+		req = new AsyncRequest;
+		req->name = name;
+		req->is_txt = true;
+		asyncs_queued.push_back(req);
+		asyncs_texts.insert(AsyncRequestTextMap::value_type(name, req));
+		}
+
+	req->callbacks.push_back(callback);
+
+	IssueAsyncRequests();
+	}
+
 void DNS_Mgr::IssueAsyncRequests()
 	{
 	while ( asyncs_queued.size() && asyncs_pending < MAX_PENDING_REQUESTS )
@@ -956,12 +1095,26 @@ void DNS_Mgr::IssueAsyncRequests()
 		++num_requests;
 
 		DNS_Mgr_Request* dr;
+		DNS_Mgr_Request* dr6 = 0;
+
 		if ( req->IsAddrReq() )
 			dr = new DNS_Mgr_Request(req->host);
 		else
-			dr = new DNS_Mgr_Request(req->name.c_str());
+			{
+			dr = new DNS_Mgr_Request(req->name.c_str(), AF_INET, req->is_txt);
+			if ( ! req->is_txt )
+				dr6 = new DNS_Mgr_Request(req->name.c_str(), AF_INET6, req->is_txt);
+			}
 
 		if ( ! dr->MakeRequest(nb_dns) )
+			{
+			reporter->Warning("can't issue DNS request");
+			++failed;
+			req->Timeout();
+			continue;
+			}
+
+		if ( dr6 && ! dr6->MakeRequest(nb_dns) )
 			{
 			reporter->Warning("can't issue DNS request");
 			++failed;
@@ -987,7 +1140,7 @@ double DNS_Mgr::NextTimestamp(double* network_time)
 	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
 	}
 
-void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
+void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncHostRequest.
 
@@ -1020,6 +1173,38 @@ void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
 		// eventually times out.
 		}
 
+	}
+
+void DNS_Mgr::CheckAsyncTextRequest(const char* host, bool timeout)
+	{
+	// Note that this code is a mirror of that for CheckAsyncAddrRequest.
+
+	AsyncRequestTextMap::iterator i = asyncs_texts.find(host);
+	if ( i != asyncs_texts.end() )
+		{
+		const char* name = LookupTextInCache(host);
+		if ( name )
+			{
+			++successful;
+			i->second->Resolved(name);
+			}
+
+		else if ( timeout )
+			{
+			AsyncRequestTextMap::iterator it = asyncs_texts.begin();
+			++failed;
+			i->second->Timeout();
+			}
+
+		else
+			return;
+
+		asyncs_texts.erase(i);
+		--asyncs_pending;
+
+		// Don't delete the request.  That will be done once it
+		// eventually times out.
+		}
 	}
 
 void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
@@ -1060,11 +1245,22 @@ void DNS_Mgr::Flush()
 	{
 	DoProcess(false);
 
-	IterCookie* cookie = addr_mappings.InitForIteration();
-	DNS_Mapping* dm;
+	HostMap::iterator it;
+	for ( it = host_mappings.begin(); it != host_mappings.end(); ++it )
+		{
+		delete it->second.first;
+		delete it->second.second;
+		}
 
-	host_mappings.Clear();
-	addr_mappings.Clear();
+	for ( AddrMap::iterator it2 = addr_mappings.begin(); it2 != addr_mappings.end(); ++it2 )
+		delete it2->second;
+
+	for ( TextMap::iterator it3 = text_mappings.begin(); it3 != text_mappings.end(); ++it3 )
+		delete it3->second;
+
+	host_mappings.clear();
+	addr_mappings.clear();
+	text_mappings.clear();
 	}
 
 void DNS_Mgr::Process()
@@ -1083,6 +1279,8 @@ void DNS_Mgr::DoProcess(bool flush)
 
 		if ( req->IsAddrReq() )
 			CheckAsyncAddrRequest(req->host, true);
+		else if ( req->is_txt )
+			CheckAsyncTextRequest(req->name.c_str(), true);
 		else
 			CheckAsyncHostRequest(req->name.c_str(), true);
 
@@ -1090,7 +1288,7 @@ void DNS_Mgr::DoProcess(bool flush)
 		delete req;
 		}
 
-	if ( asyncs_addrs.size() == 0 && asyncs_names.size() == 0 )
+	if ( asyncs_addrs.size() == 0 && asyncs_names.size() == 0 && asyncs_texts.size() == 0 )
 		return;
 
 	if ( AnswerAvailable(0) <= 0 )
@@ -1107,6 +1305,14 @@ void DNS_Mgr::DoProcess(bool flush)
 	else if ( status > 0 )
 		{
 		DNS_Mgr_Request* dr = (DNS_Mgr_Request*) r.cookie;
+
+		bool do_host_timeout = true;
+		if ( dr->ReqHost() &&
+		     host_mappings.find(dr->ReqHost()) == host_mappings.end() )
+			// Don't timeout when this is the first result in an expected pair
+			// (one result each for A and AAAA queries).
+			do_host_timeout = false;
+
 		if ( dr->RequestPending() )
 			{
 			AddResult(dr, &r);
@@ -1115,8 +1321,10 @@ void DNS_Mgr::DoProcess(bool flush)
 
 		if ( ! dr->ReqHost() )
 			CheckAsyncAddrRequest(dr->ReqAddr(), true);
+		else if ( dr->ReqIsTxt() )
+			CheckAsyncTextRequest(dr->ReqHost(), do_host_timeout);
 		else
-			CheckAsyncHostRequest(dr->ReqHost(), true);
+			CheckAsyncHostRequest(dr->ReqHost(), do_host_timeout);
 
 		IssueAsyncRequests();
 
@@ -1167,7 +1375,8 @@ void DNS_Mgr::GetStats(Stats* stats)
 	stats->successful = successful;
 	stats->failed = failed;
 	stats->pending = asyncs_pending;
-	stats->cached_hosts = host_mappings.Length();
-	stats->cached_addresses = addr_mappings.Length();
+	stats->cached_hosts = host_mappings.size();
+	stats->cached_addresses = addr_mappings.size();
+	stats->cached_texts = text_mappings.size();
 	}
 

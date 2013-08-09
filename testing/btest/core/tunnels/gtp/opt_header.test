@@ -1,0 +1,12 @@
+# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp6_gtp_0x32.pcap %INPUT >out
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff tunnel.log
+
+# Some GTPv1 headers have some optional fields totaling to a 4-byte extension
+# of the mandatory header.
+
+event gtpv1_g_pdu_packet(outer: connection, inner_gtp: gtpv1_hdr, inner_ip: pkt_hdr)
+    {
+    print "gtpv1_packet", inner_gtp;
+    }

@@ -389,23 +389,35 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 		{
 		if ( info->print )
 			fprintf(info->print, "%s [%.06f] %s(%s)\n",
-				functype->IsEvent() ? "Event" : "Function call",
+				functype->FlavorString().c_str(),
 				time, name, types ? d.Description() : "<ignored>");
 
-		if ( functype->IsEvent() )
+		switch ( functype->Flavor() ) {
+
+		case FUNC_FLAVOR_EVENT:
 			{
 			EventHandler* handler = event_registry->Lookup(name);
 			assert(handler);
+
 			if ( ! info->ignore_callbacks )
 				GotEvent(name, time, handler, args);
+
+			break;
 			}
-		else
+
+		case FUNC_FLAVOR_FUNCTION:
+		case FUNC_FLAVOR_HOOK:
 			if ( ! info->ignore_callbacks )
 				GotFunctionCall(name, time, id->ID_Val()->AsFunc(), args);
+			break;
+
+		default:
+			reporter->InternalError("invalid function flavor");
+			break;
+		}
 
 		if ( info->ignore_callbacks )
 			delete_vals(args);
-
 		}
 	else
 		delete_vals(args);
@@ -742,10 +754,11 @@ FileSerializer::~FileSerializer()
 		io->Flush();
 
 	delete [] file;
-	delete io;
 
-	if ( fd >= 0 )
-		close(fd);
+	if ( io )
+		delete io;  // destructor will call close() on fd
+	else if ( fd >= 0 )
+		safe_close(fd);
 	}
 
 bool FileSerializer::Open(const char* file, bool pure)
@@ -808,8 +821,8 @@ void FileSerializer::CloseFile()
 	if ( io )
 		io->Flush();
 
-	if ( fd >= 0 )
-		close(fd);
+	if ( fd >= 0 && ! io ) // destructor of io calls close() on fd
+		safe_close(fd);
 	fd = -1;
 
 	delete [] file;
@@ -1103,9 +1116,9 @@ void EventPlayer::Process()
 void Packet::Describe(ODesc* d) const
 	{
 	const IP_Hdr ip = IP();
-	d->Add(dotted_addr(ip.SrcAddr()));
+	d->Add(ip.SrcAddr());
 	d->Add("->");
-	d->Add(dotted_addr(ip.DstAddr()));
+	d->Add(ip.DstAddr());
 	}
 
 bool Packet::Serialize(SerialInfo* info) const

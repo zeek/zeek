@@ -19,7 +19,7 @@ function extract_path(input: string): string
 	}
 
 ## Compresses a given path by removing '..'s and the parent directory it
-## references and also removing '/'s.
+## references and also removing dual '/'s and extraneous '/./'s.
 ## dir: a path string, either relative or absolute
 ## Returns: a compressed version of the input path
 function compress_path(dir: string): string
@@ -27,7 +27,7 @@ function compress_path(dir: string): string
 	const cdup_sep = /((\/)*([^\/]|\\\/)+)?((\/)+\.\.(\/)*)/;
 
 	local parts = split_n(dir, cdup_sep, T, 1);
-	if ( length(parts) > 1 )
+	if ( |parts| > 1 )
 		{
 		# reaching a point with two parent dir references back-to-back means
 		# we don't know about anything higher in the tree to pop off
@@ -41,7 +41,7 @@ function compress_path(dir: string): string
 		return compress_path(dir);
 		}
 
-	const multislash_sep = /(\/){2,}/;
+	const multislash_sep = /(\/\.?){2,}/;
 	parts = split_all(dir, multislash_sep);
 	for ( i in parts )
 		if ( i % 2 == 0 )

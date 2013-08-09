@@ -15,11 +15,11 @@ endif ()
 #
 # srcDir: the directory which contains broInput
 # broInput: the file name of a bro policy script, any path prefix of this
-#     argument will be used to derive what path under policy/ the generated
+#     argument will be used to derive what path under scripts/ the generated
 #     documentation will be placed.
 # group: optional name of group that the script documentation will belong to.
-#     If this is not given, .bif files automatically get their own group or
-#     the group is automatically by any path portion of the broInput argument.
+#     If this is not given, the group is automatically set to any path portion
+#     of the broInput argument.
 #
 # In addition to adding the makefile target, several CMake variables are set:
 #
@@ -45,12 +45,6 @@ macro(REST_TARGET srcDir broInput)
 
     set(sumTextSrc ${absSrcPath})
     set(ogSourceFile ${absSrcPath})
-    if (${extension} STREQUAL ".bif.bro")
-        set(ogSourceFile ${BIF_SRC_DIR}/${basename})
-        # the summary text is taken at configure time, but .bif.bro files
-        # may not have been generated yet, so read .bif file instead
-        set(sumTextSrc ${ogSourceFile})
-    endif ()
 
     if (NOT relDstDir)
         set(docName "${basename}")
@@ -70,8 +64,6 @@ macro(REST_TARGET srcDir broInput)
 
     if (NOT "${ARGN}" STREQUAL "")
         set(group ${ARGN})
-    elseif (${extension} STREQUAL ".bif.bro")
-        set(group bifs)
     elseif (relDstDir)
         set(group ${relDstDir}/index)
         # add package index to master package list if not already in it
@@ -107,7 +99,7 @@ macro(REST_TARGET srcDir broInput)
         COMMAND "${CMAKE_COMMAND}"
         ARGS -E remove_directory .state
         # generate the reST documentation using bro
-        COMMAND BROPATH=${BROPATH}:${srcDir} ${CMAKE_BINARY_DIR}/src/bro
+        COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic/database ${CMAKE_BINARY_DIR}/src/bro
         ARGS -b -Z ${broInput} || (rm -rf .state *.log *.rst && exit 1)
         # move generated doc into a new directory tree that
         # defines the final structure of documents
@@ -131,6 +123,35 @@ endmacro(REST_TARGET)
 
 # Schedule Bro scripts for which to generate documentation.
 include(DocSourcesList.cmake)
+
+# Macro for generating reST docs that are independent of any particular Bro
+# script.
+macro(INDEPENDENT_REST_TARGET reST_file)
+    add_custom_command(OUTPUT ${reST_file}
+        # delete any leftover state from previous bro runs
+        COMMAND "${CMAKE_COMMAND}"
+        ARGS -E remove_directory .state
+        # generate the reST documentation using bro
+        COMMAND BROPATH=${BROPATH}:${srcDir} BROMAGIC=${CMAKE_SOURCE_DIR}/magic/database ${CMAKE_BINARY_DIR}/src/bro
+        ARGS -b -Z base/init-bare.bro || (rm -rf .state *.log *.rst && exit 1)
+        # move generated doc into a new directory tree that
+        # defines the final structure of documents
+        COMMAND "${CMAKE_COMMAND}"
+        ARGS -E make_directory ${dstDir}
+        COMMAND "${CMAKE_COMMAND}"
+        ARGS -E copy ${reST_file} ${dstDir}
+        # clean up the build directory
+        COMMAND rm
+        ARGS -rf .state *.log *.rst
+        DEPENDS bro
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "[Bro] Generating reST docs for ${reST_file}"
+    )
+    list(APPEND ALL_REST_OUTPUTS ${reST_file})
+endmacro(INDEPENDENT_REST_TARGET)
+
+independent_rest_target(proto-analyzers.rst)
+independent_rest_target(file-analyzers.rst)
 
 # create temporary list of all docs to include in the master policy/index file
 file(WRITE ${MASTER_POLICY_INDEX} "${MASTER_POLICY_INDEX_TEXT}")

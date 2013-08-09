@@ -1,4 +1,5 @@
-##! 
+##! Log the loaded scripts.
+@load base/utils/paths
 
 module LoadedScripts;
 
@@ -34,5 +35,5 @@ event bro_init() &priority=5
 
 event bro_script_loaded(path: string, level: count)
 	{
-	Log::write(LoadedScripts::LOG, [$name=cat(depth[level], path)]);
+	Log::write(LoadedScripts::LOG, [$name=cat(depth[level], compress_path(path))]);
 	}

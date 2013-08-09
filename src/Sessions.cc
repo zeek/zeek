@@ -16,21 +16,24 @@
 #include "Reporter.h"
 #include "OSFinger.h"
 
-#include "ICMP.h"
-#include "UDP.h"
+#include "analyzer/protocol/icmp/ICMP.h"
+#include "analyzer/protocol/udp/UDP.h"
 
-#include "DNS-binpac.h"
-#include "HTTP-binpac.h"
-
-#include "SteppingStone.h"
-#include "BackDoor.h"
-#include "InterConn.h"
+#include "analyzer/protocol/stepping-stone/SteppingStone.h"
+#include "analyzer/protocol/stepping-stone/events.bif.h"
+#include "analyzer/protocol/backdoor/BackDoor.h"
+#include "analyzer/protocol/backdoor/events.bif.h"
+#include "analyzer/protocol/interconn/InterConn.h"
+#include "analyzer/protocol/interconn/events.bif.h"
+#include "analyzer/protocol/arp/ARP.h"
+#include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
-#include "ConnCompressor.h"
-#include "DPM.h"
 
 #include "PacketSort.h"
+#include "TunnelEncapsulation.h"
+
+#include "analyzer/Manager.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -68,11 +71,31 @@ void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 		}
 	}
 
+void IPTunnelTimer::Dispatch(double t, int is_expire)
+	{
+	NetSessions::IPTunnelMap::const_iterator it =
+			sessions->ip_tunnels.find(tunnel_idx);
+
+	if ( it == sessions->ip_tunnels.end() )
+		return;
+
+	double last_active = it->second.second;
+	double inactive_time = t > last_active ? t - last_active : 0;
+
+	if ( inactive_time >= BifConst::Tunnel::ip_tunnel_timeout )
+		// tunnel activity timed out, delete it from map
+		sessions->ip_tunnels.erase(tunnel_idx);
+
+	else if ( ! is_expire )
+		// tunnel activity didn't timeout, schedule another timer
+		timer_mgr->Add(new IPTunnelTimer(t, tunnel_idx));
+	}
+
 NetSessions::NetSessions()
 	{
 	TypeList* t = new TypeList();
-	t->Append(base_type(TYPE_COUNT));	// source IP address
-	t->Append(base_type(TYPE_COUNT));	// dest IP address
+	t->Append(base_type(TYPE_ADDR));	// source IP address
+	t->Append(base_type(TYPE_ADDR));	// dest IP address
 	t->Append(base_type(TYPE_COUNT));	// source and dest ports
 
 	ch = new CompositeHash(t);
@@ -84,7 +107,7 @@ NetSessions::NetSessions()
 	fragments.SetDeleteFunc(bro_obj_delete_func);
 
 	if ( stp_correlate_pair )
-		stp_manager = new SteppingStoneManager();
+		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
 		stp_manager = 0;
 
@@ -123,7 +146,7 @@ NetSessions::NetSessions()
 		pkt_profiler = 0;
 
 	if ( arp_request || arp_reply || bad_arp )
-		arp_analyzer = new ARP_Analyzer();
+		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = 0;
 	}
@@ -135,22 +158,12 @@ NetSessions::~NetSessions()
 	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
+	delete discarder;
+	delete stp_manager;
 	}
 
 void NetSessions::Done()
 	{
-	delete stp_manager;
-	delete discarder;
-	}
-
-namespace	// private namespace
-	{
-	bool looks_like_IPv4_packet(int len, const struct ip* ip_hdr)
-		{
-		if ( len < int(sizeof(struct ip)) )
-			return false;
-		return ip_hdr->ip_v == 4 && ntohs(ip_hdr->ip_len) == len;
-		}
 	}
 
 void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
@@ -169,60 +182,8 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 
 	if ( encap_hdr_size > 0 && ip_data )
-		{
-		// We're doing tunnel encapsulation.  Check whether there's
-		// a particular associated port.
-		//
-		// Should we discourage the use of encap_hdr_size for UDP
-		// tunnneling?  It is probably better handled by enabling
-		// BifConst::parse_udp_tunnels instead of specifying a fixed
-		// encap_hdr_size.
-		if ( udp_tunnel_port > 0 )
-			{
-			ASSERT(ip_hdr);
-			if ( ip_hdr->ip_p == IPPROTO_UDP )
-				{
-				const struct udphdr* udp_hdr =
-					reinterpret_cast<const struct udphdr*>
-					(ip_data);
-
-				if ( ntohs(udp_hdr->uh_dport) == udp_tunnel_port )
-					{
-					// A match.
-					hdr_size += encap_hdr_size;
-					}
-				}
-			}
-
-		else
-			// Blanket encapsulation
-			hdr_size += encap_hdr_size;
-		}
-
-	// Check IP packets encapsulated through UDP tunnels.
-	// Specifying a udp_tunnel_port is optional but recommended (to avoid
-	// the cost of checking every UDP packet).
-	else if ( BifConst::parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
-		{
-		const struct udphdr* udp_hdr =
-			reinterpret_cast<const struct udphdr*>(ip_data);
-
-		if ( udp_tunnel_port == 0 || // 0 matches any port
-		     udp_tunnel_port == ntohs(udp_hdr->uh_dport) )
-			{
-			const u_char* udp_data =
-				ip_data + sizeof(struct udphdr);
-			const struct ip* ip_encap =
-				reinterpret_cast<const struct ip*>(udp_data);
-			const int ip_encap_len =
-				ntohs(udp_hdr->uh_ulen) - sizeof(struct udphdr);
-			const int ip_encap_caplen =
-				hdr->caplen - (udp_data - pkt);
-
-			if ( looks_like_IPv4_packet(ip_encap_len, ip_encap) )
-				hdr_size = udp_data - pkt;
-			}
-		}
+		// Blanket encapsulation
+		hdr_size += encap_hdr_size;
 
 	if ( src_ps->FilterType() == TYPE_FILTER_NORMAL )
 		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
@@ -252,7 +213,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		// difference here is that header extraction in
 		// PacketSort does not generate Weird events.
 
-		DoNextPacket(t, hdr, pkt_elem->IPHdr(), pkt, hdr_size);
+		DoNextPacket(t, hdr, pkt_elem->IPHdr(), pkt, hdr_size, 0);
 
 	else
 		{
@@ -265,6 +226,12 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		// we look to see if what we have is consistent with an
 		// IPv4 packet.  If not, it's either ARP or IPv6 or weird.
 
+		if ( hdr_size > static_cast<int>(hdr->caplen) )
+			{
+			Weird("truncated_link_frame", hdr, pkt);
+			return;
+			}
+
 		uint32 caplen = hdr->caplen - hdr_size;
 		if ( caplen < sizeof(struct ip) )
 			{
@@ -273,24 +240,35 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 
 		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
+
 		if ( ip->ip_v == 4 )
 			{
-			IP_Hdr ip_hdr(ip);
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
+			IP_Hdr ip_hdr(ip, false);
+			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
 			}
 
-		else if ( arp_analyzer && arp_analyzer->IsARP(pkt, hdr_size) )
-			arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
+		else if ( ip->ip_v == 6 )
+			{
+			if ( caplen < sizeof(struct ip6_hdr) )
+				{
+				Weird("truncated_IP", hdr, pkt);
+				return;
+				}
+
+			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false, caplen);
+			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
+			}
+
+		else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt, hdr_size) )
+			{
+			if ( arp_analyzer )
+				arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
+			}
 
 		else
 			{
-#ifdef BROv6
-			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
-#else
-			Weird("non_IPv4_packet", hdr, pkt);
+			Weird("unknown_packet_type", hdr, pkt);
 			return;
-#endif
 			}
 		}
 
@@ -329,7 +307,8 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 			StringVal* cmd_val =
 				new StringVal(sp->Event()->Filter());
 			args->append(cmd_val);
-			args->append(BuildHeader(ip));
+			IP_Hdr ip_hdr(ip, false);
+			args->append(ip_hdr.BuildPktHdrVal());
 			// ### Need to queue event here.
 			try
 				{
@@ -397,21 +376,9 @@ int NetSessions::CheckConnectionTag(Connection* conn)
 	return 1;
 	}
 
-
-static bool looks_like_IPv4_packet(int len, const struct ip* ip_hdr)
-	{
-	if ( (unsigned int) len < sizeof(struct ip) )
-		return false;
-
-	if ( ip_hdr->ip_v == 4 && ntohs(ip_hdr->ip_len) == len )
-		return true;
-	else
-		return false;
-	}
-
 void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				const IP_Hdr* ip_hdr, const u_char* const pkt,
-				int hdr_size)
+				int hdr_size, const EncapsulationStack* encapsulation)
 	{
 	uint32 caplen = hdr->caplen - hdr_size;
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
@@ -419,7 +386,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	uint32 len = ip_hdr->TotalLen();
 	if ( hdr->len < len + hdr_size )
 		{
-		Weird("truncated_IP", hdr, pkt);
+		Weird("truncated_IP", hdr, pkt, encapsulation);
 		return;
 		}
 
@@ -431,41 +398,32 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
-		Weird("bad_IP_checksum", hdr, pkt);
+		Weird("bad_IP_checksum", hdr, pkt, encapsulation);
 		return;
 		}
 
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
-	int proto = ip_hdr->NextProto();
-	if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP &&
-	     proto != IPPROTO_ICMP )
-		{
-		dump_this_packet = 1;
-		return;
-		}
-
 	FragReassembler* f = 0;
-	uint32 frag_field = ip_hdr->FragField();
 
-	if ( (frag_field & 0x3fff) != 0 )
+	if ( ip_hdr->IsFragment() )
 		{
 		dump_this_packet = 1;	// always record fragments
 
 		if ( caplen < len )
 			{
-			Weird("incompletely_captured_fragment", ip_hdr);
+			Weird("incompletely_captured_fragment", ip_hdr, encapsulation);
 
 			// Don't try to reassemble, that's doomed.
 			// Discard all except the first fragment (which
 			// is useful in analyzing header-only traces)
-			if ( (frag_field & 0x1fff) != 0 )
+			if ( ip_hdr->FragOffset() != 0 )
 				return;
 			}
 		else
 			{
-			f = NextFragment(t, ip_hdr, pkt + hdr_size, frag_field);
+			f = NextFragment(t, ip_hdr, pkt + hdr_size);
 			const IP_Hdr* ih = f->ReassembledPkt();
 			if ( ! ih )
 				// It didn't reassemble into anything yet.
@@ -482,21 +440,56 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
-	uint32 min_hdr_len = (proto == IPPROTO_TCP) ?  sizeof(struct tcphdr) :
-		(proto == IPPROTO_UDP ? sizeof(struct udphdr) : ICMP_MINLEN);
-
-	if ( len < min_hdr_len )
+	// We stop building the chain when seeing IPPROTO_ESP so if it's
+	// there, it's always the last.
+	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
-		Weird("truncated_header", hdr, pkt);
-		if ( f )
-			Remove(f);	// ###
+		dump_this_packet = 1;
+		if ( esp_packet )
+			{
+			val_list* vl = new val_list();
+			vl->append(ip_hdr->BuildPktHdrVal());
+			mgr.QueueEvent(esp_packet, vl);
+			}
+		Remove(f);
+		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
 		}
-	if ( caplen < min_hdr_len )
+
+#ifdef ENABLE_MOBILE_IPV6
+	// We stop building the chain when seeing IPPROTO_MOBILITY so it's always
+	// last if present.
+	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
-		Weird("internally_truncated_header", hdr, pkt);
-		if ( f )
-			Remove(f);	// ###
+		dump_this_packet = 1;
+
+		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
+			{
+			Weird("bad_MH_checksum", hdr, pkt, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		if ( mobile_ipv6_message )
+			{
+			val_list* vl = new val_list();
+			vl->append(ip_hdr->BuildPktHdrVal());
+			mgr.QueueEvent(mobile_ipv6_message, vl);
+			}
+
+		if ( ip_hdr->NextProto() != IPPROTO_NONE )
+			Weird("mobility_piggyback", hdr, pkt, encapsulation);
+
+		Remove(f);
+		return;
+		}
+#endif
+
+	int proto = ip_hdr->NextProto();
+
+	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt, encapsulation) )
+		{
+		Remove(f);
 		return;
 		}
 
@@ -506,7 +499,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
-	bool pass_to_conn_compressor = false;
 
 	switch ( proto ) {
 	case IPPROTO_TCP:
@@ -516,7 +508,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		id.dst_port = tp->th_dport;
 		id.is_one_way = 0;
 		d = &tcp_conns;
-		pass_to_conn_compressor = ip4 && use_connection_compressor;
 		break;
 		}
 
@@ -535,9 +526,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-		id.dst_port = ICMP_counterpart(icmpp->icmp_type,
-						icmpp->icmp_code,
-						id.is_one_way);
+		id.dst_port = analyzer::icmp::ICMP4_counterpart(icmpp->icmp_type,
+								icmpp->icmp_code,
+								id.is_one_way);
 
 		id.src_port = htons(id.src_port);
 		id.dst_port = htons(id.dst_port);
@@ -546,12 +537,104 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		break;
 		}
 
+	case IPPROTO_ICMPV6:
+		{
+		const struct icmp* icmpp = (const struct icmp *) data;
+
+		id.src_port = icmpp->icmp_type;
+		id.dst_port = analyzer::icmp::ICMP6_counterpart(icmpp->icmp_type,
+								icmpp->icmp_code,
+								id.is_one_way);
+
+		id.src_port = htons(id.src_port);
+		id.dst_port = htons(id.dst_port);
+
+		d = &icmp_conns;
+		break;
+		}
+
+	case IPPROTO_IPV4:
+	case IPPROTO_IPV6:
+		{
+		if ( ! BifConst::Tunnel::enable_ip )
+			{
+			Weird("IP_tunnel", ip_hdr, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		if ( encapsulation &&
+		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
+			{
+			Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		// Check for a valid inner packet first.
+		IP_Hdr* inner = 0;
+		int result = ParseIPPacket(caplen, data, proto, inner);
+
+		if ( result < 0 )
+			Weird("truncated_inner_IP", ip_hdr, encapsulation);
+
+		else if ( result > 0 )
+			Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
+
+		if ( result != 0 )
+			{
+			delete inner;
+			Remove(f);
+			return;
+			}
+
+		// Look up to see if we've already seen this IP tunnel, identified
+		// by the pair of IP addresses, so that we can always associate the
+		// same UID with it.
+		IPPair tunnel_idx;
+		if ( ip_hdr->SrcAddr() < ip_hdr->DstAddr() )
+			tunnel_idx = IPPair(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
+		else
+			tunnel_idx = IPPair(ip_hdr->DstAddr(), ip_hdr->SrcAddr());
+
+		IPTunnelMap::iterator it = ip_tunnels.find(tunnel_idx);
+
+		if ( it == ip_tunnels.end() )
+			{
+			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
+			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
+			timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
+			}
+		else
+			it->second.second = network_time;
+
+		DoNextInnerPacket(t, hdr, inner, encapsulation,
+		                  ip_tunnels[tunnel_idx].first);
+
+		Remove(f);
+		return;
+		}
+
+	case IPPROTO_NONE:
+		{
+		// If the packet is encapsulated in Teredo, then it was a bubble and
+		// the Teredo analyzer may have raised an event for that, else we're
+		// not sure the reason for the No Next header in the packet.
+		if ( ! ( encapsulation &&
+		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO ) )
+			Weird("ipv6_no_next", hdr, pkt);
+
+		Remove(f);
+		return;
+		}
+
 	default:
-		Weird(fmt("unknown_protocol %d", proto), hdr, pkt);
+		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt, encapsulation);
+		Remove(f);
 		return;
 	}
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
@@ -559,56 +642,67 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	// FIXME: The following is getting pretty complex. Need to split up
 	// into separate functions.
-	if ( pass_to_conn_compressor )
-		conn = conn_compressor->NextPacket(t, h, ip_hdr, hdr, pkt);
+	conn = (Connection*) d->Lookup(h);
+	if ( ! conn )
+		{
+		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), encapsulation);
+		if ( conn )
+			d->Insert(h, conn);
+		}
 	else
 		{
-		conn = (Connection*) d->Lookup(h);
-		if ( ! conn )
+		// We already know that connection.
+		int consistent = CheckConnectionTag(conn);
+		if ( consistent < 0 )
 			{
-			conn = NewConn(h, t, &id, data, proto);
+			delete h;
+			Remove(f);
+			return;
+			}
+
+		if ( ! consistent || conn->IsReuse(t, data) )
+			{
+			if ( consistent )
+				conn->Event(connection_reused, 0);
+
+			Remove(conn);
+			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), encapsulation);
 			if ( conn )
 				d->Insert(h, conn);
 			}
 		else
 			{
-			// We already know that connection.
-			int consistent = CheckConnectionTag(conn);
-			if ( consistent < 0 )
-				{
-				delete h;
-				return;
-				}
-
-			if ( ! consistent || conn->IsReuse(t, data) )
-				{
-				if ( consistent )
-					conn->Event(connection_reused, 0);
-
-				Remove(conn);
-				conn = NewConn(h, t, &id, data, proto);
-				if ( conn )
-					d->Insert(h, conn);
-				}
-			else
-				delete h;
-			}
-
-		if ( ! conn )
 			delete h;
+			conn->CheckEncapsulation(encapsulation);
+			}
 		}
 
 	if ( ! conn )
+		{
+		delete h;
+		Remove(f);
 		return;
+		}
 
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
 
-	int is_orig = addr_eq(id.src_addr, conn->OrigAddr()) &&
-			id.src_port == conn->OrigPort();
+	int is_orig = (id.src_addr == conn->OrigAddr()) &&
+			(id.src_port == conn->OrigPort());
 
-	if ( new_packet && ip4 )
-		conn->Event(new_packet, 0, BuildHeader(ip4));
+	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
+
+	Val* pkt_hdr_val = 0;
+
+	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
+		{
+		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
+		conn->Event(ipv6_ext_headers, 0, pkt_hdr_val);
+		}
+
+	if ( new_packet )
+		conn->Event(new_packet, 0,
+		        pkt_hdr_val ? pkt_hdr_val->Ref() : ip_hdr->BuildPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
 				record_packet, record_content,
@@ -618,7 +712,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		{
 		// Above we already recorded the fragment in its entirety.
 		f->DeleteTimer();
-		Remove(f);	// ###
+		Remove(f);
 		}
 
 	else if ( record_packet )
@@ -634,110 +728,119 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 	}
 
-Val* NetSessions::BuildHeader(const struct ip* ip)
+void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+		const IP_Hdr* inner, const EncapsulationStack* prev,
+		const EncapsulatingConn& ec)
 	{
-	static RecordType* pkt_hdr_type = 0;
-	static RecordType* ip_hdr_type = 0;
-	static RecordType* tcp_hdr_type = 0;
-	static RecordType* udp_hdr_type = 0;
-	static RecordType* icmp_hdr_type;
+	struct pcap_pkthdr fake_hdr;
+	fake_hdr.caplen = fake_hdr.len = inner->TotalLen();
 
-	if ( ! pkt_hdr_type )
+	if ( hdr )
+		fake_hdr.ts = hdr->ts;
+	else
 		{
-		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
-		ip_hdr_type = internal_type("ip_hdr")->AsRecordType();
-		tcp_hdr_type = internal_type("tcp_hdr")->AsRecordType();
-		udp_hdr_type = internal_type("udp_hdr")->AsRecordType();
-		icmp_hdr_type = internal_type("icmp_hdr")->AsRecordType();
+		fake_hdr.ts.tv_sec = (time_t) network_time;
+		fake_hdr.ts.tv_usec = (suseconds_t)
+		    ((network_time - (double)fake_hdr.ts.tv_sec) * 1000000);
 		}
 
-	RecordVal* pkt_hdr = new RecordVal(pkt_hdr_type);
+	const u_char* pkt = 0;
 
-	RecordVal* ip_hdr = new RecordVal(ip_hdr_type);
+	if ( inner->IP4_Hdr() )
+		pkt = (const u_char*) inner->IP4_Hdr();
+	else
+		pkt = (const u_char*) inner->IP6_Hdr();
 
-	int ip_hdr_len = ip->ip_hl * 4;
-	int ip_pkt_len = ntohs(ip->ip_len);
+	EncapsulationStack* outer = prev ?
+			new EncapsulationStack(*prev) : new EncapsulationStack();
+	outer->Add(ec);
 
-	ip_hdr->Assign(0, new Val(ip->ip_hl * 4, TYPE_COUNT));
-	ip_hdr->Assign(1, new Val(ip->ip_tos, TYPE_COUNT));
-	ip_hdr->Assign(2, new Val(ip_pkt_len, TYPE_COUNT));
-	ip_hdr->Assign(3, new Val(ntohs(ip->ip_id), TYPE_COUNT));
-	ip_hdr->Assign(4, new Val(ip->ip_ttl, TYPE_COUNT));
-	ip_hdr->Assign(5, new Val(ip->ip_p, TYPE_COUNT));
-	ip_hdr->Assign(6, new AddrVal(ip->ip_src.s_addr));
-	ip_hdr->Assign(7, new AddrVal(ip->ip_dst.s_addr));
+	DoNextPacket(t, &fake_hdr, inner, pkt, 0, outer);
 
-	pkt_hdr->Assign(0, ip_hdr);
-
-	// L4 header.
-	const u_char* data = ((const u_char*) ip) + ip_hdr_len;
-
-	int proto = ip->ip_p;
-	switch ( proto ) {
-	case IPPROTO_TCP:
-		{
-		const struct tcphdr* tp = (const struct tcphdr*) data;
-		RecordVal* tcp_hdr = new RecordVal(tcp_hdr_type);
-
-		int tcp_hdr_len = tp->th_off * 4;
-		int data_len = ip_pkt_len - ip_hdr_len - tcp_hdr_len;
-
-		tcp_hdr->Assign(0, new PortVal(ntohs(tp->th_sport), TRANSPORT_TCP));
-		tcp_hdr->Assign(1, new PortVal(ntohs(tp->th_dport), TRANSPORT_TCP));
-		tcp_hdr->Assign(2, new Val(uint32(ntohl(tp->th_seq)), TYPE_COUNT));
-		tcp_hdr->Assign(3, new Val(uint32(ntohl(tp->th_ack)), TYPE_COUNT));
-		tcp_hdr->Assign(4, new Val(tcp_hdr_len, TYPE_COUNT));
-		tcp_hdr->Assign(5, new Val(data_len, TYPE_COUNT));
-		tcp_hdr->Assign(6, new Val(tp->th_flags, TYPE_COUNT));
-		tcp_hdr->Assign(7, new Val(ntohs(tp->th_win), TYPE_COUNT));
-
-		pkt_hdr->Assign(1, tcp_hdr);
-		break;
-		}
-
-	case IPPROTO_UDP:
-		{
-		const struct udphdr* up = (const struct udphdr*) data;
-		RecordVal* udp_hdr = new RecordVal(udp_hdr_type);
-
-		udp_hdr->Assign(0, new PortVal(ntohs(up->uh_sport), TRANSPORT_UDP));
-		udp_hdr->Assign(1, new PortVal(ntohs(up->uh_dport), TRANSPORT_UDP));
-		udp_hdr->Assign(2, new Val(ntohs(up->uh_ulen), TYPE_COUNT));
-
-		pkt_hdr->Assign(2, udp_hdr);
-		break;
-		}
-
-	case IPPROTO_ICMP:
-		{
-		const struct icmp* icmpp = (const struct icmp *) data;
-		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);
-
-		icmp_hdr->Assign(0, new Val(icmpp->icmp_type, TYPE_COUNT));
-
-		pkt_hdr->Assign(3, icmp_hdr);
-		break;
-		}
-
-	default:
-		{
-		// This is not a protocol we understand.
-		}
+	delete inner;
+	delete outer;
 	}
 
-	return pkt_hdr;
+int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+		IP_Hdr*& inner)
+	{
+	if ( proto == IPPROTO_IPV6 )
+		{
+		if ( caplen < (int)sizeof(struct ip6_hdr) )
+			return -1;
+
+		inner = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
+		}
+
+	else if ( proto == IPPROTO_IPV4 )
+		{
+		if ( caplen < (int)sizeof(struct ip) )
+			return -1;
+
+		inner = new IP_Hdr((const struct ip*) pkt, false);
+		}
+
+	else
+		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
+
+	if ( (uint32)caplen != inner->TotalLen() )
+		return (uint32)caplen < inner->TotalLen() ? -1 : 1;
+
+	return 0;
+	}
+
+bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
+                                   const struct pcap_pkthdr* h,
+                                   const u_char* p, const EncapsulationStack* encap)
+	{
+	uint32 min_hdr_len = 0;
+	switch ( proto ) {
+	case IPPROTO_TCP:
+		min_hdr_len = sizeof(struct tcphdr);
+		break;
+	case IPPROTO_UDP:
+		min_hdr_len = sizeof(struct udphdr);
+		break;
+	case IPPROTO_IPV4:
+		min_hdr_len = sizeof(struct ip);
+		break;
+	case IPPROTO_IPV6:
+		min_hdr_len = sizeof(struct ip6_hdr);
+		break;
+	case IPPROTO_NONE:
+		min_hdr_len = 0;
+		break;
+	case IPPROTO_ICMP:
+	case IPPROTO_ICMPV6:
+	default:
+		// Use for all other packets.
+		min_hdr_len = ICMP_MINLEN;
+		break;
+	}
+
+	if ( len < min_hdr_len )
+		{
+		Weird("truncated_header", h, p, encap);
+		return true;
+		}
+
+	if ( caplen < min_hdr_len )
+		{
+		Weird("internally_truncated_header", h, p, encap);
+		return true;
+		}
+
+	return false;
 	}
 
 FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
-					const u_char* pkt, uint32 frag_field)
+					const u_char* pkt)
 	{
-	uint32 src_addr = uint32(ip->SrcAddr4());
-	uint32 dst_addr = uint32(ip->DstAddr4());
-	uint32 frag_id = ntohs(ip->ID4());	// we actually could skip conv.
+	uint32 frag_id = ip->ID();
 
 	ListVal* key = new ListVal(TYPE_ANY);
-	key->Append(new Val(src_addr, TYPE_COUNT));
-	key->Append(new Val(dst_addr, TYPE_COUNT));
+	key->Append(new AddrVal(ip->SrcAddr()));
+	key->Append(new AddrVal(ip->DstAddr()));
 	key->Append(new Val(frag_id, TYPE_COUNT));
 
 	HashKey* h = ch->ComputeHash(key, 1);
@@ -747,7 +850,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	FragReassembler* f = fragments.Lookup(h);
 	if ( ! f )
 		{
-		f = new FragReassembler(this, ip, pkt, frag_field, h, t);
+		f = new FragReassembler(this, ip, pkt, h, t);
 		fragments.Insert(h, f);
 		Unref(key);
 		return f;
@@ -756,7 +859,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	delete h;
 	Unref(key);
 
-	f->AddFragment(t, ip, pkt, frag_field);
+	f->AddFragment(t, ip, pkt);
 	return f;
 	}
 
@@ -772,7 +875,7 @@ int NetSessions::Get_OS_From_SYN(struct os_type* retval,
 				quirks, ECN) : 0;
 	}
 
-bool NetSessions::CompareWithPreviousOSMatch(uint32 addr, int id) const
+bool NetSessions::CompareWithPreviousOSMatch(const IPAddr& addr, int id) const
 	{
 	return SYN_OS_Fingerprinter ?
 		SYN_OS_Fingerprinter->CacheMatch(addr, id) : 0;
@@ -813,44 +916,30 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	addr_type orig_addr = (*vl)[orig_h]->AsAddr();
-	addr_type resp_addr = (*vl)[resp_h]->AsAddr();
+	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
+	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
 
 	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
 	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
 
 	ConnID id;
 
-#ifdef BROv6
 	id.src_addr = orig_addr;
 	id.dst_addr = resp_addr;
-#else
-	id.src_addr = &orig_addr;
-	id.dst_addr = &resp_addr;
-#endif
 
 	id.src_port = htons((unsigned short) orig_portv->Port());
 	id.dst_port = htons((unsigned short) resp_portv->Port());
 
 	id.is_one_way = 0;	// ### incorrect for ICMP connections
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
 	Dictionary* d;
 
 	if ( orig_portv->IsTCP() )
-		{
-		if ( use_connection_compressor )
-			{
-			Connection* conn = conn_compressor->Lookup(h);
-			delete h;
-			return conn;
-			}
-		else
-			d = &tcp_conns;
-		}
+		d = &tcp_conns;
 	else if ( orig_portv->IsUDP() )
 		d = &udp_conns;
 	else if ( orig_portv->IsICMP() )
@@ -878,12 +967,12 @@ void NetSessions::Remove(Connection* c)
 		{
 		c->CancelTimers();
 
-		TCP_Analyzer* ta = (TCP_Analyzer*) c->GetRootAnalyzer();
+		analyzer::tcp::TCP_Analyzer* ta = (analyzer::tcp::TCP_Analyzer*) c->GetRootAnalyzer();
 		if ( ta && c->ConnTransport() == TRANSPORT_TCP )
 			{
-			assert(ta->GetTag() == AnalyzerTag::TCP);
-			TCP_Endpoint* to = ta->Orig();
-			TCP_Endpoint* tr = ta->Resp();
+			assert(ta->IsAnalyzer("TCP"));
+			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
+			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			tcp_stats.StateLeft(to->state, tr->state);
 			}
@@ -903,17 +992,7 @@ void NetSessions::Remove(Connection* c)
 
 		switch ( c->ConnTransport() ) {
 		case TRANSPORT_TCP:
-			if ( use_connection_compressor &&
-			     conn_compressor->Remove(k) )
-				// Note, if the Remove() returned false
-				// then the compressor doesn't know about
-				// this connection, which *should* mean that
-				// we never gave it the connection in the
-				// first place, and thus we should check
-				// the regular TCP table instead.
-				;
-
-			else if ( ! tcp_conns.RemoveEntry(k) )
+			if ( ! tcp_conns.RemoveEntry(k) )
 				reporter->InternalError("connection missing");
 			break;
 
@@ -939,6 +1018,7 @@ void NetSessions::Remove(Connection* c)
 
 void NetSessions::Remove(FragReassembler* f)
 	{
+	if ( ! f ) return;
 	HashKey* k = f->Key();
 	if ( ! k )
 		reporter->InternalError("fragment block not in dictionary");
@@ -960,13 +1040,8 @@ void NetSessions::Insert(Connection* c)
 	// reference the old key for already existing connections.
 
 	case TRANSPORT_TCP:
-		if ( use_connection_compressor )
-			old = conn_compressor->Insert(c);
-		else
-			{
-			old = (Connection*) tcp_conns.Remove(c->Key());
-			tcp_conns.Insert(c->Key(), c);
-			}
+		old = (Connection*) tcp_conns.Remove(c->Key());
+		tcp_conns.Insert(c->Key(), c);
 		break;
 
 	case TRANSPORT_UDP:
@@ -998,9 +1073,6 @@ void NetSessions::Insert(Connection* c)
 
 void NetSessions::Drain()
 	{
-	if ( use_connection_compressor )
-		conn_compressor->Drain();
-
 	IterCookie* cookie = tcp_conns.InitForIteration();
 	Connection* tc;
 
@@ -1050,7 +1122,8 @@ void NetSessions::GetStats(SessionStats& s) const
 	}
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
-					const u_char* data, int proto)
+					const u_char* data, int proto, uint32 flow_label,
+					const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -1070,6 +1143,9 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		case IPPROTO_UDP:
 			tproto = TRANSPORT_UDP;
 			break;
+		case IPPROTO_ICMPV6:
+			tproto = TRANSPORT_ICMP;
+			break;
 		default:
 			reporter->InternalError("unknown transport protocol");
 			break;
@@ -1086,13 +1162,13 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
 		return 0;
 
+	ConnID flip_id = *id;
+
 	if ( flip )
 		{
 		// Make a guess that we're seeing the tail half of
 		// an analyzable connection.
-		ConnID flip_id = *id;
-
-		const uint32* ta = flip_id.src_addr;
+		const IPAddr ta = flip_id.src_addr;
 		flip_id.src_addr = flip_id.dst_addr;
 		flip_id.dst_addr = ta;
 
@@ -1103,9 +1179,9 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id);
+	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
 	conn->SetTransport(tproto);
-	dpm->BuildInitialAnalyzerTree(tproto, conn, data);
+	analyzer_mgr->BuildInitialAnalyzerTree(conn);
 
 	bool external = conn->IsExternal();
 
@@ -1113,10 +1189,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		conn->AppendAddl(fmt("tag=%s",
 					conn->GetTimerMgr()->GetTag().c_str()));
 
-	// If the connection compressor is active, it takes care of the
-	// new_connection/connection_external events for TCP connections.
-	if ( new_connection &&
-	     (tproto != TRANSPORT_TCP || ! use_connection_compressor) )
+	if ( new_connection )
 		{
 		conn->Event(new_connection, 0);
 
@@ -1270,18 +1343,26 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 	reporter->InternalError("%s", msg);
 	}
 
-void NetSessions::Weird(const char* name,
-			const struct pcap_pkthdr* hdr, const u_char* pkt)
+void NetSessions::Weird(const char* name, const struct pcap_pkthdr* hdr,
+                        const u_char* pkt, const EncapsulationStack* encap)
 	{
 	if ( hdr )
 		dump_this_packet = 1;
 
-	reporter->Weird(name);
+	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
+		reporter->Weird(fmt("%s_in_tunnel", name));
+	else
+		reporter->Weird(name);
 	}
 
-void NetSessions::Weird(const char* name, const IP_Hdr* ip)
+void NetSessions::Weird(const char* name, const IP_Hdr* ip,
+                        const EncapsulationStack* encap)
 	{
-	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
+	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
+		                fmt("%s_in_tunnel", name));
+	else
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

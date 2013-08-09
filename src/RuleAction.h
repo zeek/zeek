@@ -1,10 +1,11 @@
 #ifndef ruleaction_h
 #define ruleaction_h
 
-#include "AnalyzerTags.h"
 #include "BroString.h"
 #include "List.h"
 #include "util.h"
+
+#include "analyzer/Tag.h"
 
 class Rule;
 class RuleEndpointState;
@@ -35,29 +36,27 @@ private:
 	const char* msg;
 };
 
-// Base class for DPM enable/disable actions.
-class RuleActionDPM : public RuleAction {
+// Base class for enable/disable actions.
+class RuleActionAnalyzer : public RuleAction {
 public:
-	RuleActionDPM(const char* analyzer);
+	RuleActionAnalyzer(const char* analyzer);
 
 	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
 			      const u_char* data, int len) = 0;
 
 	virtual void PrintDebug();
 
-	AnalyzerTag::Tag Analyzer() const { return analyzer; }
-	AnalyzerTag::Tag ChildAnalyzer() const { return child_analyzer; }
+	analyzer::Tag Analyzer() const { return analyzer; }
+	analyzer::Tag ChildAnalyzer() const { return child_analyzer; }
 
 private:
-	// FIXME: This is in fact an AnalyzerID but we can't include "Analyzer.h"
-	// at this point due to circular dependenides. Fix that!
-	AnalyzerTag::Tag analyzer;
-	AnalyzerTag::Tag child_analyzer;
+	analyzer::Tag analyzer;
+	analyzer::Tag child_analyzer;
 };
 
-class RuleActionEnable : public RuleActionDPM {
+class RuleActionEnable : public RuleActionAnalyzer {
 public:
-	RuleActionEnable(const char* analyzer) : RuleActionDPM(analyzer)	{}
+	RuleActionEnable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
 
 	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len);
@@ -65,9 +64,9 @@ public:
 	virtual void PrintDebug();
 };
 
-class RuleActionDisable : public RuleActionDPM {
+class RuleActionDisable : public RuleActionAnalyzer {
 public:
-	RuleActionDisable(const char* analyzer) : RuleActionDPM(analyzer)	{}
+	RuleActionDisable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
 
 	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len);

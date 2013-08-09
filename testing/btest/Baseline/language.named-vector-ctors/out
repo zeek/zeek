@@ -1,0 +1,3 @@
+[one, two, three]
+[1.0, 2.0, 3.0]
+[[min=<uninitialized>, max=1], [min=<uninitialized>, max=2], [min=<uninitialized>, max=3]]

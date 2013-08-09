@@ -8,29 +8,41 @@
 module Known;
 
 export {
+	## The known-services logging stream identifier.
 	redef enum Log::ID += { SERVICES_LOG };
-	
+
+	## The record type which contains the column fields of the known-services
+	## log.
 	type ServicesInfo: record {
+		## The time at which the service was detected.
 		ts:             time            &log;
+		## The host address on which the service is running.
 		host:           addr            &log;
+		## The port number on which the service is running.
 		port_num:       port            &log;
+		## The transport-layer protocol which the service uses.
 		port_proto:     transport_proto &log;
+		## A set of protocols that match the service's connection payloads.
 		service:        set[string]     &log;
-		
-		done:           bool &default=F;
 	};
 	
 	## The hosts whose services should be tracked and logged.
+	## See :bro:type:`Host` for possible choices.
 	const service_tracking = LOCAL_HOSTS &redef;
-	
+
+	## Tracks the set of daily-detected services for preventing the logging
+	## of duplicates, but can also be inspected by other scripts for
+	## different purposes.
 	global known_services: set[addr, port] &create_expire=1day &synchronized;
-	
+
+	## Event that can be handled to access the :bro:type:`Known::ServicesInfo`
+	## record as it is sent on to the logging framework.
 	global log_known_services: event(rec: ServicesInfo);
 }
 
 redef record connection += {
-	## This field is to indicate whether or not the processing for detecting 
-	## and logging the service for this connection is complete.
+	# This field is to indicate whether or not the processing for detecting 
+	# and logging the service for this connection is complete.
 	known_services_done: bool &default=F;
 };
 
@@ -75,7 +87,7 @@ function known_services_done(c: connection)
 		event log_it(network_time(), id$resp_h, id$resp_p, c$service);
 	}
 	
-event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-5
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
 	{
 	known_services_done(c);
 	}

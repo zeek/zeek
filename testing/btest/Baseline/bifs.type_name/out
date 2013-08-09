@@ -1,0 +1,26 @@
+string
+count
+int
+double
+bool
+time
+interval
+pattern
+enum
+port
+addr
+addr
+subnet
+subnet
+vector of count
+vector of table[count] of string
+set[count]
+set[port,string]
+table[count] of string
+table[string] of table[addr,port] of string
+record { c:count; s:string; }
+function(aa:int; bb:int;) : bool
+function() : any
+function() : void
+file of string
+event()

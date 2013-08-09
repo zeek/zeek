@@ -26,6 +26,7 @@ public:
 	bool IsGlobal() const           { return scope != SCOPE_FUNCTION; }
 
 	bool IsExport() const           { return is_export; }
+	void SetExport()                { is_export = true; }
 
 	string ModuleName() const;
 

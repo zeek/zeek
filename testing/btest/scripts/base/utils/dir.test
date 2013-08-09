@@ -1,0 +1,64 @@
+# @TEST-EXEC: btest-bg-run bro bro -b ../dirtest.bro
+# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stdout
+
+@TEST-START-FILE dirtest.bro
+
+@load base/utils/dir
+@load base/frameworks/communication # let network-time run. otherwise there are no heartbeats...
+redef exit_only_after_terminate = T;
+
+global c: count = 0;
+
+function check_terminate_condition()
+	{
+	c += 1;
+
+	if ( c == 10 )
+		terminate();
+	}
+
+function new_file1(fname: string)
+	{
+	print "new_file1", fname;
+	check_terminate_condition();
+	}
+
+function new_file2(fname: string)
+	{
+	print "new_file2", fname;
+	check_terminate_condition();
+	}
+
+event change_things()
+	{
+	system("touch ../testdir/newone");
+	system("rm ../testdir/bye");
+	}
+
+event change_things2()
+	{
+	system("touch ../testdir/bye");
+	}
+
+event bro_init()
+	{
+	Dir::monitor("../testdir", new_file1, .5sec);
+	Dir::monitor("../testdir", new_file2, 1sec);
+	schedule 3sec { change_things() };
+	schedule 6sec { change_things2() };
+	}
+
+@TEST-END-FILE
+
+@TEST-START-FILE testdir/hi
+123
+@TEST-END-FILE
+
+@TEST-START-FILE testdir/howsitgoing
+abc
+@TEST-END-FILE
+
+@TEST-START-FILE testdir/bye
+!@#
+@TEST-END-FILE

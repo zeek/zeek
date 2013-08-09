@@ -1,3 +1,8 @@
+##! Loading this script extends the :bro:enum:`Notice::ACTION_EMAIL` action
+##! by appending to the email the hostnames associated with
+##! :bro:type:`Notice::Info`'s *src* and *dst* fields as determined by a
+##! DNS lookup.
+
 @load ../main
 
 module Notice;
@@ -8,7 +13,7 @@ module Notice;
 # reference to the original notice)
 global tmp_notice_storage: table[string] of Notice::Info &create_expire=max_email_delay+10secs;
 
-event Notice::notice(n: Notice::Info) &priority=10
+hook notice(n: Notice::Info) &priority=10
 	{
 	if ( ! n?$src && ! n?$dst )
 		return;

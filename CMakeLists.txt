@@ -1,5 +1,5 @@
 project(Bro C CXX)
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -17,12 +17,17 @@ set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
+set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
+set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
+
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "export BROMAGIC=\"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "setenv BROMAGIC \"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -69,6 +74,12 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
+set(libmagic_req 5.04)
+if ( LibMagic_VERSION VERSION_LESS ${libmagic_req} )
+    message(FATAL_ERROR "libmagic of at least version ${libmagic_req} required "
+                        "(found ${LibMagic_VERSION})")
+endif ()
+
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${OpenSSL_INCLUDE_DIR}
@@ -88,14 +99,63 @@ if (LIBGEOIP_FOUND)
     list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
 endif ()
 
-set(USE_PERFTOOLS false)
-if (ENABLE_PERFTOOLS)
-    find_package(GooglePerftools)
-    if (GOOGLEPERFTOOLS_FOUND)
-        set(USE_PERFTOOLS true)
-        include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
-        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
+set(HAVE_PERFTOOLS false)
+set(USE_PERFTOOLS_DEBUG false)
+set(USE_PERFTOOLS_TCMALLOC false)
+
+if (NOT DISABLE_PERFTOOLS)
+   find_package(GooglePerftools)
+endif ()
+
+if (GOOGLEPERFTOOLS_FOUND)
+    set(HAVE_PERFTOOLS true)
+    # Non-Linux systems may not be well-supported by gperftools, so
+    # require explicit request from user to enable it in that case.
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ENABLE_PERFTOOLS)
+        set(USE_PERFTOOLS_TCMALLOC true)
+
+        if (ENABLE_PERFTOOLS_DEBUG)
+            # Enable heap debugging with perftools.
+            set(USE_PERFTOOLS_DEBUG true)
+            include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+            list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
+        else ()
+            # Link in tcmalloc for better performance.
+            list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
+        endif ()
     endif ()
+endif ()
+
+set(USE_DATASERIES false)
+find_package(Lintel)
+find_package(DataSeries)
+find_package(LibXML2)
+
+if (NOT DISABLE_DATASERIES AND
+    LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
+    set(USE_DATASERIES true)
+	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
+	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
+	include_directories(BEFORE ${LibXML2_INCLUDE_DIR})
+	list(APPEND OPTLIBS ${Lintel_LIBRARIES})
+	list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
+	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
+endif()
+
+set(USE_ELASTICSEARCH false)
+set(USE_CURL false)
+find_package(LibCURL)
+
+if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
+  set(USE_ELASTICSEARCH true)
+  set(USE_CURL true)
+  include_directories(BEFORE ${LibCURL_INCLUDE_DIR})
+  list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
+endif()
+
+if (ENABLE_PERFTOOLS_DEBUG)
+    # Just a no op to prevent CMake from complaining about manually-specified
+    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
 endif ()
 
 set(brodeps
@@ -141,12 +201,16 @@ CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
+install(DIRECTORY ./magic/database/
+        DESTINATION ${BRO_MAGIC_INSTALL_PATH}
+)
+
 ########################################################################
 ## Packaging Setup
 
 if (INSTALL_BROCTL)
     # CPack RPM Generator may not automatically detect this
-    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.4.0")
+    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.6.0")
 endif ()
 
 # If this CMake project is a sub-project of another, we will not
@@ -182,7 +246,13 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
-    "\nGoogle perftools:  ${USE_PERFTOOLS}"
+    "\ngperftools found:  ${HAVE_PERFTOOLS}"
+    "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
+    "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
+    "\ncURL:              ${USE_CURL}"
+    "\n"
+    "\nDataSeries:        ${USE_DATASERIES}"
+    "\nElasticSearch:     ${USE_ELASTICSEARCH}"
     "\n"
     "\n================================================================\n"
 )

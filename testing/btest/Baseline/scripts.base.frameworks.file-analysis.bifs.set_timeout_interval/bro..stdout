@@ -1,0 +1,22 @@
+FILE_NEW
+file #0, 0, 0
+MIME_TYPE
+application/x-dosexec
+FILE_OVER_NEW_CONNECTION
+FILE_STATE_REMOVE
+file #0, 1022920, 0
+[orig_h=192.168.72.14, orig_p=3254/tcp, resp_h=65.54.95.206, resp_p=80/tcp]
+total bytes: 1022920
+source: HTTP
+FILE_NEW
+file #1, 0, 0
+MIME_TYPE
+application/octet-stream
+FILE_OVER_NEW_CONNECTION
+FILE_TIMEOUT
+FILE_TIMEOUT
+FILE_STATE_REMOVE
+file #1, 206024, 0
+[orig_h=192.168.72.14, orig_p=3257/tcp, resp_h=65.54.95.14, resp_p=80/tcp]
+total bytes: 1022920
+source: HTTP

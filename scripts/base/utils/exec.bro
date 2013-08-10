@@ -163,6 +163,7 @@ function run(cmd: Command): Result
 	Input::add_event([$name=cmd$uid,
 	                  $source=fmt("%s |", cmd$cmd),
 	                  $reader=Input::READER_RAW,
+	                  $mode=Input::STREAM,
 	                  $fields=Exec::OneLine,
 	                  $ev=Exec::line,
 	                  $want_record=F,

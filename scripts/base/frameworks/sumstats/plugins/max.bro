@@ -1,4 +1,4 @@
-@load base/frameworks/sumstats/main
+@load ../main
 
 module SumStats;
 
@@ -14,15 +14,15 @@ export {
 	};
 }
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( MAX in r$apply )
+	register_observe_plugin(MAX, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
 		if ( ! rv?$max )
 			rv$max = val;
 		else if ( val > rv$max )
 			rv$max = val;
-		}
+		});
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)

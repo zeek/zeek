@@ -20,20 +20,23 @@ redef Log::default_rotation_interval = 0secs;
 event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=10secs,
+	SumStats::create([$name="test",
+	                  $epoch=10secs,
 	                  $reducers=set(r1),
-	                  $epoch_finished(data: SumStats::ResultTable) = 
-				  {
-				  print "End of epoch handler was called";
-				  for ( res in data ) 
-				  	print data[res]["test.metric"]$sum;
-	                  	  terminate();
-				  },
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = 
+	                  	{
+	                  	print result["test.metric"]$sum;
+	                  	},
+	                  $epoch_finished(ts: time) = 
+	                  	{
+	                  	print "End of epoch handler was called";
+	                  	terminate();
+	                  	},
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["test.metric"]$sum);
+	                  	return result["test.metric"]$sum;
 	                  	},
-	                  $threshold=100,
+	                  $threshold=100.0,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	print fmt("A test metric threshold was crossed with a value of: %.1f", result["test.metric"]$sum);

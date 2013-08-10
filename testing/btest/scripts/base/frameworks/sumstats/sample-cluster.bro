@@ -5,8 +5,7 @@
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: cat manager-1/.stdout | sort > out
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff manager-1/.stdout
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
@@ -18,25 +17,24 @@ redef Cluster::nodes = {
 
 redef Log::default_rotation_interval = 0secs;
 
-global n = 0;
-
 event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SAMPLE), $num_samples=5];
-	SumStats::create([$epoch=5secs,
+	SumStats::create([$name="test",
+	                  $epoch=5secs,
 	                  $reducers=set(r1),
-	                  $epoch_finished(rt: SumStats::ResultTable) =
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	for ( key in rt )
-	                  		{
-					print key$host;
-	                     		local r = rt[key]["test"];
-					for ( sample in r$samples ) {
-						print r$samples[sample];
-					}
-					print r$sample_elements;
-	                  		}
+	                  	local r = result["test"];
+	                  	print fmt("Host: %s  Sampled observations: %d", key$host, r$sample_elements);
+	                  	local sample_nums: vector of count = vector();
+	                  	for ( sample in r$samples ) 
+	                  		sample_nums[|sample_nums|] =r$samples[sample]$num;
 
+	                  	print fmt("    %s", sort(sample_nums));
+	                  	},
+                      $epoch_finished(ts: time) =
+                      	{
 	                  	terminate();
 	                  	}]);
 	}

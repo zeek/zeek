@@ -27,7 +27,7 @@ export {
 
 	## The number of failed SSH connections before a host is designated as
 	## guessing passwords.
-	const password_guesses_limit = 30 &redef;
+	const password_guesses_limit: double = 30 &redef;
 
 	## The amount of time to remember presumed non-successful logins to build
 	## model of a password guesser.
@@ -42,20 +42,29 @@ export {
 
 event bro_init()
 	{
-	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=guessing_timeout,
+	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM, SumStats::SAMPLE), $num_samples=5];
+	SumStats::create([$name="detect-ssh-bruteforcing",
+	                  $epoch=guessing_timeout,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["ssh.login.failure"]$sum);
+	                  	return result["ssh.login.failure"]$sum;
 	                  	},
 	                  $threshold=password_guesses_limit,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	local r = result["ssh.login.failure"];
+	                  	local sub_msg = fmt("Sampled servers: ");
+	                  	local samples = r$samples;
+	                  	for ( i in samples )
+	                  		{
+	                  		if ( samples[i]?$str )
+	                  			sub_msg = fmt("%s%s %s", sub_msg, i==0 ? "":",", samples[i]$str);
+	                  		}
 	                  	# Generate the notice.
 	                  	NOTICE([$note=Password_Guessing,
 	                  	        $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
+	                  	        $sub=sub_msg,
 	                  	        $src=key$host,
 	                  	        $identifier=cat(key$host)]);
 	                  	}]);
@@ -78,5 +87,5 @@ event SSH::heuristic_failed_login(c: connection)
 	# be ignored.
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
-		SumStats::observe("ssh.login.failure", [$host=id$orig_h], [$num=1]);
+		SumStats::observe("ssh.login.failure", [$host=id$orig_h], [$str=cat(id$resp_h)]);
 	}

@@ -189,7 +189,7 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 				}
 
 			// Make sure header checksum is correct.
-			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") ) 
+			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
 				{
 				ProtocolViolation("broken_checksum");
 				return false;
@@ -198,8 +198,9 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			// If the checksum works out, we're pretty certainly DNP3.
 			ProtocolConfirmation();
 
-			// (Hui Lin) Make sure that the DNP3 packet includes Pseudo Transport and Pseudo Application Layer data
-			if ( ( endp->buffer[PSEUDO_LENGTH_INDEX] + 3 ) == (u_char)PSEUDO_LINK_LAYER_LEN  )
+			// DNP3 packets without transport and application
+			// layers can happen, we ignore them.
+			if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == PSEUDO_LINK_LAYER_LEN  )
 				{
 				ClearEndpointState(orig);
 				return true;
@@ -221,9 +222,6 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			// BinPAC.
 			if ( ++endp->pkt_cnt == 1 )
 				interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
-
-			
-
 			}
 
 		if ( ! endp->in_hdr )

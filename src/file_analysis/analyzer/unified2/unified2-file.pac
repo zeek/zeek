@@ -11,7 +11,6 @@ enum Types {
 	EXTRA_DATA          = 110,
 };
 
-
 type Time = record {
 	seconds:      uint32;
 	microseconds: uint32;

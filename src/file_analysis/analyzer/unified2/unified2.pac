@@ -7,7 +7,7 @@ analyzer Unified2 withcontext {
 	flow:       Flow;
 };
 
-analyzer Unified2_Analyzer {
+analyzer Unified2_Analyzer(bro_analyzer: BroFileAnalyzer) {
 	downflow = Flow;
 	upflow   = Flow;
 };

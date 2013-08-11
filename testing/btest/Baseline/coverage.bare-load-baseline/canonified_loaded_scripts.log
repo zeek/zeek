@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-08-04-03-27-22
+#open	2013-08-09-16-13-58
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -23,28 +23,28 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_File.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Finger.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_ICMP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
@@ -94,4 +94,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/top-k.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2013-08-04-03-27-22
+#close	2013-08-09-16-13-58

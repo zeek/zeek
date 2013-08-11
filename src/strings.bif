@@ -10,6 +10,35 @@ using namespace std;
 #include "SmithWaterman.h"
 %%}
 
+## This function takes two string values and calculates the Levenshtein distance
+## between the two strings.
+##
+## Returns: The Levenshtien distance of two strings as a count.
+##
+function levenshtein_distance%(string1: string, string2: string%): count
+        %{
+        unsigned int n = string1->Len();
+        unsigned int m = string2->Len();
+
+        const string s1 = string((const char*)string1->Bytes(), n);
+        const string s2 = string((const char*)string2->Bytes(), m);
+
+        if (n == 0) return new Val(m, TYPE_COUNT);
+        if (m == 0) return new Val(n, TYPE_COUNT);
+
+        vector<vector<unsigned int> > d(n + 1, vector<unsigned int>(m + 1));
+
+        d[0][0] = 0;
+
+        for (unsigned int i = 1; i <= n; ++i) d[i][0] = i;
+        for (unsigned int i = 1; i <= m; ++i) d[0][i] = i;
+
+        for (unsigned int i = 1; i <= n; ++i)
+                for (unsigned int j = 1; j <= m; ++j)
+                        d[i][j] = min( min(d[i - 1][j] + 1, d[i][j - 1] + 1), d[i - 1][j - 1] + (s1[i - 1] == s2[j - 1] ? 0 : 1) );
+
+        return new Val( d[n][m], TYPE_COUNT );
+        %}
 
 ## Concatenates all arguments into a single string. The function takes a
 ## variable number of arguments of type string and stitches them together.

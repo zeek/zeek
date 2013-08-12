@@ -1,0 +1,22 @@
+dnp3_header_block, T, 25605, 26, 196, 2, 3
+dnp3_application_request_header, T, 3
+dnp3_object_header, T, 3073, 40, 1, 256, 0
+dnp3_object_prefix, T, 1
+dnp3_crob, T, 3, 1, 100, 100, 0
+dnp3_header_block, F, 25605, 28, 68, 3, 2
+dnp3_application_response_header, F, 129, 0
+dnp3_object_header, F, 3073, 40, 1, 256, 0
+dnp3_object_prefix, F, 1
+dnp3_crob, F, 3, 1, 100, 100, 0
+dnp3_response_data_object, F, 255
+dnp3_header_block, T, 25605, 26, 196, 2, 3
+dnp3_application_request_header, T, 4
+dnp3_object_header, T, 3073, 40, 1, 256, 0
+dnp3_object_prefix, T, 1
+dnp3_crob, T, 3, 1, 100, 100, 0
+dnp3_header_block, F, 25605, 28, 68, 3, 2
+dnp3_application_response_header, F, 129, 0
+dnp3_object_header, F, 3073, 40, 1, 256, 0
+dnp3_object_prefix, F, 1
+dnp3_crob, F, 3, 1, 100, 100, 0
+dnp3_response_data_object, F, 255

@@ -1,0 +1,6 @@
+dnp3_header_block, T, 25605, 18, 196, 2, 3
+dnp3_application_request_header, T, 2
+dnp3_object_header, T, 12801, 7, 1, 1, 0
+dnp3_object_prefix, T, 0
+dnp3_header_block, F, 25605, 10, 68, 3, 2
+dnp3_application_response_header, F, 129, 0

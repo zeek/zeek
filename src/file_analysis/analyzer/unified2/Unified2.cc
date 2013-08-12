@@ -1,7 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <string>
-
 #include "Unified2.h"
 #include "file_analysis/Manager.h"
 
@@ -15,6 +13,7 @@ Unified2::Unified2(RecordVal* args, File* file)
 
 Unified2::~Unified2()
 	{
+	delete interp;
 	}
 
 file_analysis::Analyzer* Unified2::Instantiate(RecordVal* args, File* file)
@@ -24,6 +23,15 @@ file_analysis::Analyzer* Unified2::Instantiate(RecordVal* args, File* file)
 
 bool Unified2::DeliverStream(const u_char* data, uint64 len)
 	{
-	interp->NewData(true, data, data+len);
+	try
+		{
+		interp->NewData(true, data, data + len);
+		}
+	catch ( const binpac::Exception& e )
+		{
+		printf("Binpac exception: %s\n", e.c_msg());
+		return false;
+		}
+
 	return true;
 	}

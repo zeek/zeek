@@ -15,7 +15,7 @@ analyzer Unified2_Analyzer(bro_analyzer: BroFileAnalyzer) {
 %include unified2-file.pac
 
 flow Flow {
-	flowunit = File withcontext(connection, this);
+	flowunit = Record withcontext(connection, this);
 };
 
 %include unified2-analyzer.pac

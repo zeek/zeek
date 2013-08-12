@@ -117,6 +117,7 @@ private:
 
 	bool init;
 	static string current_dir;
+	static string current_sopath;
 };
 
 template<class T>

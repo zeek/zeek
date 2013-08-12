@@ -128,6 +128,12 @@ public:
 	const char* PluginDirectory() const;
 
 	/**
+	 * For dynamic plugins, returns the full path to the shared library 
+	 * from which it was loaded. For static plugins, returns null.
+	 **/
+	const char* PluginPath() const;
+
+	/**
 	 * Returns the internal API version that this plugin relies on. Only
 	 * plugins that match Bro's current API version may be used. For
 	 * statically compiled plugins this is automatically the case, but
@@ -231,13 +237,17 @@ protected:
 	void SetDynamicPlugin(bool dynamic);
 
 	/**
-	 * Sets the base directory from which the plugin was loaded. This
-	 * should be called only from the manager for dynamic plugins.
+	 * Sets the base directory and shared library path from which the
+	 * plugin was loaded. This should be called only from the manager for
+	 * dynamic plugins.
 	 *
-	 * @param dir The directory. The functions makes an internal copy of
-	 * string.
+	 * @param dir The plugin directory. The functions makes an internal
+	 * copy of string.
+	 *
+	 * @param sopath The full path the shared library loaded. The
+	 * functions makes an internal copy of string.
 	 */
-	void SetPluginDirectory(const char* dir);
+	void SetPluginLocation(const char* dir, const char* sopath);
 
 	/**
 	 * Takes ownership.
@@ -272,6 +282,7 @@ private:
 	const char* name;
 	const char* description;
 	const char* base_dir;
+	const char* sopath;
 	int version;
 	int api_version;
 	bool dynamic;

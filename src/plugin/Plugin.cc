@@ -48,6 +48,7 @@ Plugin::Plugin()
 	api_version = -9999;
 	dynamic = false;
 	base_dir = 0;
+	sopath = 0;
 
 	Manager::RegisterPlugin(this);
 	}
@@ -59,6 +60,7 @@ Plugin::~Plugin()
 	delete [] name;
 	delete [] description;
 	delete [] base_dir;
+	delete [] sopath;
 	}
 
 const char* Plugin::Name() const
@@ -108,6 +110,11 @@ const char* Plugin::PluginDirectory() const
 	return base_dir;
 	}
 
+const char* Plugin::PluginPath() const
+	{
+	return sopath;
+	}
+
 void Plugin::SetAPIVersion(int arg_version)
 	{
 	api_version = arg_version;
@@ -118,10 +125,12 @@ void Plugin::SetDynamicPlugin(bool arg_dynamic)
 	dynamic = arg_dynamic;
 	}
 
-void Plugin::SetPluginDirectory(const char* dir)
+void Plugin::SetPluginLocation(const char* arg_dir, const char* arg_sopath)
 	{
 	delete [] base_dir;
-	base_dir = copy_string(dir);
+	delete [] sopath;
+	base_dir = copy_string(arg_dir);
+	sopath = copy_string(arg_sopath);
 	}
 
 void Plugin::InitPreScript()

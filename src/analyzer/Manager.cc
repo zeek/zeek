@@ -202,6 +202,11 @@ void Manager::DisableAllAnalyzers()
 		(*i)->SetEnabled(false);
 	}
 
+analyzer::Tag Manager::GetAnalyzerTag(const char* name)
+	{
+	return GetComponentTag(name);
+	}
+
 bool Manager::IsEnabled(Tag tag)
 	{
 	if ( ! tag )

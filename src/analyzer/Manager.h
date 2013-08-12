@@ -134,6 +134,14 @@ public:
 	void DisableAllAnalyzers();
 
 	/**
+	 * Returns the tag associated with an analyer name, or the tag
+	 * associated with an error if no such analyzer exists.
+	 *
+	 * @param name The canonical analyzer name to check.
+	 */
+	Tag GetAnalyzerTag(const char* name);
+
+	/**
 	 * Returns true if an analyzer is enabled.
 	 *
 	 * @param tag The analyzer's tag.

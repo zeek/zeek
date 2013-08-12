@@ -14,6 +14,7 @@
 using namespace plugin;
 
 string Manager::current_dir;
+string Manager::current_sopath;
 
 Manager::Manager()
 	{
@@ -142,8 +143,10 @@ int Manager::LoadPlugin(const std::string& dir)
 			const char* path = gl.gl_pathv[i];
 
 			current_dir = dir;
+			current_sopath = path;
 			void* hdl = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
 			current_dir.clear();
+			current_sopath.clear();
 
 			if ( ! hdl )
 				{
@@ -173,8 +176,8 @@ bool Manager::RegisterPlugin(Plugin *plugin)
 	{
 	Manager::PluginsInternal()->push_back(plugin);
 
-	if ( current_dir.size() )
-		plugin->SetPluginDirectory(current_dir.c_str());
+	if ( current_dir.size() && current_sopath.size() )
+		plugin->SetPluginLocation(current_dir.c_str(), current_sopath.c_str());
 
 	// Sort plugins by name to make sure we have a deterministic order.
 	PluginsInternal()->sort(plugin_cmp);

@@ -10,13 +10,14 @@ enum OP_type {
 # The option types are by no means complete.
 # Anyone can add a new option type in RFC 1533 to be parsed here.
 enum OPTION_type {
-	SUBNET_OPTION	= 1,
-	ROUTER_OPTION	= 3,
-	REQ_IP_OPTION	= 50,
-	LEASE_OPTION	= 51,
-	MSG_TYPE_OPTION = 53,	
-	SERV_ID_OPTION	= 54,	# Server address, actually :)
-	END_OPTION	= 255,
+	SUBNET_OPTION	 = 1,
+	ROUTER_OPTION	 = 3,
+	HOST_NAME_OPTION = 12,
+	REQ_IP_OPTION	 = 50,
+	LEASE_OPTION	 = 51,
+	MSG_TYPE_OPTION  = 53,
+	SERV_ID_OPTION	 = 54,	# Server address, actually :)
+	END_OPTION	 = 255,
 };
 
 # Refer to RFC 1533 for message types (with option = 53).
@@ -34,21 +35,22 @@ enum DHCP_message_type {
 type Option_Info(code: uint8)  = record {
 	length		: uint8;
 	value		: case code of {
-		SUBNET_OPTION   -> mask	: uint32;
-		ROUTER_OPTION   -> router_list: uint32[length/4];
-		REQ_IP_OPTION   -> req_addr	: uint32;
-		LEASE_OPTION    -> lease	: uint32;
-		MSG_TYPE_OPTION -> msg_type : uint8;
-		SERV_ID_OPTION  -> serv_addr: uint32;
-		default		-> other: bytestring &length = length;
+		SUBNET_OPTION	-> mask	: uint32;
+		ROUTER_OPTION	-> router_list : uint32[length/4];
+		REQ_IP_OPTION	-> req_addr	: uint32;
+		LEASE_OPTION	-> lease	: uint32;
+		MSG_TYPE_OPTION	-> msg_type	: uint8;
+		SERV_ID_OPTION	-> serv_addr	: uint32;
+		HOST_NAME_OPTION-> host_name	: bytestring &length = length;
+		default		-> other	: bytestring &length = length;
 	};
 };
 
 type DHCP_Option = record {
 	code		: uint8;
 	data		: case code of {
-		0, 255	->	none	: empty;
-		default	->	info	: Option_Info(code);	
+		0, 255	-> none	: empty;
+		default	-> info	: Option_Info(code);
 	};
 } &let {
 	last: bool	= (code == 255);   # Mark the end of a list of options

@@ -30,23 +30,20 @@ redef record ResultVal += {
 	hll_error_margin: double &optional;
 };
 
-
-hook init_resultval_hook(r: Reducer, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( HLLUNIQUE in r$apply && ! rv?$card )
-		rv$card = hll_cardinality_init(r$hll_error_margin);
-		rv$hll_error_margin = r$hll_error_margin;
-		rv$hllunique = 0;
-	}
-
-
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
-	{
-	if ( HLLUNIQUE in r$apply )
+	register_observe_plugin(HLLUNIQUE, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
+		if ( ! rv?$card )
+			{
+			rv$card = hll_cardinality_init(r$hll_error_margin);
+			rv$hll_error_margin = r$hll_error_margin;
+			rv$hllunique = 0;
+			}
+
 		hll_cardinality_add(rv$card, obs);
-		rv$hllunique = double_to_count(hll_cardinality_estimate(rv$card));
-		}
+		rv$hllunique = double_to_count(hll_cardinality_estimate(rv$card));		
+		});
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)

@@ -18,10 +18,9 @@ TableVal* Manager::disabled = 0;
 string Manager::salt;
 
 Manager::Manager()
+	: plugin::ComponentManager<file_analysis::Tag,
+	                           file_analysis::Component>("Files")
 	{
-	tag_enum_type = new EnumType("Files::Tag");
-	::ID* id = install_ID("Tag", "Files", true, true);
-	add_type(id, tag_enum_type, 0, 0);
 	}
 
 Manager::~Manager()
@@ -35,27 +34,7 @@ void Manager::InitPreScript()
 
 	for ( std::list<Component*>::const_iterator i = analyzers.begin();
 	      i != analyzers.end(); ++i )
-	      RegisterAnalyzerComponent(*i);
-	}
-
-void Manager::RegisterAnalyzerComponent(Component* component)
-	{
-	const char* cname = component->CanonicalName();
-
-	if ( tag_enum_type->Lookup("Files", cname) != -1 )
-		reporter->FatalError("File Analyzer %s defined more than once", cname);
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Registering analyzer %s (tag %s)",
-			component->Name(), component->Tag().AsString().c_str());
-
-	analyzers_by_name.insert(std::make_pair(cname, component));
-	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
-	analyzers_by_val.insert(std::make_pair(
-	        component->Tag().AsEnumVal()->InternalInt(), component));
-
-	string id = fmt("ANALYZER_%s", cname);
-	tag_enum_type->AddName("Files", id.c_str(),
-						   component->Tag().AsEnumVal()->InternalInt(), true);
+	      RegisterComponent(*i, "ANALYZER_");
 	}
 
 void Manager::InitPostScript()
@@ -193,7 +172,7 @@ void Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
 
 bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
@@ -205,24 +184,26 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
-bool Manager::AddAnalyzer(const string& file_id, RecordVal* args) const
+bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+                          RecordVal* args) const
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->AddAnalyzer(args);
+	return file->AddAnalyzer(tag, args);
 	}
 
-bool Manager::RemoveAnalyzer(const string& file_id, const RecordVal* args) const
+bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+                             RecordVal* args) const
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->RemoveAnalyzer(args);
+	return file->RemoveAnalyzer(tag, args);
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
@@ -255,7 +236,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 	return rval;
 	}
 
-File* Manager::Lookup(const string& file_id) const
+File* Manager::LookupFile(const string& file_id) const
 	{
 	IDMap::const_iterator it = id_map.find(file_id);
 
@@ -267,7 +248,7 @@ File* Manager::Lookup(const string& file_id) const
 
 void Manager::Timeout(const string& file_id, bool is_terminating)
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return;
@@ -366,30 +347,17 @@ bool Manager::IsDisabled(analyzer::Tag tag)
 	return rval;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(int tag, RecordVal* args, File* f) const
+Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	{
-	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+	Component* c = Lookup(tag);
 
-	if ( it == analyzers_by_val.end() )
-		reporter->InternalError("cannot instantiate unknown file analyzer: %d",
-		                        tag);
-
-	Component* c = it->second;
+	if ( ! c )
+		reporter->InternalError("cannot instantiate unknown file analyzer: %s",
+		                        tag.AsString().c_str());
 
 	if ( ! c->Factory() )
 		reporter->InternalError("file analyzer %s cannot be instantiated "
 								"dynamically", c->CanonicalName());
 
 	return c->Factory()(args, f);
-	}
-
-const char* Manager::GetAnalyzerName(int tag) const
-	{
-	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
-
-	if ( it == analyzers_by_val.end() )
-		reporter->InternalError("cannot get name of unknown file analyzer: %d",
-		                        tag);
-
-	return it->second->CanonicalName();
 	}

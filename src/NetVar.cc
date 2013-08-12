@@ -238,11 +238,14 @@ TableType* record_field_table;
 
 StringVal* cmd_line_bpf_filter;
 
+StringVal* global_hash_seed;
+
 OpaqueType* md5_type;
 OpaqueType* sha1_type;
 OpaqueType* sha256_type;
 OpaqueType* entropy_type;
 OpaqueType* cardinality_type;
+OpaqueType* topk_type;
 OpaqueType* bloomfilter_type;
 
 #include "const.bif.netvar_def"
@@ -305,11 +308,14 @@ void init_general_global_var()
 	cmd_line_bpf_filter =
 		internal_val("cmd_line_bpf_filter")->AsStringVal();
 
+	global_hash_seed = opt_internal_string("global_hash_seed");
+
 	md5_type = new OpaqueType("md5");
 	sha1_type = new OpaqueType("sha1");
 	sha256_type = new OpaqueType("sha256");
 	entropy_type = new OpaqueType("entropy");
 	cardinality_type = new OpaqueType("cardinality");
+	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
 	}
 

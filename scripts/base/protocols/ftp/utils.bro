@@ -1,7 +1,8 @@
 ##! Utilities specific for FTP processing.
 
-@load ./main
+@load ./info
 @load base/utils/addrs
+@load base/utils/paths
 
 module FTP;
 

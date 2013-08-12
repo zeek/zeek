@@ -34,8 +34,8 @@ export {
 	global current_shunted_host_pairs: function(): set[conn_id];
 
 	redef enum Notice::Type += {
-		## Indicative that :bro:id:`max_bpf_shunts` connections are already
-		## being shunted with BPF filters and no more are allowed.
+		## Indicative that :bro:id:`PacketFilter::max_bpf_shunts` connections
+		## are already being shunted with BPF filters and no more are allowed.
 		No_More_Conn_Shunts_Available,
 
 		## Limitations in BPF make shunting some connections with BPF impossible.

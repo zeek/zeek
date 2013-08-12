@@ -67,11 +67,8 @@ export {
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
 
-	## The maximum amount of time a script can delay records from being logged.
-	const max_log_delay = 15secs &redef;
-
 	## Delays an SSL record for a specific token: the record will not be logged
-	## as longs the token exists or until :bro:id:`SSL::max_log_delay` elapses.
+	## as longs the token exists or until 15 seconds elapses.
 	global delay_log: function(info: Info, token: string);
 
 	## Undelays an SSL record for a previously inserted token, allowing the
@@ -90,7 +87,7 @@ redef record connection += {
 redef record Info += {
 		# Adding a string "token" to this set will cause the SSL script
 		# to delay logging the record until either the token has been removed or
-		# the record has been delayed for :bro:id:`SSL::max_log_delay`.
+		# the record has been delayed.
 		delay_tokens: set[string] &optional;
 };
 
@@ -138,7 +135,7 @@ function log_record(info: Info)
 			{
 			log_record(info);
 			}
-		timeout SSL::max_log_delay
+		timeout 15secs
 			{
 			Reporter::info(fmt("SSL delay tokens not released in time (%s tokens remaining)",
 			                   |info$delay_tokens|));

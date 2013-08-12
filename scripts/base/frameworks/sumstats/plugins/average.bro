@@ -1,4 +1,4 @@
-@load base/frameworks/sumstats/main
+@load ../main
 
 module SumStats;
 
@@ -14,16 +14,17 @@ export {
 	};
 }
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( AVERAGE in r$apply )
+	register_observe_plugin(AVERAGE, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
 		if ( ! rv?$average )
 			rv$average = val;
 		else
 			rv$average += (val - rv$average) / rv$num;
-		}
+		});
 	}
+
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{

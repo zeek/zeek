@@ -1,4 +1,5 @@
 @load ./utils-commands
+@load ./info
 @load ./main
 @load ./utils
 @load ./files

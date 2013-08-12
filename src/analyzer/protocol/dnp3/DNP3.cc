@@ -159,10 +159,10 @@ void DNP3_Analyzer::Undelivered(int seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-void DNP3_Analyzer::EndpointEOF(tcp::TCP_Reassembler* endp)
+void DNP3_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(endp);
-	interp->FlowEOF(endp->IsOrig());
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
 	}
 
 bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)

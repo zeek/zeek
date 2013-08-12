@@ -1,4 +1,9 @@
 
+2.1-1052 | 2013-08-12 14:38:14 -0700
+
+  * Fixing bug in DNP3 analyzer flagged by compiler warning. (Robin
+    Sommer)
+
 2.1-1050 | 2013-08-12 11:37:44 -0700
 
   * Experimental DNP3 analyzer. This includes only very basic

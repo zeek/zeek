@@ -2704,9 +2704,12 @@ export {
 		impact_flag:        count;
 		impact:             count;
 		blocked:            count;
-		mpls_label:         count  &optional; ## Not available in "legacy" IDS events.
-		vlan_id:            count  &optional; ## Not available in "legacy" IDS events.
-		packet_action:      count  &optional; ## Only available in "legacy" IDS events.
+		## Not available in "legacy" IDS events.
+		mpls_label:         count  &optional; 
+		## Not available in "legacy" IDS events.
+		vlan_id:            count  &optional; 
+		## Only available in "legacy" IDS events.
+		packet_action:      count  &optional; 
 	};
 
 	type Unified2::Packet: record {

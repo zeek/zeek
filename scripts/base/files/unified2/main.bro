@@ -16,10 +16,14 @@ export {
 	global alert: event(f: fa_file, ev: Unified2::IDSEvent, pkt: Unified2::Packet);
 
 	type Info: record {
+		## The last received IDS event.  This is primarily used 
+		## for tying together Unified2 events and packets.
 		current_event: Unified2::IDSEvent &optional;
 	};
 
 	redef record fa_file += {
+		## Add a field to store per-file state about Unified2
+		## files.
 		unified2: Info &optional;
 	};
 }
@@ -48,8 +52,13 @@ event bro_init()
 
 event file_new(f: fa_file)
 	{
+	local file_dir = "";
+	local parts = split_all(f$source, /\/[^\/]*$/);
+	if ( |parts| == 3 )
+		file_dir = parts[1];
+
 	if ( f$source in watch_file || 
-		compress_path(extract_path(f$source)) == compress_path(watch_dir) )
+		compress_path(watch_dir) == file_dir )
 		{
 		Files::add_analyzer(f, Files::ANALYZER_UNIFIED2);
 		f$unified2 = Info();

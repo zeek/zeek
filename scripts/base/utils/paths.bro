@@ -9,12 +9,13 @@ const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 ## Returns: the first absolute path found in input string, else an empty string
 function extract_path(input: string): string
 	{
-	local dir_pattern = /([^\\\/]+)$/;
+	const dir_pattern = /(\/|[A-Za-z]:[\\\/])([^\"\ ]|(\\\ ))*/;
 	local parts = split_all(input, dir_pattern);
+
 	if ( |parts| < 3 )
 		return "";
 
-	return parts[1];
+	return parts[2];
 	}
 
 ## Compresses a given path by removing '..'s and the parent directory it

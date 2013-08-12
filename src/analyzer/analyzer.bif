@@ -1,0 +1,51 @@
+##! Internal functions and types used by the analyzer framework.
+
+module Analyzer;
+
+%%{
+#include "NetVar.h"
+
+#include "analyzer/Manager.h"
+%%}
+
+function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool
+	%{
+	bool result = analyzer_mgr->EnableAnalyzer(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Analyzer::__disable_analyzer%(id: Analyzer::Tag%) : bool
+	%{
+	bool result = analyzer_mgr->DisableAnalyzer(id->AsEnumVal());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Analyzer::__disable_all_analyzers%(%) : any
+	%{
+	analyzer_mgr->DisableAllAnalyzers();
+	return 0;
+	%}
+
+function Analyzer::__register_for_port%(id: Analyzer::Tag, p: port%) : bool
+	%{
+	bool result = analyzer_mgr->RegisterAnalyzerForPort(id->AsEnumVal(), p);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
+					analyzer: Analyzer::Tag, tout: interval%) : bool
+	%{
+	analyzer_mgr->ScheduleAnalyzer(orig->AsAddr(), resp->AsAddr(), resp_p, analyzer->AsEnumVal(), tout);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function __name%(atype: Analyzer::Tag%) : string
+	%{
+	return new StringVal(analyzer_mgr->GetComponentName(atype));
+	%}
+
+function __tag%(name: string%) : Analyzer::Tag
+	%{
+	analyzer::Tag t = analyzer_mgr->GetComponentTag(name->CheckString());
+	return t.AsEnumVal()->Ref();
+	%}

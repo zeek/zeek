@@ -17,6 +17,10 @@ New Functionality
 
 - GridFTP support. TODO: Extend.
 
+- Modbus support. TODO: Extend.
+
+- DNP3 support. TODO: Extend.
+
 - ssl.log now also records the subject client and issuer certificates.
 
 - Hooks: TODO: Briefly summarize the documention from
@@ -46,10 +50,102 @@ New Functionality
   have changed their signatures to work with opaques types rather
   than global state as it was before.
 
+- The scripting language now supports a constructing sets, tables,
+  vectors, and records by name:
+
+        type MyRecordType: record {
+            c: count;
+            s: string &optional;
+        };
+
+        global r: MyRecordType = record($c = 7);
+
+        type MySet: set[MyRec];
+        global s = MySet([$c=1], [$c=2]);
+
 - Strings now support the subscript operator to extract individual
   characters and substrings (e.g., s[4], s[1,5]). The index expression
   can take up to two indices for the start and end index of the
   substring to return (e.g. "mystring[1,3]").
+
+- Functions now support default parameters, e.g.:
+
+        global foo: function(s: string, t: string &default="abc", u: count &default=0);
+
+- Scripts can now use two new "magic constants" @DIR and @FILENAME
+  that expand to the directory path of the current script and just the
+  script file name without path, respectively. (Jon Siwek)
+
+- The new file analysis framework moves most of the processing of file
+  content from script-land into the core, where it belongs. See
+  doc/file-analysis.rst for more information.
+
+  Much of this is an internal change, but the framework also comes
+  with the following user-visibible functionality (some of that was
+  already available before, but done differently):
+
+  [TODO: Update with changes from 984e9793db56.]
+
+      - A binary input reader interfaces the input framework with file
+        analysis, allowing to inject files on disk into Bro's
+        processing.
+
+      - Supports for analyzing data transfereed via HTTP range
+        requests.
+
+      - HTTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+
+      - SMTP:
+        * Identify MIME type of message.
+        * Extract message to disk.
+        * Compute MD5 for messages.
+        * Provide access to start of entity data.
+
+      - FTP data transfers: Identify MIME type; record to disk.
+
+      - IRC DCC transfers: Record to disk.
+
+- New packet filter framework supports BPF-based load-balancing,
+  shunting, and sampling; plus plugin support to customize filters
+  dynamically.
+
+- Bro now provides Bloom filters of two kinds: basic Bloom filters
+  supporting membership tests, and counting Bloom filters that track
+  the frequency of elements. The corresponding functions are:
+
+    bloomfilter_basic_init(fp: double, capacity: count, name: string &default=""): opaque of bloomfilter
+    bloomfilter_basic_init2(k: count, cells: count, name: string &default=""): opaque of bloomfilter
+    bloomfilter_counting_init(k: count, cells: count, max: count, name: string &default=""): opaque of bloomfilter
+    bloomfilter_add(bf: opaque of bloomfilter, x: any)
+    bloomfilter_lookup(bf: opaque of bloomfilter, x: any): count
+    bloomfilter_merge(bf1: opaque of bloomfilter, bf2: opaque of bloomfilter): opaque of bloomfilter
+    bloomfilter_clear(bf: opaque of bloomfilter)
+
+  See <INSERT LINK> for full documentation.
+
+- Bro now provides a probabilistic data structure for computing
+  "top k" elements. The corresponding functions are:
+
+    topk_init(size: count): opaque of topk
+    topk_add(handle: opaque of topk, value: any)
+    topk_get_top(handle: opaque of topk, k: count)
+    topk_count(handle: opaque of topk, value: any): count
+    topk_epsilon(handle: opaque of topk, value: any): count
+    topk_size(handle: opaque of topk): count
+    topk_sum(handle: opaque of topk): count
+    topk_merge(handle1: opaque of topk, handle2: opaque of topk)
+    topk_merge_prune(handle1: opaque of topk, handle2: opaque of topk)
+
+  See <INSERT LINK> for full documentation.
+
+- base/utils/exec.bro provides a module to start external processes
+  asynchronously and retrieve their output on termination.
+  base/utils/dir.bro uses it to monitor a directory for changes, and
+  base/utils/active-http.bro for providing an interface for querying
+  remote web servers.
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
@@ -125,6 +221,15 @@ Changed Functionality
 
 - Removed the byte_len() and length() bif functions. Use the "|...|"
   operator instead.
+
+- The SSH::Login notice has been superseded by an corresponding
+  intelligence framework observation (SSH::SUCCESSFUL_LOGIN).
+
+- PacketFilter::all_packets has been replaced with
+  PacketFilter::enable_auto_protocol_capture_filters.
+
+- We removed the BitTorrent DPD signatures pending further updates to
+  that analyzer.
 
 Bro 2.1
 -------
@@ -208,6 +313,27 @@ New Functionality
   formats as prototypes for collecting experience with alternative
   outputs. We do not yet recommend them for production (but welcome
   feedback!)
+
+- Summary statistics framework. [Extend]
+
+- A number of new applications build on top of the summary statistics
+  framework:
+
+    * Scan detection: Detectors for port and address scans return. See
+      policy/misc/scan.bro.
+
+    * Tracerouter detector: policy/misc/detect-traceroute
+
+    * Web application detection/measurement: policy/misc/app-metrics.bro
+
+    * FTP brute-forcing detector: policy/protocols/ftp/detect-bruteforcing.bro
+
+    * HTTP-based SQL injection detector: policy/protocols/http/detect-sqli.bro
+      (existed before, but now ported to the new framework)
+
+    * SSH brute-forcing detector feeding the intelligence framework:
+      policy/protocols/ssh/detect-bruteforcing.bro
+
 
 
 Changed Functionality

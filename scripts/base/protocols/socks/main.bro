@@ -34,19 +34,18 @@ export {
 	global log_socks: event(rec: Info);
 }
 
+const ports = { 1080/tcp };
+redef likely_server_ports += { ports };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SOCKS, ports);
 	}
 
 redef record connection += {
 	socks: SOCKS::Info &optional;
 };
-
-# Configure DPD
-redef capture_filters += { ["socks"] = "tcp port 1080" };
-redef dpd_config += { [ANALYZER_SOCKS] = [$ports = set(1080/tcp)] };
-redef likely_server_ports += { 1080/tcp };
 
 function set_session(c: connection, version: count)
 	{

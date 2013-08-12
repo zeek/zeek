@@ -221,21 +221,7 @@ void ID::UpdateValAttrs()
 
 	if ( Type()->Tag() == TYPE_FUNC )
 		{
-		Attr* attr = attrs->FindAttr(ATTR_GROUP);
-
-		if ( attr )
-			{
-			Val* group = attr->AttrExpr()->ExprVal();
-			if ( group )
-				{
-				if ( group->Type()->Tag() == TYPE_STRING )
-					event_registry->SetGroup(Name(), group->AsString()->CheckString());
-				else
-					Error("&group attribute takes string");
-				}
-			}
-
-		attr = attrs->FindAttr(ATTR_ERROR_HANDLER);
+		Attr* attr = attrs->FindAttr(ATTR_ERROR_HANDLER);
 
 		if ( attr )
 			event_registry->SetErrorHandler(Name());

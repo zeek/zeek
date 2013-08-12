@@ -351,10 +351,12 @@ public:
 		}
 
 	char Type()	{ return buffer[0]; }
+
 	RemoteSerializer::PeerID Peer()
 		{
-		// Wow, is this ugly...
-		return ntohl(*(uint32*)(buffer + 4));
+		uint32 tmp;
+		memcpy(&tmp, buffer + 4, sizeof(tmp));
+		return ntohl(tmp);
 		}
 
 	const char* Raw()	{ return buffer; }

@@ -1,0 +1,8 @@
+# ##### Deprecated events. Proposed for removal.
+
+## Deprecated. Will be removed.
+event interconn_stats%(c: connection, os: interconn_endp_stats, rs: interconn_endp_stats%);
+
+## Deprecated. Will be removed.
+event interconn_remove_conn%(c: connection%);
+

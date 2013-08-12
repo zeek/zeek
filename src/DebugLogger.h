@@ -21,11 +21,13 @@ enum DebugStream {
 	DBG_STRING,	// String code
 	DBG_NOTIFIERS,	// Notifiers (see StateAccess.h)
 	DBG_MAINLOOP,	// Main IOSource loop
-	DBG_DPD,	// Dynamic application detection framework
+	DBG_ANALYZER,	// Analyzer framework
 	DBG_TM,		// Time-machine packet input via Brocolli
 	DBG_LOGGING,	// Logging streams
 	DBG_INPUT,	// Input streams
 	DBG_THREADING,	// Threading system
+	DBG_FILE_ANALYSIS,	// File analysis
+	DBG_PLUGINS,
 
 	NUM_DBGS // Has to be last
 };

@@ -82,15 +82,6 @@ public:
 	void SetPacketFilter(const std::string& s);
 
 	/**
-	 * Schedules documentation of a given set of ports being associated
-	 * with a particular analyzer as a result of the current script
-	 * being loaded -- the way the "dpd_config" table is changed.
-	 * @param analyzer An analyzer that changed the "dpd_config" table.
-	 * @param ports The set of ports assigned to the analyzer in table.
-	 */
-	void AddPortAnalysis(const std::string& analyzer, const std::string& ports);
-
-	/**
 	 * Schedules documentation of a script option.  An option is
 	 * defined as any variable in the script that is declared 'const'
 	 * and has the '&redef' attribute.
@@ -242,7 +233,115 @@ public:
 		return reST_filename.c_str();
 		}
 
-protected:
+	typedef std::list<const BroDocObj*> BroDocObjList;
+	typedef std::map<std::string, BroDocObj*> BroDocObjMap;
+
+	/**
+	 * Writes out a table of BroDocObj's to the reST document
+	 * @param f The file to write to.
+	 * @param l A list of BroDocObj pointers
+	 */
+	static void WriteBroDocObjTable(FILE* f, const BroDocObjList& l);
+
+	/**
+	 * Writes out given number of characters to reST document
+	 * @param f The file to write to.
+	 * @param c the character to write
+	 * @param n the number of characters to write
+	 */
+	static void WriteRepeatedChar(FILE* f, char c, size_t n);
+
+	/**
+	 * A wrapper to fprintf() that always uses the reST document
+	 * for the FILE* argument.
+	 * @param f The file to write to.
+	 * @param format A printf style format string.
+	 */
+	static void WriteToDoc(FILE* f, const char* format, ...);
+
+	/**
+	 * Writes out a list of strings to the reST document.
+	 * If the list is empty, prints a newline character.
+	 * @param f The file to write to.
+	 * @param format A printf style format string for elements of the list
+	 *        except for the last one in the list
+	 * @param last_format A printf style format string to use for the last
+	 *        element of the list
+	 * @param l A reference to a list of strings
+	 */
+	static void WriteStringList(FILE* f, const char* format, const char* last_format,
+			const std::list<std::string>& l);
+
+	/**
+	 * @see WriteStringList(FILE* f, const char*, const char*,
+	 *                      const std::list<std::string>&>)
+	 */
+	static void WriteStringList(FILE* f, const char* format,
+			const std::list<std::string>& l){
+		WriteStringList(f, format, format, l);
+		}
+
+	/**
+	 * Writes out a list of BroDocObj objects to the reST document
+	 * @param f The file to write to.
+	 * @param l A list of BroDocObj pointers
+	 * @param wantPublic If true, filter out objects that are not declared
+	 *        in the global scope.  If false, filter out those that are in
+	 *        the global scope.
+	 * @param heading The title of the section to create in the reST doc.
+	 * @param underline The character to use to underline the reST
+	 *        section heading.
+	 * @param isShort Whether to write the full documentation or a "short"
+	 *        version (a single sentence)
+	 */
+	static void WriteBroDocObjList(FILE* f, const BroDocObjList& l, bool wantPublic,
+			const char* heading, char underline,
+			bool isShort);
+
+	/**
+	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
+	 * to the reST document
+	 * @see WriteBroDocObjList(FILE* f, const BroDocObjList&, bool, const char*, char,
+	        bool)
+	 */
+	static void WriteBroDocObjList(FILE* f, const BroDocObjMap& m, bool wantPublic,
+			const char* heading, char underline,
+			bool isShort);
+
+	/**
+	 * Writes out a list of BroDocObj objects to the reST document
+	 * @param l A list of BroDocObj pointers
+	 * @param heading The title of the section to create in the reST doc.
+	 * @param underline The character to use to underline the reST
+	 *        section heading.
+	 */
+	static void WriteBroDocObjList(FILE* f, const BroDocObjList& l, const char* heading,
+			char underline);
+
+	/**
+	 * Writes out a list of BroDocObj objects to the reST document
+	 * @param l A list of BroDocObj pointers
+	 */
+	static void WriteBroDocObjList(FILE* f, const BroDocObjList& l);
+
+	/**
+	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
+	 * to the reST document
+	 * @see WriteBroDocObjList(FILE* f, const BroDocObjList&, const char*, char)
+	 */
+	static void WriteBroDocObjList(FILE* f, const BroDocObjMap& m, const char* heading,
+			char underline);
+
+	/**
+	 * Writes out a reST section heading
+	 * @param f The file to write to.
+	 * @param heading The title of the heading to create
+	 * @param underline The character to use to underline the section title
+	 *        within the reST document
+	 */
+	static void WriteSectionHeading(FILE* f, const char* heading, char underline);
+
+private:
 	FILE* reST_file;
 	std::string reST_filename;
 	std::string source_filename;	// points to the basename of source file
@@ -254,9 +353,6 @@ protected:
 	std::list<std::string> summary;
 	std::list<std::string> imports;
 	std::list<std::string> port_analysis;
-
-	typedef std::list<const BroDocObj*> BroDocObjList;
-	typedef std::map<std::string, BroDocObj*> BroDocObjMap;
 
 	BroDocObjList options;
 	BroDocObjList constants;
@@ -273,107 +369,6 @@ protected:
 	BroDocObjList all;
 
 	/**
-	 * Writes out a list of strings to the reST document.
-	 * If the list is empty, prints a newline character.
-	 * @param format A printf style format string for elements of the list
-	 *        except for the last one in the list
-	 * @param last_format A printf style format string to use for the last
-	 *        element of the list
-	 * @param l A reference to a list of strings
-	 */
-	void WriteStringList(const char* format, const char* last_format,
-			const std::list<std::string>& l) const;
-
-	/**
-	 * @see WriteStringList(const char*, const char*,
-	 *                      const std::list<std::string>&>)
-	 */
-	void WriteStringList(const char* format,
-			const std::list<std::string>& l) const
-		{
-		WriteStringList(format, format, l);
-		}
-
-
-	/**
-	 * Writes out a table of BroDocObj's to the reST document
-	 * @param l A list of BroDocObj pointers
-	 */
-	void WriteBroDocObjTable(const BroDocObjList& l) const;
-
-	/**
-	 * Writes out a list of BroDocObj objects to the reST document
-	 * @param l A list of BroDocObj pointers
-	 * @param wantPublic If true, filter out objects that are not declared
-	 *        in the global scope.  If false, filter out those that are in
-	 *        the global scope.
-	 * @param heading The title of the section to create in the reST doc.
-	 * @param underline The character to use to underline the reST
-	 *        section heading.
-	 * @param isShort Whether to write the full documentation or a "short"
-	 *        version (a single sentence)
-	 */
-	void WriteBroDocObjList(const BroDocObjList& l, bool wantPublic,
-			const char* heading, char underline,
-			bool isShort) const;
-
-	/**
-	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
-	 * to the reST document
-	 * @see WriteBroDocObjList(const BroDocObjList&, bool, const char*, char,
-	        bool)
-	 */
-	void WriteBroDocObjList(const BroDocObjMap& m, bool wantPublic,
-			const char* heading, char underline,
-			bool isShort) const;
-
-	/**
-	 * Writes out a list of BroDocObj objects to the reST document
-	 * @param l A list of BroDocObj pointers
-	 * @param heading The title of the section to create in the reST doc.
-	 * @param underline The character to use to underline the reST
-	 *        section heading.
-	 */
-	void WriteBroDocObjList(const BroDocObjList& l, const char* heading,
-			char underline) const;
-
-	/**
-	 * Writes out a list of BroDocObj objects to the reST document
-	 * @param l A list of BroDocObj pointers
-	 */
-	void WriteBroDocObjList(const BroDocObjList& l) const;
-
-	/**
-	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
-	 * to the reST document
-	 * @see WriteBroDocObjList(const BroDocObjList&, const char*, char)
-	 */
-	void WriteBroDocObjList(const BroDocObjMap& m, const char* heading,
-			char underline) const;
-
-	/**
-	 * A wrapper to fprintf() that always uses the reST document
-	 * for the FILE* argument.
-	 * @param format A printf style format string.
-	 */
-	void WriteToDoc(const char* format, ...) const;
-
-	/**
-	 * Writes out a reST section heading
-	 * @param heading The title of the heading to create
-	 * @param underline The character to use to underline the section title
-	 *        within the reST document
-	 */
-	void WriteSectionHeading(const char* heading, char underline) const;
-
-	/**
-	 * Writes out given number of characters to reST document
-	 * @param c the character to write
-	 * @param n the number of characters to write
-	 */
-	void WriteRepeatedChar(char c, size_t n) const;
-
-	/**
 	 * Writes out the reST for either the script's public or private interface
 	 * @param heading The title of the interfaces section heading
 	 * @param underline The underline character to use for the interface
@@ -387,7 +382,6 @@ protected:
 	 */
 	void WriteInterface(const char* heading, char underline, char subunderline,
 			bool isPublic, bool isShort) const;
-private:
 
 	/**
 	 * Frees memory allocated to BroDocObj's objects in a given list.
@@ -412,5 +406,17 @@ private:
             }
     };
 };
+
+/**
+ * Writes out plugin index documentation for all analyzer plugins.
+ * @param filename the name of the file to write.
+ */
+void CreateProtoAnalyzerDoc(const char* filename);
+
+/**
+ * Writes out plugin index documentation for all file analyzer plugins.
+ * @param filename the name of the file to write.
+ */
+void CreateFileAnalyzerDoc(const char* filename);
 
 #endif

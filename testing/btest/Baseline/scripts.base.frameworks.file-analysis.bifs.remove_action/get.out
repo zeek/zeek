@@ -1,0 +1,12 @@
+FILE_NEW
+file #0, 0, 0
+FILE_BOF_BUFFER
+^J0.26 | 201
+MIME_TYPE
+text/plain
+FILE_OVER_NEW_CONNECTION
+FILE_STATE_REMOVE
+file #0, 4705, 0
+[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+total bytes: 4705
+source: HTTP

@@ -12,6 +12,9 @@ global sha1_handle: opaque of sha1 &persistent &synchronized;
 global sha256_handle: opaque of sha256 &persistent &synchronized;
 global entropy_handle: opaque of entropy &persistent &synchronized;
 
+global bloomfilter_elements: set[string] &persistent &synchronized;
+global bloomfilter_handle: opaque of bloomfilter &persistent &synchronized;
+
 event bro_done()
   {
   local out = open("output.log");
@@ -36,6 +39,9 @@ event bro_done()
     print out, entropy_test_finish(entropy_handle);
   else
     print out, "entropy_test_add() failed";
+
+  for ( e in bloomfilter_elements )
+    print bloomfilter_lookup(bloomfilter_handle, e);
   }
 
 @TEST-END-FILE
@@ -46,6 +52,9 @@ global md5_handle: opaque of md5 &persistent &synchronized;
 global sha1_handle: opaque of sha1 &persistent &synchronized;
 global sha256_handle: opaque of sha256 &persistent &synchronized;
 global entropy_handle: opaque of entropy &persistent &synchronized;
+
+global bloomfilter_elements = { "foo", "bar", "baz" } &persistent &synchronized;
+global bloomfilter_handle: opaque of bloomfilter &persistent &synchronized;
 
 event bro_init()
   {
@@ -72,6 +81,10 @@ event bro_init()
   entropy_handle = entropy_test_init();
   if ( ! entropy_test_add(entropy_handle, "f") )
     print out, "entropy_test_add() failed";
+
+  bloomfilter_handle = bloomfilter_basic_init(0.1, 100);
+  for ( e in bloomfilter_elements )
+    bloomfilter_add(bloomfilter_handle, e);
   }
 
 @TEST-END-FILE

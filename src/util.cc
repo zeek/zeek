@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -296,6 +297,13 @@ void to_upper(char* s)
 			*s = toupper(*s);
 		++s;
 		}
+	}
+
+string to_upper(const std::string& s)
+	{
+	string t = s;
+	std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+	return t;
 	}
 
 const char* strchr_n(const char* s, const char* end_of_s, char ch)
@@ -708,6 +716,8 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
+static bool first_seed_saved = false;
+static unsigned int first_seed = 0;
 
 static void bro_srandom(unsigned int seed, bool deterministic)
 	{
@@ -792,6 +802,12 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 
 	bro_srandom(seed, seeds_done);
 
+	if ( ! first_seed_saved )
+		{
+		first_seed = seed;
+		first_seed_saved = true;
+		}
+
 	if ( ! hmac_key_set )
 		{
 		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
@@ -803,9 +819,31 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				write_file);
 	}
 
+unsigned int initial_seed()
+	{
+	return first_seed;
+	}
+
 bool have_random_seed()
 	{
 	return bro_rand_determistic;
+	}
+
+unsigned int bro_prng(unsigned int  state)
+	{
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	static const long int m = 2147483647;
+	static const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	state = a * ( state % q ) - r * ( state / q );
+
+	if ( state <= 0 )
+		state += m;
+
+	return state;
 	}
 
 long int bro_random()
@@ -813,17 +851,7 @@ long int bro_random()
 	if ( ! bro_rand_determistic )
 		return random(); // Use system PRNG.
 
-	// Use our own simple linear congruence PRNG to make sure we are
-	// predictable across platforms.
-	const long int m = 2147483647;
-	const long int a = 16807;
-	const long int q = m / a;
-	const long int r = m % a;
-
-	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
-
-	if ( bro_rand_state <= 0 )
-		bro_rand_state += m;
+	bro_rand_state = bro_prng(bro_rand_state);
 
 	return bro_rand_state;
 	}
@@ -860,6 +888,16 @@ const char* bro_path()
 			BRO_SCRIPT_INSTALL_PATH ":"
 			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
 			BRO_SCRIPT_INSTALL_PATH "/site";
+
+	return path;
+	}
+
+const char* bro_magic_path()
+	{
+	const char* path = getenv("BROMAGIC");
+
+	if ( ! path )
+		path = BRO_MAGIC_INSTALL_PATH;
 
 	return path;
 	}
@@ -1016,8 +1054,10 @@ void get_script_subpath(const std::string& full_filename, const char** subpath)
 		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
 	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
 		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
-	else if ( (p = my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
 
 	// if root path found, remove path separators until next path component
 	if ( p != std::string::npos )
@@ -1391,6 +1431,31 @@ bool safe_write(int fd, const char* data, int len)
 	return true;
 	}
 
+bool safe_pwrite(int fd, const unsigned char* data, size_t len, size_t offset)
+	{
+	while ( len != 0 )
+		{
+		ssize_t n = pwrite(fd, data, len, offset);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		offset +=n;
+		len -= n;
+		}
+
+	return true;
+	}
+
 void safe_close(int fd)
 	{
 	/*
@@ -1528,23 +1593,48 @@ void operator delete[](void* v)
 
 #endif
 
+// Being selective of which components of MAGIC_NO_CHECK_BUILTIN are actually
+// known to be problematic, but keeping rest of libmagic's builtin checks.
+#define DISABLE_LIBMAGIC_BUILTIN_CHECKS  ( \
+/*  MAGIC_NO_CHECK_COMPRESS | */ \
+/*  MAGIC_NO_CHECK_TAR  | */ \
+/*  MAGIC_NO_CHECK_SOFT | */ \
+/*  MAGIC_NO_CHECK_APPTYPE  | */ \
+/*  MAGIC_NO_CHECK_ELF  | */ \
+/*  MAGIC_NO_CHECK_TEXT | */ \
+    MAGIC_NO_CHECK_CDF  | \
+    MAGIC_NO_CHECK_TOKENS  \
+/*  MAGIC_NO_CHECK_ENCODING */ \
+)
+
 void bro_init_magic(magic_t* cookie_ptr, int flags)
 	{
 	if ( ! cookie_ptr || *cookie_ptr )
 		return;
 
-	*cookie_ptr = magic_open(flags);
+	*cookie_ptr = magic_open(flags|DISABLE_LIBMAGIC_BUILTIN_CHECKS);
+
+	// Use our custom database for mime types, but the default database
+	// from libmagic for the verbose file type.
+	const char* database = (flags & MAGIC_MIME) ? bro_magic_path() : 0;
 
 	if ( ! *cookie_ptr )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		reporter->Error("can't init libmagic: %s", err ? err : "unknown");
+		if ( ! err )
+			err = "unknown";
+
+		reporter->InternalError("can't init libmagic: %s", err);
 		}
 
-	else if ( magic_load(*cookie_ptr, 0) < 0 )
+	else if ( magic_load(*cookie_ptr, database) < 0 )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		reporter->Error("can't load magic file: %s", err ? err : "unknown");
+		if ( ! err )
+			err = "unknown";
+
+		const char* db_name = database ? database : "<default>";
+		reporter->InternalError("can't load magic file %s: %s", db_name, err);
 		magic_close(*cookie_ptr);
 		*cookie_ptr = 0;
 		}
@@ -1560,4 +1650,19 @@ const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
 		}
 
 	return rval;
+	}
+
+const char* canonify_name(const char* name)
+	{
+	unsigned int len = strlen(name);
+	char* nname = new char[len + 1];
+
+	for ( unsigned int i = 0; i < len; i++ )
+		{
+		char c = isalnum(name[i]) ? name[i] : '_';
+		nname[i] = toupper(c);
+		}
+
+	nname[len] = '\0';
+	return nname;
 	}

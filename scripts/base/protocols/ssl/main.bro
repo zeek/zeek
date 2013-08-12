@@ -67,16 +67,8 @@ export {
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
 
-	## The openssl command line utility.  If it's in the path the default
-	## value will work, otherwise a full path string can be supplied for the
-	## utility.
-	const openssl_util = "openssl" &redef;
-
-	## The maximum amount of time a script can delay records from being logged.
-	const max_log_delay = 15secs &redef;
-
 	## Delays an SSL record for a specific token: the record will not be logged
-	## as longs the token exists or until :bro:id:`SSL::max_log_delay` elapses.
+	## as longs the token exists or until 15 seconds elapses.
 	global delay_log: function(info: Info, token: string);
 
 	## Undelays an SSL record for a previously inserted token, allowing the
@@ -95,50 +87,21 @@ redef record connection += {
 redef record Info += {
 		# Adding a string "token" to this set will cause the SSL script
 		# to delay logging the record until either the token has been removed or
-		# the record has been delayed for :bro:id:`SSL::max_log_delay`.
+		# the record has been delayed.
 		delay_tokens: set[string] &optional;
-};
-
-event bro_init() &priority=5
-	{
-	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
-	}
-
-redef capture_filters += {
-	["ssl"] = "tcp port 443",
-	["nntps"] = "tcp port 563",
-	["imap4-ssl"] = "tcp port 585",
-	["sshell"] = "tcp port 614",
-	["ldaps"] = "tcp port 636",
-	["ftps-data"] = "tcp port 989",
-	["ftps"] = "tcp port 990",
-	["telnets"] = "tcp port 992",
-	["imaps"] = "tcp port 993",
-	["ircs"] = "tcp port 994",
-	["pop3s"] = "tcp port 995",
-	["xmpps"] = "tcp port 5223",
 };
 
 const ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 };
+redef likely_server_ports += { ports };
 
-redef dpd_config += {
-	[[ANALYZER_SSL]] = [$ports = ports]
-};
-
-redef likely_server_ports += {
-	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
-
-# A queue that buffers log records.
-global log_delay_queue: table[count] of Info;
-# The top queue index where records are added.
-global log_delay_queue_head = 0;
-# The bottom queue index that points to the next record to be flushed.
-global log_delay_queue_tail = 0;
+event bro_init() &priority=5
+	{
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ports);
+	}
 
 function set_session(c: connection)
 	{
@@ -149,24 +112,15 @@ function set_session(c: connection)
 
 function delay_log(info: Info, token: string)
 	{
-	info$delay_tokens = set();
+	if ( ! info?$delay_tokens )
+		info$delay_tokens = set();
 	add info$delay_tokens[token];
-
-	log_delay_queue[log_delay_queue_head] = info;
-	++log_delay_queue_head;
 	}
 
 function undelay_log(info: Info, token: string)
 	{
-	if ( token in info$delay_tokens )
+	if ( info?$delay_tokens && token in info$delay_tokens )
 		delete info$delay_tokens[token];
-	}
-
-global log_record: function(info: Info);
-
-event delay_logging(info: Info)
-	{
-	log_record(info);
 	}
 
 function log_record(info: Info)
@@ -177,26 +131,15 @@ function log_record(info: Info)
 		}
 	else
 		{
-		for ( unused_index in log_delay_queue )
+		when ( |info$delay_tokens| == 0 )
 			{
-			if ( log_delay_queue_head == log_delay_queue_tail )
-				return;
-			if ( |log_delay_queue[log_delay_queue_tail]$delay_tokens| > 0 )
-				{
-				if ( info$ts + max_log_delay > network_time() )
-					{
-					schedule 1sec { delay_logging(info) };
-					return;
-					}
-				else
-					{
-					Reporter::info(fmt("SSL delay tokens not released in time (%s)",
-					                   info$delay_tokens));
-					}
-				}
-			Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
-			delete log_delay_queue[log_delay_queue_tail];
-			++log_delay_queue_tail;
+			log_record(info);
+			}
+		timeout 15secs
+			{
+			# We are just going to log the record anyway.
+			delete info$delay_tokens;
+			log_record(info);
 			}
 		}
 	}
@@ -293,28 +236,16 @@ event ssl_established(c: connection) &priority=-5
 	finish(c);
 	}
 
-event protocol_confirmation(c: connection, atype: count, aid: count) &priority=5
+event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
 	# Check by checking for existence of c$ssl record.
-	if ( c?$ssl && analyzer_name(atype) == "SSL" )
+	if ( c?$ssl && atype == Analyzer::ANALYZER_SSL )
 		c$ssl$analyzer_id = aid;
 	}
 
-event protocol_violation(c: connection, atype: count, aid: count,
+event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
 	if ( c?$ssl )
 		finish(c);
-	}
-
-event bro_done()
-	{
-	if ( |log_delay_queue| == 0 )
-		return;
-	for ( unused_index in log_delay_queue )
-		{
-		Log::write(SSL::LOG, log_delay_queue[log_delay_queue_tail]);
-		delete log_delay_queue[log_delay_queue_tail];
-		++log_delay_queue_tail;
-		}
 	}

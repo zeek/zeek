@@ -3,6 +3,16 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+# This collects generated bif and pac files from subdirectories.
+set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FORCE)
+
+# This collects bif inputs that we'll load automatically.
+set(bro_AUTO_BIFS CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
+
+# If TRUE, use CMake's object libraries for sub-directories instead of
+# static libraries. This requires CMake >= 2.8.8.
+set(bro_HAVE_OBJECT_LIBRARIES FALSE)
+
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
@@ -100,45 +110,7 @@ target_link_libraries(bifcl)
 ########################################################################
 ## bifcl-dependent targets
 
-# A macro to define a command that uses the BIF compiler to produce
-# C++ segments and Bro language declarations from .bif file
-# The outputs are appended to list ALL_BIF_OUTPUTS
-# Outputs that should be installed are appended to INSTALL_BIF_OUTPUTS
-macro(BIF_TARGET bifInput)
-    get_bif_output_files(${bifInput} bifOutputs)
-    add_custom_command(OUTPUT ${bifOutputs}
-                       COMMAND bifcl
-                       ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
-                       # In order be able to run bro from the build directory,
-                       # the generated bro script needs to be inside a
-                       # a directory tree named the same way it will be
-                       # referenced from an @load.
-                       COMMAND "${CMAKE_COMMAND}"
-                       ARGS -E copy ${bifInput}.bro base/${bifInput}.bro
-                       COMMAND "${CMAKE_COMMAND}"
-                       ARGS -E remove -f ${bifInput}.bro
-                       DEPENDS ${bifInput}
-                       DEPENDS bifcl
-                       COMMENT "[BIFCL] Processing ${bifInput}"
-    )
-    list(APPEND ALL_BIF_OUTPUTS ${bifOutputs})
-    list(APPEND INSTALL_BIF_OUTPUTS
-         ${CMAKE_CURRENT_BINARY_DIR}/base/${bifInput}.bro)
-endmacro(BIF_TARGET)
-
-# returns a list of output files that bifcl will produce
-# for given input file in ${outputFileVar}
-macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
-    set(${outputFileVar}
-        base/${inputFile}.bro
-        ${inputFile}.func_def
-        ${inputFile}.func_h
-        ${inputFile}.func_init
-        ${inputFile}.netvar_def
-        ${inputFile}.netvar_h
-        ${inputFile}.netvar_init
-    )
-endmacro(GET_BIF_OUTPUT_FILES)
+include(BifCl)
 
 set(BIF_SRCS
     bro.bif
@@ -152,86 +124,75 @@ set(BIF_SRCS
 )
 
 foreach (bift ${BIF_SRCS})
-    bif_target(${bift})
+    bif_target(${bift} "standard")
 endforeach ()
 
 ########################################################################
 ## BinPAC-dependent targets
 
+include(BinPAC)
+
 set(BINPAC_AUXSRC
-    binpac.pac
-    bro.pac
-    binpac_bro.h
+    ${CMAKE_SOURCE_DIR}/src/binpac.pac
+    ${CMAKE_SOURCE_DIR}/src/bro.pac
+    ${CMAKE_SOURCE_DIR}/src/binpac_bro.h
 )
 
-# A macro to define a command that uses the BinPac compiler to
-# produce C++ code that implements a protocol parser/analyzer
-# The outputs of the command are appended to list ALL_BINPAC_OUTPUTS
-# All arguments to this macro are appended to list ALL_BINPAC_INPUTS
-macro(BINPAC_TARGET pacFile)
-    get_filename_component(basename ${pacFile} NAME_WE)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
-                              ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc
-                       COMMAND ${BinPAC_EXE}
-                       ARGS -q -d ${CMAKE_CURRENT_BINARY_DIR}
-                            -I ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
-                       DEPENDS ${BinPAC_EXE} ${pacFile}
-                               ${BINPAC_AUXSRC} ${ARGN}
-                       COMMENT "[BINPAC] Processing ${pacFile}"
-    )
-    list(APPEND ALL_BINPAC_INPUTS ${ARGV})
-    list(APPEND ALL_BINPAC_OUTPUTS
-         ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
-         ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc) 
-endmacro(BINPAC_TARGET)
-
 binpac_target(binpac-lib.pac)
-binpac_target(binpac_bro-lib.pac)
+list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
-binpac_target(ayiya.pac
-    ayiya-protocol.pac ayiya-analyzer.pac)
-binpac_target(bittorrent.pac
-    bittorrent-protocol.pac bittorrent-analyzer.pac)
-binpac_target(dce_rpc.pac
-    dce_rpc-protocol.pac dce_rpc-analyzer.pac epmapper.pac)
-binpac_target(dce_rpc_simple.pac
-    dce_rpc-protocol.pac epmapper.pac)
-binpac_target(dhcp.pac
-    dhcp-protocol.pac dhcp-analyzer.pac)
-binpac_target(dns.pac
-    dns-protocol.pac dns-analyzer.pac)
-binpac_target(dns_tcp.pac
-    dns.pac)
-binpac_target(gtpv1.pac
-    gtpv1-protocol.pac gtpv1-analyzer.pac)
-binpac_target(http.pac
-    http-protocol.pac http-analyzer.pac)
-binpac_target(ncp.pac)
-binpac_target(netflow.pac
-    netflow-protocol.pac netflow-analyzer.pac)
-binpac_target(smb.pac
-    smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
-binpac_target(socks.pac
-    socks-protocol.pac socks-analyzer.pac)
-binpac_target(ssl.pac
-    ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
-binpac_target(syslog.pac
-    syslog-protocol.pac syslog-analyzer.pac)
-binpac_target(modbus.pac
-    modbus-protocol.pac modbus-analyzer.pac)
+binpac_target(binpac_bro-lib.pac)
+list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
+
+########################################################################
+## Including subdirectories.
+########################################################################
+
+set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
+set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
+
+add_subdirectory(analyzer)
+add_subdirectory(file_analysis)
+add_subdirectory(probabilistic)
+
+set(bro_SUBDIRS
+    ${bro_SUBDIR_LIBS}
+    ${bro_PLUGIN_LIBS}
+)
+
+if ( NOT bro_HAVE_OBJECT_LIBRARIES )
+    foreach (_plugin ${bro_PLUGIN_LIBS})
+        string(REGEX REPLACE "plugin-" "" _plugin "${_plugin}")
+        string(REGEX REPLACE "-" "_" _plugin "${_plugin}")
+        set(_decl "namespace plugin { namespace ${_plugin} { class Plugin; extern Plugin __plugin; } };")
+        set(_use "i += (size_t)(&(plugin::${_plugin}::__plugin));")
+        set(__BRO_DECL_PLUGINS "${__BRO_DECL_PLUGINS}${_decl}\n")
+        set(__BRO_USE_PLUGINS "${__BRO_USE_PLUGINS}${_use}\n")
+    endforeach()
+
+    configure_file(plugins.cc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.cc)
+    set(PLUGIN_INIT ${CMAKE_CURRENT_BINARY_DIR}/plugins.cc)
+endif()
 
 ########################################################################
 ## bro target
 
 find_package (Threads)
 
+# Avoid CMake warning about "3rdparty" looking like a number.
+
+cmake_policy(PUSH)
+
+if (POLICY CMP0012)
+cmake_policy(SET CMP0012 NEW)
+endif ()
+
 # This macro stores associated headers for any C/C++ source files given
 # as arguments (past _var) as a list in the CMake variable named "_var".
 macro(COLLECT_HEADERS _var)
     foreach (src ${ARGN})
         get_filename_component(ext ${src} EXT)
-        if (${ext} STREQUAL ".cc" OR ${ext} STREQUAL ".c")
+        if ("${ext}" STREQUAL ".cc" OR "${ext}" STREQUAL ".c")
             get_filename_component(base ${src} NAME_WE)
             get_filename_component(dir ${src} PATH)
             if (NOT "${dir}")
@@ -244,6 +205,8 @@ macro(COLLECT_HEADERS _var)
         endif ()
     endforeach ()
 endmacro(COLLECT_HEADERS _var)
+
+cmake_policy(POP)
 
 # define a command that's used to run the make_dbg_constants.pl script
 # building the bro binary depends on the outputs of this script
@@ -264,10 +227,8 @@ set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
-    ${ALL_BIF_OUTPUTS}
     ${BINPAC_AUXSRC}
-    ${ALL_BINPAC_INPUTS}
-    ${ALL_BINPAC_OUTPUTS}
+    ${BINPAC_OUTPUTS}
     ${TRANSFORMED_BISON_OUTPUTS}
     ${FLEX_RuleScanner_OUTPUTS}
     ${FLEX_RuleScanner_INPUT}
@@ -279,19 +240,14 @@ set(bro_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+    ${PLUGIN_INIT}
     main.cc
     net_util.cc
     util.cc
     module_util.cc
-    Analyzer.cc
     Anon.cc
-    ARP.cc
     Attr.cc
-    AYIYA.cc
-    BackDoor.cc
     Base64.cc
-    BitTorrent.cc
-    BitTorrentTracker.cc
     BPF_Program.cc
     BroDoc.cc
     BroDocObj.cc
@@ -301,14 +257,7 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
-    ConnSizeAnalyzer.cc
-    ContentLine.cc
-    DCE_RPC.cc
     DFA.cc
-    DHCP-binpac.cc
-    DNS.cc
-    DNS-binpac.cc
-    DNS_Mgr.cc
     DbgBreakpoint.cc
     DbgHelp.cc
     DbgWatch.cc
@@ -318,48 +267,29 @@ set(bro_SRCS
     Desc.cc
     Dict.cc
     Discard.cc
-    DPM.cc
+    DNS_Mgr.cc
     EquivClass.cc
     Event.cc
     EventHandler.cc
     EventLauncher.cc
     EventRegistry.cc
     Expr.cc
-    FTP.cc
     File.cc
-    FileAnalyzer.cc
-    Finger.cc
     FlowSrc.cc
     Frag.cc
     Frame.cc
     Func.cc
-    Gnutella.cc
-    GTPv1.cc
-    HTTP.cc
-    HTTP-binpac.cc
     Hash.cc
-    ICMP.cc
     ID.cc
-    Ident.cc
     IntSet.cc
-    InterConn.cc
     IOSource.cc
     IP.cc
     IPAddr.cc
-    IRC.cc
     List.cc
     Reporter.cc
-    Login.cc
-    MIME.cc
-    Modbus.cc
-    NCP.cc
     NFA.cc
-    NFS.cc
-    NTP.cc
-    NVT.cc
     Net.cc
     NetVar.cc
-    NetbiosSSN.cc
     Obj.cc
     OpaqueVal.cc
     OSFinger.cc
@@ -367,31 +297,20 @@ set(bro_SRCS
     PacketSort.cc
     PersistenceSerializer.cc
     PktSrc.cc
-    PIA.cc
     PolicyFile.cc
-    POP3.cc
-    Portmap.cc
     PrefixTable.cc
     PriorityQueue.cc
     Queue.cc
     RandTest.cc
     RE.cc
-    RPC.cc
     Reassem.cc
     RemoteSerializer.cc
-    Rlogin.cc
-    RSH.cc
     Rule.cc
     RuleAction.cc
     RuleCondition.cc
     RuleMatcher.cc
     ScriptAnaly.cc
     SmithWaterman.cc
-    SMB.cc
-    SMTP.cc
-    SOCKS.cc
-    SSH.cc
-    SSL.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc
@@ -399,24 +318,15 @@ set(bro_SRCS
     Sessions.cc
     StateAccess.cc
     Stats.cc
-    SteppingStone.cc
     Stmt.cc
-    Syslog-binpac.cc
-    TCP.cc
-    TCP_Endpoint.cc
-    TCP_Reassembler.cc
-    Telnet.cc
-    Teredo.cc
+    Tag.cc
     Timer.cc
     Traverse.cc
     Trigger.cc
     TunnelEncapsulation.cc
     Type.cc
-    UDP.cc
     Val.cc
     Var.cc
-    XDR.cc
-    ZIP.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     cq.c
@@ -437,6 +347,7 @@ set(bro_SRCS
     logging/WriterFrontend.cc
     logging/writers/Ascii.cc
     logging/writers/DataSeries.cc
+    logging/writers/SQLite.cc
     logging/writers/ElasticSearch.cc
     logging/writers/None.cc
 
@@ -446,6 +357,17 @@ set(bro_SRCS
     input/readers/Ascii.cc
     input/readers/Raw.cc
     input/readers/Benchmark.cc
+    input/readers/Binary.cc
+    input/readers/SQLite.cc
+
+    3rdparty/sqlite3.c
+
+    plugin/Component.cc
+    plugin/ComponentManager.h
+    plugin/TaggedComponent.h
+    plugin/Manager.cc
+    plugin/Plugin.cc
+    plugin/Macros.h
 
     nb_dns.c
     digest.h
@@ -453,12 +375,44 @@ set(bro_SRCS
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 
-add_executable(bro ${bro_SRCS} ${bro_HEADERS})
-
-target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
+if ( bro_HAVE_OBJECT_LIBRARIES )
+    add_executable(bro ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+    target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+else ()
+    add_executable(bro ${bro_SRCS} ${bro_HEADERS})
+    target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+endif ()
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)
+
+# Target to create all the autogenerated files.
+add_custom_target(generate_outputs_stage1)
+add_dependencies(generate_outputs_stage1 ${bro_ALL_GENERATED_OUTPUTS})
+
+# Target to create the joint includes files that pull in the bif code.
+bro_bif_create_includes(generate_outputs_stage2 ${CMAKE_CURRENT_BINARY_DIR} "${bro_AUTO_BIFS}")
+add_dependencies(generate_outputs_stage2 generate_outputs_stage1)
+
+# Global target to trigger creation of autogenerated code.
+add_custom_target(generate_outputs)
+add_dependencies(generate_outputs generate_outputs_stage2)
+
+# Build __load__.bro files for standard *.bif.bro.
+bro_bif_create_loader(bif_loader ${CMAKE_BINARY_DIR}/scripts/base/bif)
+add_dependencies(bif_loader ${bro_SUBDIRS})
+add_dependencies(bro bif_loader)
+
+# Build __load__.bro files for plugins/*.bif.bro.
+bro_bif_create_loader(bif_loader_plugins ${CMAKE_BINARY_DIR}/scripts/base/bif/plugins)
+add_dependencies(bif_loader_plugins ${bro_SUBDIRS})
+add_dependencies(bro bif_loader_plugins)
+
+# Install *.bif.bro.
+install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
+
+# Make clean removes the bif directory.
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/scripts/base/bif)
+

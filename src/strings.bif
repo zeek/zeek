@@ -1122,3 +1122,16 @@ function hexdump%(data_str: string%) : string
 
 	return result;
 	%}
+
+## Returns a reversed copy of the string
+##
+## str: The string to reverse.
+##
+## Returns: A reversed copy of *str*
+##
+function reverse%(str: string%) : string
+	%{
+	string s = string((const char*)str->Bytes(), str->Len());
+	reverse(s.begin(), s.end());
+	return new StringVal(s.length(), (const char*)s.c_str());
+	%}

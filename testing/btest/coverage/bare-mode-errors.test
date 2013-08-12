@@ -3,12 +3,15 @@
 # scripts that block after loading, e.g. start listening on a socket.
 #
 # Commonly, this test may fail if one forgets to @load some base/ scripts
-# when writing a new bro scripts.
+# when writing a new bro scripts. Look into "allerrors" to find out
+# which script had trouble.
 #
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: test -d $DIST/scripts
-# @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.bro -not -path '*/site/*'`; do echo $script; if echo "$script" | egrep -q 'communication/listen|controllee'; then rm -rf load_attempt .bgprocs; btest-bg-run load_attempt bro -b $script; btest-bg-wait -k 2; cat load_attempt/.stderr >>allerrors; else bro -b $script 2>>allerrors; fi done || exit 0
-# @TEST-EXEC: cat allerrors | grep -v "received termination signal" | sort | uniq > unique_errors
-# @TEST-EXEC: if [ $(grep -c LibCURL_INCLUDE_DIR-NOTFOUND $BUILD/CMakeCache.txt) -ne 0 ]; then cp unique_errors unique_errors_no_elasticsearch; fi
-# @TEST-EXEC: if [ $(grep -c LibCURL_INCLUDE_DIR-NOTFOUND $BUILD/CMakeCache.txt) -ne 0 ]; then btest-diff unique_errors_no_elasticsearch; else btest-diff unique_errors; fi
+# @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.bro -not -path '*/site/*'`; do echo "=== $script" >>allerrors; if echo "$script" | egrep -q 'communication/listen|controllee'; then rm -rf load_attempt .bgprocs; btest-bg-run load_attempt bro -b $script; btest-bg-wait -k 2; cat load_attempt/.stderr >>allerrors; else bro -b $script 2>>allerrors; fi done || exit 0
+# @TEST-EXEC: cat allerrors | grep -v "received termination signal" | fgrep -v -f %INPUT | grep -v '===' | sort | uniq > unique_errors
+# @TEST-EXEC: btest-diff unique_errors
+
+# White-list of tests to exclude because of cyclic load dependencies.
+scripts/base/protocols/ftp/utils.bro

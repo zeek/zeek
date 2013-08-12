@@ -49,6 +49,15 @@ ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVa
 	backend->Start();
 	}
 
+void ReaderFrontend::Stop()
+	{
+	if ( backend )
+		{
+		backend->SignalStop();
+		backend = 0; // Thread manager will clean it up once it finishes.
+		}
+	}
+
 ReaderFrontend::~ReaderFrontend()
 	{
 	delete [] name;

@@ -17,12 +17,17 @@ set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
+set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
+set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
+
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "export BROMAGIC=\"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "setenv BROMAGIC \"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -67,6 +72,12 @@ if (MISSING_PREREQS)
         message(SEND_ERROR ${prereq})
     endforeach ()
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
+endif ()
+
+set(libmagic_req 5.04)
+if ( LibMagic_VERSION VERSION_LESS ${libmagic_req} )
+    message(FATAL_ERROR "libmagic of at least version ${libmagic_req} required "
+                        "(found ${LibMagic_VERSION})")
 endif ()
 
 include_directories(BEFORE
@@ -189,6 +200,10 @@ include(CheckOptionalBuildSources)
 CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
+
+install(DIRECTORY ./magic/database/
+        DESTINATION ${BRO_MAGIC_INSTALL_PATH}
+)
 
 ########################################################################
 ## Packaging Setup

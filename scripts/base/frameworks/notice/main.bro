@@ -68,6 +68,25 @@ export {
 		## the notice policy.
 		iconn:          icmp_conn      &optional;
 
+		## A file record if the notice is relted to a file.  The
+		## reference to the actual fa_file record will be deleted after applying
+		## the notice policy.
+		f:              fa_file         &optional;
+
+		## A file unique ID if this notice is related to a file.  If the $f
+		## field is provided, this will be automatically filled out.
+		fuid:           string          &log &optional;
+
+		## A mime type if the notice is related to a file.  If the $f field
+		## is provided, this will be automatically filled out.
+		file_mime_type: string          &log &optional;
+
+		## Frequently files can be "described" to give a bit more context.
+		## This field will typically be automatically filled out from an
+		## fa_file record.  For example, if a notice was related to a
+		## file over HTTP, the URL of the request would be shown.
+		file_desc:      string          &log &optional;
+
 		## The transport protocol. Filled automatically when either conn, iconn
 		## or p is specified.
 		proto:          transport_proto &log &optional;
@@ -431,9 +450,6 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		}
 	}
 
-## This determines if a notice is being suppressed.  It is only used
-## internally as part of the mechanics for the global :bro:id:`NOTICE`
-## function.
 function is_being_suppressed(n: Notice::Info): bool
 	{
 	if ( n?$identifier && [n$note, n$identifier] in suppressing )
@@ -463,10 +479,28 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$ts )
 		n$ts = network_time();
 
+	if ( n?$f )
+		{
+		if ( ! n?$fuid )
+			n$fuid = n$f$id;
+
+		if ( ! n?$file_mime_type && n$f?$mime_type )
+			n$file_mime_type = n$f$mime_type;
+
+		n$file_desc = Files::describe(n$f);
+
+		if ( n$f?$conns && |n$f$conns| == 1 )
+			{
+			for ( id in n$f$conns )
+				n$conn = n$f$conns[id];
+			}
+		}
+
 	if ( n?$conn )
 		{
 		if ( ! n?$id )
 			n$id = n$conn$id;
+
 		if ( ! n?$uid )
 			n$uid = n$conn$uid;
 		}
@@ -516,13 +550,15 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$suppress_for )
 		n$suppress_for = default_suppression_interval;
 
-	# Delete the connection record if it's there so we aren't sending that
-	# to remote machines.  It can cause problems due to the size of the
-	# connection record.
+	# Delete the connection and file records if they're there so we
+	# aren't sending that to remote machines.  It can cause problems
+	# due to the size of those records.
 	if ( n?$conn )
 		delete n$conn;
 	if ( n?$iconn )
 		delete n$iconn;
+	if ( n?$f )
+		delete n$f;
 	}
 
 function internal_NOTICE(n: Notice::Info)

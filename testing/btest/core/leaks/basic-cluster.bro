@@ -6,33 +6,38 @@
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
 #
 # @TEST-EXEC: btest-bg-run manager-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro -m %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1   bro -m %INPUT
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1  bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2  bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
-# @TEST-EXEC: btest-bg-wait 60
-# @TEST-EXEC: btest-diff manager-1/metrics.log
+# @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro -m %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro -m %INPUT
+# @TEST-EXEC: btest-bg-wait 15
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth1"],
+	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $interface="eth0"],
+	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $interface="eth1"],
 };
 @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
 
-redef enum Metrics::ID += {
-	TEST_METRIC,
-};
+global n = 0;
 
 event bro_init() &priority=5
 	{
-	Metrics::add_filter(TEST_METRIC, 
-		[$name="foo-bar",
-		 $break_interval=3secs]);
+	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE)];
+	SumStats::create([$name="test",
+	                  $epoch=5secs,
+	                  $reducers=set(r1),
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	local r = result["test"];
+	                  	print fmt("Host: %s - num:%d - sum:%.1f - avg:%.1f - max:%.1f - min:%.1f - var:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$average, r$max, r$min, r$variance, r$std_dev, r$unique);
+	                  	},
+	                  $epoch_finished(ts: time) =
+	                  	{
+	                  	terminate();
+	                  	}]);
 	}
 
 event remote_connection_closed(p: event_peer)
@@ -41,43 +46,40 @@ event remote_connection_closed(p: event_peer)
 	}
 
 global ready_for_data: event();
-
-redef Cluster::manager2worker_events += /ready_for_data/;
-
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+redef Cluster::manager2worker_events += /^ready_for_data$/;
 
 event ready_for_data()
 	{
-	Metrics::add_data(TEST_METRIC, [$host=1.2.3.4], 3);
-	Metrics::add_data(TEST_METRIC, [$host=6.5.4.3], 2);
-	Metrics::add_data(TEST_METRIC, [$host=7.2.1.5], 1);
+	if ( Cluster::node == "worker-1" )
+		{
+		SumStats::observe("test", [$host=1.2.3.4], [$num=34]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=30]);
+		SumStats::observe("test", [$host=6.5.4.3], [$num=1]);
+		SumStats::observe("test", [$host=7.2.1.5], [$num=54]);
+		}
+	if ( Cluster::node == "worker-2" )
+		{
+		SumStats::observe("test", [$host=1.2.3.4], [$num=75]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=30]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=3]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=57]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=52]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=61]);
+		SumStats::observe("test", [$host=1.2.3.4], [$num=95]);
+		SumStats::observe("test", [$host=6.5.4.3], [$num=5]);
+		SumStats::observe("test", [$host=7.2.1.5], [$num=91]);
+		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
+		}
 	}
-
-@endif
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
-global n = 0;
 global peer_count = 0;
-
-event Metrics::log_metrics(rec: Metrics::Info)
+event remote_connection_handshake_done(p: event_peer) &priority=-5
 	{
-	n = n + 1;
-	if ( n == 3 )
-		{
-		terminate_communication();
-		terminate();
-		}
-	}
-
-event remote_connection_handshake_done(p: event_peer)
-	{
-	print p;
-	peer_count = peer_count + 1;
-	if ( peer_count == 3 )
-		{
+	++peer_count;
+	if ( peer_count == 2 )
 		event ready_for_data();
-		}
 	}
 
 @endif

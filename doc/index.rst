@@ -5,6 +5,34 @@
 Bro Documentation
 =================
 
+Guides
+------
+
+.. toctree::
+   :maxdepth: 1
+
+   INSTALL
+   upgrade
+   quickstart
+   faq
+   reporting-problems
+
+Frameworks
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   notice
+   logging
+   input
+   file-analysis
+   cluster
+   signatures
+
+How-Tos
+-------
+
 .. toctree::
    :maxdepth: 2
 
@@ -23,7 +51,11 @@ Just Testing
 
 .. code:: bro
 
-    print "Hey Bro!"
+   scripts/packages
+   scripts/index
+   scripts/builtins
+   scripts/proto-analyzers
+   scripts/file-analyzers
 
 .. btest:: test
 

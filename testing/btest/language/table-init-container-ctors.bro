@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff output
 
 # The various container constructor expressions should work in table
-# initialization lists.
+# initialization lists (as yields).
 
 type set_yield: set[string, count];
 type vector_yield: vector of count;

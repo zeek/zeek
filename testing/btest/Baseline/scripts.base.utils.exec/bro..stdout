@@ -1,0 +1,6 @@
+test1, [exit_code=0, signal_exit=F, stdout=[done, exit, stop], stderr=<uninitialized>, files={
+[out1] = [insert text here, and here],
+[out2] = [insert more text here, and there]
+}]
+test2, [exit_code=1, signal_exit=F, stdout=[here's something on stdout, some more stdout, last stdout], stderr=[and some stderr, more stderr, last stderr], files=<uninitialized>]
+test4, [exit_code=0, signal_exit=F, stdout=[hibye], stderr=<uninitialized>, files=<uninitialized>]

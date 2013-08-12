@@ -1,5 +1,6 @@
 @load ./main
+@load ./entities
 @load ./utils
-@load ./file-ident
-@load ./file-hash
-@load ./file-extract
+@load ./files
+
+@load-sigs ./dpd.sig

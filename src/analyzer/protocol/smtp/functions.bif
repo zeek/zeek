@@ -1,0 +1,17 @@
+
+%%{
+#include "analyzer/protocol/smtp/SMTP.h"
+%%}
+
+## Skips SMTP data until the next email in a connection.
+##
+## c: The SMTP connection.
+##
+## .. bro:see:: skip_http_entity_data
+function skip_smtp_data%(c: connection%): any
+	%{
+	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
+	if ( sa )
+		static_cast<analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
+	return 0;
+	%}

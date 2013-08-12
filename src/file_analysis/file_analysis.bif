@@ -1,0 +1,69 @@
+##! Internal functions and types used by the file analysis framework.
+
+module Files;
+
+%%{
+#include "file_analysis/Manager.h"
+%%}
+
+type AnalyzerArgs: record;
+
+## :bro:see:`Files::set_timeout_interval`.
+function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
+	%{
+	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::add_analyzer`.
+function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
+	%{
+	using BifType::Record::Files::AnalyzerArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
+	                                    file_mgr->GetComponentTag(tag), rv);
+	Unref(rv);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::remove_analyzer`.
+function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
+	%{
+	using BifType::Record::Files::AnalyzerArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
+	                                       file_mgr->GetComponentTag(tag) , rv);
+	Unref(rv);
+	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::stop`.
+function Files::__stop%(file_id: string%): bool
+	%{
+	bool result = file_mgr->IgnoreFile(file_id->CheckString());
+	return new Val(result, TYPE_BOOL);
+	%}
+
+## :bro:see:`Files::analyzer_name`.
+function Files::__analyzer_name%(tag: Files::Tag%) : string
+	%{
+	return new StringVal(file_mgr->GetComponentName(tag));
+	%}
+
+module GLOBAL;
+
+## For use within a :bro:see:`get_file_handle` handler to set a unique
+## identifier to associate with the current input to the file analysis
+## framework.  Using an empty string for the handle signifies that the
+## input will be ignored/discarded.
+##
+## handle: A string that uniquely identifies a file.
+##
+## .. bro:see:: get_file_handle
+function set_file_handle%(handle: string%): any
+	%{
+	file_mgr->SetHandle(handle->CheckString());
+	return 0;
+	%}
+
+const Files::salt: string;

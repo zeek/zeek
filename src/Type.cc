@@ -671,8 +671,24 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 
 	arg_types = new TypeList();
 
+	bool has_default_arg = false;
+
 	for ( int i = 0; i < args->NumFields(); ++i )
+		{
+		const TypeDecl* td = args->FieldDecl(i);
+
+		if ( td->attrs && td->attrs->FindAttr(ATTR_DEFAULT) )
+			has_default_arg = true;
+
+		else if ( has_default_arg )
+			{
+			const char* err_str = fmt("required parameter '%s' must precede "
+			                          "default parameters", td->id);
+			args->Error(err_str);
+			}
+
 		arg_types->Append(args->FieldType(i)->Ref());
+		}
 	}
 
 string FuncType::FlavorString() const
@@ -708,7 +724,7 @@ BroType* FuncType::YieldType()
 
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
-	return check_and_promote_exprs(index, arg_types) ?
+	return check_and_promote_args(index, args) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
@@ -1295,19 +1311,20 @@ IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
 bool OpaqueType::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_OPAQUE_TYPE, BroType);
-	return SERIALIZE(name);
+	return SERIALIZE_STR(name.c_str(), name.size());
 	}
 
 bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BroType);
 
-	char const* n;
+	const char* n;
 	if ( ! UNSERIALIZE_STR(&n, 0) )
 		return false;
 
 	name = n;
 	delete [] n;
+
 	return true;
 	}
 
@@ -1316,6 +1333,16 @@ EnumType::EnumType(const string& arg_name)
 	{
 	name = arg_name;
 	counter = 0;
+	}
+
+EnumType::EnumType(EnumType* e)
+: BroType(TYPE_ENUM)
+	{
+	name = e->name;
+	counter = e->counter;
+
+	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+		names[copy_string(it->first)] = it->second;
 	}
 
 EnumType::~EnumType()

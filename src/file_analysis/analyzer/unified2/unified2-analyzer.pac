@@ -61,7 +61,7 @@ refine flow Flow += {
 	#	return true;
 	#	%}
 
-	function proc_legacy_ids_event(ev: LegacyIDSEvent) : bool
+	function proc_ids_event(ev: IDS_Event) : bool
 		%{
 		if ( ::unified2_event )
 			{
@@ -88,7 +88,7 @@ refine flow Flow += {
 		return true;
 		%}
 
-	function proc_ids_event(ev: IDSEvent) : bool
+	function proc_ids_event_2(ev: IDS_Event_2) : bool
 		%{
 		if ( ::unified2_event )
 			{
@@ -152,12 +152,12 @@ refine flow Flow += {
 #	proc : bool = $context.flow.proc_record(this);
 #};
 
-refine typeattr LegacyIDSEvent += &let {
-	proc : bool = $context.flow.proc_legacy_ids_event(this);
+refine typeattr IDS_Event += &let {
+	proc : bool = $context.flow.proc_ids_event(this);
 };
 
-refine typeattr IDSEvent += &let {
-	proc : bool = $context.flow.proc_ids_event(this);
+refine typeattr IDS_Event_2 += &let {
+	proc : bool = $context.flow.proc_ids_event_2(this);
 };
 
 refine typeattr Packet += &let {

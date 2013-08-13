@@ -18,16 +18,16 @@ type Record = record {
 	length:  uint32;
 	data:   case rtype of {
 		PACKET            -> packet:              Packet(this);
-		IDS_EVENT         -> ids_event:           LegacyIDSEvent(this, 1);
-		IDS_EVENT_IPV6    -> ids_event_ipv6:      LegacyIDSEvent(this, 4);
-		IDS_EVENT_2       -> ids_event_vlan:      IDSEvent(this, 1);
-		IDS_EVENT_IPV6_2  -> ids_event_ipv6_vlan: IDSEvent(this, 4);
+		IDS_EVENT         -> ids_event:           IDS_Event(this, 1);
+		IDS_EVENT_IPV6    -> ids_event_ipv6:      IDS_Event(this, 4);
+		IDS_EVENT_2       -> ids_event_vlan:      IDS_Event_2(this, 1);
+		IDS_EVENT_IPV6_2  -> ids_event_ipv6_vlan: IDS_Event_2(this, 4);
 		#EXTRA_DATA        -> extra_data:          ExtraData(this);
 		default           -> unknown_record_type: UnknownRecordType(this);
 	};
 } &byteorder=bigendian &length=length+8;
 
-type LegacyIDSEvent(rec: Record, ip_len: int) = record {
+type IDS_Event(rec: Record, ip_len: int) = record {
 	sensor_id:          uint32;
 	event_id:           uint32;
 	ts:                 Time;
@@ -44,7 +44,7 @@ type LegacyIDSEvent(rec: Record, ip_len: int) = record {
 	packet_action:      uint8;
 } &byteorder=bigendian;
 
-type IDSEvent(rec: Record, ip_len: int) = record {
+type IDS_Event_2(rec: Record, ip_len: int) = record {
 	sensor_id:          uint32;
 	event_id:           uint32;
 	ts:                 Time;

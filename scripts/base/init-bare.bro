@@ -2713,12 +2713,12 @@ export {
 	};
 
 	type Unified2::Packet: record {
-		sensor_id:          count;
-		event_id:           count;
-		event_second:       count;
-		packet_ts:          time;
-		link_type:          count;
-		packet_data:        string;
+		sensor_id:    count;
+		event_id:     count;
+		event_second: count;
+		packet_ts:    time;
+		link_type:    count;
+		data:         string;
 	};
 }
 

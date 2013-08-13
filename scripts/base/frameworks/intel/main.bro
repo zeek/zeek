@@ -27,6 +27,9 @@ export {
 		## File hash which is non-hash type specific.  It's up to the user to query
 		## for any relevant hash types.
 		FILE_HASH,
+		## File names.  Typically with protocols with definite indications
+		## of a file name.
+		FILE_NAME,
 		## Certificate SHA-1 hash.
 		CERT_HASH,
 	};

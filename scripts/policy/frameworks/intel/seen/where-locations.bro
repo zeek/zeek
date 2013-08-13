@@ -5,6 +5,7 @@ export {
 		Conn::IN_ORIG,
 		Conn::IN_RESP,
 		Files::IN_HASH,
+		Files::IN_NAME,
 		DNS::IN_REQUEST,
 		DNS::IN_RESPONSE,
 		HTTP::IN_HOST_HEADER,

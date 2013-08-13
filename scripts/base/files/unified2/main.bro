@@ -59,17 +59,8 @@ export {
 		## Event ID.
 		event_id:           count    &log; 
 		## Some of the packet data.
-		packet:             string   &log; 
+		packet:             string   &log &optional; 
 	} &log;
-
-	redef record fa_file += {
-		## Add a field to store per-file state about Unified2 files.
-		unified2: Info &optional;
-
-		## Recently received IDS events.  This is primarily used 
-		## for tying together Unified2 events and packets.
-		u2_events: table[count] of Unified2::IDSEvent &optional &create_expire=5sec;
-	};
 
 	## The event for accessing logged records.
 	global log_unified2: event(rec: Info);
@@ -83,6 +74,41 @@ global gen_map: table[count] of string;
 # For reading in config files.
 type OneLine: record {
 	line: string;
+};
+
+function create_info(ev: IDSEvent): Info
+	{
+	local info = Info($ts=ev$ts, 
+	                  $id=PacketID($src_ip=ev$src_ip, $src_p=ev$src_p,
+	                               $dst_ip=ev$dst_ip, $dst_p=ev$dst_p),
+	                  $sensor_id=ev$sensor_id,
+	                  $signature_id=ev$signature_id,
+	                  $generator_id=ev$generator_id,
+	                  $signature_revision=ev$signature_revision,
+	                  $classification_id=ev$classification_id,
+	                  $priority_id=ev$priority_id,
+	                  $event_id=ev$event_id);
+
+	if ( ev$signature_id in sid_map )
+		info$signature=sid_map[ev$signature_id];
+	if ( ev$generator_id in gen_map )
+		info$generator=gen_map[ev$generator_id];
+	if ( ev$classification_id in classification_map )
+		info$classification=classification_map[ev$classification_id];
+
+	return info;
+	}
+
+redef record fa_file += {
+	## Recently received IDS events.  This is primarily used 
+	## for tying together Unified2 events and packets.
+	u2_events: table[count] of Unified2::IDSEvent 
+		&optional &create_expire=5sec
+		&expire_func=function(t: table[count] of Unified2::IDSEvent, event_id: count): interval
+			{ 
+			Log::write(LOG, create_info(t[event_id]));
+			return 0secs;
+			};
 };
 
 event Unified2::read_sid_msg_line(desc: Input::EventDescription, tpe: Input::Event, line: string)
@@ -153,7 +179,7 @@ event bro_init()
 			{
 			Input::add_analysis([$source=fname, 
 			                     $reader=Input::READER_BINARY,
-			                     $mode=Input::MANUAL, 
+			                     $mode=Input::STREAM, 
 			                     $name=fname]);
 			}, 10secs);
 		}
@@ -162,7 +188,7 @@ event bro_init()
 		{
 		Input::add_analysis([$source=watch_file, 
 		                     $reader=Input::READER_BINARY,
-		                     $mode=Input::MANUAL, 
+		                     $mode=Input::STREAM, 
 		                     $name=watch_file]);
 		}
 	}
@@ -199,24 +225,20 @@ event unified2_packet(f: fa_file, pkt: Unified2::Packet)
 
 event Unified2::alert(f: fa_file, ev: IDSEvent, pkt: Packet)
 	{
-	local info = Info($ts=ev$ts, 
-	                  $id=PacketID($src_ip=ev$src_ip, $src_p=ev$src_p,
-	                               $dst_ip=ev$dst_ip, $dst_p=ev$dst_p),
-	                  $sensor_id=ev$sensor_id,
-	                  $signature_id=ev$signature_id,
-	                  $generator_id=ev$generator_id,
-	                  $signature_revision=ev$signature_revision,
-	                  $classification_id=ev$classification_id,
-	                  $priority_id=ev$priority_id,
-	                  $event_id=ev$event_id,
-	                  $packet=pkt$data);
-
-	if ( ev$signature_id in sid_map )
-		info$signature=sid_map[ev$signature_id];
-	if ( ev$generator_id in gen_map )
-		info$generator=gen_map[ev$generator_id];
-	if ( ev$classification_id in classification_map )
-		info$classification=classification_map[ev$classification_id];
-
+	local info = create_info(ev);
+	info$packet=pkt$data;
 	Log::write(LOG, info);
+	}
+
+event file_state_remove(f: fa_file)
+	{
+	if ( f?$u2_events )
+		{
+		# In case any events never had matching packets, flush
+		# the extras to the log.
+		for ( i in f$u2_events )
+			{
+			Log::write(LOG, create_info(f$u2_events[i]));
+			}
+		}
 	}

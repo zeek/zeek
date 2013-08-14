@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -58,6 +58,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, value: Val)
 	try = try + 1;
 	if ( try == 1 )
 		{
+		Input::remove("ssh");
 		close(outfile);
 		terminate();
 		}
@@ -68,5 +69,4 @@ event bro_init()
 	try = 0;	
 	outfile = open("../out");
 	Input::add_event([$source="../input.log", $name="ssh", $fields=Val, $ev=line, $want_record=T]);
-	Input::remove("ssh");
 	}

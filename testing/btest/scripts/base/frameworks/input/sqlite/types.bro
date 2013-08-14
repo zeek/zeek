@@ -3,7 +3,7 @@
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE ssh.sql

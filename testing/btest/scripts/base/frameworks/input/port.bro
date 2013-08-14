@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -37,7 +37,6 @@ event bro_init()
 		print outfile, servers[1.2.3.5];
 	if ( 1.2.3.6 in servers )
 		print outfile, servers[1.2.3.6];
-	Input::remove("input");
 	}
 
 event Input::end_of_data(name: string, source: string)
@@ -45,6 +44,7 @@ event Input::end_of_data(name: string, source: string)
 	print outfile, servers[1.2.3.4];
 	print outfile, servers[1.2.3.5];
 	print outfile, servers[1.2.3.6];
+	Input::remove("input");
 	close(outfile);
 	terminate();
 	}

@@ -1,4 +1,9 @@
 
+2.1-1063 | 2013-08-13 18:36:53 -0700
+
+  * Adding the unified2 analyzer that reads unified2 files from disk,
+    turning them into events. (Seth Hall)
+
 2.1-1052 | 2013-08-12 14:38:14 -0700
 
   * Fixing bug in DNP3 analyzer flagged by compiler warning. (Robin

@@ -136,7 +136,7 @@ event Unified2::read_classification_line(desc: Input::EventDescription, tpe: Inp
 		}
 	}
 
-event bro_init()
+event bro_init() &priority=5
 	{
 	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2]);
 
@@ -200,8 +200,8 @@ event file_new(f: fa_file)
 	if ( |parts| == 3 )
 		file_dir = parts[1];
 
-	if ( f$source in watch_file ||
-		compress_path(watch_dir) == file_dir )
+	if ( (watch_file != "" && f$source == watch_file) || 
+	     (watch_dir != "" && compress_path(watch_dir) == file_dir) )
 		{
 		Files::add_analyzer(f, Files::ANALYZER_UNIFIED2);
 		f$u2_events = table();

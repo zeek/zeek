@@ -1,4 +1,11 @@
 
+2.1-1059 | 2013-08-13 23:52:41 -0400
+
+  * Add file name support to intel framework. (Seth Hall)
+
+  * Add file support to intel framework and slightly restructure 
+    intel http handling. (Seth Hall)
+
 2.1-1052 | 2013-08-12 14:38:14 -0700
 
   * Fixing bug in DNP3 analyzer flagged by compiler warning. (Robin

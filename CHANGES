@@ -1,4 +1,8 @@
 
+2.1-1074 | 2013-08-14 10:29:54 -0700
+
+  * Fix timer type enum and timer name array mismatch. (Jon Siwek)
+
 2.1-1072 | 2013-08-14 10:28:51 -0700
 
   * Adding the unified2 analyzer that reads unified2 files from disk,

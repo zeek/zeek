@@ -57,6 +57,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
+#include "input/readers/Raw.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
@@ -841,6 +842,8 @@ int main(int argc, char** argv)
 		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
+
+	input::reader::Raw::ClassInit();
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

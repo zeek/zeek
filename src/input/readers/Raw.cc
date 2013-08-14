@@ -19,7 +19,12 @@ using threading::Value;
 using threading::Field;
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
+pthread_mutex_t Raw::fork_mutex;
 
+bool Raw::ClassInit()
+	{
+	return pthread_mutex_init(&fork_mutex, 0) == 0;
+	}
 
 Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
@@ -77,8 +82,30 @@ void Raw::DoClose()
 		}
 	}
 
+void Raw::ClosePipeEnd(int i)
+	{
+	if ( pipes[i] == -1 )
+		return;
+	safe_close(pipes[i]);
+	pipes[i] = -1;
+	}
+
 bool Raw::Execute()
 	{
+	// TODO: AFAICT, pipe/fork/exec should be thread-safe, but actually having
+	// multiple threads set up pipes and fork concurrently sometimes results
+	// in problems w/ a stdin pipe not ever getting an EOF even though both
+	// ends of it are closed.  But if the same threads allocate pipes and fork
+	// individually or sequentially, that issue never crops up... ("never"
+	// meaning I haven't seen in it in hundreds of tests using 50+ threads
+	// where before I'd see the issue w/ just 2 threads ~33% of the time).
+	int lock_rval = pthread_mutex_lock(&fork_mutex);
+	if ( lock_rval != 0 )
+		{
+		Error(Fmt("cannot lock fork mutex: %d", lock_rval));
+		return false;
+		}
+
 	if ( pipe(pipes) != 0 || pipe(pipes+2) || pipe(pipes+4) )
 		{
 		Error(Fmt("Could not open pipe: %d", errno));
@@ -95,65 +122,75 @@ bool Raw::Execute()
 	else if ( childpid == 0 )
 		{
 		// we are the child.
-		safe_close(pipes[stdout_in]);
+		close(pipes[stdout_in]);
 		if ( dup2(pipes[stdout_out], stdout_fileno) == -1 )
-			Error(Fmt("Error on dup2 stdout_out: %d", errno));
+			_exit(252);
+		close(pipes[stdout_out]);
 
-		if ( stdin_towrite )
-			{
-			safe_close(pipes[stdin_out]);
-			if ( dup2(pipes[stdin_in], stdin_fileno) == -1 )
-				Error(Fmt("Error on dup2 stdin_in: %d", errno));
-			}
+		close(pipes[stdin_out]);
+		if ( stdin_towrite && dup2(pipes[stdin_in], stdin_fileno) == -1 )
+			_exit(253);
+		close(pipes[stdin_in]);
 
-		if ( use_stderr )
-			{
-			safe_close(pipes[stderr_in]);
-			if ( dup2(pipes[stderr_out], stderr_fileno) == -1 )
-				Error(Fmt("Error on dup2 stderr_out: %d", errno));
-			}
+		close(pipes[stderr_in]);
+		if ( use_stderr && dup2(pipes[stderr_out], stderr_fileno) == -1 )
+			_exit(254);
+		close(pipes[stderr_out]);
 
 		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*) NULL);
 		fprintf(stderr, "Exec failed :(......\n");
-		exit(255);
+		_exit(255);
 		}
 	else
 		{
 		// we are the parent
-		safe_close(pipes[stdout_out]);
-		pipes[stdout_out] = -1;
+		lock_rval = pthread_mutex_unlock(&fork_mutex);
+		if ( lock_rval != 0 )
+			{
+			Error(Fmt("cannot unlock fork mutex: %d", lock_rval));
+			return false;
+			}
 
+		ClosePipeEnd(stdout_out);
 		if ( Info().mode == MODE_STREAM )
 			fcntl(pipes[stdout_in], F_SETFL, O_NONBLOCK);
 
+		ClosePipeEnd(stdin_in);
 		if ( stdin_towrite )
-			{
-			safe_close(pipes[stdin_in]);
-			pipes[stdin_in] = -1;
 			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK); // ya, just always set this to nonblocking. we do not want to block on a program receiving data.
 			// note that there is a small gotcha with it. More data is queued when more data is read from the program output. Hence, when having
 			// a program in mode_manual where the first write cannot write everything, the rest will be stuck in a queue that is never emptied.
-			}
+		else
+			ClosePipeEnd(stdin_out);
 
+		ClosePipeEnd(stderr_out);
 		if ( use_stderr )
-			{
-			safe_close(pipes[stderr_out]);
-			pipes[stderr_out] = -1;
 			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
-			}
+		else
+			ClosePipeEnd(stderr_in);
 
 		file = fdopen(pipes[stdout_in], "r");
+
+		if ( ! file )
+			{
+			Error("Could not convert stdout_in fileno to file");
+			return false;
+			}
+
 		pipes[stdout_in] = -1; // will be closed by fclose
 
 		if ( use_stderr )
+			{
 			stderrfile = fdopen(pipes[stderr_in], "r");
-			pipes[stderr_in] = -1; // will be closed by fclose
-			if ( file == 0 || (stderrfile == 0 && use_stderr) )
+
+			if ( ! stderrfile )
 				{
-				Error("Could not convert fileno to file");
+				Error("Could not convert stderr_in fileno to file");
 				return false;
 				}
 
+			pipes[stderr_in] = -1; // will be closed by fclose
+			}
 
 		return true;
 		}
@@ -194,15 +231,9 @@ bool Raw::CloseInput()
 	if ( use_stderr )
 		fclose(stderrfile);
 
-	if ( execute ) // we do not care if any of those fails. They should all be defined.
-		{
+	if ( execute )
 		for ( int i = 0; i < 6; i ++ )
-			if ( pipes[i] != -1 )
-				{
-				safe_close(pipes[i]);
-				pipes[i] = -1;
-				}
-		}
+			ClosePipeEnd(i);
 
 	file = 0;
 	stderrfile = 0;
@@ -371,7 +402,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 		}
 
-	if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
+	if ( errno == 0 || errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
 		return -2;
 
 	else
@@ -402,10 +433,7 @@ void Raw::WriteToStdin()
 		}
 
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
-		{
-		safe_close(pipes[stdin_out]);
-		pipes[stdin_out] = -1;
-		}
+		ClosePipeEnd(stdin_out);
 
 	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
 		{

@@ -104,13 +104,13 @@ export {
 
 		## If a file was associated with this intelligence hit,
 		## this is the uid for the file.
-		fuid:           string          &log &optional;
+		fuid:           string   &log &optional;
 		## A mime type if the intelligence hit is related to a file.  
 		## If the $f field is provided this will be automatically filled out.
-		file_mime_type: string          &log &optional;
+		file_mime_type: string   &log &optional;
 		## Frequently files can be "described" to give a bit more context.
 		## If the $f field is provided this field will be automatically filled out.
-		file_desc:      string          &log &optional;
+		file_desc:      string   &log &optional;
 
 		## Where the data was seen.
 		seen:     Seen           &log;
@@ -265,22 +265,25 @@ function has_meta(check: MetaData, metas: set[MetaData]): bool
 
 event Intel::match(s: Seen, items: set[Item]) &priority=5
 	{
-	if ( s$f?$conns && |s$f$conns| == 1 )
-		{
-		for ( cid in s$f$conns )
-			s$conn = s$f$conns[cid];
-		}
-
 	local info = Info($ts=network_time(), $seen=s);
 
-	if ( ! info?$fuid )
-		info$fuid = s$f$id;
+	if ( s?$f )
+		{
+		if ( s$f?$conns && |s$f$conns| == 1 )
+			{
+			for ( cid in s$f$conns )
+				s$conn = s$f$conns[cid];
+			}
 
-	if ( ! info?$file_mime_type && s$f?$mime_type )
-		info$file_mime_type = s$f$mime_type;
+		if ( ! info?$fuid )
+			info$fuid = s$f$id;
 
-	if ( ! info?$file_desc )
-		info$file_desc = Files::describe(s$f);
+		if ( ! info?$file_mime_type && s$f?$mime_type )
+			info$file_mime_type = s$f$mime_type;
+
+		if ( ! info?$file_desc )
+			info$file_desc = Files::describe(s$f);
+		}
 
 	if ( s?$conn )
 		{

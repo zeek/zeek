@@ -8,6 +8,8 @@ Introduction
 
    overview
    quickstart
+   install
    upgrade
+   changes
    reporting-problems
 

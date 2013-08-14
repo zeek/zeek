@@ -1,7 +1,7 @@
 
-=====================
-Additional Components
-=====================
+=============
+Subcomponents
+=============
 
 The following are snapshots of documentation for components that come
 with this version of Bro (|version|). Since they can also be used

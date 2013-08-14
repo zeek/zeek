@@ -6,11 +6,11 @@ Frameworks
 .. toctree::
    :maxdepth: 1
 
-   notice
-   logging
+   file-analysis
+   geoip
    input
    intel
-   cluster
+   logging
+   notice
    signatures
-   geoip
 

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-08-12-18-22-48
+#open	2013-08-14-01-19-27
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -62,6 +62,8 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_TCP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
@@ -95,4 +97,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/top-k.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2013-08-12-18-22-48
+#close	2013-08-14-01-19-27

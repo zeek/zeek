@@ -1,4 +1,11 @@
 
+2.1-1072 | 2013-08-14 10:28:51 -0700
+
+  * Adding the unified2 analyzer that reads unified2 files from disk,
+    turning them into events. (Seth Hall)
+
+  * Fixing intel framework tests. (Seth Hall)
+    
 2.1-1059 | 2013-08-13 23:52:41 -0400
 
   * Add file name support to intel framework. (Seth Hall)

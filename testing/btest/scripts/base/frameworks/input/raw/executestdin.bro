@@ -1,7 +1,7 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff test.txt
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 redef exit_only_after_terminate = T;
 @load base/frameworks/communication  # let network-time run. otherwise there are no heartbeats...

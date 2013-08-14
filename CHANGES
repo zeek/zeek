@@ -1,4 +1,22 @@
 
+2.1-1059 | 2013-08-13 23:52:41 -0400
+
+  * Add file name support to intel framework. (Seth Hall)
+
+  * Add file support to intel framework and slightly restructure 
+    intel http handling. (Seth Hall)
+
+2.1-1052 | 2013-08-12 14:38:14 -0700
+
+  * Fixing bug in DNP3 analyzer flagged by compiler warning. (Robin
+    Sommer)
+
+2.1-1050 | 2013-08-12 11:37:44 -0700
+
+  * Experimental DNP3 analyzer. This includes only very basic
+    script-level support at the moment, but quite a number of events
+    are provided. (Hui Lin, Robin Sommer)
+
 2.1-1041 | 2013-08-09 15:32:22 -0700
 
   * Update coverage baselines for canonical load order of scripts.

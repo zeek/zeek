@@ -8,8 +8,8 @@
 # assuming that it didn't automatically Ref the VectorType argument and thus
 # leaked that memeory.
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -b -r $TRACES/ftp/ipv4.trace %INPUT >output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/ftp/ipv4.trace %INPUT
+# @TEST-EXEC: btest-bg-wait 15
 
 function myfunc(aa: interval, bb: interval): int
     {

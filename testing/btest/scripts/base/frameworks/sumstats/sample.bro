@@ -5,19 +5,16 @@ event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", 
 	                               $apply=set(SumStats::SAMPLE), $num_samples=2];
-	SumStats::create([$epoch=3secs,
-	                     $reducers=set(r1),
-	                     $epoch_finished(data: SumStats::ResultTable) = 
-	                     	{
-	                     	for ( key in data )
-	                     		{
-					print key$host;
-	                     		local r = data[key]["test.metric"];
-	                     		print r$samples;
-					print r$sample_elements;
-	                     		}
-	                     	}
-		 ]);
+	SumStats::create([$name="test",
+	                  $epoch=3secs,
+	                  $reducers=set(r1),
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
+	                  	{
+	                  	print key$host;
+	                  	local r = result["test.metric"];
+	                  	print r$samples;
+	                  	print r$sample_elements;
+	                  	}]);
 
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=5]);
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=22]);

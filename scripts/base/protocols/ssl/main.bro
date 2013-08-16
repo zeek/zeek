@@ -137,8 +137,9 @@ function log_record(info: Info)
 			}
 		timeout 15secs
 			{
-			Reporter::info(fmt("SSL delay tokens not released in time (%s tokens remaining)",
-			                   |info$delay_tokens|));
+			# We are just going to log the record anyway.
+			delete info$delay_tokens;
+			log_record(info);
 			}
 		}
 	}

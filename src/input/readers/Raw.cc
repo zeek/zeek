@@ -95,29 +95,32 @@ bool Raw::Execute()
 	else if ( childpid == 0 )
 		{
 		// we are the child.
-		close(pipes[stdout_in]);
-		dup2(pipes[stdout_out], stdout_fileno);
+		safe_close(pipes[stdout_in]);
+		if ( dup2(pipes[stdout_out], stdout_fileno) == -1 )
+			Error(Fmt("Error on dup2 stdout_out: %d", errno));
 
 		if ( stdin_towrite )
 			{
-			close(pipes[stdin_out]);
-			dup2(pipes[stdin_in], stdin_fileno);
+			safe_close(pipes[stdin_out]);
+			if ( dup2(pipes[stdin_in], stdin_fileno) == -1 )
+				Error(Fmt("Error on dup2 stdin_in: %d", errno));
 			}
 
 		if ( use_stderr )
 			{
-			close(pipes[stderr_in]);
-			dup2(pipes[stderr_out], stderr_fileno);
+			safe_close(pipes[stderr_in]);
+			if ( dup2(pipes[stderr_out], stderr_fileno) == -1 )
+				Error(Fmt("Error on dup2 stderr_out: %d", errno));
 			}
 
-		execl("/bin/sh", "sh", "-c", fname.c_str(), NULL);
+		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*) NULL);
 		fprintf(stderr, "Exec failed :(......\n");
 		exit(255);
 		}
 	else
 		{
 		// we are the parent
-		close(pipes[stdout_out]);
+		safe_close(pipes[stdout_out]);
 		pipes[stdout_out] = -1;
 
 		if ( Info().mode == MODE_STREAM )
@@ -125,7 +128,7 @@ bool Raw::Execute()
 
 		if ( stdin_towrite )
 			{
-			close(pipes[stdin_in]);
+			safe_close(pipes[stdin_in]);
 			pipes[stdin_in] = -1;
 			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK); // ya, just always set this to nonblocking. we do not want to block on a program receiving data.
 			// note that there is a small gotcha with it. More data is queued when more data is read from the program output. Hence, when having
@@ -134,7 +137,7 @@ bool Raw::Execute()
 
 		if ( use_stderr )
 			{
-			close(pipes[stderr_out]);
+			safe_close(pipes[stderr_out]);
 			pipes[stderr_out] = -1;
 			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
 			}
@@ -195,7 +198,10 @@ bool Raw::CloseInput()
 		{
 		for ( int i = 0; i < 6; i ++ )
 			if ( pipes[i] != -1 )
-				close(pipes[i]);
+				{
+				safe_close(pipes[i]);
+				pipes[i] = -1;
+				}
 		}
 
 	file = 0;
@@ -393,11 +399,13 @@ void Raw::WriteToStdin()
 		{
 		Error(Fmt("Writing to child process stdin failed: %d. Stopping writing at position %d", errno, pos));
 		stdin_towrite = 0;
-		close(pipes[stdin_out]);
 		}
 
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
-		close(pipes[stdin_out]);
+		{
+		safe_close(pipes[stdin_out]);
+		pipes[stdin_out] = -1;
+		}
 
 	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
 		{
@@ -528,6 +536,7 @@ bool Raw::DoUpdate()
 	if ( childpid != -1 && waitpid(childpid, &return_code, WNOHANG) != 0 )
 		{
 		// child died
+		childpid = -1;
 		bool signal = false;
 		int code = 0;
 		if ( WIFEXITED(return_code) )
@@ -539,7 +548,7 @@ bool Raw::DoUpdate()
 
 		else if ( WIFSIGNALED(return_code) )
 			{
-			signal = false;
+			signal = true;
 			code = WTERMSIG(return_code);
 			Error(Fmt("Child process exited due to signal %d", code));
 			}
@@ -564,7 +573,7 @@ bool Raw::DoUpdate()
 			EndCurrentSend();
 
 		SendEvent("InputRaw::process_finished", 4, vals);
-	}
+		}
 
 
 

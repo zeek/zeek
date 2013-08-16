@@ -29,7 +29,7 @@ export {
 	## Defines the threshold for ICMP Time Exceeded messages for a src-dst pair.
 	## This threshold only comes into play after a host is found to be
 	## sending low ttl packets.
-	const icmp_time_exceeded_threshold = 3 &redef;
+	const icmp_time_exceeded_threshold: double = 3 &redef;
 
 	## Interval at which to watch for the
 	## :bro:id:`Traceroute::icmp_time_exceeded_threshold` variable to be
@@ -57,16 +57,17 @@ event bro_init() &priority=5
 
 	local r1: SumStats::Reducer = [$stream="traceroute.time_exceeded", $apply=set(SumStats::UNIQUE)];
 	local r2: SumStats::Reducer = [$stream="traceroute.low_ttl_packet", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=icmp_time_exceeded_interval,
+	SumStats::create([$name="traceroute-detection",
+	                  $epoch=icmp_time_exceeded_interval,
 	                  $reducers=set(r1, r2),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	# Give a threshold value of zero depending on if the host
 	                  	# sends a low ttl packet.
 	                  	if ( require_low_ttl_packets && result["traceroute.low_ttl_packet"]$sum == 0 )
-	                  		return 0;
+	                  		return 0.0;
 	                  	else
-	                  		return result["traceroute.time_exceeded"]$unique;
+	                  		return result["traceroute.time_exceeded"]$unique+0;
 	                  	},
 	                  $threshold=icmp_time_exceeded_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

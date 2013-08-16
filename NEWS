@@ -17,6 +17,10 @@ New Functionality
 
 - GridFTP support. TODO: Extend.
 
+- Modbus support. TODO: Extend.
+
+- DNP3 support. TODO: Extend.
+
 - ssl.log now also records the subject client and issuer certificates.
 
 - Hooks: TODO: Briefly summarize the documention from

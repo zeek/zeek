@@ -131,7 +131,7 @@ public:
 	  *
 	  * @return The hash.
 	  */
-	uint64_t Hash() const;
+	uint64 Hash() const;
 
 	/**
 	 * Serializes the bit vector.

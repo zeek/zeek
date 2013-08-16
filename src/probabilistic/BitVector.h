@@ -15,7 +15,7 @@ namespace probabilistic {
  */
 class BitVector : public SerialObj {
 public:
-	typedef uint64_t block_type;
+	typedef uint64 block_type;
 	typedef size_t size_type;
 	typedef bool const_reference;
 
@@ -281,7 +281,7 @@ public:
 	  *
 	  * @return The hash.
 	  */
-	uint64_t Hash() const;
+	uint64 Hash() const;
 
 	/**
 	 * Serializes the bit vector.

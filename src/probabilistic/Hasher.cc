@@ -10,7 +10,7 @@
 
 using namespace probabilistic;
 
-uint64_t Hasher::MakeSeed(const void* data, size_t size)
+uint64 Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	SHA256_CTX ctx;
@@ -29,7 +29,7 @@ uint64_t Hasher::MakeSeed(const void* data, size_t size)
 		}
 
 	sha256_final(&ctx, buf);
-	return *reinterpret_cast<uint64_t*>(buf); // Use the first bytes as seed.
+	return *reinterpret_cast<uint64*>(buf); // Use the first bytes as seed.
 	}
 
 Hasher::digest_vector Hasher::Hash(const HashKey* key) const

@@ -1,4 +1,9 @@
 
+2.1-1089 | 2013-08-19 11:25:11 -0700
+
+  * Fix bloom filters' dependence on size_t. (Jon Siwek, Matthias
+    Vallentin).
+
 2.1-1081 | 2013-08-19 11:19:33 -0700
 
   * New BiF levenshtein_distance() to compute the Levenshtein distance

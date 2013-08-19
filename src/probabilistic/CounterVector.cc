@@ -153,7 +153,7 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y)
 
 }
 
-size_t CounterVector::Hash() const
+uint64 CounterVector::Hash() const
 	{
 	return bits->Hash();
 	}

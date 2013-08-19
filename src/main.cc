@@ -1154,9 +1154,9 @@ int main(int argc, char** argv)
 		curl_global_cleanup();
 #endif
 
-		sqlite3_shutdown();
-
 		terminate_bro();
+
+		sqlite3_shutdown();
 
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.

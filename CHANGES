@@ -1,4 +1,9 @@
 
+2.1-1078 | 2013-08-19 09:29:30 -0700
+
+  * Moving sqlite code into new external 3rdparty submodule. (Bernhard
+    Amann)
+
 2.1-1074 | 2013-08-14 10:29:54 -0700
 
   * Fix timer type enum and timer name array mismatch. (Jon Siwek)

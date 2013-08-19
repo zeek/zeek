@@ -1,4 +1,9 @@
 
+2.1-1081 | 2013-08-19 11:19:33 -0700
+
+  * New BiF levenshtein_distance() to compute the Levenshtein distance
+    between two strings. (Anthony Kasza)
+
 2.1-1078 | 2013-08-19 09:29:30 -0700
 
   * Moving sqlite code into new external 3rdparty submodule. (Bernhard

@@ -28,8 +28,8 @@ function test_basic_bloom_filter()
   bloomfilter_add(bf_str, "bar");
   print bloomfilter_lookup(bf_str, "foo");
   print bloomfilter_lookup(bf_str, "bar");
-  print bloomfilter_lookup(bf_str, "b4zzz"), "no fp"; # FP
-  print bloomfilter_lookup(bf_str, "quuux"); # FP
+  print bloomfilter_lookup(bf_str, "bazzz"), "fp"; # FP
+  print bloomfilter_lookup(bf_str, "quuux"), "fp"; # FP
   bloomfilter_add(bf_str, 0.5); # Type mismatch
   bloomfilter_add(bf_str, 100); # Type mismatch
 

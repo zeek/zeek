@@ -1,4 +1,6 @@
 
+.. _geolocation:
+
 ===========
 GeoLocation
 ===========

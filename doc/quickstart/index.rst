@@ -1,13 +1,9 @@
 
+.. _quickstart:
+
 =================
 Quick Start Guide
 =================
-
-.. rst-class:: opening
-
-   The short story for getting Bro up and running in a simple configuration
-   for analysis of either live traffic from a network interface or a packet
-   capture trace file.
 
 .. contents::
 
@@ -16,14 +12,13 @@ Installation
 
 Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
-source code forms.  See :doc:`Installing Bro <INSTALL>` for instructions
-on how to install Bro.
+source code forms.  See :ref:`installing-bro` for instructions on how to
+install Bro. Below, ``$PREFIX`` is used to reference the Bro
+installation root directory, which by default is ``/usr/local/`` if
+you install from source. 
 
-.. note:: Below, ``$PREFIX`` is used to reference the Bro installation
-   root directory.
-
-Using BroControl
-================
+Managing Bro with BroControl
+============================
 
 BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
@@ -68,9 +63,10 @@ policy and output the results in ``$PREFIX/logs``.
 
 .. note:: The user starting BroControl needs permission to capture
    network traffic. If you are not root, you may need to grant further
-   privileges to the account you're using; see the :doc:`FAQ <faq>`.
-   Also, if it looks like Bro is not seeing any traffic, check out
-   the FAQ entry on checksum offloading.
+   privileges to the account you're using; see the `FAQ
+   <http://www.bro.org/documentation/faq.html>`_. Also, if it looks
+   like Bro is not seeing any traffic, check out the FAQ entry on
+   checksum offloading.
 
 You can leave it running for now, but to stop this Bro instance you would do:
 
@@ -115,19 +111,17 @@ columns (shortened for brevity) show a request to the root of Bro website::
 
 Some logs are worth explicit mention:
 
-    ``weird.log``
-        Contains unusual/exceptional activity that can indicate
-        malformed connections, traffic that doesn't conform to a particular
-        protocol, malfunctioning/misconfigured hardware, or even an attacker
-        attempting to avoid/confuse a sensor.  Without context, it's hard to
-        judge whether this category of activity is interesting and so that is
-        left up to the user to configure.
+    ``conn.log``
+        Contains an entry for every connection seen on the wire, with
+        basic properties such as time and duration, originator and
+        responder IP addresses, services and ports, payload size, and
+        much more. This log provides a comprehensive record of the
+        network's activity.
 
     ``notice.log``
         Identifies specific activity that Bro recognizes as
         potentially interesting, odd, or bad. In Bro-speak, such
         activity is called a "notice".
-
 
 By default, ``BroControl`` regularly takes all the logs from
 ``$PREFIX/logs/current`` and archives/compresses them to a directory
@@ -302,21 +296,26 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 
 * We only looked at how to change options declared in the notice framework,
   there's many more options to look at in other script packages.
+* Continue reading with :ref:`using-bro` chapter which goes into more
+  depth on working with Bro; then look at :ref:`writing-scripts` for
+  learning how to start writing your own scripts.
 * Look at the scripts in ``$PREFIX/share/bro/policy`` for further ones
-  you may want to load.
+  you may want to load; you can browse their documentation at the
+  :ref:`overview of script packages <script-packages>`.
 * Reading the code of scripts that ship with Bro is also a great way to gain
-  understanding of the language and how you can start writing your own custom
-  analysis.
-* Review the :doc:`FAQ <faq>`.
+  further understanding of the language and how scripts tend to be
+  structured.
+* Review the `FAQ <http://www.bro.org/documentation/faq.html>`_.
 * Continue reading below for another mini-tutorial on using Bro as a standalone
   command-line utility.
 
-Bro, the Command-Line Utility
+Bro as a Command-Line Utility
 =============================
 
-If you prefer not to use BroControl (e.g. don't need its automation and
-management features), here's how to directly control Bro for your analysis
-activities.
+If you prefer not to use BroControl (e.g. don't need its automation
+and management features), here's how to directly control Bro for your
+analysis activities from the command line for both live traffic and
+offline working from traces.
 
 Monitoring Live Traffic
 -----------------------
@@ -419,4 +418,20 @@ are "load this script if it hasn't already been loaded".
    variable will need to be extended to include all the directories that need
    to be searched for scripts.  See the default search path by doing
    ``bro --help``.
+
+Running Bro Without Installing
+------------------------------
+
+For developers that wish to run Bro directly from the ``build/``
+directory (i.e., without performing ``make install``), they will have
+to first adjust ``BROPATH`` and ``BROMAGIC`` to look for scripts and
+additional files inside the build directory.  Sourcing either
+``build/bro-path-dev.sh`` or ``build/bro-path-dev.csh`` as appropriate
+for the current shell accomplishes this and also augments your
+``PATH`` so you can use the Bro binary directly::
+
+    ./configure
+    make
+    source build/bro-path-dev.sh
+    bro <options>
 

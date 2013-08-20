@@ -1,4 +1,6 @@
 
+.. _writing-scripts:
+
 ===================
 Writing Bro Scripts
 ===================

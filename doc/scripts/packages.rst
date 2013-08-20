@@ -1,5 +1,7 @@
 .. This is a stub doc to which broxygen appends during the build process
 
+.. _script-packages:
+
 Bro Script Packages
 ===================
 

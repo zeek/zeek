@@ -9,6 +9,8 @@ Bro Documentation
    :maxdepth: 2
 
    intro/index.rst
+   quickstart/index.rst
+   install/index.rst
    using/index.rst
    scripting/index.rst
    frameworks/index.rst
@@ -20,3 +22,8 @@ Bro Documentation
   section, but can't figure out how to include it into toctree)
 * :ref:`General Index <genindex>`
 * :ref:`search`
+
+   install
+   upgrade
+   changes
+   reporting-problems

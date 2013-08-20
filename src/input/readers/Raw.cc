@@ -90,6 +90,24 @@ void Raw::ClosePipeEnd(int i)
 	pipes[i] = -1;
 	}
 
+bool Raw::LockForkMutex()
+	{
+	int res = pthread_mutex_lock(&fork_mutex);
+	if ( res == 0 )
+		return true;
+	Error(Fmt("cannot lock fork mutex: %d", res));
+	return false;
+	}
+
+bool Raw::UnlockForkMutex()
+	{
+	int res = pthread_mutex_unlock(&fork_mutex);
+	if ( res == 0 )
+		return true;
+	Error(Fmt("cannot unlock fork mutex: %d", res));
+	return false;
+	}
+
 bool Raw::Execute()
 	{
 	// TODO: AFAICT, pipe/fork/exec should be thread-safe, but actually having
@@ -99,15 +117,12 @@ bool Raw::Execute()
 	// individually or sequentially, that issue never crops up... ("never"
 	// meaning I haven't seen in it in hundreds of tests using 50+ threads
 	// where before I'd see the issue w/ just 2 threads ~33% of the time).
-	int lock_rval = pthread_mutex_lock(&fork_mutex);
-	if ( lock_rval != 0 )
-		{
-		Error(Fmt("cannot lock fork mutex: %d", lock_rval));
+	if ( ! LockForkMutex() )
 		return false;
-		}
 
 	if ( pipe(pipes) != 0 || pipe(pipes+2) || pipe(pipes+4) )
 		{
+		UnlockForkMutex();
 		Error(Fmt("Could not open pipe: %d", errno));
 		return false;
 		}
@@ -115,6 +130,7 @@ bool Raw::Execute()
 	childpid = fork();
 	if ( childpid < 0 )
 		{
+		UnlockForkMutex();
 		Error(Fmt("Could not create child process: %d", errno));
 		return false;
 		}
@@ -144,12 +160,8 @@ bool Raw::Execute()
 	else
 		{
 		// we are the parent
-		lock_rval = pthread_mutex_unlock(&fork_mutex);
-		if ( lock_rval != 0 )
-			{
-			Error(Fmt("cannot unlock fork mutex: %d", lock_rval));
+		if ( ! UnlockForkMutex() )
 			return false;
-			}
 
 		ClosePipeEnd(stdout_out);
 		if ( Info().mode == MODE_STREAM )

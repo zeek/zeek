@@ -32,6 +32,8 @@ protected:
 private:
 
 	void ClosePipeEnd(int i);
+	bool LockForkMutex();
+	bool UnlockForkMutex();
 
 	bool OpenInput();
 	bool CloseInput();

@@ -27,8 +27,10 @@ export {
 
 event mime_begin_entity(c: connection) &priority=10
 	{
-	c$smtp$entity = Entity();
-	++c$smtp_state$mime_depth;
+	if ( c?$smtp )
+		c$smtp$entity = Entity();
+	if ( c?$smtp_state )
+		++c$smtp_state$mime_depth;
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5

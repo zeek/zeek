@@ -357,12 +357,16 @@ function request_all_current_keys(uid: string, ss_name: string, cleanup: bool)
 event SumStats::send_no_key(uid: string, ss_name: string)
 	{
 	#print "send_no_key";
+
+	if ( uid !in done_with )
+		done_with[uid] = 0;
+
 	++done_with[uid];
 	if ( Cluster::worker_count == done_with[uid] )
 		{
 		delete done_with[uid];
 
-		if ( |stats_keys[uid]| > 0 )
+		if ( uid in stats_keys && |stats_keys[uid]| > 0 )
 			{
 			#print "we need more keys!";
 			# Now that we have a key from each worker, lets
@@ -426,6 +430,9 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 		key_requests[uid] = compose_results(key_requests[uid], result);
 
 	# Mark that a worker is done.
+	if ( uid !in done_with )
+		done_with[uid] = 0;
+	
 	++done_with[uid];
 
 	#if ( Cluster::worker_count == done_with[uid] )

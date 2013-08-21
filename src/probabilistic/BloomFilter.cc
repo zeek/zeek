@@ -111,7 +111,7 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 
 std::string BasicBloomFilter::InternalState() const
 	{
-	return fmt("%" PRIu64, (uint64_t)bits->Hash());
+	return fmt("%" PRIu64, bits->Hash());
 	}
 
 BasicBloomFilter::BasicBloomFilter()
@@ -219,7 +219,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 
 string CountingBloomFilter::InternalState() const
 	{
-	return fmt("%" PRIu64, (uint64_t)cells->Hash());
+	return fmt("%" PRIu64, cells->Hash());
 	}
 
 IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)

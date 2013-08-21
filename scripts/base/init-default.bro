@@ -40,6 +40,7 @@
 
 @load base/protocols/conn
 @load base/protocols/dhcp
+@load base/protocols/dnp3
 @load base/protocols/dns
 @load base/protocols/ftp
 @load base/protocols/http
@@ -55,5 +56,7 @@
 
 @load base/files/hash
 @load base/files/extract
+@load base/files/unified2
+
 
 @load base/misc/find-checksum-offloading

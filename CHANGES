@@ -1,4 +1,59 @@
 
+2.1-1089 | 2013-08-19 11:25:11 -0700
+
+  * Fix bloom filters' dependence on size_t. (Jon Siwek, Matthias
+    Vallentin).
+
+2.1-1081 | 2013-08-19 11:19:33 -0700
+
+  * New BiF levenshtein_distance() to compute the Levenshtein distance
+    between two strings. (Anthony Kasza)
+
+2.1-1078 | 2013-08-19 09:29:30 -0700
+
+  * Moving sqlite code into new external 3rdparty submodule. (Bernhard
+    Amann)
+
+2.1-1074 | 2013-08-14 10:29:54 -0700
+
+  * Fix timer type enum and timer name array mismatch. (Jon Siwek)
+
+2.1-1072 | 2013-08-14 10:28:51 -0700
+
+  * Adding the unified2 analyzer that reads unified2 files from disk,
+    turning them into events. (Seth Hall)
+
+  * Fixing intel framework tests. (Seth Hall)
+    
+2.1-1059 | 2013-08-13 23:52:41 -0400
+
+  * Add file name support to intel framework. (Seth Hall)
+
+  * Add file support to intel framework and slightly restructure 
+    intel http handling. (Seth Hall)
+
+2.1-1052 | 2013-08-12 14:38:14 -0700
+
+  * Fixing bug in DNP3 analyzer flagged by compiler warning. (Robin
+    Sommer)
+
+2.1-1050 | 2013-08-12 11:37:44 -0700
+
+  * Experimental DNP3 analyzer. This includes only very basic
+    script-level support at the moment, but quite a number of events
+    are provided. (Hui Lin, Robin Sommer)
+
+2.1-1041 | 2013-08-09 15:32:22 -0700
+
+  * Update coverage baselines for canonical load order of scripts.
+    (Jon Siwek)
+
+2.1-1039 | 2013-08-09 15:30:15 -0700
+
+  * Fix mem leak in DHCP analyzer. (Jon Siwek)
+    
+  * Fix a unit test outdated by recent sumstats changes. (Jon Siwek)
+    
 2.1-1036 | 2013-08-05 17:29:11 -0400
 
   * Fix the SSL infinite loop I just created. (Seth Hall)

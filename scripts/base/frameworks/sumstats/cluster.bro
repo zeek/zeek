@@ -60,7 +60,7 @@ export {
 
 # Add events to the cluster framework to make this work.
 redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|get_result|threshold_crossed)/;
-redef Cluster::manager2worker_events += /SumStats::(thresholds_reset|get_a_key)/;
+redef Cluster::manager2worker_events += /SumStats::(get_a_key)/;
 redef Cluster::worker2manager_events += /SumStats::cluster_(ss_response|send_result|key_intermediate_response)/;
 redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
 
@@ -223,11 +223,6 @@ event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, t
 	threshold_tracker[ss_name][key] = thold_index;
 	}
 
-event SumStats::thresholds_reset(ss_name: string)
-	{
-	delete threshold_tracker[ss_name];
-	}
-
 @endif
 
 
@@ -274,6 +269,7 @@ event SumStats::finish_epoch(ss: SumStat)
 		event SumStats::cluster_ss_request(uid, ss$name, T);
 
 		done_with[uid] = 0;
+
 		#print fmt("get_key by uid: %s", uid);
 		event SumStats::get_a_key(uid, ss$name, T);
 		}
@@ -295,6 +291,12 @@ function data_added(ss: SumStat, key: Key, result: Result)
 
 function handle_end_of_result_collection(uid: string, ss_name: string, key: Key, cleanup: bool)
 	{
+	if ( uid !in key_requests )
+		{
+		Reporter::warning(fmt("Tried to handle end of result collection with missing uid in key_request sumstat:%s, key:%s.", ss_name, key));
+		return;
+		}
+
 	#print fmt("worker_count:%d :: done_with:%d", Cluster::worker_count, done_with[uid]);
 	local ss = stats_store[ss_name];
 	local ir = key_requests[uid];
@@ -357,12 +359,16 @@ function request_all_current_keys(uid: string, ss_name: string, cleanup: bool)
 event SumStats::send_no_key(uid: string, ss_name: string)
 	{
 	#print "send_no_key";
+
+	if ( uid !in done_with )
+		done_with[uid] = 0;
+
 	++done_with[uid];
 	if ( Cluster::worker_count == done_with[uid] )
 		{
 		delete done_with[uid];
 
-		if ( |stats_keys[uid]| > 0 )
+		if ( uid in stats_keys && |stats_keys[uid]| > 0 )
 			{
 			#print "we need more keys!";
 			# Now that we have a key from each worker, lets
@@ -375,6 +381,8 @@ event SumStats::send_no_key(uid: string, ss_name: string)
 			local ss = stats_store[ss_name];
 			if ( ss?$epoch_finished )
 				ss$epoch_finished(network_time());
+
+			reset(ss);
 			}
 		}
 	}
@@ -409,6 +417,8 @@ event SumStats::send_a_key(uid: string, ss_name: string, key: Key)
 			local ss = stats_store[ss_name];
 			if ( ss?$epoch_finished )
 				ss$epoch_finished(network_time());
+
+			reset(ss);
 			}
 		}
 	}
@@ -426,6 +436,10 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 		key_requests[uid] = compose_results(key_requests[uid], result);
 
 	# Mark that a worker is done.
+	if ( uid !in done_with )
+		done_with[uid] = 0;
+	
+	#print fmt("MANAGER: got a result for %s %s from %s", uid, key, get_event_peer()$descr);
 	++done_with[uid];
 
 	#if ( Cluster::worker_count == done_with[uid] )
@@ -439,7 +453,7 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 	{
 	#print fmt("MANAGER: receiving intermediate key data from %s", get_event_peer()$descr);
-	#print fmt("MANAGER: requesting key data for %s", key2str(key));
+	#print fmt("MANAGER: requesting key data for %s", key);
 
 	if ( ss_name in outstanding_global_views &&
 	     |outstanding_global_views[ss_name]| > max_outstanding_global_views )
@@ -454,9 +468,11 @@ event SumStats::cluster_key_intermediate_response(ss_name: string, key: Key)
 
 	local uid = unique_id("");
 	done_with[uid] = 0;
+	#print fmt("requesting results for: %s", uid);
 	event SumStats::cluster_get_result(uid, ss_name, key, F);
 	when ( uid in done_with && Cluster::worker_count == done_with[uid] )
 		{
+		#print fmt("workers: %d  done: %d", Cluster::worker_count, done_with[uid]);
 		handle_end_of_result_collection(uid, ss_name, key, F);
 		}
 	timeout 1.1min

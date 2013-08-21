@@ -44,7 +44,10 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 		BroObj::SuppressErrors no_errors;
 		Val* v = e->Eval(trigger->frame);
 		if ( v )
+			{
 			trigger->Register(v);
+			Unref(v);
+			}
 		break;
 		}
 

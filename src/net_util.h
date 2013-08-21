@@ -156,6 +156,18 @@ extern const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
 extern const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 				const uint32* dst_addr, uint32 dst_port);
 
+/**
+* Given a MAC address, formats it in hex as 00:de:ad:be:ef.
+* Supports both EUI-48 and EUI-64. If it's neither, returns
+* an empty string.
+*
+* @param m EUI-48 or EUI-64 MAC address to format, as a char array
+* @param len Number of bytes valid starting at *n*. This must be at
+*            least 8 for a valid address.
+* @return A string of the formatted MAC. Passes ownership to caller.
+*/
+extern char* fmt_mac(const unsigned char* m, int len);
+
 // Read 4 bytes from data and return in network order.
 extern uint32 extract_uint32(const u_char* data);
 

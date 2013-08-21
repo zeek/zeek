@@ -1,4 +1,55 @@
 
+2.1-1036 | 2013-08-05 17:29:11 -0400
+
+  * Fix the SSL infinite loop I just created. (Seth Hall)
+
+2.1-1035 | 2013-08-05 16:44:50 -0400
+
+  * Change to SSL log delay to cause the log to write even if delay times out. (Seth Hall)
+
+2.1-1034 | 2013-08-03 20:27:43 -0700
+
+  * A set of DHCP extensions. (Vlad Grigorescu)
+
+     - Leases are logged to dhcp.log as they are seen.
+     - scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro
+     - Added DPD sig.
+
+2.1-1027 | 2013-08-03 01:57:37 -0400
+
+  * Fix a major memory issue in the SumStats framework.
+
+2.1-1026 | 2013-08-02 22:35:09 -0400
+
+  * Fix the SumStats top-k plugin and test. (Seth Hall)
+
+  * Rework of SumStats API to reduce high instantaneous memory
+    use on clusters. (Seth Hall)
+
+  * Large update for the SumStats framework.
+
+     - On-demand access to sumstats results through "return from"
+       functions named SumStats::request and Sumstats::request_key.
+       Both functions are tested in standalone and clustered modes.
+
+     - $name field has returned to SumStats which simplifies cluster
+       code and makes the on-demand access stuff possible.
+
+     - Clustered results can only be collected for 1 minute from their
+       time of creation now instead of time of last read.
+
+     - Thresholds use doubles instead of counts everywhere now.
+
+     - Calculation dependency resolution occurs at start up time now
+       instead of doing it at observation time which provide a minor
+       cpu performance improvement.  A new plugin registration mechanism
+       was created to support this change.
+
+     - AppStats now has a minimal doc string and is broken into hook-based
+       plugins.
+
+     - AppStats and traceroute detection added to local.bro (Seth Hall)
+
 2.1-1009 | 2013-08-02 17:19:08 -0700
 
   * A number of exec module and raw input reader fixes. (Jon Siwek)

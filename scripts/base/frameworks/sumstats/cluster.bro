@@ -60,7 +60,7 @@ export {
 
 # Add events to the cluster framework to make this work.
 redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|get_result|threshold_crossed)/;
-redef Cluster::manager2worker_events += /SumStats::(thresholds_reset|get_a_key)/;
+redef Cluster::manager2worker_events += /SumStats::(get_a_key)/;
 redef Cluster::worker2manager_events += /SumStats::cluster_(ss_response|send_result|key_intermediate_response)/;
 redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
 
@@ -223,11 +223,6 @@ event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, t
 	threshold_tracker[ss_name][key] = thold_index;
 	}
 
-event SumStats::thresholds_reset(ss_name: string)
-	{
-	delete threshold_tracker[ss_name];
-	}
-
 @endif
 
 
@@ -274,6 +269,8 @@ event SumStats::finish_epoch(ss: SumStat)
 		event SumStats::cluster_ss_request(uid, ss$name, T);
 
 		done_with[uid] = 0;
+		reset(ss);
+		
 		#print fmt("get_key by uid: %s", uid);
 		event SumStats::get_a_key(uid, ss$name, T);
 		}

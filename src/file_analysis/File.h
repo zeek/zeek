@@ -57,6 +57,14 @@ public:
 	void SetTimeoutInterval(double interval);
 
 	/**
+	 * Change the maximum size that an attached extraction analyzer is allowed.
+	 * @param args the file extraction analyzer whose limit needs changed.
+	 * @param bytes new limit.
+	 * @return false if no extraction analyzer is active, else true.
+	 */
+	bool SetExtractionLimit(RecordVal* args, uint64 bytes);
+
+	/**
 	 * @return value of the "id" field from #val record.
 	 */
 	string GetID() const { return id; }

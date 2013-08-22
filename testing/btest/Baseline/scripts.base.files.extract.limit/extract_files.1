@@ -1,0 +1,72 @@
+The National Center for Supercomputing Applications                     1/28/92
+Anonymous FTP Server General Information
+
+This file contains information about the general structure, as well as
+information on how to obtain files and documentation from the FTP server.
+NCSA software and documentation can also be obtained through the the U.S.
+Mail.  Instructions are included for using this method as well.
+
+Information about the Software Development Group and NCSA software can be 
+found in the /ncsapubs directory in a file called TechResCatalog.
+
+
+THE UNIVERSITY OF ILLINOIS GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE
+SOFTWARE AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION, 
+WARRANTY OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+
+
+_____________________________________________________________
+
+FTP INSTRUCTIONS
+
+Most NCSA Software is released into the public domain.  That is, for these 
+programs, the public domain has all rights for future licensing, resale, 
+and publication of available packages. If you are connected to Internet
+(NSFNET, ARPANET, MILNET, etc) you may download NCSA software and documentation and source code if it is available, at no charge from the anonymous file 
+transfer protocol (FTP) server at NCSA where you got this file. The procedure
+you should follow to do so is presented  below. If you have any questions
+regarding this procedure or whether you are connected to Internet, consult your local system administration or network expert.
+
+1. Log on to a host at your site that is connected to the Internet and is
+   running software supporting the FTP command.
+
+2. Invoke FTP on most systems by entering the Internet address of the server.
+   Type the following at the shell (usually "%") prompt:
+
+      % ftp ftp.ncsa.uiuc.edu
+
+3. Log in by entering anonymous for the name.
+
+4. Enter your local email address (login@host) for the password.
+
+5. Enter the following at the "ftp>" prompt to copy a text file from our 
+   server to your local host:
+
+      ftp> get filename
+
+   where "filename" is the name of the file you want a copy of.  For example,
+   to get a copy of this file from the server enter:
+
+      ftp> get README.FIRST
+
+   To get a copy of our software brochure, enter:
+
+      ftp> cd ncsapubs
+	   get TechResCatalog 
+
+   NOTE:  Some of the filenames on the server are rather long to aid in
+          identification.  Some operating systems may have problems with names
+          this long.  To change the name the file will have on your local
+          machine type the following at the "ftp>" prompt ("remoteName" is the
+          name of the file on the server and "localName" is the name you want
+          the file to have on your local machine):
+
+             ftp> get remoteName localName
+
+          Example:
+
+             ftp> get TechResCatalog catalog.txt
+
+
+6. For files that are not text files (almost everything else) you will need to
+   specify that you want to transfer binary files.  Do this by ty

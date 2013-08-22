@@ -18,6 +18,11 @@ protected:
 
 		AddComponent(new ::file_analysis::Component("EXTRACT",
 		        ::file_analysis::Extract::Instantiate));
+
+		extern std::list<std::pair<const char*, int> > __bif_events_init();
+		AddBifInitFunction(&__bif_events_init);
+		extern std::list<std::pair<const char*, int> > __bif_functions_init();
+		AddBifInitFunction(&__bif_functions_init);
 		}
 };
 

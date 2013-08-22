@@ -14,6 +14,8 @@
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
 
+#include "analyzer/extract/Extract.h"
+
 using namespace file_analysis;
 
 static Val* empty_connection_table()
@@ -201,6 +203,22 @@ double File::GetTimeoutInterval() const
 void File::SetTimeoutInterval(double interval)
 	{
 	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
+	}
+
+bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
+	{
+	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), args);
+
+	if ( ! a )
+		return false;
+
+	Extract* e = dynamic_cast<Extract*>(a);
+
+	if ( ! e )
+		return false;
+
+	e->SetLimit(bytes);
+	return true;
 	}
 
 void File::IncrementByteCount(uint64 size, int field_idx)
@@ -458,7 +476,7 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 			}
 		}
 
-	if ( h == file_new || h == file_timeout )
+	if ( h == file_new || h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.
 		mgr.Drain();

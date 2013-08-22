@@ -1,5 +1,4 @@
 
-================
 Notice Framework
 ================
 
@@ -87,21 +86,21 @@ directly make modifications to the :bro:see:`Notice::Info` record
 given as the argument to the hook.
 
 Here's a simple example which tells Bro to send an email for all notices of
-type :bro:see:`SSH::Login` if the server is 10.0.0.1:
+type :bro:see:`SSH::Password_Guessing` if the server is 10.0.0.1:
 
 .. code:: bro
 
     hook Notice::policy(n: Notice::Info)
       {
-      if ( n$note == SSH::Login && n$id$resp_h == 10.0.0.1 )
+      if ( n$note == SSH::Password_Guessing && n$id$resp_h == 10.0.0.1 )
         add n$actions[Notice::ACTION_EMAIL];
       }
 
 .. note::
 
-    Keep in mind that the semantics of the SSH::Login notice are
-    such that it is only raised when Bro heuristically detects a successful
-    login. No apparently failed logins will raise this notice.
+   Keep in mind that the semantics of the :bro:see:`SSH::Password_Guessing`
+   notice are such that it is only raised when Bro heuristically detects
+   a failed login.
 
 Hooks can also have priorities applied to order their execution like events
 with a default priority of 0.  Greater values are executed first.  Setting
@@ -111,7 +110,7 @@ a hook body to run before default hook bodies might look like this:
 
     hook Notice::policy(n: Notice::Info) &priority=5
       {
-      if ( n$note == SSH::Login && n$id$resp_h == 10.0.0.1 )
+      if ( n$note == SSH::Password_Guessing && n$id$resp_h == 10.0.0.1 )
         add n$actions[Notice::ACTION_EMAIL];
       }
 
@@ -174,16 +173,16 @@ Raising Notices
 
 A script should raise a notice for any occurrence that a user may want
 to be notified about or take action on. For example, whenever the base
-SSH analysis scripts sees an SSH session where it is heuristically
-guessed to be a successful login, it raises a Notice of the type
-:bro:see:`SSH::Login`. The code in the base SSH analysis script looks
-like this:
+SSH analysis scripts sees enough failed logins to a given host, it
+raises a notice of the type :bro:see:`SSH::Password_Guessing`.  The code
+in the base SSH analysis script which raises the notice looks like this:
 
 .. code:: bro
 
-    NOTICE([$note=SSH::Login,
-            $msg="Heuristically detected successful SSH login.",
-            $conn=c]);
+    NOTICE([$note=Password_Guessing,
+            $msg=fmt("%s appears to be guessing SSH passwords (seen in %d connections).", key$host, r$num),
+            $src=key$host,
+            $identifier=cat(key$host)]);
 
 :bro:see:`NOTICE` is a normal function in the global namespace which
 wraps a function within the ``Notice`` namespace. It takes a single
@@ -340,7 +339,7 @@ included below.
     hook Notice::policy(n: Notice::Info)
       {
       if ( n?$conn && n$conn?$http && n$conn$http?$host )
-        n$email_body_sections[|email_body_sections|] = fmt("HTTP host header: %s", n$conn$http$host);
+        n$email_body_sections[|n$email_body_sections|] = fmt("HTTP host header: %s", n$conn$http$host);
       }
 
 
@@ -349,7 +348,7 @@ Cluster Considerations
 
 As a user/developer of Bro, the main cluster concern with the notice framework
 is understanding what runs where. When a notice is generated on a worker, the
-worker checks to see if the notice shoudl be suppressed based on information
+worker checks to see if the notice should be suppressed based on information
 locally maintained in the worker process. If it's not being
 suppressed, the worker forwards the notice directly to the manager and does no more
 local processing. The manager then runs the :bro:see:`Notice::policy` hook and

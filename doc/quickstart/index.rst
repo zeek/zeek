@@ -264,14 +264,11 @@ that only takes the email action for SSH logins to a defined set of servers:
         192.168.1.102,
     } &redef;
 
-    redef Notice::policy += {
-        [$action = Notice::ACTION_EMAIL,
-         $pred(n: Notice::Info) =
-            {
-            return n$note == SSH::Login && n$id$resp_h in watched_servers;
-            }
-        ]
-    };
+   hook Notice::policy(n: Notice::Info)
+       {
+       if ( n$note == SSH::SUCCESSFUL_LOGIN && n$id$resp_h in watched_servers )
+            add n$actions[Notice::ACTION_EMAIL];
+       }
 
 You'll just have to trust the syntax for now, but what we've done is
 first declare our own variable to hold a set of watched addresses,

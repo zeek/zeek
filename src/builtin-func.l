@@ -209,8 +209,8 @@ void init_alternative_mode()
 
 	static char guard[1024];
 	getcwd(guard, sizeof(guard));
-	strncat(guard, "/", sizeof(guard));
-	strncat(guard, input_filename, sizeof(guard));
+	strncat(guard, "/", sizeof(guard) - strlen(guard) - 1);
+	strncat(guard, input_filename, sizeof(guard) - strlen(guard) - 1);
 
 	for ( char* p = guard; *p; p++ )
 		{

@@ -4,7 +4,7 @@
 # @TEST-EXEC: cat input2.log >> input.log
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: cat input3.log >> input.log
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;

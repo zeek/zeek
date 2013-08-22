@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -32,12 +32,12 @@ event bro_init()
 	{
 	outfile = open("../out");
 	Input::add_table([$name="input", $source="../input.log", $idx=Idx, $val=Val, $destination=servers]);
-	Input::remove("input");
 	}
 
 event Input::end_of_data(name: string, source: string)
 	{
 	print outfile, servers;
+	Input::remove("input");
 	close(outfile);
 	terminate();
 	}

@@ -1,0 +1,9 @@
+.. code-block:: none
+
+  # cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
+  VW0XPVINV8a	734
+  Tw8jXtpTGu6	734
+  GSxOnSLghOa	734
+  0Q4FH8sESw5	734
+  P654jzLoe3a	733
+

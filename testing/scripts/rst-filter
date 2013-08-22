@@ -1,0 +1,5 @@
+# /usr/bin/env bash
+#
+# Filters the output of btest-rst-cmd.
+
+sed "s#${TRACES}/\{0,1\}##g"

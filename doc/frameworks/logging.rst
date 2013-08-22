@@ -1,4 +1,6 @@
 
+.. _framework-logging:
+
 =================
 Logging Framework
 =================

@@ -11,4 +11,4 @@ fi
 
 # The first sed uses a "basic" regexp, the 2nd a "modern:.
 sed 's/[0-9]\{10\}\.[0-9]\{2,8\}/XXXXXXXXXX.XXXXXX/g' | \
-$sed 's/^#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g'
+$sed 's/^ *#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g'

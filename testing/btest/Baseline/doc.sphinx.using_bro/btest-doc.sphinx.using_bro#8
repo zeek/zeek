@@ -1,0 +1,6 @@
+.. code-block:: none
+
+  # cat http.log | bro-cut uid id.resp_h method status_code host uri | grep VW0XPVINV8a
+  VW0XPVINV8a	208.80.152.3	GET	304	upload.wikimedia.org	/wikipedia/commons/6/63/Wikipedia-logo.png
+  VW0XPVINV8a	208.80.152.3	GET	304	upload.wikimedia.org	/wikipedia/commons/thumb/f/fa/Wikibooks-logo.svg/35px-Wikibooks-logo.svg.png
+

@@ -7,6 +7,10 @@ export {
 	## The prefix where files are extracted to.
 	const prefix = "./extract_files/" &redef;
 
+	## The default max size for extracted files (they won't exceed this
+	## number of bytes), 100MB.
+	const default_limit = 104857600;
+
 	redef record Files::Info += {
 		## Local filenames of extracted file.
 		extracted: string &optional &log;
@@ -17,8 +21,31 @@ export {
 		## This field is used in the core by the extraction plugin
 		## to know where to write the file to.  It's also optional
 		extract_filename: string &optional;
+		## The maximum allowed file size in bytes of *extract_filename*.
+		## Once reached, a :bro:see:`file_extraction_limit` event is
+		## raised and the analyzer will be removed unless
+		## :bro:see:`FileExtract::set_limit` is called to increase the
+		## limit.  A value of zero means "no limit".
+		extract_limit: count &default=default_limit;
 	};
+
+	## Sets the maximum allowed extracted file size.
+	##
+	## f: A file that's being extracted.
+	##
+	## args: Arguments that identify a file extraction analyzer.
+	##
+	## n: Allowed number of bytes to be extracted.
+	##
+	## Returns: false if a file extraction analyzer wasn't active for
+	##          the file, else true.
+	global set_limit: function(f: fa_file, args: Files::AnalyzerArgs, n: count): bool;
 }
+
+function set_limit(f: fa_file, args: Files::AnalyzerArgs, n: count): bool
+	{
+	return __set_limit(f$id, args, n);
+	}
 
 function on_add(f: fa_file, args: Files::AnalyzerArgs)
 	{

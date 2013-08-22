@@ -1,4 +1,11 @@
 
+2.1-1122 | 2013-08-22 16:52:27 -0700
+
+  * Use macros to create file analyzer plugin classes. (Jon Siwek)
+    
+  * Add options to limit extracted file sizes w/ 100MB default. (Jon
+    Siwek)
+
 2.1-1117 | 2013-08-22 08:44:12 -0700
 
   * A number of input framework fixes and corresponding test stability

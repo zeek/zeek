@@ -1,4 +1,22 @@
 
+2.1-1117 | 2013-08-22 08:44:12 -0700
+
+  * A number of input framework fixes and corresponding test stability
+    improvements. (Jon Siwek)
+
+  * Make memory leak tests able to time out.  (Jon Siwek)
+    
+  * Fix a compiler warning regarding strncat misuse. (Jon Siwek)
+    
+2.1-1103 | 2013-08-21 19:11:34 -0400
+
+  * A number of sumstats fixes. (Seth Hall, Vlad Grigorescu)
+    
+  * Fix memory leak w/ when statements. Addresses BIT-1058. (Jon
+    Siwek)
+
+  * Switching to relative submodule paths (Robin Sommer)
+
 2.1-1089 | 2013-08-19 11:25:11 -0700
 
   * Fix bloom filters' dependence on size_t. (Jon Siwek, Matthias

@@ -1,4 +1,8 @@
 
+2.1-1124 | 2013-08-23 16:33:52 -0700
+
+  * Fixed a number of object bugs DNP3 analyzer. (Hui Lin)
+    
 2.1-1122 | 2013-08-22 16:52:27 -0700
 
   * Use macros to create file analyzer plugin classes. (Jon Siwek)

@@ -469,8 +469,11 @@ public:
 	 * may turn into \c protocol_confirmed event at the script-layer (but
 	 * only once per analyzer for each connection, even if the method is
 	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	 virtual void ProtocolConfirmation();
+	virtual void ProtocolConfirmation(Tag tag = Tag());
 
 	/**
 	 * Signals Bro's protocol detection that the analyzer has found a

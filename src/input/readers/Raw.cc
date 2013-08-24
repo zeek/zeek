@@ -433,7 +433,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 		}
 
-	if ( errno == 0 || errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
+	if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
 		return -2;
 
 	else

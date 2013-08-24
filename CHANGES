@@ -1,4 +1,20 @@
 
+2.1-1128 | 2013-08-24 10:27:29 -0700
+
+  * Remove code relict in input framework. (Jon Siwek)
+    
+  * Fix documentation for mkdir BIF. (Jon Siwek)
+    
+  * File extraction tweaks. (Jon Siwek)
+
+    - Default extraction limit of 100MB now provided via a tuning
+      script loaded in local.bro so that command-line Bro is unlimited
+      by default.
+
+    - Extraction directory is now created on request of file
+      extraction rather than unconditionally in bro_init(). (Jon
+      Siwek)
+
 2.1-1124 | 2013-08-23 16:33:52 -0700
 
   * Fixed a number of object bugs DNP3 analyzer. (Hui Lin)

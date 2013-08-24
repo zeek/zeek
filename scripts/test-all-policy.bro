@@ -89,6 +89,7 @@
 @load protocols/ssl/validate-certs.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
+@load tuning/defaults/extracted_file_limits.bro
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
 @load tuning/logs-to-elasticsearch.bro

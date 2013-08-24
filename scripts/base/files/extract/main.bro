@@ -8,8 +8,8 @@ export {
 	const prefix = "./extract_files/" &redef;
 
 	## The default max size for extracted files (they won't exceed this
-	## number of bytes), 100MB.
-	const default_limit = 104857600;
+	## number of bytes), unlimited.
+	const default_limit = 0 &redef;
 
 	redef record Files::Info += {
 		## Local filenames of extracted file.
@@ -54,12 +54,10 @@ function on_add(f: fa_file, args: Files::AnalyzerArgs)
 
 	f$info$extracted = args$extract_filename;
 	args$extract_filename = build_path_compressed(prefix, args$extract_filename);
+	mkdir(prefix);
 	}
 
 event bro_init() &priority=10
 	{
 	Files::register_analyzer_add_callback(Files::ANALYZER_EXTRACT, on_add);
-
-	# Create the extraction directory.
-	mkdir(prefix);
 	}

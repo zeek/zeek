@@ -2403,7 +2403,7 @@ RefExpr::RefExpr(Expr* arg_op) : UnaryExpr(EXPR_REF, arg_op)
 	if ( IsError() )
 		return;
 
-	if ( ! is_assignable(op->Type()) )
+	if ( ! ::is_assignable(op->Type()) )
 		ExprError("illegal assignment target");
 	else
 		SetType(op->Type()->Ref());

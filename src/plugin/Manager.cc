@@ -197,12 +197,8 @@ void Manager::InitPreScript()
 
 void Manager::InitBifs()
 	{
-	assert(! init);
-
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		(*i)->InitBifs();
-
-	init = true;
 	}
 
 void Manager::InitPostScript()

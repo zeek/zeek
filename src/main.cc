@@ -427,6 +427,8 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
+	double time_start = current_time(true);
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -1149,7 +1151,36 @@ int main(int argc, char** argv)
 
 #endif
 
+		double time_net_start = current_time(true);;
+
+		unsigned int mem_net_start_total;
+		unsigned int mem_net_start_malloced;
+		get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
+
+		fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
+
+		fprintf(stderr, "# initialization %uM/%uM\n",
+			mem_net_start_total / 1024 / 1024,
+			mem_net_start_malloced / 1024 / 1024);
+
 		net_run();
+
+		double time_net_done = current_time(true);;
+
+		unsigned int mem_net_done_total;
+		unsigned int mem_net_done_malloced;
+		get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
+
+		fprintf(stderr, "# total time %.6f, processing %.6f\n",
+			time_net_done - time_start, time_net_done - time_net_start);
+
+		fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
+			mem_net_done_total / 1024 / 1024,
+			mem_net_done_malloced / 1024 / 1024,
+			(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
+			(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
+
+
 		done_with_network();
 		net_delete();
 

@@ -1559,25 +1559,16 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	if ( malloced )
 		*malloced = mi.uordblks;
 
-	ret_total = mi.arena;
+#endif
 
-	if ( total )
-		*total = ret_total;
-#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
-
-	if ( malloced )
-		*malloced = 0;
 
 	// At least on FreeBSD it's in KB.
 	ret_total = r.ru_maxrss * 1024;
 
 	if ( total )
 		*total = ret_total;
-#endif
-
-	// return ret_total;
 	}
 
 #ifdef malloc

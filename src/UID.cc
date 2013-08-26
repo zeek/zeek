@@ -10,9 +10,9 @@ void UID::Set(bro_uint_t bits, const std::vector<uint64>& v)
 	uid.clear();
 
 	div_t res = div(bits, 64);
-	int size = res.rem ? res.quot + 1 : res.quot;
+	size_t size = res.rem ? res.quot + 1 : res.quot;
 
-	for ( int i = 0; i < size; ++i )
+	for ( size_t i = 0; i < size; ++i )
 		uid.push_back(i < v.size() ? v[i] : calculate_unique_id());
 
 	if ( res.rem )

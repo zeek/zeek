@@ -80,6 +80,8 @@ private:
 	std::vector<uint64> uid;
 };
 
+bool operator==(const UID& u1, const UID& u2);
+
 } // namespace Bro
 
 #endif

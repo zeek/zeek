@@ -30,7 +30,7 @@ public:
 	 *
 	 * @return A seed suitable for hashers.
 	 */
-	static size_t MakeSeed(const void* data, size_t size);
+	static uint64 MakeSeed(const void* data, size_t size);
 
 	/**
 	 * Destructor.

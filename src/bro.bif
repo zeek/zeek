@@ -3895,8 +3895,8 @@ function flush_all%(%): bool
 ##
 ## f: The directory name.
 ##
-## Returns: Returns true if the operation succeeds, or false if the
-##           creation fails or if *f* exists already.
+## Returns: Returns true if the operation succeeds or if *f* already exists,
+##          and false if the file creation fails.
 ##
 ## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output

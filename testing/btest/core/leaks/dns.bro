@@ -4,7 +4,8 @@
 #
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: btest-bg-wait -k 15
 
 const foo: set[addr] = {
      google.com

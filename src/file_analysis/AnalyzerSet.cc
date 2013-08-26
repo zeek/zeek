@@ -35,6 +35,14 @@ AnalyzerSet::~AnalyzerSet()
 	delete analyzer_hash;
 	}
 
+Analyzer* AnalyzerSet::Find(file_analysis::Tag tag, RecordVal* args)
+	{
+	HashKey* key = GetKey(tag, args);
+	Analyzer* rval = analyzer_map.Lookup(key);
+	delete key;
+	return rval;
+	}
+
 bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);

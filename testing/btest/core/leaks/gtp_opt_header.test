@@ -4,7 +4,8 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -r $TRACES/tunnels/gtp/gtp6_gtp_0x32.pcap %INPUT >out
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -r $TRACES/tunnels/gtp/gtp6_gtp_0x32.pcap %INPUT >out
+# @TEST-EXEC: btest-bg-wait 15
 
 # Some GTPv1 headers have some optional fields totaling to a 4-byte extension
 # of the mandatory header.

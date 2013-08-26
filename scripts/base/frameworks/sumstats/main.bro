@@ -153,11 +153,6 @@ export {
 	## Returns: The result for the requested sumstat key.
 	global request_key: function(ss_name: string, key: Key): Result;
 
-	## This event is generated when thresholds are reset for a SumStat.
-	##
-	## name: SumStats name that thresholds were reset for.
-	global thresholds_reset: event(name: string);
-
 	## Helper function to represent a :bro:type:`SumStats::Key` value as
 	## a simple string.
 	##
@@ -321,7 +316,6 @@ function reset(ss: SumStat)
 		{
 		delete threshold_tracker[ss$name];
 		threshold_tracker[ss$name] = table();
-		event SumStats::thresholds_reset(ss$name);
 		}
 	}
 

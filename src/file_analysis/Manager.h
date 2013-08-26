@@ -174,6 +174,19 @@ public:
 	bool SetTimeoutInterval(const string& file_id, double interval) const;
 
 	/**
+	 * Sets a limit on the maximum size allowed for extracting the file
+	 * to local disk;
+	 * @param file_id the file identifier/hash.
+	 * @param args a \c AnalyzerArgs value which describes a file analyzer,
+	 *        which should be a file extraction analyzer.
+	 * @param n the new extraction limit, in bytes.
+	 * @return false if file identifier and analyzer did not map to anything,
+	 *         else true.
+	 */
+	bool SetExtractionLimit(const string& file_id, RecordVal* args,
+	                        uint64 n) const;
+
+	/**
 	 * Queue attachment of an analzer to the file identifier.  Multiple
 	 * analyzers of a given type can be attached per file identifier at a time
 	 * as long as the arguments differ.

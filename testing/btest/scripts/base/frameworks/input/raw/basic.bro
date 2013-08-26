@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -32,6 +32,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	try = try + 1;
 	if ( try == 8 )
 		{
+		Input::remove("input");
 		close(outfile);
 		terminate();
 		}
@@ -42,5 +43,4 @@ event bro_init()
 	try = 0;
 	outfile = open("../out");
 	Input::add_event([$source="../input.log", $reader=Input::READER_RAW, $mode=Input::STREAM, $name="input", $fields=Val, $ev=line, $want_record=F]);
-	Input::remove("input");
 	}

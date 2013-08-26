@@ -18,9 +18,10 @@
 @load frameworks/intel/seen/__load__.bro
 @load frameworks/intel/seen/conn-established.bro
 @load frameworks/intel/seen/dns.bro
-@load frameworks/intel/seen/http-host-header.bro
+@load frameworks/intel/seen/file-hashes.bro
+@load frameworks/intel/seen/file-names.bro
+@load frameworks/intel/seen/http-headers.bro
 @load frameworks/intel/seen/http-url.bro
-@load frameworks/intel/seen/http-user-agents.bro
 @load frameworks/intel/seen/smtp-url-extraction.bro
 @load frameworks/intel/seen/smtp.bro
 @load frameworks/intel/seen/ssl.bro
@@ -88,6 +89,7 @@
 @load protocols/ssl/validate-certs.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
+@load tuning/defaults/extracted_file_limits.bro
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
 @load tuning/logs-to-elasticsearch.bro

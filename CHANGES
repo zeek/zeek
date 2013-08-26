@@ -1,4 +1,93 @@
 
+2.1-1128 | 2013-08-24 10:27:29 -0700
+
+  * Remove code relict in input framework. (Jon Siwek)
+    
+  * Fix documentation for mkdir BIF. (Jon Siwek)
+    
+  * File extraction tweaks. (Jon Siwek)
+
+    - Default extraction limit of 100MB now provided via a tuning
+      script loaded in local.bro so that command-line Bro is unlimited
+      by default.
+
+    - Extraction directory is now created on request of file
+      extraction rather than unconditionally in bro_init(). (Jon
+      Siwek)
+
+2.1-1124 | 2013-08-23 16:33:52 -0700
+
+  * Fixed a number of object bugs DNP3 analyzer. (Hui Lin)
+    
+2.1-1122 | 2013-08-22 16:52:27 -0700
+
+  * Use macros to create file analyzer plugin classes. (Jon Siwek)
+    
+  * Add options to limit extracted file sizes w/ 100MB default. (Jon
+    Siwek)
+
+2.1-1117 | 2013-08-22 08:44:12 -0700
+
+  * A number of input framework fixes and corresponding test stability
+    improvements. (Jon Siwek)
+
+  * Make memory leak tests able to time out.  (Jon Siwek)
+    
+  * Fix a compiler warning regarding strncat misuse. (Jon Siwek)
+    
+2.1-1103 | 2013-08-21 19:11:34 -0400
+
+  * A number of sumstats fixes. (Seth Hall, Vlad Grigorescu)
+    
+  * Fix memory leak w/ when statements. Addresses BIT-1058. (Jon
+    Siwek)
+
+  * Switching to relative submodule paths (Robin Sommer)
+
+2.1-1089 | 2013-08-19 11:25:11 -0700
+
+  * Fix bloom filters' dependence on size_t. (Jon Siwek, Matthias
+    Vallentin).
+
+2.1-1081 | 2013-08-19 11:19:33 -0700
+
+  * New BiF levenshtein_distance() to compute the Levenshtein distance
+    between two strings. (Anthony Kasza)
+
+2.1-1078 | 2013-08-19 09:29:30 -0700
+
+  * Moving sqlite code into new external 3rdparty submodule. (Bernhard
+    Amann)
+
+2.1-1074 | 2013-08-14 10:29:54 -0700
+
+  * Fix timer type enum and timer name array mismatch. (Jon Siwek)
+
+2.1-1072 | 2013-08-14 10:28:51 -0700
+
+  * Adding the unified2 analyzer that reads unified2 files from disk,
+    turning them into events. (Seth Hall)
+
+  * Fixing intel framework tests. (Seth Hall)
+    
+2.1-1059 | 2013-08-13 23:52:41 -0400
+
+  * Add file name support to intel framework. (Seth Hall)
+
+  * Add file support to intel framework and slightly restructure 
+    intel http handling. (Seth Hall)
+
+2.1-1052 | 2013-08-12 14:38:14 -0700
+
+  * Fixing bug in DNP3 analyzer flagged by compiler warning. (Robin
+    Sommer)
+
+2.1-1050 | 2013-08-12 11:37:44 -0700
+
+  * Experimental DNP3 analyzer. This includes only very basic
+    script-level support at the moment, but quite a number of events
+    are provided. (Hui Lin, Robin Sommer)
+
 2.1-1041 | 2013-08-09 15:32:22 -0700
 
   * Update coverage baselines for canonical load order of scripts.

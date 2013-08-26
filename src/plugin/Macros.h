@@ -9,6 +9,7 @@
 #define PLUGIN_MACROS_H
 
 #include "analyzer/Component.h"
+#include "file_analysis/Component.h"
 
 /**
  * The current plugin API version. Plugins that won't match this version will
@@ -90,6 +91,19 @@
  */
 #define BRO_PLUGIN_ANALYZER(tag, cls) \
 	AddComponent(new ::analyzer::Component(tag, ::analyzer::cls::InstantiateAnalyzer));
+
+/**
+ * Defines a component implementing a file analyzer.
+ *
+ * @param tag A string with the analyzer's tag. This must be unique across
+ * all loaded analyzers and will translate into a corresponding \c ANALYZER_*
+ * constant at the script-layer.
+ *
+ * @param cls The class that implements the analyzer. It must be derived
+ * (directly or indirectly) from file_analysis::Analyzer.
+ */
+#define BRO_PLUGIN_FILE_ANALYZER(tag, cls) \
+	AddComponent(new ::file_analysis::Component(tag, ::file_analysis::cls::Instantiate));
 
 /**
  * Defines a component implementing a protocol analyzer class that will

@@ -1,36 +1,20 @@
-[source=cat |, reader=Input::READER_RAW, mode=Input::STREAM, name=input2, fields=<no value description>, want_record=F, ev=line
-{ 
-print outfile, A::description;
-print outfile, A::tpe;
-print outfile, A::s;
-try = try + 1;
-if (2 == try) 
-{ 
-Input::remove(input2);
-close(outfile);
-terminate();
-}
-
-}, config={
-[stdin] = hello^Jthere^A^B^C^D^E^A^B^Cyay
-}]
-Input::EVENT_NEW
+Input::EVENT_NEW, cat |, input0
 hello
-[source=cat |, reader=Input::READER_RAW, mode=Input::STREAM, name=input2, fields=<no value description>, want_record=F, ev=line
-{ 
-print outfile, A::description;
-print outfile, A::tpe;
-print outfile, A::s;
-try = try + 1;
-if (2 == try) 
-{ 
-Input::remove(input2);
-close(outfile);
-terminate();
-}
-
-}, config={
-[stdin] = hello^Jthere^A^B^C^D^E^A^B^Cyay
-}]
-Input::EVENT_NEW
-there^A^B^C^D^E^A^B^Cyay
+Input::EVENT_NEW, cat |, input0
+there^A^B^C^D^E^A^B^Cyay0
+Input::EVENT_NEW, cat |, input1
+hello
+Input::EVENT_NEW, cat |, input1
+there^A^B^C^D^E^A^B^Cyay01
+Input::EVENT_NEW, cat |, input2
+hello
+Input::EVENT_NEW, cat |, input2
+there^A^B^C^D^E^A^B^Cyay012
+Input::EVENT_NEW, cat |, input3
+hello
+Input::EVENT_NEW, cat |, input3
+there^A^B^C^D^E^A^B^Cyay0123
+Input::EVENT_NEW, cat |, input4
+hello
+Input::EVENT_NEW, cat |, input4
+there^A^B^C^D^E^A^B^Cyay01234

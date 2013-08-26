@@ -184,6 +184,17 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
+bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
+                                 uint64 n) const
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	return file->SetExtractionLimit(args, n);
+	}
+
 bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
                           RecordVal* args) const
 	{

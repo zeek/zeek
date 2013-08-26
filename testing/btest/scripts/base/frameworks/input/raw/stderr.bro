@@ -1,8 +1,9 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT 
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;
+@load base/frameworks/communication  # let network-time run. otherwise there are no heartbeats...
 
 type Val: record {
 	s: string;
@@ -37,12 +38,15 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string, i
 		}
 	}
 
+global n = 0;
+
 event Input::end_of_data(name: string, source:string)
 	{
 	print outfile, "End of Data event";
 	print outfile, name;
-	terminate(); # due to the current design, end_of_data will be called after process_finshed and all line events.
-	# this could potentially change
+	++n;
+	if ( n == 2 )
+		terminate();
 	}
 
 event InputRaw::process_finished(name: string, source:string, exit_code:count, signal_exit:bool)
@@ -51,6 +55,9 @@ event InputRaw::process_finished(name: string, source:string, exit_code:count, s
 	print outfile, name;
 	if ( exit_code != 0 ) 
 		print outfile, "Exit code != 0";
+	++n;
+	if ( n == 2 )
+		terminate();
 	}
 
 event bro_init()
@@ -62,5 +69,5 @@ event bro_init()
 
 	outfile = open("../out");
 	try = 0;
-	Input::add_event([$source="ls .. ../nonexistant ../nonexistant2 ../nonexistant3 |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line, $want_record=F, $config=config_strings]);
+	Input::add_event([$source="ls .. ../nonexistant ../nonexistant2 ../nonexistant3 |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line, $want_record=F, $config=config_strings, $mode=Input::STREAM]);
 	}

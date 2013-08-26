@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -41,6 +41,7 @@ event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, r
 	try = try + 1;
 	if ( try == 7 )
 		{
+		Input::remove("input");
 		close(outfile);
 		terminate();
 		}
@@ -51,5 +52,4 @@ event bro_init()
 	try = 0;
 	outfile = open("../out");
 	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F,$ev=line]);
-	Input::remove("input");
 	}

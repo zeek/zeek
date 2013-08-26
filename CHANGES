@@ -1,4 +1,49 @@
 
+2.1-1128 | 2013-08-24 10:27:29 -0700
+
+  * Remove code relict in input framework. (Jon Siwek)
+    
+  * Fix documentation for mkdir BIF. (Jon Siwek)
+    
+  * File extraction tweaks. (Jon Siwek)
+
+    - Default extraction limit of 100MB now provided via a tuning
+      script loaded in local.bro so that command-line Bro is unlimited
+      by default.
+
+    - Extraction directory is now created on request of file
+      extraction rather than unconditionally in bro_init(). (Jon
+      Siwek)
+
+2.1-1124 | 2013-08-23 16:33:52 -0700
+
+  * Fixed a number of object bugs DNP3 analyzer. (Hui Lin)
+    
+2.1-1122 | 2013-08-22 16:52:27 -0700
+
+  * Use macros to create file analyzer plugin classes. (Jon Siwek)
+    
+  * Add options to limit extracted file sizes w/ 100MB default. (Jon
+    Siwek)
+
+2.1-1117 | 2013-08-22 08:44:12 -0700
+
+  * A number of input framework fixes and corresponding test stability
+    improvements. (Jon Siwek)
+
+  * Make memory leak tests able to time out.  (Jon Siwek)
+    
+  * Fix a compiler warning regarding strncat misuse. (Jon Siwek)
+    
+2.1-1103 | 2013-08-21 19:11:34 -0400
+
+  * A number of sumstats fixes. (Seth Hall, Vlad Grigorescu)
+    
+  * Fix memory leak w/ when statements. Addresses BIT-1058. (Jon
+    Siwek)
+
+  * Switching to relative submodule paths (Robin Sommer)
+
 2.1-1089 | 2013-08-19 11:25:11 -0700
 
   * Fix bloom filters' dependence on size_t. (Jon Siwek, Matthias

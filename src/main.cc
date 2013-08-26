@@ -57,6 +57,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
+#include "input/readers/Raw.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
@@ -842,6 +843,8 @@ int main(int argc, char** argv)
 
 	init_event_handlers();
 
+	input::reader::Raw::ClassInit();
+
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
 	// allocated before we start the checking is
@@ -1151,9 +1154,9 @@ int main(int argc, char** argv)
 		curl_global_cleanup();
 #endif
 
-		sqlite3_shutdown();
-
 		terminate_bro();
+
+		sqlite3_shutdown();
 
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.

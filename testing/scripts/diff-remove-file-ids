@@ -1,6 +1,6 @@
 #! /usr/bin/awk -f
 #
-# A diff canonifier that removes all file IDs from file_analysis.log
+# A diff canonifier that removes all file IDs from files.log
 
 BEGIN {
     FS="\t";
@@ -8,7 +8,7 @@ BEGIN {
     process = 0;
     }
 
-$1 == "#path" && $2 == "file_analysis" {
+$1 == "#path" && $2 == "files" {
     process = 1;
     }
 
@@ -19,10 +19,10 @@ process && column1 > 0 && column2 > 0 {
 
 /^#/ {
     for ( i = 0; i < NF; ++i ) {
-        if ( $i == "id" )
+        if ( $i == "fuid" )
             column1 = i - 1;
 
-        if ( $i == "parent_id" )
+        if ( $i == "parent_fuid" )
             column2 = i - 1;
         }
     }

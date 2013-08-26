@@ -244,6 +244,8 @@ extern StringVal* cmd_line_bpf_filter;
 
 extern StringVal* global_hash_seed;
 
+extern bro_uint_t bits_per_uid;
+
 class OpaqueType;
 extern OpaqueType* md5_type;
 extern OpaqueType* sha1_type;

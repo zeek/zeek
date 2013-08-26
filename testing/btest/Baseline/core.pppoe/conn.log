@@ -3,14 +3,14 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2012-10-24-05-04-16
+#open	2013-08-26-19-02-12
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
-1284385418.014560	TEfuqmmG4bh	fe80::c801:eff:fe88:8	547	fe80::ce05:eff:fe88:0	546	udp	-	0.096000	192	0	S0	-	0	D	2	288	0	0	(empty)
-1284385417.962560	j4u32Pc5bif	fe80::ce05:eff:fe88:0	546	ff02::1:2	547	udp	-	0.078000	114	0	S0	-	0	D	2	210	0	0	(empty)
-1284385411.091560	arKYeMETxOg	fe80::c801:eff:fe88:8	136	ff02::1	135	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	(empty)
-1284385411.035560	UWkUyAuUGXf	fe80::c801:eff:fe88:8	143	ff02::16	0	icmp	-	0.835000	160	0	OTH	-	0	-	8	608	0	0	(empty)
-1284385451.658560	FrJExwHcSal	fc00:0:2:100::1:1	128	fc00::1	129	icmp	-	0.156000	260	260	OTH	-	0	-	5	500	5	500	(empty)
-1284385413.027560	nQcgTWjvg4c	fe80::c801:eff:fe88:8	134	fe80::ce05:eff:fe88:0	133	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	(empty)
-1284385412.963560	k6kgXLOoSKl	fe80::ce05:eff:fe88:0	133	ff02::2	134	icmp	-	-	-	-	OTH	-	0	-	1	48	0	0	(empty)
-#close	2012-10-24-05-04-16
+1284385418.014560	CPbrpk1qSsw6ESzHV4	fe80::c801:eff:fe88:8	547	fe80::ce05:eff:fe88:0	546	udp	-	0.096000	192	0	S0	-	0	D	2	288	0	0	(empty)
+1284385417.962560	CRJuHdVW0XPVINV8a	fe80::ce05:eff:fe88:0	546	ff02::1:2	547	udp	-	0.078000	114	0	S0	-	0	D	2	210	0	0	(empty)
+1284385411.091560	CjhGID4nQcgTWjvg4c	fe80::c801:eff:fe88:8	136	ff02::1	135	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	(empty)
+1284385411.035560	CXWv6p3arKYeMETxOg	fe80::c801:eff:fe88:8	143	ff02::16	0	icmp	-	0.835000	160	0	OTH	-	0	-	8	608	0	0	(empty)
+1284385451.658560	C6pKV8GSxOnSLghOa	fc00:0:2:100::1:1	128	fc00::1	129	icmp	-	0.156000	260	260	OTH	-	0	-	5	500	5	500	(empty)
+1284385413.027560	CsRx2w45OKnoww6xl4	fe80::c801:eff:fe88:8	134	fe80::ce05:eff:fe88:0	133	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	(empty)
+1284385412.963560	CCvvfg3TEfuqmmG4bh	fe80::ce05:eff:fe88:0	133	ff02::2	134	icmp	-	-	-	-	OTH	-	0	-	1	48	0	0	(empty)
+#close	2013-08-26-19-02-12

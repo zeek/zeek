@@ -3,14 +3,14 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2012-06-19-17-39-37
+#open	2013-08-26-18-38-32
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
-1340127577.354166	FrJExwHcSal	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	tcp	http	0.052829	1675	10467	S1	-	0	ShADad	10	2279	12	11191	j4u32Pc5bif
-1340127577.336558	UWkUyAuUGXf	192.168.2.16	3797	65.55.158.80	3544	udp	teredo	0.010291	129	52	SF	-	0	Dd	2	185	1	80	(empty)
-1340127577.341510	j4u32Pc5bif	192.168.2.16	3797	83.170.1.38	32900	udp	teredo	0.065485	2367	11243	SF	-	0	Dd	12	2703	13	11607	(empty)
-1340127577.339015	k6kgXLOoSKl	192.168.2.16	3797	65.55.158.81	3544	udp	-	-	-	-	SHR	-	0	d	0	0	1	137	(empty)
-1340127577.339015	nQcgTWjvg4c	fe80::8000:f227:bec8:61af	134	fe80::8000:ffff:ffff:fffd	133	icmp	-	-	-	-	OTH	-	0	-	1	88	0	0	k6kgXLOoSKl
-1340127577.343969	TEfuqmmG4bh	2001:0:4137:9e50:8000:f12a:b9c8:2815	128	2001:4860:0:2001::68	129	icmp	-	0.007778	4	4	OTH	-	0	-	1	52	1	52	UWkUyAuUGXf,j4u32Pc5bif
-1340127577.336558	arKYeMETxOg	fe80::8000:ffff:ffff:fffd	133	ff02::2	134	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	UWkUyAuUGXf
-#close	2012-06-19-17-39-37
+1340127577.354166	C6pKV8GSxOnSLghOa	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	tcp	http	0.052829	1675	10467	S1	-	0	ShADad	10	2279	12	11191	CRJuHdVW0XPVINV8a
+1340127577.336558	CXWv6p3arKYeMETxOg	192.168.2.16	3797	65.55.158.80	3544	udp	teredo	0.010291	129	52	SF	-	0	Dd	2	185	1	80	(empty)
+1340127577.341510	CRJuHdVW0XPVINV8a	192.168.2.16	3797	83.170.1.38	32900	udp	teredo	0.065485	2367	11243	SF	-	0	Dd	12	2703	13	11607	(empty)
+1340127577.339015	CCvvfg3TEfuqmmG4bh	192.168.2.16	3797	65.55.158.81	3544	udp	-	-	-	-	SHR	-	0	d	0	0	1	137	(empty)
+1340127577.339015	CsRx2w45OKnoww6xl4	fe80::8000:f227:bec8:61af	134	fe80::8000:ffff:ffff:fffd	133	icmp	-	-	-	-	OTH	-	0	-	1	88	0	0	CCvvfg3TEfuqmmG4bh
+1340127577.343969	CPbrpk1qSsw6ESzHV4	2001:0:4137:9e50:8000:f12a:b9c8:2815	128	2001:4860:0:2001::68	129	icmp	-	0.007778	4	4	OTH	-	0	-	1	52	1	52	CXWv6p3arKYeMETxOg,CRJuHdVW0XPVINV8a
+1340127577.336558	CjhGID4nQcgTWjvg4c	fe80::8000:ffff:ffff:fffd	133	ff02::2	134	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	CXWv6p3arKYeMETxOg
+#close	2013-08-26-18-38-32

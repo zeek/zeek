@@ -205,7 +205,7 @@ event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, t
 global stats_keys: table[string] of set[Key] &create_expire=1min 
 	&expire_func=function(s: table[string] of set[Key], idx: string): interval
 		{
-		Reporter::warning(fmt("SumStat key request for the %s SumStat took longer than 1 minute and was automatically cancelled.", idx));
+		Reporter::warning(fmt("SumStat key request for the %s SumStat uid took longer than 1 minute and was automatically cancelled.", idx));
 		return 0secs;
 		};
 
@@ -356,6 +356,7 @@ event SumStats::send_no_key(uid: string, ss_name: string)
 			if ( ss?$epoch_finished )
 				ss$epoch_finished(network_time());
 
+			delete stats_keys[uid];
 			reset(ss);
 			}
 		}

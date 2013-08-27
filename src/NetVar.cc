@@ -240,6 +240,8 @@ StringVal* cmd_line_bpf_filter;
 
 StringVal* global_hash_seed;
 
+bro_uint_t bits_per_uid;
+
 OpaqueType* md5_type;
 OpaqueType* sha1_type;
 OpaqueType* sha256_type;
@@ -308,6 +310,8 @@ void init_general_global_var()
 		internal_val("cmd_line_bpf_filter")->AsStringVal();
 
 	global_hash_seed = opt_internal_string("global_hash_seed");
+
+	bits_per_uid = opt_internal_unsigned("bits_per_uid");
 
 	md5_type = new OpaqueType("md5");
 	sha1_type = new OpaqueType("sha1");

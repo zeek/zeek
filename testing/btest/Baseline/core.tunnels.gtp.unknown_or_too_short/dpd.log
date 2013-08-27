@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dpd
-#open	2013-01-25-21-49-19
+#open	2013-08-26-19-02-18
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	analyzer	failure_reason
 #types	time	string	addr	port	addr	port	enum	string	string
-1333458853.075889	UWkUyAuUGXf	173.86.159.28	2152	213.72.147.186	2152	udp	GTPV1	Truncated GTPv1 [0\xff\x00\xac\x98\x13\x01LE\x00\x05\xc8G\xea@\x00\x80\x06\xb6\x83\x0a\x83w&\xd9\x14\x9c\x04\xd9\xc2\x00P\xddh\xb4\x8f41eV...]
-#close	2013-01-25-21-49-19
+1333458853.075889	CXWv6p3arKYeMETxOg	173.86.159.28	2152	213.72.147.186	2152	udp	GTPV1	Truncated GTPv1 [0\xff\x00\xac\x98\x13\x01LE\x00\x05\xc8G\xea@\x00\x80\x06\xb6\x83\x0a\x83w&\xd9\x14\x9c\x04\xd9\xc2\x00P\xddh\xb4\x8f41eV...]
+#close	2013-08-26-19-02-18

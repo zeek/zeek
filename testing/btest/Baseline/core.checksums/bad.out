@@ -3,101 +3,101 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-18-03-01
+#open	2013-08-26-19-02-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1332784981.078396	-	-	-	-	-	bad_IP_checksum	-	F	bro
-#close	2012-03-26-18-03-01
+#close	2013-08-26-19-02-06
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-18-01-25
+#open	2013-08-26-19-02-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332784885.686428	UWkUyAuUGXf	127.0.0.1	30000	127.0.0.1	80	bad_TCP_checksum	-	F	bro
-#close	2012-03-26-18-01-25
+1332784885.686428	CXWv6p3arKYeMETxOg	127.0.0.1	30000	127.0.0.1	80	bad_TCP_checksum	-	F	bro
+#close	2013-08-26-19-02-06
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-18-02-13
+#open	2013-08-26-19-02-07
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332784933.501023	UWkUyAuUGXf	127.0.0.1	30000	127.0.0.1	13000	bad_UDP_checksum	-	F	bro
-#close	2012-03-26-18-02-13
+1332784933.501023	CXWv6p3arKYeMETxOg	127.0.0.1	30000	127.0.0.1	13000	bad_UDP_checksum	-	F	bro
+#close	2013-08-26-19-02-07
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-29-23
+#open	2013-08-26-19-02-07
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075363.536871	UWkUyAuUGXf	192.168.1.100	8	192.168.1.101	0	bad_ICMP_checksum	-	F	bro
-#close	2012-04-10-16-29-23
+1334075363.536871	CXWv6p3arKYeMETxOg	192.168.1.100	8	192.168.1.101	0	bad_ICMP_checksum	-	F	bro
+#close	2013-08-26-19-02-07
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-18-06-50
+#open	2013-08-26-19-02-08
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1332785210.013051	-	-	-	-	-	routing0_hdr	-	F	bro
-1332785210.013051	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	80	bad_TCP_checksum	-	F	bro
-#close	2012-03-26-18-06-50
+1332785210.013051	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	80	bad_TCP_checksum	-	F	bro
+#close	2013-08-26-19-02-08
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-17-23-00
+#open	2013-08-26-19-02-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1332782580.798420	-	-	-	-	-	routing0_hdr	-	F	bro
-1332782580.798420	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	13000	bad_UDP_checksum	-	F	bro
-#close	2012-03-26-17-23-00
+1332782580.798420	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	13000	bad_UDP_checksum	-	F	bro
+#close	2013-08-26-19-02-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-25-11
+#open	2013-08-26-19-02-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334075111.800086	-	-	-	-	-	routing0_hdr	-	F	bro
-1334075111.800086	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:78:1:32::1	129	bad_ICMP_checksum	-	F	bro
-#close	2012-04-10-16-25-11
+1334075111.800086	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:78:1:32::1	129	bad_ICMP_checksum	-	F	bro
+#close	2013-08-26-19-02-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-18-07-30
+#open	2013-08-26-19-02-10
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332785250.469132	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	80	bad_TCP_checksum	-	F	bro
-#close	2012-03-26-18-07-30
+1332785250.469132	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	80	bad_TCP_checksum	-	F	bro
+#close	2013-08-26-19-02-10
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-17-02-22
+#open	2013-08-26-19-02-10
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332781342.923813	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	13000	bad_UDP_checksum	-	F	bro
-#close	2012-03-26-17-02-22
+1332781342.923813	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	13000	bad_UDP_checksum	-	F	bro
+#close	2013-08-26-19-02-10
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-22-19
+#open	2013-08-26-19-02-11
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334074939.467194	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
-#close	2012-04-10-16-22-19
+1334074939.467194	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
+#close	2013-08-26-19-02-11

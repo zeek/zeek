@@ -3,15 +3,15 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2009-11-08-04-41-57
+#open	2013-08-26-18-38-29
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
-1257655301.595604	5OKnoww6xl4	2001:4978:f:4c::2	53382	2001:4860:b002::68	80	tcp	http	2.101052	2981	4665	S1	-	0	ShADad	10	3605	11	5329	k6kgXLOoSKl
-1257655296.585034	k6kgXLOoSKl	192.168.3.101	53859	216.14.98.22	5072	udp	ayiya	20.879001	5129	6109	SF	-	0	Dd	21	5717	13	6473	(empty)
-1257655293.629048	UWkUyAuUGXf	192.168.3.101	53796	216.14.98.22	5072	udp	ayiya	-	-	-	SHR	-	0	d	0	0	1	176	(empty)
-1257655296.585333	FrJExwHcSal	::	135	ff02::1:ff00:2	136	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	k6kgXLOoSKl
-1257655293.629048	arKYeMETxOg	2001:4978:f:4c::1	128	2001:4978:f:4c::2	129	icmp	-	23.834987	168	56	OTH	-	0	-	3	312	1	104	UWkUyAuUGXf,k6kgXLOoSKl
-1257655296.585188	TEfuqmmG4bh	fe80::216:cbff:fe9a:4cb9	131	ff02::1:ff00:2	130	icmp	-	0.919988	32	0	OTH	-	0	-	2	144	0	0	k6kgXLOoSKl
-1257655296.585151	j4u32Pc5bif	fe80::216:cbff:fe9a:4cb9	131	ff02::2:f901:d225	130	icmp	-	0.719947	32	0	OTH	-	0	-	2	144	0	0	k6kgXLOoSKl
-1257655296.585034	nQcgTWjvg4c	fe80::216:cbff:fe9a:4cb9	131	ff02::1:ff9a:4cb9	130	icmp	-	4.922880	32	0	OTH	-	0	-	2	144	0	0	k6kgXLOoSKl
-#close	2009-11-08-04-41-57
+1257655301.595604	CIPOse170MGiRM1Qf4	2001:4978:f:4c::2	53382	2001:4860:b002::68	80	tcp	http	2.101052	2981	4665	S1	-	0	ShADad	10	3605	11	5329	CCvvfg3TEfuqmmG4bh
+1257655296.585034	CCvvfg3TEfuqmmG4bh	192.168.3.101	53859	216.14.98.22	5072	udp	ayiya	20.879001	5129	6109	SF	-	0	Dd	21	5717	13	6473	(empty)
+1257655293.629048	CXWv6p3arKYeMETxOg	192.168.3.101	53796	216.14.98.22	5072	udp	ayiya	-	-	-	SHR	-	0	d	0	0	1	176	(empty)
+1257655296.585333	C6pKV8GSxOnSLghOa	::	135	ff02::1:ff00:2	136	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	CCvvfg3TEfuqmmG4bh
+1257655293.629048	CjhGID4nQcgTWjvg4c	2001:4978:f:4c::1	128	2001:4978:f:4c::2	129	icmp	-	23.834987	168	56	OTH	-	0	-	3	312	1	104	CXWv6p3arKYeMETxOg,CCvvfg3TEfuqmmG4bh
+1257655296.585188	CPbrpk1qSsw6ESzHV4	fe80::216:cbff:fe9a:4cb9	131	ff02::1:ff00:2	130	icmp	-	0.919988	32	0	OTH	-	0	-	2	144	0	0	CCvvfg3TEfuqmmG4bh
+1257655296.585151	CRJuHdVW0XPVINV8a	fe80::216:cbff:fe9a:4cb9	131	ff02::2:f901:d225	130	icmp	-	0.719947	32	0	OTH	-	0	-	2	144	0	0	CCvvfg3TEfuqmmG4bh
+1257655296.585034	CsRx2w45OKnoww6xl4	fe80::216:cbff:fe9a:4cb9	131	ff02::1:ff9a:4cb9	130	icmp	-	4.922880	32	0	OTH	-	0	-	2	144	0	0	CCvvfg3TEfuqmmG4bh
+#close	2013-08-26-18-38-29

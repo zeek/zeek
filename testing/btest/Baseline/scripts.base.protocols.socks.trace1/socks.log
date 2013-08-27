@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	socks
-#open	2013-05-02-01-02-50
+#open	2013-08-26-19-04-20
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	user	status	request.host	request.name	request_p	bound.host	bound.name	bound_p
 #types	time	string	addr	port	addr	port	count	string	string	addr	string	port	addr	string	port
-1340213015.276495	arKYeMETxOg	10.0.0.55	53994	60.190.189.214	8124	5	-	succeeded	-	www.osnews.com	80	192.168.0.31	-	2688
-#close	2013-05-02-01-02-50
+1340213015.276495	CjhGID4nQcgTWjvg4c	10.0.0.55	53994	60.190.189.214	8124	5	-	succeeded	-	www.osnews.com	80	192.168.0.31	-	2688
+#close	2013-08-26-19-04-20

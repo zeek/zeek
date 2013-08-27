@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	modbus
-#open	2012-11-12-17-40-34
+#open	2013-08-26-19-04-11
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	func	exception
 #types	time	string	addr	port	addr	port	string	string
-1153491909.414125	UWkUyAuUGXf	192.168.66.235	2582	166.161.16.230	502	unknown-156	-
-1153491913.013726	UWkUyAuUGXf	192.168.66.235	2582	166.161.16.230	502	unknown-162	-
-#close	2012-11-12-17-40-34
+1153491909.414125	CXWv6p3arKYeMETxOg	192.168.66.235	2582	166.161.16.230	502	unknown-156	-
+1153491913.013726	CXWv6p3arKYeMETxOg	192.168.66.235	2582	166.161.16.230	502	unknown-162	-
+#close	2013-08-26-19-04-11

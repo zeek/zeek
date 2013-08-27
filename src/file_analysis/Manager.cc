@@ -9,6 +9,7 @@
 #include "Analyzer.h"
 #include "Var.h"
 #include "Event.h"
+#include "UID.h"
 
 #include "plugin/Manager.h"
 
@@ -57,15 +58,16 @@ string Manager::HashHandle(const string& handle) const
 	if ( salt.empty() )
 		salt = BifConst::Files::salt->CheckString();
 
-	char tmp[20];
 	uint64 hash[2];
 	string msg(handle + salt);
 
 	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
 	    reinterpret_cast<u_char*>(hash));
-	uitoa_n(hash[0], tmp, sizeof(tmp), 62);
 
-	return tmp;
+	vector<uint64> v;
+	v.push_back(hash[0]);
+	v.push_back(hash[1]);
+	return Bro::UID(bits_per_uid, v).Base62("F");
 	}
 
 void Manager::SetHandle(const string& handle)

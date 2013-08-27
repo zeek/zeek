@@ -325,6 +325,7 @@ set(bro_SRCS
     Trigger.cc
     TunnelEncapsulation.cc
     Type.cc
+    UID.cc
     Val.cc
     Var.cc
     bsd-getopt-long.c

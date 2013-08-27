@@ -2615,7 +2615,7 @@ function addr_to_ptr_name%(a: addr%): string
 ##
 ## Returns: The hexadecimal representation of *bytestring*.
 ##
-## .. bro:see:: hexdump
+## .. bro:see:: hexdump hexstr_to_bytestring
 function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	bro_uint_t len = bytestring->AsString()->Len();
@@ -2627,6 +2627,50 @@ function bytestring_to_hexstr%(bytestring: string%): string
 		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
 
 	return new StringVal(hexstr);
+	%}
+
+## Converts a hex-string into its binary  representation.
+## For example, ``"3034"`` would be converted to ``"04"``.
+##
+## The input string is assumed to only contain 0-9 and a-f, 
+## otherwhise behavior is undefines.
+##
+## hexstring: The hexadecimal string representation.
+##
+## Returns: The binary representation of *hexstring*.
+##
+## .. bro:see:: hexdump bytestring_to_hexstr
+function hexstr_to_bytestring%(hexstr: string%): string
+	%{
+	bro_uint_t len = hexstr->AsString()->Len();
+	if ( len % 2 != 0 ) 
+		{
+		reporter->Error("Hex string '%s' has invalid length (not divisble by 2)", hexstr->CheckString());
+		return new StringVal("");
+		}
+
+	const char* bytes = hexstr->AsString()->CheckString();
+	int outlen = (len/2);
+	char bytestring[outlen];
+	memset(bytestring, 0, outlen);
+
+	for ( bro_uint_t i = 0; i < len/2; ++i )
+		{
+		int res = sscanf(bytes + (2*i), "%2hhx", &bytestring[i]);
+		if ( res == EOF ) 
+			{
+			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
+			return new StringVal("");
+			}
+		else if ( res != 1 ) 
+			{
+			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
+			return new StringVal("");
+			}
+			
+		}
+
+	return new StringVal(outlen, bytestring);
 	%}
 
 ## Encodes a Base64-encoded string.

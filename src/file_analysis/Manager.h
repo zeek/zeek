@@ -62,7 +62,7 @@ public:
 	/**
 	 * Creates a file identifier from a unique file handle string.
 	 * @param handle a unique string which identifies a single file.
-	 * @return a prettified MD5 hash of \a handle, truncated to 64-bits.
+	 * @return a prettified MD5 hash of \a handle, truncated to *bits_per_uid* bits.
 	 */
 	string HashHandle(const string& handle) const;
 

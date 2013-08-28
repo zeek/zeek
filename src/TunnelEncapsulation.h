@@ -7,6 +7,7 @@
 #include "NetVar.h"
 #include "IPAddr.h"
 #include "Val.h"
+#include "UID.h"
 #include <vector>
 
 class Connection;
@@ -25,7 +26,7 @@ public:
 	 */
 	EncapsulatingConn()
 		: src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN),
-		  type(BifEnum::Tunnel::NONE), uid(0)
+		  type(BifEnum::Tunnel::NONE), uid()
 		{}
 
 	/**
@@ -39,9 +40,9 @@ public:
 	 */
 	EncapsulatingConn(const IPAddr& s, const IPAddr& d)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0),
-		  proto(TRANSPORT_UNKNOWN), type(BifEnum::Tunnel::IP)
+		  proto(TRANSPORT_UNKNOWN), type(BifEnum::Tunnel::IP),
+		  uid(Bro::UID(bits_per_uid))
 		{
-		uid = calculate_unique_id();
 		}
 
 	/**
@@ -108,7 +109,7 @@ protected:
 	uint16 dst_port;
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
-	uint64 uid;
+	Bro::UID uid;
 };
 
 /**

@@ -1,33 +1,33 @@
 new_connection: tunnel
     conn_id: [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    encap: [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    encap: [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 NEW_PACKET:
     [orig_h=2001:db8:0:1::1, orig_p=128/icmp, resp_h=2001:db8:0:1::2, resp_p=129/icmp]
-    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    [[cid=[orig_h=10.0.0.1, orig_p=0/unknown, resp_h=10.0.0.2, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]

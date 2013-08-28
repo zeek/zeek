@@ -1,4 +1,22 @@
 
+2.1-1137 | 2013-08-27 13:26:44 -0700
+
+  * Add BiF hexstr_to_bytestring() that does exactly the opposite of
+    bytestring_to_hexstr(). (Bernhard Amann)
+
+2.1-1135 | 2013-08-27 12:16:26 -0700
+
+  * More SumStats fixes. (Seth Hall)
+    
+  * Increase UIDs to 96 bits.  (Jon Siwek)
+    
+    - The bit-length is adjustable via redef'ing bits_per_uid.
+      
+    - Prefix 'C' is added to connection UIDS (including IP tunnels)
+      and 'F' to files.
+
+    Addresses BIT-1016.
+
 2.1-1128 | 2013-08-24 10:27:29 -0700
 
   * Remove code relict in input framework. (Jon Siwek)

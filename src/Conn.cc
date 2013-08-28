@@ -160,8 +160,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
 	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
 
-	uid = 0; // Will set later.
-
 	if ( arg_encap )
 		encapsulation = new EncapsulationStack(*arg_encap);
 	else
@@ -380,10 +378,9 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(8, new StringVal(""));	// history
 
 		if ( ! uid )
-			uid = calculate_unique_id();
+			uid = Bro::UID(bits_per_uid);
 
-		char tmp[20];
-		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+		conn_val->Assign(9, new StringVal(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(10, encapsulation->GetVectorVal());

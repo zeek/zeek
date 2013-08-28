@@ -189,6 +189,7 @@ void usage()
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
+	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
@@ -458,6 +459,7 @@ int main(int argc, char** argv)
 	int rule_debug = 0;
 	int RE_level = 4;
 	int print_plugins = 0;
+	int time_bro = 0;
 
 	static struct option long_opts[] = {
 		{"bare-mode",	no_argument,		0,	'b'},
@@ -539,7 +541,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -666,6 +668,10 @@ int main(int argc, char** argv)
 			if ( dns_type != DNS_DEFAULT )
 				usage();
 			dns_type = DNS_PRIME;
+			break;
+
+		case 'Q':
+			time_bro = 1;
 			break;
 
 		case 'R':
@@ -1155,13 +1161,17 @@ int main(int argc, char** argv)
 
 		unsigned int mem_net_start_total;
 		unsigned int mem_net_start_malloced;
-		get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
 
-		fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
+		if ( time_bro )
+			{
+			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
 
-		fprintf(stderr, "# initialization %uM/%uM\n",
-			mem_net_start_total / 1024 / 1024,
-			mem_net_start_malloced / 1024 / 1024);
+			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
+
+			fprintf(stderr, "# initialization %uM/%uM\n",
+				mem_net_start_total / 1024 / 1024,
+				mem_net_start_malloced / 1024 / 1024);
+			}
 
 		net_run();
 
@@ -1169,17 +1179,20 @@ int main(int argc, char** argv)
 
 		unsigned int mem_net_done_total;
 		unsigned int mem_net_done_malloced;
-		get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
 
-		fprintf(stderr, "# total time %.6f, processing %.6f\n",
-			time_net_done - time_start, time_net_done - time_net_start);
+		if ( time_bro )
+			{
+			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
 
-		fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
-			mem_net_done_total / 1024 / 1024,
-			mem_net_done_malloced / 1024 / 1024,
-			(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
-			(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
+			fprintf(stderr, "# total time %.6f, processing %.6f\n",
+				time_net_done - time_start, time_net_done - time_net_start);
 
+			fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
+				mem_net_done_total / 1024 / 1024,
+				mem_net_done_malloced / 1024 / 1024,
+				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
+				(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
+			}
 
 		done_with_network();
 		net_delete();

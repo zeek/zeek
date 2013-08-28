@@ -7,39 +7,30 @@
 using namespace Bro;
 using namespace std;
 
-void UID::Set(bro_uint_t bits, const std::vector<uint64>& v)
+void UID::Set(bro_uint_t bits, const uint64* v, size_t n)
 	{
-	uid.clear();
+	initialized = true;
+
+	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
+		uid[i] = 0;
+
+	if ( bits > BRO_UID_LEN * 64 )
+		bits = BRO_UID_LEN * 64;
 
 	div_t res = div(bits, 64);
 	size_t size = res.rem ? res.quot + 1 : res.quot;
 
 	for ( size_t i = 0; i < size; ++i )
-		uid.push_back(i < v.size() ? v[i] : calculate_unique_id());
+		uid[i] = v && i < n ? v[i] : calculate_unique_id();
 
 	if ( res.rem )
 		uid[0] >>= 64 - res.rem;
 	}
 
-string UID::Base62(const std::string& prefix) const
-	{
-	char tmp[64]; // technically, this should dynamically scale based on size
-	string rval(prefix);
-
-	for ( size_t i = 0; i < uid.size(); ++i )
-		rval.append(uitoa_n(uid[i], tmp, sizeof(tmp), 62));
-
-	return rval;
-	}
-
 bool Bro::operator==(const UID& u1, const UID& u2)
 	{
-	if ( u1.uid.size() != u2.uid.size() )
-		return false;
-
-	for ( size_t i = 0; i < u1.uid.size(); ++i )
+	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
 		if ( u1.uid[i] != u2.uid[i] )
 			return false;
-
 	return true;
 	}

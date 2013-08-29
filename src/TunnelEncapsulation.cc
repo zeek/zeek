@@ -11,7 +11,7 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 	{
 	if ( ! uid )
 		{
-		uid = Bro::UID(bits_per_uid);
+		uid.Set(bits_per_uid);
 		c->SetUID(uid);
 		}
 	}

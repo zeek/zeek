@@ -378,7 +378,7 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(8, new StringVal(""));	// history
 
 		if ( ! uid )
-			uid = Bro::UID(bits_per_uid);
+			uid.Set(bits_per_uid);
 
 		conn_val->Assign(9, new StringVal(uid.Base62("C").c_str()));
 

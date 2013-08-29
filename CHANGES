@@ -1,4 +1,14 @@
 
+2.1-1144 | 2013-08-28 18:51:06 -0700
+
+  * Add bits_per_uid unit test. Addresses BIT-1016. (Jon Siwek)
+    
+  * UID optimizations. Addresses BIT-1016. (Jon Siwek)
+    
+  * Added a $unique_max field to Reducers for the SumStats::UNIQUE
+    calculation, and using the new option in scan.bro and the FTP
+    bruteforce detection. (Seth Hall)
+
 2.1-1137 | 2013-08-27 13:26:44 -0700
 
   * Add BiF hexstr_to_bytestring() that does exactly the opposite of

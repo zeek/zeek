@@ -64,10 +64,7 @@ string Manager::HashHandle(const string& handle) const
 	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
 	    reinterpret_cast<u_char*>(hash));
 
-	vector<uint64> v;
-	v.push_back(hash[0]);
-	v.push_back(hash[1]);
-	return Bro::UID(bits_per_uid, v).Base62("F");
+	return Bro::UID(bits_per_uid, hash, 2).Base62("F");
 	}
 
 void Manager::SetHandle(const string& handle)

@@ -1,4 +1,6 @@
 .. code-block:: none
+  :linenos:
+  :emphasize-lines: 1,1
 
   # bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log
   18-03-2011T19:06:08+0000	j4u32Pc5bif	bits.wikimedia.org	/skins-1.5/monobook/main.css

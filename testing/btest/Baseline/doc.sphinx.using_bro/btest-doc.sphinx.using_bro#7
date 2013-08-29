@@ -1,4 +1,6 @@
 .. code-block:: none
+  :linenos:
+  :emphasize-lines: 1,1
 
   # cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
   VW0XPVINV8a	734

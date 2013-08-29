@@ -41,10 +41,10 @@ btest_tests="doc/sphinx"
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions += ['bro', 'rst_directive', 'sphinx.ext.todo', 'adapt-toc',
-               'rootedliteralinclude']
+extensions += ['bro', 'rst_directive', 'sphinx.ext.todo', 'adapt-toc']
 
 os.environ["BRO_SRC_ROOT"] = "@CMAKE_SOURCE_DIR@"
+os.environ["DOC_ROOT"] = "@CMAKE_SOURCE_DIR@/doc"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['sphinx-sources/_templates', 'sphinx-sources/_static']
@@ -83,7 +83,7 @@ today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = []
+exclude_patterns = [".#*"]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None

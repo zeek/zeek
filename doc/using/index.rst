@@ -44,7 +44,8 @@ the Unix utility ``head`` and outputting the first lines of the file:
 
 .. btest:: using_bro
    
-   @TEST-EXEC: btest-rst-cmd "bro -r $TRACES/wikipedia.trace && head -15 conn.log"
+   @TEST-EXEC: btest-rst-cmd bro -r $TRACES/wikipedia.trace
+   @TEST-EXEC: btest-rst-include -n 15 conn.log
 
 As you can see, the header consists of lines prefixed by ``#`` and
 includes information such as what separators are being used for

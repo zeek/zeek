@@ -1,4 +1,6 @@
 .. code-block:: none
+  :linenos:
+  :emphasize-lines: 1,1
 
   # cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration
   141.142.220.202	5353	224.0.0.251	-

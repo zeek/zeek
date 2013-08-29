@@ -9,8 +9,8 @@ Bro Documentation
    :maxdepth: 2
 
    intro/index.rst
-   quickstart/index.rst
    install/index.rst
+   quickstart/index.rst
    using/index.rst
    scripting/index.rst
    frameworks/index.rst

@@ -1,4 +1,6 @@
 .. code-block:: none
+  :linenos:
+  :emphasize-lines: 1,1
 
   # awk '/^[^#]/ {print $3, $4, $5, $6, $9}' conn.log
   141.142.220.202 5353 224.0.0.251 5353 -

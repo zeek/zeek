@@ -52,7 +52,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	local r1: SumStats::Reducer = [$stream="scan.addr.fail", $apply=set(SumStats::UNIQUE)];
+	local r1: SumStats::Reducer = [$stream="scan.addr.fail", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(addr_scan_threshold+2)];
 	SumStats::create([$name="addr-scan",
 	                  $epoch=addr_scan_interval,
 	                  $reducers=set(r1),
@@ -77,7 +77,7 @@ event bro_init() &priority=5
 	                  	}]);
 
 	# Note: port scans are tracked similar to: table[src_ip, dst_ip] of set(port);
-	local r2: SumStats::Reducer = [$stream="scan.port.fail", $apply=set(SumStats::UNIQUE)];
+	local r2: SumStats::Reducer = [$stream="scan.port.fail", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(port_scan_threshold+2)];
 	SumStats::create([$name="port-scan",
 	                  $epoch=port_scan_interval,
 	                  $reducers=set(r2),

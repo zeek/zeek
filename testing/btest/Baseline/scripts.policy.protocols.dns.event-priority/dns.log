@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dns
-#open	2012-10-05-17-47-40
+#open	2013-08-26-19-04-37
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	auth	addl
 #types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	table[string]	table[string]
-930613226.518174	UWkUyAuUGXf	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	T	0	4.3.2.1	31337.000000	F	-	-
-#close	2012-10-05-17-47-40
+930613226.518174	CXWv6p3arKYeMETxOg	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	T	0	4.3.2.1	31337.000000	F	-	-
+#close	2013-08-26-19-04-37

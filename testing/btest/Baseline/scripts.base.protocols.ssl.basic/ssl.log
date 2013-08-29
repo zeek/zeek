@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2012-10-08-16-18-56
+#open	2013-08-26-19-04-21
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	subject	issuer_subject	not_valid_before	not_valid_after	last_alert	client_subject	client_issuer_subject
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	time	time	string	string	string
-1335538392.319381	UWkUyAuUGXf	192.168.1.105	62045	74.125.224.79	443	TLSv10	TLS_ECDHE_RSA_WITH_RC4_128_SHA	ssl.gstatic.com	-	CN=*.gstatic.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority,O=Google Inc,C=US	1334102677.000000	1365639277.000000	-	-	-
-#close	2012-10-08-16-18-56
+1335538392.319381	CXWv6p3arKYeMETxOg	192.168.1.105	62045	74.125.224.79	443	TLSv10	TLS_ECDHE_RSA_WITH_RC4_128_SHA	ssl.gstatic.com	-	CN=*.gstatic.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority,O=Google Inc,C=US	1334102677.000000	1365639277.000000	-	-	-
+#close	2013-08-26-19-04-21

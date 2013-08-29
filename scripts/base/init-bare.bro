@@ -3079,6 +3079,10 @@ const snaplen = 8192 &redef;
 ## instances. If left unset, Bro will use a temporary local seed.
 const global_hash_seed: string = "" &redef;
 
+## Number of bits in UIDs that are generated to identify connections and
+## files.  The larger the value, the more confidence in UID uniqueness.
+const bits_per_uid: count = 96 &redef;
+
 # Load BiFs defined by plugins.
 @load base/bif/plugins
 

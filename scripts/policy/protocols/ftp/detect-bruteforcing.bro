@@ -27,7 +27,7 @@ export {
 
 event bro_init()
 	{
-	local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE)];
+	local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(bruteforce_threshold+2)];
 	SumStats::create([$name="ftp-detect-bruteforcing",
 	                  $epoch=bruteforce_measurement_interval,
 	                  $reducers=set(r1),

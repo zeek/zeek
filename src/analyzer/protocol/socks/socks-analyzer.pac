@@ -85,8 +85,8 @@ refine connection SOCKS_Conn += {
 
 			default:
 				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
+				delete sa;
 				return false;
-				break;
 			}
 
 		BifEvent::generate_socks_request(bro_analyzer(),
@@ -124,8 +124,8 @@ refine connection SOCKS_Conn += {
 
 			default:
 				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
+				delete sa;
 				return false;
-				break;
 			}
 
 		BifEvent::generate_socks_reply(bro_analyzer(),

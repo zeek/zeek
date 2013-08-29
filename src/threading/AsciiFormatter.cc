@@ -247,7 +247,8 @@ threading::Value* AsciiFormatter::ParseValue(string s, string name, TypeTag type
 			goto parse_error;
 			}
 
-		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
+		string width_str = s.substr(pos + 1);
+		uint8_t width = (uint8_t) strtol(width_str.c_str(), &end, 10);
 
 		if ( CheckNumberError(s, end) )
 			goto parse_error;

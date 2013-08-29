@@ -1,4 +1,12 @@
 
+2.1-1150 | 2013-08-29 13:43:01 -0700
+
+  * Fix input framework memory leaks. (Jon Siwek)
+    
+  * Fix memory leak in SOCKS analyzer for bad addr types. (Jon Siwek)
+    
+  * Fix Bloom filter memory leaks. (Jon Siwek)
+
 2.1-1144 | 2013-08-28 18:51:06 -0700
 
   * Add bits_per_uid unit test. Addresses BIT-1016. (Jon Siwek)

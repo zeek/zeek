@@ -125,6 +125,11 @@ BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
 	bits = new BitVector(cells);
 	}
 
+BasicBloomFilter::~BasicBloomFilter()
+	{
+	delete bits;
+	}
+
 IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
 
 bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
@@ -171,6 +176,11 @@ CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
 	: BloomFilter(hasher)
 	{
 	cells = new CounterVector(width, arg_cells);
+	}
+
+CountingBloomFilter::~CountingBloomFilter()
+	{
+	delete cells;
 	}
 
 bool CountingBloomFilter::Empty() const

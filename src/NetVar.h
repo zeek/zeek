@@ -246,14 +246,6 @@ extern StringVal* global_hash_seed;
 
 extern bro_uint_t bits_per_uid;
 
-class OpaqueType;
-extern OpaqueType* md5_type;
-extern OpaqueType* sha1_type;
-extern OpaqueType* sha256_type;
-extern OpaqueType* entropy_type;
-extern OpaqueType* topk_type;
-extern OpaqueType* bloomfilter_type;
-
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();
 

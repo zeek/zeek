@@ -613,6 +613,7 @@ extern OpaqueType* md5_type;
 extern OpaqueType* sha1_type;
 extern OpaqueType* sha256_type;
 extern OpaqueType* entropy_type;
+extern OpaqueType* cardinality_type;
 extern OpaqueType* topk_type;
 extern OpaqueType* bloomfilter_type;
 

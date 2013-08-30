@@ -128,6 +128,7 @@ OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
 OpaqueType* sha256_type = 0;
 OpaqueType* entropy_type = 0;
+OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
 
@@ -856,6 +857,7 @@ int main(int argc, char** argv)
 	sha1_type = new OpaqueType("sha1");
 	sha256_type = new OpaqueType("sha256");
 	entropy_type = new OpaqueType("entropy");
+	cardinality_type = new OpaqueType("cardinality");
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
 

@@ -609,6 +609,13 @@ protected:
 	BroType* yield_type;
 };
 
+extern OpaqueType* md5_type;
+extern OpaqueType* sha1_type;
+extern OpaqueType* sha256_type;
+extern OpaqueType* entropy_type;
+extern OpaqueType* topk_type;
+extern OpaqueType* bloomfilter_type;
+
 // Returns the BRO basic (non-parameterized) type with the given type.
 extern BroType* base_type(TypeTag tag);
 

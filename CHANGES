@@ -1,4 +1,12 @@
 
+2.1-1154 | 2013-08-30 08:27:45 -0700
+
+  * Fix global opaque val segfault. Addresses BIT-1071. (Jon Siwek)
+    
+  * Fix malloc/delete mismatch. (Jon Siwek)
+    
+  * Fix invalid pointer dereference in AsciiFormatter. (Jon Siwek)
+
 2.1-1150 | 2013-08-29 13:43:01 -0700
 
   * Fix input framework memory leaks. (Jon Siwek)

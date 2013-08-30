@@ -2090,9 +2090,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		return NULL;
 
 	int position = 0;
-	char *data = (char*) malloc(length);
-	if ( data == 0 )
-		reporter->InternalError("Could not malloc?");
+	char *data = new char[length];
 
 	for ( int i = 0; i < num_elements; i++ )
 		{
@@ -2108,7 +2106,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		}
 
 	HashKey *key = new HashKey(data, length);
-	delete data;
+	delete [] data;
 
 	assert(position == length);
 	return key;

@@ -124,6 +124,14 @@ vector<string> params;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 
+OpaqueType* md5_type = 0;
+OpaqueType* sha1_type = 0;
+OpaqueType* sha256_type = 0;
+OpaqueType* entropy_type = 0;
+OpaqueType* cardinality_type = 0;
+OpaqueType* topk_type = 0;
+OpaqueType* bloomfilter_type = 0;
+
 extern std::list<BroDoc*> docs_generated;
 
 // Keep copy of command line
@@ -844,6 +852,14 @@ int main(int argc, char** argv)
 	init_event_handlers();
 
 	input::reader::Raw::ClassInit();
+
+	md5_type = new OpaqueType("md5");
+	sha1_type = new OpaqueType("sha1");
+	sha256_type = new OpaqueType("sha256");
+	entropy_type = new OpaqueType("entropy");
+	cardinality_type = new OpaqueType("cardinality");
+	topk_type = new OpaqueType("topk");
+	bloomfilter_type = new OpaqueType("bloomfilter");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

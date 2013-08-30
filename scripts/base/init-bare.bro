@@ -3081,6 +3081,7 @@ const global_hash_seed: string = "" &redef;
 
 ## Number of bits in UIDs that are generated to identify connections and
 ## files.  The larger the value, the more confidence in UID uniqueness.
+## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
 # Load BiFs defined by plugins.

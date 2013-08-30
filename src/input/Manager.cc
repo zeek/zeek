@@ -74,7 +74,6 @@ declare(PDict, InputHash);
 class Manager::Stream {
 public:
 	string name;
-	ReaderBackend::ReaderInfo* info;
 	bool removed;
 
 	StreamType stream_type; // to distinguish between event and table streams
@@ -318,23 +317,23 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	string source((const char*) bsource->Bytes(), bsource->Len());
 	Unref(sourceval);
 
-	ReaderBackend::ReaderInfo* rinfo = new ReaderBackend::ReaderInfo();
-	rinfo->source = copy_string(source.c_str());
-	rinfo->name = copy_string(name.c_str());
+	ReaderBackend::ReaderInfo rinfo;
+	rinfo.source = copy_string(source.c_str());
+	rinfo.name = copy_string(name.c_str());
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
 	switch ( mode->InternalInt() )
 		{
 		case 0:
-			rinfo->mode = MODE_MANUAL;
+			rinfo.mode = MODE_MANUAL;
 			break;
 
 		case 1:
-			rinfo->mode = MODE_REREAD;
+			rinfo.mode = MODE_REREAD;
 			break;
 
 		case 2:
-			rinfo->mode = MODE_STREAM;
+			rinfo.mode = MODE_STREAM;
 			break;
 
 		default:
@@ -357,7 +356,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			ListVal* index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
-			rinfo->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
+			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 			Unref(index);
 			delete k;
 			}
@@ -365,13 +364,12 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		}
 
 
-	ReaderFrontend* reader_obj = new ReaderFrontend(*rinfo, reader);
+	ReaderFrontend* reader_obj = new ReaderFrontend(rinfo, reader);
 	assert(reader_obj);
 
 	info->reader = reader_obj;
 	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
 	info->name = name;
-	info->info = rinfo;
 
 	Ref(description);
 	info->description = description;
@@ -1356,7 +1354,8 @@ void Manager::SendEndOfData(const Stream *i)
 	DBG_LOG(DBG_INPUT, "SendEndOfData for stream %s",
 		i->name.c_str());
 #endif
-	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
+	SendEvent(end_of_data, 2, new StringVal(i->name.c_str()),
+	          new StringVal(i->reader->Info().source));
 
 	if ( i->stream_type == ANALYSIS_STREAM )
 		file_mgr->EndOfFile(static_cast<const AnalysisStream*>(i)->file_id);
@@ -2091,9 +2090,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		return NULL;
 
 	int position = 0;
-	char *data = (char*) malloc(length);
-	if ( data == 0 )
-		reporter->InternalError("Could not malloc?");
+	char *data = new char[length];
 
 	for ( int i = 0; i < num_elements; i++ )
 		{
@@ -2109,7 +2106,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		}
 
 	HashKey *key = new HashKey(data, length);
-	delete data;
+	delete [] data;
 
 	assert(position == length);
 	return key;

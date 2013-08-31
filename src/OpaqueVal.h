@@ -9,10 +9,9 @@
 #include "Val.h"
 #include "digest.h"
 
-#include "probabilistic/BloomFilter.h"
-
 namespace probabilistic {
 	class BloomFilter;
+	class CardinalityCounter;
 }
 
 class HashVal : public OpaqueVal {
@@ -148,5 +147,29 @@ private:
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 	};
+
+
+class CardinalityVal: public OpaqueVal {
+public:
+	explicit CardinalityVal(probabilistic::CardinalityCounter*);
+	virtual ~CardinalityVal();
+
+	void Add(const Val* val);
+
+	BroType* Type() const;
+	bool Typify(BroType* type);
+
+	probabilistic::CardinalityCounter* Get()	{ return c; };
+
+protected:
+	CardinalityVal();
+
+private:
+	BroType* type;
+	CompositeHash* hash;
+	probabilistic::CardinalityCounter* c;
+
+	DECLARE_SERIAL(CardinalityVal);
+};
 
 #endif

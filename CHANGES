@@ -1,4 +1,18 @@
 
+2.1-1216 | 2013-08-31 10:39:40 -0700
+
+
+  * Support for probabilistic set cardinality, using the HyperLogLog
+    algorithm. (Bernhard Amann, Soumya Basu)
+
+    Bro now provides the following BiFs:
+
+        hll_cardinality_init(err: double, confidence: double): opaque of cardinality
+        hll_cardinality_add(handle: opaque of cardinality, elem: any): bool
+        hll_cardinality_merge_into(handle1: opaque of cardinality, handle2: opaque of cardinality): bool
+        hll_cardinality_estimate(handle: opaque of cardinality): double
+        hll_cardinality_copy(handle: opaque of cardinality): opaque of cardinality
+
 2.1-1154 | 2013-08-30 08:27:45 -0700
 
   * Fix global opaque val segfault. Addresses BIT-1071. (Jon Siwek)

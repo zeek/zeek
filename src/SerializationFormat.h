@@ -23,6 +23,7 @@ public:
 	virtual void EndRead();
 
 	virtual bool Read(int* v, const char* tag) = 0;
+	virtual bool Read(uint8* v, const char* tag) = 0;
 	virtual bool Read(uint16* v, const char* tag) = 0;
 	virtual bool Read(uint32* v, const char* tag) = 0;
 	virtual bool Read(int64* v, const char* tag) = 0;
@@ -47,6 +48,7 @@ public:
 	virtual uint32 EndWrite(char** data);	// passes ownership
 
 	virtual bool Write(int v, const char* tag) = 0;
+	virtual bool Write(uint8 v, const char* tag) = 0;
 	virtual bool Write(uint16 v, const char* tag) = 0;
 	virtual bool Write(uint32 v, const char* tag) = 0;
 	virtual bool Write(int64 v, const char* tag) = 0;
@@ -92,6 +94,7 @@ public:
 	virtual ~BinarySerializationFormat();
 
 	virtual bool Read(int* v, const char* tag);
+	virtual bool Read(uint8* v, const char* tag);
 	virtual bool Read(uint16* v, const char* tag);
 	virtual bool Read(uint32* v, const char* tag);
 	virtual bool Read(int64* v, const char* tag);
@@ -106,6 +109,7 @@ public:
 	virtual bool Read(struct in_addr* addr, const char* tag);
 	virtual bool Read(struct in6_addr* addr, const char* tag);
 	virtual bool Write(int v, const char* tag);
+	virtual bool Write(uint8 v, const char* tag);
 	virtual bool Write(uint16 v, const char* tag);
 	virtual bool Write(uint32 v, const char* tag);
 	virtual bool Write(int64 v, const char* tag);
@@ -132,6 +136,7 @@ public:
 
 	// We don't write anything if tag is nil.
 	virtual bool Write(int v, const char* tag);
+	virtual bool Write(uint8 v, const char* tag);
 	virtual bool Write(uint16 v, const char* tag);
 	virtual bool Write(uint32 v, const char* tag);
 	virtual bool Write(int64 v, const char* tag);
@@ -152,6 +157,7 @@ public:
 
 	// Not implemented.
 	virtual bool Read(int* v, const char* tag);
+	virtual bool Read(uint8* v, const char* tag);
 	virtual bool Read(uint16* v, const char* tag);
 	virtual bool Read(uint32* v, const char* tag);
 	virtual bool Read(int64* v, const char* tag);

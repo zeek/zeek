@@ -6,7 +6,7 @@
 
 
 %%{
-#include "probabilistic/HyperLogLog.h"
+#include "probabilistic/CardinalityCounter.h"
 
 using namespace probabilistic;
 %%}

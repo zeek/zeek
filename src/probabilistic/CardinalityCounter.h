@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef hyperloglog_h
-#define hyperloglog_h
+#ifndef PROBABILISTIC_CARDINALITYCOUNTER_H
+#define PROBABILISTIC_CARDINALITYCOUNTER_H
 
 #include <stdint.h>
 #include <OpaqueVal.h>

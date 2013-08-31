@@ -3,7 +3,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <iostream>
-#include "HyperLogLog.h"
+
+#include "CardinalityCounter.h"
 #include "Reporter.h"
 #include "Serializer.h"
 

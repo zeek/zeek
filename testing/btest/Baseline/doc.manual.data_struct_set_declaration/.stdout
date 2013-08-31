@@ -1,0 +1,8 @@
+SSL Port: 993/tcp
+SSL Port: 22/tcp
+SSL Port: 587/tcp
+SSL Port: 443/tcp
+Non-SSL Port: 143/tcp
+Non-SSL Port: 25/tcp
+Non-SSL Port: 80/tcp
+Non-SSL Port: 23/tcp

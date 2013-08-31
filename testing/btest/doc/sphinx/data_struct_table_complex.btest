@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_struct_table_complex.bro

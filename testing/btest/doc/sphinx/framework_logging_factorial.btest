@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/framework_logging_factorial_01.bro

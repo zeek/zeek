@@ -1,8 +1,21 @@
 .. This is a stub doc to which broxygen appends during the build process
 
-Index of All Individual Bro Scripts
-===================================
+================
+Script Reference
+================
 
 .. toctree::
    :maxdepth: 1
 
+   packages
+   builtins
+   bifs
+   scripts
+   packages
+   internal
+   site/proto-analyzers
+   site/file-analyzers
+
+
+
+   

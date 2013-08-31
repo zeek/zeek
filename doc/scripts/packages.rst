@@ -1,7 +1,9 @@
 .. This is a stub doc to which broxygen appends during the build process
 
-Index of All Bro Script Packages
-================================
+.. _script-packages:
+
+Bro Script Packages
+===================
 
 Bro has the following script packages (e.g. collections of related scripts in
 a common directory).  If the package directory contains a ``__load__.bro``

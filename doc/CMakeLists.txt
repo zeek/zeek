@@ -21,17 +21,17 @@ add_subdirectory(scripts)
 add_custom_target(broxygen
                   # copy the template documentation to the build directory
                   # to give as input for sphinx
-                  COMMAND "${CMAKE_COMMAND}" -E copy_directory
-                          ${DOC_SOURCE_DIR}
+                  COMMAND rsync -r --copy-links --times
+                          ${DOC_SOURCE_DIR}/
                           ${DOC_SOURCE_WORKDIR}
                   # copy generated policy script documentation into the
                   # working copy of the template documentation
-                  COMMAND "${CMAKE_COMMAND}" -E copy_directory
-                          ${RST_OUTPUT_DIR}
+                  COMMAND rsync -r --copy-links --times
+                          ${RST_OUTPUT_DIR}/
                           ${DOC_SOURCE_WORKDIR}/scripts
                   # append to the master index of all policy scripts
                   COMMAND cat ${MASTER_POLICY_INDEX} >>
-                          ${DOC_SOURCE_WORKDIR}/scripts/index.rst
+                          ${DOC_SOURCE_WORKDIR}/scripts/scripts.rst
                   # append to the master index of all policy packages
                   COMMAND cat ${MASTER_PACKAGE_INDEX} >>
                           ${DOC_SOURCE_WORKDIR}/scripts/packages.rst
@@ -58,7 +58,7 @@ add_custom_target(broxygen
                   # SOURCES just adds stuff to IDE projects as a convenience
                   SOURCES ${DOC_SOURCES})
 
-# The "sphinxclean" target removes just the Sphinx input/output directories
+# The "broxygenclean" target removes just the Sphinx input/output directories
 # from the build directory.
 add_custom_target(broxygenclean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
@@ -67,7 +67,7 @@ add_custom_target(broxygenclean
                           ${DOC_OUTPUT_DIR}
                   VERBATIM)
 
-add_dependencies(broxygen broxygenclean restdoc)
+add_dependencies(broxygen restdoc)
 
 add_custom_target(doc)
 add_custom_target(docclean)

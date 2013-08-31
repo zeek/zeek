@@ -54,7 +54,6 @@ public:
 	DECLARE_WRITE(type)
 
 	DECLARE_IO(int)
-	DECLARE_IO(uint8)
 	DECLARE_IO(uint16)
 	DECLARE_IO(uint32)
 	DECLARE_IO(int64)

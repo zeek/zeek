@@ -161,7 +161,7 @@ bool CardinalityCounter::Serialize(SerialInfo* info) const
 	valid &= SERIALIZE(alpha_m);
 
 	for ( unsigned int i = 0; i < m; i++ )
-		valid &= SERIALIZE(buckets[i]);
+		valid &= SERIALIZE((char)buckets[i]);
 
 	return valid;
 	}
@@ -183,8 +183,9 @@ CardinalityCounter* CardinalityCounter::Unserialize(UnserialInfo* info)
 
 	for ( unsigned int i = 0; i < m; i++ )
 		{
-		uint8_t* currbucket = buckets + i;
-		valid &= UNSERIALIZE(currbucket);
+		char c;
+		valid &= UNSERIALIZE(&c);
+		buckets[i] = (uint8)c;
 		}
 
 	return valid ? c : 0;

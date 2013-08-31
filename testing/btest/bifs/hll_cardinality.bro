@@ -5,8 +5,8 @@
 
 event bro_init()
 	{
-	local c1 = hll_cardinality_init(0.01);
-	local c2 = hll_cardinality_init(0.01);
+	local c1 = hll_cardinality_init(0.01, 0.95);
+	local c2 = hll_cardinality_init(0.01, 0.95);
 
 	local add1 = 2001;
 	local add2 = 2002;
@@ -46,7 +46,7 @@ event bro_init()
 	print "This value should be about 12:";
 	print hll_cardinality_estimate(c2);
 
-	local m2 = hll_cardinality_init(0.02);
+	local m2 = hll_cardinality_init(0.02, 0.95);
 
 	print "This value should be around 0:";
 	print hll_cardinality_estimate(m2);
@@ -56,7 +56,7 @@ event bro_init()
 	print "This value should be around 13:";
 	print hll_cardinality_estimate(c3);
 
-	c3 = hll_cardinality_init(0.01);
+	c3 = hll_cardinality_init(0.01, 0.95);
 	print "This value should be 0:";
 	print hll_cardinality_estimate(c3);
 

@@ -16,14 +16,16 @@ module GLOBAL;
 ## Initializes a probabilistic cardinality counter that uses the HyperLogLog algorithm.
 ##
 ## err: the desired error rate (e.g. 0.01).
+## 
+## confidence: the desirec confidence for the error rate (e.g., 0.95).
 ##
 ## Returns: a HLL cardinality handle.
 ##
 ## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
 ##    hll_cardinality_copy
-function hll_cardinality_init%(err: double%): opaque of cardinality
+function hll_cardinality_init%(err: double, confidence: double%): opaque of cardinality
 	%{
-	CardinalityCounter* c = new CardinalityCounter(err);
+	CardinalityCounter* c = new CardinalityCounter(err, confidence);
 	CardinalityVal* cv = new CardinalityVal(c);
 
 	return cv;

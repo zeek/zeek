@@ -10,7 +10,7 @@
 
 using namespace probabilistic;
 
-int CardinalityCounter::OptimalB(double error)
+int CardinalityCounter::OptimalB(double error, double confidence)
 	{
 	double initial_estimate = 2 * (log(1.04) - log(error)) / log(2);
 	int answer = (int) floor(initial_estimate);
@@ -20,7 +20,7 @@ int CardinalityCounter::OptimalB(double error)
 	do {
 		answer++;
 		k = pow(2, (answer - initial_estimate) / 2);
-	} while ( erf(k / sqrt(2)) < HLL_CONF );
+	} while ( erf(k / sqrt(2)) < confidence );
 
 	return answer;
 	}
@@ -29,6 +29,9 @@ void CardinalityCounter::Init(uint64 size)
 	{
 	m = size;
 	buckets = new uint8_t[m];
+
+	// The following magic values are taken directly out of the
+	// description of the HyperLogLog algorithn.
 
 	if ( m == 16 )
 		alpha_m = 0.673;
@@ -51,9 +54,9 @@ void CardinalityCounter::Init(uint64 size)
 	V = m;
 	}
 
-CardinalityCounter::CardinalityCounter(double error_margin)
+CardinalityCounter::CardinalityCounter(double error_margin, double confidence)
 	{
-	int b = OptimalB(error_margin);
+	int b = OptimalB(error_margin, confidence);
 	Init((uint64) pow(2, b));
 	}
 

@@ -14,18 +14,24 @@ namespace probabilistic {
 class CardinalityCounter {
 public:
 	/**
-	* Constructor.
-	*
-	* Based on the error_margin, the number of buckets that need to be
-	* kept will be determined. Based on the max_size, the number of bits
-	* that will be used from the hash function will be determined.
-	*
-	* We need the hash function to return integers that are uniformly
-	* distributed from 0 to 2^L-1. And if that happens, the maximum
-	* cardinality that this counter can handle is approximately 2^L. By
-	* default, we will assume a value of 64 bits.
-	*/
-	CardinalityCounter(double error_margin);
+	 * Constructor.
+	 *
+	 * Based on the error_margin, the number of buckets that need to be
+	 * kept will be determined. Based on the max_size, the number of bits
+	 * that will be used from the hash function will be determined.
+	 *
+	 * We need the hash function to return integers that are uniformly
+	 * distributed from 0 to 2^L-1. And if that happens, the maximum
+	 * cardinality that this counter can handle is approximately 2^L. By
+	 * default, we will assume a value of 64 bits.
+	 *
+	 * Confidence in the estimate given by a cardinality counter is.
+	 *
+	 * In other words, if the cardinality is estimated to be 100 with 2%
+	 * error margin and HLL_CONFis 0.95, then we are 95% sure that the
+	 * actual cardinality is between 98 and 102.
+	 */
+	CardinalityCounter(double error_margin, double confidence = 0.95);
 
 	/**
 	* Constructor used for cloning.
@@ -117,8 +123,10 @@ private:
 	 *
 	 * k is the number of standard deviations that we have to go to have
 	 * a confidence level of conf.
+	 *
+	 * confidence: TODO.
 	 */
-	int OptimalB(double error);
+	int OptimalB(double error, double confidence);
 
 	/**
 	* Computes when the first one appears in the element. It looks at the
@@ -127,15 +135,6 @@ private:
 	* m = 2^b and the last b bits will always be 0.
 	*/
 	uint8_t Rank(uint64 hash_modified);
-
-	/**
-	 * Confidence in the estimate given by a cardinality counter is.
-	 *
-	 * In other words, if the cardinality is estimated to be 100 with 2%
-	 * error margin and HLL_CONFis 0.95, then we are 95% sure that the
-	 * actual cardinality is between 98 and 102.
-	 */
-	static const double HLL_CONF = .95;
 
 	/**
 	 * This is the number of buckets that will be stored. The standard

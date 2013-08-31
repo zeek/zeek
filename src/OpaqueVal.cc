@@ -5,7 +5,7 @@
 #include "Reporter.h"
 #include "Serializer.h"
 #include "probabilistic/BloomFilter.h"
-#include "probabilistic/HyperLogLog.h"
+#include "probabilistic/CardinalityCounter.h"
 
 bool HashVal::IsValid() const
 	{

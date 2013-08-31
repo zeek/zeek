@@ -36,7 +36,7 @@ global runnumber: count &redef; # differentiate runs
 
 event remote_connection_handshake_done(p: event_peer)
 	{
-	local c = hll_cardinality_init(0.01);
+	local c = hll_cardinality_init(0.01, 0.95);
 
 	local add1 = 2001;
 	local add2 = 2002;
@@ -92,7 +92,7 @@ global hll: opaque of cardinality;
 
 event bro_init()
 	{
-	hll = hll_cardinality_init(0.01);
+	hll = hll_cardinality_init(0.01, 0.95);
 	}
 
 event hll_data(data: opaque of cardinality)

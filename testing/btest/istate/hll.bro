@@ -13,7 +13,7 @@ event bro_init()
 
 	if ( runnumber == 1 )
 		{
-		card = hll_cardinality_init(0.01);
+		card = hll_cardinality_init(0.01, 0.95);
 
 		hll_cardinality_add(card, "a");
 		hll_cardinality_add(card, "b");

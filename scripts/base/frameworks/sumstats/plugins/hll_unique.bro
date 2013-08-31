@@ -4,8 +4,11 @@ module SumStats;
 
 export {
 	redef record Reducer += {
-		## The threshold when we switch to hll
+		## The error margin for HLL.
 		hll_error_margin: double &default=0.01;
+	
+		## The confidence for for HLL.
+		hll_confidence: double &default=0.95;
 	};
 
 	redef enum Calculation += {
@@ -26,8 +29,9 @@ redef record ResultVal += {
 	# specialized bifs.
 	card: opaque of cardinality &optional;
 
-	# We need this in the compose hook.
+	# We need these in the compose hook.
 	hll_error_margin: double &optional;
+	hll_confidence: double &optional;
 };
 
 hook register_observe_plugins()
@@ -36,8 +40,9 @@ hook register_observe_plugins()
 		{
 		if ( ! rv?$card )
 			{
-			rv$card = hll_cardinality_init(r$hll_error_margin);
+			rv$card = hll_cardinality_init(r$hll_error_margin, r$hll_confidence);
 			rv$hll_error_margin = r$hll_error_margin;
+			rv$hll_confidence = r$hll_confidence;
 			rv$hll_unique = 0;
 			}
 
@@ -48,7 +53,7 @@ hook register_observe_plugins()
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
-	local rhll = hll_cardinality_init(rv1$hll_error_margin);
+	local rhll = hll_cardinality_init(rv1$hll_error_margin, rv1$hll_confidence);
 	hll_cardinality_merge_into(rhll, rv1$card);
 	hll_cardinality_merge_into(rhll, rv2$card);
 

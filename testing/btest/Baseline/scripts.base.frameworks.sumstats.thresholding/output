@@ -1,0 +1,6 @@
+THRESHOLD WITH RATIO BETWEEN REDUCERS: hit a threshold value at 55x for sumstats_key(host=7.2.1.5)
+THRESHOLD: hit a threshold value at 1001 for sumstats_key(host=7.2.1.5)
+THRESHOLD: hit a threshold value at 6 for sumstats_key(host=1.2.3.4)
+THRESHOLD_SERIES: hit a threshold series value at 1001 for sumstats_key(host=7.2.1.5)
+THRESHOLD_SERIES: hit a threshold series value at 3 for sumstats_key(host=1.2.3.4)
+THRESHOLD_SERIES: hit a threshold series value at 6 for sumstats_key(host=1.2.3.4)

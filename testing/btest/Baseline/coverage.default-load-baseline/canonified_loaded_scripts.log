@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-08-14-01-19-28
+#open	2013-08-31-17-46-56
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -12,7 +12,6 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/strings.bif.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
-  build/scripts/base/bif/bloom-filter.bif.bro
   build/scripts/base/bif/event.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
@@ -96,6 +95,8 @@ scripts/base/init-bare.bro
       scripts/base/utils/site.bro
         scripts/base/utils/patterns.bro
   build/scripts/base/bif/__load__.bro
+    build/scripts/base/bif/bloom-filter.bif.bro
+    build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
 scripts/base/init-default.bro
   scripts/base/utils/active-http.bro
@@ -146,6 +147,7 @@ scripts/base/init-default.bro
     scripts/base/frameworks/sumstats/main.bro
     scripts/base/frameworks/sumstats/plugins/__load__.bro
       scripts/base/frameworks/sumstats/plugins/average.bro
+      scripts/base/frameworks/sumstats/plugins/hll_unique.bro
       scripts/base/frameworks/sumstats/plugins/last.bro
       scripts/base/frameworks/sumstats/plugins/max.bro
       scripts/base/frameworks/sumstats/plugins/min.bro
@@ -218,4 +220,4 @@ scripts/base/init-default.bro
     scripts/base/files/unified2/main.bro
   scripts/base/misc/find-checksum-offloading.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-08-14-01-19-28
+#close	2013-08-31-17-46-56

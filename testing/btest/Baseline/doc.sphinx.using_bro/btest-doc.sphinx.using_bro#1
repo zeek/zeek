@@ -12,7 +12,7 @@
   #empty_field	(empty)
   #unset_field	-
   #path	conn
-  #open	2013-08-31-22-50-20
+  #open	2013-09-01-01-08-21
   #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
   #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
   1300475167.096535	CXWv6p3arKYeMETxOg	141.142.220.202	5353	224.0.0.251	5353	udp	dns	-	-	-	S0	-	0	D	1	73	0	0	(empty)

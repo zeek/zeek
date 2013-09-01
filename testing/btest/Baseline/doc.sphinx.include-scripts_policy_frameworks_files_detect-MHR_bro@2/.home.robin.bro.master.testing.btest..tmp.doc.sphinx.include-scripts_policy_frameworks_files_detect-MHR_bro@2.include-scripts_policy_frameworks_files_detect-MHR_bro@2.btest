@@ -1,9 +1,0 @@
-# @TEST-EXEC: btest-diff %INPUT
-
--- detect-MHR.bro
-
-
-module TeamCymruMalwareHashRegistry;
-
-export {
-	redef enum Notice::Type += {

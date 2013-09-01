@@ -12,7 +12,7 @@
   #empty_field	(empty)
   #unset_field	-
   #path	factor
-  #open	2013-08-31-22-50-17
+  #open	2013-09-01-01-08-18
   #fields	num	factorial_num
   #types	count	count
   1	1
@@ -25,5 +25,5 @@
   8	40320
   9	362880
   10	3628800
-  #close	2013-08-31-22-50-17
+  #close	2013-09-01-01-08-18
 

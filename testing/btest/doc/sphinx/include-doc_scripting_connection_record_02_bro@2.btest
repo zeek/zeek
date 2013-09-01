@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-diff %INPUT
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
 
 -- connection_record_02.bro
 

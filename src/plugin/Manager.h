@@ -3,6 +3,8 @@
 #ifndef PLUGIN_MANAGER_H
 #define PLUGIN_MANAGER_H
 
+#include <map>
+
 #include "Plugin.h"
 #include "Component.h"
 
@@ -69,6 +71,22 @@ public:
 	void FinishPlugins();
 
 	/**
+	 * This tries to load the given file by searching for a plugin that
+	 * support that extension. If a correspondign plugin is found, it's
+	 * asked to loead the file. If that fails, the method reports an 
+	 * error message.
+	 *
+	 * This method must be called only between InitPreScript() and
+	 * InitPostScript().
+	 *
+	 * @return 1 if the file was sucessfully loaded by a plugin; 0 if a
+	 * plugin was found that supports the file's extension, yet it
+	 * encountered a problem loading the file; and -1 if we don't have a
+	 * plugin that supports this extension.
+	 */
+	int TryLoadFile(const char* file);
+
+	/**
 	 * Returns a list of all available plugins. This includes all that
 	 * are compiled in statically, as well as those loaded dynamically so
 	 * far.
@@ -112,10 +130,12 @@ protected:
 	int LoadPlugin(const std::string& dir);
 
 private:
-
 	static plugin_list* PluginsInternal();
 
 	bool init;
+	typedef std::map<std::string, Plugin*> extension_map;
+	extension_map extensions;
+
 	static string current_dir;
 	static string current_sopath;
 };

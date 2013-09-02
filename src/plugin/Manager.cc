@@ -47,7 +47,7 @@ void Manager::LoadPluginsFrom(const string& dir)
 
 	if ( ! is_dir(dir) )
 		{
-		DBG_LOG(DBG_PLUGINS, "not a valid plugin directory: %s", dir.c_str());
+		DBG_LOG(DBG_PLUGINS, "Not a valid plugin directory: %s", dir.c_str());
 		return;
 		}
 
@@ -56,13 +56,13 @@ void Manager::LoadPluginsFrom(const string& dir)
 	if ( rc >= 0 )
 		return;
 
-	DBG_LOG(DBG_PLUGINS, "searching directory %s recursively for plugins", dir.c_str());
+	DBG_LOG(DBG_PLUGINS, "Searching directory %s recursively for plugins", dir.c_str());
 
 	DIR* d = opendir(dir.c_str());
 
 	if ( ! d )
 		{
-		DBG_LOG(DBG_PLUGINS, "cannot open directory %s", dir.c_str());
+		DBG_LOG(DBG_PLUGINS, "Cannot open directory %s", dir.c_str());
 		return;
 		}
 
@@ -82,7 +82,7 @@ void Manager::LoadPluginsFrom(const string& dir)
 
 		if( stat(path.c_str(), &st) < 0 )
 			{
-			DBG_LOG(DBG_PLUGINS, "cannot stat %s: %s", path.c_str(), strerror(errno));
+			DBG_LOG(DBG_PLUGINS, "Cannot stat %s: %s", path.c_str(), strerror(errno));
 			continue;
 			}
 
@@ -99,14 +99,14 @@ int Manager::LoadPlugin(const std::string& dir)
 	if ( ! is_file(dir + "/__bro_plugin__") )
 		return -1;
 
-	DBG_LOG(DBG_PLUGINS, "loading plugin from %s", dir.c_str());
+	DBG_LOG(DBG_PLUGINS, "Loading plugin from %s", dir.c_str());
 
 	// Add the "scripts" directory to BROPATH.
 	string scripts = dir + "/scripts";
 
 	if ( is_dir(scripts) )
 		{
-		DBG_LOG(DBG_PLUGINS, "  adding %s to BROPATH", scripts.c_str());
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", scripts.c_str());
 		add_to_bro_path(scripts);
 		}
 
@@ -115,7 +115,7 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	if ( is_file(dyinit) )
 		{
-		DBG_LOG(DBG_PLUGINS, "  adding %s for loading", dyinit.c_str());
+		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", dyinit.c_str());
 		add_input_file(dyinit.c_str());
 		}
 
@@ -124,7 +124,7 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	if ( is_file(init) )
 		{
-		DBG_LOG(DBG_PLUGINS, "  adding %s for loading", init.c_str());
+		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", init.c_str());
 		add_input_file(init.c_str());
 		}
 
@@ -132,7 +132,7 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	string dypattern = dir + "/dylib/*." + HOST_ARCHITECTURE + SHARED_LIBRARY_SUFFIX;
 
-	DBG_LOG(DBG_PLUGINS, "  searching for shared libraries %s", dypattern.c_str());
+	DBG_LOG(DBG_PLUGINS, "  Searching for shared libraries %s", dypattern.c_str());
 
 	glob_t gl;
 
@@ -154,13 +154,13 @@ int Manager::LoadPlugin(const std::string& dir)
 				reporter->FatalError("cannot load plugin library %s: %s", path, err ? err : "<unknown error>");
 				}
 
-			DBG_LOG(DBG_PLUGINS, "  loaded %s", path);
+			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
 		}
 
 	else
 		{
-		DBG_LOG(DBG_PLUGINS, "  no shared library found");
+		DBG_LOG(DBG_PLUGINS, "  No shared library found");
 		return 1;
 		}
 
@@ -190,7 +190,23 @@ void Manager::InitPreScript()
 	assert(! init);
 
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
-		(*i)->InitPreScript();
+		{
+		Plugin* plugin = *i;
+
+		plugin->InitPreScript();
+
+		// Track the file extensions the plugin can handle.
+		std::stringstream ext(plugin->FileExtensions());
+
+		// Split at ":".
+		std::string e;
+
+		while ( std::getline(ext, e, ':') )
+			{
+			DBG_LOG(DBG_PLUGINS, "Plugin %s handles *.%s", plugin->Name(), e.c_str());
+			extensions.insert(std::make_pair(e, plugin));
+			}
+		}
 
 	init = true;
 	}
@@ -222,6 +238,28 @@ void Manager::FinishPlugins()
 	Manager::PluginsInternal()->clear();
 
 	init = false;
+	}
+
+int Manager::TryLoadFile(const char* file)
+	{
+	assert(file);
+	const char* ext = strrchr(file, '.');
+
+	if ( ! ext )
+		return -1;
+
+	extension_map::iterator i = extensions.find(++ext);
+	if ( i == extensions.end() )
+		return -1;
+
+	Plugin* plugin = i->second;
+
+	DBG_LOG(DBG_PLUGINS, "Loading %s with %s", file, plugin->Name());
+
+	if ( i->second->LoadFile(file) )
+		return 1;
+
+	return 0;
 	}
 
 Manager::plugin_list Manager::Plugins() const

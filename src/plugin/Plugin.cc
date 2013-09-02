@@ -49,6 +49,7 @@ Plugin::Plugin()
 	dynamic = false;
 	base_dir = 0;
 	sopath = 0;
+	extensions = 0;
 
 	Manager::RegisterPlugin(this);
 	}
@@ -61,6 +62,7 @@ Plugin::~Plugin()
 	delete [] description;
 	delete [] base_dir;
 	delete [] sopath;
+	delete [] extensions;
 	}
 
 const char* Plugin::Name() const
@@ -163,6 +165,22 @@ Plugin::bif_item_list Plugin::CustomBifItems() const
 	return bif_item_list();
 	}
 
+const char* Plugin::FileExtensions() const
+	{
+	return extensions ? extensions : "";
+	}
+
+void Plugin::SetFileExtensions(const char* ext)
+	{
+	extensions = copy_string(ext);
+	}
+
+bool Plugin::LoadFile(const char* file)
+	{
+	reporter->InternalError("Plugin::LoadFile not overriden for %s", file);
+	return false;
+	}
+
 void Plugin::Done()
 	{
 	for ( component_list::const_iterator i = components.begin(); i != components.end(); i++ )
@@ -188,6 +206,12 @@ void Plugin::AddComponent(Component* c)
 	// Sort components by name to make sure we have a deterministic
 	// order.
 	components.sort(component_cmp);
+	}
+
+bool Plugin::LoadBroFile(const char* file)
+	{
+	add_input_file(file);
+	return true;
 	}
 
 void Plugin::__AddBifInitFunction(bif_init_func c)

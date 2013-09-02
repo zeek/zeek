@@ -30,6 +30,8 @@
 
 #include "analyzer/Analyzer.h"
 
+#include "plugin/Manager.h"
+
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
 extern int generate_documentation;
@@ -579,6 +581,24 @@ YYLTYPE GetCurrentLocation()
 
 static int load_files(const char* orig_file)
 	{
+	int rc = plugin_mgr->TryLoadFile(orig_file);
+
+	if ( rc == 1 )
+		return 0; // A plugin took care of it, just skip.
+
+	if ( rc == 0 )
+		{
+		if ( ! reporter->Errors() )
+			// This is just in case the plugin failed to report
+			// the error itself, in which case we want to at
+			// least tell the user that something went wrong.
+			reporter->Error("Plugin reported error loading %s", orig_file);
+
+		exit(1);
+		}
+
+	assert(rc == -1); // No plugin in charge of this file.
+
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;

@@ -950,7 +950,7 @@ const char* bro_magic_path()
 
 const char* bro_plugin_path()
 	{
-	const char* path = getenv("BROPLUGINS");
+	const char* path = getenv("BRO_PLUGINS");
 
 	if ( ! path )
 		path = BRO_PLUGIN_INSTALL_PATH;

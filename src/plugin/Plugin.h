@@ -122,6 +122,11 @@ public:
 	bool DynamicPlugin() const;
 
 	/**
+	 * Returns a colon-separated list of file extensions the plugin handles.
+	 */
+	const char* FileExtensions() const;
+
+	/**
 	 * For dynamic plugins, returns the base directory from which it was
 	 * loaded. For static plugins, returns null.
 	 **/
@@ -198,6 +203,23 @@ public:
 	 */
 	void AddBifItem(const char* name, BifItem::Type type);
 
+	/**
+	 * Adds a file to the list of files Bro loads at startup. This will
+	 * normally be a Bro script, but it passes through the plugin system
+	 * as well to load files with other extensions as supported by any of
+	 * the current plugins. In other words, calling this method is
+	 * similar to given a file on the command line. Note that the file
+	 * may be only queued for now, and actually loaded later.
+	 *
+	 * This method must not be called after InitPostScript().
+	 *
+	 * @param file The file to load. It will be searched along the standard paths.
+	 *
+	 * @return True if successful (which however may only mean
+	 * "successfully queued").
+	 */
+	bool LoadBroFile(const char* file);
+
 protected:
 	friend class Manager;
 
@@ -237,6 +259,15 @@ protected:
 	void SetDynamicPlugin(bool dynamic);
 
 	/**
+	 * Reports the extensions of input files the plugin handles. If Bro
+	 * wants to load a file with one of these extensions it will pass
+	 * them to LoadFile() and then then ignore otherwise.
+	 *
+	 * ext: A list of colon-separated file extensions the plugin handles.
+	 */
+	void SetFileExtensions(const char* ext);
+
+	/**
 	 * Sets the base directory and shared library path from which the
 	 * plugin was loaded. This should be called only from the manager for
 	 * dynamic plugins.
@@ -265,6 +296,21 @@ protected:
 	virtual bif_item_list CustomBifItems() const;
 
 	/**
+	 * Virtual method that can be overriden by derived class to load
+	 * files with extensions reported via SetFileExtension().
+	 *
+	 * This method will be called between InitPreScript() and
+	 * InitPostScript(), but with no further order or timing guaranteed.
+	 * It will be called once for each file encountered with of the
+	 * specificed extensions (i.e., duplicates are filtered out
+	 * automatically).
+	 *
+	 * @return True if the file was loaded successfuly, false if not. Bro
+	 * will abort in the latter case.
+	 */
+	virtual bool LoadFile(const char* file);
+
+	/**
 	 * Initializes the BiF items added with AddBifItem(). Internal method
 	 * that will be called by the manager at the right time.
 	 */
@@ -283,6 +329,7 @@ private:
 	const char* description;
 	const char* base_dir;
 	const char* sopath;
+	const char* extensions;
 	int version;
 	int api_version;
 	bool dynamic;

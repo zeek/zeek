@@ -83,8 +83,6 @@ public:
 	 */
 	T GetComponentTag(Val* v) const;
 
-protected:
-
 	/**
 	 * Add a component the internal maps used to keep track of it and create
 	 * a script-layer ID for the component's enum value.

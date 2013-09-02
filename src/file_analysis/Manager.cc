@@ -30,11 +30,6 @@ Manager::~Manager()
 
 void Manager::InitPreScript()
 	{
-	std::list<Component*> analyzers = plugin_mgr->Components<Component>();
-
-	for ( std::list<Component*>::const_iterator i = analyzers.begin();
-	      i != analyzers.end(); ++i )
-	      RegisterComponent(*i, "ANALYZER_");
 	}
 
 void Manager::InitPostScript()

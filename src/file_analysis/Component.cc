@@ -15,6 +15,8 @@ Component::Component(const char* arg_name, factory_callback arg_factory)
 	name = copy_string(arg_name);
 	canon_name = canonify_name(arg_name);
 	factory = arg_factory;
+
+	file_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 
 Component::Component(const Component& other)
@@ -24,6 +26,8 @@ Component::Component(const Component& other)
 	name = copy_string(other.name);
 	canon_name = copy_string(other.canon_name);
 	factory = other.factory;
+
+	// TODO: Do we need the RegisterComponent() call here?
 	}
 
 Component::~Component()

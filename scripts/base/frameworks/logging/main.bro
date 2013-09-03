@@ -1,6 +1,7 @@
 ##! The Bro logging interface.
 ##!
-##! See :doc:`/logging` for a introduction to Bro's logging framework.
+##! See :doc:`/frameworks/logging` for a introduction to Bro's
+##! logging framework.
 
 module Log;
 

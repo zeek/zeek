@@ -48,7 +48,7 @@ New Functionality
   than global state as it was before.
 
 - The scripting language now supports a constructing sets, tables,
-  vectors, and records by name:
+  vectors, and records by name::
 
         type MyRecordType: record {
             c: count;
@@ -178,7 +178,7 @@ Changed Functionality
           split_complete()
 
         - md5_*, sha1_*, sha256_*, and entropy_* have all changed
-        their signatures to work with opaque types (see above).
+          their signatures to work with opaque types (see above).
 
 
 - Removed a now unused argument from "do_split" helper function.
@@ -204,7 +204,7 @@ Changed Functionality
     - What used to be a "redef" of "Notice::policy" now becomes a hook
       implementation. Example:
 
-      Old:
+      Old::
 
         redef Notice::policy += {
             [$pred(n: Notice::Info) = {
@@ -213,7 +213,7 @@ Changed Functionality
             $action = Notice::ACTION_EMAIL]
             };
 
-      New:
+      New::
 
         hook Notice::policy(n: Notice::Info)
             {
@@ -225,18 +225,18 @@ Changed Functionality
       handlers for that event, you'll likely just need to change the
       type accordingly. Example:
 
-      Old:
+      Old::
 
         event notice(n: Notice::Info) { ... }
 
-      New:
+      New::
 
         hook notice(n: Notice::Info) { ... }
 
 - The notice_policy.log is gone. That's a result of the new notice
   policy setup.
 
-- Removed the byte_len() and length() bif functions. Use the "|...|"
+- Removed the byte_len() and length() bif functions. Use the ``|...|``
   operator instead.
 
 - The SSH::Login notice has been superseded by an corresponding
@@ -479,8 +479,8 @@ with the new version. The two rules of thumb are:
         if you need help.
 
 Below we summarize changes from 1.x to 2.x in more detail. This list
-isn't complete, see the :download:`CHANGES <CHANGES>` file in the
-distribution for the full story.
+isn't complete, see the ``CHANGES`` file in the distribution or
+:doc:`here <changes>` for the full story.
 
 Script Organization
 -------------------
@@ -568,8 +568,8 @@ Logging Framework
     endpoint.
 
 - The new logging framework makes it possible to extend, customize,
-  and filter logs very easily. See the :doc:`logging framework <logging>`
-  for more information on usage.
+  and filter logs very easily. See the :doc:`logging framework
+  </frameworks/logging>` for more information on usage.
 
 - A common pattern found in the new scripts is to store logging stream
   records for protocols inside the ``connection`` records so that
@@ -590,9 +590,10 @@ Logging Framework
 Notice Framework
 ----------------
 
-The way users interact with "notices" has changed significantly in
-order to make it easier to define a site policy and more extensible
-for adding customized actions. See the :doc:`notice framework <notice>`.
+The way users interact with "notices" has changed significantly in order
+to make it easier to define a site policy and more extensible for adding
+customized actions. See the :doc:`notice framework
+</frameworks/notice>`.
 
 
 New Default Settings

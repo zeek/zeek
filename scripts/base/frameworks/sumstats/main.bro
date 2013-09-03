@@ -74,6 +74,9 @@ export {
 	## Type to store results for multiple reducers.
 	type Result: table[string] of ResultVal;
 
+	## Type to store a table of sumstats results indexed by keys.
+	type ResultTable: table[Key] of Result;
+
 	## SumStats represent an aggregation of reducers along with
 	## mechanisms to handle various situations like the epoch ending
 	## or thresholds being crossed.
@@ -142,7 +145,7 @@ export {
 
 	## Dynamically request a sumstat key.  This function should be
 	## used sparingly and not as a replacement for the callbacks 
-	## from the :bro:see:`SumStat` record.  The function is only
+	## from the :bro:see:`SumStats::SumStat` record.  The function is only
 	## available for use within "when" statements as an asynchronous
 	## function.
 	##
@@ -161,9 +164,6 @@ export {
 	## Returns: A string representation of the metric key.
 	global key2str: function(key: SumStats::Key): string;
 }
-
-# Type to store a table of sumstats results indexed by keys.
-type ResultTable: table[Key] of Result;
 
 # The function prototype for plugins to do calculations.
 type ObserveFunc: function(r: Reducer, val: double, data: Observation, rv: ResultVal);

@@ -2,7 +2,7 @@
 ##! are odd or potentially bad.  Decisions of the meaning of various notices
 ##! need to be done per site because Bro does not ship with assumptions about
 ##! what is bad activity for sites.  More extensive documetation about using
-##! the notice framework can be found in :doc:`/notice`.
+##! the notice framework can be found in :doc:`/frameworks/notice`.
 
 module Notice;
 

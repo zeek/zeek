@@ -1,4 +1,6 @@
 
+.. _FAQ: http://www.bro.org/documentation/faq.html
+
 .. _quickstart:
 
 =================
@@ -60,9 +62,8 @@ policy and output the results in ``$PREFIX/logs``.
 
 .. note:: The user starting BroControl needs permission to capture
    network traffic. If you are not root, you may need to grant further
-   privileges to the account you're using; see the `FAQ
-   <http://www.bro.org/documentation/faq.html>`_. Also, if it looks
-   like Bro is not seeing any traffic, check out the FAQ entry on
+   privileges to the account you're using; see the FAQ_.  Also, if it
+   looks like Bro is not seeing any traffic, check out the FAQ entry on
    checksum offloading.
 
 You can leave it running for now, but to stop this Bro instance you would do:
@@ -196,7 +197,7 @@ the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
 So let's continue on our path to modify the behavior for the two SSL
-and SSH notices.  Looking at :doc:`scripts/base/frameworks/notice/main`,
+and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main`,
 we see that it advertises:
 
 .. code:: bro
@@ -299,7 +300,7 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 * Reading the code of scripts that ship with Bro is also a great way to gain
   further understanding of the language and how scripts tend to be
   structured.
-* Review the `FAQ <http://www.bro.org/documentation/faq.html>`_.
+* Review the FAQ_.
 * Continue reading below for another mini-tutorial on using Bro as a standalone
   command-line utility.
 
@@ -326,9 +327,9 @@ that's available.
 
 Bro will output log files into the working directory.
 
-.. note:: The :doc:`FAQ <faq>` entries about
-   capturing as an unprivileged user and checksum offloading are particularly
-   relevant at this point.
+.. note:: The FAQ_ entries about
+   capturing as an unprivileged user and checksum offloading are
+   particularly relevant at this point.
 
 To use the site-specific ``local.bro`` script, just add it to the
 command-line:

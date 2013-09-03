@@ -1,7 +1,5 @@
 ##! Utilities specific for DHCP processing.
 
-@load ./main
-
 module DHCP;
 
 export {

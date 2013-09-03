@@ -9,12 +9,12 @@ Script Reference
 
    packages
    builtins
-   bifs
+   Built-In Functions (BIFs) <base/bif/index>
    scripts
    packages
    internal
-   site/proto-analyzers
-   site/file-analyzers
+   proto-analyzers
+   file-analyzers
 
 
 

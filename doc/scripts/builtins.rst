@@ -654,7 +654,7 @@ The Bro scripting language supports the following built-in types.
         close(f);
 
     Writing to files like this for logging usually isn't recommended, for better
-    logging support see :doc:`/logging`.
+    logging support see :doc:`/frameworks/logging`.
 
 .. bro:type:: function
 

@@ -1,11 +1,11 @@
 
 .. _writing-scripts:
 
-.. contents::
-
 ===================
 Writing Bro Scripts
 ===================
+
+.. contents::
 
 Understanding Bro Scripts
 =========================
@@ -91,9 +91,9 @@ form of an email generated and sent to a pre-configured address.
 
 The workhorse of the script is contained in the event handler for
 ``log_http``.  The ``log_http`` event is defined as an event-hook in
-the :doc:`scripts/base/protocols/http/main.bro` script and allows scripts
+the :doc:`/scripts/base/protocols/http/main` script and allows scripts
 to handle a connection as it is being passed to the logging framework.
-The event handler is passed an :bro:id:`HTTP::Info` data structure
+The event handler is passed an :bro:type:`HTTP::Info` data structure
 which will be referred to as ``rec`` in body of the event handler.
 
 An ``if`` statement is used to check for the existence of a data structure
@@ -182,7 +182,7 @@ The Connection Record Data Type
 ===============================
 
 Of all the events defined by Bro, an overwhelmingly large number of
-them are passed the :bro:id:`connection` record data type, in effect,
+them are passed the :bro:type:`connection` record data type, in effect,
 making it the backbone of many scripting solutions.  The connection
 record itself, as we will see in a moment, is a mass of nested data
 types used to track state on a connection through its lifetime.  Let's
@@ -217,7 +217,7 @@ for a single connection.
 .. btest-include:: ${DOC_ROOT}/scripting/connection_record_02.bro
 
 Again, we start with ``@load``, this time importing the
-:doc:`scripts/base/protocols/conn` scripts which supply the tracking
+:doc:`/scripts/base/protocols/conn/index` scripts which supply the tracking
 and logging of general information and state of connections.  We
 handle the :bro:id:`connection_state_remove` event and simply print
 the contents of the argument passed to it.  For this example we're
@@ -316,7 +316,7 @@ block that variable is available to any other script through the
 naming convention of ``MODULE::variable_name``.
 
 The declaration below is taken from the
-:doc:`scripts/policy/protocols/conn/known-hosts.bro` script and
+:doc:`/scripts/policy/protocols/conn/known-hosts` script and
 declares a variable called ``known_hosts`` as a global set of unique
 IP addresses within the ``Known`` namespace and exports it for use
 outside of the ``Known`` namespace.  Were we to want to use the
@@ -348,8 +348,7 @@ constants are used in Bro scripts as containers for configuration
 options.  For example, the configuration option to log password
 decrypted from HTTP streams is stored in
 ``HTTP::default_capture_password`` as shown in the stripped down
-excerpt from :doc:`scripts/scripts/base/protocols/http/main.bro`
-below.
+excerpt from :doc:`/scripts/base/protocols/http/main` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
    :lines: 8-10,19,20,118
@@ -806,8 +805,8 @@ together new data types to suit the needs of your situation.
 When combined with the ``type`` keyword, ``record`` can generate a
 composite type.  We have, in fact, already encountered a a complex
 example of the ``record`` data type in the earlier sections, the
-:bro:id:`connection` record passed to many events. Another one,
-:bro:id:`Conn::Info`, which corresponds to the fields logged into
+:bro:type:`connection` record passed to many events. Another one,
+:bro:type:`Conn::Info`, which corresponds to the fields logged into
 ``conn.log``, is shown by the exerpt below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
@@ -919,7 +918,7 @@ desired output with ``print`` and ``fmt`` before attempting to dive
 into the Logging Framework.  Below is a script that defines a
 factorial function to recursively calculate the factorial of a
 unsigned integer passed as an argument to the function.  Using
-:bro:id:`print` :bro:id:`fmt` we can ensure that Bro can perform these
+``print`` and  :bro:id:`fmt` we can ensure that Bro can perform these
 calculations correctly as well get an idea of the answers ourselves.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_01.bro
@@ -935,7 +934,7 @@ method and produce a logfile.  As we are working within a namespace
 and informing an outside entity of workings and data internal to the
 namespace, we use an ``export`` block.  First we need to inform Bro
 that we are going to be adding another Log Stream by adding a value to
-the :bro:id:`Log::ID` enumerable.  In line 3 of the script, we append the
+the :bro:type:`Log::ID` enumerable.  In line 3 of the script, we append the
 value ``LOG`` to the ``Log::ID`` enumerable, however due to this being in
 an export block the value appended to ``Log::ID`` is actually
 ``Factor::Log``.  Next, we need to define the name and value pairs
@@ -1070,9 +1069,9 @@ reporting.  With the Notice Framework it's simple to raise a notice
 for any behavior that is detected.
 
 To raise a notice in Bro, you only need to indicate to Bro that you
-are provide a specific :bro:id:`Notice::Type` by exporting it and then
+are provide a specific :bro:type:`Notice::Type` by exporting it and then
 make a call to :bro:id:`NOTICE` supplying it with an appropriate
-:bro:id:`Notice::Info` record.  Often times the call to ``NOTICE``
+:bro:type:`Notice::Info` record.  Often times the call to ``NOTICE``
 includes just the ``Notice::Type``, and a concise message.  There are
 however, significantly more options available when raising notices as
 seen in the table below.  The only field in the table below whose
@@ -1159,7 +1158,7 @@ themselves.  On line 12 the script's ``export`` block adds the value
 ``Notice::Type`` to indicate to the Bro core that a new type of notice
 is being defined.  The script then calls ``NOTICE`` and defines the
 ``$note``, ``$msg``, ``$sub`` and ``$conn`` fields of the
-:bro:id:`Notice::Info` record.  Line 39 also includes a ternary if
+:bro:type:`Notice::Info` record.  Line 39 also includes a ternary if
 statement that modifies the ``$msg`` text depending on whether the
 host is a local address and whether it is the client or the server.
 This use of :bro:id:`fmt` and a ternary operators is a concise way to
@@ -1181,25 +1180,25 @@ passing in the ``Notice::Info`` record.  The simplest kind of
 ``Notice::policy`` hooks simply check the value of ``$note`` in the
 ``Notice::Info`` record being passed into the hook and performing an
 action based on the answer.  The hook below adds the
-:bro:id:`Notice::ACTION_EMAIL` action for the
+:bro:enum:`Notice::ACTION_EMAIL` action for the
 ``SSH::Interesting_Hostname_Login`` notice raised in the
-:doc:`scripts/policy/protocols/ssh/interesting-hostnames.bro` script.
+:doc:`/scripts/policy/protocols/ssh/interesting-hostnames` script.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_hook_01.bro
 
 In the example above we've added ``Notice::ACTION_EMAIL`` to the
 ``n$actions`` set.  This set, defined in the Notice Framework scripts,
-can only have entries from the :bro:id:`Notice::Action` type, which is
+can only have entries from the :bro:type:`Notice::Action` type, which is
 itself an enumerable that defines the values shown in the table below
 along with their corresponding meanings.  The
-:bro:id:`Notice::ACTION_LOG` action writes the notice to the
+:bro:enum:`Notice::ACTION_LOG` action writes the notice to the
 ``Notice::LOG`` logging stream which, in the default configuration,
 will write each notice to the ``notice.log`` file and take no further
-action.  The :bro:id:`Notice::ACTION_EMAIL` action will send an email
+action.  The :bro:enum:`Notice::ACTION_EMAIL` action will send an email
 to the address or addresses defined in the :bro:id:`Notice::mail_dest`
 variable with the particulars of the notice as the body of the email.
-The last action, :bro:id:`Notice::ACTION_ALARM` sends the notice to
-the :bro:id:`Notice::ALARM_LOG` logging stream which is then rotated
+The last action, :bro:enum:`Notice::ACTION_ALARM` sends the notice to
+the :bro:enum:`Notice::ALARM_LOG` logging stream which is then rotated
 hourly and its contents emailed in readable ASCII to the addresses in
 ``Notice::mail_dest``.  
 
@@ -1225,7 +1224,7 @@ Bro.
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
    :lines: 59-62
 
-In the :doc:`scripts/policy/protocols/ssl/expiring-certs.bro` script
+In the :doc:`/scripts/policy/protocols/ssl/expiring-certs` script
 which identifies when SSL certificates are set to expire and raises
 notices when it crosses a pre-defined threshold, the call to
 ``NOTICE`` above also sets the ``$identifier`` entry by concatenating
@@ -1265,7 +1264,7 @@ facilitate these types of decisions, the Notice Framework supports
 Notice Policy shortcuts.  These shortcuts are implemented through the
 means of a group of data structures that map specific, pre-defined
 details and actions to the effective name of a notice.  Primarily
-implemented as a set or table of enumerables of :bro:id:`Notice::Type`,
+implemented as a set or table of enumerables of :bro:type:`Notice::Type`,
 Notice Policy shortcuts can be placed as a single directive in your
 ``local.bro`` file as a concise readable configuration.  As these
 variables are all constants, it bears mentioning that these variables

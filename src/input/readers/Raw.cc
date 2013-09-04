@@ -14,6 +14,10 @@
 #include <errno.h>
 #include <signal.h>
 
+extern "C" {
+#include "setsignal.h"
+}
+
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
@@ -70,14 +74,14 @@ void Raw::DoClose()
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
 		// kill child process
-		kill(childpid, 15); // sigterm
+		kill(childpid, SIGTERM);
 
 		if ( forcekill )
 			{
 			usleep(200); // 200 msecs should be enough for anyone ;)
 
 			if ( kill(childpid, 0) == 0 ) // perhaps it is already gone
-				kill(childpid, 9); // TERMINATE
+				kill(childpid, SIGKILL);
 			}
 		}
 	}
@@ -159,6 +163,15 @@ bool Raw::Execute()
 			_exit(254);
 
 		close(pipes[stderr_out]);
+
+		// Signal mask is inherited over fork-exec, so reset any ignored
+		// signals to default behavior and unblock any blocked signals.
+		setsignal(SIGPIPE, SIG_DFL); // May be ignored when debugging scripts.
+		sigset_t mask;
+		sigfillset(&mask);
+		// Assuming the fork-one model of pthreads' fork(), using sigprocmask()
+		// makes sense over pthread_sigmask() here.
+		sigprocmask(SIG_UNBLOCK, &mask, 0);
 
 		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*) NULL);
 		fprintf(stderr, "Exec failed :(......\n");

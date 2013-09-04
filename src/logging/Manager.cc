@@ -538,10 +538,11 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		filter->fields = (threading::Field**)
 			realloc(filter->fields,
-				sizeof(threading::Field) * ++filter->num_fields);
+				sizeof(threading::Field*) * ++filter->num_fields);
 
 		if ( ! filter->fields )
 			{
+			--filter->num_fields;
 			reporter->Error("out of memory in add_filter");
 			return false;
 			}
@@ -623,7 +624,10 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 			      include ? include->AsTableVal() : 0,
 			      exclude ? exclude->AsTableVal() : 0,
 			      "", list<int>()) )
+		{
+		delete filter;
 		return false;
+		}
 
 	// Get the path for the filter.
 	Val* path_val = fval->Lookup(rtype->FieldOffset("path"));

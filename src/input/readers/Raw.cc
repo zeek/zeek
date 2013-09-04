@@ -424,7 +424,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 			// bah, we cannot use realloc because we would have to change the delete in the manager to a free.
 			char * newbuf = new char[block_size*repeats];
 			memcpy(newbuf, buf, block_size*(repeats-1));
-			delete buf;
+			delete [] buf;
 			buf = newbuf;
 			offset = block_size*(repeats-1);
 			}

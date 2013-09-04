@@ -262,7 +262,7 @@ int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, int len,
 	if ( ConvertName(data, len, xname, xlen) )
 		Event(netbios_session_request, xname, xlen);
 
-	delete xname;
+	delete [] xname;
 
 	return 0;
 	}

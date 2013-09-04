@@ -616,9 +616,12 @@ static int load_files(const char* orig_file)
 			{
 			if ( it->inode == i )
 				{
-				fclose(f);
-				delete [] full_filename;
-				delete [] bropath_subpath_delete;
+				if ( f != stdin )
+					{
+					fclose(f);
+					delete [] full_filename;
+					delete [] bropath_subpath_delete;
+					}
 				return 0;
 				}
 			}

@@ -26,11 +26,3 @@ void UID::Set(bro_uint_t bits, const uint64* v, size_t n)
 	if ( res.rem )
 		uid[0] >>= 64 - res.rem;
 	}
-
-bool Bro::operator==(const UID& u1, const UID& u2)
-	{
-	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
-		if ( u1.uid[i] != u2.uid[i] )
-			return false;
-	return true;
-	}

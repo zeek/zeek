@@ -72,7 +72,8 @@ public:
 	/**
 	 * UID equality operator.
 	 */
-	friend bool operator==(const UID& u1, const UID& u2);
+	friend bool operator==(const UID& u1, const UID& u2)
+		{ return memcmp(u1.uid, u2.uid, sizeof(u1.uid)) == 0; }
 
 	/**
 	 * UID inequality operator.
@@ -85,21 +86,15 @@ private:
 	bool initialized; // Since technically uid == 0 is a legit UID
 };
 
-bool operator==(const UID& u1, const UID& u2);
-
 inline UID::UID(const UID& other)
 	{
-	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
-		uid[i] = other.uid[i];
-
+	memcpy(uid, other.uid, sizeof(uid));
 	initialized = other.initialized;
 	}
 
 inline UID& UID::operator=(const UID& other)
 	{
-	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
-		uid[i] = other.uid[i];
-
+	memmove(uid, other.uid, sizeof(uid));
 	initialized = other.initialized;
 	return *this;
 	}
@@ -109,7 +104,7 @@ inline std::string UID::Base62(std::string prefix) const
 	if ( ! initialized )
 		reporter->InternalError("use of uninitialized UID");
 
-	char tmp[64]; // technically, this should dynamically scale w/ BRO_UID_LEN
+	char tmp[sizeof(uid) * 8 + 1];  // enough for even binary representation
 	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
 		prefix.append(uitoa_n(uid[i], tmp, sizeof(tmp), 62));
 

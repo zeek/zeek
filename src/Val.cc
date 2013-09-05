@@ -2463,7 +2463,11 @@ bool TableVal::DoUnserialize(UnserialInfo* info)
 
 		if ( ! UNSERIALIZE(&entry_val->last_access_time) ||
 		     ! UNSERIALIZE(&eat) )
+			{
+			entry_val->Unref();
+			delete entry_val;
 			return false;
+			}
 
 		entry_val->SetExpireAccess(eat);
 

@@ -41,6 +41,8 @@ export {
 		ACTION_ALARM,
 	};
 
+	type ActionSet: set[Notice::Action];
+
 	## The notice framework is able to do automatic notice supression by
 	## utilizing the $identifier field in :bro:type:`Notice::Info` records.
 	## Set this to "0secs" to completely disable automated notice suppression.
@@ -113,7 +115,7 @@ export {
 		peer_descr:     string         &log &optional;
 
 		## The actions which have been applied to this notice.
-		actions:        set[Notice::Action] &log &default=set();
+		actions:        ActionSet      &log &default=ActionSet();
 
 		## By adding chunks of text into this element, other scripts can
 		## expand on notices that are being emailed.  The normal way to add text

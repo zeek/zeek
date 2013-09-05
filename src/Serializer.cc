@@ -366,6 +366,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 		if ( ! v )
 			{
 			delete [] name;
+			delete_vals(args);
 			return false;
 			}
 

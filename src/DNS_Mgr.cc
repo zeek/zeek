@@ -1095,6 +1095,17 @@ void DNS_Mgr::AsyncLookupNameText(string name, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
+static bool DoRequest(nb_dns_info* nb_dns, DNS_Mgr_Request* dr)
+	{
+	if ( dr->MakeRequest(nb_dns) )
+		// dr stored in nb_dns cookie and deleted later when results available.
+		return true;
+
+	reporter->Warning("can't issue DNS request");
+	delete dr;
+	return false;
+	}
+
 void DNS_Mgr::IssueAsyncRequests()
 	{
 	while ( asyncs_queued.size() && asyncs_pending < MAX_PENDING_REQUESTS )
@@ -1104,31 +1115,26 @@ void DNS_Mgr::IssueAsyncRequests()
 
 		++num_requests;
 
-		DNS_Mgr_Request* dr;
-		DNS_Mgr_Request* dr6 = 0;
+		bool success;
 
 		if ( req->IsAddrReq() )
-			dr = new DNS_Mgr_Request(req->host);
+			success = DoRequest(nb_dns, new DNS_Mgr_Request(req->host));
+		else if ( req->is_txt )
+			success = DoRequest(nb_dns, new DNS_Mgr_Request(req->name.c_str(),
+			                                AF_INET, req->is_txt));
 		else
 			{
-			dr = new DNS_Mgr_Request(req->name.c_str(), AF_INET, req->is_txt);
-			if ( ! req->is_txt )
-				dr6 = new DNS_Mgr_Request(req->name.c_str(), AF_INET6, req->is_txt);
+			// If only one request type succeeds, don't consider it a failure.
+			success = DoRequest(nb_dns, new DNS_Mgr_Request(req->name.c_str(),
+			                                AF_INET, req->is_txt));
+			success = DoRequest(nb_dns, new DNS_Mgr_Request(req->name.c_str(),
+			                                AF_INET6, req->is_txt)) || success;
 			}
 
-		if ( ! dr->MakeRequest(nb_dns) )
+		if ( ! success )
 			{
-			reporter->Warning("can't issue DNS request");
-			++failed;
 			req->Timeout();
-			continue;
-			}
-
-		if ( dr6 && ! dr6->MakeRequest(nb_dns) )
-			{
-			reporter->Warning("can't issue DNS request");
 			++failed;
-			req->Timeout();
 			continue;
 			}
 

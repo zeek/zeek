@@ -2079,7 +2079,7 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 	Val* ind_k_v = (*vl)[k];
 	ListVal* ind_k = ind_k_v->Type()->IsSet() ?
 				ind_k_v->AsTableVal()->ConvertToList() :
-				ind_k_v->AsListVal();
+				ind_k_v->Ref()->AsListVal();
 
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
@@ -2097,12 +2097,13 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 		Unref(expd);
 
 		if ( ! success )
+			{
+			Unref(ind_k);
 			return 0;
+			}
 		}
 
-	if ( ind_k_v->Type()->IsSet() )
-		Unref(ind_k);
-
+	Unref(ind_k);
 	return 1;
 	}
 

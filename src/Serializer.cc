@@ -70,18 +70,17 @@ bool Serializer::StartSerialization(SerialInfo* info, const char* descr,
 
 bool Serializer::EndSerialization(SerialInfo* info)
 	{
-	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
-	chunk->len = format->EndWrite(&chunk->data);
-
 	if ( info->chunk )
 		{
-
 		if ( ! io->Write(info->chunk) )
 			{
 			Error(io->Error());
 			return false;
 			}
 		}
+
+	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
+	chunk->len = format->EndWrite(&chunk->data);
 
 	if ( ! io->Write(chunk) )
 		{

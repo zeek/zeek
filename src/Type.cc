@@ -2003,6 +2003,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			if ( ! y1 || ! y2 )
 				{
 				t1->Error("incompatible types", t2);
+				Unref(tl3);
 				return 0;
 				}
 

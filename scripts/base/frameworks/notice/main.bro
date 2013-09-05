@@ -113,7 +113,7 @@ export {
 		peer_descr:     string         &log &optional;
 
 		## The actions which have been applied to this notice.
-		actions:        set[Notice::Action] &log &optional;
+		actions:        set[Notice::Action] &log &default=set();
 
 		## By adding chunks of text into this element, other scripts can
 		## expand on notices that are being emailed.  The normal way to add text
@@ -532,9 +532,6 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$peer_descr )
 		n$peer_descr = n$src_peer?$descr ?
 		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
-
-	if ( ! n?$actions )
-		n$actions = set();
 
 	if ( ! n?$email_body_sections )
 		n$email_body_sections = vector();

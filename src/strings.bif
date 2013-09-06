@@ -10,21 +10,6 @@ using namespace std;
 #include "SmithWaterman.h"
 %%}
 
-## Given a size gsize, this function calculates the unique set of n-grams of a string
-function str_grammer%(s: string, gsize: count%): string_set
-        %{
-        unsigned int ssize = s->Len();
-//      unsigned int mzx = ssize - (ssize % gsize);
-        ListVal* lv = new ListVal(TYPE_STRING);
-
-//      for (unsigned int index = 0; index < max; ++index)
-        for (unsigned int index = 0; index + gsize <= ssize; ++index)
-                {
-                lv->Append( new StringVal( s->AsString()->GetSubstring(index, gsize)) );
-                }
-        return lv->ConvertToSet();
-        %}
-
 ## Calculates the Levenshtein distance between the two strings. See `Wikipedia
 ## <http://en.wikipedia.org/wiki/Levenshtein_distance>`__ for more information.
 ##

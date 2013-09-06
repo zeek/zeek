@@ -43,7 +43,6 @@ hook register_observe_plugins()
 			rv$card = hll_cardinality_init(r$hll_error_margin, r$hll_confidence);
 			rv$hll_error_margin = r$hll_error_margin;
 			rv$hll_confidence = r$hll_confidence;
-			rv$hll_unique = 0;
 			}
 
 		hll_cardinality_add(rv$card, obs);
@@ -53,9 +52,14 @@ hook register_observe_plugins()
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{
+	if ( ! (rv1?$card || rv2?$card) )
+		return;
+
 	local rhll = hll_cardinality_init(rv1$hll_error_margin, rv1$hll_confidence);
-	hll_cardinality_merge_into(rhll, rv1$card);
-	hll_cardinality_merge_into(rhll, rv2$card);
+	if ( rv1?$card )
+		hll_cardinality_merge_into(rhll, rv1$card);
+	if ( rv2?$card )
+		hll_cardinality_merge_into(rhll, rv2$card);
 
 	result$card = rhll;
 	result$hll_unique = double_to_count(hll_cardinality_estimate(rhll));

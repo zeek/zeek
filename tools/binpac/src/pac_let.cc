@@ -133,7 +133,6 @@ LetDecl::LetDecl(ID *id, Type *type, Expr *expr)
 
 LetDecl::~LetDecl()
 	{
-	delete id_;
 	delete type_;
 	delete expr_;
 	}

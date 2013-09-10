@@ -49,10 +49,7 @@ int expand_escape(const char*& s)
 
 		int result;
 		if ( sscanf(start, "%3o", &result) != 1 )
-			{
 			throw EscapeException(fmt("bad octal escape: \"%s", start));
-			result = 0;
-			}
 
 		return result;
 		}
@@ -68,10 +65,7 @@ int expand_escape(const char*& s)
 
 		int result;
 		if ( sscanf(start, "%2x", &result) != 1 )
-			{
 			throw EscapeException(fmt("bad hexadecimal escape: \"%s", start));
-			result = 0;
-			}
 
 		return result;
 		}

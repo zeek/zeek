@@ -2575,8 +2575,8 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 error:
 	if ( c )
 		{
-		delete c;
 		delete [] c->data;
+		delete c;
 		}
 
 	FatalError(io->Error());

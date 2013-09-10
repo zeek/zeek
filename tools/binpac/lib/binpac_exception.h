@@ -16,7 +16,7 @@ public:
 
 	void append(string m) 		{ msg_ += m; }
 	string msg() const		{ return msg_; }
-	const char* c_msg() const 	{ return msg().c_str(); }
+	const char* c_msg() const 	{ return msg_.c_str(); }
 
 protected:
 	string msg_;

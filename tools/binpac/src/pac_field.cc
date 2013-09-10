@@ -23,6 +23,8 @@ Field::~Field()
 
 void Field::AddAttr(AttrList* attrs)
 	{
+	bool delete_attrs = false;
+
 	if ( ! attrs_ )
 		{
 		attrs_ = attrs;
@@ -30,11 +32,14 @@ void Field::AddAttr(AttrList* attrs)
 	else
 		{
 		attrs_->insert(attrs_->end(), attrs->begin(), attrs->end());
-		delete attrs;
+		delete_attrs = true;
 		}
 
 	foreach(i, AttrList, attrs)
 		ProcessAttr(*i);
+
+	if ( delete_attrs )
+		delete attrs;
 	}
 
 void Field::ProcessAttr(Attr *a)

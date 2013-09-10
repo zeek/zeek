@@ -41,7 +41,21 @@ int Output::print(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	return print(fmt, ap);
+	int r = -1;
+
+	try
+		{
+		r = print(fmt, ap);
+		}
+
+	catch ( ... )
+		{
+		va_end(ap);
+		throw;
+		}
+
+	va_end(ap);
+	return r;
 	}
 
 int Output::println(const char* fmt, ...)
@@ -49,11 +63,22 @@ int Output::println(const char* fmt, ...)
 	for ( int i = 0; i < indent(); ++i )
 		fprintf(fp, "\t");
 
-	int r;
 	va_list ap;
 	va_start(ap, fmt);
-	r = print(fmt, ap);
+	int r = -1;
 
+	try
+		{
+		r = print(fmt, ap);
+		}
+
+	catch ( ... )
+		{
+		va_end(ap);
+		throw;
+		}
+
+	va_end(ap);
 	fprintf(fp, "\n");
 	return r;
 	}

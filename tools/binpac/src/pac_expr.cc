@@ -802,6 +802,7 @@ int Expr::MinimalHeaderSize(Env *env)
 				mhs = -1;
 				}
 			}
+			break;
 
 		case EXPR_SIZEOF:
 			{

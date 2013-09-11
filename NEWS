@@ -631,7 +631,7 @@ Variable Naming
 
 - Identifiers may have been renamed to conform to new `scripting
   conventions
-  <http://www.bro.org/development/script-conventions.html>`_
+  <http://www.bro.org/development/howtos/script-conventions.html>`_
 
 
 Removed Functionality

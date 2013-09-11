@@ -24,5 +24,5 @@ current, independent component releases.
    PySubnetTree - Python module for CIDR lookups<pysubnettree/README>
    trace-summary - Script for generating break-downs of network traffic <trace-summary/README>
 
-The `Broccoli API Reference <broccoli-api/index.html>`_ may also be of
+The `Broccoli API Reference <../broccoli-api/index.html>`_ may also be of
 interest.

@@ -204,7 +204,7 @@ extern int int_list_cmp(const void* v1, const void* v2);
 
 extern const char* bro_path();
 extern const char* bro_magic_path();
-extern const char* bro_prefixes();
+extern std::string bro_prefixes();
 std::string dot_canon(std::string path, std::string file, std::string prefix = "");
 const char* normalize_path(const char* path);
 void get_script_subpath(const std::string& full_filename, const char** subpath);

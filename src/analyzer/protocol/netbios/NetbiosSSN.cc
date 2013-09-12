@@ -129,14 +129,11 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 	data += dstname->Len()+1;
 	len -= dstname->Len();
 
-	if ( smb_session )
-		{
-		smb_session->Deliver(is_query, len, data);
-		return 0;
-		}
-
 	delete srcname;
 	delete dstname;
+
+	if ( smb_session )
+		smb_session->Deliver(is_query, len, data);
 
 	return 0;
 	}

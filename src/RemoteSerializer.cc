@@ -2699,6 +2699,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	EnumVal* id_val = 0;
 	EnumVal* writer_val = 0;
 	threading::Field** fields = 0;
+	int delete_fields_up_to = -1;
 
 	BinarySerializationFormat fmt;
 	fmt.StartRead(current_args->data, current_args->len);
@@ -2721,7 +2722,10 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 		{
 		fields[i] = new threading::Field;
 		if ( ! fields[i]->Read(&fmt) )
+			{
+			delete_fields_up_to = i + 1;
 			goto error;
+			}
 		}
 
 	fmt.EndRead();
@@ -2731,7 +2735,10 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields,
 	                             true, false, true) )
+		{
+		delete_fields_up_to = num_fields;
 		goto error;
+		}
 
 	Unref(id_val);
 	Unref(writer_val);
@@ -2741,7 +2748,12 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 error:
 	Unref(id_val);
 	Unref(writer_val);
+	delete info;
 
+	for ( int i = 0; i < delete_fields_up_to; ++i )
+		delete fields[i];
+
+	delete fields;
 	Error("write error for creating writer");
 	return false;
 	}
@@ -2780,8 +2792,15 @@ bool RemoteSerializer::ProcessLogWrite()
 		for ( int i = 0; i < num_fields; i++ )
 			{
 			vals[i] = new threading::Value;
+
 			if ( ! vals[i]->Read(&fmt) )
+				{
+				for ( int j = 0; j <= i; ++j )
+					delete vals[j];
+
+				delete vals;
 				goto error;
+				}
 			}
 
 		id_val = new EnumVal(id, BifType::Enum::Log::ID);
@@ -4267,6 +4286,8 @@ bool SocketComm::AcceptConnection(int fd)
 	if ( ! peer->io->Init() )
 		{
 		Error(fmt("can't init peer io: %s", peer->io->Error()), false);
+		delete peer->io;
+		delete peer;
 		return false;
 		}
 

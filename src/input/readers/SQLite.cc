@@ -148,6 +148,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		if ( sqlite3_column_type(st, pos) != SQLITE_INTEGER )
 			{
 			Error("Invalid data type for boolean - expected Integer");
+			delete val;
 			return 0;
 			}
 
@@ -158,6 +159,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		else
 			{
 			Error(Fmt("Invalid value for boolean: %d", res));
+			delete val;
 			return 0;
 			}
 		break;
@@ -220,12 +222,14 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));
+		delete val;
 		val = io->ParseValue(s, "", field->type, field->subtype);
 		break;
 		}
 
 	default:
 		Error(Fmt("unsupported field format %d", field->type));
+		delete val;
 		return 0;
 	}
 
@@ -257,6 +261,8 @@ bool SQLite::DoUpdate()
 				if ( mapping[j] != -1 )
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					delete [] mapping;
+					delete [] submapping;
 					return false;
 					}
 
@@ -269,6 +275,8 @@ bool SQLite::DoUpdate()
 				if ( submapping[j] != -1 )
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					delete [] mapping;
+					delete [] submapping;
 					return false;
 					}
 
@@ -282,6 +290,8 @@ bool SQLite::DoUpdate()
 		if ( mapping[i] == -1 )
 			{
 			Error(Fmt("Required field %s not found after SQLite statement", fields[i]->name));
+			delete [] mapping;
+			delete [] submapping;
 			return false;
 			}
 		}
@@ -295,19 +305,27 @@ bool SQLite::DoUpdate()
 			{
 			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
 			if ( ofields[j] == 0 )
+				{
+				for ( int k = 0; k < j; ++k )
+					delete ofields[k];
+
+				delete [] ofields;
+				delete [] mapping;
+				delete [] submapping;
 				return false;
+				}
 			}
 
 		SendEntry(ofields);
 		}
 
+	delete [] mapping;
+	delete [] submapping;
+
 	if ( checkError(errorcode) ) // check the last error code returned by sqlite
 		return false;
 
 	EndCurrentSend();
-
-	delete [] mapping;
-	delete [] submapping;
 
 	if ( checkError(sqlite3_reset(st)) )
 		return false;

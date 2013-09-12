@@ -788,6 +788,7 @@ bool SwitchStmt::AddCaseLabelMapping(const Val* v, int idx)
 		}
 
 	case_label_map.Insert(hk, new int(idx));
+	delete hk;
 	return true;
 	}
 

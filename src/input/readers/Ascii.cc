@@ -320,6 +320,11 @@ bool Ascii::DoUpdate()
 				{
 				Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d",
 					  line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
+
+				for ( int i = 0; i < fpos; i++ )
+					delete fields[i];
+
+				delete [] fields;
 				return false;
 				}
 

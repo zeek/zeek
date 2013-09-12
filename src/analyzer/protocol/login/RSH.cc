@@ -175,6 +175,9 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	else if ( rsh_reply )
 		ConnectionEvent(rsh_reply, vl);
+
+	else
+		delete_vals(vl);
 	}
 
 void Rsh_Analyzer::ClientUserName(const char* s)

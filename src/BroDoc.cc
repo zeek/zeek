@@ -99,8 +99,6 @@ void BroDoc::AddImport(const std::string& s)
 
 	if ( f && full_filename && subpath )
 		{
-		fclose(f);
-
 		char* tmp = copy_string(full_filename);
 		char* filename = basename(tmp);
 		extern char* PACKAGE_LOADER;
@@ -138,6 +136,9 @@ void BroDoc::AddImport(const std::string& s)
 	else
 		fprintf(stderr, "Failed to document '@load %s' in file: %s\n",
 		        s.c_str(), reST_filename.c_str());
+
+	if ( f )
+		fclose(f);
 
 	delete [] full_filename;
 	delete [] subpath;
@@ -559,7 +560,7 @@ static void WriteAnalyzerTagDefn(FILE* f, EnumType* e, const string& module)
 	e = new CommentedEnumType(e);
 	e->SetTypeID(copy_string(tag_id.c_str()));
 
-	ID* dummy_id = new ID(copy_string(tag_id.c_str()), SCOPE_GLOBAL, true);
+	ID* dummy_id = new ID(tag_id.c_str(), SCOPE_GLOBAL, true);
 	dummy_id->SetType(e);
 	dummy_id->MakeType();
 

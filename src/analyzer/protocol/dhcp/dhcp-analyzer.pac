@@ -110,6 +110,10 @@ flow DHCP_Flow(is_orig: bool) {
 							       connection()->bro_analyzer()->Conn(),
 							       dhcp_msg_val_->Ref(), host_name);
 				break;
+
+			default:
+				Unref(host_name);
+				break;
 			}
 
 		return true;
@@ -201,6 +205,9 @@ flow DHCP_Flow(is_orig: bool) {
 							    dhcp_msg_val_->Ref(), host_name);
 				break;
 
+			default:
+				Unref(host_name);
+				break;
 			}
 
 		return true;

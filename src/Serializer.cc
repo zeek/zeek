@@ -1148,7 +1148,11 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 		UNSERIALIZE(&tv_usec) &&
 		UNSERIALIZE(&len) &&
 		UNSERIALIZE(&p->link_type)) )
+		{
+		delete p;
+		delete hdr;
 		return 0;
+		}
 
 	hdr->ts.tv_sec = tv_sec;
 	hdr->ts.tv_usec = tv_usec;
@@ -1156,12 +1160,18 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 
 	char* tag;
 	if ( ! info->s->Read((char**) &tag, 0, "tag") )
+		{
+		delete p;
+		delete hdr;
 		return 0;
+		}
 
 	char* pkt;
 	int caplen;
 	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
 		{
+		delete p;
+		delete hdr;
 		delete [] tag;
 		return 0;
 		}

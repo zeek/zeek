@@ -304,6 +304,7 @@ DFA_State_Cache::~DFA_State_Cache()
 		{
 		assert(e->state);
 		delete e->hash;
+		Unref(e->state);
 		delete e;
 		}
 	}
@@ -410,7 +411,10 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 		(void) StateSetToDFA_State(state_set, start_state, ec);
 		}
 	else
+		{
 		start_state = 0; // Jam
+		delete ns;
+		}
 	}
 
 DFA_Machine::~DFA_Machine()

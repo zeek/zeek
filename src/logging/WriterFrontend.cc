@@ -132,6 +132,7 @@ WriterFrontend::~WriterFrontend()
 	Unref(stream);
 	Unref(writer);
 	delete info;
+	delete [] name;
 	}
 
 void WriterFrontend::Stop()

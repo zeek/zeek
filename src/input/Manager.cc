@@ -416,6 +416,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 		{
 		reporter->Error("stream event is a function, not an event");
+		delete stream;
 		return false;
 		}
 
@@ -424,18 +425,21 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( args->length() < 2 )
 		{
 		reporter->Error("event takes not enough arguments");
+		delete stream;
 		return false;
 		}
 
 	if ( ! same_type((*args)[1], BifType::Enum::Input::Event, 0) )
 		{
 		reporter->Error("events second attribute must be of type Input::Event");
+		delete stream;
 		return false;
 		}
 
 	if ( ! same_type((*args)[0], BifType::Record::Input::EventDescription, 0) )
 		{
 		reporter->Error("events first attribute must be of type Input::EventDescription");
+		delete stream;
 		return false;
 		}
 
@@ -444,6 +448,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		if ( args->length() != fields->NumFields() + 2 )
 			{
 			reporter->Error("event has wrong number of arguments");
+			delete stream;
 			return false;
 			}
 
@@ -452,6 +457,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			if ( !same_type((*args)[i+2], fields->FieldType(i) ) )
 				{
 				reporter->Error("Incompatible type for event");
+				delete stream;
 				return false;
 				}
 			}
@@ -463,6 +469,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		if ( args->length() != 3 )
 			{
 			reporter->Error("event has wrong number of arguments");
+			delete stream;
 			return false;
 			}
 
@@ -475,6 +482,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			reporter->Error("Incompatible type '%s':%s for event, which needs type '%s':%s\n",
 					type_name((*args)[2]->Tag()), desc1.Description(),
 					type_name(fields->Tag()), desc2.Description());
+			delete stream;
 			return false;
 			}
 
@@ -493,6 +501,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( status )
 		{
 		reporter->Error("Problem unrolling");
+		delete stream;
 		return false;
 		}
 
@@ -560,12 +569,14 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		if ( j >= num )
 			{
 			reporter->Error("Table type has more indexes than index definition");
+			delete stream;
 			return false;
 			}
 
 		if ( ! same_type(idx->FieldType(j), (*tl)[j]) )
 			{
 			reporter->Error("Table type does not match index type");
+			delete stream;
 			return false;
 			}
 		}
@@ -573,6 +584,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( num != j )
 		{
 		reporter->Error("Table has less elements than index definition");
+		delete stream;
 		return false;
 		}
 
@@ -589,6 +601,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
+			delete stream;
 			return false;
 			}
 
@@ -597,36 +610,42 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		if ( args->length() != 4 )
 			{
 			reporter->Error("Table event must take 4 arguments");
+			delete stream;
 			return false;
 			}
 
 		if ( ! same_type((*args)[0], BifType::Record::Input::TableDescription, 0) )
 			{
 			reporter->Error("table events first attribute must be of type Input::TableDescription");
+			delete stream;
 			return false;
 			}
 
 		if ( ! same_type((*args)[1], BifType::Enum::Input::Event, 0) )
 			{
 			reporter->Error("table events second attribute must be of type Input::Event");
+			delete stream;
 			return false;
 			}
 
 		if ( ! same_type((*args)[2], idx) )
 			{
 			reporter->Error("table events index attributes do not match");
+			delete stream;
 			return false;
 			}
 
 		if ( want_record->InternalInt() == 1 && ! same_type((*args)[3], val) )
 			{
 			reporter->Error("table events value attributes do not match");
+			delete stream;
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
 		           && !same_type((*args)[3], val->FieldType(0) ) )
 			{
 			reporter->Error("table events value attribute does not match");
+			delete stream;
 			return false;
 			}
 
@@ -651,6 +670,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( status )
 		{
 		reporter->Error("Problem unrolling");
+		delete stream;
 		return false;
 		}
 

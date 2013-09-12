@@ -63,8 +63,8 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 
 ## Merges a HLL cardinality counter into another.
 ##
-## .. note:: The same restrictions as for Bloom filter merging apply, see
-##    :bro:id:`bloomfilter_merge`.
+## .. note:: The same restrictions as for Bloom filter merging apply,
+##    see :bro:id:`bloomfilter_merge`.
 ##
 ## handle1: the first HLL handle, which will contain the merged result
 ##

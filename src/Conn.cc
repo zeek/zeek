@@ -527,7 +527,13 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 
 	// We need at least a name.
 	if ( ! name )
+		{
+		Unref(major);
+		Unref(minor);
+		Unref(minor2);
+		Unref(addl);
 		return 0;
+		}
 
 	RecordVal* version = new RecordVal(software_version);
 	version->Assign(0, major ? major : new Val(-1, TYPE_INT));

@@ -902,24 +902,17 @@ const char* bro_magic_path()
 	return path;
 	}
 
-const char* bro_prefixes()
+string bro_prefixes()
 	{
-	int len = 1;	// room for \0
-	loop_over_list(prefixes, i)
-		len += strlen(prefixes[i]) + 1;
-
-	char* p = new char[len];
+	string rval;
 
 	loop_over_list(prefixes, j)
 		if ( j == 0 )
-			strcpy(p, prefixes[j]);
+			rval.append(prefixes[j]);
 		else
-			{
-			strcat(p, ":");
-			strcat(p, prefixes[j]);
-			}
+			rval.append(":").append(prefixes[j]);
 
-	return p;
+	return rval;
 	}
 
 const char* PACKAGE_LOADER = "__load__.bro";

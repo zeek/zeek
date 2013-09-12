@@ -416,8 +416,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
-		arg_id = install_ID(copy_string(arg_i->id), module_name,
-					false, false);
+		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type->Ref());
 		}
 	}

@@ -119,6 +119,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					if ( pkt_dumper->IsError() )
 						{
 						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
+						delete pkt_dumper;
 						pkt_dumper = 0;
 						}
 					}

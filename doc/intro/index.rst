@@ -163,7 +163,7 @@ History
     :width: 600
     :align: center
     :alt: Bro History Timeline
-    :target: history.png
+    :target: ../_images/history.png
 
     Timeline of Bro's History (click to enlarge).
 
@@ -218,7 +218,7 @@ Architecture
     :width: 400
     :align: center
     :alt: Bro Architecture
-    :target: {{docroot}}/images/architecture.png
+    :target: ../_images/architecture.png
 
     Bro's internal architecture.
 

@@ -9,7 +9,7 @@ If you're doing an upgrade install (rather than a fresh install),
 there's two suggested approaches: either install Bro using the same
 installation prefix directory as before, or pick a new prefix and copy
 local customizations over. In the following we summarize general
-guidelines for upgrading, see the `Release Notes <release-notes>`_ for
+guidelines for upgrading, see the :ref:`release-notes` for
 version-specific information.
 
 Re-Using Previous Install Prefix

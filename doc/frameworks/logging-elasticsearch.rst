@@ -25,7 +25,7 @@ respond successfully to the insertion request.
 Installing ElasticSearch
 ------------------------
 
-Download the latest version from: <http://www.elasticsearch.org/download/>.
+Download the latest version from: http://www.elasticsearch.org/download/.
 Once extracted, start ElasticSearch with::
 
 # ./bin/elasticsearch

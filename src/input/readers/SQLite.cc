@@ -306,7 +306,7 @@ bool SQLite::DoUpdate()
 			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
 			if ( ofields[j] == 0 )
 				{
-				for ( int k = 0; k < j; ++k )
+				for ( unsigned int k = 0; k < j; ++k )
 					delete ofields[k];
 
 				delete [] ofields;

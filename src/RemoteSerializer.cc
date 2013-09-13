@@ -2753,7 +2753,7 @@ error:
 	for ( int i = 0; i < delete_fields_up_to; ++i )
 		delete fields[i];
 
-	delete fields;
+	delete [] fields;
 	Error("write error for creating writer");
 	return false;
 	}
@@ -2798,7 +2798,7 @@ bool RemoteSerializer::ProcessLogWrite()
 				for ( int j = 0; j <= i; ++j )
 					delete vals[j];
 
-				delete vals;
+				delete [] vals;
 				goto error;
 				}
 			}
@@ -3167,6 +3167,7 @@ bool RemoteSerializer::SendToChild(ChunkedIO::Chunk* c)
 		return true;
 
 	delete [] c->data;
+	c->data = 0;
 
 	if ( ! child_pid )
 		return false;

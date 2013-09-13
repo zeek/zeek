@@ -2925,8 +2925,7 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 		const char* desc = val->AsString()->CheckString();
 		current_peer->val->Assign(4, new StringVal(desc));
 
-		Log(LogInfo, fmt("peer_description is %s",
-					(desc && *desc) ? desc : "not set"),
+		Log(LogInfo, fmt("peer_description is %s", *desc ? desc : "not set"),
 			current_peer);
 
 		Unref(id);

@@ -149,8 +149,6 @@ protected:
 	// Make buffer big enough for n bytes beyond bufp.
 	void Grow(unsigned int n);
 
-	void OutOfMemory();
-
 	/**
 	 * Returns the location of the first place in the bytes to be hex-escaped.
 	 *

@@ -1074,9 +1074,8 @@ bool ChunkedIOSSL::Read(Chunk** chunk, bool mayblock)
 	read_state = LEN;
 
 #ifdef DEBUG
-	if ( *chunk )
-		DBG_LOG(DBG_CHUNKEDIO, "ssl read of size %d [%s]",
-			(*chunk)->len, fmt_bytes((*chunk)->data, 20));
+	DBG_LOG(DBG_CHUNKEDIO, "ssl read of size %d [%s]",
+		(*chunk)->len, fmt_bytes((*chunk)->data, 20));
 #endif
 
 	return true;

@@ -1403,8 +1403,8 @@ void CommentedEnumType::AddComment(const string& module_name, const char* name,
 		comments[copy_string(fullname.c_str())] = new_comments;
 	else
 		{
-		comments[fullname.c_str()]->splice(comments[fullname.c_str()]->end(),
-			*new_comments);
+		list<string>* prev_comments = comments[fullname.c_str()];
+		prev_comments->splice(prev_comments->end(), *new_comments);
 		delete new_comments;
 		}
 	}

@@ -402,10 +402,11 @@ bool Manager::RemoveStream(EnumVal* id)
 		}
 
 	stream->writers.clear();
+	string sname(stream->name);
 	delete stream;
 	streams[idx] = 0;
 
-	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", sname.c_str());
 	return true;
 	}
 

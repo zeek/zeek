@@ -30,6 +30,7 @@
 Val::Val(Func* f)
 	{
 	val.func_val = f;
+	::Ref(val.func_val);
 	type = f->FType()->Ref();
 	attribs = 0;
 #ifdef DEBUG
@@ -58,6 +59,9 @@ Val::~Val()
 	{
 	if ( type->InternalType() == TYPE_INTERNAL_STRING )
 		delete val.string_val;
+
+	else if ( type->Tag() == TYPE_FUNC )
+		Unref(val.func_val);
 
 	else if ( type->Tag() == TYPE_FILE )
 		Unref(val.file_val);

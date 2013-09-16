@@ -7,7 +7,6 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
-   packages
    builtins
    Built-In Functions (BIFs) <base/bif/index>
    scripts

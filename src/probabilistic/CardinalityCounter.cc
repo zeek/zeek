@@ -188,5 +188,11 @@ CardinalityCounter* CardinalityCounter::Unserialize(UnserialInfo* info)
 		buckets[i] = (uint8)c;
 		}
 
-	return valid ? c : 0;
+	if ( ! valid )
+		{
+		delete c;
+		c = 0;
+		}
+
+	return c;
 	}

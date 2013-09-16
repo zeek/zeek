@@ -66,6 +66,8 @@ void Gnutella_Analyzer::Done()
 			ConnectionEvent(gnutella_establish, vl);
 		else if ( ! Established () && gnutella_not_establish )
 			ConnectionEvent(gnutella_not_establish, vl);
+		else
+			delete_vals(vl);
 		}
 
 	if ( gnutella_partial_binary_msg )

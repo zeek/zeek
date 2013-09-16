@@ -2964,6 +2964,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			if ( v_v1->Size() != v_v2->Size() )
 				{
 				Error("size mismatch, boolean index and vector");
+				Unref(v_result);
 				return 0;
 				}
 
@@ -3803,6 +3804,8 @@ Val* VectorConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 		if ( ! v || ! vec->Assign(i, v) )
 			{
 			Error(fmt("initialization type mismatch at index %d", i), e);
+			if ( ! aggr )
+				Unref(vec);
 			return 0;
 			}
 		}
@@ -5159,6 +5162,7 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 		if ( exprs.length() != tl->length() )
 			{
 			Error("index mismatch", t);
+			Unref(v);
 			return 0;
 			}
 

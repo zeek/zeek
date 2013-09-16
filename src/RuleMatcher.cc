@@ -1226,6 +1226,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 
 		default:
 			rules_error("Wrong type of identifier");
+			delete mval;
 			return false;
 	}
 

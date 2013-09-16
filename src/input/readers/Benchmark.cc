@@ -212,6 +212,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 			if ( newval == 0 )
 				{
 				Error("Error while reading set");
+				delete val;
 				return 0;
 				}
 			lvals[pos] = newval;
@@ -223,6 +224,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 	default:
 		Error(Fmt("unsupported field format %d", type));
+		delete val;
 		return 0;
 	}
 

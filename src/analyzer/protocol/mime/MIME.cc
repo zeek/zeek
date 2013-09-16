@@ -831,7 +831,6 @@ int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 int MIME_Entity::ParseFieldParameters(int len, const char* data)
 	{
 	data_chunk_t attr;
-	BroString* val;
 
 	while ( 1 )
 		{
@@ -864,11 +863,13 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		data += offset;
 		len -= offset;
 
+		BroString* val = 0;
 		// token or quoted-string
 		offset = MIME_get_value(len, data, val);
 		if ( offset < 0 )
 			{
 			IllegalFormat("value not found in parameter specification");
+			delete val;
 			continue;
 			}
 

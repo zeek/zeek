@@ -79,6 +79,8 @@ void DebugLogger::EnableStreams(const char* s)
 
 		tok = strtok(0, ",");
 		}
+
+	delete [] tmp;
 	}
 
 void DebugLogger::Log(DebugStream stream, const char* fmt, ...)

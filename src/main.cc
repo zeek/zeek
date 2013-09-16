@@ -222,7 +222,7 @@ void usage()
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
-	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
+	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());

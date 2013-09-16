@@ -1,4 +1,26 @@
 
+2.1-1335 | 2013-09-12 16:13:53 -0500
+
+  * Documentation fixes (Daniel Thayer, Jon Siwek)
+
+  * Fix various potential memory leaks. (Jon Siwek)
+
+  * Fix significant memory leak in function unserialization. (Jon Siwek)
+
+  * Fix use-after-free and invalid/mismatch deallocator bugs. (Jon Siwek)
+
+  * Fixed an issue with the HLL_UNIQUE SumStats plugin that caused a reporter error. (Seth Hall)
+
+  * Make the notice $actions field have a default empty set to avoid having to check for it's presence. (Seth Hall)
+
+  * Fix signatures that use identifiers of type table. (Jon Siwek)
+
+  * Fix memory leak if a DNS request fails to be made. (Jon Siwek)
+
+  * Fix memory leak in DNS TXT lookups. (Jon Siwek)
+
+  * Fix raw execution input reader's signal blocking which resulted in lingering processes. (Jon Siwek)
+
 2.1-1306 | 2013-08-31 16:06:05 -0700
 
   * Reorganized and signifcantly extended documentation. This includes

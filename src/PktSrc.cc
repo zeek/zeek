@@ -624,6 +624,7 @@ SecondaryPath::SecondaryPath()
 		event_list.append(se);
 
 		delete h;
+		Unref(index);
 		}
 	}
 

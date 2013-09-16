@@ -30,6 +30,7 @@
 Val::Val(Func* f)
 	{
 	val.func_val = f;
+	::Ref(val.func_val);
 	type = f->FType()->Ref();
 	attribs = 0;
 #ifdef DEBUG

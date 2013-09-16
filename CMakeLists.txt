@@ -153,9 +153,10 @@ if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
   list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
 endif()
 
-if (ENABLE_PERFTOOLS_DEBUG)
+if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
     # Just a no op to prevent CMake from complaining about manually-specified
-    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
+    # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
+    # perftools weren't found
 endif ()
 
 set(brodeps

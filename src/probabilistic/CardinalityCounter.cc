@@ -15,6 +15,9 @@ int CardinalityCounter::OptimalB(double error, double confidence)
 	double initial_estimate = 2 * (log(1.04) - log(error)) / log(2);
 	int answer = (int) floor(initial_estimate);
 
+	// k is the number of standard deviations that we have to go to have
+	// a confidence level of conf.
+
 	double k = 0;
 
 	do {
@@ -52,6 +55,12 @@ void CardinalityCounter::Init(uint64 size)
 		buckets[i] = 0;
 
 	V = m;
+	}
+
+CardinalityCounter::CardinalityCounter(CardinalityCounter& other)
+	{
+	Init(other.GetM());
+	Merge(&other);
 	}
 
 CardinalityCounter::CardinalityCounter(double error_margin, double confidence)
@@ -107,7 +116,16 @@ void CardinalityCounter::AddElement(uint64 hash)
 		buckets[index] = temp;
 	}
 
-double CardinalityCounter::Size()
+/**
+ * Estimate the size by using the the "raw" HyperLogLog estimate. Then,
+ * check if it's too "large" or "small" because the raw estimate doesn't 
+ * do well in those cases.
+ * Thus, we correct for those errors as specified in the paper.
+ *
+ * Note - we deviate from the HLL algorithm in the paper here, because
+ * of our 64-bit hashes.
+ **/
+double CardinalityCounter::Size() const
 	{
 	double answer = 0;
 	for ( unsigned int i = 0; i < m; i++ )
@@ -126,8 +144,11 @@ double CardinalityCounter::Size()
 		return -pow(2, 64) * log(1 - (answer / pow(2, 64)));
 	}
 
-void CardinalityCounter::Merge(CardinalityCounter* c)
+bool CardinalityCounter::Merge(CardinalityCounter* c)
 	{
+	if ( m != c->GetM() )
+		return false;
+
 	uint8_t* temp = c->GetBuckets();
 
 	V = 0;
@@ -140,6 +161,8 @@ void CardinalityCounter::Merge(CardinalityCounter* c)
 		if ( buckets[i] == 0 )
 			++V;
 		}
+
+	return true;
 	}
 
 uint8_t* CardinalityCounter::GetBuckets()
@@ -147,7 +170,7 @@ uint8_t* CardinalityCounter::GetBuckets()
 	return buckets;
 	}
 
-uint64 CardinalityCounter::GetM()
+uint64 CardinalityCounter::GetM() const
 	{
 	return m;
 	}

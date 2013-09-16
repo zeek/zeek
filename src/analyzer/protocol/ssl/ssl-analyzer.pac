@@ -10,6 +10,8 @@
 
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
+
+#include "file_analysis/Manager.h"
 %}
 
 
@@ -253,6 +255,11 @@ refine connection SSL_Conn += {
 				{
 				const bytestring& cert = (*certificates)[i];
 				const uint8* data = cert.data();
+				
+				file_mgr->DataIn(reinterpret_cast<const u_char*>(data), cert.length(), 
+						bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(), false);
+				file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn());
+
 				X509* pTemp = d2i_X509_binpac(NULL, &data, cert.length());
 				if ( ! pTemp )
 					{
@@ -260,6 +267,7 @@ refine connection SSL_Conn += {
 					                              ${rec.is_orig}, ERR_get_error());
 					return false;
 					}
+
 
 				RecordVal* pX509Cert = new RecordVal(x509_type);
 				char tmp[256];

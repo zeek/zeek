@@ -62,9 +62,13 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		if ( ! pia )
 			{
 			pia = new pia::PIA_TCP(Conn());
-			AddChildAnalyzer(pia);
-			pia->FirstPacket(true, 0);
-			pia->FirstPacket(false, 0);
+			if ( AddChildAnalyzer(pia) )
+				{
+				pia->FirstPacket(true, 0);
+				pia->FirstPacket(false, 0);
+				}
+			else
+				pia = 0;
 			}
 
 		ForwardStream(len, data, orig);

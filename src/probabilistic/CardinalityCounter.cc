@@ -10,7 +10,7 @@
 
 using namespace probabilistic;
 
-int CardinalityCounter::OptimalB(double error, double confidence)
+int CardinalityCounter::OptimalB(double error, double confidence) const
 	{
 	double initial_estimate = 2 * (log(1.04) - log(error)) / log(2);
 	int answer = (int) floor(initial_estimate);
@@ -87,7 +87,7 @@ CardinalityCounter::~CardinalityCounter()
 	delete [] buckets;
 	}
 
-uint8_t CardinalityCounter::Rank(uint64 hash_modified)
+uint8_t CardinalityCounter::Rank(uint64 hash_modified) const
 	{
 	uint8_t answer = 0;
 

@@ -147,7 +147,7 @@ private:
 	 *
 	 * @return minimal B-value satisfying the error-rate under confidence. 
 	 */
-	int OptimalB(double error, double confidence);
+	int OptimalB(double error, double confidence) const;
 
 	/**
 	 * Determines at which index (counted from the back) the first one-bit
@@ -158,7 +158,7 @@ private:
 	 *
 	 * @returns index of first one-bit
 	 */
-	uint8_t Rank(uint64 hash_modified);
+	uint8_t Rank(uint64 hash_modified) const;
 
 	/**
 	 * This is the number of buckets that will be stored. The standard

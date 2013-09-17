@@ -895,6 +895,17 @@ public:
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
+	/**
+	 * Looks up the value of a field by field name.  If the field doesn't
+	 * exist in the record type, it's an internal error: abort.
+	 * @param field name of field to lookup.
+	 * @param with_default whether to rely on field's &default attribute when
+	 * the field has yet to be initialized.
+	 * @return the value in field \a field.  It is Ref()'d only if
+	 * \a with_default is true.
+	 */
+	Val* Lookup(const char* field, bool with_default = false) const;
+
 	void Describe(ODesc* d) const;
 
 	// This is an experiment to associate a BroObj within the

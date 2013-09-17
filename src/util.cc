@@ -1261,6 +1261,16 @@ void _set_processing_status(const char* status)
 
 	int fd = open(proc_status_file, O_CREAT | O_WRONLY | O_TRUNC, 0700);
 
+	if ( fd < 0 )
+		{
+		char buf[256];
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("Failed to open process status file '%s': %s",
+		                proc_status_file, buf);
+		errno = old_errno;
+		return;
+		}
+
 	int len = strlen(status);
 	while ( len )
 		{

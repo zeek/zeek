@@ -2670,6 +2670,16 @@ Val* RecordVal::LookupWithDefault(int field) const
 	return record_type->FieldDefault(field);
 	}
 
+Val* RecordVal::Lookup(const char* field, bool with_default) const
+	{
+	int idx = record_type->FieldOffset(field);
+
+	if ( idx < 0 )
+		reporter->InternalError("missing record field: %s", field);
+
+	return with_default ? LookupWithDefault(idx) : Lookup(idx);
+	}
+
 RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
 	{
 	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )

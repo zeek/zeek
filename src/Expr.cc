@@ -3137,12 +3137,14 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 		{
 		RecordType* rt = op->Type()->AsRecordType();
 		field = rt->FieldOffset(field_name);
-		td = rt->FieldDecl(field);
 
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else
+			{
 			SetType(rt->FieldType(field)->Ref());
+			td = rt->FieldDecl(field);
+			}
 		}
 	}
 
@@ -3852,7 +3854,15 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 	Val* v = op->Eval(f);
 
 	if ( v )
-		rec->Assign(rt->FieldOffset(field_name.c_str()), v);
+		{
+		int idx = rt->FieldOffset(field_name.c_str());
+
+		if ( idx < 0 )
+			reporter->InternalError("Missing record field: %s",
+			                        field_name.c_str());
+
+		rec->Assign(idx, v);
+		}
 	}
 
 int FieldAssignExpr::IsRecordElement(TypeDecl* td) const

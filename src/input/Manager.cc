@@ -296,7 +296,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		return false;
 		}
 
-	Val* name_val = description->LookupWithDefault(rtype->FieldOffset("name"));
+	Val* name_val = description->Lookup("name", true);
 	string name = name_val->AsString()->CheckString();
 	Unref(name_val);
 
@@ -308,10 +308,10 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		return false;
 		}
 
-	EnumVal* reader = description->LookupWithDefault(rtype->FieldOffset("reader"))->AsEnumVal();
+	EnumVal* reader = description->Lookup("reader", true)->AsEnumVal();
 
 	// get the source ...
-	Val* sourceval = description->LookupWithDefault(rtype->FieldOffset("source"));
+	Val* sourceval = description->Lookup("source", true);
 	assert ( sourceval != 0 );
 	const BroString* bsource = sourceval->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
@@ -321,7 +321,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	rinfo.source = copy_string(source.c_str());
 	rinfo.name = copy_string(name.c_str());
 
-	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
+	EnumVal* mode = description->Lookup("mode", true)->AsEnumVal();
 	switch ( mode->InternalInt() )
 		{
 		case 0:
@@ -342,7 +342,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	Unref(mode);
 
-	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
+	Val* config = description->Lookup("config", true);
 	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
 
 		{
@@ -401,11 +401,11 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		}
 
 
-	RecordType *fields = fval->LookupWithDefault(rtype->FieldOffset("fields"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType *fields = fval->Lookup("fields", true)->AsType()->AsTypeType()->Type()->AsRecordType();
 
-	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));
+	Val *want_record = fval->Lookup("want_record", true);
 
-	Val* event_val = fval->LookupWithDefault(rtype->FieldOffset("ev"));
+	Val* event_val = fval->Lookup("ev", true);
 	Func* event = event_val->AsFunc();
 	Unref(event_val);
 
@@ -547,18 +547,18 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			}
 		}
 
-	Val* pred = fval->LookupWithDefault(rtype->FieldOffset("pred"));
+	Val* pred = fval->Lookup("pred", true);
 
-	RecordType *idx = fval->LookupWithDefault(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType *idx = fval->Lookup("idx", true)->AsType()->AsTypeType()->Type()->AsRecordType();
 	RecordType *val = 0;
 
-	if ( fval->LookupWithDefault(rtype->FieldOffset("val")) != 0 )
+	if ( fval->Lookup("val", true) != 0 )
 		{
-		val = fval->LookupWithDefault(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+		val = fval->Lookup("val", true)->AsType()->AsTypeType()->Type()->AsRecordType();
 		Unref(val); // The lookupwithdefault in the if-clause ref'ed val.
 		}
 
-	TableVal *dst = fval->LookupWithDefault(rtype->FieldOffset("destination"))->AsTableVal();
+	TableVal *dst = fval->Lookup("destination", true)->AsTableVal();
 
 	// check if index fields match table description
 	int num = idx->NumFields();
@@ -588,9 +588,9 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		return false;
 		}
 
-	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));
+	Val *want_record = fval->Lookup("want_record", true);
 
-	Val* event_val = fval->LookupWithDefault(rtype->FieldOffset("ev"));
+	Val* event_val = fval->Lookup("ev", true);
 	Func* event = event_val ? event_val->AsFunc() : 0;
 	Unref(event_val);
 

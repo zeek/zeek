@@ -187,11 +187,14 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		if ( subpos != -1 )
 			{
 			const char *text = (const char*) sqlite3_column_text(st, subpos);
-			string s(text, sqlite3_column_bytes(st, subpos));
+
 			if ( text == 0 )
 				Error("Port protocol definition did not contain text");
 			else
+				{
+				string s(text, sqlite3_column_bytes(st, subpos));
 				val->val.port_val.proto = io->ParseProto(s);
+				}
 			}
 		break;
 		}

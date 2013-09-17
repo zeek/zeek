@@ -378,7 +378,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 				ignore = true;
 				}
 
-			if ( info->print && types && ! ignore )
+			if ( info->print && ! ignore )
 				v->Describe(&d);
 			}
 

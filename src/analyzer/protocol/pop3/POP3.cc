@@ -80,7 +80,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 static string trim_whitespace(const char* in)
 	{
 	int n = strlen(in);
-	char out[n];
+	char* out = new char[n + 1];
 	char* out_p = out;
 
 	in = skip_whitespace(in);
@@ -112,7 +112,9 @@ static string trim_whitespace(const char* in)
 
 	*out_p = 0;
 
-	return string(out);
+	string rval(out);
+	delete [] out;
+	return rval;
 	}
 
 void POP3_Analyzer::ProcessRequest(int length, const char* line)

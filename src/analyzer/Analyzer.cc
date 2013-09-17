@@ -378,13 +378,13 @@ void Analyzer::ForwardEndOfData(bool orig)
 	AppendNewChildren();
 	}
 
-void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
+bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	{
 	if ( HasChildAnalyzer(analyzer->GetAnalyzerTag()) )
 		{
 		analyzer->Done();
 		delete analyzer;
-		return;
+		return false;
 		}
 
 	// We add new children to new_children first.  They are then
@@ -401,6 +401,7 @@ void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 
 	DBG_LOG(DBG_ANALYZER, "%s added child %s",
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
+	return true;
 	}
 
 Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
@@ -409,10 +410,8 @@ Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
 		{
 		Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
 
-		if ( a )
-			AddChildAnalyzer(a);
-
-		return a;
+		if ( a && AddChildAnalyzer(a) )
+			return a;
 		}
 
 	return 0;

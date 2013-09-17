@@ -147,10 +147,12 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		return;
 
 	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
-	a->SetSignature(rule);
 
-	if ( a )
-		ReplayPacketBuffer(a);
+	if ( ! a )
+		return;
+
+	a->SetSignature(rule);
+	ReplayPacketBuffer(a);
 	}
 
 void PIA_UDP::DeactivateAnalyzer(analyzer::Tag tag)

@@ -2045,7 +2045,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 		case IPv6:
 			length = sizeof(val->val.addr_val.in.in6);
 			memcpy(data + startpos,
-			       (const char*) &(val->val.subnet_val.prefix.in.in4), length);
+			       (const char*) &(val->val.subnet_val.prefix.in.in6), length);
 			break;
 
 		default:

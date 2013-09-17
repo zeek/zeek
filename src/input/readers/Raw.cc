@@ -291,6 +291,12 @@ bool Raw::CloseInput()
 
 bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
+	if ( ! info.source || strlen(info.source) == 0 )
+		{
+		Error("No source path provided");
+		return false;
+		}
+
 	fname = info.source;
 	mtime = 0;
 	execute = false;
@@ -298,19 +304,12 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	int want_fields = 1;
 	bool result;
 
-	// do Initialization
 	string source = string(info.source);
 	char last = info.source[source.length() - 1];
 	if ( last == '|' )
 		{
 		execute = true;
 		fname = source.substr(0, fname.length() - 1);
-		}
-
-	if ( ! info.source || strlen(info.source) == 0 )
-		{
-		Error("No source path provided");
-		return false;
 		}
 
 	map<const char*, const char*>::const_iterator it = info.config.find("stdin"); // data that is sent to the child process

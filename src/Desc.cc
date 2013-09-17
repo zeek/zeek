@@ -23,11 +23,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 		size = DEFAULT_SIZE;
 		base = safe_malloc(size);
 		((char*) base)[0] = '\0';
-
 		offset = 0;
-
-		if ( ! base )
-			OutOfMemory();
 		}
 	else
 		{
@@ -337,14 +333,7 @@ void ODesc::Grow(unsigned int n)
 		{
 		size *= 2;
 		base = safe_realloc(base, size);
-		if ( ! base )
-			OutOfMemory();
 		}
-	}
-
-void ODesc::OutOfMemory()
-	{
-	reporter->InternalError("out of memory");
 	}
 
 void ODesc::Clear()

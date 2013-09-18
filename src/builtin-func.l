@@ -208,7 +208,11 @@ void init_alternative_mode()
 	fprintf(fp_func_init, "// %s\n\n", auto_gen_comment);
 
 	static char guard[1024];
-	getcwd(guard, sizeof(guard));
+	if ( getcwd(guard, sizeof(guard)) == NULL )
+		{
+		fprintf(stderr, "Error: cannot get current working directory\n");
+		err_exit();
+		}
 	strncat(guard, "/", sizeof(guard) - strlen(guard) - 1);
 	strncat(guard, input_filename, sizeof(guard) - strlen(guard) - 1);
 

@@ -2945,7 +2945,7 @@ function strftime%(fmt: string, d: time%) : string
 ## Returns: The time value calculated from parsing *d* with *fmt*.
 function strptime%(fmt: string, d: string%) : time
 	%{
-	const time_t timeval = time_t(NULL);
+	const time_t timeval = time_t();
 	struct tm t = *localtime(&timeval);
 
 	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )

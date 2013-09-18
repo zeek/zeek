@@ -1,4 +1,11 @@
 
+2.1-1352 | 2013-09-18 14:42:28 -0700
+
+  * Fix a number of compiler warnings. (Daniel Thayer)
+    
+  * Fix cmake warning about ENABLE_PERFTOOLS not being used. (Daniel
+    Thayer)
+
 2.1-1344 | 2013-09-16 16:20:55 -0500
 
   * Refactor Analyzer::AddChildAnalyzer and usages. (Jon Siwek)

@@ -55,9 +55,19 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	if ( ! (rv1?$card || rv2?$card) )
 		return;
 
-	local rhll = hll_cardinality_init(rv1$hll_error_margin, rv1$hll_confidence);
+	# Now at least one of rv1?$card or rv1?$card will be set, and
+	# potentially both.
+
+	local rhll: opaque of cardinality;
+
 	if ( rv1?$card )
+		{
+		rhll = hll_cardinality_init(rv1$hll_error_margin, rv1$hll_confidence);
 		hll_cardinality_merge_into(rhll, rv1$card);
+		}
+	else	# If we do not have rv1, we have to have rv2 ...
+		rhll = hll_cardinality_init(rv2$hll_error_margin, rv2$hll_confidence);
+
 	if ( rv2?$card )
 		hll_cardinality_merge_into(rhll, rv2$card);
 

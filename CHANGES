@@ -1,4 +1,11 @@
 
+2.1-1357 | 2013-09-18 14:58:52 -0700
+
+  * Update HLL API and its documentation. (Bernhard Amann)
+
+  * Fix case in HLL where hll_error_margin could be undefined.
+    (Bernhard Amann)
+
 2.1-1352 | 2013-09-18 14:42:28 -0700
 
   * Fix a number of compiler warnings. (Daniel Thayer)

@@ -1,4 +1,9 @@
 
+2.1-1359 | 2013-09-18 15:01:50 -0700
+
+  * Make client and server random available on script-level. Addresses
+    BIT-950. (Eric Wustrow)
+
 2.1-1357 | 2013-09-18 14:58:52 -0700
 
   * Update HLL API and its documentation. (Bernhard Amann)

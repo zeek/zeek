@@ -151,7 +151,7 @@ function finish(c: connection)
 		disable_analyzer(c$id, c$ssl$analyzer_id);
 	}
 
-event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
+event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: count_set) &priority=5
 	{
 	set_session(c);
 
@@ -160,7 +160,7 @@ event ssl_client_hello(c: connection, version: count, possible_ts: time, session
 		c$ssl$session_id = bytestring_to_hexstr(session_id);
 	}
 
-event ssl_server_hello(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count) &priority=5
+event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
 	{
 	set_session(c);
 

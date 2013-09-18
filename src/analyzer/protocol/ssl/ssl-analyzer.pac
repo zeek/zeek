@@ -152,6 +152,7 @@ refine connection SSL_Conn += {
 
 	function proc_client_hello(rec: SSLRecord,
 					version : uint16, ts : double,
+					client_random : bytestring,
 					session_id : uint8[],
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[]) : bool
@@ -176,7 +177,8 @@ refine connection SSL_Conn += {
 				}
 
 			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
-							version, ts,
+							version, ts, new StringVal(client_random.length(),
+							(const char*) client_random.data()),
 							to_string_val(session_id),
 							cipher_set);
 
@@ -188,6 +190,7 @@ refine connection SSL_Conn += {
 
 	function proc_server_hello(rec: SSLRecord,
 					version : uint16, ts : double,
+					server_random : bytestring,
 					session_id : uint8[],
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[],
@@ -209,7 +212,8 @@ refine connection SSL_Conn += {
 
 			BifEvent::generate_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
-							version, ts,
+							version, ts, new StringVal(server_random.length(), 
+							(const char*) server_random.data()),
 							to_string_val(session_id),
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
 
@@ -419,27 +423,27 @@ refine typeattr ApplicationData += &let {
 
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version,
-				gmt_unix_time,
+				gmt_unix_time, random_bytes,
 				session_id, csuits, 0)
 		&requires(state_changed);
 };
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version, 0,
-				session_id, 0, ciphers)
+				challenge, session_id, 0, ciphers)
 		&requires(state_changed);
 };
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version,
-			gmt_unix_time, session_id, cipher_suite, 0,
+			gmt_unix_time, random_bytes, session_id, cipher_suite, 0,
 			compression_method)
 		&requires(state_changed);
 };
 
 refine typeattr V2ServerHello += &let {
-	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0, 0,
-				0, ciphers, 0)
+	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
+				conn_id_data, 0, 0, ciphers, 0)
 		&requires(state_changed);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)

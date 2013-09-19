@@ -599,7 +599,7 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code)
 			case 0:
 				if ( st != SMTP_IN_DATA )
 					UnexpectedCommand(cmd_code, reply_code);
-					EndData();
+				EndData();
 				state = SMTP_AFTER_DATA;
 				break;
 

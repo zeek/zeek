@@ -47,6 +47,27 @@ bool file_analysis::X509::EndOfFile()
 		return false;
 		}
 
+	ParseCertificate(ssl_cert);
+
+	// after parsing the certificate - parse the extensions...
+
+	int num_ext = X509_get_ext_count(ssl_cert);
+	for ( int k = 0; k < num_ext; ++k ) 
+		{
+		X509_EXTENSION* ex = X509_get_ext(ssl_cert, k);
+		if ( !ex )
+			continue;
+
+		ParseExtension(ex);
+		}
+	
+	X509_free(ssl_cert);
+
+	return false;
+	}
+
+void file_analysis::X509::ParseCertificate(::X509* ssl_cert) 
+	{
 	char buf[256]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, 256);	
 	
@@ -117,8 +138,138 @@ bool file_analysis::X509::EndOfFile()
 	vl->append(pX509Cert);
 
 	mgr.QueueEvent(x509_cert, vl);
+	}
+
+void file_analysis::X509::ParseExtension(X509_EXTENSION* ex) 
+	{
+	char name[256];
+	char oid[256];
+
+	ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
+	const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
+
+	OBJ_obj2txt(name, 255, ext_asn, 0);
+	OBJ_obj2txt(oid, 255, ext_asn, 1);
+
+	int critical = 0;
+	if ( X509_EXTENSION_get_critical(ex) != 0 )
+		critical = 1;
+
+	BIO *bio = BIO_new(BIO_s_mem());
+	if(!X509V3_EXT_print(bio, ex, 0, 0))
+		M_ASN1_OCTET_STRING_print(bio,ex->value);
 	
-	return false;
+	BIO_flush(bio);
+	int length = BIO_pending(bio);
+	char *buffer = new char[length];
+	BIO_read(bio, (void*)buffer, length);
+	StringVal* ext_val = new StringVal(length, buffer);
+	delete(buffer);
+	BIO_free_all(bio);
+
+	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);						
+	pX509Ext->Assign(0, new StringVal(name));
+	if ( short_name and strlen(short_name) > 0 ) 
+		pX509Ext->Assign(1, new StringVal(short_name));
+	pX509Ext->Assign(2, new StringVal(oid));
+	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
+	pX509Ext->Assign(4, ext_val);
+	
+	// send off generic extension event
+	//
+	// and then look if we have a specialized event for the extension we just
+	// parsed. And if we have it, we send the specialized event on top of the
+	// generic event that we just had. I know, that is... kind of not nice, 
+	// but I am not sure if there is a better way to do it...
+	val_list* vl = new val_list();
+	vl->append(GetFile()->GetVal()->Ref());
+	vl->append(pX509Ext);
+
+	mgr.QueueEvent(x509_extension, vl);
+
+
+	// look if we have a specialized handler for this event...
+	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints ) 
+		ParseBasicConstraints(ex);
+	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
+		ParseSAN(ex);
+
+	
+
+	}
+void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex) 
+	{
+	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
+	
+	RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
+	BASIC_CONSTRAINTS *constr = (BASIC_CONSTRAINTS *) X509V3_EXT_d2i(ex);
+	if ( !constr ) 
+		{
+		reporter->Error("Certificate with invalid BasicConstraint");
+		}
+	else 	
+		{
+		pBasicConstraint->Assign(0, new Val(constr->ca ? 1 : 0, TYPE_BOOL));
+		if ( constr->pathlen ) {
+			pBasicConstraint->Assign(1, new Val((int32_t) ASN1_INTEGER_get(constr->pathlen), TYPE_COUNT));
+		}
+		val_list* vl = new val_list();
+		vl->append(GetFile()->GetVal()->Ref());
+		vl->append(pBasicConstraint);
+
+		mgr.QueueEvent(x509_ext_basic_constraints, vl);
+
+		}
+		
+	}
+
+void file_analysis::X509::ParseSAN(X509_EXTENSION* ext) 
+	{
+	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ext)) == NID_subject_alt_name);
+
+	GENERAL_NAMES *altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
+	if ( !altname )
+		{
+		reporter->Error("could not parse subject alternative names");
+		return;
+		}
+
+	VectorVal* names = new VectorVal(internal_type("string_vec")->AsVectorType());
+
+	int j = 0;
+	for ( int i = 0; i < sk_GENERAL_NAME_num(altname); i++ ) 
+		{
+		GENERAL_NAME *gen = sk_GENERAL_NAME_value(altname, i);
+		assert(gen);
+
+		if ( gen->type == GEN_DNS )
+			{
+			if (ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING) 
+				{
+				reporter->Error("DNS-field does not contain an IA5String");
+				continue;
+				}
+			const char* name = (const char*) ASN1_STRING_data(gen->d.ia5);
+			StringVal* bs = new StringVal(name);
+			names->Assign(j, bs);
+			j++;
+			}
+		else 
+			{
+			// we should perhaps sometime parse out ip-addresses
+			reporter->Error("Subject alternative name contained non-dns fields");
+			continue;
+			}
+		}
+
+		RecordVal* pSan = new RecordVal(BifType::Record::X509::SubjectAlternativeName);
+		pSan->Assign(0, names);
+
+		val_list* vl = new val_list();
+		vl->append(GetFile()->GetVal()->Ref());
+		vl->append(pSan);
+
+		mgr.QueueEvent(x509_ext_basic_constraints, vl);
 	}
 
 StringVal* file_analysis::X509::key_curve(EVP_PKEY *key)

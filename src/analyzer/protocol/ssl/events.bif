@@ -176,7 +176,7 @@ event x509_certificate%(c: connection, is_orig: bool, cert: X509, chain_idx: cou
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_server_hello x509_certificate x509_error  x509_verify
-event x509_extension%(c: connection, is_orig: bool, data: string%);
+#event x509_extension%(c: connection, is_orig: bool, data: string%);
 
 ## Generated when errors occur during parsing an X509 certificate.
 ##

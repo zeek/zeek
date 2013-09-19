@@ -296,34 +296,6 @@ refine connection SSL_Conn += {
 							i, certificates->size(),
 							der_cert);
 
-				// Are there any X509 extensions?
-				//printf("Number of x509 extensions: %d\n", X509_get_ext_count(pTemp));
-				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
-					{
-					int num_ext = X509_get_ext_count(pTemp);
-					for ( int k = 0; k < num_ext; ++k )
-						{
-						unsigned char *pBuffer = 0;
-						int length = 0;
-
-						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
-						if (ex)
-							{
-							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
-							length = ASN1_STRING_to_UTF8(&pBuffer, pString);
-							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
-							// printf("extension length: %d\n", length);
-							// -1 indicates an error.
-							if ( length >= 0 )
-								{
-								StringVal* value = new StringVal(length, (char*)pBuffer);
-								BifEvent::generate_x509_extension(bro_analyzer(),
-											bro_analyzer()->Conn(), ${rec.is_orig}, value);
-								}
-							OPENSSL_free(pBuffer);
-							}
-						}
-					}
 				X509_free(pTemp);
 				}
 			}

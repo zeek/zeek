@@ -7,6 +7,7 @@
 #include "../File.h"
 #include "Analyzer.h"
 
+#include <openssl/x509.h>
 #include <openssl/asn1.h>
 
 namespace file_analysis {
@@ -29,6 +30,11 @@ private:
 	static double get_time_from_asn1(const ASN1_TIME * atime);
 	static StringVal* key_curve(EVP_PKEY *key);
 	static unsigned int key_length(EVP_PKEY *key);
+
+	void ParseCertificate(::X509* ssl_cert);
+	void ParseExtension(X509_EXTENSION* ex);
+	void ParseBasicConstraints(X509_EXTENSION* ex);
+	void ParseSAN(X509_EXTENSION* ex);
 
 	std::string cert_data;
 };

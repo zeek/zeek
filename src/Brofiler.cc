@@ -2,6 +2,7 @@
 #include <cstring>
 #include <utility>
 #include <algorithm>
+#include <sys/stat.h>
 #include "Brofiler.h"
 #include "util.h"
 
@@ -54,7 +55,10 @@ bool Brofiler::WriteStats()
 
 	if ( p && ! p[7] )
 		{
+		mode_t old_umask = umask(S_IXUSR | S_IRWXO | S_IRWXG);
 		int fd = mkstemp(bf);
+		umask(old_umask);
+
 		if ( fd == -1 )
 			{
 			reporter->Error("Failed to generate unique file name from BRO_PROFILER_FILE: %s", bf);

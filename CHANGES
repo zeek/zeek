@@ -1,4 +1,44 @@
 
+2.1-1359 | 2013-09-18 15:01:50 -0700
+
+  * Make client and server random available on script-level. Addresses
+    BIT-950. (Eric Wustrow)
+
+2.1-1357 | 2013-09-18 14:58:52 -0700
+
+  * Update HLL API and its documentation. (Bernhard Amann)
+
+  * Fix case in HLL where hll_error_margin could be undefined.
+    (Bernhard Amann)
+
+2.1-1352 | 2013-09-18 14:42:28 -0700
+
+  * Fix a number of compiler warnings. (Daniel Thayer)
+    
+  * Fix cmake warning about ENABLE_PERFTOOLS not being used. (Daniel
+    Thayer)
+
+2.1-1344 | 2013-09-16 16:20:55 -0500
+
+  * Refactor Analyzer::AddChildAnalyzer and usages. (Jon Siwek)
+    
+  * Minor refactor to SSL BinPAC grammer. (Jon Siwek)
+
+  * Minor refactor to Broxygen enum comments. (Jon Siwek)
+    
+  * Fix possible (unlikely) use of uninitialized value. (Jon Siwek)
+    
+  * Fix/improve dereference-before-null-checks. (Jon Siwek)
+    
+  * Fix out-of-bounds memory accesses, and remove a
+    variable-length-array usage. (Jon Siwek)
+
+  * Fix potential mem leak. (Jon Siwek)
+    
+  * Fix double-free and deallocator mismatch. (Jon Siwek)
+
+  * Fix another function val reference counting bug. (Jon Siwek)
+
 2.1-1335 | 2013-09-12 16:13:53 -0500
 
   * Documentation fixes (Daniel Thayer, Jon Siwek)

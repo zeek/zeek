@@ -67,8 +67,8 @@ functionality:
 
     function lookup_location(a:addr): geo_location
 
-There is also the ``geo_location`` data structure that is returned
-from the ``lookup_location`` function:
+There is also the :bro:see:`geo_location` data structure that is returned
+from the :bro:see:`lookup_location` function:
 
 .. code:: bro
 

@@ -1,4 +1,12 @@
 
+2.1-1364 | 2013-09-19 15:12:08 -0700
+
+  * Add links to Intelligence Framework documentation. (Daniel Thayer)
+    
+  * Update Mozilla root CA list. (Bernhard Amann, Jon Siwek)
+
+  * Update documentation of required packages. (Daniel Thayer)
+
 2.1-1359 | 2013-09-18 15:01:50 -0700
 
   * Make client and server random available on script-level. Addresses

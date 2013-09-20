@@ -113,7 +113,7 @@ this event continues and upon receipt of the values returned by
 ``when`` block splits the string returned into a portion for the date on which
 the malware was first detected and the detection rate by splitting on an text space
 and storing the values returned in a local table variable.  In line 42, if the table
-returned by ``split1`` has two entries, indicating a sucessful split, we store the detection
+returned by ``split1`` has two entries, indicating a successful split, we store the detection
 date in ``mhr_first_detect`` and the rate in ``mhr_detect_rate`` on lines 45 and 45 respectively
 using the appropriate conversion functions.  From this point on, Bro knows it has seen a file
 transmitted which has a hash that has been seen by the Team Cymru Malware Hash Registry, the rest

@@ -197,13 +197,8 @@ such, there are events defined for the primary parts of the connection
 life-cycle as you'll see from the small selection of
 connection-related events below.  
 
-.. todo::
-
-   Update the line numbers, this isn't pulling in the right events
-   anymore but I don't know which ones it were.
-
 .. btest-include:: ${BRO_SRC_ROOT}/build/scripts/base/bif/event.bif.bro
-   :lines: 135-138,154,204-208,218,255-256,266,335-340,351
+   :lines: 69-72,88,106-109,129,132-137,148
 
 Of the events listed, the event that will give us the best insight
 into the connection record data type will be

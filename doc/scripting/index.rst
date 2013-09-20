@@ -29,17 +29,16 @@ about the information about that connection.
 It's often easiest to understand Bro's scripting language by
 looking at a complete script and breaking it down into its
 identifiable components.  In this example, we'll take a look at how
-Bro queries the `Team Cymru Malware hash registry
-<http://www.team-cymru.org/Services/MHR/>`_ for downloads via
-HTTP. Part of the Team Cymru Malware Hash registry includes the
-ability to do a host lookup on a domain with the format
-``MALWARE_HASH.malware.hash.cymru.com`` where ``MALWARE_HASH`` is the MD5 or
-SHA1 hash of a file.  Team Cymru also populates the TXT record of
-their DNS responses with both a "last seen" timestamp and a numerical
-"detection rate".  The important aspect to understand is Bro already
-generates hashes for files it can parse from HTTP streams, but the
-script ``detect-MHR.bro`` is responsible for generating the
-appropriate DNS lookup and parsing the response.
+Bro checks the SHA1 hash of various files extracted from network traffic
+against the `Team Cymru Malware hash registry
+<http://www.team-cymru.org/Services/MHR/>`_.  Part of the Team Cymru Malware
+Hash registry includes the ability to do a host lookup on a domain with the format
+``MALWARE_HASH.malware.hash.cymru.com`` where ``MALWARE_HASH`` is the SHA1 hash of a file.
+Team Cymru also populates the TXT record of their DNS responses with both a "first seen"
+timestamp and a numerical "detection rate".  The important aspect to understand is Bro already
+generating hashes for files via the Files framework, but it is the
+script ``detect-MHR.bro`` that is responsible for generating the
+appropriate DNS lookup, parsing the response, and generating a notice if appropriate.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
 

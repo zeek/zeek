@@ -73,15 +73,15 @@ void Raw::DoClose()
 
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
-		// kill child process
-		kill(childpid, SIGTERM);
+		// kill child process group
+		kill(-childpid, SIGTERM);
 
 		if ( forcekill )
 			{
 			usleep(200); // 200 msecs should be enough for anyone ;)
 
 			if ( kill(childpid, 0) == 0 ) // perhaps it is already gone
-				kill(childpid, SIGKILL);
+				kill(-childpid, SIGKILL);
 			}
 		}
 	}
@@ -146,6 +146,11 @@ bool Raw::Execute()
 	else if ( childpid == 0 )
 		{
 		// we are the child.
+
+		// Obtain a process group w/ child's PID.
+		if ( setpgid(0, 0) == -1 )
+			_exit(251);
+
 		close(pipes[stdout_in]);
 		if ( dup2(pipes[stdout_out], stdout_fileno) == -1 )
 			_exit(252);
@@ -180,6 +185,15 @@ bool Raw::Execute()
 	else
 		{
 		// we are the parent
+
+		// Parent also sets child process group immediately to avoid a race.
+		if ( setpgid(childpid, childpid) == -1 )
+			{
+			char buf[256];
+			strerror_r(errno, buf, sizeof(buf));
+			Warning(Fmt("Could not set child process group: %s", buf));
+			}
+
 		if ( ! UnlockForkMutex() )
 			return false;
 

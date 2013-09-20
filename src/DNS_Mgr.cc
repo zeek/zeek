@@ -928,7 +928,7 @@ void DNS_Mgr::Save(FILE* f, const HostMap& m)
 
 const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	{
-	AddrMap::iterator it = dns_mgr->addr_mappings.find(addr);
+	AddrMap::iterator it = addr_mappings.find(addr);
 
 	if ( it == addr_mappings.end() )
 		return 0;
@@ -937,7 +937,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 
 	if ( d->Expired() )
 		{
-		dns_mgr->addr_mappings.erase(it);
+		addr_mappings.erase(it);
 		delete d;
 		return 0;
 		}
@@ -949,10 +949,10 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 
 TableVal* DNS_Mgr::LookupNameInCache(string name)
 	{
-	HostMap::iterator it = dns_mgr->host_mappings.find(name);
-	if ( it == dns_mgr->host_mappings.end() )
+	HostMap::iterator it = host_mappings.find(name);
+	if ( it == host_mappings.end() )
 		{
-		it = dns_mgr->host_mappings.begin();
+		it = host_mappings.begin();
 		return 0;
 		}
 
@@ -964,7 +964,7 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 
 	if ( d4->Expired() || d6->Expired() )
 		{
-		dns_mgr->host_mappings.erase(it);
+		host_mappings.erase(it);
 		delete d4;
 		delete d6;
 		return 0;
@@ -979,15 +979,15 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 
 const char* DNS_Mgr::LookupTextInCache(string name)
 	{
-	TextMap::iterator it = dns_mgr->text_mappings.find(name);
-	if ( it == dns_mgr->text_mappings.end() )
+	TextMap::iterator it = text_mappings.find(name);
+	if ( it == text_mappings.end() )
 		return 0;
 
 	DNS_Mapping* d = it->second;
 
 	if ( d->Expired() )
 		{
-		dns_mgr->text_mappings.erase(it);
+		text_mappings.erase(it);
 		delete d;
 		return 0;
 		}

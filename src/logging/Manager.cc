@@ -791,7 +791,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			if ( ! v )
 				return false;
 
-			if ( ! v->Type()->Tag() == TYPE_STRING )
+			if ( v->Type()->Tag() != TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
 				Unref(v);

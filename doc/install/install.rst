@@ -29,13 +29,15 @@ before you begin:
     * Libpcap                           (http://www.tcpdump.org)
     * OpenSSL libraries                 (http://www.openssl.org)
     * BIND8 library
-    * Libmagic
+    * Libmagic 5.04 or greater
     * Libz
     * Bash (for BroControl)
 
 To build Bro from source, the following additional dependencies are required:
 
     * CMake 2.6.3 or greater            (http://www.cmake.org)
+    * Make
+    * C/C++ compiler
     * SWIG                              (http://www.swig.org)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)

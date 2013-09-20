@@ -779,9 +779,48 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	case EXPR_SUB:		DO_FOLD(-); break;
 	case EXPR_REMOVE_FROM:	DO_FOLD(-); break;
 	case EXPR_TIMES:	DO_FOLD(*); break;
-	case EXPR_DIVIDE:	DO_FOLD(/); break;
+	case EXPR_DIVIDE:
+		{
+		if ( is_integral )
+			{
+			if ( i2 == 0 )
+				reporter->ExprRuntimeError(this, "division by zero");
+			i3 = i1 / i2;
+			}
+		else if ( is_unsigned )
+			{
+			if ( u2 == 0 )
+				reporter->ExprRuntimeError(this, "division by zero");
+			u3 = u1 / u2;
+			}
+		else
+			{
+			if ( d2 == 0 )
+				reporter->ExprRuntimeError(this, "division by zero");
+			d3 = d1 / d2;
+			}
+		}
+		break;
 
-	case EXPR_MOD:		DO_INT_FOLD(%); break;
+	case EXPR_MOD:
+		{
+		if ( is_integral )
+			{
+			if ( i2 == 0 )
+				reporter->ExprRuntimeError(this, "modulo by zero");
+			i3 = i1 % i2;
+			}
+		else if ( is_unsigned )
+			{
+			if ( u2 == 0 )
+				reporter->ExprRuntimeError(this, "modulo by zero");
+			u3 = u1 % u2;
+			}
+		else
+			Internal("bad type in BinaryExpr::Fold");
+		}
+		break;
+
 	case EXPR_AND:		DO_INT_FOLD(&&); break;
 	case EXPR_OR:		DO_INT_FOLD(||); break;
 

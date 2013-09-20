@@ -33,7 +33,7 @@ are invalid.  This entire process is setup by telling Bro that should
 it see a server or client issue an SSL ``HELLO`` message, we want to know
 about the information about that connection.
 
-It's often the easiest to understand Bro's scripting language by
+It's often easiest to understand Bro's scripting language by
 looking at a complete script and breaking it down into its
 identifiable components.  In this example, we'll take a look at how
 Bro queries the `Team Cymru Malware hash registry
@@ -76,7 +76,7 @@ this level of granularity might not be entirely necessary though.
 
 The export section redefines an enumerable constant that describes the
 type of notice we will generate with the logging framework.  Bro
-allows for redefinable constants, which at first, might seem
+allows for re-definable constants, which at first, might seem
 counter-intuitive.  We'll get more in-depth with constants in a later
 chapter, for now, think of them as variables that can only be altered
 before Bro starts running.  The notice type listed allows for the use
@@ -84,7 +84,7 @@ of the :bro:id:`NOTICE` function to generate notices of type
 ``Malware_Hash_Registry_Match`` as done in the next section.  Notices
 allow Bro to generate some kind of extra notification beyond its
 default log types.  Often times, this extra notification comes in the
-form of an email generated and sent to a pre-configured address.  
+form of an email generated and sent to a preconfigured address.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
    :lines: 26-44
@@ -112,9 +112,9 @@ The ``when`` block performs a DNS TXT lookup and stores the result
 in the local variable ``MHR_result``.  Effectively, processing for
 this event continues and upon receipt of the values returned by
 :bro:id:`lookup_hostname_txt`, the ``when`` block is executed.  The
-``when`` block splits the string returned into two seperate values and
+``when`` block splits the string returned into two separate values and
 checks to ensure an expected format.  If the format is invalid, the
-script assumes that the hash wasn't found in the respository and
+script assumes that the hash wasn't found in the repository and
 processing is concluded.  If the format is as expected and the
 detection rate is above the threshold set by ``MHR_threshold``, two
 new local variables are created and used in the notice issued by
@@ -168,7 +168,7 @@ the event, and a concise explanation of the functions use.
    :lines: 29-54
 
 Above is a segment of the documentation for the event
-:bro:id:`dns_request` (and the preceeding link points to the
+:bro:id:`dns_request` (and the preceding link points to the
 documentation generated out of that).  It's organized such that the
 documentation, commentary, and list of arguments precede the actual
 event definition used by Bro.  As Bro detects DNS requests being
@@ -240,7 +240,7 @@ information gleaned from the analysis of a connection as a complete
 unit.  To break down this collection of information, you will have to
 make use of use Bro's field delimiter ``$``.  For example, the
 originating host is referenced by ``c$id$orig_h`` which if given a
-narritive relates to ``orig_h`` which is a member of ``id`` which is
+narrative relates to ``orig_h`` which is a member of ``id`` which is
 a member of the data structure referred to as ``c`` that was passed
 into the event handler." Given that the responder port
 (``c$id$resp_p``) is ``53/tcp``, it's likely that Bro's base DNS scripts
@@ -338,7 +338,7 @@ Constants
 Bro also makes use of constants, which are denoted by the ``const``
 keyword.  Unlike globals, constants can only be set or altered at
 parse time if the ``&redef`` attribute has been used.  Afterwards (in
-runtime) the constants are unalterable.  In most cases, redefinable
+runtime) the constants are unalterable.  In most cases, re-definable
 constants are used in Bro scripts as containers for configuration
 options.  For example, the configuration option to log password
 decrypted from HTTP streams is stored in
@@ -354,7 +354,7 @@ following line to our ``site/local.bro`` file before firing up Bro.
 
 .. btest-include:: ${DOC_ROOT}/scripting/data_type_const_simple.bro
 
-While the idea of a redefinable constant might be odd, the constraint
+While the idea of a re-definable constant might be odd, the constraint
 that constants can only be altered at parse-time remains even with the
 ``&redef`` attribute.  In the code snippet below, a table of strings
 indexed by ports is declared as a constant before two values are added
@@ -412,7 +412,7 @@ The table below shows the atomic types used in Bro, of which the
 first four should seem familiar if you have some scripting experience,
 while the remaining six are less common in other languages. It should
 come as no surprise that a scripting language for a Network Security
-Monitoring platform has a fairly robust set of network centric data
+Monitoring platform has a fairly robust set of network-centric data
 types and taking note of them here may well save you a late night of
 reinventing the wheel.  
 
@@ -474,7 +474,7 @@ the ``for`` loop, the next element is chosen.  Since sets are not an
 ordered data type, you cannot guarantee the order of the elements as
 the ``for`` loop processes.
    
-To test for membership in a set the ``in`` statment can be combined
+To test for membership in a set the ``in`` statement can be combined
 with an ``if`` statement to return a true or false value.  If the
 exact element in the condition is already in the set, the condition
 returns true and the body executes.  The ``in`` statement can also be
@@ -541,7 +541,7 @@ iterate over, say, the directors; we have to iterate with the exact
 format as the keys themselves.  In this case, we need squared brackets
 surrounding four temporary variables to act as a collection for our
 iteration.  While this is a contrived example, we could easily have
-had keys containin IP addresses (``addr``), ports (``port``) and even a ``string``
+had keys containing IP addresses (``addr``), ports (``port``) and even a ``string``
 calculated as the result of a reverse hostname lookup.
 
 .. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_complex.bro
@@ -642,7 +642,7 @@ subnet
 ~~~~~~
 
 Bro has full support for CIDR notation subnets as a base data type. 
-There is no need to manage the IP and the subnet mask as two seperate
+There is no need to manage the IP and the subnet mask as two separate
 entities when you can provide the same information in CIDR notation in
 your scripts.  The following example below uses a Bro script to
 determine if a series of IP addresses are within a set of subnets
@@ -802,7 +802,7 @@ composite type.  We have, in fact, already encountered a a complex
 example of the ``record`` data type in the earlier sections, the
 :bro:type:`connection` record passed to many events. Another one,
 :bro:type:`Conn::Info`, which corresponds to the fields logged into
-``conn.log``, is shown by the exerpt below.
+``conn.log``, is shown by the excerpt below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
    :lines: 10-12,16,17,19,21,23,25,28,31,35,37,56,62,68,90,93,97,100,104,108,109,114
@@ -813,7 +813,7 @@ definition is within the confines of an export block, what is defined
 is, in fact, ``Conn::Info``.
 
 The formatting for a declaration of a record type in Bro includes the
-descriptive name of the type being defined and the seperate fields
+descriptive name of the type being defined and the separate fields
 that make up the record.  The individual fields that make up the new
 record are not limited in type or number as long as the name for each
 field is unique.
@@ -829,7 +829,7 @@ string, a set of ports, and a count to define a service type.  Also
 included is a function to print each field of a record in a formatted
 fashion and a :bro:id:`bro_init` event handler to show some
 functionality of working with records.  The definitions of the DNS and
-HTTP services are both done inline using squared brackets before being
+HTTP services are both done in-line using squared brackets before being
 passed to the ``print_service`` function.  The ``print_service``
 function makes use of the ``$`` dereference operator to access the
 fields within the newly defined Service record type.  
@@ -846,7 +846,7 @@ record.
    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_record_02.bro
 
 The example above includes a second record type in which a field is
-used as the data type for a set.  Records can be reapeatedly nested
+used as the data type for a set.  Records can be repeatedly nested
 within other records, their fields reachable through repeated chains
 of the ``$`` dereference operator.  
 
@@ -1123,7 +1123,7 @@ which we will cover shortly.
 +---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | policy_items        | set[count]                                                       | &log &optional | Policy items that have been applied    |
 +---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_body_sections | vector                                                           | &optinal       | Body of the email for email notices.   |
+| email_body_sections | vector                                                           | &optional       | Body of the email for email notices.   |
 +---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 | email_delay_tokens  | set[string]                                                      | &optional      | Delay functionality for email notices. |
 +---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
@@ -1137,7 +1137,7 @@ has been heuristically detected and the originating hostname is one
 that would raise suspicion.  Effectively, the script attempts to
 define a list of hosts from which you would never want to see SSH
 traffic originating, like DNS servers, mail servers, etc.  To
-accomplish this, the script adhere's to the seperation of detection
+accomplish this, the script adheres to the separation of detection
 and reporting by detecting a behavior and raising a notice.  Whether
 or not that notice is acted upon is decided by the local Notice
 Policy, but the script attempts to supply as much information as
@@ -1221,7 +1221,7 @@ Bro.
 
 In the :doc:`/scripts/policy/protocols/ssl/expiring-certs` script
 which identifies when SSL certificates are set to expire and raises
-notices when it crosses a pre-defined threshold, the call to
+notices when it crosses a predefined threshold, the call to
 ``NOTICE`` above also sets the ``$identifier`` entry by concatenating
 the responder IP, port, and the hash of the certificate.  The
 selection of responder IP, port and certificate hash fits perfectly
@@ -1257,7 +1257,7 @@ In short, there will be notice policy considerations where a broad
 decision can be made based on the ``Notice::Type`` alone.  To
 facilitate these types of decisions, the Notice Framework supports
 Notice Policy shortcuts.  These shortcuts are implemented through the
-means of a group of data structures that map specific, pre-defined
+means of a group of data structures that map specific, predefined
 details and actions to the effective name of a notice.  Primarily
 implemented as a set or table of enumerables of :bro:type:`Notice::Type`,
 Notice Policy shortcuts can be placed as a single directive in your
@@ -1303,5 +1303,3 @@ Notice::emailed_types set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_02.bro
-
-

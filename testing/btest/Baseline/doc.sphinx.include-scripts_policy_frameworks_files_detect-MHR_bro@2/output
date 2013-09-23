@@ -2,8 +2,6 @@
 
 -- detect-MHR.bro
 
-
-module TeamCymruMalwareHashRegistry;
-
-export {
-	redef enum Notice::Type += {
+@load base/frameworks/files
+@load base/frameworks/notice
+@load frameworks/files/hash-all-files

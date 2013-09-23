@@ -207,7 +207,6 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			unsigned int* kp = AlignAndPadType<unsigned int>(kp0);
 			VectorVal* vv = v->AsVectorVal();
 			VectorType* vt = v->Type()->AsVectorType();
-			vector<Val*>* indices = v->AsVector();
 			*kp = vv->Size();
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( unsigned int i = 0; i < vv->Size(); ++i )

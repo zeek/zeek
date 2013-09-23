@@ -1218,9 +1218,8 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		const PDict(TableEntryVal)* loop_vals = tv->AsTable();
 
 		HashKey* k;
-		TableEntryVal* iter_val;
 		IterCookie* c = loop_vals->InitForIteration();
-		while ( (iter_val = loop_vals->NextEntry(k, c)) )
+		while ( loop_vals->NextEntry(k, c) )
 			{
 			ListVal* ind_lv = tv->RecoverIndex(k);
 			delete k;

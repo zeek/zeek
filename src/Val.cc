@@ -1656,8 +1656,7 @@ int TableVal::RemoveFrom(Val* val) const
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
-	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( tbl->NextEntry(k, c) )
 		{
 		Val* index = RecoverIndex(k);
 
@@ -1955,8 +1954,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
-	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( tbl->NextEntry(k, c) )
 		{
 		ListVal* index = table_hash->RecoverVals(k);
 

@@ -559,8 +559,8 @@ with the new version. The two rules of thumb are:
         if you need help.
 
 Below we summarize changes from 1.x to 2.x in more detail. This list
-isn't complete, see the ``CHANGES`` file in the distribution or
-:doc:`here <changes>` for the full story.
+isn't complete, see the ``CHANGES`` file in the distribution.
+for the full story.
 
 Script Organization
 -------------------
@@ -648,8 +648,7 @@ Logging Framework
     endpoint.
 
 - The new logging framework makes it possible to extend, customize,
-  and filter logs very easily. See the :doc:`logging framework
-  </frameworks/logging>` for more information on usage.
+  and filter logs very easily.
 
 - A common pattern found in the new scripts is to store logging stream
   records for protocols inside the ``connection`` records so that
@@ -672,8 +671,7 @@ Notice Framework
 
 The way users interact with "notices" has changed significantly in order
 to make it easier to define a site policy and more extensible for adding
-customized actions. See the :doc:`notice framework
-</frameworks/notice>`.
+customized actions.
 
 
 New Default Settings

@@ -1,4 +1,8 @@
 
+2.2-beta | 2013-09-23 20:57:48 -0700
+
+  * Update 'make dist' target. (Jon Siwek)
+
 2.1-1387 | 2013-09-23 11:54:48 -0700
 
   * Change submodules to fixed URL. (Jon Siwek)

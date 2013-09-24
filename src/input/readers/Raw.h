@@ -31,6 +31,7 @@ protected:
 
 private:
 	void ClosePipeEnd(int i);
+	bool SetFDFlags(int fd, int cmd, int flags);
 	bool LockForkMutex();
 	bool UnlockForkMutex();
 

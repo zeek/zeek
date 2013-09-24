@@ -81,7 +81,9 @@ Val* Val::Clone() const
 	SerialInfo sinfo(&ss);
 	sinfo.cache = false;
 
-	this->Serialize(&sinfo);
+	if ( ! this->Serialize(&sinfo) )
+		return 0;
+
 	char* data;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
@@ -2326,7 +2328,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 	else
 		reporter->InternalError("unknown continuation state");
 
-	HashKey* k;
+	HashKey* k = 0;
 	int count = 0;
 
 	assert((!info->cont.ChildSuspended()) || state->v);
@@ -2339,12 +2341,21 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			if ( ! state->c )
 				{
 				// No next one.
-				SERIALIZE(false);
+				if ( ! SERIALIZE(false) )
+					{
+					delete k;
+					return false;
+					}
+
 				break;
 				}
 
 			// There's a value coming.
-			SERIALIZE(true);
+			if ( ! SERIALIZE(true) )
+				{
+				delete k;
+				return false;
+				}
 
 			if ( state->v->Value() )
 				state->v->Ref();

@@ -136,7 +136,12 @@ bool Serializer::Serialize(SerialInfo* info, const char* func, val_list* args)
 	Write(network_time, "time");
 	Write(a, "len");
 
-	loop_over_list(*args, i) (*args)[i]->Serialize(info);
+	loop_over_list(*args, i)
+		if ( ! (*args)[i]->Serialize(info) )
+			{
+			Error("failed");
+			return false;
+			}
 
 	WriteCloseTag("call");
 	WriteSeparator();

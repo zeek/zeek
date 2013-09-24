@@ -935,7 +935,7 @@ static const char* check_for_dir(const char* filename, bool load_pkgs)
 	return copy_string(filename);
 	}
 
-FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
+static FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
 	{
 	filename = check_for_dir(filename, load_pkgs);
 
@@ -943,6 +943,13 @@ FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs
 		*full_filename = copy_string(filename);
 
 	FILE* f = fopen(filename, "r");
+
+	if ( ! f )
+		{
+		char buf[256];
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("Failed to open file %s: %s", filename, buf);
+		}
 
 	delete [] filename;
 

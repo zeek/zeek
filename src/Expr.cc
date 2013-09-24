@@ -5435,7 +5435,7 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 
 	loop_over_list(exprs, i)
 		{
-		exprs[i]->Traverse(cb);
+		tc = exprs[i]->Traverse(cb);
 		HANDLE_TC_EXPR_PRE(tc);
 		}
 

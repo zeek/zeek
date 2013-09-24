@@ -95,6 +95,18 @@ void Raw::ClosePipeEnd(int i)
 	pipes[i] = -1;
 	}
 
+bool Raw::SetFDFlags(int fd, int cmd, int flags)
+	{
+	if ( fcntl(fd, cmd, flags) != -1 )
+		return true;
+
+	char buf[256];
+	strerror_r(errno, buf, sizeof(buf));
+	Error(Fmt("failed to set fd flags: %s", buf));
+	return false;
+	}
+
+
 bool Raw::LockForkMutex()
 	{
 	int res = pthread_mutex_lock(&fork_mutex);
@@ -200,11 +212,13 @@ bool Raw::Execute()
 		ClosePipeEnd(stdout_out);
 
 		if ( Info().mode == MODE_STREAM )
-			fcntl(pipes[stdout_in], F_SETFL, O_NONBLOCK);
+			if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
+				return false;
 
 		ClosePipeEnd(stdin_in);
 
 		if ( stdin_towrite )
+			{
 			// Ya, just always set this to nonblocking. we do not
 			// want to block on a program receiving data. Note
 			// that there is a small gotcha with it. More data is
@@ -213,14 +227,19 @@ bool Raw::Execute()
 			// mode_manual where the first write cannot write
 			// everything, the rest will be stuck in a queue that
 			// is never emptied.
-			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK);
+			if ( ! SetFDFlags(pipes[stdin_out], F_SETFL, O_NONBLOCK) )
+				return false;
+			}
 		else
 			ClosePipeEnd(stdin_out);
 
 		ClosePipeEnd(stderr_out);
 
 		if ( use_stderr )
-			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
+			{
+			if ( ! SetFDFlags(pipes[stderr_in], F_SETFL, O_NONBLOCK) )
+				return false;
+			}
 		else
 			ClosePipeEnd(stderr_in);
 

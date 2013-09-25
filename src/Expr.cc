@@ -1129,15 +1129,10 @@ NotExpr::NotExpr(Expr* arg_op) : UnaryExpr(EXPR_NOT, arg_op)
 		return;
 
 	BroType* t = op->Type();
-	if ( IsVector(t->Tag()) )
-		t = t->AsVectorType()->YieldType();
-
 	TypeTag bt = t->Tag();
 
 	if ( ! IsIntegral(bt) && bt != TYPE_BOOL )
 		ExprError("requires an integral or boolean operand");
-	else if ( IsVector(bt) )
-		SetType(new VectorType(base_type(TYPE_BOOL)));
 	else
 		SetType(base_type(TYPE_BOOL));
 	}
@@ -1151,7 +1146,7 @@ Expr* NotExpr::DoSimplify()
 		// !!x == x
 		return ((NotExpr*) op)->Op()->Ref();
 
-	if ( op->IsConst() && ! is_vector(op->ExprVal()) )
+	if ( op->IsConst() )
 		return new ConstExpr(Fold(op->ExprVal()));
 
 	return this;

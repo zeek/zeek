@@ -721,7 +721,7 @@ static char* get_prompt(bool reset_counter = false)
 string get_context_description(const Stmt* stmt, const Frame* frame)
 	{
 	ODesc d;
-	const BroFunc* func = frame->GetFunction();
+	const BroFunc* func = frame ? frame->GetFunction() : 0;
 
 	if ( func )
 		func->DescribeDebug(&d, frame->GetFuncArgs());

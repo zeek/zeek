@@ -2162,7 +2162,7 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + expire_time < t )
 			{
-			Val* val = v ? v->Value() : 0;
+			Val* val = v->Value();
 
 			if ( expire_expr )
 				{

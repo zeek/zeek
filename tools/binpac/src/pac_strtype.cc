@@ -280,12 +280,26 @@ void StringType::DoGenParseCode(Output* out_cc, Env* env,
 	if ( ! anonymous_value_var() )
 		{
 		// Set the value variable
-		out_cc->println("// check for negative sizes");
-		out_cc->println("if ( %s < 0 )",
-			str_size.c_str());
-		out_cc->println(
-			"throw binpac::ExceptionInvalidStringLength(\"%s\", %s);",
-			Location(), str_size.c_str());
+
+		int len;
+
+		if ( type_ == ANYSTR && attr_length_expr_ &&
+		     attr_length_expr_->ConstFold(env, &len) )
+			{
+			// can check for a negative length now
+			if ( len < 0 )
+				throw Exception(this, "negative &length on string");
+			}
+		else
+			{
+			out_cc->println("// check for negative sizes");
+			out_cc->println("if ( %s < 0 )",
+				str_size.c_str());
+			out_cc->println(
+				"throw binpac::ExceptionInvalidStringLength(\"%s\", %s);",
+				Location(), str_size.c_str());
+			}
+
 		out_cc->println("%s.init(%s, %s);",
 			env->LValue(value_var()),
 			data.ptr_expr(),

@@ -1,6 +1,7 @@
 #include "pac_exttype.h"
 #include "pac_id.h"
 #include "pac_decl.h"
+#include "pac_output.h"
 
 bool ExternType::DefineValueVar() const
 	{
@@ -38,6 +39,13 @@ string ExternType::EvalMember(const ID *member_id) const
 	return strfmt("%s%s", 
 		ext_type_ == POINTER ? "->" : ".",
 		member_id->Name());
+	}
+
+void ExternType::GenInitCode(Output* out_cc, Env* env)
+	{
+	if ( IsNumericType() || IsPointerType() )
+		out_cc->println("%s = 0;", env->LValue(value_var()));
+	Type::GenInitCode(out_cc, env);
 	}
 
 void ExternType::DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags)

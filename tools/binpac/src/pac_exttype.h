@@ -26,6 +26,8 @@ public:
 	bool IsNumericType() const		{ return ext_type_ == NUMBER; }
 	bool IsPointerType() const		{ return ext_type_ == POINTER; }
 
+	void GenInitCode(Output *out_cc, Env *env);
+
 protected:
 	void DoGenParseCode(Output *out, Env *env, const DataPtr& data, int flags);
 	void GenDynamicSize(Output *out, Env *env, const DataPtr& data);

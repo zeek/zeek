@@ -711,17 +711,19 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 		if ( dr->ReqIsTxt() )
 			{
 			TextMap::iterator it = text_mappings.find(dr->ReqHost());
+
 			if ( it == text_mappings.end() )
 				text_mappings[dr->ReqHost()] = new_dm;
 			else
 				{
-				if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
-					++keep_prev;
-				else
-					{
-					prev_dm = it->second;
-					it->second = new_dm;
-					}
+				prev_dm = it->second;
+				it->second = new_dm;
+				}
+
+			if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
+				{
+				text_mappings[dr->ReqHost()] = prev_dm;
+				++keep_prev;
 				}
 			}
 		else

@@ -8,9 +8,9 @@
 
 using namespace file_analysis;
 
-Component::Component(const char* arg_name, factory_callback arg_factory)
+Component::Component(const char* arg_name, factory_callback arg_factory, Tag::subtype_t subtype)
 	: plugin::Component(plugin::component::FILE_ANALYZER),
-	  plugin::TaggedComponent<file_analysis::Tag>()
+	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
 	{
 	name = copy_string(arg_name);
 	canon_name = canonify_name(arg_name);

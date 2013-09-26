@@ -60,6 +60,9 @@ type addr_vec: vector of addr;
 ##    then remove this alias.
 type table_string_of_string: table[string] of string;
 
+## XXX
+type files_tag_set: set[Files::Tag];
+
 ## A connection's transport-layer protocol. Note that Bro uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {

@@ -97,8 +97,8 @@ public:
 
 	/**
 	 * Constructor. As this version of the constructor does not receive a
-	 * name or tag, setTag() must be called before the instance can be
-	 * used.
+	 * name or tag, SetAnalyzerTag() must be called before the instance
+	 * can be used.
 	 *
 	 * @param conn The connection the analyzer is associated with.
 	 */

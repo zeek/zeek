@@ -40,8 +40,14 @@ public:
 	 * from file_analysis::Analyzer. This is typically a static \c
 	 * Instatiate() method inside the class that just allocates and
 	 * returns a new instance.
+	 *
+	 * @param subtype A subtype associated with this component that
+	 * further distinguishes it. The subtype will be integrated into the
+	 * analyzer::Tag that the manager associates with this analyzer, and
+	 * analyzer instances can accordingly access it via analyzer::Tag().
+	 * If not used, leave at zero.
 	 */
-	Component(const char* name, factory_callback factory);
+	Component(const char* name, factory_callback factory, Tag::subtype_t subtype = 0);
 
 	/**
 	 * Copy constructor.

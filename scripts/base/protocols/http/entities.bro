@@ -63,7 +63,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( f$source == "HTTP" && c?$http ) 
+	if ( f$source == "HTTP" && c?$http )
 		{
 		if ( c$http?$current_entity && c$http$current_entity?$filename )
 			f$info$filename = c$http$current_entity$filename;
@@ -104,6 +104,6 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 
 event http_end_entity(c: connection, is_orig: bool) &priority=5
 	{
-	if ( c?$http && c$http?$current_entity ) 
+	if ( c?$http && c$http?$current_entity )
 		delete c$http$current_entity;
 	}

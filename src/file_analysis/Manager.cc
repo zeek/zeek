@@ -11,10 +11,12 @@
 #include "Event.h"
 
 #include "plugin/Manager.h"
+#include "analyzer/Manager.h"
 
 using namespace file_analysis;
 
 TableVal* Manager::disabled = 0;
+TableType* Manager::tag_set_type = 0;
 string Manager::salt;
 
 Manager::Manager()
@@ -26,6 +28,9 @@ Manager::Manager()
 Manager::~Manager()
 	{
 	Terminate();
+
+	for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
+		delete i->second;
 	}
 
 void Manager::InitPreScript()
@@ -68,6 +73,7 @@ void Manager::SetHandle(const string& handle)
 	if ( handle.empty() )
 		return;
 
+	DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", handle.c_str());
 	current_file_id = HashHandle(handle);
 	}
 
@@ -188,6 +194,28 @@ bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
 		return false;
 
 	return file->AddAnalyzer(tag, args);
+	}
+
+TableVal* Manager::AddAnalyzersForMIMEType(const string& file_id, const string& mtype,
+					   RecordVal* args)
+	{
+	if ( ! tag_set_type )
+		tag_set_type = internal_type("files_tag_set")->AsTableType();
+
+	TableVal* sval = new TableVal(tag_set_type);
+	TagSet* l = LookupMIMEType(mtype, false);
+
+	if ( ! l )
+		return sval;
+
+	for ( TagSet::const_iterator i = l->begin(); i != l->end(); i++ )
+		{
+		file_analysis::Tag tag = *i;
+		if ( AddAnalyzer(file_id, tag, args) )
+			sval->Assign(tag.AsEnumVal(), 0);
+		}
+
+	return sval;
 	}
 
 bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
@@ -312,6 +340,9 @@ void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
 	if ( ! get_file_handle )
 		return;
 
+	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
+		analyzer_mgr->GetComponentName(tag));
+
 	EnumVal* tagval = tag.AsEnumVal();
 	Ref(tagval);
 
@@ -354,5 +385,72 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 		reporter->InternalError("file analyzer %s cannot be instantiated "
 								"dynamically", c->CanonicalName());
 
-	return c->Factory()(args, f);
+	DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate analyzer %s for file %s",
+		GetComponentName(tag), f->id.c_str());
+
+	Analyzer* a = c->Factory()(args, f);
+
+	if ( ! a )
+		reporter->InternalError("file analyzer instantiation failed");
+
+	a->SetAnalyzerTag(tag);
+
+	return a;
+	}
+
+Manager::TagSet* Manager::LookupMIMEType(const string& mtype, bool add_if_not_found)
+	{
+	MIMEMap::const_iterator i = mime_types.find(to_upper(mtype));
+
+	if ( i != mime_types.end() )
+		return i->second;
+
+	if ( ! add_if_not_found )
+		return 0;
+
+	TagSet* l = new TagSet;
+	mime_types.insert(std::make_pair(to_upper(mtype), l));
+	return l;
+	}
+
+bool Manager::RegisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype)
+	{
+	Component* p = Lookup(tag);
+
+	if ( ! p  )
+		return false;
+
+	return RegisterAnalyzerForMIMEType(p->Tag(), mtype->CheckString());
+	}
+
+bool Manager::RegisterAnalyzerForMIMEType(Tag tag, const string& mtype)
+	{
+	TagSet* l = LookupMIMEType(mtype, true);
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Register analyzer %s for MIME type %s",
+		GetComponentName(tag), mtype.c_str());
+
+	l->insert(tag);
+	return true;
+	}
+
+bool Manager::UnregisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype)
+	{
+	Component* p = Lookup(tag);
+
+	if ( ! p  )
+		return false;
+
+	return UnregisterAnalyzerForMIMEType(p->Tag(), mtype->CheckString());
+	}
+
+bool Manager::UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype)
+	{
+	TagSet* l = LookupMIMEType(mtype, true);
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Unregister analyzer %s for MIME type %s",
+		GetComponentName(tag), mtype.c_str());
+
+	l->erase(tag);
+	return true;
 	}

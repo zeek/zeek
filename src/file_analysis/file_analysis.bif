@@ -26,6 +26,16 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	return new Val(result, TYPE_BOOL);
 	%}
 
+## :bro:see:`Files::add_analyzers_for_mime_type`.
+function Files::__add_analyzers_for_mime_type%(file_id: string, mtype: string, args: any%): files_tag_set
+	%{
+	using BifType::Record::Files::AnalyzerArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	Val* analyzers = file_mgr->AddAnalyzersForMIMEType(file_id->CheckString(), mtype->CheckString(), rv);
+	Unref(rv);
+	return analyzers;
+	%}
+
 ## :bro:see:`Files::remove_analyzer`.
 function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{

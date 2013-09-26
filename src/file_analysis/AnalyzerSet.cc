@@ -9,7 +9,10 @@ using namespace file_analysis;
 
 static void analyzer_del_func(void* v)
 	{
-	delete (file_analysis::Analyzer*) v;
+	file_analysis::Analyzer* a = (file_analysis::Analyzer*)v;
+
+	a->Done();
+	delete a;
 	}
 
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
@@ -90,6 +93,7 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 		}
 
 	set->Insert(a, key);
+
 	return true;
 	}
 
@@ -116,7 +120,9 @@ bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
 	        file_mgr->GetComponentName(tag),
 	        file->GetID().c_str());
 
+	a->Done();
 	delete a;
+
 	return true;
 	}
 
@@ -168,6 +174,8 @@ void AnalyzerSet::Insert(file_analysis::Analyzer* a, HashKey* key)
 	        file_mgr->GetComponentName(a->Tag()), file->GetID().c_str());
 	analyzer_map.Insert(key, a);
 	delete key;
+
+	a->Init();
 	}
 
 void AnalyzerSet::DrainModifications()

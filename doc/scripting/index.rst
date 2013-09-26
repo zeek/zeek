@@ -90,8 +90,7 @@ the script starts to define instructions to take in a given event.
    :lines: 33-57
 
 The workhorse of the script is contained in the event handler for
-``file_hash``.  The ``file_hash`` event is defined in the
-:doc:`/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro` script and allows scripts to access
+``file_hash``.  The :bro:see:`file_hash` event allows scripts to access
 the information associated with a file for which Bro's file analysis framework has
 generated a hash.  The event handler is passed the file itself as ``f``, the type of digest
 algorithm used as ``kind`` and the hash generated as ``hash``.

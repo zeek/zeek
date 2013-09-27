@@ -2043,7 +2043,8 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	}
 
 TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("TCPSTATS", c)
+	: TCP_ApplicationAnalyzer("TCPSTATS", c),
+      orig_stats(), resp_stats()
 	{
 	}
 

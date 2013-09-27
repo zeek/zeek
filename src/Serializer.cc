@@ -1037,6 +1037,7 @@ void ConversionSerializer::GotPacket(Packet* p)
 	}
 
 EventPlayer::EventPlayer(const char* file)
+    : stream_time(), replay_time(), ne_time(), ne_handler(), ne_args()
 	{
 	if ( ! OpenFile(file, true) || fd < 0 )
 		Error(fmt("event replayer: cannot open %s", file));

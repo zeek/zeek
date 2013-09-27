@@ -84,16 +84,16 @@ public:
 
 	RecordVal* description;
 
-        Stream();
 	virtual ~Stream();
+
+protected:
+	Stream(StreamType t);
 };
 
-Manager::Stream::Stream()
+Manager::Stream::Stream(StreamType t)
+    : name(), removed(), stream_type(t), type(), reader(), config(),
+      description()
 	{
-	type = 0;
-	reader = 0;
-	description = 0;
-	removed = false;
 	}
 
 Manager::Stream::~Stream()
@@ -154,24 +154,17 @@ public:
 	~AnalysisStream();
 };
 
-Manager::TableStream::TableStream() : Manager::Stream::Stream()
+Manager::TableStream::TableStream()
+    : Manager::Stream::Stream(TABLE_STREAM),
+      num_idx_fields(), num_val_fields(), want_record(), tab(), rtype(),
+      itype(), currDict(), lastDict(), pred(), event()
 	{
-	stream_type = TABLE_STREAM;
-
-	tab = 0;
-	itype = 0;
-	rtype = 0;
-
-        currDict = 0;
-        lastDict = 0;
-
-        pred = 0;
 	}
 
-Manager::EventStream::EventStream() : Manager::Stream::Stream()
+Manager::EventStream::EventStream()
+    : Manager::Stream::Stream(EVENT_STREAM),
+      event(), fields(), num_fields(), want_record()
 	{
-        fields = 0;
-	stream_type = EVENT_STREAM;
 	}
 
 Manager::EventStream::~EventStream()
@@ -204,9 +197,9 @@ Manager::TableStream::~TableStream()
 		}
 	}
 
-Manager::AnalysisStream::AnalysisStream() : Manager::Stream::Stream()
+Manager::AnalysisStream::AnalysisStream()
+    : Manager::Stream::Stream(ANALYSIS_STREAM), file_id()
 	{
-	stream_type = ANALYSIS_STREAM;
 	}
 
 Manager::AnalysisStream::~AnalysisStream()

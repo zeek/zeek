@@ -43,6 +43,9 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 	multiLine = false;
 	backOff = false;
 
+	lastRequiredCommand = 0;
+	authLines = 0;
+
 	mail = 0;
 
 	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, true));

@@ -2572,6 +2572,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 	{
+	origin = 0;
 	record_type = t;
 	int n = record_type->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);

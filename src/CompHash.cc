@@ -11,6 +11,7 @@ CompositeHash::CompositeHash(TypeList* composite_type)
 	{
 	type = composite_type;
 	Ref(type);
+	singleton_tag = TYPE_INTERNAL_ERROR;
 
 	// If the only element is a record, don't treat it as a
 	// singleton, since it needs to be evaluated specially.

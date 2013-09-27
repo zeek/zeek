@@ -64,6 +64,10 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 	SetDensityThresh(DEFAULT_DENSITY_THRESH);
 
 	delete_func = 0;
+	tbl_next_ind = 0;
+
+	num_buckets2 = num_entries2 = max_num_entries2 = thresh_entries2 = 0;
+	den_thresh2 = 0;
 	}
 
 Dictionary::~Dictionary()

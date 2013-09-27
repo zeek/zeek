@@ -466,7 +466,7 @@ public:
 protected:
 	MutableVal(BroType* t) : Val(t)
 		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ id = 0; last_modified = SerialObj::ALWAYS; }
+	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
 	~MutableVal();
 
 	friend class ID;

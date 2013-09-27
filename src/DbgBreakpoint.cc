@@ -49,6 +49,8 @@ DbgBreakpoint::DbgBreakpoint()
 	repeat_count = hit_count = 0;
 
 	description[0] = 0;
+	source_filename = 0;
+	source_line = 0;
 	}
 
 DbgBreakpoint::~DbgBreakpoint()

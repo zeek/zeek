@@ -2472,6 +2472,7 @@ AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
 : BinaryExpr(EXPR_ASSIGN,
 		arg_is_init ? arg_op1 : arg_op1->MakeLvalue(), arg_op2)
 	{
+	val = 0;
 	is_init = arg_is_init;
 
 	if ( IsError() )
@@ -3345,14 +3346,14 @@ bool HasFieldExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_HAS_FIELD_EXPR, UnaryExpr);
 
-	// Serialize the former "bool is_attr" first for backwards compatibility.
+	// Serialize former "bool is_attr" member first for backwards compatibility.
 	return SERIALIZE(false) && SERIALIZE(field_name) && SERIALIZE(field);
 	}
 
 bool HasFieldExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
-	// Unserialize the former "bool is_attr" first for backwards compatibility.
+	// Unserialize former "bool is_attr" member for backwards compatibility.
 	bool not_used;
 	return UNSERIALIZE(&not_used) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
 	}
@@ -3361,6 +3362,8 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list,
 					     BroType* arg_type)
 : UnaryExpr(EXPR_RECORD_CONSTRUCTOR, constructor_list)
 	{
+	ctor_type = 0;
+
 	if ( IsError() )
 		return;
 
@@ -3501,6 +3504,8 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 					   attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_TABLE_CONSTRUCTOR, constructor_list)
 	{
+	attrs = 0;
+
 	if ( IsError() )
 		return;
 
@@ -3625,6 +3630,8 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 				       attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_SET_CONSTRUCTOR, constructor_list)
 	{
+	attrs = 0;
+
 	if ( IsError() )
 		return;
 

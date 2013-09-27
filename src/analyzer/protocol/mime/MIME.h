@@ -247,7 +247,6 @@ protected:
 	int max_chunk_length;
 	int buffer_start;
 	int data_start;
-	int buffer_offset;
 	int compute_content_hash;
 	int content_hash_length;
 	MD5_CTX md5_hash;

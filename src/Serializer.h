@@ -403,6 +403,7 @@ public:
 		hdr_size = 0;
 		free = arg_free;
 		tag = arg_tag;
+		link_type = 0;
 		}
 
 	~Packet()

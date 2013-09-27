@@ -20,7 +20,7 @@ public:
 	void Dispatch(double t, int is_expire);
 
 protected:
-	AnalyzerTimer()	{}
+	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
 
 	void Init(Analyzer* analyzer, analyzer_timer_func timer, int do_expire);
 
@@ -124,6 +124,7 @@ void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	tag = arg_tag;
 	id = ++id_counter;
 	protocol_confirmed = false;
+	timers_canceled = false;
 	skip = false;
 	finished = false;
 	removing = false;

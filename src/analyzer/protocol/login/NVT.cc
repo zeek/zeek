@@ -364,14 +364,11 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 
 NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
-: tcp::ContentLine_Analyzer("NVT", conn, orig)
+	: tcp::ContentLine_Analyzer("NVT", conn, orig),
+      peer(), pending_IAC(), IAC_pos(), is_suboption(), last_was_IAC(),
+      binary_mode(), encrypting_mode(), authentication_has_been_accepted(),
+      auth_name(), options(), num_options()
 	{
-	peer = 0;
-	is_suboption = last_was_IAC = pending_IAC = 0;
-	IAC_pos = 0;
-	num_options = 0;
-	authentication_has_been_accepted = encrypting_mode = binary_mode = 0;
-	auth_name = 0;
 	}
 
 NVT_Analyzer::~NVT_Analyzer()

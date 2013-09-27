@@ -233,6 +233,10 @@ DataSeries::DataSeries(WriterFrontend* frontend) : WriterBackend(frontend)
 	ds_set_separator = ",";
 
 	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
+
+	compress_type = Extent::compress_none;
+	log_file = 0;
+	log_output = 0;
 }
 
 DataSeries::~DataSeries()

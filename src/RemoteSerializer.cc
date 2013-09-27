@@ -541,6 +541,10 @@ RemoteSerializer::RemoteSerializer()
 	in_sync = 0;
 	last_flush = 0;
 	received_logs = 0;
+	current_id = 0;
+	current_msgtype = 0;
+	current_args = 0;
+	source_peer = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()

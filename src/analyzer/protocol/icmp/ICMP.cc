@@ -17,11 +17,10 @@
 using namespace analyzer::icmp;
 
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
-: TransportLayerAnalyzer("ICMP", c)
+	: TransportLayerAnalyzer("ICMP", c),
+      icmp_conn_val(), type(), code(), request_len(-1), reply_len(-1)
 	{
-	icmp_conn_val = 0;
 	c->SetInactivityTimeout(icmp_inactivity_timeout);
-	request_len = reply_len = -1;
 	}
 
 void ICMP_Analyzer::Done()

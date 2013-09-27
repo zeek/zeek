@@ -64,7 +64,6 @@ void FlowSrc::Close()
 
 FlowSocketSrc::~FlowSocketSrc()
 	{
-	delete [] listenparms;
 	}
 
 int FlowSocketSrc::ExtractNextPDU()

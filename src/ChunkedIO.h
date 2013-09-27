@@ -292,8 +292,9 @@ private:
 // Wrapper class around a another ChunkedIO which the (un-)compresses data.
 class CompressedChunkedIO : public ChunkedIO {
 public:
-	CompressedChunkedIO(ChunkedIO* arg_io)
-		: io(arg_io) {} // takes ownership
+	CompressedChunkedIO(ChunkedIO* arg_io) // takes ownership
+	    : io(arg_io), zin(), zout(), error(), compress(), uncompress(),
+	      uncompressed_bytes_read(), uncompressed_bytes_written() {}
 	virtual ~CompressedChunkedIO()	{ delete io; }
 
 	virtual bool Init(); // does *not* call arg_io->Init()

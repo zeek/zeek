@@ -147,7 +147,6 @@ protected:
 
 	Timer* rotate_timer;
 	double open_time;
-	bool dont_rotate; // See InstallRotateTimer()
 	bool print_hook;
 	bool raw_output;
 

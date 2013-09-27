@@ -20,6 +20,7 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	nfa_states = arg_nfa_states;
 	accept = arg_accept;
 	mark = 0;
+	centry = 0;
 
 	SymPartition(ec);
 

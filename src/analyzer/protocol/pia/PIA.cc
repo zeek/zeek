@@ -7,9 +7,8 @@
 using namespace analyzer::pia;
 
 PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
+    : state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
 	{
-	current_packet.data = 0;
-	as_analyzer = arg_as_analyzer;
 	}
 
 PIA::~PIA()

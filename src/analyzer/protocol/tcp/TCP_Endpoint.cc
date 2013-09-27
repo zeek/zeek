@@ -25,11 +25,14 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	window_scale = 0;
 	window_seq = window_ack_seq = 0;
 	contents_start_seq = 0;
+	FIN_seq = 0;
 	SYN_cnt = FIN_cnt = RST_cnt = 0;
 	did_close = 0;
 	contents_file = 0;
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
+
+	hist_last_SYN = hist_last_FIN = hist_last_RST = 0;
 
 	src_addr = is_orig ? tcp_analyzer->Conn()->RespAddr() :
 				tcp_analyzer->Conn()->OrigAddr();

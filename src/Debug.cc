@@ -40,6 +40,7 @@ DebuggerState::DebuggerState()
 	next_bp_id = next_watch_id = next_display_id = 1;
 	BreakBeforeNextStmt(false);
 	curr_frame_idx = 0;
+	already_did_list = false;
 	BreakFromSignal(false);
 
 	// ### Don't choose this arbitrary size! Extend Frame.

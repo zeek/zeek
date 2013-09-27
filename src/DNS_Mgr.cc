@@ -47,8 +47,14 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 class DNS_Mgr_Request {
 public:
 	DNS_Mgr_Request(const char* h, int af, bool is_txt)
-		{ host = copy_string(h); fam = af; qtype = is_txt ? 16 : 0; }
-	DNS_Mgr_Request(const IPAddr& a)		{ addr = a; host = 0; fam = 0; }
+	    : host(copy_string(h)), fam(af), qtype(is_txt ? 16 : 0), addr(),
+	      request_pending()
+		{ }
+
+	DNS_Mgr_Request(const IPAddr& a)
+	    : host(), fam(), qtype(), addr(a), request_pending()
+		{ }
+
 	~DNS_Mgr_Request()			{ delete [] host; }
 
 	// Returns nil if this was an address request.
@@ -192,6 +198,8 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	init_failed = 1;
 
 	req_host = 0;
+	req_ttl = 0;
+	creation_time = 0;
 
 	char buf[512];
 

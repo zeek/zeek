@@ -6,7 +6,7 @@
 #
 
 BUILD=build
-REPO=`basename \`git config --get remote.origin.url\``
+REPO=`basename \`git config --get remote.origin.url | sed 's/^[^:]*://g'\``
 VERSION_FULL=$(REPO)-`cat VERSION`
 VERSION_MIN=$(REPO)-`cat VERSION`-minimal
 HAVE_MODULES=git submodule | grep -v cmake >/dev/null

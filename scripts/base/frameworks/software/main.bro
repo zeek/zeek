@@ -436,7 +436,7 @@ function found(id: conn_id, info: Info): bool
 				{
 				Reporter::error("No unparsed version string present in Info record with version in Software::found");
 				return F;
-				} 
+				}
 			local sw = parse(info$unparsed_version);
 			info$unparsed_version = sw$unparsed_version;
 			info$name = sw$name;

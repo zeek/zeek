@@ -42,8 +42,6 @@ protected:
 
 	ParamList *params_;
 	Type *type_;
-
-	bool inherits_frame_buffer_;
 };
 
 #endif  // pac_typedecl_h

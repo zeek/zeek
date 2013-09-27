@@ -42,7 +42,6 @@ protected:
 	ID *id_;
 	DeclType decl_type_;
 	AttrList *attrlist_;
-	ExprList *expr_list_;
 	AnalyzerContextDecl *analyzer_context_;
 
 public:
@@ -72,7 +71,6 @@ public:
 private:
 	HelperType helper_type_;
 	ID *context_id_;
-	ID *helper_id_;
 	EmbeddedCode *code_;
 
 	static int helper_id_seq;

@@ -240,6 +240,7 @@ CaseField::CaseField(ExprList* index, ID* id, Type* type)
 	ASSERT(type_);
 	type_->set_value_var(id, MEMBER_VAR);
 	case_type_ = 0;
+	index_var_ = 0;
 	}
 
 CaseField::~CaseField()

@@ -64,7 +64,7 @@ ExceptionPaddingError::ExceptionPaddingError(const Object* o, const char* msg)
 	}
 
 ExceptionNonConstExpr::ExceptionNonConstExpr(const Expr* expr)
-	: Exception(expr)
+	: Exception(expr), expr(expr)
 	{
 	append(fmt("Expression `%s' is not constant", expr->orig()));
 	}

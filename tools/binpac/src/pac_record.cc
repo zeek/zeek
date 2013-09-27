@@ -252,6 +252,7 @@ RecordField::RecordField(FieldType tof, ID *id, Type *type)
 	prev_ = 0;
 	next_ = 0;
 	static_offset_ = -1;
+	parsing_state_seq_ = 0;
 	boundary_checked_ = false;
 	}
 

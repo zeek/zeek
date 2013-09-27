@@ -90,8 +90,10 @@ IDRecord::IDRecord(Env *arg_env, const ID* arg_id, IDType arg_id_type)
 			lvalue = "@FUNC_PARAM@";
 			break;
 		}
+	data_type = 0;
 	field = 0;
-	constant_set = false;
+	constant = constant_set = false;
+	macro = 0;
 	}
 
 IDRecord::~IDRecord()

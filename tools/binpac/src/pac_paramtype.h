@@ -52,7 +52,6 @@ protected:
 private:
 	ID *type_id_;
 	ExprList *args_;
-	char *data_type_;
 	bool checking_requires_analyzer_context_;
 
 	void DoGenParseCode(Output *out, Env *env, const DataPtr& data, int flags);

@@ -314,9 +314,9 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 			delete [] data;
 		}
 
-		tnew->SetTypeID(copy_string(id->Name()));
 		}
 
+	tnew->SetTypeID(copy_string(id->Name()));
 	id->SetType(tnew);
 	id->MakeType();
 

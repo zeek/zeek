@@ -180,7 +180,7 @@ FILE* open_output_file(const char* surfix)
 
 void usage()
 	{
-	fprintf(stderr, "usage: bifcl [-p] *.bif\n");
+	fprintf(stderr, "usage: bifcl [-p <plugin> | -s] *.bif\n");
 	exit(1);
 	}
 

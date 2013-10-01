@@ -1,4 +1,10 @@
 
+2.2-beta-13 | 2013-10-01 11:31:55 -0700
+
+  * Updating bifcl usage message. (Robin Sommer)
+
+  * Fix bifcl getopt() usage. (Jon Siwek)
+
 2.2-beta-8 | 2013-09-28 11:16:29 -0700
 
   * Fix a "make doc" warning. (Daniel Thayer)

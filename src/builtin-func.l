@@ -275,7 +275,7 @@ void finish_alternative_mode()
 
 int main(int argc, char* argv[])
 	{
-	char opt;
+	int opt;
 
 	while ( (opt = getopt(argc, argv, "p:s")) != -1 )
 		{

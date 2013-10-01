@@ -168,49 +168,6 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, session
 	c$ssl$cipher = cipher_desc[cipher];
 	}
 
-event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string) &priority=5
-	{
-	set_session(c);
-
-	# We aren't doing anything with client certificates yet.
-	if ( is_orig )
-		{
-		if ( chain_idx == 0 )
-			{
-			# Save the primary cert.
-			c$ssl$client_cert = der_cert;
-
-			# Also save other certificate information about the primary cert.
-			c$ssl$client_subject = cert$subject;
-			c$ssl$client_issuer_subject = cert$issuer;
-			}
-		else
-			{
-			# Otherwise, add it to the cert validation chain.
-			c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = der_cert;
-			}
-		}
-	else
-		{
-		if ( chain_idx == 0 )
-			{
-			# Save the primary cert.
-			c$ssl$cert = der_cert;
-
-			# Also save other certificate information about the primary cert.
-			c$ssl$subject = cert$subject;
-			c$ssl$issuer_subject = cert$issuer;
-			c$ssl$not_valid_before = cert$not_valid_before;
-			c$ssl$not_valid_after = cert$not_valid_after;
-			}
-		else
-			{
-			# Otherwise, add it to the cert validation chain.
-			c$ssl$cert_chain[|c$ssl$cert_chain|] = der_cert;
-			}
-		}
-	}
-
 event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &priority=5
 	{
 	set_session(c);

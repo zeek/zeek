@@ -8,9 +8,6 @@
 
 #include "util.h"
 
-#include <openssl/x509.h>
-#include <openssl/asn1.h>
-
 #include "file_analysis/Manager.h"
 %}
 
@@ -247,57 +244,13 @@ refine connection SSL_Conn += {
 		if ( certificates->size() == 0 )
 			return true;
 
-		if ( x509_certificate )
+		for ( unsigned int i = 0; i < certificates->size(); ++i )
 			{
-			STACK_OF(X509)* untrusted_certs = 0;
+			const bytestring& cert = (*certificates)[i];
 
-			for ( unsigned int i = 0; i < certificates->size(); ++i )
-				{
-				const bytestring& cert = (*certificates)[i];
-				const uint8* data = cert.data();
-				
-				file_mgr->DataIn(reinterpret_cast<const u_char*>(data), cert.length(), 
-						bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(), false);
-				file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn());
-
-				X509* pTemp = d2i_X509_binpac(NULL, &data, cert.length());
-				if ( ! pTemp )
-					{
-					BifEvent::generate_x509_error(bro_analyzer(), bro_analyzer()->Conn(),
-					                              ${rec.is_orig}, ERR_get_error());
-					return false;
-					}
-
-
-				RecordVal* pX509Cert = new RecordVal(x509_type);
-				char tmp[256];
-				BIO *bio = BIO_new(BIO_s_mem());
-
-				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
-				i2a_ASN1_INTEGER(bio, X509_get_serialNumber(pTemp));
-				int len = BIO_read(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(1, new StringVal(len, tmp));
-
-				X509_NAME_print_ex(bio, X509_get_subject_name(pTemp), 0, XN_FLAG_RFC2253);
-				len = BIO_gets(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(2, new StringVal(len, tmp));
-				X509_NAME_print_ex(bio, X509_get_issuer_name(pTemp), 0, XN_FLAG_RFC2253);
-				len = BIO_gets(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(3, new StringVal(len, tmp));
-				BIO_free(bio);
-
-				pX509Cert->Assign(4, new Val(get_time_from_asn1(X509_get_notBefore(pTemp)), TYPE_TIME));
-				pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notAfter(pTemp)), TYPE_TIME));
-				StringVal* der_cert = new StringVal(cert.length(), (const char*) cert.data());
-
-				BifEvent::generate_x509_certificate(bro_analyzer(), bro_analyzer()->Conn(),
-							${rec.is_orig},
-							pX509Cert,
-							i, certificates->size(),
-							der_cert);
-
-				X509_free(pTemp);
-				}
+			file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()), cert.length(), 
+					bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(), ${rec.is_orig});
+			file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn());
 			}
 		return true;
 		%}

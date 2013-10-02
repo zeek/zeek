@@ -1,4 +1,8 @@
 
+2.2-beta-18 | 2013-10-02 10:28:17 -0700
+
+  * Add support for further TLS cipher suites. (Bernhard Amann)
+    
 2.2-beta-13 | 2013-10-01 11:31:55 -0700
 
   * Updating bifcl usage message. (Robin Sommer)

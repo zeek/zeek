@@ -894,6 +894,7 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 
 	answer_type = DNS_QUESTION;
 	skip_event = 0;
+	tsig = 0;
 	}
 
 DNS_MsgInfo::~DNS_MsgInfo()
@@ -1002,7 +1003,7 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 	interp = arg_interp;
 
 	msg_buf = 0;
-	buf_n = msg_size = 0;
+	buf_n = buf_len = msg_size = 0;
 	state = DNS_LEN_HI;
 	}
 

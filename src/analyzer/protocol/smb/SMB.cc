@@ -100,6 +100,9 @@ static int lookup_IPC_name(BroString* name)
 SMB_Session::SMB_Session(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
+	req_cmd = 0;
+	smb_mailslot_prot = false;
+	smb_pipe_prot = false;
 	dce_rpc_session = 0;
 	init_SMB_command_name();
 

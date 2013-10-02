@@ -18,6 +18,7 @@ using threading::Field;
 
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
+	num_lines = 0;
 	multiplication_factor = double(BifConst::InputBenchmark::factor);
 	autospread = double(BifConst::InputBenchmark::autospread);
 	spread = int(BifConst::InputBenchmark::spread);
@@ -25,6 +26,7 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	autospread_time = 0;
 	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
 	timedspread = double(BifConst::InputBenchmark::timedspread);
+	heartbeatstarttime = 0;
 	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
 
 	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());

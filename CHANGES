@@ -1,4 +1,34 @@
 
+2.2-beta-38 | 2013-10-02 11:03:29 -0700
+
+  * Fix uninitialized (or unused) fields. (Jon Siwek)
+
+  * Remove logically dead code. (Jon Siwek)
+
+  * Remove dead/unfinished code in unary not expression.  (Jon Siwek)
+
+  * Fix logic for failed DNS TXT lookups. (Jon Siwek)
+    
+  * A couple null ptr checks. (Jon Siwek)
+    
+  * Improve return value checking and error handling. (Jon Siwek)
+    
+  * Remove unused variable assignments. (Jon Siwek)
+    
+  * Prevent division/modulo by zero in scripts. (Jon Siwek)
+    
+  * Fix unintentional always-false condition. (Jon Siwek)
+    
+  * Fix invalidated iterator usage. (Jon Siwek)
+
+  * Fix DNS_Mgr iterator mismatch. (Jon Siwek)
+    
+  * Set safe umask when creating script profiler tmp files. (Jon Siwek)
+
+  * Fix nesting/indent level whitespace mismatch. (Jon Siwek)
+    
+  * Add checks to avoid improper negative values use. (Jon Siwek)
+    
 2.2-beta-18 | 2013-10-02 10:28:17 -0700
 
   * Add support for further TLS cipher suites. (Bernhard Amann)

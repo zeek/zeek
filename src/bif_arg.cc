@@ -28,6 +28,7 @@ BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, int arg_type)
 	name = arg_name;
 	type = arg_type;
 	type_str = "";
+	attr_str = "";
 	}
 
 BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str,

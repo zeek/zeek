@@ -147,7 +147,9 @@ void AnonymizeIPAddr_A50::init()
 	special_nodes[0].input = special_nodes[0].output = 0;
 	special_nodes[1].input = special_nodes[1].output = 0xFFFFFFFF;
 
+	method = 0;
 	before_anonymization = 1;
+	new_mapping = 0;
 	}
 
 int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)

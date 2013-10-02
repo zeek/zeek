@@ -680,7 +680,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 				RPC_Interpreter* arg_interp)
 	: tcp::TCP_ApplicationAnalyzer(name, conn),
-	 nterp(arg_interp), orig_rpc(), resp_rpc()
+	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,

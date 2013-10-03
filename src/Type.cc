@@ -193,7 +193,8 @@ unsigned int BroType::MemoryAllocation() const
 bool BroType::Serialize(SerialInfo* info) const
 	{
 	// We always send full types (see below).
-	SERIALIZE(true);
+	if ( ! SERIALIZE(true) )
+		return false;
 
 	bool ret = SerialObj::Serialize(info);
 	return ret;
@@ -1467,10 +1468,8 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 	}
 
 VectorType::VectorType(BroType* element_type)
-: BroType(TYPE_VECTOR)
+    : BroType(TYPE_VECTOR), yield_type(element_type)
 	{
-	if ( element_type )
-		yield_type = element_type;
 	}
 
 VectorType::~VectorType()

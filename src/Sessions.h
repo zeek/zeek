@@ -55,15 +55,12 @@ struct SessionStats {
 class TimerMgrExpireTimer : public Timer {
 public:
 	TimerMgrExpireTimer(double t, TimerMgr* arg_mgr)
-		: Timer(t, TIMER_TIMERMGR_EXPIRE)
-		{
-		mgr = arg_mgr;
-		}
+	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
+		{ }
 
 	virtual void Dispatch(double t, int is_expire);
 
 protected:
-	double interval;
 	TimerMgr* mgr;
 };
 

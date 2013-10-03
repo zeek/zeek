@@ -29,26 +29,18 @@ public:
 	// The constructor takes some way of identifying the segment.
 	SegmentProfiler(SegmentStatsReporter* arg_reporter,
 				const char* arg_name)
+	    : reporter(arg_reporter), name(arg_name), loc(), initial_rusage()
 		{
-		reporter = arg_reporter;
 		if ( reporter )
-			{
-			name = arg_name;
-			loc = 0;
 			Init();
-			}
 		}
 
 	SegmentProfiler(SegmentStatsReporter* arg_reporter,
 				const Location* arg_loc)
+	    : reporter(arg_reporter), name(), loc(arg_loc), initial_rusage()
 		{
-		reporter = arg_reporter;
 		if ( reporter )
-			{
-			name = 0;
-			loc = arg_loc;
 			Init();
-			}
 		}
 
 	~SegmentProfiler()

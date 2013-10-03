@@ -22,7 +22,10 @@ Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 	if ( orig )
 		state = save_state = RSH_FIRST_NULL;
 	else
+		{
 		state = RSH_LINE_MODE;
+		save_state = RSH_UNKNOWN;
+		}
 	}
 
 Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()

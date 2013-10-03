@@ -81,7 +81,9 @@ Val* Val::Clone() const
 	SerialInfo sinfo(&ss);
 	sinfo.cache = false;
 
-	this->Serialize(&sinfo);
+	if ( ! this->Serialize(&sinfo) )
+		return 0;
+
 	char* data;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
@@ -1656,8 +1658,7 @@ int TableVal::RemoveFrom(Val* val) const
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
-	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( tbl->NextEntry(k, c) )
 		{
 		Val* index = RecoverIndex(k);
 
@@ -1955,8 +1956,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
-	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( tbl->NextEntry(k, c) )
 		{
 		ListVal* index = table_hash->RecoverVals(k);
 
@@ -2162,7 +2162,7 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + expire_time < t )
 			{
-			Val* val = v ? v->Value() : 0;
+			Val* val = v->Value();
 
 			if ( expire_expr )
 				{
@@ -2328,7 +2328,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 	else
 		reporter->InternalError("unknown continuation state");
 
-	HashKey* k;
+	HashKey* k = 0;
 	int count = 0;
 
 	assert((!info->cont.ChildSuspended()) || state->v);
@@ -2341,12 +2341,21 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			if ( ! state->c )
 				{
 				// No next one.
-				SERIALIZE(false);
+				if ( ! SERIALIZE(false) )
+					{
+					delete k;
+					return false;
+					}
+
 				break;
 				}
 
 			// There's a value coming.
-			SERIALIZE(true);
+			if ( ! SERIALIZE(true) )
+				{
+				delete k;
+				return false;
+				}
 
 			if ( state->v->Value() )
 				state->v->Ref();
@@ -2563,6 +2572,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 	{
+	origin = 0;
 	record_type = t;
 	int n = record_type->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
@@ -2668,6 +2678,16 @@ Val* RecordVal::LookupWithDefault(int field) const
 		return val->Ref();
 
 	return record_type->FieldDefault(field);
+	}
+
+Val* RecordVal::Lookup(const char* field, bool with_default) const
+	{
+	int idx = record_type->FieldOffset(field);
+
+	if ( idx < 0 )
+		reporter->InternalError("missing record field: %s", field);
+
+	return with_default ? LookupWithDefault(idx) : Lookup(idx);
 	}
 
 RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const

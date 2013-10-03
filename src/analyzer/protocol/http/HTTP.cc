@@ -534,6 +534,7 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 	top_level = new HTTP_Entity(this, 0, expect_body);
 	BeginEntity(top_level);
 
+	buffer_offset = buffer_size = 0;
 	data_buffer = 0;
 	total_buffer_size = 0;
 

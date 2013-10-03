@@ -1,0 +1,5 @@
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.div-by-zero/div-by-zero.bro, line 6: division by zero [a / b]
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.div-by-zero/div-by-zero.bro, line 11: division by zero [a / b]
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.div-by-zero/div-by-zero.bro, line 16: division by zero [a / b]
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.div-by-zero/div-by-zero.bro, line 21: modulo by zero [a % b]
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.div-by-zero/div-by-zero.bro, line 26: modulo by zero [a % b]

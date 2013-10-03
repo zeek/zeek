@@ -40,6 +40,7 @@ DebuggerState::DebuggerState()
 	next_bp_id = next_watch_id = next_display_id = 1;
 	BreakBeforeNextStmt(false);
 	curr_frame_idx = 0;
+	already_did_list = false;
 	BreakFromSignal(false);
 
 	// ### Don't choose this arbitrary size! Extend Frame.
@@ -194,8 +195,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	FuncType* ftype;
-	if ( ! (ftype = id->Type()->AsFuncType()) )
+	if ( ! id->Type()->AsFuncType() )
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;
@@ -722,7 +722,7 @@ static char* get_prompt(bool reset_counter = false)
 string get_context_description(const Stmt* stmt, const Frame* frame)
 	{
 	ODesc d;
-	const BroFunc* func = frame->GetFunction();
+	const BroFunc* func = frame ? frame->GetFunction() : 0;
 
 	if ( func )
 		func->DescribeDebug(&d, frame->GetFuncArgs());

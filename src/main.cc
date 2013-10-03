@@ -784,7 +784,10 @@ int main(int argc, char** argv)
 	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
 	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
 
-	sqlite3_initialize();
+	int r = sqlite3_initialize();
+
+	if ( r != SQLITE_OK )
+		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD

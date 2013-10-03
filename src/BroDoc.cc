@@ -504,17 +504,35 @@ static void WritePluginComponents(FILE* f, const plugin::Plugin* p)
 		{
 		switch ( (*it)->Type() ) {
 		case plugin::component::ANALYZER:
-			WriteAnalyzerComponent(f,
-			        dynamic_cast<const analyzer::Component*>(*it));
+			{
+			const analyzer::Component* c =
+			        dynamic_cast<const analyzer::Component*>(*it);
+
+			if ( c )
+				WriteAnalyzerComponent(f, c);
+			else
+				reporter->InternalError("component type mismatch");
+			}
 			break;
+
 		case plugin::component::FILE_ANALYZER:
-			WriteAnalyzerComponent(f,
-			        dynamic_cast<const file_analysis::Component*>(*it));
+			{
+			const file_analysis::Component* c =
+			        dynamic_cast<const file_analysis::Component*>(*it);
+
+			if ( c )
+				WriteAnalyzerComponent(f, c);
+			else
+				reporter->InternalError("component type mismatch");
+			}
 			break;
+
 		case plugin::component::READER:
 			reporter->InternalError("docs for READER component unimplemented");
+
 		case plugin::component::WRITER:
 			reporter->InternalError("docs for WRITER component unimplemented");
+
 		default:
 			reporter->InternalError("docs for unknown component unimplemented");
 		}

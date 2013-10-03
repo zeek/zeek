@@ -17,7 +17,9 @@ using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
-SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
+SQLite::SQLite(ReaderFrontend *frontend)
+	: ReaderBackend(frontend),
+	  fields(), num_fields(), mode(), started(), query(), db(), st()
 	{
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),

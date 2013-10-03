@@ -16,7 +16,9 @@ using namespace writer;
 using threading::Value;
 using threading::Field;
 
-SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
+SQLite::SQLite(WriterFrontend* frontend)
+	: WriterBackend(frontend),
+	  fields(), num_fields(), db(), st()
 	{
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
@@ -33,9 +35,7 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 			BifConst::LogSQLite::empty_field->Len()
 			);
 
-	db = 0;
 	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
-	st = 0;
 	}
 
 SQLite::~SQLite()

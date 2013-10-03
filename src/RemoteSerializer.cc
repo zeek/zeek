@@ -541,6 +541,10 @@ RemoteSerializer::RemoteSerializer()
 	in_sync = 0;
 	last_flush = 0;
 	received_logs = 0;
+	current_id = 0;
+	current_msgtype = 0;
+	current_args = 0;
+	source_peer = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -1247,7 +1251,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	caps |= Peer::PID_64BIT;
 	caps |= Peer::NEW_CACHE_STRATEGY;
 
-	return caps ? SendToChild(MSG_CAPS, peer, 3, caps, 0, 0) : true;
+	return SendToChild(MSG_CAPS, peer, 3, caps, 0, 0);
 	}
 
 bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,

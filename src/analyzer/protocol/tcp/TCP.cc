@@ -1102,11 +1102,8 @@ void TCP_Analyzer::FlipRoles()
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	int orig_endp_idx = connection_type->FieldOffset("orig");
-	int resp_endp_idx = connection_type->FieldOffset("resp");
-
-	RecordVal *orig_endp_val = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
-	RecordVal *resp_endp_val = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
+	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
 
 	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
 	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
@@ -2046,7 +2043,8 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	}
 
 TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("TCPSTATS", c)
+	: TCP_ApplicationAnalyzer("TCPSTATS", c),
+	  orig_stats(), resp_stats()
 	{
 	}
 

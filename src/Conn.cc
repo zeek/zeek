@@ -141,6 +141,7 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	suppress_event = 0;
 
 	record_contents = record_packets = 1;
+	record_current_packet = record_current_content = 0;
 
 	timers_canceled = 0;
 	inactivity_timeout = 0;

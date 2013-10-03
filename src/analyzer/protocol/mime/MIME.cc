@@ -1257,7 +1257,7 @@ TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	}
 
 MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, int buf_size)
-: MIME_Message(mail_analyzer)
+    : MIME_Message(mail_analyzer), md5_hash()
 	{
 	analyzer = mail_analyzer;
 
@@ -1280,11 +1280,12 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, int buf_size)
 	if ( mime_content_hash )
 		{
 		compute_content_hash = 1;
-		content_hash_length = 0;
 		md5_init(&md5_hash);
 		}
 	else
 		compute_content_hash = 0;
+
+	content_hash_length = 0;
 
 	top_level = new MIME_Entity(this, 0);	// to be changed to MIME_Mail
 	BeginEntity(top_level);

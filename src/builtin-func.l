@@ -180,7 +180,7 @@ FILE* open_output_file(const char* surfix)
 
 void usage()
 	{
-	fprintf(stderr, "usage: bifcl [-p] *.bif\n");
+	fprintf(stderr, "usage: bifcl [-p <plugin> | -s] *.bif\n");
 	exit(1);
 	}
 
@@ -275,7 +275,7 @@ void finish_alternative_mode()
 
 int main(int argc, char* argv[])
 	{
-	char opt;
+	int opt;
 
 	while ( (opt = getopt(argc, argv, "p:s")) != -1 )
 		{

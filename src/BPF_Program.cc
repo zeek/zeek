@@ -58,9 +58,8 @@ int pcap_compile_nopcap(int snaplen_arg, int linktype_arg,
 }
 #endif
 
-BPF_Program::BPF_Program()
+BPF_Program::BPF_Program() : m_compiled(), m_program()
 	{
-	m_compiled = false;
 	}
 
 BPF_Program::~BPF_Program()

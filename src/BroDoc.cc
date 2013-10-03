@@ -556,6 +556,7 @@ static void WritePluginBifItems(FILE* f, const plugin::Plugin* p,
 
 static void WriteAnalyzerTagDefn(FILE* f, EnumType* e, const string& module)
 	{
+	/* TODO
 	string tag_id= module + "::Tag";
 	e = new CommentedEnumType(e);
 	e->SetTypeID(copy_string(tag_id.c_str()));
@@ -570,6 +571,7 @@ static void WriteAnalyzerTagDefn(FILE* f, EnumType* e, const string& module)
 	BroDocObj bdo(dummy_id, r, true);
 
 	bdo.WriteReST(f);
+	*/
 	}
 
 static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,

@@ -619,6 +619,7 @@ void ID::DescribeExtended(ODesc* d) const
 
 void ID::DescribeReSTShort(ODesc* d) const
 	{
+	/* TODO
 	if ( is_type )
 		d->Add(":bro:type:`");
 	else
@@ -668,6 +669,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 		d->SP();
 		attrs->DescribeReST(d);
 		}
+		*/
 	}
 
 void ID::DescribeReST(ODesc* d, bool is_role) const
@@ -697,10 +699,10 @@ void ID::DescribeReST(ODesc* d, bool is_role) const
 		{
 		d->Add(":Type: ");
 
-		if ( ! is_type && type->GetTypeID() )
+		if ( ! is_type && ! type->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(type->GetTypeID());
+			d->Add(type->GetName());
 			d->Add("`");
 			}
 		else

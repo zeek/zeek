@@ -209,7 +209,8 @@ std::string dot_canon(std::string path, std::string file, std::string prefix = "
 const char* normalize_path(const char* path);
 void get_script_subpath(const std::string& full_filename, const char** subpath);
 extern FILE* search_for_file(const char* filename, const char* ext,
-	const char** full_filename, bool load_pkgs, const char** bropath_subpath);
+	const char** full_filename, bool load_pkgs, const char** bropath_subpath,
+	std::string prepend_to_search_path = "");
 
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if

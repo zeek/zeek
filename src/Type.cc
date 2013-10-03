@@ -8,12 +8,11 @@
 #include "Scope.h"
 #include "Serializer.h"
 #include "Reporter.h"
+#include "broxygen/Manager.h"
 
 #include <string>
 #include <list>
 #include <map>
-
-extern int generate_documentation;
 
 // Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
@@ -47,7 +46,6 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	tag = t;
 	is_network_order = 0;
 	base_type = arg_base_type;
-	type_id = 0;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -110,10 +108,26 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
-BroType::~BroType()
+BroType* BroType::Clone() const
 	{
-	if ( type_id )
-		delete [] type_id;
+	SerializationFormat* form = new BinarySerializationFormat();
+	form->StartWrite();
+	CloneSerializer ss(form);
+	SerialInfo sinfo(&ss);
+	sinfo.cache = false;
+
+	this->Serialize(&sinfo);
+	char* data;
+	uint32 len = form->EndWrite(&data);
+	form->StartRead(data, len);
+
+	UnserialInfo uinfo(&ss);
+	uinfo.cache = false;
+	BroType* rval = this->Unserialize(&uinfo);
+
+	delete [] data;
+
+	return rval;
 	}
 
 int BroType::MatchesIndex(ListExpr*& index) const
@@ -222,9 +236,21 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 	if ( ! t )
 		return 0;
 
-	// For base types, we return our current instance
-	// if not in "documentation mode".
-	if ( t->base_type && ! generate_documentation )
+	if ( ! t->name.empty() )
+		{
+		// Avoid creating a new type if it's known by name.
+		// Also avoids loss of base type name alias (from condition below).
+		ID* id = global_scope()->Lookup(t->name.c_str());
+		BroType* t2 = id ? id->AsType() : 0;
+
+		if ( t2 )
+			{
+			Unref(t);
+			return t2->Ref();
+			}
+		}
+
+	if ( t->base_type )
 		{
 		BroType* t2 = ::base_type(TypeTag(t->tag));
 		Unref(t);
@@ -247,21 +273,10 @@ bool BroType::DoSerialize(SerialInfo* info) const
 	if ( ! (SERIALIZE(char(tag)) && SERIALIZE(char(internal_tag))) )
 		return false;
 
-	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type) &&
-		// Serialize the former "bool is_global_attributes_type" for
-		// backwards compatibility.
-		SERIALIZE(false)) )
+	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type)) )
 		return false;
 
-	// Likewise, serialize the former optional "RecordType* attributes_type"
-	// for backwards compatibility.
-	void* null = NULL;
-	SERIALIZE(null);
-
-	if ( generate_documentation )
-		{
-		SERIALIZE_OPTIONAL_STR(type_id);
-		}
+	SERIALIZE_STR(name.c_str(), name.size());
 
 	info->s->WriteCloseTag("Type");
 
@@ -279,24 +294,15 @@ bool BroType::DoUnserialize(UnserialInfo* info)
 	tag = (TypeTag) c1;
 	internal_tag = (InternalTypeTag) c2;
 
-	bool not_used;
-
-	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)
-			// Unerialize the former "bool is_global_attributes_type" for
-			// backwards compatibility.
-			&& UNSERIALIZE(&not_used)) )
+	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)) )
 		return 0;
 
-	BroType* not_used_either;
+	const char* n;
+	if ( ! UNSERIALIZE_STR(&n, 0) )
+		return false;
 
-	// Likewise, unserialize the former optional "RecordType*
-	// attributes_type" for backwards compatibility.
-	UNSERIALIZE_OPTIONAL(not_used_either, BroType::Unserialize(info, TYPE_RECORD));
-
-	if ( generate_documentation )
-		{
-		UNSERIALIZE_OPTIONAL_STR(type_id);
-		}
+	name = n;
+	delete [] n;
 
 	return true;
 	}
@@ -470,10 +476,10 @@ void IndexType::DescribeReST(ODesc* d) const
 
 		const BroType* t = (*IndexTypes())[i];
 
-		if ( t->GetTypeID() )
+		if ( ! t->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(t->GetTypeID());
+			d->Add(t->GetName());
 			d->Add("`");
 			}
 		else
@@ -486,10 +492,10 @@ void IndexType::DescribeReST(ODesc* d) const
 		{
 		d->Add(" of ");
 
-		if ( yield_type->GetTypeID() )
+		if ( ! yield_type->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(yield_type->GetTypeID());
+			d->Add(yield_type->GetName());
 			d->Add("`");
 			}
 		else
@@ -781,10 +787,10 @@ void FuncType::DescribeReST(ODesc* d) const
 		{
 		d->AddSP(" :");
 
-		if ( yield->GetTypeID() )
+		if ( ! yield->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(yield->GetTypeID());
+			d->Add(yield->GetName());
 			d->Add("`");
 			}
 		else
@@ -873,6 +879,17 @@ TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_reco
 	id = i;
 	}
 
+TypeDecl::TypeDecl(const TypeDecl& other)
+	{
+	type = other.type->Ref();
+	attrs = other.attrs;
+
+	if ( attrs )
+		::Ref(attrs);
+
+	id = copy_string(other.id);
+	}
+
 TypeDecl::~TypeDecl()
 	{
 	Unref(type);
@@ -914,10 +931,10 @@ void TypeDecl::DescribeReST(ODesc* d) const
 	d->Add(id);
 	d->Add(": ");
 
-	if ( type->GetTypeID() )
+	if ( ! type->GetName().empty() )
 		{
 		d->Add(":bro:type:`");
-		d->Add(type->GetTypeID());
+		d->Add(type->GetName());
 		d->Add("`");
 		}
 	else
@@ -927,37 +944,6 @@ void TypeDecl::DescribeReST(ODesc* d) const
 		{
 		d->SP();
 		attrs->DescribeReST(d);
-		}
-	}
-
-CommentedTypeDecl::CommentedTypeDecl(BroType* t, const char* i,
-			attr_list* attrs, bool in_record, std::list<std::string>* cmnt_list)
-	: TypeDecl(t, i, attrs, in_record)
-	{
-	comments = cmnt_list;
-	}
-
-CommentedTypeDecl::~CommentedTypeDecl()
-	{
-	if ( comments ) delete comments;
-	}
-
-void CommentedTypeDecl::DescribeReST(ODesc* d) const
-	{
-	TypeDecl::DescribeReST(d);
-
-	if ( comments )
-		{
-		d->PushIndent();
-		std::list<std::string>::const_iterator i;
-
-		for ( i = comments->begin(); i != comments->end(); ++i)
-			{
-			if ( i != comments->begin() ) d->NL();
-			d->Add(i->c_str());
-			}
-
-		d->PopIndentNoNL();
 		}
 	}
 
@@ -1328,36 +1314,10 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-EnumType::EnumType(const string& arg_name)
-: BroType(TYPE_ENUM)
-	{
-	name = arg_name;
-	counter = 0;
-	}
-
-EnumType::EnumType(EnumType* e)
-: BroType(TYPE_ENUM)
-	{
-	name = e->name;
-	counter = e->counter;
-
-	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
-		names[copy_string(it->first)] = it->second;
-	}
-
 EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
 		delete [] iter->first;
-	}
-
-CommentedEnumType::~CommentedEnumType()
-	{
-	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
-		{
-		delete [] iter->first;
-		delete iter->second;
-		}
 	}
 
 // Note, we use reporter->Error() here (not Error()) to include the current script
@@ -1372,7 +1332,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 		SetError();
 		return;
 		}
-	AddNameInternal(module_name, name, counter, is_export);
+	CheckAndAddName(module_name, name, counter, is_export);
 	counter++;
 	}
 
@@ -1386,32 +1346,12 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		return;
 		}
 	counter = -1;
-	AddNameInternal(module_name, name, val, is_export);
+	CheckAndAddName(module_name, name, val, is_export);
 	}
 
-void CommentedEnumType::AddComment(const string& module_name, const char* name,
-                                   std::list<std::string>* new_comments)
+void EnumType::CheckAndAddName(const string& module_name, const char* name,
+                               bro_int_t val, bool is_export)
 	{
-	if ( ! new_comments )
-		return;
-
-	string fullname = make_full_var_name(module_name.c_str(), name);
-
-	CommentMap::iterator it = comments.find(fullname.c_str());
-
-	if ( it == comments.end() )
-		comments[copy_string(fullname.c_str())] = new_comments;
-	else
-		{
-		list<string>* prev_comments = comments[fullname.c_str()];
-		prev_comments->splice(prev_comments->end(), *new_comments);
-		delete new_comments;
-		}
-	}
-
-void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
-	{
-	ID *id;
 	if ( Lookup(val) )
 		{
 		reporter->Error("enumerator value in enumerated type definition already exists");
@@ -1419,12 +1359,14 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 		return;
 		}
 
-	id = lookup_ID(name, module_name.c_str());
+	ID* id = lookup_ID(name, module_name.c_str());
+
 	if ( ! id )
 		{
 		id = install_ID(name, module_name.c_str(), true, is_export);
 		id->SetType(this->Ref());
 		id->SetEnumConst();
+		broxygen_mgr->Identifier(id);
 		}
 	else
 		{
@@ -1433,11 +1375,19 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 		return;
 		}
 
-	string fullname = make_full_var_name(module_name.c_str(), name);
-	names[copy_string(fullname.c_str())] = val;
+	AddNameInternal(module_name, name, val, is_export);
+
+	set<BroType*> types = type_aliases[GetName()];
+	set<BroType*>::const_iterator it;
+
+	for ( it = types.begin(); it != types.end(); ++it )
+		if ( *it != this )
+			(*it)->AsEnumType()->AddNameInternal(module_name, name, val,
+		                                         is_export);
 	}
 
-void CommentedEnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
+void EnumType::AddNameInternal(const string& module_name, const char* name,
+                               bro_int_t val, bool is_export)
 	{
 	string fullname = make_full_var_name(module_name.c_str(), name);
 	names[copy_string(fullname.c_str())] = val;
@@ -1466,54 +1416,8 @@ const char* EnumType::Lookup(bro_int_t value)
 
 void EnumType::DescribeReST(ODesc* d) const
 	{
-	d->Add(":bro:type:`");
-	d->Add(name.c_str());
-	d->Add("`");
-	}
-
-void CommentedEnumType::DescribeReST(ODesc* d) const
-	{
-	// create temporary, reverse name map so that enums can be documented
-	// in ascending order of their actual integral value instead of by name
-	typedef std::map< bro_int_t, const char* > RevNameMap;
-	RevNameMap rev;
-	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
-		rev[it->second] = it->first;
-
-	d->Add(":bro:type:`");
-	d->Add(type_name(Tag()));
-	d->Add("`");
-	d->PushIndent();
-	d->NL();
-
-	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it )
-		{
-		if ( it != rev.begin() )
-			{
-			d->NL();
-			d->NL();
-			}
-
-		d->Add(".. bro:enum:: ");
-		d->AddSP(it->second);
-		d->Add(GetTypeID());
-
-		CommentMap::const_iterator cmnt_it = comments.find(it->second);
-		if ( cmnt_it != comments.end() )
-			{
-			d->PushIndent();
-			d->NL();
-			std::list<std::string>::const_iterator i;
-			const std::list<std::string>* cmnt_list = cmnt_it->second;
-			for ( i = cmnt_list->begin(); i != cmnt_list->end(); ++i)
-				{
-				if ( i != cmnt_list->begin() ) d->NL();
-				d->Add(i->c_str());
-				}
-			d->PopIndentNoNL();
-			}
-		}
-	d->PopIndentNoNL();
+	// TODO: this probably goes away
+	d->Add(":bro:type:`enum`");
 	}
 
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);

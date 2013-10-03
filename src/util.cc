@@ -1060,11 +1060,9 @@ void get_script_subpath(const std::string& full_filename, const char** subpath)
 	*subpath = normalize_path(my_subpath.c_str());
 	}
 
-extern string current_scanned_file_path;
-
 FILE* search_for_file(const char* filename, const char* ext,
 			const char** full_filename, bool load_pkgs,
-			const char** bropath_subpath)
+			const char** bropath_subpath, string prepend_to_search_path)
 	{
 	// If the file is a literal absolute path we don't have to search,
 	// just return the result of trying to open it.  If the file is
@@ -1088,9 +1086,9 @@ FILE* search_for_file(const char* filename, const char* ext,
 
 	// Prepend the currently loading script's path to BROPATH so that
 	// @loads can be referenced relatively.
-	if ( current_scanned_file_path != "" && filename[0] == '.' )
+	if ( ! prepend_to_search_path.empty() && filename[0] == '.' )
 		safe_snprintf(path, sizeof(path), "%s:%s",
-		              current_scanned_file_path.c_str(), bro_path());
+		              prepend_to_search_path.c_str(), bro_path());
 	else
 		safe_strncpy(path, bro_path(), sizeof(path));
 

@@ -370,6 +370,8 @@ set(bro_SRCS
     plugin/Plugin.cc
     plugin/Macros.h
 
+    broxygen/Manager.cc
+
     nb_dns.c
     digest.h
 )

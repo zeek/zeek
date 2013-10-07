@@ -205,12 +205,64 @@ extern int int_list_cmp(const void* v1, const void* v2);
 extern const char* bro_path();
 extern const char* bro_magic_path();
 extern std::string bro_prefixes();
-std::string dot_canon(std::string path, std::string file, std::string prefix = "");
-const char* normalize_path(const char* path);
-void get_script_subpath(const std::string& full_filename, const char** subpath);
-extern FILE* search_for_file(const char* filename, const char* ext,
-	const char** full_filename, bool load_pkgs, const char** bropath_subpath,
-	std::string prepend_to_search_path = "");
+
+// Wrappers for dirname(3) that won't modify argument.
+std::string safe_dirname(const char* path);
+std::string safe_dirname(const std::string& path);
+
+// Wrappers for basename(3) that won't modify argument.
+std::string safe_basename(const char* path);
+std::string safe_basename(const std::string& path);
+
+/**
+ * Flatten a script name by replacing '/' path separators with '.'.
+ * @param dir A directory containing \a file.
+ * @param file A path to a Bro script.  If it is a __load__.bro, that part
+ *             is discarded when constructing the flattened the name.
+ * @param prefix A string to prepend to the flattened script name.
+ * @return The flattened script name.
+ */
+std::string flatten_script_name(const std::string& dir,
+                                const std::string& file,
+                                const std::string& prefix = "");
+
+/**
+ * Return a canonical/shortened path string by removing superfluous elements
+ * (path delimiters, dots referring to CWD or parent dir).
+ * @param path A filesystem path.
+ * @return A canonical/shortened version of \a path.
+ */
+std::string normalize_path(const std::string& path);
+
+/**
+ * Locate a file/direcotry within BROPATH.
+ * @param path A file/directory to locate within BROPATH.
+ * @return The directory within BROPATH that \a path located or an absolute
+ *         path to \a path if it couldn't be located in BROPATH
+ */
+std::string find_dir_in_bropath(const std::string& path);
+
+/**
+ * Locate a file within a given search path.
+ * @param filename Name of a file to find.
+ * @param path_set Colon-delimited set of paths to search for the file.
+ * @param opt_ext A filename extension/suffix to allow.
+ * @return Path to the found file, or an empty string if not found.
+ */
+std::string find_file(const std::string& filename, const std::string& path_set,
+                      const std::string& opt_ext = "");
+
+// Wrapper around fopen(3).  Emits an error when failing to open.
+FILE* open_file(const std::string& path, const std::string& mode = "r");
+
+/** Opens a Bro script package.
+ * @param path Location of a Bro script package (a directory).  Will be changed
+ *             to the path of the package's loader script.
+ * @param mode An fopen(3) mode.
+ * @return The return value of fopen(3) on the loader script or null if one
+ *         doesn't exist.
+ */
+FILE* open_package(std::string& path, const std::string& mode = "r");
 
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if

@@ -917,90 +917,127 @@ string bro_prefixes()
 
 const char* PACKAGE_LOADER = "__load__.bro";
 
-// If filename is pointing to a directory that contains a file called
-// PACKAGE_LOADER, returns the files path. Otherwise returns filename itself.
-// In both cases, the returned string is newly allocated.
-static const char* check_for_dir(const char* filename, bool load_pkgs)
+FILE* open_file(const string& path, const string& mode)
 	{
-	if ( load_pkgs && is_dir(filename) )
-		{
-		char init_filename_buf[1024];
-		safe_snprintf(init_filename_buf, sizeof(init_filename_buf),
-			      "%s/%s", filename, PACKAGE_LOADER);
+	if ( path.empty() )
+		return 0;
 
-		if ( access(init_filename_buf, R_OK) == 0 )
-			return copy_string(init_filename_buf);
-		}
+	FILE* rval = fopen(path.c_str(), mode.c_str());
 
-	return copy_string(filename);
-	}
-
-static FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
-	{
-	filename = check_for_dir(filename, load_pkgs);
-
-	if ( full_filename )
-		*full_filename = copy_string(filename);
-
-	FILE* f = fopen(filename, "r");
-
-	if ( ! f )
+	if ( ! rval )
 		{
 		char buf[256];
 		strerror_r(errno, buf, sizeof(buf));
 		reporter->Error("Failed to open file %s: %s", filename, buf);
 		}
 
-	delete [] filename;
-
-	return f;
+	return rval;
 	}
 
-// Canonicalizes a given 'file' that lives in 'path' into a flattened,
-// dotted format.  If the optional 'prefix' argument is given, it is
-// prepended to the dotted-format, separated by another dot.
-// If 'file' is __load__.bro, that part is discarded when constructing
-// the final dotted-format.
-string dot_canon(string path, string file, string prefix)
+static bool can_read(const string& path)
+	{
+	return access(path.c_str(), R_OK) == 0;
+	}
+
+FILE* open_package(string& path, const string& mode)
+	{
+	string arg_path(path);
+	path.append("/").append(PACKAGE_LOADER);
+
+	if ( can_read(path) )
+		return open_file(path, mode);
+
+	reporter->Error("Failed to open package '%s': missing '%s' file",
+	                arg_path.c_str(), PACKAGE_LOADER);
+	return 0;
+	}
+
+string safe_dirname(const char* path)
+	{
+	if ( ! path )
+		return ".";
+	return safe_dirname(string(path));
+	}
+
+string safe_dirname(const string& path)
+	{
+	char* tmp = copy_string(path.c_str());
+	string rval(dirname(tmp));
+	delete [] tmp;
+	return rval;
+	}
+
+string safe_basename(const char* path)
+	{
+	if ( ! path )
+		return ".";
+	return safe_basename(string(path));
+	}
+
+string safe_basename(const string& path)
+	{
+	char* tmp = copy_string(path.c_str());
+	string rval(basename(tmp));
+	delete [] tmp;
+	return rval;
+	}
+
+string flatten_script_name(const string& dir, const string& file,
+                           const string& prefix)
 	{
 	string dottedform(prefix);
+
 	if ( prefix != "" )
 		dottedform.append(".");
-	dottedform.append(path);
-	char* tmp = copy_string(file.c_str());
-	char* bname = basename(tmp);
-	if ( ! streq(bname, PACKAGE_LOADER) )
+
+	dottedform.append(dir);
+	string bname(safe_basename(file));
+
+	if ( bname != string(PACKAGE_LOADER) )
 		{
-		if ( path != "" )
+		if ( dir != "" )
 			dottedform.append(".");
+
 		dottedform.append(bname);
 		}
-	delete [] tmp;
+
 	size_t n;
+
 	while ( (n = dottedform.find("/")) != string::npos )
 		dottedform.replace(n, 1, ".");
+
 	return dottedform;
 	}
 
-// returns a normalized version of a path, removing duplicate slashes,
-// extraneous dots that refer to the current directory, and pops as many
-// parent directories referred to by "../" as possible
-const char* normalize_path(const char* path)
+static vector<string>* tokenize_string(string input, const string& delim,
+                                       vector<string>* rval)
+	{
+	if ( ! rval )
+		rval = new vector<string>();
+
+	size_t n;
+
+	while ( (n = input.find(delim)) != string::npos )
+		{
+		rval->push_back(input.substr(0, n));
+		input.erase(0, n + 1);
+		}
+
+	rval->push_back(input);
+	return rval;
+	}
+
+
+string normalize_path(const string& path)
 	{
 	size_t n;
-	string p(path);
 	vector<string> components, final_components;
 	string new_path;
 
-	if ( p[0] == '/' )
+	if ( path[0] == '/' )
 		new_path = "/";
 
-	while ( (n = p.find("/")) != string::npos )
-		{
-		components.push_back(p.substr(0, n));
-		p.erase(0, n + 1);
-		}
-	components.push_back(p);
+	tokenize_string(path, "/", &components);
 
 	vector<string>::const_iterator it;
 	for ( it = components.begin(); it != components.end(); ++it )
@@ -1026,125 +1063,86 @@ const char* normalize_path(const char* path)
 	if ( new_path.size() > 1 && new_path[new_path.size() - 1] == '/' )
 		new_path.erase(new_path.size() - 1);
 
-	return copy_string(new_path.c_str());
+	return new_path;
 	}
 
-// Returns the subpath of the root Bro script install/source/build directory in
-// which the loaded file is located.  If it's not under a subpath of that
-// directory (e.g. cwd or custom path) then the full path is returned.
-void get_script_subpath(const std::string& full_filename, const char** subpath)
+string find_dir_in_bropath(const string& path)
 	{
 	size_t p;
-	std::string my_subpath(full_filename);
+	string rval(path);
 
 	// get the parent directory of file (if not already a directory)
-	if ( ! is_dir(full_filename.c_str()) )
-		{
-		char* tmp = copy_string(full_filename.c_str());
-		my_subpath = dirname(tmp);
-		delete [] tmp;
-		}
+	if ( ! is_dir(path.c_str()) )
+		rval = safe_dirname(path);
 
 	// first check if this is some subpath of the installed scripts root path,
 	// if not check if it's a subpath of the script source root path,
 	// then check if it's a subpath of the build directory (where BIF scripts
 	// will get generated).
 	// If none of those, will just use the given directory.
-	if ( (p = my_subpath.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
-	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
-	else if ( (p = my_subpath.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
-	else if ( (p = my_subpath.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
-		my_subpath.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
+	if ( (p = rval.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
+		rval.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
+	else if ( (p = rval.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
+		rval.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
+	else if ( (p = rval.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
+		rval.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
+	else if ( (p = rval.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
+		rval.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
 
 	// if root path found, remove path separators until next path component
 	if ( p != std::string::npos )
-		while ( my_subpath.size() && my_subpath[0] == '/' )
-			my_subpath.erase(0, 1);
+		while ( rval.size() && rval[0] == '/' )
+			rval.erase(0, 1);
 
-	*subpath = normalize_path(my_subpath.c_str());
+	return normalize_path(rval);
 	}
 
-FILE* search_for_file(const char* filename, const char* ext,
-			const char** full_filename, bool load_pkgs,
-			const char** bropath_subpath, string prepend_to_search_path)
+static string find_file_in_path(const string& filename, const string& path,
+                                const string& opt_ext = "")
 	{
-	// If the file is a literal absolute path we don't have to search,
-	// just return the result of trying to open it.  If the file is
-	// might be a relative path, check first if it's a real file that
-	// can be referenced from cwd, else we'll try to search for it based
-	// on what path the currently-loading script is in as well as the
-	// standard BROPATH paths.
-	if ( filename[0] == '/' ||
-	    (filename[0] == '.' && access(filename, R_OK) == 0) )
+	if ( filename.empty() )
+		return string();
+
+	// If file name is an absolute path, searching within *path* is pointless.
+	if ( filename[0] == '/' )
 		{
-		if ( bropath_subpath )
-			{
-			char* tmp = copy_string(filename);
-			*bropath_subpath = copy_string(dirname(tmp));
-			delete [] tmp;
-			}
-		return open_file(filename, full_filename, load_pkgs);
-		}
-
-	char path[1024], full_filename_buf[1024];
-
-	// Prepend the currently loading script's path to BROPATH so that
-	// @loads can be referenced relatively.
-	if ( ! prepend_to_search_path.empty() && filename[0] == '.' )
-		safe_snprintf(path, sizeof(path), "%s:%s",
-		              prepend_to_search_path.c_str(), bro_path());
-	else
-		safe_strncpy(path, bro_path(), sizeof(path));
-
-	char* dir_beginning = path;
-	char* dir_ending = path;
-	int more = *dir_beginning != '\0';
-
-	while ( more )
-		{
-		while ( *dir_ending && *dir_ending != ':' )
-			++dir_ending;
-
-		if ( *dir_ending == ':' )
-			*dir_ending = '\0';
+		if ( can_read(filename) )
+			return filename;
 		else
-			more = 0;
-
-		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
-				"%s/%s.%s", dir_beginning, filename, ext);
-		if ( access(full_filename_buf, R_OK) == 0 &&
-		     ! is_dir(full_filename_buf) )
-			{
-			if ( bropath_subpath )
-				get_script_subpath(full_filename_buf, bropath_subpath);
-			return open_file(full_filename_buf, full_filename, load_pkgs);
-			}
-
-		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
-				"%s/%s", dir_beginning, filename);
-		if ( access(full_filename_buf, R_OK) == 0 )
-			{
-			if ( bropath_subpath )
-				get_script_subpath(full_filename_buf, bropath_subpath);
-			return open_file(full_filename_buf, full_filename, load_pkgs);
-			}
-
-		dir_beginning = ++dir_ending;
+			return string();
 		}
 
-	if ( full_filename )
-		*full_filename = copy_string(filename);
-	if ( bropath_subpath )
-			{
-			char* tmp = copy_string(filename);
-			*bropath_subpath = copy_string(dirname(tmp));
-			delete [] tmp;
-			}
+	string abs_path(path + '/' + filename);
 
-	return 0;
+	if ( ! opt_ext.empty() )
+		{
+		string with_ext(abs_path + '.' + opt_ext);
+
+		if ( can_read(with_ext) )
+			return with_ext;
+		}
+
+	if ( can_read(abs_path) )
+		return abs_path;
+
+	return string();
+	}
+
+string find_file(const string& filename, const string& path_set,
+                 const string& opt_ext)
+	{
+	vector<string> paths;
+	tokenize_string(path_set, ":", &paths);
+
+	for ( size_t n = 0; n < paths.size(); ++n )
+		{
+		string f = find_file_in_path(filename, paths[n], opt_ext);
+
+		if ( ! f.empty() )
+			return f;
+		}
+
+	return string();
 	}
 
 FILE* rotate_file(const char* name, RecordVal* rotate_info)

@@ -31,7 +31,6 @@
 #include "broxygen/Manager.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
-extern int print_loaded_scripts;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
@@ -52,29 +51,36 @@ char last_tok[128];
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
 		reporter->Error("read failed with \"%s\"", strerror(errno));
 
-static string get_dirname(const char* path)
+static string find_relative_file(const string& filename, const string& ext)
 	{
-	if ( ! path )
-		return "";
+	if ( filename.empty() )
+		return string();
 
-	char* tmp = copy_string(path);
-	string rval = dirname(tmp);
-	delete[] tmp;
-	return rval;
+	if ( filename[0] == '.' )
+		return find_file(filename, safe_dirname(::filename), ext);
+	else
+		return find_file(filename, bro_path(), ext);
 	}
 
-static ino_t get_inode_num(FILE* f, const char* filename)
+static ino_t get_inode_num(FILE* f, const string& path)
 	{
 	struct stat b;
 
 	if ( fstat(fileno(f), &b) )
-		{
-		reporter->Error("failed to fstat fd of %s: %s\n", filename,
-		                strerror(errno));
-		exit(1);
-		}
+		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
+		                     strerror(errno));
 
 	return b.st_ino;
+	}
+
+static ino_t get_inode_num(const string& path)
+	{
+	FILE* f = open_file(path);
+
+	if ( ! f )
+		reporter->FatalError("failed to open %s\n", path.c_str());
+
+	return get_inode_num(f, path);
 	}
 
 class FileInfo {
@@ -265,7 +271,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval = get_dirname(::filename);
+	string rval(safe_dirname(::filename));
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -299,42 +305,29 @@ when	return TOK_WHEN;
 	}
 
 @load-sigs{WS}{FILE} {
-	const char* new_sig_file = skip_whitespace(yytext + 10);
-	const char* full_filename = 0;
-	FILE* f = search_for_file(new_sig_file, "sig", &full_filename, false, 0,
-	                          get_dirname(::filename));
+	const char* file = skip_whitespace(yytext + 10);
+	string path(find_relative_file(file, "sig"));
 
-	if ( f )
-		{
-		sig_files.push_back(full_filename);
-		fclose(f);
-		delete [] full_filename;
-		}
-	else
+	if ( path.empty() )
 		reporter->Error("failed to find file associated with @load-sigs %s",
-		                new_sig_file);
+		                file);
+	else
+		sig_files.push_back(copy_string(path.c_str()));
 	}
 
 @unload{WS}{FILE}	{
 	// Skip "@unload".
-	const char* new_file = skip_whitespace(yytext + 7);
+	const char* file = skip_whitespace(yytext + 7);
+	string path(find_relative_file(file, "bro"));
 
-	// All we have to do is pretend we've already scanned it.
-	const char* full_filename;
-	FILE* f = search_for_file(new_file, "bro", &full_filename, true, 0,
-	                          get_dirname(::filename));
-
-	if ( f )
-		{
-		ScannedFile sf(get_inode_num(f, full_filename), file_stack.length(), full_filename, "", true);
-		files_scanned.push_back(sf);
-
-		fclose(f);
-		delete [] full_filename;
-		}
-
+	if ( path.empty() )
+		reporter->Error("failed find file associated with @unload %s", file);
 	else
-		reporter->Error("failed find file associated with @unload %s", new_file);
+		{
+		// All we have to do is pretend we've already scanned it.
+		ScannedFile sf(get_inode_num(path), file_stack.length(), path, true);
+		files_scanned.push_back(sf);
+		}
 	}
 
 @prefixes{WS}("+"?)={WS}{PREFIX}	{
@@ -488,22 +481,35 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
+
+static bool already_scanned(ino_t i)
+	{
+	list<ScannedFile>::const_iterator it;
+
+	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+		if ( it->inode == i )
+			return true;
+
+	return false;
+	}
+
+static bool already_scanned(const string& path)
+	{
+	return already_scanned(get_inode_num(path));
+	}
+
 static int load_files(const char* orig_file)
 	{
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;
-
-	const char* full_filename = "<internal error>";
-	const char* bropath_subpath = "<internal error>";
-	const char* bropath_subpath_delete = 0;
-	FILE* f;
+	string file_path;
+	FILE* f = 0;
 
 	if ( streq(orig_file, "-") )
 		{
 		f = stdin;
-		full_filename = "<stdin>";
-		bropath_subpath = "";
+		file_path = "<stdin>";
 
 		if ( g_policy_debug )
 			{
@@ -514,89 +520,61 @@ static int load_files(const char* orig_file)
 
 	else
 		{
-		f = search_for_file(orig_file, "bro", &full_filename, true, &bropath_subpath, get_dirname(::filename));
-		bropath_subpath_delete = bropath_subpath; // This will be deleted.
-		}
+		file_path = find_relative_file(orig_file, "bro");
 
-	if ( f )
-		{
-		ino_t i = get_inode_num(f, full_filename);
-		std::list<ScannedFile>::const_iterator it;
+		if ( file_path.empty() )
+			reporter->FatalError("can't find %s", orig_file);
 
-		for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
-			{
-			if ( it->inode == i )
-				{
-				if ( f != stdin )
-					{
-					fclose(f);
-					delete [] full_filename;
-					delete [] bropath_subpath_delete;
-					}
-				return 0;
-				}
-			}
-
-		ScannedFile sf(i, file_stack.length(), full_filename, bropath_subpath);
-		files_scanned.push_back(sf);
-
-		if ( g_policy_debug )
-			{
-			// Add the filename to the file mapping
-			// table (Debug.h).
-			Filemap* map = new Filemap;
-
-			// Make sure it wasn't already read in.
-			HashKey* key = new HashKey(full_filename);
-			if ( g_dbgfilemaps.Lookup(key) )
-				{
-				// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
-				fclose(f);
-				delete key;
-				return 0;
-				}
-			else
-				{
-				g_dbgfilemaps.Insert(key, map);
-				}
-
-			if ( full_filename )
-				LoadPolicyFileText(full_filename);
-			}
-
-		// Remember where we were.  If this is the first
-		// file being pushed on the stack, i.e., the *last*
-		// one that will be processed, then we want to
-		// restore the module scope in which this @load
-		// was done when we're finished processing it.
-		if ( ! did_module_restore )
-			{
-			file_stack.append(new FileInfo(current_module));
-			did_module_restore = true;
-			}
+		if ( is_dir(file_path.c_str()) )
+			f = open_package(file_path);
 		else
-			file_stack.append(new FileInfo);
+			f = open_file(file_path);
 
-		broxygen_mgr->File(full_filename);
-
-		delete [] bropath_subpath_delete;
-
-		// "orig_file", could be an alias for yytext, which is ephemeral
-		//  and will be zapped after the yy_switch_to_buffer() below.
-		yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
-
-		yylloc.first_line = yylloc.last_line = line_number = 1;
-
-		// Don't delete the old filename - it's pointed to by
-		// every BroObj created when parsing it.
-		yylloc.filename = filename = full_filename;
+		if ( ! f )
+			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	else
+	ino_t i = get_inode_num(f, file_path);
+
+	if ( already_scanned(i) )
+		return 0;
+
+	ScannedFile sf(i, file_stack.length(), file_path);
+	files_scanned.push_back(sf);
+
+	if ( g_policy_debug && ! file_path.empty() )
 		{
-		reporter->Error("can't open %s", full_filename);
-		exit(1);
+		// Add the filename to the file mapping table (Debug.h).
+		Filemap* map = new Filemap;
+		HashKey* key = new HashKey(file_path.c_str());
+		g_dbgfilemaps.Insert(key, map);
+		LoadPolicyFileText(file_path.c_str());
 		}
+
+	// Remember where we were.  If this is the first
+	// file being pushed on the stack, i.e., the *last*
+	// one that will be processed, then we want to
+	// restore the module scope in which this @load
+	// was done when we're finished processing it.
+	if ( ! did_module_restore )
+		{
+		file_stack.append(new FileInfo(current_module));
+		did_module_restore = true;
+		}
+	else
+		file_stack.append(new FileInfo);
+
+	broxygen_mgr->File(file_path);
+
+	// "orig_file", could be an alias for yytext, which is ephemeral
+	//  and will be zapped after the yy_switch_to_buffer() below.
+	yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
+
+	yylloc.first_line = yylloc.last_line = line_number = 1;
+
+	// Don't delete the old filename - it's pointed to by
+	// every BroObj created when parsing it.
+	yylloc.filename = filename = copy_string(file_path.c_str());
 
 	return 1;
 	}
@@ -773,24 +751,22 @@ int yywrap()
 			if ( ! prefixes[i][0] )
 				continue;
 
-			string s;
-			s = dot_canon(it->subpath.c_str(), it->name.c_str(), prefixes[i]);
-			FILE* f = search_for_file(s.c_str(), "bro", 0, false, 0,
-			                          get_dirname(::filename));
+			string sub(find_dir_in_bropath(it->name));
+			string flat(flatten_script_name(sub, it->name, prefixes[i]));
+			string path(find_relative_file(flat, "bro"));
+
+			if ( ! path.empty() )
+				{
+				add_input_file(path.c_str());
+				found_prefixed_files = true;
+				}
 
 			//printf("====== prefix search ======\n");
 			//printf("File  : %s\n", it->name.c_str());
-			//printf("Path  : %s\n", it->subpath.c_str());
-			//printf("Dotted: %s\n", s.c_str());
+			//printf("Path  : %s\n", sub.c_str());
+			//printf("Dotted: %s\n", flat.c_str());
 			//printf("Found : %s\n", f ? "T" : "F");
 			//printf("===========================\n");
-
-			if ( f )
-				{
-				add_input_file(s.c_str());
-				found_prefixed_files = true;
-				fclose(f);
-				}
 			}
 		}
 

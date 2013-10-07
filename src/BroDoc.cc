@@ -85,6 +85,7 @@ BroDoc::~BroDoc()
 
 void BroDoc::AddImport(const std::string& s)
 	{
+	/*
 	std::string lname(s);
 	// First strip any .bro extension.
 	size_t ext_pos = lname.find(".bro");
@@ -142,6 +143,7 @@ void BroDoc::AddImport(const std::string& s)
 
 	delete [] full_filename;
 	delete [] subpath;
+	*/
 	}
 
 void BroDoc::SetPacketFilter(const std::string& s)

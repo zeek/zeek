@@ -20,8 +20,8 @@ void Manager::GenerateDocs() const
 void Manager::File(const std::string& path)
 	{
 	// TODO
-	// determine bropath subpath
 	// can be a file or directory?
+	// determine path within BROPATH
 	}
 
 void Manager::ScriptDependency(const std::string& path, const std::string& dep)

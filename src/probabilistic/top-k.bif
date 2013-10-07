@@ -1,9 +1,4 @@
-# ===========================================================================
-#
-#                                  Top-K Functions
-#
-# ===========================================================================
-
+##! Functions to probabilistically determine top-k elements.
 
 %%{
 #include "probabilistic/Topk.h"

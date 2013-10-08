@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_type_interval.bro
+data_type_interval.bro
 
 # Store the time the previous connection was established.
 global last_connection_time: time;

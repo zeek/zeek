@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- known-hosts.bro
+known-hosts.bro
 
 module Known;
 

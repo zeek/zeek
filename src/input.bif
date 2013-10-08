@@ -1,4 +1,4 @@
-# functions and types for the input framework
+##! Internal functions and types used by the input framework.
 
 module Input;
 

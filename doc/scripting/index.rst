@@ -54,7 +54,7 @@ script and much more in following sections.
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
    :lines: 4-6
 
-Lines 7 and 8 of the script process the ``__load__.bro`` script in the
+Lines 3 to 5 of the script process the ``__load__.bro`` script in the
 respective directories being loaded.  The ``@load`` directives are
 often considered good practice or even just good manners when writing
 Bro scripts to make sure they can be used on their own. While it's unlikely that in a
@@ -95,7 +95,7 @@ the information associated with a file for which Bro's file analysis framework h
 generated a hash.  The event handler is passed the file itself as ``f``, the type of digest
 algorithm used as ``kind`` and the hash generated as ``hash``.
 
-On line 35, an ``if`` statement is used to check for the correct type of hash, in this case
+On line 3, an ``if`` statement is used to check for the correct type of hash, in this case
 a SHA1 hash.  It also checks for a mime type we've defined as being of interest as defined in the
 constant ``match_file_types``.  The comparison is made against the expression ``f$mime_type``, which uses
 the ``$`` dereference operator to check the value ``mime_type`` inside the variable ``f``.  Once both
@@ -111,18 +111,18 @@ this event continues and upon receipt of the values returned by
 :bro:id:`lookup_hostname_txt`, the ``when`` block is executed.  The
 ``when`` block splits the string returned into a portion for the date on which
 the malware was first detected and the detection rate by splitting on an text space
-and storing the values returned in a local table variable.  In line 42, if the table
+and storing the values returned in a local table variable.  In line 12, if the table
 returned by ``split1`` has two entries, indicating a successful split, we store the detection
-date in ``mhr_first_detect`` and the rate in ``mhr_detect_rate`` on lines 45 and 45 respectively
+date in ``mhr_first_detected`` and the rate in ``mhr_detect_rate`` on lines 14 and 15 respectively
 using the appropriate conversion functions.  From this point on, Bro knows it has seen a file
 transmitted which has a hash that has been seen by the Team Cymru Malware Hash Registry, the rest
 of the script is dedicated to producing a notice.
 
-On line 47, the detection time is processed into a string representation and stored in
+On line 17, the detection time is processed into a string representation and stored in
 ``readable_first_detected``.  The script then compares the detection rate against the
-``notice_threshold`` that was defined on line 30.  If the detection rate is high enough, the script
-creates a concise description of the notice on line 50, a possible URL to check the sample against
-virustotal.com's database, and makes the call to :bro:id:`NOTICE` to hand the relevant information
+``notice_threshold`` that was defined earlier.  If the detection rate is high enough, the script
+creates a concise description of the notice on line 22, a possible URL to check the sample against
+``virustotal.com``'s database, and makes the call to :bro:id:`NOTICE` to hand the relevant information
 off to the Notice framework.
 
 In approximately 25 lines of code, Bro provides an amazing
@@ -509,16 +509,16 @@ values don't have to be unique, each key in the table must be unique
 to preserve a one-to-one mapping of keys to values.  In the example
 below, we've compiled a table of SSL-enabled services and their common
 ports.  The explicit declaration and constructor for the table on
-lines 3 and 4 lay out the data types of the keys (strings) and the
+lines 5 and 7 lay out the data types of the keys (strings) and the
 data types of the yields (ports) and then fill in some sample key and
-yield pairs.  Line 5 shows how to use a table accessor to insert one
+yield pairs.  Line 8 shows how to use a table accessor to insert one
 key-yield pair into the table.  When using the ``in`` operator on a table,
 you are effectively working with the keys of the table.  In the case
 of an ``if`` statement, the ``in`` operator will check for membership among
-the set of keys and return a true or false value.  As seen on line 7,
+the set of keys and return a true or false value.  As seen on line 10,
 we are checking if ``SMTPS`` is not in the set of keys for the
 ssl_services table and if the condition holds true, we add the
-key-yield pair to the table.  Line 12 shows the use of a ``for`` statement
+key-yield pair to the table.  Line 13 shows the use of a ``for`` statement
 to iterate over each key currently in the table.  
 
 .. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_declaration.bro
@@ -780,7 +780,7 @@ inequality operators through the ``==`` and ``!=`` operators
 respectively. When used in this manner however, the string must match
 entirely to resolve to true.  For example, the script below uses two
 ternary conditional statements to illustrate the use of the ``==``
-operators with patterns.  On lines 5 and 8 the output is altered based
+operators with patterns.  On lines 8 and 11 the output is altered based
 on the result of the comparison between the pattern and the string.  
 
 .. btest-include:: ${DOC_ROOT}/scripting/data_type_pattern_02.bro
@@ -934,12 +934,12 @@ method and produce a logfile.  As we are working within a namespace
 and informing an outside entity of workings and data internal to the
 namespace, we use an ``export`` block.  First we need to inform Bro
 that we are going to be adding another Log Stream by adding a value to
-the :bro:type:`Log::ID` enumerable.  In line 3 of the script, we append the
+the :bro:type:`Log::ID` enumerable.  In line 6 of the script, we append the
 value ``LOG`` to the ``Log::ID`` enumerable, however due to this being in
 an export block the value appended to ``Log::ID`` is actually
 ``Factor::Log``.  Next, we need to define the name and value pairs
-that make up the data of our logs and dictate its format.  Lines 5
-through 9 define a new datatype called an ``Info`` record (actually,
+that make up the data of our logs and dictate its format.  Lines 8
+through 11 define a new datatype called an ``Info`` record (actually,
 ``Factor::Info``) with two fields, both unsigned integers. Each of the
 fields in the ``Factor::Log`` record type include the ``&log``
 attribute, indicating that these fields should be passed to the
@@ -948,7 +948,7 @@ any name value pairs without the ``&log`` attribute, those fields
 would simply be ignored during logging but remain available for the
 lifespan of the variable.  The next step is to create the logging
 stream with :bro:id:`Log::create_stream` which takes a Log::ID and a
-record as its arguments.  In this example, on line 28, we call the
+record as its arguments.  In this example, on line 25, we call the
 ``Log::create_stream`` method and pass ``Factor::LOG`` and the
 ``Factor::Info`` record as arguments. From here on out, if we issue
 the ``Log::write`` command with the correct ``Log::ID`` and a properly
@@ -1153,12 +1153,12 @@ possible while staying concise.
 
 While much of the script relates to the actual detection, the parts
 specific to the Notice Framework are actually quite interesting in
-themselves.  On line 12 the script's ``export`` block adds the value
+themselves.  On line 18 the script's ``export`` block adds the value
 ``SSH::Interesting_Hostname_Login`` to the enumerable constant
 ``Notice::Type`` to indicate to the Bro core that a new type of notice
 is being defined.  The script then calls ``NOTICE`` and defines the
 ``$note``, ``$msg``, ``$sub`` and ``$conn`` fields of the
-:bro:type:`Notice::Info` record.  Line 39 also includes a ternary if
+:bro:type:`Notice::Info` record.  Line 42 also includes a ternary if
 statement that modifies the ``$msg`` text depending on whether the
 host is a local address and whether it is the client or the server.
 This use of :bro:id:`fmt` and a ternary operators is a concise way to

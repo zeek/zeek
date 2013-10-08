@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- event.bif.bro
+event.bif.bro
 
 ## Generated for every new connection. This event is raised with the first
 ## packet of a previously unknown connection. Bro uses a flow-based definition

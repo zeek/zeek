@@ -1,5 +1,5 @@
-Built-in Types and Attributes
-=============================
+Types and Attributes
+====================
 
 Types
 -----

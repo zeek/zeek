@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- detect-MHR.bro
+detect-MHR.bro
 
 event file_hash(f: fa_file, kind: string, hash: string)
 	{

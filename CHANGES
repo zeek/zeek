@@ -1,4 +1,13 @@
 
+2.2-beta-51 | 2013-10-07 17:33:56 -0700
+
+  * Polishing the reference and scripting sections of the manual.
+    (Robin Sommer)
+
+  * Fixing the historical CHANGES record. (Robin Sommer)
+    
+  * Updating copyright notice. (Robin Sommer)
+    
 2.2-beta-38 | 2013-10-02 11:03:29 -0700
 
   * Fix uninitialized (or unused) fields. (Jon Siwek)

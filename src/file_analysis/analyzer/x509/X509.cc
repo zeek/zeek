@@ -17,6 +17,8 @@
 
 using namespace file_analysis;
 
+IMPLEMENT_SERIAL(X509Val, SER_X509_VAL);
+
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("X509"), args, file)
 	{
@@ -443,4 +445,66 @@ double file_analysis::X509::get_time_from_asn1(const ASN1_TIME * atime)
 
 	return lResult;
 }
+
+X509Val::X509Val(::X509* arg_certificate) : OpaqueVal(x509_opaque_type)
+	{
+	certificate = arg_certificate;
+	}
+
+X509Val::X509Val() : OpaqueVal(x509_opaque_type)
+	{
+	certificate = 0;
+	}
+
+X509Val::~X509Val()
+	{
+	if ( certificate )
+		X509_free(certificate);
+	}
+
+::X509* X509Val::GetCertificate() const
+	{
+	return certificate;
+	}
+
+bool X509Val::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_X509_VAL, X509Val);
+
+	unsigned char *buf = NULL;
+
+	int length = i2d_X509(certificate, &buf);
+
+	if ( length < 0 ) 
+		return false;
+
+	bool res = SERIALIZE_STR(reinterpret_cast<const char*>(buf), length);
+
+	OPENSSL_free(buf);
+	return res;
+	}
+
+bool X509Val::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal)
+
+	int length;
+	unsigned char *certbuf, *opensslbuf;
+
+	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&certbuf), &length) )
+		return false;
+
+	opensslbuf = certbuf; // OpenSSL likes to shift pointers around. really.
+	certificate = d2i_X509(NULL, const_cast<const unsigned char**>(&opensslbuf), length);
+	delete[] certbuf;
+
+	if ( !certificate ) 
+		return false;
+
+	return true;
+	}
+
+
+
+
 

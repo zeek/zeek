@@ -22,8 +22,6 @@
 	};
 
 	string orig_label(bool is_orig);
-	void free_X509(void *);
-	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
 	string handshake_type_label(int type);
 	%}
 
@@ -31,20 +29,6 @@
 string orig_label(bool is_orig)
 		{
 		return string(is_orig ? "originator" :"responder");
-		}
-
-	void free_X509(void* cert)
-		{
-		X509_free((X509*) cert);
-		}
-
-	X509* d2i_X509_binpac(X509** px, const uint8** in, int len)
-		{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-		return d2i_X509(px, in, len);
-#else
-		return d2i_X509(px, (u_char**) in, len);
-#endif
 		}
 
 	string handshake_type_label(int type)

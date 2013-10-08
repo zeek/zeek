@@ -39,6 +39,50 @@ private:
 	std::string cert_data;
 };
 
+/**
+ * This class wraps an OpenSSL X509 data structure. 
+ *
+ * We need these to be able to pass OpenSSL pointers around in Bro
+ * script-land. Otherwise, we cannot verify certificates from Bro 
+ * scriptland
+ */
+class X509Val : public OpaqueVal {
+public:
+	/**
+	 * Construct an X509Val.
+	 *
+	 * @param certificate specifies the wrapped OpenSSL certificate
+	 *
+	 * @return A newly initialized X509Val
+	 */
+	X509Val(::X509* certificate);
+
+	/**
+	 * Destructor.
+	 */
+	~X509Val();
+
+	/**
+	 * Get the wrapped X509 certificate. Please take care, that the
+	 * internal OpenSSL reference counting stays the same.
+	 *
+	 * @return The wrapped OpenSSL X509 certificate
+	 */
+	::X509* GetCertificate() const;
+
+protected:
+	/**
+	 * Construct an empty X509Val. Only used for deserialization
+	 */
+	X509Val();
+
+private:
+	::X509* certificate; // the wrapped certificate
+
+	DECLARE_SERIAL(X509Val);
+};
+
 }
+
 
 #endif

@@ -616,6 +616,7 @@ extern OpaqueType* entropy_type;
 extern OpaqueType* cardinality_type;
 extern OpaqueType* topk_type;
 extern OpaqueType* bloomfilter_type;
+extern OpaqueType* x509_opaque_type;
 
 // Returns the BRO basic (non-parameterized) type with the given type.
 extern BroType* base_type(TypeTag tag);

@@ -65,6 +65,11 @@ Plugin::~Plugin()
 	delete [] extensions;
 	}
 
+Plugin::Type Plugin::PluginType() const
+	{
+	return STANDARD;
+	}
+
 const char* Plugin::Name() const
 	{
 	return name;
@@ -251,6 +256,18 @@ void Plugin::Describe(ODesc* d) const
 	else
 		d->Add(" (built-in)");
 
+	switch ( PluginType() ) {
+	case STANDARD:
+		break;
+
+	case INTERPRETER:
+		d->Add( " (interpreter plugin)");
+		break;
+
+	default:
+		reporter->InternalError("unknown plugin type in Plugin::Describe");
+	}
+
 	d->Add("\n");
 
 	if ( d->IsShort() )
@@ -300,6 +317,48 @@ void Plugin::Describe(ODesc* d) const
 		d->Add((*i).GetID());
 		d->Add("\n");
 		}
+	}
+
+InterpreterPlugin::InterpreterPlugin(int arg_priority)
+	{
+	priority = arg_priority;
+	}
+
+InterpreterPlugin::~InterpreterPlugin()
+	{
+	}
+
+int InterpreterPlugin::Priority() const
+	{
+	return priority;
+	}
+
+Plugin::Type InterpreterPlugin::PluginType() const
+	{
+	return INTERPRETER;
+	}
+
+Val* InterpreterPlugin::CallFunction(const Func* func, val_list* args)
+	{
+	return 0;
+	}
+
+bool InterpreterPlugin::QueueEvent(Event* event)
+	{
+	return false;
+	}
+
+void InterpreterPlugin::UpdateNetworkTime(double network_time)
+	{
+	}
+
+void InterpreterPlugin::DrainEvents()
+	{
+	}
+
+void InterpreterPlugin::DisableInterpreterPlugin() const
+	{
+	plugin_mgr->DisableInterpreterPlugin(this);
 	}
 
 

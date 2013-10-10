@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- framework_logging_factorial_03.bro
+framework_logging_factorial_03.bro
 
 event bro_init()
     {

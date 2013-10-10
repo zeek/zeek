@@ -7,13 +7,14 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
-   builtins
-   Built-In Functions (BIFs) <base/bif/index>
-   scripts
    packages
-   internal
    proto-analyzers
    file-analyzers
+   notices
+   builtins
+   Built-in Functions (BIFs) <base/bif/index>
+   internal
+   scripts
 
 
 

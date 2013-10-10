@@ -1,9 +1,4 @@
-# ===========================================================================
-#
-#                           HyperLogLog Functions
-#
-# ===========================================================================
-
+##! Functions to create and manipulate probabilistic cardinality counters.
 
 %%{
 #include "probabilistic/CardinalityCounter.h"

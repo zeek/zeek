@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- connection_record_02.bro
+connection_record_02.bro
 
 @load base/protocols/conn
 @load base/protocols/dns

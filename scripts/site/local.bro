@@ -59,9 +59,9 @@
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
-# This script checks each SSL certificate hash against the ICSI certificate
-# notary service.
-@load protocols/ssl/notary
+# Uncomment the following line to check each SSL certificate hash against the ICSI
+# certificate notary service; see http://notary.icsi.berkeley.edu .
+# @load protocols/ssl/notary
 
 # If you have libGeoIP support built in, do some geographic detections and 
 # logging for SSH traffic.

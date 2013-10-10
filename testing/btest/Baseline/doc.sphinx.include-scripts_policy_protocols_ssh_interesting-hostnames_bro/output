@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- interesting-hostnames.bro
+interesting-hostnames.bro
 
 ##! This script will generate a notice if an apparent SSH login originates 
 ##! or heads to a host with a reverse hostname that looks suspicious.  By 

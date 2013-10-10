@@ -610,8 +610,10 @@ void CreateProtoAnalyzerDoc(const char* filename)
 	{
 	FILE* f = fopen(filename, "w");
 
-	fprintf(f, "Protocol Analyzer Reference\n");
-	fprintf(f, "===========================\n\n");
+	fprintf(f, "Protocol Analyzers\n");
+	fprintf(f, "==================\n\n\n");
+	fprintf(f, ".. contents::\n");
+	fprintf(f, "     :depth: 1\n\n");
 
 	WriteAnalyzerTagDefn(f, analyzer_mgr->GetTagEnumType(), "Analyzer");
 
@@ -640,8 +642,10 @@ void CreateFileAnalyzerDoc(const char* filename)
 	{
 	FILE* f = fopen(filename, "w");
 
-	fprintf(f, "File Analyzer Reference\n");
-	fprintf(f, "=======================\n\n");
+	fprintf(f, "File Analyzers\n");
+	fprintf(f, "==============\n\n");
+	fprintf(f, ".. contents::\n");
+	fprintf(f, "     :depth: 1\n\n");
 
 	WriteAnalyzerTagDefn(f, file_mgr->GetTagEnumType(), "Files");
 

@@ -3584,8 +3584,6 @@ bool SocketComm::ProcessParentMessage()
 			InternalError(fmt("unknown msg type %d", parent_msgtype));
 			return true;
 		}
-
-		InternalError("cannot be reached");
 		}
 
 	case ARGS:
@@ -3609,9 +3607,9 @@ bool SocketComm::ProcessParentMessage()
 
 	default:
 		InternalError("unknown msgstate");
+		return false;
 	}
 
-	InternalError("cannot be reached");
 	return false;
 	}
 

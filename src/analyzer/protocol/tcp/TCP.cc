@@ -1580,7 +1580,8 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	default:
 		break;
 	}
-	reporter->InternalError("inconsistency in TCP_Analyzer::GetContentsFile");
+	reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
+	                direction);
 	return 0;
 	}
 

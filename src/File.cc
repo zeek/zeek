@@ -281,8 +281,13 @@ FILE* BroFile::File()
 
 FILE* BroFile::BringIntoCache()
 	{
+	char buf[256];
+
 	if ( f )
-		reporter->InternalError("BroFile non-nil non-open file");
+		{
+		reporter->InternalWarning("BroFile non-nil non-open file");
+		return 0;
+		}
 
 	if ( num_files_in_cache >= max_files_in_cache )
 		PurgeCache();
@@ -296,22 +301,30 @@ FILE* BroFile::BringIntoCache()
 
 	if ( ! f )
 		{
-		reporter->Error("can't open %s", name);
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("can't open %s: %s", name, buf);
 
 		f = fopen("/dev/null", "w");
 
-		if ( ! f )
-			reporter->InternalError("out of file descriptors");
+		if ( f )
+			{
+			okay_to_manage = 0;
+			return f;
+			}
 
-		okay_to_manage = 0;
-		return f;
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->InternalWarning("can't open /dev/null: %s", buf);
+		return 0;
 		}
 
 	RaiseOpenEvent();
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
-		reporter->Error("reopen seek failed");
+		{
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("reopen seek failed: %s", buf);
+		}
 
 	InsertAtBeginning();
 
@@ -386,18 +399,30 @@ int BroFile::Close()
 void BroFile::Suspend()
 	{
 	if ( ! is_in_cache )
-		reporter->InternalError("BroFile::Suspend() called for non-cached file");
+		{
+		reporter->InternalWarning("BroFile::Suspend() called for non-cached file");
+		return;
+		}
+
 	if ( ! is_open )
-		reporter->InternalError("BroFile::Suspend() called for non-open file");
+		{
+		reporter->InternalWarning("BroFile::Suspend() called for non-open file");
+		return;
+		}
 
 	Unlink();
 
 	if ( ! f )
-		reporter->InternalError("BroFile::Suspend() called for nil file");
+		{
+		reporter->InternalWarning("BroFile::Suspend() called for nil file");
+		return;
+		}
 
 	if ( (position = ftell(f)) < 0 )
 		{
-		reporter->Error("ftell failed");
+		char buf[256];
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("ftell failed: %s", buf);
 		position = 0;
 		}
 
@@ -407,10 +432,13 @@ void BroFile::Suspend()
 
 void BroFile::PurgeCache()
 	{
-	if ( ! tail )
-		reporter->InternalError("BroFile purge of empty cache");
+	if ( tail )
+		{
+		tail->Suspend();
+		return;
+		}
 
-	tail->Suspend();
+	reporter->InternalWarning("BroFile purge of empty cache");
 	}
 
 void BroFile::Unlink()

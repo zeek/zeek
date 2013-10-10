@@ -65,14 +65,20 @@ void ODesc::PushIndent()
 void ODesc::PopIndent()
 	{
 	if ( --indent_level < 0 )
-		reporter->InternalError("ODesc::PopIndent underflow");
+		{
+		indent_level = 0;
+		reporter->InternalWarning("ODesc::PopIndent underflow");
+		}
 	NL();
 	}
 
 void ODesc::PopIndentNoNL()
 	{
 	if ( --indent_level < 0 )
-		reporter->InternalError("ODesc::PopIndent underflow");
+		{
+		indent_level = 0;
+		reporter->InternalWarning("ODesc::PopIndent underflow");
+		}
 	}
 
 void ODesc::Add(const char* s, int do_indent)

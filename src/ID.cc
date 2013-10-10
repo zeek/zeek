@@ -440,7 +440,6 @@ ID* ID::Unserialize(UnserialInfo* info)
 
 		default:
 			reporter->InternalError("unknown type for UnserialInfo::id_policy");
-
 		}
 		}
 
@@ -543,7 +542,7 @@ bool ID::DoUnserialize(UnserialInfo* info)
 		}
 
 	if ( installed_tmp && ! global_scope()->Remove(name) )
-		reporter->InternalError("tmp id missing");
+		reporter->InternalWarning("missing tmp ID in %s unserialization", name);
 
 	return true;
 	}

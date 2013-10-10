@@ -21,8 +21,6 @@ DataBlock::DataBlock(const u_char* data, int size, int arg_seq,
 	upper = seq + size;
 
 	block = new u_char[size];
-	if ( ! block )
-		reporter->InternalError("out of memory");
 
 	memcpy((void*) block, (const void*) data, size);
 

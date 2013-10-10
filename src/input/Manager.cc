@@ -42,6 +42,13 @@ ReaderDefinition input_readers[] = {
 	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }
 };
 
+static void delete_value_ptr_array(Value** vals, int num_fields)
+	{
+	for ( int i = 0; i < num_fields; ++i )
+		delete vals[i];
+	delete [] vals;
+	}
+
 /**
  * InputHashes are used as Dictionaries to store the value and index hashes
  * for all lines currently stored in a table. Index hash is stored as
@@ -330,7 +337,9 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			break;
 
 		default:
-			reporter->InternalError("unknown reader mode");
+			reporter->InternalWarning("unknown input reader mode");
+			Unref(mode);
+			return false;
 		}
 
 	Unref(mode);
@@ -1014,7 +1023,8 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 	Stream *i = FindStream(reader);
 	if ( i == 0 )
 		{
-		reporter->InternalError("Unknown reader in SendEntry");
+		reporter->InternalWarning("Unknown reader %s in SendEntry",
+		                          reader->Name());
 		return;
 		}
 
@@ -1041,10 +1051,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 	else
 		assert(false);
 
-	for ( int i = 0; i < readFields; i++ )
-		delete vals[i];
-
-	delete [] vals;
+	delete_value_ptr_array(vals, readFields);
 	}
 
 int Manager::SendEntryTable(Stream* i, const Value* const *vals)
@@ -1242,7 +1249,8 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	if ( i == 0 )
 		{
-		reporter->InternalError("Unknown reader in EndCurrentSend");
+		reporter->InternalWarning("Unknown reader %s in EndCurrentSend",
+		                          reader->Name());
 		return;
 		}
 
@@ -1352,7 +1360,8 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 
 	if ( i == 0 )
 		{
-		reporter->InternalError("Unknown reader in SendEndOfData");
+		reporter->InternalWarning("Unknown reader %s in SendEndOfData",
+		                          reader->Name());
 		return;
 		}
 
@@ -1378,7 +1387,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	Stream *i = FindStream(reader);
 	if ( i == 0 )
 		{
-		reporter->InternalError("Unknown reader in Put");
+		reporter->InternalWarning("Unknown reader %s in Put", reader->Name());
 		return;
 		}
 
@@ -1410,10 +1419,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	else
 		assert(false);
 
-	for ( int i = 0; i < readFields; i++ )
-		delete vals[i];
-
-	delete [] vals;
+	delete_value_ptr_array(vals, readFields);
 	}
 
 int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *vals)
@@ -1585,7 +1591,8 @@ void Manager::Clear(ReaderFrontend* reader)
 	Stream *i = FindStream(reader);
 	if ( i == 0 )
 		{
-		reporter->InternalError("Unknown reader in Clear");
+		reporter->InternalWarning("Unknown reader %s in Clear",
+		                          reader->Name());
 		return;
 		}
 
@@ -1606,7 +1613,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 	Stream *i = FindStream(reader);
 	if ( i == 0 )
 		{
-		reporter->InternalError("Unknown reader in Delete");
+		reporter->InternalWarning("Unknown reader %s in Delete", reader->Name());
 		return false;
 		}
 
@@ -1686,11 +1693,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		return false;
 		}
 
-	for ( int i = 0; i < readVals; i++ )
-		delete vals[i];
-
-	delete [] vals;
-
+	delete_value_ptr_array(vals, readVals);
 	return success;
 	}
 
@@ -1722,6 +1725,7 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 	if ( handler == 0 )
 		{
 		reporter->Error("Event %s not found", name.c_str());
+		delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
 
@@ -1735,6 +1739,7 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 	if ( num_vals != num_event_vals )
 		{
 		reporter->Error("Wrong number of values for event %s", name.c_str());
+		delete_value_ptr_array(vals, num_vals);
 		return false;
 		}
 
@@ -1744,11 +1749,7 @@ bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)
 
 	mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
 
-	for ( int i = 0; i < num_vals; i++ )
-		delete vals[i];
-
-	delete [] vals;
-
+	delete_value_ptr_array(vals, num_vals);
 	return true;
 }
 
@@ -1794,12 +1795,6 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 	{
 	assert(position != 0 ); // we need the pointer to point to data;
 
-	if ( request_type->Tag() != TYPE_RECORD )
-		{
-		reporter->InternalError("ListValToRecordVal called on non-record-value.");
-		return 0;
-		}
-
 	RecordVal* rec = new RecordVal(request_type->AsRecordType());
 
 	assert(list != 0);
@@ -1829,12 +1824,6 @@ RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
 	                             RecordType *request_type, int* position)
 	{
 	assert(position != 0); // we need the pointer to point to data.
-
-	if ( request_type->Tag() != TYPE_RECORD )
-		{
-		reporter->InternalError("ValueToRecordVal called on non-record-value.");
-		return 0;
-		}
 
 	RecordVal* rec = new RecordVal(request_type->AsRecordType());
 	for ( int i = 0; i < request_type->NumFields(); i++ )

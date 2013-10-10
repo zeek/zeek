@@ -362,12 +362,19 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	Component* c = Lookup(tag);
 
 	if ( ! c )
-		reporter->InternalError("cannot instantiate unknown file analyzer: %s",
-		                        tag.AsString().c_str());
+		{
+		reporter->InternalWarning(
+		            "unknown file analyzer instantiation request: %s",
+		            tag.AsString().c_str());
+		return 0;
+		}
 
 	if ( ! c->Factory() )
-		reporter->InternalError("file analyzer %s cannot be instantiated "
+		{
+		reporter->InternalWarning("file analyzer %s cannot be instantiated "
 								"dynamically", c->CanonicalName());
+		return 0;
+		}
 
 	return c->Factory()(args, f);
 	}

@@ -781,7 +781,10 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		}
 
 	else
-		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
+		{
+		reporter->InternalWarning("Bad IP protocol version in ParseIPPacket");
+		return -1;
+		}
 
 	if ( (uint32)caplen != inner->TotalLen() )
 		return (uint32)caplen < inner->TotalLen() ? -1 : 1;
@@ -993,21 +996,21 @@ void NetSessions::Remove(Connection* c)
 		switch ( c->ConnTransport() ) {
 		case TRANSPORT_TCP:
 			if ( ! tcp_conns.RemoveEntry(k) )
-				reporter->InternalError("connection missing");
+				reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_UDP:
 			if ( ! udp_conns.RemoveEntry(k) )
-				reporter->InternalError("connection missing");
+				reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_ICMP:
 			if ( ! icmp_conns.RemoveEntry(k) )
-				reporter->InternalError("connection missing");
+				reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			reporter->InternalError("unknown transport when removing connection");
+			reporter->InternalWarning("unknown transport when removing connection");
 			break;
 		}
 
@@ -1018,13 +1021,18 @@ void NetSessions::Remove(Connection* c)
 
 void NetSessions::Remove(FragReassembler* f)
 	{
-	if ( ! f ) return;
-	HashKey* k = f->Key();
-	if ( ! k )
-		reporter->InternalError("fragment block not in dictionary");
+	if ( ! f )
+		return;
 
-	if ( ! fragments.RemoveEntry(k) )
-		reporter->InternalError("fragment block missing");
+	HashKey* k = f->Key();
+
+	if ( k )
+		{
+		if ( ! fragments.RemoveEntry(k) )
+			reporter->InternalWarning("fragment reassembler not in dict");
+		}
+	else
+		reporter->InternalWarning("missing fragment reassembler hash key");
 
 	Unref(f);
 	}
@@ -1055,7 +1063,9 @@ void NetSessions::Insert(Connection* c)
 		break;
 
 	default:
-		reporter->InternalError("unknown connection type");
+		reporter->InternalWarning("unknown connection type");
+		Unref(c);
+		return;
 	}
 
 	if ( old && old != c )
@@ -1147,8 +1157,8 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 			tproto = TRANSPORT_ICMP;
 			break;
 		default:
-			reporter->InternalError("unknown transport protocol");
-			break;
+			reporter->InternalWarning("unknown transport protocol");
+			return 0;
 	};
 
 	if ( tproto == TRANSPORT_TCP )
@@ -1181,7 +1191,13 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, encapsulation);
 	conn->SetTransport(tproto);
-	analyzer_mgr->BuildInitialAnalyzerTree(conn);
+
+	if ( ! analyzer_mgr->BuildInitialAnalyzerTree(conn) )
+		{
+		conn->Done();
+		Unref(conn);
+		return 0;
+		}
 
 	bool external = conn->IsExternal();
 

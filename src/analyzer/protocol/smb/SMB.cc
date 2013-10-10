@@ -738,7 +738,9 @@ int SMB_Session::ParseTransaction(int is_orig, int cmd,
 		break;
 
 	default:
-		reporter->InternalError("command mismatch for ParseTransaction");
+		reporter->InternalAnalyzerError(analyzer,
+		  "command mismatch for SMB_Session::ParseTransaction");
+		return 0;
 	}
 
 	int ret;

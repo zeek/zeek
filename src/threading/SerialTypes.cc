@@ -294,7 +294,9 @@ bool Value::Read(SerializationFormat* fmt)
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s in Value::Write", type_name(type));
+		reporter->InternalError("unsupported type %s in Value::Read",
+		                        type_name(type));
+		return false;
 	}
 
 	return false;
@@ -398,7 +400,9 @@ bool Value::Write(SerializationFormat* fmt) const
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s in Value::REad", type_name(type));
+		reporter->InternalError("unsupported type %s in Value::Write",
+		                        type_name(type));
+		return false;
 	}
 
 	return false;

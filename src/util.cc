@@ -345,9 +345,9 @@ unsigned char encode_hex(int h)
 		'9', 'A', 'B', 'C', 'D', 'E', 'F'
 	};
 
-	if  ( h < 0 || h >= 16 )
+	if  ( h < 0 || h > 15 )
 		{
-		reporter->InternalError("illegal value for encode_hex: %d", h);
+		reporter->InternalWarning("illegal value for encode_hex: %d", h);
 		return 'X';
 		}
 

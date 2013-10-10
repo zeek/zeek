@@ -42,17 +42,17 @@ export {
 		sensor_id:          count    &log;
 		## Sig id for this generator.
 		signature_id:       count    &log;
-		## A string representation of the "signature_id" field if a sid_msg.map file was loaded.
+		## A string representation of the *signature_id* field if a sid_msg.map file was loaded.
 		signature:          string   &log &optional;
 		## Which generator generated the alert?
 		generator_id:       count    &log;
-		## A string representation of the "generator_id" field if a gen_msg.map file was loaded.
+		## A string representation of the *generator_id* field if a gen_msg.map file was loaded.
 		generator:          string   &log &optional;
 		## Sig revision for this id.
 		signature_revision: count    &log;
 		## Event classification.
 		classification_id:  count    &log;
-		## Descriptive classification string,
+		## Descriptive classification string.
 		classification:     string   &log &optional;
 		## Event priority.
 		priority_id:        count    &log;

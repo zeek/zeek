@@ -42,10 +42,11 @@ export {
 	type Info: record {
 		## The network time at which a communication event occurred.
 		ts:                  time   &log;
-		## The peer name (if any) with which a communication event is concerned.
+		## The peer name (if any) with which a communication event is
+		## concerned.
 		peer:                string &log &optional;
-		## Where the communication event message originated from, that is,
-		## either from the scripting layer or inside the Bro process.
+		## Where the communication event message originated from, that
+		## is, either from the scripting layer or inside the Bro process.
 		src_name:            string &log &optional;
 		## .. todo:: currently unused.
 		connected_peer_desc: string &log &optional;
@@ -71,8 +72,8 @@ export {
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id: string &optional;
 
-		## Port of the remote Bro communication endpoint if we are initiating
-		## the connection based on the :bro:id:`connect` field.
+		## Port of the remote Bro communication endpoint if we are
+		## initiating the connection (based on the *connect* field).
 		p: port &optional;
 
 		## When accepting a connection, the configuration only
@@ -87,7 +88,7 @@ export {
 		events: pattern &optional;
 
 		## Whether we are going to connect (rather than waiting
-		## for the other sie to connect to us).
+		## for the other side to connect to us).
 		connect: bool &default = F;
 
 		## If disconnected, reconnect after this many seconds.
@@ -103,13 +104,14 @@ export {
 		request_logs: bool &default = F;
 
 		## When performing state synchronization, whether we consider
-		## our state to be authoritative.  If so, we will send the peer
-		## our current set when the connection is set up.
-		## (Only one side can be authoritative)
+		## our state to be authoritative (only one side can be
+		## authoritative).  If so, we will send the peer our current
+		## set when the connection is set up.
 		auth: bool &default = F;
 
 		## If not set, no capture filter is sent.
-		## If set to "", the default capture filter is sent.
+		## If set to an empty string, then the default capture filter
+		## is sent.
 		capture_filter: string &optional;
 
 		## Whether to use SSL-based communication.

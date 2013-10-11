@@ -29,8 +29,8 @@ export {
 		## The unique identifier for the tunnel, which may correspond
 		## to a :bro:type:`connection`'s *uid* field for non-IP-in-IP tunnels.
 		## This is optional because there could be numerous connections
-		## for payload proxies like SOCKS but we should treat it as a single
-		## tunnel.
+		## for payload proxies like SOCKS but we should treat it as a
+		## single tunnel.
 		uid:         string       &log &optional;
 		## The tunnel "connection" 4-tuple of endpoint addresses/ports.
 		## For an IP tunnel, the ports will be 0.
@@ -76,8 +76,8 @@ export {
 	## connections before it is considered inactive/expired.
 	const expiration_interval = 1hrs &redef;
 
-	## Currently active tunnels.  That is, tunnels for which new, encapsulated
-	## connections have been seen in the interval indicated by
+	## Currently active tunnels.  That is, tunnels for which new,
+	## encapsulated connections have been seen in the interval indicated by
 	## :bro:see:`Tunnel::expiration_interval`.
 	global active: table[conn_id] of Info = table() &read_expire=expiration_interval &expire_func=expire;
 }

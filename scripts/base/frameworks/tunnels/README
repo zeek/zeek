@@ -1,0 +1,2 @@
+The tunnels framework handles the tracking/logging of tunnels (e.g. Teredo,
+AYIYA, or IP-in-IP such as 6to4 where "IP" is either IPv4 or IPv6).

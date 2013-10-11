@@ -1,0 +1,3 @@
+The software framework doesn't do software version detection and parsing
+itself, but instead relies on other protocol specific scripts to parse out
+software from the protocols they analyze.

@@ -92,7 +92,7 @@ public:
 	// dump after the message has been reported.
 	void InternalError(const char* fmt, ...) FMT_ATTR;
 
-	// Reporter an internal analyzer error.  That analyzer will not process
+	// Report an internal analyzer error. That analyzer will not process
 	// any further input, but Bro otherwise continues normally.
 	void InternalAnalyzerError(analyzer::Analyzer* a, const char* fmt, ...);
 

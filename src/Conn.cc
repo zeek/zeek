@@ -27,6 +27,9 @@ void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 
 ConnectionTimer::~ConnectionTimer()
 	{
+	if ( conn->RefCnt() < 1 )
+		reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
+
 	conn->RemoveTimer(this);
 	Unref(conn);
 	}
@@ -41,6 +44,9 @@ void ConnectionTimer::Dispatch(double t, int is_expire)
 	conn->RemoveTimer(this);
 
 	(conn->*timer)(t);
+
+	if ( conn->RefCnt() < 1 )
+		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
 IMPLEMENT_SERIAL(ConnectionTimer, SER_CONNECTION_TIMER);
@@ -62,10 +68,7 @@ bool ConnectionTimer::DoSerialize(SerialInfo* info) const
 	else if ( timer == timer_func(&Connection::RemoveConnectionTimer) )
 		type = 4;
 	else
-		{
-		reporter->InternalWarning("unknown function in ConnectionTimer::DoSerialize()");
-		return false;
-		}
+		reporter->InternalError("unknown function in ConnectionTimer::DoSerialize()");
 
 	return conn->Serialize(info) && SERIALIZE(type) && SERIALIZE(do_expire);
 	}
@@ -177,12 +180,7 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 Connection::~Connection()
 	{
 	if ( ! finished )
-		{
-		// TODO: not sure about this
-		reporter->InternalWarning(
-		            "missing Connection::Done() before ~Connection");
-		Done();
-		}
+		reporter->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
 
@@ -793,7 +791,6 @@ void Connection::Describe(ODesc* d) const
 		default:
 			reporter->InternalError(
 			            "unhandled transport type in Connection::Describe");
-			break;
 		}
 
 	d->SP();

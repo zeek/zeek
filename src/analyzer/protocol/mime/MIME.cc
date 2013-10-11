@@ -557,12 +557,8 @@ void MIME_Entity::init()
 MIME_Entity::~MIME_Entity()
 	{
 	if ( ! end_of_data )
-		{
-		// TODO: not sure about this
-		reporter->InternalWarning(
+		reporter->AnalyzerError(message ? message->GetAnalyzer() : 0,
 		            "missing MIME_Entity::EndOfData() before ~MIME_Entity");
-		EndOfData();
-		}
 
 	delete current_header_line;
 	Unref(content_type_str);

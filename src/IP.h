@@ -182,6 +182,7 @@ public:
 			reporter->InternalWarning("empty IPv6 header chain");
 			return false;
 			}
+
 		return chain[chain.size()-1]->Type() == IPPROTO_FRAGMENT;
 		}
 
@@ -229,6 +230,7 @@ public:
 			reporter->InternalWarning("empty IPv6 header chain");
 			return IPAddr();
 			}
+
 		return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
 		}
 
@@ -241,11 +243,13 @@ public:
 		{
 		if ( finalDst )
 			return IPAddr(*finalDst);
+
 		if ( chain.empty() )
 			{
 			reporter->InternalWarning("empty IPv6 header chain");
 			return IPAddr();
 			}
+
 		return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
 		}
 
@@ -461,9 +465,11 @@ public:
 		{
 		if ( ip4 )
 			return IPPROTO_RAW;
+
 		size_t i = ip6_hdrs->Size();
 		if ( i > 0 )
 			return (*ip6_hdrs)[i-1]->Type();
+
 		return IPPROTO_NONE;
 		}
 
@@ -476,9 +482,11 @@ public:
 		{
 		if ( ip4 )
 			return ip4->ip_p;
+
 		size_t i = ip6_hdrs->Size();
 		if ( i > 0 )
 			return (*ip6_hdrs)[i-1]->NextHdr();
+
 		return IPPROTO_NONE;
 		}
 

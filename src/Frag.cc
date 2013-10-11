@@ -164,11 +164,13 @@ void FragReassembler::Weird(const char* name) const
 		IP_Hdr hdr((const ip*)proto_hdr, false);
 		s->Weird(name, &hdr);
 		}
+
 	else if ( version == 6 )
 		{
 		IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
 		s->Weird(name, &hdr);
 		}
+
 	else
 		{
 		reporter->InternalWarning("Unexpected IP version in FragReassembler");

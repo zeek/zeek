@@ -284,10 +284,7 @@ FILE* BroFile::BringIntoCache()
 	char buf[256];
 
 	if ( f )
-		{
-		reporter->InternalWarning("BroFile non-nil non-open file");
-		return 0;
-		}
+		reporter->InternalError("BroFile non-nil non-open file");
 
 	if ( num_files_in_cache >= max_files_in_cache )
 		PurgeCache();
@@ -313,7 +310,7 @@ FILE* BroFile::BringIntoCache()
 			}
 
 		strerror_r(errno, buf, sizeof(buf));
-		reporter->InternalWarning("can't open /dev/null: %s", buf);
+		reporter->Error("can't open /dev/null: %s", buf);
 		return 0;
 		}
 
@@ -399,24 +396,15 @@ int BroFile::Close()
 void BroFile::Suspend()
 	{
 	if ( ! is_in_cache )
-		{
-		reporter->InternalWarning("BroFile::Suspend() called for non-cached file");
-		return;
-		}
+		reporter->InternalError("BroFile::Suspend() called for non-cached file");
 
 	if ( ! is_open )
-		{
-		reporter->InternalWarning("BroFile::Suspend() called for non-open file");
-		return;
-		}
+		reporter->InternalError("BroFile::Suspend() called for non-open file");
 
 	Unlink();
 
 	if ( ! f )
-		{
-		reporter->InternalWarning("BroFile::Suspend() called for nil file");
-		return;
-		}
+		reporter->InternalError("BroFile::Suspend() called for nil file");
 
 	if ( (position = ftell(f)) < 0 )
 		{

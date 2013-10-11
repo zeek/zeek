@@ -3607,9 +3607,9 @@ bool SocketComm::ProcessParentMessage()
 
 	default:
 		InternalError("unknown msgstate");
-		return false;
 	}
 
+	// Cannot be reached.
 	return false;
 	}
 

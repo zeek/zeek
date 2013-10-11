@@ -20,11 +20,11 @@ Options
 
 Types
 #####
-======================================= ======================================
-:bro:type:`TestEnum1`: :bro:type:`enum` There's tons of ways an enum can look.
+======================================= ========================================
+:bro:type:`TestEnum1`: :bro:type:`enum` There's tons of ways an enum can look...
 
 :bro:type:`TestEnum2`: :bro:type:`enum` The final comma is optional
-======================================= ======================================
+======================================= ========================================
 
 Redefinitions
 #############

@@ -74,6 +74,27 @@ int BroDocObj::LongestShortDescLen() const
 	return max;
 	}
 
+static size_t end_of_first_sentence(string s)
+	{
+	size_t rval = 0;
+
+	while ( (rval = s.find_first_of('.', rval)) != string::npos )
+		{
+		if ( rval == s.size() - 1 )
+			// Period is at end of string.
+			return rval;
+
+		if ( isspace(s[rval + 1]) )
+			// Period has a space after it.
+			return rval;
+
+		// Period has some non-space character after it, keep looking.
+		++rval;
+		}
+
+	return rval;
+	}
+
 void BroDocObj::FormulateShortDesc()
 	{
 	if ( ! reST_doc_strings )
@@ -87,7 +108,7 @@ void BroDocObj::FormulateShortDesc()
 		{
 		// The short description stops at the first sentence or the
 		// first empty comment.
-		size_t end = it->find_first_of(".");
+		size_t end = end_of_first_sentence(*it);
 
 		if ( end == string::npos )
 			{

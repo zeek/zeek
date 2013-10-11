@@ -699,7 +699,7 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	if ( buf != (const char*) data_buffer->Bytes() + buffer_offset ||
 	     buffer_offset + len > buffer_size )
 		{
-		reporter->InternalAnalyzerError(MyHTTP_Analyzer(),
+		reporter->AnalyzerError(MyHTTP_Analyzer(),
 		                                "HTTP message buffer misalignment");
 		return;
 		}
@@ -747,7 +747,7 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		reporter->InternalAnalyzerError(MyHTTP_Analyzer(),
+		reporter->AnalyzerError(MyHTTP_Analyzer(),
 		                                "unrecognized HTTP message event");
 		return;
 	}
@@ -1239,7 +1239,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	if ( ! ParseRequest(rest, end_of_line) )
 		{
-		reporter->InternalAnalyzerError(this, "HTTP ParseRequest failed");
+		reporter->AnalyzerError(this, "HTTP ParseRequest failed");
 		return -1;
 		}
 

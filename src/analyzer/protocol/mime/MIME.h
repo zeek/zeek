@@ -193,7 +193,7 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			reporter->InternalAnalyzerError(analyzer,
+			reporter->AnalyzerError(analyzer,
 			  "missing MIME_Message::Done() call");
 		}
 

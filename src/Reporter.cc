@@ -137,7 +137,7 @@ void Reporter::InternalError(const char* fmt, ...)
 	abort();
 	}
 
-void Reporter::InternalAnalyzerError(analyzer::Analyzer* a, const char* fmt,
+void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt,
                                      ...)
 	{
 	if ( a )

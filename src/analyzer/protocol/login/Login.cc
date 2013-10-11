@@ -118,7 +118,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	if ( state != LOGIN_STATE_CONFUSED )
 		{
-		reporter->InternalAnalyzerError(this,
+		reporter->AnalyzerError(this,
 		                                "bad state in Login_Analyzer::NewLine");
 		return;
 		}
@@ -582,7 +582,7 @@ char* Login_Analyzer::PeekUserText()
 	{
 	if ( num_user_text <= 0 )
 		{
-		reporter->InternalAnalyzerError(this,
+		reporter->AnalyzerError(this,
 		  "underflow in Login_Analyzer::PeekUserText()");
 		return 0;
 		}

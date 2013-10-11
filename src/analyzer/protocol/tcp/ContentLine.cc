@@ -124,7 +124,7 @@ void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	{
 	if ( length < 0 )
 		{
-		reporter->InternalAnalyzerError(this,
+		reporter->AnalyzerError(this,
 		                                "negative length for plain delivery");
 		return;
 		}

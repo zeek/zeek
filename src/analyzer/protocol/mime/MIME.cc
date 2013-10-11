@@ -1391,7 +1391,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (char*) data_buffer->Bytes() + buffer_start )
 		{
-		reporter->InternalAnalyzerError(GetAnalyzer(),
+		reporter->AnalyzerError(GetAnalyzer(),
 		                                "MIME buffer misalignment");
 		return;
 		}
@@ -1487,7 +1487,7 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 			break;
 
 		default:
-			reporter->InternalAnalyzerError(GetAnalyzer(),
+			reporter->AnalyzerError(GetAnalyzer(),
 			                                "unrecognized MIME_Mail event");
 			return;
 	}

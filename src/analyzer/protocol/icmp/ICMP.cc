@@ -60,7 +60,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		default:
-			reporter->InternalAnalyzerError(this,
+			reporter->AnalyzerError(this,
 			  "unexpected IP proto in ICMP analyzer: %d", ip->NextProto());
 			return;
 		}
@@ -100,7 +100,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
 	else
 		{
-		reporter->InternalAnalyzerError(this,
+		reporter->AnalyzerError(this,
 		  "expected ICMP as IP packet's protocol, got %d", ip->NextProto());
 		return;
 		}

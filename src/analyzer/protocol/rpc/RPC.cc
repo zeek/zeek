@@ -266,7 +266,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 	else if ( n < 0 )
 		{
-		reporter->InternalAnalyzerError(analyzer, "RPC underflow");
+		reporter->AnalyzerError(analyzer, "RPC underflow");
 		return 0;
 		}
 
@@ -479,7 +479,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 		if ( resync_toskip != 0 )
 			{
 			// Should never happen.
-			reporter->InternalAnalyzerError(this,
+			reporter->AnalyzerError(this,
 			  "RPC resync: skipping over data failed");
 			return false;
 			}
@@ -633,7 +633,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 				if ( ! dummy_p )
 					{
-					reporter->InternalAnalyzerError(this,
+					reporter->AnalyzerError(this,
 					  "inconsistent RPC record marker extraction");
 					return;
 					}

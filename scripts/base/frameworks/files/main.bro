@@ -14,10 +14,11 @@ export {
 		LOG
 	};
 
-	## A structure which represents a desired type of file analysis.
+	## A structure which parameterizes a type of file analysis.
 	type AnalyzerArgs: record {
 		## An event which will be generated for all new file contents,
-		## chunk-wise.  Used when *tag* is
+		## chunk-wise.  Used when *tag* (in the
+		## :bro:see:`Files::add_analyzer` function) is
 		## :bro:see:`Files::ANALYZER_DATA_EVENT`.
 		chunk_event: event(f: fa_file, data: string, off: count) &optional;
 
@@ -47,7 +48,7 @@ export {
 		## the data traveled to.
 		rx_hosts: set[addr] &log;
 
-		## Connection UIDS over which the file was transferred.
+		## Connection UIDs over which the file was transferred.
 		conn_uids: set[string] &log;
 
 		## An identification of the source of the file data.  E.g. it
@@ -64,9 +65,10 @@ export {
 		## A set of analysis types done during the file analysis.
 		analyzers: set[string] &log;
 
-		## A mime type provided by libmagic against the *bof_buffer*, or
-		## in the cases where no buffering of the beginning of file occurs,
-		## an initial guess of the mime type based on the first data seen.
+		## A mime type provided by libmagic against the *bof_buffer*
+		## field of :bro:see:`fa_file`, or in the cases where no
+		## buffering of the beginning of file occurs, an initial
+		## guess of the mime type based on the first data seen.
 		mime_type: string &log &optional;
 
 		## A filename for the file if one is available from the source
@@ -132,7 +134,7 @@ export {
 	## t: the amount of time the file can remain inactive before discarding.
 	##
 	## Returns: true if the timeout interval was set, or false if analysis
-	##          for the *id* isn't currently active.
+	##          for the file isn't currently active.
 	global set_timeout_interval: function(f: fa_file, t: interval): bool;
 
 	## Adds an analyzer to the analysis of a given file.
@@ -144,7 +146,7 @@ export {
 	## args: any parameters the analyzer takes.
 	##
 	## Returns: true if the analyzer will be added, or false if analysis
-	##          for the *id* isn't currently active or the *args*
+	##          for the file isn't currently active or the *args*
 	##          were invalid for the analyzer type.
 	global add_analyzer: function(f: fa_file, 
 	                              tag: Files::Tag, 
@@ -154,10 +156,12 @@ export {
 	##
 	## f: the file.
 	##
+	## tag: the analyzer type.
+	##
 	## args: the analyzer (type and args) to remove.
 	##
 	## Returns: true if the analyzer will be removed, or false if analysis
-	##          for the *id* isn't currently active.
+	##          for the file isn't currently active.
 	global remove_analyzer: function(f: fa_file,
 	                                 tag: Files::Tag,
 	                                 args: AnalyzerArgs &default=AnalyzerArgs()): bool;
@@ -167,12 +171,12 @@ export {
 	## f: the file.
 	##
 	## Returns: true if analysis for the given file will be ignored for the
-	##          rest of its contents, or false if analysis for the *id*
+	##          rest of its contents, or false if analysis for the file
 	##          isn't currently active.
 	global stop: function(f: fa_file): bool;
 
-	## Translates a file analyzer enum value to a string with the analyzer's
-	## name.
+	## Translates a file analyzer enum value to a string with the
+	## analyzer's name.
 	##
 	## tag: The analyzer tag.
 	##

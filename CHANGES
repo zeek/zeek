@@ -1,4 +1,16 @@
 
+2.2-beta-57 | 2013-10-11 17:23:25 -0700
+
+  * Improve Broxygen end-of-sentence detection. (Jon Siwek)
+
+2.2-beta-55 | 2013-10-10 13:36:38 -0700
+
+  * A couple of new TLS extension numbers. (Bernhard Amann)
+    
+  * Suport for three more new TLS ciphers. (Bernhard Amann)
+    
+  * Removing ICSI notary from default site config. (Robin Sommer)
+
 2.2-beta-51 | 2013-10-07 17:33:56 -0700
 
   * Polishing the reference and scripting sections of the manual.

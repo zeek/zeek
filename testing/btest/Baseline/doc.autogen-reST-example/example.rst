@@ -40,13 +40,15 @@ Options
 
 State Variables
 ###############
-=========================================================================== =======================================
+=========================================================================== ==================================================
 :bro:id:`Example::a_var`: :bro:type:`bool`                                  put some documentation for "a_var" here
 
 :bro:id:`Example::var_with_attr`: :bro:type:`count` :bro:attr:`&persistent`
 
 :bro:id:`Example::var_without_explicit_type`: :bro:type:`string`
-=========================================================================== =======================================
+
+:bro:id:`Example::dummy`: :bro:type:`string`                                The first.sentence for the summary text ends here.
+=========================================================================== ==================================================
 
 Types
 #####
@@ -155,6 +157,13 @@ State Variables
 
    :Type: :bro:type:`string`
    :Default: ``"this works"``
+
+.. bro:id:: Example::dummy
+
+   :Type: :bro:type:`string`
+
+   The first.sentence for the summary text ends here.  And this second
+   sentence doesn't show in the short description.
 
 Types
 #####

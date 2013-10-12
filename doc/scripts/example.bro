@@ -167,6 +167,10 @@ export {
     # it's fine if the type is inferred, that information is self-documenting
     global var_without_explicit_type = "this works";
 
+    ## The first.sentence for the summary text ends here.  And this second
+    ## sentence doesn't show in the short description.
+    global dummy: string;
+
     ############## functions/events ############
 
     ## Summarize purpose of "a_function" here.

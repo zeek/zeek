@@ -70,7 +70,7 @@ that ``bash`` and ``python`` are in your ``PATH``):
 
   .. console::
 
-      sudo pkg_add -r bash cmake swig bison python
+      sudo pkg_add -r bash cmake swig bison python perl
 
 * Mac OS X:
 

@@ -211,6 +211,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		default:
 			reporter->AnalyzerError(this,
 			  "unexpected POP3 authorization state");
+			delete decoded;
 			return;
 		}
 

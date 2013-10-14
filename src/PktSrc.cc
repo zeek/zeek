@@ -648,6 +648,7 @@ PktDumper::PktDumper(const char* arg_filename, bool arg_append)
 	is_error = false;
 	append = arg_append;
 	dumper = 0;
+	open_time = 0.0;
 
 	// We need a pcap_t with a reasonable link-layer type. We try to get it
 	// from the packet sources. If not available, we fall back to Ethernet.

@@ -1,3 +1,5 @@
+# @TEST-REQUIRES: which sqlite3
+#
 # @TEST-EXEC: cat ssh.sql | sqlite3 ssh.sqlite
 #
 # @TEST-GROUP: sqlite

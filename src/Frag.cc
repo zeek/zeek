@@ -290,8 +290,11 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 		}
 
 	else
+		{
 		reporter->InternalWarning("bad IP version in fragment reassembly: %d",
 		                          version);
+		delete [] pkt_start;
+		}
 	}
 
 void FragReassembler::Expire(double t)

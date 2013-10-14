@@ -289,7 +289,8 @@ bool Raw::OpenInput()
 			return false;
 			}
 
-		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
+		if ( ! SetFDFlags(fileno(file), F_SETFD, FD_CLOEXEC) )
+			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
 	return true;

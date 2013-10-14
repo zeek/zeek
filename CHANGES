@@ -1,4 +1,13 @@
 
+2.2-beta-73 | 2013-10-14 14:28:25 -0700
+
+  * Fix misc. Coverity-reported issues (leaks, potential null pointer
+    deref, dead code, uninitialized values,
+    time-of-check-time-of-use). (Jon Siwek)
+
+  * Add check for sqlite3 command to tests that require it. (Daniel
+    Thayer)
+
 2.2-beta-68 | 2013-10-14 09:26:09 -0700
 
   * Add check for curl command to active-http.test. (Daniel Thayer)

@@ -743,23 +743,13 @@ int SMB_Session::ParseTransaction(int is_orig, int cmd,
 		return 0;
 	}
 
-	int ret;
-	if ( is_orig )
-		{
-		if ( cmd == SMB_COM_TRANSACTION || cmd == SMB_COM_TRANSACTION2 )
-			ret = ParseTransactionRequest(cmd, hdr, body);
+	if ( ! is_orig )
+		return ParseTransactionResponse(cmd, hdr, body);
 
-		else if ( cmd == SMB_COM_TRANSACTION_SECONDARY ||
-		          cmd == SMB_COM_TRANSACTION2_SECONDARY )
-			ret = ParseTransactionSecondaryRequest(cmd, hdr, body);
+	if ( cmd == SMB_COM_TRANSACTION || cmd == SMB_COM_TRANSACTION2 )
+		return ParseTransactionRequest(cmd, hdr, body);
 
-		else
-			ret = 0;
-		}
-	else
-		ret = ParseTransactionResponse(cmd, hdr, body);
-
-	return ret;
+	return ParseTransactionSecondaryRequest(cmd, hdr, body);
 	}
 
 int SMB_Session::ParseTransactionRequest(int cmd,

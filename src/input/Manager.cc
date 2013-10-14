@@ -1518,7 +1518,6 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			EnumVal* ev;
 			int startpos = 0;
 			Val* predidx = ValueToRecordVal(vals, stream->itype, &startpos);
-			Ref(valval);
 
 			if ( updated )
 				ev = new EnumVal(BifEnum::Input::EVENT_CHANGED,
@@ -1529,7 +1528,10 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 
 			bool result;
 			if ( stream->num_val_fields > 0 ) // we have values
+				{
+				Ref(valval);
 				result = CallPred(stream->pred, 3, ev, predidx, valval);
+				}
 			else // no values
 				result = CallPred(stream->pred, 2, ev, predidx);
 

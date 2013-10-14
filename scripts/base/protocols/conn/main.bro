@@ -1,7 +1,7 @@
 ##! This script manages the tracking/logging of general information regarding
 ##! TCP, UDP, and ICMP traffic.  For UDP and ICMP, "connections" are to
 ##! be interpreted using flow semantics (sequence of packets from a source
-##! host/post to a destination host/port).  Further, ICMP "ports" are to
+##! host/port to a destination host/port).  Further, ICMP "ports" are to
 ##! be interpreted as the source port meaning the ICMP message type and
 ##! the destination port being the ICMP message code.
 
@@ -23,7 +23,7 @@ export {
 		id:           conn_id         &log;
 		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
-		## An identification of an application protocol being sent over the
+		## An identification of an application protocol being sent over
 		## the connection.
 		service:      string          &log &optional;
 		## How long the connection lasted.  For 3-way or 4-way connection
@@ -31,9 +31,10 @@ export {
 		duration:     interval        &log &optional;
 		## The number of payload bytes the originator sent. For TCP
 		## this is taken from sequence numbers and might be inaccurate
-		## (e.g., due to large connections)
+		## (e.g., due to large connections).
 		orig_bytes:   count           &log &optional;
-		## The number of payload bytes the responder sent. See ``orig_bytes``.
+		## The number of payload bytes the responder sent. See
+		## *orig_bytes*.
 		resp_bytes:   count           &log &optional;
 
 		## ==========   ===============================================
@@ -55,20 +56,20 @@ export {
 		## ==========   ===============================================
 		conn_state:   string          &log &optional;
 
-		## If the connection is originated locally, this value will be T.  If
-		## it was originated remotely it will be F.  In the case that the
-		## :bro:id:`Site::local_nets` variable is undefined, this field will
-		## be left empty at all times.
+		## If the connection is originated locally, this value will be T.
+		## If it was originated remotely it will be F.  In the case that
+		## the :bro:id:`Site::local_nets` variable is undefined, this
+		## field will be left empty at all times.
 		local_orig:   bool            &log &optional;
 
-		## Indicates the number of bytes missed in content gaps, which is
-		## representative of packet loss.  A value other than zero will
-		## normally cause protocol analysis to fail but some analysis may
-		## have been completed prior to the packet loss.
+		## Indicates the number of bytes missed in content gaps, which
+		## is representative of packet loss.  A value other than zero
+		## will normally cause protocol analysis to fail but some
+		## analysis may have been completed prior to the packet loss.
 		missed_bytes: count           &log &default=0;
 
-		## Records the state history of connections as a string of letters.
-		## The meaning of those letters is:
+		## Records the state history of connections as a string of
+		## letters.  The meaning of those letters is:
 		##
 		## ======  ====================================================
 		## Letter  Meaning
@@ -83,24 +84,25 @@ export {
 		## i       inconsistent packet (e.g. SYN+RST bits both set)
 		## ======  ====================================================
 		##
-		## If the event comes from the originator, the letter is in upper-case; if it comes
-		## from the responder, it's in lower-case. Multiple packets of the same type will
-		## only be noted once (e.g. we only record one "d" in each direction, regardless of
-		## how many data packets were seen.)
+		## If the event comes from the originator, the letter is in
+		## upper-case; if it comes from the responder, it's in
+		## lower-case. Multiple packets of the same type will only be
+		## noted once (e.g. we only record one "d" in each direction,
+		## regardless of how many data packets were seen.)
 		history:      string          &log &optional;
 		## Number of packets that the originator sent.
-		## Only set if :bro:id:`use_conn_size_analyzer` = T
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		orig_pkts:     count      &log &optional;
-		## Number of IP level bytes that the originator sent (as seen on the wire,
-		## taken from IP total_length header field).
-		## Only set if :bro:id:`use_conn_size_analyzer` = T
+		## Number of IP level bytes that the originator sent (as seen on
+		## the wire, taken from the IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		orig_ip_bytes: count      &log &optional;
 		## Number of packets that the responder sent.
-		## Only set if :bro:id:`use_conn_size_analyzer` = T
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		resp_pkts:     count      &log &optional;
-		## Number og IP level bytes that the responder sent (as seen on the wire,
-		## taken from IP total_length header field).
-		## Only set if :bro:id:`use_conn_size_analyzer` = T
+		## Number of IP level bytes that the responder sent (as seen on
+		## the wire, taken from the IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer` = T.
 		resp_ip_bytes: count      &log &optional;
 		## If this connection was over a tunnel, indicate the
 		## *uid* values for any encapsulating parent connections

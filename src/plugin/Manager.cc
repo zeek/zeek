@@ -103,13 +103,21 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	DBG_LOG(DBG_PLUGINS, "Loading plugin from %s", dir.c_str());
 
-	// Add the "scripts" directory to BROPATH.
+	// Add the "scripts" and "bif" directories to BROPATH.
 	string scripts = dir + "/scripts";
 
 	if ( is_dir(scripts) )
 		{
 		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", scripts.c_str());
 		add_to_bro_path(scripts);
+		}
+
+	string bif = dir + "/bif";
+
+	if ( is_dir(bif) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", bif.c_str());
+		add_to_bro_path(bif);
 		}
 
 	// Load dylib/scripts/__load__.bro automatically.
@@ -123,6 +131,15 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	// Load scripts/__load__.bro automatically.
 	string init = scripts + "/__load__.bro";
+
+	if ( is_file(init) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", init.c_str());
+		add_input_file(init.c_str());
+		}
+
+	// Load bif/__load__.bro automatically.
+	init = bif + "/__load__.bro";
 
 	if ( is_file(init) )
 		{

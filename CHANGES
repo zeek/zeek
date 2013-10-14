@@ -1,4 +1,8 @@
 
+2.2-beta-68 | 2013-10-14 09:26:09 -0700
+
+  * Add check for curl command to active-http.test. (Daniel Thayer)
+    
 2.2-beta-64 | 2013-10-14 09:20:04 -0700
 
   * Review usage of Reporter::InternalError, addresses BIT-1045.

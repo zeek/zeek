@@ -782,8 +782,15 @@ void Connection::Describe(ODesc* d) const
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			reporter->InternalError("unknown transport in Connction::Describe()");
+			d->Add("unknown");
+			reporter->InternalWarning(
+			            "unknown transport in Connction::Describe()");
+
 			break;
+
+		default:
+			reporter->InternalError(
+			            "unhandled transport type in Connection::Describe");
 		}
 
 	d->SP();

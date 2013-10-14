@@ -345,9 +345,9 @@ unsigned char encode_hex(int h)
 		'9', 'A', 'B', 'C', 'D', 'E', 'F'
 	};
 
-	if  ( h < 0 || h >= 16 )
+	if  ( h < 0 || h > 15 )
 		{
-		reporter->InternalError("illegal value for encode_hex: %d", h);
+		reporter->InternalWarning("illegal value for encode_hex: %d", h);
 		return 'X';
 		}
 
@@ -652,15 +652,7 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 static bool read_random_seeds(const char* read_file, uint32* seed,
 				uint32* buf, int bufsiz)
 	{
-	struct stat st;
 	FILE* f = 0;
-
-	if ( stat(read_file, &st) < 0 )
-		{
-		reporter->Warning("Seed file '%s' does not exist: %s",
-				read_file, strerror(errno));
-		return false;
-		}
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{

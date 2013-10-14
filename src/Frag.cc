@@ -22,7 +22,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 	if ( f )
 		f->Expire(t);
 	else
-		reporter->InternalError("fragment timer dispatched w/o reassembler");
+		reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
@@ -155,14 +155,35 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 	NewBlock(network_time, offset, len, pkt);
 	}
 
+void FragReassembler::Weird(const char* name) const
+	{
+	unsigned int version = ((const ip*)proto_hdr)->ip_v;
+
+	if ( version == 4 )
+		{
+		IP_Hdr hdr((const ip*)proto_hdr, false);
+		s->Weird(name, &hdr);
+		}
+
+	else if ( version == 6 )
+		{
+		IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
+		s->Weird(name, &hdr);
+		}
+
+	else
+		{
+		reporter->InternalWarning("Unexpected IP version in FragReassembler");
+		reporter->Weird(name);
+		}
+	}
+
 void FragReassembler::Overlap(const u_char* b1, const u_char* b2, int n)
 	{
-	IP_Hdr proto_h(proto_hdr, false, proto_hdr_len);
-
 	if ( memcmp((const void*) b1, (const void*) b2, n) )
-		s->Weird("fragment_inconsistency", &proto_h);
+		Weird("fragment_inconsistency");
 	else
-		s->Weird("fragment_overlap", &proto_h);
+		Weird("fragment_overlap");
 	}
 
 void FragReassembler::BlockInserted(DataBlock* /* start_block */)
@@ -188,9 +209,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			// beyond it, which is not contiguous.  This
 			// can happen for benign reasons when we're
 			// intermingling parts of two fragmented packets.
-
-			IP_Hdr proto_h(proto_hdr, false, proto_hdr_len);
-			s->Weird("fragment_size_inconsistency", &proto_h);
+			Weird("fragment_size_inconsistency");
 
 			// We decide to analyze the contiguous portion now.
 			// Extend the fragment up through the end of what
@@ -203,8 +222,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 
 	else if ( last_block->upper > frag_size )
 		{
-		IP_Hdr proto_h(proto_hdr, false, proto_hdr_len);
-		s->Weird("fragment_size_inconsistency", &proto_h);
+		Weird("fragment_size_inconsistency");
 		frag_size = last_block->upper;
 		}
 
@@ -238,36 +256,45 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			break;
 
 		if ( b->upper > n )
-			reporter->InternalError("bad fragment reassembly");
+			{
+			reporter->InternalWarning("bad fragment reassembly");
+			DeleteTimer();
+			Expire(network_time);
+			return;
+			}
 
 		memcpy((void*) &pkt[b->seq], (const void*) b->block,
 			b->upper - b->seq);
 		}
 
 	delete reassembled_pkt;
+	reassembled_pkt = 0;
 
-	if ( ((const struct ip*)pkt_start)->ip_v == 4 )
+	unsigned int version = ((const struct ip*)pkt_start)->ip_v;
+
+	if ( version == 4 )
 		{
 		struct ip* reassem4 = (struct ip*) pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
 		reassembled_pkt = new IP_Hdr(reassem4, true);
+		DeleteTimer();
 		}
 
-	else if ( ((const struct ip*)pkt_start)->ip_v == 6 )
+	else if ( version == 6 )
 		{
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
 		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
 		reassembled_pkt = new IP_Hdr(reassem6, true, n, chain);
+		DeleteTimer();
 		}
 
 	else
 		{
-		reporter->InternalError("bad IP version in fragment reassembly");
+		reporter->InternalWarning("bad IP version in fragment reassembly: %d",
+		                          version);
+		delete [] pkt_start;
 		}
-
-
-	DeleteTimer();
 	}
 
 void FragReassembler::Expire(double t)

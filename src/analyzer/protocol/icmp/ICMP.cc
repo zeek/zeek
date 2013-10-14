@@ -60,9 +60,9 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		default:
-			reporter->InternalError("unexpected IP proto in ICMP analyzer: %d",
-			                        ip->NextProto());
-			break;
+			reporter->AnalyzerError(this,
+			  "unexpected IP proto in ICMP analyzer: %d", ip->NextProto());
+			return;
 		}
 
 		if ( chksum != 0xffff )
@@ -99,7 +99,11 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	else if ( ip->NextProto() == IPPROTO_ICMPV6 )
 		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
 	else
-		reporter->InternalError("unexpected next protocol in ICMP::DeliverPacket()");
+		{
+		reporter->AnalyzerError(this,
+		  "expected ICMP as IP packet's protocol, got %d", ip->NextProto());
+		return;
+		}
 
 
 	if ( caplen >= len )

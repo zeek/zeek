@@ -193,7 +193,8 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			reporter->InternalError("Done() must be called before destruction");
+			reporter->AnalyzerError(analyzer,
+			  "missing MIME_Message::Done() call");
 		}
 
 	virtual void Done()	{ finished = 1; }

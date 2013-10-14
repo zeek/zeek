@@ -137,11 +137,27 @@ void Reporter::InternalError(const char* fmt, ...)
 	abort();
 	}
 
+void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt,
+                                     ...)
+	{
+	if ( a )
+		a->SetSkip(true);
+
+	va_list ap;
+	va_start(ap, fmt);
+	// Always log to stderr.
+	// TODO: would be nice to also log a call stack.
+	DoLog("analyzer error", reporter_error, stderr, 0, 0, true, true, 0, fmt,
+	      ap);
+	va_end(ap);
+	}
+
 void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
 	FILE* out = warnings_to_stderr ? stderr : 0;
+	// TODO: would be nice to also log a call stack.
 	DoLog("internal warning", reporter_warning, out, 0, 0, true, true, 0, fmt,
 	      ap);
 	va_end(ap);

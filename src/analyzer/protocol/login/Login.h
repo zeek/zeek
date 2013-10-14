@@ -55,8 +55,8 @@ protected:
 	int IsEmpty(const char* line) const;
 
 	void AddUserText(const char* line);	// complains on overflow
-	char* PeekUserText() const;	// internal error on underflow
-	char* PopUserText();		// internal error on underflow
+	char* PeekUserText();	// internal warning on underflow
+	char* PopUserText();		// internal warning on underflow
 	Val* PopUserTextVal();
 
 	int MatchesTypeahead(const char* line) const;

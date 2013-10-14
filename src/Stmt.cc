@@ -799,8 +799,9 @@ int SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	if ( ! hk )
 		{
 		reporter->PushLocation(e->GetLocationInfo());
-		reporter->InternalError("switch expression type mismatch (%s/%s)",
+		reporter->Error("switch expression type mismatch (%s/%s)",
 		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+		return -1;
 		}
 
 	int* label_idx = case_label_map.Lookup(hk);

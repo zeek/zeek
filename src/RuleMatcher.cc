@@ -521,7 +521,7 @@ static inline bool compare(const maskedvalue_list& mvals, uint32 v,
 			break;
 
 		default:
-			reporter->InternalError("unknown comparison type");
+			reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
 	}
 	return false;
@@ -556,7 +556,7 @@ static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
 			break;
 
 		default:
-			reporter->InternalError("unknown comparison type");
+			reporter->InternalError("unknown RuleHdrTest comparison type");
 			break;
 	}
 	return false;
@@ -661,7 +661,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 					break;
 
 				default:
-					reporter->InternalError("unknown protocol");
+					reporter->InternalError("unknown RuleHdrTest protocol type");
 					break;
 				}
 

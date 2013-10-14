@@ -810,7 +810,7 @@ example of the ``record`` data type in the earlier sections, the
 ``conn.log``, is shown by the excerpt below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/conn/main.bro
-   :lines: 10-12,16,17,19,21,23,25,28,31,35,37,56,62,68,90,93,97,100,104,108,109,114
+   :lines: 10-12,16-17,19,21,23,25,28,31,35,38,57,63,69,92,95,99,102,106,110-111,116
 
 Looking at the structure of the definition, a new collection of data
 types is being defined as a type called ``Info``.  Since this type

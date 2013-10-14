@@ -215,6 +215,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 			{
 			reporter->AnalyzerError(endp,
 			  "option peer missing in TelnetAuthenticateOption::RecvSubOption");
+			return;
 			}
 
 		if ( ! peer->DidRequestAuthentication() )

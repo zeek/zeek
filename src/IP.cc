@@ -433,7 +433,10 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 	const u_char* hdrs = (const u_char*) ip6;
 
 	if ( total_len < (int)sizeof(struct ip6_hdr) )
-		reporter->InternalError("IPv6_HdrChain::Init with truncated IP header");
+		{
+		reporter->InternalWarning("truncated IP header in IPv6_HdrChain::Init");
+		return;
+		}
 
 	do
 		{
@@ -623,9 +626,11 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 			break;
 #endif
 		default:
-			reporter->InternalError("IPv6_Hdr_Chain bad header %d", type);
-			break;
+			reporter->InternalWarning("IPv6_Hdr_Chain bad header %d", type);
+			Unref(ext_hdr);
+			continue;
 		}
+
 		rval->Assign(rval->Size(), ext_hdr);
 		}
 

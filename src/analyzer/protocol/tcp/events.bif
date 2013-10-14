@@ -287,3 +287,13 @@ event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%)
 ## TODO.
 event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
 
+## Generated when failing to write contents of a TCP stream to a file.
+##
+## c: The connection whose contents are being recorded.
+##
+## is_orig: Which side of the connection encountered a failure to write.
+##
+## msg: A reason or description for the failure.
+##
+## .. bro:see:: set_contents_file get_contents_file
+event contents_file_write_failure%(c: connection, is_orig: bool, msg: string%);

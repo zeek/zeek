@@ -1,4 +1,15 @@
 
+2.2-beta-64 | 2013-10-14 09:20:04 -0700
+
+  * Review usage of Reporter::InternalError, addresses BIT-1045.
+
+    Replaced some with InternalWarning or AnalyzerError, the later
+    being a new method which signals the analyzer to not process
+    further input. (Jon Siwek)
+    
+  * Add new event for TCP content file write failures:
+    "contents_file_write_failure". (Jon Siwek)
+
 2.2-beta-57 | 2013-10-11 17:23:25 -0700
 
   * Improve Broxygen end-of-sentence detection. (Jon Siwek)

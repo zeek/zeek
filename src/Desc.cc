@@ -66,6 +66,7 @@ void ODesc::PopIndent()
 	{
 	if ( --indent_level < 0 )
 		reporter->InternalError("ODesc::PopIndent underflow");
+
 	NL();
 	}
 

@@ -419,7 +419,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 			break;
 
 		default:
-			reporter->InternalError("invalid function flavor");
+			reporter->InternalError("unserialized call for invalid function flavor");
 			break;
 		}
 

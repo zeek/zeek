@@ -209,7 +209,9 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			reporter->InternalError("unexpected authorization state");
+			reporter->AnalyzerError(this,
+			  "unexpected POP3 authorization state");
+			return;
 		}
 
 		delete decoded;
@@ -565,7 +567,8 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default: 
-		reporter->InternalError("command not known");
+		reporter->AnalyzerError(this, "unknown POP3 command");
+		return;
 	}
 	}
 

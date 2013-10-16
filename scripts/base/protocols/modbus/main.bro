@@ -10,7 +10,7 @@ export {
 	type Info: record {
 		## Time of the request.
 		ts:        time           &log;
-		## Unique identifier for the connnection.
+		## Unique identifier for the connection.
 		uid:       string         &log;
 		## Identifier for the connection.
 		id:        conn_id        &log;
@@ -20,8 +20,8 @@ export {
 		exception: string         &log &optional;
 	};
 
-	## Event that can be handled to access the Modbus record as it is sent on
-	## to the logging framework.
+	## Event that can be handled to access the Modbus record as it is sent
+	## on to the logging framework.
 	global log_modbus: event(rec: Info);
 }
 

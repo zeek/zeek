@@ -192,8 +192,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
-add_subdirectory(src)
+# It's important to add the scripts dir first since it has install-time
+# code that's order-sensitive.  See comment in scripts/CMakeLists.txt.
 add_subdirectory(scripts)
+add_subdirectory(src)
 add_subdirectory(doc)
 
 include(CheckOptionalBuildSources)

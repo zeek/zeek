@@ -1,4 +1,5 @@
 # @TEST-REQUIRES: which python
+# @TEST-REQUIRES: which curl
 #
 # @TEST-EXEC: btest-bg-run httpd python $SCRIPTS/httpd.py --max 1
 # @TEST-EXEC: sleep 3

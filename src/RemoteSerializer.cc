@@ -3321,6 +3321,9 @@ SocketComm::SocketComm()
 	id_counter = 10000;
 	parent_peer = 0;
 	parent_msgstate = TYPE;
+	parent_id = RemoteSerializer::PEER_NONE;
+	parent_msgtype = 0;
+	parent_args = 0;
 	shutting_conns_down = false;
 	terminating = false;
 	killing = false;
@@ -3584,8 +3587,6 @@ bool SocketComm::ProcessParentMessage()
 			InternalError(fmt("unknown msg type %d", parent_msgtype));
 			return true;
 		}
-
-		InternalError("cannot be reached");
 		}
 
 	case ARGS:
@@ -3611,7 +3612,7 @@ bool SocketComm::ProcessParentMessage()
 		InternalError("unknown msgstate");
 	}
 
-	InternalError("cannot be reached");
+	// Cannot be reached.
 	return false;
 	}
 

@@ -169,11 +169,12 @@ const char* ComponentManager<T, C>::GetComponentName(T tag) const
 
 	C* c = Lookup(tag);
 
-	if ( ! c )
-		reporter->InternalError("request for name of unknown component tag %s",
-		                        tag.AsString().c_str());
+	if ( c )
+		return c->CanonicalName();
 
-	return c->CanonicalName();
+	reporter->InternalWarning("requested name of unknown component tag %s",
+		                      tag.AsString().c_str());
+	return error;
 	}
 
 template <class T, class C>

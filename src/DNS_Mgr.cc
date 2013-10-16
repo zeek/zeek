@@ -546,7 +546,7 @@ Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 		return LookupAddr(addr);
 
 	default:
-		reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
+		reporter->InternalError("bad mode in DNS_Mgr::LookupAddr");
 		return 0;
 	}
 	}
@@ -833,7 +833,10 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 	ListVal* new_a = new_dm->Addrs();
 
 	if ( ! prev_a || ! new_a )
-		reporter->InternalError("confused in DNS_Mgr::CompareMappings");
+		{
+		reporter->InternalWarning("confused in DNS_Mgr::CompareMappings");
+		return;
+		}
 
 	ListVal* prev_delta = AddrListDelta(prev_a, new_a);
 	ListVal* new_delta = AddrListDelta(new_a, prev_a);

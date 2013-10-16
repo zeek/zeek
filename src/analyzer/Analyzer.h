@@ -303,7 +303,7 @@ public:
 	 * Signals the analyzer to skip all further input processsing. The \a
 	 * Next*() methods check this flag and discard the input if its set.
 	 *
-	 * @param do_skipe If true, further processing will be skipped.
+	 * @param do_skip If true, further processing will be skipped.
 	 */
 	void SetSkip(bool do_skip)		{ skip = do_skip; }
 

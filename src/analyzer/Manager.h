@@ -214,7 +214,8 @@ public:
 	 *
 	 * @return The new analyzer instance. Note that the analyzer will not
 	 * have been added to the connection's analyzer tree yet. Returns
-	 * null if tag is invalid or the requested analyzer is disabled.
+	 * null if tag is invalid, the requested analyzer is disabled, or the
+	 * analyzer can't be instantiated.
 	 */
 	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c);
 

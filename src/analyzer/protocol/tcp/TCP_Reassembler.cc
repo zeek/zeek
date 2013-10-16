@@ -174,7 +174,8 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		}
 
 	if ( seq_delta(up_to_seq, last_reassem_seq) <= 0 )
-		// This should never happen.
+		// This should never happen. (Reassembler::TrimToSeq has the only call
+		// to this method and only if this condition is not true).
 		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
 	if ( last_reassem_seq == 1 &&
@@ -322,17 +323,36 @@ void TCP_Reassembler::RecordToSeq(int start_seq, int stop_seq, BroFile* f)
 
 void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 	{
-	unsigned int len = b->Size();
-	if ( ! f->Write((const char*) b->block, len) )
-		// ### this should really generate an event
-		reporter->InternalError("contents write failed");
+	if ( f->Write((const char*) b->block, b->Size()) )
+		return;
+
+	reporter->Error("TCP_Reassembler contents write failed");
+
+	if ( contents_file_write_failure )
+		{
+		val_list* vl = new val_list();
+		vl->append(Endpoint()->Conn()->BuildConnVal());
+		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(new StringVal("TCP reassembler content write failure"));
+		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+		}
 	}
 
 void TCP_Reassembler::RecordGap(int start_seq, int upper_seq, BroFile* f)
 	{
-	if ( ! f->Write(fmt("\n<<gap %d>>\n", seq_delta(upper_seq, start_seq))) )
-		// ### this should really generate an event
-		reporter->InternalError("contents gap write failed");
+	if ( f->Write(fmt("\n<<gap %d>>\n", seq_delta(upper_seq, start_seq))) )
+		return;
+
+	reporter->Error("TCP_Reassembler contents gap write failed");
+
+	if ( contents_file_write_failure )
+		{
+		val_list* vl = new val_list();
+		vl->append(Endpoint()->Conn()->BuildConnVal());
+		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(new StringVal("TCP reassembler gap write failure"));
+		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+		}
 	}
 
 void TCP_Reassembler::BlockInserted(DataBlock* start_block)

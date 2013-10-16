@@ -289,7 +289,8 @@ bool Raw::OpenInput()
 			return false;
 			}
 
-		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
+		if ( ! SetFDFlags(fileno(file), F_SETFD, FD_CLOEXEC) )
+			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
 	return true;
@@ -299,7 +300,8 @@ bool Raw::CloseInput()
 	{
 	if ( file == 0 )
 		{
-		InternalError(Fmt("Trying to close closed file for stream %s", fname.c_str()));
+		InternalWarning(Fmt("Trying to close closed file for stream %s",
+		                    fname.c_str()));
 		return false;
 		}
 #ifdef DEBUG
@@ -492,9 +494,6 @@ int64_t Raw::GetLine(FILE* arg_file)
 		Error(Fmt("Reader encountered unexpected error code %d", errno));
 		return -3;
 		}
-
-	InternalError("Internal control flow execution error in raw reader");
-	assert(false);
 	}
 
 // write to the stdin of the child process

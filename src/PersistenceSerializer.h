@@ -113,7 +113,8 @@ protected:
 			conns = 0;
 			conn_cookie = 0;
 			peer = SOURCE_LOCAL;
-			};
+			filename = 0;
+			}
 
 		Type type;
 		SerialInfo info;

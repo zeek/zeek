@@ -39,8 +39,13 @@ TelnetOption::TelnetOption(NVT_Analyzer* arg_endp, unsigned int arg_code)
 void TelnetOption::RecvOption(unsigned int type)
 	{
 	TelnetOption* peer = endp->FindPeerOption(code);
+
 	if ( ! peer )
-		reporter->InternalError("option peer missing in TelnetOption::RecvOption");
+		{
+		reporter->AnalyzerError(endp,
+		  "option peer missing in TelnetOption::RecvOption");
+		return;
+		}
 
 	// WILL/WONT/DO/DONT are messages we've *received* from our peer.
 	switch ( type ) {
@@ -85,7 +90,9 @@ void TelnetOption::RecvOption(unsigned int type)
 		break;
 
 	default:
-		reporter->InternalError("bad option type in TelnetOption::RecvOption");
+		reporter->AnalyzerError(endp,
+		  "bad option type in TelnetOption::RecvOption");
+		return;
 	}
 	}
 
@@ -165,7 +172,11 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 			(TelnetEncryptOption*) endp->FindPeerOption(code);
 
 		if ( ! peer )
-			reporter->InternalError("option peer missing in TelnetEncryptOption::RecvSubOption");
+			{
+			reporter->AnalyzerError(endp,
+			  "option peer missing in TelnetEncryptOption::RecvSubOption");
+			return;
+			}
 
 		if ( peer->DidRequest() || peer->DoingEncryption() ||
 		     peer->Endpoint()->AuthenticationHasBeenAccepted() )
@@ -201,7 +212,11 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 			(TelnetAuthenticateOption*) endp->FindPeerOption(code);
 
 		if ( ! peer )
-			reporter->InternalError("option peer missing in TelnetAuthenticateOption::RecvSubOption");
+			{
+			reporter->AnalyzerError(endp,
+			  "option peer missing in TelnetAuthenticateOption::RecvSubOption");
+			return;
+			}
 
 		if ( ! peer->DidRequestAuthentication() )
 			InconsistentOption(0);

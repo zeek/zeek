@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_type_declaration.bro
+data_type_declaration.bro
 
 event bro_init()
     {

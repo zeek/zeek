@@ -23,7 +23,7 @@ export {
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
 	## Mapping between numeric codes and human readable strings for alert 
-	## descriptions..
+	## descriptions.
 	const alert_descriptions: table[count] of string = {
 		[0] = "close_notify",
 		[10] = "unexpected_message",
@@ -453,8 +453,8 @@ export {
 	const TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF;
 	
 	## This is a table of all known cipher specs.  It can be used for 
-	## detecting unknown ciphers and for converting the cipher spec constants 
-	## into a human readable format.
+	## detecting unknown ciphers and for converting the cipher spec
+	## constants into a human readable format.
 	const cipher_desc: table[count] of string = {
 		[SSLv20_CK_RC4_128_EXPORT40_WITH_MD5] =
 			"SSLv20_CK_RC4_128_EXPORT40_WITH_MD5",

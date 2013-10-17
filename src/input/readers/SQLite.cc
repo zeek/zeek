@@ -54,7 +54,7 @@ void SQLite::DoClose()
 		}
 	}
 
-bool SQLite::checkError( int code )
+bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
@@ -70,6 +70,12 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	if ( sqlite3_threadsafe() == 0 )
 		{
 		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
+		return false;
+		}
+
+	if ( Info().mode != MODE_MANUAL )
+		{
+		Error("SQLite only supports manual reading mode.");
 		return false;
 		}
 

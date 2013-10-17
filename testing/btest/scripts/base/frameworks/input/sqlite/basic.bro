@@ -89,7 +89,6 @@ event bro_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from conn;",
-		 ["dbname"] = "conn"
 	};
 
 	outfile = open("../out");

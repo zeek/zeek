@@ -235,3 +235,5 @@ returns with a result, we had a hit against our malware-database and output the 
             Input::remove(name);
         }
 
+If you run this script against the trace in ``testing/btest/Traces/ftp/ipv4.trace``, you
+will get one hit.

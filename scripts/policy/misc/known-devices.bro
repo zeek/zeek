@@ -3,11 +3,11 @@
 ##! The log that is output provides an easy way to determine a count of the devices
 ##! in use on a network per day.
 ##!
-##! ..note::
+##! .. note::
 ##!
 ##!     This script will not generate any logs on its own, it needs to be
 ##!     supplied with information from elsewhere, such as
-##!     :doc:`policy/protocols/dhcp/known-devices-and-hostnames/scripts/.
+##!     :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames`.
 
 module Known;
 

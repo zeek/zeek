@@ -366,6 +366,7 @@ public:
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType();
+	BroType* YieldType() const;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
 	string FlavorString() const;

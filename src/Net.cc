@@ -30,6 +30,7 @@
 #include "PacketSort.h"
 #include "Serializer.h"
 #include "PacketDumper.h"
+#include "plugin/Manager.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -141,6 +142,12 @@ RETSIGTYPE watchdog(int /* signo */)
 
 	(void) alarm(watchdog_interval);
 	return RETSIGVAL;
+	}
+
+void net_update_time(double new_network_time)
+	{
+	network_time = new_network_time;
+	plugin_mgr->UpdateNetworkTime(network_time);
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,
@@ -320,7 +327,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			: timer_mgr;
 
 	// network_time never goes back.
-	network_time = tmgr->Time() < t ? t : tmgr->Time();
+	net_update_time(tmgr->Time() < t ? t : tmgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;
@@ -453,7 +460,7 @@ void net_run()
 				{
 				// Take advantage of the lull to get up to
 				// date on timers and events.
-				network_time = ct;
+				net_update_time(ct);
 				expire_timers();
 				usleep(1); // Just yield.
 				}
@@ -475,7 +482,7 @@ void net_run()
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			network_time = current_time();
+			net_update_time(current_time());
 			expire_timers();
 
 			// Avoid busy-waiting - pause for 100 ms.

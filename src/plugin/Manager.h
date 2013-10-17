@@ -19,6 +19,7 @@ class Manager
 {
 public:
 	typedef std::list<Plugin*> plugin_list;
+	typedef std::list<InterpreterPlugin*> interpreter_plugin_list;
 	typedef Plugin::component_list component_list;
 
 	/**
@@ -101,6 +102,52 @@ public:
 	template<class T> std::list<T *> Components() const;
 
 	/**
+	 * Filters a function/event/hook call through all interpreter plugins.
+	 *
+	 * @param func The function to be called.
+	 *
+	 * @param args The function call's arguments; they may be modified.
+	 *
+	 * @return If a plugin handled the call, a +1 Val with the result
+	 * value to pass back to the interpreter (for void functions and
+	 * events, it may be any Val and must be ignored). If no plugin
+	 * handled the call, the method returns null.
+	 */
+	Val* CallFunction(const Func* func, val_list* args) const;
+
+    /**
+     * Filter the queuing of an event through all interpreter plugins.
+     *
+     * @param event The event to be queued; it may be modified.
+     *
+     * @return Returns true if a plugin handled the queuing; in that case the
+     * plugin will have taken ownership.
+	 *
+     */
+	bool QueueEvent(Event* event) const;
+
+	/**
+	 * Informs all interpreter plugins about an update in network time.
+	 *
+	 * @param networkt_time The new network time.
+	 */
+	void UpdateNetworkTime(double network_time) const;
+
+	/**
+	 * Informs all interpreter plugins that the event queue has been drained.
+	 */
+	void DrainEvents() const;
+
+    /**
+     * Disables an interpreter plugin's hooking of the script interpreter.
+     * The remaining functionality of the Plugin base class remains
+     * available.
+     *
+     * @param plugin The plugin to disable.
+     */
+    void DisableInterpreterPlugin(const InterpreterPlugin* plugin);
+
+	/**
 	 * Internal method that registers a freshly instantiated plugin with
 	 * the manager.
 	 *
@@ -108,7 +155,7 @@ public:
 	 * ownership, yet assumes the pointer will stay valid at least until
 	 * the Manager is destroyed.
 	 */
-	static bool RegisterPlugin(Plugin *plugin);
+	static bool RegisterPlugin(Plugin* plugin);
 
 protected:
 	/**
@@ -135,6 +182,8 @@ private:
 	bool init;
 	typedef std::map<std::string, Plugin*> extension_map;
 	extension_map extensions;
+
+	interpreter_plugin_list interpreter_plugins;
 
 	static string current_dir;
 	static string current_sopath;

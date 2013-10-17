@@ -722,6 +722,11 @@ BroType* FuncType::YieldType()
 	return yield;
 	}
 
+BroType* FuncType::YieldType() const
+	{
+	return yield;
+	}
+
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
 	return check_and_promote_args(index, args) ?

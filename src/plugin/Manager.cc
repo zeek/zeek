@@ -10,6 +10,8 @@
 #include "Manager.h"
 
 #include "../Reporter.h"
+#include "../Func.h"
+#include "../Event.h"
 
 using namespace plugin;
 
@@ -101,13 +103,21 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	DBG_LOG(DBG_PLUGINS, "Loading plugin from %s", dir.c_str());
 
-	// Add the "scripts" directory to BROPATH.
+	// Add the "scripts" and "bif" directories to BROPATH.
 	string scripts = dir + "/scripts";
 
 	if ( is_dir(scripts) )
 		{
 		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", scripts.c_str());
 		add_to_bro_path(scripts);
+		}
+
+	string bif = dir + "/bif";
+
+	if ( is_dir(bif) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", bif.c_str());
+		add_to_bro_path(bif);
 		}
 
 	// Load dylib/scripts/__load__.bro automatically.
@@ -121,6 +131,15 @@ int Manager::LoadPlugin(const std::string& dir)
 
 	// Load scripts/__load__.bro automatically.
 	string init = scripts + "/__load__.bro";
+
+	if ( is_file(init) )
+		{
+		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", init.c_str());
+		add_input_file(init.c_str());
+		}
+
+	// Load bif/__load__.bro automatically.
+	init = bif + "/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -185,6 +204,15 @@ bool Manager::RegisterPlugin(Plugin *plugin)
 	return true;
 	}
 
+static bool interpreter_plugin_cmp(const InterpreterPlugin* a, const InterpreterPlugin* b)
+	{
+	if ( a->Priority() == b->Priority() )
+		return a->Name() < b->Name();
+
+	// Reverse sort.
+	return a->Priority() > b->Priority();
+	}
+
 void Manager::InitPreScript()
 	{
 	assert(! init);
@@ -192,6 +220,9 @@ void Manager::InitPreScript()
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		{
 		Plugin* plugin = *i;
+
+		if ( plugin->PluginType() == Plugin::INTERPRETER )
+			interpreter_plugins.push_back(dynamic_cast<InterpreterPlugin *>(plugin));
 
 		plugin->InitPreScript();
 
@@ -207,6 +238,8 @@ void Manager::InitPreScript()
 			extensions.insert(std::make_pair(e, plugin));
 			}
 		}
+
+	interpreter_plugins.sort(interpreter_plugin_cmp);
 
 	init = true;
 	}
@@ -276,3 +309,67 @@ Manager::plugin_list* Manager::PluginsInternal()
 
 	return plugins;
 	}
+
+Val* Manager::CallFunction(const Func* func, val_list* args) const
+	{
+	Val* result = 0;
+
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end() && ! result; i++ )
+		{
+		result = (*i)->CallFunction(func, args);
+
+		if ( result )
+			{
+			DBG_LOG(DBG_PLUGINS, "Plugin %s replaced call to %s", (*i)->Name(), func->Name());
+			return result;
+			}
+		}
+
+	return 0;
+	}
+
+bool Manager::QueueEvent(Event* event) const
+	{
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		{
+		if ( (*i)->QueueEvent(event) )
+			{
+			DBG_LOG(DBG_PLUGINS, "Plugin %s handled queueing of event %s", (*i)->Name(), event->Handler()->Name());
+			return true;
+			}
+		}
+
+	return false;
+	}
+
+
+void Manager::UpdateNetworkTime(double network_time) const
+	{
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		(*i)->UpdateNetworkTime(network_time);
+	}
+
+void Manager::DrainEvents() const
+	{
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		(*i)->DrainEvents();
+	}
+
+void Manager::DisableInterpreterPlugin(const InterpreterPlugin* plugin)
+	{
+	for ( interpreter_plugin_list::iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		{
+		if ( *i == plugin )
+			{
+			interpreter_plugins.erase(i);
+			return;
+			}
+		}
+	}
+
+

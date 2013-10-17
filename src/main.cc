@@ -1074,7 +1074,7 @@ int main(int argc, char** argv)
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
-		network_time = current_time();
+		net_update_time(current_time());
 
 	EventHandlerPtr bro_init = internal_handler("bro_init");
 	if ( bro_init )	//### this should be a function

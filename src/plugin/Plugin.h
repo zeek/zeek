@@ -9,6 +9,8 @@
 #include "Macros.h"
 
 class ODesc;
+class Func;
+class Event;
 
 namespace plugin  {
 
@@ -90,6 +92,24 @@ public:
 	typedef void (*bif_init_func)(Plugin *);
 
 	/**
+	 * Type of a plugin. Plugin types are set implicitly by deriving from
+	 * the corresponding base class. */
+	enum Type {
+		/**
+		 * A standard plugin. This is the type for all plugins
+		 * derived directly from \a Plugin. */
+		STANDARD,
+
+		/**
+		 * An interpreter plugin. These plugins get hooked into the
+		 * script interpreter and can modify, or even replace, its
+		 * execution of Bro script code. To create an interpreter
+		 * plugin, derive from \aInterpreterPlugin.
+		 */
+		INTERPRETER
+	};
+
+	/**
 	 * Constructor.
 	 */
 	Plugin();
@@ -98,6 +118,11 @@ public:
 	 * Destructor.
 	 */
 	virtual ~Plugin();
+
+	/**
+	 * Returns the type of the plugin.
+	 */
+	virtual Type PluginType() const;
 
 	/**
 	 * Returns the name of the plugin.
@@ -133,7 +158,7 @@ public:
 	const char* PluginDirectory() const;
 
 	/**
-	 * For dynamic plugins, returns the full path to the shared library 
+	 * For dynamic plugins, returns the full path to the shared library
 	 * from which it was loaded. For static plugins, returns null.
 	 **/
 	const char* PluginPath() const;
@@ -337,6 +362,105 @@ private:
 	component_list components;
 	bif_item_list bif_items;
 	bif_init_func_list bif_inits;
+};
+
+/**
+ * Class for hooking into script execution. An interpreter plugin can do
+ * everything a normal plugin can, yet will also be interfaced to the script
+ * interpreter for learning about, modidying, or potentially replacing
+ * standard functionality.
+ */
+class InterpreterPlugin : public Plugin {
+public:
+	/**
+	 * Constructor.
+	 *
+	 * @param priority Imposes an order on InterpreterPlugins in which
+	 * they'll be chained. The higher the prioritu, the earlier a plugin
+	 * is called when the interpreter goes through the chain. */
+	InterpreterPlugin(int priority);
+
+	/**
+	 * Destructor.
+	 */
+	virtual ~InterpreterPlugin();
+
+	/**
+	 * Returns the plugins priority.
+	 */
+	int Priority() const;
+
+	/**
+	 * Callback for executing a function/event/hook. Whenever the script
+	 * interpreter is about to execution a function, it first gives all
+	 * InterpreterPlugins a chance to handle the call (in the order of their
+	 * priorities). A plugin can either just inspect the call, or replace it
+	 * (i.e., prevent the interpreter from executing it). In the latter case
+	 * it must provide a matching return value.
+	 *
+	 * The default implementation does never handle the call in any way.
+ 	 *
+	 * @param func The function being called.
+	 *
+	 * @param args The function arguments. The method can modify the list
+	 * in place long as it ensures matching types and correct reference
+	 * counting.
+	 *
+	 * @return If the plugin handled the call, a +1 Val with the result
+	 * value to pass back to the interpreter (for void functions and
+	 * events any \a Val is fine; it will be ignored; best to use a \c
+	 * TYPE_ANY). If the plugin did not handle the call, it must return
+	 * null.
+	 */
+	virtual Val* CallFunction(const Func* func, val_list* args);
+
+    /**
+     * Callback for raising an event. Whenever the script interpreter is
+     * about to queue an event for later execution, it first gives all
+     * InterpreterPlugins a chance to handle the queuing otherwise (in the
+     * order of their priorities). A plugin can either just inspect the
+     * event, or take it over (i.e., prevent the interpreter from queuing it
+     * it).
+     *
+	 * The default implementation does never handle the queuing in any way.
+     *
+     * @param event The even to be queued. The method can modify it in in
+     * place long as it ensures matching types and correct reference
+     * counting.
+     *
+     * @return True if the plugin took charge of the event; in that case it
+     * must have assumed ownership of the event and the intpreter will not do
+     * anything further with it. False otherwise.
+	 *
+     */
+	virtual bool QueueEvent(Event* event);
+
+	/**
+	 * Callback for updates in network time. This method will be called
+	 * whenever network time is advanced.
+	 *
+	 * @param networkt_time The new network time.
+	 */
+	virtual void UpdateNetworkTime(double network_time);
+
+	/**
+	 * Callback for event queue draining. This method will be called
+	 * whenever the event manager has drained it queue.
+	 */
+	virtual void DrainEvents();
+
+	/**
+	 * Disables interpreter hooking. The functionality of the Plugin base
+	 * class remains available.
+	 */
+	void DisableInterpreterPlugin() const;
+
+	// Overridden from base class.
+	virtual Type PluginType() const;
+
+private:
+	int priority;
+
 };
 
 }

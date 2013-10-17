@@ -19,9 +19,9 @@ Logging to and reading from SQLite Databases
 Warning
 =======
 
-In contrast to the ASCII plugins, the SQLite plugins have not yet
+In contrast to the ASCII reader and writer, the SQLite plugins have not yet
 seen extensive use in production environments. While we are not aware
-of any issues with them at the moment, we urge to caution when using them
+of any issues with them, we urge to caution when using them
 in production environments. There could be lingering issues which only occur
 when the plugins are used with high amounts of data or in high-load environments.
 
@@ -59,13 +59,6 @@ appending connection information to the table.
 At the moment, SQLite databases are not rotated the same way ASCII log-files are. You
 have to take care to create them in an adequate location.
 
-Note that the ASCII ``conn.log`` will still be created. To disable the ASCII writer for a 
-log stream, you can remove the default filter:
-
-.. code:: bro
-
-    Log::remove_filter(Conn::LOG, "default");
-
 If you examine the resulting SQLite database, the schema will contain the same fields
 that are present in the ASCII log files::
 
@@ -81,10 +74,18 @@ that are present in the ASCII log files::
     'id.orig_h' text,
     'id.orig_p' integer,
     ...
-        
+
+Note that the ASCII ``conn.log`` will still be created. To disable the ASCII writer for a 
+log stream, you can remove the default filter:
+
+.. code:: bro
+
+    Log::remove_filter(Conn::LOG, "default");
+
+
 To create a custom SQLite log file, you have to create a new log stream that contains
 just the information you want to commit to the database. Please refer to the 
-:ref:`framework-logging` documentation.
+:ref:`framework-logging` documentation on how to create custom log streams.
 
 Reading Data from SQLite Databases
 ==================================
@@ -93,8 +94,8 @@ Like logging support, support for reading data from SQLite databases is built in
 with version 2.2. 
 
 Just as with the text-based input readers (please refer to the :ref:`framework-input` 
-documentation for them), the SQLite reader can be used to read data - in this case the result of
-SQL queries - into tables or into events.
+documentation for them and for basic information on how to use the input-framework), the SQLite reader 
+can be used to read data - in this case the result of SQL queries - into tables or into events.
 
 Reading data into Tables
 ------------------------
@@ -202,7 +203,7 @@ returns with a result, we had a hit against our malware-database and output the 
 
     event line(description: Input::EventDescription, tpe: Input::Event, r: Val)
         {
-        print fmt("malware-hot with hash %s, description %s", r$hash, r$description);
+        print fmt("malware-hit with hash %s, description %s", r$hash, r$description);
         }
 
     global malware_source = "/var/db/malware";
@@ -220,10 +221,10 @@ returns with a result, we had a hit against our malware-database and output the 
                 $fields=Val, 
                 $ev=line, 
                 $want_record=T, 
-                $reader=Input::READER_SQLITE, 
                 $config=table(
                     ["query"] = fmt("select * from malware_hashes where hash='%s';", hash)
-                    )
+                    ),
+                $reader=Input::READER_SQLITE
                 ]);
             }
         }

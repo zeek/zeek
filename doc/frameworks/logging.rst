@@ -387,3 +387,4 @@ Bro supports the following output formats other than ASCII:
 
    logging-dataseries
    logging-elasticsearch
+   logging-input-sqlite

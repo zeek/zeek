@@ -1,4 +1,17 @@
 
+2.2-beta-80 | 2013-10-18 13:18:05 -0700
+
+  * SQLite reader/writer documentation. (Bernhard Amann)
+
+  * Check that the SQLite reader is only used in MANUAL reading mode.
+    (Bernhard Amann)
+
+  * Rename the SQLite writer "dbname" configuration option to
+    "tablename". (Bernhard Amann)
+
+  * Remove the "dbname" configuration option from the SQLite reader
+    where it wasn't used. (Bernhard Amann)
+
 2.2-beta-73 | 2013-10-14 14:28:25 -0700
 
   * Fix misc. Coverity-reported issues (leaks, potential null pointer

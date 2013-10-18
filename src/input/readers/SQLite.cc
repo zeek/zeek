@@ -54,7 +54,7 @@ void SQLite::DoClose()
 		}
 	}
 
-bool SQLite::checkError( int code )
+bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
@@ -73,23 +73,19 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 		return false;
 		}
 
+	if ( Info().mode != MODE_MANUAL )
+		{
+		Error("SQLite only supports manual reading mode.");
+		return false;
+		}
+
 	started = false;
 
 	string fullpath(info.source);
 	fullpath.append(".sqlite");
 
-	string dbname;
-	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
-	if ( it == info.config.end() )
-		{
-		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to source %s", info.source));
-		dbname = info.source;
-		}
-	else
-		dbname = it->second;
-
 	string query;
-	it = info.config.find("query");
+	map<const char*, const char*>::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
 		Error(Fmt("No query specified when setting up SQLite data source. Aborting.", info.source));

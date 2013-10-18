@@ -1,4 +1,9 @@
 
+2.2-beta-114 | 2013-10-18 14:17:57 -0700
+
+  * Moving the SQLite examples into separate Bro files to turn them
+    into sphinx-btest tests. (Robin Sommer)
+
 2.2-beta-112 | 2013-10-18 13:47:13 -0700
 
   * A larger chunk of documentation fixes and cleanup. (Daniel Thayer)

@@ -37,20 +37,12 @@ have to define a filter which specifies SQLite as the writer.
 
 The following example code adds SQLite as a filter for the connection log:
 
-.. code:: bro
+.. btest-include:: ${DOC_ROOT}/frameworks/sqlite-conn-filter.bro
 
-    event bro_init()
-        {
-        local filter: Log::Filter =
-            [
-            $name="sqlite",
-            $path="/var/db/conn",
-            $config=table(["tablename"] = "conn"),
-            $writer=Log::WRITER_SQLITE
-            ];
+.. btest:: sqlite-conn-filter-check
 
-        Log::add_filter(Conn::LOG, filter);
-        }
+    # Make sure this parses correctly at least.
+    @TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-conn-filter.bro
 
 Bro will create the database file ``/var/db/conn.sqlite``, if it does not already exist.
 It will also create a table with the name ``conn`` (if it does not exist) and start
@@ -118,41 +110,12 @@ The SQLite commands to create the schema are as follows::
 After creating a file called ``hosts.sqlite`` with this content, we can read the resulting table
 into Bro:
 
-.. code:: bro
+.. btest-include:: ${DOC_ROOT}/frameworks/sqlite-read-table.bro
 
-    type Idx: record {
-        host: addr;
-    };
+.. btest:: sqlite-read-table-check
 
-    type Val: record {
-        users: set[string];
-    };
-
-    global hostslist: table[addr] of Val = table();
-
-    event bro_init() {
-        Input::add_table([$source="/var/db/hosts",
-            $name="hosts",
-            $idx=Idx,
-            $val=Val,
-            $destination=hostslist,
-            $reader=Input::READER_SQLITE,
-            $config=table(["query"] = "select * from machines_to_users;")
-        ]);
-
-    	Input::remove("hosts");
-    }
-
-    event Input::end_of_data(name: string, source: string) {
-    	if ( name != "hosts" )
-    	    return;
-
-    	# now all data is in the table
-    	print "Hosts list has been successfully imported";
-
-        # List the users of one host.
-    	print hostslist[192.168.17.1]$users;
-    }
+    # Make sure this parses correctly at least.
+    @TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-read-table.bro
 
 Afterwards, that table can be used to check logins into hosts against the available
 userlist.
@@ -192,48 +155,12 @@ The following code uses the file-analysis framework to get the sha1 hashes of fi
 transmitted over the network. For each hash, a SQL-query is run against SQLite. If the query
 returns with a result, we had a hit against our malware-database and output the matching hash.
 
-.. code:: bro
+.. btest-include:: ${DOC_ROOT}/frameworks/sqlite-read-events.bro
 
-    @load frameworks/files/hash-all-files
+.. btest:: sqlite-read-events-check
 
-    type Val: record {
-        hash: string;
-        description: string;
-    };
-
-    event line(description: Input::EventDescription, tpe: Input::Event, r: Val)
-        {
-        print fmt("malware-hit with hash %s, description %s", r$hash, r$description);
-        }
-
-    global malware_source = "/var/db/malware";
-
-    event file_hash(f: fa_file, kind: string, hash: string)
-        {
-
-        # check all sha1 hashes
-        if ( kind=="sha1" )
-            {
-	    Input::add_event(
-                [
-                $source=malware_source,
-                $name=hash,
-                $fields=Val,
-                $ev=line,
-                $want_record=T,
-                $config=table(
-                    ["query"] = fmt("select * from malware_hashes where hash='%s';", hash)
-                    ),
-                $reader=Input::READER_SQLITE
-                ]);
-            }
-        }
-
-    event Input::end_of_data(name: string, source:string)
-        {
-        if ( source == malware_source )
-            Input::remove(name);
-        }
+    # Make sure this parses correctly at least.
+    @TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-read-events.bro
 
 If you run this script against the trace in ``testing/btest/Traces/ftp/ipv4.trace``, you
 will get one hit.

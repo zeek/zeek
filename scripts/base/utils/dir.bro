@@ -11,8 +11,8 @@ export {
 
 	## Register a directory to monitor with a callback that is called
 	## every time a previously unseen file is seen.  If a file is deleted
-	## and seen to be gone, the file is available for being seen again in
-	## the future.
+	## and seen to be gone, then the file is available for being seen again
+	## in the future.
 	##
 	## dir: The directory to monitor for files.
 	##

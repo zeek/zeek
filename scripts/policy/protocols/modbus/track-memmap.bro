@@ -1,7 +1,7 @@
 ##! This script tracks the memory map of holding (read/write) registers and logs
 ##! changes as they are discovered.
 ##!
-##! .. todo: Not all register reads and write functions are being supported yet.
+##! .. todo:: Not all register read and write functions are supported yet.
 
 @load base/protocols/modbus
 @load base/utils/directions-and-hosts

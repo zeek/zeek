@@ -11,14 +11,14 @@ export {
 	##
 	## rec: An :bro:type:`FTP::Info` record.
 	##
-	## Returns: A URL, not prefixed by "ftp://".
+	## Returns: A URL, not prefixed by ``"ftp://"``.
 	global build_url: function(rec: Info): string;
 
 	## Creates a URL from an :bro:type:`FTP::Info` record.
 	##
 	## rec: An :bro:type:`FTP::Info` record.
 	##
-	## Returns: A URL prefixed with "ftp://".
+	## Returns: A URL prefixed with ``"ftp://"``.
 	global build_url_ftp: function(rec: Info): string;
 
 	## Create an extremely shortened representation of a log line.

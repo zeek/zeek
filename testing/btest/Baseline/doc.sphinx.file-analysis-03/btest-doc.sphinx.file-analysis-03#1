@@ -1,0 +1,11 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro file_analysis_03.bro
+      new file, FZedLu4Ajcvge02jA8
+      file_hash, FZedLu4Ajcvge02jA8, md5, f0ef7081e1539ac00ef5b761b4fb01b3
+      file_state_remove
+

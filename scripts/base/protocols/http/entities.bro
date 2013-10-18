@@ -28,9 +28,11 @@ export {
 
 		## The current entity.
 		current_entity:  Entity           &optional;
-		## Current number of MIME entities in the HTTP request message body.
+		## Current number of MIME entities in the HTTP request message
+		## body.
 		orig_mime_depth: count            &default=0;
-		## Current number of MIME entities in the HTTP response message body.
+		## Current number of MIME entities in the HTTP response message
+		## body.
 		resp_mime_depth: count            &default=0;
 	};
 }

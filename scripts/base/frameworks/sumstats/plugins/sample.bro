@@ -4,7 +4,8 @@ module SumStats;
 
 export {
 	redef enum Calculation += {
-		## Get uniquely distributed random samples from the observation stream.
+		## Get uniquely distributed random samples from the observation
+		## stream.
 		SAMPLE
 	};
 
@@ -24,8 +25,8 @@ export {
 
 redef record ResultVal += {
 	# Internal use only.  This is not meant to be publically available
-	# and just a copy of num_samples from the Reducer. Needed for availability
-	# in the compose hook.
+	# and just a copy of num_samples from the Reducer. Needed for
+	# availability in the compose hook.
 	num_samples: count &default=0;
 };
 

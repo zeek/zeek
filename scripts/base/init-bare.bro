@@ -888,13 +888,13 @@ const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 ## For services without an a handler, these sets define originator-side ports that
 ## still trigger reassembly.
 ##
-## .. :bro:see:: tcp_reassembler_ports_resp
+## .. bro:see:: tcp_reassembler_ports_resp
 const tcp_reassembler_ports_orig: set[port] = {} &redef;
 
 ## For services without an a handler, these sets define responder-side ports that
 ## still trigger reassembly.
 ##
-## .. :bro:see:: tcp_reassembler_ports_orig
+## .. bro:see:: tcp_reassembler_ports_orig
 const tcp_reassembler_ports_resp: set[port] = {} &redef;
 
 ## Defines destination TCP ports for which the contents of the originator stream
@@ -987,7 +987,7 @@ const table_incremental_step = 5000 &redef;
 ## When expiring table entries, wait this amount of time before checking the next
 ## chunk of entries.
 ##
-## .. :bro:see:: table_expire_interval table_incremental_step
+## .. bro:see:: table_expire_interval table_incremental_step
 const table_expire_delay = 0.01 secs &redef;
 
 ## Time to wait before timing out a DNS request.
@@ -1676,7 +1676,7 @@ global secondary_filters: table[string] of event(filter: string, pkt: pkt_hdr)
 
 ## Maximum length of payload passed to discarder functions.
 ##
-## .. :bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
+## .. bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
 ##    discarder_check_ip
 global discarder_maxlen = 128 &redef;
 
@@ -1689,7 +1689,7 @@ global discarder_maxlen = 128 &redef;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
+## .. bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1707,7 +1707,7 @@ global discarder_check_ip: function(p: pkt_hdr): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_ip discarder_check_udp discarder_check_icmp
+## .. bro:see:: discarder_check_ip discarder_check_udp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1725,7 +1725,7 @@ global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_ip discarder_check_tcp discarder_check_icmp
+## .. bro:see:: discarder_check_ip discarder_check_tcp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1741,7 +1741,7 @@ global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_ip discarder_check_tcp discarder_check_udp
+## .. bro:see:: discarder_check_ip discarder_check_tcp discarder_check_udp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1935,11 +1935,11 @@ export {
 	## .. .. bro:see:: return_data_max return_data_first_only
 	const return_data = F &redef;
 
-	## If bro:id:`NFS3::return_data` is true, how much data should be returned at
+	## If :bro:id:`NFS3::return_data` is true, how much data should be returned at
 	## most.
 	const return_data_max = 512 &redef;
 
-	## If bro:id:`NFS3::return_data` is true, whether to *only* return data if the read
+	## If :bro:id:`NFS3::return_data` is true, whether to *only* return data if the read
 	## or write offset is 0, i.e., only return data for the beginning of the file.
 	const return_data_first_only = T &redef;
 
@@ -2827,7 +2827,7 @@ const report_gaps_for_partial = F &redef;
 ## Flag to prevent Bro from exiting automatically when input is exhausted.
 ## Normally Bro terminates when all packets sources have gone dry
 ## and  communication isn't enabled. If this flag is set, Bro's main loop will
-## instead keep idleing until :bro:see::`terminate` is explicitly called.
+## instead keep idleing until :bro:see:`terminate` is explicitly called.
 ##
 ## This is mainly for testing purposes when termination behaviour needs to be
 ## controlled for reproducing results.

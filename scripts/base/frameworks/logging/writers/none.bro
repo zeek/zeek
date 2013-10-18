@@ -1,4 +1,4 @@
-##! Interface for the None log writer. Thiis writer is mainly for debugging.
+##! Interface for the None log writer. This writer is mainly for debugging.
 
 module LogNone;
 

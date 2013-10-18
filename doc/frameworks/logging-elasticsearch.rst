@@ -31,12 +31,12 @@ Once extracted, start ElasticSearch with::
 # ./bin/elasticsearch
 
 For more detailed information, refer to the ElasticSearch installation
-documentation: http://www.elasticsearch.org/guide/reference/setup/installation.html
+documentation: http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html
 
 Compiling Bro with ElasticSearch Support
 ----------------------------------------
 
-First, ensure that you have libcurl installed the run configure.::
+First, ensure that you have libcurl installed then run configure::
 
     # ./configure
     [...]
@@ -51,9 +51,9 @@ First, ensure that you have libcurl installed the run configure.::
 Activating ElasticSearch
 ------------------------
 
-The easiest way to enable ElasticSearch output is to load the tuning/logs-to-
-elasticsearch.bro script.  If you are using BroControl, the following line in
-local.bro will enable it.
+The easiest way to enable ElasticSearch output is to load the
+tuning/logs-to-elasticsearch.bro script.  If you are using BroControl,
+the following line in local.bro will enable it:
 
 .. console::
 
@@ -76,7 +76,7 @@ A common problem encountered with ElasticSearch is too many files being held
 open.  The ElasticSearch website has some suggestions on how to increase the
 open file limit.
 
-  - http://www.elasticsearch.org/tutorials/2011/04/06/too-many-open-files.html
+  - http://www.elasticsearch.org/tutorials/too-many-open-files/
 
 TODO
 ----

@@ -1,8 +1,8 @@
 ##! Script for tracking known Modbus masters and slaves.
 ##!
-##! .. todo: This script needs a lot of work.  What might be more interesting is to track
-##!          master/slave relationships based on commands sent and successful (non-exception)
-##!          responses.
+##! .. todo:: This script needs a lot of work.  What might be more interesting
+##!          is to track master/slave relationships based on commands sent and
+##!          successful (non-exception) responses.
 
 @load base/protocols/modbus
 

@@ -2,7 +2,7 @@
 ##! after being converted to PEM files.  The certificates will be stored in
 ##! a single file, one for local certificates and one for remote certificates.
 ##!
-##! ..note::
+##! .. note::
 ##!
 ##!     - It doesn't work well on a cluster because each worker will write its
 ##!       own certificate files and no duplicate checking is done across

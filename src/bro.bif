@@ -1,10 +1,11 @@
 ##! A collection of built-in functions that implement a variety of things
 ##! such as general programming algorithms, string processing, math functions,
-##! introspection, type conversion, file/directory manipulation, packet filtering,
-##! inter-process communication and controlling protocol analyzer behavior. 
+##! introspection, type conversion, file/directory manipulation, packet
+##! filtering, interprocess communication and controlling protocol analyzer
+##! behavior. 
 ##! 
-##! You'll find most of Bro's built-in functions that aren't protocol-specific in
-##! this file.
+##! You'll find most of Bro's built-in functions that aren't protocol-specific
+##! in this file.
 
 %%{ // C segment
 #include <math.h>
@@ -615,7 +616,7 @@ function md5_hmac%(...%): string
 ## Constructs an MD5 handle to enable incremental hash computation. You can
 ## feed data to the returned opaque value with :bro:id:`md5_hash_update` and
 ## eventually need to call :bro:id:`md5_hash_finish` to finish the computation
-## and get the hash digest as result.
+## and get the hash digest.
 ##
 ## For example, when computing incremental MD5 values of transferred files in
 ## multiple concurrent HTTP connections, one keeps an optional handle in the
@@ -640,12 +641,12 @@ function md5_hash_init%(%): opaque of md5
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
 ## feed data to the returned opaque value with :bro:id:`sha1_hash_update` and
 ## finally need to call :bro:id:`sha1_hash_finish` to finish the computation
-## and get the hash digest as result.
+## and get the hash digest.
 ##
 ## For example, when computing incremental SHA1 values of transferred files in
 ## multiple concurrent HTTP connections, one keeps an optional handle in the
 ## HTTP session record. Then, one would call
-## ``c$http$sha1_handle = sha1_hash_init()`` ## once before invoking
+## ``c$http$sha1_handle = sha1_hash_init()`` once before invoking
 ## ``sha1_hash_update(c$http$sha1_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha1_hash_finish` returns the final hash value.
@@ -665,12 +666,12 @@ function sha1_hash_init%(%): opaque of sha1
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
 ## feed data to the returned opaque value with :bro:id:`sha256_hash_update` and
 ## finally need to call :bro:id:`sha256_hash_finish` to finish the computation
-## and get the hash digest as result.
+## and get the hash digest.
 ##
 ## For example, when computing incremental SHA256 values of transferred files in
 ## multiple concurrent HTTP connections, one keeps an optional handle in the
 ## HTTP session record. Then, one would call
-## ``c$http$sha256_handle = sha256_hash_init()`` ## once before invoking
+## ``c$http$sha256_handle = sha256_hash_init()`` once before invoking
 ## ``sha256_hash_update(c$http$sha256_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha256_hash_finish` returns the final hash value.
@@ -1532,7 +1533,7 @@ function log10%(d: double%): double
 #
 # ===========================================================================
 
-## Determines whether *c* has been received externally. For example,
+## Determines whether a connection has been received externally. For example,
 ## Broccoli or the Time Machine can send packets to Bro via a mechanism that is
 ## one step lower than sending events. This function checks whether the packets
 ## of a connection stem from one of these external *packet sources*.

@@ -11,8 +11,9 @@ export {
 	type TrackCount: record {
 		## The counter for the number of times something has happened.
 		n:     count &default=0;
-		## The index of the vector where the counter currently is.  This is
-		## used to track which threshold is currently being watched for.
+		## The index of the vector where the counter currently is.  This
+		## is used to track which threshold is currently being watched
+		## for.
 		index: count &default=0;
 	};
 	
@@ -24,15 +25,18 @@ export {
 	
 	## This will check if a :bro:type:`TrackCount` variable has crossed any
 	## thresholds in a given set.
-	## v: a vector holding counts that represent thresholds
+	##
+	## v: a vector holding counts that represent thresholds.
+	##
 	## tracker: the record being used to track event counter and currently
-	##          monitored threshold value
-	## Returns: T if a threshold has been crossed, else F
+	##          monitored threshold value.
+	##
+	## Returns: T if a threshold has been crossed, else F.
 	global check_threshold: function(v: vector of count, tracker: TrackCount): bool;
 	
-	## This will use the :bro:id:`default_notice_thresholds` variable to check 
-	## a :bro:type:`TrackCount` variable to see if it has crossed another 
-	## threshold.
+	## This will use the :bro:id:`default_notice_thresholds` variable to
+	## check a :bro:type:`TrackCount` variable to see if it has crossed
+	## another threshold.
 	global default_check_threshold: function(tracker: TrackCount): bool;
 }
 

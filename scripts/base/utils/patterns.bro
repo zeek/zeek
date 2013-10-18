@@ -5,11 +5,14 @@ module GLOBAL;
 ## Given a pattern as a string with two tildes (~~) contained in it, it will
 ## return a pattern with string set's elements OR'd together where the
 ## double-tilde was given (this function only works at or before init time).
-## ss: a set of strings to OR together
+##
+## ss: a set of strings to OR together.
+##
 ## pat: the pattern containing a "~~"  in it.  If a literal backslash is
 ##      included, it needs to be escaped with another backslash due to Bro's
 ##      string parsing reducing it to a single backslash upon rendering.
-## Returns: the input pattern with "~~" replaced by OR'd elements of input set
+##
+## Returns: the input pattern with "~~" replaced by OR'd elements of input set.
 function set_to_regex(ss: set[string], pat: string): pattern
 	{
 	local i: count = 0;
@@ -38,10 +41,13 @@ type PatternMatchResult: record {
 ## For example: ``match_pattern("foobar", /o*[a-k]/)`` returns
 ## ``[matched=T, str=f, off=1]``,  because the *first* match is for
 ## zero o's followed by an [a-k], but ``match_pattern("foobar", /o+[a-k]/)``
-## returns ``[matched=T, str=oob, off=2]``
-## s: a string to match against
-## p: a pattern to match
-## Returns: a record indicating the match status
+## returns ``[matched=T, str=oob, off=2]``.
+##
+## s: a string to match against.
+##
+## p: a pattern to match.
+##
+## Returns: a record indicating the match status.
 function match_pattern(s: string, p: pattern): PatternMatchResult
 	{
 	local a = split_n(s, p, T, 1);

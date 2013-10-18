@@ -13,7 +13,7 @@ export {
 	##
 	## num_parts: The number of parts the traffic should be split into.
 	##
-	## this_part: The part of the traffic this filter will accept.  0-based.
+	## this_part: The part of the traffic this filter will accept (0-based).
 	global sampling_filter: function(num_parts: count, this_part: count): string;
 
 	## Combines two valid BPF filter strings with a string based operator

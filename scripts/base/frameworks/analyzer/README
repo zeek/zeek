@@ -1,0 +1,3 @@
+The analyzer framework allows to dynamically enable or disable Bro's
+protocol analyzers, as well as to manage the well-known ports which
+automatically activate a particular analyzer for new connections.

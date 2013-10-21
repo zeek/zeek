@@ -950,7 +950,7 @@ const tcp_content_deliver_all_resp = F &redef;
 ##    udp_content_deliver_all_resp  udp_contents
 const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
-## Defines UDP destination ports for which the contents of the originator stream
+## Defines UDP destination ports for which the contents of the responder stream
 ## should be delivered via :bro:see:`udp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
@@ -960,7 +960,7 @@ const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 
 ## If true, all UDP originator-side traffic is reported via
-## :bro:see:`tcp_contents`.
+## :bro:see:`udp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_resp
@@ -970,7 +970,7 @@ const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 const udp_content_deliver_all_orig = F &redef;
 
 ## If true, all UDP responder-side traffic is reported via
-## :bro:see:`tcp_contents`.
+## :bro:see:`udp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_resp
@@ -985,7 +985,7 @@ const udp_content_deliver_all_resp = F &redef;
 const table_expire_interval = 10 secs &redef;
 
 ## When expiring/serializing table entries, don't work on more than this many
-## table at a time.
+## table entries at a time.
 ##
 ## .. bro:see:: table_expire_interval table_expire_delay
 const table_incremental_step = 5000 &redef;
@@ -1953,7 +1953,7 @@ export {
 	## Record summarizing the general results and status of NFSv3
 	## request/reply pairs.
 	##
-	## Note that when *rpc_stats* or *nfs_stats* indicates not successful,
+	## Note that when *rpc_stat* or *nfs_stat* indicates not successful,
 	## the reply record passed to the corresponding event will be empty and
 	## contain uninitialized fields, so don't use it. Also note that time
 	## and duration values might not be fully accurate. For TCP, we record
@@ -2793,7 +2793,7 @@ const segment_profiling = F &redef;
 
 ## Output modes for packet profiling information.
 ##
-## .. bro:see:: pkt_profile_mode pkt_profile_freq pkt_profile_mode pkt_profile_file
+## .. bro:see:: pkt_profile_mode pkt_profile_freq pkt_profile_file
 type pkt_profile_modes: enum {
 	PKT_PROFILE_MODE_NONE,	##< No output.
 	PKT_PROFILE_MODE_SECS,	##< Output every :bro:see:`pkt_profile_freq` seconds.
@@ -2801,19 +2801,19 @@ type pkt_profile_modes: enum {
 	PKT_PROFILE_MODE_BYTES,	##< Output every :bro:see:`pkt_profile_freq` bytes.
 };
 
-## Output modes for packet profiling information.
+## Output mode for packet profiling information.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode pkt_profile_file
+## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_file
 const pkt_profile_mode = PKT_PROFILE_MODE_NONE &redef;
 
 ## Frequency associated with packet profiling.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_mode pkt_profile_mode pkt_profile_file
+## .. bro:see:: pkt_profile_modes pkt_profile_mode pkt_profile_file
 const pkt_profile_freq = 0.0 &redef;
 
 ## File where packet profiles are logged.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode pkt_profile_mode
+## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
 global pkt_profile_file: file &redef;
 
 ## Rate at which to generate :bro:see:`load_sample` events. As all
@@ -2838,9 +2838,9 @@ const gap_report_freq = 1.0 sec &redef;
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.
-## Normally Bro terminates when all packets sources have gone dry
+## Normally Bro terminates when all packet sources have gone dry
 ## and communication isn't enabled. If this flag is set, Bro's main loop will
-## instead keep idleing until :bro:see:`terminate` is explicitly called.
+## instead keep idling until :bro:see:`terminate` is explicitly called.
 ##
 ## This is mainly for testing purposes when termination behaviour needs to be
 ## controlled for reproducing results.

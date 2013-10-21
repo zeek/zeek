@@ -27,10 +27,10 @@ export {
 	                         /application\/jar/ |
 	                         /video\/mp4/ &redef;
 
-	## The malware hash registry runs each malware sample through several A/V engines.
-	## Team Cymru returns a percentage to indicate how many A/V engines flagged the
-	## sample as malicious. This threshold allows you to require a minimum detection
-	## rate.
+	## The malware hash registry runs each malware sample through several
+	## A/V engines.  Team Cymru returns a percentage to indicate how
+	## many A/V engines flagged the sample as malicious. This threshold
+	## allows you to require a minimum detection rate.
 	const notice_threshold = 10 &redef;
 }
 

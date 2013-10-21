@@ -1,7 +1,8 @@
-##! This script detects a large number of ICMP Time Exceeded messages heading toward
-##! hosts that have sent low TTL packets. It generates a notice when the number of
-##! ICMP Time Exceeded messages for a source-destination pair exceeds a
-##! threshold.
+##! This script detects a large number of ICMP Time Exceeded messages heading
+##! toward hosts that have sent low TTL packets. It generates a notice when the
+##! number of ICMP Time Exceeded messages for a source-destination pair exceeds
+##! a threshold.
+
 @load base/frameworks/sumstats
 @load base/frameworks/signatures
 @load-sigs ./detect-low-ttls.sig
@@ -20,15 +21,16 @@ export {
 		Detected
 	};
 
-	## By default this script requires that any host detected running traceroutes
-	## first send low TTL packets (TTL < 10) to the traceroute destination host.
-	## Changing this this setting to `F` will relax the detection a bit by
-	## solely relying on ICMP time-exceeded messages to detect traceroute.
+	## By default this script requires that any host detected running
+	## traceroutes first send low TTL packets (TTL < 10) to the traceroute
+	## destination host.  Changing this setting to F will relax the
+	## detection a bit by solely relying on ICMP time-exceeded messages to
+	## detect traceroute.
 	const require_low_ttl_packets = T &redef;
 
-	## Defines the threshold for ICMP Time Exceeded messages for a src-dst pair.
-	## This threshold only comes into play after a host is found to be
-	## sending low ttl packets.
+	## Defines the threshold for ICMP Time Exceeded messages for a src-dst
+	## pair.  This threshold only comes into play after a host is found to
+	## be sending low TTL packets.
 	const icmp_time_exceeded_threshold: double = 3 &redef;
 
 	## Interval at which to watch for the
@@ -40,7 +42,7 @@ export {
 	type Info: record {
 		## Timestamp
 		ts:    time &log;
-		## Address initiaing the traceroute.
+		## Address initiating the traceroute.
 		src:   addr &log;
 		## Destination address of the traceroute.
 		dst:   addr &log;

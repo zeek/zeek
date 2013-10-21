@@ -1,4 +1,5 @@
-##! Log memory/packet/lag statistics.  Differs from profiling.bro in that this
+##! Log memory/packet/lag statistics.  Differs from
+##! :doc:`/scripts/policy/misc/profiling` in that this
 ##! is lighter-weight (much less info, and less load to generate).
 
 @load base/frameworks/notice
@@ -20,21 +21,23 @@ export {
 		mem:           count     &log;
 		## Number of packets processed since the last stats interval.
 		pkts_proc:     count     &log;
-		## Number of events that been processed since the last stats interval.
+		## Number of events processed since the last stats interval.
 		events_proc:   count     &log;
-		## Number of events that have been queued since the last stats interval.
+		## Number of events that have been queued since the last stats
+		## interval.
 		events_queued: count     &log;
 
-		## Lag between the wall clock and packet timestamps if reading live traffic.
+		## Lag between the wall clock and packet timestamps if reading
+		## live traffic.
 		lag:           interval  &log &optional;
-		## Number of packets received since the last stats interval if reading
-		## live traffic.
+		## Number of packets received since the last stats interval if
+		## reading live traffic.
 		pkts_recv:     count     &log &optional;
-		## Number of packets dropped since the last stats interval if reading
-		## live traffic.
+		## Number of packets dropped since the last stats interval if
+		## reading live traffic.
 		pkts_dropped:  count     &log &optional;
-		## Number of packets seen on the link since the last stats interval
-		## if reading live traffic.
+		## Number of packets seen on the link since the last stats
+		## interval if reading live traffic.
 		pkts_link:     count     &log &optional;
 	};
 

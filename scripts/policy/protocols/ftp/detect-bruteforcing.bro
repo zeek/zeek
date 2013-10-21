@@ -1,5 +1,5 @@
-##! FTP brute-forcing detector, triggering when too  many rejected usernames or
-##! failed passwords have occured from a single address.
+##! FTP brute-forcing detector, triggering when too many rejected usernames or
+##! failed passwords have occurred from a single address.
 
 @load base/protocols/ftp
 @load base/frameworks/sumstats
@@ -10,8 +10,8 @@ module FTP;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates a host bruteforcing FTP logins by watching for too many
-		## rejected usernames or failed passwords.
+		## Indicates a host bruteforcing FTP logins by watching for too
+		## many rejected usernames or failed passwords.
 		Bruteforcing
 	};
 

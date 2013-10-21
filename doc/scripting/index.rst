@@ -1222,7 +1222,7 @@ from the connection relative to the behavior that has been observed by
 Bro.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
-   :lines: 59-62
+   :lines: 60-63
 
 In the :doc:`/scripts/policy/protocols/ssl/expiring-certs` script
 which identifies when SSL certificates are set to expire and raises

@@ -12,13 +12,14 @@ module SSL;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates that a certificate's NotValidAfter date has lapsed and
-		## the certificate is now invalid.
+		## Indicates that a certificate's NotValidAfter date has lapsed
+		## and the certificate is now invalid.
 		Certificate_Expired,
 		## Indicates that a certificate is going to expire within 
 		## :bro:id:`SSL::notify_when_cert_expiring_in`.
 		Certificate_Expires_Soon,
-		## Indicates that a certificate's NotValidBefore date is future dated.
+		## Indicates that a certificate's NotValidBefore date is future
+		## dated.
 		Certificate_Not_Valid_Yet,
 	};
 	
@@ -29,8 +30,8 @@ export {
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const notify_certs_expiration = LOCAL_HOSTS &redef;
 	
-	## The time before a certificate is going to expire that you would like to
-	## start receiving :bro:enum:`SSL::Certificate_Expires_Soon` notices.
+	## The time before a certificate is going to expire that you would like
+	## to start receiving :bro:enum:`SSL::Certificate_Expires_Soon` notices.
 	const notify_when_cert_expiring_in = 30days &redef;
 }
 

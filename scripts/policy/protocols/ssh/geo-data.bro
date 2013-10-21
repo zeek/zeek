@@ -7,14 +7,15 @@ module SSH;
 
 export {
 	redef enum Notice::Type += {
-		## If an SSH login is seen to or from a "watched" country based on the
-		## :bro:id:`SSH::watched_countries` variable then this notice will
-		## be generated.
+		## If an SSH login is seen to or from a "watched" country based
+		## on the :bro:id:`SSH::watched_countries` variable then this
+		## notice will be generated.
 		Watched_Country_Login,
 	};
 	
 	redef record Info += {
-		## Add geographic data related to the "remote" host of the connection.
+		## Add geographic data related to the "remote" host of the
+		## connection.
 		remote_location: geo_location &log &optional;
 	};
 	

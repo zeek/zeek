@@ -182,17 +182,26 @@ export {
 	global policy: hook(n: Notice::Info);
 
 	## Local system sendmail program.
+	##
+	## Note that this is overridden by the BroControl SendMail option.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
 	## Email address to send notices with the
 	## :bro:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
 	## on rotation with :bro:enum:`Notice::ACTION_ALARM`.
+	##
+	## Note that this is overridden by the BroControl MailTo option.
 	const mail_dest           = ""                   &redef;
 
 	## Address that emails will be from.
+	##
+	## Note that this is overridden by the BroControl MailFrom option.
 	const mail_from           = "Big Brother <bro@localhost>" &redef;
 	## Reply-to address used in outbound email.
 	const reply_to            = "" &redef;
 	## Text string prefixed to the subject of all emails sent out.
+	##
+	## Note that this is overridden by the BroControl MailSubjectPrefix
+	## option.
 	const mail_subject_prefix = "[Bro]" &redef;
 	## The maximum amount of time a plugin can delay email from being sent.
 	const max_email_delay     = 15secs &redef;

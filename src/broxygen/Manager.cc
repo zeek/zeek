@@ -84,9 +84,11 @@ static string PrettifyParams(const string& s)
 	}
 
 Manager::Manager(const string& config)
-    : comment_buffer(), packages(), scripts(), identifiers(), all_docs(),
-      last_doc_seen(), incomplete_type()
+    : disabled(), comment_buffer(), packages(), scripts(), identifiers(),
+      all_docs(), last_doc_seen(), incomplete_type()
 	{
+	if ( getenv("BRO_DISABLE_BROXYGEN") )
+		disabled = true;
 	// TODO config file stuff
 	}
 
@@ -99,16 +101,22 @@ Manager::~Manager()
 
 void Manager::InitPreScript()
 	{
+	if ( disabled )
+		return;
 	// TODO: create file/proto analyzer doc
 	}
 
 void Manager::InitPostScript()
 	{
+	if ( disabled )
+		return;
 	// TODO: dependency resolution stuff?
 	}
 
 void Manager::GenerateDocs() const
 	{
+	if ( disabled )
+		return;
 	// TODO
 
 	// may be a no-op if no config file
@@ -116,6 +124,9 @@ void Manager::GenerateDocs() const
 
 void Manager::File(const string& path)
 	{
+	if ( disabled )
+		return;
+
 	string name = without_bropath_component(path);
 
 	if ( scripts.find(name) != scripts.end() )
@@ -144,6 +155,9 @@ void Manager::File(const string& path)
 
 void Manager::ScriptDependency(const string& path, const string& dep)
 	{
+	if ( disabled )
+		return;
+
 	if ( dep.empty() )
 		{
 		DbgAndWarn(fmt("Empty script doc dependency: %s", path.c_str()));
@@ -173,6 +187,9 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 
 void Manager::ModuleUsage(const string& path, const string& module)
 	{
+	if ( disabled )
+		return;
+
 	string name = without_bropath_component(path);
 	ScriptMap::const_iterator it = scripts.find(name);
 
@@ -189,6 +206,9 @@ void Manager::ModuleUsage(const string& path, const string& module)
 
 void Manager::StartType(ID* id)
 	{
+	if ( disabled )
+		return;
+
 	if ( id->GetLocationInfo() == &no_location )
 		{
 		DbgAndWarn(fmt("Can't document %s, no location available", id->Name()));
@@ -218,6 +238,9 @@ void Manager::StartType(ID* id)
 
 void Manager::Identifier(ID* id)
 	{
+	if ( disabled )
+		return;
+
 	if ( incomplete_type && incomplete_type->Name() == id->Name() )
 		{
 		DBG_LOG(DBG_BROXYGEN, "Finished document for type %s", id->Name());
@@ -273,6 +296,9 @@ void Manager::Identifier(ID* id)
 void Manager::RecordField(const ID* id, const TypeDecl* field,
                           const string& path)
 	{
+	if ( disabled )
+		return;
+
 	IdentifierDocument* idd = 0;
 
 	if ( incomplete_type )
@@ -311,6 +337,9 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 
 void Manager::Redef(const ID* id, const string& path)
 	{
+	if ( disabled )
+		return;
+
 	if ( path == "<params>" )
 		// This is a redef defined on the command line.
 		return;
@@ -342,6 +371,9 @@ void Manager::Redef(const ID* id, const string& path)
 
 void Manager::SummaryComment(const string& script, const string& comment)
 	{
+	if ( disabled )
+		return;
+
 	string name = without_bropath_component(script);
 	ScriptMap::const_iterator it = scripts.find(name);
 
@@ -357,11 +389,17 @@ void Manager::SummaryComment(const string& script, const string& comment)
 
 void Manager::PreComment(const string& comment)
 	{
+	if ( disabled )
+		return;
+
 	comment_buffer.push_back(PrettifyParams(RemoveLeadingSpace(comment)));
 	}
 
 void Manager::PostComment(const string& comment)
 	{
+	if ( disabled )
+		return;
+
 	IdentifierDocument* doc = dynamic_cast<IdentifierDocument*>(last_doc_seen);
 
 	if ( ! doc )

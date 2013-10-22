@@ -81,11 +81,8 @@ public:
 private:
 
 	struct Redefinition {
-		~Redefinition()
-			{ Unref(new_val); }
-
 		std::string from_script;
-		Val* new_val;
+		string new_val_desc;
 		std::vector<std::string> comments;
 	};
 
@@ -106,7 +103,7 @@ private:
 
 	std::vector<std::string> comments;
 	ID* id;
-	Val* initial_val;
+	string initial_val_desc;
 	RedefList redefs;
 	std::vector<RecordField*> fields;
 	RecordField* last_field_seen;

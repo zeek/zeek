@@ -13,7 +13,6 @@
 namespace broxygen {
 
 // TODO: documentation...
-// TODO: optimize parse time... maybe an env. option to disable doc collection?
 
 class Manager {
 
@@ -60,6 +59,7 @@ private:
 
 	void RegisterDoc(Document* d);
 
+	bool disabled;
 	CommentBuffer comment_buffer;
 	PackageMap packages;
 	ScriptMap scripts;

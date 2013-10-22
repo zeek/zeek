@@ -963,7 +963,7 @@ type_decl:
 			set_location(@1, @4);
 			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
 
-			if ( in_record > 0 )
+			if ( in_record > 0 && cur_decl_type_id )
 				broxygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
 			}
 	;

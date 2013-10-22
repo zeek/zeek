@@ -227,6 +227,7 @@ void usage()
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
+	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Broxygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
 
 	fprintf(stderr, "\n");
 	fprintf(stderr, "    Supported log formats: ");

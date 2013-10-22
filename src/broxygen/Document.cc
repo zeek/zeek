@@ -15,19 +15,22 @@ PackageDocument::PackageDocument(const string& arg_name)
 
 IdentifierDocument::IdentifierDocument(ID* arg_id)
     : Document(),
-      comments(), id(arg_id), initial_val(), redefs(), fields(),
+      comments(), id(arg_id), initial_val_desc(), redefs(), fields(),
       last_field_seen()
 	{
 	Ref(id);
 
 	if ( id->ID_Val() )
-		initial_val = id->ID_Val()->Clone();
+		{
+		ODesc d;
+		id->ID_Val()->Describe(&d);
+		initial_val_desc = d.Description();
+		}
 	}
 
 IdentifierDocument::~IdentifierDocument()
 	{
 	Unref(id);
-	//Unref(initial_val); // TODO: problematic w/ PatternVals
 
 	for ( RedefList::const_iterator it = redefs.begin(); it != redefs.end();
 	      ++it )
@@ -42,7 +45,14 @@ void IdentifierDocument::AddRedef(const string& script,
 	{
 	Redefinition* redef = new Redefinition();
 	redef->from_script = script;
-	redef->new_val = id->ID_Val() ? id->ID_Val()->Clone() : 0;
+
+	if ( id->ID_Val() )
+		{
+		ODesc d;
+		id->ID_Val()->Describe(&d);
+		redef->new_val_desc = d.Description();
+		}
+
 	redef->comments = comments;
 	redefs.push_back(redef);
 	}

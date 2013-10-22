@@ -123,7 +123,7 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 ## an unencrypted handshake, and Bro extracts as much information out of that
 ## as it can. This event is raised when an SSL/TLS server passes a session
 ## ticket to the client that can later be used for resuming the session. The
-## mechanism is described in :rfc:`4507`
+## mechanism is described in :rfc:`4507`.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
 ## more information about the SSL/TLS protocol.

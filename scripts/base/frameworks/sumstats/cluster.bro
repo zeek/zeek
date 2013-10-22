@@ -28,8 +28,8 @@ export {
 	## values for a sumstat.
 	global cluster_ss_request: event(uid: string, ss_name: string, cleanup: bool);
 
-	## Event sent by nodes that are collecting sumstats after receiving a
-	## request for the sumstat from the manager.
+	# Event sent by nodes that are collecting sumstats after receiving a
+	# request for the sumstat from the manager.
 	#global cluster_ss_response: event(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool);
 
 	## This event is sent by the manager in a cluster to initiate the

@@ -32,9 +32,11 @@ export {
 		## mind that you will probably need to set the *method* field
 		## to "POST" or "PUT".
 		client_data:     string                  &optional;
-		## Arbitrary headers to pass to the server.  Some headers
-		## will be included by libCurl.
+
+		# Arbitrary headers to pass to the server.  Some headers
+		# will be included by libCurl.
 		#custom_headers: table[string] of string &optional;
+
 		## Timeout for the request.
 		max_time:        interval                &default=default_max_time;
 		## Additional curl command line arguments.  Be very careful

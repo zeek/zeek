@@ -1,7 +1,7 @@
 ##! This is the notice framework which enables Bro to "notice" things which
 ##! are odd or potentially bad.  Decisions of the meaning of various notices
 ##! need to be done per site because Bro does not ship with assumptions about
-##! what is bad activity for sites.  More extensive documetation about using
+##! what is bad activity for sites.  More extensive documentation about using
 ##! the notice framework can be found in :doc:`/frameworks/notice`.
 
 module Notice;
@@ -14,13 +14,13 @@ export {
 		ALARM_LOG,
 	};
 
-	## Scripts creating new notices need to redef this enum to add their own
-	## specific notice types which would then get used when they call the
-	## :bro:id:`NOTICE` function.  The convention is to give a general category
-	## along with the specific notice separating words with underscores and
-	## using leading capitals on each word except for abbreviations which are
-	## kept in all capitals.  For example, SSH::Login is for heuristically
-	## guessed successful SSH logins.
+	## Scripts creating new notices need to redef this enum to add their
+	## own specific notice types which would then get used when they call
+	## the :bro:id:`NOTICE` function.  The convention is to give a general
+	## category along with the specific notice separating words with
+	## underscores and using leading capitals on each word except for
+	## abbreviations which are kept in all capitals.  For example,
+	## SSH::Login is for heuristically guessed successful SSH logins.
 	type Type: enum {
 		## Notice reporting a count of how often a notice occurred.
 		Tally,
@@ -30,67 +30,72 @@ export {
 	type Action: enum {
 		## Indicates that there is no action to be taken.
 		ACTION_NONE,
-		## Indicates that the notice should be sent to the notice logging stream.
+		## Indicates that the notice should be sent to the notice
+		## logging stream.
 		ACTION_LOG,
-		## Indicates that the notice should be sent to the email address(es)
-		## configured in the :bro:id:`Notice::mail_dest` variable.
+		## Indicates that the notice should be sent to the email
+		## address(es) configured in the :bro:id:`Notice::mail_dest`
+		## variable.
 		ACTION_EMAIL,
-		## Indicates that the notice should be alarmed.  A readable ASCII
-		## version of the alarm log is emailed in bulk to the address(es)
-		## configured in :bro:id:`Notice::mail_dest`.
+		## Indicates that the notice should be alarmed.  A readable
+		## ASCII version of the alarm log is emailed in bulk to the
+		## address(es) configured in :bro:id:`Notice::mail_dest`.
 		ACTION_ALARM,
 	};
 
 	type ActionSet: set[Notice::Action];
 
-	## The notice framework is able to do automatic notice supression by
-	## utilizing the $identifier field in :bro:type:`Notice::Info` records.
-	## Set this to "0secs" to completely disable automated notice suppression.
+	## The notice framework is able to do automatic notice suppression by
+	## utilizing the *identifier* field in :bro:type:`Notice::Info` records.
+	## Set this to "0secs" to completely disable automated notice
+	## suppression.
 	const default_suppression_interval = 1hrs &redef;
 
 	type Info: record {
-		## An absolute time indicating when the notice occurred, defaults
-		## to the current network time.
+		## An absolute time indicating when the notice occurred,
+		## defaults to the current network time.
 		ts:             time           &log &optional;
 
 		## A connection UID which uniquely identifies the endpoints
 		## concerned with the notice.
 		uid:            string         &log &optional;
 
-		## A connection 4-tuple identifying the endpoints concerned with the
-		## notice.
+		## A connection 4-tuple identifying the endpoints concerned
+		## with the notice.
 		id:             conn_id        &log &optional;
 
 		## A shorthand way of giving the uid and id to a notice.  The
-		## reference to the actual connection will be deleted after applying
-		## the notice policy.
+		## reference to the actual connection will be deleted after
+		## applying the notice policy.
 		conn:           connection     &optional;
 		## A shorthand way of giving the uid and id to a notice.  The
-		## reference to the actual connection will be deleted after applying
-		## the notice policy.
+		## reference to the actual connection will be deleted after
+		## applying the notice policy.
 		iconn:          icmp_conn      &optional;
 
-		## A file record if the notice is relted to a file.  The
-		## reference to the actual fa_file record will be deleted after applying
-		## the notice policy.
+		## A file record if the notice is related to a file.  The
+		## reference to the actual fa_file record will be deleted after
+		## applying the notice policy.
 		f:              fa_file         &optional;
 
-		## A file unique ID if this notice is related to a file.  If the $f
-		## field is provided, this will be automatically filled out.
+		## A file unique ID if this notice is related to a file.  If
+		## the *f* field is provided, this will be automatically filled
+		## out.
 		fuid:           string          &log &optional;
 
-		## A mime type if the notice is related to a file.  If the $f field
-		## is provided, this will be automatically filled out.
+		## A mime type if the notice is related to a file.  If the *f*
+		## field is provided, this will be automatically filled out.
 		file_mime_type: string          &log &optional;
 
-		## Frequently files can be "described" to give a bit more context.
-		## This field will typically be automatically filled out from an
-		## fa_file record.  For example, if a notice was related to a
-		## file over HTTP, the URL of the request would be shown.
+		## Frequently files can be "described" to give a bit more
+		## context.  This field will typically be automatically filled
+		## out from an fa_file record.  For example, if a notice was
+		## related to a file over HTTP, the URL of the request would
+		## be shown.
 		file_desc:      string          &log &optional;
 
-		## The transport protocol. Filled automatically when either conn, iconn
-		## or p is specified.
+		## The transport protocol. Filled automatically when either
+		## *conn*, *iconn* or *p* is specified.
 		proto:          transport_proto &log &optional;
 
 		## The :bro:type:`Notice::Type` of the notice.
@@ -117,38 +122,42 @@ export {
 		## The actions which have been applied to this notice.
 		actions:        ActionSet      &log &default=ActionSet();
 
-		## By adding chunks of text into this element, other scripts can
-		## expand on notices that are being emailed.  The normal way to add text
-		## is to extend the vector by handling the :bro:id:`Notice::notice`
-		## event and modifying the notice in place.
+		## By adding chunks of text into this element, other scripts
+		## can expand on notices that are being emailed.  The normal
+		## way to add text is to extend the vector by handling the
+		## :bro:id:`Notice::notice` event and modifying the notice in
+		## place.
 		email_body_sections:  vector of string &optional;
 
-		## Adding a string "token" to this set will cause the notice framework's
-		## built-in emailing functionality to delay sending the email until
-		## either the token has been removed or the email has been delayed
-		## for :bro:id:`Notice::max_email_delay`.
+		## Adding a string "token" to this set will cause the notice
+		## framework's built-in emailing functionality to delay sending
+		## the email until either the token has been removed or the
+		## email has been delayed for :bro:id:`Notice::max_email_delay`.
 		email_delay_tokens:   set[string] &optional;
 
-		## This field is to be provided when a notice is generated for the
-		## purpose of deduplicating notices.  The identifier string should
-		## be unique for a single instance of the notice.  This field should be
-		## filled out in almost all cases when generating notices to define
-		## when a notice is conceptually a duplicate of a previous notice.
+		## This field is to be provided when a notice is generated for
+		## the purpose of deduplicating notices.  The identifier string
+		## should be unique for a single instance of the notice.  This
+		## field should be filled out in almost all cases when
+		## generating notices to define when a notice is conceptually
+		## a duplicate of a previous notice.
 		##
-		## For example, an SSL certificate that is going to expire soon should
-		## always have the same identifier no matter the client IP address
-		## that connected and resulted in the certificate being exposed.  In
-		## this case, the resp_h, resp_p, and hash of the certificate would be
-		## used to create this value.  The hash of the cert is included
-		## because servers can return multiple certificates on the same port.
+		## For example, an SSL certificate that is going to expire soon
+		## should always have the same identifier no matter the client
+		## IP address that connected and resulted in the certificate
+		## being exposed.  In this case, the resp_h, resp_p, and hash
+		## of the certificate would be used to create this value.  The
+		## hash of the cert is included because servers can return
+		## multiple certificates on the same port.
 		##
-		## Another example might be a host downloading a file which triggered
-		## a notice because the MD5 sum of the file it downloaded was known
-		## by some set of intelligence.  In that case, the orig_h (client)
-		## and MD5 sum would be used in this field to dedup because if the
-		## same file is downloaded over and over again you really only want to
-		## know about it a single time.  This makes it possible to send those
-		## notices to email without worrying so much about sending thousands
+		## Another example might be a host downloading a file which
+		## triggered a notice because the MD5 sum of the file it
+		## downloaded was known by some set of intelligence.  In that
+		## case, the orig_h (client) and MD5 sum would be used in this
+		## field to dedup because if the same file is downloaded over
+		## and over again you really only want to know about it a
+		## single time.  This makes it possible to send those notices
+		## to email without worrying so much about sending thousands
 		## of emails.
 		identifier:          string         &optional;
 
@@ -174,9 +183,9 @@ export {
 
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
-	## Email address to send notices with the :bro:enum:`Notice::ACTION_EMAIL`
-	## action or to send bulk alarm logs on rotation with
-	## :bro:enum:`Notice::ACTION_ALARM`.
+	## Email address to send notices with the
+	## :bro:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
+	## on rotation with :bro:enum:`Notice::ACTION_ALARM`.
 	const mail_dest           = ""                   &redef;
 
 	## Address that emails will be from.
@@ -198,9 +207,9 @@ export {
 	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
 	## This is the event that is called as the entry point to the
-	## notice framework by the global :bro:id:`NOTICE` function.  By the time
-	## this event is generated, default values have already been filled out in
-	## the :bro:type:`Notice::Info` record and the notice
+	## notice framework by the global :bro:id:`NOTICE` function.  By the
+	## time this event is generated, default values have already been
+	## filled out in the :bro:type:`Notice::Info` record and the notice
 	## policy has also been applied.
 	##
 	## n: The record containing notice data.
@@ -217,7 +226,8 @@ export {
 	## n: The record containing the notice in question.
 	global is_being_suppressed: function(n: Notice::Info): bool;
 
-	## This event is generated on each occurence of an event being suppressed.
+	## This event is generated on each occurrence of an event being
+	## suppressed.
 	##
 	## n: The record containing notice data regarding the notice type
 	##    being suppressed.
@@ -237,18 +247,19 @@ export {
 	##
 	## dest: The intended recipient of the notice email.
 	##
-	## extend: Whether to extend the email using the ``email_body_sections``
-	##         field of *n*.
+	## extend: Whether to extend the email using the
+	##         ``email_body_sections`` field of *n*.
 	global email_notice_to: function(n: Info, dest: string, extend: bool);
 
 	## Constructs mail headers to which an email body can be appended for
 	## sending with sendmail.
 	##
-	## subject_desc: a subject string to use for the mail
+	## subject_desc: a subject string to use for the mail.
 	##
-	## dest: recipient string to use for the mail
+	## dest: recipient string to use for the mail.
 	##
-	## Returns: a string of mail headers to which an email body can be appended
+	## Returns: a string of mail headers to which an email body can be
+	##          appended.
 	global email_headers: function(subject_desc: string, dest: string): string;
 
 	## This event can be handled to access the :bro:type:`Notice::Info`
@@ -257,8 +268,8 @@ export {
 	## rec: The record containing notice data before it is logged.
 	global log_notice: event(rec: Info);
 
-	## This is an internal wrapper for the global :bro:id:`NOTICE` function;
-	## disregard.
+	## This is an internal wrapper for the global :bro:id:`NOTICE`
+	## function; disregard.
 	##
 	## n: The record of notice data.
 	global internal_NOTICE: function(n: Notice::Info);

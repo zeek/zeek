@@ -19,7 +19,7 @@ export {
 	## then highlight such lines differently.
 	global flag_nets: set[subnet] &redef;
 	
-	## Function that renders a single alarm. Can be overidden.
+	## Function that renders a single alarm. Can be overridden.
 	global pretty_print_alarm: function(out: file, n: Info) &redef;
 	
 	## Force generating mail file, even if reading from traces or no mail

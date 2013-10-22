@@ -1,5 +1,5 @@
-#! AppStats collects information about web applications in use
-#! on the network.  
+##! AppStats collects information about web applications in use
+##! on the network.  
 
 @load base/protocols/http
 @load base/protocols/ssl

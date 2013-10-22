@@ -1,4 +1,6 @@
 
+.. _framework-input:
+
 ===============
 Input Framework
 ===============
@@ -260,8 +262,13 @@ to optimize the speed of the input framework. It can generate arbitrary
 amounts of semi-random data in all Bro data types supported by the input
 framework.
 
-In the future, the input framework will get support for new data sources
-like, for example, different databases.
+Currently, Bro supports the following readers in addition to the 
+aforementioned ones:
+
+.. toctree::
+   :maxdepth: 1
+
+   logging-input-sqlite
 
 Add_table options
 -----------------

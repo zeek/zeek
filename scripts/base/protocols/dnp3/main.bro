@@ -10,7 +10,7 @@ export {
 	type Info: record {
 		## Time of the request.
 		ts:         time           &log;
-		## Unique identifier for the connnection.
+		## Unique identifier for the connection.
 		uid:        string         &log;
 		## Identifier for the connection.
 		id:         conn_id        &log;

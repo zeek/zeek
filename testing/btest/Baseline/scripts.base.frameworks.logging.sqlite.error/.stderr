@@ -1,3 +1,3 @@
-ssh/Log::WRITER_SQLITE: dbname configuration option not found. Defaulting to path ssh
+ssh/Log::WRITER_SQLITE: tablename configuration option not found. Defaulting to path ssh
 error: ssh/Log::WRITER_SQLITE: SQLite call failed: table ssh has no column named f
 error: ssh/Log::WRITER_SQLITE: terminating thread

@@ -16,9 +16,9 @@
 module Log;
 
 export {
-	## Securely transfers the rotated-log to all the remote hosts
+	## Securely transfers the rotated log to all the remote hosts
 	## defined in :bro:id:`Log::sftp_destinations` and then deletes
-	## the local copy of the rotated-log.  It's not active when
+	## the local copy of the rotated log.  It's not active when
 	## reading from trace files.
 	##
 	## info: A record holding meta-information about the log file to be
@@ -42,9 +42,9 @@ export {
 	};
 
 	## A table indexed by a particular log writer and filter path, that yields
-	## a set remote destinations.  The :bro:id:`Log::sftp_postprocessor`
+	## a set of remote destinations.  The :bro:id:`Log::sftp_postprocessor`
 	## function queries this table upon log rotation and performs a secure
-	## transfer of the rotated-log to each destination in the set.  This
+	## transfer of the rotated log to each destination in the set.  This
 	## table can be modified at run-time.
 	global sftp_destinations: table[Writer, string] of set[SFTPDestination];
 

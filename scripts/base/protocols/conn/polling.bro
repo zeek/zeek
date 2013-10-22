@@ -11,10 +11,11 @@ export {
 	## c: The connection to watch.
 	##
 	## callback: A callback function that takes as arguments the monitored
-	##           *connection*, and counter *cnt* that increments each time the
-	##           callback is called.  It returns an interval indicating how long
-	##           in the future to schedule an event which will call the
-	##           callback.  A negative return interval causes polling to stop.
+	##           *connection*, and counter *cnt* that increments each time
+	##           the callback is called.  It returns an interval indicating
+	##           how long in the future to schedule an event which will call
+	##           the callback.  A negative return interval causes polling
+	##           to stop.
 	##
 	## cnt: The initial value of a counter which gets passed to *callback*.
 	##

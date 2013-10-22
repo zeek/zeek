@@ -1,0 +1,2 @@
+The communication framework facilitates connecting to remote Bro or
+Broccoli instances to share state and transfer events.

@@ -1,0 +1,17 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r http/get.trace file_analysis_01.bro
+      file_state_remove
+      FakNcS1Jfe01uljb3
+      CXWv6p3arKYeMETxOg
+      [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+      HTTP
+      connection_state_remove
+      CXWv6p3arKYeMETxOg
+      [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+      HTTP
+

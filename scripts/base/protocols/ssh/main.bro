@@ -25,8 +25,8 @@ export {
 		uid:             string       &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:              conn_id      &log;
-		## Indicates if the login was heuristically guessed to be "success",
-		## "failure", or "undetermined".
+		## Indicates if the login was heuristically guessed to be
+		## "success", "failure", or "undetermined".
 		status:          string       &log &default="undetermined";
 		## Direction of the connection.  If the client was a local host
 		## logging into an external host, this would be OUTBOUND. INBOUND
@@ -39,8 +39,8 @@ export {
 		server:          string       &log &optional;
 		## Amount of data returned from the server. This is currently
 		## the only measure of the success heuristic and it is logged to
-		## assist analysts looking at the logs to make their own determination
-		## about the success on a case-by-case basis.
+		## assist analysts looking at the logs to make their own
+		## determination about the success on a case-by-case basis.
 		resp_size:       count        &log &default=0;
 
 		## Indicate if the SSH session is done being watched.

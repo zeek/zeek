@@ -57,7 +57,8 @@ export {
 	## Returns the current net_stats.
 	global net_stats_response: event(s: string);
 
-	## Inform the remote Bro instance that it's configuration may have been updated.
+	## Inform the remote Bro instance that it's configuration may have been
+	## updated.
 	global configuration_update_request: event();
 	## This event is a wrapper and alias for the
 	## :bro:id:`Control::configuration_update_request` event.

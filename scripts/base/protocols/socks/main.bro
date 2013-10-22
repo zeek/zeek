@@ -9,17 +9,19 @@ export {
 	type Info: record {
 		## Time when the proxy connection was first detected.
 		ts:          time            &log;
-		## Unique ID for the tunnel - may correspond to connection uid or be non-existent.
+		## Unique ID for the tunnel - may correspond to connection uid
+		## or be non-existent.
 		uid:         string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:          conn_id         &log;
 		## Protocol version of SOCKS.
 		version:     count           &log;
-		## Username for the proxy if extracted from the network..
+		## Username for the proxy if extracted from the network.
 		user:        string          &log &optional;
 		## Server status for the attempt at using the proxy.
 		status:      string          &log &optional;
-		## Client requested SOCKS address. Could be an address, a name or both.
+		## Client requested SOCKS address. Could be an address, a name
+		## or both.
 		request:     SOCKS::Address  &log &optional;
 		## Client requested port.
 		request_p:   port            &log &optional;

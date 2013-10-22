@@ -1,0 +1,10 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r http/get.trace file_analysis_02.bro
+      new file, FakNcS1Jfe01uljb3
+      file_hash, FakNcS1Jfe01uljb3, md5, 397168fd09991a0e712254df7bc639ac
+

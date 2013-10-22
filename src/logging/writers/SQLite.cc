@@ -124,16 +124,16 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 
 	string fullpath(info.path);
 	fullpath.append(".sqlite");
-	string dbname;
+	string tablename;
 
-	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
+	map<const char*, const char*>::const_iterator it = info.config.find("tablename");
 	if ( it == info.config.end() )
 		{
-		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to path %s", info.path));
-		dbname = info.path;
+		MsgThread::Info(Fmt("tablename configuration option not found. Defaulting to path %s", info.path));
+		tablename = info.path;
 		}
 	else
-		dbname = it->second;
+		tablename = it->second;
 
 	if ( checkError(sqlite3_open_v2(
 					fullpath.c_str(),
@@ -145,7 +145,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 					NULL)) )
 		return false;
 
-	string create = "CREATE TABLE IF NOT EXISTS " + dbname + " (\n";
+	string create = "CREATE TABLE IF NOT EXISTS " + tablename + " (\n";
 		//"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
 	for ( unsigned int i = 0; i < num_fields; ++i )
@@ -193,7 +193,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 
 	// create the prepared statement that will be re-used forever...
 	string insert = "VALUES (";
-	string names = "INSERT INTO " + dbname + " ( ";
+	string names = "INSERT INTO " + tablename + " ( ";
 
 	for ( unsigned int i = 0; i < num_fields; i++ )
 		{

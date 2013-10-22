@@ -933,7 +933,7 @@ static bool can_read(const string& path)
 
 FILE* open_package(string& path, const string& mode)
 	{
-	string arg_path(path);
+	string arg_path = path;
 	path.append("/").append(PACKAGE_LOADER);
 
 	if ( can_read(path) )
@@ -954,7 +954,7 @@ string safe_dirname(const char* path)
 string safe_dirname(const string& path)
 	{
 	char* tmp = copy_string(path.c_str());
-	string rval(dirname(tmp));
+	string rval = dirname(tmp);
 	delete [] tmp;
 	return rval;
 	}
@@ -969,36 +969,29 @@ string safe_basename(const char* path)
 string safe_basename(const string& path)
 	{
 	char* tmp = copy_string(path.c_str());
-	string rval(basename(tmp));
+	string rval = basename(tmp);
 	delete [] tmp;
 	return rval;
 	}
 
-string flatten_script_name(const string& dir, const string& file,
-                           const string& prefix)
+string flatten_script_name(const string& name, const string& prefix)
 	{
-	string dottedform(prefix);
+	string rval = prefix;
 
-	if ( prefix != "" )
-		dottedform.append(".");
+	if ( ! rval.empty() )
+		rval.append(".");
 
-	dottedform.append(dir);
-	string bname(safe_basename(file));
+	if ( safe_basename(name) == PACKAGE_LOADER )
+		rval.append(safe_dirname(name));
+	else
+		rval.append(name);
 
-	if ( bname != string(PACKAGE_LOADER) )
-		{
-		if ( dir != "" )
-			dottedform.append(".");
+	size_t i;
 
-		dottedform.append(bname);
-		}
+	while ( (i = rval.find('/')) != string::npos )
+		rval[i] = '.';
 
-	size_t n;
-
-	while ( (n = dottedform.find("/")) != string::npos )
-		dottedform.replace(n, 1, ".");
-
-	return dottedform;
+	return rval;
 	}
 
 static vector<string>* tokenize_string(string input, const string& delim,
@@ -1058,35 +1051,31 @@ string normalize_path(const string& path)
 	return new_path;
 	}
 
-string find_dir_in_bropath(const string& path)
+string without_bropath_component(const string& path)
 	{
-	size_t p;
-	string rval(path);
+	string rval = normalize_path(path);
 
-	// get the parent directory of file (if not already a directory)
-	if ( ! is_dir(path.c_str()) )
-		rval = safe_dirname(path);
+	vector<string> paths;
+	tokenize_string(bro_path(), ":", &paths);
 
-	// first check if this is some subpath of the installed scripts root path,
-	// if not check if it's a subpath of the script source root path,
-	// then check if it's a subpath of the build directory (where BIF scripts
-	// will get generated).
-	// If none of those, will just use the given directory.
-	if ( (p = rval.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
-		rval.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
-	else if ( (p = rval.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
-		rval.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
-	else if ( (p = rval.find(BRO_BUILD_SOURCE_PATH)) != std::string::npos )
-		rval.erase(0, strlen(BRO_BUILD_SOURCE_PATH));
-	else if ( (p = rval.find(BRO_BUILD_SCRIPTS_PATH)) != std::string::npos )
-		rval.erase(0, strlen(BRO_BUILD_SCRIPTS_PATH));
+	for ( size_t i = 0; i < paths.size(); ++i )
+		{
+		string common = normalize_path(paths[i]);
 
-	// if root path found, remove path separators until next path component
-	if ( p != std::string::npos )
+		if ( rval.find(common) != 0 )
+			continue;
+
+		// Found the containing directory.
+		rval.erase(0, common.size());
+
+		// Remove leading path separators.
 		while ( rval.size() && rval[0] == '/' )
 			rval.erase(0, 1);
 
-	return normalize_path(rval);
+		return rval;
+		}
+
+	return rval;
 	}
 
 static string find_file_in_path(const string& filename, const string& path,
@@ -1104,11 +1093,11 @@ static string find_file_in_path(const string& filename, const string& path,
 			return string();
 		}
 
-	string abs_path(path + '/' + filename);
+	string abs_path = path + '/' + filename;
 
 	if ( ! opt_ext.empty() )
 		{
-		string with_ext(abs_path + '.' + opt_ext);
+		string with_ext = abs_path + '.' + opt_ext;
 
 		if ( can_read(with_ext) )
 			return with_ext;

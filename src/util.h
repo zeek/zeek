@@ -202,6 +202,8 @@ static const SourceID SOURCE_LOCAL = 0;
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
+extern const char* PACKAGE_LOADER;
+
 extern const char* bro_path();
 extern const char* bro_magic_path();
 extern std::string bro_prefixes();
@@ -216,14 +218,12 @@ std::string safe_basename(const std::string& path);
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
- * @param dir A directory containing \a file.
  * @param file A path to a Bro script.  If it is a __load__.bro, that part
  *             is discarded when constructing the flattened the name.
  * @param prefix A string to prepend to the flattened script name.
  * @return The flattened script name.
  */
-std::string flatten_script_name(const std::string& dir,
-                                const std::string& file,
+std::string flatten_script_name(const std::string& name,
                                 const std::string& prefix = "");
 
 /**
@@ -235,12 +235,11 @@ std::string flatten_script_name(const std::string& dir,
 std::string normalize_path(const std::string& path);
 
 /**
- * Locate a file/direcotry within BROPATH.
- * @param path A file/directory to locate within BROPATH.
- * @return The directory within BROPATH that \a path located or an absolute
- *         path to \a path if it couldn't be located in BROPATH
+ * Strip the BROPATH component from a path.
+ * @param path A file/directory path that may be within a BROPATH component.
+ * @return *path* minus the common BROPATH component (if any) removed.
  */
-std::string find_dir_in_bropath(const std::string& path);
+std::string without_bropath_component(const std::string& path);
 
 /**
  * Locate a file within a given search path.

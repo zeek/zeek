@@ -271,7 +271,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval(safe_dirname(::filename));
+	string rval = safe_dirname(::filename);
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -300,13 +300,15 @@ when	return TOK_WHEN;
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
-	broxygen_mgr->ScriptDependency(::filename, new_file);
+	string loader = ::filename;  // load_files may change ::filename, save copy
+	string loading = find_relative_file(new_file, "bro");
 	(void) load_files(new_file);
+	broxygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
-	string path(find_relative_file(file, "sig"));
+	string path = find_relative_file(file, "sig");
 
 	if ( path.empty() )
 		reporter->Error("failed to find file associated with @load-sigs %s",
@@ -318,7 +320,7 @@ when	return TOK_WHEN;
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
-	string path(find_relative_file(file, "bro"));
+	string path = find_relative_file(file, "bro");
 
 	if ( path.empty() )
 		reporter->Error("failed find file associated with @unload %s", file);
@@ -751,9 +753,9 @@ int yywrap()
 			if ( ! prefixes[i][0] )
 				continue;
 
-			string sub(find_dir_in_bropath(it->name));
-			string flat(flatten_script_name(sub, it->name, prefixes[i]));
-			string path(find_relative_file(flat, "bro"));
+			string canon = without_bropath_component(it->name);
+			string flat = flatten_script_name(canon, prefixes[i]);
+			string path = find_relative_file(flat, "bro");
 
 			if ( ! path.empty() )
 				{
@@ -763,9 +765,9 @@ int yywrap()
 
 			//printf("====== prefix search ======\n");
 			//printf("File  : %s\n", it->name.c_str());
-			//printf("Path  : %s\n", sub.c_str());
-			//printf("Dotted: %s\n", flat.c_str());
-			//printf("Found : %s\n", f ? "T" : "F");
+			//printf("Canon : %s\n", canon.c_str());
+			//printf("Flat  : %s\n", flat.c_str());
+			//printf("Found : %s\n", path.empty() ? "F" : "T");
 			//printf("===========================\n");
 			}
 		}

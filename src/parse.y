@@ -1039,7 +1039,9 @@ decl:
 				extend_record($3, $8, $11);
 			}
 
-	|	TOK_TYPE global_id ':' { cur_decl_type_id = $2; } type opt_attr ';'
+	|	TOK_TYPE global_id ':'
+			{ cur_decl_type_id = $2; broxygen_mgr->StartType($2);  }
+		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
 			add_type($2, $5, $6);

@@ -1,18 +1,31 @@
 #ifndef BROXYGEN_MANAGER_H
 #define BROXYGEN_MANAGER_H
 
-#include <string>
-
+#include "Document.h"
 #include "ID.h"
 #include "Type.h"
 
+#include <string>
+#include <map>
+#include <set>
+#include <vector>
+
 namespace broxygen {
+
+// TODO: documentation...
+// TODO: optimize parse time... maybe an env. option to disable doc collection?
 
 class Manager {
 
 public:
 
 	Manager(const std::string& config);
+
+	~Manager();
+
+	void InitPreScript();
+
+	void InitPostScript();
 
 	void GenerateDocs() const;
 
@@ -22,7 +35,9 @@ public:
 
 	void ModuleUsage(const std::string& path, const std::string& module);
 
-	void Identifier(const ID* id);
+	void StartType(ID* id);
+
+	void Identifier(ID* id);
 
 	void RecordField(const ID* id, const TypeDecl* field,
 	                 const std::string& path);
@@ -34,6 +49,24 @@ public:
 	void PreComment(const std::string& comment);
 
 	void PostComment(const std::string& comment);
+
+private:
+
+	typedef std::vector<std::string> CommentBuffer;
+	typedef std::map<std::string, PackageDocument*> PackageMap;
+	typedef std::map<std::string, ScriptDocument*> ScriptMap;
+	typedef std::map<std::string, IdentifierDocument*> IdentifierMap;
+	typedef std::set<Document*> DocSet;
+
+	void RegisterDoc(Document* d);
+
+	CommentBuffer comment_buffer;
+	PackageMap packages;
+	ScriptMap scripts;
+	IdentifierMap identifiers;
+	DocSet all_docs;
+	Document* last_doc_seen;
+	IdentifierDocument* incomplete_type;
 };
 
 } // namespace broxygen

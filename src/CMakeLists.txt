@@ -371,6 +371,7 @@ set(bro_SRCS
     plugin/Macros.h
 
     broxygen/Manager.cc
+    broxygen/Document.cc
 
     nb_dns.c
     digest.h

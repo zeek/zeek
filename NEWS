@@ -259,6 +259,24 @@ Changed Functionality
 
     fatal error in /usr/local/bro/share/bro/policy/frameworks/software/vulnerable.bro, line 41: BroType::AsRecordType (table/record) (set[record { min:record { major:count; minor:count; minor2:count; minor3:count; addl:string; }; max:record { major:count; minor:count; minor2:count; minor3:count; addl:string; }; }])
 
+- The type of ``Software::vulnerable_versions`` changed to allow
+  more flexibility and range specifications.  An example usage:
+
+  .. code:: bro
+
+        const java_1_6_vuln = Software::VulnerableVersionRange(
+            $max = Software::Version($major = 1, $minor = 6, $minor2 = 0, $minor3 = 44)
+        );
+
+        const java_1_7_vuln = Software::VulnerableVersionRange(
+            $min = Software::Version($major = 1, $minor = 7),
+            $max = Software::Version($major = 1, $minor = 7, $minor2 = 0, $minor3 = 20)
+        );
+
+        redef Software::vulnerable_versions += {
+            ["Java"] = set(java_1_6_vuln, java_1_7_vuln)
+        };
+
 - The interface to extracting content from application-layer protocols
   (including HTTP, SMTP, FTP) has changed significantly due to the
   introduction of the new file analysis framework (see above).

@@ -29,9 +29,10 @@ export {
 	#global confirm_filter_installation: event(success: bool);
 
 	redef record Cluster::Node += {
-		## A BPF filter for load balancing traffic sniffed on a single interface
-		## across a number of processes.  In normal uses, this will be assigned
-		## dynamically by the manager and installed by the workers.
+		## A BPF filter for load balancing traffic sniffed on a single
+		## interface across a number of processes.  In normal uses, this
+		## will be assigned dynamically by the manager and installed by
+		## the workers.
 		lb_filter: string &optional;
 	};
 }

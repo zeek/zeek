@@ -11,12 +11,12 @@ module SSH;
 export {
 	redef enum Notice::Type += {
 		## Indicates that a host has been identified as crossing the
-		## :bro:id:`SSH::password_guesses_limit` threshold with heuristically
-		## determined failed logins.
+		## :bro:id:`SSH::password_guesses_limit` threshold with
+		## heuristically determined failed logins.
 		Password_Guessing,
-		## Indicates that a host previously identified as a "password guesser"
-		## has now had a heuristically successful login attempt.  This is not
-		## currently implemented.
+		## Indicates that a host previously identified as a "password
+		## guesser" has now had a heuristically successful login
+		## attempt.  This is not currently implemented.
 		Login_By_Password_Guesser,
 	};
 
@@ -29,8 +29,8 @@ export {
 	## guessing passwords.
 	const password_guesses_limit: double = 30 &redef;
 
-	## The amount of time to remember presumed non-successful logins to build
-	## model of a password guesser.
+	## The amount of time to remember presumed non-successful logins to
+	## build a model of a password guesser.
 	const guessing_timeout = 30 mins &redef;
 
 	## This value can be used to exclude hosts or entire networks from being

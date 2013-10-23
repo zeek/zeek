@@ -17,7 +17,7 @@ export {
 
 ## Manager can communicate notice suppression to workers.
 redef Cluster::manager2worker_events += /Notice::begin_suppression/;
-## Workers needs need ability to forward notices to manager.
+## Workers need ability to forward notices to manager.
 redef Cluster::worker2manager_events += /Notice::cluster_notice/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )

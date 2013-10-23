@@ -8,8 +8,9 @@ module SSL;
 
 export {
 	redef enum Notice::Type += {
-		## This notice indicates that the result of validating the certificate
-		## along with it's full certificate chain was invalid.
+		## This notice indicates that the result of validating the
+		## certificate along with its full certificate chain was
+		## invalid.
 		Invalid_Server_Cert
 	};
 	
@@ -18,9 +19,9 @@ export {
 		validation_status: string &log &optional;
 	};
 	
-	## MD5 hash values for recently validated certs along with the validation
-	## status message are kept in this table to avoid constant validation 
-	## everytime the same certificate is seen.
+	## MD5 hash values for recently validated certs along with the
+	## validation status message are kept in this table to avoid constant
+	## validation every time the same certificate is seen.
 	global recently_validated_certs: table[string] of string = table() 
 		&read_expire=5mins &synchronized &redef;
 }

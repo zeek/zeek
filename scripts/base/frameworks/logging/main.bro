@@ -76,9 +76,16 @@ export {
 	};
 
 	## Default rotation interval. Zero disables rotation.
+	##
+	## Note that this is overridden by the BroControl LogRotationInterval
+	## option.
 	const default_rotation_interval = 0secs &redef;
 
-	## Default alarm summary mail interval. Zero disables alarm summary mails.
+	## Default alarm summary mail interval. Zero disables alarm summary
+	## mails.
+	##
+	## Note that this is overridden by the BroControl MailAlarmsInterval
+	## option.
 	const default_mail_alarms_interval = 0secs &redef;
 
 	## Default naming format for timestamps embedded into filenames.

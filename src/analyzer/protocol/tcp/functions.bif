@@ -93,13 +93,12 @@ function get_gap_summary%(%): gap_info
 ##
 ##            - ``CONTENTS_NONE``: Stop recording the connection's content.
 ##            - ``CONTENTS_ORIG``: Record the data sent by the connection
-##                                 originator (often the client).
+##              originator (often the client).
 ##            - ``CONTENTS_RESP``: Record the data sent by the connection
-##                                 responder (often the server).
+##              responder (often the server).
 ##            - ``CONTENTS_BOTH``: Record the data sent in both directions.
-##                                 Results in the two directions being
-##                                 intermixed in the file, in the order the
-##                                 data was seen by Bro.
+##              Results in the two directions being intermixed in the file,
+##              in the order the data was seen by Bro.
 ##
 ## f: The file handle of the file to write the contents to.
 ##

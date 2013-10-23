@@ -1,4 +1,8 @@
 
+2.2-beta-129 | 2013-10-23 09:47:29 -0700
+
+  * Another batch of documentation fixes and updates. (Daniel Thayer)
+    
 2.2-beta-114 | 2013-10-18 14:17:57 -0700
 
   * Moving the SQLite examples into separate Bro files to turn them

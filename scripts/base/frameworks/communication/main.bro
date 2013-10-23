@@ -15,13 +15,16 @@ export {
 	## are wildcards.
 	const listen_interface = 0.0.0.0 &redef;
 
-	## Which port to listen on.
+	## Which port to listen on.  Note that BroControl sets this
+	## automatically.
 	const listen_port = 47757/tcp &redef;
 
 	## This defines if a listening socket should use SSL.
 	const listen_ssl = F &redef;
 
 	## Defines if a listening socket can bind to IPv6 addresses.
+	##
+	## Note that this is overridden by the BroControl IPv6Comm option.
 	const listen_ipv6 = F &redef;
 
 	## If :bro:id:`Communication::listen_interface` is a non-global
@@ -128,7 +131,8 @@ export {
 	};
 
 	## The table of Bro or Broccoli nodes that Bro will initiate connections
-	## to or respond to connections from.
+	## to or respond to connections from.  Note that BroControl sets this
+	## automatically.
 	global nodes: table[string] of Node &redef;
 
 	## A table of peer nodes for which this node issued a

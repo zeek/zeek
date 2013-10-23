@@ -11,7 +11,7 @@ export {
 		generator_id:       count;  ##< Which generator generated the alert?
 		signature_revision: count;  ##< Sig revision for this id.
 		classification_id:  count;  ##< Event classification.
-		classification:     string; ##< Descriptive classification string,
+		classification:     string; ##< Descriptive classification string.
 		priority_id:        count;  ##< Event priority.
 		event_id:           count;  ##< Event ID.
 	} &log;

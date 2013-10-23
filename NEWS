@@ -21,17 +21,20 @@ New Functionality
   efficiently, now):
 
       - HTTP:
+
         * Identify MIME type of messages.
         * Extract messages to disk.
         * Compute MD5 for messages.
 
       - SMTP:
+
         * Identify MIME type of messages.
         * Extract messages to disk.
         * Compute MD5 for messages.
         * Provide access to start of entity data.
 
       - FTP data transfers:
+
         * Identify MIME types of data.
         * Record to disk.
 

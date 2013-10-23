@@ -1,4 +1,13 @@
 
+2.2-beta-133 | 2013-10-23 09:50:16 -0700
+
+  * Fix record coercion tolerance of optional fields. (Jon Siwek)
+    
+  * Add NEWS about incompatible local.bro changes, addresses BIT-1047.
+    (Jon Siwek)
+
+  * Fix minor formatting problem in NEWS. (Jon Siwek)
+    
 2.2-beta-129 | 2013-10-23 09:47:29 -0700
 
   * Another batch of documentation fixes and updates. (Daniel Thayer)

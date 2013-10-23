@@ -2720,16 +2720,22 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 			break;
 			}
 
+		Val* v = Lookup(i);
+
+		if ( ! v )
+			// Check for allowable optional fields is outside the loop, below.
+			continue;
+
 		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
-				&& ! same_type(ar_t->FieldType(t_i), Lookup(i)->Type()) )
+				&& ! same_type(ar_t->FieldType(t_i), v->Type()) )
 			{
-			Expr* rhs = new ConstExpr(Lookup(i)->Ref());
+			Expr* rhs = new ConstExpr(v->Ref());
 			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
 			ar->Assign(t_i, e->Eval(0));
 			continue;
 			}
 
-		ar->Assign(t_i, Lookup(i)->Ref());
+		ar->Assign(t_i, v->Ref());
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )

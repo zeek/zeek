@@ -246,6 +246,19 @@ most submodules.
 Changed Functionality
 ---------------------
 
+- Previous versions of ``$prefix/share/bro/site/local.bro`` (where
+  "$prefix" indicates the installation prefix of Bro), aren't compatible
+  with Bro 2.2.  This file won't be overwritten when installing over a
+  previous Bro installation to prevent clobbering users' modifications,
+  but an example of the new version is located in
+  ``$prefix/share/bro/site/local.bro.example``.  So if no modification
+  has been done to the previous local.bro, just copy the new example
+  version over it, else merge in the differences.  For reference,
+  a common error message when attempting to use an outdated local.bro
+  looks like::
+
+    fatal error in /usr/local/bro/share/bro/policy/frameworks/software/vulnerable.bro, line 41: BroType::AsRecordType (table/record) (set[record { min:record { major:count; minor:count; minor2:count; minor3:count; addl:string; }; max:record { major:count; minor:count; minor2:count; minor3:count; addl:string; }; }])
+
 - The interface to extracting content from application-layer protocols
   (including HTTP, SMTP, FTP) has changed significantly due to the
   introduction of the new file analysis framework (see above).

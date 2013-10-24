@@ -1,4 +1,9 @@
 
+2.2-beta-150 | 2013-10-24 16:32:14 -0700
+
+  * Change temporary ASCII reader workaround for getline() on
+    Mavericks to permanent fix. (Bernhard Amann)
+
 2.2-beta-148 | 2013-10-24 14:34:35 -0700
 
   * Add gawk to list of optional packages. (Daniel Thayer)

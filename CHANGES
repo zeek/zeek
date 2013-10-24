@@ -1,8 +1,15 @@
 
-2.2-beta-143 | 2013-10-24 14:01:21 -0700
+2.2-beta-148 | 2013-10-24 14:34:35 -0700
 
-  * Intel framework notes added to NEWS (Seth Hall)
+  * Add gawk to list of optional packages. (Daniel Thayer)
 
+  * Add more script package README files. (Daniel Thayer)
+
+  * Add NEWS about new features of BroControl and upgrade info.
+    (Daniel Thayer)
+
+  * Intel framework notes added to NEWS. (Seth Hall)
+    
   * Temporary OSX Mavericks libc++ issue workaround for getline()
     problem in ASCII reader. (Bernhard Amann)
 

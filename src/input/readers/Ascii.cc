@@ -19,9 +19,11 @@
 
 #ifdef __clang__
 # ifdef __APPLE__
-#  include <Availability.h>
-#  ifdef __MAC_10_9
-#   define MAVERICKS_WORKAROUND
+#  include <AvailabilityMacros.h>
+#  ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+#   if __MAC_OS_X_VERSION_MAX_ALLOWED == 1090
+#    define MAVERICKS_WORKAROUND
+#   endif
 #  endif
 # endif
 #endif

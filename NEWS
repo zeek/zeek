@@ -10,6 +10,28 @@ Bro 2.2 Beta
 New Functionality
 -----------------
 
+- A completely overhauled intelligence framework for consuming
+  external intelligence data. It provides an abstracted mechanism
+  for feeding data into the framework to be matched against the
+  data available. It also provides a function named ``Intel::match``
+  which makes any hits on intelligence data available to the
+  scripting language. 
+
+  Using input framework, the intel framework can load data from
+  text files. It can also update and add data if changes are
+  made to the file being monitored. Files to monitor for 
+  intelligence can be provided by redef-ing the 
+  ``Intel::read_files`` variable.
+
+  The intel framework is cluster-ready. On a cluster, the 
+  manager is the only node that needs to load in data from disk,
+  the cluster support will distribute the data across a cluster
+  automatically.
+
+  Scripts are provided at ``policy/frameworks/intel/seen`` that 
+  provide a broad set of sources of data to feed into the intel
+  framwork to be matched. 
+
 - A new file analysis framework moves most of the processing of file
   content from script-land into the core, where it belongs. See
   ``doc/file-analysis.rst``, or the online documentation, for more
@@ -40,7 +62,7 @@ New Functionality
 
       - IRC DCC transfers: Record to disk.
 
-      - Support for analyzing data transfered via HTTP range requests.
+      - Support for analyzing data transferred via HTTP range requests.
 
       - A binary input reader interfaces the input framework with the
         file analysis, allowing to inject files on disk into Bro's

@@ -13,6 +13,19 @@
 #include <unistd.h>
 #include <errno.h>
 
+// libc++ on Mavericks does not allow further getlines on a filehandle
+// after the first eof was encountered, even after a clear. Enable
+// workaround.
+
+#ifdef __clang__
+#ifdef __APPLE__
+#  include <Availability.h>
+#  ifdef __MAC_10_9
+#   define MAVERICKS_WORKAROUND
+#  endif
+# endif
+#endif
+
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
@@ -279,6 +292,11 @@ bool Ascii::DoUpdate()
 		}
 
 	string line;
+
+#ifdef MAVERICKS_WORKAROUND
+	file->seekg(file->tellg());
+#endif
+
 	while ( GetLine(line ) )
 		{
 		// split on tabs

@@ -294,6 +294,7 @@ function install(): bool
 	# Do an audit log for the packet filter.
 	local info: Info;
 	info$ts = network_time();
+	info$node = peer_description;
 	# If network_time() is 0.0 we're at init time so use the wall clock.
 	if ( info$ts == 0.0 )
 		{

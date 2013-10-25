@@ -214,7 +214,7 @@ take a look at a simple script, stored as
 ``connection_record_01.bro``, that will output the connection record
 for a single connection.
 
-.. btest-include:: ${DOC_ROOT}/scripting/connection_record_02.bro
+.. btest-include:: ${DOC_ROOT}/scripting/connection_record_01.bro
 
 Again, we start with ``@load``, this time importing the
 :doc:`/scripts/base/protocols/conn/index` scripts which supply the tracking

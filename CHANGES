@@ -1,4 +1,15 @@
 
+2.2-beta-157 | 2013-10-25 11:11:17 -0700
+
+  * Extend the documentation of the SQLite reader/writer framework.
+    (Bernhard Amann)
+
+  * Fix inclusion of wrong example file in scripting tutorial.
+    Reported by Michael Auger @LM4K. (Bernhard Amann)
+
+  * Alternative fix for the thrading deadlock issue to avoid potential
+    performance impact. (Bernhard Amann)
+
 2.2-beta-152 | 2013-10-24 18:16:49 -0700
 
   * Fix for input readers occasionally dead-locking. (Robin Sommer)

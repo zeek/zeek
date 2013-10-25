@@ -1,4 +1,8 @@
 
+2.2-beta-158 | 2013-10-25 15:05:08 -0700
+
+  * Updating README with download/git information. (Robin Sommer)
+
 2.2-beta-157 | 2013-10-25 11:11:17 -0700
 
   * Extend the documentation of the SQLite reader/writer framework.

@@ -1,4 +1,12 @@
 
+2.2-beta-161 | 2013-10-25 15:48:15 -0700
+
+  * Add curl to list of optional dependencies. It's used by the
+    active-http.bro script. (Daniel Thayer)
+
+  * Update test and baseline for a recent doc test fix. (Daniel
+    Thayer)
+
 2.2-beta-158 | 2013-10-25 15:05:08 -0700
 
   * Updating README with download/git information. (Robin Sommer)

@@ -61,11 +61,13 @@ public:
 	bool Ready();
 
 	/**
-	 * Returns true if the next Get() operation might succeed.
-	 * This function may occasionally return a value not
-	 * indicating the actual state, but won't do so very often.
+	 * Returns true if the next Get() operation might succeed. This
+	 * function may occasionally return a value not indicating the actual
+	 * state, but won't do so very often. Occasionally we also return a
+	 * true unconditionally to avoid a deadlock when both pointers happen
+	 * to be equal even though there's stuff queued.
 	 */
-	bool MaybeReady() { return ( ( read_ptr - write_ptr) != 0 ); }
+	bool MaybeReady() { return (read_ptr != write_ptr) || (random() % 10000 == 0); }
 
 	/** Wake up the reader if it's currently blocked for input. This is
 	 primarily to give it a chance to check termination quickly.

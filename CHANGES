@@ -1,4 +1,8 @@
 
+2.2-beta-152 | 2013-10-24 18:16:49 -0700
+
+  * Fix for input readers occasionally dead-locking. (Robin Sommer)
+    
 2.2-beta-151 | 2013-10-24 16:52:26 -0700
 
   * Updating submodule(s).

@@ -98,6 +98,7 @@ build time:
     * LibGeoIP (for geo-locating IP addresses)
     * sendmail (enables Bro and BroControl to send mail)
     * gawk (enables all features of bro-cut)
+    * curl (used by one of the Bro scripts)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
     * Ruby executable, library, and headers (for Broccoli Ruby bindings)

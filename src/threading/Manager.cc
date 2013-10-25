@@ -82,7 +82,11 @@ double Manager::NextTimestamp(double* network_time)
 		{
 		MsgThread* t = *i;
 
-		if ( (*i)->MightHaveOut() && ! t->Killed() )
+		if ( ( (*i)->MightHaveOut() && ! t->Killed() ) // there might be something in the queue
+		     // Workaround: when running without network source, and without any communication,
+		     // timer_manager is always 1. Hence the previous if will never trigger heartbeats
+		     // In this case, we still have to check process our threads from time to time.
+		     || ( timer_mgr->Time() == 1.0 && random() % 10000 == 0 ) ) 
 			return timer_mgr->Time();
 		}
 

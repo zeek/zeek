@@ -63,11 +63,12 @@ public:
 	/**
 	 * Returns true if the next Get() operation might succeed. This
 	 * function may occasionally return a value not indicating the actual
-	 * state, but won't do so very often. Occasionally we also return a
-	 * true unconditionally to avoid a deadlock when both pointers happen
-	 * to be equal even though there's stuff queued.
+	 * state, but won't do so very often. Note that this means that it can
+	 * consistently return false even if there is something in the Queue.
+	 * You have to check real queue status from time to time to be sure that
+	 * it is empty.
 	 */
-	bool MaybeReady() { return (read_ptr != write_ptr) || (random() % 10000 == 0); }
+	bool MaybeReady() { return (read_ptr != write_ptr); }
 
 	/** Wake up the reader if it's currently blocked for input. This is
 	 primarily to give it a chance to check termination quickly.

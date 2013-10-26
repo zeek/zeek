@@ -28,8 +28,7 @@ event Dir::monitor_ev(dir: string, last_files: set[string],
                       callback: function(fname: string),
                       poll_interval: interval)
 	{
-	# the command lists all file in the directory in the form [inode]-[ctime] [filename]
-	when ( local result = Exec::run([$cmd=fmt("find \"%s\" -depth 1 -exec stat -f \"%%i-%%c %%N\" {} \\;", str_shell_escape(dir))]) )
+	when ( local result = Exec::run([$cmd=fmt("ls -i -1 \"%s/\"", str_shell_escape(dir))]) )
 		{
 		if ( result$exit_code != 0 )
 			{

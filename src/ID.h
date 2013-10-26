@@ -32,6 +32,7 @@ public:
 
 	void SetType(BroType* t)	{ Unref(type); type = t; }
 	BroType* Type()			{ return type; }
+	const BroType* Type() const	{ return type; }
 
 	void MakeType()			{ is_type = 1; }
 	BroType* AsType()		{ return is_type ? Type() : 0; }

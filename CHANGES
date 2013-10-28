@@ -1,4 +1,13 @@
 
+2.2-beta-167 | 2013-10-29 06:02:38 -0700
+
+  * Change percent_lost in capture-loss from a string to a double.
+    (Vlad Grigorescu)
+
+  * New version of the threading queue deadlock fix. (Robin Sommer)
+    
+  * Updating README with download/git information. (Robin Sommer)
+
 2.2-beta-161 | 2013-10-25 15:48:15 -0700
 
   * Add curl to list of optional dependencies. It's used by the

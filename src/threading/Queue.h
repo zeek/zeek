@@ -69,7 +69,7 @@ public:
 	 * it is empty. In other words, this method helps to avoid locking the queue
 	 * frequently, but doesn't allow you to forgo it completely.
 	 */
-	bool MaybeReady() { return (read_ptr != write_ptr); }
+	bool MaybeReady() { return (num_reads != num_writes); }
 
 	/** Wake up the reader if it's currently blocked for input. This is
 	 primarily to give it a chance to check termination quickly.

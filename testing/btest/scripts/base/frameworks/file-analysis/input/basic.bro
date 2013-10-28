@@ -23,7 +23,6 @@ event bro_init()
 	local source: string = "../input.log";
 	Input::add_analysis([$source=source, $reader=Input::READER_BINARY,
 	                     $mode=Input::MANUAL, $name=source]);
-	Input::remove(source);
 	}
 
 event file_state_remove(f: fa_file) &priority=-10

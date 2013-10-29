@@ -1,5 +1,9 @@
 
-2.2-beta-173 | 2013-10-29 09:25:31 -0700
+2.2-beta-175 | 2013-10-29 09:30:09 -0700
+
+  * Return the Dir module to file name tracking instead of inode
+    tracking to avoid missing files that reuse a formerly seen inode.
+    (Seth Hall)
 
   * Deprecate Broccoli Ruby bindings and no longer build them by
     default; use --enable-ruby to do so. (Jon Siwek)

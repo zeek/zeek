@@ -1,4 +1,9 @@
 
+2.2-beta-173 | 2013-10-29 09:25:31 -0700
+
+  * Deprecate Broccoli Ruby bindings and no longer build them by
+    default; use --enable-ruby to do so. (Jon Siwek)
+
 2.2-beta-167 | 2013-10-29 06:02:38 -0700
 
   * Change percent_lost in capture-loss from a string to a double.

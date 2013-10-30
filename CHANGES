@@ -1,4 +1,98 @@
 
+2.2-beta-177 | 2013-10-30 04:54:54 -0700
+
+  * Fix thread processing/termination conditions. (Jon Siwek)
+
+2.2-beta-175 | 2013-10-29 09:30:09 -0700
+
+  * Return the Dir module to file name tracking instead of inode
+    tracking to avoid missing files that reuse a formerly seen inode.
+    (Seth Hall)
+
+  * Deprecate Broccoli Ruby bindings and no longer build them by
+    default; use --enable-ruby to do so. (Jon Siwek)
+
+2.2-beta-167 | 2013-10-29 06:02:38 -0700
+
+  * Change percent_lost in capture-loss from a string to a double.
+    (Vlad Grigorescu)
+
+  * New version of the threading queue deadlock fix. (Robin Sommer)
+    
+  * Updating README with download/git information. (Robin Sommer)
+
+2.2-beta-161 | 2013-10-25 15:48:15 -0700
+
+  * Add curl to list of optional dependencies. It's used by the
+    active-http.bro script. (Daniel Thayer)
+
+  * Update test and baseline for a recent doc test fix. (Daniel
+    Thayer)
+
+2.2-beta-158 | 2013-10-25 15:05:08 -0700
+
+  * Updating README with download/git information. (Robin Sommer)
+
+2.2-beta-157 | 2013-10-25 11:11:17 -0700
+
+  * Extend the documentation of the SQLite reader/writer framework.
+    (Bernhard Amann)
+
+  * Fix inclusion of wrong example file in scripting tutorial.
+    Reported by Michael Auger @LM4K. (Bernhard Amann)
+
+  * Alternative fix for the thrading deadlock issue to avoid potential
+    performance impact. (Bernhard Amann)
+
+2.2-beta-152 | 2013-10-24 18:16:49 -0700
+
+  * Fix for input readers occasionally dead-locking. (Robin Sommer)
+    
+2.2-beta-151 | 2013-10-24 16:52:26 -0700
+
+  * Updating submodule(s).
+
+2.2-beta-150 | 2013-10-24 16:32:14 -0700
+
+  * Change temporary ASCII reader workaround for getline() on
+    Mavericks to permanent fix. (Bernhard Amann)
+
+2.2-beta-148 | 2013-10-24 14:34:35 -0700
+
+  * Add gawk to list of optional packages. (Daniel Thayer)
+
+  * Add more script package README files. (Daniel Thayer)
+
+  * Add NEWS about new features of BroControl and upgrade info.
+    (Daniel Thayer)
+
+  * Intel framework notes added to NEWS. (Seth Hall)
+    
+  * Temporary OSX Mavericks libc++ issue workaround for getline()
+    problem in ASCII reader. (Bernhard Amann)
+
+  * Change test of identify_data BIF to ignore charset as it may vary
+    with libmagic version. (Jon Siwek)
+
+  * Ensure that the starting BPF filter is logged on clusters. (Seth
+    Hall)
+
+  * Add UDP support to the checksum offload detection script. (Seth
+    Hall)
+
+2.2-beta-133 | 2013-10-23 09:50:16 -0700
+
+  * Fix record coercion tolerance of optional fields. (Jon Siwek)
+    
+  * Add NEWS about incompatible local.bro changes, addresses BIT-1047.
+    (Jon Siwek)
+
+  * Fix minor formatting problem in NEWS. (Jon Siwek)
+    
+2.2-beta-129 | 2013-10-23 09:47:29 -0700
+
+  * Another batch of documentation fixes and updates. (Daniel Thayer)
+    
 2.2-beta-114 | 2013-10-18 14:17:57 -0700
 
   * Moving the SQLite examples into separate Bro files to turn them

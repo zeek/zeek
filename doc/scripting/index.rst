@@ -214,7 +214,7 @@ take a look at a simple script, stored as
 ``connection_record_01.bro``, that will output the connection record
 for a single connection.
 
-.. btest-include:: ${DOC_ROOT}/scripting/connection_record_02.bro
+.. btest-include:: ${DOC_ROOT}/scripting/connection_record_01.bro
 
 Again, we start with ``@load``, this time importing the
 :doc:`/scripts/base/protocols/conn/index` scripts which supply the tracking
@@ -1222,7 +1222,7 @@ from the connection relative to the behavior that has been observed by
 Bro.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
-   :lines: 59-62
+   :lines: 60-63
 
 In the :doc:`/scripts/policy/protocols/ssl/expiring-certs` script
 which identifies when SSL certificates are set to expire and raises

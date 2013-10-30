@@ -120,6 +120,7 @@ export {
 	## The cluster layout definition.  This should be placed into a filter
 	## named cluster-layout.bro somewhere in the BROPATH.  It will be 
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
+	## Note that BroControl handles all of this automatically.
 	const nodes: table[string] of Node = {} &redef;
 	
 	## This is usually supplied on the command line for each instance

@@ -10,6 +10,28 @@ Bro 2.2 Beta
 New Functionality
 -----------------
 
+- A completely overhauled intelligence framework for consuming
+  external intelligence data. It provides an abstracted mechanism
+  for feeding data into the framework to be matched against the
+  data available. It also provides a function named ``Intel::match``
+  which makes any hits on intelligence data available to the
+  scripting language.
+
+  Using input framework, the intel framework can load data from
+  text files. It can also update and add data if changes are
+  made to the file being monitored. Files to monitor for
+  intelligence can be provided by redef-ing the
+  ``Intel::read_files`` variable.
+
+  The intel framework is cluster-ready. On a cluster, the
+  manager is the only node that needs to load in data from disk,
+  the cluster support will distribute the data across a cluster
+  automatically.
+
+  Scripts are provided at ``policy/frameworks/intel/seen`` that
+  provide a broad set of sources of data to feed into the intel
+  framwork to be matched.
+
 - A new file analysis framework moves most of the processing of file
   content from script-land into the core, where it belongs. See
   ``doc/file-analysis.rst``, or the online documentation, for more
@@ -21,23 +43,26 @@ New Functionality
   efficiently, now):
 
       - HTTP:
+
         * Identify MIME type of messages.
         * Extract messages to disk.
         * Compute MD5 for messages.
 
       - SMTP:
+
         * Identify MIME type of messages.
         * Extract messages to disk.
         * Compute MD5 for messages.
         * Provide access to start of entity data.
 
       - FTP data transfers:
+
         * Identify MIME types of data.
         * Record to disk.
 
       - IRC DCC transfers: Record to disk.
 
-      - Support for analyzing data transfered via HTTP range requests.
+      - Support for analyzing data transferred via HTTP range requests.
 
       - A binary input reader interfaces the input framework with the
         file analysis, allowing to inject files on disk into Bro's
@@ -50,7 +75,7 @@ New Functionality
   information from many independent monitoring points (including
   clusters). It provides a transparent, easy-to-use user interface,
   and can optionally deploy a set of probabilistic data structures for
-  memory-efficient operation. The framework is located in 
+  memory-efficient operation. The framework is located in
   ``scripts/base/frameworks/sumstats``.
 
   A number of new applications now ship with Bro that are built on top
@@ -61,7 +86,7 @@ New Functionality
       Bro versions <2.0; it's now back, but quite different).
 
     * Tracerouter detector: ``policy/misc/detect-traceroute.bro``
-      
+
     * Web application detection/measurement:
       ``policy/misc/app-stats/*``
 
@@ -233,6 +258,35 @@ New Functionality
   To use CPU pinning, a new per-node option ``pin_cpus`` can be
   specified in node.cfg if the OS is either Linux or FreeBSD.
 
+- BroControl now returns useful exit codes.  Most BroControl commands
+  return 0 if everything was OK, and 1 otherwise.  However, there are
+  a few exceptions.  The "status" and "top" commands return 0 if all Bro
+  nodes are running, and 1 if not all nodes are running.  The "cron"
+  command always returns 0 (but it still sends email if there were any
+  problems).  Any command provided by a plugin always returns 0.
+
+- BroControl now has an option "env_vars" to set Bro environment variables.
+  The value of this option is a comma-separated list of environment variable
+  assignments (e.g., "VAR1=value, VAR2=another").  The "env_vars" option
+  can apply to all Bro nodes (by setting it in broctl.cfg), or can be
+  node-specific (by setting it in node.cfg).  Environment variables in
+  node.cfg have priority over any specified in broctl.cfg.
+
+- BroControl now supports load balancing with PF_RING while sniffing
+  multiple interfaces.  Rather than assigning the same PF_RING cluster ID
+  to all workers on a host, cluster ID assignment is now based on which
+  interface a worker is sniffing (i.e., all workers on a host that sniff
+  the same interface will share a cluster ID).  This is handled by
+  BroControl automatically.
+
+- BroControl has several new options:  MailConnectionSummary (for
+  disabling the sending of connection summary report emails),
+  MailAlarmsInterval (for specifying a different interval to send alarm
+  summary emails), CompressCmd (if archived log files will be compressed,
+  this specifies the command that will be used to compress them),
+  CompressExtension (if archived log files will be compressed, this
+  specifies the file extension to use).
+
 - BroControl comes with its own test-suite now. ``make test`` in
   ``aux/broctl`` will run it.
 
@@ -242,6 +296,37 @@ most submodules.
 
 Changed Functionality
 ---------------------
+
+- Previous versions of ``$prefix/share/bro/site/local.bro`` (where
+  "$prefix" indicates the installation prefix of Bro), aren't compatible
+  with Bro 2.2.  This file won't be overwritten when installing over a
+  previous Bro installation to prevent clobbering users' modifications,
+  but an example of the new version is located in
+  ``$prefix/share/bro/site/local.bro.example``.  So if no modification
+  has been done to the previous local.bro, just copy the new example
+  version over it, else merge in the differences.  For reference,
+  a common error message when attempting to use an outdated local.bro
+  looks like::
+
+    fatal error in /usr/local/bro/share/bro/policy/frameworks/software/vulnerable.bro, line 41: BroType::AsRecordType (table/record) (set[record { min:record { major:count; minor:count; minor2:count; minor3:count; addl:string; }; max:record { major:count; minor:count; minor2:count; minor3:count; addl:string; }; }])
+
+- The type of ``Software::vulnerable_versions`` changed to allow
+  more flexibility and range specifications.  An example usage:
+
+  .. code:: bro
+
+        const java_1_6_vuln = Software::VulnerableVersionRange(
+            $max = Software::Version($major = 1, $minor = 6, $minor2 = 0, $minor3 = 44)
+        );
+
+        const java_1_7_vuln = Software::VulnerableVersionRange(
+            $min = Software::Version($major = 1, $minor = 7),
+            $max = Software::Version($major = 1, $minor = 7, $minor2 = 0, $minor3 = 20)
+        );
+
+        redef Software::vulnerable_versions += {
+            ["Java"] = set(java_1_6_vuln, java_1_7_vuln)
+        };
 
 - The interface to extracting content from application-layer protocols
   (including HTTP, SMTP, FTP) has changed significantly due to the
@@ -328,6 +413,19 @@ Changed Functionality
 - We removed the BitTorrent DPD signatures pending further updates to
   that analyzer.
 
+- In previous versions of BroControl, running "broctl cron" would create
+  a file ``$prefix/logs/stats/www`` (where "$prefix" indicates the
+  installation prefix of Bro).  Now, it is created as a directory.
+  Therefore, if you perform an upgrade install and you're using BroControl,
+  then you may see an email (generated by "broctl cron") containing an
+  error message:  "error running update-stats".  To fix this problem,
+  either remove that file (it is not needed) or rename it.
+
+- Due to lack of maintenance the Ruby bindings for Broccoli are now
+  deprecated, and the build process no longer includes them by
+  default. For the time being, they can still be enabled by
+  configuring with ``--enable-ruby``, however we plan to remove
+  Broccoli's Ruby support with the next Bro release.
 
 Bro 2.1
 =======

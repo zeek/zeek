@@ -8,10 +8,12 @@ module HTTP;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates that a host performing SQL injection attacks was detected.
+		## Indicates that a host performing SQL injection attacks was
+		## detected.
 		SQL_Injection_Attacker,
-		## Indicates that a host was seen to have SQL injection attacks against
-		## it.  This is tracked by IP address as opposed to hostname.
+		## Indicates that a host was seen to have SQL injection attacks
+		## against it.  This is tracked by IP address as opposed to
+		## hostname.
 		SQL_Injection_Victim,
 	};
 
@@ -19,9 +21,11 @@ export {
 		## Indicator of a URI based SQL injection attack.
 		URI_SQLI,
 		## Indicator of client body based SQL injection attack.  This is
-		## typically the body content of a POST request. Not implemented yet.
+		## typically the body content of a POST request. Not implemented
+		## yet.
 		POST_SQLI,
-		## Indicator of a cookie based SQL injection attack. Not implemented yet.
+		## Indicator of a cookie based SQL injection attack. Not
+		## implemented yet.
 		COOKIE_SQLI,
 	};
 

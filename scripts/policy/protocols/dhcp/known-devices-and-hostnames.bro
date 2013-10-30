@@ -7,7 +7,7 @@ module Known;
 
 export {
 	redef record DevicesInfo += {
-		## The value of the DHCP host name option, if seen
+		## The value of the DHCP host name option, if seen.
 		dhcp_host_name:	string		&log &optional;
 	};
 }

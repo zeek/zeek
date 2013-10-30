@@ -4,4 +4,5 @@
 -./frameworks/cluster/setup-connections.bro
 -./frameworks/intel/cluster.bro
 -./frameworks/notice/cluster.bro
+-./frameworks/packet-filter/cluster.bro
 -./frameworks/sumstats/cluster.bro

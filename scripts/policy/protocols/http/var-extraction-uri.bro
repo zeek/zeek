@@ -1,4 +1,4 @@
-##! Extracts and log variables from the requested URI in the default HTTP 
+##! Extracts and logs variables from the requested URI in the default HTTP 
 ##! logging stream.
 
 @load base/protocols/http

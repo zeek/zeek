@@ -26,8 +26,8 @@ export {
 	type Info: record {
 		## The time when the weird occurred.
 		ts:     time    &log;
-		## If a connection is associated with this weird, this will be the 
-		## connection's unique ID.
+		## If a connection is associated with this weird, this will be
+		## the connection's unique ID.
 		uid:    string  &log &optional;
 		## conn_id for the optional connection.
 		id:     conn_id &log &optional;
@@ -37,16 +37,16 @@ export {
 		addl:   string  &log &optional;
 		## Indicate if this weird was also turned into a notice.
 		notice: bool    &log &default=F;
-		## The peer that originated this weird.  This is helpful in cluster
-		## deployments if a particular cluster node is having trouble to help
-		## identify which node is having trouble.
+		## The peer that originated this weird.  This is helpful in
+		## cluster deployments if a particular cluster node is having
+		## trouble to help identify which node is having trouble.
 		peer:   string  &log &optional;
 	};
 
 	## Types of actions that may be taken when handling weird activity events.
 	type Action: enum {
-		## A dummy action indicating the user does not care what internal
-		## decision is made regarding a given type of weird.
+		## A dummy action indicating the user does not care what
+		## internal decision is made regarding a given type of weird.
 		ACTION_UNSPECIFIED,
 		## No action is to be taken.
 		ACTION_IGNORE,
@@ -252,16 +252,16 @@ export {
 	## a unique weird every ``create_expire`` interval.
 	global weird_ignore: set[string, string] &create_expire=10min &redef;
 
-	## A state set which tracks unique weirds solely by the name to reduce
-	## duplicate logging.  This is not synchronized deliberately because it
-	## could cause overload during storms
+	## A state set which tracks unique weirds solely by name to reduce
+	## duplicate logging.  This is deliberately not synchronized because it
+	## could cause overload during storms.
 	global did_log: set[string, string] &create_expire=1day &redef;
 
-	## A state set which tracks unique weirds solely by the name to reduce
+	## A state set which tracks unique weirds solely by name to reduce
 	## duplicate notices from being raised.
 	global did_notice: set[string, string] &create_expire=1day &redef;
 
-	## Handlers of this event are invoked one per write to the weird
+	## Handlers of this event are invoked once per write to the weird
 	## logging stream before the data is actually written.
 	##
 	## rec: The weird columns about to be logged to the weird stream.

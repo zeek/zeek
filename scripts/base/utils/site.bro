@@ -17,7 +17,8 @@ export {
 		[::1]/128,
 	} &redef;
 
-	## Networks that are considered "local".
+	## Networks that are considered "local".  Note that BroControl sets
+	## this automatically.
 	const local_nets: set[subnet] &redef;
 
 	## This is used for retrieving the subnet when using multiple entries in

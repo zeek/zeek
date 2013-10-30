@@ -1,0 +1,4 @@
+The notice framework enables Bro to "notice" things which are odd or
+potentially bad, leaving it to the local configuration to define which
+of them are actionable.  This decoupling of detection and reporting allows
+Bro to be customized to the different needs that sites have.

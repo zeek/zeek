@@ -279,6 +279,9 @@ bool Ascii::DoUpdate()
 		}
 
 	string line;
+
+	file->sync();
+
 	while ( GetLine(line ) )
 		{
 		// split on tabs

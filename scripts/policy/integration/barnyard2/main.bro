@@ -15,8 +15,8 @@ export {
 		alert:              AlertData &log;
 	};
 	
-	## This can convert a Barnyard :bro:type:`Barnyard2::PacketID` value to a 
-	## :bro:type:`conn_id` value in the case that you might need to index 
+	## This can convert a Barnyard :bro:type:`Barnyard2::PacketID` value to
+	## a :bro:type:`conn_id` value in the case that you might need to index 
 	## into an existing data structure elsewhere within Bro.
 	global pid2cid: function(p: PacketID): conn_id;
 }

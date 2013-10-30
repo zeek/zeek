@@ -31,6 +31,7 @@
 #include "broxygen/Manager.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
+extern EnumType* cur_enum_type;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
@@ -39,6 +40,7 @@ int_list if_stack;
 
 int line_number = 1;
 const char* filename = 0; // Absolute path of file currently being parsed.
+static const char* last_id_tok = 0;
 
 char last_tok[128];
 
@@ -137,7 +139,9 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	}
 
 ##<.* {
-	broxygen_mgr->PostComment(yytext + 3);
+	string hint(cur_enum_type && last_id_tok ?
+	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
+	broxygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
@@ -370,6 +374,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 {ID}	{
 	yylval.str = copy_string(yytext);
+	last_id_tok = yylval.str;
 	return TOK_ID;
 	}
 

@@ -10,7 +10,6 @@
 #include <time.h>
 
 #include "ID.h"
-#include "Val.h"
 #include "Type.h"
 
 namespace broxygen {
@@ -30,9 +29,13 @@ public:
 	time_t GetModificationTime() const
 		{ return DoGetModificationTime(); }
 
+	std::string Name() const
+		{ return DoName(); }
+
 private:
 
 	virtual time_t DoGetModificationTime() const = 0;
+	virtual std::string DoName() const = 0;
 };
 
 class PackageDocument : public Document {
@@ -41,13 +44,20 @@ public:
 
 	PackageDocument(const std::string& name);
 
+	// TODO: can be comments from package README
+	std::string GetReadme() const
+		{ return std::string(); }
+
 private:
 
 	// TODO
 	time_t DoGetModificationTime() const
 		{ return 0; }
 
-	std::string pkg_loader_name;
+	std::string DoName() const
+		{ return pkg_name; }
+
+	std::string pkg_name;
 };
 
 
@@ -64,7 +74,7 @@ public:
 		                  : comments.push_back(comment); }
 
 	void AddComments(const std::vector<std::string>& cmtns)
-		{ comments.insert(comments.end(), cmtns.begin(), cmtns.end() ); }
+		{ comments.insert(comments.end(), cmtns.begin(), cmtns.end()); }
 
 	void AddRedef(const std::string& from_script,
 	              const std::vector<std::string>& comments);
@@ -72,13 +82,24 @@ public:
 	void AddRecordField(const TypeDecl* field, const std::string& script,
 	                    std::vector<std::string>& comments);
 
-	string Name() const
-		{ return id->Name(); }
+	void CompletedTypeDecl()
+		{ last_field_seen = 0; }
 
 	ID* GetID() const
 		{ return id; }
 
+	std::string GetComments() const;
+
+	std::string GetFieldComments(const std::string& field) const;
+
 private:
+
+	// TODO
+	time_t DoGetModificationTime() const
+		{ return 0; }
+
+	std::string DoName() const
+		{ return id->Name(); }
 
 	struct Redefinition {
 		std::string from_script;
@@ -96,16 +117,13 @@ private:
 	};
 
 	typedef std::list<Redefinition*> RedefList;
-
-	// TODO
-	time_t DoGetModificationTime() const
-		{ return 0; }
+	typedef std::map<std::string, RecordField*> RecordFieldMap;
 
 	std::vector<std::string> comments;
 	ID* id;
 	string initial_val_desc;
 	RedefList redefs;
-	std::vector<RecordField*> fields;
+	RecordFieldMap fields;
 	RecordField* last_field_seen;
 };
 
@@ -126,16 +144,25 @@ public:
 
 	void AddIdentifierDoc(IdentifierDocument* doc);
 
+	void AddRedef(IdentifierDocument* doc)
+		{ redefs.push_back(doc); }
+
 	bool IsPkgLoader() const
 		{ return is_pkg_loader; }
+
+	std::string GetComments() const;
 
 private:
 
 	typedef std::map<std::string, IdentifierDocument*> IdentifierDocMap;
+	typedef std::list<IdentifierDocument*> IdentifierDocList;
 
 	// TODO
 	time_t DoGetModificationTime() const
 		{ return 0; }
+
+	std::string DoName() const
+		{ return name; }
 
 	std::string name;
 	bool is_pkg_loader;
@@ -143,6 +170,7 @@ private:
 	std::set<std::string> module_usages;
 	std::vector<std::string> comments;
 	IdentifierDocMap identifier_docs;
+	IdentifierDocList redefs;
 };
 
 

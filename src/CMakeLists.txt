@@ -154,6 +154,7 @@ set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 add_subdirectory(analyzer)
 add_subdirectory(file_analysis)
 add_subdirectory(probabilistic)
+add_subdirectory(broxygen)
 
 set(bro_SUBDIRS
     ${bro_SUBDIR_LIBS}
@@ -369,9 +370,6 @@ set(bro_SRCS
     plugin/Manager.cc
     plugin/Plugin.cc
     plugin/Macros.h
-
-    broxygen/Manager.cc
-    broxygen/Document.cc
 
     nb_dns.c
     digest.h

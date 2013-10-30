@@ -1028,8 +1028,13 @@ decl:
 			// Broxygen already grabbed new enum IDs as the type created them.
 			}
 
-	|	TOK_REDEF TOK_RECORD global_id { cur_decl_type_id = $3; } TOK_ADD_TO
-			'{' { ++in_record; } type_decl_list { --in_record; } '}' opt_attr ';'
+	|	TOK_REDEF TOK_RECORD global_id
+			{ cur_decl_type_id = $3; broxygen_mgr->StartRedef($3); }
+		TOK_ADD_TO '{'
+			{ ++in_record; }
+		type_decl_list
+			{ --in_record; }
+		'}' opt_attr ';'
 			{
 			cur_decl_type_id = 0;
 

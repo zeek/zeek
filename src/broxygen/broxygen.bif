@@ -1,0 +1,27 @@
+##! Functions for querying script, package, or variable documentation.
+
+%%{
+#include "broxygen/Manager.h"
+%%}
+
+# TODO: documentation
+
+function get_identifier_comments%(name: string%): string
+	%{
+	return broxygen_mgr->GetIdentifierComments(name->CheckString());
+	%}
+
+function get_script_comments%(name: string%): string
+	%{
+	return broxygen_mgr->GetScriptComments(name->CheckString());
+	%}
+
+function get_package_readme%(name: string%): string
+	%{
+	return broxygen_mgr->GetPackageReadme(name->CheckString());
+	%}
+
+function get_record_field_comments%(name: string%): string
+	%{
+	return broxygen_mgr->GetRecordFieldComments(name->CheckString());
+	%}

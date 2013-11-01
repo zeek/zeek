@@ -1,5 +1,8 @@
 
-2.2-beta-180 | 2013-11-01 05:03:37 -0700
+2.2-beta-181 | 2013-11-01 05:24:10 -0700
+
+  * Adding source and original copyright statement to Mozilla cert
+    list. (Robin Sommer)
 
   * Canonfying an intel test to not depend on output order. (Robin
     Sommer)

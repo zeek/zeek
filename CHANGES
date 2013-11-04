@@ -1,4 +1,17 @@
 
+2.2-beta-184 | 2013-11-03 22:53:42 -0800
+
+  * Remove swig-ruby from required packages section of install doc.
+    (Daniel Thayer)
+
+2.2-beta-182 | 2013-11-01 05:26:05 -0700
+
+  * Adding source and original copyright statement to Mozilla cert
+    list. (Robin Sommer)
+
+  * Canonfying an intel test to not depend on output order. (Robin
+    Sommer)
+
 2.2-beta-177 | 2013-10-30 04:54:54 -0700
 
   * Fix thread processing/termination conditions. (Jon Siwek)

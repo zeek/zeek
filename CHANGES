@@ -1,4 +1,9 @@
 
+2.2-beta-184 | 2013-11-03 22:53:42 -0800
+
+  * Remove swig-ruby from required packages section of install doc.
+    (Daniel Thayer)
+
 2.2-beta-182 | 2013-11-01 05:26:05 -0700
 
   * Adding source and original copyright statement to Mozilla cert

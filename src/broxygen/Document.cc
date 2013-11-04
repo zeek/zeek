@@ -104,7 +104,7 @@ string IdentifierDocument::GetFieldComments(const string& field) const
 ScriptDocument::ScriptDocument(const string& arg_name)
     : Document(),
       name(arg_name),
-      is_pkg_loader(safe_basename(name) == PACKAGE_LOADER),
+      is_pkg_loader(SafeBasename(name).result == PACKAGE_LOADER),
       dependencies(), module_usages(), comments(), identifier_docs(), redefs()
 	{
 	}

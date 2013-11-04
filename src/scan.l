@@ -59,7 +59,7 @@ static string find_relative_file(const string& filename, const string& ext)
 		return string();
 
 	if ( filename[0] == '.' )
-		return find_file(filename, safe_dirname(::filename), ext);
+		return find_file(filename, SafeDirname(::filename).result, ext);
 	else
 		return find_file(filename, bro_path(), ext);
 	}
@@ -275,7 +275,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval = safe_dirname(::filename);
+	string rval = SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -291,15 +291,7 @@ when	return TOK_WHEN;
 	}
 
 @FILENAME	{
-	char* filename_copy = copy_string(::filename);
-	const char* bname = basename(filename_copy);
-
-	if ( ! bname )
-		reporter->InternalError("basename failed: %s", strerror(errno));
-
-	StringVal* rval = new StringVal(bname);
-	delete [] filename_copy;
-	RET_CONST(rval);
+	RET_CONST(new StringVal(SafeBasename(::filename).result));
 	}
 
 @load{WS}{FILE}	{

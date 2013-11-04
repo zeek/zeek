@@ -142,7 +142,7 @@ void Manager::File(const string& path)
 	if ( ! doc->IsPkgLoader() )
 		return;
 
-	name = safe_dirname(name);
+	name = SafeDirname(name).result;
 
 	if ( packages.GetDocument(name) )
 		{

@@ -944,34 +944,36 @@ FILE* open_package(string& path, const string& mode)
 	return 0;
 	}
 
-string safe_dirname(const char* path)
+SafePathOp::SafePathOp(PathOpFn fn, const char* path, bool error_aborts)
 	{
-	if ( ! path )
-		return ".";
-	return safe_dirname(string(path));
+	DoFunc(fn, path ? path : "", error_aborts);
 	}
 
-string safe_dirname(const string& path)
+SafePathOp::SafePathOp(PathOpFn fn, const string& path, bool error_aborts)
+	{
+	DoFunc(fn, path, error_aborts);
+	}
+
+void SafePathOp::DoFunc(PathOpFn fn, const string& path, bool error_aborts)
 	{
 	char* tmp = copy_string(path.c_str());
-	string rval = dirname(tmp);
-	delete [] tmp;
-	return rval;
-	}
+	char* rval = fn(tmp);
 
-string safe_basename(const char* path)
-	{
-	if ( ! path )
-		return ".";
-	return safe_basename(string(path));
-	}
+	if ( rval )
+		{
+		result = rval;
+		error = false;
+		}
+	else
+		{
+		if ( error_aborts )
+			reporter->InternalError("Path operation failed on %s: %s",
+			                        tmp ? tmp : "<null>", strerror(errno));
+		else
+			error = true;
+		}
 
-string safe_basename(const string& path)
-	{
-	char* tmp = copy_string(path.c_str());
-	string rval = basename(tmp);
 	delete [] tmp;
-	return rval;
 	}
 
 string flatten_script_name(const string& name, const string& prefix)
@@ -981,8 +983,8 @@ string flatten_script_name(const string& name, const string& prefix)
 	if ( ! rval.empty() )
 		rval.append(".");
 
-	if ( safe_basename(name) == PACKAGE_LOADER )
-		rval.append(safe_dirname(name));
+	if ( SafeBasename(name).result == PACKAGE_LOADER )
+		rval.append(SafeDirname(name).result);
 	else
 		rval.append(name);
 

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <magic.h>
+#include <libgen.h>
 #include "config.h"
 
 #if __STDC__
@@ -208,13 +209,42 @@ extern const char* bro_path();
 extern const char* bro_magic_path();
 extern std::string bro_prefixes();
 
-// Wrappers for dirname(3) that won't modify argument.
-std::string safe_dirname(const char* path);
-std::string safe_dirname(const std::string& path);
+/**
+ * Wrapper class for functions like dirname(3) or basename(3) that won't
+ * modify the path argument and may optionally abort execution on error.
+ */
+class SafePathOp {
+public:
 
-// Wrappers for basename(3) that won't modify argument.
-std::string safe_basename(const char* path);
-std::string safe_basename(const std::string& path);
+	typedef char*(*PathOpFn)(char*);
+
+	SafePathOp(PathOpFn fn, const char* path, bool error_aborts = true);
+	SafePathOp(PathOpFn fn, const std::string& path, bool error_aborts = true);
+
+	std::string result;
+	bool error;
+
+private:
+
+	void DoFunc(PathOpFn fn, const std::string& path, bool error_aborts = true);
+};
+
+class SafeDirname : public SafePathOp {
+public:
+
+	SafeDirname(const char* path, bool error_aborts = true)
+		: SafePathOp(&dirname, path, error_aborts) { }
+	SafeDirname(const std::string& path, bool error_aborts = true)
+		: SafePathOp(&dirname, path, error_aborts) { }
+};
+
+class SafeBasename : public SafePathOp {
+public:
+	SafeBasename(const char* path, bool error_aborts = true)
+		: SafePathOp(&basename, path, error_aborts) { }
+	SafeBasename(const std::string& path, bool error_aborts = true)
+		: SafePathOp(&basename, path, error_aborts) { }
+};
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.

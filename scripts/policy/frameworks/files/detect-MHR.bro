@@ -48,7 +48,7 @@ event file_hash(f: fa_file, kind: string, hash: string)
 				if ( mhr_detect_rate >= notice_threshold )
 					{
 					local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
-					local virustotal_url = fmt("https://www.virustotal.com/en/file/%s/analysis/", hash);
+					local virustotal_url = fmt("https://www.virustotal.com/en/search/?query=%s", hash);
 					NOTICE([$note=Match, $msg=message, $sub=virustotal_url, $f=f]);
 					}
 				}

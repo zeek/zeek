@@ -37,12 +37,6 @@ export {
 		client:          string       &log &optional;
 		## Software string from the server.
 		server:          string       &log &optional;
-		## Amount of data returned from the server. This is currently
-		## the only measure of the success heuristic and it is logged to
-		## assist analysts looking at the logs to make their own
-		## determination about the success on a case-by-case basis.
-		resp_size:       count        &log &default=0;
-
 		## Indicate if the SSH session is done being watched.
 		done:            bool         &default=F;
 	};
@@ -159,13 +153,23 @@ function check_ssh_connection(c: connection, done: bool)
 	}
 
 
+event heuristic_successful_login(c: connection) &priority=-5
+	{
+	Log::write(SSH::LOG, c$ssh);
+	}
+
+event heuristic_failed_login(c: connection) &priority=-5
+	{
+	Log::write(SSH::LOG, c$ssh);
+	}
+
 event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$ssh )
 		{
 		check_ssh_connection(c, T);
-		c$ssh$resp_size = c$resp$size;
-		Log::write(SSH::LOG, c$ssh);
+		if ( c$ssh$status == "undetermined" )
+			Log::write(SSH::LOG, c$ssh);
 		}
 	}
 

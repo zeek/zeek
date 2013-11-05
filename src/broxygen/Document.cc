@@ -48,11 +48,11 @@ IdentifierDocument::~IdentifierDocument()
 	{
 	Unref(id);
 
-	for ( RedefList::const_iterator it = redefs.begin(); it != redefs.end();
+	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end();
 	      ++it )
 		delete *it;
 
-	for ( RecordFieldMap::const_iterator it = fields.begin();
+	for ( record_field_map::const_iterator it = fields.begin();
 	      it != fields.end(); ++it )
 		delete it->second;
 	}
@@ -93,7 +93,7 @@ string IdentifierDocument::GetComments() const
 
 string IdentifierDocument::GetFieldComments(const string& field) const
 	{
-	RecordFieldMap::const_iterator it = fields.find(field);
+	record_field_map::const_iterator it = fields.find(field);
 
 	if ( it == fields.end() )
 		return string();

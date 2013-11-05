@@ -83,13 +83,13 @@ static string PrettifyParams(const string& s)
 	return s;
 	}
 
-Manager::Manager(const string& config)
+Manager::Manager(const string& arg_config)
     : disabled(), comment_buffer(), comment_buffer_map(), packages(), scripts(),
-      identifiers(), all_docs(), last_identifier_seen(), incomplete_type()
+      identifiers(), all_docs(), last_identifier_seen(), incomplete_type(),
+      config(arg_config)
 	{
 	if ( getenv("BRO_DISABLE_BROXYGEN") )
 		disabled = true;
-	// TODO config file stuff
 	}
 
 Manager::~Manager()
@@ -109,16 +109,16 @@ void Manager::InitPostScript()
 	{
 	if ( disabled )
 		return;
-	// TODO: dependency resolution stuff?
+
+	config.FindDependencies(all_docs);
 	}
 
 void Manager::GenerateDocs() const
 	{
 	if ( disabled )
 		return;
-	// TODO
 
-	// may be a no-op if no config file
+	config.GenerateDocs();
 	}
 
 void Manager::File(const string& path)
@@ -214,7 +214,8 @@ IdentifierDocument* Manager::CreateIdentifierDoc(ID* id, ScriptDocument* script)
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
 
-	CommentBufferMap::const_iterator it = comment_buffer_map.find(id->Name());
+	comment_buffer_map_t::const_iterator it =
+	        comment_buffer_map.find(id->Name());
 
 	if ( it != comment_buffer_map.end() )
 		{

@@ -1,6 +1,7 @@
 #ifndef BROXYGEN_MANAGER_H
 #define BROXYGEN_MANAGER_H
 
+#include "Configuration.h"
 #include "Document.h"
 #include "ID.h"
 #include "Type.h"
@@ -16,15 +17,15 @@ namespace broxygen {
 
 template<class T>
 struct DocumentMap {
-	typedef std::map<std::string, T*> MapType;
+	typedef std::map<std::string, T*> map_type;
 
 	T* GetDocument(const std::string& name) const
 		{
-		typename MapType::const_iterator it = map.find(name);
+		typename map_type::const_iterator it = map.find(name);
 		return it == map.end() ? 0 : it->second;
 		}
 
-	MapType map;
+	map_type map;
 };
 
 class Manager {
@@ -75,20 +76,21 @@ public:
 
 private:
 
-	typedef std::vector<std::string> CommentBuffer;
-	typedef std::map<std::string, CommentBuffer> CommentBufferMap;
+	typedef std::vector<std::string> comment_buffer_t;
+	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
 
 	IdentifierDocument* CreateIdentifierDoc(ID* id, ScriptDocument* script);
 
 	bool disabled;
-	CommentBuffer comment_buffer; // For whatever next identifier that comes in.
-	CommentBufferMap comment_buffer_map; // For a particular identifier.
+	comment_buffer_t comment_buffer; // For whatever next identifier that comes in.
+	comment_buffer_map_t comment_buffer_map; // For a particular identifier.
 	DocumentMap<PackageDocument> packages;
 	DocumentMap<ScriptDocument> scripts;
 	DocumentMap<IdentifierDocument> identifiers;
 	std::vector<Document*> all_docs;
 	IdentifierDocument* last_identifier_seen;
 	IdentifierDocument* incomplete_type;
+	Config config;
 };
 
 } // namespace broxygen

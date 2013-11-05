@@ -996,8 +996,8 @@ string flatten_script_name(const string& name, const string& prefix)
 	return rval;
 	}
 
-static vector<string>* tokenize_string(string input, const string& delim,
-                                       vector<string>* rval)
+vector<string>* tokenize_string(string input, const string& delim,
+                                vector<string>* rval)
 	{
 	if ( ! rval )
 		rval = new vector<string>();

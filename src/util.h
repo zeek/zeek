@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,6 +105,10 @@ std::string extract_ip_and_len(const std::string& i, int* len);
 
 std::string get_unescaped_string(const std::string& str);
 std::string get_escaped_string(const std::string& str, bool escape_all);
+
+std::vector<std::string>* tokenize_string(std::string input,
+                                          const std::string& delim,
+                                          std::vector<std::string>* rval = 0);
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);

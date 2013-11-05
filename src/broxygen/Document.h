@@ -116,14 +116,14 @@ private:
 		std::vector<std::string> comments;
 	};
 
-	typedef std::list<Redefinition*> RedefList;
-	typedef std::map<std::string, RecordField*> RecordFieldMap;
+	typedef std::list<Redefinition*> redef_list;
+	typedef std::map<std::string, RecordField*> record_field_map;
 
 	std::vector<std::string> comments;
 	ID* id;
 	string initial_val_desc;
-	RedefList redefs;
-	RecordFieldMap fields;
+	redef_list redefs;
+	record_field_map fields;
 	RecordField* last_field_seen;
 };
 

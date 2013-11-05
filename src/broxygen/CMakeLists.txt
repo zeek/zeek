@@ -6,8 +6,9 @@ include_directories(BEFORE
 )
 
 set(broxygen_SRCS
-    Manager.cc
+    Configuration.cc
     Document.cc
+    Manager.cc
 )
 
 bif_target(broxygen.bif)

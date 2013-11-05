@@ -107,10 +107,10 @@ function check_ssh_connection(c: connection, done: bool)
 		# this matches the conditions for a failed login.  Failed
 		# logins are only detected at connection state removal.
 
-		if ( # Require originators to have sent at least 50 bytes.
-		     c$orig$size > 50 &&
+		if ( # Require originators and responders to have sent at least 50 bytes.
+		     c$orig$size > 50 && c$resp$size > 50 &&
 		     # Responders must be below 4000 bytes.
-		     c$resp$size < 4000 &&
+		     c$resp$size < authentication_data_size &&
 		     # Responder must have sent fewer than 40 packets.
 		     c$resp$num_pkts < 40 &&
 		     # If there was a content gap we can't reliably do this heuristic.
@@ -122,7 +122,7 @@ function check_ssh_connection(c: connection, done: bool)
 			event SSH::heuristic_failed_login(c);
 			}
 
-		if ( c$resp$size > authentication_data_size )
+		if ( c$resp$size >= authentication_data_size )
 			{
 			c$ssh$status = "success";
 			event SSH::heuristic_successful_login(c);
@@ -132,7 +132,7 @@ function check_ssh_connection(c: connection, done: bool)
 		{
 		# If this connection is still being tracked, then it's possible
 		# to watch for it to be a successful connection.
-		if ( c$resp$size > authentication_data_size )
+		if ( c$resp$size >= authentication_data_size )
 			{
 			c$ssh$status = "success";
 			event SSH::heuristic_successful_login(c);
@@ -150,8 +150,6 @@ function check_ssh_connection(c: connection, done: bool)
 	# after detection is done.
 	c$ssh$done=T;
 
-	Log::write(SSH::LOG, c$ssh);
-
 	if ( skip_processing_after_detection )
 		{
 		# Stop watching this connection, we don't care about it anymore.
@@ -164,7 +162,11 @@ function check_ssh_connection(c: connection, done: bool)
 event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$ssh )
+		{
 		check_ssh_connection(c, T);
+		c$ssh$resp_size = c$resp$size;
+		Log::write(SSH::LOG, c$ssh);
+		}
 	}
 
 event ssh_watcher(c: connection)

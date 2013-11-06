@@ -13,4 +13,5 @@ Frameworks
    logging
    notice
    signatures
+   sumstats
 

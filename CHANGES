@@ -1,4 +1,13 @@
 
+2.2-beta-194 | 2013-11-06 14:39:50 -0500
+
+  * Remove resp_size from the ssh log. Refactor when we write out to the log a bit. Geodata now works reliably. (Vlad Grigorescu)
+
+  * Update VirusTotal URL to work with changes to their website and changed it to a redef. (Vlad Grigorescu)
+
+  * Added a document for the SumStats framework. (Seth Hall)
+
+
 2.2-beta-184 | 2013-11-03 22:53:42 -0800
 
   * Remove swig-ruby from required packages section of install doc.

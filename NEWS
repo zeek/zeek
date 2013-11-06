@@ -421,6 +421,11 @@ Changed Functionality
   error message:  "error running update-stats".  To fix this problem,
   either remove that file (it is not needed) or rename it.
 
+- Due to lack of maintenance the Ruby bindings for Broccoli are now
+  deprecated, and the build process no longer includes them by
+  default. For the time being, they can still be enabled by
+  configuring with ``--enable-ruby``, however we plan to remove
+  Broccoli's Ruby support with the next Bro release.
 
 Bro 2.1
 =======

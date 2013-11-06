@@ -4,10 +4,10 @@
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait -k 10
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-1/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-2/.stdout
 # @TEST-EXEC: btest-diff manager-1/intel.log
-# @TEST-EXEC: btest-diff worker-1/.stdout
-# @TEST-EXEC: btest-diff worker-2/.stdout
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {

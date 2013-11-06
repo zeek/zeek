@@ -34,7 +34,7 @@ export {
 		## Total number of ACKs seen in the previous measurement interval.
 		acks:         count    &log;
 		## Percentage of ACKs seen where the data being ACKed wasn't seen.
-		percent_lost: string   &log;
+		percent_lost: double   &log;
 	};
 	
 	## The interval at which capture loss reports are created.
@@ -64,7 +64,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	                    $ts_delta=now-last_ts,
 	                    $peer=peer_description,
 	                    $acks=acks, $gaps=gaps, 
-	                    $percent_lost=fmt("%.3f%%", pct_lost)];
+	                    $percent_lost=pct_lost];
 	
 	if ( pct_lost >= too_much_loss*100 )
 		NOTICE([$note=Too_Much_Loss, 

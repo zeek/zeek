@@ -1,7 +1,10 @@
 
-2.2 | 2013-11-07 01:22:05 -0800
+2.2 | 2013-11-07 02:18:11 -0800
 
   * Release 2.2.
+
+  * Removing location information from ssh.log in external tests.
+    (Robin Sommer)
 
 2.2-beta-199 | 2013-11-07 00:36:46 -0800
 

@@ -1,19 +1,24 @@
 
+2.2-beta-199 | 2013-11-07 00:36:46 -0800
+
+  * Fixing warnings during doc build. (Robin Sommer)
+
 2.2-beta-198 | 2013-11-06 22:54:30 -0800
 
   * Update docs and tests for a recent change to detect-MHR.bro
     (Daniel Thayer)
 
   * Update tests and baselines for sumstats docs. (Daniel Thayer)
-    
+
 2.2-beta-194 | 2013-11-06 14:39:50 -0500
 
-  * Remove resp_size from the ssh log. Refactor when we write out to the log a bit. Geodata now works reliably. (Vlad Grigorescu)
+  * Remove resp_size from the ssh log. Refactor when we write out to
+    the log a bit. Geodata now works reliably. (Vlad Grigorescu)
 
-  * Update VirusTotal URL to work with changes to their website and changed it to a redef. (Vlad Grigorescu)
+  * Update VirusTotal URL to work with changes to their website and
+    changed it to a redef. (Vlad Grigorescu)
 
   * Added a document for the SumStats framework. (Seth Hall)
-
 
 2.2-beta-184 | 2013-11-03 22:53:42 -0800
 
@@ -47,7 +52,7 @@
     (Vlad Grigorescu)
 
   * New version of the threading queue deadlock fix. (Robin Sommer)
-    
+
   * Updating README with download/git information. (Robin Sommer)
 
 2.2-beta-161 | 2013-10-25 15:48:15 -0700
@@ -76,7 +81,7 @@
 2.2-beta-152 | 2013-10-24 18:16:49 -0700
 
   * Fix for input readers occasionally dead-locking. (Robin Sommer)
-    
+
 2.2-beta-151 | 2013-10-24 16:52:26 -0700
 
   * Updating submodule(s).
@@ -96,7 +101,7 @@
     (Daniel Thayer)
 
   * Intel framework notes added to NEWS. (Seth Hall)
-    
+
   * Temporary OSX Mavericks libc++ issue workaround for getline()
     problem in ASCII reader. (Bernhard Amann)
 
@@ -112,16 +117,16 @@
 2.2-beta-133 | 2013-10-23 09:50:16 -0700
 
   * Fix record coercion tolerance of optional fields. (Jon Siwek)
-    
+
   * Add NEWS about incompatible local.bro changes, addresses BIT-1047.
     (Jon Siwek)
 
   * Fix minor formatting problem in NEWS. (Jon Siwek)
-    
+
 2.2-beta-129 | 2013-10-23 09:47:29 -0700
 
   * Another batch of documentation fixes and updates. (Daniel Thayer)
-    
+
 2.2-beta-114 | 2013-10-18 14:17:57 -0700
 
   * Moving the SQLite examples into separate Bro files to turn them
@@ -130,7 +135,7 @@
 2.2-beta-112 | 2013-10-18 13:47:13 -0700
 
   * A larger chunk of documentation fixes and cleanup. (Daniel Thayer)
-    
+
     Apart from many smaller improves this includes in particular:
 
         * Add README files for most Bro frameworks and base/protocols.
@@ -164,7 +169,7 @@
 2.2-beta-68 | 2013-10-14 09:26:09 -0700
 
   * Add check for curl command to active-http.test. (Daniel Thayer)
-    
+
 2.2-beta-64 | 2013-10-14 09:20:04 -0700
 
   * Review usage of Reporter::InternalError, addresses BIT-1045.
@@ -172,7 +177,7 @@
     Replaced some with InternalWarning or AnalyzerError, the later
     being a new method which signals the analyzer to not process
     further input. (Jon Siwek)
-    
+
   * Add new event for TCP content file write failures:
     "contents_file_write_failure". (Jon Siwek)
 
@@ -183,9 +188,9 @@
 2.2-beta-55 | 2013-10-10 13:36:38 -0700
 
   * A couple of new TLS extension numbers. (Bernhard Amann)
-    
+
   * Suport for three more new TLS ciphers. (Bernhard Amann)
-    
+
   * Removing ICSI notary from default site config. (Robin Sommer)
 
 2.2-beta-51 | 2013-10-07 17:33:56 -0700
@@ -194,9 +199,9 @@
     (Robin Sommer)
 
   * Fixing the historical CHANGES record. (Robin Sommer)
-    
+
   * Updating copyright notice. (Robin Sommer)
-    
+
 2.2-beta-38 | 2013-10-02 11:03:29 -0700
 
   * Fix uninitialized (or unused) fields. (Jon Siwek)
@@ -206,31 +211,31 @@
   * Remove dead/unfinished code in unary not expression.  (Jon Siwek)
 
   * Fix logic for failed DNS TXT lookups. (Jon Siwek)
-    
+
   * A couple null ptr checks. (Jon Siwek)
-    
+
   * Improve return value checking and error handling. (Jon Siwek)
-    
+
   * Remove unused variable assignments. (Jon Siwek)
-    
+
   * Prevent division/modulo by zero in scripts. (Jon Siwek)
-    
+
   * Fix unintentional always-false condition. (Jon Siwek)
-    
+
   * Fix invalidated iterator usage. (Jon Siwek)
 
   * Fix DNS_Mgr iterator mismatch. (Jon Siwek)
-    
+
   * Set safe umask when creating script profiler tmp files. (Jon Siwek)
 
   * Fix nesting/indent level whitespace mismatch. (Jon Siwek)
-    
+
   * Add checks to avoid improper negative values use. (Jon Siwek)
-    
+
 2.2-beta-18 | 2013-10-02 10:28:17 -0700
 
   * Add support for further TLS cipher suites. (Bernhard Amann)
-    
+
 2.2-beta-13 | 2013-10-01 11:31:55 -0700
 
   * Updating bifcl usage message. (Robin Sommer)
@@ -244,7 +249,7 @@
 2.2-beta-4 | 2013-09-24 13:23:30 -0700
 
   * Fix for setting REPO in Makefile. (Robin Sommer)
-    
+
   * Whitespace fix. (Robin Sommer)
 
   * Removing :doc: roles so that we can render this with docutils
@@ -261,9 +266,9 @@
   * Updating NEWS. (Robin Sommer)
 
   * Fixing an always false condition. (Robin Sommer)
-    
+
   * Fix required for compiling with clang 3.3. (Robin Sommer)
-    
+
 2.1-1377 | 2013-09-20 14:38:15 -0700
 
   * Updates to the scripting introduction. (Scott Runnels)
@@ -278,7 +283,7 @@
 2.1-1364 | 2013-09-19 15:12:08 -0700
 
   * Add links to Intelligence Framework documentation. (Daniel Thayer)
-    
+
   * Update Mozilla root CA list. (Bernhard Amann, Jon Siwek)
 
   * Update documentation of required packages. (Daniel Thayer)
@@ -298,27 +303,27 @@
 2.1-1352 | 2013-09-18 14:42:28 -0700
 
   * Fix a number of compiler warnings. (Daniel Thayer)
-    
+
   * Fix cmake warning about ENABLE_PERFTOOLS not being used. (Daniel
     Thayer)
 
 2.1-1344 | 2013-09-16 16:20:55 -0500
 
   * Refactor Analyzer::AddChildAnalyzer and usages. (Jon Siwek)
-    
+
   * Minor refactor to SSL BinPAC grammer. (Jon Siwek)
 
   * Minor refactor to Broxygen enum comments. (Jon Siwek)
-    
+
   * Fix possible (unlikely) use of uninitialized value. (Jon Siwek)
-    
+
   * Fix/improve dereference-before-null-checks. (Jon Siwek)
-    
+
   * Fix out-of-bounds memory accesses, and remove a
     variable-length-array usage. (Jon Siwek)
 
   * Fix potential mem leak. (Jon Siwek)
-    
+
   * Fix double-free and deallocator mismatch. (Jon Siwek)
 
   * Fix another function val reference counting bug. (Jon Siwek)
@@ -349,7 +354,7 @@
 
   * Reorganized and signifcantly extended documentation. This includes
     two new chapters contributed by Scott Runnels.
-    
+
 2.1-1216 | 2013-08-31 10:39:40 -0700
 
 
@@ -367,25 +372,25 @@
 2.1-1154 | 2013-08-30 08:27:45 -0700
 
   * Fix global opaque val segfault. Addresses BIT-1071. (Jon Siwek)
-    
+
   * Fix malloc/delete mismatch. (Jon Siwek)
-    
+
   * Fix invalid pointer dereference in AsciiFormatter. (Jon Siwek)
 
 2.1-1150 | 2013-08-29 13:43:01 -0700
 
   * Fix input framework memory leaks. (Jon Siwek)
-    
+
   * Fix memory leak in SOCKS analyzer for bad addr types. (Jon Siwek)
-    
+
   * Fix Bloom filter memory leaks. (Jon Siwek)
 
 2.1-1144 | 2013-08-28 18:51:06 -0700
 
   * Add bits_per_uid unit test. Addresses BIT-1016. (Jon Siwek)
-    
+
   * UID optimizations. Addresses BIT-1016. (Jon Siwek)
-    
+
   * Added a $unique_max field to Reducers for the SumStats::UNIQUE
     calculation, and using the new option in scan.bro and the FTP
     bruteforce detection. (Seth Hall)
@@ -398,11 +403,11 @@
 2.1-1135 | 2013-08-27 12:16:26 -0700
 
   * More SumStats fixes. (Seth Hall)
-    
+
   * Increase UIDs to 96 bits.  (Jon Siwek)
-    
+
     - The bit-length is adjustable via redef'ing bits_per_uid.
-      
+
     - Prefix 'C' is added to connection UIDS (including IP tunnels)
       and 'F' to files.
 
@@ -411,9 +416,9 @@
 2.1-1128 | 2013-08-24 10:27:29 -0700
 
   * Remove code relict in input framework. (Jon Siwek)
-    
+
   * Fix documentation for mkdir BIF. (Jon Siwek)
-    
+
   * File extraction tweaks. (Jon Siwek)
 
     - Default extraction limit of 100MB now provided via a tuning
@@ -427,11 +432,11 @@
 2.1-1124 | 2013-08-23 16:33:52 -0700
 
   * Fixed a number of object bugs DNP3 analyzer. (Hui Lin)
-    
+
 2.1-1122 | 2013-08-22 16:52:27 -0700
 
   * Use macros to create file analyzer plugin classes. (Jon Siwek)
-    
+
   * Add options to limit extracted file sizes w/ 100MB default. (Jon
     Siwek)
 
@@ -441,13 +446,13 @@
     improvements. (Jon Siwek)
 
   * Make memory leak tests able to time out.  (Jon Siwek)
-    
+
   * Fix a compiler warning regarding strncat misuse. (Jon Siwek)
-    
+
 2.1-1103 | 2013-08-21 19:11:34 -0400
 
   * A number of sumstats fixes. (Seth Hall, Vlad Grigorescu)
-    
+
   * Fix memory leak w/ when statements. Addresses BIT-1058. (Jon
     Siwek)
 
@@ -478,12 +483,12 @@
     turning them into events. (Seth Hall)
 
   * Fixing intel framework tests. (Seth Hall)
-    
+
 2.1-1059 | 2013-08-13 23:52:41 -0400
 
   * Add file name support to intel framework. (Seth Hall)
 
-  * Add file support to intel framework and slightly restructure 
+  * Add file support to intel framework and slightly restructure
     intel http handling. (Seth Hall)
 
 2.1-1052 | 2013-08-12 14:38:14 -0700
@@ -505,9 +510,9 @@
 2.1-1039 | 2013-08-09 15:30:15 -0700
 
   * Fix mem leak in DHCP analyzer. (Jon Siwek)
-    
+
   * Fix a unit test outdated by recent sumstats changes. (Jon Siwek)
-    
+
 2.1-1036 | 2013-08-05 17:29:11 -0400
 
   * Fix the SSL infinite loop I just created. (Seth Hall)
@@ -562,7 +567,7 @@
 2.1-1009 | 2013-08-02 17:19:08 -0700
 
   * A number of exec module and raw input reader fixes. (Jon Siwek)
-    
+
 2.1-1007 | 2013-08-01 15:41:54 -0700
 
   * More function documentation. (Bernhard Amann)
@@ -634,11 +639,11 @@
       compressed log representation. (Seth Hall)
 
     * Added mime types to http.log (Seth Hall)
-      
+
     * Add jar files to the default MHR lookups. (Seth Hall)
-      
+
     * Adding CAB files for MHR checking. (Seth Hall)
-      
+
     * Improve malware hash registry script.
 
         - Include a link to a virustotal search in the notice sub message field.
@@ -671,15 +676,15 @@
 
   * Updates for the Intel Framework. (Seth Hall)
 
-      - policy/frameworks/intel/seen is the new location for the 
+      - policy/frameworks/intel/seen is the new location for the
         scripts that push data into the intel framework for checking.
 
-      - The new policy/frameworks/intel/do_notice script adds an 
+      - The new policy/frameworks/intel/do_notice script adds an
         example mechanism for data driven notices.
 
-      - Remove the Intel insertion after heuristically detecting SSH 
+      - Remove the Intel insertion after heuristically detecting SSH
         bruteforcing.
-     
+
       - Intel importing format has changed (refer to docs).
 
       - All string matching is now case insensitive.
@@ -740,7 +745,7 @@
     make it deterministic. (Robin Sommer)
 
   * Small raw reader tweaks that got left our earlier. (Robin Sommer)
-    
+
 2.1-814 | 2013-07-15 18:18:20 -0700
 
   * Fixing raw reader crash when accessing nonexistant file, and
@@ -866,12 +871,12 @@
     input data on to the file analysis framework. (Jon Siwek)
 
   * File analysis framework interface simplifications. (Jon Siwek)
-    
+
     - Remove script-layer data input interface (will be managed directly
       by input framework later).
 
     - Only track files internally by file id hash.  Chance of collision
-      too small to justify also tracking unique file string. 
+      too small to justify also tracking unique file string.
 
 
 2.1-741 | 2013-06-07 17:28:50 -0700
@@ -922,14 +927,14 @@
 2.1-659 | 2013-05-24 17:24:18 -0700
 
   * Fix broken/missing documentation. (Jon Siwek)
-    
+
   * Fixing test that would fail without ES/curl support. (Robin
     Sommer)
 
 2.1-656 | 2013-05-17 15:58:07 -0700
 
   * Fix mutex lock problem for writers. (Bernhard Amann)
-    
+
 2.1-654 | 2013-05-17 13:49:52 -0700
 
   * Tweaks to sqlite3 configuration to address threading issues.
@@ -947,9 +952,9 @@
 2.1-647 | 2013-05-17 07:47:14 -0700
 
   * Fixing Broxygen generation to have BROMAGIC set. (Robin Sommer)
-    
+
   * Fix for 'fchmod undeclared here' on FreeBSD. (Robin Sommer)
-    
+
   * CMake policy fix to avoid errors with older versions. (Robin
     Sommer)
 
@@ -1062,7 +1067,7 @@
 2.1-386 | 2013-03-22 12:41:50 -0700
 
   * Added reverse() function to strings.bif. (Yun Zheng Hu)
-    
+
 2.1-384 | 2013-03-22 12:10:14 -0700
 
   * Fix record constructors in table initializer indices.  Addresses
@@ -1071,16 +1076,16 @@
 2.1-382 | 2013-03-22 12:01:34 -0700
 
   * Add support for 802.1ah (Q-in-Q). Addresses #641. (Seth Hall)
-    
+
 2.1-380 | 2013-03-18 12:18:10 -0700
 
   * Fix gcc compile warnings in base64 encoder and benchmark reader.
     (Bernhard Amann)
-    
+
 2.1-377 | 2013-03-17 17:36:09 -0700
 
   * Fixing potential leak in DNS error case. (Vlad Grigorescu)
-    
+
 2.1-375 | 2013-03-17 13:14:26 -0700
 
   * Add base64 encoding functionality, including new BiFs
@@ -1092,14 +1097,14 @@
   * Adding a test for extract-certs-pem.pem. (Robin Sommer)
 
   * Renaming Base64Decoder to Base64Converter. (Robin Sommer)
-    
+
 2.1-366 | 2013-03-17 12:35:59 -0700
 
   * Correctly handle DNS lookups for software version ranges. (Seth
     Hall)
 
   * Improvements to vulnerable software detection. (Seth Hall)
-    
+
      - Add a DNS based updating method.  This needs to be tested
        still.
 
@@ -1133,9 +1138,9 @@
 2.1-351 | 2013-03-07 13:27:29 -0800
 
   * Fix new/delete mismatch. Addresses #958. (Jacob Baines)
-    
+
   * Fix compiler warnings. (Jon Siwek)
-    
+
 2.1-347 | 2013-03-06 16:48:44 -0800
 
   * Remove unused parameter from vector assignment method. (Bernhard Amann)
@@ -1184,9 +1189,9 @@
 
 2.1-328 | 2013-02-05 01:34:29 -0500
 
-  * New script to query the ICSI Certificate Notary 
+  * New script to query the ICSI Certificate Notary
     (http://notary.icsi.berkeley.edu/) over DNS and add information
-    to the SSL log at runtime. (Matthias Vallentin) 
+    to the SSL log at runtime. (Matthias Vallentin)
 
   * Add delayed logging to SSL base scripts. (Matthias Vallentin)
 
@@ -1237,7 +1242,7 @@
 
   * Changing test=suite's btest call to use "-j" instead of "-j 5".
     (Robin Sommer)
-    
+
   * Require "case" blocks to end with either "break", "return", or a
     new "fallthrough" statement that passes control on to the
     subsequent case. This gives us the best mix of safety,
@@ -1253,7 +1258,7 @@
     ElasticSearch writer. (Gilbert Clark)
 
   * Removing unused class member. (Robin Sommer)
-    
+
   * Add opaque type-ignoring for the accept_unsupported_types input
     framework option. (Bernhard Amann)
 
@@ -1298,7 +1303,7 @@
     sha256_*, and entropy_*, respectively. Note that these functions
     have changed their signatures to work with opaques types rather
     than global state as it was before.
-    
+
 2.1-240 | 2012-12-20 15:21:07 -0800
 
   * Improve error for invalid use of types as values. Addresses #923.
@@ -1423,7 +1428,7 @@
 2.1-195 | 2012-12-03 14:50:33 -0800
 
   * Catching out-of-memory in patricia tree code. (Bill Parker)
-    
+
 2.1-194 | 2012-12-03 14:36:26 -0800
 
   * Renaming ASCII writer filter option 'only_single_header_row' to
@@ -1484,7 +1489,7 @@
     Hall)
 
   * Adding NEWS placeholder for hooks and CSV mode. (Robin Sommer)
-    
+
 2.1-178 | 2012-11-23 19:35:32 -0800
 
   * The ASCII writer now supports a new filter config option
@@ -1539,7 +1544,7 @@
 
 2.1-112 | 2012-11-05 13:58:20 -0800
 
-  * New base script for detecting cases of checksum offloading. 
+  * New base script for detecting cases of checksum offloading.
     Reporter messages will now tell if one has bad checksums. (Seth
     Hall)
 
@@ -1549,9 +1554,9 @@
 2.1-109 | 2012-11-05 13:39:34 -0800
 
   * Add detection rate threshold for MHR. (Vlad Grigorescu)
-    
+
   * lookup_hostname_txt fixes. (Vlad Grigorescu)
-    
+
 2.1-104 | 2012-11-01 10:37:50 -0700
 
   * A new built-in function lookup_hostname_txt() provides support for
@@ -1676,7 +1681,7 @@
     Addresses #877. (Jon Siwek)
 
   * Add --with-curl option to ./configure. Addresses #877. (Jon Siwek)
-    
+
 2.1-61 | 2012-10-12 09:32:48 -0700
 
   * Fix bug in the input framework: the config table did not work.
@@ -1719,7 +1724,7 @@
 
   * Remove deprecated script functionality (see NEWS for details).
     (Daniel Thayer)
-    
+
 2.1-39 | 2012-09-29 14:09:16 -0700
 
   * Reliability adjustments to istate tests with network
@@ -1731,7 +1736,7 @@
     an error. (Daniel Thayer)
 
   * Fix parsing of large integers on 32-bit systems. (Daniel Thayer)
-    
+
   * Serialize language.when unit test with the "comm" group. (Jon
     Siwek)
 
@@ -1742,7 +1747,7 @@
 2.1-26 | 2012-09-23 08:46:03 -0700
 
   * Add an item to FAQ page about broctl options. (Daniel Thayer)
-    
+
   * Add more language tests. We now have tests of all built-in Bro
     data types (including different representations of constant
     values, and max./min. values), keywords, and operators (including
@@ -1765,7 +1770,7 @@
   * Adjusting some unit tests that do cluster communication. (Jon Siwek)
 
   * Small change to non-blocking DNS initialization. (Jon Siwek)
-    
+
   * Reorder a few statements in scan.l to make 1.5msecs etc work.
     Adresses #872. (Bernhard Amann)
 
@@ -1797,9 +1802,9 @@
     Siwek)
 
   * Parse 64-bit consts in Bro scripts correctly. (Bernhard Amann)
-    
+
   * Output 64-bit counts correctly on 32-bit machines (Bernhard Amann)
-    
+
   * Input framework fixes, including:  (Bernhard Amann)
 
     - One of the change events got the wrong parameters.
@@ -1813,7 +1818,7 @@
     - Hashing of lines just containing zero-length-strings was broken.
 
     - Make set_separators different from , work for input framework.
-      
+
     - Input framework was not handling counts and ints out of
       32-bit-range correctly.
 
@@ -1821,20 +1826,20 @@
       the line, log it, and continue.
 
   * Update documentation for builtin types. (Daniel Thayer)
-    
+
     - Add missing description of interval "msec" unit.
-      
+
     - Improved description of pattern by clarifying the issue of
       operand order and difference between exact and embedded
       matching.
 
   * Documentation fixes for signature 'eval' conditions. (Jon Siwek)
-    
+
   * Remove orphaned 1.5 unit tests. (Jon Siwek)
 
   * Add type checking for signature 'eval' condition functions. (Jon
     Siwek)
-    
+
   * Adding an identifier to the SMTP blocklist notices for duplicate
     suppression. (Seth Hall)
 
@@ -1865,7 +1870,7 @@
 2.1-beta-31 | 2012-08-21 15:46:05 -0700
 
   * Tweak to rotate-custom.bro unit test. (Jon Siwek)
-    
+
   * Ignore small mem leak every rotation interval for dataseries logs.
     (Jon Siwek)
 
@@ -1920,13 +1925,13 @@
 2.1-beta-6 | 2012-08-10 12:22:52 -0700
 
   * Fix bug in input framework with an edge case. (Bernhard Amann)
-    
+
   * Fix small bug in input framework test script. (Bernhard Amann)
-    
+
 2.1-beta-3 | 2012-08-03 10:46:49 -0700
 
   * Merge branch 'master' of ssh://git.bro-ids.org/bro (Robin Sommer)
-    
+
   * Fix configure script to exit with non-zero status on error (Jon
     Siwek)
 
@@ -1977,7 +1982,7 @@
 
   * Input framework: Make want_record=T the default for events
     (Bernhard Amann)
-    
+
   * Changing the start/end markers in logs to open/close now
     reflecting wall clock. (Robin Sommer)
 
@@ -1988,16 +1993,16 @@
 
   * New test for input framework that fails to find a file. (Robin
     Sommer)
-    
+
   * Improving error handling for threads. (Robin Sommer)
-    
+
   * Tweaking the custom-rotate test to produce stable output. (Robin
     Sommer)
 
 2.0-884 | 2012-07-26 14:33:21 -0700
 
   * Add comprehensive error handling for close() calls. (Jon Siwek)
-    
+
   * Add more test cases for input framework. (Bernhard Amann)
 
   * Input framework: make error output for non-matching event types
@@ -2006,14 +2011,14 @@
 2.0-877 | 2012-07-25 17:20:34 -0700
 
   * Fix double close() in FilerSerializer class. (Jon Siwek)
-    
+
   * Fix build warnings. (Daniel Thayer)
 
   * Fixes to ElasticSearch plugin to make libcurl handle http
     responses correctly. (Seth Hall)
 
   * Fixing FreeBSD compiler error. (Robin Sommer)
-    
+
   * Silencing compiler warnings. (Robin Sommer)
 
 2.0-871 | 2012-07-25 13:08:00 -0700
@@ -2032,7 +2037,7 @@
 2.0-866 | 2012-07-24 16:02:07 -0700
 
   * Correct a typo in usage message. (Daniel Thayer)
-    
+
   * Fix file permissions of log files (which were created with execute
     permissions after a recent change). (Daniel Thayer)
 
@@ -4704,7 +4709,7 @@
   away. (Robin Sommer)
 
 - Smarter way to increase the communication module's pipe's socket
-  buffer size, resulting in a value closer to the allowed maximum. 
+  buffer size, resulting in a value closer to the allowed maximum.
   (Craig Leres)
 
 - BroControl now also maintains links from the log archive to the
@@ -4747,7 +4752,7 @@
 - http-header.bro now includes a global "include_header: set[string]" If it
   contains any strings, then only those headers will be processed.  If left
   empty, then you continue to get the current behavior of processing all
-  headers. (Robin Sommer).  
+  headers. (Robin Sommer).
 
 - Several changes to drop.bro (Robin Sommer):
 

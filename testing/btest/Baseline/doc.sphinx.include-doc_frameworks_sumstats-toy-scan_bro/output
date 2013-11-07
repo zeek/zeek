@@ -4,7 +4,7 @@ sumstats-toy-scan.bro
 
 @load base/frameworks/sumstats
 
-# We use the connection_attempted event limit our observations to those
+# We use the connection_attempt event to limit our observations to those
 # which were attempted and not successful.
 event connection_attempt(c: connection)
 	{
@@ -29,7 +29,7 @@ event bro_init()
 	# This is slightly different from the last example since we're providing
 	# a callback to calculate a value to check against the threshold with 
 	# $threshold_val.  The actual threshold itself is provided with $threshold.
-	# Another callback is 
+	# Another callback is provided for when a key crosses the threshold.
 	SumStats::create([$name = "finding scanners",
 	                  $epoch = 5min,
 	                  $reducers = set(r1),

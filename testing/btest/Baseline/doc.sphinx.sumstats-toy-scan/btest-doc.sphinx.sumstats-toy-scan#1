@@ -1,0 +1,9 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r nmap-vsn.trace sumstats-toy-scan.bro
+      192.168.1.71 attempted 5 or more connections
+

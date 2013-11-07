@@ -5,9 +5,9 @@ Summary Statistics
 .. rst-class:: opening
 
     Measuring aspects of network traffic is an extremely common task in Bro.
-    Bro provides data structures  which make this very easy as wellin
-    simplistic cases such as size limited trace file processing. In real-
-    world deployments though, there are difficulties that arise from
+    Bro provides data structures which make this very easy as well in
+    simplistic cases such as size limited trace file processing. In
+    real-world deployments though, there are difficulties that arise from
     clusterization (many processes sniffing traffic) and unbounded data sets
     (traffic never stops). The Summary Statistics (otherwise referred to as
     SumStats) framework aims to define a mechanism for consuming unbounded
@@ -60,7 +60,7 @@ These examples may seem very simple to an experienced Bro script developer and
 they're intended to look that way. Keep in mind that these scripts will work
 on small single process Bro instances as well as large many-worker clusters.
 The complications from dealing with flow based load balancing can be ignored
-by developers writing scripts that use Sumstats due to it's built in cluster
+by developers writing scripts that use Sumstats due to its built-in cluster
 transparency.
 
 Printing the number of connections
@@ -80,18 +80,18 @@ is created:
     @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/workshop_2011_browse.trace ${DOC_ROOT}/frameworks/sumstats-countconns.bro
 
 
-Toy Scan detection
+Toy scan detection
 ------------------
 
 Taking the previous example even further, we can implement a simple detection
 to demonstrate the thresholding functionality.  This example is a toy to
-demonstate how thresholding works in Sumstats and is not meant to be a real-
-world functional example, that is left to the scan.bro script that is included
-with Bro.
+demonstrate how thresholding works in Sumstats and is not meant to be a
+real-world functional example, that is left to the
+:doc:`/scripts/policy/misc/scan` script that is included with Bro.
 
 .. btest-include:: ${DOC_ROOT}/frameworks/sumstats-toy-scan.bro
 
-Let's see if there any hosts that crossed the threshold in a PCAP file
+Let's see if there are any hosts that crossed the threshold in a PCAP file
 containing a host running nmap:
 
 .. btest:: sumstats-toy-scan

@@ -1,3 +1,7 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+sumstats-toy-scan.bro
+
 @load base/frameworks/sumstats
 
 # We use the connection_attempt event to limit our observations to those

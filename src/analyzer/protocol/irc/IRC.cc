@@ -164,7 +164,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	if ( code > 0 )
 		{
 		switch ( code ) {
-		// Ignore unimportant messages.
+		/*
 		case 1: // RPL_WELCOME
 		case 2: // RPL_YOURHOST
 		case 3: // RPL_CREATED
@@ -183,6 +183,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 376: // RPL_ENDOFMOTD
 		case 331: // RPL_NOTOPIC
 			break;
+		*/
 
 		// Count of users, services and servers in whole network.
 		case 251:

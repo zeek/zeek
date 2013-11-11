@@ -1,4 +1,11 @@
 
+2.2-5 | 2013-11-11 13:47:54 -0800
+
+  * Fix the irc_reply event for certain server message types. (Seth
+    Hall)
+
+  * Fixed Segmentation fault in SQLite Writer. (Jon Crussell)
+    
 2.2 | 2013-11-07 10:25:50 -0800
 
   * Release 2.2.

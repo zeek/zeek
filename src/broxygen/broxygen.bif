@@ -2,26 +2,65 @@
 
 %%{
 #include "broxygen/Manager.h"
+#include "util.h"
+
+static StringVal* comments_to_val(const vector<string>& comments)
+	{
+	return new StringVal(implode_string_vector(comments));
+	}
 %%}
 
 # TODO: documentation
 
 function get_identifier_comments%(name: string%): string
 	%{
-	return broxygen_mgr->GetIdentifierComments(name->CheckString());
+	using namespace broxygen;
+	IdentifierDocument* d = broxygen_mgr->GetIdentifierDoc(name->CheckString());
+
+	if ( ! d )
+		return new StringVal("");
+
+	return comments_to_val(d->GetComments());
 	%}
 
 function get_script_comments%(name: string%): string
 	%{
-	return broxygen_mgr->GetScriptComments(name->CheckString());
+	using namespace broxygen;
+	ScriptDocument* d = broxygen_mgr->GetScriptDoc(name->CheckString());
+
+	if ( ! d )
+		return new StringVal("");
+
+	return comments_to_val(d->GetComments());
 	%}
 
 function get_package_readme%(name: string%): string
 	%{
-	return broxygen_mgr->GetPackageReadme(name->CheckString());
+	using namespace broxygen;
+	PackageDocument* d = broxygen_mgr->GetPackageDoc(name->CheckString());
+
+	if ( ! d )
+		return new StringVal("");
+
+	return comments_to_val(d->GetReadme());
 	%}
 
 function get_record_field_comments%(name: string%): string
 	%{
-	return broxygen_mgr->GetRecordFieldComments(name->CheckString());
+	using namespace broxygen;
+	string accessor = name->CheckString();
+	size_t i = accessor.find('$');
+
+	if ( i > accessor.size() - 2 )
+		return new StringVal("");
+
+	string id = accessor.substr(0, i);
+
+	IdentifierDocument* d = broxygen_mgr->GetIdentifierDoc(id);
+
+	if ( ! d )
+		return new StringVal("");
+
+	string field = accessor.substr(i + 1);
+	return comments_to_val(d->GetFieldComments(field));
 	%}

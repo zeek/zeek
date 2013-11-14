@@ -1,8 +1,8 @@
 #include "Manager.h"
-#include "Reporter.h"
 #include "util.h"
 
 #include <utility>
+#include <cstdlib>
 
 using namespace broxygen;
 using namespace std;
@@ -25,71 +25,22 @@ static string RemoveLeadingSpace(const string& s)
 	return rval;
 	}
 
-static string PrettifyParams(const string& s)
-	{
-	size_t identifier_start_pos = 0;
-	bool in_identifier = false;
-	string identifier;
-
-	for ( size_t i = 0; i < s.size(); ++i )
-		{
-		char next = s[i];
-
-		if ( ! in_identifier )
-			{
-			// Pass by leading whitespace.
-			if ( isspace(next) )
-				continue;
-
-			// Only allow alphabetic and '_' as first char of identifier.
-			if ( isalpha(next) || next == '_' )
-				{
-				identifier_start_pos = i;
-				identifier += next;
-				in_identifier = true;
-				continue;
-				}
-
-			// Don't need to change anything.
-			return s;
-			}
-
-		// All other character of identifier are alphanumeric or '_'.
-		if ( isalnum(next) || next == '_' )
-			{
-			identifier += next;
-			continue;
-			}
-
-		// Prettify param and return value docs for a function's reST markup.
-		if ( next == ':' )
-			{
-			string rval = s;
-			string subst;
-
-			if ( identifier == "Returns" )
-				subst = "\n:returns";
-			else
-				subst = "\n:param " + identifier;
-
-			rval.replace(identifier_start_pos, identifier.size(), subst);
-			return rval;
-			}
-
-		// Don't need to change anything.
-		return s;
-		}
-
-	return s;
-	}
-
-Manager::Manager(const string& arg_config)
+Manager::Manager(const string& arg_config, const string& bro_command)
     : disabled(), comment_buffer(), comment_buffer_map(), packages(), scripts(),
       identifiers(), all_docs(), last_identifier_seen(), incomplete_type(),
-      config(arg_config)
+      enum_mappings(), config(arg_config), bro_mtime()
 	{
 	if ( getenv("BRO_DISABLE_BROXYGEN") )
 		disabled = true;
+
+	string path_to_bro = find_file(bro_command, getenv("PATH"));
+	struct stat s;
+
+	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
+		reporter->InternalError("Broxygen can't get mtime of bro binary %s: %s",
+		                        path_to_bro.c_str(), strerror(errno));
+
+	bro_mtime = s.st_mtime;
 	}
 
 Manager::~Manager()
@@ -102,13 +53,15 @@ void Manager::InitPreScript()
 	{
 	if ( disabled )
 		return;
-	// TODO: create file/proto analyzer doc
 	}
 
 void Manager::InitPostScript()
 	{
 	if ( disabled )
 		return;
+
+	for ( size_t i = 0; i < all_docs.size(); ++i )
+		all_docs[i]->InitPostScript();
 
 	config.FindDependencies(all_docs);
 	}
@@ -134,7 +87,7 @@ void Manager::File(const string& path)
 		return;
 		}
 
-	ScriptDocument* doc = new ScriptDocument(name);
+	ScriptDocument* doc = new ScriptDocument(name, path);
 	scripts.map[name] = doc;
 	all_docs.push_back(doc);
 	DBG_LOG(DBG_BROXYGEN, "Made ScriptDocument %s", name.c_str());
@@ -209,7 +162,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 
 IdentifierDocument* Manager::CreateIdentifierDoc(ID* id, ScriptDocument* script)
 	{
-	IdentifierDocument* rval = new IdentifierDocument(id);
+	IdentifierDocument* rval = new IdentifierDocument(id, script);
 
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
@@ -226,7 +179,10 @@ IdentifierDocument* Manager::CreateIdentifierDoc(ID* id, ScriptDocument* script)
 	all_docs.push_back(rval);
 	identifiers.map[id->Name()] = rval;
 	last_identifier_seen = rval;
-	script->AddIdentifierDoc(rval);
+
+	if ( script )
+		script->AddIdentifierDoc(rval);
+
 	return rval;
 	}
 
@@ -256,18 +212,9 @@ void Manager::StartType(ID* id)
 	        id->Name(), script.c_str());
 	}
 
-void Manager::StartRedef(ID* id)
+static bool IsEnumType(ID* id)
 	{
-	if ( disabled )
-		return;
-
-	IdentifierDocument* id_doc = identifiers.GetDocument(id->Name());
-
-	if ( id_doc )
-		last_identifier_seen = id_doc;
-	else
-		DbgAndWarn(fmt("Broxygen redef tracking unknown identifier: %s",
-		               id->Name()));
+	return id->AsType() ? id->AsType()->Tag() == TYPE_ENUM : false;
 	}
 
 void Manager::Identifier(ID* id)
@@ -275,21 +222,18 @@ void Manager::Identifier(ID* id)
 	if ( disabled )
 		return;
 
-	if ( incomplete_type && incomplete_type->Name() == id->Name() )
+	if ( incomplete_type )
 		{
-		DBG_LOG(DBG_BROXYGEN, "Finished document for type %s", id->Name());
-		incomplete_type->CompletedTypeDecl();
-		incomplete_type = 0;
-		return;
-		}
+		if ( incomplete_type->Name() == id->Name() )
+			{
+			DBG_LOG(DBG_BROXYGEN, "Finished document for type %s", id->Name());
+			incomplete_type->CompletedTypeDecl();
+			incomplete_type = 0;
+			return;
+			}
 
-	if ( id->GetLocationInfo() == &no_location )
-		{
-		// Internally-created identifier (e.g. file/proto analyzer enum tags).
-		// Can be ignored here as they need to be documented via other means.
-		DBG_LOG(DBG_BROXYGEN, "Skip documenting identifier %s: no location",
-		        id->Name());
-		return;
+		if ( IsEnumType(incomplete_type->GetID()) )
+			enum_mappings[id->Name()] = incomplete_type->GetID()->Name();
 		}
 
 	IdentifierDocument* id_doc = identifiers.GetDocument(id->Name());
@@ -305,6 +249,16 @@ void Manager::Identifier(ID* id)
 			}
 
 		DbgAndWarn(fmt("Duplicate identifier documentation: %s", id->Name()));
+		return;
+		}
+
+	if ( id->GetLocationInfo() == &no_location )
+		{
+		// Internally-created identifier (e.g. file/proto analyzer enum tags).
+		// Handled specially since they don't have a script location.
+		DBG_LOG(DBG_BROXYGEN, "Made internal IdentifierDocument %s",
+		        id->Name());
+		CreateIdentifierDoc(id, 0);
 		return;
 		}
 
@@ -428,32 +382,8 @@ void Manager::PostComment(const string& comment, const string& id_hint)
 		comment_buffer_map[id_hint].push_back(RemoveLeadingSpace(comment));
 	}
 
-StringVal* Manager::GetIdentifierComments(const string& name) const
+string Manager::GetEnumTypeName(const string& id) const
 	{
-	IdentifierDocument* d = identifiers.GetDocument(name);
-	return new StringVal(d ? d->GetComments() : "");
-	}
-
-StringVal* Manager::GetScriptComments(const string& name) const
-	{
-	ScriptDocument* d = scripts.GetDocument(name);
-	return new StringVal(d ? d->GetComments() : "");
-	}
-
-StringVal* Manager::GetPackageReadme(const string& name) const
-	{
-	PackageDocument* d = packages.GetDocument(name);
-	return new StringVal(d ? d->GetReadme() : "");
-	}
-
-StringVal* Manager::GetRecordFieldComments(const string& name) const
-	{
-	size_t i = name.find('$');
-
-	if ( i > name.size() - 2 )
-		// '$' is last char in string or not found.
-		return new StringVal("");
-
-	IdentifierDocument* d = identifiers.GetDocument(name.substr(0, i));
-	return new StringVal(d ? d->GetFieldComments(name.substr(i + 1)) : "");
+	map<string, string>::const_iterator it = enum_mappings.find(id);
+	return it == enum_mappings.end() ? "" : it->second;
 	}

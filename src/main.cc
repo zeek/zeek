@@ -762,7 +762,6 @@ int main(int argc, char** argv)
 
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
-	broxygen_mgr = new broxygen::Manager(broxygen_config);
 
 #ifdef DEBUG
 	if ( debug_streams )
@@ -808,6 +807,8 @@ int main(int argc, char** argv)
 
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
+
+	broxygen_mgr = new broxygen::Manager(broxygen_config, bro_argv[0]);
 
 	add_input_file("base/init-bare.bro");
 	if ( ! bare_mode )

@@ -261,17 +261,17 @@ extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
 
 void add_type(ID* id, BroType* t, attr_list* attr)
 	{
-	string new_type_name(id->Name());
-	string old_type_name(t->GetName());
+	string new_type_name = id->Name();
+	string old_type_name = t->GetName();
 	BroType* tnew = 0;
 
 	if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) &&
-	     ! old_type_name.empty() )
+	     old_type_name.empty() )
+		// An extensible type (record/enum) being declared for first time.
+		tnew = t;
+	else
 		// Clone the type to preserve type name aliasing.
 		tnew = t->Clone();
-	else
-		// An extensible types (record/enum) being declared for first time.
-		tnew = t;
 
 	type_aliases[new_type_name].insert(tnew);
 

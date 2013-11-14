@@ -7,7 +7,7 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <time.h>
+#include <ctime>
 
 #include "ID.h"
 #include "Type.h"
@@ -32,10 +32,19 @@ public:
 	std::string Name() const
 		{ return DoName(); }
 
+	std::string ReStructuredText(bool roles_only = false) const
+		{ return DoReStructuredText(roles_only); }
+
+	void InitPostScript()
+		{ return DoInitPostScript(); }
+
 private:
 
 	virtual time_t DoGetModificationTime() const = 0;
 	virtual std::string DoName() const = 0;
+	virtual std::string DoReStructuredText(bool roles_only) const = 0;
+	virtual void DoInitPostScript()
+		{ }
 };
 
 class PackageDocument : public Document {
@@ -44,28 +53,29 @@ public:
 
 	PackageDocument(const std::string& name);
 
-	// TODO: can be comments from package README
-	std::string GetReadme() const
-		{ return std::string(); }
+	std::vector<std::string> GetReadme() const
+		{ return readme; }
 
 private:
 
-	// TODO
-	time_t DoGetModificationTime() const
-		{ return 0; }
+	time_t DoGetModificationTime() const;
 
 	std::string DoName() const
 		{ return pkg_name; }
 
+	std::string DoReStructuredText(bool roles_only) const;
+
 	std::string pkg_name;
+	std::vector<std::string> readme;
 };
 
 
-class IdentifierDocument : public Document {
+class ScriptDocument;
 
+class IdentifierDocument : public Document {
 public:
 
-	IdentifierDocument(ID* id);
+	IdentifierDocument(ID* id, ScriptDocument* script);
 
 	~IdentifierDocument();
 
@@ -88,24 +98,31 @@ public:
 	ID* GetID() const
 		{ return id; }
 
-	std::string GetComments() const;
+	ScriptDocument* GetDeclaringScript() const
+	    { return declaring_script; }
 
-	std::string GetFieldComments(const std::string& field) const;
+	std::string GetDeclaringScriptForField(const std::string& field) const;
+
+	std::vector<std::string> GetComments() const;
+
+	std::vector<std::string> GetFieldComments(const std::string& field) const;
+
+	struct Redefinition {
+		std::string from_script;
+		std::string new_val_desc;
+		std::vector<std::string> comments;
+	};
+
+	std::list<Redefinition> GetRedefs(const std::string& from_script) const;
 
 private:
 
-	// TODO
-	time_t DoGetModificationTime() const
-		{ return 0; }
+	time_t DoGetModificationTime() const;
 
 	std::string DoName() const
 		{ return id->Name(); }
 
-	struct Redefinition {
-		std::string from_script;
-		string new_val_desc;
-		std::vector<std::string> comments;
-	};
+	std::string DoReStructuredText(bool roles_only) const;
 
 	struct RecordField {
 		~RecordField()
@@ -121,17 +138,18 @@ private:
 
 	std::vector<std::string> comments;
 	ID* id;
-	string initial_val_desc;
+	std::string initial_val_desc;
 	redef_list redefs;
 	record_field_map fields;
 	RecordField* last_field_seen;
+	ScriptDocument* declaring_script;
 };
 
 class ScriptDocument : public Document {
 
 public:
 
-	ScriptDocument(const std::string& name);
+	ScriptDocument(const std::string& name, const std::string& path);
 
 	void AddComment(const std::string& comment)
 		{ comments.push_back(comment); }
@@ -145,32 +163,44 @@ public:
 	void AddIdentifierDoc(IdentifierDocument* doc);
 
 	void AddRedef(IdentifierDocument* doc)
-		{ redefs.push_back(doc); }
+		{ redefs.insert(doc); }
 
 	bool IsPkgLoader() const
 		{ return is_pkg_loader; }
 
-	std::string GetComments() const;
+	std::vector<std::string> GetComments() const;
 
 private:
 
-	typedef std::map<std::string, IdentifierDocument*> IdentifierDocMap;
-	typedef std::list<IdentifierDocument*> IdentifierDocList;
+	typedef std::map<std::string, IdentifierDocument*> id_doc_map;
+	typedef std::list<IdentifierDocument*> id_doc_list;
+	typedef std::set<std::string> string_set;
+	typedef std::set<IdentifierDocument*> doc_set;
 
-	// TODO
-	time_t DoGetModificationTime() const
-		{ return 0; }
+	time_t DoGetModificationTime() const;
 
 	std::string DoName() const
 		{ return name; }
 
+	std::string DoReStructuredText(bool roles_only) const;
+
+	void DoInitPostScript() /* override */;
+
 	std::string name;
+	std::string path;
 	bool is_pkg_loader;
-	std::set<std::string> dependencies;
-	std::set<std::string> module_usages;
+	string_set dependencies;
+	string_set module_usages;
 	std::vector<std::string> comments;
-	IdentifierDocMap identifier_docs;
-	IdentifierDocList redefs;
+	id_doc_map identifier_docs;
+	id_doc_list options;
+	id_doc_list constants;
+	id_doc_list state_vars;
+	id_doc_list types;
+	id_doc_list events;
+	id_doc_list hooks;
+	id_doc_list functions;
+	doc_set redefs;
 };
 
 

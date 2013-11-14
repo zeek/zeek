@@ -117,16 +117,17 @@ BroType* BroType::Clone() const
 	sinfo.cache = false;
 
 	this->Serialize(&sinfo);
-	char* data;
+	char* data = 0;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
 
 	UnserialInfo uinfo(&ss);
 	uinfo.cache = false;
-	BroType* rval = this->Unserialize(&uinfo);
+
+	BroType* rval = this->Unserialize(&uinfo, false);
+	assert(rval != this);
 
 	delete [] data;
-
 	return rval;
 	}
 
@@ -173,11 +174,9 @@ void BroType::Describe(ODesc* d) const
 		}
 	}
 
-void BroType::DescribeReST(ODesc* d) const
+void BroType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(":bro:type:`");
-	d->Add(type_name(Tag()));
-	d->Add("`");
+	d->Add(fmt(":bro:type:`%s`", type_name(Tag())));
 	}
 
 void BroType::SetError()
@@ -200,7 +199,7 @@ bool BroType::Serialize(SerialInfo* info) const
 	return ret;
 	}
 
-BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
+BroType* BroType::Unserialize(UnserialInfo* info, bool use_existing)
 	{
 	// To avoid external Broccoli clients needing to always send full type
 	// objects, we allow them to give us only the name of a type. To
@@ -234,8 +233,8 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 
 	BroType* t = (BroType*) SerialObj::Unserialize(info, SER_BRO_TYPE);
 
-	if ( ! t )
-		return 0;
+	if ( ! t || ! use_existing )
+		return t;
 
 	if ( ! t->name.empty() )
 		{
@@ -458,7 +457,7 @@ void IndexType::Describe(ODesc* d) const
 		}
 	}
 
-void IndexType::DescribeReST(ODesc* d) const
+void IndexType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":bro:type:`");
 
@@ -484,7 +483,7 @@ void IndexType::DescribeReST(ODesc* d) const
 			d->Add("`");
 			}
 		else
-			t->DescribeReST(d);
+			t->DescribeReST(d, roles_only);
 		}
 
 	d->Add("]");
@@ -500,7 +499,7 @@ void IndexType::DescribeReST(ODesc* d) const
 			d->Add("`");
 			}
 		else
-			yield_type->DescribeReST(d);
+			yield_type->DescribeReST(d, roles_only);
 		}
 	}
 
@@ -775,7 +774,7 @@ void FuncType::Describe(ODesc* d) const
 		}
 	}
 
-void FuncType::DescribeReST(ODesc* d) const
+void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":bro:type:`");
 	d->Add(FlavorString());
@@ -795,7 +794,7 @@ void FuncType::DescribeReST(ODesc* d) const
 			d->Add("`");
 			}
 		else
-			yield->DescribeReST(d);
+			yield->DescribeReST(d, roles_only);
 		}
 	}
 
@@ -927,7 +926,7 @@ TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
 	return t;
 	}
 
-void TypeDecl::DescribeReST(ODesc* d) const
+void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(id);
 	d->Add(": ");
@@ -939,7 +938,7 @@ void TypeDecl::DescribeReST(ODesc* d) const
 		d->Add("`");
 		}
 	else
-		type->DescribeReST(d);
+		type->DescribeReST(d, roles_only);
 
 	if ( attrs )
 		{
@@ -1037,9 +1036,13 @@ void RecordType::Describe(ODesc* d) const
 		}
 	}
 
-void RecordType::DescribeReST(ODesc* d) const
+void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":bro:type:`record`");
+
+	if ( num_fields == 0 )
+		return;
+
 	d->NL();
 	DescribeFieldsReST(d, false);
 	}
@@ -1136,7 +1139,53 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				}
 			}
 
-		FieldDecl(i)->DescribeReST(d);
+		const TypeDecl* td = FieldDecl(i);
+		td->DescribeReST(d);
+
+		if ( func_args )
+			continue;
+
+		using broxygen::IdentifierDocument;
+		IdentifierDocument* doc = broxygen_mgr->GetIdentifierDoc(GetName());
+
+		if ( ! doc )
+			{
+			reporter->InternalWarning("Failed to lookup record doc: %s",
+			                          GetName().c_str());
+			continue;
+			}
+
+		string field_from_script = doc->GetDeclaringScriptForField(td->id);
+		string type_from_script;
+
+		if ( doc->GetDeclaringScript() )
+			type_from_script = doc->GetDeclaringScript()->Name();
+
+		if ( ! field_from_script.empty() &&
+		     field_from_script != type_from_script )
+			{
+			d->PushIndent();
+			d->Add(fmt("(from ``redef`` in :doc:`%s`)",
+			           field_from_script.c_str()));
+			d->PopIndentNoNL();
+			}
+
+		vector<string> cmnts = doc->GetFieldComments(td->id);
+
+		if ( cmnts.empty() )
+			continue;
+
+		d->PushIndent();
+
+		for ( size_t i = 0; i < cmnts.size(); ++i )
+			{
+			if ( i > 0 )
+				d->NL();
+
+			d->Add(cmnts[i].c_str());
+			}
+
+		d->PopIndentNoNL();
 		}
 
 	if ( ! func_args )
@@ -1415,10 +1464,82 @@ const char* EnumType::Lookup(bro_int_t value)
 	return 0;
 	}
 
-void EnumType::DescribeReST(ODesc* d) const
+void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	// TODO: this probably goes away
 	d->Add(":bro:type:`enum`");
+
+	// Create temporary, reverse name map so that enums can be documented
+	// in ascending order of their actual integral value instead of by name.
+	typedef map< bro_int_t, const char* > RevNameMap;
+
+	RevNameMap rev;
+
+	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
+		rev[it->second] = it->first;
+
+	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it )
+		{
+		d->NL();
+		d->PushIndent();
+
+		if ( roles_only )
+			d->Add(fmt(":bro:enum:`%s`", it->second));
+		else
+			d->Add(fmt(".. bro:enum:: %s %s", it->second, GetName().c_str()));
+
+		using broxygen::IdentifierDocument;
+		IdentifierDocument* doc = broxygen_mgr->GetIdentifierDoc(it->second);
+
+		if ( ! doc )
+			{
+			reporter->InternalWarning("Enum %s documentation lookup failure",
+			                          it->second);
+			continue;
+			}
+
+		string enum_from_script;
+		string type_from_script;
+
+		if ( doc->GetDeclaringScript() )
+			enum_from_script = doc->GetDeclaringScript()->Name();
+
+		IdentifierDocument* type_doc = broxygen_mgr->GetIdentifierDoc(GetName());
+
+		if ( type_doc && type_doc->GetDeclaringScript() )
+			type_from_script = type_doc->GetDeclaringScript()->Name();
+
+		if ( ! enum_from_script.empty() &&
+		     enum_from_script != type_from_script )
+			{
+			d->NL();
+			d->PushIndent();
+			d->Add(fmt("(from ``redef`` in :doc:`%s`)",
+			           enum_from_script.c_str()));
+			d->PopIndentNoNL();
+			}
+
+		vector<string> cmnts = doc->GetComments();
+
+		if ( cmnts.empty() )
+			{
+			d->PopIndentNoNL();
+			continue;
+			}
+
+		d->NL();
+		d->PushIndent();
+
+		for ( size_t i = 0; i < cmnts.size(); ++i )
+			{
+			if ( i > 0 )
+				d->NL();
+
+			d->Add(cmnts[i].c_str());
+			}
+
+		d->PopIndentNoNL();
+		d->PopIndentNoNL();
+		}
 	}
 
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);

@@ -2,10 +2,11 @@
 #define BROXYGEN_CONFIGURATION_H
 
 #include "Document.h"
+#include "BroDoc.h"
 
 #include <string>
 #include <vector>
-#include <list>
+#include <map>
 
 namespace broxygen {
 
@@ -16,7 +17,8 @@ public:
 
 	typedef Target* (*factory_fn)(const std::string&, const std::string&);
 
-	virtual ~Target() { }
+	virtual ~Target()
+		{ }
 
 	void FindDependencies(const std::vector<Document*>& docs)
 		{ DoFindDependencies(docs); }
@@ -26,27 +28,47 @@ public:
 
 	bool MatchesPattern(Document* doc) const;
 
-	void AddDependency(Document* doc)
-		{ dependencies.push_back(doc); }
+	std::string Name() const
+		{ return name; }
+
+	std::string Pattern() const
+		{ return pattern; }
 
 protected:
 
-	Target(const std::string& arg_name, const std::string& arg_pattern)
-		: name(arg_name), pattern(arg_pattern)
-		{ }
-
-	std::string name;
-	std::string pattern;
-	std::list<Document*> dependencies;
+	Target(const std::string& arg_name, const std::string& arg_pattern);
 
 private:
 
 	virtual void DoFindDependencies(const std::vector<Document*>& docs) = 0;
 
 	virtual void DoGenerate() const = 0;
+
+	std::string name;
+	std::string pattern;
+	std::string prefix;
 };
 
-class ProtoAnalyzerTarget : public Target {
+class AnalyzerTarget : public Target {
+protected:
+
+	typedef void (*doc_creator_fn)(FILE*);
+
+	AnalyzerTarget(const std::string& name, const std::string& pattern,
+	               doc_creator_fn cb)
+		: Target(name, pattern), doc_creator_callback(cb)
+		{ }
+
+private:
+
+	void DoFindDependencies(const std::vector<Document*>& docs);
+
+	void DoGenerate() const;
+
+	doc_creator_fn doc_creator_callback;
+};
+
+class ProtoAnalyzerTarget : public AnalyzerTarget {
 public:
 
 	static Target* Instantiate(const std::string& name,
@@ -56,17 +78,11 @@ public:
 private:
 
 	ProtoAnalyzerTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern)
+		: AnalyzerTarget(name, pattern, &CreateProtoAnalyzerDoc)
 		{ }
-
-	void DoFindDependencies(const std::vector<Document*>& docs)
-		{ /* TODO */ }
-
-	void DoGenerate() const
-		{ /* TODO */ }
 };
 
-class FileAnalyzerTarget : public Target {
+class FileAnalyzerTarget : public AnalyzerTarget {
 public:
 
 	static Target* Instantiate(const std::string& name,
@@ -76,14 +92,8 @@ public:
 private:
 
 	FileAnalyzerTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern)
+		: AnalyzerTarget(name, pattern, &CreateFileAnalyzerDoc)
 		{ }
-
-	void DoFindDependencies(const std::vector<Document*>& docs)
-		{ /* TODO */ }
-
-	void DoGenerate() const
-		{ /* TODO */ }
 };
 
 class PackageTarget : public Target {
@@ -96,14 +106,37 @@ public:
 private:
 
 	PackageTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern)
+		: Target(name, pattern), pkg_deps(), script_deps(), pkg_manifest()
 		{ }
 
-	void DoFindDependencies(const std::vector<Document*>& docs)
-		{ /* TODO */ }
+	void DoFindDependencies(const std::vector<Document*>& docs);
 
-	void DoGenerate() const
-		{ /* TODO */ }
+	void DoGenerate() const;
+
+	std::vector<PackageDocument*> pkg_deps;
+	std::vector<ScriptDocument*> script_deps;
+	typedef std::map<PackageDocument*,std::vector<ScriptDocument*> > manifest_t;
+	manifest_t pkg_manifest;
+};
+
+class PackageIndexTarget : public Target {
+public:
+
+	static Target* Instantiate(const std::string& name,
+	                           const std::string& pattern)
+		{ return new PackageIndexTarget(name, pattern); }
+
+private:
+
+	PackageIndexTarget(const std::string& name, const std::string& pattern)
+		: Target(name, pattern), pkg_deps()
+		{ }
+
+	void DoFindDependencies(const std::vector<Document*>& docs);
+
+	void DoGenerate() const;
+
+	std::vector<PackageDocument*> pkg_deps;
 };
 
 class ScriptTarget : public Target {
@@ -113,17 +146,51 @@ public:
 	                           const std::string& pattern)
 		{ return new ScriptTarget(name, pattern); }
 
-private:
+protected:
 
 	ScriptTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern)
+		: Target(name, pattern), script_deps()
 		{ }
 
-	void DoFindDependencies(const std::vector<Document*>& docs)
-		{ /* TODO */ }
+	std::vector<ScriptDocument*> script_deps;
 
-	void DoGenerate() const
-		{ /* TODO */ }
+private:
+
+	void DoFindDependencies(const std::vector<Document*>& docs);
+
+	void DoGenerate() const;
+};
+
+class ScriptSummaryTarget : public ScriptTarget {
+public:
+
+	static Target* Instantiate(const std::string& name,
+	                           const std::string& pattern)
+		{ return new ScriptSummaryTarget(name, pattern); }
+
+private:
+
+	ScriptSummaryTarget(const std::string& name, const std::string& pattern)
+		: ScriptTarget(name, pattern)
+		{ }
+
+	void DoGenerate() const /* override */;
+};
+
+class ScriptIndexTarget : public ScriptTarget {
+public:
+
+	static Target* Instantiate(const std::string& name,
+	                           const std::string& pattern)
+		{ return new ScriptIndexTarget(name, pattern); }
+
+private:
+
+	ScriptIndexTarget(const std::string& name, const std::string& pattern)
+		: ScriptTarget(name, pattern)
+		{ }
+
+	void DoGenerate() const /* override */;
 };
 
 class IdentifierTarget : public Target {
@@ -136,13 +203,14 @@ public:
 private:
 
 	IdentifierTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern)
+		: Target(name, pattern), id_deps()
 		{ }
 
 	void DoFindDependencies(const std::vector<Document*>& docs);
 
-	void DoGenerate() const
-		{ /* TODO */ }
+	void DoGenerate() const;
+
+	std::vector<IdentifierDocument*> id_deps;
 };
 
 class Config {
@@ -156,11 +224,12 @@ public:
 
 	void GenerateDocs() const;
 
+	time_t GetModificationTime() const;
+
 private:
 
-	typedef std::list<Target*> target_list;
-
-	target_list targets;
+	std::string file;
+	std::vector<Target*> targets;
 };
 
 

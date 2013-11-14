@@ -590,6 +590,33 @@ const char* fmt_access_time(double t)
 	return buf;
 	}
 
+bool ensure_intermediate_dirs(const char* dirname)
+	{
+	if ( ! dirname || strlen(dirname) == 0 )
+		return false;
+
+	bool absolute = dirname[0] == '/';
+	string path = normalize_path(dirname);
+
+	vector<string> path_components;
+	tokenize_string(path, "/", &path_components);
+
+	string current_dir;
+
+	for ( size_t i = 0; i < path_components.size(); ++i )
+		{
+		if ( i > 0 || absolute )
+			current_dir += "/";
+
+		current_dir += path_components[i];
+
+		if ( ! ensure_dir(current_dir.c_str()) )
+			return false;
+		}
+
+	return true;
+	}
+
 bool ensure_dir(const char *dirname)
 	{
 	struct stat st;
@@ -974,6 +1001,22 @@ void SafePathOp::DoFunc(PathOpFn fn, const string& path, bool error_aborts)
 		}
 
 	delete [] tmp;
+	}
+
+string implode_string_vector(const std::vector<std::string>& v,
+                             const std::string& delim)
+	{
+	string rval;
+
+	for ( size_t i = 0; i < v.size(); ++i )
+		{
+		if ( i > 0 )
+			rval += delim;
+
+		rval += v[i];
+		}
+
+	return rval;
 	}
 
 string flatten_script_name(const string& name, const string& prefix)

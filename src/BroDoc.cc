@@ -12,6 +12,7 @@
 #include "analyzer/Manager.h"
 #include "analyzer/Component.h"
 #include "file_analysis/Manager.h"
+#include "broxygen/Manager.h"
 
 BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	{
@@ -565,33 +566,28 @@ static void WritePluginBifItems(FILE* f, const plugin::Plugin* p,
 
 	for ( it = bifitems.begin(); it != bifitems.end(); ++it )
 		{
-		BroDocObj* o = doc_ids[it->GetID()];
+		broxygen::IdentifierDocument* doc = broxygen_mgr->GetIdentifierDoc(
+		                                        it->GetID());
 
-		if ( o )
-			o->WriteReST(f);
+		if ( doc )
+			fprintf(f, "%s\n\n", doc->ReStructuredText().c_str());
 		else
-			reporter->Warning("No docs for ID: %s\n", it->GetID());
+			reporter->InternalWarning("Broxygen ID lookup failed: %s\n",
+			                          it->GetID());
 		}
 	}
 
-static void WriteAnalyzerTagDefn(FILE* f, EnumType* e, const string& module)
+static void WriteAnalyzerTagDefn(FILE* f, const string& module)
 	{
-	/* TODO
-	string tag_id= module + "::Tag";
-	e = new CommentedEnumType(e);
-	e->SetTypeID(copy_string(tag_id.c_str()));
+	string tag_id = module + "::Tag";
 
-	ID* dummy_id = new ID(tag_id.c_str(), SCOPE_GLOBAL, true);
-	dummy_id->SetType(e);
-	dummy_id->MakeType();
+	broxygen::IdentifierDocument* doc = broxygen_mgr->GetIdentifierDoc(tag_id);
 
-	list<string>* r = new list<string>();
-	r->push_back("Unique identifiers for analyzers.");
+	if ( ! doc )
+		reporter->InternalError("Broxygen failed analyzer tag lookup: %s",
+		                        tag_id.c_str());
 
-	BroDocObj bdo(dummy_id, r, true);
-
-	bdo.WriteReST(f);
-	*/
+	fprintf(f, "%s\n", doc->ReStructuredText().c_str());
 	}
 
 static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,
@@ -610,16 +606,14 @@ static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,
 	return true;
 	}
 
-void CreateProtoAnalyzerDoc(const char* filename)
+void CreateProtoAnalyzerDoc(FILE* f)
 	{
-	FILE* f = fopen(filename, "w");
-
 	fprintf(f, "Protocol Analyzers\n");
-	fprintf(f, "==================\n\n\n");
+	fprintf(f, "==================\n\n");
 	fprintf(f, ".. contents::\n");
 	fprintf(f, "     :depth: 1\n\n");
 
-	WriteAnalyzerTagDefn(f, analyzer_mgr->GetTagEnumType(), "Analyzer");
+	WriteAnalyzerTagDefn(f, "Analyzer");
 
 	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
 	plugin::Manager::plugin_list::const_iterator it;
@@ -642,16 +636,14 @@ void CreateProtoAnalyzerDoc(const char* filename)
 	fclose(f);
 	}
 
-void CreateFileAnalyzerDoc(const char* filename)
+void CreateFileAnalyzerDoc(FILE* f)
 	{
-	FILE* f = fopen(filename, "w");
-
 	fprintf(f, "File Analyzers\n");
 	fprintf(f, "==============\n\n");
 	fprintf(f, ".. contents::\n");
 	fprintf(f, "     :depth: 1\n\n");
 
-	WriteAnalyzerTagDefn(f, file_mgr->GetTagEnumType(), "Files");
+	WriteAnalyzerTagDefn(f, "Files");
 
 	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
 	plugin::Manager::plugin_list::const_iterator it;

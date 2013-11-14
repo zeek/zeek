@@ -145,7 +145,8 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 }
 
 ##.* {
-	broxygen_mgr->PreComment(yytext + 2);
+	if ( yytext[2] != '#' )
+		broxygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;

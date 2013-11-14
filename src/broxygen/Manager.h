@@ -3,6 +3,8 @@
 
 #include "Configuration.h"
 #include "Document.h"
+
+#include "Reporter.h"
 #include "ID.h"
 #include "Type.h"
 #include "Val.h"
@@ -10,6 +12,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <ctime>
+#include <sys/stat.h>
 
 namespace broxygen {
 
@@ -32,7 +36,7 @@ class Manager {
 
 public:
 
-	Manager(const std::string& config);
+	Manager(const std::string& config, const std::string& bro_command);
 
 	~Manager();
 
@@ -50,8 +54,6 @@ public:
 
 	void StartType(ID* id);
 
-	void StartRedef(ID* id);
-
 	void Identifier(ID* id);
 
 	void RecordField(const ID* id, const TypeDecl* field,
@@ -66,13 +68,20 @@ public:
 	void PostComment(const std::string& comment,
 	                 const std::string& identifier_hint = "");
 
-	StringVal* GetIdentifierComments(const std::string& name) const;
+	std::string GetEnumTypeName(const std::string& id) const;
 
-	StringVal* GetScriptComments(const std::string& name) const;
+	IdentifierDocument* GetIdentifierDoc(const std::string& name) const
+	    { return identifiers.GetDocument(name); }
 
-	StringVal* GetPackageReadme(const std::string& name) const;
+	ScriptDocument* GetScriptDoc(const std::string& name) const
+	    { return scripts.GetDocument(name); }
 
-	StringVal* GetRecordFieldComments(const std::string& name) const;
+	PackageDocument* GetPackageDoc(const std::string& name) const
+	    { return packages.GetDocument(name); }
+
+	template <class T>
+	bool IsUpToDate(const std::string& target_file,
+	                const std::vector<T*>& dependencies) const;
 
 private:
 
@@ -90,8 +99,39 @@ private:
 	std::vector<Document*> all_docs;
 	IdentifierDocument* last_identifier_seen;
 	IdentifierDocument* incomplete_type;
+	std::map<std::string, std::string> enum_mappings;
 	Config config;
+	time_t bro_mtime;
 };
+
+template <class T>
+bool Manager::IsUpToDate(const string& target_file,
+                         const vector<T*>& dependencies) const
+	{
+	struct stat s;
+
+	if ( stat(target_file.c_str(), &s) < 0 )
+		{
+		if ( errno == ENOENT )
+			// Doesn't exist.
+			return false;
+
+		reporter->InternalError("Broxygen failed to stat target file '%s': %s",
+		                        target_file.c_str(), strerror(errno));
+		}
+
+	if ( difftime(bro_mtime, s.st_mtime) > 0 )
+		return false;
+
+	if ( difftime(config.GetModificationTime(), s.st_mtime) > 0 )
+		return false;
+
+	for ( size_t i = 0; i < dependencies.size(); ++i )
+		if ( difftime(dependencies[i]->GetModificationTime(), s.st_mtime) > 0 )
+			return false;
+
+	return true;
+	}
 
 } // namespace broxygen
 

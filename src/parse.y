@@ -1022,14 +1022,15 @@ decl:
 			broxygen_mgr->Redef($2, ::filename);
 			}
 
-	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
-		'{' { parser_redef_enum($3); } enum_body '}' ';'
+	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
+			{ parser_redef_enum($3); broxygen_mgr->Redef($3, ::filename); }
+		enum_body '}' ';'
 			{
 			// Broxygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; broxygen_mgr->StartRedef($3); }
+			{ cur_decl_type_id = $3; broxygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
 			{ ++in_record; }
 		type_decl_list

@@ -409,14 +409,14 @@ private:
 
 /**
  * Writes out plugin index documentation for all analyzer plugins.
- * @param filename the name of the file to write.
+ * @param f an open file stream to write docs into.
  */
-void CreateProtoAnalyzerDoc(const char* filename);
+void CreateProtoAnalyzerDoc(FILE* f);
 
 /**
  * Writes out plugin index documentation for all file analyzer plugins.
- * @param filename the name of the file to write.
+ * @param f an open file stream to write docs into.
  */
-void CreateFileAnalyzerDoc(const char* filename);
+void CreateFileAnalyzerDoc(FILE* f);
 
 #endif

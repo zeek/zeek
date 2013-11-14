@@ -150,6 +150,7 @@ extern const char* fmt(const char* format, ...)
 	myattribute((format (printf, 1, 2)));
 extern const char* fmt_access_time(double time);
 
+extern bool ensure_intermediate_dirs(const char* dirname);
 extern bool ensure_dir(const char *dirname);
 
 // Returns true if path exists and is a directory.
@@ -250,6 +251,9 @@ public:
 	SafeBasename(const std::string& path, bool error_aborts = true)
 		: SafePathOp(&basename, path, error_aborts) { }
 };
+
+std::string implode_string_vector(const std::vector<std::string>& v,
+                                  const std::string& delim = "\n");
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.

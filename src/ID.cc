@@ -14,6 +14,7 @@
 #include "PersistenceSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
+#include "broxygen/Manager.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -618,7 +619,6 @@ void ID::DescribeExtended(ODesc* d) const
 
 void ID::DescribeReSTShort(ODesc* d) const
 	{
-	/* TODO
 	if ( is_type )
 		d->Add(":bro:type:`");
 	else
@@ -632,8 +632,8 @@ void ID::DescribeReSTShort(ODesc* d) const
 		d->Add(": ");
 		d->Add(":bro:type:`");
 
-		if ( ! is_type && type->GetTypeID() )
-			d->Add(type->GetTypeID());
+		if ( ! is_type && ! type->GetName().empty() )
+			d->Add(type->GetName().c_str());
 		else
 			{
 			TypeTag t = type->Tag();
@@ -644,14 +644,14 @@ void ID::DescribeReSTShort(ODesc* d) const
 				break;
 
 			case TYPE_FUNC:
-				d->Add(type->AsFuncType()->FlavorString());
+				d->Add(type->AsFuncType()->FlavorString().c_str());
 				break;
 
 			case TYPE_ENUM:
 				if ( is_type )
 					d->Add(type_name(t));
 				else
-					d->Add(type->AsEnumType()->Name().c_str());
+					d->Add(broxygen_mgr->GetEnumTypeName(Name()).c_str());
 				break;
 
 			default:
@@ -668,12 +668,11 @@ void ID::DescribeReSTShort(ODesc* d) const
 		d->SP();
 		attrs->DescribeReST(d);
 		}
-		*/
 	}
 
-void ID::DescribeReST(ODesc* d, bool is_role) const
+void ID::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	if ( is_role )
+	if ( roles_only )
 		{
 		if ( is_type )
 			d->Add(":bro:type:`");
@@ -705,7 +704,7 @@ void ID::DescribeReST(ODesc* d, bool is_role) const
 			d->Add("`");
 			}
 		else
-			type->DescribeReST(d);
+			type->DescribeReST(d, roles_only);
 
 		d->NL();
 		}

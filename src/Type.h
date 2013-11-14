@@ -227,12 +227,12 @@ public:
 	BroType* Ref()		{ ::Ref(this); return this; }
 
 	virtual void Describe(ODesc* d) const;
-	virtual void DescribeReST(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	virtual unsigned MemoryAllocation() const;
 
 	bool Serialize(SerialInfo* info) const;
-	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
+	static BroType* Unserialize(UnserialInfo* info, bool use_existing = true);
 
 	void SetName(const string& arg_name) { name = arg_name; }
 	string GetName() const { return name; }
@@ -305,7 +305,7 @@ public:
 	BroType* YieldType();
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
@@ -379,7 +379,7 @@ public:
 	TypeList* ArgTypes() const	{ return arg_types; }
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
@@ -416,7 +416,7 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static TypeDecl* Unserialize(UnserialInfo* info);
 
-	virtual void DescribeReST(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	BroType* type;
 	Attributes* attrs;
@@ -454,7 +454,7 @@ public:
 	const char* AddFields(type_decl_list* types, attr_list* attr);
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
@@ -527,7 +527,7 @@ public:
 	bro_int_t Lookup(const string& module_name, const char* name);
 	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	DECLARE_SERIAL(EnumType)

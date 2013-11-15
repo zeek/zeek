@@ -1,4 +1,8 @@
 
+2.2-6 | 2013-11-15 07:05:15 -0800
+
+  * Make "install-example-configs" target use DESTDIR. (Jon Siwek)
+    
 2.2-5 | 2013-11-11 13:47:54 -0800
 
   * Fix the irc_reply event for certain server message types. (Seth

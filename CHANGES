@@ -1,4 +1,9 @@
 
+2.2-9 | 2013-11-18 14:03:21 -0800
+
+  * Update local.bro for Bro >= 2.2. The commented out Notice::policy
+    example didn't work anymore. (Daniel Thayer)
+
 2.2-6 | 2013-11-15 07:05:15 -0800
 
   * Make "install-example-configs" target use DESTDIR. (Jon Siwek)

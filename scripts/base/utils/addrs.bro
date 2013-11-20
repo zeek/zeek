@@ -1,4 +1,4 @@
-##! Functions for parsing and manipulating IP addresses.
+##! Functions for parsing and manipulating IP and MAC addresses.
 
 # Regular expressions for matching IP addresses in strings.
 const ipv4_addr_regex = /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/;
@@ -118,4 +118,28 @@ function addr_to_uri(a: addr): string
 		return fmt("%s", a);
 	else
 		return fmt("[%s]", a);
+	}
+
+## Given a string, extracts the hex digits and returns a MAC address in the
+## format: 00:a0:32:d7:81:8f. If the string doesn't contain 12 or 16 hex digits,
+## an empty string is returned.
+##
+## a: the string to normalize
+##
+## Returns: a normalized MAC address, or an empty string in the case of an error.
+function normalize_mac(a: string): string
+	{
+	local result = to_lower(gsub(a, /[^A-Fa-f0-9]/, ""));
+	local octets: string_vec;
+	if ( |result| == 12 )
+		{
+		octets = str_split(result, vector(2, 4, 6, 8, 10));
+		return fmt("%s:%s:%s:%s:%s:%s", octets[1], octets[2], octets[3], octets[4], octets[5], octets[6]);
+		}
+	if ( |result| == 16 )
+		{
+		octets = str_split(result, vector(2, 4, 6, 8, 10, 12, 14));
+		return fmt("%s:%s:%s:%s:%s:%s:%s:%s", octets[1], octets[2], octets[3], octets[4], octets[5], octets[6], octets[7], octets[8]);
+		}
+	return "";
 	}

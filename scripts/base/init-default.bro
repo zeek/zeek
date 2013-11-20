@@ -47,6 +47,7 @@
 @load base/protocols/irc
 @load base/protocols/modbus
 @load base/protocols/pop3
+@load base/protocols/radius
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh

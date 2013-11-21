@@ -1,4 +1,7 @@
 
+@load base/frameworks/cluster
+@load ./main
+
 module PacketFilter;
 
 event remote_connection_handshake_done(p: event_peer) &priority=3

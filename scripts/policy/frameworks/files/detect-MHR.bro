@@ -23,6 +23,11 @@ export {
 	                         /application\/jar/ |
 	                         /video\/mp4/ &redef;
 
+	## The Match notice has a sub message with a URL where you can get more
+	## information about the file. The %s will be replaced with the SHA-1
+	## hash of the file.
+	const match_sub_url = "https://www.virustotal.com/en/search/?query=%s" &redef;
+
 	## The malware hash registry runs each malware sample through several
 	## A/V engines.  Team Cymru returns a percentage to indicate how
 	## many A/V engines flagged the sample as malicious. This threshold
@@ -48,7 +53,7 @@ event file_hash(f: fa_file, kind: string, hash: string)
 				if ( mhr_detect_rate >= notice_threshold )
 					{
 					local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
-					local virustotal_url = fmt("https://www.virustotal.com/en/file/%s/analysis/", hash);
+					local virustotal_url = fmt(match_sub_url, hash);
 					NOTICE([$note=Match, $msg=message, $sub=virustotal_url, $f=f]);
 					}
 				}

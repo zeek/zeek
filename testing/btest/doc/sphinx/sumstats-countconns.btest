@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/workshop_2011_browse.trace ${DOC_ROOT}/frameworks/sumstats-countconns.bro

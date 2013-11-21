@@ -308,7 +308,7 @@ int SQLite::AddParams(Value* val, int pos)
 				if ( j > 0 )
 					desc.AddRaw(set_separator);
 
-				io->Describe(&desc, val->val.set_val.vals[j], fields[pos]->name);
+				io->Describe(&desc, val->val.set_val.vals[j], fields[pos-1]->name);
 				}
 
 		desc.RemoveEscapeSequence(set_separator);
@@ -330,7 +330,7 @@ int SQLite::AddParams(Value* val, int pos)
 				if ( j > 0 )
 					desc.AddRaw(set_separator);
 
-				io->Describe(&desc, val->val.vector_val.vals[j], fields[pos]->name);
+				io->Describe(&desc, val->val.vector_val.vals[j], fields[pos-1]->name);
 				}
 
 		desc.RemoveEscapeSequence(set_separator);

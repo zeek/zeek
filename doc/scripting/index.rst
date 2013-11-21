@@ -66,7 +66,7 @@ are ensuring the Files framework, the Notice framework and the script to hash al
 been loaded by Bro.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 10-31
+   :lines: 10-36
 
 The export section redefines an enumerable constant that describes the
 type of notice we will generate with the Notice framework.  Bro
@@ -87,7 +87,7 @@ Up until this point, the script has merely done some basic setup.  With the next
 the script starts to define instructions to take in a given event.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 33-57
+   :lines: 38-62
 
 The workhorse of the script is contained in the event handler for
 ``file_hash``.  The :bro:see:`file_hash` event allows scripts to access

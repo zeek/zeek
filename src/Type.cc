@@ -1165,9 +1165,9 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		     field_from_script != type_from_script )
 			{
 			d->PushIndent();
-			d->Add(fmt("(from ``redef`` in :doc:`%s`)",
+			d->Add(fmt("(from ``redef`` in :doc:`/scripts/%s`)",
 			           field_from_script.c_str()));
-			d->PopIndentNoNL();
+			d->PopIndent();
 			}
 
 		vector<string> cmnts = doc->GetFieldComments(td->id);
@@ -1513,9 +1513,9 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 			{
 			d->NL();
 			d->PushIndent();
-			d->Add(fmt("(from ``redef`` in :doc:`%s`)",
+			d->Add(fmt("(from ``redef`` in :doc:`/scripts/%s`)",
 			           enum_from_script.c_str()));
-			d->PopIndentNoNL();
+			d->PopIndent();
 			}
 
 		vector<string> cmnts = doc->GetComments();

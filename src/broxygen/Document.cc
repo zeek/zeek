@@ -116,7 +116,7 @@ PackageDocument::PackageDocument(const string& arg_name)
 
 string PackageDocument::DoReStructuredText(bool roles_only) const
 	{
-	string rval = fmt(":doc:`%s <%s/index>`\n\n", pkg_name.c_str(),
+	string rval = fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(),
 	                  pkg_name.c_str());
 
 	for ( size_t i = 0; i < readme.size(); ++i )
@@ -629,15 +629,20 @@ string ScriptDocument::DoReStructuredText(bool roles_only) const
 			if ( it != dependencies.begin() )
 				rval += ", ";
 
-			rval += fmt(":doc:`%s </scripts/%s>`", it->c_str(), it->c_str());
-			// TODO linking to packages is a bit different?
+			string path = find_file(*it, bro_path(), "bro");
+			string doc = *it;
+
+			if ( ! path.empty() && is_dir(path.c_str()) )
+				// Reference the package.
+				doc += "/index";
+
+			rval += fmt(":doc:`%s </scripts/%s>`", it->c_str(), doc.c_str());
 			}
 
 		rval += "\n";
 		}
 
-	// TODO: make this an absolute path?
-	rval += fmt(":Source File: :download:`%s`\n", name.c_str());
+	rval += fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
 	rval += "\n";
 	rval += make_heading("Summary", '~');
 	rval += make_summary("Options", '#', '=', options);

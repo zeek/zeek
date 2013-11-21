@@ -360,7 +360,7 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ##
 ## .. note::
 ##
-##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss` that uses
+##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that uses
 ##    this event to estimate packet loss and report when a predefined threshold
 ##    is exceeded.
 event gap_report%(dt: interval, info: gap_info%);

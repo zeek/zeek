@@ -104,7 +104,7 @@ code like this to your ``local.bro``:
         }
 
 Bro's DataSeries writer comes with a few tuning options, see
-:doc:`/scripts/base/frameworks/logging/writers/dataseries`.
+:doc:`/scripts/base/frameworks/logging/writers/dataseries.bro`.
 
 Working with DataSeries
 =======================

@@ -146,6 +146,9 @@ public:
 	                           const std::string& pattern)
 		{ return new ScriptTarget(name, pattern); }
 
+	~ScriptTarget()
+		{ for ( size_t i = 0; i < pkg_deps.size(); ++i ) delete pkg_deps[i]; }
+
 protected:
 
 	ScriptTarget(const std::string& name, const std::string& pattern)
@@ -159,6 +162,11 @@ private:
 	void DoFindDependencies(const std::vector<Document*>& docs);
 
 	void DoGenerate() const;
+
+	bool IsDir() const
+		{ return Name()[Name().size() - 1] == '/'; }
+
+	std::vector<Target*> pkg_deps;
 };
 
 class ScriptSummaryTarget : public ScriptTarget {

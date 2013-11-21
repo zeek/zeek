@@ -9,7 +9,10 @@
 #include <algorithm>
 #include <map>
 #include <cstdio>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <fts.h>
+#include <unistd.h>
 
 using namespace broxygen;
 using namespace std;
@@ -160,24 +163,38 @@ void PackageTarget::DoFindDependencies(const vector<Document*>& docs)
 
 void PackageTarget::DoGenerate() const
 	{
-	if ( broxygen_mgr->IsUpToDate(Name(), script_deps) )
+	if ( broxygen_mgr->IsUpToDate(Name(), script_deps) &&
+	     broxygen_mgr->IsUpToDate(Name(), pkg_deps) )
 		return;
 
 	TargetFile file(Name());
 
+	fprintf(file.f, ":orphan:\n\n");
+
 	for ( manifest_t::const_iterator it = pkg_manifest.begin();
 	      it != pkg_manifest.end(); ++it )
 		{
-		fprintf(file.f, "Package: %s\n\n", it->first->Name().c_str());
+		string header = fmt("Package: %s", it->first->Name().c_str());
+		header += "\n" + string(header.size(), '=');
+
+		fprintf(file.f, "%s\n\n", header.c_str());
+
+		vector<string> readme = it->first->GetReadme();
+
+		for ( size_t i = 0; i < readme.size(); ++i )
+			fprintf(file.f, "%s\n", readme[i].c_str());
+
+		fprintf(file.f, "\n");
 
 		for ( size_t i = 0; i < it->second.size(); ++i )
 			{
-			fprintf(file.f, "   :doc:`%s`\n", it->second[i]->Name().c_str());
+			fprintf(file.f, ":doc:`/scripts/%s`\n",
+			        it->second[i]->Name().c_str());
 
 			vector<string> cmnts = it->second[i]->GetComments();
 
 			for ( size_t j = 0; j < cmnts.size(); ++j )
-				fprintf(file.f, "      %s\n", cmnts[j].c_str());
+				fprintf(file.f, "   %s\n", cmnts[j].c_str());
 
 			fprintf(file.f, "\n");
 			}
@@ -211,25 +228,82 @@ void ScriptTarget::DoFindDependencies(const vector<Document*>& docs)
 	if ( script_deps.empty() )
 		reporter->FatalError("No match for Broxygen target '%s' pattern '%s'",
 		                     Name().c_str(), Pattern().c_str());
+
+	if ( ! IsDir() )
+		return;
+
+	for ( size_t i = 0; i < script_deps.size(); ++i )
+		{
+		if ( SafeBasename(script_deps[i]->Name()).result == PACKAGE_LOADER )
+			{
+			string pkg_dir = SafeDirname(script_deps[i]->Name()).result;
+			string target_file = Name() + pkg_dir + "/index.rst";
+			Target* t = PackageTarget::Instantiate(target_file, pkg_dir);
+			t->FindDependencies(docs);
+			pkg_deps.push_back(t);
+			}
+		}
+	}
+
+vector<string> dir_contents_recursive(string dir)
+	{
+	vector<string> rval;
+	struct stat st;
+
+	if ( stat(dir.c_str(), &st) < 0 && errno == ENOENT )
+		return rval;
+
+	while ( dir[dir.size() - 1] == '/' )
+		dir.erase(dir.size() - 1, 1);
+
+	char* dir_copy = copy_string(dir.c_str());
+	char** scan_path = new char*[2];
+	scan_path[0] = dir_copy;
+	scan_path[1] = 0;
+
+	FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
+
+	if ( ! fts )
+		{
+		reporter->Error("fts_open failure: %s", strerror(errno));
+		delete [] scan_path;
+		delete [] dir_copy;
+		return rval;
+		}
+
+	FTSENT* n;
+
+	while ( (n = fts_read(fts)) )
+		{
+		if ( n->fts_info & FTS_F )
+			rval.push_back(n->fts_path);
+		}
+
+	if ( errno )
+		reporter->Error("fts_read failure: %s", strerror(errno));
+
+	if ( fts_close(fts) < 0 )
+		reporter->Error("fts_close failure: %s", strerror(errno));
+
+	delete [] scan_path;
+	delete [] dir_copy;
+	return rval;
 	}
 
 void ScriptTarget::DoGenerate() const
     {
-	if ( Name()[Name().size() - 1] == '/' )
+	if ( IsDir() )
 		{
 		// Target name is a dir, matching scripts are written within that dir
 		// with a dir tree that parallels the script's BROPATH location.
 
+		set<string> targets;
+		vector<string> dir_contents = dir_contents_recursive(Name());
+
 		for ( size_t i = 0; i < script_deps.size(); ++i )
 			{
-			string target_filename = Name() + script_deps[i]->Name();
-			size_t pos = target_filename.rfind(".bro");
-
-			if ( pos == target_filename.size() - 4 )
-				target_filename.replace(pos, 4, ".rst");
-			else
-				target_filename += ".rst";
-
+			string target_filename = Name() + script_deps[i]->Name() + ".rst";
+			targets.insert(target_filename);
 			vector<ScriptDocument*> dep;
 			dep.push_back(script_deps[i]);
 
@@ -241,9 +315,26 @@ void ScriptTarget::DoGenerate() const
 			fprintf(file.f, "%s\n", script_deps[i]->ReStructuredText().c_str());
 			}
 
-		// TODO: could possibly take inventory of files in the dir beforehand,
-		// track all files written, then compare afterwards in order to remove
-		// stale files.
+		for ( size_t i = 0; i < pkg_deps.size(); ++i )
+			{
+			targets.insert(pkg_deps[i]->Name());
+			pkg_deps[i]->Generate();
+			}
+
+		for ( size_t i = 0; i < dir_contents.size(); ++i )
+			{
+			string f = dir_contents[i];
+
+			if ( targets.find(f) != targets.end() )
+				continue;
+
+			if ( unlink(f.c_str()) < 0 )
+				reporter->Warning("Failed to unlink %s: %s", f.c_str(),
+				                  strerror(errno));
+
+			DBG_LOG(DBG_BROXYGEN, "Delete stale script file %s", f.c_str());
+			}
+
 		return;
 		}
 
@@ -300,7 +391,8 @@ void ScriptIndexTarget::DoGenerate() const
 		if ( ! d )
 			continue;
 
-		fprintf(file.f, "   %s <%s>\n", d->Name().c_str(), d->Name().c_str());
+		fprintf(file.f, "   %s </scripts/%s>\n", d->Name().c_str(),
+		        d->Name().c_str());
 		}
 	}
 

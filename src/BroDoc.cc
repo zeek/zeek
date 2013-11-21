@@ -611,7 +611,7 @@ void CreateProtoAnalyzerDoc(FILE* f)
 	fprintf(f, "Protocol Analyzers\n");
 	fprintf(f, "==================\n\n");
 	fprintf(f, ".. contents::\n");
-	fprintf(f, "     :depth: 1\n\n");
+	fprintf(f, "     :depth: 2\n\n");
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
 
@@ -641,7 +641,7 @@ void CreateFileAnalyzerDoc(FILE* f)
 	fprintf(f, "File Analyzers\n");
 	fprintf(f, "==============\n\n");
 	fprintf(f, ".. contents::\n");
-	fprintf(f, "     :depth: 1\n\n");
+	fprintf(f, "     :depth: 2\n\n");
 
 	WriteAnalyzerTagDefn(f, "Files");
 

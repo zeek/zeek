@@ -439,8 +439,13 @@ td.linenos pre {
     color: #aaa;
 }
 
+.highlight-guess {
+    overflow:auto;
+}
+
 table.highlighttable {
     margin-left: 0.5em;
+    overflow:scroll;
 }
 
 table.highlighttable td {

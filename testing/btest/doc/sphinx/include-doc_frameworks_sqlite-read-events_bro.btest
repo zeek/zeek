@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
-sqlite-read-events.bro
+-- sqlite-read-events.bro
 
 @load frameworks/files/hash-all-files
 

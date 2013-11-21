@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
-file_analysis_03.bro
+-- file_analysis_03.bro
 
 redef exit_only_after_terminate = T;
 

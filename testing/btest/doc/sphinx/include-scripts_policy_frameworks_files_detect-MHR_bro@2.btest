@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
-detect-MHR.bro
+-- detect-MHR.bro
 
 @load base/frameworks/files
 @load base/frameworks/notice

@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
-file_analysis_01.bro
+-- file_analysis_01.bro
 
 event connection_state_remove(c: connection)
     {

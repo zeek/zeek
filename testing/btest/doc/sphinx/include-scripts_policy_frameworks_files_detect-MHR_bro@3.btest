@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
-detect-MHR.bro
+-- detect-MHR.bro
 
 export {
 	redef enum Notice::Type += {

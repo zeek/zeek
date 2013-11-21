@@ -5,6 +5,7 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
+   notices
    proto-analyzers
    file-analyzers
    builtins

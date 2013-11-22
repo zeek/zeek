@@ -1007,6 +1007,17 @@ event dns_mapping_lost_name%(dm: dns_mapping%);
 ##    dns_mapping_valid
 event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
 
+## A meta event generated for each event Bro raises. This will report *all* events,
+## even those for which no handler is defined.
+## 
+## Note that handling this meta event is expensive and should be limited to
+## debugging purposes.
+##
+## name: The name of the event.
+## 
+## params: The event's parameters. 
+event new_event%(name: string, params: call_argument_vector%);
+
 ## Deprecated. Will be removed.
 event root_backdoor_signature_found%(c: connection%);
 

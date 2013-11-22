@@ -527,7 +527,24 @@ type record_field: record {
 ##    then remove this alias.
 type record_field_table: table[string] of record_field;
 
-# todo::Do we still needs these here? Can they move into the packet filter
+## Meta-information about a parameter to a function/event.
+##
+## .. bro:see:: call_argument_event new_event
+type call_argument: record {
+	name: string;	##< The name of the parameter.
+	type_name: string;	##< The name of the parameters's type.
+	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
+
+	## The value of the parameter as passed into a given call instance. Might be unset
+	## in the case a :bro:attr:`&default` attribute is defined. 
+	value: any &optional;
+};
+
+## Vector type used to capture parameters of a function/event call.
+## 
+## .. bro:see:: call_argument new_event
+type call_argument_vector: vector of call_argument;
+
 # framework?
 #
 # The following two variables are defined here until the core is not

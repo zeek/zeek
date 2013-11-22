@@ -3,6 +3,7 @@
 #include "Func.h"
 #include "Scope.h"
 #include "RemoteSerializer.h"
+#include "NetVar.h"
 
 EventHandler::EventHandler(const char* arg_name)
 	{
@@ -57,6 +58,9 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 	DEBUG_MSG("Event: %s\n", Name());
 #endif
 
+	if ( new_event )
+		NewEvent(vl);
+
 	if ( ! no_remote )
 		{
 		loop_over_list(receivers, i)
@@ -74,6 +78,56 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 		loop_over_list(*vl, i)
 			Unref((*vl)[i]);
 		}
+	}
+
+void EventHandler::NewEvent(val_list* vl)
+	{
+	if ( ! new_event )
+		return;
+
+	if ( this == new_event.Ptr() )
+		return;
+
+	RecordType* args = FType()->Args();
+	VectorVal* vargs = new VectorVal(call_argument_vector);
+
+	for ( int i = 0; i < args->NumFields(); i++ )
+		{
+		const char* fname = args->FieldName(i);
+		BroType* ftype = args->FieldType(i);
+		Val* fdefault = args->FieldDefault(i);
+
+		RecordVal* rec = new RecordVal(call_argument);
+
+		rec->Assign(0, new StringVal(fname));
+
+		ODesc d;
+		d.SetShort();
+		ftype->Describe(&d);
+		rec->Assign(1, new StringVal(d.Description()));
+
+		if ( fdefault )
+			{
+			Ref(fdefault);
+			rec->Assign(2, fdefault);
+			}
+
+		if ( i < vl->length() && (*vl)[i] )
+			{
+			Val* val = (*vl)[i];
+			Ref(val);
+			rec->Assign(3, val);
+			}
+
+		vargs->Assign(i, rec);
+		}
+
+	val_list* mvl = new val_list(2);
+	mvl->append(new StringVal(name));
+	mvl->append(vargs);
+
+	Event* ev = new Event(new_event, mvl);
+	mgr.Dispatch(ev);
 	}
 
 void EventHandler::AddRemoteHandler(SourceID peer)

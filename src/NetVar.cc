@@ -235,6 +235,8 @@ RecordType* script_id;
 TableType* id_table;
 RecordType* record_field;
 TableType* record_field_table;
+RecordType* call_argument;
+VectorType* call_argument_vector;
 
 StringVal* cmd_line_bpf_filter;
 
@@ -538,4 +540,6 @@ void init_net_var()
 	id_table = internal_type("id_table")->AsTableType();
 	record_field = internal_type("record_field")->AsRecordType();
 	record_field_table = internal_type("record_field_table")->AsTableType();
+	call_argument_vector = internal_type("call_argument_vector")->AsVectorType();
+	call_argument = internal_type("call_argument")->AsRecordType();
 	}

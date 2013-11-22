@@ -1,5 +1,6 @@
 #include "Document.h"
 #include "Manager.h"
+#include "utils.h"
 
 #include "util.h"
 #include "Val.h"
@@ -16,72 +17,6 @@ static bool is_public_api(const ID* id)
 	{
 	return (id->Scope() == SCOPE_GLOBAL) ||
 	       (id->Scope() == SCOPE_MODULE && id->IsExport());
-	}
-
-static bool prettify_params(string& s)
-	{
-	size_t identifier_start_pos = 0;
-	bool in_identifier = false;
-	string identifier;
-
-	for ( size_t i = 0; i < s.size(); ++i )
-		{
-		char next = s[i];
-
-		if ( ! in_identifier )
-			{
-			// Pass by leading whitespace.
-			if ( isspace(next) )
-				continue;
-
-			// Only allow alphabetic and '_' as first char of identifier.
-			if ( isalpha(next) || next == '_' )
-				{
-				identifier_start_pos = i;
-				identifier += next;
-				in_identifier = true;
-				continue;
-				}
-
-			// Don't need to change anything.
-			return false;
-			}
-
-		// All other characters of identifier are alphanumeric or '_'.
-		if ( isalnum(next) || next == '_' )
-			{
-			identifier += next;
-			continue;
-			}
-
-		if ( next == ':' )
-			{
-			if ( i + 1 < s.size() && s[i + 1] == ':' )
-				{
-				// It's part of an identifier's namespace scoping.
-				identifier += next;
-				identifier += s[i + 1];
-				++i;
-				continue;
-				}
-
-			// Prettify function param/return value reST markup.
-			string subst;
-
-			if ( identifier == "Returns" )
-				subst = ":returns";
-			else
-				subst = ":param " + identifier;
-
-			s.replace(identifier_start_pos, identifier.size(), subst);
-			return true;
-			}
-
-		// Don't need to change anything.
-		return false;
-		}
-
-	return false;
 	}
 
 static string make_heading(const string& heading, char underline)
@@ -244,7 +179,7 @@ string IdentifierDocument::DoReStructuredText(bool roles_only) const
 			{
 			string s = comments[i];
 
-			if ( prettify_params(s) )
+			if ( broxygen::prettify_params(s) )
 				d.NL();
 
 			d.Add(s.c_str());
@@ -523,15 +458,15 @@ static string make_summary(const string& heading, char underline, char border,
 
 static string make_redef_summary(const string& heading, char underline,
                                  char border, const string& from_script,
-                                 const set<IdentifierDocument*>& id_set)
+                                 const id_doc_set& id_set)
 	{
 	if ( id_set.empty() )
 		return "";
 
 	ReStructuredTextTable table(2);
 
-	for ( set<IdentifierDocument*>::const_iterator it = id_set.begin();
-	      it != id_set.end(); ++it )
+	for ( id_doc_set::const_iterator it = id_set.begin(); it != id_set.end();
+	      ++it )
 		{
 		ID* id = (*it)->GetID();
 		ODesc d;
@@ -568,14 +503,14 @@ static string make_details(const string& heading, char underline,
 	}
 
 static string make_redef_details(const string& heading, char underline,
-                                 const set<IdentifierDocument*>& id_set)
+                                 const id_doc_set& id_set)
 	{
 	if ( id_set.empty() )
 		return "";
 
 	string rval = make_heading(heading, underline);
 
-	for ( set<IdentifierDocument*>::const_iterator it = id_set.begin();
+	for ( id_doc_set::const_iterator it = id_set.begin();
 	      it != id_set.end(); ++it )
 		{
 		rval += (*it)->ReStructuredText(true);

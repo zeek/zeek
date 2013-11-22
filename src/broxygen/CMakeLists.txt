@@ -9,6 +9,7 @@ set(broxygen_SRCS
     Configuration.cc
     Document.cc
     Manager.cc
+    utils.cc
 )
 
 bif_target(broxygen.bif)

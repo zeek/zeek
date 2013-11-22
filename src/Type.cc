@@ -9,6 +9,7 @@
 #include "Serializer.h"
 #include "Reporter.h"
 #include "broxygen/Manager.h"
+#include "broxygen/utils.h"
 
 #include <string>
 #include <list>
@@ -1182,7 +1183,17 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			if ( i > 0 )
 				d->NL();
 
-			d->Add(cmnts[i].c_str());
+			if ( IsFunc(td->type->Tag()) )
+				{
+				string s = cmnts[i];
+
+				if ( broxygen::prettify_params(s) )
+					d->NL();
+
+				d->Add(s.c_str());
+				}
+			else
+				d->Add(cmnts[i].c_str());
 			}
 
 		d->PopIndentNoNL();

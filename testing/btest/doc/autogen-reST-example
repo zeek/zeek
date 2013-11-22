@@ -1,2 +1,0 @@
-@TEST-EXEC: bro --doc-scripts $DIST/doc/scripts/example.bro
-@TEST-EXEC: btest-diff example.rst

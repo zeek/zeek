@@ -1,0 +1,10 @@
+# This test is mostly just checking that there's no errors that result
+# from loading all scripts and generated docs for each.
+
+# @TEST-EXEC: bro -X broxygen.config broxygen
+# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: btest-diff .stderr
+
+@TEST-START-FILE broxygen.config
+script	scripts/	*
+@TEST-END-FILE

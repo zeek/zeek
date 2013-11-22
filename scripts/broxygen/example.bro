@@ -1,20 +1,24 @@
-##! This is an example script that demonstrates documentation features.
-##! Comments of the form ``##!`` are for the script summary.  The contents of
-##! these comments are transferred directly into the auto-generated
+##! This is an example script that demonstrates Broxygen-style
+##! documentation.  It generally will make most sense when viewing
+##! the script's raw source code and comparing to the HTML-rendered
+##! version.
+##!
+##! Comments in the from ``##!`` are meant to summarize the script's
+##! purpose.  They are transferred directly in to the generated
 ##! `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
-##! (reST) document's summary section.
+##! (reST) document associated with the script.
 ##!
 ##! .. tip:: You can embed directives and roles within ``##``-stylized comments.
 ##!
 ##! There's also a custom role to reference any identifier node in
 ##! the Bro Sphinx domain that's good for "see alsos", e.g.
 ##!
-##! See also: :bro:see:`Example::a_var`, :bro:see:`Example::ONE`,
-##! :bro:see:`SSH::Info`
+##! See also: :bro:see:`BroxygenExample::a_var`,
+##! :bro:see:`BroxygenExample::ONE`, :bro:see:`SSH::Info`
 ##!
 ##! And a custom directive does the equivalent references:
 ##!
-##! .. bro:see:: Example::a_var Example::ONE SSH::Info
+##! .. bro:see:: BroxygenExample::a_var BroxygenExample::ONE SSH::Info
 
 # Comments that use a single pound sign (#) are not significant to
 # a script's auto-generated documentation, but ones that use a
@@ -26,7 +30,7 @@
 # variable declarations to associate with the last-declared identifier.
 #
 # Generally, the auto-doc comments (##) are associated with the
-# next declaration/identifier found in the script, but the doc framework
+# next declaration/identifier found in the script, but Broxygen
 # will track/render identifiers regardless of whether they have any
 # of these special comments associated with them.
 #
@@ -37,193 +41,154 @@
 # in the "##"-stylized comments up until the first empty comment
 # is taken as the summary text for a given identifier.
 
-# @load directives are self-documenting
+# @load directives are self-documenting, don't use any ``##`` style
+# comments with them.
+@load base/frameworks/notice
+@load base/protocols/http
 @load frameworks/software/vulnerable
 
-# "module" statements are self-documenting
-module Example;
+# "module" statements are self-documenting, don't use any ``##`` style
+# comments with them.
+module BroxygenExample;
 
-# redefinitions of "capture_filters" are self-documenting and
-# go into the generated documentation's "Packet Filter" section
-redef capture_filters += {
-    ["ssl"] = "tcp port 443",
-    ["nntps"] = "tcp port 562",
-};
-
-global example_ports = {
-    443/tcp, 562/tcp,
-} &redef;
-
-
-event bro_init()
-	{
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, example_ports);
-	}
-
-# redefinitions of "Notice::Type" are self-documenting, but
-# more information can be supplied in two different ways
+# Redefinitions of "Notice::Type" are self-documenting, but
+# more information can be supplied in two different ways.
 redef enum Notice::Type += {
-    ## any number of this type of comment
-    ## will document "Notice_One"
-    Notice_One,
-    Notice_Two,  ##< any number of this type of comment
-                 ##< will document "Notice_Two"
-    Notice_Three,
-    Notice_Four,
+	## Any number of this type of comment
+	## will document "Broxygen_One".
+	Broxygen_One,
+	Broxygen_Two,  ##< Any number of this type of comment
+	               ##< will document "BROXYGEN_TWO".
+	Broxygen_Three,
+	## Omitting comments is fine, and so is mixing ``##`` and ``##<``, but
+	Broxygen_Four,  ##< it's probably best to use only one style consistently.
 };
 
-# Redef'ing the ID enumeration for logging streams is automatically tracked.
-# Comments of the "##" form can be use to further document it, but it's
-# better to do all documentation related to logging in the summary section
-# as is shown above.
+# All redefs are automatically tracked.  Comments of the "##" form can be use
+# to further document it, but in some cases, like here, they wouldn't be
+# ading any interesting information that's not implicit.
 redef enum Log::ID += { LOG };
 
-# Anything declared in the export section will show up in the rendered
-# documentation's "public interface" section
+# Only identifiers declared in an export section will show up in generated docs.
 
 export {
 
-    # these headings don't mean anything special to the
-    # doc framework right now, I'm just including them
-    # to make it more clear to the reader how the doc
-    # framework will actually categorize a script's identifiers
+	## Documentation for the "SimpleEnum" type goes here.
+	## It can span multiple lines.
+	type SimpleEnum: enum {
+		## Documentation for particular enum values is added like this.
+		## And can also span multiple lines.
+		ONE,
+		TWO,  ##< Or this style is valid to document the preceding enum value.
+		THREE,
+	};
 
-    ############## types ################
+	## Document the "SimpleEnum" redef here with any special info regarding
+	## the *redef* itself.
+	redef enum SimpleEnum  += {
+		FOUR, ##< And some documentation for "FOUR".
+		## Also "FIVE".
+		FIVE
+	};
 
-    # Note that I'm just mixing the "##" and "##<"
-    # types of comments in the following declarations
-    # as a demonstration.  Normally, it would be good style
-    # to pick one and be consistent.
+	## General documentation for a type "SimpleRecord" goes here.
+	## The way fields can be documented is similar to what's already seen
+	## for enums.
+	type SimpleRecord: record {
+		## Counts something.
+		field1: count;
+		field2: bool; ##< Toggles something.
+	};
 
-    ## documentation for "SimpleEnum"
-    ## goes here.
-    type SimpleEnum: enum {
-        ## and more specific info for "ONE"
-        ## can span multiple lines
-        ONE,
-        TWO,  ##< or more info like this for "TWO"
-              ##< can span multiple lines
-        THREE,
-    };
+	## Document the record extension *redef* itself here.
+	redef record SimpleRecord += {
+		## Document the extending field like this.
+		field_ext: string &optional; ##< Or here, like this.
+	};
 
-    ## document the "SimpleEnum" redef here
-    redef enum SimpleEnum  += {
-        FOUR, ##< and some documentation for "FOUR"
-        ## also "FIVE" for good measure
-        FIVE
-    };
+	## General documentation for a type "ComplexRecord" goes here.
+	type ComplexRecord: record {
+		field1: count;               ##< Counts something.
+		field2: bool;                ##< Toggles something.
+		field3: SimpleRecord;        ##< Broxygen automatically tracks types
+		                             ##< and cross-references are automatically
+		                             ##< inserted in to generated docs.
+		msg: string &default="blah"; ##< Attributes are self-documenting.
+	} &redef;
 
-    ## general documentation for a type "SimpleRecord"
-    ## goes here.
-    type SimpleRecord: record {
-        ## counts something
-        field1: count;
-        field2: bool; ##< toggles something
-    };
+	## An example record to be used with a logging stream.
+	## Nothing special about it.  If another script redefs this type
+	## to add fields, the generated documentation will show all original
+	## fields plus the extensions and the scripts which contributed to it
+	## (provided they are also @load'ed).
+	type Info: record {
+		ts:       time       &log;
+		uid:      string     &log;
+		status:   count      &log &optional;
+	};
 
-    ## document the record extension redef here
-    redef record SimpleRecord += {
-        ## document the extending field here
-        field_ext: string &optional; ##< (or here)
-    };
+	## Add documentation for "an_option" here.
+	## The type/attribute information is all generated automatically.
+	const an_option: set[addr, addr, string] &redef;
 
-    ## general documentation for a type "ComplexRecord" goes here
-    type ComplexRecord: record {
-        field1: count;               ##< counts something
-        field2: bool;                ##< toggles something
-        field3: SimpleRecord;
-        msg: string &default="blah"; ##< attributes are self-documenting
-    } &redef;
+	## Default initialization will be generated automatically.
+	const option_with_init = 0.01 secs &redef; ##< More docs can be added here.
 
-    ## An example record to be used with a logging stream.
-    type Info: record {
-        ts:       time       &log;
-        uid:      string     &log;
-        status:   count      &log &optional;
-    };
+	## Put some documentation for "a_var" here.  Any global/non-const that
+	## isn't a function/event/hook is classified as a "state variable"
+	## in the generated docs.
+	global a_var: bool;
 
-    ############## options ################
-    # right now, I'm just defining an option as
-    # any const with &redef (something that can
-    # change at parse time, but not at run time.
+	## Types are inferred, that information is self-documenting.
+	global var_without_explicit_type = "this works";
 
-    ## add documentation for "an_option" here
-    const an_option: set[addr, addr, string] &redef;
-
-    # default initialization will be self-documenting
-    const option_with_init = 0.01 secs &redef; ##< More docs can be added here.
-
-    ############## state variables ############
-    # right now, I'm defining this as any global
-    # that's not a function/event.  doesn't matter
-    # if &redef attribute is present
-
-    ## put some documentation for "a_var" here
-    global a_var: bool;
-
-    # attributes are self-documenting
-    global var_with_attr: count &persistent;
-
-    # it's fine if the type is inferred, that information is self-documenting
-    global var_without_explicit_type = "this works";
-
-    ## The first.sentence for the summary text ends here.  And this second
-    ## sentence doesn't show in the short description.
-    global dummy: string;
-
-    ############## functions/events ############
+	## The first sentence for a particular identifier's summary text ends here.
+	## And this second sentence doesn't show in the short description provided
+	## by the table of all identifiers declared by this script.
+	global summary_test: string;
 
     ## Summarize purpose of "a_function" here.
     ## Give more details about "a_function" here.
     ## Separating the documentation of the params/return values with
     ## empty comments is optional, but improves readability of script.
     ##
-    ## tag: function arguments can be described
-    ##      like this
-    ## msg: another param
+    ## tag: Function arguments can be described
+    ##      like this.
+	##
+    ## msg: Another param.
     ##
-    ## Returns: describe the return type here
+    ## Returns: Describe the return type here.
     global a_function: function(tag: string, msg: string): string;
 
     ## Summarize "an_event" here.
     ## Give more details about "an_event" here.
-	## Example::an_event should not be confused as a parameter.
-    ## name: describe the argument here
+	##
+	## BroxygenExample::a_function should not be confused as a parameter
+	## in the generated docs, but it also doesn't generate a cross-reference
+	## link.  Use the see role instead: :bro:see:`BroxygenExample::a_function`.
+	##
+    ## name: Describe the argument here.
     global an_event: event(name: string);
-
-    ## This is a declaration of an example event that can be used in
-    ## logging streams and is raised once for each log entry.
-    global log_example: event(rec: Info);
 }
 
-function filter_func(rec: Info): bool
-    {
-    return T;
-    }
-
-# this function is documented in the "private interface" section
-# of generated documentation and any "##"-stylized comments would also
-# be rendered there
+# This function isn't exported, so it won't appear anywhere in the generated
+# documentation.  So using ``##``-style comments is pointless here.
 function function_without_proto(tag: string): string
     {
     return "blah";
     }
 
-# this record type is documented in the "private interface" section
-# of generated documentation and any "##"-stylized comments would also
-# be rendered there
+# Same thing goes for types -- it's not exported, so it's considered
+# private to this script and comments are only interesting to a person
+# who is already reading the raw source for the script (so don't use
+# ``##`` comments here.
 type PrivateRecord: record {
     field1: bool;
     field2: count;
 };
 
+# Event handlers are also an implementation detail of a script, so they
+# don't show up anywhere in the generated documentation.
 event bro_init()
     {
-    Log::create_stream(Example::LOG, [$columns=Info, $ev=log_example]);
-    Log::add_filter(Example::LOG, [
-        $name="example-filter",
-        $path="example-filter",
-        $pred=filter_func,
-        $exclude=set("ts")
-        ]);
     }

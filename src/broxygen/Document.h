@@ -145,6 +145,13 @@ private:
 	ScriptDocument* declaring_script;
 };
 
+struct IdDocComp {
+	bool operator() (IdentifierDocument* lhs, IdentifierDocument* rhs) const
+		{ return lhs->Name() < rhs->Name(); }
+};
+
+typedef std::set<IdentifierDocument*, IdDocComp> id_doc_set;
+
 class ScriptDocument : public Document {
 
 public:
@@ -175,7 +182,6 @@ private:
 	typedef std::map<std::string, IdentifierDocument*> id_doc_map;
 	typedef std::list<IdentifierDocument*> id_doc_list;
 	typedef std::set<std::string> string_set;
-	typedef std::set<IdentifierDocument*> doc_set;
 
 	time_t DoGetModificationTime() const;
 
@@ -200,7 +206,7 @@ private:
 	id_doc_list events;
 	id_doc_list hooks;
 	id_doc_list functions;
-	doc_set redefs;
+	id_doc_set redefs;
 };
 
 

@@ -1,5 +1,9 @@
-# @TEST-EXEC: bro --doc-scripts %INPUT
+# @TEST-EXEC: bro -b -X broxygen.config %INPUT
 # @TEST-EXEC: btest-diff autogen-reST-enums.rst
+
+@TEST-START-FILE broxygen.config
+identifier	autogen-reST-enums.rst	TestEnum*
+@TEST-END-FILE
 
 ## There's tons of ways an enum can look...
 type TestEnum1: enum {
@@ -36,4 +40,4 @@ redef enum TestEnum1 += {
 };
 
 ## this should reference the TestEnum1 type and not a generic "enum" type
-const test_enum_option = ONE &redef;
+const TestEnumVal = ONE &redef;

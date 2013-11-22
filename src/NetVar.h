@@ -239,6 +239,8 @@ extern RecordType* script_id;
 extern TableType* id_table;
 extern RecordType* record_field;
 extern TableType* record_field_table;
+extern RecordType* call_argument;
+extern VectorType* call_argument_vector;
 
 extern StringVal* cmd_line_bpf_filter;
 

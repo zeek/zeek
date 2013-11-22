@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff autogen-reST-func-params.rst
 
 @TEST-START-FILE broxygen.config
-identifier	autogen-reST-func-params.rst	test_func_params*
+identifier	test_func_params*	autogen-reST-func-params.rst
 @TEST-END-FILE
 
 ## This is a global function declaration.

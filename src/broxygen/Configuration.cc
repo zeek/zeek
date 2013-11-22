@@ -457,7 +457,7 @@ Config::Config(const string& arg_file, const string& delim)
 			reporter->FatalError("unkown Broxygen target type: %s",
 			                     tokens[0].c_str());
 
-		targets.push_back(it->second(tokens[1], tokens[2]));
+		targets.push_back(it->second(tokens[2], tokens[1]));
 		}
 
 	if ( f.bad() )

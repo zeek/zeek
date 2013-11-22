@@ -76,7 +76,7 @@ def generate_config(env, type, pattern):
     prefix = "{0}-{1}-".format(type, pattern_to_filename_component(pattern))
     (fd, cfg) = tempfile.mkstemp(suffix=".cfg", prefix=prefix, dir=work_dir)
     generated_file = "{0}.rst".format(cfg)
-    config = "{0}\t{1}\t{2}".format(type, generated_file, pattern)
+    config = "{0}\t{1}\t{2}".format(type, pattern, generated_file)
     f = os.fdopen(fd, "w")
     f.write(config)
     f.close()

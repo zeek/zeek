@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff autogen-reST-enums.rst
 
 @TEST-START-FILE broxygen.config
-identifier	autogen-reST-enums.rst	TestEnum*
+identifier	TestEnum*	autogen-reST-enums.rst
 @TEST-END-FILE
 
 ## There's tons of ways an enum can look...

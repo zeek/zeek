@@ -6,5 +6,5 @@
 # @TEST-EXEC: btest-diff .stderr
 
 @TEST-START-FILE broxygen.config
-script	scripts/	*
+script	*	scripts/
 @TEST-END-FILE

@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff autogen-reST-type-aliases.rst
 
 @TEST-START-FILE broxygen.config
-identifier	autogen-reST-type-aliases.rst	BroxygenTest::*
+identifier	BroxygenTest::*	autogen-reST-type-aliases.rst
 @TEST-END-FILE
 
 module BroxygenTest;

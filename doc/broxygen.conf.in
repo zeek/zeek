@@ -1,1 +1,1 @@
-script	@BROXYGEN_SCRIPT_OUTPUT@/	*
+script	*	@BROXYGEN_SCRIPT_OUTPUT@/

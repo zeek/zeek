@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff example.rst
 
 @TEST-START-FILE broxygen.config
-script	example.rst	broxygen/example.bro
+script	broxygen/example.bro	example.rst
 @TEST-END-FILE
 
 @load broxygen/example.bro

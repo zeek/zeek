@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff autogen-reST-records.rst
 
 @TEST-START-FILE broxygen.config
-identifier	autogen-reST-records.rst	TestRecord*
+identifier	TestRecord*	autogen-reST-records.rst
 @TEST-END-FILE
 
 # undocumented record

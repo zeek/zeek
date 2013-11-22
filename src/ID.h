@@ -36,6 +36,7 @@ public:
 
 	void MakeType()			{ is_type = 1; }
 	BroType* AsType()		{ return is_type ? Type() : 0; }
+	const BroType* AsType() const	{ return is_type ? Type() : 0; }
 
 	// If weak_ref is false, the Val is assumed to be already ref'ed
 	// and will be deref'ed when the ID is deleted.

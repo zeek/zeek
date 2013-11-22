@@ -138,6 +138,10 @@ function topk_sum%(handle: opaque of topk%): count
 
 ## Merge the second top-k data structure into the first.
 ##
+## handle1: the first TopK handle.
+##
+## handle2: the second TopK handle.
+##
 ## .. note:: This does not remove any elements, the resulting data structure
 ##    can be bigger than the maximum size given on initialization.
 ##

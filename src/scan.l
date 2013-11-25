@@ -564,7 +564,7 @@ static int load_files(const char* orig_file)
 	else
 		file_stack.append(new FileInfo);
 
-	broxygen_mgr->File(file_path);
+	broxygen_mgr->Script(file_path);
 
 	// "orig_file", could be an alias for yytext, which is ephemeral
 	//  and will be zapped after the yy_switch_to_buffer() below.

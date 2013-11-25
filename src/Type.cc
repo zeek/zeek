@@ -1146,8 +1146,8 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		if ( func_args )
 			continue;
 
-		using broxygen::IdentifierDocument;
-		IdentifierDocument* doc = broxygen_mgr->GetIdentifierDoc(GetName());
+		using broxygen::IdentifierInfo;
+		IdentifierInfo* doc = broxygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( ! doc )
 			{
@@ -1498,8 +1498,8 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		else
 			d->Add(fmt(".. bro:enum:: %s %s", it->second, GetName().c_str()));
 
-		using broxygen::IdentifierDocument;
-		IdentifierDocument* doc = broxygen_mgr->GetIdentifierDoc(it->second);
+		using broxygen::IdentifierInfo;
+		IdentifierInfo* doc = broxygen_mgr->GetIdentifierInfo(it->second);
 
 		if ( ! doc )
 			{
@@ -1514,7 +1514,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( doc->GetDeclaringScript() )
 			enum_from_script = doc->GetDeclaringScript()->Name();
 
-		IdentifierDocument* type_doc = broxygen_mgr->GetIdentifierDoc(GetName());
+		IdentifierInfo* type_doc = broxygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( type_doc && type_doc->GetDeclaringScript() )
 			type_from_script = type_doc->GetDeclaringScript()->Name();

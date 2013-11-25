@@ -6,9 +6,14 @@ include_directories(BEFORE
 )
 
 set(broxygen_SRCS
-    Configuration.cc
-    Document.cc
     Manager.cc
+    Info.h
+    PackageInfo.cc
+    ScriptInfo.cc
+    IdentifierInfo.cc
+    Target.cc
+    Configuration.cc
+    ReStructuredTextTable.cc
     utils.cc
 )
 

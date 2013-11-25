@@ -1,245 +1,60 @@
 #ifndef BROXYGEN_CONFIGURATION_H
 #define BROXYGEN_CONFIGURATION_H
 
-#include "Document.h"
-#include "BroDoc.h"
+#include "Info.h"
+#include "Target.h"
 
 #include <string>
 #include <vector>
-#include <map>
 
 namespace broxygen {
 
-// TODO: documentation...
-
-class Target {
-public:
-
-	typedef Target* (*factory_fn)(const std::string&, const std::string&);
-
-	virtual ~Target()
-		{ }
-
-	void FindDependencies(const std::vector<Document*>& docs)
-		{ DoFindDependencies(docs); }
-
-	void Generate() const
-		{ DoGenerate(); }
-
-	bool MatchesPattern(Document* doc) const;
-
-	std::string Name() const
-		{ return name; }
-
-	std::string Pattern() const
-		{ return pattern; }
-
-protected:
-
-	Target(const std::string& arg_name, const std::string& arg_pattern);
-
-private:
-
-	virtual void DoFindDependencies(const std::vector<Document*>& docs) = 0;
-
-	virtual void DoGenerate() const = 0;
-
-	std::string name;
-	std::string pattern;
-	std::string prefix;
-};
-
-class AnalyzerTarget : public Target {
-protected:
-
-	typedef void (*doc_creator_fn)(FILE*);
-
-	AnalyzerTarget(const std::string& name, const std::string& pattern,
-	               doc_creator_fn cb)
-		: Target(name, pattern), doc_creator_callback(cb)
-		{ }
-
-private:
-
-	void DoFindDependencies(const std::vector<Document*>& docs);
-
-	void DoGenerate() const;
-
-	doc_creator_fn doc_creator_callback;
-};
-
-class ProtoAnalyzerTarget : public AnalyzerTarget {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new ProtoAnalyzerTarget(name, pattern); }
-
-private:
-
-	ProtoAnalyzerTarget(const std::string& name, const std::string& pattern)
-		: AnalyzerTarget(name, pattern, &CreateProtoAnalyzerDoc)
-		{ }
-};
-
-class FileAnalyzerTarget : public AnalyzerTarget {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new FileAnalyzerTarget(name, pattern); }
-
-private:
-
-	FileAnalyzerTarget(const std::string& name, const std::string& pattern)
-		: AnalyzerTarget(name, pattern, &CreateFileAnalyzerDoc)
-		{ }
-};
-
-class PackageTarget : public Target {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new PackageTarget(name, pattern); }
-
-private:
-
-	PackageTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern), pkg_deps(), script_deps(), pkg_manifest()
-		{ }
-
-	void DoFindDependencies(const std::vector<Document*>& docs);
-
-	void DoGenerate() const;
-
-	std::vector<PackageDocument*> pkg_deps;
-	std::vector<ScriptDocument*> script_deps;
-	typedef std::map<PackageDocument*,std::vector<ScriptDocument*> > manifest_t;
-	manifest_t pkg_manifest;
-};
-
-class PackageIndexTarget : public Target {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new PackageIndexTarget(name, pattern); }
-
-private:
-
-	PackageIndexTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern), pkg_deps()
-		{ }
-
-	void DoFindDependencies(const std::vector<Document*>& docs);
-
-	void DoGenerate() const;
-
-	std::vector<PackageDocument*> pkg_deps;
-};
-
-class ScriptTarget : public Target {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new ScriptTarget(name, pattern); }
-
-	~ScriptTarget()
-		{ for ( size_t i = 0; i < pkg_deps.size(); ++i ) delete pkg_deps[i]; }
-
-protected:
-
-	ScriptTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern), script_deps()
-		{ }
-
-	std::vector<ScriptDocument*> script_deps;
-
-private:
-
-	void DoFindDependencies(const std::vector<Document*>& docs);
-
-	void DoGenerate() const;
-
-	bool IsDir() const
-		{ return Name()[Name().size() - 1] == '/'; }
-
-	std::vector<Target*> pkg_deps;
-};
-
-class ScriptSummaryTarget : public ScriptTarget {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new ScriptSummaryTarget(name, pattern); }
-
-private:
-
-	ScriptSummaryTarget(const std::string& name, const std::string& pattern)
-		: ScriptTarget(name, pattern)
-		{ }
-
-	void DoGenerate() const /* override */;
-};
-
-class ScriptIndexTarget : public ScriptTarget {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new ScriptIndexTarget(name, pattern); }
-
-private:
-
-	ScriptIndexTarget(const std::string& name, const std::string& pattern)
-		: ScriptTarget(name, pattern)
-		{ }
-
-	void DoGenerate() const /* override */;
-};
-
-class IdentifierTarget : public Target {
-public:
-
-	static Target* Instantiate(const std::string& name,
-	                           const std::string& pattern)
-		{ return new IdentifierTarget(name, pattern); }
-
-private:
-
-	IdentifierTarget(const std::string& name, const std::string& pattern)
-		: Target(name, pattern), id_deps()
-		{ }
-
-	void DoFindDependencies(const std::vector<Document*>& docs);
-
-	void DoGenerate() const;
-
-	std::vector<IdentifierDocument*> id_deps;
-};
-
+/**
+ * Manages the generation of reStructuredText documents corresponding to
+ * particular targets that are specified in a config file.  The config file
+ * is a simple list of one target per line, with the target format being
+ * a tab-delimited list of target-type, target-pattern, and target-output-file.
+ */
 class Config {
+
 public:
 
+	/**
+	 * Read a Broxygen configuration file, parsing all targets in it.
+	 * @param file The file containing a list of Broxygen targets.  If it's
+	 * an empty string most methods are a no-op.
+	 * @param delim The delimiter between target fields.
+	 */
 	Config(const std::string& file, const std::string& delim = "\t");
 
+	/**
+	  * Destructor, cleans up targets created when parsing config file.
+	  */
 	~Config();
 
-	void FindDependencies(const std::vector<Document*>& docs);
+	/**
+	 * Resolves dependency information for each target.
+	 * @param infos All known information objects for documentable things.
+	 */
+	void FindDependencies(const std::vector<Info*>& infos);
 
+	/**
+	 * Build each Broxygen target (i.e. write out the reST documents to disk).
+	 */
 	void GenerateDocs() const;
 
+	/**
+	 * @return The modification time of the config file, or 0 if config
+	 * file was specified by an empty string.
+	 */
 	time_t GetModificationTime() const;
 
 private:
 
 	std::string file;
 	std::vector<Target*> targets;
+	TargetFactory target_factory;
 };
-
 
 } // namespace broxygen
 

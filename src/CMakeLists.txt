@@ -250,8 +250,6 @@ set(bro_SRCS
     Attr.cc
     Base64.cc
     BPF_Program.cc
-    BroDoc.cc
-    BroDocObj.cc
     Brofiler.cc
     BroString.cc
     CCL.cc

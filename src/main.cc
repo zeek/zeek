@@ -50,7 +50,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "BroDoc.h"
 #include "Brofiler.h"
 
 #include "threading/Manager.h"

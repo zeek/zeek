@@ -27,7 +27,7 @@ static string RemoveLeadingSpace(const string& s)
 
 Manager::Manager(const string& arg_config, const string& bro_command)
     : disabled(), comment_buffer(), comment_buffer_map(), packages(), scripts(),
-      identifiers(), all_docs(), last_identifier_seen(), incomplete_type(),
+      identifiers(), all_info(), last_identifier_seen(), incomplete_type(),
       enum_mappings(), config(arg_config), bro_mtime()
 	{
 	if ( getenv("BRO_DISABLE_BROXYGEN") )
@@ -45,8 +45,8 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 
 Manager::~Manager()
 	{
-	for ( size_t i = 0; i < all_docs.size(); ++i )
-		delete all_docs[i];
+	for ( size_t i = 0; i < all_info.size(); ++i )
+		delete all_info[i];
 	}
 
 void Manager::InitPreScript()
@@ -60,10 +60,10 @@ void Manager::InitPostScript()
 	if ( disabled )
 		return;
 
-	for ( size_t i = 0; i < all_docs.size(); ++i )
-		all_docs[i]->InitPostScript();
+	for ( size_t i = 0; i < all_info.size(); ++i )
+		all_info[i]->InitPostScript();
 
-	config.FindDependencies(all_docs);
+	config.FindDependencies(all_info);
 	}
 
 void Manager::GenerateDocs() const
@@ -74,39 +74,39 @@ void Manager::GenerateDocs() const
 	config.GenerateDocs();
 	}
 
-void Manager::File(const string& path)
+void Manager::Script(const string& path)
 	{
 	if ( disabled )
 		return;
 
 	string name = without_bropath_component(path);
 
-	if ( scripts.GetDocument(name) )
+	if ( scripts.GetInfo(name) )
 		{
 		DbgAndWarn(fmt("Duplicate script documentation: %s", name.c_str()));
 		return;
 		}
 
-	ScriptDocument* doc = new ScriptDocument(name, path);
-	scripts.map[name] = doc;
-	all_docs.push_back(doc);
-	DBG_LOG(DBG_BROXYGEN, "Made ScriptDocument %s", name.c_str());
+	ScriptInfo* info = new ScriptInfo(name, path);
+	scripts.map[name] = info;
+	all_info.push_back(info);
+	DBG_LOG(DBG_BROXYGEN, "Made ScriptInfo %s", name.c_str());
 
-	if ( ! doc->IsPkgLoader() )
+	if ( ! info->IsPkgLoader() )
 		return;
 
 	name = SafeDirname(name).result;
 
-	if ( packages.GetDocument(name) )
+	if ( packages.GetInfo(name) )
 		{
 		DbgAndWarn(fmt("Duplicate package documentation: %s", name.c_str()));
 		return;
 		}
 
-	PackageDocument* pkgdoc = new PackageDocument(name);
-	packages.map[name] = pkgdoc;
-	all_docs.push_back(pkgdoc);
-	DBG_LOG(DBG_BROXYGEN, "Made PackageDocument %s", name.c_str());
+	PackageInfo* pkginfo = new PackageInfo(name);
+	packages.map[name] = pkginfo;
+	all_info.push_back(pkginfo);
+	DBG_LOG(DBG_BROXYGEN, "Made PackageInfo %s", name.c_str());
 	}
 
 void Manager::ScriptDependency(const string& path, const string& dep)
@@ -122,16 +122,16 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 
 	string name = without_bropath_component(path);
 	string depname = without_bropath_component(dep);
-	ScriptDocument* script_doc = scripts.GetDocument(name);
+	ScriptInfo* script_info = scripts.GetInfo(name);
 
-	if ( ! script_doc )
+	if ( ! script_info )
 		{
 		DbgAndWarn(fmt("Failed to add script doc dependency %s for %s",
 		               depname.c_str(), name.c_str()));
 		return;
 		}
 
-	script_doc->AddDependency(depname);
+	script_info->AddDependency(depname);
 	DBG_LOG(DBG_BROXYGEN, "Added script dependency %s for %s",
 	        depname.c_str(), name.c_str());
 
@@ -146,23 +146,23 @@ void Manager::ModuleUsage(const string& path, const string& module)
 		return;
 
 	string name = without_bropath_component(path);
-	ScriptDocument* script_doc = scripts.GetDocument(name);
+	ScriptInfo* script_info = scripts.GetInfo(name);
 
-	if ( ! script_doc )
+	if ( ! script_info )
 		{
 		DbgAndWarn(fmt("Failed to add module usage %s in %s",
 		               module.c_str(), name.c_str()));
 		return;
 		}
 
-	script_doc->AddModule(module);
+	script_info->AddModule(module);
 	DBG_LOG(DBG_BROXYGEN, "Added module usage %s in %s",
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierDocument* Manager::CreateIdentifierDoc(ID* id, ScriptDocument* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
 	{
-	IdentifierDocument* rval = new IdentifierDocument(id, script);
+	IdentifierInfo* rval = new IdentifierInfo(id, script);
 
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
@@ -176,12 +176,12 @@ IdentifierDocument* Manager::CreateIdentifierDoc(ID* id, ScriptDocument* script)
 		comment_buffer_map.erase(it);
 		}
 
-	all_docs.push_back(rval);
+	all_info.push_back(rval);
 	identifiers.map[id->Name()] = rval;
 	last_identifier_seen = rval;
 
 	if ( script )
-		script->AddIdentifierDoc(rval);
+		script->AddIdentifierInfo(rval);
 
 	return rval;
 	}
@@ -198,17 +198,17 @@ void Manager::StartType(ID* id)
 		}
 
 	string script = without_bropath_component(id->GetLocationInfo()->filename);
-	ScriptDocument* script_doc = scripts.GetDocument(script);
+	ScriptInfo* script_info = scripts.GetInfo(script);
 
-	if ( ! script_doc )
+	if ( ! script_info )
 		{
 		DbgAndWarn(fmt("Can't document identifier %s, lookup of %s failed",
 		               id->Name(), script.c_str()));
 		return;
 		}
 
-	incomplete_type = CreateIdentifierDoc(id, script_doc);
-	DBG_LOG(DBG_BROXYGEN, "Made IdentifierDocument (incomplete) %s, in %s",
+	incomplete_type = CreateIdentifierInfo(id, script_info);
+	DBG_LOG(DBG_BROXYGEN, "Made IdentifierInfo (incomplete) %s, in %s",
 	        id->Name(), script.c_str());
 	}
 
@@ -236,14 +236,14 @@ void Manager::Identifier(ID* id)
 			enum_mappings[id->Name()] = incomplete_type->GetID()->Name();
 		}
 
-	IdentifierDocument* id_doc = identifiers.GetDocument(id->Name());
+	IdentifierInfo* id_info = identifiers.GetInfo(id->Name());
 
-	if ( id_doc )
+	if ( id_info )
 		{
-		if ( IsFunc(id_doc->GetID()->Type()->Tag()) )
+		if ( IsFunc(id_info->GetID()->Type()->Tag()) )
 			{
 			// Function may already been seen (declaration versus body).
-			id_doc->AddComments(comment_buffer);
+			id_info->AddComments(comment_buffer);
 			comment_buffer.clear();
 			return;
 			}
@@ -256,24 +256,24 @@ void Manager::Identifier(ID* id)
 		{
 		// Internally-created identifier (e.g. file/proto analyzer enum tags).
 		// Handled specially since they don't have a script location.
-		DBG_LOG(DBG_BROXYGEN, "Made internal IdentifierDocument %s",
+		DBG_LOG(DBG_BROXYGEN, "Made internal IdentifierInfo %s",
 		        id->Name());
-		CreateIdentifierDoc(id, 0);
+		CreateIdentifierInfo(id, 0);
 		return;
 		}
 
 	string script = without_bropath_component(id->GetLocationInfo()->filename);
-	ScriptDocument* script_doc = scripts.GetDocument(script);
+	ScriptInfo* script_info = scripts.GetInfo(script);
 
-	if ( ! script_doc )
+	if ( ! script_info )
 		{
 		DbgAndWarn(fmt("Can't document identifier %s, lookup of %s failed",
 		               id->Name(), script.c_str()));
 		return;
 		}
 
-	CreateIdentifierDoc(id, script_doc);
-	DBG_LOG(DBG_BROXYGEN, "Made IdentifierDocument %s, in script %s",
+	CreateIdentifierInfo(id, script_info);
+	DBG_LOG(DBG_BROXYGEN, "Made IdentifierInfo %s, in script %s",
 	        id->Name(), script.c_str());
 	}
 
@@ -283,7 +283,7 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 	if ( disabled )
 		return;
 
-	IdentifierDocument* idd = identifiers.GetDocument(id->Name());
+	IdentifierInfo* idd = identifiers.GetInfo(id->Name());
 
 	if ( ! idd )
 		{
@@ -308,9 +308,9 @@ void Manager::Redef(const ID* id, const string& path)
 		// This is a redef defined on the command line.
 		return;
 
-	IdentifierDocument* id_doc = identifiers.GetDocument(id->Name());
+	IdentifierInfo* id_info = identifiers.GetInfo(id->Name());
 
-	if ( ! id_doc )
+	if ( ! id_info )
 		{
 		DbgAndWarn(fmt("Can't document redef of %s, identifier lookup failed",
 		               id->Name()));
@@ -318,19 +318,19 @@ void Manager::Redef(const ID* id, const string& path)
 		}
 
 	string from_script = without_bropath_component(path);
-	ScriptDocument* script_doc = scripts.GetDocument(from_script);
+	ScriptInfo* script_info = scripts.GetInfo(from_script);
 
-	if ( ! script_doc )
+	if ( ! script_info )
 		{
 		DbgAndWarn(fmt("Can't document redef of %s, lookup of %s failed",
 		               id->Name(), from_script.c_str()));
 		return;
 		}
 
-	id_doc->AddRedef(from_script, comment_buffer);
-	script_doc->AddRedef(id_doc);
+	id_info->AddRedef(from_script, comment_buffer);
+	script_info->AddRedef(id_info);
 	comment_buffer.clear();
-	last_identifier_seen = id_doc;
+	last_identifier_seen = id_info;
 	DBG_LOG(DBG_BROXYGEN, "Added redef of %s from %s",
 	        id->Name(), from_script.c_str());
 	}
@@ -341,10 +341,10 @@ void Manager::SummaryComment(const string& script, const string& comment)
 		return;
 
 	string name = without_bropath_component(script);
-	ScriptDocument* doc = scripts.GetDocument(name);
+	ScriptInfo* info = scripts.GetInfo(name);
 
-	if ( doc )
-		doc->AddComment(RemoveLeadingSpace(comment));
+	if ( info )
+		info->AddComment(RemoveLeadingSpace(comment));
 	else
 		DbgAndWarn(fmt("Lookup of script %s failed for summary comment %s",
 		               name.c_str(), comment.c_str()));

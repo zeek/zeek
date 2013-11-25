@@ -1,5 +1,9 @@
 #include "utils.h"
 
+#include "Reporter.h"
+
+#include <sys/stat.h>
+
 using namespace broxygen;
 using namespace std;
 
@@ -67,4 +71,56 @@ bool broxygen::prettify_params(string& s)
 		}
 
 	return false;
+	}
+
+bool broxygen::is_public_api(const ID* id)
+	{
+	return (id->Scope() == SCOPE_GLOBAL) ||
+	       (id->Scope() == SCOPE_MODULE && id->IsExport());
+	}
+
+time_t broxygen::get_mtime(const string& filename)
+	{
+	struct stat s;
+
+	if ( stat(filename.c_str(), &s) < 0 )
+		reporter->InternalError("Broxygen failed to stat file '%s': %s",
+		                        filename.c_str(), strerror(errno));
+
+	return s.st_mtime;
+	}
+
+string broxygen::make_heading(const string& heading, char underline)
+	{
+	return heading + "\n" + string(heading.size(), underline) + "\n";
+	}
+
+size_t broxygen::end_of_first_sentence(const string& s)
+	{
+	size_t rval = 0;
+
+	while ( (rval = s.find_first_of('.', rval)) != string::npos )
+		{
+		if ( rval == s.size() - 1 )
+			// Period is at end of string.
+			return rval;
+
+		if ( isspace(s[rval + 1]) )
+			// Period has a space after it.
+			return rval;
+
+		// Period has some non-space character after it, keep looking.
+		++rval;
+		}
+
+	return rval;
+	}
+
+bool broxygen::is_all_whitespace(const string& s)
+	{
+	for ( size_t i = 0; i < s.size(); ++i )
+		if ( ! isspace(s[i]) )
+			return false;
+
+	return true;
 	}

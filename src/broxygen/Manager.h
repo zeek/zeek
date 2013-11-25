@@ -17,6 +17,7 @@
 #include <map>
 #include <ctime>
 #include <sys/stat.h>
+#include <errno.h>
 
 namespace broxygen {
 

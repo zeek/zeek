@@ -167,8 +167,7 @@ IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
 
-	comment_buffer_map_t::const_iterator it =
-	        comment_buffer_map.find(id->Name());
+	comment_buffer_map_t::iterator it = comment_buffer_map.find(id->Name());
 
 	if ( it != comment_buffer_map.end() )
 		{

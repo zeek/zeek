@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <errno.h>
 
 using namespace broxygen;
 using namespace std;

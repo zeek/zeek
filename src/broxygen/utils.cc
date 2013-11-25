@@ -3,6 +3,7 @@
 #include "Reporter.h"
 
 #include <sys/stat.h>
+#include <errno.h>
 
 using namespace broxygen;
 using namespace std;

@@ -4,6 +4,7 @@
 #include "Reporter.h"
 
 #include <fstream>
+#include <errno.h>
 
 using namespace std;
 using namespace broxygen;

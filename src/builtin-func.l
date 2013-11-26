@@ -247,14 +247,13 @@ void init_alternative_mode()
     	fprintf(fp_func_init, "\n");
     	fprintf(fp_func_init, "#include <list>\n");
     	fprintf(fp_func_init, "#include <string>\n");
+	fprintf(fp_func_init, "#include \"plugin/Plugin.h\"\n");
     	fprintf(fp_func_init, "#include \"%s.h\"\n", input_filename);
     	fprintf(fp_func_init, "\n");
     	fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin);
     	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "std::list<std::pair<const char*, int> > __bif_%s_init()\n", name);
+    	fprintf(fp_func_init, "void __bif_%s_init(plugin::Plugin* plugin)\n", name);
     	fprintf(fp_func_init, "\t{\n");
-    	fprintf(fp_func_init, "\tstd::list<std::pair<const char*, int> > bifs;\n");
-    	fprintf(fp_func_init, "\n");
         }
 	}
 
@@ -266,7 +265,6 @@ void finish_alternative_mode()
     if ( plugin )
         {
     	fprintf(fp_func_init, "\n");
-    	fprintf(fp_func_init, "\treturn bifs;\n");
     	fprintf(fp_func_init, "\t}\n");
     	fprintf(fp_func_init, "} }\n");
     	fprintf(fp_func_init, "\n");

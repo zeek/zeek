@@ -28,18 +28,15 @@
  * must be unique across all loaded plugins.
  */
 #define BRO_PLUGIN_BEGIN(_ns, _name)				\
-	namespace plugin { namespace _ns ## _ ## _name {\
+	namespace plugin { namespace _ns ## _ ## _name {	\
 		class Plugin : public plugin::Plugin {		\
 		protected:					\
-			void InitPreScript()				\
+			void InitPreScript()			\
 			{					\
 			SetName(#_ns "::" #_name);		\
-			SetVersion(-1);\
-			SetAPIVersion(BRO_PLUGIN_API_VERSION);\
-			SetDynamicPlugin(false);
-// TODO: The SetDynamicPlugin() call is currently hardcoded to false. Change
-// once we have dynamic plugins as well.
-
+			SetVersion(-1);				\
+			SetAPIVersion(BRO_PLUGIN_API_VERSION);	\
+			SetDynamicPlugin(! BRO_PLUGIN_INTERNAL_BUILD);\
 
 /**
  * Ends the definition of a plugin.
@@ -76,8 +73,8 @@
  * interpreter.
  */
 #define BRO_PLUGIN_BIF_FILE(file)			\
-		extern std::list<std::pair<const char*, int> >  __bif_##file##_init();	\
-		AddBifInitFunction(&__bif_##file##_init);
+		extern void __bif_##file##_init(plugin::Plugin*);	\
+		__AddBifInitFunction(&__bif_##file##_init);
 
 /**
  * Defines a component implementing a protocol analyzer.

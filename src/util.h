@@ -147,7 +147,13 @@ extern const char* fmt_access_time(double time);
 extern bool ensure_dir(const char *dirname);
 
 // Returns true if path exists and is a directory.
-bool is_dir(const char* path);
+bool is_dir(const std::string& path);
+
+// Returns true if path exists and is a file.
+bool is_file(const std::string& path);
+
+// Replaces all occurences of *o* in *s* with *n*.
+extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
 
 extern uint8 shared_hmac_md5_key[16];
 
@@ -202,9 +208,12 @@ static const SourceID SOURCE_LOCAL = 0;
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
-extern const char* bro_path();
+extern const std::string& bro_path();
+extern void add_to_bro_path(const std::string& dir);
+
 extern const char* bro_magic_path();
-extern std::string bro_prefixes();
+extern const char* bro_plugin_path();
+extern const char* bro_prefixes();
 std::string dot_canon(std::string path, std::string file, std::string prefix = "");
 const char* normalize_path(const char* path);
 void get_script_subpath(const std::string& full_filename, const char** subpath);

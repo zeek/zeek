@@ -198,6 +198,7 @@ void usage()
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
+	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
@@ -220,8 +221,10 @@ void usage()
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
-	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
+	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
 	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
+	fprintf(stderr, "    $BRO_PLUGINS                   | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -435,6 +438,8 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
+	double time_start = current_time(true);
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -464,6 +469,7 @@ int main(int argc, char** argv)
 	int rule_debug = 0;
 	int RE_level = 4;
 	int print_plugins = 0;
+	int time_bro = 0;
 
 	static struct option long_opts[] = {
 		{"bare-mode",	no_argument,		0,	'b'},
@@ -545,7 +551,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -674,6 +680,10 @@ int main(int argc, char** argv)
 			dns_type = DNS_PRIME;
 			break;
 
+		case 'Q':
+			time_bro = 1;
+			break;
+
 		case 'R':
 			events_file = optarg;
 			break;
@@ -760,6 +770,7 @@ int main(int argc, char** argv)
 
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
+	plugin_mgr = new plugin::Manager();
 
 #ifdef DEBUG
 	if ( debug_streams )
@@ -810,6 +821,8 @@ int main(int argc, char** argv)
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
 
+	plugin_mgr->LoadPluginsFrom(bro_plugin_path());
+
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
 	     interfaces.length() == 0 &&
@@ -842,7 +855,6 @@ int main(int argc, char** argv)
 	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
-	plugin_mgr = new plugin::Manager();
 	file_mgr = new file_analysis::Manager();
 
 	plugin_mgr->InitPreScript();
@@ -877,15 +889,23 @@ int main(int argc, char** argv)
 
 	yyparse();
 
-	plugin_mgr->InitPostScript();
-	analyzer_mgr->InitPostScript();
-	file_mgr->InitPostScript();
+	init_general_global_var();
+	init_net_var();
+
+	plugin_mgr->InitBifs();
+
+	if ( reporter->Errors() > 0 )
+		exit(1);
 
 	if ( print_plugins )
 		{
 		show_plugins(print_plugins);
 		exit(1);
 		}
+
+	plugin_mgr->InitPostScript();
+	analyzer_mgr->InitPostScript();
+	file_mgr->InitPostScript();
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}
@@ -915,8 +935,6 @@ int main(int argc, char** argv)
 		}
 
 	reporter->InitOptions();
-
-	init_general_global_var();
 
 	if ( user_pcap_filter )
 		{
@@ -1079,7 +1097,7 @@ int main(int argc, char** argv)
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
-		network_time = current_time();
+		net_update_time(current_time());
 
 	EventHandlerPtr bro_init = internal_handler("bro_init");
 	if ( bro_init )	//### this should be a function
@@ -1165,7 +1183,43 @@ int main(int argc, char** argv)
 
 #endif
 
+		double time_net_start = current_time(true);;
+
+		unsigned int mem_net_start_total;
+		unsigned int mem_net_start_malloced;
+
+		if ( time_bro )
+			{
+			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
+
+			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
+
+			fprintf(stderr, "# initialization %uM/%uM\n",
+				mem_net_start_total / 1024 / 1024,
+				mem_net_start_malloced / 1024 / 1024);
+			}
+
 		net_run();
+
+		double time_net_done = current_time(true);;
+
+		unsigned int mem_net_done_total;
+		unsigned int mem_net_done_malloced;
+
+		if ( time_bro )
+			{
+			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
+
+			fprintf(stderr, "# total time %.6f, processing %.6f\n",
+				time_net_done - time_start, time_net_done - time_net_start);
+
+			fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
+				mem_net_done_total / 1024 / 1024,
+				mem_net_done_malloced / 1024 / 1024,
+				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
+				(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
+			}
+
 		done_with_network();
 		net_delete();
 

@@ -1,5 +1,10 @@
 project(Bro C CXX)
+
+# When changing the minimum version here, also adapt
+# cmake/BroPluginDynamic and
+# aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
 cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -17,6 +22,7 @@ set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
+set(BRO_PLUGIN_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/plugins)
 set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
 set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
 
@@ -183,6 +189,10 @@ include(MiscTests)
 include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
+include(GetArchitecture)
+
+# Tell the plugin code that we're building as part of the main tree.
+set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)

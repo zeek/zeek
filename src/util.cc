@@ -619,19 +619,50 @@ bool ensure_dir(const char *dirname)
 	return true;
 	}
 
-bool is_dir(const char* path)
+bool is_dir(const std::string& path)
 	{
 	struct stat st;
-	if ( stat(path, &st) < 0 )
+	if ( stat(path.c_str(), &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning("can't stat %s: %s", path, strerror(errno));
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
 
 		return false;
 		}
 
 	return S_ISDIR(st.st_mode);
 	}
+
+bool is_file(const std::string& path)
+	{
+	struct stat st;
+	if ( stat(path.c_str(), &st) < 0 )
+		{
+		if ( errno != ENOENT )
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
+
+		return false;
+		}
+
+	return S_ISREG(st.st_mode);
+	}
+
+string strreplace(const string& s, const string& o, const string& n)
+	{
+	string r = s;
+
+	while ( true )
+		{
+		size_t i = r.find(o);
+
+		if ( i == std::string::npos )
+			break;
+
+		r.replace(i, o.size(), n);
+		}
+
+	return r;
+}
 
 int hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
@@ -872,16 +903,31 @@ int int_list_cmp(const void* v1, const void* v2)
 		return 1;
 	}
 
-const char* bro_path()
+static string bro_path_value;
+
+const std::string& bro_path()
 	{
-	const char* path = getenv("BROPATH");
-	if ( ! path )
-		path = ".:"
+	if ( bro_path_value.empty() )
+		{
+		const char* path = getenv("BROPATH");
+		if ( ! path )
+			path = ".:"
 			BRO_SCRIPT_INSTALL_PATH ":"
 			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
 			BRO_SCRIPT_INSTALL_PATH "/site";
 
-	return path;
+		bro_path_value = path;
+		}
+
+	return bro_path_value;
+	}
+
+extern void add_to_bro_path(const string& dir)
+	{
+	// Make sure path is initialized.
+	bro_path();
+
+	bro_path_value += string(":") + dir;
 	}
 
 const char* bro_magic_path()
@@ -890,6 +936,16 @@ const char* bro_magic_path()
 
 	if ( ! path )
 		path = BRO_MAGIC_INSTALL_PATH;
+
+	return path;
+	}
+
+const char* bro_plugin_path()
+	{
+	const char* path = getenv("BRO_PLUGINS");
+
+	if ( ! path )
+		path = BRO_PLUGIN_INSTALL_PATH;
 
 	return path;
 	}
@@ -1089,9 +1145,9 @@ FILE* search_for_file(const char* filename, const char* ext,
 	// @loads can be referenced relatively.
 	if ( current_scanned_file_path != "" && filename[0] == '.' )
 		safe_snprintf(path, sizeof(path), "%s:%s",
-		              current_scanned_file_path.c_str(), bro_path());
+		              current_scanned_file_path.c_str(), bro_path().c_str());
 	else
-		safe_strncpy(path, bro_path(), sizeof(path));
+		safe_strncpy(path, bro_path().c_str(), sizeof(path));
 
 	char* dir_beginning = path;
 	char* dir_ending = path;
@@ -1505,25 +1561,16 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	if ( malloced )
 		*malloced = mi.uordblks;
 
-	ret_total = mi.arena;
+#endif
 
-	if ( total )
-		*total = ret_total;
-#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
-
-	if ( malloced )
-		*malloced = 0;
 
 	// At least on FreeBSD it's in KB.
 	ret_total = r.ru_maxrss * 1024;
 
 	if ( total )
 		*total = ret_total;
-#endif
-
-	// return ret_total;
 	}
 
 #ifdef malloc

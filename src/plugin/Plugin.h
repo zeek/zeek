@@ -9,6 +9,8 @@
 #include "Macros.h"
 
 class ODesc;
+class Func;
+class Event;
 
 namespace plugin  {
 
@@ -22,8 +24,6 @@ class BifItem {
 public:
 	/**
 	 * Type of the item.
-	 *
-	 * The values here must match the integers that \c bifcl generated.
 	 */
 	enum Type { FUNCTION = 1, EVENT = 2, CONSTANT = 3, GLOBAL = 4, TYPE = 5 };
 
@@ -35,7 +35,7 @@ public:
 	 *
 	 * @param type The type of the item.
 	 */
-	BifItem(const std::string& id, Type type);
+	BifItem(const char* id, Type type);
 
 	/**
 	 * Copy constructor.
@@ -88,6 +88,26 @@ class Plugin {
 public:
 	typedef std::list<Component *> component_list;
 	typedef std::list<BifItem> bif_item_list;
+	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
+	typedef void (*bif_init_func)(Plugin *);
+
+	/**
+	 * Type of a plugin. Plugin types are set implicitly by deriving from
+	 * the corresponding base class. */
+	enum Type {
+		/**
+		 * A standard plugin. This is the type for all plugins
+		 * derived directly from \a Plugin. */
+		STANDARD,
+
+		/**
+		 * An interpreter plugin. These plugins get hooked into the
+		 * script interpreter and can modify, or even replace, its
+		 * execution of Bro script code. To create an interpreter
+		 * plugin, derive from \aInterpreterPlugin.
+		 */
+		INTERPRETER
+	};
 
 	/**
 	 * Constructor.
@@ -98,6 +118,11 @@ public:
 	 * Destructor.
 	 */
 	virtual ~Plugin();
+
+	/**
+	 * Returns the type of the plugin.
+	 */
+	virtual Type PluginType() const;
 
 	/**
 	 * Returns the name of the plugin.
@@ -120,6 +145,23 @@ public:
 	 * Returns true if this is a dynamically linked in plugin.
 	 */
 	bool DynamicPlugin() const;
+
+	/**
+	 * Returns a colon-separated list of file extensions the plugin handles.
+	 */
+	const char* FileExtensions() const;
+
+	/**
+	 * For dynamic plugins, returns the base directory from which it was
+	 * loaded. For static plugins, returns null.
+	 **/
+	const char* PluginDirectory() const;
+
+	/**
+	 * For dynamic plugins, returns the full path to the shared library
+	 * from which it was loaded. For static plugins, returns null.
+	 **/
+	const char* PluginPath() const;
 
 	/**
 	 * Returns the internal API version that this plugin relies on. Only
@@ -173,9 +215,38 @@ public:
 	 */
 	void Describe(ODesc* d) const;
 
+	/**
+	 * Registering an individual BiF that the plugin defines.  The
+	 * information is for informational purpuses only and will show up in
+	 * the result of BifItems() as well as in the Describe() output.
+	 * Another way to add this information is via overriding
+	 * CustomBifItems().
+	 *
+	 * @param name The name of the BiF item.
+	 *
+	 * @param type The item's type.
+	 */
+	void AddBifItem(const char* name, BifItem::Type type);
+
+	/**
+	 * Adds a file to the list of files Bro loads at startup. This will
+	 * normally be a Bro script, but it passes through the plugin system
+	 * as well to load files with other extensions as supported by any of
+	 * the current plugins. In other words, calling this method is
+	 * similar to given a file on the command line. Note that the file
+	 * may be only queued for now, and actually loaded later.
+	 *
+	 * This method must not be called after InitPostScript().
+	 *
+	 * @param file The file to load. It will be searched along the standard paths.
+	 *
+	 * @return True if successful (which however may only mean
+	 * "successfully queued").
+	 */
+	bool LoadBroFile(const char* file);
+
 protected:
-	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
-	typedef bif_init_func_result (*bif_init_func)();
+	friend class Manager;
 
 	/**
 	 * Sets the plugins name.
@@ -213,6 +284,28 @@ protected:
 	void SetDynamicPlugin(bool dynamic);
 
 	/**
+	 * Reports the extensions of input files the plugin handles. If Bro
+	 * wants to load a file with one of these extensions it will pass
+	 * them to LoadFile() and then then ignore otherwise.
+	 *
+	 * ext: A list of colon-separated file extensions the plugin handles.
+	 */
+	void SetFileExtensions(const char* ext);
+
+	/**
+	 * Sets the base directory and shared library path from which the
+	 * plugin was loaded. This should be called only from the manager for
+	 * dynamic plugins.
+	 *
+	 * @param dir The plugin directory. The functions makes an internal
+	 * copy of string.
+	 *
+	 * @param sopath The full path the shared library loaded. The
+	 * functions makes an internal copy of string.
+	 */
+	void SetPluginLocation(const char* dir, const char* sopath);
+
+	/**
 	 * Takes ownership.
 	 */
 	void AddComponent(Component* c);
@@ -228,16 +321,40 @@ protected:
 	virtual bif_item_list CustomBifItems() const;
 
 	/**
+	 * Virtual method that can be overriden by derived class to load
+	 * files with extensions reported via SetFileExtension().
+	 *
+	 * This method will be called between InitPreScript() and
+	 * InitPostScript(), but with no further order or timing guaranteed.
+	 * It will be called once for each file encountered with of the
+	 * specificed extensions (i.e., duplicates are filtered out
+	 * automatically).
+	 *
+	 * @return True if the file was loaded successfuly, false if not. Bro
+	 * will abort in the latter case.
+	 */
+	virtual bool LoadFile(const char* file);
+
+	/**
+	 * Initializes the BiF items added with AddBifItem(). Internal method
+	 * that will be called by the manager at the right time.
+	 */
+	void InitBifs();
+
+	/**
 	 * Internal function adding an entry point for registering
 	 * auto-generated BiFs.
 	 */
-	void AddBifInitFunction(bif_init_func c);
+	void __AddBifInitFunction(bif_init_func c);
 
 private:
 	typedef std::list<bif_init_func> bif_init_func_list;
 
 	const char* name;
 	const char* description;
+	const char* base_dir;
+	const char* sopath;
+	const char* extensions;
 	int version;
 	int api_version;
 	bool dynamic;
@@ -245,6 +362,105 @@ private:
 	component_list components;
 	bif_item_list bif_items;
 	bif_init_func_list bif_inits;
+};
+
+/**
+ * Class for hooking into script execution. An interpreter plugin can do
+ * everything a normal plugin can, yet will also be interfaced to the script
+ * interpreter for learning about, modidying, or potentially replacing
+ * standard functionality.
+ */
+class InterpreterPlugin : public Plugin {
+public:
+	/**
+	 * Constructor.
+	 *
+	 * @param priority Imposes an order on InterpreterPlugins in which
+	 * they'll be chained. The higher the prioritu, the earlier a plugin
+	 * is called when the interpreter goes through the chain. */
+	InterpreterPlugin(int priority);
+
+	/**
+	 * Destructor.
+	 */
+	virtual ~InterpreterPlugin();
+
+	/**
+	 * Returns the plugins priority.
+	 */
+	int Priority() const;
+
+	/**
+	 * Callback for executing a function/event/hook. Whenever the script
+	 * interpreter is about to execution a function, it first gives all
+	 * InterpreterPlugins a chance to handle the call (in the order of their
+	 * priorities). A plugin can either just inspect the call, or replace it
+	 * (i.e., prevent the interpreter from executing it). In the latter case
+	 * it must provide a matching return value.
+	 *
+	 * The default implementation does never handle the call in any way.
+ 	 *
+	 * @param func The function being called.
+	 *
+	 * @param args The function arguments. The method can modify the list
+	 * in place long as it ensures matching types and correct reference
+	 * counting.
+	 *
+	 * @return If the plugin handled the call, a +1 Val with the result
+	 * value to pass back to the interpreter (for void functions and
+	 * events any \a Val is fine; it will be ignored; best to use a \c
+	 * TYPE_ANY). If the plugin did not handle the call, it must return
+	 * null.
+	 */
+	virtual Val* CallFunction(const Func* func, val_list* args);
+
+    /**
+     * Callback for raising an event. Whenever the script interpreter is
+     * about to queue an event for later execution, it first gives all
+     * InterpreterPlugins a chance to handle the queuing otherwise (in the
+     * order of their priorities). A plugin can either just inspect the
+     * event, or take it over (i.e., prevent the interpreter from queuing it
+     * it).
+     *
+	 * The default implementation does never handle the queuing in any way.
+     *
+     * @param event The even to be queued. The method can modify it in in
+     * place long as it ensures matching types and correct reference
+     * counting.
+     *
+     * @return True if the plugin took charge of the event; in that case it
+     * must have assumed ownership of the event and the intpreter will not do
+     * anything further with it. False otherwise.
+	 *
+     */
+	virtual bool QueueEvent(Event* event);
+
+	/**
+	 * Callback for updates in network time. This method will be called
+	 * whenever network time is advanced.
+	 *
+	 * @param networkt_time The new network time.
+	 */
+	virtual void UpdateNetworkTime(double network_time);
+
+	/**
+	 * Callback for event queue draining. This method will be called
+	 * whenever the event manager has drained it queue.
+	 */
+	virtual void DrainEvents();
+
+	/**
+	 * Disables interpreter hooking. The functionality of the Plugin base
+	 * class remains available.
+	 */
+	void DisableInterpreterPlugin() const;
+
+	// Overridden from base class.
+	virtual Type PluginType() const;
+
+private:
+	int priority;
+
 };
 
 }

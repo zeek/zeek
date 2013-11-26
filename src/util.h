@@ -213,7 +213,7 @@ extern void add_to_bro_path(const std::string& dir);
 
 extern const char* bro_magic_path();
 extern const char* bro_plugin_path();
-extern const char* bro_prefixes();
+extern std::string bro_prefixes();
 std::string dot_canon(std::string path, std::string file, std::string prefix = "");
 const char* normalize_path(const char* path);
 void get_script_subpath(const std::string& full_filename, const char** subpath);

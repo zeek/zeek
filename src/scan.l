@@ -581,7 +581,7 @@ YYLTYPE GetCurrentLocation()
 
 static int load_files(const char* orig_file)
 	{
-	int rc = plugin_mgr->TryLoadFile(orig_file);
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(orig_file), -1);
 
 	if ( rc == 1 )
 		return 0; // A plugin took care of it, just skip.

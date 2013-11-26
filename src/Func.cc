@@ -283,7 +283,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
 
-	Val* plugin_result = plugin_mgr->CallFunction(this, args);
+	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, args), 0);
 
 	if ( plugin_result )
 		{

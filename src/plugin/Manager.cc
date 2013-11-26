@@ -21,11 +21,20 @@ string Manager::current_sopath;
 Manager::Manager()
 	{
 	init = false;
+	hooks = new hook_list*[NUM_HOOKS];
+
+	for ( int i = 0; i < NUM_HOOKS; i++ )
+		hooks[i] = 0;
 	}
 
 Manager::~Manager()
 	{
 	assert(! init);
+
+	for ( int i = 0; i < NUM_HOOKS; i++ )
+		delete hooks[i];
+
+	delete [] hooks;
 	}
 
 void Manager::LoadPluginsFrom(const string& dir)
@@ -204,15 +213,6 @@ bool Manager::RegisterPlugin(Plugin *plugin)
 	return true;
 	}
 
-static bool interpreter_plugin_cmp(const InterpreterPlugin* a, const InterpreterPlugin* b)
-	{
-	if ( a->Priority() == b->Priority() )
-		return a->Name() < b->Name();
-
-	// Reverse sort.
-	return a->Priority() > b->Priority();
-	}
-
 void Manager::InitPreScript()
 	{
 	assert(! init);
@@ -221,25 +221,8 @@ void Manager::InitPreScript()
 		{
 		Plugin* plugin = *i;
 
-		if ( plugin->PluginType() == Plugin::INTERPRETER )
-			interpreter_plugins.push_back(dynamic_cast<InterpreterPlugin *>(plugin));
-
 		plugin->InitPreScript();
-
-		// Track the file extensions the plugin can handle.
-		std::stringstream ext(plugin->FileExtensions());
-
-		// Split at ":".
-		std::string e;
-
-		while ( std::getline(ext, e, ':') )
-			{
-			DBG_LOG(DBG_PLUGINS, "Plugin %s handles *.%s", plugin->Name(), e.c_str());
-			extensions.insert(std::make_pair(e, plugin));
-			}
 		}
-
-	interpreter_plugins.sort(interpreter_plugin_cmp);
 
 	init = true;
 	}
@@ -273,28 +256,6 @@ void Manager::FinishPlugins()
 	init = false;
 	}
 
-int Manager::TryLoadFile(const char* file)
-	{
-	assert(file);
-	const char* ext = strrchr(file, '.');
-
-	if ( ! ext )
-		return -1;
-
-	extension_map::iterator i = extensions.find(++ext);
-	if ( i == extensions.end() )
-		return -1;
-
-	Plugin* plugin = i->second;
-
-	DBG_LOG(DBG_PLUGINS, "Loading %s with %s", file, plugin->Name());
-
-	if ( i->second->LoadFile(file) )
-		return 1;
-
-	return 0;
-	}
-
 Manager::plugin_list Manager::Plugins() const
 	{
 	return *Manager::PluginsInternal();
@@ -310,66 +271,135 @@ Manager::plugin_list* Manager::PluginsInternal()
 	return plugins;
 	}
 
-Val* Manager::CallFunction(const Func* func, val_list* args) const
+static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)
 	{
-	Val* result = 0;
+	if ( a.first == b.first )
+		return a.second->Name() < a.second->Name();
 
-	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
-	      i != interpreter_plugins.end() && ! result; i++ )
+	// Reverse sort.
+	return a.first > b.first;
+	}
+
+std::list<std::pair<HookType, int> > Manager::HooksEnabledForPlugin(const Plugin* plugin) const
+	{
+	std::list<std::pair<HookType, int> > enabled;
+
+	for ( int i = 0; i < NUM_HOOKS; i++ )
 		{
-		result = (*i)->CallFunction(func, args);
+		hook_list* l = hooks[i];
 
-		if ( result )
+		if ( ! l )
+			continue;
+
+		for ( hook_list::iterator j = l->begin(); j != l->end(); j++ )
 			{
-			DBG_LOG(DBG_PLUGINS, "Plugin %s replaced call to %s", (*i)->Name(), func->Name());
-			return result;
+			if ( (*j).second == plugin )
+				enabled.push_back(std::make_pair((HookType)i, (*j).first));
 			}
+		}
+
+	return enabled;
+	}
+
+void Manager::EnableHook(HookType hook, Plugin* plugin, int prio)
+	{
+	if ( ! hooks[hook] )
+		hooks[hook] = new hook_list;
+
+	hooks[hook]->push_back(std::make_pair(prio, plugin));
+	hooks[hook]->sort(hook_cmp);
+	}
+
+void Manager::DisableHook(HookType hook, Plugin* plugin)
+	{
+	hook_list* l = hooks[hook];
+
+	if ( ! l )
+		return;
+
+	for ( hook_list::iterator i = l->begin(); i != l->end(); i++ )
+		{
+		if ( (*i).second == plugin )
+			{
+			l->erase(i);
+			break;
+			}
+		}
+
+	if ( l->empty() )
+		{
+		delete l;
+		hooks[hook] = 0;
+		}
+	}
+
+int Manager::HookLoadFile(const char* file)
+	{
+	hook_list* l = hooks[HOOK_LOAD_FILE];
+
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
+		{
+		Plugin* p = (*i).second;
+
+		int rc = p->HookLoadFile(file);
+
+		if ( rc >= 0 )
+			return rc;
+		}
+
+	return -1;
+	}
+
+Val* Manager::HookCallFunction(const Func* func, val_list* args) const
+	{
+	hook_list* l = hooks[HOOK_CALL_FUNCTION];
+
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
+		{
+		Plugin* p = (*i).second;
+
+		Val* v = p->HookCallFunction(func, args);
+
+		if ( v )
+			return v;
 		}
 
 	return 0;
 	}
 
-bool Manager::QueueEvent(Event* event) const
+bool Manager::HookQueueEvent(Event* event) const
 	{
-	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
-	      i != interpreter_plugins.end(); i++ )
+	hook_list* l = hooks[HOOK_QUEUE_EVENT];
+
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
-		if ( (*i)->QueueEvent(event) )
-			{
-			DBG_LOG(DBG_PLUGINS, "Plugin %s handled queueing of event %s", (*i)->Name(), event->Handler()->Name());
+		Plugin* p = (*i).second;
+
+		if ( p->HookQueueEvent(event) )
 			return true;
-			}
 		}
 
 	return false;
 	}
 
-
-void Manager::UpdateNetworkTime(double network_time) const
+void Manager::HookDrainEvents() const
 	{
-	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
-	      i != interpreter_plugins.end(); i++ )
-		(*i)->UpdateNetworkTime(network_time);
-	}
+	hook_list* l = hooks[HOOK_DRAIN_EVENTS];
 
-void Manager::DrainEvents() const
-	{
-	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
-	      i != interpreter_plugins.end(); i++ )
-		(*i)->DrainEvents();
-	}
-
-void Manager::DisableInterpreterPlugin(const InterpreterPlugin* plugin)
-	{
-	for ( interpreter_plugin_list::iterator i = interpreter_plugins.begin();
-	      i != interpreter_plugins.end(); i++ )
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
-		if ( *i == plugin )
-			{
-			interpreter_plugins.erase(i);
-			return;
-			}
+		Plugin* p = (*i).second;
+		p->HookDrainEvents();
 		}
 	}
 
+void Manager::HookUpdateNetworkTime(double network_time) const
+	{
+	hook_list* l = hooks[HOOK_UPDATE_NETWORK_TIME];
 
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
+		{
+		Plugin* p = (*i).second;
+		p->HookUpdateNetworkTime(network_time);
+		}
+	}

@@ -12,6 +12,14 @@
 
 namespace plugin {
 
+// Macros that trigger a plugin hook. We put this into macros to short-cut
+// the code for the most common case that no plugin defines the hook.
+#define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result) \
+	(plugin_mgr->HavePluginForHook(plugin::hook) ? plugin_mgr->method_call : (default_result))
+
+#define PLUGIN_HOOK_VOID(hook, method_call) \
+	if ( plugin_mgr->HavePluginForHook(plugin::hook) ) plugin_mgr->method_call;
+
 /**
  * A singleton object managing all plugins.
  */
@@ -19,7 +27,6 @@ class Manager
 {
 public:
 	typedef std::list<Plugin*> plugin_list;
-	typedef std::list<InterpreterPlugin*> interpreter_plugin_list;
 	typedef Plugin::component_list component_list;
 
 	/**
@@ -30,7 +37,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Manager();
+	virtual ~Manager();
 
 	/**
 	 * Loads all plugins dynamically from a set of directories. Multiple
@@ -72,22 +79,6 @@ public:
 	void FinishPlugins();
 
 	/**
-	 * This tries to load the given file by searching for a plugin that
-	 * support that extension. If a correspondign plugin is found, it's
-	 * asked to loead the file. If that fails, the method reports an 
-	 * error message.
-	 *
-	 * This method must be called only between InitPreScript() and
-	 * InitPostScript().
-	 *
-	 * @return 1 if the file was sucessfully loaded by a plugin; 0 if a
-	 * plugin was found that supports the file's extension, yet it
-	 * encountered a problem loading the file; and -1 if we don't have a
-	 * plugin that supports this extension.
-	 */
-	int TryLoadFile(const char* file);
-
-	/**
 	 * Returns a list of all available plugins. This includes all that
 	 * are compiled in statically, as well as those loaded dynamically so
 	 * far.
@@ -102,7 +93,65 @@ public:
 	template<class T> std::list<T *> Components() const;
 
 	/**
-	 * Filters a function/event/hook call through all interpreter plugins.
+	 * Returns true if there's at least one plugin interested in a given
+	 * hook.
+	 *
+	 * @param The hook to check.
+	 *
+	 * @return True if there's a plugin for that hook.
+	 */
+	bool HavePluginForHook(HookType hook) const
+		{
+		// Inline to make avoid the function call.
+		return hooks[hook] != 0;
+		}
+
+	/**
+	 * Returns all the hooks, with their priorities, that are currently
+	 * enabled for a given plugin.
+	 *
+	 * @param plugin The plugin to return the hooks for.
+	 */
+	std::list<std::pair<HookType, int> > HooksEnabledForPlugin(const Plugin* plugin) const;
+
+	/**
+	 * Enables a hook for a given plugin.
+	 *
+	 * hook: The hook to enable.
+	 *
+	 * plugin: The plugin defining the hook.
+	 *
+	 * prio: The priority to associate with the plugin for this hook.
+	 */
+	void EnableHook(HookType hook, Plugin* plugin, int prio);
+
+	/**
+	 * Disables a hook for a given plugin.
+	 *
+	 * hook: The hook to enable.
+	 *
+	 * plugin: The plugin that used to define the hook.
+	 */
+	void DisableHook(HookType hook, Plugin* plugin);
+
+	// Hook entry functions.
+
+	/**
+	 * Hook that gives plugins a chance to take over loading an input
+	 * input file. This method must be called between InitPreScript() and
+	 * InitPostScript() for each input file Bro is about to load, either
+	 * given on the command line or via @load script directives. The hook
+	 * can take over the file, in which case Bro must not further process
+	 * it otherwise.
+	 *
+	 * @return 1 if a plugin took over the file and loaded it
+	 * successfully; 0 if a plugin took over the file but had trouble
+	 * loading it; and -1 if no plugin was interested in the file at all.
+	 */
+	virtual int HookLoadFile(const char* file);
+
+	/**
+	 * Hook that filters calls to a script function/event/hook.
 	 *
 	 * @param func The function to be called.
 	 *
@@ -113,39 +162,29 @@ public:
 	 * events, it may be any Val and must be ignored). If no plugin
 	 * handled the call, the method returns null.
 	 */
-	Val* CallFunction(const Func* func, val_list* args) const;
-
-    /**
-     * Filter the queuing of an event through all interpreter plugins.
-     *
-     * @param event The event to be queued; it may be modified.
-     *
-     * @return Returns true if a plugin handled the queuing; in that case the
-     * plugin will have taken ownership.
-	 *
-     */
-	bool QueueEvent(Event* event) const;
+	Val* HookCallFunction(const Func* func, val_list* args) const;
 
 	/**
-	 * Informs all interpreter plugins about an update in network time.
+	 * Hook that filters the queuing of an event.
 	 *
-	 * @param networkt_time The new network time.
+	 * @param event The event to be queued; it may be modified.
+	 *
+	 * @return Returns true if a plugin handled the queuing; in that case
+	 * the plugin will have taken ownership.
 	 */
-	void UpdateNetworkTime(double network_time) const;
+	bool HookQueueEvent(Event* event) const;
 
 	/**
-	 * Informs all interpreter plugins that the event queue has been drained.
+	 * Hook that informs plugins about an update in network time.
+	 *
+	 * @param network_time The new network time.
 	 */
-	void DrainEvents() const;
+	void HookUpdateNetworkTime(double network_time) const;
 
-    /**
-     * Disables an interpreter plugin's hooking of the script interpreter.
-     * The remaining functionality of the Plugin base class remains
-     * available.
-     *
-     * @param plugin The plugin to disable.
-     */
-    void DisableInterpreterPlugin(const InterpreterPlugin* plugin);
+	/**
+	 * Hooks that informs plugins that the event queue is being drained.
+	 */
+	void HookDrainEvents() const;
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with
@@ -177,13 +216,17 @@ protected:
 	int LoadPlugin(const std::string& dir);
 
 private:
+	// A hook list keeps pairs of plugin and priority interested in a
+	// given hook.
+	typedef std::list<std::pair<int, Plugin*> > hook_list;
+
 	static plugin_list* PluginsInternal();
 
 	bool init;
-	typedef std::map<std::string, Plugin*> extension_map;
-	extension_map extensions;
 
-	interpreter_plugin_list interpreter_plugins;
+	// An array indexed by HookType. An entry is null if there's no hook
+	// of that type enabled.
+	hook_list** hooks;
 
 	static string current_dir;
 	static string current_sopath;

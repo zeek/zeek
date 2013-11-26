@@ -78,8 +78,7 @@ EventMgr::~EventMgr()
 
 void EventMgr::QueueEvent(Event* event)
 	{
-	if ( plugin_mgr->QueueEvent(event) )
-    	return;
+	PLUGIN_HOOK_VOID(HOOK_QUEUE_EVENT, HookQueueEvent(event));
 
 	if ( ! head )
 		head = tail = event;
@@ -119,7 +118,7 @@ void EventMgr::Drain()
 
 	SegmentProfiler(segment_logger, "draining-events");
 
-	plugin_mgr->DrainEvents();
+	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
 	draining = true;
 	while ( head )

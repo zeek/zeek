@@ -65,6 +65,14 @@
 #define BRO_PLUGIN_VERSION(v) SetVersion(v)
 
 /**
+ * Enables a hook for the plugin. Once enabled, Bro will call the
+ * corresponding virtual function.
+ *
+ * @param h The \a HookType to able.
+ */
+#define BRO_PLUGIN_ENABLE_HOOK(h) EnableHook(h)
+
+/**
  * Adds script-level items defined in a \c *.bif file to what the plugin
  * provides.
  *

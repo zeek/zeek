@@ -148,7 +148,7 @@ RETSIGTYPE watchdog(int /* signo */)
 void net_update_time(double new_network_time)
 	{
 	network_time = new_network_time;
-	plugin_mgr->UpdateNetworkTime(network_time);
+	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,

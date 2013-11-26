@@ -10,6 +10,22 @@
 
 using namespace plugin;
 
+const char* hook_name(HookType h)
+	{
+	static const char* hook_names[int(NUM_HOOKS) + 1] = {
+		// Order must match that of HookType.
+		"LoadFile",
+		"CallFunction",
+		"QueueEvent",
+		"DrainEvents",
+		"UpdateNetworkTime",
+		// End marker.
+		"<end>",
+	};
+
+	return hook_names[int(h)];
+	}
+
 BifItem::BifItem(const char* arg_id, Type arg_type)
 	{
 	id = copy_string(arg_id);
@@ -49,7 +65,6 @@ Plugin::Plugin()
 	dynamic = false;
 	base_dir = 0;
 	sopath = 0;
-	extensions = 0;
 
 	Manager::RegisterPlugin(this);
 	}
@@ -62,12 +77,6 @@ Plugin::~Plugin()
 	delete [] description;
 	delete [] base_dir;
 	delete [] sopath;
-	delete [] extensions;
-	}
-
-Plugin::Type Plugin::PluginType() const
-	{
-	return STANDARD;
 	}
 
 const char* Plugin::Name() const
@@ -170,22 +179,6 @@ Plugin::bif_item_list Plugin::CustomBifItems() const
 	return bif_item_list();
 	}
 
-const char* Plugin::FileExtensions() const
-	{
-	return extensions ? extensions : "";
-	}
-
-void Plugin::SetFileExtensions(const char* ext)
-	{
-	extensions = copy_string(ext);
-	}
-
-bool Plugin::LoadFile(const char* file)
-	{
-	reporter->InternalError("Plugin::LoadFile not overriden for %s", file);
-	return false;
-	}
-
 void Plugin::Done()
 	{
 	for ( component_list::const_iterator i = components.begin(); i != components.end(); i++ )
@@ -204,18 +197,9 @@ static bool component_cmp(const Component* a, const Component* b)
 	return a->Name() < b->Name();
 	}
 
-void Plugin::AddComponent(Component* c)
-	{
-	components.push_back(c);
-
-	// Sort components by name to make sure we have a deterministic
-	// order.
-	components.sort(component_cmp);
-	}
-
 bool Plugin::LoadBroFile(const char* file)
 	{
-	add_input_file(file);
+	::add_input_file(file);
 	return true;
 	}
 
@@ -228,6 +212,53 @@ void Plugin::AddBifItem(const char* name, BifItem::Type type)
 	{
 	BifItem bi(name, (BifItem::Type)type);
 	bif_items.push_back(bi);
+	}
+
+void Plugin::AddComponent(Component* c)
+	{
+	components.push_back(c);
+
+	// Sort components by name to make sure we have a deterministic
+	// order.
+	components.sort(component_cmp);
+	}
+
+Plugin::hook_list Plugin::EnabledHooks() const
+	{
+	return plugin_mgr->HooksEnabledForPlugin(this);
+	}
+
+void Plugin::EnableHook(HookType hook, int priority)
+	{
+	plugin_mgr->EnableHook(hook, this, priority);
+	}
+
+void Plugin::DisableHook(HookType hook)
+	{
+	plugin_mgr->DisableHook(hook, this);
+	}
+
+int Plugin::HookLoadFile(const char* file)
+	{
+	return -1;
+	}
+
+Val* Plugin::HookCallFunction(const Func* func, val_list* args)
+	{
+	return 0;
+	}
+
+bool Plugin::HookQueueEvent(Event* event)
+	{
+	return false;
+	}
+
+void Plugin::HookDrainEvents()
+	{
+	}
+
+void Plugin::HookUpdateNetworkTime(double network_time)
+	{
 	}
 
 void Plugin::Describe(ODesc* d) const
@@ -255,18 +286,6 @@ void Plugin::Describe(ODesc* d) const
 
 	else
 		d->Add(" (built-in)");
-
-	switch ( PluginType() ) {
-	case STANDARD:
-		break;
-
-	case INTERPRETER:
-		d->Add( " (interpreter plugin)");
-		break;
-
-	default:
-		reporter->InternalError("unknown plugin type in Plugin::Describe");
-	}
 
 	d->Add("\n");
 
@@ -317,48 +336,19 @@ void Plugin::Describe(ODesc* d) const
 		d->Add((*i).GetID());
 		d->Add("\n");
 		}
-	}
 
-InterpreterPlugin::InterpreterPlugin(int arg_priority)
-	{
-	priority = arg_priority;
-	}
+	hook_list hooks = EnabledHooks();
 
-InterpreterPlugin::~InterpreterPlugin()
-	{
-	}
+	for ( hook_list::iterator i = hooks.begin(); i != hooks.end(); i++ )
+		{
+		HookType hook = (*i).first;
+		int prio = (*i).second;
 
-int InterpreterPlugin::Priority() const
-	{
-	return priority;
+		d->Add("    Implements ");
+		d->Add(hook_name(hook));
+		d->Add(" (priority ");
+		d->Add(prio);
+		d->Add("]\n");
+		}
 	}
-
-Plugin::Type InterpreterPlugin::PluginType() const
-	{
-	return INTERPRETER;
-	}
-
-Val* InterpreterPlugin::CallFunction(const Func* func, val_list* args)
-	{
-	return 0;
-	}
-
-bool InterpreterPlugin::QueueEvent(Event* event)
-	{
-	return false;
-	}
-
-void InterpreterPlugin::UpdateNetworkTime(double network_time)
-	{
-	}
-
-void InterpreterPlugin::DrainEvents()
-	{
-	}
-
-void InterpreterPlugin::DisableInterpreterPlugin() const
-	{
-	plugin_mgr->DisableInterpreterPlugin(this);
-	}
-
 

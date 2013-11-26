@@ -229,7 +229,7 @@ protected:
 	 * field in #val.
 	 * @param data pointer to a chunk of file data.
 	 * @param len number of bytes in the data chunk.
-	 * @return whether mime type was available.
+	 * @return true if mime type available.
 	 */
 	bool DetectMIME(const u_char* data, uint64 len);
 

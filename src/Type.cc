@@ -430,6 +430,11 @@ BroType* IndexType::YieldType()
 	return yield_type;
 	}
 
+const BroType* IndexType::YieldType() const
+	{
+	return yield_type;
+	}
+
 void IndexType::Describe(ODesc* d) const
 	{
 	BroType::Describe(d);
@@ -719,6 +724,11 @@ FuncType::~FuncType()
 	}
 
 BroType* FuncType::YieldType()
+	{
+	return yield;
+	}
+
+const BroType* FuncType::YieldType() const
 	{
 	return yield;
 	}
@@ -1444,9 +1454,9 @@ void CommentedEnumType::AddNameInternal(const string& module_name, const char* n
 	names[copy_string(fullname.c_str())] = val;
 	}
 
-bro_int_t EnumType::Lookup(const string& module_name, const char* name)
+bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
-	NameMap::iterator pos =
+	NameMap::const_iterator pos =
 		names.find(make_full_var_name(module_name.c_str(), name).c_str());
 
 	if ( pos == names.end() )
@@ -1455,14 +1465,24 @@ bro_int_t EnumType::Lookup(const string& module_name, const char* name)
 		return pos->second;
 	}
 
-const char* EnumType::Lookup(bro_int_t value)
+const char* EnumType::Lookup(bro_int_t value) const
 	{
-	for ( NameMap::iterator iter = names.begin();
+	for ( NameMap::const_iterator iter = names.begin();
 	      iter != names.end(); ++iter )
 		if ( iter->second == value )
 			return iter->first;
 
 	return 0;
+	}
+
+EnumType::enum_name_list EnumType::Names() const
+	{
+	enum_name_list n;
+	for ( NameMap::const_iterator iter = names.begin();
+	      iter != names.end(); ++iter )
+		n.push_back(std::make_pair(iter->first, iter->second));
+
+	return n;
 	}
 
 void EnumType::DescribeReST(ODesc* d) const

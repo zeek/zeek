@@ -86,11 +86,6 @@ Manager::~Manager()
 
 void Manager::InitPreScript()
 	{
-	std::list<Component*> analyzers = plugin_mgr->Components<Component>();
-
-	for ( std::list<Component*>::const_iterator i = analyzers.begin(); i != analyzers.end(); i++ )
-		RegisterComponent(*i, "ANALYZER_");
-
 	// Cache these tags.
 	analyzer_backdoor = GetComponentTag("BACKDOOR");
 	analyzer_connsize = GetComponentTag("CONNSIZE");
@@ -200,6 +195,11 @@ void Manager::DisableAllAnalyzers()
 	list<Component*> all_analyzers = GetComponents();
 	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		(*i)->SetEnabled(false);
+	}
+
+analyzer::Tag Manager::GetAnalyzerTag(const char* name)
+	{
+	return GetComponentTag(name);
 	}
 
 bool Manager::IsEnabled(Tag tag)

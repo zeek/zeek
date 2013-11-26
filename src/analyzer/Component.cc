@@ -17,6 +17,8 @@ Component::Component(const char* arg_name, factory_callback arg_factory, Tag::su
 	factory = arg_factory;
 	enabled = arg_enabled;
 	partial = arg_partial;
+
+	analyzer_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 
 Component::Component(const Component& other)
@@ -28,6 +30,8 @@ Component::Component(const Component& other)
 	factory = other.factory;
 	enabled = other.enabled;
 	partial = other.partial;
+
+	// TODO: Do we need the RegisterComponent() call here?
 	}
 
 Component::~Component()

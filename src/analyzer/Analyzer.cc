@@ -644,12 +644,12 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-void Analyzer::ProtocolConfirmation()
+void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	{
 	if ( protocol_confirmed )
 		return;
 
-	EnumVal* tval = tag.AsEnumVal();
+	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 	Ref(tval);
 
 	val_list* vl = new val_list;

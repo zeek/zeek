@@ -1,8 +1,0 @@
-timeout g(), F
-timeout g(), T
-timeout
-g() done, no exception, T
-localhost resolved
-localhost resolved from f(), T
-localhost resolved from f(), F
-f() done, no exception, T

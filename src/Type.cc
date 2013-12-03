@@ -19,21 +19,32 @@ extern int generate_documentation;
 const char* type_name(TypeTag t)
 	{
 	static const char* type_names[int(NUM_TYPES)] = {
-		"void",
-		"bool", "int", "count", "counter",
-		"double", "time", "interval",
-		"string", "pattern",
-		"enum",
-		"timer",
-		"port", "addr", "subnet",
-		"any",
-		"table", "union", "record", "types",
-		"func",
-		"file",
-		"opaque",
-		"vector",
-		"type",
-		"error",
+		"void",      // 0
+		"bool",      // 1
+		"int",       // 2
+		"count",     // 3
+		"counter",   // 4
+		"double",    // 5
+		"time",      // 6
+		"interval",  // 7
+		"string",    // 8
+		"pattern",   // 9
+		"enum",      // 10
+		"timer",     // 11
+		"port",      // 12
+		"addr",      // 13
+		"subnet",    // 14
+		"any",       // 15
+		"table",     // 16
+		"union",     // 17
+		"record",    // 18
+		"types",     // 19
+		"func",      // 20
+		"file",      // 21
+		"vector",    // 22
+		"opaque",    // 23
+		"type",      // 24
+		"error",     // 25
 	};
 
 	if ( int(t) >= NUM_TYPES )

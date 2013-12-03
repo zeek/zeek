@@ -1,4 +1,11 @@
 
+2.2-11 | 2013-12-03 10:56:28 -0800
+
+  * Unit test for broccoli vector support. (Jon Siwek)
+    
+  * Changed ordering of Bro type tag enum, which was out of sync. (Jon
+    Siwek)
+
 2.2-9 | 2013-11-18 14:03:21 -0800
 
   * Update local.bro for Bro >= 2.2. The commented out Notice::policy

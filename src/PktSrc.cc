@@ -12,6 +12,28 @@
 #include "Sessions.h"
 
 
+#ifdef HAVE_NETMAP
+// Compile in netmap support. If the interface name starts with
+// netmap: or vale: we use a netmap fd instead of pcap, and bind
+// one or all rings depending on the configuration.
+// In netmap mode, pd == 0, selectable_fd is the netmao fd.
+//
+// For a test run  you can use the vale switch,
+//	pkt-gen -i vale1:b -f tx -R ..rate_in_pps
+// and launch bro like this
+/*
+
+BROPATH=`./bro-path-dev` ./src/bro -i vale1:a -b -e 'global l=0; event p(){local s=net_stats(); c=s$pkts_recvd;print c-l;l=c; schedule 1 sec {p()};} event bro_init(){event p();}'
+
+ */
+
+#include <net/if.h>		// IFNAMSIZ
+#include <net/netmap.h>
+#include <net/netmap_user.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>		// mmap, munmap
+#endif /* HAVE_NETMAP */
+
 // ### This needs auto-confing.
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
@@ -75,7 +97,45 @@ int PktSrc::ExtractNextPacket()
 		return 0;
 		}
 
+#ifdef HAVE_NETMAP
+	// In netmap mode, extract a packet from the ring if available,
+	// and create a pcap header. Then processing continues as before.
+	if (nm_mem)	// valid netmap mode
+		{
+		struct netmap_ring *ring = NETMAP_RXRING(nm_nifp, nm_cur_ring);
+		if (ring->avail == 0)
+			{
+			if (++nm_cur_ring > nm_last_ring)
+				nm_cur_ring = nm_first_ring;
+			ring = NETMAP_RXRING(nm_nifp, nm_cur_ring);
+			}
+		data = last_data = 0; // default
+		if (ring->avail == 0)
+			++stats.dropped; // count idle polls
+		else
+			{
+			u_int i = ring->cur;
+			u_int idx = ring->slot[i].buf_idx;
+			if (idx < 2)
+				{
+				printf("%s bogus RX index %d at offset %d",
+					nm_nifp->ni_name, idx, i);
+				sleep(2);
+				}
+			else
+				{
+				data = last_data = (u_char *)NETMAP_BUF(ring, idx);
+				hdr.len = hdr.caplen = ring->slot[i].len;
+				}
+			hdr.ts = ring->ts;
+			ring->cur = NETMAP_RING_NEXT(ring, i);
+			ring->avail--;
+			}
+		}
+	else
+#else /* !HAVE_NETMAP */
 	data = last_data = pcap_next(pd, &hdr);
+#endif /* !HAVE_NETMAP */
 
 	if ( data && (hdr.len == 0 || hdr.caplen == 0) )
 		{
@@ -405,6 +465,17 @@ void PktSrc::SetHdrSize()
 
 void PktSrc::Close()
 	{
+#ifdef HAVE_NETMAP
+	if (pd == 0 && selectable_fd >= 0)
+		{
+		close(selectable_fd);
+		selectable_fd = -1;
+		if (nm_mem)
+			munmap(nm_mem, nm_memsize);
+		nm_mem = 0;
+		closed = true;
+		}
+#endif /* HAVE_NETMAP */
 	if ( pd )
 		{
 		pcap_close(pd);
@@ -443,6 +514,14 @@ void PktSrc::Statistics(Stats* s)
 	else
 		{
 		struct pcap_stat pstat;
+#ifdef HAVE_NETMAP
+		if (nm_mem)
+			{
+			s->dropped = stats.dropped;
+			s->link = stats.received;
+			}
+		else
+#endif /* HAVE_NETMAP */
 		if ( pcap_stats(pd, &pstat) < 0 )
 			{
 			reporter->Error("problem getting packet filter statistics: %s",
@@ -481,6 +560,66 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 		}
 
 	interface = copy_string(arg_interface);
+
+#ifdef HAVE_NETMAP
+#define NM_PREFIX "netmap:"
+	if ( !strncmp(interface, NM_PREFIX, strlen(NM_PREFIX)) ||
+	     !strncmp(interface, "vale", 4) )
+		{
+		char *dev = interface;
+		if (*dev != 'v')
+			dev += strlen(NM_PREFIX);
+		selectable_fd = open("/dev/netmap", O_RDWR);
+		if (selectable_fd < 0)
+			{
+			safe_snprintf(errbuf, sizeof(errbuf),
+				 "cannot open /dev/netmap for %s", dev);
+			closed = true;
+			return;
+			}
+
+		struct nmreq req;
+
+		int err, ring_id = -1;
+		char *s = getenv("NETMAP_RING_ID");
+		if (s)
+			ring_id = atoi(s);
+
+		bzero(&req, sizeof(req));
+		if (ring_id >=0 && ring_id < 256)
+			req.nr_ringid = ring_id | NETMAP_HW_RING;
+		req.nr_version = NETMAP_API;
+		strncpy(req.nr_name, dev, sizeof(req.nr_name));
+		err = ioctl(selectable_fd, NIOCREGIF, &req);
+		if (err)
+			{
+			safe_snprintf(errbuf, sizeof(errbuf),
+				 "cannot REGIF /dev/netmap for %s", dev);
+			Close();
+			return;
+			}
+		nm_memsize = req.nr_memsize;
+		nm_mem = mmap(0, nm_memsize, PROT_WRITE | PROT_READ, MAP_SHARED,
+				selectable_fd, 0);
+		if (nm_mem == 0)
+			{
+			safe_snprintf(errbuf, sizeof(errbuf),
+				 "cannot mmap /dev/netmap for %s", interface);
+			Close();
+			return;
+			}
+		nm_nifp = NETMAP_IF(nm_mem, req.nr_offset);
+		if (ring_id >=0 && ring_id < 256)
+			nm_first_ring = nm_last_ring = ring_id;
+		else
+			{
+			nm_first_ring = 0;
+			nm_last_ring = req.nr_rx_rings - 1;
+			}
+		nm_cur_ring = nm_first_ring;
+		return;
+		}
+#endif /* HAVE_NETMAP */
 
 	// Determine network and netmask.
 	uint32 net;

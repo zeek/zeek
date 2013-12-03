@@ -3,6 +3,8 @@
 #ifndef pktsrc_h
 #define pktsrc_h
 
+#define HAVE_NETMAP	// enable netmap support
+
 #include "Dict.h"
 #include "Expr.h"
 #include "BPF_Program.h"
@@ -189,6 +191,18 @@ protected:
 
 	pcap_t* pd;
 	int selectable_fd;
+#ifdef HAVE_NETMAP
+	// State variables for netmap support, see PktSrc.cc for details.
+	// In netmap mode, pd == 0 and selectable_fd has the netmap fd.
+	void *nm_mem;		// mmapped region
+	int nm_memsize;		// mmapped size
+	// struct netmap_if is opaque here
+	struct netmap_if *nm_nifp; // base pointer for netmap
+	int nm_first_ring;	// first, last and current ring
+	int nm_last_ring;
+	int nm_cur_ring;
+#endif /* HAVE_NETMAP */
+
 	uint32 netmask;
 	char errbuf[BRO_PCAP_ERRBUF_SIZE];
 

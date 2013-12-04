@@ -1035,10 +1035,16 @@ void RecordType::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		{
-		d->AddSP("record {");
-		DescribeFields(d);
-		d->SP();
-		d->Add("}");
+		if ( d->IsShort() && GetName().size() )
+			d->Add(GetName());
+
+		else
+			{
+			d->AddSP("record {");
+			DescribeFields(d);
+			d->SP();
+			d->Add("}");
+			}
 		}
 
 	else

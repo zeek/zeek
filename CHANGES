@@ -1,4 +1,14 @@
 
+2.2-38 | 2013-12-04 12:10:54 -0800
+
+  * New script misc/dump-events.bro, along with core support, that
+    dumps events Bro is raising in an easily readable form for
+    debugging. (Robin Sommer)
+
+  * Prettyfing Describe() for record types. If a record type has a
+    name and ODesc is set to short, we now print the name instead of
+    the full field list. (Robin Sommer)
+
 2.2-35 | 2013-12-04 10:10:32 -0800
 
   * Rework the automated script-reference documentation generation

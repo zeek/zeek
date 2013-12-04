@@ -1,4 +1,20 @@
 
+2.2-44 | 2013-12-04 12:41:51 -0800
+
+  * Fix string slice notation. Addresses BIT-1097. (Jon Siwek)
+    
+    Slice ranges were not correctly determined for negative indices
+    and also off by one in general (included one more element at the
+    end of the substring than what actually matched the index range).
+    It's now equivalent to Python slice notation.  Accessing a string
+    at a single index is also the same as Python except that an
+    out-of-range index returns an empty string instead of throwing an
+    expection.
+
+2.2-41 | 2013-12-04 12:40:51 -0800
+
+  * Updating tests. (Robin Sommer)
+
 2.2-40 | 2013-12-04 12:16:38 -0800
 
   * ssl_client_hello() now receives a vector of ciphers, instead of a

@@ -1,4 +1,16 @@
 
+2.2-37 | 2013-12-04 11:22:31 -0800
+
+  * Fix string slice notation. Addresses BIT-1097. (Jon Siwek)
+    
+    Slice ranges were not correctly determined for negative indices
+    and also off by one in general (included one more element at the
+    end of the substring than what actually matched the index range).
+    It's now equivalent to Python slice notation.  Accessing a string
+    at a single index is also the same as Python except that an
+    out-of-range index returns an empty string instead of throwing an
+    expection.
+
 2.2-35 | 2013-12-04 10:10:32 -0800
 
   * Rework the automated script-reference documentation generation

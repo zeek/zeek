@@ -184,7 +184,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 331: // RPL_NOTOPIC
 			break;
 		*/
-		
+
 		// Count of users, services and servers in whole network.
 		case 251:
 			if ( ! irc_network_info )

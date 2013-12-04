@@ -1,4 +1,9 @@
 
+2.2-40 | 2013-12-04 12:16:38 -0800
+
+  * ssl_client_hello() now receives a vector of ciphers, instead of a
+    set, to preserve their order. (Bernhard Amann)
+
 2.2-38 | 2013-12-04 12:10:54 -0800
 
   * New script misc/dump-events.bro, along with core support, that

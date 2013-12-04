@@ -55,7 +55,7 @@
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
 %type <re> pattern
-%type <expr> expr init anonymous_function
+%type <expr> expr opt_expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -261,6 +261,13 @@ decl_list:
 	|
 	;
 
+opt_expr:
+		expr
+			{ $$ = $1; }
+	|
+			{ $$ = 0; }
+	;
+
 expr:
 		'(' expr ')'
 			{
@@ -418,11 +425,13 @@ expr:
 			$$ = new IndexExpr($1, $3);
 			}
 
-	|	expr '[' expr ':' expr ']'
+	|	expr '[' opt_expr ':' opt_expr ']'
 			{
 			set_location(@1, @6);
-			ListExpr* le = new ListExpr($3);
-			le->Append($5);
+			Expr* low = $3 ? $3 : new ConstExpr(new Val(0, TYPE_COUNT));
+			Expr* high = $5 ? $5 : new SizeExpr($1);
+			ListExpr* le = new ListExpr(low);
+			le->Append(high);
 			$$ = new IndexExpr($1, le, true);
 			}
 

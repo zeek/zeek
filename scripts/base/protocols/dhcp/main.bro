@@ -4,7 +4,7 @@
 ##!
 ##! If you'd like to track known DHCP devices and to log the hostname
 ##! supplied by the client, see
-##! :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames`.
+##! :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro`.
 
 @load ./utils.bro
 

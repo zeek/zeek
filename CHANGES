@@ -1,4 +1,28 @@
 
+2.2-35 | 2013-12-04 10:10:32 -0800
+
+  * Rework the automated script-reference documentation generation
+    process, broxygen. Addresses BIT-701 and BIT-751. (Jon Siwek)
+
+    Highlights:
+
+        - Remove --doc-scripts and -Z options to toggle documentation
+          mode. The parser is now always instrumented to gather
+          documentation from comments of the form "##", "##!", or
+          "##<".
+
+        - Raw comments are available at runtime through several BIF
+          functions: get_*_comments;
+
+        - Add --broxygen and -X options to toggle generating
+          reST-format documentation output, driven by a config file
+          argument.
+
+        - Add a "broxygen" Sphinx extension domain, allowing certain
+          pieces of documentation to be generated on-the-fly via
+          invoking a Bro process. Re-organized/cleaned up the Sphinx
+          source tree in doc/ to use this in some places.
+
 2.2-11 | 2013-12-03 10:56:28 -0800
 
   * Unit test for broccoli vector support. (Jon Siwek)

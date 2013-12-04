@@ -5172,6 +5172,7 @@ BroType* ListExpr::InitType() const
 			types->append(td);
 			}
 
+
 		return new RecordType(types);
 		}
 

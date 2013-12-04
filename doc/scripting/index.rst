@@ -316,7 +316,7 @@ block that variable is available to any other script through the
 naming convention of ``MODULE::variable_name``.
 
 The declaration below is taken from the
-:doc:`/scripts/policy/protocols/conn/known-hosts` script and
+:doc:`/scripts/policy/protocols/conn/known-hosts.bro` script and
 declares a variable called ``known_hosts`` as a global set of unique
 IP addresses within the ``Known`` namespace and exports it for use
 outside of the ``Known`` namespace.  Were we to want to use the
@@ -348,7 +348,7 @@ constants are used in Bro scripts as containers for configuration
 options.  For example, the configuration option to log password
 decrypted from HTTP streams is stored in
 ``HTTP::default_capture_password`` as shown in the stripped down
-excerpt from :doc:`/scripts/base/protocols/http/main` below.
+excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
    :lines: 8-10,19-21,120
@@ -1182,7 +1182,7 @@ passing in the ``Notice::Info`` record.  The simplest kind of
 action based on the answer.  The hook below adds the
 :bro:enum:`Notice::ACTION_EMAIL` action for the
 ``SSH::Interesting_Hostname_Login`` notice raised in the
-:doc:`/scripts/policy/protocols/ssh/interesting-hostnames` script.
+:doc:`/scripts/policy/protocols/ssh/interesting-hostnames.bro` script.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_hook_01.bro
 
@@ -1224,7 +1224,7 @@ Bro.
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
    :lines: 60-63
 
-In the :doc:`/scripts/policy/protocols/ssl/expiring-certs` script
+In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.bro` script
 which identifies when SSL certificates are set to expire and raises
 notices when it crosses a predefined threshold, the call to
 ``NOTICE`` above also sets the ``$identifier`` entry by concatenating

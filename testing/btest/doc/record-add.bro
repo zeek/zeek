@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro --doc-scripts %INPUT
+# @TEST-EXEC: bro -b %INPUT
 
-# When in doc mode, bro will clone declared types (see add_type() in Var.cc)
-# in order to keep track of the identifier name associated with the new type.
+# To support documentation of type aliases, Bro clones declared types
+# (see add_type() in Var.cc) in order to keep track of type names and aliases.
 # This test makes sure that the cloning is done in a way that's compatible
 # with adding fields to a record type -- we want to be sure that cloning
 # a type that contains record types will correctly see field additions to

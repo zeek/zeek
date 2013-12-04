@@ -24,6 +24,14 @@ s = "012345";
 for ( i in indices )
 	print fmt("word[%s] = %s", indices[i], word[indices[i]]);
 
+for ( i in indices )
+	print fmt("word[:%s] = %s", indices[i], word[:indices[i]]);
+
+for ( i in indices )
+	print fmt("word[%s:] = %s", indices[i], word[indices[i]:]);
+
+print word[:];
+
 print "";
 
 print "A";

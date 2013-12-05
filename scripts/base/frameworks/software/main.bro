@@ -209,7 +209,7 @@ function parse_mozilla(unparsed_version: string): Description
 		if ( 2 in parts )
 			v = parse(parts[2])$version;
 		}
-	else if ( / MSIE / in unparsed_version )
+	else if ( / MSIE |Trident\// in unparsed_version )
 		{
 		software_name = "MSIE";
 		if ( /Trident\/4\.0/ in unparsed_version )
@@ -218,6 +218,8 @@ function parse_mozilla(unparsed_version: string): Description
 			v = [$major=9,$minor=0];
 		else if ( /Trident\/6\.0/ in unparsed_version )
 			v = [$major=10,$minor=0];
+		else if ( /Trident\/7\.0/ in unparsed_version )
+			v = [$major=11,$minor=0];
 		else
 			{
 			parts = split_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);

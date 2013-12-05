@@ -2,6 +2,7 @@ success on: Apache/1.3.19 (Unix)
 success on: Python-urllib/3.1
 success on: Apache
 success on: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; InfoPath.3; Creative AutoUpdate v1.40.02)
+success on: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.3; Trident/7.0; .NET4.0E; .NET4.0C)
 success on: Java/1.6.0_13
 success on: Wget/1.11.4 (Red Hat modified)
 success on: curl/7.15.1 (i486-pc-linux-gnu) libcurl/7.15.1 OpenSSL/0.9.8a zlib/1.2.3 libidn/0.5.18
@@ -38,6 +39,7 @@ success on: Mozilla/5.0 (Linux; U; Android 2.3.3; zh-tw; HTC Pyramid Build/GRI40
 success on: wu-2.6.2(1)
 success on: Opera/9.80 (J2ME/MIDP; Opera Mini/5.0.18741/18.794; U; en) Presto/2.4.15
 success on: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; Tablet PC 2.0; InfoPath.2; InfoPath.3)
+success on: Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko
 success on: Flash/10,2,153,1
 success on: CacheFlyServe v26b
 success on: Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.11) Gecko/20101013 Lightning/1.0b2 Thunderbird/3.1.5

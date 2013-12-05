@@ -424,11 +424,95 @@ static void bro_new_handler()
 	out_of_memory("new");
 	}
 
+struct ProfileItem {
+	double time_start;
+	double time_end;
+	unsigned int mem_total_start;
+	unsigned int mem_total_end;
+	unsigned int mem_malloced_start;
+	unsigned int mem_malloced_end;
+
+	ProfileItem()
+		{
+		time_start = time_end = 0;
+		mem_total_start = mem_total_end = 0;
+		mem_malloced_start = mem_malloced_end = 0;
+		}
+};
+
+struct ProfileStats {
+	ProfileItem core_init;
+	ProfileItem script_init;
+	ProfileItem net;
+	ProfileItem processing;
+	ProfileItem total;
+};
+
+enum ProfileType {
+	PROFILE_CORE_INIT,
+	PROFILE_SCRIPT_INIT,
+	PROFILE_NET,
+	PROFILE_PROCESSING,
+	PROFILE_TOTAL,
+	};
+
+void print_profile_item(const char* tag, ProfileItem* i)
+	{
+	fprintf(stderr, "# %s %.6f %uM/%uM\n",
+		tag,
+		(i->time_end - i->time_start),
+		(i->mem_total_end - i->mem_total_start) / 1024 / 1024,
+		(i->mem_malloced_end - i->mem_malloced_start) / 1024 / 1024);
+	}
+
+void print_profile(ProfileStats* s)
+	{
+	print_profile_item("core-init", &s->core_init);
+	print_profile_item("bro_init", &s->script_init);
+	print_profile_item("net-processing", &s->net);
+	print_profile_item("total-processing", &s->processing);
+	print_profile_item("total-bro", &s->total);
+	}
+
+void record_profile(ProfileStats* s, ProfileType t, bool start)
+	{
+	ProfileItem* i = nullptr;
+
+	if ( t == PROFILE_CORE_INIT )
+		i = &s->core_init;
+	else if ( t == PROFILE_SCRIPT_INIT )
+		i = &s->script_init;
+	else if ( t == PROFILE_NET )
+		i = &s->net;
+	else if ( t == PROFILE_PROCESSING )
+		i = &s->processing;
+	else if ( t == PROFILE_TOTAL )
+		i = &s->total;
+	else
+		reporter->InternalError("unknown PROFILE_* in record_profile");
+
+	unsigned int mem_total;
+	unsigned int mem_malloced;
+	get_memory_usage(&mem_total, &mem_malloced);
+
+	if ( start )
+		{
+		i->time_start = current_time(true);
+		i->mem_total_start = mem_total;
+		i->mem_malloced_start = mem_malloced;
+		}
+
+	else
+		{
+		i->time_end = current_time(true);
+		i->mem_total_end = mem_total;
+		i->mem_malloced_end = mem_malloced;
+		}
+	}
+
 int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
-
-	double time_start = current_time(true);
 
 	brofiler.ReadStats();
 
@@ -756,7 +840,9 @@ int main(int argc, char** argv)
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");
 
-	bro_start_time = current_time(true);
+	ProfileStats pstats;
+	record_profile(&pstats, PROFILE_TOTAL, true);
+	record_profile(&pstats, PROFILE_CORE_INIT, true);
 
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
@@ -1132,8 +1218,14 @@ int main(int argc, char** argv)
 
 	reporter->ReportViaEvents(true);
 
+	record_profile(&pstats, PROFILE_CORE_INIT, false);
+	record_profile(&pstats, PROFILE_PROCESSING, true);
+	record_profile(&pstats, PROFILE_SCRIPT_INIT, true);
+
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
+
+	record_profile(&pstats, PROFILE_SCRIPT_INIT, false);
 
 	analyzer_mgr->DumpDebug();
 
@@ -1160,42 +1252,10 @@ int main(int argc, char** argv)
 
 #endif
 
-		double time_net_start = current_time(true);;
-
-		unsigned int mem_net_start_total;
-		unsigned int mem_net_start_malloced;
-
-		if ( time_bro )
-			{
-			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
-
-			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
-
-			fprintf(stderr, "# initialization %uM/%uM\n",
-				mem_net_start_total / 1024 / 1024,
-				mem_net_start_malloced / 1024 / 1024);
-			}
-
+		record_profile(&pstats, PROFILE_NET, true);
 		net_run();
-
-		double time_net_done = current_time(true);;
-
-		unsigned int mem_net_done_total;
-		unsigned int mem_net_done_malloced;
-
-		if ( time_bro )
-			{
-			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
-
-			fprintf(stderr, "# total time %.6f, processing %.6f\n",
-				time_net_done - time_start, time_net_done - time_net_start);
-
-			fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
-				mem_net_done_total / 1024 / 1024,
-				mem_net_done_malloced / 1024 / 1024,
-				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
-				(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
-			}
+		record_profile(&pstats, PROFILE_NET, false);
+		record_profile(&pstats, PROFILE_PROCESSING, false);
 
 		done_with_network();
 		net_delete();
@@ -1214,11 +1274,17 @@ int main(int argc, char** argv)
 		}
 	else
 		{
+		record_profile(&pstats, PROFILE_PROCESSING, false);
 		persistence_serializer->WriteState(false);
 		terminate_bro();
 		}
 
 	delete rule_matcher;
+
+	record_profile(&pstats, PROFILE_TOTAL, false);
+
+	if ( time_bro )
+		print_profile(&pstats);
 
 	return 0;
 	}

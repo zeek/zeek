@@ -971,12 +971,12 @@ FILE* open_package(string& path, const string& mode)
 	return 0;
 	}
 
-void SafePathOp::CheckValid(const char* result, const char* path,
+void SafePathOp::CheckValid(const char* op_result, const char* path,
                             bool error_aborts)
 	{
-	if ( result )
+	if ( op_result )
 		{
-		result = result;
+		result = op_result;
 		error = false;
 		}
 	else

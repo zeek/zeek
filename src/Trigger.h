@@ -6,6 +6,8 @@
 
 #include "StateAccess.h"
 #include "Traverse.h"
+#include "Obj.h"
+#include "Frame.h"
 
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.

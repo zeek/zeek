@@ -2,6 +2,10 @@
 
 #include "Trigger.h"
 #include "Traverse.h"
+#include "Stmt.h"
+#include "Expr.h"
+#include "ID.h"
+#include "Scope.h"
 
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.

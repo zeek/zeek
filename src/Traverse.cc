@@ -3,6 +3,11 @@
 #include "Scope.h"
 #include "Traverse.h"
 #include "input.h"
+#include "Obj.h"
+#include "Stmt.h"
+#include "Expr.h"
+#include "ID.h"
+#include "Scope.h"
 
 TraversalCode traverse_all(TraversalCallback* cb)
 	{

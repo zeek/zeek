@@ -1,4 +1,21 @@
 
+2.2-48 | 2013-12-04 13:45:47 -0800
+
+  * Support omission of string slice low/high indices, BIT-1097.
+
+    Omission of the low index defaults to 0:
+
+        s = "12345"; s[:3] == "123"
+
+    Omission of the high index defaults to length of the string:
+
+        s = "12345"; s[3:] == "45" (Jon Siwek)
+
+  * Tweak to SMTP script to adjust for new string slicing behaviour.
+    (Robin Sommer)
+
+  * Test updates. (Robin Sommer)
+
 2.2-44 | 2013-12-04 12:41:51 -0800
 
   * Fix string slice notation. Addresses BIT-1097. (Jon Siwek)

@@ -1,4 +1,8 @@
 
+2.2-51 | 2013-12-05 07:53:37 -0800
+
+  * Improve a unit test involving 'when' conditionals. (Jon Siwek)
+
 2.2-48 | 2013-12-04 13:45:47 -0800
 
   * Support omission of string slice low/high indices, BIT-1097.

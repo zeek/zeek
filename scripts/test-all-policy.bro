@@ -48,6 +48,7 @@
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro
+# @load misc/dump-events.bro
 @load misc/known-devices.bro
 @load misc/load-balancing.bro
 @load misc/loaded-scripts.bro

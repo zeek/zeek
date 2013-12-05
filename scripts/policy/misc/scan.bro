@@ -147,11 +147,6 @@ function is_reverse_failed_conn(c: connection): bool
 	return F;
 	}
 
-## Generated for an unsuccessful connection attempt. This
-## event is raised when an originator unsuccessfully attempted
-## to establish a connection. "Unsuccessful" is defined as at least
-## tcp_attempt_delay seconds having elapsed since the originator first sent a
-## connection establishment packet to the destination without seeing a reply.
 event connection_attempt(c: connection)
 	{
 	local is_reverse_scan = F;
@@ -161,9 +156,6 @@ event connection_attempt(c: connection)
 	add_sumstats(c$id, is_reverse_scan);
 	}
 
-## Generated for a rejected TCP connection. This event is raised when an
-## originator attempted to setup a TCP connection but the responder replied with
-## a RST packet denying it.
 event connection_rejected(c: connection)
 	{
 	local is_reverse_scan = F;
@@ -173,9 +165,6 @@ event connection_rejected(c: connection)
 	add_sumstats(c$id, is_reverse_scan);
 	}
 
-## Generated when an endpoint aborted a TCP connection. The event is raised when
-## one endpoint of an *established* TCP connection aborted by sending a RST
-## packet.
 event connection_reset(c: connection)
 	{
 	if ( is_failed_conn(c) )
@@ -184,7 +173,6 @@ event connection_reset(c: connection)
 		add_sumstats(c$id, T);
 	}
 
-## Generated for each still-open connection when Bro terminates.
 event connection_pending(c: connection)
 	{
 	if ( is_failed_conn(c) )

@@ -153,7 +153,7 @@ function finish(c: connection)
 		disable_analyzer(c$id, c$ssl$analyzer_id);
 	}
 
-event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: count_set) &priority=5
+event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
 	{
 	set_session(c);
 

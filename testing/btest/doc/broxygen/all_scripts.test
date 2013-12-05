@@ -1,0 +1,14 @@
+# This test is mostly just checking that there's no errors that result
+# from loading all scripts and generated docs for each.
+
+# This must be serialized with communication tests because it does load
+# listen.bro in order to document it.
+
+# @TEST-SERIALIZE: comm
+# @TEST-EXEC: bro -X broxygen.config broxygen DumpEvents::include=/NOTHING_MATCHES/
+# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: btest-diff .stderr
+
+@TEST-START-FILE broxygen.config
+script	*	scripts/
+@TEST-END-FILE

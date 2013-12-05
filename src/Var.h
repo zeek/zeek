@@ -18,7 +18,7 @@ extern Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 			attr_list* attr, decl_type dt);
 extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val = 0);
 
-extern void add_type(ID* id, BroType* t, attr_list* attr, int is_event);
+extern void add_type(ID* id, BroType* t, attr_list* attr);
 
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		       int is_redef, FuncType* t);

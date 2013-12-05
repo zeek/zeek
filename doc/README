@@ -15,17 +15,16 @@ which adds some reST directives and roles that aid in generating useful
 index entries and cross-references.  Other extensions can be added in
 a similar fashion.
 
-Either the ``make doc`` or ``make broxygen`` targets in the top-level
-Makefile can be used to locally render the reST files into HTML.
-Those targets depend on:
+The ``make doc`` target in the top-level Makefile can be used to locally
+render the reST files into HTML.  That target depends on:
 
 * Python interpreter >= 2.5
 * `Sphinx <http://sphinx.pocoo.org/>`_ >= 1.0.1
 
 After completion, HTML documentation is symlinked in ``build/html``.
 
-There's also ``make docclean`` and ``make broxygenclean`` targets to
-clean the resulting documentation.
+There's also a ``make docclean`` target which deletes any files
+created during the documentation build process.
 
 Notes for Writing Documentation
 -------------------------------

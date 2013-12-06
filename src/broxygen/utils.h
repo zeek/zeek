@@ -13,7 +13,7 @@ namespace broxygen {
  * Transform content of a Broxygen comment which may contain function
  * parameter or return value documentation to a prettier reST format.
  * @param s Content from a Broxygen comment to transform. "id: ..." and
- * "Returns: ..." change to ":param id: ..." and ":returns: ...".
+ * "Returns: ..." change to ":id: ..." and ":returns: ...".
  * @return Whether any content in \a s was transformed.
  */
 bool prettify_params(std::string& s);
@@ -55,6 +55,12 @@ size_t end_of_first_sentence(const std::string& s);
  * @return True if \a s is nothing but white space, else false.
  */
 bool is_all_whitespace(const std::string& s);
+
+/**
+ * @return a string indicating the script that has redef'd an enum value or
+ * record field.
+ */
+std::string redef_indication(const std::string& from_script);
 
 } // namespace broxygen
 

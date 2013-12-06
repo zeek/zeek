@@ -63,7 +63,7 @@ bool broxygen::prettify_params(string& s)
 			if ( identifier == "Returns" )
 				subst = ":returns";
 			else
-				subst = ":param " + identifier;
+				subst = ":" + identifier;
 
 			s.replace(identifier_start_pos, identifier.size(), subst);
 			return true;
@@ -126,4 +126,10 @@ bool broxygen::is_all_whitespace(const string& s)
 			return false;
 
 	return true;
+	}
+
+string broxygen::redef_indication(const string& from_script)
+	{
+	return fmt("(present if :doc:`/scripts/%s` is loaded)",
+	           from_script.c_str());
 	}

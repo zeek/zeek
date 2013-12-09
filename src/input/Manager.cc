@@ -1468,7 +1468,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 
 	SendEvent(stream->event, out_vals);
 
-	return stream->fields->NumFields();
+	return stream->num_fields;
 	}
 
 int Manager::PutTable(Stream* i, const Value* const *vals)

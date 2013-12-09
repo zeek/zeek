@@ -1,0 +1,36 @@
+error: Incompatible type "file" in type definition for for field "s" in ReaderFrontend
+error: Input stream file: Problem unrolling
+The input framework does not support optional record fields: "r"
+error: Input stream optionalrecord: Problem unrolling
+Encountered incompatible type "file" in type definition for field "s" in ReaderFrontend. Ignoring optional field.
+error: Incompatible type "file" in type definition for for field "s" in ReaderFrontend
+error: Input stream filetable: Problem unrolling
+The input framework does not support optional record fields: "r"
+error: Input stream optionalrecordtable: Problem unrolling
+Encountered incompatible type "file" in type definition for field "s" in ReaderFrontend. Ignoring optional field.
+error: Input stream optionalfiletable: Table type does not match value type. Need type 'record { i:int; s:file of string; }', got 'record { i:int; r:record { i:int; s:file of string; }; }'
+error: Input stream optionalfiletable2: Table type does not match index type. Need type 'count':count, got 'string':string
+error: Input stream optionalfiletable3: Stream event is a function, not an event
+error: Input stream optionalfiletable3: Table event must take 4 arguments
+error: Input stream optionalfiletable4: Table event's first attribute must be of type Input::TableDescription
+error: Input stream optionalfiletable5: Table event's second attribute must be of type Input::Event
+error: Input stream optionalfiletable6: Table event's index attributes do not match. Need 'record { c:count; }', got 'record { i:int; r:record { i:int; s:file of string; }; }'
+error: Input stream optionalfiletable7: Table event's value attributes do not match. Need 'record { i:int; s:file of string; }', got 'record { i:int; r:record { i:int; s:file of string; }; }'
+error: Input stream optionalfiletable8: Stream does not want a record (want_record=F), but has more then one value field.
+error: Input stream optionalfiletable9: Table has less elements than index definition
+error: Input stream optionalfiletable10: Table type has more indexes than index definition
+error: Input stream optionalfiletable11: Table type does not match value type. Need type 'count', got 'int'
+error: Input stream optionalfiletable12: Table type does not match value type. Need type 'count', got 'record { i:int; s:string; a:addr; }'
+error: Input stream optionalfiletable14: Table type does not match value type. Need type 'int', got 'record { i:int; s:file of string; }'
+error: Input stream optionalfiletable15: Table type does not match value type. Need type 'record { c:count; }', got 'record { i:int; s:string; a:addr; }'
+error: Input stream event1: Stream event is a function, not an event
+error: Input stream event2: Event does not take enough arguments
+error: Input stream event3: Event's first attribute must be of type Input::EventDescription
+error: Input stream event4: Event's second attribute must be of type Input::Event
+error: Input stream event5: Incompatible type 'record':record { i:int; r:record { i:int; s:file of string; }; } for event, which needs type 'record':record { i:int; s:file of string; }
+
+error: Input stream event6: Event has wrong number of arguments
+error: Input stream event7: Incompatible type for event in field 3. Need type 'int':int, got 'record':record { i:int; r:record { i:int; s:file of string; }; }
+error: Input stream event8: Incompatible type for event in field 5. Need type 'addr':addr, got 'string':string
+error: Input stream event9: Event has wrong number of arguments
+received termination signal

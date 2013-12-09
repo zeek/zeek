@@ -31,7 +31,7 @@ type Val: record {
 	b: bool;
 };
 
-global destination: table[int] of Val = table();
+global destination: table[int] of bool = table();
 
 event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: bool)
 	{
@@ -51,5 +51,5 @@ event bro_init()
 	{
 	try = 0;
 	outfile = open("../out");
-	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F,$ev=line]);
+	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F, $ev=line]);
 	}

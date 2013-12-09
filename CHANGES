@@ -1,4 +1,10 @@
 
+2.2-68 | 2013-12-09 15:19:37 -0800
+
+  * Several improvements to input framework error handling for more
+    robustness and more helpful error messages. Includes tests for
+    many cases. (Bernhard Amann)
+
 2.2-66 | 2013-12-09 13:54:16 -0800
 
   * Fix table &default reference counting for record ctor expressions.

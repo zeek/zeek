@@ -26,7 +26,7 @@ type Val: record {
 	b: bool;
 };
 
-global servers: table[int] of Val = table();
+global servers: table[int] of bool = table();
 
 event bro_init()
 	{

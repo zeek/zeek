@@ -36,7 +36,7 @@ type Val: record {
 	b: bool;
 };
 
-global servers: table[int] of Val = table();
+global servers: table[int] of bool = table();
 global ct: int;
 
 event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: bool)

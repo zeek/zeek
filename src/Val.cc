@@ -1741,7 +1741,8 @@ Val* TableVal::Default(Val* index)
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
-			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr(), ytype->AsRecordType());
+			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr()->Ref(),
+			                                    ytype->AsRecordType());
 			def_val = coerce->Eval(0);
 			Unref(coerce);
 			}

@@ -1,4 +1,32 @@
 
+2.2-65 | 2013-12-09 13:23:06 -0800
+
+  * Fix table &default reference counting for record ctor expressions.
+    (Jon Siwek)
+
+  * Close signature files after done parsing. (Jon Siwek)
+    
+  * Fix unlikely null ptr deref in broxygen::Manager. (Jon Siwek)
+    
+  * FreeBSD build fix addendum: unintended variable shadowing. (Jon
+    Siwek)
+
+  * Fix build on FreeBSD. basename(3)/dirname(3) const-ness may vary
+    w/ platform. (Jon Siwek)
+
+  * Updated software framework to support parsing IE11 user-agent
+    strings. (Seth Hall)
+
+  * Fix the irc_reply event for several server message types. (Seth
+    Hall)
+
+  * Fix memory leak in input framework. If the input framework was
+    used to read event streams and those streams contained records
+    with more than one field, not all elements of the threading Values
+    were cleaned up. Addresses BIT-1103. (Bernhard Amann)
+
+  * Minor Broxygen improvements. Addresses BIT-1098. (Jon Siwek)
+    
 2.2-51 | 2013-12-05 07:53:37 -0800
 
   * Improve a unit test involving 'when' conditionals. (Jon Siwek)

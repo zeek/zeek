@@ -91,6 +91,12 @@ global matched_software: table[string] of Software::Description = {
 		[$name="MSIE", $version=[$major=9,$minor=0], $unparsed_version=""],
 	["Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)"] =
 		[$name="MSIE", $version=[$major=10,$minor=0], $unparsed_version=""],
+	# IE 11 normal mode.
+	["Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko"] =
+		[$name="MSIE", $version=[$major=11,$minor=0], $unparsed_version=""],
+	# IE 11 compatibility mode
+	["Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.3; Trident/7.0; .NET4.0E; .NET4.0C)"] =
+		[$name="MSIE", $version=[$major=11,$minor=0], $unparsed_version=""],
 	["The Bat! (3.0.1 RC3) Professional"] =
 		[$name="The Bat!", $version=[$major=3,$minor=0,$minor2=1,$addl="RC3"], $unparsed_version=""],
 	# This is an FTP client (found with CLNT command)

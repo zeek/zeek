@@ -10,7 +10,9 @@ extra scripts needed or used by the documentation process.
 
 :doc:`/scripts/broxygen/__load__.bro`
 
+
 :doc:`/scripts/broxygen/example.bro`
+
    This is an example script that demonstrates Broxygen-style
    documentation.  It generally will make most sense when viewing
    the script's raw source code and comparing to the HTML-rendered

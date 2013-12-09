@@ -123,8 +123,6 @@ vector<string> params;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 
-TypeAliasMap type_aliases;
-
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
 OpaqueType* sha256_type = 0;

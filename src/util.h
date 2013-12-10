@@ -230,6 +230,7 @@ public:
 protected:
 
 	SafePathOp()
+		: result(), error()
 		{ }
 
 	void CheckValid(const char* result, const char* path, bool error_aborts);

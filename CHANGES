@@ -1,4 +1,9 @@
 
+2.2-70 | 2013-12-10 15:02:50 -0800
+
+  * Fix (harmless) uninitialized field in basename/dirname util
+    wrapper. (Jon Siwek)
+
 2.2-68 | 2013-12-09 15:19:37 -0800
 
   * Several improvements to input framework error handling for more

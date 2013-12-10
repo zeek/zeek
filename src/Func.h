@@ -52,6 +52,7 @@ public:
 	Kind GetKind() const	{ return kind; }
 
 	const char* Name() const { return name.c_str(); }
+	void SetName(const char* arg_name)	{ name = arg_name; }
 
 	virtual void Describe(ODesc* d) const = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;

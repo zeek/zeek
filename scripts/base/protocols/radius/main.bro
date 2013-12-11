@@ -11,18 +11,50 @@ export {
 
 	type Info: record {
 		## Timestamp for when the event happened.
-		ts:     time    &log;
+		ts		: time    &log;
 		## Unique ID for the connection.
-		uid:    string  &log;
+		uid		: string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:     conn_id &log;
-		msg_type: string &log;
+		id		: conn_id &log;
+		## The username, if present
+		username	: string &log &optional;
+		## MAC address, if present
+		mac		: string &log &optional;
+		## Remote IP address, if present
+		remote_ip       : addr &log &optional;
+		## Connect info, if present
+		connect_info	: string &log &optional;
+		## Successful or failed authentication
+		result		: string &log &optional;
+		## Whether this has already been logged and can be ignored
+		logged		: bool &optional;
+		
 	};
+
+	## The amount of time we wait for an authentication response before
+	## expiring it.
+	const expiration_interval = 10secs &redef;
+
+	## Logs an authentication attempt if we didn't see a response in time
+	##
+	## t: A table of Info records.
+	##
+	## idx: The index of the connection$radius table corresponding to the
+	##      radius authentication about to expire.
+	##
+	## Returns: 0secs, which when this function is used as an
+	##          :bro:attr:`&expire_func`, indicates to remove the element at
+	##          *idx* immediately.	
+	global expire: function(t: table[count] of Info, idx: count): interval;
 
 	## Event that can be handled to access the RADIUS record as it is sent on
 	## to the loggin framework.
 	global log_radius: event(rec: Info);
 }
+
+redef record connection += {
+	radius: table[count] of Info &optional &write_expire=expiration_interval &expire_func=expire;
+};
 
 const ports = { 1812/udp };
 
@@ -32,111 +64,57 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RADIUS, ports);
 	}
 
-event radius_message(c: connection, msg_type: count, trans_id: count)
+event radius_message(c: connection, result: RADIUS::Message)
 	{
 	local info: Info;
-	info$ts  = network_time();
-	info$uid = c$uid;
-	info$id  = c$id;
-	info$msg_type = msg_types[msg_type];
-
-	Log::write(RADIUS::LOG, info);
-	}
-
-event radius_attribute(c: connection, attr_type: count, trans_id: count, value: string)
-	{
-	switch ( attr_types[attr_type] ) {
-#	case "Calling-Station-Id":
-#		tmp = normalize_mac(value);
-#		if ( tmp != "" )
-#			print cat(attr_types[attr_type], " ", tmp);
-#		else
-#			print cat(attr_types[attr_type], " ", value);
-#		break;
-#	case "Called-Station-Id":
-#		fallthrough;
-
-	## Strings:
-	case "Reply-Message":
-		fallthrough;
-	case "User-Name":
-		print cat(attr_types[attr_type], ": ", value);
-		break;
-		
-	## IPs:
-
-	case "Framed-IP-Address":
-		fallthrough;
-	case "Framed-IP-Netmask":
-		fallthrough;
-	case "NAS-IP-Address":
-		print cat(attr_types[attr_type], ": ", count_to_v4_addr(bytestring_to_count(value)));
-		break;
-
-	## Counts:
-		
-	case "Framed-MTU":
-		fallthrough;
-	case "NAS-Port":
-		fallthrough;
-	case "Session-Timeout":
-		print cat(attr_types[attr_type], ": ", bytestring_to_count(value));
-		break;
-
-	## Other:
-
-	case "NAS-Port-Type":
-		print cat(attr_types[attr_type], ": ", nas_port_types[bytestring_to_count(value)]);
-		break;
-	case "Service-Type":
-		print cat(attr_types[attr_type], ": ", service_types[bytestring_to_count(value)]);
-		break;
-	case "Framed-Protocol":
-		print cat(attr_types[attr_type], ": ", framed_protocol_types[bytestring_to_count(value)]);
-		break;
-	case "Vendor-Specific":
-		switch(bytestring_to_count(sub_bytes(value, 0, 4))) {
-		case 9:
-			# Cisco IOS/PIX 6.0
-			print cat(vendor_9_types[bytestring_to_count(sub_bytes(value, 5, 1))], ": ", sub_bytes(value, 7, 128));
-			break;
-		case 255:
-			# Cisco VPN 5000
-			print cat(vendor_255_types[bytestring_to_count(sub_bytes(value, 5, 1))], ": ", sub_bytes(value, 7, 128));
-			break;
-		case 311:
-			# Microsoft
-			print cat(vendor_311_types[bytestring_to_count(sub_bytes(value, 5, 1))], ": ", sub_bytes(value, 7, 128));
-			break;
-		case 3076:
-			# Cisco VPN 3000
-			print cat(vendor_3076_types[bytestring_to_count(sub_bytes(value, 5, 1))], ": ", sub_bytes(value, 7, 128));
-			break;
-		case 14823:
-			# Aruba
-			print cat(vendor_14823_types[bytestring_to_count(sub_bytes(value, 5, 1))], ": ", sub_bytes(value, 7, 128));
-			break;
-		default:
-			print cat("Unknown vendor: ", bytestring_to_count(sub_bytes(value, 0, 4)));
-			break;
+	if ( c?$radius && result$trans_id in c$radius )
+		info = c$radius[result$trans_id];
+	else 
+		{
+		c$radius = table();
+		info$ts  = network_time();
+		info$uid = c$uid;
+		info$id  = c$id;
 		}
-		break;
-	default:
-		print cat(attr_types[attr_type], ": ", value);
-		break;
+	
+	switch ( result$code ) {
+		case 1:
+		# Acess-Request
+			if ( result?$attributes ) {
+				# User-Name
+				if ( !info?$username && 1 in result$attributes )
+					info$username = result$attributes[1][0];
+				# Calling-Station-Id (we expect this to be a MAC)
+				if ( !info?$mac && 31 in result$attributes )
+					info$mac = normalize_mac(result$attributes[31][0]);
+				# Tunnel-Client-EndPoint (useful for VPNs)
+				if ( !info?$remote_ip && 66 in result$attributes )
+					info$remote_ip = to_addr(result$attributes[66][0]);
+				# Connect-Info
+				if ( !info?$connect_info && 77 in result$attributes )
+					info$connect_info = result$attributes[77][0];
+			}
+			break;
+		case 2:
+		# Access-Accept
+			info$result = "success";
+			break;
+		case 3:
+		# Access-Reject
+			info$result = "failed";
+			break;
 	}
+	if ( info?$result && !info?$logged )
+		{
+		info$logged = T;		
+		Log::write(RADIUS::LOG, info);
+		}
+	c$radius[result$trans_id] = info;
 	}
 
-# Called-Station-Id: 
-# Calling-Station-Id: 
-# Class: 
-# NAS-Identifier: 
-# State: 
-# Vendor-Specific: 
-# unknown-185: 
-# unknown-66: 
-# unknown-77: 
-# unknown-79: 
-# unknown-80: 
-# unknown-87: 
-# unknown-95:
+
+function expire(t: table[count] of Info, idx: count): interval
+	 {
+	 t[idx]$result = "unknown";
+	 return 0secs;
+	 }

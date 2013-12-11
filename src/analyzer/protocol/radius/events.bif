@@ -9,7 +9,7 @@
 ## trans_id: The RADIUS transaction identifier
 ## authenticator: The value of the authenticator field
 ##
-event radius_message%(c: connection, msg_type: count, trans_id: count%);
+event radius_message%(c: connection, result: RADIUS::Message%);
 
 ## Generated for each RADIUS attribute
 ##
@@ -17,7 +17,10 @@ event radius_message%(c: connection, msg_type: count, trans_id: count%);
 ##
 ## c: The connection
 ## attr_type: The value of the code field (1 == User-Name, 2 == User-Password, etc.)
-## trans_id: The RADIUS transaction identifier
 ## authenticator: The value of the authenticator field
 ##
-event radius_attribute%(c: connection, attr_type: count, trans_id: count, value: string%);
+event radius_attribute%(c: connection, attr_type: count, value: string%);
+
+type RADIUS::AttributeList: vector;
+type RADIUS::Attributes: table;
+type RADIUS::Message: record;

@@ -291,7 +291,7 @@ function describe(rec: Info): string
 			{
 			if ( |rec$subject| > 20 )
 				{
-				abbrev_subject = rec$subject[0:20] + "...";
+				abbrev_subject = rec$subject[0:21] + "...";
 				}
 			}
 

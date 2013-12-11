@@ -10,6 +10,7 @@
 #include "Var.h"
 #include "Val.h"
 #include "Reporter.h"
+#include "broxygen/Manager.h"
 
 namespace plugin {
 
@@ -130,9 +131,10 @@ template <class T, class C>
 ComponentManager<T, C>::ComponentManager(const string& arg_module)
 	: module(arg_module)
 	{
-	tag_enum_type = new EnumType(module + "::Tag");
+	tag_enum_type = new EnumType();
 	::ID* id = install_ID("Tag", module.c_str(), true, true);
-	add_type(id, tag_enum_type, 0, 0);
+	add_type(id, tag_enum_type, 0);
+	broxygen_mgr->Identifier(id);
 	}
 
 template <class T, class C>

@@ -393,16 +393,9 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	EventStream* stream = new EventStream();
-		{
-		bool res = CreateStream(stream, fval);
-		if ( res == false )
-			{
-			delete stream;
-			return false;
-			}
-		}
-
+	Val* name_val = fval->Lookup("name", true);
+	string stream_name = name_val->AsString()->CheckString();
+	Unref(name_val);
 
 	RecordType *fields = fval->Lookup("fields", true)->AsType()->AsTypeType()->Type()->AsRecordType();
 
@@ -418,8 +411,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("stream event is a function, not an event");
-		delete stream;
+		reporter->Error("Input stream %s: Stream event is a function, not an event", stream_name.c_str());
 		return false;
 		}
 
@@ -427,22 +419,19 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	if ( args->length() < 2 )
 		{
-		reporter->Error("event takes not enough arguments");
-		delete stream;
+		reporter->Error("Input stream %s: Event does not take enough arguments", stream_name.c_str());
 		return false;
 		}
 
 	if ( ! same_type((*args)[1], BifType::Enum::Input::Event, 0) )
 		{
-		reporter->Error("events second attribute must be of type Input::Event");
-		delete stream;
+		reporter->Error("Input stream %s: Event's second attribute must be of type Input::Event", stream_name.c_str());
 		return false;
 		}
 
 	if ( ! same_type((*args)[0], BifType::Record::Input::EventDescription, 0) )
 		{
-		reporter->Error("events first attribute must be of type Input::EventDescription");
-		delete stream;
+		reporter->Error("Input stream %s: Event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
 		}
 
@@ -450,17 +439,24 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		{
 		if ( args->length() != fields->NumFields() + 2 )
 			{
-			reporter->Error("event has wrong number of arguments");
-			delete stream;
+			reporter->Error("Input stream %s: Event has wrong number of arguments", stream_name.c_str());
 			return false;
 			}
 
 		for ( int i = 0; i < fields->NumFields(); i++ )
 			{
-			if ( !same_type((*args)[i+2], fields->FieldType(i) ) )
+			if ( ! same_type((*args)[i + 2], fields->FieldType(i) ) )
 				{
-				reporter->Error("Incompatible type for event");
-				delete stream;
+				ODesc desc1;
+				ODesc desc2;
+				(*args)[i + 2]->Describe(&desc1);
+				fields->FieldType(i)->Describe(&desc2);
+
+				reporter->Error("Input stream %s: Incompatible type for event in field %d. Need type '%s':%s, got '%s':%s",
+						stream_name.c_str(), i + 3,
+						type_name(fields->FieldType(i)->Tag()), desc2.Description(),
+						type_name((*args)[i + 2]->Tag()), desc1.Description());
+
 				return false;
 				}
 			}
@@ -471,8 +467,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		{
 		if ( args->length() != 3 )
 			{
-			reporter->Error("event has wrong number of arguments");
-			delete stream;
+			reporter->Error("Input stream %s: Event has wrong number of arguments", stream_name.c_str());
 			return false;
 			}
 
@@ -482,10 +477,10 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			ODesc desc2;
 			(*args)[2]->Describe(&desc1);
 			fields->Describe(&desc2);
-			reporter->Error("Incompatible type '%s':%s for event, which needs type '%s':%s\n",
+			reporter->Error("Input stream %s: Incompatible type '%s':%s for event, which needs type '%s':%s\n",
+					stream_name.c_str(),
 					type_name((*args)[2]->Tag()), desc1.Description(),
 					type_name(fields->Tag()), desc2.Description());
-			delete stream;
 			return false;
 			}
 
@@ -496,14 +491,21 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	else
 		assert(false);
 
-
 	vector<Field*> fieldsV; // vector, because UnrollRecordType needs it
 
 	bool status = (! UnrollRecordType(&fieldsV, fields, "", allow_file_func));
 
 	if ( status )
 		{
-		reporter->Error("Problem unrolling");
+		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		return false;
+		}
+
+	EventStream* stream = new EventStream();
+
+	bool res = CreateStream(stream, fval);
+	if ( ! res )
+		{
 		delete stream;
 		return false;
 		}
@@ -540,15 +542,9 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		return false;
 		}
 
-	TableStream* stream = new TableStream();
-		{
-		bool res = CreateStream(stream, fval);
-		if ( res == false )
-			{
-			delete stream;
-			return false;
-			}
-		}
+	Val* name_val = fval->Lookup("name", true);
+	string stream_name = name_val->AsString()->CheckString();
+	Unref(name_val);
 
 	Val* pred = fval->Lookup("pred", true);
 
@@ -571,27 +567,53 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		{
 		if ( j >= num )
 			{
-			reporter->Error("Table type has more indexes than index definition");
-			delete stream;
+			reporter->Error("Input stream %s: Table type has more indexes than index definition", stream_name.c_str());
 			return false;
 			}
 
 		if ( ! same_type(idx->FieldType(j), (*tl)[j]) )
 			{
-			reporter->Error("Table type does not match index type");
-			delete stream;
+			ODesc desc1;
+			ODesc desc2;
+			idx->FieldType(j)->Describe(&desc1);
+			(*tl)[j]->Describe(&desc2);
+
+			reporter->Error("Input stream %s: Table type does not match index type. Need type '%s':%s, got '%s':%s", stream_name.c_str(),
+					type_name(idx->FieldType(j)->Tag()), desc1.Description(),
+					type_name((*tl)[j]->Tag()), desc2.Description());
+
 			return false;
 			}
 		}
 
 	if ( num != j )
 		{
-		reporter->Error("Table has less elements than index definition");
-		delete stream;
+		reporter->Error("Input stream %s: Table has less elements than index definition", stream_name.c_str());
 		return false;
 		}
 
 	Val *want_record = fval->Lookup("want_record", true);
+
+		{
+		const BroType* table_yield = dst->Type()->AsTableType()->YieldType();
+		const BroType* compare_type = val;
+
+		if ( want_record->InternalInt() == 0 )
+			compare_type = val->FieldType(0);
+
+		if ( ! same_type(table_yield, compare_type) )
+			{
+			ODesc desc1;
+			ODesc desc2;
+			compare_type->Describe(&desc1);
+			table_yield->Describe(&desc2);
+			reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'", stream_name.c_str(),
+					desc1.Description(), desc2.Description());
+			return false;
+			}
+		}
+
+
 
 	Val* event_val = fval->Lookup("ev", true);
 	Func* event = event_val ? event_val->AsFunc() : 0;
@@ -603,8 +625,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
-			reporter->Error("stream event is a function, not an event");
-			delete stream;
+			reporter->Error("Input stream %s: Stream event is a function, not an event", stream_name.c_str());
 			return false;
 			}
 
@@ -612,43 +633,52 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 		if ( args->length() != 4 )
 			{
-			reporter->Error("Table event must take 4 arguments");
-			delete stream;
+			reporter->Error("Input stream %s: Table event must take 4 arguments", stream_name.c_str());
 			return false;
 			}
 
 		if ( ! same_type((*args)[0], BifType::Record::Input::TableDescription, 0) )
 			{
-			reporter->Error("table events first attribute must be of type Input::TableDescription");
-			delete stream;
+			reporter->Error("Input stream %s: Table event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 			return false;
 			}
 
 		if ( ! same_type((*args)[1], BifType::Enum::Input::Event, 0) )
 			{
-			reporter->Error("table events second attribute must be of type Input::Event");
-			delete stream;
+			reporter->Error("Input stream %s: Table event's second attribute must be of type Input::Event", stream_name.c_str());
 			return false;
 			}
 
 		if ( ! same_type((*args)[2], idx) )
 			{
-			reporter->Error("table events index attributes do not match");
-			delete stream;
+			ODesc desc1;
+			ODesc desc2;
+			idx->Describe(&desc1);
+			(*args)[2]->Describe(&desc2);
+			reporter->Error("Input stream %s: Table event's index attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
+					desc1.Description(), desc2.Description());
 			return false;
 			}
 
 		if ( want_record->InternalInt() == 1 && ! same_type((*args)[3], val) )
 			{
-			reporter->Error("table events value attributes do not match");
-			delete stream;
+			ODesc desc1;
+			ODesc desc2;
+			val->Describe(&desc1);
+			(*args)[3]->Describe(&desc2);
+			reporter->Error("Input stream %s: Table event's value attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
+					desc1.Description(), desc2.Description());
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
 		           && !same_type((*args)[3], val->FieldType(0) ) )
 			{
-			reporter->Error("table events value attribute does not match");
-			delete stream;
+			ODesc desc1;
+			ODesc desc2;
+			val->FieldType(0)->Describe(&desc1);
+			(*args)[3]->Describe(&desc2);
+			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
+					desc1.Description(), desc2.Description());
 			return false;
 			}
 
@@ -667,14 +697,29 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	int valfields = fieldsV.size() - idxfields;
 
+	if ( (valfields > 1) && (want_record->InternalInt() != 1) )
+		{
+		reporter->Error("Input stream %s: Stream does not want a record (want_record=F), but has more then one value field.", stream_name.c_str());
+		return false;
+		}
+
 	if ( ! val )
 		assert(valfields == 0);
 
 	if ( status )
 		{
-		reporter->Error("Problem unrolling");
-		delete stream;
+		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
 		return false;
+		}
+
+	TableStream* stream = new TableStream();
+		{
+		bool res = CreateStream(stream, fval);
+		if ( ! res )
+			{
+			delete stream;
+			return false;
+			}
 		}
 
 	Field** fields = new Field*[fieldsV.size()];
@@ -696,17 +741,6 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	Unref(want_record); // ref'd by lookupwithdefault
 	Unref(pred);
-
-	if ( valfields > 1 )
-		{
-		if ( ! stream->want_record )
-			{
-			reporter->Error("Stream %s does not want a record (want_record=F), but has more then one value field. Aborting", stream->name.c_str());
-			delete stream;
-			return false;
-			}
-		}
-
 
 	assert(stream->reader);
 	stream->reader->Init(fieldsV.size(), fields );
@@ -866,6 +900,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 
 		if ( ! IsCompatibleType(rec->FieldType(i)) )
 			{
+			string name = nameprepend + rec->FieldName(i);
 			// If the field is a file, function, or opaque
 			// and it is optional, we accept it nevertheless.
 			// This allows importing logfiles containing this
@@ -877,18 +912,24 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				       rec->FieldType(i)->Tag() == TYPE_OPAQUE ) &&
 				       rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in type definition for ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()));
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()), name.c_str());
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in type definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
+			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in ReaderFrontend", type_name(rec->FieldType(i)->Tag()), name.c_str());
 			return false;
 			}
 
 		if ( rec->FieldType(i)->Tag() == TYPE_RECORD )
 			{
 			string prep = nameprepend + rec->FieldName(i) + ".";
+
+			if ( rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+				{
+				reporter->Info("The input framework does not support optional record fields: \"%s\"", rec->FieldName(i));
+				return false;
+				}
 
 			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep, allow_file_func) )
 				{
@@ -1468,7 +1509,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 
 	SendEvent(stream->event, out_vals);
 
-	return stream->fields->NumFields();
+	return stream->num_fields;
 	}
 
 int Manager::PutTable(Stream* i, const Value* const *vals)

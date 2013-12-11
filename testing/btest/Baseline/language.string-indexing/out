@@ -1,13 +1,120 @@
 1
-12
-123456
+1
+12345
 0123456789
 8
-789
-9
-9
-9
+78
 
 
+
+
+0123456789
 2
 1
+word[-100] = 
+word[-7] = 
+word[-6] = 
+word[-5] = H
+word[-4] = e
+word[-3] = l
+word[-2] = p
+word[-1] = A
+word[0] = H
+word[1] = e
+word[2] = l
+word[3] = p
+word[4] = A
+word[5] = 
+word[6] = 
+word[7] = 
+word[100] = 
+word[:-100] = 
+word[:-7] = 
+word[:-6] = 
+word[:-5] = 
+word[:-4] = H
+word[:-3] = He
+word[:-2] = Hel
+word[:-1] = Help
+word[:0] = 
+word[:1] = H
+word[:2] = He
+word[:3] = Hel
+word[:4] = Help
+word[:5] = HelpA
+word[:6] = HelpA
+word[:7] = HelpA
+word[:100] = HelpA
+word[-100:] = HelpA
+word[-7:] = HelpA
+word[-6:] = HelpA
+word[-5:] = HelpA
+word[-4:] = elpA
+word[-3:] = lpA
+word[-2:] = pA
+word[-1:] = A
+word[0:] = HelpA
+word[1:] = elpA
+word[2:] = lpA
+word[3:] = pA
+word[4:] = A
+word[5:] = 
+word[6:] = 
+word[7:] = 
+word[100:] = 
+HelpA
+
+A
+1234
+123
+12
+1
+
+
+
+
+
+
+B
+
+
+
+
+
+C
+
+0123
+
+01
+012345
+
+D
+
+
+4
+
+
+45
+
+E
+
+01234
+
+01
+012345
+
+F
+
+234
+
+
+23
+2345
+
+F
+
+
+
+
+
+

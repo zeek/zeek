@@ -1,5 +1,0 @@
-1355264617.053514 expression error in /home/jsiwek/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 32: field value missing [p$ip]
-1355264617.053514 expression error in /home/jsiwek/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 53: field value missing [p$ip]
-1355264617.053514 expression error in /home/jsiwek/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 43: field value missing [p$ip]
-1355264617.053514 expression error in /home/jsiwek/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 16: field value missing [p$ip]
-1355264617.053514 received termination signal

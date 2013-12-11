@@ -50,7 +50,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "BroDoc.h"
 #include "Brofiler.h"
 
 #include "threading/Manager.h"
@@ -61,8 +60,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
-
 #include "file_analysis/Manager.h"
+#include "broxygen/Manager.h"
 
 #include "binpac_bro.h"
 
@@ -100,6 +99,7 @@ input::Manager* input_mgr = 0;
 plugin::Manager* plugin_mgr = 0;
 analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
+broxygen::Manager* broxygen_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -116,7 +116,6 @@ int signal_val = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
-int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
 extern char version[];
 char* command_line_policy = 0;
@@ -131,8 +130,6 @@ OpaqueType* entropy_type = 0;
 OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
-
-extern std::list<BroDoc*> docs_generated;
 
 // Keep copy of command line
 int bro_argc;
@@ -203,7 +200,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
+	fprintf(stderr, "    -X|--broxygen                  | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -227,6 +224,7 @@ void usage()
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
+	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Broxygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
 
 	fprintf(stderr, "\n");
 	fprintf(stderr, "    Supported log formats: ");
@@ -373,6 +371,7 @@ void terminate_bro()
 
 	plugin_mgr->FinishPlugins();
 
+	delete broxygen_mgr;
 	delete timer_mgr;
 	delete dns_mgr;
 	delete persistence_serializer;
@@ -473,7 +472,7 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"doc-scripts",		no_argument,		0,	'Z'},
+		{"broxygen",		required_argument,		0,	'X'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
 		{"flowfile",		required_argument,	0,	'y'},
@@ -532,7 +531,7 @@ int main(int argc, char** argv)
 	if ( p )
 		add_to_name_list(p, ':', prefixes);
 
-	string active_file;
+	string broxygen_config;
 
 #ifdef USE_IDMEF
 	string libidmef_dtd_path = "idmef-message.dtd";
@@ -545,7 +544,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -727,8 +726,8 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'Z':
-			generate_documentation = 1;
+		case 'X':
+			broxygen_config = optarg;
 			break;
 
 #ifdef USE_IDMEF
@@ -806,6 +805,8 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
+	broxygen_mgr = new broxygen::Manager(broxygen_config, bro_argv[0]);
+
 	add_input_file("base/init-bare.bro");
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
@@ -848,6 +849,7 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
+	broxygen_mgr->InitPreScript();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -880,6 +882,7 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
+	broxygen_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{
@@ -891,23 +894,6 @@ int main(int argc, char** argv)
 	}
 #endif
 
-	if ( generate_documentation )
-		{
-		CreateProtoAnalyzerDoc("proto-analyzers.rst");
-		CreateFileAnalyzerDoc("file-analyzers.rst");
-
-		std::list<BroDoc*>::iterator it;
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			(*it)->WriteDocFile();
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			delete *it;
-
-		terminate_bro();
-		return 0;
-		}
-
 	if ( reporter->Errors() > 0 )
 		{
 		delete dns_mgr;
@@ -917,6 +903,8 @@ int main(int argc, char** argv)
 	reporter->InitOptions();
 
 	init_general_global_var();
+
+	broxygen_mgr->GenerateDocs();
 
 	if ( user_pcap_filter )
 		{

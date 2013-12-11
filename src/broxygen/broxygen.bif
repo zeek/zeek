@@ -1,0 +1,97 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+##! Functions for querying script, package, or variable documentation.
+
+%%{
+#include "broxygen/Manager.h"
+#include "util.h"
+
+static StringVal* comments_to_val(const vector<string>& comments)
+	{
+	return new StringVal(implode_string_vector(comments));
+	}
+%%}
+
+## Retrieve the Broxygen-style comments (``##``) associated with an identifier
+## (e.g. a variable or type).
+##
+## name: a script-level identifier for which to retrieve comments.
+##
+## Returns: comments associated with *name*.  If *name* is not a known
+##          identifier, an empty string is returned.
+function get_identifier_comments%(name: string%): string
+	%{
+	using namespace broxygen;
+	IdentifierInfo* d = broxygen_mgr->GetIdentifierInfo(name->CheckString());
+
+	if ( ! d )
+		return new StringVal("");
+
+	return comments_to_val(d->GetComments());
+	%}
+
+## Retrieve the Broxygen-style summary comments (``##!``) associated with
+## a Bro script.
+##
+## name: the name of a Bro script.  It must be a relative path to where
+##       it is located within a particular component of BROPATH and use
+##       the same file name extension/suffix as the actual file (e.g. ".bro").
+##
+## Returns: summary comments associated with script with *name*.  If
+##          *name* is not a known script, an empty string is returned.
+function get_script_comments%(name: string%): string
+	%{
+	using namespace broxygen;
+	ScriptInfo* d = broxygen_mgr->GetScriptInfo(name->CheckString());
+
+	if ( ! d )
+		return new StringVal("");
+
+	return comments_to_val(d->GetComments());
+	%}
+
+## Retrieve the contents of a Bro script package's README file.
+##
+## name: the name of a Bro script package.  It must be a relative path
+##       to where it is located within a particular component of BROPATH.
+##
+## Returns: contents of the package's README file.  If *name* is not a known
+##          package, an empty string is returned.
+function get_package_readme%(name: string%): string
+	%{
+	using namespace broxygen;
+	PackageInfo* d = broxygen_mgr->GetPackageInfo(name->CheckString());
+
+	if ( ! d )
+		return new StringVal("");
+
+	return comments_to_val(d->GetReadme());
+	%}
+
+## Retrieve the Broxygen-style comments (``##``) associated with a record field.
+##
+## name: the name of a record type and a field within it formatted like
+##       a typical record field access: "<record_type>$<field>".
+##
+## Returns: comments associated with the record field.  If *name* does
+##          not point to a known record type or a known field within a record
+##          type, an empty string is returned.
+function get_record_field_comments%(name: string%): string
+	%{
+	using namespace broxygen;
+	string accessor = name->CheckString();
+	size_t i = accessor.find('$');
+
+	if ( i > accessor.size() - 2 )
+		return new StringVal("");
+
+	string id = accessor.substr(0, i);
+
+	IdentifierInfo* d = broxygen_mgr->GetIdentifierInfo(id);
+
+	if ( ! d )
+		return new StringVal("");
+
+	string field = accessor.substr(i + 1);
+	return comments_to_val(d->GetFieldComments(field));
+	%}

@@ -78,4 +78,6 @@ private:
 	};
 };
 
+extern Brofiler brofiler;
+
 #endif /* BROFILER_H_ */

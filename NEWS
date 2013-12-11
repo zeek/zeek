@@ -4,6 +4,24 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.3
+=======
+
+[In progress]
+
+New Functionality
+-----------------
+
+
+Changed Functionality
+---------------------
+
+- string slices now exclude the end index (e.g., "123"[1:2] returns
+  "2"). Generally, Bro's string slices now behave similar to Python.
+
+- ssl_client_hello() now receives a vector of ciphers, instead of a
+  set, to preserve their order.
+
 Bro 2.2
 =======
 

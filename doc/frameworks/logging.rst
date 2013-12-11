@@ -48,7 +48,7 @@ Basics
 The data fields that a stream records are defined by a record type
 specified when it is created. Let's look at the script generating Bro's
 connection summaries as an example,
-:doc:`/scripts/base/protocols/conn/main`. It defines a record
+:doc:`/scripts/base/protocols/conn/main.bro`. It defines a record
 :bro:type:`Conn::Info` that lists all the fields that go into
 ``conn.log``, each marked with a ``&log`` attribute indicating that it
 is part of the information written out. To write a log record, the
@@ -309,7 +309,7 @@ ASCII Writer Configuration
 --------------------------
 
 The ASCII writer has a number of options for customizing the format of
-its output, see :doc:`/scripts/base/frameworks/logging/writers/ascii`.
+its output, see :doc:`/scripts/base/frameworks/logging/writers/ascii.bro`.
 
 Adding Streams
 ==============
@@ -369,7 +369,7 @@ save the logged ``Foo::Info`` record into the connection record:
         }
 
 See the existing scripts for how to work with such a new connection
-field. A simple example is :doc:`/scripts/base/protocols/syslog/main`.
+field. A simple example is :doc:`/scripts/base/protocols/syslog/main.bro`.
 
 When you are developing scripts that add data to the :bro:type:`connection`
 record, care must be given to when and how long data is stored.

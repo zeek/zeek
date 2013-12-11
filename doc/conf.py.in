@@ -17,7 +17,7 @@ extensions = []
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('sphinx-sources/ext'))
+sys.path.insert(0, os.path.abspath('sphinx_input/ext'))
 
 # ----- Begin of BTest configuration. -----
 btest = os.path.abspath("@CMAKE_SOURCE_DIR@/aux/btest")
@@ -33,6 +33,13 @@ btest_base="@CMAKE_SOURCE_DIR@/testing/btest"
 btest_tests="doc/sphinx"
 # ----- End of BTest configuration. -----
 
+# ----- Begin of Broxygen configuration. -----
+extensions += ["broxygen"]
+bro_binary = os.path.abspath("@CMAKE_SOURCE_DIR@/build/src/bro")
+broxygen_cache="@BROXYGEN_CACHE_DIR@"
+os.environ["BROPATH"] = "@BROPATH@"
+os.environ["BROMAGIC"] = "@BROMAGIC@"
+# ----- End of Broxygen configuration. -----
 
 # -- General configuration -----------------------------------------------------
 
@@ -47,7 +54,7 @@ os.environ["BRO_SRC_ROOT"] = "@CMAKE_SOURCE_DIR@"
 os.environ["DOC_ROOT"] = "@CMAKE_SOURCE_DIR@/doc"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['sphinx-sources/_templates', 'sphinx-sources/_static']
+templates_path = ['sphinx_input/_templates', 'sphinx_input/_static']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -141,7 +148,7 @@ html_theme_options = { }
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['sphinx-sources/_static']
+html_static_path = ['sphinx_input/_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

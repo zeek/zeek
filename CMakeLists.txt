@@ -10,7 +10,6 @@ if (NOT BRO_SCRIPT_INSTALL_PATH)
     # set the default Bro script installation path (user did not specify one)
     set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
-set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 
 # sanitize the Bro script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)

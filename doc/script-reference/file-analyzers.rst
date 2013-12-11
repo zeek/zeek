@@ -1,0 +1,1 @@
+.. broxygen:file_analyzer:: *

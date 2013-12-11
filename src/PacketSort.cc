@@ -3,7 +3,7 @@
 
 const bool DEBUG_packetsort = false;
 
-PacketSortElement::PacketSortElement(PktSrc* arg_src,
+PacketSortElement::PacketSortElement(iosource::PktSrc* arg_src,
 			double arg_timestamp, const struct pcap_pkthdr* arg_hdr,
 			const u_char* arg_pkt, int arg_hdr_size)
 	{

@@ -15,7 +15,6 @@
 FlowSrc::FlowSrc()
 	{ // TODO: v9.
 	selectable_fd = -1;
-	idle = false;
 	data = 0;
 	pdu_len = -1;
 	exporter_ip = 0;
@@ -80,7 +79,7 @@ int FlowSocketSrc::ExtractNextPDU()
 		reporter->Error("problem reading NetFlow data from socket");
 		data = 0;
 		next_timestamp = -1.0;
-		closed = 1;
+		SetClosed(true);
 		return 0;
 		}
 
@@ -115,7 +114,7 @@ FlowSocketSrc::FlowSocketSrc(const char* listen_parms)
 		snprintf(errbuf, BRO_FLOW_ERRBUF_SIZE,
 			"parsing your listen-spec went nuts: laddr='%s', port='%s'\n",
 			laddr[0] ? laddr : "", port[0] ? port : "");
-		closed = 1;
+		SetClosed(true);
 		return;
 		}
 
@@ -131,7 +130,7 @@ FlowSocketSrc::FlowSocketSrc(const char* listen_parms)
 		snprintf(errbuf, BRO_FLOW_ERRBUF_SIZE,
 				"getaddrinfo(%s, %s, ...): %s",
 				laddr, port, gai_strerror(ret));
-		closed = 1;
+		SetClosed(true);
 		return;
 		}
 
@@ -139,7 +138,7 @@ FlowSocketSrc::FlowSocketSrc(const char* listen_parms)
 		{
 		snprintf(errbuf, BRO_FLOW_ERRBUF_SIZE,
 				"socket: %s", strerror(errno));
-		closed = 1;
+		SetClosed(true);
 		goto cleanup;
 		}
 
@@ -147,7 +146,7 @@ FlowSocketSrc::FlowSocketSrc(const char* listen_parms)
 		{
 		snprintf(errbuf, BRO_FLOW_ERRBUF_SIZE,
 				"bind: %s", strerror(errno));
-		closed = 1;
+		SetClosed(true);
 		goto cleanup;
 		}
 
@@ -211,7 +210,7 @@ FlowFileSrc::FlowFileSrc(const char* readfile)
 	selectable_fd = open(this->readfile, O_RDONLY);
 	if ( selectable_fd < 0 )
 		{
-		closed = 1;
+		SetClosed(true);
 		snprintf(errbuf, BRO_FLOW_ERRBUF_SIZE,
 				"open: %s", strerror(errno));
 		}
@@ -223,6 +222,6 @@ int FlowFileSrc::Error(int errlvl, const char* errmsg)
 			"%s: %s", errmsg, strerror(errlvl));
 	data = 0;
 	next_timestamp = -1.0;
-	closed = 1;
+	SetClosed(true);
 	return 0;
 	}

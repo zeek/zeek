@@ -16,16 +16,14 @@ enum {
 	NUM_OF_PQ_LEVEL,
 };
 
-class PktSrc;
-
 class PacketSortElement {
 public:
-	PacketSortElement(PktSrc* src, double timestamp,
+	PacketSortElement(iosource::PktSrc* src, double timestamp,
 				const struct pcap_pkthdr* hdr,
 				const u_char* pkt, int hdr_size);
 	~PacketSortElement();
 
-	PktSrc* Src() const			{ return src; }
+	iosource::PktSrc* Src() const			{ return src; }
 	double TimeStamp() const		{ return timestamp; }
 	const struct pcap_pkthdr* Hdr() const	{ return &hdr; }
 	const u_char* Pkt() const		{ return pkt; }
@@ -33,7 +31,7 @@ public:
 	const IP_Hdr* IPHdr() const		{ return ip_hdr; }
 
 protected:
-	PktSrc* src;
+	iosource::PktSrc* src;
 	double timestamp;
 	struct pcap_pkthdr hdr;
 	u_char* pkt;

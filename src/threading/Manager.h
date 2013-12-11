@@ -4,7 +4,7 @@
 
 #include <list>
 
-#include "IOSource.h"
+#include "iosource/IOSource.h"
 
 #include "BasicThread.h"
 #include "MsgThread.h"
@@ -21,7 +21,7 @@ namespace threading {
  * their outgoing message queue on a regular basis and feeds data sent into
  * the rest of Bro. It also triggers the regular heartbeats.
  */
-class Manager : public IOSource
+class Manager : public iosource::IOSource
 {
 public:
 	/**

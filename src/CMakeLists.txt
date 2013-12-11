@@ -151,10 +151,12 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
+add_subdirectory(iosource)
 add_subdirectory(analyzer)
 add_subdirectory(file_analysis)
 add_subdirectory(probabilistic)
 add_subdirectory(broxygen)
+add_subdirectory(iosource)
 
 set(bro_SUBDIRS
     ${bro_SUBDIR_LIBS}
@@ -249,7 +251,8 @@ set(bro_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BPF_Program.cc
+    BroDoc.cc
+    BroDocObj.cc
     Brofiler.cc
     BroString.cc
     CCL.cc
@@ -281,7 +284,6 @@ set(bro_SRCS
     Hash.cc
     ID.cc
     IntSet.cc
-    IOSource.cc
     IP.cc
     IPAddr.cc
     List.cc
@@ -295,7 +297,6 @@ set(bro_SRCS
     PacketFilter.cc
     PacketSort.cc
     PersistenceSerializer.cc
-    PktSrc.cc
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc

@@ -29,6 +29,7 @@ enum DebugStream {
 	DBG_FILE_ANALYSIS,	// File analysis
 	DBG_PLUGINS,
 	DBG_BROXYGEN,
+	DBG_PKTIO,	// Packet sources and dumpers.
 
 	NUM_DBGS // Has to be last
 };

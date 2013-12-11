@@ -130,4 +130,31 @@
 #define BRO_PLUGIN_SUPPORT_ANALYZER(tag) \
 	AddComponent(new ::analyzer::Component(tag, 0));
 
+/**
+ * Defines a component implementing an IOSource (excluding packet sources).
+ *
+ * XXXX
+ *
+ */
+#define BRO_PLUGIN_IOSOURCE(tag, cls) \
+	AddComponent(new ::iosource::pktsrc::Component(tag, iosource::cls::Instantiate));
+
+/**
+ * Defines a component implementing a PktSrc.
+ *
+ * XXXX
+ *
+ */
+#define BRO_PLUGIN_PKTSRC(tag, prefix, type, cls) \
+	AddComponent(new ::iosource::pktsrc::SourceComponent(tag, prefix, iosource::pktsrc::type, iosource::pktsrc::cls::Instantiate));
+
+/**
+ * Defines a component implementing a PktDumper.
+ *
+ * XXXX
+ *
+ */
+#define BRO_PLUGIN_PKTDUMPER(tag, prefix, cls) \
+	AddComponent(new ::iosource::pktsrc::DumperComponent(tag, prefix, iosource::pktsrc::cls::Instantiate));
+
 #endif

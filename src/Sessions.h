@@ -74,7 +74,7 @@ public:
 	// employing the packet sorter first.
 	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
-			PktSrc* src_ps, PacketSortElement* pkt_elem);
+			iosource::PktSrc* src_ps, PacketSortElement* pkt_elem);
 
 	void Done();	// call to drain events before destructing
 
@@ -225,7 +225,7 @@ protected:
 
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
-			const PktSrc* src_ps);
+			const iosource::PktSrc* src_ps);
 
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first

@@ -168,7 +168,7 @@ void NetSessions::Done()
 
 void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
-			PktSrc* src_ps, PacketSortElement* pkt_elem)
+			iosource::PktSrc* src_ps, PacketSortElement* pkt_elem)
 	{
 	const struct ip* ip_hdr = 0;
 	const u_char* ip_data = 0;
@@ -185,10 +185,14 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		// Blanket encapsulation
 		hdr_size += encap_hdr_size;
 
+#if 0
 	if ( src_ps->FilterType() == TYPE_FILTER_NORMAL )
 		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
 	else
 		NextPacketSecondary(t, hdr, pkt, hdr_size, src_ps);
+#else
+		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
+#endif
 	}
 
 void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
@@ -278,7 +282,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 
 void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* hdr,
 				const u_char* const pkt, int hdr_size,
-				const PktSrc* src_ps)
+				const iosource::PktSrc* src_ps)
 	{
 	SegmentProfiler(segment_logger, "processing-secondary-packet");
 
@@ -291,6 +295,7 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 		return;
 		}
 
+#if 0
 	const struct ip* ip = (const struct ip*) (pkt + hdr_size);
 	if ( ip->ip_v == 4 )
 		{
@@ -321,6 +326,7 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 			delete args;
 			}
 		}
+#endif
 	}
 
 int NetSessions::CheckConnectionTag(Connection* conn)
@@ -1341,14 +1347,24 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 		return;
 
 	if ( len == 0 )
-		pkt_dumper->Dump(hdr, pkt);
+		{
+		iosource::PktDumper::Packet p;
+		p.hdr = hdr;
+		p.data = pkt;
+		pkt_dumper->Record(&p);
+		}
+
 	else
 		{
 		struct pcap_pkthdr h = *hdr;
 		h.caplen = len;
 		if ( h.caplen > hdr->caplen )
 			reporter->InternalError("bad modified caplen");
-		pkt_dumper->Dump(&h, pkt);
+
+		iosource::PktDumper::Packet p;
+		p.hdr = &h;
+		p.data = pkt;
+		pkt_dumper->Record(&p);
 		}
 	}
 

@@ -21,6 +21,7 @@
 #include "IPAddr.h"
 #include "util.h"
 #include "file_analysis/Manager.h"
+#include "iosource/Manager.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ TableType* var_sizes;
 // and hence it's declared in NetVar.{h,cc}.
 extern RecordType* gap_info;
 
-static PktDumper* addl_pkt_dumper = 0;
+static iosource::PktDumper* addl_pkt_dumper = 0;
 
 bro_int_t parse_int(const char*& fmt)
 	{
@@ -1657,11 +1658,14 @@ function net_stats%(%): NetStats
 	unsigned int drop = 0;
 	unsigned int link = 0;
 
-	loop_over_list(pkt_srcs, i)
-		{
-		PktSrc* ps = pkt_srcs[i];
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 
-		struct PktSrc::Stats stat;
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		struct iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
 		recv += stat.received;
 		drop += stat.dropped;
@@ -3206,10 +3210,15 @@ function dump_current_packet%(file_name: string%) : bool
 		return new Val(0, TYPE_BOOL);
 
 	if ( ! addl_pkt_dumper )
-		addl_pkt_dumper = new PktDumper(0, true);
+		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	addl_pkt_dumper->Open(file_name->CheckString());
-	addl_pkt_dumper->Dump(hdr, pkt);
+	if ( addl_pkt_dumper )
+		{
+		iosource::PktDumper::Packet p;
+		p.hdr = hdr;
+		p.data = pkt;
+		addl_pkt_dumper->Record(&p);
+		}
 
 	return new Val(! addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
@@ -3266,10 +3275,15 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	hdr.len = (*pkt_vl)[3]->AsCount();
 
 	if ( ! addl_pkt_dumper )
-		addl_pkt_dumper = new PktDumper(0, true);
+		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	addl_pkt_dumper->Open(file_name->CheckString());
-	addl_pkt_dumper->Dump(&hdr, (*pkt_vl)[4]->AsString()->Bytes());
+	if ( addl_pkt_dumper )
+		{
+		iosource::PktDumper::Packet p;
+		p.hdr = &hdr;
+		p.data = (*pkt_vl)[4]->AsString()->Bytes();
+		addl_pkt_dumper->Record(&p);
+		}
 
 	return new Val(addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
@@ -4030,14 +4044,14 @@ function rotate_file_by_name%(f: string%): rotate_info
 	bool is_addl_pkt_dumper = false;
 
 	// Special case: one of current dump files.
-	if ( pkt_dumper && streq(pkt_dumper->FileName(), f->CheckString()) )
+	if ( pkt_dumper && streq(pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_pkt_dumper = true;
 		pkt_dumper->Close();
 		}
 
 	if ( addl_pkt_dumper &&
-	     streq(addl_pkt_dumper->FileName(), f->CheckString()) )
+	     streq(addl_pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_addl_pkt_dumper = true;
 		addl_pkt_dumper->Close();
@@ -4156,15 +4170,18 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	%{
 	bool success = true;
 
-	loop_over_list(pkt_srcs, i)
-		{
-		pkt_srcs[i]->ClearErrorMsg();
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 
-		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		if ( ! ps->PrecompileFilter(id->ForceAsInt(),
 							s->CheckString()) )
 			{
 			reporter->Error("precompile_pcap_filter: %s",
-				pkt_srcs[i]->ErrorMsg());
+				ps->ErrorMsg());
 			success = false;
 			}
 		}
@@ -4194,11 +4211,14 @@ function install_pcap_filter%(id: PcapFilterID%): bool
 	%{
 	bool success = true;
 
-	loop_over_list(pkt_srcs, i)
-		{
-		pkt_srcs[i]->ClearErrorMsg();
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 
-		if ( ! pkt_srcs[i]->SetFilter(id->ForceAsInt()) )
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		if ( ! ps->SetFilter(id->ForceAsInt()) )
 			success = false;
 		}
 
@@ -4221,9 +4241,14 @@ function install_pcap_filter%(id: PcapFilterID%): bool
 ##              uninstall_dst_net_filter
 function pcap_error%(%): string
 	%{
-	loop_over_list(pkt_srcs, i)
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
 		{
-		const char* err = pkt_srcs[i]->ErrorMsg();
+		iosource::PktSrc* ps = *i;
+
+		const char* err = ps->ErrorMsg();
 		if ( *err )
 			return new StringVal(err);
 		}

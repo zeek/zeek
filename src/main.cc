@@ -62,6 +62,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "plugin/Manager.h"
 #include "file_analysis/Manager.h"
 #include "broxygen/Manager.h"
+#include "iosource/Manager.h"
 
 #include "binpac_bro.h"
 
@@ -100,6 +101,7 @@ plugin::Manager* plugin_mgr = 0;
 analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
+iosource::Manager* iosource_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -116,7 +118,10 @@ int signal_val = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
+int generate_documentation = 0;
+#if 0
 SecondaryPath* secondary_path = 0;
+#endif
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -379,7 +384,9 @@ void terminate_bro()
 	delete event_serializer;
 	delete state_serializer;
 	delete event_registry;
+#if 0
 	delete secondary_path;
+#endif	
 	delete remote_serializer;
 	delete analyzer_mgr;
 	delete log_mgr;
@@ -845,6 +852,7 @@ int main(int argc, char** argv)
 	input_mgr = new input::Manager();
 	plugin_mgr = new plugin::Manager();
 	file_mgr = new file_analysis::Manager();
+	iosource_mgr = new iosource::Manager();
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -967,13 +975,15 @@ int main(int argc, char** argv)
 
 	snaplen = internal_val("snaplen")->AsCount();
 
+#if 0
 	// Initialize the secondary path, if it's needed.
 	secondary_path = new SecondaryPath();
+#endif
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
 			writefile, "",
-			secondary_path->Filter(), do_watchdog);
+			"", do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
@@ -1132,9 +1142,9 @@ int main(int argc, char** argv)
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 
-	io_sources.Register(thread_mgr, true);
+	iosource_mgr->Register(thread_mgr, true);
 
-	if ( io_sources.Size() > 0 ||
+	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||
 	     BifConst::exit_only_after_terminate )
 		{

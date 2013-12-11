@@ -3,6 +3,8 @@
 #ifndef PLUGIN_COMPONENT_H
 #define PLUGIN_COMPONENT_H
 
+#include <string>
+
 class ODesc;
 
 namespace plugin {
@@ -16,7 +18,10 @@ enum Type {
 	READER,	/// An input reader (not currently used).
 	WRITER,	/// An logging writer (not currenly used).
 	ANALYZER,	/// A protocol analyzer.
-	FILE_ANALYZER	/// A file analyzer.
+	FILE_ANALYZER,	/// A file analyzer.
+	IOSOURCE,	/// An I/O source, excluding packet sources.
+	PKTSRC,	/// A packet source.
+	PKTDUMPER	/// A packet dumper.
 	};
 }
 

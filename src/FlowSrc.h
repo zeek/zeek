@@ -5,7 +5,7 @@
 #ifndef flowsrc_h
 #define flowsrc_h
 
-#include "IOSource.h"
+#include "iosource/IOSource.h"
 #include "NetVar.h"
 #include "binpac.h"
 
@@ -28,7 +28,7 @@ namespace binpac {
 	}
 }
 
-class FlowSrc : public IOSource {
+class FlowSrc : public iosource::IOSource {
 public:
 	virtual ~FlowSrc();
 

@@ -1,4 +1,9 @@
 
+2.2-72 | 2013-12-12 07:12:47 -0800
+
+  * Improve the core.when-interpreter-exceptions unit test to prevent
+    it from occasionally timing out. (Jon Siwek)
+
 2.2-70 | 2013-12-10 15:02:50 -0800
 
   * Fix (harmless) uninitialized field in basename/dirname util

@@ -151,7 +151,6 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
-add_subdirectory(iosource)
 add_subdirectory(analyzer)
 add_subdirectory(file_analysis)
 add_subdirectory(probabilistic)
@@ -251,8 +250,6 @@ set(bro_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BroDoc.cc
-    BroDocObj.cc
     Brofiler.cc
     BroString.cc
     CCL.cc

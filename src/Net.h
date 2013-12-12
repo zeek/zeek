@@ -4,11 +4,7 @@
 #define net_h
 
 #include "net_util.h"
-<<<<<<< HEAD
 #include "util.h"
-#include "BPF_Program.h"
-=======
->>>>>>> 5493253... Checkpoint.
 #include "List.h"
 #include "FlowSrc.h"
 #include "Func.h"

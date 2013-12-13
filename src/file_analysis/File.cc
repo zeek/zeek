@@ -254,7 +254,7 @@ void File::ScheduleInactivityTimer() const
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
-		id.c_str(), file_mgr->GetComponentName(tag));
+		id.c_str(), file_mgr->GetComponentName(tag).c_str());
 
 	return done ? false : analyzers.QueueAdd(tag, args);
 	}
@@ -262,7 +262,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
-		id.c_str(), file_mgr->GetComponentName(tag));
+		id.c_str(), file_mgr->GetComponentName(tag).c_str());
 
 	return done ? false : analyzers.QueueRemove(tag, args);
 	}

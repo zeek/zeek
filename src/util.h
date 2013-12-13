@@ -406,6 +406,6 @@ const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
  * @param name The string to canonicalize.
  * @return The canonicalized version of \a name which caller may later delete[].
  */
-const char* canonify_name(const char* name);
+std::string canonify_name(const std::string& name);
 
 #endif

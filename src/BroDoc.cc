@@ -473,7 +473,7 @@ static void WritePluginSectionHeading(FILE* f, const plugin::Plugin* p)
 static void WriteAnalyzerComponent(FILE* f, const analyzer::Component* c)
 	{
 	EnumType* atag = analyzer_mgr->GetTagEnumType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName());
+	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
 		reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -484,7 +484,7 @@ static void WriteAnalyzerComponent(FILE* f, const analyzer::Component* c)
 static void WriteAnalyzerComponent(FILE* f, const file_analysis::Component* c)
 	{
 	EnumType* atag = file_mgr->GetTagEnumType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName());
+	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Files", tag.c_str()) < 0 )
 		reporter->InternalError("missing analyzer tag for %s", tag.c_str());

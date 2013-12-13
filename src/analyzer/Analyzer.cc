@@ -75,7 +75,7 @@ analyzer::ID Analyzer::id_counter = 0;
 const char* Analyzer::GetAnalyzerName() const
 	{
 	assert(tag);
-	return analyzer_mgr->GetComponentName(tag);
+	return analyzer_mgr->GetComponentName(tag).c_str();
 	}
 
 void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
@@ -87,7 +87,7 @@ void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return strcmp(analyzer_mgr->GetComponentName(tag), name) == 0;
+	return strcmp(analyzer_mgr->GetComponentName(tag).c_str(), name) == 0;
 	}
 
 // Used in debugging output.

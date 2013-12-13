@@ -1701,17 +1701,16 @@ const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
 	return rval;
 	}
 
-const char* canonify_name(const char* name)
+std::string canonify_name(const std::string& name)
 	{
-	unsigned int len = strlen(name);
-	char* nname = new char[len + 1];
+	unsigned int len = name.size();
+	std::string nname;
 
 	for ( unsigned int i = 0; i < len; i++ )
 		{
 		char c = isalnum(name[i]) ? name[i] : '_';
-		nname[i] = toupper(c);
+		nname += toupper(c);
 		}
 
-	nname[len] = '\0';
 	return nname;
 	}

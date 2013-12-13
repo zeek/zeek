@@ -104,7 +104,8 @@ void Manager::DumpDebug()
 	DBG_LOG(DBG_ANALYZER, "Available analyzers after bro_init():");
 	list<Component*> all_analyzers = GetComponents();
 	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
-		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name(), IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
+		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
+			IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
 
 	DBG_LOG(DBG_ANALYZER, "");
 	DBG_LOG(DBG_ANALYZER, "Analyzers by port:");
@@ -143,7 +144,7 @@ bool Manager::EnableAnalyzer(Tag tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name());
+	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -156,7 +157,7 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name());
+	DBG_LOG(DBG_ANALYZER, "Enabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(true);
 
 	return true;
@@ -169,7 +170,7 @@ bool Manager::DisableAnalyzer(Tag tag)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name());
+	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -182,7 +183,7 @@ bool Manager::DisableAnalyzer(EnumVal* val)
 	if ( ! p  )
 		return false;
 
-	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name());
+	DBG_LOG(DBG_ANALYZER, "Disabling analyzer %s", p->Name().c_str());
 	p->SetEnabled(false);
 
 	return true;
@@ -254,7 +255,7 @@ bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port
 		return false;
 
 #ifdef DEBUG
-	const char* name = GetComponentName(tag);
+	const char* name = GetComponentName(tag).c_str();
 	DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
@@ -270,7 +271,7 @@ bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 po
 		return true;  // still a "successful" unregistration
 
 #ifdef DEBUG
-	const char* name = GetComponentName(tag);
+	const char* name = GetComponentName(tag).c_str();
 	DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, proto);
 #endif
 
@@ -293,7 +294,8 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 
 	if ( ! c->Factory() )
 		{
-		reporter->InternalWarning("analyzer %s cannot be instantiated dynamically", GetComponentName(tag));
+		reporter->InternalWarning("analyzer %s cannot be instantiated dynamically",
+					  GetComponentName(tag).c_str());
 		return 0;
 		}
 
@@ -403,7 +405,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			root->AddChildAnalyzer(analyzer, false);
 
 			DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
-					  analyzer_mgr->GetComponentName(*i));
+					  analyzer_mgr->GetComponentName(*i).c_str());
 			}
 
 		}
@@ -429,7 +431,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 					root->AddChildAnalyzer(analyzer, false);
 					DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
-							  analyzer_mgr->GetComponentName(*j), resp_port);
+							  analyzer_mgr->GetComponentName(*j).c_str(), resp_port);
 					}
 				}
 			}
@@ -555,7 +557,7 @@ void Manager::ExpireScheduledAnalyzers()
 			conns.erase(i);
 
 			DBG_LOG(DBG_ANALYZER, "Expiring expected analyzer %s for connection %s",
-				analyzer_mgr->GetComponentName(a->analyzer),
+				analyzer_mgr->GetComponentName(a->analyzer).c_str(),
 				fmt_conn_id(a->conn.orig, 0, a->conn.resp, a->conn.resp_p));
 
 			delete a;

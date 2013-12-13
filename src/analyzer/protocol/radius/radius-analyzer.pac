@@ -12,22 +12,27 @@ refine flow RADIUS_Flow += {
 		result->Assign(1, new Val(${msg.trans_id}, TYPE_COUNT));
 		result->Assign(2, bytestring_to_val(${msg.authenticator}));
 		
-		TableVal* Attributes = new TableVal(BifType::Table::RADIUS::Attributes);
-
-		for ( uint i = 0; i < ${msg.attributes}->size(); ++i ) {
-			// Do we already have a vector of attributes for this type?
-			VectorVal* current = (VectorVal*) Attributes->Lookup(new Val(${msg.attributes[i].code}, TYPE_COUNT));
-			if ( current )
-				current->Assign((uint) current->Size(), bytestring_to_val(${msg.attributes[i].value}));
-			else {
-				VectorVal* AttributeList = new VectorVal(BifType::Vector::RADIUS::AttributeList);
-				AttributeList->Assign((uint) 0, bytestring_to_val(${msg.attributes[i].value}));
-				Attributes->Assign(new Val(${msg.attributes[i].code}, TYPE_COUNT), AttributeList);
-			}
-			
-		}
 		if ( ${msg.attributes}->size() )
+			{
+			TableVal* Attributes = new TableVal(BifType::Table::RADIUS::Attributes);
+		
+			for ( uint i = 0; i < ${msg.attributes}->size(); ++i ) {
+				Val* index = new Val(${msg.attributes[i].code}, TYPE_COUNT);
+				
+				// Do we already have a vector of attributes for this type?
+				VectorVal* current = (VectorVal*) Attributes->Lookup(index);
+				if ( current )
+					current->Assign((uint) current->Size(), bytestring_to_val(${msg.attributes[i].value}));
+				else {
+					VectorVal* AttributeList = new VectorVal(BifType::Vector::RADIUS::AttributeList);
+					AttributeList->Assign((uint) 0, bytestring_to_val(${msg.attributes[i].value}));
+					Attributes->Assign(index, AttributeList);
+				}
+				
+				Unref(index);
+			}
 			result->Assign(3, Attributes);
+		}
 		BifEvent::generate_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
 		return true;
 		%}

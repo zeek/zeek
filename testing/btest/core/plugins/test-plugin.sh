@@ -2,10 +2,23 @@
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: make BRO=${DIST}
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN | awk '/^Plugin:.*Demo/ {p=1; print; next} /^Plugin:/{p=0} p==1{print}' >>output
+
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r $TRACES/empty.trace >>output
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro demo/foo -r $TRACES/empty.trace >>output
+
+# @TEST-EXEC: echo =-= >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b -r $TRACES/empty.trace >>output
+# @TEST-EXEC: echo =-= >>output
+# @TEST-EXEC-FAIL: BRO_PLUGIN_PATH=`pwd` bro -b demo/foo -r $TRACES/empty.trace >>output
+
+# @TEST-EXEC: echo === >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.bro -r $TRACES/empty.trace >>output
+# @TEST-EXEC: echo === >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.bro  demo/foo -r $TRACES/empty.trace >>output
+
+
 # @TEST-EXEC: btest-diff output
 
 cat >scripts/__load__.bro <<EOF
@@ -38,6 +51,10 @@ function hello_plugin_world%(%): string
         %{
         return new StringVal("Hello from the plugin!");
         %}
+EOF
+
+cat >activate.bro <<EOF
+@load-plugin Demo::Foo
 EOF
 
 cat >src/events.bif <<EOF

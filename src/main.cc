@@ -223,7 +223,7 @@ void usage()
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
 	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
-	fprintf(stderr, "    $BRO_PLUGINS                   | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -820,7 +820,7 @@ int main(int argc, char** argv)
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
 
-	plugin_mgr->LoadPluginsFrom(bro_plugin_path());
+	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
@@ -860,6 +860,9 @@ int main(int argc, char** argv)
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 
+	if ( ! bare_mode )
+		plugin_mgr->ActivateAllDynamicPlugins();
+
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
 
@@ -896,13 +899,14 @@ int main(int argc, char** argv)
 	if ( reporter->Errors() > 0 )
 		exit(1);
 
+	plugin_mgr->InitPostScript();
+
 	if ( print_plugins )
 		{
 		show_plugins(print_plugins);
 		exit(1);
 		}
 
-	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
 

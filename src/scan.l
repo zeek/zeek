@@ -407,6 +407,11 @@ when	return TOK_WHEN;
 		                new_sig_file);
 	}
 
+@load-plugin{WS}{ID} {
+	const char* plugin = skip_whitespace(yytext + 12);
+    plugin_mgr->ActivateDynamicPlugin(plugin);
+}
+
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* new_file = skip_whitespace(yytext + 7);
@@ -827,6 +832,17 @@ void add_input_file(const char* file)
 		(void) load_files(file);
 	else
 		input_files.append(copy_string(file));
+	}
+
+void add_input_file_at_front(const char* file)
+	{
+	if ( ! file )
+		reporter->InternalError("empty filename");
+
+	if ( ! filename )
+		(void) load_files(file);
+	else
+        	input_files.insert(copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)

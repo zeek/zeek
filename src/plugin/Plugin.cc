@@ -26,15 +26,15 @@ const char* hook_name(HookType h)
 	return hook_names[int(h)];
 	}
 
-BifItem::BifItem(const char* arg_id, Type arg_type)
+BifItem::BifItem(const std::string& arg_id, Type arg_type)
 	{
-	id = copy_string(arg_id);
+	id = arg_id;
 	type = arg_type;
 	}
 
 BifItem::BifItem(const BifItem& other)
 	{
-	id = copy_string(other.id);
+	id = other.id;
 	type = other.type;
 	}
 
@@ -42,7 +42,7 @@ BifItem& BifItem::operator=(const BifItem& other)
 	{
 	if ( this != &other )
 		{
-		id = copy_string(other.id);
+		id = other.id;
 		type = other.type;
 		}
 
@@ -51,20 +51,19 @@ BifItem& BifItem::operator=(const BifItem& other)
 
 BifItem::~BifItem()
 	{
-	delete [] id;
 	}
 
 Plugin::Plugin()
 	{
-	name = copy_string("<NAME-NOT-SET>");
-	description = copy_string("");
+	name = "<NAME-NOT-SET>";
+	description = "";
 
 	// These will be reset by the BRO_PLUGIN_* macros.
 	version = -9999;
 	api_version = -9999;
 	dynamic = false;
-	base_dir = 0;
-	sopath = 0;
+	base_dir = "";
+	sopath = "";
 
 	Manager::RegisterPlugin(this);
 	}
@@ -72,33 +71,26 @@ Plugin::Plugin()
 Plugin::~Plugin()
 	{
 	Done();
-
-	delete [] name;
-	delete [] description;
-	delete [] base_dir;
-	delete [] sopath;
 	}
 
-const char* Plugin::Name() const
+const std::string& Plugin::Name() const
 	{
 	return name;
 	}
 
-void Plugin::SetName(const char* arg_name)
+void Plugin::SetName(const std::string& arg_name)
 	{
-	delete [] name;
-	name = copy_string(arg_name);
+	name = arg_name;
 	}
 
-const char* Plugin::Description() const
+const std::string& Plugin::Description() const
 	{
 	return description;
 	}
 
-void Plugin::SetDescription(const char* arg_description)
+void Plugin::SetDescription(const std::string& arg_description)
 	{
-	delete [] description;
-	description = copy_string(arg_description);
+	description = arg_description;
 	}
 
 int Plugin::Version() const
@@ -121,12 +113,12 @@ bool Plugin::DynamicPlugin() const
 	return dynamic;
 	}
 
-const char* Plugin::PluginDirectory() const
+const std::string& Plugin::PluginDirectory() const
 	{
 	return base_dir;
 	}
 
-const char* Plugin::PluginPath() const
+const std::string& Plugin::PluginPath() const
 	{
 	return sopath;
 	}
@@ -141,12 +133,10 @@ void Plugin::SetDynamicPlugin(bool arg_dynamic)
 	dynamic = arg_dynamic;
 	}
 
-void Plugin::SetPluginLocation(const char* arg_dir, const char* arg_sopath)
+void Plugin::SetPluginLocation(const std::string& arg_dir, const std::string& arg_sopath)
 	{
-	delete [] base_dir;
-	delete [] sopath;
-	base_dir = copy_string(arg_dir);
-	sopath = copy_string(arg_sopath);
+	base_dir = arg_dir;
+	sopath = arg_sopath;
 	}
 
 void Plugin::InitPreScript()
@@ -197,9 +187,9 @@ static bool component_cmp(const Component* a, const Component* b)
 	return a->Name() < b->Name();
 	}
 
-bool Plugin::LoadBroFile(const char* file)
+bool Plugin::LoadBroFile(const std::string& file)
 	{
-	::add_input_file(file);
+	::add_input_file(file.c_str());
 	return true;
 	}
 
@@ -208,7 +198,7 @@ void Plugin::__AddBifInitFunction(bif_init_func c)
 	bif_inits.push_back(c);
 	}
 
-void Plugin::AddBifItem(const char* name, BifItem::Type type)
+void Plugin::AddBifItem(const std::string& name, BifItem::Type type)
 	{
 	BifItem bi(name, (BifItem::Type)type);
 	bif_items.push_back(bi);
@@ -238,7 +228,7 @@ void Plugin::DisableHook(HookType hook)
 	plugin_mgr->DisableHook(hook, this);
 	}
 
-int Plugin::HookLoadFile(const char* file)
+int Plugin::HookLoadFile(const std::string& file)
 	{
 	return -1;
 	}
@@ -266,7 +256,7 @@ void Plugin::Describe(ODesc* d) const
 	d->Add("Plugin: ");
 	d->Add(name);
 
-	if ( description && *description )
+	if ( description.size() )
 		{
 		d->Add(" - ");
 		d->Add(description);

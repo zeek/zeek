@@ -467,7 +467,7 @@ static void WritePluginSectionHeading(FILE* f, const plugin::Plugin* p)
 		fprintf(f, "-");
 	fprintf(f, "\n\n");
 
-	fprintf(f, "%s\n\n", p->Description());
+	fprintf(f, "%s\n\n", p->Description().c_str());
 	}
 
 static void WriteAnalyzerComponent(FILE* f, const analyzer::Component* c)
@@ -568,7 +568,7 @@ static void WritePluginBifItems(FILE* f, const plugin::Plugin* p,
 		if ( o )
 			o->WriteReST(f);
 		else
-			reporter->Warning("No docs for ID: %s\n", it->GetID());
+			reporter->Warning("No docs for ID: %s\n", it->GetID().c_str());
 		}
 	}
 

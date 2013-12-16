@@ -117,7 +117,7 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 		return;
 
 	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-			network_time, current_time(true), plugin.Name());
+			network_time, current_time(true), plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);

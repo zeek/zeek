@@ -50,7 +50,7 @@ public:
 	 *
 	 * @param type The type of the item.
 	 */
-	BifItem(const char* id, Type type);
+	BifItem(const std::string& id, Type type);
 
 	/**
 	 * Copy constructor.
@@ -70,7 +70,7 @@ public:
 	/**
 	 * Returns the script-level ID as passed into the constructor.
 	 */
-	const char* GetID() const	{ return id; }
+	const std::string& GetID() const	{ return id; }
 
 	/**
 	 * Returns the type as passed into the constructor.
@@ -78,7 +78,7 @@ public:
 	Type GetType() const	{ return type; }
 
 private:
-	const char* id;
+	std::string id;
 	Type type;
 };
 
@@ -113,7 +113,7 @@ public:
 	typedef std::list<Component *> component_list;
 	typedef std::list<BifItem> bif_item_list;
 	typedef std::list<std::pair<HookType, int> > hook_list;
-	typedef std::list<std::pair<const char*, int> > bif_init_func_result;
+	typedef std::list<std::pair<std::string, int> > bif_init_func_result;
 	typedef void (*bif_init_func)(Plugin *);
 
 	/**
@@ -129,12 +129,12 @@ public:
 	/**
 	 * Returns the name of the plugin.
 	 */
-	const char* Name() const;
+	const std::string& Name() const;
 
 	/**
 	 * Returns a short textual description of the plugin, if provided.
 	 */
-	const char* Description() const;
+	const std::string& Description() const;
 
 	/**
 	 * Returns the version of the plugin. Version are only meaningful for
@@ -152,13 +152,13 @@ public:
 	 * For dynamic plugins, returns the base directory from which it was
 	 * loaded. For static plugins, returns null.
 	 **/
-	const char* PluginDirectory() const;
+	const std::string& PluginDirectory() const;
 
 	/**
 	 * For dynamic plugins, returns the full path to the shared library
 	 * from which it was loaded. For static plugins, returns null.
 	 **/
-	const char* PluginPath() const;
+	const std::string& PluginPath() const;
 
 	/**
 	 * Returns the internal API version that this plugin relies on. Only
@@ -225,7 +225,7 @@ public:
 	 *
 	 * @param type The item's type.
 	 */
-	void AddBifItem(const char* name, BifItem::Type type);
+	void AddBifItem(const std::string& name, BifItem::Type type);
 
 	/**
 	 * Adds a file to the list of files that Bro loads at startup. This
@@ -242,7 +242,7 @@ public:
 	 * @return True if successful (which however may only mean
 	 * "successfully queued").
 	 */
-	bool LoadBroFile(const char* file);
+	bool LoadBroFile(const std::string& file);
 
 	/**
 	 * Internal function adding an entry point for registering
@@ -324,7 +324,7 @@ protected:
 	 * printed an error message); and -1 if the plugin wasn't interested
 	 * in the file at all.
 	 */
-	virtual int HookLoadFile(const char* file);
+	virtual int HookLoadFile(const std::string& file);
 
 	/**
 	 * Hook into executing a script-level function/event/hook. Whenever
@@ -396,7 +396,7 @@ protected:
 	 *
 	 * @param name The name. Makes a copy internally.
 	 */
-	void SetName(const char* name);
+	void SetName(const std::string& name);
 
 	/**
 	 * Sets the plugin's textual description.
@@ -406,7 +406,7 @@ protected:
 	 *
 	 * @param name The description. Makes a copy internally.
 	 */
-	void SetDescription(const char* descr);
+	void SetDescription(const std::string& descr);
 
 	/**
 	 * Sets the plugin's version.
@@ -454,7 +454,7 @@ protected:
 	 * @param sopath The full path the shared library loaded. The
 	 * functions makes an internal copy of string.
 	 */
-	void SetPluginLocation(const char* dir, const char* sopath);
+	void SetPluginLocation(const std::string& dir, const std::string& sopath);
 
 private:
 	/**
@@ -465,10 +465,10 @@ private:
 
 	typedef std::list<bif_init_func> bif_init_func_list;
 
-	const char* name;
-	const char* description;
-	const char* base_dir;
-	const char* sopath;
+	std::string name;
+	std::string description;
+	std::string base_dir;
+	std::string sopath;
 	int version;
 	int api_version;
 	bool dynamic;

@@ -664,6 +664,13 @@ string strreplace(const string& s, const string& o, const string& n)
 	return r;
 }
 
+std::string strstrip(std::string s)
+	{
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
+	}
+
 int hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
 
@@ -942,7 +949,7 @@ const char* bro_magic_path()
 
 const char* bro_plugin_path()
 	{
-	const char* path = getenv("BRO_PLUGINS");
+	const char* path = getenv("BRO_PLUGIN_PATH");
 
 	if ( ! path )
 		path = BRO_PLUGIN_INSTALL_PATH;

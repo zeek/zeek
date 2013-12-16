@@ -1,11 +1,11 @@
 # @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: make BRO=${DIST}
-# @TEST-EXEC: BROPLUGINS=`pwd` bro -NN | awk '/^Plugin:.*Demo/ {p=1; print; next} /^Plugin:/{p=0} p==1{print}' >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN | awk '/^Plugin:.*Demo/ {p=1; print; next} /^Plugin:/{p=0} p==1{print}' >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BROPLUGINS=`pwd` bro -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r $TRACES/empty.trace >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BROPLUGINS=`pwd` bro demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro demo/foo -r $TRACES/empty.trace >>output
 # @TEST-EXEC: btest-diff output
 
 cat >scripts/__load__.bro <<EOF

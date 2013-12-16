@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <sstream>
+#include <fstream>
 #include <dirent.h>
 #include <glob.h>
 #include <dlfcn.h>
@@ -15,6 +16,7 @@
 
 using namespace plugin;
 
+Plugin* Manager::current_plugin = 0;
 string Manager::current_dir;
 string Manager::current_sopath;
 
@@ -37,7 +39,7 @@ Manager::~Manager()
 	delete [] hooks;
 	}
 
-void Manager::LoadPluginsFrom(const string& dir)
+void Manager::SearchDynamicPlugins(const std::string& dir)
 	{
 	assert(! init);
 
@@ -51,7 +53,7 @@ void Manager::LoadPluginsFrom(const string& dir)
 		std::string d;
 
 		while ( std::getline(s, d, ':') )
-			LoadPluginsFrom(d);
+			SearchDynamicPlugins(d);
 
 		return;
 		}
@@ -62,12 +64,34 @@ void Manager::LoadPluginsFrom(const string& dir)
 		return;
 		}
 
-	int rc = LoadPlugin(dir);
+	// Check if it's a plugin dirctory.
 
-	if ( rc >= 0 )
+	const std::string magic = dir + "/__bro_plugin__";
+
+	if ( is_file(magic) )
+		{
+		// It's a plugin, get it's name.
+		std::ifstream in(magic);
+
+		if ( in.fail() )
+			reporter->FatalError("cannot open plugin magic file %s", magic.c_str());
+
+		std::string name;
+		std::getline(in, name);
+		strstrip(name);
+
+		if ( name.empty() )
+			reporter->FatalError("empty plugin magic file %s", magic.c_str());
+
+		// Record it, so that we can later activate it.
+
+		dynamic_plugins.insert(std::make_pair(name, dir));
+
+		DBG_LOG(DBG_PLUGINS, "Found plugin %s in %s", name.c_str(), dir.c_str());
 		return;
+		}
 
-	DBG_LOG(DBG_PLUGINS, "Searching directory %s recursively for plugins", dir.c_str());
+	// No plugin here, traverse subirectories.
 
 	DIR* d = opendir(dir.c_str());
 
@@ -98,22 +122,33 @@ void Manager::LoadPluginsFrom(const string& dir)
 			}
 
 		if ( st.st_mode & S_IFDIR )
-			LoadPluginsFrom(path);
+			SearchDynamicPlugins(path);
 		}
 	}
 
-int Manager::LoadPlugin(const std::string& dir)
+bool Manager::ActivateDynamicPluginInternal(const std::string& name)
 	{
-	assert(! init);
+	dynamic_plugin_map::iterator m = dynamic_plugins.find(name);
 
-	// Check if it's a plugin dirctory.
-	if ( ! is_file(dir + "/__bro_plugin__") )
-		return -1;
+	if ( m == dynamic_plugins.end() )
+		{
+		reporter->Error("plugin %s is not available", name.c_str());
+		return false;
+		}
 
-	DBG_LOG(DBG_PLUGINS, "Loading plugin from %s", dir.c_str());
+	std::string dir = m->second + "/";
+
+	if ( dir.empty() )
+		{
+		// That's our marker that we have already activated this
+		// plugin. Silently ignore the new request.
+		return true;
+		}
+
+	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
 
 	// Add the "scripts" and "bif" directories to BROPATH.
-	string scripts = dir + "/scripts";
+	std::string scripts = dir + "scripts";
 
 	if ( is_dir(scripts) )
 		{
@@ -121,44 +156,27 @@ int Manager::LoadPlugin(const std::string& dir)
 		add_to_bro_path(scripts);
 		}
 
-	string bif = dir + "/bif";
+	// Load {bif,scripts}/__load__.bro automatically.
 
-	if ( is_dir(bif) )
-		{
-		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", bif.c_str());
-		add_to_bro_path(bif);
-		}
-
-	// Load dylib/scripts/__load__.bro automatically.
-	string dyinit = dir + "/dylib/scripts/__load__.bro";
-
-	if ( is_file(dyinit) )
-		{
-		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", dyinit.c_str());
-		add_input_file(dyinit.c_str());
-		}
-
-	// Load scripts/__load__.bro automatically.
-	string init = scripts + "/__load__.bro";
+	string init = dir + "lib/bif/__load__.bro";
 
 	if ( is_file(init) )
 		{
-		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", init.c_str());
-		add_input_file(init.c_str());
+		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+		scripts_to_load.push_back(init);
 		}
 
-	// Load bif/__load__.bro automatically.
-	init = bif + "/__load__.bro";
+	init = dir + "scripts/__load__.bro";
 
 	if ( is_file(init) )
 		{
-		DBG_LOG(DBG_PLUGINS, "  Adding %s for loading", init.c_str());
-		add_input_file(init.c_str());
+		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+		scripts_to_load.push_back(init);
 		}
 
 	// Load shared libraries.
 
-	string dypattern = dir + "/dylib/*." + HOST_ARCHITECTURE + SHARED_LIBRARY_SUFFIX;
+	string dypattern = dir + "/lib/*." + HOST_ARCHITECTURE + DYNAMIC_PLUGIN_SUFFIX;
 
 	DBG_LOG(DBG_PLUGINS, "  Searching for shared libraries %s", dypattern.c_str());
 
@@ -170,17 +188,34 @@ int Manager::LoadPlugin(const std::string& dir)
 			{
 			const char* path = gl.gl_pathv[i];
 
+			current_plugin = 0;
 			current_dir = dir;
 			current_sopath = path;
 			void* hdl = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
-			current_dir.clear();
-			current_sopath.clear();
 
 			if ( ! hdl )
 				{
 				const char* err = dlerror();
 				reporter->FatalError("cannot load plugin library %s: %s", path, err ? err : "<unknown error>");
 				}
+
+			if ( ! current_plugin )
+				reporter->FatalError("load plugin library %s did not instantiate a plugin", path);
+
+			// We execute the pre-script initialization here; this in
+			// fact could be *during* script initialization if we got
+			// triggered via @load-plugin.
+			current_plugin->InitPreScript();
+
+			// Make sure the name the plugin reports is consistent with
+			// what we expect from its magic file.
+			if ( string(current_plugin->Name()) != name )
+				reporter->FatalError("inconsistent plugin name: %s vs %s",
+						     current_plugin->Name().c_str(), name.c_str());
+
+			current_dir.clear();
+			current_sopath.clear();
+			current_plugin = 0;
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
@@ -189,10 +224,42 @@ int Manager::LoadPlugin(const std::string& dir)
 	else
 		{
 		DBG_LOG(DBG_PLUGINS, "  No shared library found");
-		return 1;
 		}
 
-	return 1;
+	// Mark this plugin as activated by clearing the path.
+	m->second.clear();
+
+	return true;
+	}
+
+bool Manager::ActivateDynamicPlugin(const std::string& name)
+	{
+	if ( ! ActivateDynamicPluginInternal(name) )
+		return false;
+
+	UpdateInputFiles();
+	return true;
+	}
+
+bool Manager::ActivateAllDynamicPlugins()
+	{
+	for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin();
+	      i != dynamic_plugins.end(); i++ )
+		{
+		if ( ! ActivateDynamicPluginInternal(i->first) )
+			return false;
+		}
+
+	UpdateInputFiles();
+
+	return true;
+	}
+
+void Manager::UpdateInputFiles()
+	{
+	for ( file_list::const_reverse_iterator i = scripts_to_load.rbegin();
+	      i != scripts_to_load.rend(); i++ )
+		add_input_file_at_front((*i).c_str());
 	}
 
 static bool plugin_cmp(const Plugin* a, const Plugin* b)
@@ -205,11 +272,13 @@ bool Manager::RegisterPlugin(Plugin *plugin)
 	Manager::PluginsInternal()->push_back(plugin);
 
 	if ( current_dir.size() && current_sopath.size() )
+		// A dynamic plugin, record its location.
 		plugin->SetPluginLocation(current_dir.c_str(), current_sopath.c_str());
 
 	// Sort plugins by name to make sure we have a deterministic order.
 	PluginsInternal()->sort(plugin_cmp);
 
+	current_plugin = plugin;
 	return true;
 	}
 
@@ -220,7 +289,6 @@ void Manager::InitPreScript()
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		{
 		Plugin* plugin = *i;
-
 		plugin->InitPreScript();
 		}
 
@@ -333,7 +401,7 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 		}
 	}
 
-int Manager::HookLoadFile(const char* file)
+int Manager::HookLoadFile(const string& file)
 	{
 	hook_list* l = hooks[HOOK_LOAD_FILE];
 

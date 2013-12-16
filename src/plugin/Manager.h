@@ -40,17 +40,41 @@ public:
 	virtual ~Manager();
 
 	/**
-	 * Loads all plugins dynamically from a set of directories. Multiple
-	 * directories are split by ':'. If a directory does not contain a
-	 * plugin itself, the method searches for plugins recursively. For
-	 * plugins found, the method loads the plugin's shared library and
-	 * makes its scripts available to the interpreter.
+	 * Searches a set of directories for plugins. If a specificed
+	 * directory does not contain a plugin itself, the method searches
+	 * for plugins recursively. For plugins found, the method makes them
+	 * available for later activation via ActivatePlugin().
 	 *
 	 * This must be called only before InitPluginsPreScript().
 	 *
-	 * @param dir The directory to search for plugins.
+	 * @param dir The directory to search for plugins. Multiple
+	 * directories are split by ':'.
 	 */
-	void LoadPluginsFrom(const std::string& dir);
+	void SearchDynamicPlugins(const std::string& dir);
+
+	/**
+	 * Activates a plugin that SearchPlugins() has previously discovered.
+	 * Activing a plugin involved loading its dynamic module, making its
+	 * bifs available, and adding its script paths to BROPATH.
+	 *
+	 * @param name The name of the plugin, as determined previously by
+	 * SearchPlugin().
+	 *
+	 * @return True if the plugin has been loaded successfully.
+	 *
+	 */
+	bool ActivateDynamicPlugin(const std::string& name);
+
+	/**
+	 * Activates all plugins that SearchPlugins() has previously
+	 * discovered. The effect is the same all calling \a
+	 * ActivePlugin(name) for every plugin.
+	 *
+	 * @return True if all plugins have been loaded successfully. If one
+	 * fail to load, the method stops there without loading any furthers
+	 * and returns false.
+	 */
+	bool ActivateAllDynamicPlugins();
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
@@ -148,7 +172,7 @@ public:
 	 * successfully; 0 if a plugin took over the file but had trouble
 	 * loading it; and -1 if no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const char* file);
+	virtual int HookLoadFile(const string& file);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -196,40 +220,37 @@ public:
 	 */
 	static bool RegisterPlugin(Plugin* plugin);
 
-protected:
-	/**
-	 * Loads a plugin dynamically from a given directory. It loads the
-	 * plugin's shared library, and makes its scripts available to the
-	 * interpreter. Different from LoadPluginsFrom() this method does not
-	 * further descend the directory tree recursively to search for
-	 * plugins.
-	 *
-	 * This must be called only before InitPluginsPreScript()
-	 *
-	 * @param file The path to the plugin to load.
-	 *
-	 * @return 0 if there's a plugin in this directory, but there was a
-	 * problem loading it; -1 if there's no plugin at all in this
-	 * directory; 1 if there's a plugin in this directory and we loaded
-	 * it successfully.
-	 */
-	int LoadPlugin(const std::string& dir);
-
 private:
+	bool ActivateDynamicPluginInternal(const std::string& name);
+	void UpdateInputFiles();
+
+	 // All found dynamic plugins, mapping their names to base directory.
+	typedef std::map<std::string, std::string> dynamic_plugin_map;
+	dynamic_plugin_map dynamic_plugins;
+
+	// We buffer scripts to load temporarliy to get them to load in the
+	// right order.
+	typedef std::list<std::string> file_list;
+	file_list scripts_to_load;
+
+	bool init;
+
 	// A hook list keeps pairs of plugin and priority interested in a
 	// given hook.
 	typedef std::list<std::pair<int, Plugin*> > hook_list;
-
-	static plugin_list* PluginsInternal();
-
-	bool init;
 
 	// An array indexed by HookType. An entry is null if there's no hook
 	// of that type enabled.
 	hook_list** hooks;
 
+	static Plugin* current_plugin;
 	static string current_dir;
 	static string current_sopath;
+
+	// Returns a modifiable list of all plugins, both static and dynamic.
+	// This is a static method so that plugins can register themselves
+	// even before the manager exists.
+	static plugin_list* PluginsInternal();
 };
 
 template<class T>

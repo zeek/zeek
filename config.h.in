@@ -214,7 +214,7 @@
 #define HOST_ARCHITECTURE "@HOST_ARCHITECTURE@"
 
 /* String with extension of dynamic libraries (e.g., ".so") */
-#define SHARED_LIBRARY_SUFFIX "@CMAKE_SHARED_LIBRARY_SUFFIX@"
+#define DYNAMIC_PLUGIN_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@"
 
 /* True if we're building outside of the main Bro source code tree. */
 #ifndef BRO_PLUGIN_INTERNAL_BUILD

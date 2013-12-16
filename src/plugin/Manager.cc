@@ -71,7 +71,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	if ( is_file(magic) )
 		{
 		// It's a plugin, get it's name.
-		std::ifstream in(magic);
+		std::ifstream in(magic.c_str());
 
 		if ( in.fail() )
 			reporter->FatalError("cannot open plugin magic file %s", magic.c_str());

@@ -198,9 +198,9 @@ New Functionality
         global s = MySet([$c=1], [$c=2]);
 
 - Strings now support the subscript operator to extract individual
-  characters and substrings (e.g., ``s[4]``, ``s[1,5]``). The index
+  characters and substrings (e.g., ``s[4]``, ``s[1:5]``). The index
   expression can take up to two indices for the start and end index of
-  the substring to return (e.g. ``mystring[1,3]``).
+  the substring to return (e.g. ``mystring[1:3]``).
 
 - Functions now support default parameters, e.g.::
 

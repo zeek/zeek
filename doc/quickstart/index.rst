@@ -13,7 +13,7 @@ Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
 source code forms.  See :ref:`installing-bro` for instructions on how to
 install Bro. Below, ``$PREFIX`` is used to reference the Bro
-installation root directory, which by default is ``/usr/local/`` if
+installation root directory, which by default is ``/usr/local/bro/`` if
 you install from source. 
 
 Managing Bro with BroControl
@@ -26,8 +26,8 @@ traffic-monitoring cluster.
 A Minimal Starting Configuration
 --------------------------------
 
-These are the basic configuration changes to make for a minimal BroControl installation
-that will manage a single Bro instance on the ``localhost``:
+These are the basic configuration changes to make for a minimal BroControl
+installation that will manage a single Bro instance on the ``localhost``:
 
 1) In ``$PREFIX/etc/node.cfg``, set the right interface to monitor.
 2) In ``$PREFIX/etc/networks.cfg``, comment out the default settings and add
@@ -72,7 +72,8 @@ You can leave it running for now, but to stop this Bro instance you would do:
 
    [BroControl] > stop
 
-We also recommend to insert the following entry into `crontab`::
+We also recommend to insert the following entry into the crontab of the user
+running BroControl::
 
       0-59/5 * * * * $PREFIX/bin/broctl cron
 

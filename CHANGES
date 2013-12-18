@@ -1,4 +1,9 @@
 
+2.2-75 | 2013-12-18 08:36:50 -0800
+
+  * Fixing segfault with mismatching set &default in record fields.
+    (Robin Sommer)
+
 2.2-74 | 2013-12-16 08:49:55 -0800
 
   * Improve warnings emitted from raw/execute input reader. (Jon

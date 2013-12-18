@@ -49,6 +49,8 @@ public:
 	static EventHandler* Unserialize(UnserialInfo* info);
 
 private:
+	void NewEvent(val_list* vl);	// Raise new_event() meta event.
+
 	const char* name;
 	Func* local;
 	FuncType* type;

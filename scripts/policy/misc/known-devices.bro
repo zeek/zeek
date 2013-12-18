@@ -7,7 +7,7 @@
 ##!
 ##!     This script will not generate any logs on its own, it needs to be
 ##!     supplied with information from elsewhere, such as
-##!     :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames`.
+##!     :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro`.
 
 module Known;
 

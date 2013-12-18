@@ -29,18 +29,6 @@ doc: configured
 docclean: configured
 	$(MAKE) -C $(BUILD) $@
 
-restdoc: configured
-	$(MAKE) -C $(BUILD) $@
-
-restclean: configured
-	$(MAKE) -C $(BUILD) $@
-
-broxygen: configured
-	$(MAKE) -C $(BUILD) $@
-
-broxygenclean: configured
-	$(MAKE) -C $(BUILD) $@
-
 dist:
 	@rm -rf $(VERSION_FULL) $(VERSION_FULL).tgz
 	@rm -rf $(VERSION_MIN) $(VERSION_MIN).tgz

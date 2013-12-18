@@ -1,5 +1,5 @@
 ##! Log memory/packet/lag statistics.  Differs from
-##! :doc:`/scripts/policy/misc/profiling` in that this
+##! :doc:`/scripts/policy/misc/profiling.bro` in that this
 ##! is lighter-weight (much less info, and less load to generate).
 
 @load base/frameworks/notice

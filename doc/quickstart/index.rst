@@ -198,7 +198,7 @@ the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
 So let's continue on our path to modify the behavior for the two SSL
-and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main`,
+and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
 we see that it advertises:
 
 .. code:: bro

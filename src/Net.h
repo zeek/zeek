@@ -4,6 +4,7 @@
 #define net_h
 
 #include "net_util.h"
+#include "util.h"
 #include "BPF_Program.h"
 #include "List.h"
 #include "PktSrc.h"
@@ -97,15 +98,14 @@ struct ScannedFile {
 	ino_t inode;
 	int include_level;
 	string name;
-	string subpath;		// Path in BROPATH's policy/ containing the file.
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
 
-	ScannedFile(ino_t arg_inode, int arg_include_level, string arg_name,
-		    string arg_subpath = "", bool arg_skipped = false,
+	ScannedFile(ino_t arg_inode, int arg_include_level, const string& arg_name,
+		    bool arg_skipped = false,
 		    bool arg_prefixes_checked = false)
 			: inode(arg_inode), include_level(arg_include_level),
-			name(arg_name), subpath(arg_subpath), skipped(arg_skipped),
+			name(arg_name), skipped(arg_skipped),
 			prefixes_checked(arg_prefixes_checked)
 		{ }
 };

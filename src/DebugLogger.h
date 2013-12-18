@@ -28,6 +28,7 @@ enum DebugStream {
 	DBG_THREADING,	// Threading system
 	DBG_FILE_ANALYSIS,	// File analysis
 	DBG_PLUGINS,
+	DBG_BROXYGEN,
 
 	NUM_DBGS // Has to be last
 };

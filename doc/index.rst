@@ -15,7 +15,7 @@ Bro Documentation
    scripting/index.rst
    frameworks/index.rst
    cluster/index.rst
-   scripts/index.rst
+   script-reference/index.rst
    components/index.rst
 
 * :ref:`General Index <genindex>`

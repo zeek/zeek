@@ -3037,6 +3037,16 @@ Val* IndexExpr::Eval(Frame* f) const
 	return result;
 	}
 
+static int get_slice_index(int idx, int len)
+	{
+	if ( abs(idx) > len )
+		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
+	else if ( idx < 0 )
+		idx += len;  // Map to a positive index.
+
+	return idx;
+	}
+
 Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( IsError() )
@@ -3058,16 +3068,30 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		const ListVal* lv = v2->AsListVal();
 		const BroString* s = v1->AsString();
 		int len = s->Len();
-		bro_int_t first = lv->Index(0)->AsInt();
-		bro_int_t last = lv->Length() > 1 ? lv->Index(1)->AsInt() : first;
+		BroString* substring = 0;
 
-		if ( first < 0 )
-			first += len;
+		if ( lv->Length() == 1 )
+			{
+			bro_int_t idx = lv->Index(0)->AsInt();
 
-		if ( last < 0 )
-			last += len;
+			if ( idx < 0 )
+				idx += len;
 
-		BroString* substring = s->GetSubstring(first, last - first + 1);
+			// Out-of-range index will return null pointer.
+			substring = s->GetSubstring(idx, 1);
+			}
+		else
+			{
+			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
+			int substring_len = last - first;
+
+			if ( substring_len < 0 )
+				substring = 0;
+			else
+				substring = s->GetSubstring(first, substring_len);
+			}
+
 		return new StringVal(substring ? substring : new BroString(""));
 		}
 
@@ -5171,6 +5195,7 @@ BroType* ListExpr::InitType() const
 
 			types->append(td);
 			}
+
 
 		return new RecordType(types);
 		}

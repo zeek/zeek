@@ -342,18 +342,16 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
 				plr.type = plrUnknown;
 
-			FILE* throwaway = search_for_file(filename.c_str(), "bro",
-								&full_filename, true, 0);
-			if ( ! throwaway )
+			string path(find_file(filename, bro_path(), "bro"));
+
+			if ( path.empty() )
 				{
 				debug_msg("No such policy file: %s.\n", filename.c_str());
 				plr.type = plrUnknown;
 				return result;
 				}
 
-			fclose(throwaway);
-
-			loc_filename = full_filename;
+			loc_filename = copy_string(path.c_str());
 			plr.type = plrFileAndLine;
 			}
 		}

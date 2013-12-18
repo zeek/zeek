@@ -317,8 +317,9 @@ void Attributes::CheckAttr(Attr* a)
 				break;
 
 			// Table defaults may be promotable.
-			if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-			      record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+			if ( ytype && ytype->Tag() == TYPE_RECORD &&
+			     atype->Tag() == TYPE_RECORD &&
+			     record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
 				// Ok.
 				break;
 

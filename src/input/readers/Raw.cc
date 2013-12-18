@@ -204,9 +204,22 @@ bool Raw::Execute()
 		// Parent also sets child process group immediately to avoid a race.
 		if ( setpgid(childpid, childpid) == -1 )
 			{
-			char buf[256];
-			strerror_r(errno, buf, sizeof(buf));
-			Warning(Fmt("Could not set child process group: %s", buf));
+			if ( errno == EACCES )
+				// Child already did exec. That's fine since then it must have
+				// already done the setpgid() itself.
+				;
+
+			else if ( errno == ESRCH && kill(childpid, 0) == 0 )
+				// Sometimes (e.g. FreeBSD) this error is reported even though
+				// child exists, so do extra sanity check of whether it exists.
+				;
+
+			else
+				{
+				char buf[256];
+				strerror_r(errno, buf, sizeof(buf));
+				Warning(Fmt("Could not set child process group: %s", buf));
+				}
 			}
 
 		if ( ! UnlockForkMutex() )

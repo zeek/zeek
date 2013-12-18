@@ -168,19 +168,18 @@ refine connection SSL_Conn += {
 			else
 				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
 
-			TableVal* cipher_set = new TableVal(internal_type("count_set")->AsTableType());
+			VectorVal* cipher_vec = new VectorVal(internal_type("index_vec")->AsVectorType());
 			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
 				{
 				Val* ciph = new Val((*cipher_suites)[i], TYPE_COUNT);
-				cipher_set->Assign(ciph, 0);
-				Unref(ciph);
+				cipher_vec->Assign(i, ciph);
 				}
 
 			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
 							version, ts, new StringVal(client_random.length(),
 							(const char*) client_random.data()),
 							to_string_val(session_id),
-							cipher_set);
+							cipher_vec);
 
 			delete cipher_suites;
 			}

@@ -399,7 +399,7 @@ type NetStats: record {
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
 	## Packets seen on the link. Note that this may differ
 	## from *pkts_recvd* because of a potential capture_filter. See
-	## :doc:`/scripts/base/frameworks/packet-filter/main`. Depending on the
+	## :doc:`/scripts/base/frameworks/packet-filter/main.bro`. Depending on the
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
@@ -507,7 +507,7 @@ type script_id: record {
 ##    directly and then remove this alias.
 type id_table: table[string] of script_id;
 
-## Meta-information about a record-field.
+## Meta-information about a record field.
 ##
 ## .. bro:see:: record_fields record_field_table
 type record_field: record {
@@ -528,6 +528,25 @@ type record_field: record {
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type record_field_table: table[string] of record_field;
+
+## Meta-information about a parameter to a function/event.
+##
+## .. bro:see:: call_argument_vector new_event
+type call_argument: record {
+	name: string;	##< The name of the parameter.
+	type_name: string;	##< The name of the parameters's type.
+	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
+
+	## The value of the parameter as passed into a given call instance.
+	## Might be unset in the case a :bro:attr:`&default` attribute is
+	## defined.
+	value: any &optional;
+};
+
+## Vector type used to capture parameters of a function/event call.
+##
+## .. bro:see:: call_argument new_event
+type call_argument_vector: vector of call_argument;
 
 # todo:: Do we still need these here? Can they move into the packet filter
 # framework?
@@ -2768,13 +2787,13 @@ const log_max_size = 0.0 &redef;
 const log_encryption_key = "<undefined>" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to
-## activate profiling is loading :doc:`/scripts/policy/misc/profiling`.
+## activate profiling is loading :doc:`/scripts/policy/misc/profiling.bro`.
 ##
 ## .. bro:see:: profiling_interval expensive_profiling_multiple segment_profiling
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
-## profiling is loading  :doc:`/scripts/policy/misc/profiling`.
+## profiling is loading  :doc:`/scripts/policy/misc/profiling.bro`.
 ##
 ## .. bro:see:: profiling_file expensive_profiling_multiple segment_profiling
 const profiling_interval = 0 secs &redef;

@@ -417,17 +417,6 @@ add_dependencies(bro bif_loader_plugins)
 # Install *.bif.bro.
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
-# Install the plugin directory with a short README.
-set(plugin_binary_dir "${CMAKE_BINARY_DIR}/plugins")
-
-add_custom_command(OUTPUT ${plugin_binary_dir}/README
-                   COMMAND mkdir ARGS -p ${plugin_binary_dir}
-                   COMMAND echo ARGS "This directory holds dynamic Bro plugins." >${plugin_binary_dir}/README)
-
-add_custom_target(plugin-dir DEPENDS ${plugin_binary_dir}/README)
-add_dependencies(bro plugin-dir)
-
 # Make clean removes the bif and plugin directories.
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/scripts/base/bif)
-set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${plugin_binary_dir})
 

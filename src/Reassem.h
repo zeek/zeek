@@ -22,11 +22,10 @@ public:
 };
 
 
-enum ReassemblerType { REASSEM_IP, REASSEM_TCP };
 
 class Reassembler : public BroObj {
 public:
-	Reassembler(int init_seq, ReassemblerType arg_type);
+	Reassembler(int init_seq);
 	virtual ~Reassembler();
 
 	void NewBlock(double t, int seq, int len, const u_char* data);

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "File.h"
+#include "FileReassembler.h"
 #include "FileTimer.h"
 #include "Analyzer.h"
 #include "Manager.h"
@@ -87,6 +88,8 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	val = new RecordVal(fa_file_type);
 	val->Assign(id_idx, new StringVal(file_id.c_str()));
 
+	forwarded_offset = 0;
+	file_reassembler = 0;
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
@@ -109,6 +112,9 @@ File::~File()
 		delete_vals(fonc_queue.front().second);
 		fonc_queue.pop();
 		}
+
+	if ( file_reassembler )
+		delete file_reassembler;
 	}
 
 void File::UpdateLastActivityTime()
@@ -325,32 +331,85 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
 	analyzers.DrainModifications();
 
+	if ( file_reassembler )
+		{
+		// If there is a file reassembler we must forward any data there.
+		// But this only happens if the incoming data doesn't happen
+		// to align with the current forwarded_offset
+		file_reassembler->NewBlock(network_time, offset, len, data);
+
+		if ( !file_reassembler->HasBlocks() )
+			{
+			delete file_reassembler;
+			file_reassembler = 0;
+			}
+		}
+	else if ( forwarded_offset == offset )
+		{
+		// This is the normal case where a file is transferred linearly.
+		// Nothing should be done here.
+		}
+	else if ( forwarded_offset > offset && forwarded_offset < offset+len )
+		{
+		// This is a segment that begins before the forwarded_offset 
+		// but proceeds past the forwarded_offset.  It needs
+		// trimmed but the reassembler is not enabled.
+		uint64 adjustment = forwarded_offset - offset;
+		data = data + adjustment;
+		len = len - adjustment;
+		offset = forwarded_offset;
+		IncrementByteCount(adjustment, overflow_bytes_idx);
+		}
+	else if ( forwarded_offset < offset )
+		{
+		// This is data past a gap and the reassembler needs to be enabled.
+		file_reassembler = new FileReassembler(this, forwarded_offset);
+		file_reassembler->NewBlock(network_time, offset, len, data);
+		return;
+		}
+	else
+		{
+		// This is data that was already seen so it can be completely ignored.
+		IncrementByteCount(len, overflow_bytes_idx);
+		return;
+		}
+
 	if ( first_chunk )
 		{
-		// TODO: this should all really be delayed until we attempt reassembly
+		// TODO: this should all really be delayed until we attempt reassembly.
 		DetectMIME(data, len);
 		FileEvent(file_new);
 		first_chunk = false;
 		}
 
-	file_analysis::Analyzer* a = 0;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
+	if ( IsComplete() )
 		{
-		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
+		EndOfFile();
 		}
+	else
+		{
+		file_analysis::Analyzer* a = 0;
+		IterCookie* c = analyzers.InitForIteration();
 
-	analyzers.DrainModifications();
+		while ( (a = analyzers.NextEntry(c)) )
+			{
+			//if ( ! a->DeliverChunk(data, len, offset) )
+			//	{
+			//	analyzers.QueueRemove(a->Tag(), a->Args());
+			//	}
 
-	// TODO: check reassembly requirement based on buffer size in record
-	if ( need_reassembly )
-		reporter->InternalError("file_analyzer::File TODO: reassembly not yet supported");
+			if ( ! a->DeliverStream(data, len) )
+				{
+				analyzers.QueueRemove(a->Tag(), a->Args());
+				}
 
-	// TODO: reassembly overflow stuff, increment overflow count, eval trigger
+			}
 
-	IncrementByteCount(len, seen_bytes_idx);
+		analyzers.DrainModifications();
+
+		forwarded_offset += len;
+		IncrementByteCount(len, seen_bytes_idx);
+		}
 	}
 
 void File::DataIn(const u_char* data, uint64 len)

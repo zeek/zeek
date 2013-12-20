@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "FileReassembler.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Tag.h"
@@ -15,6 +16,8 @@
 #include "BroString.h"
 
 namespace file_analysis {
+
+class FileReassembler;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -248,6 +251,8 @@ protected:
 private:
 	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
+	uint64 forwarded_offset;   /**< The offset of the file which has been forwarded. */
+	FileReassembler *file_reassembler; /**< A reassembler for the file if it's needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool first_chunk;          /**< Track first non-linear chunk. */
 	bool missed_bof;           /**< Flags that we missed start of file. */

@@ -33,7 +33,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
 				TCP_Reassembler::Type arg_type,
 				bool arg_is_orig, TCP_Endpoint* arg_endp)
-	: Reassembler(1, REASSEM_TCP)
+	: Reassembler(1)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;

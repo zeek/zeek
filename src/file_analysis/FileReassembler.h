@@ -1,0 +1,45 @@
+#ifndef FILE_ANALYSIS_FILEREASSEMBLER_H
+#define FILE_ANALYSIS_FILEREASSEMBLER_H
+
+#include "Reassem.h"
+#include "File.h"
+
+class BroFile;
+class Connection;
+
+namespace file_analysis {
+
+class File;
+
+//const int STOP_ON_GAP = 1;
+//const int PUNT_ON_PARTIAL = 1;
+
+class FileReassembler : public Reassembler {
+public:
+
+	FileReassembler(File* f, int starting_offset);
+	virtual ~FileReassembler();
+
+	void Done();
+
+	// Checks if we have delivered all contents that we can possibly
+	// deliver for this endpoint.  Calls TCP_Analyzer::EndpointEOF()
+	// when so.
+	//void CheckEOF();
+
+private:
+	//DECLARE_SERIAL(FileReassembler);
+
+	void Undelivered(int up_to_seq);
+	void BlockInserted(DataBlock* b);
+	void Overlap(const u_char* b1, const u_char* b2, int n);
+
+	unsigned int had_gap:1;
+	unsigned int did_EOF:1;
+	unsigned int skip_deliveries:1;
+	File* the_file;
+};
+
+} // namespace analyzer::* 
+
+#endif

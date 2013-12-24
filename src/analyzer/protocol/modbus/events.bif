@@ -149,7 +149,7 @@ event modbus_write_single_register_response%(c: connection, headers: ModbusHeade
 ##
 ## start_address: The memory address of the first coil to be written.
 ##
-## value: The values to be written to the coils.
+## coils: The values to be written to the coils.
 event modbus_write_multiple_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, coils: ModbusCoils%);
 
 ## Generated for a Modbus write multiple coils response.

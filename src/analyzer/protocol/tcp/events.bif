@@ -108,14 +108,14 @@ event connection_half_finished%(c: connection%);
 ## originator attempted to setup a TCP connection but the responder replied
 ## with a RST packet denying it.
 ##
+## c: The connection.
+##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending  connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
-##
-## c: The connection.
 ##
 ## .. note::
 ##

@@ -973,6 +973,8 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 ##
 ## prefix: A custom string prepended to the result.
 ##
+## Returns: A string identifier that is unique.
+##
 ## .. bro:see:: unique_id_from
 function unique_id%(prefix: string%) : string
 	%{
@@ -986,6 +988,8 @@ function unique_id%(prefix: string%) : string
 ## pool: A seed for determinism.
 ##
 ## prefix: A custom string prepended to the result.
+##
+## Returns: A string identifier that is unique.
 ##
 ## .. bro:see:: unique_id
 function unique_id_from%(pool: int, prefix: string%) : string
@@ -1857,8 +1861,8 @@ function global_ids%(%): id_table
 ##
 ## id: The global identifier.
 ##
-## Returns the value of *id*. If *id* does not describe a valid identifier, the
-## function returns the string ``"<unknown id>"`` or ``"<no ID value>"``.
+## Returns: The value of *id*. If *id* does not describe a valid identifier,
+##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
 	ID* i = global_scope()->Lookup(id->CheckString());
@@ -2632,15 +2636,15 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	return new StringVal(hexstr);
 	%}
 
-## Converts a hex-string into its binary  representation.
+## Converts a hex-string into its binary representation.
 ## For example, ``"3034"`` would be converted to ``"04"``.
 ##
-## The input string is assumed to only contain 0-9 and a-f,
-## otherwhise behavior is undefines.
+## The input string is assumed to contain an even number of hexadecimal digits
+## (0-9, a-f, or A-F), otherwise behavior is undefined.
 ##
-## hexstring: The hexadecimal string representation.
+## hexstr: The hexadecimal string representation.
 ##
-## Returns: The binary representation of *hexstring*.
+## Returns: The binary representation of *hexstr*.
 ##
 ## .. bro:see:: hexdump bytestring_to_hexstr
 function hexstr_to_bytestring%(hexstr: string%): string
@@ -4963,8 +4967,6 @@ function preserve_prefix%(a: addr, width: count%): any
 ## Preserves the prefix of a subnet in anonymization.
 ##
 ## a: The subnet to preserve.
-##
-## width: The number of bits from the top that should remain intact.
 ##
 ## .. bro:see:: preserve_prefix anonymize_addr
 ##

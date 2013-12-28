@@ -137,7 +137,7 @@ function new_session(c: connection, trans_id: count): Info
 	info$ts       = network_time();
 	info$id       = c$id;
 	info$uid      = c$uid;
-	info$proto    = get_conn_transport_proto(c$id);
+	info$proto    = get_port_transport_proto(c$id$resp_p);
 	info$trans_id = trans_id;
 	return info;
 	}
@@ -350,7 +350,7 @@ event connection_state_remove(c: connection) &priority=-5
 	# request/response pairs now.
 	for ( trans_id in c$dns_state$pending )
 		{
-		local infos: vector of Info;
+		local infos: vector of any; # of Info
 		Queue::get_vector(c$dns_state$pending[trans_id], infos);
 		for ( i in infos )
 			{

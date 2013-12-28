@@ -89,7 +89,14 @@ function init(s: Settings): Queue
 	{
 	local q: Queue;
 	q$vals=table();
-	q$settings = copy(s);
+
+	# q$settings = copy(s);
+	
+	if ( s?$max_len )
+		q$settings = [$max_len = s$max_len];
+	else
+		q$settings = [];
+	
 	q$initialized=T;
 	return q;
 	}

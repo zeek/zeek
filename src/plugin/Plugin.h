@@ -450,6 +450,16 @@ public:
 	virtual void DrainEvents();
 
 	/**
+	 * Callback for instantiation of a new connection.
+	 */
+	virtual void NewConnection(const Connection* c);
+
+	/**
+	 * Callback for an upcoming removal of a connection.
+	 */
+	virtual void ConnectionStateRemove(const Connection* c);
+
+	/**
 	 * Disables interpreter hooking. The functionality of the Plugin base
 	 * class remains available.
 	 */

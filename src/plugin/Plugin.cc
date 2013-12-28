@@ -356,6 +356,14 @@ void InterpreterPlugin::DrainEvents()
 	{
 	}
 
+void InterpreterPlugin::NewConnection(const Connection* c)
+	{
+	}
+
+void InterpreterPlugin::ConnectionStateRemove(const Connection* c)
+	{
+	}
+
 void InterpreterPlugin::DisableInterpreterPlugin() const
 	{
 	plugin_mgr->DisableInterpreterPlugin(this);

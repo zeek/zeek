@@ -359,6 +359,20 @@ void Manager::DrainEvents() const
 		(*i)->DrainEvents();
 	}
 
+void Manager::NewConnection(const Connection* c) const
+	{
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		(*i)->NewConnection(c);
+	}
+
+void Manager::ConnectionStateRemove(const Connection* c) const
+	{
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		(*i)->ConnectionStateRemove(c);
+	}
+
 void Manager::DisableInterpreterPlugin(const InterpreterPlugin* plugin)
 	{
 	for ( interpreter_plugin_list::iterator i = interpreter_plugins.begin();

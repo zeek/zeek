@@ -138,14 +138,24 @@ public:
 	 */
 	void DrainEvents() const;
 
-    /**
-     * Disables an interpreter plugin's hooking of the script interpreter.
-     * The remaining functionality of the Plugin base class remains
-     * available.
-     *
-     * @param plugin The plugin to disable.
-     */
-    void DisableInterpreterPlugin(const InterpreterPlugin* plugin);
+	/**
+	 * Informs all interpreter plugins that a new connection has been instantiated.
+	 */
+	void NewConnection(const Connection* c) const;
+
+	/**
+	 * Informs all interpreter plugins that a connection is about to go away.
+	 */
+	void ConnectionStateRemove(const Connection* c) const;
+
+	/**
+	 * Disables an interpreter plugin's hooking of the script interpreter.
+	 * The remaining functionality of the Plugin base class remains
+	 * available.
+	 *
+	 * @param plugin The plugin to disable.
+	 */
+	void DisableInterpreterPlugin(const InterpreterPlugin* plugin);
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with

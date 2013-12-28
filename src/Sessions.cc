@@ -34,6 +34,7 @@
 #include "TunnelEncapsulation.h"
 
 #include "analyzer/Manager.h"
+#include "plugin/Manager.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -985,6 +986,8 @@ void NetSessions::Remove(Connection* c)
 		if ( connection_state_remove )
 			c->Event(connection_state_remove, 0);
 
+		plugin_mgr->ConnectionStateRemove(c);
+
 		// Zero out c's copy of the key, so that if c has been Ref()'d
 		// up, we know on a future call to Remove() that it's no
 		// longer in the dictionary.
@@ -1188,6 +1191,8 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	if ( external )
 		conn->AppendAddl(fmt("tag=%s",
 					conn->GetTimerMgr()->GetTag().c_str()));
+
+	plugin_mgr->NewConnection(conn);
 
 	if ( new_connection )
 		{

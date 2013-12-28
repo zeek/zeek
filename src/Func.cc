@@ -47,6 +47,7 @@
 #include "Traverse.h"
 #include "Reporter.h"
 #include "plugin/Manager.h"
+#include "profile.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -283,6 +284,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
 
+	profile_update(PROFILE_SCRIPT_LAND, PROFILE_START);
+
 	Val* plugin_result = plugin_mgr->CallFunction(this, args);
 
 	if ( plugin_result )
@@ -323,6 +326,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
 
+		profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
 		return plugin_result;
 		}
 
@@ -333,7 +337,10 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
 
-		return Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0;
+		Val* result = (Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0);
+
+		profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
+		return result;
 		}
 
 	SegmentProfiler(segment_logger, location);
@@ -435,6 +442,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	g_frame_stack.pop_back();
 	Unref(f);
+
+	profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
 
 	return result;
 	}

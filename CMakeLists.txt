@@ -164,6 +164,14 @@ if (ENABLE_PERFTOOLS_DEBUG)
     # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
 endif ()
 
+set(USE_PAPI false)
+find_package(PAPI)
+if (PAPI_FOUND)
+    set(USE_PAPI true)
+    include_directories(BEFORE ${PAPI_INCLUDE_DIRS})
+    list(APPEND OPTLIBS ${PAPI_LIBRARIES})
+endif ()
+
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}

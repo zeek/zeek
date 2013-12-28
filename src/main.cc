@@ -61,6 +61,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
 
+#include "profile.h"
+
 #include "file_analysis/Manager.h"
 
 #include "binpac_bro.h"
@@ -116,6 +118,7 @@ int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
 int generate_documentation = 0;
+int time_bro = 0;
 SecondaryPath* secondary_path = 0;
 extern char version[];
 char* command_line_policy = 0;
@@ -424,92 +427,6 @@ static void bro_new_handler()
 	out_of_memory("new");
 	}
 
-struct ProfileItem {
-	double time_start;
-	double time_end;
-	unsigned int mem_total_start;
-	unsigned int mem_total_end;
-	unsigned int mem_malloced_start;
-	unsigned int mem_malloced_end;
-
-	ProfileItem()
-		{
-		time_start = time_end = 0;
-		mem_total_start = mem_total_end = 0;
-		mem_malloced_start = mem_malloced_end = 0;
-		}
-};
-
-struct ProfileStats {
-	ProfileItem core_init;
-	ProfileItem script_init;
-	ProfileItem net;
-	ProfileItem processing;
-	ProfileItem total;
-};
-
-enum ProfileType {
-	PROFILE_CORE_INIT,
-	PROFILE_SCRIPT_INIT,
-	PROFILE_NET,
-	PROFILE_PROCESSING,
-	PROFILE_TOTAL,
-	};
-
-void print_profile_item(const char* tag, ProfileItem* i)
-	{
-	fprintf(stderr, "# %s %.6f %uM/%uM\n",
-		tag,
-		(i->time_end - i->time_start),
-		(i->mem_total_end - i->mem_total_start) / 1024 / 1024,
-		(i->mem_malloced_end - i->mem_malloced_start) / 1024 / 1024);
-	}
-
-void print_profile(ProfileStats* s)
-	{
-	print_profile_item("core-init", &s->core_init);
-	print_profile_item("bro_init", &s->script_init);
-	print_profile_item("net-processing", &s->net);
-	print_profile_item("total-processing", &s->processing);
-	print_profile_item("total-bro", &s->total);
-	}
-
-void record_profile(ProfileStats* s, ProfileType t, bool start)
-	{
-	ProfileItem* i = nullptr;
-
-	if ( t == PROFILE_CORE_INIT )
-		i = &s->core_init;
-	else if ( t == PROFILE_SCRIPT_INIT )
-		i = &s->script_init;
-	else if ( t == PROFILE_NET )
-		i = &s->net;
-	else if ( t == PROFILE_PROCESSING )
-		i = &s->processing;
-	else if ( t == PROFILE_TOTAL )
-		i = &s->total;
-	else
-		reporter->InternalError("unknown PROFILE_* in record_profile");
-
-	unsigned int mem_total;
-	unsigned int mem_malloced;
-	get_memory_usage(&mem_total, &mem_malloced);
-
-	if ( start )
-		{
-		i->time_start = current_time(true);
-		i->mem_total_start = mem_total;
-		i->mem_malloced_start = mem_malloced;
-		}
-
-	else
-		{
-		i->time_end = current_time(true);
-		i->mem_total_end = mem_total;
-		i->mem_malloced_end = mem_malloced;
-		}
-	}
-
 int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
@@ -543,7 +460,6 @@ int main(int argc, char** argv)
 	int rule_debug = 0;
 	int RE_level = 4;
 	int print_plugins = 0;
-	int time_bro = 0;
 
 	static struct option long_opts[] = {
 		{"bare-mode",	no_argument,		0,	'b'},
@@ -840,9 +756,8 @@ int main(int argc, char** argv)
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");
 
-	ProfileStats pstats;
-	record_profile(&pstats, PROFILE_TOTAL, true);
-	record_profile(&pstats, PROFILE_CORE_INIT, true);
+	profile_update(PROFILE_TOTAL, PROFILE_START);
+	profile_update(PROFILE_CORE_INIT, PROFILE_START);
 
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
@@ -1218,14 +1133,14 @@ int main(int argc, char** argv)
 
 	reporter->ReportViaEvents(true);
 
-	record_profile(&pstats, PROFILE_CORE_INIT, false);
-	record_profile(&pstats, PROFILE_PROCESSING, true);
-	record_profile(&pstats, PROFILE_SCRIPT_INIT, true);
+	profile_update(PROFILE_CORE_INIT, PROFILE_STOP);
+	profile_update(PROFILE_PROCESSING, PROFILE_START);
+	profile_update(PROFILE_SCRIPT_INIT, PROFILE_START);
 
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
 
-	record_profile(&pstats, PROFILE_SCRIPT_INIT, false);
+	profile_update(PROFILE_SCRIPT_INIT, PROFILE_STOP);
 
 	analyzer_mgr->DumpDebug();
 
@@ -1252,10 +1167,10 @@ int main(int argc, char** argv)
 
 #endif
 
-		record_profile(&pstats, PROFILE_NET, true);
+		profile_update(PROFILE_NET, PROFILE_START);
 		net_run();
-		record_profile(&pstats, PROFILE_NET, false);
-		record_profile(&pstats, PROFILE_PROCESSING, false);
+		profile_update(PROFILE_NET, PROFILE_STOP);
+		profile_update(PROFILE_PROCESSING, PROFILE_STOP);
 
 		done_with_network();
 		net_delete();
@@ -1274,17 +1189,17 @@ int main(int argc, char** argv)
 		}
 	else
 		{
-		record_profile(&pstats, PROFILE_PROCESSING, false);
+		profile_update(PROFILE_PROCESSING, PROFILE_STOP);
 		persistence_serializer->WriteState(false);
 		terminate_bro();
 		}
 
 	delete rule_matcher;
 
-	record_profile(&pstats, PROFILE_TOTAL, false);
+	profile_update(PROFILE_TOTAL, PROFILE_STOP);
 
 	if ( time_bro )
-		print_profile(&pstats);
+		profile_print();
 
 	return 0;
 	}

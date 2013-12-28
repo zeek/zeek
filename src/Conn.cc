@@ -15,6 +15,7 @@
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
+#include "profile.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -245,6 +246,8 @@ void Connection::NextPacket(double t, int is_orig,
 			const u_char* const pkt,
 			int hdr_size)
 	{
+	profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
+
 	current_hdr = hdr;
 	current_hdr_size = hdr_size;
 	current_timestamp = t;
@@ -268,6 +271,8 @@ void Connection::NextPacket(double t, int is_orig,
 	current_hdr_size = 0;
 	current_timestamp = 0;
 	current_pkt = 0;
+
+	profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
 	}
 
 void Connection::SetLifetime(double lifetime)

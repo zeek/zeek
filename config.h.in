@@ -102,6 +102,9 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
+/* PAPI performance measurement functionality */
+#cmakedefine USE_PAPI
+
 /* Whether the found GeoIP API supports IPv6 Country Edition */
 #cmakedefine HAVE_GEOIP_COUNTRY_EDITION_V6
 

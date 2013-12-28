@@ -152,6 +152,8 @@ public:
 	void EnableStatusUpdateTimer();
 
 	RecordVal* BuildConnVal();
+	RecordVal* ConnValIfAvailable() const;
+
 	void AppendAddl(const char* str);
 
 	LoginConn* AsLoginConn()		{ return login_conn; }

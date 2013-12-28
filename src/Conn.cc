@@ -346,6 +346,11 @@ void Connection::StatusUpdateTimer(double t)
 			TIMER_CONN_STATUS_UPDATE);
 	}
 
+RecordVal* Connection::ConnValIfAvailable() const
+	{
+	return conn_val;
+	}
+
 RecordVal* Connection::BuildConnVal()
 	{
 	if ( ! conn_val )

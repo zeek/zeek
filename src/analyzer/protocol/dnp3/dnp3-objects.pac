@@ -347,7 +347,19 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 		default -> unmatched: Default_Wrap(object_type_field);
 	};
-};
+} &let{
+	data_value: uint32 = case (object_type_field) of {
+		0x0c03 -> bocmd_PM;
+		0x3401 -> time_coarse;
+                0x3402 -> time_fine;
+		0x5602 -> cha;
+		0x6501 -> bcd_small;
+                0x6502 -> bcd_medium;
+		0x6601 -> unsigned_integer;
+		0x7804 -> seesionKeyRequest;
+		default -> 0x0;
+	};
+}  ;
 
 
 type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
@@ -628,11 +640,27 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 	};
 }
   &let{
-	data_value: uint8 = case (object_type_field) of {  # this data_value is used for the Bro Event
+	data_value: uint32 = case (object_type_field) of {  # this data_value is used for the Bro Event
 		0x0101 -> biwoflag;
 		0x0102 -> biwflag;
+		0x0201 -> biewoflag;
+		0x0302 -> dbiflag;
 		0x0a01 -> bowoflag;
 		0x0a02 -> bowflag;
+		0x0b01 -> boewflag;
+		0x0c03 -> bocmd_PM;
+		0x0d01 -> boceFlag;
+		0x2201 -> ai_dead_16;
+                0x2202 -> ai_dead_32;
+                0x2203 -> ai_dead_sp;
+		0x3401 -> time_coarse;
+                0x3402 -> time_fine;
+		0x5001 -> iin;
+		0x5602 -> cha;
+		0x6501 -> bcd_small;
+                0x6502 -> bcd_medium;
+		0x6601 -> unsigned_integer;
+		0x7804 -> seesionKeyRequest;
 		default -> 0xff;
 	};
   }

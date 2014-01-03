@@ -75,7 +75,20 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
-	function get_dnp3_response_data_object(data_value: uint8): bool
+	function get_dnp3_request_data_object(data_value: uint32): bool
+		%{
+		if ( ::dnp3_request_data_object )
+			{
+			BifEvent::generate_dnp3_request_data_object(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), data_value);
+			}
+
+		return true;
+		%}
+
+	function get_dnp3_response_data_object(data_value: uint32): bool
 		%{
 		if ( ::dnp3_response_data_object )
 			{
@@ -101,6 +114,21 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
+	#g2
+	function get_dnp3_biewatime(flag: uint8, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_biewatime )
+			{
+			BifEvent::generate_dnp3_biewatime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, bytestring_to_val(time48) );
+			}
+
+		return true;
+		%}
+
 
 	#g12v1
 	function get_dnp3_crob(control_code: uint8, count8: uint8, on_time: uint32, off_time: uint32, status_code: uint8): bool
@@ -740,6 +768,10 @@ refine typeattr Prefix_Type += &let {
 	prefix_called: bool =  $context.flow.get_dnp3_object_prefix(prefix_value);
 };
 
+refine typeattr Request_Data_Object += &let {
+	process_request: bool =  $context.flow.get_dnp3_request_data_object(data_value);
+};
+
 refine typeattr Response_Data_Object += &let {
 	process_request: bool =  $context.flow.get_dnp3_response_data_object(data_value);
 };
@@ -748,6 +780,12 @@ refine typeattr Response_Data_Object += &let {
 refine typeattr AttributeCommon += &let {
 	process_request: bool =  $context.flow.get_dnp3_attribute_common(data_type_code, leng, attribute_obj);
 };
+
+# g2v2
+refine typeattr BinInEveAtime += &let {
+	process_request: bool =  $context.flow.get_dnp3_biewatime(flag, time48);
+};
+
 
 # g12v1
 refine typeattr CROB += &let {

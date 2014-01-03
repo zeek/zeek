@@ -115,7 +115,7 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
-	#g2
+	#g2v2
 	function get_dnp3_biewatime(flag: uint8, time48: const_bytestring): bool
 		%{
 		if ( ::dnp3_biewatime )
@@ -129,6 +129,48 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+
+	#g2v3
+	function get_dnp3_biewrtime(flag: uint8, time16: uint16): bool
+		%{
+		if ( ::dnp3_biewrtime )
+			{
+			BifEvent::generate_dnp3_biewrtime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, time16 );
+			}
+
+		return true;
+		%}
+
+	#g4v2
+	function get_dnp3_doublein_eveatime(flag: uint8, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_doublein_eveatime )
+			{
+			BifEvent::generate_dnp3_doublein_eveatime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, bytestring_to_val(time48) );
+			}
+
+		return true;
+		%}
+
+	#g4v3
+	function get_dnp3_doublein_evertime(flag: uint8, time16: uint16): bool
+		%{
+		if ( ::dnp3_doublein_evertime )
+			{
+			BifEvent::generate_dnp3_doublein_evertime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, time16 );
+			}
+
+		return true;
+		%}
 
 	#g12v1
 	function get_dnp3_crob(control_code: uint8, count8: uint8, on_time: uint32, off_time: uint32, status_code: uint8): bool
@@ -786,6 +828,20 @@ refine typeattr BinInEveAtime += &let {
 	process_request: bool =  $context.flow.get_dnp3_biewatime(flag, time48);
 };
 
+# g2v3
+refine typeattr BinInEveRtime += &let {
+	process_request: bool =  $context.flow.get_dnp3_biewrtime(flag, time16);
+};
+
+# g4v2
+refine typeattr DoubleInEveAtime += &let {
+	process_request: bool =  $context.flow.get_dnp3_doublein_eveatime(flag, time48);
+};
+
+# g4v3
+refine typeattr DoubleInEveRtime += &let {
+	process_request: bool =  $context.flow.get_dnp3_doublein_evertime(flag, time16);
+};
 
 # g12v1
 refine typeattr CROB += &let {

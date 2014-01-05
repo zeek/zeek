@@ -935,7 +935,26 @@ event file_timeout%(f: fa_file%);
 ## len: The number of missing bytes.
 ##
 ## .. bro:see:: file_new file_over_new_connection file_timeout file_state_remove
+##    file_reassembly_buffer_overflow
 event file_gap%(f: fa_file, offset: count, len: count%);
+
+## Indicates that the file had an overflow of the reassembly buffer.
+## This is a specialization of the :bro:id:`file_gap` event.
+##
+## f: The file.
+##
+## offset: The byte offset from the start of the file at which the reassembly
+##         couldn't continue due to running out of reassembly buffer space.
+##
+## skipped: The number of bytes of the file skipped over to flush some
+##          file data and get back under the reassembly buffer size limit.
+##          This value will also be represented as a gap.
+##
+## .. bro:see:: file_new file_over_new_connection file_timeout file_state_remove
+##    file_gap Files::enable_reassembler Files::reassembly_buffer_size
+##    Files::enable_reassembly Files::disable_reassembly 
+##    Files::set_reassembly_buffer_size
+event file_reassembly_buffer_overflow%(f: fa_file, offset: count, skipped: count%);
 
 ## This event is generated each time file analysis is ending for a given file.
 ##

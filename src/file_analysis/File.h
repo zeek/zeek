@@ -169,6 +169,7 @@ public:
 
 protected:
 	friend class Manager;
+	friend class FileReassembler;
 
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
@@ -237,6 +238,33 @@ protected:
 	bool DetectMIME(const u_char* data, uint64 len);
 
 	/**
+	 * Enables reassembly on the file.
+	 */
+	void EnableReassembly();
+
+	/**
+	 * Disables reassembly on the file.  If there is an existing reassembler
+	 * for the file, this will cause it to be deleted and won't allow a new
+	 * one to be created until reassembly is reenabled.
+	 */
+	void DisableReassembly();
+
+	/**
+	 * Set a maximum allowed bytes of memory for file reassembly for this file.
+	 */
+	void SetReassemblyBuffer(uint64 max);
+
+	/**
+	 * Perform stream-wise delivery for analyzers that need it.
+	 */
+	void DeliverStream(const u_char* data, uint64 len);
+
+	/** 
+	 * Perform chunk-wise delivery for analyzers that need it.
+	 */
+	void DeliverChunk(const u_char* data, uint64 len, uint64 offset);
+
+	/**
 	 * Lookup a record field index/offset by name.
 	 * @param field_name the name of the \c fa_file record field.
 	 * @return the field offset in #val record corresponding to \a field_name.
@@ -248,18 +276,17 @@ protected:
 	 */
 	static void StaticInit();
 
-private:
+protected:
 	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
-	uint64 forwarded_offset;   /**< The offset of the file which has been forwarded. */
 	FileReassembler *file_reassembler; /**< A reassembler for the file if it's needed. */
+	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
+	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
+	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
-	bool first_chunk;          /**< Track first non-linear chunk. */
-	bool missed_bof;           /**< Flags that we missed start of file. */
-	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
 	bool did_file_new_event;   /**< Whether the file_new event has been done. */
-	AnalyzerSet analyzers;     /**< A set of attached file analyzer. */
+	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
 	queue<pair<EventHandlerPtr, val_list*> > fonc_queue;
 
 	struct BOF_Buffer {

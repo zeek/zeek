@@ -174,6 +174,21 @@ public:
 	bool SetTimeoutInterval(const string& file_id, double interval) const;
 
 	/**
+	 * Enable the reassembler for a file.
+	 */
+	bool EnableReassembly(const string& file_id);
+	
+	/**
+	 * Disable the reassembler for a file.
+	 */
+	bool DisableReassembly(const string& file_id);
+
+	/**
+	 * Set the reassembly for a file in bytes.
+	 */
+	bool SetReassemblyBuffer(const string& file_id, uint64 max);
+
+	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
 	 * to local disk;
 	 * @param file_id the file identifier/hash.

@@ -1,5 +1,7 @@
 FILE_NEW
 file #0, 0, 0
+FILE_BOF_BUFFER
+%PDF-1.4^J%\xd0
 MIME_TYPE
 application/pdf
 FILE_OVER_NEW_CONNECTION

@@ -355,8 +355,9 @@ type fa_file: record {
 	## during the process of analysis e.g. due to dropped packets.
 	missing_bytes: count &default=0;
 
-	## The number of not all-in-sequence bytes in the file stream that
-	## were not delivered to file analyzers due to reassembly buffer overflow.
+	## The number of bytes in the file stream that were not delivered to
+	## stream file analyzers.  This could be overlapping bytes or 
+	## bytes that couldn't be reassembled.
 	overflow_bytes: count &default=0;
 
 	## The amount of time between receiving new data for this file that

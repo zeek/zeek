@@ -22,13 +22,6 @@ void FileReassembler::BlockInserted(DataBlock* start_block)
 	     seq_delta(start_block->upper, last_reassem_seq) <= 0 )
 		return;
 
-
-	// We've filled a leading hole.  Deliver as much as possible.
-	// Note that the new block may include both some old stuff
-	// and some new stuff.  AddAndCheck() will have split the
-	// new stuff off into its own block(s), but in the following
-	// loop we have to take care not to deliver already-delivered
-	// data.
 	for ( DataBlock* b = start_block;
 	      b && seq_delta(b->seq, last_reassem_seq) <= 0; b = b->next )
 		{
@@ -36,23 +29,34 @@ void FileReassembler::BlockInserted(DataBlock* start_block)
 			{ // New stuff.
 			int len = b->Size();
 			int seq = last_reassem_seq;
+			the_file->DeliverStream(b->block, len);
 			last_reassem_seq += len;
-			the_file->DataIn(b->block, len, seq);
 			}
 		}
-
-	//CheckEOF();
 	}
 
 void FileReassembler::Undelivered(int up_to_seq)
 	{
-	//reporter->Warning("should probably do something here (file reassembler undelivered)\n");
+	// Not doing anything here yet.
 	}
 
 void FileReassembler::Overlap(const u_char* b1, const u_char* b2, int n)
 	{
-	//reporter->Warning("should probably do something here (file reassembler overlap)\n");
+	// Not doing anything here yet.
 	}
 
+IMPLEMENT_SERIAL(FileReassembler, SER_FILE_REASSEMBLER);
+
+bool FileReassembler::DoSerialize(SerialInfo* info) const
+	{
+	reporter->InternalError("FileReassembler::DoSerialize not implemented");
+	return false; // Cannot be reached.
+	}
+
+bool FileReassembler::DoUnserialize(UnserialInfo* info)
+	{
+	reporter->InternalError("FileReassembler::DoUnserialize not implemented");
+	return false; // Cannot be reached.
+	}
 
 } // end file_analysis

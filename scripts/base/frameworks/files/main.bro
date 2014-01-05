@@ -99,8 +99,9 @@ export {
 		## during the process of analysis e.g. due to dropped packets.
 		missing_bytes: count &log &default=0;
 
-		## The number of not all-in-sequence bytes in the file stream that
-		## were delivered to file analyzers due to reassembly buffer overflow.
+		## The number of bytes in the file stream that were not delivered to
+		## stream file analyzers.  This could be overlapping bytes or 
+		## bytes that couldn't be reassembled.
 		overflow_bytes: count &log &default=0;
 
 		## Whether the file analysis timed out at least once for the file.
@@ -122,6 +123,33 @@ export {
 	## network connections that factor in to the file handle in order to
 	## generate two handles that would hash to the same file id.
 	const salt = "I recommend changing this." &redef;
+
+	## The default setting for if the file reassembler is enabled for 
+	## each file.
+	const enable_reassembler = T &redef;
+
+	## The default allow per-file reassembly buffer size.
+	const reassembly_buffer_size = 1048576 &redef;
+
+	## Allows the file reassembler to be used if it's necessary because the
+	## file is transferred out of order.
+	##
+	## f: the file.
+	global enable_reassembly: function(f: fa_file);
+
+	## Disables the file reassembler on this file.  If the file is not 
+	## transferred out of order this will have no effect.
+	##
+	## f: the file.
+	global disable_reassembly: function(f: fa_file);
+
+	## Set the maximum size the reassembly buffer is allowed to grow
+	## for the given file.
+	##
+	## f: the file.
+	##
+	## max: Maximum allowed size of the reassembly buffer.
+	global set_reassembly_buffer_size: function(f: fa_file, max: count);
 
 	## Sets the *timeout_interval* field of :bro:see:`fa_file`, which is
 	## used to determine the length of inactivity that is allowed for a file
@@ -273,6 +301,21 @@ function set_timeout_interval(f: fa_file, t: interval): bool
 	return __set_timeout_interval(f$id, t);
 	}
 
+function enable_reassembly(f: fa_file)
+	{
+	__enable_reassembly(f$id);
+	}
+
+function disable_reassembly(f: fa_file)
+	{
+	__disable_reassembly(f$id);
+	}
+
+function set_reassembly_buffer_size(f: fa_file, max: count)
+	{
+	__set_reassembly_buffer(f$id, max);
+	}
+
 function add_analyzer(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool
 	{
 	add f$info$analyzers[Files::analyzer_name(tag)];
@@ -311,11 +354,24 @@ function analyzer_name(tag: Files::Tag): string
 event file_new(f: fa_file) &priority=10
 	{
 	set_info(f);
+
+	if ( enable_reassembler )
+		{
+		Files::enable_reassembly(f);
+		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
+		}
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=10
 	{
 	set_info(f);
+
+	if ( enable_reassembler )
+		{
+		Files::enable_reassembly(f);
+		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
+		}
+
 	add f$info$conn_uids[c$uid];
 	local cid = c$id;
 	add f$info$tx_hosts[f$is_orig ? cid$orig_h : cid$resp_h];

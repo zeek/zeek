@@ -3,7 +3,6 @@
 #include <string>
 
 #include "File.h"
-#include "FileReassembler.h"
 #include "FileTimer.h"
 #include "Analyzer.h"
 #include "Manager.h"
@@ -77,8 +76,8 @@ void File::StaticInit()
 
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
            bool is_orig)
-	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
-	  missed_bof(false), need_reassembly(false), done(false),
+	: id(file_id), val(0), stream_offset(0), reassembly_max_buffer(0), 
+	  reassembly_enabled(false), postpone_timeout(false), done(false), 
 	  did_file_new_event(false), analyzers(this)
 	{
 	StaticInit();
@@ -88,7 +87,6 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	val = new RecordVal(fa_file_type);
 	val->Assign(id_idx, new StringVal(file_id.c_str()));
 
-	forwarded_offset = 0;
 	file_reassembler = 0;
 	if ( conn )
 		{
@@ -244,7 +242,7 @@ bool File::IsComplete() const
 	if ( ! total )
 		return false;
 
-	if ( LookupFieldDefaultCount(seen_bytes_idx) >= total->AsCount() )
+	if ( stream_offset >= total->AsCount() )
 		return true;
 
 	return false;
@@ -302,6 +300,26 @@ bool File::DetectMIME(const u_char* data, uint64 len)
 	return mime;
 	}
 
+void File::EnableReassembly()
+	{
+	reassembly_enabled = true;
+	}
+
+void File::DisableReassembly()
+	{
+	reassembly_enabled = false;
+	if ( file_reassembler )
+		{
+		delete file_reassembler;
+		file_reassembler = NULL;
+		}
+	}
+
+void File::SetReassemblyBuffer(uint64 max)
+	{
+	reassembly_max_buffer = max;
+	}
+
 void File::ReplayBOF()
 	{
 	if ( bof_buffer.replayed )
@@ -311,141 +329,122 @@ void File::ReplayBOF()
 
 	if ( bof_buffer.chunks.empty() )
 		{
-		// Since we missed the beginning, try file type detect on next data in.
-		missed_bof = true;
+		// We definitely can't do anything if we don't have any chunks.
 		return;
 		}
 
 	BroString* bs = concatenate(bof_buffer.chunks);
 	val->Assign(bof_buffer_idx, new StringVal(bs));
 
-	DetectMIME(bs->Bytes(), bs->Len());
-
-	FileEvent(file_new);
-
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
 		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
 	}
 
-void File::DataIn(const u_char* data, uint64 len, uint64 offset)
+void File::DeliverStream(const u_char* data, uint64 len)
 	{
-	analyzers.DrainModifications();
+	// Buffer enough data send to libmagic.
+	if ( BufferBOF(data, len) )
+		return;
 
-	if ( file_reassembler )
+	if ( stream_offset == 0 )
 		{
-		// If there is a file reassembler we must forward any data there.
-		// But this only happens if the incoming data doesn't happen
-		// to align with the current forwarded_offset
-		file_reassembler->NewBlock(network_time, offset, len, data);
+		DetectMIME(data, len);
+		FileEvent(file_new);
+		}
 
-		if ( !file_reassembler->HasBlocks() )
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
+	while ( (a = analyzers.NextEntry(c)) )
+		{
+		if ( !a->DeliverStream(data, len) )
 			{
-			delete file_reassembler;
-			file_reassembler = 0;
+			analyzers.QueueRemove(a->Tag(), a->Args());
 			}
 		}
-	else if ( forwarded_offset == offset )
+
+	stream_offset += len;
+	IncrementByteCount(len, seen_bytes_idx);
+	}
+
+void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+	{
+	// Potentially handle reassembly and deliver to the stream analyzers.
+	if ( file_reassembler )
+		{
+		if ( reassembly_max_buffer > 0 &&
+		     reassembly_max_buffer < file_reassembler->TotalSize() ) 
+			{
+			uint64 first_offset = file_reassembler->GetFirstBlockOffset();
+			int gap_bytes = file_reassembler->TrimToSeq(first_offset);
+			
+			if ( FileEventAvailable(file_reassembly_buffer_overflow) )
+				{
+				val_list* vl = new val_list();
+				vl->append(val->Ref());
+				vl->append(new Val(stream_offset, TYPE_COUNT));
+				vl->append(new Val(gap_bytes, TYPE_COUNT));
+				FileEvent(file_reassembly_buffer_overflow, vl);
+				}
+
+			Gap(stream_offset, gap_bytes);
+			}
+
+		// Forward data to the reassembler.
+		file_reassembler->NewBlock(network_time, offset, len, data);
+		}
+	else if ( stream_offset == offset )
 		{
 		// This is the normal case where a file is transferred linearly.
-		// Nothing should be done here.
+		// Nothing special should be done here.
+		DeliverStream(data, len);
 		}
-	else if ( forwarded_offset > offset && forwarded_offset < offset+len )
+	else if ( reassembly_enabled )
 		{
-		// This is a segment that begins before the forwarded_offset 
-		// but proceeds past the forwarded_offset.  It needs
-		// trimmed but the reassembler is not enabled.
-		uint64 adjustment = forwarded_offset - offset;
-		data = data + adjustment;
-		len = len - adjustment;
-		offset = forwarded_offset;
-		IncrementByteCount(adjustment, overflow_bytes_idx);
-		}
-	else if ( forwarded_offset < offset )
-		{
-		// This is data past a gap and the reassembler needs to be enabled.
-		file_reassembler = new FileReassembler(this, forwarded_offset);
+		// This is data that doesn't match the offset and the reassembler 
+		// needs to be enabled.
+		file_reassembler = new FileReassembler(this, stream_offset);
 		file_reassembler->NewBlock(network_time, offset, len, data);
-		return;
 		}
 	else
 		{
-		// This is data that was already seen so it can be completely ignored.
+		// We can't reassemble so we throw out the data for streaming.
 		IncrementByteCount(len, overflow_bytes_idx);
-		return;
 		}
 
-	if ( first_chunk )
+	// Deliver to the chunk analyzers.
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
+	while ( (a = analyzers.NextEntry(c)) )
 		{
-		// TODO: this should all really be delayed until we attempt reassembly.
-		DetectMIME(data, len);
-		FileEvent(file_new);
-		first_chunk = false;
+		if ( !a->DeliverChunk(data, len, offset) )
+			{
+			analyzers.QueueRemove(a->Tag(), a->Args());
+			}
 		}
 
 	if ( IsComplete() )
 		{
+		// If the file is complete we can automatically go and close out the file from here.
 		EndOfFile();
 		}
-	else
-		{
-		file_analysis::Analyzer* a = 0;
-		IterCookie* c = analyzers.InitForIteration();
+	}
 
-		while ( (a = analyzers.NextEntry(c)) )
-			{
-			//if ( ! a->DeliverChunk(data, len, offset) )
-			//	{
-			//	analyzers.QueueRemove(a->Tag(), a->Args());
-			//	}
 
-			if ( ! a->DeliverStream(data, len) )
-				{
-				analyzers.QueueRemove(a->Tag(), a->Args());
-				}
-
-			}
-
-		analyzers.DrainModifications();
-
-		forwarded_offset += len;
-		IncrementByteCount(len, seen_bytes_idx);
-		}
+void File::DataIn(const u_char* data, uint64 len, uint64 offset)
+	{
+	analyzers.DrainModifications();
+	DeliverChunk(data, len, offset);
+	analyzers.DrainModifications();
 	}
 
 void File::DataIn(const u_char* data, uint64 len)
 	{
 	analyzers.DrainModifications();
-
-	if ( BufferBOF(data, len) )
-		return;
-
-	if ( missed_bof )
-		{
-		DetectMIME(data, len);
-		FileEvent(file_new);
-		missed_bof = false;
-		}
-
-	file_analysis::Analyzer* a = 0;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
-		{
-		if ( ! a->DeliverStream(data, len) )
-			{
-			analyzers.QueueRemove(a->Tag(), a->Args());
-			continue;
-			}
-
-		uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
-		                LookupFieldDefaultCount(missing_bytes_idx);
-
-		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
-		}
-
+	
+	uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
+	                LookupFieldDefaultCount(missing_bytes_idx);
+	DeliverChunk(data, len, offset);
 	analyzers.DrainModifications();
-	IncrementByteCount(len, seen_bytes_idx);
 	}
 
 void File::EndOfFile()
@@ -501,6 +500,8 @@ void File::Gap(uint64 offset, uint64 len)
 		}
 
 	analyzers.DrainModifications();
+
+	stream_offset += len;
 	IncrementByteCount(len, missing_bytes_idx);
 	}
 

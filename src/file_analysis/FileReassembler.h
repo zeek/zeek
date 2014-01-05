@@ -21,14 +21,16 @@ public:
 	virtual ~FileReassembler();
 
 	void Done();
+	uint64 GetFirstBlockOffset() { return blocks->seq; }
 
 	// Checks if we have delivered all contents that we can possibly
-	// deliver for this endpoint.  Calls TCP_Analyzer::EndpointEOF()
-	// when so.
-	//void CheckEOF();
+	// deliver for this endpoint.
+	void CheckEOF();
 
-private:
-	//DECLARE_SERIAL(FileReassembler);
+protected:
+	FileReassembler()	{ }
+
+	DECLARE_SERIAL(FileReassembler);
 
 	void Undelivered(int up_to_seq);
 	void BlockInserted(DataBlock* b);

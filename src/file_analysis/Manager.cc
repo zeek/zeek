@@ -183,6 +183,39 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
+bool Manager::EnableReassembly(const string& file_id)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->EnableReassembly();
+	return true;
+	}
+
+bool Manager::DisableReassembly(const string& file_id)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->DisableReassembly();
+	return true;
+	}
+
+bool Manager::SetReassemblyBuffer(const string& file_id, uint64 max)
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	file->SetReassemblyBuffer(max);
+	return true;
+	}
+
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
                                  uint64 n) const
 	{

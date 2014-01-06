@@ -9,11 +9,14 @@
 
 #ifdef USE_PAPI
 #include <papi.h>
-#define  PAPI_NUM_EVENTS    2
-#define  PAPI_TOT_CYCLES    0
+#define PAPI_TOT_CYCLES    0
+#define PAPI_CYCLE_FMT "llu"
 #else
-typedef long_long uint64_t;
+typedef uint64_t long_long;
+#define PAPI_CYCLE_FMT PRIu64
 #endif
+
+#define PAPI_NUM_EVENTS    2
 
 extern int time_bro;
 
@@ -119,7 +122,7 @@ static void print_profile_item(const char* tag, ProfileType type)
 	if ( i->level > 0 )
 		reporter->InternalError("level for profiler %d is not zero (but %u)\n", type, i->level);
 
-	fprintf(stderr, "# %s %.6f/%llu %uM/%uM\n",
+	fprintf(stderr, "# %s %.6f/%" PAPI_CYCLE_FMT " %uM/%uM\n",
 		tag, i->time, i->cycles,
 		i->mem_total / 1024 / 1024,
 		i->mem_malloced / 1024 / 1024);

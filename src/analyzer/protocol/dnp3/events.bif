@@ -84,6 +84,26 @@ event dnp3_biewatime%(c: connection, is_orig: bool, flag: count, time48: string%
 event dnp3_biewrtime%(c: connection, is_orig: bool, flag: count, time16: count%);
 event dnp3_doublein_eveatime%(c: connection, is_orig: bool, flag: count, time48: string%);
 event dnp3_doublein_evertime%(c: connection, is_orig: bool, flag: count, time16: count%);
+event dnp3_binout_eveatime%(c: connection, is_orig: bool, flag: count, time48: string%);
+event dnp3_binoutcmd_eveatime%(c: connection, is_orig: bool, flag: count, time48: string%);
+event dnp3_counterEve_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+event dnp3_counterEve_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+event dnp3_counterEve_32wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+event dnp3_counterEve_16wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+event dnp3_frozenCounterEve_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+event dnp3_frozenCounterEve_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+event dnp3_frozenCounterEve_32wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+event dnp3_frozenCounterEve_16wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+event dnp3_analog_output_status32%(c: connection, is_orig: bool, flag: count, status: count%);
+event dnp3_analog_output_status16%(c: connection, is_orig: bool, flag: count, status: count%);
+event dnp3_analog_output_statusSP%(c: connection, is_orig: bool, flag: count, status: count%);
+event dnp3_analog_output_statusDP%(c: connection, is_orig: bool, flag: count, status_low: count, status_high: count%);
+event dnp3_analog_output32%(c: connection, is_orig: bool, value: count, con_status: count%);
+event dnp3_analog_output16%(c: connection, is_orig: bool, value: count, con_status: count%);
+event dnp3_analog_outputSP%(c: connection, is_orig: bool, value: count, con_status: count%);
+event dnp3_analog_outputDP%(c: connection, is_orig: bool, value_low: count, value_high: count, con_status: count%);
+
+
 
 ## Generated for DNP3 objects with the group number 12 and variation number 1
 ## CROB: control relay output block

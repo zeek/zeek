@@ -172,6 +172,20 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+	#g11v2
+	function get_dnp3_binout_eveatime(flag: uint8, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_binout_eveatime )
+			{
+			BifEvent::generate_dnp3_binout_eveatime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, bytestring_to_val(time48) );
+			}
+
+		return true;
+		%}
+
 	#g12v1
 	function get_dnp3_crob(control_code: uint8, count8: uint8, on_time: uint32, off_time: uint32, status_code: uint8): bool
 		%{
@@ -200,6 +214,20 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+	#g13v2
+	function get_dnp3_binoutcmd_eveatime(flag: uint8, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_binoutcmd_eveatime )
+			{
+			BifEvent::generate_dnp3_binoutcmd_eveatime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+	
 	# g20v1
 	function get_dnp3_counter_32wFlag(flag: uint8, count_value: uint32): bool
 		%{
@@ -339,6 +367,119 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+
+	# g22v1
+	function get_dnp3_counterEve_32wFlag(flag: uint8, count_value: uint32): bool
+		%{
+		if ( ::dnp3_counterEve_32wFlag )
+			{
+			BifEvent::generate_dnp3_counterEve_32wFlag(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value);
+			}
+
+		return true;
+		%}
+
+	# g22v2
+	function get_dnp3_counterEve_16wFlag(flag: uint8, count_value: uint16): bool
+		%{
+		if ( ::dnp3_counterEve_16wFlag )
+			{
+			BifEvent::generate_dnp3_counterEve_16wFlag(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value);
+			}
+
+		return true;
+		%}
+	
+	# g22v5
+	function get_dnp3_counterEve_32wFlagTime(flag: uint8, count_value: uint32, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_counterEve_32wFlagTime )
+			{
+			BifEvent::generate_dnp3_counterEve_32wFlagTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g22v6
+	function get_dnp3_counterEve_16wFlagTime(flag: uint8, count_value: uint16, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_counterEve_16wFlagTime )
+			{
+			BifEvent::generate_dnp3_counterEve_16wFlagTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g23v1
+	function get_dnp3_frozenCounterEve_32wFlag(flag: uint8, count_value: uint32): bool
+		%{
+		if ( ::dnp3_frozenCounterEve_32wFlag )
+			{
+			BifEvent::generate_dnp3_frozenCounterEve_32wFlag(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value);
+			}
+
+		return true;
+		%}
+
+	# g23v2
+	function get_dnp3_frozenCounterEve_16wFlag(flag: uint8, count_value: uint16): bool
+		%{
+		if ( ::dnp3_frozenCounterEve_16wFlag )
+			{
+			BifEvent::generate_dnp3_frozenCounterEve_16wFlag(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value);
+			}
+
+		return true;
+		%}
+	
+	# g23v5
+	function get_dnp3_frozenCounterEve_32wFlagTime(flag: uint8, count_value: uint32, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_frozenCounterEve_32wFlagTime )
+			{
+			BifEvent::generate_dnp3_frozenCounterEve_32wFlagTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g23v6
+	function get_dnp3_frozenCounterEve_16wFlagTime(flag: uint8, count_value: uint16, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_frozenCounterEve_16wFlagTime )
+			{
+			BifEvent::generate_dnp3_frozenCounterEve_16wFlagTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, count_value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
 
 	# g30v1
 	function get_dnp3_analog_input_32wFlag(flag: uint8, value: int32): bool
@@ -760,6 +901,118 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+	# g40v1
+	function get_dnp3_analog_output_status32(flag: uint8, status: uint32): bool
+		%{
+		if ( ::dnp3_analog_output_status32 )
+			{
+			BifEvent::generate_dnp3_analog_output_status32(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, status);
+			}
+
+		return true;
+		%}
+
+	# g40v2
+	function get_dnp3_analog_output_status16(flag: uint8, status: uint16): bool
+		%{
+		if ( ::dnp3_analog_output_status16 )
+			{
+			BifEvent::generate_dnp3_analog_output_status16(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, status);
+			}
+
+		return true;
+		%}
+	
+	# g40v3
+	function get_dnp3_analog_output_statusSP(flag: uint8, status: uint32): bool
+		%{
+		if ( ::dnp3_analog_output_statusSP )
+			{
+			BifEvent::generate_dnp3_analog_output_statusSP(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, status);
+			}
+
+		return true;
+		%}
+
+	# g40v4
+	function get_dnp3_analog_output_statusDP(flag: uint8, status_low: uint32, status_high: uint32): bool
+		%{
+		if ( ::dnp3_analog_output_statusDP )
+			{
+			BifEvent::generate_dnp3_analog_output_statusDP(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, status_low, status_high);
+			}
+
+		return true;
+		%}
+	# g41v1
+	function get_dnp3_analog_output32(value: int32, con_status: uint8): bool
+		%{
+		if ( ::dnp3_analog_output32 )
+			{
+			BifEvent::generate_dnp3_analog_output32(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), value, con_status);
+			}
+
+		return true;
+		%}
+
+	# g41v2
+	function get_dnp3_analog_output16(value: int16, con_status: uint8): bool
+		%{
+		if ( ::dnp3_analog_output16 )
+			{
+			BifEvent::generate_dnp3_analog_output16(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), value, con_status);
+			}
+
+		return true;
+		%}
+	
+	# g41v3
+	function get_dnp3_analog_outputSP(value: uint32, con_status: uint8): bool
+		%{
+		if ( ::dnp3_analog_outputSP )
+			{
+			BifEvent::generate_dnp3_analog_outputSP(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), value, con_status);
+			}
+
+		return true;
+		%}
+
+	# g41v4
+	function get_dnp3_analog_outputDP(value_low: uint32, value_high: uint32 ,  con_status: uint8): bool
+		%{
+		if ( ::dnp3_analog_outputDP )
+			{
+			BifEvent::generate_dnp3_analog_outputDP(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), value_high, value_high, con_status);
+			}
+
+		return true;
+		%}
+
+
 	# g70v5
 	function get_dnp3_file_transport(file_handle: uint32, block_num: uint32, file_data: const_bytestring): bool
 		%{
@@ -843,6 +1096,11 @@ refine typeattr DoubleInEveRtime += &let {
 	process_request: bool =  $context.flow.get_dnp3_doublein_evertime(flag, time16);
 };
 
+# g11v2
+refine typeattr BinOutEveAtime += &let {
+	process_request: bool =  $context.flow.get_dnp3_binout_eveatime(flag, time48);
+};
+
 # g12v1
 refine typeattr CROB += &let {
 	process_request: bool =  $context.flow.get_dnp3_crob(control_code, count, on_time, off_time, status_code);
@@ -852,6 +1110,12 @@ refine typeattr CROB += &let {
 refine typeattr PCB += &let {
 	process_request: bool =  $context.flow.get_dnp3_pcb(control_code, count, on_time, off_time, status_code);
 };
+
+# g13v2
+refine typeattr BinOutCmdEveAtime += &let {
+	process_request: bool =  $context.flow.get_dnp3_binoutcmd_eveatime(flag, time48);
+};
+
 
 # g20v1
 refine typeattr Counter32wFlag += &let {
@@ -900,6 +1164,46 @@ refine typeattr FrozenCounter32woFlag += &let {
 # g21v10
 refine typeattr FrozenCounter16woFlag += &let {
 	process_request: bool =  $context.flow.get_dnp3_frozen_counter_16woFlag(count_value);
+};
+
+# g22v1
+refine typeattr CounterEve32wFlag += &let {
+	process_request: bool =  $context.flow.get_dnp3_counterEve_32wFlag(flag, count_value);
+};
+
+# g22v2
+refine typeattr CounterEve16wFlag += &let {
+	process_request: bool =  $context.flow.get_dnp3_counterEve_16wFlag(flag, count_value);
+};
+
+# g22v5
+refine typeattr CounterEve32wFlagTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_counterEve_32wFlagTime(flag, count_value, time48);
+};
+
+# g22v6
+refine typeattr CounterEve16wFlagTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_counterEve_16wFlagTime(flag, count_value, time48);
+};
+
+# g23v1
+refine typeattr FrozenCounterEve32wFlag += &let {
+	process_request: bool =  $context.flow.get_dnp3_frozenCounterEve_32wFlag(flag, count_value);
+};
+
+# g23v2
+refine typeattr FrozenCounterEve16wFlag += &let {
+	process_request: bool =  $context.flow.get_dnp3_frozenCounterEve_16wFlag(flag, count_value);
+};
+
+# g23v5
+refine typeattr FrozenCounterEve32wFlagTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_frozenCounterEve_32wFlagTime(flag, count_value, time48);
+};
+
+# g23v6
+refine typeattr FrozenCounterEve16wFlagTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_frozenCounterEve_16wFlagTime(flag, count_value, time48);
 };
 
 # g30v1
@@ -1050,6 +1354,46 @@ refine typeattr FrozenAnaInputEveSPwTime += &let {
 # g33v8
 refine typeattr FrozenAnaInputEveDPwTime += &let {
 	process_request: bool =  $context.flow.get_dnp3_frozen_analog_input_event_DPwTime(flag, f_value_low, f_value_high, time48);
+};
+
+# g40v1
+refine typeattr AnaOutStatus32 += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_status32(flag, status);
+};
+
+# g40v2
+refine typeattr AnaOutStatus16 += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_status16(flag, status);
+};
+
+# g40v3
+refine typeattr AnaOutStatusSP += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_statusSP(flag, status);
+};
+
+# g40v4
+refine typeattr AnaOutStatusDP += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_statusDP(flag, status_low, status_high);
+};
+
+# g41v1
+refine typeattr AnaOut32 += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output32(value, con_status);
+};
+
+# g41v2
+refine typeattr AnaOut16 += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output16(value, con_status);
+};
+
+# g41v3
+refine typeattr AnaOutSP += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_outputSP(value, con_status);
+};
+
+# g41v4
+refine typeattr AnaOutDP += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_outputDP(value_low, value_high, con_status);
 };
 
 # g70v5

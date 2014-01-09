@@ -102,6 +102,16 @@ event dnp3_analog_output32%(c: connection, is_orig: bool, value: count, con_stat
 event dnp3_analog_output16%(c: connection, is_orig: bool, value: count, con_status: count%);
 event dnp3_analog_outputSP%(c: connection, is_orig: bool, value: count, con_status: count%);
 event dnp3_analog_outputDP%(c: connection, is_orig: bool, value_low: count, value_high: count, con_status: count%);
+event dnp3_analog_output_event_32woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_output_event_16woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_output_event_32wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_output_event_16wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_output_event_SPwoTime%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_output_event_DPwoTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
+event dnp3_analog_output_event_SPwTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_output_event_DPwTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
+
+
 
 
 

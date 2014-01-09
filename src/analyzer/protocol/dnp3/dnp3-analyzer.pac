@@ -1011,7 +1011,118 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+	
+	# g42v1
+	function get_dnp3_analog_output_event_32woTime(flag: uint8, value: int32): bool
+		%{
+		if ( ::dnp3_analog_output_event_32woTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_32woTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value);
+			}
 
+		return true;
+		%}
+
+	# g42v2
+	function get_dnp3_analog_output_event_16woTime(flag: uint8, value: int16): bool
+		%{
+		if ( ::dnp3_analog_output_event_16woTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_16woTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value);
+			}
+
+		return true;
+		%}
+
+	# g42v3
+	function get_dnp3_analog_output_event_32wTime(flag: uint8, value: int32, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_analog_output_event_32wTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_32wTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+	
+	# g42v4
+	function get_dnp3_analog_output_event_16wTime(flag: uint8, value: int16, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_analog_output_event_16wTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_16wTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g42v5
+	function get_dnp3_analog_output_event_SPwoTime(flag: uint8, value: uint32): bool
+		%{
+		if ( ::dnp3_analog_output_event_SPwoTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_SPwoTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value);
+			}
+
+		return true;
+		%}
+
+	# g42v6
+	function get_dnp3_analog_output_event_DPwoTime(flag: uint8, value_low: uint32, value_high: uint32): bool
+		%{
+		if ( ::dnp3_analog_output_event_DPwoTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_DPwoTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value_low, value_high);
+			}
+
+		return true;
+		%}
+
+	# g42v7
+	function get_dnp3_analog_output_event_SPwTime(flag: uint8, value: uint32, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_analog_output_event_SPwTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_SPwTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g42v8
+	function get_dnp3_analog_output_event_DPwTime(flag: uint8, value_low: uint32, value_high: uint32, time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_analog_output_event_DPwTime )
+			{
+			BifEvent::generate_dnp3_analog_output_event_DPwTime(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), flag, value_low, value_high, bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
 
 	# g70v5
 	function get_dnp3_file_transport(file_handle: uint32, block_num: uint32, file_data: const_bytestring): bool
@@ -1396,6 +1507,45 @@ refine typeattr AnaOutDP += &let {
 	process_request: bool =  $context.flow.get_dnp3_analog_outputDP(value_low, value_high, con_status);
 };
 
+# g42v1
+refine typeattr AnaOutEve32woTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_32woTime(flag, value);
+};
+
+# g42v2
+refine typeattr AnaOutEve16woTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_16woTime(flag, value);
+};
+
+# g42v3
+refine typeattr AnaOutEve32wTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_32wTime(flag, value, time48);
+};
+
+# g42v4
+refine typeattr AnaOutEve16wTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_16wTime(flag, value, time48);
+};
+
+# g42v5
+refine typeattr AnaOutEveSPwoTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_SPwoTime(flag, value);
+};
+
+# g42v6
+refine typeattr AnaOutEveDPwoTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_DPwoTime(flag, value_low, value_high);
+};
+
+# g42v7
+refine typeattr AnaOutEveSPwTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_SPwTime(flag, value, time48);
+};
+
+# g42v8
+refine typeattr AnaOutEveDPwTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_analog_output_event_DPwTime(flag, value_low, value_high, time48);
+};
 # g70v5
 refine typeattr File_Transport += &let {
         result: bool =  $context.flow.get_dnp3_file_transport(file_handle, block_num, file_data);

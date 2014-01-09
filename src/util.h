@@ -224,34 +224,39 @@ extern std::string bro_prefixes();
 class SafePathOp {
 public:
 
-	typedef char*(*PathOpFn)(char*);
-
-	SafePathOp(PathOpFn fn, const char* path, bool error_aborts = true);
-	SafePathOp(PathOpFn fn, const std::string& path, bool error_aborts = true);
-
 	std::string result;
 	bool error;
 
-private:
+protected:
 
-	void DoFunc(PathOpFn fn, const std::string& path, bool error_aborts = true);
+	SafePathOp()
+		: result(), error()
+		{ }
+
+	void CheckValid(const char* result, const char* path, bool error_aborts);
+
 };
 
 class SafeDirname : public SafePathOp {
 public:
 
-	SafeDirname(const char* path, bool error_aborts = true)
-		: SafePathOp(&dirname, path, error_aborts) { }
-	SafeDirname(const std::string& path, bool error_aborts = true)
-		: SafePathOp(&dirname, path, error_aborts) { }
+	SafeDirname(const char* path, bool error_aborts = true);
+	SafeDirname(const std::string& path, bool error_aborts = true);
+
+private:
+
+	void DoFunc(const std::string& path, bool error_aborts = true);
 };
 
 class SafeBasename : public SafePathOp {
 public:
-	SafeBasename(const char* path, bool error_aborts = true)
-		: SafePathOp(&basename, path, error_aborts) { }
-	SafeBasename(const std::string& path, bool error_aborts = true)
-		: SafePathOp(&basename, path, error_aborts) { }
+
+	SafeBasename(const char* path, bool error_aborts = true);
+	SafeBasename(const std::string& path, bool error_aborts = true);
+
+private:
+
+	void DoFunc(const std::string& path, bool error_aborts = true);
 };
 
 std::string implode_string_vector(const std::vector<std::string>& v,

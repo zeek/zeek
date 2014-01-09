@@ -1,4 +1,61 @@
 
+2.2-75 | 2013-12-18 08:36:50 -0800
+
+  * Fixing segfault with mismatching set &default in record fields.
+    (Robin Sommer)
+
+2.2-74 | 2013-12-16 08:49:55 -0800
+
+  * Improve warnings emitted from raw/execute input reader. (Jon
+    Siwek)
+
+  * Further improve core.when-interpreter-exceptions unit test. (Jon
+    Siwek)
+
+2.2-72 | 2013-12-12 07:12:47 -0800
+
+  * Improve the core.when-interpreter-exceptions unit test to prevent
+    it from occasionally timing out. (Jon Siwek)
+
+2.2-70 | 2013-12-10 15:02:50 -0800
+
+  * Fix (harmless) uninitialized field in basename/dirname util
+    wrapper. (Jon Siwek)
+
+2.2-68 | 2013-12-09 15:19:37 -0800
+
+  * Several improvements to input framework error handling for more
+    robustness and more helpful error messages. Includes tests for
+    many cases. (Bernhard Amann)
+
+2.2-66 | 2013-12-09 13:54:16 -0800
+
+  * Fix table &default reference counting for record ctor expressions.
+    (Jon Siwek)
+
+  * Close signature files after done parsing. (Jon Siwek)
+    
+  * Fix unlikely null ptr deref in broxygen::Manager. (Jon Siwek)
+    
+  * FreeBSD build fix addendum: unintended variable shadowing. (Jon
+    Siwek)
+
+  * Fix build on FreeBSD. basename(3)/dirname(3) const-ness may vary
+    w/ platform. (Jon Siwek)
+
+  * Updated software framework to support parsing IE11 user-agent
+    strings. (Seth Hall)
+
+  * Fix the irc_reply event for several server message types. (Seth
+    Hall)
+
+  * Fix memory leak in input framework. If the input framework was
+    used to read event streams and those streams contained records
+    with more than one field, not all elements of the threading Values
+    were cleaned up. Addresses BIT-1103. (Bernhard Amann)
+
+  * Minor Broxygen improvements. Addresses BIT-1098. (Jon Siwek)
+    
 2.2-51 | 2013-12-05 07:53:37 -0800
 
   * Improve a unit test involving 'when' conditionals. (Jon Siwek)

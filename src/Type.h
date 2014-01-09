@@ -245,6 +245,14 @@ public:
 	void SetName(const string& arg_name) { name = arg_name; }
 	string GetName() const { return name; }
 
+	typedef std::map<std::string, std::set<BroType*> > TypeAliasMap;
+
+	static std::set<BroType*> GetAliases(const std::string& type_name)
+		{ return BroType::type_aliases[type_name]; }
+
+	static void AddAlias(const std::string type_name, BroType* type)
+		{ BroType::type_aliases[type_name].insert(type); }
+
 protected:
 	BroType()	{ }
 
@@ -258,6 +266,8 @@ private:
 	bool is_network_order;
 	bool base_type;
 	string name;
+
+	static TypeAliasMap type_aliases;
 };
 
 class TypeList : public BroType {
@@ -579,9 +589,6 @@ protected:
 
 	BroType* yield_type;
 };
-
-typedef std::map<std::string, std::set<BroType*> > TypeAliasMap;
-extern TypeAliasMap type_aliases;
 
 extern OpaqueType* md5_type;
 extern OpaqueType* sha1_type;

@@ -5,9 +5,9 @@
    This is a global function declaration.
    
 
-   :param i: First param.
+   :i: First param.
 
-   :param j: Second param.
+   :j: Second param.
    
 
    :returns: A string.
@@ -20,9 +20,9 @@
          This is a record field function.
          
 
-         :param i: First param.
+         :i: First param.
 
-         :param j: Second param.
+         :j: Second param.
          
 
          :returns: A string.

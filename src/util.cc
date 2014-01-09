@@ -971,35 +971,59 @@ FILE* open_package(string& path, const string& mode)
 	return 0;
 	}
 
-SafePathOp::SafePathOp(PathOpFn fn, const char* path, bool error_aborts)
+void SafePathOp::CheckValid(const char* op_result, const char* path,
+                            bool error_aborts)
 	{
-	DoFunc(fn, path ? path : "", error_aborts);
-	}
-
-SafePathOp::SafePathOp(PathOpFn fn, const string& path, bool error_aborts)
-	{
-	DoFunc(fn, path, error_aborts);
-	}
-
-void SafePathOp::DoFunc(PathOpFn fn, const string& path, bool error_aborts)
-	{
-	char* tmp = copy_string(path.c_str());
-	char* rval = fn(tmp);
-
-	if ( rval )
+	if ( op_result )
 		{
-		result = rval;
+		result = op_result;
 		error = false;
 		}
 	else
 		{
 		if ( error_aborts )
 			reporter->InternalError("Path operation failed on %s: %s",
-			                        tmp ? tmp : "<null>", strerror(errno));
+			                        path ? path : "<null>", strerror(errno));
 		else
 			error = true;
 		}
+	}
 
+SafeDirname::SafeDirname(const char* path, bool error_aborts)
+	: SafePathOp()
+	{
+	DoFunc(path ? path : "", error_aborts);
+	}
+
+SafeDirname::SafeDirname(const string& path, bool error_aborts)
+	: SafePathOp()
+	{
+	DoFunc(path, error_aborts);
+	}
+
+void SafeDirname::DoFunc(const string& path, bool error_aborts)
+	{
+	char* tmp = copy_string(path.c_str());
+	CheckValid(dirname(tmp), tmp, error_aborts);
+	delete [] tmp;
+	}
+
+SafeBasename::SafeBasename(const char* path, bool error_aborts)
+	: SafePathOp()
+	{
+	DoFunc(path ? path : "", error_aborts);
+	}
+
+SafeBasename::SafeBasename(const string& path, bool error_aborts)
+	: SafePathOp()
+	{
+	DoFunc(path, error_aborts);
+	}
+
+void SafeBasename::DoFunc(const string& path, bool error_aborts)
+	{
+	char* tmp = copy_string(path.c_str());
+	CheckValid(basename(tmp), tmp, error_aborts);
 	delete [] tmp;
 	}
 

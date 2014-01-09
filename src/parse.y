@@ -179,7 +179,7 @@ static attr_list* copy_attr_list(attr_list* al)
 
 static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 	{
-	set<BroType*> types = type_aliases[id->Name()];
+	set<BroType*> types = BroType::GetAliases(id->Name());
 
 	if ( types.empty() )
 		{

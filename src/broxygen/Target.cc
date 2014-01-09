@@ -368,7 +368,7 @@ void PackageTarget::DoGenerate() const
 
 		for ( size_t i = 0; i < it->second.size(); ++i )
 			{
-			fprintf(file.f, ":doc:`/scripts/%s`\n",
+			fprintf(file.f, ":doc:`/scripts/%s`\n\n",
 			        it->second[i]->Name().c_str());
 
 			vector<string> cmnts = it->second[i]->GetComments();

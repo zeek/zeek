@@ -191,11 +191,11 @@
    empty comments is optional, but improves readability of script.
    
 
-   :param tag: Function arguments can be described
+   :tag: Function arguments can be described
         like this.
    
 
-   :param msg: Another param.
+   :msg: Another param.
    
 
    :returns: Describe the return type here.
@@ -212,7 +212,7 @@
    link.  Use the see role instead: :bro:see:`BroxygenExample::a_function`.
    
 
-   :param name: Describe the argument here.
+   :name: Describe the argument here.
 
 .. bro:id:: BroxygenExample::function_without_proto
 

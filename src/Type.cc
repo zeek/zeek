@@ -15,6 +15,8 @@
 #include <list>
 #include <map>
 
+BroType::TypeAliasMap BroType::type_aliases;
+
 // Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
@@ -1183,8 +1185,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		     field_from_script != type_from_script )
 			{
 			d->PushIndent();
-			d->Add(fmt("(from ``redef`` in :doc:`/scripts/%s`)",
-			           field_from_script.c_str()));
+			d->Add(broxygen::redef_indication(field_from_script).c_str());
 			d->PopIndent();
 			}
 
@@ -1455,7 +1456,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 
 	AddNameInternal(module_name, name, val, is_export);
 
-	set<BroType*> types = type_aliases[GetName()];
+	set<BroType*> types = BroType::GetAliases(GetName());
 	set<BroType*>::const_iterator it;
 
 	for ( it = types.begin(); it != types.end(); ++it )
@@ -1541,8 +1542,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 			{
 			d->NL();
 			d->PushIndent();
-			d->Add(fmt("(from ``redef`` in :doc:`/scripts/%s`)",
-			           enum_from_script.c_str()));
+			d->Add(broxygen::redef_indication(enum_from_script).c_str());
 			d->PopIndent();
 			}
 

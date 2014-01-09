@@ -591,7 +591,11 @@ event software_unparsed_version_found%(c: connection, host: addr, str: string%);
 ## and it raises this event for each system identified. The p0f fingerprints are
 ## defined by :bro:id:`passive_fingerprint_file`.
 ##
-## TODO.
+## c: The connection.
+##
+## host: The host running the reported OS.
+##
+## OS: The OS version string.
 ##
 ## .. bro:see:: passive_fingerprint_file software_parse_error
 ##    software_version_found software_unparsed_version_found

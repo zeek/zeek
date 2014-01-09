@@ -114,7 +114,12 @@ def build_target(env, target):
     import os
     import subprocess
 
-    bro_cmd = "bro -X {0} broxygen".format(target.config_file)
+    path_to_bro = env.config.bro_binary
+
+    if not path_to_bro:
+        raise SphinxError("'bro' not set in sphinx config file (path to bro)")
+
+    bro_cmd = "{0} -X {1} broxygen".format(path_to_bro, target.config_file)
     cwd = os.getcwd()
     os.chdir(os.path.dirname(target.config_file))
 
@@ -307,5 +312,6 @@ def setup(app):
     global App
     App = app
     app.add_domain(BroxygenDomain)
+    app.add_config_value("bro_binary", None, "env")
     app.add_config_value("broxygen_cache", None, "env")
     app.connect("env-get-outdated", env_get_outdated_hook)

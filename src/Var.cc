@@ -273,10 +273,10 @@ void add_type(ID* id, BroType* t, attr_list* attr)
 		// Clone the type to preserve type name aliasing.
 		tnew = t->Clone();
 
-	type_aliases[new_type_name].insert(tnew);
+	BroType::AddAlias(new_type_name, tnew);
 
 	if ( new_type_name != old_type_name && ! old_type_name.empty() )
-		type_aliases[old_type_name].insert(tnew);
+		BroType::AddAlias(old_type_name, tnew);
 
 	tnew->SetName(id->Name());
 

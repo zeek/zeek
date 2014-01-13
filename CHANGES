@@ -1,4 +1,9 @@
 
+2.2-93 | 2014-01-13 09:16:51 -0800
+
+  * Fixing compile problems with some versions of libc++. Reported by
+    Craig Leres. (Robin Sommer)
+
 2.2-91 | 2014-01-13 01:33:28 -0800
 
   * Improve GeoIP City database support. When trying to open a city

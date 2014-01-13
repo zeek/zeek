@@ -110,6 +110,11 @@ event dnp3_analog_output_event_SPwoTime%(c: connection, is_orig: bool, flag: cou
 event dnp3_analog_output_event_DPwoTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
 event dnp3_analog_output_event_SPwTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 event dnp3_analog_output_event_DPwTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
+event dnp3_abs_time%(c: connection, is_orig: bool, time48: string%);
+event dnp3_abs_time_interval%(c: connection, is_orig: bool, time48: string, interval32: count%);
+event dnp3_last_abs_time%(c: connection, is_orig: bool, time48: string%);
+event dnp3_record_obj%(c: connection, is_orig: bool, record_size: count, record_oct: string%);
+event dnp3_file_control_id%(c: connection, is_orig: bool, name_size: count, type_code: count, attr_code: count, start_rec: count, end_rec: count, file_size: count, time_create: string, permission: count, file_id: count, owner_id: count, group_id: count, function_code: count, status_code: count, file_name: string%);
 
 
 

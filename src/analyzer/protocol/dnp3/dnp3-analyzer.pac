@@ -1124,6 +1124,81 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+	# g50v1
+	function get_dnp3_abs_time(time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_abs_time )
+			{
+			BifEvent::generate_dnp3_abs_time(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g50v2
+	function get_dnp3_abs_time_interval(time48: const_bytestring, interval32: uint32): bool
+		%{
+		if ( ::dnp3_abs_time_interval )
+			{
+			BifEvent::generate_dnp3_abs_time_interval(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), bytestring_to_val(time48), interval32);
+			}
+
+		return true;
+		%}
+
+	# g50v1
+	function get_dnp3_last_abs_time(time48: const_bytestring): bool
+		%{
+		if ( ::dnp3_last_abs_time )
+			{
+			BifEvent::generate_dnp3_last_abs_time(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), bytestring_to_val(time48));
+			}
+
+		return true;
+		%}
+
+	# g70v1
+	function get_dnp3_record_obj(record_size: uint16, record_oct: const_bytestring): bool
+		%{
+		if ( ::dnp3_record_obj )
+			{
+			BifEvent::generate_dnp3_record_obj(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), record_size, bytestring_to_val(record_oct));
+			}
+
+		return true;
+		%}
+
+	function get_dnp3_file_control_id(name_size: uint16, type_code: uint8, attr_code: uint8,
+					start_rec: uint16, end_rec: uint16, file_size: uint32,
+					time_create: const_bytestring, permission: uint16,
+					file_id: uint16, owner_id: uint32, group_id: uint32,
+					function_code: uint8, status_code: uint8, file_name: bytestring): bool
+		%{
+		if ( ::dnp3_file_control_id )
+			{
+			BifEvent::generate_dnp3_file_control_id(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), name_size, type_code, attr_code, start_rec, end_rec, file_size, 
+				bytestring_to_val(time_create), permission, file_id, owner_id, group_id, function_code,
+				status_code, bytestring_to_val(file_name));
+			}
+
+		return true;
+		%}
+
 	# g70v5
 	function get_dnp3_file_transport(file_handle: uint32, block_num: uint32, file_data: const_bytestring): bool
 		%{
@@ -1546,6 +1621,32 @@ refine typeattr AnaOutEveSPwTime += &let {
 refine typeattr AnaOutEveDPwTime += &let {
 	process_request: bool =  $context.flow.get_dnp3_analog_output_event_DPwTime(flag, value_low, value_high, time48);
 };
+
+# g50v1
+refine typeattr AbsTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_abs_time(time48);
+};
+
+# g50v2
+refine typeattr AbsTimeInterval += &let {
+	process_request: bool =  $context.flow.get_dnp3_abs_time_interval(time48 , interval32);
+};
+
+# g50v3
+refine typeattr Last_AbsTime += &let {
+	process_request: bool =  $context.flow.get_dnp3_last_abs_time(time48);
+};
+
+# g70v1
+refine typeattr Record_Obj += &let {
+        result: bool =  $context.flow.get_dnp3_record_obj(record_size, record_oct);
+};
+
+refine typeattr File_Control_ID += &let {
+        result: bool =  $context.flow.get_dnp3_file_control_id(name_size, type_code, attr_code, start_rec, end_rec, file_size,
+                                time_create, permission, file_id, owner_id, group_id, function_code, status_code, file_name);
+};
+
 # g70v5
 refine typeattr File_Transport += &let {
         result: bool =  $context.flow.get_dnp3_file_transport(file_handle, block_num, file_data);

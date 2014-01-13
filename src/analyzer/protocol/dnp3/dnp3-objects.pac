@@ -1196,7 +1196,7 @@ type AbsTime = record {
 # g50v2
 type AbsTimeInterval = record {
 	time48: bytestring &length = 6;
-	interval: uint32;
+	interval32: uint32;
 } &byteorder = littleendian;
 
 # g50v3

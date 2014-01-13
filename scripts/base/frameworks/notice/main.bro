@@ -400,11 +400,20 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 
 	# First off, finish the headers and include the human readable messages
 	# then leave a blank line after the message.
-	email_text = string_cat(email_text, "\nMessage: ", n$msg);
+	email_text = string_cat(email_text, "\nMessage: ", n$msg, "\n");
 	if ( n?$sub )
-		email_text = string_cat(email_text, "\nSub-message: ", n$sub);
+		email_text = string_cat(email_text, "Sub-message: ", n$sub, "\n");
 
-	email_text = string_cat(email_text, "\n\n");
+	email_text = string_cat(email_text, "\n");
+
+	# add information about the file if it exists
+	if (n?$file_desc)
+		email_text = string_cat(email_text, "File Description: ", n$file_desc, "\n");
+	if (n?$file_mime_type)
+		email_text = string_cat(email_text, "File Mime Type: ", n$file_mime_type, "\n");
+
+	if (n?$file_desc || n?$file_mime_type)
+		email_text = string_cat(email_text, "\n");
 
 	# Next, add information about the connection if it exists.
 	if ( n?$id )

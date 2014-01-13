@@ -1,4 +1,36 @@
 
+2.2-91 | 2014-01-13 01:33:28 -0800
+
+  * Improve GeoIP City database support. When trying to open a city
+    database, it now considers both the "REV0" and "REV1" versions of
+    the city database instead of just the former. (Jon Siwek)
+
+  * Broxygen init fixes. Addresses BIT-1110. (Jon Siwek)
+    
+    - Don't check mtime of bro binary if BRO_DISABLE_BROXYGEN env var set.
+
+    - Fix failure to locate bro binary if invoking from a relative
+      path and '.' isn't in PATH.
+
+  * Fix for packet writing to make it use the global snap length.
+    (Seth Hall)
+
+  * Fix for traffic with TCP segmentation offloading with IP header
+    len field being set to zero. (Seth Hall)
+
+  * Canonify output of a unit test. (Jon Siwek)
+    
+  * A set of documentation updates. (Daniel Thayer)
+
+      - Fix typo in Bro 2.2 NEWS on string indexing.
+      - Fix typo in the Quick Start Guide, and clarified the
+        instructions about modifying crontab.
+      - Add/fix documentation for missing/misnamed event parameters.
+      - Fix typos in BIF documentation of hexstr_to_bytestring.
+      - Update the documentation of types and attributes.
+      - Documented the new substring extraction functionality.
+      - Clarified the description of "&priority" and "void".
+
 2.2-75 | 2013-12-18 08:36:50 -0800
 
   * Fixing segfault with mismatching set &default in record fields.

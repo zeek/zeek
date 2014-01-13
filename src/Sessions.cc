@@ -384,6 +384,15 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
 
 	uint32 len = ip_hdr->TotalLen();
+	if ( len == 0 )
+		{
+		// TCP segmentation offloading can zero out the ip_len field.
+		Weird("ip_hdr_len_zero", hdr, pkt, encapsulation);
+
+		// Cope with the zero'd out ip_len field by using the caplen.
+		len = hdr->caplen - hdr_size;
+		}
+
 	if ( hdr->len < len + hdr_size )
 		{
 		Weird("truncated_IP", hdr, pkt, encapsulation);

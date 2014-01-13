@@ -661,7 +661,7 @@ PktDumper::PktDumper(const char* arg_filename, bool arg_append)
 	if ( linktype < 0 )
 		linktype = DLT_EN10MB;
 
-	pd = pcap_open_dead(linktype, 8192);
+	pd = pcap_open_dead(linktype, snaplen);
 	if ( ! pd )
 		{
 		Error("error for pcap_open_dead");

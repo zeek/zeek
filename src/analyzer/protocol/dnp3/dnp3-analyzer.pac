@@ -1184,7 +1184,7 @@ flow DNP3_Flow(is_orig: bool) {
 					start_rec: uint16, end_rec: uint16, file_size: uint32,
 					time_create: const_bytestring, permission: uint16,
 					file_id: uint16, owner_id: uint32, group_id: uint32,
-					function_code: uint8, status_code: uint8, file_name: bytestring): bool
+					function_code: uint8, status_code: uint8, file_name: const_bytestring): bool
 		%{
 		if ( ::dnp3_file_control_id )
 			{
@@ -1198,7 +1198,60 @@ flow DNP3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+	
+	# g70v2
+	function get_dnp3_file_control_auth(usr_name_offset: uint16, usr_name_size: uint16,
+					pwd_offset: uint16, pwd_size: uint16,
+					auth_key: uint32, usr_name: const_bytestring,
+					pwd: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_control_auth )
+			{
+			BifEvent::generate_dnp3_file_control_auth(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), usr_name_offset, usr_name_size, pwd_offset, pwd_size, auth_key,
+				bytestring_to_val(usr_name), bytestring_to_val(pwd));
+			}
 
+		return true;
+		%}
+
+	# g70v3
+	function get_dnp3_file_control_cmd(name_offset: uint16, name_size: uint16,
+					time_create: const_bytestring, permission: uint16, 
+					auth_key: uint32, file_size: uint32, op_mode: uint16, 
+					max_block_size: uint16, req_id: uint16, file_name: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_control_cmd )
+			{
+			BifEvent::generate_dnp3_file_control_cmd(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), name_offset, name_size, bytestring_to_val(time_create), permission, auth_key, 
+				file_size, op_mode, max_block_size, req_id, bytestring_to_val(file_name));
+			}
+
+		return true;
+		%}
+
+	# g70v4
+	function get_dnp3_file_control_cmd_status(file_handle: uint32, file_size: uint16,
+					max_block_size: uint16, req_id: uint16, status_code: uint8, 
+					opt_text: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_control_cmd_status )
+			{
+			BifEvent::generate_dnp3_file_control_cmd_status(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), file_handle, file_size, max_block_size, req_id, 
+				status_code, bytestring_to_val(opt_text));
+			}
+
+		return true;
+		%}
+	
 	# g70v5
 	function get_dnp3_file_transport(file_handle: uint32, block_num: uint32, file_data: const_bytestring): bool
 		%{
@@ -1208,6 +1261,52 @@ flow DNP3_Flow(is_orig: bool) {
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), file_handle, block_num, bytestring_to_val(file_data));
+			}
+
+		return true;
+		%}
+
+	# g70v6
+	function get_dnp3_file_transport_status(file_handle: uint32, block_num: uint32, status: uint8, 
+					opt_text: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_transport_status )
+			{
+			BifEvent::generate_dnp3_file_transport_status(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), file_handle, block_num, status,  bytestring_to_val(opt_text));
+			}
+
+		return true;
+		%}
+
+	# g70v7
+	function get_dnp3_file_desc(name_offset: uint16, name_size: uint16, f_type: uint16, f_size: uint32, 
+				time_create_low: uint32, time_create_high: uint16, permission: uint16,
+				req_id: uint16, f_name: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_desc )
+			{
+			BifEvent::generate_dnp3_file_desc(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), name_offset, name_size, f_type, f_size, time_create_low, 
+				time_create_high, permission, req_id, bytestring_to_val(f_name));
+			}
+
+		return true;
+		%}
+
+	# g70v8
+	function get_dnp3_file_spec_str(f_spec: const_bytestring): bool
+		%{
+		if ( ::dnp3_file_spec_str )
+			{
+			BifEvent::generate_dnp3_file_spec_str(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), bytestring_to_val(f_spec));
 			}
 
 		return true;
@@ -1647,10 +1746,46 @@ refine typeattr File_Control_ID += &let {
                                 time_create, permission, file_id, owner_id, group_id, function_code, status_code, file_name);
 };
 
+# g70v2
+refine typeattr File_Control_Auth += &let {
+        result: bool =  $context.flow.get_dnp3_file_control_auth(usr_name_offset, usr_name_size, pwd_offset, pwd_size, auth_key,
+                                usr_name, pwd);
+};
+
+# g70v3
+refine typeattr File_Control_Cmd += &let {
+        result: bool =  $context.flow.get_dnp3_file_control_cmd(name_offset, name_size, time_create, permission, auth_key,
+                                file_size, op_mode, max_block_size, req_id, file_name);
+};
+
+# g70v4
+refine typeattr File_Control_Cmd_Status += &let {
+        result: bool =  $context.flow.get_dnp3_file_control_cmd_status(file_handle, file_size, max_block_size, req_id,
+                                status_code, opt_text);
+};
+
+
 # g70v5
 refine typeattr File_Transport += &let {
         result: bool =  $context.flow.get_dnp3_file_transport(file_handle, block_num, file_data);
 };
+
+# g70v6
+refine typeattr File_Transport_Status += &let {
+        result: bool =  $context.flow.get_dnp3_file_transport_status(file_handle, block_num, status, opt_text);
+};
+
+# g70v7
+refine typeattr File_Desc += &let {
+        result: bool =  $context.flow.get_dnp3_file_desc(name_offset, name_size, f_type, f_size, time_create_low, 
+                                time_create_high, permission, req_id, f_name);
+};
+
+# g70v8
+refine typeattr File_Spec_Str += &let {
+        result: bool =  $context.flow.get_dnp3_file_spec_str(f_spec);
+};
+
 
 refine typeattr Debug_Byte += &let {
 	process_request: bool =  $context.flow.get_dnp3_debug_byte(debug);

@@ -115,7 +115,16 @@ event dnp3_abs_time_interval%(c: connection, is_orig: bool, time48: string, inte
 event dnp3_last_abs_time%(c: connection, is_orig: bool, time48: string%);
 event dnp3_record_obj%(c: connection, is_orig: bool, record_size: count, record_oct: string%);
 event dnp3_file_control_id%(c: connection, is_orig: bool, name_size: count, type_code: count, attr_code: count, start_rec: count, end_rec: count, file_size: count, time_create: string, permission: count, file_id: count, owner_id: count, group_id: count, function_code: count, status_code: count, file_name: string%);
-
+event dnp3_file_control_auth%(c: connection, is_orig: bool, usr_name_offset: count, usr_name_size: count, pwd_offset: count, pwd_size: count, auth_key: count, usr_name: string, pwd: string%);
+event dnp3_file_control_cmd%(c: connection, is_orig: bool, name_offset: count, name_size: count, time_create: string, 
+		permission: count, auth_key: count, file_size: count, op_mode: count, max_block_size: count, 
+		req_id: count, file_name: string%);
+event dnp3_file_control_cmd_status%(c: connection, is_orig: bool, file_handle: count, file_size: count, 
+		max_block_size: count, req_id: count, status_code: count, opt_text: string%);
+event dnp3_file_transport_status%(c: connection, is_orig:bool,  file_handle: count, block_num: count, status: count, opt_text: string%);
+event dnp3_file_desc%(c: connection, is_orig:bool, name_offset: count, name_size: count, f_type: count, f_size: count, 
+		time_create_low: count, time_create_high: count, permission: count, req_id: count, f_name: string%);
+event dnp3_file_spec_str%(c: connection, is_orig:bool, f_spec: string%); 
 
 
 

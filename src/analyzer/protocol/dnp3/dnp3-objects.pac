@@ -1322,7 +1322,7 @@ type File_Desc_Wrap(function_code: uint8) = record {
 type File_Desc = record {
 	name_offset: uint16;
 	name_size: uint16;
-	type: uint16;
+	f_type: uint16;
 	f_size: uint32;
 	time_create_low: uint32;
 	time_create_high: uint16;

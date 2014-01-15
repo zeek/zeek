@@ -1,5 +1,5 @@
 project(Bro C CXX)
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -39,6 +39,26 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 ########################################################################
 ## Dependency Configuration
 
+include(ExternalProject)
+
+set(LIBMAGIC_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libmagic-prefix)
+set(LIBMAGIC_INCLUDE_DIR ${LIBMAGIC_PREFIX}/include)
+set(LIBMAGIC_LIB_DIR ${LIBMAGIC_PREFIX}/lib)
+set(LIBMAGIC_LIBRARY ${LIBMAGIC_LIB_DIR}/libmagic.a)
+ExternalProject_Add(libmagic
+    PREFIX ${LIBMAGIC_PREFIX}
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/file-5.16.tar.gz
+    CONFIGURE_COMMAND ./configure --enable-static --disable-shared
+                                  --prefix=${LIBMAGIC_PREFIX}
+                                  --includedir=${LIBMAGIC_INCLUDE_DIR}
+                                  --libdir=${LIBMAGIC_LIB_DIR}
+    BUILD_IN_SOURCE 1
+    LOG_DOWNLOAD 1
+    LOG_CONFIGURE 1
+    LOG_BUILD 1
+    LOG_INSTALL 1
+)
+
 include(FindRequiredPackage)
 
 # Check cache value first to avoid displaying "Found sed" messages everytime
@@ -57,7 +77,6 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
-FindRequiredPackage(LibMagic)
 FindRequiredPackage(ZLIB)
 
 if (NOT BinPAC_ROOT_DIR AND
@@ -73,18 +92,12 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
-set(libmagic_req 5.04)
-if ( LibMagic_VERSION VERSION_LESS ${libmagic_req} )
-    message(FATAL_ERROR "libmagic of at least version ${libmagic_req} required "
-                        "(found ${LibMagic_VERSION})")
-endif ()
-
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
-                    ${LibMagic_INCLUDE_DIR}
+                    ${LIBMAGIC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
 )
 
@@ -163,7 +176,7 @@ set(brodeps
     ${PCAP_LIBRARY}
     ${OpenSSL_LIBRARIES}
     ${BIND_LIBRARY}
-    ${LibMagic_LIBRARY}
+    ${LIBMAGIC_LIBRARY}
     ${ZLIB_LIBRARY}
     ${OPTLIBS}
 )

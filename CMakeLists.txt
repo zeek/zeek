@@ -41,6 +41,15 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 include(ExternalProject)
 
+# LOG_* options to ExternalProject_Add appear in CMake 2.8.3.  If
+# available, using them hides external project configure/build output.
+if("${CMAKE_VERSION}" VERSION_GREATER 2.8.2)
+    set(EXTERNAL_PROJECT_LOG_OPTIONS
+        LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1)
+else()
+    set(EXTERNAL_PROJECT_LOG_OPTIONS)
+endif()
+
 set(LIBMAGIC_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libmagic-prefix)
 set(LIBMAGIC_INCLUDE_DIR ${LIBMAGIC_PREFIX}/include)
 set(LIBMAGIC_LIB_DIR ${LIBMAGIC_PREFIX}/lib)
@@ -53,10 +62,7 @@ ExternalProject_Add(libmagic
                                   --includedir=${LIBMAGIC_INCLUDE_DIR}
                                   --libdir=${LIBMAGIC_LIB_DIR}
     BUILD_IN_SOURCE 1
-    LOG_DOWNLOAD 1
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
-    LOG_INSTALL 1
+    ${EXTERNAL_PROJECT_LOG_OPTIONS}
 )
 
 include(FindRequiredPackage)

@@ -376,6 +376,31 @@ int NetSessions::CheckConnectionTag(Connection* conn)
 	return 1;
 	}
 
+static unsigned int gre_header_len(uint16 flags)
+	{
+	unsigned int len = 4;  // Always has 2 byte flags and 2 byte protocol type.
+
+	if ( flags & 0x8000 )
+		// Checksum/Reserved1 present.
+		len += 4;
+
+	// Not considering routing presence bit since it's deprecated...
+
+	if ( flags & 0x2000 )
+		// Key present.
+		len += 4;
+
+	if ( flags & 0x1000 )
+		// Sequence present.
+		len += 4;
+
+	if ( flags & 0x0080 )
+		// Acknowledgement present.
+		len += 4;
+
+	return len;
+	}
+
 void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				const IP_Hdr* ip_hdr, const u_char* const pkt,
 				int hdr_size, const EncapsulationStack* encapsulation)
@@ -560,6 +585,101 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		d = &icmp_conns;
 		break;
+		}
+
+	case IPPROTO_GRE:
+		{
+		if ( ! BifConst::Tunnel::enable_gre )
+			{
+			Weird("GRE_tunnel", ip_hdr, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		uint16 flags_ver = ntohs(*((uint16*)(data + 0)));
+		uint16 proto_typ = ntohs(*((uint16*)(data + 2)));
+		int gre_version = flags_ver & 0x0007;
+
+		if ( gre_version != 0 && gre_version != 1 )
+			{
+			Weird(fmt("unknown_gre_version_%d", gre_version), ip_hdr,
+			      encapsulation);
+			Remove(f);
+			return;
+			}
+
+		if ( gre_version == 0 )
+			{
+			if ( proto_typ != 0x0800 && proto_typ != 0x86dd )
+				{
+				// Not IPv4/IPv6 payload.
+				Weird(fmt("unknown_gre_protocol_%"PRIu16, proto_typ), ip_hdr,
+				      encapsulation);
+				Remove(f);
+				return;
+				}
+
+			proto = (proto_typ == 0x0800) ? IPPROTO_IPV4 : IPPROTO_IPV6;
+			}
+		else // gre_version == 1
+			{
+			if ( proto_typ != 0x880b)
+				{
+				// Enhanced GRE payload must be PPP.
+				Weird("egre_protocol_type", ip_hdr, encapsulation);
+				Remove(f);
+				return;
+				}
+			}
+
+		if ( flags_ver & 0x4000 )
+			{
+			// RFC 2784 deprecates the variable length routing field
+			// specified by RFC 1701. It could be parsed here, but easiest
+			// to just skip for now.
+			Weird("gre_routing", ip_hdr, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		if ( flags_ver & 0x0078 )
+			{
+			// Expect last 4 bits of flags are reserved, undefined.
+			Weird("unknown_gre_flags", ip_hdr, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		unsigned int gre_len = gre_header_len(flags_ver);
+		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
+
+		if ( len < gre_len + ppp_len || caplen < gre_len + ppp_len )
+			{
+			Weird("truncated_GRE", ip_hdr, encapsulation);
+			Remove(f);
+			return;
+			}
+
+		if ( gre_version == 1 )
+			{
+			int ppp_proto = *((uint8*)(data + gre_len));
+
+			if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
+				{
+				Weird("non_ip_packet_in_egre", ip_hdr, encapsulation);
+				Remove(f);
+				return;
+				}
+
+			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
+			}
+
+		data += gre_len + ppp_len;
+		len -= gre_len + ppp_len;
+		caplen -= gre_len + ppp_len;
+
+		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
+		// that GRE header is stripped and only payload packet remains.
 		}
 
 	case IPPROTO_IPV4:
@@ -821,6 +941,9 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 		break;
 	case IPPROTO_NONE:
 		min_hdr_len = 0;
+		break;
+	case IPPROTO_GRE:
+		min_hdr_len = 4;
 		break;
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:

@@ -338,7 +338,7 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 	# authentication challenge g120
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
-		0x7802 -> reply: AuthRely(prefix.prefix_value);
+		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
 		0x7804 -> seesionKeyRequest: uint8;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
@@ -628,7 +628,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 
 	# authentication challenge g120
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
-		0x7802 -> reply: AuthRely(prefix.prefix_value);
+		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
 		0x7804 -> seesionKeyRequest: uint8;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
@@ -1341,7 +1341,7 @@ type File_Spec_Str = record {
 type Dev_Store = record {
 	overflow: uint8;
 	obj_group: uint8;
-	variatiion: uint8;
+	variation: uint8;
 } &byteorder = littleendian;
 
 # device profile g82
@@ -1349,8 +1349,8 @@ type Dev_Store = record {
 type Dev_Profile = record {
 	fc_support_low: uint32;
 	fc_support_high: uint32;
-	count: uint16;
-	dev_headers: Dev_Profile_OH[count];
+	count16: uint16;
+	dev_headers: Dev_Profile_OH[count16];
 } &byteorder = littleendian;
 
 type Dev_Profile_OH = record {
@@ -1360,7 +1360,7 @@ type Dev_Profile_OH = record {
 	range: uint8;
 } &byteorder = littleendian;
 
-# data set g983
+# data set g83
 
 # g83v1
 type PrivRegObj = record {
@@ -1374,8 +1374,8 @@ type PrivRegObj = record {
 type PrivRegObjDesc = record {
 	vendor: uint32;
 	obj_id: uint16;
-	count: uint16;
-	data_objs: ObjDescSpec[count];
+	count16: uint16;
+	data_objs: ObjDescSpec[count16];
 } &byteorder = littleendian;
 
 type ObjDescSpec = record {
@@ -1412,13 +1412,15 @@ type App_Id(qualifier_field: uint8, object_size16: uint16) = record {
 		0x06 -> all_app: empty;
 		default -> illegal: empty;
 	};
+} &let{
+       app_id_value: bytestring = app_name;
 } &byteorder = littleendian;
 
 # status of request operation g91
 type ActivateConf = record {
 	time_delay: uint32;
-	count: uint8;
-	elements: StatusEle[count];
+	count8: uint8;
+	elements: StatusEle[count8];
 } &byteorder = littleendian;
 
 type StatusEle = record {
@@ -1432,7 +1434,7 @@ type StatusEle = record {
 # g101v3
 type BCD_Large = record {
 	value_low: uint32;
-	vlaue_high: uint32;
+	value_high: uint32;
 } &byteorder = littleendian;
 
 # authentication g120
@@ -1446,7 +1448,7 @@ type AuthChallenge(prefix: uint16) = record {
 } &byteorder = littleendian;
 
 # g120v2
-type AuthRely(prefix: uint16) = record {
+type AuthReply(prefix: uint16) = record {
 	csqUsr: uint32;
 	chan_data: bytestring &length = (prefix - 4);
 } &byteorder = littleendian;

@@ -125,6 +125,23 @@ event dnp3_file_transport_status%(c: connection, is_orig:bool,  file_handle: cou
 event dnp3_file_desc%(c: connection, is_orig:bool, name_offset: count, name_size: count, f_type: count, f_size: count, 
 		time_create_low: count, time_create_high: count, permission: count, req_id: count, f_name: string%);
 event dnp3_file_spec_str%(c: connection, is_orig:bool, f_spec: string%); 
+event dnp3_dev_store%(c: connection, is_orig:bool, overflow: count, obj_group: count, variation: count%); 
+event dnp3_dev_profile%(c: connection, is_orig:bool, fc_support_low: count, fc_support_high: count, count16: count%); 
+event dnp3_dev_profile_oh%(c: connection, is_orig:bool, group: count, variation: count, qualifier: count, range: count%); 
+event dnp3_priv_reg_obj%(c: connection, is_orig:bool, vendor: count, obj_id: count, len: count, data_objs: string%); 
+event dnp3_priv_reg_obj_desc%(c: connection, is_orig:bool, vendor: count, obj_id: count, count16: count%); 
+event dnp3_obj_desc_spec%(c: connection, is_orig:bool, obj_quantity: count, obj_group: count, obj_variation: count%); 
+event dnp3_desc_ele%(c: connection, is_orig:bool, len: count, desc_code: count, data_type: count, max_len: count, aucillary: count%);
+event dnp3_app_id%(c: connection, is_orig:bool, app_id_value: string%); 
+event dnp3_activate_conf%(c: connection, is_orig:bool, time_delay: count, count8: count%); 
+event dnp3_status_ele%(c: connection, is_orig:bool, len: count, status_code: count, ancillary: string%); 
+event dnp3_bcd_large%(c: connection, is_orig:bool, value_low: count, value_high: count%); 
+event dnp3_auth_challenge%(c: connection, is_orig:bool, csqUsr: count, hal: count, reason: count, chan_data: string%); 
+event dnp3_auth_reply%(c: connection, is_orig:bool, csqUsr: count, chan_data: string%); 
+event dnp3_auth_aggr_request%(c: connection, is_orig:bool, csqUsr: count, chan_data: string%); 
+event dnp3_auth_sessionkey_status%(c: connection, is_orig:bool, csqUsr: count, key_alg: count, key_status: count, chan_data: string%); 
+event dnp3_auth_sessionkey_change%(c: connection, is_orig:bool, csqUsr: count, key_wrap_data: string%); 
+event dnp3_auth_error%(c: connection, is_orig:bool, csqUsr: count, error_code: count, key_wrap_data: string%); 
 
 
 

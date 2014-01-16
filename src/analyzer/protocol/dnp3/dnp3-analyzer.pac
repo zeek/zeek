@@ -1312,6 +1312,240 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
+	# g81v1
+	function get_dnp3_dev_store(overflow: uint8 , obj_group: uint8, variation: uint8): bool
+		%{
+		if ( ::dnp3_dev_store )
+			{
+			BifEvent::generate_dnp3_dev_store(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), overflow, obj_group, variation);
+			}
+
+		return true;
+		%}
+
+	# g82v1
+	function get_dnp3_dev_profile(fc_support_low: uint32 , fc_support_high: uint32, count16: uint16): bool
+		%{
+		if ( ::dnp3_dev_profile )
+			{
+			BifEvent::generate_dnp3_dev_profile(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), fc_support_low, fc_support_high, count16);
+			}
+
+		return true;
+		%}
+	
+	function get_dnp3_dev_profile_oh(group: uint8 , variation: uint8, qualifier: uint8, range: uint8): bool
+		%{
+		if ( ::dnp3_dev_profile_oh )
+			{
+			BifEvent::generate_dnp3_dev_profile_oh(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), group, variation, qualifier, range);
+			}
+
+		return true;
+		%}
+
+	# g83v1
+	function get_dnp3_priv_reg_obj(vendor: uint32 , obj_id: uint16, len: uint16, data_objs: const_bytestring): bool
+		%{
+		if ( ::dnp3_priv_reg_obj )
+			{
+			BifEvent::generate_dnp3_priv_reg_obj(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), vendor, obj_id, len, bytestring_to_val(data_objs));
+			}
+
+		return true;
+		%}
+
+	# g83v2
+	function get_dnp3_priv_reg_obj_desc(vendor: uint32 , obj_id: uint16, count16: uint16): bool
+		%{
+		if ( ::dnp3_priv_reg_obj_desc )
+			{
+			BifEvent::generate_dnp3_priv_reg_obj_desc(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), vendor, obj_id, count16);
+			}
+
+		return true;
+		%} 
+	function get_dnp3_obj_desc_spec(obj_quantity: uint16 , obj_group: uint8, obj_variation: uint8): bool
+		%{
+		if ( ::dnp3_obj_desc_spec )
+			{
+			BifEvent::generate_dnp3_obj_desc_spec(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), obj_quantity, obj_group, obj_variation);
+			}
+
+		return true;
+		%}
+
+	# g85v1
+	function get_dnp3_desc_ele(len: uint8 , desc_code: uint8, data_type: uint8, max_len: uint8, aucillary: uint8): bool
+		%{
+		if ( ::dnp3_desc_ele )
+			{
+			BifEvent::generate_dnp3_desc_ele(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), len, desc_code, data_type, max_len, aucillary);
+			}
+
+		return true;
+		%} 
+
+	# g90v1
+	function get_dnp3_app_id(app_id_value: const_bytestring): bool
+		%{
+		if ( ::dnp3_app_id )
+			{
+			BifEvent::generate_dnp3_app_id(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), bytestring_to_val(app_id_value));
+			}
+
+		return true;
+		%} 
+
+	# g91v1
+	function get_dnp3_activate_conf(time_delay: uint32, count8: uint8): bool
+		%{
+		if ( ::dnp3_activate_conf )
+			{
+			BifEvent::generate_dnp3_activate_conf(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), time_delay, count8);
+			}
+
+		return true;
+		%} 
+	function get_dnp3_status_ele(len: uint8, status_code: uint8, ancillary: const_bytestring): bool
+		%{
+		if ( ::dnp3_status_ele )
+			{
+			BifEvent::generate_dnp3_status_ele(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), len, status_code, bytestring_to_val(ancillary));
+			}
+
+		return true;
+		%} 
+
+	# g101v1
+	function get_dnp3_bcd_large(value_low: uint32, value_high: uint32): bool
+		%{
+		if ( ::dnp3_bcd_large )
+			{
+			BifEvent::generate_dnp3_bcd_large(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), value_low, value_high);
+			}
+
+		return true;
+		%}
+ 
+	# g120v1
+	function get_dnp3_auth_challenge(csqUsr: uint32, hal: uint8, reason: uint8, chan_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_auth_challenge )
+			{
+			BifEvent::generate_dnp3_auth_challenge(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), csqUsr, hal, reason, bytestring_to_val(chan_data));
+			}
+
+		return true;
+		%}
+
+	# g120v2
+	function get_dnp3_auth_reply(csqUsr: uint32, chan_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_auth_reply )
+			{
+			BifEvent::generate_dnp3_auth_reply(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), csqUsr, bytestring_to_val(chan_data));
+			}
+
+		return true;
+		%}
+
+	# g120v3
+	function get_dnp3_auth_aggr_request(csqUsr: uint32, chan_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_auth_aggr_request )
+			{
+			BifEvent::generate_dnp3_auth_aggr_request(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), csqUsr, bytestring_to_val(chan_data));
+			}
+
+		return true;
+		%}
+
+	# g120v5
+	function get_dnp3_auth_sessionkey_status(csqUsr: uint32, key_alg: uint8, key_status: uint8, chan_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_auth_sessionkey_status )
+			{
+			BifEvent::generate_dnp3_auth_sessionkey_status(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), csqUsr, key_alg, key_status, bytestring_to_val(chan_data));
+			}
+
+		return true;
+		%}
+
+	# g120v6
+	function get_dnp3_auth_sessionkey_change(csqUsr: uint32, key_wrap_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_auth_sessionkey_change )
+			{
+			BifEvent::generate_dnp3_auth_sessionkey_change(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), csqUsr, bytestring_to_val(key_wrap_data));
+			}
+
+		return true;
+		%}
+
+	# g120v7
+	function get_dnp3_auth_error(csqUsr: uint32, error_code: uint8, key_wrap_data: const_bytestring): bool
+		%{
+		if ( ::dnp3_auth_error )
+			{
+			BifEvent::generate_dnp3_auth_error(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), csqUsr, error_code, bytestring_to_val(key_wrap_data));
+			}
+
+		return true;
+		%}
+
+
 #### for debug use or unknown data types used in "case"
 	function get_dnp3_debug_byte(debug: const_bytestring): bool
 		%{
@@ -1784,6 +2018,85 @@ refine typeattr File_Desc += &let {
 # g70v8
 refine typeattr File_Spec_Str += &let {
         result: bool =  $context.flow.get_dnp3_file_spec_str(f_spec);
+};
+
+# g81v1
+refine typeattr Dev_Store += &let {
+        result: bool =  $context.flow.get_dnp3_dev_store(overflow, obj_group, variation);
+};
+
+# g82v1
+refine typeattr Dev_Profile += &let {
+        result: bool =  $context.flow.get_dnp3_dev_profile(fc_support_low, fc_support_high, count16 );
+};
+refine typeattr Dev_Profile_OH += &let {
+        result: bool =  $context.flow.get_dnp3_dev_profile_oh(group, variation, qualifier, range );
+};
+
+# g83v1
+refine typeattr PrivRegObj += &let {
+        result: bool =  $context.flow.get_dnp3_priv_reg_obj(vendor, obj_id, len, data_objs );
+};
+
+# g83v2
+refine typeattr PrivRegObjDesc += &let {
+        result: bool =  $context.flow.get_dnp3_priv_reg_obj_desc(vendor, obj_id, count16 );
+};
+refine typeattr ObjDescSpec += &let {
+        result: bool =  $context.flow.get_dnp3_obj_desc_spec(obj_quantity, obj_group, obj_variation );
+};
+
+# g85v1
+refine typeattr DescEle += &let {
+        result: bool =  $context.flow.get_dnp3_desc_ele(len, desc_code, data_type, max_len, ancillary);
+};
+
+# g90v1
+refine typeattr App_Id += &let {
+        result: bool =  $context.flow.get_dnp3_app_id(app_id_value);
+};
+
+# g91v1
+refine typeattr ActivateConf += &let {
+        result: bool =  $context.flow.get_dnp3_activate_conf(time_delay, count8);
+};
+refine typeattr StatusEle += &let {
+        result: bool =  $context.flow.get_dnp3_status_ele(len, status_code, ancillary);
+};
+
+# g101v1
+refine typeattr BCD_Large += &let {
+        result: bool =  $context.flow.get_dnp3_bcd_large(value_low, value_high);
+};
+
+# g120v1
+refine typeattr AuthChallenge += &let {
+        result: bool =  $context.flow.get_dnp3_auth_challenge(csqUsr, hal, reason, chan_data);
+};
+
+# g120v2
+refine typeattr AuthReply += &let {
+        result: bool =  $context.flow.get_dnp3_auth_reply(csqUsr, chan_data);
+};
+
+# g120v3
+refine typeattr AuthAggrRequest += &let {
+        result: bool =  $context.flow.get_dnp3_auth_aggr_request(csqUsr, chan_data);
+};
+
+# g120v5
+refine typeattr AuthSessionKeyStatus += &let {
+        result: bool =  $context.flow.get_dnp3_auth_sessionkey_status(csqUsr, key_alg, key_status, chan_data);
+};
+
+# g120v6
+refine typeattr AuthSessionKeyChange += &let {
+        result: bool =  $context.flow.get_dnp3_auth_sessionkey_change(csqUsr, key_wrap_data);
+};
+
+# g120v7
+refine typeattr AuthError += &let {
+        result: bool =  $context.flow.get_dnp3_auth_error(csqUsr, error_code, key_wrap_data);
 };
 
 

@@ -471,6 +471,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 		}
 
+	FragReassemblerTracker frt(this, f);
+
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
@@ -485,7 +487,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			vl->append(ip_hdr->BuildPktHdrVal());
 			mgr.QueueEvent(esp_packet, vl);
 			}
-		Remove(f);
+
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
 		}
@@ -500,7 +502,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
 			Weird("bad_MH_checksum", hdr, pkt, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -514,7 +515,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", hdr, pkt, encapsulation);
 
-		Remove(f);
 		return;
 		}
 #endif
@@ -522,10 +522,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	int proto = ip_hdr->NextProto();
 
 	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt, encapsulation) )
-		{
-		Remove(f);
 		return;
-		}
 
 	const u_char* data = ip_hdr->Payload();
 
@@ -592,7 +589,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ! BifConst::Tunnel::enable_gre )
 			{
 			Weird("GRE_tunnel", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -604,7 +600,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			{
 			Weird(fmt("unknown_gre_version_%d", gre_version), ip_hdr,
 			      encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -615,7 +610,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				// Not IPv4/IPv6 payload.
 				Weird(fmt("unknown_gre_protocol_%"PRIu16, proto_typ), ip_hdr,
 				      encapsulation);
-				Remove(f);
 				return;
 				}
 
@@ -627,7 +621,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				{
 				// Enhanced GRE payload must be PPP.
 				Weird("egre_protocol_type", ip_hdr, encapsulation);
-				Remove(f);
 				return;
 				}
 			}
@@ -638,7 +631,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			// specified by RFC 1701. It could be parsed here, but easiest
 			// to just skip for now.
 			Weird("gre_routing", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -646,7 +638,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			{
 			// Expect last 4 bits of flags are reserved, undefined.
 			Weird("unknown_gre_flags", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -656,7 +647,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( len < gre_len + ppp_len || caplen < gre_len + ppp_len )
 			{
 			Weird("truncated_GRE", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -667,7 +657,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
 				{
 				Weird("non_ip_packet_in_egre", ip_hdr, encapsulation);
-				Remove(f);
 				return;
 				}
 
@@ -688,7 +677,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ! BifConst::Tunnel::enable_ip )
 			{
 			Weird("IP_tunnel", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -696,7 +684,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
 			{
 			Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -713,7 +700,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( result != 0 )
 			{
 			delete inner;
-			Remove(f);
 			return;
 			}
 
@@ -740,7 +726,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		DoNextInnerPacket(t, hdr, inner, encapsulation,
 		                  ip_tunnels[tunnel_idx].first);
 
-		Remove(f);
 		return;
 		}
 
@@ -753,13 +738,11 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO ) )
 			Weird("ipv6_no_next", hdr, pkt);
 
-		Remove(f);
 		return;
 		}
 
 	default:
 		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt, encapsulation);
-		Remove(f);
 		return;
 	}
 
@@ -785,7 +768,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( consistent < 0 )
 			{
 			delete h;
-			Remove(f);
 			return;
 			}
 
@@ -809,7 +791,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ! conn )
 		{
 		delete h;
-		Remove(f);
 		return;
 		}
 
@@ -841,7 +822,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		{
 		// Above we already recorded the fragment in its entirety.
 		f->DeleteTimer();
-		Remove(f);
 		}
 
 	else if ( record_packet )

@@ -19,7 +19,7 @@ public:
 
 	void Undelivered(int seq, int len, bool orig);
 
-//	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+//	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new File_Analyzer(conn); }
 
 protected:
@@ -40,7 +40,7 @@ public:
 
 	virtual void Undelivered(int seq, int len, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* Instantiate(Connection* conn)
 		{ return new IRC_Data(conn); }
 };
 
@@ -54,7 +54,7 @@ public:
 
 	virtual void Undelivered(int seq, int len, bool orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* Instantiate(Connection* conn)
 		{ return new FTP_Data(conn); }
 };
 

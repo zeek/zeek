@@ -1,3 +1,5 @@
+// See the file  in the main distribution directory for copyright.
+
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <cassert>

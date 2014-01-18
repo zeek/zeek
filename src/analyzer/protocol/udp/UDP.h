@@ -22,7 +22,7 @@ public:
 
 	virtual void UpdateConnVal(RecordVal *conn_val);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
 
 protected:

@@ -183,7 +183,7 @@ public:
 	virtual void ConnectionReset();
 	virtual void PacketWithRST();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()

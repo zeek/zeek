@@ -62,7 +62,7 @@ public:
 	void ServerUserName(const char* s);
 	void TerminalType(const char* s);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Rlogin_Analyzer(conn); }
 };
 

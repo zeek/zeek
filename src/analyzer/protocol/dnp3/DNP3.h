@@ -17,7 +17,7 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* Instantiate(Connection* conn)
 		{ return new DNP3_Analyzer(conn); }
 
 private:

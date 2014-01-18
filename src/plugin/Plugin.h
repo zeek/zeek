@@ -6,7 +6,9 @@
 #include <list>
 #include <string>
 
-#include "Macros.h"
+#include "config.h"
+#include "analyzer/Component.h"
+#include "file_analysis/Component.h"
 
 class ODesc;
 class Func;
@@ -14,8 +16,11 @@ class Event;
 
 namespace plugin  {
 
+#define BRO_PLUGIN_API_VERSION 2
+
 class Manager;
 class Component;
+class Plugin;
 
 /**
  * Hook types that a plugin may define. Each label maps to the corresponding
@@ -31,6 +36,45 @@ enum HookType {
 	// End marker.
 	NUM_HOOKS,
 };
+
+/**
+ * Helper class to capture a plugin's version. A boolean operator evaluates
+ * to true if the version has been set.
+ */
+struct VersionNumber {
+	int major; //< Major version number;
+	int minor; //< Minor version number;
+
+	VersionNumber()	{ major = minor = -1; }
+
+	operator bool() const { return major >= 0 && minor >= 0; }
+};
+
+/**
+ * A class defining a plugin's static configuration parameters.
+ */
+class Configuration {
+public:
+	std::string name;		//< The plugin's name, including a namespace. Mandatory.
+	std::string description;	//< A short textual description of the plugin. Mandatory.
+	VersionNumber version;		//< THe plugin's version. Optional.
+
+	Configuration();
+
+private:
+	friend class Plugin;
+	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
+
+};
+
+// Note we inline this method here so that when plugins create an instance,
+// *their* defaults will be used for the internal fields.
+inline Configuration::Configuration()
+	{
+	name = "";
+	description = "";
+	api_version = BRO_PLUGIN_API_VERSION;
+	}
 
 /**
  * A class describing an item defined in \c *.bif file.
@@ -105,7 +149,7 @@ private:
  * Note that a plugin needs to explicitly register all the functionality it
  * provides. For components, it needs to call AddComponent(); for BiFs
  * AddBifItem(); and for hooks EnableHook() and then also implemennt the
- * corresponding virtual method).
+ * corresponding virtual methods).
  *
  */
 class Plugin {
@@ -113,8 +157,6 @@ public:
 	typedef std::list<Component *> component_list;
 	typedef std::list<BifItem> bif_item_list;
 	typedef std::list<std::pair<HookType, int> > hook_list;
-	typedef std::list<std::pair<std::string, int> > bif_init_func_result;
-	typedef void (*bif_init_func)(Plugin *);
 
 	/**
 	 * Constructor.
@@ -141,7 +183,7 @@ public:
 	 * dynamically compiled plugins; for statically compiled ones, this
 	 * will always return 0.
 	 */
-	int Version() const;
+	VersionNumber Version() const;
 
 	/**
 	 * Returns true if this is a dynamically linked in plugin.
@@ -179,6 +221,17 @@ public:
 	 * must be called only after InitBif() has been executed.
 	 */
 	bif_item_list BifItems() const;
+
+	/**
+	 * A function called when the plugin is instantiated to query basic
+	 * configuration parameters.
+	 *
+	 * The plugin must override this method and return a suitably
+	 * initialized configuration object.
+	 *
+	 * @return A configuration describing the plugin.
+	 */
+	virtual Configuration Configure() { return Configuration(); } // TODO: Change to abstract method.
 
 	/**
 	 * First-stage initialization of the plugin called early during Bro's
@@ -244,14 +297,14 @@ public:
 	 */
 	bool LoadBroFile(const std::string& file);
 
-	/**
-	 * Internal function adding an entry point for registering
-	 * auto-generated BiFs.
-	 */
-	void __AddBifInitFunction(bif_init_func c);
-
 protected:
 	friend class Manager;
+
+	/**
+	 * Intializes the plugin's configutation. Called by the manager
+	 * before anything else.
+	 */
+	void DoConfigure();
 
 	/**
 	 * Registers and activates a component.
@@ -389,59 +442,6 @@ protected:
 	// Methods that are used internally primarily.
 
 	/**
-	 * Sets the plugins name.
-	 *
-	 * This is used primarily internally; plugin code should pass the
-	 * name via the BRO_PLUGIN_BEGIN macro instead.
-	 *
-	 * @param name The name. Makes a copy internally.
-	 */
-	void SetName(const std::string& name);
-
-	/**
-	 * Sets the plugin's textual description.
-	 *
-	 * This is used primarily internally; plugin code should pass the
-	 * name via the BRO_PLUGIN_DESCRIPTION macro instead.
-	 *
-	 * @param name The description. Makes a copy internally.
-	 */
-	void SetDescription(const std::string& descr);
-
-	/**
-	 * Sets the plugin's version.
-	 *
-	 * This is used primarily internally; plugin code should pass the
-	 * name via the BRO_PLUGIN_VERSION macro instead.
-	 *
-	 * @param version The version.
-	 */
-	void SetVersion(int version);
-
-	/**
-	 * Sets the API version the plugin requires.
-	 * BRO_PLUGIN_VERSION_BUILTIN indicates that it's a plugin linked in
-	 * statically.
-	 *
-	 * This is used primarily internally; plugins automatically set
-	 * either API version of the Bro they are compiled dynamically for,
-	 * or BRO_PLUGIN_VERSION_BUILTIN if they are linked in statically.
-	 *
-	 * @param version The version.
-	 */
-	void SetAPIVersion(int version);
-
-	/**
-	 * Marks the plugin as statically or dynamically linked.
-	 *
-	 * This is used primarily internally; plugins automatically set this
-	 * based on which way they are compiled.
-	 *
-	 * @param dynamic True if this is a dynamically linked plugin.
-	 */
-	void SetDynamicPlugin(bool dynamic);
-
-	/**
 	 * Sets the base directory and shared library path from which the
 	 * plugin was loaded.
 	 *
@@ -456,26 +456,25 @@ protected:
 	 */
 	void SetPluginLocation(const std::string& dir, const std::string& sopath);
 
-private:
 	/**
-	 * Initializes the BiF items added with AddBifItem(). Internal method
-	 * that will be called by the manager at the right time.
+	 * Marks the plugin as dynamically loaded.
+	 *
+	 * This is used primarily internally; plugins will have this called
+	 * by the manager.
+	 *
+	 * @param is_dynamic True if it's a dynamically loaded module.
 	 */
-	void InitBifs();
+	void SetDynamic(bool is_dynamic);
 
-	typedef std::list<bif_init_func> bif_init_func_list;
+private:
+	Configuration config;
 
-	std::string name;
-	std::string description;
-	std::string base_dir;
-	std::string sopath;
-	int version;
-	int api_version;
-	bool dynamic;
+	std::string base_dir;	// The plugin's base directory.
+	std::string sopath;	// For dynamic plugins, the full path to the shared library.
+	bool dynamic;	// True if a dynamic plugin.
 
 	component_list components;
 	bif_item_list bif_items;
-	bif_init_func_list bif_inits;
 };
 
 }

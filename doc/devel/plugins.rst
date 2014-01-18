@@ -98,20 +98,20 @@ option:
 
 That looks quite good, except for the dummy description that we should
 replace with something nicer so that users will know what our plugin
-is about.  We do this by editing the ``BRO_PLUGIN_DESCRIPTION`` line
-in ``src/Plugin.cc``, like this:
+is about.  We do this by editing the ``config.description`` line in
+``src/Plugin.cc``, like this:
 
-    # cat src/Plugin.cc
-
-    #include <plugin/Plugin.h>
-    
-    BRO_PLUGIN_BEGIN(Demo, Rot13)
-        BRO_PLUGIN_VERSION(1);
-        BRO_PLUGIN_DESCRIPTION("Caesar cipher rotating a string's characters by 13 places.");
-        BRO_PLUGIN_BIF_FILE(consts);
-        BRO_PLUGIN_BIF_FILE(events);
-        BRO_PLUGIN_BIF_FILE(functions);
-    BRO_PLUGIN_END
+    [...]
+    plugin::Configuration Configure()
+        {
+        plugin::Configuration config;
+        config.name = "Demo::Rot13";
+        config.description = "Caesar cipher rotating a string's characters by 13 places.";
+        config.version.major = 1;
+        config.version.minor = 0;
+        return config;
+        }
+    [...]
 
     # make
     [...]

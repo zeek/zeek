@@ -83,8 +83,13 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		if ( name.empty() )
 			reporter->FatalError("empty plugin magic file %s", magic.c_str());
 
-		// Record it, so that we can later activate it.
+		if ( dynamic_plugins.find(name) != dynamic_plugins.end() ) 
+			{
+			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(), dir.c_str());
+			return;
+			}
 
+		// Record it, so that we can later activate it.
 		dynamic_plugins.insert(std::make_pair(name, dir));
 
 		DBG_LOG(DBG_PLUGINS, "Found plugin %s in %s", name.c_str(), dir.c_str());
@@ -124,6 +129,8 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		if ( st.st_mode & S_IFDIR )
 			SearchDynamicPlugins(path);
 		}
+
+	closedir(d);
 	}
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name)
@@ -202,6 +209,9 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name)
 			if ( ! current_plugin )
 				reporter->FatalError("load plugin library %s did not instantiate a plugin", path);
 
+			current_plugin->SetDynamic(true);
+			current_plugin->DoConfigure();
+
 			// We execute the pre-script initialization here; this in
 			// fact could be *during* script initialization if we got
 			// triggered via @load-plugin.
@@ -267,11 +277,11 @@ static bool plugin_cmp(const Plugin* a, const Plugin* b)
 	return a->Name() < b->Name();
 	}
 
-bool Manager::RegisterPlugin(Plugin *plugin)
+void Manager::RegisterPlugin(Plugin *plugin)
 	{
 	Manager::PluginsInternal()->push_back(plugin);
 
-	if ( current_dir.size() && current_sopath.size() )
+	if ( current_dir.size() && current_sopath.size() ) 
 		// A dynamic plugin, record its location.
 		plugin->SetPluginLocation(current_dir.c_str(), current_sopath.c_str());
 
@@ -279,7 +289,18 @@ bool Manager::RegisterPlugin(Plugin *plugin)
 	PluginsInternal()->sort(plugin_cmp);
 
 	current_plugin = plugin;
-	return true;
+	}
+
+void Manager::RegisterBifFile(const char* plugin, bif_init_func c)
+	{
+	bif_init_func_map* bifs = BifFilesInternal();
+
+	bif_init_func_map::iterator i = bifs->find(plugin);
+
+	if ( i == bifs->end() )
+		i = bifs->insert(std::make_pair(std::string(plugin), new bif_init_func_list())).first;
+
+	i->second->push_back(c);
 	}
 
 void Manager::InitPreScript()
@@ -289,6 +310,7 @@ void Manager::InitPreScript()
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
 		{
 		Plugin* plugin = *i;
+		plugin->DoConfigure();
 		plugin->InitPreScript();
 		}
 
@@ -297,8 +319,18 @@ void Manager::InitPreScript()
 
 void Manager::InitBifs()
 	{
+	bif_init_func_map* bifs = BifFilesInternal();
+
 	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
-		(*i)->InitBifs();
+		{
+		bif_init_func_map::const_iterator b = bifs->find((*i)->Name());
+
+		if ( b != bifs->end() )
+			{
+			for ( bif_init_func_list::const_iterator j = b->second->begin(); j != b->second->end(); ++j )
+				(**j)(*i);
+			}
+		}
 	}
 
 void Manager::InitPostScript()
@@ -337,6 +369,16 @@ Manager::plugin_list* Manager::PluginsInternal()
 		plugins = new plugin_list;
 
 	return plugins;
+	}
+
+Manager::bif_init_func_map* Manager::BifFilesInternal()
+	{
+	static bif_init_func_map* bifs = 0;
+
+	if ( ! bifs )
+		bifs = new bif_init_func_map;
+
+	return bifs;
 	}
 
 static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)

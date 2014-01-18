@@ -9,7 +9,7 @@
 #include "analyzer/protocol/mime/MIME.h"
 #include "binpac_bro.h"
 #include "IPAddr.h"
-#include "events.bif.h"
+#include "analyzer/protocol/http/events.bif.h"
 
 #include "HTTP.h"
 

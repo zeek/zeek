@@ -20,12 +20,14 @@ namespace plugin {
 #define PLUGIN_HOOK_VOID(hook, method_call) \
 	if ( plugin_mgr->HavePluginForHook(plugin::hook) ) plugin_mgr->method_call;
 
+
 /**
  * A singleton object managing all plugins.
  */
 class Manager
 {
 public:
+	typedef void (*bif_init_func)(Plugin *);
 	typedef std::list<Plugin*> plugin_list;
 	typedef Plugin::component_list component_list;
 
@@ -218,7 +220,12 @@ public:
 	 * ownership, yet assumes the pointer will stay valid at least until
 	 * the Manager is destroyed.
 	 */
-	static bool RegisterPlugin(Plugin* plugin);
+	static void RegisterPlugin(Plugin* plugin);
+
+	/**
+	 * Internal method that registers a bif file's init function for a plugin.
+	 */
+	static void RegisterBifFile(const char* plugin, bif_init_func c);
 
 private:
 	bool ActivateDynamicPluginInternal(const std::string& name);
@@ -251,6 +258,14 @@ private:
 	// This is a static method so that plugins can register themselves
 	// even before the manager exists.
 	static plugin_list* PluginsInternal();
+
+	typedef std::list<bif_init_func> bif_init_func_list;
+	typedef std::map<std::string, bif_init_func_list*> bif_init_func_map;
+
+	// Returns a modifiable map of all bif files. This is a static method
+	// so that plugins can register their bifs even before the manager
+	// exists.
+	static bif_init_func_map* BifFilesInternal();
 };
 
 template<class T>
@@ -273,6 +288,17 @@ std::list<T *> Manager::Components() const
 
 	return result;
 	}
+
+/**
+ * Internal class used by bifcl-generated code to register its init functions at runtime.
+ */
+class __RegisterBif {
+public:
+	__RegisterBif(const char* plugin, Manager::bif_init_func init)
+		{
+		Manager::RegisterBifFile(plugin, init);
+		}
+};
 
 }
 

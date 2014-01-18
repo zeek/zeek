@@ -55,16 +55,7 @@ BifItem::~BifItem()
 
 Plugin::Plugin()
 	{
-	name = "<NAME-NOT-SET>";
-	description = "";
-
-	// These will be reset by the BRO_PLUGIN_* macros.
-	version = -9999;
-	api_version = -9999;
 	dynamic = false;
-	base_dir = "";
-	sopath = "";
-
 	Manager::RegisterPlugin(this);
 	}
 
@@ -73,39 +64,29 @@ Plugin::~Plugin()
 	Done();
 	}
 
-const std::string& Plugin::Name() const
+void Plugin::DoConfigure()
 	{
-	return name;
+	config = Configure();
 	}
 
-void Plugin::SetName(const std::string& arg_name)
+const std::string& Plugin::Name() const
 	{
-	name = arg_name;
+	return config.name;
 	}
 
 const std::string& Plugin::Description() const
 	{
-	return description;
+	return config.description;
 	}
 
-void Plugin::SetDescription(const std::string& arg_description)
+VersionNumber Plugin::Version() const
 	{
-	description = arg_description;
-	}
-
-int Plugin::Version() const
-	{
-	return dynamic ? version : 0;
-	}
-
-void Plugin::SetVersion(int arg_version)
-	{
-	version = arg_version;
+	return config.version;
 	}
 
 int Plugin::APIVersion() const
 	{
-	return api_version;
+	return config.api_version;
 	}
 
 bool Plugin::DynamicPlugin() const
@@ -123,20 +104,15 @@ const std::string& Plugin::PluginPath() const
 	return sopath;
 	}
 
-void Plugin::SetAPIVersion(int arg_version)
-	{
-	api_version = arg_version;
-	}
-
-void Plugin::SetDynamicPlugin(bool arg_dynamic)
-	{
-	dynamic = arg_dynamic;
-	}
-
 void Plugin::SetPluginLocation(const std::string& arg_dir, const std::string& arg_sopath)
 	{
 	base_dir = arg_dir;
 	sopath = arg_sopath;
+	}
+
+void Plugin::SetDynamic(bool is_dynamic)
+	{
+	dynamic = is_dynamic;
 	}
 
 void Plugin::InitPreScript()
@@ -145,12 +121,6 @@ void Plugin::InitPreScript()
 
 void Plugin::InitPostScript()
 	{
-	}
-
-void Plugin::InitBifs()
-	{
-	for ( bif_init_func_list::const_iterator f = bif_inits.begin(); f != bif_inits.end(); f++ )
-		(**f)(this);
 	}
 
 Plugin::bif_item_list Plugin::BifItems() const
@@ -191,11 +161,6 @@ bool Plugin::LoadBroFile(const std::string& file)
 	{
 	::add_input_file(file.c_str());
 	return true;
-	}
-
-void Plugin::__AddBifInitFunction(bif_init_func c)
-	{
-	bif_inits.push_back(c);
 	}
 
 void Plugin::AddBifItem(const std::string& name, BifItem::Type type)
@@ -254,24 +219,28 @@ void Plugin::HookUpdateNetworkTime(double network_time)
 void Plugin::Describe(ODesc* d) const
 	{
 	d->Add("Plugin: ");
-	d->Add(name);
+	d->Add(config.name);
 
-	if ( description.size() )
+	if ( config.description.size() )
 		{
 		d->Add(" - ");
-		d->Add(description);
+		d->Add(config.description);
 		}
 
 	if ( dynamic )
 		{
-		if ( version > 0 )
+		d->Add(" (dynamic, ");
+
+		if ( config.version )
 			{
-			d->Add(" (dynamic, version ");
-			d->Add(version);
+			d->Add("version ");
+			d->Add(config.version.major);
+			d->Add(".");
+			d->Add(config.version.minor);
 			d->Add(")");
 			}
 		else
-			d->Add(" (version not set)");
+			d->Add("no version information)");
 		}
 
 	else

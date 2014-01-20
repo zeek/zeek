@@ -1,0 +1,5 @@
+# @TEST-EXEC: bro -r $TRACES/tunnels/gre-sample.pcap
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff tunnel.log
+# @TEST-EXEC: btest-diff dns.log
+# @TEST-EXEC: btest-diff ssh.log

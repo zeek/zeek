@@ -20,6 +20,10 @@ Dependencies
 New Functionality
 -----------------
 
+- Support for GRE tunnel decapsulation, including enhanced GRE
+  headers. GRE tunnels are treated just like IP-in-IP tunnels by
+  parsing past the GRE header in between the delivery and payload IP
+  packets.
 
 Changed Functionality
 ---------------------

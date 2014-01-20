@@ -1,4 +1,13 @@
 
+2.2-105 | 2014-01-20 12:16:48 -0800
+
+  * Support GRE tunnel decapsulation, including enhanced GRE headers.
+    GRE tunnels are treated just like IP-in-IP tunnels by parsing past
+    the GRE header in between the delivery and payload IP packets.
+    Addresses BIT-867. (Jon Siwek)
+
+  * Simplify FragReassembler memory management. (Jon Siwek)
+    
 2.2-102 | 2014-01-20 12:00:29 -0800
 
   * Include file information (MIME type and description) into notice

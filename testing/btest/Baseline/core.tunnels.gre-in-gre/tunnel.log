@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	tunnel
+#open	2014-01-16-21-51-36
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
+#types	time	string	addr	port	addr	port	enum	enum
+1341436424.204043	CXWv6p3arKYeMETxOg	72.205.54.70	0	86.106.164.150	0	Tunnel::IP	Tunnel::DISCOVER
+1341436424.204043	CjhGID4nQcgTWjvg4c	10.10.11.2	0	10.10.13.2	0	Tunnel::IP	Tunnel::DISCOVER
+#close	2014-01-16-21-51-36

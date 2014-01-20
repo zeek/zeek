@@ -1,4 +1,8 @@
 
+2.2-100 | 2014-01-20 11:54:58 -0800
+
+  * Fix caching of recently validated SSL certifcates. (Justin Azoff)
+    
 2.2-98 | 2014-01-20 11:50:32 -0800
 
   * For notice suppresion, instead of storing the entire notice in

@@ -30,6 +30,8 @@ Changed Functionality
 - ssl_client_hello() now receives a vector of ciphers, instead of a
   set, to preserve their order.
 
+- Notice::end_suppression() has been removed.
+
 Bro 2.2
 =======
 

@@ -1,4 +1,11 @@
 
+2.2-98 | 2014-01-20 11:50:32 -0800
+
+  * For notice suppresion, instead of storing the entire notice in
+    Notice::suppressing, just store the time the notice should be
+    suppressed until. This saves significant memory but can no longer
+    raise end_suppression, which has been removed. (Justin Azoff)
+
 2.2-96 | 2014-01-20 11:41:07 -0800
 
   * Integrate libmagic 5.16. Bro now now always relies on

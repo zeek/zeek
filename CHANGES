@@ -1,4 +1,12 @@
 
+2.2-96 | 2014-01-20 11:41:07 -0800
+
+  * Integrate libmagic 5.16. Bro now now always relies on
+    builtin/shipped magic library/database. (Jon Siwek)
+
+  * Bro now requires a CMake 2.8.x, but no longer a pre-installed
+    libmagic. (Jon Siwek)
+
 2.2-93 | 2014-01-13 09:16:51 -0800
 
   * Fixing compile problems with some versions of libc++. Reported by

@@ -11,7 +11,7 @@ source: HTTP
 FILE_NEW
 file #1, 0, 0
 MIME_TYPE
-application/octet-stream
+binary
 FILE_OVER_NEW_CONNECTION
 FILE_TIMEOUT
 FILE_TIMEOUT

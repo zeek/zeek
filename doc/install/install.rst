@@ -29,14 +29,13 @@ before you begin:
     * Libpcap                           (http://www.tcpdump.org)
     * OpenSSL libraries                 (http://www.openssl.org)
     * BIND8 library
-    * Libmagic 5.04 or greater
     * Libz
     * Bash (for BroControl)
     * Python (for BroControl)
 
 To build Bro from source, the following additional dependencies are required:
 
-    * CMake 2.6.3 or greater            (http://www.cmake.org)
+    * CMake 2.8.0 or greater            (http://www.cmake.org)
     * Make
     * C/C++ compiler
     * SWIG                              (http://www.swig.org)
@@ -44,7 +43,6 @@ To build Bro from source, the following additional dependencies are required:
     * Flex  (Fast Lexical Analyzer)
     * Libpcap headers                   (http://www.tcpdump.org)
     * OpenSSL headers                   (http://www.openssl.org)
-    * libmagic headers
     * zlib headers
     * Perl
 
@@ -55,13 +53,13 @@ that ``bash`` and ``python`` are in your ``PATH``):
 
   .. console::
 
-     sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel file-devel
+     sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel
 
 * DEB/Debian-based Linux:
 
   .. console::
 
-     sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev libmagic-dev
+     sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 
 * FreeBSD:
 
@@ -78,15 +76,11 @@ that ``bash`` and ``python`` are in your ``PATH``):
   then going through its "Preferences..." -> "Downloads" menus to
   install the "Command Line Tools" component.
 
-  Lion (10.7) and Mountain Lion (10.8) come with all required
-  dependencies except for CMake_, SWIG_, and ``libmagic``.
-
+  OS X comes with all required dependencies except for CMake_ and SWIG_.
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
-  or Homebrew_).
-
-  Specifically for MacPorts, the ``cmake``, ``swig``,
-  ``swig-python`` and ``file`` packages provide the required dependencies.
+  or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
+  ``swig-python`` and packages provide the required dependencies.
 
 
 Optional Dependencies

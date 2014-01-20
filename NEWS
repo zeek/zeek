@@ -9,6 +9,14 @@ Bro 2.3
 
 [In progress]
 
+Dependencies
+------------
+
+- Bro no longer requires a pre-installed libmagic (because it now
+  ships its own).
+
+- Compiling from source now needs a CMake version >= 2.8.0.
+
 New Functionality
 -----------------
 

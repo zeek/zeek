@@ -1,4 +1,9 @@
 
+2.2-102 | 2014-01-20 12:00:29 -0800
+
+  * Include file information (MIME type and description) into notice
+    emails if available. (Justin Azoff)
+
 2.2-100 | 2014-01-20 11:54:58 -0800
 
   * Fix caching of recently validated SSL certifcates. (Justin Azoff)

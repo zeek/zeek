@@ -1,19 +1,9 @@
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/http/main.bro.html#type-HTTP::Info
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/ftp/info.bro.html#type-FTP::Info
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/ssl/main.bro.html#type-SSL::Info
-__ http://www.bro.org/sphinx-git/scripts/policy/protocols/ssl/known-certs.bro.html#type-Known::CertsInfo
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/smtp/main.bro.html#type-SMTP::Info
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/dns/main.bro.html#type-DNS::Info
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/conn/main.bro.html#type-Conn::Info
-__ http://www.bro.org/sphinx-git/scripts/base/frameworks/dpd/main.bro.html#type-DPD::Info
-__ http://www.bro.org/sphinx-git/scripts/base/frameworks/files/main.bro.html#type-Files::Info
-__ http://www.bro.org/sphinx-git/scripts/base/frameworks/notice/weird.bro.html#type-Weird::Info
 
-.. _using-bro:
+.. _bro-logging:
 
-=========
-Using Bro
-=========
+===========
+Bro Logging
+===========
 
 .. contents::
 

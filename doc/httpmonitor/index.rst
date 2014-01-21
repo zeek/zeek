@@ -1,5 +1,3 @@
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/http/main.bro.html
-__ http://www.bro.org/sphinx-git/frameworks/file-analysis.html
 
 .. _http-monitor:
 
@@ -43,7 +41,8 @@ point, we would like to stress out the fact that there is no just one right way 
 depend on the expertise of the person doing the analysis and the specific details of the task to accomplish.
 
 For more information about how to handle the HTTP protocol in Bro, including a complete list 
-of the fields available in http.log, go to Bro's HTTP reference `page`__.
+of the fields available in http.log, go to Bro's
+:doc:`HTTP script reference </scripts/base/protocols/http/main.bro>`.
 
 ------------------------
 Detecting a Proxy Server
@@ -219,8 +218,9 @@ Inspecting Files
 
 Files are often transmitted on regular HTTP conversations between a client and a server. Most of the time these files are harmless, 
 just images and some other multimedia content, but there are also types of files, specially executable files, that can damage
-your system. We can instruct Bro to create a copy of all executable files that it sees for later analysis using the `File Analysis
-Framework`__ (introduced with Bro 2.2) as shown in the following script.
+your system. We can instruct Bro to create a copy of all executable files that it sees for later analysis using the
+:ref:`File Analysis Framework <file-analysis-framework>`
+(introduced with Bro 2.2) as shown in the following script.
 
     .. code:: bro
 

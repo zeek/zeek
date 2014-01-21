@@ -1,8 +1,3 @@
-__ http://www.bro.org/sphinx-git/scripts/base/protocols/ftp/main.bro.html#id-FTP::parse_ftp_reply_code
-__ http://www.bro.org/sphinx-git/frameworks/sumstats.html
-__ http://www.bro.org/sphinx-git/frameworks/notice.html
-__ http://www.bro.org/sphinx-git/_downloads/detect-bruteforcing.bro
-__ http://www.bro.org/sphinx-git/scripts/policy/frameworks/files/detect-MHR.bro.html
 
 .. _bro-ids:
 
@@ -34,7 +29,8 @@ We start by defining a threshold for the number of attempts and a monitoring int
 		const bruteforce_measurement_interval = 15mins &redef;
 	}
 
-Now, using the ftp_reply event, we check for error codes from the `500 series <http://en.wikipedia.org/wiki/List_of_FTP_server_return_codes>`_ for the "USER" and "PASS" commands, representing rejected usernames or passwords. For this, we can use the `FTP::parse_ftp_reply`__ function to break down the reply code and check if the first digit is a "5" or not. If true, we then use the `SumStats`__ framework to keep track of the number of failed attempts.
+Now, using the ftp_reply event, we check for error codes from the `500 series <http://en.wikipedia.org/wiki/List_of_FTP_server_return_codes>`_ for the "USER" and "PASS" commands, representing rejected usernames or passwords. For this, we can use the :bro:see:`FTP::parse_ftp_reply_code` function to break down the reply code and check if the first digit is a "5" or not. If true, we then use the
+:ref:`Summary Statistics Framework <sumstats-framework>` to keep track of the number of failed attempts.
 
   .. code:: bro
 
@@ -73,7 +69,7 @@ exceeds the specified threshold during the measuring interval.
 			          	}]);
 		}
 
-Printing a message on the console is a good start but it will be better if we raise an alarm instead using the `Notice`__ framework. For this, we need to define a new Notice type and trigger the alarm under the right
+Printing a message on the console is a good start but it will be better if we raise an alarm instead using the :ref:`Notice Framework <notice-framework>`. For this, we need to define a new Notice type and trigger the alarm under the right
 conditions. Below is the final code for our script.
 
   .. code:: bro
@@ -139,7 +135,7 @@ conditions. Below is the final code for our script.
 			}
 		}
 
-As a final note, the `detect-bruteforcing.bro`__ script above is include with Bro out of the box, so you only need to load it at startup to instruct Bro to detect and notify of FTP bruteforce attacks.
+As a final note, the :doc:`detect-bruteforcing.bro </scripts/policy/protocols/ftp/detect-bruteforcing.bro>` script above is include with Bro out of the box, so you only need to load it at startup to instruct Bro to detect and notify of FTP bruteforce attacks.
 
 -------------
 Other Attacks
@@ -150,6 +146,6 @@ Checking files against known malware hashes
 -------------------------------------------
 Files transmitted on your network could either be completely harmless or contain viruses and other threats. One possible action against
 this threat is to compute the hashes of the files and compare them against a list of known malware hashes. Bro simplifies this task
-by offering a `detect-MHR.bro`__ script that creates and compares
+by offering a :doc:`detect-MHR.bro </scripts/policy/frameworks/files/detect-MHR.bro>` script that creates and compares
 hashes against the `Malware Hash Registry <https://www.team-cymru.org/Services/MHR/>`_ maintained by Team Cymru. You only need to load this 
 script along with your other scripts at startup time.

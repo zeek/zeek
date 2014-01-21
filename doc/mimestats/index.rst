@@ -1,4 +1,3 @@
-__ http://www.bro.org/sphinx-git/frameworks/sumstats.html
 
 .. _mime-stats:
 
@@ -12,17 +11,17 @@ non-text attachments on email, it is also used by Web browser to identify the ty
 
 In this tutorial, we will show how to use the Sumstats Framework to collect some statistics information based on MIME types, specifically the total number of 
 occurrences, size in bytes, and number of unique hosts transmitting files over HTTP per each type. For instructions about extracting and creating a local copy 
-of these files, visit `this <../httpmonitor/index.html#inspecting-files>`_ tutorial instead.
+of these files, visit :ref:`this <http-monitor>` tutorial instead.
 
 ------------------------------------------------
 MIME Statistics with Sumstats
 ------------------------------------------------
-When working with the `Sumstats`__ framework, you need to define three different pieces: (i) Observations, where 
+When working with the :ref:`Summary Statistics Framework <sumstats-framework>`, you need to define three different pieces: (i) Observations, where 
 the event is observed and fed into the framework. (ii) Reducers, where observations are collected and measured. (iii) Sumstats, where the main functionality 
 is implemented.
 
 So, we start by defining our observation along with a record to store all statistics values and an observation interval. We are conducting our observation on 
-the `HTTP::log_http` event and we are interested in the MIME type, size of the file ("response_body_len") and the originator host ("orig_h"). We use the MIME 
+the :bro:see:`HTTP::log_http` event and we are interested in the MIME type, size of the file ("response_body_len") and the originator host ("orig_h"). We use the MIME 
 type as our key and create observers for the other two values.
 
   .. code:: bro

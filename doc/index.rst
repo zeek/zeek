@@ -44,8 +44,6 @@ Reference Section
 
 ..
 
-* `Notice Index <bro-noticeindex.html>`_ (TODO: Move to reference
-  section, but can't figure out how to include it into toctree)
 * :ref:`General Index <genindex>`
 * :ref:`search`
 

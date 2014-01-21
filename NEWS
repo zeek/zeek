@@ -9,9 +9,21 @@ Bro 2.3
 
 [In progress]
 
+Dependencies
+------------
+
+- Bro no longer requires a pre-installed libmagic (because it now
+  ships its own).
+
+- Compiling from source now needs a CMake version >= 2.8.0.
+
 New Functionality
 -----------------
 
+- Support for GRE tunnel decapsulation, including enhanced GRE
+  headers. GRE tunnels are treated just like IP-in-IP tunnels by
+  parsing past the GRE header in between the delivery and payload IP
+  packets.
 
 Changed Functionality
 ---------------------
@@ -21,6 +33,8 @@ Changed Functionality
 
 - ssl_client_hello() now receives a vector of ciphers, instead of a
   set, to preserve their order.
+
+- Notice::end_suppression() has been removed.
 
 Bro 2.2
 =======

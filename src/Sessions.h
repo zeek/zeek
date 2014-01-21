@@ -286,6 +286,21 @@ protected:
 	NetSessions::IPPair tunnel_idx;
 };
 
+
+class FragReassemblerTracker {
+public:
+	FragReassemblerTracker(NetSessions* s, FragReassembler* f)
+		: net_sessions(s), frag_reassembler(f)
+		{ }
+
+	~FragReassemblerTracker()
+		{ net_sessions->Remove(frag_reassembler); }
+
+private:
+	NetSessions* net_sessions;
+	FragReassembler* frag_reassembler;
+};
+
 // Manager for the currently active sessions.
 extern NetSessions* sessions;
 

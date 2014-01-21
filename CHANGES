@@ -1,4 +1,37 @@
 
+2.2-105 | 2014-01-20 12:16:48 -0800
+
+  * Support GRE tunnel decapsulation, including enhanced GRE headers.
+    GRE tunnels are treated just like IP-in-IP tunnels by parsing past
+    the GRE header in between the delivery and payload IP packets.
+    Addresses BIT-867. (Jon Siwek)
+
+  * Simplify FragReassembler memory management. (Jon Siwek)
+    
+2.2-102 | 2014-01-20 12:00:29 -0800
+
+  * Include file information (MIME type and description) into notice
+    emails if available. (Justin Azoff)
+
+2.2-100 | 2014-01-20 11:54:58 -0800
+
+  * Fix caching of recently validated SSL certifcates. (Justin Azoff)
+    
+2.2-98 | 2014-01-20 11:50:32 -0800
+
+  * For notice suppresion, instead of storing the entire notice in
+    Notice::suppressing, just store the time the notice should be
+    suppressed until. This saves significant memory but can no longer
+    raise end_suppression, which has been removed. (Justin Azoff)
+
+2.2-96 | 2014-01-20 11:41:07 -0800
+
+  * Integrate libmagic 5.16. Bro now now always relies on
+    builtin/shipped magic library/database. (Jon Siwek)
+
+  * Bro now requires a CMake 2.8.x, but no longer a pre-installed
+    libmagic. (Jon Siwek)
+
 2.2-93 | 2014-01-13 09:16:51 -0800
 
   * Fixing compile problems with some versions of libc++. Reported by

@@ -85,79 +85,37 @@ use this to identify a proxy server.
 We can write a basic script in Bro to handle the http_reply event and
 detect a reply for a ``GET http://`` request.
 
-  .. code:: bro
+.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_01.bro
 
-	event http_reply(c: connection, version: string, code: count, reason: string)
-		{
-			if ( /^[hH][tT][tT][pP]:/ in c$http$uri && c$http$status_code == 200 )
-		                {			
-				print fmt("A local server is acting as an open proxy: ", c$id$resp_h);
-		                }
-		}
+.. btest:: http_proxy_01
+
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_01.bro
 
 Basically, the script is checking for a "200 OK" status code on a reply
-for a request that includes "http:". In reality, the HTTP protocol
-defines several success status codes other than 200, so we will extend
-our basic script to also consider the additional codes.
+for a request that includes "http:" (case insensitive). In reality, the
+HTTP protocol defines several success status codes other than 200, so we
+will extend our basic script to also consider the additional codes.
 
-  .. code:: bro
+.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_02.bro
 
-	export {
+.. btest:: http_proxy_02
 
-		global success_status_codes: set[count] = {
-		        200,
-		        201,
-		        202,
-		        203,
-		        204,
-		        205,
-		        206,
-		        207,
-		        208,
-		        226,
-			304
-		        };
-
-	}
-
-	event http_reply(c: connection, version: string, code: count, reason: string)
-		{
-			if ( /^[hH][tT][tT][pP]:/ in c$http$uri && c$http$status_code in success_status_codes )
-		                {			
-				print fmt("A local server is acting as an open proxy: ", c$id$resp_h);
-		                }
-		}
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_02.bro
 
 Next, we will make sure that the responding proxy is part of our local
 network.
 
-  .. code:: bro
+.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_03.bro
 
-	export {
+.. btest:: http_proxy_03
 
-		global success_status_codes: set[count] = {
-		        200,
-		        201,
-		        202,
-		        203,
-		        204,
-		        205,
-		        206,
-		        207,
-		        208,
-		        226,
-			304
-		        };
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_03.bro
 
-	}
+.. note::
 
-	event http_reply(c: connection, version: string, code: count, reason: string)
-		{
-			if ( Site::is_local_addr(c$id$resp_h) && /^[hH][tT][tT][pP]:/ in c$http$uri && c$http$status_code in success_status_codes )
-		                {			
-				print fmt("A local server is acting as an open proxy: ", c$id$resp_h);
-		                }
-		}
+    The redefinition of :bro:see:`Site::local_nets` is only done inside
+    this script to make it a self-contained example.  It's typically
+    redefined somewhere else.
 
 Finally, our goal should be to generate an alert when a proxy has been
 detected instead of printing a message on the console output.  For that,
@@ -166,71 +124,18 @@ we will tag the traffic accordingly and define a new ``Open_Proxy``
 notification has been fired, we will further suppress it for one day.
 Below is the complete script.
 
-  .. code:: bro
+.. btest-include:: ${DOC_ROOT}/httpmonitor/http_proxy_04.bro
 
-	@load base/frameworks/notice
+.. btest:: http_proxy_04
 
-	module HTTP;
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_04.bro
+    @TEST-EXEC: btest-rst-include notice.log
 
-	export {
-
-		redef enum HTTP::Tags += {
-		        OPEN_PROXY_TAG
-		};
-		redef enum Notice::Type += {
-		       Open_Proxy
-		};
-
-		global success_status_codes: set[count] = {
-		        200,
-		        201,
-		        202,
-		        203,
-		        204,
-		        205,
-		        206,
-		        207,
-		        208,
-		        226,
-			304
-		        };
-
-	}
-
-	redef Notice::emailed_types += {
-		Open_Proxy,
-	};
-
-	function open_proxy_only(rec: HTTP::Info) : bool
-		{
-		# Only write out connections with the OPEN_PROXY_TAG.
-		return OPEN_PROXY_TAG in rec$tags;
-		}
-
-	event http_reply(c: connection, version: string, code: count, reason: string)
-		{
-		        # make sure responding host is local
-		        #if ( Site::is_local_addr(c$id$resp_h) && /^[hH][tT][tT][pP]:/ in c$http$uri && c$http$status_code in success_status_codes )
-		                {			
-		                add c$http$tags[OPEN_PROXY_TAG];
-				local ident = cat(c$id$resp_h);
-		                if ( c$http?$host ) #check if the optional host field exists in http
-					{
-					print fmt("Originator host: %s", c$id$orig_h);
-		                        NOTICE([$note=HTTP::Open_Proxy,
-		                                $msg=cat("A local server is acting as an open proxy: ", c$id$resp_h),
-		                                $conn=c, $identifier=cat(ident, c$id$resp_h),
-		                                $suppress_for=1day]);
-					}
-		                }
-		}
-
-	event bro_init()
-		{
-		#Creating a new filter for all open proxy logs.
-		local filter: Log::Filter = [$name="open_proxy", $path="open_proxy", $pred=open_proxy_only];
-		Log::add_filter(HTTP::LOG, filter);
-		}
+Note that this script only logs the presence of the proxy to
+``notice.log``, but if an additional email is desired (and email
+functionality is enabled), then that's done simply by redefining
+:bro:see:`Notice::emailed_types` to add the ``Open_proxy`` notice type
+to it.
 
 ----------------
 Inspecting Files
@@ -240,43 +145,19 @@ Files are often transmitted on regular HTTP conversations between a
 client and a server. Most of the time these files are harmless, just
 images and some other multimedia content, but there are also types of
 files, specially executable files, that can damage your system. We can
-instruct Bro to create a copy of all executable files that it sees for
-later analysis using the :ref:`File Analysis Framework
-<file-analysis-framework>` (introduced with Bro 2.2) as shown in the
-following script.
+instruct Bro to create a copy of all files of certain types that it sees
+using the :ref:`File Analysis Framework <file-analysis-framework>`
+(introduced with Bro 2.2):
 
-    .. code:: bro
+.. btest-include:: ${DOC_ROOT}/httpmonitor/file_extraction.bro
 
-        global ext_map: table[string] of string = {
-            ["application/x-dosexec"] = "exe",
-        } &default ="";
+.. btest:: file_extraction
 
-        event file_new(f: fa_file)
-            {
-            local ext = "";
+    @TEST-EXEC: btest-rst-cmd -n 5 bro -r ${TRACES}/http/bro.org.pcap ${DOC_ROOT}/httpmonitor/file_extraction.bro
 
-            if ( f?$mime_type )
-                ext = ext_map[f$mime_type];
-
-            local fname = fmt("%s-%s.%s", f$source, f$id, ext);
-            Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename=fname]);
-            }
-
-Bro will extract all files from the traffic and write them on a new
-``extract_files/`` subdirectory and change the file name with the right
-suffix (extension) based on the content of the ext_map table. So, if you
-want to do the same for other extracted files besides executables you
-just need to add those types to the ``ext_map`` table like this.
-
-    .. code:: bro
-
-        global ext_map: table[string] of string = {
-            ["application/x-dosexec"] = "exe",
-            ["text/plain"] = "txt",
-            ["image/jpeg"] = "jpg",
-            ["image/png"] = "png",
-            ["text/html"] = "html",
-        } &default ="";
-
-Bro will now write the appropriate suffix for text, JPEG, PNG, and HTML
-files stored in the ``extract_files/`` subdirectory.
+Here, the ``mime_to_ext`` table serves two purposes.  It defines which
+mime types to extract and also the file suffix of the extracted files.
+Extracted files are written to a new ``extract_files`` subdirectory.
+Also note that the first conditional in the :bro:see:`file_new` event
+handler can be removed to make this behavior generic to other protocols
+besides HTTP.

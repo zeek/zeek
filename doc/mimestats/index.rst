@@ -37,125 +37,35 @@ in the MIME type, size of the file ("response_body_len") and the
 originator host ("orig_h"). We use the MIME type as our key and create
 observers for the other two values.
 
-  .. code:: bro
-
-	export {
-	    redef enum Log::ID += { LOG };
-		type Info: record {
-		        ## Timestamp when the log line was finished and written.
-		        ts:         time   &log;
-		        ## Time interval that the log line covers.
-		        ts_delta:   interval &log;
-		        ## The mime type
-		        mtype:        string &log;
-		        ## The number of unique local hosts that fetched this mime type
-		        uniq_hosts: count  &log;
-		        ## The number of hits to the mime type 
-		        hits:       count  &log;
-		        ## The total number of bytes received by this mime type
-		        bytes:      count  &log;
-		};
-
-		## The frequency of logging the stats collected by this script.
-		const break_interval = 5mins &redef;
-	}
-
-	event HTTP::log_http(rec: HTTP::Info)
-	{
-	    if(Site::is_local_addr(rec$id$orig_h) && rec?$resp_mime_types) {
-		local mime_type = rec$resp_mime_types[0];
-		SumStats::observe("mime.bytes", [$str=mime_type], [$num=rec$response_body_len]);
-		SumStats::observe("mime.hits",  [$str=mime_type], [$str=cat(rec$id$orig_h)]);
-	    }
-	}
+.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
+    :lines: 6-29, 54-64
 
 Next, we create the reducers. The first one will accumulate file sizes
 and the second one will make sure we only store a host ID once. Below is
-the partial code.
+the partial code from a :bro:see:`bro_init` handler.
 
-  .. code:: bro
-
-        local r1: SumStats::Reducer = [$stream="mime.bytes", $apply=set(SumStats::SUM)];
-        local r2: SumStats::Reducer = [$stream="mime.hits",  $apply=set(SumStats::UNIQUE)];
+.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
+    :lines: 34-37
 
 In our final step, we create the SumStats where we check for the
 observation interval and once it expires, we populate the record
 (defined above) with all the relevant data and write it to a log.
 
-  .. code:: bro
-
-        SumStats::create([$name="mime-metrics",
-                          $epoch=break_interval,
-                          $reducers=set(r1, r2),
-                          $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
-                                {
-                                local l: Info;
-                                l$ts         = network_time();
-                                l$ts_delta   = break_interval;
-                                l$mtype      = key$str;
-                                l$bytes      = double_to_count(floor(result["mime.bytes"]$sum));
-                                l$hits       = result["mime.hits"]$num;
-                                l$uniq_hosts = result["mime.hits"]$unique;
-                                Log::write(LOG, l);
-                                }]);
+.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
+    :lines: 38-51
 
 Putting everything together we end up with the following final code for
 our script.
 
-  .. code:: bro
+.. btest-include:: ${DOC_ROOT}/mimestats/mimestats.bro
 
-	@load base/frameworks/sumstats
+.. btest:: mimestats
 
-	module MimeMetrics;
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/bro.org.pcap ${DOC_ROOT}/mimestats/mimestats.bro
+    @TEST-EXEC: btest-rst-include mime_metrics.log
 
-	export {
-	    redef enum Log::ID += { LOG };
-		type Info: record {
-		        ## Timestamp when the log line was finished and written.
-		        ts:         time   &log;
-		        ## Time interval that the log line covers.
-		        ts_delta:   interval &log;
-		        ## The mime type
-		        mtype:        string &log;
-		        ## The number of unique local hosts that fetched this mime type
-		        uniq_hosts: count  &log;
-		        ## The number of hits to the mime type 
-		        hits:       count  &log;
-		        ## The total number of bytes received by this mime type
-		        bytes:      count  &log;
-		};
+.. note::
 
-		## The frequency of logging the stats collected by this script.
-		const break_interval = 5mins &redef;
-	}
-
-	event bro_init() &priority=3
-	{
-	    Log::create_stream(MimeMetrics::LOG, [$columns=Info]);
-		local r1: SumStats::Reducer = [$stream="mime.bytes", $apply=set(SumStats::SUM)];
-		local r2: SumStats::Reducer = [$stream="mime.hits",  $apply=set(SumStats::UNIQUE)];
-		SumStats::create([$name="mime-metrics",
-		                  $epoch=break_interval,
-		                  $reducers=set(r1, r2),
-		                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
-		                        {
-		                        local l: Info;
-		                        l$ts         = network_time();
-		                        l$ts_delta   = break_interval;
-		                        l$mtype      = key$str;
-		                        l$bytes      = double_to_count(floor(result["mime.bytes"]$sum));
-		                        l$hits       = result["mime.hits"]$num;
-		                        l$uniq_hosts = result["mime.hits"]$unique;
-		                        Log::write(LOG, l);
-		                        }]);
-	}
-
-	event HTTP::log_http(rec: HTTP::Info)
-	{
-	    if(Site::is_local_addr(rec$id$orig_h) && rec?$resp_mime_types) {
-		local mime_type = rec$resp_mime_types[0];
-		SumStats::observe("mime.bytes", [$str=mime_type], [$num=rec$response_body_len]);
-		SumStats::observe("mime.hits",  [$str=mime_type], [$str=cat(rec$id$orig_h)]);
-	    }
-	}
-
+    The redefinition of :bro:see:`Site::local_nets` is only done inside
+    this script to make it a self-contained example.  It's typically
+    redefined somewhere else.

@@ -5,24 +5,37 @@
 MIME Type Statistics
 ====================
 
-Files are constantly transmitted over HTTP on regular networks. These files belong to a specific category (i.e., executable, text, image, etc.) identified 
-by a `Multipurpose Internet Mail Extension (MIME) <http://en.wikipedia.org/wiki/MIME>`_. Although MIME was originally developed to identify the type of 
-non-text attachments on email, it is also used by Web browser to identify the type of files transmitted and present them accordingly.
+Files are constantly transmitted over HTTP on regular networks. These
+files belong to a specific category (i.e., executable, text, image,
+etc.) identified by a `Multipurpose Internet Mail Extension (MIME)
+<http://en.wikipedia.org/wiki/MIME>`_. Although MIME was originally
+developed to identify the type of non-text attachments on email, it is
+also used by Web browser to identify the type of files transmitted and
+present them accordingly.
 
-In this tutorial, we will show how to use the Sumstats Framework to collect some statistics information based on MIME types, specifically the total number of 
-occurrences, size in bytes, and number of unique hosts transmitting files over HTTP per each type. For instructions about extracting and creating a local copy 
-of these files, visit :ref:`this <http-monitor>` tutorial instead.
+In this tutorial, we will show how to use the Sumstats Framework to
+collect some statistics information based on MIME types, specifically
+the total number of occurrences, size in bytes, and number of unique
+hosts transmitting files over HTTP per each type. For instructions about
+extracting and creating a local copy of these files, visit :ref:`this
+<http-monitor>` tutorial instead.
 
 ------------------------------------------------
 MIME Statistics with Sumstats
 ------------------------------------------------
-When working with the :ref:`Summary Statistics Framework <sumstats-framework>`, you need to define three different pieces: (i) Observations, where 
-the event is observed and fed into the framework. (ii) Reducers, where observations are collected and measured. (iii) Sumstats, where the main functionality 
-is implemented.
 
-So, we start by defining our observation along with a record to store all statistics values and an observation interval. We are conducting our observation on 
-the :bro:see:`HTTP::log_http` event and we are interested in the MIME type, size of the file ("response_body_len") and the originator host ("orig_h"). We use the MIME 
-type as our key and create observers for the other two values.
+When working with the :ref:`Summary Statistics Framework
+<sumstats-framework>`, you need to define three different pieces: (i)
+Observations, where the event is observed and fed into the framework.
+(ii) Reducers, where observations are collected and measured. (iii)
+Sumstats, where the main functionality is implemented.
+
+So, we start by defining our observation along with a record to store
+all statistics values and an observation interval. We are conducting our
+observation on the :bro:see:`HTTP::log_http` event and we are interested
+in the MIME type, size of the file ("response_body_len") and the
+originator host ("orig_h"). We use the MIME type as our key and create
+observers for the other two values.
 
   .. code:: bro
 
@@ -56,15 +69,18 @@ type as our key and create observers for the other two values.
 	    }
 	}
 
-Next, we create the reducers. The first one will accumulate file sizes and the second one will make sure we only store a host ID once. Below is the partial code.
+Next, we create the reducers. The first one will accumulate file sizes
+and the second one will make sure we only store a host ID once. Below is
+the partial code.
 
   .. code:: bro
 
         local r1: SumStats::Reducer = [$stream="mime.bytes", $apply=set(SumStats::SUM)];
         local r2: SumStats::Reducer = [$stream="mime.hits",  $apply=set(SumStats::UNIQUE)];
 
-In our final step, we create the SumStats where we check for the observation interval and once it expires, we populate the record (defined above) with all the 
-relevant data and write it to a log.
+In our final step, we create the SumStats where we check for the
+observation interval and once it expires, we populate the record
+(defined above) with all the relevant data and write it to a log.
 
   .. code:: bro
 
@@ -83,7 +99,8 @@ relevant data and write it to a log.
                                 Log::write(LOG, l);
                                 }]);
 
-Putting everything together we end up with the following final code for our script.
+Putting everything together we end up with the following final code for
+our script.
 
   .. code:: bro
 

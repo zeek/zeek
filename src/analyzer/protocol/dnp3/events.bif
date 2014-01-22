@@ -95,68 +95,13 @@ event dnp3_doublein_eveatime%(c: connection, is_orig: bool, flag: count, time48:
 ## Double bit Input Event with relative time
 event dnp3_doublein_evertime%(c: connection, is_orig: bool, flag: count, time16: count%);
 
-
+## Generated for DNP3 objects with the group number 11 and variation number 2
+## Binary output event with time
 event dnp3_binout_eveatime%(c: connection, is_orig: bool, flag: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 4 and variation number 3
+## Double bit Input Event with relative time
 event dnp3_binoutcmd_eveatime%(c: connection, is_orig: bool, flag: count, time48: string%);
-event dnp3_counterEve_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
-event dnp3_counterEve_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
-event dnp3_counterEve_32wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
-event dnp3_counterEve_16wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
-event dnp3_frozenCounterEve_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
-event dnp3_frozenCounterEve_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
-event dnp3_frozenCounterEve_32wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
-event dnp3_frozenCounterEve_16wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
-event dnp3_analog_output_status32%(c: connection, is_orig: bool, flag: count, status: count%);
-event dnp3_analog_output_status16%(c: connection, is_orig: bool, flag: count, status: count%);
-event dnp3_analog_output_statusSP%(c: connection, is_orig: bool, flag: count, status: count%);
-event dnp3_analog_output_statusDP%(c: connection, is_orig: bool, flag: count, status_low: count, status_high: count%);
-event dnp3_analog_output32%(c: connection, is_orig: bool, value: count, con_status: count%);
-event dnp3_analog_output16%(c: connection, is_orig: bool, value: count, con_status: count%);
-event dnp3_analog_outputSP%(c: connection, is_orig: bool, value: count, con_status: count%);
-event dnp3_analog_outputDP%(c: connection, is_orig: bool, value_low: count, value_high: count, con_status: count%);
-event dnp3_analog_output_event_32woTime%(c: connection, is_orig: bool, flag: count, value: count%);
-event dnp3_analog_output_event_16woTime%(c: connection, is_orig: bool, flag: count, value: count%);
-event dnp3_analog_output_event_32wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
-event dnp3_analog_output_event_16wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
-event dnp3_analog_output_event_SPwoTime%(c: connection, is_orig: bool, flag: count, value: count%);
-event dnp3_analog_output_event_DPwoTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
-event dnp3_analog_output_event_SPwTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
-event dnp3_analog_output_event_DPwTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
-event dnp3_abs_time%(c: connection, is_orig: bool, time48: string%);
-event dnp3_abs_time_interval%(c: connection, is_orig: bool, time48: string, interval32: count%);
-event dnp3_last_abs_time%(c: connection, is_orig: bool, time48: string%);
-event dnp3_record_obj%(c: connection, is_orig: bool, record_size: count, record_oct: string%);
-event dnp3_file_control_id%(c: connection, is_orig: bool, name_size: count, type_code: count, attr_code: count, start_rec: count, end_rec: count, file_size: count, time_create: string, permission: count, file_id: count, owner_id: count, group_id: count, function_code: count, status_code: count, file_name: string%);
-event dnp3_file_control_auth%(c: connection, is_orig: bool, usr_name_offset: count, usr_name_size: count, pwd_offset: count, pwd_size: count, auth_key: count, usr_name: string, pwd: string%);
-event dnp3_file_control_cmd%(c: connection, is_orig: bool, name_offset: count, name_size: count, time_create: string, 
-		permission: count, auth_key: count, file_size: count, op_mode: count, max_block_size: count, 
-		req_id: count, file_name: string%);
-event dnp3_file_control_cmd_status%(c: connection, is_orig: bool, file_handle: count, file_size: count, 
-		max_block_size: count, req_id: count, status_code: count, opt_text: string%);
-event dnp3_file_transport_status%(c: connection, is_orig:bool,  file_handle: count, block_num: count, status: count, opt_text: string%);
-event dnp3_file_desc%(c: connection, is_orig:bool, name_offset: count, name_size: count, f_type: count, f_size: count, 
-		time_create_low: count, time_create_high: count, permission: count, req_id: count, f_name: string%);
-event dnp3_file_spec_str%(c: connection, is_orig:bool, f_spec: string%); 
-event dnp3_dev_store%(c: connection, is_orig:bool, overflow: count, obj_group: count, variation: count%); 
-event dnp3_dev_profile%(c: connection, is_orig:bool, fc_support_low: count, fc_support_high: count, count16: count%); 
-event dnp3_dev_profile_oh%(c: connection, is_orig:bool, group: count, variation: count, qualifier: count, range: count%); 
-event dnp3_priv_reg_obj%(c: connection, is_orig:bool, vendor: count, obj_id: count, len: count, data_objs: string%); 
-event dnp3_priv_reg_obj_desc%(c: connection, is_orig:bool, vendor: count, obj_id: count, count16: count%); 
-event dnp3_obj_desc_spec%(c: connection, is_orig:bool, obj_quantity: count, obj_group: count, obj_variation: count%); 
-event dnp3_desc_ele%(c: connection, is_orig:bool, len: count, desc_code: count, data_type: count, max_len: count, aucillary: count%);
-event dnp3_app_id%(c: connection, is_orig:bool, app_id_value: string%); 
-event dnp3_activate_conf%(c: connection, is_orig:bool, time_delay: count, count8: count%); 
-event dnp3_status_ele%(c: connection, is_orig:bool, len: count, status_code: count, ancillary: string%); 
-event dnp3_bcd_large%(c: connection, is_orig:bool, value_low: count, value_high: count%); 
-event dnp3_auth_challenge%(c: connection, is_orig:bool, csqUsr: count, hal: count, reason: count, chan_data: string%); 
-event dnp3_auth_reply%(c: connection, is_orig:bool, csqUsr: count, chan_data: string%); 
-event dnp3_auth_aggr_request%(c: connection, is_orig:bool, csqUsr: count, chan_data: string%); 
-event dnp3_auth_sessionkey_status%(c: connection, is_orig:bool, csqUsr: count, key_alg: count, key_status: count, chan_data: string%); 
-event dnp3_auth_sessionkey_change%(c: connection, is_orig:bool, csqUsr: count, key_wrap_data: string%); 
-event dnp3_auth_error%(c: connection, is_orig:bool, csqUsr: count, error_code: count, key_wrap_data: string%); 
-
-
-
 
 ## Generated for DNP3 objects with the group number 12 and variation number 1
 ## CROB: control relay output block
@@ -205,6 +150,38 @@ event dnp3_frozen_counter_32woFlag%(c: connection, is_orig: bool, count_value: c
 ## Generated for DNP3 objects with the group number 21 and variation number 10
 ## frozen counter 16 bit without flag
 event dnp3_frozen_counter_16woFlag%(c: connection, is_orig: bool, count_value: count%);
+
+## Generated for DNP3 objects with the group number 22 and variation number 1
+## counter event 32-bit with flag
+event dnp3_counterEve_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+
+## Generated for DNP3 objects with the group number 22 and variation number 2
+## counter event 16-bit with flag
+event dnp3_counterEve_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+
+## Generated for DNP3 objects with the group number 22 and variation number 5
+## counter event 32-bit with flag and time
+event dnp3_counterEve_32wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 22 and variation number 6
+## counter event 16-bit with flag and time
+event dnp3_counterEve_16wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 23 and variation number 1
+## frozen counter event 32-bit with flag
+event dnp3_frozenCounterEve_32wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+
+## Generated for DNP3 objects with the group number 23 and variation number 2
+## frozen counter event 16-bit with flag
+event dnp3_frozenCounterEve_16wFlag%(c: connection, is_orig: bool, flag: count, count_value: count%);
+
+## Generated for DNP3 objects with the group number 23 and variation number 5
+## frozen counter event 32-bit with flag and time
+event dnp3_frozenCounterEve_32wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 23 and variation number 6
+## frozen counter event 16-bit with flag and time
+event dnp3_frozenCounterEve_16wFlagTime%(c: connection, is_orig: bool, flag: count, count_value: count, time48: string%);
 
 ## Generated for DNP3 objects with the group number 30 and variation number 1
 ## analog input 32 bit with flag
@@ -322,12 +299,181 @@ event dnp3_frozen_analog_input_event_DPwoTime%(c: connection, is_orig: bool, fla
 ## frozen analog input event single-precision float point with time
 event dnp3_frozen_analog_input_event_SPwTime%(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string%);
 
-## Generated for DNP3 objects with the group number 34 and variation number 8
+## Generated for DNP3 objects with the group number 33 and variation number 8
 ## frozen analog input event double-precision float point with time
 event dnp3_frozen_analog_input_event_DPwTime%(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string%);
 
-## g70
+## Generated for DNP3 objects with the group number 40 and variation number 1
+## analog output status 32-bit with flag
+event dnp3_analog_output_status32%(c: connection, is_orig: bool, flag: count, status: count%);
+
+## Generated for DNP3 objects with the group number 40 and variation number 2
+## analog output status 16-bit with flag
+event dnp3_analog_output_status16%(c: connection, is_orig: bool, flag: count, status: count%);
+
+## Generated for DNP3 objects with the group number 40 and variation number 3
+## analog output status sinnle-precision floating-point with flag
+event dnp3_analog_output_statusSP%(c: connection, is_orig: bool, flag: count, status: count%);
+
+## Generated for DNP3 objects with the group number 40 and variation number 4
+## analog output status double-precision floating-point with flag
+event dnp3_analog_output_statusDP%(c: connection, is_orig: bool, flag: count, status_low: count, status_high: count%);
+
+## Generated for DNP3 objects with the group number 41 and variation number 1
+## analog output 32-bit
+event dnp3_analog_output32%(c: connection, is_orig: bool, value: count, con_status: count%);
+
+## Generated for DNP3 objects with the group number 41 and variation number 2
+## analog output 16-bit
+event dnp3_analog_output16%(c: connection, is_orig: bool, value: count, con_status: count%);
+
+## Generated for DNP3 objects with the group number 41 and variation number 3
+## analog output single-precision floating-point
+event dnp3_analog_outputSP%(c: connection, is_orig: bool, value: count, con_status: count%);
+
+## Generated for DNP3 objects with the group number 41 and variation number 4
+## analog output double-precision floating-point
+event dnp3_analog_outputDP%(c: connection, is_orig: bool, value_low: count, value_high: count, con_status: count%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 1
+## analog output event 32-bit without time
+event dnp3_analog_output_event_32woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 2
+## analog output event 16-bit without time
+event dnp3_analog_output_event_16woTime%(c: connection, is_orig: bool, flag: count, value: count%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 3
+## analog output event 32-bit with time
+event dnp3_analog_output_event_32wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 4
+## analog output event 16-bit with time
+event dnp3_analog_output_event_16wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 5
+## analog output event single-precision floating-point without time
+event dnp3_analog_output_event_SPwoTime%(c: connection, is_orig: bool, flag: count, value: count%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 6
+## analog output event double-precision floating-point without time
+event dnp3_analog_output_event_DPwoTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 7
+## analog output event single-precision floating-point with time
+event dnp3_analog_output_event_SPwTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 42 and variation number 8
+## analog output event double-precision floating point with time
+event dnp3_analog_output_event_DPwTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
+
+## Generated for DNP3 objects with the group number 50 and variation number 1
+## time and date absolute time
+event dnp3_abs_time%(c: connection, is_orig: bool, time48: string%);
+
+## Generated for DNP3 objects with the group number 50 and variation number 2
+## time and date absolute time and interval
+event dnp3_abs_time_interval%(c: connection, is_orig: bool, time48: string, interval32: count%);
+
+## Generated for DNP3 objects with the group number 50 and variation number 3
+## time and date absolute time at last recorded time
+event dnp3_last_abs_time%(c: connection, is_orig: bool, time48: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 1
+## file control file identifier-superseded
+event dnp3_file_control_id%(c: connection, is_orig: bool, name_size: count, type_code: count, attr_code: count, start_rec: count, end_rec: count, file_size: count, time_create: string, permission: count, file_id: count, owner_id: count, group_id: count, function_code: count, status_code: count, file_name: string%);
+event dnp3_record_obj%(c: connection, is_orig: bool, record_size: count, record_oct: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 2
+## file control authentication
+event dnp3_file_control_auth%(c: connection, is_orig: bool, usr_name_offset: count, usr_name_size: count, pwd_offset: count, pwd_size: count, auth_key: count, usr_name: string, pwd: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 3
+## file control file command
+event dnp3_file_control_cmd%(c: connection, is_orig: bool, name_offset: count, name_size: count, time_create: string, 
+		permission: count, auth_key: count, file_size: count, op_mode: count, max_block_size: count, 
+		req_id: count, file_name: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 4
+## file control file command status
+event dnp3_file_control_cmd_status%(c: connection, is_orig: bool, file_handle: count, file_size: count, 
+		max_block_size: count, req_id: count, status_code: count, opt_text: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 5
+## file control file transport
 event dnp3_file_transport%(c: connection, is_orig: bool, file_handle: count, block_num: count, file_data: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 6
+## file control file transport status
+event dnp3_file_transport_status%(c: connection, is_orig:bool,  file_handle: count, block_num: count, status: count, opt_text: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 7
+## file control file descriptor
+event dnp3_file_desc%(c: connection, is_orig:bool, name_offset: count, name_size: count, f_type: count, f_size: count, 
+		time_create_low: count, time_create_high: count, permission: count, req_id: count, f_name: string%);
+
+## Generated for DNP3 objects with the group number 70 and variation number 8
+## file control file specification string
+event dnp3_file_spec_str%(c: connection, is_orig:bool, f_spec: string%); 
+
+## Generated for DNP3 objects with the group number 81 and variation number 1
+## device storage buffer fill status
+event dnp3_dev_store%(c: connection, is_orig:bool, overflow: count, obj_group: count, variation: count%); 
+
+## Generated for DNP3 objects with the group number 82 and variation number 1
+## device profile functions and indexes
+event dnp3_dev_profile%(c: connection, is_orig:bool, fc_support_low: count, fc_support_high: count, count16: count%); 
+event dnp3_dev_profile_oh%(c: connection, is_orig:bool, group: count, variation: count, qualifier: count, range: count%);
+
+## Generated for DNP3 objects with the group number 83 and variation number 1
+## data set private registration object
+event dnp3_priv_reg_obj%(c: connection, is_orig:bool, vendor: count, obj_id: count, len: count, data_objs: string%); 
+
+## Generated for DNP3 objects with the group number 83 and variation number 2
+## data set private registration object descriptor
+event dnp3_priv_reg_obj_desc%(c: connection, is_orig:bool, vendor: count, obj_id: count, count16: count%); 
+event dnp3_obj_desc_spec%(c: connection, is_orig:bool, obj_quantity: count, obj_group: count, obj_variation: count%); 
+
+## Generated for DNP3 objects with the group number 85 and variation number 1
+## data set prototype with UUID
+event dnp3_desc_ele%(c: connection, is_orig:bool, len: count, desc_code: count, data_type: count, max_len: count, aucillary: count%);
+
+## Generated for DNP3 objects with the group number 90 and variation number 1
+## applicaiton identifier
+event dnp3_app_id%(c: connection, is_orig:bool, app_id_value: string%); 
+
+## Generated for DNP3 objects with the group number 91 and variation number 1
+## status of requested operation active configuration
+event dnp3_activate_conf%(c: connection, is_orig:bool, time_delay: count, count8: count%); 
+event dnp3_status_ele%(c: connection, is_orig:bool, len: count, status_code: count, ancillary: string%); 
+
+## Generated for DNP3 objects with the group number 101 and variation number 3
+## binary-coded decimal integer large
+event dnp3_bcd_large%(c: connection, is_orig:bool, value_low: count, value_high: count%); 
+
+## Generated for DNP3 objects with the group number 120 and variation number 1
+## authentication challenge
+event dnp3_auth_challenge%(c: connection, is_orig:bool, csqUsr: count, hal: count, reason: count, chan_data: string%); 
+
+## Generated for DNP3 objects with the group number 120 and variation number 2
+## authentication reply
+event dnp3_auth_reply%(c: connection, is_orig:bool, csqUsr: count, chan_data: string%); 
+
+## Generated for DNP3 objects with the group number 120 and variation number 3
+## authentication aggressive mode request
+event dnp3_auth_aggr_request%(c: connection, is_orig:bool, csqUsr: count, chan_data: string%); 
+
+## Generated for DNP3 objects with the group number 120 and variation number 5
+## authentication session key status
+event dnp3_auth_sessionkey_status%(c: connection, is_orig:bool, csqUsr: count, key_alg: count, key_status: count, chan_data: string%); 
+
+## Generated for DNP3 objects with the group number 120 and variation number 6
+## authentication session key change
+event dnp3_auth_sessionkey_change%(c: connection, is_orig:bool, csqUsr: count, key_wrap_data: string%); 
+
+## Generated for DNP3 objects with the group number 120 and variation number 7
+## authentication error
+event dnp3_auth_error%(c: connection, is_orig:bool, csqUsr: count, error_code: count, key_wrap_data: string%); 
 
 ## Debugging event generated by the DNP3 analyzer. The "Debug_Byte" binpac unit
 ## generates this for unknown "cases". The user can use it to debug the byte string

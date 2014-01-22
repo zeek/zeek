@@ -323,9 +323,6 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			}
 		}
 
-		loop_over_list(*args, i)
-			Unref((*args)[i]);
-
 		profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
 		return plugin_result;
 		}

@@ -79,7 +79,7 @@ EventMgr::~EventMgr()
 void EventMgr::QueueEvent(Event* event)
 	{
 	if ( plugin_mgr->QueueEvent(event) )
-    	return;
+		return;
 
 	if ( ! head )
 		head = tail = event;

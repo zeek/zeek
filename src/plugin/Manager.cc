@@ -83,7 +83,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		if ( name.empty() )
 			reporter->FatalError("empty plugin magic file %s", magic.c_str());
 
-		if ( dynamic_plugins.find(name) != dynamic_plugins.end() ) 
+		if ( dynamic_plugins.find(name) != dynamic_plugins.end() )
 			{
 			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(), dir.c_str());
 			return;
@@ -281,7 +281,7 @@ void Manager::RegisterPlugin(Plugin *plugin)
 	{
 	Manager::PluginsInternal()->push_back(plugin);
 
-	if ( current_dir.size() && current_sopath.size() ) 
+	if ( current_dir.size() && current_sopath.size() )
 		// A dynamic plugin, record its location.
 		plugin->SetPluginLocation(current_dir.c_str(), current_sopath.c_str());
 
@@ -445,7 +445,17 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 
 int Manager::HookLoadFile(const string& file)
 	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(file));
+		MetaHookPre(HOOK_LOAD_FILE, args);
+		}
+
 	hook_list* l = hooks[HOOK_LOAD_FILE];
+
+	int rc = -1;
 
 	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
@@ -454,46 +464,84 @@ int Manager::HookLoadFile(const string& file)
 		int rc = p->HookLoadFile(file);
 
 		if ( rc >= 0 )
-			return rc;
+			break;
 		}
 
-	return -1;
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_LOAD_FILE, args, HookArgument(rc));
+
+	return rc;
 	}
 
-Val* Manager::HookCallFunction(const Func* func, val_list* args) const
+Val* Manager::HookCallFunction(const Func* func, val_list* vargs) const
 	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(func));
+		args.push_back(HookArgument(vargs));
+		MetaHookPre(HOOK_CALL_FUNCTION, args);
+		}
+
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
+
+	Val* v = 0;
 
 	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
 		Plugin* p = (*i).second;
 
-		Val* v = p->HookCallFunction(func, args);
+		v = p->HookCallFunction(func, vargs);
 
 		if ( v )
-			return v;
+			break;
 		}
 
-	return 0;
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));
+
+	return v;
 	}
 
 bool Manager::HookQueueEvent(Event* event) const
 	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(event));
+		MetaHookPre(HOOK_QUEUE_EVENT, args);
+		}
+
 	hook_list* l = hooks[HOOK_QUEUE_EVENT];
+
+	bool result = false;
 
 	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
 		Plugin* p = (*i).second;
 
-		if ( p->HookQueueEvent(event) )
-			return true;
+		if ( p->HookQueueEvent(event) ) 
+			{
+			result = true;
+			break;
+			}
 		}
 
-	return false;
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_QUEUE_EVENT, args, HookArgument(result));
+
+	return result;
 	}
 
 void Manager::HookDrainEvents() const
 	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		MetaHookPre(HOOK_DRAIN_EVENTS, args);
+
 	hook_list* l = hooks[HOOK_DRAIN_EVENTS];
 
 	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
@@ -501,15 +549,52 @@ void Manager::HookDrainEvents() const
 		Plugin* p = (*i).second;
 		p->HookDrainEvents();
 		}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_DRAIN_EVENTS, args, HookArgument());
+
 	}
 
 void Manager::HookUpdateNetworkTime(double network_time) const
 	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(network_time);
+		MetaHookPre(HOOK_UPDATE_NETWORK_TIME, args);
+		}
+
 	hook_list* l = hooks[HOOK_UPDATE_NETWORK_TIME];
 
 	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
 		Plugin* p = (*i).second;
 		p->HookUpdateNetworkTime(network_time);
+		}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_UPDATE_NETWORK_TIME, args, HookArgument());
+	}
+
+void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
+	{
+	hook_list* l = hooks[HOOK_CALL_FUNCTION];
+
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
+		{
+		Plugin* p = (*i).second;
+		p->MetaHookPre(hook, args);
+		}
+	}
+
+void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const
+	{
+	hook_list* l = hooks[HOOK_CALL_FUNCTION];
+
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
+		{
+		Plugin* p = (*i).second;
+		p->MetaHookPost(hook, args, result);
 		}
 	}

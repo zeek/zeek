@@ -9,11 +9,12 @@
 #include "Component.h"
 
 #include "../Desc.h"
+#include "../Event.h"
 
 using namespace plugin;
 
-const char* hook_name(HookType h)
-	{
+const char* plugin::hook_name(HookType h)
+{
 	static const char* hook_names[int(NUM_HOOKS) + 1] = {
 		// Order must match that of HookType.
 		"LoadFile",
@@ -21,6 +22,9 @@ const char* hook_name(HookType h)
 		"QueueEvent",
 		"DrainEvents",
 		"UpdateNetworkTime",
+		// MetaHooks
+		"MetaHookPre",
+		"MetaHookPost",
 		// End marker.
 		"<end>",
 	};
@@ -53,6 +57,69 @@ BifItem& BifItem::operator=(const BifItem& other)
 
 BifItem::~BifItem()
 	{
+	}
+
+void HookArgument::Describe(ODesc* d) const
+	{
+	switch ( type ) {
+	case BOOL:
+		d->Add(arg.bool_ ? "true" : "false");
+		break;
+
+	case DOUBLE:
+		d->Add(arg.double_);
+		break;
+
+	case EVENT:
+		if ( arg.event ) 
+			{
+			d->Add(arg.event->Handler()->Name());
+			d->Add("(");
+			describe_vals(arg.event->Args(), d);
+			d->Add(")");
+			}
+		else
+			d->Add("<null>");
+		break;
+
+	case FUNC:
+		if ( arg.func )
+			d->Add(arg.func->Name());
+		else
+			d->Add("<null>");
+		break;
+
+	case INT:
+		d->Add(arg.int_);
+		break;
+
+	case STRING:
+		d->Add(arg_string);
+		break;
+
+	case VAL:
+		if ( arg.val ) 
+			arg.val->Describe(d);
+
+		else
+			d->Add("<null>");
+		break;
+
+	case VAL_LIST:
+		if ( arg.vals )
+			{
+			d->Add("(");
+			describe_vals(arg.vals, d);
+			d->Add(")");
+			}
+		else
+			d->Add("<null>");
+		break;
+
+	case VOID:
+		d->Add("<void>");
+		break;
+	}
 	}
 
 Plugin::Plugin()
@@ -215,6 +282,14 @@ void Plugin::HookDrainEvents()
 	}
 
 void Plugin::HookUpdateNetworkTime(double network_time)
+	{
+	}
+
+void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
+	{
+	}
+
+void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result)
 	{
 	}
 

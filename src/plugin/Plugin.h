@@ -10,13 +10,13 @@
 #include "analyzer/Component.h"
 #include "file_analysis/Component.h"
 
+#define BRO_PLUGIN_API_VERSION 2
+
 class ODesc;
 class Func;
 class Event;
 
 namespace plugin  {
-
-#define BRO_PLUGIN_API_VERSION 2
 
 class Manager;
 class Component;
@@ -33,9 +33,19 @@ enum HookType {
 	HOOK_QUEUE_EVENT,
 	HOOK_DRAIN_EVENTS,
 	HOOK_UPDATE_NETWORK_TIME,
+
+	// Meta hooks.
+	META_HOOK_PRE,
+	META_HOOK_POST,
+
 	// End marker.
 	NUM_HOOKS,
 };
+
+/**
+ * Converts a hook type into a readable hook name.
+ */
+extern const char* hook_name(HookType h);
 
 /**
  * Helper class to capture a plugin's version. A boolean operator evaluates
@@ -59,22 +69,20 @@ public:
 	std::string description;	//< A short textual description of the plugin. Mandatory.
 	VersionNumber version;		//< THe plugin's version. Optional.
 
-	Configuration();
+	Configuration()
+		{
+		// Note we inline this method here so that when plugins create an instance,
+		// *their* defaults will be used for the internal fields.
+		name = "";
+		description = "";
+		api_version = BRO_PLUGIN_API_VERSION;
+		}
 
 private:
 	friend class Plugin;
 	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
 
 };
-
-// Note we inline this method here so that when plugins create an instance,
-// *their* defaults will be used for the internal fields.
-inline Configuration::Configuration()
-	{
-	name = "";
-	description = "";
-	api_version = BRO_PLUGIN_API_VERSION;
-	}
 
 /**
  * A class describing an item defined in \c *.bif file.
@@ -125,6 +133,55 @@ private:
 	std::string id;
 	Type type;
 };
+
+/**
+ * A class encapsulating an event argument to then pass along with a meta hook.
+ */
+class HookArgument
+{
+public:
+	enum Type {
+		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID
+	};
+
+	HookArgument()	{ type = VOID; }
+	HookArgument(bool a)	{ type = BOOL; arg.bool_ = a; }
+	HookArgument(double a)	{ type = DOUBLE; arg.double_ = a; }
+	HookArgument(const Event* a)	{ type = EVENT; arg.event = a; }
+	HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
+	HookArgument(int a)	{ type = INT; arg.int_ = a; }
+	HookArgument(const std::string& a)	{ type = STRING; arg_string = a; }
+	HookArgument(const Val* a)	{ type = VAL; arg.val = a; }
+	HookArgument(const val_list* a)	{ type = VAL_LIST; arg.vals = a; }
+
+	bool AsBool() const	{ assert(type == BOOL); return arg.bool_; }
+	double AsDouble() const	{ assert(type == DOUBLE); return arg.double_; }
+	const Event* AsEvent() const	{ assert(type == EVENT); return arg.event; }
+	const Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
+	double AsInt() const	{ assert(type == INT); return arg.int_; }
+	const std::string& AsString() const	{ assert(type == STRING); return arg_string; }
+	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
+	const val_list* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
+
+	Type GetType() const	{ return type; }
+	void Describe(ODesc* d) const;
+
+private:
+	Type type;
+	union {
+		bool bool_;
+		double double_;
+		const Event* event;
+		const Func* func;
+		int int_;
+		const Val* val;
+		const val_list* vals;
+	} arg;
+
+	std::string arg_string; // Outside union because it has dtor.
+};
+
+typedef std::list<HookArgument> HookArgumentList;
 
 /**
  * Base class for all plugins.
@@ -438,6 +495,35 @@ protected:
 	 * @param networkt_time The new network time.
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
+
+	// Meta hooks.
+
+	/**
+	 * A meta hook called just before another hook gets to execute.
+	 *
+	 * hook: The name of the hook about the execute. This will be the
+	 * same as the corresponding method name (e.g., \c HookQueueEvent).
+	 *
+	 * hook: The type of the hook about to execute.
+	 *
+	 * args: A list of the hooks arguments.
+	 */
+	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
+
+	/**
+	 * A meta hook called just after another hook gets to execute. This
+	 * will be called independent of whether there's an implementation
+	 * for the hook.
+	 *
+	 * hook: The type of the hook that finished executing.
+	 *
+	 * args: A list of the hooks arguments.
+	 *
+	 * result: The result that executing the hook returned. If there's no
+	 * implementation for the hook, this will be the default result. If
+	 * the hook doesn't yield a result, this will be of type VOID.
+	 */
+	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
 
 	// Methods that are used internally primarily.
 

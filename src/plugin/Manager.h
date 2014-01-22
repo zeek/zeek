@@ -230,6 +230,8 @@ public:
 private:
 	bool ActivateDynamicPluginInternal(const std::string& name);
 	void UpdateInputFiles();
+	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
+	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const;
 
 	 // All found dynamic plugins, mapping their names to base directory.
 	typedef std::map<std::string, std::string> dynamic_plugin_map;

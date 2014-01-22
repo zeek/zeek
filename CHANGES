@@ -1,4 +1,11 @@
 
+2.2-115 | 2014-01-22 12:11:18 -0800
+
+  * Add unit tests for new Bro Manual docs. (Jon Siwek)
+    
+  * New content for the "Using Bro" section of the manual. (Rafael
+    Bonilla/Jon Siwek)
+    
 2.2-105 | 2014-01-20 12:16:48 -0800
 
   * Support GRE tunnel decapsulation, including enhanced GRE headers.

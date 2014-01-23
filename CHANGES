@@ -1,4 +1,9 @@
 
+2.2-117 | 2014-01-23 14:18:19 -0800
+
+  * Fixing initialization context in anonymous functions. (Robin
+    Sommer)
+
 2.2-115 | 2014-01-22 12:11:18 -0800
 
   * Add unit tests for new Bro Manual docs. (Jon Siwek)

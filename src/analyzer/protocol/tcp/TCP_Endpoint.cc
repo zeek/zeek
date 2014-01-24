@@ -161,6 +161,13 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 
 bro_int_t TCP_Endpoint::Size() const
 	{
+	if ( prev_state == TCP_ENDPOINT_SYN_SENT && state == TCP_ENDPOINT_RESET &&
+	     peer->state == TCP_ENDPOINT_INACTIVE && ! NoDataAcked() )
+		// This looks like a half-open connection was discovered and aborted.
+		// Sequence numbers could be misleading if used in context of data size
+		// and there was never a chance for this endpoint to send data anyway.
+		return 0;
+
 	bro_int_t size;
 
 	uint64 last_seq_64 = (uint64(last_seq_high) << 32) | last_seq;

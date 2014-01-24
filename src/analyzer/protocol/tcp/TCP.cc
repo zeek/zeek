@@ -373,14 +373,11 @@ void TCP_Analyzer::ProcessSYN(const IP_Hdr* ip, const struct tcphdr* tp,
 void TCP_Analyzer::ProcessFIN(double t, TCP_Endpoint* endpoint,
 				int& seq_len, uint32 base_seq)
 	{
-	if ( endpoint->FIN_cnt == 0 )
-		{
-		++seq_len;	// FIN consumes a byte of sequence space
-		++endpoint->FIN_cnt;	// remember that we've seen a FIN
-		}
+	++seq_len;  // FIN consumes a byte of sequence space.
+	++endpoint->FIN_cnt;  // remember that we've seen a FIN
 
-	else if ( t < endpoint->last_time + tcp_storm_interarrival_thresh &&
-		  ++endpoint->FIN_cnt == tcp_storm_thresh )
+	if ( t < endpoint->last_time + tcp_storm_interarrival_thresh &&
+	     endpoint->FIN_cnt == tcp_storm_thresh )
 		Weird("FIN_storm");
 
 	// Remember the relative seq in FIN_seq.

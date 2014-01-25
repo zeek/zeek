@@ -64,6 +64,12 @@ refine connection SOCKS_Conn += {
 			bro_analyzer()->ProtocolViolation(fmt("invalid value in reserved field: %d", ${request.reserved}));
 			return false;
 			}
+		if ( ( ${request.command} == 0 ) || ( ${request.command} > 3 ) )
+			{
+			bro_analyzer()->ProtocolViolation(fmt("invalid value in reserved field: %d", ${request.reserved}));
+			bro_analyzer()->SetSkip(true);
+			return false;
+			}
 
 		RecordVal* sa = new RecordVal(socks_address);
 
@@ -105,7 +111,7 @@ refine connection SOCKS_Conn += {
 	function socks5_reply(reply: SOCKS5_Reply): bool
 		%{
 		RecordVal* sa = new RecordVal(socks_address);
-
+		
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${reply.bound.addr_type} )
 			{

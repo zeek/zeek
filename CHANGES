@@ -1,4 +1,226 @@
 
+2.2-117 | 2014-01-23 14:18:19 -0800
+
+  * Fixing initialization context in anonymous functions. (Robin
+    Sommer)
+
+2.2-115 | 2014-01-22 12:11:18 -0800
+
+  * Add unit tests for new Bro Manual docs. (Jon Siwek)
+    
+  * New content for the "Using Bro" section of the manual. (Rafael
+    Bonilla/Jon Siwek)
+    
+2.2-105 | 2014-01-20 12:16:48 -0800
+
+  * Support GRE tunnel decapsulation, including enhanced GRE headers.
+    GRE tunnels are treated just like IP-in-IP tunnels by parsing past
+    the GRE header in between the delivery and payload IP packets.
+    Addresses BIT-867. (Jon Siwek)
+
+  * Simplify FragReassembler memory management. (Jon Siwek)
+    
+2.2-102 | 2014-01-20 12:00:29 -0800
+
+  * Include file information (MIME type and description) into notice
+    emails if available. (Justin Azoff)
+
+2.2-100 | 2014-01-20 11:54:58 -0800
+
+  * Fix caching of recently validated SSL certifcates. (Justin Azoff)
+    
+2.2-98 | 2014-01-20 11:50:32 -0800
+
+  * For notice suppresion, instead of storing the entire notice in
+    Notice::suppressing, just store the time the notice should be
+    suppressed until. This saves significant memory but can no longer
+    raise end_suppression, which has been removed. (Justin Azoff)
+
+2.2-96 | 2014-01-20 11:41:07 -0800
+
+  * Integrate libmagic 5.16. Bro now now always relies on
+    builtin/shipped magic library/database. (Jon Siwek)
+
+  * Bro now requires a CMake 2.8.x, but no longer a pre-installed
+    libmagic. (Jon Siwek)
+
+2.2-93 | 2014-01-13 09:16:51 -0800
+
+  * Fixing compile problems with some versions of libc++. Reported by
+    Craig Leres. (Robin Sommer)
+
+2.2-91 | 2014-01-13 01:33:28 -0800
+
+  * Improve GeoIP City database support. When trying to open a city
+    database, it now considers both the "REV0" and "REV1" versions of
+    the city database instead of just the former. (Jon Siwek)
+
+  * Broxygen init fixes. Addresses BIT-1110. (Jon Siwek)
+    
+    - Don't check mtime of bro binary if BRO_DISABLE_BROXYGEN env var set.
+
+    - Fix failure to locate bro binary if invoking from a relative
+      path and '.' isn't in PATH.
+
+  * Fix for packet writing to make it use the global snap length.
+    (Seth Hall)
+
+  * Fix for traffic with TCP segmentation offloading with IP header
+    len field being set to zero. (Seth Hall)
+
+  * Canonify output of a unit test. (Jon Siwek)
+    
+  * A set of documentation updates. (Daniel Thayer)
+
+      - Fix typo in Bro 2.2 NEWS on string indexing.
+      - Fix typo in the Quick Start Guide, and clarified the
+        instructions about modifying crontab.
+      - Add/fix documentation for missing/misnamed event parameters.
+      - Fix typos in BIF documentation of hexstr_to_bytestring.
+      - Update the documentation of types and attributes.
+      - Documented the new substring extraction functionality.
+      - Clarified the description of "&priority" and "void".
+
+2.2-75 | 2013-12-18 08:36:50 -0800
+
+  * Fixing segfault with mismatching set &default in record fields.
+    (Robin Sommer)
+
+2.2-74 | 2013-12-16 08:49:55 -0800
+
+  * Improve warnings emitted from raw/execute input reader. (Jon
+    Siwek)
+
+  * Further improve core.when-interpreter-exceptions unit test. (Jon
+    Siwek)
+
+2.2-72 | 2013-12-12 07:12:47 -0800
+
+  * Improve the core.when-interpreter-exceptions unit test to prevent
+    it from occasionally timing out. (Jon Siwek)
+
+2.2-70 | 2013-12-10 15:02:50 -0800
+
+  * Fix (harmless) uninitialized field in basename/dirname util
+    wrapper. (Jon Siwek)
+
+2.2-68 | 2013-12-09 15:19:37 -0800
+
+  * Several improvements to input framework error handling for more
+    robustness and more helpful error messages. Includes tests for
+    many cases. (Bernhard Amann)
+
+2.2-66 | 2013-12-09 13:54:16 -0800
+
+  * Fix table &default reference counting for record ctor expressions.
+    (Jon Siwek)
+
+  * Close signature files after done parsing. (Jon Siwek)
+    
+  * Fix unlikely null ptr deref in broxygen::Manager. (Jon Siwek)
+    
+  * FreeBSD build fix addendum: unintended variable shadowing. (Jon
+    Siwek)
+
+  * Fix build on FreeBSD. basename(3)/dirname(3) const-ness may vary
+    w/ platform. (Jon Siwek)
+
+  * Updated software framework to support parsing IE11 user-agent
+    strings. (Seth Hall)
+
+  * Fix the irc_reply event for several server message types. (Seth
+    Hall)
+
+  * Fix memory leak in input framework. If the input framework was
+    used to read event streams and those streams contained records
+    with more than one field, not all elements of the threading Values
+    were cleaned up. Addresses BIT-1103. (Bernhard Amann)
+
+  * Minor Broxygen improvements. Addresses BIT-1098. (Jon Siwek)
+    
+2.2-51 | 2013-12-05 07:53:37 -0800
+
+  * Improve a unit test involving 'when' conditionals. (Jon Siwek)
+
+2.2-48 | 2013-12-04 13:45:47 -0800
+
+  * Support omission of string slice low/high indices, BIT-1097.
+
+    Omission of the low index defaults to 0:
+
+        s = "12345"; s[:3] == "123"
+
+    Omission of the high index defaults to length of the string:
+
+        s = "12345"; s[3:] == "45" (Jon Siwek)
+
+  * Tweak to SMTP script to adjust for new string slicing behaviour.
+    (Robin Sommer)
+
+  * Test updates. (Robin Sommer)
+
+2.2-44 | 2013-12-04 12:41:51 -0800
+
+  * Fix string slice notation. Addresses BIT-1097. (Jon Siwek)
+    
+    Slice ranges were not correctly determined for negative indices
+    and also off by one in general (included one more element at the
+    end of the substring than what actually matched the index range).
+    It's now equivalent to Python slice notation.  Accessing a string
+    at a single index is also the same as Python except that an
+    out-of-range index returns an empty string instead of throwing an
+    expection.
+
+2.2-41 | 2013-12-04 12:40:51 -0800
+
+  * Updating tests. (Robin Sommer)
+
+2.2-40 | 2013-12-04 12:16:38 -0800
+
+  * ssl_client_hello() now receives a vector of ciphers, instead of a
+    set, to preserve their order. (Bernhard Amann)
+
+2.2-38 | 2013-12-04 12:10:54 -0800
+
+  * New script misc/dump-events.bro, along with core support, that
+    dumps events Bro is raising in an easily readable form for
+    debugging. (Robin Sommer)
+
+  * Prettyfing Describe() for record types. If a record type has a
+    name and ODesc is set to short, we now print the name instead of
+    the full field list. (Robin Sommer)
+
+2.2-35 | 2013-12-04 10:10:32 -0800
+
+  * Rework the automated script-reference documentation generation
+    process, broxygen. Addresses BIT-701 and BIT-751. (Jon Siwek)
+
+    Highlights:
+
+        - Remove --doc-scripts and -Z options to toggle documentation
+          mode. The parser is now always instrumented to gather
+          documentation from comments of the form "##", "##!", or
+          "##<".
+
+        - Raw comments are available at runtime through several BIF
+          functions: get_*_comments;
+
+        - Add --broxygen and -X options to toggle generating
+          reST-format documentation output, driven by a config file
+          argument.
+
+        - Add a "broxygen" Sphinx extension domain, allowing certain
+          pieces of documentation to be generated on-the-fly via
+          invoking a Bro process. Re-organized/cleaned up the Sphinx
+          source tree in doc/ to use this in some places.
+
+2.2-11 | 2013-12-03 10:56:28 -0800
+
+  * Unit test for broccoli vector support. (Jon Siwek)
+    
+  * Changed ordering of Bro type tag enum, which was out of sync. (Jon
+    Siwek)
+
 2.2-9 | 2013-11-18 14:03:21 -0800
 
   * Update local.bro for Bro >= 2.2. The commented out Notice::policy

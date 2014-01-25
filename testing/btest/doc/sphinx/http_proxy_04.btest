@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/proxy.pcap ${DOC_ROOT}/httpmonitor/http_proxy_04.bro
+@TEST-EXEC: btest-rst-include notice.log

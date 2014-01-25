@@ -29,7 +29,8 @@ enum DebugStream {
 	DBG_INPUT,	// Input streams
 	DBG_THREADING,	// Threading system
 	DBG_FILE_ANALYSIS,	// File analysis
-	DBG_PLUGINS,	// Plugin support
+	DBG_PLUGINS,	// Plugin system
+	DBG_BROXYGEN,	// Broxygen
 
 	NUM_DBGS // Has to be last
 };

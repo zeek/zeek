@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/bro.org.pcap ${DOC_ROOT}/mimestats/mimestats.bro
+@TEST-EXEC: btest-rst-include mime_metrics.log

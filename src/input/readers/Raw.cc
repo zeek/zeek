@@ -204,9 +204,22 @@ bool Raw::Execute()
 		// Parent also sets child process group immediately to avoid a race.
 		if ( setpgid(childpid, childpid) == -1 )
 			{
-			char buf[256];
-			strerror_r(errno, buf, sizeof(buf));
-			Warning(Fmt("Could not set child process group: %s", buf));
+			if ( errno == EACCES )
+				// Child already did exec. That's fine since then it must have
+				// already done the setpgid() itself.
+				;
+
+			else if ( errno == ESRCH && kill(childpid, 0) == 0 )
+				// Sometimes (e.g. FreeBSD) this error is reported even though
+				// child exists, so do extra sanity check of whether it exists.
+				;
+
+			else
+				{
+				char buf[256];
+				strerror_r(errno, buf, sizeof(buf));
+				Warning(Fmt("Could not set child process group: %s", buf));
+				}
 			}
 
 		if ( ! UnlockForkMutex() )
@@ -352,7 +365,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		fname = source.substr(0, fname.length() - 1);
 		}
 
-	map<const char*, const char*>::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
+	ReaderInfo::config_map::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
 	if ( it != info.config.end() )
 		{
 		stdin_string = it->second;

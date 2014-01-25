@@ -1,0 +1,13 @@
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 48: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 92: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 73: field value missing [myrecord$notset]
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.bro, line 104: field value missing [myrecord$notset]
+received termination signal
+[f(F)]
+f() done, no exception, T
+[f(T)]
+[bro_init()]
+timeout g(), T
+timeout
+timeout g(), F
+g() done, no exception, T

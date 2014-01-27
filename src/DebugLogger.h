@@ -7,6 +7,8 @@
 #ifdef DEBUG
 
 #include <stdio.h>
+#include <string>
+#include <set>
 
 // To add a new debugging stream, add a constant here as well as
 // an entry to DebugLogger::streams in DebugLogger.cc.
@@ -27,8 +29,8 @@ enum DebugStream {
 	DBG_INPUT,	// Input streams
 	DBG_THREADING,	// Threading system
 	DBG_FILE_ANALYSIS,	// File analysis
-	DBG_PLUGINS,
-	DBG_BROXYGEN,
+	DBG_PLUGINS,	// Plugin system
+	DBG_BROXYGEN,	// Broxygen
 	DBG_PKTIO,	// Packet sources and dumpers.
 
 	NUM_DBGS // Has to be last
@@ -41,6 +43,10 @@ enum DebugStream {
 #define DBG_PUSH(stream) debug_logger.PushIndent(stream)
 #define DBG_POP(stream) debug_logger.PopIndent(stream)
 
+#define PLUGIN_DBG_LOG(plugin, args...) debug_logger.Log(plugin, args)
+
+namespace plugin { class Plugin; }
+
 class DebugLogger {
 public:
 	// Output goes to stderr per default.
@@ -48,6 +54,7 @@ public:
 	~DebugLogger();
 
 	void Log(DebugStream stream, const char* fmt, ...);
+	void Log(const plugin::Plugin& plugin, const char* fmt, ...);
 
 	void PushIndent(DebugStream stream)
 		{ ++streams[int(stream)].indent; }
@@ -78,6 +85,8 @@ private:
 		bool enabled;
 	};
 
+	std::set<std::string> enabled_streams;
+
 	static Stream streams[NUM_DBGS];
 };
 
@@ -88,6 +97,7 @@ extern DebugLogger debug_logger;
 #define DBG_LOG_VERBOSE(args...)
 #define DBG_PUSH(stream)
 #define DBG_POP(stream)
+#define PLUGIN_DBG_LOG(plugin, args...)
 #endif
 
 #endif

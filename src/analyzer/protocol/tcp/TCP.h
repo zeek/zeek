@@ -91,7 +91,7 @@ public:
 			proc_tcp_option_t proc, TCP_Analyzer* analyzer,
 			bool is_orig, void* cookie);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new TCP_Analyzer(conn); }
 
 protected:
@@ -294,8 +294,8 @@ public:
 	// TCP_ENDPOINT_RESET.  If gen_event is true and the connection
 	// is now fully closed, a connection_finished event will be
 	// generated; otherwise not.
-	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event);
+	virtual void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
+					analyzer::tcp::TCP_Endpoint* peer, int gen_event);
 	virtual void ConnectionFinished(int half_finished);
 	virtual void ConnectionReset();
 
@@ -367,7 +367,7 @@ public:
 	virtual void Init();
 	virtual void Done();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new TCPStats_Analyzer(conn); }
 
 protected:

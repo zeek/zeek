@@ -53,7 +53,7 @@ public:
 	virtual void Init();
 	virtual void Done();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SteppingStone_Analyzer(conn); }
 
 protected:

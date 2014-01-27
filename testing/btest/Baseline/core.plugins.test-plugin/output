@@ -1,0 +1,20 @@
+Plugin: Demo::Foo - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1.0)
+    [Event] plugin_event
+    [Function] hello_plugin_world
+
+===
+plugin: automatically loaded at startup
+calling bif, Hello from the plugin!
+===
+plugin: automatically loaded at startup
+calling bif, Hello from the plugin!
+plugin: manually loaded
+=-=
+=-=
+===
+plugin: automatically loaded at startup
+calling bif, Hello from the plugin!
+===
+plugin: automatically loaded at startup
+calling bif, Hello from the plugin!
+plugin: manually loaded

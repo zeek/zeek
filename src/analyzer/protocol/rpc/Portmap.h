@@ -31,7 +31,7 @@ public:
 	virtual ~Portmapper_Analyzer();
 	virtual void Init();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Portmapper_Analyzer(conn); }
 };
 

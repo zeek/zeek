@@ -8,7 +8,6 @@ include_directories(BEFORE
 
 add_subdirectory(pktsrc)
 
-
 set(iosource_SRCS
     Component.cc
     Manager.cc

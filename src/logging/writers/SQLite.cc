@@ -126,7 +126,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	fullpath.append(".sqlite");
 	string tablename;
 
-	map<const char*, const char*>::const_iterator it = info.config.find("tablename");
+	WriterInfo::config_map::const_iterator it = info.config.find("tablename");
 	if ( it == info.config.end() )
 		{
 		MsgThread::Info(Fmt("tablename configuration option not found. Defaulting to path %s", info.path));

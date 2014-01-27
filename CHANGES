@@ -1,4 +1,104 @@
 
+2.2-117 | 2014-01-23 14:18:19 -0800
+
+  * Fixing initialization context in anonymous functions. (Robin
+    Sommer)
+
+2.2-115 | 2014-01-22 12:11:18 -0800
+
+  * Add unit tests for new Bro Manual docs. (Jon Siwek)
+    
+  * New content for the "Using Bro" section of the manual. (Rafael
+    Bonilla/Jon Siwek)
+    
+2.2-105 | 2014-01-20 12:16:48 -0800
+
+  * Support GRE tunnel decapsulation, including enhanced GRE headers.
+    GRE tunnels are treated just like IP-in-IP tunnels by parsing past
+    the GRE header in between the delivery and payload IP packets.
+    Addresses BIT-867. (Jon Siwek)
+
+  * Simplify FragReassembler memory management. (Jon Siwek)
+    
+2.2-102 | 2014-01-20 12:00:29 -0800
+
+  * Include file information (MIME type and description) into notice
+    emails if available. (Justin Azoff)
+
+2.2-100 | 2014-01-20 11:54:58 -0800
+
+  * Fix caching of recently validated SSL certifcates. (Justin Azoff)
+    
+2.2-98 | 2014-01-20 11:50:32 -0800
+
+  * For notice suppresion, instead of storing the entire notice in
+    Notice::suppressing, just store the time the notice should be
+    suppressed until. This saves significant memory but can no longer
+    raise end_suppression, which has been removed. (Justin Azoff)
+
+2.2-96 | 2014-01-20 11:41:07 -0800
+
+  * Integrate libmagic 5.16. Bro now now always relies on
+    builtin/shipped magic library/database. (Jon Siwek)
+
+  * Bro now requires a CMake 2.8.x, but no longer a pre-installed
+    libmagic. (Jon Siwek)
+
+2.2-93 | 2014-01-13 09:16:51 -0800
+
+  * Fixing compile problems with some versions of libc++. Reported by
+    Craig Leres. (Robin Sommer)
+
+2.2-91 | 2014-01-13 01:33:28 -0800
+
+  * Improve GeoIP City database support. When trying to open a city
+    database, it now considers both the "REV0" and "REV1" versions of
+    the city database instead of just the former. (Jon Siwek)
+
+  * Broxygen init fixes. Addresses BIT-1110. (Jon Siwek)
+    
+    - Don't check mtime of bro binary if BRO_DISABLE_BROXYGEN env var set.
+
+    - Fix failure to locate bro binary if invoking from a relative
+      path and '.' isn't in PATH.
+
+  * Fix for packet writing to make it use the global snap length.
+    (Seth Hall)
+
+  * Fix for traffic with TCP segmentation offloading with IP header
+    len field being set to zero. (Seth Hall)
+
+  * Canonify output of a unit test. (Jon Siwek)
+    
+  * A set of documentation updates. (Daniel Thayer)
+
+      - Fix typo in Bro 2.2 NEWS on string indexing.
+      - Fix typo in the Quick Start Guide, and clarified the
+        instructions about modifying crontab.
+      - Add/fix documentation for missing/misnamed event parameters.
+      - Fix typos in BIF documentation of hexstr_to_bytestring.
+      - Update the documentation of types and attributes.
+      - Documented the new substring extraction functionality.
+      - Clarified the description of "&priority" and "void".
+
+2.2-75 | 2013-12-18 08:36:50 -0800
+
+  * Fixing segfault with mismatching set &default in record fields.
+    (Robin Sommer)
+
+2.2-74 | 2013-12-16 08:49:55 -0800
+
+  * Improve warnings emitted from raw/execute input reader. (Jon
+    Siwek)
+
+  * Further improve core.when-interpreter-exceptions unit test. (Jon
+    Siwek)
+
+2.2-72 | 2013-12-12 07:12:47 -0800
+
+  * Improve the core.when-interpreter-exceptions unit test to prevent
+    it from occasionally timing out. (Jon Siwek)
+
 2.2-70 | 2013-12-10 15:02:50 -0800
 
   * Fix (harmless) uninitialized field in basename/dirname util

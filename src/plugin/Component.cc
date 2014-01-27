@@ -7,13 +7,19 @@
 
 using namespace plugin;
 
-Component::Component(component::Type arg_type)
+Component::Component(component::Type arg_type, const std::string& arg_name)
 	{
 	type = arg_type;
+	name = arg_name;
 	}
 
 Component::~Component()
 	{
+	}
+
+const std::string& Component::Name() const
+	{
+	return name;
 	}
 
 component::Type Component::Type() const
@@ -63,4 +69,8 @@ void Component::Describe(ODesc* d) const
 
 	d->Add("]");
 	d->Add(" ");
+	d->Add(name);
+	d->Add(" (");
+	DoDescribe(d);
+	d->Add(")");
 	}

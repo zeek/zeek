@@ -117,6 +117,7 @@ int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
+std::vector<int> saved_in_init;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
@@ -452,7 +453,7 @@ expr:
 			}
 
 	|       '$' TOK_ID func_params '='
-	                {
+			{
 			func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
 			begin_func(func_id,
@@ -462,7 +463,7 @@ expr:
 				   $3);
 			}
 		 func_body
-	                {
+			{
 			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()));
 			}
 
@@ -1113,12 +1114,24 @@ func_hdr:
 	;
 
 func_body:
-		opt_attr '{' stmt_list '}'
+		opt_attr '{'
+			{
+			saved_in_init.push_back(in_init);
+			in_init = 0;
+			}
+
+		stmt_list
+			{
+			in_init = saved_in_init.back();
+			saved_in_init.pop_back();
+			}
+
+		'}'
 			{
 			if ( optimize )
-				$3 = $3->Simplify();
+				$4 = $4->Simplify();
 
-			end_func($3, $1);
+			end_func($4, $1);
 			}
 	;
 

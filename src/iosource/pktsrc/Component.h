@@ -27,11 +27,6 @@ public:
 	SourceComponent(const std::string& name, const std::string& prefix, InputType type, factory_callback factory);
 
 	/**
-	 * Copy constructor.
-	 */
-	SourceComponent(const SourceComponent& other);
-
-	/**
 	 * Destructor.
 	 */
 	virtual ~SourceComponent();
@@ -64,8 +59,6 @@ public:
 	 */
 	virtual void Describe(ODesc* d) const;
 
-	SourceComponent& operator=(const SourceComponent& other);
-
 private:
 	std::string prefix;
 	InputType type;
@@ -88,19 +81,9 @@ public:
 	DumperComponent(const std::string& name, const std::string& prefix, factory_callback factory);
 
 	/**
-	 * Copy constructor.
-	 */
-	DumperComponent(const DumperComponent& other);
-
-	/**
 	 * Destructor.
 	 */
 	~DumperComponent();
-
-	/**
-	 * XXX
-	 */
-	virtual const char* Name() const;
 
 	/**
 	 * Returns the prefix passes to the constructor.
@@ -118,10 +101,7 @@ public:
 	 */
 	virtual void Describe(ODesc* d) const;
 
-	DumperComponent& operator=(const DumperComponent& other);
-
 private:
-	std::string name;
 	std::string prefix;
 	factory_callback factory;
 };

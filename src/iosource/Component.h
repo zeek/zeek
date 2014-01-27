@@ -31,24 +31,11 @@ public:
 	 */
 	~Component();
 
-	/**
-	 * XXX
-	 */
-	virtual const char* Name() const	{ return name.c_str(); }
-
-	/**
-	 * Generates a human-readable description of the component. This goes
-	 * into the output of \c "bro -NN".
-	 */
-	virtual void Describe(ODesc* d) const;
-
-	Component& operator=(const Component& other);
-
 protected:
+    /**
+     * XXXX
+     */
 	Component(plugin::component::Type type, const std::string& name);
-
-private:
-	std::string name;
 };
 
 }

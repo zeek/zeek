@@ -21,6 +21,7 @@ extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
+extern void net_update_time(double new_network_time);
 extern void net_packet_arrival(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
 			iosource::PktSrc* src_ps);

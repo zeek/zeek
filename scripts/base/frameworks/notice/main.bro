@@ -242,12 +242,6 @@ export {
 	##    being suppressed.
 	global suppressed: event(n: Notice::Info);
 
-	## This event is generated when a notice stops being suppressed.
-	##
-	## n: The record containing notice data regarding the notice type
-	##    that was being suppressed.
-	global end_suppression: event(n: Notice::Info);
-
 	## Call this function to send a notice in an email.  It is already used
 	## by default with the built in :bro:enum:`Notice::ACTION_EMAIL` and
 	## :bro:enum:`Notice::ACTION_PAGE` actions.
@@ -285,27 +279,22 @@ export {
 }
 
 # This is used as a hack to implement per-item expiration intervals.
-function per_notice_suppression_interval(t: table[Notice::Type, string] of Notice::Info, idx: any): interval
+function per_notice_suppression_interval(t: table[Notice::Type, string] of time, idx: any): interval
 	{
 	local n: Notice::Type;
 	local s: string;
 	[n,s] = idx;
 
-	local suppress_time = t[n,s]$suppress_for - (network_time() - t[n,s]$ts);
+	local suppress_time = t[n,s] - network_time();
 	if ( suppress_time < 0secs )
 		suppress_time = 0secs;
-
-	# If there is no more suppression time left, the notice needs to be sent
-	# to the end_suppression event.
-	if ( suppress_time == 0secs )
-		event Notice::end_suppression(t[n,s]);
 
 	return suppress_time;
 	}
 
 # This is the internally maintained notice suppression table.  It's
 # indexed on the Notice::Type and the $identifier field from the notice.
-global suppressing: table[Type, string] of Notice::Info = {}
+global suppressing: table[Type, string] of time = {}
 		&create_expire=0secs
 		&expire_func=per_notice_suppression_interval;
 
@@ -400,11 +389,22 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 
 	# First off, finish the headers and include the human readable messages
 	# then leave a blank line after the message.
-	email_text = string_cat(email_text, "\nMessage: ", n$msg);
-	if ( n?$sub )
-		email_text = string_cat(email_text, "\nSub-message: ", n$sub);
+	email_text = string_cat(email_text, "\nMessage: ", n$msg, "\n");
 
-	email_text = string_cat(email_text, "\n\n");
+	if ( n?$sub )
+		email_text = string_cat(email_text, "Sub-message: ", n$sub, "\n");
+
+	email_text = string_cat(email_text, "\n");
+
+	# Add information about the file if it exists.
+	if ( n?$file_desc )
+		email_text = string_cat(email_text, "File Description: ", n$file_desc, "\n");
+
+	if ( n?$file_mime_type )
+		email_text = string_cat(email_text, "File MIME Type: ", n$file_mime_type, "\n");
+
+	if ( n?$file_desc || n?$file_mime_type )
+		email_text = string_cat(email_text, "\n");
 
 	# Next, add information about the connection if it exists.
 	if ( n?$id )
@@ -467,7 +467,8 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
 		{
-		suppressing[n$note, n$identifier] = n;
+		local suppress_until = n$ts + n$suppress_for;
+		suppressing[n$note, n$identifier] = suppress_until;
 		event Notice::begin_suppression(n);
 		}
 	}

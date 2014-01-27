@@ -14,7 +14,7 @@ public:
 
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SSH_Analyzer(conn); }
 
 private:

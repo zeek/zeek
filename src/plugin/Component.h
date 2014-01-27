@@ -37,8 +37,11 @@ public:
 	 * Constructor.
 	 *
 	 * @param type The type of the compoment.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of the same type.
 	 */
-	Component(component::Type type);
+	Component(component::Type type, const std::string& name);
 
 	/**
 	 * Destructor.
@@ -51,22 +54,37 @@ public:
 	component::Type Type() const;
 
 	/**
-	 * Returns a descriptive name for the analyzer. This name must be
-	 * unique across all components of the same type.
+	 * Returns the compoment's name.
 	 */
-	virtual const char* Name() const = 0;
+	const std::string& Name() const;
 
 	/**
-	 * Returns a textual representation of the component. The default
-	 * version just output the type. Derived version should call the
-	 * parent's implementation and that add further information.
+	 * Returns a textual representation of the component. This goes into
+	 * the output of "bro -NN".
+	 *
+	 * By default version, this just outputs the type and the name.
+	 * Derived versions should override DoDescribe() to add type specific
+	 * details.
 	 *
 	 * @param d The description object to use.
 	 */
 	virtual void Describe(ODesc* d) const;
 
+protected:
+	/**
+	  * Adds type specific information to the outout of Describe().
+	 *
+	 * @param d The description object to use.
+	  */
+	virtual void DoDescribe(ODesc* d) const	{ }
+
 private:
+	// Disable.
+	Component(const Component& other);
+	Component operator=(const Component& other);
+
 	component::Type type;
+	std::string name;
 };
 
 }

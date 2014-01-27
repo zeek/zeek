@@ -5,6 +5,7 @@
 
 #include "Dumper.h"
 #include "../PktSrc.h"
+#include "../../../Net.h"
 
 using namespace iosource::pktsrc;
 
@@ -24,7 +25,7 @@ void PcapDumper::Open()
 	{
 	int linktype = -1;
 
-	pd = pcap_open_dead(DLT_EN10MB, 8192);
+	pd = pcap_open_dead(DLT_EN10MB, snaplen);
 	if ( ! pd )
 		{
 		Error("error for pcap_open_dead");

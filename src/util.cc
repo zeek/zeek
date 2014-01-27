@@ -647,18 +647,56 @@ bool ensure_dir(const char *dirname)
 	return true;
 	}
 
-bool is_dir(const char* path)
+bool is_dir(const std::string& path)
 	{
 	struct stat st;
-	if ( stat(path, &st) < 0 )
+	if ( stat(path.c_str(), &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning("can't stat %s: %s", path, strerror(errno));
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
 
 		return false;
 		}
 
 	return S_ISDIR(st.st_mode);
+	}
+
+bool is_file(const std::string& path)
+	{
+	struct stat st;
+	if ( stat(path.c_str(), &st) < 0 )
+		{
+		if ( errno != ENOENT )
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
+
+		return false;
+		}
+
+	return S_ISREG(st.st_mode);
+	}
+
+string strreplace(const string& s, const string& o, const string& n)
+	{
+	string r = s;
+
+	while ( true )
+		{
+		size_t i = r.find(o);
+
+		if ( i == std::string::npos )
+			break;
+
+		r.replace(i, o.size(), n);
+		}
+
+	return r;
+}
+
+std::string strstrip(std::string s)
+	{
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
 	}
 
 int hmac_key_set = 0;
@@ -900,16 +938,31 @@ int int_list_cmp(const void* v1, const void* v2)
 		return 1;
 	}
 
-const char* bro_path()
+static string bro_path_value;
+
+const std::string& bro_path()
 	{
-	const char* path = getenv("BROPATH");
-	if ( ! path )
-		path = ".:"
+	if ( bro_path_value.empty() )
+		{
+		const char* path = getenv("BROPATH");
+		if ( ! path )
+			path = ".:"
 			BRO_SCRIPT_INSTALL_PATH ":"
 			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
 			BRO_SCRIPT_INSTALL_PATH "/site";
 
-	return path;
+		bro_path_value = path;
+		}
+
+	return bro_path_value;
+	}
+
+extern void add_to_bro_path(const string& dir)
+	{
+	// Make sure path is initialized.
+	bro_path();
+
+	bro_path_value += string(":") + dir;
 	}
 
 const char* bro_magic_path()
@@ -918,6 +971,16 @@ const char* bro_magic_path()
 
 	if ( ! path )
 		path = BRO_MAGIC_INSTALL_PATH;
+
+	return path;
+	}
+
+const char* bro_plugin_path()
+	{
+	const char* path = getenv("BRO_PLUGIN_PATH");
+
+	if ( ! path )
+		path = BRO_PLUGIN_INSTALL_PATH;
 
 	return path;
 	}
@@ -1562,25 +1625,16 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	if ( malloced )
 		*malloced = mi.uordblks;
 
-	ret_total = mi.arena;
+#endif
 
-	if ( total )
-		*total = ret_total;
-#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
-
-	if ( malloced )
-		*malloced = 0;
 
 	// At least on FreeBSD it's in KB.
 	ret_total = r.ru_maxrss * 1024;
 
 	if ( total )
 		*total = ret_total;
-#endif
-
-	// return ret_total;
 	}
 
 #ifdef malloc
@@ -1652,48 +1706,28 @@ void operator delete[](void* v)
 
 #endif
 
-// Being selective of which components of MAGIC_NO_CHECK_BUILTIN are actually
-// known to be problematic, but keeping rest of libmagic's builtin checks.
-#define DISABLE_LIBMAGIC_BUILTIN_CHECKS  ( \
-/*  MAGIC_NO_CHECK_COMPRESS | */ \
-/*  MAGIC_NO_CHECK_TAR  | */ \
-/*  MAGIC_NO_CHECK_SOFT | */ \
-/*  MAGIC_NO_CHECK_APPTYPE  | */ \
-/*  MAGIC_NO_CHECK_ELF  | */ \
-/*  MAGIC_NO_CHECK_TEXT | */ \
-    MAGIC_NO_CHECK_CDF  | \
-    MAGIC_NO_CHECK_TOKENS  \
-/*  MAGIC_NO_CHECK_ENCODING */ \
-)
-
 void bro_init_magic(magic_t* cookie_ptr, int flags)
 	{
 	if ( ! cookie_ptr || *cookie_ptr )
 		return;
 
-	*cookie_ptr = magic_open(flags|DISABLE_LIBMAGIC_BUILTIN_CHECKS);
+	*cookie_ptr = magic_open(flags);
 
-	// Use our custom database for mime types, but the default database
-	// from libmagic for the verbose file type.
-	const char* database = (flags & MAGIC_MIME) ? bro_magic_path() : 0;
+	// Always use Bro's custom magic database.
+	const char* database = bro_magic_path();
 
 	if ( ! *cookie_ptr )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		if ( ! err )
-			err = "unknown";
-
-		reporter->InternalError("can't init libmagic: %s", err);
+		reporter->InternalError("can't init libmagic: %s",
+		                        err ? err : "unknown");
 		}
 
 	else if ( magic_load(*cookie_ptr, database) < 0 )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		if ( ! err )
-			err = "unknown";
-
-		const char* db_name = database ? database : "<default>";
-		reporter->InternalError("can't load magic file %s: %s", db_name, err);
+		reporter->InternalError("can't load magic file %s: %s", database,
+		                        err ? err : "unknown");
 		magic_close(*cookie_ptr);
 		*cookie_ptr = 0;
 		}
@@ -1711,17 +1745,16 @@ const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
 	return rval;
 	}
 
-const char* canonify_name(const char* name)
+std::string canonify_name(const std::string& name)
 	{
-	unsigned int len = strlen(name);
-	char* nname = new char[len + 1];
+	unsigned int len = name.size();
+	std::string nname;
 
 	for ( unsigned int i = 0; i < len; i++ )
 		{
 		char c = isalnum(name[i]) ? name[i] : '_';
-		nname[i] = toupper(c);
+		nname += toupper(c);
 		}
 
-	nname[len] = '\0';
 	return nname;
 	}

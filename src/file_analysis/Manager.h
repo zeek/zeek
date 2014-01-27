@@ -199,6 +199,18 @@ public:
 	                 RecordVal* args) const;
 
 	/**
+	 * Queue attachment of an all analyzers associated with a given MIME
+	 * type to the file identifier.
+	 *
+	 * @param file_id the file identifier/hash.
+	 * @param mtype the MIME type; comparisions will be performanced case-insensitive.
+	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
+	 * @return A ref'ed \c set[Tag] with all added analyzers.
+	 */
+	TableVal* AddAnalyzersForMIMEType(const string& file_id, const string& mtype,
+					  RecordVal* args);
+
+	/**
 	 * Queue removal of an analyzer for a given file identifier.
 	 * @param file_id the file identifier/hash.
 	 * @param tag the analyzer tag of the file analyzer to remove.
@@ -223,6 +235,62 @@ public:
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
 	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
+
+	/**
+	 * Registers a MIME type for an analyzer. Once registered, files of
+	 * that MIME type will automatically get a corresponding analyzer
+	 * assigned.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Files::Tag.
+	 *
+	 * @param mtype The MIME type. It will be matched case-insenistive.
+	 *
+	 * @return True if successful.
+	 */
+	bool RegisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype);
+
+	/**
+	 * Registers a MIME type for an analyzer. Once registered, files of
+	 * that MIME type will automatically get a corresponding analyzer
+	 * assigned.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Files::Tag.
+	 *
+	 * @param mtype The MIME type. It will be matched case-insenistive.
+	 *
+	 * @return True if successful.
+	 */
+	bool RegisterAnalyzerForMIMEType(Tag tag, const string& mtype);
+
+	/**
+	 * Unregisters a MIME type for an analyzer.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Files::Tag.
+	 *
+	 * @param mtype The MIME type. It will be matched case-insenistive.
+	 *
+	 * @return True if successful (incl. when the type wasn't actually
+	 * registered for the analyzer).
+	 *
+	 */
+	bool UnregisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype);
+
+	/**
+	 * Unregisters a MIME type for an analyzer.
+	 *
+	 * @param tag The analyzer's tag as an enum of script type \c
+	 * Files::Tag.
+	 *
+	 * @param mtype The MIME type. It will be matched case-insenistive.
+	 *
+	 * @return True if successful (incl. when the type wasn't actually
+	 * registered for the analyzer).
+	 *
+	 */
+	bool UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype);
 
 protected:
 	friend class FileTimer;
@@ -297,12 +365,18 @@ protected:
 	static bool IsDisabled(analyzer::Tag tag);
 
 private:
+	typedef set<Tag> TagSet;
+	typedef map<string, TagSet*> MIMEMap;
+
+	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
 	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
 	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
+	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
+	static TableType* tag_set_type;	/**< Type for set[tag]. */
 	static string salt; /**< A salt added to file handles before hashing. */
 };
 

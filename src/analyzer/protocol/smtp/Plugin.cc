@@ -1,11 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "SMTP.h"
 
-BRO_PLUGIN_BEGIN(Bro, SMTP)
-	BRO_PLUGIN_DESCRIPTION("SMTP analyzer");
-	BRO_PLUGIN_ANALYZER("SMTP", smtp::SMTP_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_SMTP {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("SMTP", ::analyzer::smtp::SMTP_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::SMTP";
+		config.description = "SMTP analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

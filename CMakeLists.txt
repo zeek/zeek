@@ -1,5 +1,10 @@
 project(Bro C CXX)
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+
+# When changing the minimum version here, also adapt
+# cmake/BroPluginDynamic and
+# aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
+cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
+
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -16,17 +21,21 @@ endif ()
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
+set(BRO_PLUGIN_INSTALL_PATH ${BRO_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
 set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
 set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
+
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
      "export BROMAGIC=\"${BRO_MAGIC_SOURCE_PATH}\"\n"
+     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
      "setenv BROMAGIC \"${BRO_MAGIC_SOURCE_PATH}\"\n"
+     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -38,6 +47,32 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 ########################################################################
 ## Dependency Configuration
+
+include(ExternalProject)
+
+# LOG_* options to ExternalProject_Add appear in CMake 2.8.3.  If
+# available, using them hides external project configure/build output.
+if("${CMAKE_VERSION}" VERSION_GREATER 2.8.2)
+    set(EXTERNAL_PROJECT_LOG_OPTIONS
+        LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1)
+else()
+    set(EXTERNAL_PROJECT_LOG_OPTIONS)
+endif()
+
+set(LIBMAGIC_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libmagic-prefix)
+set(LIBMAGIC_INCLUDE_DIR ${LIBMAGIC_PREFIX}/include)
+set(LIBMAGIC_LIB_DIR ${LIBMAGIC_PREFIX}/lib)
+set(LIBMAGIC_LIBRARY ${LIBMAGIC_LIB_DIR}/libmagic.a)
+ExternalProject_Add(libmagic
+    PREFIX ${LIBMAGIC_PREFIX}
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/file-5.16.tar.gz
+    CONFIGURE_COMMAND ./configure --enable-static --disable-shared
+                                  --prefix=${LIBMAGIC_PREFIX}
+                                  --includedir=${LIBMAGIC_INCLUDE_DIR}
+                                  --libdir=${LIBMAGIC_LIB_DIR}
+    BUILD_IN_SOURCE 1
+    ${EXTERNAL_PROJECT_LOG_OPTIONS}
+)
 
 include(FindRequiredPackage)
 
@@ -57,7 +92,6 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
-FindRequiredPackage(LibMagic)
 FindRequiredPackage(ZLIB)
 
 if (NOT BinPAC_ROOT_DIR AND
@@ -73,18 +107,12 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
-set(libmagic_req 5.04)
-if ( LibMagic_VERSION VERSION_LESS ${libmagic_req} )
-    message(FATAL_ERROR "libmagic of at least version ${libmagic_req} required "
-                        "(found ${LibMagic_VERSION})")
-endif ()
-
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
-                    ${LibMagic_INCLUDE_DIR}
+                    ${LIBMAGIC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
 )
 
@@ -163,7 +191,7 @@ set(brodeps
     ${PCAP_LIBRARY}
     ${OpenSSL_LIBRARIES}
     ${BIND_LIBRARY}
-    ${LibMagic_LIBRARY}
+    ${LIBMAGIC_LIBRARY}
     ${ZLIB_LIBRARY}
     ${OPTLIBS}
 )
@@ -182,6 +210,10 @@ include(MiscTests)
 include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
+include(GetArchitecture)
+
+# Tell the plugin code that we're building as part of the main tree.
+set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)

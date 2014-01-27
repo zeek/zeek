@@ -382,6 +382,31 @@ int NetSessions::CheckConnectionTag(Connection* conn)
 	return 1;
 	}
 
+static unsigned int gre_header_len(uint16 flags)
+	{
+	unsigned int len = 4;  // Always has 2 byte flags and 2 byte protocol type.
+
+	if ( flags & 0x8000 )
+		// Checksum/Reserved1 present.
+		len += 4;
+
+	// Not considering routing presence bit since it's deprecated ...
+
+	if ( flags & 0x2000 )
+		// Key present.
+		len += 4;
+
+	if ( flags & 0x1000 )
+		// Sequence present.
+		len += 4;
+
+	if ( flags & 0x0080 )
+		// Acknowledgement present.
+		len += 4;
+
+	return len;
+	}
+
 void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				const IP_Hdr* ip_hdr, const u_char* const pkt,
 				int hdr_size, const EncapsulationStack* encapsulation)
@@ -390,6 +415,15 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
 
 	uint32 len = ip_hdr->TotalLen();
+	if ( len == 0 )
+		{
+		// TCP segmentation offloading can zero out the ip_len field.
+		Weird("ip_hdr_len_zero", hdr, pkt, encapsulation);
+
+		// Cope with the zero'd out ip_len field by using the caplen.
+		len = hdr->caplen - hdr_size;
+		}
+
 	if ( hdr->len < len + hdr_size )
 		{
 		Weird("truncated_IP", hdr, pkt, encapsulation);
@@ -443,6 +477,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 		}
 
+	FragReassemblerTracker frt(this, f);
+
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
@@ -457,7 +493,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			vl->append(ip_hdr->BuildPktHdrVal());
 			mgr.QueueEvent(esp_packet, vl);
 			}
-		Remove(f);
+
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
 		}
@@ -472,7 +508,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
 			Weird("bad_MH_checksum", hdr, pkt, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -486,7 +521,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", hdr, pkt, encapsulation);
 
-		Remove(f);
 		return;
 		}
 #endif
@@ -494,10 +528,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	int proto = ip_hdr->NextProto();
 
 	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt, encapsulation) )
-		{
-		Remove(f);
 		return;
-		}
 
 	const u_char* data = ip_hdr->Payload();
 
@@ -559,13 +590,100 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		break;
 		}
 
+	case IPPROTO_GRE:
+		{
+		if ( ! BifConst::Tunnel::enable_gre )
+			{
+			Weird("GRE_tunnel", ip_hdr, encapsulation);
+			return;
+			}
+
+		uint16 flags_ver = ntohs(*((uint16*)(data + 0)));
+		uint16 proto_typ = ntohs(*((uint16*)(data + 2)));
+		int gre_version = flags_ver & 0x0007;
+
+		if ( gre_version != 0 && gre_version != 1 )
+			{
+			Weird(fmt("unknown_gre_version_%d", gre_version), ip_hdr,
+			      encapsulation);
+			return;
+			}
+
+		if ( gre_version == 0 )
+			{
+			if ( proto_typ != 0x0800 && proto_typ != 0x86dd )
+				{
+				// Not IPv4/IPv6 payload.
+				Weird(fmt("unknown_gre_protocol_%"PRIu16, proto_typ), ip_hdr,
+				      encapsulation);
+				return;
+				}
+
+			proto = (proto_typ == 0x0800) ? IPPROTO_IPV4 : IPPROTO_IPV6;
+			}
+
+		else // gre_version == 1
+			{
+			if ( proto_typ != 0x880b )
+				{
+				// Enhanced GRE payload must be PPP.
+				Weird("egre_protocol_type", ip_hdr, encapsulation);
+				return;
+				}
+			}
+
+		if ( flags_ver & 0x4000 )
+			{
+			// RFC 2784 deprecates the variable length routing field
+			// specified by RFC 1701. It could be parsed here, but easiest
+			// to just skip for now.
+			Weird("gre_routing", ip_hdr, encapsulation);
+			return;
+			}
+
+		if ( flags_ver & 0x0078 )
+			{
+			// Expect last 4 bits of flags are reserved, undefined.
+			Weird("unknown_gre_flags", ip_hdr, encapsulation);
+			return;
+			}
+
+		unsigned int gre_len = gre_header_len(flags_ver);
+		unsigned int ppp_len = gre_version == 1 ? 1 : 0;
+
+		if ( len < gre_len + ppp_len || caplen < gre_len + ppp_len )
+			{
+			Weird("truncated_GRE", ip_hdr, encapsulation);
+			return;
+			}
+
+		if ( gre_version == 1 )
+			{
+			int ppp_proto = *((uint8*)(data + gre_len));
+
+			if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
+				{
+				Weird("non_ip_packet_in_egre", ip_hdr, encapsulation);
+				return;
+				}
+
+			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
+			}
+
+		data += gre_len + ppp_len;
+		len -= gre_len + ppp_len;
+		caplen -= gre_len + ppp_len;
+
+		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
+		// that GRE header is stripped and only payload packet remains.
+		}
+
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
 		if ( ! BifConst::Tunnel::enable_ip )
 			{
 			Weird("IP_tunnel", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -573,7 +691,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
 			{
 			Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
-			Remove(f);
 			return;
 			}
 
@@ -590,7 +707,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( result != 0 )
 			{
 			delete inner;
-			Remove(f);
 			return;
 			}
 
@@ -617,7 +733,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		DoNextInnerPacket(t, hdr, inner, encapsulation,
 		                  ip_tunnels[tunnel_idx].first);
 
-		Remove(f);
 		return;
 		}
 
@@ -630,13 +745,11 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO ) )
 			Weird("ipv6_no_next", hdr, pkt);
 
-		Remove(f);
 		return;
 		}
 
 	default:
 		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt, encapsulation);
-		Remove(f);
 		return;
 	}
 
@@ -662,7 +775,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( consistent < 0 )
 			{
 			delete h;
-			Remove(f);
 			return;
 			}
 
@@ -686,7 +798,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ! conn )
 		{
 		delete h;
-		Remove(f);
 		return;
 		}
 
@@ -718,7 +829,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		{
 		// Above we already recorded the fragment in its entirety.
 		f->DeleteTimer();
-		Remove(f);
 		}
 
 	else if ( record_packet )
@@ -818,6 +928,9 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 		break;
 	case IPPROTO_NONE:
 		min_hdr_len = 0;
+		break;
+	case IPPROTO_GRE:
+		min_hdr_len = 4;
 		break;
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:

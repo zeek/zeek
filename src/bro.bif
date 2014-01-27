@@ -974,6 +974,8 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 ##
 ## prefix: A custom string prepended to the result.
 ##
+## Returns: A string identifier that is unique.
+##
 ## .. bro:see:: unique_id_from
 function unique_id%(prefix: string%) : string
 	%{
@@ -987,6 +989,8 @@ function unique_id%(prefix: string%) : string
 ## pool: A seed for determinism.
 ##
 ## prefix: A custom string prepended to the result.
+##
+## Returns: A string identifier that is unique.
 ##
 ## .. bro:see:: unique_id
 function unique_id_from%(pool: int, prefix: string%) : string
@@ -1861,8 +1865,8 @@ function global_ids%(%): id_table
 ##
 ## id: The global identifier.
 ##
-## Returns the value of *id*. If *id* does not describe a valid identifier, the
-## function returns the string ``"<unknown id>"`` or ``"<no ID value>"``.
+## Returns: The value of *id*. If *id* does not describe a valid identifier,
+##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
 	ID* i = global_scope()->Lookup(id->CheckString());
@@ -2636,15 +2640,15 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	return new StringVal(hexstr);
 	%}
 
-## Converts a hex-string into its binary  representation.
+## Converts a hex-string into its binary representation.
 ## For example, ``"3034"`` would be converted to ``"04"``.
 ##
-## The input string is assumed to only contain 0-9 and a-f,
-## otherwhise behavior is undefines.
+## The input string is assumed to contain an even number of hexadecimal digits
+## (0-9, a-f, or A-F), otherwise behavior is undefined.
 ##
-## hexstring: The hexadecimal string representation.
+## hexstr: The hexadecimal string representation.
 ##
-## Returns: The binary representation of *hexstring*.
+## Returns: The binary representation of *hexstr*.
 ##
 ## .. bro:see:: hexdump bytestring_to_hexstr
 function hexstr_to_bytestring%(hexstr: string%): string
@@ -3453,9 +3457,59 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 	if ( GeoIP_db_avail(type) )
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
+	return geoip;
+	}
+
+static GeoIP* open_geoip_city_db()
+	{
+	GeoIP* geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
+
 	if ( ! geoip )
-		reporter->Info("Failed to open GeoIP database: %s",
-		                  GeoIPDBFileName[type]);
+		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1);
+
+	if ( ! geoip )
+		{
+		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0];
+		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1];
+		string db_path = rev0_path;
+
+		// Maybe in the future the revisions won't share a common default path.
+		if ( rev0_path != rev1_path )
+			db_path = rev0_path + " or " + rev1_path;
+
+		reporter->Info("Failed to open GeoIP City database: %s",
+		               db_path.c_str());
+		}
+
+	return geoip;
+	}
+
+static GeoIP* open_geoip_city_db_v6()
+	{
+	GeoIP* geoip = 0;
+
+	// Both city edition revisions for IPv6 show up in libGeoIP 1.4.7.
+#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
+	geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
+
+	if ( ! geoip )
+		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1_V6);
+
+	if ( ! geoip )
+		{
+		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0_V6];
+		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1_V6];
+		string db_path = rev0_path;
+
+		// Maybe in the future the revisions won't share a common default path.
+		if ( rev0_path != rev1_path )
+			db_path = rev0_path + " or " + rev1_path;
+
+		reporter->Info("Failed to open GeoIP Cityv6 database: %s",
+		               db_path.c_str());
+		}
+#endif
+
 	return geoip;
 	}
 
@@ -3486,31 +3540,41 @@ function lookup_location%(a: addr%) : geo_location
 	if ( ! geoip_initialized )
 		{
 		geoip_initialized = true;
-		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
+		geoip = open_geoip_city_db();
 
 		if ( ! geoip )
 			{
 			geoip = open_geoip_db(GEOIP_COUNTRY_EDITION);
+			string db_path = GeoIPDBFileName[GEOIP_COUNTRY_EDITION];
+
 			if ( ! geoip )
-				builtin_error("Can't initialize GeoIP City/Country database");
+				builtin_error(fmt("Failed fall back to GeoIP Country "
+				                  "database: %s",
+				                  GeoIPDBFileName[GEOIP_COUNTRY_EDITION]));
 			else
 				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;
 
-#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
-		geoip_v6 = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
+		geoip_v6 = open_geoip_city_db_v6();
+
 		if ( geoip_v6 )
 			have_cityv6_db = true;
-#endif
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 		if ( ! geoip_v6 )
+			{
 			geoip_v6 = open_geoip_db(GEOIP_COUNTRY_EDITION_V6);
+
+			if ( ! geoip_v6 )
+				reporter->Info("Failed to open GeoIPv6 Country database: %s",
+				               GeoIPDBFileName[GEOIP_COUNTRY_EDITION_V6]);
+			}
 #endif
+
 		if ( ! geoip_v6 )
-			builtin_error("Can't initialize GeoIPv6 City/Country database");
+			builtin_error("Can't open GeoIPv6 City/Country database");
 		}
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
@@ -3602,8 +3666,10 @@ function lookup_asn%(a: addr%) : count
 		{
 		geoip_asn_initialized = true;
 		geoip_asn = open_geoip_db(GEOIP_ASNUM_EDITION);
+
 		if ( ! geoip_asn )
-			builtin_error("Can't initialize GeoIP ASNUM database");
+			builtin_error(fmt("Can't open GeoIP ASNUM database: %s",
+			                  GeoIPDBFileName[GEOIP_ASNUM_EDITION]));
 		}
 
 	if ( geoip_asn )
@@ -4988,8 +5054,6 @@ function preserve_prefix%(a: addr, width: count%): any
 ## Preserves the prefix of a subnet in anonymization.
 ##
 ## a: The subnet to preserve.
-##
-## width: The number of bits from the top that should remain intact.
 ##
 ## .. bro:see:: preserve_prefix anonymize_addr
 ##

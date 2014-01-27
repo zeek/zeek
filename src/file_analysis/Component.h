@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYZER_PLUGIN_COMPONENT_H
-#define FILE_ANALYZER_PLUGIN_COMPONENT_H
+#ifndef FILE_ANALYZER_COMPONENT_H
+#define FILE_ANALYZER_COMPONENT_H
 
 #include "Tag.h"
 #include "plugin/Component.h"
@@ -40,13 +40,14 @@ public:
 	 * from file_analysis::Analyzer. This is typically a static \c
 	 * Instatiate() method inside the class that just allocates and
 	 * returns a new instance.
+	 *
+	 * @param subtype A subtype associated with this component that
+	 * further distinguishes it. The subtype will be integrated into the
+	 * analyzer::Tag that the manager associates with this analyzer, and
+	 * analyzer instances can accordingly access it via analyzer::Tag().
+	 * If not used, leave at zero.
 	 */
-	Component(const char* name, factory_callback factory);
-
-	/**
-	 * Copy constructor.
-	 */
-	Component(const Component& other);
+	Component(const std::string& name, factory_callback factory, Tag::subtype_t subtype = 0);
 
 	/**
 	 * Destructor.
@@ -54,37 +55,26 @@ public:
 	~Component();
 
 	/**
-	 * Returns the name of the analyzer. This name is unique across all
-	 * analyzers and used to identify it. The returned name is derived
-	 * from what's passed to the constructor but upper-cased and
-	 * canonified to allow being part of a script-level ID.
-	 */
-	virtual const char* Name() const	{ return name; }
-
-	/**
 	 * Returns a canonocalized version of the analyzer's name.  The
 	 * returned name is derived from what's passed to the constructor but
 	 * upper-cased and transformed to allow being part of a script-level
 	 * ID.
 	 */
-	const char* CanonicalName() const	{ return canon_name; }
+	const std::string& CanonicalName() const	{ return canon_name; }
 
 	/**
 	 * Returns the analyzer's factory function.
 	 */
 	factory_callback Factory() const	{ return factory; }
 
+protected:
 	/**
-	 * Generates a human-readable description of the component's main
-	 * parameters. This goes into the output of \c "bro -NN".
-	 */
-	virtual void Describe(ODesc* d) const;
-
-	Component& operator=(const Component& other);
+	  * Overriden from plugin::Component.
+	  */
+	virtual void DoDescribe(ODesc* d) const;
 
 private:
-	const char* name;	// The analyzer's name.
-	const char* canon_name;	// The analyzer's canonical name.
+	std::string canon_name;	// The analyzer's canonical name.
 	factory_callback factory;	// The analyzer's factory callback.
 };
 

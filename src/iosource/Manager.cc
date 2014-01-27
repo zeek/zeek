@@ -246,18 +246,18 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, 
 
 	// Instantiate packet source.
 
-	PktSrc* ps = (*component->Factory())(path, filter, is_live);
+	PktSrc* ps = (*component->Factory())(npath, filter, is_live);
 
 	if ( ! (ps && ps->IsOpen()) )
 	     {
 	     string type = (is_live ? "interface" : "trace file");
 	     string pserr = ps->ErrorMsg() ? (string(" - ") + ps->ErrorMsg()) : "";
 
-	     reporter->FatalError("%s: problem with %s %s%s\n",
-				  prog, path.c_str(), type.c_str(), pserr.c_str());
+	     reporter->FatalError("%s: problem with %s %s%s",
+				  prog, npath.c_str(), type.c_str(), pserr.c_str());
 	     }
 
-	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s\n", component->Name(), path.c_str());
+	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
 
 	Register(ps);
 	return ps;
@@ -291,17 +291,17 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 
 	// Instantiate packet dumper.
 
-	PktDumper* pd = (*component->Factory())(path, append);
+	PktDumper* pd = (*component->Factory())(npath, append);
 
 	if ( ! (pd && pd->IsOpen()) )
 		{
 		string pderr = pd->ErrorMsg().size() ? (string(" - ") + pd->ErrorMsg()) : "";
 
-		reporter->FatalError("%s: can't open write file \"%s\"%s\n",
-				     prog, path.c_str(), pderr.c_str());
+		reporter->FatalError("%s: can't open write file \"%s\"%s",
+				     prog, npath.c_str(), pderr.c_str());
 		}
 
-	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s\n", component->Name(), path.c_str());
+	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(), npath.c_str());
 
 	return pd;
 	}

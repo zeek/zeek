@@ -5,6 +5,7 @@
 
 #include "DebugLogger.h"
 #include "Net.h"
+#include "plugin/Plugin.h"
 
 DebugLogger debug_logger("debug");
 
@@ -74,9 +75,11 @@ void DebugLogger::EnableStreams(const char* s)
 			{
 			if ( strcasecmp("verbose", tok) == 0 )
 				verbose = true;
-			else
+			else if ( strncmp(tok, "plugin-", 7) != 0 )
 				reporter->FatalError("unknown debug stream %s\n", tok);
 			}
+
+		enabled_streams.insert(tok);
 
 		tok = strtok(0, ",");
 		}
@@ -96,6 +99,26 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 
 	for ( int i = g->indent; i > 0; --i )
 		fputs("   ", file);
+
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(file, fmt, ap);
+	va_end(ap);
+
+	fputc('\n', file);
+	fflush(file);
+	}
+
+void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
+	{
+	string tok = string("plugin-") + plugin.Name();
+	tok = strreplace(tok, "::", "-");
+
+	if ( enabled_streams.find(tok) == enabled_streams.end() )
+		return;
+
+	fprintf(file, "%17.06f/%17.06f [plugin %s] ",
+			network_time, current_time(true), plugin.Name().c_str());
 
 	va_list ap;
 	va_start(ap, fmt);

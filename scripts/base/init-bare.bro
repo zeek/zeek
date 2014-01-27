@@ -60,6 +60,13 @@ type addr_vec: vector of addr;
 ##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
 
+## A set of file analyzer tags.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type files_tag_set: set[Files::Tag];
+
 ## A connection's transport-layer protocol. Note that Bro uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {
@@ -3057,6 +3064,9 @@ export {
 	## Toggle whether to do GTPv1 decapsulation.
 	const enable_gtpv1 = T &redef;
 
+	## Toggle whether to do GRE decapsulation.
+	const enable_gre = T &redef;
+
 	## With this option set, the Teredo analysis will first check to see if
 	## other protocol analyzers have confirmed that they think they're
 	## parsing the right protocol and only continue with Teredo tunnel
@@ -3082,7 +3092,8 @@ export {
 	## may work better.
 	const delay_gtp_confirmation = F &redef;
 
-	## How often to cleanup internal state for inactive IP tunnels.
+	## How often to cleanup internal state for inactive IP tunnels
+	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
 module GLOBAL;

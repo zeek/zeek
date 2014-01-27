@@ -321,6 +321,7 @@ public:
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
 	BroType* YieldType();
+	const BroType* YieldType() const;
 
 	void Describe(ODesc* d) const;
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
@@ -383,6 +384,7 @@ public:
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType();
+	const BroType* YieldType() const;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
 	string FlavorString() const;
@@ -529,6 +531,8 @@ protected:
 
 class EnumType : public BroType {
 public:
+	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
+
 	EnumType() : BroType(TYPE_ENUM) { counter = 0; }
 	~EnumType();
 
@@ -542,8 +546,12 @@ public:
 	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
-	bro_int_t Lookup(const string& module_name, const char* name);
-	const char* Lookup(bro_int_t value); // Returns 0 if not found
+	bro_int_t Lookup(const string& module_name, const char* name) const;
+	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
+
+	// Returns the list of defined names with their values. The names
+	// will be fully qualified with their module name.
+	enum_name_list Names() const;
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
@@ -573,6 +581,7 @@ public:
 	VectorType(BroType* t);
 	virtual ~VectorType();
 	BroType* YieldType()	{ return yield_type; }
+	const BroType* YieldType() const	{ return yield_type; }
 
 	int MatchesIndex(ListExpr*& index) const;
 

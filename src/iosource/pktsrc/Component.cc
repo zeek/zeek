@@ -14,14 +14,6 @@ SourceComponent::SourceComponent(const std::string& arg_name, const std::string&
 	factory = arg_factory;
 	}
 
-SourceComponent::SourceComponent(const SourceComponent& other)
-	: iosource::Component(other)
-	{
-	prefix = other.prefix;
-	type = other.type;
-	factory = other.factory;
-	}
-
 SourceComponent::~SourceComponent()
 	{
 	}
@@ -56,34 +48,11 @@ void SourceComponent::Describe(ODesc* d) const
 	d->Add(")");
 	}
 
-SourceComponent& SourceComponent::operator=(const SourceComponent& other)
+DumperComponent::DumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
+	: plugin::Component(plugin::component::PKTDUMPER, name)
 	{
-	iosource::Component::operator=(other);
-
-	if ( &other != this )
-		{
-		prefix = other.prefix;
-		type = other.type;
-		factory = other.factory;
-		}
-
-	return *this;
-	}
-
-DumperComponent::DumperComponent(const std::string& arg_name, const std::string& arg_prefix, factory_callback arg_factory)
-	: plugin::Component(plugin::component::PKTDUMPER)
-	{
-	name = arg_name;
 	factory = arg_factory;
 	prefix = arg_prefix;
-	}
-
-DumperComponent::DumperComponent(const DumperComponent& other)
-	: plugin::Component(other)
-	{
-	name = other.name;
-	factory = other.factory;
-	prefix = other.prefix;
 	}
 
 DumperComponent::~DumperComponent()
@@ -95,11 +64,6 @@ DumperComponent::factory_callback DumperComponent::Factory() const
 	return factory;
 	}
 
-const char* DumperComponent::Name() const
-	{
-	return name.c_str();
-	}
-
 const std::string& DumperComponent::Prefix() const
 	{
 	return prefix;
@@ -109,22 +73,8 @@ void DumperComponent::Describe(ODesc* d) const
 	{
 	plugin::Component::Describe(d);
 
-	d->Add(name);
 	d->Add(" (dumper prefix: ");
 	d->Add(prefix);
 	d->Add(")");
 	}
 
-DumperComponent& DumperComponent::operator=(const DumperComponent& other)
-	{
-	plugin::Component::operator=(other);
-
-	if ( &other != this )
-		{
-		name = other.name;
-		factory = other.factory;
-		prefix = other.prefix;
-		}
-
-	return *this;
-	}

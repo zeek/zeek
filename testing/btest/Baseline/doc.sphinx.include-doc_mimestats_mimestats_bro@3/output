@@ -1,0 +1,18 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+mimestats.bro
+
+	SumStats::create([$name="mime-metrics",
+	                  $epoch=break_interval,
+	                  $reducers=set(r1, r2),
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
+	                        {
+	                        local l: Info;
+	                        l$ts         = network_time();
+	                        l$ts_delta   = break_interval;
+	                        l$mtype      = key$str;
+	                        l$bytes      = double_to_count(floor(result["mime.bytes"]$sum));
+	                        l$hits       = result["mime.hits"]$num;
+	                        l$uniq_hosts = result["mime.hits"]$unique;
+	                        Log::write(MimeMetrics::LOG, l);
+	                        }]);

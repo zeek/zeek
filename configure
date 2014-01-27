@@ -64,6 +64,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-dataseries=PATH path to DataSeries and Lintel libraries
     --with-xml2=PATH       path to libxml2 installation (for DataSeries)
     --with-curl=PATH       path to libcurl install root (for ElasticSearch)
+    --with-netmap=PATH     path to netmap distribution
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
@@ -246,6 +247,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-curl=*)
             append_cache_entry LibCURL_ROOT_DIR PATH $optarg
+            ;;
+        --with-netmap=*)
+            append_cache_entry NETMAP_ROOT_DIR PATH $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

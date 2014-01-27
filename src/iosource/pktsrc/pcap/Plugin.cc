@@ -12,8 +12,8 @@ class Plugin : public plugin::Plugin {
 public:
 	plugin::Configuration Configure()
 		{
-        AddComponent(new ::iosource::pktsrc::SourceComponent("PcapReader", "pcap", ::iosource::pktsrc::SourceComponent::BOTH, ::iosource::pktsrc::PcapSource::Instantiate));
-        AddComponent(new ::iosource::pktsrc::DumperComponent("PcapWriter", "pcap", ::iosource::pktsrc::PcapDumper::Instantiate));
+		AddComponent(new ::iosource::pktsrc::SourceComponent("PcapReader", "pcap", ::iosource::pktsrc::SourceComponent::BOTH, ::iosource::pktsrc::PcapSource::Instantiate));
+		AddComponent(new ::iosource::pktsrc::DumperComponent("PcapWriter", "pcap", ::iosource::pktsrc::PcapDumper::Instantiate));
 
 		plugin::Configuration config;
 		config.name = "Bro::Pcap";

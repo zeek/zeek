@@ -3,6 +3,8 @@
 #ifndef IOSOURCE_PKTSRC_PLUGIN_COMPONENT_H
 #define IOSOURCE_PKTSRC_PLUGIN_COMPONENT_H
 
+#include <vector>
+
 #include "../Component.h"
 
 namespace iosource {
@@ -24,7 +26,7 @@ public:
 	/**
 	 * XXX
 	 */
-	SourceComponent(const std::string& name, const std::string& prefix, InputType type, factory_callback factory);
+	SourceComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory);
 
 	/**
 	 * Destructor.
@@ -32,9 +34,14 @@ public:
 	virtual ~SourceComponent();
 
 	/**
-	 * Returns the prefix passes to the constructor.
+	 * Returns the prefix(es) passed to the constructor.
 	 */
-	const std::string& Prefix() const;
+	const std::vector<std::string>& Prefixes() const;
+
+	/**
+	 * Returns true if the given prefix is among the one specified for the component.
+	 */
+	bool HandlesPrefix(const std::string& prefix) const;
 
 	/**
 	 * Returns true if packet source instantiated by the component handle
@@ -60,7 +67,7 @@ public:
 	virtual void Describe(ODesc* d) const;
 
 private:
-	std::string prefix;
+	std::vector<std::string> prefixes;
 	InputType type;
 	factory_callback factory;
 };
@@ -78,7 +85,7 @@ public:
 	/**
 	 * XXX
 	 */
-	DumperComponent(const std::string& name, const std::string& prefix, factory_callback factory);
+	DumperComponent(const std::string& name, const std::string& prefixes, factory_callback factory);
 
 	/**
 	 * Destructor.
@@ -86,9 +93,14 @@ public:
 	~DumperComponent();
 
 	/**
-	 * Returns the prefix passes to the constructor.
+	 * Returns the prefix(es) passed to the constructor.
 	 */
-	const std::string& Prefix() const;
+	const std::vector<std::string>& Prefixes() const;
+
+	/**
+	 * Returns true if the given prefix is among the one specified for the component.
+	 */
+	bool HandlesPrefix(const std::string& prefix) const;
 
 	/**
 	 * Returns the source's factory function.
@@ -102,7 +114,7 @@ public:
 	virtual void Describe(ODesc* d) const;
 
 private:
-	std::string prefix;
+	std::vector<std::string> prefixes;
 	factory_callback factory;
 };
 

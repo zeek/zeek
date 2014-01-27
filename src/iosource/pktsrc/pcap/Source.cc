@@ -1,4 +1,6 @@
 
+#include <assert.h>
+
 #include "config.h"
 
 #include "Source.h"
@@ -92,9 +94,7 @@ void PcapSource::OpenLive()
 
 	if ( ! pd )
 		{
-		safe_snprintf(errbuf, sizeof(errbuf),
-			      "pcap_open_live: %s", tmp_errbuf);
-		Error(errbuf);
+		Error(tmp_errbuf);
 		return;
 		}
 
@@ -106,10 +106,7 @@ void PcapSource::OpenLive()
 #ifdef HAVE_LINUX
 	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
 		{
-		safe_snprintf(errbuf, sizeof(errbuf),
-			      "pcap_setnonblock: %s", tmp_errbuf);
-		Error(errbuf);
-		pcap_close(pd);
+		PcapError();
 		return;
 		}
 #endif
@@ -136,7 +133,6 @@ void PcapSource::OpenLive()
 void PcapSource::OpenOffline()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char tmp_errbuf[PCAP_ERRBUF_SIZE];
 
 #if 0
 	filter_type = ft;
@@ -146,8 +142,6 @@ void PcapSource::OpenOffline()
 
 	if ( ! pd )
 		{
-		safe_snprintf(errbuf, sizeof(errbuf),
-			      "pcap_open_offline: %s", tmp_errbuf);
 		Error(errbuf);
 		return;
 		}
@@ -178,6 +172,9 @@ void PcapSource::OpenOffline()
 
 int PcapSource::ExtractNextPacket(Packet* pkt)
 	{
+	if ( ! pd )
+		return 0;
+
 	const u_char* data = pcap_next(pd, &current_hdr);
 
 	if ( ! data )
@@ -214,6 +211,9 @@ void PcapSource::DoneWithPacket(Packet* pkt)
 
 int PcapSource::PrecompileFilter(int index, const std::string& filter)
 	{
+	if ( ! pd )
+		return 1; // Prevent error message.
+
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	// Compile filter.
@@ -240,6 +240,9 @@ int PcapSource::PrecompileFilter(int index, const std::string& filter)
 
 int PcapSource::SetFilter(int index)
 	{
+	if ( ! pd )
+		return 1; // Prevent error message
+
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 #if 0
@@ -279,7 +282,7 @@ void PcapSource::Statistics(Stats* s)
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	if ( ! props.is_live )
+	if ( ! (props.is_live && pd) )
 		s->received = s->dropped = s->link = 0;
 
 	else
@@ -316,13 +319,19 @@ bool PcapSource::GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt)
 
 void PcapSource::PcapError()
 	{
-	assert(pd);
-	Error(fmt("pcap_error: %s", pcap_geterr(pd)));
+	if ( pd )
+		Error(fmt("pcap_error: %s", pcap_geterr(pd)));
+	else
+		Error("pcap_error: not open");
+
 	Close();
 	}
 
 void PcapSource::SetHdrSize()
 	{
+	if ( ! pd )
+		return;
+
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	props.link_type = pcap_datalink(pd);

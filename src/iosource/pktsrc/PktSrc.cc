@@ -409,3 +409,12 @@ int PktSrc::ExtractNextPacketInternal()
 	return 0;
 	}
 
+int PktSrc::PrecompileFilter(int index, const std::string& filter)
+	{
+	return 1;
+	}
+
+int PktSrc::SetFilter(int index)
+	{
+	return 1;
+	}

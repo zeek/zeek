@@ -3,9 +3,11 @@
 #ifndef IOSOURCE_PKTSRC_PKTSRC_H
 #define IOSOURCE_PKTSRC_PKTSRC_H
 
-#include "../IOSource.h"
+extern "C" {
+#include <pcap.h>
+}
 
-struct pcap_pkthdr;
+#include "../IOSource.h"
 
 namespace iosource {
 
@@ -48,12 +50,12 @@ public:
 	// Precompiles a filter and associates the given index with it.
 	// Returns true on success, 0 if a problem occurred or filtering is
 	// not supported.
-	virtual int PrecompileFilter(int index, const std::string& filter) = 0;
+	virtual int PrecompileFilter(int index, const std::string& filter);
 
 	// Activates the filter with the given index. Returns true on
 	// success, 0 if a problem occurred or the filtering is not
 	// supported.
-	virtual int SetFilter(int index) = 0;
+	virtual int SetFilter(int index);
 
 	static int GetLinkHeaderSize(int link_type);
 

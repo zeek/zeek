@@ -3,13 +3,14 @@
 #include "Component.h"
 
 #include "../Desc.h"
+#include "../Reporter.h"
 
 using namespace iosource::pktsrc;
 
 SourceComponent::SourceComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type, factory_callback arg_factory)
 	: iosource::Component(plugin::component::PKTSRC, arg_name)
 	{
-	prefix = arg_prefix;
+	tokenize_string(arg_prefix, ":", &prefixes);
 	type = arg_type;
 	factory = arg_factory;
 	}
@@ -18,9 +19,21 @@ SourceComponent::~SourceComponent()
 	{
 	}
 
-const std::string& SourceComponent::Prefix() const
+const std::vector<std::string>& SourceComponent::Prefixes() const
 	{
-	return prefix;
+	return prefixes;
+	}
+
+bool SourceComponent::HandlesPrefix(const string& prefix) const
+	{
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
+	      i != prefixes.end(); i++ )
+		{
+		if ( *i == prefix )
+			return true;
+		}
+
+	return false;
 	}
 
 bool SourceComponent::DoesLive() const
@@ -43,16 +56,50 @@ void SourceComponent::Describe(ODesc* d) const
 	{
 	iosource::Component::Describe(d);
 
-	d->Add(" (interface prefix: ");
-	d->Add(prefix);
+	string prefs;
+
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
+	      i != prefixes.end(); i++ )
+		{
+		if ( prefs.size() )
+			prefs += ", ";
+
+		prefs += *i;
+		}
+
+	d->Add(" (interface prefix");
+	if ( prefixes.size() > 1 )
+		d->Add("es");
+
+	d->Add(": ");
+	d->Add(prefs);
+	d->Add("; ");
+
+	switch ( type ) {
+	case LIVE:
+		d->Add("live input");
+		break;
+
+	case TRACE:
+		d->Add("trace input");
+		break;
+
+	case BOTH:
+		d->Add("live and trace input");
+		break;
+
+	default:
+		reporter->InternalError("unknown PkrSrc type");
+	}
+
 	d->Add(")");
 	}
 
 DumperComponent::DumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
 	: plugin::Component(plugin::component::PKTDUMPER, name)
 	{
+	tokenize_string(arg_prefix, ":", &prefixes);
 	factory = arg_factory;
-	prefix = arg_prefix;
 	}
 
 DumperComponent::~DumperComponent()
@@ -64,17 +111,45 @@ DumperComponent::factory_callback DumperComponent::Factory() const
 	return factory;
 	}
 
-const std::string& DumperComponent::Prefix() const
+const std::vector<std::string>& DumperComponent::Prefixes() const
 	{
-	return prefix;
+	return prefixes;
+	}
+
+bool DumperComponent::HandlesPrefix(const string& prefix) const
+	{
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
+	      i != prefixes.end(); i++ )
+		{
+		if ( *i == prefix )
+			return true;
+		}
+
+	return false;
 	}
 
 void DumperComponent::Describe(ODesc* d) const
 	{
 	plugin::Component::Describe(d);
 
-	d->Add(" (dumper prefix: ");
-	d->Add(prefix);
+	string prefs;
+
+	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
+	      i != prefixes.end(); i++ )
+		{
+		if ( prefs.size() )
+			prefs += ", ";
+
+		prefs += *i;
+		}
+
+	d->Add(" (dumper prefix");
+
+	if ( prefixes.size() > 1 )
+		d->Add("es");
+
+	d->Add(": ");
+	d->Add(prefs);
 	d->Add(")");
 	}
 

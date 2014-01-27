@@ -167,90 +167,33 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		reading_traces = 1;
 
 		for ( int i = 0; i < readfiles.length(); ++i )
-			iosource_mgr->OpenPktSrc(readfiles[i], filter, false);
+			{
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], filter, false);
+			assert(ps);
+
+			if ( ps->ErrorMsg() )
+				reporter->FatalError("%s: problem with trace file %s - %s\n",
+						     prog, readfiles[i],
+						     ps->ErrorMsg());
+			}
 		}
 
-#if 0
-			if ( secondary_filter )
-				{
-				// We use a second PktFileSrc for the
-				// secondary path.
-				PktFileSrc* ps = new PktFileSrc(readfiles[i],
-							secondary_filter,
-							TYPE_FILTER_SECONDARY);
-
-				if ( ! ps->IsOpen() )
-					reporter->FatalError("%s: problem with trace file %s - %s\n",
-						prog, readfiles[i],
-						ps->ErrorMsg());
-				else
-					{
-					pkt_srcs.append(ps);
-					io_sources.Register(ps);
-					}
-
-				ps->AddSecondaryTablePrograms();
-				}
-
-		for ( int i = 0; i < flowfiles.length(); ++i )
-			{
-			FlowFileSrc* fs = new FlowFileSrc(flowfiles[i]);
-
-			if ( ! fs->IsOpen() )
-				reporter->FatalError("%s: problem with netflow file %s - %s\n",
-					prog, flowfiles[i], fs->ErrorMsg());
-			else
-				{
-				io_sources.Register(fs);
-				}
-			}
-#endif
-
-	else if ((interfaces.length() > 0 || netflows.length() > 0))
+	else if ( interfaces.length() > 0 )
 		{
 		reading_live = 1;
 		reading_traces = 0;
 
 		for ( int i = 0; i < interfaces.length(); ++i )
-			iosource_mgr->OpenPktSrc(interfaces[i], filter, true);
-		}
-#if 0
-
-			if ( secondary_filter )
-				{
-				iosource::PktSrc* ps;
-				ps = new PktInterfaceSrc(interfaces[i],
-					filter, TYPE_FILTER_SECONDARY);
-
-				if ( ! ps->IsOpen() )
-					reporter->Error("%s: problem with interface %s - %s\n",
-						prog, interfaces[i],
-						ps->ErrorMsg());
-				else
-					{
-					pkt_srcs.append(ps);
-					io_sources.Register(ps);
-					}
-
-				ps->AddSecondaryTablePrograms();
-				}
-			}
-
-		for ( int i = 0; i < netflows.length(); ++i )
 			{
-			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], filter, true);
+			assert(ps);
 
-			if ( ! fs->IsOpen() )
-				{
-				reporter->Error("%s: problem with netflow socket %s - %s\n",
-					prog, netflows[i], fs->ErrorMsg());
-				delete fs;
-				}
-
-			else
-				io_sources.Register(fs);
+			if ( ps->ErrorMsg() )
+				reporter->FatalError("%s: problem with interface %s - %s\n",
+						     prog, interfaces[i],
+						     ps->ErrorMsg());
 			}
-#endif
+		}
 
 	else
 		// have_pending_timers = 1, possibly.  We don't set

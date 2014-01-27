@@ -231,7 +231,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, 
 		{
 		pktsrc::SourceComponent* c = *i;
 
-		if ( c->Prefix() == prefix &&
+		if ( c->HandlesPrefix(prefix) &&
 		     ((  is_live && c->DoesLive() ) ||
 		      (! is_live && c->DoesTrace())) )
 			{
@@ -242,7 +242,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, 
 
 
 	if ( ! component )
-		reporter->FatalError("type of packet source '%s' not recognized", prefix.c_str());
+		reporter->FatalError("type of packet source '%s' not recognized, or mode not supported", prefix.c_str());
 
 	// Instantiate packet source.
 
@@ -279,7 +279,7 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	for ( std::list<pktsrc::DumperComponent*>::const_iterator i = all_components.begin();
 	      i != all_components.end(); i++ )
 		{
-		if ( (*i)->Prefix() == prefix )
+		if ( (*i)->HandlesPrefix(prefix) )
 			{
 			component = (*i);
 			break;

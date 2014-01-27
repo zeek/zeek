@@ -155,7 +155,7 @@ changes we want to make:
    attempt looks like it may have been successful, and we want email when
    that happens, but only for certain servers.
 
-So we've defined *what* we want to do, but need to know *where* to do it.
+We've defined *what* we want to do, but need to know *where* to do it.
 The answer is to use a script written in the Bro programming language, so
 let's do a quick intro to Bro scripting.
 
@@ -181,7 +181,7 @@ must explicitly choose if they want to load them.
 
 The main entry point for the default analysis configuration of a standalone
 Bro instance managed by BroControl is the ``$PREFIX/share/bro/site/local.bro``
-script.  So we'll be adding to that in the following sections, but first
+script.  We'll be adding to that in the following sections, but first
 we have to figure out what to add.
 
 Redefining Script Option Variables
@@ -197,7 +197,7 @@ A redefineable constant might seem strange, but what that really means is that
 the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
-So let's continue on our path to modify the behavior for the two SSL
+Let's continue on our path to modify the behavior for the two SSL
 and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
 we see that it advertises:
 
@@ -211,7 +211,7 @@ we see that it advertises:
         const ignored_types: set[Notice::Type] = {} &redef;
     }
 
-That's exactly what we want to do for the SSL notice.  So add to ``local.bro``:
+That's exactly what we want to do for the SSL notice.  Add to ``local.bro``:
 
 .. code:: bro
 
@@ -276,9 +276,9 @@ an email on the condition that the predicate function evaluates to true, which
 is whenever the notice type is an SSH login and the responding host stored
 inside the ``Info`` record's connection field is in the set of watched servers.
 
-.. note:: record field member access is done with the '$' character
+.. note:: Record field member access is done with the '$' character
    instead of a '.' as might be expected from other languages, in
-   order to avoid ambiguity with the builtin address type's use of '.'
+   order to avoid ambiguity with the built-in address type's use of '.'
    in IPv4 dotted decimal representations.
 
 Remember, to finalize that configuration change perform the ``check``,

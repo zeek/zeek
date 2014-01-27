@@ -35,7 +35,7 @@ const std::string& PktSrc::Path() const
 
 const char* PktSrc::ErrorMsg() const
 	{
-	return errbuf.c_str();
+	return errbuf.size() ? errbuf.c_str() : 0;
 	}
 
 int PktSrc::LinkType() const

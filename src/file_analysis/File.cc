@@ -103,7 +103,6 @@ File::~File()
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
 
-	// Queue may not be empty in the case where only content gaps were seen.
 	while ( ! fonc_queue.empty() )
 		{
 		delete_vals(fonc_queue.front().second);
@@ -460,20 +459,27 @@ void File::FileEvent(EventHandlerPtr h)
 	FileEvent(h, vl);
 	}
 
+static void flush_file_event_queue(queue<pair<EventHandlerPtr, val_list*> >& q)
+	{
+	while ( ! q.empty() )
+		{
+		pair<EventHandlerPtr, val_list*> p = q.front();
+		mgr.QueueEvent(p.first, p.second);
+		q.pop();
+		}
+	}
+
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
+	if ( h == file_state_remove )
+		flush_file_event_queue(fonc_queue);
+
 	mgr.QueueEvent(h, vl);
 
 	if ( h == file_new )
 		{
 		did_file_new_event = true;
-
-		while ( ! fonc_queue.empty() )
-			{
-			pair<EventHandlerPtr, val_list*> p = fonc_queue.front();
-			mgr.QueueEvent(p.first, p.second);
-			fonc_queue.pop();
-			}
+		flush_file_event_queue(fonc_queue);
 		}
 
 	if ( h == file_new || h == file_timeout || h == file_extraction_limit )

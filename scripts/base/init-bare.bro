@@ -2860,6 +2860,12 @@ global load_sample_freq = 20 &redef;
 ## .. bro:see:: gap_report
 const gap_report_freq = 1.0 sec &redef;
 
+## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
+## and not report missing segments for such connections.
+## If this is enabled, then missing data at the end of connections may not
+## be reported via :bro:see:`content_gap`.
+const detect_filtered_trace = F &redef;
+
 ## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.

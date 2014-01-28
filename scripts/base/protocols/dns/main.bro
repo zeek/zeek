@@ -158,11 +158,16 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 	# If this is either a query or this is the reply but
 	# no Info records are in the queue (we missed the query?)
 	# we need to create an Info record and put it in the queue.  
-	if ( is_query ||
-	     Queue::len(c$dns_state$pending[msg$id]) == 0 )
+	if ( is_query )
 		{
 		info = new_session(c, msg$id);
 		Queue::put(c$dns_state$pending[msg$id], info);
+		}
+	else if ( Queue::len(c$dns_state$pending[msg$id]) == 0 )
+		{
+		info = new_session(c, msg$id);
+		Queue::put(c$dns_state$pending[msg$id], info);
+		event conn_weird("dns_unmatched_reply", c, "");
 		}
 
 	if ( is_query )
@@ -202,17 +207,23 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
 	hook set_session(c, msg, is_orig);
+
+	if ( msg$QR && msg$rcode != 0 && msg$num_queries == 0 )
+		c$dns$rejected = T;
 	}
 
 event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
+	if ( ! msg$QR )
+		# This is weird: the inquirer must also be providing answers in
+		# the request, which is not what we want to track.
+		return;
+
 	if ( ans$answer_type == DNS_ANS )
 		{
 		if ( ! c?$dns )
-			{
-			event conn_weird("dns_unmatched_reply", c, "");
 			hook set_session(c, msg, F);
-			}
+
 		c$dns$AA    = msg$AA;
 		c$dns$RA    = msg$RA;
 
@@ -263,6 +274,12 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	if ( c$id$resp_p == 137/udp )
 		query = decode_netbios_name(query);
 	c$dns$query = query;
+	}
+
+
+event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+	{
+	event DNS::do_reply(c, msg, ans, fmt("<unknown type=%s>", ans$qtype));
 	}
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5

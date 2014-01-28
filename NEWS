@@ -36,6 +36,11 @@ Changed Functionality
 
 - Notice::end_suppression() has been removed.
 
+- Bro now parses X.509 extensions headers and, as a result, the
+  corresponding event got a new signature:
+
+      event x509_extension(c: connection, is_orig: bool, cert: X509, ext: X509_extension_info);
+
 Bro 2.2
 =======
 

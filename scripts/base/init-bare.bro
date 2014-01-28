@@ -2432,6 +2432,17 @@ type X509: record {
 	not_valid_after: time;	##< Timestamp after when certificate is not valid.
 };
 
+## An X509 extension.
+##
+## .. bro:see:: x509_extension
+type X509_extension_info: record {
+	name: string;	##< Long name of extension; oid if name not known.
+	short_name: string &optional;	##< Short name of extension if known.
+	oid: string;	##< Oid of extension.
+	critical: bool;	##< True if extension is critical.
+	value: string;	##< Extension content parsed to string for known extensions. Raw data otherwise.
+};
+
 ## HTTP session statistics.
 ##
 ## .. bro:see:: http_stats

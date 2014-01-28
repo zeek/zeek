@@ -206,6 +206,10 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
 	hook set_session(c, msg, is_orig);
 
 	if ( msg$QR && msg$rcode != 0 && msg$num_queries == 0 )
@@ -214,6 +218,10 @@ event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &prior
 
 event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
 	if ( ! msg$QR )
 		# This is weird: the inquirer must also be providing answers in
 		# the request, which is not what we want to track.
@@ -249,7 +257,7 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 
 event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=-5
 	{
-	if ( c$dns$ready )
+	if ( c?$dns && c$dns$ready )
 		{
 		Log::write(DNS::LOG, c$dns);
 		# This record is logged and no longer pending.
@@ -260,6 +268,10 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
 	c$dns$RD          = msg$RD;
 	c$dns$TC          = msg$TC;
 	c$dns$qclass      = qclass;
@@ -356,7 +368,8 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	c$dns$rejected = T;
+	if ( c?$dns )
+		c$dns$rejected = T;
 	}
 
 event connection_state_remove(c: connection) &priority=-5

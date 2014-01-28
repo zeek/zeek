@@ -9,81 +9,78 @@
 namespace probabilistic {
 
 /**
- * A probabilisitc cardinality counter using the HyperLogLog algorithm.
- *
- * TODO: Update doc string.
+ * A probabilistic cardinality counter using the HyperLogLog algorithm.
  */
 class CardinalityCounter {
 public:
 	/**
 	 * Constructor.
 	 *
-	 * Based on the error_margin, the number of buckets that need to be
-	 * kept will be determined. Based on the max_size, the number of bits
-	 * that will be used from the hash function will be determined.
+	 * The number of buckets of the data structure is determined using
+	 * the error margin and the given confidence.
 	 *
-	 * We need the hash function to return integers that are uniformly
-	 * distributed from 0 to 2^L-1. And if that happens, the maximum
-	 * cardinality that this counter can handle is approximately 2^L. By
-	 * default, we will assume a value of 64 bits.
+	 * For example, assume an error_margin of 2% and a confidence
+	 * of 95%. If the Size function returns an estimate of 100, this
+	 * means that we are 95% sure that the cardinality is between 98
+	 * and 102.
 	 *
-	 * Confidence in the estimate given by a cardinality counter is.
+	 * @param error_margin error margin
 	 *
-	 * In other words, if the cardinality is estimated to be 100 with 2%
-	 * error margin and HLL_CONFis 0.95, then we are 95% sure that the
-	 * actual cardinality is between 98 and 102.
+	 * @param confidence confidence of the error. Default: 0.95
 	 */
 	CardinalityCounter(double error_margin, double confidence = 0.95);
 
 	/**
-	 * Constructor used for cloning.
+	 * Copy-Constructor
+	 */
+	CardinalityCounter(CardinalityCounter& other);
+
+	/**
+	 * Constructor for a known number of buckets.
 	 *
-	 * The error margin will be 1.04/sqrt(m) with approximately 68%
+	 * The error margin is 1.04/sqrt(size) with approximately 68%
 	 * probability.
+	 *
+	 * @param size number of buckets to create
 	 */
 	CardinalityCounter(uint64 size);
 
 	/**
-	 * Deletes the class variables.
+	 * Destructor.
 	 */
 	~CardinalityCounter();
 
 	/**
-	 * This will add an element to the counter. It's responsible for
-	 * adding an element and updating the value of V, if that applies.
+	 * Add a new element to the counter.
+	 *
+	 * The hash function generating the hashes needs to be uniformly
+	 * distributed over 64 bits.
+	 *
+	 * @param hash 64-bit hash value of the element to be added
 	 */
 	void AddElement(uint64 hash);
 
 	/**
-	 * Returns the size estimate of the set. First, it has the "raw"
-	 * HyperLogLog estimate. And then, we check if it's too "large" or
-	 * "small" because the raw estimate doesn't do well in those cases.
-	 * Thus, we correct for those errors as specified in the paper.
-	 */
-	double Size();
-
-	/**
-	 * Returns the buckets array that holds all of the rough cardinality
-	 * estimates.
-	 */
-	uint8_t* GetBuckets();
+	 * Get the current estimated number of elements in the data
+	 * structure
+	 *
+	 * @return Estimated number of elements
+	 **/
+	double Size() const;
 
 	/**
 	 * Merges the argument cardinality counter with this one. The error
-	 * margins are assumed to be the same, so they have the same number of
-	 * buckets. If any of the conditions are violated, then the return
-	 * value of size() is meaningless.
+	 * margins of both counters have to be the same, otherwhise the merge
+	 * operation will not be carried out.
+	 *
+	 * @param c Cardinality counter to merge into the current counter.
+	 *
+	 * @return True if successful
 	 */
-	void Merge(CardinalityCounter* c);
+	bool Merge(CardinalityCounter* c);
 
 	/**
-	 * Returns the value of m. Should be used only for statistical
-	 * purposes.
-	 */
-	uint64 GetM();
-
-	/**
-c	 * Serializes the cardinality counter.
+	 * Serializes the cardinality counter.
 	 *
 	 * @param info The serializaton information to use.
 	 *
@@ -97,9 +94,27 @@ c	 * Serializes the cardinality counter.
 	 * @param info The serializaton information to use.
 	 *
 	 * @return The unserialized cardinality counter, or null if an error
-	 * occured.
+	 * 	   occured.
 	 */
 	static CardinalityCounter* Unserialize(UnserialInfo* info);
+
+protected:
+	/**
+	 * Return the number of buckets.
+	 *
+	 * @return Number of buckets
+	 */
+	uint64 GetM() const;
+
+	/**
+	 * Returns the buckets array that holds all of the rough cardinality
+	 * estimates.
+	 *
+	 * Use GetM() to determine the size.
+	 *
+	 * @return Array containing cardinality estimates
+	 */
+	uint8_t* GetBuckets();
 
 private:
 	/**
@@ -110,33 +125,40 @@ private:
 
 	/**
 	 * Helper function with code used jointly by multiple constructors.
+	 *
+	 * @param arg_size: number of buckets that need to be kept
 	 */
 	void Init(uint64 arg_size);
 
 	/**
-	 * This function will calculate the smallest value of b that will
+	 * This function calculates the smallest value of b that will
 	 * satisfy these the constraints of a specified error margin and
 	 * confidence level.
 	 *
 	 * The exact expression for b is as follows:
-	 * Define x = 2*(log(1.04*k/error)/log(2)). Then b is the ceiling of x
+	 * Define x = 2*(log(1.04*k/error)/log(2)). Then b is the ceiling of x.
 	 *
-	 * error is the error margin.
+	 * After that initial estimate, the value of b is increased until the
+	 * standard deviation falls within the specified valud.
 	 *
-	 * k is the number of standard deviations that we have to go to have
-	 * a confidence level of conf.
+	 * @param error error margin
 	 *
-	 * confidence: TODO.
+	 * @param confidence confidence of the error
+	 *
+	 * @return minimal B-value satisfying the error-rate under confidence.
 	 */
-	int OptimalB(double error, double confidence);
+	int OptimalB(double error, double confidence) const;
 
 	/**
-	 * Computes when the first one appears in the element. It looks at the
-	 * bitstring from the end though. A precondition is that the argument
-	 * is already divisible by m, so we just ignore the last b bits, since
-	 * m = 2^b and the last b bits will always be 0.
+	 * Determines at which index (counted from the back) the first one-bit
+	 * appears. The last b bits have to be 0 (the element has to be divisible
+	 * by m), hence they are ignored.
+	 *
+	 * @param hash_modified hash value
+	 *
+	 * @returns index of first one-bit
 	 */
-	uint8_t Rank(uint64 hash_modified);
+	uint8_t Rank(uint64 hash_modified) const;
 
 	/**
 	 * This is the number of buckets that will be stored. The standard

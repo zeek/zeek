@@ -17,6 +17,9 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 
 	is_tcp = 0;
 	ip_hdr = 0;
+	tcp_flags = 0;
+	endp = 0;
+	payload_length = 0;
 	key = 0;
 
 	// Now check if it is a "parsable" TCP packet.

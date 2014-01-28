@@ -17,13 +17,17 @@
 ##
 ## session_id: The session ID sent by the client (if any).
 ##
+## client_random: The random value sent by the client. For version 2 connections,
+##		  the client challenge is returned.
+##
 ## ciphers: The list of ciphers the client offered to use. The values are
 ##          standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
 ## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
 ## start with an unencrypted handshake, and Bro extracts as much information out
@@ -44,6 +48,9 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, sessio
 ##
 ## session_id: The session ID as sent back by the server (if any).
 ##
+## server_random: The random value sent by the server. For version 2 connections,
+##		  the connection-id is returned.
+##
 ## cipher: The cipher chosen by the server.  The values are standardized as part
 ##         of the SSL/TLS protocol. The :bro:id:`SSL::cipher_desc` table maps
 ##         them to descriptive names.
@@ -52,8 +59,8 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, sessio
 ##              standardized as part of the SSL/TLS protocol.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_session_ticket_handshake
-event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
 ## sessions start with an unencrypted handshake, and Bro extracts as much
@@ -117,7 +124,7 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 ## an unencrypted handshake, and Bro extracts as much information out of that
 ## as it can. This event is raised when an SSL/TLS server passes a session
 ## ticket to the client that can later be used for resuming the session. The
-## mechanism is described in :rfc:`4507`
+## mechanism is described in :rfc:`4507`.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
 ## more information about the SSL/TLS protocol.

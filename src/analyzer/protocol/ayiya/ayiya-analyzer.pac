@@ -79,7 +79,7 @@ flow AYIYA_Flow
 
 		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 
-		return (result == 0) ? true : false;
+		return true;
 		%}
 
 	};

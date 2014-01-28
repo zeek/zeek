@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- init-bare.bro
+init-bare.bro
 
 type string_array: table[count] of string;
 type string_set: set[string];

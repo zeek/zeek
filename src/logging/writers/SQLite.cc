@@ -16,7 +16,9 @@ using namespace writer;
 using threading::Value;
 using threading::Field;
 
-SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
+SQLite::SQLite(WriterFrontend* frontend)
+	: WriterBackend(frontend),
+	  fields(), num_fields(), db(), st()
 	{
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
@@ -33,9 +35,7 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend)
 			BifConst::LogSQLite::empty_field->Len()
 			);
 
-	db = 0;
 	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
-	st = 0;
 	}
 
 SQLite::~SQLite()
@@ -124,16 +124,16 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 
 	string fullpath(info.path);
 	fullpath.append(".sqlite");
-	string dbname;
+	string tablename;
 
-	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
+	WriterInfo::config_map::const_iterator it = info.config.find("tablename");
 	if ( it == info.config.end() )
 		{
-		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to path %s", info.path));
-		dbname = info.path;
+		MsgThread::Info(Fmt("tablename configuration option not found. Defaulting to path %s", info.path));
+		tablename = info.path;
 		}
 	else
-		dbname = it->second;
+		tablename = it->second;
 
 	if ( checkError(sqlite3_open_v2(
 					fullpath.c_str(),
@@ -145,7 +145,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 					NULL)) )
 		return false;
 
-	string create = "CREATE TABLE IF NOT EXISTS " + dbname + " (\n";
+	string create = "CREATE TABLE IF NOT EXISTS " + tablename + " (\n";
 		//"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
 	for ( unsigned int i = 0; i < num_fields; ++i )
@@ -193,7 +193,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 
 	// create the prepared statement that will be re-used forever...
 	string insert = "VALUES (";
-	string names = "INSERT INTO " + dbname + " ( ";
+	string names = "INSERT INTO " + tablename + " ( ";
 
 	for ( unsigned int i = 0; i < num_fields; i++ )
 		{
@@ -308,7 +308,7 @@ int SQLite::AddParams(Value* val, int pos)
 				if ( j > 0 )
 					desc.AddRaw(set_separator);
 
-				io->Describe(&desc, val->val.set_val.vals[j], fields[pos]->name);
+				io->Describe(&desc, val->val.set_val.vals[j], fields[pos-1]->name);
 				}
 
 		desc.RemoveEscapeSequence(set_separator);
@@ -330,7 +330,7 @@ int SQLite::AddParams(Value* val, int pos)
 				if ( j > 0 )
 					desc.AddRaw(set_separator);
 
-				io->Describe(&desc, val->val.vector_val.vals[j], fields[pos]->name);
+				io->Describe(&desc, val->val.vector_val.vals[j], fields[pos-1]->name);
 				}
 
 		desc.RemoveEscapeSequence(set_separator);

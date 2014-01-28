@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_struct_record_01.bro
+data_struct_record_01.bro
 
 type Service: record {
     name: string;

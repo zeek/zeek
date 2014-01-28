@@ -25,16 +25,17 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	window_scale = 0;
 	window_seq = window_ack_seq = 0;
 	contents_start_seq = 0;
+	FIN_seq = 0;
 	SYN_cnt = FIN_cnt = RST_cnt = 0;
 	did_close = 0;
 	contents_file = 0;
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 
-	src_addr = is_orig ? tcp_analyzer->Conn()->RespAddr() :
-				tcp_analyzer->Conn()->OrigAddr();
-	dst_addr = is_orig ? tcp_analyzer->Conn()->OrigAddr() :
-				tcp_analyzer->Conn()->RespAddr();
+	hist_last_SYN = hist_last_FIN = hist_last_RST = 0;
+
+	src_addr = is_orig ? Conn()->RespAddr() : Conn()->OrigAddr();
+	dst_addr = is_orig ? Conn()->OrigAddr() : Conn()->RespAddr();
 
 	checksum_base = ones_complement_checksum(src_addr, 0);
 	checksum_base = ones_complement_checksum(dst_addr, checksum_base);
@@ -49,6 +50,11 @@ TCP_Endpoint::~TCP_Endpoint()
 	{
 	delete contents_processor;
 	Unref(contents_file);
+	}
+
+Connection* TCP_Endpoint::Conn() const
+	{
+	return tcp_analyzer->Conn();
 	}
 
 void TCP_Endpoint::Done()
@@ -140,7 +146,7 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		// handshake.
 		if ( ! is_handshake(new_state) )
 			if ( is_handshake(state) && is_handshake(peer->state) )
-				tcp_analyzer->Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
+				Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
 
 		prev_state = state;
 		state = new_state;
@@ -204,8 +210,20 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 		FILE* f = contents_file->Seek(seq - contents_start_seq);
 
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
-			// ### this should really generate an event
-			reporter->InternalError("contents write failed");
+			{
+			char buf[256];
+			strerror_r(errno, buf, sizeof(buf));
+			reporter->Error("TCP contents write failed: %s", buf);
+
+			if ( contents_file_write_failure )
+				{
+				val_list* vl = new val_list();
+				vl->append(Conn()->BuildConnVal());
+				vl->append(new Val(IsOrig(), TYPE_BOOL));
+				vl->append(new StringVal(buf));
+				tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+				}
+			}
 		}
 
 	return status;
@@ -238,7 +256,7 @@ int TCP_Endpoint::CheckHistory(uint32 mask, char code)
 		code = tolower(code);
 		}
 
-	return tcp_analyzer->Conn()->CheckHistory(mask, code);
+	return Conn()->CheckHistory(mask, code);
 	}
 
 void TCP_Endpoint::AddHistory(char code)
@@ -246,6 +264,6 @@ void TCP_Endpoint::AddHistory(char code)
 	if ( ! IsOrig() )
 		code = tolower(code);
 
-	tcp_analyzer->Conn()->AddHistory(code);
+	Conn()->AddHistory(code);
 	}
 

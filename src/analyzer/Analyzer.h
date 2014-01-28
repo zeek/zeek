@@ -303,7 +303,7 @@ public:
 	 * Signals the analyzer to skip all further input processsing. The \a
 	 * Next*() methods check this flag and discard the input if its set.
 	 *
-	 * @param do_skipe If true, further processing will be skipped.
+	 * @param do_skip If true, further processing will be skipped.
 	 */
 	void SetSkip(bool do_skip)		{ skip = do_skip; }
 
@@ -353,9 +353,10 @@ public:
 	 * discarded.
 	 *
 	 * @param analyzer The ananlyzer to add. Takes ownership.
+	 * @return false if analyzer type was already a child, else true.
 	 */
-	void AddChildAnalyzer(Analyzer* analyzer)
-		{ AddChildAnalyzer(analyzer, true); }
+	bool AddChildAnalyzer(Analyzer* analyzer)
+		{ return AddChildAnalyzer(analyzer, true); }
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
@@ -363,6 +364,7 @@ public:
 	 * discarded.
 	 *
 	 * @param tag The type of analyzer to add.
+	 * @return the new analyzer instance that was added.
 	 */
 	Analyzer* AddChildAnalyzer(Tag tag);
 
@@ -600,8 +602,9 @@ protected:
 	 * @param analyzer The analyzer to add. Takes ownership.
 	 *
 	 * @param init If true, Init() will be calle.d
+	 * @return false if analyzer type was already a child, else true.
 	 */
-	void AddChildAnalyzer(Analyzer* analyzer, bool init);
+	bool AddChildAnalyzer(Analyzer* analyzer, bool init);
 
 	/**
 	 * Inits all child analyzers. This is an internal method.

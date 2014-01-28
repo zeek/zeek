@@ -28,7 +28,7 @@ redef record ResultVal += {
 
 	# Internal use only.  This is not meant to be publically available
 	# because we don't want to trust that we can inspect the values
-	# since we will like move to a probalistic data structure in the future.
+	# since we will likely move to a probabilistic data structure in the future.
 	# TODO: in the future this will optionally be a hyperloglog structure
 	unique_vals: set[Observation] &optional;
 };

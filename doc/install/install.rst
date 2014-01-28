@@ -29,35 +29,37 @@ before you begin:
     * Libpcap                           (http://www.tcpdump.org)
     * OpenSSL libraries                 (http://www.openssl.org)
     * BIND8 library
-    * Libmagic
     * Libz
     * Bash (for BroControl)
+    * Python (for BroControl)
 
 To build Bro from source, the following additional dependencies are required:
 
-    * CMake 2.6.3 or greater            (http://www.cmake.org)
+    * CMake 2.8.0 or greater            (http://www.cmake.org)
+    * Make
+    * C/C++ compiler
     * SWIG                              (http://www.swig.org)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
     * Libpcap headers                   (http://www.tcpdump.org)
     * OpenSSL headers                   (http://www.openssl.org)
-    * libmagic headers
     * zlib headers
     * Perl
 
-To install the required dependencies, you can use:
+To install the required dependencies, you can use (when done, make sure
+that ``bash`` and ``python`` are in your ``PATH``):
 
 * RPM/RedHat-based Linux:
 
   .. console::
 
-     sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel file-devel
+     sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel
 
 * DEB/Debian-based Linux:
 
   .. console::
 
-     sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev libmagic-dev
+     sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 
 * FreeBSD:
 
@@ -66,11 +68,7 @@ To install the required dependencies, you can use:
 
   .. console::
 
-      sudo pkg_add -r bash cmake swig bison python
-
-  Note that ``bash`` needs to be in ``PATH``, which by default it is
-  not. The FreeBSD package installs the binary into
-  ``/usr/local/bin``.
+      sudo pkg_add -r bash cmake swig bison python perl
 
 * Mac OS X:
 
@@ -78,15 +76,11 @@ To install the required dependencies, you can use:
   then going through its "Preferences..." -> "Downloads" menus to
   install the "Command Line Tools" component.
 
-  Lion (10.7) and Mountain Lion (10.8) come with all required
-  dependencies except for CMake_, SWIG_, and ``libmagic``.
-
+  OS X comes with all required dependencies except for CMake_ and SWIG_.
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
-  or Homebrew_).
-
-  Specifically for MacPorts, the ``swig``, ``swig-ruby``, ``swig-python``
-  and ``file`` packages provide the required dependencies.
+  or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
+  ``swig-python`` and packages provide the required dependencies.
 
 
 Optional Dependencies
@@ -96,45 +90,16 @@ Bro can make use of some optional libraries and tools if they are found at
 build time:
 
     * LibGeoIP (for geo-locating IP addresses)
+    * sendmail (enables Bro and BroControl to send mail)
+    * gawk (enables all features of bro-cut)
+    * curl (used by a Bro script that implements active HTTP)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
     * Ruby executable, library, and headers (for Broccoli Ruby bindings)
 
-LibGeoIP is probably the most interesting and can be easily installed
-on most platforms:
-
-* RedHat Enterprise Linux:
-
-  .. console::
-
-      sudo yum install geoip-devel sendmail
-
-* CentOS Linux:
-
-  .. console::
-  
-      sudo yum install GeoIP-devel sendmail
-
-* DEB/Debian-based Linux:
-
-  .. console::
-
-      sudo apt-get install libgeoip-dev sendmail
-
-* FreeBSD using ports:
-
-  .. console::
-
-      sudo pkg_add -r GeoIP
-
-* Mac OS X:
-
-  Vanilla OS X installations don't ship with libGeoIP, but if
-  installed from your preferred package management system (e.g.
-  MacPorts, Fink, or Homebrew), they should be automatically detected
-  and Bro will compile against them.
-
-Additional steps may be needed to :ref:`get the right GeoIP database
+LibGeoIP is probably the most interesting and can be installed
+on most platforms by following the instructions for :ref:`installing
+libGeoIP and the GeoIP database
 <geolocation>`.
 
 
@@ -215,7 +180,7 @@ turn off unwanted auxiliary projects that would otherwise be installed
 automatically.  Finally, use ``make install-aux`` to install some of
 the other programs that are in the ``aux/bro-aux`` directory.
 
-OpenBSD users, please see our at `FAQ
+OpenBSD users, please see our `FAQ
 <http://www.bro.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
 

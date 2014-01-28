@@ -1,13 +1,13 @@
-##! This script provides infrastructure for logging devices for which Bro has been
-##! able to determine the MAC address, and it logs them once per day (by default).
-##! The log that is output provides an easy way to determine a count of the devices
-##! in use on a network per day.
+##! This script provides infrastructure for logging devices for which Bro has
+##! been able to determine the MAC address, and it logs them once per day (by
+##! default).  The log that is output provides an easy way to determine a count
+##! of the devices in use on a network per day.
 ##!
-##! ..note::
+##! .. note::
 ##!
 ##!     This script will not generate any logs on its own, it needs to be
 ##!     supplied with information from elsewhere, such as
-##!     :doc:`policy/protocols/dhcp/known-devices-and-hostnames/scripts/.
+##!     :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro`.
 
 module Known;
 
@@ -15,7 +15,8 @@ export {
 	## The known-hosts logging stream identifier.
 	redef enum Log::ID += { DEVICES_LOG };
 
-	## The record type which contains the column fields of the known-devices log.
+	## The record type which contains the column fields of the known-devices
+	## log.
 	type DevicesInfo: record {
 		## The timestamp at which the host was detected.
 		ts:      time &log;
@@ -24,10 +25,10 @@ export {
 	};
 
 	## The set of all known MAC addresses. It can accessed from other
-        ## to add, and check for, addresses seen in use.
-        ##
-	## We maintain each entry for 24 hours by default so that the existence of
-	## individual addressed is logged each day.
+	## scripts to add, and check for, addresses seen in use.
+	##
+	## We maintain each entry for 24 hours by default so that the existence
+	## of individual addresses is logged each day.
 	global known_devices: set[string] &create_expire=1day &synchronized &redef;
 
 	## An event that can be handled to access the :bro:type:`Known::DevicesInfo`

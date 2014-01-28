@@ -103,7 +103,7 @@ private:
 	friend class RuleMatcher;
 
 	struct PatternSet {
-		PatternSet() {}
+		PatternSet() : re() {}
 
 		// If we're above the 'RE_level' (see RuleMatcher), this
 		// expr contains all patterns on this node. If we're on

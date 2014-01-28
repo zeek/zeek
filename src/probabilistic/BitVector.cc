@@ -495,6 +495,7 @@ BitVector::size_type BitVector::FindNext(size_type i) const
 uint64 BitVector::Hash() const
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
+	uint64 digest;
 	SHA256_CTX ctx;
 	sha256_init(&ctx);
 
@@ -502,7 +503,8 @@ uint64 BitVector::Hash() const
 		sha256_update(&ctx, &bits[i], sizeof(bits[i]));
 
 	sha256_final(&ctx, buf);
-	return *reinterpret_cast<uint64*>(buf); // Use the first bytes as digest.
+	memcpy(&digest, buf, sizeof(digest)); // Use the first bytes as digest
+	return digest;
 	}
 
 BitVector::size_type BitVector::lowest_bit(block_type block)

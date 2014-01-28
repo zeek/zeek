@@ -1,4 +1,4 @@
-## Functions for URL handling.
+##! Functions for URL handling.
 
 ## A regular expression for matching and extracting URLs.
 const url_regex = /^([a-zA-Z\-]{3,5})(:\/\/[^\/?#"'\r\n><]*)([^?#"'\r\n><]*)([^[:blank:]\r\n"'><]*|\??[^"'\r\n><]*)/ &redef;

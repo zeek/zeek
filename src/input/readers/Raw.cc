@@ -34,6 +34,9 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
 	stderrfile = 0;
+	execute = false;
+	firstrun = true;
+	mtime = 0;
 	forcekill = false;
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
 			  BifConst::InputRaw::record_separator->Len());
@@ -73,15 +76,15 @@ void Raw::DoClose()
 
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
-		// kill child process
-		kill(childpid, SIGTERM);
+		// Kill child process group.
+		kill(-childpid, SIGTERM);
 
 		if ( forcekill )
 			{
 			usleep(200); // 200 msecs should be enough for anyone ;)
 
 			if ( kill(childpid, 0) == 0 ) // perhaps it is already gone
-				kill(childpid, SIGKILL);
+				kill(-childpid, SIGKILL);
 			}
 		}
 	}
@@ -94,6 +97,18 @@ void Raw::ClosePipeEnd(int i)
 	safe_close(pipes[i]);
 	pipes[i] = -1;
 	}
+
+bool Raw::SetFDFlags(int fd, int cmd, int flags)
+	{
+	if ( fcntl(fd, cmd, flags) != -1 )
+		return true;
+
+	char buf[256];
+	strerror_r(errno, buf, sizeof(buf));
+	Error(Fmt("failed to set fd flags: %s", buf));
+	return false;
+	}
+
 
 bool Raw::LockForkMutex()
 	{
@@ -146,6 +161,11 @@ bool Raw::Execute()
 	else if ( childpid == 0 )
 		{
 		// we are the child.
+
+		// Obtain a process group w/ child's PID.
+		if ( setpgid(0, 0) == -1 )
+			_exit(251);
+
 		close(pipes[stdout_in]);
 		if ( dup2(pipes[stdout_out], stdout_fileno) == -1 )
 			_exit(252);
@@ -180,17 +200,43 @@ bool Raw::Execute()
 	else
 		{
 		// we are the parent
+
+		// Parent also sets child process group immediately to avoid a race.
+		if ( setpgid(childpid, childpid) == -1 )
+			{
+			if ( errno == EACCES )
+				// Child already did exec. That's fine since then it must have
+				// already done the setpgid() itself.
+				;
+
+			else if ( errno == ESRCH && kill(childpid, 0) == 0 )
+				// Sometimes (e.g. FreeBSD) this error is reported even though
+				// child exists, so do extra sanity check of whether it exists.
+				;
+
+			else
+				{
+				char buf[256];
+				strerror_r(errno, buf, sizeof(buf));
+				Warning(Fmt("Could not set child process group: %s", buf));
+				}
+			}
+
 		if ( ! UnlockForkMutex() )
 			return false;
 
 		ClosePipeEnd(stdout_out);
 
 		if ( Info().mode == MODE_STREAM )
-			fcntl(pipes[stdout_in], F_SETFL, O_NONBLOCK);
+			{
+			if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
+				return false;
+			}
 
 		ClosePipeEnd(stdin_in);
 
 		if ( stdin_towrite )
+			{
 			// Ya, just always set this to nonblocking. we do not
 			// want to block on a program receiving data. Note
 			// that there is a small gotcha with it. More data is
@@ -199,14 +245,19 @@ bool Raw::Execute()
 			// mode_manual where the first write cannot write
 			// everything, the rest will be stuck in a queue that
 			// is never emptied.
-			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK);
+			if ( ! SetFDFlags(pipes[stdin_out], F_SETFL, O_NONBLOCK) )
+				return false;
+			}
 		else
 			ClosePipeEnd(stdin_out);
 
 		ClosePipeEnd(stderr_out);
 
 		if ( use_stderr )
-			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
+			{
+			if ( ! SetFDFlags(pipes[stderr_in], F_SETFL, O_NONBLOCK) )
+				return false;
+			}
 		else
 			ClosePipeEnd(stderr_in);
 
@@ -251,7 +302,8 @@ bool Raw::OpenInput()
 			return false;
 			}
 
-		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
+		if ( ! SetFDFlags(fileno(file), F_SETFD, FD_CLOEXEC) )
+			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
 	return true;
@@ -261,7 +313,8 @@ bool Raw::CloseInput()
 	{
 	if ( file == 0 )
 		{
-		InternalError(Fmt("Trying to close closed file for stream %s", fname.c_str()));
+		InternalWarning(Fmt("Trying to close closed file for stream %s",
+		                    fname.c_str()));
 		return false;
 		}
 #ifdef DEBUG
@@ -291,6 +344,12 @@ bool Raw::CloseInput()
 
 bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
+	if ( ! info.source || strlen(info.source) == 0 )
+		{
+		Error("No source path provided");
+		return false;
+		}
+
 	fname = info.source;
 	mtime = 0;
 	execute = false;
@@ -298,7 +357,6 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	int want_fields = 1;
 	bool result;
 
-	// do Initialization
 	string source = string(info.source);
 	char last = info.source[source.length() - 1];
 	if ( last == '|' )
@@ -307,13 +365,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		fname = source.substr(0, fname.length() - 1);
 		}
 
-	if ( ! info.source || strlen(info.source) == 0 )
-		{
-		Error("No source path provided");
-		return false;
-		}
-
-	map<const char*, const char*>::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
+	ReaderInfo::config_map::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
 	if ( it != info.config.end() )
 		{
 		stdin_string = it->second;
@@ -455,9 +507,6 @@ int64_t Raw::GetLine(FILE* arg_file)
 		Error(Fmt("Reader encountered unexpected error code %d", errno));
 		return -3;
 		}
-
-	InternalError("Internal control flow execution error in raw reader");
-	assert(false);
 	}
 
 // write to the stdin of the child process

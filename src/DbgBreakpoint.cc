@@ -49,6 +49,8 @@ DbgBreakpoint::DbgBreakpoint()
 	repeat_count = hit_count = 0;
 
 	description[0] = 0;
+	source_filename = 0;
+	source_line = 0;
 	}
 
 DbgBreakpoint::~DbgBreakpoint()
@@ -85,10 +87,17 @@ void DbgBreakpoint::RemoveFromGlobalMap()
 	pair<BPMapType::iterator, BPMapType::iterator> p;
 	p = g_debugger_state.breakpoint_map.equal_range(at_stmt);
 
-	for ( BPMapType::iterator i = p.first; i != p.second; ++i )
+	for ( BPMapType::iterator i = p.first; i != p.second; )
 		{
 		if ( i->second == this )
+			{
+			BPMapType::iterator next = i;
+			++next;
 			g_debugger_state.breakpoint_map.erase(i);
+			i = next;
+			}
+		else
+			++i;
 		}
 	}
 

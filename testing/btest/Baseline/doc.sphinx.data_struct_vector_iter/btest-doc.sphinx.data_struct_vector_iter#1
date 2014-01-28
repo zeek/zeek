@@ -1,9 +1,11 @@
-.. code-block:: none
-  :linenos:
-  :emphasize-lines: 1,1
+.. rst-class:: btest-cmd
 
-  # bro -b data_struct_vector_iter.bro
-  1.2.0.0/18
-  2.3.0.0/18
-  3.4.0.0/18
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -b data_struct_vector_iter.bro
+      1.2.0.0/18
+      2.3.0.0/18
+      3.4.0.0/18
 

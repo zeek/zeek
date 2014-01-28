@@ -39,7 +39,8 @@ export {
 		## The node type doing all the actual traffic analysis.
 		WORKER,
 		## A node acting as a traffic recorder using the
-		## `Time Machine <http://tracker.bro.org/time-machine>`_ software.
+		## `Time Machine <http://bro.org/community/time-machine.html>`_
+		## software.
 		TIME_MACHINE,
 	};
 	
@@ -58,7 +59,7 @@ export {
 	## Events raised by workers and handled by a manager.
 	const worker2manager_events = /(TimeMachine::command|Drop::.*)/ &redef;
 	
-	## Events raised by workers and handled by proxies..
+	## Events raised by workers and handled by proxies.
 	const worker2proxy_events = /EMPTY/ &redef;
 	
 	## Events raised by TimeMachine instances and handled by a manager.
@@ -73,14 +74,14 @@ export {
 	
 	## Record type to indicate a node in a cluster.
 	type Node: record {
-		## Identifies the  type of cluster node in this node's configuration.
+		## Identifies the type of cluster node in this node's configuration.
 		node_type:    NodeType;
 		## The IP address of the cluster node.
 		ip:           addr;
 		## If the *ip* field is a non-global IPv6 address, this field
 		## can specify a particular :rfc:`4007` ``zone_id``.
 		zone_id:      string      &default="";
-		## The port to which the this local node can connect when
+		## The port to which this local node can connect when
 		## establishing communication.
 		p:            port;
 		## Identifier for the interface a worker is sniffing.
@@ -119,6 +120,7 @@ export {
 	## The cluster layout definition.  This should be placed into a filter
 	## named cluster-layout.bro somewhere in the BROPATH.  It will be 
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
+	## Note that BroControl handles all of this automatically.
 	const nodes: table[string] of Node = {} &redef;
 	
 	## This is usually supplied on the command line for each instance

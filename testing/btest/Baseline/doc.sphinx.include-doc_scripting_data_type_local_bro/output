@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_type_local.bro
+data_type_local.bro
 
 function add_two(i: count): count
     {

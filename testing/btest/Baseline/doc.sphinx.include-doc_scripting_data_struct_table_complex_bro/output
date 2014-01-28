@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_struct_table_complex.bro
+data_struct_table_complex.bro
 
 event bro_init()
     {

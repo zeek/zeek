@@ -69,6 +69,7 @@ public:
 	void PopIndent();
 	void PopIndentNoNL();
 	int GetIndentLevel() const	{ return indent_level; }
+	void ClearIndentLevel() { indent_level = 0; }
 
 	int IndentSpaces() const	{ return indent_with_spaces; }
 	void SetIndentSpaces(int i)	{ indent_with_spaces = i; }
@@ -148,8 +149,6 @@ protected:
 
 	// Make buffer big enough for n bytes beyond bufp.
 	void Grow(unsigned int n);
-
-	void OutOfMemory();
 
 	/**
 	 * Returns the location of the first place in the bytes to be hex-escaped.

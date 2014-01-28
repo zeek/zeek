@@ -53,8 +53,8 @@ bool Binary::CloseInput()
 	{
 	if ( ! in || ! in->is_open() )
 		{
-		InternalError(Fmt("Trying to close closed file for stream %s",
-		                  fname.c_str()));
+		InternalWarning(Fmt("Trying to close closed file for stream %s",
+		                    fname.c_str()));
 		return false;
 		}
 

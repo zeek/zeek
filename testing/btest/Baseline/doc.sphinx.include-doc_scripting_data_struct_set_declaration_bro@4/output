@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_struct_set_declaration.bro
+data_struct_set_declaration.bro
 
 event bro_init()
     {

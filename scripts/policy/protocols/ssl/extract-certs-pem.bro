@@ -2,11 +2,11 @@
 ##! after being converted to PEM files.  The certificates will be stored in
 ##! a single file, one for local certificates and one for remote certificates.
 ##!
-##! ..note::
+##! .. note::
 ##!
 ##!     - It doesn't work well on a cluster because each worker will write its
-##!       own certificate files and no duplicate checking is done across
-##!       clusters so each node would log each certificate.
+##!       own certificate files and no duplicate checking is done across the
+##!       cluster so each node would log each certificate.
 ##!
 
 @load base/protocols/ssl
@@ -18,7 +18,7 @@ module SSL;
 export {
 	## Control if host certificates offered by the defined hosts
 	## will be written to the PEM certificates file.
-	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	const extract_certs_pem = LOCAL_HOSTS &redef;
 }
 

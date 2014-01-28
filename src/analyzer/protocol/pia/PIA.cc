@@ -7,9 +7,8 @@
 using namespace analyzer::pia;
 
 PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
+	: state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
 	{
-	current_packet.data = 0;
-	as_analyzer = arg_as_analyzer;
 	}
 
 PIA::~PIA()
@@ -147,10 +146,12 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		return;
 
 	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
-	a->SetSignature(rule);
 
-	if ( a )
-		ReplayPacketBuffer(a);
+	if ( ! a )
+		return;
+
+	a->SetSignature(rule);
+	ReplayPacketBuffer(a);
 	}
 
 void PIA_UDP::DeactivateAnalyzer(analyzer::Tag tag)

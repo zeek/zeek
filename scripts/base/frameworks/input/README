@@ -1,0 +1,2 @@
+The input framework provides a way to read previously stored data either as
+an event stream or into a Bro table.

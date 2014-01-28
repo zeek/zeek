@@ -246,7 +246,7 @@ type HelloRequest(rec: SSLRecord) = empty &let {
 type ClientHello(rec: SSLRecord) = record {
 	client_version : uint16;
 	gmt_unix_time : uint32;
-	random_bytes : bytestring &length = 28 &transient;
+	random_bytes : bytestring &length = 28;
 	session_len : uint8;
 	session_id : uint8[session_len];
 	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
@@ -297,7 +297,7 @@ type V2ClientHello(rec: SSLRecord) = record {
 type ServerHello(rec: SSLRecord) = record {
 	server_version : uint16;
 	gmt_unix_time : uint32;
-	random_bytes : bytestring &length = 28 &transient;
+	random_bytes : bytestring &length = 28;
 	session_len : uint8;
 	session_id : uint8[session_len];
 	cipher_suite : uint16[1];
@@ -567,7 +567,7 @@ type CiphertextRecord(rec: SSLRecord) = record {
 ######################################################################
 
 type SSLPDU(is_orig: bool) = record {
-	records : SSLRecord(is_orig)[] &transient &until($element <= 0);
+	records : SSLRecord(is_orig)[] &transient;
 } &byteorder = bigendian;
 
 

@@ -69,6 +69,7 @@ flow DHCP_Flow(is_orig: bool) {
 					break;
 
 				case HOST_NAME_OPTION:
+					Unref(host_name);
 					host_name = new StringVal((*ptr)->info()->host_name().length(),
 								  (const char*) (*ptr)->info()->host_name().begin());
 					break;
@@ -174,6 +175,7 @@ flow DHCP_Flow(is_orig: bool) {
 					break;
 
 				case HOST_NAME_OPTION:
+					Unref(host_name);
 					host_name = new StringVal((*ptr)->info()->host_name().length(),
 								  (const char*) (*ptr)->info()->host_name().begin());
 					break;

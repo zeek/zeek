@@ -8,12 +8,12 @@ module HTTP;
 
 export {
 	redef record Info += {
-		## The vector of HTTP header names sent by the client.  No header 
-		## values are included here, just the header names.
+		## The vector of HTTP header names sent by the client.  No
+		## header values are included here, just the header names.
 		client_header_names:  vector of string &log &optional;
 		
-		## The vector of HTTP header names sent by the server.  No header 
-		## values are included here, just the header names.
+		## The vector of HTTP header names sent by the server.  No
+		## header values are included here, just the header names.
 		server_header_names:  vector of string &log &optional;
 	};
 	

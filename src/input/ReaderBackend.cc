@@ -163,6 +163,8 @@ ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	disabled = true; // disabled will be set correcty in init.
 	frontend = arg_frontend;
 	info = new ReaderInfo(frontend->Info());
+	num_fields = 0;
+	fields = 0;
 
 	SetName(frontend->Name());
 	}

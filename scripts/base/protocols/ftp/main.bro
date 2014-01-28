@@ -26,7 +26,7 @@ export {
 	const guest_ids = { "anonymous", "ftp", "ftpuser", "guest" } &redef;
 
 	## This record is to hold a parsed FTP reply code.  For example, for the
-	## 201 status code, the digits would be parsed as: x->2, y->0, z=>1.
+	## 201 status code, the digits would be parsed as: x->2, y->0, z->1.
 	type ReplyCode: record {
 		x: count;
 		y: count;

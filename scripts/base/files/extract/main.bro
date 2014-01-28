@@ -8,18 +8,21 @@ export {
 	const prefix = "./extract_files/" &redef;
 
 	## The default max size for extracted files (they won't exceed this
-	## number of bytes), unlimited.
+	## number of bytes). A value of zero means unlimited.
 	const default_limit = 0 &redef;
 
 	redef record Files::Info += {
-		## Local filenames of extracted file.
+		## Local filename of extracted file.
 		extracted: string &optional &log;
 	};
 
 	redef record Files::AnalyzerArgs += {
 		## The local filename to which to write an extracted file.
 		## This field is used in the core by the extraction plugin
-		## to know where to write the file to.  It's also optional
+		## to know where to write the file to.  If not specified, then
+		## a filename in the format "extract-<source>-<id>" is
+		## automatically assigned (using the *source* and *id*
+		## fields of :bro:see:`fa_file`).
 		extract_filename: string &optional;
 		## The maximum allowed file size in bytes of *extract_filename*.
 		## Once reached, a :bro:see:`file_extraction_limit` event is

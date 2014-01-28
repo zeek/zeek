@@ -1,6 +1,8 @@
 #
 # @TEST-GROUP: sqlite
 #
+# @TEST-REQUIRES: which sqlite3
+#
 # @TEST-EXEC: cat conn.sql | sqlite3 conn.sqlite
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
@@ -87,7 +89,6 @@ event bro_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from conn;",
-		 ["dbname"] = "conn"
 	};
 
 	outfile = open("../out");

@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+#
+# A diff canonifier that removes all fields starting with a given
+# prefix.
+
+if [ $# != 1 ]; then
+   echo "usage: `basename $0` <field prefix>"
+   exit 1
+fi
+
+awk -v "PREFIX=$1" '
+
+BEGIN { FS="\t"; OFS="\t"; }
+
+/^#fields/ {
+    for ( i = 2; i <= NF; ++i )
+        {
+        if ( index($i, PREFIX) == 1 )
+            rem[i-1] = 1;
+        }
+     print;
+     next;
+}
+
+{
+    for ( i in rem )
+       # Mark that it iss set, but ignore content.
+       $i = "+";
+
+    print;
+}
+
+'
+

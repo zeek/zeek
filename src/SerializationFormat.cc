@@ -6,8 +6,9 @@
 #include "Reporter.h"
 
 SerializationFormat::SerializationFormat()
+    : output(), output_size(), output_pos(), input(), input_len(), input_pos(),
+      bytes_written(), bytes_read()
 	{
-	output = 0;
 	}
 
 SerializationFormat::~SerializationFormat()

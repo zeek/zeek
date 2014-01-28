@@ -81,7 +81,7 @@ private:
 	friend class ::RemoteSerializer;
 
 	// Force usage of constructor above.
-	Field()	{};
+	Field()	{}
 };
 
 /**

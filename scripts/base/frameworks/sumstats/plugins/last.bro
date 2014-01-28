@@ -5,12 +5,12 @@ module SumStats;
 
 export {
 	redef enum Calculation += {
-		## Keep last X observations in a queue
+		## Keep last X observations in a queue.
 		LAST
 	};
 
 	redef record Reducer += {
-		## number of elements to keep.
+		## Number of elements to keep.
 		num_last_elements: count &default=0;
 	};
 

@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_type_const.bro
+data_type_const.bro
 
 const port_list: table[port] of string &redef;
 

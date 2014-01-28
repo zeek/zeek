@@ -17,7 +17,9 @@ using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
-SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
+SQLite::SQLite(ReaderFrontend *frontend)
+	: ReaderBackend(frontend),
+	  fields(), num_fields(), mode(), started(), query(), db(), st()
 	{
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
@@ -52,7 +54,7 @@ void SQLite::DoClose()
 		}
 	}
 
-bool SQLite::checkError( int code )
+bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
@@ -71,23 +73,19 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 		return false;
 		}
 
+	if ( Info().mode != MODE_MANUAL )
+		{
+		Error("SQLite only supports manual reading mode.");
+		return false;
+		}
+
 	started = false;
 
 	string fullpath(info.source);
 	fullpath.append(".sqlite");
 
-	string dbname;
-	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
-	if ( it == info.config.end() )
-		{
-		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to source %s", info.source));
-		dbname = info.source;
-		}
-	else
-		dbname = it->second;
-
 	string query;
-	it = info.config.find("query");
+	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
 		Error(Fmt("No query specified when setting up SQLite data source. Aborting.", info.source));
@@ -187,11 +185,14 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		if ( subpos != -1 )
 			{
 			const char *text = (const char*) sqlite3_column_text(st, subpos);
-			string s(text, sqlite3_column_bytes(st, subpos));
+
 			if ( text == 0 )
 				Error("Port protocol definition did not contain text");
 			else
+				{
+				string s(text, sqlite3_column_bytes(st, subpos));
 				val->val.port_val.proto = io->ParseProto(s);
+				}
 			}
 		break;
 		}
@@ -306,7 +307,7 @@ bool SQLite::DoUpdate()
 			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
 			if ( ofields[j] == 0 )
 				{
-				for ( int k = 0; k < j; ++k )
+				for ( unsigned int k = 0; k < j; ++k )
 					delete ofields[k];
 
 				delete [] ofields;

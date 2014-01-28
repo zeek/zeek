@@ -30,10 +30,6 @@
 # This adds signatures to detect cleartext forward and reverse windows shells.
 @load-sigs frameworks/signatures/detect-windows-shells
 
-# Uncomment the following line to begin receiving (by default hourly) emails
-# containing all of your notices.
-# redef Notice::policy += { [$action = Notice::ACTION_ALARM, $priority = 0] };
-
 # Load all of the scripts that detect software in various protocols.
 @load protocols/ftp/software
 @load protocols/smtp/software
@@ -59,9 +55,9 @@
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
-# This script checks each SSL certificate hash against the ICSI certificate
-# notary service.
-@load protocols/ssl/notary
+# Uncomment the following line to check each SSL certificate hash against the ICSI
+# certificate notary service; see http://notary.icsi.berkeley.edu .
+# @load protocols/ssl/notary
 
 # If you have libGeoIP support built in, do some geographic detections and 
 # logging for SSH traffic.

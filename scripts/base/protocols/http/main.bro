@@ -16,7 +16,8 @@ export {
 		EMPTY
 	};
 
-	## This setting changes if passwords used in Basic-Auth are captured or not.
+	## This setting changes if passwords used in Basic-Auth are captured or
+	## not.
 	const default_capture_password = F &redef;
 
 	type Info: record {
@@ -36,8 +37,8 @@ export {
 		## URI used in the request.
 		uri:                     string    &log &optional;
 		## Value of the "referer" header.  The comment is deliberately
-		## misspelled like the standard declares, but the name used here is
-		## "referrer" spelled correctly.
+		## misspelled like the standard declares, but the name used here
+		## is "referrer" spelled correctly.
 		referrer:                string    &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:              string    &log &optional;
@@ -55,7 +56,8 @@ export {
 		info_code:               count     &log &optional;
 		## Last seen 1xx informational reply message returned by the server.
 		info_msg:                string    &log &optional;
-		## Filename given in the Content-Disposition header sent by the server.
+		## Filename given in the Content-Disposition header sent by the
+		## server.
 		filename:                string    &log &optional;
 		## A set of indicators of various attributes discovered and
 		## related to a particular request/response pair.

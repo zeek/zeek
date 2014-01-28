@@ -42,10 +42,10 @@ public:
 	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
 
 	BroSubstring(const string& string)
-		: BroString(string), _new(false) { }
+		: BroString(string), _num(), _new(false) { }
 
 	BroSubstring(const BroString& string)
-		: BroString(string), _new(false) { }
+		: BroString(string), _num(), _new(false) { }
 
 	BroSubstring(const BroSubstring& bst);
 

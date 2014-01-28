@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- data_type_time.bro
+data_type_time.bro
 
 event connection_established(c: connection)
     {

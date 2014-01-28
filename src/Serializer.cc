@@ -136,7 +136,14 @@ bool Serializer::Serialize(SerialInfo* info, const char* func, val_list* args)
 	Write(network_time, "time");
 	Write(a, "len");
 
-	loop_over_list(*args, i) (*args)[i]->Serialize(info);
+	loop_over_list(*args, i)
+		{
+		if ( ! (*args)[i]->Serialize(info) )
+			{
+			Error("failed");
+			return false;
+			}
+		}
 
 	WriteCloseTag("call");
 	WriteSeparator();
@@ -378,7 +385,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 				ignore = true;
 				}
 
-			if ( info->print && types && ! ignore )
+			if ( info->print && ! ignore )
 				v->Describe(&d);
 			}
 
@@ -412,7 +419,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 			break;
 
 		default:
-			reporter->InternalError("invalid function flavor");
+			reporter->InternalError("unserialized call for invalid function flavor");
 			break;
 		}
 
@@ -1032,6 +1039,7 @@ void ConversionSerializer::GotPacket(Packet* p)
 	}
 
 EventPlayer::EventPlayer(const char* file)
+    : stream_time(), replay_time(), ne_time(), ne_handler(), ne_args()
 	{
 	if ( ! OpenFile(file, true) || fd < 0 )
 		Error(fmt("event replayer: cannot open %s", file));

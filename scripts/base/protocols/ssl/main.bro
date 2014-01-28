@@ -26,7 +26,8 @@ export {
 		session_id:       string           &log &optional;
 		## Subject of the X.509 certificate offered by the server.
 		subject:          string           &log &optional;
-		## Subject of the signer of the X.509 certificate offered by the server.
+		## Subject of the signer of the X.509 certificate offered by the
+		## server.
 		issuer_subject:   string           &log &optional;
 		## NotValidBefore field value from the server certificate.
 		not_valid_before: time             &log &optional;
@@ -37,7 +38,8 @@ export {
 
 		## Subject of the X.509 certificate offered by the client.
 		client_subject:          string           &log &optional;
-		## Subject of the signer of the X.509 certificate offered by the client.
+		## Subject of the signer of the X.509 certificate offered by the
+		## client.
 		client_issuer_subject:   string           &log &optional;
 
 		## Full binary server certificate stored in DER format.
@@ -58,8 +60,8 @@ export {
 		analyzer_id:      count            &optional;
 	};
 
-	## The default root CA bundle.  By loading the
-	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
+	## The default root CA bundle.  By default, the mozilla-ca-list.bro
+	## script sets this to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
 
 	## If true, detach the SSL analyzer from the connection to prevent
@@ -67,8 +69,8 @@ export {
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
 
-	## Delays an SSL record for a specific token: the record will not be logged
-	## as longs the token exists or until 15 seconds elapses.
+	## Delays an SSL record for a specific token: the record will not be
+	## logged as long as the token exists or until 15 seconds elapses.
 	global delay_log: function(info: Info, token: string);
 
 	## Undelays an SSL record for a previously inserted token, allowing the
@@ -151,7 +153,7 @@ function finish(c: connection)
 		disable_analyzer(c$id, c$ssl$analyzer_id);
 	}
 
-event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
+event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
 	{
 	set_session(c);
 
@@ -160,7 +162,7 @@ event ssl_client_hello(c: connection, version: count, possible_ts: time, session
 		c$ssl$session_id = bytestring_to_hexstr(session_id);
 	}
 
-event ssl_server_hello(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count) &priority=5
+event ssl_server_hello(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
 	{
 	set_session(c);
 

@@ -1,5 +1,5 @@
-#
-# @TEST-EXEC: bro -b %INPUT | sed 's/PNG image data/PNG image/g' >out
+# Text encodings may vary with libmagic version so don't test that part.
+# @TEST-EXEC: bro -b %INPUT | sed 's/; charset=.*//g' >out
 # @TEST-EXEC: btest-diff out
 
 event bro_init()

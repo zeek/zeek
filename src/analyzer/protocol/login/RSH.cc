@@ -22,7 +22,10 @@ Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 	if ( orig )
 		state = save_state = RSH_FIRST_NULL;
 	else
+		{
 		state = RSH_LINE_MODE;
+		save_state = RSH_UNKNOWN;
+		}
 	}
 
 Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()
@@ -128,7 +131,8 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			reporter->InternalError("bad state in Contents_Rsh_Analyzer::DoDeliver");
+			reporter->AnalyzerError(this,
+			  "bad state in Contents_Rsh_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -183,7 +187,10 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 void Rsh_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
-		reporter->InternalError("multiple rsh client names");
+		{
+		reporter->AnalyzerError(this, "multiple rsh client names");
+		return;
+		}
 
 	client_name = new StringVal(s);
 	}
@@ -191,7 +198,11 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 void Rsh_Analyzer::ServerUserName(const char* s)
 	{
 	if ( username )
-		reporter->InternalError("multiple rsh initial client names");
+		{
+		reporter->AnalyzerError(this,
+		                                "multiple rsh initial client names");
+		return;
+		}
 
 	username = new StringVal(s);
 	}

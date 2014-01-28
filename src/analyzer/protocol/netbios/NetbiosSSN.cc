@@ -346,7 +346,7 @@ Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
 	interp = arg_interp;
 	type = flags = msg_size = 0;
 	msg_buf = 0;
-	buf_n = msg_size = 0;
+	buf_n = buf_len = msg_size = 0;
 	state = NETBIOS_SSN_TYPE;
 	}
 

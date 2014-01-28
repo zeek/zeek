@@ -22,8 +22,8 @@ export {
 		id:            conn_id            &log;
 		## The transport layer protocol of the connection.
 		proto:         transport_proto    &log;
-		## A 16 bit identifier assigned by the program that generated the
-		## DNS query.  Also used in responses to match up replies to
+		## A 16-bit identifier assigned by the program that generated
+		## the DNS query.  Also used in responses to match up replies to
 		## outstanding queries.
 		trans_id:      count              &log &optional;
 		## The domain name that is the subject of the DNS query.
@@ -40,17 +40,17 @@ export {
 		rcode:         count              &log &optional;
 		## A descriptive name for the response code value.
 		rcode_name:    string             &log &optional;
-		## The Authoritative Answer bit for response messages specifies that
-		## the responding name server is an authority for the domain name
-		## in the question section.
+		## The Authoritative Answer bit for response messages specifies
+		## that the responding name server is an authority for the
+		## domain name in the question section.
 		AA:            bool               &log &default=F;
 		## The Truncation bit specifies that the message was truncated.
 		TC:            bool               &log &default=F;
 		## The Recursion Desired bit in a request message indicates that
 		## the client wants recursive service for this query.
 		RD:            bool               &log &default=F;
-		## The Recursion Available bit in a response message indicates that
-		## the name server supports recursive queries.
+		## The Recursion Available bit in a response message indicates
+		## that the name server supports recursive queries.
 		RA:            bool               &log &default=F;
 		## A reserved field that is currently supposed to be zero in all
 		## queries and responses.
@@ -58,19 +58,19 @@ export {
 		## The set of resource descriptions in the query answer.
 		answers:       vector of string   &log &optional;
 		## The caching intervals of the associated RRs described by the
-		## ``answers`` field.
+		## *answers* field.
 		TTLs:          vector of interval &log &optional;
 		## The DNS query was rejected by the server.
 		rejected:      bool               &log &default=F;
 
-		## This value indicates if this request/response pair is ready to be
-		## logged.
+		## This value indicates if this request/response pair is ready
+		## to be logged.
 		ready:         bool            &default=F;
-		## The total number of resource records in a reply message's answer
-		## section.
+		## The total number of resource records in a reply message's
+		## answer section.
 		total_answers: count           &optional;
-		## The total number of resource records in a reply message's answer,
-		## authority, and additional sections.
+		## The total number of resource records in a reply message's
+		## answer, authority, and additional sections.
 		total_replies: count           &optional;
 	};
 
@@ -78,9 +78,10 @@ export {
 	## record as it is sent to the logging framework.
 	global log_dns: event(rec: Info);
 
-	## This is called by the specific dns_*_reply events with a "reply" which
-	## may not represent the full data available from the resource record, but
-	## it's generally considered a summarization of the response(s).
+	## This is called by the specific dns_*_reply events with a "reply"
+	## which may not represent the full data available from the resource
+	## record, but it's generally considered a summarization of the
+	## responses.
 	##
 	## c: The connection record for which to fill in DNS reply data.
 	##
@@ -95,7 +96,7 @@ export {
 	## This can be used if additional initialization logic needs to happen
 	## when creating a new session value.
 	##
-	## c: The connection involved in the new session
+	## c: The connection involved in the new session.
 	## 
 	## msg: The DNS message header information.
 	##
@@ -109,9 +110,9 @@ export {
 		## query/response which haven't completed yet.
 		pending: table[count] of Queue::Queue;
 
-		## This is the list of DNS responses that have completed based on the
-		## number of responses declared and the number received.  The contents
-		## of the set are transaction IDs.
+		## This is the list of DNS responses that have completed based
+		## on the number of responses declared and the number received.
+		## The contents of the set are transaction IDs.
 		finished_answers: set[count];
 	};
 }

@@ -31,8 +31,11 @@ flow NetFlow_Flow {
 			internal_type("nf_v5_record")->AsRecordType();
 		nfheader_id_type =
 			internal_type("nfheader_id")->AsRecordType();
-		pdu_id = 0;
 		identifier = NULL;
+		exporter_ip = 0;
+		uptime = 0;
+		export_time = 0;
+		pdu_id = 0;
 	%}
 
 	# %cleanup does not only put the cleanup code into the destructor,

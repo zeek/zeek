@@ -7,9 +7,9 @@ export {
 	redef enum Log::ID += { LOG };
 	
 	type Info: record {
-		## Name of the script loaded potentially with spaces included before
-		## the file name to indicate load depth.  The convention is two spaces
-		## per level of depth.
+		## Name of the script loaded potentially with spaces included
+		## before the file name to indicate load depth.  The convention
+		## is two spaces per level of depth.
 		name: string &log;
 	};
 }

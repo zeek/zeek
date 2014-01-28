@@ -1,6 +1,6 @@
 ##! The intelligence framework provides a way to store and query IP addresses,
 ##! and strings (with a str_type).  Metadata can
-##! also be associated with the intelligence like for making more informed
+##! also be associated with the intelligence, like for making more informed
 ##! decisions about matching and handling of intelligence.
 
 @load base/frameworks/notice
@@ -14,7 +14,7 @@ export {
 	type Type: enum {
 		## An IP address.
 		ADDR,
-		## A complete URL without the prefix "http://".
+		## A complete URL without the prefix ``"http://"``.
 		URL,
 		## Software name.
 		SOFTWARE,
@@ -24,21 +24,22 @@ export {
 		DOMAIN,
 		## A user name.
 		USER_NAME,
-		## File hash which is non-hash type specific.  It's up to the user to query
-		## for any relevant hash types.
+		## File hash which is non-hash type specific.  It's up to the
+		## user to query for any relevant hash types.
 		FILE_HASH,
-		## File names.  Typically with protocols with definite indications
-		## of a file name.
+		## File name.  Typically with protocols with definite
+		## indications of a file name.
 		FILE_NAME,
 		## Certificate SHA-1 hash.
 		CERT_HASH,
 	};
 	
-	## Data about an :bro:type:`Intel::Item`
+	## Data about an :bro:type:`Intel::Item`.
 	type MetaData: record {
-		## An arbitrary string value representing the data source.  Typically,
-		## the convention for this field will be the source name and feed name
-		## separated by a hyphen.  For example: "source1-c&c".
+		## An arbitrary string value representing the data source.
+		## Typically, the convention for this field will be the source
+		## name and feed name separated by a hyphen.
+		## For example: "source1-c&c".
 		source:      string;
 		## A freeform description for the data.
 		desc:        string      &optional;
@@ -81,7 +82,7 @@ export {
 		where:           Where         &log;
 		
 		## If the data was discovered within a connection, the 
-		## connection record should go into get to give context to the data.
+		## connection record should go here to give context to the data.
 		conn:            connection    &optional;
 
 		## If the data was discovered within a file, the file record
@@ -106,10 +107,12 @@ export {
 		## this is the uid for the file.
 		fuid:           string   &log &optional;
 		## A mime type if the intelligence hit is related to a file.  
-		## If the $f field is provided this will be automatically filled out.
+		## If the $f field is provided this will be automatically filled
+		## out.
 		file_mime_type: string   &log &optional;
 		## Frequently files can be "described" to give a bit more context.
-		## If the $f field is provided this field will be automatically filled out.
+		## If the $f field is provided this field will be automatically
+		## filled out.
 		file_desc:      string   &log &optional;
 
 		## Where the data was seen.
@@ -125,13 +128,13 @@ export {
 	## it against known intelligence for matches.
 	global seen: function(s: Seen);
 
-	## Event to represent a match in the intelligence data from data that was seen.  
-	## On clusters there is no assurance as to where this event will be generated 
-	## so do not assume that arbitrary global state beyond the given data
-	## will be available.
+	## Event to represent a match in the intelligence data from data that
+	## was seen.  On clusters there is no assurance as to where this event
+	## will be generated so do not assume that arbitrary global state beyond
+	## the given data will be available.
 	##
-	## This is the primary mechanism where a user will take actions based on data
-	## within the intelligence framework.
+	## This is the primary mechanism where a user will take actions based on
+	## data within the intelligence framework.
 	global match: event(s: Seen, items: set[Item]);
 
 	global log_intel: event(rec: Info);
@@ -140,7 +143,7 @@ export {
 # Internal handler for matches with no metadata available.
 global match_no_items: event(s: Seen);
 
-# Internal events for cluster data distribution
+# Internal events for cluster data distribution.
 global new_item: event(item: Item);
 global updated_item: event(item: Item);
 

@@ -3,11 +3,11 @@
 module DHCP;
 
 export {
-	## Reverse the octets of an IPv4 IP.
+	## Reverse the octets of an IPv4 address.
 	##
-	## ip: An :bro:type:`addr` IPv4 address.
+	## ip: An IPv4 address.
 	##
-	## Returns: A reversed addr.
+	## Returns: A reversed IPv4 address.
 	global reverse_ip: function(ip: addr): addr;
 }
 

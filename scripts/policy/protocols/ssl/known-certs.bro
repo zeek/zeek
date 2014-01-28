@@ -1,4 +1,5 @@
-##! Log information about certificates while attempting to avoid duplicate logging.
+##! Log information about certificates while attempting to avoid duplicate
+##! logging.
 
 @load base/utils/directions-and-hosts
 @load base/protocols/ssl
@@ -26,7 +27,7 @@ export {
 	};
 	
 	## The certificates whose existence should be logged and tracked.
-	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	const cert_tracking = LOCAL_HOSTS &redef;
 	
 	## The set of all known certificates to store for preventing duplicate 
@@ -35,7 +36,7 @@ export {
 	## in the set is for storing the DER formatted certificate's MD5 hash.
 	global certs: set[addr, string] &create_expire=1day &synchronized &redef;
 	
-	## Event that can be handled to access the loggable record as it is sent 
+	## Event that can be handled to access the loggable record as it is sent
 	## on to the logging framework.
 	global log_known_certs: event(rec: CertsInfo);
 }

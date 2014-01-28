@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- Bro_DNS.events.bif.bro
+Bro_DNS.events.bif.bro
 
 ## Generated for DNS requests. For requests with multiple queries, this event
 ## is raised once for each.

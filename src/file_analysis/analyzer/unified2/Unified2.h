@@ -30,7 +30,6 @@ private:
 	binpac::Unified2::Unified2_Analyzer* interp;
 
 	string filename;
-	int fd;
 };
 
 } // namespace file_analysis

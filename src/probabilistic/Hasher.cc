@@ -13,6 +13,7 @@ using namespace probabilistic;
 uint64 Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
+	uint64 tmpseed;
 	SHA256_CTX ctx;
 	sha256_init(&ctx);
 
@@ -29,7 +30,8 @@ uint64 Hasher::MakeSeed(const void* data, size_t size)
 		}
 
 	sha256_final(&ctx, buf);
-	return *reinterpret_cast<uint64*>(buf); // Use the first bytes as seed.
+	memcpy(&tmpseed, buf, sizeof(tmpseed)); // Use the first bytes as seed.
+	return tmpseed;
 	}
 
 Hasher::digest_vector Hasher::Hash(const HashKey* key) const

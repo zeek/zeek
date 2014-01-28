@@ -1052,6 +1052,8 @@ function find_last%(str: string, re: pattern%) : string
 ##
 ## data_str: The string to dump in hex format.
 ##
+## Returns: The hex dump of the given string.
+##
 ## .. bro:see:: string_to_ascii_hex bytestring_to_hexstr
 ##
 ## .. note:: Based on Netdude's hex editor code.

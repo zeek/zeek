@@ -3,61 +3,61 @@
 
 # Type declarations
 
-## An ordered array of strings. The entries are indexed by succesive numbers. Note
-## that it depends on the usage whether the first index is zero or one.
+## An ordered array of strings. The entries are indexed by successive numbers.
+## Note that it depends on the usage whether the first index is zero or one.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type string_array: table[count] of string;
 
 ## A set of strings.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type string_set: set[string];
 
 ## A set of addresses.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type addr_set: set[addr];
 
 ## A set of counts.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type count_set: set[count];
 
 ## A vector of counts, used by some builtin functions to store a list of indices.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type index_vec: vector of count;
 
 ## A vector of strings.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type string_vec: vector of string;
 
 ## A vector of addresses.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type addr_vec: vector of addr;
 
 ## A table of strings indexed by strings.
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
 
 ## A connection's transport-layer protocol. Note that Bro uses the term
@@ -72,8 +72,8 @@ type transport_proto: enum {
 ## A connection's identifying 4-tuple of endpoints and ports.
 ##
 ## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
-##    part of the port values, `orig_p` and `resp_p`, and can be extracted from them
-##    with :bro:id:`get_port_transport_proto`.
+##    part of the port values, `orig_p` and `resp_p`, and can be extracted from
+##    them with :bro:id:`get_port_transport_proto`.
 type conn_id: record {
 	orig_h: addr;	##< The originator's IP address.
 	orig_p: port;	##< The originator's port number.
@@ -104,15 +104,15 @@ type icmp_context: record {
 	id: conn_id;	##< The packet's 4-tuple.
 	len: count;	##< The length of the IP packet (headers + payload).
 	proto: count;	##< The packet's transport-layer protocol.
-	frag_offset: count;	##< The packet's fragementation offset.
+	frag_offset: count;	##< The packet's fragmentation offset.
 	## True if the packet's IP header is not fully included in the context
 	## or if there is not enough of the transport header to determine source
-	## and destination ports. If that is the cast, the appropriate fields
+	## and destination ports. If that is the case, the appropriate fields
 	## of this record will be set to null values.
 	bad_hdr_len: bool;
 	bad_checksum: bool;	##< True if the packet's IP checksum is not correct.
-	MF: bool;	##< True if the packets *more fragements* flag is set.
-	DF: bool;	##< True if the packets *don't fragment* flag is set.
+	MF: bool;	##< True if the packet's *more fragments* flag is set.
+	DF: bool;	##< True if the packet's *don't fragment* flag is set.
 };
 
 ## Values extracted from a Prefix Information option in an ICMPv6 neighbor
@@ -129,8 +129,8 @@ type icmp6_nd_prefix_info: record {
 	## Length of time in seconds that the prefix is valid for purpose of
 	## on-link determination (0xffffffff represents infinity).
 	valid_lifetime: interval;
-	## Length of time in seconds that the addresses generated from the prefix
-	## via stateless address autoconfiguration remain preferred
+	## Length of time in seconds that the addresses generated from the
+	## prefix via stateless address autoconfiguration remain preferred
 	## (0xffffffff represents infinity).
 	preferred_lifetime: interval;
 	## An IP address or prefix of an IP address.  Use the *prefix_len* field
@@ -147,8 +147,8 @@ type icmp6_nd_prefix_info: record {
 type icmp6_nd_option: record {
 	## 8-bit identifier of the type of option.
 	otype:        count;
-	## 8-bit integer representing the length of the option (including the type
-	## and length fields) in units of 8 octets.
+	## 8-bit integer representing the length of the option (including the
+	## type and length fields) in units of 8 octets.
 	len:          count;
 	## Source Link-Layer Address (Type 1) or Target Link-Layer Address (Type 2).
 	## Byte ordering of this is dependent on the actual link-layer.
@@ -176,34 +176,35 @@ type icmp6_nd_options: vector of icmp6_nd_option;
 # .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 #    dns_mapping_unverified dns_mapping_valid
 type dns_mapping: record {
-	## The time when the mapping was created, which corresponds to the when the DNS
-	## query was sent out.
+	## The time when the mapping was created, which corresponds to when
+	## the DNS query was sent out.
 	creation_time: time;
-	## If the mapping is the result of a name lookup, the queried host name; otherwise
-	## empty.
+	## If the mapping is the result of a name lookup, the queried host name;
+	## otherwise empty.
 	req_host: string;
-	## If the mapping is the result of a pointer lookup, the queried address; otherwise
-	## null.
+	## If the mapping is the result of a pointer lookup, the queried
+	## address; otherwise null.
 	req_addr: addr;
-	## True if the lookup returned success. Only then, the result ields are valid.
+	## True if the lookup returned success. Only then are the result fields
+	## valid.
 	valid: bool;
-	## If the mapping is the result of a pointer lookup, the resolved hostname;
-	## otherwise empty.
+	## If the mapping is the result of a pointer lookup, the resolved
+	## hostname; otherwise empty.
 	hostname: string;
-	## If the mapping is the result of an address lookup, the resolved address(es);
-	## otherwise empty.
+	## If the mapping is the result of an address lookup, the resolved
+	## address(es); otherwise empty.
 	addrs: addr_set;
 };
 
 ## A parsed host/port combination describing server endpoint for an upcoming
-## data transfert.
+## data transfer.
 ##
 ## .. bro:see:: fmt_ftp_port parse_eftp_port parse_ftp_epsv parse_ftp_pasv
 ##    parse_ftp_port
 type ftp_port: record {
 	h: addr;	##< The host's address.
 	p: port;	##< The host's port.
-	valid: bool;	##< True if format was right. Only then, *h* and *p* are valid.
+	valid: bool;	##< True if format was right. Only then are *h* and *p* valid.
 };
 
 ## Statistics about what a TCP endpoint sent.
@@ -211,14 +212,15 @@ type ftp_port: record {
 ## .. bro:see:: conn_stats
 type endpoint_stats: record {
 	num_pkts: count;	##< Number of packets.
-	num_rxmit: count;	##< Number of retransmission.
+	num_rxmit: count;	##< Number of retransmissions.
 	num_rxmit_bytes: count;	##< Number of retransmitted bytes.
 	num_in_order: count;	##< Number of in-order packets.
-	num_OO: count;	##< Number out-of-order packets.
+	num_OO: count;	##< Number of out-of-order packets.
 	num_repl: count;	##< Number of replicated packets (last packet was sent again).
-	## Endian type used by the endpoint, if it it could be determined from the sequence
-	## numbers used. This is one of :bro:see:`ENDIAN_UNKNOWN`, :bro:see:`ENDIAN_BIG`,
-	## :bro:see:`ENDIAN_LITTLE`, and :bro:see:`ENDIAN_CONFUSED`.
+	## Endian type used by the endpoint, if it could be determined from
+	## the sequence numbers used. This is one of :bro:see:`ENDIAN_UNKNOWN`,
+	## :bro:see:`ENDIAN_BIG`, :bro:see:`ENDIAN_LITTLE`, and
+	## :bro:see:`ENDIAN_CONFUSED`.
 	endian_type: count;
 };
 
@@ -226,10 +228,11 @@ module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
 	type EncapsulatingConn: record {
-		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
-		## tunnel the ports will be set to 0. The direction (i.e., orig and
-		## resp) are set according to the first tunneled packet seen
-		## and not according to the side that established the tunnel.
+		## The 4-tuple of the encapsulating "connection". In case of an
+		## IP-in-IP tunnel the ports will be set to 0. The direction
+		## (i.e., orig and resp) are set according to the first tunneled
+		## packet seen and not according to the side that established
+		## the tunnel.
 		cid: conn_id;
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type;
@@ -240,7 +243,7 @@ export {
 } # end export
 module GLOBAL;
 
-## A type alias for a vector of encapsulating "connections", i.e for when
+## A type alias for a vector of encapsulating "connections", i.e. for when
 ## there are tunnels within tunnels.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -253,16 +256,17 @@ type EncapsulatingConnVector: vector of Tunnel::EncapsulatingConn;
 ## .. bro:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
-	## Endpoint state. For TCP connection, one of the constants:
-	## :bro:see:`TCP_INACTIVE` :bro:see:`TCP_SYN_SENT` :bro:see:`TCP_SYN_ACK_SENT`
-	## :bro:see:`TCP_PARTIAL` :bro:see:`TCP_ESTABLISHED` :bro:see:`TCP_CLOSED`
-	## :bro:see:`TCP_RESET`. For UDP, one of :bro:see:`UDP_ACTIVE` and
-	## :bro:see:`UDP_INACTIVE`.
+	## Endpoint state. For a TCP connection, one of the constants:
+	## :bro:see:`TCP_INACTIVE` :bro:see:`TCP_SYN_SENT`
+	## :bro:see:`TCP_SYN_ACK_SENT` :bro:see:`TCP_PARTIAL`
+	## :bro:see:`TCP_ESTABLISHED` :bro:see:`TCP_CLOSED` :bro:see:`TCP_RESET`.
+	## For UDP, one of :bro:see:`UDP_ACTIVE` and :bro:see:`UDP_INACTIVE`.
 	state: count;
-	## Number of packets sent. Only set if :bro:id:`use_conn_size_analyzer` is true.
+	## Number of packets sent. Only set if :bro:id:`use_conn_size_analyzer`
+	## is true.
 	num_pkts: count &optional;
-	## Number of IP-level bytes sent. Only set if :bro:id:`use_conn_size_analyzer` is
-	## true.
+	## Number of IP-level bytes sent. Only set if
+	## :bro:id:`use_conn_size_analyzer` is true.
 	num_bytes_ip: count &optional;
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
@@ -271,37 +275,38 @@ type endpoint: record {
 
 ## A connection. This is Bro's basic connection type describing IP- and
 ## transport-layer information about the conversation. Note that Bro uses a
-## liberal interpreation of "connection" and associates instances of this type
+## liberal interpretation of "connection" and associates instances of this type
 ## also with UDP and ICMP flows.
 type connection: record {
 	id: conn_id;	##< The connection's identifying 4-tuple.
 	orig: endpoint;	##< Statistics about originator side.
 	resp: endpoint;	##< Statistics about responder side.
 	start_time: time;	##< The timestamp of the connection's first packet.
-	## The duration of the conversation. Roughly speaking, this is the interval between
-	## first and last data packet (low-level TCP details may adjust it somewhat in
-	## ambigious cases).
+	## The duration of the conversation. Roughly speaking, this is the
+	## interval between first and last data packet (low-level TCP details
+	## may adjust it somewhat in ambiguous cases).
 	duration: interval;
-	## The set of services the connection is using as determined by Bro's dynamic
-	## protocol detection. Each entry is the label of an analyzer that confirmed that
-	## it could parse the connection payload.  While typically, there will be at
-	## most one entry for each connection, in principle it is possible that more than
-	## one protocol analyzer is able to parse the same data. If so, all will
-	## be recorded. Also note that the recorced services are independent of any
-	## transport-level protocols.
+	## The set of services the connection is using as determined by Bro's
+	## dynamic protocol detection. Each entry is the label of an analyzer
+	## that confirmed that it could parse the connection payload.  While
+	## typically, there will be at most one entry for each connection, in
+	## principle it is possible that more than one protocol analyzer is able
+	## to parse the same data. If so, all will be recorded. Also note that
+	## the recorded services are independent of any transport-level protocols.
 	service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
 	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
-	## A globally unique connection identifier. For each connection, Bro creates an ID
-	## that is very likely unique across independent Bro runs. These IDs can thus be
-	## used to tag and locate information  associated with that connection.
+	## A globally unique connection identifier. For each connection, Bro
+	## creates an ID that is very likely unique across independent Bro runs.
+	## These IDs can thus be used to tag and locate information associated
+	## with that connection.
 	uid: string;
 	## If the connection is tunneled, this field contains information about
 	## the encapsulating "connection(s)" with the outermost one starting
-	## at index zero.  It's also always the first such enapsulation seen
-	## for the connection unless the :bro:id:`tunnel_changed` event is handled
-	## and re-assigns this field to the new encapsulation.
+	## at index zero.  It's also always the first such encapsulation seen
+	## for the connection unless the :bro:id:`tunnel_changed` event is
+	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 };
 
@@ -330,7 +335,7 @@ type fa_file: record {
 	## path which was read, or some other input source.
 	source: string;
 
-	## If the source of this file is is a network connection, this field
+	## If the source of this file is a network connection, this field
 	## may be set to indicate the directionality.
 	is_orig: bool &optional;
 
@@ -359,7 +364,7 @@ type fa_file: record {
 	timeout_interval: interval &default=default_file_timeout_interval;
 
 	## The number of bytes at the beginning of a file to save for later
-	## inspection in *bof_buffer* field.
+	## inspection in the *bof_buffer* field.
 	bof_buffer_size: count &default=default_file_bof_buffer_size;
 
 	## The content of the beginning of a file up to *bof_buffer_size* bytes.
@@ -382,7 +387,7 @@ type SYN_packet: record {
 	size: count;	##< The size of the packet's payload as specified in the IP header.
 	win_size: count;	##< The window size from the TCP header.
 	win_scale: int;	##< The window scale option if present, or -1 if not.
-	MSS: count;	##< The maximum segement size if present, or 0 if not.
+	MSS: count;	##< The maximum segment size if present, or 0 if not.
 	SACK_OK: bool;	##< True if the *SACK* option is present.
 };
 
@@ -394,9 +399,9 @@ type NetStats: record {
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
 	## Packets seen on the link. Note that this may differ
 	## from *pkts_recvd* because of a potential capture_filter. See
-	## :doc:`/scripts/base/frameworks/packet-filter/main`. Depending on the packet
-	## capture system, this value may not be available and will then be always set to
-	## zero.
+	## :doc:`/scripts/base/frameworks/packet-filter/main.bro`. Depending on the
+	## packet capture system, this value may not be available and will then
+	## be always set to zero.
 	pkts_link:    count &default=0;
 };
 
@@ -425,7 +430,7 @@ type bro_resources: record {
 	num_UDP_conns: count;	##< Current number of UDP flows in memory.
 	num_ICMP_conns: count;	##< Current number of ICMP flows in memory.
 	num_fragments: count;	##< Current number of fragments pending reassembly.
-	num_packets: count;	##< Total number packets processed to date.
+	num_packets: count;	##< Total number of packets processed to date.
 	num_timers: count;	##< Current number of pending timers.
 	num_events_queued: count;	##< Total number of events queued so far.
 	num_events_dispatched: count;	##< Total number of events dispatched so far.
@@ -433,7 +438,7 @@ type bro_resources: record {
 	max_TCP_conns: count;	##< Maximum number of concurrent TCP connections so far.
 	max_UDP_conns: count;	##< Maximum number of concurrent UDP connections so far.
 	max_ICMP_conns: count;	##< Maximum number of concurrent ICMP connections so far.
-	max_fragments: count;	##< Maximum number of concurrently buffered fragements so far.
+	max_fragments: count;	##< Maximum number of concurrently buffered fragments so far.
 	max_timers: count;	##< Maximum number of concurrent timers pending so far.
 };
 
@@ -475,9 +480,9 @@ type packet: record {
 ##
 ## .. bro:see:: global_sizes
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type var_sizes: table[string] of count;
 
 ## Meta-information about a script-level identifier.
@@ -497,34 +502,53 @@ type script_id: record {
 ##
 ## .. bro:see:: global_ids script_id
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type id_table: table[string] of script_id;
 
-## Meta-information about a record-field.
+## Meta-information about a record field.
 ##
 ## .. bro:see:: record_fields record_field_table
 type record_field: record {
 	type_name: string;	##< The name of the field's type.
-	log: bool;	##< True of the field is declared with :bro:attr:`&log` attribute.
+	log: bool;	##< True if the field is declared with :bro:attr:`&log` attribute.
 	## The current value of the field in the record instance passed into
 	## :bro:see:`record_fields` (if it has one).
 	value: any &optional;
 	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
 };
 
-## Table type used to map record field declarations to meta-information describing
-## them.
+## Table type used to map record field declarations to meta-information
+## describing them.
 ##
 ## .. bro:see:: record_fields record_field
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type record_field_table: table[string] of record_field;
 
-# todo::Do we still needs these here? Can they move into the packet filter
+## Meta-information about a parameter to a function/event.
+##
+## .. bro:see:: call_argument_vector new_event
+type call_argument: record {
+	name: string;	##< The name of the parameter.
+	type_name: string;	##< The name of the parameters's type.
+	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
+
+	## The value of the parameter as passed into a given call instance.
+	## Might be unset in the case a :bro:attr:`&default` attribute is
+	## defined.
+	value: any &optional;
+};
+
+## Vector type used to capture parameters of a function/event call.
+##
+## .. bro:see:: call_argument new_event
+type call_argument_vector: vector of call_argument;
+
+# todo:: Do we still need these here? Can they move into the packet filter
 # framework?
 #
 # The following two variables are defined here until the core is not
@@ -540,15 +564,15 @@ type record_field_table: table[string] of record_field;
 ##    PacketFilter::unrestricted_filter restrict_filters
 global capture_filters: table[string] of string &redef;
 
-## Set of BPF filters to restrict capturing, indexed by a user-definable ID (which
-## must be unique).
+## Set of BPF filters to restrict capturing, indexed by a user-definable ID
+## (which must be unique).
 ##
 ## .. bro:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
 ##    PacketFilter::unrestricted_filter capture_filters
 global restrict_filters: table[string] of string &redef;
 
 ## Enum type identifying dynamic BPF filters. These are used by
-## :bro:see:`precompile_pcap_filter`  and :bro:see:`precompile_pcap_filter`.
+## :bro:see:`precompile_pcap_filter` and :bro:see:`precompile_pcap_filter`.
 type PcapFilterID: enum { None };
 
 ## Deprecated.
@@ -588,7 +612,7 @@ type peer_id: count;
 ##    send_capture_filter send_current_packet send_id send_ping send_state
 ##    set_accept_state set_compression_level
 ##
-## .. todo::The type's name is to narrow these days, should rename.
+## .. todo::The type's name is too narrow these days, should rename.
 type event_peer: record {
 	id: peer_id;	##< Locally unique ID of peer (returned by :bro:id:`connect`).
 	host: addr;	##< The IP address of the peer.
@@ -618,7 +642,7 @@ type rotate_info: record {
 #	SW_MULTIPLE,
 # };
 
-## Paramerts for the Smith-Waterman algorithm.
+## Parameters for the Smith-Waterman algorithm.
 ##
 ## .. bro:see:: str_smith_waterman
 type sw_params: record {
@@ -656,20 +680,21 @@ type sw_substring: record {
 ##
 ## .. bro:see:: str_smith_waterman sw_substring sw_align_vec sw_align sw_params
 ##
-## .. todo:: We need this type definition only for declaring builtin functions via
-##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
-##    then remove this alias.
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
 type sw_substring_vec: vector of sw_substring;
 
-## Policy-level representation of a packet passed on by libpcap. The data includes
-## the complete packet as returned by libpcap, including the link-layer header.
+## Policy-level representation of a packet passed on by libpcap. The data
+## includes the complete packet as returned by libpcap, including the link-layer
+## header.
 ##
 ## .. bro:see:: dump_packet get_current_packet
 type pcap_packet: record {
 	ts_sec: count;	##< The non-fractional part of the packet's timestamp (i.e., full seconds since the epoch).
 	ts_usec: count;	##< The fractional part of the packet's timestamp.
 	caplen: count;	##< The number of bytes captured (<= *len*).
-	len: count;	##< The length of the packet in bytes, including <link-level header.
+	len: count;	##< The length of the packet in bytes, including link-level header.
 	data: string;	##< The payload of the packet, including link-level header.
 };
 
@@ -709,7 +734,7 @@ global log_file_name: function(tag: string): string &redef;
 ## Deprecated. This is superseded by the new logging framework.
 global open_log_file: function(tag: string): file &redef;
 
-## Specifies a directory for Bro store its persistent state. All globals can
+## Specifies a directory for Bro to store its persistent state. All globals can
 ## be declared persistent via the :bro:attr:`&persistent` attribute.
 const state_dir = ".state" &redef;
 
@@ -764,7 +789,7 @@ global signature_files = "" &add_func = add_signature_file;
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 # TCP values for :bro:see:`endpoint` *state* field.
-# todo::these should go into an enum to make them autodoc'able.
+# todo:: these should go into an enum to make them autodoc'able.
 const TCP_INACTIVE = 0;	##< Endpoint is still inactive.
 const TCP_SYN_SENT = 1;	##< Endpoint has sent SYN.
 const TCP_SYN_ACK_SENT = 2;	##< Endpoint has sent SYN/ACK.
@@ -774,7 +799,7 @@ const TCP_CLOSED = 5;	##< Endpoint has closed connection.
 const TCP_RESET = 6;	##< Endpoint has sent RST.
 
 # UDP values for :bro:see:`endpoint` *state* field.
-# todo::these should go into an enum to make them autodoc'able.
+# todo:: these should go into an enum to make them autodoc'able.
 const UDP_INACTIVE = 0;	##< Endpoint is still inactive.
 const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 
@@ -788,8 +813,8 @@ const ignore_checksums = F &redef;
 ## (one missing its initial establishment negotiation) is seen.
 const partial_connection_ok = T &redef;
 
-## If true, instantiate connection state when a SYN/ACK is seen but not the initial
-## SYN (even if :bro:see:`partial_connection_ok`  is false).
+## If true, instantiate connection state when a SYN/ACK is seen but not the
+## initial SYN (even if :bro:see:`partial_connection_ok` is false).
 const tcp_SYN_ack_ok = T &redef;
 
 ## If true, pass any undelivered to the signature engine before flushing the state.
@@ -819,15 +844,15 @@ const tcp_close_delay = 5 secs &redef;
 ## Upon seeing a RST, flush state after this much time.
 const tcp_reset_delay = 5 secs &redef;
 
-## Generate a :bro:id:`connection_partial_close` event this much time after one half
-## of a partial connection closes, assuming there has been no subsequent
+## Generate a :bro:id:`connection_partial_close` event this much time after one
+## half of a partial connection closes, assuming there has been no subsequent
 ## activity.
 const tcp_partial_close_delay = 3 secs &redef;
 
 ## If a connection belongs to an application that we don't analyze,
 ## time it out after this interval.  If 0 secs, then don't time it out (but
-## :bro:see:`tcp_inactivity_timeout`/:bro:see:`udp_inactivity_timeout`/:bro:see:`icmp_inactivity_timeout`
-## still apply).
+## :bro:see:`tcp_inactivity_timeout`, :bro:see:`udp_inactivity_timeout`, and
+## :bro:see:`icmp_inactivity_timeout` still apply).
 const non_analyzed_lifetime = 0 secs &redef;
 
 ## If a TCP connection is inactive, time it out after this interval. If 0 secs,
@@ -848,7 +873,7 @@ const udp_inactivity_timeout = 1 min &redef;
 ## .. bro:see:: tcp_inactivity_timeout udp_inactivity_timeout set_inactivity_timeout
 const icmp_inactivity_timeout = 1 min &redef;
 
-## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported via
+## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported
 ## as ``weird`` via the notice framework, and they must also come within
 ## intervals of at most :bro:see:`tcp_storm_interarrival_thresh`.
 ##
@@ -861,17 +886,17 @@ const tcp_storm_thresh = 1000 &redef;
 ## .. bro:see:: tcp_storm_thresh
 const tcp_storm_interarrival_thresh = 1 sec &redef;
 
-## Maximum amount of data that might plausibly be sent in an initial flight (prior
-## to receiving any acks).  Used to determine whether we must not be seeing our
-## peer's ACKs.  Set to zero to turn off this determination.
+## Maximum amount of data that might plausibly be sent in an initial flight
+## (prior to receiving any acks).  Used to determine whether we must not be
+## seeing our peer's ACKs.  Set to zero to turn off this determination.
 ##
 ## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
 const tcp_max_initial_window = 4096 &redef;
 
-## If we're not seeing our peer's ACKs, the maximum volume of data above a sequence
-## hole that we'll tolerate before assuming that there's been a packet drop and we
-## should give up on tracking a connection. If set to zero, then we don't ever give
-## up.
+## If we're not seeing our peer's ACKs, the maximum volume of data above a
+## sequence hole that we'll tolerate before assuming that there's been a packet
+## drop and we should give up on tracking a connection. If set to zero, then we
+## don't ever give up.
 ##
 ## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
 const tcp_max_above_hole_without_any_acks = 4096 &redef;
@@ -885,16 +910,16 @@ const tcp_max_above_hole_without_any_acks = 4096 &redef;
 ## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
-## For services without an a handler, these sets define originator-side ports that
-## still trigger reassembly.
+## For services without a handler, these sets define originator-side ports
+## that still trigger reassembly.
 ##
-## .. :bro:see:: tcp_reassembler_ports_resp
+## .. bro:see:: tcp_reassembler_ports_resp
 const tcp_reassembler_ports_orig: set[port] = {} &redef;
 
-## For services without an a handler, these sets define responder-side ports that
-## still trigger reassembly.
+## For services without a handler, these sets define responder-side ports
+## that still trigger reassembly.
 ##
-## .. :bro:see:: tcp_reassembler_ports_orig
+## .. bro:see:: tcp_reassembler_ports_orig
 const tcp_reassembler_ports_resp: set[port] = {} &redef;
 
 ## Defines destination TCP ports for which the contents of the originator stream
@@ -906,8 +931,8 @@ const tcp_reassembler_ports_resp: set[port] = {} &redef;
 ##    udp_content_deliver_all_resp  tcp_contents
 const tcp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
-## Defines destination TCP ports for which the contents of the responder stream should
-## be delivered via :bro:see:`tcp_contents`.
+## Defines destination TCP ports for which the contents of the responder stream
+## should be delivered via :bro:see:`tcp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig tcp_content_deliver_all_orig
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
@@ -915,7 +940,7 @@ const tcp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 ##    udp_content_deliver_all_resp tcp_contents
 const tcp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 
-## If true, all TCP originator-side  traffic is reported via
+## If true, all TCP originator-side traffic is reported via
 ## :bro:see:`tcp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
@@ -924,7 +949,7 @@ const tcp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 ##    udp_content_deliver_all_resp tcp_contents
 const tcp_content_deliver_all_orig = F &redef;
 
-## If true, all TCP responder-side  traffic is reported via
+## If true, all TCP responder-side traffic is reported via
 ## :bro:see:`tcp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
@@ -944,7 +969,7 @@ const tcp_content_deliver_all_resp = F &redef;
 ##    udp_content_deliver_all_resp  udp_contents
 const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
-## Defines UDP destination ports for which the contents of the originator stream
+## Defines UDP destination ports for which the contents of the responder stream
 ## should be delivered via :bro:see:`udp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
@@ -953,8 +978,8 @@ const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 ##    udp_content_deliver_all_orig udp_content_deliver_all_resp udp_contents
 const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 
-## If true, all UDP originator-side  traffic is reported via
-## :bro:see:`tcp_contents`.
+## If true, all UDP originator-side traffic is reported via
+## :bro:see:`udp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_resp
@@ -964,7 +989,7 @@ const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 const udp_content_deliver_all_orig = F &redef;
 
 ## If true, all UDP responder-side traffic is reported via
-## :bro:see:`tcp_contents`.
+## :bro:see:`udp_contents`.
 ##
 ## .. bro:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_resp
@@ -978,16 +1003,16 @@ const udp_content_deliver_all_resp = F &redef;
 ## .. bro:see:: table_incremental_step table_expire_delay
 const table_expire_interval = 10 secs &redef;
 
-## When expiring/serializing table entries, don't work on more than this many table
-## at a time.
+## When expiring/serializing table entries, don't work on more than this many
+## table entries at a time.
 ##
 ## .. bro:see:: table_expire_interval table_expire_delay
 const table_incremental_step = 5000 &redef;
 
-## When expiring table entries, wait this amount of time before checking the next
-## chunk of entries.
+## When expiring table entries, wait this amount of time before checking the
+## next chunk of entries.
 ##
-## .. :bro:see:: table_expire_interval table_incremental_step
+## .. bro:see:: table_expire_interval table_incremental_step
 const table_expire_delay = 0.01 secs &redef;
 
 ## Time to wait before timing out a DNS request.
@@ -999,15 +1024,15 @@ const ntp_session_timeout = 300 sec &redef;
 ## Time to wait before timing out an RPC request.
 const rpc_timeout = 24 sec &redef;
 
-## How long to hold onto fragments for possible reassembly.  A value of 0.0 means
-## "forever", which resists evasion, but can lead to state accrual.
+## How long to hold onto fragments for possible reassembly.  A value of 0.0
+## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 0.0 sec &redef;
 
 ## Time window for reordering packets. This is used for dealing with timestamp
-## discrepency between multiple packet sources.
+## discrepancy between multiple packet sources.
 ##
-## .. note:: Setting this can have a major performance impact as now packets need
-##    to be potentially copied and buffered.
+## .. note:: Setting this can have a major performance impact as now packets
+##    need to be potentially copied and buffered.
 const packet_sort_window = 0 usecs &redef;
 
 ## If positive, indicates the encapsulation header size that should
@@ -1015,11 +1040,11 @@ const packet_sort_window = 0 usecs &redef;
 const encap_hdr_size = 0 &redef;
 
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
-## IP-level bytes transfered by each endpoint. If true, these values are returned
-## in the connection's :bro:see:`endpoint`  record value.
+## IP-level bytes transferred by each endpoint. If true, these values are
+## returned in the connection's :bro:see:`endpoint` record value.
 const use_conn_size_analyzer = T &redef;
 
-# todo::these should go into an enum to make them autodoc'able.
+# todo:: these should go into an enum to make them autodoc'able.
 const ENDIAN_UNKNOWN = 0;	##< Endian not yet determined.
 const ENDIAN_LITTLE = 1;	##< Little endian.
 const ENDIAN_BIG = 2;	##< Big endian.
@@ -1047,26 +1072,26 @@ function append_addl_marker(c: connection, addl: string, marker: string)
 
 
 # Values for :bro:see:`set_contents_file` *direction* argument.
-# todo::these should go into an enum to make them autodoc'able
+# todo:: these should go into an enum to make them autodoc'able
 const CONTENTS_NONE = 0;	##< Turn off recording of contents.
 const CONTENTS_ORIG = 1;	##< Record originator contents.
 const CONTENTS_RESP = 2;	##< Record responder contents.
 const CONTENTS_BOTH = 3;	##< Record both originator and responder contents.
 
 # Values for code of ICMP *unreachable* messages. The list is not exhaustive.
-# todo::these should go into an enum to make them autodoc'able
+# todo:: these should go into an enum to make them autodoc'able
 #
 # .. bro:see:: :bro:see:`icmp_unreachable `
 const ICMP_UNREACH_NET = 0;	##< Network unreachable.
 const ICMP_UNREACH_HOST = 1;	##< Host unreachable.
 const ICMP_UNREACH_PROTOCOL = 2;	##< Protocol unreachable.
 const ICMP_UNREACH_PORT = 3;	##< Port unreachable.
-const ICMP_UNREACH_NEEDFRAG = 4;	##< Fragement needed.
-const ICMP_UNREACH_ADMIN_PROHIB = 13;	##< Adminstratively prohibited.
+const ICMP_UNREACH_NEEDFRAG = 4;	##< Fragment needed.
+const ICMP_UNREACH_ADMIN_PROHIB = 13;	##< Administratively prohibited.
 
 # Definitions for access to packet headers.  Currently only used for
 # discarders.
-# todo::these should go into an enum to make them autodoc'able
+# todo:: these should go into an enum to make them autodoc'able
 const IPPROTO_IP = 0;			##< Dummy for IP.
 const IPPROTO_ICMP = 1;			##< Control message protocol.
 const IPPROTO_IGMP = 2;			##< Group management protocol.
@@ -1376,16 +1401,16 @@ type ip6_ext_hdr_chain: vector of ip6_ext_hdr;
 ## .. bro:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 ##    ip6_routing ip6_fragment ip6_ah ip6_esp
 type ip6_hdr: record {
-	class: count;					##< Traffic class.
-	flow: count;					##< Flow label.
-	len: count;					##< Payload length.
-	nxt: count;					##< Protocol number of the next header
-								##< (RFC 1700 et seq., IANA assigned number)
-								##< e.g. :bro:id:`IPPROTO_ICMP`.
-	hlim: count;					##< Hop limit.
-	src: addr;					##< Source address.
-	dst: addr;					##< Destination address.
-	exts: ip6_ext_hdr_chain;			##< Extension header chain.
+	class: count;			##< Traffic class.
+	flow: count;			##< Flow label.
+	len: count;			##< Payload length.
+	nxt: count;			##< Protocol number of the next header
+					##< (RFC 1700 et seq., IANA assigned number)
+					##< e.g. :bro:id:`IPPROTO_ICMP`.
+	hlim: count;			##< Hop limit.
+	src: addr;			##< Source address.
+	dst: addr;			##< Destination address.
+	exts: ip6_ext_hdr_chain;	##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.
@@ -1404,7 +1429,7 @@ type ip4_hdr: record {
 
 # TCP flags.
 #
-# todo::these should go into an enum to make them autodoc'able
+# todo:: these should go into an enum to make them autodoc'able
 const TH_FIN = 1;	##< FIN.
 const TH_SYN = 2;	##< SYN.
 const TH_RST = 4;	##< RST.
@@ -1447,11 +1472,11 @@ type icmp_hdr: record {
 ##
 ## .. bro:see:: new_packet
 type pkt_hdr: record {
-	ip: ip4_hdr &optional;			##< The IPv4 header if an IPv4 packet.
-	ip6: ip6_hdr &optional;			##< The IPv6 header if an IPv6 packet.
-	tcp: tcp_hdr &optional;			##< The TCP header if a TCP packet.
-	udp: udp_hdr &optional;			##< The UDP header if a UDP packet.
-	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.
+	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
+	ip6: ip6_hdr &optional;		##< The IPv6 header if an IPv6 packet.
+	tcp: tcp_hdr &optional;		##< The TCP header if a TCP packet.
+	udp: udp_hdr &optional;		##< The UDP header if a UDP packet.
+	icmp: icmp_hdr &optional;	##< The ICMP header if an ICMP packet.
 };
 
 ## A Teredo origin indication header.  See :rfc:`4380` for more information
@@ -1512,19 +1537,19 @@ type gtpv1_hdr: record {
 	pn_flag:   bool;
 	## Message Type.  A value of 255 indicates user-plane data is encapsulated.
 	msg_type:  count;
-	## Length of the GTP packet payload (the rest of the packet following the
-	## mandatory 8-byte GTP header).
+	## Length of the GTP packet payload (the rest of the packet following
+	## the mandatory 8-byte GTP header).
 	length:    count;
-	## Tunnel Endpoint Identifier.  Unambiguously identifies a tunnel endpoint
-	## in receiving GTP-U or GTP-C protocol entity.
+	## Tunnel Endpoint Identifier.  Unambiguously identifies a tunnel
+	## endpoint in receiving GTP-U or GTP-C protocol entity.
 	teid:      count;
-	## Sequence Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field is
-	## set.
+	## Sequence Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field
+	## is set.
 	seq:       count &optional;
 	## N-PDU Number.  Set if any *e_flag*, *s_flag*, or *pn_flag* field is set.
 	n_pdu:     count &optional;
-	## Next Extension Header Type.  Set if any *e_flag*, *s_flag*, or *pn_flag*
-	## field is set.
+	## Next Extension Header Type.  Set if any *e_flag*, *s_flag*, or
+	## *pn_flag* field is set.
 	next_type: count &optional;
 };
 
@@ -1668,15 +1693,15 @@ type gtp_delete_pdp_ctx_response_elements: record {
 	ext:   gtp_private_extension &optional;
 };
 
-## Definition of "secondary filters". A secondary filter is a BPF filter given as
-## index in this table. For each such filter, the corresponding event is raised for
-## all matching packets.
+## Definition of "secondary filters". A secondary filter is a BPF filter given
+## as index in this table. For each such filter, the corresponding event is
+## raised for all matching packets.
 global secondary_filters: table[string] of event(filter: string, pkt: pkt_hdr)
 	&redef;
 
 ## Maximum length of payload passed to discarder functions.
 ##
-## .. :bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
+## .. bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
 ##    discarder_check_ip
 global discarder_maxlen = 128 &redef;
 
@@ -1689,7 +1714,7 @@ global discarder_maxlen = 128 &redef;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
+## .. bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1707,7 +1732,7 @@ global discarder_check_ip: function(p: pkt_hdr): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_ip discarder_check_udp discarder_check_icmp
+## .. bro:see:: discarder_check_ip discarder_check_udp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1725,7 +1750,7 @@ global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_ip discarder_check_tcp discarder_check_icmp
+## .. bro:see:: discarder_check_ip discarder_check_tcp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1741,7 +1766,7 @@ global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. :bro:see:: discarder_check_ip discarder_check_tcp discarder_check_udp
+## .. bro:see:: discarder_check_ip discarder_check_tcp discarder_check_udp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1765,7 +1790,7 @@ const max_remote_events_processed = 10 &redef;
 #
 # .. bro:see:: get_login_state
 #
-# todo::use enum to make them autodoc'able
+# todo:: use enum to make them autodoc'able
 const LOGIN_STATE_AUTHENTICATE = 0;	# Trying to authenticate.
 const LOGIN_STATE_LOGGED_IN = 1;	# Successful authentication.
 const LOGIN_STATE_SKIP = 2;	# Skip any further processing.
@@ -1929,28 +1954,31 @@ const RPC_status = {
 module NFS3;
 
 export {
-	## If true, :bro:see:`nfs_proc_read` and :bro:see:`nfs_proc_write` events return
-	## the file data that has been read/written.
+	## If true, :bro:see:`nfs_proc_read` and :bro:see:`nfs_proc_write`
+	## events return the file data that has been read/written.
 	##
-	## .. .. bro:see:: return_data_max return_data_first_only
+	## .. bro:see:: NFS3::return_data_max NFS3::return_data_first_only
 	const return_data = F &redef;
 
-	## If bro:id:`NFS3::return_data` is true, how much data should be returned at
-	## most.
+	## If :bro:id:`NFS3::return_data` is true, how much data should be
+	## returned at most.
 	const return_data_max = 512 &redef;
 
-	## If bro:id:`NFS3::return_data` is true, whether to *only* return data if the read
-	## or write offset is 0, i.e., only return data for the beginning of the file.
+	## If :bro:id:`NFS3::return_data` is true, whether to *only* return data
+	## if the read or write offset is 0, i.e., only return data for the
+	## beginning of the file.
 	const return_data_first_only = T &redef;
 
-	## Record summarizing the general results and status of NFSv3 request/reply pairs.
+	## Record summarizing the general results and status of NFSv3
+	## request/reply pairs.
 	##
-	## Note that when *rpc_stats* or *nfs_stats* indicates not successful, the reply
-	## record passed to the correpsonding event will be empty and contain uninitialized
-	## fields, so don't use it. Also note  that time and duration values might not be
-	## fully accurate. For TCP, we record times when the corresponding chunk of data
-	## is delivered to the analyzer. Depending on the reassembler, this might be well
-	## after the first packet of the request was received.
+	## Note that when *rpc_stat* or *nfs_stat* indicates not successful,
+	## the reply record passed to the corresponding event will be empty and
+	## contain uninitialized fields, so don't use it. Also note that time
+	## and duration values might not be fully accurate. For TCP, we record
+	## times when the corresponding chunk of data is delivered to the
+	## analyzer. Depending on the reassembler, this might be well after the
+	## first packet of the request was received.
 	##
 	## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup
 	##    nfs_proc_mkdir nfs_proc_not_implemented nfs_proc_null
@@ -2003,8 +2031,9 @@ export {
 		fname: string;	##< The name of the file we are interested in.
 	};
 
-	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the lookup
-	## succeeded, *fh* is always set and *obj_attr* and *dir_attr* may be set.
+	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the
+	## lookup succeeded, *fh* is always set and *obj_attr* and *dir_attr*
+	## may be set.
 	##
 	## .. bro:see:: nfs_proc_lookup
 	type lookup_reply_t: record {
@@ -2022,8 +2051,8 @@ export {
 		size: count;	##< Number of bytes to read.
 	};
 
-	## NFS *read* reply. If the lookup fails, *attr* may be set. If the lookup succeeds,
-	## *attr* may be set and all other fields are set.
+	## NFS *read* reply. If the lookup fails, *attr* may be set. If the
+	## lookup succeeds, *attr* may be set and all other fields are set.
 	type read_reply_t: record {
 		attr: fattr_t &optional;	##< Attributes.
 		size: count &optional;	##< Number of bytes read.
@@ -2031,8 +2060,8 @@ export {
 		data: string &optional;	##< The actual data; not yet implemented.
 	};
 
-	## NFS *readline* reply. If the request fails, *attr* may be set. If the request
-	## succeeds, *attr* may be set and all other fields are set.
+	## NFS *readline* reply. If the request fails, *attr* may be set. If the
+	## request succeeds, *attr* may be set and all other fields are set.
 	##
 	## .. bro:see:: nfs_proc_readlink
 	type readlink_reply_t: record {
@@ -2055,13 +2084,14 @@ export {
 	##
 	## .. bro:see:: NFS3::write_reply_t
 	type wcc_attr_t: record {
-		size: count;	##< The dize.
+		size: count;	##< The size.
 		atime: time;	##< Access time.
 		mtime: time;	##< Modification time.
 	};
 
-	## NFS *write* reply. If the request fails, *pre|post* attr may be set. If the
-	## request succeeds, *pre|post* attr may be set and all other fields are set.
+	## NFS *write* reply. If the request fails, *pre|post* attr may be set.
+	## If the request succeeds, *pre|post* attr may be set and all other
+	## fields are set.
 	##
 	## .. bro:see:: nfs_proc_write
 	type write_reply_t: record {
@@ -2073,8 +2103,9 @@ export {
 	};
 
 	## NFS reply for *create*, *mkdir*, and *symlink*. If the proc
-	## failed, *dir_\*_attr* may be set. If the proc succeeded, *fh* and the *attr*'s
-	## may be set. Note: no guarantee that *fh* is set after success.
+	## failed, *dir_\*_attr* may be set. If the proc succeeded, *fh* and the
+	## *attr*'s may be set. Note: no guarantee that *fh* is set after
+	## success.
 	##
 	## .. bro:see:: nfs_proc_create nfs_proc_mkdir
 	type newobj_reply_t: record {
@@ -2104,8 +2135,8 @@ export {
 		maxcount: count &optional;	##< Only used for readdirplus. in bytes.
 	};
 
-	## NFS *direntry*.  *fh* and *attr* are used for *readdirplus*. However, even
-	## for *readdirplus* they may not be filled out.
+	## NFS *direntry*.  *fh* and *attr* are used for *readdirplus*. However,
+	## even for *readdirplus* they may not be filled out.
 	##
 	## .. bro:see:: NFS3::direntry_vec_t NFS3::readdir_reply_t
 	type direntry_t: record {
@@ -2122,8 +2153,8 @@ export {
 	type direntry_vec_t: vector of direntry_t;
 
 	## NFS *readdir* reply. Used for *readdir* and *readdirplus*. If an is
-	## returned, *dir_attr* might be set. On success, *dir_attr* may be set, all others
-	## must be set.
+	## returned, *dir_attr* might be set. On success, *dir_attr* may be set,
+	## all others must be set.
 	type readdir_reply_t: record {
 		isplus: bool;	##< True if the reply for a *readdirplus* request.
 		dir_attr: fattr_t &optional;	##< Directory attributes.
@@ -2149,7 +2180,8 @@ module Threading;
 
 export {
 	## The heartbeat interval used by the threading framework.
-	## Changing this should usually not be neccessary and will break several tests.
+	## Changing this should usually not be necessary and will break
+	## several tests.
 	const heartbeat_interval = 1.0 secs &redef;
 }
 
@@ -2187,7 +2219,7 @@ global samba_cmds: table[count] of string &redef
 ##    smb_com_transaction2 smb_com_tree_connect_andx smb_com_tree_disconnect
 ##    smb_com_write_andx smb_error smb_get_dfs_referral smb_message
 type smb_hdr : record {
-	command: count;	##< The command number (see :bro:see:`samba_cmds` ).
+	command: count;	##< The command number (see :bro:see:`samba_cmds`).
 	status: count;	##< The status code.
 	flags: count;	##< Flag set 1.
 	flags2: count;	##< Flag set 2.
@@ -2273,8 +2305,8 @@ type dhcp_msg: record {
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_message
-##    dns_query_reply dns_rejected dns_request
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_message dns_query_reply dns_rejected dns_request
 type dns_msg: record {
 	id: count;	##< Transaction ID.
 
@@ -2339,12 +2371,12 @@ type dns_tsig_additional: record {
 
 # DNS answer types.
 #
-# .. .. bro:see:: dns_answerr
+# .. bro:see:: dns_answerr
 #
-# todo::use enum to make them autodoc'able
+# todo:: use enum to make them autodoc'able
 const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
 const DNS_ANS = 1;	##< An answer record.
-const DNS_AUTH = 2;	##< An authorative record.
+const DNS_AUTH = 2;	##< An authoritative record.
 const DNS_ADDL = 3;	##< An additional record.
 
 ## The general part of a DNS reply.
@@ -2362,14 +2394,14 @@ type dns_answer: record {
 	TTL: interval;	##< Time-to-live.
 };
 
-## For DNS servers in these sets, omit processing the AUTH records they include in
-## their replies.
+## For DNS servers in these sets, omit processing the AUTH records they include
+## in their replies.
 ##
 ## .. bro:see:: dns_skip_all_auth dns_skip_addl
 global dns_skip_auth: set[addr] &redef;
 
-## For DNS servers in these sets, omit processing the ADDL records they include in
-## their replies.
+## For DNS servers in these sets, omit processing the ADDL records they include
+## in their replies.
 ##
 ## .. bro:see:: dns_skip_all_addl dns_skip_auth
 global dns_skip_addl: set[addr] &redef;
@@ -2422,7 +2454,7 @@ type http_message_stat: record {
 	finish_msg: string;
 	## Length of body processed (before finished/interrupted).
 	body_length: count;
-	## Total length of gaps within body_length.
+	## Total length of gaps within *body_length*.
 	content_gap_length: count;
 	## Length of headers (including the req/reply line, but not CR/LF's).
 	header_length: count;
@@ -2559,7 +2591,7 @@ type software: record {
 
 ## Quality of passive fingerprinting matches.
 ##
-## .. .. bro:see:: OS_version
+## .. bro:see:: OS_version
 type OS_version_inference: enum {
 	direct_inference,	##< TODO.
 	generic_inference,	##< TODO.
@@ -2571,7 +2603,7 @@ type OS_version_inference: enum {
 ## .. bro:see:: OS_version_found
 type OS_version: record {
 	genre: string;	##< Linux, Windows, AIX, ...
-	detail: string;	##< Lernel version or such.
+	detail: string;	##< Kernel version or such.
 	dist: count;	##< How far is the host away from the sensor (TTL)?.
 	match_type: OS_version_inference;	##< Quality of the match.
 };
@@ -2583,15 +2615,15 @@ global generate_OS_version_event: set[subnet] &redef;
 
 # Type used to report load samples via :bro:see:`load_sample`. For now, it's a
 # set of names (event names, source file names, and perhaps ``<source file, line
-# number>``, which were seen during the sample.
+# number>``), which were seen during the sample.
 type load_sample_info: set[string];
 
 ## ID for NetFlow header. This is primarily a means to sort together NetFlow
 ## headers and flow records at the script level.
 type nfheader_id: record {
-	## Name of the NetFlow file (e.g., ``netflow.dat``) or the receiving socket address
-	## (e.g., ``127.0.0.1:5555``), or an explicit name if specified to
-	## ``-y`` or ``-Y``.
+	## Name of the NetFlow file (e.g., ``netflow.dat``) or the receiving
+	## socket address (e.g., ``127.0.0.1:5555``), or an explicit name if
+	## specified to ``-y`` or ``-Y``.
 	rcvr_id: string;
 	## A serial number, ignoring any overflows.
 	pdu_id: count;
@@ -2793,19 +2825,19 @@ const log_max_size = 0.0 &redef;
 const log_encryption_key = "<undefined>" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to
-## activate profiling is loading  :doc:`/scripts/policy/misc/profiling`.
+## activate profiling is loading :doc:`/scripts/policy/misc/profiling.bro`.
 ##
 ## .. bro:see:: profiling_interval expensive_profiling_multiple segment_profiling
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
-## profiling is loading  :doc:`/scripts/policy/misc/profiling`.
+## profiling is loading  :doc:`/scripts/policy/misc/profiling.bro`.
 ##
 ## .. bro:see:: profiling_file expensive_profiling_multiple segment_profiling
 const profiling_interval = 0 secs &redef;
 
-## Multiples of profiling_interval at which (more expensive) memory profiling is
-## done (0 disables).
+## Multiples of :bro:see:`profiling_interval` at which (more expensive) memory
+## profiling is done (0 disables).
 ##
 ## .. bro:see:: profiling_interval profiling_file segment_profiling
 const expensive_profiling_multiple = 0 &redef;
@@ -2818,7 +2850,7 @@ const segment_profiling = F &redef;
 
 ## Output modes for packet profiling information.
 ##
-## .. bro:see:: pkt_profile_mode pkt_profile_freq pkt_profile_mode pkt_profile_file
+## .. bro:see:: pkt_profile_mode pkt_profile_freq pkt_profile_file
 type pkt_profile_modes: enum {
 	PKT_PROFILE_MODE_NONE,	##< No output.
 	PKT_PROFILE_MODE_SECS,	##< Output every :bro:see:`pkt_profile_freq` seconds.
@@ -2826,36 +2858,36 @@ type pkt_profile_modes: enum {
 	PKT_PROFILE_MODE_BYTES,	##< Output every :bro:see:`pkt_profile_freq` bytes.
 };
 
-## Output modes for packet profiling information.
+## Output mode for packet profiling information.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode pkt_profile_file
+## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_file
 const pkt_profile_mode = PKT_PROFILE_MODE_NONE &redef;
 
 ## Frequency associated with packet profiling.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_mode pkt_profile_mode pkt_profile_file
+## .. bro:see:: pkt_profile_modes pkt_profile_mode pkt_profile_file
 const pkt_profile_freq = 0.0 &redef;
 
 ## File where packet profiles are logged.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode pkt_profile_mode
+## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
 global pkt_profile_file: file &redef;
 
 ## Rate at which to generate :bro:see:`load_sample` events. As all
 ## events, the event is only generated if you've also defined a
-## :bro:see:`load_sample`  handler.  Units are inverse number of packets; e.g., a
-## value of 20 means "roughly one in every 20 packets".
+## :bro:see:`load_sample` handler.  Units are inverse number of packets; e.g.,
+## a value of 20 means "roughly one in every 20 packets".
 ##
 ## .. bro:see:: load_sample
 global load_sample_freq = 20 &redef;
 
-## Rate at which to generate :bro:see:`gap_report`  events assessing to what degree
-## the measurement process appears to exhibit loss.
+## Rate at which to generate :bro:see:`gap_report` events assessing to what
+## degree the measurement process appears to exhibit loss.
 ##
 ## .. bro:see:: gap_report
 const gap_report_freq = 1.0 sec &redef;
 
-## Whether we want :bro:see:`content_gap`  and :bro:see:`gap_report`  for partial
+## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
 ##
@@ -2863,9 +2895,9 @@ const gap_report_freq = 1.0 sec &redef;
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.
-## Normally Bro terminates when all packets sources have gone dry
-## and  communication isn't enabled. If this flag is set, Bro's main loop will
-## instead keep idleing until :bro:see::`terminate` is explicitly called.
+## Normally Bro terminates when all packet sources have gone dry
+## and communication isn't enabled. If this flag is set, Bro's main loop will
+## instead keep idling until :bro:see:`terminate` is explicitly called.
 ##
 ## This is mainly for testing purposes when termination behaviour needs to be
 ## controlled for reproducing results.
@@ -2887,8 +2919,9 @@ const ssl_private_key = "<undefined>" &redef;
 ## .. bro:see:: ssl_private_key ssl_ca_certificate
 const ssl_passphrase = "<undefined>" &redef;
 
-## Default mode for Bro's user-space dynamic packet filter. If true, packets that
-## aren't explicitly allowed through, are dropped from any further processing.
+## Default mode for Bro's user-space dynamic packet filter. If true, packets
+## that aren't explicitly allowed through, are dropped from any further
+## processing.
 ##
 ## .. note:: This is not the BPF packet filter but an additional dynamic filter
 ##    that Bro optionally applies just before normal processing starts.
@@ -2911,24 +2944,24 @@ const peer_description = "bro" &redef;
 ##
 ## .. bro:see:: forward_remote_state_changes
 ##
-## .. note:: This option is only temporary and  will disappear once we get a more
-##    sophisticated script-level communication framework.
+## .. note:: This option is only temporary and will disappear once we get a
+##    more sophisticated script-level communication framework.
 const forward_remote_events = F &redef;
 
 ## If true, broadcast state updates received from one peer to all other peers.
 ##
 ## .. bro:see:: forward_remote_events
 ##
-## .. note:: This option is only temporary and  will disappear once we get a more
-##    sophisticated script-level communication framework.
+## .. note:: This option is only temporary and will disappear once we get a
+##    more sophisticated script-level communication framework.
 const forward_remote_state_changes = F &redef;
 
 ## Place-holder constant indicating "no peer".
 const PEER_ID_NONE = 0;
 
 # Signature payload pattern types.
-# todo::use enum to help autodoc
-# todo::Still used?
+# todo:: use enum to help autodoc
+# todo:: Still used?
 #const SIG_PATTERN_PAYLOAD = 0;
 #const SIG_PATTERN_HTTP = 1;
 #const SIG_PATTERN_FTP = 2;
@@ -2940,7 +2973,7 @@ const REMOTE_LOG_INFO = 1;	##< Deprecated.
 const REMOTE_LOG_ERROR = 2;	##< Deprecated.
 
 # Source of logging messages from the communication framework.
-# todo::these should go into an enum to make them autodoc'able.
+# todo:: these should go into an enum to make them autodoc'able.
 const REMOTE_SRC_CHILD = 1;	##< Message from the child process.
 const REMOTE_SRC_PARENT = 2;	##< Message from the parent process.
 const REMOTE_SRC_SCRIPT = 3;	##< Message from a policy script.
@@ -2961,8 +2994,8 @@ const remote_trace_sync_peers = 0 &redef;
 const remote_check_sync_consistency = F &redef;
 
 ## Reassemble the beginning of all TCP connections before doing
-## signature-matching. Enabling this provides more accurate matching at the
-## expensive of CPU cycles.
+## signature matching. Enabling this provides more accurate matching at the
+## expense of CPU cycles.
 ##
 ## .. bro:see:: dpd_buffer_size
 ##    dpd_match_only_beginning dpd_ignore_ports
@@ -2975,15 +3008,16 @@ const dpd_reassemble_first_packets = T &redef;
 ## connection, Bro buffers this initial amount of payload in memory so that
 ## complete protocol analysis can start even after the initial packets have
 ## already passed through (i.e., when a DPD signature matches only later).
-## However, once the buffer is full, data is deleted and lost to analyzers that are
-## activated afterwards. Then only analyzers that can deal with partial
+## However, once the buffer is full, data is deleted and lost to analyzers that
+## are activated afterwards. Then only analyzers that can deal with partial
 ## connections will be able to analyze the session.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_match_only_beginning
 ##    dpd_ignore_ports
 const dpd_buffer_size = 1024 &redef;
 
-## If true, stops signature matching if dpd_buffer_size has been reached.
+## If true, stops signature matching if :bro:see:`dpd_buffer_size` has been
+## reached.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
 ##    dpd_ignore_ports
@@ -3000,14 +3034,14 @@ const dpd_match_only_beginning = T &redef;
 const dpd_ignore_ports = F &redef;
 
 ## Ports which the core considers being likely used by servers. For ports in
-## this set, is may heuristically decide to flip the direction of the
+## this set, it may heuristically decide to flip the direction of the
 ## connection if it misses the initial handshake.
 const likely_server_ports: set[port] &redef;
 
 ## Per-incident timer managers are drained after this amount of inactivity.
 const timer_mgr_inactivity_timeout = 1 min &redef;
 
-## If true, output profiling for time-machine queries.
+## If true, output profiling for Time-Machine queries.
 const time_machine_profiling = F &redef;
 
 ## If true, warns about unused event handlers at startup.
@@ -3020,24 +3054,25 @@ const check_for_unused_event_handlers = F &redef;
 ## Deprecated.
 const suppress_local_output = F &redef;
 
-## Holds the filename of the trace file given with -w (empty if none).
+## Holds the filename of the trace file given with ``-w`` (empty if none).
 ##
 ## .. bro:see:: record_all_packets
 const trace_output_file = "";
 
-## If a trace file is given with ``-w``, dump *all* packets seen by Bro into it. By
-## default, Bro applies (very few) heuristics to reduce the volume. A side effect
-## of setting this to true is that we can write the packets out before we actually
-## process them, which can be helpful for debugging in case the analysis triggers a
-## crash.
+## If a trace file is given with ``-w``, dump *all* packets seen by Bro into it.
+## By default, Bro applies (very few) heuristics to reduce the volume. A side
+## effect of setting this to true is that we can write the packets out before we
+## actually process them, which can be helpful for debugging in case the
+## analysis triggers a crash.
 ##
 ## .. bro:see:: trace_output_file
 const record_all_packets = F &redef;
 
-## Ignore certain TCP retransmissions for :bro:see:`conn_stats`.  Some connections
-## (e.g., SSH) retransmit the acknowledged last byte to keep the connection alive.
-## If *ignore_keep_alive_rexmit* is set to true, such retransmissions will be
-## excluded in the rexmit counter in :bro:see:`conn_stats`.
+## Ignore certain TCP retransmissions for :bro:see:`conn_stats`.  Some
+## connections (e.g., SSH) retransmit the acknowledged last byte to keep the
+## connection alive. If *ignore_keep_alive_rexmit* is set to true, such
+## retransmissions will be excluded in the rexmit counter in
+## :bro:see:`conn_stats`.
 ##
 ## .. bro:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
@@ -3060,6 +3095,9 @@ export {
 	## Toggle whether to do GTPv1 decapsulation.
 	const enable_gtpv1 = T &redef;
 
+	## Toggle whether to do GRE decapsulation.
+	const enable_gre = T &redef;
+
 	## With this option set, the Teredo analysis will first check to see if
 	## other protocol analyzers have confirmed that they think they're
 	## parsing the right protocol and only continue with Teredo tunnel
@@ -3071,7 +3109,7 @@ export {
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
 	## a :bro:see:`protocol_confirmation`.  If it's false, the first
-	## occurence of a packet with valid Teredo encapsulation causes a
+	## occurrence of a packet with valid Teredo encapsulation causes a
 	## confirmation.  Both cases are still subject to effects of
 	## :bro:see:`Tunnel::yielding_teredo_decapsulation`.
 	const delay_teredo_confirmation = T &redef;
@@ -3079,13 +3117,14 @@ export {
 	## With this set, the GTP analyzer waits until the most-recent upflow
 	## and downflow packets are a valid GTPv1 encapsulation before
 	## issuing :bro:see:`protocol_confirmation`.  If it's false, the
-	## first occurence of a packet with valid GTPv1 encapsulation causes
+	## first occurrence of a packet with valid GTPv1 encapsulation causes
 	## confirmation.  Since the same inner connection can be carried
 	## differing outer upflow/downflow connections, setting to false
 	## may work better.
 	const delay_gtp_confirmation = F &redef;
 
-	## How often to cleanup internal state for inactive IP tunnels.
+	## How often to cleanup internal state for inactive IP tunnels
+	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
 module GLOBAL;
@@ -3097,8 +3136,8 @@ export {
 	## external harness and shouldn't output anything to the console.
 	const info_to_stderr = T &redef;
 
-	## Tunable for sending reporter warning messages to STDERR.  The option to
-	## turn it off is presented here in case Bro is being run by some
+	## Tunable for sending reporter warning messages to STDERR.  The option
+	## to turn it off is presented here in case Bro is being run by some
 	## external harness and shouldn't output anything to the console.
 	const warnings_to_stderr = T &redef;
 

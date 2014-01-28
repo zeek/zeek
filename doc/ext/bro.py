@@ -191,6 +191,10 @@ class BroNotices(Index):
 
     def generate(self, docnames=None):
         content = {}
+
+        if 'notices' not in self.domain.env.domaindata['bro']:
+            return content, False
+
         for n in self.domain.env.domaindata['bro']['notices']:
             modname = n[0].split("::")[0]
             entries = content.setdefault(modname, [])

@@ -20,7 +20,7 @@ public:
 	void Dispatch(double t, int is_expire);
 
 protected:
-	AnalyzerTimer()	{}
+	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
 
 	void Init(Analyzer* analyzer, analyzer_timer_func timer, int do_expire);
 
@@ -124,6 +124,7 @@ void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	tag = arg_tag;
 	id = ++id_counter;
 	protocol_confirmed = false;
+	timers_canceled = false;
 	skip = false;
 	finished = false;
 	removing = false;
@@ -378,13 +379,13 @@ void Analyzer::ForwardEndOfData(bool orig)
 	AppendNewChildren();
 	}
 
-void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
+bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	{
 	if ( HasChildAnalyzer(analyzer->GetAnalyzerTag()) )
 		{
 		analyzer->Done();
 		delete analyzer;
-		return;
+		return false;
 		}
 
 	// We add new children to new_children first.  They are then
@@ -401,6 +402,7 @@ void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 
 	DBG_LOG(DBG_ANALYZER, "%s added child %s",
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
+	return true;
 	}
 
 Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
@@ -409,10 +411,8 @@ Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
 		{
 		Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
 
-		if ( a )
-			AddChildAnalyzer(a);
-
-		return a;
+		if ( a && AddChildAnalyzer(a) )
+			return a;
 		}
 
 	return 0;

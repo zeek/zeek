@@ -541,6 +541,10 @@ RemoteSerializer::RemoteSerializer()
 	in_sync = 0;
 	last_flush = 0;
 	received_logs = 0;
+	current_id = 0;
+	current_msgtype = 0;
+	current_args = 0;
+	source_peer = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -1247,7 +1251,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	caps |= Peer::PID_64BIT;
 	caps |= Peer::NEW_CACHE_STRATEGY;
 
-	return caps ? SendToChild(MSG_CAPS, peer, 3, caps, 0, 0) : true;
+	return SendToChild(MSG_CAPS, peer, 3, caps, 0, 0);
 	}
 
 bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
@@ -2753,7 +2757,7 @@ error:
 	for ( int i = 0; i < delete_fields_up_to; ++i )
 		delete fields[i];
 
-	delete fields;
+	delete [] fields;
 	Error("write error for creating writer");
 	return false;
 	}
@@ -2798,7 +2802,7 @@ bool RemoteSerializer::ProcessLogWrite()
 				for ( int j = 0; j <= i; ++j )
 					delete vals[j];
 
-				delete vals;
+				delete [] vals;
 				goto error;
 				}
 			}
@@ -2925,8 +2929,7 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 		const char* desc = val->AsString()->CheckString();
 		current_peer->val->Assign(4, new StringVal(desc));
 
-		Log(LogInfo, fmt("peer_description is %s",
-					(desc && *desc) ? desc : "not set"),
+		Log(LogInfo, fmt("peer_description is %s", *desc ? desc : "not set"),
 			current_peer);
 
 		Unref(id);
@@ -3167,6 +3170,7 @@ bool RemoteSerializer::SendToChild(ChunkedIO::Chunk* c)
 		return true;
 
 	delete [] c->data;
+	c->data = 0;
 
 	if ( ! child_pid )
 		return false;
@@ -3317,6 +3321,9 @@ SocketComm::SocketComm()
 	id_counter = 10000;
 	parent_peer = 0;
 	parent_msgstate = TYPE;
+	parent_id = RemoteSerializer::PEER_NONE;
+	parent_msgtype = 0;
+	parent_args = 0;
 	shutting_conns_down = false;
 	terminating = false;
 	killing = false;
@@ -3580,8 +3587,6 @@ bool SocketComm::ProcessParentMessage()
 			InternalError(fmt("unknown msg type %d", parent_msgtype));
 			return true;
 		}
-
-		InternalError("cannot be reached");
 		}
 
 	case ARGS:
@@ -3607,7 +3612,7 @@ bool SocketComm::ProcessParentMessage()
 		InternalError("unknown msgstate");
 	}
 
-	InternalError("cannot be reached");
+	// Cannot be reached.
 	return false;
 	}
 

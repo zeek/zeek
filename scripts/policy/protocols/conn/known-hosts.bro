@@ -15,8 +15,8 @@ export {
 	type HostsInfo: record {
 		## The timestamp at which the host was detected.
 		ts:      time &log;
-		## The address that was detected originating or responding to a TCP 
-		## connection.
+		## The address that was detected originating or responding to a
+		## TCP connection.
 		host:    addr &log;
 	};
 	

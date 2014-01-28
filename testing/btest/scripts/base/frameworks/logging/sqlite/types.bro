@@ -1,4 +1,5 @@
 #
+# @TEST-REQUIRES: which sqlite3
 # @TEST-REQUIRES: has-writer SQLite 
 # @TEST-GROUP: sqlite
 #

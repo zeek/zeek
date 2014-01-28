@@ -1,6 +1,6 @@
 ##! This implements transparent cluster support for the SumStats framework.
 ##! Do not load this file directly.  It's only meant to be loaded automatically
-##! and will be depending on if the cluster framework has been enabled.
+##! and will be if the cluster framework has been enabled.
 ##! The goal of this script is to make sumstats calculation completely and
 ##! transparently automated when running on a cluster.
 
@@ -10,31 +10,32 @@
 module SumStats;
 
 export {
-	## The percent of the full threshold value that needs to be met on a single worker
-	## for that worker to send the value to its manager in order for it to request a
-	## global view for that value.  There is no requirement that the manager requests
-	## a global view for the key since it may opt not to if it requested a global view
-	## for the key recently.
+	## The percent of the full threshold value that needs to be met on a
+	## single worker for that worker to send the value to its manager in
+	## order for it to request a global view for that value.  There is no
+	## requirement that the manager requests a global view for the key since
+	## it may opt not to if it requested a global view for the key recently.
 	const cluster_request_global_view_percent = 0.2 &redef;
 
-	## This is to deal with intermediate update overload.  A manager will only allow
-	## this many intermediate update requests to the workers to be inflight at any
-	## given time.  Requested intermediate updates are currently thrown out and not
-	## performed.  In practice this should hopefully have a minimal effect.
+	## This is to deal with intermediate update overload.  A manager will
+	## only allow this many intermediate update requests to the workers to
+	## be inflight at any given time.  Requested intermediate updates are
+	## currently thrown out and not performed.  In practice this should
+	## hopefully have a minimal effect.
 	const max_outstanding_global_views = 10 &redef;
 
-	## Event sent by the manager in a cluster to initiate the collection of values for
-	## a sumstat.
+	## Event sent by the manager in a cluster to initiate the collection of
+	## values for a sumstat.
 	global cluster_ss_request: event(uid: string, ss_name: string, cleanup: bool);
 
-	## Event sent by nodes that are collecting sumstats after receiving a request for
-	## the sumstat from the manager.
+	# Event sent by nodes that are collecting sumstats after receiving a
+	# request for the sumstat from the manager.
 	#global cluster_ss_response: event(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool);
 
-	## This event is sent by the manager in a cluster to initiate the collection of
-	## a single key value from a sumstat.  It's typically used to get intermediate
-	## updates before the break interval triggers to speed detection of a value
-	## crossing a threshold.
+	## This event is sent by the manager in a cluster to initiate the
+	## collection of a single key value from a sumstat.  It's typically used
+	## to get intermediate updates before the break interval triggers to
+	## speed detection of a value crossing a threshold.
 	global cluster_get_result: event(uid: string, ss_name: string, key: Key, cleanup: bool);
 
 	## This event is sent by nodes in response to a
@@ -43,7 +44,7 @@ export {
 
 	## This is sent by workers to indicate that they crossed the percent
 	## of the current threshold by the percentage defined globally in
-	## :bro:id:`SumStats::cluster_request_global_view_percent`
+	## :bro:id:`SumStats::cluster_request_global_view_percent`.
 	global cluster_key_intermediate_response: event(ss_name: string, key: SumStats::Key);
 
 	## This event is scheduled internally on workers to send result chunks.

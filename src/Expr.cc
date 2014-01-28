@@ -779,9 +779,58 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	case EXPR_SUB:		DO_FOLD(-); break;
 	case EXPR_REMOVE_FROM:	DO_FOLD(-); break;
 	case EXPR_TIMES:	DO_FOLD(*); break;
-	case EXPR_DIVIDE:	DO_FOLD(/); break;
+	case EXPR_DIVIDE:
+		{
+		if ( is_integral )
+			{
+			if ( i2 == 0 )
+				reporter->ExprRuntimeError(this, "division by zero");
 
-	case EXPR_MOD:		DO_INT_FOLD(%); break;
+			i3 = i1 / i2;
+			}
+
+		else if ( is_unsigned )
+			{
+			if ( u2 == 0 )
+				reporter->ExprRuntimeError(this, "division by zero");
+
+			u3 = u1 / u2;
+			}
+		else
+			{
+			if ( d2 == 0 )
+				reporter->ExprRuntimeError(this, "division by zero");
+
+			d3 = d1 / d2;
+			}
+
+		}
+		break;
+
+	case EXPR_MOD:
+		{
+		if ( is_integral )
+			{
+			if ( i2 == 0 )
+				reporter->ExprRuntimeError(this, "modulo by zero");
+
+			i3 = i1 % i2;
+			}
+
+		else if ( is_unsigned )
+			{
+			if ( u2 == 0 )
+				reporter->ExprRuntimeError(this, "modulo by zero");
+
+			u3 = u1 % u2;
+			}
+
+		else
+			Internal("bad type in BinaryExpr::Fold");
+		}
+
+		break;
+
 	case EXPR_AND:		DO_INT_FOLD(&&); break;
 	case EXPR_OR:		DO_INT_FOLD(||); break;
 
@@ -1090,15 +1139,10 @@ NotExpr::NotExpr(Expr* arg_op) : UnaryExpr(EXPR_NOT, arg_op)
 		return;
 
 	BroType* t = op->Type();
-	if ( IsVector(t->Tag()) )
-		t = t->AsVectorType()->YieldType();
-
 	TypeTag bt = t->Tag();
 
 	if ( ! IsIntegral(bt) && bt != TYPE_BOOL )
 		ExprError("requires an integral or boolean operand");
-	else if ( IsVector(bt) )
-		SetType(new VectorType(base_type(TYPE_BOOL)));
 	else
 		SetType(base_type(TYPE_BOOL));
 	}
@@ -1112,7 +1156,7 @@ Expr* NotExpr::DoSimplify()
 		// !!x == x
 		return ((NotExpr*) op)->Op()->Ref();
 
-	if ( op->IsConst() && ! is_vector(op->ExprVal()) )
+	if ( op->IsConst() )
 		return new ConstExpr(Fold(op->ExprVal()));
 
 	return this;
@@ -2403,7 +2447,7 @@ RefExpr::RefExpr(Expr* arg_op) : UnaryExpr(EXPR_REF, arg_op)
 	if ( IsError() )
 		return;
 
-	if ( ! is_assignable(op->Type()) )
+	if ( ! ::is_assignable(op->Type()) )
 		ExprError("illegal assignment target");
 	else
 		SetType(op->Type()->Ref());
@@ -2438,6 +2482,7 @@ AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
 : BinaryExpr(EXPR_ASSIGN,
 		arg_is_init ? arg_op1 : arg_op1->MakeLvalue(), arg_op2)
 	{
+	val = 0;
 	is_init = arg_is_init;
 
 	if ( IsError() )
@@ -2992,6 +3037,16 @@ Val* IndexExpr::Eval(Frame* f) const
 	return result;
 	}
 
+static int get_slice_index(int idx, int len)
+	{
+	if ( abs(idx) > len )
+		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
+	else if ( idx < 0 )
+		idx += len;  // Map to a positive index.
+
+	return idx;
+	}
+
 Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( IsError() )
@@ -3013,16 +3068,30 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		const ListVal* lv = v2->AsListVal();
 		const BroString* s = v1->AsString();
 		int len = s->Len();
-		bro_int_t first = lv->Index(0)->AsInt();
-		bro_int_t last = lv->Length() > 1 ? lv->Index(1)->AsInt() : first;
+		BroString* substring = 0;
 
-		if ( first < 0 )
-			first += len;
+		if ( lv->Length() == 1 )
+			{
+			bro_int_t idx = lv->Index(0)->AsInt();
 
-		if ( last < 0 )
-			last += len;
+			if ( idx < 0 )
+				idx += len;
 
-		BroString* substring = s->GetSubstring(first, last - first + 1);
+			// Out-of-range index will return null pointer.
+			substring = s->GetSubstring(idx, 1);
+			}
+		else
+			{
+			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
+			int substring_len = last - first;
+
+			if ( substring_len < 0 )
+				substring = 0;
+			else
+				substring = s->GetSubstring(first, substring_len);
+			}
+
 		return new StringVal(substring ? substring : new BroString(""));
 		}
 
@@ -3137,12 +3206,14 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 		{
 		RecordType* rt = op->Type()->AsRecordType();
 		field = rt->FieldOffset(field_name);
-		td = rt->FieldDecl(field);
 
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else
+			{
 			SetType(rt->FieldType(field)->Ref());
+			td = rt->FieldDecl(field);
+			}
 		}
 	}
 
@@ -3309,14 +3380,14 @@ bool HasFieldExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_HAS_FIELD_EXPR, UnaryExpr);
 
-	// Serialize the former "bool is_attr" first for backwards compatibility.
+	// Serialize former "bool is_attr" member first for backwards compatibility.
 	return SERIALIZE(false) && SERIALIZE(field_name) && SERIALIZE(field);
 	}
 
 bool HasFieldExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
-	// Unserialize the former "bool is_attr" first for backwards compatibility.
+	// Unserialize former "bool is_attr" member for backwards compatibility.
 	bool not_used;
 	return UNSERIALIZE(&not_used) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
 	}
@@ -3325,6 +3396,8 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list,
 					     BroType* arg_type)
 : UnaryExpr(EXPR_RECORD_CONSTRUCTOR, constructor_list)
 	{
+	ctor_type = 0;
+
 	if ( IsError() )
 		return;
 
@@ -3465,6 +3538,8 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 					   attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_TABLE_CONSTRUCTOR, constructor_list)
 	{
+	attrs = 0;
+
 	if ( IsError() )
 		return;
 
@@ -3589,6 +3664,8 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 				       attr_list* arg_attrs, BroType* arg_type)
 : UnaryExpr(EXPR_SET_CONSTRUCTOR, constructor_list)
 	{
+	attrs = 0;
+
 	if ( IsError() )
 		return;
 
@@ -3852,7 +3929,15 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 	Val* v = op->Eval(f);
 
 	if ( v )
-		rec->Assign(rt->FieldOffset(field_name.c_str()), v);
+		{
+		int idx = rt->FieldOffset(field_name.c_str());
+
+		if ( idx < 0 )
+			reporter->InternalError("Missing record field: %s",
+			                        field_name.c_str());
+
+		rec->Assign(idx, v);
+		}
 	}
 
 int FieldAssignExpr::IsRecordElement(TypeDecl* td) const
@@ -5111,6 +5196,7 @@ BroType* ListExpr::InitType() const
 			types->append(td);
 			}
 
+
 		return new RecordType(types);
 		}
 
@@ -5386,7 +5472,7 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 
 	loop_over_list(exprs, i)
 		{
-		exprs[i]->Traverse(cb);
+		tc = exprs[i]->Traverse(cb);
 		HANDLE_TC_EXPR_PRE(tc);
 		}
 

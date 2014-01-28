@@ -1,3 +1,6 @@
+
+.. _file-analysis-framework:
+
 =============
 File Analysis
 =============
@@ -31,40 +34,13 @@ some information about the file such as which network
 :bro:see:`connection` and protocol are transporting the file, how many
 bytes have been transferred so far, and its MIME type.
 
-.. code:: bro
+Here's a simple example:
 
-    event connection_state_remove(c: connection)
-        {
-        print "connection_state_remove";
-        print c$uid;
-        print c$id;
-        for ( s in c$service )
-            print s;
-        }
+.. btest-include:: ${DOC_ROOT}/frameworks/file_analysis_01.bro
 
-    event file_state_remove(f: fa_file)
-        {
-        print "file_state_remove";
-        print f$id;
-        for ( cid in f$conns )
-            {
-            print f$conns[cid]$uid;
-            print cid;
-            }
-        print f$source;
-        }
+.. btest:: file-analysis-01
 
-might give output like::
-
-    file_state_remove
-    Cx92a0ym5R8
-    REs2LQfVW2j
-    [orig_h=10.0.0.7, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
-    HTTP
-    connection_state_remove
-    REs2LQfVW2j
-    [orig_h=10.0.0.7, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
-    HTTP
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/get.trace ${DOC_ROOT}/frameworks/file_analysis_01.bro
 
 This doesn't perform any interesting analysis yet, but does highlight
 the similarity between analysis of connections and files.  Connections
@@ -90,27 +66,16 @@ will write the contents of the file out to the local file system).
 In the future there may be file analyzers that automatically attach to
 files based on heuristics, similar to the Dynamic Protocol Detection
 (DPD) framework for connections, but many will always require an
-explicit attachment decision:
+explicit attachment decision.
 
-.. code:: bro
+Here's a simple example of how to use the MD5 file analyzer to
+calculate the MD5 of plain text files:
 
-    event file_new(f: fa_file)
-        {
-        print "new file", f$id;
-        if ( f?$mime_type && f$mime_type == "text/plain" )
-            Files::add_analyzer(f, Files::ANALYZER_MD5);
-        }
+.. btest-include:: ${DOC_ROOT}/frameworks/file_analysis_02.bro
 
-    event file_hash(f: fa_file, kind: string, hash: string)
-        {
-        print "file_hash", f$id, kind, hash;
-        }
+.. btest:: file-analysis-02
 
-this script calculates MD5s for all plain text files and might give
-output::
-
-    new file, Cx92a0ym5R8
-    file_hash, Cx92a0ym5R8, md5, 397168fd09991a0e712254df7bc639ac
+    @TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/get.trace ${DOC_ROOT}/frameworks/file_analysis_02.bro
 
 Some file analyzers might have tunable parameters that need to be
 specified in the call to :bro:see:`Files::add_analyzer`:
@@ -144,41 +109,19 @@ in the same way it analyzes files that it sees coming over traffic from
 a network interface it's monitoring.  It only requires a call to
 :bro:see:`Input::add_analysis`:
 
-.. code:: bro
-
-    redef exit_only_after_terminate = T;
-
-    event file_new(f: fa_file)
-        {
-        print "new file", f$id;
-        Files::add_analyzer(f, Files::ANALYZER_MD5);
-        }
-
-    event file_state_remove(f: fa_file)
-        {
-        Input::remove(f$source);
-        terminate();
-        }
-
-    event file_hash(f: fa_file, kind: string, hash: string)
-        {
-        print "file_hash", f$id, kind, hash;
-        }
-
-    event bro_init()
-        {
-        local source: string = "./myfile";
-        Input::add_analysis([$source=source, $name=source]);
-        }
+.. btest-include:: ${DOC_ROOT}/frameworks/file_analysis_03.bro
 
 Note that the "source" field of :bro:see:`fa_file` corresponds to the
 "name" field of :bro:see:`Input::AnalysisDescription` since that is what
 the input framework uses to uniquely identify an input stream.
 
-The output of the above script may be::
+The output of the above script may be (assuming a file called "myfile"
+exists):
 
-    new file, G1fS2xthS4l
-    file_hash, G1fS2xthS4l, md5, 54098b367d2e87b078671fad4afb9dbb
+.. btest:: file-analysis-03
+
+    @TEST-EXEC: echo "Hello world" > myfile
+    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/frameworks/file_analysis_03.bro
 
 Nothing that special, but it at least verifies the MD5 file analyzer
 saw all the bytes of the input file and calculated the checksum

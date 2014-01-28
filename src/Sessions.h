@@ -55,15 +55,12 @@ struct SessionStats {
 class TimerMgrExpireTimer : public Timer {
 public:
 	TimerMgrExpireTimer(double t, TimerMgr* arg_mgr)
-		: Timer(t, TIMER_TIMERMGR_EXPIRE)
-		{
-		mgr = arg_mgr;
-		}
+	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
+		{ }
 
 	virtual void Dispatch(double t, int is_expire);
 
 protected:
-	double interval;
 	TimerMgr* mgr;
 };
 
@@ -287,6 +284,21 @@ public:
 
 protected:
 	NetSessions::IPPair tunnel_idx;
+};
+
+
+class FragReassemblerTracker {
+public:
+	FragReassemblerTracker(NetSessions* s, FragReassembler* f)
+		: net_sessions(s), frag_reassembler(f)
+		{ }
+
+	~FragReassemblerTracker()
+		{ net_sessions->Remove(frag_reassembler); }
+
+private:
+	NetSessions* net_sessions;
+	FragReassembler* frag_reassembler;
 };
 
 // Manager for the currently active sessions.

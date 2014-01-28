@@ -295,7 +295,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	RecordType* columns = sval->Lookup(rtype->FieldOffset("columns"))
+	RecordType* columns = sval->Lookup("columns")
 		->AsType()->AsTypeType()->Type()->AsRecordType();
 
 	bool log_attr_present = false;
@@ -322,7 +322,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	Val* event_val = sval->Lookup(rtype->FieldOffset("ev"));
+	Val* event_val = sval->Lookup("ev");
 	Func* event = event_val ? event_val->AsFunc() : 0;
 
 	if ( event )
@@ -579,19 +579,18 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		return false;
 
 	// Find the right writer type.
-	int idx = rtype->FieldOffset("writer");
-	EnumVal* writer = fval->LookupWithDefault(idx)->AsEnumVal();
+	EnumVal* writer = fval->Lookup("writer", true)->AsEnumVal();
 
 	// Create a new Filter instance.
 
-	Val* name = fval->LookupWithDefault(rtype->FieldOffset("name"));
-	Val* pred = fval->LookupWithDefault(rtype->FieldOffset("pred"));
-	Val* path_func = fval->LookupWithDefault(rtype->FieldOffset("path_func"));
-	Val* log_local = fval->LookupWithDefault(rtype->FieldOffset("log_local"));
-	Val* log_remote = fval->LookupWithDefault(rtype->FieldOffset("log_remote"));
-	Val* interv = fval->LookupWithDefault(rtype->FieldOffset("interv"));
-	Val* postprocessor = fval->LookupWithDefault(rtype->FieldOffset("postprocessor"));
-	Val* config = fval->LookupWithDefault(rtype->FieldOffset("config"));
+	Val* name = fval->Lookup("name", true);
+	Val* pred = fval->Lookup("pred", true);
+	Val* path_func = fval->Lookup("path_func", true);
+	Val* log_local = fval->Lookup("log_local", true);
+	Val* log_remote = fval->Lookup("log_remote", true);
+	Val* interv = fval->Lookup("interv", true);
+	Val* postprocessor = fval->Lookup("postprocessor", true);
+	Val* config = fval->Lookup("config", true);
 
 	Filter* filter = new Filter;
 	filter->name = name->AsString()->CheckString();
@@ -616,8 +615,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
-	Val* include = fval->Lookup(rtype->FieldOffset("include"));
-	Val* exclude = fval->Lookup(rtype->FieldOffset("exclude"));
+	Val* include = fval->Lookup("include");
+	Val* exclude = fval->Lookup("exclude");
 
 	filter->num_fields = 0;
 	filter->fields = 0;
@@ -631,7 +630,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		}
 
 	// Get the path for the filter.
-	Val* path_val = fval->Lookup(rtype->FieldOffset("path"));
+	Val* path_val = fval->Lookup("path");
 
 	if ( path_val )
 		{
@@ -792,7 +791,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			if ( ! v )
 				return false;
 
-			if ( ! v->Type()->Tag() == TYPE_STRING )
+			if ( v->Type()->Tag() != TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
 				Unref(v);

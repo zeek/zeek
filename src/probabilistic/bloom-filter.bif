@@ -1,8 +1,4 @@
-# ===========================================================================
-#
-#                           Bloom Filter Functions
-#
-# ===========================================================================
+##! Functions to create and manipulate Bloom filters.
 
 %%{
 
@@ -28,8 +24,8 @@ module GLOBAL;
 ## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
 ##       the filter will use :bro:id:`global_hash_seed` if that's set, and
 ##       otherwise use a local seed tied to the current Bro process. Only
-##       filters with the  same seed can be merged with
-##       :bro:id:`bloomfilter_merge` .
+##       filters with the same seed can be merged with
+##       :bro:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
@@ -54,8 +50,9 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 	%}
 
 ## Creates a basic Bloom filter. This function serves as a low-level
-## alternative to bloomfilter_basic_init where the user has full control over
-## the number of hash functions and cells in the underlying bit vector.
+## alternative to :bro:id:`bloomfilter_basic_init` where the user has full
+## control over the number of hash functions and cells in the underlying bit
+## vector.
 ##
 ## k: The number of hash functions to use.
 ##
@@ -65,7 +62,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 ##       the filter will use :bro:id:`global_hash_seed` if that's set, and
 ##       otherwise use a local seed tied to the current Bro process. Only
 ##       filters with the same seed can be merged with
-##       :bro:id:`bloomfilter_merge` .
+##       :bro:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
@@ -101,7 +98,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 ##        counting Bloom filter, we refer to the Bloom filter literature
 ##        here for choosing an appropiate value.
 ##
-## max: The maximum counter value associated with each each element
+## max: The maximum counter value associated with each element
 ##      described by *w = ceil(log_2(max))* bits. Each bit in the underlying
 ##      counter vector becomes a cell of size *w* bits.
 ##
@@ -109,7 +106,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 ##       the filter will use :bro:id:`global_hash_seed` if that's set, and
 ##       otherwise use a local seed tied to the current Bro process. Only
 ##       filters with the same seed can be merged with
-##       :bro:id:`bloomfilter_merge` .
+##       :bro:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
@@ -191,9 +188,9 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	return new Val(0, TYPE_COUNT);
 	%}
 
-## Removes all elements from a Bloom filter. This function resets all bits in the
-## underlying bitvector back to 0 but does not change the parameterization of the
-## Bloom filter, such as the element type and the hasher seed.
+## Removes all elements from a Bloom filter. This function resets all bits in
+## the underlying bitvector back to 0 but does not change the parameterization
+## of the Bloom filter, such as the element type and the hasher seed.
 ##
 ## bf: The Bloom filter handle.
 ##
@@ -246,6 +243,8 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 ## state. This is for debugging/testing purposes only.
 ## 
 ## bf: The Bloom filter handle.
+##
+## Returns: a string with a representation of a Bloom filter's internal state.
 function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);

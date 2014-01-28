@@ -1,5 +1,5 @@
 ##! This script provides the framework for software version detection and
-##! parsing but doesn't actually do any detection on it's own.  It relys on
+##! parsing but doesn't actually do any detection on it's own.  It relies on
 ##! other protocol specific scripts to parse out software from the protocols
 ##! that they analyze.  The entry point for providing new software detections
 ##! to this framework is through the :bro:id:`Software::found` function.
@@ -23,15 +23,15 @@ export {
 	
 	## A structure to represent the numeric version of software.
 	type Version: record {
-		## Major version number
+		## Major version number.
 		major:  count  &optional;
-		## Minor version number
+		## Minor version number.
 		minor:  count  &optional;
-		## Minor subversion number
+		## Minor subversion number.
 		minor2: count  &optional;
-		## Minor updates number
+		## Minor updates number.
 		minor3: count  &optional;
-		## Additional version string (e.g. "beta42")
+		## Additional version string (e.g. "beta42").
 		addl:   string &optional;
 	} &log;
 	
@@ -41,7 +41,8 @@ export {
 		ts:               time &log &optional;
 		## The IP address detected running the software.
 		host:             addr &log;
-		## The Port on which the software is running. Only sensible for server software.
+		## The port on which the software is running. Only sensible for
+		## server software.
 		host_p:           port &log &optional;
 		## The type of software detected (e.g. :bro:enum:`HTTP::SERVER`).
 		software_type:    Type &log &default=UNKNOWN;
@@ -49,9 +50,9 @@ export {
 		name:             string &log &optional;
 		## Version of the software.
 		version:          Version &log &optional;
-		## The full unparsed version string found because the version parsing 
-		## doesn't always work reliably in all cases and this acts as a 
-		## fallback in the logs.
+		## The full unparsed version string found because the version
+		## parsing doesn't always work reliably in all cases and this
+		## acts as a fallback in the logs.
 		unparsed_version: string &log &optional;
 		
 		## This can indicate that this software being detected should
@@ -59,13 +60,13 @@ export {
 		## default, only software that is "interesting" due to a change
 		## in version or it being currently unknown is sent to the
 		## logging framework.  This can be set to T to force the record
-		## to be sent to the logging framework if some amount of this tracking
-		## needs to happen in a specific way to the software.
+		## to be sent to the logging framework if some amount of this
+		## tracking needs to happen in a specific way to the software.
 		force_log:        bool &default=F;
 	};
 	
 	## Hosts whose software should be detected and tracked.
-	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	const asset_tracking = LOCAL_HOSTS &redef;
 	
 	## Other scripts should call this function when they detect software.
@@ -79,14 +80,14 @@ export {
 	## Compare two version records.
 	## 
 	## Returns:  -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
-	##           If the numerical version numbers match, the addl string
+	##           If the numerical version numbers match, the *addl* string
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
 	## Type to represent a collection of :bro:type:`Software::Info` records.
 	## It's indexed with the name of a piece of software such as "Firefox" 
-	## and it yields a :bro:type:`Software::Info` record with more information
-	## about the  software.
+	## and it yields a :bro:type:`Software::Info` record with more
+	## information about the software.
 	type SoftwareSet: table[string] of Info;
 	
 	## The set of software associated with an address.  Data expires from
@@ -208,7 +209,7 @@ function parse_mozilla(unparsed_version: string): Description
 		if ( 2 in parts )
 			v = parse(parts[2])$version;
 		}
-	else if ( / MSIE / in unparsed_version )
+	else if ( / MSIE |Trident\// in unparsed_version )
 		{
 		software_name = "MSIE";
 		if ( /Trident\/4\.0/ in unparsed_version )
@@ -217,6 +218,8 @@ function parse_mozilla(unparsed_version: string): Description
 			v = [$major=9,$minor=0];
 		else if ( /Trident\/6\.0/ in unparsed_version )
 			v = [$major=10,$minor=0];
+		else if ( /Trident\/7\.0/ in unparsed_version )
+			v = [$major=11,$minor=0];
 		else
 			{
 			parts = split_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
@@ -436,7 +439,7 @@ function found(id: conn_id, info: Info): bool
 				{
 				Reporter::error("No unparsed version string present in Info record with version in Software::found");
 				return F;
-				} 
+				}
 			local sw = parse(info$unparsed_version);
 			info$unparsed_version = sw$unparsed_version;
 			info$name = sw$name;

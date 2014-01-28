@@ -14,9 +14,8 @@
 #include "NetVar.h"
 #include "RemoteSerializer.h"
 
-ChunkedIO::ChunkedIO()
+ChunkedIO::ChunkedIO() : stats(), tag(), pure()
 	{
-	pure = false;
 	}
 
 void ChunkedIO::Stats(char* buffer, int length)
@@ -656,6 +655,7 @@ SSL_CTX* ChunkedIOSSL::ctx;
 ChunkedIOSSL::ChunkedIOSSL(int arg_socket, bool arg_server)
 	{
 	socket = arg_socket;
+	last_ret = 0;
 	eof = false;
 	setup = false;
 	server = arg_server;
@@ -1074,9 +1074,8 @@ bool ChunkedIOSSL::Read(Chunk** chunk, bool mayblock)
 	read_state = LEN;
 
 #ifdef DEBUG
-	if ( *chunk )
-		DBG_LOG(DBG_CHUNKEDIO, "ssl read of size %d [%s]",
-			(*chunk)->len, fmt_bytes((*chunk)->data, 20));
+	DBG_LOG(DBG_CHUNKEDIO, "ssl read of size %d [%s]",
+		(*chunk)->len, fmt_bytes((*chunk)->data, 20));
 #endif
 
 	return true;

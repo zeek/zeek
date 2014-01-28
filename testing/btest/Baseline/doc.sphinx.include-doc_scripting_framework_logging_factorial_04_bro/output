@@ -1,6 +1,6 @@
 # @TEST-EXEC: cat %INPUT >output && btest-diff output
 
--- framework_logging_factorial_04.bro
+framework_logging_factorial_04.bro
 
 module Factor;
 

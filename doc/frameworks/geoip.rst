@@ -11,9 +11,40 @@ GeoLocation
     to find the geographic location for an IP address. Bro has support
     for the `GeoIP library <http://www.maxmind.com/app/c>`__ at the
     policy script level beginning with release 1.3 to account for this
-    need.
+    need.  To use this functionality, you need to first install the libGeoIP
+    software, and then install the GeoLite city database before building
+    Bro.
 
 .. contents::
+
+Install libGeoIP
+----------------
+
+* FreeBSD:
+
+  .. console::
+
+      sudo pkg_add -r GeoIP
+
+* RPM/RedHat-based Linux:
+
+  .. console::
+
+      sudo yum install GeoIP-devel
+
+* DEB/Debian-based Linux:
+
+  .. console::
+
+      sudo apt-get install libgeoip-dev
+
+* Mac OS X:
+
+  Vanilla OS X installations don't ship with libGeoIP, but if
+  installed from your preferred package management system (e.g.
+  MacPorts, Fink, or Homebrew), they should be automatically detected
+  and Bro will compile against them.
+
 
 GeoIPLite Database Installation
 ------------------------------------
@@ -22,39 +53,23 @@ A country database for GeoIPLite is included when you do the C API
 install, but for Bro, we are using the city database which includes
 cities and regions in addition to countries.
 
-`Download <http://www.maxmind.com/app/geolitecity>`__ the geolitecity
-binary database and follow the directions to install it.
+`Download <http://www.maxmind.com/app/geolitecity>`__ the GeoLite city
+binary database.
 
-FreeBSD Quick Install
----------------------
+  .. console::
 
-.. console::
-
-    pkg_add -r GeoIP
     wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
     gunzip GeoLiteCity.dat.gz
-    mv GeoLiteCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
+
+Next, the file needs to be put in the database directory.  This directory
+should already exist and will vary depending on which platform and package
+you are using.  For FreeBSD, use ``/usr/local/share/GeoIP``.  For Linux,
+use ``/usr/share/GeoIP`` or ``/var/lib/GeoIP`` (choose whichever one
+already exists).
     
-    # Set your environment correctly before running Bro's configure script
-    export CFLAGS=-I/usr/local/include
-    export LDFLAGS=-L/usr/local/lib
+  .. console::
 
-
-CentOS Quick Install
---------------------
-
-.. console::
-
-    yum install GeoIP-devel
-    
-    wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
-    gunzip GeoLiteCity.dat.gz
-    mkdir -p /var/lib/GeoIP/
-    mv GeoLiteCity.dat /var/lib/GeoIP/GeoIPCity.dat
-    
-    # Set your environment correctly before running Bro's configure script
-    export CFLAGS=-I/usr/local/include
-    export LDFLAGS=-L/usr/local/lib
+    mv GeoLiteCity.dat <path_to_database_dir>/GeoIPCity.dat
 
 
 Usage
@@ -67,8 +82,8 @@ functionality:
 
     function lookup_location(a:addr): geo_location
 
-There is also the ``geo_location`` data structure that is returned
-from the ``lookup_location`` function:
+There is also the :bro:see:`geo_location` data structure that is returned
+from the :bro:see:`lookup_location` function:
 
 .. code:: bro
 

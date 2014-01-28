@@ -1,6 +1,8 @@
 #
 # @TEST-GROUP: sqlite
 #
+# @TEST-REQUIRES: which sqlite3
+#
 # @TEST-EXEC: cat port.sql | sqlite3 port.sqlite
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
@@ -37,7 +39,6 @@ event bro_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select port as p, proto from port;",
-		 ["dbname"] = "port"
 	};
 
 	outfile = open("../out");

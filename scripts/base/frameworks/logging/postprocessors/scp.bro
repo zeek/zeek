@@ -16,9 +16,9 @@
 module Log;
 
 export {
-	## Secure-copies the rotated-log to all the remote hosts
+	## Secure-copies the rotated log to all the remote hosts
 	## defined in :bro:id:`Log::scp_destinations` and then deletes
-	## the local copy of the rotated-log.  It's not active when
+	## the local copy of the rotated log.  It's not active when
 	## reading from trace files.
 	##
 	## info: A record holding meta-information about the log file to be
@@ -42,9 +42,9 @@ export {
 	};
 
 	## A table indexed by a particular log writer and filter path, that yields
-	## a set remote destinations.  The :bro:id:`Log::scp_postprocessor`
+	## a set of remote destinations.  The :bro:id:`Log::scp_postprocessor`
 	## function queries this table upon log rotation and performs a secure
-	## copy of the rotated-log to each destination in the set.  This
+	## copy of the rotated log to each destination in the set.  This
 	## table can be modified at run-time.
 	global scp_destinations: table[Writer, string] of set[SCPDestination];
 

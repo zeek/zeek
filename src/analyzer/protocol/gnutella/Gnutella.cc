@@ -137,10 +137,8 @@ int Gnutella_Analyzer::IsHTTP(string header)
 
 	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
 
-	if ( a )
+	if ( a && Parent()->AddChildAnalyzer(a) )
 		{
-		Parent()->AddChildAnalyzer(a);
-
 		if ( Parent()->IsAnalyzer("TCP") )
 			{
 			// Replay buffered data.

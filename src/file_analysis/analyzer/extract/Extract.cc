@@ -33,8 +33,7 @@ Extract::~Extract()
 
 static Val* get_extract_field_val(RecordVal* args, const char* name)
 	{
-	using BifType::Record::Files::AnalyzerArgs;
-	Val* rval = args->Lookup(AnalyzerArgs->FieldOffset(name));
+	Val* rval = args->Lookup(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);

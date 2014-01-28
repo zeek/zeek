@@ -5,7 +5,7 @@
 ##! TODO:
 ##!
 ##! * Find some heuristic to determine if email was sent through 
-##!   a MS Exhange webmail interface as opposed to a desktop client.
+##!   a MS Exchange webmail interface as opposed to a desktop client.
 
 @load base/frameworks/software/main
 @load base/protocols/smtp/main
@@ -20,19 +20,19 @@ export {
 	};
 	
 	redef record Info += {
-		## Boolean indicator of if the message was sent through a webmail 
-		## interface.
+		## Boolean indicator of if the message was sent through a
+		## webmail interface.
 		is_webmail: bool &log &default=F;
 	};
 	
-	## Assuming that local mail servers are more trustworthy with the headers 
-	## they insert into messages envelopes, this default makes Bro not attempt
-	## to detect software in inbound message bodies.  If mail coming in from
-	## external addresses gives incorrect data in the Received headers, it 
-	## could populate your SOFTWARE logging stream with incorrect data.
-	## If you would like to detect mail clients for incoming messages 
-	## (network traffic originating from a non-local address), set this
-	## variable to EXTERNAL_HOSTS or ALL_HOSTS.
+	## Assuming that local mail servers are more trustworthy with the
+	## headers they insert into message envelopes, this default makes Bro
+	## not attempt to detect software in inbound message bodies.  If mail
+	## coming in from external addresses gives incorrect data in
+	## the Received headers, it could populate your SOFTWARE logging stream
+	## with incorrect data.  If you would like to detect mail clients for
+	## incoming messages (network traffic originating from a non-local
+	## address), set this variable to EXTERNAL_HOSTS or ALL_HOSTS.
 	const detect_clients_in_messages_from = LOCAL_HOSTS &redef;
 	
 	## A regular expression to match USER-AGENT-like headers to find if a 

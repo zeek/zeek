@@ -1,4 +1,4 @@
 ASCII text, with no line terminators
-text/plain; charset=us-ascii
-PNG image
-image/png; charset=binary
+text/plain
+PNG image data
+image/png

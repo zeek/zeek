@@ -242,17 +242,6 @@ public:
 	 * Note: Exactly one of the two FinishedRotation() methods must be
 	 * called by a writer's implementation of DoRotate() once rotation
 	 * has finished.
-	 *
-	 * @param new_name The filename of the rotated file.
-	 *
-	 * @param old_name The filename of the original file.
-	 *
-	 * @param open: The timestamp when the original file was opened.
-	 *
-	 * @param close: The timestamp when the origina file was closed.
-	 *
-	 * @param terminating: True if the original rotation request occured
-	 * due to the main Bro process shutting down.
 	 */
 	bool FinishedRotation();
 

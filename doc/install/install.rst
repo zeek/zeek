@@ -3,7 +3,7 @@
 .. _Xcode: https://developer.apple.com/xcode/
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
-.. _Homebrew: http://mxcl.github.com/homebrew
+.. _Homebrew: http://brew.sh
 .. _bro downloads page: http://bro.org/download/index.html
 
 .. _installing-bro:
@@ -144,7 +144,7 @@ Bro releases are bundled into source packages for convenience and are
 available on the `bro downloads page`_. Alternatively, the latest
 Bro development version can be obtained through git repositories
 hosted at ``git.bro.org``.  See our `git development documentation
-<http://bro.org/development/process.html>`_ for comprehensive
+<http://bro.org/development/howtos/process.html>`_ for comprehensive
 information on Bro's use of git revision control, but the short story
 for downloading the full source code experience for Bro via git is:
 

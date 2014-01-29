@@ -407,7 +407,7 @@ logging) and adds SSL certificate validation.
 You might notice that a script you load from the command line uses the
 ``@load`` directive in the Bro language to declare dependence on other scripts.
 This directive is similar to the ``#include`` of C/C++, except the semantics
-are "load this script if it hasn't already been loaded".
+are, "load this script if it hasn't already been loaded."
 
 .. note:: If one wants Bro to be able to load scripts that live outside the
    default directories in Bro's installation root, the ``BROPATH`` environment

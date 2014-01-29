@@ -75,36 +75,47 @@ void Manager::SetHandle(const string& handle)
 	current_file_id = HashHandle(handle);
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     analyzer::Tag tag, Connection* conn, bool is_orig)
+string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+                       analyzer::Tag tag, Connection* conn, bool is_orig,
+                       const string& cached_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
-	File* file = GetFile(current_file_id, conn, tag, is_orig);
+	string id = cached_id.empty() ? GetFileID(tag, conn, is_orig) : cached_id;
+	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->DataIn(data, len, offset);
 
 	if ( file->IsComplete() )
+		{
 		RemoveFile(file->GetID());
+		return "";
+		}
+
+	return id;
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
-                     Connection* conn, bool is_orig)
+string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+                       Connection* conn, bool is_orig, const string& cached_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
+	string id = cached_id.empty() ? GetFileID(tag, conn, is_orig) : cached_id;
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
-	File* file = GetFile(current_file_id, conn, tag, is_orig, false);
+	File* file = GetFile(id, conn, tag, is_orig, false);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->DataIn(data, len);
 
 	if ( file->IsComplete() )
+		{
 		RemoveFile(file->GetID());
+		return "";
+		}
+
+	return id;
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
@@ -133,8 +144,7 @@ void Manager::EndOfFile(analyzer::Tag tag, Connection* conn)
 void Manager::EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig)
 	{
 	// Don't need to create a file if we're just going to remove it right away.
-	GetFileHandle(tag, conn, is_orig);
-	RemoveFile(current_file_id);
+	RemoveFile(GetFileID(tag, conn, is_orig));
 	}
 
 void Manager::EndOfFile(const string& file_id)
@@ -142,31 +152,37 @@ void Manager::EndOfFile(const string& file_id)
 	RemoveFile(file_id);
 	}
 
-void Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
-                  Connection* conn, bool is_orig)
+string Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+                    Connection* conn, bool is_orig, const string& cached_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
-	File* file = GetFile(current_file_id, conn, tag, is_orig);
+	string id = cached_id.empty() ? GetFileID(tag, conn, is_orig) : cached_id;
+	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->Gap(offset, len);
+	return id;
 	}
 
-void Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
-                      bool is_orig)
+string Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+                        bool is_orig, const string& cached_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
-	File* file = GetFile(current_file_id, conn, tag, is_orig);
+	string id = cached_id.empty() ? GetFileID(tag, conn, is_orig) : cached_id;
+	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->SetTotalBytes(size);
 
 	if ( file->IsComplete() )
+		{
 		RemoveFile(file->GetID());
+		return "";
+		}
+
+	return id;
 	}
 
 bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
@@ -317,15 +333,15 @@ bool Manager::IsIgnored(const string& file_id)
 	return ignored.find(file_id) != ignored.end();
 	}
 
-void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
+string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 	{
 	current_file_id.clear();
 
 	if ( IsDisabled(tag) )
-		return;
+		return "";
 
 	if ( ! get_file_handle )
-		return;
+		return "";
 
 	EnumVal* tagval = tag.AsEnumVal();
 	Ref(tagval);
@@ -337,6 +353,7 @@ void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
 
 	mgr.QueueEvent(get_file_handle, vl);
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
+	return current_file_id;
 	}
 
 bool Manager::IsDisabled(analyzer::Tag tag)

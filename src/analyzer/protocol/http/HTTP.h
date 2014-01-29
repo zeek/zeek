@@ -64,6 +64,7 @@ protected:
 	uint64_t offset;
 	int64_t instance_length; // total length indicated by content-range
 	bool send_size; // whether to send size indication to FAF
+	std::string cached_file_id;
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 

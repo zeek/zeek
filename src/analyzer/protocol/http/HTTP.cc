@@ -242,11 +242,17 @@ int HTTP_Entity::Undelivered(int64_t len)
 	if ( end_of_data && in_header )
 		return 0;
 
-	cached_file_id = file_mgr->Gap(body_length, len,
-	              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-	              http_message->MyHTTP_Analyzer()->Conn(),
-	              http_message->IsOrig(),
-	              cached_file_id);
+	if ( is_partial_content )
+		file_mgr->Gap(body_length, len,
+		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		              http_message->MyHTTP_Analyzer()->Conn(),
+		              http_message->IsOrig());
+	else
+		cached_file_id = file_mgr->Gap(body_length, len,
+		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                  http_message->MyHTTP_Analyzer()->Conn(),
+		                  http_message->IsOrig(),
+		                  cached_file_id);
 
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{

@@ -1,4 +1,21 @@
 
+2.2-128 | 2014-01-30 15:58:47 -0800
+
+  * Add leak test for Exec module. (Bernhard Amann)
+    
+  * Fix file_over_new_connection event to trigger when entire file is
+    missed. (Jon Siwek)
+
+  * Improve TCP connection size reporting for half-open connections.
+    (Jon Siwek)
+
+  * Improve gap reporting in TCP connections that never see data. We
+    no longer accomodate SYN/FIN/RST-filtered traces by not reporting
+    missing data. The behavior can be reverted by redef'ing
+    "detect_filtered_trace". (Jon Siwek)
+
+  * Improve TCP FIN retransmission handling. (Jon Siwek)
+    
 2.2-120 | 2014-01-28 10:25:23 -0800
 
   * Fix and extend x509_extension() event, which now actually returns

@@ -1,4 +1,13 @@
 
+2.2-120 | 2014-01-28 10:25:23 -0800
+
+  * Fix and extend x509_extension() event, which now actually returns
+    the extension. (Bernhard Amann)
+
+    New event signauture:
+
+        event x509_extension(c: connection, is_orig: bool, cert:X509, extension: X509_extension_info)
+
 2.2-117 | 2014-01-23 14:18:19 -0800
 
   * Fixing initialization context in anonymous functions. (Robin

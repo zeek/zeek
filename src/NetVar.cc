@@ -48,6 +48,7 @@ int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
 RecordType* x509_type;
+RecordType* x509_extension_type;
 
 RecordType* socks_address;
 
@@ -356,6 +357,7 @@ void init_net_var()
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
 	x509_type = internal_type("X509")->AsRecordType();
+	x509_extension_type = internal_type("X509_extension_info")->AsRecordType();
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 

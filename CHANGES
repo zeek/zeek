@@ -1,4 +1,15 @@
 
+2.2-131 | 2014-01-30 16:11:11 -0800
+
+  * Extend file analysis API to allow file ID caching. This allows an
+    analyzer to either provide file IDs associated with some file
+    content or to cache a file ID that was already determined by
+    script-layer logic so that subsequent calls to the file analysis
+    interface can bypass costly detours through script-layer.  This
+    can yield a decent performance improvement for analyzers that are
+    able to take advantage of it and deal with streaming content (like
+    HTTP, which has been adapted accordingly). (Jon Siwek)
+
 2.2-128 | 2014-01-30 15:58:47 -0800
 
   * Add leak test for Exec module. (Bernhard Amann)

@@ -29,14 +29,19 @@ event log_software(rec: Info)
 	if ( rec$name in ts )
 		{
 		local old = ts[rec$name];
+
+        # This can happen if we get two different events for
+        # SSH::SERVER and SSH::CLIENT for the same version.
+        if ( old$unparsed_version == rec$unparsed_version )
+            return;
 	
 		# Is it a potentially interesting version change?
 		if ( rec$name in interesting_version_changes )
 			{
-			local msg = fmt("%.6f %s switched from %s to %s (%s)",
-					network_time(), rec$software_type,
-					software_fmt_version(old$version),
-					software_fmt(rec), rec$software_type);
+			local msg = fmt("%s switched from %s to %s",
+					rec$software_type,
+					software_fmt(old),
+					software_fmt(rec));
 			NOTICE([$note=Software_Version_Change, $src=rec$host,
 			        $msg=msg, $sub=software_fmt(rec)]);
 			}

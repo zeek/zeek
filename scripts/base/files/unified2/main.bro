@@ -7,10 +7,10 @@ module Unified2;
 export {
 	redef enum Log::ID += { LOG };
 
-	## Directory to watch for Unified2 files.
+	## File to watch for Unified2 files.
 	const watch_file = "" &redef;
 
-	## File to watch for Unified2 records.
+	## Directory to watch for Unified2 records.
 	const watch_dir = "" &redef;
 
 	## The sid-msg.map file you would like to use for your alerts.

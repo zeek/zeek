@@ -1,4 +1,9 @@
 
+2.2-142 | 2014-02-06 20:23:34 -0800
+
+  * Fixing bug in POP3 analyzer. With certain input the analyzer could
+    end up trying to write to non-writable memory. (Robin Sommer)
+
 2.2-140 | 2014-02-06 17:58:04 -0800
 
   * Fixing memory leaks in input framework. (Robin Sommer)

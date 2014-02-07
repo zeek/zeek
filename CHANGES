@@ -1,4 +1,11 @@
 
+2.2-140 | 2014-02-06 17:58:04 -0800
+
+  * Fixing memory leaks in input framework. (Robin Sommer)
+
+  * Add script to detect filtered TCP traces. Addresses BIT-1119. (Jon
+    Siwek)
+
 2.2-137 | 2014-02-04 09:09:55 -0800
 
   * Minor unified2 script documentation fix. (Jon Siwek)

@@ -1,5 +1,5 @@
 
-2.2-142 | 2014-02-06 20:23:34 -0800
+2.2-144 | 2014-02-06 20:31:18 -0800
 
   * Fixing bug in POP3 analyzer. With certain input the analyzer could
     end up trying to write to non-writable memory. (Robin Sommer)

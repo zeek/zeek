@@ -1,4 +1,8 @@
 
+2.2-147 | 2014-02-07 08:06:53 -0800
+
+  * Fix x509-extension test sometimes failing. (Bernhard Amann)
+
 2.2-144 | 2014-02-06 20:31:18 -0800
 
   * Fixing bug in POP3 analyzer. With certain input the analyzer could

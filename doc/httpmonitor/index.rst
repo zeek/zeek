@@ -10,7 +10,7 @@ http.log file.  This file can then be used for analysis and auditing
 purposes.
 
 In the sections below we briefly explain the structure of the http.log
-file. Then, we show you how to perform basic HTTP traffic monitoring and
+file, then we show you how to perform basic HTTP traffic monitoring and
 analysis tasks with Bro. Some of these ideas and techniques can later be
 applied to monitor different protocols in a similar way.
 
@@ -40,11 +40,10 @@ request to the root of Bro website::
 
 Network administrators and security engineers, for instance, can use the
 information in this log to understand the HTTP activity on the network
-and troubleshoot network problems or search for anomalous activities. At
-this point, we would like to stress out the fact that there is no just
-one right way to perform analysis; it will depend on the expertise of
-the person doing the analysis and the specific details of the task to
-accomplish.
+and troubleshoot network problems or search for anomalous activities. We must 
+stress that there is no single right way to perform an analysis. It will 
+depend on the expertise of the person performing the analysis and the 
+specific details of the task.
 
 For more information about how to handle the HTTP protocol in Bro,
 including a complete list of the fields available in http.log, go to
@@ -58,15 +57,15 @@ Detecting a Proxy Server
 A proxy server is a device on your network configured to request a
 service on behalf of a third system; one of the most common examples is
 a Web proxy server. A client without Internet access connects to the
-proxy and requests a Web page; the proxy then sends the request to the
-actual Web server, receives the response and passes it to the original
+proxy and requests a web page, the proxy sends the request to the web 
+server, which receives the response, and passes it to the original 
 client.
 
 Proxies were conceived to help manage a network and provide better
-encapsulation. By themselves, proxies are not a security threat, but a
+encapsulation. Proxies by themselves are not a security threat, but a
 misconfigured or unauthorized proxy can allow others, either inside or
-outside the network, to access any Web site and even conduct malicious
-activities anonymously using the network resources.
+outside the network, to access any web site and even conduct malicious
+activities anonymously using the network's resources.
 
 What Proxy Server traffic looks like
 -------------------------------------

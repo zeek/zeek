@@ -1,4 +1,40 @@
 
+2.2-158 | 2014-02-09 23:45:39 -0500
+
+  * Change dns.log to include only standard DNS queries. (Jon Siwek)
+
+  * Improve DNS analysis. (Jon Siwek)
+
+    - Fix parsing of empty question sections (when QDCOUNT == 0).  In this
+      case, the DNS parser would extract two 2-byte fields for use in either
+      "dns_query_reply" or "dns_rejected" events (dependent on value of
+      RCODE) as qclass and qtype parameters.  This is not correct, because
+      such fields don't actually exist in the DNS message format when
+      QDCOUNT is 0.  As a result, these events are no longer raised when
+      there's an empty question section.  Scripts that depends on checking
+      for an empty question section can do that in the "dns_message" event.
+
+    - Add a new "dns_unknown_reply" event, for when Bro does not know how
+      to fully parse a particular resource record type.  This helps fix a
+      problem in the default DNS scripts where the logic to complete
+      request-reply pair matching doesn't work because it's waiting on more
+      RR events to complete the reply.  i.e. it expects ANCOUNT number of
+      dns_*_reply events and will wait until it gets that many before
+      completing a request-reply pair and logging it to dns.log.  This could
+      cause bogus replies to match a previous request if they happen to
+      share a DNS transaction ID. (Jon Siwek)
+
+    - The previous method of matching queries with replies was still
+      unreliable in cases where the reply contains no answers.  The new code
+      also takes extra measures to avoid pending state growing too large in
+      cases where the condition to match a query with a corresponding reply is
+      never met, but yet DNS messages continue to be exchanged over the same
+      connection 5-tuple (preventing cleanup of the pending state). (Jon Siwek)
+
+  * Updates to httpmonitor and mimestats documentation. (Jeannette Dopheide)
+
+  * Updates to Logs and Cluster documentation (Jeannette Dopheide)
+
 2.2-147 | 2014-02-07 08:06:53 -0800
 
   * Fix x509-extension test sometimes failing. (Bernhard Amann)

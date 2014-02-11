@@ -232,7 +232,7 @@ overly populated.
 
 .. btest:: connection-record-01
 
-    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/dns-session.trace ${DOC_ROOT}/scripting/connection_record_01.bro
+    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/http/get.trace ${DOC_ROOT}/scripting/connection_record_01.bro
 
 As you can see from the output, the connection record is something of
 a jumble when printed on its own.  Regularly taking a peek at a
@@ -248,9 +248,9 @@ originating host is referenced by ``c$id$orig_h`` which if given a
 narrative relates to ``orig_h`` which is a member of ``id`` which is
 a member of the data structure referred to as ``c`` that was passed
 into the event handler." Given that the responder port
-(``c$id$resp_p``) is ``53/tcp``, it's likely that Bro's base DNS scripts
+(``c$id$resp_p``) is ``53/tcp``, it's likely that Bro's base HTTP scripts
 can further populate the connection record.  Let's load the
-``base/protocols/dns`` scripts and check the output of our script. 
+``base/protocols/http`` scripts and check the output of our script. 
 
 Bro uses the dollar sign as its field delimiter and a direct
 correlation exists between the output of the connection record and the
@@ -262,16 +262,16 @@ brackets, which would correspond to the ``$``-delimiter in a Bro script.
 
 .. btest:: connection-record-02
 
-    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/dns-session.trace ${DOC_ROOT}/scripting/connection_record_02.bro
+    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/http/get.trace ${DOC_ROOT}/scripting/connection_record_02.bro
 
-The addition of the ``base/protocols/dns`` scripts populates the
-``dns=[]`` member of the connection record.  While Bro is doing a
+The addition of the ``base/protocols/http`` scripts populates the
+``http=[]`` member of the connection record.  While Bro is doing a
 massive amount of work in the background, it is in what is commonly
 called "scriptland" that details are being refined and decisions
 being made. Were we to continue running in "bare mode" we could slowly
 keep adding infrastructure through ``@load`` statements.  For example,
 were we to ``@load base/frameworks/logging``, Bro would generate a
-``conn.log`` and ``dns.log`` for us in the current working directory.
+``conn.log`` and ``http.log`` for us in the current working directory.
 As mentioned above, including the appropriate ``@load`` statements is
 not only good practice, but can also help to indicate which
 functionalities are being used in a script.  Take a second to run the

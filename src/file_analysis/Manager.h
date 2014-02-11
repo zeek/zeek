@@ -82,9 +82,17 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void DataIn(const u_char* data, uint64 len, uint64 offset,
-		    analyzer::Tag tag, Connection* conn, bool is_orig);
+	std::string DataIn(const u_char* data, uint64 len, uint64 offset,
+	                   analyzer::Tag tag, Connection* conn, bool is_orig,
+	                   const std::string& precomputed_file_id = "");
 
 	/**
 	 * Pass in sequential file data.
@@ -94,9 +102,17 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
-	            Connection* conn, bool is_orig);
+	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+	                   Connection* conn, bool is_orig,
+	                   const std::string& precomputed_file_id = "");
 
 	/**
 	 * Pass in sequential file data from external source (e.g. input framework).
@@ -140,9 +156,17 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void Gap(uint64 offset, uint64 len, analyzer::Tag tag, Connection* conn,
-	         bool is_orig);
+	std::string Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+	                Connection* conn, bool is_orig,
+	                const std::string& precomputed_file_id = "");
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
@@ -151,9 +175,16 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
-	             bool is_orig);
+	std::string SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -283,8 +314,10 @@ protected:
 	 * @param conn network connection over which the file is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @return #current_file_id, which is a hash of a unique file handle string
+	 *         set by a \c get_file_handle event handler.
 	 */
-	void GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig);
+	std::string GetFileID(analyzer::Tag tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given

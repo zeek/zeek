@@ -61,3 +61,4 @@
 
 
 @load base/misc/find-checksum-offloading
+@load base/misc/find-filtered-trace

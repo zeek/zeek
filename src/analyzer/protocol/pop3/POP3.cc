@@ -192,14 +192,13 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 
 		case AUTH_CRAM_MD5:
 			{ // Format: "user<space>password-hash"
-			char* s;
-			char* str = (char*) decoded->CheckString();
+			const char* s;
+			const char* str = (char*) decoded->CheckString();
 
 			for ( s = str; *s && *s != '\t' && *s != ' '; ++s )
 				;
-			*s = '\0';
 
-			user = str;
+			user = std::string(str, s);
 			password = "";
 
 			break;

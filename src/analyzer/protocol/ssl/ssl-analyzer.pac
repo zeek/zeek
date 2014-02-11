@@ -9,6 +9,7 @@
 #include "util.h"
 
 #include <openssl/x509.h>
+#include <openssl/x509v3.h>
 #include <openssl/asn1.h>
 %}
 
@@ -211,7 +212,7 @@ refine connection SSL_Conn += {
 
 			BifEvent::generate_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
-							version, ts, new StringVal(server_random.length(), 
+							version, ts, new StringVal(server_random.length(),
 							(const char*) server_random.data()),
 							to_string_val(session_id),
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
@@ -298,27 +299,61 @@ refine connection SSL_Conn += {
 					int num_ext = X509_get_ext_count(pTemp);
 					for ( int k = 0; k < num_ext; ++k )
 						{
-						unsigned char *pBuffer = 0;
-						int length = 0;
+						char name[256];
+						char oid[256];
+
+						memset(name, 0, sizeof(name));
+						memset(oid, 0, sizeof(oid));
 
 						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
-						if (ex)
-							{
-							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
-							length = ASN1_STRING_to_UTF8(&pBuffer, pString);
-							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
-							// printf("extension length: %d\n", length);
-							// -1 indicates an error.
-							if ( length >= 0 )
-								{
-								StringVal* value = new StringVal(length, (char*)pBuffer);
-								BifEvent::generate_x509_extension(bro_analyzer(),
-											bro_analyzer()->Conn(), ${rec.is_orig}, value);
-								}
-							OPENSSL_free(pBuffer);
-							}
+
+						if ( ! ex )
+							continue;
+
+						ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
+						const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
+
+						OBJ_obj2txt(name, sizeof(name) - 1, ext_asn, 0);
+						OBJ_obj2txt(oid, sizeof(oid) - 1, ext_asn, 1);
+
+						int critical = 0;
+						if ( X509_EXTENSION_get_critical(ex) != 0 )
+							critical = 1;
+
+						BIO *bio = BIO_new(BIO_s_mem());
+						if( ! X509V3_EXT_print(bio, ex, 0, 0))
+							M_ASN1_OCTET_STRING_print(bio, ex->value);
+
+						BIO_flush(bio);
+						int length = BIO_pending(bio);
+
+						// Use OPENSSL_malloc here. Using new or anything else can lead
+						// to interesting, hard to debug segfaults.
+						char *buffer = (char*) OPENSSL_malloc(length);
+						BIO_read(bio, buffer, length);
+						StringVal* ext_val = new StringVal(length, buffer);
+						OPENSSL_free(buffer);
+
+						BIO_free_all(bio);
+
+						RecordVal* pX509Ext = new RecordVal(x509_extension_type);
+						pX509Ext->Assign(0, new StringVal(name));
+
+						if ( short_name && strlen(short_name) > 0 )
+							pX509Ext->Assign(1, new StringVal(short_name));
+
+						pX509Ext->Assign(2, new StringVal(oid));
+						pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
+						pX509Ext->Assign(4, ext_val);
+
+						BifEvent::generate_x509_extension(bro_analyzer(),
+									bro_analyzer()->Conn(),
+									${rec.is_orig},
+									pX509Cert->Ref(),
+									pX509Ext);
 						}
 					}
+
 				X509_free(pTemp);
 				}
 			}

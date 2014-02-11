@@ -1,4 +1,202 @@
 
+2.2-158 | 2014-02-09 23:45:39 -0500
+
+  * Change dns.log to include only standard DNS queries. (Jon Siwek)
+
+  * Improve DNS analysis. (Jon Siwek)
+
+    - Fix parsing of empty question sections (when QDCOUNT == 0).  In this
+      case, the DNS parser would extract two 2-byte fields for use in either
+      "dns_query_reply" or "dns_rejected" events (dependent on value of
+      RCODE) as qclass and qtype parameters.  This is not correct, because
+      such fields don't actually exist in the DNS message format when
+      QDCOUNT is 0.  As a result, these events are no longer raised when
+      there's an empty question section.  Scripts that depends on checking
+      for an empty question section can do that in the "dns_message" event.
+
+    - Add a new "dns_unknown_reply" event, for when Bro does not know how
+      to fully parse a particular resource record type.  This helps fix a
+      problem in the default DNS scripts where the logic to complete
+      request-reply pair matching doesn't work because it's waiting on more
+      RR events to complete the reply.  i.e. it expects ANCOUNT number of
+      dns_*_reply events and will wait until it gets that many before
+      completing a request-reply pair and logging it to dns.log.  This could
+      cause bogus replies to match a previous request if they happen to
+      share a DNS transaction ID. (Jon Siwek)
+
+    - The previous method of matching queries with replies was still
+      unreliable in cases where the reply contains no answers.  The new code
+      also takes extra measures to avoid pending state growing too large in
+      cases where the condition to match a query with a corresponding reply is
+      never met, but yet DNS messages continue to be exchanged over the same
+      connection 5-tuple (preventing cleanup of the pending state). (Jon Siwek)
+
+  * Updates to httpmonitor and mimestats documentation. (Jeannette Dopheide)
+
+  * Updates to Logs and Cluster documentation (Jeannette Dopheide)
+
+2.2-147 | 2014-02-07 08:06:53 -0800
+
+  * Fix x509-extension test sometimes failing. (Bernhard Amann)
+
+2.2-144 | 2014-02-06 20:31:18 -0800
+
+  * Fixing bug in POP3 analyzer. With certain input the analyzer could
+    end up trying to write to non-writable memory. (Robin Sommer)
+
+2.2-140 | 2014-02-06 17:58:04 -0800
+
+  * Fixing memory leaks in input framework. (Robin Sommer)
+
+  * Add script to detect filtered TCP traces. Addresses BIT-1119. (Jon
+    Siwek)
+
+2.2-137 | 2014-02-04 09:09:55 -0800
+
+  * Minor unified2 script documentation fix. (Jon Siwek)
+
+2.2-135 | 2014-01-31 11:09:36 -0800
+
+  * Added some grammar and spelling corrections to Installation and
+    Quick Start Guide. (Jeannette Dopheide)
+
+2.2-131 | 2014-01-30 16:11:11 -0800
+
+  * Extend file analysis API to allow file ID caching. This allows an
+    analyzer to either provide file IDs associated with some file
+    content or to cache a file ID that was already determined by
+    script-layer logic so that subsequent calls to the file analysis
+    interface can bypass costly detours through script-layer.  This
+    can yield a decent performance improvement for analyzers that are
+    able to take advantage of it and deal with streaming content (like
+    HTTP, which has been adapted accordingly). (Jon Siwek)
+
+2.2-128 | 2014-01-30 15:58:47 -0800
+
+  * Add leak test for Exec module. (Bernhard Amann)
+    
+  * Fix file_over_new_connection event to trigger when entire file is
+    missed. (Jon Siwek)
+
+  * Improve TCP connection size reporting for half-open connections.
+    (Jon Siwek)
+
+  * Improve gap reporting in TCP connections that never see data. We
+    no longer accomodate SYN/FIN/RST-filtered traces by not reporting
+    missing data. The behavior can be reverted by redef'ing
+    "detect_filtered_trace". (Jon Siwek)
+
+  * Improve TCP FIN retransmission handling. (Jon Siwek)
+    
+2.2-120 | 2014-01-28 10:25:23 -0800
+
+  * Fix and extend x509_extension() event, which now actually returns
+    the extension. (Bernhard Amann)
+
+    New event signauture:
+
+        event x509_extension(c: connection, is_orig: bool, cert:X509, extension: X509_extension_info)
+
+2.2-117 | 2014-01-23 14:18:19 -0800
+
+  * Fixing initialization context in anonymous functions. (Robin
+    Sommer)
+
+2.2-115 | 2014-01-22 12:11:18 -0800
+
+  * Add unit tests for new Bro Manual docs. (Jon Siwek)
+    
+  * New content for the "Using Bro" section of the manual. (Rafael
+    Bonilla/Jon Siwek)
+    
+2.2-105 | 2014-01-20 12:16:48 -0800
+
+  * Support GRE tunnel decapsulation, including enhanced GRE headers.
+    GRE tunnels are treated just like IP-in-IP tunnels by parsing past
+    the GRE header in between the delivery and payload IP packets.
+    Addresses BIT-867. (Jon Siwek)
+
+  * Simplify FragReassembler memory management. (Jon Siwek)
+    
+2.2-102 | 2014-01-20 12:00:29 -0800
+
+  * Include file information (MIME type and description) into notice
+    emails if available. (Justin Azoff)
+
+2.2-100 | 2014-01-20 11:54:58 -0800
+
+  * Fix caching of recently validated SSL certifcates. (Justin Azoff)
+    
+2.2-98 | 2014-01-20 11:50:32 -0800
+
+  * For notice suppresion, instead of storing the entire notice in
+    Notice::suppressing, just store the time the notice should be
+    suppressed until. This saves significant memory but can no longer
+    raise end_suppression, which has been removed. (Justin Azoff)
+
+2.2-96 | 2014-01-20 11:41:07 -0800
+
+  * Integrate libmagic 5.16. Bro now now always relies on
+    builtin/shipped magic library/database. (Jon Siwek)
+
+  * Bro now requires a CMake 2.8.x, but no longer a pre-installed
+    libmagic. (Jon Siwek)
+
+2.2-93 | 2014-01-13 09:16:51 -0800
+
+  * Fixing compile problems with some versions of libc++. Reported by
+    Craig Leres. (Robin Sommer)
+
+2.2-91 | 2014-01-13 01:33:28 -0800
+
+  * Improve GeoIP City database support. When trying to open a city
+    database, it now considers both the "REV0" and "REV1" versions of
+    the city database instead of just the former. (Jon Siwek)
+
+  * Broxygen init fixes. Addresses BIT-1110. (Jon Siwek)
+    
+    - Don't check mtime of bro binary if BRO_DISABLE_BROXYGEN env var set.
+
+    - Fix failure to locate bro binary if invoking from a relative
+      path and '.' isn't in PATH.
+
+  * Fix for packet writing to make it use the global snap length.
+    (Seth Hall)
+
+  * Fix for traffic with TCP segmentation offloading with IP header
+    len field being set to zero. (Seth Hall)
+
+  * Canonify output of a unit test. (Jon Siwek)
+    
+  * A set of documentation updates. (Daniel Thayer)
+
+      - Fix typo in Bro 2.2 NEWS on string indexing.
+      - Fix typo in the Quick Start Guide, and clarified the
+        instructions about modifying crontab.
+      - Add/fix documentation for missing/misnamed event parameters.
+      - Fix typos in BIF documentation of hexstr_to_bytestring.
+      - Update the documentation of types and attributes.
+      - Documented the new substring extraction functionality.
+      - Clarified the description of "&priority" and "void".
+
+2.2-75 | 2013-12-18 08:36:50 -0800
+
+  * Fixing segfault with mismatching set &default in record fields.
+    (Robin Sommer)
+
+2.2-74 | 2013-12-16 08:49:55 -0800
+
+  * Improve warnings emitted from raw/execute input reader. (Jon
+    Siwek)
+
+  * Further improve core.when-interpreter-exceptions unit test. (Jon
+    Siwek)
+
+2.2-72 | 2013-12-12 07:12:47 -0800
+
+  * Improve the core.when-interpreter-exceptions unit test to prevent
+    it from occasionally timing out. (Jon Siwek)
+
 2.2-70 | 2013-12-10 15:02:50 -0800
 
   * Fix (harmless) uninitialized field in basename/dirname util

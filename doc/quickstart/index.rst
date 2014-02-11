@@ -13,7 +13,7 @@ Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
 source code forms.  See :ref:`installing-bro` for instructions on how to
 install Bro. Below, ``$PREFIX`` is used to reference the Bro
-installation root directory, which by default is ``/usr/local/`` if
+installation root directory, which by default is ``/usr/local/bro/`` if
 you install from source. 
 
 Managing Bro with BroControl
@@ -26,8 +26,8 @@ traffic-monitoring cluster.
 A Minimal Starting Configuration
 --------------------------------
 
-These are the basic configuration changes to make for a minimal BroControl installation
-that will manage a single Bro instance on the ``localhost``:
+These are the basic configuration changes to make for a minimal BroControl
+installation that will manage a single Bro instance on the ``localhost``:
 
 1) In ``$PREFIX/etc/node.cfg``, set the right interface to monitor.
 2) In ``$PREFIX/etc/networks.cfg``, comment out the default settings and add
@@ -72,7 +72,8 @@ You can leave it running for now, but to stop this Bro instance you would do:
 
    [BroControl] > stop
 
-We also recommend to insert the following entry into `crontab`::
+We also recommend to insert the following entry into the crontab of the user
+running BroControl::
 
       0-59/5 * * * * $PREFIX/bin/broctl cron
 
@@ -154,7 +155,7 @@ changes we want to make:
    attempt looks like it may have been successful, and we want email when
    that happens, but only for certain servers.
 
-So we've defined *what* we want to do, but need to know *where* to do it.
+We've defined *what* we want to do, but need to know *where* to do it.
 The answer is to use a script written in the Bro programming language, so
 let's do a quick intro to Bro scripting.
 
@@ -180,7 +181,7 @@ must explicitly choose if they want to load them.
 
 The main entry point for the default analysis configuration of a standalone
 Bro instance managed by BroControl is the ``$PREFIX/share/bro/site/local.bro``
-script.  So we'll be adding to that in the following sections, but first
+script.  We'll be adding to that in the following sections, but first
 we have to figure out what to add.
 
 Redefining Script Option Variables
@@ -196,7 +197,7 @@ A redefineable constant might seem strange, but what that really means is that
 the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
-So let's continue on our path to modify the behavior for the two SSL
+Let's continue on our path to modify the behavior for the two SSL
 and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
 we see that it advertises:
 
@@ -210,7 +211,7 @@ we see that it advertises:
         const ignored_types: set[Notice::Type] = {} &redef;
     }
 
-That's exactly what we want to do for the SSL notice.  So add to ``local.bro``:
+That's exactly what we want to do for the SSL notice.  Add to ``local.bro``:
 
 .. code:: bro
 
@@ -275,9 +276,9 @@ an email on the condition that the predicate function evaluates to true, which
 is whenever the notice type is an SSH login and the responding host stored
 inside the ``Info`` record's connection field is in the set of watched servers.
 
-.. note:: record field member access is done with the '$' character
+.. note:: Record field member access is done with the '$' character
    instead of a '.' as might be expected from other languages, in
-   order to avoid ambiguity with the builtin address type's use of '.'
+   order to avoid ambiguity with the built-in address type's use of '.'
    in IPv4 dotted decimal representations.
 
 Remember, to finalize that configuration change perform the ``check``,
@@ -406,7 +407,7 @@ logging) and adds SSL certificate validation.
 You might notice that a script you load from the command line uses the
 ``@load`` directive in the Bro language to declare dependence on other scripts.
 This directive is similar to the ``#include`` of C/C++, except the semantics
-are "load this script if it hasn't already been loaded".
+are, "load this script if it hasn't already been loaded."
 
 .. note:: If one wants Bro to be able to load scripts that live outside the
    default directories in Bro's installation root, the ``BROPATH`` environment

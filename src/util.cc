@@ -1649,48 +1649,28 @@ void operator delete[](void* v)
 
 #endif
 
-// Being selective of which components of MAGIC_NO_CHECK_BUILTIN are actually
-// known to be problematic, but keeping rest of libmagic's builtin checks.
-#define DISABLE_LIBMAGIC_BUILTIN_CHECKS  ( \
-/*  MAGIC_NO_CHECK_COMPRESS | */ \
-/*  MAGIC_NO_CHECK_TAR  | */ \
-/*  MAGIC_NO_CHECK_SOFT | */ \
-/*  MAGIC_NO_CHECK_APPTYPE  | */ \
-/*  MAGIC_NO_CHECK_ELF  | */ \
-/*  MAGIC_NO_CHECK_TEXT | */ \
-    MAGIC_NO_CHECK_CDF  | \
-    MAGIC_NO_CHECK_TOKENS  \
-/*  MAGIC_NO_CHECK_ENCODING */ \
-)
-
 void bro_init_magic(magic_t* cookie_ptr, int flags)
 	{
 	if ( ! cookie_ptr || *cookie_ptr )
 		return;
 
-	*cookie_ptr = magic_open(flags|DISABLE_LIBMAGIC_BUILTIN_CHECKS);
+	*cookie_ptr = magic_open(flags);
 
-	// Use our custom database for mime types, but the default database
-	// from libmagic for the verbose file type.
-	const char* database = (flags & MAGIC_MIME) ? bro_magic_path() : 0;
+	// Always use Bro's custom magic database.
+	const char* database = bro_magic_path();
 
 	if ( ! *cookie_ptr )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		if ( ! err )
-			err = "unknown";
-
-		reporter->InternalError("can't init libmagic: %s", err);
+		reporter->InternalError("can't init libmagic: %s",
+		                        err ? err : "unknown");
 		}
 
 	else if ( magic_load(*cookie_ptr, database) < 0 )
 		{
 		const char* err = magic_error(*cookie_ptr);
-		if ( ! err )
-			err = "unknown";
-
-		const char* db_name = database ? database : "<default>";
-		reporter->InternalError("can't load magic file %s: %s", db_name, err);
+		reporter->InternalError("can't load magic file %s: %s", database,
+		                        err ? err : "unknown");
 		magic_close(*cookie_ptr);
 		*cookie_ptr = 0;
 		}

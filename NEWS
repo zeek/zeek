@@ -9,9 +9,21 @@ Bro 2.3
 
 [In progress]
 
+Dependencies
+------------
+
+- Bro no longer requires a pre-installed libmagic (because it now
+  ships its own).
+
+- Compiling from source now needs a CMake version >= 2.8.0.
+
 New Functionality
 -----------------
 
+- Support for GRE tunnel decapsulation, including enhanced GRE
+  headers. GRE tunnels are treated just like IP-in-IP tunnels by
+  parsing past the GRE header in between the delivery and payload IP
+  packets.
 
 Changed Functionality
 ---------------------
@@ -21,6 +33,19 @@ Changed Functionality
 
 - ssl_client_hello() now receives a vector of ciphers, instead of a
   set, to preserve their order.
+
+- Notice::end_suppression() has been removed.
+
+- Bro now parses X.509 extensions headers and, as a result, the
+  corresponding event got a new signature:
+
+      event x509_extension(c: connection, is_orig: bool, cert: X509, ext: X509_extension_info);
+
+- Bro no longer special-cases SYN/FIN/RST-filtered traces by not
+  reporting missing data. The old behavior can be reverted by
+  redef'ing "detect_filtered_trace".
+
+  TODO: Update if we add a detector for filtered traces.
 
 Bro 2.2
 =======
@@ -198,9 +223,9 @@ New Functionality
         global s = MySet([$c=1], [$c=2]);
 
 - Strings now support the subscript operator to extract individual
-  characters and substrings (e.g., ``s[4]``, ``s[1,5]``). The index
+  characters and substrings (e.g., ``s[4]``, ``s[1:5]``). The index
   expression can take up to two indices for the start and end index of
-  the substring to return (e.g. ``mystring[1,3]``).
+  the substring to return (e.g. ``mystring[1:3]``).
 
 - Functions now support default parameters, e.g.::
 

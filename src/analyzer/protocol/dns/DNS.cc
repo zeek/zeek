@@ -137,18 +137,6 @@ int DNS_Interpreter::ParseQuestions(DNS_MsgInfo* msg,
 	{
 	int n = msg->qdcount;
 
-	if ( n == 0 )
-		{
-		// Generate event here because we won't go into ParseQuestion.
-		EventHandlerPtr dns_event =
-			msg->rcode == DNS_CODE_OK ?
-				dns_query_reply : dns_rejected;
-		BroString* question_name = new BroString("<no query>");
-
-		SendReplyOrRejectEvent(msg, dns_event, data, len, question_name);
-		return 1;
-		}
-
 	while ( n > 0 && ParseQuestion(msg, data, len, msg_start) )
 		--n;
 	return n == 0;
@@ -299,6 +287,16 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			break;
 
 		default:
+
+			if ( dns_unknown_reply && ! msg->skip_event )
+				{
+				val_list* vl = new val_list;
+				vl->append(analyzer->BuildConnVal());
+				vl->append(msg->BuildHdrVal());
+				vl->append(msg->BuildAnswerVal());
+				analyzer->ConnectionEvent(dns_unknown_reply, vl);
+				}
+
 			analyzer->Weird("DNS_RR_unknown_type");
 			data += rdlength;
 			len -= rdlength;

@@ -1,0 +1,80 @@
+# Needs perftools support.
+#
+# @TEST-GROUP: leaks
+#
+# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+#
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b ../exectest.bro
+# @TEST-EXEC: btest-bg-wait 15
+
+@TEST-START-FILE exectest.bro
+
+@load base/utils/exec
+@load base/frameworks/communication # let network-time run. otherwise there are no heartbeats...
+redef exit_only_after_terminate = T;
+
+global c: count = 0;
+
+function check_exit_condition()
+	{
+	c += 1;
+
+	if ( c == 3 )
+		terminate();
+	}
+
+function test_cmd(label: string, cmd: Exec::Command)
+	{
+	when ( local result = Exec::run(cmd) )
+		{
+		print label, result;
+		check_exit_condition();
+		}
+	}
+
+event bro_init()
+	{
+	test_cmd("test1", [$cmd="bash ../somescript.sh",
+	                   $read_files=set("out1", "out2")]);
+	test_cmd("test2", [$cmd="bash ../nofiles.sh"]);
+	# Not sure of a portable way to test signals yet.
+	#test_cmd("test3", [$cmd="bash ../suicide.sh"]);
+	test_cmd("test4", [$cmd="bash ../stdin.sh", $stdin="hibye"]);
+	}
+
+@TEST-END-FILE
+
+@TEST-START-FILE somescript.sh
+#! /usr/bin/env bash
+echo "insert text here" > out1
+echo "and here" >> out1
+echo "insert more text here" > out2
+echo "and there" >> out2
+echo "done"
+echo "exit"
+echo "stop"
+@TEST-END-FILE
+
+@TEST-START-FILE nofiles.sh
+#! /usr/bin/env bash
+echo "here's something on stdout"
+echo "some more stdout"
+echo "last stdout"
+echo "and some stderr" 1>&2
+echo "more stderr" 1>&2
+echo "last stderr" 1>&2
+exit 1
+@TEST-END-FILE
+
+@TEST-START-FILE suicide.sh
+#! /usr/bin/env bash
+echo "FML"
+kill -9 $$
+echo "nope"
+@TEST-END-FILE
+
+@TEST-START-FILE stdin.sh
+#! /usr/bin/env bash
+read -r line
+echo "$line"
+@TEST-END-FILE

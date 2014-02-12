@@ -626,7 +626,7 @@ inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 
 // True if the two types are equivalent.  If is_init is true then the
 // test is done in the context of an initialization.
-extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+extern int same_type(const BroType* t1, const BroType* t2, int is_init=0, bool match_record_field_names=true);
 
 // True if the two attribute lists are equivalent.
 extern int same_attrs(const Attributes* a1, const Attributes* a2);

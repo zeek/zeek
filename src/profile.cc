@@ -30,8 +30,9 @@ struct ProfileItem {
 	long_long _cycles_start;
 	unsigned int _mem_total_start;
 	unsigned int _mem_malloced_start;
+	bool _started;
 
-	unsigned int level;
+	int level;
 
 	ProfileItem()
 		{
@@ -39,6 +40,7 @@ struct ProfileItem {
 		_cycles_start = cycles = 0;
 		_mem_total_start = mem_total = 0;
 		_mem_malloced_start = mem_malloced = 0;
+        _started = false;
 		level = 0;
 		}
 };
@@ -115,17 +117,40 @@ static void papi_finish()
 
 #endif
 
-static void print_profile_item(const char* tag, ProfileType type)
+static void print_profile_item(const char* tag, ProfileType type, ProfileType minus_type1 = PROFILE_NONE, ProfileType minus_type2 = PROFILE_NONE)
 	{
 	ProfileItem* i = &profile_state.items[type];
 
 	if ( i->level > 0 )
 		reporter->InternalError("level for profiler %d is not zero (but %u)\n", type, i->level);
 
+	double time = i->time;
+	unsigned int mem_total = i->mem_total;
+	unsigned int mem_malloced = i->mem_malloced;
+	long_long cycles = i->cycles;
+
+	if ( minus_type1 != PROFILE_NONE )
+		{
+		ProfileItem* j = &profile_state.items[minus_type1];
+		time -= j->time;
+		mem_total -= j->mem_total;
+		mem_malloced -= j->mem_malloced;
+		cycles -= j->cycles;
+		}
+
+	if ( minus_type2 != PROFILE_NONE )
+		{
+		ProfileItem* j = &profile_state.items[minus_type2];
+		time -= j->time;
+		mem_total -= j->mem_total;
+		mem_malloced -= j->mem_malloced;
+		cycles -= j->cycles;
+		}
+
 	fprintf(stderr, "# %s %.6f/%" PAPI_CYCLE_FMT " %uM/%uM\n",
-		tag, i->time, i->cycles,
-		i->mem_total / 1024 / 1024,
-		i->mem_malloced / 1024 / 1024);
+		tag, time, cycles,
+		mem_total / 1024 / 1024,
+		mem_malloced / 1024 / 1024);
 	}
 
 void profile_print()
@@ -135,17 +160,57 @@ void profile_print()
 
 	print_profile_item("core-init", PROFILE_CORE_INIT);
 	print_profile_item("bro_init", PROFILE_SCRIPT_INIT);
-	print_profile_item("net-processing", PROFILE_NET);
 	print_profile_item("total-processing", PROFILE_PROCESSING);
-	print_profile_item("total-script", PROFILE_SCRIPT_LAND);
-	print_profile_item("total-protocols", PROFILE_PROTOCOL_LAND);
 	print_profile_item("total-bro", PROFILE_TOTAL);
+	print_profile_item("net-run", PROFILE_NET);
+	print_profile_item("cleanup", PROFILE_CLEANUP);
+	print_profile_item("script-land", PROFILE_SCRIPT_LAND);
+	print_profile_item("script-legacy-land", PROFILE_SCRIPT_LEGACY_LAND);
+	print_profile_item("protocol-land", PROFILE_PROTOCOL_LAND);
+	print_profile_item("core-other-land", PROFILE_NET, PROFILE_PROTOCOL_LAND, PROFILE_SCRIPT_LAND);
+	print_profile_item("jit-land", PROFILE_JIT_LAND);
+	print_profile_item("hilti-land", PROFILE_HILTI_LAND);
+	print_profile_item("hilti-land-compiled-stubs", PROFILE_HILTI_LAND_COMPILED_STUBS);
+	print_profile_item("hilti-land-compiled-code",  PROFILE_HILTI_LAND_COMPILED_CODE);
 	}
+
+extern "C" {
+void profile_start(int64_t t)
+    {
+    profile_update((ProfileType)t, PROFILE_START);
+    }
+
+void profile_stop(int64_t t)
+    {
+    profile_update((ProfileType)t, PROFILE_STOP);
+    }
+}
 
 void profile_update(ProfileType t, ProfileAction action)
 	{
 	if ( ! time_bro )
 		return;
+
+    switch ( t ) {
+		case PROFILE_CORE_INIT:
+		case PROFILE_SCRIPT_INIT:
+		case PROFILE_NET:
+		case PROFILE_PROCESSING:
+		case PROFILE_TOTAL:
+        	break;
+
+		case PROFILE_SCRIPT_LAND:
+		case PROFILE_PROTOCOL_LAND:
+		case PROFILE_HILTI_LAND_COMPILED_STUBS:
+		case PROFILE_HILTI_LAND_COMPILED_CODE:
+        	if ( time_bro < 2 )
+            	return;
+
+        	break;
+
+     default:
+        break;
+    }
 
 	ProfileItem* i = &profile_state.items[t];
 
@@ -164,9 +229,12 @@ void profile_update(ProfileType t, ProfileAction action)
 	if ( i->level > 1 )
 		return;
 
-	unsigned int mem_total;
-	unsigned int mem_malloced;
-	get_memory_usage(&mem_total, &mem_malloced);
+    if ( i->level < 0 )
+        reporter->InternalError("underflow in profile_update() for type %d", t);
+
+	unsigned int mem_total = 0;
+	unsigned int mem_malloced = 0;
+    // get_memory_usage(&mem_total, &mem_malloced);
 
 	long_long cycles[PAPI_NUM_EVENTS];
 #ifdef USE_PAPI
@@ -184,10 +252,14 @@ void profile_update(ProfileType t, ProfileAction action)
 		i->_cycles_start = cycles[0];
 		i->_mem_total_start = mem_total;
 		i->_mem_malloced_start = mem_malloced;
+        i->_started = true;
 		}
 
 	else
 		{
+        if ( ! i->_started )
+                reporter->InternalError("mismatching stop in profile_update() for type %d", t);
+
 		double time_end = current_time(true);
 		unsigned int mem_total_end = mem_total;
 		unsigned int mem_malloced_end = mem_malloced;
@@ -197,6 +269,14 @@ void profile_update(ProfileType t, ProfileAction action)
 		i->cycles += (cycles_end - i->_cycles_start);
 		i->mem_total += (mem_total_end - i->_mem_total_start);
 		i->mem_malloced += (mem_malloced_end - i->_mem_malloced_start);
+
+        i->_started = false;
 		}
 	}
+
+int profile_level(ProfileType t)
+{
+	ProfileItem* i = &profile_state.items[t];
+    return i->level;
+}
 

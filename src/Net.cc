@@ -31,6 +31,7 @@
 #include "Serializer.h"
 #include "PacketDumper.h"
 #include "plugin/Manager.h"
+#include "profile.h"
 
 extern "C" {
 #include "setsignal.h"

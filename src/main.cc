@@ -671,7 +671,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'Q':
-			time_bro = 1;
+			++time_bro;
 			break;
 
 		case 'R':
@@ -1134,6 +1134,7 @@ int main(int argc, char** argv)
 	reporter->ReportViaEvents(true);
 
 	profile_update(PROFILE_CORE_INIT, PROFILE_STOP);
+
 	profile_update(PROFILE_PROCESSING, PROFILE_START);
 	profile_update(PROFILE_SCRIPT_INIT, PROFILE_START);
 
@@ -1172,6 +1173,7 @@ int main(int argc, char** argv)
 		profile_update(PROFILE_NET, PROFILE_STOP);
 		profile_update(PROFILE_PROCESSING, PROFILE_STOP);
 
+		profile_update(PROFILE_CLEANUP, PROFILE_START);
 		done_with_network();
 		net_delete();
 
@@ -1186,12 +1188,16 @@ int main(int argc, char** argv)
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.
 		BroFile::CloseCachedFiles();
+
+		profile_update(PROFILE_CLEANUP, PROFILE_STOP);
 		}
 	else
 		{
 		profile_update(PROFILE_PROCESSING, PROFILE_STOP);
+		profile_update(PROFILE_CLEANUP, PROFILE_START);
 		persistence_serializer->WriteState(false);
 		terminate_bro();
+		profile_update(PROFILE_CLEANUP, PROFILE_STOP);
 		}
 
 	delete rule_matcher;

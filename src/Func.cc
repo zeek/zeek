@@ -54,6 +54,33 @@ extern	RETSIGTYPE sig_handler(int signo);
 const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
+static bool in_proto_land = false;
+
+void enter_script_land()
+	{
+	in_proto_land = (profile_level(PROFILE_PROTOCOL_LAND) > 0);
+
+	if ( in_proto_land )
+		{
+		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
+		if ( profile_level(PROFILE_PROTOCOL_LAND) != 0 )
+			reporter->InternalError("mismatch in protocol-land profile level");
+		}
+
+	profile_update(PROFILE_SCRIPT_LAND, PROFILE_START);
+	}
+
+void leave_script_land()
+	{
+	if ( in_proto_land )
+		{
+		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
+		in_proto_land = 0;
+		}
+
+	profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
+	}
+
 vector<Func*> Func::unique_ids;
 
 Func::Func() : scope(0), type(0)
@@ -284,7 +311,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
 
-	profile_update(PROFILE_SCRIPT_LAND, PROFILE_START);
+	enter_script_land();
 
 	Val* plugin_result = plugin_mgr->CallFunction(this, args);
 
@@ -323,9 +350,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			}
 		}
 
-		profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
+		leave_script_land();
 		return plugin_result;
 		}
+
+	profile_update(PROFILE_SCRIPT_LEGACY_LAND, PROFILE_START);
 
 	if ( ! bodies.size() )
 		{
@@ -336,7 +365,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		Val* result = (Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0);
 
-		profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
+		profile_update(PROFILE_SCRIPT_LEGACY_LAND, PROFILE_STOP);
+		leave_script_land();
 		return result;
 		}
 
@@ -364,14 +394,14 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	loop_over_list(*args, i)
 		f->SetElement(i, (*args)[i]);
 
-	stmt_flow_type flow;
+	stmt_flow_type flow = FLOW_NEXT;
 
 	Val* result = 0;
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	for ( unsigned int i = 0; i < bodies.size(); ++i )
+	for ( size_t i = 0; i < bodies.size(); ++i )
 		{
 		if ( sample_logger )
 			sample_logger->LocationSeen(
@@ -440,8 +470,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	g_frame_stack.pop_back();
 	Unref(f);
 
-	profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
-
+	profile_update(PROFILE_SCRIPT_LEGACY_LAND, PROFILE_STOP);
+	leave_script_land();
 	return result;
 	}
 

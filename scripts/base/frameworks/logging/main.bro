@@ -13,6 +13,9 @@ export {
 	## If true, remote logging is by default enabled for all filters.
 	const enable_remote_logging = T &redef;
 
+	## If true, disable all logging output completely.
+	const disable_logging = F &redef;
+    
 	## Default writer to use if a filter does not specify
 	## anything else.
 	const default_writer = WRITER_ASCII &redef;
@@ -492,6 +495,9 @@ function get_filter(id: ID, name: string) : Filter
 
 function write(id: ID, columns: any) : bool
 	{
+    if ( disable_logging )
+            return T;
+        
 	return __write(id, columns);
 	}
 

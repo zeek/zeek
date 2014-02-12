@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
+#include "profile.h"
 
 #include "Event.h"
 #include "Func.h"
@@ -12,6 +13,9 @@ EventMgr mgr;
 
 int num_events_queued = 0;
 int num_events_dispatched = 0;
+
+extern void enter_script_land();
+extern void leave_script_land();
 
 Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
 		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
@@ -78,7 +82,11 @@ EventMgr::~EventMgr()
 
 void EventMgr::QueueEvent(Event* event)
 	{
-	if ( plugin_mgr->QueueEvent(event) )
+    enter_script_land();
+	bool done = plugin_mgr->QueueEvent(event);
+    leave_script_land();
+
+	if ( done )
 		return;
 
 	if ( ! head )

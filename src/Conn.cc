@@ -246,23 +246,25 @@ void Connection::NextPacket(double t, int is_orig,
 			const u_char* const pkt,
 			int hdr_size)
 	{
-	profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
-
 	current_hdr = hdr;
 	current_hdr_size = hdr_size;
 	current_timestamp = t;
 	current_pkt = pkt;
 
 	if ( Skipping() )
-		return;
+            return;
 
 	if ( root_analyzer )
 		{
+		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
+
 		record_current_packet = record_packet;
 		record_current_content = record_content;
 		root_analyzer->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
+
+		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
 		}
 	else
 		last_time = t;
@@ -271,8 +273,6 @@ void Connection::NextPacket(double t, int is_orig,
 	current_hdr_size = 0;
 	current_timestamp = 0;
 	current_pkt = 0;
-
-	profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
 	}
 
 void Connection::SetLifetime(double lifetime)

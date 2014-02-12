@@ -14,7 +14,7 @@
 # @TEST-EXEC: cp input4.log input.log
 # @TEST-EXEC: sleep 5
 # @TEST-EXEC: cp input5.log input.log
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-wait 30
 
 @TEST-START-FILE input1.log
 #separator \x09

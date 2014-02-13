@@ -4,6 +4,7 @@
 
 @load base/utils/numbers
 @load base/utils/files
+@load base/frameworks/tunnels
 
 module HTTP;
 
@@ -216,6 +217,16 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		{
 		c$http$info_code = code;
 		c$http$info_msg = reason;
+		}
+	
+	if ( c$http?$method && c$http$method == "CONNECT" && code == 200 )
+		{
+		# Copy this conn_id and set the orig_p to zero because in the case of CONNECT proxies there will
+		# be potentially many source ports since a new proxy connection is established for each
+		# proxied connection.  We treat this as a singular "tunnel".
+		local tid = copy(c$id);
+		tid$orig_p = 0/tcp;
+		Tunnel::register([$cid=tid, $tunnel_type=Tunnel::HTTP]);
 		}
 	}
 

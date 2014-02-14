@@ -1,4 +1,9 @@
 
+2.2-173 | 2014-02-14 10:50:15 -0800
+
+  * Fix misidentification of SOCKS traffic that in particiular seemed
+    to happen a lot with DCE/RPC traffic. (Vlad Grigorescu)
+
 2.2-170 | 2014-02-13 16:42:07 -0800
 
   * Refactor DNS script's state management to improve performance.

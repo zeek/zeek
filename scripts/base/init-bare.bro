@@ -2773,6 +2773,24 @@ export {
 		name: string &optional;
 	} &log;
 }
+
+module RADIUS;
+
+export {
+	type RADIUS::AttributeList: vector of string;
+	type RADIUS::Attributes: table[count] of RADIUS::AttributeList;
+
+	type RADIUS::Message: record {
+		## The type of message (Access-Request, Access-Accept, etc.).
+		code          : count;
+		## The transaction ID.
+		trans_id      : count;
+		## The "authenticator" string.
+		authenticator : string;
+		## Any attributes.
+		attributes    : RADIUS::Attributes &optional;
+	};
+}
 module GLOBAL;
 
 @load base/bif/event.bif

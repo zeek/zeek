@@ -1,4 +1,8 @@
 
+2.2-174 | 2014-02-14 12:07:04 -0800
+
+  * Support for MPLS over VLAN. (Chris Kanich)
+
 2.2-173 | 2014-02-14 10:50:15 -0800
 
   * Fix misidentification of SOCKS traffic that in particiular seemed

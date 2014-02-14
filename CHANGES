@@ -1,4 +1,12 @@
 
+2.2-170 | 2014-02-13 16:42:07 -0800
+
+  * Refactor DNS script's state management to improve performance.
+    (Jon Siwek)
+
+  * Revert "Expanding the HTTP methods used in the signature to detect
+    HTTP traffic." (Robin Sommer)
+
 2.2-167 | 2014-02-12 20:17:39 -0800
 
   * Increase timeouts of some unit tests. (Jon Siwek)

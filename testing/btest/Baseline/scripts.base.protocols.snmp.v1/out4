@@ -1,0 +1,11 @@
+snmp_trap
+  [orig_h=127.0.0.1, orig_p=57150/udp, resp_h=127.0.0.1, resp_p=162/udp]
+  is_orig: T
+  [community=public]
+    enterprise:    1.3.6.1.4.1.31337.0
+    agent:         1.0.0.127
+    generic_trap:  0
+    specific_trap: 0
+    time_stamp:    0
+    oid: 1.3.6.1.2.1.2.1.0
+    value (tag=0x02): 33

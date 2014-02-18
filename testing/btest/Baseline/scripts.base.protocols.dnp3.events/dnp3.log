@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dnp3
-#open	2013-08-26-19-47-53
+#open	2014-02-18-02-43-39
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fc_request	fc_reply	iin
 #types	time	string	addr	port	addr	port	string	string	count
 1097501938.504844	CXWv6p3arKYeMETxOg	10.0.0.8	2789	10.0.0.3	20000	-	UNSOLICITED_RESPONSE	4096
@@ -72,4 +72,4 @@
 1178206045.032815	C7XEbhP654jzLoe3a	192.168.66.33	1167	192.168.66.34	20000	READ	RESPONSE	6
 1178206045.557097	C7XEbhP654jzLoe3a	192.168.66.33	1167	192.168.66.34	20000	READ	RESPONSE	6
 1178206046.086403	C7XEbhP654jzLoe3a	192.168.66.33	1167	192.168.66.34	20000	READ	RESPONSE	6
-#close	2013-08-26-19-47-53
+#close	2014-02-18-02-43-39

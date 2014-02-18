@@ -2,10 +2,12 @@ dnp3_header_block, T, 25605, 99, 196, 4, 3
 dnp3_application_request_header, T, 25
 dnp3_object_header, T, 17923, 91, 1, 1, 0
 dnp3_object_prefix, T, 85
+dnp3_file_control_cmd, T, 26, 59, \0\0\0\0\0\0, 511, 0, 0, 2, 1024, 6, C:/temp/DNPDeviceConfiguration written to Remote Device.xml
 dnp3_header_block, F, 25605, 29, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 17924, 91, 1, 1, 0
 dnp3_object_prefix, F, 13
+dnp3_doublein_evertime, F, 305419896, 0, 1024, 6, 0, 
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 255, 196, 4, 3
 dnp3_application_request_header, T, 2
@@ -17,13 +19,16 @@ dnp3_header_block, F, 25605, 25, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 17926, 91, 1, 1, 0
 dnp3_object_prefix, F, 9
+dnp3_file_transport_status, F, 305419896, 2147483648, 0, 
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 27, 196, 4, 3
 dnp3_application_request_header, T, 26
 dnp3_object_header, T, 17924, 91, 1, 1, 0
 dnp3_object_prefix, T, 13
+dnp3_doublein_evertime, T, 305419896, 0, 0, 7, 0, 
 dnp3_header_block, F, 25605, 29, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 17924, 91, 1, 1, 0
 dnp3_object_prefix, F, 13
+dnp3_doublein_evertime, F, 305419896, 0, 0, 7, 0, 
 dnp3_response_data_object, F, 255

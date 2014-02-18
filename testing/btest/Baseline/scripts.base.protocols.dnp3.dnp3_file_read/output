@@ -2,10 +2,12 @@ dnp3_header_block, T, 25605, 50, 196, 4, 3
 dnp3_application_request_header, T, 25
 dnp3_object_header, T, 17923, 91, 1, 1, 0
 dnp3_object_prefix, T, 36
+dnp3_file_control_cmd, T, 26, 10, \0\0\0\0\0\0, 0, 0, 0, 1, 1024, 4, ./test.xml
 dnp3_header_block, F, 25605, 29, 68, 3, 4
 dnp3_application_response_header, F, 129, 4096
 dnp3_object_header, F, 17924, 91, 1, 1, 0
 dnp3_object_prefix, F, 13
+dnp3_doublein_evertime, F, 305419896, 830, 1024, 4, 0, 
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 22, 196, 4, 3
 dnp3_application_request_header, T, 1
@@ -26,20 +28,24 @@ dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
+dnp3_abs_time, T, \xd2H\xbef4^A
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
+dnp3_abs_time, T, 4I\xbef4^A
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_header_block, T, 25605, 27, 196, 4, 3
 dnp3_application_request_header, T, 26
 dnp3_object_header, T, 17924, 91, 1, 1, 0
 dnp3_object_prefix, T, 13
+dnp3_doublein_evertime, T, 305419896, 0, 0, 5, 0, 
 dnp3_header_block, F, 25605, 29, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 17924, 91, 1, 1, 0
 dnp3_object_prefix, F, 13
+dnp3_doublein_evertime, F, 305419896, 0, 0, 5, 0, 
 dnp3_response_data_object, F, 255

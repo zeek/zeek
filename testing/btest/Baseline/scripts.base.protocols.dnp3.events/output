@@ -6,6 +6,7 @@ dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
+dnp3_abs_time, T, \xeb\xe4Z\x87\xff\0
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_header_block, T, 25605, 17, 196, 4, 3
@@ -25,6 +26,7 @@ dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
+dnp3_abs_time, T, \xa9\xe1{\x87\xff\0
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_header_block, T, 25605, 17, 196, 4, 3
@@ -38,17 +40,23 @@ dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xe2C}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 5, 1280, 0
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 1011
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 1011
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
@@ -66,15 +74,20 @@ dnp3_header_block, F, 25605, 71, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xd5G}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 4, 1024, 0
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 791
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 791
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 791
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 2
@@ -92,17 +105,23 @@ dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xf4N}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 5, 1280, 0
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 961
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 961
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
@@ -120,15 +139,20 @@ dnp3_header_block, F, 25605, 71, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xb5R}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 4, 1024, 0
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 932
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 932
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 932
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 2
@@ -146,17 +170,23 @@ dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, ^ZZ}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 5, 1280, 0
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 941
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 941
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
@@ -174,17 +204,23 @@ dnp3_header_block, F, 25605, 50, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xc7]}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 5, 1280, 0
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 782
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 782
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 782
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 1793
 dnp3_response_data_object, F, 255
 dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 0
@@ -192,17 +228,23 @@ dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xc8d}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 5, 1280, 0
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 811
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 811
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 811
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
@@ -220,13 +262,17 @@ dnp3_header_block, F, 25605, 66, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, \xb5k}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 2
@@ -244,17 +290,23 @@ dnp3_header_block, F, 25605, 76, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, ^n}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 5, 1280, 0
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 129, 0
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 0
+dnp3_biewrtime, F, 129, 781
 dnp3_response_data_object, F, 255
 dnp3_object_prefix, F, 1
+dnp3_biewrtime, F, 1, 781
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
@@ -272,9 +324,11 @@ dnp3_header_block, F, 25605, 56, 68, 3, 4
 dnp3_application_response_header, F, 130, 0
 dnp3_object_header, F, 13057, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
+dnp3_abs_time, F, kq}\x87\xff\0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 515, 40, 1, 256, 0
 dnp3_object_prefix, F, 2
+dnp3_biewrtime, F, 1, 0
 dnp3_response_data_object, F, 255
 dnp3_object_header, F, 8193, 40, 3, 768, 0
 dnp3_object_prefix, F, 0
@@ -294,7 +348,7 @@ dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
-dnp3_response_data_object, F, 255
+dnp3_response_data_object, F, 19
 dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 13
 dnp3_header_block, F, 25605, 10, 68, 6, 4
@@ -305,7 +359,7 @@ dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
-dnp3_response_data_object, F, 255
+dnp3_response_data_object, F, 19
 dnp3_header_block, T, 25605, 11, 196, 4, 3
 dnp3_application_request_header, T, 1
 dnp3_object_header, T, 512, 6, 0, 65535, 65535
@@ -429,6 +483,7 @@ dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
+dnp3_abs_time, T, /\x1d\xb4\x87\xff\0
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 129, 32768
 dnp3_header_block, T, 25605, 17, 196, 4, 3
@@ -442,6 +497,7 @@ dnp3_header_block, T, 25605, 18, 196, 4, 3
 dnp3_application_request_header, T, 2
 dnp3_object_header, T, 12801, 7, 1, 1, 0
 dnp3_object_prefix, T, 0
+dnp3_abs_time, T, [\x1e\xb4\x87\xff\0
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 129, 32768
 dnp3_header_block, T, 25605, 17, 196, 4, 3
@@ -517,14 +573,14 @@ dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
-dnp3_response_data_object, F, 255
+dnp3_response_data_object, F, 7
 dnp3_header_block, T, 25605, 8, 196, 4, 3
 dnp3_application_request_header, T, 14
 dnp3_header_block, F, 25605, 16, 68, 3, 4
 dnp3_application_response_header, F, 129, 0
 dnp3_object_header, F, 13314, 7, 1, 1, 0
 dnp3_object_prefix, F, 0
-dnp3_response_data_object, F, 255
+dnp3_response_data_object, F, 7
 dnp3_header_block, F, 25605, 10, 68, 3, 4
 dnp3_application_response_header, F, 130, 256
 dnp3_header_block, T, 25605, 17, 196, 65535, 3

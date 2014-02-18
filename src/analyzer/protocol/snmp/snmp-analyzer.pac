@@ -1,3 +1,11 @@
+%extern{
+#include <cstdlib>
+#include <vector>
+#include <string>
+
+#include "net_util.h"
+#include "util.h"
+%}
 
 %header{
 StringVal* asn1_oid_to_val(const ASN1Encoding* oid);
@@ -81,7 +89,7 @@ StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
 			}
 		else
 			{
-			std::div_t result = div(subidentifier_values[i], 40);
+			std::div_t result = std::div(subidentifier_values[i], 40);
 			snprintf(tmp, sizeof(tmp), "%d", result.quot);
 			rval += tmp;
 			rval += ".";

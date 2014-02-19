@@ -56,7 +56,7 @@ set(LIBMAGIC_LIB_DIR ${LIBMAGIC_PREFIX}/lib)
 set(LIBMAGIC_LIBRARY ${LIBMAGIC_LIB_DIR}/libmagic.a)
 ExternalProject_Add(libmagic
     PREFIX ${LIBMAGIC_PREFIX}
-    URL ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/file-5.16.tar.gz
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/file-5.17.tar.gz
     CONFIGURE_COMMAND ./configure --enable-static --disable-shared
                                   --prefix=${LIBMAGIC_PREFIX}
                                   --includedir=${LIBMAGIC_INCLUDE_DIR}

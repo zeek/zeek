@@ -55,6 +55,7 @@ export {
 		[113] = "bad_certificate_status_response",
 		[114] = "bad_certificate_hash_value",
 		[115] = "unknown_psk_identity",
+		[120] = "no_application_protocol",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
 	## Mapping between numeric codes and human readable strings for SSL/TLS

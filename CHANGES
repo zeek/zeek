@@ -1,4 +1,12 @@
 
+2.2-180 | 2014-02-20 17:29:14 -0800
+
+  * New SSL alert descriptions from
+    https://tools.ietf.org/html/draft-ietf-tls-applayerprotoneg-04.
+    (Bernhard Amann)
+
+  * Update SQLite. (Bernhard Amann)
+
 2.2-177 | 2014-02-20 17:27:46 -0800
 
   * Update to libmagic version 5.17. Addresses BIT-1136. (Jon Siwek)

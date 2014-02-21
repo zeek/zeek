@@ -49,7 +49,7 @@ function topk_add%(handle: opaque of topk, value: any%): any
 ##
 ## .. bro:see:: topk_init topk_add topk_count topk_epsilon
 ##    topk_size topk_sum topk_merge topk_merge_prune
-function topk_get_top%(handle: opaque of topk, k: count%): any
+function topk_get_top%(handle: opaque of topk, k: count%): index_vec 
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;

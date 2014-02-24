@@ -1,4 +1,10 @@
 
+2.2-184 | 2014-02-24 07:28:18 -0800
+
+  * New TLS constants from
+    https://tools.ietf.org/html/draft-bmoeller-tls-downgrade-scsv-01.
+    (Bernhard Amann)
+
 2.2-180 | 2014-02-20 17:29:14 -0800
 
   * New SSL alert descriptions from

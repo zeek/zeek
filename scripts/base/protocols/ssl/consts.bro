@@ -89,6 +89,8 @@ export {
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
 		[30031] = "channel_id",
+		[30032] = "channel_id_new",
+		[35655] = "padding",
 		[65281] = "renegotiation_info"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	

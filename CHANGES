@@ -1,4 +1,12 @@
 
+2.2-187 | 2014-02-25 07:24:42 -0800
+
+  * More Google TLS extensions that are being actively used. (Bernhard
+    Amann)
+
+  * Remove unused, and potentially unsafe, function
+    ListVal::IncludedInString. (Bernhard Amann)
+
 2.2-184 | 2014-02-24 07:28:18 -0800
 
   * New TLS constants from

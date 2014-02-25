@@ -2976,7 +2976,9 @@ VectorVal::~VectorVal()
 bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
+	     ! same_type(element->Type(), vector_type->YieldType(), 0) &&
+			 // if we are unspecified, you can assign anything to us.
+			 ! vector_type->IsUnspecifiedVector() )
 		{
 		Unref(element);
 		return false;
@@ -3139,7 +3141,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 	for ( int i = 0; i < len; ++i )
 		{
 		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
+		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY)); // accept any type
 		Assign(i, v);
 		}
 

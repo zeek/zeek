@@ -3819,7 +3819,9 @@ VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list,
 		if ( constructor_list->Exprs().length() == 0 )
 			{
 			// vector().
-			SetType(new ::VectorType(base_type(TYPE_ANY)));
+			// By default, assign VOID type here. A vector with
+			// void type set is seen as an unspecified vector.
+			SetType(new ::VectorType(base_type(TYPE_VOID)));
 			return;
 			}
 

@@ -1626,6 +1626,21 @@ VectorType::~VectorType()
 	Unref(yield_type);
 	}
 
+BroType* VectorType::YieldType()
+	{
+	// cheat around the fact that we use void internally to
+	// mark a vector as being unspecified
+	if ( IsUnspecifiedVector() )
+		{
+		BroType* ret = ::base_type(TYPE_ANY);
+		Unref(ret); // unref, because this won't be held by anyone.
+		assert(ret);
+		return ret;
+		}
+
+	return yield_type;
+	}
+
 int VectorType::MatchesIndex(ListExpr*& index) const
 	{
 	expr_list& el = index->Exprs();
@@ -1645,7 +1660,7 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 
 bool VectorType::IsUnspecifiedVector() const
 	{
-	return yield_type->Tag() == TYPE_ANY;
+	return yield_type->Tag() == TYPE_VOID;
 	}
 
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);

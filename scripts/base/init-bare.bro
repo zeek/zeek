@@ -1028,13 +1028,6 @@ const rpc_timeout = 24 sec &redef;
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 0.0 sec &redef;
 
-## Time window for reordering packets. This is used for dealing with timestamp
-## discrepancy between multiple packet sources.
-##
-## .. note:: Setting this can have a major performance impact as now packets
-##    need to be potentially copied and buffered.
-const packet_sort_window = 0 usecs &redef;
-
 ## If positive, indicates the encapsulation header size that should
 ## be skipped. This applies to all packets.
 const encap_hdr_size = 0 &redef;

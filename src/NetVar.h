@@ -159,8 +159,6 @@ extern int table_incremental_step;
 
 extern RecordType* packet_type;
 
-extern double packet_sort_window;
-
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
 extern TableVal* preserve_orig_addr;

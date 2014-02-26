@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-10-30-16-52-28
+#open	2014-01-31-22-54-38
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -220,5 +220,6 @@ scripts/base/init-default.bro
   scripts/base/files/unified2/__load__.bro
     scripts/base/files/unified2/main.bro
   scripts/base/misc/find-checksum-offloading.bro
+  scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-10-30-16-52-28
+#close	2014-01-31-22-54-38

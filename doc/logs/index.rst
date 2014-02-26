@@ -24,17 +24,17 @@ Working with Log Files
 
 Generally, all of Bro's log files are produced by a corresponding
 script that defines their individual structure. However, as each log
-file flows through the Logging Framework, there share a set of
+file flows through the Logging Framework, they share a set of
 structural similarities. Without breaking into the scripting aspect of
-Bro here, a bird's eye view of how the log files are produced would
-progress as follows.  The script's author defines the kinds of data,
+Bro here, a bird's eye view of how the log files are produced
+progresses as follows.  The script's author defines the kinds of data,
 such as the originating IP address or the duration of a connection,
 which will make up the fields (i.e., columns) of the log file.  The
 author then decides what network activity should generate a single log
-file entry (i.e., one line); that could, e.g., be a connection having
-been completed or an HTTP ``GET`` method being issued by an
+file entry (i.e., one line). For example, this could be a connection 
+having been completed or an HTTP ``GET`` request being issued by an
 originator. When these behaviors are observed during operation, the
-data is passed to the Logging Framework which, in turn, adds the entry
+data is passed to the Logging Framework which adds the entry
 to the appropriate log file.
 
 As the fields of the log entries can be further customized by the
@@ -57,7 +57,7 @@ data, the string ``(empty)`` as the indicator for an empty field and
 the ``-`` character as the indicator for a field that hasn't been set.
 The timestamp for when the file was created is included under
 ``#open``. The header then goes on to detail the fields being listed
-in the file and the data types of those fields in ``#fields`` and
+in the file and the data types of those fields, in ``#fields`` and
 ``#types``, respectively. These two entries are often the two most
 significant points of interest as they detail not only the field names
 but the data types used. When navigating through the different log
@@ -66,12 +66,12 @@ definitions readily available saves the user some mental leg work. The
 field names are also a key resource for using the :ref:`bro-cut
 <bro-cut>` utility included with Bro, see below.
 
-Next to the header follows the main content; in this example we see 7
+Next to the header follows the main content. In this example we see 7
 connections with their key properties, such as originator and
-responder IP addresses (note how Bro transparely handles both IPv4 and
-IPv6), transport-layer ports, application-layer services - the
-``service`` field is filled ias Bro determines a specific protocol to
-be in use, independent of the connection's ports - payload size, and
+responder IP addresses (note how Bro transparently handles both IPv4 and
+IPv6), transport-layer ports, application-layer services ( - the
+``service`` field is filled in as Bro determines a specific protocol to
+be in use, independent of the connection's ports), payload size, and
 more. See :bro:type:`Conn::Info` for a description of all fields.
 
 In addition to ``conn.log``, Bro generates many further logs by
@@ -87,8 +87,8 @@ default, including:
     A log of FTP session-level activity.
 
 ``files.log``
-    Summaries of files transfered over the network. This information
-    is aggregrated from different protocols, including HTTP, FTP, and
+    Summaries of files transferred over the network. This information
+    is aggregated from different protocols, including HTTP, FTP, and
     SMTP.
 
 ``http.log``
@@ -106,7 +106,7 @@ default, including:
 ``weird.log``
     A log of unexpected protocol-level activity. Whenever Bro's
     protocol analysis encounters a situation it would not expect
-    (e.g., an RFC violation) is logs it in this file. Note that in
+    (e.g., an RFC violation) it logs it in this file. Note that in
     practice, real-world networks tend to exhibit a large number of
     such "crud" that is usually not worth following up on.
 
@@ -120,7 +120,7 @@ Using ``bro-cut``
 
 The ``bro-cut`` utility can be used in place of other tools to build
 terminal commands that remain flexible and accurate independent of
-possible changes to log file itself.  It accomplishes this by parsing
+possible changes to the log file itself.  It accomplishes this by parsing
 the header in each file and allowing the user to refer to the specific
 columnar data available (in contrast to tools like ``awk`` that
 require the user to refer to fields referenced by their position).
@@ -131,7 +131,7 @@ from a ``conn.log``:
 
    @TEST-EXEC: btest-rst-cmd -n 10 "cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration"
 
-The correspding ``awk`` command would look like this:
+The corresponding ``awk`` command will look like this:
 
 .. btest:: using_bro
 
@@ -185,8 +185,8 @@ Working with Timestamps
 
 ``bro-cut`` accepts the flag ``-d`` to convert the epoch time values
 in the log files to human-readable format.  The following command
-includes the human readable time stamp, the unique identifier and the
-HTTP ``Host`` and HTTP ``URI`` as extracted from the ``http.log``
+includes the human readable time stamp, the unique identifier, the
+HTTP ``Host``, and HTTP ``URI`` as extracted from the ``http.log``
 file:
 
 .. btest:: using_bro
@@ -218,7 +218,7 @@ See ``man strfime`` for more options for the format string.
 Using UIDs
 ----------
 
-While Bro can do signature based analysis, its primary focus is on
+While Bro can do signature-based analysis, its primary focus is on
 behavioral detection which alters the practice of log review from
 "reactionary review" to a process a little more akin to a hunting
 trip.  A common progression of review includes correlating a session
@@ -254,12 +254,13 @@ network.
 -----------------------
 Common Log Files
 -----------------------
-As a monitoring tool, Bro records a detailed view of the traffic inspected and the events generated in 
-a series of relevant log files. These files can later be reviewed for monitoring, auditing and troubleshooting 
-purposes.
+As a monitoring tool, Bro records a detailed view of the traffic inspected 
+and the events generated in a series of relevant log files. These files can 
+later be reviewed for monitoring, auditing and troubleshooting purposes.
 
-In this section we present a brief explanation of the most commonly used log files generated by Bro including links 
-to descriptions of some of the fields for each log type.
+In this section we present a brief explanation of the most commonly used log 
+files generated by Bro including links to descriptions of some of the fields 
+for each log type.
 
 +-----------------+---------------------------------------+------------------------------+
 | Log File        | Description                           | Field Descriptions           |

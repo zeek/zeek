@@ -16,18 +16,18 @@ In the following sections, we present a few examples of common uses of
 Bro as an IDS.
 
 ------------------------------------------------
-Detecting an FTP Bruteforce attack and notifying
+Detecting an FTP Brute-force Attack and Notifying
 ------------------------------------------------
 
-For the purpose of this exercise, we define FTP bruteforcing as too many
+For the purpose of this exercise, we define FTP brute-forcing as too many
 rejected usernames and passwords occurring from a single address.  We
-start by defining a threshold for the number of attempts and a
-monitoring interval in minutes as well as a new notice type.
+start by defining a threshold for the number of attempts, a monitoring
+interval (in minutes), and a new notice type.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ftp/detect-bruteforcing.bro
     :lines: 9-25
 
-Now, using the ftp_reply event, we check for error codes from the `500
+Using the ftp_reply event, we check for error codes from the `500
 series <http://en.wikipedia.org/wiki/List_of_FTP_server_return_codes>`_
 for the "USER" and "PASS" commands, representing rejected usernames or
 passwords. For this, we can use the :bro:see:`FTP::parse_ftp_reply_code`
@@ -38,9 +38,9 @@ function to break down the reply code and check if the first digit is a
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ftp/detect-bruteforcing.bro
     :lines: 52-60
 
-Next, we use the SumStats framework to raise a notice of the attack of
-the attack when the number of failed attempts exceeds the specified
-threshold during the measuring interval.
+Next, we use the SumStats framework to raise a notice of the attack when
+the number of failed attempts exceeds the specified threshold during the
+measuring interval.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ftp/detect-bruteforcing.bro
     :lines: 28-50
@@ -56,14 +56,14 @@ Below is the final code for our script.
 
 As a final note, the :doc:`detect-bruteforcing.bro
 </scripts/policy/protocols/ftp/detect-bruteforcing.bro>` script above is
-include with Bro out of the box, so you only need to load it at startup
-to instruct Bro to detect and notify of FTP bruteforce attacks.
+included with Bro out of the box.  Use this feature by loading this script
+during startup.
 
 -------------
 Other Attacks
 -------------
 
-Detecting SQL Injection attacks
+Detecting SQL Injection Attacks
 -------------------------------
 
 Checking files against known malware hashes
@@ -76,5 +76,4 @@ list of known malware hashes. Bro simplifies this task by offering a
 :doc:`detect-MHR.bro </scripts/policy/frameworks/files/detect-MHR.bro>`
 script that creates and compares hashes against the `Malware Hash
 Registry <https://www.team-cymru.org/Services/MHR/>`_ maintained by Team
-Cymru. You only need to load this script along with your other scripts
-at startup time.
+Cymru. Use this feature by loading this script during startup.

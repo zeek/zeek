@@ -1,4 +1,8 @@
 
+2.2-190 | 2014-02-27 07:34:44 -0800
+
+  * Adjust timings of a few leak tests. (Bernhard Amann)
+
 2.2-187 | 2014-02-25 07:24:42 -0800
 
   * More Google TLS extensions that are being actively used. (Bernhard

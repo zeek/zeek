@@ -1,4 +1,8 @@
 
+2.2-194 | 2014-02-28 14:50:53 -0800
+
+  * Remove packet sorter. Addresses BIT-700. (Bernhard Amann)
+    
 2.2-192 | 2014-02-28 09:46:43 -0800
 
   * Update Mozilla root bundle. (Bernhard Amann)

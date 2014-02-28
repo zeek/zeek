@@ -163,10 +163,13 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	
 	BIO_flush(bio);
 	int length = BIO_pending(bio);
-	char *buffer = new char[length];
+
+	// Use OPENSSL_malloc here. Using new or anything else can lead
+	// to interesting, hard to debug segfaults.
+	char *buffer = (char*) OPENSSL_malloc(length);
 	BIO_read(bio, (void*)buffer, length);
 	StringVal* ext_val = new StringVal(length, buffer);
-	delete(buffer);
+	OPENSSL_free(buffer);
 	BIO_free_all(bio);
 
 	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);						
@@ -189,16 +192,13 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 
 	mgr.QueueEvent(x509_extension, vl);
 
-
 	// look if we have a specialized handler for this event...
 	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints ) 
 		ParseBasicConstraints(ex);
 	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
 		ParseSAN(ex);
-
-	
-
 	}
+
 void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex) 
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
@@ -222,7 +222,6 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);
 
 		}
-		
 	}
 
 void file_analysis::X509::ParseSAN(X509_EXTENSION* ext) 

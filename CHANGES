@@ -1,4 +1,8 @@
 
+2.2-192 | 2014-02-28 09:46:43 -0800
+
+  * Update Mozilla root bundle. (Bernhard Amann)
+    
 2.2-190 | 2014-02-27 07:34:44 -0800
 
   * Adjust timings of a few leak tests. (Bernhard Amann)

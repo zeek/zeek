@@ -220,12 +220,6 @@ void PktSrc::Process()
 		break;
 		}
 
-	case DLT_IEEE802_11:
-		{
-			printf("Here\n");
-			exit(0);
-		}
-
 	case DLT_EN10MB:
 		{
 		// Get protocol being carried from the ethernet frame.

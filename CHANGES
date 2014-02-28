@@ -1,4 +1,8 @@
 
+2.2-197 | 2014-02-28 15:36:58 -0800
+
+  * Remove test code. (Robin Sommer)
+
 2.2-194 | 2014-02-28 14:50:53 -0800
 
   * Remove packet sorter. Addresses BIT-700. (Bernhard Amann)

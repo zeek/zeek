@@ -31,10 +31,10 @@ private:
 	static StringVal* key_curve(EVP_PKEY *key);
 	static unsigned int key_length(EVP_PKEY *key);
 
-	void ParseCertificate(::X509* ssl_cert);
-	void ParseExtension(X509_EXTENSION* ex);
-	void ParseBasicConstraints(X509_EXTENSION* ex);
-	void ParseSAN(X509_EXTENSION* ex);
+	RecordVal* ParseCertificate(::X509* ssl_cert);
+	void ParseExtension(X509_EXTENSION* ex, RecordVal* r);
+	void ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r);
+	void ParseSAN(X509_EXTENSION* ex, RecordVal* r);
 
 	std::string cert_data;
 };
@@ -55,7 +55,7 @@ public:
 	 *
 	 * @return A newly initialized X509Val
 	 */
-	X509Val(::X509* certificate);
+	explicit X509Val(::X509* certificate);
 
 	/**
 	 * Destructor.
@@ -83,6 +83,5 @@ private:
 };
 
 }
-
 
 #endif

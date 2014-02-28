@@ -2420,29 +2420,6 @@ global dns_skip_all_addl = T &redef;
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 5;
 
-## An X509 certificate.
-##
-## .. bro:see:: x509_certificate
-type X509: record {
-	version: count;	##< Version number.
-	serial: string;	##< Serial number.
-	subject: string;	##< Subject.
-	issuer: string;	##< Issuer.
-	not_valid_before: time;	##< Timestamp before when certificate is not valid.
-	not_valid_after: time;	##< Timestamp after when certificate is not valid.
-};
-
-## An X509 extension.
-##
-## .. bro:see:: x509_extension
-type X509_extension_info: record {
-	name: string;	##< Long name of extension; oid if name not known.
-	short_name: string &optional;	##< Short name of extension if known.
-	oid: string;	##< Oid of extension.
-	critical: bool;	##< True if extension is critical.
-	value: string;	##< Extension content parsed to string for known extensions. Raw data otherwise.
-};
-
 ## HTTP session statistics.
 ##
 ## .. bro:see:: http_stats
@@ -2767,6 +2744,7 @@ export {
 module X509;
 export {
 	type X509::Certificate: record {
+		certificate: opaque of x509; ##< OpenSSL certificate reference
 		version: count;	##< Version number.
 		serial: string;	##< Serial number.
 		subject: string;	##< Subject.
@@ -2799,7 +2777,6 @@ export {
 	type X509::SubjectAlternativeName: record {
 		names: vector of string;
 	};
-
 }
 		
 module SOCKS;

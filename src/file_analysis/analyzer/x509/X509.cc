@@ -49,7 +49,7 @@ bool file_analysis::X509::EndOfFile()
 		return false;
 		}
 
-	ParseCertificate(ssl_cert);
+	RecordVal* cert_record = ParseCertificate(ssl_cert); // cert_record takes ownership of ssl_cert
 
 	// after parsing the certificate - parse the extensions...
 
@@ -60,37 +60,43 @@ bool file_analysis::X509::EndOfFile()
 		if ( !ex )
 			continue;
 
-		ParseExtension(ex);
+		ParseExtension(ex, cert_record);
 		}
 	
-	X509_free(ssl_cert);
+	// X509_free(ssl_cert); We do _not_ free the certificate here. It is refcounted
+	// inside the X509Val that is sent on in the cert record to scriptland.
+	//
+	// The certificate will be freed when the last X509Val is Unref'd.
+	
+	Unref(cert_record); // Unref the RecordVal that we kept around from ParseCertificate
 
 	return false;
 	}
 
-void file_analysis::X509::ParseCertificate(::X509* ssl_cert) 
+RecordVal* file_analysis::X509::ParseCertificate(::X509* ssl_cert) 
 	{
 	char buf[256]; // we need a buffer for some of the openssl functions
-	memset(buf, 0, 256);	
+	memset(buf, 0, 256);
 	
 	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, new Val((uint64) X509_get_version(ssl_cert), TYPE_COUNT));
+	pX509Cert->Assign(0, new X509Val(ssl_cert)); // take ownership for cleanup
+	pX509Cert->Assign(1, new Val((uint64) X509_get_version(ssl_cert), TYPE_COUNT));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, &(*buf), sizeof buf);
-	pX509Cert->Assign(1, new StringVal(len, buf));
+	pX509Cert->Assign(2, new StringVal(len, buf));
 
 	X509_NAME_print_ex(bio, X509_get_subject_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, &(*buf), sizeof buf);
-	pX509Cert->Assign(2, new StringVal(len, buf));
+	pX509Cert->Assign(3, new StringVal(len, buf));
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, &(*buf), sizeof buf);
-	pX509Cert->Assign(3, new StringVal(len, buf));
+	pX509Cert->Assign(4, new StringVal(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(4, new Val(get_time_from_asn1(X509_get_notBefore(ssl_cert)), TYPE_TIME));
-	pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notAfter(ssl_cert)), TYPE_TIME));
+	pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notBefore(ssl_cert)), TYPE_TIME));
+	pX509Cert->Assign(6, new Val(get_time_from_asn1(X509_get_notAfter(ssl_cert)), TYPE_TIME));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -137,12 +143,14 @@ void file_analysis::X509::ParseCertificate(::X509* ssl_cert)
 
 	val_list* vl = new val_list();
 	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(pX509Cert);
+	vl->append(pX509Cert->Ref()); // we Ref it here, because we want to keep a copy around for now...
 
 	mgr.QueueEvent(x509_cert, vl);
+
+	return pX509Cert;
 	}
 
-void file_analysis::X509::ParseExtension(X509_EXTENSION* ex) 
+void file_analysis::X509::ParseExtension(X509_EXTENSION* ex, RecordVal* r) 
 	{
 	char name[256];
 	char oid[256];
@@ -188,18 +196,19 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	// but I am not sure if there is a better way to do it...
 	val_list* vl = new val_list();
 	vl->append(GetFile()->GetVal()->Ref());
+	vl->append(r->Ref());
 	vl->append(pX509Ext);
 
 	mgr.QueueEvent(x509_extension, vl);
 
 	// look if we have a specialized handler for this event...
 	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints ) 
-		ParseBasicConstraints(ex);
+		ParseBasicConstraints(ex, r);
 	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
-		ParseSAN(ex);
+		ParseSAN(ex, r);
 	}
 
-void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex) 
+void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r) 
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
 	
@@ -217,6 +226,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		}
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
+		vl->append(r->Ref());
 		vl->append(pBasicConstraint);
 
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);
@@ -224,7 +234,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		}
 	}
 
-void file_analysis::X509::ParseSAN(X509_EXTENSION* ext) 
+void file_analysis::X509::ParseSAN(X509_EXTENSION* ext, RecordVal* r) 
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ext)) == NID_subject_alt_name);
 
@@ -268,6 +278,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
+		vl->append(r->Ref());
 		vl->append(pSan);
 
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);

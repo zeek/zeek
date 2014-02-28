@@ -2432,6 +2432,17 @@ type X509: record {
 	not_valid_after: time;	##< Timestamp after when certificate is not valid.
 };
 
+## An X509 extension.
+##
+## .. bro:see:: x509_extension
+type X509_extension_info: record {
+	name: string;	##< Long name of extension; oid if name not known.
+	short_name: string &optional;	##< Short name of extension if known.
+	oid: string;	##< Oid of extension.
+	critical: bool;	##< True if extension is critical.
+	value: string;	##< Extension content parsed to string for known extensions. Raw data otherwise.
+};
+
 ## HTTP session statistics.
 ##
 ## .. bro:see:: http_stats
@@ -2886,6 +2897,12 @@ global load_sample_freq = 20 &redef;
 ##
 ## .. bro:see:: gap_report
 const gap_report_freq = 1.0 sec &redef;
+
+## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
+## and not report missing segments for such connections.
+## If this is enabled, then missing data at the end of connections may not
+## be reported via :bro:see:`content_gap`.
+const detect_filtered_trace = F &redef;
 
 ## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note

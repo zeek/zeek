@@ -60,3 +60,4 @@
 @load base/files/x509
 
 @load base/misc/find-checksum-offloading
+@load base/misc/find-filtered-trace

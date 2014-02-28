@@ -242,10 +242,17 @@ int HTTP_Entity::Undelivered(int64_t len)
 	if ( end_of_data && in_header )
 		return 0;
 
-	file_mgr->Gap(body_length, len,
-	              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-	              http_message->MyHTTP_Analyzer()->Conn(),
-	              http_message->IsOrig());
+	if ( is_partial_content )
+		file_mgr->Gap(body_length, len,
+		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		              http_message->MyHTTP_Analyzer()->Conn(),
+		              http_message->IsOrig());
+	else
+		precomputed_file_id = file_mgr->Gap(body_length, len,
+		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                  http_message->MyHTTP_Analyzer()->Conn(),
+		                  http_message->IsOrig(),
+		                  precomputed_file_id);
 
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{
@@ -314,15 +321,18 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	else
 		{
 		if ( send_size && content_length > 0 )
-			file_mgr->SetSize(content_length,
+			precomputed_file_id = file_mgr->SetSize(content_length,
 			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig());
+			                  http_message->IsOrig(),
+			                  precomputed_file_id);
 
-		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf),
+		                 len,
 		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig());
+		                 http_message->IsOrig(),
+		                 precomputed_file_id);
 		}
 
 	send_size = false;

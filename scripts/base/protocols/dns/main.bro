@@ -63,15 +63,17 @@ export {
 		## The DNS query was rejected by the server.
 		rejected:      bool               &log &default=F;
 
-		## This value indicates if this request/response pair is ready
-		## to be logged.
-		ready:         bool            &default=F;
 		## The total number of resource records in a reply message's
 		## answer section.
 		total_answers: count           &optional;
 		## The total number of resource records in a reply message's
 		## answer, authority, and additional sections.
 		total_replies: count           &optional;
+
+		## Whether the full DNS query has been seen.
+		saw_query: bool                &default=F;
+		## Whether the full DNS reply has been seen.
+		saw_reply: bool                &default=F;
 	};
 
 	## An event that can be handled to access the :bro:type:`DNS::Info`
@@ -90,7 +92,7 @@ export {
 	## ans: The general information of a RR response.
 	##
 	## reply: The specific response information according to RR type/class.
-	global do_reply: event(c: connection, msg: dns_msg, ans: dns_answer, reply: string);
+	global do_reply: hook(c: connection, msg: dns_msg, ans: dns_answer, reply: string);
 
 	## A hook that is called whenever a session is being set.
 	## This can be used if additional initialization logic needs to happen
@@ -103,17 +105,37 @@ export {
 	## is_query: Indicator for if this is being called for a query or a response.
 	global set_session: hook(c: connection, msg: dns_msg, is_query: bool);
 
+	## Yields a queue of :bro:see:`DNS::Info` objects for a given
+	## DNS message query/transaction ID.
+	type PendingMessages: table[count] of Queue::Queue;
+
+	## The amount of time that DNS queries or replies for a given
+	## query/transaction ID are allowed to be queued while waiting for
+	## a matching reply or query.
+	const pending_msg_expiry_interval = 2min &redef;
+
+	## Give up trying to match pending DNS queries or replies for a given
+	## query/transaction ID once this number of unmatched queries or replies
+	## is reached (this shouldn't happen unless either the DNS server/resolver
+	## is broken, Bro is not seeing all the DNS traffic, or an AXFR query
+	## response is ongoing).
+	const max_pending_msgs = 50 &redef;
+
+	## Give up trying to match pending DNS queries or replies across all
+	## query/transaction IDs once there is at least one unmatched query or
+	## reply across this number of different query IDs.
+	const max_pending_query_ids = 50 &redef;
+
 	## A record type which tracks the status of DNS queries for a given
 	## :bro:type:`connection`.
 	type State: record {
 		## Indexed by query id, returns Info record corresponding to
-		## query/response which haven't completed yet.
-		pending: table[count] of Queue::Queue;
+		## queries that haven't been matched with a response yet.
+		pending_queries: PendingMessages;
 
-		## This is the list of DNS responses that have completed based
-		## on the number of responses declared and the number received.
-		## The contents of the set are transaction IDs.
-		finished_answers: set[count];
+		## Indexed by query id, returns Info record corresponding to
+		## replies that haven't been matched with a query yet.
+		pending_replies: PendingMessages;
 	};
 }
 
@@ -143,6 +165,67 @@ function new_session(c: connection, trans_id: count): Info
 	return info;
 	}
 
+function log_unmatched_msgs_queue(q: Queue::Queue)
+	{
+	local infos: vector of Info;
+	Queue::get_vector(q, infos);
+
+	for ( i in infos )
+		{
+		event flow_weird("dns_unmatched_msg",
+		                 infos[i]$id$orig_h, infos[i]$id$resp_h);
+		Log::write(DNS::LOG, infos[i]);
+		}
+	}
+
+function log_unmatched_msgs(msgs: PendingMessages)
+	{
+	for ( trans_id in msgs )
+		{
+		log_unmatched_msgs_queue(msgs[trans_id]);
+		delete msgs[trans_id];
+		}
+	}
+
+function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
+	{
+	if ( id !in msgs )
+		{
+		if ( |msgs| > max_pending_query_ids )
+			{
+			event flow_weird("dns_unmatched_query_id_quantity",
+			                 msg$id$orig_h, msg$id$resp_h);
+			# Throw away all unmatched on assumption they'll never be matched.
+			log_unmatched_msgs(msgs);
+			}
+
+		msgs[id] = Queue::init();
+		}
+	else
+		{
+		if ( Queue::len(msgs[id]) > max_pending_msgs )
+			{
+			event flow_weird("dns_unmatched_msg_quantity",
+			                 msg$id$orig_h, msg$id$resp_h);
+			log_unmatched_msgs_queue(msgs[id]);
+			# Throw away all unmatched on assumption they'll never be matched.
+			msgs[id] = Queue::init();
+			}
+		}
+
+	Queue::put(msgs[id], msg);
+	}
+
+function pop_msg(msgs: PendingMessages, id: count): Info
+	{
+	local rval: Info = Queue::get(msgs[id]);
+
+	if ( Queue::len(msgs[id]) == 0 )
+		delete msgs[id];
+
+	return rval;
+	}
+
 hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 	{
 	if ( ! c?$dns_state )
@@ -151,29 +234,39 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		c$dns_state = state;
 		}
 
-	if ( msg$id !in c$dns_state$pending )
-		c$dns_state$pending[msg$id] = Queue::init();
-	
-	local info: Info;
-	# If this is either a query or this is the reply but
-	# no Info records are in the queue (we missed the query?)
-	# we need to create an Info record and put it in the queue.  
-	if ( is_query ||
-	     Queue::len(c$dns_state$pending[msg$id]) == 0 )
-		{
-		info = new_session(c, msg$id);
-		Queue::put(c$dns_state$pending[msg$id], info);
-		}
-
 	if ( is_query )
-		# If this is a query, assign the newly created info variable
-		# so that the world looks correct to anything else handling
-		# this query.
-		c$dns = info;
+		{
+		if ( msg$id in c$dns_state$pending_replies &&
+		     Queue::len(c$dns_state$pending_replies[msg$id]) > 0 )
+			{
+			# Match this DNS query w/ what's at head of pending reply queue.
+			c$dns = pop_msg(c$dns_state$pending_replies, msg$id);
+			}
+		else
+			{
+			# Create a new DNS session and put it in the query queue so
+			# we can wait for a matching reply.
+			c$dns = new_session(c, msg$id);
+			enqueue_new_msg(c$dns_state$pending_queries, msg$id, c$dns);
+			}
+		}
 	else
-		# Peek at the next item in the queue for this trans_id and 
-		# assign it to c$dns since this is a response.
-		c$dns = Queue::peek(c$dns_state$pending[msg$id]);
+		{
+		if ( msg$id in c$dns_state$pending_queries &&
+		     Queue::len(c$dns_state$pending_queries[msg$id]) > 0 )
+			{
+			# Match this DNS reply w/ what's at head of pending query queue.
+			c$dns = pop_msg(c$dns_state$pending_queries, msg$id);
+			}
+		else
+			{
+			# Create a new DNS session and put it in the reply queue so
+			# we can wait for a matching query.
+			c$dns = new_session(c, msg$id);
+			event conn_weird("dns_unmatched_reply", c, "");
+			enqueue_new_msg(c$dns_state$pending_replies, msg$id, c$dns);
+			}
+		}
 
 	if ( ! is_query )
 		{
@@ -183,36 +276,36 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		if ( ! c$dns?$total_answers )
 			c$dns$total_answers = msg$num_answers;
 
-		if ( c$dns?$total_replies &&
-		     c$dns$total_replies != msg$num_answers + msg$num_addl + msg$num_auth )
-			{
-			event conn_weird("dns_changed_number_of_responses", c,
-			                      fmt("The declared number of responses changed from %d to %d",
-			                          c$dns$total_replies,
-			                          msg$num_answers + msg$num_addl + msg$num_auth));
-			}
-		else
-			{
-			# Store the total number of responses expected from the first reply.
+		if ( ! c$dns?$total_replies )
 			c$dns$total_replies = msg$num_answers + msg$num_addl + msg$num_auth;
-			}
+
+		if ( msg$rcode != 0 && msg$num_queries == 0 )
+			c$dns$rejected = T;
 		}
 	}
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
-	hook set_session(c, msg, is_orig);
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
+	hook set_session(c, msg, ! msg$QR);
 	}
 
-event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
+hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
+	if ( ! msg$QR )
+		# This is weird: the inquirer must also be providing answers in
+		# the request, which is not what we want to track.
+		return;
+
 	if ( ans$answer_type == DNS_ANS )
 		{
-		if ( ! c?$dns )
-			{
-			event conn_weird("dns_unmatched_reply", c, "");
-			hook set_session(c, msg, F);
-			}
 		c$dns$AA    = msg$AA;
 		c$dns$RA    = msg$RA;
 
@@ -226,29 +319,35 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 				c$dns$TTLs = vector();
 			c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
 			}
-
-		if ( c$dns?$answers && c$dns?$total_answers &&
-		     |c$dns$answers| == c$dns$total_answers )
-			{
-			# Indicate this request/reply pair is ready to be logged.
-			c$dns$ready = T;
-			}
 		}
 	}
 
-event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=-5
+event dns_end(c: connection, msg: dns_msg) &priority=5
 	{
-	if ( c$dns$ready )
+	if ( ! c?$dns )
+		return;
+
+	if ( msg$QR )
+		c$dns$saw_reply = T;
+	else
+		c$dns$saw_query = T;
+	}
+
+event dns_end(c: connection, msg: dns_msg) &priority=-5
+	{
+	if ( c?$dns && c$dns$saw_reply && c$dns$saw_query )
 		{
 		Log::write(DNS::LOG, c$dns);
-		# This record is logged and no longer pending.
-		Queue::get(c$dns_state$pending[c$dns$trans_id]);
 		delete c$dns;
 		}
 	}
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
 	c$dns$RD          = msg$RD;
 	c$dns$TC          = msg$TC;
 	c$dns$qclass      = qclass;
@@ -265,60 +364,66 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	c$dns$query = query;
 	}
 
+
+event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, fmt("<unknown type=%s>", ans$qtype));
+	}
+
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, fmt("%s", a));
+	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
 event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, str);
+	hook DNS::do_reply(c, msg, ans, str);
 	}
 
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, fmt("%s", a));
+	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
 event dns_A6_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, fmt("%s", a));
+	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
 event dns_NS_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, name);
+	hook DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_CNAME_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, name);
+	hook DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
                    preference: count) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, name);
+	hook DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, name);
+	hook DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_SOA_reply(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, soa$mname);
+	hook DNS::do_reply(c, msg, ans, soa$mname);
 	}
 
 event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, "");
+	hook DNS::do_reply(c, msg, ans, "");
 	}
 
 event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	{
-	event DNS::do_reply(c, msg, ans, "");
+	hook DNS::do_reply(c, msg, ans, "");
 	}
 
 # TODO: figure out how to handle these
@@ -339,7 +444,8 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 
 event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	c$dns$rejected = T;
+	if ( c?$dns )
+		c$dns$rejected = T;
 	}
 
 event connection_state_remove(c: connection) &priority=-5
@@ -347,16 +453,8 @@ event connection_state_remove(c: connection) &priority=-5
 	if ( ! c?$dns_state )
 		return;
 
-	# If Bro is expiring state, we should go ahead and log all unlogged
-	# request/response pairs now.
-	for ( trans_id in c$dns_state$pending )
-		{
-		local infos: vector of Info;
-		Queue::get_vector(c$dns_state$pending[trans_id], infos);
-		for ( i in infos )
-			{
-			Log::write(DNS::LOG, infos[i]);
-			}
-		}
+	# If Bro is expiring state, we should go ahead and log all unmatched
+	# queries and replies now.
+	log_unmatched_msgs(c$dns_state$pending_queries);
+	log_unmatched_msgs(c$dns_state$pending_replies);
 	}
-

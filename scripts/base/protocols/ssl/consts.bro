@@ -47,6 +47,7 @@ export {
 		[70] = "protocol_version",
 		[71] = "insufficient_security",
 		[80] = "internal_error",
+		[86] = "inappropriate_fallback",
 		[90] = "user_canceled",
 		[100] = "no_renegotiation",
 		[110] = "unsupported_extension",
@@ -55,6 +56,7 @@ export {
 		[113] = "bad_certificate_status_response",
 		[114] = "bad_certificate_hash_value",
 		[115] = "unknown_psk_identity",
+		[120] = "no_application_protocol",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
 	## Mapping between numeric codes and human readable strings for SSL/TLS
@@ -86,6 +88,7 @@ export {
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
+		[30031] = "channel_id",
 		[65281] = "renegotiation_info"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
@@ -262,6 +265,8 @@ export {
 	const TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C3;
 	const TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C4;
 	const TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C5;
+	# draft-bmoeller-tls-downgrade-scsv-01
+	const TLS_FALLBACK_SCSV = 0x5600;
 	# RFC 4492
 	const TLS_ECDH_ECDSA_WITH_NULL_SHA = 0xC001;
 	const TLS_ECDH_ECDSA_WITH_RC4_128_SHA = 0xC002;
@@ -628,6 +633,7 @@ export {
 		[TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256] = "TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256",
 		[TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256] = "TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256",
 		[TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256] = "TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256",
+		[TLS_FALLBACK_SCSV] = "TLS_FALLBACK_SCSV",
 		[TLS_ECDH_ECDSA_WITH_NULL_SHA] = "TLS_ECDH_ECDSA_WITH_NULL_SHA",
 		[TLS_ECDH_ECDSA_WITH_RC4_128_SHA] = "TLS_ECDH_ECDSA_WITH_RC4_128_SHA",
 		[TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA] = "TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA",

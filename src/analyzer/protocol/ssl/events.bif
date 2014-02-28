@@ -25,7 +25,6 @@
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
 ## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
 ##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
 

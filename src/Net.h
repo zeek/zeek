@@ -20,7 +20,7 @@ extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
-extern void net_packet_arrival(double t, const struct pcap_pkthdr* hdr,
+extern void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
 			PktSrc* src_ps);
 extern int net_packet_match(BPF_Program* fp, const u_char* pkt,

@@ -218,7 +218,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		c$http$info_code = code;
 		c$http$info_msg = reason;
 		}
-	
+
 	if ( c$http?$method && c$http$method == "CONNECT" && code == 200 )
 		{
 		# Copy this conn_id and set the orig_p to zero because in the case of CONNECT proxies there will

@@ -950,7 +950,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 	if ( pia )
 		{
-		// There will be a PIA instance if this connection has been identified 
+		// There will be a PIA instance if this connection has been identified
 		// as a connect proxy.
 		ForwardStream(len, data, is_orig);
 		return;
@@ -1066,14 +1066,10 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				HTTP_Reply();
 
-				InitHTTPMessage(content_line,
-						reply_message, is_orig,
-						ExpectReplyMessageBody(),
-						len);
-
 				if ( connect_request && reply_code == 200 )
 					{
 					pia = new pia::PIA_TCP(Conn());
+
 					if ( AddChildAnalyzer(pia) )
 						{
 						pia->FirstPacket(true, 0);
@@ -1084,13 +1080,22 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						// need to be removed.
 						RemoveSupportAnalyzer(content_line_orig);
 						RemoveSupportAnalyzer(content_line_resp);
+
+						return;
 						}
+
 					else
 						{
+						// Shouldn't really happen.
+						delete pia;
 						pia = 0;
 						}
 					}
 
+				InitHTTPMessage(content_line,
+						reply_message, is_orig,
+						ExpectReplyMessageBody(),
+						len);
 				}
 			else
 				{
@@ -1422,6 +1427,12 @@ void HTTP_Analyzer::HTTP_Request()
 	{
 	ProtocolConfirmation();
 
+	const char* method = (const char*) request_method->AsString()->Bytes();
+	int method_len = request_method->AsString()->Len();
+
+	if ( strcasecmp_n(method_len, method, "CONNECT") == 0 )
+		connect_request = true;
+
 	if ( http_request )
 		{
 		val_list* vl = new val_list;
@@ -1436,9 +1447,6 @@ void HTTP_Analyzer::HTTP_Request()
 		// DEBUG_MSG("%.6f http_request\n", network_time);
 		ConnectionEvent(http_request, vl);
 		}
-
-	if ( strcasecmp_n(request_method->AsString()->Len(), (const char*) (request_method->AsString()->Bytes()), "CONNECT") == 0 )
-		connect_request = true;
 	}
 
 void HTTP_Analyzer::HTTP_Reply()

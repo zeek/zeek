@@ -6,6 +6,9 @@
 # @TEST-EXEC: btest-diff smtp.log
 # @TEST-EXEC: btest-diff tunnel.log
 
-# The base analysis scripts are loaded by default.
-#@load base/protocols/http
+@load base/protocols/conn
+@load base/protocols/http
+@load base/protocols/smtp
+@load base/protocols/tunnels
+@load base/frameworks/dpd
 

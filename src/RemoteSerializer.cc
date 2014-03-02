@@ -1466,7 +1466,7 @@ void RemoteSerializer::Process()
 		current_pkt = p->pkt;
 		current_pktsrc = 0;
 		current_iosrc = this;
-		sessions->NextPacket(p->time, p->hdr, p->pkt, p->hdr_size, 0);
+		sessions->NextPacket(p->time, p->hdr, p->pkt, p->hdr_size);
 		mgr.Drain();
 
 		current_hdr = 0;	// done with these

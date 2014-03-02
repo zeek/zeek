@@ -156,8 +156,6 @@ int table_incremental_step;
 
 RecordType* packet_type;
 
-double packet_sort_window;
-
 double connection_status_update_interval;
 
 StringVal* state_dir;
@@ -480,8 +478,6 @@ void init_net_var()
 		opt_internal_table("generate_OS_version_event");
 
 	packet_type = internal_type("packet")->AsRecordType();
-
-	packet_sort_window = opt_internal_double("packet_sort_window");
 
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");

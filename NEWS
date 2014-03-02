@@ -47,6 +47,8 @@ Changed Functionality
 
   TODO: Update if we add a detector for filtered traces.
 
+- We have removed the packet sorter component.
+
 Bro 2.2
 =======
 

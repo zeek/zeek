@@ -109,16 +109,6 @@ export {
 	## DNS message query/transaction ID.
 	type PendingMessages: table[count] of Queue::Queue;
 
-	## Called when a pending DNS query has not been matched with a reply (or
-	## vice versa) in a sufficent amount of time.
-	##
-	## pending: table of pending messages, indexed by transaction ID.
-	##
-	## id: the index of he element being expired.
-	##
-	## Returns: amount of time to delay expiration of the element.
-	global expire_pending_msg: function(pending: PendingMessages, id: count): interval;
-
 	## The amount of time that DNS queries or replies for a given
 	## query/transaction ID are allowed to be queued while waiting for
 	## a matching reply or query.
@@ -131,16 +121,21 @@ export {
 	## response is ongoing).
 	const max_pending_msgs = 50 &redef;
 
+	## Give up trying to match pending DNS queries or replies across all
+	## query/transaction IDs once there is at least one unmatched query or
+	## reply across this number of different query IDs.
+	const max_pending_query_ids = 50 &redef;
+
 	## A record type which tracks the status of DNS queries for a given
 	## :bro:type:`connection`.
 	type State: record {
 		## Indexed by query id, returns Info record corresponding to
 		## queries that haven't been matched with a response yet.
-		pending_queries: PendingMessages &read_expire=pending_msg_expiry_interval &expire_func=expire_pending_msg;
+		pending_queries: PendingMessages;
 
 		## Indexed by query id, returns Info record corresponding to
 		## replies that haven't been matched with a query yet.
-		pending_replies: PendingMessages &read_expire=pending_msg_expiry_interval &expire_func=expire_pending_msg;
+		pending_replies: PendingMessages;
 	};
 }
 
@@ -176,7 +171,11 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 	Queue::get_vector(q, infos);
 
 	for ( i in infos )
+		{
+		event flow_weird("dns_unmatched_msg",
+		                 infos[i]$id$orig_h, infos[i]$id$resp_h);
 		Log::write(DNS::LOG, infos[i]);
+		}
 	}
 
 function log_unmatched_msgs(msgs: PendingMessages)
@@ -191,15 +190,27 @@ function log_unmatched_msgs(msgs: PendingMessages)
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
 	{
 	if ( id !in msgs )
-		msgs[id] = Queue::init();
-	else if ( Queue::len(msgs[id]) > max_pending_msgs )
 		{
-		local info: Info = Queue::peek(msgs[id]);
-		event flow_weird("dns_unmatched_msg_quantity", info$id$orig_h,
-		                 info$id$resp_h);
-		log_unmatched_msgs_queue(msgs[id]);
-		# Throw away all unmatched on assumption they'll never be matched.
+		if ( |msgs| > max_pending_query_ids )
+			{
+			event flow_weird("dns_unmatched_query_id_quantity",
+			                 msg$id$orig_h, msg$id$resp_h);
+			# Throw away all unmatched on assumption they'll never be matched.
+			log_unmatched_msgs(msgs);
+			}
+
 		msgs[id] = Queue::init();
+		}
+	else
+		{
+		if ( Queue::len(msgs[id]) > max_pending_msgs )
+			{
+			event flow_weird("dns_unmatched_msg_quantity",
+			                 msg$id$orig_h, msg$id$resp_h);
+			log_unmatched_msgs_queue(msgs[id]);
+			# Throw away all unmatched on assumption they'll never be matched.
+			msgs[id] = Queue::init();
+			}
 		}
 
 	Queue::put(msgs[id], msg);
@@ -446,19 +457,4 @@ event connection_state_remove(c: connection) &priority=-5
 	# queries and replies now.
 	log_unmatched_msgs(c$dns_state$pending_queries);
 	log_unmatched_msgs(c$dns_state$pending_replies);
-	}
-
-function expire_pending_msg(pending: PendingMessages, id: count): interval
-	{
-	local infos: vector of Info;
-	Queue::get_vector(pending[id], infos);
-
-	for ( i in infos )
-		{
-		Log::write(DNS::LOG, infos[i]);
-		event flow_weird("dns_unmatched_msg", infos[i]$id$orig_h,
-		                 infos[i]$id$resp_h);
-		}
-
-	return 0sec;
 	}

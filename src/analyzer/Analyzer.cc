@@ -798,8 +798,11 @@ void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 	// We do not call parent's method, as we're replacing the functionality.
 
 	if ( GetOutputHandler() )
+		{
 		GetOutputHandler()->DeliverPacket(len, data, is_orig, seq,
 							ip, caplen);
+		return;
+		}
 
 	SupportAnalyzer* next_sibling = Sibling(true);
 
@@ -816,7 +819,10 @@ void SupportAnalyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 	// We do not call parent's method, as we're replacing the functionality.
 
 	if ( GetOutputHandler() )
+		{
 		GetOutputHandler()->DeliverStream(len, data, is_orig);
+		return;
+		}
 
 	SupportAnalyzer* next_sibling = Sibling(true);
 
@@ -833,7 +839,10 @@ void SupportAnalyzer::ForwardUndelivered(int seq, int len, bool is_orig)
 	// We do not call parent's method, as we're replacing the functionality.
 
 	if ( GetOutputHandler() )
+		{
 		GetOutputHandler()->Undelivered(seq, len, is_orig);
+		return;
+		}
 
 	SupportAnalyzer* next_sibling = Sibling(true);
 

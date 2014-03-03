@@ -46,6 +46,13 @@ type index_vec: vector of count;
 ##    directly and then remove this alias.
 type string_vec: vector of string;
 
+## A vector of x509 opaques.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type x509_opaque_vector: vector of opaque of x509;
+
 ## A vector of addresses.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -2744,7 +2751,6 @@ export {
 module X509;
 export {
 	type X509::Certificate: record {
-		certificate: opaque of x509; ##< OpenSSL certificate reference
 		version: count;	##< Version number.
 		serial: string;	##< Serial number.
 		subject: string;	##< Subject.
@@ -2774,8 +2780,14 @@ export {
 		path_len: count &optional;
 	};
 	
-	type X509::SubjectAlternativeName: record {
-		names: vector of string;
+	## Result of an X509 certificate chain verification
+	type X509::Result: record {
+		## OpenSSL result code
+		result:	count;
+		## Result as string
+		result_string: string;
+		## References to the final certificate chain, if verification successful. End-host certificate is first.
+		chain_certs: vector of opaque of x509 &optional;
 	};
 }
 		

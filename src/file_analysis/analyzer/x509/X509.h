@@ -12,12 +12,16 @@
 
 namespace file_analysis {
 
+class X509Val;
+
 class X509 : public file_analysis::Analyzer {
 public:
 	//~X509();
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new X509(args, file); }
+	
+	static RecordVal* ParseCertificate(X509Val* cert_val);
 
 	virtual bool DeliverStream(const u_char* data, uint64 len);
 	virtual bool Undelivered(uint64 offset, uint64 len);	
@@ -31,10 +35,9 @@ private:
 	static StringVal* key_curve(EVP_PKEY *key);
 	static unsigned int key_length(EVP_PKEY *key);
 
-	RecordVal* ParseCertificate(::X509* ssl_cert);
-	void ParseExtension(X509_EXTENSION* ex, RecordVal* r);
-	void ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r);
-	void ParseSAN(X509_EXTENSION* ex, RecordVal* r);
+	void ParseExtension(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val);
+	void ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val);
+	void ParseSAN(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val);
 
 	std::string cert_data;
 };

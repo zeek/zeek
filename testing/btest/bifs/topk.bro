@@ -148,7 +148,17 @@ event bro_init()
 	print topk_count(k3, "d");
 	print topk_epsilon(k3, "d");
 
-	
+	local styped: vector of count;
+	styped = topk_get_top(k3, 3);
+	for ( i in styped )
+	print i, styped[i];
 
+	local anytyped: vector of any;
+	anytyped = topk_get_top(k3, 3);
+	for ( i in anytyped )
+		print i, anytyped[i];
 
+	local suntyped = topk_get_top(k3, 3);
+	for ( i in suntyped )
+		print i, suntyped[i];
 }

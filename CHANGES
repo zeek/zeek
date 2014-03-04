@@ -1,4 +1,11 @@
 
+2.2-199 | 2014-03-03 16:34:20 -0800
+
+  * Allow iterating over bif functions with result type vector of any.
+    This changes the internal type that is used to signal that a
+    vector is unspecified from any to void. Addresses BIT-1144
+    (Bernhard Amann)
+
 2.2-197 | 2014-02-28 15:36:58 -0800
 
   * Remove test code. (Robin Sommer)

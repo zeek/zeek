@@ -158,10 +158,12 @@ function log_record(info: Info)
 		}
 	}
 
-function finish(c: connection)
+# remove_analyzer flag is used to prevent disabling analyzer for finished
+# connections.
+function finish(c: connection, remove_analyzer: bool)
 	{
 	log_record(c$ssl);
-	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
+	if ( remove_analyzer && disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
 		delete c$ssl$analyzer_id;
 	}
@@ -249,14 +251,14 @@ event ssl_established(c: connection) &priority=5
 
 event ssl_established(c: connection) &priority=-5
 	{
-	finish(c);
+	finish(c, T);
 	}
 
 event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$ssl )
 		# called in case a SSL connection that has not been established terminates
-		finish(c);
+		finish(c, F);
 	}
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
@@ -272,5 +274,5 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
                          reason: string) &priority=5
 	{
 	if ( c?$ssl )
-		finish(c);
+		finish(c, T);
 	}

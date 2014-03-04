@@ -186,6 +186,15 @@ RuleEndpointState::~RuleEndpointState()
 		delete matched_text[j];
 	}
 
+RuleFileMagicState::~RuleFileMagicState()
+	{
+	loop_over_list(matchers, i)
+		{
+		delete matchers[i]->state;
+		delete matchers[i];
+		}
+	}
+
 RuleMatcher::RuleMatcher(int arg_RE_level)
 	{
 	root = new RuleHdrTest(RuleHdrTest::NOPROT, 0, 0, RuleHdrTest::EQ,
@@ -562,6 +571,127 @@ static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a,
 			break;
 	}
 	return false;
+	}
+
+RuleFileMagicState* RuleMatcher::InitFileMagic() const
+	{
+	RuleFileMagicState* state = new RuleFileMagicState();
+
+	if ( rule_bench == 3 )
+		return state;
+
+	loop_over_list(root->psets[Rule::FILE_MAGIC], i)
+		{
+		RuleHdrTest::PatternSet* set = root->psets[Rule::FILE_MAGIC][i];
+		assert(set->re);
+		RuleFileMagicState::Matcher* m = new RuleFileMagicState::Matcher;
+		m->state = new RE_Match_State(set->re);
+		state->matchers.append(m);
+		}
+
+	// Save some memory.
+	state->matchers.resize(0);
+	return state;
+	}
+
+RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
+                                              const u_char* data, uint64 len,
+                                              MIME_Matches* rval) const
+	{
+	if ( ! rval )
+		rval = new MIME_Matches();
+
+	if ( ! state )
+		{
+		reporter->Warning("RuleFileMagicState not initialized yet.");
+		return rval;
+		}
+
+	if ( rule_bench >= 2 )
+		return rval;
+
+#ifdef DEBUG
+	if ( debug_logger.IsEnabled(DBG_RULES) )
+		{
+		const char* s = fmt_bytes(reinterpret_cast<const char*>(data),
+		                          min(40, static_cast<int>(len)));
+		DBG_LOG(DBG_RULES, "Matching %s rules on |%s%s|",
+		        Rule::TypeToString(Rule::FILE_MAGIC), s,
+		        len > 40 ? "..." : "");
+		}
+#endif
+
+	bool newmatch = false;
+
+	loop_over_list(state->matchers, x)
+		{
+		RuleFileMagicState::Matcher* m = state->matchers[x];
+
+		if ( m->state->Match(data, len, true, false, true) )
+			newmatch = true;
+		}
+
+	if ( ! newmatch )
+		return rval;
+
+	DBG_LOG(DBG_RULES, "New pattern match found");
+
+	AcceptingSet accepted;
+	int_list matchpos;
+
+	loop_over_list(state->matchers, y)
+		{
+		RuleFileMagicState::Matcher* m = state->matchers[y];
+		const AcceptingSet* ac = m->state->Accepted();
+
+		loop_over_list(*ac, k)
+			{
+			if ( ! accepted.is_member((*ac)[k]) )
+				{
+				accepted.append((*ac)[k]);
+				matchpos.append((*m->state->MatchPositions())[k]);
+				}
+			}
+		}
+
+	// Find rules for which patterns have matched.
+	rule_list matched;
+
+	loop_over_list(accepted, i)
+		{
+		Rule* r = Rule::rule_table[accepted[i] - 1];
+
+		DBG_LOG(DBG_RULES, "Checking rule: %v", r->id);
+
+		loop_over_list(r->patterns, j)
+			{
+			if ( ! accepted.is_member(r->patterns[j]->id) )
+				continue;
+
+			if ( (unsigned int) matchpos[i] >
+			     r->patterns[j]->offset + r->patterns[j]->depth )
+				continue;
+
+			DBG_LOG(DBG_RULES, "All patterns of rule satisfied");
+			}
+
+		if ( ! matched.is_member(r) )
+			matched.append(r);
+		}
+
+	loop_over_list(matched, j)
+		{
+		Rule* r = matched[j];
+
+		loop_over_list(r->actions, rai)
+			{
+			const RuleActionMIME* ram = dynamic_cast<const RuleActionMIME*>(r->actions[rai]);
+			set<string>& ss = (*rval)[ram->GetStrength()];
+			ss.insert(ram->GetMIME());
+			}
+		}
+
+	return rval;
 	}
 
 RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
@@ -1005,6 +1135,15 @@ void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	loop_over_list(state->matched_text, i)
 		delete state->matched_text[i];
 	state->matched_text.clear();
+
+	loop_over_list(state->matchers, j)
+		state->matchers[j]->state->Clear();
+	}
+
+void RuleMatcher::ClearFileMagicState(RuleFileMagicState* state) const
+	{
+	if ( rule_bench == 3 )
+		return;
 
 	loop_over_list(state->matchers, j)
 		state->matchers[j]->state->Clear();

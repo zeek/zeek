@@ -60,6 +60,23 @@ type addr_vec: vector of addr;
 ##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
 
+## A structure indicating a MIME type and strength of a match against
+## file magic signatures.
+##
+## :bro:see:`file_magic`
+type mime_match: record {
+	strength: int;    ##< How strongly the signature matched.  Used for
+	                  ##< prioritization when multiple file magic signatures
+	                  ##< match.
+	mime:     string; ##< The MIME type of the file magic signature match.
+};
+
+## A vector of file magic signature matches, ordered by strength of
+## the signature, strongest first.
+##
+## :bro:see:`file_magic`
+type mime_matches: vector of mime_match;
+
 ## A connection's transport-layer protocol. Note that Bro uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {

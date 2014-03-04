@@ -225,11 +225,12 @@ protected:
 	void ReplayBOF();
 
 	/**
-	 * Does mime type detection and assigns type (if available) to \c mime_type
+	 * Does mime type detection via file magic signatures and assigns
+	 * strongest matching mime type (if available) to \c mime_type
 	 * field in #val.
 	 * @param data pointer to a chunk of file data.
 	 * @param len number of bytes in the data chunk.
-	 * @return whether mime type was available.
+	 * @return whether a mime type match was found.
 	 */
 	bool DetectMIME(const u_char* data, uint64 len);
 

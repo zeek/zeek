@@ -911,16 +911,6 @@ const char* bro_path()
 	return path;
 	}
 
-const char* bro_magic_path()
-	{
-	const char* path = getenv("BROMAGIC");
-
-	if ( ! path )
-		path = BRO_MAGIC_INSTALL_PATH;
-
-	return path;
-	}
-
 string bro_prefixes()
 	{
 	string rval;
@@ -1648,45 +1638,6 @@ void operator delete[](void* v)
 	}
 
 #endif
-
-void bro_init_magic(magic_t* cookie_ptr, int flags)
-	{
-	if ( ! cookie_ptr || *cookie_ptr )
-		return;
-
-	*cookie_ptr = magic_open(flags);
-
-	// Always use Bro's custom magic database.
-	const char* database = bro_magic_path();
-
-	if ( ! *cookie_ptr )
-		{
-		const char* err = magic_error(*cookie_ptr);
-		reporter->InternalError("can't init libmagic: %s",
-		                        err ? err : "unknown");
-		}
-
-	else if ( magic_load(*cookie_ptr, database) < 0 )
-		{
-		const char* err = magic_error(*cookie_ptr);
-		reporter->InternalError("can't load magic file %s: %s", database,
-		                        err ? err : "unknown");
-		magic_close(*cookie_ptr);
-		*cookie_ptr = 0;
-		}
-	}
-
-const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
-	{
-	const char* rval = magic_buffer(cookie, buffer, length);
-	if ( ! rval )
-		{
-		const char* err = magic_error(cookie);
-		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
-		}
-
-	return rval;
-	}
 
 const char* canonify_name(const char* name)
 	{

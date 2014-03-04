@@ -10,6 +10,7 @@
 #include "Val.h"
 #include "Type.h"
 #include "Event.h"
+#include "RuleMatcher.h"
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
@@ -279,20 +280,17 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
+	static RuleFileMagicState* fms = rule_matcher->InitFileMagic();
+	rule_matcher->ClearFileMagicState(fms);
+	RuleMatcher::MIME_Matches matches;
+	rule_matcher->Match(fms, data, len, &matches);
 
-	if ( mime )
-		{
-		const char* mime_end = strchr(mime, ';');
+	if ( matches.empty() )
+		return false;
 
-		if ( mime_end )
-			// strip off charset
-			val->Assign(mime_type_idx, new StringVal(mime_end - mime, mime));
-		else
-			val->Assign(mime_type_idx, new StringVal(mime));
-		}
+	val->Assign(mime_type_idx, new StringVal(*matches.begin()->second.begin()));
 
-	return mime;
+	return true;
 	}
 
 void File::ReplayBOF()

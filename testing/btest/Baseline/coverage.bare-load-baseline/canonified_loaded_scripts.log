@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-10-30-16-52-11
+#open	2014-03-03-20-45-31
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -94,6 +94,7 @@ scripts/base/init-bare.bro
       build/scripts/base/bif/file_analysis.bif.bro
       scripts/base/utils/site.bro
         scripts/base/utils/patterns.bro
+    scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/broxygen.bif.bro
@@ -101,4 +102,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/top-k.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2013-10-30-16-52-11
+#close	2014-03-03-20-45-31

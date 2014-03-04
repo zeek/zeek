@@ -58,6 +58,14 @@ export {
 		## to each connection.  It is not used for logging since it's a
 		## meaningless arbitrary number.
 		analyzer_id:      count            &optional;
+
+		## Flag to indicate if this ssl session has been established
+		## succesfully, or if it was aborted during the handshake.
+		established:  bool &log &default=F;
+
+		## Flag to indicate if this record already has been logged, to
+		## prevent duplicates.
+		logged:  bool  &default=F;
 	};
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.bro
@@ -127,9 +135,13 @@ function undelay_log(info: Info, token: string)
 
 function log_record(info: Info)
 	{
+	if ( info$logged )
+		return;
+
 	if ( ! info?$delay_tokens || |info$delay_tokens| == 0 )
 		{
 		Log::write(SSL::LOG, info);
+		info$logged = T;
 		}
 	else
 		{
@@ -151,6 +163,7 @@ function finish(c: connection)
 	log_record(c$ssl);
 	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
 		disable_analyzer(c$id, c$ssl$analyzer_id);
+		delete c$ssl$analyzer_id;
 	}
 
 event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
@@ -231,6 +244,7 @@ event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priori
 event ssl_established(c: connection) &priority=5
 	{
 	set_session(c);
+	c$ssl$established = T;
 	}
 
 event ssl_established(c: connection) &priority=-5
@@ -238,11 +252,20 @@ event ssl_established(c: connection) &priority=-5
 	finish(c);
 	}
 
+event connection_state_remove(c: connection) &priority=-5
+	{
+	if ( c?$ssl )
+		# called in case a SSL connection that has not been established terminates
+		finish(c);
+	}
+
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
-	# Check by checking for existence of c$ssl record.
-	if ( c?$ssl && atype == Analyzer::ANALYZER_SSL )
+	if ( atype == Analyzer::ANALYZER_SSL ) 
+		{
+		set_session(c);
 		c$ssl$analyzer_id = aid;
+		}
 	}
 
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,

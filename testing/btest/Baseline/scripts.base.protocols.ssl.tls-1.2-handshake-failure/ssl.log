@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2014-03-04-21-57-58
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	subject	issuer_subject	not_valid_before	not_valid_after	last_alert	client_subject	client_issuer_subject	established
+#types	time	string	addr	port	addr	port	string	string	string	string	string	string	time	time	string	string	string	bool
+1393957586.786031	CXWv6p3arKYeMETxOg	192.168.4.149	53525	74.125.239.37	443	-	-	-	-	-	-	-	-	handshake_failure	-	-	F
+#close	2014-03-04-21-57-58

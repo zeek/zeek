@@ -889,6 +889,9 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	reply_code = 0;
 	reply_reason_phrase = 0;
 
+	connect_request = false;
+	pia = 0;
+
 	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
 
@@ -944,6 +947,14 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 	if ( TCP() && TCP()->IsPartial() )
 		return;
+
+	if ( pia )
+		{
+		// There will be a PIA instance if this connection has been identified
+		// as a connect proxy.
+		ForwardStream(len, data, is_orig);
+		return;
+		}
 
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
@@ -1054,6 +1065,32 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				reply_ongoing = 1;
 
 				HTTP_Reply();
+
+				if ( connect_request && reply_code == 200 )
+					{
+					pia = new pia::PIA_TCP(Conn());
+
+					if ( AddChildAnalyzer(pia) )
+						{
+						pia->FirstPacket(true, 0);
+						pia->FirstPacket(false, 0);
+
+						// This connection has transitioned to no longer
+						// being http and the content line support analyzers
+						// need to be removed.
+						RemoveSupportAnalyzer(content_line_orig);
+						RemoveSupportAnalyzer(content_line_resp);
+
+						return;
+						}
+
+					else
+						{
+						// Shouldn't really happen.
+						delete pia;
+						pia = 0;
+						}
+					}
 
 				InitHTTPMessage(content_line,
 						reply_message, is_orig,
@@ -1389,6 +1426,12 @@ StringVal* HTTP_Analyzer::TruncateURI(StringVal* uri)
 void HTTP_Analyzer::HTTP_Request()
 	{
 	ProtocolConfirmation();
+
+	const char* method = (const char*) request_method->AsString()->Bytes();
+	int method_len = request_method->AsString()->Len();
+
+	if ( strcasecmp_n(method_len, method, "CONNECT") == 0 )
+		connect_request = true;
 
 	if ( http_request )
 		{

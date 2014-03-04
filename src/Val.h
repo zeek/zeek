@@ -656,6 +656,8 @@ protected:
 	DECLARE_SERIAL(PatternVal);
 };
 
+// ListVals are mainly used to index tables that have more than one 
+// element in their index.
 class ListVal : public Val {
 public:
 	ListVal(TypeTag t);

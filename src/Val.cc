@@ -3122,7 +3122,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 	for ( int i = 0; i < len; ++i )
 		{
 		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
+		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY)); // accept any type
 		Assign(i, v);
 		}
 

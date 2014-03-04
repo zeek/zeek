@@ -59,7 +59,7 @@ bool file_analysis::X509::EndOfFile()
 	vl->append(cert_val->Ref());
 	vl->append(cert_record->Ref()); // we Ref it here, because we want to keep a copy around for now...
 
-	mgr.QueueEvent(x509_cert, vl);
+	mgr.QueueEvent(x509_certificate, vl);
 
 	// after parsing the certificate - parse the extensions...
 
@@ -70,7 +70,7 @@ bool file_analysis::X509::EndOfFile()
 		if ( !ex )
 			continue;
 
-		ParseExtension(ex, cert_record, cert_val);
+		ParseExtension(ex);
 		}
 	
 	// X509_free(ssl_cert); We do _not_ free the certificate here. It is refcounted
@@ -157,7 +157,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	return pX509Cert;
 	}
 
-void file_analysis::X509::ParseExtension(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val) 
+void file_analysis::X509::ParseExtension(X509_EXTENSION* ex) 
 	{
 	char name[256];
 	char oid[256];
@@ -203,20 +203,18 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex, RecordVal* r, X509V
 	// but I am not sure if there is a better way to do it...
 	val_list* vl = new val_list();
 	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(cert_val->Ref());
-	vl->append(r->Ref());
 	vl->append(pX509Ext);
 
 	mgr.QueueEvent(x509_extension, vl);
 
 	// look if we have a specialized handler for this event...
 	if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints ) 
-		ParseBasicConstraints(ex, r, cert_val);
+		ParseBasicConstraints(ex);
 	else if ( OBJ_obj2nid(ext_asn) == NID_subject_alt_name )
-		ParseSAN(ex, r, cert_val);
+		ParseSAN(ex);
 	}
 
-void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val) 
+void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex) 
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
 	
@@ -234,8 +232,6 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r
 		}
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(cert_val->Ref());
-		vl->append(r->Ref());
 		vl->append(pBasicConstraint);
 
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);
@@ -243,7 +239,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r
 		}
 	}
 
-void file_analysis::X509::ParseSAN(X509_EXTENSION* ext, RecordVal* r, X509Val* cert_val) 
+void file_analysis::X509::ParseSAN(X509_EXTENSION* ext) 
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ext)) == NID_subject_alt_name);
 
@@ -284,11 +280,9 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext, RecordVal* r, X509Val* c
 
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(cert_val->Ref());
-		vl->append(r->Ref());
 		vl->append(names);
 
-		mgr.QueueEvent(x509_ext_basic_constraints, vl);
+		mgr.QueueEvent(x509_ext_subject_alternative_name, vl);
 	}
 
 StringVal* file_analysis::X509::key_curve(EVP_PKEY *key)

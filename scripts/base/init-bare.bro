@@ -2765,7 +2765,7 @@ export {
 		curve: string &optional; ##< curve, if EC-certificate
 		#ca: bool &optional; ##< indicates the CA value in the X509v3 BasicConstraints extension
 		#path_len: count &optional; ##< indicates the path_length value in the X509v3 BasicConstraints extension
-	};
+	} &log;
 
 	type X509::Extension: record {
 		name: string; ##< long name of extension. oid if name not known
@@ -2778,7 +2778,7 @@ export {
 	type X509::BasicConstraints: record {
 		ca: bool; ##< CA flag set?
 		path_len: count &optional;
-	};
+	} &log;
 	
 	## Result of an X509 certificate chain verification
 	type X509::Result: record {

@@ -23,11 +23,22 @@ X509* d2i_X509_(X509** px, const u_char** in, int len)
 #endif
 	}
 
+// construct an error record
+RecordVal* x509_error_record(uint64_t num, const char* reason)
+	{
+	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
+
+	rrecord->Assign(0, new Val(num, TYPE_COUNT));
+	rrecord->Assign(1, new StringVal(reason));
+
+	return rrecord;
+	}
+
 %%}
 
 ## Parses a certificate into an X509::Certificate structure
 ##
-## cert: The x509 certificicate opaque
+## cert: The X509 certificicate opaque handle
 ##
 ## Returns: A X509::Certificate structure
 ##
@@ -40,12 +51,50 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 	return file_analysis::X509::ParseCertificate(h);
 	%}
 
+## Returns the string form of a certificate
+##
+## cert: The X509 certificate opaque handle
+##
+## pem: A boolean that specifies if the certificate is returned
+##      in pem-form (true), or as the raw ASN1 encoded binary
+##      (false).
+##
+## Returns: X509 certificate as a string
+
+function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F%): string
+	%{
+	assert(cert);
+	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+
+	BIO *bio = BIO_new(BIO_s_mem());
+	
+	if ( pem )
+		{
+		PEM_write_bio_X509(bio, h->GetCertificate());
+		}
+	else
+		{
+		i2d_X509_bio(bio, h->GetCertificate());
+		}
+	
+	BIO_flush(bio);
+	int length = BIO_pending(bio);
+	// use OPENSS_malloc here. Otherwhise, interesting problems will happen
+	char *buffer = (char*) OPENSSL_malloc(length);
+	BIO_read(bio, (void*) buffer, length);
+	StringVal* ext_val = new StringVal(length, buffer);
+	OPENSSL_free(buffer);
+	BIO_free_all(bio);
+			
+	return ext_val;
+	%}
+
+
 ## Verifies a certificate.
 ##
-## cert_val: The X.509 certificate in DER format.
-##
-## cert_stack: Specifies a certificate chain that is being used to validate
-##             the given certificate against the root store given in *root_certs*
+## certs: Specifies a certificate chain that is being used to validate
+##        the given certificate against the root store given in *root_certs*.
+##        The host certificate has to be at index 0.
 ##
 ## root_certs: A list of root certificates to validate the certificate chain
 ##
@@ -53,10 +102,27 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 ##          operation. In case of success also returns the full certificate chain.
 ##
 ## .. bro:see:: x509_parse
-function x509_verify%(cert_val: opaque of x509, cert_stack: x509_opaque_vector, root_certs: table_string_of_string%): X509::Result
+function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string%): X509::Result
 	%{
 	X509_STORE* ctx = 0;
 	int i = 0;
+	
+	VectorVal *certs_vec = certs->AsVectorVal();
+	if ( certs_vec->Size() < 1 )
+		{
+		reporter->Error("No certificates given in vector");
+		return x509_error_record(-1, "no certificates");
+		}
+
+	// host certificate
+	unsigned int index = 0; // to prevent overloading to 0pointer
+	Val *sv = certs_vec->Lookup(index);
+	if ( !sv )
+		{
+		builtin_error("undefined value in certificate vector");
+		return x509_error_record(-1, "undefined value in certificate vector");
+		}
+	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv;	
 
 	// If this certificate store was built previously, just reuse the old one.
 	if ( x509_stores.count(root_certs) > 0 )
@@ -78,7 +144,7 @@ function x509_verify%(cert_val: opaque of x509, cert_stack: x509_opaque_vector, 
 			if ( ! x )
 				{
 				builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+				return x509_error_record((uint64) ERR_get_error(), ERR_error_string(ERR_peek_last_error(),NULL));
 				}
 			X509_STORE_add_cert(ctx, x);
 			}
@@ -88,34 +154,30 @@ function x509_verify%(cert_val: opaque of x509, cert_stack: x509_opaque_vector, 
 		x509_stores[root_certs] = ctx;
 		}
 
-	assert(cert_val);
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) cert_val;
-
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
 		{
 		builtin_error(fmt("No certificate in opaque"));
-		return new Val(-1, TYPE_COUNT);
+		return x509_error_record(-1, "No certificate in opaque");
 		}
 
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
 	if ( ! untrusted_certs )
 		{
 		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		return x509_error_record((uint64) ERR_get_error(), ERR_error_string(ERR_peek_last_error(),NULL));		
 		}
 
-	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
-	for ( i = 0; i < (int) cert_stack_vec->Size(); ++i )
+	for ( i = 1; i < (int) certs_vec->Size(); ++i ) // start at 1 - 0 is host cert
 		{
-		Val *sv = cert_stack_vec->Lookup(i);
+		Val *sv = certs_vec->Lookup(i);
 		// Fixme: check type
 		X509* x = ((file_analysis::X509Val*) sv)->GetCertificate();
 		if ( ! x )
 			{
 			sk_X509_pop(untrusted_certs);
 			builtin_error(fmt("No certificate in opaque in stack"));
-			return new Val(-1, TYPE_COUNT);
+			return x509_error_record(-1, "No certificate in opaque");
 			}
 		sk_X509_push(untrusted_certs, x);
 		}

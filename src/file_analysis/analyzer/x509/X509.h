@@ -35,9 +35,9 @@ private:
 	static StringVal* key_curve(EVP_PKEY *key);
 	static unsigned int key_length(EVP_PKEY *key);
 
-	void ParseExtension(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val);
-	void ParseBasicConstraints(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val);
-	void ParseSAN(X509_EXTENSION* ex, RecordVal* r, X509Val* cert_val);
+	void ParseExtension(X509_EXTENSION* ex);
+	void ParseBasicConstraints(X509_EXTENSION* ex);
+	void ParseSAN(X509_EXTENSION* ex);
 
 	std::string cert_data;
 };

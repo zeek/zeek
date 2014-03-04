@@ -24,35 +24,8 @@ export {
 		server_name:      string           &log &optional;
 		## Session ID offered by the client for session resumption.
 		session_id:       string           &log &optional;
-		## Subject of the X.509 certificate offered by the server.
-		subject:          string           &log &optional;
-		## Subject of the signer of the X.509 certificate offered by the
-		## server.
-		issuer_subject:   string           &log &optional;
-		## NotValidBefore field value from the server certificate.
-		not_valid_before: time             &log &optional;
-		## NotValidAfter field value from the server certificate.
-		not_valid_after:  time             &log &optional;
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
-
-		## Subject of the X.509 certificate offered by the client.
-		client_subject:          string           &log &optional;
-		## Subject of the signer of the X.509 certificate offered by the
-		## client.
-		client_issuer_subject:   string           &log &optional;
-
-		## Full binary server certificate stored in DER format.
-		cert:             string           &optional;
-		## Chain of certificates offered by the server to validate its
-		## complete signing chain.
-		cert_chain:       vector of string &optional;
-
-		## Full binary client certificate stored in DER format.
-		client_cert:             string           &optional;
-		## Chain of certificates offered by the client to validate its
-		## complete signing chain.
-		client_cert_chain:       vector of string &optional;
 
 		## The analyzer ID used for the analyzer instance attached
 		## to each connection.  It is not used for logging since it's a
@@ -108,8 +81,7 @@ event bro_init() &priority=5
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
-		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector(),
-		         $client_cert_chain=vector()];
+		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id];
 	}
 
 function delay_log(info: Info, token: string)
@@ -185,7 +157,7 @@ event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priori
 	c$ssl$last_alert = alert_descriptions[desc];
 	}
 
-event ssl_established(c: connection) &priority=5
+event ssl_established(c: connection) &priority=7
 	{
 	set_session(c);
 	}

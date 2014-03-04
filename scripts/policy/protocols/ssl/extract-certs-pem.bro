@@ -34,7 +34,7 @@ event ssl_established(c: connection) &priority=5
 	if ( ! addr_matches_host(c$id$resp_h, extract_certs_pem) )
 		return;
 
-	local hash = c$ssl$cert_chain[0]$info$sha1;
+	local hash = c$ssl$cert_chain[0]$sha1;
 	local cert = c$ssl$cert_chain[0]$x509$handle;
 
 	if ( hash in extracted_certs )

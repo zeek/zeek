@@ -480,7 +480,7 @@ X509Val::~X509Val()
 
 bool X509Val::DoSerialize(SerialInfo* info) const
 	{
-	DO_SERIALIZE(SER_X509_VAL, X509Val);
+	DO_SERIALIZE(SER_X509_VAL, OpaqueVal);
 
 	unsigned char *buf = NULL;
 

@@ -51,7 +51,7 @@ event ssl_established(c: connection) &priority=3
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 )
 		return;
 
-	local hash = c$ssl$cert_chain[0]$info$sha1;
+	local hash = c$ssl$cert_chain[0]$sha1;
 	local cert = c$ssl$cert_chain[0]$x509$certificate;
 
 	local host = c$id$resp_h;

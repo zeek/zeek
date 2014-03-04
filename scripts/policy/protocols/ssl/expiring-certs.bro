@@ -39,7 +39,7 @@ event ssl_established(c: connection) &priority=3
 		 ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
 		return;
 
-	local hash = c$ssl$cert_chain[0]$info$md5;
+	local hash = c$ssl$cert_chain[0]$md5;
 	local cert = c$ssl$cert_chain[0]$x509$certificate;
 	
 	if ( cert$not_valid_before > network_time() )

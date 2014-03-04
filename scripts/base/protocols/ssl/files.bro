@@ -1,6 +1,7 @@
 @load ./main
 @load base/utils/conn-ids
 @load base/frameworks/files
+@load base/files/x509
 
 module SSL;
 
@@ -8,7 +9,7 @@ export {
 	redef record Info += {
 		## Chain of certificates offered by the server to validate its
 		## complete signing chain.
-		cert_chain: vector of fa_file &optional;
+		cert_chain: vector of Files::Info &optional;
 
 		## An ordered vector of all certicate file unique IDs for the
 		## certificates offered by the server.
@@ -16,7 +17,7 @@ export {
 
 		## Chain of certificates offered by the client to validate its
 		## complete signing chain.
-		client_cert_chain: vector of fa_file &optional;
+		client_cert_chain: vector of Files::Info &optional;
 		
 		## An ordered vector of all certicate file unique IDs for the
 		## certificates offered by the client.
@@ -80,12 +81,12 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 
 	if ( is_orig )
 		{
-		c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = f;
+		c$ssl$client_cert_chain[|c$ssl$client_cert_chain|] = f$info;
 		c$ssl$client_cert_chain_fuids[|c$ssl$client_cert_chain_fuids|] = f$id;
 		}
 	else
 		{
-		c$ssl$cert_chain[|c$ssl$cert_chain|] = f;
+		c$ssl$cert_chain[|c$ssl$cert_chain|] = f$info;
 		c$ssl$cert_chain_fuids[|c$ssl$cert_chain_fuids|] = f$id;
 		}
 

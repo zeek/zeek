@@ -42,7 +42,7 @@ event ssl_established(c: connection) &priority=3
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
 		return;
 
-	local digest = c$ssl$cert_chain[0]$info$sha1;
+	local digest = c$ssl$cert_chain[0]$sha1;
 
 	if ( digest in notary_cache )
 		{

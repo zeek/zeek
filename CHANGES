@@ -1,4 +1,14 @@
 
+2.2-206 | 2014-03-03 16:52:28 -0800
+
+  * HTTP CONNECT proxy support. The HTTP analyzer now supports
+    handling HTTP CONNECT proxies. (Seth Hall)
+
+  * Expanding the HTTP methods used in the DPD signature to detect
+    HTTP traffic. (Seth Hall)
+
+  * Fixing removal of support analyzers. (Robin Sommer)
+    
 2.2-199 | 2014-03-03 16:34:20 -0800
 
   * Allow iterating over bif functions with result type vector of any.

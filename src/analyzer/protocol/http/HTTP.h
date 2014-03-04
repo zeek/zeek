@@ -5,6 +5,7 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "analyzer/protocol/zip/ZIP.h"
 #include "analyzer/protocol/mime/MIME.h"
 #include "binpac_bro.h"
@@ -236,6 +237,9 @@ protected:
 	int keep_alive;
 	int connection_close;
 	int request_ongoing, reply_ongoing;
+
+	bool connect_request;
+	pia::PIA_TCP *pia;
 
 	Val* request_method;
 

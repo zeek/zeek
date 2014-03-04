@@ -7,6 +7,7 @@
 #include "Component.h"
 
 #include "../Desc.h"
+#include "../EventRegistry.h"
 
 using namespace plugin;
 
@@ -369,4 +370,9 @@ void InterpreterPlugin::DisableInterpreterPlugin() const
 	plugin_mgr->DisableInterpreterPlugin(this);
 	}
 
+void InterpreterPlugin::RequestEvent(EventHandlerPtr handler)
+	{
+	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s", Name(), handler->Name());
+	event_registry->AlwaysRaise(handler);
+	}
 

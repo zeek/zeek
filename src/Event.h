@@ -24,8 +24,8 @@ public:
 	SourceID Source() const		{ return src; }
 	analyzer::ID Analyzer() const	{ return aid; }
 	TimerMgr* Mgr() const		{ return mgr; }
-    EventHandlerPtr Handler() const	{ return handler; }
-    val_list* Args() const	{ return args; }
+	EventHandlerPtr Handler() const	{ return handler; }
+	val_list* Args() const	{ return args; }
 
 	void Describe(ODesc* d) const;
 

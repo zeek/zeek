@@ -465,6 +465,12 @@ public:
 	 */
 	void DisableInterpreterPlugin() const;
 
+	/**
+	 * Mark interest in an event. The event will then be raised, and
+	 * hence passed to the plugin, even if there no handler defined.
+	 */
+	void RequestEvent(EventHandlerPtr handler);
+
 	// Overridden from base class.
 	virtual Type PluginType() const;
 

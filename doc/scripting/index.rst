@@ -345,13 +345,13 @@ keyword.  Unlike globals, constants can only be set or altered at
 parse time if the ``&redef`` attribute has been used.  Afterwards (in
 runtime) the constants are unalterable.  In most cases, re-definable
 constants are used in Bro scripts as containers for configuration
-options.  For example, the configuration option to log password
+options.  For example, the configuration option to log passwords
 decrypted from HTTP streams is stored in
-``HTTP::default_capture_password`` as shown in the stripped down
+:bro:see:`HTTP::default_capture_password` as shown in the stripped down
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
-   :lines: 8-10,19-21,120
+   :lines: 9-11,20-22,121
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the

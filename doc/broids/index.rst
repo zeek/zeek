@@ -15,9 +15,9 @@ conditions specific to your particular case.
 In the following sections, we present a few examples of common uses of
 Bro as an IDS.
 
-------------------------------------------------
+-------------------------------------------------
 Detecting an FTP Brute-force Attack and Notifying
-------------------------------------------------
+-------------------------------------------------
 
 For the purpose of this exercise, we define FTP brute-forcing as too many
 rejected usernames and passwords occurring from a single address.  We

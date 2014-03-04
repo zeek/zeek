@@ -292,9 +292,10 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 
 * We only looked at how to change options declared in the notice framework,
   there's many more options to look at in other script packages.
-* Continue reading with :ref:`using-bro` chapter which goes into more
-  depth on working with Bro; then look at :ref:`writing-scripts` for
-  learning how to start writing your own scripts.
+* Continue reading with :ref:`Using Bro <using-bro>` chapter which goes
+  into more depth on working with Bro; then look at
+  :ref:`writing-scripts` for learning how to start writing your own
+  scripts.
 * Look at the scripts in ``$PREFIX/share/bro/policy`` for further ones
   you may want to load; you can browse their documentation at the
   :ref:`overview of script packages <script-packages>`.

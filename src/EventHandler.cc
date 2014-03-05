@@ -12,6 +12,7 @@ EventHandler::EventHandler(const char* arg_name)
 	type = 0;
 	error_handler = false;
 	enabled = true;
+	always_raise = false;
 	}
 
 EventHandler::~EventHandler()
@@ -22,7 +23,7 @@ EventHandler::~EventHandler()
 
 EventHandler::operator bool() const
 	{
-	return enabled && ((local && local->HasBodies()) || receivers.length());
+	return enabled && ((local && local->HasBodies()) || receivers.length() || always_raise);
 	}
 
 FuncType* EventHandler::FType()

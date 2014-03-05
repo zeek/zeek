@@ -6,6 +6,7 @@ void EventRegistry::Register(EventHandlerPtr handler)
 	{
 	HashKey key(handler->Name());
 	handlers.Insert(&key, handler.Ptr());
+	event_handlers.push_back(handler);
 	}
 
 EventHandler* EventRegistry::Lookup(const char* name)
@@ -96,3 +97,12 @@ void EventRegistry::SetErrorHandler(const char* name)
 	eh->SetErrorHandler();
 	}
 
+const std::list<EventHandlerPtr>& EventRegistry::EventHandlers()
+	{
+	return event_handlers;
+	}
+
+void EventRegistry::AlwaysRaise(EventHandlerPtr handler)
+	{
+	handler->always_raise = true;
+	}

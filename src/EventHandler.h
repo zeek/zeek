@@ -13,6 +13,7 @@ class FuncType;
 class Serializer;
 class SerialInfo;
 class UnserialInfo;
+class EventRegistry;
 
 class EventHandler {
 public:
@@ -49,12 +50,15 @@ public:
 	static EventHandler* Unserialize(UnserialInfo* info);
 
 private:
+	friend class EventRegistry;
+
 	const char* name;
 	Func* local;
 	FuncType* type;
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.
+	bool always_raise;	// Always raise this event, even without us knowning handlers.
 
 	declare(List, SourceID);
 	typedef List(SourceID) receiver_list;

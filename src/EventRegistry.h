@@ -35,10 +35,20 @@ public:
 	string_list* UsedHandlers();
 	void PrintDebug();
 
+	// Flag that this event is interesting even if there is no body
+	// defined.
+	void AlwaysRaise(EventHandlerPtr handler);
+
+	// Returns a list of all registered events.
+	const std::list<EventHandlerPtr>& EventHandlers();
+
 private:
 	declare(PDict, EventHandler);
 	typedef PDict(EventHandler) handler_map;
 	handler_map handlers;
+
+	typedef std::list<EventHandlerPtr> event_handler_list;
+	event_handler_list event_handlers;
 };
 
 extern EventRegistry* event_registry;

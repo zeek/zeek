@@ -208,6 +208,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	int name_len = sizeof(name) - 1;
 
 	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
+
 	if ( ! name_end )
 		return 0;
 
@@ -400,7 +401,10 @@ int DNS_Interpreter::ExtractLabel(const u_char*& data, int& len,
 		return 0;
 		}
 
-	if ( label_len > 63 )
+	if ( label_len > 63 && 
+	     // NetBIOS name service look ups can use 
+	     // longer labels
+	     ntohs(analyzer->Conn()->RespPort()) != 137 )
 		{
 		analyzer->Weird("DNS_label_too_long");
 		return 0;
@@ -633,15 +637,24 @@ int DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
 	if ( ! name_end )
 		return 0;
-	*name_end = 0;	// terminate name so we can use it in snprintf()
 
 	if ( data - data_start != rdlength )
 		analyzer->Weird("DNS_RR_length_mismatch");
 
-	// The following is just a placeholder.
-	char buf[2048];
-	safe_snprintf(buf, sizeof(buf), "SRV %s priority=%d weight=%d port=%d",
-		      name, priority, weight, port);
+	if ( dns_SRV_reply && ! msg->skip_event )
+		{
+		val_list* vl = new val_list;
+		vl->append(analyzer->BuildConnVal());
+		vl->append(msg->BuildHdrVal());
+		vl->append(msg->BuildAnswerVal());
+		vl->append(new StringVal(new BroString(name, name_end - name, 1)));
+		vl->append(new Val(priority, TYPE_COUNT));
+		vl->append(new Val(weight, TYPE_COUNT));
+		vl->append(new Val(port, TYPE_COUNT));
+
+		analyzer->ConnectionEvent(dns_SRV_reply, vl);
+		}
+
 	return 1;
 	}
 

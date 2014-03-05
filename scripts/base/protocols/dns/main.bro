@@ -421,9 +421,9 @@ event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	hook DNS::do_reply(c, msg, ans, "");
 	}
 
-event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count) &priority=5
 	{
-	hook DNS::do_reply(c, msg, ans, "");
+	hook DNS::do_reply(c, msg, ans, target);
 	}
 
 # TODO: figure out how to handle these

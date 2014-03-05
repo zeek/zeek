@@ -280,16 +280,12 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	static RuleFileMagicState* fms = rule_matcher->InitFileMagic();
-	rule_matcher->ClearFileMagicState(fms);
-	RuleMatcher::MIME_Matches matches;
-	rule_matcher->Match(fms, data, len, &matches);
+	string strongest_match = file_mgr->DetectMIME(data, len);
 
-	if ( matches.empty() )
+	if ( strongest_match.empty() )
 		return false;
 
-	val->Assign(mime_type_idx, new StringVal(*matches.begin()->second.begin()));
-
+	val->Assign(mime_type_idx, new StringVal(strongest_match));
 	return true;
 	}
 

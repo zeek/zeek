@@ -933,6 +933,8 @@ int main(int argc, char** argv)
 
 		if ( rule_debug )
 			rule_matcher->PrintDebug();
+
+		file_mgr->InitMagic();
 		}
 
 	delete [] script_rule_files;

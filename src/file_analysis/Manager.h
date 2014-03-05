@@ -14,6 +14,7 @@
 #include "Analyzer.h"
 #include "Timer.h"
 #include "EventHandler.h"
+#include "RuleMatcher.h"
 
 #include "File.h"
 #include "FileTimer.h"
@@ -53,6 +54,12 @@ public:
 	 * during Bro's initialization after any scripts are processed.
 	 */
 	void InitPostScript();
+
+	/**
+	 * Initializes the state required to match against file magic signatures
+	 * for MIME type identification.
+	 */
+	void InitMagic();
 
 	/**
 	 * Times out any active file analysis to prepare for shutdown.
@@ -255,6 +262,29 @@ public:
 	 */
 	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
 
+	/**
+	 * Returns a set of all matching MIME magic signatures for a given
+	 * chunk of data.
+	 * @param data A chunk of bytes to match magic MIME signatures against.
+	 * @param len The number of bytes in \a data.
+	 * @param rval An optional pre-existing structure in which to insert
+	 *             new matches.  If it's a null pointer, an object is
+	 *             allocated and returned from the method.
+	 * @return Set of all matching file magic signatures, which may be
+	 *         an object allocated by the method if \a rval is a null pointer.
+	 */
+	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64 len,
+	        RuleMatcher::MIME_Matches* rval) const;
+
+	/**
+	 * Returns the strongest MIME magic signature match for a given data chunk.
+	 * @param data A chunk of bytes to match magic MIME signatures against.
+	 * @param len The number of bytes in \a data.
+	 * @returns The MIME type string of the strongest file magic signature
+	 *          match, or an empty string if nothing matched.
+	 */
+	std::string DetectMIME(const u_char* data, uint64 len) const;
+
 protected:
 	friend class FileTimer;
 
@@ -334,6 +364,7 @@ private:
 	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
 	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
+	RuleFileMagicState* magic_state; /** File magic signature match state. */
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
 	static string salt; /**< A salt added to file handles before hashing. */

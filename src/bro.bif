@@ -852,15 +852,12 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 	if ( ! return_mime )
 		reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
-	static RuleFileMagicState* fms = rule_matcher->InitFileMagic();
-	rule_matcher->ClearFileMagicState(fms);
-	RuleMatcher::MIME_Matches matches;
-	rule_matcher->Match(fms, data->Bytes(), data->Len(), &matches);
+	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
 
-	if ( matches.empty() )
+	if ( strongest_match.empty() )
 		return new StringVal("<unknown>");
 
-	return new StringVal(*(matches.begin()->second.begin()));
+	return new StringVal(strongest_match);
 	%}
 
 ## Determines the MIME type of a piece of data using Bro's file magic
@@ -873,10 +870,8 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 ## .. bro:see:: identify_data
 function file_magic%(data: string%): mime_matches
 	%{
-	static RuleFileMagicState* fms = rule_matcher->InitFileMagic();
-	rule_matcher->ClearFileMagicState(fms);
 	RuleMatcher::MIME_Matches matches;
-	rule_matcher->Match(fms, data->Bytes(), data->Len(), &matches);
+	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
 	VectorVal* rval = new VectorVal(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = matches.begin();

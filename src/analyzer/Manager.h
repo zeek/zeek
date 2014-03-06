@@ -293,6 +293,13 @@ public:
 				double timeout);
 
 	/**
+	 * Searched for analyzers scheduled to be attached to a given connection
+	 * and then attaches them.
+	 * @param conn The connection to which scheduled analyzers are attached.
+	 */
+	void ApplyScheduledAnalyzers(Connection* conn);
+
+	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
 	 * the connection is seen, BuildInitAnalyzerTree() will add the
 	 * specified analyzer to its tree.

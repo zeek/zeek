@@ -276,7 +276,18 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			break;
 
 		case TYPE_SRV:
-			status = ParseRR_SRV(msg, data, len, rdlength, msg_start);
+			if ( ntohs(analyzer->Conn()->RespPort()) == 137 )
+				{
+				// This is an NBSTAT (NetBIOS NODE STATUS) record.
+				// The SRV RFC reused the value that was already being
+				// used for this.
+				// We aren't parsing this yet.
+				status = 1;
+				}
+			else
+				{
+				status = ParseRR_SRV(msg, data, len, rdlength, msg_start);
+				}
 			break;
 
 		case TYPE_EDNS:

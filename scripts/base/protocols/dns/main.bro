@@ -360,7 +360,15 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	# Note: I'm ignoring the name type for now.  Not sure if this should be
 	#       worked into the query/response in some fashion.
 	if ( c$id$resp_p == 137/udp )
+		{
 		query = decode_netbios_name(query);
+		if ( c$dns$qtype_name == "SRV" )
+			{
+			# The SRV RFC used the ID used for NetBios Status RRs.
+			# So if this is NetBios Name Service we name it correctly.
+			c$dns$qtype_name = "NBSTAT";
+			}
+		}
 	c$dns$query = query;
 	}
 

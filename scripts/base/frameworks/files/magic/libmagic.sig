@@ -569,7 +569,7 @@ signature file-magic-auto87 {
 # >>>>&0  search/1024,=\n (len=1), [""], swap_endian=0
 # >>>>>&0  search/1,=@@ (len=2), ["unified diff output text"], swap_endian=0
 signature file-magic-auto88 {
-	file-mime "text/x-diff", 40
+	file-mime "text/x-diff", 55
 	file-magic /(.*)(\x2d\x2d\x2d )(.*)(\x0a)(.*)(\x2b\x2b\x2b )(.*)(\x0a)(.*)(\x40\x40)/
 }
 
@@ -2643,7 +2643,7 @@ signature file-magic-auto388 {
 # >>&0  regex,= {0,50}\(([a-zA-Z]|,| ){1,500}\):$ (len=34), ["Python script text executable"], swap_endian=0
 signature file-magic-auto389 {
 	file-mime "text/x-python", 64
-	file-magic /(^( |\t){0,50}def {1,50}[a-zA-Z]{1,100})( {0,50}\(([a-zA-Z]|,| ){1,500}\):$)/
+	file-magic /(.*)(( |\t){0,50}def {1,50}[a-zA-Z]{1,100})( {0,50}\(([a-zA-Z]|,| ){1,500}\):$)/
 }
 
 # >0  search/4096,=\documentstyle (len=14), ["LaTeX document text"], swap_endian=0
@@ -2704,7 +2704,7 @@ signature file-magic-auto397 {
 # >>>0  regex,=^[ \t]*end([ \t]*[;#].*)?$ (len=24), ["Ruby script text"], swap_endian=0
 signature file-magic-auto398 {
 	file-mime "text/x-ruby", 54
-	file-magic /(^[ \x09]*require[ \x09]'[A-Za-z_\x2f]+')(include [A-Z]|def [a-z]| do$)(^[ \x09]*end([ \x09]*[;#].*)?$)/
+	file-magic /(.*)([ \x09]*require[ \x09]'[A-Za-z_\x2f]+')(include [A-Z]|def [a-z]| do$)(^[ \x09]*end([ \x09]*[;#].*)?$)/
 }
 
 # >0  search/1,=eval "exec /usr/local/bin/perl (len=30), ["Perl script text"], swap_endian=0
@@ -2760,7 +2760,7 @@ signature file-magic-auto406 {
 # >>>0  regex,=^[ \t]*end([ \t]*[;#].*)?$ (len=24), ["Ruby module source text"], swap_endian=0
 signature file-magic-auto407 {
 	file-mime "text/x-ruby", 54
-	file-magic /(^[ \x09]*(class|module)[ \x09][A-Z])((modul|includ)e [A-Z]|def [a-z])(^[ \x09]*end([ \x09]*[;#].*)?$)/
+	file-magic /(.*)([ \x09]*(class|module)[ \x09][A-Z])((modul|includ)e [A-Z]|def [a-z])(^[ \x09]*end([ \x09]*[;#].*)?$)/
 }
 
 # >512  string/b,=\354\245\301 (len=3), ["Microsoft Word Document"], swap_endian=0
@@ -2797,7 +2797,7 @@ signature file-magic-auto412 {
 # >0  regex,=^from\s+(\w|\.)+\s+import.*$ (len=28), ["Python script text executable"], swap_endian=0
 signature file-magic-auto413 {
 	file-mime "text/x-python", 58
-	file-magic /(^from\s+(\w|\.)+\s+import.*$)/
+	file-magic /(.*)(from\s+(\w|\.)+\s+import.*$)/
 }
 
 # >0  search/4096,=\contentsline (len=13), ["LaTeX table of contents"], swap_endian=0
@@ -3342,11 +3342,12 @@ signature file-magic-auto497 {
 	file-magic /(.{4})(jP)/
 }
 
+# Not specific enough.
 # >0  regex,=^template[ \t\n]+ (len=15), ["C++ source text"], swap_endian=0
-signature file-magic-auto498 {
-	file-mime "text/x-c++", 50
-	file-magic /(^template[ \x09\x0a]+)/
-}
+#signature file-magic-auto498 {
+#	file-mime "text/x-c++", 50
+#	file-magic /(.*)(template[ \x09\x0a]+)/
+#}
 
 # >0  search/c/1,=<?php (len=5), ["PHP script text"], swap_endian=0
 signature file-magic-auto499 {
@@ -3417,8 +3418,45 @@ signature file-magic-auto509 {
 # >0  regex,=^[ \t]{0,50}\.asciiz (len=19), ["assembler source text"], swap_endian=0
 signature file-magic-auto510 {
 	file-mime "text/x-asm", 49
-	file-magic /(^[ \x09]{0,50}\.asciiz)/
+	file-magic /(^[ \x09]{0,50}\.(asciiz|asciz|section|globl|align|even|byte|file|type))/
 }
+
+# >0  regex,=^[ \t]{0,50}\.globl (len=18), ["assembler source text"], swap_endian=0
+#signature file-magic-auto517 {
+#	file-mime "text/x-asm", 48
+#	file-magic /(^[ \x09]{0,50}\.globl)/
+#}
+
+# >0  regex,=^[ \t]{0,50}\.text (len=17), ["assembler source text"], swap_endian=0
+#signature file-magic-auto523 {
+#	file-mime "text/x-asm", 47
+#	file-magic /(^[ \x09]{0,50}\.text)/
+#}
+
+# >0  regex,=^[ \t]{0,50}\.even (len=17), ["assembler source text"], swap_endian=0
+#signature file-magic-auto524 {
+#	file-mime "text/x-asm", 47
+#	file-magic /(^[ \x09]{0,50}\.even)/
+#}
+
+# >0  regex,=^[ \t]{0,50}\.byte (len=17), ["assembler source text"], swap_endian=0
+#signature file-magic-auto525 {
+#	file-mime "text/x-asm", 47
+#	file-magic /(^[ \x09]{0,50}\.byte)/
+#}
+
+# >0  regex,=^[ \t]{0,50}\.file (len=17), ["assembler source text"], swap_endian=0
+#signature file-magic-auto526 {
+#	file-mime "text/x-asm", 47
+#	file-magic /(^[ \x09]{0,50}\.file)/
+#}
+
+# >0  regex,=^[ \t]{0,50}\.type (len=17), ["assembler source text"], swap_endian=0
+#signature file-magic-auto527 {
+#	file-mime "text/x-asm", 47
+#	file-magic /(^[ \x09]{0,50}\.type)/
+#}
+
 
 # >0  search/1,=#!/usr/bin/env perl (len=19), ["Perl script text executable"], swap_endian=0
 signature file-magic-auto511 {
@@ -3432,11 +3470,12 @@ signature file-magic-auto512 {
 	file-magic /(.*)(\x3c\x21[dD][oO][cC][tT][yY][pP][eE] {1,}[hH][tT][mM][lL])/
 }
 
+# This doesn't seem specific enough.
 # >0  regex,=^virtual[ \t\n]+ (len=14), ["C++ source text"], swap_endian=0
-signature file-magic-auto513 {
-	file-mime "text/x-c++", 49
-	file-magic /(^virtual[ \x09\x0a]+)/
-}
+#signature file-magic-auto513 {
+#	file-mime "text/x-c++", 49
+#	file-magic /(.*)(virtual[ \x09\x0a]+)/
+#}
 
 # >0  search/1,=#! /usr/bin/env lua (len=19), ["Lua script text executable"], swap_endian=0
 signature file-magic-auto514 {
@@ -3455,13 +3494,6 @@ signature file-magic-auto516 {
 	file-mime "text/x-tcl", 49
 	file-magic /(.*)(\x23\x21 \x2fusr\x2fbin\x2fenv tcl)/
 }
-
-# >0  regex,=^[ \t]{0,50}\.globl (len=18), ["assembler source text"], swap_endian=0
-signature file-magic-auto517 {
-	file-mime "text/x-asm", 48
-	file-magic /(^[ \x09]{0,50}\.globl)/
-}
-
 # >0  search/1,=#!/usr/bin/env tcl (len=18), ["Tcl script text executable"], swap_endian=0
 signature file-magic-auto518 {
 	file-mime "text/x-tcl", 48
@@ -3489,37 +3521,7 @@ signature file-magic-auto521 {
 # >0  regex,=^class[ \t\n]+ (len=12), ["C++ source text"], swap_endian=0
 signature file-magic-auto522 {
 	file-mime "text/x-c++", 47
-	file-magic /(^class[ \x09\x0a]+)/
-}
-
-# >0  regex,=^[ \t]{0,50}\.text (len=17), ["assembler source text"], swap_endian=0
-signature file-magic-auto523 {
-	file-mime "text/x-asm", 47
-	file-magic /(^[ \x09]{0,50}\.text)/
-}
-
-# >0  regex,=^[ \t]{0,50}\.even (len=17), ["assembler source text"], swap_endian=0
-signature file-magic-auto524 {
-	file-mime "text/x-asm", 47
-	file-magic /(^[ \x09]{0,50}\.even)/
-}
-
-# >0  regex,=^[ \t]{0,50}\.byte (len=17), ["assembler source text"], swap_endian=0
-signature file-magic-auto525 {
-	file-mime "text/x-asm", 47
-	file-magic /(^[ \x09]{0,50}\.byte)/
-}
-
-# >0  regex,=^[ \t]{0,50}\.file (len=17), ["assembler source text"], swap_endian=0
-signature file-magic-auto526 {
-	file-mime "text/x-asm", 47
-	file-magic /(^[ \x09]{0,50}\.file)/
-}
-
-# >0  regex,=^[ \t]{0,50}\.type (len=17), ["assembler source text"], swap_endian=0
-signature file-magic-auto527 {
-	file-mime "text/x-asm", 47
-	file-magic /(^[ \x09]{0,50}\.type)/
+	file-magic /(.*)(class[ \x09\x0a]+[[:alnum:]_]+)(.*)(\x7b)(.*)(public:)/
 }
 
 # >0  search/1,=This is Info file (len=17), ["GNU Info text"], swap_endian=0
@@ -3717,11 +3719,12 @@ signature file-magic-auto553 {
 	file-magic /(.*)(\x5cinput texinfo)/
 }
 
+# Not specific enough.
 # >0  regex,=^private: (len=9), ["C++ source text"], swap_endian=0
-signature file-magic-auto554 {
-	file-mime "text/x-c++", 44
-	file-magic /(^private:)/
-}
+#signature file-magic-auto554 {
+#	file-mime "text/x-c++", 44
+#	file-magic /(.*)(private:)/
+#}
 
 # >0  search/4096,=def __init__ (len=12), [""], swap_endian=0
 # >>&0  search/64,=self (len=4), ["Python script text executable"], swap_endian=0
@@ -3739,7 +3742,7 @@ signature file-magic-auto556 {
 # >0  regex,=^extern[ \t\n]+ (len=13), ["C source text"], swap_endian=0
 signature file-magic-auto557 {
 	file-mime "text/x-c", 43
-	file-magic /(^extern[ \x09\x0a]+)/
+	file-magic /(.*)(extern[ \x09\x0a]+)/
 }
 
 # >0  search/4096,=% -*-latex-*- (len=13), ["LaTeX document text"], swap_endian=0
@@ -3748,16 +3751,17 @@ signature file-magic-auto558 {
 	file-magic /(.*)(\x25 \x2d\x2a\x2dlatex\x2d\x2a\x2d)/
 }
 
+# Doesn't seem specific enough.
 # >0  regex,=^double[ \t\n]+ (len=13), ["C source text"], swap_endian=0
-signature file-magic-auto559 {
-	file-mime "text/x-c", 43
-	file-magic /(^double[ \x09\x0a]+)/
-}
+#signature file-magic-auto559 {
+#	file-mime "text/x-c", 43
+#	file-magic /(^double[ \x09\x0a]+)/
+#}
 
 # >0  regex,=^struct[ \t\n]+ (len=13), ["C source text"], swap_endian=0
 signature file-magic-auto560 {
 	file-mime "text/x-c", 43
-	file-magic /(^struct[ \x09\x0a]+)/
+	file-magic /(.*)(struct[ \x09\x0a]+)/
 }
 
 # >0  search/w/1,=#!/bin/nodejs (len=13), ["Node.js script text executable"], swap_endian=0
@@ -3766,11 +3770,12 @@ signature file-magic-auto561 {
 	file-magic /(.*)(\x23\x21\x2fbin\x2fnodejs)/
 }
 
+# Not specific enough.
 # >0  regex,=^public: (len=8), ["C++ source text"], swap_endian=0
-signature file-magic-auto562 {
-	file-mime "text/x-c++", 43
-	file-magic /(^public:)/
-}
+#signature file-magic-auto562 {
+#	file-mime "text/x-c++", 43
+#	file-magic /(.*)(public:)/
+#}
 
 # >0  search/wct/4096,=<script (len=7), ["HTML document text"], swap_endian=0
 signature file-magic-auto563 {
@@ -3778,17 +3783,19 @@ signature file-magic-auto563 {
 	file-magic /(.*)(\x3c[sS][cC][rR][iI][pP][tT])/
 }
 
+# Doesn't seem specific enough.
 # >0  regex,=^float[ \t\n]+ (len=12), ["C source text"], swap_endian=0
-signature file-magic-auto564 {
-	file-mime "text/x-c", 42
-	file-magic /(^float[ \x09\x0a]+)/
-}
+#signature file-magic-auto564 {
+#	file-mime "text/x-c", 42
+#	file-magic /(^float[ \x09\x0a]+)/
+#}
 
+# Doesn't seem specific enough.
 # >0  regex,=^union[ \t\n]+ (len=12), ["C source text"], swap_endian=0
-signature file-magic-auto565 {
-	file-mime "text/x-c", 42
-	file-magic /(^union[ \x09\x0a]+)/
-}
+#signature file-magic-auto565 {
+#	file-mime "text/x-c", 42
+#	file-magic /(^union[ \x09\x0a]+)/
+#}
 
 # The use of non-sequential offsets and relational operations made the
 # autogenerated signature incorrrect.
@@ -3810,7 +3817,7 @@ signature file-magic-auto567 {
 # >0  regex,=^char[ \t\n]+ (len=11), ["C source text"], swap_endian=0
 signature file-magic-auto568 {
 	file-mime "text/x-c", 41
-	file-magic /(^char[ \x09\x0a]+)/
+	file-magic /(.*)(char[ \x09\x0a]+)/
 }
 
 # >0  search/1,=#! (len=2), [""], swap_endian=0
@@ -3911,11 +3918,12 @@ signature file-magic-auto581 {
 	file-magic /(.*)(main\x28)/
 }
 
+# Not specific enough.
 # >0  search/1,=\" (len=2), ["troff or preprocessor input text"], swap_endian=0
-signature file-magic-auto582 {
-	file-mime "text/troff", 40
-	file-magic /(.*)(\x5c\x22)/
-}
+#signature file-magic-auto582 {
+#	file-mime "text/troff", 40
+#	file-magic /(.*)(\x5c\x22)/
+#}
 
 # >0  search/4096,=(defparam  (len=10), ["Lisp/Scheme program text"], swap_endian=0
 signature file-magic-auto583 {
@@ -3929,16 +3937,17 @@ signature file-magic-auto584 {
 	file-magic /(.*)(\x28autoload )/
 }
 
+#This signature seems too generic.
 # >0  search/1,=diff  (len=5), ["diff output text"], swap_endian=0
-signature file-magic-auto585 {
-	file-mime "text/x-diff", 40
-	file-magic /(.*)(diff )/
-}
+#signature file-magic-auto585 {
+#	file-mime "text/x-diff", 40
+#	file-magic /(.*)(diff )/
+#}
 
 # >0  regex,=^#include (len=9), ["C source text"], swap_endian=0
 signature file-magic-auto586 {
 	file-mime "text/x-c", 39
-	file-magic /(^#include)/
+	file-magic /(.*)(#include)/
 }
 
 # >0  search/1,=.\" (len=3), ["troff or preprocessor input text"], swap_endian=0
@@ -4006,7 +4015,7 @@ signature file-magic-auto596 {
 # >0  regex,=^SUBDIRS (len=8), ["automake makefile script text"], swap_endian=0
 signature file-magic-auto597 {
 	file-mime "text/x-makefile", 38
-	file-magic /(^SUBDIRS)/
+	file-magic /(.*)(SUBDIRS)/
 }
 
 # >0  search/4096,=(defvar  (len=8), ["Lisp/Scheme program text"], swap_endian=0
@@ -4015,11 +4024,12 @@ signature file-magic-auto598 {
 	file-magic /(.*)(\x28defvar )/
 }
 
+# Not specific enough.
 # >0  regex,=^program (len=8), ["Pascal source text"], swap_endian=0
-signature file-magic-auto599 {
-	file-mime "text/x-pascal", 38
-	file-magic /(^program)/
-}
+#signature file-magic-auto599 {
+#	file-mime "text/x-pascal", 38
+#	file-magic /(^program)/
+#}
 
 # >0  search/1,=Only in  (len=8), ["diff output text"], swap_endian=0
 signature file-magic-auto600 {
@@ -4027,11 +4037,12 @@ signature file-magic-auto600 {
 	file-magic /(.*)(Only in )/
 }
 
+# This signature doesn't seem specific enough.
 # >0  search/1,=***  (len=4), ["diff output text"], swap_endian=0
-signature file-magic-auto601 {
-	file-mime "text/x-diff", 38
-	file-magic /(.*)(\x2a\x2a\x2a )/
-}
+#signature file-magic-auto601 {
+#	file-mime "text/x-diff", 38
+#	file-magic /(.*)(\x2a\x2a\x2a )/
+#}
 
 # >0  search/1,='.\" (len=4), ["troff or preprocessor input text"], swap_endian=0
 signature file-magic-auto602 {
@@ -4039,11 +4050,12 @@ signature file-magic-auto602 {
 	file-magic /(.*)(\x27\x2e\x5c\x22)/
 }
 
+# LDFLAGS appears in other contexts, e.g. shell script.
 # >0  regex,=^LDFLAGS (len=8), ["makefile script text"], swap_endian=0
-signature file-magic-auto603 {
-	file-mime "text/x-makefile", 38
-	file-magic /(^LDFLAGS)/
-}
+#signature file-magic-auto603 {
+#	file-mime "text/x-makefile", 38
+#	file-magic /(.*)(LDFLAGS)/
+#}
 
 # >0  search/8192,="libhdr" (len=8), ["BCPL source text"], swap_endian=0
 signature file-magic-auto604 {
@@ -4051,16 +4063,17 @@ signature file-magic-auto604 {
 	file-magic /(.*)(\x22libhdr\x22)/
 }
 
+# Not specific enough.
 # >0  regex,=^record (len=7), ["Pascal source text"], swap_endian=0
-signature file-magic-auto605 {
-	file-mime "text/x-pascal", 37
-	file-magic /(^record)/
-}
+#signature file-magic-auto605 {
+#	file-mime "text/x-pascal", 37
+#	file-magic /(^record)/
+#}
 
 # >0  regex,=^CFLAGS (len=7), ["makefile script text"], swap_endian=0
 signature file-magic-auto606 {
 	file-mime "text/x-makefile", 37
-	file-magic /(^CFLAGS)/
+	file-magic /(.*)(CFLAGS)/
 }
 
 # >0  search/4096,=(defun  (len=7), ["Lisp/Scheme program text"], swap_endian=0
@@ -4081,11 +4094,12 @@ signature file-magic-auto609 {
 	file-magic /(.*)(\x28input\x2c)/
 }
 
+# Not specific enough.
 # >0  search/1,=Index: (len=6), ["RCS/CVS diff output text"], swap_endian=0
-signature file-magic-auto610 {
-	file-mime "text/x-diff", 36
-	file-magic /(.*)(Index\x3a)/
-}
+#signature file-magic-auto610 {
+#	file-mime "text/x-diff", 44
+#	file-magic /(.*)(Index\x3a)/
+#}
 
 # >0  search/4096,=(setq  (len=6), ["Lisp/Scheme program text"], swap_endian=0
 signature file-magic-auto611 {

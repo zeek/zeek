@@ -53,6 +53,7 @@ int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::mime_type_idx = -1;
+int File::mime_types_idx = -1;
 
 void File::StaticInit()
 	{
@@ -73,6 +74,7 @@ void File::StaticInit()
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
 	mime_type_idx = Idx("mime_type");
+	mime_types_idx = Idx("mime_types");
 	}
 
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
@@ -280,12 +282,15 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	string strongest_match = file_mgr->DetectMIME(data, len);
+	RuleMatcher::MIME_Matches matches;
+	file_mgr->DetectMIME(data, len, &matches);
 
-	if ( strongest_match.empty() )
+	if ( matches.empty() )
 		return false;
 
-	val->Assign(mime_type_idx, new StringVal(strongest_match));
+	val->Assign(mime_type_idx,
+	            new StringVal(*(matches.begin()->second.begin())));
+	val->Assign(mime_types_idx, file_analysis::GenMIMEMatchesVal(matches));
 	return true;
 	}
 

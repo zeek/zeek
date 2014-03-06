@@ -285,6 +285,7 @@ public:
 	 */
 	std::string DetectMIME(const u_char* data, uint64 len) const;
 
+
 protected:
 	friend class FileTimer;
 
@@ -369,6 +370,12 @@ private:
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
 	static string salt; /**< A salt added to file handles before hashing. */
 };
+
+/**
+ * Returns a script-layer value corresponding to the \c mime_matches type.
+ * @param m The MIME match information with which to populate the value.
+ */
+VectorVal* GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
 
 } // namespace file_analysis
 

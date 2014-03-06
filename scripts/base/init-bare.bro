@@ -396,10 +396,15 @@ type fa_file: record {
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
 
-	## A mime type provided by libmagic against the *bof_buffer*, or
-	## in the cases where no buffering of the beginning of file occurs,
-	## an initial guess of the mime type based on the first data seen.
+	## The mime type of the strongest file magic signature matches against
+	## the data chunk in *bof_buffer*, or in the cases where no buffering
+	## of the beginning of file occurs, an initial guess of the mime type
+	## based on the first data seen.
 	mime_type: string &optional;
+
+	## All mime types that matched file magic signatures against the data
+	## chunk in *bof_buffer*, in order of their strength value.
+	mime_types: mime_matches &optional;
 } &redef;
 
 ## Fields of a SYN packet.

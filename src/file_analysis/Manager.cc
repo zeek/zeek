@@ -425,3 +425,25 @@ string Manager::DetectMIME(const u_char* data, uint64 len) const
 
 	return *(matches.begin()->second.begin());
 	}
+
+VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+	{
+	VectorVal* rval = new VectorVal(mime_matches);
+
+	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
+	      it != m.end(); ++it )
+		{
+		RecordVal* element = new RecordVal(mime_match);
+
+		for ( set<string>::const_iterator it2 = it->second.begin();
+		      it2 != it->second.end(); ++it2 )
+			{
+			element->Assign(0, new Val(it->first, TYPE_INT));
+			element->Assign(1, new StringVal(*it2));
+			}
+
+		rval->Assign(rval->Size(), element);
+		}
+
+	return rval;
+	}

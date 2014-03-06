@@ -283,6 +283,7 @@ private:
 	static int bof_buffer_size_idx;
 	static int bof_buffer_idx;
 	static int mime_type_idx;
+	static int mime_types_idx;
 };
 
 } // namespace file_analysis

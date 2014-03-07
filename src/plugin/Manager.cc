@@ -373,6 +373,13 @@ void Manager::ConnectionStateRemove(const Connection* c) const
 		(*i)->ConnectionStateRemove(c);
 	}
 
+void Manager::BroObjDtor(const BroObj* obj)
+	{
+	for ( interpreter_plugin_list::const_iterator i = interpreter_plugins.begin();
+	      i != interpreter_plugins.end(); i++ )
+		(*i)->BroObjDtor(obj);
+    }
+
 void Manager::DisableInterpreterPlugin(const InterpreterPlugin* plugin)
 	{
 	for ( interpreter_plugin_list::iterator i = interpreter_plugins.begin();

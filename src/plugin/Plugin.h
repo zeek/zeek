@@ -455,9 +455,21 @@ public:
 	virtual void NewConnection(const Connection* c);
 
 	/**
-	 * Callback for an upcoming removal of a connection.
+	 * Callback for an upcoming removal of a connection. Note that this is
+	 * called immediately when the connection is being remove. There might
+	 * still be events queued that refer to that connection (and hence its
+	 * connection value).
 	 */
 	virtual void ConnectionStateRemove(const Connection* c);
+
+    /**
+     * Callback for destruction of a BroObj flagged as interesting to
+     * plugins.
+     *
+     * obj: The pointer to the object. Note it's not safe anymore to actually
+     * *use* that pointer, its destructor may already be running.
+     */
+    virtual void BroObjDtor(const BroObj* obj);
 
 	/**
 	 * Disables interpreter hooking. The functionality of the Plugin base

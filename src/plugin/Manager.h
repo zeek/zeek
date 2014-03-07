@@ -10,6 +10,8 @@
 
 #include "../Reporter.h"
 
+class BroObj;
+
 namespace plugin {
 
 /**
@@ -168,6 +170,8 @@ public:
 	static bool RegisterPlugin(Plugin* plugin);
 
 protected:
+    friend class ::BroObj;
+
 	/**
 	 * Loads a plugin dynamically from a given directory. It loads the
 	 * plugin's shared library, and makes its scripts available to the
@@ -185,6 +189,12 @@ protected:
 	 * it successfully.
 	 */
 	int LoadPlugin(const std::string& dir);
+
+    /**
+     * Callback from BroObj upon destruction of objects that a plugin is
+     * interested in.
+     */
+    void BroObjDtor(const BroObj* obj);
 
 private:
 	static plugin_list* PluginsInternal();

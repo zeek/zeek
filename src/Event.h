@@ -56,8 +56,11 @@ protected:
 			}
 
 		if ( obj )
+            {
 			// obj->EventDone();
 			Unref(obj);
+            obj = 0;
+            }
 
 		if ( handler->ErrorHandler() )
 			reporter->EndErrorHandler();

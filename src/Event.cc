@@ -39,6 +39,9 @@ Event::~Event()
 	// We don't Unref() the individual arguments by using delete_vals()
 	// here, because Func::Call already did that.
 	delete args;
+
+	if ( obj )
+		Unref(obj);
 	}
 
 void Event::Describe(ODesc* d) const

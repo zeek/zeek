@@ -92,6 +92,7 @@ public:
 		{
 		ref_cnt = 1;
 		in_ser_cache = false;
+        notify_plugins_on_dtor = false;
 
 		// A bit of a hack.  We'd like to associate location
 		// information with every object created when parsing,
@@ -162,6 +163,7 @@ public:
 	};
 
 	bool in_ser_cache;
+    bool notify_plugins_on_dtor;
 
 protected:
 	friend class SerializationCache;

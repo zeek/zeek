@@ -55,30 +55,36 @@ const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
 static bool in_proto_land = false;
+static int in_script_land = 0;
 
 void enter_script_land()
 	{
-	in_proto_land = (profile_level(PROFILE_PROTOCOL_LAND) > 0);
-
-	if ( in_proto_land )
+	if ( ! in_proto_land )
 		{
-		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
-		if ( profile_level(PROFILE_PROTOCOL_LAND) != 0 )
-			reporter->InternalError("mismatch in protocol-land profile level");
+		in_proto_land = (profile_level(PROFILE_PROTOCOL_LAND) > 0);
+
+		if ( in_proto_land )
+			{
+			profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
+			if ( profile_level(PROFILE_PROTOCOL_LAND) != 0 )
+				reporter->InternalError("mismatch in protocol-land profile level");
+			}
 		}
 
-	profile_update(PROFILE_SCRIPT_LAND, PROFILE_START);
+        profile_update(PROFILE_SCRIPT_LAND, PROFILE_START);
+        ++in_script_land;
 	}
 
 void leave_script_land()
 	{
-	if ( in_proto_land )
+	profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
+	--in_script_land;
+
+	if ( ! in_script_land && in_proto_land )
 		{
 		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
 		in_proto_land = 0;
 		}
-
-	profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
 	}
 
 vector<Func*> Func::unique_ids;

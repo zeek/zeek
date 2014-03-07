@@ -361,6 +361,7 @@ RecordVal* Connection::BuildConnVal()
 	if ( ! conn_val )
 		{
 		conn_val = new RecordVal(connection_type);
+        conn_val->notify_plugins_on_dtor = true;
 
 		TransportProto prot_type = ConnTransport();
 

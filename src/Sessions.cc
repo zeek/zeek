@@ -1085,6 +1085,7 @@ void NetSessions::Drain()
 		{
 		tc->Done();
 		tc->Event(connection_state_remove, 0);
+		plugin_mgr->ConnectionStateRemove(tc);
 		}
 
 	cookie = udp_conns.InitForIteration();
@@ -1094,6 +1095,7 @@ void NetSessions::Drain()
 		{
 		uc->Done();
 		uc->Event(connection_state_remove, 0);
+		plugin_mgr->ConnectionStateRemove(uc);
 		}
 
 	cookie = icmp_conns.InitForIteration();
@@ -1103,6 +1105,7 @@ void NetSessions::Drain()
 		{
 		ic->Done();
 		ic->Event(connection_state_remove, 0);
+		plugin_mgr->ConnectionStateRemove(ic);
 		}
 
 	ExpireTimerMgrs();

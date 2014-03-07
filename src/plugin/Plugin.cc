@@ -365,6 +365,10 @@ void InterpreterPlugin::ConnectionStateRemove(const Connection* c)
 	{
 	}
 
+void InterpreterPlugin::BroObjDtor(const BroObj* obj)
+	{
+	}
+
 void InterpreterPlugin::DisableInterpreterPlugin() const
 	{
 	plugin_mgr->DisableInterpreterPlugin(this);

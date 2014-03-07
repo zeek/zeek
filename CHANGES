@@ -1,4 +1,10 @@
 
+2.2-210 | 2014-03-06 22:52:36 -0500
+
+  * Improve SSL logging so that connections are logged even when the
+    ssl_established event is not generated as well as other small SSL
+    fixes. (Bernhard Amann)
+
 2.2-206 | 2014-03-03 16:52:28 -0800
 
   * HTTP CONNECT proxy support. The HTTP analyzer now supports

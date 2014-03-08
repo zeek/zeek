@@ -904,6 +904,7 @@ DNS_MsgInfo::~DNS_MsgInfo()
 Val* DNS_MsgInfo::BuildHdrVal()
 	{
 	RecordVal* r = new RecordVal(dns_msg);
+    r->notify_plugins_on_dtor = true;
 
 	r->Assign(0, new Val(id, TYPE_COUNT));
 	r->Assign(1, new Val(opcode, TYPE_COUNT));
@@ -925,6 +926,7 @@ Val* DNS_MsgInfo::BuildHdrVal()
 Val* DNS_MsgInfo::BuildAnswerVal()
 	{
 	RecordVal* r = new RecordVal(dns_answer);
+    r->notify_plugins_on_dtor = true;
 
 	Ref(query_name);
 	r->Assign(0, new Val(int(answer_type), TYPE_COUNT));

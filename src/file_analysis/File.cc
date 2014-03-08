@@ -84,6 +84,8 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = new RecordVal(fa_file_type);
+    val->notify_plugins_on_dtor = true;
+
 	val->Assign(id_idx, new StringVal(file_id.c_str()));
 
 	if ( conn )

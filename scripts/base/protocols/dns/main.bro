@@ -360,7 +360,15 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	# Note: I'm ignoring the name type for now.  Not sure if this should be
 	#       worked into the query/response in some fashion.
 	if ( c$id$resp_p == 137/udp )
+		{
 		query = decode_netbios_name(query);
+		if ( c$dns$qtype_name == "SRV" )
+			{
+			# The SRV RFC used the ID used for NetBios Status RRs.
+			# So if this is NetBios Name Service we name it correctly.
+			c$dns$qtype_name = "NBSTAT";
+			}
+		}
 	c$dns$query = query;
 	}
 
@@ -421,9 +429,9 @@ event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	hook DNS::do_reply(c, msg, ans, "");
 	}
 
-event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count) &priority=5
 	{
-	hook DNS::do_reply(c, msg, ans, "");
+	hook DNS::do_reply(c, msg, ans, target);
 	}
 
 # TODO: figure out how to handle these

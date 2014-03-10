@@ -221,7 +221,8 @@ while [ $# -ne 0 ]; do
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
         --with-jemalloc=*)
-            append_cache_entry JeMalloc_ROOT_DIR    PATH    $optarg
+            append_cache_entry JEMALLOC_ROOT_DIR    PATH    $optarg
+            append_cache_entry ENABLE_JEMALLOC      BOOL    true
             ;;
         --with-python=*)
             append_cache_entry PYTHON_EXECUTABLE    PATH    $optarg

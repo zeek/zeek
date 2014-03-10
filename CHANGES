@@ -1,4 +1,9 @@
 
+2.2-215 | 2014-03-10 11:10:15 -0700
+
+  * Fix non-deterministic logging of unmatched DNS msgs. Addresses
+    BIT-1153 (Jon Siwek)
+
 2.2-213 | 2014-03-09 08:57:37 -0700
 
   * No longer accidentally attempting to parse NBSTAT RRs as SRV RRs

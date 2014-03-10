@@ -181,10 +181,9 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 function log_unmatched_msgs(msgs: PendingMessages)
 	{
 	for ( trans_id in msgs )
-		{
 		log_unmatched_msgs_queue(msgs[trans_id]);
-		delete msgs[trans_id];
-		}
+
+	msgs = PendingMessages();
 	}
 
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)

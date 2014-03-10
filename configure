@@ -32,6 +32,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools     force use of Google perftools on non-Linux systems
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
+    --enable-jemalloc      link against jemalloc
+    --enable-ruby          build ruby bindings for broccoli (deprecated)
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
@@ -54,6 +56,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-libmagic=PATH   path to libmagic install root
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
+    --with-jemalloc=PATH   path to jemalloc install root
     --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
@@ -105,6 +108,7 @@ append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
+append_cache_entry ENABLE_JEMALLOC      BOOL false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -159,6 +163,9 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
+        --enable-jemalloc)
+            append_cache_entry ENABLE_JEMALLOC     BOOL   true
+            ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
             ;;
@@ -212,6 +219,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
+            ;;
+        --with-jemalloc=*)
+            append_cache_entry JeMalloc_ROOT_DIR    PATH    $optarg
             ;;
         --with-python=*)
             append_cache_entry PYTHON_EXECUTABLE    PATH    $optarg

@@ -56,7 +56,7 @@ event bro_init()
 		$sn=10.0.0.1/24,
 		$a=1.2.3.4,
 		$d=3.14,
-		$t=network_time(),
+		$t=(strptime("%Y-%m-%dT%H:%M:%SZ", "2008-07-09T16:13:30Z") + 0.543210 secs),
 		$iv=100secs,
 		$s="hurz",
 		$sc=set(1,2,3,4),

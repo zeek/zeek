@@ -78,6 +78,7 @@ const set_separator: string;
 const empty_field: string;
 const unset_field: string;
 const use_json: bool;
+const json_iso_timestamps: bool;
 
 # Options for the DataSeries writer.
 

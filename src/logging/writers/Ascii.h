@@ -48,6 +48,7 @@ private:
 	bool include_meta;
 	bool tsv;
 	bool use_json;
+	bool json_iso_timestamps;
 
 	string separator;
 	string set_separator;

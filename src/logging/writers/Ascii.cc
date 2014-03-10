@@ -59,6 +59,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
+	json_iso_timestamps = BifConst::LogAscii::json_iso_timestamps;
 
 	separator.assign(
 			(const char*) BifConst::LogAscii::separator->Bytes(),
@@ -147,7 +148,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	if ( use_json )
 		{
 		// Write out JSON formatted logs.
-		formatter = new threading::formatter::JSON(this);
+		formatter = new threading::formatter::JSON(this, json_iso_timestamps);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}

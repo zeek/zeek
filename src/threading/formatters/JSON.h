@@ -13,7 +13,7 @@ namespace threading { namespace formatter {
   */
 class JSON : public Formatter {
 public:
-	JSON(threading::MsgThread* t);
+	JSON(threading::MsgThread* t, bool json_iso_timestamps);
 	virtual ~JSON();
 
 	virtual bool Describe(ODesc* desc, threading::Value* val) const;
@@ -23,6 +23,7 @@ public:
 	virtual threading::Value* ParseValue(string s, string name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 private:
+	bool iso_timestamps;
 };
 
 }}

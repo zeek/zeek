@@ -4,13 +4,15 @@
 
 #include <sstream>
 #include <errno.h>
+#include <math.h>
 
 #include "./JSON.h"
 
 using namespace threading::formatter;
 
-JSON::JSON(MsgThread* t) : Formatter(t)
+JSON::JSON(MsgThread* t, bool json_iso_timestamps) : Formatter(t)
 	{
+	iso_timestamps = json_iso_timestamps;
 	}
 
 JSON::~JSON()
@@ -100,16 +102,35 @@ bool JSON::Describe(ODesc* desc, Value* val) const
 
 		case TYPE_TIME:
 			{
-			// ElasticSearch uses milliseconds for timestamps and json only
-			// supports signed ints (uints can be too large).
-			uint64_t ts = (uint64_t) (val->val.double_val * 1000);
-			if ( ts >= INT64_MAX )
+			if ( iso_timestamps )
 				{
-				thread->Error(thread->Fmt("time value too large for JSON: %" PRIu64, ts));
-				desc->AddRaw("null", 4);
+				char buffer[40];
+				time_t t = time_t(val->val.double_val);
+				if ( strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", gmtime(&t)) == 0 )
+					thread->Error(thread->Fmt("strftime error for JSON: %" PRIu64));
+				else
+					{
+					double integ;
+					double frac = modf(val->val.double_val, &integ);
+					snprintf(buffer, sizeof(buffer), "%s.%06.0fZ", buffer, frac*1000000);
+					desc->AddRaw("\"", 1);
+					desc->Add(buffer);
+					desc->AddRaw("\"", 1);
+					}
 				}
 			else
-				desc->Add(ts);
+				{
+				// ElasticSearch uses milliseconds for timestamps and json only
+				// supports signed ints (uints can be too large).
+				uint64_t ts = (uint64_t) (val->val.double_val * 1000);
+				if ( ts >= INT64_MAX )
+					{
+					thread->Error(thread->Fmt("time value too large for JSON: %" PRIu64, ts));
+					desc->AddRaw("null", 4);
+					}
+				else
+					desc->Add(ts);
+				}
 			break;
 			}
 

@@ -24,6 +24,12 @@ export {
 	## This is also available as a per-filter $config option.
 	const use_json = F &redef;
 
+	## By default, the JSON formatter will use double values for timestamps
+	## which represent the number of seconds from the UNIX epoch.  By setting
+	## this to 'T', it will use the 8601 format.  This is also available as 
+	## a per-filter $config option.
+	const json_iso_timestamps = F &redef;
+
 	## If true, include lines with log meta information such as column names
 	## with types, the values of ASCII logging options that are in use, and
 	## the time when the file was opened and closed (the latter at the end).

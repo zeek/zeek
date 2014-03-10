@@ -1,0 +1,10 @@
+{
+3.0.0.0,
+2.0.0.0,
+1.0.0.0
+}
+lookup_hostname_txt, fake_result_4
+lookup_hostname, {
+5.0.0.0
+}
+lookup_addr, fake_result_6

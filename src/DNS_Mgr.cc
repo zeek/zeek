@@ -443,6 +443,20 @@ bool DNS_Mgr::Init()
 	return true;
 	}
 
+TableVal* DNS_Mgr::BuildFakeAddrResult()
+	{
+	ListVal* hv = new ListVal(TYPE_ADDR);
+	hv->Append(new AddrVal(++dns_fake_count));
+	return hv->ConvertToSet();
+	}
+
+const char* DNS_Mgr::BuildFakeNameResult()
+	{
+	static char tmp[32];
+	snprintf(tmp, sizeof(tmp), "fake_result_%"PRIu32, ++dns_fake_count);
+	return tmp;
+	}
+
 TableVal* DNS_Mgr::LookupHost(const char* name)
 	{
 	if ( ! nb_dns )
@@ -452,11 +466,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		Init();
 
 	if ( mode == DNS_FAKE )
-		{
-		ListVal* hv = new ListVal(TYPE_ADDR);
-		hv->Append(new AddrVal(uint32(++dns_fake_count)));
-		return hv->ConvertToSet();
-		}
+		return BuildFakeAddrResult();
 
 	if ( mode != DNS_PRIME )
 		{
@@ -960,7 +970,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
-TableVal* DNS_Mgr::LookupNameInCache(string name)
+TableVal* DNS_Mgr::LookupNameInCache(const string& name)
 	{
 	HostMap::iterator it = host_mappings.find(name);
 	if ( it == host_mappings.end() )
@@ -990,7 +1000,7 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 	return tv6;
 	}
 
-const char* DNS_Mgr::LookupTextInCache(string name)
+const char* DNS_Mgr::LookupTextInCache(const string& name)
 	{
 	TextMap::iterator it = text_mappings.find(name);
 	if ( it == text_mappings.end() )
@@ -1010,17 +1020,37 @@ const char* DNS_Mgr::LookupTextInCache(string name)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
+static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
+                              TableVal* result)
+	{
+	callback->Resolved(result);
+	Unref(result);
+	delete callback;
+	}
+
+static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
+                              const char* result)
+	{
+	callback->Resolved(result);
+	delete callback;
+	}
+
 void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
 
+	if ( mode == DNS_FAKE )
+		{
+		resolve_lookup_cb(callback, BuildFakeNameResult());
+		return;
+		}
+
 	// Do we already know the answer?
 	const char* name = LookupAddrInCache(host);
 	if ( name )
 		{
-		callback->Resolved(name);
-		delete callback;
+		resolve_lookup_cb(callback, name);
 		return;
 		}
 
@@ -1044,18 +1074,22 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
-void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
+
+	if ( mode == DNS_FAKE )
+		{
+		resolve_lookup_cb(callback, BuildFakeAddrResult());
+		return;
+		}
 
 	// Do we already know the answer?
 	TableVal* addrs = LookupNameInCache(name);
 	if ( addrs )
 		{
-		callback->Resolved(addrs);
-		Unref(addrs);
-		delete callback;
+		resolve_lookup_cb(callback, addrs);
 		return;
 		}
 
@@ -1079,13 +1113,25 @@ void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
-void DNS_Mgr::AsyncLookupNameText(string name, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupNameText(const string& name, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
 
+	if ( mode == DNS_FAKE )
+		{
+		resolve_lookup_cb(callback, BuildFakeNameResult());
+		return;
+		}
+
 	// Do we already know the answer?
-	TableVal* addrs;
+	const char* txt = LookupTextInCache(name);
+
+	if ( txt )
+		{
+		resolve_lookup_cb(callback, txt);
+		return;
+		}
 
 	AsyncRequest* req = 0;
 

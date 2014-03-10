@@ -35,7 +35,7 @@ SQLite::SQLite(WriterFrontend* frontend)
 			BifConst::LogSQLite::empty_field->Len()
 			);
 
-	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()

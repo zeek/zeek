@@ -77,6 +77,7 @@ const separator: string;
 const set_separator: string;
 const empty_field: string;
 const unset_field: string;
+const use_json: bool;
 
 # Options for the DataSeries writer.
 

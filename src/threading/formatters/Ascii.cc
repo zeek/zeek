@@ -5,35 +5,59 @@
 #include <sstream>
 #include <errno.h>
 
-#include "AsciiFormatter.h"
-#include "bro_inet_ntop.h"
+#include "./Ascii.h"
 
-AsciiFormatter::SeparatorInfo::SeparatorInfo()
+using namespace threading::formatter;
+
+Ascii::SeparatorInfo::SeparatorInfo()
 	{
+	this->separator = "SHOULD_NOT_BE_USED";
 	this->set_separator = "SHOULD_NOT_BE_USED";
 	this->unset_field = "SHOULD_NOT_BE_USED";
 	this->empty_field = "SHOULD_NOT_BE_USED";
 	}
 
-AsciiFormatter::SeparatorInfo::SeparatorInfo(const string & set_separator,
-				 const string & unset_field, const string & empty_field)
+Ascii::SeparatorInfo::SeparatorInfo(const string & separator,
+                                    const string & set_separator,
+                                    const string & unset_field,
+                                    const string & empty_field)
 	{
+	this->separator = separator;
 	this->set_separator = set_separator;
 	this->unset_field = unset_field;
 	this->empty_field = empty_field;
 	}
 
-AsciiFormatter::AsciiFormatter(threading::MsgThread* t, const SeparatorInfo info)
+Ascii::Ascii(threading::MsgThread* t, const SeparatorInfo info) : Formatter(t)
 	{
-	thread = t;
 	this->separators = info;
 	}
 
-AsciiFormatter::~AsciiFormatter()
+Ascii::~Ascii()
 	{
 	}
 
-bool AsciiFormatter::Describe(ODesc* desc, threading::Value* val, const string& name) const
+bool Ascii::Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
+                     threading::Value** vals) const
+	{
+	for ( int i = 0; i < num_fields; i++ )
+		{
+		if ( i > 0 )
+			desc->AddRaw(separators.separator);
+
+		if ( ! Describe(desc, vals[i], fields[i]->name) )
+			return false;
+		}
+
+	return true;
+	}
+
+bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) const
+	{
+	return Describe(desc, val);
+	}
+
+bool Ascii::Describe(ODesc* desc, threading::Value* val) const
 	{
 	if ( ! val->present )
 		{
@@ -133,7 +157,7 @@ bool AsciiFormatter::Describe(ODesc* desc, threading::Value* val, const string& 
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
 
-			if ( ! Describe(desc, val->val.set_val.vals[j], name) )
+			if ( ! Describe(desc, val->val.set_val.vals[j]) )
 				{
 				desc->RemoveEscapeSequence(separators.set_separator);
 				return false;
@@ -158,7 +182,7 @@ bool AsciiFormatter::Describe(ODesc* desc, threading::Value* val, const string& 
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
 
-			if ( ! Describe(desc, val->val.vector_val.vals[j], name) )
+			if ( ! Describe(desc, val->val.vector_val.vals[j]) )
 				{
 				desc->RemoveEscapeSequence(separators.set_separator);
 				return false;
@@ -170,7 +194,7 @@ bool AsciiFormatter::Describe(ODesc* desc, threading::Value* val, const string& 
 		}
 
 	default:
-		thread->Error(thread->Fmt("unsupported field format %d for %s", val->type, name.c_str()));
+		thread->Error(thread->Fmt("Ascii writer unsupported field format %d", val->type));
 		return false;
 	}
 
@@ -178,7 +202,7 @@ bool AsciiFormatter::Describe(ODesc* desc, threading::Value* val, const string& 
 	}
 
 
-threading::Value* AsciiFormatter::ParseValue(string s, string name, TypeTag type, TypeTag subtype) const
+threading::Value* Ascii::ParseValue(string s, string name, TypeTag type, TypeTag subtype) const
 	{
 	if ( s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
@@ -381,129 +405,3 @@ parse_error:
 	delete val;
 	return 0;
 	}
-
-bool AsciiFormatter::CheckNumberError(const string& s, const char* end) const
-	{
-	// Do this check first, before executing s.c_str() or similar.
-	// otherwise the value to which *end is pointing at the moment might
-	// be gone ...
-	bool endnotnull =  (*end != '\0');
-
-	if ( s.length() == 0 )
-		{
-		thread->Error("Got empty string for number field");
-		return true;
-		}
-
-	if ( end == s.c_str() ) {
-		thread->Error(thread->Fmt("String '%s' contained no parseable number", s.c_str()));
-		return true;
-	}
-
-	if ( endnotnull )
-		thread->Warning(thread->Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
-
-	if ( errno == EINVAL )
-		{
-		thread->Error(thread->Fmt("String '%s' could not be converted to a number", s.c_str()));
-		return true;
-		}
-
-	else if ( errno == ERANGE )
-		{
-		thread->Error(thread->Fmt("Number '%s' out of supported range.", s.c_str()));
-		return true;
-		}
-
-	return false;
-	}
-
-string AsciiFormatter::Render(const threading::Value::addr_t& addr) const
-	{
-	if ( addr.family == IPv4 )
-		{
-		char s[INET_ADDRSTRLEN];
-
-		if ( ! bro_inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) )
-			return "<bad IPv4 address conversion>";
-		else
-			return s;
-		}
-	else
-		{
-		char s[INET6_ADDRSTRLEN];
-
-		if ( ! bro_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
-			return "<bad IPv6 address conversion>";
-		else
-			return s;
-		}
-	}
-
-TransportProto AsciiFormatter::ParseProto(const string &proto) const
-	{
-	if ( proto == "unknown" )
-		return TRANSPORT_UNKNOWN;
-	else if ( proto == "tcp" )
-		return TRANSPORT_TCP;
-	else if ( proto == "udp" )
-		return TRANSPORT_UDP;
-	else if ( proto == "icmp" )
-		return TRANSPORT_ICMP;
-
-	thread->Error(thread->Fmt("Tried to parse invalid/unknown protocol: %s", proto.c_str()));
-
-	return TRANSPORT_UNKNOWN;
-	}
-
-
-// More or less verbose copy from IPAddr.cc -- which uses reporter.
-threading::Value::addr_t AsciiFormatter::ParseAddr(const string &s) const
-	{
-		threading::Value::addr_t val;
-
-	if ( s.find(':') == std::string::npos ) // IPv4.
-		{
-		val.family = IPv4;
-
-		if ( inet_aton(s.c_str(), &(val.in.in4)) <= 0 )
-			{
-			thread->Error(thread->Fmt("Bad address: %s", s.c_str()));
-			memset(&val.in.in4.s_addr, 0, sizeof(val.in.in4.s_addr));
-			}
-		}
-
-	else
-		{
-		val.family = IPv6;
-		if ( inet_pton(AF_INET6, s.c_str(), val.in.in6.s6_addr) <=0 )
-			{
-			thread->Error(thread->Fmt("Bad address: %s", s.c_str()));
-			memset(val.in.in6.s6_addr, 0, sizeof(val.in.in6.s6_addr));
-			}
-		}
-
-	return val;
-	}
-
-string AsciiFormatter::Render(const threading::Value::subnet_t& subnet) const
-	{
-	char l[16];
-
-	if ( subnet.prefix.family == IPv4 )
-		modp_uitoa10(subnet.length - 96, l);
-	else
-		modp_uitoa10(subnet.length, l);
-
-	string s = Render(subnet.prefix) + "/" + l;
-
-	return s;
-	}
-
-string AsciiFormatter::Render(double d) const
-	{
-	char buf[256];
-	modp_dtoa(d, buf, 6);
-	return buf;
-	}
-

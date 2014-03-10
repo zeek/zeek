@@ -6,7 +6,8 @@
 #define LOGGING_WRITER_ASCII_H
 
 #include "../WriterBackend.h"
-#include "threading/AsciiFormatter.h"
+#include "threading/formatters/Ascii.h"
+#include "threading/formatters/JSON.h"
 
 namespace logging { namespace writer {
 
@@ -46,6 +47,7 @@ private:
 	bool output_to_stdout;
 	bool include_meta;
 	bool tsv;
+	bool use_json;
 
 	string separator;
 	string set_separator;
@@ -53,7 +55,7 @@ private:
 	string unset_field;
 	string meta_prefix;
 
-	AsciiFormatter* ascii;
+	threading::formatter::Formatter* formatter;
 };
 
 }

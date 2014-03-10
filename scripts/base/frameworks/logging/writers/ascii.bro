@@ -17,27 +17,38 @@ module LogAscii;
 export {
 	## If true, output everything to stdout rather than
 	## into files. This is primarily for debugging purposes.
+	## This is also available as a per-filter $config option.
 	const output_to_stdout = F &redef;
+
+	## If true, the default option will be to write logs in a JSON format.
+	## This is also available as a per-filter $config option.
+	const use_json = F &redef;
 
 	## If true, include lines with log meta information such as column names
 	## with types, the values of ASCII logging options that are in use, and
 	## the time when the file was opened and closed (the latter at the end).
+	## If writing in JSON format, this is implicitly disabled.
 	const include_meta = T &redef;
 
-	## Prefix for lines with meta information.
+	## Prefix for lines with meta information. This is also available as a 
+	## per-filter $config option.
 	const meta_prefix = "#" &redef;
 
-	## Separator between fields.
+	## Separator between fields.  This is also available as a per-filter 
+	## $config option.
 	const separator = Log::separator &redef;
 
-	## Separator between set elements.
+	## Separator between set elements.  This is also available as a 
+	## per-filter $config option.
 	const set_separator = Log::set_separator &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output unambiguous. 
+	## *unset_field* to make the output unambiguous.  This is also 
+	## available as a per-filter $config option.
 	const empty_field = Log::empty_field &redef;
 
-	## String to use for an unset &optional field.
+	## String to use for an unset &optional field.  This is also 
+	## available as a per-filter $config option.
 	const unset_field = Log::unset_field &redef;
 }
 

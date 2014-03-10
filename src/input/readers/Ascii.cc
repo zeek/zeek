@@ -69,13 +69,13 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
 			    BifConst::InputAscii::unset_field->Len());
 
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
+	formatter = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
 }
 
 Ascii::~Ascii()
 	{
 	DoClose();
-	delete ascii;
+	delete formatter;
 	}
 
 void Ascii::DoClose()
@@ -173,7 +173,6 @@ bool Ascii::ReadHeader(bool useCached)
 			return false;
 			}
 
-
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
 
 		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
@@ -200,7 +199,7 @@ bool Ascii::ReadHeader(bool useCached)
 bool Ascii::GetLine(string& str)
 	{
 	while ( getline(*file, str) )
-       		{
+		{
 		if ( str[0] != '#' )
 			return true;
 
@@ -282,7 +281,7 @@ bool Ascii::DoUpdate()
 
 	file->sync();
 
-	while ( GetLine(line ) )
+	while ( GetLine(line) )
 		{
 		// split on tabs
 		bool error = false;
@@ -332,7 +331,7 @@ bool Ascii::DoUpdate()
 				return false;
 				}
 
-			Value* val = ascii->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 
 			if ( val == 0 )
 				{
@@ -347,7 +346,7 @@ bool Ascii::DoUpdate()
 				assert(val->type == TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				val->val.port_val.proto = ascii->ParseProto(stringfields[(*fit).secondary_position]);
+				val->val.port_val.proto = formatter->ParseProto(stringfields[(*fit).secondary_position]);
 				}
 
 			fields[fpos] = val;
@@ -384,8 +383,9 @@ bool Ascii::DoUpdate()
 	}
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
-{
-	switch ( Info().mode  ) {
+	{
+	switch ( Info().mode  ) 
+		{
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
@@ -398,7 +398,7 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 		default:
 			assert(false);
-	}
+		}
 
 	return true;
 	}

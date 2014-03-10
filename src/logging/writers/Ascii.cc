@@ -10,8 +10,7 @@
 
 #include "Ascii.h"
 
-using namespace logging;
-using namespace writer;
+using namespace logging::writer;
 using threading::Value;
 using threading::Field;
 
@@ -20,9 +19,46 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	fd = 0;
 	ascii_done = false;
 	tsv = false;
+	}
 
+Ascii::~Ascii()
+	{
+	if ( ! ascii_done )
+		{
+		fprintf(stderr, "internal error: finish missing\n");
+		abort();
+		}
+
+	delete formatter;
+	}
+
+bool Ascii::WriteHeaderField(const string& key, const string& val)
+	{
+	string str = meta_prefix + key + separator + val + "\n";
+
+	return safe_write(fd, str.c_str(), str.length());
+	}
+
+void Ascii::CloseFile(double t)
+	{
+	if ( ! fd )
+		return;
+
+	if ( include_meta && ! tsv )
+		WriteHeaderField("close", Timestamp(0));
+
+	safe_close(fd);
+	fd = 0;
+	}
+
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
+	{
+	assert(! fd);
+
+	// Set some default values.
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
+	use_json = BifConst::LogAscii::use_json;
 
 	separator.assign(
 			(const char*) BifConst::LogAscii::separator->Bytes(),
@@ -49,48 +85,81 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 			BifConst::LogAscii::meta_prefix->Len()
 			);
 
-	desc.EnableEscaping();
-	desc.AddEscapeSequence(separator);
-
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
-	}
-
-Ascii::~Ascii()
-	{
-	if ( ! ascii_done )
+	// Set per-filter configuration options.
+	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
 		{
-		fprintf(stderr, "internal error: finish missing\n");
-		abort();
+		if ( strcmp(i->first, "tsv") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				tsv = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				tsv = false;
+			else
+				{
+				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
+		else if ( strcmp(i->first, "use_json") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				use_json = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				use_json = false;
+			else
+				{
+				Error("invalid value for 'use_json', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
+		else if ( strcmp(i->first, "output_to_stdout") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				output_to_stdout = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				output_to_stdout = false;
+			else
+				{
+				Error("invalid value for 'output_to_stdout', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
+		else if ( strcmp(i->first, "separator") == 0 )
+			separator.assign(i->second);
+		
+		else if ( strcmp(i->first, "set_separator") == 0 )
+			set_separator.assign(i->second);
+		
+		else if ( strcmp(i->first, "empty_field") == 0 )
+			empty_field.assign(i->second);
+
+		else if ( strcmp(i->first, "unset_field") == 0 )
+			unset_field.assign(i->second);
+
+		else if ( strcmp(i->first, "meta_prefix") == 0 )
+			meta_prefix.assign(i->second);
 		}
 
-	delete ascii;
-	}
 
-bool Ascii::WriteHeaderField(const string& key, const string& val)
-	{
-	string str = meta_prefix + key + separator + val + "\n";
-
-	return safe_write(fd, str.c_str(), str.length());
-	}
-
-void Ascii::CloseFile(double t)
-	{
-	if ( ! fd )
-		return;
-
-	if ( include_meta && ! tsv )
-		WriteHeaderField("close", Timestamp(0));
-
-	safe_close(fd);
-	fd = 0;
-	}
-
-bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
-	{
-	assert(! fd);
+	if ( use_json )
+		{
+		// Write out JSON formatted logs.
+		formatter = new threading::formatter::JSON(this);
+		// Using JSON implicitly turns off the header meta fields.
+		include_meta = false;
+		}
+	else
+		{
+		// Use the default "Bro logs" format.
+		desc.EnableEscaping();
+		desc.AddEscapeSequence(separator);
+		formatter = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(separator, set_separator, unset_field, empty_field));
+		}
 
 	string path = info.path;
-
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
@@ -104,24 +173,6 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			  Strerror(errno)));
 		fd = 0;
 		return false;
-		}
-
-	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
-		{
-		if ( strcmp(i->first, "tsv") == 0 )
-			{
-			if ( strcmp(i->second, "T") == 0 )
-				tsv = true;
-
-			else if ( strcmp(i->second, "F") == 0 )
-				tsv = false;
-
-			else
-				{
-				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
-				return false;
-				}
-			}
 		}
 
 	if ( include_meta )
@@ -208,17 +259,9 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 		DoInit(Info(), NumFields(), Fields());
 
 	desc.Clear();
-
-	for ( int i = 0; i < num_fields; i++ )
-		{
-		if ( i > 0 )
-			desc.AddRaw(separator);
-
-		if ( ! ascii->Describe(&desc, vals[i], fields[i]->name) )
-			return false;
-		}
-
-	desc.AddRaw("\n", 1);
+	if ( ! formatter->Describe(&desc, num_fields, fields, vals) )
+		return false;
+	desc.AddRaw("\n");
 
 	const char* bytes = (const char*)desc.Bytes();
 	int len = desc.Len();

@@ -1,4 +1,32 @@
 
+2.2-215 | 2014-03-10 11:10:15 -0700
+
+  * Fix non-deterministic logging of unmatched DNS msgs. Addresses
+    BIT-1153 (Jon Siwek)
+
+2.2-213 | 2014-03-09 08:57:37 -0700
+
+  * No longer accidentally attempting to parse NBSTAT RRs as SRV RRs
+    in DNS analyzer. (Seth Hall)
+
+  * Fix DNS SRV responses and a small issue with NBNS queries and
+    label length. (Seth Hall)
+
+     - DNS SRV responses never had the code written to actually
+       generate the dns_SRV_reply event.  Adding this required
+       extending the event a bit to add extra information.  SRV responses
+       now appear in the dns.log file correctly.
+
+     - Fixed an issue where some Microsoft NetBIOS Name Service lookups
+       would exceed the max label length for DNS and cause an incorrect
+       "DNS_label_too_long" weird.
+
+2.2-210 | 2014-03-06 22:52:36 -0500
+
+  * Improve SSL logging so that connections are logged even when the
+    ssl_established event is not generated as well as other small SSL
+    fixes. (Bernhard Amann)
+
 2.2-206 | 2014-03-03 16:52:28 -0800
 
   * HTTP CONNECT proxy support. The HTTP analyzer now supports

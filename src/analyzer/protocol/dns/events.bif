@@ -392,6 +392,12 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%)
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
+## priority: Priority of the SRV response.
+##
+## weight: Weight of the SRV response.
+##
+## p: Port of the SRV response.
+##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
@@ -399,7 +405,7 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%)
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
+event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count%);
 
 ## Generated on DNS reply resource records when the type of record is not one
 ## that Bro knows how to parse and generate another more specific specific

@@ -95,9 +95,9 @@ void TCP_Analyzer::Done()
 void TCP_Analyzer::EnableReassembly()
 	{
 	SetReassembler(new TCP_Reassembler(this, this,
-					TCP_Reassembler::Forward, true, orig),
-		       new TCP_Reassembler(this, this,
-					TCP_Reassembler::Forward, false, resp));
+	                                   TCP_Reassembler::Forward, orig),
+	               new TCP_Reassembler(this, this,
+	                                   TCP_Reassembler::Forward, resp));
 
 	reassembling = 1;
 
@@ -590,6 +590,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 				// per the discussion in IsReuse.
 				// Flip the endpoints and establish
 				// the connection.
+				is_partial = 0;
 				Conn()->FlipRoles();
 				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
 				}

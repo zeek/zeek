@@ -331,11 +331,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 
 	tcp::TCP_Reassembler* reass_orig =
 		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					true, tcp->Orig());
+					tcp->Orig());
 
 	tcp::TCP_Reassembler* reass_resp =
 		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					false, tcp->Resp());
+					tcp->Resp());
 
 	int orig_seq = 0;
 	int resp_seq = 0;

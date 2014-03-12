@@ -5,7 +5,7 @@
 # Testing all possible types.
 
 redef LogAscii::use_json = T;
-redef LogAscii::json_iso_timestamps = T;
+redef LogAscii::json_timestamps = JSON::TS_ISO8601;
 
 module SSH;
 

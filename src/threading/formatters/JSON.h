@@ -13,7 +13,14 @@ namespace threading { namespace formatter {
   */
 class JSON : public Formatter {
 public:
-	JSON(threading::MsgThread* t, bool json_iso_timestamps);
+
+	enum TimeFormat {
+		TS_EPOCH,   // Doubles that represents seconds from the UNIX epoch.
+		TS_ISO8601, // ISO 8601 defined human readable timestamp format.
+		TS_MILLIS   // Milliseconds from the UNIX epoch.  Some things need this (elasticsearch).
+		};
+
+	JSON(threading::MsgThread* t, TimeFormat tf);
 	virtual ~JSON();
 
 	virtual bool Describe(ODesc* desc, threading::Value* val) const;
@@ -23,7 +30,7 @@ public:
 	virtual threading::Value* ParseValue(string s, string name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 private:
-	bool iso_timestamps;
+	TimeFormat timestamps;
 };
 
 }}

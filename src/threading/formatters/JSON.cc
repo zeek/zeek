@@ -10,9 +10,9 @@
 
 using namespace threading::formatter;
 
-JSON::JSON(MsgThread* t, bool json_iso_timestamps) : Formatter(t)
+JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t)
 	{
-	iso_timestamps = json_iso_timestamps;
+	timestamps = tf;
 	}
 
 JSON::~JSON()
@@ -102,7 +102,7 @@ bool JSON::Describe(ODesc* desc, Value* val) const
 
 		case TYPE_TIME:
 			{
-			if ( iso_timestamps )
+			if ( timestamps == TS_ISO8601 )
 				{
 				char buffer[40];
 				time_t t = time_t(val->val.double_val);
@@ -118,14 +118,18 @@ bool JSON::Describe(ODesc* desc, Value* val) const
 					desc->AddRaw("\"", 1);
 					}
 				}
-			else
+			else if ( timestamps == TS_EPOCH )
+				{
+				desc->Add(val->val.double_val);
+				}
+			else if ( timestamps == TS_MILLIS )
 				{
 				// ElasticSearch uses milliseconds for timestamps and json only
 				// supports signed ints (uints can be too large).
 				uint64_t ts = (uint64_t) (val->val.double_val * 1000);
 				if ( ts >= INT64_MAX )
 					{
-					thread->Error(thread->Fmt("time value too large for JSON: %" PRIu64, ts));
+					thread->Error(thread->Fmt("time value too large for JSON milliseconds: %" PRIu64, ts));
 					desc->AddRaw("null", 4);
 					}
 				else

@@ -11,6 +11,7 @@
 #include "Ascii.h"
 
 using namespace logging::writer;
+using namespace threading;
 using threading::Value;
 using threading::Field;
 
@@ -59,7 +60,6 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
-	json_iso_timestamps = BifConst::LogAscii::json_iso_timestamps;
 
 	separator.assign(
 			(const char*) BifConst::LogAscii::separator->Bytes(),
@@ -84,6 +84,13 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	meta_prefix.assign(
 			(const char*) BifConst::LogAscii::meta_prefix->Bytes(),
 			BifConst::LogAscii::meta_prefix->Len()
+			);
+
+	ODesc tsfmt;
+	BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
+	json_timestamps.assign(
+			(const char*) tsfmt.Bytes(),
+			tsfmt.Len()
 			);
 
 	// Set per-filter configuration options.
@@ -142,13 +149,28 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 		else if ( strcmp(i->first, "meta_prefix") == 0 )
 			meta_prefix.assign(i->second);
+		
+		else if ( strcmp(i->first, "json_timestamps") == 0 )
+			json_timestamps.assign(i->second);
 		}
-
 
 	if ( use_json )
 		{
+		formatter::JSON::TimeFormat tf = formatter::JSON::TS_EPOCH;
 		// Write out JSON formatted logs.
-		formatter = new threading::formatter::JSON(this, json_iso_timestamps);
+		if ( strcmp(json_timestamps.c_str(), "JSON::TS_EPOCH") == 0 )
+			tf = formatter::JSON::TS_EPOCH;
+		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_MILLIS") == 0 )
+			tf = formatter::JSON::TS_MILLIS;
+		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_ISO8601") == 0 )
+			tf = formatter::JSON::TS_ISO8601;
+		else
+			{
+			Error(Fmt("Invalid JSON timestamp format: %s", json_timestamps.c_str()));
+			return false;
+			}
+
+		formatter = new formatter::JSON(this, tf);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}
@@ -157,7 +179,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
-		formatter = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(separator, set_separator, unset_field, empty_field));
+		formatter = new formatter::Ascii(this, formatter::Ascii::SeparatorInfo(separator, set_separator, unset_field, empty_field));
 		}
 
 	string path = info.path;

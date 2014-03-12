@@ -47,14 +47,15 @@ private:
 	bool output_to_stdout;
 	bool include_meta;
 	bool tsv;
-	bool use_json;
-	bool json_iso_timestamps;
 
 	string separator;
 	string set_separator;
 	string empty_field;
 	string unset_field;
 	string meta_prefix;
+	
+	bool use_json;
+	string json_timestamps;
 
 	threading::formatter::Formatter* formatter;
 };

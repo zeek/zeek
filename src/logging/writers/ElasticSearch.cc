@@ -52,7 +52,7 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 
 	curl_handle = HTTPSetup();
 
-	json = new threading::formatter::JSON(this, false);
+	json = new threading::formatter::JSON(this, threading::formatter::JSON::TS_MILLIS);
 }
 
 ElasticSearch::~ElasticSearch()

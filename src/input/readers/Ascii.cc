@@ -14,6 +14,7 @@
 #include <errno.h>
 
 using namespace input::reader;
+using namespace threading;
 using threading::Value;
 using threading::Field;
 
@@ -50,27 +51,7 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
 	mtime = 0;
-
-	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
-			  BifConst::InputAscii::separator->Len());
-
-	if ( separator.size() != 1 )
-		Error("separator length has to be 1. Separator will be truncated.");
-
-	set_separator.assign( (const char*) BifConst::InputAscii::set_separator->Bytes(),
-		              BifConst::InputAscii::set_separator->Len());
-
-	if ( set_separator.size() != 1 )
-		Error("set_separator length has to be 1. Separator will be truncated.");
-
-	empty_field.assign( (const char*) BifConst::InputAscii::empty_field->Bytes(),
-			    BifConst::InputAscii::empty_field->Len());
-
-	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
-			    BifConst::InputAscii::unset_field->Len());
-
-	formatter = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
-}
+	}
 
 Ascii::~Ascii()
 	{
@@ -90,7 +71,41 @@ void Ascii::DoClose()
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	mtime = 0;
+	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
+	                 BifConst::InputAscii::separator->Len());
+
+	set_separator.assign( (const char*) BifConst::InputAscii::set_separator->Bytes(),
+	                     BifConst::InputAscii::set_separator->Len());
+
+	empty_field.assign( (const char*) BifConst::InputAscii::empty_field->Bytes(),
+	                   BifConst::InputAscii::empty_field->Len());
+
+	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
+	                   BifConst::InputAscii::unset_field->Len());
+
+	// Set per-filter configuration options.
+	for ( ReaderInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
+		{
+		if ( strcmp(i->first, "separator") == 0 )
+			separator.assign(i->second);
+		
+		else if ( strcmp(i->first, "set_separator") == 0 )
+			set_separator.assign(i->second);
+		
+		else if ( strcmp(i->first, "empty_field") == 0 )
+			empty_field.assign(i->second);
+
+		else if ( strcmp(i->first, "unset_field") == 0 )
+			unset_field.assign(i->second);
+		}
+
+	if ( separator.size() != 1 )
+		Error("separator length has to be 1. Separator will be truncated.");
+
+	if ( set_separator.size() != 1 )
+		Error("set_separator length has to be 1. Separator will be truncated.");
+
+	formatter = new formatter::Ascii(this, formatter::Ascii::SeparatorInfo(separator, set_separator, unset_field, empty_field));
 
 	file = new ifstream(info.source);
 	if ( ! file->is_open() )

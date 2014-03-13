@@ -6,15 +6,12 @@ module X509;
 export {
 	redef enum Log::ID += { LOG };
 
-	## Set that keeps track of the certificates which were logged recently.
-	global cert_hashes: set[string] &create_expire=1hrs &synchronized &redef;
-
 	type Info: record {
 		## current timestamp
 		ts: time &log;
 
-		## SHA-1 hash of this certificate
-		sha1: string &log &optional;
+		## file id of this certificate
+		id: string &log;
     
 		## Basic information about the certificate
 		certificate: X509::Certificate &log;
@@ -48,20 +45,9 @@ redef record Files::Info += {
 	x509: X509::Info &optional;
 };
 
-# Either, this event arrives first - then info$x509 does not exist 
-# yet and this is a no-op, and the sha1 value is set in x509_certificate.
-# Or the x509_certificate event arrives first - then the hash is set here.
-event file_hash(f: fa_file, kind: string, hash: string)
-	{
-	if ( f$info?$x509 && kind == "sha1" )
-		f$info$x509$sha1 = hash;
-	}
-
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5
 	{
-	f$info$x509 = [$ts=f$info$ts, $certificate=cert, $handle=cert_ref];
-	if ( f$info?$sha1 )
-		f$info$x509$sha1 = f$info$sha1;
+	f$info$x509 = [$ts=f$info$ts, $id=f$id, $certificate=cert, $handle=cert_ref];
 	}
 
 event x509_extension(f: fa_file, ext: X509::Extension) &priority=5
@@ -86,18 +72,6 @@ event file_state_remove(f: fa_file) &priority=5
 	{
 	if ( ! f$info?$x509 )
 		return;
-
-	if ( ! f$info$x509?$sha1 )
-		{
-		Reporter::error(fmt("Certificate without a hash value. Logging skipped. File-id: %s", f$id));
-		return;
-		}
-
-	if ( f$info$x509$sha1 in cert_hashes )
-		# we already have seen & logged this certificate
-		return;
-
-	add cert_hashes[f$info$x509$sha1];
 
 	Log::write(LOG, f$info$x509);
 	}

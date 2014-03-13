@@ -1,4 +1,11 @@
 
+2.2-218 | 2014-03-12 17:19:45 -0700
+
+  * Improve DBG_LOG macro (perf. improvement for --enable-debug mode).
+    (Jon Siwek)
+
+  * Silences some documentation warnings from Sphinx. (Jon Siwek)
+    
 2.2-215 | 2014-03-10 11:10:15 -0700
 
   * Fix non-deterministic logging of unmatched DNS msgs. Addresses

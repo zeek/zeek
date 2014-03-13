@@ -1,4 +1,31 @@
 
+2.2-228 | 2014-03-13 14:25:53 -0700
+
+  * Teach async DNS lookup builtin-functions about BRO_DNS_FAKE.
+    Addresses BIT-1134. (Jon Siwek)
+
+  * Enable fake DNS mode for test suites.
+    
+  * Improve analysis of TCP SYN/SYN-ACK reversal situations. (Jon
+    Siwek)
+
+    - Since it's just the handshake packets out of order, they're no
+      longer treated as partial connections, which some protocol analyzers
+      immediately refuse to look at.
+
+    - The TCP_Reassembler "is_orig" state failed to change, which led to
+      protocol analyzers sometimes using the wrong value for that.
+
+    - Add a unit test which exercises the Connection::FlipRoles() code
+      path (i.e. the SYN/SYN-ACK reversal situation).
+
+    Addresses BIT-1148.
+
+  * Fix bug in Connection::FlipRoles. It didn't swap address values
+    right and also didn't consider that analyzers might be scheduled
+    for the new connection tuple. Reported by Kevin McMahon. Addresses
+    BIT-1148. (Jon Siwek)
+
 2.2-221 | 2014-03-12 17:23:18 -0700
 
   * Teach configure script --enable-jemalloc, --with-jemalloc.

@@ -39,24 +39,24 @@ event ssl_established(c: connection) &priority=3
 		 ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
 		return;
 
-	local hash = c$ssl$cert_chain[0]$md5;
+	local fuid = c$ssl$cert_chain_fuids[0];
 	local cert = c$ssl$cert_chain[0]$x509$certificate;
 	
 	if ( cert$not_valid_before > network_time() )
 		NOTICE([$note=Certificate_Not_Valid_Yet,
 		        $conn=c, $suppress_for=1day,
 		        $msg=fmt("Certificate %s isn't valid until %T", cert$subject, cert$not_valid_before),
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, hash)]);
+		        $fuid=fuid]);
 	
 	else if ( cert$not_valid_after < network_time() )
 		NOTICE([$note=Certificate_Expired,
 		        $conn=c, $suppress_for=1day,
 		        $msg=fmt("Certificate %s expired at %T", cert$subject, cert$not_valid_after),
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, hash)]);
+		        $fuid=fuid]);
 	
 	else if ( cert$not_valid_after - notify_when_cert_expiring_in < network_time() )
 		NOTICE([$note=Certificate_Expires_Soon,
 		        $msg=fmt("Certificate %s is going to expire at %T", cert$subject, cert$not_valid_after),
 		        $conn=c, $suppress_for=1day,
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, hash)]);
+		        $fuid=fuid]);
 	}

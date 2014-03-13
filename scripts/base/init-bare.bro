@@ -2764,8 +2764,6 @@ export {
 		key_length: count &optional; ##< key-length in bits  
 		exponent: string &optional; ##< exponent, if RSA-certificate
 		curve: string &optional; ##< curve, if EC-certificate
-		#ca: bool &optional; ##< indicates the CA value in the X509v3 BasicConstraints extension
-		#path_len: count &optional; ##< indicates the path_length value in the X509v3 BasicConstraints extension
 	} &log;
 
 	type Extension: record {

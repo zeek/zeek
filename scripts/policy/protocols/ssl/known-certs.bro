@@ -51,6 +51,15 @@ event ssl_established(c: connection) &priority=3
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 )
 		return;
 
+	local fuid = c$ssl$cert_chain_fuids[0];
+
+	if ( ! c$ssl$cert_chain[0]?$sha1 )
+		{
+		Reporter::error(fmt("Certificate with fuid %s did not contain sha1 hash when checking for known certs. Aborting",
+			fuid));
+		return;
+		}
+
 	local hash = c$ssl$cert_chain[0]$sha1;
 	local cert = c$ssl$cert_chain[0]$x509$certificate;
 

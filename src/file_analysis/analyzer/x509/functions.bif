@@ -102,13 +102,15 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ##
 ## root_certs: A list of root certificates to validate the certificate chain
 ##
+## verify_time: Time for the validity check of the certificates.
+##
 ## Returns: A record of type X509::Result containing the result code of the verify
 ##          operation. In case of success also returns the full certificate chain.
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
 ##              x509_get_certificate_string
-function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string%): X509::Result
+function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
 	X509_STORE* ctx = 0;
 	int i = 0;
@@ -190,12 +192,13 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	X509_STORE_CTX csc;
 	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
-	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
+	X509_STORE_CTX_set_time(&csc, 0, (time_t) verify_time);
+	X509_STORE_CTX_set_flags(&csc, X509_V_FLAG_USE_CHECK_TIME);
 
 	int result = X509_verify_cert(&csc);
 
 	VectorVal* chainVector = 0;
-		if ( result == 1 ) // we have a valid chain. try to get it...
+	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
 		STACK_OF(X509)* chain = X509_STORE_CTX_get1_chain(&csc); // get1 = deep copy
 
@@ -206,7 +209,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 			}
 		
 		int num_certs = sk_X509_num(chain);
-		chainVector = new VectorVal(new VectorType(base_type(TYPE_OPAQUE)));
+		chainVector = new VectorVal(new VectorType(base_type(TYPE_ANY)));
 
 		for ( int i = 0; i < num_certs; i++ ) 
 			{

@@ -70,8 +70,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 
 function describe_file(f: fa_file): string
 	{
-	# This shouldn't be needed, but just in case...
-	if ( f$source != "SSL" )
+	if ( f$source != "SSL" || ! f?$info || ! f$info?$x509 || ! f$info$x509?$certificate )
 		return "";
 
 	# It is difficult to reliably describe a certificate - especially since
@@ -88,7 +87,9 @@ function describe_file(f: fa_file): string
 			}
 		}
 
-	return "";
+	return cat("Serial: ", f$info$x509$certificate$serial, " Subject: ",
+		f$info$x509$certificate$subject, " Issuer: ",
+		f$info$x509$certificate$issuer);
 	}
 
 event bro_init() &priority=5

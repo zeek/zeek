@@ -38,9 +38,6 @@
 @load base/frameworks/sumstats
 @load base/frameworks/tunnels
 
-# needed for the SSL protocol
-@load base/files/x509
-
 @load base/protocols/conn
 @load base/protocols/dhcp
 @load base/protocols/dnp3
@@ -60,6 +57,7 @@
 @load base/files/hash
 @load base/files/extract
 @load base/files/unified2
+@load base/files/x509
 
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace

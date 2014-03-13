@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2014-03-04-22-03-00
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	subject	issuer_subject	not_valid_before	not_valid_after	last_alert	client_subject	client_issuer_subject	established
-#types	time	string	addr	port	addr	port	string	string	string	string	string	string	time	time	string	string	string	bool
-1357328848.549370	CXWv6p3arKYeMETxOg	10.0.0.80	56637	68.233.76.12	443	TLSv12	TLS_RSA_WITH_RC4_128_MD5	-	-	CN=*.taleo.net,OU=Comodo PremiumSSL Wildcard,OU=Web,O=Taleo Inc.,street=4140 Dublin Boulevard,street=Suite 400,L=Dublin,ST=CA,postalCode=94568,C=US	CN=COMODO High-Assurance Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	1304467200.000000	1467676799.000000	-	-	-	T
-#close	2014-03-04-22-03-00
+#open	2014-03-13-20-46-09
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	last_alert	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	string	bool	vector[string]	vector[string]	string	string	string	string
+1357328848.549370	CXWv6p3arKYeMETxOg	10.0.0.80	56637	68.233.76.12	443	TLSv12	TLS_RSA_WITH_RC4_128_MD5	-	-	-	T	FlnQzb2dJK4p9jXwmd,FaDzX22O4j3kFF6Jqg,F9Tsjm3OdCmGGw43Yh	(empty)	CN=*.taleo.net,OU=Comodo PremiumSSL Wildcard,OU=Web,O=Taleo Inc.,street=4140 Dublin Boulevard,street=Suite 400,L=Dublin,ST=CA,postalCode=94568,C=US	CN=COMODO High-Assurance Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	-	-
+#close	2014-03-13-20-46-09

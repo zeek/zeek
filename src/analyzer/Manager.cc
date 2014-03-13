@@ -636,3 +636,25 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 	// eventually.
 	return result;
 	}
+
+void Manager::ApplyScheduledAnalyzers(Connection* conn)
+	{
+	TransportLayerAnalyzer* root = conn->GetRootAnalyzer();
+
+	if ( ! root )
+		return;
+
+	tag_set expected = GetScheduled(conn);
+
+	for ( tag_set::iterator it = expected.begin(); it != expected.end(); ++it )
+		{
+		Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*it, conn);
+
+		if ( ! analyzer )
+			continue;
+
+		root->AddChildAnalyzer(analyzer, true);
+		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
+		                  analyzer_mgr->GetComponentName(*it));
+		}
+	}

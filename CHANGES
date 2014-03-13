@@ -1,4 +1,9 @@
 
+2.2-229 | 2014-03-13 14:58:30 -0700
+
+  * Refactoring analyzer manager code to reuse
+    ApplyScheduledAnalyzers(). (Robin Sommer)
+
 2.2-228 | 2014-03-13 14:25:53 -0700
 
   * Teach async DNS lookup builtin-functions about BRO_DNS_FAKE.

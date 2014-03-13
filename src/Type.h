@@ -585,7 +585,7 @@ class VectorType : public BroType {
 public:
 	VectorType(BroType* t);
 	virtual ~VectorType();
-	BroType* YieldType()	{ return yield_type; }
+	BroType* YieldType();
 
 	int MatchesIndex(ListExpr*& index) const;
 

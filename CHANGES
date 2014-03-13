@@ -1,4 +1,85 @@
 
+2.2-221 | 2014-03-12 17:23:18 -0700
+
+  * Teach configure script --enable-jemalloc, --with-jemalloc.
+    Addresses BIT-1128. (Jon Siwek)
+
+2.2-218 | 2014-03-12 17:19:45 -0700
+
+  * Improve DBG_LOG macro (perf. improvement for --enable-debug mode).
+    (Jon Siwek)
+
+  * Silences some documentation warnings from Sphinx. (Jon Siwek)
+    
+2.2-215 | 2014-03-10 11:10:15 -0700
+
+  * Fix non-deterministic logging of unmatched DNS msgs. Addresses
+    BIT-1153 (Jon Siwek)
+
+2.2-213 | 2014-03-09 08:57:37 -0700
+
+  * No longer accidentally attempting to parse NBSTAT RRs as SRV RRs
+    in DNS analyzer. (Seth Hall)
+
+  * Fix DNS SRV responses and a small issue with NBNS queries and
+    label length. (Seth Hall)
+
+     - DNS SRV responses never had the code written to actually
+       generate the dns_SRV_reply event.  Adding this required
+       extending the event a bit to add extra information.  SRV responses
+       now appear in the dns.log file correctly.
+
+     - Fixed an issue where some Microsoft NetBIOS Name Service lookups
+       would exceed the max label length for DNS and cause an incorrect
+       "DNS_label_too_long" weird.
+
+2.2-210 | 2014-03-06 22:52:36 -0500
+
+  * Improve SSL logging so that connections are logged even when the
+    ssl_established event is not generated as well as other small SSL
+    fixes. (Bernhard Amann)
+
+2.2-206 | 2014-03-03 16:52:28 -0800
+
+  * HTTP CONNECT proxy support. The HTTP analyzer now supports
+    handling HTTP CONNECT proxies. (Seth Hall)
+
+  * Expanding the HTTP methods used in the DPD signature to detect
+    HTTP traffic. (Seth Hall)
+
+  * Fixing removal of support analyzers. (Robin Sommer)
+    
+2.2-199 | 2014-03-03 16:34:20 -0800
+
+  * Allow iterating over bif functions with result type vector of any.
+    This changes the internal type that is used to signal that a
+    vector is unspecified from any to void. Addresses BIT-1144
+    (Bernhard Amann)
+
+2.2-197 | 2014-02-28 15:36:58 -0800
+
+  * Remove test code. (Robin Sommer)
+
+2.2-194 | 2014-02-28 14:50:53 -0800
+
+  * Remove packet sorter. Addresses BIT-700. (Bernhard Amann)
+    
+2.2-192 | 2014-02-28 09:46:43 -0800
+
+  * Update Mozilla root bundle. (Bernhard Amann)
+    
+2.2-190 | 2014-02-27 07:34:44 -0800
+
+  * Adjust timings of a few leak tests. (Bernhard Amann)
+
+2.2-187 | 2014-02-25 07:24:42 -0800
+
+  * More Google TLS extensions that are being actively used. (Bernhard
+    Amann)
+
+  * Remove unused, and potentially unsafe, function
+    ListVal::IncludedInString. (Bernhard Amann)
+
 2.2-184 | 2014-02-24 07:28:18 -0800
 
   * New TLS constants from

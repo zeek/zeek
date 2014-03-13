@@ -293,7 +293,6 @@ set(bro_SRCS
     OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
-    PacketSort.cc
     PersistenceSerializer.cc
     PktSrc.cc
     PolicyFile.cc

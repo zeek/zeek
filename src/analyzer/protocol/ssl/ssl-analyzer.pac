@@ -142,6 +142,8 @@ refine connection SSL_Conn += {
 		%{
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
+		else
+			bro_analyzer()->ProtocolConfirmation();
 
 		if ( ssl_client_hello )
 			{
@@ -180,8 +182,6 @@ refine connection SSL_Conn += {
 		%{
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
-		else
-			bro_analyzer()->ProtocolConfirmation();
 
 		if ( ssl_server_hello )
 			{

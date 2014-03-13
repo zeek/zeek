@@ -27,7 +27,6 @@
 #include "Reporter.h"
 #include "Net.h"
 #include "Anon.h"
-#include "PacketSort.h"
 #include "Serializer.h"
 #include "PacketDumper.h"
 
@@ -57,8 +56,6 @@ double bro_start_time = 0.0; // time Bro started.
 double bro_start_network_time;	// timestamp of first packet
 double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
-
-PacketSortGlobalPQ* packet_sorter = 0;
 
 const struct pcap_pkthdr* current_hdr = 0;
 const u_char* current_pkt = 0;
@@ -286,9 +283,6 @@ void net_init(name_list& interfaces, name_list& readfiles,
 
 	init_ip_addr_anonymizers();
 
-	if ( packet_sort_window > 0 )
-		packet_sorter = new PacketSortGlobalPQ();
-
 	sessions = new NetSessions();
 
 	if ( do_watchdog )
@@ -313,7 +307,7 @@ void expire_timers(PktSrc* src_ps)
 
 void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
-			PktSrc* src_ps, PacketSortElement* pkt_elem)
+			PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
@@ -351,7 +345,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			}
 		}
 
-	sessions->DispatchPacket(t, hdr, pkt, hdr_size, src_ps, pkt_elem);
+	sessions->DispatchPacket(t, hdr, pkt, hdr_size, src_ps);
 	mgr.Drain();
 
 	if ( sp )
@@ -367,62 +361,11 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 	current_pktsrc = 0;
 	}
 
-int process_packet_sorter(double latest_packet_time)
-	{
-	if ( ! packet_sorter )
-		return 0;
-
-	double min_t = latest_packet_time - packet_sort_window;
-
-	int num_pkts_dispatched = 0;
-	PacketSortElement* pkt_elem;
-
-	// Dispatch packets in the packet_sorter until timestamp min_t.
-	// It's possible that zero or multiple packets are dispatched.
-	while ( (pkt_elem = packet_sorter->RemoveMin(min_t)) != 0 )
-		{
-		net_packet_dispatch(pkt_elem->TimeStamp(),
-			pkt_elem->Hdr(), pkt_elem->Pkt(),
-			pkt_elem->HdrSize(), pkt_elem->Src(),
-			pkt_elem);
-		++num_pkts_dispatched;
-		delete pkt_elem;
-		}
-
-	return num_pkts_dispatched;
-	}
-
-void net_packet_arrival(double t, const struct pcap_pkthdr* hdr,
-			const u_char* pkt, int hdr_size,
-			PktSrc* src_ps)
-	{
-	if ( packet_sorter )
-		{
-		// Note that when we enable packet sorter, there will
-		// be a small window between the time packet arrives
-		// to Bro and when it is processed ("dispatched").  We
-		// define network_time to be the latest timestamp for
-		// packets *dispatched* so far (usually that's the
-		// timestamp of the current packet).
-
-		// Add the packet to the packet_sorter.
-		packet_sorter->Add(
-			new PacketSortElement(src_ps, t, hdr, pkt, hdr_size));
-
-		// Do we have any packets to dispatch from packet_sorter?
-		process_packet_sorter(t);
-		}
-	else
-		// Otherwise we dispatch the packet immediately
-		net_packet_dispatch(t, hdr, pkt, hdr_size, src_ps, 0);
-	}
-
 void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
 
 	while ( io_sources.Size() ||
-		(packet_sorter && ! packet_sorter->Empty()) ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
 		double ts;
@@ -445,14 +388,12 @@ void net_run()
 		current_iosrc = src;
 
 		if ( src )
-			src->Process();	// which will call net_packet_arrival()
+			src->Process();	// which will call net_packet_dispatch()
 
 		else if ( reading_live && ! pseudo_realtime)
 			{ // live but  no source is currently active
 			double ct = current_time();
-			if ( packet_sorter && ! packet_sorter->Empty() )
-				process_packet_sorter(ct);
-			else if ( ! net_is_processing_suspended() )
+			if ( ! net_is_processing_suspended() )
 				{
 				// Take advantage of the lull to get up to
 				// date on timers and events.
@@ -460,15 +401,6 @@ void net_run()
 				expire_timers();
 				usleep(1); // Just yield.
 				}
-			}
-
-		else if ( packet_sorter && ! packet_sorter->Empty() )
-			{
-			// We are no longer reading live; done with all the
-			// sources.
-			// Drain packets remaining in the packet sorter.
-			process_packet_sorter(
-				network_time + packet_sort_window + 1000000);
 			}
 
 		else if ( (have_pending_timers || using_communication) &&
@@ -581,7 +513,6 @@ void net_delete()
 	set_processing_status("TERMINATING", "net_delete");
 
 	delete sessions;
-	delete packet_sorter;
 
 	for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete ip_anonymizer[i];

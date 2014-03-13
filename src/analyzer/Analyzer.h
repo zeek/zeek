@@ -587,13 +587,21 @@ protected:
 	void RemoveTimer(Timer* t);
 
 	/**
-	 * Returnsn true if the analyzer has associated an SupportAnalyzer of a given type.
+	 * Returns true if the analyzer has associated an SupportAnalyzer of a given type.
 	 *
 	 * @param tag The type to check for.
 	 *
 	 * @param orig True if asking about the originator side.
 	 */
 	bool HasSupportAnalyzer(Tag tag, bool orig);
+
+	/**
+	 * Returns the first still active support analyzer for the given
+	 * direction, or null if none.
+	 *
+	 * @param orig True if asking about the originator side.
+	 */
+	SupportAnalyzer* FirstSupportAnalyzer(bool orig);
 
 	/**
 	 * Adds a a new child analyzer with the option whether to intialize
@@ -615,6 +623,12 @@ protected:
 	 * Reorganizes the child data structure. This is an internal method.
 	 */
 	void AppendNewChildren();
+
+	/**
+	 * Returns true if the analyzer has been flagged for removal and
+	 * shouldn't be used otherwise anymore.
+	 */
+	bool Removing() const	{ return removing; }
 
 private:
 	// Internal method to eventually delete a child analyzer that's
@@ -719,6 +733,14 @@ public:
 	bool IsOrig() const 	{ return orig; }
 
 	/**
+	 * Returns the analyzer's next sibling, or null if none.
+	 *
+	 * only_active: If true, this will skip siblings that are still link
+	 * but flagged for removal.
+	 */
+	SupportAnalyzer* Sibling(bool only_active = false) const;
+
+	/**
 	* Passes packet input to the next sibling SupportAnalyzer if any, or
 	* on to the associated main analyzer if none. If however there's an
 	* output handler associated with this support analyzer, the data is
@@ -748,11 +770,6 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	virtual void ForwardUndelivered(int seq, int len, bool orig);
-
-	/**
-	 * Returns the analyzer next sibling, or null if none.
-	 */
-	SupportAnalyzer* Sibling() const 	{ return sibling; }
 
 protected:
 	friend class Analyzer;

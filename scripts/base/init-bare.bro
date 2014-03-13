@@ -39,6 +39,14 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of any, used by some builtin functions to store a list of varying
+## types.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type any_vec: vector of any;
+
 ## A vector of strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -1034,13 +1042,6 @@ const rpc_timeout = 24 sec &redef;
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 0.0 sec &redef;
-
-## Time window for reordering packets. This is used for dealing with timestamp
-## discrepancy between multiple packet sources.
-##
-## .. note:: Setting this can have a major performance impact as now packets
-##    need to be potentially copied and buffered.
-const packet_sort_window = 0 usecs &redef;
 
 ## If positive, indicates the encapsulation header size that should
 ## be skipped. This applies to all packets.

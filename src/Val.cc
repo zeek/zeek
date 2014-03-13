@@ -1171,23 +1171,6 @@ ListVal::~ListVal()
 	Unref(type);
 	}
 
-const char* ListVal::IncludedInString(const char* str) const
-	{
-	if ( tag != TYPE_STRING )
-		Internal("non-string list in ListVal::IncludedInString");
-
-	loop_over_list(vals, i)
-		{
-		const char* vs = (const char*) (vals[i]->AsString()->Bytes());
-
-		const char* embedded = strstr(str, vs);
-		if ( embedded )
-			return embedded;
-		}
-
-	return 0;
-	}
-
 RE_Matcher* ListVal::BuildRE() const
 	{
 	if ( tag != TYPE_STRING )
@@ -3139,7 +3122,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 	for ( int i = 0; i < len; ++i )
 		{
 		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
+		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY)); // accept any type
 		Assign(i, v);
 		}
 

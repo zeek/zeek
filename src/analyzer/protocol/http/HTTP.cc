@@ -1085,11 +1085,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						}
 
 					else
-						{
-						// Shouldn't really happen.
-						delete pia;
+						// AddChildAnalyzer() will have deleted PIA.
 						pia = 0;
-						}
 					}
 
 				InitHTTPMessage(content_line,

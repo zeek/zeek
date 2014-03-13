@@ -93,6 +93,7 @@
 @load tuning/defaults/extracted_file_limits.bro
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
+@load tuning/json-logs.bro
 @load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
 

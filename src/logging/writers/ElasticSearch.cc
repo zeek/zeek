@@ -16,7 +16,6 @@
 #include "BroString.h"
 #include "NetVar.h"
 #include "threading/SerialTypes.h"
-#include "threading/AsciiFormatter.h"
 
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -53,13 +52,13 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 
 	curl_handle = HTTPSetup();
 
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
+	json = new threading::formatter::JSON(this, threading::formatter::JSON::TS_MILLIS);
 }
 
 ElasticSearch::~ElasticSearch()
 	{
 	delete [] cluster_name;
-	delete ascii;
+	delete json;
 	}
 
 bool ElasticSearch::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
@@ -98,134 +97,6 @@ bool ElasticSearch::BatchIndex()
 	return true;
 	}
 
-bool ElasticSearch::AddValueToBuffer(ODesc* b, Value* val)
-	{
-	switch ( val->type )
-		{
-		// ES treats 0 as false and any other value as true so bool types go here.
-		case TYPE_BOOL:
-		case TYPE_INT:
-			b->Add(val->val.int_val);
-			break;
-
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
-			{
-			// ElasticSearch doesn't seem to support unsigned 64bit ints.
-			if ( val->val.uint_val >= INT64_MAX )
-				{
-				Error(Fmt("count value too large: %" PRIu64, val->val.uint_val));
-				b->AddRaw("null", 4);
-				}
-			else
-				b->Add(val->val.uint_val);
-			break;
-			}
-
-		case TYPE_PORT:
-			b->Add(val->val.port_val.port);
-			break;
-
-		case TYPE_SUBNET:
-			b->AddRaw("\"", 1);
-			b->Add(ascii->Render(val->val.subnet_val));
-			b->AddRaw("\"", 1);
-			break;
-
-		case TYPE_ADDR:
-			b->AddRaw("\"", 1);
-			b->Add(ascii->Render(val->val.addr_val));
-			b->AddRaw("\"", 1);
-			break;
-
-		case TYPE_DOUBLE:
-		case TYPE_INTERVAL:
-			b->Add(val->val.double_val);
-			break;
-
-		case TYPE_TIME:
-			{
-			// ElasticSearch uses milliseconds for timestamps and json only
-			// supports signed ints (uints can be too large).
-			uint64_t ts = (uint64_t) (val->val.double_val * 1000);
-			if ( ts >= INT64_MAX )
-				{
-				Error(Fmt("time value too large: %" PRIu64, ts));
-				b->AddRaw("null", 4);
-				}
-			else
-				b->Add(ts);
-			break;
-			}
-
-		case TYPE_ENUM:
-		case TYPE_STRING:
-		case TYPE_FILE:
-		case TYPE_FUNC:
-			{
-			b->AddRaw("\"", 1);
-			for ( int i = 0; i < val->val.string_val.length; ++i )
-				{
-				char c = val->val.string_val.data[i];
-				// 2byte Unicode escape special characters.
-				if ( c < 32 || c > 126 || c == '\n' || c == '"' || c == '\'' || c == '\\' || c == '&' )
-					{
-					static const char hex_chars[] = "0123456789abcdef";
-					b->AddRaw("\\u00", 4);
-					b->AddRaw(&hex_chars[(c & 0xf0) >> 4], 1);
-					b->AddRaw(&hex_chars[c & 0x0f], 1);
-					}
-				else
-					b->AddRaw(&c, 1);
-				}
-			b->AddRaw("\"", 1);
-			break;
-			}
-
-		case TYPE_TABLE:
-			{
-			b->AddRaw("[", 1);
-			for ( int j = 0; j < val->val.set_val.size; j++ )
-				{
-				if ( j > 0 )
-					b->AddRaw(",", 1);
-				AddValueToBuffer(b, val->val.set_val.vals[j]);
-				}
-			b->AddRaw("]", 1);
-			break;
-			}
-
-		case TYPE_VECTOR:
-			{
-			b->AddRaw("[", 1);
-			for ( int j = 0; j < val->val.vector_val.size; j++ )
-				{
-				if ( j > 0 )
-					b->AddRaw(",", 1);
-				AddValueToBuffer(b, val->val.vector_val.vals[j]);
-				}
-			b->AddRaw("]", 1);
-			break;
-			}
-
-		default:
-			return false;
-		}
-	return true;
-	}
-
-bool ElasticSearch::AddFieldToBuffer(ODesc *b, Value* val, const Field* field)
-	{
-	if ( ! val->present )
-		return false;
-
-	b->AddRaw("\"", 1);
-	b->Add(field->name);
-	b->AddRaw("\":", 2);
-	AddValueToBuffer(b, val);
-	return true;
-	}
-
 bool ElasticSearch::DoWrite(int num_fields, const Field* const * fields,
 			     Value** vals)
 	{
@@ -239,14 +110,7 @@ bool ElasticSearch::DoWrite(int num_fields, const Field* const * fields,
 	buffer.Add(Info().path);
 	buffer.AddRaw("\"}}\n", 4);
 
-	buffer.AddRaw("{", 1);
-	for ( int i = 0; i < num_fields; i++ )
-		{
-		if ( i > 0 && buffer.Bytes()[buffer.Len()] != ',' && vals[i]->present )
-			buffer.AddRaw(",", 1);
-		AddFieldToBuffer(&buffer, vals[i], fields[i]);
-		}
-	buffer.AddRaw("}\n", 2);
+	json->Describe(&buffer, num_fields, fields, vals);
 
 	counter++;
 	if ( counter >= BifConst::LogElasticSearch::max_batch_size ||

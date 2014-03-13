@@ -3057,6 +3057,24 @@ const record_all_packets = F &redef;
 ## .. bro:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
 
+module JSON;
+export {
+	type TimestampFormat: enum {
+		## Timestamps will be formatted as UNIX epoch doubles.  This is
+		## the format that Bro typically writes out timestamps.
+		TS_EPOCH,
+		## Timestamps will be formatted as unsigned integers that
+		## represent the number of milliseconds since the UNIX
+		## epoch.
+		TS_MILLIS,
+		## Timestamps will be formatted in the ISO8601 DateTime format.
+		## Subseconds are also included which isn't actually part of the
+		## standard but most consumers that parse ISO8601 seem to be able
+		## to cope with that.
+		TS_ISO8601,
+	};
+}
+
 module Tunnel;
 export {
 	## The maximum depth of a tunnel to decapsulate until giving up.

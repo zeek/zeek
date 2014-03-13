@@ -2750,7 +2750,7 @@ export {
 
 module X509;
 export {
-	type X509::Certificate: record {
+	type Certificate: record {
 		version: count;	##< Version number.
 		serial: string;	##< Serial number.
 		subject: string;	##< Subject.
@@ -2767,7 +2767,7 @@ export {
 		#path_len: count &optional; ##< indicates the path_length value in the X509v3 BasicConstraints extension
 	} &log;
 
-	type X509::Extension: record {
+	type Extension: record {
 		name: string; ##< long name of extension. oid if name not known
 		short_name: string &optional; ##< short name of extension if known.
 		oid: string; ##< oid of extension
@@ -2775,13 +2775,21 @@ export {
 		value: string; ##< extension content parsed to string for known extensions. Raw data otherwise.
 	};
 
-	type X509::BasicConstraints: record {
+	type BasicConstraints: record {
 		ca: bool; ##< CA flag set?
-		path_len: count &optional;
+		path_len: count &optional; ##< maximum path length
 	} &log;
+
+	type SubjectAlternativeName: record {
+		dns: string_vec &optional &log; ##< list of DNS entries in SAN
+		uri: string_vec &optional &log; ##< list of URI entries in SAN
+		email: string_vec &optional &log; ##< list of email entries in SAN
+		ip: addr_vec &optional &log; ##< list of IP entries in SAN
+		other_fields: bool; ##< true if the certificate contained other, not recognized or parsed name fields
+	};
 	
 	## Result of an X509 certificate chain verification
-	type X509::Result: record {
+	type Result: record {
 		## OpenSSL result code
 		result:	count;
 		## Result as string

@@ -235,9 +235,9 @@ refine connection SSL_Conn += {
 			{
 			const bytestring& cert = (*certificates)[i];
 
-			file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()), cert.length(), 
+			string fid = file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()), cert.length(),
 					bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(), ${rec.is_orig});
-			file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn());
+			file_mgr->EndOfFile(fid);
 			}
 		return true;
 		%}

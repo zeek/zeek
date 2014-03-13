@@ -45,7 +45,7 @@ bool file_analysis::X509::EndOfFile()
 	::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
 	if ( !ssl_cert )
 		{
-		reporter->Error("Could not parse X509 certificate");
+		reporter->Error("Could not parse X509 certificate. fuid %s", GetFile()->GetID().c_str());
 		return false;
 		}
 
@@ -222,7 +222,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 	BASIC_CONSTRAINTS *constr = (BASIC_CONSTRAINTS *) X509V3_EXT_d2i(ex);
 	if ( !constr ) 
 		{
-		reporter->Error("Certificate with invalid BasicConstraint");
+		reporter->Error("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str());
 		}
 	else 	
 		{
@@ -246,41 +246,96 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES *altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
 	if ( !altname )
 		{
-		reporter->Error("could not parse subject alternative names");
+		reporter->Error("Could not parse subject alternative names. fuid %s", GetFile()->GetID().c_str());
 		return;
 		}
 
-	VectorVal* names = new VectorVal(internal_type("string_vec")->AsVectorType());
+	VectorVal* names = 0;
+	VectorVal* emails = 0;
+	VectorVal* uris = 0;
+	VectorVal* ips = 0;
 
-	int j = 0;
+	unsigned int otherfields = 0;
+
 	for ( int i = 0; i < sk_GENERAL_NAME_num(altname); i++ ) 
 		{
 		GENERAL_NAME *gen = sk_GENERAL_NAME_value(altname, i);
 		assert(gen);
 
-		if ( gen->type == GEN_DNS )
+		if ( gen->type == GEN_DNS || gen->type == GEN_URI || gen->type == GEN_EMAIL )
 			{
 			if (ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING) 
 				{
-				reporter->Error("DNS-field does not contain an IA5String");
+				reporter->Error("DNS-field does not contain an IA5String. fuid %s", GetFile()->GetID().c_str());
 				continue;
 				}
 			const char* name = (const char*) ASN1_STRING_data(gen->d.ia5);
 			StringVal* bs = new StringVal(name);
-			names->Assign(j, bs);
-			j++;
+
+			switch ( gen->type )
+				{
+				case GEN_DNS:
+					if ( names == 0 )
+						names = new VectorVal(internal_type("string_vec")->AsVectorType());
+					names->Assign(names->Size(), bs);
+					break;
+
+				case GEN_URI:
+					if ( uris == 0 )
+						uris = new VectorVal(internal_type("string_vec")->AsVectorType());
+					uris->Assign(uris->Size(), bs);
+					break;
+
+				case GEN_EMAIL:
+					if ( emails == 0 )
+						emails = new VectorVal(internal_type("string_vec")->AsVectorType());
+					emails->Assign(emails->Size(), bs);
+					break;
+				}
+			}
+		else if ( gen->type == GEN_IPADD )
+			{
+				if ( ips == 0 )
+					ips = new VectorVal(internal_type("addr_vec")->AsVectorType());
+
+				uint32* addr = (uint32*) gen->d.ip->data;
+				if(gen->d.ip->length == 4 )
+					{
+					ips->Assign(ips->Size(), new AddrVal(*addr));
+					}
+				else if ( gen->d.ip->length == 16 )
+					{
+					ips->Assign(ips->Size(), new AddrVal(addr));
+					}
+				else
+					{
+					reporter->Error("Weird IP address length %d in subject alternative name. fuid %s", gen->d.ip->length, GetFile()->GetID().c_str());
+					continue;
+					}
 			}
 		else 
 			{
-			// we should perhaps sometime parse out ip-addresses
-			reporter->Error("Subject alternative name contained non-dns fields");
+			//reporter->Error("Subject alternative name contained unsupported fields. fuid %s", GetFile()->GetID().c_str());
+			// This happens quite often - just mark it
+			otherfields = 1;
 			continue;
 			}
 		}
 
+		RecordVal* sanExt = new RecordVal(BifType::Record::X509::SubjectAlternativeName);
+		if ( names != 0 )
+			sanExt->Assign(0, names);
+		if ( uris != 0 )
+			sanExt->Assign(1, uris);
+		if ( emails != 0 )
+			sanExt->Assign(2, emails);
+		if ( ips != 0 )
+			sanExt->Assign(3, ips);
+		sanExt->Assign(4, new Val(otherfields, TYPE_BOOL));
+
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(names);
+		vl->append(sanExt);
 
 		mgr.QueueEvent(x509_ext_subject_alternative_name, vl);
 	}

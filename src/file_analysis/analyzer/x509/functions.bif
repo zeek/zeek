@@ -42,7 +42,9 @@ RecordVal* x509_error_record(uint64_t num, const char* reason)
 ##
 ## Returns: A X509::Certificate structure
 ##
-## .. bro:see:: x509_verify
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_verify
+##              x509_get_certificate_string
 function x509_parse%(cert: opaque of x509%): X509::Certificate
 	%{
 	assert(cert);
@@ -60,7 +62,9 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 ##      (false).
 ##
 ## Returns: X509 certificate as a string
-
+##
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse x509_verify
 function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F%): string
 	%{
 	assert(cert);
@@ -101,7 +105,9 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ## Returns: A record of type X509::Result containing the result code of the verify
 ##          operation. In case of success also returns the full certificate chain.
 ##
-## .. bro:see:: x509_parse
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse
+##              x509_get_certificate_string
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string%): X509::Result
 	%{
 	X509_STORE* ctx = 0;

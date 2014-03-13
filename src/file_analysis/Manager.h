@@ -108,7 +108,7 @@ public:
 	 *         cached and passed back in to a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
-	 *         indicates the associate file is not going to be analyzed further.
+	 *         indicates the associated file is not going to be analyzed further.
 	 */
 	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 	                   Connection* conn, bool is_orig,

@@ -54,6 +54,13 @@ type any_vec: vector of any;
 ##    directly and then remove this alias.
 type string_vec: vector of string;
 
+## A vector of x509 opaques.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type x509_opaque_vector: vector of opaque of x509;
+
 ## A vector of addresses.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -2421,29 +2428,6 @@ global dns_skip_all_addl = T &redef;
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 5;
 
-## An X509 certificate.
-##
-## .. bro:see:: x509_certificate
-type X509: record {
-	version: count;	##< Version number.
-	serial: string;	##< Serial number.
-	subject: string;	##< Subject.
-	issuer: string;	##< Issuer.
-	not_valid_before: time;	##< Timestamp before when certificate is not valid.
-	not_valid_after: time;	##< Timestamp after when certificate is not valid.
-};
-
-## An X509 extension.
-##
-## .. bro:see:: x509_extension
-type X509_extension_info: record {
-	name: string;	##< Long name of extension; oid if name not known.
-	short_name: string &optional;	##< Short name of extension if known.
-	oid: string;	##< Oid of extension.
-	critical: bool;	##< True if extension is critical.
-	value: string;	##< Extension content parsed to string for known extensions. Raw data otherwise.
-};
-
 ## HTTP session statistics.
 ##
 ## .. bro:see:: http_stats
@@ -2762,6 +2746,55 @@ export {
 		packet_ts:    time;
 		link_type:    count;
 		data:         string;
+	};
+}
+
+module X509;
+export {
+	type Certificate: record {
+		version: count;	##< Version number.
+		serial: string;	##< Serial number.
+		subject: string;	##< Subject.
+		issuer: string;	##< Issuer.
+		not_valid_before: time;	##< Timestamp before when certificate is not valid.
+		not_valid_after: time;	##< Timestamp after when certificate is not valid.
+		key_alg: string;	##< Name of the key algorithm
+		sig_alg: string;	##< Name of the signature algorithm
+		key_type: string &optional;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
+		key_length: count &optional;	##< Key length in bits
+		exponent: string &optional;	##< Exponent, if RSA-certificate
+		curve: string &optional;	##< Curve, if EC-certificate
+	} &log;
+
+	type Extension: record {
+		name: string;	##< Long name of extension. oid if name not known
+		short_name: string &optional;	##< Short name of extension if known
+		oid: string;	##< Oid of extension
+		critical: bool;	##< True if extension is critical
+		value: string;	##< Extension content parsed to string for known extensions. Raw data otherwise.
+	};
+
+	type BasicConstraints: record {
+		ca: bool;	##< CA flag set?
+		path_len: count &optional;	##< Maximum path length
+	} &log;
+
+	type SubjectAlternativeName: record {
+		dns: string_vec &optional &log;	##< List of DNS entries in SAN
+		uri: string_vec &optional &log;	##< List of URI entries in SAN
+		email: string_vec &optional &log;	##< List of email entries in SAN
+		ip: addr_vec &optional &log;	##< List of IP entries in SAN
+		other_fields: bool;	##< True if the certificate contained other, not recognized or parsed name fields
+	};
+
+	## Result of an X509 certificate chain verification
+	type Result: record {
+		## OpenSSL result code
+		result:	count;
+		## Result as string
+		result_string: string;
+		## References to the final certificate chain, if verification successful. End-host certificate is first.
+		chain_certs: vector of opaque of x509 &optional;
 	};
 }
 

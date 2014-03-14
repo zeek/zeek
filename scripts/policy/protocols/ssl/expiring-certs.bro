@@ -3,10 +3,7 @@
 ##! certificate.
 
 @load base/protocols/ssl
-@load base/frameworks/notice
-@load base/utils/directions-and-hosts
-
-@load protocols/ssl/cert-hash
+@load base/files/x509
 
 module SSL;
 
@@ -35,30 +32,31 @@ export {
 	const notify_when_cert_expiring_in = 30days &redef;
 }
 
-event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string) &priority=3
+event ssl_established(c: connection) &priority=3
 	{
-	# If this isn't the host cert or we aren't interested in the server, just return.
-	if ( is_orig || 
-		 chain_idx != 0 ||
-		 ! c$ssl?$cert_hash || 
+	# If there are no certificates or we are not interested in the server, just return.
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
 		 ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
 		return;
+
+	local fuid = c$ssl$cert_chain_fuids[0];
+	local cert = c$ssl$cert_chain[0]$x509$certificate;
 	
 	if ( cert$not_valid_before > network_time() )
 		NOTICE([$note=Certificate_Not_Valid_Yet,
 		        $conn=c, $suppress_for=1day,
 		        $msg=fmt("Certificate %s isn't valid until %T", cert$subject, cert$not_valid_before),
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
+		        $fuid=fuid]);
 	
 	else if ( cert$not_valid_after < network_time() )
 		NOTICE([$note=Certificate_Expired,
 		        $conn=c, $suppress_for=1day,
 		        $msg=fmt("Certificate %s expired at %T", cert$subject, cert$not_valid_after),
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
+		        $fuid=fuid]);
 	
 	else if ( cert$not_valid_after - notify_when_cert_expiring_in < network_time() )
 		NOTICE([$note=Certificate_Expires_Soon,
 		        $msg=fmt("Certificate %s is going to expire at %T", cert$subject, cert$not_valid_after),
 		        $conn=c, $suppress_for=1day,
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
+		        $fuid=fuid]);
 	}

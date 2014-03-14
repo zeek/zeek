@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2014-03-04-22-24-11
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	subject	issuer_subject	not_valid_before	not_valid_after	last_alert	client_subject	client_issuer_subject	established
-#types	time	string	addr	port	addr	port	string	string	string	string	string	string	time	time	string	string	string	bool
-1348168976.508038	CXWv6p3arKYeMETxOg	192.168.57.103	60108	192.168.57.101	2811	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	CN=host/alpha,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	1348161979.000000	1379697979.000000	-	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	T
-1348168976.551422	CjhGID4nQcgTWjvg4c	192.168.57.103	35391	192.168.57.101	55968	TLSv10	TLS_RSA_WITH_NULL_SHA	-	-	CN=932373381,CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	1348168676.000000	1348206441.000000	-	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	T
-#close	2014-03-04-22-24-11
+#open	2014-03-13-20-45-24
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	last_alert	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	string	bool	vector[string]	vector[string]	string	string	string	string
+1348168976.508038	CXWv6p3arKYeMETxOg	192.168.57.103	60108	192.168.57.101	2811	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	-	T	FBtbj87tgpyeDSj31,F8TfgZ31c1dFu8Kt2k	FVNYOh2BeQBb7MpCPe,FwjBou1e5DbpE0eOgk,FbYQmk4x4M4Bx3PZme	CN=host/alpha,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid
+1348168976.551422	CjhGID4nQcgTWjvg4c	192.168.57.103	35391	192.168.57.101	55968	TLSv10	TLS_RSA_WITH_NULL_SHA	-	-	-	T	F4SSqN31HDIrrH5Q8h,FJHp5Pf6VLQsRQK3,FHACqa3dX9BXRV2av,FNnDVT1NURRWeoLLN3	FFWYVj4BcvQb35WIaf,Fj16G835fnJgnVlKU6,FGONoc1Nj0Ka5zlxDa	CN=932373381,CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid
+#close	2014-03-13-20-45-24

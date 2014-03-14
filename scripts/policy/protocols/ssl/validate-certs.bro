@@ -2,7 +2,6 @@
 
 @load base/frameworks/notice
 @load base/protocols/ssl
-@load protocols/ssl/cert-hash
 
 module SSL;
 
@@ -19,9 +18,9 @@ export {
 		validation_status: string &log &optional;
 	};
 	
-	## MD5 hash values for recently validated certs along with the
+	## MD5 hash values for recently validated chains along with the
 	## validation status message are kept in this table to avoid constant
-	## validation every time the same certificate is seen.
+	## validation every time the same certificate chain is seen.
 	global recently_validated_certs: table[string] of string = table() 
 		&read_expire=5mins &synchronized &redef;
 }
@@ -29,18 +28,26 @@ export {
 event ssl_established(c: connection) &priority=3
 	{
 	# If there aren't any certs we can't very well do certificate validation.
-	if ( ! c$ssl?$cert || ! c$ssl?$cert_chain )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
 		return;
-	
-	if ( c$ssl?$cert_hash && c$ssl$cert_hash in recently_validated_certs )
+
+	local chain_id = join_string_vec(c$ssl$cert_chain_fuids, ".");
+
+	local chain: vector of opaque of x509 = vector();
+	for ( i in c$ssl$cert_chain )
 		{
-		c$ssl$validation_status = recently_validated_certs[c$ssl$cert_hash];
+		chain[i] = c$ssl$cert_chain[i]$x509$handle;
+		}
+
+	if ( chain_id in recently_validated_certs )
+		{
+		c$ssl$validation_status = recently_validated_certs[chain_id];
 		}
 	else
 		{
-		local result = x509_verify(c$ssl$cert, c$ssl$cert_chain, root_certs);
-		c$ssl$validation_status = x509_err2str(result);
-		recently_validated_certs[c$ssl$cert_hash] = c$ssl$validation_status;
+		local result = x509_verify(chain, root_certs);
+		c$ssl$validation_status = result$result_string;
+		recently_validated_certs[chain_id] = result$result_string;
 		}
 		
 	if ( c$ssl$validation_status != "ok" )
@@ -48,7 +55,7 @@ event ssl_established(c: connection) &priority=3
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,
 		        $sub=c$ssl$subject, $conn=c,
-		        $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$validation_status,c$ssl$cert_hash)]);
+		        $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$validation_status)]);
 		}
 	}
 

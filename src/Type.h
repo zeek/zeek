@@ -73,6 +73,7 @@ class EnumType;
 class Serializer;
 class VectorType;
 class TypeType;
+class OpaqueType;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -202,6 +203,18 @@ public:
 	        {
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
+		}
+
+	OpaqueType* AsOpaqueType()
+		{
+		CHECK_TYPE_TAG(TYPE_OPAQUE, "BroType::AsOpaqueType");
+		return (OpaqueType*) this;
+		}
+
+	const OpaqueType* AsOpaqueType() const
+		{
+		CHECK_TYPE_TAG(TYPE_OPAQUE, "BroType::AsOpaqueType");
+		return (OpaqueType*) this;
 		}
 
 	VectorType* AsVectorType()
@@ -597,6 +610,7 @@ extern OpaqueType* entropy_type;
 extern OpaqueType* cardinality_type;
 extern OpaqueType* topk_type;
 extern OpaqueType* bloomfilter_type;
+extern OpaqueType* x509_opaque_type;
 
 // Returns the BRO basic (non-parameterized) type with the given type.
 extern BroType* base_type(TypeTag tag);

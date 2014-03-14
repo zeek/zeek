@@ -50,9 +50,6 @@ extern int tcp_max_initial_window;
 extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
 
-extern RecordType* x509_type;
-extern RecordType* x509_extension_type;
-
 extern RecordType* socks_address;
 
 extern double non_analyzed_lifetime;

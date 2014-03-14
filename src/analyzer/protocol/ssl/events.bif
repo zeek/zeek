@@ -25,7 +25,7 @@
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
 ## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
@@ -58,7 +58,7 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##              standardized as part of the SSL/TLS protocol.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
@@ -77,7 +77,7 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 ## val: The raw extension value that was sent in the message.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
@@ -92,7 +92,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ## c: The connection.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello  ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate
 event ssl_established%(c: connection%);
 
 ## Generated for SSL/TLS alert records. SSL/TLS sessions start with an
@@ -115,7 +115,7 @@ event ssl_established%(c: connection%);
 ##       defined as part of the SSL/TLS protocol.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake
 event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 
 ## Generated for SSL/TLS handshake messages that are a part of the
@@ -136,68 +136,5 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 ## ticket: The raw ticket data.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    x509_certificate x509_error x509_extension ssl_alert
+##    ssl_alert
 event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
-
-## Generated for X509 certificates seen in SSL/TLS connections. During the
-## initial SSL/TLS handshake, certificates are exchanged in the clear. Bro
-## raises this event for each certificate seen (including both a site's primary
-## cert, and further certs sent as part of the validation chain).
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## cert: The parsed certificate.
-##
-## chain_idx: The index in the validation chain that this cert has. Index zero
-##            indicates an endpoint's primary cert, while higher indices
-##            indicate the place in the validation chain (which has length
-##            *chain_len*).
-##
-## chain_len: The total length of the validation chain that this cert is part
-##            of.
-##
-## der_cert: The complete cert encoded in `DER
-##           <http://en.wikipedia.org/wiki/Distinguished_Encoding_Rules>`__
-##           format.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello  x509_error x509_extension x509_verify
-event x509_certificate%(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string%);
-
-## Generated for X509 extensions seen in a certificate.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## cert: The parsed certificate.
-##
-## extension: The parsed extension.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello x509_certificate x509_error  x509_verify
-event x509_extension%(c: connection, is_orig: bool, cert: X509, extension: X509_extension_info%);
-
-## Generated when errors occur during parsing an X509 certificate.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
-##
-## c: The connection.
-##
-## is_orig: True if event is raised for originator side of the connection.
-##
-## err: An error code describing what went wrong. :bro:id:`SSL::x509_errors`
-##      maps error codes to a textual description.
-##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello x509_certificate  x509_extension x509_err2str x509_verify
-event x509_error%(c: connection, is_orig: bool, err: count%);

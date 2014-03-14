@@ -25,7 +25,7 @@ public:
 	virtual bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const;
 	virtual bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
 	                      threading::Value** vals) const;
-	virtual threading::Value* ParseValue(string s, string name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
+	virtual threading::Value* ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const;
 
 private:
 	TimeFormat timestamps;

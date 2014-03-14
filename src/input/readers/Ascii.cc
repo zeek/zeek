@@ -51,6 +51,7 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
 	mtime = 0;
+	formatter = 0;
 	}
 
 Ascii::~Ascii()

@@ -212,7 +212,7 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 	return true;
 	}
 
-threading::Value* JSON::ParseValue(string s, string name, TypeTag type, TypeTag subtype) const
+threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return NULL;

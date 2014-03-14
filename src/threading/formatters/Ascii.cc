@@ -201,7 +201,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 	}
 
 
-threading::Value* Ascii::ParseValue(string s, string name, TypeTag type, TypeTag subtype) const
+threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
 	{
 	if ( s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
@@ -214,10 +214,12 @@ threading::Value* Ascii::ParseValue(string s, string name, TypeTag type, TypeTag
 	switch ( type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
-		s = get_unescaped_string(s);
-		val->val.string_val.length = s.size();
-		val->val.string_val.data = copy_string(s.c_str());
+		{
+		string unescaped = get_unescaped_string(s);
+		val->val.string_val.length = unescaped.size();
+		val->val.string_val.data = copy_string(unescaped.c_str());
 		break;
+		}
 
 	case TYPE_BOOL:
 		if ( s == "T" )
@@ -263,21 +265,21 @@ threading::Value* Ascii::ParseValue(string s, string name, TypeTag type, TypeTag
 
 	case TYPE_SUBNET:
 		{
-		s = get_unescaped_string(s);
-		size_t pos = s.find("/");
-		if ( pos == s.npos )
+		string unescaped = get_unescaped_string(s);
+		size_t pos = unescaped.find("/");
+		if ( pos == unescaped.npos )
 			{
 			GetThread()->Error(GetThread()->Fmt("Invalid value for subnet: %s", start));
 			goto parse_error;
 			}
 
-		string width_str = s.substr(pos + 1);
+		string width_str = unescaped.substr(pos + 1);
 		uint8_t width = (uint8_t) strtol(width_str.c_str(), &end, 10);
 
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 
-		string addr = s.substr(0, pos);
+		string addr = unescaped.substr(0, pos);
 
 		val->val.subnet_val.prefix = ParseAddr(addr);
 		val->val.subnet_val.length = width;
@@ -285,9 +287,11 @@ threading::Value* Ascii::ParseValue(string s, string name, TypeTag type, TypeTag
 		}
 
 	case TYPE_ADDR:
-		s = get_unescaped_string(s);
-		val->val.addr_val = ParseAddr(s);
+		{
+		string unescaped = get_unescaped_string(s);
+		val->val.addr_val = ParseAddr(unescaped);
 		break;
+		}
 
 	case TYPE_TABLE:
 	case TYPE_VECTOR:

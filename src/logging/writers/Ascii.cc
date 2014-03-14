@@ -20,6 +20,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	fd = 0;
 	ascii_done = false;
 	tsv = false;
+	formatter = 0;
 	}
 
 Ascii::~Ascii()

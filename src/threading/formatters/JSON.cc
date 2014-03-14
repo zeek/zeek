@@ -8,6 +8,12 @@
 
 #include "./JSON.h"
 
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+
+#include <stdint.h>
+
 using namespace threading::formatter;
 
 JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t)

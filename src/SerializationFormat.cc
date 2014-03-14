@@ -13,7 +13,7 @@ SerializationFormat::SerializationFormat()
 
 SerializationFormat::~SerializationFormat()
 	{
-	delete [] output;
+	free(output);
 	}
 
 void SerializationFormat::StartRead(char* data, uint32 arg_len)
@@ -33,13 +33,13 @@ void SerializationFormat::StartWrite()
 	{
 	if ( output && output_size > INITIAL_SIZE )
 		{
-		delete [] output;
+		free(output);
 		output = 0;
 		}
 
 	if ( ! output )
 		{
-		output = new char[INITIAL_SIZE];
+		output = (char*)safe_malloc(INITIAL_SIZE);
 		output_size = INITIAL_SIZE;
 		}
 
@@ -75,11 +75,8 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	// Increase buffer if necessary.
 	while ( output_pos + count > output_size )
 		{
-		output_size = output_pos + count + INITIAL_SIZE;
-		char* tmp = new char[output_size];
-		memcpy(tmp, output, output_pos);
-		delete [] output;
-		output = tmp;
+		output_size += output_size * 1.5;
+		output = (char*)safe_realloc(output, output_size);
 		}
 
 	memcpy(output + output_pos, b, count);

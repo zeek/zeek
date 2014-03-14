@@ -2,6 +2,7 @@
 
 #include "config.h"
 
+#include <openssl/md5.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -385,7 +386,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 			dns_mapping_altered =  0;
 
 	dm_rec = 0;
-	dns_fake_count = 0;
 
 	cache_name = dir = 0;
 
@@ -443,19 +443,30 @@ bool DNS_Mgr::Init()
 	return true;
 	}
 
-TableVal* DNS_Mgr::BuildFakeAddrResult()
+static TableVal* fake_name_lookup_result(const char* name)
 	{
+	uint32 hash[4];
+	MD5(reinterpret_cast<const u_char*>(name), strlen(name),
+	    reinterpret_cast<u_char*>(hash));
 	ListVal* hv = new ListVal(TYPE_ADDR);
-	hv->Append(new AddrVal(++dns_fake_count));
+	hv->Append(new AddrVal(hash));
 	TableVal* tv = hv->ConvertToSet();
 	Unref(hv);
 	return tv;
 	}
 
-const char* DNS_Mgr::BuildFakeNameResult()
+static const char* fake_text_lookup_result(const char* name)
 	{
-	static char tmp[32];
-	snprintf(tmp, sizeof(tmp), "fake_result_%"PRIu32, ++dns_fake_count);
+	static char tmp[32 + 256];
+	snprintf(tmp, sizeof(tmp), "fake_text_lookup_result_%s", name);
+	return tmp;
+	}
+
+static const char* fake_addr_lookup_result(const IPAddr& addr)
+	{
+	static char tmp[128];
+	snprintf(tmp, sizeof(tmp), "fake_addr_lookup_result_%s",
+	         addr.AsString().c_str());
 	return tmp;
 	}
 
@@ -468,7 +479,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		Init();
 
 	if ( mode == DNS_FAKE )
-		return BuildFakeAddrResult();
+		return fake_name_lookup_result(name);
 
 	if ( mode != DNS_PRIME )
 		{
@@ -1044,7 +1055,7 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 
 	if ( mode == DNS_FAKE )
 		{
-		resolve_lookup_cb(callback, BuildFakeNameResult());
+		resolve_lookup_cb(callback, fake_addr_lookup_result(host));
 		return;
 		}
 
@@ -1083,7 +1094,7 @@ void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 
 	if ( mode == DNS_FAKE )
 		{
-		resolve_lookup_cb(callback, BuildFakeAddrResult());
+		resolve_lookup_cb(callback, fake_name_lookup_result(name.c_str()));
 		return;
 		}
 
@@ -1122,7 +1133,7 @@ void DNS_Mgr::AsyncLookupNameText(const string& name, LookupCallback* callback)
 
 	if ( mode == DNS_FAKE )
 		{
-		resolve_lookup_cb(callback, BuildFakeNameResult());
+		resolve_lookup_cb(callback, fake_text_lookup_result(name.c_str()));
 		return;
 		}
 

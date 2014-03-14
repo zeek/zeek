@@ -1,4 +1,17 @@
 
+2.2-240 | 2014-03-14 10:23:54 -0700
+
+  * Derive results of DNS lookups from from input when in BRO_DNS_FAKE
+    mode. Addresses BIT-1134. (Jon Siwek)
+
+  * Fixing a few cases of undefined behaviour introduced by recent
+    formatter work.
+
+  * Fixing compiler error. (Robin Sommer)
+    
+  * Fixing (very unlikely) double delete in HTTP analyzer when
+    decapsulating CONNECTs. (Robin Sommer)
+
 2.2-235 | 2014-03-13 16:21:19 -0700
 
   * The Ascii writer has a new option LogAscii::use_json for writing

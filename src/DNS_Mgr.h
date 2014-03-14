@@ -102,9 +102,6 @@ protected:
 
 	Val* BuildMappingVal(DNS_Mapping* dm);
 
-	TableVal* BuildFakeAddrResult();
-	const char* BuildFakeNameResult();
-
 	void AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r);
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
 	ListVal* AddrListDelta(ListVal* al1, ListVal* al2);
@@ -165,8 +162,6 @@ protected:
 	EventHandlerPtr dns_mapping_altered;
 
 	RecordType* dm_rec;
-
-	uint32 dns_fake_count;	// used to generate unique fake replies
 
 	typedef list<LookupCallback*> CallbackList;
 

@@ -37,9 +37,21 @@ event SumStats::finish_epoch(ss: SumStat)
 		if ( ss?$epoch_result )
 			{
 			local data = result_store[ss$name];
-			event SumStats::process_epoch_result(ss, network_time(), data);
-			}
+			local now = network_time();
+			if ( bro_is_terminating() )
+				{
+				for ( key in data )
+					ss$epoch_result(now, key, data[key]);
 
+				if ( ss?$epoch_finished )
+					ss$epoch_finished(now);
+				}
+			else
+				{
+				event SumStats::process_epoch_result(ss, now, data);
+				}
+			}
+		
 		# We can reset here because we know that the reference
 		# to the data will be maintained by the process_epoch_result
 		# event.

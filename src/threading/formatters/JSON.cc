@@ -2,17 +2,16 @@
 
 #include "config.h"
 
-#include <sstream>
-#include <errno.h>
-#include <math.h>
-
-#include "./JSON.h"
-
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
 
+#include <sstream>
+#include <errno.h>
+#include <math.h>
 #include <stdint.h>
+
+#include "./JSON.h"
 
 using namespace threading::formatter;
 

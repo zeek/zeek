@@ -401,6 +401,14 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			{
 			int resp_port = ntohs(conn->RespPort());
 			tag_set* ports = LookupPort(conn->ConnTransport(), resp_port, false);
+			if ( ! ports )
+				{
+				int orig_port = ntohs(conn->OrigPort());
+				if ( orig_port < resp_port )
+					{
+						ports = LookupPort(conn->ConnTransport(), orig_port, false);
+					}
+				}
 
 			if ( ports )
 				{

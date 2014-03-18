@@ -131,7 +131,7 @@ BroType* BroType::Clone() const
 	sinfo.cache = false;
 
 	this->Serialize(&sinfo);
-	char* data = 0;
+	char* data;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
 
@@ -141,7 +141,7 @@ BroType* BroType::Clone() const
 	BroType* rval = this->Unserialize(&uinfo, false);
 	assert(rval != this);
 
-	delete [] data;
+	free(data);
 	return rval;
 	}
 

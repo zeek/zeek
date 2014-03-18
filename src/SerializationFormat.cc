@@ -5,6 +5,8 @@
 #include "Serializer.h"
 #include "Reporter.h"
 
+const float SerializationFormat::GROWTH_FACTOR = 2.5;
+
 SerializationFormat::SerializationFormat()
     : output(), output_size(), output_pos(), input(), input_len(), input_pos(),
       bytes_written(), bytes_read()
@@ -49,9 +51,12 @@ void SerializationFormat::StartWrite()
 
 uint32 SerializationFormat::EndWrite(char** data)
 	{
-	*data = new char[output_pos];
-	memcpy(*data, output, output_pos);
-	return output_pos;
+	uint32 rval = output_pos;
+	*data = output;
+	output = 0;
+	output_size = 0;
+	output_pos = 0;
+	return rval;
 	}
 
 bool SerializationFormat::ReadData(void* b, size_t count)
@@ -75,7 +80,7 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	// Increase buffer if necessary.
 	while ( output_pos + count > output_size )
 		{
-		output_size += output_size * 1.5;
+		output_size *= GROWTH_FACTOR;
 		output = (char*)safe_realloc(output, output_size);
 		}
 

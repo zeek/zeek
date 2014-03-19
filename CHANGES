@@ -1,4 +1,9 @@
 
+2.2-250 | 2014-03-19 17:20:55 -0400
+
+  * Improve performance of MHR script by reducing cloned Vals in
+    a "when" scope. (Jon Siwek)
+
 2.2-248 | 2014-03-19 14:47:40 -0400
 
   * Make SumStats work incrementally and non-blocking in non-cluster

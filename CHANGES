@@ -1,4 +1,10 @@
 
+2.2-248 | 2014-03-19 14:47:40 -0400
+
+  * Make SumStats work incrementally and non-blocking in non-cluster
+    mode, but force it to operate by blocking if Bro is shutting
+    down. (Seth Hall)
+
 2.2-244 | 2014-03-17 08:24:17 -0700
 
   * Fix compile errror on FreeBSD caused by wrong include file order.

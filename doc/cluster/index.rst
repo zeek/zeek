@@ -13,7 +13,7 @@ processes examining packets and doing correlation activities but acting as
 a singular, cohesive entity.  This document describes the Bro cluster
 architecture.  For information on how to configure a Bro cluster,
 see the documentation for
-`BroControl <http://bro.org/sphinx/components/broctl/README.html>`_.
+:doc:`BroControl <../components/broctl/README>`.
 
 Architecture
 ---------------

@@ -1,16 +1,21 @@
 
 .. _upgrade-guidelines:
 
-==================
-General Guidelines
-==================
+==============
+How to Upgrade
+==============
 
 If you're doing an upgrade install (rather than a fresh install),
 there's two suggested approaches: either install Bro using the same
 installation prefix directory as before, or pick a new prefix and copy
-local customizations over. In the following we summarize general
-guidelines for upgrading, see the :ref:`release-notes` for
-version-specific information.
+local customizations over.  Regardless of which approach you choose,
+if you are using BroControl, then after upgrading Bro you will need to
+run "broctl check" (to verify that your new configuration is OK)
+and "broctl install" to complete the upgrade process.
+
+In the following we summarize general guidelines for upgrading, see
+the :ref:`release-notes` for version-specific information.
+
 
 Reusing Previous Install Prefix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

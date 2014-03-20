@@ -559,7 +559,8 @@ expr:
 				{
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
-					$$ = new RecordConstructorExpr($4, ctor_type);
+					$$ = new RecordCoerceExpr(new RecordConstructorExpr($4),
+					                          ctor_type->AsRecordType());
 					break;
 
 				case TYPE_TABLE:

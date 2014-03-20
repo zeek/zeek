@@ -169,7 +169,13 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			Val* aggr;
 			if ( t->Tag() == TYPE_RECORD )
+				{
 				aggr = new RecordVal(t->AsRecordType());
+
+				if ( init && t )
+					// Have an initialization and type is not deduced.
+					init = new RecordCoerceExpr(init, t->AsRecordType());
+				}
 
 			else if ( t->Tag() == TYPE_TABLE )
 				aggr = new TableVal(t->AsTableType(), id->Attrs());

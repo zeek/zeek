@@ -753,7 +753,7 @@ protected:
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	RecordConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	RecordConstructorExpr(ListExpr* constructor_list);
 	~RecordConstructorExpr();
 
 protected:
@@ -766,8 +766,6 @@ protected:
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(RecordConstructorExpr);
-
-	RecordType* ctor_type; // type inferred from the ctor expression list args
 };
 
 class TableConstructorExpr : public UnaryExpr {
@@ -878,6 +876,7 @@ protected:
 	friend class Expr;
 	RecordCoerceExpr()	{ map = 0; }
 
+	Val* InitVal(const BroType* t, Val* aggr) const;
 	Val* Fold(Val* v) const;
 
 	DECLARE_SERIAL(RecordCoerceExpr);

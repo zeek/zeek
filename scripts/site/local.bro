@@ -55,6 +55,9 @@
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
+# This script prevents the logging of SSL CA certificates in x509.log
+@load protocols/ssl/log-hostcerts-only
+
 # Uncomment the following line to check each SSL certificate hash against the ICSI
 # certificate notary service; see http://notary.icsi.berkeley.edu .
 # @load protocols/ssl/notary

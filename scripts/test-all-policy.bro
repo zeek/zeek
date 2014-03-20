@@ -86,6 +86,7 @@
 @load protocols/ssl/expiring-certs.bro
 @load protocols/ssl/extract-certs-pem.bro
 @load protocols/ssl/known-certs.bro
+@load protocols/ssl/log-hostcerts-only.bro
 #@load protocols/ssl/notary.bro
 @load protocols/ssl/validate-certs.bro
 @load tuning/__load__.bro

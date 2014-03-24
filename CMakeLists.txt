@@ -60,6 +60,10 @@ if (NOT BinPAC_ROOT_DIR AND
 endif ()
 FindRequiredPackage(BinPAC)
 
+if (ENABLE_JEMALLOC)
+    find_package(JeMalloc)
+endif ()
+
 if (MISSING_PREREQS)
     foreach (prereq ${MISSING_PREREQ_DESCS})
         message(SEND_ERROR ${prereq})
@@ -73,6 +77,7 @@ include_directories(BEFORE
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
+                    ${JEMALLOC_INCLUDE_DIR}
 )
 
 # Optional Dependencies
@@ -151,6 +156,7 @@ set(brodeps
     ${OpenSSL_LIBRARIES}
     ${BIND_LIBRARY}
     ${ZLIB_LIBRARY}
+    ${JEMALLOC_LIBRARIES}
     ${OPTLIBS}
 )
 
@@ -231,6 +237,7 @@ message(
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
+    "\njemalloc:          ${ENABLE_JEMALLOC}"
     "\ncURL:              ${USE_CURL}"
     "\n"
     "\nDataSeries:        ${USE_DATASERIES}"

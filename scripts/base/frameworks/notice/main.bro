@@ -206,6 +206,38 @@ export {
 	## The maximum amount of time a plugin can delay email from being sent.
 	const max_email_delay     = 15secs &redef;
 
+	## Contains a portion of :bro:see:`fa_file` that's also contained in
+	## :bro:see:`Notice::Info`.
+	type FileInfo: record {
+		fuid: string;            ##< File UID.
+		desc: string;            ##< File description from e.g.
+		                         ##< :bro:see:`Files::describe`.
+		mime: string  &optional; ##< Strongest mime type match for file.
+		cid:  conn_id &optional; ##< Connection tuple over which file is sent.
+		cuid: string  &optional; ##< Connection UID over which file is sent.
+	};
+
+	## Creates a record containing a subset of a full :bro:see:`fa_file` record.
+	##
+	## f: record containing metadata about a file.
+	##
+	## Returns: record containing a subset of fields copied from *f*.
+	global create_file_info: function(f: fa_file): Notice::FileInfo;
+
+	## Populates file-related fields in a notice info record.
+	##
+	## f: record containing metadata about a file.
+	##
+	## n: a notice record that needs file-related fields populated.
+	global populate_file_info: function(f: fa_file, n: Notice::Info);
+
+	## Populates file-related fields in a notice info record.
+	##
+	## fi: record containing metadata about a file.
+	##
+	## n: a notice record that needs file-related fields populated.
+	global populate_file_info2: function(fi: Notice::FileInfo, n: Notice::Info);
+
 	## A log postprocessing function that implements emailing the contents
 	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
 	## The rotated log is removed upon being sent.
@@ -493,6 +525,42 @@ function execute_with_notice(cmd: string, n: Notice::Info)
 	#system_env(cmd, tags);
 	}
 
+function create_file_info(f: fa_file): Notice::FileInfo
+	{
+	local fi: Notice::FileInfo = Notice::FileInfo($fuid = f$id,
+	                                              $desc = Files::describe(f));
+
+	if ( f?$mime_type )
+		fi$mime = f$mime_type;
+
+	if ( f?$conns && |f$conns| == 1 )
+		for ( id in f$conns )
+			{
+			fi$cid = id;
+			fi$cuid = f$conns[id]$uid;
+			}
+
+	return fi;
+	}
+
+function populate_file_info(f: fa_file, n: Notice::Info)
+	{
+	populate_file_info2(create_file_info(f), n);
+	}
+
+function populate_file_info2(fi: Notice::FileInfo, n: Notice::Info)
+	{
+	if ( ! n?$fuid )
+		n$fuid = fi$fuid;
+
+	if ( ! n?$file_mime_type && fi?$mime )
+		n$file_mime_type = fi$mime;
+
+	n$file_desc = fi$desc;
+	n$id = fi$cid;
+	n$uid = fi$cuid;
+	}
+
 # This is run synchronously as a function before all of the other
 # notice related functions and events.  It also modifies the
 # :bro:type:`Notice::Info` record in place.
@@ -503,21 +571,7 @@ function apply_policy(n: Notice::Info)
 		n$ts = network_time();
 
 	if ( n?$f )
-		{
-		if ( ! n?$fuid )
-			n$fuid = n$f$id;
-
-		if ( ! n?$file_mime_type && n$f?$mime_type )
-			n$file_mime_type = n$f$mime_type;
-
-		n$file_desc = Files::describe(n$f);
-
-		if ( n$f?$conns && |n$f$conns| == 1 )
-			{
-			for ( id in n$f$conns )
-				n$conn = n$f$conns[id];
-			}
-		}
+		populate_file_info(n$f, n);
 
 	if ( n?$conn )
 		{

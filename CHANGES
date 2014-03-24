@@ -1,4 +1,116 @@
 
+2.2-250 | 2014-03-19 17:20:55 -0400
+
+  * Improve performance of MHR script by reducing cloned Vals in
+    a "when" scope. (Jon Siwek)
+
+2.2-248 | 2014-03-19 14:47:40 -0400
+
+  * Make SumStats work incrementally and non-blocking in non-cluster
+    mode, but force it to operate by blocking if Bro is shutting
+    down. (Seth Hall)
+
+2.2-244 | 2014-03-17 08:24:17 -0700
+
+  * Fix compile errror on FreeBSD caused by wrong include file order.
+    (Bernhard Amann)
+
+2.2-240 | 2014-03-14 10:23:54 -0700
+
+  * Derive results of DNS lookups from from input when in BRO_DNS_FAKE
+    mode. Addresses BIT-1134. (Jon Siwek)
+
+  * Fixing a few cases of undefined behaviour introduced by recent
+    formatter work.
+
+  * Fixing compiler error. (Robin Sommer)
+    
+  * Fixing (very unlikely) double delete in HTTP analyzer when
+    decapsulating CONNECTs. (Robin Sommer)
+
+2.2-235 | 2014-03-13 16:21:19 -0700
+
+  * The Ascii writer has a new option LogAscii::use_json for writing
+	out logs as JSON. (Seth Hall)
+
+  * Ascii input reader now supports all config options as per-input
+    stream "config" values. (Seth Hall)
+
+  * Refactored formatters and updated the the writers a bit. (Seth
+	Hall)
+
+2.2-229 | 2014-03-13 14:58:30 -0700
+
+  * Refactoring analyzer manager code to reuse
+    ApplyScheduledAnalyzers(). (Robin Sommer)
+
+2.2-228 | 2014-03-13 14:25:53 -0700
+
+  * Teach async DNS lookup builtin-functions about BRO_DNS_FAKE.
+    Addresses BIT-1134. (Jon Siwek)
+
+  * Enable fake DNS mode for test suites.
+    
+  * Improve analysis of TCP SYN/SYN-ACK reversal situations. (Jon
+    Siwek)
+
+    - Since it's just the handshake packets out of order, they're no
+      longer treated as partial connections, which some protocol analyzers
+      immediately refuse to look at.
+
+    - The TCP_Reassembler "is_orig" state failed to change, which led to
+      protocol analyzers sometimes using the wrong value for that.
+
+    - Add a unit test which exercises the Connection::FlipRoles() code
+      path (i.e. the SYN/SYN-ACK reversal situation).
+
+    Addresses BIT-1148.
+
+  * Fix bug in Connection::FlipRoles. It didn't swap address values
+    right and also didn't consider that analyzers might be scheduled
+    for the new connection tuple. Reported by Kevin McMahon. Addresses
+    BIT-1148. (Jon Siwek)
+
+2.2-221 | 2014-03-12 17:23:18 -0700
+
+  * Teach configure script --enable-jemalloc, --with-jemalloc.
+    Addresses BIT-1128. (Jon Siwek)
+
+2.2-218 | 2014-03-12 17:19:45 -0700
+
+  * Improve DBG_LOG macro (perf. improvement for --enable-debug mode).
+    (Jon Siwek)
+
+  * Silences some documentation warnings from Sphinx. (Jon Siwek)
+    
+2.2-215 | 2014-03-10 11:10:15 -0700
+
+  * Fix non-deterministic logging of unmatched DNS msgs. Addresses
+    BIT-1153 (Jon Siwek)
+
+2.2-213 | 2014-03-09 08:57:37 -0700
+
+  * No longer accidentally attempting to parse NBSTAT RRs as SRV RRs
+    in DNS analyzer. (Seth Hall)
+
+  * Fix DNS SRV responses and a small issue with NBNS queries and
+    label length. (Seth Hall)
+
+     - DNS SRV responses never had the code written to actually
+       generate the dns_SRV_reply event.  Adding this required
+       extending the event a bit to add extra information.  SRV responses
+       now appear in the dns.log file correctly.
+
+     - Fixed an issue where some Microsoft NetBIOS Name Service lookups
+       would exceed the max label length for DNS and cause an incorrect
+       "DNS_label_too_long" weird.
+
+2.2-210 | 2014-03-06 22:52:36 -0500
+
+  * Improve SSL logging so that connections are logged even when the
+    ssl_established event is not generated as well as other small SSL
+    fixes. (Bernhard Amann)
+
 2.2-206 | 2014-03-03 16:52:28 -0800
 
   * HTTP CONNECT proxy support. The HTTP analyzer now supports

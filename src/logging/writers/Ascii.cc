@@ -10,8 +10,8 @@
 
 #include "Ascii.h"
 
-using namespace logging;
-using namespace writer;
+using namespace logging::writer;
+using namespace threading;
 using threading::Value;
 using threading::Field;
 
@@ -20,9 +20,47 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	fd = 0;
 	ascii_done = false;
 	tsv = false;
+	formatter = 0;
+	}
 
+Ascii::~Ascii()
+	{
+	if ( ! ascii_done )
+		{
+		fprintf(stderr, "internal error: finish missing\n");
+		abort();
+		}
+
+	delete formatter;
+	}
+
+bool Ascii::WriteHeaderField(const string& key, const string& val)
+	{
+	string str = meta_prefix + key + separator + val + "\n";
+
+	return safe_write(fd, str.c_str(), str.length());
+	}
+
+void Ascii::CloseFile(double t)
+	{
+	if ( ! fd )
+		return;
+
+	if ( include_meta && ! tsv )
+		WriteHeaderField("close", Timestamp(0));
+
+	safe_close(fd);
+	fd = 0;
+	}
+
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
+	{
+	assert(! fd);
+
+	// Set some default values.
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
+	use_json = BifConst::LogAscii::use_json;
 
 	separator.assign(
 			(const char*) BifConst::LogAscii::separator->Bytes(),
@@ -49,45 +87,104 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 			BifConst::LogAscii::meta_prefix->Len()
 			);
 
-	desc.EnableEscaping();
-	desc.AddEscapeSequence(separator);
+	ODesc tsfmt;
+	BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
+	json_timestamps.assign(
+			(const char*) tsfmt.Bytes(),
+			tsfmt.Len()
+			);
 
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
-	}
-
-Ascii::~Ascii()
-	{
-	if ( ! ascii_done )
+	// Set per-filter configuration options.
+	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
 		{
-		fprintf(stderr, "internal error: finish missing\n");
-		abort();
+		if ( strcmp(i->first, "tsv") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				tsv = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				tsv = false;
+			else
+				{
+				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
+		else if ( strcmp(i->first, "use_json") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				use_json = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				use_json = false;
+			else
+				{
+				Error("invalid value for 'use_json', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
+		else if ( strcmp(i->first, "output_to_stdout") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				output_to_stdout = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				output_to_stdout = false;
+			else
+				{
+				Error("invalid value for 'output_to_stdout', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
+		else if ( strcmp(i->first, "separator") == 0 )
+			separator.assign(i->second);
+
+		else if ( strcmp(i->first, "set_separator") == 0 )
+			set_separator.assign(i->second);
+
+		else if ( strcmp(i->first, "empty_field") == 0 )
+			empty_field.assign(i->second);
+
+		else if ( strcmp(i->first, "unset_field") == 0 )
+			unset_field.assign(i->second);
+
+		else if ( strcmp(i->first, "meta_prefix") == 0 )
+			meta_prefix.assign(i->second);
+
+		else if ( strcmp(i->first, "json_timestamps") == 0 )
+			json_timestamps.assign(i->second);
 		}
 
-	delete ascii;
-	}
+	if ( use_json )
+		{
+		formatter::JSON::TimeFormat tf = formatter::JSON::TS_EPOCH;
 
-bool Ascii::WriteHeaderField(const string& key, const string& val)
-	{
-	string str = meta_prefix + key + separator + val + "\n";
+		// Write out JSON formatted logs.
+		if ( strcmp(json_timestamps.c_str(), "JSON::TS_EPOCH") == 0 )
+			tf = formatter::JSON::TS_EPOCH;
+		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_MILLIS") == 0 )
+			tf = formatter::JSON::TS_MILLIS;
+		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_ISO8601") == 0 )
+			tf = formatter::JSON::TS_ISO8601;
+		else
+			{
+			Error(Fmt("Invalid JSON timestamp format: %s", json_timestamps.c_str()));
+			return false;
+			}
 
-	return safe_write(fd, str.c_str(), str.length());
-	}
+		formatter = new formatter::JSON(this, tf);
+		// Using JSON implicitly turns off the header meta fields.
+		include_meta = false;
+		}
 
-void Ascii::CloseFile(double t)
-	{
-	if ( ! fd )
-		return;
-
-	if ( include_meta && ! tsv )
-		WriteHeaderField("close", Timestamp(0));
-
-	safe_close(fd);
-	fd = 0;
-	}
-
-bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
-	{
-	assert(! fd);
+	else
+		{
+		// Use the default "Bro logs" format.
+		desc.EnableEscaping();
+		desc.AddEscapeSequence(separator);
+		formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+		formatter = new formatter::Ascii(this, sep_info);
+		}
 
 	string path = info.path;
 
@@ -104,24 +201,6 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			  Strerror(errno)));
 		fd = 0;
 		return false;
-		}
-
-	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
-		{
-		if ( strcmp(i->first, "tsv") == 0 )
-			{
-			if ( strcmp(i->second, "T") == 0 )
-				tsv = true;
-
-			else if ( strcmp(i->second, "F") == 0 )
-				tsv = false;
-
-			else
-				{
-				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
-				return false;
-				}
-			}
 		}
 
 	if ( include_meta )
@@ -209,16 +288,10 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 
 	desc.Clear();
 
-	for ( int i = 0; i < num_fields; i++ )
-		{
-		if ( i > 0 )
-			desc.AddRaw(separator);
+	if ( ! formatter->Describe(&desc, num_fields, fields, vals) )
+		return false;
 
-		if ( ! ascii->Describe(&desc, vals[i], fields[i]->name) )
-			return false;
-		}
-
-	desc.AddRaw("\n", 1);
+	desc.AddRaw("\n");
 
 	const char* bytes = (const char*)desc.Bytes();
 	int len = desc.Len();

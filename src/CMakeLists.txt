@@ -335,11 +335,13 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
-    threading/AsciiFormatter.cc
     threading/BasicThread.cc
+    threading/Formatter.cc
     threading/Manager.cc
     threading/MsgThread.cc
     threading/SerialTypes.cc
+    threading/formatters/Ascii.cc
+    threading/formatters/JSON.cc
 
     logging/Manager.cc
     logging/WriterBackend.cc

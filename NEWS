@@ -25,6 +25,9 @@ New Functionality
   parsing past the GRE header in between the delivery and payload IP
   packets.
 
+- The DNS analyzer now actually generates the dns_SRV_reply() event.
+  It had been documented before, yet was never raised.
+
 Changed Functionality
 ---------------------
 

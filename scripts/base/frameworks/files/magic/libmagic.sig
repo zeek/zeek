@@ -51,7 +51,7 @@ signature file-magic-auto6 {
 
 # >10  string,=# This is a shell archive (len=25), ["shell archive text"], swap_endian=0
 signature file-magic-auto7 {
-	file-mime "application/octet-stream", 280
+	file-mime "application/x-shar", 280
 	file-magic /(.{10})(\x23 This is a shell archive)/
 }
 
@@ -612,7 +612,7 @@ signature file-magic-auto93 {
 # >>>>>>>56  ubequad&,>0 (0x0000000000000000), [""], swap_endian=0
 # >>>>>>>>64  ubequad&,>0 (0x0000000000000000), ["Journal file"], swap_endian=0
 signature file-magic-auto94 {
-	file-mime "application/octet-stream", 80
+	file-mime "application/vnd.fdo.journal", 80
 	file-magic /(LPKSHHRH)(.{8})([\x00\x01\x02\x03])(.{7})([^\x00]{8})([^\x00]{8})([^\x00]{8})([^\x00]{8})([^\x00]{8})([^\x00]{8})/
 }
 
@@ -3362,34 +3362,34 @@ signature file-magic-auto500 {
 }
 
 # >0  string,=\037\036 (len=2), ["packed data"], swap_endian=0
-signature file-magic-auto501 {
-	file-mime "application/octet-stream", 50
-	file-magic /(\x1f\x1e)/
-}
+#signature file-magic-auto501 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /(\x1f\x1e)/
+#}
 
 # >0  short&,=7967 (0x1f1f), ["old packed data"], swap_endian=0
-signature file-magic-auto502 {
-	file-mime "application/octet-stream", 50
-	file-magic /((\x1f\x1f)|(\x1f\x1f))/
-}
+#signature file-magic-auto502 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /((\x1f\x1f)|(\x1f\x1f))/
+#}
 
 # >0  short&,=8191 (0x1fff), ["compacted data"], swap_endian=0
-signature file-magic-auto503 {
-	file-mime "application/octet-stream", 50
-	file-magic /((\xff\x1f)|(\x1f\xff))/
-}
+#signature file-magic-auto503 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /((\xff\x1f)|(\x1f\xff))/
+#}
 
 # >0  string,=\377\037 (len=2), ["compacted data"], swap_endian=0
-signature file-magic-auto504 {
-	file-mime "application/octet-stream", 50
-	file-magic /(\xff\x1f)/
-}
+#signature file-magic-auto504 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /(\xff\x1f)/
+#}
 
 # >0  short&,=-13563 (0xcb05), ["huf output"], swap_endian=0
-signature file-magic-auto505 {
-	file-mime "application/octet-stream", 50
-	file-magic /((\x05\xcb)|(\xcb\x05))/
-}
+#signature file-magic-auto505 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /((\x05\xcb)|(\xcb\x05))/
+#}
 
 # >34  string,=LP (len=2), ["Embedded OpenType (EOT)"], swap_endian=0
 signature file-magic-auto506 {
@@ -4134,25 +4134,25 @@ signature file-magic-auto615 {
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
 # >>5  byte&,=0x01, ["LSB"], swap_endian=0
 # >>>16  leshort&,=0 (0x0000), ["no file type,"], swap_endian=0
-signature file-magic-auto616 {
-	file-mime "application/octet-stream", 50
-	file-magic /(\x7fELF)(.{1})([\x01])(.{10})(\x00\x00)/
-}
+#signature file-magic-auto616 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /(\x7fELF)(.{1})([\x01])(.{10})(\x00\x00)/
+#}
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
 # >>5  byte&,=0x02, ["MSB"], swap_endian=0
 # >>>16  leshort&,=0 (0x0000), ["no file type,"], swap_endian=1
-signature file-magic-auto617 {
-	file-mime "application/octet-stream", 50
-	file-magic /(\x7fELF)(.{1})([\x02])(.{10})(\x00\x00)/
-}
+#signature file-magic-auto617 {
+#	file-mime "application/octet-stream", 50
+#	file-magic /(\x7fELF)(.{1})([\x02])(.{10})(\x00\x00)/
+#}
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
 # >>5  byte&,=0x01, ["LSB"], swap_endian=0
 # >>>16  leshort&,=1 (0x0001), ["relocatable,"], swap_endian=0
 signature file-magic-auto618 {
 	file-mime "application/x-object", 50
-	file-magic /(\x7fELF)(.{1})([\x01])(.{10})(\x01\x00)/
+	file-magic /(\x7fELF)([\x01\x02])([\x01])(.{10})(\x01\x00)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4160,7 +4160,7 @@ signature file-magic-auto618 {
 # >>>16  leshort&,=1 (0x0001), ["relocatable,"], swap_endian=1
 signature file-magic-auto619 {
 	file-mime "application/x-object", 50
-	file-magic /(\x7fELF)(.{1})([\x02])(.{10})(\x00\x01)/
+	file-magic /(\x7fELF)([\x01\x02])([\x02])(.{10})(\x00\x01)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4168,7 +4168,7 @@ signature file-magic-auto619 {
 # >>>16  leshort&,=2 (0x0002), ["executable,"], swap_endian=0
 signature file-magic-auto620 {
 	file-mime "application/x-executable", 50
-	file-magic /(\x7fELF)(.{1})([\x01])(.{10})(\x02\x00)/
+	file-magic /(\x7fELF)([\x01\x02])([\x01])(.{10})(\x02\x00)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4176,7 +4176,7 @@ signature file-magic-auto620 {
 # >>>16  leshort&,=2 (0x0002), ["executable,"], swap_endian=1
 signature file-magic-auto621 {
 	file-mime "application/x-executable", 50
-	file-magic /(\x7fELF)(.{1})([\x02])(.{10})(\x00\x02)/
+	file-magic /(\x7fELF)([\x01\x02])([\x02])(.{10})(\x00\x02)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4184,7 +4184,7 @@ signature file-magic-auto621 {
 # >>>16  leshort&,=3 (0x0003), ["shared object,"], swap_endian=0
 signature file-magic-auto622 {
 	file-mime "application/x-sharedlib", 50
-	file-magic /(\x7fELF)(.{1})([\x01])(.{10})(\x03\x00)/
+	file-magic /(\x7fELF)([\x01\x02])([\x01])(.{10})(\x03\x00)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4192,7 +4192,7 @@ signature file-magic-auto622 {
 # >>>16  leshort&,=3 (0x0003), ["shared object,"], swap_endian=1
 signature file-magic-auto623 {
 	file-mime "application/x-sharedlib", 50
-	file-magic /(\x7fELF)(.{1})([\x02])(.{10})(\x00\x03)/
+	file-magic /(\x7fELF)([\x01\x02])([\x02])(.{10})(\x00\x03)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4200,7 +4200,7 @@ signature file-magic-auto623 {
 # >>>16  leshort&,=4 (0x0004), ["core file"], swap_endian=0
 signature file-magic-auto624 {
 	file-mime "application/x-coredump", 50
-	file-magic /(\x7fELF)(.{1})([\x01])(.{10})(\x04\x00)/
+	file-magic /(\x7fELF)([\x01\x02])([\x01])(.{10})(\x04\x00)/
 }
 
 # >0  string,=\177ELF (len=4), ["ELF"], swap_endian=0
@@ -4208,6 +4208,6 @@ signature file-magic-auto624 {
 # >>>16  leshort&,=4 (0x0004), ["core file"], swap_endian=1
 signature file-magic-auto625 {
 	file-mime "application/x-coredump", 50
-	file-magic /(\x7fELF)(.{1})([\x02])(.{10})(\x00\x04)/
+	file-magic /(\x7fELF)([\x01\x02])([\x02])(.{10})(\x00\x04)/
 }
 

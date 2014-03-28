@@ -112,6 +112,8 @@ bool ElasticSearch::DoWrite(int num_fields, const Field* const * fields,
 
 	json->Describe(&buffer, num_fields, fields, vals);
 
+	buffer.AddRaw("\n", 1);
+
 	counter++;
 	if ( counter >= BifConst::LogElasticSearch::max_batch_size ||
 	     uint(buffer.Len()) >= BifConst::LogElasticSearch::max_byte_size )

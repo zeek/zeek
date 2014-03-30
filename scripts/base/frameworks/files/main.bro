@@ -65,10 +65,11 @@ export {
 		## A set of analysis types done during the file analysis.
 		analyzers: set[string] &default=string_set() &log;
 
-		## A mime type provided by libmagic against the *bof_buffer*
-		## field of :bro:see:`fa_file`, or in the cases where no
-		## buffering of the beginning of file occurs, an initial
-		## guess of the mime type based on the first data seen.
+		## A mime type provided by the strongest file magic signature
+		## match against the *bof_buffer* field of :bro:see:`fa_file`,
+		## or in the cases where no buffering of the beginning of file
+		## occurs, an initial guess of the mime type based on the first
+		## data seen.
 		mime_type: string &log &optional;
 
 		## A filename for the file if one is available from the source

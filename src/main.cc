@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 #include <openssl/md5.h>
-#include <magic.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -68,9 +67,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "3rdparty/sqlite3.h"
 
 Brofiler brofiler;
-
-magic_t magic_desc_cookie = 0;
-magic_t magic_mime_cookie = 0;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -220,7 +216,6 @@ void usage()
 #endif
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
-	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -786,9 +781,6 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
-	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
-	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
-
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
@@ -956,6 +948,8 @@ int main(int argc, char** argv)
 
 		if ( rule_debug )
 			rule_matcher->PrintDebug();
+
+		file_mgr->InitMagic();
 		}
 
 	delete [] script_rule_files;

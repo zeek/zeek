@@ -15,7 +15,7 @@ Dependencies
 - Bro no longer requires a pre-installed libmagic (because it now
   ships its own).
 
-- Compiling from source now needs a CMake version >= 2.8.0.
+- Libmagic is no longer a dependency.
 
 New Functionality
 -----------------
@@ -27,6 +27,19 @@ New Functionality
 
 - The DNS analyzer now actually generates the dns_SRV_reply() event.
   It had been documented before, yet was never raised.
+
+- Bro now uses "file magic signatures" to identify file types. These
+  are defined via two new constructs in the signature rule parsing
+  grammar: "file-magic" gives a regular expression to match against,
+  and "file-mime" gives the MIME type string of content that matches
+  the magic and an optional strength value for the match. (See also
+  "Changed Functionality" below for changes due to switching from
+  using libmagic to such wsignatures.)
+
+- A new built-in function, "file_magic", can be used to get all file
+  magic matches and their corresponding strength against a given chunk
+  of data.
+
 
 Changed Functionality
 ---------------------
@@ -51,6 +64,31 @@ Changed Functionality
   TODO: Update if we add a detector for filtered traces.
 
 - We have removed the packet sorter component.
+
+- Bro no longer uses libmagic to identify file types but instead now
+  comes with its own signature library (which initially is still
+  derived from libmagic;s database). This leads to a number of further
+  changes with regards to MIME types:
+
+    * The second parameter of the "identify_data" built-in function
+      can no longer be used to get verbose file type descriptions,
+      though it can still be used to get the strongest matching file
+      magic signature.
+
+    * The "file_transferred" event's "descr" parameter no longer
+      contains verbose file type descriptions.
+
+    * The BROMAGIC environment variable no longer changes any behavior
+      in Bro as magic databases are no longer used/installed.
+
+    * Removed "binary" and "octet-stream" mime type detections. They
+      don' provide any more information than an uninitialized
+      mime_type field.
+
+    * The "fa_file" record now contains a "mime_types" field that
+      contains all magic signatures that matched the file content
+      (where the "mime_type" field is just a shortcut for the
+      strongest match).
 
 Bro 2.2
 =======

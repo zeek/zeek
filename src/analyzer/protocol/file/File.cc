@@ -3,6 +3,7 @@
 #include "File.h"
 
 #include "file_analysis/Manager.h"
+#include "RuleMatcher.h"
 #include "Reporter.h"
 #include "util.h"
 
@@ -48,14 +49,19 @@ void File_Analyzer::Done()
 
 void File_Analyzer::Identify()
 	{
-	const char* desc = bro_magic_buffer(magic_desc_cookie, buffer, buffer_len);
-	const char* mime = bro_magic_buffer(magic_mime_cookie, buffer, buffer_len);
+	RuleFileMagicState* fms = rule_matcher->InitFileMagic();
+	RuleMatcher::MIME_Matches matches;
 
+	rule_matcher->Match(fms, reinterpret_cast<const u_char*>(buffer),
+	                    buffer_len, &matches);
+
+	string match = matches.empty() ? "<unknown>"
+	                               : *(matches.begin()->second.begin());
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(new StringVal(buffer_len, buffer));
-	vl->append(new StringVal(desc ? desc : "<unknown>"));
-	vl->append(new StringVal(mime ? mime : "<unknown>"));
+	vl->append(new StringVal("<unknown>"));
+	vl->append(new StringVal(match));
 	ConnectionEvent(file_transferred, vl);
 	}
 

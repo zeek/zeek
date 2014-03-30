@@ -20,13 +20,15 @@ string Manager::salt;
 
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Tag,
-	                           file_analysis::Component>("Files")
+	                           file_analysis::Component>("Files"),
+	id_map(), ignored(), current_file_id(), magic_state()
 	{
 	}
 
 Manager::~Manager()
 	{
 	Terminate();
+	delete magic_state;
 	}
 
 void Manager::InitPreScript()
@@ -40,6 +42,12 @@ void Manager::InitPreScript()
 
 void Manager::InitPostScript()
 	{
+	}
+
+void Manager::InitMagic()
+	{
+	delete magic_state;
+	magic_state = rule_matcher->InitFileMagic();
 	}
 
 void Manager::Terminate()
@@ -394,4 +402,48 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 		}
 
 	return c->Factory()(args, f);
+	}
+
+RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,
+        RuleMatcher::MIME_Matches* rval) const
+	{
+	if ( ! magic_state )
+		reporter->InternalError("file magic signature state not initialized");
+
+	rval = rule_matcher->Match(magic_state, data, len, rval);
+	rule_matcher->ClearFileMagicState(magic_state);
+	return rval;
+	}
+
+string Manager::DetectMIME(const u_char* data, uint64 len) const
+	{
+	RuleMatcher::MIME_Matches matches;
+	DetectMIME(data, len, &matches);
+
+	if ( matches.empty() )
+		return "";
+
+	return *(matches.begin()->second.begin());
+	}
+
+VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+	{
+	VectorVal* rval = new VectorVal(mime_matches);
+
+	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
+	      it != m.end(); ++it )
+		{
+		RecordVal* element = new RecordVal(mime_match);
+
+		for ( set<string>::const_iterator it2 = it->second.begin();
+		      it2 != it->second.end(); ++it2 )
+			{
+			element->Assign(0, new Val(it->first, TYPE_INT));
+			element->Assign(1, new StringVal(*it2));
+			}
+
+		rval->Assign(rval->Size(), element);
+		}
+
+	return rval;
 	}

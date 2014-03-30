@@ -20,6 +20,8 @@ TableType* string_set;
 TableType* string_array;
 TableType* count_set;
 VectorType* string_vec;
+VectorType* mime_matches;
+RecordType* mime_match;
 
 int watchdog_interval;
 
@@ -327,6 +329,8 @@ void init_net_var()
 	string_set = internal_type("string_set")->AsTableType();
 	string_array = internal_type("string_array")->AsTableType();
 	string_vec = internal_type("string_vec")->AsVectorType();
+	mime_match = internal_type("mime_match")->AsRecordType();
+	mime_matches = internal_type("mime_matches")->AsVectorType();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");

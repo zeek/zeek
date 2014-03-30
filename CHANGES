@@ -1,4 +1,64 @@
 
+2.2-302 | 2014-03-30 22:40:32 +0200
+
+  * Replace libmagic w/ Bro signatures for file MIME type
+    identification. Addresses BIT-1143. (Jon Siwek)
+
+    Includes:
+
+    - libmagic is no longer used at all.  All MIME type detection is
+      done through new Bro signatures, and there's no longer a means
+      to get verbose file type descriptions. The majority of the
+      default file magic signatures are derived from the default magic
+      database of libmagic ~5.17.
+
+    - File magic signatures consist of two new constructs in the
+      signature rule parsing grammar: "file-magic" gives a regular
+      expression to match against, and "file-mime" gives the MIME type
+      string of content that matches the magic and an optional strength
+      value for the match.
+
+    - Modified signature/rule syntax for identifiers: they can no
+      longer start with a '-', which made for ambiguous syntax when
+      doing negative strength values in "file-mime".  Also brought
+      syntax for Bro script identifiers in line with reality (they
+      can't start with numbers or include '-' at all).
+
+    - A new built-in function, "file_magic", can be used to get all
+      file magic matches and their corresponding strength against a
+      given chunk of data.
+
+    - The second parameter of the "identify_data" built-in function
+      can no longer be used to get verbose file type descriptions,
+      though it can still be used to get the strongest matching file
+      magic signature.
+
+    - The "file_transferred" event's "descr" parameter no longer
+      contains verbose file type descriptions.
+
+    - The BROMAGIC environment variable no longer changes any behavior
+      in Bro as magic databases are no longer used/installed.
+
+    - Removed "binary" and "octet-stream" mime type detections. They
+      don' provide any more information than an uninitialized
+      mime_type field which implicitly means no magic signature
+      matches and so the media type is unknown to Bro.
+
+    - The "fa_file" record now contains a "mime_types" field that
+      contains all magic signatures that matched the file content
+      (where the "mime_type" field is just a shortcut for the
+      strongest match).
+
+    - Reverted back to minimum requirement of CMake 2.6.3 from 2.8.0.
+
+  * The logic for adding file ids to {orig,resp}_fuids fields of the
+    http.log incorrectly depended on the state of
+    {orig,resp}_mime_types fields, so sometimes not all file ids
+    associated w/ the session were logged. (Jon Siwek)
+
+  * Fix MHR script's use of fa_file$mime_type before checking if it's
+    initialized. (Jon Siwek)
+
 2.2-294 | 2014-03-30 22:08:25 +0200
 
   * TODO: x509 changes. (Bernhard Amann)

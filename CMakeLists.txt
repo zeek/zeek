@@ -1,5 +1,5 @@
 project(Bro C CXX)
-cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -16,17 +16,12 @@ endif ()
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
-set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
-set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
-
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "export BROMAGIC=\"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "setenv BROMAGIC \"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
@@ -38,32 +33,6 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 ########################################################################
 ## Dependency Configuration
-
-include(ExternalProject)
-
-# LOG_* options to ExternalProject_Add appear in CMake 2.8.3.  If
-# available, using them hides external project configure/build output.
-if("${CMAKE_VERSION}" VERSION_GREATER 2.8.2)
-    set(EXTERNAL_PROJECT_LOG_OPTIONS
-        LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1)
-else()
-    set(EXTERNAL_PROJECT_LOG_OPTIONS)
-endif()
-
-set(LIBMAGIC_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libmagic-prefix)
-set(LIBMAGIC_INCLUDE_DIR ${LIBMAGIC_PREFIX}/include)
-set(LIBMAGIC_LIB_DIR ${LIBMAGIC_PREFIX}/lib)
-set(LIBMAGIC_LIBRARY ${LIBMAGIC_LIB_DIR}/libmagic.a)
-ExternalProject_Add(libmagic
-    PREFIX ${LIBMAGIC_PREFIX}
-    URL ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/file-5.17.tar.gz
-    CONFIGURE_COMMAND ./configure --enable-static --disable-shared
-                                  --prefix=${LIBMAGIC_PREFIX}
-                                  --includedir=${LIBMAGIC_INCLUDE_DIR}
-                                  --libdir=${LIBMAGIC_LIB_DIR}
-    BUILD_IN_SOURCE 1
-    ${EXTERNAL_PROJECT_LOG_OPTIONS}
-)
 
 include(FindRequiredPackage)
 
@@ -107,7 +76,6 @@ include_directories(BEFORE
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
-                    ${LIBMAGIC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
                     ${JEMALLOC_INCLUDE_DIR}
 )
@@ -187,7 +155,6 @@ set(brodeps
     ${PCAP_LIBRARY}
     ${OpenSSL_LIBRARIES}
     ${BIND_LIBRARY}
-    ${LIBMAGIC_LIBRARY}
     ${ZLIB_LIBRARY}
     ${JEMALLOC_LIBRARIES}
     ${OPTLIBS}
@@ -225,10 +192,6 @@ include(CheckOptionalBuildSources)
 CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
-
-install(DIRECTORY ./magic/database/
-        DESTINATION ${BRO_MAGIC_INSTALL_PATH}
-)
 
 ########################################################################
 ## Packaging Setup

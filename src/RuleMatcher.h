@@ -3,6 +3,10 @@
 
 #include <limits.h>
 #include <vector>
+#include <map>
+#include <functional>
+#include <set>
+#include <string>
 
 #include "IPAddr.h"
 #include "BroString.h"
@@ -191,6 +195,30 @@ private:
 	int_list matched_rules;		// Rules for which all conditions have matched
 };
 
+/**
+ * A state object used for matching file magic signatures.
+ */
+class RuleFileMagicState {
+friend class RuleMatcher;
+public:
+	~RuleFileMagicState();
+
+private:
+	// Ctor is private; use RuleMatcher::InitFileMagic() for
+	// instantiation.
+	RuleFileMagicState()
+		{ }
+
+	struct Matcher {
+		RE_Match_State* state;
+	};
+
+	declare(PList, Matcher);
+	typedef PList(Matcher) matcher_list;
+
+	matcher_list matchers;
+};
+
 
 // RuleMatcher is the main class which builds up the data structures
 // and performs the actual matching.
@@ -204,6 +232,42 @@ public:
 
 	// Parse the given files and built up data structures.
 	bool ReadFiles(const name_list& files);
+
+	/**
+	 * Inititialize a state object for matching file magic signatures.
+	 * @return A state object that can be used for file magic mime type
+	 *         identification.
+	 */
+	RuleFileMagicState* InitFileMagic() const;
+
+	/**
+	 * Data structure containing a set of matching file magic signatures.
+	 * Ordered from greatest to least strength.  Matches of the same strength
+	 * will be in the set in lexicographic order of the MIME type string.
+	 */
+	typedef map<int, set<string>, std::greater<int> > MIME_Matches;
+
+	/**
+	 * Matches a chunk of data against file magic signatures.
+	 * @param state A state object previously returned from
+	 *              RuleMatcher::InitFileMagic()
+	 * @param data Chunk of data to match signatures against.
+	 * @param len Length of \a data in bytes.
+	 * @param matches An optional pre-existing match result object to
+	 *                modify with additional matches.  If it's a null
+	 *                pointer, one will be instantiated and returned from
+	 *                this method.
+	 * @return The results of the signature matching.
+	 */
+	MIME_Matches* Match(RuleFileMagicState* state, const u_char* data,
+	                   uint64 len, MIME_Matches* matches = 0) const;
+
+
+	/**
+	 * Resets a state object used with matching file magic signatures.
+	 * @param state The state object to reset to an initial condition.
+	 */
+	void ClearFileMagicState(RuleFileMagicState* state) const;
 
 	// Initialize the matching state for a endpoind of a connection based on
 	// the given packet (which should be the first packet encountered for

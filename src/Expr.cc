@@ -3392,21 +3392,11 @@ bool HasFieldExpr::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&not_used) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
 	}
 
-RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list,
-					     BroType* arg_type)
+RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 : UnaryExpr(EXPR_RECORD_CONSTRUCTOR, constructor_list)
 	{
-	ctor_type = 0;
-
 	if ( IsError() )
 		return;
-
-	if ( arg_type && arg_type->Tag() != TYPE_RECORD )
-		{
-		Error("bad record constructor type", arg_type);
-		SetError();
-		return;
-		}
 
 	// Spin through the list, which should be comprised of
 	// either record's or record-field-assign, and build up a
@@ -3447,17 +3437,11 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list,
 			}
 		}
 
-	ctor_type = new RecordType(record_types);
-
-	if ( arg_type )
-		SetType(arg_type->Ref());
-	else
-		SetType(ctor_type->Ref());
+	SetType(new RecordType(record_types));
 	}
 
 RecordConstructorExpr::~RecordConstructorExpr()
 	{
-	Unref(ctor_type);
 	}
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
@@ -3483,7 +3467,7 @@ Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 Val* RecordConstructorExpr::Fold(Val* v) const
 	{
 	ListVal* lv = v->AsListVal();
-	RecordType* rt = ctor_type->AsRecordType();
+	RecordType* rt = type->AsRecordType();
 
 	if ( lv->Length() != rt->NumFields() )
 		Internal("inconsistency evaluating record constructor");
@@ -3492,19 +3476,6 @@ Val* RecordConstructorExpr::Fold(Val* v) const
 
 	for ( int i = 0; i < lv->Length(); ++i )
 		rv->Assign(i, lv->Index(i)->Ref());
-
-	if ( ! same_type(rt, type) )
-		{
-		RecordVal* new_val = rv->CoerceTo(type->AsRecordType());
-
-		if ( new_val )
-			{
-			Unref(rv);
-			rv = new_val;
-			}
-		else
-			Internal("record constructor coercion failed");
-		}
 
 	return rv;
 	}
@@ -3521,16 +3492,12 @@ IMPLEMENT_SERIAL(RecordConstructorExpr, SER_RECORD_CONSTRUCTOR_EXPR);
 bool RecordConstructorExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_RECORD_CONSTRUCTOR_EXPR, UnaryExpr);
-	SERIALIZE_OPTIONAL(ctor_type);
 	return true;
 	}
 
 bool RecordConstructorExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
-	BroType* t = 0;
-	UNSERIALIZE_OPTIONAL(t, RecordType::Unserialize(info));
-	ctor_type = t->AsRecordType();
 	return true;
 	}
 
@@ -4214,6 +4181,26 @@ RecordCoerceExpr::~RecordCoerceExpr()
 	delete [] map;
 	}
 
+Val* RecordCoerceExpr::InitVal(const BroType* t, Val* aggr) const
+	{
+	Val* v = Eval(0);
+
+	if ( v )
+		{
+		RecordVal* rv = v->AsRecordVal();
+		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+
+		if ( ar )
+			{
+			Unref(rv);
+			return ar;
+			}
+		}
+
+	Error("bad record initializer");
+	return 0;
+	}
+
 Val* RecordCoerceExpr::Fold(Val* v) const
 	{
 	RecordVal* val = new RecordVal(Type()->AsRecordType());
@@ -4237,6 +4224,13 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 				rhs = rhs->Ref();
 
 			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+
+			if ( ! rhs )
+				{
+				// Optional field is missing.
+				val->Assign(i, 0);
+				continue;
+				}
 
 			BroType* rhs_type = rhs->Type();
 			RecordType* val_type = val->Type()->AsRecordType();

@@ -1,4 +1,9 @@
 
+2.2-263 | 2014-03-30 20:19:05 +0200
+
+  * Don't include locations into serialization when cloning values.
+    (Robin Sommer)
+
 2.2-262 | 2014-03-30 20:12:47 +0200
 
   * Refactor SerializationFormat::EndWrite and ChunkedIO::Chunk memory

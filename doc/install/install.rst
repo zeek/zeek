@@ -184,6 +184,11 @@ OpenBSD users, please see our `FAQ
 <http://www.bro.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
 
+Finally, if you want to build the Bro documentation (not required, because
+all of the documentation for the latest Bro release is available on the
+Bro web site), there are instructions in ``doc/README`` in the source
+distribution.
+
 Configure the Run-Time Environment
 ==================================
 

@@ -1,4 +1,9 @@
 
+2.2-256 | 2014-03-30 19:57:28 +0200
+
+  * For the summary statistics framewirk, change all &create_expire
+    attributes to &read_expire in the cluster part. (Bernhard Amann)
+
 2.2-254 | 2014-03-30 19:55:22 +0200
 
   * Update instructions on how to build Bro docs. (Daniel Thayer)

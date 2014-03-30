@@ -70,11 +70,11 @@ redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
 # intermediate updates so they don't overwhelm their manager. The count that is
 # yielded is the number of times the percentage threshold has been crossed and
 # an intermediate result has been received.
-global recent_global_view_keys: table[string, Key] of count &create_expire=1min &default=0;
+global recent_global_view_keys: table[string, Key] of count &read_expire=1min &default=0;
 
 # Result tables indexed on a uid that are currently being sent to the
 # manager.
-global sending_results: table[string] of ResultTable = table() &create_expire=1min;
+global sending_results: table[string] of ResultTable = table() &read_expire=1min;
 
 # This is done on all non-manager node types in the event that a sumstat is
 # being collected somewhere other than a worker.
@@ -203,7 +203,7 @@ event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, t
 # This variable is maintained by manager nodes as they collect and aggregate
 # results.
 # Index on a uid.
-global stats_keys: table[string] of set[Key] &create_expire=1min 
+global stats_keys: table[string] of set[Key] &read_expire=1min 
 	&expire_func=function(s: table[string] of set[Key], idx: string): interval
 		{
 		Reporter::warning(fmt("SumStat key request for the %s SumStat uid took longer than 1 minute and was automatically cancelled.", idx));
@@ -216,16 +216,16 @@ global stats_keys: table[string] of set[Key] &create_expire=1min
 # result is written out and deleted from here.
 # Indexed on a uid.
 # TODO: add an &expire_func in case not all results are received.
-global done_with: table[string] of count &create_expire=1min &default=0;
+global done_with: table[string] of count &read_expire=1min &default=0;
 
 # This variable is maintained by managers to track intermediate responses as
 # they are getting a global view for a certain key.
 # Indexed on a uid.
-global key_requests: table[string] of Result &create_expire=1min;
+global key_requests: table[string] of Result &read_expire=1min;
 
 # Store uids for dynamic requests here to avoid cleanup on the uid.
 # (This needs to be done differently!)
-global dynamic_requests: set[string] &create_expire=1min;
+global dynamic_requests: set[string] &read_expire=1min;
 
 # This variable is maintained by managers to prevent overwhelming communication due
 # to too many intermediate updates.  Each sumstat is tracked separately so that

@@ -166,6 +166,7 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
+	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
@@ -454,6 +455,7 @@ int main(int argc, char** argv)
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
+	int parse_only = false;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -465,6 +467,7 @@ int main(int argc, char** argv)
 	int print_plugins = 0;
 
 	static struct option long_opts[] = {
+		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
@@ -544,7 +547,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghv",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -554,6 +557,10 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
+		case 'a':
+			parse_only = true;
+			break;
+
 		case 'b':
 			bare_mode = true;
 			break;
@@ -888,6 +895,12 @@ int main(int argc, char** argv)
 		{
 		show_plugins(print_plugins);
 		exit(1);
+		}
+
+	if ( parse_only )
+		{
+		int rc = (reporter->Errors() > 0 ? 1 : 0);
+		exit(rc);
 		}
 
 #ifdef USE_PERFTOOLS_DEBUG

@@ -1,5 +1,5 @@
 
-2.2-302 | 2014-03-30 22:40:32 +0200
+2.2-304 | 2014-03-30 23:05:54 +0200
 
   * Replace libmagic w/ Bro signatures for file MIME type
     identification. Addresses BIT-1143. (Jon Siwek)

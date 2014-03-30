@@ -92,8 +92,7 @@ Val* Val::Clone() const
 	uinfo.cache = false;
 	Val* clone = Unserialize(&uinfo, type);
 
-	delete [] data;
-
+	free(data);
 	return clone;
 	}
 

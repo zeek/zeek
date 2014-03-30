@@ -372,10 +372,7 @@ static bool sendCMsg(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id)
 	CMsg* msg = (CMsg*) new char[sizeof(CMsg)];
 	new (msg) CMsg(msg_type, id);
 
-	ChunkedIO::Chunk* c = new ChunkedIO::Chunk;
-	c->len = sizeof(CMsg);
-	c->data = (char*) msg;
-
+	ChunkedIO::Chunk* c = new ChunkedIO::Chunk((char*)msg, sizeof(CMsg));
 	return io->Write(c);
 	}
 
@@ -386,10 +383,7 @@ static ChunkedIO::Chunk* makeSerialMsg(RemoteSerializer::PeerID id)
 	CMsg* msg = (CMsg*) new char[sizeof(CMsg)];
 	new (msg) CMsg(MSG_SERIAL, id);
 
-	ChunkedIO::Chunk* c = new ChunkedIO::Chunk;
-	c->len = sizeof(CMsg);
-	c->data = (char*) msg;
-
+	ChunkedIO::Chunk* c = new ChunkedIO::Chunk((char*)msg, sizeof(CMsg));
 	return c;
 	}
 
@@ -424,7 +418,7 @@ static bool sendToIO(ChunkedIO* io, ChunkedIO::Chunk* c)
 	}
 
 static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
-			const char* str, int len = -1)
+			const char* str, int len = -1, bool delete_with_free = false)
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
@@ -432,9 +426,14 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 		return false;
 		}
 
-	ChunkedIO::Chunk* c = new ChunkedIO::Chunk;
-	c->len = len >= 0 ? len : strlen(str) + 1;
-	c->data = const_cast<char*>(str);
+	uint32 sz = len >= 0 ? len : strlen(str) + 1;
+	ChunkedIO::Chunk* c = new ChunkedIO::Chunk(const_cast<char*>(str), sz);
+
+	if ( delete_with_free )
+		c->free_func = ChunkedIO::Chunk::free_func_free;
+	else
+		c->free_func = ChunkedIO::Chunk::free_func_delete;
+
 	return sendToIO(io, c);
 	}
 
@@ -455,10 +454,8 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	for ( int i = 0; i < nargs; i++ )
 		args[i] = htonl(va_arg(ap, uint32));
 
-	ChunkedIO::Chunk* c = new ChunkedIO::Chunk;
-	c->len = sizeof(uint32) * nargs;
-	c->data = (char*) args;
-
+	ChunkedIO::Chunk* c = new ChunkedIO::Chunk((char*)args,
+	                                           sizeof(uint32) * nargs);
 	return sendToIO(io, c);
 	}
 
@@ -1529,7 +1526,6 @@ bool RemoteSerializer::Poll(bool may_block)
 		current_msgtype = msg->Type();
 		current_args = 0;
 
-		delete [] c->data;
 		delete c;
 
 		switch ( current_msgtype ) {
@@ -1592,7 +1588,6 @@ bool RemoteSerializer::Poll(bool may_block)
 		msgstate = TYPE;
 		bool result = DoMessage();
 
-		delete [] current_args->data;
 		delete current_args;
 		current_args = 0;
 
@@ -1787,9 +1782,7 @@ void RemoteSerializer::PeerConnected(Peer* peer)
 	*args++ = htonl(peer->our_runtime);
 	strcpy((char*) args, peer->our_class.c_str());
 
-	ChunkedIO::Chunk* c = new ChunkedIO::Chunk;
-	c->len = len;
-	c->data = data;
+	ChunkedIO::Chunk* c = new ChunkedIO::Chunk(data, len);
 
 	if ( peer->our_class.size() )
 		Log(LogInfo, fmt("sending class \"%s\"", peer->our_class.c_str()), peer);
@@ -2568,8 +2561,8 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 		goto error;
 
 	c = new ChunkedIO::Chunk;
-	c->data = 0;
 	c->len = fmt.EndWrite(&c->data);
+	c->free_func = ChunkedIO::Chunk::free_func_free;
 
 	if ( ! SendToChild(c) )
 		goto error;
@@ -2577,11 +2570,7 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 	return true;
 
 error:
-	if ( c )
-		{
-		delete [] c->data;
-		delete c;
-		}
+	delete c;
 
 	FatalError(io->Error());
 	return false;
@@ -2643,21 +2632,21 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 		{
 		if ( ! FlushLogBuffer(peer) )
 			{
-			delete [] data;
+			free(data);
 			return false;
 			}
 		}
 
 	// If the data is actually larger than our complete buffer, just send it out.
 	if ( len > LOG_BUFFER_SIZE )
-		return SendToChild(MSG_LOG_WRITE, peer, data, len);
+		return SendToChild(MSG_LOG_WRITE, peer, data, len, true);
 
 	// Now we have space in the buffer, copy it into there.
 	memcpy(peer->log_buffer + peer->log_buffer_used, data, len);
 	peer->log_buffer_used += len;
 	assert(peer->log_buffer_used <= LOG_BUFFER_SIZE);
 
-	delete [] data;
+	free(data);
 
 	return true;
 
@@ -3112,14 +3101,19 @@ bool RemoteSerializer::SendCMsgToChild(char msg_type, Peer* peer)
 	return true;
 	}
 
-bool RemoteSerializer::SendToChild(char type, Peer* peer, char* str, int len)
+bool RemoteSerializer::SendToChild(char type, Peer* peer, char* str, int len,
+                                   bool delete_with_free)
 	{
 	DEBUG_COMM(fmt("parent: (->child) %s (#%" PRI_SOURCE_ID ", %s)", msgToStr(type), peer ? peer->id : PEER_NONE, str));
 
-	if ( child_pid && sendToIO(io, type, peer ? peer->id : PEER_NONE, str, len) )
+	if ( child_pid && sendToIO(io, type, peer ? peer->id : PEER_NONE, str, len,
+	                           delete_with_free) )
 		return true;
 
-	delete [] str;
+	if ( delete_with_free )
+		free(str);
+	else
+		delete [] str;
 
 	if ( ! child_pid )
 		return false;
@@ -3169,7 +3163,7 @@ bool RemoteSerializer::SendToChild(ChunkedIO::Chunk* c)
 	if ( child_pid && sendToIO(io, c) )
 		return true;
 
-	delete [] c->data;
+	c->free_func(c->data);
 	c->data = 0;
 
 	if ( ! child_pid )
@@ -3545,7 +3539,6 @@ bool SocketComm::ProcessParentMessage()
 		parent_msgtype = msg->Type();
 		parent_args = 0;
 
-		delete [] c->data;
 		delete c;
 
 		switch ( parent_msgtype ) {
@@ -3600,7 +3593,6 @@ bool SocketComm::ProcessParentMessage()
 
 		if ( parent_args )
 			{
-			delete [] parent_args->data;
 			delete parent_args;
 			parent_args = 0;
 			}
@@ -3900,7 +3892,6 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 			peer->state = msg->Type();
 		}
 
-		delete [] c->data;
 		delete c;
 
 		break;

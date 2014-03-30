@@ -1,4 +1,15 @@
 
+2.2-262 | 2014-03-30 20:12:47 +0200
+
+  * Refactor SerializationFormat::EndWrite and ChunkedIO::Chunk memory
+    management. (Jon Siwek)
+
+  * Improve SerializationFormat's write buffer growth strategy. (Jon
+    Siwek)
+
+  * Add --parse-only option to exit after parsing scripts. May be
+    useful for syntax-checking tools. (Jon Siwek)
+
 2.2-256 | 2014-03-30 19:57:28 +0200
 
   * For the summary statistics framewirk, change all &create_expire

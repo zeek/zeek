@@ -22,7 +22,6 @@ type uint24 = record {
 	};
 
 	string state_label(int state_nr);
-	double get_time_from_asn1(const ASN1_TIME * atime);
 %}
 
 extern type to_int;
@@ -146,105 +145,6 @@ enum AnalyzerState {
 			return string(fmt("UNKNOWN (%d)", state_nr));
 		}
 		}
-
-
-	double get_time_from_asn1(const ASN1_TIME * atime)
-		{
-		time_t lResult = 0;
-
-		char lBuffer[24];
-		char * pBuffer = lBuffer;
-
-		size_t lTimeLength = atime->length;
-		char * pString = (char *) atime->data;
-
-		if ( atime->type == V_ASN1_UTCTIME )
-			{
-			if ( lTimeLength < 11 || lTimeLength > 17 )
-				return 0;
-
-			memcpy(pBuffer, pString, 10);
-			pBuffer += 10;
-			pString += 10;
-			}
-		else
-			{
-			if ( lTimeLength < 13 )
-				return 0;
-
-			memcpy(pBuffer, pString, 12);
-			pBuffer += 12;
-			pString += 12;
-			}
-
-		if ((*pString == 'Z') || (*pString == '-') || (*pString == '+'))
-			{
-			*(pBuffer++) = '0';
-			*(pBuffer++) = '0';
-			}
-		else
-			{
-			*(pBuffer++) = *(pString++);
-			*(pBuffer++) = *(pString++);
-
-			// Skip any fractional seconds...
-			if (*pString == '.')
-				{
-				pString++;
-				while ((*pString >= '0') && (*pString <= '9'))
-					pString++;
-				}
-			}
-
-		*(pBuffer++) = 'Z';
-		*(pBuffer++) = '\0';
-
-		time_t lSecondsFromUTC;
-
-		if ( *pString == 'Z' )
-			lSecondsFromUTC = 0;
-
-		else
-			{
-			if ((*pString != '+') && (pString[5] != '-'))
-				return 0;
-
-			lSecondsFromUTC = ((pString[1]-'0') * 10 + (pString[2]-'0')) * 60;
-			lSecondsFromUTC += (pString[3]-'0') * 10 + (pString[4]-'0');
-
-			if (*pString == '-')
-				lSecondsFromUTC = -lSecondsFromUTC;
-			}
-
-		tm lTime;
-		lTime.tm_sec  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
-		lTime.tm_min  = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
-		lTime.tm_hour = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
-		lTime.tm_mday = ((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0');
-		lTime.tm_mon  = (((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0')) - 1;
-		lTime.tm_year = ((lBuffer[0] - '0') * 10) + (lBuffer[1] - '0');
-
-		if ( lTime.tm_year < 50 )
-			lTime.tm_year += 100; // RFC 2459
-
-		lTime.tm_wday = 0;
-		lTime.tm_yday = 0;
-		lTime.tm_isdst = 0;  // No DST adjustment requested
-
-		lResult = mktime(&lTime);
-
-		if ( lResult )
-			{
-			if ( 0 != lTime.tm_isdst )
-				lResult -= 3600;  // mktime may adjust for DST  (OS dependent)
-
-			lResult += lSecondsFromUTC;
-			}
-		else
-			lResult = 0;
-
-		return lResult;
-	}
 %}
 
 ######################################################################

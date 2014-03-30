@@ -26,6 +26,7 @@
 @load frameworks/intel/seen/smtp.bro
 @load frameworks/intel/seen/ssl.bro
 @load frameworks/intel/seen/where-locations.bro
+@load frameworks/intel/seen/x509.bro
 @load frameworks/files/detect-MHR.bro
 @load frameworks/files/hash-all-files.bro
 @load frameworks/packet-filter/shunt.bro
@@ -82,10 +83,10 @@
 @load protocols/ssh/geo-data.bro
 @load protocols/ssh/interesting-hostnames.bro
 @load protocols/ssh/software.bro
-@load protocols/ssl/cert-hash.bro
 @load protocols/ssl/expiring-certs.bro
 @load protocols/ssl/extract-certs-pem.bro
 @load protocols/ssl/known-certs.bro
+@load protocols/ssl/log-hostcerts-only.bro
 #@load protocols/ssl/notary.bro
 @load protocols/ssl/validate-certs.bro
 @load tuning/__load__.bro

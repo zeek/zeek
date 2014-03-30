@@ -130,6 +130,7 @@ OpaqueType* entropy_type = 0;
 OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
+OpaqueType* x509_opaque_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -872,6 +873,7 @@ int main(int argc, char** argv)
 	cardinality_type = new OpaqueType("cardinality");
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
+	x509_opaque_type = new OpaqueType("x509");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

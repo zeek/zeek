@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-01-31-22-54-38
+#open	2014-03-13-22-14-10
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -56,7 +56,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_SOCKS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSH.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSL.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_SSL.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Syslog.events.bif.bro
     build/scripts/base/bif/plugins/Bro_TCP.events.bif.bro
@@ -65,6 +64,9 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.types.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
@@ -187,6 +189,11 @@ scripts/base/init-default.bro
         scripts/base/protocols/ssl/consts.bro
         scripts/base/protocols/ssl/main.bro
         scripts/base/protocols/ssl/mozilla-ca-list.bro
+        scripts/base/protocols/ssl/files.bro
+          scripts/base/files/x509/__load__.bro
+            scripts/base/files/x509/main.bro
+              scripts/base/files/hash/__load__.bro
+                scripts/base/files/hash/main.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/main.bro
     scripts/base/protocols/http/entities.bro
@@ -213,8 +220,6 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
-  scripts/base/files/hash/__load__.bro
-    scripts/base/files/hash/main.bro
   scripts/base/files/extract/__load__.bro
     scripts/base/files/extract/main.bro
   scripts/base/files/unified2/__load__.bro
@@ -222,4 +227,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2014-01-31-22-54-38
+#close	2014-03-13-22-14-10

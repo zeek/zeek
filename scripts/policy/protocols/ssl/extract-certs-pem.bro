@@ -10,8 +10,7 @@
 ##!
 
 @load base/protocols/ssl
-@load base/utils/directions-and-hosts
-@load protocols/ssl/cert-hash
+@load base/files/x509
 
 module SSL;
 
@@ -23,41 +22,31 @@ export {
 }
 
 # This is an internally maintained variable to prevent relogging of
-# certificates that have already been seen.  It is indexed on an md5 sum of
+# certificates that have already been seen.  It is indexed on an sha1 sum of
 # the certificate.
 global extracted_certs: set[string] = set() &read_expire=1hr &redef;
 
 event ssl_established(c: connection) &priority=5
 	{
-	if ( ! c$ssl?$cert )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
 		return;
 
 	if ( ! addr_matches_host(c$id$resp_h, extract_certs_pem) )
 		return;
 
-	if ( c$ssl$cert_hash in extracted_certs )
+	local hash = c$ssl$cert_chain[0]$sha1;
+	local cert = c$ssl$cert_chain[0]$x509$handle;
+
+	if ( hash in extracted_certs )
 		# If we already extracted this cert, don't do it again.
 		return;
 
-	add extracted_certs[c$ssl$cert_hash];
+	add extracted_certs[hash];
 	local filename = Site::is_local_addr(c$id$resp_h) ? "certs-local.pem" : "certs-remote.pem";
 	local outfile = open_for_append(filename);
+	enable_raw_output(outfile);
 
-	print outfile, "-----BEGIN CERTIFICATE-----";
+	print outfile, x509_get_certificate_string(cert, T);
 
-	# Encode to base64 and format to fit 50 lines. Otherwise openssl won't like it later.
-	local lines = split_all(encode_base64(c$ssl$cert), /.{50}/);
-	local i = 1;
-	for ( line in lines )
-		{
-		if ( |lines[i]| > 0 )
-			{
-			print outfile, lines[i];
-			}
-		i+=1;
-		}
-
-	print outfile, "-----END CERTIFICATE-----";
-	print outfile, "";
 	close(outfile);
 	}

@@ -8,9 +8,7 @@
 
 #include "util.h"
 
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#include <openssl/asn1.h>
+#include "file_analysis/Manager.h"
 %}
 
 
@@ -24,8 +22,6 @@
 	};
 
 	string orig_label(bool is_orig);
-	void free_X509(void *);
-	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
 	string handshake_type_label(int type);
 	%}
 
@@ -33,20 +29,6 @@
 string orig_label(bool is_orig)
 		{
 		return string(is_orig ? "originator" :"responder");
-		}
-
-	void free_X509(void* cert)
-		{
-		X509_free((X509*) cert);
-		}
-
-	X509* d2i_X509_binpac(X509** px, const uint8** in, int len)
-		{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-		return d2i_X509(px, in, len);
-#else
-		return d2i_X509(px, (u_char**) in, len);
-#endif
 		}
 
 	string handshake_type_label(int type)
@@ -249,113 +231,15 @@ refine connection SSL_Conn += {
 		if ( certificates->size() == 0 )
 			return true;
 
-		if ( x509_certificate )
+		for ( unsigned int i = 0; i < certificates->size(); ++i )
 			{
-			STACK_OF(X509)* untrusted_certs = 0;
+			const bytestring& cert = (*certificates)[i];
 
-			for ( unsigned int i = 0; i < certificates->size(); ++i )
-				{
-				const bytestring& cert = (*certificates)[i];
-				const uint8* data = cert.data();
-				X509* pTemp = d2i_X509_binpac(NULL, &data, cert.length());
-				if ( ! pTemp )
-					{
-					BifEvent::generate_x509_error(bro_analyzer(), bro_analyzer()->Conn(),
-					                              ${rec.is_orig}, ERR_get_error());
-					return false;
-					}
+			string fid = file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()), cert.length(),
+						      bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(),
+						      ${rec.is_orig});
 
-				RecordVal* pX509Cert = new RecordVal(x509_type);
-				char tmp[256];
-				BIO *bio = BIO_new(BIO_s_mem());
-
-				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
-				i2a_ASN1_INTEGER(bio, X509_get_serialNumber(pTemp));
-				int len = BIO_read(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(1, new StringVal(len, tmp));
-
-				X509_NAME_print_ex(bio, X509_get_subject_name(pTemp), 0, XN_FLAG_RFC2253);
-				len = BIO_gets(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(2, new StringVal(len, tmp));
-				X509_NAME_print_ex(bio, X509_get_issuer_name(pTemp), 0, XN_FLAG_RFC2253);
-				len = BIO_gets(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(3, new StringVal(len, tmp));
-				BIO_free(bio);
-
-				pX509Cert->Assign(4, new Val(get_time_from_asn1(X509_get_notBefore(pTemp)), TYPE_TIME));
-				pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notAfter(pTemp)), TYPE_TIME));
-				StringVal* der_cert = new StringVal(cert.length(), (const char*) cert.data());
-
-				BifEvent::generate_x509_certificate(bro_analyzer(), bro_analyzer()->Conn(),
-							${rec.is_orig},
-							pX509Cert,
-							i, certificates->size(),
-							der_cert);
-
-				// Are there any X509 extensions?
-				//printf("Number of x509 extensions: %d\n", X509_get_ext_count(pTemp));
-				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
-					{
-					int num_ext = X509_get_ext_count(pTemp);
-					for ( int k = 0; k < num_ext; ++k )
-						{
-						char name[256];
-						char oid[256];
-
-						memset(name, 0, sizeof(name));
-						memset(oid, 0, sizeof(oid));
-
-						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
-
-						if ( ! ex )
-							continue;
-
-						ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
-						const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
-
-						OBJ_obj2txt(name, sizeof(name) - 1, ext_asn, 0);
-						OBJ_obj2txt(oid, sizeof(oid) - 1, ext_asn, 1);
-
-						int critical = 0;
-						if ( X509_EXTENSION_get_critical(ex) != 0 )
-							critical = 1;
-
-						BIO *bio = BIO_new(BIO_s_mem());
-						if( ! X509V3_EXT_print(bio, ex, 0, 0))
-							M_ASN1_OCTET_STRING_print(bio, ex->value);
-
-						BIO_flush(bio);
-						int length = BIO_pending(bio);
-
-						// Use OPENSSL_malloc here. Using new or anything else can lead
-						// to interesting, hard to debug segfaults.
-						char *buffer = (char*) OPENSSL_malloc(length);
-						BIO_read(bio, buffer, length);
-						StringVal* ext_val = new StringVal(length, buffer);
-						OPENSSL_free(buffer);
-
-						BIO_free_all(bio);
-
-						RecordVal* pX509Ext = new RecordVal(x509_extension_type);
-						pX509Ext->Assign(0, new StringVal(name));
-
-						if ( short_name && strlen(short_name) > 0 )
-							pX509Ext->Assign(1, new StringVal(short_name));
-
-						pX509Ext->Assign(2, new StringVal(oid));
-						pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
-						pX509Ext->Assign(4, ext_val);
-
-						BifEvent::generate_x509_extension(bro_analyzer(),
-									bro_analyzer()->Conn(),
-									${rec.is_orig},
-									pX509Cert->Ref(),
-									pX509Ext);
-						}
-					}
-
-				X509_free(pTemp);
-				}
+			file_mgr->EndOfFile(fid);
 			}
 		return true;
 		%}

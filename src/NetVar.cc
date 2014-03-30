@@ -47,9 +47,6 @@ int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
-RecordType* x509_type;
-RecordType* x509_extension_type;
-
 RecordType* socks_address;
 
 double non_analyzed_lifetime;
@@ -353,9 +350,6 @@ void init_net_var()
 		opt_internal_int("tcp_max_above_hole_without_any_acks");
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
-
-	x509_type = internal_type("X509")->AsRecordType();
-	x509_extension_type = internal_type("X509_extension_info")->AsRecordType();
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 

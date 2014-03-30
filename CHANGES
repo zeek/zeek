@@ -1,4 +1,9 @@
 
+2.2-267 | 2014-03-30 20:21:43 +0200
+
+  * Improve documentation of Bro clusters. Addresses BIT-1160. 
+    (Daniel Thayer)
+
 2.2-263 | 2014-03-30 20:19:05 +0200
 
   * Don't include locations into serialization when cloning values.

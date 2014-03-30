@@ -12,8 +12,10 @@ Quick Start Guide
 Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
 source code forms.  See :ref:`installing-bro` for instructions on how to
-install Bro. Below, ``$PREFIX`` is used to reference the Bro
-installation root directory, which by default is ``/usr/local/bro/`` if
+install Bro. 
+
+In the examples below, ``$PREFIX`` is used to reference the Bro
+installation root directory, which by default is ``/usr/local/bro`` if
 you install from source. 
 
 Managing Bro with BroControl
@@ -21,7 +23,10 @@ Managing Bro with BroControl
 
 BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
-traffic-monitoring cluster.
+traffic-monitoring cluster.  This section explains how to use BroControl
+to manage a stand-alone Bro installation.  For instructions on how to
+configure a Bro cluster, see the documentation for :doc:`BroControl
+<../components/broctl/README>`.
 
 A Minimal Starting Configuration
 --------------------------------

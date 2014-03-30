@@ -80,7 +80,7 @@ that ``bash`` and ``python`` are in your ``PATH``):
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
   or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
-  ``swig-python`` and packages provide the required dependencies.
+  and ``swig-python`` packages provide the required dependencies.
 
 
 Optional Dependencies

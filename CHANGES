@@ -1,4 +1,8 @@
 
+2.2-251 | 2014-03-28 08:37:37 -0400
+
+  * Quick fix to the ElasticSearch writer. (Seth Hall)
+
 2.2-250 | 2014-03-19 17:20:55 -0400
 
   * Improve performance of MHR script by reducing cloned Vals in

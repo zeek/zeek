@@ -223,11 +223,11 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 	{
 	assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
 
-	RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
 	BASIC_CONSTRAINTS *constr = (BASIC_CONSTRAINTS *) X509V3_EXT_d2i(ex);
 
 	if ( constr )
 		{
+		RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
 		pBasicConstraint->Assign(0, new Val(constr->ca ? 1 : 0, TYPE_BOOL));
 
 		if ( constr->pathlen )

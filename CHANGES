@@ -1,4 +1,11 @@
 
+2.2-313 | 2014-04-01 16:40:19 -0700
+
+  * Fix a couple nits reported by Coverity.(Jon Siwek)
+    
+  * Fix potential memory leak in IP frag reassembly reported by
+    Coverity. (Jon Siwek)
+
 2.2-310 | 2014-03-31 18:52:22 -0700
 
   * Fix memory leak and unchecked dynamic cast reported by Coverity.

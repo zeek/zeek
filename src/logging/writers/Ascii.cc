@@ -19,7 +19,10 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	fd = 0;
 	ascii_done = false;
+	output_to_stdout = false;
+	include_meta = false;
 	tsv = false;
+	use_json = false;
 	formatter = 0;
 	}
 

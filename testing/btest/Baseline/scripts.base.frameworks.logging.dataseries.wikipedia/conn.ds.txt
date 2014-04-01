@@ -49,7 +49,7 @@
 <!-- orig_ip_bytes : count -->
 <!-- resp_pkts : count -->
 <!-- resp_ip_bytes : count -->
-<!-- tunnel_parents : table[string] -->
+<!-- tunnel_parents : set[string] -->
 
 # Extent, type='conn'
 ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes tunnel_parents

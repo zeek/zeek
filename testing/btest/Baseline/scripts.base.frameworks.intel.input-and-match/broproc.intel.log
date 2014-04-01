@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2013-08-14-03-47-03
+#open	2014-04-01-23-14-04
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	sources
-#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	table[string]
-1376452023.137179	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	SOMEWHERE	source1
-1376452023.137179	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	source1
-#close	2013-08-14-03-47-03
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	set[string]
+1396394044.377145	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	SOMEWHERE	source1
+1396394044.377145	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	source1
+#close	2014-04-01-23-14-04

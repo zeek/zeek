@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2013-08-26-19-36-34
+#open	2014-04-01-23-15-53
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	set[string]
 1348168976.274919	CXWv6p3arKYeMETxOg	192.168.57.103	60108	192.168.57.101	2811	tcp	ssl,ftp,gridftp	0.294743	4491	6659	SF	-	0	ShAdDaFf	22	5643	21	7759	(empty)
 1348168976.546371	CjhGID4nQcgTWjvg4c	192.168.57.103	35391	192.168.57.101	55968	tcp	ssl,gridftp-data	0.011938	2135	3196	S1	-	0	ShADad	8	2559	6	3516	(empty)
-#close	2013-08-26-19-36-34
+#close	2014-04-01-23-15-53

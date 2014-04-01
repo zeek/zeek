@@ -68,6 +68,10 @@ string Field::TypeName() const
 	{
 	string n = type_name(type);
 
+	// we do not support tables, if the internal bro type is table it always is a set
+	if ( type == TYPE_TABLE )
+		n = "set";
+
 	if ( (type == TYPE_TABLE) || (type == TYPE_VECTOR) )
 		{
 		n += "[";

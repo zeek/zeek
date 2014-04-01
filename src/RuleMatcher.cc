@@ -686,6 +686,10 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 		loop_over_list(r->actions, rai)
 			{
 			const RuleActionMIME* ram = dynamic_cast<const RuleActionMIME*>(r->actions[rai]);
+
+			if ( ! ram )
+				continue;
+
 			set<string>& ss = (*rval)[ram->GetStrength()];
 			ss.insert(ram->GetMIME());
 			}

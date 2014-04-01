@@ -49,12 +49,9 @@ void File_Analyzer::Done()
 
 void File_Analyzer::Identify()
 	{
-	RuleFileMagicState* fms = rule_matcher->InitFileMagic();
 	RuleMatcher::MIME_Matches matches;
-
-	rule_matcher->Match(fms, reinterpret_cast<const u_char*>(buffer),
-	                    buffer_len, &matches);
-
+	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
+	                     &matches);
 	string match = matches.empty() ? "<unknown>"
 	                               : *(matches.begin()->second.begin());
 	val_list* vl = new val_list;

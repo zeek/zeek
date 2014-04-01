@@ -260,6 +260,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
 			Expire(network_time);
+			delete [] pkt_start;
 			return;
 			}
 

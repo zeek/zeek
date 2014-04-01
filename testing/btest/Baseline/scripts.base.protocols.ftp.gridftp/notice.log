@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	notice
-#open	2013-08-26-19-04-09
+#open	2014-04-01-23-15-53
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
-#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	table[enum]	interval	bool	string	string	string	double	double
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
 1348168976.558309	CjhGID4nQcgTWjvg4c	192.168.57.103	35391	192.168.57.101	55968	-	-	-	tcp	GridFTP::Data_Channel	GridFTP data channel over threshold 2 bytes	-	192.168.57.103	192.168.57.101	55968	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
-#close	2013-08-26-19-04-09
+#close	2014-04-01-23-15-53

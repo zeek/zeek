@@ -1,4 +1,9 @@
 
+2.2-315 | 2014-04-01 16:50:01 -0700
+
+  * Change logging's "#types" description of sets to "set". Addresses
+    BIT-1163 (Bernhard Amann)
+
 2.2-313 | 2014-04-01 16:40:19 -0700
 
   * Fix a couple nits reported by Coverity.(Jon Siwek)

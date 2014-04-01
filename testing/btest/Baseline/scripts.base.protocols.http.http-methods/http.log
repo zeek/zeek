@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2013-08-26-18-40-16
+#open	2014-04-01-23-16-03
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	vector[string]	vector[string]	vector[string]	vector[string]
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1354328870.191989	CXWv6p3arKYeMETxOg	128.2.6.136	46562	173.194.75.103	80	1	OPTIONS	www.google.com	*	-	-	0	962	405	Method Not Allowed	-	-	-	(empty)	-	-	-	-	-	FKgccv1sOsIPuN3b73	text/html
 1354328874.237327	CjhGID4nQcgTWjvg4c	128.2.6.136	46563	173.194.75.103	80	1	OPTIONS	www.google.com	HTTP/1.1	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	FWUdF12OgqGLhf3NPl	text/html
 1354328874.299063	CCvvfg3TEfuqmmG4bh	128.2.6.136	46564	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	FE9yCx4wFg8js0ey37	text/html
@@ -55,4 +55,4 @@
 1354328932.692706	CkaPGx2P0Y3W5aHVFk	128.2.6.136	46608	173.194.75.103	80	1	HEAD	www.google.com	/HTTP/1.1	-	-	0	0	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	-	-
 1354328932.754657	CY93mM3aViMiLKuSw3	128.2.6.136	46609	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	F04ZTu63dLSqJQpwa	text/html
 1354328932.796568	CXgISq6dA2DVPzqp9	128.2.6.136	46610	173.194.75.103	80	0	-	-	-	-	-	0	925	400	Bad Request	-	-	-	(empty)	-	-	-	-	-	FVoxfM2o0FqsBuQkDa	text/html
-#close	2013-08-26-18-40-16
+#close	2014-04-01-23-16-03

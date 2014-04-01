@@ -3,13 +3,13 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2013-08-26-19-04-09
+#open	2014-04-01-23-15-51
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	set[string]
 1329327783.316897	CjhGID4nQcgTWjvg4c	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49186	2001:470:4867:99::21	57086	tcp	ftp-data	0.219721	0	342	SF	-	0	ShAdfFa	5	372	4	642	(empty)
 1329327786.524332	CCvvfg3TEfuqmmG4bh	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49187	2001:470:4867:99::21	57087	tcp	ftp-data	0.217501	0	43	SF	-	0	ShAdfFa	5	372	4	343	(empty)
 1329327787.289095	CsRx2w45OKnoww6xl4	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49188	2001:470:4867:99::21	57088	tcp	ftp-data	0.217941	0	77	SF	-	0	ShAdfFa	5	372	4	377	(empty)
 1329327795.571921	CRJuHdVW0XPVINV8a	2001:470:4867:99::21	55785	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49189	tcp	ftp-data	0.109813	77	0	SF	-	0	ShADFaf	5	449	4	300	(empty)
 1329327777.822004	CXWv6p3arKYeMETxOg	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49185	2001:470:4867:99::21	21	tcp	ftp	26.658219	310	3448	SF	-	0	ShAdDfFa	57	4426	34	5908	(empty)
 1329327800.017649	CPbrpk1qSsw6ESzHV4	2001:470:4867:99::21	55647	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49190	tcp	ftp-data	0.109181	342	0	SF	-	0	ShADFaf	5	714	4	300	(empty)
-#close	2013-08-26-19-04-09
+#close	2014-04-01-23-15-51

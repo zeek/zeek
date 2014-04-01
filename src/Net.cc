@@ -312,9 +312,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
 
-	TimerMgr* tmgr =
-		src_ps ? sessions->LookupTimerMgr(src_ps->GetCurrentTag())
-			: timer_mgr;
+	TimerMgr* tmgr = sessions->LookupTimerMgr(src_ps->GetCurrentTag());
 
 	// network_time never goes back.
 	network_time = tmgr->Time() < t ? t : tmgr->Time();

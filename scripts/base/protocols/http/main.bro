@@ -186,7 +186,7 @@ event http_request(c: connection, method: string, original_URI: string,
 	set_state(c, T, T);
 
 	c$http$method = method;
-	c$http$uri = unescaped_URI;
+	c$http$uri = unescape_URI(original_URI);
 
 	if ( method !in http_methods )
 		event conn_weird("unknown_HTTP_method", c, method);

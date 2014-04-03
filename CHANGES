@@ -1,4 +1,9 @@
 
+2.2-317 | 2014-04-03 10:51:31 -0400
+
+  * Add a uid field to the signatures.log.  Addresses BIT-1171 
+    (Anthony Verez)
+
 2.2-315 | 2014-04-01 16:50:01 -0700
 
   * Change logging's "#types" description of sets to "set". Addresses

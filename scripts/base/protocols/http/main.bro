@@ -28,7 +28,8 @@ export {
 		id:                      conn_id   &log;
 		## Represents the pipelined depth into the connection of this
 		## request/response transaction.
-		trans_depth:             count     &log;
+		orig_trans_depth:             count     &log;
+		resp_trans_depth:             count     &log;
 		## Verb used in the HTTP request (GET, POST, HEAD, etc.).
 		method:                  string    &log &optional;
 		## Value of the HOST header.
@@ -149,7 +150,8 @@ function new_http_session(c: connection): Info
 	tmp$id=c$id;
 	# $current_request is set prior to the Info record creation so we
 	# can use the value directly here.
-	tmp$trans_depth = c$http_state$current_request;
+	tmp$orig_trans_depth = c$http_state$current_request;
+	tmp$resp_trans_depth = c$http_state$current_response;
 	return tmp;
 	}
 
@@ -306,3 +308,33 @@ event connection_state_remove(c: connection) &priority=-5
 		}
 	}
 
+@load ./entities
+@load ./utils
+@load base/utils/conn-ids
+
+function get_file_handle(c: connection, is_orig: bool): string
+	{
+	if ( ! c?$http )
+		return "";
+
+	set_state(c, F, is_orig);
+
+    local h: string;
+
+	if ( c$http$range_request && ! is_orig )
+		{
+		# Any multipart responses from the server are pieces of same file
+		# that correspond to range requests, so don't use mime depth to
+		# identify the file.
+		h = cat(Analyzer::ANALYZER_HTTP, is_orig, c$id$orig_h, build_url(c$http));
+		}
+	else
+		{
+		local mime_depth = is_orig ? c$http$orig_mime_depth : c$http$resp_mime_depth;
+		local trans_depth = is_orig ? c$http_state$current_request : c$http_state$current_response;
+		h = cat(Analyzer::ANALYZER_HTTP, c$start_time, is_orig,
+		           trans_depth, mime_depth, id_string(c$id));
+		}
+
+    return h;
+	}

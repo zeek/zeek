@@ -7,7 +7,20 @@ export {
 
 	# Only include events matching the given pattern into output.
 	const include = /.*/ &redef;
+
+	# Output into this file instead of standard output.
+	const output_file = "" &redef;
 }
+
+global out: file;
+
+event bro_init()
+	{
+	if ( output_file != "" )
+		out = open(output_file);
+	else
+		out = open("/dev/stdout");
+	}
 
 event new_event(name: string, args: call_argument_vector)
 	{
@@ -17,7 +30,7 @@ event new_event(name: string, args: call_argument_vector)
 	if ( ! include_args || |args| == 0 )
 		return;
 
-	print fmt("%.6f %s", network_time(), name);
+	print out, fmt("%.6f %s", network_time(), name);
 
 	for ( i in args )
 		{
@@ -26,10 +39,10 @@ event new_event(name: string, args: call_argument_vector)
 		local proto = fmt("%s: %s", a$name, a$type_name);
 		
 		if ( a?$value )
-			print fmt("                  [%d] %-15s = %s", i, proto, a$value);
+			print out, fmt("                  [%d] %-15s = %s", i, proto, a$value);
 		else
-			print fmt("                  | %-15s = %s [default]", proto, a$value);
+			print out, fmt("                  | %-15s = %s [default]", proto, a$value);
 		}
 
-	print "";
+	print out, "";
 	}

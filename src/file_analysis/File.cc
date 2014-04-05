@@ -272,6 +272,12 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
+    // FIXME: A hack. If one passes chunks in that are larger than a legacy
+    // analyzer would normally do, the MIME type might end up being
+    // different. *sigh*
+    if ( len > 1500 )
+            len = 1500;
+
 	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
 
 	if ( mime )

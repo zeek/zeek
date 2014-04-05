@@ -18,15 +18,21 @@ export {
 
 event file_hash(f: fa_file, kind: string, hash: string) &priority=5
 	{
-	switch ( kind ) {
-	case "md5":
+    if ( kind == "md5" )
 		f$info$md5 = hash;
-		break;
-	case "sha1":
+    else if ( kind == "sha1" )
 		f$info$sha1 = hash;
-		break;
-	case "sha256":
+    else if ( kind == "sha256" )
 		f$info$sha256 = hash;
-		break;
-	}
+       
+#	switch ( kind ) {
+#	case "md5":
+#		f$info$md5 = hash;
+#		break;
+#	case "sha1":
+#		f$info$sha1 = hash;
+#		break;
+#	case "sha256":
+#		f$info$sha256 = hash;
+#		break;
 	}

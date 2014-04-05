@@ -317,8 +317,6 @@ function get_file_handle(c: connection, is_orig: bool): string
 	if ( ! c?$http )
 		return "";
 
-	set_state(c, F, is_orig);
-
     local h: string;
 
 	if ( c$http$range_request && ! is_orig )

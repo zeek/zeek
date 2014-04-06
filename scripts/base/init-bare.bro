@@ -861,7 +861,7 @@ const tcp_inactivity_timeout = 5 min &redef;
 ## don't time it out.
 ##
 ## .. bro:see:: tcp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
-const udp_inactivity_timeout = 1 min &redef;
+const udp_inactivity_timeout = 9secs &redef;
 
 ## If an ICMP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.

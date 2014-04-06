@@ -1101,9 +1101,12 @@ DNS_Analyzer::DNS_Analyzer(Connection* conn)
 		}
 	else
 		{
-		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
-					network_time + dns_session_timeout, 1,
-					TIMER_DNS_EXPIRE);
+        if ( dns_session_timeout )
+            {
+            ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
+                               network_time + dns_session_timeout, 1,
+                               TIMER_DNS_EXPIRE);
+            }
 		}
 	}
 

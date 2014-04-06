@@ -25,6 +25,7 @@ struct ProfileItem {
 	long_long cycles;
 	unsigned int mem_total;
 	unsigned int mem_malloced;
+    uint64_t counter;
 
 	double _time_start;
 	long_long _cycles_start;
@@ -42,6 +43,7 @@ struct ProfileItem {
 		_mem_malloced_start = mem_malloced = 0;
         _started = false;
 		level = 0;
+        counter = 0;
 		}
 };
 
@@ -117,9 +119,14 @@ static void papi_finish()
 
 #endif
 
-static void print_profile_item(const char* tag, ProfileType type, ProfileType minus_type1 = PROFILE_NONE, ProfileType minus_type2 = PROFILE_NONE)
+static void print_profile_item(const char* tag, ProfileType type, ProfileType minus_type1 = PROFILE_NONE, ProfileType minus_type2 = PROFILE_NONE, bool counter = false)
 	{
 	ProfileItem* i = &profile_state.items[type];
+
+    if ( counter > 0 ) {
+        fprintf(stderr, "#c %s %" PRIu64 "\n", tag, i->counter);
+        return;
+    }
 
 	if ( i->level > 0 )
 		reporter->InternalError("level for profiler %d is not zero (but %u)\n", type, i->level);
@@ -147,7 +154,7 @@ static void print_profile_item(const char* tag, ProfileType type, ProfileType mi
 		cycles -= j->cycles;
 		}
 
-	fprintf(stderr, "# %s %.6f/%" PAPI_CYCLE_FMT " %uM/%uM\n",
+	fprintf(stderr, "#t %s %.6f/%" PAPI_CYCLE_FMT " %uM/%uM\n",
 		tag, time, cycles,
 		mem_total / 1024 / 1024,
 		mem_malloced / 1024 / 1024);
@@ -172,6 +179,8 @@ void profile_print()
 	print_profile_item("hilti-land", PROFILE_HILTI_LAND);
 	print_profile_item("hilti-land-compiled-stubs", PROFILE_HILTI_LAND_COMPILED_STUBS);
 	print_profile_item("hilti-land-compiled-code",  PROFILE_HILTI_LAND_COMPILED_CODE);
+
+	print_profile_item("events",  PROFILE_EVENTS, PROFILE_NONE, PROFILE_NONE, true);
 	}
 
 extern "C" {
@@ -278,5 +287,11 @@ int profile_level(ProfileType t)
 {
 	ProfileItem* i = &profile_state.items[t];
     return i->level;
+}
+
+void  profile_count(ProfileType t)
+{
+	ProfileItem* i = &profile_state.items[t];
+    ++i->counter;
 }
 

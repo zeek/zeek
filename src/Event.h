@@ -5,6 +5,7 @@
 
 #include "EventRegistry.h"
 #include "Serializer.h"
+#include "profile.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
@@ -47,6 +48,7 @@ protected:
 
 		try
 			{
+            profile_count(PROFILE_EVENTS);
 			handler->Call(args, no_remote);
 			}
 

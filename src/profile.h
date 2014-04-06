@@ -17,6 +17,7 @@ enum ProfileType {
     PROFILE_HILTI_LAND = 11,
 	PROFILE_SCRIPT_LEGACY_LAND = 12,
 	PROFILE_JIT_LAND = 13,
+    PROFILE_EVENTS = 14,
 	// End-marker.
 	PROFILE_COUNT
 	};
@@ -27,6 +28,7 @@ enum ProfileAction{
 };
 
 void profile_update(ProfileType t, ProfileAction a);
+void profile_count(ProfileType t);
 int  profile_level(ProfileType t);
 void profile_print();
 

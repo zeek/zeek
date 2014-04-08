@@ -230,9 +230,9 @@ type ApplicationData(rec: SSLRecord) = record {
 # V3 Heartbeat
 ######################################################################
 
-# Heartbeats should basically always be encrypted, so we should not
-# reach this point.
 type Heartbeat(rec: SSLRecord) = record {
+  type : uint8;
+  payload_length : uint16;
 	data : bytestring &restofdata &transient;
 };
 

@@ -307,7 +307,7 @@ refine connection SSL_Conn += {
 	function proc_ciphertext_record(rec : SSLRecord) : bool
 		%{
 		if ( ${rec.content_type} == HEARTBEAT )
-			BifEvent::generate_ssl_heartbeat(bro_analyzer(),
+			BifEvent::generate_ssl_encrypted_heartbeat(bro_analyzer(),
 				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
 
 		if ( state_ == STATE_TRACK_LOST )
@@ -325,10 +325,10 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_heartbeat(rec : SSLRecord) : bool
+	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16) : bool
 		%{
 		BifEvent::generate_ssl_heartbeat(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length);
 
 		return true;
 		%}
@@ -353,7 +353,7 @@ refine typeattr ApplicationData += &let {
 };
 
 refine typeattr Heartbeat += &let {
-	proc : bool = $context.connection.proc_heartbeat(rec);
+	proc : bool = $context.connection.proc_heartbeat(rec, type, payload_length);
 };
 
 refine typeattr ClientHello += &let {

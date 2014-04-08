@@ -30,12 +30,11 @@ event ssl_heartbeat(c: connection, is_orig: bool, length: count, heartbeat_type:
 		{
 		local checklength: count = (length<(3+16)) ? length : (length - 3 - 16);
 
-
 		if ( payload_length > checklength )
 			{
 			c$ssl$heartbleed_detected = T;
 			NOTICE([$note=SSL_Heartbeat_Attack,
-				$msg="An TLS heartbleed attack was detected!",
+				$msg=fmt("An TLS heartbleed attack was detected! Record length %d, payload length %d", length, payload_length),
 				$conn=c
 				]);
 			}
@@ -60,13 +59,15 @@ event ssl_encrypted_heartbeat(c: connection, is_orig: bool, length: count)
 	if ( c$ssl$originator_heartbeats > c$ssl$responder_heartbeats + 3 )
 			NOTICE([$note=SSL_Heartbeat_Many_Requests,
 				$msg="Seeing more than 3 heartbeat requests without replies from server. Possible attack?",
-				$conn=c
+				$conn=c,
+				$n=(c$ssl$originator_heartbeats-c$ssl$responder_heartbeats)
 				]);
 
 	if ( is_orig && length < 19 )
 			NOTICE([$note=SSL_Heartbeat_Odd_Length,
 				$msg="Heartbeat message smaller than minimum length. Probable attack.",
-				$conn=c
+				$conn=c,
+				$n=length
 				]);
 
 	if ( is_orig )

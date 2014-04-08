@@ -81,3 +81,5 @@
 # Detect SHA1 sums in Team Cymru's Malware Hash Registry.
 @load frameworks/files/detect-MHR
 
+# Load heartbleed detection. Only superficially tested, might contain bugs.
+@load policy/protocols/ssl/heartbleed

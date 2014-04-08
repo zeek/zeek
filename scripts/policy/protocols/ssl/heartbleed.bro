@@ -1,5 +1,7 @@
 module Heartbleed;
 
+# Please note - this is not well tested. Use at your own risk.
+
 redef record SSL::Info += {
 	last_originator_heartbeat_request_size: count &optional;
 	last_responder_heartbeat_request_size: count &optional;

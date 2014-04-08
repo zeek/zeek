@@ -256,7 +256,7 @@ void Connection::NextPacket(double t, int is_orig,
 
 	if ( root_analyzer )
 		{
-		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
+		profile_update(PROFILE_CONNECTION_LAND, PROFILE_START);
 
 		record_current_packet = record_packet;
 		record_current_content = record_content;
@@ -264,7 +264,7 @@ void Connection::NextPacket(double t, int is_orig,
 		record_packet = record_current_packet;
 		record_content = record_current_content;
 
-		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_STOP);
+		profile_update(PROFILE_CONNECTION_LAND, PROFILE_STOP);
 		}
 	else
 		last_time = t;

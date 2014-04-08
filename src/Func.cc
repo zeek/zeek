@@ -59,6 +59,7 @@ static int in_script_land = 0;
 
 void enter_script_land()
 	{
+#if 0
 	if ( ! in_proto_land )
 		{
 		in_proto_land = (profile_level(PROFILE_PROTOCOL_LAND) > 0);
@@ -70,7 +71,8 @@ void enter_script_land()
 				reporter->InternalError("mismatch in protocol-land profile level");
 			}
 		}
-
+#endif
+		profile_update(PROFILE_CONNECTION_LAND, PROFILE_START);
         profile_update(PROFILE_SCRIPT_LAND, PROFILE_START);
         ++in_script_land;
 	}
@@ -78,13 +80,16 @@ void enter_script_land()
 void leave_script_land()
 	{
 	profile_update(PROFILE_SCRIPT_LAND, PROFILE_STOP);
+    profile_update(PROFILE_CONNECTION_LAND, PROFILE_STOP);
 	--in_script_land;
 
+#if 0
 	if ( ! in_script_land && in_proto_land )
 		{
 		profile_update(PROFILE_PROTOCOL_LAND, PROFILE_START);
 		in_proto_land = 0;
 		}
+#endif
 	}
 
 vector<Func*> Func::unique_ids;

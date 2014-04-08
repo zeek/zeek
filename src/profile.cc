@@ -69,6 +69,7 @@ static void papi_init()
 		return;
 		}
 
+#if 0
 	int ret;
 	if ( (ret = PAPI_create_eventset(&PAPISet)) != PAPI_OK )
 		{
@@ -103,6 +104,7 @@ static void papi_init()
 		fprintf(stderr, "Error in starting PAPI counters: %s\n", PAPI_strerror(ret));
 		return;
 		}
+#endif
 
 	have_papi = 1;
 	}
@@ -173,8 +175,9 @@ void profile_print()
 	print_profile_item("cleanup", PROFILE_CLEANUP);
 	print_profile_item("script-land", PROFILE_SCRIPT_LAND);
 	print_profile_item("script-legacy-land", PROFILE_SCRIPT_LEGACY_LAND);
-	print_profile_item("protocol-land", PROFILE_PROTOCOL_LAND);
-	print_profile_item("core-other-land", PROFILE_NET, PROFILE_PROTOCOL_LAND, PROFILE_SCRIPT_LAND);
+	print_profile_item("connection-land", PROFILE_CONNECTION_LAND);
+	print_profile_item("protocol-land-derived", PROFILE_CONNECTION_LAND, PROFILE_SCRIPT_LAND);
+	print_profile_item("core-other-land-derived", PROFILE_NET, PROFILE_CONNECTION_LAND);
 	print_profile_item("jit-land", PROFILE_JIT_LAND);
 	print_profile_item("hilti-land", PROFILE_HILTI_LAND);
 	print_profile_item("hilti-land-compiled-stubs", PROFILE_HILTI_LAND_COMPILED_STUBS);
@@ -210,6 +213,7 @@ void profile_update(ProfileType t, ProfileAction action)
 
 		case PROFILE_SCRIPT_LAND:
 		case PROFILE_PROTOCOL_LAND:
+		case PROFILE_CONNECTION_LAND:
 		case PROFILE_HILTI_LAND_COMPILED_STUBS:
 		case PROFILE_HILTI_LAND_COMPILED_CODE:
         	if ( time_bro < 2 )
@@ -245,20 +249,17 @@ void profile_update(ProfileType t, ProfileAction action)
 	unsigned int mem_malloced = 0;
     // get_memory_usage(&mem_total, &mem_malloced);
 
-	long_long cycles[PAPI_NUM_EVENTS];
 #ifdef USE_PAPI
 	if ( have_papi < 0 )
 		papi_init();
 
-	int ret;
-	if ( have_papi && (ret = PAPI_read(PAPISet, cycles)) != PAPI_OK )
-		reporter->FatalError("Error in reading PAPI counters: %s\n", PAPI_strerror(ret));
+	long_long cycles = PAPI_get_virt_cyc();
 #endif
 
 	if ( action == PROFILE_START )
 		{
-		i->_time_start = current_time(true);
-		i->_cycles_start = cycles[0];
+		i->_time_start = 0; // current_time(true);
+		i->_cycles_start = cycles;
 		i->_mem_total_start = mem_total;
 		i->_mem_malloced_start = mem_malloced;
         i->_started = true;
@@ -269,10 +270,10 @@ void profile_update(ProfileType t, ProfileAction action)
         if ( ! i->_started )
                 reporter->InternalError("mismatching stop in profile_update() for type %d", t);
 
-		double time_end = current_time(true);
+		double time_end = 0; // current_time(true);
 		unsigned int mem_total_end = mem_total;
 		unsigned int mem_malloced_end = mem_malloced;
-		long_long cycles_end = cycles[0];
+		long_long cycles_end = cycles;
 
 		i->time += (time_end - i->_time_start);
 		i->cycles += (cycles_end - i->_cycles_start);

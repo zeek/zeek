@@ -1,0 +1,18 @@
+snmp_set_request
+  [orig_h=127.0.0.1, orig_p=63034/udp, resp_h=127.0.0.1, resp_p=161/udp]
+  is_orig: T
+  [community=]
+    request_id: 2064150121
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.1.5.0
+    value (tag=0x04): musec
+snmp_response
+  [orig_h=127.0.0.1, orig_p=63034/udp, resp_h=127.0.0.1, resp_p=161/udp]
+  is_orig: F
+  [community=]
+    request_id: 2064150121
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.1.5.0
+    value (tag=0x05): <unspecified>

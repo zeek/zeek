@@ -233,7 +233,7 @@ type ApplicationData(rec: SSLRecord) = record {
 type Heartbeat(rec: SSLRecord) = record {
   type : uint8;
   payload_length : uint16;
-	data : bytestring &restofdata &transient;
+	data : bytestring &restofdata;
 };
 
 ######################################################################

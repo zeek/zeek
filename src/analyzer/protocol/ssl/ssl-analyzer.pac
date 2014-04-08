@@ -325,11 +325,11 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16) : bool
+	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16, data: bytestring) : bool
 		%{
 		BifEvent::generate_ssl_heartbeat(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length);
-
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
+			new StringVal(data.length(), (const char*) data.data()));
 		return true;
 		%}
 
@@ -353,7 +353,7 @@ refine typeattr ApplicationData += &let {
 };
 
 refine typeattr Heartbeat += &let {
-	proc : bool = $context.connection.proc_heartbeat(rec, type, payload_length);
+	proc : bool = $context.connection.proc_heartbeat(rec, type, payload_length, data);
 };
 
 refine typeattr ClientHello += &let {

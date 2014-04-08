@@ -141,4 +141,4 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 
 event ssl_encrypted_heartbeat%(c: connection, is_orig: bool, length: count%);
 
-event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count%);
+event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);

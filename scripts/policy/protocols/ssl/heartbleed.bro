@@ -26,7 +26,7 @@ export {
 	};
 }
 
-event ssl_heartbeat(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count)
+event ssl_heartbeat(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string)
 	{
 	if ( heartbeat_type == 1 )
 		{

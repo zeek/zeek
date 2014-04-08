@@ -39,13 +39,13 @@ type SSLRecord(is_orig: bool) = record {
 		$context.connection.determine_ssl_version(head0, head1, head2);
 
 	content_type : int = case version of {
-		UNKNOWN_VERSION -> 0;
+		# UNKNOWN_VERSION -> 0; assume tls on unknown version
 		SSLv20 -> head2+300;
 		default -> head0;
 	};
 
 	length : int = case version of {
-		UNKNOWN_VERSION -> 0;
+		# UNKNOWN_VERSION -> 0; assume tls on unknown version
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
 		default -> (head3 << 8) | head4;
 	};

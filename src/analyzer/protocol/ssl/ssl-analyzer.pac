@@ -306,6 +306,10 @@ refine connection SSL_Conn += {
 
 	function proc_ciphertext_record(rec : SSLRecord) : bool
 		%{
+		if ( ${rec.content_type} == HEARTBEAT )
+			BifEvent::generate_ssl_heartbeat(bro_analyzer(),
+				bro_analyzer()->Conn(), ${rec.length});
+
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected ciphertext record from %s in state %s",
 				orig_label(${rec.is_orig}).c_str(),
@@ -320,6 +324,15 @@ refine connection SSL_Conn += {
 
 		return true;
 		%}
+
+	function proc_heartbeat(rec : SSLRecord) : bool
+		%{
+		BifEvent::generate_ssl_heartbeat(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.length});
+
+		return true;
+		%}
+
 };
 
 refine typeattr ChangeCipherSpec += &let {
@@ -337,6 +350,10 @@ refine typeattr V2Error += &let {
 
 refine typeattr ApplicationData += &let {
 	proc : bool = $context.connection.proc_application_data(rec);
+};
+
+refine typeattr Heartbeat += &let {
+	proc : bool = $context.connection.proc_heartbeat(rec);
 };
 
 refine typeattr ClientHello += &let {

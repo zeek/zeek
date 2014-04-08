@@ -63,6 +63,7 @@ type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
 	ALERT			-> alert : Alert(rec);
 	HANDSHAKE		-> handshake : Handshake(rec);
+	HEARTBEAT -> heartbeat: Heartbeat(rec);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	V2_ERROR		-> v2_error : V2Error(rec);
 	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
@@ -222,6 +223,16 @@ type V2Error(rec: SSLRecord) = record {
 # Application data should always be encrypted, so we should not
 # reach this point.
 type ApplicationData(rec: SSLRecord) = record {
+	data : bytestring &restofdata &transient;
+};
+
+######################################################################
+# V3 Heartbeat
+######################################################################
+
+# Heartbeats should basically always be encrypted, so we should not
+# reach this point.
+type Heartbeat(rec: SSLRecord) = record {
 	data : bytestring &restofdata &transient;
 };
 

@@ -308,7 +308,7 @@ refine connection SSL_Conn += {
 		%{
 		if ( ${rec.content_type} == HEARTBEAT )
 			BifEvent::generate_ssl_heartbeat(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.length});
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
 
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected ciphertext record from %s in state %s",
@@ -328,7 +328,7 @@ refine connection SSL_Conn += {
 	function proc_heartbeat(rec : SSLRecord) : bool
 		%{
 		BifEvent::generate_ssl_heartbeat(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.length});
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
 
 		return true;
 		%}

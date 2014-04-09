@@ -223,9 +223,10 @@ event connection_EOF%(c: connection, is_orig: bool%);
 ##        corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
 ##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.
 ##
-## seq: The packet's TCP sequence number.
+## seq: The packet's relative TCP sequence number.
 ##
-## ack: The packet's ACK number.
+## ack: If the ACK flag is set for the packet, the packet's relative ACK
+##      number, else zero.
 ##
 ## len: The length of the TCP payload, as specified in the packet header.
 ##

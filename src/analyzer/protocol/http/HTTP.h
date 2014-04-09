@@ -161,7 +161,7 @@ public:
 	HTTP_Analyzer(Connection* conn);
 	~HTTP_Analyzer();
 
-	void Undelivered(tcp::TCP_Endpoint* sender, int seq, int len);
+	void Undelivered(tcp::TCP_Endpoint* sender, uint64 seq, int len);
 
 	void HTTP_Header(int is_orig, mime::MIME_Header* h);
 	void HTTP_EntityData(int is_orig, const BroString* entity_data);
@@ -177,7 +177,7 @@ public:
 	// Overriden from Analyzer.
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer
 	virtual void EndpointEOF(bool is_orig);

@@ -34,7 +34,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	return;
 	}
 
-void File_Analyzer::Undelivered(int seq, int len, bool orig)
+void File_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	}
@@ -79,10 +79,10 @@ void IRC_Data::DeliverStream(int len, const u_char* data, bool orig)
 	file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(), orig);
 	}
 
-void IRC_Data::Undelivered(int seq, int len, bool orig)
+void IRC_Data::Undelivered(uint64 seq, int len, bool orig)
 	{
 	File_Analyzer::Undelivered(seq, len, orig);
-	file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig);
+	file_mgr->Gap(seq - 1, len, GetAnalyzerTag(), Conn(), orig);
 	}
 
 FTP_Data::FTP_Data(Connection* conn)
@@ -102,8 +102,8 @@ void FTP_Data::DeliverStream(int len, const u_char* data, bool orig)
 	file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(), orig);
 	}
 
-void FTP_Data::Undelivered(int seq, int len, bool orig)
+void FTP_Data::Undelivered(uint64 seq, int len, bool orig)
 	{
 	File_Analyzer::Undelivered(seq, len, orig);
-	file_mgr->Gap(seq, len, GetAnalyzerTag(), Conn(), orig);
+	file_mgr->Gap(seq - 1, len, GetAnalyzerTag(), Conn(), orig);
 	}

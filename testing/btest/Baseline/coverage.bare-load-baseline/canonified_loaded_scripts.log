@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-03-03-20-45-31
+#open	2014-04-08-22-38-18
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -12,6 +12,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/strings.bif.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
+  build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/event.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
@@ -24,9 +25,6 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_DNP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_File.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Finger.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
@@ -40,16 +38,17 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.functions.bif.bro
@@ -62,12 +61,15 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_TCP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_X509.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.types.bif.bro
-    build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.functions.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -99,9 +101,9 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
     build/scripts/base/bif/bloom-filter.bif.bro
-    build/scripts/base/bif/broxygen.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
+    build/scripts/base/bif/broxygen.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2014-03-04-06-37-10
+#close	2014-04-08-22-38-18

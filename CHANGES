@@ -1,4 +1,17 @@
 
+2.2-326 | 2014-04-08 15:21:51 -0700
+
+  * Add SNMP datagram parsing support.This supports parsing of SNMPv1
+    (RFC 1157), SNMPv2 (RFC 1901/3416), and SNMPv2 (RFC 3412).  An
+    event is raised for each SNMP PDU type, though there's not
+    currently any event handlers for them and not a default snmp.log
+    either.  However, simple presence of SNMP is currently visible now
+    in conn.log service field and known_services.log. (Jon Siwek)
+
+2.2-319 | 2014-04-03 15:53:25 -0700
+
+  * Improve __load__.bro creation for .bif.bro stubs. (Jon Siwek)
+
 2.2-317 | 2014-04-03 10:51:31 -0400
 
   * Add a uid field to the signatures.log.  Addresses BIT-1171 

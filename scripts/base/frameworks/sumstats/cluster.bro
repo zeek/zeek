@@ -62,7 +62,7 @@ export {
 # Add events to the cluster framework to make this work.
 redef Cluster::manager2worker_events += /SumStats::cluster_(ss_request|get_result|threshold_crossed)/;
 redef Cluster::manager2worker_events += /SumStats::(get_a_key)/;
-redef Cluster::worker2manager_events += /SumStats::cluster_(ss_response|send_result|key_intermediate_response)/;
+redef Cluster::worker2manager_events += /SumStats::cluster_(send_result|key_intermediate_response)/;
 redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
@@ -70,7 +70,7 @@ redef Cluster::worker2manager_events += /SumStats::(send_a_key|send_no_key)/;
 # intermediate updates so they don't overwhelm their manager. The count that is
 # yielded is the number of times the percentage threshold has been crossed and
 # an intermediate result has been received.
-global recent_global_view_keys: table[string, Key] of count &read_expire=1min &default=0;
+global recent_global_view_keys: table[string, Key] of count &create_expire=1min &default=0;
 
 # Result tables indexed on a uid that are currently being sent to the
 # manager.

@@ -1,0 +1,17 @@
+module SNMP;
+
+type Header: record;
+type HeaderV1: record;
+type HeaderV2: record;
+type HeaderV3: record;
+
+type PDU: record;
+type TrapPDU: record;
+type BulkPDU: record;
+type ScopedPDU_Context: record;
+
+type ObjectValue: record;
+type Binding: record;
+type Bindings: vector;
+
+module GLOBAL;

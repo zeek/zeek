@@ -1,0 +1,165 @@
+## An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_get_request%(c: connection, is_orig: bool, header: SNMP::Header,
+                        pdu: SNMP::PDU%);
+
+## An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
+## :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_get_next_request%(c: connection, is_orig: bool,
+                             header: SNMP::Header, pdu: SNMP::PDU%);
+
+## An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
+## ``Response-PDU`` from :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_response%(c: connection, is_orig: bool, header: SNMP::Header,
+                     pdu: SNMP::PDU%);
+
+## An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_set_request%(c: connection, is_orig: bool, header: SNMP::Header,
+                        pdu: SNMP::PDU%);
+
+## An SNMP ``Trap-PDU`` message from :rfc:`1157`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_trap%(c: connection, is_orig: bool, header: SNMP::Header,
+                 pdu: SNMP::TrapPDU%);
+
+## An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_get_bulk_request%(c: connection, is_orig: bool,
+                             header: SNMP::Header, pdu: SNMP::BulkPDU%);
+
+## An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_inform_request%(c: connection, is_orig: bool, header: SNMP::Header,
+                           pdu: SNMP::PDU%);
+
+## An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_trapV2%(c: connection, is_orig: bool, header: SNMP::Header,
+                   pdu: SNMP::PDU%);
+
+## An SNMP ``Report-PDU`` message from :rfc:`3416`.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## pdu: An SNMP PDU data structure.
+event snmp_report%(c: connection, is_orig: bool, header: SNMP::Header,
+                   pdu: SNMP::PDU%);
+
+## An SNMP PDU message of unknown type.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## tag: The tag of the unknown SNMP PDU.
+event snmp_unknown_pdu%(c: connection, is_orig: bool, header: SNMP::Header,
+                        tag: count%);
+
+## An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
+## an encrypted PDU was in the datagram).
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+##
+## tag: The tag of the unknown SNMP PDU scope.
+event snmp_unknown_scoped_pdu%(c: connection, is_orig: bool,
+                               header: SNMP::Header, tag: count%);
+
+## An SNMPv3 encrypted PDU message.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## header: SNMP version-dependent data that precedes PDU data in the top-level
+##         SNMP message structure.
+event snmp_encrypted_pdu%(c: connection, is_orig: bool, header: SNMP::Header%);
+
+## A datagram with an unknown SNMP version.
+##
+## c: The connection overwhich the SNMP datagram is sent.
+##
+## is_orig: The endpoint which sent the SNMP datagram.
+##
+## version: The value of the unknown SNMP version.
+event snmp_unknown_header_version%(c: connection, is_orig: bool,
+                                   version: count%);

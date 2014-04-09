@@ -84,7 +84,7 @@ event ssl_encrypted_heartbeat(c: connection, is_orig: bool, length: count)
 		}
 	else
 		{
-		if ( c$ssl?$last_originator_heartbeat_request_size && c$ssl$last_originator_heartbeat_request_size > length )
+		if ( c$ssl?$last_originator_heartbeat_request_size && c$ssl$last_originator_heartbeat_request_size < length )
 			{
 			NOTICE([$note=SSL_Heartbeat_Encrypted_Attack_Success,
 				$msg="An Encrypted TLS heartbleed attack was probably detected!",

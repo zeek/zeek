@@ -52,7 +52,7 @@ type SSLRecord(is_orig: bool) = record {
 };
 
 type RecordText(rec: SSLRecord) = case $context.connection.state() of {
-	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
+	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED, STATE_CLIENT_FINISHED,
 	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
 		-> ciphertext : CiphertextRecord(rec);
 	default

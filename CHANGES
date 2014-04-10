@@ -1,6 +1,8 @@
 
-2.2-331 | 2014-04-10 08:23:33 -0700
+2.2-335 | 2014-04-10 15:04:57 -0700
 
+  * Small logic fix for main SSL script. (Bernhard Amann)
+    
   * Update DPD signatures for detecting TLS 1.2. (Bernhard Amann)
 
   * Remove unused data member of SMTP_Analyzer to silence a Coverity

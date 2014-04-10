@@ -1,4 +1,14 @@
 
+2.2-331 | 2014-04-10 08:23:33 -0700
+
+  * Update DPD signatures for detecting TLS 1.2. (Bernhard Amann)
+
+  * Remove unused data member of SMTP_Analyzer to silence a Coverity
+    warning. (Jon Siwek)
+
+  * Fix missing @load dependencies in some scripts. Also update the
+    unit test which is supposed to catch such errors. (Jon Siwek)
+
 2.2-326 | 2014-04-08 15:21:51 -0700
 
   * Add SNMP datagram parsing support.This supports parsing of SNMPv1

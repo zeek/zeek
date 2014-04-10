@@ -4,6 +4,8 @@
 
 @load base/protocols/ssl
 @load base/files/x509
+@load base/frameworks/notice
+@load base/utils/directions-and-hosts
 
 module SSL;
 

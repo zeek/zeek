@@ -2831,6 +2831,130 @@ export {
 }
 module GLOBAL;
 
+@load base/bif/plugins/Bro_SNMP.types.bif
+
+module SNMP;
+export {
+	## The top-level message data structure of an SNMPv1 datagram, not
+	## including the PDU data.  See :rfc:`1157`.
+	type SNMP::HeaderV1: record {
+		community: string;
+	};
+
+	## The top-level message data structure of an SNMPv2 datagram, not
+	## including the PDU data.  See :rfc:`1901`.
+	type SNMP::HeaderV2: record {
+		community: string;
+	};
+
+	## The ``ScopedPduData`` data structure of an SNMPv3 datagram, not
+	## including the PDU data (i.e. just the "context" fields).
+	## See :rfc:`3412`.
+	type SNMP::ScopedPDU_Context: record {
+		engine_id: string;
+		name:      string;
+	};
+
+	## The top-level message data structure of an SNMPv3 datagram, not
+	## including the PDU data.  See :rfc:`3412`.
+	type SNMP::HeaderV3: record {
+		id:              count;
+		max_size:        count;
+		flags:           count;
+		auth_flag:       bool;
+		priv_flag:       bool;
+		reportable_flag: bool;
+		security_model:  count;
+		security_params: string;
+		pdu_context:     SNMP::ScopedPDU_Context &optional;
+	};
+
+	## A generic SNMP header data structure that may include data from
+	## any version of SNMP.  The value of the ``version`` field
+	## determines what header field is initialized.
+	type SNMP::Header: record {
+		version: count;
+		v1:      SNMP::HeaderV1 &optional; ##< Set when ``version`` is 0.
+		v2:      SNMP::HeaderV2 &optional; ##< Set when ``version`` is 1.
+		v3:      SNMP::HeaderV3 &optional; ##< Set when ``version`` is 3.
+	};
+
+	## A generic SNMP object value, that may include any of the
+	## valid ``ObjectSyntax`` values from :rfc:`1155` or :rfc:`3416`.
+	## The value is decoded whenever possible and assigned to
+	## the appropriate field, which can be determined from the value
+	## of the ``tag`` field.  For tags that can't be mapped to an
+	## appropriate type, the ``octets`` field holds the BER encoded
+	## ASN.1 content if there is any (though, ``octets`` is may also
+	## be used for other tags such as OCTET STRINGS or Opaque).  Null
+	## values will only have their corresponding tag value set.
+	type SNMP::ObjectValue: record {
+		tag:      count;
+		oid:      string &optional;
+		signed:   int    &optional;
+		unsigned: count  &optional;
+		address:  addr   &optional;
+		octets:   string &optional;
+	};
+
+	# These aren't an enum because it's easier to type fields as count.
+	# That way don't have to deal with type conversion, plus doesn't
+	# mislead that these are the only valid tag values (it's just the set
+	# of known tags).
+	const SNMP::OBJ_INTEGER_TAG       : count = 0x02; ##< Signed 64-bit integer.
+	const SNMP::OBJ_OCTETSTRING_TAG   : count = 0x04; ##< An octet string.
+	const SNMP::OBJ_UNSPECIFIED_TAG   : count = 0x05; ##< A NULL value.
+	const SNMP::OBJ_OID_TAG           : count = 0x06; ##< An Object Identifier.
+	const SNMP::OBJ_IPADDRESS_TAG     : count = 0x40; ##< An IP address.
+	const SNMP::OBJ_COUNTER32_TAG     : count = 0x41; ##< Unsigned 32-bit integer.
+	const SNMP::OBJ_UNSIGNED32_TAG    : count = 0x42; ##< Unsigned 32-bit integer.
+	const SNMP::OBJ_TIMETICKS_TAG     : count = 0x43; ##< Unsigned 32-bit integer.
+	const SNMP::OBJ_OPAQUE_TAG        : count = 0x44; ##< An octet string.
+	const SNMP::OBJ_COUNTER64_TAG     : count = 0x46; ##< Unsigned 64-bit integer.
+	const SNMP::OBJ_NOSUCHOBJECT_TAG  : count = 0x80; ##< A NULL value.
+	const SNMP::OBJ_NOSUCHINSTANCE_TAG: count = 0x81; ##< A NULL value.
+	const SNMP::OBJ_ENDOFMIBVIEW_TAG  : count = 0x82; ##< A NULL value.
+
+	## The ``VarBind`` data structure from either :rfc:`1157` or
+	## :rfc:`3416`, which maps an Object Identifier to a value.
+	type SNMP::Binding: record {
+		oid:   string;
+		value: SNMP::ObjectValue;
+	};
+
+	## A ``VarBindList`` data structure from either :rfc:`1157` or :rfc:`3416`.
+	## A sequences of :bro:see:`SNMP::Binding`, which maps an OIDs to values.
+	type SNMP::Bindings: vector of SNMP::Binding;
+
+	## A ``PDU`` data structure from either :rfc:`1157` or :rfc:`3416`.
+	type SNMP::PDU: record {
+		request_id:   int;
+		error_status: int;
+		error_index:  int;
+		bindings:     SNMP::Bindings;
+	};
+
+	## A ``Trap-PDU`` data structure from :rfc:`1157`.
+	type SNMP::TrapPDU: record {
+		enterprise:    string;
+		agent:         addr;
+		generic_trap:  int;
+		specific_trap: int;
+		time_stamp:    count;
+		bindings:      SNMP::Bindings;
+	};
+
+	## A ``BulkPDU`` data structure from :rfc:`3416`.
+	type SNMP::BulkPDU: record {
+		request_id:      int;
+		non_repeaters:   count;
+		max_repititions: count;
+		bindings:        SNMP::Bindings;
+	};
+}
+
+module GLOBAL;
+
 @load base/bif/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.

@@ -107,25 +107,6 @@ refine connection SSL_Conn += {
 	%cleanup{
 	%}
 
-	function proc_change_cipher_spec(rec: SSLRecord) : bool
-		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected ChangeCipherSpec from %s at state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-		return true;
-		%}
-
-	function proc_application_data(rec: SSLRecord) : bool
-		%{
-		if ( state_ != STATE_CONN_ESTABLISHED &&
-		     (state_ != STATE_CLIENT_FINISHED && ! ${rec.is_orig}) )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected ApplicationData from %s at state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-		return true;
-		%}
-
 	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
 		BifEvent::generate_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
@@ -267,11 +248,6 @@ refine connection SSL_Conn += {
 
 	function proc_v2_client_master_key(rec: SSLRecord, cipher_kind: int) : bool
 		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected v2 client master key message from %s in state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-
 		BifEvent::generate_ssl_established(bro_analyzer(),
 				bro_analyzer()->Conn());
 
@@ -285,17 +261,6 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_handshake(hs: Handshake, is_orig: bool) : bool
-		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected Handshake message %s from %s in state %s",
-				handshake_type_label(${hs.msg_type}).c_str(),
-				orig_label(is_orig).c_str(),
-				state_label(old_state_).c_str()));
-
-		return true;
-		%}
-
 	function proc_unknown_record(rec: SSLRecord) : bool
 		%{
 		bro_analyzer()->ProtocolViolation(fmt("unknown SSL record type (%d) from %s",
@@ -306,13 +271,8 @@ refine connection SSL_Conn += {
 
 	function proc_ciphertext_record(rec : SSLRecord) : bool
 		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected ciphertext record from %s in state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-
-		else if ( state_ == STATE_CONN_ESTABLISHED &&
-		          old_state_ == STATE_COMM_ENCRYPTED )
+		 if ( client_state_ == STATE_ENCRYPTED &&
+		          server_state_ == STATE_ENCRYPTED )
 			{
 			BifEvent::generate_ssl_established(bro_analyzer(),
 							bro_analyzer()->Conn());
@@ -322,10 +282,10 @@ refine connection SSL_Conn += {
 		%}
 };
 
-refine typeattr ChangeCipherSpec += &let {
-	proc : bool = $context.connection.proc_change_cipher_spec(rec)
-		&requires(state_changed);
-};
+#refine typeattr ChangeCipherSpec += &let {
+#	proc : bool = $context.connection.proc_change_cipher_spec(rec)
+#		&requires(state_changed);
+#};
 
 refine typeattr Alert += &let {
 	proc : bool = $context.connection.proc_alert(rec, level, description);
@@ -335,42 +295,37 @@ refine typeattr V2Error += &let {
 	proc : bool = $context.connection.proc_alert(rec, -1, error_code);
 };
 
-refine typeattr ApplicationData += &let {
-	proc : bool = $context.connection.proc_application_data(rec);
-};
+#refine typeattr ApplicationData += &let {
+#	proc : bool = $context.connection.proc_application_data(rec);
+#};
 
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version,
 				gmt_unix_time, random_bytes,
-				session_id, csuits, 0)
-		&requires(state_changed);
+				session_id, csuits, 0);
 };
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version, 0,
-				challenge, session_id, 0, ciphers)
-		&requires(state_changed);
+				challenge, session_id, 0, ciphers);
 };
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version,
 			gmt_unix_time, random_bytes, session_id, cipher_suite, 0,
-			compression_method)
-		&requires(state_changed);
+			compression_method);
 };
 
 refine typeattr V2ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
-				conn_id_data, 0, 0, ciphers, 0)
-		&requires(state_changed);
+				conn_id_data, 0, 0, ciphers, 0);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)
 		&requires(proc);
 };
 
 refine typeattr Certificate += &let {
-	proc : bool = $context.connection.proc_v3_certificate(rec, certificates)
-		&requires(state_changed);
+	proc : bool = $context.connection.proc_v3_certificate(rec, certificates);
 };
 
 refine typeattr V2ClientMasterKey += &let {
@@ -382,9 +337,9 @@ refine typeattr UnknownHandshake += &let {
 	proc : bool = $context.connection.proc_unknown_handshake(hs, is_orig);
 };
 
-refine typeattr Handshake += &let {
-	proc : bool = $context.connection.proc_handshake(this, rec.is_orig);
-};
+#refine typeattr Handshake += &let {
+#	proc : bool = $context.connection.proc_handshake(this, rec.is_orig);
+#};
 
 refine typeattr SessionTicketHandshake += &let {
 	proc : bool = $context.connection.proc_session_ticket_handshake(this, rec.is_orig);

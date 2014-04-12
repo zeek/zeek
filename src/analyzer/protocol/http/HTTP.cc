@@ -1063,6 +1063,10 @@ void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 
 	// DEBUG_MSG("Undelivered from %d: %d bytes\n", seq, length);
 
+#if 0
+
+    // The pac2 analyzer doesn't support this yet so disable here too.
+
 	HTTP_Message* msg =
 		is_orig ? request_message : reply_message;
 
@@ -1080,6 +1084,10 @@ void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 	if ( msg && msg->Undelivered(len) )
 		// If so, we are safe to skip the content and go on parsing
 		return;
+#endif
+
+	tcp::ContentLine_Analyzer* content_line =
+		is_orig ? content_line_orig : content_line_resp;
 
 	// Otherwise stop parsing the connection
 	if ( is_orig )
@@ -1091,7 +1099,6 @@ void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 		RequestMade(1, "message interrupted by a content gap");
 		ReplyMade(1, "message interrupted by a content gap");
 
-		content_line->SetSkipDeliveries(1);
 		content_line->SetSkipDeliveries(1);
 		}
 	else

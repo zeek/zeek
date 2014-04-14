@@ -175,6 +175,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			return false;
 			}
 
+		delete formatter;
 		formatter = new formatter::JSON(this, tf);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
@@ -186,6 +187,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
 		formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+		delete formatter;
 		formatter = new formatter::Ascii(this, sep_info);
 		}
 

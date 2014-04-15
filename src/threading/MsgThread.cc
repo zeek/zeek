@@ -254,15 +254,6 @@ void MsgThread::Heartbeat()
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
 	}
 
-void MsgThread::HeartbeatInChild()
-	{
-	string n = Fmt("bro: %s (%" PRIu64 "/%" PRIu64 ")", Name(),
-		cnt_sent_in - queue_in.Size(),
-		cnt_sent_out - queue_out.Size());
-
-	SetOSName(n.c_str());
-	}
-
 void MsgThread::Finished()
 	{
 	child_finished = true;

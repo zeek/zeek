@@ -24,43 +24,13 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	tsv = false;
 	use_json = false;
 	formatter = 0;
+
+	InitConfigOptions();
+	init_options = InitFilterOptions();
 	}
 
-Ascii::~Ascii()
+void Ascii::InitConfigOptions()
 	{
-	if ( ! ascii_done )
-		{
-		fprintf(stderr, "internal error: finish missing\n");
-		abort();
-		}
-
-	delete formatter;
-	}
-
-bool Ascii::WriteHeaderField(const string& key, const string& val)
-	{
-	string str = meta_prefix + key + separator + val + "\n";
-
-	return safe_write(fd, str.c_str(), str.length());
-	}
-
-void Ascii::CloseFile(double t)
-	{
-	if ( ! fd )
-		return;
-
-	if ( include_meta && ! tsv )
-		WriteHeaderField("close", Timestamp(0));
-
-	safe_close(fd);
-	fd = 0;
-	}
-
-bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
-	{
-	assert(! fd);
-
-	// Set some default values.
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
@@ -96,9 +66,15 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			(const char*) tsfmt.Bytes(),
 			tsfmt.Len()
 			);
+	}
+
+bool Ascii::InitFilterOptions()
+	{
+	const WriterInfo& info = Info();
 
 	// Set per-filter configuration options.
-	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
+	for ( WriterInfo::config_map::const_iterator i = info.config.begin();
+	      i != info.config.end(); ++i )
 		{
 		if ( strcmp(i->first, "tsv") == 0 )
 			{
@@ -158,6 +134,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			json_timestamps.assign(i->second);
 		}
 
+	if ( ! InitFormatter() )
+		return false;
+
+	return true;
+	}
+
+bool Ascii::InitFormatter()
+	{
+	delete formatter;
+	formatter = 0;
+
 	if ( use_json )
 		{
 		formatter::JSON::TimeFormat tf = formatter::JSON::TS_EPOCH;
@@ -175,21 +162,58 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			return false;
 			}
 
-		delete formatter;
 		formatter = new formatter::JSON(this, tf);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
 		}
-
 	else
 		{
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
 		formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
-		delete formatter;
 		formatter = new formatter::Ascii(this, sep_info);
 		}
+
+	return true;
+	}
+
+Ascii::~Ascii()
+	{
+	if ( ! ascii_done )
+		{
+		fprintf(stderr, "internal error: finish missing\n");
+		abort();
+		}
+
+	delete formatter;
+	}
+
+bool Ascii::WriteHeaderField(const string& key, const string& val)
+	{
+	string str = meta_prefix + key + separator + val + "\n";
+
+	return safe_write(fd, str.c_str(), str.length());
+	}
+
+void Ascii::CloseFile(double t)
+	{
+	if ( ! fd )
+		return;
+
+	if ( include_meta && ! tsv )
+		WriteHeaderField("close", Timestamp(0));
+
+	safe_close(fd);
+	fd = 0;
+	}
+
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
+	{
+	assert(! fd);
+
+	if ( ! init_options )
+		return false;
 
 	string path = info.path;
 
@@ -208,58 +232,65 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		return false;
 		}
 
-	if ( include_meta )
+	if ( ! WriteHeader(path) )
 		{
-		string names;
-		string types;
-
-		for ( int i = 0; i < num_fields; ++i )
-			{
-			if ( i > 0 )
-				{
-				names += separator;
-				types += separator;
-				}
-
-			names += string(fields[i]->name);
-			types += fields[i]->TypeName().c_str();
-			}
-
-		if ( tsv )
-			{
-			// A single TSV-style line is all we need.
-			string str = names + "\n";
-			if ( ! safe_write(fd, str.c_str(), str.length()) )
-				goto write_error;
-
-			return true;
-			}
-
-		string str = meta_prefix
-			+ "separator " // Always use space as separator here.
-			+ get_escaped_string(separator, false)
-			+ "\n";
-
-		if ( ! safe_write(fd, str.c_str(), str.length()) )
-			goto write_error;
-
-		if ( ! (WriteHeaderField("set_separator", get_escaped_string(set_separator, false)) &&
-			WriteHeaderField("empty_field", get_escaped_string(empty_field, false)) &&
-			WriteHeaderField("unset_field", get_escaped_string(unset_field, false)) &&
-			WriteHeaderField("path", get_escaped_string(path, false)) &&
-			WriteHeaderField("open", Timestamp(0))) )
-			goto write_error;
-
-		if ( ! (WriteHeaderField("fields", names)
-			&& WriteHeaderField("types", types)) )
-			goto write_error;
+		Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
+		return false;
 		}
 
 	return true;
+	}
 
-write_error:
-	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
-	return false;
+bool Ascii::WriteHeader(const string& path)
+	{
+	if ( ! include_meta )
+		return true;
+
+	string names;
+	string types;
+
+	for ( int i = 0; i < NumFields(); ++i )
+		{
+		if ( i > 0 )
+			{
+			names += separator;
+			types += separator;
+			}
+
+		names += string(Fields()[i]->name);
+		types += Fields()[i]->TypeName().c_str();
+		}
+
+	if ( tsv )
+		{
+		// A single TSV-style line is all we need.
+		string str = names + "\n";
+		if ( ! safe_write(fd, str.c_str(), str.length()) )
+			return false;
+
+		return true;
+		}
+
+	string str = meta_prefix
+		+ "separator " // Always use space as separator here.
+		+ get_escaped_string(separator, false)
+		+ "\n";
+
+	if ( ! safe_write(fd, str.c_str(), str.length()) )
+		return false;
+
+	if ( ! (WriteHeaderField("set_separator", get_escaped_string(set_separator, false)) &&
+	        WriteHeaderField("empty_field", get_escaped_string(empty_field, false)) &&
+	        WriteHeaderField("unset_field", get_escaped_string(unset_field, false)) &&
+	        WriteHeaderField("path", get_escaped_string(path, false)) &&
+	        WriteHeaderField("open", Timestamp(0))) )
+		return false;
+
+	if ( ! (WriteHeaderField("fields", names) &&
+	        WriteHeaderField("types", types)) )
+		return false;
+
+	return true;
 	}
 
 bool Ascii::DoFlush(double network_time)
@@ -296,7 +327,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	if ( ! formatter->Describe(&desc, num_fields, fields, vals) )
 		return false;
 
-	desc.AddRaw("\n");
+	desc.AddRaw("\n", 1);
 
 	const char* bytes = (const char*)desc.Bytes();
 	int len = desc.Len();

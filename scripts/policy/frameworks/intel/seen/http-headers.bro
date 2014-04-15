@@ -11,6 +11,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
                         case "HOST":
                                 if ( is_valid_ip(value) )
                                         Intel::seen([$host=to_addr(value),
+                                        	     $indicator_type=Intel::ADDR,
                                                      $conn=c,
                                                      $where=HTTP::IN_HOST_HEADER]);
                                 else

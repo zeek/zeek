@@ -21,7 +21,6 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
                                                      $where=HTTP::IN_HOST_HEADER]);
                         break;
 
-
 			case "REFERER":
 			Intel::seen([$indicator=sub(value, /^.*:\/\//, ""),
 			             $indicator_type=Intel::URL,

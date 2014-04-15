@@ -9,7 +9,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 		switch ( name ) 
 			{
                         case "HOST":
-                                if (  is_valid_ip(value) )
+                                if ( is_valid_ip(value) )
                                         Intel::seen([$host=to_addr(value),
                                                      $conn=c,
                                                      $where=HTTP::IN_HOST_HEADER]);

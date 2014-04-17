@@ -1,4 +1,12 @@
 
+2.2-338 | 2014-04-17 17:48:17 -0500
+
+  * Disable input/logging threads setting their names on every
+    heartbeat. (Jon Siwek)
+
+  * Fix bug when clearing Bloom filter contents. Reported by
+    @colonelxc. (Matthias Vallentin)
+
 2.2-335 | 2014-04-10 15:04:57 -0700
 
   * Small logic fix for main SSL script. (Bernhard Amann)

@@ -215,6 +215,8 @@ bool ReaderBackend::Init(const int arg_num_fields,
 	if ( Failed() )
 		return true;
 
+	SetOSName(Fmt("bro: %s", Name()));
+
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 

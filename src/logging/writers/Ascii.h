@@ -34,9 +34,13 @@ protected:
 
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
+	bool WriteHeader(const string& path);
 	bool WriteHeaderField(const string& key, const string& value);
 	void CloseFile(double t);
 	string Timestamp(double t); // Uses current time if t is zero.
+	void InitConfigOptions();
+	bool InitFilterOptions();
+	bool InitFormatter();
 
 	int fd;
 	string fname;
@@ -58,6 +62,7 @@ private:
 	string json_timestamps;
 
 	threading::formatter::Formatter* formatter;
+	bool init_options;
 };
 
 }

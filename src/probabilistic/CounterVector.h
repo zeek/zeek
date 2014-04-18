@@ -86,7 +86,7 @@ public:
 	/**
 	 * Sets all counters to 0.
 	 */
-	void Clear();
+	void Reset();
 
 	/**
 	 * Retrieves the number of cells in the storage.

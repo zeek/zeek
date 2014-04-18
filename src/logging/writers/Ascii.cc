@@ -335,10 +335,10 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	if ( strncmp(bytes, meta_prefix.data(), meta_prefix.size()) == 0 )
 		{
 		// It would so escape the first character.
-		char buf[16];
-		snprintf(buf, sizeof(buf), "\\x%02x", bytes[0]);
+		char hex[4] = {'\\', 'x', '0', '0'};
+		bytetohex(bytes[0], hex + 2);
 
-		if ( ! safe_write(fd, buf, strlen(buf)) )
+		if ( ! safe_write(fd, hex, 4) )
 			goto write_error;
 
 		++bytes;

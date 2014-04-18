@@ -122,10 +122,8 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 			// place-holder we use for unset optional fields. We
 			// escape the first character so that the output
 			// won't be ambigious.
-			static const char hex_chars[] = "0123456789abcdef";
-			char hex[6] = "\\x00";
-			hex[2] = hex_chars[((*data) & 0xf0) >> 4];
-			hex[3] = hex_chars[(*data) & 0x0f];
+			char hex[4] = {'\\', 'x', '0', '0'};
+			bytetohex(*data, hex + 2);
 			desc->AddRaw(hex, 4);
 
 			++data;

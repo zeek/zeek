@@ -1,4 +1,30 @@
 
+2.2-341 | 2014-04-17 18:01:01 -0500
+
+  * Refactor initialization of ASCII log writer options. (Jon Siwek)
+    
+  * Fix a memory leak in ASCII log writer. (Jon Siwek)
+    
+2.2-338 | 2014-04-17 17:48:17 -0500
+
+  * Disable input/logging threads setting their names on every
+    heartbeat. (Jon Siwek)
+
+  * Fix bug when clearing Bloom filter contents. Reported by
+    @colonelxc. (Matthias Vallentin)
+
+2.2-335 | 2014-04-10 15:04:57 -0700
+
+  * Small logic fix for main SSL script. (Bernhard Amann)
+    
+  * Update DPD signatures for detecting TLS 1.2. (Bernhard Amann)
+
+  * Remove unused data member of SMTP_Analyzer to silence a Coverity
+    warning. (Jon Siwek)
+
+  * Fix missing @load dependencies in some scripts. Also update the
+    unit test which is supposed to catch such errors. (Jon Siwek)
+
 2.2-326 | 2014-04-08 15:21:51 -0700
 
   * Add SNMP datagram parsing support.This supports parsing of SNMPv1

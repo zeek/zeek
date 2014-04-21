@@ -84,7 +84,6 @@ protected:
 	int pipelining;			// whether pipelining is supported
 	list<int> pending_cmd_q;	// to support pipelining
 	int skip_data;			// whether to skip message body
-	int orig_record_contents;	// keep the original record_contents
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap
 

@@ -39,13 +39,13 @@ type SSLRecord(is_orig: bool) = record {
 		$context.connection.determine_ssl_version(head0, head1, head2);
 
 	content_type : int = case version of {
-		UNKNOWN_VERSION -> 0;
+		# UNKNOWN_VERSION -> 0; assume tls on unknown version
 		SSLv20 -> head2+300;
 		default -> head0;
 	};
 
 	length : int = case version of {
-		UNKNOWN_VERSION -> 0;
+		# UNKNOWN_VERSION -> 0; assume tls on unknown version
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
 		default -> (head3 << 8) | head4;
 	};
@@ -62,6 +62,7 @@ type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
 	ALERT			-> alert : Alert(rec);
 	HANDSHAKE		-> handshake : Handshake(rec);
+	HEARTBEAT -> heartbeat: Heartbeat(rec);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	V2_ERROR		-> v2_error : V2Error(rec);
 	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
@@ -162,6 +163,16 @@ type V2Error(rec: SSLRecord) = record {
 # reach this point.
 type ApplicationData(rec: SSLRecord) = record {
 	data : bytestring &restofdata &transient;
+};
+
+######################################################################
+# V3 Heartbeat
+######################################################################
+
+type Heartbeat(rec: SSLRecord) = record {
+  type : uint8;
+  payload_length : uint16;
+	data : bytestring &restofdata;
 };
 
 ######################################################################

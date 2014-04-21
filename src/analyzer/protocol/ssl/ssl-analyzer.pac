@@ -278,8 +278,21 @@ refine connection SSL_Conn += {
 							bro_analyzer()->Conn());
 			}
 
+		if ( ${rec.content_type} == HEARTBEAT )
+			BifEvent::generate_ssl_encrypted_heartbeat(bro_analyzer(),
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
+
 		return true;
 		%}
+
+	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16, data: bytestring) : bool
+		%{
+		BifEvent::generate_ssl_heartbeat(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
+			new StringVal(data.length(), (const char*) data.data()));
+		return true;
+		%}
+
 };
 
 #refine typeattr ChangeCipherSpec += &let {
@@ -298,6 +311,10 @@ refine typeattr V2Error += &let {
 #refine typeattr ApplicationData += &let {
 #	proc : bool = $context.connection.proc_application_data(rec);
 #};
+
+refine typeattr Heartbeat += &let {
+	proc : bool = $context.connection.proc_heartbeat(rec, type, payload_length, data);
+};
 
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version,

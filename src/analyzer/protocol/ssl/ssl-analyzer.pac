@@ -293,6 +293,14 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
+	function proc_check_v2_server_hello_version(version: uint16) : bool
+		%{
+		if ( version != SSLv20 )
+			bro_analyzer()->ProtocolViolation(fmt("Invalid version in SSL server hello. Version: %d", version));
+
+		return true;
+		%}
+
 };
 
 #refine typeattr ChangeCipherSpec += &let {
@@ -337,6 +345,8 @@ refine typeattr V2ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
 				conn_id_data, 0, 0, ciphers, 0);
 
+	check_v2 : bool = $context.connection.proc_check_v2_server_hello_version(server_version);
+
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)
 		&requires(proc);
 };
@@ -346,8 +356,7 @@ refine typeattr Certificate += &let {
 };
 
 refine typeattr V2ClientMasterKey += &let {
-	proc : bool = $context.connection.proc_v2_client_master_key(rec, cipher_kind)
-		&requires(state_changed);
+	proc : bool = $context.connection.proc_v2_client_master_key(rec, cipher_kind);
 };
 
 refine typeattr UnknownHandshake += &let {

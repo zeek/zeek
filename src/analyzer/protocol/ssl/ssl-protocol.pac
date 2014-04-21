@@ -36,16 +36,14 @@ type SSLRecord(is_orig: bool) = record {
 } &length = length+5, &byteorder=bigendian,
 	&let {
 	version : int =
-		$context.connection.determine_ssl_version(head0, head1, head2);
+		$context.connection.determine_ssl_record_layer(head0, head1, head2, head3, head4);
 
 	content_type : int = case version of {
-		# UNKNOWN_VERSION -> 0; assume tls on unknown version
 		SSLv20 -> head2+300;
 		default -> head0;
 	};
 
 	length : int = case version of {
-		# UNKNOWN_VERSION -> 0; assume tls on unknown version
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
 		default -> (head3 << 8) | head4;
 	};
@@ -277,11 +275,6 @@ type CertificateList = X509Certificate[] &until($input.length() == 0);
 type Certificate(rec: SSLRecord) = record {
 	length : uint24;
 	certificates : CertificateList &length = to_int()(length);
-} &let {
-	state_changed_client : bool =
-		$context.connection.startEncryption(true);
-	state_changed_server : bool =
-		$context.connection.startEncryption(false);
 };
 
 
@@ -345,6 +338,9 @@ type V2ClientMasterKey(rec: SSLRecord) = record {
 	key_arg_data : bytestring &length = key_arg_len &transient;
 } &length = 7 + cl_key_len + en_key_len + key_arg_len, &let {
 	cipher_kind : int = (((rec.head3 << 16) | (rec.head4 << 8)) | cipher_kind_8);
+	# encryption starts for both sides after this message.
+	state_changed_client : bool = $context.connection.startEncryption(true);
+	state_changed_server : bool = $context.connection.startEncryption(false);
 };
 
 
@@ -435,41 +431,75 @@ refine connection SSL_Conn += {
 	%member{
 		int client_state_;
 		int server_state_;
-		int old_state_;
-		bool hello_requested_;
+		int record_layer_version_;
 	%}
 
 	%init{
 		server_state_ = STATE_CLEAR;
 		client_state_ = STATE_CLEAR;
+		record_layer_version_ = UNKNOWN_VERSION;
 	%}
 
-	function determine_ssl_version(head0 : uint8, head1 : uint8,
-					head2 : uint8) : int
+	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
+					head2 : uint8, head3: uint8, head4: uint8) : int
 		%{
-		if ( head0 >= 20 && head0 <= 23 &&
-				 head1 == 0x03 && head2 <= 0x03 )
-			// This is most probably SSL version 3.
-			return (head1 << 8) | head2;
+		if ( record_layer_version_ != UNKNOWN_VERSION )
+			return record_layer_version_;
 
-		else if ( head0 >= 128 && head2 < 5 && head2 != 3 )
-			// Not very strong evidence, but we suspect
-			// this to be SSLv2.
-			return SSLv20;
+		if ( head0 & 0x80 )
+			{
+			if ( head2 == 0x01 ) // SSLv2 client hello.
+				{
+				uint16 version = (head3<<8) | head4;
+				if ( version != SSLv20 && version != SSLv30 && version != TLSv10
+					&& version != TLSv11 && version != TLSv12 )
+					{
+					bro_analyzer()->ProtocolViolation(fmt("Invalid version in SSL client hello. Version: %d", version));
+					return UNKNOWN_VERSION;
+					}
+				else
+					return SSLv20;
+				}
 
-		else
+			else if ( head2 == 0x04 ) // SSLv2 server hello. This connection will continue using SSLv2.
+				{
+				record_layer_version_ = SSLv20;
+				return SSLv20;
+				}
+			else // this is not SSL or TLS.
+				{
+				bro_analyzer()->ProtocolViolation(fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
+				return UNKNOWN_VERSION;
+				}
+			}
+
+		uint16 version = (head1<<8) | head2;
+		if ( version != SSLv30 && version != TLSv10
+		  && version != TLSv11 && version != TLSv12 )
+			{
+			bro_analyzer()->ProtocolViolation(fmt("Invalid version in TLS connection. Version: %d", version));
 			return UNKNOWN_VERSION;
+			}
+
+		if ( head0 >=20 && head0 <= 30 )
+			{ // ok, set record layer version, this never can be downgraded to v2
+			record_layer_version_ = version;
+			return version;
+			}
+
+		bro_analyzer()->ProtocolViolation(fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
+		return UNKNOWN_VERSION;
 		%}
 
 	function client_state() : int %{ return client_state_; %}
 	function server_state() : int %{ return client_state_; %}
 	function state(is_orig: bool) : int
-	%{
-	if ( is_orig )
-		return client_state_;
-	else
-		return server_state_;
-	%}
+		%{
+		if ( is_orig )
+			return client_state_;
+		else
+			return server_state_;
+		%}
 
 	function startEncryption(is_orig: bool) : bool
 		%{

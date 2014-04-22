@@ -4,6 +4,7 @@
 
 @load base/utils/numbers
 @load base/utils/files
+@load base/frameworks/tunnels
 
 module HTTP;
 
@@ -16,7 +17,8 @@ export {
 		EMPTY
 	};
 
-	## This setting changes if passwords used in Basic-Auth are captured or not.
+	## This setting changes if passwords used in Basic-Auth are captured or
+	## not.
 	const default_capture_password = F &redef;
 
 	type Info: record {
@@ -36,8 +38,8 @@ export {
 		## URI used in the request.
 		uri:                     string    &log &optional;
 		## Value of the "referer" header.  The comment is deliberately
-		## misspelled like the standard declares, but the name used here is
-		## "referrer" spelled correctly.
+		## misspelled like the standard declares, but the name used here
+		## is "referrer" spelled correctly.
 		referrer:                string    &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:              string    &log &optional;
@@ -55,7 +57,8 @@ export {
 		info_code:               count     &log &optional;
 		## Last seen 1xx informational reply message returned by the server.
 		info_msg:                string    &log &optional;
-		## Filename given in the Content-Disposition header sent by the server.
+		## Filename given in the Content-Disposition header sent by the
+		## server.
 		filename:                string    &log &optional;
 		## A set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
@@ -214,6 +217,17 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		{
 		c$http$info_code = code;
 		c$http$info_msg = reason;
+		}
+
+	if ( c$http?$method && c$http$method == "CONNECT" && code == 200 )
+		{
+		# Copy this conn_id and set the orig_p to zero because in the case of CONNECT
+		# proxies there will be potentially many source ports since a new proxy connection
+		# is established for each proxied connection.  We treat this as a singular
+		# "tunnel".
+		local tid = copy(c$id);
+		tid$orig_p = 0/tcp;
+		Tunnel::register([$cid=tid, $tunnel_type=Tunnel::HTTP]);
 		}
 	}
 

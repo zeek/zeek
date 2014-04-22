@@ -1,0 +1,17 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r wikipedia.trace data_type_time.bro
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3^J
+      2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.2^J
+      2011/06/18 19:03:09:  New connection established from 141.142.220.235 to 173.192.163.128^J
+

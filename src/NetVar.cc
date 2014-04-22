@@ -20,6 +20,8 @@ TableType* string_set;
 TableType* string_array;
 TableType* count_set;
 VectorType* string_vec;
+VectorType* mime_matches;
+RecordType* mime_match;
 
 int watchdog_interval;
 
@@ -46,8 +48,6 @@ double tcp_partial_close_delay;
 int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
-
-RecordType* x509_type;
 
 RecordType* socks_address;
 
@@ -155,8 +155,6 @@ int table_incremental_step;
 
 RecordType* packet_type;
 
-double packet_sort_window;
-
 double connection_status_update_interval;
 
 StringVal* state_dir;
@@ -235,14 +233,14 @@ RecordType* script_id;
 TableType* id_table;
 RecordType* record_field;
 TableType* record_field_table;
+RecordType* call_argument;
+VectorType* call_argument_vector;
 
 StringVal* cmd_line_bpf_filter;
 
-OpaqueType* md5_type;
-OpaqueType* sha1_type;
-OpaqueType* sha256_type;
-OpaqueType* entropy_type;
-OpaqueType* bloomfilter_type;
+StringVal* global_hash_seed;
+
+bro_uint_t bits_per_uid;
 
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
@@ -304,11 +302,9 @@ void init_general_global_var()
 	cmd_line_bpf_filter =
 		internal_val("cmd_line_bpf_filter")->AsStringVal();
 
-	md5_type = new OpaqueType("md5");
-	sha1_type = new OpaqueType("sha1");
-	sha256_type = new OpaqueType("sha256");
-	entropy_type = new OpaqueType("entropy");
-	bloomfilter_type = new OpaqueType("bloomfilter");
+	global_hash_seed = opt_internal_string("global_hash_seed");
+
+	bits_per_uid = opt_internal_unsigned("bits_per_uid");
 	}
 
 void init_net_var()
@@ -333,6 +329,8 @@ void init_net_var()
 	string_set = internal_type("string_set")->AsTableType();
 	string_array = internal_type("string_array")->AsTableType();
 	string_vec = internal_type("string_vec")->AsVectorType();
+	mime_match = internal_type("mime_match")->AsRecordType();
+	mime_matches = internal_type("mime_matches")->AsVectorType();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
@@ -356,8 +354,6 @@ void init_net_var()
 		opt_internal_int("tcp_max_above_hole_without_any_acks");
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
-
-	x509_type = internal_type("X509")->AsRecordType();
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 
@@ -481,8 +477,6 @@ void init_net_var()
 
 	packet_type = internal_type("packet")->AsRecordType();
 
-	packet_sort_window = opt_internal_double("packet_sort_window");
-
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");
 	other_addr_anonymization = opt_internal_int("other_addr_anonymization");
@@ -532,4 +526,6 @@ void init_net_var()
 	id_table = internal_type("id_table")->AsTableType();
 	record_field = internal_type("record_field")->AsRecordType();
 	record_field_table = internal_type("record_field_table")->AsTableType();
+	call_argument_vector = internal_type("call_argument_vector")->AsVectorType();
+	call_argument = internal_type("call_argument")->AsRecordType();
 	}

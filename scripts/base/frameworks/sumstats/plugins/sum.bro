@@ -1,4 +1,4 @@
-@load base/frameworks/sumstats/main
+@load ../main
 
 module SumStats;
 
@@ -14,19 +14,19 @@ export {
 		sum: double &default=0.0;
 	};
 
-	type threshold_function: function(key: SumStats::Key, result: SumStats::Result): count;
-	global sum_threshold: function(data_id: string): threshold_function;
+	#type threshold_function: function(key: SumStats::Key, result: SumStats::Result): count;
+	#global sum_threshold: function(data_id: string): threshold_function;
 }
 
-function sum_threshold(data_id: string): threshold_function
-	{
-	return function(key: SumStats::Key, result: SumStats::Result): count
-		{
-		print fmt("data_id: %s", data_id);
-		print result;
-		return double_to_count(result[data_id]$sum);
-		};
-	}
+#function sum_threshold(data_id: string): threshold_function
+#	{
+#	return function(key: SumStats::Key, result: SumStats::Result): count
+#		{
+#		print fmt("data_id: %s", data_id);
+#		print result;
+#		return double_to_count(result[data_id]$sum);
+#		};
+#	}
 
 hook init_resultval_hook(r: Reducer, rv: ResultVal)
 	{
@@ -34,10 +34,12 @@ hook init_resultval_hook(r: Reducer, rv: ResultVal)
 		rv$sum = 0;
 	}
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( SUM in r$apply )
+	register_observe_plugin(SUM, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+		{
 		rv$sum += val;
+		});
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)

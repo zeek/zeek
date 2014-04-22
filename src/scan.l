@@ -23,16 +23,15 @@
 #include "Debug.h"
 #include "PolicyFile.h"
 #include "broparse.h"
-#include "BroDoc.h"
 #include "Reporter.h"
 #include "RE.h"
 #include "Net.h"
 
 #include "analyzer/Analyzer.h"
+#include "broxygen/Manager.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
-extern int print_loaded_scripts;
-extern int generate_documentation;
+extern EnumType* cur_enum_type;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
@@ -40,10 +39,8 @@ ptr_compat_int current_depth = 0;
 int_list if_stack;
 
 int line_number = 1;
-const char* filename = 0;
-BroDoc* current_reST_doc = 0;
-static BroDoc* last_reST_doc = 0;
-string current_scanned_file_path;
+const char* filename = 0; // Absolute path of file currently being parsed.
+static const char* last_id_tok = 0;
 
 char last_tok[128];
 
@@ -56,54 +53,36 @@ char last_tok[128];
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
 		reporter->Error("read failed with \"%s\"", strerror(errno));
 
-// reST documents that we've created (or have at least opened so far).
-std::list<BroDoc*> docs_generated;
-
-// reST comments (those starting with ##) seen so far.
-std::list<std::string>* reST_doc_comments = 0;
-
-// Print current contents of reST_doc_comments list to stderr.
-void print_current_reST_doc_comments();
-
-// Delete the reST_doc_comments list object.
-void clear_reST_doc_comments();
-
-// Adds changes to capture_filter to the current script's reST documentation.
-static void check_capture_filter_changes();
-
-static const char* canon_doc_comment(const char* comment)
+static string find_relative_file(const string& filename, const string& ext)
 	{
-	// "##Text" and "## Text" are treated the same in order to be able
-	// to still preserve indentation level, but not unintentionally
-	// signify an indentation level for all the text when using
-	// the "## Text" style.
-	return ( comment[0] == ' ' ) ? comment + 1 : comment;
-	}
+	if ( filename.empty() )
+		return string();
 
-static std::string canon_doc_func_param(const char* id_start)
-	{
-	std::string id_name(id_start, strcspn(id_start, ":"));
-	const char* comment = id_start + id_name.size() + 1;
-	std::string doc;
-
-	if ( id_name == "Returns" )
-		doc.append(":returns:").append(comment);
+	if ( filename[0] == '.' )
+		return find_file(filename, SafeDirname(::filename).result, ext);
 	else
-		doc.append(":param ").append(id_name).append(":").append(comment);
-	return doc;
+		return find_file(filename, bro_path(), ext);
 	}
 
-static ino_t get_inode_num(FILE* f, const char* filename)
+static ino_t get_inode_num(FILE* f, const string& path)
 	{
 	struct stat b;
 
 	if ( fstat(fileno(f), &b) )
-		{
-		reporter->Error("failed to fstat fd of %s\n", filename);
-		exit(1);
-		}
+		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
+		                     strerror(errno));
 
 	return b.st_ino;
+	}
+
+static ino_t get_inode_num(const string& path)
+	{
+	FILE* f = open_file(path);
+
+	if ( ! f )
+		reporter->FatalError("failed to open %s\n", path.c_str());
+
+	return get_inode_num(f, path);
 	}
 
 class FileInfo {
@@ -116,8 +95,6 @@ public:
 	const char* name;
 	int line;
 	int level;
-	BroDoc* doc;
-	string path;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
@@ -141,7 +118,6 @@ static int load_files(const char* file);
 
 %x RE
 %x IGNORE
-%s DOC
 
 OWS	[ \t]*
 WS	[ \t]+
@@ -159,63 +135,19 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	// Add this format of comments to the script documentation's "summary".
-	if ( generate_documentation )
-		current_reST_doc->AddSummary(canon_doc_comment(yytext + 3));
+	broxygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
-<DOC>##<.* {
-	yylval.str = copy_string(canon_doc_comment(yytext + 3));
-	return TOK_POST_DOC;
-}
-
-<DOC>##{OWS}{ID}:{WS}.* {
-	const char* id_start = skip_whitespace(yytext + 2);
-	yylval.str = copy_string(canon_doc_func_param(id_start).c_str());
-	return TOK_DOC;
-}
-
-<DOC>##.* {
-	if ( yytext[2] != '#' )
-		{
-		yylval.str = copy_string(canon_doc_comment(yytext + 2));
-		return TOK_DOC;
-		}
-}
-
-##{OWS}{ID}:{WS}.* {
-	if ( generate_documentation )
-		{
-		// Comment is documenting either a function parameter or return type,
-		// so appropriate reST markup substitutions are automatically made
-		// in order to distinguish them from other comments.
-		if ( ! reST_doc_comments )
-			reST_doc_comments = new std::list<std::string>();
-
-		// always insert a blank line so that this param/return markup
-		// 1) doesn't show up in the summary section in the case that it's
-		//    the first comment for the function/event
-		// 2) has a blank line between it and non-field-list reST markup,
-		//    which is required for correct HTML rendering by Sphinx
-		reST_doc_comments->push_back("");
-		const char* id_start = skip_whitespace(yytext + 2);
-		reST_doc_comments->push_back(canon_doc_func_param(id_start));
-		}
-}
-
 ##<.* {
-	if ( generate_documentation && BroDocObj::last )
-		BroDocObj::last->AddDocString(canon_doc_comment(yytext + 3));
+	string hint(cur_enum_type && last_id_tok ?
+	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
+
+	broxygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
-	if ( generate_documentation && (yytext[2] != '#') )
-		{
-		if ( ! reST_doc_comments )
-			reST_doc_comments = new std::list<std::string>();
-
-		reST_doc_comments->push_back(canon_doc_comment(yytext + 2));
-		}
+	if ( yytext[2] != '#' )
+		broxygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
@@ -224,7 +156,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {WS}	/* eat whitespace */
 
-<INITIAL,IGNORE,DOC>\n	{
+<INITIAL,IGNORE>\n	{
 			++line_number;
 			++yylloc.first_line;
 			++yylloc.last_line;
@@ -345,7 +277,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval = current_scanned_file_path;
+	string rval = SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -361,69 +293,41 @@ when	return TOK_WHEN;
 	}
 
 @FILENAME	{
-	char* filename_copy = copy_string(::filename);
-	const char* bname = basename(filename_copy);
-
-	if ( ! bname )
-		reporter->InternalError("basename failed: %s", strerror(errno));
-
-	StringVal* rval = new StringVal(bname);
-	delete [] filename_copy;
-	RET_CONST(rval);
+	RET_CONST(new StringVal(SafeBasename(::filename).result));
 	}
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
-	if ( generate_documentation )
-		{
-		current_reST_doc->AddImport(new_file);
-
-		if ( reST_doc_comments )
-			{
-			fprintf(stderr, "Warning: unconsumed reST documentation is being "
-					"discarded before doing '@load %s' in %s:\n",
-					 new_file, current_reST_doc->GetSourceFileName());
-			clear_reST_doc_comments();
-			}
-		}
+	string loader = ::filename;  // load_files may change ::filename, save copy
+	string loading = find_relative_file(new_file, "bro");
 	(void) load_files(new_file);
+	broxygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
-	const char* new_sig_file = skip_whitespace(yytext + 10);
-	const char* full_filename = 0;
-	FILE* f = search_for_file(new_sig_file, "sig", &full_filename, false, 0);
+	const char* file = skip_whitespace(yytext + 10);
+	string path = find_relative_file(file, "sig");
 
-	if ( f )
-		{
-		sig_files.push_back(full_filename);
-		fclose(f);
-		delete [] full_filename;
-		}
-	else
+	if ( path.empty() )
 		reporter->Error("failed to find file associated with @load-sigs %s",
-		                new_sig_file);
+		                file);
+	else
+		sig_files.push_back(copy_string(path.c_str()));
 	}
 
 @unload{WS}{FILE}	{
 	// Skip "@unload".
-	const char* new_file = skip_whitespace(yytext + 7);
+	const char* file = skip_whitespace(yytext + 7);
+	string path = find_relative_file(file, "bro");
 
-	// All we have to do is pretend we've already scanned it.
-	const char* full_filename;
-	FILE* f = search_for_file(new_file, "bro", &full_filename, true, 0);
-
-	if ( f )
-		{
-		ScannedFile sf(get_inode_num(f, full_filename), file_stack.length(), full_filename, "", true);
-		files_scanned.push_back(sf);
-
-		fclose(f);
-		delete [] full_filename;
-		}
-
+	if ( path.empty() )
+		reporter->Error("failed find file associated with @unload %s", file);
 	else
-		reporter->Error("failed find file associated with @unload %s", new_file);
+		{
+		// All we have to do is pretend we've already scanned it.
+		ScannedFile sf(get_inode_num(path), file_stack.length(), path, true);
+		files_scanned.push_back(sf);
+		}
 	}
 
 @prefixes{WS}("+"?)={WS}{PREFIX}	{
@@ -464,6 +368,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 {ID}	{
 	yylval.str = copy_string(yytext);
+	last_id_tok = yylval.str;
 	return TOK_ID;
 	}
 
@@ -577,22 +482,35 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
+
+static bool already_scanned(ino_t i)
+	{
+	list<ScannedFile>::const_iterator it;
+
+	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+		if ( it->inode == i )
+			return true;
+
+	return false;
+	}
+
+static bool already_scanned(const string& path)
+	{
+	return already_scanned(get_inode_num(path));
+	}
+
 static int load_files(const char* orig_file)
 	{
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;
-
-	const char* full_filename = "<internal error>";
-	const char* bropath_subpath = "<internal error>";
-	const char* bropath_subpath_delete = 0;
-	FILE* f;
+	string file_path;
+	FILE* f = 0;
 
 	if ( streq(orig_file, "-") )
 		{
 		f = stdin;
-		full_filename = "<stdin>";
-		bropath_subpath = "";
+		file_path = "<stdin>";
 
 		if ( g_policy_debug )
 			{
@@ -603,94 +521,61 @@ static int load_files(const char* orig_file)
 
 	else
 		{
-		f = search_for_file(orig_file, "bro", &full_filename, true, &bropath_subpath);
-		bropath_subpath_delete = bropath_subpath; // This will be deleted.
-		}
+		file_path = find_relative_file(orig_file, "bro");
 
-	if ( f )
-		{
-		ino_t i = get_inode_num(f, full_filename);
-		std::list<ScannedFile>::const_iterator it;
+		if ( file_path.empty() )
+			reporter->FatalError("can't find %s", orig_file);
 
-		for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
-			{
-			if ( it->inode == i )
-				{
-				fclose(f);
-				delete [] full_filename;
-				delete [] bropath_subpath_delete;
-				return 0;
-				}
-			}
-
-		ScannedFile sf(i, file_stack.length(), full_filename, bropath_subpath);
-		files_scanned.push_back(sf);
-
-		if ( g_policy_debug )
-			{
-			// Add the filename to the file mapping
-			// table (Debug.h).
-			Filemap* map = new Filemap;
-
-			// Make sure it wasn't already read in.
-			HashKey* key = new HashKey(full_filename);
-			if ( g_dbgfilemaps.Lookup(key) )
-				{
-				// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
-				fclose(f);
-				delete key;
-				return 0;
-				}
-			else
-				{
-				g_dbgfilemaps.Insert(key, map);
-				}
-
-			if ( full_filename )
-				LoadPolicyFileText(full_filename);
-			}
-
-		// Remember where we were.  If this is the first
-		// file being pushed on the stack, i.e., the *last*
-		// one that will be processed, then we want to
-		// restore the module scope in which this @load
-		// was done when we're finished processing it.
-		if ( ! did_module_restore )
-			{
-			file_stack.append(new FileInfo(current_module));
-			did_module_restore = true;
-			}
+		if ( is_dir(file_path.c_str()) )
+			f = open_package(file_path);
 		else
-			file_stack.append(new FileInfo);
+			f = open_file(file_path);
 
-		char* tmp = copy_string(full_filename);
-		current_scanned_file_path = dirname(tmp);
-		delete [] tmp;
-
-		if ( generate_documentation )
-			{
-			current_reST_doc = new BroDoc(bropath_subpath, full_filename);
-			docs_generated.push_back(current_reST_doc);
-			}
-
-		delete [] bropath_subpath_delete;
-
-		// "orig_file", could be an alias for yytext, which is ephemeral
-		//  and will be zapped after the yy_switch_to_buffer() below.
-		yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
-
-		yylloc.first_line = yylloc.last_line = line_number = 1;
-
-		// Don't delete the old filename - it's pointed to by
-		// every BroObj created when parsing it.
-		yylloc.filename = filename = full_filename;
+		if ( ! f )
+			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	else
+	ino_t i = get_inode_num(f, file_path);
+
+	if ( already_scanned(i) )
+		return 0;
+
+	ScannedFile sf(i, file_stack.length(), file_path);
+	files_scanned.push_back(sf);
+
+	if ( g_policy_debug && ! file_path.empty() )
 		{
-		reporter->Error("can't open %s", full_filename);
-		exit(1);
+		// Add the filename to the file mapping table (Debug.h).
+		Filemap* map = new Filemap;
+		HashKey* key = new HashKey(file_path.c_str());
+		g_dbgfilemaps.Insert(key, map);
+		LoadPolicyFileText(file_path.c_str());
 		}
+
+	// Remember where we were.  If this is the first
+	// file being pushed on the stack, i.e., the *last*
+	// one that will be processed, then we want to
+	// restore the module scope in which this @load
+	// was done when we're finished processing it.
+	if ( ! did_module_restore )
+		{
+		file_stack.append(new FileInfo(current_module));
+		did_module_restore = true;
+		}
+	else
+		file_stack.append(new FileInfo);
+
+	broxygen_mgr->Script(file_path);
+
+	// "orig_file", could be an alias for yytext, which is ephemeral
+	//  and will be zapped after the yy_switch_to_buffer() below.
+	yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
+
+	yylloc.first_line = yylloc.last_line = line_number = 1;
+
+	// Don't delete the old filename - it's pointed to by
+	// every BroObj created when parsing it.
+	yylloc.filename = filename = copy_string(file_path.c_str());
 
 	return 1;
 	}
@@ -773,27 +658,10 @@ void do_atendif()
 	--current_depth;
 	}
 
-void do_doc_token_start()
-	{
-	if ( generate_documentation )
-	    BEGIN(DOC);
-	}
-
-void do_doc_token_stop()
-	{
-	if ( generate_documentation )
-	    BEGIN(INITIAL);
-	}
-
 // Be careful to never delete things from this list, as the strings
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
 static name_list input_files;
-
-const char* get_current_input_filename()
-	{
-	return ::filename;
-	}
 
 void add_input_file(const char* file)
 	{
@@ -849,8 +717,6 @@ int yywrap()
 	// Stack is now empty.
 	while ( input_files.length() > 0 )
 		{
-		check_capture_filter_changes();
-
 		if ( load_files(input_files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
@@ -863,8 +729,6 @@ int yywrap()
 		// if any.
 		(void) input_files.remove_nth(0);
 		}
-
-	check_capture_filter_changes();
 
 	// For each file scanned so far, and for each @prefix, look for a
 	// prefixed and flattened version of the loaded file in BROPATH. The
@@ -888,23 +752,22 @@ int yywrap()
 			if ( ! prefixes[i][0] )
 				continue;
 
-			string s;
-			s = dot_canon(it->subpath.c_str(), it->name.c_str(), prefixes[i]);
-			FILE* f = search_for_file(s.c_str(), "bro", 0, false, 0);
+			string canon = without_bropath_component(it->name);
+			string flat = flatten_script_name(canon, prefixes[i]);
+			string path = find_relative_file(flat, "bro");
+
+			if ( ! path.empty() )
+				{
+				add_input_file(path.c_str());
+				found_prefixed_files = true;
+				}
 
 			//printf("====== prefix search ======\n");
 			//printf("File  : %s\n", it->name.c_str());
-			//printf("Path  : %s\n", it->subpath.c_str());
-			//printf("Dotted: %s\n", s.c_str());
-			//printf("Found : %s\n", f ? "T" : "F");
+			//printf("Canon : %s\n", canon.c_str());
+			//printf("Flat  : %s\n", flat.c_str());
+			//printf("Found : %s\n", path.empty() ? "F" : "T");
 			//printf("===========================\n");
-
-			if ( f )
-				{
-				add_input_file(s.c_str());
-				found_prefixed_files = true;
-				fclose(f);
-				}
 			}
 		}
 
@@ -974,9 +837,6 @@ int yywrap()
 		return 0;
 		}
 
-	if ( generate_documentation )
-		clear_reST_doc_comments();
-
 	// Otherwise, we are done.
 	return 1;
 	}
@@ -987,8 +847,6 @@ FileInfo::FileInfo(string arg_restore_module)
 	restore_module = arg_restore_module;
 	name = ::filename;
 	line = ::line_number;
-	doc = ::current_reST_doc;
-	path = current_scanned_file_path;
 	}
 
 FileInfo::~FileInfo()
@@ -999,56 +857,7 @@ FileInfo::~FileInfo()
 	yy_switch_to_buffer(buffer_state);
 	yylloc.filename = filename = name;
 	yylloc.first_line = yylloc.last_line = line_number = line;
-	last_reST_doc = current_reST_doc;
-	current_reST_doc = doc;
-	current_scanned_file_path = path;
 
 	if ( restore_module != "" )
 		current_module = restore_module;
-	}
-
-static void check_capture_filter_changes()
-	{
-	if ( ! generate_documentation )
-	    return;
-
-	// Lookup the "capture_filters" identifier, if it has any defined
-	// value, add it to the script's reST documentation, and finally
-	// clear the table so it doesn't taint the documentation for
-	// subsequent scripts.
-
-	ID* capture_filters = global_scope()->Lookup("capture_filters");
-
-	if ( capture_filters )
-		{
-		ODesc desc;
-		desc.SetIndentSpaces(4);
-		capture_filters->ID_Val()->Describe(&desc);
-		last_reST_doc->SetPacketFilter(desc.Description());
-		capture_filters->ID_Val()->AsTableVal()->RemoveAll();
-		}
-	}
-
-void print_current_reST_doc_comments()
-	{
-	if ( ! reST_doc_comments )
-		return;
-
-	std::list<std::string>::iterator it;
-
-	for ( it = reST_doc_comments->begin(); it != reST_doc_comments->end(); ++it )
-		fprintf(stderr, "##%s\n", it->c_str());
-	}
-
-void clear_reST_doc_comments()
-	{
-	if ( ! reST_doc_comments )
-		return;
-
-	fprintf(stderr, "Warning: %zu unconsumed reST comments:\n",
-			reST_doc_comments->size());
-
-	print_current_reST_doc_comments();
-	delete reST_doc_comments;
-	reST_doc_comments = 0;
 	}

@@ -1,0 +1,18 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro framework_logging_factorial_01.bro
+      1
+      2
+      6
+      24
+      120
+      720
+      5040
+      40320
+      362880
+      3628800
+

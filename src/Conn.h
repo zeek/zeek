@@ -13,6 +13,7 @@
 #include "RuleMatcher.h"
 #include "IPAddr.h"
 #include "TunnelEncapsulation.h"
+#include "UID.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
@@ -252,9 +253,9 @@ public:
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
+	void SetUID(Bro::UID arg_uid)	 { uid = arg_uid; }
 
-	uint64 GetUID() const { return uid; }
+	Bro::UID GetUID() const { return uid; }
 
 	const EncapsulationStack* GetEncapsulation() const
 		{ return encapsulation; }
@@ -321,7 +322,7 @@ protected:
 	analyzer::TransportLayerAnalyzer* root_analyzer;
 	analyzer::pia::PIA* primary_PIA;
 
-	uint64 uid;	// Globally unique connection ID.
+	Bro::UID uid;	// Globally unique connection ID.
 };
 
 class ConnectionTimer : public Timer {

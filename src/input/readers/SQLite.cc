@@ -17,7 +17,9 @@ using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
-SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
+SQLite::SQLite(ReaderFrontend *frontend)
+	: ReaderBackend(frontend),
+	  fields(), num_fields(), mode(), started(), query(), db(), st()
 	{
 	set_separator.assign(
 			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
@@ -34,7 +36,7 @@ SQLite::SQLite(ReaderFrontend *frontend) : ReaderBackend(frontend)
 			BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -52,7 +54,7 @@ void SQLite::DoClose()
 		}
 	}
 
-bool SQLite::checkError( int code )
+bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
@@ -71,23 +73,19 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 		return false;
 		}
 
+	if ( Info().mode != MODE_MANUAL )
+		{
+		Error("SQLite only supports manual reading mode.");
+		return false;
+		}
+
 	started = false;
 
 	string fullpath(info.source);
 	fullpath.append(".sqlite");
 
-	string dbname;
-	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
-	if ( it == info.config.end() )
-		{
-		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to source %s", info.source));
-		dbname = info.source;
-		}
-	else
-		dbname = it->second;
-
 	string query;
-	it = info.config.find("query");
+	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
 		Error(Fmt("No query specified when setting up SQLite data source. Aborting.", info.source));
@@ -148,6 +146,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		if ( sqlite3_column_type(st, pos) != SQLITE_INTEGER )
 			{
 			Error("Invalid data type for boolean - expected Integer");
+			delete val;
 			return 0;
 			}
 
@@ -158,6 +157,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		else
 			{
 			Error(Fmt("Invalid value for boolean: %d", res));
+			delete val;
 			return 0;
 			}
 		break;
@@ -185,11 +185,14 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		if ( subpos != -1 )
 			{
 			const char *text = (const char*) sqlite3_column_text(st, subpos);
-			string s(text, sqlite3_column_bytes(st, subpos));
+
 			if ( text == 0 )
 				Error("Port protocol definition did not contain text");
 			else
+				{
+				string s(text, sqlite3_column_bytes(st, subpos));
 				val->val.port_val.proto = io->ParseProto(s);
+				}
 			}
 		break;
 		}
@@ -220,12 +223,14 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));
+		delete val;
 		val = io->ParseValue(s, "", field->type, field->subtype);
 		break;
 		}
 
 	default:
 		Error(Fmt("unsupported field format %d", field->type));
+		delete val;
 		return 0;
 	}
 
@@ -257,6 +262,8 @@ bool SQLite::DoUpdate()
 				if ( mapping[j] != -1 )
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					delete [] mapping;
+					delete [] submapping;
 					return false;
 					}
 
@@ -269,6 +276,8 @@ bool SQLite::DoUpdate()
 				if ( submapping[j] != -1 )
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					delete [] mapping;
+					delete [] submapping;
 					return false;
 					}
 
@@ -282,6 +291,8 @@ bool SQLite::DoUpdate()
 		if ( mapping[i] == -1 )
 			{
 			Error(Fmt("Required field %s not found after SQLite statement", fields[i]->name));
+			delete [] mapping;
+			delete [] submapping;
 			return false;
 			}
 		}
@@ -295,19 +306,27 @@ bool SQLite::DoUpdate()
 			{
 			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
 			if ( ofields[j] == 0 )
+				{
+				for ( unsigned int k = 0; k < j; ++k )
+					delete ofields[k];
+
+				delete [] ofields;
+				delete [] mapping;
+				delete [] submapping;
 				return false;
+				}
 			}
 
 		SendEntry(ofields);
 		}
 
+	delete [] mapping;
+	delete [] submapping;
+
 	if ( checkError(errorcode) ) // check the last error code returned by sqlite
 		return false;
 
 	EndCurrentSend();
-
-	delete [] mapping;
-	delete [] submapping;
 
 	if ( checkError(sqlite3_reset(st)) )
 		return false;

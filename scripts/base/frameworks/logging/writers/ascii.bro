@@ -2,14 +2,14 @@
 ##! to tweak the output format of ASCII logs.
 ##!
 ##! The ASCII writer supports currently one writer-specific filter option via
-##! ``config``: setting ``tsv`` to the string ``T`` turns the output into into
-##! "tab-separated-value" mode where only a single header row with the column names
-##! is printed out as meta information, with no "# fields" prepended; no other meta
-##! data gets included in that mode.   
-##! 
+##! ``config``: setting ``tsv`` to the string ``T`` turns the output into
+##! "tab-separated-value" mode where only a single header row with the column
+##! names is printed out as meta information, with no "# fields" prepended; no
+##! other meta data gets included in that mode.
+##!
 ##! Example filter using this::
-##! 
-##!    local my_filter: Log::Filter = [$name = "my-filter", $writer = Log::WRITER_ASCII, $config = table(["tsv"] = "T")]; 
+##!
+##!    local my_filter: Log::Filter = [$name = "my-filter", $writer = Log::WRITER_ASCII, $config = table(["tsv"] = "T")];
 ##!
 
 module LogAscii;
@@ -17,27 +17,51 @@ module LogAscii;
 export {
 	## If true, output everything to stdout rather than
 	## into files. This is primarily for debugging purposes.
+	##
+	## This option is also available as a per-filter ``$config`` option.
 	const output_to_stdout = F &redef;
 
-	## If true, include lines with log meta information such as column names with
-	## types, the values of ASCII logging options that in use, and the time when the
-	## file was opened and closes (the latter at the end). 
+	## If true, the default will be to write logs in a JSON format.
+	##
+	## This option is also available as a per-filter ``$config`` option.
+	const use_json = F &redef;
+
+	## Format of timestamps when writing out JSON. By default, the JSON formatter will
+	## use double values for timestamps which represent the number of seconds from the
+	## UNIX epoch.
+	const json_timestamps: JSON::TimestampFormat = JSON::TS_EPOCH &redef;
+
+	## If true, include lines with log meta information such as column names
+	## with types, the values of ASCII logging options that are in use, and
+	## the time when the file was opened and closed (the latter at the end).
+        ##
+	## If writing in JSON format, this is implicitly disabled.
 	const include_meta = T &redef;
 
 	## Prefix for lines with meta information.
+        ##
+	## This option is also available as a per-filter ``$config`` option.
 	const meta_prefix = "#" &redef;
 
 	## Separator between fields.
+	##
+	## This option is also available as a per-filter ``$config`` option.
 	const separator = Log::separator &redef;
 
 	## Separator between set elements.
+	##
+	## This option is also available as a per-filter ``$config`` option.
 	const set_separator = Log::set_separator &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output non-ambigious. 
+	## *unset_field* to make the output unambiguous.
+	##
+	## This option is also available as a per-filter ``$config`` option.
 	const empty_field = Log::empty_field &redef;
 
 	## String to use for an unset &optional field.
+	##
+	## This option is also available as a per-filter ``$config`` option.
 	const unset_field = Log::unset_field &redef;
 }
 

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dnp3
+#open	2013-08-26-19-04-04
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fc_request	fc_reply	iin
+#types	time	string	addr	port	addr	port	string	string	count
+1324916729.150101	CXWv6p3arKYeMETxOg	130.126.142.250	50059	130.126.140.229	20000	ENABLE_UNSOLICITED	RESPONSE	0
+#close	2013-08-26-19-04-04

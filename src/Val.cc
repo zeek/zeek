@@ -30,6 +30,7 @@
 Val::Val(Func* f)
 	{
 	val.func_val = f;
+	::Ref(val.func_val);
 	type = f->FType()->Ref();
 	attribs = 0;
 #ifdef DEBUG
@@ -59,6 +60,9 @@ Val::~Val()
 	if ( type->InternalType() == TYPE_INTERNAL_STRING )
 		delete val.string_val;
 
+	else if ( type->Tag() == TYPE_FUNC )
+		Unref(val.func_val);
+
 	else if ( type->Tag() == TYPE_FILE )
 		Unref(val.file_val);
 
@@ -76,8 +80,11 @@ Val* Val::Clone() const
 	CloneSerializer ss(form);
 	SerialInfo sinfo(&ss);
 	sinfo.cache = false;
+	sinfo.include_locations = false;
 
-	this->Serialize(&sinfo);
+	if ( ! this->Serialize(&sinfo) )
+		return 0;
+
 	char* data;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
@@ -86,8 +93,7 @@ Val* Val::Clone() const
 	uinfo.cache = false;
 	Val* clone = Unserialize(&uinfo, type);
 
-	delete [] data;
-
+	free(data);
 	return clone;
 	}
 
@@ -232,7 +238,6 @@ bool Val::DoSerialize(SerialInfo* info) const
 		return false;
 	}
 
-	reporter->InternalError("should not be reached");
 	return false;
 	}
 
@@ -310,7 +315,6 @@ bool Val::DoUnserialize(UnserialInfo* info)
 		return false;
 	}
 
-	reporter->InternalError("should not be reached");
 	return false;
 	}
 
@@ -513,8 +517,9 @@ void Val::ValDescribe(ODesc* d) const
 		break;
 
 	default:
-		// Don't call Internal(), that'll loop!
-		reporter->InternalError("Val description unavailable");
+		reporter->InternalWarning("Val description unavailable");
+		d->Add("<value description unavailable>");
+		break;
 	}
 	}
 
@@ -1166,23 +1171,6 @@ ListVal::~ListVal()
 	Unref(type);
 	}
 
-const char* ListVal::IncludedInString(const char* str) const
-	{
-	if ( tag != TYPE_STRING )
-		Internal("non-string list in ListVal::IncludedInString");
-
-	loop_over_list(vals, i)
-		{
-		const char* vs = (const char*) (vals[i]->AsString()->Bytes());
-
-		const char* embedded = strstr(str, vs);
-		if ( embedded )
-			return embedded;
-		}
-
-	return 0;
-	}
-
 RE_Matcher* ListVal::BuildRE() const
 	{
 	if ( tag != TYPE_STRING )
@@ -1652,8 +1640,7 @@ int TableVal::RemoveFrom(Val* val) const
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
-	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( tbl->NextEntry(k, c) )
 		{
 		Val* index = RecoverIndex(k);
 
@@ -1737,7 +1724,8 @@ Val* TableVal::Default(Val* index)
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
-			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr(), ytype->AsRecordType());
+			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr()->Ref(),
+			                                    ytype->AsRecordType());
 			def_val = coerce->Eval(0);
 			Unref(coerce);
 			}
@@ -1888,7 +1876,7 @@ Val* TableVal::Delete(const Val* index)
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 
 	if ( subnets && ! subnets->Remove(index) )
-		reporter->InternalError("index not in prefix table");
+		reporter->InternalWarning("index not in prefix table");
 
 	if ( LoggingAccess() )
 		{
@@ -1930,7 +1918,7 @@ Val* TableVal::Delete(const HashKey* k)
 		{
 		Val* index = table_hash->RecoverVals(k);
 		if ( ! subnets->Remove(index) )
-			reporter->InternalError("index not in prefix table");
+			reporter->InternalWarning("index not in prefix table");
 		Unref(index);
 		}
 
@@ -1951,8 +1939,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
-	TableEntryVal* v;
-	while ( (v = tbl->NextEntry(k, c)) )
+	while ( tbl->NextEntry(k, c) )
 		{
 		ListVal* index = table_hash->RecoverVals(k);
 
@@ -2079,7 +2066,7 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 	Val* ind_k_v = (*vl)[k];
 	ListVal* ind_k = ind_k_v->Type()->IsSet() ?
 				ind_k_v->AsTableVal()->ConvertToList() :
-				ind_k_v->AsListVal();
+				ind_k_v->Ref()->AsListVal();
 
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
@@ -2097,12 +2084,13 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 		Unref(expd);
 
 		if ( ! success )
+			{
+			Unref(ind_k);
 			return 0;
+			}
 		}
 
-	if ( ind_k_v->Type()->IsSet() )
-		Unref(ind_k);
-
+	Unref(ind_k);
 	return 1;
 	}
 
@@ -2157,7 +2145,7 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + expire_time < t )
 			{
-			Val* val = v ? v->Value() : 0;
+			Val* val = v->Value();
 
 			if ( expire_expr )
 				{
@@ -2190,7 +2178,7 @@ void TableVal::DoExpire(double t)
 				{
 				Val* index = RecoverIndex(k);
 				if ( ! subnets->Remove(index) )
-					reporter->InternalError("index not in prefix table");
+					reporter->InternalWarning("index not in prefix table");
 				Unref(index);
 				}
 
@@ -2323,7 +2311,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 	else
 		reporter->InternalError("unknown continuation state");
 
-	HashKey* k;
+	HashKey* k = 0;
 	int count = 0;
 
 	assert((!info->cont.ChildSuspended()) || state->v);
@@ -2336,12 +2324,21 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			if ( ! state->c )
 				{
 				// No next one.
-				SERIALIZE(false);
+				if ( ! SERIALIZE(false) )
+					{
+					delete k;
+					return false;
+					}
+
 				break;
 				}
 
 			// There's a value coming.
-			SERIALIZE(true);
+			if ( ! SERIALIZE(true) )
+				{
+				delete k;
+				return false;
+				}
 
 			if ( state->v->Value() )
 				state->v->Ref();
@@ -2463,7 +2460,11 @@ bool TableVal::DoUnserialize(UnserialInfo* info)
 
 		if ( ! UNSERIALIZE(&entry_val->last_access_time) ||
 		     ! UNSERIALIZE(&eat) )
+			{
+			entry_val->Unref();
+			delete entry_val;
 			return false;
+			}
 
 		entry_val->SetExpireAccess(eat);
 
@@ -2554,6 +2555,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 	{
+	origin = 0;
 	record_type = t;
 	int n = record_type->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
@@ -2661,6 +2663,16 @@ Val* RecordVal::LookupWithDefault(int field) const
 	return record_type->FieldDefault(field);
 	}
 
+Val* RecordVal::Lookup(const char* field, bool with_default) const
+	{
+	int idx = record_type->FieldOffset(field);
+
+	if ( idx < 0 )
+		reporter->InternalError("missing record field: %s", field);
+
+	return with_default ? LookupWithDefault(idx) : Lookup(idx);
+	}
+
 RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
 	{
 	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
@@ -2692,16 +2704,22 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 			break;
 			}
 
+		Val* v = Lookup(i);
+
+		if ( ! v )
+			// Check for allowable optional fields is outside the loop, below.
+			continue;
+
 		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
-				&& ! same_type(ar_t->FieldType(t_i), Lookup(i)->Type()) )
+				&& ! same_type(ar_t->FieldType(t_i), v->Type()) )
 			{
-			Expr* rhs = new ConstExpr(Lookup(i)->Ref());
+			Expr* rhs = new ConstExpr(v->Ref());
 			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
 			ar->Assign(t_i, e->Eval(0));
 			continue;
 			}
 
-		ar->Assign(t_i, Lookup(i)->Ref());
+		ar->Assign(t_i, v->Ref());
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
@@ -3104,7 +3122,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 	for ( int i = 0; i < len; ++i )
 		{
 		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
+		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY)); // accept any type
 		Assign(i, v);
 		}
 
@@ -3271,7 +3289,7 @@ int same_atomic_val(const Val* v1, const Val* v2)
 		return v1->AsSubNet() == v2->AsSubNet();
 
 	default:
-		reporter->InternalError("same_atomic_val called for non-atomic value");
+		reporter->InternalWarning("same_atomic_val called for non-atomic value");
 		return 0;
 	}
 

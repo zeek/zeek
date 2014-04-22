@@ -1,33 +1,11 @@
 #include "plugin/Plugin.h"
-#include "file_analysis/Component.h"
 
 #include "Hash.h"
 
-namespace plugin { namespace Bro_FileHash {
-
-class Plugin : public plugin::Plugin {
-protected:
-	void InitPreScript()
-		{
-		SetName("Bro::FileHash");
-		SetVersion(-1);
-		SetAPIVersion(BRO_PLUGIN_API_VERSION);
-		SetDynamicPlugin(false);
-
-		SetDescription("Hash file content");
-
-		AddComponent(new ::file_analysis::Component("MD5",
-		        ::file_analysis::MD5::Instantiate));
-		AddComponent(new ::file_analysis::Component("SHA1",
-		        ::file_analysis::SHA1::Instantiate));
-		AddComponent(new ::file_analysis::Component("SHA256",
-		        ::file_analysis::SHA256::Instantiate));
-
-		extern std::list<std::pair<const char*, int> > __bif_events_init();
-		AddBifInitFunction(&__bif_events_init);
-		}
-};
-
-Plugin __plugin;
-
-} }
+BRO_PLUGIN_BEGIN(Bro, FileHash)
+	BRO_PLUGIN_DESCRIPTION("Hash file content");
+	BRO_PLUGIN_FILE_ANALYZER("MD5", MD5);
+	BRO_PLUGIN_FILE_ANALYZER("SHA1", SHA1);
+	BRO_PLUGIN_FILE_ANALYZER("SHA256", SHA256);
+	BRO_PLUGIN_BIF_FILE(events);
+BRO_PLUGIN_END

@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2014-03-13-21-53-03
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	last_alert	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
+#types	time	string	addr	port	addr	port	string	string	string	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
+1394745602.951961	CXWv6p3arKYeMETxOg	192.168.4.149	60539	87.98.220.10	443	TLSv10	TLS_DHE_RSA_WITH_AES_256_CBC_SHA	-	-	-	T	F1fX1R2cDOzbvg17ye,FqPEQR2eytAQybroyl	(empty)	CN=www.spidh.org,OU=COMODO SSL,OU=Domain Control Validated	CN=COMODO SSL CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	-	-	certificate has expired
+1394745618.791420	CjhGID4nQcgTWjvg4c	192.168.4.149	60540	122.1.240.204	443	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	-	T	F6NAbK127LhNBaEe5c,FDhmPt28vyXlGMTxP7,F0ROCKibhE1KntJ1h	(empty)	CN=www.tobu-estate.com,OU=Terms of use at www.verisign.com/rpa (c)05,O=TOBU RAILWAY Co.\,Ltd.,L=Sumida-ku,ST=Tokyo,C=JP	CN=VeriSign Class 3 Secure Server CA - G3,OU=Terms of use at https://www.verisign.com/rpa (c)10,OU=VeriSign Trust Network,O=VeriSign\, Inc.,C=US	-	-	ok
+#close	2014-03-13-21-53-03

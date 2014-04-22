@@ -8,7 +8,8 @@ export {
 	const EDNS = 41; ##< An OPT RR TYPE value described by EDNS.
 	const ANY = 255; ##< A QTYPE value describing a request for all records.
 
-	## Mapping of DNS query type codes to human readable string representation.
+	## Mapping of DNS query type codes to human readable string
+	## representation.
 	const query_types = {
 		[1] = "A", [2] = "NS", [3] = "MD", [4] = "MF",
 		[5] = "CNAME", [6] = "SOA", [7] = "MB", [8] = "MG",
@@ -64,8 +65,8 @@ export {
 		[32768] = "DNS_SEC_OK", # accepts DNS Sec RRs
 	} &default="?";
 
-	## Possible values of the CLASS field in resource records or QCLASS field
-	## in query messages.
+	## Possible values of the CLASS field in resource records or QCLASS
+	## field in query messages.
 	const classes = {
 		[1]   = "C_INTERNET",
 		[2]   = "C_CSNET",

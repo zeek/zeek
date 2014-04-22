@@ -9,6 +9,7 @@
 #include "Analyzer.h"
 #include "Var.h"
 #include "Event.h"
+#include "UID.h"
 
 #include "plugin/Manager.h"
 
@@ -18,15 +19,16 @@ TableVal* Manager::disabled = 0;
 string Manager::salt;
 
 Manager::Manager()
+	: plugin::ComponentManager<file_analysis::Tag,
+	                           file_analysis::Component>("Files"),
+	id_map(), ignored(), current_file_id(), magic_state()
 	{
-	tag_enum_type = new EnumType("Files::Tag");
-	::ID* id = install_ID("Tag", "Files", true, true);
-	add_type(id, tag_enum_type, 0, 0);
 	}
 
 Manager::~Manager()
 	{
 	Terminate();
+	delete magic_state;
 	}
 
 void Manager::InitPreScript()
@@ -35,31 +37,17 @@ void Manager::InitPreScript()
 
 	for ( std::list<Component*>::const_iterator i = analyzers.begin();
 	      i != analyzers.end(); ++i )
-	      RegisterAnalyzerComponent(*i);
-	}
-
-void Manager::RegisterAnalyzerComponent(Component* component)
-	{
-	const char* cname = component->CanonicalName();
-
-	if ( tag_enum_type->Lookup("Files", cname) != -1 )
-		reporter->FatalError("File Analyzer %s defined more than once", cname);
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "Registering analyzer %s (tag %s)",
-			component->Name(), component->Tag().AsString().c_str());
-
-	analyzers_by_name.insert(std::make_pair(cname, component));
-	analyzers_by_tag.insert(std::make_pair(component->Tag(), component));
-	analyzers_by_val.insert(std::make_pair(
-	        component->Tag().AsEnumVal()->InternalInt(), component));
-
-	string id = fmt("ANALYZER_%s", cname);
-	tag_enum_type->AddName("Files", id.c_str(),
-						   component->Tag().AsEnumVal()->InternalInt(), true);
+	      RegisterComponent(*i, "ANALYZER_");
 	}
 
 void Manager::InitPostScript()
 	{
+	}
+
+void Manager::InitMagic()
+	{
+	delete magic_state;
+	magic_state = rule_matcher->InitFileMagic();
 	}
 
 void Manager::Terminate()
@@ -78,15 +66,13 @@ string Manager::HashHandle(const string& handle) const
 	if ( salt.empty() )
 		salt = BifConst::Files::salt->CheckString();
 
-	char tmp[20];
 	uint64 hash[2];
 	string msg(handle + salt);
 
 	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
 	    reinterpret_cast<u_char*>(hash));
-	uitoa_n(hash[0], tmp, sizeof(tmp), 62);
 
-	return tmp;
+	return Bro::UID(bits_per_uid, hash, 2).Base62("F");
 	}
 
 void Manager::SetHandle(const string& handle)
@@ -97,36 +83,47 @@ void Manager::SetHandle(const string& handle)
 	current_file_id = HashHandle(handle);
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
-                     analyzer::Tag tag, Connection* conn, bool is_orig)
+string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+                       analyzer::Tag tag, Connection* conn, bool is_orig,
+                       const string& precomputed_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
-	File* file = GetFile(current_file_id, conn, tag, is_orig);
+	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
+	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->DataIn(data, len, offset);
 
 	if ( file->IsComplete() )
+		{
 		RemoveFile(file->GetID());
+		return "";
+		}
+
+	return id;
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
-                     Connection* conn, bool is_orig)
+string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+                       Connection* conn, bool is_orig, const string& precomputed_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
+	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
-	File* file = GetFile(current_file_id, conn, tag, is_orig, false);
+	File* file = GetFile(id, conn, tag, is_orig, false);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->DataIn(data, len);
 
 	if ( file->IsComplete() )
+		{
 		RemoveFile(file->GetID());
+		return "";
+		}
+
+	return id;
 	}
 
 void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
@@ -155,8 +152,7 @@ void Manager::EndOfFile(analyzer::Tag tag, Connection* conn)
 void Manager::EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig)
 	{
 	// Don't need to create a file if we're just going to remove it right away.
-	GetFileHandle(tag, conn, is_orig);
-	RemoveFile(current_file_id);
+	RemoveFile(GetFileID(tag, conn, is_orig));
 	}
 
 void Manager::EndOfFile(const string& file_id)
@@ -164,36 +160,42 @@ void Manager::EndOfFile(const string& file_id)
 	RemoveFile(file_id);
 	}
 
-void Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
-                  Connection* conn, bool is_orig)
+string Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+                    Connection* conn, bool is_orig, const string& precomputed_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
-	File* file = GetFile(current_file_id, conn, tag, is_orig);
+	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
+	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->Gap(offset, len);
+	return id;
 	}
 
-void Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
-                      bool is_orig)
+string Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+                        bool is_orig, const string& precomputed_id)
 	{
-	GetFileHandle(tag, conn, is_orig);
-	File* file = GetFile(current_file_id, conn, tag, is_orig);
+	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
+	File* file = GetFile(id, conn, tag, is_orig);
 
 	if ( ! file )
-		return;
+		return "";
 
 	file->SetTotalBytes(size);
 
 	if ( file->IsComplete() )
+		{
 		RemoveFile(file->GetID());
+		return "";
+		}
+
+	return id;
 	}
 
 bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
@@ -205,24 +207,37 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 	return true;
 	}
 
-bool Manager::AddAnalyzer(const string& file_id, RecordVal* args) const
+bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
+                                 uint64 n) const
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->AddAnalyzer(args);
+	return file->SetExtractionLimit(args, n);
 	}
 
-bool Manager::RemoveAnalyzer(const string& file_id, const RecordVal* args) const
+bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+                          RecordVal* args) const
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->RemoveAnalyzer(args);
+	return file->AddAnalyzer(tag, args);
+	}
+
+bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+                             RecordVal* args) const
+	{
+	File* file = LookupFile(file_id);
+
+	if ( ! file )
+		return false;
+
+	return file->RemoveAnalyzer(tag, args);
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
@@ -255,7 +270,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 	return rval;
 	}
 
-File* Manager::Lookup(const string& file_id) const
+File* Manager::LookupFile(const string& file_id) const
 	{
 	IDMap::const_iterator it = id_map.find(file_id);
 
@@ -267,7 +282,7 @@ File* Manager::Lookup(const string& file_id) const
 
 void Manager::Timeout(const string& file_id, bool is_terminating)
 	{
-	File* file = Lookup(file_id);
+	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return;
@@ -326,15 +341,15 @@ bool Manager::IsIgnored(const string& file_id)
 	return ignored.find(file_id) != ignored.end();
 	}
 
-void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
+string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 	{
 	current_file_id.clear();
 
 	if ( IsDisabled(tag) )
-		return;
+		return "";
 
 	if ( ! get_file_handle )
-		return;
+		return "";
 
 	EnumVal* tagval = tag.AsEnumVal();
 	Ref(tagval);
@@ -346,6 +361,7 @@ void Manager::GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig)
 
 	mgr.QueueEvent(get_file_handle, vl);
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
+	return current_file_id;
 	}
 
 bool Manager::IsDisabled(analyzer::Tag tag)
@@ -366,30 +382,68 @@ bool Manager::IsDisabled(analyzer::Tag tag)
 	return rval;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(int tag, RecordVal* args, File* f) const
+Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	{
-	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+	Component* c = Lookup(tag);
 
-	if ( it == analyzers_by_val.end() )
-		reporter->InternalError("cannot instantiate unknown file analyzer: %d",
-		                        tag);
-
-	Component* c = it->second;
+	if ( ! c )
+		{
+		reporter->InternalWarning(
+		            "unknown file analyzer instantiation request: %s",
+		            tag.AsString().c_str());
+		return 0;
+		}
 
 	if ( ! c->Factory() )
-		reporter->InternalError("file analyzer %s cannot be instantiated "
+		{
+		reporter->InternalWarning("file analyzer %s cannot be instantiated "
 								"dynamically", c->CanonicalName());
+		return 0;
+		}
 
 	return c->Factory()(args, f);
 	}
 
-const char* Manager::GetAnalyzerName(int tag) const
+RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,
+        RuleMatcher::MIME_Matches* rval) const
 	{
-	analyzer_map_by_val::const_iterator it = analyzers_by_val.find(tag);
+	if ( ! magic_state )
+		reporter->InternalError("file magic signature state not initialized");
 
-	if ( it == analyzers_by_val.end() )
-		reporter->InternalError("cannot get name of unknown file analyzer: %d",
-		                        tag);
+	rval = rule_matcher->Match(magic_state, data, len, rval);
+	rule_matcher->ClearFileMagicState(magic_state);
+	return rval;
+	}
 
-	return it->second->CanonicalName();
+string Manager::DetectMIME(const u_char* data, uint64 len) const
+	{
+	RuleMatcher::MIME_Matches matches;
+	DetectMIME(data, len, &matches);
+
+	if ( matches.empty() )
+		return "";
+
+	return *(matches.begin()->second.begin());
+	}
+
+VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+	{
+	VectorVal* rval = new VectorVal(mime_matches);
+
+	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
+	      it != m.end(); ++it )
+		{
+		RecordVal* element = new RecordVal(mime_match);
+
+		for ( set<string>::const_iterator it2 = it->second.begin();
+		      it2 != it->second.end(); ++it2 )
+			{
+			element->Assign(0, new Val(it->first, TYPE_INT));
+			element->Assign(1, new StringVal(*it2));
+			}
+
+		rval->Assign(rval->Size(), element);
+		}
+
+	return rval;
 	}

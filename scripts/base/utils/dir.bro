@@ -11,8 +11,8 @@ export {
 
 	## Register a directory to monitor with a callback that is called
 	## every time a previously unseen file is seen.  If a file is deleted
-	## and seen to be gone, the file is available for being seen again in
-	## the future.
+	## and seen to be gone, then the file is available for being seen again
+	## in the future.
 	##
 	## dir: The directory to monitor for files.
 	##
@@ -28,7 +28,7 @@ event Dir::monitor_ev(dir: string, last_files: set[string],
                       callback: function(fname: string),
                       poll_interval: interval)
 	{
-	when ( local result = Exec::run([$cmd=fmt("ls -i \"%s/\"", str_shell_escape(dir))]) )
+	when ( local result = Exec::run([$cmd=fmt("ls -1 \"%s/\"", str_shell_escape(dir))]) )
 		{
 		if ( result$exit_code != 0 )
 			{
@@ -44,10 +44,9 @@ event Dir::monitor_ev(dir: string, last_files: set[string],
 
 		for ( i in files )
 			{
-			local parts = split1(files[i], / /);
-			if ( parts[1] !in last_files )
-				callback(build_path_compressed(dir, parts[2]));
-			add current_files[parts[1]];
+			if ( files[i] !in last_files )
+				callback(build_path_compressed(dir, files[i]));
+			add current_files[files[i]];
 			}
 
 		schedule poll_interval

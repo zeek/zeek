@@ -399,6 +399,7 @@ PacketProfiler::PacketProfiler(unsigned int mode, double freq,
 	last_Utime = last_Stime = last_Rtime = 0.0;
 	last_timestamp = time = 0.0;
 	pkt_cnt = byte_cnt = 0;
+	last_mem = 0;
 
 	file->Write("time dt npkts nbytes dRtime dUtime dStime dmem\n");
 	}

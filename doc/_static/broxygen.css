@@ -150,8 +150,14 @@ sup, sub {
 	line-height:0;
 }
 
-pre  {
-	white-space:pre;
+pre, code  {
+	white-space: pre;
+    overflow: auto;
+    margin-left: 2em;
+    margin-right: 2em;
+    margin-top: .5em;
+    margin-bottom: 1.5em;
+    word-wrap: normal;
 }
 
 pre, code, tt {
@@ -166,12 +172,26 @@ dl dt {
 	font-weight: bold;
 }
 
+li dl dt {
+    font-weight: normal;
+}
+
 dd {
 	margin:0 0 20px 20px;
 }
 
 small {
 	font-size:75%;
+}
+
+.small-text {
+	font-size:75%;
+}
+
+.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 a:link,
@@ -434,4 +454,32 @@ li {
     padding-bottom: 0em;
     margin-bottom: .5em;
     margin-top: 0em;
+}
+
+.btest-cmd .hll {
+	font-weight: bold;
+	background: #FFFAE2;
+    }
+
+.btest-include .hll {
+    display: block;
+    text-align: center;
+    font-family: Palatino;
+	background: #FFFAE2;
+    }
+
+.btest-include .hll * {
+    color: #aaa;
+    }
+
+.linenodiv pre {
+    margin-left: 0px;
+    margin-right: 0px;
+    width: 1.5em;
+    text-align: right;
+	background: #000;
+}
+
+.btest-cmd .code pre, .btest-include .code pre {
+    margin-left: 0px;
 }

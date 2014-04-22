@@ -14,11 +14,12 @@
 #include <errno.h>
 
 using namespace input::reader;
+using namespace threading;
 using threading::Value;
 using threading::Field;
 
 FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position)
-	: name(arg_name), type(arg_type)
+	: name(arg_name), type(arg_type), subtype(TYPE_ERROR)
 	{
 	position = arg_position;
 	secondary_position = -1;
@@ -49,32 +50,14 @@ FieldMapping FieldMapping::subType()
 Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
-
-	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
-			  BifConst::InputAscii::separator->Len());
-
-	if ( separator.size() != 1 )
-		Error("separator length has to be 1. Separator will be truncated.");
-
-	set_separator.assign( (const char*) BifConst::InputAscii::set_separator->Bytes(),
-		              BifConst::InputAscii::set_separator->Len());
-
-	if ( set_separator.size() != 1 )
-		Error("set_separator length has to be 1. Separator will be truncated.");
-
-	empty_field.assign( (const char*) BifConst::InputAscii::empty_field->Bytes(),
-			    BifConst::InputAscii::empty_field->Len());
-
-	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
-			    BifConst::InputAscii::unset_field->Len());
-
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
-}
+	mtime = 0;
+	formatter = 0;
+	}
 
 Ascii::~Ascii()
 	{
 	DoClose();
-	delete ascii;
+	delete formatter;
 	}
 
 void Ascii::DoClose()
@@ -89,7 +72,42 @@ void Ascii::DoClose()
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	mtime = 0;
+	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
+	                 BifConst::InputAscii::separator->Len());
+
+	set_separator.assign( (const char*) BifConst::InputAscii::set_separator->Bytes(),
+	                     BifConst::InputAscii::set_separator->Len());
+
+	empty_field.assign( (const char*) BifConst::InputAscii::empty_field->Bytes(),
+	                   BifConst::InputAscii::empty_field->Len());
+
+	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(),
+	                   BifConst::InputAscii::unset_field->Len());
+
+	// Set per-filter configuration options.
+	for ( ReaderInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
+		{
+		if ( strcmp(i->first, "separator") == 0 )
+			separator.assign(i->second);
+
+		else if ( strcmp(i->first, "set_separator") == 0 )
+			set_separator.assign(i->second);
+
+		else if ( strcmp(i->first, "empty_field") == 0 )
+			empty_field.assign(i->second);
+
+		else if ( strcmp(i->first, "unset_field") == 0 )
+			unset_field.assign(i->second);
+		}
+
+	if ( separator.size() != 1 )
+		Error("separator length has to be 1. Separator will be truncated.");
+
+	if ( set_separator.size() != 1 )
+		Error("set_separator length has to be 1. Separator will be truncated.");
+
+	formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field, empty_field);
+	formatter = new formatter::Ascii(this, sep_info);
 
 	file = new ifstream(info.source);
 	if ( ! file->is_open() )
@@ -172,7 +190,6 @@ bool Ascii::ReadHeader(bool useCached)
 			return false;
 			}
 
-
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
 
 		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
@@ -199,7 +216,7 @@ bool Ascii::ReadHeader(bool useCached)
 bool Ascii::GetLine(string& str)
 	{
 	while ( getline(*file, str) )
-       		{
+		{
 		if ( str[0] != '#' )
 			return true;
 
@@ -278,7 +295,10 @@ bool Ascii::DoUpdate()
 		}
 
 	string line;
-	while ( GetLine(line ) )
+
+	file->sync();
+
+	while ( GetLine(line) )
 		{
 		// split on tabs
 		bool error = false;
@@ -320,10 +340,15 @@ bool Ascii::DoUpdate()
 				{
 				Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d",
 					  line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
+
+				for ( int i = 0; i < fpos; i++ )
+					delete fields[i];
+
+				delete [] fields;
 				return false;
 				}
 
-			Value* val = ascii->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
+			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 
 			if ( val == 0 )
 				{
@@ -338,7 +363,7 @@ bool Ascii::DoUpdate()
 				assert(val->type == TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				val->val.port_val.proto = ascii->ParseProto(stringfields[(*fit).secondary_position]);
+				val->val.port_val.proto = formatter->ParseProto(stringfields[(*fit).secondary_position]);
 				}
 
 			fields[fpos] = val;
@@ -375,8 +400,9 @@ bool Ascii::DoUpdate()
 	}
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
-{
-	switch ( Info().mode  ) {
+	{
+	switch ( Info().mode )
+		{
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
@@ -389,7 +415,7 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 		default:
 			assert(false);
-	}
+		}
 
 	return true;
 	}

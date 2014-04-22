@@ -242,10 +242,17 @@ int HTTP_Entity::Undelivered(int64_t len)
 	if ( end_of_data && in_header )
 		return 0;
 
-	file_mgr->Gap(body_length, len,
-	              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
-	              http_message->MyHTTP_Analyzer()->Conn(),
-	              http_message->IsOrig());
+	if ( is_partial_content )
+		file_mgr->Gap(body_length, len,
+		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		              http_message->MyHTTP_Analyzer()->Conn(),
+		              http_message->IsOrig());
+	else
+		precomputed_file_id = file_mgr->Gap(body_length, len,
+		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
+		                  http_message->MyHTTP_Analyzer()->Conn(),
+		                  http_message->IsOrig(),
+		                  precomputed_file_id);
 
 	if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
 		{
@@ -314,15 +321,18 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	else
 		{
 		if ( send_size && content_length > 0 )
-			file_mgr->SetSize(content_length,
+			precomputed_file_id = file_mgr->SetSize(content_length,
 			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig());
+			                  http_message->IsOrig(),
+			                  precomputed_file_id);
 
-		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf),
+		                 len,
 		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig());
+		                 http_message->IsOrig(),
+		                 precomputed_file_id);
 		}
 
 	send_size = false;
@@ -534,6 +544,7 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 	top_level = new HTTP_Entity(this, 0, expect_body);
 	BeginEntity(top_level);
 
+	buffer_offset = buffer_size = 0;
 	data_buffer = 0;
 	total_buffer_size = 0;
 
@@ -697,7 +708,11 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (const char*) data_buffer->Bytes() + buffer_offset ||
 	     buffer_offset + len > buffer_size )
-		reporter->InternalError("buffer misalignment");
+		{
+		reporter->AnalyzerError(MyHTTP_Analyzer(),
+		                                "HTTP message buffer misalignment");
+		return;
+		}
 
 	buffer_offset += len;
 	if ( buffer_offset >= buffer_size )
@@ -742,7 +757,9 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		reporter->InternalError("unrecognized HTTP message event");
+		reporter->AnalyzerError(MyHTTP_Analyzer(),
+		                                "unrecognized HTTP message event");
+		return;
 	}
 
 	MyHTTP_Analyzer()->HTTP_Event(category, detail);
@@ -872,6 +889,9 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	reply_code = 0;
 	reply_reason_phrase = 0;
 
+	connect_request = false;
+	pia = 0;
+
 	content_line_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(content_line_orig);
 
@@ -928,6 +948,14 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	if ( TCP() && TCP()->IsPartial() )
 		return;
 
+	if ( pia )
+		{
+		// There will be a PIA instance if this connection has been identified
+		// as a connect proxy.
+		ForwardStream(len, data, is_orig);
+		return;
+		}
+
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
 
@@ -961,7 +989,13 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 		switch ( request_state ) {
 		case EXPECT_REQUEST_LINE:
-			if ( HTTP_RequestLine(line, end_of_line) )
+			{
+			int res = HTTP_RequestLine(line, end_of_line);
+
+			if ( res < 0 )
+				return;
+
+			else if ( res > 0 )
 				{
 				++num_requests;
 
@@ -1000,6 +1034,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						}
 					}
 				}
+			}
 			break;
 
 		case EXPECT_REQUEST_MESSAGE:
@@ -1030,6 +1065,29 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				reply_ongoing = 1;
 
 				HTTP_Reply();
+
+				if ( connect_request && reply_code == 200 )
+					{
+					pia = new pia::PIA_TCP(Conn());
+
+					if ( AddChildAnalyzer(pia) )
+						{
+						pia->FirstPacket(true, 0);
+						pia->FirstPacket(false, 0);
+
+						// This connection has transitioned to no longer
+						// being http and the content line support analyzers
+						// need to be removed.
+						RemoveSupportAnalyzer(content_line_orig);
+						RemoveSupportAnalyzer(content_line_resp);
+
+						return;
+						}
+
+					else
+						// AddChildAnalyzer() will have deleted PIA.
+						pia = 0;
+					}
 
 				InitHTTPMessage(content_line,
 						reply_message, is_orig,
@@ -1224,7 +1282,10 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	request_method = new StringVal(end_of_method - line, line);
 
 	if ( ! ParseRequest(rest, end_of_line) )
-		reporter->InternalError("HTTP ParseRequest failed");
+		{
+		reporter->AnalyzerError(this, "HTTP ParseRequest failed");
+		return -1;
+		}
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
@@ -1362,6 +1423,12 @@ StringVal* HTTP_Analyzer::TruncateURI(StringVal* uri)
 void HTTP_Analyzer::HTTP_Request()
 	{
 	ProtocolConfirmation();
+
+	const char* method = (const char*) request_method->AsString()->Bytes();
+	int method_len = request_method->AsString()->Len();
+
+	if ( strcasecmp_n(method_len, method, "CONNECT") == 0 )
+		connect_request = true;
 
 	if ( http_request )
 		{

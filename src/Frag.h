@@ -35,6 +35,7 @@ public:
 protected:
 	void BlockInserted(DataBlock* start_block);
 	void Overlap(const u_char* b1, const u_char* b2, int n);
+	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
 	IP_Hdr* reassembled_pkt;

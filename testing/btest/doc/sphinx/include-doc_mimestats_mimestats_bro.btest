@@ -1,0 +1,39 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+mimestats.bro
+
+module MimeMetrics;
+
+export {
+
+	redef enum Log::ID += { LOG };
+
+	type Info: record {
+		## Timestamp when the log line was finished and written.
+		ts:         time   &log;
+		## Time interval that the log line covers.
+		ts_delta:   interval &log;
+		## The mime type
+		mtype:        string &log;
+		## The number of unique local hosts that fetched this mime type
+		uniq_hosts: count  &log;
+		## The number of hits to the mime type
+		hits:       count  &log;
+		## The total number of bytes received by this mime type
+		bytes:      count  &log;
+	};
+
+	## The frequency of logging the stats collected by this script.
+	const break_interval = 5mins &redef;
+}
+event HTTP::log_http(rec: HTTP::Info)
+	{
+	if ( Site::is_local_addr(rec$id$orig_h) && rec?$resp_mime_types )
+		{
+		local mime_type = rec$resp_mime_types[0];
+		SumStats::observe("mime.bytes", [$str=mime_type],
+		                  [$num=rec$response_body_len]);
+		SumStats::observe("mime.hits",  [$str=mime_type],
+		                  [$str=cat(rec$id$orig_h)]);
+		}
+	}

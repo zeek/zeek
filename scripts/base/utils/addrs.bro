@@ -28,7 +28,9 @@ const ip_addr_regex =
     /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
 
 ## Checks if all elements of a string array are a valid octet value.
+##
 ## octets: an array of strings to check for valid octet values.
+##
 ## Returns: T if every element is between 0 and 255, inclusive, else F.
 function has_valid_octets(octets: string_array): bool
 	{
@@ -43,7 +45,9 @@ function has_valid_octets(octets: string_array): bool
 	}
 
 ## Checks if a string appears to be a valid IPv4 or IPv6 address.
+##
 ## ip_str: the string to check for valid IP formatting.
+##
 ## Returns: T if the string is a valid IPv4 or IPv6 address format.
 function is_valid_ip(ip_str: string): bool
 	{
@@ -84,8 +88,10 @@ function is_valid_ip(ip_str: string): bool
 	}
 
 ## Extracts all IP (v4 or v6) address strings from a given string.
+##
 ## input: a string that may contain an IP address anywhere within it.
-## Returns: an array containing all valid IP address strings found in input.
+##
+## Returns: an array containing all valid IP address strings found in *input*.
 function find_ip_addresses(input: string): string_array
 	{
 	local parts = split_all(input, ip_addr_regex);
@@ -105,7 +111,7 @@ function find_ip_addresses(input: string): string_array
 ##
 ## a: the address to make suitable for URI inclusion.
 ##
-## Returns: the string representation of *a* suitable for URI inclusion.
+## Returns: the string representation of the address suitable for URI inclusion.
 function addr_to_uri(a: addr): string
 	{
 	if ( is_v4_addr(a) )

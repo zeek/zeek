@@ -26,6 +26,7 @@
 #include "Analyzer.h"
 #include "Component.h"
 #include "Tag.h"
+#include "plugin/ComponentManager.h"
 
 #include "../Dict.h"
 #include "../net_util.h"
@@ -49,7 +50,7 @@ namespace analyzer {
  * classes. This allows to external analyzer code to potentially use a
  * different C++ standard library.
  */
-class Manager {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -213,7 +214,8 @@ public:
 	 *
 	 * @return The new analyzer instance. Note that the analyzer will not
 	 * have been added to the connection's analyzer tree yet. Returns
-	 * null if tag is invalid or the requested analyzer is disabled.
+	 * null if tag is invalid, the requested analyzer is disabled, or the
+	 * analyzer can't be instantiated.
 	 */
 	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c);
 
@@ -230,42 +232,6 @@ public:
 	 * disabled.
 	 */
 	Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
-
-	/**
-	 * Translates an analyzer tag into corresponding analyzer name.
-	 *
-	 * @param tag The analyzer tag.
-	 *
-	 * @return The name, or an empty string if the tag is invalid.
-	 */
-	const char* GetAnalyzerName(Tag tag);
-
-	/**
-	 * Translates an script-level analyzer tag into corresponding
-	 * analyzer name.
-	 *
-	 * @param val The analyzer tag as an script-level enum value of type
-	 * \c Analyzer::Tag.
-	 *
-	 * @return The name, or an empty string if the tag is invalid.
-	 */
-	const char* GetAnalyzerName(Val* val);
-
-	/**
-	 * Translates an analyzer name into the corresponding tag.
-	 *
-	 * @param name The name.
-	 *
-	 * @return The tag. If the name does not correspond to a valid
-	 * analyzer, the returned tag will evaluate to false.
-	 */
-	Tag GetAnalyzerTag(const char* name);
-
-	/**
-	 * Returns the enum type that corresponds to the script-level type \c
-	 * Analyzer::Tag.
-	 */
-	EnumType* GetTagEnumType();
 
 	/**
 	 * Given the first packet of a connection, builds its initial
@@ -327,6 +293,23 @@ public:
 				double timeout);
 
 	/**
+	 * Searched for analyzers scheduled to be attached to a given connection
+	 * and then attaches them.
+	 *
+	 * @param conn The connection to which scheduled analyzers are attached.
+	 *
+	 * @param init True if the newly added analyzers should be
+	 * immediately initialized.
+	 *
+	 * @param root If given, the scheduled analyzers will become childs
+	 * of this; if not given the connection's root analyzer is used
+	 * instead.
+	 *
+	 * @return True if at least one scheduled analyzer was found.
+	 */
+	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = 0);
+
+	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
 	 * the connection is seen, BuildInitAnalyzerTree() will add the
 	 * specified analyzer to its tree.
@@ -350,17 +333,7 @@ public:
 
 private:
 	typedef set<Tag> tag_set;
-	typedef map<string, Component*> analyzer_map_by_name;
-	typedef map<Tag, Component*>  analyzer_map_by_tag;
-	typedef map<int, Component*>  analyzer_map_by_val;
 	typedef map<uint32, tag_set*> analyzer_map_by_port;
-
-	void RegisterAnalyzerComponent(Component* component); // Takes ownership.
-
-	Component* Lookup(const string& name);
-	Component* Lookup(const char* name);
-	Component* Lookup(const Tag& tag);
-	Component* Lookup(EnumVal* val);
 
 	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
 	tag_set* LookupPort(TransportProto proto, uint32 port, bool add_if_not_found);
@@ -370,17 +343,12 @@ private:
 
 	analyzer_map_by_port analyzers_by_port_tcp;
 	analyzer_map_by_port analyzers_by_port_udp;
-	analyzer_map_by_name analyzers_by_name;
-	analyzer_map_by_tag  analyzers_by_tag;
-	analyzer_map_by_val  analyzers_by_val;
 
 	Tag analyzer_backdoor;
 	Tag analyzer_connsize;
 	Tag analyzer_interconn;
 	Tag analyzer_stepping;
 	Tag analyzer_tcpstats;
-
-	EnumType* tag_enum_type;
 
 	//// Data structures to track analyzed scheduled for future connections.
 

@@ -1,0 +1,2 @@
+@TEST-EXEC: echo "Hello world" > myfile
+@TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/frameworks/file_analysis_03.bro

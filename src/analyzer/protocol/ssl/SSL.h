@@ -27,8 +27,7 @@ public:
 	static bool Available()
 		{
 		return ( ssl_client_hello || ssl_server_hello ||
-			ssl_established || ssl_extension || ssl_alert ||
-			x509_certificate || x509_extension || x509_error );
+			ssl_established || ssl_extension || ssl_alert );
 		}
 
 protected:

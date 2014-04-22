@@ -7,12 +7,14 @@ module Notice;
 
 export {
 	redef enum Action += {
-		## Drops the address via Drop::drop_address, and generates an alarm.
+		## Drops the address via Drop::drop_address, and generates an
+		## alarm.
 		ACTION_DROP
 	};
 
 	redef record Info += {
-		## Indicate if the $src IP address was dropped and denied network access.
+		## Indicate if the $src IP address was dropped and denied
+		## network access.
 		dropped:  bool           &log &default=F;
 	};
 }

@@ -1,0 +1,245 @@
+%%{
+#include "file_analysis/analyzer/x509/X509.h"
+#include "types.bif.h"
+
+#include <openssl/x509.h>
+#include <openssl/asn1.h>
+#include <openssl/x509_vfy.h>
+
+// This is the indexed map of X509 certificate stores.
+static map<Val*, X509_STORE*> x509_stores;
+
+// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
+// here we assume d2i_X509 does not write to <data>, so it is safe to
+// convert data to a non-const pointer.  Could some X509 guru verify
+// this?
+
+X509* d2i_X509_(X509** px, const u_char** in, int len)
+	{
+#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
+	  return d2i_X509(px, in, len);
+#else
+	  return d2i_X509(px, (u_char**)in, len);
+#endif
+	}
+
+// construct an error record
+RecordVal* x509_error_record(uint64_t num, const char* reason)
+	{
+	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
+
+	rrecord->Assign(0, new Val(num, TYPE_COUNT));
+	rrecord->Assign(1, new StringVal(reason));
+
+	return rrecord;
+	}
+
+%%}
+
+## Parses a certificate into an X509::Certificate structure.
+##
+## cert: The X509 certificicate opaque handle
+##
+## Returns: A X509::Certificate structure
+##
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_verify
+##              x509_get_certificate_string
+function x509_parse%(cert: opaque of x509%): X509::Certificate
+	%{
+	assert(cert);
+	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+
+	return file_analysis::X509::ParseCertificate(h);
+	%}
+
+## Returns the string form of a certificate.
+##
+## cert: The X509 certificate opaque handle
+##
+## pem: A boolean that specifies if the certificate is returned
+##      in pem-form (true), or as the raw ASN1 encoded binary
+##      (false).
+##
+## Returns: X509 certificate as a string
+##
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse x509_verify
+function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F%): string
+	%{
+	assert(cert);
+	file_analysis::X509Val* h = (file_analysis::X509Val*) cert;
+
+	BIO *bio = BIO_new(BIO_s_mem());
+
+	if ( pem )
+		PEM_write_bio_X509(bio, h->GetCertificate());
+
+	else
+		i2d_X509_bio(bio, h->GetCertificate());
+
+	BIO_flush(bio);
+	int length = BIO_pending(bio);
+	// use OPENSS_malloc here. Otherwhise, interesting problems will happen.
+	char *buffer = (char*) OPENSSL_malloc(length);
+	BIO_read(bio, (void*) buffer, length);
+	StringVal* ext_val = new StringVal(length, buffer);
+	OPENSSL_free(buffer);
+	BIO_free_all(bio);
+
+	return ext_val;
+	%}
+
+
+## Verifies a certificate.
+##
+## certs: Specifies a certificate chain that is being used to validate
+##        the given certificate against the root store given in *root_certs*.
+##        The host certificate has to be at index 0.
+##
+## root_certs: A list of root certificates to validate the certificate chain
+##
+## verify_time: Time for the validity check of the certificates.
+##
+## Returns: A record of type X509::Result containing the result code of the verify
+##          operation. In case of success also returns the full certificate chain.
+##
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse
+##              x509_get_certificate_string
+function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
+	%{
+	X509_STORE* ctx = 0;
+	int i = 0;
+
+	VectorVal *certs_vec = certs->AsVectorVal();
+	if ( certs_vec->Size() < 1 )
+		{
+		reporter->Error("No certificates given in vector");
+		return x509_error_record(-1, "no certificates");
+		}
+
+	// host certificate
+	unsigned int index = 0; // to prevent overloading to 0pointer
+	Val *sv = certs_vec->Lookup(index);
+	if ( !sv )
+		{
+		builtin_error("undefined value in certificate vector");
+		return x509_error_record(-1, "undefined value in certificate vector");
+		}
+
+	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv;
+
+	// If this certificate store was built previously, just reuse the old one.
+	if ( x509_stores.count(root_certs) > 0 )
+		ctx = x509_stores[root_certs];
+
+	if ( ! ctx ) // lookup to see if we have this one built already!
+		{
+		ctx = X509_STORE_new();
+		TableVal* root_certs2 = root_certs->AsTableVal();
+		ListVal* idxs = root_certs2->ConvertToPureList();
+
+		// Build the validation store
+		for ( i = 0; i < idxs->Length(); ++i )
+			{
+			Val* key = idxs->Index(i);
+			StringVal *sv = root_certs2->Lookup(key)->AsStringVal();
+			const uint8* data = sv->Bytes();
+			X509* x = d2i_X509_(NULL, &data, sv->Len());
+			if ( ! x )
+				{
+				builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+				return x509_error_record((uint64) ERR_get_error(), ERR_error_string(ERR_peek_last_error(),NULL));
+				}
+
+			X509_STORE_add_cert(ctx, x);
+			}
+
+		delete idxs;
+
+		// Save the newly constructed certificate store into the cacheing map.
+		x509_stores[root_certs] = ctx;
+		}
+
+	X509* cert = cert_handle->GetCertificate();
+	if ( ! cert )
+		{
+		builtin_error(fmt("No certificate in opaque"));
+		return x509_error_record(-1, "No certificate in opaque");
+		}
+
+	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
+	if ( ! untrusted_certs )
+		{
+		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return x509_error_record((uint64) ERR_get_error(), ERR_error_string(ERR_peek_last_error(),NULL));
+		}
+
+	for ( i = 1; i < (int) certs_vec->Size(); ++i ) // start at 1 - 0 is host cert
+		{
+		Val *sv = certs_vec->Lookup(i);
+		// Fixme: check type
+		X509* x = ((file_analysis::X509Val*) sv)->GetCertificate();
+		if ( ! x )
+			{
+			sk_X509_pop(untrusted_certs);
+			builtin_error(fmt("No certificate in opaque in stack"));
+			return x509_error_record(-1, "No certificate in opaque");
+			}
+
+		sk_X509_push(untrusted_certs, x);
+		}
+
+	X509_STORE_CTX csc;
+	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
+	X509_STORE_CTX_set_time(&csc, 0, (time_t) verify_time);
+	X509_STORE_CTX_set_flags(&csc, X509_V_FLAG_USE_CHECK_TIME);
+
+	int result = X509_verify_cert(&csc);
+
+	VectorVal* chainVector = 0;
+
+	if ( result == 1 ) // we have a valid chain. try to get it...
+		{
+		STACK_OF(X509)* chain = X509_STORE_CTX_get1_chain(&csc); // get1 = deep copy
+
+		if ( ! chain )
+			{
+			reporter->Error("Encountered valid chain that could not be resolved");
+			goto x509_verify_chainerror;
+			}
+
+		int num_certs = sk_X509_num(chain);
+		chainVector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
+
+		for ( int i = 0; i < num_certs; i++ )
+			{
+			X509* currcert = sk_X509_value(chain, i);
+			if ( !currcert )
+				{
+				reporter->InternalError("OpenSSL returned null certificate");
+				goto x509_verify_chainerror;
+				}
+
+			chainVector->Assign(i, new file_analysis::X509Val(currcert)); // X509Val takes ownership
+			}
+		}
+
+x509_verify_chainerror:
+
+	X509_STORE_CTX_cleanup(&csc);
+
+	if ( untrusted_certs )
+		sk_X509_pop(untrusted_certs);
+
+	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
+
+	rrecord->Assign(0, new Val((uint64) csc.error, TYPE_COUNT));
+	rrecord->Assign(1, new StringVal(X509_verify_cert_error_string(csc.error)));
+
+	if ( chainVector )
+		rrecord->Assign(2, chainVector);
+
+	return rrecord;
+	%}

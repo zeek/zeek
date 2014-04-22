@@ -1,0 +1,10 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro data_type_pattern_02.bro
+      equality and /^?(equal)$?/ are not equal
+      equality and /^?(equality)$?/ are equal
+

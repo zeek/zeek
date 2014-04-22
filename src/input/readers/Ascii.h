@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "../ReaderBackend.h"
-#include "threading/AsciiFormatter.h"
+#include "threading/formatters/Ascii.h"
 
 namespace input { namespace reader {
 
@@ -64,7 +64,7 @@ private:
 	string empty_field;
 	string unset_field;
 
-	AsciiFormatter* ascii;
+	threading::formatter::Formatter* formatter;
 };
 
 

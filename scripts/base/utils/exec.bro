@@ -6,16 +6,16 @@ module Exec;
 
 export {
 	type Command: record {
-		## The command line to execute.  Use care to avoid injection attacks.
-		## I.e. if the command uses untrusted/variable data, sanitize
-                ## it with str_shell_escape().
+		## The command line to execute.  Use care to avoid injection
+		## attacks (i.e., if the command uses untrusted/variable data,
+		## sanitize it with :bro:see:`str_shell_escape`).
 		cmd:         string;
-		## Provide standard in to the program as a string.
+		## Provide standard input to the program as a string.
 		stdin:       string      &default="";
-		## If additional files are required to be read in as part of the output
-		## of the command they can be defined here.
+		## If additional files are required to be read in as part of the
+		## output of the command they can be defined here.
 		read_files:  set[string] &optional;
-		# The unique id for tracking executors.
+		## The unique id for tracking executors.
 		uid: string &default=unique_id("");
 	};
 
@@ -24,7 +24,7 @@ export {
 		exit_code:    count            &default=0;
 		## True if the command was terminated with a signal.
 		signal_exit:  bool             &default=F;
-		## Each line of standard out.
+		## Each line of standard output.
 		stdout:       vector of string &optional;
 		## Each line of standard error.
 		stderr:       vector of string &optional;
@@ -39,11 +39,11 @@ export {
 	##
 	## cmd: The command to run.  Use care to avoid injection attacks!
 	##
-	## returns: A record representing the full results from the
+	## Returns: A record representing the full results from the
 	##          external program execution.
 	global run: function(cmd: Command): Result;
 
-	## The system directory for temp files.
+	## The system directory for temporary files.
 	const tmp_dir = "/tmp" &redef;
 }
 
@@ -163,6 +163,7 @@ function run(cmd: Command): Result
 	Input::add_event([$name=cmd$uid,
 	                  $source=fmt("%s |", cmd$cmd),
 	                  $reader=Input::READER_RAW,
+	                  $mode=Input::STREAM,
 	                  $fields=Exec::OneLine,
 	                  $ev=Exec::line,
 	                  $want_record=F,

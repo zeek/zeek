@@ -20,7 +20,7 @@ public:
 	void Dispatch(double t, int is_expire);
 
 protected:
-	AnalyzerTimer()	{}
+	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
 
 	void Init(Analyzer* analyzer, analyzer_timer_func timer, int do_expire);
 
@@ -70,12 +70,12 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 	Ref(analyzer->Conn());
 	}
 
-analyzer::ID Analyzer::id_counter = 0;;
+analyzer::ID Analyzer::id_counter = 0;
 
 const char* Analyzer::GetAnalyzerName() const
 	{
 	assert(tag);
-	return analyzer_mgr->GetAnalyzerName(tag);
+	return analyzer_mgr->GetComponentName(tag);
 	}
 
 void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
@@ -87,7 +87,7 @@ void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return strcmp(analyzer_mgr->GetAnalyzerName(tag), name) == 0;
+	return strcmp(analyzer_mgr->GetComponentName(tag), name) == 0;
 	}
 
 // Used in debugging output.
@@ -98,7 +98,7 @@ static string fmt_analyzer(Analyzer* a)
 
 Analyzer::Analyzer(const char* name, Connection* conn)
 	{
-	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
+	Tag tag = analyzer_mgr->GetComponentTag(name);
 
 	if ( ! tag )
 		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
@@ -124,6 +124,7 @@ void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	tag = arg_tag;
 	id = ++id_counter;
 	protocol_confirmed = false;
+	timers_canceled = false;
 	skip = false;
 	finished = false;
 	removing = false;
@@ -208,11 +209,11 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, int seq,
 	if ( skip )
 		return;
 
-	// If we have support analyzers, we pass it to them.
-	if ( is_orig && orig_supporters )
-		orig_supporters->NextPacket(len, data, is_orig, seq, ip, caplen);
-	else if ( ! is_orig && resp_supporters )
-		resp_supporters->NextPacket(len, data, is_orig, seq, ip, caplen);
+	SupportAnalyzer* next_sibling = FirstSupportAnalyzer(is_orig);
+
+	if ( next_sibling )
+		next_sibling->NextPacket(len, data, is_orig, seq, ip, caplen);
+
 	else
 		{
 		try
@@ -231,11 +232,11 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 	if ( skip )
 		return;
 
-	// If we have support analyzers, we pass it to them.
-	if ( is_orig && orig_supporters )
-		orig_supporters->NextStream(len, data, is_orig);
-	else if ( ! is_orig && resp_supporters )
-		resp_supporters->NextStream(len, data, is_orig);
+	SupportAnalyzer* next_sibling = FirstSupportAnalyzer(is_orig);
+
+	if ( next_sibling )
+		next_sibling->NextStream(len, data, is_orig);
+
 	else
 		{
 		try
@@ -254,11 +255,11 @@ void Analyzer::NextUndelivered(int seq, int len, bool is_orig)
 	if ( skip )
 		return;
 
-	// If we have support analyzers, we pass it to them.
-	if ( is_orig && orig_supporters )
-		orig_supporters->NextUndelivered(seq, len, is_orig);
-	else if ( ! is_orig && resp_supporters )
-		resp_supporters->NextUndelivered(seq, len, is_orig);
+	SupportAnalyzer* next_sibling = FirstSupportAnalyzer(is_orig);
+
+	if ( next_sibling )
+		next_sibling->NextUndelivered(seq, len, is_orig);
+
 	else
 		{
 		try
@@ -277,11 +278,10 @@ void Analyzer::NextEndOfData(bool is_orig)
 	if ( skip )
 		return;
 
-	// If we have support analyzers, we pass it to them.
-	if ( is_orig && orig_supporters )
-		orig_supporters->NextEndOfData(is_orig);
-	else if ( ! is_orig && resp_supporters )
-		resp_supporters->NextEndOfData(is_orig);
+	SupportAnalyzer* next_sibling = FirstSupportAnalyzer(is_orig);
+
+	if ( next_sibling )
+		next_sibling->NextEndOfData(is_orig);
 	else
 		EndOfData(is_orig);
 	}
@@ -378,13 +378,13 @@ void Analyzer::ForwardEndOfData(bool orig)
 	AppendNewChildren();
 	}
 
-void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
+bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	{
 	if ( HasChildAnalyzer(analyzer->GetAnalyzerTag()) )
 		{
 		analyzer->Done();
 		delete analyzer;
-		return;
+		return false;
 		}
 
 	// We add new children to new_children first.  They are then
@@ -401,6 +401,7 @@ void Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 
 	DBG_LOG(DBG_ANALYZER, "%s added child %s",
 			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
+	return true;
 	}
 
 Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
@@ -409,10 +410,8 @@ Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
 		{
 		Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
 
-		if ( a )
-			AddChildAnalyzer(a);
-
-		return a;
+		if ( a && AddChildAnalyzer(a) )
+			return a;
 		}
 
 	return 0;
@@ -494,7 +493,7 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 
 Analyzer* Analyzer::FindChild(const char* name)
 	{
-	Tag tag = analyzer_mgr->GetAnalyzerTag(name);
+	Tag tag = analyzer_mgr->GetComponentTag(name);
 	return tag ? FindChild(tag) : 0;
 	}
 
@@ -558,31 +557,17 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
-	SupportAnalyzer** head =
-		analyzer->IsOrig() ? &orig_supporters : &resp_supporters;
-
-	SupportAnalyzer* prev = 0;
-	SupportAnalyzer* s;
-	for ( s = *head; s && s != analyzer; prev = s, s = s->sibling )
-		;
-
-	if ( ! s )
-		return;
-
-	if ( prev )
-		prev->sibling = s->sibling;
-	else
-		*head = s->sibling;
-
-	DBG_LOG(DBG_ANALYZER, "%s removed support %s",
+	DBG_LOG(DBG_ANALYZER, "%s disabled %s support analyzer %s",
 			fmt_analyzer(this).c_str(),
 			analyzer->IsOrig() ? "originator" : "responder",
 			fmt_analyzer(analyzer).c_str());
 
-	if ( ! analyzer->finished )
-		analyzer->Done();
-
-	delete analyzer;
+	// We mark the analyzer as being removed here, which will prevent it
+	// from being used further. However, we don't actually delete it
+	// before the parent gets destroyed. While we woulc do that, it's a
+	// bit tricky to do at the right time and it doesn't seem worth the
+	// trouble.
+	analyzer->removing = true;
 	return;
 	}
 
@@ -594,6 +579,19 @@ bool Analyzer::HasSupportAnalyzer(Tag tag, bool orig)
 			return true;
 
 	return false;
+	}
+
+SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
+	{
+	SupportAnalyzer* sa = orig ? orig_supporters : resp_supporters;
+
+	if ( ! sa )
+		return 0;
+
+	if ( ! sa->Removing() )
+		return sa;
+
+	return sa->Sibling(true);
 	}
 
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
@@ -782,16 +780,35 @@ void Analyzer::Weird(const char* name, const char* addl)
 	conn->Weird(name, addl);
 	}
 
+SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const
+	{
+	if ( ! only_active )
+		return sibling;
+
+	SupportAnalyzer* next = sibling;
+	while ( next && next->Removing() )
+		next = next->sibling;
+
+	return next;
+	}
+
 void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 					int seq, const IP_Hdr* ip, int caplen)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
+
 	if ( GetOutputHandler() )
+		{
 		GetOutputHandler()->DeliverPacket(len, data, is_orig, seq,
 							ip, caplen);
-	else if ( sibling )
+		return;
+		}
+
+	SupportAnalyzer* next_sibling = Sibling(true);
+
+	if ( next_sibling )
 		// Pass to next in chain.
-		sibling->NextPacket(len, data, is_orig, seq, ip, caplen);
+		next_sibling->NextPacket(len, data, is_orig, seq, ip, caplen);
 	else
 		// Finished with preprocessing - now it's the parent's turn.
 		Parent()->DeliverPacket(len, data, is_orig, seq, ip, caplen);
@@ -800,12 +817,18 @@ void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 void SupportAnalyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
-	if ( GetOutputHandler() )
-		GetOutputHandler()->DeliverStream(len, data, is_orig);
 
-	else if ( sibling )
+	if ( GetOutputHandler() )
+		{
+		GetOutputHandler()->DeliverStream(len, data, is_orig);
+		return;
+		}
+
+	SupportAnalyzer* next_sibling = Sibling(true);
+
+	if ( next_sibling )
 		// Pass to next in chain.
-		sibling->NextStream(len, data, is_orig);
+		next_sibling->NextStream(len, data, is_orig);
 	else
 		// Finished with preprocessing - now it's the parent's turn.
 		Parent()->DeliverStream(len, data, is_orig);
@@ -814,12 +837,18 @@ void SupportAnalyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 void SupportAnalyzer::ForwardUndelivered(int seq, int len, bool is_orig)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
-	if ( GetOutputHandler() )
-		GetOutputHandler()->Undelivered(seq, len, is_orig);
 
-	else if ( sibling )
+	if ( GetOutputHandler() )
+		{
+		GetOutputHandler()->Undelivered(seq, len, is_orig);
+		return;
+		}
+
+	SupportAnalyzer* next_sibling = Sibling(true);
+
+	if ( next_sibling )
 		// Pass to next in chain.
-		sibling->NextUndelivered(seq, len, is_orig);
+		next_sibling->NextUndelivered(seq, len, is_orig);
 	else
 		// Finished with preprocessing - now it's the parent's turn.
 		Parent()->Undelivered(seq, len, is_orig);

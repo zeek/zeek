@@ -6,16 +6,16 @@ export {
 	## Compression to use with the DS output file.  Options are:
 	##
 	## 'none' -- No compression.
-	## 'lzf'  -- LZF compression.   Very quick, but leads to larger output files.
-	## 'lzo'  -- LZO compression.   Very fast decompression times.
-	## 'gz'   -- GZIP compression.  Slower than LZF, but also produces smaller output.
-	## 'bz2'  -- BZIP2 compression. Slower than GZIP, but also produces smaller output.
+	## 'lzf'  -- LZF compression (very quick, but leads to larger output files).
+	## 'lzo'  -- LZO compression (very fast decompression times).
+	## 'gz'   -- GZIP compression (slower than LZF, but also produces smaller output).
+	## 'bz2'  -- BZIP2 compression (slower than GZIP, but also produces smaller output).
 	const compression = "gz" &redef;
 
 	## The extent buffer size.
-	## Larger values here lead to better compression and more efficient writes, but
-	## also increase the lag between the time events are received and the time they
-	## are actually written to disk.
+	## Larger values here lead to better compression and more efficient writes,
+	## but also increase the lag between the time events are received and
+	## the time they are actually written to disk.
 	const extent_size = 65536 &redef;
 
 	## Should we dump the XML schema we use for this DS file to disk?
@@ -43,8 +43,8 @@ export {
 }
 
 # Default function to postprocess a rotated DataSeries log file. It moves the
-# rotated file to a new name that includes a timestamp with the opening time, and
-# then runs the writer's default postprocessor command on it.
+# rotated file to a new name that includes a timestamp with the opening time,
+# and then runs the writer's default postprocessor command on it.
 function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	{
 	# Move file to name including both opening and closing time.

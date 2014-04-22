@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro %INPUT
-# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: bro %INPUT | sort >output
+# @TEST-EXEC: btest-diff output
 
 redef enum Notice::Type += {
 	Test_Notice,
@@ -8,14 +8,15 @@ redef enum Notice::Type += {
 event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=3secs,
+	SumStats::create([$name="test1",
+	                  $epoch=3secs,
 	                  $reducers=set(r1),
 	                  #$threshold_val = SumStats::sum_threshold("test.metric"),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{ 
-	                  	return double_to_count(result["test.metric"]$sum);
+	                  	return result["test.metric"]$sum;
 	                  	},
-	                  $threshold=5,
+	                  $threshold=5.0,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
 	                  	{
 	                  	local r = result["test.metric"];
@@ -24,14 +25,15 @@ event bro_init() &priority=5
 	                  ]);
 
 	local r2: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=3secs,
+	SumStats::create([$name="test2",
+	                  $epoch=3secs,
 	                  $reducers=set(r2),
 	                  #$threshold_val = SumStats::sum_threshold("test.metric"),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{ 
-	                  	return double_to_count(result["test.metric"]$sum); 
+	                  	return result["test.metric"]$sum;
 	                  	},
-	                  $threshold_series=vector(3,6,800),
+	                  $threshold_series=vector(3.0,6.0,800.0),
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = 
 	                  	{
 	                  	local r = result["test.metric"];
@@ -41,19 +43,20 @@ event bro_init() &priority=5
 
 	local r3: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
 	local r4: SumStats::Reducer = [$stream="test.metric2", $apply=set(SumStats::SUM)];
-	SumStats::create([$epoch=3secs,
+	SumStats::create([$name="test3",
+	                  $epoch=3secs,
 	                  $reducers=set(r3, r4),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{ 
 	                  	# Calculate a ratio between sums of two reducers.
 	                  	if ( "test.metric2" in result && "test.metric" in result &&
 	                  	     result["test.metric"]$sum > 0 )
-	                  		return double_to_count(result["test.metric2"]$sum / result["test.metric"]$sum);
+	                  		return result["test.metric2"]$sum / result["test.metric"]$sum;
 	                  	else
-	                  		return 0;
+	                  		return 0.0;
 	                  	},
 	                  # Looking for metric2 sum to be 5 times the sum of metric
-	                  $threshold=5, 
+	                  $threshold=5.0, 
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
 	                  	local thold = result["test.metric2"]$sum / result["test.metric"]$sum;

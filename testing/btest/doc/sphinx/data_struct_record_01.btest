@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_record_01.bro

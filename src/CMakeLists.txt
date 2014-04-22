@@ -9,6 +9,9 @@ set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FO
 # This collects bif inputs that we'll load automatically.
 set(bro_AUTO_BIFS CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
 
+set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in base distribution of Bro" FORCE)
+set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in Bro plugins" FORCE)
+
 # If TRUE, use CMake's object libraries for sub-directories instead of
 # static libraries. This requires CMake >= 2.8.8.
 set(bro_HAVE_OBJECT_LIBRARIES FALSE)
@@ -154,6 +157,7 @@ set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 add_subdirectory(analyzer)
 add_subdirectory(file_analysis)
 add_subdirectory(probabilistic)
+add_subdirectory(broxygen)
 
 set(bro_SUBDIRS
     ${bro_SUBDIR_LIBS}
@@ -249,8 +253,6 @@ set(bro_SRCS
     Attr.cc
     Base64.cc
     BPF_Program.cc
-    BroDoc.cc
-    BroDocObj.cc
     Brofiler.cc
     BroString.cc
     CCL.cc
@@ -294,7 +296,6 @@ set(bro_SRCS
     OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
-    PacketSort.cc
     PersistenceSerializer.cc
     PktSrc.cc
     PolicyFile.cc
@@ -319,11 +320,13 @@ set(bro_SRCS
     StateAccess.cc
     Stats.cc
     Stmt.cc
+    Tag.cc
     Timer.cc
     Traverse.cc
     Trigger.cc
     TunnelEncapsulation.cc
     Type.cc
+    UID.cc
     Val.cc
     Var.cc
     bsd-getopt-long.c
@@ -335,11 +338,13 @@ set(bro_SRCS
     strsep.c
     modp_numtoa.c
 
-    threading/AsciiFormatter.cc
     threading/BasicThread.cc
+    threading/Formatter.cc
     threading/Manager.cc
     threading/MsgThread.cc
     threading/SerialTypes.cc
+    threading/formatters/Ascii.cc
+    threading/formatters/JSON.cc
 
     logging/Manager.cc
     logging/WriterBackend.cc
@@ -362,6 +367,8 @@ set(bro_SRCS
     3rdparty/sqlite3.c
 
     plugin/Component.cc
+    plugin/ComponentManager.h
+    plugin/TaggedComponent.h
     plugin/Manager.cc
     plugin/Plugin.cc
     plugin/Macros.h
@@ -398,12 +405,12 @@ add_custom_target(generate_outputs)
 add_dependencies(generate_outputs generate_outputs_stage2)
 
 # Build __load__.bro files for standard *.bif.bro.
-bro_bif_create_loader(bif_loader ${CMAKE_BINARY_DIR}/scripts/base/bif)
+bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")
 add_dependencies(bif_loader ${bro_SUBDIRS})
 add_dependencies(bro bif_loader)
 
 # Build __load__.bro files for plugins/*.bif.bro.
-bro_bif_create_loader(bif_loader_plugins ${CMAKE_BINARY_DIR}/scripts/base/bif/plugins)
+bro_bif_create_loader(bif_loader_plugins "${bro_PLUGIN_BIF_SCRIPTS}")
 add_dependencies(bif_loader_plugins ${bro_SUBDIRS})
 add_dependencies(bro bif_loader_plugins)
 

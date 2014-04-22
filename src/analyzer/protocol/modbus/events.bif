@@ -1,4 +1,4 @@
-## Generated for any modbus message regardless if the particular function
+## Generated for any Modbus message regardless if the particular function
 ## is further supported or not.
 ##
 ## c: The connection.
@@ -8,7 +8,7 @@
 ## is_orig: True if the event is raised for the originator side.
 event modbus_message%(c: connection, headers: ModbusHeaders, is_orig: bool%);
 
-## Generated for any modbus exception message.
+## Generated for any Modbus exception message.
 ##
 ## c: The connection.
 ##
@@ -23,7 +23,7 @@ event modbus_exception%(c: connection, headers: ModbusHeaders, code: count%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## start_address: The memory address where of the first coil to be read.
+## start_address: The memory address of the first coil to be read.
 ##
 ## quantity: The number of coils to be read.
 event modbus_read_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
@@ -149,7 +149,7 @@ event modbus_write_single_register_response%(c: connection, headers: ModbusHeade
 ##
 ## start_address: The memory address of the first coil to be written.
 ##
-## value: The values to be written to the coils.
+## coils: The values to be written to the coils.
 event modbus_write_multiple_coils_request%(c: connection, headers: ModbusHeaders, start_address: count, coils: ModbusCoils%);
 
 ## Generated for a Modbus write multiple coils response.
@@ -191,8 +191,8 @@ event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHe
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure is not
-##          yet passed through to the event.
+## .. note: This event is incomplete.  The information from the data structure
+##          is not yet passed through to the event.
 event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
 
 ## Generated for a Modbus read file record response.
@@ -201,8 +201,8 @@ event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure is not
-##          yet passed through to the event.
+## .. note: This event is incomplete.  The information from the data structure
+##          is not yet passed through to the event.
 event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
 
 ## Generated for a Modbus write file record request.
@@ -211,8 +211,8 @@ event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure is not
-##          yet passed through to the event.
+## .. note: This event is incomplete.  The information from the data structure
+##          is not yet passed through to the event.
 event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
 
 ## Generated for a Modbus write file record response.
@@ -221,8 +221,8 @@ event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure is not
-##          yet passed through to the event.
+## .. note: This event is incomplete.  The information from the data structure
+##          is not yet passed through to the event.
 event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%);
 
 ## Generated for a Modbus mask write register request.
@@ -272,7 +272,8 @@ event modbus_read_write_multiple_registers_request%(c: connection, headers: Modb
 ##
 ## headers: The headers for the modbus function.
 ##
-## written_registers: The register values read from the registers specified in the request.
+## written_registers: The register values read from the registers specified in
+##                    the request.
 event modbus_read_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, written_registers: ModbusRegisters%);
 
 ## Generated for a Modbus read FIFO queue request.

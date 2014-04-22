@@ -8,10 +8,12 @@ module HTTP;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates that a host performing SQL injection attacks was detected.
+		## Indicates that a host performing SQL injection attacks was
+		## detected.
 		SQL_Injection_Attacker,
-		## Indicates that a host was seen to have SQL injection attacks against
-		## it.  This is tracked by IP address as opposed to hostname.
+		## Indicates that a host was seen to have SQL injection attacks
+		## against it.  This is tracked by IP address as opposed to
+		## hostname.
 		SQL_Injection_Victim,
 	};
 
@@ -19,16 +21,18 @@ export {
 		## Indicator of a URI based SQL injection attack.
 		URI_SQLI,
 		## Indicator of client body based SQL injection attack.  This is
-		## typically the body content of a POST request. Not implemented yet.
+		## typically the body content of a POST request. Not implemented
+		## yet.
 		POST_SQLI,
-		## Indicator of a cookie based SQL injection attack. Not implemented yet.
+		## Indicator of a cookie based SQL injection attack. Not
+		## implemented yet.
 		COOKIE_SQLI,
 	};
 
 	## Defines the threshold that determines if an SQL injection attack
 	## is ongoing based on the number of requests that appear to be SQL
 	## injection attacks.
-	const sqli_requests_threshold = 50 &redef;
+	const sqli_requests_threshold: double = 50.0 &redef;
 
 	## Interval at which to watch for the
 	## :bro:id:`HTTP::sqli_requests_threshold` variable to be crossed.
@@ -64,11 +68,12 @@ event bro_init() &priority=3
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
 	local r1: SumStats::Reducer = [$stream="http.sqli.attacker", $apply=set(SumStats::SUM, SumStats::SAMPLE), $num_samples=collect_SQLi_samples];
-	SumStats::create([$epoch=sqli_requests_interval,
+	SumStats::create([$name="detect-sqli-attackers",
+	                  $epoch=sqli_requests_interval,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["http.sqli.attacker"]$sum);
+	                  	return result["http.sqli.attacker"]$sum;
 	                  	},
 	                  $threshold=sqli_requests_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
@@ -82,11 +87,12 @@ event bro_init() &priority=3
 	                  	}]);
 
 	local r2: SumStats::Reducer = [$stream="http.sqli.victim", $apply=set(SumStats::SUM, SumStats::SAMPLE), $num_samples=collect_SQLi_samples];
-	SumStats::create([$epoch=sqli_requests_interval,
+	SumStats::create([$name="detect-sqli-victims",
+	                  $epoch=sqli_requests_interval,
 	                  $reducers=set(r2),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return double_to_count(result["http.sqli.victim"]$sum);
+	                  	return result["http.sqli.victim"]$sum;
 	                  	},
 	                  $threshold=sqli_requests_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

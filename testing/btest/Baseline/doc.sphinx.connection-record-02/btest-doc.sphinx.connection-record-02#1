@@ -1,0 +1,17 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -b -r http/get.trace connection_record_02.bro
+      [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0], start_time=1362692526.869344, duration=0.211484, service={
+      
+      }, addl=, hot=0, history=ShADadFf, uid=CXWv6p3arKYeMETxOg, tunnel=<uninitialized>, conn=[ts=1362692526.869344, uid=CXWv6p3arKYeMETxOg, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=<uninitialized>, duration=0.211484, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents={
+      
+      }], extract_orig=F, extract_resp=F, http=[ts=1362692526.939527, uid=CXWv6p3arKYeMETxOg, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, user_agent=Wget/1.14 (darwin12.2.0), request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, filename=<uninitialized>, tags={
+      
+      }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FakNcS1Jfe01uljb3], resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
+      
+      }, current_request=1, current_response=1]]
+

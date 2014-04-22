@@ -9,6 +9,7 @@
 #include "Dict.h"
 #include "CompHash.h"
 #include "Val.h"
+#include "Tag.h"
 
 namespace file_analysis {
 
@@ -37,32 +38,44 @@ public:
 	~AnalyzerSet();
 
 	/**
+	 * Looks up an analyzer by its tag and arguments.
+	 * @param tag an analyzer tag.
+	 * @param args an \c AnalyzerArgs record.
+	 * @return pointer to an analyzer instance, or a null pointer if not found.
+	 */
+	Analyzer* Find(file_analysis::Tag tag, RecordVal* args);
+
+	/**
 	 * Attach an analyzer to #file immediately.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was instantiated/attached, else false.
 	 */
-	bool Add(RecordVal* args);
+	bool Add(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queue the attachment of an analyzer to #file.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was able to be instantiated, else false.
 	 */
-	bool QueueAdd(RecordVal* args);
+	bool QueueAdd(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return false if analyzer didn't exist and so wasn't removed, else true.
 	 */
-	bool Remove(const RecordVal* args);
+	bool Remove(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queue the removal of an analyzer from #file.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer exists at time of call, else false;
 	 */
-	bool QueueRemove(const RecordVal* args);
+	bool QueueRemove(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Perform all queued modifications to the current analyzer set.
@@ -91,17 +104,20 @@ protected:
 
 	/**
 	 * Get a hash key which represents an analyzer instance.
+	 * @param tag the file analyzer tag.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return the hash key calculated from \a args
 	 */
-	HashKey* GetKey(const RecordVal* args) const;
+	HashKey* GetKey(file_analysis::Tag tag, RecordVal* args) const;
 
 	/**
 	 * Create an instance of a file analyzer.
+	 * @param tag the tag of a file analyzer.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return a new file analyzer instance.
 	 */
-	file_analysis::Analyzer* InstantiateAnalyzer(RecordVal* args) const;
+	file_analysis::Analyzer* InstantiateAnalyzer(file_analysis::Tag tag,
+	                                             RecordVal* args) const;
 
 	/**
 	 * Insert an analyzer instance in to the set.
@@ -116,7 +132,7 @@ protected:
 	 *        just used for debugging messages.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */
-	bool Remove(FA_Tag tag, HashKey* key);
+	bool Remove(file_analysis::Tag tag, HashKey* key);
 
 private:
 
@@ -175,14 +191,14 @@ private:
 		 * @param arg_a an analyzer instance to add to an analyzer set.
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
-		RemoveMod(FA_Tag arg_tag, HashKey* arg_key)
+		RemoveMod(file_analysis::Tag arg_tag, HashKey* arg_key)
 			: Modification(), tag(arg_tag), key(arg_key) {}
 		virtual ~RemoveMod() {}
 		virtual bool Perform(AnalyzerSet* set);
 		virtual void Abort() { delete key; }
 
 	protected:
-		FA_Tag tag;
+		file_analysis::Tag tag;
 		HashKey* key;
 	};
 

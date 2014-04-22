@@ -1,0 +1,12 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro data_struct_table_declaration.bro
+      Service Name:  IMAPS - Common Port: 993/tcp
+      Service Name:  HTTPS - Common Port: 443/tcp
+      Service Name:  SSH - Common Port: 22/tcp
+      Service Name:  SMTPS - Common Port: 587/tcp
+

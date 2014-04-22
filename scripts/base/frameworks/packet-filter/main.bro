@@ -1,4 +1,4 @@
-##! This script supports how Bro sets it's BPF capture filter.  By default
+##! This script supports how Bro sets its BPF capture filter.  By default
 ##! Bro sets a capture filter that allows all traffic.  If a filter
 ##! is set on the command line, that filter takes precedence over the default
 ##! open filter and all filters defined in Bro scripts with the
@@ -19,7 +19,7 @@ export {
 		## This notice is generated if a packet filter cannot be compiled.
 		Compile_Failure,
 
-		## Generated if a packet filter is fails to install.
+		## Generated if a packet filter fails to install.
 		Install_Failure,
 
 		## Generated when a notice takes too long to compile.
@@ -33,8 +33,8 @@ export {
 		ts:     time   &log;
 
 		## This is a string representation of the node that applied this
-		## packet filter.  It's mostly useful in the context of dynamically
-		## changing filters on clusters.
+		## packet filter.  It's mostly useful in the context of
+		## dynamically changing filters on clusters.
 		node:   string &log &optional;
 
 		## The packet filter that is being set.
@@ -48,27 +48,28 @@ export {
 	};
 
 	## The BPF filter that is used by default to define what traffic should
-	## be captured.  Filters defined in :bro:id:`restrict_filters` will still
-	## be applied to reduce the captured traffic.
+	## be captured.  Filters defined in :bro:id:`restrict_filters` will
+	## still be applied to reduce the captured traffic.
 	const default_capture_filter = "ip or not ip" &redef;
 
-	## Filter string which is unconditionally or'ed to the beginning of every
-	## dynamically built filter.
+	## Filter string which is unconditionally or'ed to the beginning of
+	## every dynamically built filter.
 	const unrestricted_filter = "" &redef;
 
-	## Filter string which is unconditionally and'ed to the beginning of every
-	## dynamically built filter.  This is mostly used when a custom filter is being
-	## used but MPLS or VLAN tags are on the traffic.
+	## Filter string which is unconditionally and'ed to the beginning of
+	## every dynamically built filter.  This is mostly used when a custom
+	## filter is being used but MPLS or VLAN tags are on the traffic.
 	const restricted_filter = "" &redef;
 
 	## The maximum amount of time that you'd like to allow for BPF filters to compile.
 	## If this time is exceeded, compensation measures may be taken by the framework
-	## to reduce the filter size.  This threshold being crossed also results in
-	## the :bro:see:`PacketFilter::Too_Long_To_Compile_Filter` notice.
+	## to reduce the filter size.  This threshold being crossed also results
+	## in the :bro:see:`PacketFilter::Too_Long_To_Compile_Filter` notice.
 	const max_filter_compile_time = 100msec &redef;
 
-	## Install a BPF filter to exclude some traffic.  The filter should positively
-	## match what is to be excluded, it will be wrapped in a "not".
+	## Install a BPF filter to exclude some traffic.  The filter should
+	## positively match what is to be excluded, it will be wrapped in
+	## a "not".
 	##
 	## filter_id: An arbitrary string that can be used to identify
 	##            the filter.
@@ -79,9 +80,9 @@ export {
 	##          installed or not.
 	global exclude: function(filter_id: string, filter: string): bool;
 
-	## Install a temporary filter to traffic which should not be passed through
-	## the BPF filter.  The filter should match the traffic you don't want
-	## to see (it will be wrapped in a "not" condition).
+	## Install a temporary filter to traffic which should not be passed
+	## through the BPF filter.  The filter should match the traffic you
+	## don't want to see (it will be wrapped in a "not" condition).
 	##
 	## filter_id: An arbitrary string that can be used to identify
 	##            the filter.
@@ -109,7 +110,7 @@ export {
 
 	## Enables the old filtering approach of "only watch common ports for
 	## analyzed protocols".
-        ##
+	##
 	## Unless you know what you are doing, leave this set to F.
 	const enable_auto_protocol_capture_filters = F &redef;
 
@@ -125,7 +126,7 @@ global dynamic_restrict_filters: table[string] of string = {};
 # install the filter.
 global currently_building = F;
 
-# Internal tracking for if the the filter being built has possibly been changed.
+# Internal tracking for if the filter being built has possibly been changed.
 global filter_changed = F;
 
 global filter_plugins: set[FilterPlugin] = {};
@@ -293,6 +294,7 @@ function install(): bool
 	# Do an audit log for the packet filter.
 	local info: Info;
 	info$ts = network_time();
+	info$node = peer_description;
 	# If network_time() is 0.0 we're at init time so use the wall clock.
 	if ( info$ts == 0.0 )
 		{

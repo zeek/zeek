@@ -1,0 +1,2 @@
+equality and /^?(equal)$?/ are not equal
+equality and /^?(equality)$?/ are equal

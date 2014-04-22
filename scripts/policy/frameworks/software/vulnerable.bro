@@ -1,5 +1,5 @@
-##! Provides a variable to define vulnerable versions of software and if a
-##! a version of that software as old or older than the defined version a
+##! Provides a variable to define vulnerable versions of software and if
+##! a version of that software is as old or older than the defined version a
 ##! notice will be generated.
 
 @load base/frameworks/control
@@ -21,7 +21,7 @@ export {
 		min:  Software::Version &optional;
 		## The maximum vulnerable version.  This field is deliberately
 		## not optional because a maximum vulnerable version must
-		## always be defined.  This assumption may become incorrent
+		## always be defined.  This assumption may become incorrect
 		## if all future versions of some software are to be considered
 		## vulnerable. :)
 		max:  Software::Version;

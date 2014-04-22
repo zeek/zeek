@@ -1,0 +1,13 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
+      CyAhVIzHqb7t7kv28	734
+      CkDsfG2YIeWJmXWNWj	734
+      CJ3xTn1c4Zw9TmAE05	734
+      C3SfNE4BWaU4aSuwkc	734
+      CzA03V1VcgagLjnO92	733
+

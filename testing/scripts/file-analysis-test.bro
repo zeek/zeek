@@ -60,7 +60,7 @@ event file_new(f: fa_file)
 	if ( f?$bof_buffer )
 		{
 		print "FILE_BOF_BUFFER";
-		print f$bof_buffer[0:10];
+		print f$bof_buffer[0:11];
 		}
 
 	if ( f?$mime_type )

@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2013-05-07-14-38-27
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
+1320329757.771503	j4u32Pc5bif	10.0.2.15	49286	192.150.187.43	80	tcp	http	15.161537	2899	1127	S2	-	0	ShADadF	20	3719	19	1891	(empty)
+1320329757.771262	nQcgTWjvg4c	10.0.2.15	49285	192.150.187.43	80	tcp	http	15.161772	889	377	S2	-	0	ShADadF	8	1229	8	701	(empty)
+1320329757.761327	arKYeMETxOg	10.0.2.15	49283	192.150.187.43	80	tcp	http	15.168898	459	189	S2	-	0	ShADadF	5	679	4	353	(empty)
+1320329757.458867	UWkUyAuUGXf	10.0.2.15	49282	192.150.187.43	80	tcp	http	15.471378	1824	751	S2	-	0	ShADadF	12	2324	13	1275	(empty)
+1320329757.761638	k6kgXLOoSKl	10.0.2.15	49284	192.150.187.43	80	tcp	http	15.168613	898	376	S2	-	0	ShADadF	8	1238	8	700	(empty)
+1320329757.771755	TEfuqmmG4bh	10.0.2.15	49287	192.150.187.43	80	tcp	http	15.161267	900	376	S2	-	0	ShADadF	8	1240	8	700	(empty)
+#close	2013-05-07-14-38-27

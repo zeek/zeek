@@ -1,5 +1,5 @@
-##! FTP brute-forcing detector, triggering when too  many rejected usernames or
-##! failed passwords have occured from a single address.
+##! FTP brute-forcing detector, triggering when too many rejected usernames or
+##! failed passwords have occurred from a single address.
 
 @load base/protocols/ftp
 @load base/frameworks/sumstats
@@ -10,14 +10,14 @@ module FTP;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates a host bruteforcing FTP logins by watching for too many
-		## rejected usernames or failed passwords.
+		## Indicates a host bruteforcing FTP logins by watching for too
+		## many rejected usernames or failed passwords.
 		Bruteforcing
 	};
 
 	## How many rejected usernames or passwords are required before being
 	## considered to be bruteforcing.
-	const bruteforce_threshold = 20 &redef;
+	const bruteforce_threshold: double = 20 &redef;
 
 	## The time period in which the threshold needs to be crossed before
 	## being reset.
@@ -27,12 +27,13 @@ export {
 
 event bro_init()
 	{
-	local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE)];
-	SumStats::create([$epoch=bruteforce_measurement_interval,
+	local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(bruteforce_threshold+2)];
+	SumStats::create([$name="ftp-detect-bruteforcing",
+	                  $epoch=bruteforce_measurement_interval,
 	                  $reducers=set(r1),
 	                  $threshold_val(key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	return result["ftp.failed_auth"]$num;
+	                  	return result["ftp.failed_auth"]$num+0.0;
 	                  	},
 	                  $threshold=bruteforce_threshold,
 	                  $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =

@@ -19,6 +19,20 @@ public:
 	typedef std::vector<digest> digest_vector;
 
 	/**
+	 * Creates a valid hasher seed from an arbitrary string.
+	 *
+	 * @param data A pointer to contiguous data that should be crunched into a
+	 * seed. If 0, the function tries to find a global_hash_seed script variable
+	 * to derive a seed from. If this variable does not exist, the function uses
+	 * the initial seed generated at Bro startup.
+	 *
+	 * @param size The number of bytes of *data*.
+	 *
+	 * @return A seed suitable for hashers.
+	 */
+	static uint64 MakeSeed(const void* data, size_t size);
+
+	/**
 	 * Destructor.
 	 */
 	virtual ~Hasher() { }
@@ -35,6 +49,15 @@ public:
 		{
 		return Hash(&x, sizeof(T));
 		}
+
+	/**
+	 * Computes hash values for an element.
+	 *
+	 * @param x The key of the value to hash.
+	 *
+	 * @return Vector of *k* hash values.
+	 */
+	digest_vector Hash(const HashKey* key) const;
 
 	/**
 	 * Computes the hashes for a set of bytes.
@@ -64,11 +87,9 @@ public:
 	size_t K() const	{ return k; }
 
 	/**
-	 * Returns the hasher's name. If not empty, the hasher uses this descriptor
-	 * to seed its *k* hash functions. Otherwise the hasher mixes in the initial
-	 * seed derived from the environment variable `$BRO_SEED`.
+	 * Returns the seed used to construct the hasher.
 	 */
-	const std::string& Name() const { return name; }
+	size_t Seed() const	{ return seed; }
 
 	bool Serialize(SerialInfo* info) const;
 	static Hasher* Unserialize(UnserialInfo* info);
@@ -81,16 +102,15 @@ protected:
 	/**
 	 * Constructor.
 	 *
-	 * @param k the number of hash functions.
+	 * @param arg_k the number of hash functions.
 	 *
-	 * @param name A name for the hasher. Hashers with the same name
-	 * should provide consistent results.
+	 * @param arg_seed The seed for the hasher.
 	 */
-	Hasher(size_t k, const std::string& name);
+	Hasher(size_t arg_k, size_t arg_seed);
 
 private:
 	size_t k;
-	std::string name;
+	size_t seed;
 };
 
 /**
@@ -103,13 +123,9 @@ public:
 	 * Constructs an H3 hash function seeded with a given seed and an
 	 * optional extra seed to replace the initial Bro seed.
 	 *
-	 * @param seed The seed to use for this instance.
-	 *
-	 * @param extra If not empty, this parameter replaces the initial
-	 * seed to compute the seed for t to compute the seed NUL-terminated
-	 * string as additional seed.
+	 * @param arg_seed The seed to use for this instance.
 	 */
-	UHF(size_t seed = 0, const std::string& extra = "");
+	UHF(size_t arg_seed = 0);
 
 	template <typename T>
 	Hasher::digest operator()(const T& x) const
@@ -152,9 +168,10 @@ public:
 		}
 
 private:
-	static size_t compute_seed(size_t seed, const std::string& extra);
+	static size_t compute_seed(size_t seed);
 
 	H3<Hasher::digest, UHASH_KEY_SIZE> h;
+	size_t seed;
 };
 
 
@@ -169,9 +186,9 @@ public:
 	 *
 	 * @param k The number of hash functions to use.
 	 *
-	 * @param name The name of the hasher.
+	 * @param seed The seed for the hasher.
 	 */
-	DefaultHasher(size_t k, const std::string& name = "");
+	DefaultHasher(size_t k, size_t seed);
 
 	// Overridden from Hasher.
 	virtual digest_vector Hash(const void* x, size_t n) const /* final */;
@@ -197,9 +214,9 @@ public:
 	 *
 	 * @param k The number of hash functions to use.
 	 *
-	 * @param name The name of the hasher.
+	 * @param seed The seed for the hasher.
 	 */
-	DoubleHasher(size_t k, const std::string& name = "");
+	DoubleHasher(size_t k, size_t seed);
 
 	// Overridden from Hasher.
 	virtual digest_vector Hash(const void* x, size_t n) const /* final */;

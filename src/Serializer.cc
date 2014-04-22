@@ -70,18 +70,18 @@ bool Serializer::StartSerialization(SerialInfo* info, const char* descr,
 
 bool Serializer::EndSerialization(SerialInfo* info)
 	{
-	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
-	chunk->len = format->EndWrite(&chunk->data);
-
 	if ( info->chunk )
 		{
-
 		if ( ! io->Write(info->chunk) )
 			{
 			Error(io->Error());
 			return false;
 			}
 		}
+
+	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
+	chunk->len = format->EndWrite(&chunk->data);
+	chunk->free_func = ChunkedIO::Chunk::free_func_free;
 
 	if ( ! io->Write(chunk) )
 		{
@@ -137,7 +137,14 @@ bool Serializer::Serialize(SerialInfo* info, const char* func, val_list* args)
 	Write(network_time, "time");
 	Write(a, "len");
 
-	loop_over_list(*args, i) (*args)[i]->Serialize(info);
+	loop_over_list(*args, i)
+		{
+		if ( ! (*args)[i]->Serialize(info) )
+			{
+			Error("failed");
+			return false;
+			}
+		}
 
 	WriteCloseTag("call");
 	WriteSeparator();
@@ -276,7 +283,6 @@ int Serializer::Unserialize(UnserialInfo* info, bool block)
 
 	if ( ! info->chunk )
 		{ // only delete if we allocated it ourselves
-		delete [] chunk->data;
 		delete chunk;
 		}
 
@@ -366,6 +372,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 		if ( ! v )
 			{
 			delete [] name;
+			delete_vals(args);
 			return false;
 			}
 
@@ -378,7 +385,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 				ignore = true;
 				}
 
-			if ( info->print && types && ! ignore )
+			if ( info->print && ! ignore )
 				v->Describe(&d);
 			}
 
@@ -412,7 +419,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 			break;
 
 		default:
-			reporter->InternalError("invalid function flavor");
+			reporter->InternalError("unserialized call for invalid function flavor");
 			break;
 		}
 
@@ -1032,6 +1039,7 @@ void ConversionSerializer::GotPacket(Packet* p)
 	}
 
 EventPlayer::EventPlayer(const char* file)
+    : stream_time(), replay_time(), ne_time(), ne_handler(), ne_args()
 	{
 	if ( ! OpenFile(file, true) || fd < 0 )
 		Error(fmt("event replayer: cannot open %s", file));
@@ -1148,7 +1156,11 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 		UNSERIALIZE(&tv_usec) &&
 		UNSERIALIZE(&len) &&
 		UNSERIALIZE(&p->link_type)) )
+		{
+		delete p;
+		delete hdr;
 		return 0;
+		}
 
 	hdr->ts.tv_sec = tv_sec;
 	hdr->ts.tv_usec = tv_usec;
@@ -1156,12 +1168,18 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 
 	char* tag;
 	if ( ! info->s->Read((char**) &tag, 0, "tag") )
+		{
+		delete p;
+		delete hdr;
 		return 0;
+		}
 
 	char* pkt;
 	int caplen;
 	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
 		{
+		delete p;
+		delete hdr;
 		delete [] tag;
 		return 0;
 		}

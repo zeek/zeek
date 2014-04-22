@@ -10,6 +10,7 @@
 
 #include "Conn.h"
 #include "Val.h"
+#include "Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
 
@@ -56,6 +57,14 @@ public:
 	void SetTimeoutInterval(double interval);
 
 	/**
+	 * Change the maximum size that an attached extraction analyzer is allowed.
+	 * @param args the file extraction analyzer whose limit needs changed.
+	 * @param bytes new limit.
+	 * @return false if no extraction analyzer is active, else true.
+	 */
+	bool SetExtractionLimit(RecordVal* args, uint64 bytes);
+
+	/**
 	 * @return value of the "id" field from #val record.
 	 */
 	string GetID() const { return id; }
@@ -94,17 +103,19 @@ public:
 	/**
 	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
 	 * at a time unless the arguments differ.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(RecordVal* args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(const RecordVal* args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.
@@ -214,11 +225,12 @@ protected:
 	void ReplayBOF();
 
 	/**
-	 * Does mime type detection and assigns type (if available) to \c mime_type
+	 * Does mime type detection via file magic signatures and assigns
+	 * strongest matching mime type (if available) to \c mime_type
 	 * field in #val.
 	 * @param data pointer to a chunk of file data.
 	 * @param len number of bytes in the data chunk.
-	 * @return whether mime type was available.
+	 * @return whether a mime type match was found.
 	 */
 	bool DetectMIME(const u_char* data, uint64 len);
 
@@ -271,6 +283,7 @@ private:
 	static int bof_buffer_size_idx;
 	static int bof_buffer_idx;
 	static int mime_type_idx;
+	static int mime_types_idx;
 };
 
 } // namespace file_analysis

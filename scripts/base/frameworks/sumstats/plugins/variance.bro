@@ -1,5 +1,5 @@
-@load base/frameworks/sumstats/main
 @load ./average
+@load ../main
 
 module SumStats;
 
@@ -28,17 +28,17 @@ function calc_variance(rv: ResultVal)
 	rv$variance = (rv$num > 1) ? rv$var_s/(rv$num-1) : 0.0;
 	}
 
-# Reduced priority since this depends on the average
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal) &priority=-5
+hook register_observe_plugins() &priority=-5
 	{
-	if ( VARIANCE in r$apply )
+	register_observe_plugin(VARIANCE, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
 		if ( rv$num > 1 )
 			rv$var_s += ((val - rv$prev_avg) * (val - rv$average));
 
 		calc_variance(rv);
 		rv$prev_avg = rv$average;
-		}
+		});
+	add_observe_plugin_dependency(VARIANCE, AVERAGE);
 	}
 
 # Reduced priority since this depends on the average

@@ -281,7 +281,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
-	if ( ! bodies.size() )
+	if ( bodies.empty() )
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
@@ -315,14 +315,14 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	loop_over_list(*args, i)
 		f->SetElement(i, (*args)[i]);
 
-	stmt_flow_type flow;
+	stmt_flow_type flow = FLOW_NEXT;
 
 	Val* result = 0;
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	for ( unsigned int i = 0; i < bodies.size(); ++i )
+	for ( size_t i = 0; i < bodies.size(); ++i )
 		{
 		if ( sample_logger )
 			sample_logger->LocationSeen(

@@ -1,56 +1,107 @@
-# @TEST-EXEC: btest-bg-run bro bro -b --pseudo-realtime -r $TRACES/rotation.trace %INPUT
-# @TEST-EXEC: btest-bg-wait -k 3
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-sort" btest-diff bro/.stderr
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: btest-bg-run bro "bro -b %INPUT >output 2>&1"
+# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-sort" btest-diff bro/output
 
 # interpreter exceptions in "when" blocks shouldn't cause termination
 
-global p: pkt_hdr;
+@load base/utils/exec
+@load base/frameworks/communication # let network-time run. otherwise there are no heartbeats...
+redef exit_only_after_terminate = T;
+
+type MyRecord: record {
+	a: bool &default=T;
+	notset: bool &optional;
+};
+
+global myrecord: MyRecord;
+
+global c = 0;
+
+function check_term_condition()
+	{
+	++c;
+
+	#print "check_term_condition", c;
+
+	if ( c == 6 )
+		terminate();
+	}
+
+event termination_check()
+	{
+	#print "termination_check event";
+	check_term_condition();
+	}
 
 function f(do_exception: bool): bool
 	{
-	return when ( local addrs = lookup_hostname("localhost") )
+	local cmd = Exec::Command($cmd=fmt("echo 'f(%s)'",
+	                          do_exception));
+
+	return when ( local result = Exec::run(cmd) )
 		{
-		print "localhost resolved from f()", do_exception;
+		print result$stdout;
+
 		if ( do_exception )
-			print p$ip;
+			{
+			event termination_check();
+			print myrecord$notset;
+			}
+
 		return T;
 		}
+
+	check_term_condition();
 	return F;
 	}
 
 function g(do_exception: bool): bool
 	{
-	return when ( local addrs = lookup_hostname("localhost") )
+	local stall = Exec::Command($cmd="sleep 30");
+
+	return when ( local result = Exec::run(stall) )
 		{
-		print "shouldn't get here, g()", do_exception;
+		print "shouldn't get here, g()", do_exception, result;
 		}
 	timeout 0 sec
 		{
 		print "timeout g()", do_exception;
+
 		if ( do_exception )
-			print p$ip;
+			{
+			event termination_check();
+			print myrecord$notset;
+			}
+
 		return T;
 		}
+
+	check_term_condition();
 	return F;
 	}
 
 event bro_init()
 	{
-	when ( local addrs = lookup_hostname("localhost") )
+	local cmd = Exec::Command($cmd="echo 'bro_init()'");
+	local stall = Exec::Command($cmd="sleep 30");
+
+	when ( local result = Exec::run(cmd) )
 		{
-		print "localhost resolved";
-		print p$ip;
+		print result$stdout;
+		event termination_check();
+		print myrecord$notset;
 		}
 
-	when ( local addrs2 = lookup_hostname("localhost") )
+	when ( local result2 = Exec::run(stall) )
 		{
-		print "shouldn't get here";
+		print "shouldn't get here", result2;
+		check_term_condition();
 		}
 	timeout 0 sec
 		{
 		print "timeout";
-		print p$ip;
+		event termination_check();
+		print myrecord$notset;
 		}
 
 	when ( local b = f(T) )
@@ -60,8 +111,14 @@ event bro_init()
 		print "g() exception done (shouldn't be printed)", b2;
 
 	when ( local b3 = f(F) )
+		{
 		print "f() done, no exception", b3;
+		check_term_condition();
+		}
 
 	when ( local b4 = g(F) )
+		{
 		print "g() done, no exception", b4;
+		check_term_condition();
+		}
 	}

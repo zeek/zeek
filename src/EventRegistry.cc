@@ -90,9 +90,14 @@ void EventRegistry::PrintDebug()
 void EventRegistry::SetErrorHandler(const char* name)
 	{
 	EventHandler* eh = Lookup(name);
-	if ( ! eh )
-		reporter->InternalError("unknown event handler in SetErrorHandler()");
 
-	eh->SetErrorHandler();
+	if ( eh )
+		{
+		eh->SetErrorHandler();
+		return;
+		}
+
+	reporter->InternalWarning(
+	            "unknown event handler '%s' in SetErrorHandler()", name);
 	}
 

@@ -12,12 +12,12 @@ export {
 		## Apply BPF filters to each worker in a way that causes them to
 		## automatically flow balance traffic between them.
 		AUTO_BPF,
-		## Load balance traffic across the workers by making each one apply
-		## a restrict filter to only listen to a single MAC address.  This
-		## is a somewhat common deployment option for sites doing network
-		## based load balancing with MAC address rewriting and passing the
-		## traffic to a single interface.  Multiple MAC addresses will show
-		## up on the same interface and need filtered to a single address.
+		# Load balance traffic across the workers by making each one apply
+		# a restrict filter to only listen to a single MAC address.  This
+		# is a somewhat common deployment option for sites doing network
+		# based load balancing with MAC address rewriting and passing the
+		# traffic to a single interface.  Multiple MAC addresses will show
+		# up on the same interface and need filtered to a single address.
 		#MAC_ADDR_BPF,
 	};
 
@@ -29,9 +29,10 @@ export {
 	#global confirm_filter_installation: event(success: bool);
 
 	redef record Cluster::Node += {
-		## A BPF filter for load balancing traffic sniffed on a single interface
-		## across a number of processes.  In normal uses, this will be assigned
-		## dynamically by the manager and installed by the workers.
+		## A BPF filter for load balancing traffic sniffed on a single
+		## interface across a number of processes.  In normal uses, this
+		## will be assigned dynamically by the manager and installed by
+		## the workers.
 		lb_filter: string &optional;
 	};
 }

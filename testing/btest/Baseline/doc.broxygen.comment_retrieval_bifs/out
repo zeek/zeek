@@ -1,0 +1,70 @@
+This is a test script.
+With some summary comments.
+myvar:
+    Hello world.  This is an option.
+    With some more description here.
+    And here.
+    Maybe just one more.
+print_lines:
+    This function prints a string line by line.
+    
+    lines: A string to print line by line, w/ lines delimited by newline chars.
+    And some more comments on the function implementation.
+mytype:
+    This is an alias for count.
+myrecord:
+    My record type.
+myrecord$aaa:
+    The first field.
+    Does something...
+    Done w/ aaa.
+myrecord$bbb:
+    The second field.
+    Done w/ bbb.
+    No really, done w/ bbb.
+myrecord$ccc:
+    Third field.
+    Done w/ ccc.
+myrecord$ddd:
+    Fourth field.
+    Done w/ ddd.
+myrecord$eee:
+    First redef'd field.
+    With two lines of comments.
+    And two post-notation comments.
+    Done w/ eee.
+myrecord$fff:
+    Second redef'd field.
+    Done w/ fff.
+myrecord$ggg:
+    Third redef'd field.
+    Done w/ ggg.
+myenum:
+    My enum type;
+FIRST:
+    First enum value.
+    I know, the name isn't clever.
+    Done w/ first.
+SECOND:
+    Second enum value.
+    Done w/ second.
+THIRD:
+    Third enum value.
+    Done w/ third.
+    Done w/ third again.
+FORTH:
+    SIC.
+    It's a programming language.
+    Using Reverse Polish Notation.
+    Done w/ forth.
+FIFTH:
+    First redef'd enum val.
+    Done w/ fifth.
+SIXTH:
+    Second redef'd enum val.
+    Done w/ sixth.
+SEVENTH:
+    Third redef'd enum val.
+    Lucky number seven.
+    Still works with comma.
+    Done w/ seventh.

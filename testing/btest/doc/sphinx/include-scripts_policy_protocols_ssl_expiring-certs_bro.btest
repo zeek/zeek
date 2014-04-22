@@ -1,0 +1,8 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+expiring-certs.bro
+
+		NOTICE([$note=Certificate_Expires_Soon,
+		        $msg=fmt("Certificate %s is going to expire at %T", cert$subject, cert$not_valid_after),
+		        $conn=c, $suppress_for=1day,
+		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);

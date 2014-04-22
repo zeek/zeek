@@ -1,0 +1,30 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r http/bro.org.pcap mimestats.bro
+
+.. rst-class:: btest-include
+
+    .. code-block:: guess
+      :linenos:
+
+      #separator \x09
+      #set_separator	,
+      #empty_field	(empty)
+      #unset_field	-
+      #path	mime_metrics
+      #open	2014-03-06-17-30-44
+      #fields	ts	ts_delta	mtype	uniq_hosts	hits	bytes
+      #types	time	interval	string	count	count	count
+      1389719059.311698	300.000000	text/html	1	4	53070
+      1389719059.311698	300.000000	image/jpeg	1	1	186859
+      1389719059.311698	300.000000	application/pgp-signature	1	1	836
+      1389719059.311698	300.000000	text/plain	1	12	113982
+      1389719059.311698	300.000000	image/gif	1	1	172
+      1389719059.311698	300.000000	image/png	1	9	82176
+      1389719059.311698	300.000000	image/x-icon	1	2	2300
+      #close	2014-03-06-17-30-44
+

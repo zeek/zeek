@@ -170,13 +170,9 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	int orig_endp_idx = connection_type->FieldOffset("orig");
-	int resp_endp_idx = connection_type->FieldOffset("resp");
-	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
-	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
-	orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
-	resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
 	UpdateEndpointVal(orig_endp, 1);
 	UpdateEndpointVal(resp_endp, 0);
 

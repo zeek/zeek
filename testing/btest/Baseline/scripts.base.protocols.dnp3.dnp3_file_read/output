@@ -1,0 +1,45 @@
+dnp3_header_block, T, 25605, 50, 196, 4, 3
+dnp3_application_request_header, T, 25
+dnp3_object_header, T, 17923, 91, 1, 1, 0
+dnp3_object_prefix, T, 36
+dnp3_header_block, F, 25605, 29, 68, 3, 4
+dnp3_application_response_header, F, 129, 4096
+dnp3_object_header, F, 17924, 91, 1, 1, 0
+dnp3_object_prefix, F, 13
+dnp3_response_data_object, F, 255
+dnp3_header_block, T, 25605, 22, 196, 4, 3
+dnp3_application_request_header, T, 1
+dnp3_object_header, T, 17925, 91, 1, 1, 0
+dnp3_object_prefix, T, 8
+dnp3_file_transport, T, 305419896, 0
+                                                  ^J
+dnp3_header_block, F, 25605, 255, 68, 3, 4
+dnp3_application_response_header, F, 129, 4096
+dnp3_object_header, F, 17925, 91, 1, 1, 0
+dnp3_object_prefix, F, 838
+dnp3_file_transport, F, 305419896, 2147483648
+0000  ef bb bf 3c 3f 78 6d 6c  20 76 65 72 73 69 6f 6e  ...<?xml  version^J0010  3d 22 31 2e 30 22 20 65  6e 63 6f 64 69 6e 67 3d  ="1.0" e ncoding=^J0020  22 75 74 66 2d 38 22 3f  3e 0d 0a 3c 3f 78 6d 6c  "utf-8"? >..<?xml^J0030  2d 73 74 79 6c 65 73 68  65 65 74 20 74 79 70 65  -stylesh eet type^J0040  3d 27 74 65 78 74 2f 78  73 6c 27 20 68 72 65 66  ='text/x sl' href^J0050  3d 27 44 4e 50 33 44 65  76 69 63 65 50 72 6f 66  ='DNP3De viceProf^J0060  69 6c 65 4a 61 6e 32 30  31 30 2e 78 73 6c 74 27  ileJan20 10.xslt'^J0070  20 6d 65 64 69 61 3d 27  73 63 72 65 65 6e 27 3f   media=' screen'?^J0080  3e 0d 0a 3c 44 4e 50 33  44 65 76 69 63 65 50 72  >..<DNP3 DevicePr^J0090  6f 66 69 6c 65 44 6f 63  75 6d 65 6e 74 20 78 6d  ofileDoc ument xm^J00a0  6c 6e 73 3a 78 73 69 3d  22 68 74 74 70 3a 2f 2f  lns:xsi= "http://^J00b0  77 77 77 2e 77 33 2e 6f  72 67 2f 32 30 30 31 2f  www.w3.o rg/2001/^J00c0  58 4d 4c 53 63 68 65 6d  61 2d 69 6e 73 74 61 6e  XMLSchem a-instan^J00d0  63 65 22 20 78 6d 6c 6e  73 3a 78 73 64 3d 22 68  ce" xmln s:xsd="h^J00e0  74 74 70 3a 2f 2f 77 77  77 2e 77 33 2e 6f 72 67  ttp://ww w.w3.org^J00f0  2f 32 30 30 31 2f 58 4d  4c 53 63 68 65 6d 61 22  /2001/XM LSchema"^J0100  20 73 63 68 65 6d 61 56  65 72 73 69 6f 6e 3d 22   schemaV ersion="^J0110  32 2e 30 37 2e 30 30 22  20 78 6d 6c 6e 73 3d 22  2.07.00"  xmlns="^J0120  68 74 74 70 3a 2f 2f 77  77 77 2e 64 6e 70 33 2e  http://w ww.dnp3.^J0130  6f 72 67 2f 44 4e 50 33  2f 44 65 76 69 63 65 50  org/DNP3 /DeviceP^J0140  72 6f 66 69 6c 65 2f 4a  61 6e 32 30 31 30 22 3e  rofile/J an2010">^J0150  0d 0a 20 20 3c 21 2d 2d  44 6f 63 75 6d 65 6e 74  ..  <!-- Document^J0160  20 48 65 61 64 65 72 2d  2d 3e 0d 0a 20 20 3c 64   Header- ->..  <d^J0170  6f 63 75 6d 65 6e 74 48  65 61 64 65 72 3e 0d 0a  ocumentH eader>..^J0180  20 20 20 20 3c 64 6f 63  75 6d 65 6e 74 4e 61 6d      <doc umentNam^J0190  65 3e 41 20 44 4e 50 33  20 58 4d 4c 20 46 69 6c  e>A DNP3  XML Fil^J01a0  65 3c 2f 64 6f 63 75 6d  65 6e 74 4e 61 6d 65 3e  e</docum entName>^J01b0  0d 0a 20 20 20 20 3c 64  6f 63 75 6d 65 6e 74 44  ..    <d ocumentD^J01c0  65 73 63 72 69 70 74 69  6f 6e 3e 54 68 69 73 20  escripti on>This ^J01d0  69 73 20 61 20 44 4e 50  33 20 43 6f 6d 70 6c 65  is a DNP 3 Comple^J01e0  74 65 20 44 65 76 69 63  65 20 50 72 6f 66 69 6c  te Devic e Profil^J01f0  65 20 66 6f 72 20 44 4e  50 20 4f 75 74 73 74 61  e for DN P Outsta^J0200  74 69 6f 6e 20 69 6e 20  74 68 65 20 54 4d 57 20  tion in  the TMW ^J0210  43 6f 6d 6d 75 6e 69 63  61 74 69 6f 6e 20 50 72  Communic ation Pr^J0220  6f 74 6f 63 6f 6c 20 54  65 73 74 20 48 61 72 6e  otocol T est Harn^J0230  65 73 73 3c 2f 64 6f 63  75 6d 65 6e 74 44 65 73  ess</doc umentDes^J0240  63 72 69 70 74 69 6f 6e  3e 0d 0a 20 20 20 20 3c  cription >..    <^J0250  72 65 76 69 73 69 6f 6e  48 69 73 74 6f 72 79 20  revision History ^J0260  76 65 72 73 69 6f 6e 3d  22 32 22 3e 0d 0a 20 20  version= "2">..  ^J0270  20 20 20 20 3c 64 61 74  65 3e 32 30 31 30 2d 31      <dat e>2010-1^J0280  32 2d 30 31 3c 2f 64 61  74 65 3e 0d 0a 20 20 20  2-01</da te>..   ^J0290  20 20 20 3c 61 75 74 68  6f 72 3e 53 74 65 76 65     <auth or>Steve^J02a0  20 4d 63 43 6f 79 3c 2f  61 75 74 68 6f 72 3e 0d   McCoy</ author>.^J02b0  0a 20 20 20 20 20 20 3c  72 65 61 73 6f 6e 3e 44  .      < reason>D^J02c0  6f 63 75 6d 65 6e 74 65  64 20 54 65 73 74 20 48  ocumente d Test H^J02d0  61 72 6e 65 73 73 20 53  44 4e 50 20 44 65 76 69  arness S DNP Devi^J02e0  63 65 20 50 72 6f 66 69  6c 65 3c 2f 72 65 61 73  ce Profi le</reas^J02f0  6f 6e 3e 0d 0a 20 20 20  20 3c 2f 72 65 76 69 73  on>..     </revis^J0300  69 6f 6e 48 69 73 74 6f  72 79 3e 0d 0a 20 20 3c  ionHisto ry>..  <^J0310  2f 64 6f 63 75 6d 65 6e  74 48 65 61 64 65 72 3e  /documen tHeader>^J0320  0d 0a 3c 2f 44 4e 50 33  44 65 76 69 63 65 50 72  ..</DNP3 DevicePr^J0330  6f 66 69 6c 65 44 6f 63  75 6d 65 6e 74 3e        ofileDoc ument>^J
+dnp3_response_data_object, F, 255
+dnp3_header_block, T, 25605, 8, 196, 4, 3
+dnp3_application_request_header, T, 0
+dnp3_header_block, T, 25605, 18, 196, 4, 3
+dnp3_application_request_header, T, 2
+dnp3_object_header, T, 12801, 7, 1, 1, 0
+dnp3_object_prefix, T, 0
+dnp3_header_block, F, 25605, 10, 68, 3, 4
+dnp3_application_response_header, F, 129, 0
+dnp3_header_block, T, 25605, 18, 196, 4, 3
+dnp3_application_request_header, T, 2
+dnp3_object_header, T, 12801, 7, 1, 1, 0
+dnp3_object_prefix, T, 0
+dnp3_header_block, F, 25605, 10, 68, 3, 4
+dnp3_application_response_header, F, 129, 0
+dnp3_header_block, T, 25605, 27, 196, 4, 3
+dnp3_application_request_header, T, 26
+dnp3_object_header, T, 17924, 91, 1, 1, 0
+dnp3_object_prefix, T, 13
+dnp3_header_block, F, 25605, 29, 68, 3, 4
+dnp3_application_response_header, F, 129, 0
+dnp3_object_header, F, 17924, 91, 1, 1, 0
+dnp3_object_prefix, F, 13
+dnp3_response_data_object, F, 255

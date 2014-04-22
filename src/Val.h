@@ -466,7 +466,7 @@ public:
 protected:
 	MutableVal(BroType* t) : Val(t)
 		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ id = 0; last_modified = SerialObj::ALWAYS; }
+	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
 	~MutableVal();
 
 	friend class ID;
@@ -656,6 +656,8 @@ protected:
 	DECLARE_SERIAL(PatternVal);
 };
 
+// ListVals are mainly used to index tables that have more than one 
+// element in their index.
 class ListVal : public Val {
 public:
 	ListVal(TypeTag t);
@@ -668,13 +670,6 @@ public:
 	int Length() const		{ return vals.length(); }
 	Val* Index(const int n)		{ return vals[n]; }
 	const Val* Index(const int n) const	{ return vals[n]; }
-
-	// Returns offset of where str includes one of the strings in this
-	// ListVal (which had better be a list of strings), nil if none.
-	//
-	// Assumes that all of the strings in the list are NUL-terminated
-	// and do not have any embedded NULs.
-	const char* IncludedInString(const char* str) const;
 
 	// Returns an RE_Matcher() that will match any string that
 	// includes embedded within it one of the patterns listed
@@ -894,6 +889,17 @@ public:
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
+
+	/**
+	 * Looks up the value of a field by field name.  If the field doesn't
+	 * exist in the record type, it's an internal error: abort.
+	 * @param field name of field to lookup.
+	 * @param with_default whether to rely on field's &default attribute when
+	 * the field has yet to be initialized.
+	 * @return the value in field \a field.  It is Ref()'d only if
+	 * \a with_default is true.
+	 */
+	Val* Lookup(const char* field, bool with_default = false) const;
 
 	void Describe(ODesc* d) const;
 

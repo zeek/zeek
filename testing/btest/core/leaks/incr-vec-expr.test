@@ -4,7 +4,8 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -b -m -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -b -m -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT
+# @TEST-EXEC: btest-bg-wait 15
 
 type rec: record {
     a: count;

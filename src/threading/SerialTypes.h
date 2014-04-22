@@ -81,7 +81,7 @@ private:
 	friend class ::RemoteSerializer;
 
 	// Force usage of constructor above.
-	Field()	{};
+	Field()	{}
 };
 
 /**
@@ -126,6 +126,8 @@ struct Value {
 			char* data;
 			int length;
 		} string_val;
+
+		_val() { memset(this, 0, sizeof(_val)); }
 	} val;
 
 	/**

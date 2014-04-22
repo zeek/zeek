@@ -8,8 +8,7 @@
 
 #include "util.h"
 
-#include <openssl/x509.h>
-#include <openssl/asn1.h>
+#include "file_analysis/Manager.h"
 %}
 
 
@@ -23,8 +22,6 @@
 	};
 
 	string orig_label(bool is_orig);
-	void free_X509(void *);
-	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
 	string handshake_type_label(int type);
 	%}
 
@@ -32,20 +29,6 @@
 string orig_label(bool is_orig)
 		{
 		return string(is_orig ? "originator" :"responder");
-		}
-
-	void free_X509(void* cert)
-		{
-		X509_free((X509*) cert);
-		}
-
-	X509* d2i_X509_binpac(X509** px, const uint8** in, int len)
-		{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-		return d2i_X509(px, in, len);
-#else
-		return d2i_X509(px, (u_char**) in, len);
-#endif
 		}
 
 	string handshake_type_label(int type)
@@ -152,12 +135,15 @@ refine connection SSL_Conn += {
 
 	function proc_client_hello(rec: SSLRecord,
 					version : uint16, ts : double,
+					client_random : bytestring,
 					session_id : uint8[],
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[]) : bool
 		%{
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
+		else
+			bro_analyzer()->ProtocolConfirmation();
 
 		if ( ssl_client_hello )
 			{
@@ -167,18 +153,18 @@ refine connection SSL_Conn += {
 			else
 				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
 
-			TableVal* cipher_set = new TableVal(internal_type("count_set")->AsTableType());
+			VectorVal* cipher_vec = new VectorVal(internal_type("index_vec")->AsVectorType());
 			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
 				{
 				Val* ciph = new Val((*cipher_suites)[i], TYPE_COUNT);
-				cipher_set->Assign(ciph, 0);
-				Unref(ciph);
+				cipher_vec->Assign(i, ciph);
 				}
 
 			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
-							version, ts,
+							version, ts, new StringVal(client_random.length(),
+							(const char*) client_random.data()),
 							to_string_val(session_id),
-							cipher_set);
+							cipher_vec);
 
 			delete cipher_suites;
 			}
@@ -188,6 +174,7 @@ refine connection SSL_Conn += {
 
 	function proc_server_hello(rec: SSLRecord,
 					version : uint16, ts : double,
+					server_random : bytestring,
 					session_id : uint8[],
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[],
@@ -195,8 +182,6 @@ refine connection SSL_Conn += {
 		%{
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
-		else
-			bro_analyzer()->ProtocolConfirmation();
 
 		if ( ssl_server_hello )
 			{
@@ -209,7 +194,8 @@ refine connection SSL_Conn += {
 
 			BifEvent::generate_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
-							version, ts,
+							version, ts, new StringVal(server_random.length(),
+							(const char*) server_random.data()),
 							to_string_val(session_id),
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
 
@@ -245,79 +231,15 @@ refine connection SSL_Conn += {
 		if ( certificates->size() == 0 )
 			return true;
 
-		if ( x509_certificate )
+		for ( unsigned int i = 0; i < certificates->size(); ++i )
 			{
-			STACK_OF(X509)* untrusted_certs = 0;
+			const bytestring& cert = (*certificates)[i];
 
-			for ( unsigned int i = 0; i < certificates->size(); ++i )
-				{
-				const bytestring& cert = (*certificates)[i];
-				const uint8* data = cert.data();
-				X509* pTemp = d2i_X509_binpac(NULL, &data, cert.length());
-				if ( ! pTemp )
-					{
-					BifEvent::generate_x509_error(bro_analyzer(), bro_analyzer()->Conn(),
-					                              ${rec.is_orig}, ERR_get_error());
-					return false;
-					}
+			string fid = file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()), cert.length(),
+						      bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(),
+						      ${rec.is_orig});
 
-				RecordVal* pX509Cert = new RecordVal(x509_type);
-				char tmp[256];
-				BIO *bio = BIO_new(BIO_s_mem());
-
-				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
-				i2a_ASN1_INTEGER(bio, X509_get_serialNumber(pTemp));
-				int len = BIO_read(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(1, new StringVal(len, tmp));
-
-				X509_NAME_print_ex(bio, X509_get_subject_name(pTemp), 0, XN_FLAG_RFC2253);
-				len = BIO_gets(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(2, new StringVal(len, tmp));
-				X509_NAME_print_ex(bio, X509_get_issuer_name(pTemp), 0, XN_FLAG_RFC2253);
-				len = BIO_gets(bio, &(*tmp), sizeof tmp);
-				pX509Cert->Assign(3, new StringVal(len, tmp));
-				BIO_free(bio);
-
-				pX509Cert->Assign(4, new Val(get_time_from_asn1(X509_get_notBefore(pTemp)), TYPE_TIME));
-				pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notAfter(pTemp)), TYPE_TIME));
-				StringVal* der_cert = new StringVal(cert.length(), (const char*) cert.data());
-
-				BifEvent::generate_x509_certificate(bro_analyzer(), bro_analyzer()->Conn(),
-							${rec.is_orig},
-							pX509Cert,
-							i, certificates->size(),
-							der_cert);
-
-				// Are there any X509 extensions?
-				//printf("Number of x509 extensions: %d\n", X509_get_ext_count(pTemp));
-				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
-					{
-					int num_ext = X509_get_ext_count(pTemp);
-					for ( int k = 0; k < num_ext; ++k )
-						{
-						unsigned char *pBuffer = 0;
-						int length = 0;
-
-						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
-						if (ex)
-							{
-							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
-							length = ASN1_STRING_to_UTF8(&pBuffer, pString);
-							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
-							// printf("extension length: %d\n", length);
-							// -1 indicates an error.
-							if ( length >= 0 )
-								{
-								StringVal* value = new StringVal(length, (char*)pBuffer);
-								BifEvent::generate_x509_extension(bro_analyzer(),
-											bro_analyzer()->Conn(), ${rec.is_orig}, value);
-								}
-							OPENSSL_free(pBuffer);
-							}
-						}
-					}
-				X509_free(pTemp);
-				}
+			file_mgr->EndOfFile(fid);
 			}
 		return true;
 		%}
@@ -419,27 +341,27 @@ refine typeattr ApplicationData += &let {
 
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version,
-				gmt_unix_time,
+				gmt_unix_time, random_bytes,
 				session_id, csuits, 0)
 		&requires(state_changed);
 };
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version, 0,
-				session_id, 0, ciphers)
+				challenge, session_id, 0, ciphers)
 		&requires(state_changed);
 };
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version,
-			gmt_unix_time, session_id, cipher_suite, 0,
+			gmt_unix_time, random_bytes, session_id, cipher_suite, 0,
 			compression_method)
 		&requires(state_changed);
 };
 
 refine typeattr V2ServerHello += &let {
-	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0, 0,
-				0, ciphers, 0)
+	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
+				conn_id_data, 0, 0, ciphers, 0)
 		&requires(state_changed);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)

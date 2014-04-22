@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-11-12-17-40-34
+#open	2013-08-26-19-36-36
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1153491909.414066	-	-	-	-	-	truncated_IP	-	F	bro
-1153491912.529443	UWkUyAuUGXf	192.168.66.235	2582	166.161.16.230	502	binpac exception: out_of_bound: WriteSingleRegisterRequest: 4 > 0	-	F	bro
-#close	2012-11-12-17-40-34
+1153491912.529443	CXWv6p3arKYeMETxOg	192.168.66.235	2582	166.161.16.230	502	binpac exception: out_of_bound: WriteSingleRegisterRequest: 4 > 0	-	F	bro
+#close	2013-08-26-19-36-36

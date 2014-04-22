@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-10-02-16-53-03
+#open	2013-08-26-19-46-43
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1340127577.341510	j4u32Pc5bif	192.168.2.16	3797	83.170.1.38	32900	Teredo_bubble_with_payload	-	F	bro
-1340127577.346849	UWkUyAuUGXf	192.168.2.16	3797	65.55.158.80	3544	Teredo_bubble_with_payload	-	F	bro
-#close	2012-10-02-16-53-03
+1340127577.341510	CRJuHdVW0XPVINV8a	192.168.2.16	3797	83.170.1.38	32900	Teredo_bubble_with_payload	-	F	bro
+1340127577.346849	CXWv6p3arKYeMETxOg	192.168.2.16	3797	65.55.158.80	3544	Teredo_bubble_with_payload	-	F	bro
+#close	2013-08-26-19-46-43

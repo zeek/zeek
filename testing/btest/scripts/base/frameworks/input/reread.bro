@@ -8,7 +8,7 @@
 # @TEST-EXEC: cp input4.log input.log
 # @TEST-EXEC: sleep 2
 # @TEST-EXEC: cp input5.log input.log
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input1.log

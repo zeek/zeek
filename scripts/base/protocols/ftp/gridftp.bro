@@ -4,21 +4,22 @@
 ##! that successfully negotiate the GSSAPI method of an AUTH request
 ##! and for which the exchange involved an encoded TLS/SSL handshake,
 ##! indicating the GSI mechanism for GSSAPI was used.  This analysis
-##! is all supported internally, this script simple adds the "gridftp"
+##! is all supported internally, this script simply adds the "gridftp"
 ##! label to the *service* field of the control channel's
 ##! :bro:type:`connection` record.
 ##!
 ##! GridFTP data channels are identified by a heuristic that relies on
 ##! the fact that default settings for GridFTP clients typically
-##! mutally authenticate the data channel with TLS/SSL and negotiate a
+##! mutually authenticate the data channel with TLS/SSL and negotiate a
 ##! NULL bulk cipher (no encryption).  Connections with those
 ##! attributes are then polled for two minutes with decreasing frequency
 ##! to check if the transfer sizes are large enough to indicate a
-##! GridFTP data channel that would be undesireable to analyze further
+##! GridFTP data channel that would be undesirable to analyze further
 ##! (e.g. stop TCP reassembly).  A side effect is that true connection
 ##! sizes are not logged, but at the benefit of saving CPU cycles that
-##! otherwise go to analyzing the large (and likely benign) connections.
+##! would otherwise go to analyzing the large (and likely benign) connections.
 
+@load ./info
 @load ./main
 @load base/protocols/conn
 @load base/protocols/ssl
@@ -58,8 +59,8 @@ export {
 	## been exceeded.  This is called in a :bro:see:`ssl_established` event
 	## handler and by default looks for both a client and server certificate
 	## and for a NULL bulk cipher.  One way in which this function could be
-	## redefined is to make it also consider client/server certificate issuer
-	## subjects.
+	## redefined is to make it also consider client/server certificate
+	## issuer subjects.
 	##
 	## c: The connection which may possibly be a GridFTP data channel.
 	##

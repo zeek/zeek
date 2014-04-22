@@ -1,7 +1,7 @@
 # @TEST-EXEC: btest-bg-run bro bro -b $SCRIPTS/file-analysis-test.bro %INPUT
 # @TEST-EXEC: btest-bg-wait 8
 # @TEST-EXEC: btest-diff bro/.stdout
-# @TEST-EXEC: diff -q bro/nYgPNGLrZf9-file input.log
+# @TEST-EXEC: diff -q bro/FK8WqY1Q9U1rVxnDge-file input.log
 
 redef exit_only_after_terminate = T;
 

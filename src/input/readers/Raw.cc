@@ -14,17 +14,29 @@
 #include <errno.h>
 #include <signal.h>
 
+extern "C" {
+#include "setsignal.h"
+}
+
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
+pthread_mutex_t Raw::fork_mutex;
 
+bool Raw::ClassInit()
+	{
+	return pthread_mutex_init(&fork_mutex, 0) == 0;
+	}
 
 Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	file = 0;
 	stderrfile = 0;
+	execute = false;
+	firstrun = true;
+	mtime = 0;
 	forcekill = false;
 	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
 			  BifConst::InputRaw::record_separator->Len());
@@ -64,23 +76,76 @@ void Raw::DoClose()
 
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
-		// kill child process
-		kill(childpid, 15); // sigterm
+		// Kill child process group.
+		kill(-childpid, SIGTERM);
 
 		if ( forcekill )
 			{
 			usleep(200); // 200 msecs should be enough for anyone ;)
 
 			if ( kill(childpid, 0) == 0 ) // perhaps it is already gone
-				kill(childpid, 9); // TERMINATE
+				kill(-childpid, SIGKILL);
 			}
 		}
 	}
 
+void Raw::ClosePipeEnd(int i)
+	{
+	if ( pipes[i] == -1 )
+		return;
+
+	safe_close(pipes[i]);
+	pipes[i] = -1;
+	}
+
+bool Raw::SetFDFlags(int fd, int cmd, int flags)
+	{
+	if ( fcntl(fd, cmd, flags) != -1 )
+		return true;
+
+	char buf[256];
+	strerror_r(errno, buf, sizeof(buf));
+	Error(Fmt("failed to set fd flags: %s", buf));
+	return false;
+	}
+
+
+bool Raw::LockForkMutex()
+	{
+	int res = pthread_mutex_lock(&fork_mutex);
+	if ( res == 0 )
+		return true;
+
+	Error(Fmt("cannot lock fork mutex: %d", res));
+	return false;
+	}
+
+bool Raw::UnlockForkMutex()
+	{
+	int res = pthread_mutex_unlock(&fork_mutex);
+	if ( res == 0 )
+		return true;
+
+	Error(Fmt("cannot unlock fork mutex: %d", res));
+	return false;
+	}
+
 bool Raw::Execute()
 	{
+	// AFAICT, pipe/fork/exec should be thread-safe, but actually having
+	// multiple threads set up pipes and fork concurrently sometimes
+	// results in problems w/ a stdin pipe not ever getting an EOF even
+	// though both ends of it are closed.  But if the same threads
+	// allocate pipes and fork individually or sequentially, that issue
+	// never crops up... ("never" meaning I haven't seen in it in
+	// hundreds of tests using 50+ threads where before I'd see the issue
+	// w/ just 2 threads ~33% of the time).
+	if ( ! LockForkMutex() )
+		return false;
+
 	if ( pipe(pipes) != 0 || pipe(pipes+2) || pipe(pipes+4) )
 		{
+		UnlockForkMutex();
 		Error(Fmt("Could not open pipe: %d", errno));
 		return false;
 		}
@@ -88,6 +153,7 @@ bool Raw::Execute()
 	childpid = fork();
 	if ( childpid < 0 )
 		{
+		UnlockForkMutex();
 		Error(Fmt("Could not create child process: %d", errno));
 		return false;
 		}
@@ -95,62 +161,128 @@ bool Raw::Execute()
 	else if ( childpid == 0 )
 		{
 		// we are the child.
+
+		// Obtain a process group w/ child's PID.
+		if ( setpgid(0, 0) == -1 )
+			_exit(251);
+
 		close(pipes[stdout_in]);
-		dup2(pipes[stdout_out], stdout_fileno);
+		if ( dup2(pipes[stdout_out], stdout_fileno) == -1 )
+			_exit(252);
 
-		if ( stdin_towrite )
-			{
-			close(pipes[stdin_out]);
-			dup2(pipes[stdin_in], stdin_fileno);
-			}
+		close(pipes[stdout_out]);
 
-		if ( use_stderr )
-			{
-			close(pipes[stderr_in]);
-			dup2(pipes[stderr_out], stderr_fileno);
-			}
+		close(pipes[stdin_out]);
+		if ( stdin_towrite && dup2(pipes[stdin_in], stdin_fileno) == -1 )
+			_exit(253);
 
-		execl("/bin/sh", "sh", "-c", fname.c_str(), NULL);
+		close(pipes[stdin_in]);
+
+		close(pipes[stderr_in]);
+		if ( use_stderr && dup2(pipes[stderr_out], stderr_fileno) == -1 )
+			_exit(254);
+
+		close(pipes[stderr_out]);
+
+		// Signal mask is inherited over fork-exec, so reset any ignored
+		// signals to default behavior and unblock any blocked signals.
+		setsignal(SIGPIPE, SIG_DFL); // May be ignored when debugging scripts.
+		sigset_t mask;
+		sigfillset(&mask);
+		// Assuming the fork-one model of pthreads' fork(), using sigprocmask()
+		// makes sense over pthread_sigmask() here.
+		sigprocmask(SIG_UNBLOCK, &mask, 0);
+
+		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*) NULL);
 		fprintf(stderr, "Exec failed :(......\n");
-		exit(255);
+		_exit(255);
 		}
 	else
 		{
 		// we are the parent
-		close(pipes[stdout_out]);
-		pipes[stdout_out] = -1;
+
+		// Parent also sets child process group immediately to avoid a race.
+		if ( setpgid(childpid, childpid) == -1 )
+			{
+			if ( errno == EACCES )
+				// Child already did exec. That's fine since then it must have
+				// already done the setpgid() itself.
+				;
+
+			else if ( errno == ESRCH && kill(childpid, 0) == 0 )
+				// Sometimes (e.g. FreeBSD) this error is reported even though
+				// child exists, so do extra sanity check of whether it exists.
+				;
+
+			else
+				{
+				char buf[256];
+				strerror_r(errno, buf, sizeof(buf));
+				Warning(Fmt("Could not set child process group: %s", buf));
+				}
+			}
+
+		if ( ! UnlockForkMutex() )
+			return false;
+
+		ClosePipeEnd(stdout_out);
 
 		if ( Info().mode == MODE_STREAM )
-			fcntl(pipes[stdout_in], F_SETFL, O_NONBLOCK);
+			{
+			if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
+				return false;
+			}
+
+		ClosePipeEnd(stdin_in);
 
 		if ( stdin_towrite )
 			{
-			close(pipes[stdin_in]);
-			pipes[stdin_in] = -1;
-			fcntl(pipes[stdin_out], F_SETFL, O_NONBLOCK); // ya, just always set this to nonblocking. we do not want to block on a program receiving data.
-			// note that there is a small gotcha with it. More data is queued when more data is read from the program output. Hence, when having
-			// a program in mode_manual where the first write cannot write everything, the rest will be stuck in a queue that is never emptied.
+			// Ya, just always set this to nonblocking. we do not
+			// want to block on a program receiving data. Note
+			// that there is a small gotcha with it. More data is
+			// queued when more data is read from the program
+			// output. Hence, when having a program in
+			// mode_manual where the first write cannot write
+			// everything, the rest will be stuck in a queue that
+			// is never emptied.
+			if ( ! SetFDFlags(pipes[stdin_out], F_SETFL, O_NONBLOCK) )
+				return false;
 			}
+		else
+			ClosePipeEnd(stdin_out);
+
+		ClosePipeEnd(stderr_out);
 
 		if ( use_stderr )
 			{
-			close(pipes[stderr_out]);
-			pipes[stderr_out] = -1;
-			fcntl(pipes[stderr_in], F_SETFL, O_NONBLOCK); // true for this too.
+			if ( ! SetFDFlags(pipes[stderr_in], F_SETFL, O_NONBLOCK) )
+				return false;
 			}
+		else
+			ClosePipeEnd(stderr_in);
 
 		file = fdopen(pipes[stdout_in], "r");
+
+		if ( ! file )
+			{
+			Error("Could not convert stdout_in fileno to file");
+			return false;
+			}
+
 		pipes[stdout_in] = -1; // will be closed by fclose
 
 		if ( use_stderr )
+			{
 			stderrfile = fdopen(pipes[stderr_in], "r");
-			pipes[stderr_in] = -1; // will be closed by fclose
-			if ( file == 0 || (stderrfile == 0 && use_stderr) )
+
+			if ( ! stderrfile )
 				{
-				Error("Could not convert fileno to file");
+				Error("Could not convert stderr_in fileno to file");
 				return false;
 				}
 
+			pipes[stderr_in] = -1; // will be closed by fclose
+			}
 
 		return true;
 		}
@@ -169,7 +301,9 @@ bool Raw::OpenInput()
 			Error(Fmt("Init: cannot open %s", fname.c_str()));
 			return false;
 			}
-		fcntl(fileno(file),  F_SETFD, FD_CLOEXEC);
+
+		if ( ! SetFDFlags(fileno(file), F_SETFD, FD_CLOEXEC) )
+			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
 		}
 
 	return true;
@@ -179,7 +313,8 @@ bool Raw::CloseInput()
 	{
 	if ( file == 0 )
 		{
-		InternalError(Fmt("Trying to close closed file for stream %s", fname.c_str()));
+		InternalWarning(Fmt("Trying to close closed file for stream %s",
+		                    fname.c_str()));
 		return false;
 		}
 #ifdef DEBUG
@@ -191,11 +326,10 @@ bool Raw::CloseInput()
 	if ( use_stderr )
 		fclose(stderrfile);
 
-	if ( execute ) // we do not care if any of those fails. They should all be defined.
+	if ( execute )
 		{
 		for ( int i = 0; i < 6; i ++ )
-			if ( pipes[i] != -1 )
-				close(pipes[i]);
+			ClosePipeEnd(i);
 		}
 
 	file = 0;
@@ -210,6 +344,12 @@ bool Raw::CloseInput()
 
 bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
+	if ( ! info.source || strlen(info.source) == 0 )
+		{
+		Error("No source path provided");
+		return false;
+		}
+
 	fname = info.source;
 	mtime = 0;
 	execute = false;
@@ -217,7 +357,6 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	int want_fields = 1;
 	bool result;
 
-	// do Initialization
 	string source = string(info.source);
 	char last = info.source[source.length() - 1];
 	if ( last == '|' )
@@ -226,13 +365,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		fname = source.substr(0, fname.length() - 1);
 		}
 
-	if ( ! info.source || strlen(info.source) == 0 )
-		{
-		Error("No source path provided");
-		return false;
-		}
-
-	map<const char*, const char*>::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
+	ReaderInfo::config_map::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
 	if ( it != info.config.end() )
 		{
 		stdin_string = it->second;
@@ -308,7 +441,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 	int repeats = 1;
 
-	for (;;)
+	for ( ;; )
 		{
 		size_t readbytes = fread(buf+bufpos+offset, 1, block_size-bufpos, arg_file);
 		pos += bufpos + readbytes;
@@ -343,7 +476,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 			// bah, we cannot use realloc because we would have to change the delete in the manager to a free.
 			char * newbuf = new char[block_size*repeats];
 			memcpy(newbuf, buf, block_size*(repeats-1));
-			delete buf;
+			delete [] buf;
 			buf = newbuf;
 			offset = block_size*(repeats-1);
 			}
@@ -374,9 +507,6 @@ int64_t Raw::GetLine(FILE* arg_file)
 		Error(Fmt("Reader encountered unexpected error code %d", errno));
 		return -3;
 		}
-
-	InternalError("Internal control flow execution error in raw reader");
-	assert(false);
 	}
 
 // write to the stdin of the child process
@@ -393,11 +523,10 @@ void Raw::WriteToStdin()
 		{
 		Error(Fmt("Writing to child process stdin failed: %d. Stopping writing at position %d", errno, pos));
 		stdin_towrite = 0;
-		close(pipes[stdin_out]);
 		}
 
 	if ( stdin_towrite == 0 ) // send EOF when we are done.
-		close(pipes[stdin_out]);
+		ClosePipeEnd(stdin_out);
 
 	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
 		{
@@ -528,6 +657,7 @@ bool Raw::DoUpdate()
 	if ( childpid != -1 && waitpid(childpid, &return_code, WNOHANG) != 0 )
 		{
 		// child died
+		childpid = -1;
 		bool signal = false;
 		int code = 0;
 		if ( WIFEXITED(return_code) )
@@ -539,7 +669,7 @@ bool Raw::DoUpdate()
 
 		else if ( WIFSIGNALED(return_code) )
 			{
-			signal = false;
+			signal = true;
 			code = WTERMSIG(return_code);
 			Error(Fmt("Child process exited due to signal %d", code));
 			}
@@ -564,7 +694,7 @@ bool Raw::DoUpdate()
 			EndCurrentSend();
 
 		SendEvent("InputRaw::process_finished", 4, vals);
-	}
+		}
 
 
 

@@ -14,8 +14,8 @@ export {
 		uid:               string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:                conn_id         &log;
-		## A count to represent the depth of this message transaction in a single 
-		## connection where multiple messages were transferred.
+		## A count to represent the depth of this message transaction in
+		## a single connection where multiple messages were transferred.
 		trans_depth:       count           &log;
 		## Contents of the Helo header.
 		helo:              string          &log &optional;
@@ -37,7 +37,7 @@ export {
 		in_reply_to:       string          &log &optional;
 		## Contents of the Subject header.
 		subject:           string          &log &optional;
-		## Contents of the X-Origininating-IP header.
+		## Contents of the X-Originating-IP header.
 		x_originating_ip:  addr            &log &optional;
 		## Contents of the first Received header.
 		first_received:    string          &log &optional;
@@ -50,7 +50,8 @@ export {
 		## Value of the User-Agent header from the client.
 		user_agent:        string          &log &optional;
 		
-		## Indicates if the "Received: from" headers should still be processed.
+		## Indicates if the "Received: from" headers should still be
+		## processed.
 		process_received_from: bool        &default=T;
 		## Indicates if client activity has been seen, but not yet logged.
 		has_client_activity:  bool            &default=F;
@@ -58,9 +59,9 @@ export {
 	
 	type State: record {
 		helo:                     string    &optional;
-		## Count the number of individual messages transmitted during this 
-		## SMTP session.  Note, this is not the number of recipients, but the
-		## number of message bodies transferred.
+		## Count the number of individual messages transmitted during
+		## this SMTP session.  Note, this is not the number of
+		## recipients, but the number of message bodies transferred.
 		messages_transferred:     count     &default=0;
 		
 		pending_messages:         set[Info] &optional;
@@ -290,7 +291,7 @@ function describe(rec: Info): string
 			{
 			if ( |rec$subject| > 20 )
 				{
-				abbrev_subject = rec$subject[0:20] + "...";
+				abbrev_subject = rec$subject[0:21] + "...";
 				}
 			}
 

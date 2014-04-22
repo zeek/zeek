@@ -35,12 +35,17 @@ void RuleActionEvent::PrintDebug()
 	fprintf(stderr, "	RuleActionEvent: |%s|\n", msg);
 	}
 
+void RuleActionMIME::PrintDebug()
+	{
+	fprintf(stderr, "	RuleActionMIME: |%s|\n", mime);
+	}
+
 RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	{
 	string str(arg_analyzer);
 	string::size_type pos = str.find(':');
 	string arg = str.substr(0, pos);
-	analyzer = analyzer_mgr->GetAnalyzerTag(arg.c_str());
+	analyzer = analyzer_mgr->GetComponentTag(arg.c_str());
 
 	if ( ! analyzer )
 		reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
@@ -48,7 +53,7 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	if ( pos != string::npos )
 		{
 		arg = str.substr(pos + 1);
-		child_analyzer = analyzer_mgr->GetAnalyzerTag(arg.c_str());
+		child_analyzer = analyzer_mgr->GetComponentTag(arg.c_str());
 
 		if ( ! child_analyzer )
 			reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
@@ -60,11 +65,11 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 void RuleActionAnalyzer::PrintDebug()
 	{
 	if ( ! child_analyzer )
-		fprintf(stderr, "|%s|\n", analyzer_mgr->GetAnalyzerName(analyzer));
+		fprintf(stderr, "|%s|\n", analyzer_mgr->GetComponentName(analyzer));
 	else
 		fprintf(stderr, "|%s:%s|\n",
-			analyzer_mgr->GetAnalyzerName(analyzer),
-			analyzer_mgr->GetAnalyzerName(child_analyzer));
+			analyzer_mgr->GetComponentName(analyzer),
+			analyzer_mgr->GetComponentName(child_analyzer));
 	}
 
 

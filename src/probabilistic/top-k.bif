@@ -1,0 +1,187 @@
+##! Functions to probabilistically determine top-k elements.
+
+%%{
+#include "probabilistic/Topk.h"
+%%}
+
+## Creates a top-k data structure which tracks *size* elements.
+##
+## size: number of elements to track.
+##
+## Returns: Opaque pointer to the data structure.
+##
+## .. bro:see:: topk_add topk_get_top topk_count topk_epsilon
+##    topk_size topk_sum topk_merge topk_merge_prune
+function topk_init%(size: count%): opaque of topk
+	%{
+	probabilistic::TopkVal* v = new probabilistic::TopkVal(size);
+	return v;
+	%}
+
+## Add a new observed object to the data structure.
+##
+## .. note:: The first added object sets the type of data tracked by
+##    the top-k data structure. All following values have to be of the same
+##    type.
+##
+## handle: the TopK handle.
+##
+## value: observed value.
+##
+## .. bro:see:: topk_init topk_get_top topk_count topk_epsilon
+##    topk_size topk_sum topk_merge topk_merge_prune
+function topk_add%(handle: opaque of topk, value: any%): any
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	h->Encountered(value);
+
+	return 0;
+	%}
+
+## Get the first *k* elements of the top-k data structure.
+##
+## handle: the TopK handle.
+##
+## k: number of elements to return.
+##
+## Returns: vector of the first k elements.
+##
+## .. bro:see:: topk_init topk_add topk_count topk_epsilon
+##    topk_size topk_sum topk_merge topk_merge_prune
+function topk_get_top%(handle: opaque of topk, k: count%): any_vec
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return h->GetTopK(k);
+	%}
+
+## Get an overestimated count of how often a value has been encountered.
+##
+## .. note:: The value has to be part of the currently tracked elements,
+##    otherwise 0 will be returned and an error message will be added to
+##    reporter.
+##
+## handle: the TopK handle.
+##
+## value: Value to look up count for.
+##
+## Returns: Overestimated number for how often the element has been encountered.
+##
+## .. bro:see:: topk_init topk_add topk_get_top topk_epsilon
+##    topk_size topk_sum topk_merge topk_merge_prune
+function topk_count%(handle: opaque of topk, value: any%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->GetCount(value), TYPE_COUNT);
+	%}
+
+## Get the maximal overestimation for count.
+##
+## .. note:: Same restrictions as for :bro:id:`topk_count` apply.
+##
+## handle: the TopK handle.
+##
+## value: Value to look up epsilon for.
+##
+## Returns: Number which represents the maximal overestimation for the count of
+##          this element.
+##
+## .. bro:see:: topk_init topk_add topk_get_top topk_count
+##    topk_size topk_sum topk_merge topk_merge_prune
+function topk_epsilon%(handle: opaque of topk, value: any%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->GetEpsilon(value), TYPE_COUNT);
+	%}
+
+## Get the number of elements this data structure is supposed to track (given
+## on init).
+##
+## .. note:: Note that the actual number of elements in the data structure can
+##    be lower or higher (due to non-pruned merges) than this.
+##
+## handle: the TopK handle.
+##
+## Returns: size given during initialization.
+##
+## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+##    topk_sum topk_merge topk_merge_prune
+function topk_size%(handle: opaque of topk%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->GetSize(), TYPE_COUNT);
+	%}
+
+## Get the sum of all counts of all elements in the data structure.
+##
+## .. note:: This is equal to the number of all inserted objects if the data
+##    structure never has been pruned. Do not use after
+##    calling :bro:id:`topk_merge_prune` (will throw a warning message if used
+##    afterwards).
+##
+## handle: the TopK handle.
+##
+## Returns: sum of all counts.
+##
+## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+##    topk_size topk_merge topk_merge_prune
+function topk_sum%(handle: opaque of topk%): count
+	%{
+	assert(handle);
+	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
+	return new Val(h->GetSum(), TYPE_COUNT);
+	%}
+
+## Merge the second top-k data structure into the first.
+##
+## handle1: the first TopK handle.
+##
+## handle2: the second TopK handle.
+##
+## .. note:: This does not remove any elements, the resulting data structure
+##    can be bigger than the maximum size given on initialization.
+##
+## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+##    topk_size topk_sum topk_merge_prune
+function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
+	%{
+	assert(handle1);
+	assert(handle2);
+
+	probabilistic::TopkVal* h1 = (probabilistic::TopkVal*) handle1;
+	probabilistic::TopkVal* h2 = (probabilistic::TopkVal*) handle2;
+
+	h1->Merge(h2);
+
+	return 0;
+	%}
+
+## Merge the second top-k data structure into the first and prunes the final
+## data structure back to the size given on initialization.
+##
+## .. note:: Use with care and only when being aware of the restrictions this
+##    entails. Do not call :bro:id:`topk_size` or :bro:id:`topk_add` afterwards,
+##    results will probably not be what you expect.
+##
+## handle1: the TopK handle in which the second TopK structure is merged.
+##
+## handle2: the TopK handle in which is merged into the first TopK structure.
+##
+## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+##    topk_size topk_sum topk_merge
+function topk_merge_prune%(handle1: opaque of topk, handle2: opaque of topk%): any
+	%{
+	assert(handle1);
+	assert(handle2);
+
+	probabilistic::TopkVal* h1 = (probabilistic::TopkVal*) handle1;
+	probabilistic::TopkVal* h2 = (probabilistic::TopkVal*) handle2;
+
+	h1->Merge(h2, true);
+
+	return 0;
+	%}

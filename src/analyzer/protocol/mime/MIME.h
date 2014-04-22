@@ -193,7 +193,8 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			reporter->InternalError("Done() must be called before destruction");
+			reporter->AnalyzerError(analyzer,
+			  "missing MIME_Message::Done() call");
 		}
 
 	virtual void Done()	{ finished = 1; }
@@ -247,7 +248,6 @@ protected:
 	int max_chunk_length;
 	int buffer_start;
 	int data_start;
-	int buffer_offset;
 	int compute_content_hash;
 	int content_hash_length;
 	MD5_CTX md5_hash;

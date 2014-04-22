@@ -1,0 +1,3 @@
+The intelligence framework provides a way to store and query intelligence
+data (such as IP addresses or strings). Metadata can also be associated
+with the intelligence.

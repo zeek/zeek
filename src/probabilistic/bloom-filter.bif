@@ -1,8 +1,4 @@
-# ===========================================================================
-#
-#                           Bloom Filter Functions
-#
-# ===========================================================================
+##! Functions to create and manipulate Bloom filters.
 
 %%{
 
@@ -20,23 +16,21 @@ module GLOBAL;
 
 ## Creates a basic Bloom filter.
 ##
-## .. note:: A Bloom filter can have a name associated with it. In the future,
-##    Bloom filters with the same name will be compatible across indepedent Bro
-##    instances, i.e., it will be possible to merge them. Currently, however, that is
-##    not yet supported.
-##
 ## fp: The desired false-positive rate.
 ##
 ## capacity: the maximum number of elements that guarantees a false-positive
-## rate of *fp*.
+##           rate of *fp*.
 ##
 ## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
-## the filter will remain tied to the current Bro process.
+##       the filter will use :bro:id:`global_hash_seed` if that's set, and
+##       otherwise use a local seed tied to the current Bro process. Only
+##       filters with the same seed can be merged with
+##       :bro:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_counting_init  bloomfilter_add bloomfilter_lookup
-##    bloomfilter_clear bloomfilter_merge
+## .. bro:see:: bloomfilter_basic_init2 bloomfilter_counting_init bloomfilter_add
+##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 function bloomfilter_basic_init%(fp: double, capacity: count,
                                  name: string &default=""%): opaque of bloomfilter
 	%{
@@ -48,35 +42,76 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 
 	size_t cells = BasicBloomFilter::M(fp, capacity);
 	size_t optimal_k = BasicBloomFilter::K(cells, capacity);
-	const Hasher* h = new DefaultHasher(optimal_k, name->CheckString());
+	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
+                                 name->Len());
+	const Hasher* h = new DefaultHasher(optimal_k, seed);
+
+	return new BloomFilterVal(new BasicBloomFilter(h, cells));
+	%}
+
+## Creates a basic Bloom filter. This function serves as a low-level
+## alternative to :bro:id:`bloomfilter_basic_init` where the user has full
+## control over the number of hash functions and cells in the underlying bit
+## vector.
+##
+## k: The number of hash functions to use.
+##
+## cells: The number of cells of the underlying bit vector.
+##
+## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
+##       the filter will use :bro:id:`global_hash_seed` if that's set, and
+##       otherwise use a local seed tied to the current Bro process. Only
+##       filters with the same seed can be merged with
+##       :bro:id:`bloomfilter_merge`.
+##
+## Returns: A Bloom filter handle.
+##
+## .. bro:see:: bloomfilter_basic_init bloomfilter_counting_init  bloomfilter_add 
+##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
+function bloomfilter_basic_init2%(k: count, cells: count,
+                                  name: string &default=""%): opaque of bloomfilter
+	%{
+	if ( k == 0 )
+		{
+		reporter->Error("number of hash functions must be non-negative");
+		return 0;
+		}
+	if ( cells == 0 )
+		{
+		reporter->Error("number of cells must be non-negative");
+		return 0;
+		}
+
+	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
+				       name->Len());
+	const Hasher* h = new DefaultHasher(k, seed);
 
 	return new BloomFilterVal(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a counting Bloom filter.
 ##
-## .. note:: A Bloom filter can have a name associated with it. In the future,
-##    Bloom filters with the same name will be compatible across indepedent Bro
-##    instances, i.e., it will be possible to merge them. Currently, however, that is
-##    not yet supported.
-##
 ## k: The number of hash functions to use.
 ##
-## cells: The number of cells of the underlying counter vector. As there's no
-## single answer to what's the best parameterization for a counting Bloom filter,
-## we refer to the Bloom filter literature here for choosing an appropiate value.
+## cells: The number of cells of the underlying counter vector. As there's
+##        no single answer to what's the best parameterization for a
+##        counting Bloom filter, we refer to the Bloom filter literature
+##        here for choosing an appropiate value.
 ##
-## max: The maximum counter value associated with each each element described
-## by *w = ceil(log_2(max))* bits. Each bit in the underlying counter vector
-## becomes a cell of size *w* bits.
+## max: The maximum counter value associated with each element
+##      described by *w = ceil(log_2(max))* bits. Each bit in the underlying
+##      counter vector becomes a cell of size *w* bits.
 ##
 ## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
-## the filter will remain tied to the current Bro process.
+##       the filter will use :bro:id:`global_hash_seed` if that's set, and
+##       otherwise use a local seed tied to the current Bro process. Only
+##       filters with the same seed can be merged with
+##       :bro:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_add bloomfilter_lookup
-##    bloomfilter_clear bloomfilter_merge
+## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2 bloomfilter_add
+##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 function bloomfilter_counting_init%(k: count, cells: count, max: count,
 				    name: string &default=""%): opaque of bloomfilter
 	%{
@@ -86,7 +121,10 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 		return 0;
 		}
 
-	const Hasher* h = new DefaultHasher(k, name->CheckString());
+	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
+				       name->Len());
+
+	const Hasher* h = new DefaultHasher(k, seed);
 
 	uint16 width = 1;
 	while ( max >>= 1 )
@@ -101,8 +139,9 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 ##
 ## x: The element to add.
 ##
-## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init loomfilter_lookup
-##    bloomfilter_clear bloomfilter_merge
+## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2 
+##    bloomfilter_counting_init bloomfilter_lookup bloomfilter_clear 
+##    bloomfilter_merge
 function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
@@ -127,8 +166,9 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ##
 ## Returns: the counter associated with *x* in *bf*.
 ##
-## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init
-##    bloomfilter_add bloomfilter_clear bloomfilter_merge
+## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2
+##    bloomfilter_counting_init bloomfilter_add bloomfilter_clear
+##    bloomfilter_merge
 function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	%{
 	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
@@ -148,14 +188,15 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	return new Val(0, TYPE_COUNT);
 	%}
 
-## Removes all elements from a Bloom filter. This function resets all bits in the
-## underlying bitvector back to 0 but does not change the parameterization of the
-## Bloom filter, such as the element type and the hasher seed.
+## Removes all elements from a Bloom filter. This function resets all bits in
+## the underlying bitvector back to 0 but does not change the parameterization
+## of the Bloom filter, such as the element type and the hasher seed.
 ##
 ## bf: The Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init
-##    bloomfilter_add bloomfilter_lookup bloomfilter_merge
+## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2
+##    bloomfilter_counting_init bloomfilter_add bloomfilter_lookup
+##    bloomfilter_merge
 function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
@@ -178,19 +219,34 @@ function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 ##
 ## Returns: The union of *bf1* and *bf2*.
 ##
-## .. bro:see:: bloomfilter_counting_init bloomfilter_basic_init
-##    bloomfilter_add bloomfilter_lookup bloomfilter_clear
+## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2
+##    bloomfilter_counting_init bloomfilter_add bloomfilter_lookup
+##    bloomfilter_clear
 function bloomfilter_merge%(bf1: opaque of bloomfilter,
 			    bf2: opaque of bloomfilter%): opaque of bloomfilter
 	%{
 	const BloomFilterVal* bfv1 = static_cast<const BloomFilterVal*>(bf1);
 	const BloomFilterVal* bfv2 = static_cast<const BloomFilterVal*>(bf2);
 
-	if ( ! same_type(bfv1->Type(), bfv2->Type()) )
+	if ( bfv1->Type() && // any one 0 is ok here
+	     bfv2->Type() &&
+	     ! same_type(bfv1->Type(), bfv2->Type()) )
 		{
 		reporter->Error("incompatible Bloom filter types");
 		return 0;
 		}
 
 	return BloomFilterVal::Merge(bfv1, bfv2);
+	%}
+
+## Returns a string with a representation of a Bloom filter's internal
+## state. This is for debugging/testing purposes only.
+## 
+## bf: The Bloom filter handle.
+##
+## Returns: a string with a representation of a Bloom filter's internal state.
+function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
+	%{
+	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
+	return new StringVal(bfv->InternalState());
 	%}

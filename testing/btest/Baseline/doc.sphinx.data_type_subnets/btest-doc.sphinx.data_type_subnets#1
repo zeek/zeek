@@ -1,0 +1,12 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro data_type_subnets.bro
+      172.16.4.56 belongs to subnet 172.16.0.0/20
+      172.16.47.254 belongs to subnet 172.16.32.0/20
+      172.16.22.45 belongs to subnet 172.16.16.0/20
+      172.16.1.1 belongs to subnet 172.16.0.0/20
+

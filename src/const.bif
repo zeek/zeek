@@ -1,10 +1,11 @@
 ##! Declaration of various scripting-layer constants that the Bro core uses
 ##! internally.  Documentation and default values for the scripting-layer
-##! variables themselves are found in :doc:`/scripts/base/init-bare`.
+##! variables themselves are found in :doc:`/scripts/base/init-bare.bro`.
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const use_conn_size_analyzer: bool;
+const detect_filtered_trace: bool;
 const report_gaps_for_partial: bool;
 const exit_only_after_terminate: bool;
 
@@ -17,6 +18,7 @@ const Tunnel::enable_ip: bool;
 const Tunnel::enable_ayiya: bool;
 const Tunnel::enable_teredo: bool;
 const Tunnel::enable_gtpv1: bool;
+const Tunnel::enable_gre: bool;
 const Tunnel::yielding_teredo_decapsulation: bool;
 const Tunnel::delay_teredo_confirmation: bool;
 const Tunnel::delay_gtp_confirmation: bool;

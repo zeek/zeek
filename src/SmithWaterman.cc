@@ -11,7 +11,7 @@
 #include "Reporter.h"
 
 BroSubstring::BroSubstring(const BroSubstring& bst)
-: BroString((const BroString&) bst), _new(bst._new)
+: BroString((const BroString&) bst), _num(), _new(bst._new)
 	{
 	for ( BSSAlignVecCIt it = bst._aligns.begin(); it != bst._aligns.end(); ++it )
 		_aligns.push_back(*it);

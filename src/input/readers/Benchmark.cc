@@ -18,6 +18,7 @@ using threading::Field;
 
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
+	num_lines = 0;
 	multiplication_factor = double(BifConst::InputBenchmark::factor);
 	autospread = double(BifConst::InputBenchmark::autospread);
 	spread = int(BifConst::InputBenchmark::spread);
@@ -25,9 +26,10 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	autospread_time = 0;
 	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
 	timedspread = double(BifConst::InputBenchmark::timedspread);
+	heartbeatstarttime = 0;
 	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
 
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
+	ascii = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo());
 	}
 
 Benchmark::~Benchmark()
@@ -212,6 +214,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 			if ( newval == 0 )
 				{
 				Error("Error while reading set");
+				delete val;
 				return 0;
 				}
 			lvals[pos] = newval;
@@ -223,6 +226,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 	default:
 		Error(Fmt("unsupported field format %d", type));
+		delete val;
 		return 0;
 	}
 

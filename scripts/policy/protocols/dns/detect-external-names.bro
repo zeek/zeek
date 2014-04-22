@@ -10,9 +10,9 @@ module DNS;
 
 export {
 	redef enum Notice::Type += { 
-		## Raised when a non-local name is found to be pointing at a local host.
-		## :bro:id:`Site::local_zones` variable **must** be set appropriately 
-		## for this detection.
+		## Raised when a non-local name is found to be pointing at a
+		## local host.  The :bro:id:`Site::local_zones` variable
+		## **must** be set appropriately for this detection.
 		External_Name,
 		};
 }

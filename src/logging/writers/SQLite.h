@@ -9,7 +9,7 @@
 
 #include "../WriterBackend.h"
 
-#include "threading/AsciiFormatter.h"
+#include "threading/formatters/Ascii.h"
 #include "3rdparty/sqlite3.h"
 
 namespace logging { namespace writer {
@@ -51,7 +51,7 @@ private:
 	string unset_field;
 	string empty_field;
 
-	AsciiFormatter* io;
+	threading::formatter::Ascii* io;
 };
 
 }

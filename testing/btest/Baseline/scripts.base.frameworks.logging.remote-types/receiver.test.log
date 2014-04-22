@@ -3,8 +3,8 @@
 #empty_field	EMPTY
 #unset_field	-
 #path	test
-#open	1970-01-01-00-00-00
+#open	2014-04-01-23-15-05
 #fields	b	i	e	c	p	sn	a	d	t	iv	s	sc	ss	se	vc	ve
-#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	table[count]	table[string]	table[string]	vector[count]	vector[string]
-T	-42	Test::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1342749004.579242	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY
-#close	2012-07-20-01-50-05
+#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	set[count]	set[string]	set[string]	vector[count]	vector[string]
+T	-42	Test::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1396394104.330474	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY
+#close	2014-04-01-23-15-15

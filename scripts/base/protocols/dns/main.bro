@@ -183,7 +183,7 @@ function log_unmatched_msgs(msgs: PendingMessages)
 	for ( trans_id in msgs )
 		log_unmatched_msgs_queue(msgs[trans_id]);
 
-	msgs = PendingMessages();
+	clear_table(msgs);
 	}
 
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)

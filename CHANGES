@@ -1,4 +1,8 @@
 
+2.2-341 | 2014-04-17 18:01:41 -0500
+
+  * Fix duplicate DNS log entries. (Robin Sommer)
+
 2.2-341 | 2014-04-17 18:01:01 -0500
 
   * Refactor initialization of ASCII log writer options. (Jon Siwek)

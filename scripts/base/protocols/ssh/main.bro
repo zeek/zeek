@@ -18,6 +18,8 @@ export {
 		client: string &log &optional;
 		## The server's version string
 		server: string &log &optional;
+		## The server's key fingerprint
+		host_key: string &log &optional;
 		## Auth result
 		result: string &log &optional;
 		## Auth method
@@ -42,7 +44,7 @@ event bro_init() &priority=5
 	}
 
 
-event ssh_version(c: connection, is_orig: bool, version: string)
+event ssh_server_version(c: connection, version: string)
 	{
 	if ( !c?$ssh )
 		{
@@ -52,16 +54,25 @@ event ssh_version(c: connection, is_orig: bool, version: string)
 		s$id  = c$id;
 		c$ssh = s;
 		}
-	if ( is_orig )
-		c$ssh$client = version;
-	else
-		c$ssh$server = version;
-#	print c$ssh;
+	c$ssh$server = version;
+	}
+
+event ssh_client_version(c: connection, version: string)
+	{
+	if ( !c?$ssh )
+		{
+		local s: SSH::Info;
+		s$ts  = network_time();
+		s$uid = c$uid;
+		s$id  = c$id;
+		c$ssh = s;
+		}
+	c$ssh$client = version;
 	}
 
 event ssh_auth_successful(c: connection, method: string)
 	{
-	if ( !c?$ssh )
+	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
 		return;
 	c$ssh$result = "success";
 	c$ssh$method = method;
@@ -70,7 +81,7 @@ event ssh_auth_successful(c: connection, method: string)
 
 event ssh_auth_failed(c: connection, method: string)
 	{
-	if ( !c?$ssh )
+	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
 		return;
 	c$ssh$result = "failure";
 	c$ssh$method = method;
@@ -85,4 +96,13 @@ event connection_closed(c: connection)
 		c$ssh$method = "unknown";
 		Log::write(SSH::LOG, c$ssh);
 		}
+	}
+
+event ssh_server_host_key(c: connection, key: string)
+	{
+	if ( !c?$ssh )
+		return;
+	local lx = str_split(md5_hash(key), vector(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30));
+	lx[0] = "";
+	c$ssh$host_key = sub(join_string_vec(lx, ":"), /:/, "");
 	}

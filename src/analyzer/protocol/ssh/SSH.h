@@ -34,9 +34,9 @@ public:
 
 	static bool Available()
 		{
-		// TODO: After you define your events, || them together here.
-		// See events.bif for more information
-		return ( ssh_event );
+		return ( ssh_server_version || ssh_client_version || 
+			 ssh_auth_successful || ssh_auth_failed || 
+			 ssh_server_capabilities || ssh_server_host_key );
 		}
 
 protected:
@@ -49,7 +49,8 @@ protected:
 	bool had_gap;
 
 	// Packet analysis stuff
-	int initial_encrypted_packet_size;
+	int initial_client_packet_size;
+	int initial_server_packet_size;
 	int num_encrypted_packets_seen;
 
 	bool packet_n_1_is_orig;

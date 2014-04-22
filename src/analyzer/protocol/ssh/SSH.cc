@@ -18,6 +18,8 @@ SSH_Analyzer::SSH_Analyzer(Connection* c)
 	interp = new binpac::SSH::SSH_Conn(this);
 	had_gap = false;
 	num_encrypted_packets_seen = 0;
+	initial_client_packet_size = 0;
+	initial_server_packet_size = 0;
      	}
 
 SSH_Analyzer::~SSH_Analyzer()
@@ -54,7 +56,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// deliver data to the other side if the script layer can handle this.
 		return;
 	
-	if ( num_encrypted_packets_seen || interp->get_state(orig) == binpac::SSH::ENCRYPTED )
+	if ( interp->get_state(orig) == binpac::SSH::ENCRYPTED )
 		{
 		ProcessEncrypted(len, orig);
 		return;
@@ -80,23 +82,33 @@ void SSH_Analyzer::Undelivered(int seq, int len, bool orig)
 
 void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 	{
-	if (!num_encrypted_packets_seen)
-		{
-		initial_encrypted_packet_size = len;
-		}
-	//	printf("Encrypted packet of size %d from %s.\n", len, orig?"client":"server");
-	int relative_len = len - initial_encrypted_packet_size;
-	if ( num_encrypted_packets_seen >= 2 )
+	if (orig && !initial_client_packet_size)
+		initial_client_packet_size = len;
+	if (!orig && !initial_server_packet_size)
+		initial_server_packet_size = len;
+	
+	int relative_len;
+	if (orig)
+	  	relative_len = len - initial_client_packet_size;
+	else
+	  	relative_len = len - initial_server_packet_size;
+	//	printf("Encrypted packet of length %d from %s.\n", len, orig?"client":"server");
+	if ( num_encrypted_packets_seen >= 4 )
 		{
 		int auth_result = AuthResult(relative_len, orig);
 		if ( auth_result > 0 )
 			{
+			num_encrypted_packets_seen = 1;
+			//printf("Have auth\n");
 			StringVal* method = new StringVal(AuthMethod(relative_len, orig));
 			if ( auth_result == 1 )
 				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), method);
 			if ( auth_result == 2 )
 				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), method);
 			}
+		}
+	if ( num_encrypted_packets_seen >= 2 )
+		{
 		packet_n_2_is_orig = packet_n_1_is_orig;
 		packet_n_2_size = packet_n_1_size;
 		}
@@ -108,7 +120,7 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 
 int SSH_Analyzer::AuthResult(int len, bool orig)
 	{
-	if ( orig && !packet_n_1_is_orig && packet_n_2_is_orig )
+	  if ( !orig && packet_n_1_is_orig && !packet_n_2_is_orig )
 		{
 		if ( len == -16 )
 			return 1;
@@ -123,13 +135,13 @@ int SSH_Analyzer::AuthResult(int len, bool orig)
 const char* SSH_Analyzer::AuthMethod(int len, bool orig)
 	{
 	if ( packet_n_1_size == 96 ) // Password auth
-		return "keyboard-interactive";
-	if ( packet_n_1_size == 32 ) // Challenge-response auth
-		return "challenge-response";
+		return fmt("password (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
+	if ( packet_n_1_size == 32 && ( packet_n_2_size == 0 || packet_n_2_size == 48 ) ) // Challenge-response auth
+		return fmt("challenge-response (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
 	if ( packet_n_2_size >= 112 &&
 	     packet_n_2_size <= 432 ) // Public key auth
-		return "pubkey";
+		return fmt("pubkey (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
 	if ( packet_n_2_size == 16 ) // Host-based auth
-		return "host-based";
-	return fmt("unknown auth method: n-1=%d n-2=%d", packet_n_1_size, packet_n_2_size);
+		return fmt("host-based (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
+	return fmt("unknown (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
 	}

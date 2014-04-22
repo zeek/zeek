@@ -41,7 +41,7 @@ enum message_id {
 type SSH_PDU(is_orig: bool) = case $context.connection.get_state(is_orig) of {
 		VERSION_EXCHANGE       -> version:   SSH_Version(is_orig);
 		KEY_EXCHANGE_CLEARTEXT -> kex:       SSH_Key_Exchange(is_orig);
-		ENCRYPTED -> unk: bytestring &length=100;
+		ENCRYPTED	       -> ciphertext: bytestring &length=1 &transient;
 } &byteorder=bigendian;
 
 type SSH_Version(is_orig: bool) = record {
@@ -71,12 +71,13 @@ type SSH_Payload(is_orig: bool, packet_length: uint32) = record {
 };
 
 type SSH_Message(is_orig: bool, msg_type: uint8, packet_length: uint32) = case msg_type of {
-	SSH_MSG_KEXINIT            -> kexinit:        SSH_KEXINIT(is_orig, packet_length);
-	SSH_MSG_KEX_DH_GEX_REQUEST -> dh_gex_request: SSH_DH_GEX_REQUEST(is_orig, packet_length);
-	SSH_MSG_KEX_DH_GEX_GROUP   -> dh_gex_group:   SSH_DH_GEX_GROUP(is_orig, packet_length);
-	SSH_MSG_KEX_DH_GEX_INIT    -> dh_gex_init:    SSH_DH_GEX_INIT(is_orig, packet_length);
-	SSH_MSG_KEX_DH_GEX_REPLY   -> dh_gex_reply:   SSH_DH_GEX_REPLY(is_orig, packet_length);
-	default -> unknown: bytestring &length=packet_length;
+	SSH_MSG_KEXINIT                -> kexinit:            SSH_KEXINIT(is_orig, packet_length);
+	SSH_MSG_KEX_DH_GEX_REQUEST     -> dh_gex_request:     SSH_DH_GEX_REQUEST(is_orig, packet_length);
+	SSH_MSG_KEX_DH_GEX_REQUEST_OLD -> dh_gex_request_old: SSH_DH_GEX_REQUEST_OLD(is_orig, packet_length);
+	SSH_MSG_KEX_DH_GEX_GROUP       -> dh_gex_group:       SSH_DH_GEX_GROUP(is_orig, packet_length);
+	SSH_MSG_KEX_DH_GEX_INIT        -> dh_gex_init:        SSH_DH_GEX_INIT(is_orig, packet_length);
+	SSH_MSG_KEX_DH_GEX_REPLY       -> dh_gex_reply:       SSH_DH_GEX_REPLY(is_orig, packet_length);
+	SSH_MSG_NEWKEYS		       -> new_keys:	      bytestring &length=packet_length;	
 } &let {
 	detach: bool = $context.connection.update_state(ENCRYPTED, is_orig) &if(msg_type == SSH_MSG_NEWKEYS);
 };
@@ -112,6 +113,10 @@ type SSH_DH_GEX_REQUEST(is_orig: bool, length: uint32) = record {
 	n  : uint32;
 	max: uint32;
 } &length=12;
+
+type SSH_DH_GEX_REQUEST_OLD(is_orig: bool, length: uint32) = record {
+	payload: bytestring &length=length;
+} &length=length;
 
 type SSH_DH_GEX_GROUP(is_orig: bool, length: uint32) = record {
 	p: mpint;

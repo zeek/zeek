@@ -52,22 +52,8 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	set_session(c);
-
-	local depth: count;
-
-	if ( is_orig )
-		{
-		depth = c$ssl$client_depth;
-		++c$ssl$client_depth;
-		}
-	else
-		{
-		depth = c$ssl$server_depth;
-		++c$ssl$server_depth;
-		}
-
-	return cat(Analyzer::ANALYZER_SSL, c$start_time, is_orig, id_string(c$id), depth);
+	# Unused.  File handles are generated in the analyzer.
+	return "";
 	}
 
 function describe_file(f: fa_file): string

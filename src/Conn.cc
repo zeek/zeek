@@ -811,6 +811,17 @@ void Connection::Describe(ODesc* d) const
 	d->NL();
 	}
 
+void Connection::IDString(ODesc* d) const
+	{
+	d->Add(orig_addr);
+	d->AddRaw(":", 1);
+	d->Add(ntohs(orig_port));
+	d->AddRaw(" > ", 3);
+	d->Add(resp_addr);
+	d->AddRaw(":", 1);
+	d->Add(ntohs(resp_port));
+	}
+
 bool Connection::Serialize(SerialInfo* info) const
 	{
 	return SerialObj::Serialize(info);

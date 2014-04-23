@@ -102,8 +102,25 @@ void delete_each(T* t)
 std::string extract_ip(const std::string& i);
 std::string extract_ip_and_len(const std::string& i, int* len);
 
+inline void bytetohex(unsigned char byte, char* hex_out)
+	{
+	static const char hex_chars[] = "0123456789abcdef";
+	hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
+	hex_out[1] = hex_chars[byte & 0x0f];
+	}
+
 std::string get_unescaped_string(const std::string& str);
-std::string get_escaped_string(const std::string& str, bool escape_all);
+
+class ODesc;
+
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
+                          bool escape_all);
+std::string get_escaped_string(const char* str, size_t len, bool escape_all);
+
+inline std::string get_escaped_string(const std::string& str, bool escape_all)
+	{
+	return get_escaped_string(str.data(), str.length(), escape_all);
+	}
 
 std::vector<std::string>* tokenize_string(std::string input,
 					  const std::string& delim,

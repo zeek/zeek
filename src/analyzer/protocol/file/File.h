@@ -28,17 +28,15 @@ protected:
 	static const int BUFFER_SIZE = 1024;
 	char buffer[BUFFER_SIZE];
 	int buffer_len;
+	string file_id_orig;
+	string file_id_resp;
 };
 
 class IRC_Data : public File_Analyzer {
 public:
-	IRC_Data(Connection* conn);
-
-	virtual void Done();
-
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-
-	virtual void Undelivered(int seq, int len, bool orig);
+	IRC_Data(Connection* conn)
+		: File_Analyzer("IRC_Data", conn)
+		{ }
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new IRC_Data(conn); }
@@ -46,13 +44,9 @@ public:
 
 class FTP_Data : public File_Analyzer {
 public:
-	FTP_Data(Connection* conn);
-
-	virtual void Done();
-
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-
-	virtual void Undelivered(int seq, int len, bool orig);
+	FTP_Data(Connection* conn)
+		: File_Analyzer("FTP_Data", conn)
+		{ }
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new FTP_Data(conn); }

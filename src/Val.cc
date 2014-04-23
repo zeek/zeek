@@ -32,7 +32,6 @@ Val::Val(Func* f)
 	val.func_val = f;
 	::Ref(val.func_val);
 	type = f->FType()->Ref();
-	attribs = 0;
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -49,7 +48,6 @@ Val::Val(BroFile* f)
 	assert(f->FType()->Tag() == TYPE_STRING);
 	type = string_file_type->Ref();
 
-	attribs = 0;
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -190,8 +188,6 @@ bool Val::DoSerialize(SerialInfo* info) const
 	if ( ! type->Serialize(info) )
 		return false;
 
-	SERIALIZE_OPTIONAL(attribs);
-
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_VOID:
 		info->s->Error("type is void");
@@ -250,9 +246,6 @@ bool Val::DoUnserialize(UnserialInfo* info)
 
 	if ( ! (type = BroType::Unserialize(info)) )
 		return false;
-
-	UNSERIALIZE_OPTIONAL(attribs,
-		(RecordVal*) Val::Unserialize(info, TYPE_RECORD));
 
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_VOID:

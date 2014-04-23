@@ -159,12 +159,16 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 	c$ssl$cipher = cipher_desc[cipher];
 	}
 
-event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &priority=5
+event tls_extension_server_name(c: connection, is_orig: bool, names: string_vec) &priority=5
 	{
 	set_session(c);
 
-	if ( is_orig && extensions[code] == "server_name" )
-		c$ssl$server_name = sub_bytes(val, 6, |val|);
+	if ( is_orig && |names| > 0 )
+		{
+		c$ssl$server_name = names[0];
+		if ( |names| > 1 )
+			event conn_weird("SSL_many_server_names", c, cat(names));
+		}
 	}
 
 event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priority=5

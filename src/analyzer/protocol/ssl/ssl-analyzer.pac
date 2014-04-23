@@ -86,23 +86,19 @@ function version_ok(vers : uint16) : bool
 
 refine connection SSL_Conn += {
 
-	%member{
-		int eof;
-	%}
-
-	%init{
-		eof=0;
-	%}
-
-	#%eof{
-	#	if ( ! eof &&
-	#	     state_ != STATE_CONN_ESTABLISHED &&
-	#	     state_ != STATE_TRACK_LOST &&
-	#	     state_ != STATE_INITIAL )
-	#		bro_analyzer()->ProtocolViolation(fmt("unexpected end of connection in state %s",
-	#			state_label(state_).c_str()));
-	#	++eof;
-	#%}
+#	%member{
+#		int eof;
+#	%}
+#
+#	%init{
+#		eof=0;
+#	%}
+#
+#	%eof{
+#		if ( ! eof  )
+#			bro_analyzer()->ProtocolViolation(fmt("unexpected end of connection"));
+#		++eof;
+#	%}
 
 	%cleanup{
 	%}
@@ -198,12 +194,104 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_ssl_extension(rec: SSLRecord, type: int, data: bytestring) : bool
+	function proc_ssl_extension(rec: SSLRecord, type: int, sourcedata: const_bytestring) : bool
 		%{
+		// we cheat a little bit here. We want to throw this event for every extension we encounter,
+		// even those that are handled by more specialized events later.
+		// To access the parsed data, we use sourcedata, which contains the whole data blob of
+		// the extension, including headers. We skip over those (4 bytes).
+		size_t length = sourcedata.length();
+		if ( length < 4 )
+			{
+			// this should be impossible due to the binpac parser and protocol description
+			bro_analyzer()->ProtocolViolation(fmt("Impossible extension length: %lu", length));
+			return true;
+			}
+		length -= 4;
+		const unsigned char* data = sourcedata.begin() + 4;
+
 		if ( ssl_extension )
 			BifEvent::generate_ssl_extension(bro_analyzer(),
 						bro_analyzer()->Conn(), ${rec.is_orig}, type,
-						new StringVal(data.length(), (const char*) data.data()));
+						new StringVal(length, reinterpret_cast<const char*>(data)));
+		return true;
+		%}
+
+	function proc_ec_point_formats(rec: SSLRecord, point_format_list: uint8[]) : bool
+		%{
+		VectorVal* points = new VectorVal(internal_type("index_vec")->AsVectorType());
+		if ( point_format_list )
+			{
+			for ( unsigned int i = 0; i < point_format_list->size(); ++i )
+				{
+				points->Assign(i, new Val((*point_format_list)[i], TYPE_COUNT));
+				}
+			}
+
+		BifEvent::generate_tls_extension_ec_point_formats(bro_analyzer(), bro_analyzer()->Conn(),
+		   ${rec.is_orig}, points);
+
+		return true;
+		%}
+
+	function proc_elliptic_curves(rec: SSLRecord, list: uint16[]) : bool
+		%{
+		VectorVal* curves = new VectorVal(internal_type("index_vec")->AsVectorType());
+		if ( list )
+			{
+			for ( unsigned int i = 0; i < list->size(); ++i )
+				{
+				curves->Assign(i, new Val((*list)[i], TYPE_COUNT));
+				}
+			}
+
+		BifEvent::generate_tls_extension_elliptic_curves(bro_analyzer(), bro_analyzer()->Conn(),
+		   ${rec.is_orig}, curves);
+
+		return true;
+		%}
+
+	function proc_apnl(rec: SSLRecord, protocols: ProtocolName[]) : bool
+		%{
+		VectorVal* plist = new VectorVal(internal_type("string_vec")->AsVectorType());
+		if ( protocols )
+			{
+			for ( unsigned int i = 0; i < protocols->size(); ++i )
+				{
+				plist->Assign(i, new StringVal((*protocols)[i]->name().length(), (const char*) (*protocols)[i]->name().data()));
+				}
+			}
+
+		BifEvent::generate_tls_extension_application_layer_protocol_negotiation(bro_analyzer(), bro_analyzer()->Conn(),
+		   ${rec.is_orig}, plist);
+
+		return true;
+		%}
+
+	function proc_server_name(rec: SSLRecord, list: ServerName[]) : bool
+		%{
+		VectorVal* servers = new VectorVal(internal_type("string_vec")->AsVectorType());
+		if ( list )
+			{
+			for ( unsigned int i = 0, j=0; i < list->size(); ++i )
+				{
+				ServerName* servername = (*list)[i];
+				if ( servername->name_type() != 0 )
+					{
+					bro_analyzer()->Weird(fmt("Encountered unknown type in server name tls extension: %d", servername->name_type()));
+					continue;
+					}
+
+				if ( servername->host_name() )
+					servers->Assign(j++, new StringVal(servername->host_name()->host_name().length(), (const char*) servername->host_name()->host_name().data()));
+				else
+					bro_analyzer()->Weird("Empty server_name extension in tls connection");
+				}
+			}
+
+		BifEvent::generate_tls_extension_server_name(bro_analyzer(), bro_analyzer()->Conn(),
+		   ${rec.is_orig}, servers);
+
 		return true;
 		%}
 
@@ -233,9 +321,9 @@ refine connection SSL_Conn += {
 		return ret;
 		%}
 
-	function proc_v3_certificate(rec: SSLRecord, cl : CertificateList) : bool
+	function proc_v3_certificate(rec: SSLRecord, cl : X509Certificate[]) : bool
 		%{
-		vector<X509Certificate*>* certs = cl->val();
+		vector<X509Certificate*>* certs = cl;
 		vector<bytestring>* cert_list = new vector<bytestring>();
 
 		std::transform(certs->begin(), certs->end(),
@@ -303,11 +391,6 @@ refine connection SSL_Conn += {
 
 };
 
-#refine typeattr ChangeCipherSpec += &let {
-#	proc : bool = $context.connection.proc_change_cipher_spec(rec)
-#		&requires(state_changed);
-#};
-
 refine typeattr Alert += &let {
 	proc : bool = $context.connection.proc_alert(rec, level, description);
 };
@@ -315,10 +398,6 @@ refine typeattr Alert += &let {
 refine typeattr V2Error += &let {
 	proc : bool = $context.connection.proc_alert(rec, -1, error_code);
 };
-
-#refine typeattr ApplicationData += &let {
-#	proc : bool = $context.connection.proc_application_data(rec);
-#};
 
 refine typeattr Heartbeat += &let {
 	proc : bool = $context.connection.proc_heartbeat(rec, type, payload_length, data);
@@ -363,10 +442,6 @@ refine typeattr UnknownHandshake += &let {
 	proc : bool = $context.connection.proc_unknown_handshake(hs, is_orig);
 };
 
-#refine typeattr Handshake += &let {
-#	proc : bool = $context.connection.proc_handshake(this, rec.is_orig);
-#};
-
 refine typeattr SessionTicketHandshake += &let {
 	proc : bool = $context.connection.proc_session_ticket_handshake(this, rec.is_orig);
 }
@@ -380,5 +455,21 @@ refine typeattr CiphertextRecord += &let {
 }
 
 refine typeattr SSLExtension += &let {
-	proc : bool = $context.connection.proc_ssl_extension(rec, type, data);
+	proc : bool = $context.connection.proc_ssl_extension(rec, type, sourcedata);
+};
+
+refine typeattr EcPointFormats += &let {
+	proc : bool = $context.connection.proc_ec_point_formats(rec, point_format_list);
+};
+
+refine typeattr EllipticCurves += &let {
+	proc : bool = $context.connection.proc_elliptic_curves(rec, elliptic_curve_list);
+};
+
+refine typeattr ApplicationLayerProtocolNegotiationExtension += &let {
+	proc : bool = $context.connection.proc_apnl(rec, protocol_name_list);
+};
+
+refine typeattr ServerNameExt += &let {
+	proc : bool = $context.connection.proc_server_name(rec, server_names);
 };

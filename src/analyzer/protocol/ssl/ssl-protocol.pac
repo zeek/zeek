@@ -69,14 +69,81 @@ type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	default			-> unknown_record : UnknownRecord(rec);
 };
 
+######################################################################
+# TLS Extensions
+######################################################################
+
 type SSLExtension(rec: SSLRecord) = record {
 	type: uint16;
 	data_len: uint16;
-	data: bytestring &length=data_len;
+
+	# Pretty code ahead. Deal with the fact that perhaps extensions are not really present and we do not want to fail because of that.
+	ext: case type of {
+		EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION -> apnl: ApplicationLayerProtocolNegotiationExtension(rec)[] &until($element == 0 || $element != 0);
+		EXT_ELLIPTIC_CURVES -> elliptic_curves: EllipticCurves(rec)[] &until($element == 0 || $element != 0);
+		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == 0 || $element != 0);
+#		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
+		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
+		default -> data: bytestring &restofdata;
+	};
+} &length=data_len+4 &exportsourcedata;
+
+type ServerNameHostName() = record {
+	length: uint16;
+	host_name: bytestring &length=length;
 };
 
+type ServerName() = record {
+	name_type: uint8; # has to be 0 for host-name
+	name: case name_type of {
+		0 -> host_name: ServerNameHostName;
+		default -> data : bytestring &restofdata; # unknown name
+	};
+};
+
+type ServerNameExt(rec: SSLRecord) = record {
+	length: uint16;
+	server_names: ServerName[] &until($input.length() == 0);
+} &length=length+2;
+
+# Do not parse for now. Structure is correct, but only contains asn.1 data that we would not use further.
+#type OcspStatusRequest(rec: SSLRecord) = record {
+#	responder_id_list_length: uint16;
+#	responder_id_list: bytestring &length=responder_id_list_length;
+#	request_extensions_length: uint16;
+#	request_extensions: bytestring &length=request_extensions_length;
+#};
+#
+#type StatusRequest(rec: SSLRecord) = record {
+#	status_type: uint8; # 1 -> ocsp
+#	req: case status_type of {
+#		1 -> ocsp_status_request: OcspStatusRequest(rec);
+#		default -> data : bytestring &restofdata; # unknown
+#	};
+#};
+
+type EcPointFormats(rec: SSLRecord) = record {
+	length: uint8;
+	point_format_list: uint8[length];
+};
+
+type EllipticCurves(rec: SSLRecord) = record {
+	length: uint16;
+	elliptic_curve_list: uint16[length/2];
+};
+
+type ProtocolName() = record {
+  length: uint8;
+	name: bytestring &length=length;
+};
+
+type ApplicationLayerProtocolNegotiationExtension(rec: SSLRecord) = record {
+	length: uint16;
+	protocol_name_list: ProtocolName[] &until($input.length() == 0);
+} &length=length+2;
+
 ######################################################################
-# state management according to Section 7.3. in spec
+# Encryption Tracking
 ######################################################################
 
 enum AnalyzerState {
@@ -174,10 +241,6 @@ type Heartbeat(rec: SSLRecord) = record {
 };
 
 ######################################################################
-# Handshake Protocol (7.4.)
-######################################################################
-
-######################################################################
 # V3 Hello Request (7.4.1.1.)
 ######################################################################
 
@@ -204,7 +267,6 @@ type ClientHello(rec: SSLRecord) = record {
 	ext_len: uint16[] &until($element == 0 || $element != 0);
 	extensions : SSLExtension(rec)[] &until($input.length() == 0);
 };
-
 
 ######################################################################
 # V2 Client Hello (SSLv2 2.5.)
@@ -270,13 +332,17 @@ type X509Certificate = record {
 	certificate : bytestring &length = to_int()(length);
 };
 
-type CertificateList = X509Certificate[] &until($input.length() == 0);
-
 type Certificate(rec: SSLRecord) = record {
 	length : uint24;
-	certificates : CertificateList &length = to_int()(length);
-};
+	certificates : X509Certificate[] &until($input.length() == 0);
+} &length = to_int()(length)+3;
 
+# OCSP Stapling
+
+type CertificateStatus(rec: SSLRecord) = record {
+	status_type: uint8; # 1 = ocsp, everything else is undefined
+	response: bytestring &restofdata;
+};
 
 ######################################################################
 # V3 Server Key Exchange Message (7.4.3.)
@@ -394,7 +460,7 @@ type Handshake(rec: SSLRecord) = record {
 		CLIENT_KEY_EXCHANGE -> client_key_exchange : ClientKeyExchange(rec);
 		FINISHED            -> finished            : Finished(rec);
 		CERTIFICATE_URL     -> certificate_url     : bytestring &restofdata &transient;
-		CERTIFICATE_STATUS  -> certificate_status  : bytestring &restofdata &transient;
+		CERTIFICATE_STATUS  -> certificate_status  : CertificateStatus(rec);
 		default             -> unknown_handshake   : UnknownHandshake(this, rec.is_orig);
 	} &length = to_int()(length);
 };

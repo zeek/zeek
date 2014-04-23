@@ -185,6 +185,7 @@ export {
 		["RPC_underflow"]                       = ACTION_LOG,
 		["RST_storm"]                           = ACTION_LOG,
 		["RST_with_data"]                       = ACTION_LOG,
+		["SSL_many_server_names"]               = ACTION_LOG,
 		["simultaneous_open"]                   = ACTION_LOG_PER_CONN,
 		["spontaneous_FIN"]                     = ACTION_IGNORE,
 		["spontaneous_RST"]                     = ACTION_IGNORE,

@@ -80,6 +80,14 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 ##    ssl_session_ticket_handshake
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
+event tls_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
+
+event tls_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
+
+event tls_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
+
+event tls_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
+
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an unencrypted handshake, and Bro extracts as much information out of that
 ## as it can. This event signals the time when an SSL/TLS has finished the

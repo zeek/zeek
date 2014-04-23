@@ -583,9 +583,16 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 	top_level->EndOfData();
 
 	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
-		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                    MyHTTP_Analyzer()->Conn(), is_orig);
+		{
+		// multipart/byteranges may span multiple connections, so don't EOF.
+		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(top_level);
+
+		if ( he && ! he->FileID().empty() )
+			file_mgr->EndOfFile(he->FileID());
+		else
+			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                    MyHTTP_Analyzer()->Conn(), is_orig);
+		}
 
 	if ( http_message_done )
 		{
@@ -663,8 +670,15 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		Done();
 
 	else if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                    MyHTTP_Analyzer()->Conn(), is_orig);
+		{
+		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(entity);
+
+		if ( he && ! he->FileID().empty() )
+			file_mgr->EndOfFile(he->FileID());
+		else
+			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                    MyHTTP_Analyzer()->Conn(), is_orig);
+		}
 	}
 
 void HTTP_Message::SubmitHeader(mime::MIME_Header* h)

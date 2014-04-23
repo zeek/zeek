@@ -23,11 +23,15 @@ void SIP_Analyzer::Done()
 void SIP_Analyzer::DeliverPacket(int len, const u_char* data,
 				 bool orig, int seq, const IP_Hdr* ip, int caplen)
 	{
-	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	bool real_orig = true;
+	if ( len > 6 && data[0] == 'S' && data[1] == 'I' && data[2] == 'P' && data[3] == '/' )
+	    real_orig = false;
+
+	Analyzer::DeliverPacket(len, data, real_orig, seq, ip, caplen);
 	
 	try
 		{
-		interp->NewData(orig, data, data + len);
+		interp->NewData(real_orig, data, data + len);
 		}
 	catch ( const binpac::Exception& e )
 		{

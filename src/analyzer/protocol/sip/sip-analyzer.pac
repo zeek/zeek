@@ -45,8 +45,8 @@ refine flow SIP_Flow += {
 
 	function proc_sip_header(name: bytestring, value: bytestring): bool
 		%{
-
-		content_length = bytestring_to_int(value, 10);
+		if ( name == "Content-Length" || name == "L" )
+			content_length = bytestring_to_int(value, 10);
 		
 		if ( sip_header )
 			{
@@ -123,8 +123,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_begin_entity )
 			{
-			BifEvent::generate_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							    is_orig());
+			BifEvent::generate_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 		%}
 
@@ -132,13 +131,11 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_end_entity )
 			{
-			BifEvent::generate_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							  is_orig());
+			BifEvent::generate_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 		if ( sip_message_done )
 			{
-			BifEvent::generate_sip_message_done(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							    is_orig());
+			BifEvent::generate_sip_message_done(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 
 		return true;

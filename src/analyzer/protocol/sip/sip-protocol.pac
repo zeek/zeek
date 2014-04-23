@@ -8,6 +8,7 @@ type SIP_TOKEN  = RE/[^()<>@,;:\\"\/\[\]?={} \t]+/;
 type SIP_WS     = RE/[ \t]*/;
 type SIP_COLON	= RE/:/;
 type SIP_TO_EOL = RE/[^\r\n]*/;
+type SIP_EOL    = RE/(\r\n){1,2}/;
 type SIP_URI    = RE/[[:alnum:]@[:punct:]]+/;
 
 type SIP_PDU(is_orig: bool) = case is_orig of {
@@ -17,11 +18,13 @@ type SIP_PDU(is_orig: bool) = case is_orig of {
 
 type SIP_Request = record {
      request:        SIP_RequestLine;
+     newline:	     padding[2];
      msg:            SIP_Message;
 };
 
 type SIP_Reply = record {
      reply:          SIP_ReplyLine;
+     newline:	     padding[2];
      msg:            SIP_Message;
 };
 
@@ -61,15 +64,15 @@ type SIP_Message = record {
      body:           SIP_Body;
 };
 
-type SIP_HEADER_NAME = RE/([^: \t]+)/;
+type SIP_HEADER_NAME = RE/[^: \t]+/;
 type SIP_Header = record {
-     :               padding[2];
      name:           SIP_HEADER_NAME;
      :		     SIP_COLON;
      :               SIP_WS;
      value:          SIP_TO_EOL;
+     :		     SIP_EOL;
 } &oneline &byteorder=bigendian;
 
-type SIP_Body() = record {
-      body: bytestring &chunked, &length = $context.flow.get_content_length();
+type SIP_Body = record {
+      body: bytestring &length = $context.flow.get_content_length();
 };

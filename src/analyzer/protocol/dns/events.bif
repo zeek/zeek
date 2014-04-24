@@ -376,7 +376,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%);
+event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec%);
 
 ## Generated for DNS replies of type *SRV*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.

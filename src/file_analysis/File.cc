@@ -283,6 +283,7 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
 	RuleMatcher::MIME_Matches matches;
+	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
 	if ( matches.empty() )

@@ -46,6 +46,7 @@ public:
 	int64_t BodyLength() const 		{ return body_length; }
 	int64_t HeaderLength() const 	{ return header_length; }
 	void SkipBody() 		{ deliver_body = 0; }
+	const string& FileID() const  { return precomputed_file_id; }
 
 protected:
 	class UncompressedOutput;

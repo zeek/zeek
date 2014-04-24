@@ -231,15 +231,26 @@ refine connection SSL_Conn += {
 		if ( certificates->size() == 0 )
 			return true;
 
+		ODesc common;
+		common.AddRaw("Analyzer::ANALYZER_SSL");
+		common.Add(bro_analyzer()->Conn()->StartTime());
+		common.AddRaw(${rec.is_orig} ? "T" : "F", 1);
+		bro_analyzer()->Conn()->IDString(&common);
+
 		for ( unsigned int i = 0; i < certificates->size(); ++i )
 			{
 			const bytestring& cert = (*certificates)[i];
 
-			string fid = file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()), cert.length(),
-						      bro_analyzer()->GetAnalyzerTag(), bro_analyzer()->Conn(),
-						      ${rec.is_orig});
+			ODesc file_handle;
+			file_handle.Add(common.Description());
+			file_handle.Add(i);
 
-			file_mgr->EndOfFile(fid);
+			string file_id = file_mgr->HashHandle(file_handle.Description());
+
+			file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+			                 cert.length(), bro_analyzer()->GetAnalyzerTag(),
+			                 bro_analyzer()->Conn(), ${rec.is_orig}, file_id);
+			file_mgr->EndOfFile(file_id);
 			}
 		return true;
 		%}

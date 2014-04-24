@@ -1,4 +1,24 @@
 
+2.2-353 | 2014-04-24 16:12:30 -0700
+
+  * Adapt HTTP partial content to cache file analysis IDs. (Jon Siwek)
+    
+  * Adapt SSL analyzer to generate file analysis handles itself. (Jon
+    Siwek)
+
+  * Adapt more of HTTP analyzer to use cached file analysis IDs. (Jon
+    Siwek)
+
+  * Adapt IRC/FTP analyzers to cache file analysis IDs. (Jon Siwek)
+
+  * Refactor regex/signature AcceptingSet data structure and usages.
+    (Jon Siwek)
+
+  * Enforce data size limit when checking files for MIME matches. (Jon
+    Siwek)
+
+  * Refactor file analysis file ID lookup. (Jon Siwek)
+    
 2.2-344 | 2014-04-22 20:13:30 -0700
 
   * Refactor various hex escaping code. (Jon Siwek)

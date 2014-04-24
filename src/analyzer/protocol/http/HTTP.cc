@@ -243,10 +243,10 @@ int HTTP_Entity::Undelivered(int64_t len)
 		return 0;
 
 	if ( is_partial_content )
-		file_mgr->Gap(body_length, len,
+		precomputed_file_id = file_mgr->Gap(body_length, len,
 		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		              http_message->MyHTTP_Analyzer()->Conn(),
-		              http_message->IsOrig());
+		              http_message->IsOrig(), precomputed_file_id);
 	else
 		precomputed_file_id = file_mgr->Gap(body_length, len,
 		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
@@ -306,15 +306,15 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	if ( is_partial_content )
 		{
 		if ( send_size && instance_length > 0 )
-			file_mgr->SetSize(instance_length,
+			precomputed_file_id = file_mgr->SetSize(instance_length,
 			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig());
+			                  http_message->IsOrig(), precomputed_file_id);
 
-		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
+		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
 		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig());
+		                 http_message->IsOrig(), precomputed_file_id);
 
 		offset += len;
 		}

@@ -214,6 +214,8 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##
 ## c: The connection.
 ##
+## is_orig: True if event is raised for originator side of the connection.
+##
 ## length: length of the entire heartbeat message.
 ##
 ## heartbeat_type: type of the heartbeat message. Per RFC, 1 = request, 2 = response
@@ -236,9 +238,21 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 ##
 ## c: The connection.
 ##
+## is_orig: True if event is raised for originator side of the connection.
+##
 ## length: length of the entire heartbeat message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
 event ssl_encrypted_heartbeat%(c: connection, is_orig: bool, length: count%);
 
+## This event contains the OCSP response contained in a Certificate Status Request
+## message, when the client requested OCSP stapling and the server supports it. See
+## description in :rfc:`6066`
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## response: OCSP data.
+event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string%);

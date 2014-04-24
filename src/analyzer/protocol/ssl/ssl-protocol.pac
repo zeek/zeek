@@ -341,6 +341,7 @@ type Certificate(rec: SSLRecord) = record {
 
 type CertificateStatus(rec: SSLRecord) = record {
 	status_type: uint8; # 1 = ocsp, everything else is undefined
+	length : uint24;
 	response: bytestring &restofdata;
 };
 

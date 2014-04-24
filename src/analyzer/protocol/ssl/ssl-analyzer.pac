@@ -389,6 +389,17 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
+	function proc_certificate_status(rec : SSLRecord, status_type: uint8, response: bytestring) : bool
+		%{
+		 if ( status_type == 1 ) // ocsp
+			{
+			BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
+			  bro_analyzer()->Conn(), ${rec.is_orig},
+			  new StringVal(response.length(), (const char*) response.data()));
+			}
+
+		return true;
+		%}
 };
 
 refine typeattr Alert += &let {
@@ -472,4 +483,8 @@ refine typeattr ApplicationLayerProtocolNegotiationExtension += &let {
 
 refine typeattr ServerNameExt += &let {
 	proc : bool = $context.connection.proc_server_name(rec, server_names);
+};
+
+refine typeattr CertificateStatus += &let {
+	proc : bool = $context.connection.proc_certificate_status(rec, status_type, response);
 };

@@ -159,7 +159,7 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 	c$ssl$cipher = cipher_desc[cipher];
 	}
 
-event tls_extension_server_name(c: connection, is_orig: bool, names: string_vec) &priority=5
+event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec) &priority=5
 	{
 	set_session(c);
 
@@ -198,7 +198,7 @@ event connection_state_remove(c: connection) &priority=-5
 
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=5
 	{
-	if ( atype == Analyzer::ANALYZER_SSL ) 
+	if ( atype == Analyzer::ANALYZER_SSL )
 		{
 		set_session(c);
 		c$ssl$analyzer_id = aid;

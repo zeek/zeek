@@ -1,6 +1,9 @@
 module Heartbleed;
 
-# Please note - this is not well tested. Use at your own risk.
+# Detect the TLS heartbleed attack. See http://heartbleed.com/
+
+# Do not disable analyzers after detection - otherwhise we will not notice encrypted attacks
+redef SSL::disable_analyzer_after_detection=F;
 
 redef record SSL::Info += {
 	last_originator_heartbeat_request_size: count &optional;

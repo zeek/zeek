@@ -228,7 +228,7 @@ refine connection SSL_Conn += {
 				}
 			}
 
-		BifEvent::generate_tls_extension_ec_point_formats(bro_analyzer(), bro_analyzer()->Conn(),
+		BifEvent::generate_ssl_extension_ec_point_formats(bro_analyzer(), bro_analyzer()->Conn(),
 		   ${rec.is_orig}, points);
 
 		return true;
@@ -245,7 +245,7 @@ refine connection SSL_Conn += {
 				}
 			}
 
-		BifEvent::generate_tls_extension_elliptic_curves(bro_analyzer(), bro_analyzer()->Conn(),
+		BifEvent::generate_ssl_extension_elliptic_curves(bro_analyzer(), bro_analyzer()->Conn(),
 		   ${rec.is_orig}, curves);
 
 		return true;
@@ -262,7 +262,7 @@ refine connection SSL_Conn += {
 				}
 			}
 
-		BifEvent::generate_tls_extension_application_layer_protocol_negotiation(bro_analyzer(), bro_analyzer()->Conn(),
+		BifEvent::generate_ssl_extension_application_layer_protocol_negotiation(bro_analyzer(), bro_analyzer()->Conn(),
 		   ${rec.is_orig}, plist);
 
 		return true;
@@ -278,18 +278,18 @@ refine connection SSL_Conn += {
 				ServerName* servername = (*list)[i];
 				if ( servername->name_type() != 0 )
 					{
-					bro_analyzer()->Weird(fmt("Encountered unknown type in server name tls extension: %d", servername->name_type()));
+					bro_analyzer()->Weird(fmt("Encountered unknown type in server name ssl extension: %d", servername->name_type()));
 					continue;
 					}
 
 				if ( servername->host_name() )
 					servers->Assign(j++, new StringVal(servername->host_name()->host_name().length(), (const char*) servername->host_name()->host_name().data()));
 				else
-					bro_analyzer()->Weird("Empty server_name extension in tls connection");
+					bro_analyzer()->Weird("Empty server_name extension in ssl connection");
 				}
 			}
 
-		BifEvent::generate_tls_extension_server_name(bro_analyzer(), bro_analyzer()->Conn(),
+		BifEvent::generate_ssl_extension_server_name(bro_analyzer(), bro_analyzer()->Conn(),
 		   ${rec.is_orig}, servers);
 
 		return true;

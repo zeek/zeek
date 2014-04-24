@@ -90,6 +90,9 @@ Changed Functionality
       (where the "mime_type" field is just a shortcut for the
       strongest match).
 
+- dns_TXT_reply() now supports more than one string entry by receiving
+  a vector of strings.
+
 Bro 2.2
 =======
 

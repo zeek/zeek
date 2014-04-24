@@ -382,9 +382,19 @@ event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priori
 	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
-event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &priority=5
+event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5
 	{
-	hook DNS::do_reply(c, msg, ans, str);
+	local txt_strings: string = "";
+
+	for ( i in strs )
+		{
+		if ( i > 0 )
+			txt_strings += " ";
+
+		txt_strings += fmt("TXT %d %s", |strs[i]|, strs[i]);
+		}
+
+	hook DNS::do_reply(c, msg, ans, txt_strings);
 	}
 
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5

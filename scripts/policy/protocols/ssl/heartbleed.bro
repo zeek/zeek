@@ -1,6 +1,9 @@
-module Heartbleed;
+# Detect the TLS heartbleed attack. See http://heartbleed.com
 
-# Detect the TLS heartbleed attack. See http://heartbleed.com/
+@load base/protocols/ssl
+@load base/frameworks/notice
+
+module Heartbleed;
 
 # Do not disable analyzers after detection - otherwhise we will not notice encrypted attacks
 redef SSL::disable_analyzer_after_detection=F;

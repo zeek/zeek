@@ -40,6 +40,11 @@ New Functionality
   magic matches and their corresponding strength against a given chunk
   of data.
 
+- The SSL analyzer now has support heartbeats as well as for a few
+  extensions, including server_name, alpn, and ec-curves.
+
+- The SSL analyzer comes with Heartbleed detector script in
+  protocols/ssl/heartbleed.bro.
 
 Changed Functionality
 ---------------------

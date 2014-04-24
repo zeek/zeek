@@ -1,4 +1,24 @@
 
+2.2-377 | 2014-04-24 16:57:54 -0700
+
+  * A larger set of SSL improvements and extensions. Addresses
+    BIT-1178. (Bernhard Amann)
+
+        - Fixes TLS protocol version detection. It also should
+          bail-out correctly on non-tls-connections now
+
+        - Adds support for a few TLS extensions, including
+          server_name, alpn, and ec-curves.
+
+        - Adds support for the heartbeat events.
+          
+        - Add Heartbleed detector script.
+
+        - Adds basic support for OCSP stapling.
+
+  * Fix parsing of DNS TXT RRs w/ multiple character-strings.
+    Addresses BIT-1156. (Jon Siwek)
+
 2.2-353 | 2014-04-24 16:12:30 -0700
 
   * Adapt HTTP partial content to cache file analysis IDs. (Jon Siwek)

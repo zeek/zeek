@@ -20,9 +20,9 @@ Version 4.9.8.7
 * Added support for GCC > 3.2
 * Debug variables are now resent during next debug session
 * Watched Variables not in correct context are now kept and updated when it is needed
-* Added new compiler/linker options: 20
+* Added new compiler/linker options: 
   - Strip executable
-  - Generate instructions for a specific machine (i386, i486, i586, i686, pentium, pentium-mmx, pentiumpro, pentium2, pentium3, pentium4, 20
+  - Generate instructions for a specific machine (i386, i486, i586, i686, pentium, pentium-mmx, pentiumpro, pentium2, pentium3, pentium4, 
     k6, k6-2, k6-3, athlon, athlon-tbird, athlon-4, athlon-xp, athlon-mp, winchip-c6, winchip2, k8, c3 and c3-2)
   - Enable use of processor specific built-in functions (mmmx, sse, sse2, pni, 3dnow)
 * "Default" button in Compiler Options is back
@@ -42,16 +42,16 @@ Version 4.9.8.4
 * Bug fixes
 
 Version 4.9.8.3
-* On Dev-C++ first time configuration dialog, a code completion cache of all the standard 20
+* On Dev-C++ first time configuration dialog, a code completion cache of all the standard 
   include files can now be generated.
 * Improved WebUpdate module
 * Many bug fixes
 
 Version 4.9.8.2
 * New debug feature for DLLs: attach to a running process
-* New project option: Use custom Makefile. 20
+* New project option: Use custom Makefile. 
 * New WebUpdater module.
-* Allow user to specify an alternate configuration file in Environment Options 20
+* Allow user to specify an alternate configuration file in Environment Options 
   (still can be overriden by using "-c" command line parameter).
 * Lots of bug fixes.
 
@@ -150,7 +150,7 @@ Version 4.9.6.9
 * Implemented "compiler sets" infrastructure to switch between different compilers easily (e.g. gcc-2.95 and gcc-3.2)
 * Added "Files" tab in CVS form to allow selection of more than one file for
   the requested CVS action
-  20
+  
 Version 4.9.6.8
 * support for DLL application hosting, for debugging and executing DLLs under Dev-C++.
 * New class browser option: "Show inherited members"
@@ -248,7 +248,7 @@ Version 4.9.5.0 (5.0 beta 5):
 * Folders in Project and Class Browser
 * Send custom commands to GDB
 * Makefile can now be customized.
-* Modified the behaviour of the -c param : 20
+* Modified the behaviour of the -c param : 
   -c <config file directory>
 * Saving of custom syntax parameter group
 * Possibility of changing compilers and tools filename.

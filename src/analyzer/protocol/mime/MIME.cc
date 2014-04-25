@@ -1044,6 +1044,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 						{
 						DataOctet((a << 4) + b);
 						legal = 1;
+						i += 2;
 						}
 					}
 

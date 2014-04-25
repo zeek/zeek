@@ -1,4 +1,8 @@
 
+2.2-388 | 2014-04-24 18:38:07 -0700
+
+  * Fix decoding of MIME quoted-printable. (Mareq)
+
 2.2-386 | 2014-04-24 18:22:29 -0700
 
   * Do a Intel::ADDR lookup for host field if we find an IP address

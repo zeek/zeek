@@ -160,7 +160,7 @@ void ProfileLogger::Log()
 	file->Write(fmt("%.06f Connections expired due to inactivity: %d\n",
 		network_time, killed_by_inactivity));
 
-	file->Write(fmt("%.06f Total reassembler data: %dK\n", network_time,
+	file->Write(fmt("%.06f Total reassembler data: %"PRIu64"K\n", network_time,
 		Reassembler::TotalMemoryAllocation() / 1024));
 
 	// Signature engine.

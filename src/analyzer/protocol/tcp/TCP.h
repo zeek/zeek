@@ -102,9 +102,9 @@ protected:
 	// Analyzer interface.
 	virtual void Init();
 	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig, int seq, const IP_Hdr* ip, int caplen);
+	virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen);
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 	virtual void FlipRoles();
 	virtual bool IsReuse(double t, const u_char* pkt);
 
@@ -119,42 +119,7 @@ protected:
 	bool ValidateChecksum(const struct tcphdr* tp, TCP_Endpoint* endpoint,
 				int len, int caplen);
 
-	// Update analysis based on flag combinations.  The endpoint, base_seq
-	// and len are needed for tracking various history information.
-	// dst_port is needed for trimming of FIN packets.
-	void CheckFlagCombos(TCP_Flags flags, TCP_Endpoint* endpoint,
-				uint32 base_seq, int len, int dst_port);
-
-	void UpdateWindow(TCP_Endpoint* endpoint, unsigned int window,
-					uint32 base_seq, uint32 ack_seq,
-					TCP_Flags flags);
-
-	void ProcessSYN(const IP_Hdr* ip, const struct tcphdr* tp,
-			uint32 tcp_hdr_len, int& seq_len,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 ack_seq,
-			const IPAddr& orig_addr,
-			int is_orig, TCP_Flags flags);
-
-	void ProcessFIN(double t, TCP_Endpoint* endpoint, int& seq_len,
-			uint32 base_seq);
-
-	void ProcessRST(double t, TCP_Endpoint* endpoint, const IP_Hdr* ip,
-			uint32 base_seq, int len, int& seq_len);
-
-	void ProcessACK(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 ack_seq, int is_orig, TCP_Flags flags);
-
-	void ProcessFlags(double t, const IP_Hdr* ip, const struct tcphdr* tp,
-			uint32 tcp_hdr_len, int len, int& seq_len,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 ack_seq,
-			const IPAddr& orig_addr,
-			int is_orig, TCP_Flags flags);
-
-	void TransitionFromInactive(double t, TCP_Endpoint* endpoint,
-					uint32 base_seq, uint32 last_seq,
-					int SYN);
+	void SetPartialStatus(TCP_Flags flags, bool is_orig);
 
 	// Update the state machine of the TCPs based on the activity.  This
 	// includes our pseudo-states such as TCP_ENDPOINT_PARTIAL.
@@ -164,8 +129,8 @@ protected:
 	// this fact.
 	void UpdateStateMachine(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 ack_seq, uint32 last_seq,
-			int len, int delta_last, int is_orig, TCP_Flags flags,
+			uint32 base_seq, uint32 ack_seq,
+			int len, int32 delta_last, int is_orig, TCP_Flags flags,
 			int& do_close, int& gen_event);
 
 	void UpdateInactiveState(double t,
@@ -174,42 +139,30 @@ protected:
 				int len, int is_orig, TCP_Flags flags,
 				int& do_close, int& gen_event);
 
-	void UpdateSYN_SentState(double t,
-				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32 base_seq, uint32 last_seq,
-				int len, int is_orig, TCP_Flags flags,
-				int& do_close, int& gen_event);
+	void UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+				 int len, int is_orig, TCP_Flags flags,
+				 int& do_close, int& gen_event);
 
-	void UpdateEstablishedState(double t,
-				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32 base_seq, uint32 last_seq,
-				int is_orig, TCP_Flags flags,
-				int& do_close, int& gen_event);
+	void UpdateEstablishedState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+				    TCP_Flags flags, int& do_close, int& gen_event);
 
 	void UpdateClosedState(double t, TCP_Endpoint* endpoint,
-				int delta_last, TCP_Flags flags,
+				int32 delta_last, TCP_Flags flags,
 				int& do_close);
 
-	void UpdateResetState(int len, TCP_Flags flags, TCP_Endpoint* endpoint,
-				uint32 base_seq, uint32 last_seq);
+	void UpdateResetState(int len, TCP_Flags flags);
 
-	void GeneratePacketEvent(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-					uint32 base_seq, uint32 ack_seq,
-					const u_char* data, int len, int caplen,
-					int is_orig, TCP_Flags flags);
+	void GeneratePacketEvent(uint64 rel_seq, uint64 rel_ack,
+				 const u_char* data, int len, int caplen,
+				 int is_orig, TCP_Flags flags);
 
 	int DeliverData(double t, const u_char* data, int len, int caplen,
 			const IP_Hdr* ip, const struct tcphdr* tp,
-			TCP_Endpoint* endpoint, uint32 base_seq,
+			TCP_Endpoint* endpoint, uint64 rel_data_seq,
 			int is_orig, TCP_Flags flags);
 
 	void CheckRecording(int need_contents, TCP_Flags flags);
 	void CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip);
-
-	// Returns the difference between last_seq and the last sequence
-	// seen by the endpoint (may be negative).
-	int UpdateLastSeq(TCP_Endpoint* endpoint, uint32 last_seq,
-				TCP_Flags flags);
 
 	friend class ConnectionTimer;
 	void AttemptTimer(double t);
@@ -227,12 +180,6 @@ protected:
 	void PacketWithRST();
 
 	void SetReassembler(tcp::TCP_Reassembler* rorig, tcp::TCP_Reassembler* rresp);
-
-	Val* BuildSYNPacketVal(int is_orig,
-				const IP_Hdr* ip, const struct tcphdr* tcp);
-
-	RecordVal* BuildOSVal(int is_orig, const IP_Hdr* ip,
-				const struct tcphdr* tcp, uint32 tcp_hdr_len);
 
 	// Needs to be static because it's passed as a pointer-to-function
 	// rather than pointer-to-member-function.
@@ -304,7 +251,7 @@ public:
 	virtual void PacketWithRST();
 
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 	virtual void Init();
 
 	// This suppresses violations if the TCP connection wasn't
@@ -341,7 +288,7 @@ class TCPStats_Endpoint {
 public:
 	TCPStats_Endpoint(TCP_Endpoint* endp);
 
-	int DataSent(double t, int seq, int len, int caplen, const u_char* data,
+	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
 			const IP_Hdr* ip, const struct tcphdr* tp);
 
 	RecordVal* BuildStats();
@@ -354,7 +301,7 @@ protected:
 	int num_in_order;
 	int num_OO;
 	int num_repl;
-	int max_top_seq;
+	uint64 max_top_seq;
 	int last_id;
 	int endian_type;
 };
@@ -372,7 +319,7 @@ public:
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;

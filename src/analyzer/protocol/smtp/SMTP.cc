@@ -76,14 +76,14 @@ void SMTP_Analyzer::Done()
 		EndData();
 	}
 
-void SMTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
+void SMTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( len <= 0 )
 		return;
 
-	const char* buf = fmt("seq = %d, len = %d", seq, len);
+	const char* buf = fmt("seq = %"PRIu64", len = %d", seq, len);
 	int buf_len = strlen(buf);
 
 	Unexpected(is_orig, "content gap", buf_len, buf);

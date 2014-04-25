@@ -1,4 +1,8 @@
 
+2.2-381 | 2014-04-24 17:08:45 -0700
+
+  * Add Java version to software framework. (Brian Little)
+    
 2.2-379 | 2014-04-24 17:06:21 -0700
 
   * Remove unused Val::attribs member. (Jon Siwek)

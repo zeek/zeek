@@ -1,4 +1,8 @@
 
+2.2-379 | 2014-04-24 17:06:21 -0700
+
+  * Remove unused Val::attribs member. (Jon Siwek)
+    
 2.2-377 | 2014-04-24 16:57:54 -0700
 
   * A larger set of SSL improvements and extensions. Addresses

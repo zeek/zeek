@@ -135,7 +135,8 @@ public:
 	int NoDataAcked() const
 		{
 		uint64 ack = ToFullSeqSpace(ack_seq, ack_wraps);
-		return ack == StartSeqI64() || ack == StartSeqI64() + 1;
+		uint64 start = static_cast<uint64>(StartSeqI64());
+		return ack == start || ack == start + 1;
 		}
 
 	Connection* Conn() const;

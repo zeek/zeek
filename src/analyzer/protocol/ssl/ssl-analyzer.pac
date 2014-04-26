@@ -400,6 +400,15 @@ refine connection SSL_Conn += {
 
 		return true;
 		%}
+
+	function proc_ec_server_key_exchange(rec: SSLRecord, curve_type: uint8, curve: uint16) : bool
+		%{
+		if ( curve_type == NAMED_CURVE )
+			BifEvent::generate_ssl_server_curve(bro_analyzer(),
+			  bro_analyzer()->Conn(), curve);
+
+		return true;
+		%}
 };
 
 refine typeattr Alert += &let {
@@ -487,4 +496,8 @@ refine typeattr ServerNameExt += &let {
 
 refine typeattr CertificateStatus += &let {
 	proc : bool = $context.connection.proc_certificate_status(rec, status_type, response);
+};
+
+refine typeattr EcServerKeyExchange += &let {
+	proc : bool = $context.connection.proc_ec_server_key_exchange(rec, curve_type, curve);
 };

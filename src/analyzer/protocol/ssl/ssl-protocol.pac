@@ -302,8 +302,10 @@ type ServerHello(rec: SSLRecord) = record {
 	# of the following fields.
 	ext_len: uint16[] &until($element == 0 || $element != 0);
 	extensions : SSLExtension(rec)[] &until($input.length() == 0);
+} &let {
+	cipher_set : bool =
+		$context.connection.set_cipher(cipher_suite[0]);
 };
-
 
 ######################################################################
 # V2 Server Hello (SSLv2 2.6.)
@@ -351,11 +353,51 @@ type CertificateStatus(rec: SSLRecord) = record {
 # V3 Server Key Exchange Message (7.4.3.)
 ######################################################################
 
-# For now ignore details; just eat up complete message
-type ServerKeyExchange(rec: SSLRecord) = record {
-	key : bytestring &restofdata &transient;
+# Usually, the server key exchange does not contain any information
+# that we are interested in.
+#
+# The one exception is when we are using an elliptic curve cipher suite.
+# In this case, we can extract the final chosen cipher from here.
+type ServerKeyExchange(rec: SSLRecord) = case $context.connection.chosen_cipher() of {
+	TLS_ECDH_ECDSA_WITH_NULL_SHA,
+	TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
+	TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_NULL_SHA,
+	TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+	TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDH_RSA_WITH_NULL_SHA,
+	TLS_ECDH_RSA_WITH_RC4_128_SHA,
+	TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_NULL_SHA,
+	TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+	TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDH_ANON_WITH_NULL_SHA,
+	TLS_ECDH_ANON_WITH_RC4_128_SHA,
+	TLS_ECDH_ANON_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_ANON_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_ANON_WITH_AES_256_CBC_SHA
+		-> ec_server_key_exchange : EcServerKeyExchange(rec);
+
+	default
+		-> key : bytestring &restofdata &transient;
 };
 
+# For the moment, we really only are interested in the curve name. If it
+# is not set (if the server sends explicit parameters), we do not bother.
+# We also do not parse the actual signature data following the named curve.
+type EcServerKeyExchange(rec: SSLRecord) = record {
+	curve_type: uint8;
+	curve: uint16; # only if curve_type = 3
+	data: bytestring &restofdata &transient;
+};
 
 ######################################################################
 # V3 Certificate Request (7.4.4.)
@@ -501,13 +543,23 @@ refine connection SSL_Conn += {
 		int client_state_;
 		int server_state_;
 		int record_layer_version_;
+		uint32 chosen_cipher_;
 	%}
 
 	%init{
 		server_state_ = STATE_CLEAR;
 		client_state_ = STATE_CLEAR;
 		record_layer_version_ = UNKNOWN_VERSION;
+		chosen_cipher_ = NO_CHOSEN_CIPHER;
 	%}
+
+	function chosen_cipher() : int %{ return chosen_cipher_; %}
+
+	function set_cipher(cipher: int64) : bool
+		%{
+		chosen_cipher_ = cipher;
+		return true;
+		%}
 
 	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
 					head2 : uint8, head3: uint8, head4: uint8) : int

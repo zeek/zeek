@@ -58,7 +58,7 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##              standardized as part of the SSL/TLS protocol.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_session_ticket_handshake x509_certificate
+##    ssl_session_ticket_handshake x509_certificate ssl_server_curve
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
@@ -97,7 +97,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name
+##    ssl_extension_server_name ssl_server_curve
 event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
@@ -114,8 +114,22 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-##    ssl_extension_server_name
+##    ssl_extension_server_name ssl_server_curve
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
+
+## Generated a named curve is chosen by the server for the SSL/TLS connection. The
+## curve is sent by the server in the ServerKeyExchange message as defined in
+## :rfc:`4492`, in case an ECDH or ECDHE cipher suite is chosen.
+##
+## c: The connection.
+##
+## point_formats: List of supported point formats.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
+event ssl_server_curve%(c: connection, curve: count%);
 
 ## Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
 ## This TLS extension is defined in draft-ietf-tls-applayerprotoneg and sent in

@@ -19,6 +19,8 @@ export {
 		version:          string           &log &optional;
 		## SSL/TLS cipher suite that the server chose.
 		cipher:           string           &log &optional;
+		## Elliptic curve the server chose when using ECDH/ECDHE.
+		curve:            string           &log &optional;
 		## Value of the Server Name Indicator SSL/TLS extension.  It
 		## indicates the server name that the client was requesting.
 		server_name:      string           &log &optional;
@@ -157,6 +159,13 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, server_
 
 	c$ssl$version = version_strings[version];
 	c$ssl$cipher = cipher_desc[cipher];
+	}
+
+event ssl_server_curve(c: connection, curve: count) &priority=5
+	{
+	set_session(c);
+
+	c$ssl$curve = ec_curves[curve];
 	}
 
 event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec) &priority=5

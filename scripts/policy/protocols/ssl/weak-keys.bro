@@ -10,7 +10,7 @@ module SSL;
 export {
 	redef enum Notice::Type += {
 		## Indicates that a server is using a potentially unsafe key.
-		SSL_Weak_Key,
+		Weak_Key,
 	};
 
 	## The category of hosts you would like to be notified about which have
@@ -52,10 +52,10 @@ event ssl_established(c: connection) &priority=3
 	local key_length = cert$key_length;
 
 	if ( key_length < notify_minimal_key_length )
-		NOTICE([$note=SSL_Weak_Key,
+		NOTICE([$note=Weak_Key,
 		  $msg=fmt("Host uses weak certificate with %d bit key", key_length),
-			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$orig_h, c$id$orig_p, key_length)
+		  $conn=c, $suppress_for=1day,
+		  $identifier=cat(c$id$orig_h, c$id$orig_p, key_length)
 		]);
 	}
 
@@ -66,25 +66,25 @@ event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string) &pri
 
 	local key_length = |Ys|*8; # key length in bits
 	if ( key_length < notify_minimal_key_length )
-		NOTICE([$note=SSL_Weak_Key,
-			$msg=fmt("Host uses weak DH parameters with %d key bits", key_length),
-			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$orig_h, c$id$orig_p, key_length)
+		NOTICE([$note=Weak_Key,
+		  $msg=fmt("Host uses weak DH parameters with %d key bits", key_length),
+		  $conn=c, $suppress_for=1day,
+		  $identifier=cat(c$id$orig_h, c$id$orig_p, key_length)
 		]);
 
 	if ( notify_dh_length_shorter_cert_length &&
 	  c?$ssl && c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 && c$ssl$cert_chain[0]?$x509 &&
 	  c$ssl$cert_chain[0]$x509?$certificate && c$ssl$cert_chain[0]$x509$certificate?$key_type &&
-		( c$ssl$cert_chain[0]$x509$certificate$key_type == "rsa" ||
-		  c$ssl$cert_chain[0]$x509$certificate$key_type == "dsa" ) )
+	  ( c$ssl$cert_chain[0]$x509$certificate$key_type == "rsa" ||
+	    c$ssl$cert_chain[0]$x509$certificate$key_type == "dsa" ) )
 		{
 		if ( c$ssl$cert_chain[0]$x509$certificate?$key_length &&
 		  c$ssl$cert_chain[0]$x509$certificate$key_length > key_length )
-			NOTICE([$note=SSL_Weak_Key,
-				$msg=fmt("DH key length of %d bits is smaller certificate key length of %d bits",
-				key_length, c$ssl$cert_chain[0]$x509$certificate$key_length),
-				$conn=c, $suppress_for=1day,
-				$identifier=cat(c$id$orig_h, c$id$orig_p)
+			NOTICE([$note=Weak_Key,
+			  $msg=fmt("DH key length of %d bits is smaller certificate key length of %d bits",
+			  key_length, c$ssl$cert_chain[0]$x509$certificate$key_length),
+			  $conn=c, $suppress_for=1day,
+			  $identifier=cat(c$id$orig_h, c$id$orig_p)
 			]);
 		}
 	}

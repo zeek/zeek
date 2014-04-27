@@ -62,7 +62,7 @@ enum SSLExtensions {
 };
 
 enum ECCurveType {
-  EXPLICIT_PRIME = 1,
+	EXPLICIT_PRIME = 1,
 	EXPLICIT_CHAR = 2,
 	NAMED_CURVE = 3
 };

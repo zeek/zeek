@@ -566,7 +566,7 @@ type ServerKeyExchange(rec: SSLRecord) = case $context.connection.chosen_cipher(
 # We also do not parse the actual signature data following the named curve.
 type EcServerKeyExchange(rec: SSLRecord) = record {
 	curve_type: uint8;
-	curve: uint16; # only if curve_type = 3
+	curve: uint16; # only if curve_type = 3 (NAMED_CURVE)
 	data: bytestring &restofdata &transient;
 };
 
@@ -739,7 +739,7 @@ refine connection SSL_Conn += {
 
 	function chosen_cipher() : int %{ return chosen_cipher_; %}
 
-	function set_cipher(cipher: int64) : bool
+	function set_cipher(cipher: uint32) : bool
 		%{
 		chosen_cipher_ = cipher;
 		return true;

@@ -32,9 +32,9 @@ export {
 	const notify_dh_length_shorter_cert_length = T &redef;
 }
 
-## We check key lengths only for DSA or RSA certificates. For others, we do
-## not know what is safe (e.g. EC is safe even with very short key lengths).
-
+# We check key lengths only for DSA or RSA certificates. For others, we do
+# not know what is safe (e.g. EC is safe even with very short key lengths).
+#
 event ssl_established(c: connection) &priority=3
 	{
 	# If there are no certificates or we are not interested in the server, just return.

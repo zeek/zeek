@@ -409,6 +409,19 @@ refine connection SSL_Conn += {
 
 		return true;
 		%}
+
+	function proc_dh_server_key_exchange(rec: SSLRecord, p: bytestring, g: bytestring, Ys: bytestring) : bool
+		%{
+		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
+			bro_analyzer()->Conn(),
+		  new StringVal(p.length(), (const char*) p.data()),
+		  new StringVal(g.length(), (const char*) g.data()),
+		  new StringVal(Ys.length(), (const char*) Ys.data())
+		  );
+
+		return true;
+		%}
+
 };
 
 refine typeattr Alert += &let {
@@ -500,4 +513,8 @@ refine typeattr CertificateStatus += &let {
 
 refine typeattr EcServerKeyExchange += &let {
 	proc : bool = $context.connection.proc_ec_server_key_exchange(rec, curve_type, curve);
+};
+
+refine typeattr DhServerKeyExchange += &let {
+	proc : bool = $context.connection.proc_dh_server_key_exchange(rec, dh_p, dh_g, dh_Ys);
 };

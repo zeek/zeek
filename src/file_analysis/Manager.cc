@@ -27,7 +27,22 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	Terminate();
+	// Have to assume that too much of Bro has been shutdown by this point
+	// to do anything more than reclaim memory.
+
+	File* f;
+	bool* b;
+
+	IterCookie* it = id_map.InitForIteration();
+
+	while ( (f = id_map.NextEntry(it)) )
+		delete f;
+
+	it = ignored.InitForIteration();
+
+	while( (b = ignored.NextEntry(it)) )
+		delete b;
+
 	delete magic_state;
 	}
 
@@ -58,10 +73,15 @@ void Manager::Terminate()
 	HashKey* key;
 
 	while ( id_map.NextEntry(key, it) )
+		{
 		keys.push_back(static_cast<const char*>(key->Key()));
+		delete key;
+		}
 
 	for ( size_t i = 0; i < keys.size(); ++i )
 		Timeout(keys[i], true);
+
+	mgr.Drain();
 	}
 
 string Manager::HashHandle(const string& handle) const

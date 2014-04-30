@@ -106,7 +106,7 @@ event ssl_encrypted_heartbeat(c: connection, is_orig: bool, length: count)
 			{
 			NOTICE([$note=SSL_Heartbeat_Attack_Success,
 				$msg=fmt("An Encrypted TLS heartbleed attack was probably detected! First packet client record length %d, first packet server record length %d",
-					c$ssl?$last_originator_heartbeat_request_size, c$ssl$last_originator_heartbeat_request_size),
+					c$ssl$last_originator_heartbeat_request_size, length),
 				$conn=c,
 				$identifier=c$uid # only throw once per connection
 				]);

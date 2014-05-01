@@ -78,18 +78,10 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	else
 		i2d_X509_bio(bio, h->GetCertificate());
 
-	BIO_flush(bio);
-	int length = BIO_pending(bio);
-	// use OPENSS_malloc here. Otherwhise, interesting problems will happen.
-	char *buffer = (char*) OPENSSL_malloc(length);
+	StringVal* ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
 
-	if ( ! buffer )
-		out_of_memory("x509_get_certificate_string");
-
-	BIO_read(bio, (void*) buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
-	OPENSSL_free(buffer);
-	BIO_free_all(bio);
+	if ( ! ext_val )
+		ext_val = new StringVal("");
 
 	return ext_val;
 	%}

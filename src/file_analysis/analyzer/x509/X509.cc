@@ -159,6 +159,49 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	return pX509Cert;
 	}
 
+StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
+	{
+	BIO_flush(bio);
+	ERR_clear_error();
+	int length = BIO_pending(bio);
+
+	if ( ERR_peek_error() != 0 )
+		{
+		char tmp[120];
+		ERR_error_string(ERR_get_error(), tmp);
+		reporter->Error("X509::GetExtensionFromBIO: %s", tmp);
+		BIO_free_all(bio);
+		return 0;
+		}
+
+	if ( length == 0 )
+		{
+		BIO_free_all(bio);
+		return new StringVal("");
+		}
+
+	// TODO: see about using regular malloc here, there were unknown problems
+	// using anything other than OPENSSL_malloc that need investigation.
+	char* buffer = (char*) OPENSSL_malloc(length);
+
+	if ( ! buffer )
+		{
+		// Just emit an error here and try to continue instead of aborting
+		// because it's unclear the length value is very reliable.
+		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
+		BIO_free_all(bio);
+		return 0;
+		}
+
+	BIO_read(bio, (void*) buffer, length);
+	StringVal* ext_val = new StringVal(length, buffer);
+
+	OPENSSL_free(buffer);
+	BIO_free_all(bio);
+
+	return ext_val;
+	}
+
 void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	{
 	char name[256];
@@ -178,20 +221,10 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	if( ! X509V3_EXT_print(bio, ex, 0, 0))
 		M_ASN1_OCTET_STRING_print(bio,ex->value);
 
-	BIO_flush(bio);
-	int length = BIO_pending(bio);
+	StringVal* ext_val = GetExtensionFromBIO(bio);
 
-	// Use OPENSSL_malloc here. Using new or anything else can lead
-	// to interesting, hard to debug segfaults.
-	char *buffer = (char*) OPENSSL_malloc(length);
-
-	if ( ! buffer )
-		out_of_memory("X509::ParseExtension");
-
-	BIO_read(bio, (void*)buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
-	OPENSSL_free(buffer);
-	BIO_free_all(bio);
+	if ( ! ext_val )
+		ext_val = new StringVal(0, "");
 
 	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
 	pX509Ext->Assign(0, new StringVal(name));

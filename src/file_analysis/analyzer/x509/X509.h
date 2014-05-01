@@ -37,6 +37,14 @@ public:
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new X509(args, file); }
 
+	/**
+	 * Retrieve an X509 extension value from an OpenSSL BIO to which it was
+	 * written.
+	 * @param bio the OpenSSL BIO to read.
+	 * @return The X509 extension value.
+	 */
+	static StringVal* GetExtensionFromBIO(BIO* bio);
+
 protected:
 	X509(RecordVal* args, File* file);
 

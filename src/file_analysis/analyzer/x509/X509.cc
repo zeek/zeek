@@ -184,6 +184,10 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	// Use OPENSSL_malloc here. Using new or anything else can lead
 	// to interesting, hard to debug segfaults.
 	char *buffer = (char*) OPENSSL_malloc(length);
+
+	if ( ! buffer )
+		out_of_memory("X509::ParseExtension");
+
 	BIO_read(bio, (void*)buffer, length);
 	StringVal* ext_val = new StringVal(length, buffer);
 	OPENSSL_free(buffer);

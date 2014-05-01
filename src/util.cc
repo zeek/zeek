@@ -568,7 +568,7 @@ const char* fmt(const char* format, ...)
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
-		buf = (char*) malloc(buf_len);
+		buf = (char*) safe_malloc(buf_len);
 
 	va_list al;
 	va_start(al, format);
@@ -578,7 +578,7 @@ const char* fmt(const char* format, ...)
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
+		buf = (char*) safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);

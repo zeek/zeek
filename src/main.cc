@@ -379,10 +379,10 @@ void terminate_bro()
 	delete secondary_path;
 	delete remote_serializer;
 	delete analyzer_mgr;
+	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
 	delete thread_mgr;
-	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;

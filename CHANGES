@@ -1,4 +1,14 @@
 
+2.2-392 | 2014-05-01 09:30:06 -0700
+
+  * Correct a notice for heartbleed. The notice is thrown correctly,
+    just the message conteined wrong values. (Bernhard Amann)
+
+  * Improve/standardize some malloc/realloc return value checks. (Jon
+    Siwek)
+
+  * Improve file analysis manager shutdown/cleanup. (Jon Siwek)
+    
 2.2-388 | 2014-04-24 18:38:07 -0700
 
   * Fix decoding of MIME quoted-printable. (Mareq)

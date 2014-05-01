@@ -1449,6 +1449,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		}
 	else
 		{
+		Unref(id);
 		reporter->Error("identifier or enumerator value in enumerated type definition already exists");
 		SetError();
 		return;

@@ -180,9 +180,7 @@ StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
 		return new StringVal("");
 		}
 
-	// TODO: see about using regular malloc here, there were unknown problems
-	// using anything other than OPENSSL_malloc that need investigation.
-	char* buffer = (char*) OPENSSL_malloc(length);
+	char* buffer = (char*) malloc(length);
 
 	if ( ! buffer )
 		{
@@ -196,7 +194,7 @@ StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
 	BIO_read(bio, (void*) buffer, length);
 	StringVal* ext_val = new StringVal(length, buffer);
 
-	OPENSSL_free(buffer);
+	free(buffer);
 	BIO_free_all(bio);
 
 	return ext_val;

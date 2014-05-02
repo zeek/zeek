@@ -62,6 +62,9 @@ Changed Functionality
 
       event x509_extension(c: connection, is_orig: bool, cert: X509, ext: X509_extension_info);
 
+- Generally, all x509 events and handling functions have changed their
+  signatures.
+
 - Bro no longer special-cases SYN/FIN/RST-filtered traces by not
   reporting missing data. The old behavior can be reverted by
   redef'ing "detect_filtered_trace".

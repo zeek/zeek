@@ -207,8 +207,19 @@
 
 2.2-294 | 2014-03-30 22:08:25 +0200
 
-  * TODO: x509 changes. (Bernhard Amann)
-    
+  * Rework and move X509 certificate processing from the SSL protocol
+    analyzer to a dedicated file analyzer. This will allow us to
+    examine X509 certificates from sources other than SSL in the
+    future. Furthermore, Bro now parses more fields and extensions
+    from the certificates (e.g. elliptic curve information, subject
+    alternative names, basic constraints). Certificate validation also
+    was improved, should be easier to use and exposes information like
+    the full verified certificate chain. (Bernhard Amann)
+
+    This update changes the format of ssl.log and adds a new x509.log
+    with certificate information. Furthermore all x509 events and
+    handling functions have changed.
+
 2.2-271 | 2014-03-30 20:25:17 +0200
 
   * Add unit tests covering vector/set/table ctors/inits. (Jon Siwek)

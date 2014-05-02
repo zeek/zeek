@@ -1,44 +1,67 @@
-##! Enables analysis of SNMP datagrams.
+##! Enables analysis and logging of SNMP datagrams.
 
 module SNMP;
 
 export {
 	redef enum Log::ID += { LOG };
 
+	## Information tracked per SNMP session.
 	type Info: record {
+		## Timestamp of first packet belonging to the SNMP session.
 		ts: time &log;
+		## The unique ID for the connection.
 		uid: string &log;
+		## The connection's 5-tuple of addresses/ports (ports inherently
+		## include transport protocol information)
 		id: conn_id &log;
+		## The amount of time between the first packet beloning to
+		## the SNMP session and the latest one seen.
 		duration: interval &log &default=0secs;
-
+		## The version of SNMP being used.
 		version: string &log;
+		## The community string of the first SNMP packet associated with
+		## the session.  This is used as part of SNMP's (v1 and v2c)
+		## administrative/security framework.  See :rfc:`1157` or :rfc:`1901`.
 		community: string &log &optional;
 
+		## The number of variable bindings in GetRequest/GetNextRequest PDUs
+		## seen for the session.
 		get_requests:      count &log &default=0;
+		## The number of variable bindings in GetBulkRequest PDUs seen for
+		## the session.
 		get_bulk_requests: count &log &default=0;
+		## The number of variable bindings in GetResponse/Response PDUs seen
+		## for the session.
 		get_responses:     count &log &default=0;
-
+		## The number of variable bindings in SetRequest PDUs seen for
+		## the session.
 		set_requests: count &log &default=0;
 
+		## A system description of the SNMP responder endpoint.
 		display_string: string &log &optional;
+		## The time at which the SNMP responder endpoint claims it's been
+		## up since.
 		up_since: time &log &optional;
 	};
 
-	redef record connection += {
-		snmp: SNMP::Info &optional;
-	};
+	## Maps an SNMP version integer to a human readable string.
+	const version_map: table[count] of string = {
+		[0] = "1",
+		[1] = "2c",
+		[3] = "3",
+	} &redef &default="unknown";
 
+	## Event that can be handled to access the SNMP record as it is sent on
+	## to the logging framework.
 	global log_snmp: event(rec: Info);
 }
 
+redef record connection += {
+	snmp: SNMP::Info &optional;
+};
+
 const ports = { 161/udp, 162/udp };
 redef likely_server_ports += { ports };
-
-const version_map = {
-	[0] = "1",
-	[1] = "2c",
-	[3] = "3",
-};
 
 event bro_init() &priority=5
 	{
@@ -50,17 +73,18 @@ function init_state(c: connection, h: SNMP::Header): Info
 	{
 	if ( ! c?$snmp )
 		{
-		c$snmp = Info($ts=network_time(), 
+		c$snmp = Info($ts=network_time(),
 		              $uid=c$uid, $id=c$id,
 		              $version=version_map[h$version]);
 		}
 
 	local s = c$snmp;
+
 	if ( ! s?$community )
 		{
 		if ( h?$v1 )
 			s$community = h$v1$community;
-		if ( h?$v2 )
+		else if ( h?$v2 )
 			s$community = h$v2$community;
 		}
 
@@ -78,39 +102,30 @@ event connection_state_remove(c: connection) &priority=-5
 event snmp_get_request(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNMP::PDU) &priority=5
 	{
 	local s = init_state(c, header);
-	for ( i in pdu$bindings )
-		{
-		++s$get_requests;
-		}
+	s$get_requests += |pdu$bindings|;
 	}
 
 event snmp_get_bulk_request(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNMP::BulkPDU) &priority=5
 	{
 	local s = init_state(c, header);
-	for ( i in pdu$bindings )
-		{
-		++s$get_bulk_requests;
-		}
+	s$get_bulk_requests += |pdu$bindings|;
 	}
 
 event snmp_get_next_request(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNMP::PDU) &priority=5
 	{
 	local s = init_state(c, header);
-	for ( i in pdu$bindings )
-		{
-		++s$get_requests;
-		}
+	s$get_requests += |pdu$bindings|;
 	}
 
 event snmp_response(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNMP::PDU) &priority=5
 	{
 	local s = init_state(c, header);
+	s$get_responses += |pdu$bindings|;
 
 	for ( i in pdu$bindings )
 		{
-		++s$get_responses;
-
 		local binding = pdu$bindings[i];
+
 		if ( binding$oid == "1.3.6.1.2.1.1.1.0" && binding$value?$octets )
 			c$snmp$display_string = binding$value$octets;
 		else if ( binding$oid == "1.3.6.1.2.1.1.3.0" && binding$value?$unsigned )
@@ -124,10 +139,7 @@ event snmp_response(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNM
 event snmp_set_request(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNMP::PDU) &priority=5
 	{
 	local s = init_state(c, header);
-	for ( i in pdu$bindings )
-		{
-		++s$set_requests;
-		}
+	s$set_requests += |pdu$bindings|;
 	}
 
 event snmp_trap(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNMP::TrapPDU) &priority=5
@@ -165,6 +177,6 @@ event snmp_encrypted_pdu(c: connection, is_orig: bool, header: SNMP::Header) &pr
 	init_state(c, header);
 	}
 
-event snmp_unknown_header_version(c: connection, is_orig: bool, version: count) &priority=5
-	{
-	}
+#event snmp_unknown_header_version(c: connection, is_orig: bool, version: count) &priority=5
+#	{
+#	}

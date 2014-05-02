@@ -1,4 +1,18 @@
 
+2.2-409 | 2014-05-02 12:09:06 -0500
+
+  * Clean up and documentation for base SNMP script. (Jon Siwek)
+
+  * Update base SNMP script to now produce a snmp.log. (Seth Hall)
+
+  * Add DH support to SSL analyzer.  When using DHE or DH-Anon, sever
+    key parameters are now available in scriptland.  Also add script to
+    alert on weak certificate keys or weak dh-params. (Bernhard Amann)
+
+  * Add a few more ciphers Bro did not know at all so far. (Bernhard Amann)
+
+  * Log chosen curve when using ec cipher suite in TLS. (Bernhard Amann)
+
 2.2-397 | 2014-05-01 20:29:20 -0700
 
   * Fix reference counting for lookup_ID() usages. (Jon Siwek)

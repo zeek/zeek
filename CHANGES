@@ -1,4 +1,8 @@
 
+2.2-397 | 2014-05-01 20:29:20 -0700
+
+  * Fix reference counting for lookup_ID() usages. (Jon Siwek)
+    
 2.2-395 | 2014-05-01 20:25:48 -0700
 
   * Fix missing "irc-dcc-data" service field from IRC DCC connections.

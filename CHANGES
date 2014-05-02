@@ -1,5 +1,8 @@
 
-2.2-392 | 2014-05-01 09:30:06 -0700
+2.2-395 | 2014-05-01 20:25:48 -0700
+
+  * Fix missing "irc-dcc-data" service field from IRC DCC connections.
+    (Jon Siwek)
 
   * Correct a notice for heartbleed. The notice is thrown correctly,
     just the message conteined wrong values. (Bernhard Amann)

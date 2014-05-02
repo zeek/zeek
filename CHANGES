@@ -1,4 +1,39 @@
 
+2.2-410 | 2014-05-02 12:49:53 -0500
+
+  * Replace an unneeded OPENSSL_malloc call. (Jon Siwek)
+
+2.2-409 | 2014-05-02 12:09:06 -0500
+
+  * Clean up and documentation for base SNMP script. (Jon Siwek)
+
+  * Update base SNMP script to now produce a snmp.log. (Seth Hall)
+
+  * Add DH support to SSL analyzer.  When using DHE or DH-Anon, sever
+    key parameters are now available in scriptland.  Also add script to
+    alert on weak certificate keys or weak dh-params. (Bernhard Amann)
+
+  * Add a few more ciphers Bro did not know at all so far. (Bernhard Amann)
+
+  * Log chosen curve when using ec cipher suite in TLS. (Bernhard Amann)
+
+2.2-397 | 2014-05-01 20:29:20 -0700
+
+  * Fix reference counting for lookup_ID() usages. (Jon Siwek)
+    
+2.2-395 | 2014-05-01 20:25:48 -0700
+
+  * Fix missing "irc-dcc-data" service field from IRC DCC connections.
+    (Jon Siwek)
+
+  * Correct a notice for heartbleed. The notice is thrown correctly,
+    just the message conteined wrong values. (Bernhard Amann)
+
+  * Improve/standardize some malloc/realloc return value checks. (Jon
+    Siwek)
+
+  * Improve file analysis manager shutdown/cleanup. (Jon Siwek)
+    
 2.2-388 | 2014-04-24 18:38:07 -0700
 
   * Fix decoding of MIME quoted-printable. (Mareq)
@@ -190,8 +225,19 @@
 
 2.2-294 | 2014-03-30 22:08:25 +0200
 
-  * TODO: x509 changes. (Bernhard Amann)
-    
+  * Rework and move X509 certificate processing from the SSL protocol
+    analyzer to a dedicated file analyzer. This will allow us to
+    examine X509 certificates from sources other than SSL in the
+    future. Furthermore, Bro now parses more fields and extensions
+    from the certificates (e.g. elliptic curve information, subject
+    alternative names, basic constraints). Certificate validation also
+    was improved, should be easier to use and exposes information like
+    the full verified certificate chain. (Bernhard Amann)
+
+    This update changes the format of ssl.log and adds a new x509.log
+    with certificate information. Furthermore all x509 events and
+    handling functions have changed.
+
 2.2-271 | 2014-03-30 20:25:17 +0200
 
   * Add unit tests covering vector/set/table ctors/inits. (Jon Siwek)

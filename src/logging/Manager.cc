@@ -537,16 +537,18 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		filter->indices.push_back(new_indices);
 
-		filter->fields = (threading::Field**)
+		void* tmp =
 			realloc(filter->fields,
-				sizeof(threading::Field*) * ++filter->num_fields);
+				sizeof(threading::Field*) * (filter->num_fields + 1));
 
-		if ( ! filter->fields )
+		if ( ! tmp )
 			{
-			--filter->num_fields;
 			reporter->Error("out of memory in add_filter");
 			return false;
 			}
+
+		++filter->num_fields;
+		filter->fields = (threading::Field**) tmp;
 
 		TypeTag st = TYPE_VOID;
 

@@ -90,6 +90,7 @@
 @load protocols/ssl/log-hostcerts-only.bro
 #@load protocols/ssl/notary.bro
 @load protocols/ssl/validate-certs.bro
+@load protocols/ssl/weak-keys.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/extracted_file_limits.bro

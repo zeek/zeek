@@ -1286,7 +1286,10 @@ static Val* get_bro_val(const char* label)
 		return 0;
 		}
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+
+	return rval;
 	}
 
 

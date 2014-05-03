@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/nmap-vsn.trace ${DOC_ROOT}/frameworks/sumstats-toy-scan.bro

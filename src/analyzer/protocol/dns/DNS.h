@@ -144,7 +144,6 @@ public:
 	// More values for spesific DNS types.
 	// struct EDNS_ADDITIONAL* edns;
 
-	int tsig_init;
 	struct TSIG_DATA* tsig;
 };
 

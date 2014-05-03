@@ -6,11 +6,11 @@ module InputAscii;
 
 export {
 	## Separator between fields.
-	## Please note that the separator has to be exactly one character long
+	## Please note that the separator has to be exactly one character long.
 	const separator = Input::separator &redef;
 
 	## Separator between set elements.
-	## Please note that the separator has to be exactly one character long
+	## Please note that the separator has to be exactly one character long.
 	const set_separator = Input::set_separator &redef;
 
 	## String to use for empty fields.

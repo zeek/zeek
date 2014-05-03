@@ -17,8 +17,14 @@ global mytablecomp: FooTableComp = FooTableComp(["test", 1] = "test1", ["cool",
 2] = "cool2");
 global mytabley: FooTableY = FooTableY(["one"] = 1, ["two"] = 2, ["three"] = 3) &default=0;
 
-print mytable;
-print mytablerec;
-print mytablecomp;
-print mytabley;
-print mytabley["test"];
+event bro_init()
+	{
+	print mytable;
+	print mytablerec;
+	print mytablecomp;
+	print mytabley;
+	print mytabley["test"];
+
+	local loctable = FooTable([42] = "forty-two", [37] = "thirty-seven");
+	print loctable;
+	}

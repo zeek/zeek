@@ -10,16 +10,16 @@
 module LogElasticSearch;
 
 export {
-	## Name of the ES cluster
+	## Name of the ES cluster.
 	const cluster_name = "elasticsearch" &redef;
 
-	## ES Server
+	## ES server.
 	const server_host = "127.0.0.1" &redef;
 
-	## ES Port
+	## ES port.
 	const server_port = 9200 &redef;
 
-	## Name of the ES index
+	## Name of the ES index.
 	const index_prefix = "bro" &redef;
 
 	## The ES type prefix comes before the name of the related log.
@@ -27,9 +27,9 @@ export {
 	const type_prefix = "" &redef;
 
 	## The time before an ElasticSearch transfer will timeout. Note that
-	## the fractional part of the timeout will be ignored. In particular, time
-	## specifications less than a second result in a timeout value of 0, which
-	## means "no timeout."
+	## the fractional part of the timeout will be ignored. In particular,
+	## time specifications less than a second result in a timeout value of
+	## 0, which means "no timeout."
 	const transfer_timeout = 2secs;
 
 	## The batch size is the number of messages that will be queued up before

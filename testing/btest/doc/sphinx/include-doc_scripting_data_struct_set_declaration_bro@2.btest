@@ -1,0 +1,9 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+data_struct_set_declaration.bro
+
+    for ( i in ssl_ports )
+        print fmt("SSL Port: %s", i);
+
+    for ( i in non_ssl_ports )
+        print fmt("Non-SSL Port: %s", i);

@@ -3,6 +3,7 @@
 print outfile, description;
 print outfile, tpe;
 print outfile, s;
+Input::remove(input);
 close(outfile);
 terminate();
 }, config={

@@ -1,8 +1,11 @@
 ##! A collection of built-in functions that implement a variety of things
 ##! such as general programming algorithms, string processing, math functions,
 ##! introspection, type conversion, file/directory manipulation, packet
-##! filtering, inter-process communication and controlling protocol analyzer
-##! behavior.
+##! filtering, interprocess communication and controlling protocol analyzer
+##! behavior. 
+##! 
+##! You'll find most of Bro's built-in functions that aren't protocol-specific
+##! in this file.
 
 %%{ // C segment
 #include <math.h>
@@ -613,7 +616,7 @@ function md5_hmac%(...%): string
 ## Constructs an MD5 handle to enable incremental hash computation. You can
 ## feed data to the returned opaque value with :bro:id:`md5_hash_update` and
 ## eventually need to call :bro:id:`md5_hash_finish` to finish the computation
-## and get the hash digest as result.
+## and get the hash digest.
 ##
 ## For example, when computing incremental MD5 values of transferred files in
 ## multiple concurrent HTTP connections, one keeps an optional handle in the
@@ -638,12 +641,12 @@ function md5_hash_init%(%): opaque of md5
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
 ## feed data to the returned opaque value with :bro:id:`sha1_hash_update` and
 ## finally need to call :bro:id:`sha1_hash_finish` to finish the computation
-## and get the hash digest as result.
+## and get the hash digest.
 ##
 ## For example, when computing incremental SHA1 values of transferred files in
 ## multiple concurrent HTTP connections, one keeps an optional handle in the
 ## HTTP session record. Then, one would call
-## ``c$http$sha1_handle = sha1_hash_init()`` ## once before invoking
+## ``c$http$sha1_handle = sha1_hash_init()`` once before invoking
 ## ``sha1_hash_update(c$http$sha1_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha1_hash_finish` returns the final hash value.
@@ -663,12 +666,12 @@ function sha1_hash_init%(%): opaque of sha1
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
 ## feed data to the returned opaque value with :bro:id:`sha256_hash_update` and
 ## finally need to call :bro:id:`sha256_hash_finish` to finish the computation
-## and get the hash digest as result.
+## and get the hash digest.
 ##
 ## For example, when computing incremental SHA256 values of transferred files in
 ## multiple concurrent HTTP connections, one keeps an optional handle in the
 ## HTTP session record. Then, one would call
-## ``c$http$sha256_handle = sha256_hash_init()`` ## once before invoking
+## ``c$http$sha256_handle = sha256_hash_init()`` once before invoking
 ## ``sha256_hash_update(c$http$sha256_handle, some_more_data)`` in the
 ## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
 ## to :bro:id:`sha256_hash_finish` returns the final hash value.
@@ -832,30 +835,44 @@ function syslog%(s: string%): any
 	return 0;
 	%}
 
-%%{
-extern "C" {
-#include <magic.h>
-}
-%%}
-
-## Determines the MIME type of a piece of data using ``libmagic``.
+## Determines the MIME type of a piece of data using Bro's file magic
+## signatures.
 ##
 ## data: The data to find the MIME type for.
 ##
-## return_mime: If true, the function returns a short MIME type string (e.g.,
-##              ``text/plain`` instead of a more elaborate textual description).
+## return_mime: Deprecated argument; does nothing, except emit a warning
+##              when false.
 ##
-## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
-function identify_data%(data: string, return_mime: bool%): string
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error
+##          or no match.  This is the strongest signature match.
+##
+## .. bro:see:: file_magic
+function identify_data%(data: string, return_mime: bool &default=T%): string
 	%{
-	magic_t* magic = return_mime ? &magic_mime_cookie : &magic_desc_cookie;
+	if ( ! return_mime )
+		reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
-	if( ! *magic )
+	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
+
+	if ( strongest_match.empty() )
 		return new StringVal("<unknown>");
 
-	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
+	return new StringVal(strongest_match);
+	%}
 
-	return new StringVal(desc ? desc : "<unknown>");
+## Determines the MIME type of a piece of data using Bro's file magic
+## signatures.
+##
+## data: The data for which to find matching MIME types.
+##
+## Returns: All matching signatures, in order of strength.
+##
+## .. bro:see:: identify_data
+function file_magic%(data: string%): mime_matches
+	%{
+	RuleMatcher::MIME_Matches matches;
+	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
+	return file_analysis::GenMIMEMatchesVal(matches);
 	%}
 
 ## Performs an entropy test on the given data.
@@ -970,6 +987,8 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 ##
 ## prefix: A custom string prepended to the result.
 ##
+## Returns: A string identifier that is unique.
+##
 ## .. bro:see:: unique_id_from
 function unique_id%(prefix: string%) : string
 	%{
@@ -983,6 +1002,8 @@ function unique_id%(prefix: string%) : string
 ## pool: A seed for determinism.
 ##
 ## prefix: A custom string prepended to the result.
+##
+## Returns: A string identifier that is unique.
 ##
 ## .. bro:see:: unique_id
 function unique_id_from%(pool: int, prefix: string%) : string
@@ -1530,7 +1551,7 @@ function log10%(d: double%): double
 #
 # ===========================================================================
 
-## Determines whether *c* has been received externally. For example,
+## Determines whether a connection has been received externally. For example,
 ## Broccoli or the Time Machine can send packets to Bro via a mechanism that is
 ## one step lower than sending events. This function checks whether the packets
 ## of a connection stem from one of these external *packet sources*.
@@ -1854,8 +1875,8 @@ function global_ids%(%): id_table
 ##
 ## id: The global identifier.
 ##
-## Returns the value of *id*. If *id* does not describe a valid identifier, the
-## function returns the string ``"<unknown id>"`` or ``"<no ID value>"``.
+## Returns: The value of *id*. If *id* does not describe a valid identifier,
+##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
 	ID* i = global_scope()->Lookup(id->CheckString());
@@ -2497,7 +2518,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 
 			for ( i = 0; i < sizeof(uint32); i++ )
 				*d-- = *p++;
-			
+
 			memcpy(&value, buf, sizeof(uint32));
 			}
 		else
@@ -2517,7 +2538,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 
 			for ( i = 0; i < sizeof(uint64); i++ )
 				*d-- = *p++;
-			
+
 			memcpy(&value, buf, sizeof(uint64));
 			}
 		else
@@ -2615,7 +2636,7 @@ function addr_to_ptr_name%(a: addr%): string
 ##
 ## Returns: The hexadecimal representation of *bytestring*.
 ##
-## .. bro:see:: hexdump
+## .. bro:see:: hexdump hexstr_to_bytestring
 function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	bro_uint_t len = bytestring->AsString()->Len();
@@ -2627,6 +2648,52 @@ function bytestring_to_hexstr%(bytestring: string%): string
 		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
 
 	return new StringVal(hexstr);
+	%}
+
+## Converts a hex-string into its binary representation.
+## For example, ``"3034"`` would be converted to ``"04"``.
+##
+## The input string is assumed to contain an even number of hexadecimal digits
+## (0-9, a-f, or A-F), otherwise behavior is undefined.
+##
+## hexstr: The hexadecimal string representation.
+##
+## Returns: The binary representation of *hexstr*.
+##
+## .. bro:see:: hexdump bytestring_to_hexstr
+function hexstr_to_bytestring%(hexstr: string%): string
+	%{
+	bro_uint_t len = hexstr->AsString()->Len();
+	if ( len % 2 != 0 )
+		{
+		reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
+		return new StringVal("");
+		}
+
+	const char* bytes = hexstr->AsString()->CheckString();
+	int outlen = (len/2);
+	char bytestring[outlen];
+	memset(bytestring, 0, outlen);
+
+	for ( bro_uint_t i = 0; i < len/2; ++i )
+		{
+		int res = sscanf(bytes + (2*i), "%2hhx", &bytestring[i]);
+
+		if ( res == EOF )
+			{
+			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
+			return new StringVal("");
+			}
+
+		else if ( res != 1 )
+			{
+			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
+			return new StringVal("");
+			}
+
+		}
+
+	return new StringVal(outlen, bytestring);
 	%}
 
 ## Encodes a Base64-encoded string.
@@ -2900,7 +2967,7 @@ function strftime%(fmt: string, d: time%) : string
 ## Returns: The time value calculated from parsing *d* with *fmt*.
 function strptime%(fmt: string, d: string%) : time
 	%{
-	const time_t timeval = time_t(NULL);
+	const time_t timeval = time_t();
 	struct tm t = *localtime(&timeval);
 
 	if ( strptime(d->CheckString(), fmt->CheckString(), &t) == NULL )
@@ -3390,9 +3457,59 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 	if ( GeoIP_db_avail(type) )
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
+	return geoip;
+	}
+
+static GeoIP* open_geoip_city_db()
+	{
+	GeoIP* geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
+
 	if ( ! geoip )
-		reporter->Info("Failed to open GeoIP database: %s",
-		                  GeoIPDBFileName[type]);
+		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1);
+
+	if ( ! geoip )
+		{
+		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0];
+		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1];
+		string db_path = rev0_path;
+
+		// Maybe in the future the revisions won't share a common default path.
+		if ( rev0_path != rev1_path )
+			db_path = rev0_path + " or " + rev1_path;
+
+		reporter->Info("Failed to open GeoIP City database: %s",
+		               db_path.c_str());
+		}
+
+	return geoip;
+	}
+
+static GeoIP* open_geoip_city_db_v6()
+	{
+	GeoIP* geoip = 0;
+
+	// Both city edition revisions for IPv6 show up in libGeoIP 1.4.7.
+#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
+	geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
+
+	if ( ! geoip )
+		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV1_V6);
+
+	if ( ! geoip )
+		{
+		string rev0_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV0_V6];
+		string rev1_path = GeoIPDBFileName[GEOIP_CITY_EDITION_REV1_V6];
+		string db_path = rev0_path;
+
+		// Maybe in the future the revisions won't share a common default path.
+		if ( rev0_path != rev1_path )
+			db_path = rev0_path + " or " + rev1_path;
+
+		reporter->Info("Failed to open GeoIP Cityv6 database: %s",
+		               db_path.c_str());
+		}
+#endif
+
 	return geoip;
 	}
 
@@ -3423,31 +3540,41 @@ function lookup_location%(a: addr%) : geo_location
 	if ( ! geoip_initialized )
 		{
 		geoip_initialized = true;
-		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
+		geoip = open_geoip_city_db();
 
 		if ( ! geoip )
 			{
 			geoip = open_geoip_db(GEOIP_COUNTRY_EDITION);
+			string db_path = GeoIPDBFileName[GEOIP_COUNTRY_EDITION];
+
 			if ( ! geoip )
-				builtin_error("Can't initialize GeoIP City/Country database");
+				builtin_error(fmt("Failed fall back to GeoIP Country "
+				                  "database: %s",
+				                  GeoIPDBFileName[GEOIP_COUNTRY_EDITION]));
 			else
 				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;
 
-#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
-		geoip_v6 = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
+		geoip_v6 = open_geoip_city_db_v6();
+
 		if ( geoip_v6 )
 			have_cityv6_db = true;
-#endif
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 		if ( ! geoip_v6 )
+			{
 			geoip_v6 = open_geoip_db(GEOIP_COUNTRY_EDITION_V6);
+
+			if ( ! geoip_v6 )
+				reporter->Info("Failed to open GeoIPv6 Country database: %s",
+				               GeoIPDBFileName[GEOIP_COUNTRY_EDITION_V6]);
+			}
 #endif
+
 		if ( ! geoip_v6 )
-			builtin_error("Can't initialize GeoIPv6 City/Country database");
+			builtin_error("Can't open GeoIPv6 City/Country database");
 		}
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
@@ -3539,8 +3666,10 @@ function lookup_asn%(a: addr%) : count
 		{
 		geoip_asn_initialized = true;
 		geoip_asn = open_geoip_db(GEOIP_ASNUM_EDITION);
+
 		if ( ! geoip_asn )
-			builtin_error("Can't initialize GeoIP ASNUM database");
+			builtin_error(fmt("Can't open GeoIP ASNUM database: %s",
+			                  GeoIPDBFileName[GEOIP_ASNUM_EDITION]));
 		}
 
 	if ( geoip_asn )
@@ -3897,8 +4026,8 @@ function flush_all%(%): bool
 ##
 ## f: The directory name.
 ##
-## Returns: Returns true if the operation succeeds, or false if the
-##           creation fails or if *f* exists already.
+## Returns: Returns true if the operation succeeds or if *f* already exists,
+##          and false if the file creation fails.
 ##
 ## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
@@ -4914,8 +5043,6 @@ function preserve_prefix%(a: addr, width: count%): any
 ## Preserves the prefix of a subnet in anonymization.
 ##
 ## a: The subnet to preserve.
-##
-## width: The number of bits from the top that should remain intact.
 ##
 ## .. bro:see:: preserve_prefix anonymize_addr
 ##

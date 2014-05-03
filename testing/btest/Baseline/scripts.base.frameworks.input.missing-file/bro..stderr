@@ -1,5 +1,4 @@
 error: does-not-exist.dat/Input::READER_ASCII: Init: cannot open does-not-exist.dat
 error: does-not-exist.dat/Input::READER_ASCII: Init failed
-warning: Stream input is already queued for removal. Ignoring remove.
 error: does-not-exist.dat/Input::READER_ASCII: terminating thread
 received termination signal

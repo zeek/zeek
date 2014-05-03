@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dnp3
+#open	2013-08-26-19-04-06
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fc_request	fc_reply	iin
+#types	time	string	addr	port	addr	port	string	string	count
+1325043635.216629	CXWv6p3arKYeMETxOg	130.126.142.250	50300	130.126.140.229	20000	OPEN_FILE	RESPONSE	0
+1325043637.790287	CXWv6p3arKYeMETxOg	130.126.142.250	50300	130.126.140.229	20000	WRITE	RESPONSE	0
+1325043638.820071	CXWv6p3arKYeMETxOg	130.126.142.250	50300	130.126.140.229	20000	CLOSE_FILE	RESPONSE	0
+#close	2013-08-26-19-04-06

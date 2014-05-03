@@ -1,0 +1,4 @@
+schedule_analyzer, current conn_id, [orig_h=192.150.187.43, orig_p=80/tcp, resp_h=141.142.228.5, resp_p=59856/tcp]
+http_request, 1.1, GET, /download/CHANGES.bro-aux.txt
+http_reply, 1.1, 200, OK
+connection_state_remove, [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]

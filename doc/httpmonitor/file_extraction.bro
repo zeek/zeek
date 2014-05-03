@@ -1,0 +1,24 @@
+
+global mime_to_ext: table[string] of string = {
+	["application/x-dosexec"] = "exe",
+	["text/plain"] = "txt",
+	["image/jpeg"] = "jpg",
+	["image/png"] = "png",
+	["text/html"] = "html",
+};
+
+event file_new(f: fa_file)
+	{
+	if ( f$source != "HTTP" )
+		return;
+
+	if ( ! f?$mime_type )
+		return;
+
+	if ( f$mime_type !in mime_to_ext )
+		return;
+
+	local fname = fmt("%s-%s.%s", f$source, f$id, mime_to_ext[f$mime_type]);
+	print fmt("Extracting file %s", fname);
+	Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename=fname]);
+	}

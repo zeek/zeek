@@ -35,6 +35,11 @@ void RuleActionEvent::PrintDebug()
 	fprintf(stderr, "	RuleActionEvent: |%s|\n", msg);
 	}
 
+void RuleActionMIME::PrintDebug()
+	{
+	fprintf(stderr, "	RuleActionMIME: |%s|\n", mime);
+	}
+
 RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	{
 	string str(arg_analyzer);

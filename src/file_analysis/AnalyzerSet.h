@@ -38,6 +38,14 @@ public:
 	~AnalyzerSet();
 
 	/**
+	 * Looks up an analyzer by its tag and arguments.
+	 * @param tag an analyzer tag.
+	 * @param args an \c AnalyzerArgs record.
+	 * @return pointer to an analyzer instance, or a null pointer if not found.
+	 */
+	Analyzer* Find(file_analysis::Tag tag, RecordVal* args);
+
+	/**
 	 * Attach an analyzer to #file immediately.
 	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.

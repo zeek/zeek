@@ -95,9 +95,9 @@ void TCP_Analyzer::Done()
 void TCP_Analyzer::EnableReassembly()
 	{
 	SetReassembler(new TCP_Reassembler(this, this,
-					TCP_Reassembler::Forward, true, orig),
-		       new TCP_Reassembler(this, this,
-					TCP_Reassembler::Forward, false, resp));
+	                                   TCP_Reassembler::Forward, orig),
+	               new TCP_Reassembler(this, this,
+	                                   TCP_Reassembler::Forward, resp));
 
 	reassembling = 1;
 
@@ -373,14 +373,11 @@ void TCP_Analyzer::ProcessSYN(const IP_Hdr* ip, const struct tcphdr* tp,
 void TCP_Analyzer::ProcessFIN(double t, TCP_Endpoint* endpoint,
 				int& seq_len, uint32 base_seq)
 	{
-	if ( endpoint->FIN_cnt == 0 )
-		{
-		++seq_len;	// FIN consumes a byte of sequence space
-		++endpoint->FIN_cnt;	// remember that we've seen a FIN
-		}
+	++seq_len;  // FIN consumes a byte of sequence space.
+	++endpoint->FIN_cnt;  // remember that we've seen a FIN
 
-	else if ( t < endpoint->last_time + tcp_storm_interarrival_thresh &&
-		  ++endpoint->FIN_cnt == tcp_storm_thresh )
+	if ( t < endpoint->last_time + tcp_storm_interarrival_thresh &&
+	     endpoint->FIN_cnt == tcp_storm_thresh )
 		Weird("FIN_storm");
 
 	// Remember the relative seq in FIN_seq.
@@ -593,6 +590,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 				// per the discussion in IsReuse.
 				// Flip the endpoints and establish
 				// the connection.
+				is_partial = 0;
 				Conn()->FlipRoles();
 				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
 				}
@@ -1102,11 +1100,8 @@ void TCP_Analyzer::FlipRoles()
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	int orig_endp_idx = connection_type->FieldOffset("orig");
-	int resp_endp_idx = connection_type->FieldOffset("resp");
-
-	RecordVal *orig_endp_val = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
-	RecordVal *resp_endp_val = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
+	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
 
 	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
 	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
@@ -1583,7 +1578,9 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	default:
 		break;
 	}
-	reporter->InternalError("inconsistency in TCP_Analyzer::GetContentsFile");
+
+	reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
+	                direction);
 	return 0;
 	}
 
@@ -2046,7 +2043,8 @@ RecordVal* TCPStats_Endpoint::BuildStats()
 	}
 
 TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer("TCPSTATS", c)
+	: TCP_ApplicationAnalyzer("TCPSTATS", c),
+	  orig_stats(), resp_stats()
 	{
 	}
 

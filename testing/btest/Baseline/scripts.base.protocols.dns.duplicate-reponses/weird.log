@@ -3,9 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2013-07-18-13-21-52
+#open	2014-02-13-20-36-35
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1363716396.798286	UWkUyAuUGXf	55.247.223.174	27285	222.195.43.124	53	DNS_RR_unknown_type	-	F	bro
-1363716396.798374	UWkUyAuUGXf	55.247.223.174	27285	222.195.43.124	53	dns_unmatched_reply	-	F	bro
-#close	2013-07-18-13-21-52
+1363716396.798286	CXWv6p3arKYeMETxOg	55.247.223.174	27285	222.195.43.124	53	DNS_RR_unknown_type	-	F	bro
+1363716396.798374	CXWv6p3arKYeMETxOg	55.247.223.174	27285	222.195.43.124	53	dns_unmatched_reply	-	F	bro
+1363716396.798374	-	-	-	-	-	dns_unmatched_msg	-	F	bro
+#close	2014-02-13-20-36-35

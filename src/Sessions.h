@@ -28,7 +28,6 @@ declare(PDict,FragReassembler);
 
 class Discarder;
 class PacketFilter;
-class PacketSortElement;
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
@@ -55,15 +54,12 @@ struct SessionStats {
 class TimerMgrExpireTimer : public Timer {
 public:
 	TimerMgrExpireTimer(double t, TimerMgr* arg_mgr)
-		: Timer(t, TIMER_TIMERMGR_EXPIRE)
-		{
-		mgr = arg_mgr;
-		}
+	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
+		{ }
 
 	virtual void Dispatch(double t, int is_expire);
 
 protected:
-	double interval;
 	TimerMgr* mgr;
 };
 
@@ -77,7 +73,7 @@ public:
 	// employing the packet sorter first.
 	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
-			PktSrc* src_ps, PacketSortElement* pkt_elem);
+			PktSrc* src_ps);
 
 	void Done();	// call to drain events before destructing
 
@@ -223,8 +219,7 @@ protected:
 				uint8 tcp_flags, bool& flip_roles);
 
 	void NextPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size,
-			PacketSortElement* pkt_elem);
+			const u_char* const pkt, int hdr_size);
 
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
@@ -287,6 +282,21 @@ public:
 
 protected:
 	NetSessions::IPPair tunnel_idx;
+};
+
+
+class FragReassemblerTracker {
+public:
+	FragReassemblerTracker(NetSessions* s, FragReassembler* f)
+		: net_sessions(s), frag_reassembler(f)
+		{ }
+
+	~FragReassemblerTracker()
+		{ net_sessions->Remove(frag_reassembler); }
+
+private:
+	NetSessions* net_sessions;
+	FragReassembler* frag_reassembler;
 };
 
 // Manager for the currently active sessions.

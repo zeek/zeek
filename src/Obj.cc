@@ -28,11 +28,14 @@ bool Location::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_LOCATION, SerialObj);
 	info->s->WriteOpenTag("Location");
-	SERIALIZE(filename);
-	SERIALIZE(first_line);
-	SERIALIZE(last_line);
-	SERIALIZE(first_column);
-	SERIALIZE(last_column);
+
+	if ( ! (SERIALIZE(filename) &&
+	        SERIALIZE(first_line) &&
+	        SERIALIZE(last_line) &&
+	        SERIALIZE(first_column) &&
+	        SERIALIZE(last_column)) )
+		return false;
+
 	info->s->WriteCloseTag("Location");
 	return true;
 	}

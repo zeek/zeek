@@ -1,0 +1,425 @@
+The National Center for Supercomputing Applications                     1/28/92
+Anonymous FTP Server General Information
+
+This file contains information about the general structure, as well as
+information on how to obtain files and documentation from the FTP server.
+NCSA software and documentation can also be obtained through the the U.S.
+Mail.  Instructions are included for using this method as well.
+
+Information about the Software Development Group and NCSA software can be 
+found in the /ncsapubs directory in a file called TechResCatalog.
+
+
+THE UNIVERSITY OF ILLINOIS GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE
+SOFTWARE AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION, 
+WARRANTY OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+
+
+_____________________________________________________________
+
+FTP INSTRUCTIONS
+
+Most NCSA Software is released into the public domain.  That is, for these 
+programs, the public domain has all rights for future licensing, resale, 
+and publication of available packages. If you are connected to Internet
+(NSFNET, ARPANET, MILNET, etc) you may download NCSA software and documentation and source code if it is available, at no charge from the anonymous file 
+transfer protocol (FTP) server at NCSA where you got this file. The procedure
+you should follow to do so is presented  below. If you have any questions
+regarding this procedure or whether you are connected to Internet, consult your local system administration or network expert.
+
+1. Log on to a host at your site that is connected to the Internet and is
+   running software supporting the FTP command.
+
+2. Invoke FTP on most systems by entering the Internet address of the server.
+   Type the following at the shell (usually "%") prompt:
+
+      % ftp ftp.ncsa.uiuc.edu
+
+3. Log in by entering anonymous for the name.
+
+4. Enter your local email address (login@host) for the password.
+
+5. Enter the following at the "ftp>" prompt to copy a text file from our 
+   server to your local host:
+
+      ftp> get filename
+
+   where "filename" is the name of the file you want a copy of.  For example,
+   to get a copy of this file from the server enter:
+
+      ftp> get README.FIRST
+
+   To get a copy of our software brochure, enter:
+
+      ftp> cd ncsapubs
+	   get TechResCatalog 
+
+   NOTE:  Some of the filenames on the server are rather long to aid in
+          identification.  Some operating systems may have problems with names
+          this long.  To change the name the file will have on your local
+          machine type the following at the "ftp>" prompt ("remoteName" is the
+          name of the file on the server and "localName" is the name you want
+          the file to have on your local machine):
+
+             ftp> get remoteName localName
+
+          Example:
+
+             ftp> get TechResCatalog catalog.txt
+
+
+6. For files that are not text files (almost everything else) you will need to
+   specify that you want to transfer binary files.  Do this by typing the
+   following at the "ftp>" prompt:
+
+      ftp> type binary
+
+   You can now use the "get" command to download binary files.  To switch back
+   to ASCII text transfers type:
+
+      ftp> type ascii
+
+7. The "ls" and "cd" commands can be used at the "ftp>" prompt to list and
+   change directories as in the shell.
+
+8. Enter "quit" or "bye" to exit FTP and return to your local host.
+
+
+_____________________________________________________________
+
+FTP SOFTWARE BY MAIL
+
+To obtain an order form, send your request to the following address:
+
+FTP Archive Tapes
+c/o Debbie Shirley
+152 Computing Applications Building
+605 East Springfield Avenue
+Champaign, IL  61820
+
+or call:
+Debbie at (217) 244-4130
+
+
+_____________________________________________________________
+
+VIRUS INFORMATION
+
+The Software Development Group at NCSA is very virus-conscious. We routinely
+check our machines for viruses and recommend that you do so also. For the
+Macintoshes we use Disinfectant. You can obtain a copy of Disinfectant from
+the /Mac/Utilities directory.
+
+If you use Microsoft DOS or Windows you can find the latest virus scan from 
+the anonymous site oak.oakland.edu in the /SimTel/msdos/virus directory.
+
+_____________________________________________________________
+
+GENERAL INFORMATION
+
+
+DIRECTORY STRUCTURE
+
+The FTP server is organized as specified below:
+
+   /Mac       		Macintosh software
+   /PC        		IBM PC software
+   /Unix      		Software for machines running UNIX or equivalent OS
+   /Unix/SGI		Software that primarily runs on Silicon Graphics 
+			 machines only
+   /Visualization	Software tools for data visualization.
+   /Web			World Wide Web tools, including Mosaic, httpd,
+			and html editors.
+   /HDF   	 	Hierarchical Data Format applications and tools
+   /Samples   		Samples that can be used with most of NCSA software 
+			 tools
+   /Documentation 	Currently being constructed, check each application's 
+			 directory for documentation
+   /ncsapubs		Information produced by the Publications group,
+			 including Metacenter announcements, data link & access,
+			 a software listing, start-up guides, and other 
+			 reference documents.
+   /misc      		Miscellaneous documentation and software
+   /incoming  		directory for contributions
+   /outgoing		swap directory
+
+Information for a particular application can be found in the README file,
+located in the same directory as the application.  The README files contain
+information on new features, known bugs, compile information, and other
+important notes.
+
+All directories on the FTP server contain an INDEX file.  These files outline
+the hierarchical structure of the directory and (recursively) all files and
+directories contained within it.  The INDEX at the root level contains the
+structure of the enire server listing all files and directories on it.  The
+INDEX file in each software directory contains additional information about
+each file.  The letter in parenthesis after the file name indicates how the
+file should be downloaded:  ascii (a), binary (b), or mac binary (m).
+
+The "misc" directories found in some software tool directories contain
+supplementary code or other information.  Refer to the README file in that
+directory for a description of what is contained within the "misc" directory.
+
+The "contrib" directories contain contributed software.  This directory usually
+contains NCSA source that has been modified by people outside of NCSA as well
+as binaries compiled on different platforms not available to the Software 
+Development Group.  If you have modified NCSA software or would like to share 
+some code please contact the developer of the source so arrangemnts can be 
+made to upload it to the "incoming"  directory.  If you are downloading 
+software from the "contrib" directory please note that this software is not 
+supported by NCSA and has not been checked for viruses (see statement on 
+viruses above).  NCSA may not be held responsible for anything resulting from 
+use of the contributed software.  *** RUN AT YOUR OWN RISK ***
+
+
+FILE NAMES
+
+All file names consist of the name of the tool, the version number, and one or
+more extensions.  The extensions identify what type of information is contained
+in the file, and what format it is in.  For example, here is a list of files in
+the /Mac/DataScope directory:
+
+   DataScope2.0.1.asc.tar.Z
+   DataScope2.0.1.src.sit.hqx
+   DataScope2.0.1.smp.sit.hqx
+   DataScope2.0.1.mac.sit.hqx
+   DataScope2.0.1.msw.sit.hqx
+
+The first three character extension indicates what type of data can be found in
+that file (ASCII documentation, source, samples, etc.).  The other extensions
+indicate what format the files are in.  The extensions ".tar" and ".sit"
+indicate types of archives, and the ".Z" and ".hqx" indicate compression and
+encoding schemes.  (See below for instructions on extracting files that have
+been archived and/or compressed.)  Following are a list of extensions and their
+meanings:
+
+   .sn3   Sun 3 executables
+   .sn4   Sun 4 executables
+   .386   Sun 386i executables
+   .sgi   Silicon Graphics Iris executables
+   .dgl   Silicon Graphics Iris using DGL executables
+   .rs6   IBM RS6000 executables
+   .cv2   Convex 2 executables
+   .cv3   Convex 3 executables
+   .cr2   Cray 2 executables
+   .crY   CrayYMP executables
+   .d31   DEC 3100 executables
+   .m88   Motorola 88k executables
+   .m68   Motorola 68k executables
+   .exe   IBM PC executables
+   .mac   Macintosh executables
+   .src   source code
+   .smp   sample files
+   .asc   ASCII text documentation
+   .msw   Microsoft Word documentation
+   .ps    postscript documentation
+   .man   formatted man page
+   .shar  Bourne shell archive
+   .sit   archive created by Macintosh application, StuffIt
+   .hqx   encoded with Macintosh application, BinHex
+   .sea   Self extracting Macintosh archive
+   .tar   archive created with UNIX tar command
+   .Z     compressed with UNIX compress command
+
+The files in the PC directory are the only exception to this naming convention.
+In order to conform with the DOS convention of eight character file names and
+one, three character extension, the names for PC files are slightly different.
+Whenever possible the scheme outlined above is used, but the names are usually
+abbreviated and all but one of the dots "." have been omitted.
+
+
+_______________________________________________________________________________
+EXTRACTING ARCHIVED FILES
+
+
+INSTRUCTIONS FOR MACINTOSH FILES
+
+If a file ends with the extension ".sit" it must be unstuffed with either the
+shareware program StuffIt or the Public Domain program UnStuffIt.  Files ending
+with the ".hqx" must be decoded with BinHex.  These programs can be found on
+the FTP server in the /Mac/Utilities directory.  Note that the BinHex program
+must be downloaded with MacBinary enabled, and the StuffIt program must be
+decoded before it can be used.  Files downloaded from the server may be both
+Stuffed (".sit" extension) and BinHexed (".hqx" extension).  These files must
+be first decoded and then unstuffed.
+
+To decode a file with the ".hqx" extension (a BinHexed file):
+
+   1. Download the file to your Macintosh.
+   2. Start the application BinHex by double-clicking on it.
+   3. From the "File" menu in BinHex, choose "UpLoad -> Application".
+   4. Choose the ".hqx" file to be decoded and select "Open".
+   5. The suggested file name will appear in a dialog box.
+   6. Select "Save" to decode the file.
+
+To uncompress a file with the ".sit" extension (a Stuffed file):
+
+   1. Download the file to your Macintosh.
+   2. Start the application Stuffit by double-clicking on it.
+   3. From the "File" menu in Stuffit, choose "Open Archive...".
+   4. Choose the ".sit" file to be unstuffed and select "Open".  A window with
+      all the files contained in the stuffed file will appear.
+   5. Choose "Select All" in the "Edit" menu to select all of the files.
+   6. Click on the "Extract" box at the bottom of the window.
+   7. Select "Save All" in the dialog box to save all the selected files in
+      the current directory.
+
+
+INSTRUCTIONS FOR PC FILES
+
+Most IBM PC files are archived and compressed using the pkzip utility.
+(If you do not have the pkzip utility on your PC, you may obtain it from the
+FTP server by anonymous ftp.  The file you need is called pkz110.exe and it
+is located in /PC/Telnet/contributions.  Set the ftp mode to binary and "get"
+the file pkz110.exe.  Then, on your PC, run PKZ110.EXE with no arguments and
+several files will be self-extracted, including one called PKUNZIP.EXE.  It
+may then be convenient to copy PKUNZIP.EXE to the directory where you have
+placed, or are going to place, your Telnet files.)
+To extract these files, first download the file with the ".zip" extension to
+your PC and then type the following at the DOS prompt:
+
+   > pkunzip -d filename.zip
+
+where "filename" is the name of the file you want to unarchive.
+
+
+INSTRUCTIONS FOR UNIX FILES
+
+Most files on the FTP server will be both tarred and compressed.  For more
+information on the "tar" and "compress" commands you can type "man tar" and
+"man compress" at your shell prompt to see the online manual page for these
+commands, or ask your system administrator for help.  You should first
+uncompress and then unarchive files ending in ".tar.Z" with the following
+procedure.
+
+Files with the ".Z" extension have been compressed with the UNIX "compress"
+command.  To uncompress these files type the following at the shell prompt:
+
+   % uncompress filename.Z
+
+where "filename.Z" is the name of the file ending with the ".Z" extension that
+you wish to uncompress.
+
+Files with the ".tar" extension have been archived with the UNIX "tar" command.
+To extract the files type the following at the shell prompt:
+
+   % tar xf filename.tar
+
+Some files are archived using a shell archive utility and are indicated as such
+with the ".shar" extension.  To extract the files type the following at the
+shell prompt:
+
+   % sh filename.shar
+
+
+_______________________________________________________________________________
+DOCUMENTATION
+
+NCSA offers users several documentation formats for its programs including
+ASCII text, Microsoft Word, and postscript.  If one of these formats does not
+fit your needs, documentaion can be obtained through the mail at the following
+address:
+
+Documentation Orders
+c/o Debbie Shirley
+152 Computing Applications Building
+605 East Springfield Avenue
+Champaign, IL  61820
+
+or call:
+
+(217) 244-4130
+
+Members of the Software Development Group within NCSA are currently working 
+on videotapes that demonstrate and also offer tutorials for NCSA programs. A
+note will be posted here when these tapes are available for distribution.
+
+
+ASCII FORMAT
+
+ASCII text files are provided for all software and are indicated with the
+".asc" extension.  Helpful figures and diagrams obviously cannot be included
+in this form of documentation.  We suggest you use the other forms of
+documentation if possible.
+
+
+MICROSOFT WORD FORMAT
+
+If you are a Macintosh user, please download documents with the ".msw"
+extension. These files should also be stuffed and BinHexed (information on
+extracting these files from the archive is contained earlier in this file).
+The documents can be previewed and printed using the Microsoft Word
+application.  Word documents contain text, images, and formatting.
+
+
+POSTSCRIPT FORMAT
+
+If you are a UNIX user and/or have access to a postscript printer, please
+download files with the ".pos" extension.  The documents can be previewed using
+a poscript previewer or can be printed directly to a poscript printer using a
+command like "lpr".
+
+
+_______________________________________________________________________________
+BUG REPORTS AND SUPPORT
+
+The Software Development Group at NCSA is very interested in how the software 
+tools developed here are being used. Please send any comments or suggestions 
+you may have to the appropriate address.
+
+NOTE: This is a new kind of shareware. You share your science and
+successes with us, and we can get more resources to share more
+NCSA software with you.
+
+If you want to see more NCSA software, please send us a letter,
+ email or US Mail, telling us what you are doing with our software.
+We need to know:
+
+	(1) What science you are working on - an abstract of your 
+	    work would be fine.
+
+	(2) How NCSA software has helped you, for example, by increasing
+	    your productivity or allowing you to do things you could
+	    not do before.
+
+We encourage you to cite the use of any NCSA software you have used in
+your publications. A bibliography of your work would be extremely 
+helpful.
+
+
+NCSA Telnet for the Macintosh:  Please allow ***time*** for a response.
+
+Bug reports, questions, suggestions may be sent to the addresses below.
+
+        mactelnet@ncsa.uiuc.edu (Internet)
+
+NCSA Telnet for PCs:   Please allow ***time*** for a response.
+
+Bug reports, questions, suggestions may be sent to: 
+        pctelnet@ncsa.uiuc.edu (Internet)
+
+All other NCSA software: 
+
+Bug reports should be emailed to the adresses below.  Be sure to check the
+BUGS NOTES section of the README file before sending email.   
+Please allow ***time*** for a response.
+
+        bugs@ncsa.uiuc.edu (Internet)
+
+
+Questions regarding NCSA developed software tools may be sent to the address
+below.  Please allow ***time*** for a response.
+
+        softdev@ncsa.uiuc.edu (Internet)
+_______________________________________________________________________________
+COPYRIGHTS AND TRADEMARKS
+
+Apple
+Motorola
+Digital Equipment Corp.
+Silicon Graphics Inc.
+International Business Machines
+Sun Microsystems
+UNIX
+StuffIt
+Microsoft

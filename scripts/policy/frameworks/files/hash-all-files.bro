@@ -1,4 +1,4 @@
-# Perform MD5 and SHA1 hashing on all files.
+##! Perform MD5 and SHA1 hashing on all files.
 
 event file_new(f: fa_file)
 	{

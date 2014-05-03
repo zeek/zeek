@@ -1,0 +1,9 @@
+# @TEST-EXEC: bro -r $TRACES/tls/tls1.2.trace %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) 
+	{
+	print fmt("Got %d cipher suites", |ciphers|);
+	for ( i in ciphers )
+		print SSL::cipher_desc[ciphers[i]];
+ 	}

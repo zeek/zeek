@@ -93,13 +93,12 @@ function get_gap_summary%(%): gap_info
 ##
 ##            - ``CONTENTS_NONE``: Stop recording the connection's content.
 ##            - ``CONTENTS_ORIG``: Record the data sent by the connection
-##                                 originator (often the client).
+##              originator (often the client).
 ##            - ``CONTENTS_RESP``: Record the data sent by the connection
-##                                 responder (often the server).
+##              responder (often the server).
 ##            - ``CONTENTS_BOTH``: Record the data sent in both directions.
-##                                 Results in the two directions being
-##                                 intermixed in the file, in the order the
-##                                 data was seen by Bro.
+##              Results in the two directions being intermixed in the file,
+##              in the order the data was seen by Bro.
 ##
 ## f: The file handle of the file to write the contents to.
 ##
@@ -114,7 +113,7 @@ function get_gap_summary%(%): gap_info
 ##     missing data; this can happen, e.g., due to an
 ##     :bro:id:`ack_above_hole` event.
 ##
-## .. bro:see:: get_contents_file set_record_packets
+## .. bro:see:: get_contents_file set_record_packets contents_file_write_failure
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -137,7 +136,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 ##          but there is no contents file for *direction*, then the function
 ##          generates an error and returns a file handle to ``stderr``.
 ##
-## .. bro:see:: set_contents_file set_record_packets
+## .. bro:see:: set_contents_file set_record_packets contents_file_write_failure
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);

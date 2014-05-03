@@ -28,14 +28,17 @@ enum DebugStream {
 	DBG_THREADING,	// Threading system
 	DBG_FILE_ANALYSIS,	// File analysis
 	DBG_PLUGINS,
+	DBG_BROXYGEN,
 
 	NUM_DBGS // Has to be last
 };
 
-#define DBG_LOG(args...) debug_logger.Log(args)
-#define DBG_LOG_VERBOSE(args...) \
-	if ( debug_logger.IsVerbose() ) \
-		debug_logger.Log(args)
+#define DBG_LOG(stream, args...) \
+	if ( debug_logger.IsEnabled(stream) ) \
+		debug_logger.Log(stream, args)
+#define DBG_LOG_VERBOSE(stream, args...) \
+	if ( debug_logger.IsVerbose() && debug_logger.IsEnabled(stream) ) \
+		debug_logger.Log(stream, args)
 #define DBG_PUSH(stream) debug_logger.PushIndent(stream)
 #define DBG_POP(stream) debug_logger.PopIndent(stream)
 

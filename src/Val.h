@@ -80,7 +80,6 @@ public:
 		{
 		val.int_val = b;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -90,7 +89,6 @@ public:
 		{
 		val.int_val = bro_int_t(i);
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -100,7 +98,6 @@ public:
 		{
 		val.uint_val = bro_uint_t(u);
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -110,7 +107,6 @@ public:
 		{
 		val.int_val = i;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -120,7 +116,6 @@ public:
 		{
 		val.uint_val = u;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -130,7 +125,6 @@ public:
 		{
 		val.double_val = d;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -145,7 +139,6 @@ public:
 	Val(BroType* t, bool type_type) // Extra arg to differentiate from protected version.
 		{
 		type = new TypeType(t->Ref());
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -155,7 +148,6 @@ public:
 		{
 		val.int_val = 0;
 		type = base_type(TYPE_ERROR);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -364,7 +356,6 @@ protected:
 		{
 		val.string_val = s;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -376,7 +367,6 @@ protected:
 	Val(TypeTag t)
 		{
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -385,7 +375,6 @@ protected:
 	Val(BroType* t)
 		{
 		type = t->Ref();
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -400,7 +389,6 @@ protected:
 
 	BroValUnion val;
 	BroType* type;
-	RecordVal* attribs;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -466,7 +454,7 @@ public:
 protected:
 	MutableVal(BroType* t) : Val(t)
 		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ id = 0; last_modified = SerialObj::ALWAYS; }
+	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
 	~MutableVal();
 
 	friend class ID;
@@ -656,6 +644,8 @@ protected:
 	DECLARE_SERIAL(PatternVal);
 };
 
+// ListVals are mainly used to index tables that have more than one 
+// element in their index.
 class ListVal : public Val {
 public:
 	ListVal(TypeTag t);
@@ -668,13 +658,6 @@ public:
 	int Length() const		{ return vals.length(); }
 	Val* Index(const int n)		{ return vals[n]; }
 	const Val* Index(const int n) const	{ return vals[n]; }
-
-	// Returns offset of where str includes one of the strings in this
-	// ListVal (which had better be a list of strings), nil if none.
-	//
-	// Assumes that all of the strings in the list are NUL-terminated
-	// and do not have any embedded NULs.
-	const char* IncludedInString(const char* str) const;
 
 	// Returns an RE_Matcher() that will match any string that
 	// includes embedded within it one of the patterns listed
@@ -895,6 +878,17 @@ public:
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
+	/**
+	 * Looks up the value of a field by field name.  If the field doesn't
+	 * exist in the record type, it's an internal error: abort.
+	 * @param field name of field to lookup.
+	 * @param with_default whether to rely on field's &default attribute when
+	 * the field has yet to be initialized.
+	 * @return the value in field \a field.  It is Ref()'d only if
+	 * \a with_default is true.
+	 */
+	Val* Lookup(const char* field, bool with_default = false) const;
+
 	void Describe(ODesc* d) const;
 
 	// This is an experiment to associate a BroObj within the
@@ -938,7 +932,6 @@ public:
 		{
 		val.int_val = i;
 		type = t;
-		attribs = 0;
 		}
 
 	Val* SizeVal() const	{ return new Val(val.int_val, TYPE_INT); }

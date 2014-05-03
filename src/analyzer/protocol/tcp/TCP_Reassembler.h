@@ -28,9 +28,8 @@ public:
 		Forward,	// forward to destination analyzer's children
 	};
 
-	TCP_Reassembler(Analyzer* arg_dst_analyzer,
-			TCP_Analyzer* arg_tcp_analyzer, Type arg_type,
-			bool arg_is_orig, TCP_Endpoint* arg_endp);
+	TCP_Reassembler(Analyzer* arg_dst_analyzer, TCP_Analyzer* arg_tcp_analyzer,
+	                Type arg_type, TCP_Endpoint* arg_endp);
 
 	virtual ~TCP_Reassembler();
 
@@ -135,7 +134,6 @@ private:
 	TCP_Analyzer* tcp_analyzer;
 
 	Type type;
-	bool is_orig;
 };
 
 } } // namespace analyzer::* 

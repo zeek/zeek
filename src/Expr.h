@@ -331,12 +331,10 @@ protected:
 	BinaryExpr()	{ op1 = op2 = 0; }
 
 	BinaryExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
-		: Expr(arg_tag)
+	    : Expr(arg_tag), op1(arg_op1), op2(arg_op2)
 		{
 		if ( ! (arg_op1 && arg_op2) )
 			return;
-		op1 = arg_op1;
-		op2 = arg_op2;
 		if ( op1->IsError() || op2->IsError() )
 			SetError();
 		}
@@ -749,14 +747,13 @@ protected:
 
 	DECLARE_SERIAL(HasFieldExpr);
 
-	bool is_attr;
 	const char* field_name;
 	int field;
 };
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	RecordConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	RecordConstructorExpr(ListExpr* constructor_list);
 	~RecordConstructorExpr();
 
 protected:
@@ -769,8 +766,6 @@ protected:
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(RecordConstructorExpr);
-
-	RecordType* ctor_type; // type inferred from the ctor expression list args
 };
 
 class TableConstructorExpr : public UnaryExpr {
@@ -881,6 +876,7 @@ protected:
 	friend class Expr;
 	RecordCoerceExpr()	{ map = 0; }
 
+	Val* InitVal(const BroType* t, Val* aggr) const;
 	Val* Fold(Val* v) const;
 
 	DECLARE_SERIAL(RecordCoerceExpr);

@@ -1,9 +1,11 @@
+# @TEST-REQUIRES: which sqlite3
+#
 # @TEST-EXEC: cat ssh.sql | sqlite3 ssh.sqlite
 #
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: sed '1d' .stderr | sort > cmpfile
 # @TEST-EXEC: btest-diff cmpfile
 
@@ -81,18 +83,16 @@ event bro_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from ssh;",
-		 ["dbname"] = "ssh"
 	};
 	
 	local config_strings2: table[string] of string = {
 		 ["query"] = "select b, g, h from ssh;",
-		 ["dbname"] = "ssh"
 	};
 
 	outfile = open("../out");
 	Input::add_event([$source="../ssh", $name="ssh", $fields=SSH::Log, $ev=line, $reader=Input::READER_SQLITE, $want_record=T, $config=config_strings]);
 	Input::add_event([$source="../ssh", $name="ssh2", $fields=SSH::Log, $ev=line, $reader=Input::READER_SQLITE, $want_record=T, $config=config_strings2]);
 
-	schedule +1secs { term_me() };
+	schedule +3secs { term_me() };
 
 	}

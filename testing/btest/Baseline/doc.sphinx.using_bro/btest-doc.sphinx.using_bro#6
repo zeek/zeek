@@ -1,0 +1,14 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log
+      18-03-2011T19:06:08+0000	CRJuHdVW0XPVINV8a	bits.wikimedia.org	/skins-1.5/monobook/main.css
+      18-03-2011T19:06:08+0000	CJ3xTn1c4Zw9TmAE05	upload.wikimedia.org	/wikipedia/commons/6/63/Wikipedia-logo.png
+      18-03-2011T19:06:08+0000	C7XEbhP654jzLoe3a	upload.wikimedia.org	/wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
+      18-03-2011T19:06:08+0000	C3SfNE4BWaU4aSuwkc	upload.wikimedia.org	/wikipedia/commons/b/bd/Bookshelf-40x201_6.png
+      18-03-2011T19:06:08+0000	CyAhVIzHqb7t7kv28	upload.wikimedia.org	/wikipedia/commons/thumb/8/8a/Wikinews-logo.png/35px-Wikinews-logo.png
+      [...]
+

@@ -1,0 +1,12 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -b data_type_const.bro
+      {
+      [6666/tcp] = IRC,
+      [80/tcp] = WWW
+      }
+

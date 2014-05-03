@@ -10,6 +10,45 @@ using namespace std;
 #include "SmithWaterman.h"
 %%}
 
+## Calculates the Levenshtein distance between the two strings. See `Wikipedia
+## <http://en.wikipedia.org/wiki/Levenshtein_distance>`__ for more information.
+##
+## s1: The first string.
+##
+## s2: The second string.
+##
+## Returns: The Levenshtein distance of two strings as a count.
+##
+function levenshtein_distance%(s1: string, s2: string%): count
+	%{
+	unsigned int n = s1->Len();
+	unsigned int m = s2->Len();
+
+	if ( ! n )
+		return new Val(m, TYPE_COUNT);
+
+	if ( ! m )
+		return new Val(n, TYPE_COUNT);
+
+	vector<vector<unsigned int> > d(n + 1, vector<unsigned int>(m + 1));
+
+	d[0][0] = 0;
+
+	for ( unsigned int i = 1; i <= n; ++i )
+		d[i][0] = i;
+
+	for ( unsigned int i = 1; i <= m; ++i )
+		d[0][i] = i;
+
+	for ( unsigned int i = 1; i <= n; ++i )
+		{
+		for ( unsigned int j = 1; j <= m; ++j )
+			d[i][j] = min(min(d[i-1][j] + 1, d[i][j-1] + 1),
+				      d[i-1][j-1] + (s1->Bytes()[i-1] == s2->Bytes()[j-1] ? 0 : 1));
+		}
+
+	return new Val(d[n][m], TYPE_COUNT);
+	%}
 
 ## Concatenates all arguments into a single string. The function takes a
 ## variable number of arguments of type string and stitches them together.
@@ -801,7 +840,7 @@ function string_to_ascii_hex%(s: string%): string
 	%}
 
 ## Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
-## See `Wikipedia <http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`_.
+## See `Wikipedia <http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`__.
 ##
 ## s1: The first string.
 ##
@@ -1012,6 +1051,8 @@ function find_last%(str: string, re: pattern%) : string
 ## on the right.
 ##
 ## data_str: The string to dump in hex format.
+##
+## Returns: The hex dump of the given string.
 ##
 ## .. bro:see:: string_to_ascii_hex bytestring_to_hexstr
 ##

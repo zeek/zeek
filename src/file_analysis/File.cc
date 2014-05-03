@@ -10,9 +10,12 @@
 #include "Val.h"
 #include "Type.h"
 #include "Event.h"
+#include "RuleMatcher.h"
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
+
+#include "analyzer/extract/Extract.h"
 
 using namespace file_analysis;
 
@@ -50,6 +53,7 @@ int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::mime_type_idx = -1;
+int File::mime_types_idx = -1;
 
 void File::StaticInit()
 	{
@@ -70,6 +74,7 @@ void File::StaticInit()
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
 	mime_type_idx = Idx("mime_type");
+	mime_types_idx = Idx("mime_types");
 	}
 
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
@@ -101,7 +106,6 @@ File::~File()
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
 
-	// Queue may not be empty in the case where only content gaps were seen.
 	while ( ! fonc_queue.empty() )
 		{
 		delete_vals(fonc_queue.front().second);
@@ -203,6 +207,22 @@ void File::SetTimeoutInterval(double interval)
 	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
 	}
 
+bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
+	{
+	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), args);
+
+	if ( ! a )
+		return false;
+
+	Extract* e = dynamic_cast<Extract*>(a);
+
+	if ( ! e )
+		return false;
+
+	e->SetLimit(bytes);
+	return true;
+	}
+
 void File::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
@@ -262,20 +282,18 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
+	RuleMatcher::MIME_Matches matches;
+	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
+	file_mgr->DetectMIME(data, len, &matches);
 
-	if ( mime )
-		{
-		const char* mime_end = strchr(mime, ';');
+	if ( matches.empty() )
+		return false;
 
-		if ( mime_end )
-			// strip off charset
-			val->Assign(mime_type_idx, new StringVal(mime_end - mime, mime));
-		else
-			val->Assign(mime_type_idx, new StringVal(mime));
-		}
+	val->Assign(mime_type_idx,
+	            new StringVal(*(matches.begin()->second.begin())));
+	val->Assign(mime_types_idx, file_analysis::GenMIMEMatchesVal(matches));
 
-	return mime;
+	return true;
 	}
 
 void File::ReplayBOF()
@@ -442,23 +460,30 @@ void File::FileEvent(EventHandlerPtr h)
 	FileEvent(h, vl);
 	}
 
+static void flush_file_event_queue(queue<pair<EventHandlerPtr, val_list*> >& q)
+	{
+	while ( ! q.empty() )
+		{
+		pair<EventHandlerPtr, val_list*> p = q.front();
+		mgr.QueueEvent(p.first, p.second);
+		q.pop();
+		}
+	}
+
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
+	if ( h == file_state_remove )
+		flush_file_event_queue(fonc_queue);
+
 	mgr.QueueEvent(h, vl);
 
 	if ( h == file_new )
 		{
 		did_file_new_event = true;
-
-		while ( ! fonc_queue.empty() )
-			{
-			pair<EventHandlerPtr, val_list*> p = fonc_queue.front();
-			mgr.QueueEvent(p.first, p.second);
-			fonc_queue.pop();
-			}
+		flush_file_event_queue(fonc_queue);
 		}
 
-	if ( h == file_new || h == file_timeout )
+	if ( h == file_new || h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.
 		mgr.Drain();

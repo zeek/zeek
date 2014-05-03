@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro --doc-scripts %INPUT
+# @TEST-EXEC: bro -b %INPUT
 
 type Tag: enum {
     SOMETHING

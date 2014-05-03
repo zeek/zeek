@@ -6,6 +6,7 @@
 
 #include <map>
 #include <stdio.h>
+#include <errno.h>
 #include <string>
 #include <vector>
 
@@ -80,7 +81,14 @@ bool LoadPolicyFileText(const char* policy_filename)
 	policy_files.insert(PolicyFileMap::value_type(policy_filename, pf));
 
 	struct stat st;
-	fstat(fileno(f), &st);
+	if ( fstat(fileno(f), &st) != 0 )
+		{
+		char buf[256];
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("fstat failed on %s: %s", policy_filename, buf);
+		fclose(f);
+		return false;
+		}
 
 	pf->lmtime = st.st_mtime;
 	off_t size = st.st_size;

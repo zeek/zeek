@@ -91,7 +91,7 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Dispatch()
 	{
 	if ( ! head )
-		reporter->InternalError("EventMgr underflow");
+		reporter->InternalError("EventMgr::Dispatch underflow");
 
 	Event* current = head;
 

@@ -43,6 +43,9 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 	multiLine = false;
 	backOff = false;
 
+	lastRequiredCommand = 0;
+	authLines = 0;
+
 	mail = 0;
 
 	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, true));
@@ -80,7 +83,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 static string trim_whitespace(const char* in)
 	{
 	int n = strlen(in);
-	char out[n];
+	char* out = new char[n + 1];
 	char* out_p = out;
 
 	in = skip_whitespace(in);
@@ -112,7 +115,9 @@ static string trim_whitespace(const char* in)
 
 	*out_p = 0;
 
-	return string(out);
+	string rval(out);
+	delete [] out;
+	return rval;
 	}
 
 void POP3_Analyzer::ProcessRequest(int length, const char* line)
@@ -187,14 +192,13 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 
 		case AUTH_CRAM_MD5:
 			{ // Format: "user<space>password-hash"
-			char* s;
-			char* str = (char*) decoded->CheckString();
+			const char* s;
+			const char* str = (char*) decoded->CheckString();
 
 			for ( s = str; *s && *s != '\t' && *s != ' '; ++s )
 				;
-			*s = '\0';
 
-			user = str;
+			user = std::string(str, s);
 			password = "";
 
 			break;
@@ -204,7 +208,10 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			reporter->InternalError("unexpected authorization state");
+			reporter->AnalyzerError(this,
+			  "unexpected POP3 authorization state");
+			delete decoded;
+			return;
 		}
 
 		delete decoded;
@@ -560,7 +567,8 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default: 
-		reporter->InternalError("command not known");
+		reporter->AnalyzerError(this, "unknown POP3 command");
+		return;
 	}
 	}
 

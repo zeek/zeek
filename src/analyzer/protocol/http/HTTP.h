@@ -5,6 +5,7 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "analyzer/protocol/zip/ZIP.h"
 #include "analyzer/protocol/mime/MIME.h"
 #include "binpac_bro.h"
@@ -45,6 +46,7 @@ public:
 	int64_t BodyLength() const 		{ return body_length; }
 	int64_t HeaderLength() const 	{ return header_length; }
 	void SkipBody() 		{ deliver_body = 0; }
+	const string& FileID() const  { return precomputed_file_id; }
 
 protected:
 	class UncompressedOutput;
@@ -64,6 +66,7 @@ protected:
 	uint64_t offset;
 	int64_t instance_length; // total length indicated by content-range
 	bool send_size; // whether to send size indication to FAF
+	std::string precomputed_file_id;
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 
@@ -235,6 +238,9 @@ protected:
 	int keep_alive;
 	int connection_close;
 	int request_ongoing, reply_ongoing;
+
+	bool connect_request;
+	pia::PIA_TCP *pia;
 
 	Val* request_method;
 

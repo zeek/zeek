@@ -1,1 +1,2 @@
+signature_match [orig_h=127.0.0.1, orig_p=30000/udp, resp_h=127.0.0.1, resp_p=13000/udp] - idtable
 signature_match [orig_h=127.0.0.1, orig_p=30000/udp, resp_h=127.0.0.1, resp_p=13000/udp] - id

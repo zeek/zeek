@@ -25,7 +25,7 @@ static RE_Matcher* re_login_timeouts;
 static RE_Matcher* init_RE(ListVal* l);
 
 Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
-: tcp::TCP_ApplicationAnalyzer(name, conn)
+    : tcp::TCP_ApplicationAnalyzer(name, conn), user_text()
 	{
 	state = LOGIN_STATE_AUTHENTICATE;
 	num_user_lines_seen = lines_scanned = 0;
@@ -117,7 +117,11 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 		}
 
 	if ( state != LOGIN_STATE_CONFUSED )
-		reporter->InternalError("bad state in Login_Analyzer::NewLine");
+		{
+		reporter->AnalyzerError(this,
+		                                "bad state in Login_Analyzer::NewLine");
+		return;
+		}
 
 	// When we're in "confused", we feed each user input line to
 	// login_confused_text, but also scan the text in the
@@ -550,6 +554,9 @@ int Login_Analyzer::IsTimeout(const char* line) const
 
 int Login_Analyzer::IsEmpty(const char* line) const
 	{
+	if ( ! line )
+		return true;
+
 	while ( *line && isspace(*line) )
 		++line;
 
@@ -571,10 +578,14 @@ void Login_Analyzer::AddUserText(const char* line)
 		}
 	}
 
-char* Login_Analyzer::PeekUserText() const
+char* Login_Analyzer::PeekUserText()
 	{
 	if ( num_user_text <= 0 )
-		reporter->InternalError("underflow in Login_Analyzer::PeekUserText()");
+		{
+		reporter->AnalyzerError(this,
+		  "underflow in Login_Analyzer::PeekUserText()");
+		return 0;
+		}
 
 	return user_text[user_text_first];
 	}
@@ -582,6 +593,9 @@ char* Login_Analyzer::PeekUserText() const
 char* Login_Analyzer::PopUserText()
 	{
 	char* s = PeekUserText();
+
+	if ( ! s )
+		return 0;
 
 	if ( ++user_text_first == MAX_USER_TEXT )
 		user_text_first = 0;
@@ -594,8 +608,11 @@ char* Login_Analyzer::PopUserText()
 Val* Login_Analyzer::PopUserTextVal()
 	{
 	char* s = PopUserText();
-	BroString* bs = new BroString(1, byte_vec(s), strlen(s));
-	return new StringVal(bs);
+
+	if ( s )
+		return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	else
+		return new StringVal("");
 	}
 
 int Login_Analyzer::MatchesTypeahead(const char* line) const

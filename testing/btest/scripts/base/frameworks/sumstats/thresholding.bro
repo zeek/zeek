@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro %INPUT
-# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: bro %INPUT | sort >output
+# @TEST-EXEC: btest-diff output
 
 redef enum Notice::Type += {
 	Test_Notice,

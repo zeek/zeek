@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_type_pattern_02.bro

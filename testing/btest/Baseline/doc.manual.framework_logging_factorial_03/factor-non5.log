@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	factor-non5
+#open	2013-03-20-03-22-52
+#fields	num	factorial_num
+#types	count	count
+1	1
+2	2
+3	6
+4	24
+#close	2013-03-20-03-22-52

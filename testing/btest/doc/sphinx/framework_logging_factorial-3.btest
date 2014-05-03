@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/framework_logging_factorial_03.bro
+@TEST-EXEC: btest-rst-include factor-mod5.log

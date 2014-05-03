@@ -303,7 +303,7 @@ public:
 	 * Signals the analyzer to skip all further input processsing. The \a
 	 * Next*() methods check this flag and discard the input if its set.
 	 *
-	 * @param do_skipe If true, further processing will be skipped.
+	 * @param do_skip If true, further processing will be skipped.
 	 */
 	void SetSkip(bool do_skip)		{ skip = do_skip; }
 
@@ -353,9 +353,10 @@ public:
 	 * discarded.
 	 *
 	 * @param analyzer The ananlyzer to add. Takes ownership.
+	 * @return false if analyzer type was already a child, else true.
 	 */
-	void AddChildAnalyzer(Analyzer* analyzer)
-		{ AddChildAnalyzer(analyzer, true); }
+	bool AddChildAnalyzer(Analyzer* analyzer)
+		{ return AddChildAnalyzer(analyzer, true); }
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
@@ -363,6 +364,7 @@ public:
 	 * discarded.
 	 *
 	 * @param tag The type of analyzer to add.
+	 * @return the new analyzer instance that was added.
 	 */
 	Analyzer* AddChildAnalyzer(Tag tag);
 
@@ -585,7 +587,7 @@ protected:
 	void RemoveTimer(Timer* t);
 
 	/**
-	 * Returnsn true if the analyzer has associated an SupportAnalyzer of a given type.
+	 * Returns true if the analyzer has associated an SupportAnalyzer of a given type.
 	 *
 	 * @param tag The type to check for.
 	 *
@@ -594,14 +596,23 @@ protected:
 	bool HasSupportAnalyzer(Tag tag, bool orig);
 
 	/**
+	 * Returns the first still active support analyzer for the given
+	 * direction, or null if none.
+	 *
+	 * @param orig True if asking about the originator side.
+	 */
+	SupportAnalyzer* FirstSupportAnalyzer(bool orig);
+
+	/**
 	 * Adds a a new child analyzer with the option whether to intialize
 	 * it. This is an internal method.
 	 *
 	 * @param analyzer The analyzer to add. Takes ownership.
 	 *
 	 * @param init If true, Init() will be calle.d
+	 * @return false if analyzer type was already a child, else true.
 	 */
-	void AddChildAnalyzer(Analyzer* analyzer, bool init);
+	bool AddChildAnalyzer(Analyzer* analyzer, bool init);
 
 	/**
 	 * Inits all child analyzers. This is an internal method.
@@ -612,6 +623,12 @@ protected:
 	 * Reorganizes the child data structure. This is an internal method.
 	 */
 	void AppendNewChildren();
+
+	/**
+	 * Returns true if the analyzer has been flagged for removal and
+	 * shouldn't be used otherwise anymore.
+	 */
+	bool Removing() const	{ return removing; }
 
 private:
 	// Internal method to eventually delete a child analyzer that's
@@ -716,6 +733,14 @@ public:
 	bool IsOrig() const 	{ return orig; }
 
 	/**
+	 * Returns the analyzer's next sibling, or null if none.
+	 *
+	 * only_active: If true, this will skip siblings that are still link
+	 * but flagged for removal.
+	 */
+	SupportAnalyzer* Sibling(bool only_active = false) const;
+
+	/**
 	* Passes packet input to the next sibling SupportAnalyzer if any, or
 	* on to the associated main analyzer if none. If however there's an
 	* output handler associated with this support analyzer, the data is
@@ -745,11 +770,6 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	virtual void ForwardUndelivered(int seq, int len, bool orig);
-
-	/**
-	 * Returns the analyzer next sibling, or null if none.
-	 */
-	SupportAnalyzer* Sibling() const 	{ return sibling; }
 
 protected:
 	friend class Analyzer;

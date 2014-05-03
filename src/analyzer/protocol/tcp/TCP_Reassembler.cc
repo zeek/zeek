@@ -32,13 +32,12 @@ static uint64 last_gap_bytes = 0;
 TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
 				TCP_Reassembler::Type arg_type,
-				bool arg_is_orig, TCP_Endpoint* arg_endp)
+				TCP_Endpoint* arg_endp)
 	: Reassembler(1, REASSEM_TCP)
 	{
 	dst_analyzer = arg_dst_analyzer;
 	tcp_analyzer = arg_tcp_analyzer;
 	type = arg_type;
-	is_orig = arg_is_orig;
 	endp = arg_endp;
 	had_gap = false;
 	record_contents_file = 0;
@@ -165,19 +164,20 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f Undelivered: is_orig=%d up_to_seq=%d, last_reassm=%d, "
+		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%d, last_reassm=%d, "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
-		          network_time, is_orig, up_to_seq, last_reassem_seq,
+		          network_time, IsOrig(), up_to_seq, last_reassem_seq,
 		          endpoint->FIN_cnt, endpoint->RST_cnt,
 		          peer->FIN_cnt, peer->RST_cnt);
 		}
 
 	if ( seq_delta(up_to_seq, last_reassem_seq) <= 0 )
-		// This should never happen.
+		// This should never happen. (Reassembler::TrimToSeq has the only call
+		// to this method and only if this condition is not true).
 		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
-	if ( last_reassem_seq == 1 &&
+	if ( BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
 	      peer->FIN_cnt > 0 || peer->RST_cnt > 0) )
 		{
@@ -195,9 +195,9 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		{
 		if ( DEBUG_tcp_contents )
 			{
-			DEBUG_MSG("%.6f Undelivered: is_orig=%d, seq=%d, len=%d, "
+			DEBUG_MSG("%.6f Undelivered: IsOrig()=%d, seq=%d, len=%d, "
 					  "skip_deliveries=%d\n",
-					  network_time, is_orig, last_reassem_seq,
+					  network_time, IsOrig(), last_reassem_seq,
 					  seq_delta(up_to_seq, last_reassem_seq),
 					  skip_deliveries);
 			}
@@ -228,7 +228,7 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 				{
 				val_list* vl = new val_list;
 				vl->append(dst_analyzer->BuildConnVal());
-				vl->append(new Val(is_orig, TYPE_BOOL));
+				vl->append(new Val(IsOrig(), TYPE_BOOL));
 				vl->append(new Val(seq, TYPE_COUNT));
 				vl->append(new Val(len, TYPE_COUNT));
 
@@ -237,11 +237,11 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 			if ( type == Direct )
 				dst_analyzer->NextUndelivered(last_reassem_seq,
-								len, is_orig);
+								len, IsOrig());
 			else
 				{
 				dst_analyzer->ForwardUndelivered(last_reassem_seq,
-								len, is_orig);
+								len, IsOrig());
 				}
 			}
 
@@ -288,7 +288,7 @@ void TCP_Reassembler::MatchUndelivered(int up_to_seq)
 	for ( b = blocks; b && seq_delta(b->upper, last_reassem_seq) <= 0;
 	      b = b->next )
 	      tcp_analyzer->Conn()->Match(Rule::PAYLOAD, b->block, b->Size(),
-						false, false, is_orig, false);
+						false, false, IsOrig(), false);
 
 	ASSERT(b);
 	}
@@ -322,17 +322,36 @@ void TCP_Reassembler::RecordToSeq(int start_seq, int stop_seq, BroFile* f)
 
 void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 	{
-	unsigned int len = b->Size();
-	if ( ! f->Write((const char*) b->block, len) )
-		// ### this should really generate an event
-		reporter->InternalError("contents write failed");
+	if ( f->Write((const char*) b->block, b->Size()) )
+		return;
+
+	reporter->Error("TCP_Reassembler contents write failed");
+
+	if ( contents_file_write_failure )
+		{
+		val_list* vl = new val_list();
+		vl->append(Endpoint()->Conn()->BuildConnVal());
+		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(new StringVal("TCP reassembler content write failure"));
+		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+		}
 	}
 
 void TCP_Reassembler::RecordGap(int start_seq, int upper_seq, BroFile* f)
 	{
-	if ( ! f->Write(fmt("\n<<gap %d>>\n", seq_delta(upper_seq, start_seq))) )
-		// ### this should really generate an event
-		reporter->InternalError("contents gap write failed");
+	if ( f->Write(fmt("\n<<gap %d>>\n", seq_delta(upper_seq, start_seq))) )
+		return;
+
+	reporter->Error("TCP_Reassembler contents gap write failed");
+
+	if ( contents_file_write_failure )
+		{
+		val_list* vl = new val_list();
+		vl->append(Endpoint()->Conn()->BuildConnVal());
+		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(new StringVal("TCP reassembler gap write failure"));
+		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+		}
 	}
 
 void TCP_Reassembler::BlockInserted(DataBlock* start_block)
@@ -390,7 +409,7 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, int n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %d is_orig=%d\n", network_time,  n, is_orig);
+		DEBUG_MSG("%.6f TCP contents overlap: %d IsOrig()=%d\n", network_time,  n, IsOrig());
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -422,9 +441,9 @@ bool TCP_Reassembler::DoUnserialize(UnserialInfo* info)
 void TCP_Reassembler::Deliver(int seq, int len, const u_char* data)
 	{
 	if ( type == Direct )
-		dst_analyzer->NextStream(len, data, is_orig);
+		dst_analyzer->NextStream(len, data, IsOrig());
 	else
-		dst_analyzer->ForwardStream(len, data, is_orig);
+		dst_analyzer->ForwardStream(len, data, IsOrig());
 	}
 
 int TCP_Reassembler::DataSent(double t, int seq, int len,
@@ -435,8 +454,8 @@ int TCP_Reassembler::DataSent(double t, int seq, int len,
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f DataSent: is_orig=%d seq=%d upper=%d ack=%d\n",
-		          network_time, is_orig, seq, upper_seq, ack);
+		DEBUG_MSG("%.6f DataSent: IsOrig()=%d seq=%d upper=%d ack=%d\n",
+		          network_time, IsOrig(), seq, upper_seq, ack);
 		}
 
 	if ( skip_deliveries )

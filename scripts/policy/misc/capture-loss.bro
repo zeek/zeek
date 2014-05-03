@@ -4,7 +4,7 @@
 ##! the packet capture or it could even be beyond the host.  If you are 
 ##! capturing from a switch with a SPAN port, it's very possible that 
 ##! the switch itself could be overloaded and dropping packets.
-##! Reported loss is computed in terms of number of "gap events" (ACKs 
+##! Reported loss is computed in terms of the number of "gap events" (ACKs 
 ##! for a sequence number that's above a gap).
 
 @load base/frameworks/notice
@@ -26,7 +26,7 @@ export {
 		## The time delay between this measurement and the last.
 		ts_delta:     interval &log;
 		## In the event that there are multiple Bro instances logging
-		## to the same host, this distinguishes each peer with it's
+		## to the same host, this distinguishes each peer with its
 		## individual name.
 		peer:         string   &log;
 		## Number of missed ACKs from the previous measurement interval.
@@ -34,7 +34,7 @@ export {
 		## Total number of ACKs seen in the previous measurement interval.
 		acks:         count    &log;
 		## Percentage of ACKs seen where the data being ACKed wasn't seen.
-		percent_lost: string   &log;
+		percent_lost: double   &log;
 	};
 	
 	## The interval at which capture loss reports are created.
@@ -43,7 +43,7 @@ export {
 	## The percentage of missed data that is considered "too much" 
 	## when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
 	## generated. The value is expressed as a double between 0 and 1 with 1
-	## being 100%
+	## being 100%.
 	const too_much_loss: double = 0.1 &redef;
 }
 
@@ -64,7 +64,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	                    $ts_delta=now-last_ts,
 	                    $peer=peer_description,
 	                    $acks=acks, $gaps=gaps, 
-	                    $percent_lost=fmt("%.3f%%", pct_lost)];
+	                    $percent_lost=pct_lost];
 	
 	if ( pct_lost >= too_much_loss*100 )
 		NOTICE([$note=Too_Much_Loss, 

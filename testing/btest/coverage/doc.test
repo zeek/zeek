@@ -1,8 +1,0 @@
-# This tests that we're generating bro script documentation for all the
-# available bro scripts.  If this fails, then the genDocSources.sh needs
-# to be run to produce a new DocSourcesList.cmake or genDocSources.sh needs
-# to be updated to blacklist undesired scripts. To update, run 
-# "make update-doc-sources"
-#
-# @TEST-EXEC: $DIST/doc/scripts/genDocSourcesList.sh
-# @TEST-EXEC: cmp $DIST/doc/scripts/DocSourcesList.cmake ./DocSourcesList.cmake

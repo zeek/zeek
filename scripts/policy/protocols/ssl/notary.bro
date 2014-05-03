@@ -16,7 +16,6 @@ export {
 }
 
 redef record SSL::Info += {
-	sha1:   string &log &optional;
 	notary: Response &log &optional;
 	};
 
@@ -38,14 +37,12 @@ function clear_waitlist(digest: string)
 		}
 	}
 
-event x509_certificate(c: connection, is_orig: bool, cert: X509,
-                       chain_idx: count, chain_len: count, der_cert: string)
+event ssl_established(c: connection) &priority=3
 	{
-	if ( is_orig || chain_idx != 0 || ! c?$ssl )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
 		return;
 
-	local digest = sha1_hash(der_cert);
-	c$ssl$sha1 = digest;
+	local digest = c$ssl$cert_chain[0]$sha1;
 
 	if ( digest in notary_cache )
 		{

@@ -51,8 +51,8 @@ export {
 		## would like to accept the data being inserted.
 		pred:           function(key: SumStats::Key, obs: SumStats::Observation): bool &optional;
 
-		## A function to normalize the key.  This can be used to aggregate or
-		## normalize the entire key.
+		## A function to normalize the key.  This can be used to
+		## aggregate or normalize the entire key.
 		normalize_key:  function(key: SumStats::Key): Key &optional;
 	};
 
@@ -74,6 +74,9 @@ export {
 	## Type to store results for multiple reducers.
 	type Result: table[string] of ResultVal;
 
+	## Type to store a table of sumstats results indexed by keys.
+	type ResultTable: table[Key] of Result;
+
 	## SumStats represent an aggregation of reducers along with
 	## mechanisms to handle various situations like the epoch ending
 	## or thresholds being crossed.
@@ -88,28 +91,28 @@ export {
 		name:               string;
 		
 		## The interval at which this filter should be "broken"
-		## and the '$epoch_result' callback called.  The
+		## and the *epoch_result* callback called.  The
 		## results are also reset at this time so any threshold
 		## based detection needs to be set to a
 		## value that should be expected to happen within
 		## this epoch.
 		epoch:              interval;
 
-		## The reducers for the SumStat
+		## The reducers for the SumStat.
 		reducers:           set[Reducer];
 
 		## Provide a function to calculate a value from the
 		## :bro:see:`SumStats::Result` structure which will be used
 		## for thresholding.
-		## This is required if a $threshold value is given.
+		## This is required if a *threshold* value is given.
 		threshold_val:      function(key: SumStats::Key, result: SumStats::Result): double &optional;
 
 		## The threshold value for calling the
-		## $threshold_crossed callback.
+		## *threshold_crossed* callback.
 		threshold:          double            &optional;
 
 		## A series of thresholds for calling the
-		## $threshold_crossed callback.
+		## *threshold_crossed* callback.
 		threshold_series:   vector of double  &optional;
 
 		## A callback that is called when a threshold is crossed.
@@ -121,7 +124,7 @@ export {
 		epoch_result:       function(ts: time, key: SumStats::Key, result: SumStats::Result) &optional;
 	
 		## A callback that will be called when a single collection 
-		## interval is completed.  The ts value will be the time of 
+		## interval is completed.  The *ts* value will be the time of 
 		## when the collection started.
 		epoch_finished:     function(ts:time) &optional;
 	};
@@ -142,7 +145,7 @@ export {
 
 	## Dynamically request a sumstat key.  This function should be
 	## used sparingly and not as a replacement for the callbacks 
-	## from the :bro:see:`SumStat` record.  The function is only
+	## from the :bro:see:`SumStats::SumStat` record.  The function is only
 	## available for use within "when" statements as an asynchronous
 	## function.
 	##
@@ -153,11 +156,6 @@ export {
 	## Returns: The result for the requested sumstat key.
 	global request_key: function(ss_name: string, key: Key): Result;
 
-	## This event is generated when thresholds are reset for a SumStat.
-	##
-	## name: SumStats name that thresholds were reset for.
-	global thresholds_reset: event(name: string);
-
 	## Helper function to represent a :bro:type:`SumStats::Key` value as
 	## a simple string.
 	##
@@ -166,9 +164,6 @@ export {
 	## Returns: A string representation of the metric key.
 	global key2str: function(key: SumStats::Key): string;
 }
-
-# Type to store a table of sumstats results indexed by keys.
-type ResultTable: table[Key] of Result;
 
 # The function prototype for plugins to do calculations.
 type ObserveFunc: function(r: Reducer, val: double, data: Observation, rv: ResultVal);
@@ -321,7 +316,6 @@ function reset(ss: SumStat)
 		{
 		delete threshold_tracker[ss$name];
 		threshold_tracker[ss$name] = table();
-		event SumStats::thresholds_reset(ss$name);
 		}
 	}
 

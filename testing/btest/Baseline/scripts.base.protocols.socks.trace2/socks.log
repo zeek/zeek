@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	socks
-#open	2012-06-19-13-41-02
+#open	2013-08-26-19-04-20
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	user	status	request.host	request.name	request_p	bound.host	bound.name	bound_p
 #types	time	string	addr	port	addr	port	count	string	string	addr	string	port	addr	string	port
-1340113261.914619	UWkUyAuUGXf	10.0.0.50	59580	85.194.84.197	1080	5	-	succeeded	-	www.google.com	443	0.0.0.0	-	443
-#close	2012-06-19-13-41-05
+1340113261.914619	CXWv6p3arKYeMETxOg	10.0.0.50	59580	85.194.84.197	1080	5	-	succeeded	-	www.google.com	443	0.0.0.0	-	443
+#close	2013-08-26-19-04-20

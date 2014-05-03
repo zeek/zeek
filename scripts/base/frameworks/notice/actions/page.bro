@@ -6,12 +6,14 @@ module Notice;
 
 export {
 	redef enum Action += {
-		## Indicates that the notice should be sent to the pager email address
-		## configured in the :bro:id:`Notice::mail_page_dest` variable.
+		## Indicates that the notice should be sent to the pager email
+		## address configured in the :bro:id:`Notice::mail_page_dest`
+		## variable.
 		ACTION_PAGE
 	};
 	
-	## Email address to send notices with the :bro:enum:`Notice::ACTION_PAGE` action.
+	## Email address to send notices with the :bro:enum:`Notice::ACTION_PAGE`
+	## action.
 	const mail_page_dest = "" &redef;
 }
 

@@ -11,7 +11,7 @@
 
 #ifdef NEED_KRB5_H
 # include <krb5.h>
-#endif 
+#endif
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -26,10 +26,28 @@ public:
 	ChunkedIO();
 	virtual ~ChunkedIO()	{ }
 
-	typedef struct {
+	struct Chunk {
+		typedef void (*FreeFunc)(char*);
+		static void free_func_free(char* data)	{ free(data); }
+		static void free_func_delete(char* data)	{ delete [] data; }
+
+		Chunk()
+		    : data(), len(), free_func(free_func_delete)
+			{ }
+
+		// Takes ownership of data.
+		Chunk(char* arg_data, uint32 arg_len,
+		      FreeFunc arg_ff = free_func_delete)
+			: data(arg_data), len(arg_len), free_func(arg_ff)
+			{ }
+
+		~Chunk()
+			{ free_func(data); }
+
 		char* data;
 		uint32 len;
-	} Chunk;
+		FreeFunc free_func;
+	};
 
 	// Initialization before any I/O operation is performed. Returns false
 	// on any form of error.
@@ -292,8 +310,9 @@ private:
 // Wrapper class around a another ChunkedIO which the (un-)compresses data.
 class CompressedChunkedIO : public ChunkedIO {
 public:
-	CompressedChunkedIO(ChunkedIO* arg_io)
-		: io(arg_io) {} // takes ownership
+	CompressedChunkedIO(ChunkedIO* arg_io) // takes ownership
+	    : io(arg_io), zin(), zout(), error(), compress(), uncompress(),
+	      uncompressed_bytes_read(), uncompressed_bytes_written() {}
 	virtual ~CompressedChunkedIO()	{ delete io; }
 
 	virtual bool Init(); // does *not* call arg_io->Init()

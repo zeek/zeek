@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2013-08-04-03-27-23
+#open	2014-04-08-22-38-27
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -12,7 +12,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/strings.bif.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
-  build/scripts/base/bif/bloom-filter.bif.bro
+  build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/event.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
@@ -22,39 +22,39 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_ConnSize.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DCE_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DHCP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_DNP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_DNS.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_File.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Finger.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_FTP.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_File.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_Finger.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Gnutella.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_GTPv1.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_HTTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_ICMP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMTP.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_SOCKS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSH.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSL.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_SSL.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Syslog.events.bif.bro
     build/scripts/base/bif/plugins/Bro_TCP.events.bif.bro
@@ -62,6 +62,14 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Teredo.events.bif.bro
     build/scripts/base/bif/plugins/Bro_UDP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_ZIP.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileExtract.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_FileHash.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Unified2.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Unified2.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.types.bif.bro
+    build/scripts/base/bif/plugins/Bro_X509.functions.bif.bro
   scripts/base/frameworks/logging/__load__.bro
     scripts/base/frameworks/logging/main.bro
       build/scripts/base/bif/logging.bif.bro
@@ -90,8 +98,12 @@ scripts/base/init-bare.bro
       build/scripts/base/bif/file_analysis.bif.bro
       scripts/base/utils/site.bro
         scripts/base/utils/patterns.bro
+    scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
+    build/scripts/base/bif/bloom-filter.bif.bro
+    build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
+    build/scripts/base/bif/broxygen.bif.bro
 scripts/base/init-default.bro
   scripts/base/utils/active-http.bro
     scripts/base/utils/exec.bro
@@ -141,6 +153,7 @@ scripts/base/init-default.bro
     scripts/base/frameworks/sumstats/main.bro
     scripts/base/frameworks/sumstats/plugins/__load__.bro
       scripts/base/frameworks/sumstats/plugins/average.bro
+      scripts/base/frameworks/sumstats/plugins/hll_unique.bro
       scripts/base/frameworks/sumstats/plugins/last.bro
       scripts/base/frameworks/sumstats/plugins/max.bro
       scripts/base/frameworks/sumstats/plugins/min.bro
@@ -162,6 +175,9 @@ scripts/base/init-default.bro
     scripts/base/protocols/dhcp/consts.bro
     scripts/base/protocols/dhcp/main.bro
       scripts/base/protocols/dhcp/utils.bro
+  scripts/base/protocols/dnp3/__load__.bro
+    scripts/base/protocols/dnp3/main.bro
+      scripts/base/protocols/dnp3/consts.bro
   scripts/base/protocols/dns/__load__.bro
     scripts/base/protocols/dns/consts.bro
     scripts/base/protocols/dns/main.bro
@@ -176,6 +192,11 @@ scripts/base/init-default.bro
         scripts/base/protocols/ssl/consts.bro
         scripts/base/protocols/ssl/main.bro
         scripts/base/protocols/ssl/mozilla-ca-list.bro
+        scripts/base/protocols/ssl/files.bro
+          scripts/base/files/x509/__load__.bro
+            scripts/base/files/x509/main.bro
+              scripts/base/files/hash/__load__.bro
+                scripts/base/files/hash/main.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/main.bro
     scripts/base/protocols/http/entities.bro
@@ -189,6 +210,8 @@ scripts/base/init-default.bro
     scripts/base/protocols/modbus/consts.bro
     scripts/base/protocols/modbus/main.bro
   scripts/base/protocols/pop3/__load__.bro
+  scripts/base/protocols/snmp/__load__.bro
+    scripts/base/protocols/snmp/main.bro
   scripts/base/protocols/smtp/__load__.bro
     scripts/base/protocols/smtp/main.bro
     scripts/base/protocols/smtp/entities.bro
@@ -202,10 +225,11 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/consts.bro
     scripts/base/protocols/syslog/main.bro
   scripts/base/protocols/tunnels/__load__.bro
-  scripts/base/files/hash/__load__.bro
-    scripts/base/files/hash/main.bro
   scripts/base/files/extract/__load__.bro
     scripts/base/files/extract/main.bro
+  scripts/base/files/unified2/__load__.bro
+    scripts/base/files/unified2/main.bro
   scripts/base/misc/find-checksum-offloading.bro
+  scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2013-08-04-03-27-23
+#close	2014-04-08-22-38-27

@@ -1,22 +1,22 @@
 new_connection: tunnel
     conn_id: [orig_h=dead::beef, orig_p=30000/udp, resp_h=cafe::babe, resp_p=13000/udp]
-    encap: [[cid=[orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=0/unknown, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    encap: [[cid=[orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=0/unknown, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 new_connection: tunnel
     conn_id: [orig_h=dead::beef, orig_p=30000/udp, resp_h=cafe::babe, resp_p=13000/udp]
-    encap: [[cid=[orig_h=feed::beef, orig_p=0/unknown, resp_h=feed::cafe, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf], [cid=[orig_h=babe::beef, orig_p=0/unknown, resp_h=dead::babe, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=arKYeMETxOg]]
+    encap: [[cid=[orig_h=feed::beef, orig_p=0/unknown, resp_h=feed::cafe, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg], [cid=[orig_h=babe::beef, orig_p=0/unknown, resp_h=dead::babe, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CjhGID4nQcgTWjvg4c]]
 new_connection: tunnel
     conn_id: [orig_h=dead::beef, orig_p=30000/udp, resp_h=cafe::babe, resp_p=13000/udp]
-    encap: [[cid=[orig_h=1.2.3.4, orig_p=0/unknown, resp_h=5.6.7.8, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    encap: [[cid=[orig_h=1.2.3.4, orig_p=0/unknown, resp_h=5.6.7.8, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 new_connection: tunnel
     conn_id: [orig_h=70.55.213.211, orig_p=31337/tcp, resp_h=192.88.99.1, resp_p=80/tcp]
-    encap: [[cid=[orig_h=2002:4637:d5d3::4637:d5d3, orig_p=0/unknown, resp_h=2001:4860:0:2001::68, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    encap: [[cid=[orig_h=2002:4637:d5d3::4637:d5d3, orig_p=0/unknown, resp_h=2001:4860:0:2001::68, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 new_connection: tunnel
     conn_id: [orig_h=10.0.0.1, orig_p=30000/udp, resp_h=10.0.0.2, resp_p=13000/udp]
-    encap: [[cid=[orig_h=1.2.3.4, orig_p=0/unknown, resp_h=5.6.7.8, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    encap: [[cid=[orig_h=1.2.3.4, orig_p=0/unknown, resp_h=5.6.7.8, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 new_connection: tunnel
     conn_id: [orig_h=dead::beef, orig_p=30000/udp, resp_h=cafe::babe, resp_p=13000/udp]
-    encap: [[cid=[orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=0/unknown, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
+    encap: [[cid=[orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=0/unknown, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
 tunnel_changed:
     conn_id: [orig_h=dead::beef, orig_p=30000/udp, resp_h=cafe::babe, resp_p=13000/udp]
-    old: [[cid=[orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=0/unknown, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=UWkUyAuUGXf]]
-    new: [[cid=[orig_h=feed::beef, orig_p=0/unknown, resp_h=feed::cafe, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=k6kgXLOoSKl]]
+    old: [[cid=[orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=0/unknown, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CXWv6p3arKYeMETxOg]]
+    new: [[cid=[orig_h=feed::beef, orig_p=0/unknown, resp_h=feed::cafe, resp_p=0/unknown], tunnel_type=Tunnel::IP, uid=CCvvfg3TEfuqmmG4bh]]

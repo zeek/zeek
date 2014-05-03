@@ -24,7 +24,7 @@ BasicThread::BasicThread()
 	pthread = 0;
 
 	buf_len = STD_FMT_BUF_LEN;
-	buf = (char*) malloc(buf_len);
+	buf = (char*) safe_malloc(buf_len);
 
 	strerr_buffer = 0;
 

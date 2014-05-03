@@ -1,0 +1,8 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+data_type_const_simple.bro
+
+@load base/protocols/http
+
+redef HTTP::default_capture_password = T;
+

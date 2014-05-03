@@ -1,0 +1,17 @@
+
+## Abstract all of the various Unified2 event formats into 
+## a single event.
+##
+## f: The file.
+##
+## ev: TODO.
+##
+event unified2_event%(f: fa_file, ev: Unified2::IDSEvent%);
+
+## The Unified2 packet format event.
+##
+## f: The file.
+##
+## pkt: TODO.
+##
+event unified2_packet%(f: fa_file, pkt: Unified2::Packet%);

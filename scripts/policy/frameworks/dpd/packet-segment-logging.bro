@@ -1,6 +1,6 @@
-##! This script enables logging of packet segment data when a protocol 
-##! parsing violation is encountered.  The amount of 
-##! data from the packet logged is set by the packet_segment_size variable.
+##! This script enables logging of packet segment data when a protocol
+##! parsing violation is encountered.  The amount of data from the
+##! packet logged is set by the :bro:see:`DPD::packet_segment_size` variable.
 ##! A caveat to logging packet data is that in some cases, the packet may
 ##! not be the packet that actually caused the protocol violation.
 
@@ -10,8 +10,8 @@ module DPD;
 
 export {
 	redef record Info += {
-		## A chunk of the payload the most likely resulted in the protocol 
-		## violation.
+		## A chunk of the payload that most likely resulted in the
+		## protocol violation.
 		packet_segment: string &optional &log;
 	};
 

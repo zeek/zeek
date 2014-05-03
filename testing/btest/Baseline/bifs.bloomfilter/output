@@ -12,8 +12,8 @@ error: false-positive rate must take value between 0 and 1
 1
 1
 1
-0, no fp
-1
+1, fp
+1, fp
 1
 1
 1

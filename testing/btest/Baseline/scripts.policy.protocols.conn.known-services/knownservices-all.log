@@ -3,12 +3,12 @@
 #empty_field	(empty)
 #unset_field	-
 #path	known_services
-#open	2011-06-24-15-51-31
+#open	2014-04-01-23-16-24
 #fields	ts	host	port_num	port_proto	service
-#types	time	addr	port	enum	table[string]
+#types	time	addr	port	enum	set[string]
 1308930691.049431	172.16.238.131	22	tcp	SSH
 1308930694.550308	172.16.238.131	80	tcp	HTTP
 1308930716.462556	74.125.225.81	80	tcp	HTTP
 1308930718.361665	172.16.238.131	21	tcp	FTP
 1308930726.872485	141.142.192.39	22	tcp	SSH
-#close	2011-06-24-15-52-08
+#close	2014-04-01-23-16-24

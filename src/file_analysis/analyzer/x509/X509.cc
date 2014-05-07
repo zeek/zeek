@@ -153,6 +153,8 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
 			pX509Cert->Assign(9, new Val(length, TYPE_COUNT));
+
+		EVP_PKEY_free(pkey);
 		}
 
 
@@ -273,6 +275,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		vl->append(pBasicConstraint);
 
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);
+		BASIC_CONSTRAINTS_free(constr);
 		}
 
 	else
@@ -387,6 +390,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		vl->append(GetFile()->GetVal()->Ref());
 		vl->append(sanExt);
 		mgr.QueueEvent(x509_ext_subject_alternative_name, vl);
+	GENERAL_NAMES_free(altname);
 	}
 
 StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
@@ -442,13 +446,20 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 			return 0;
 
 		const EC_GROUP *group = EC_KEY_get0_group(key->pkey.ec);
+
 		if ( ! group )
+			{
 			// unknown ex-group
+			BN_free(ec_order);
 			return 0;
+			}
 
 		if ( ! EC_GROUP_get_order(group, ec_order, NULL) )
+			{
 			// could not get ec-group-order
+			BN_free(ec_order);
 			return 0;
+			}
 
 		unsigned int length = BN_num_bits(ec_order);
 		BN_free(ec_order);

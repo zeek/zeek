@@ -1,4 +1,22 @@
 
+2.2-417 | 2014-05-07 10:59:22 -0500
+
+  * Change handling of atypical OpenSSL error case in x509 verification. (Jon Siwek)
+
+  * Fix memory leaks in X509 certificate parsing/verification. (Jon Siwek)
+
+  * Fix new []/delete mismatch in input::reader::Raw::DoClose(). (Jon Siwek)
+
+  * Fix buffer over-reads in file_analysis::Manager::Terminate() (Jon Siwek)
+
+  * Fix buffer overlows in IP address masking logic. (Jon Siwek)
+
+    That could occur either in taking a zero-length mask on an IPv6 address
+    (e.g. [fe80::]/0) or a reverse mask of length 128 on any address (e.g.
+    via the remask_addr BuiltIn Function).
+
+  * Fix new []/delete mismatch in ~Base64Converter. (Jon Siwek)
+
 2.2-410 | 2014-05-02 12:49:53 -0500
 
   * Replace an unneeded OPENSSL_malloc call. (Jon Siwek)

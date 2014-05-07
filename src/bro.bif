@@ -1003,14 +1003,14 @@ function unique_id_from%(pool: int, prefix: string%) : string
 ## Removes all elements from a set or table.
 ##
 ## v: The set or table
-function clear_table%(v: any%): any
+function clear_table%(v: any%): int
 	%{
 	if ( v->Type()->Tag() == TYPE_TABLE )
 		v->AsTableVal()->RemoveAll();
 	else
 		builtin_error("clear_table() requires a table/set argument");
 
-	return 0;
+    return 0;
 	%}
 
 ## Checks whether two objects reference the same internal object. This function

@@ -211,18 +211,11 @@ void profile_update(ProfileType t, ProfileAction action)
 		case PROFILE_TOTAL:
         	break;
 
-		case PROFILE_SCRIPT_LAND:
-		case PROFILE_PROTOCOL_LAND:
-		case PROFILE_CONNECTION_LAND:
-		case PROFILE_HILTI_LAND_COMPILED_STUBS:
-		case PROFILE_HILTI_LAND_COMPILED_CODE:
-        	if ( time_bro < 2 )
+        default:
+            if ( time_bro < 2 )
             	return;
 
         	break;
-
-     default:
-        break;
     }
 
 	ProfileItem* i = &profile_state.items[t];
@@ -247,7 +240,9 @@ void profile_update(ProfileType t, ProfileAction action)
 
 	unsigned int mem_total = 0;
 	unsigned int mem_malloced = 0;
-    // get_memory_usage(&mem_total, &mem_malloced);
+
+    if ( t == PROFILE_NET || t == PROFILE_SCRIPT_INIT )
+            get_memory_usage(&mem_total, &mem_malloced);
 
 #ifdef USE_PAPI
 	if ( have_papi < 0 )
@@ -258,7 +253,11 @@ void profile_update(ProfileType t, ProfileAction action)
 
 	if ( action == PROFILE_START )
 		{
-		i->_time_start = 0; // current_time(true);
+        if ( t == PROFILE_NET || t == PROFILE_SCRIPT_INIT )
+            i->_time_start = current_time(true);
+        else
+     		i->_time_start = 0;
+
 		i->_cycles_start = cycles;
 		i->_mem_total_start = mem_total;
 		i->_mem_malloced_start = mem_malloced;
@@ -270,7 +269,11 @@ void profile_update(ProfileType t, ProfileAction action)
         if ( ! i->_started )
                 reporter->InternalError("mismatching stop in profile_update() for type %d", t);
 
-		double time_end = 0; // current_time(true);
+		double time_end = 0;
+
+        if ( t == PROFILE_NET || t == PROFILE_SCRIPT_INIT )
+            time_end = current_time(true);
+
 		unsigned int mem_total_end = mem_total;
 		unsigned int mem_malloced_end = mem_malloced;
 		long_long cycles_end = cycles;

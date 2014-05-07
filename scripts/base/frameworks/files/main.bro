@@ -354,7 +354,8 @@ event file_state_remove(f: fa_file) &priority=10
 
 event file_state_remove(f: fa_file) &priority=-10
 	{
-	Log::write(Files::LOG, f$info);
+    if ( |f$info$analyzers| != 0 )
+        Log::write(Files::LOG, f$info);
 	}
 
 function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool

@@ -99,7 +99,7 @@ export {
 	## when creating a new session value.
 	##
 	## c: The connection involved in the new session.
-	## 
+	##
 	## msg: The DNS message header information.
 	##
 	## is_query: Indicator for if this is being called for a query or a response.
@@ -183,7 +183,8 @@ function log_unmatched_msgs(msgs: PendingMessages)
 	for ( trans_id in msgs )
 		log_unmatched_msgs_queue(msgs[trans_id]);
 
-	msgs = PendingMessages();
+    local i: int;
+    i = clear_table(msgs);
 	}
 
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)

@@ -179,7 +179,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 		X509* x = ((file_analysis::X509Val*) sv)->GetCertificate();
 		if ( ! x )
 			{
-			sk_X509_pop(untrusted_certs);
+			sk_X509_free(untrusted_certs);
 			builtin_error(fmt("No certificate in opaque in stack"));
 			return x509_error_record(-1, "No certificate in opaque");
 			}
@@ -203,6 +203,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 		if ( ! chain )
 			{
 			reporter->Error("Encountered valid chain that could not be resolved");
+			sk_X509_pop_free(chain, X509_free);
 			goto x509_verify_chainerror;
 			}
 
@@ -212,22 +213,21 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 		for ( int i = 0; i < num_certs; i++ )
 			{
 			X509* currcert = sk_X509_value(chain, i);
-			if ( !currcert )
-				{
-				reporter->InternalError("OpenSSL returned null certificate");
-				goto x509_verify_chainerror;
-				}
 
-			chainVector->Assign(i, new file_analysis::X509Val(currcert)); // X509Val takes ownership
+			if ( currcert )
+				chainVector->Assign(i, new file_analysis::X509Val(currcert)); // X509Val takes ownership
+			else
+				reporter->InternalWarning("OpenSSL returned null certificate");
 			}
+
+		sk_X509_free(chain);
 		}
 
 x509_verify_chainerror:
 
 	X509_STORE_CTX_cleanup(&csc);
 
-	if ( untrusted_certs )
-		sk_X509_pop(untrusted_certs);
+	sk_X509_free(untrusted_certs);
 
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 

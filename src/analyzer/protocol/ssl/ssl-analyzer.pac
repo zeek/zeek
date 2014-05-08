@@ -365,9 +365,8 @@ refine connection SSL_Conn += {
 							bro_analyzer()->Conn());
 			}
 
-		if ( ${rec.content_type} == HEARTBEAT )
-			BifEvent::generate_ssl_encrypted_heartbeat(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
+		BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.content_type}, ${rec.is_orig}, ${rec.length});
 
 		return true;
 		%}

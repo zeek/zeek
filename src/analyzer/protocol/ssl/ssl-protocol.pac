@@ -44,6 +44,8 @@ type SSLRecord(is_orig: bool) = record {
 	};
 
 	length : int = case version of {
+		# fail analyzer if the packet cannot be recognized as TLS.
+		UNKNOWN_VERSION -> 0;
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
 		default -> (head3 << 8) | head4;
 	};
@@ -748,6 +750,19 @@ refine connection SSL_Conn += {
 	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
 					head2 : uint8, head3: uint8, head4: uint8) : int
 		%{
+		// re-check record layer version to be sure that we still are synchronized with
+		// the data stream
+		if ( record_layer_version_ != UNKNOWN_VERSION && record_layer_version_ != SSLv20 )
+			{
+			uint16 version = (head1<<8) | head2;
+			if ( version != SSLv30 && version != TLSv10 &&
+					 version != TLSv11 && version != TLSv12 )
+				{
+				bro_analyzer()->ProtocolViolation(fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
+				return UNKNOWN_VERSION;
+				}
+			}
+
 		if ( record_layer_version_ != UNKNOWN_VERSION )
 			return record_layer_version_;
 

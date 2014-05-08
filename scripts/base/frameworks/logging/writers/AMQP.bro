@@ -10,19 +10,19 @@ export {
 	## Rabbit  port.
 	const server_port = 5672 &redef;
 
-    ## Rabbit user.
-    const server_user = "user" &redef;
+	## Rabbit user.
+	const server_user = "user" &redef;
 
-    ## Rabbit password.
-    const server_pass = "password" &redef;
+	## Rabbit password.
+	const server_pass = "password" &redef;
 
-    ## Exchange on Rabbit to use
-    # Note that the exchange type is assumed to be topic exchange
+	## Exchange on Rabbit to use
+	# Note that the exchange type is assumed to be topic exchange
 	const queue_exchange = "broqueue" &redef;
 
-    ## Key prefix to use on Exchange
-    # messages will have the key "routing_key.type"
-    const routing_key = "bro" &redef;
+	## Key prefix to use on Exchange
+	# messages will have the key "routing_key.type"
+	const routing_key = "bro" &redef;
 	
 	## The batch size is the number of messages that will be queued up before
 	## they are sent to rabbit.

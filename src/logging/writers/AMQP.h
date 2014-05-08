@@ -39,7 +39,7 @@ private:
 	bool AddFieldToBuffer(ODesc *b, threading::Value* val, const threading::Field* field);
 	bool AddValueToBuffer(ODesc *b, threading::Value* val);
 	bool BatchIndex();
-    bool RPCSuccess(::amqp_rpc_reply_t& reply);
+	bool RPCSuccess(::amqp_rpc_reply_t& reply);
 
 	// Buffers, etc.
 	ODesc buffer;
@@ -48,16 +48,16 @@ private:
 	string current_index;
 	string prev_index;
 
-    //amqp
-    ::amqp_connection_state_t connection;
+	//amqp
+	::amqp_connection_state_t connection;
 
 	// From scripts
-    char* server;
-    int port;
-    char* user;
-    char* pass;
-    char* exchange;
-    char* key;
+	char* server;
+	int port;
+	char* user;
+	char* pass;
+	char* exchange;
+	char* key;
 
 	string path;
 	string index_prefix;
@@ -65,7 +65,7 @@ private:
 
 	uint64 batch_size;
 
-    threading::formatter::JSON* json;
+	threading::formatter::JSON* json;
 };
 
 }

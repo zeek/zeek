@@ -10,17 +10,17 @@ export {
 	## Rabbit  port.
 	const server_port = 5672 &redef;
 
-    ## Rabbit user.
-    const server_user = "user" &redef;
+	## Rabbit user.
+	const server_user = "user" &redef;
 
-    ## Rabbit password.
-    const server_pass = "password" &redef;
+	## Rabbit password.
+	const server_pass = "password" &redef;
 
-    ## Exchange on Rabbit to use
+	## Exchange on Rabbit to use
 	const queue_exchange = "elasticsearch" &redef;
 
-    ## Key to use on Exchange
-    const routing_key = "bro" &redef;
+	## Key to use on Exchange
+	const routing_key = "bro" &redef;
 	
 	## Name of the ES index.
 	const index_prefix = "bro" &redef;

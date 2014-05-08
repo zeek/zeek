@@ -33,7 +33,7 @@ AMQP::AMQP(WriterFrontend* frontend) : WriterBackend(frontend)
 	memcpy(server, BifConst::LogAMQP::server_host->Bytes(), server_len);
 	server[server_len] = 0;
 
-    port = (int) BifConst::LogAMQP::server_port;
+	port = (int) BifConst::LogAMQP::server_port;
 
 	int user_len = BifConst::LogAMQP::server_user->Len();
 	user = new char[user_len + 1];
@@ -62,88 +62,88 @@ AMQP::AMQP(WriterFrontend* frontend) : WriterBackend(frontend)
 	prev_index = string();
 	last_send = current_time();
 
-    json = new threading::formatter::JSON(this, threading::formatter::JSON::TS_MILLIS);
+	json = new threading::formatter::JSON(this, threading::formatter::JSON::TS_MILLIS);
 
 }
 
 AMQP::~AMQP()
 	{
 	delete [] server;
-    delete [] user;
-    delete [] pass;
-    delete [] exchange;
-    delete [] key;
+	delete [] user;
+	delete [] pass;
+	delete [] exchange;
+	delete [] key;
 	delete json;
 	}
 
 bool AMQP::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
 	{
-    ::amqp_socket_t *socket = NULL;
-    int status;
-    ::amqp_rpc_reply_t result;
+	::amqp_socket_t *socket = NULL;
+	int status;
+	::amqp_rpc_reply_t result;
 
-    ::amqp_connection_state_t conn = ::amqp_new_connection();
+	::amqp_connection_state_t conn = ::amqp_new_connection();
 
-    socket = ::amqp_tcp_socket_new();
-    if(!socket){
-        return false;
-    }
+	socket = ::amqp_tcp_socket_new();
+	if ( !socket ) {
+		return false;
+	}
 
-    status = ::amqp_socket_open(socket, server, port);
-    if(status){
-        return false;
-    }
+	status = ::amqp_socket_open(socket, server, port);
+	if ( status ) {
+		return false;
+	}
 
-    ::amqp_set_socket(conn, socket);
-    result = ::amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, user, pass);
-    if (!RPCSuccess(result)){
-        return false;
-    }
-    
-    ::amqp_channel_open(conn, 1);
-    result = ::amqp_get_rpc_reply(conn);
-    if (!RPCSuccess(result)){
-        return false;
-    }
-    
-    connection = conn;
+	::amqp_set_socket(conn, socket);
+	result = ::amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, user, pass);
+	if ( !RPCSuccess(result) ) {
+		return false;
+	}
+
+	::amqp_channel_open(conn, 1);
+	result = ::amqp_get_rpc_reply(conn);
+	if ( !RPCSuccess(result) ) {
+		return false;
+	}
+
+	connection = conn;
 
 	return true;
 	}
 
 bool AMQP::DoFlush(double network_time)
 	{
-    BatchIndex();
+	BatchIndex();
 	return true;
 	}
 
 bool AMQP::DoFinish(double network_time)
 	{
-    BatchIndex();
-    ::amqp_channel_close(connection, 1, AMQP_REPLY_SUCCESS);
-    ::amqp_connection_close(connection, AMQP_REPLY_SUCCESS);
+	BatchIndex();
+	::amqp_channel_close(connection, 1, AMQP_REPLY_SUCCESS);
+	::amqp_connection_close(connection, AMQP_REPLY_SUCCESS);
 	return true;
 	}
 
 bool AMQP::BatchIndex()
 	{
-    //Push data to queue
+	//Push data to queue
 
-    string topic_key = string(Fmt("%s.%s", key, Info().path));
+	string topic_key = string(Fmt("%s.%s", key, Info().path));
 
-    int status;
-    status = ::amqp_basic_publish(connection, 1, ::amqp_cstring_bytes(exchange), 
-                ::amqp_cstring_bytes(topic_key.c_str()), 0, 0, NULL, 
-                ::amqp_cstring_bytes( (const char* ) (buffer.Bytes()) ));
+	int status;
+	status = ::amqp_basic_publish(connection, 1, ::amqp_cstring_bytes(exchange), 
+				::amqp_cstring_bytes(topic_key.c_str()), 0, 0, NULL, 
+				::amqp_cstring_bytes( (const char* ) (buffer.Bytes()) ));
 
 	buffer.Clear();
 	counter = 0;
 	last_send = current_time();
     
-    //For now just check status and return false on failure
-    if (status != 0){
-        return false;
-    }
+	//For now just check status and return false on failure
+	if (status != 0){
+		return false;
+	}
 
 	return true;
 	}
@@ -152,7 +152,7 @@ bool AMQP::DoWrite(int num_fields, const Field* const * fields,
 			     Value** vals)
 	{
 
-    json->Describe(&buffer, num_fields, fields, vals);
+	json->Describe(&buffer, num_fields, fields, vals);
 	buffer.AddRaw("\n", 1);
 
 	counter++;
@@ -187,35 +187,33 @@ bool AMQP::DoHeartbeat(double network_time, double current_time)
 
 bool AMQP::RPCSuccess(::amqp_rpc_reply_t& reply)
 {
-  switch (reply.reply_type) {
-    case AMQP_RESPONSE_NORMAL:
-      return true;
+	switch (reply.reply_type) {
+		case AMQP_RESPONSE_NORMAL:
+		  return true;
 
-    case AMQP_RESPONSE_NONE:
-      break;
-    case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-      break;
-    case AMQP_RESPONSE_SERVER_EXCEPTION:
-      switch (reply.reply.id) {
-        case AMQP_CONNECTION_CLOSE_METHOD: 
-        {
-             ::amqp_connection_close_t *m = (amqp_connection_close_t *) reply.reply.decoded;
-             break;
-        }
-        case AMQP_CHANNEL_CLOSE_METHOD: 
-        {
-             ::amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
-             break;
-        }
-        default:
-             break;
-      }
-      break;
-  }
+		case AMQP_RESPONSE_NONE:
+		  break;
+		case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		  break;
+		case AMQP_RESPONSE_SERVER_EXCEPTION:
+		  switch (reply.reply.id) {
+			case AMQP_CONNECTION_CLOSE_METHOD: 
+			{
+				 ::amqp_connection_close_t *m = (amqp_connection_close_t *) reply.reply.decoded;
+				 break;
+			}
+			case AMQP_CHANNEL_CLOSE_METHOD: 
+			{
+				 ::amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
+				 break;
+			}
+			default:
+				 break;
+		  }
+		  break;
+	}
 
-    return false;
+	return false;
 }
-
-
 
 #endif

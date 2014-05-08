@@ -98,6 +98,10 @@
 @load tuning/defaults/warnings.bro
 @load tuning/json-logs.bro
 @load tuning/logs-to-elasticsearch.bro
+@load tuning/logs-to-elasticsearchrabbit.bro
+@load tuning-logs-to_AMQP.bro
 @load tuning/track-all-assets.bro
 
 redef LogElasticSearch::server_host = "";
+redef LogElasticSearchRabbit::server_host = "";
+redef LogAMQP::server_host = "";

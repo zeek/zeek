@@ -20,6 +20,13 @@
 
 #ifdef USE_ELASTICSEARCH
 #include "writers/ElasticSearch.h"
+    #ifdef USE_RABBIT
+    #include "writers/ElasticSearchRabbit.h"
+    #endif
+#endif
+
+#ifdef USE_RABBIT
+#include "writers/AMQP.h"
 #endif
 
 #ifdef USE_DATASERIES
@@ -46,7 +53,15 @@ WriterDefinition log_writers[] = {
 
 #ifdef USE_ELASTICSEARCH
 	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
+    #ifdef USE_RABBIT
+	{ BifEnum::Log::WRITER_ELASTICSEARCHRABBIT, "ElasticSearchRabbit", 0, writer::ElasticSearchRabbit::Instantiate },
+    #endif
 #endif
+
+#ifdef USE_RABBIT
+    { BifEnum::Log::WRITER_AMQP, "AMQP", 0, writer::AMQP::Instantiate },
+#endif
+
 
 #ifdef USE_DATASERIES
 	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },

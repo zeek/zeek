@@ -1129,11 +1129,11 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		}
 	}
 
-void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
+void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
-	// DEBUG_MSG("Undelivered from %d: %d bytes\n", seq, length);
+	// DEBUG_MSG("Undelivered from %"PRIu64": %d bytes\n", seq, length);
 
 	HTTP_Message* msg =
 		is_orig ? request_message : reply_message;
@@ -1145,7 +1145,7 @@ void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%d, len=%d", seq, len));
+				fmt("seq=%"PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body

@@ -26,7 +26,7 @@ public:
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 
 	uint64_t orig_bytes;

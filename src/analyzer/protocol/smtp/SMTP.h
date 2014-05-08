@@ -44,7 +44,7 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void ConnectionFinished(int half_finished);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 

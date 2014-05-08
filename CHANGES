@@ -1,4 +1,24 @@
 
+2.2-424 | 2014-05-08 16:32:29 -0700
+
+  * Fixing compiler warnings. (Robin Sommer)
+
+  * Update SNMP analyzer's DeliverPacket method signature. (Jon Siwek)
+    
+  * Fix reassembly of data w/ sizes beyond 32-bit capacities The main
+    change is that reassembly code (e.g. for TCP) now uses
+    int64/uint64 (signedness is situational) data types in place of
+    int types in order to support delivering data to analyzers that
+    pass 2GB thresholds.  There's also changes in logic that accompany
+    the change in data types, e.g. to fix TCP sequence space
+    arithmetic inconsistencies.
+
+    Another significant change is in the Analyzer API: the *Packet and
+    *Undelivered methods now use a uint64 in place of an int for the
+    relative sequence space offset parameter.
+
+    Addresses BIT-348. (Jon Siwek)
+
 2.2-417 | 2014-05-07 10:59:22 -0500
 
   * Change handling of atypical OpenSSL error case in x509 verification. (Jon Siwek)

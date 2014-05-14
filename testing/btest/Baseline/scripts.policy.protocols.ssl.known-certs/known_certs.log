@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	known_certs
+#open	2014-03-13-21-47-24
+#fields	ts	host	port_num	subject	issuer_subject	serial
+#types	time	addr	port	string	string	string
+1394747126.871404	74.125.239.129	443	CN=*.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US	4A2C8628C1010633
+#close	2014-03-13-21-47-24

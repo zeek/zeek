@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 #include <openssl/md5.h>
-#include <magic.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -68,9 +67,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "3rdparty/sqlite3.h"
 
 Brofiler brofiler;
-
-magic_t magic_desc_cookie = 0;
-magic_t magic_mime_cookie = 0;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -130,6 +126,7 @@ OpaqueType* entropy_type = 0;
 OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
+OpaqueType* x509_opaque_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -166,6 +163,7 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
+	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
@@ -219,7 +217,6 @@ void usage()
 #endif
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
-	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
 	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
@@ -384,10 +381,10 @@ void terminate_bro()
 	delete secondary_path;
 	delete remote_serializer;
 	delete analyzer_mgr;
+	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
 	delete thread_mgr;
-	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;
@@ -458,6 +455,7 @@ int main(int argc, char** argv)
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
+	int parse_only = false;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -470,6 +468,7 @@ int main(int argc, char** argv)
 	int time_bro = 0;
 
 	static struct option long_opts[] = {
+		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
@@ -549,7 +548,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZQ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -559,6 +558,10 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
+		case 'a':
+			parse_only = true;
+			break;
+
 		case 'b':
 			bare_mode = true;
 			break;
@@ -788,9 +791,6 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
-	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
-	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
-
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
@@ -879,6 +879,7 @@ int main(int argc, char** argv)
 	cardinality_type = new OpaqueType("cardinality");
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
+	x509_opaque_type = new OpaqueType("x509");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -902,8 +903,6 @@ int main(int argc, char** argv)
 		exit(1);
 
 	plugin_mgr->InitPostScript();
-	analyzer_mgr->InitPostScript();
-	file_mgr->InitPostScript();
 	broxygen_mgr->InitPostScript();
 
 	if ( print_plugins )
@@ -914,6 +913,12 @@ int main(int argc, char** argv)
 
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
+
+	if ( parse_only )
+		{
+		int rc = (reporter->Errors() > 0 ? 1 : 0);
+		exit(rc);
+		}
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}
@@ -966,6 +971,8 @@ int main(int argc, char** argv)
 
 		if ( rule_debug )
 			rule_matcher->PrintDebug();
+
+		file_mgr->InitMagic();
 		}
 
 	delete [] script_rule_files;

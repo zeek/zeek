@@ -4,7 +4,7 @@ detect-MHR.bro
 
 event file_hash(f: fa_file, kind: string, hash: string)
 	{
-	if ( kind=="sha1" && match_file_types in f$mime_type )
+	if ( kind == "sha1" && f?$mime_type && match_file_types in f$mime_type )
 		{
 		local hash_domain = fmt("%s.malware.hash.cymru.com", hash);
 		when ( local MHR_result = lookup_hostname_txt(hash_domain) )

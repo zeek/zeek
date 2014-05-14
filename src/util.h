@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <magic.h>
 #include <libgen.h>
 #include "config.h"
 
@@ -103,8 +102,25 @@ void delete_each(T* t)
 std::string extract_ip(const std::string& i);
 std::string extract_ip_and_len(const std::string& i, int* len);
 
+inline void bytetohex(unsigned char byte, char* hex_out)
+	{
+	static const char hex_chars[] = "0123456789abcdef";
+	hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
+	hex_out[1] = hex_chars[byte & 0x0f];
+	}
+
 std::string get_unescaped_string(const std::string& str);
-std::string get_escaped_string(const std::string& str, bool escape_all);
+
+class ODesc;
+
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
+                          bool escape_all);
+std::string get_escaped_string(const char* str, size_t len, bool escape_all);
+
+inline std::string get_escaped_string(const std::string& str, bool escape_all)
+	{
+	return get_escaped_string(str.data(), str.length(), escape_all);
+	}
 
 std::vector<std::string>* tokenize_string(std::string input,
 					  const std::string& delim,
@@ -495,12 +511,6 @@ struct CompareString
 		return strcmp(a, b) < 0;
 		}
 	};
-
-extern magic_t magic_desc_cookie;
-extern magic_t magic_mime_cookie;
-
-void bro_init_magic(magic_t* cookie_ptr, int flags);
-const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length);
 
 /**
  * Canonicalizes a name by converting it to uppercase letters and replacing

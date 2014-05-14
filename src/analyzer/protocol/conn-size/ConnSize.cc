@@ -36,7 +36,7 @@ void ConnSize_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

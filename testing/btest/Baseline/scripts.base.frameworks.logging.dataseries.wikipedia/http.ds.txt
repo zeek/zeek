@@ -56,10 +56,10 @@
 <!-- info_code : count -->
 <!-- info_msg : string -->
 <!-- filename : string -->
-<!-- tags : table[enum] -->
+<!-- tags : set[enum] -->
 <!-- username : string -->
 <!-- password : string -->
-<!-- proxied : table[string] -->
+<!-- proxied : set[string] -->
 <!-- orig_fuids : vector[string] -->
 <!-- orig_mime_types : vector[string] -->
 <!-- resp_fuids : vector[string] -->

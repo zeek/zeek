@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	smtp
+#open	2014-04-01-23-15-59
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent	fuids
+#types	time	string	addr	port	addr	port	count	string	string	set[string]	string	string	set[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	vector[string]
+1078232255.642953	CXWv6p3arKYeMETxOg	79.26.245.236	3378	254.228.86.79	8240	1	208.191.73.21	<nhfjenna_neumann@lycos.com>	<thenightwatch@t-online.de>	Tue, 2 Mar 2004 13:57:49 +0100	Sybille Ostermann <nhfjenna_neumann@lycos.com>	thenightwatch@t-online.de	-	-	-	Hier sind die dicken Girls hemmungloser denn je.. grcu	-	from mail.iosphere.net (mail.iosphere.net [216.58.97.33]) by mail.netsync.net with esmtp; Mrz, 02 2004 12:55:34 -0700	-	250 Message accepted.	254.228.86.79,79.26.245.236,216.58.97.33	Microsoft Outlook Build 10.0.2616	FVS9k93PUgScEUCOjd
+#close	2014-04-01-23-15-59

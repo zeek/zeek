@@ -90,7 +90,7 @@ public:
 
 protected:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	NCP_FrameBuffer buffer;
 	NCP_Session* session;

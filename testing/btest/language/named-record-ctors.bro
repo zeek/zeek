@@ -1,5 +1,7 @@
-# @TEST-EXEC: bro -b frameworks/software/vulnerable %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+
+@load frameworks/software/vulnerable
 
 type MyRec: record {
 	min: count &optional;

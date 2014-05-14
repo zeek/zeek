@@ -127,12 +127,7 @@ ChunkedIOFd::~ChunkedIOFd()
 	delete [] read_buffer;
 	delete [] write_buffer;
 	safe_close(fd);
-
-	if ( partial )
-		{
-		delete [] partial->data;
-		delete partial;
-		}
+	delete partial;
 	}
 
 bool ChunkedIOFd::Write(Chunk* chunk)
@@ -169,10 +164,9 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 
 	while ( left )
 		{
-		Chunk* part = new Chunk;
+		uint32 sz = min<uint32>(BUFFER_SIZE - sizeof(uint32), left);
+		Chunk* part = new Chunk(new char[sz], sz);
 
-		part->len = min<uint32>(BUFFER_SIZE - sizeof(uint32), left);
-		part->data = new char[part->len];
 		memcpy(part->data, p, part->len);
 		left -= part->len;
 		p += part->len;
@@ -181,9 +175,7 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 			return false;
 		}
 
-	delete [] chunk->data;
 	delete chunk;
-
 	return true;
 	}
 
@@ -239,7 +231,6 @@ bool ChunkedIOFd::PutIntoWriteBuffer(Chunk* chunk)
 	memcpy(write_buffer + write_len, chunk->data, len);
 	write_len += len;
 
-	delete [] chunk->data;
 	delete chunk;
 
 	if ( network_time - last_flush > 0.005 )
@@ -362,9 +353,7 @@ ChunkedIO::Chunk* ChunkedIOFd::ExtractChunk()
 
 	read_pos += sizeof(uint32);
 
-	Chunk* chunk = new Chunk;
-	chunk->len = len;
-	chunk->data = new char[real_len];
+	Chunk* chunk = new Chunk(new char[real_len], len);
 	memcpy(chunk->data, read_buffer + read_pos, real_len);
 	read_pos += real_len;
 
@@ -375,17 +364,13 @@ ChunkedIO::Chunk* ChunkedIOFd::ExtractChunk()
 
 ChunkedIO::Chunk* ChunkedIOFd::ConcatChunks(Chunk* c1, Chunk* c2)
 	{
-	Chunk* c = new Chunk;
-
-	c->len = c1->len + c2->len;
-	c->data = new char[c->len];
+	uint32 sz = c1->len + c2->len;
+	Chunk* c = new Chunk(new char[sz], sz);
 
 	memcpy(c->data, c1->data, c1->len);
 	memcpy(c->data + c1->len, c2->data, c2->len);
 
-	delete [] c1->data;
 	delete c1;
-	delete [] c2->data;
 	delete c2;
 
 	return c;
@@ -627,7 +612,6 @@ void ChunkedIOFd::Clear()
 	while ( pending_head )
 		{
 		ChunkQueue* next = pending_head->next;
-		delete [] pending_head->chunk->data;
 		delete pending_head->chunk;
 		delete pending_head;
 		pending_head = next;
@@ -946,7 +930,6 @@ bool ChunkedIOSSL::Flush()
 		--stats.pending;
 		delete q;
 
-		delete [] c->data;
 		delete c;
 
 		write_state = LEN;
@@ -1063,7 +1046,10 @@ bool ChunkedIOSSL::Read(Chunk** chunk, bool mayblock)
 		}
 
 	if ( ! read_chunk->data )
+		{
 		read_chunk->data = new char[read_chunk->len];
+		read_chunk->free_func = Chunk::free_func_delete;
+		}
 
 	if ( ! ReadData(read_chunk->data, read_chunk->len, &error) )
 		return ! error;
@@ -1123,7 +1109,6 @@ void ChunkedIOSSL::Clear()
 	while ( write_head )
 		{
 		Queue* next = write_head->next;
-		delete [] write_head->chunk->data;
 		delete write_head->chunk;
 		delete write_head;
 		write_head = next;
@@ -1231,12 +1216,13 @@ bool CompressedChunkedIO::Read(Chunk** chunk, bool may_block)
 		return false;
 		}
 
-	delete [] (*chunk)->data;
+	(*chunk)->free_func((*chunk)->data);
 
 	uncompressed_bytes_read += uncompressed_len;
 
 	(*chunk)->len = uncompressed_len;
 	(*chunk)->data = uncompressed;
+	(*chunk)->free_func = Chunk::free_func_delete;
 
 	return true;
 	}
@@ -1280,8 +1266,9 @@ bool CompressedChunkedIO::Write(Chunk* chunk)
 		memcpy(compressed, chunk->data, chunk->len);
 		*(uint32*) (compressed + chunk->len) = 0; // uncompressed_length
 
-		delete [] chunk->data;
+		chunk->free_func(chunk->data);
 		chunk->data = compressed;
+		chunk->free_func = Chunk::free_func_delete;
 		chunk->len += 4;
 
 		DBG_LOG(DBG_CHUNKEDIO, "zlib write pass-through: size=%d", chunk->len);
@@ -1322,8 +1309,9 @@ bool CompressedChunkedIO::Write(Chunk* chunk)
 
 		*(uint32*) zout.next_out = original_size; // uncompressed_length
 
-		delete [] chunk->data;
+		chunk->free_func(chunk->data);
 		chunk->data = compressed;
+		chunk->free_func = Chunk::free_func_delete;
 		chunk->len =
 			((char*) zout.next_out - compressed) + sizeof(uint32);
 

@@ -20,7 +20,7 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	peer = 0;
 	start_time = last_time = 0.0;
 	start_seq = last_seq = ack_seq = 0;
-	last_seq_high = ack_seq_high = 0;
+	seq_wraps = ack_wraps = 0;
 	window = 0;
 	window_scale = 0;
 	window_seq = window_ack_seq = 0;
@@ -108,7 +108,8 @@ void TCP_Endpoint::CheckEOF()
 		contents_processor->CheckEOF();
 	}
 
-void TCP_Endpoint::SizeBufferedData(int& waiting_on_hole, int& waiting_on_ack)
+void TCP_Endpoint::SizeBufferedData(uint64& waiting_on_hole,
+                                    uint64& waiting_on_ack)
 	{
 	if ( contents_processor )
 		contents_processor->SizeBufferedData(waiting_on_hole, waiting_on_ack);
@@ -159,16 +160,27 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		}
 	}
 
-bro_int_t TCP_Endpoint::Size() const
+uint64 TCP_Endpoint::Size() const
 	{
-	bro_int_t size;
+	if ( prev_state == TCP_ENDPOINT_SYN_SENT && state == TCP_ENDPOINT_RESET &&
+	     peer->state == TCP_ENDPOINT_INACTIVE && ! NoDataAcked() )
+		// This looks like a half-open connection was discovered and aborted.
+		// Sequence numbers could be misleading if used in context of data size
+		// and there was never a chance for this endpoint to send data anyway.
+		return 0;
 
-	uint64 last_seq_64 = (uint64(last_seq_high) << 32) | last_seq;
-	uint64 ack_seq_64 = (uint64(ack_seq_high) << 32) | ack_seq;
+	uint64 size;
+	uint64 last_seq_64 = ToFullSeqSpace(LastSeq(), SeqWraps());
+	uint64 ack_seq_64 = ToFullSeqSpace(AckSeq(), AckWraps());
+
+	// Going straight to relative sequence numbers and comparing those might
+	// make more sense, but there's some cases (e.g. due to RSTs) where
+	// last_seq might not be initialized to a trustworthy value such that
+	// rel_seq > rel_ack, but last_seq_64 < start_seq, which is obviously wrong.
 	if ( last_seq_64 > ack_seq_64 )
-		size = last_seq_64 - start_seq;
+		size = last_seq_64 - StartSeqI64();
 	else
-		size = ack_seq_64 - start_seq;
+		size = ack_seq_64 - StartSeqI64();
 
 	// Don't include SYN octet in sequence space.  For partial connections
 	// (no SYN seen), we're still careful to adjust start_seq as though
@@ -183,7 +195,7 @@ bro_int_t TCP_Endpoint::Size() const
 	return size;
 	}
 
-int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
+int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 				const u_char* data,
 				const IP_Hdr* ip, const struct tcphdr* tp)
 	{
@@ -198,7 +210,7 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 	if ( contents_file && ! contents_processor && 
 	     seq + len > contents_start_seq )
 		{
-		int under_seq = contents_start_seq - seq;
+		int64 under_seq = contents_start_seq - seq;
 		if ( under_seq > 0 )
 			{
 			seq += under_seq;
@@ -229,7 +241,7 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 	return status;
 	}
 
-void TCP_Endpoint::AckReceived(int seq)
+void TCP_Endpoint::AckReceived(uint64 seq)
 	{
 	if ( contents_processor )
 		contents_processor->AckReceived(seq);
@@ -239,7 +251,7 @@ void TCP_Endpoint::SetContentsFile(BroFile* f)
 	{
 	Ref(f);
 	contents_file = f;
-	contents_start_seq = last_seq - start_seq;
+	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);
 
 	if ( contents_start_seq == 0 )
 		contents_start_seq = 1;	// skip SYN

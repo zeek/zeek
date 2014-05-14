@@ -232,7 +232,8 @@ DataSeries::DataSeries(WriterFrontend* frontend) : WriterBackend(frontend)
 	ds_use_integer_for_time = BifConst::LogDataSeries::use_integer_for_time;
 	ds_set_separator = ",";
 
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
+	threading::formatter::Ascii::SeparatorInfo sep_info;
+	ascii = new threading::formatter::Ascii(this, sep_info);
 
 	compress_type = Extent::compress_none;
 	log_file = 0;

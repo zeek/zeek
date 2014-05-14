@@ -64,8 +64,8 @@ expect that signature file in the same directory as the Bro script. The
 default extension of the file name is ``.sig``, and Bro appends that
 automatically when necessary.
 
-Signature language
-==================
+Signature Language for Network Traffic
+======================================
 
 Let's look at the format of a signature more closely. Each individual
 signature has the format ``signature <id> { <attributes> }``. ``<id>``
@@ -285,6 +285,44 @@ two actions defined:
     Enables the protocol analyzer ``<string>`` for the matching
     connection (``"http"``, ``"ftp"``, etc.). This is used by Bro's
     dynamic protocol detection to activate analyzers on the fly.
+
+Signature Language for File Content
+===================================
+
+The signature framework can also be used to identify MIME types of files
+irrespective of the network protocol/connection over which the file is
+transferred.  A special type of signature can be written for this
+purpose and will be used automatically by the :doc:`Files Framework
+<file-analysis>` or by Bro scripts that use the :bro:see:`file_magic`
+built-in function.
+
+Conditions
+----------
+
+File signatures use a single type of content condition in the form of a
+regular expression:
+
+``file-magic /<regular expression>/``
+
+This is analogous to the ``payload`` content condition for the network
+traffic signature language described above.  The difference is that
+``payload`` signatures are applied to payloads of network connections,
+but ``file-magic`` can be applied to any arbitrary data, it does not
+have to be tied to a network protocol/connection.
+
+Actions
+-------
+
+Upon matching a chunk of data, file signatures use the following action
+to get information about that data's MIME type:
+
+``file-mime <string> [, <integer>]``
+
+The arguments include the MIME type string associated with the file
+magic regular expression and an optional "strength" as a signed integer.
+Since multiple file magic signatures may match against a given chunk of
+data, the strength value may be used to help choose a "winner".  Higher
+values are considered stronger.
 
 Things to keep in mind when writing signatures
 ==============================================

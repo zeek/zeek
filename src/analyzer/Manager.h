@@ -301,6 +301,23 @@ public:
 				double timeout);
 
 	/**
+	 * Searched for analyzers scheduled to be attached to a given connection
+	 * and then attaches them.
+	 *
+	 * @param conn The connection to which scheduled analyzers are attached.
+	 *
+	 * @param init True if the newly added analyzers should be
+	 * immediately initialized.
+	 *
+	 * @param root If given, the scheduled analyzers will become childs
+	 * of this; if not given the connection's root analyzer is used
+	 * instead.
+	 *
+	 * @return True if at least one scheduled analyzer was found.
+	 */
+	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = 0);
+
+	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
 	 * the connection is seen, BuildInitAnalyzerTree() will add the
 	 * specified analyzer to its tree.

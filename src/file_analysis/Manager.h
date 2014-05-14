@@ -4,16 +4,16 @@
 #define FILE_ANALYSIS_MANAGER_H
 
 #include <string>
-#include <map>
-#include <set>
 #include <queue>
 
+#include "Dict.h"
 #include "Net.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Analyzer.h"
 #include "Timer.h"
 #include "EventHandler.h"
+#include "RuleMatcher.h"
 
 #include "File.h"
 #include "FileTimer.h"
@@ -25,6 +25,9 @@
 #include "file_analysis/file_analysis.bif.h"
 
 namespace file_analysis {
+
+declare(PDict,bool);
+declare(PDict,File);
 
 /**
  * Main entry point for interacting with file analysis.
@@ -55,6 +58,12 @@ public:
 	void InitPostScript();
 
 	/**
+	 * Initializes the state required to match against file magic signatures
+	 * for MIME type identification.
+	 */
+	void InitMagic();
+
+	/**
 	 * Times out any active file analysis to prepare for shutdown.
 	 */
 	void Terminate();
@@ -82,9 +91,17 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void DataIn(const u_char* data, uint64 len, uint64 offset,
-		    analyzer::Tag tag, Connection* conn, bool is_orig);
+	std::string DataIn(const u_char* data, uint64 len, uint64 offset,
+	                   analyzer::Tag tag, Connection* conn, bool is_orig,
+	                   const std::string& precomputed_file_id = "");
 
 	/**
 	 * Pass in sequential file data.
@@ -94,9 +111,17 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	void DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
-	            Connection* conn, bool is_orig);
+	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+	                   Connection* conn, bool is_orig,
+	                   const std::string& precomputed_file_id = "");
 
 	/**
 	 * Pass in sequential file data from external source (e.g. input framework).
@@ -140,9 +165,17 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void Gap(uint64 offset, uint64 len, analyzer::Tag tag, Connection* conn,
-	         bool is_orig);
+	std::string Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+	                Connection* conn, bool is_orig,
+	                const std::string& precomputed_file_id = "");
 
 	/**
 	 * Provide the expected number of bytes that comprise a file.
@@ -151,9 +184,16 @@ public:
 	 * @param conn network connection over which the file data is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @param precomputed_file_id may be set to a previous return value in order to
+	 *        bypass costly file handle lookups.
+	 * @return a unique file ID string which, in certain contexts, may be
+	 *         cached and passed back in to a subsequent function call in order
+	 *         to avoid costly file handle lookups (which have to go through
+	 *         the \c get_file_handle script-layer event).  An empty string
+	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	void SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
-	             bool is_orig);
+	std::string SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
 	 * Starts ignoring a file, which will finally be removed from internal
@@ -292,11 +332,34 @@ public:
 	 */
 	bool UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype);
 
+    /**
+	 * Returns a set of all matching MIME magic signatures for a given
+	 * chunk of data.
+	 * @param data A chunk of bytes to match magic MIME signatures against.
+	 * @param len The number of bytes in \a data.
+	 * @param rval An optional pre-existing structure in which to insert
+	 *             new matches.  If it's a null pointer, an object is
+	 *             allocated and returned from the method.
+	 * @return Set of all matching file magic signatures, which may be
+	 *         an object allocated by the method if \a rval is a null pointer.
+	 */
+	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64 len,
+					      RuleMatcher::MIME_Matches* rval) const;
+
+	/**
+	 * Returns the strongest MIME magic signature match for a given data chunk.
+	 * @param data A chunk of bytes to match magic MIME signatures against.
+	 * @param len The number of bytes in \a data.
+	 * @returns The MIME type string of the strongest file magic signature
+	 *          match, or an empty string if nothing matched.
+	 */
+	std::string DetectMIME(const u_char* data, uint64 len) const;
+
 protected:
 	friend class FileTimer;
 
-	typedef set<string> IDSet;
-	typedef map<string, File*> IDMap;
+	typedef PDict(bool) IDSet;
+	typedef PDict(File) IDMap;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -351,8 +414,10 @@ protected:
 	 * @param conn network connection over which the file is transferred.
 	 * @param is_orig true if the file is being sent from connection originator
 	 *        or false if is being sent in the opposite direction.
+	 * @return #current_file_id, which is a hash of a unique file handle string
+	 *         set by a \c get_file_handle event handler.
 	 */
-	void GetFileHandle(analyzer::Tag tag, Connection* c, bool is_orig);
+	std::string GetFileID(analyzer::Tag tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given
@@ -370,15 +435,22 @@ private:
 
 	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
-	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
-	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
+	PDict(File) id_map;  /**< Map file ID to file_analysis::File records. */
+	PDict(bool) ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
+	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
 	static TableType* tag_set_type;	/**< Type for set[tag]. */
 	static string salt; /**< A salt added to file handles before hashing. */
 };
+
+/**
+ * Returns a script-layer value corresponding to the \c mime_matches type.
+ * @param m The MIME match information with which to populate the value.
+ */
+VectorVal* GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
 
 } // namespace file_analysis
 

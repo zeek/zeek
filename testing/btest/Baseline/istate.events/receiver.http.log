@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2013-08-26-19-36-03
+#open	2014-04-01-22-59-59
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	vector[string]	vector[string]	vector[string]	vector[string]
-1377545762.339375	CjhGID4nQcgTWjvg4c	141.42.64.125	56730	125.190.109.199	80	1	GET	www.icir.org	/	-	Wget/1.10	0	9130	200	OK	-	-	-	(empty)	-	-	-	-	-	-	-
-#close	2013-08-26-19-36-04
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1396393198.822094	CjhGID4nQcgTWjvg4c	141.42.64.125	56730	125.190.109.199	80	1	GET	www.icir.org	/	-	Wget/1.10	0	9130	200	OK	-	-	-	(empty)	-	-	-	-	-	-	-
+#close	2014-04-01-23-00-00

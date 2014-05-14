@@ -3,7 +3,7 @@
 .. _Xcode: https://developer.apple.com/xcode/
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
-.. _Homebrew: http://mxcl.github.com/homebrew
+.. _Homebrew: http://brew.sh
 .. _bro downloads page: http://bro.org/download/index.html
 
 .. _installing-bro:
@@ -35,7 +35,7 @@ before you begin:
 
 To build Bro from source, the following additional dependencies are required:
 
-    * CMake 2.8.0 or greater            (http://www.cmake.org)
+    * CMake 2.6.3 or greater            (http://www.cmake.org)
     * Make
     * C/C++ compiler
     * SWIG                              (http://www.swig.org)
@@ -80,7 +80,7 @@ that ``bash`` and ``python`` are in your ``PATH``):
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
   or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
-  ``swig-python`` and packages provide the required dependencies.
+  and ``swig-python`` packages provide the required dependencies.
 
 
 Optional Dependencies
@@ -89,7 +89,7 @@ Optional Dependencies
 Bro can make use of some optional libraries and tools if they are found at
 build time:
 
-    * LibGeoIP (for geo-locating IP addresses)
+    * LibGeoIP (for geolocating IP addresses)
     * sendmail (enables Bro and BroControl to send mail)
     * gawk (enables all features of bro-cut)
     * curl (used by a Bro script that implements active HTTP)
@@ -137,14 +137,14 @@ The primary install prefix for binary packages is ``/opt/bro``.
 Non-MacOS packages that include BroControl also put variable/runtime
 data (e.g. Bro logs) in ``/var/opt/bro``.
 
-Installing From Source
+Installing from Source
 ==========================
 
-Bro releases are bundled into source packages for convenience and
-available from the `bro downloads page`_. Alternatively, the latest
+Bro releases are bundled into source packages for convenience and are
+available on the `bro downloads page`_. Alternatively, the latest
 Bro development version can be obtained through git repositories
 hosted at ``git.bro.org``.  See our `git development documentation
-<http://bro.org/development/process.html>`_ for comprehensive
+<http://bro.org/development/howtos/process.html>`_ for comprehensive
 information on Bro's use of git revision control, but the short story
 for downloading the full source code experience for Bro via git is:
 
@@ -183,6 +183,11 @@ the other programs that are in the ``aux/bro-aux`` directory.
 OpenBSD users, please see our `FAQ
 <http://www.bro.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
+
+Finally, if you want to build the Bro documentation (not required, because
+all of the documentation for the latest Bro release is available on the
+Bro web site), there are instructions in ``doc/README`` in the source
+distribution.
 
 Configure the Run-Time Environment
 ==================================

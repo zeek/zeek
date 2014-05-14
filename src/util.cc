@@ -120,31 +120,41 @@ std::string get_unescaped_string(const std::string& arg_str)
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
  * returns a string containing all escaped values.
  *
+ * @param d an ODesc object to store the escaped hex version of the string,
+ *          if null one will be allocated and returned from the function.
  * @param str string to escape
  * @param escape_all If true, all characters are escaped. If false, only
  * characters are escaped that are either whitespace or not printable in
  * ASCII.
- * @return A std::string containing a list of escaped hex values of the form
- * \x## */
-std::string get_escaped_string(const std::string& str, bool escape_all)
+ * @return A ODesc object containing a list of escaped hex values of the form
+ *         \x##, which may be newly allocated if \a d was a null pointer. */
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
+                          bool escape_all)
 	{
-	char tbuf[16];
-	string esc = "";
+	if ( ! d )
+		d = new ODesc();
 
-	for ( size_t i = 0; i < str.length(); ++i )
+	for ( size_t i = 0; i < len; ++i )
 		{
 		char c = str[i];
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-			esc += tbuf;
+			char hex[4] = {'\\', 'x', '0', '0' };
+			bytetohex(c, hex + 2);
+			d->AddRaw(hex, 4);
 			}
 		else
-			esc += c;
+			d->AddRaw(&c, 1);
 		}
 
-	return esc;
+	return d;
+	}
+
+std::string get_escaped_string(const char* str, size_t len, bool escape_all)
+	{
+	ODesc d;
+	return get_escaped_string(&d, str, len, escape_all)->Description();
 	}
 
 char* copy_string(const char* s)
@@ -558,7 +568,7 @@ const char* fmt(const char* format, ...)
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
-		buf = (char*) malloc(buf_len);
+		buf = (char*) safe_malloc(buf_len);
 
 	va_list al;
 	va_start(al, format);
@@ -568,7 +578,7 @@ const char* fmt(const char* format, ...)
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
+		buf = (char*) safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
@@ -962,16 +972,6 @@ extern void add_to_bro_path(const string& dir)
 	bro_path();
 
 	bro_path_value += string(":") + dir;
-	}
-
-const char* bro_magic_path()
-	{
-	const char* path = getenv("BROMAGIC");
-
-	if ( ! path )
-		path = BRO_MAGIC_INSTALL_PATH;
-
-	return path;
 	}
 
 const char* bro_plugin_path()
@@ -1702,45 +1702,6 @@ void operator delete[](void* v)
 	}
 
 #endif
-
-void bro_init_magic(magic_t* cookie_ptr, int flags)
-	{
-	if ( ! cookie_ptr || *cookie_ptr )
-		return;
-
-	*cookie_ptr = magic_open(flags);
-
-	// Always use Bro's custom magic database.
-	const char* database = bro_magic_path();
-
-	if ( ! *cookie_ptr )
-		{
-		const char* err = magic_error(*cookie_ptr);
-		reporter->InternalError("can't init libmagic: %s",
-		                        err ? err : "unknown");
-		}
-
-	else if ( magic_load(*cookie_ptr, database) < 0 )
-		{
-		const char* err = magic_error(*cookie_ptr);
-		reporter->InternalError("can't load magic file %s: %s", database,
-		                        err ? err : "unknown");
-		magic_close(*cookie_ptr);
-		*cookie_ptr = 0;
-		}
-	}
-
-const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
-	{
-	const char* rval = magic_buffer(cookie, buffer, length);
-	if ( ! rval )
-		{
-		const char* err = magic_error(cookie);
-		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
-		}
-
-	return rval;
-	}
 
 std::string canonify_name(const std::string& name)
 	{

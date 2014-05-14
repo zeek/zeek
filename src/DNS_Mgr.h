@@ -62,8 +62,8 @@ public:
 	int Save();
 
 	const char* LookupAddrInCache(const IPAddr& addr);
-	TableVal* LookupNameInCache(string name);
-	const char* LookupTextInCache(string name);
+	TableVal* LookupNameInCache(const string& name);
+	const char* LookupTextInCache(const string& name);
 
 	// Support for async lookups.
 	class LookupCallback {
@@ -77,8 +77,8 @@ public:
 	};
 
 	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
-	void AsyncLookupName(string name, LookupCallback* callback);
-	void AsyncLookupNameText(string name, LookupCallback* callback);
+	void AsyncLookupName(const string& name, LookupCallback* callback);
+	void AsyncLookupNameText(const string& name, LookupCallback* callback);
 
 	struct Stats {
 		unsigned long requests;	// These count only async requests.
@@ -162,8 +162,6 @@ protected:
 	EventHandlerPtr dns_mapping_altered;
 
 	RecordType* dm_rec;
-
-	int dns_fake_count;	// used to generate unique fake replies
 
 	typedef list<LookupCallback*> CallbackList;
 

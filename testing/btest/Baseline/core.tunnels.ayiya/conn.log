@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2013-08-26-18-38-29
+#open	2014-04-01-22-56-43
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	set[string]
 1257655301.595604	CIPOse170MGiRM1Qf4	2001:4978:f:4c::2	53382	2001:4860:b002::68	80	tcp	http	2.101052	2981	4665	S1	-	0	ShADad	10	3605	11	5329	CCvvfg3TEfuqmmG4bh
 1257655296.585034	CCvvfg3TEfuqmmG4bh	192.168.3.101	53859	216.14.98.22	5072	udp	ayiya	20.879001	5129	6109	SF	-	0	Dd	21	5717	13	6473	(empty)
 1257655293.629048	CXWv6p3arKYeMETxOg	192.168.3.101	53796	216.14.98.22	5072	udp	ayiya	-	-	-	SHR	-	0	d	0	0	1	176	(empty)
@@ -14,4 +14,4 @@
 1257655296.585188	CPbrpk1qSsw6ESzHV4	fe80::216:cbff:fe9a:4cb9	131	ff02::1:ff00:2	130	icmp	-	0.919988	32	0	OTH	-	0	-	2	144	0	0	CCvvfg3TEfuqmmG4bh
 1257655296.585151	CRJuHdVW0XPVINV8a	fe80::216:cbff:fe9a:4cb9	131	ff02::2:f901:d225	130	icmp	-	0.719947	32	0	OTH	-	0	-	2	144	0	0	CCvvfg3TEfuqmmG4bh
 1257655296.585034	CsRx2w45OKnoww6xl4	fe80::216:cbff:fe9a:4cb9	131	ff02::1:ff9a:4cb9	130	icmp	-	4.922880	32	0	OTH	-	0	-	2	144	0	0	CCvvfg3TEfuqmmG4bh
-#close	2013-08-26-18-38-29
+#close	2014-04-01-22-56-43

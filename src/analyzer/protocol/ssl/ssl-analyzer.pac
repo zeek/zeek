@@ -366,7 +366,7 @@ refine connection SSL_Conn += {
 			}
 
 		BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.content_type}, ${rec.is_orig}, ${rec.length});
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}

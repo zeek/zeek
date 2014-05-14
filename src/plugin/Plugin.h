@@ -33,6 +33,7 @@ enum HookType {
 	HOOK_QUEUE_EVENT,
 	HOOK_DRAIN_EVENTS,
 	HOOK_UPDATE_NETWORK_TIME,
+	HOOK_BRO_OBJ_DTOR,
 
 	// Meta hooks.
 	META_HOOK_PRE,
@@ -69,19 +70,11 @@ public:
 	std::string description;	//< A short textual description of the plugin. Mandatory.
 	VersionNumber version;		//< THe plugin's version. Optional.
 
-	Configuration()
-		{
-		// Note we inline this method here so that when plugins create an instance,
-		// *their* defaults will be used for the internal fields.
-		name = "";
-		description = "";
-		api_version = BRO_PLUGIN_API_VERSION;
-		}
+	Configuration();
 
 private:
 	friend class Plugin;
 	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
-
 };
 
 /**
@@ -141,7 +134,7 @@ class HookArgument
 {
 public:
 	enum Type {
-		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID
+		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID, VOIDP,
 	};
 
 	HookArgument()	{ type = VOID; }
@@ -153,6 +146,7 @@ public:
 	HookArgument(const std::string& a)	{ type = STRING; arg_string = a; }
 	HookArgument(const Val* a)	{ type = VAL; arg.val = a; }
 	HookArgument(const val_list* a)	{ type = VAL_LIST; arg.vals = a; }
+	HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
 
 	bool AsBool() const	{ assert(type == BOOL); return arg.bool_; }
 	double AsDouble() const	{ assert(type == DOUBLE); return arg.double_; }
@@ -162,6 +156,7 @@ public:
 	const std::string& AsString() const	{ assert(type == STRING); return arg_string; }
 	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
 	const val_list* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
+	const void* AsVoidPtr() const	{ assert(type == VOIDP); return arg.voidp; }
 
 	Type GetType() const	{ return type; }
 	void Describe(ODesc* d) const;
@@ -176,6 +171,7 @@ private:
 		int int_;
 		const Val* val;
 		const val_list* vals;
+		const void* voidp;
 	} arg;
 
 	std::string arg_string; // Outside union because it has dtor.
@@ -407,6 +403,23 @@ protected:
 	hook_list EnabledHooks() const;
 
 	/**
+	 * Register interest in an event. The event will then be raised, and
+	 * hence passed to the plugin, even if there no handler defined.
+	 *
+	 * @param handler The object being interested in.
+	 */
+	void RequestEvent(EventHandlerPtr handler);
+
+	/**
+	 * Register interest in the destruction of a BroObj instance. When
+	 * Bro's reference counting triggers the objects destructor to run,
+	 * the \a HookBroObjDtor will be called.
+	 *
+	 * @param handler The object being interested in.
+	 */
+	void RequestBroObjDtor(BroObj* obj);
+
+	/**
 	 * Virtual method that can be overriden by derived class to provide
 	 * information about further script-level elements that the plugin
 	 * provides on its own, i.e., outside of the standard mechanism
@@ -495,6 +508,18 @@ protected:
 	 * @param networkt_time The new network time.
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
+
+	/**
+	 * Hook for destruction of objects registerd with
+	 * RequestBroObjDtor(). When Bro's reference counting triggers the
+	 * objects destructor to run, this method will be run. It may also
+	 * run for other objects that this plugin has not registered for.
+	 *
+	 * @param obj A pointer to the object being destroyed. Note that the
+	 * object is already considered invalid and the pointer must not be
+	 * dereferenced.
+	 */
+	virtual void HookBroObjDtor(void* obj);
 
 	// Meta hooks.
 

@@ -15,7 +15,7 @@ namespace plugin {
 // Macros that trigger a plugin hook. We put this into macros to short-cut
 // the code for the most common case that no plugin defines the hook.
 #define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result) \
-	(plugin_mgr->HavePluginForHook(plugin::hook) ? plugin_mgr->method_call : (default_result))
+   (plugin_mgr->HavePluginForHook(::plugin::hook) ? plugin_mgr->method_call : (default_result))
 
 #define PLUGIN_HOOK_VOID(hook, method_call) \
 	if ( plugin_mgr->HavePluginForHook(plugin::hook) ) plugin_mgr->method_call;
@@ -160,6 +160,27 @@ public:
 	 */
 	void DisableHook(HookType hook, Plugin* plugin);
 
+	/**
+	 * Register interest in an event. The event will then be raised, and
+	 * hence passed to the plugin, even if there no handler defined.
+	 *
+	 * @param handler The event being interested in.
+	 *
+	 * @param plugin The plugin expressing interest.
+	 */
+	void RequestEvent(EventHandlerPtr handler, Plugin* plugin);
+
+	/**
+	 * Register interest in the destruction of a BroObj instance. When
+	 * Bro's reference counting triggers the objects destructor to run,
+	 * the \a HookBroObjDtor will be called.
+	 *
+	 * @param handler The object being interested in.
+	 *
+	 * @param plugin The plugin expressing interest.
+	 */
+	void RequestBroObjDtor(BroObj* obj, Plugin* plugin);
+
 	// Hook entry functions.
 
 	/**
@@ -208,9 +229,15 @@ public:
 	void HookUpdateNetworkTime(double network_time) const;
 
 	/**
-	 * Hooks that informs plugins that the event queue is being drained.
+	 * Hook that informs plugins that the event queue is being drained.
 	 */
 	void HookDrainEvents() const;
+
+	/**
+	 * Hook that informs plugins that an BroObj is being destroyed. Will be
+	 * called only for objects that a plugin has expressed interest in.
+	 */
+	void HookBroObjDtor(void* obj) const;
 
 	/**
 	 * Internal method that registers a freshly instantiated plugin with

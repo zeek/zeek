@@ -22,6 +22,7 @@ const char* plugin::hook_name(HookType h)
 		"QueueEvent",
 		"DrainEvents",
 		"UpdateNetworkTime",
+		"BroObjDtor",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -30,6 +31,13 @@ const char* plugin::hook_name(HookType h)
 	};
 
 	return hook_names[int(h)];
+	}
+
+Configuration::Configuration()
+	{
+	name = "";
+	description = "";
+	api_version = BRO_PLUGIN_API_VERSION;
 	}
 
 BifItem::BifItem(const std::string& arg_id, Type arg_type)
@@ -118,6 +126,10 @@ void HookArgument::Describe(ODesc* d) const
 
 	case VOID:
 		d->Add("<void>");
+		break;
+
+	case VOIDP:
+		d->Add("<void ptr>");
 		break;
 	}
 	}
@@ -262,6 +274,16 @@ void Plugin::DisableHook(HookType hook)
 	plugin_mgr->DisableHook(hook, this);
 	}
 
+void Plugin::RequestEvent(EventHandlerPtr handler)
+	{
+	plugin_mgr->RequestEvent(handler, this);
+	}
+
+void Plugin::RequestBroObjDtor(BroObj* obj)
+	{
+	plugin_mgr->RequestBroObjDtor(obj, this);
+	}
+
 int Plugin::HookLoadFile(const std::string& file)
 	{
 	return -1;
@@ -282,6 +304,10 @@ void Plugin::HookDrainEvents()
 	}
 
 void Plugin::HookUpdateNetworkTime(double network_time)
+	{
+	}
+
+void Plugin::HookBroObjDtor(void* obj)
 	{
 	}
 

@@ -443,6 +443,16 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 		}
 	}
 
+void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
+	{
+	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s", Name(), handler->Name());
+	handler->GenerateAlways();
+	}
+
+void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
+	{
+	}
+
 int Manager::HookLoadFile(const string& file)
 	{
 	HookArgumentList args;
@@ -522,7 +532,7 @@ bool Manager::HookQueueEvent(Event* event) const
 		{
 		Plugin* p = (*i).second;
 
-		if ( p->HookQueueEvent(event) ) 
+		if ( p->HookQueueEvent(event) )
 			{
 			result = true;
 			break;
@@ -575,6 +585,29 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_UPDATE_NETWORK_TIME, args, HookArgument());
+	}
+
+void Manager::HookBroObjDtor(void* obj) const
+	{
+	HookArgumentList args;
+
+        if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(obj);
+		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);
+		}
+
+	hook_list* l = hooks[HOOK_BRO_OBJ_DTOR];
+
+	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
+		{
+		Plugin* p = (*i).second;
+		p->HookBroObjDtor(obj);
+		}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
+
 	}
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const

@@ -14,8 +14,6 @@ if (NOT ${retval} EQUAL 0)
     message(FATAL_ERROR "Problem setting BROPATH")
 endif ()
 
-set(BROMAGIC ${BRO_MAGIC_SOURCE_PATH})
-
 # Configure the Sphinx config file (expand variables CMake might know about).
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in
                ${CMAKE_CURRENT_BINARY_DIR}/conf.py
@@ -34,7 +32,6 @@ add_custom_target(sphinxdoc
             ${CMAKE_CURRENT_SOURCE_DIR}/ ${SPHINX_INPUT_DIR}
     # Use Bro/Broxygen to dynamically generate reST for all Bro scripts.
     COMMAND BROPATH=${BROPATH}
-            BROMAGIC=${BROMAGIC}
             ${CMAKE_BINARY_DIR}/src/bro
             -X ${CMAKE_CURRENT_BINARY_DIR}/broxygen.conf
             broxygen >/dev/null

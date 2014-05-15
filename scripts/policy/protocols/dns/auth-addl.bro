@@ -19,13 +19,17 @@ export {
 	};
 }
 
-event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=4
+hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
-	# The "ready" flag will be set here.  This causes the setting from the 
-	# base script to be overridden since the base script will log immediately 
-	# after all of the ANS replies have been seen.
-	c$dns$ready=F;
-	
+	if ( msg$opcode != 0 )
+		# Currently only standard queries are tracked.
+		return;
+
+	if ( ! msg$QR )
+		# This is weird: the inquirer must also be providing answers in
+		# the request, which is not what we want to track.
+		return;
+
 	if ( ans$answer_type == DNS_AUTH )
 		{
 		if ( ! c$dns?$auth )
@@ -37,12 +41,5 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 		if ( ! c$dns?$addl )
 			c$dns$addl = set();
 		add c$dns$addl[reply];
-		}
-	
-	if ( c$dns?$answers && c$dns?$auth && c$dns?$addl &&
-	     c$dns$total_replies == |c$dns$answers| + |c$dns$auth| + |c$dns$addl| )
-		{
-		# *Now* all replies desired have been seen.
-		c$dns$ready = T;
 		}
 	}

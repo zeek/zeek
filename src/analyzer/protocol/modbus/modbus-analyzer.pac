@@ -10,6 +10,7 @@
 %header{
 	VectorVal* bytestring_to_coils(bytestring coils, uint quantity);
 	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header);
+	VectorVal* create_vector_of_count();
 	%}
 
 %code{
@@ -28,6 +29,14 @@
 		modbus_header->Assign(2, new Val(header->uid(), TYPE_COUNT));
 		modbus_header->Assign(3, new Val(header->fc(), TYPE_COUNT));
 		return modbus_header;
+		}
+
+	VectorVal* create_vector_of_count()
+		{
+		VectorType* vt = new VectorType(base_type(TYPE_COUNT));
+		VectorVal* vv = new VectorVal(vt);
+		Unref(vt);
+		return vv;
 		}
 
 	%}
@@ -367,7 +376,7 @@ refine flow ModbusTCP_Flow += {
 		if ( ::modbus_read_file_record_request )
 			{
 			//TODO: this need to be a vector of some Reference Request record type
-			//VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//VectorVal *t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
 			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
@@ -393,7 +402,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_file_record_response )
 			{
-			//VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//VectorVal *t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
 			//	{
 			//	//TODO: work the reference type in here somewhere
@@ -414,7 +423,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_file_record_request )
 			{
-			//VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//VectorVal* t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
 			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
@@ -447,7 +456,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_file_record_response )
 			{
-			//VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//VectorVal* t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
 			//	{
 			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
@@ -589,7 +598,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_fifo_queue_response )
 			{
-			VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			VectorVal* t = create_vector_of_count();
 			for ( unsigned int i = 0; i < (${message.register_data})->size(); ++i )
 				{
 				Val* r = new Val(${message.register_data[i]}, TYPE_COUNT);

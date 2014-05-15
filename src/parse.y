@@ -117,6 +117,7 @@ int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
+std::vector<int> saved_in_init;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
@@ -205,6 +206,22 @@ static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 			break;
 			}
 		}
+	}
+
+static bool expr_is_table_type_name(const Expr* expr)
+	{
+	if ( expr->Tag() != EXPR_NAME )
+		return false;
+
+	BroType* type = expr->Type();
+
+	if ( type->IsTable() )
+		return true;
+
+	if ( type->Tag() == TYPE_TYPE )
+		return type->AsTypeType()->Type()->IsTable();
+
+	return false;
 	}
 %}
 
@@ -452,7 +469,7 @@ expr:
 			}
 
 	|       '$' TOK_ID func_params '='
-	                {
+			{
 			func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
 			begin_func(func_id,
@@ -462,7 +479,7 @@ expr:
 				   $3);
 			}
 		 func_body
-	                {
+			{
 			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()));
 			}
 
@@ -537,13 +554,13 @@ expr:
 
 	|	expr '('
 			{
-			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+			if ( expr_is_table_type_name($1) )
 				++in_init;
 			}
 
 		opt_expr_list
 			{
-			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+			if ( expr_is_table_type_name($1) )
 				--in_init;
 			}
 
@@ -558,7 +575,8 @@ expr:
 				{
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
-					$$ = new RecordConstructorExpr($4, ctor_type);
+					$$ = new RecordCoerceExpr(new RecordConstructorExpr($4),
+					                          ctor_type->AsRecordType());
 					break;
 
 				case TYPE_TABLE:
@@ -1113,12 +1131,24 @@ func_hdr:
 	;
 
 func_body:
-		opt_attr '{' stmt_list '}'
+		opt_attr '{'
+			{
+			saved_in_init.push_back(in_init);
+			in_init = 0;
+			}
+
+		stmt_list
+			{
+			in_init = saved_in_init.back();
+			saved_in_init.pop_back();
+			}
+
+		'}'
 			{
 			if ( optimize )
-				$3 = $3->Simplify();
+				$4 = $4->Simplify();
 
-			end_func($3, $1);
+			end_func($4, $1);
 			}
 	;
 

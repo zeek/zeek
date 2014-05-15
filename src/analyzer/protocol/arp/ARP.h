@@ -24,7 +24,10 @@
 #endif
 
 #include "NetVar.h"
-#include "PacketSort.h"
+
+extern "C" {
+#include <pcap.h>
+}
 
 namespace analyzer { namespace arp {
 

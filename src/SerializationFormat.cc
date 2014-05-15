@@ -5,6 +5,8 @@
 #include "Serializer.h"
 #include "Reporter.h"
 
+const float SerializationFormat::GROWTH_FACTOR = 2.5;
+
 SerializationFormat::SerializationFormat()
     : output(), output_size(), output_pos(), input(), input_len(), input_pos(),
       bytes_written(), bytes_read()
@@ -13,7 +15,7 @@ SerializationFormat::SerializationFormat()
 
 SerializationFormat::~SerializationFormat()
 	{
-	delete [] output;
+	free(output);
 	}
 
 void SerializationFormat::StartRead(char* data, uint32 arg_len)
@@ -33,13 +35,13 @@ void SerializationFormat::StartWrite()
 	{
 	if ( output && output_size > INITIAL_SIZE )
 		{
-		delete [] output;
+		free(output);
 		output = 0;
 		}
 
 	if ( ! output )
 		{
-		output = new char[INITIAL_SIZE];
+		output = (char*)safe_malloc(INITIAL_SIZE);
 		output_size = INITIAL_SIZE;
 		}
 
@@ -49,9 +51,12 @@ void SerializationFormat::StartWrite()
 
 uint32 SerializationFormat::EndWrite(char** data)
 	{
-	*data = new char[output_pos];
-	memcpy(*data, output, output_pos);
-	return output_pos;
+	uint32 rval = output_pos;
+	*data = output;
+	output = 0;
+	output_size = 0;
+	output_pos = 0;
+	return rval;
 	}
 
 bool SerializationFormat::ReadData(void* b, size_t count)
@@ -75,11 +80,8 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	// Increase buffer if necessary.
 	while ( output_pos + count > output_size )
 		{
-		output_size = output_pos + count + INITIAL_SIZE;
-		char* tmp = new char[output_size];
-		memcpy(tmp, output, output_pos);
-		delete [] output;
-		output = tmp;
+		output_size *= GROWTH_FACTOR;
+		output = (char*)safe_realloc(output, output_size);
 		}
 
 	memcpy(output + output_pos, b, count);

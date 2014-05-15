@@ -72,7 +72,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 
 		if ( f$is_orig )
 			{
-			if ( ! c$http?$orig_mime_types )
+			if ( ! c$http?$orig_fuids )
 				c$http$orig_fuids = string_vec(f$id);
 			else
 				c$http$orig_fuids[|c$http$orig_fuids|] = f$id;
@@ -87,7 +87,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 			}
 		else
 			{
-			if ( ! c$http?$resp_mime_types )
+			if ( ! c$http?$resp_fuids )
 				c$http$resp_fuids = string_vec(f$id);
 			else
 				c$http$resp_fuids[|c$http$resp_fuids|] = f$id;

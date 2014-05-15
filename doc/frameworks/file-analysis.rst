@@ -1,3 +1,6 @@
+
+.. _file-analysis-framework:
+
 =============
 File Analysis
 =============

@@ -1,0 +1,72 @@
+snmp_get_request
+  [orig_h=10.144.246.184, orig_p=33938/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: T
+  [community=[R0_C@cti!]]
+    request_id: 722681733
+    error_stat: 0
+    error_idx:  0
+    oid: 0.1
+    value (tag=0x05): <unspecified>
+snmp_response
+  [orig_h=10.144.246.184, orig_p=33938/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: F
+  [community=[R0_C@cti!]]
+    request_id: 722681733
+    error_stat: 0
+    error_idx:  0
+    oid: 1.0.8802.1.1.1.1.1.1.0
+    value (tag=0x02): 2
+snmp_get_request
+  [orig_h=10.144.246.184, orig_p=43824/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: T
+  [community=[R0_C@cti!]]
+    request_id: 555232471
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.1.3.0
+    value (tag=0x05): <unspecified>
+snmp_response
+  [orig_h=10.144.246.184, orig_p=43824/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: F
+  [community=[R0_C@cti!]]
+    request_id: 555232471
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.1.3.0
+    value (tag=0x43): 76705700
+snmp_get_request
+  [orig_h=10.144.246.184, orig_p=40807/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: T
+  [community=[R0_C@cti!]]
+    request_id: 349867006
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.31.1.1.1.10.1
+    value (tag=0x05): <unspecified>
+snmp_response
+  [orig_h=10.144.246.184, orig_p=40807/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: F
+  [community=[R0_C@cti!]]
+    request_id: 349867006
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.31.1.1.1.10.1
+    value (tag=0x46): 2232821312
+snmp_get_request
+  [orig_h=10.144.246.184, orig_p=54059/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: T
+  [community=[R0_C@cti!]]
+    request_id: 107891391
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.31.1.1.1.6.1
+    value (tag=0x05): <unspecified>
+snmp_response
+  [orig_h=10.144.246.184, orig_p=54059/udp, resp_h=10.144.246.161, resp_p=161/udp]
+  is_orig: F
+  [community=[R0_C@cti!]]
+    request_id: 107891391
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.31.1.1.1.6.1
+    value (tag=0x46): 12606463906

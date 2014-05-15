@@ -1,5 +1,8 @@
-# @TEST-EXEC: bro %INPUT
-# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: btest-bg-run standalone bro %INPUT
+# @TEST-EXEC: btest-bg-wait 5
+# @TEST-EXEC: btest-diff standalone/.stdout
+
+redef exit_only_after_terminate=T;
 
 event bro_init() &priority=5
 	{
@@ -19,8 +22,8 @@ event bro_init() &priority=5
 	                  	{
 	                  	local r = result["test.metric"];
 	                  	print fmt("Host: %s - num:%d - sum:%.1f - var:%.1f - avg:%.1f - max:%.1f - min:%.1f - std_dev:%.1f - unique:%d - hllunique:%d", key$host, r$num, r$sum, r$variance, r$average, r$max, r$min, r$std_dev, r$unique, r$hll_unique);
-	                  	}
-		 ]);
+	                  	terminate();
+	                  	}]);
 
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=5]);
 	SumStats::observe("test.metric", [$host=1.2.3.4], [$num=22]);

@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/ftp/bruteforce.pcap protocols/ftp/detect-bruteforcing.bro
+@TEST-EXEC: btest-rst-include notice.log

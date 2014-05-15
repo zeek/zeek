@@ -23,7 +23,8 @@ The Bro scripting language supports the following built-in types.
 
 .. bro:type:: void
 
-    An internal Bro type representing the absence of a return type for a
+    An internal Bro type (i.e., "void" is not a reserved keyword in the Bro
+    scripting language) representing the absence of a return type for a
     function.
 
 .. bro:type:: bool
@@ -132,10 +133,23 @@ The Bro scripting language supports the following built-in types.
 
     Strings support concatenation (``+``), and assignment (``=``, ``+=``).
     Strings also support the comparison operators (``==``, ``!=``, ``<``,
-    ``<=``, ``>``, ``>=``).  Substring searching can be performed using
-    the "in" or "!in" operators (e.g., "bar" in "foobar" yields true).
-    The number of characters in a string can be found by enclosing the
-    string within pipe characters (e.g., ``|"abc"|`` is 3).
+    ``<=``, ``>``, ``>=``).  The number of characters in a string can be
+    found by enclosing the string within pipe characters (e.g., ``|"abc"|``
+    is 3).
+
+    The subscript operator can extract an individual character or a substring
+    of a string (string indexing is zero-based, but an index of
+    -1 refers to the last character in the string, and -2 refers to the
+    second-to-last character, etc.).  When extracting a substring, the
+    starting and ending index values are separated by a colon.  For example::
+
+        local orig = "0123456789";
+        local third_char = orig[2];
+        local last_char = orig[-1];
+        local first_three_chars = orig[0:2];
+
+    Substring searching can be performed using the "in" or "!in"
+    operators (e.g., "bar" in "foobar" yields true).
 
     Note that Bro represents strings internally as a count and vector of
     bytes rather than a NUL-terminated byte string (although string
@@ -767,7 +781,7 @@ The Bro scripting language supports the following built-in types.
 .. bro:type:: hook
 
     A hook is another flavor of function that shares characteristics of
-    both a :bro:type:`function` and a :bro:type:`event`.  They are like
+    both a :bro:type:`function` and an :bro:type:`event`.  They are like
     events in that many handler bodies can be defined for the same hook
     identifier and the order of execution can be enforced with
     :bro:attr:`&priority`.  They are more like functions in the way they
@@ -856,14 +870,14 @@ scripting language supports the following built-in attributes.
 .. bro:attr:: &optional
 
     Allows a record field to be missing. For example the type ``record {
-    a: int, b: port &optional }`` could be instantiated both as
+    a: addr; b: port &optional; }`` could be instantiated both as
     singleton ``[$a=127.0.0.1]`` or pair ``[$a=127.0.0.1, $b=80/tcp]``.
 
 .. bro:attr:: &default
 
     Uses a default value for a record field, a function/hook/event
     parameter, or container elements.  For example, ``table[int] of
-    string &default="foo" }`` would create a table that returns the
+    string &default="foo"`` would create a table that returns the
     :bro:type:`string` ``"foo"`` for any non-existing index.
 
 .. bro:attr:: &redef
@@ -901,7 +915,7 @@ scripting language supports the following built-in attributes.
     Called right before a container element expires.  The function's
     first parameter is of the same type of the container and the second
     parameter the same type of the container's index.  The return
-    value is a :bro:type:`interval` indicating the amount of additional
+    value is an :bro:type:`interval` indicating the amount of additional
     time to wait before expiring the container element at the given
     index (which will trigger another execution of this function).
 
@@ -925,7 +939,7 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &persistent
 
-    Makes a variable persistent, i.e., its value is writen to disk (per
+    Makes a variable persistent, i.e., its value is written to disk (per
     default at shutdown time).
 
 .. bro:attr:: &synchronized
@@ -957,8 +971,9 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &priority
 
-    Specifies the execution priority of an event handler. Higher values
-    are executed before lower ones. The default value is 0.
+    Specifies the execution priority (as a signed integer) of a hook or
+    event handler. Higher values are executed before lower ones. The
+    default value is 0.
 
 .. bro:attr:: &group
 

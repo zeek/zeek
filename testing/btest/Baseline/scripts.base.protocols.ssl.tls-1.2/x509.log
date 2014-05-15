@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2014-03-20-04-42-42
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1357328848.591964	FlnQzb2dJK4p9jXwmd	3	99FAA8037A4EB2FAEF84EB5E55D5B8C8	CN=*.taleo.net,OU=Comodo PremiumSSL Wildcard,OU=Web,O=Taleo Inc.,street=4140 Dublin Boulevard,street=Suite 400,L=Dublin,ST=CA,postalCode=94568,C=US	CN=COMODO High-Assurance Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	1304467200.000000	1467676799.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	*.taleo.net,taleo.net	-	-	-	F	-
+1357328848.591964	FaDzX22O4j3kFF6Jqg	3	1690C329B6780607511F05B0344846CB	CN=COMODO High-Assurance Secure Server CA,O=COMODO CA Limited,L=Salford,ST=Greater Manchester,C=GB	CN=AddTrust External CA Root,OU=AddTrust External TTP Network,O=AddTrust AB,C=SE	1271376000.000000	1590835718.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	0
+1357328848.591964	F9Tsjm3OdCmGGw43Yh	3	01	CN=AddTrust External CA Root,OU=AddTrust External TTP Network,O=AddTrust AB,C=SE	CN=AddTrust External CA Root,OU=AddTrust External TTP Network,O=AddTrust AB,C=SE	959683718.000000	1590835718.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-
+#close	2014-03-20-04-42-42

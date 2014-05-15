@@ -1,0 +1,9 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r http/proxy.pcap http_proxy_02.bro
+      A local server is acting as an open proxy: 192.168.56.101
+

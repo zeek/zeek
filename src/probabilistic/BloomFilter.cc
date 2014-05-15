@@ -72,7 +72,7 @@ bool BasicBloomFilter::Empty() const
 
 void BasicBloomFilter::Clear()
 	{
-	bits->Clear();
+	bits->Reset();
 	}
 
 bool BasicBloomFilter::Merge(const BloomFilter* other)
@@ -190,7 +190,7 @@ bool CountingBloomFilter::Empty() const
 
 void CountingBloomFilter::Clear()
 	{
-	cells->Clear();
+	cells->Reset();
 	}
 
 bool CountingBloomFilter::Merge(const BloomFilter* other)

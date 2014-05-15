@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2014-03-20-04-42-26
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1335538392.343624	F6wfNWn8LR755SYo7	3	36F5DA5300000000505E	CN=*.gstatic.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority,O=Google Inc,C=US	1334102677.000000	1365639277.000000	rsaEncryption	sha1WithRSAEncryption	rsa	1024	65537	-	*.gstatic.com,gstatic.com,*.metric.gstatic.com	-	-	-	-	-
+1335538392.343624	FJl60T1mOolaez9T0h	3	0B6771	CN=Google Internet Authority,O=Google Inc,C=US	OU=Equifax Secure Certificate Authority,O=Equifax,C=US	1244493807.000000	1370634207.000000	rsaEncryption	sha1WithRSAEncryption	rsa	1024	65537	-	-	-	-	-	T	0
+#close	2014-03-20-04-42-26

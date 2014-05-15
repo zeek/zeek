@@ -35,7 +35,7 @@ before you begin:
 
 To build Bro from source, the following additional dependencies are required:
 
-    * CMake 2.8.0 or greater            (http://www.cmake.org)
+    * CMake 2.6.3 or greater            (http://www.cmake.org)
     * Make
     * C/C++ compiler
     * SWIG                              (http://www.swig.org)
@@ -80,7 +80,7 @@ that ``bash`` and ``python`` are in your ``PATH``):
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
   or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
-  ``swig-python`` and packages provide the required dependencies.
+  and ``swig-python`` packages provide the required dependencies.
 
 
 Optional Dependencies
@@ -183,6 +183,11 @@ the other programs that are in the ``aux/bro-aux`` directory.
 OpenBSD users, please see our `FAQ
 <http://www.bro.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
+
+Finally, if you want to build the Bro documentation (not required, because
+all of the documentation for the latest Bro release is available on the
+Bro web site), there are instructions in ``doc/README`` in the source
+distribution.
 
 Configure the Run-Time Environment
 ==================================

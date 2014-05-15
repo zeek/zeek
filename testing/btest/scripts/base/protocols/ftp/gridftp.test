@@ -2,6 +2,7 @@
 # @TEST-EXEC: btest-diff notice.log
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff x509.log
 
 @load base/protocols/ftp/gridftp
 

@@ -41,15 +41,15 @@ export {
 		## If this file was transferred over a network
 		## connection this should show the host or hosts that
 		## the data sourced from.
-		tx_hosts: set[addr] &log;
+		tx_hosts: set[addr] &default=addr_set() &log;
 
 		## If this file was transferred over a network
 		## connection this should show the host or hosts that
 		## the data traveled to.
-		rx_hosts: set[addr] &log;
+		rx_hosts: set[addr] &default=addr_set() &log;
 
 		## Connection UIDs over which the file was transferred.
-		conn_uids: set[string] &log;
+		conn_uids: set[string] &default=string_set() &log;
 
 		## An identification of the source of the file data.  E.g. it
 		## may be a network protocol over which it was transferred, or a
@@ -63,12 +63,13 @@ export {
 		depth: count &default=0 &log;
 
 		## A set of analysis types done during the file analysis.
-		analyzers: set[string] &log;
+		analyzers: set[string] &default=string_set() &log;
 
-		## A mime type provided by libmagic against the *bof_buffer*
-		## field of :bro:see:`fa_file`, or in the cases where no
-		## buffering of the beginning of file occurs, an initial
-		## guess of the mime type based on the first data seen.
+		## A mime type provided by the strongest file magic signature
+		## match against the *bof_buffer* field of :bro:see:`fa_file`,
+		## or in the cases where no buffering of the beginning of file
+		## occurs, an initial guess of the mime type based on the first
+		## data seen.
 		mime_type: string &log &optional;
 
 		## A filename for the file if one is available from the source

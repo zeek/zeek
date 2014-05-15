@@ -55,6 +55,9 @@
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
+# This script prevents the logging of SSL CA certificates in x509.log
+@load protocols/ssl/log-hostcerts-only
+
 # Uncomment the following line to check each SSL certificate hash against the ICSI
 # certificate notary service; see http://notary.icsi.berkeley.edu .
 # @load protocols/ssl/notary
@@ -78,3 +81,6 @@
 # Detect SHA1 sums in Team Cymru's Malware Hash Registry.
 @load frameworks/files/detect-MHR
 
+# Uncomment the following line to enable detection of the heartbleed attack. Enabling
+# this might impact performance a bit.
+# @load policy/protocols/ssl/heartbleed

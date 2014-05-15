@@ -3,10 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2013-08-26-19-34-59
+#open	2014-04-01-22-56-43
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	vector[string]	vector[string]	vector[string]	vector[string]
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1257655301.652206	CIPOse170MGiRM1Qf4	2001:4978:f:4c::2	53382	2001:4860:b002::68	80	1	GET	ipv6.google.com	/	-	Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en; rv:1.9.0.15pre) Gecko/2009091516 Camino/2.0b4 (like Firefox/3.0.15pre)	0	10102	200	OK	-	-	-	(empty)	-	-	-	-	-	FYAtjT24MvCBUs5K5f	text/html
 1257655302.514424	CIPOse170MGiRM1Qf4	2001:4978:f:4c::2	53382	2001:4860:b002::68	80	2	GET	ipv6.google.com	/csi?v=3&s=webhp&action=&tran=undefined&e=17259,19771,21517,21766,21887,22212&ei=BUz2Su7PMJTglQfz3NzCAw&rt=prt.77,xjs.565,ol.645	http://ipv6.google.com/	Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en; rv:1.9.0.15pre) Gecko/2009091516 Camino/2.0b4 (like Firefox/3.0.15pre)	0	0	204	No Content	-	-	-	(empty)	-	-	-	-	-	-	-
 1257655303.603569	CIPOse170MGiRM1Qf4	2001:4978:f:4c::2	53382	2001:4860:b002::68	80	3	GET	ipv6.google.com	/gen_204?atyp=i&ct=fade&cad=1254&ei=BUz2Su7PMJTglQfz3NzCAw&zx=1257655303600	http://ipv6.google.com/	Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en; rv:1.9.0.15pre) Gecko/2009091516 Camino/2.0b4 (like Firefox/3.0.15pre)	0	0	204	No Content	-	-	-	(empty)	-	-	-	-	-	-	-
-#close	2013-08-26-19-34-59
+#close	2014-04-01-22-56-43

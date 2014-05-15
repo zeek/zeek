@@ -36,1087 +36,8 @@ namespace { // local namespace
 static const int ORIG = 1;
 static const int RESP = 2;
 
-TCP_Analyzer::TCP_Analyzer(Connection* conn)
-: TransportLayerAnalyzer("TCP", conn)
-	{
-	// Set a timer to eventually time out this connection.
-	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-				network_time + tcp_SYN_timeout, 0,
-				TIMER_TCP_EXPIRE);
-
-	deferred_gen_event = close_deferred = 0;
-
-	seen_first_ACK = 0;
-	is_active = 1;
-	finished = 0;
-	reassembling = 0;
-	first_packet_seen = 0;
-	is_partial = 0;
-
-	orig = new TCP_Endpoint(this, 1);
-	resp = new TCP_Endpoint(this, 0);
-
-	orig->SetPeer(resp);
-	resp->SetPeer(orig);
-	}
-
-TCP_Analyzer::~TCP_Analyzer()
-	{
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		delete *i;
-
-	delete orig;
-	delete resp;
-	}
-
-void TCP_Analyzer::Init()
-	{
-	Analyzer::Init();
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->Init();
-	}
-
-void TCP_Analyzer::Done()
-	{
-	Analyzer::Done();
-
-	if ( connection_pending && is_active && ! BothClosed() )
-		Event(connection_pending);
-
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->Done();
-
-	orig->Done();
-	resp->Done();
-
-	finished = 1;
-	}
-
-void TCP_Analyzer::EnableReassembly()
-	{
-	SetReassembler(new TCP_Reassembler(this, this,
-					TCP_Reassembler::Forward, true, orig),
-		       new TCP_Reassembler(this, this,
-					TCP_Reassembler::Forward, false, resp));
-
-	reassembling = 1;
-
-	if ( new_connection_contents )
-		Event(new_connection_contents);
-	}
-
-void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
-					TCP_Reassembler* rresp)
-	{
-	orig->AddReassembler(rorig);
-	rorig->SetDstAnalyzer(this);
-	resp->AddReassembler(rresp);
-	rresp->SetDstAnalyzer(this);
-
-	reassembling = 1;
-
-	if ( new_connection_contents )
-		Event(new_connection_contents);
-	}
-
-const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data, 
-							int& len, int& caplen)
-	{
-	const struct tcphdr* tp = (const struct tcphdr*) data;
-	uint32 tcp_hdr_len = tp->th_off * 4;
-
-	if ( tcp_hdr_len < sizeof(struct tcphdr) )
-		{
-		Weird("bad_TCP_header_len");
-		return 0;
-		}
-
-	if ( tcp_hdr_len > uint32(len) ||
-	     sizeof(struct tcphdr) > uint32(caplen) )
-		{
-		// This can happen even with the above test, due to TCP
-		// options.
-		Weird("truncated_header");
-		return 0;
-		}
-
-	len -= tcp_hdr_len;	// remove TCP header
-	caplen -= tcp_hdr_len;
-	data += tcp_hdr_len;
-
-	return tp;
-	}
-
-bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
-				TCP_Endpoint* endpoint, int len, int caplen)
-	{
-	if ( ! ignore_checksums && caplen >= len &&
-	     ! endpoint->ValidChecksum(tp, len) )
-		{
-		Weird("bad_TCP_checksum");
-		endpoint->CheckHistory(HIST_CORRUPT_PKT, 'C');
-		return false;
-		}
-	else
-		return true;
-	}
-
-void TCP_Analyzer::CheckFlagCombos(TCP_Flags flags, TCP_Endpoint* endpoint,
-					uint32 base_seq, int len, int dst_port)
-	{
-	bool is_orig = endpoint->IsOrig();
-
-	if ( is_orig && ! (first_packet_seen & ORIG) )
-		is_partial = ! flags.SYN() || flags.ACK();
-
-	if ( ! is_orig && ! (first_packet_seen & RESP) && ! is_partial )
-		is_partial = ! flags.SYN();
-
-	int bits_set = (flags.SYN() ? 1 : 0) + (flags.FIN() ? 1 : 0) +
-			(flags.RST() ? 1 : 0);
-	if ( bits_set > 1 )
-		{
-		if ( flags.FIN() && flags.RST() )
-			endpoint->CheckHistory(HIST_FIN_RST_PKT, 'I');
-		else
-			endpoint->CheckHistory(HIST_MULTI_FLAG_PKT, 'Q');
-		}
-
-	else if ( bits_set == 1 )
-		{
-		if ( flags.SYN() )
-			{
-			char code = flags.ACK() ? 'H' : 'S';
-
-			if ( endpoint->CheckHistory(HIST_SYN_PKT, code) &&
-			     base_seq != endpoint->hist_last_SYN )
-				endpoint->AddHistory(code);
-
-			endpoint->hist_last_SYN = base_seq;
-			}
-
-		if ( flags.FIN() )
-			{
-			// For FIN's, the sequence number comes at the
-			// end of (any data in) the packet, not the
-			// beginning as for SYNs and RSTs.
-			if ( endpoint->CheckHistory(HIST_FIN_PKT, 'F') &&
-			     base_seq + len != endpoint->hist_last_FIN )
-				endpoint->AddHistory('F');
-
-			endpoint->hist_last_FIN = base_seq + len;
-			}
-
-		if ( flags.RST() )
-			{
-			if ( endpoint->CheckHistory(HIST_RST_PKT, 'R') &&
-			     base_seq != endpoint->hist_last_RST )
-				endpoint->AddHistory('R');
-
-			endpoint->hist_last_RST = base_seq;
-			}
-		}
-
-	else
-		{ // bits_set == 0
-		if ( len )
-			endpoint->CheckHistory(HIST_DATA_PKT, 'D');
-
-		else if ( flags.ACK() )
-			endpoint->CheckHistory(HIST_ACK_PKT, 'A');
-		}
-	}
-
-void TCP_Analyzer::UpdateWindow(TCP_Endpoint* endpoint, unsigned int window,
-				uint32 base_seq, uint32 ack_seq,
-				TCP_Flags flags)
-	{
-	// Note, the offered window on an initial SYN is unscaled, even
-	// if the SYN includes scaling, so we need to do the following
-	// test *before* updating the scaling information below.  (Hmmm,
-	// how does this work for windows on SYN/ACKs? ###)
-	int scale = endpoint->window_scale;
-	window = window << scale;
-
-	// Don't analyze window values off of SYNs, they're sometimes
-	// immediately rescinded.
-	if ( ! flags.SYN() )
-		{
-		// ### Decide whether to accept new window based on Active
-		// Mapping policy.
-		if ( int(base_seq - endpoint->window_seq) >= 0 &&
-		     int(ack_seq - endpoint->window_ack_seq) >= 0 )
-			{
-			uint32 new_edge = ack_seq + window;
-			uint32 old_edge = endpoint->window_ack_seq + endpoint->window;
-			int advance = new_edge - old_edge;
-
-			if ( advance < 0 )
-				{
-				// A window recision.  We don't report these
-				// for FINs or RSTs, or if the connection
-				// has already been partially closed, since
-				// such recisions occur frequently in practice,
-				// probably as the receiver loses buffer memory
-				// due to its process going away.
-				//
-				// We also, for window scaling, allow a bit
-				// of slop ###.  This is because sometimes
-				// there will be an apparent recision due
-				// to the granularity of the scaling.
-				if ( ! flags.FIN() && ! flags.RST() &&
-				     endpoint->state != TCP_ENDPOINT_CLOSED &&
-				     endpoint->state != TCP_ENDPOINT_RESET &&
-				     (-advance) >= (1 << scale) )
-					Weird("window_recision");
-				}
-
-			endpoint->window = window;
-			endpoint->window_ack_seq = ack_seq;
-			endpoint->window_seq = base_seq;
-			}
-		}
-	}
-
-void TCP_Analyzer::ProcessSYN(const IP_Hdr* ip, const struct tcphdr* tp,
-				uint32 tcp_hdr_len, int& seq_len,
-				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32 base_seq, uint32 ack_seq,
-				const IPAddr& orig_addr,
-				int is_orig, TCP_Flags flags)
-	{
-	int len = seq_len;
-
-	++seq_len;	// SYN consumes a byte of sequence space
-
-	if ( flags.RST() )
-		Weird("TCP_christmas");
-
-	if ( flags.URG() )
-		Weird("baroque_SYN");
-
-	if ( len > 0 )
-		// T/TCP definitely complicates this.
-		Weird("SYN_with_data");
-
-	RecordVal* SYN_vals = BuildSYNPacketVal(is_orig, ip, tp)->AsRecordVal();
-
-	// ### In the following, we could be fooled by an
-	// inconsistent SYN retransmission.  Where's a normalizer
-	// when you need one?
-
-	// ### We know that field 5 is the window scaling ....
-	int scale = int(SYN_vals->Lookup(5)->CoerceToInt());
-
-	if ( scale < 0 )
-		{ // no window scaling option
-		if ( flags.ACK() )
-			{ // window scaling not negotiated
-			endpoint->window_scale = 0;
-			peer->window_scale = 0;
-			}
-		else
-			// We're not offering window scaling.
-			// Ideally, we'd remember this fact so that
-			// if the SYN/ACK *does* include window
-			// scaling, we know it won't be negotiated.
-			// But it's a pain to track that, and hard
-			// to see how an adversarial responder could
-			// use it to evade.  Also, if we *do* want
-			// to track it, we could do so using
-			// connection_SYN_packet.
-			endpoint->window_scale = 0;
-		}
-	else
-		{
-		endpoint->window_scale = scale;
-		endpoint->window_seq = base_seq;
-		endpoint->window_ack_seq = ack_seq;
-
-		peer->window_seq = ack_seq;
-		peer->window_ack_seq = base_seq;
-		}
-
-	if ( connection_SYN_packet )
-		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(SYN_vals);
-		ConnectionEvent(connection_SYN_packet, vl);
-		}
-	else
-		Unref(SYN_vals);
-
-	// Passive fingerprinting.
-	//
-	// is_orig will be removed once we can do SYN-ACK fingerprinting.
-	if ( OS_version_found && is_orig )
-		{
-		AddrVal src_addr_val(orig_addr);
-		if ( generate_OS_version_event->Size() == 0 ||
-		     generate_OS_version_event->Lookup(&src_addr_val) )
-			{
-			RecordVal* OS_val =
-				BuildOSVal(is_orig, ip, tp, tcp_hdr_len);
-			if ( OS_val )
-				{ // found new OS version
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(new AddrVal(orig_addr));
-				vl->append(OS_val);
-				ConnectionEvent(OS_version_found, vl);
-				}
-			}
-		}
-	}
-
-void TCP_Analyzer::ProcessFIN(double t, TCP_Endpoint* endpoint,
-				int& seq_len, uint32 base_seq)
-	{
-	++seq_len;  // FIN consumes a byte of sequence space.
-	++endpoint->FIN_cnt;  // remember that we've seen a FIN
-
-	if ( t < endpoint->last_time + tcp_storm_interarrival_thresh &&
-	     endpoint->FIN_cnt == tcp_storm_thresh )
-		Weird("FIN_storm");
-
-	// Remember the relative seq in FIN_seq.
-	endpoint->FIN_seq = base_seq - endpoint->StartSeq() + seq_len;
-	}
-
-void TCP_Analyzer::ProcessRST(double t, TCP_Endpoint* endpoint,
-				const IP_Hdr* ip, uint32 base_seq,
-				int len, int& seq_len)
-	{
-	if ( t < endpoint->last_time + tcp_storm_interarrival_thresh &&
-	     ++endpoint->RST_cnt == tcp_storm_thresh )
-		Weird("RST_storm");
-
-	else if ( endpoint->RST_cnt == 0 )
-		++endpoint->RST_cnt;	// Remember we've seen a RST
-
-	if ( len > 0 )
-		{
-		// This now happens often enough that it's
-		// not in the least interesting.
-		// Weird("RST_with_data");
-
-		// Don't include the data in the computation of
-		// the sequence space for this connection, as
-		// it's not in fact part of the TCP stream.
-		seq_len = 0;
-		}
-
-	PacketWithRST();
-	}
-
-void TCP_Analyzer::ProcessFlags(double t,
-				const IP_Hdr* ip, const struct tcphdr* tp,
-				uint32 tcp_hdr_len, int len, int& seq_len,
-				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32 base_seq, uint32 ack_seq,
-				const IPAddr& orig_addr,
-				int is_orig, TCP_Flags flags)
-	{
-	if ( flags.SYN() )
-		ProcessSYN(ip, tp, tcp_hdr_len, seq_len, endpoint, peer,
-				base_seq, ack_seq, orig_addr, is_orig, flags);
-
-	if ( flags.FIN() )
-		ProcessFIN(t, endpoint, seq_len, base_seq);
-
-	if ( flags.RST() )
-		ProcessRST(t, endpoint, ip, base_seq, len, seq_len);
-
-	if ( flags.ACK() )
-		ProcessACK(endpoint, peer, ack_seq, is_orig, flags);
-	}
-
-void TCP_Analyzer::TransitionFromInactive(double t, TCP_Endpoint* endpoint,
-						uint32 base_seq,
-						uint32 last_seq, int SYN)
-	{
-	if ( SYN )
-		{
-		// ## endpoint->AckSeq() = endpoint->start_seq = base_seq;
-		endpoint->InitAckSeq(base_seq);
-		endpoint->InitStartSeq(base_seq);
-		}
-	else
-		{
-		// This is a partial connection - set up the
-		// initial sequence numbers as though we saw
-		// a SYN, to keep the relative byte numbering
-		// consistent.
-		// ## endpoint->AckSeq() = endpoint->start_seq = base_seq - 1;
-		endpoint->InitAckSeq(base_seq - 1);
-		endpoint->InitStartSeq(base_seq - 1);
-		}
-
-	// ## endpoint->last_seq = last_seq;
-	endpoint->InitLastSeq(last_seq);
-	endpoint->start_time = t;
-	}
-
-int TCP_Analyzer::UpdateLastSeq(TCP_Endpoint* endpoint, uint32 last_seq,
-					TCP_Flags flags)
-	{
-	int delta_last = seq_delta(last_seq, endpoint->LastSeq());
-
-	if ( (flags.SYN() || flags.RST()) &&
-	     (delta_last > TOO_LARGE_SEQ_DELTA ||
-	      delta_last < -TOO_LARGE_SEQ_DELTA) )
-		// ### perhaps trust RST seq #'s if initial and not too
-		// outlandish, but not if they're coming after the other
-		// side has sent a FIN - trust the FIN ack instead
-		;
-
-	else if ( flags.FIN() &&
-		  endpoint->LastSeq() == endpoint->StartSeq() + 1 )
-		// Update last_seq based on the FIN even if delta_last < 0.
-		// This is to accommodate > 2 GB connections for which
-		// we've only seen the SYN and the FIN (hence the check
-		// for last_seq == start_seq + 1).
-		endpoint->UpdateLastSeq(last_seq);
-
-	else if ( endpoint->state == TCP_ENDPOINT_RESET )
-		// don't trust any subsequent sequence numbers
-		;
-
-	else if ( delta_last > 0 )
-		// ### check for large jumps here.
-		// ## endpoint->last_seq = last_seq;
-		endpoint->UpdateLastSeq(last_seq);
-
-	else if ( delta_last <= 0 )
-		{ // ### ++retransmit, unless this is a pure ack
-		}
-
-	return delta_last;
-	}
-
-void TCP_Analyzer::ProcessACK(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32 ack_seq, int is_orig,
-				TCP_Flags flags)
-	{
-	if ( is_orig && ! seen_first_ACK &&
-	     (endpoint->state == TCP_ENDPOINT_ESTABLISHED ||
-	      endpoint->state == TCP_ENDPOINT_SYN_SENT) )
-		{
-		seen_first_ACK = 1;
-		Event(connection_first_ACK);
-		}
-
-	if ( peer->state == TCP_ENDPOINT_INACTIVE )
-		{
-		if ( ! flags.SYN() && ! flags.FIN() && ! flags.RST() )
-			{
-			if ( endpoint->state == TCP_ENDPOINT_SYN_SENT ||
-			     endpoint->state == TCP_ENDPOINT_SYN_ACK_SENT ||
-			     endpoint->state == TCP_ENDPOINT_ESTABLISHED )
-				{
-				// We've already sent a SYN, but that
-				// hasn't roused the other end, yet we're
-				// ack'ing their data.
-
-				if ( ! Conn()->DidWeird() )
-					Weird("possible_split_routing");
-				}
-			}
-
-		// Start the sequence numbering as if there was an initial
-		// SYN, so the relative numbering of subsequent data packets
-		// stays consistent.
-		// ## peer->start_seq = peer->AckSeq() = peer->last_seq =
-		// ## 	ack_seq - 1;
-		peer->InitStartSeq(ack_seq - 1);
-		peer->InitAckSeq(ack_seq - 1);
-		peer->InitLastSeq(ack_seq - 1);
-		}
-
-	else if ( ! flags.RST() )
-		{ // don't trust ack's in RST packets
-		int delta_ack = seq_delta(ack_seq, peer->AckSeq());
-		if ( ack_seq == 0 && delta_ack > TOO_LARGE_SEQ_DELTA )
-			// More likely that this is a broken ack than a
-			// large connection that happens to land on 0 in the
-			// sequence space.
-			;
-
-		else if ( delta_ack > 0 )
-			peer->UpdateAckSeq(ack_seq);
-		}
-
-	peer->AckReceived(ack_seq - peer->StartSeq());
-	}
-
-void TCP_Analyzer::UpdateInactiveState(double t,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 ack_seq,
-			int len, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
-	{
-	if ( flags.SYN() )
-		{
-		if ( is_orig )
-			{
-			if ( flags.ACK() )
-				{
-				Weird("connection_originator_SYN_ack");
-				endpoint->SetState(TCP_ENDPOINT_SYN_ACK_SENT);
-				}
-			else
-				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
-
-			if ( tcp_attempt_delay )
-				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-					t + tcp_attempt_delay, 1,
-					TIMER_TCP_ATTEMPT);
-			}
-		else
-			{
-			if ( flags.ACK() )
-				{
-				if ( peer->state != TCP_ENDPOINT_INACTIVE &&
-				     peer->state != TCP_ENDPOINT_PARTIAL &&
-				     ! seq_between(ack_seq, peer->StartSeq(), peer->LastSeq()) )
-					Weird("bad_SYN_ack");
-				}
-
-			else if ( peer->state == TCP_ENDPOINT_SYN_ACK_SENT &&
-				  base_seq == endpoint->StartSeq() )
-				{
-				// This is a SYN/SYN-ACK reversal,
-				// per the discussion in IsReuse.
-				// Flip the endpoints and establish
-				// the connection.
-				Conn()->FlipRoles();
-				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
-				}
-
-			else
-				Weird("simultaneous_open");
-
-			if ( peer->state == TCP_ENDPOINT_SYN_SENT )
-				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
-			else if ( peer->state == TCP_ENDPOINT_INACTIVE )
-				{
-				// If we were to ignore SYNs and
-				// only instantiate state on SYN
-				// acks, then we'd do:
-				//    peer->SetState(TCP_ENDPOINT_ESTABLISHED);
-				// here.
-				Weird("unsolicited_SYN_response");
-				}
-
-			endpoint->SetState(TCP_ENDPOINT_ESTABLISHED);
-
-			if ( peer->state != TCP_ENDPOINT_PARTIAL )
-				{
-				Event(connection_established);
-				Conn()->EnableStatusUpdateTimer();
-				}
-			}
-		}
-
-	if ( flags.FIN() )
-		{
-		endpoint->SetState(TCP_ENDPOINT_CLOSED);
-		do_close = gen_event = 1;
-		if ( peer->state != TCP_ENDPOINT_PARTIAL && ! flags.SYN() )
-			Weird("spontaneous_FIN");
-		}
-
-	if ( flags.RST() )
-		{
-		endpoint->SetState(TCP_ENDPOINT_RESET);
-
-		int is_reject = 0;
-
-		if ( is_orig )
-			{
-			// If our peer is established then we saw
-			// a SYN-ack but not SYN - so a reverse
-			// scan, and we should treat this as a
-			// reject.
-			if ( peer->state == TCP_ENDPOINT_ESTABLISHED )
-				is_reject = 1;
-			}
-
-		else if ( peer->state == TCP_ENDPOINT_SYN_SENT ||
-			  peer->state == TCP_ENDPOINT_SYN_ACK_SENT )
-			// We're rejecting an initial SYN.
-			is_reject = 1;
-
-		do_close = 1;
-		gen_event = ! is_reject;
-
-		if ( is_reject )
-			Event(connection_rejected);
-
-		else if ( peer->state == TCP_ENDPOINT_INACTIVE )
-			Weird("spontaneous_RST");
-		}
-
-	if ( endpoint->state == TCP_ENDPOINT_INACTIVE )
-		{ // No control flags to change the state.
-		if ( ! is_orig && len == 0 &&
-		     orig->state == TCP_ENDPOINT_SYN_SENT )
-			// Some eccentric TCP's will ack an initial
-			// SYN prior to sending a SYN reply (hello,
-			// ftp.microsoft.com).  For those, don't
-			// consider the ack as forming a partial
-			// connection.
-			;
-		else
-			{
-			endpoint->SetState(TCP_ENDPOINT_PARTIAL);
-			Conn()->EnableStatusUpdateTimer();
-
-			if ( peer->state == TCP_ENDPOINT_PARTIAL )
-				// We've seen both sides of a partial
-				// connection, report it.
-				Event(partial_connection);
-			}
-		}
-	}
-
-void TCP_Analyzer::UpdateSYN_SentState(double t,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 last_seq,
-			int len, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
-	{
-	if ( flags.SYN() )
-		{
-		if ( is_orig )
-			{
-			if ( flags.ACK() && ! flags.FIN() && ! flags.RST() &&
-			     endpoint->state != TCP_ENDPOINT_SYN_ACK_SENT )
-				Weird("repeated_SYN_with_ack");
-			}
-		else
-			{
-			if ( ! flags.ACK() &&
-			     endpoint->state != TCP_ENDPOINT_SYN_SENT )
-				Weird("repeated_SYN_reply_wo_ack");
-			}
-
-		if ( base_seq != endpoint->StartSeq() )
-			{
-			Weird("SYN_seq_jump");
-			// ## endpoint->AckSeq() = endpoint->start_seq = base_seq;
-			// ## endpoint->last_seq = last_seq;
-			endpoint->InitStartSeq(base_seq);
-			endpoint->InitAckSeq(base_seq);
-			endpoint->InitLastSeq(last_seq);
-			}
-		}
-
-	if ( flags.FIN() )
-		{
-		if ( peer->state == TCP_ENDPOINT_INACTIVE ||
-		     peer->state == TCP_ENDPOINT_SYN_SENT )
-			Weird("inappropriate_FIN");
-
-		endpoint->SetState(TCP_ENDPOINT_CLOSED);
-		do_close = gen_event = 1;
-		}
-
-	if ( flags.RST() )
-		{
-		endpoint->SetState(TCP_ENDPOINT_RESET);
-		ConnectionReset();
-		do_close = 1;
-		}
-
-	else if ( len > 0 )
-		Weird("data_before_established");
-	}
-
-void TCP_Analyzer::UpdateEstablishedState(double t,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 last_seq,
-			int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
-	{
-	if ( flags.SYN() )
-		{
-		if ( endpoint->state == TCP_ENDPOINT_PARTIAL &&
-		     peer->state == TCP_ENDPOINT_INACTIVE && ! flags.ACK() )
-			{
-			Weird("SYN_after_partial");
-			endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
-			}
-
-		if ( endpoint->Size() > 0 )
-			Weird("SYN_inside_connection");
-
-		if ( base_seq != endpoint->StartSeq() )
-			Weird("SYN_seq_jump");
-
-		// Make a guess that somehow the connection didn't
-		// get established, and this SYN will be the
-		// one that actually sets it up.
-		// ## endpoint->AckSeq() = endpoint->start_seq = base_seq;
-		// ## endpoint->last_seq = last_seq;
-		endpoint->InitStartSeq(base_seq);
-		endpoint->InitAckSeq(base_seq);
-		endpoint->InitLastSeq(last_seq);
-		}
-
-	if ( flags.FIN() && ! flags.RST() )	// ###
-		{ // should check sequence/ack numbers here ###
-		endpoint->SetState(TCP_ENDPOINT_CLOSED);
-
-		if ( peer->state == TCP_ENDPOINT_RESET &&
-		     peer->prev_state == TCP_ENDPOINT_CLOSED )
-			// The peer sent a FIN followed by a RST.
-			// Turn it back into CLOSED state, because
-			// this was actually normal termination.
-			peer->SetState(TCP_ENDPOINT_CLOSED);
-
-		do_close = gen_event = 1;
-		}
-
-	if ( flags.RST() )
-		{
-		endpoint->SetState(TCP_ENDPOINT_RESET);
-		do_close = 1;
-
-		if ( peer->state != TCP_ENDPOINT_RESET ||
-		     peer->prev_state != TCP_ENDPOINT_ESTABLISHED )
-			ConnectionReset();
-		}
-	}
-
-void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
-				int delta_last, TCP_Flags flags, int& do_close)
-	{
-	if ( flags.SYN() )
-		Weird("SYN_after_close");
-
-	if ( flags.FIN() && delta_last > 0 )
-		// Probably should also complain on FIN recision.
-		// That requires an extra state variable to avoid
-		// generating slews of weird's when a TCP gets
-		// seriously confused (this from experience).
-		Weird("FIN_advanced_last_seq");
-
-	// Previously, our state was CLOSED, since we sent a FIN.
-	// If our peer was also closed, then don't change our state
-	// now on a RST, since this connection has already seen a FIN
-	// exchange.
-	if ( flags.RST() && endpoint->peer->state != TCP_ENDPOINT_CLOSED )
-		{
-		endpoint->SetState(TCP_ENDPOINT_RESET);
-
-		if ( ! endpoint->did_close )
-			// RST after FIN.
-			do_close = 1;
-
-		if ( connection_reset )
-			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
-					t + tcp_reset_delay, 1,
-					TIMER_TCP_RESET);
-		}
-	}
-
-void TCP_Analyzer::UpdateResetState(int len, TCP_Flags flags,
-                                    TCP_Endpoint* endpoint, uint32 base_seq,
-                                    uint32 last_seq)
-	{
-	if ( flags.SYN() )
-		{
-		Weird("SYN_after_reset");
-
-		if ( endpoint->prev_state == TCP_ENDPOINT_INACTIVE )
-			{
-			// Seq. numbers were initialized by a RST packet from this endpoint,
-			// but now that a SYN is seen from it, that could mean the earlier
-			// RST was spoofed/injected, so re-initialize.  This mostly just
-			// helps prevent misrepresentations of payload sizes that are based
-			// on bad initial sequence values.
-			endpoint->InitStartSeq(base_seq);
-			endpoint->InitAckSeq(base_seq);
-			endpoint->InitLastSeq(last_seq);
-			}
-		}
-
-	if ( flags.FIN() )
-		Weird("FIN_after_reset");
-
-	if ( len > 0 && ! flags.RST() )
-		Weird("data_after_reset");
-	}
-
-void TCP_Analyzer::UpdateStateMachine(double t,
-			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 ack_seq, uint32 last_seq,
-			int len, int delta_last, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
-	{
-	do_close = 0;	// whether to report the connection as closed
-	gen_event = 0;	// if so, whether to generate an event
-
-	switch ( endpoint->state ) {
-
-	case TCP_ENDPOINT_INACTIVE:
-		UpdateInactiveState(t, endpoint, peer, base_seq, ack_seq,
-					len, is_orig, flags,
-					do_close, gen_event);
-		break;
-
-	case TCP_ENDPOINT_SYN_SENT:
-	case TCP_ENDPOINT_SYN_ACK_SENT:
-		UpdateSYN_SentState(t, endpoint, peer, base_seq, last_seq,
-					len, is_orig, flags,
-					do_close, gen_event);
-		break;
-
-	case TCP_ENDPOINT_ESTABLISHED:
-	case TCP_ENDPOINT_PARTIAL:
-		UpdateEstablishedState(t, endpoint, peer, base_seq, last_seq,
-					is_orig, flags, do_close, gen_event);
-		break;
-
-	case TCP_ENDPOINT_CLOSED:
-		UpdateClosedState(t, endpoint, delta_last, flags, do_close);
-		break;
-
-	case TCP_ENDPOINT_RESET:
-		UpdateResetState(len, flags, endpoint, base_seq, last_seq);
-		break;
-	}
-	}
-
-void TCP_Analyzer::GeneratePacketEvent(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer,
-					uint32 base_seq, uint32 ack_seq,
-					const u_char* data, int len, int caplen,
-					int is_orig, TCP_Flags flags)
-	{
-	char tcp_flags[256];
-	int tcp_flag_len = 0;
-
-	if ( flags.SYN() ) tcp_flags[tcp_flag_len++] = 'S';
-	if ( flags.FIN() ) tcp_flags[tcp_flag_len++] = 'F';
-	if ( flags.RST() ) tcp_flags[tcp_flag_len++] = 'R';
-	if ( flags.ACK() ) tcp_flags[tcp_flag_len++] = 'A';
-	if ( flags.PUSH() ) tcp_flags[tcp_flag_len++] = 'P';
-	if ( flags.URG() ) tcp_flags[tcp_flag_len++] = 'U';
-
-	tcp_flags[tcp_flag_len] = '\0';
-
-	val_list* vl = new val_list();
-
-	vl->append(BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
-	vl->append(new StringVal(tcp_flags));
-	vl->append(new Val(base_seq - endpoint->StartSeq(), TYPE_COUNT));
-	vl->append(new Val(flags.ACK() ?
-			ack_seq - peer->StartSeq() : 0, TYPE_COUNT));
-	vl->append(new Val(len, TYPE_COUNT));
-
-	// We need the min() here because Ethernet padding can lead to
-	// caplen > len.
-	vl->append(new StringVal(min(caplen, len), (const char*) data));
-
-	ConnectionEvent(tcp_packet, vl);
-	}
-
-int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
-				const IP_Hdr* ip, const struct tcphdr* tp,
-				TCP_Endpoint* endpoint, uint32 base_seq,
-				int is_orig, TCP_Flags flags)
-	{
-	int data_seq = base_seq - endpoint->StartSeq();
-	if ( flags.SYN() )
-		++data_seq;	// skip over SYN octet
-
-	int need_contents = endpoint->DataSent(t, data_seq,
-					len, caplen, data, ip, tp);
-
-	return need_contents;
-	}
-
-void TCP_Analyzer::CheckRecording(int need_contents, TCP_Flags flags)
-	{
-	bool record_current_content = need_contents || Conn()->RecordContents();
-	bool record_current_packet =
-		Conn()->RecordPackets() ||
-		flags.SYN() || flags.FIN() || flags.RST();
-
-	Conn()->SetRecordCurrentContent(record_current_content);
-	Conn()->SetRecordCurrentPacket(record_current_packet);
-	}
-
-void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
-	{
-	if ( is_orig && ! (first_packet_seen & ORIG) )
-		{
-		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
-		if ( pia )
-			pia->FirstPacket(is_orig, ip);
-		first_packet_seen |= ORIG;
-		}
-
-	if ( ! is_orig && ! (first_packet_seen & RESP) )
-		{
-		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
-		if ( pia )
-			pia->FirstPacket(is_orig, ip);
-		first_packet_seen |= RESP;
-		}
-	}
-
-void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen)
-	{
-	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
-
-	const struct tcphdr* tp = ExtractTCP_Header(data, len, caplen);
-	if ( ! tp )
-		return;
-
-	// We need the min() here because Ethernet frame padding can lead to
-	// caplen > len.
-	if ( packet_contents )
-		PacketContents(data, min(len, caplen));
-
-	TCP_Endpoint* endpoint = is_orig ? orig : resp;
-	TCP_Endpoint* peer = endpoint->peer;
-
-	if ( ! ValidateChecksum(tp, endpoint, len, caplen) )
-		return;
-
-	TCP_Flags flags(tp);
-
-	uint32 base_seq = ntohl(tp->th_seq);
-	uint32 ack_seq = ntohl(tp->th_ack);
-
-	CheckFlagCombos(flags, endpoint, base_seq, len, ntohs(tp->th_dport));
-
-	UpdateWindow(endpoint, ntohs(tp->th_win), base_seq, ack_seq, flags);
-
-	double t = current_timestamp;
-
-	if ( ! orig->did_close || ! resp->did_close )
-		Conn()->SetLastTime(t);
-
-	const IPAddr orig_addr = Conn()->OrigAddr();
-
-	uint32 tcp_hdr_len = data - (const u_char*) tp;
-
-	int seq_len = len;	// length in terms of sequence space
-
-	ProcessFlags(t, ip, tp, tcp_hdr_len, len, seq_len, endpoint, peer, base_seq,
-	             ack_seq, orig_addr, is_orig, flags);
-
-	uint32 last_seq = base_seq + seq_len;
-
-	if ( endpoint->state == TCP_ENDPOINT_INACTIVE )
-		TransitionFromInactive(t, endpoint, base_seq, last_seq,
-					flags.SYN());
-
-	int delta_last = UpdateLastSeq(endpoint, last_seq, flags);
-
-	endpoint->last_time = t;
-
-	int do_close;
-	int gen_event;
-	UpdateStateMachine(t, endpoint, peer, base_seq, ack_seq, last_seq,
-				len, delta_last, is_orig, flags,
-				do_close, gen_event);
-
-	if ( tcp_packet )
-		GeneratePacketEvent(endpoint, peer, base_seq, ack_seq,
-					data, len, caplen, is_orig, flags);
-
-	if ( tcp_option && tcp_hdr_len > sizeof(*tp) &&
-	     tcp_hdr_len <= uint32(caplen) )
-		ParseTCPOptions(tp, TCPOptionEvent, this, is_orig, 0);
-
-	if ( DEBUG_tcp_data_sent )
-		{
-		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",
-			  network_time, len, caplen, Skipping());
-		}
-
-	int need_contents = 0;
-	if ( len > 0 && (caplen >= len || packet_children.size()) &&
-	     ! flags.RST() && ! Skipping() )
-		need_contents = DeliverData(t, data, len, caplen, ip, tp,
-						endpoint, base_seq,
-						is_orig, flags);
-
-	endpoint->CheckEOF();
-
-	if ( do_close )
-		{
-		// We need to postpone doing this until after we process
-		// DataSent, so we don't generate a connection_finished event
-		// until after data perhaps included with the FIN is processed.
-		ConnectionClosed(endpoint, peer, gen_event);
-		}
-
-	CheckRecording(need_contents, flags);
-
-	// Handle child_packet analyzers.  Note: This happens *after* the
-	// packet has been processed and the TCP state updated.
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->NextPacket(len, data, is_orig,
-				base_seq - endpoint->StartSeq(), ip, caplen);
-
-	if ( ! reassembling )
-		ForwardPacket(len, data, is_orig,
-				base_seq - endpoint->StartSeq(), ip, caplen);
-
-	CheckPIA_FirstPacket(is_orig, ip);
-	}
-
-void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
-	{
-	Analyzer::DeliverStream(len, data, orig);
-	}
-
-void TCP_Analyzer::Undelivered(int seq, int len, bool is_orig)
-	{
-	Analyzer::Undelivered(seq, len, orig);
-	}
-
-void TCP_Analyzer::FlipRoles()
-	{
-	Analyzer::FlipRoles();
-
-	sessions->tcp_stats.FlipState(orig->state, resp->state);
-	TCP_Endpoint* tmp_ep = resp;
-	resp = orig;
-	orig = tmp_ep;
-	orig->is_orig = !orig->is_orig;
-	resp->is_orig = !resp->is_orig;
-	}
-
-void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
-	{
-	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
-
-	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
-	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
-	resp_endp_val->Assign(0, new Val(resp->Size(), TYPE_COUNT));
-	resp_endp_val->Assign(1, new Val(int(resp->state), TYPE_COUNT));
-
-	// Call children's UpdateConnVal
-	Analyzer::UpdateConnVal(conn_val);
-
-	// Have to do packet_children ourselves.
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->UpdateConnVal(conn_val);
-	}
-
-Val* TCP_Analyzer::BuildSYNPacketVal(int is_orig, const IP_Hdr* ip,
-					const struct tcphdr* tcp)
+static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
+                                       const struct tcphdr* tcp)
 	{
 	int winscale = -1;
 	int MSS = 0;
@@ -1194,8 +115,8 @@ Val* TCP_Analyzer::BuildSYNPacketVal(int is_orig, const IP_Hdr* ip,
 	return v;
 	}
 
-RecordVal* TCP_Analyzer::BuildOSVal(int is_orig, const IP_Hdr* ip,
-			const struct tcphdr* tcp, uint32 tcp_hdr_len)
+static RecordVal* build_os_val(int is_orig, const IP_Hdr* ip,
+                               const struct tcphdr* tcp, uint32 tcp_hdr_len)
 	{
 	if ( ! is_orig )
 		// Later we might use SYN-ACK fingerprinting here.
@@ -1358,6 +279,1134 @@ RecordVal* TCP_Analyzer::BuildOSVal(int is_orig, const IP_Hdr* ip,
 		}
 
 	return 0;
+	}
+
+
+static void passive_fingerprint(TCP_Analyzer* tcp, bool is_orig,
+                                const IP_Hdr* ip, const struct tcphdr* tp,
+                                uint32 tcp_hdr_len)
+	{
+	// is_orig will be removed once we can do SYN-ACK fingerprinting
+	if ( OS_version_found && is_orig )
+		{
+		const IPAddr& orig_addr = tcp->Conn()->OrigAddr();
+		AddrVal* src_addr_val = new AddrVal(orig_addr);
+
+		if ( generate_OS_version_event->Size() == 0 ||
+		     generate_OS_version_event->Lookup(src_addr_val) )
+			{
+			RecordVal* OS_val = build_os_val(is_orig, ip, tp, tcp_hdr_len);
+
+			if ( OS_val )
+				{ // found new OS version
+				val_list* vl = new val_list;
+				vl->append(tcp->BuildConnVal());
+				vl->append(src_addr_val->Ref());
+				vl->append(OS_val);
+				tcp->ConnectionEvent(OS_version_found, vl);
+				}
+			}
+
+		Unref(src_addr_val);
+		}
+	}
+
+TCP_Analyzer::TCP_Analyzer(Connection* conn)
+: TransportLayerAnalyzer("TCP", conn)
+	{
+	// Set a timer to eventually time out this connection.
+	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
+				network_time + tcp_SYN_timeout, 0,
+				TIMER_TCP_EXPIRE);
+
+	deferred_gen_event = close_deferred = 0;
+
+	seen_first_ACK = 0;
+	is_active = 1;
+	finished = 0;
+	reassembling = 0;
+	first_packet_seen = 0;
+	is_partial = 0;
+
+	orig = new TCP_Endpoint(this, 1);
+	resp = new TCP_Endpoint(this, 0);
+
+	orig->SetPeer(resp);
+	resp->SetPeer(orig);
+	}
+
+TCP_Analyzer::~TCP_Analyzer()
+	{
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		delete *i;
+
+	delete orig;
+	delete resp;
+	}
+
+void TCP_Analyzer::Init()
+	{
+	Analyzer::Init();
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->Init();
+	}
+
+void TCP_Analyzer::Done()
+	{
+	Analyzer::Done();
+
+	if ( connection_pending && is_active && ! BothClosed() )
+		Event(connection_pending);
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->Done();
+
+	orig->Done();
+	resp->Done();
+
+	finished = 1;
+	}
+
+void TCP_Analyzer::EnableReassembly()
+	{
+	SetReassembler(new TCP_Reassembler(this, this,
+	                                   TCP_Reassembler::Forward, orig),
+	               new TCP_Reassembler(this, this,
+	                                   TCP_Reassembler::Forward, resp));
+
+	reassembling = 1;
+
+	if ( new_connection_contents )
+		Event(new_connection_contents);
+	}
+
+void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
+					TCP_Reassembler* rresp)
+	{
+	orig->AddReassembler(rorig);
+	rorig->SetDstAnalyzer(this);
+	resp->AddReassembler(rresp);
+	rresp->SetDstAnalyzer(this);
+
+	reassembling = 1;
+
+	if ( new_connection_contents )
+		Event(new_connection_contents);
+	}
+
+const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data, 
+							int& len, int& caplen)
+	{
+	const struct tcphdr* tp = (const struct tcphdr*) data;
+	uint32 tcp_hdr_len = tp->th_off * 4;
+
+	if ( tcp_hdr_len < sizeof(struct tcphdr) )
+		{
+		Weird("bad_TCP_header_len");
+		return 0;
+		}
+
+	if ( tcp_hdr_len > uint32(len) ||
+	     sizeof(struct tcphdr) > uint32(caplen) )
+		{
+		// This can happen even with the above test, due to TCP
+		// options.
+		Weird("truncated_header");
+		return 0;
+		}
+
+	len -= tcp_hdr_len;	// remove TCP header
+	caplen -= tcp_hdr_len;
+	data += tcp_hdr_len;
+
+	return tp;
+	}
+
+bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
+				TCP_Endpoint* endpoint, int len, int caplen)
+	{
+	if ( ! ignore_checksums && caplen >= len &&
+	     ! endpoint->ValidChecksum(tp, len) )
+		{
+		Weird("bad_TCP_checksum");
+		endpoint->CheckHistory(HIST_CORRUPT_PKT, 'C');
+		return false;
+		}
+	else
+		return true;
+	}
+
+void TCP_Analyzer::SetPartialStatus(TCP_Flags flags, bool is_orig)
+	{
+	if ( is_orig )
+		{
+		if ( ! (first_packet_seen & ORIG) )
+			is_partial = ! flags.SYN() || flags.ACK();
+		}
+	else
+		{
+		if ( ! (first_packet_seen & RESP) && ! is_partial )
+			is_partial = ! flags.SYN();
+		}
+	}
+
+static void update_history(TCP_Flags flags, TCP_Endpoint* endpoint,
+			   uint64 rel_seq, int len)
+	{
+	int bits_set = (flags.SYN() ? 1 : 0) + (flags.FIN() ? 1 : 0) +
+			(flags.RST() ? 1 : 0);
+	if ( bits_set > 1 )
+		{
+		if ( flags.FIN() && flags.RST() )
+			endpoint->CheckHistory(HIST_FIN_RST_PKT, 'I');
+		else
+			endpoint->CheckHistory(HIST_MULTI_FLAG_PKT, 'Q');
+		}
+
+	else if ( bits_set == 1 )
+		{
+		if ( flags.SYN() )
+			{
+			char code = flags.ACK() ? 'H' : 'S';
+
+			if ( endpoint->CheckHistory(HIST_SYN_PKT, code) &&
+			     rel_seq != endpoint->hist_last_SYN )
+				endpoint->AddHistory(code);
+
+			endpoint->hist_last_SYN = rel_seq;
+			}
+
+		if ( flags.FIN() )
+			{
+			// For FIN's, the sequence number comes at the
+			// end of (any data in) the packet, not the
+			// beginning as for SYNs and RSTs.
+			if ( endpoint->CheckHistory(HIST_FIN_PKT, 'F') &&
+			     rel_seq + len != endpoint->hist_last_FIN )
+				endpoint->AddHistory('F');
+
+			endpoint->hist_last_FIN = rel_seq + len;
+			}
+
+		if ( flags.RST() )
+			{
+			if ( endpoint->CheckHistory(HIST_RST_PKT, 'R') &&
+			     rel_seq != endpoint->hist_last_RST )
+				endpoint->AddHistory('R');
+
+			endpoint->hist_last_RST = rel_seq;
+			}
+		}
+
+	else
+		{ // bits_set == 0
+		if ( len )
+			endpoint->CheckHistory(HIST_DATA_PKT, 'D');
+
+		else if ( flags.ACK() )
+			endpoint->CheckHistory(HIST_ACK_PKT, 'A');
+		}
+	}
+
+static void init_window(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+			TCP_Flags flags, bro_int_t scale, uint32 base_seq,
+			uint32 ack_seq)
+	{
+	// ### In the following, we could be fooled by an
+	// inconsistent SYN retransmission.  Where's a normalizer
+	// when you need one?
+
+	if ( scale < 0 )
+		{ // no window scaling option
+		if ( flags.ACK() )
+			{ // window scaling not negotiated
+			endpoint->window_scale = 0;
+			peer->window_scale = 0;
+			}
+		else
+			// We're not offering window scaling.
+			// Ideally, we'd remember this fact so that
+			// if the SYN/ACK *does* include window
+			// scaling, we know it won't be negotiated.
+			// But it's a pain to track that, and hard
+			// to see how an adversarial responder could
+			// use it to evade.  Also, if we *do* want
+			// to track it, we could do so using
+			// connection_SYN_packet.
+			endpoint->window_scale = 0;
+		}
+	else
+		{
+		endpoint->window_scale = scale;
+		endpoint->window_seq = base_seq;
+		endpoint->window_ack_seq = ack_seq;
+
+		peer->window_seq = ack_seq;
+		peer->window_ack_seq = base_seq;
+		}
+	}
+
+static void update_window(TCP_Endpoint* endpoint, unsigned int window,
+                          uint32 base_seq, uint32 ack_seq, TCP_Flags flags)
+	{
+	// Note, the offered window on an initial SYN is unscaled, even
+	// if the SYN includes scaling, so we need to do the following
+	// test *before* updating the scaling information below.  (Hmmm,
+	// how does this work for windows on SYN/ACKs? ###)
+	int scale = endpoint->window_scale;
+	window = window << scale;
+
+	// Don't analyze window values off of SYNs, they're sometimes
+	// immediately rescinded.
+	if ( ! flags.SYN() )
+		{
+		// ### Decide whether to accept new window based on Active
+		// Mapping policy.
+		if ( seq_delta(base_seq, endpoint->window_seq) >= 0 &&
+		     seq_delta(ack_seq, endpoint->window_ack_seq) >= 0 )
+			{
+			uint32 new_edge = ack_seq + window;
+			uint32 old_edge = endpoint->window_ack_seq + endpoint->window;
+			int32 advance = seq_delta(new_edge, old_edge);
+
+			if ( advance < 0 )
+				{
+				// A window recision.  We don't report these
+				// for FINs or RSTs, or if the connection
+				// has already been partially closed, since
+				// such recisions occur frequently in practice,
+				// probably as the receiver loses buffer memory
+				// due to its process going away.
+				//
+				// We also, for window scaling, allow a bit
+				// of slop ###.  This is because sometimes
+				// there will be an apparent recision due
+				// to the granularity of the scaling.
+				if ( ! flags.FIN() && ! flags.RST() &&
+				     endpoint->state != TCP_ENDPOINT_CLOSED &&
+				     endpoint->state != TCP_ENDPOINT_RESET &&
+				     (-advance) >= (1 << scale) )
+					endpoint->Conn()->Weird("window_recision");
+				}
+
+			endpoint->window = window;
+			endpoint->window_ack_seq = ack_seq;
+			endpoint->window_seq = base_seq;
+			}
+		}
+	}
+
+static void syn_weirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len)
+	{
+	if ( flags.RST() )
+		endpoint->Conn()->Weird("TCP_christmas");
+
+	if ( flags.URG() )
+		endpoint->Conn()->Weird("baroque_SYN");
+
+	if ( data_len > 0 )
+		// Not technically wrong according to RFC 793, but the other side
+		// would be forced to buffer data until the handshake succeeds, and
+		// that could be bad in some cases, e.g. SYN floods.
+		// T/TCP definitely complicates this.
+		endpoint->Conn()->Weird("SYN_with_data");
+	}
+
+void TCP_Analyzer::UpdateInactiveState(double t,
+			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+			uint32 base_seq, uint32 ack_seq,
+			int len, int is_orig, TCP_Flags flags,
+			int& do_close, int& gen_event)
+	{
+	if ( flags.SYN() )
+		{
+		if ( is_orig )
+			{
+			if ( flags.ACK() )
+				{
+				Weird("connection_originator_SYN_ack");
+				endpoint->SetState(TCP_ENDPOINT_SYN_ACK_SENT);
+				}
+			else
+				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
+
+			if ( tcp_attempt_delay )
+				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
+					t + tcp_attempt_delay, 1,
+					TIMER_TCP_ATTEMPT);
+			}
+		else
+			{
+			if ( flags.ACK() )
+				{
+				if ( peer->state != TCP_ENDPOINT_INACTIVE &&
+				     peer->state != TCP_ENDPOINT_PARTIAL &&
+				     ! seq_between(ack_seq, peer->StartSeq(), peer->LastSeq()) )
+					Weird("bad_SYN_ack");
+				}
+
+			else if ( peer->state == TCP_ENDPOINT_SYN_ACK_SENT &&
+				  base_seq == endpoint->StartSeq() )
+				{
+				// This is a SYN/SYN-ACK reversal,
+				// per the discussion in IsReuse.
+				// Flip the endpoints and establish
+				// the connection.
+				is_partial = 0;
+				Conn()->FlipRoles();
+				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
+				}
+
+			else
+				Weird("simultaneous_open");
+
+			if ( peer->state == TCP_ENDPOINT_SYN_SENT )
+				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
+			else if ( peer->state == TCP_ENDPOINT_INACTIVE )
+				{
+				// If we were to ignore SYNs and
+				// only instantiate state on SYN
+				// acks, then we'd do:
+				//    peer->SetState(TCP_ENDPOINT_ESTABLISHED);
+				// here.
+				Weird("unsolicited_SYN_response");
+				}
+
+			endpoint->SetState(TCP_ENDPOINT_ESTABLISHED);
+
+			if ( peer->state != TCP_ENDPOINT_PARTIAL )
+				{
+				Event(connection_established);
+				Conn()->EnableStatusUpdateTimer();
+				}
+			}
+		}
+
+	if ( flags.FIN() )
+		{
+		endpoint->SetState(TCP_ENDPOINT_CLOSED);
+		do_close = gen_event = 1;
+		if ( peer->state != TCP_ENDPOINT_PARTIAL && ! flags.SYN() )
+			Weird("spontaneous_FIN");
+		}
+
+	if ( flags.RST() )
+		{
+		endpoint->SetState(TCP_ENDPOINT_RESET);
+
+		int is_reject = 0;
+
+		if ( is_orig )
+			{
+			// If our peer is established then we saw
+			// a SYN-ack but not SYN - so a reverse
+			// scan, and we should treat this as a
+			// reject.
+			if ( peer->state == TCP_ENDPOINT_ESTABLISHED )
+				is_reject = 1;
+			}
+
+		else if ( peer->state == TCP_ENDPOINT_SYN_SENT ||
+			  peer->state == TCP_ENDPOINT_SYN_ACK_SENT )
+			// We're rejecting an initial SYN.
+			is_reject = 1;
+
+		do_close = 1;
+		gen_event = ! is_reject;
+
+		if ( is_reject )
+			Event(connection_rejected);
+
+		else if ( peer->state == TCP_ENDPOINT_INACTIVE )
+			Weird("spontaneous_RST");
+		}
+
+	if ( endpoint->state == TCP_ENDPOINT_INACTIVE )
+		{ // No control flags to change the state.
+		if ( ! is_orig && len == 0 &&
+		     orig->state == TCP_ENDPOINT_SYN_SENT )
+			// Some eccentric TCP's will ack an initial
+			// SYN prior to sending a SYN reply (hello,
+			// ftp.microsoft.com).  For those, don't
+			// consider the ack as forming a partial
+			// connection.
+			;
+		else
+			{
+			endpoint->SetState(TCP_ENDPOINT_PARTIAL);
+			Conn()->EnableStatusUpdateTimer();
+
+			if ( peer->state == TCP_ENDPOINT_PARTIAL )
+				// We've seen both sides of a partial
+				// connection, report it.
+				Event(partial_connection);
+			}
+		}
+	}
+
+void TCP_Analyzer::UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+				       int len, int is_orig, TCP_Flags flags,
+				       int& do_close, int& gen_event)
+	{
+	if ( flags.SYN() )
+		{
+		if ( is_orig )
+			{
+			if ( flags.ACK() && ! flags.FIN() && ! flags.RST() &&
+			     endpoint->state != TCP_ENDPOINT_SYN_ACK_SENT )
+				Weird("repeated_SYN_with_ack");
+			}
+		else
+			{
+			if ( ! flags.ACK() &&
+			     endpoint->state != TCP_ENDPOINT_SYN_SENT )
+				Weird("repeated_SYN_reply_wo_ack");
+			}
+		}
+
+	if ( flags.FIN() )
+		{
+		if ( peer->state == TCP_ENDPOINT_INACTIVE ||
+		     peer->state == TCP_ENDPOINT_SYN_SENT )
+			Weird("inappropriate_FIN");
+
+		endpoint->SetState(TCP_ENDPOINT_CLOSED);
+		do_close = gen_event = 1;
+		}
+
+	if ( flags.RST() )
+		{
+		endpoint->SetState(TCP_ENDPOINT_RESET);
+		ConnectionReset();
+		do_close = 1;
+		}
+
+	else if ( len > 0 )
+		Weird("data_before_established");
+	}
+
+void TCP_Analyzer::UpdateEstablishedState(
+			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+			TCP_Flags flags, int& do_close, int& gen_event)
+	{
+	if ( flags.SYN() )
+		{
+		if ( endpoint->state == TCP_ENDPOINT_PARTIAL &&
+		     peer->state == TCP_ENDPOINT_INACTIVE && ! flags.ACK() )
+			{
+			Weird("SYN_after_partial");
+			endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
+			}
+		}
+
+	if ( flags.FIN() && ! flags.RST() )	// ###
+		{ // should check sequence/ack numbers here ###
+		endpoint->SetState(TCP_ENDPOINT_CLOSED);
+
+		if ( peer->state == TCP_ENDPOINT_RESET &&
+		     peer->prev_state == TCP_ENDPOINT_CLOSED )
+			// The peer sent a FIN followed by a RST.
+			// Turn it back into CLOSED state, because
+			// this was actually normal termination.
+			peer->SetState(TCP_ENDPOINT_CLOSED);
+
+		do_close = gen_event = 1;
+		}
+
+	if ( flags.RST() )
+		{
+		endpoint->SetState(TCP_ENDPOINT_RESET);
+		do_close = 1;
+
+		if ( peer->state != TCP_ENDPOINT_RESET ||
+		     peer->prev_state != TCP_ENDPOINT_ESTABLISHED )
+			ConnectionReset();
+		}
+	}
+
+void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
+				int32 delta_last, TCP_Flags flags, int& do_close)
+	{
+	if ( flags.SYN() )
+		Weird("SYN_after_close");
+
+	if ( flags.FIN() && delta_last > 0 )
+		// Probably should also complain on FIN recision.
+		// That requires an extra state variable to avoid
+		// generating slews of weird's when a TCP gets
+		// seriously confused (this from experience).
+		Weird("FIN_advanced_last_seq");
+
+	// Previously, our state was CLOSED, since we sent a FIN.
+	// If our peer was also closed, then don't change our state
+	// now on a RST, since this connection has already seen a FIN
+	// exchange.
+	if ( flags.RST() && endpoint->peer->state != TCP_ENDPOINT_CLOSED )
+		{
+		endpoint->SetState(TCP_ENDPOINT_RESET);
+
+		if ( ! endpoint->did_close )
+			// RST after FIN.
+			do_close = 1;
+
+		if ( connection_reset )
+			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
+					t + tcp_reset_delay, 1,
+					TIMER_TCP_RESET);
+		}
+	}
+
+void TCP_Analyzer::UpdateResetState(int len, TCP_Flags flags)
+	{
+	if ( flags.SYN() )
+		Weird("SYN_after_reset");
+
+	if ( flags.FIN() )
+		Weird("FIN_after_reset");
+
+	if ( len > 0 && ! flags.RST() )
+		Weird("data_after_reset");
+	}
+
+void TCP_Analyzer::UpdateStateMachine(double t,
+			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
+			uint32 base_seq, uint32 ack_seq,
+			int len, int32 delta_last, int is_orig, TCP_Flags flags,
+			int& do_close, int& gen_event)
+	{
+	do_close = 0;	// whether to report the connection as closed
+	gen_event = 0;	// if so, whether to generate an event
+
+	switch ( endpoint->state ) {
+
+	case TCP_ENDPOINT_INACTIVE:
+		UpdateInactiveState(t, endpoint, peer, base_seq, ack_seq,
+					len, is_orig, flags,
+					do_close, gen_event);
+		break;
+
+	case TCP_ENDPOINT_SYN_SENT:
+	case TCP_ENDPOINT_SYN_ACK_SENT:
+		UpdateSYN_SentState(endpoint, peer, len, is_orig, flags, do_close,
+		                    gen_event);
+		break;
+
+	case TCP_ENDPOINT_ESTABLISHED:
+	case TCP_ENDPOINT_PARTIAL:
+		UpdateEstablishedState(endpoint, peer, flags, do_close, gen_event);
+		break;
+
+	case TCP_ENDPOINT_CLOSED:
+		UpdateClosedState(t, endpoint, delta_last, flags, do_close);
+		break;
+
+	case TCP_ENDPOINT_RESET:
+		UpdateResetState(len, flags);
+		break;
+	}
+	}
+
+void TCP_Analyzer::GeneratePacketEvent(
+					uint64 rel_seq, uint64 rel_ack,
+					const u_char* data, int len, int caplen,
+					int is_orig, TCP_Flags flags)
+	{
+	char tcp_flags[256];
+	int tcp_flag_len = 0;
+
+	if ( flags.SYN() ) tcp_flags[tcp_flag_len++] = 'S';
+	if ( flags.FIN() ) tcp_flags[tcp_flag_len++] = 'F';
+	if ( flags.RST() ) tcp_flags[tcp_flag_len++] = 'R';
+	if ( flags.ACK() ) tcp_flags[tcp_flag_len++] = 'A';
+	if ( flags.PUSH() ) tcp_flags[tcp_flag_len++] = 'P';
+	if ( flags.URG() ) tcp_flags[tcp_flag_len++] = 'U';
+
+	tcp_flags[tcp_flag_len] = '\0';
+
+	val_list* vl = new val_list();
+
+	vl->append(BuildConnVal());
+	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(new StringVal(tcp_flags));
+	vl->append(new Val(rel_seq, TYPE_COUNT));
+	vl->append(new Val(flags.ACK() ? rel_ack : 0, TYPE_COUNT));
+	vl->append(new Val(len, TYPE_COUNT));
+
+	// We need the min() here because Ethernet padding can lead to
+	// caplen > len.
+	vl->append(new StringVal(min(caplen, len), (const char*) data));
+
+	ConnectionEvent(tcp_packet, vl);
+	}
+
+int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
+				const IP_Hdr* ip, const struct tcphdr* tp,
+				TCP_Endpoint* endpoint, uint64 rel_data_seq,
+				int is_orig, TCP_Flags flags)
+	{
+	return endpoint->DataSent(t, rel_data_seq, len, caplen, data, ip, tp);
+	}
+
+void TCP_Analyzer::CheckRecording(int need_contents, TCP_Flags flags)
+	{
+	bool record_current_content = need_contents || Conn()->RecordContents();
+	bool record_current_packet =
+		Conn()->RecordPackets() ||
+		flags.SYN() || flags.FIN() || flags.RST();
+
+	Conn()->SetRecordCurrentContent(record_current_content);
+	Conn()->SetRecordCurrentPacket(record_current_packet);
+	}
+
+void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
+	{
+	if ( is_orig && ! (first_packet_seen & ORIG) )
+		{
+		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		if ( pia )
+			pia->FirstPacket(is_orig, ip);
+		first_packet_seen |= ORIG;
+		}
+
+	if ( ! is_orig && ! (first_packet_seen & RESP) )
+		{
+		pia::PIA_TCP* pia = static_cast<pia::PIA_TCP*>(Conn()->GetPrimaryPIA());
+		if ( pia )
+			pia->FirstPacket(is_orig, ip);
+		first_packet_seen |= RESP;
+		}
+	}
+
+static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
+			       uint32 cur_base, uint32 last, uint32 wraps,
+			       bool* underflow = 0)
+	{
+	int32 delta = seq_delta(cur_base, last);
+
+	if ( delta < 0 )
+		{
+		if ( wraps && cur_base > last )
+			// Seems to be a part of a previous 32-bit sequence space.
+			--wraps;
+		}
+
+	else if ( delta > 0 )
+		{
+		if ( cur_base < last )
+			// The sequence space wrapped around.
+			++wraps;
+		}
+
+	if ( wraps == 0 )
+		{
+		delta = seq_delta(cur_base, endpoint->StartSeq());
+
+		if ( underflow && delta < 0 )
+			*underflow = true;
+
+		return delta;
+		}
+
+	return endpoint->ToRelativeSeqSpace(cur_base, wraps);
+	}
+
+static int get_segment_len(int payload_len, TCP_Flags flags)
+	{
+	int seg_len = payload_len;
+
+	if ( flags.SYN() )
+		// SYN consumes a byte of sequence space.
+		++seg_len;
+
+	if ( flags.FIN() )
+		// FIN consumes a bytes of sequence space.
+		++seg_len;
+
+	if ( flags.RST() )
+		// Don't include the data in the computation of
+		// the sequence space for this connection, as
+		// it's not in fact part of the TCP stream.
+		seg_len -= payload_len;
+
+	return seg_len;
+	}
+
+static void init_endpoint(TCP_Endpoint* endpoint, TCP_Flags flags,
+                          uint32 first_seg_seq, uint32 last_seq, double t)
+	{
+	switch ( endpoint->state ) {
+	case TCP_ENDPOINT_INACTIVE:
+		if ( flags.SYN() )
+			{
+			endpoint->InitAckSeq(first_seg_seq);
+			endpoint->InitStartSeq(first_seg_seq);
+			}
+		else
+			{
+			// This is a partial connection - set up the initial sequence
+			// numbers as though we saw a SYN, to keep the relative byte
+			// numbering consistent.
+			endpoint->InitAckSeq(first_seg_seq - 1);
+			endpoint->InitStartSeq(first_seg_seq - 1);
+			}
+
+		endpoint->InitLastSeq(last_seq);
+		endpoint->start_time = t;
+		break;
+
+	case TCP_ENDPOINT_SYN_SENT:
+	case TCP_ENDPOINT_SYN_ACK_SENT:
+		if ( flags.SYN() && first_seg_seq != endpoint->StartSeq() )
+			{
+			endpoint->Conn()->Weird("SYN_seq_jump");
+			endpoint->InitStartSeq(first_seg_seq);
+			endpoint->InitAckSeq(first_seg_seq);
+			endpoint->InitLastSeq(last_seq);
+			}
+		break;
+
+	case TCP_ENDPOINT_ESTABLISHED:
+	case TCP_ENDPOINT_PARTIAL:
+		if ( flags.SYN() )
+			{
+			if ( endpoint->Size() > 0 )
+				endpoint->Conn()->Weird("SYN_inside_connection");
+
+			if ( first_seg_seq != endpoint->StartSeq() )
+				endpoint->Conn()->Weird("SYN_seq_jump");
+
+			// Make a guess that somehow the connection didn't get established,
+			// and this SYN will be the one that actually sets it up.
+			endpoint->InitStartSeq(first_seg_seq);
+			endpoint->InitAckSeq(first_seg_seq);
+			endpoint->InitLastSeq(last_seq);
+			}
+		break;
+
+	case TCP_ENDPOINT_RESET:
+		if ( flags.SYN() )
+			{
+			if ( endpoint->prev_state == TCP_ENDPOINT_INACTIVE )
+				{
+				// Seq. numbers were initialized by a RST packet from this
+				// endpoint, but now that a SYN is seen from it, that could mean
+				// the earlier RST was spoofed/injected, so re-initialize.  This
+				// mostly just helps prevent misrepresentations of payload sizes
+				// that are based on bad initial sequence values.
+				endpoint->InitStartSeq(first_seg_seq);
+				endpoint->InitAckSeq(first_seg_seq);
+				endpoint->InitLastSeq(last_seq);
+				}
+			}
+		break;
+
+	default:
+		break;
+	}
+	}
+
+static void init_peer(TCP_Endpoint* peer, TCP_Endpoint* endpoint,
+                      TCP_Flags flags, uint32 ack_seq)
+	{
+	if ( ! flags.SYN() && ! flags.FIN() && ! flags.RST() )
+		{
+		if ( endpoint->state == TCP_ENDPOINT_SYN_SENT ||
+			 endpoint->state == TCP_ENDPOINT_SYN_ACK_SENT ||
+			 endpoint->state == TCP_ENDPOINT_ESTABLISHED )
+			{
+			// We've already sent a SYN, but that
+			// hasn't roused the other end, yet we're
+			// ack'ing their data.
+
+			if ( ! endpoint->Conn()->DidWeird() )
+				endpoint->Conn()->Weird("possible_split_routing");
+			}
+		}
+
+	// Start the sequence numbering as if there was an initial
+	// SYN, so the relative numbering of subsequent data packets
+	// stays consistent.
+	peer->InitStartSeq(ack_seq - 1);
+	peer->InitAckSeq(ack_seq - 1);
+	peer->InitLastSeq(ack_seq - 1);
+	}
+
+static void update_ack_seq(TCP_Endpoint* endpoint, uint32 ack_seq)
+	{
+	int32 delta_ack = seq_delta(ack_seq, endpoint->AckSeq());
+
+	if ( ack_seq == 0 && delta_ack > TOO_LARGE_SEQ_DELTA )
+		// More likely that this is a broken ack than a
+		// large connection that happens to land on 0 in the
+		// sequence space.
+		;
+	else if ( delta_ack > 0 )
+		endpoint->UpdateAckSeq(ack_seq);
+	}
+
+// Returns the difference between last_seq and the last sequence
+// seen by the endpoint (may be negative).
+static int32 update_last_seq(TCP_Endpoint* endpoint, uint32 last_seq,
+                             TCP_Flags flags)
+	{
+	int32 delta_last = seq_delta(last_seq, endpoint->LastSeq());
+
+	if ( (flags.SYN() || flags.RST()) &&
+	     (delta_last > TOO_LARGE_SEQ_DELTA ||
+		 delta_last < -TOO_LARGE_SEQ_DELTA) )
+		// ### perhaps trust RST seq #'s if initial and not too
+		// outlandish, but not if they're coming after the other
+		// side has sent a FIN - trust the FIN ack instead
+		;
+
+	else if ( flags.FIN() &&
+		  endpoint->LastSeq() == endpoint->StartSeq() + 1 )
+		// Update last_seq based on the FIN even if delta_last < 0.
+		// This is to accommodate > 2 GB connections for which
+		// we've only seen the SYN and the FIN (hence the check
+		// for last_seq == start_seq + 1).
+		endpoint->UpdateLastSeq(last_seq);
+
+	else if ( endpoint->state == TCP_ENDPOINT_RESET )
+		// don't trust any subsequent sequence numbers
+		;
+
+	else if ( delta_last > 0 )
+		// ### check for large jumps here.
+		// ## endpoint->last_seq = last_seq;
+		endpoint->UpdateLastSeq(last_seq);
+
+	else if ( delta_last <= 0 )
+		{ // ### ++retransmit, unless this is a pure ack
+		}
+
+	return delta_last;
+	}
+
+void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
+					uint64 seq, const IP_Hdr* ip, int caplen)
+	{
+	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+
+	const struct tcphdr* tp = ExtractTCP_Header(data, len, caplen);
+	if ( ! tp )
+		return;
+
+	// We need the min() here because Ethernet frame padding can lead to
+	// caplen > len.
+	if ( packet_contents )
+		PacketContents(data, min(len, caplen));
+
+	TCP_Endpoint* endpoint = is_orig ? orig : resp;
+	TCP_Endpoint* peer = endpoint->peer;
+
+	if ( ! ValidateChecksum(tp, endpoint, len, caplen) )
+		return;
+
+	uint32 tcp_hdr_len = data - (const u_char*) tp;
+	TCP_Flags flags(tp);
+	SetPartialStatus(flags, endpoint->IsOrig());
+
+	uint32 base_seq = ntohl(tp->th_seq);
+	uint32 ack_seq = ntohl(tp->th_ack);
+
+	int seg_len = get_segment_len(len, flags);
+	uint32 seq_one_past_segment = base_seq + seg_len;
+
+	init_endpoint(endpoint, flags, base_seq, seq_one_past_segment,
+	              current_timestamp);
+
+	bool seq_underflow = false;
+	uint64 rel_seq = get_relative_seq(endpoint, base_seq, endpoint->LastSeq(),
+					  endpoint->SeqWraps(), &seq_underflow);
+
+	if ( seq_underflow && ! flags.RST() )
+		// Can't tell if if this is a retransmit/out-of-order or something
+		// before the sequence Bro initialized the endpoint at or the TCP is
+		// just broken and sending garbage sequences.  In either case, some
+		// standard analysis doesn't apply (e.g. reassembly).
+		Weird("TCP_seq_underflow_or_misorder");
+
+	update_history(flags, endpoint, rel_seq, len);
+	update_window(endpoint, ntohs(tp->th_win), base_seq, ack_seq, flags);
+
+	if ( ! orig->did_close || ! resp->did_close )
+		Conn()->SetLastTime(current_timestamp);
+
+	if ( flags.SYN() )
+		{
+		syn_weirds(flags, endpoint, len);
+		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
+		init_window(endpoint, peer, flags, SYN_vals->Lookup(5)->CoerceToInt(),
+		            base_seq, ack_seq);
+
+		if ( connection_SYN_packet )
+			{
+			val_list* vl = new val_list;
+			vl->append(BuildConnVal());
+			vl->append(SYN_vals->Ref());
+			ConnectionEvent(connection_SYN_packet, vl);
+			}
+
+		passive_fingerprint(this, is_orig, ip, tp, tcp_hdr_len);
+
+		Unref(SYN_vals);
+		}
+
+	if ( flags.FIN() )
+		{
+		++endpoint->FIN_cnt;
+
+		if ( endpoint->FIN_cnt >= tcp_storm_thresh && current_timestamp <
+		     endpoint->last_time + tcp_storm_interarrival_thresh )
+			Weird("FIN_storm");
+
+		endpoint->FIN_seq = rel_seq + seg_len;
+		}
+
+	if ( flags.RST() )
+		{
+		++endpoint->RST_cnt;
+
+		if ( endpoint->RST_cnt >= tcp_storm_thresh && current_timestamp <
+		     endpoint->last_time + tcp_storm_interarrival_thresh )
+			Weird("RST_storm");
+
+		// This now happens often enough that it's
+		// not in the least interesting.
+		//if ( len > 0 )
+		//	Weird("RST_with_data");
+
+		PacketWithRST();
+		}
+
+	uint64 rel_ack = 0;
+
+	if ( flags.ACK() )
+		{
+		if ( is_orig && ! seen_first_ACK &&
+		     (endpoint->state == TCP_ENDPOINT_ESTABLISHED ||
+		      endpoint->state == TCP_ENDPOINT_SYN_SENT) )
+			{
+			seen_first_ACK = 1;
+			Event(connection_first_ACK);
+			}
+
+		if ( peer->state == TCP_ENDPOINT_INACTIVE )
+			{
+			rel_ack = 1;
+			init_peer(peer, endpoint, flags, ack_seq);
+			}
+		else
+			{
+			bool ack_underflow = false;
+			rel_ack = get_relative_seq(peer, ack_seq, peer->AckSeq(),
+			                           peer->AckWraps(), &ack_underflow);
+
+			if ( ack_underflow )
+				{
+				rel_ack = 0;
+				Weird("TCP_ack_underflow_or_misorder");
+				}
+			else if ( ! flags.RST() )
+				// Don't trust ack's in RSt packets.
+				update_ack_seq(peer, ack_seq);
+			}
+
+		peer->AckReceived(rel_ack);
+		}
+
+	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags);
+	endpoint->last_time = current_timestamp;
+
+	int do_close;
+	int gen_event;
+	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
+	                   len, delta_last, is_orig, flags, do_close, gen_event);
+
+	if ( tcp_packet )
+		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,
+		                    flags);
+
+	if ( tcp_option && tcp_hdr_len > sizeof(*tp) &&
+	     tcp_hdr_len <= uint32(caplen) )
+		ParseTCPOptions(tp, TCPOptionEvent, this, is_orig, 0);
+
+	if ( DEBUG_tcp_data_sent )
+		{
+		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",
+			  network_time, len, caplen, Skipping());
+		}
+
+	uint64 rel_data_seq = flags.SYN() ? rel_seq + 1 : rel_seq;
+
+	int need_contents = 0;
+	if ( len > 0 && (caplen >= len || packet_children.size()) &&
+	     ! flags.RST() && ! Skipping() && ! seq_underflow )
+		need_contents = DeliverData(current_timestamp, data, len, caplen, ip,
+		                            tp, endpoint, rel_data_seq, is_orig, flags);
+
+	endpoint->CheckEOF();
+
+	if ( do_close )
+		{
+		// We need to postpone doing this until after we process
+		// DataSent, so we don't generate a connection_finished event
+		// until after data perhaps included with the FIN is processed.
+		ConnectionClosed(endpoint, peer, gen_event);
+		}
+
+	CheckRecording(need_contents, flags);
+
+	// Handle child_packet analyzers.  Note: This happens *after* the
+	// packet has been processed and the TCP state updated.
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->NextPacket(len, data, is_orig, rel_data_seq, ip, caplen);
+
+	if ( ! reassembling )
+		ForwardPacket(len, data, is_orig, rel_data_seq, ip, caplen);
+
+	CheckPIA_FirstPacket(is_orig, ip);
+	}
+
+void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	Analyzer::DeliverStream(len, data, orig);
+	}
+
+void TCP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
+	{
+	Analyzer::Undelivered(seq, len, orig);
+	}
+
+void TCP_Analyzer::FlipRoles()
+	{
+	Analyzer::FlipRoles();
+
+	sessions->tcp_stats.FlipState(orig->state, resp->state);
+	TCP_Endpoint* tmp_ep = resp;
+	resp = orig;
+	orig = tmp_ep;
+	orig->is_orig = !orig->is_orig;
+	resp->is_orig = !resp->is_orig;
+	}
+
+void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
+	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
+
+	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
+	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
+	resp_endp_val->Assign(0, new Val(resp->Size(), TYPE_COUNT));
+	resp_endp_val->Assign(1, new Val(int(resp->state), TYPE_COUNT));
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
+
+	// Have to do packet_children ourselves.
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->UpdateConnVal(conn_val);
 	}
 
 int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp,
@@ -1848,11 +1897,11 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 	}
 
 void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
-						bool is_orig, int seq,
+						bool is_orig, uint64 seq,
 						const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
-	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %d, %p, %d) [%s%s]",
+	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %"PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
@@ -1929,7 +1978,7 @@ int endian_flip(int n)
 	return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
 	}
 
-int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
+int TCPStats_Endpoint::DataSent(double /* t */, uint64 seq, int len, int caplen,
 			const u_char* /* data */,
 			const IP_Hdr* ip, const struct tcphdr* /* tp */)
 	{
@@ -1989,14 +2038,14 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 
 	++num_in_order;
 
-	int top_seq = seq + len;
+	uint64 top_seq = seq + len;
 
-	int data_in_flight = endp->LastSeq() - endp->AckSeq();
+	int32 data_in_flight = seq_delta(endp->LastSeq(), endp->AckSeq());
 	if ( data_in_flight < 0 )
 		data_in_flight = 0;
 
-	int seq_delta = top_seq - max_top_seq;
-	if ( seq_delta <= 0 )
+	int64 sequence_delta = top_seq - max_top_seq;
+	if ( sequence_delta <= 0 )
 		{
 		if ( ! BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
 			{
@@ -2004,7 +2053,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 			num_rxmit_bytes += len;
 			}
 
-		DEBUG_MSG("%.6f rexmit %d + %d <= %d data_in_flight = %d\n",
+		DEBUG_MSG("%.6f rexmit %"PRIu64" + %d <= %"PRIu64" data_in_flight = %d\n",
 		 	network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )
@@ -2072,7 +2121,7 @@ void TCPStats_Analyzer::Done()
 	ConnectionEvent(conn_stats, vl);
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

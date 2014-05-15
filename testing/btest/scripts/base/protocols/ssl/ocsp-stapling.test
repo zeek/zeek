@@ -1,0 +1,7 @@
+# @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-stapling.trace %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string)
+	{
+	print is_orig, |response|;
+	}

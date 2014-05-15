@@ -9,6 +9,7 @@
 #define LOGGING_WRITER_ELASTICSEARCH_H
 
 #include <curl/curl.h>
+#include "threading/formatters/JSON.h"
 #include "../WriterBackend.h"
 
 namespace logging { namespace writer {
@@ -73,7 +74,7 @@ private:
 
 	uint64 batch_size;
 
-	AsciiFormatter* ascii;
+	threading::formatter::JSON* json;
 };
 
 }

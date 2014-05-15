@@ -181,10 +181,9 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 function log_unmatched_msgs(msgs: PendingMessages)
 	{
 	for ( trans_id in msgs )
-		{
 		log_unmatched_msgs_queue(msgs[trans_id]);
-		delete msgs[trans_id];
-		}
+
+	clear_table(msgs);
 	}
 
 function enqueue_new_msg(msgs: PendingMessages, id: count, msg: Info)
@@ -360,7 +359,15 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	# Note: I'm ignoring the name type for now.  Not sure if this should be
 	#       worked into the query/response in some fashion.
 	if ( c$id$resp_p == 137/udp )
+		{
 		query = decode_netbios_name(query);
+		if ( c$dns$qtype_name == "SRV" )
+			{
+			# The SRV RFC used the ID used for NetBios Status RRs.
+			# So if this is NetBios Name Service we name it correctly.
+			c$dns$qtype_name = "NBSTAT";
+			}
+		}
 	c$dns$query = query;
 	}
 
@@ -375,9 +382,19 @@ event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priori
 	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
-event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &priority=5
+event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5
 	{
-	hook DNS::do_reply(c, msg, ans, str);
+	local txt_strings: string = "";
+
+	for ( i in strs )
+		{
+		if ( i > 0 )
+			txt_strings += " ";
+
+		txt_strings += fmt("TXT %d %s", |strs[i]|, strs[i]);
+		}
+
+	hook DNS::do_reply(c, msg, ans, txt_strings);
 	}
 
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
@@ -421,9 +438,9 @@ event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	hook DNS::do_reply(c, msg, ans, "");
 	}
 
-event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count) &priority=5
 	{
-	hook DNS::do_reply(c, msg, ans, "");
+	hook DNS::do_reply(c, msg, ans, target);
 	}
 
 # TODO: figure out how to handle these

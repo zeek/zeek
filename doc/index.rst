@@ -12,10 +12,13 @@ Introduction Section
    :maxdepth: 2
 
    intro/index.rst
+   cluster/index.rst
    install/index.rst
    quickstart/index.rst
 
 .. 
+
+.. _using-bro:
 
 Using Bro Section
 =================
@@ -27,7 +30,6 @@ Using Bro Section
    httpmonitor/index.rst
    broids/index.rst
    mimestats/index.rst
-   cluster/index.rst
 
 ..
 

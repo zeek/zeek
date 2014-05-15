@@ -5,6 +5,7 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
+#include "analyzer/protocol/pia/PIA.h"
 #include "analyzer/protocol/zip/ZIP.h"
 #include "analyzer/protocol/mime/MIME.h"
 #include "binpac_bro.h"
@@ -45,6 +46,7 @@ public:
 	int64_t BodyLength() const 		{ return body_length; }
 	int64_t HeaderLength() const 	{ return header_length; }
 	void SkipBody() 		{ deliver_body = 0; }
+	const string& FileID() const  { return precomputed_file_id; }
 
 protected:
 	class UncompressedOutput;
@@ -160,7 +162,7 @@ public:
 	HTTP_Analyzer(Connection* conn);
 	~HTTP_Analyzer();
 
-	void Undelivered(tcp::TCP_Endpoint* sender, int seq, int len);
+	void Undelivered(tcp::TCP_Endpoint* sender, uint64 seq, int len);
 
 	void HTTP_Header(int is_orig, mime::MIME_Header* h);
 	void HTTP_EntityData(int is_orig, const BroString* entity_data);
@@ -176,7 +178,7 @@ public:
 	// Overriden from Analyzer.
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer
 	virtual void EndpointEOF(bool is_orig);
@@ -236,6 +238,9 @@ protected:
 	int keep_alive;
 	int connection_close;
 	int request_ongoing, reply_ongoing;
+
+	bool connect_request;
+	pia::PIA_TCP *pia;
 
 	Val* request_method;
 

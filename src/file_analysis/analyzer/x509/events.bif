@@ -1,0 +1,57 @@
+## Generated for encountered X509 certificates, e.g., in the clear SSL/TLS 
+## connection handshake.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
+## about the X.509 format.
+##
+## f: The file.
+##
+## cert_ref: An opaque pointer to the underlying OpenSSL data structure of the
+##           certificate.
+##
+## cert: The parsed certificate information.
+##
+## .. bro:see:: x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse x509_verify
+##              x509_get_certificate_string
+event x509_certificate%(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate%);
+
+## Generated for X509 extensions seen in a certificate.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
+## about the X.509 format.
+##
+## f: The file.
+##
+## ext: The parsed extension.
+##
+## .. bro:see:: x509_certificate x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_parse x509_verify
+##              x509_get_certificate_string
+event x509_extension%(f: fa_file, ext: X509::Extension%);
+
+## Generated for the X509 basic constraints extension seen in a certificate.
+## This extension can be used to identify the subject of a certificate as a CA.
+##
+## f: The file.
+##
+## ext: The parsed basic constraints extension.
+##
+## .. bro:see:: x509_certificate x509_extension
+##              x509_ext_subject_alternative_name x509_parse x509_verify
+##              x509_get_certificate_string
+event x509_ext_basic_constraints%(f: fa_file, ext: X509::BasicConstraints%);
+
+## Generated for the X509 subject alternative name extension seen in a certificate.
+## This extension can be used to allow additional entities to be bound to the subject
+## of the certificate. Usually it is used to specify one or multiple DNS names for 
+## which a certificate is valid.
+##
+## f: The file.
+##
+## ext: The parsed subject alternative name extension.
+##
+## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_parse x509_verify
+##              x509_get_certificate_string
+event x509_ext_subject_alternative_name%(f: fa_file, ext: X509::SubjectAlternativeName%);

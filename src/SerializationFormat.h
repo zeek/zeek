@@ -44,7 +44,15 @@ public:
 
 	// Serialization.
 	virtual void StartWrite();
-	virtual uint32 EndWrite(char** data);	// passes ownership
+
+	/**
+	 * Retrieves serialized data.
+	 * @param data A pointer that will be assigned to point at the internal
+	 *             buffer containing serialized data.  The memory should
+	 *             be reclaimed using "free()".
+	 * @return The number of bytes in the buffer object assigned to \a data.
+	 */
+	virtual uint32 EndWrite(char** data);
 
 	virtual bool Write(int v, const char* tag) = 0;
 	virtual bool Write(uint16 v, const char* tag) = 0;
@@ -74,6 +82,7 @@ protected:
 	bool WriteData(const void* buf, size_t count);
 
 	static const uint32 INITIAL_SIZE = 65536;
+	static const float GROWTH_FACTOR;
 	char* output;
 	uint32 output_size;
 	uint32 output_pos;

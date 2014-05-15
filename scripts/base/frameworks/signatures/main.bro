@@ -70,6 +70,9 @@ export {
 		## The network time at which a signature matching type of event
 		## to be logged has occurred.
 		ts:         time         &log;
+		## A unique identifier of the connection which triggered the
+		## signature match event
+		uid:        string       &log &optional;
 		## The host which triggered the signature match event.
 		src_addr:   addr         &log &optional;
 		## The host port on which the signature-matching activity
@@ -167,7 +170,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 	# Trim the matched data down to something reasonable
 	if ( |data| > 140 )
 		data = fmt("%s...", sub_bytes(data, 0, 140));
-		
+	
 	local src_addr: addr;
 	local src_port: port;
 	local dst_addr: addr;
@@ -192,6 +195,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 		{
 		local info: Info = [$ts=network_time(),
 		                    $note=Sensitive_Signature,
+		                    $uid=state$conn$uid,
 		                    $src_addr=src_addr,
 		                    $src_port=src_port,
 		                    $dst_addr=dst_addr,
@@ -212,11 +216,11 @@ event signature_match(state: signature_state, msg: string, data: string)
 		if ( ++count_per_resp[dst,sig_id] in count_thresholds )
 			{
 			NOTICE([$note=Count_Signature, $conn=state$conn,
-				   $msg=msg,
-				   $n=count_per_resp[dst,sig_id],
-				   $sub=fmt("%d matches of signature %s on host %s",
-						count_per_resp[dst,sig_id],
-						sig_id, dst)]);
+			        $msg=msg,
+			        $n=count_per_resp[dst,sig_id],
+			        $sub=fmt("%d matches of signature %s on host %s",
+			                 count_per_resp[dst,sig_id],
+			                 sig_id, dst)]);
 			}
 		}
 
@@ -290,16 +294,16 @@ event signature_match(state: signature_state, msg: string, data: string)
 				orig, vcount, resp);
 
 		Log::write(Signatures::LOG, 
-			[$ts=network_time(),
-			 $note=Multiple_Signatures, 
-			 $src_addr=orig,
-			 $dst_addr=resp, $sig_id=sig_id, $sig_count=vcount,
-			 $event_msg=fmt("%s different signatures triggered", vcount),
-			 $sub_msg=vert_scan_msg]);
+		           [$ts=network_time(),
+		            $note=Multiple_Signatures, 
+		            $src_addr=orig,
+		            $dst_addr=resp, $sig_id=sig_id, $sig_count=vcount,
+		            $event_msg=fmt("%s different signatures triggered", vcount),
+		            $sub_msg=vert_scan_msg]);
 
 		NOTICE([$note=Multiple_Signatures, $src=orig, $dst=resp,
-			$msg=fmt("%s different signatures triggered", vcount),
-			$n=vcount, $sub=vert_scan_msg]);
+		        $msg=fmt("%s different signatures triggered", vcount),
+		        $n=vcount, $sub=vert_scan_msg]);
 
 		last_vthresh[orig] = vcount;
 		}

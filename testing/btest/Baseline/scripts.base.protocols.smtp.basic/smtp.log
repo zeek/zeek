@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smtp
-#open	2013-08-26-18-40-24
+#open	2014-04-01-23-16-17
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent	fuids
-#types	time	string	addr	port	addr	port	count	string	string	table[string]	string	string	table[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	vector[string]
+#types	time	string	addr	port	addr	port	count	string	string	set[string]	string	string	set[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	vector[string]
 1254722768.219663	CjhGID4nQcgTWjvg4c	10.10.1.4	1470	74.53.140.153	25	1	GP	<gurpartap@patriots.in>	<raj_deol2002in@yahoo.co.in>	Mon, 5 Oct 2009 11:36:07 +0530	"Gurpartap Singh" <gurpartap@patriots.in>	<raj_deol2002in@yahoo.co.in>	-	<000301ca4581$ef9e57f0$cedb07d0$@in>	-	SMTP	-	-	-	250 OK id=1Mugho-0003Dg-Un	74.53.140.153,10.10.1.4	Microsoft Office Outlook 12.0	Fel9gs4OtNEV6gUJZ5,Ft4M3f2yMvLlmwtbq9,FL9Y0d45OI4LpS6fmh
-#close	2013-08-26-18-40-24
+#close	2014-04-01-23-16-17

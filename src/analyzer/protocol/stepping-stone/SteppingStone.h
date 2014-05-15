@@ -22,7 +22,7 @@ public:
 	~SteppingStoneEndpoint();
 	void Done();
 
-	int DataSent(double t, int seq, int len, int caplen, const u_char* data,
+	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
 		     const IP_Hdr* ip, const struct tcphdr* tp);
 
 protected:
@@ -30,7 +30,7 @@ protected:
 	void CreateEndpEvent(int is_orig);
 
 	tcp::TCP_Endpoint* endp;
-	int stp_max_top_seq;
+	uint64 stp_max_top_seq;
 	double stp_last_time;
 	double stp_resume_time;
 	SteppingStoneManager* stp_manager;
@@ -60,7 +60,7 @@ protected:
 	// We support both packet and stream input and can be put in place even
 	// if the TCP analyzer is not yet reassebmling.
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
 
 	int orig_stream_pos;

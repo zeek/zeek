@@ -475,6 +475,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	type = id->Type()->Ref();
 	id->SetVal(new Val(this));
+	Unref(id);
 	}
 
 BuiltinFunc::~BuiltinFunc()

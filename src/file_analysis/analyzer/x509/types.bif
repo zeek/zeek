@@ -1,0 +1,5 @@
+type X509::Certificate: record;
+type X509::Extension: record;
+type X509::BasicConstraints: record;
+type X509::SubjectAlternativeName: record;
+type X509::Result: record;

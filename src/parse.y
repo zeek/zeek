@@ -207,6 +207,22 @@ static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 			}
 		}
 	}
+
+static bool expr_is_table_type_name(const Expr* expr)
+	{
+	if ( expr->Tag() != EXPR_NAME )
+		return false;
+
+	BroType* type = expr->Type();
+
+	if ( type->IsTable() )
+		return true;
+
+	if ( type->Tag() == TYPE_TYPE )
+		return type->AsTypeType()->Type()->IsTable();
+
+	return false;
+	}
 %}
 
 %union {
@@ -538,13 +554,13 @@ expr:
 
 	|	expr '('
 			{
-			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+			if ( expr_is_table_type_name($1) )
 				++in_init;
 			}
 
 		opt_expr_list
 			{
-			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+			if ( expr_is_table_type_name($1) )
 				--in_init;
 			}
 
@@ -559,7 +575,8 @@ expr:
 				{
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
-					$$ = new RecordConstructorExpr($4, ctor_type);
+					$$ = new RecordCoerceExpr(new RecordConstructorExpr($4),
+					                          ctor_type->AsRecordType());
 					break;
 
 				case TYPE_TABLE:

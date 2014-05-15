@@ -21,11 +21,13 @@ D	[0-9]+
 H	[0-9a-fA-F]+
 HEX {H}
 STRING	\"([^\n\"]|\\\")*\"
-ID	([0-9a-zA-Z_-]+::)*[0-9a-zA-Z_-]+
+IDCOMPONENT [0-9a-zA-Z_][0-9a-zA-Z_-]*
+ID	{IDCOMPONENT}(::{IDCOMPONENT})*
 IP6	("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/
 META	\.[^ \t]+{WS}[^\n]+
-PID	([0-9a-zA-Z_-]|"::")+
+PIDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
+PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
 
 %option nounput nodefault
 
@@ -50,7 +52,7 @@ PID	([0-9a-zA-Z_-]|"::")+
 	return TOK_IP6;
 	}
 
-[!\]\[{}&:,]	return rules_text[0];
+[!\]\[{}&:,-]	return rules_text[0];
 
 "<="	{ rules_lval.val = RuleHdrTest::LE; return TOK_COMP; }
 ">="	{ rules_lval.val = RuleHdrTest::GE; return TOK_COMP; }
@@ -116,6 +118,7 @@ dst-port	return TOK_DST_PORT;
 enable		return TOK_ENABLE;
 eval		return TOK_EVAL;
 event		return TOK_EVENT;
+file-mime	return TOK_MIME;
 header		return TOK_HEADER;
 ip-options	return TOK_IP_OPTIONS;
 ip-proto	return TOK_IP_PROTO;
@@ -129,6 +132,7 @@ src-port	return TOK_SRC_PORT;
 tcp-state	return TOK_TCP_STATE;
 active		return TOK_ACTIVE;
 
+file-magic { rules_lval.val = Rule::FILE_MAGIC; return TOK_PATTERN_TYPE; }
 payload	{ rules_lval.val = Rule::PAYLOAD; return TOK_PATTERN_TYPE; }
 http-request	{ rules_lval.val = Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
 http-request-body	{ rules_lval.val = Rule::HTTP_REQUEST_BODY; return TOK_PATTERN_TYPE; }

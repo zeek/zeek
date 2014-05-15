@@ -835,30 +835,44 @@ function syslog%(s: string%): any
 	return 0;
 	%}
 
-%%{
-extern "C" {
-#include <magic.h>
-}
-%%}
-
-## Determines the MIME type of a piece of data using ``libmagic``.
+## Determines the MIME type of a piece of data using Bro's file magic
+## signatures.
 ##
 ## data: The data to find the MIME type for.
 ##
-## return_mime: If true, the function returns a short MIME type string (e.g.,
-##              ``text/plain`` instead of a more elaborate textual description).
+## return_mime: Deprecated argument; does nothing, except emit a warning
+##              when false.
 ##
-## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
-function identify_data%(data: string, return_mime: bool%): string
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error
+##          or no match.  This is the strongest signature match.
+##
+## .. bro:see:: file_magic
+function identify_data%(data: string, return_mime: bool &default=T%): string
 	%{
-	magic_t* magic = return_mime ? &magic_mime_cookie : &magic_desc_cookie;
+	if ( ! return_mime )
+		reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
-	if( ! *magic )
+	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
+
+	if ( strongest_match.empty() )
 		return new StringVal("<unknown>");
 
-	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
+	return new StringVal(strongest_match);
+	%}
 
-	return new StringVal(desc ? desc : "<unknown>");
+## Determines the MIME type of a piece of data using Bro's file magic
+## signatures.
+##
+## data: The data for which to find matching MIME types.
+##
+## Returns: All matching signatures, in order of strength.
+##
+## .. bro:see:: identify_data
+function file_magic%(data: string%): mime_matches
+	%{
+	RuleMatcher::MIME_Matches matches;
+	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
+	return file_analysis::GenMIMEMatchesVal(matches);
 	%}
 
 ## Performs an entropy test on the given data.

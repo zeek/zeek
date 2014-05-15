@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2014-04-01-23-16-27
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1394745603.293028	CXWv6p3arKYeMETxOg	192.168.4.149	60539	87.98.220.10	443	F1fX1R2cDOzbvg17ye	-	-	tcp	SSL::Certificate_Expired	Certificate CN=www.spidh.org,OU=COMODO SSL,OU=Domain Control Validated expired at 2014-03-04-23:59:59.000000000	-	192.168.4.149	87.98.220.10	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+1394745619.197766	CjhGID4nQcgTWjvg4c	192.168.4.149	60540	122.1.240.204	443	F6NAbK127LhNBaEe5c	-	-	tcp	SSL::Certificate_Expires_Soon	Certificate CN=www.tobu-estate.com,OU=Terms of use at www.verisign.com/rpa (c)05,O=TOBU RAILWAY Co.\,Ltd.,L=Sumida-ku,ST=Tokyo,C=JP is going to expire at 2014-03-14-23:59:59.000000000	-	192.168.4.149	122.1.240.204	443	-	bro	Notice::ACTION_LOG	86400.000000	F	-	-	-	-	-
+#close	2014-04-01-23-16-27

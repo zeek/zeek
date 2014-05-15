@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -r $TRACES/tls1.2.trace %INPUT
+# @TEST-EXEC: bro -r $TRACES/tls/tls1.2.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
-event x509_extension(c: connection, is_orig: bool, cert:X509, extension: X509_extension_info) 
+event x509_extension(f: fa_file, extension: X509::Extension)
 {
 	# The formatting of CRL Distribution Points varies between OpenSSL versions. Skip it
 	# for the test.

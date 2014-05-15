@@ -44,7 +44,7 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void ConnectionFinished(int half_finished);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 
@@ -84,7 +84,6 @@ protected:
 	int pipelining;			// whether pipelining is supported
 	list<int> pending_cmd_q;	// to support pipelining
 	int skip_data;			// whether to skip message body
-	int orig_record_contents;	// keep the original record_contents
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap
 

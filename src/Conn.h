@@ -204,6 +204,7 @@ public:
 	bool IsPersistent()	{ return persistent; }
 
 	void Describe(ODesc* d) const;
+	void IDString(ODesc* d) const;
 
 	TimerMgr* GetTimerMgr() const;
 

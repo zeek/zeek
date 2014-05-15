@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-04-08-22-38-18
+#open	2014-05-15-14-10-48
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -38,15 +38,16 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
-    build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
     build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_Modbus.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NCP.events.bif.bro
-    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NetBIOS.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_NetFlow.events.bif.bro
     build/scripts/base/bif/plugins/Bro_NTP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_PIA.events.bif.bro
     build/scripts/base/bif/plugins/Bro_POP3.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_RADIUS.events.bif.bro
     build/scripts/base/bif/plugins/Bro_RPC.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SNMP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SMB.events.bif.bro
@@ -106,4 +107,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/broxygen.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2014-04-08-22-38-18
+#close	2014-05-15-14-10-48

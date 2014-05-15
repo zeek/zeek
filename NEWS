@@ -12,9 +12,6 @@ Bro 2.3
 Dependencies
 ------------
 
-- Bro no longer requires a pre-installed libmagic (because it now
-  ships its own).
-
 - Libmagic is no longer a dependency.
 
 New Functionality
@@ -45,6 +42,9 @@ New Functionality
 
 - The SSL analyzer comes with Heartbleed detector script in
   protocols/ssl/heartbleed.bro.
+
+- Bro now analyzers for SNMP and Radius, which produce corresponding
+  snmp.log and radius.log output (as well as various events of course).
 
 Changed Functionality
 ---------------------

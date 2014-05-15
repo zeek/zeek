@@ -3,6 +3,7 @@
 module RADIUS;
 
 @load ./consts.bro
+@load base/utils/addrs
 
 export {
 	redef enum Log::ID += { LOG };
@@ -76,9 +77,8 @@ event radius_message(c: connection, result: RADIUS::Message)
 		info$id  = c$id;
 		}
 
-	switch ( result$code ) {
-		case 1:
-			# Acess-Request
+	switch ( RADIUS::msg_types[result$code] ) {
+		case "Access-Request":
 			if ( result?$attributes ) {
 				# User-Name
 				if ( ! info?$username && 1 in result$attributes )
@@ -99,13 +99,11 @@ event radius_message(c: connection, result: RADIUS::Message)
 
 			break;
 
-		case 2:
-			# Access-Accept
+		case "Access-Accept":
 			info$result = "success";
 			break;
 
-		case 3:
-			# Access-Reject
+		case "Access-Reject":
 			info$result = "failed";
 			break;
 	}
@@ -123,5 +121,6 @@ event radius_message(c: connection, result: RADIUS::Message)
 function expire(t: table[count] of Info, idx: count): interval
 	 {
 	 t[idx]$result = "unknown";
+	 Log::write(RADIUS::LOG, t[idx]);
 	 return 0secs;
 	 }

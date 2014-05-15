@@ -1,4 +1,13 @@
 
+2.2-441 | 2014-05-15 11:29:56 -0700
+
+  * A new RADIUS analyzer. (Vlad Grigorescu)
+
+    It produces a radius.log and generates two events:
+
+        event radius_message(c: connection, result: RADIUS::Message);
+        event radius_attribute(c: connection, attr_type: count, value: string);
+
 2.2-427 | 2014-05-15 13:37:23 -0400
 
   * Fix dynamic SumStats update on clusters (Bernhard Amann)

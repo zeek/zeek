@@ -20,16 +20,19 @@ refine flow RADIUS_Flow += {
 				Val* index = new Val(${msg.attributes[i].code}, TYPE_COUNT);
 
 				// Do we already have a vector of attributes for this type?
-				VectorVal* current = attributes->Lookup(index)->AsVectorVal();
+                Val* current = attributes->Lookup(index);
 				Val* val = bytestring_to_val(${msg.attributes[i].value});
 
 				if ( current )
-					current->Assign(current->Size(), val);
+					{
+					VectorVal* vcurrent = current->AsVectorVal();
+					vcurrent->Assign(vcurrent->Size(), val);
+					}
 
 				else
 				    {
 					VectorVal* attribute_list = new VectorVal(BifType::Vector::RADIUS::AttributeList);
-					attribute_list->Assign(0, val);
+					attribute_list->Assign((unsigned int)0, val);
 					attributes->Assign(index, attribute_list);
 				    }
 

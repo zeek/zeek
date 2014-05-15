@@ -1,4 +1,8 @@
 
+2.2-427 | 2014-05-15 13:37:23 -0400
+
+  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+
 2.2-425 | 2014-05-08 16:34:44 -0700
 
   * Fix reassembly of data w/ sizes beyond 32-bit capacities. (Jon Siwek)

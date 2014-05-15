@@ -51,8 +51,7 @@ export {
 		user_agent:        string          &log &optional;
 
 		## Indicates that the connection has switched to using TLS
-		tls:               bool            &default=F;
-
+		tls:               bool            &log &default=F;
 		## Indicates if the "Received: from" headers should still be
 		## processed.
 		process_received_from: bool        &default=T;

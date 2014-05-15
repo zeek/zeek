@@ -30,7 +30,7 @@ cat >scripts/demo/foo/__load__.bro <<EOF
 EOF
 
 cat >scripts/demo/foo/manually.bro <<EOF
-event bro_init()
+event bro_init() &priority=-10
         {
         print "plugin: manually loaded";
         }
@@ -39,7 +39,7 @@ EOF
 mkdir -p scripts/demo/foo/base/
 
 cat >scripts/demo/foo/base/at-startup.bro <<EOF
-event bro_init()
+event bro_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
         print "calling bif", hello_plugin_world();

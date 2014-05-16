@@ -25,7 +25,7 @@ as the "Bro user".  When setting up a cluster the Bro user must be set up
 on all hosts, and this user must have ssh access from the manager to all
 machines in the cluster, and it must work without being prompted for a
 password/passphrase (for example, using ssh public key authentication).
-Finally, on the worker nodes, this user must have access to the target
+Also, on the worker nodes this user must have access to the target
 network interface in promiscuous mode.
 
 Additional storage must be available on all hosts under the same path,

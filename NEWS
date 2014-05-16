@@ -68,10 +68,13 @@ Changed Functionality
   signatures.
 
 - Bro no longer special-cases SYN/FIN/RST-filtered traces by not
-  reporting missing data. The old behavior can be reverted by
-  redef'ing "detect_filtered_trace".
+  reporting missing data. Instead, if Bro never sees any data segments
+  for analyzed TCP connections, the new
+  base/misc/find-filtered-trace.bro script will log a warning in
+  reporter.log and to stderr.
 
-  TODO: Update if we add a detector for filtered traces.
+  The old behavior can be reverted by redef'ing
+  "detect_filtered_trace".
 
 - We have removed the packet sorter component.
 

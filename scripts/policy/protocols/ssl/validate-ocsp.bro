@@ -34,7 +34,7 @@ event ssl_stapled_ocsp(c: connection, is_orig: bool, response: string) &priority
 
 event ssl_established(c: connection) &priority=3
 	{
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || !c$ssl?$ocsp_response )
 		return;
 
 	local chain: vector of opaque of x509 = vector();

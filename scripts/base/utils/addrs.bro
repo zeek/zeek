@@ -120,11 +120,11 @@ function addr_to_uri(a: addr): string
 		return fmt("[%s]", a);
 	}
 
-## Given a string, extracts the hex digits and returns a MAC address in the
-## format: 00:a0:32:d7:81:8f. If the string doesn't contain 12 or 16 hex digits,
-## an empty string is returned.
+## Given a string, extracts the hex digits and returns a MAC address in
+## the format: 00:a0:32:d7:81:8f. If the string doesn't contain 12 or 16 hex
+## digits, an empty string is returned.
 ##
-## a: the string to normalize
+## a: the string to normalize.
 ##
 ## Returns: a normalized MAC address, or an empty string in the case of an error.
 function normalize_mac(a: string): string

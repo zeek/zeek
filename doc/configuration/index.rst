@@ -237,10 +237,10 @@ same packets multiple times with different tools.
    of processes you're balancing across (10 in this example) matches
    the lb_procs option in the node.cfg file.
 4. If you are load balancing to other processes, you can use the
-   pfringdnafirstappinstance variable in broctl.cfg to set the first
+   pfringfirstappinstance variable in broctl.cfg to set the first
    application instance that Bro should use.  For example, if you are running
    pfdnacluster_master with "-n 10,4" you would set
-   pfringdnafirstappinstance=4.  Unfortunately that's still a global setting
+   pfringfirstappinstance=4.  Unfortunately that's still a global setting
    in broctl.cfg at the moment but we may change that to something you can
    set in node.cfg eventually.
 5. On the manager, configure your worker(s) in node.cfg::

@@ -1,4 +1,10 @@
 
+2.2-444 | 2014-05-16 14:10:32 -0500
+
+  * Disable all default AppStat plugins except facebook. (Jon Siwek)
+
+  * Update for the active http test to force it to use ipv4. (Seth Hall)
+
 2.2-441 | 2014-05-15 11:29:56 -0700
 
   * A new RADIUS analyzer. (Vlad Grigorescu)

@@ -43,6 +43,8 @@ New Functionality
 - The SSL analyzer comes with Heartbleed detector script in
   protocols/ssl/heartbleed.bro.
 
+- The X509 analyzer can now perform OSCP validation.
+
 - Bro now analyzers for SNMP and Radius, which produce corresponding
   snmp.log and radius.log output (as well as various events of course).
 

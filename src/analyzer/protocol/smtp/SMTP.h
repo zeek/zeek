@@ -7,6 +7,7 @@
 using namespace std;
 
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/tcp/ContentLine.h"
 #include "analyzer/protocol/mime/MIME.h"
 
 #undef SMTP_CMD_DEF
@@ -74,6 +75,7 @@ protected:
 				int detail_len, const char* detail);
 	void UnexpectedCommand(const int cmd_code, const int reply_code);
 	void UnexpectedReply(const int cmd_code, const int reply_code);
+	void StartTLS();
 
 	bool orig_is_sender;
 	int expect_sender, expect_recver;
@@ -88,6 +90,10 @@ protected:
 					// after a gap
 
 	mime::MIME_Mail* mail;
+
+private:
+	tcp::ContentLine_Analyzer* cl_orig;
+	tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } } // namespace analyzer::* 

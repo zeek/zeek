@@ -265,22 +265,23 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##    ssl_alert ssl_encrypted_heartbeat
 event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
-## Generated for SSL/TLS heartbeat messages that are sent after session encryption
-## started. Generally heartbeat messages should rarely be seen in normal TLS traffic.
-## Heartbeats are described in :rfc:`6520`.
+## Generated for SSL/TLS messages that are sent after session encryption
+## started.
 ##
-## Note that :bro:id:`SSL::disable_analyzer_after_detection` has to be set to false.
-## Otherwhise this event will never be thrown.
+## Note that :bro:id:`SSL::disable_analyzer_after_detection` has to be changed
+## from its default to false for this this event to be generated.  
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
+## content type: message type as reported by TLS session layer
+##
 ## length: length of the entire heartbeat message.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_heartbeat
-event ssl_encrypted_heartbeat%(c: connection, is_orig: bool, length: count%);
+event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, length: count%);
 
 ## This event contains the OCSP response contained in a Certificate Status Request
 ## message, when the client requested OCSP stapling and the server supports it. See

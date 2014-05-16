@@ -2812,7 +2812,7 @@ export {
 	## Result of an X509 certificate chain verification
 	type Result: record {
 		## OpenSSL result code
-		result:	count;
+		result:	int;
 		## Result as string
 		result_string: string;
 		## References to the final certificate chain, if verification successful. End-host certificate is first.

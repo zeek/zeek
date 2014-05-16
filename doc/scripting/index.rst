@@ -87,7 +87,7 @@ Up until this point, the script has merely done some basic setup.  With the next
 the script starts to define instructions to take in a given event.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 38-62
+   :lines: 38-71
 
 The workhorse of the script is contained in the event handler for
 ``file_hash``.  The :bro:see:`file_hash` event allows scripts to access

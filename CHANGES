@@ -1,4 +1,55 @@
 
+2.2-441 | 2014-05-15 11:29:56 -0700
+
+  * A new RADIUS analyzer. (Vlad Grigorescu)
+
+    It produces a radius.log and generates two events:
+
+        event radius_message(c: connection, result: RADIUS::Message);
+        event radius_attribute(c: connection, attr_type: count, value: string);
+
+2.2-427 | 2014-05-15 13:37:23 -0400
+
+  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+
+2.2-425 | 2014-05-08 16:34:44 -0700
+
+  * Fix reassembly of data w/ sizes beyond 32-bit capacities. (Jon Siwek)
+
+    Reassembly code (e.g. for TCP) now uses int64/uint64 (signedness
+    is situational) data types in place of int types in order to
+    support delivering data to analyzers that pass 2GB thresholds.
+    There's also changes in logic that accompany the change in data
+    types, e.g. to fix TCP sequence space arithmetic inconsistencies.
+
+    Another significant change is in the Analyzer API: the *Packet and
+    *Undelivered methods now use a uint64 in place of an int for the
+    relative sequence space offset parameter.
+
+    Addresses BIT-348. 
+
+  * Fixing compiler warnings. (Robin Sommer)
+    
+  * Update SNMP analyzer's DeliverPacket method signature. (Jon Siwek)
+    
+2.2-417 | 2014-05-07 10:59:22 -0500
+
+  * Change handling of atypical OpenSSL error case in x509 verification. (Jon Siwek)
+
+  * Fix memory leaks in X509 certificate parsing/verification. (Jon Siwek)
+
+  * Fix new []/delete mismatch in input::reader::Raw::DoClose(). (Jon Siwek)
+
+  * Fix buffer over-reads in file_analysis::Manager::Terminate() (Jon Siwek)
+
+  * Fix buffer overlows in IP address masking logic. (Jon Siwek)
+
+    That could occur either in taking a zero-length mask on an IPv6 address
+    (e.g. [fe80::]/0) or a reverse mask of length 128 on any address (e.g.
+    via the remask_addr BuiltIn Function).
+
+  * Fix new []/delete mismatch in ~Base64Converter. (Jon Siwek)
+
 2.2-410 | 2014-05-02 12:49:53 -0500
 
   * Replace an unneeded OPENSSL_malloc call. (Jon Siwek)

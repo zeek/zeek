@@ -104,7 +104,7 @@ Base64Converter::Base64Converter(analyzer::Analyzer* arg_analyzer, const string&
 Base64Converter::~Base64Converter()
 	{
 	if ( base64_table != default_base64_table )
-		delete base64_table;
+		delete [] base64_table;
 	}
 
 int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)

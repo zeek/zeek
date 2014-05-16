@@ -53,14 +53,14 @@ public:
 	void SkipBytesAfterThisLine(int64_t length);
 	void SkipBytes(int64_t length);
 
-	bool IsSkippedContents(int64_t seq, int64_t length)
+	bool IsSkippedContents(uint64_t seq, int64_t length)
 		{ return seq + length <= seq_to_skip; }
 
 protected:
 	ContentLine_Analyzer(const char* name, Connection* conn, bool orig);
 
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
 	class State;
@@ -71,19 +71,19 @@ protected:
 	void CheckNUL();
 
 	// Returns the sequence number delivered so far.
-	int64_t SeqDelivered() const	{ return seq_delivered_in_lines; }
+	uint64_t SeqDelivered() const	{ return seq_delivered_in_lines; }
 
 	u_char* buf;	// where we build up the body of the request
 	int offset;	// where we are in buf
 	int buf_len;	// how big buf is, total
 	unsigned int last_char;	// last (non-option) character scanned
 
-	int64_t seq;	// last seq number
-	int64_t seq_to_skip;
+	uint64_t seq;	// last seq number
+	uint64_t seq_to_skip;
 
 	// Seq delivered up to through NewLine() -- it is adjusted
 	// *before* NewLine() is called.
-	int64_t seq_delivered_in_lines;
+	uint64_t seq_delivered_in_lines;
 
 	// Number of bytes to be skipped after this line. See
 	// comments in SkipBytesAfterThisLine().

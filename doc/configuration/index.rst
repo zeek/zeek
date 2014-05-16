@@ -9,38 +9,38 @@ Cluster Configuration
 
 A *Bro Cluster* is a set of systems jointly analyzing the traffic of
 a network link in a coordinated fashion.  You can operate such a setup from
-a central manager system easily using BroControl, because BroControl
+a central manager system easily using BroControl because BroControl
 hides much of the complexity of the multi-machine installation.
 
 This section gives examples of how to setup common cluster configurations
-using BroControl (for a full reference on BroControl, see the
-:doc:`BroControl <../components/broctl/README>` documentation).
+using BroControl.  For a full reference on BroControl, see the
+:doc:`BroControl <../components/broctl/README>` documentation.
 
 
 Preparing to Setup a Cluster
 ============================
 
-When setting up a cluster, the same user account (in this document, we refer
-to this user as the "Bro user") must be set up on all hosts, and this user
-must have ssh access from the manager to all machines in the cluster,
-and it must work without being prompted for a password/passphrase (for
-example, using ssh public key authentication). Finally, on the worker nodes,
-this user must have access to the target network interface in promiscuous mode.
+In this document we refer to the user account used to set up the cluster
+as the "Bro user".  When setting up a cluster the Bro user must be set up
+on all hosts, and this user must have ssh access from the manager to all
+machines in the cluster, and it must work without being prompted for a
+password/passphrase (for example, using ssh public key authentication).
+Finally, on the worker nodes, this user must have access to the target
+network interface in promiscuous mode.
 
-Additionally, you need to have some storage available on all
-hosts under the same path, which we will call the cluster's *prefix* path.
-In this document, we refer to this directory as ``<prefix>`` (if you build
-Bro from source, then ``<prefix>`` is the directory specified
-with the ``--prefix`` configure option, or ``/usr/local/bro`` by default).
-The Bro user must be able to either create this directory or, where it
-already exists, must have write permission inside this directory
-on all hosts.
+Additional storage must be available on all hosts under the same path,
+which we will call the cluster's prefix path.  We refer to this directory
+as ``<prefix>``.  If you build Bro from source, then ``<prefix>`` is
+the directory specified with the ``--prefix`` configure option,
+or ``/usr/local/bro`` by default.  The Bro user must be able to either
+create this directory or, where it already exists, must have write
+permission inside this directory on all hosts.
 
 When trying to decide how to configure the Bro nodes, keep in mind that
 there can be multiple Bro instances running on the same host.  For example,
 it's possible to run a proxy and the manager on the same host.  However, it is
-recommended to run workers on a different machine than the manager (because
-workers can consume a lot of CPU resources).  The maximum recommended
+recommended to run workers on a different machine than the manager because
+workers can consume a lot of CPU resources.  The maximum recommended
 number of workers to run on a machine should be one or two less than
 the number of CPU cores available on that machine.  Using a load-balancing
 method (such as PF_RING) along with CPU pinning can decrease the load on
@@ -54,11 +54,11 @@ With all prerequisites in place, perform the following steps to setup
 a Bro cluster (do this as the Bro user on the manager host only):
 
 - Edit the BroControl configuration file, ``<prefix>/etc/broctl.cfg``,
-  and adjust any BroControl options that are needed for your environment.
-  Most likely you may want to adjust the value of the ``MailTo`` and
-  ``LogRotationInterval`` options.  A complete reference of all BroControl
-  options can be found in the :doc:`BroControl <../components/broctl/README>`
-  documentation.
+  and change the value of any BroControl options to be more suitable for
+  your environment.  You will most likely want to change the value of
+  the ``MailTo`` and ``LogRotationInterval`` options.  A complete
+  reference of all BroControl options can be found in the
+  :doc:`BroControl <../components/broctl/README>` documentation.
 
 - Edit the BroControl node configuration file, ``<prefix>/etc/node.cfg``
   to define where manager, proxies, and workers are to run.  For a cluster
@@ -249,41 +249,6 @@ same packets multiple times with different tools.
        type=worker
        host=10.0.0.50
        interface=dnacluster:21
-       lb_method=pf_ring
-       lb_procs=10
-
-
-Using PF_RING ZC with zbalance_ipc
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You must have a license for the ZC PF_RING-aware driver in order to do this.
-You can load balance between multiple applications and sniff the
-same packets multiple times with different tools.
-
-1. Load the ZC PF_RING-aware NIC driver (i.e. ixgbe) on each worker host.
-2. Run "ethtool -L zc:eth0 1" (this will establish 1 RSS queues on your NIC)
-   on each worker host.
-3. Run the zbalance_ipc command on each worker host.  For example::
-
-       zbalance_ipc -c 21 -i zc:eth0 -n 10
-
-   Make sure that your cluster ID (21 in this example) matches the interface
-   name you specify in the node.cfg file.  Also make sure that the number
-   of processes you're balancing across (10 in this example) matches
-   the lb_procs option in the node.cfg file.
-4. If you are load balancing to other processes, you can use the
-   pfringdnafirstappinstance variable in broctl.cfg to set the first
-   application instance that Bro should use.  For example, if you are running
-   zbalance_ipc with "-n 10,4" you would set
-   pfringdnafirstappinstance=4.  Unfortunately that's still a global setting
-   in broctl.cfg at the moment but we may change that to something you can
-   set in node.cfg eventually.
-5. On the manager, configure your worker(s) in node.cfg::
-
-       [worker-1]
-       type=worker
-       host=10.0.0.50
-       interface=zc:eth0
        lb_method=pf_ring
        lb_procs=10
 

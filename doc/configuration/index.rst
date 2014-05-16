@@ -128,6 +128,7 @@ and user-space DNA (Direct NIC Access) for fast packet capture/transmission.
 
 Installing PF_RING
 ^^^^^^^^^^^^^^^^^^
+
 1. Download and install PF_RING for your system following the instructions
    `here <http://www.ntop.org/get-started/download/#PF_RING>`_.  The following
    commands will install the PF_RING libraries and kernel module (replace
@@ -158,6 +159,7 @@ Installing PF_RING
    library files and kernel module on all of the workers in your cluster.
 
 2. Download the Bro source code.
+
 3. Configure and install Bro using the following commands::
 
      ./configure --with-pcap=/opt/pfring
@@ -170,6 +172,7 @@ Installing PF_RING
            libpcap.so.1 => /opt/pfring/lib/libpcap.so.1 (0x00007fa6d7d24000)
 
 5. Configure BroControl to use PF_RING (explained below).
+
 6. Run "broctl install" on the manager.  This command will install Bro and
    all required scripts to the other machines in your cluster.
 
@@ -204,10 +207,12 @@ You must have a PF_RING+DNA license in order to do this.  You can sniff
 each packet only once.
 
 1. Load the DNA NIC driver (i.e. ixgbe) on each worker host.
+
 2. Run "ethtool -L dna0 combined 10" (this will establish 10 RSS queues
    on your NIC) on each worker host.  You must make sure that you set the
    number of RSS queues to the same as the number you specify for the
    lb_procs option in the node.cfg file.
+
 3. On the manager, configure your worker(s) in node.cfg::
 
        [worker-1]
@@ -226,8 +231,10 @@ this.  You can load balance between multiple applications and sniff the
 same packets multiple times with different tools.
 
 1. Load the DNA NIC driver (i.e. ixgbe) on each worker host.
+
 2. Run "ethtool -L dna0 1" (this will establish 1 RSS queues on your NIC)
    on each worker host.
+
 3. Run the pfdnacluster_master command on each worker host.  For example::
 
        pfdnacluster_master -c 21 -i dna0 -n 10
@@ -236,6 +243,7 @@ same packets multiple times with different tools.
    name you specify in the node.cfg file.  Also make sure that the number
    of processes you're balancing across (10 in this example) matches
    the lb_procs option in the node.cfg file.
+
 4. If you are load balancing to other processes, you can use the
    pfringfirstappinstance variable in broctl.cfg to set the first
    application instance that Bro should use.  For example, if you are running
@@ -243,6 +251,7 @@ same packets multiple times with different tools.
    pfringfirstappinstance=4.  Unfortunately that's still a global setting
    in broctl.cfg at the moment but we may change that to something you can
    set in node.cfg eventually.
+
 5. On the manager, configure your worker(s) in node.cfg::
 
        [worker-1]

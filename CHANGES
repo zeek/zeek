@@ -1,5 +1,5 @@
 
-2.2-468 | 2014-05-16 15:13:26 -0700
+2.2-470 | 2014-05-16 15:16:32 -0700
 
   * Add a new section "Cluster Configuration" to the docs that is
     intended as a how-to for configuring a Bro cluster.  Most of this
@@ -7,6 +7,8 @@
     intended as more of a reference guide for more experienced users)
     and the load balancing FAQ on the website. (Daniel Thayer)
 
+  * Update some doc tests and line numbers (Daniel Thayer)
+    
 2.2-457 | 2014-05-16 14:38:31 -0700
 
   * New script policy/protocols/ssl/validate-ocsp.bro that adds OSCP

@@ -207,7 +207,7 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 		}
 	}
 
-void BitTorrentTracker_Analyzer::Undelivered(int seq, int len, bool orig)
+void BitTorrentTracker_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 

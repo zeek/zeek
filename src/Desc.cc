@@ -216,18 +216,32 @@ void ODesc::Indent()
 		}
 	}
 
-static const char hex_chars[] = "0123456789abcdef";
-
-static const char* find_first_unprintable(ODesc* d, const char* bytes, unsigned int n)
+static bool starts_with(const char* str1, const char* str2, size_t len)
 	{
-	if ( d->IsBinary() )
+	for ( size_t i = 0; i < len; ++i )
+		if ( str1[i] != str2[i] )
+			return false;
+
+	return true;
+	}
+
+size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
+	{
+	if ( escape_sequences.empty() )
 		return 0;
 
-	while ( n-- )
+	escape_set::const_iterator it;
+
+	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
 		{
-		if ( ! isprint(*bytes) )
-			return bytes;
-		++bytes;
+		const string& esc_str = *it;
+		size_t esc_len = esc_str.length();
+
+		if ( start + esc_len > end )
+			continue;
+
+		if ( starts_with(start, esc_str.c_str(), esc_len) )
+			return esc_len;
 		}
 
 	return 0;
@@ -235,21 +249,23 @@ static const char* find_first_unprintable(ODesc* d, const char* bytes, unsigned 
 
 pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 	{
-	pair<const char*, size_t> p(find_first_unprintable(this, bytes, n), 1);
+	typedef pair<const char*, size_t> escape_pos;
 
-	string str(bytes, n);
-	list<string>::const_iterator it;
-	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
+	if ( IsBinary() )
+		return escape_pos(0, 0);
+
+	for ( size_t i = 0; i < n; ++i )
 		{
-		size_t pos = str.find(*it);
-		if ( pos != string::npos && (p.first == 0 || bytes + pos < p.first) )
-			{
-			p.first = bytes + pos;
-			p.second = it->size();
-			}
+		if ( ! isprint(bytes[i]) )
+			return escape_pos(bytes + i, 1);
+
+		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);
+
+		if ( len )
+			return escape_pos(bytes + i, len);
 		}
 
-	return p;
+	return escape_pos(0, 0);
 	}
 
 void ODesc::AddBytes(const void* bytes, unsigned int n)
@@ -266,21 +282,11 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 	while ( s < e )
 		{
 		pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
+
 		if ( p.first )
 			{
 			AddBytesRaw(s, p.first - s);
-			if ( p.second == 1 )
-				{
-				char hex[6] = "\\x00";
-				hex[2] = hex_chars[((*p.first) & 0xf0) >> 4];
-				hex[3] = hex_chars[(*p.first) & 0x0f];
-				AddBytesRaw(hex, 4);
-				}
-			else
-				{
-				string esc_str = get_escaped_string(string(p.first, p.second), true);
-				AddBytesRaw(esc_str.c_str(), esc_str.size());
-				}
+			get_escaped_string(this, p.first, p.second, true);
 			s = p.first + p.second;
 			}
 		else

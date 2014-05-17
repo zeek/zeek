@@ -131,7 +131,7 @@ BroType* BroType::Clone() const
 	sinfo.cache = false;
 
 	this->Serialize(&sinfo);
-	char* data = 0;
+	char* data;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
 
@@ -141,7 +141,7 @@ BroType* BroType::Clone() const
 	BroType* rval = this->Unserialize(&uinfo, false);
 	assert(rval != this);
 
-	delete [] data;
+	free(data);
 	return rval;
 	}
 
@@ -1449,6 +1449,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		}
 	else
 		{
+		Unref(id);
 		reporter->Error("identifier or enumerator value in enumerated type definition already exists");
 		SetError();
 		return;
@@ -1626,6 +1627,23 @@ VectorType::~VectorType()
 	Unref(yield_type);
 	}
 
+BroType* VectorType::YieldType()
+	{
+	// Work around the fact that we use void internally to mark a vector
+	// as being unspecified. When looking at its yield type, we need to
+	// return any as that's what other code historically expects for type
+	// comparisions.
+	if ( IsUnspecifiedVector() )
+		{
+		BroType* ret = ::base_type(TYPE_ANY);
+		Unref(ret); // unref, because this won't be held by anyone.
+		assert(ret);
+		return ret;
+		}
+
+	return yield_type;
+	}
+
 int VectorType::MatchesIndex(ListExpr*& index) const
 	{
 	expr_list& el = index->Exprs();
@@ -1645,7 +1663,7 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 
 bool VectorType::IsUnspecifiedVector() const
 	{
-	return yield_type->Tag() == TYPE_ANY;
+	return yield_type->Tag() == TYPE_VOID;
 	}
 
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);

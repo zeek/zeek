@@ -203,7 +203,7 @@ protected:
 	virtual void Init();
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	virtual void NeedResync() {
 		resync_state = NEED_RESYNC;
@@ -234,7 +234,7 @@ public:
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	void ExpireTimer(double t);
 

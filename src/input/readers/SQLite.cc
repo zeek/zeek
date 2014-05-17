@@ -36,7 +36,7 @@ SQLite::SQLite(ReaderFrontend *frontend)
 			BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -85,7 +85,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	fullpath.append(".sqlite");
 
 	string query;
-	map<const char*, const char*>::const_iterator it = info.config.find("query");
+	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
 		Error(Fmt("No query specified when setting up SQLite data source. Aborting.", info.source));

@@ -41,13 +41,13 @@ function describe_file(f: fa_file): string
 
 event bro_init() &priority=5
 	{
-	Files::register_protocol(Analyzer::ANALYZER_SMTP, 
+	Files::register_protocol(Analyzer::ANALYZER_SMTP,
 	                         [$get_file_handle = SMTP::get_file_handle,
 	                          $describe        = SMTP::describe_file]);
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( c?$smtp )
+	if ( c?$smtp && !c$smtp$tls )
 		c$smtp$fuids[|c$smtp$fuids|] = f$id;
 	}

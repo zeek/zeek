@@ -35,8 +35,12 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	if ( getenv("BRO_DISABLE_BROXYGEN") )
 		disabled = true;
 
-	const char* path = getenv("PATH");
-	string path_to_bro = path ? find_file(bro_command, path): "";
+	if ( disabled )
+		return;
+
+	const char* env_path = getenv("PATH");
+	string path = env_path ? string(env_path) + ":." : ".";
+	string path_to_bro = find_file(bro_command, path);
 	struct stat s;
 
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )

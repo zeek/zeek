@@ -24,7 +24,7 @@ InterConnEndpoint::InterConnEndpoint(tcp::TCP_Endpoint* e)
 
 #define NORMAL_LINE_LENGTH 80
 
-int InterConnEndpoint::DataSent(double t, int seq, int len, int caplen,
+int InterConnEndpoint::DataSent(double t, uint64 seq, int len, int caplen,
 		const u_char* data, const IP_Hdr* /* ip */,
 		const struct tcphdr* /* tp */)
 	{
@@ -37,8 +37,8 @@ int InterConnEndpoint::DataSent(double t, int seq, int len, int caplen,
 	if ( endp->state == tcp::TCP_ENDPOINT_PARTIAL )
 		is_partial = 1;
 
-	int ack = endp->AckSeq() - endp->StartSeq();
-	int top_seq = seq + len;
+	uint64 ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
+	uint64 top_seq = seq + len;
 
 	if ( top_seq <= ack || top_seq <= max_top_seq )
 		// There is no new data in this packet
@@ -46,7 +46,7 @@ int InterConnEndpoint::DataSent(double t, int seq, int len, int caplen,
 
 	if ( seq < max_top_seq )
 		{ // Only consider new data
-		int amount_seen = max_top_seq - seq;
+		int64 amount_seen = max_top_seq - seq;
 		seq += amount_seen;
 		data += amount_seen;
 		len -= amount_seen;
@@ -184,7 +184,7 @@ void InterConn_Analyzer::Init()
 	}
 
 void InterConn_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+			bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig,
 						seq, ip, caplen);

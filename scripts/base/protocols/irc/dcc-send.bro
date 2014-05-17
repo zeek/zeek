@@ -76,7 +76,7 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	dcc_expected_transfers[address, p] = c$irc;
 	}
 
-event expected_connection_seen(c: connection, a: Analyzer::Tag) &priority=10
+event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in dcc_expected_transfers )

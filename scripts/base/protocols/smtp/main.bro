@@ -49,7 +49,9 @@ export {
 		path:              vector of addr  &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:        string          &log &optional;
-		
+
+		## Indicates that the connection has switched to using TLS.
+		tls:               bool            &log &default=F;
 		## Indicates if the "Received: from" headers should still be
 		## processed.
 		process_received_from: bool        &default=T;
@@ -274,6 +276,12 @@ event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$smtp )
 		smtp_message(c);
+	}
+
+event smtp_starttls(c: connection) &priority=5
+	{
+	if ( c?$smtp )
+		c$smtp$tls = T;
 	}
 
 function describe(rec: Info): string

@@ -66,7 +66,14 @@ bool Field::Write(SerializationFormat* fmt) const
 
 string Field::TypeName() const
 	{
-	string n = type_name(type);
+	string n;
+
+	// We do not support tables, if the internal Bro type is table it
+	// always is a set.
+	if ( type == TYPE_TABLE )
+		n = "set";
+	else
+		n = type_name(type);
 
 	if ( (type == TYPE_TABLE) || (type == TYPE_VECTOR) )
 		{

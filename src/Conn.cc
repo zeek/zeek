@@ -15,6 +15,7 @@
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
+#include "analyzer/Manager.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -722,8 +723,8 @@ TimerMgr* Connection::GetTimerMgr() const
 void Connection::FlipRoles()
 	{
 	IPAddr tmp_addr = resp_addr;
-	orig_addr = resp_addr;
-	resp_addr = tmp_addr;
+	resp_addr = orig_addr;
+	orig_addr = tmp_addr;
 
 	uint32 tmp_port = resp_port;
 	resp_port = orig_port;
@@ -742,6 +743,8 @@ void Connection::FlipRoles()
 
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
+
+	analyzer_mgr->ApplyScheduledAnalyzers(this);
 	}
 
 unsigned int Connection::MemoryAllocation() const
@@ -806,6 +809,17 @@ void Connection::Describe(ODesc* d) const
 	d->Add(ntohs(resp_port));
 
 	d->NL();
+	}
+
+void Connection::IDString(ODesc* d) const
+	{
+	d->Add(orig_addr);
+	d->AddRaw(":", 1);
+	d->Add(ntohs(orig_port));
+	d->AddRaw(" > ", 3);
+	d->Add(resp_addr);
+	d->AddRaw(":", 1);
+	d->Add(ntohs(resp_port));
 	}
 
 bool Connection::Serialize(SerialInfo* info) const

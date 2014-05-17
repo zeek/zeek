@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2013-08-26-18-40-16
+#open	2014-04-01-23-16-15
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	vector[string]	vector[string]	vector[string]	vector[string]
-1369159408.455878	CXWv6p3arKYeMETxOg	141.142.228.5	57262	54.243.88.146	80	1	POST	httpbin.org	/post	-	curl/7.30.0	370	465	200	OK	-	-	-	(empty)	-	-	-	F2yGNX2vGXLxfZeD12,Fq4rJh2kLHKa8YC1q1,F9sKY71Rb9megdy7sg	text/plain,text/plain,text/plain	FjeopJ2lRk9U1CNNb5	text/plain
-#close	2013-08-26-18-40-16
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1369159408.455878	CXWv6p3arKYeMETxOg	141.142.228.5	57262	54.243.88.146	80	1	POST	httpbin.org	/post	-	curl/7.30.0	370	465	200	OK	-	-	-	(empty)	-	-	-	F2yGNX2vGXLxfZeD12,Fq4rJh2kLHKa8YC1q1,F9sKY71Rb9megdy7sg	-	FjeopJ2lRk9U1CNNb5	text/plain
+#close	2014-04-01-23-16-15

@@ -7,7 +7,7 @@ namespace file_analysis {
 
 class File;
 
-FileReassembler::FileReassembler(File *f, int starting_offset)
+FileReassembler::FileReassembler(File *f, uint64 starting_offset)
 	: Reassembler(starting_offset), the_file(f)
 	{
 	}
@@ -35,12 +35,12 @@ void FileReassembler::BlockInserted(DataBlock* start_block)
 		}
 	}
 
-void FileReassembler::Undelivered(int up_to_seq)
+void FileReassembler::Undelivered(uint64 up_to_seq)
 	{
 	// Not doing anything here yet.
 	}
 
-void FileReassembler::Overlap(const u_char* b1, const u_char* b2, int n)
+void FileReassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 	{
 	// Not doing anything here yet.
 	}

@@ -317,7 +317,8 @@ protected:
 
 	// Communication helpers
 	bool SendCMsgToChild(char msg_type, Peer* peer);
-	bool SendToChild(char type, Peer* peer, char* str, int len = -1);
+	bool SendToChild(char type, Peer* peer, char* str, int len = -1,
+	                 bool delete_with_free = false);
 	bool SendToChild(char type, Peer* peer, int nargs, ...); // can send uints32 only
 	bool SendToChild(ChunkedIO::Chunk* c);
 

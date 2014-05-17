@@ -1,3 +1,6 @@
+
+.. _sumstats-framework:
+
 ==================
 Summary Statistics
 ==================

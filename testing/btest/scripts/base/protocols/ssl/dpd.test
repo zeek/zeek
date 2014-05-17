@@ -1,0 +1,19 @@
+# @TEST-EXEC: bro -C -b -r $TRACES/tls/ssl-v2.trace %INPUT
+# @TEST-EXEC: bro -b -r $TRACES/tls/ssl.v3.trace %INPUT
+# @TEST-EXEC: bro -b -r $TRACES/tls/tls1.2.trace %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/frameworks/dpd
+@load base/frameworks/signatures
+@load-sigs base/protocols/ssl/dpd.sig
+
+event bro_init()
+  {
+	print "Start test run";
+	}
+
+event ssl_client_hello(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec) &priority=5
+	{
+	print "Client hello", c$id$orig_h, c$id$resp_h, version;
+	}
+

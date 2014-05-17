@@ -3,7 +3,7 @@
 
 @load base/utils/directions-and-hosts
 @load base/protocols/ssl
-@load protocols/ssl/cert-hash
+@load base/files/x509
 
 module Known;
 
@@ -31,9 +31,9 @@ export {
 	const cert_tracking = LOCAL_HOSTS &redef;
 	
 	## The set of all known certificates to store for preventing duplicate 
-	## logging.  It can also be used from other scripts to 
+	## logging. It can also be used from other scripts to 
 	## inspect if a certificate has been seen in use. The string value 
-	## in the set is for storing the DER formatted certificate's MD5 hash.
+	## in the set is for storing the DER formatted certificate' SHA1 hash.
 	global certs: set[addr, string] &create_expire=1day &synchronized &redef;
 	
 	## Event that can be handled to access the loggable record as it is sent
@@ -46,16 +46,27 @@ event bro_init() &priority=5
 	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
 	}
 
-event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string) &priority=3
+event ssl_established(c: connection) &priority=3
 	{
-	# Make sure this is the server cert and we have a hash for it.
-	if ( is_orig || chain_idx != 0 || ! c$ssl?$cert_hash ) 
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 )
 		return;
-	
-	local host = c$id$resp_h;
-	if ( [host, c$ssl$cert_hash] !in certs && addr_matches_host(host, cert_tracking) )
+
+	local fuid = c$ssl$cert_chain_fuids[0];
+
+	if ( ! c$ssl$cert_chain[0]?$sha1 )
 		{
-		add certs[host, c$ssl$cert_hash];
+		Reporter::error(fmt("Certificate with fuid %s did not contain sha1 hash when checking for known certs. Aborting",
+			fuid));
+		return;
+		}
+
+	local hash = c$ssl$cert_chain[0]$sha1;
+	local cert = c$ssl$cert_chain[0]$x509$certificate;
+
+	local host = c$id$resp_h;
+	if ( [host, hash] !in certs && addr_matches_host(host, cert_tracking) )
+		{
+		add certs[host, hash];
 		Log::write(Known::CERTS_LOG, [$ts=network_time(), $host=host,
 		                              $port_num=c$id$resp_p, $subject=cert$subject,
 		                              $issuer_subject=cert$issuer,

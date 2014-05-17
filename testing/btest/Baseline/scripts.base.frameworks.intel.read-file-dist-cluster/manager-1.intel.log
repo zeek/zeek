@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2013-08-14-03-47-23
+#open	2014-04-01-23-14-12
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	sources
-#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	table[string]
-1376452043.835810	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	source1
-1376452043.835810	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	source1
-1376452044.855238	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	source1
-1376452044.855238	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	source1
-#close	2013-08-14-03-47-32
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	set[string]
+1396394052.512481	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	source1
+1396394052.512481	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	source1
+1396394053.554897	-	-	-	-	-	-	-	-	1.2.3.4	Intel::ADDR	Intel::IN_A_TEST	source1
+1396394053.554897	-	-	-	-	-	-	-	-	e@mail.com	Intel::EMAIL	Intel::IN_A_TEST	source1
+#close	2014-04-01-23-14-21

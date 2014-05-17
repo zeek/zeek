@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2014-01-16-21-51-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
+#types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
+1055289987.055189	CRJuHdVW0XPVINV8a	66.59.111.190	37675	172.28.2.3	53	udp	48554	www.gleeble.org	1	C_INTERNET	255	*	-	-	F	F	T	F	0	-	-	F
+1055289992.056330	CRJuHdVW0XPVINV8a	66.59.111.190	37675	172.28.2.3	53	udp	48554	www.gleeble.org	1	C_INTERNET	255	*	-	-	F	F	T	F	0	-	-	F
+#close	2014-01-16-21-51-12

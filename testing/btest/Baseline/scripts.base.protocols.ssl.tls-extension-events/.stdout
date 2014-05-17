@@ -1,0 +1,13 @@
+server_name, 192.168.4.149, 74.125.239.152, [google.de]
+Curves, 192.168.4.149, 74.125.239.152
+secp256r1
+secp384r1
+secp521r1
+Point formats, 192.168.4.149, 74.125.239.152, T
+uncompressed
+ALPN, 192.168.4.149, 74.125.239.152, [spdy/3, spdy/3.1, http/1.1]
+Point formats, 192.168.4.149, 74.125.239.152, F
+uncompressed
+ansiX962_compressed_prime
+ansiX962_compressed_char2
+ALPN, 192.168.4.149, 74.125.239.152, [spdy/3.1]

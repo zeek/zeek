@@ -29,7 +29,7 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	heartbeatstarttime = 0;
 	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
 
-	ascii = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo());
+	ascii = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo());
 	}
 
 Benchmark::~Benchmark()

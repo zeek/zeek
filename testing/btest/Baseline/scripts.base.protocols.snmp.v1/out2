@@ -1,0 +1,26 @@
+snmp_get_request
+  [orig_h=203.143.168.235, orig_p=1026/udp, resp_h=129.94.135.39, resp_p=161/udp]
+  is_orig: T
+  [community=public]
+    request_id: 1567
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.25.3.2.1.5.1
+    value (tag=0x05): <unspecified>
+    oid: 1.3.6.1.2.1.25.3.5.1.1.1
+    value (tag=0x05): <unspecified>
+    oid: 1.3.6.1.2.1.25.3.5.1.2.1
+    value (tag=0x05): <unspecified>
+snmp_response
+  [orig_h=203.143.168.235, orig_p=1026/udp, resp_h=129.94.135.39, resp_p=161/udp]
+  is_orig: F
+  [community=public]
+    request_id: 1567
+    error_stat: 0
+    error_idx:  0
+    oid: 1.3.6.1.2.1.25.3.2.1.5.1
+    value (tag=0x02): 5
+    oid: 1.3.6.1.2.1.25.3.5.1.1.1
+    value (tag=0x02): 1
+    oid: 1.3.6.1.2.1.25.3.5.1.2.1
+    value (tag=0x04): \xc0

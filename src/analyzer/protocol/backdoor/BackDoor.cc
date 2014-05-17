@@ -46,7 +46,7 @@ void BackDoorEndpoint::FinalCheckForRlogin()
 		}
 	}
 
-int BackDoorEndpoint::DataSent(double /* t */, int seq,
+int BackDoorEndpoint::DataSent(double /* t */, uint64 seq,
 				int len, int caplen, const u_char* data,
 				const IP_Hdr* /* ip */,
 				const struct tcphdr* /* tp */)
@@ -60,8 +60,8 @@ int BackDoorEndpoint::DataSent(double /* t */, int seq,
 	if ( endp->state == tcp::TCP_ENDPOINT_PARTIAL )
 		is_partial = 1;
 
-	int ack = endp->AckSeq() - endp->StartSeq();
-	int top_seq = seq + len;
+	uint64 ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
+	uint64 top_seq = seq + len;
 
 	if ( top_seq <= ack || top_seq <= max_top_seq )
 		// There is no new data in this packet.
@@ -124,7 +124,7 @@ RecordVal* BackDoorEndpoint::BuildStats()
 	return stats;
 	}
 
-void BackDoorEndpoint::CheckForRlogin(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForRlogin(uint64 seq, int len, const u_char* data)
 	{
 	if ( rlogin_checking_done )
 		return;
@@ -177,7 +177,7 @@ void BackDoorEndpoint::CheckForRlogin(int seq, int len, const u_char* data)
 
 	if ( seq < max_top_seq )
 		{ // trim to just the new data
-		int delta = max_top_seq - seq;
+		int64 delta = max_top_seq - seq;
 		seq += delta;
 		data += delta;
 		len -= delta;
@@ -255,7 +255,7 @@ void BackDoorEndpoint::RloginSignatureFound(int len)
 	endp->TCP()->ConnectionEvent(rlogin_signature_found, vl);
 	}
 
-void BackDoorEndpoint::CheckForTelnet(int /* seq */, int len, const u_char* data)
+void BackDoorEndpoint::CheckForTelnet(uint64 /* seq */, int len, const u_char* data)
 	{
 	if ( len >= 3 &&
 	     data[0] == TELNET_IAC && IS_TELNET_NEGOTIATION_CMD(data[1]) )
@@ -346,7 +346,7 @@ void BackDoorEndpoint::TelnetSignatureFound(int len)
 	endp->TCP()->ConnectionEvent(telnet_signature_found, vl);
 	}
 
-void BackDoorEndpoint::CheckForSSH(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForSSH(uint64 seq, int len, const u_char* data)
 	{
 	if ( seq == 1 && CheckForString("SSH-", data, len) && len > 4 &&
 	     (data[4] == '1' || data[4] == '2') )
@@ -363,8 +363,9 @@ void BackDoorEndpoint::CheckForSSH(int seq, int len, const u_char* data)
 
 	if ( seq > max_top_seq )
 		{ // Estimate number of packets in the sequence gap
-		int gap = seq - max_top_seq;
-		num_pkts += int((gap + DEFAULT_MTU - 1) / DEFAULT_MTU);
+		int64 gap = seq - max_top_seq;
+		if ( gap > 0 )
+			num_pkts += uint64((gap + DEFAULT_MTU - 1) / DEFAULT_MTU);
 		}
 
 	++num_pkts;
@@ -388,7 +389,7 @@ void BackDoorEndpoint::CheckForSSH(int seq, int len, const u_char* data)
 		}
 	}
 
-void BackDoorEndpoint::CheckForRootBackdoor(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForRootBackdoor(uint64 seq, int len, const u_char* data)
 	{
 	// Check for root backdoor signature: an initial payload of
 	// exactly "# ".
@@ -397,7 +398,7 @@ void BackDoorEndpoint::CheckForRootBackdoor(int seq, int len, const u_char* data
 		SignatureFound(root_backdoor_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForFTP(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForFTP(uint64 seq, int len, const u_char* data)
 	{
 	// Check for FTP signature
 	//
@@ -429,7 +430,7 @@ void BackDoorEndpoint::CheckForFTP(int seq, int len, const u_char* data)
 		SignatureFound(ftp_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForNapster(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForNapster(uint64 seq, int len, const u_char* data)
 	{
 	// Check for Napster signature "GETfoobar" or "SENDfoobar" where
 	// "foobar" is the Napster handle associated with the request
@@ -449,7 +450,7 @@ void BackDoorEndpoint::CheckForNapster(int seq, int len, const u_char* data)
 		SignatureFound(napster_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForSMTP(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForSMTP(uint64 seq, int len, const u_char* data)
 	{
 	const char* smtp_handshake[] = { "HELO", "EHLO", 0 };
 
@@ -460,7 +461,7 @@ void BackDoorEndpoint::CheckForSMTP(int seq, int len, const u_char* data)
 		SignatureFound(smtp_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForIRC(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForIRC(uint64 seq, int len, const u_char* data)
 	{
 	if ( seq != 1 || is_partial )
 		return;
@@ -475,7 +476,7 @@ void BackDoorEndpoint::CheckForIRC(int seq, int len, const u_char* data)
 		SignatureFound(irc_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForGnutella(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForGnutella(uint64 seq, int len, const u_char* data)
 	{
 	// After connecting to the server, the connecting client says:
 	//
@@ -492,13 +493,13 @@ void BackDoorEndpoint::CheckForGnutella(int seq, int len, const u_char* data)
 		SignatureFound(gnutella_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForGaoBot(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForGaoBot(uint64 seq, int len, const u_char* data)
 	{
 	if ( seq == 1 && CheckForString("220 Bot Server (Win32)", data, len) )
 		SignatureFound(gaobot_signature_found);
 	}
 
-void BackDoorEndpoint::CheckForKazaa(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForKazaa(uint64 seq, int len, const u_char* data)
 	{
 	// *Some*, though not all, KaZaa connections begin with:
 	//
@@ -565,7 +566,7 @@ int is_absolute_url(const u_char* data, int len)
 	return *abs_url_sig_pos == '\0';
 	}
 
-void BackDoorEndpoint::CheckForHTTP(int seq, int len, const u_char* data)
+void BackDoorEndpoint::CheckForHTTP(uint64 seq, int len, const u_char* data)
 	{
 	// According to the RFC, we should look for
 	// '<method> SP <url> SP HTTP/<version> CR LF'
@@ -629,7 +630,7 @@ void BackDoorEndpoint::CheckForHTTP(int seq, int len, const u_char* data)
 		}
 	}
 
-void BackDoorEndpoint::CheckForHTTPProxy(int /* seq */, int len,
+void BackDoorEndpoint::CheckForHTTPProxy(uint64 /* seq */, int len,
 					const u_char* data)
 	{
 	// Proxy ONLY accepts absolute URI's: "The absoluteURI form is
@@ -713,7 +714,7 @@ void BackDoor_Analyzer::Init()
 	}
 
 void BackDoor_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

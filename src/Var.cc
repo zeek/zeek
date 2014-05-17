@@ -169,7 +169,13 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			Val* aggr;
 			if ( t->Tag() == TYPE_RECORD )
+				{
 				aggr = new RecordVal(t->AsRecordType());
+
+				if ( init && t )
+					// Have an initialization and type is not deduced.
+					init = new RecordCoerceExpr(init, t->AsRecordType());
+				}
 
 			else if ( t->Tag() == TYPE_TABLE )
 				aggr = new TableVal(t->AsTableType(), id->Attrs());
@@ -379,6 +385,8 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
+		Unref(arg_id);
+
 		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type->Ref());
 		}
@@ -436,10 +444,13 @@ void end_func(Stmt* body, attr_list* attrs)
 Val* internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+	return rval;
 	}
 
 Val* internal_const_val(const char* name)
@@ -451,13 +462,17 @@ Val* internal_const_val(const char* name)
 	if ( ! id->IsConst() )
 		reporter->InternalError("internal variable %s is not constant", name);
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+	return rval;
 	}
 
 Val* opt_internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	return id ? id->ID_Val() : 0;
+	Val* rval = id ? id->ID_Val() : 0;
+	Unref(id);
+	return rval;
 	}
 
 double opt_internal_double(const char* name)
@@ -497,6 +512,8 @@ ListVal* internal_list_val(const char* name)
 		return 0;
 
 	Val* v = id->ID_Val();
+	Unref(id);
+
 	if ( v )
 		{
 		if ( v->Type()->Tag() == TYPE_LIST )
@@ -522,7 +539,9 @@ BroType* internal_type(const char* name)
 	if ( ! id )
 		reporter->InternalError("internal type %s missing", name);
 
-	return id->Type();
+	BroType* rval = id->Type();
+	Unref(id);
+	return rval;
 	}
 
 Func* internal_func(const char* name)

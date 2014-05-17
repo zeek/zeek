@@ -1,0 +1,16 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2014-04-01-22-56-51
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	set[string]
+1055289978.756932	CsRx2w45OKnoww6xl4	66.59.111.190	40264	172.28.2.3	22	tcp	ssh	3.157831	952	1671	SF	-	0	ShAdDaFf	12	1584	10	2199	CXWv6p3arKYeMETxOg
+1055289987.055189	CRJuHdVW0XPVINV8a	66.59.111.190	37675	172.28.2.3	53	udp	dns	5.001141	66	0	S0	-	0	D	2	122	0	0	CXWv6p3arKYeMETxOg
+1055289996.849099	CIPOse170MGiRM1Qf4	66.59.111.190	123	129.170.17.4	123	udp	-	0.072374	48	48	SF	-	0	Dd	1	76	1	76	CXWv6p3arKYeMETxOg
+1055289973.849878	CCvvfg3TEfuqmmG4bh	66.59.111.190	123	18.26.4.105	123	udp	-	0.074086	48	48	SF	-	0	Dd	1	76	1	76	CXWv6p3arKYeMETxOg
+1055289992.849231	C6pKV8GSxOnSLghOa	66.59.111.190	123	66.59.111.182	123	udp	-	0.056629	48	48	SF	-	0	Dd	1	76	1	76	CXWv6p3arKYeMETxOg
+1055289968.793044	CjhGID4nQcgTWjvg4c	66.59.111.190	8	172.28.2.3	0	icmp	-	3.061298	224	224	OTH	-	0	-	4	336	4	336	CXWv6p3arKYeMETxOg
+1055289987.106744	CPbrpk1qSsw6ESzHV4	172.28.2.3	3	66.59.111.190	3	icmp	-	4.994662	122	0	OTH	-	0	-	2	178	0	0	CXWv6p3arKYeMETxOg
+#close	2014-04-01-22-56-51

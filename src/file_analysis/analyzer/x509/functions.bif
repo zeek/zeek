@@ -211,7 +211,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// from here, always goto cleanup. Initialize all other required variables...
 	time_t vtime = (time_t) verify_time;
-  OCSP_BASICRESP *basic = 0;
+	OCSP_BASICRESP *basic = 0;
 	OCSP_SINGLERESP *single = 0;
 	X509_STORE_CTX *csc = 0;
 	OCSP_CERTID *certid = 0;

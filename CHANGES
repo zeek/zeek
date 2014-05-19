@@ -1,4 +1,8 @@
 
+2.3-beta | 2014-05-19 16:36:50 -0500
+
+  * Release 2.3-beta
+
 2.2-478 | 2014-05-19 15:31:33 -0500
 
   * Change record ctors to only allow record-field-assignment

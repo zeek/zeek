@@ -29,7 +29,7 @@ RecordVal* x509_error_record(uint64_t num, const char* reason)
 	{
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
-	rrecord->Assign(0, new Val(num, TYPE_COUNT));
+	rrecord->Assign(0, new Val(num, TYPE_INT));
 	rrecord->Assign(1, new StringVal(reason));
 
 	return rrecord;
@@ -425,7 +425,7 @@ x509_verify_chainerror:
 
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
-	rrecord->Assign(0, new Val((uint64) csc.error, TYPE_COUNT));
+	rrecord->Assign(0, new Val((uint64) csc.error, TYPE_INT));
 	rrecord->Assign(1, new StringVal(X509_verify_cert_error_string(csc.error)));
 
 	if ( chainVector )

@@ -1,4 +1,10 @@
 
+2.2-477 | 2014-05-19 14:13:00 -0500
+
+  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)
+
+  * Fix a couple of doc build warnings (Daniel Thayer)
+
 2.2-470 | 2014-05-16 15:16:32 -0700
 
   * Add a new section "Cluster Configuration" to the docs that is

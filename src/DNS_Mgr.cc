@@ -422,12 +422,14 @@ bool DNS_Mgr::Init()
 
 	LoadCache(fopen(cache_name, "r"));
 
+	LSAN_DISABLE();
 	dns_mapping_valid = internal_handler("dns_mapping_valid");
 	dns_mapping_unverified = internal_handler("dns_mapping_unverified");
 	dns_mapping_new_name = internal_handler("dns_mapping_new_name");
 	dns_mapping_lost_name = internal_handler("dns_mapping_lost_name");
 	dns_mapping_name_changed = internal_handler("dns_mapping_name_changed");
 	dns_mapping_altered = internal_handler("dns_mapping_altered");
+	LSAN_ENABLE();
 
 	dm_rec = internal_type("dns_mapping")->AsRecordType();
 

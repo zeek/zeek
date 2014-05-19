@@ -327,6 +327,8 @@ void done_with_network()
 			abort();
 			}
 #endif
+
+	LSAN_DISABLE();
 	}
 
 void terminate_bro()
@@ -429,6 +431,7 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	LSAN_DISABLE();
 	std::set_new_handler(bro_new_handler);
 
 	brofiler.ReadStats();
@@ -1162,6 +1165,7 @@ int main(int argc, char** argv)
 
 #endif
 
+		LSAN_ENABLE();
 		net_run();
 		done_with_network();
 		net_delete();

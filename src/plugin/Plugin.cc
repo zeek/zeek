@@ -41,7 +41,9 @@ BifItem::~BifItem()
 Plugin::Plugin()
 	{
 	name = copy_string("<NAME-NOT-SET>");
+	LSAN_IGNORE(name);
 	description = copy_string("");
+	LSAN_IGNORE(description);
 
 	// These will be reset by the BRO_PLUGIN_* macros.
 	version = -9999;

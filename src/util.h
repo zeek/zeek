@@ -53,6 +53,23 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#define LSAN_DISABLE __lsan_disable
+#define LSAN_ENABLE __lsan_enable
+#define LSAN_IGNORE(x) __lsan_ignore_object(x)
+#define LSAN_SCOPED_DISABLER __lsan::ScopedDisabler
+#else
+#define LSAN_DISABLE
+#define LSAN_ENABLE
+#define LSAN_IGNORE(x)
+#define LSAN_SCOPED_DISABLER
+#endif
+
 #include <stdint.h>
 
 typedef uint64_t uint64;

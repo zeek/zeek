@@ -42,6 +42,7 @@ X509_STORE* x509_get_root_store(TableVal* root_certs)
 		return x509_stores[root_certs];
 
 	X509_STORE* ctx = X509_STORE_new();
+	LSAN_IGNORE(ctx);
 	ListVal* idxs = root_certs->ConvertToPureList();
 
 	// Build the validation store

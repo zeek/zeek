@@ -262,7 +262,7 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##          if payload_length and actual packet length disagree.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    ssl_alert ssl_encrypted_heartbeat
+##    ssl_alert ssl_encrypted_data
 event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
 ## Generated for SSL/TLS messages that are sent after session encryption

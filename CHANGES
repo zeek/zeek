@@ -1,4 +1,9 @@
 
+2.2-478 | 2014-05-19 15:31:33 -0500
+
+  * Change record ctors to only allow record-field-assignment
+    expressions. (Jon Siwek)
+
 2.2-477 | 2014-05-19 14:13:00 -0500
 
   * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)

@@ -81,6 +81,8 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/logging/writers/dataseries.bro
     scripts/base/frameworks/logging/writers/sqlite.bro
     scripts/base/frameworks/logging/writers/elasticsearch.bro
+    scripts/base/frameworks/logging/writers/elasticsearchrabbit.bro
+    scripts/base/frameworks/logging/writers/AMQP.bro
     scripts/base/frameworks/logging/writers/none.bro
   scripts/base/frameworks/input/__load__.bro
     scripts/base/frameworks/input/main.bro

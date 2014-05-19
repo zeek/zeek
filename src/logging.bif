@@ -112,6 +112,33 @@ const max_batch_size: count;
 const max_batch_interval: interval;
 const max_byte_size: count;
 
+# Options for the ElasticSearchRabbit writer.
+module LogElasticSearchRabbit;
+
+const server_host: string;
+const server_port: count;
+const server_user: string;
+const server_pass: string;
+const queue_exchange: string;
+const routing_key: string;
+const index_prefix: string;
+const max_batch_size: count;
+const max_batch_interval: interval;
+const max_byte_size: count;
+
+module LogAMQP;
+
+const server_host: string;
+const server_port: count;
+const server_user: string;
+const server_pass: string;
+const queue_exchange: string;
+const routing_key: string;
+const max_batch_size: count;
+const max_batch_interval: interval;
+const max_byte_size: count;
+
+
 # Options for the None writer.
 
 module LogNone;

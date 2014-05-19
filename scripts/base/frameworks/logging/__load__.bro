@@ -4,4 +4,6 @@
 @load ./writers/dataseries
 @load ./writers/sqlite
 @load ./writers/elasticsearch
+@load ./writers/elasticsearchrabbit
+@load ./writers/AMQP
 @load ./writers/none

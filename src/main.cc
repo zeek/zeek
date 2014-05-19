@@ -1174,6 +1174,10 @@ int main(int argc, char** argv)
 
 		sqlite3_shutdown();
 
+		ERR_free_strings();
+		EVP_cleanup();
+		CRYPTO_cleanup_all_ex_data();
+
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.
 		BroFile::CloseCachedFiles();

@@ -3,6 +3,10 @@
 
   * Release 2.3-beta
 
+  * Clean up OpenSSL data structures on exit. (Bernhard Amann)
+
+  * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+
 2.2-478 | 2014-05-19 15:31:33 -0500
 
   * Change record ctors to only allow record-field-assignment

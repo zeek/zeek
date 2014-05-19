@@ -16,3 +16,15 @@
 	# (json-logs.bro activates this).
 	redef LogAscii::use_json = F;
 @endif
+
+@ifdef ( LogElasticSearchRabbit::server_host )
+	# Set to empty so that logs-to-elasticsearchrabbit.bro doesn't try to setup
+	#log forwarding to ES.
+	redef LogElasticSearchRabbit::server_host = "";
+@endif
+
+@ifdef ( LogAMQP::server_host )
+	# Set to empty so that logs-to-AMQP.bro doesn't try to setup
+	#log forwarding to Rabbit.
+	redef LogAMQP::server_host = "";
+@endif

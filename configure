@@ -190,6 +190,9 @@ while [ $# -ne 0 ]; do
         --disable-elasticsearch)
             append_cache_entry DISABLE_ELASTICSEARCH     BOOL   true
             ;;
+        --disable-rabbit)
+            append_cache_entry DISABLE_RABBIT   BOOL   true
+            ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
             ;;

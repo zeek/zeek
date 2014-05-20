@@ -367,7 +367,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## str: The textual information returned by the reply.
+## strs: The textual information returned by the reply.
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
@@ -392,6 +392,8 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
+## target: TODO
+##
 ## priority: Priority of the SRV response.
 ##
 ## weight: Weight of the SRV response.
@@ -408,8 +410,7 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_
 event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count%);
 
 ## Generated on DNS reply resource records when the type of record is not one
-## that Bro knows how to parse and generate another more specific specific
-## event.
+## that Bro knows how to parse and generate another more specific event.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the
 ##    transport-layer session being analyzed.

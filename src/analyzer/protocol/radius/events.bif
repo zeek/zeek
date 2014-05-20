@@ -3,10 +3,9 @@
 ## See `Wikipedia <http://en.wikipedia.org/wiki/RADIUS>`__ for more
 ## information about RADIUS.
 ##
-## c: The connection
-## msg_type: The value of the code field (1 == Access-Request, 2 == Access-Accept, etc.)
-## trans_id: The RADIUS transaction identifier
-## authenticator: The value of the authenticator field
+## c: The connection.
+##
+## result: TODO
 ##
 event radius_message%(c: connection, result: RADIUS::Message%);
 
@@ -15,9 +14,11 @@ event radius_message%(c: connection, result: RADIUS::Message%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/RADIUS>`__ for more
 ## information about RADIUS.
 ##
-## c: The connection
-## attr_type: The value of the code field (1 == User-Name, 2 == User-Password, etc.)
-## authenticator: The value of the authenticator field
+## c: The connection.
+##
+## attr_type: The value of the code field (1 == User-Name, 2 == User-Password, etc.).
+##
+## value: TODO
 ##
 event radius_attribute%(c: connection, attr_type: count, value: string%);
 

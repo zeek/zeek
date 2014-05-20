@@ -43,6 +43,8 @@ New Functionality
   the default value of "SSL::disable_analyzer_after_detection" from true
   to false to prevent encrypted heartbeats from being ignored.
 
+- StartTLS is now supported for SMTP and POP3.
+
 - The X509 analyzer can now perform OSCP validation.
 
 - Bro now has analyzers for SNMP and Radius, which produce corresponding
@@ -82,8 +84,14 @@ Changed Functionality
 
       event x509_extension(c: connection, is_orig: bool, cert: X509, ext: X509_extension_info);
 
+- In addition, there are several new, more specialized events for a
+  number of x509 extensions.
+
 - Generally, all x509 events and handling functions have changed their
   signatures.
+
+- X509 certificate verification now returns the complete certificate
+  chain that was used for verification.
 
 - Bro no longer special-cases SYN/FIN/RST-filtered traces by not
   reporting missing data. Instead, if Bro never sees any data segments

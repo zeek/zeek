@@ -106,9 +106,9 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 
 ## Parses a certificate into an X509::Certificate structure.
 ##
-## cert: The X509 certificicate opaque handle
+## cert: The X509 certificate opaque handle.
 ##
-## Returns: A X509::Certificate structure
+## Returns: A X509::Certificate structure.
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_verify
@@ -123,13 +123,13 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 
 ## Returns the string form of a certificate.
 ##
-## cert: The X509 certificate opaque handle
+## cert: The X509 certificate opaque handle.
 ##
 ## pem: A boolean that specifies if the certificate is returned
 ##      in pem-form (true), or as the raw ASN1 encoded binary
 ##      (false).
 ##
-## Returns: X509 certificate as a string
+## Returns: X509 certificate as a string.
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse x509_verify
@@ -158,14 +158,14 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ##
 ## certs: Specifies the certificate chain to use. Server certificate first.
 ##
-## ocsp_reply: the ocsp reply to validate
+## ocsp_reply: the ocsp reply to validate.
 ##
-## root_certs: A list of root certificates to validate the certificate chain
+## root_certs: A list of root certificates to validate the certificate chain.
 ##
 ## verify_time: Time for the validity check of the certificates.
 ##
-## Returns: A record of type X509::Result containing the result code of the verify
-##          operation.
+## Returns: A record of type X509::Result containing the result code of the
+##          verify operation.
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
@@ -377,12 +377,13 @@ x509_ocsp_cleanup:
 ##        the given certificate against the root store given in *root_certs*.
 ##        The host certificate has to be at index 0.
 ##
-## root_certs: A list of root certificates to validate the certificate chain
+## root_certs: A list of root certificates to validate the certificate chain.
 ##
 ## verify_time: Time for the validity check of the certificates.
 ##
-## Returns: A record of type X509::Result containing the result code of the verify
-##          operation. In case of success also returns the full certificate chain.
+## Returns: A record of type X509::Result containing the result code of the
+##          verify operation. In case of success also returns the full
+##          certificate chain.
 ##
 ## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse

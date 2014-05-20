@@ -86,8 +86,8 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
-## defined in :rfc:`4492` and sent by the client in the initial handshake. It gives
-## the list of elliptic curves supported by the client.
+## defined in :rfc:`4492` and sent by the client in the initial handshake. It
+## gives the list of elliptic curves supported by the client.
 ##
 ## c: The connection.
 ##
@@ -118,13 +118,13 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##    ssl_extension_server_name ssl_server_curve
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
 
-## Generated if a named curve is chosen by the server for an SSL/TLS connection. The
-## curve is sent by the server in the ServerKeyExchange message as defined in
-## :rfc:`4492`, in case an ECDH or ECDHE cipher suite is chosen.
+## Generated if a named curve is chosen by the server for an SSL/TLS connection.
+## The curve is sent by the server in the ServerKeyExchange message as defined
+## in :rfc:`4492`, in case an ECDH or ECDHE cipher suite is chosen.
 ##
 ## c: The connection.
 ##
-## point_formats: List of supported point formats.
+## curve: The curve.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
@@ -151,7 +151,7 @@ event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
 ## Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
 ## This TLS extension is defined in draft-ietf-tls-applayerprotoneg and sent in
 ## the initial handshake. It contains the list of client supported application
-## protocols by the client or the server, respectovely.
+## protocols by the client or the server, respectively.
 ##
 ## At the moment it is mostly used to negotiate the use of SPDY / HTTP2-drafts.
 ##
@@ -169,15 +169,15 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
 ## defined in :rfc:`3546` and sent by the client in the initial handshake. It
-## contains the name of the server it is contacting. This information can be used
-## by the server to choose the correct certificate for the host the client wants to
-## contact.
+## contains the name of the server it is contacting. This information can be
+## used by the server to choose the correct certificate for the host the client
+## wants to contact.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## protocols: List of supported application layer protocols.
+## names: A list of server names (DNS hostnames).
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension
@@ -244,9 +244,9 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 ##    ssl_alert
 event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
 
-## Generated for SSL/TLS heartbeat messages that are sent before session encryption
-## starts. Generally heartbeat messages should rarely be seen in normal TLS traffic.
-## Heartbeats are described in :rfc:`6520`.
+## Generated for SSL/TLS heartbeat messages that are sent before session
+## encryption starts. Generally heartbeat messages should rarely be seen in
+## normal TLS traffic. Heartbeats are described in :rfc:`6520`.
 ##
 ## c: The connection.
 ##
@@ -254,12 +254,13 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 ##
 ## length: length of the entire heartbeat message.
 ##
-## heartbeat_type: type of the heartbeat message. Per RFC, 1 = request, 2 = response
+## heartbeat_type: type of the heartbeat message. Per RFC, 1 = request, 2 = response.
 ##
-## payload_length: length of the payload of the heartbeat message, according to packet field
+## payload_length: length of the payload of the heartbeat message, according to
+##                 packet field.
 ##
-## payload: payload contained in the heartbeat message. Size can differ from payload_length,
-##          if payload_length and actual packet length disagree.
+## payload: payload contained in the heartbeat message. Size can differ from
+##          payload_length, if payload_length and actual packet length disagree.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    ssl_alert ssl_encrypted_data
@@ -269,13 +270,13 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 ## started.
 ##
 ## Note that :bro:id:`SSL::disable_analyzer_after_detection` has to be changed
-## from its default to false for this this event to be generated.  
+## from its default to false for this event to be generated.  
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## content type: message type as reported by TLS session layer
+## content_type: message type as reported by TLS session layer.
 ##
 ## length: length of the entire heartbeat message.
 ##
@@ -284,8 +285,8 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, length: count%);
 
 ## This event contains the OCSP response contained in a Certificate Status Request
-## message, when the client requested OCSP stapling and the server supports it. See
-## description in :rfc:`6066`
+## message, when the client requested OCSP stapling and the server supports it.
+## See description in :rfc:`6066`.
 ##
 ## c: The connection.
 ##

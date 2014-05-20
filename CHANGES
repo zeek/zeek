@@ -1,15 +1,4 @@
 
-2.3-beta-6 | 2014-05-20 10:55:35 -0500
-
-  * Update intel framework plugin for ssl server_name extension API
-    changes. (Bernhard Amann, Justin Azoff)
-
-2.3-beta-3 | 2014-05-20 10:16:50 -0500
-
-  * Remove remaining references to BROMAGIC (Daniel Thayer)
-
-  * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
-
 2.3-beta | 2014-05-19 16:36:50 -0500
 
   * Release 2.3-beta
@@ -17,6 +6,13 @@
   * Clean up OpenSSL data structures on exit. (Bernhard Amann)
 
   * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+
+  * Remove remaining references to BROMAGIC (Daniel Thayer)
+
+  * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
+
+  * Update intel framework plugin for ssl server_name extension API
+    changes. (Bernhard Amann, Justin Azoff)
 
 2.2-478 | 2014-05-19 15:31:33 -0500
 

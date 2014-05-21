@@ -29,7 +29,7 @@ global extracted_certs: set[string] = set() &read_expire=1hr &redef;
 
 event ssl_established(c: connection) &priority=5
 	{
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || !c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	if ( ! addr_matches_host(c$id$resp_h, extract_certs_pem) )

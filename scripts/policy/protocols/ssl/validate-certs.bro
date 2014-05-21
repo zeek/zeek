@@ -28,7 +28,7 @@ export {
 event ssl_established(c: connection) &priority=3
 	{
 	# If there aren't any certs we can't very well do certificate validation.
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 || !c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	local chain_id = join_string_vec(c$ssl$cert_chain_fuids, ".");

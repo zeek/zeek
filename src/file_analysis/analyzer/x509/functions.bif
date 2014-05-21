@@ -86,8 +86,10 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 		{
 		Val *sv = certs_vec->Lookup(i);
 
-		// Fixme: check type
+		if ( !sv )
+			continue;
 
+		// Fixme: check type
 		X509* x = ((file_analysis::X509Val*) sv)->GetCertificate();
 		if ( ! x )
 			{

@@ -48,7 +48,7 @@ event bro_init() &priority=5
 
 event ssl_established(c: connection) &priority=3
 	{
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| < 1 || ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	local fuid = c$ssl$cert_chain_fuids[0];

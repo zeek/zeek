@@ -39,7 +39,10 @@ event ssl_established(c: connection) &priority=3
 
 	local chain: vector of opaque of x509 = vector();
 	for ( i in c$ssl$cert_chain )
-		chain[i] = c$ssl$cert_chain[i]$x509$handle;
+		{
+		if ( c$ssl$cert_chain[i]?$x509 )
+			chain[i] = c$ssl$cert_chain[i]$x509$handle;
+		}
 
 	local reply_id = cat(md5_hash(c$ssl$ocsp_response), join_string_vec(c$ssl$cert_chain_fuids, "."));
 

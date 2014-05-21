@@ -127,7 +127,7 @@ event ssl_established(c: connection) &priority=6
 		c$ssl$issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
 		}
 
-	if ( c$ssl?$client_cert_chain && |c$ssl$client_cert_chain| > 0 && c$ssl$cert_chain[0]?$x509 )
+	if ( c$ssl?$client_cert_chain && |c$ssl$client_cert_chain| > 0 && c$ssl$client_cert_chain[0]?$x509 )
 		{
 		c$ssl$client_subject = c$ssl$client_cert_chain[0]$x509$certificate$subject;
 		c$ssl$client_issuer = c$ssl$client_cert_chain[0]$x509$certificate$issuer;

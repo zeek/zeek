@@ -136,7 +136,7 @@ event ssl_encrypted_heartbeat(c: connection, is_orig: bool, length: count)
 				]);
 	else if ( duration < 1min )
 			NOTICE([$note=SSL_Heartbeat_Attack,
-				$msg=fmt("Heartbeat within first minute. Possible attack or scan. Length: %d, is_orig: %d, time: %d", length, is_orig, duration),
+				$msg=fmt("Heartbeat within first minute. Possible attack or scan. Length: %d, is_orig: %d, time: %s", length, is_orig, duration),
 				$conn=c,
 				$n=length,
 				$identifier=fmt("%s%s", c$uid, "early")
@@ -225,6 +225,9 @@ event ssl_encrypted_heartbeat(c: connection, is_orig: bool, length: count)
 
 event ssl_encrypted_data(c: connection, is_orig: bool, content_type: count, length: count)
 	{
+	if ( !c?$ssl )
+		return;
+
 	if ( content_type == SSL::HEARTBEAT )
 		event ssl_encrypted_heartbeat(c, is_orig, length);
 	else if ( (content_type == SSL::APPLICATION_DATA) && (length > 0) )

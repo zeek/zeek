@@ -31,7 +31,7 @@ DataBlock::DataBlock(const u_char* data, uint64 size, uint64 arg_seq,
 
 uint64 Reassembler::total_size = 0;
 
-Reassembler::Reassembler(int init_seq)
+Reassembler::Reassembler(uint64 init_seq)
 	{
 	blocks = last_block = 0;
 	trim_seq = last_reassem_seq = init_seq;

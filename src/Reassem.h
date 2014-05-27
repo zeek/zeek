@@ -25,7 +25,7 @@ public:
 
 class Reassembler : public BroObj {
 public:
-	Reassembler(int init_seq);
+	Reassembler(uint64 init_seq);
 	virtual ~Reassembler();
 
 	void NewBlock(double t, uint64 seq, uint64 len, const u_char* data);

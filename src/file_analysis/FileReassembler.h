@@ -17,7 +17,7 @@ class File;
 class FileReassembler : public Reassembler {
 public:
 
-	FileReassembler(File* f, int starting_offset);
+	FileReassembler(File* f, uint64 starting_offset);
 	virtual ~FileReassembler();
 
 	void Done();
@@ -32,9 +32,9 @@ protected:
 
 	DECLARE_SERIAL(FileReassembler);
 
-	void Undelivered(int up_to_seq);
+	void Undelivered(uint64 up_to_seq);
 	void BlockInserted(DataBlock* b);
-	void Overlap(const u_char* b1, const u_char* b2, int n);
+	void Overlap(const u_char* b1, const u_char* b2, uint64 n);
 
 	unsigned int had_gap:1;
 	unsigned int did_EOF:1;

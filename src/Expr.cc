@@ -3407,7 +3407,6 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		BroType* t = e->Type();
 
 		if ( e->Tag() != EXPR_FIELD_ASSIGN )
 			{

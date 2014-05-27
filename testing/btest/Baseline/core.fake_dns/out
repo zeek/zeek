@@ -1,0 +1,10 @@
+{
+50cd:1a9a:1837:5803:9b08:41aa:738c:3f0b,
+477c:8c51:4f4f:61ec:9981:1259:86b8:8987,
+1d59:20f4:b44b:27a8:2bd:77c4:f053:6f5a
+}
+lookup_hostname_txt, fake_text_lookup_result_bro.wp.dg.cx
+lookup_hostname, {
+5aba:bd60:3b22:7803:2dd:8d83:498e:5172
+}
+lookup_addr, fake_addr_lookup_result_1.2.3.4

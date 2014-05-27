@@ -206,6 +206,38 @@ export {
 	## The maximum amount of time a plugin can delay email from being sent.
 	const max_email_delay     = 15secs &redef;
 
+	## Contains a portion of :bro:see:`fa_file` that's also contained in
+	## :bro:see:`Notice::Info`.
+	type FileInfo: record {
+		fuid: string;            ##< File UID.
+		desc: string;            ##< File description from e.g.
+		                         ##< :bro:see:`Files::describe`.
+		mime: string  &optional; ##< Strongest mime type match for file.
+		cid:  conn_id &optional; ##< Connection tuple over which file is sent.
+		cuid: string  &optional; ##< Connection UID over which file is sent.
+	};
+
+	## Creates a record containing a subset of a full :bro:see:`fa_file` record.
+	##
+	## f: record containing metadata about a file.
+	##
+	## Returns: record containing a subset of fields copied from *f*.
+	global create_file_info: function(f: fa_file): Notice::FileInfo;
+
+	## Populates file-related fields in a notice info record.
+	##
+	## f: record containing metadata about a file.
+	##
+	## n: a notice record that needs file-related fields populated.
+	global populate_file_info: function(f: fa_file, n: Notice::Info);
+
+	## Populates file-related fields in a notice info record.
+	##
+	## fi: record containing metadata about a file.
+	##
+	## n: a notice record that needs file-related fields populated.
+	global populate_file_info2: function(fi: Notice::FileInfo, n: Notice::Info);
+
 	## A log postprocessing function that implements emailing the contents
 	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
 	## The rotated log is removed upon being sent.
@@ -241,12 +273,6 @@ export {
 	## n: The record containing notice data regarding the notice type
 	##    being suppressed.
 	global suppressed: event(n: Notice::Info);
-
-	## This event is generated when a notice stops being suppressed.
-	##
-	## n: The record containing notice data regarding the notice type
-	##    that was being suppressed.
-	global end_suppression: event(n: Notice::Info);
 
 	## Call this function to send a notice in an email.  It is already used
 	## by default with the built in :bro:enum:`Notice::ACTION_EMAIL` and
@@ -285,27 +311,22 @@ export {
 }
 
 # This is used as a hack to implement per-item expiration intervals.
-function per_notice_suppression_interval(t: table[Notice::Type, string] of Notice::Info, idx: any): interval
+function per_notice_suppression_interval(t: table[Notice::Type, string] of time, idx: any): interval
 	{
 	local n: Notice::Type;
 	local s: string;
 	[n,s] = idx;
 
-	local suppress_time = t[n,s]$suppress_for - (network_time() - t[n,s]$ts);
+	local suppress_time = t[n,s] - network_time();
 	if ( suppress_time < 0secs )
 		suppress_time = 0secs;
-
-	# If there is no more suppression time left, the notice needs to be sent
-	# to the end_suppression event.
-	if ( suppress_time == 0secs )
-		event Notice::end_suppression(t[n,s]);
 
 	return suppress_time;
 	}
 
 # This is the internally maintained notice suppression table.  It's
 # indexed on the Notice::Type and the $identifier field from the notice.
-global suppressing: table[Type, string] of Notice::Info = {}
+global suppressing: table[Type, string] of time = {}
 		&create_expire=0secs
 		&expire_func=per_notice_suppression_interval;
 
@@ -400,11 +421,22 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 
 	# First off, finish the headers and include the human readable messages
 	# then leave a blank line after the message.
-	email_text = string_cat(email_text, "\nMessage: ", n$msg);
-	if ( n?$sub )
-		email_text = string_cat(email_text, "\nSub-message: ", n$sub);
+	email_text = string_cat(email_text, "\nMessage: ", n$msg, "\n");
 
-	email_text = string_cat(email_text, "\n\n");
+	if ( n?$sub )
+		email_text = string_cat(email_text, "Sub-message: ", n$sub, "\n");
+
+	email_text = string_cat(email_text, "\n");
+
+	# Add information about the file if it exists.
+	if ( n?$file_desc )
+		email_text = string_cat(email_text, "File Description: ", n$file_desc, "\n");
+
+	if ( n?$file_mime_type )
+		email_text = string_cat(email_text, "File MIME Type: ", n$file_mime_type, "\n");
+
+	if ( n?$file_desc || n?$file_mime_type )
+		email_text = string_cat(email_text, "\n");
 
 	# Next, add information about the connection if it exists.
 	if ( n?$id )
@@ -467,7 +499,8 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
 		{
-		suppressing[n$note, n$identifier] = n;
+		local suppress_until = n$ts + n$suppress_for;
+		suppressing[n$note, n$identifier] = suppress_until;
 		event Notice::begin_suppression(n);
 		}
 	}
@@ -492,6 +525,42 @@ function execute_with_notice(cmd: string, n: Notice::Info)
 	#system_env(cmd, tags);
 	}
 
+function create_file_info(f: fa_file): Notice::FileInfo
+	{
+	local fi: Notice::FileInfo = Notice::FileInfo($fuid = f$id,
+	                                              $desc = Files::describe(f));
+
+	if ( f?$mime_type )
+		fi$mime = f$mime_type;
+
+	if ( f?$conns && |f$conns| == 1 )
+		for ( id in f$conns )
+			{
+			fi$cid = id;
+			fi$cuid = f$conns[id]$uid;
+			}
+
+	return fi;
+	}
+
+function populate_file_info(f: fa_file, n: Notice::Info)
+	{
+	populate_file_info2(create_file_info(f), n);
+	}
+
+function populate_file_info2(fi: Notice::FileInfo, n: Notice::Info)
+	{
+	if ( ! n?$fuid )
+		n$fuid = fi$fuid;
+
+	if ( ! n?$file_mime_type && fi?$mime )
+		n$file_mime_type = fi$mime;
+
+	n$file_desc = fi$desc;
+	n$id = fi$cid;
+	n$uid = fi$cuid;
+	}
+
 # This is run synchronously as a function before all of the other
 # notice related functions and events.  It also modifies the
 # :bro:type:`Notice::Info` record in place.
@@ -502,21 +571,7 @@ function apply_policy(n: Notice::Info)
 		n$ts = network_time();
 
 	if ( n?$f )
-		{
-		if ( ! n?$fuid )
-			n$fuid = n$f$id;
-
-		if ( ! n?$file_mime_type && n$f?$mime_type )
-			n$file_mime_type = n$f$mime_type;
-
-		n$file_desc = Files::describe(n$f);
-
-		if ( n$f?$conns && |n$f$conns| == 1 )
-			{
-			for ( id in n$f$conns )
-				n$conn = n$f$conns[id];
-			}
-		}
+		populate_file_info(n$f, n);
 
 	if ( n?$conn )
 		{

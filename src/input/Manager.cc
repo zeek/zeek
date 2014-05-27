@@ -397,7 +397,9 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	string stream_name = name_val->AsString()->CheckString();
 	Unref(name_val);
 
-	RecordType *fields = fval->Lookup("fields", true)->AsType()->AsTypeType()->Type()->AsRecordType();
+	Val* fields_val = fval->Lookup("fields", true);
+	RecordType *fields = fields_val->AsType()->AsTypeType()->Type()->AsRecordType();
+	Unref(fields_val);
 
 	Val *want_record = fval->Lookup("want_record", true);
 
@@ -548,13 +550,17 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	Val* pred = fval->Lookup("pred", true);
 
-	RecordType *idx = fval->Lookup("idx", true)->AsType()->AsTypeType()->Type()->AsRecordType();
+	Val* idx_val = fval->Lookup("idx", true);
+	RecordType *idx = idx_val->AsType()->AsTypeType()->Type()->AsRecordType();
+	Unref(idx_val);
+
 	RecordType *val = 0;
 
-	if ( fval->Lookup("val", true) != 0 )
+	Val* val_val = fval->Lookup("val", true);
+	if ( val_val )
 		{
-		val = fval->Lookup("val", true)->AsType()->AsTypeType()->Type()->AsRecordType();
-		Unref(val); // The lookupwithdefault in the if-clause ref'ed val.
+		val = val_val->AsType()->AsTypeType()->Type()->AsRecordType();
+		Unref(val_val);
 		}
 
 	TableVal *dst = fval->Lookup("destination", true)->AsTableVal();
@@ -729,7 +735,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->pred = pred ? pred->AsFunc() : 0;
 	stream->num_idx_fields = idxfields;
 	stream->num_val_fields = valfields;
-	stream->tab = dst->AsTableVal();
+	stream->tab = dst->AsTableVal(); // ref'd by lookupwithdefault
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
 	stream->event = event ? event_registry->Lookup(event->Name()) : 0;

@@ -53,7 +53,6 @@ public:
 		{ network_time = arg_network_time; current_time = arg_current_time; }
 
 	virtual bool Process()	{
-		Object()->HeartbeatInChild();
 		return Object()->OnHeartbeat(network_time, current_time);
 	}
 
@@ -252,15 +251,6 @@ void MsgThread::OnKill()
 void MsgThread::Heartbeat()
 	{
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
-	}
-
-void MsgThread::HeartbeatInChild()
-	{
-	string n = Fmt("bro: %s (%" PRIu64 "/%" PRIu64 ")", Name(),
-		cnt_sent_in - queue_in.Size(),
-		cnt_sent_out - queue_out.Size());
-
-	SetOSName(n.c_str());
 	}
 
 void MsgThread::Finished()

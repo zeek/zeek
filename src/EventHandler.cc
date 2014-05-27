@@ -39,7 +39,10 @@ FuncType* EventHandler::FType()
 	if ( id->Type()->Tag() != TYPE_FUNC )
 		return 0;
 
-	return type = id->Type()->AsFuncType();
+	type = id->Type()->AsFuncType();
+	Unref(id);
+
+	return type;
 	}
 
 void EventHandler::SetLocalHandler(Func* f)

@@ -12,7 +12,7 @@
 #include <DataSeries/GeneralField.hpp>
 
 #include "../WriterBackend.h"
-#include "threading/AsciiFormatter.h"
+#include "threading/formatters/Ascii.h"
 
 namespace logging { namespace writer {
 
@@ -118,7 +118,7 @@ private:
 	bool ds_use_integer_for_time;
 	string ds_set_separator;
 
-	AsciiFormatter* ascii;
+	threading::formatter::Ascii* ascii;
 };
 
 }

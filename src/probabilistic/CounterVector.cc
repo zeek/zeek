@@ -75,9 +75,9 @@ bool CounterVector::AllZero() const
 	return bits->AllZero();
 	}
 
-void CounterVector::Clear()
+void CounterVector::Reset()
 	{
-	bits->Clear();
+	bits->Reset();
 	}
 
 CounterVector::count_type CounterVector::Count(size_type cell) const

@@ -32,7 +32,6 @@ Val::Val(Func* f)
 	val.func_val = f;
 	::Ref(val.func_val);
 	type = f->FType()->Ref();
-	attribs = 0;
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -49,7 +48,6 @@ Val::Val(BroFile* f)
 	assert(f->FType()->Tag() == TYPE_STRING);
 	type = string_file_type->Ref();
 
-	attribs = 0;
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -80,6 +78,7 @@ Val* Val::Clone() const
 	CloneSerializer ss(form);
 	SerialInfo sinfo(&ss);
 	sinfo.cache = false;
+	sinfo.include_locations = false;
 
 	if ( ! this->Serialize(&sinfo) )
 		return 0;
@@ -92,8 +91,7 @@ Val* Val::Clone() const
 	uinfo.cache = false;
 	Val* clone = Unserialize(&uinfo, type);
 
-	delete [] data;
-
+	free(data);
 	return clone;
 	}
 
@@ -190,8 +188,6 @@ bool Val::DoSerialize(SerialInfo* info) const
 	if ( ! type->Serialize(info) )
 		return false;
 
-	SERIALIZE_OPTIONAL(attribs);
-
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_VOID:
 		info->s->Error("type is void");
@@ -250,9 +246,6 @@ bool Val::DoUnserialize(UnserialInfo* info)
 
 	if ( ! (type = BroType::Unserialize(info)) )
 		return false;
-
-	UNSERIALIZE_OPTIONAL(attribs,
-		(RecordVal*) Val::Unserialize(info, TYPE_RECORD));
 
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_VOID:
@@ -1169,23 +1162,6 @@ ListVal::~ListVal()
 	loop_over_list(vals, i)
 		Unref(vals[i]);
 	Unref(type);
-	}
-
-const char* ListVal::IncludedInString(const char* str) const
-	{
-	if ( tag != TYPE_STRING )
-		Internal("non-string list in ListVal::IncludedInString");
-
-	loop_over_list(vals, i)
-		{
-		const char* vs = (const char*) (vals[i]->AsString()->Bytes());
-
-		const char* embedded = strstr(str, vs);
-		if ( embedded )
-			return embedded;
-		}
-
-	return 0;
 	}
 
 RE_Matcher* ListVal::BuildRE() const
@@ -3139,7 +3115,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 	for ( int i = 0; i < len; ++i )
 		{
 		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
+		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY)); // accept any type
 		Assign(i, v);
 		}
 

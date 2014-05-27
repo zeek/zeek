@@ -6,15 +6,15 @@
 #
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b %INPUT
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: sleep 10
 # @TEST-EXEC: cp input2.log input.log
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: sleep 10
 # @TEST-EXEC: cp input3.log input.log
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: sleep 10
 # @TEST-EXEC: cp input4.log input.log
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: sleep 10
 # @TEST-EXEC: cp input5.log input.log
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-wait 30
 
 @TEST-START-FILE input1.log
 #separator \x09

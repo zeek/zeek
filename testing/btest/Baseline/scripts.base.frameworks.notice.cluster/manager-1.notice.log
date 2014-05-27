@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	notice
-#open	2013-07-25-20-02-37
+#open	2014-04-01-23-15-31
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
-#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	table[enum]	interval	bool	string	string	string	double	double
-1374782557.074572	-	-	-	-	-	-	-	-	-	Test_Notice	test notice!	-	-	-	-	-	worker-1	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
-#close	2013-07-25-20-02-37
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1396394130.996908	-	-	-	-	-	-	-	-	-	Test_Notice	test notice!	-	-	-	-	-	worker-1	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+#close	2014-04-01-23-15-31

@@ -1,5 +1,5 @@
 @load base/protocols/conn
-@load base/protocols/dns
+@load base/protocols/http
 
 event connection_state_remove(c: connection)
     {

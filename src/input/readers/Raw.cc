@@ -67,12 +67,9 @@ void Raw::DoClose()
 	if ( file != 0 )
 		CloseInput();
 
-	if ( buf != 0 )
-		{
-		// we still have output that has not been flushed. Throw away.
-		delete buf;
-		buf = 0;
-		}
+	// Just throw away output that has not been flushed.
+	delete [] buf;
+	buf = 0;
 
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{
@@ -365,7 +362,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		fname = source.substr(0, fname.length() - 1);
 		}
 
-	map<const char*, const char*>::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
+	ReaderInfo::config_map::const_iterator it = info.config.find("stdin"); // data that is sent to the child process
 	if ( it != info.config.end() )
 		{
 		stdin_string = it->second;

@@ -399,7 +399,7 @@ Contents_RPC::~Contents_RPC()
 	{
 	}
 
-void Contents_RPC::Undelivered(int seq, int len, bool orig)
+void Contents_RPC::Undelivered(uint64 seq, int len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
@@ -704,7 +704,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = min(len, caplen);

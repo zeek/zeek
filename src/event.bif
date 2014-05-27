@@ -360,9 +360,9 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ##
 ## .. note::
 ##
-##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that uses
-##    this event to estimate packet loss and report when a predefined threshold
-##    is exceeded.
+##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro` that
+##    uses this event to estimate packet loss and report when a predefined
+##    threshold is exceeded.
 event gap_report%(dt: interval, info: gap_info%);
 
 ## Generated when a protocol analyzer confirms that a connection is indeed
@@ -591,7 +591,11 @@ event software_unparsed_version_found%(c: connection, host: addr, str: string%);
 ## and it raises this event for each system identified. The p0f fingerprints are
 ## defined by :bro:id:`passive_fingerprint_file`.
 ##
-## TODO.
+## c: The connection.
+##
+## host: The host running the reported OS.
+##
+## OS: The OS version string.
 ##
 ## .. bro:see:: passive_fingerprint_file software_parse_error
 ##    software_version_found software_unparsed_version_found
@@ -1026,8 +1030,8 @@ event dns_mapping_lost_name%(dm: dns_mapping%);
 ##    dns_mapping_valid
 event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
 
-## A meta event generated for events that Bro raises. This will report all events
-## for which at least one handler is defined.
+## A meta event generated for events that Bro raises. This will report all
+## events for which at least one handler is defined.
 ##
 ## Note that handling this meta event is expensive and should be limited to
 ## debugging purposes.

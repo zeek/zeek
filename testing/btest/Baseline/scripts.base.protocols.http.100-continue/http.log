@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2013-08-26-18-40-15
+#open	2014-04-01-23-15-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	vector[string]	vector[string]	vector[string]	vector[string]
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1237440095.634312	CXWv6p3arKYeMETxOg	192.168.3.103	54102	128.146.216.51	80	1	POST	www.osu.edu	/	-	curl/7.17.1 (i386-apple-darwin8.11.1) libcurl/7.17.1 zlib/1.2.3	2001	60731	200	OK	100	Continue	-	(empty)	-	-	-	F7Wq2D1IW7Cp2nfZMa	text/plain	FFhC1T3ieHHQqVBLpc	text/html
-#close	2013-08-26-18-40-15
+#close	2014-04-01-23-15-57

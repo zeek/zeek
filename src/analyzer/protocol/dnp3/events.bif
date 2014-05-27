@@ -32,6 +32,8 @@ event dnp3_application_response_header%(c: connection, is_orig: bool, fc: count,
 ##
 ## qua_field: qualifier field.
 ##
+## number: TODO.
+##
 ## rf_low: the structure of the range field depends on the qualified field.
 ##         In some cases, the range field contains only one logic part, e.g.,
 ##         number of objects, so only *rf_low* contains useful values.

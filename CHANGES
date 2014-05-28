@@ -1,4 +1,118 @@
 
+2.3-beta | 2014-05-19 16:36:50 -0500
+
+  * Release 2.3-beta
+
+  * Clean up OpenSSL data structures on exit. (Bernhard Amann)
+
+  * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+
+  * Remove remaining references to BROMAGIC (Daniel Thayer)
+
+  * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
+
+  * Update intel framework plugin for ssl server_name extension API
+    changes. (Bernhard Amann, Justin Azoff)
+
+  * Fix expression errors in SSL/x509 scripts when unparseable data
+    is in certificate chain. (Bernhard Amann)
+
+2.2-478 | 2014-05-19 15:31:33 -0500
+
+  * Change record ctors to only allow record-field-assignment
+    expressions. (Jon Siwek)
+
+2.2-477 | 2014-05-19 14:13:00 -0500
+
+  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)
+
+  * Fix a couple of doc build warnings (Daniel Thayer)
+
+2.2-470 | 2014-05-16 15:16:32 -0700
+
+  * Add a new section "Cluster Configuration" to the docs that is
+    intended as a how-to for configuring a Bro cluster.  Most of this
+    content was moved here from the BroControl doc (which is now
+    intended as more of a reference guide for more experienced users)
+    and the load balancing FAQ on the website. (Daniel Thayer)
+
+  * Update some doc tests and line numbers (Daniel Thayer)
+    
+2.2-457 | 2014-05-16 14:38:31 -0700
+
+  * New script policy/protocols/ssl/validate-ocsp.bro that adds OSCP
+    validation to ssl.log. The work is done by a new bif
+    x509_ocsp_verify(). (Bernhard Amann)
+
+  * STARTTLS support for POP3 and SMTP. The SSL analyzer takes over
+    when seen. smtp.log now logs when a connection switches to SSL.
+    (Bernhard Amann)
+
+  * Replace errors when parsing x509 certs with weirds. (Bernhard
+    Amann)
+
+  * Improved Heartbleed attack/scan detection. (Bernhard Amann)
+    
+  * Let TLS analyzer fail better when no longer in sync with the data
+    stream. (Bernhard Amann)
+
+2.2-444 | 2014-05-16 14:10:32 -0500
+
+  * Disable all default AppStat plugins except facebook. (Jon Siwek)
+
+  * Update for the active http test to force it to use ipv4. (Seth Hall)
+
+2.2-441 | 2014-05-15 11:29:56 -0700
+
+  * A new RADIUS analyzer. (Vlad Grigorescu)
+
+    It produces a radius.log and generates two events:
+
+        event radius_message(c: connection, result: RADIUS::Message);
+        event radius_attribute(c: connection, attr_type: count, value: string);
+
+2.2-427 | 2014-05-15 13:37:23 -0400
+
+  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+
+2.2-425 | 2014-05-08 16:34:44 -0700
+
+  * Fix reassembly of data w/ sizes beyond 32-bit capacities. (Jon Siwek)
+
+    Reassembly code (e.g. for TCP) now uses int64/uint64 (signedness
+    is situational) data types in place of int types in order to
+    support delivering data to analyzers that pass 2GB thresholds.
+    There's also changes in logic that accompany the change in data
+    types, e.g. to fix TCP sequence space arithmetic inconsistencies.
+
+    Another significant change is in the Analyzer API: the *Packet and
+    *Undelivered methods now use a uint64 in place of an int for the
+    relative sequence space offset parameter.
+
+    Addresses BIT-348. 
+
+  * Fixing compiler warnings. (Robin Sommer)
+    
+  * Update SNMP analyzer's DeliverPacket method signature. (Jon Siwek)
+    
+2.2-417 | 2014-05-07 10:59:22 -0500
+
+  * Change handling of atypical OpenSSL error case in x509 verification. (Jon Siwek)
+
+  * Fix memory leaks in X509 certificate parsing/verification. (Jon Siwek)
+
+  * Fix new []/delete mismatch in input::reader::Raw::DoClose(). (Jon Siwek)
+
+  * Fix buffer over-reads in file_analysis::Manager::Terminate() (Jon Siwek)
+
+  * Fix buffer overlows in IP address masking logic. (Jon Siwek)
+
+    That could occur either in taking a zero-length mask on an IPv6 address
+    (e.g. [fe80::]/0) or a reverse mask of length 128 on any address (e.g.
+    via the remask_addr BuiltIn Function).
+
+  * Fix new []/delete mismatch in ~Base64Converter. (Jon Siwek)
+
 2.2-410 | 2014-05-02 12:49:53 -0500
 
   * Replace an unneeded OPENSSL_malloc call. (Jon Siwek)

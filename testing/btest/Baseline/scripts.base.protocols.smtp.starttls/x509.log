@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2014-05-15-16-56-36
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1400168397.069811	FUE0dj3SWjQASC0bk3	3	325D8297987D50B0	CN=mx.google.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority G2,O=Google Inc,C=US	1378726355.000000	1410262355.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	aspmx.l.google.com,alt1.aspmx.l.google.com,alt2.aspmx.l.google.com,alt3.aspmx.l.google.com,alt4.aspmx.l.google.com,gmail-smtp-in.l.google.com,alt1.gmail-smtp-in.l.google.com,alt2.gmail-smtp-in.l.google.com,alt3.gmail-smtp-in.l.google.com,alt4.gmail-smtp-in.l.google.com,gmr-smtp-in.l.google.com,alt1.gmr-smtp-in.l.google.com,alt2.gmr-smtp-in.l.google.com,alt3.gmr-smtp-in.l.google.com,alt4.gmr-smtp-in.l.google.com,mx.google.com,aspmx2.googlemail.com,aspmx3.googlemail.com,aspmx4.googlemail.com,aspmx5.googlemail.com	-	-	-	F	-
+1400168397.069811	FbPkr51wrSMIUT5Hib	3	023A69	CN=Google Internet Authority G2,O=Google Inc,C=US	CN=GeoTrust Global CA,O=GeoTrust Inc.,C=US	1365174955.000000	1428160555.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	0
+1400168397.069811	FVW1o23Jjs8yenOhzb	3	12BBE6	CN=GeoTrust Global CA,O=GeoTrust Inc.,C=US	OU=Equifax Secure Certificate Authority,O=Equifax,C=US	1021953600.000000	1534824000.000000	rsaEncryption	sha1WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	-
+#close	2014-05-15-16-56-36

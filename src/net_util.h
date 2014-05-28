@@ -119,7 +119,7 @@ struct ip6_rthdr {
 
 // True if sequence # a is between b and c (b <= a <= c).  It must be true
 // that b <= c in the sequence space.
-inline int seq_between(uint32 a, uint32 b, uint32 c)
+inline bool seq_between(uint32 a, uint32 b, uint32 c)
 	{
 	if ( b <= c )
 		return a >= b && a <= c;
@@ -128,9 +128,9 @@ inline int seq_between(uint32 a, uint32 b, uint32 c)
 	}
 
 // Returns a - b, adjusted for sequence wraparound.
-inline int seq_delta(uint32 a, uint32 b)
+inline int32 seq_delta(uint32 a, uint32 b)
 	{
-	return int(a-b);
+	return a - b;
 	}
 
 class IPAddr;

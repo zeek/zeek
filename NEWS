@@ -7,13 +7,8 @@ their own ``CHANGES``.)
 Bro 2.3
 =======
 
-[In progress]
-
 Dependencies
 ------------
-
-- Bro no longer requires a pre-installed libmagic (because it now
-  ships its own).
 
 - Libmagic is no longer a dependency.
 
@@ -34,17 +29,44 @@ New Functionality
   and "file-mime" gives the MIME type string of content that matches
   the magic and an optional strength value for the match. (See also
   "Changed Functionality" below for changes due to switching from
-  using libmagic to such wsignatures.)
+  using libmagic to such signatures.)
 
 - A new built-in function, "file_magic", can be used to get all file
   magic matches and their corresponding strength against a given chunk
   of data.
 
-- The SSL analyzer now has support heartbeats as well as for a few
+- The SSL analyzer now supports heartbeats as well as a few
   extensions, including server_name, alpn, and ec-curves.
 
 - The SSL analyzer comes with Heartbleed detector script in
-  protocols/ssl/heartbleed.bro.
+  protocols/ssl/heartbleed.bro.  Note that loading this script changes
+  the default value of "SSL::disable_analyzer_after_detection" from true
+  to false to prevent encrypted heartbeats from being ignored.
+
+- StartTLS is now supported for SMTP and POP3.
+
+- The X509 analyzer can now perform OSCP validation.
+
+- Bro now has analyzers for SNMP and Radius, which produce corresponding
+  snmp.log and radius.log output (as well as various events of course).
+
+- BroControl has a new option "BroPort" which allows a user to specify
+  the starting port number for Bro.
+
+- BroControl has a new option "StatsLogExpireInterval" which allows a
+  user to specify when entries in the stats.log file expire.
+
+- BroControl has a new option "PFRINGClusterType" which allows a user
+  to specify a PF_RING cluster type.
+
+- BroControl now supports PF_RING+DNA.  There is also a new option
+  "PFRINGFirstAppInstance" that allows a user to specify the starting
+  application instance number for processes running on a DNA cluster.
+  See the BroControl documentation for more details.
+
+- BroControl now warns a user to run "broctl install" if Bro has
+  been upgraded or if the broctl or node configuration has changed
+  since the most recent install.
 
 Changed Functionality
 ---------------------
@@ -62,20 +84,27 @@ Changed Functionality
 
       event x509_extension(c: connection, is_orig: bool, cert: X509, ext: X509_extension_info);
 
+- In addition, there are several new, more specialized events for a
+  number of x509 extensions.
+
 - Generally, all x509 events and handling functions have changed their
   signatures.
 
-- Bro no longer special-cases SYN/FIN/RST-filtered traces by not
-  reporting missing data. The old behavior can be reverted by
-  redef'ing "detect_filtered_trace".
+- X509 certificate verification now returns the complete certificate
+  chain that was used for verification.
 
-  TODO: Update if we add a detector for filtered traces.
+- Bro no longer special-cases SYN/FIN/RST-filtered traces by not
+  reporting missing data. Instead, if Bro never sees any data segments
+  for analyzed TCP connections, the new
+  base/misc/find-filtered-trace.bro script will log a warning in
+  reporter.log and to stderr.  The old behavior can be reverted by
+  redef'ing "detect_filtered_trace".
 
 - We have removed the packet sorter component.
 
 - Bro no longer uses libmagic to identify file types but instead now
   comes with its own signature library (which initially is still
-  derived from libmagic;s database). This leads to a number of further
+  derived from libmagic's database). This leads to a number of further
   changes with regards to MIME types:
 
     * The second parameter of the "identify_data" built-in function
@@ -90,7 +119,7 @@ Changed Functionality
       in Bro as magic databases are no longer used/installed.
 
     * Removed "binary" and "octet-stream" mime type detections. They
-      don' provide any more information than an uninitialized
+      don't provide any more information than an uninitialized
       mime_type field.
 
     * The "fa_file" record now contains a "mime_types" field that
@@ -100,6 +129,16 @@ Changed Functionality
 
 - dns_TXT_reply() now supports more than one string entry by receiving
   a vector of strings.
+
+- BroControl now runs the "exec" and "df" broctl commands only once
+  per host, instead of once per Bro node.  The output of these
+  commands has been changed slightly to include both the host and
+  node names.
+
+- Several performance improvements were made.  Particular emphasis
+  was put on the File Analysis system, which generally will now emit
+  far fewer file handle request events due to protocol analyzers now
+  caching that information internally.
 
 Bro 2.2
 =======

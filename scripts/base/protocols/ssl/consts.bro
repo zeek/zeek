@@ -15,6 +15,17 @@ export {
 		[TLSv12] = "TLSv12",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
+	## TLS content types:
+	const CHANGE_CIPHER_SPEC = 20;
+	const ALERT = 21;
+	const HANDSHAKE = 22;
+	const APPLICATION_DATA = 23;
+	const HEARTBEAT = 24;
+	const V2_ERROR = 300;
+	const V2_CLIENT_HELLO = 301;
+	const V2_CLIENT_MASTER_KEY = 302;
+	const V2_SERVER_HELLO = 304;
+
 	## Mapping between numeric codes and human readable strings for alert
 	## levels.
 	const alert_levels: table[count] of string = {

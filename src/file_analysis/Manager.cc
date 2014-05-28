@@ -74,7 +74,8 @@ void Manager::Terminate()
 
 	while ( id_map.NextEntry(key, it) )
 		{
-		keys.push_back(static_cast<const char*>(key->Key()));
+		keys.push_back(string(static_cast<const char*>(key->Key()),
+		                      key->Size()));
 		delete key;
 		}
 

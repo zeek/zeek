@@ -37,7 +37,8 @@ event ssl_established(c: connection) &priority=3
 	{
 	# If there are no certificates or we are not interested in the server, just return.
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
-	     ! addr_matches_host(c$id$resp_h, notify_weak_keys) )
+	     ! addr_matches_host(c$id$resp_h, notify_weak_keys) ||
+	     ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	local fuid = c$ssl$cert_chain_fuids[0];

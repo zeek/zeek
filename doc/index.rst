@@ -15,6 +15,7 @@ Introduction Section
    cluster/index.rst
    install/index.rst
    quickstart/index.rst
+   configuration/index.rst
 
 .. 
 

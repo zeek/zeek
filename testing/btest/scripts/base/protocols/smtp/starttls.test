@@ -1,0 +1,6 @@
+# @TEST-EXEC: bro -C -r $TRACES/tls/smtp-starttls.pcap %INPUT
+# @TEST-EXEC: btest-diff smtp.log
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff x509.log
+
+@load base/protocols/smtp

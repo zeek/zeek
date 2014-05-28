@@ -17,7 +17,7 @@ public:
 
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	void Undelivered(int seq, int len, bool orig);
+	void Undelivered(uint64 seq, int len, bool orig);
 
 //	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 //		{ return new File_Analyzer(conn); }

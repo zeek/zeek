@@ -25,8 +25,8 @@ BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
 traffic-monitoring cluster.  This section explains how to use BroControl
 to manage a stand-alone Bro installation.  For instructions on how to
-configure a Bro cluster, see the documentation for :doc:`BroControl
-<../components/broctl/README>`.
+configure a Bro cluster, see the :doc:`Cluster Configuration
+<../configuration/index>` documentation.
 
 A Minimal Starting Configuration
 --------------------------------
@@ -426,7 +426,7 @@ Running Bro Without Installing
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have
-to first adjust ``BROPATH`` and ``BROMAGIC`` to look for scripts and
+to first adjust ``BROPATH`` to look for scripts and
 additional files inside the build directory.  Sourcing either
 ``build/bro-path-dev.sh`` or ``build/bro-path-dev.csh`` as appropriate
 for the current shell accomplishes this and also augments your

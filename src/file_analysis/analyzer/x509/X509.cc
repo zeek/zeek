@@ -46,7 +46,7 @@ bool file_analysis::X509::EndOfFile()
 	::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
 	if ( ! ssl_cert )
 		{
-		reporter->Error("Could not parse X509 certificate (fuid %s)", GetFile()->GetID().c_str());
+		reporter->Weird(fmt("Could not parse X509 certificate (fuid %s)", GetFile()->GetID().c_str()));
 		return false;
 		}
 
@@ -153,6 +153,8 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
 			pX509Cert->Assign(9, new Val(length, TYPE_COUNT));
+
+		EVP_PKEY_free(pkey);
 		}
 
 
@@ -169,7 +171,7 @@ StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
 		{
 		char tmp[120];
 		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
-		reporter->Error("X509::GetExtensionFromBIO: %s", tmp);
+		reporter->Weird(fmt("X509::GetExtensionFromBIO: %s", tmp));
 		BIO_free_all(bio);
 		return 0;
 		}
@@ -273,10 +275,11 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		vl->append(pBasicConstraint);
 
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);
+		BASIC_CONSTRAINTS_free(constr);
 		}
 
 	else
-		reporter->Error("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str());
+		reporter->Weird(fmt("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str()));
 	}
 
 void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
@@ -286,7 +289,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES *altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
 	if ( ! altname )
 		{
-		reporter->Error("Could not parse subject alternative names. fuid %s", GetFile()->GetID().c_str());
+		reporter->Weird(fmt("Could not parse subject alternative names. fuid %s", GetFile()->GetID().c_str()));
 		return;
 		}
 
@@ -306,7 +309,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			{
 			if ( ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING )
 				{
-				reporter->Error("DNS-field does not contain an IA5String. fuid %s", GetFile()->GetID().c_str());
+				reporter->Weird(fmt("DNS-field does not contain an IA5String. fuid %s", GetFile()->GetID().c_str()));
 				continue;
 				}
 
@@ -353,7 +356,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 				else
 					{
-					reporter->Error("Weird IP address length %d in subject alternative name. fuid %s", gen->d.ip->length, GetFile()->GetID().c_str());
+					reporter->Weird(fmt("Weird IP address length %d in subject alternative name. fuid %s", gen->d.ip->length, GetFile()->GetID().c_str()));
 					continue;
 					}
 			}
@@ -387,6 +390,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		vl->append(GetFile()->GetVal()->Ref());
 		vl->append(sanExt);
 		mgr.QueueEvent(x509_ext_subject_alternative_name, vl);
+	GENERAL_NAMES_free(altname);
 	}
 
 StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
@@ -442,13 +446,20 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 			return 0;
 
 		const EC_GROUP *group = EC_KEY_get0_group(key->pkey.ec);
+
 		if ( ! group )
+			{
 			// unknown ex-group
+			BN_free(ec_order);
 			return 0;
+			}
 
 		if ( ! EC_GROUP_get_order(group, ec_order, NULL) )
+			{
 			// could not get ec-group-order
+			BN_free(ec_order);
 			return 0;
+			}
 
 		unsigned int length = BN_num_bits(ec_order);
 		BN_free(ec_order);

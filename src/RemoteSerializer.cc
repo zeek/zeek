@@ -2833,6 +2833,7 @@ void RemoteSerializer::GotEvent(const char* name, double time,
 	if ( ! current_peer )
 		{
 		Error("unserialized event from unknown peer");
+		delete_vals(args);
 		return;
 		}
 
@@ -2882,6 +2883,7 @@ void RemoteSerializer::GotFunctionCall(const char* name, double time,
 	if ( ! current_peer )
 		{
 		Error("unserialized function from unknown peer");
+		delete_vals(args);
 		return;
 		}
 

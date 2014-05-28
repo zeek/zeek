@@ -1,4 +1,15 @@
 
+2.3-beta-4 | 2014-05-28 14:55:24 -0500
+
+  * Fix potential mem leak in remote function/event unserialization.
+    (Jon Siwek)
+
+  * Fix reference counting bug in table coercion expressions (Jon Siwek)
+
+  * Fix an "unused value" warning. (Jon Siwek)
+
+  * Remove a duplicate unit test baseline dir. (Jon Siwek)
+
 2.3-beta | 2014-05-19 16:36:50 -0500
 
   * Release 2.3-beta

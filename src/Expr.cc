@@ -4330,7 +4330,7 @@ Val* TableCoerceExpr::Fold(Val* v) const
 	if ( tv->Size() > 0 )
 		Internal("coercion of non-empty table/set");
 
-	return new TableVal(Type()->Ref()->AsTableType(), tv->Attrs());
+	return new TableVal(Type()->AsTableType(), tv->Attrs());
 	}
 
 IMPLEMENT_SERIAL(TableCoerceExpr, SER_TABLE_COERCE_EXPR);

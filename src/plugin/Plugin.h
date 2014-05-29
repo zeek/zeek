@@ -440,6 +440,11 @@ protected:
 	 * is about to load, either given on the command line or via @load
 	 * script directives. The hook can take over the file, in which case
 	 * Bro not further process it otherwise.
+     *
+     * @param file The filename to be loaded.
+     *
+     * @param ext The extension of the filename. This is provided separately
+     * just for convenience. The dot is excluded.
 	 *
 	 * @return 1 if the plugin took over the file and loaded it
 	 * successfully; 0 if the plugin took over the file but had trouble
@@ -447,7 +452,7 @@ protected:
 	 * printed an error message); and -1 if the plugin wasn't interested
 	 * in the file at all.
 	 */
-	virtual int HookLoadFile(const std::string& file);
+	virtual int HookLoadFile(const std::string& file, const std::string& ext);
 
 	/**
 	 * Hook into executing a script-level function/event/hook. Whenever

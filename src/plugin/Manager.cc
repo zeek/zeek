@@ -416,8 +416,17 @@ void Manager::EnableHook(HookType hook, Plugin* plugin, int prio)
 	if ( ! hooks[hook] )
 		hooks[hook] = new hook_list;
 
-	hooks[hook]->push_back(std::make_pair(prio, plugin));
-	hooks[hook]->sort(hook_cmp);
+	hook_list* l = hooks[hook];
+
+	for ( hook_list::iterator i = l->begin(); i != l->end(); i++ )
+		{
+		// Already enabled for this plugin.
+		if ( (*i).second == plugin )
+			return;
+		}
+
+	l->push_back(std::make_pair(prio, plugin));
+	l->sort(hook_cmp);
 	}
 
 void Manager::DisableHook(HookType hook, Plugin* plugin)
@@ -445,8 +454,9 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{
-	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s", Name(), handler->Name());
-	handler->GenerateAlways();
+	DBG_LOG(DBG_PLUGINS, "Plugin %s requested event %s",
+            plugin->Name().c_str(), handler->Name());
+	handler->SetGenerateAlways();
 	}
 
 void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
@@ -465,13 +475,27 @@ int Manager::HookLoadFile(const string& file)
 
 	hook_list* l = hooks[HOOK_LOAD_FILE];
 
+	size_t i = file.find_last_of("./");
+
+	string ext;
+	string normalized_file = file;
+
+	if ( i != string::npos && file[i] == '.' )
+		ext = file.substr(i + 1);
+	else
+		{
+		// Add .bro as default extension.
+		normalized_file = file + ".bro";
+		ext = "bro";
+		}
+
 	int rc = -1;
 
 	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
 		{
 		Plugin* p = (*i).second;
 
-		int rc = p->HookLoadFile(file);
+		rc = p->HookLoadFile(normalized_file, ext);
 
 		if ( rc >= 0 )
 			break;

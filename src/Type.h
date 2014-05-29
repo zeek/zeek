@@ -547,7 +547,8 @@ class EnumType : public BroType {
 public:
 	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
 
-	EnumType() : BroType(TYPE_ENUM) { counter = 0; }
+    EnumType(EnumType* e);
+	EnumType(const string& arg_name);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -570,6 +571,8 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
+	EnumType() { counter = 0; }
+
 	DECLARE_SERIAL(EnumType)
 
 	void AddNameInternal(const string& module_name,
@@ -628,9 +631,10 @@ extern BroType* base_type(TypeTag tag);
 // Returns the BRO basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 
-// True if the two types are equivalent.  If is_init is true then the
-// test is done in the context of an initialization.
-extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+// True if the two types are equivalent.  If is_init is true then the test is
+// done in the context of an initialization. If match_record_field_names is
+// true then for record types the field names have to match, too.
+extern int same_type(const BroType* t1, const BroType* t2, int is_init=0, bool match_record_field_names=true);
 
 // True if the two attribute lists are equivalent.
 extern int same_attrs(const Attributes* a1, const Attributes* a2);

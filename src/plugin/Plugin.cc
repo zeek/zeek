@@ -79,7 +79,7 @@ void HookArgument::Describe(ODesc* d) const
 		break;
 
 	case EVENT:
-		if ( arg.event ) 
+		if ( arg.event )
 			{
 			d->Add(arg.event->Handler()->Name());
 			d->Add("(");
@@ -106,7 +106,7 @@ void HookArgument::Describe(ODesc* d) const
 		break;
 
 	case VAL:
-		if ( arg.val ) 
+		if ( arg.val )
 			arg.val->Describe(d);
 
 		else
@@ -284,7 +284,7 @@ void Plugin::RequestBroObjDtor(BroObj* obj)
 	plugin_mgr->RequestBroObjDtor(obj, this);
 	}
 
-int Plugin::HookLoadFile(const std::string& file)
+int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	{
 	return -1;
 	}
@@ -410,7 +410,7 @@ void Plugin::Describe(ODesc* d) const
 		d->Add(hook_name(hook));
 		d->Add(" (priority ");
 		d->Add(prio);
-		d->Add("]\n");
+		d->Add(")\n");
 		}
 	}
 

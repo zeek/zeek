@@ -1403,6 +1403,23 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+EnumType::EnumType(const string& name)
+	: BroType(TYPE_ENUM)
+	{
+	counter = 0;
+	SetName(name);
+	}
+
+EnumType::EnumType(EnumType* e)
+	: BroType(TYPE_ENUM)
+	{
+	counter = e->counter;
+	SetName(e->GetName());
+
+	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+		names[copy_string(it->first)] = it->second;
+	}
+
 EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
@@ -1769,7 +1786,7 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 	return 0;
 	}
 
-int same_type(const BroType* t1, const BroType* t2, int is_init)
+int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_record_field_names)
 	{
 	if ( t1 == t2 ||
 	     t1->Tag() == TYPE_ANY ||
@@ -1825,7 +1842,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 		if ( tl1 || tl2 )
 			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init) )
+			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1834,7 +1851,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 		if ( y1 || y2 )
 			{
-			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init) )
+			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1852,7 +1869,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		if ( t1->YieldType() || t2->YieldType() )
 			{
 			if ( ! t1->YieldType() || ! t2->YieldType() ||
-			     ! same_type(t1->YieldType(), t2->YieldType(), is_init) )
+			     ! same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1872,8 +1889,8 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
-			if ( ! streq(td1->id, td2->id) ||
-			     ! same_type(td1->type, td2->type, is_init) )
+			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
+			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1889,7 +1906,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 			return 0;
 
 		loop_over_list(*tl1, i)
-			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init) )
+			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init, match_record_field_names) )
 				return 0;
 
 		return 1;
@@ -1897,7 +1914,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->YieldType(), t2->YieldType(), is_init);
+		return same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names);
 
 	case TYPE_OPAQUE:
 		{
@@ -1907,7 +1924,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		}
 
 	case TYPE_TYPE:
-		return same_type(t1, t2, is_init);
+		return same_type(t1, t2, is_init, match_record_field_names);
 
 	case TYPE_UNION:
 		reporter->Error("union type in same_type()");

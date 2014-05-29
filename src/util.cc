@@ -984,6 +984,16 @@ const char* bro_plugin_path()
 	return path;
 	}
 
+const char* bro_plugin_activate()
+	{
+	const char* names = getenv("BRO_PLUGIN_ACTIVATE");
+
+	if ( ! names )
+		names = "";
+
+	return names;
+	}
+
 string bro_prefixes()
 	{
 	string rval;

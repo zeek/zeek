@@ -241,6 +241,7 @@ extern const char* PACKAGE_LOADER;
 extern const std::string& bro_path();
 extern const char* bro_magic_path();
 extern const char* bro_plugin_path();
+extern const char* bro_plugin_activate();
 extern std::string bro_prefixes();
 
 extern void add_to_bro_path(const std::string& dir);

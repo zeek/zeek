@@ -250,7 +250,10 @@ in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro
 -b``), no dynamic plugins will be activated by default; instead the
 user can selectively enable individual plugins in scriptland using the
 ``@load-plugin <qualified-plugin-name>`` directive (e.g.,
-``@load-plugin Demo::Rot13``).
+``@load-plugin Demo::Rot13``). Alternatively, one can also set the
+environment variable ``BRO_PLUGIN_ACTIVATE`` to a list of
+comma(!)-separated names to unconditionally activate even in bare
+mode.
 
 ``bro -N`` shows activated and found yet unactivated plugins
 separately. Note that plugins compiled statically into Bro are always
@@ -327,6 +330,11 @@ Packet Dumpers
 --------------
 
 Not yet implemented.
+
+Debugging Plugins
+=================
+
+TODO.
 
 Documenting Plugins
 ===================

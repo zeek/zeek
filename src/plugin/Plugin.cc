@@ -321,7 +321,6 @@ void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgum
 
 void Plugin::Describe(ODesc* d) const
 	{
-	d->Add("Plugin: ");
 	d->Add(config.name);
 
 	if ( config.description.size() )

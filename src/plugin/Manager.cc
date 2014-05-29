@@ -133,15 +133,18 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	closedir(d);
 	}
 
-bool Manager::ActivateDynamicPluginInternal(const std::string& name)
+bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found)
 	{
 	dynamic_plugin_map::iterator m = dynamic_plugins.find(name);
 
 	if ( m == dynamic_plugins.end() )
 		{
+		if ( ok_if_not_found )
+			return true;
+
 		reporter->Error("plugin %s is not available", name.c_str());
 		return false;
-		}
+                }
 
 	std::string dir = m->second + "/";
 
@@ -251,13 +254,23 @@ bool Manager::ActivateDynamicPlugin(const std::string& name)
 	return true;
 	}
 
-bool Manager::ActivateAllDynamicPlugins()
+bool Manager::ActivateDynamicPlugins(bool all)
 	{
-	for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin();
-	      i != dynamic_plugins.end(); i++ )
+	// Activate plugins that our environment tells us to.
+	vector<string> p;
+	tokenize_string(bro_plugin_activate(), ",", &p);
+
+	for ( size_t n = 0; n < p.size(); ++n )
+		ActivateDynamicPluginInternal(p[n], true);
+
+	if ( all )
 		{
-		if ( ! ActivateDynamicPluginInternal(i->first) )
-			return false;
+		for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin();
+		      i != dynamic_plugins.end(); i++ )
+			{
+			if ( ! ActivateDynamicPluginInternal(i->first) )
+				return false;
+			}
 		}
 
 	UpdateInputFiles();
@@ -359,6 +372,32 @@ void Manager::FinishPlugins()
 Manager::plugin_list Manager::Plugins() const
 	{
 	return *Manager::PluginsInternal();
+	}
+
+Manager::inactive_plugin_list Manager::InactivePlugins() const
+	{
+	plugin_list* all = PluginsInternal();
+
+	inactive_plugin_list inactives;
+
+	for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin(); i != dynamic_plugins.end(); i++ )
+		{
+		bool found = false;
+
+		for ( plugin_list::const_iterator j = all->begin(); j != all->end(); j++ )
+			{
+			if ( (*i).first == (*j)->Name() )
+				{
+				found = true;
+				break;
+				}
+			}
+
+		if ( ! found )
+			inactives.push_back(*i);
+		}
+
+	return inactives;
 	}
 
 Manager::plugin_list* Manager::PluginsInternal()

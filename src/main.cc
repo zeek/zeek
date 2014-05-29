@@ -218,6 +218,7 @@ void usage()
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
 	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $BRO_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n", bro_plugin_activate());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -273,6 +274,20 @@ void show_plugins(int level)
 		}
 
 	printf("%s", d.Description());
+
+	plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+
+	if ( ! inactives.size() )
+		return;
+
+	printf("\nInactive dynamic plugins:\n");
+
+	for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
+		{
+		string name = (*i).first;
+		string path = (*i).second;
+		printf("  %s (%s)\n", name.c_str(), path.c_str());
+		}
 	}
 
 void done_with_network()
@@ -862,8 +877,7 @@ int main(int argc, char** argv)
 	file_mgr->InitPreScript();
 	broxygen_mgr->InitPreScript();
 
-	if ( ! bare_mode )
-		plugin_mgr->ActivateAllDynamicPlugins();
+	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);

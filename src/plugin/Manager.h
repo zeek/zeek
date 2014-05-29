@@ -30,6 +30,7 @@ public:
 	typedef void (*bif_init_func)(Plugin *);
 	typedef std::list<Plugin*> plugin_list;
 	typedef Plugin::component_list component_list;
+	typedef std::list<std::pair<std::string, std::string> > inactive_plugin_list;
 
 	/**
 	 * Constructor.
@@ -68,15 +69,19 @@ public:
 	bool ActivateDynamicPlugin(const std::string& name);
 
 	/**
-	 * Activates all plugins that SearchPlugins() has previously
-	 * discovered. The effect is the same all calling \a
-	 * ActivePlugin(name) for every plugin.
+	 * Activates plugins that SearchPlugins() has previously discovered. The
+	 * effect is the same all calling \a ActivePlugin(name) for the plugins.
+	 *
+	 * @param all If true, activates all plugins that are found. If false,
+	 * activate only those that should always be activated unconditionally
+	 * via the BRO_PLUGIN_ACTIVATE enviroment variable. In other words, it's
+	 * false if running bare mode.
 	 *
 	 * @return True if all plugins have been loaded successfully. If one
 	 * fail to load, the method stops there without loading any furthers
 	 * and returns false.
 	 */
-	bool ActivateAllDynamicPlugins();
+	bool ActivateDynamicPlugins(bool all);
 
 	/**
 	 * First-stage initializion of the manager. This is called early on
@@ -105,11 +110,19 @@ public:
 	void FinishPlugins();
 
 	/**
-	 * Returns a list of all available plugins. This includes all that
-	 * are compiled in statically, as well as those loaded dynamically so
-	 * far.
+	 * Returns a list of all available and activated plugins. This includes
+	 * all that are compiled in statically, as well as those loaded
+	 * dynamically so far.
 	 */
 	plugin_list Plugins() const;
+
+	/**
+	 * Returns a list of all dynamic plugins that have been found, yet not
+	 * activated. The returned list contains pairs of plugin name and base
+	 * directory. Note that because they aren't activated, that's all
+	 * information we have access to.
+	 */
+	inactive_plugin_list InactivePlugins() const;
 
 	/**
 	 * Returns a list of all available components, in any plugin, that
@@ -255,7 +268,7 @@ public:
 	static void RegisterBifFile(const char* plugin, bif_init_func c);
 
 private:
-	bool ActivateDynamicPluginInternal(const std::string& name);
+	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found = false);
 	void UpdateInputFiles();
 	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
 	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const;

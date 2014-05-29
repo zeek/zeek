@@ -1,4 +1,9 @@
 
+2.3-beta-5 | 2014-05-29 15:34:42 -0500
+
+  * Fix misc/load-balancing.bro's reference to
+    PacketFilter::sampling_filter (Jon Siwek)
+
 2.3-beta-4 | 2014-05-28 14:55:24 -0500
 
   * Fix potential mem leak in remote function/event unserialization.

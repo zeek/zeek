@@ -70,6 +70,22 @@ refine flow ModbusTCP_Flow += {
 		return true;
 		%}
 
+	# ModbusTCP_TransportHeader
+	function deliver_ModbusTCP_TransportHeader(tid: uint16, pid: uint16, len: uint16, uid: uint8, fc: uint8): bool
+		%{
+		if ( ::modbustcp_transportheader )
+			{
+			BifEvent::generate_modbustcp_transportheader(connection()->bro_analyzer(),
+			                                             connection()->bro_analyzer()->Conn(),
+			                                             is_orig(),
+			                                             tid, pid, len, uid, fc);
+			}
+
+		return true;
+		%}
+
+
+
 	# REQUEST FC=1
 	function deliver_ReadCoilsRequest(header: ModbusTCP_TransportHeader, message: ReadCoilsRequest): bool
 		%{
@@ -615,5 +631,9 @@ refine flow ModbusTCP_Flow += {
 		%}
 };
 
+# ModbusTCP_TransportHeader
+refine typeattr ModbusTCP_TransportHeader += &let {
+        get_events: bool =  $context.flow.deliver_ModbusTCP_TransportHeader(tid, pid, len, uid, fc);
+};
 
 

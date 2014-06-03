@@ -88,7 +88,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
-	char buf[256]; // we need a buffer for some of the openssl functions
+	char buf[2048]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
 	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
@@ -96,14 +96,16 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 
 	pX509Cert->Assign(0, new Val((uint64) X509_get_version(ssl_cert) + 1, TYPE_COUNT));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
-	int len = BIO_read(bio, &(*buf), sizeof(buf));
+	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, new StringVal(len, buf));
+	BIO_reset(bio);
 
 	X509_NAME_print_ex(bio, X509_get_subject_name(ssl_cert), 0, XN_FLAG_RFC2253);
-	len = BIO_gets(bio, &(*buf), sizeof(buf));
+	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(2, new StringVal(len, buf));
+	BIO_reset(bio);
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
-	len = BIO_gets(bio, &(*buf), sizeof(buf));
+	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(3, new StringVal(len, buf));
 	BIO_free(bio);
 

@@ -17,10 +17,6 @@ event modbus_message%(c: connection, headers: ModbusHeaders, is_orig: bool%);
 ## code: The exception code.
 event modbus_exception%(c: connection, headers: ModbusHeaders, code: count%);
 
-## Generated 
-event modbustcp_transportheader%(c: connection, is_orig: bool, tid: count, pid: count, len: count, uid: count, fc: count%);
-
-
 ## Generated for a Modbus read coils request.
 ##
 ## c: The connection.

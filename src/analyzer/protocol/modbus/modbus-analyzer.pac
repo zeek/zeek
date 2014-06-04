@@ -17,6 +17,12 @@
 	VectorVal* bytestring_to_coils(bytestring coils, uint quantity)
 		{
 		VectorVal* modbus_coils = new VectorVal(BifType::Vector::ModbusCoils);
+		char currentCoil = 0x01;
+		for (uint i = 0; i < quantity; i++)
+			{
+			currentCoil = ( coils[i/8] >> (i%8) )%2;
+			modbus_coils->Assign(i, new Val(currentCoil, TYPE_BOOL));
+			}
 
 		return modbus_coils;
 		}

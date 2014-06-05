@@ -94,6 +94,10 @@ export {
 		[16] = "application_layer_protocol_negotiation",
 		[17] = "status_request_v2",
 		[18] = "signed_certificate_timestamp",
+		[19] = "client_certificate_type",
+		[20] = "server_certificate_type",
+		[21] = "padding", # temporary till 2015-03-12
+		[22] = "encrypt_then_mac", # temporary till 2015-06-05
 		[35] = "SessionTicket TLS",
 		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",

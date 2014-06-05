@@ -1,4 +1,18 @@
 
+2.3-beta-14 | 2014-06-05 14:43:33 -0700
+
+  * Add new TLS extension type numbers from IANA (Bernhard Amann)
+
+  * Switch to double hashing for Bloomfilters for better performance.
+    (Matthias Vallentin)
+
+  * Bugfix to use full digest length instead of just one byte for
+    Bloomfilter's universal hash function. Addresses BIT-1140.
+    (Matthias Vallentin)
+
+  * Make buffer for X509 certificate subjects larger. Addresses
+    BIT-1195 (Bernhard Amann)
+
 2.3-beta-5 | 2014-05-29 15:34:42 -0500
 
   * Fix misc/load-balancing.bro's reference to

@@ -1074,7 +1074,8 @@ make a call to :bro:id:`NOTICE` supplying it with an appropriate
 :bro:type:`Notice::Info` record.  Often times the call to ``NOTICE``
 includes just the ``Notice::Type``, and a concise message.  There are
 however, significantly more options available when raising notices as
-seen in the table below.  The only field in the table below whose
+seen in the definition of :bro:type:`Notice::Info`.  The only field in
+``Notice::Info`` whose
 attributes make it a required field is the ``note`` field.  Still,
 good manners are always important and including a concise message in
 ``$msg`` and, where necessary, the contents of the connection record
@@ -1085,57 +1086,6 @@ auto-populate the ``$id`` and ``$src`` fields as well.  Other fields
 that are commonly included, ``$identifier`` and ``$suppress_for`` are
 built around the automated suppression feature of the Notice Framework
 which we will cover shortly.  
-
-.. todo::
-
-    Once the link to ``Notice::Info`` work I think we should take out
-    the table. That's too easy to get out of date.
-
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| Field               | Type                                                             | Attributes     | Use                                    |
-+=====================+==================================================================+================+========================================+
-| ts                  | time                                                             | &log &optional | The time of the notice                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| uid                 | string                                                           | &log &optional | A unique connection ID                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| id                  | conn_id                                                          | &log &optional | A 4-tuple to identify endpoints        |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| conn                | connection                                                       | &optional      | Shorthand for the uid and id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| iconn               | icmp_conn                                                        | &optional      | Shorthand for the uid and id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| proto               | transport_proto                                                  | &log &optional | Transport protocol                     |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| note                | Notice::Type                                                     | &log           | The Notice::Type of the notice         |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| msg                 | string                                                           | &log &optional | Human readable message                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| sub                 | string                                                           | &log &optional | Human readable message                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| src                 | addr                                                             | &log &optional | Source address if no conn_id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| dst                 | addr                                                             | &log &optional | Destination addr if no conn_id         |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| p                   | port                                                             | &log &optional | Port if no conn_id                     |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| n                   | count                                                            | &log &optional | Count or status code                   |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| src_peer            | event_peer                                                       | &log &optional | Peer that raised the notice            |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| peer_descr          | string                                                           | &log &optional | Text description of the src_peer       |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| actions             | set[Notice::Action]                                              | &log &optional | Actions applied to the notice          |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| policy_items        | set[count]                                                       | &log &optional | Policy items that have been applied    |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_body_sections | vector                                                           | &optional       | Body of the email for email notices.  |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_delay_tokens  | set[string]                                                      | &optional      | Delay functionality for email notices. |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| identifier          | string                                                           | &optional      | A unique string identifier             |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| suppress_for        | interval                                                         | &log &optional | Length of time to suppress a notice.   |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 
 One of the default policy scripts raises a notice when an SSH login
 has been heuristically detected and the originating hostname is one

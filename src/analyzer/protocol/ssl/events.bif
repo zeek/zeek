@@ -24,8 +24,9 @@
 ##          standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
-## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate
+## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_handshake_message
+##    ssl_change_cipher_spec
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
@@ -59,7 +60,7 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_session_ticket_handshake x509_certificate ssl_server_curve
-##    ssl_dh_server_params
+##    ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
@@ -270,7 +271,7 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 ## started.
 ##
 ## Note that :bro:id:`SSL::disable_analyzer_after_detection` has to be changed
-## from its default to false for this event to be generated.  
+## from its default to false for this event to be generated.
 ##
 ## c: The connection.
 ##
@@ -294,3 +295,30 @@ event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, len
 ##
 ## response: OCSP data.
 event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string%);
+
+## This event is raised for each unencrypted SSL/TLS handshake message
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## msg_type: type of the handshake message that was seen
+##
+## length: length of the handshake message that was seen
+##
+## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
+##    ssl_change_cipher_spec
+event ssl_handshake_message%(c: connection, is_orig: bool, msg_type: count, length: count%);
+
+## This event is raised when a SSL/TLS ChangeCipherSpec message is encountered
+## before encryption begins. Traffic will be encrypted following this message.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
+##    ssl_handshake_message
+event ssl_change_cipher_spec%(c: connection, is_orig: bool%);

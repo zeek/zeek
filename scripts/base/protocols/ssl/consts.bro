@@ -26,6 +26,21 @@ export {
 	const V2_CLIENT_MASTER_KEY = 302;
 	const V2_SERVER_HELLO = 304;
 
+	## TLS Handshake types:
+	const HELLO_REQUEST       = 0;
+	const CLIENT_HELLO        = 1;
+	const SERVER_HELLO        = 2;
+	const SESSION_TICKET      = 4; # RFC 5077
+	const CERTIFICATE         = 11;
+	const SERVER_KEY_EXCHANGE = 12;
+	const CERTIFICATE_REQUEST = 13;
+	const SERVER_HELLO_DONE   = 14;
+	const CERTIFICATE_VERIFY  = 15;
+	const CLIENT_KEY_EXCHANGE = 16;
+	const FINISHED            = 20;
+	const CERTIFICATE_URL     = 21; # RFC 3546
+	const CERTIFICATE_STATUS  = 22; # RFC 3546
+
 	## Mapping between numeric codes and human readable strings for alert
 	## levels.
 	const alert_levels: table[count] of string = {

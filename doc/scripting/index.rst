@@ -1252,8 +1252,8 @@ in the call to ``NOTICE``.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_01.bro
 
-The Notice Policy shortcut above adds the ``Notice::Types`` of
-SSH::Interesting_Hostname_Login and SSH::Login to the
+The Notice Policy shortcut above adds the ``Notice::Type`` of
+SSH::Interesting_Hostname_Login to the
 Notice::emailed_types set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 

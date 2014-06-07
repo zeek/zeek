@@ -947,7 +947,7 @@ Logging Framework when ``Log::write`` is called.  Were there to be
 any name value pairs without the ``&log`` attribute, those fields
 would simply be ignored during logging but remain available for the
 lifespan of the variable.  The next step is to create the logging
-stream with :bro:id:`Log::create_stream` which takes a Log::ID and a
+stream with :bro:id:`Log::create_stream` which takes a ``Log::ID`` and a
 record as its arguments.  In this example, on line 25, we call the
 ``Log::create_stream`` method and pass ``Factor::LOG`` and the
 ``Factor::Info`` record as arguments. From here on out, if we issue
@@ -1253,8 +1253,8 @@ in the call to ``NOTICE``.
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_01.bro
 
 The Notice Policy shortcut above adds the ``Notice::Type`` of
-SSH::Interesting_Hostname_Login to the
-Notice::emailed_types set while the shortcut below alters the length
+``SSH::Interesting_Hostname_Login`` to the
+``Notice::emailed_types`` set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_02.bro

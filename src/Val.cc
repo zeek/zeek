@@ -1471,13 +1471,19 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 		}
 
 	TableEntryVal* new_entry_val = new TableEntryVal(new_val);
+	HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k, new_entry_val);
+	// If the dictionary index already existed, the insert may free up the
+	// memory allocated to the key bytes, so have to assume k is invalid
+	// from here on out.
+	delete k;
+	k = 0;
 
 	if ( subnets )
 		{
 		if ( ! index )
 			{
-			Val* v = RecoverIndex(k);
+			Val* v = RecoverIndex(&k_copy);
 			subnets->Insert(v, new_entry_val);
 			Unref(v);
 			}
@@ -1489,7 +1495,7 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 		{
 		Val* rec_index = 0;
 		if ( ! index )
-			index = rec_index = RecoverIndex(k);
+			index = rec_index = RecoverIndex(&k_copy);
 
 		if ( new_val )
 			{
@@ -1547,7 +1553,6 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 	if ( old_entry_val && attrs && attrs->FindAttr(ATTR_EXPIRE_CREATE) )
 		new_entry_val->SetExpireAccess(old_entry_val->ExpireAccessTime());
 
-	delete k;
 	if ( old_entry_val )
 		{
 		old_entry_val->Unref();

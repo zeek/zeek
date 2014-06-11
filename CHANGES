@@ -1,4 +1,9 @@
 
+2.3-beta-20 | 2014-06-10 18:16:51 -0700
+
+  * Fix use-after-free in some cases of reassigning a table index.
+    Addresses BIT-1202. (Jon Siwek)
+
 2.3-beta-18 | 2014-06-06 13:11:50 -0700
 
   * Add two more SSL events, one triggered for each handshake message

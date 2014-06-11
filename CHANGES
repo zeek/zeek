@@ -1,4 +1,9 @@
 
+2.3-beta-24 | 2014-06-11 15:35:31 -0500
+
+  * Fix SMTP state tracking when server response is missing.
+    (Robin Sommer)
+
 2.3-beta-22 | 2014-06-11 12:31:38 -0500
 
   * Fix doc/test that broke due to a Bro script change. (Jon Siwek)

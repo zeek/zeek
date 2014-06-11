@@ -1,4 +1,10 @@
 
+2.3-beta-22 | 2014-06-11 12:31:38 -0500
+
+  * Fix doc/test that broke due to a Bro script change. (Jon Siwek)
+
+  * Remove unused --with-libmagic configure option. (Jon Siwek)
+
 2.3-beta-20 | 2014-06-10 18:16:51 -0700
 
   * Fix use-after-free in some cases of reassigning a table index.

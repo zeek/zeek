@@ -1,4 +1,44 @@
 
+2.3-beta-22 | 2014-06-11 12:31:38 -0500
+
+  * Fix doc/test that broke due to a Bro script change. (Jon Siwek)
+
+  * Remove unused --with-libmagic configure option. (Jon Siwek)
+
+2.3-beta-20 | 2014-06-10 18:16:51 -0700
+
+  * Fix use-after-free in some cases of reassigning a table index.
+    Addresses BIT-1202. (Jon Siwek)
+
+2.3-beta-18 | 2014-06-06 13:11:50 -0700
+
+  * Add two more SSL events, one triggered for each handshake message
+    and one triggered for the tls change cipherspec message. (Bernhard
+    Amann)
+
+  * Small SSL bug fix. In case SSL::disable_analyzer_after_detection
+    was set to false, the ssl_established event would fire after each
+    data packet once the session is established. (Bernhard Amann)
+
+2.3-beta-16 | 2014-06-06 13:05:44 -0700
+
+  * Re-activate notice suppression for expiring certificates.
+    (Bernhard Amann)
+
+2.3-beta-14 | 2014-06-05 14:43:33 -0700
+
+  * Add new TLS extension type numbers from IANA (Bernhard Amann)
+
+  * Switch to double hashing for Bloomfilters for better performance.
+    (Matthias Vallentin)
+
+  * Bugfix to use full digest length instead of just one byte for
+    Bloomfilter's universal hash function. Addresses BIT-1140.
+    (Matthias Vallentin)
+
+  * Make buffer for X509 certificate subjects larger. Addresses
+    BIT-1195 (Bernhard Amann)
+
 2.3-beta-5 | 2014-05-29 15:34:42 -0500
 
   * Fix misc/load-balancing.bro's reference to

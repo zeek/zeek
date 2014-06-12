@@ -26,6 +26,21 @@ export {
 	const V2_CLIENT_MASTER_KEY = 302;
 	const V2_SERVER_HELLO = 304;
 
+	## TLS Handshake types:
+	const HELLO_REQUEST       = 0;
+	const CLIENT_HELLO        = 1;
+	const SERVER_HELLO        = 2;
+	const SESSION_TICKET      = 4; # RFC 5077
+	const CERTIFICATE         = 11;
+	const SERVER_KEY_EXCHANGE = 12;
+	const CERTIFICATE_REQUEST = 13;
+	const SERVER_HELLO_DONE   = 14;
+	const CERTIFICATE_VERIFY  = 15;
+	const CLIENT_KEY_EXCHANGE = 16;
+	const FINISHED            = 20;
+	const CERTIFICATE_URL     = 21; # RFC 3546
+	const CERTIFICATE_STATUS  = 22; # RFC 3546
+
 	## Mapping between numeric codes and human readable strings for alert
 	## levels.
 	const alert_levels: table[count] of string = {
@@ -94,6 +109,10 @@ export {
 		[16] = "application_layer_protocol_negotiation",
 		[17] = "status_request_v2",
 		[18] = "signed_certificate_timestamp",
+		[19] = "client_certificate_type",
+		[20] = "server_certificate_type",
+		[21] = "padding", # temporary till 2015-03-12
+		[22] = "encrypt_then_mac", # temporary till 2015-06-05
 		[35] = "SessionTicket TLS",
 		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",

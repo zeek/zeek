@@ -234,7 +234,7 @@ is valid before installing it and then restarting the Bro instance:
 .. console::
 
    [BroControl] > check
-   bro is ok.
+   bro scripts are ok.
    [BroControl] > install
    removing old policies in /usr/local/bro/spool/policy/site ... done.
    removing old policies in /usr/local/bro/spool/policy/auto ... done.
@@ -250,15 +250,15 @@ is valid before installing it and then restarting the Bro instance:
 
 Now that the SSL notice is ignored, let's look at how to send an email on
 the SSH notice.  The notice framework has a similar option called
-``emailed_types``, but that can't differentiate between SSH servers and we
-only want email for logins to certain ones.  Then we come to the ``PolicyItem``
-record and ``policy`` set and realize that those are actually what get used
-to implement the simple functionality of ``ignored_types`` and
+``emailed_types``, but using that would generate email for all SSH servers and
+we only want email for logins to certain ones.  There is a ``policy`` hook
+that is actually what is used to implement the simple functionality of
+``ignored_types`` and
 ``emailed_types``, but it's extensible such that the condition and action taken
 on notices can be user-defined.
 
-In ``local.bro``, let's add a new ``PolicyItem`` record to the ``policy`` set
-that only takes the email action for SSH logins to a defined set of servers:
+In ``local.bro``, let's define a new ``policy`` hook handler body
+that takes the email action for SSH logins only for a defined set of servers:
 
 .. code:: bro
 
@@ -276,9 +276,9 @@ that only takes the email action for SSH logins to a defined set of servers:
 
 You'll just have to trust the syntax for now, but what we've done is
 first declare our own variable to hold a set of watched addresses,
-``watched_servers``; then added a record to the policy that will generate
-an email on the condition that the predicate function evaluates to true, which
-is whenever the notice type is an SSH login and the responding host stored
+``watched_servers``; then added a hook handler body to the policy that will
+generate an email whenever the notice type is an SSH login and the responding
+host stored
 inside the ``Info`` record's connection field is in the set of watched servers.
 
 .. note:: Record field member access is done with the '$' character

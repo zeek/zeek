@@ -71,7 +71,7 @@ export {
 		## to be logged has occurred.
 		ts:         time         &log;
 		## A unique identifier of the connection which triggered the
-		## signature match event
+		## signature match event.
 		uid:        string       &log &optional;
 		## The host which triggered the signature match event.
 		src_addr:   addr         &log &optional;

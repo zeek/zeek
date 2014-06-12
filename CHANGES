@@ -1,4 +1,8 @@
 
+2.3-beta-33 | 2014-06-12 11:59:28 -0500
+
+  * Documentation improvements/fixes. (Daniel Thayer)
+
 2.3-beta-24 | 2014-06-11 15:35:31 -0500
 
   * Fix SMTP state tracking when server response is missing.

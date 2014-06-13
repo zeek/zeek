@@ -39,7 +39,8 @@ function clear_waitlist(digest: string)
 
 event ssl_established(c: connection) &priority=3
 	{
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
+	     ! c$ssl$cert_chain[0]?$sha1 )
 		return;
 
 	local digest = c$ssl$cert_chain[0]$sha1;

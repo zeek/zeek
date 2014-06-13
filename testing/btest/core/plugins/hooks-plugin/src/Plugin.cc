@@ -28,7 +28,7 @@ protected:
 		return config;
 		}
 
-	virtual int HookLoadFile(const std::string& file);
+	virtual int HookLoadFile(const std::string& file, const std::string& ext);
 	virtual Val* HookCallFunction(const Func* func, val_list* args);
 	virtual bool HookQueueEvent(Event* event);
 	virtual void HookDrainEvents();
@@ -52,11 +52,11 @@ static void describe_hook_args(const HookArgumentList& args, ODesc* d)
 		}
 	}
 
-int Plugin::HookLoadFile(const std::string& file)
+int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	{
-	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookLoadFile",
-		file.c_str());
-	return 0;
+	fprintf(stderr, "%.6f %-15s %s/%s\n", network_time, "| HookLoadFile",
+		file.c_str(), ext.c_str());
+	return -1;
 	}
 
 Val* Plugin::HookCallFunction(const Func* func, val_list* args)

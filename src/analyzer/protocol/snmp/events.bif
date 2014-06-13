@@ -1,6 +1,6 @@
 ## An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -14,7 +14,7 @@ event snmp_get_request%(c: connection, is_orig: bool, header: SNMP::Header,
 ## An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
 ## :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -28,7 +28,7 @@ event snmp_get_next_request%(c: connection, is_orig: bool,
 ## An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
 ## ``Response-PDU`` from :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -41,7 +41,7 @@ event snmp_response%(c: connection, is_orig: bool, header: SNMP::Header,
 
 ## An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -54,7 +54,7 @@ event snmp_set_request%(c: connection, is_orig: bool, header: SNMP::Header,
 
 ## An SNMP ``Trap-PDU`` message from :rfc:`1157`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -67,7 +67,7 @@ event snmp_trap%(c: connection, is_orig: bool, header: SNMP::Header,
 
 ## An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -80,7 +80,7 @@ event snmp_get_bulk_request%(c: connection, is_orig: bool,
 
 ## An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -93,7 +93,7 @@ event snmp_inform_request%(c: connection, is_orig: bool, header: SNMP::Header,
 
 ## An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -106,7 +106,7 @@ event snmp_trapV2%(c: connection, is_orig: bool, header: SNMP::Header,
 
 ## An SNMP ``Report-PDU`` message from :rfc:`3416`.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -119,7 +119,7 @@ event snmp_report%(c: connection, is_orig: bool, header: SNMP::Header,
 
 ## An SNMP PDU message of unknown type.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -133,7 +133,7 @@ event snmp_unknown_pdu%(c: connection, is_orig: bool, header: SNMP::Header,
 ## An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
 ## an encrypted PDU was in the datagram).
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -146,7 +146,7 @@ event snmp_unknown_scoped_pdu%(c: connection, is_orig: bool,
 
 ## An SNMPv3 encrypted PDU message.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##
@@ -156,7 +156,7 @@ event snmp_encrypted_pdu%(c: connection, is_orig: bool, header: SNMP::Header%);
 
 ## A datagram with an unknown SNMP version.
 ##
-## c: The connection overwhich the SNMP datagram is sent.
+## c: The connection over which the SNMP datagram is sent.
 ##
 ## is_orig: The endpoint which sent the SNMP datagram.
 ##

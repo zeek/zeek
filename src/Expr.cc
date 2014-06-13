@@ -3398,8 +3398,8 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	if ( IsError() )
 		return;
 
-	// Spin through the list, which should be comprised of
-	// either record's or record-field-assign, and build up a
+	// Spin through the list, which should be comprised only of
+	// record-field-assign expressions, and build up a
 	// record type to associate with this constructor.
 	type_decl_list* record_types = new type_decl_list;
 
@@ -3407,34 +3407,18 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		BroType* t = e->Type();
 
-		if ( e->Tag() == EXPR_FIELD_ASSIGN )
-			{
-			FieldAssignExpr* field = (FieldAssignExpr*) e;
-
-			BroType* field_type = field->Type()->Ref();
-			char* field_name = copy_string(field->FieldName());
-
-			record_types->append(new TypeDecl(field_type, field_name));
-			continue;
-			}
-
-		if ( t->Tag() != TYPE_RECORD )
+		if ( e->Tag() != EXPR_FIELD_ASSIGN )
 			{
 			Error("bad type in record constructor", e);
 			SetError();
 			continue;
 			}
 
-		// It's a record - add in its fields.
-		const RecordType* rt = t->AsRecordType();
-		int n = rt->NumFields();
-		for ( int j = 0; j < n; ++j )
-			{
-			const TypeDecl* td = rt->FieldDecl(j);
-			record_types->append(new TypeDecl(td->type->Ref(), td->id));
-			}
+		FieldAssignExpr* field = (FieldAssignExpr*) e;
+		BroType* field_type = field->Type()->Ref();
+		char* field_name = copy_string(field->FieldName());
+		record_types->append(new TypeDecl(field_type, field_name));
 		}
 
 	SetType(new RecordType(record_types));
@@ -4346,7 +4330,7 @@ Val* TableCoerceExpr::Fold(Val* v) const
 	if ( tv->Size() > 0 )
 		Internal("coercion of non-empty table/set");
 
-	return new TableVal(Type()->Ref()->AsTableType(), tv->Attrs());
+	return new TableVal(Type()->AsTableType(), tv->Attrs());
 	}
 
 IMPLEMENT_SERIAL(TableCoerceExpr, SER_TABLE_COERCE_EXPR);

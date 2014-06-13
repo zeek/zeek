@@ -1,0 +1,1 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-bad-ctor2/record-bad-ctor2.bro, line 14: bad type in record constructor ([[$cmd=echo hi]] and [$cmd=echo hi])

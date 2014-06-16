@@ -123,6 +123,9 @@
 /* Use the ElasticSearch writer. */
 #cmakedefine USE_ELASTICSEARCH
 
+/* Use the Rabbit-related writers. */
+#cmakedefine USE_RABBIT
+
 /* Version number of package */
 #define VERSION "@VERSION@"
 

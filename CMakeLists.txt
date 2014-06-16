@@ -144,6 +144,22 @@ if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
   list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
 endif()
 
+set(USE_RABBIT false)
+find_library(RABBIT_LIBRARY librabbitmq.so
+             PATHS ${RABBIT_LIBRARY_PREFIX}/lib
+            /usr/lib
+            /usr/lib64
+            /usr/local/lib
+            /usr/local/lib64
+)
+
+if (NOT DISABLE_RABBIT AND NOT "${RABBIT_LIBRARY}" STREQUAL
+"RABBIT_LIBRARY-NOTFOUND")
+  set(USE_RABBIT true)
+  list(APPEND OPTLIBS ${RABBIT_LIBRARY})
+endif()
+
+
 if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
@@ -242,6 +258,7 @@ message(
     "\n"
     "\nDataSeries:        ${USE_DATASERIES}"
     "\nElasticSearch:     ${USE_ELASTICSEARCH}"
+    "\nRabbit:            ${USE_RABBIT}"
     "\n"
     "\n================================================================\n"
 )

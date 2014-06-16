@@ -353,6 +353,8 @@ set(bro_SRCS
     logging/writers/DataSeries.cc
     logging/writers/SQLite.cc
     logging/writers/ElasticSearch.cc
+    logging/writers/ElasticSearchRabbit.cc
+    logging/writers/AMQP.cc
     logging/writers/None.cc
 
     input/Manager.cc

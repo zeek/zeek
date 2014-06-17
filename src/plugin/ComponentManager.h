@@ -117,7 +117,6 @@ public:
 	C* Lookup(EnumVal* val) const;
 
 private:
-
 	string module; /**< Script layer module in which component tags live. */
 	EnumType* tag_enum_type; /**< Enum type of component tags. */
 	map<string, C*> components_by_name;

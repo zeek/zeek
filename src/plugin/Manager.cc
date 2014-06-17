@@ -292,14 +292,14 @@ static bool plugin_cmp(const Plugin* a, const Plugin* b)
 
 void Manager::RegisterPlugin(Plugin *plugin)
 	{
-	Manager::PluginsInternal()->push_back(plugin);
+	Manager::ActivePluginsInternal()->push_back(plugin);
 
 	if ( current_dir.size() && current_sopath.size() )
 		// A dynamic plugin, record its location.
 		plugin->SetPluginLocation(current_dir.c_str(), current_sopath.c_str());
 
 	// Sort plugins by name to make sure we have a deterministic order.
-	PluginsInternal()->sort(plugin_cmp);
+	ActivePluginsInternal()->sort(plugin_cmp);
 
 	current_plugin = plugin;
 	}
@@ -320,7 +320,8 @@ void Manager::InitPreScript()
 	{
 	assert(! init);
 
-	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
+	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
+          i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
 		Plugin* plugin = *i;
 		plugin->DoConfigure();
@@ -334,7 +335,8 @@ void Manager::InitBifs()
 	{
 	bif_init_func_map* bifs = BifFilesInternal();
 
-	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
+	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
+          i != Manager::ActivePluginsInternal()->end(); i++ )
 		{
 		bif_init_func_map::const_iterator b = bifs->find((*i)->Name());
 
@@ -350,7 +352,8 @@ void Manager::InitPostScript()
 	{
 	assert(init);
 
-	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
+	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
+          i != Manager::ActivePluginsInternal()->end(); i++ )
 		(*i)->InitPostScript();
 	}
 
@@ -358,25 +361,23 @@ void Manager::FinishPlugins()
 	{
 	assert(init);
 
-	for ( plugin_list::iterator i = Manager::PluginsInternal()->begin(); i != Manager::PluginsInternal()->end(); i++ )
-		{
+	for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
+          i != Manager::ActivePluginsInternal()->end(); i++ )
 		(*i)->Done();
-//		delete *i;
-		}
 
-	Manager::PluginsInternal()->clear();
+	Manager::ActivePluginsInternal()->clear();
 
 	init = false;
 	}
 
-Manager::plugin_list Manager::Plugins() const
+Manager::plugin_list Manager::ActivePlugins() const
 	{
-	return *Manager::PluginsInternal();
+	return *Manager::ActivePluginsInternal();
 	}
 
 Manager::inactive_plugin_list Manager::InactivePlugins() const
 	{
-	plugin_list* all = PluginsInternal();
+	plugin_list* all = ActivePluginsInternal();
 
 	inactive_plugin_list inactives;
 
@@ -400,7 +401,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 	return inactives;
 	}
 
-Manager::plugin_list* Manager::PluginsInternal()
+Manager::plugin_list* Manager::ActivePluginsInternal()
 	{
 	static plugin_list* plugins = 0;
 

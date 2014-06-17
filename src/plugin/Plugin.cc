@@ -206,18 +206,7 @@ void Plugin::InitPostScript()
 
 Plugin::bif_item_list Plugin::BifItems() const
 	{
-	bif_item_list l1 = bif_items;
-	bif_item_list l2 = CustomBifItems();
-
-	for ( bif_item_list::const_iterator i = l2.begin(); i != l2.end(); i++ )
-		l1.push_back(*i);
-
-	return l1;
-	}
-
-Plugin::bif_item_list Plugin::CustomBifItems() const
-	{
-	return bif_item_list();
+    return bif_items;
 	}
 
 void Plugin::Done()

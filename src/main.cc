@@ -252,7 +252,7 @@ void usage()
 
 void show_plugins(int level)
 	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{

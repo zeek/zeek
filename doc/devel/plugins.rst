@@ -263,7 +263,6 @@ activated, and hence show up as such even in bare mode.
 
     Is this the right activation model?
 
-
 Plugin Component
 ================
 

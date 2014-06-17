@@ -16,7 +16,7 @@ namespace component {
  */
 enum Type {
 	READER,	/// An input reader (not currently used).
-	WRITER,	/// An logging writer (not currenly used).
+	WRITER,	/// A logging writer (not currenly used).
 	ANALYZER,	/// A protocol analyzer.
 	FILE_ANALYZER	/// A file analyzer.
 	};
@@ -59,17 +59,18 @@ public:
 	 * Returns a textual representation of the component. This goes into
 	 * the output of "bro -NN".
 	 *
-	 * By default version, this just outputs the type and the name.
-	 * Derived versions should override DoDescribe() to add type specific
-	 * details.
+	 * By default, this just outputs the type and the name. Derived
+	 * versions can override DoDescribe() to add type specific details.
 	 *
 	 * @param d The description object to use.
 	 */
-	virtual void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const;
 
 protected:
 	/**
-	  * Adds type specific information to the outout of Describe().
+	 * Adds type specific information to the outout of Describe().
+	 *
+	 * The default version does nothing.
 	 *
 	 * @param d The description object to use.
 	  */

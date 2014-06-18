@@ -13,7 +13,9 @@ functionality to Bro:
 
     - Builtin functions/events/types for the scripting language.
 
-    - Protocol and file analyzers.
+    - Protocol analyzers.
+
+    - File analyzers.
 
     - Packet sources and packet dumpers. TODO: Not yet.
 
@@ -228,10 +230,6 @@ install``).
 as well as the ``__bro_plugin__`` magic file and the ``README`` (which
 you should customize). One can add further CMake ``install`` rules to
 install additional files if neeed.
-
-.. todo::
-
-    Describe the other files that the script puts in place.
 
 Activating a Plugin
 ===================

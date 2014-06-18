@@ -501,6 +501,7 @@ void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 
 void Manager::RequestBroObjDtor(BroObj* obj, Plugin* plugin)
 	{
+    obj->NotifyPluginsOnDtor();
 	}
 
 int Manager::HookLoadFile(const string& file)

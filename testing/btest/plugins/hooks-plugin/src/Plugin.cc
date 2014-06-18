@@ -19,6 +19,7 @@ protected:
 		EnableHook(HOOK_UPDATE_NETWORK_TIME);
 		EnableHook(META_HOOK_PRE);
 		EnableHook(META_HOOK_POST);
+		EnableHook(HOOK_BRO_OBJ_DTOR);
 
 		plugin::Configuration config;
 		config.name = "Demo::Hooks";
@@ -33,6 +34,7 @@ protected:
 	virtual bool HookQueueEvent(Event* event);
 	virtual void HookDrainEvents();
 	virtual void HookUpdateNetworkTime(double network_time);
+	virtual void HookBroObjDtor(void* obj);
 	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
 	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
 
@@ -67,6 +69,7 @@ Val* Plugin::HookCallFunction(const Func* func, val_list* args)
 	HookArgument(args).Describe(&d);
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookCallFunction",
 		d.Description());
+
 	return 0;
 	}
 
@@ -77,6 +80,16 @@ bool Plugin::HookQueueEvent(Event* event)
 	HookArgument(event).Describe(&d);
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookQueueEvent",
 		d.Description());
+
+    static int i = 0;
+
+    if ( network_time && i == 0 ) {
+    	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| RequestObjDtor",
+	    	d.Description());
+        RequestBroObjDtor(event);
+        i = 1;
+    }
+
 	return false;
 	}
 
@@ -89,6 +102,11 @@ void Plugin::HookUpdateNetworkTime(double network_time)
 	{
 	fprintf(stderr, "%.6f  %-15s %.6f\n", ::network_time, "| HookUpdateNetworkTime",
 		network_time);
+	}
+
+void Plugin::HookBroObjDtor(void* obj)
+	{
+	fprintf(stderr, "%.6f  %-15s\n", ::network_time, "| HookBroObjDtor");
 	}
 
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)

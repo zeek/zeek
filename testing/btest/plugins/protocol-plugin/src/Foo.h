@@ -7,12 +7,13 @@
 
 namespace binpac  { namespace Foo { class Foo_Conn; } }
 
-namespace analyzer { namespace Foo {
+namespace plugin {
+namespace Demo_Foo {
 
-class Foo_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class Foo : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	Foo_Analyzer(Connection* conn);
-	~Foo_Analyzer();
+	Foo(Connection* conn);
+	~Foo();
 
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
@@ -20,12 +21,12 @@ public:
 	virtual void EndpointEOF(bool is_orig);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new Foo_Analyzer(conn); }
+		{ return new Foo(conn); }
 
 protected:
 	binpac::Foo::Foo_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} }
 
 #endif

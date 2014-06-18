@@ -10,7 +10,7 @@ class Plugin : public plugin::Plugin {
 public:
 	plugin::Configuration Configure()
 		{
-		AddComponent(new ::analyzer::Component("Foo", ::analyzer::Foo::Foo_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("Foo", plugin::Demo_Foo::Foo::Instantiate));
 
 		plugin::Configuration config;
 		config.name = "Demo::Foo";

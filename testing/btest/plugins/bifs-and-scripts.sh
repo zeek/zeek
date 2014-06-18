@@ -1,7 +1,7 @@
 # @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: make BRO=${DIST}
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN | awk '/^Plugin:.*Demo/ {p=1; print; next} /^Plugin:/{p=0} p==1{print}' >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN Demo::Foo >>output
 
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r $TRACES/empty.trace >>output
@@ -18,8 +18,7 @@
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.bro  demo/foo -r $TRACES/empty.trace >>output
 
-
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 cat >scripts/__load__.bro <<EOF
 @load ./demo/foo/base/at-startup.bro

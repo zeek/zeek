@@ -86,6 +86,14 @@ function version_ok(vers : uint16) : bool
 
 refine connection SSL_Conn += {
 
+	%member{
+		int established_;
+	%}
+
+	%init{
+		established_ = false;
+	%}
+
 	%cleanup{
 	%}
 
@@ -359,15 +367,16 @@ refine connection SSL_Conn += {
 	function proc_ciphertext_record(rec : SSLRecord) : bool
 		%{
 		 if ( client_state_ == STATE_ENCRYPTED &&
-		      server_state_ == STATE_ENCRYPTED )
+		      server_state_ == STATE_ENCRYPTED &&
+		      established_ == false )
 			{
+			established_ = true;
 			BifEvent::generate_ssl_established(bro_analyzer(),
 							bro_analyzer()->Conn());
 			}
 
-		if ( ${rec.content_type} == HEARTBEAT )
-			BifEvent::generate_ssl_encrypted_heartbeat(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length});
+		BifEvent::generate_ssl_encrypted_data(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.content_type}, ${rec.length});
 
 		return true;
 		%}
@@ -418,6 +427,22 @@ refine connection SSL_Conn += {
 		  new StringVal(g.length(), (const char*) g.data()),
 		  new StringVal(Ys.length(), (const char*) Ys.data())
 		  );
+
+		return true;
+		%}
+
+	function proc_ccs(rec: SSLRecord) : bool
+		%{
+		BifEvent::generate_ssl_change_cipher_spec(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig});
+
+		return true;
+		%}
+
+	function proc_handshake(rec: SSLRecord, msg_type: uint8, length: uint24) : bool
+		%{
+		BifEvent::generate_ssl_handshake_message(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, msg_type, to_int()(length));
 
 		return true;
 		%}
@@ -517,4 +542,12 @@ refine typeattr EcServerKeyExchange += &let {
 
 refine typeattr DhServerKeyExchange += &let {
 	proc : bool = $context.connection.proc_dh_server_key_exchange(rec, dh_p, dh_g, dh_Ys);
+};
+
+refine typeattr ChangeCipherSpec += &let {
+	proc : bool = $context.connection.proc_ccs(rec);
+};
+
+refine typeattr Handshake += &let {
+	proc : bool = $context.connection.proc_handshake(rec, msg_type, length);
 };

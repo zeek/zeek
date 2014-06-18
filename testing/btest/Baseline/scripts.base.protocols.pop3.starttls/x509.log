@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	x509
+#open	2014-05-15-17-23-07
+#fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
+#types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
+1400173552.426860	FEdAw24VSam39HNlY5	3	01	emailAddress=postmaster@lilawelt.de,CN=chimaera.lilawelt.de,OU=Servers,O=Lilawelt,L=Munich,C=DE	emailAddress=postmaster@lilawelt.de,CN=Lilawelt,OU=Lilawelt CA,O=Lilawelt,L=Munich,C=DE	1178385788.000000	1493745788.000000	rsaEncryption	md5WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	F	-
+#close	2014-05-15-17-23-07

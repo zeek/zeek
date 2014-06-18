@@ -28,10 +28,6 @@ export {
 	## values for a sumstat.
 	global cluster_ss_request: event(uid: string, ss_name: string, cleanup: bool);
 
-	# Event sent by nodes that are collecting sumstats after receiving a
-	# request for the sumstat from the manager.
-	#global cluster_ss_response: event(uid: string, ss_name: string, data: ResultTable, done: bool, cleanup: bool);
-
 	## This event is sent by the manager in a cluster to initiate the
 	## collection of a single key value from a sumstat.  It's typically used
 	## to get intermediate updates before the break interval triggers to
@@ -144,7 +140,7 @@ event SumStats::cluster_ss_request(uid: string, ss_name: string, cleanup: bool)
 	sending_results[uid] = (ss_name in result_store) ? result_store[ss_name] : table();
 
 	# Lookup the actual sumstats and reset it, the reference to the data
-	# currently stored will be maintained internally from the 
+	# currently stored will be maintained internally from the
 	# sending_results table.
 	if ( cleanup && ss_name in stats_store )
 		reset(stats_store[ss_name]);
@@ -159,7 +155,7 @@ event SumStats::cluster_get_result(uid: string, ss_name: string, key: Key, clean
 		if ( uid in sending_results && key in sending_results[uid] )
 			{
 			# Note: copy is needed to compensate serialization caching issue. This should be
-			# changed to something else later. 
+			# changed to something else later.
 			event SumStats::cluster_send_result(uid, ss_name, key, copy(sending_results[uid][key]), cleanup);
 			delete sending_results[uid][key];
 			}
@@ -170,12 +166,12 @@ event SumStats::cluster_get_result(uid: string, ss_name: string, key: Key, clean
 			event SumStats::cluster_send_result(uid, ss_name, key, table(), cleanup);
 			}
 		}
-	else 
+	else
 		{
 		if ( ss_name in result_store && key in result_store[ss_name] )
 			{
 			# Note: copy is needed to compensate serialization caching issue. This should be
-			# changed to something else later. 
+			# changed to something else later.
 			event SumStats::cluster_send_result(uid, ss_name, key, copy(result_store[ss_name][key]), cleanup);
 			}
 		else
@@ -193,6 +189,19 @@ event SumStats::cluster_threshold_crossed(ss_name: string, key: SumStats::Key, t
 		threshold_tracker[ss_name] = table();
 
 	threshold_tracker[ss_name][key] = thold_index;
+	}
+
+# request-key is a non-op on the workers.
+# It only should be called by the manager. Due to the fact that we usually run the same scripts on the
+# workers and the manager, it might also be called by the workers, so we just ignore it here.
+#
+# There is a small chance that people will try running it on events that are just thrown on the workers.
+# This does not work at the moment and we cannot throw an error message, because we cannot distinguish it
+# from the "script is running it everywhere" case. But - people should notice that they do not get results.
+# Not entirely pretty, sorry :(
+function request_key(ss_name: string, key: Key): Result
+	{
+	return Result();
 	}
 
 @endif
@@ -215,7 +224,6 @@ global stats_keys: table[string] of set[Key] &read_expire=1min
 # matches the number of peer nodes that results should be coming from, the
 # result is written out and deleted from here.
 # Indexed on a uid.
-# TODO: add an &expire_func in case not all results are received.
 global done_with: table[string] of count &read_expire=1min &default=0;
 
 # This variable is maintained by managers to track intermediate responses as
@@ -414,7 +422,7 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 	# Mark that a worker is done.
 	if ( uid !in done_with )
 		done_with[uid] = 0;
-	
+
 	#print fmt("MANAGER: got a result for %s %s from %s", uid, key, get_event_peer()$descr);
 	++done_with[uid];
 

@@ -3,5 +3,4 @@
 
 redef Notice::type_suppression_intervals += {
     [SSH::Interesting_Hostname_Login] = 1day,
-    [SSH::Login] = 12hrs,
 };

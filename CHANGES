@@ -1,4 +1,145 @@
 
+2.3-beta-33 | 2014-06-12 11:59:28 -0500
+
+  * Documentation improvements/fixes. (Daniel Thayer)
+
+2.3-beta-24 | 2014-06-11 15:35:31 -0500
+
+  * Fix SMTP state tracking when server response is missing.
+    (Robin Sommer)
+
+2.3-beta-22 | 2014-06-11 12:31:38 -0500
+
+  * Fix doc/test that broke due to a Bro script change. (Jon Siwek)
+
+  * Remove unused --with-libmagic configure option. (Jon Siwek)
+
+2.3-beta-20 | 2014-06-10 18:16:51 -0700
+
+  * Fix use-after-free in some cases of reassigning a table index.
+    Addresses BIT-1202. (Jon Siwek)
+
+2.3-beta-18 | 2014-06-06 13:11:50 -0700
+
+  * Add two more SSL events, one triggered for each handshake message
+    and one triggered for the tls change cipherspec message. (Bernhard
+    Amann)
+
+  * Small SSL bug fix. In case SSL::disable_analyzer_after_detection
+    was set to false, the ssl_established event would fire after each
+    data packet once the session is established. (Bernhard Amann)
+
+2.3-beta-16 | 2014-06-06 13:05:44 -0700
+
+  * Re-activate notice suppression for expiring certificates.
+    (Bernhard Amann)
+
+2.3-beta-14 | 2014-06-05 14:43:33 -0700
+
+  * Add new TLS extension type numbers from IANA (Bernhard Amann)
+
+  * Switch to double hashing for Bloomfilters for better performance.
+    (Matthias Vallentin)
+
+  * Bugfix to use full digest length instead of just one byte for
+    Bloomfilter's universal hash function. Addresses BIT-1140.
+    (Matthias Vallentin)
+
+  * Make buffer for X509 certificate subjects larger. Addresses
+    BIT-1195 (Bernhard Amann)
+
+2.3-beta-5 | 2014-05-29 15:34:42 -0500
+
+  * Fix misc/load-balancing.bro's reference to
+    PacketFilter::sampling_filter (Jon Siwek)
+
+2.3-beta-4 | 2014-05-28 14:55:24 -0500
+
+  * Fix potential mem leak in remote function/event unserialization.
+    (Jon Siwek)
+
+  * Fix reference counting bug in table coercion expressions (Jon Siwek)
+
+  * Fix an "unused value" warning. (Jon Siwek)
+
+  * Remove a duplicate unit test baseline dir. (Jon Siwek)
+
+2.3-beta | 2014-05-19 16:36:50 -0500
+
+  * Release 2.3-beta
+
+  * Clean up OpenSSL data structures on exit. (Bernhard Amann)
+
+  * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+
+  * Remove remaining references to BROMAGIC (Daniel Thayer)
+
+  * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
+
+  * Update intel framework plugin for ssl server_name extension API
+    changes. (Bernhard Amann, Justin Azoff)
+
+  * Fix expression errors in SSL/x509 scripts when unparseable data
+    is in certificate chain. (Bernhard Amann)
+
+2.2-478 | 2014-05-19 15:31:33 -0500
+
+  * Change record ctors to only allow record-field-assignment
+    expressions. (Jon Siwek)
+
+2.2-477 | 2014-05-19 14:13:00 -0500
+
+  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)
+
+  * Fix a couple of doc build warnings (Daniel Thayer)
+
+2.2-470 | 2014-05-16 15:16:32 -0700
+
+  * Add a new section "Cluster Configuration" to the docs that is
+    intended as a how-to for configuring a Bro cluster.  Most of this
+    content was moved here from the BroControl doc (which is now
+    intended as more of a reference guide for more experienced users)
+    and the load balancing FAQ on the website. (Daniel Thayer)
+
+  * Update some doc tests and line numbers (Daniel Thayer)
+    
+2.2-457 | 2014-05-16 14:38:31 -0700
+
+  * New script policy/protocols/ssl/validate-ocsp.bro that adds OSCP
+    validation to ssl.log. The work is done by a new bif
+    x509_ocsp_verify(). (Bernhard Amann)
+
+  * STARTTLS support for POP3 and SMTP. The SSL analyzer takes over
+    when seen. smtp.log now logs when a connection switches to SSL.
+    (Bernhard Amann)
+
+  * Replace errors when parsing x509 certs with weirds. (Bernhard
+    Amann)
+
+  * Improved Heartbleed attack/scan detection. (Bernhard Amann)
+    
+  * Let TLS analyzer fail better when no longer in sync with the data
+    stream. (Bernhard Amann)
+
+2.2-444 | 2014-05-16 14:10:32 -0500
+
+  * Disable all default AppStat plugins except facebook. (Jon Siwek)
+
+  * Update for the active http test to force it to use ipv4. (Seth Hall)
+
+2.2-441 | 2014-05-15 11:29:56 -0700
+
+  * A new RADIUS analyzer. (Vlad Grigorescu)
+
+    It produces a radius.log and generates two events:
+
+        event radius_message(c: connection, result: RADIUS::Message);
+        event radius_attribute(c: connection, attr_type: count, value: string);
+
+2.2-427 | 2014-05-15 13:37:23 -0400
+
+  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+
 2.2-425 | 2014-05-08 16:34:44 -0700
 
   * Fix reassembly of data w/ sizes beyond 32-bit capacities. (Jon Siwek)

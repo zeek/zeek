@@ -52,7 +52,7 @@ void Foo::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void Foo::Undelivered(int seq, int len, bool orig)
+void Foo::Undelivered(uint64 seq, int len, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);

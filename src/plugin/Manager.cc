@@ -17,8 +17,8 @@
 using namespace plugin;
 
 Plugin* Manager::current_plugin = 0;
-string Manager::current_dir;
-string Manager::current_sopath;
+const char* Manager::current_dir = 0;
+const char* Manager::current_sopath = 0;
 
 Manager::Manager()
 	{
@@ -199,7 +199,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			const char* path = gl.gl_pathv[i];
 
 			current_plugin = 0;
-			current_dir = dir;
+			current_dir = dir.c_str();
 			current_sopath = path;
 			void* hdl = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
 
@@ -226,8 +226,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				reporter->FatalError("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str());
 
-			current_dir.clear();
-			current_sopath.clear();
+			current_dir = 0;
+			current_sopath = 0;
 			current_plugin = 0;
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
@@ -294,9 +294,9 @@ void Manager::RegisterPlugin(Plugin *plugin)
 	{
 	Manager::ActivePluginsInternal()->push_back(plugin);
 
-	if ( current_dir.size() && current_sopath.size() )
+	if ( current_dir && current_sopath )
 		// A dynamic plugin, record its location.
-		plugin->SetPluginLocation(current_dir.c_str(), current_sopath.c_str());
+		plugin->SetPluginLocation(current_dir, current_sopath);
 
 	// Sort plugins by name to make sure we have a deterministic order.
 	ActivePluginsInternal()->sort(plugin_cmp);

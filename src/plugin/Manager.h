@@ -321,8 +321,8 @@ private:
 
 	// Helpers providing access to current state during dlopen().
 	static Plugin* current_plugin;
-	static string current_dir;
-	static string current_sopath;
+	static const char* current_dir;
+	static const char* current_sopath;
 
 	// Returns a modifiable list of all plugins, both static and dynamic.
 	// This is a static method so that plugins can register themselves

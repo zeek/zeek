@@ -197,10 +197,6 @@ protected:
 	 */
 	virtual void Heartbeat();
 
-	/** Internal heartbeat processing. Called from child.
-	 */
-	void HeartbeatInChild();
-
 	/** Returns true if a child command has reported a failure. In that case, we'll
 	  * be in the process of killing this thread and no further activity
 	  * should carried out. To be called only from this child thread.

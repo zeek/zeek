@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssh
+#open	2014-01-16-21-51-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	direction	client	server
+#types	time	string	addr	port	addr	port	string	enum	string	string
+1055289978.855137	CsRx2w45OKnoww6xl4	66.59.111.190	40264	172.28.2.3	22	failure	INBOUND	SSH-2.0-OpenSSH_3.6.1p1	SSH-1.99-OpenSSH_3.1p1
+#close	2014-01-16-21-51-12

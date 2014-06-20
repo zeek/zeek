@@ -34,6 +34,7 @@ static uint8_t mask_to_len(uint32_t mask)
 %token TOK_ENABLE
 %token TOK_EVAL
 %token TOK_EVENT
+%token TOK_MIME
 %token TOK_HEADER
 %token TOK_IDENT
 %token TOK_INT
@@ -61,9 +62,9 @@ static uint8_t mask_to_len(uint32_t mask)
 
 %type <str> TOK_STRING TOK_IDENT TOK_POLICY_SYMBOL TOK_PATTERN pattern string
 %type <val> TOK_INT TOK_TCP_STATE_SYM TOK_IP_OPTION_SYM TOK_COMP
-%type <val> integer ipoption_list tcpstate_list
+%type <val> integer ipoption_list tcpstate_list opt_strength
 %type <rule> rule
-%type <bl> TOK_BOOL
+%type <bl> TOK_BOOL opt_negate
 %type <hdr_test> hdr_expr
 %type <range> range rangeopt
 %type <vallist> value_list
@@ -185,6 +186,9 @@ rule_attr:
 
 	|	TOK_EVENT string
 			{ current_rule->AddAction(new RuleActionEvent($2)); }
+
+	|	TOK_MIME string opt_strength
+			{ current_rule->AddAction(new RuleActionMIME($2, $3)); }
 
 	|	TOK_ENABLE TOK_STRING
 			{ current_rule->AddAction(new RuleActionEnable($2)); }
@@ -357,6 +361,20 @@ integer:
 			{ $$ = $1; }
 	|	TOK_IDENT
 			{ $$ = id_to_uint($1); }
+	;
+
+opt_negate:
+		'-'
+			{ $$ = true; }
+	|
+			{ $$ = false; }
+	;
+
+opt_strength:
+		',' opt_negate TOK_INT
+			{ $$ = $2 ? -$3 : $3; }
+	|
+			{ $$ = 0; }
 	;
 
 string:

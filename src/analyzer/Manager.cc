@@ -358,7 +358,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	udp::UDP_Analyzer* udp = 0;
 	icmp::ICMP_Analyzer* icmp = 0;
 	TransportLayerAnalyzer* root = 0;
-	tag_set expected;
 	pia::PIA* pia = 0;
 	bool analyzed = false;
 	bool check_port = false;
@@ -368,7 +367,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	case TRANSPORT_TCP:
 		root = tcp = new tcp::TCP_Analyzer(conn);
 		pia = new pia::PIA_TCP(conn);
-		expected = GetScheduled(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated TCP analyzer");
 		break;
@@ -376,7 +374,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	case TRANSPORT_UDP:
 		root = udp = new udp::UDP_Analyzer(conn);
 		pia = new pia::PIA_UDP(conn);
-		expected = GetScheduled(conn);
 		check_port = true;
 		DBG_ANALYZER(conn, "activated UDP analyzer");
 		break;
@@ -393,25 +390,12 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		return false;
 	}
 
-	// Any scheduled analyzer?
-	for ( tag_set::iterator i = expected.begin(); i != expected.end(); i++ )
-		{
-		Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*i, conn);
-
-		if ( analyzer )
-			{
-			root->AddChildAnalyzer(analyzer, false);
-
-			DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
-					  analyzer_mgr->GetComponentName(*i));
-			}
-
-		}
+	bool scheduled = ApplyScheduledAnalyzers(conn, false, root);
 
 	// Hmm... Do we want *just* the expected analyzer, or all
 	// other potential analyzers as well?  For now we only take
 	// the scheduled ones.
-	if ( expected.size() == 0 )
+	if ( ! scheduled )
 		{ // Let's see if it's a port we know.
 		if ( check_port && ! dpd_ignore_ports )
 			{
@@ -518,13 +502,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 	if ( ! analyzed )
 		conn->SetLifetime(non_analyzed_lifetime);
-
-	for ( tag_set::iterator i = expected.begin(); i != expected.end(); i++ )
-		{
-		EnumVal* tag = i->AsEnumVal();
-		Ref(tag);
-		conn->Event(scheduled_analyzer_applied, 0, tag);
-		}
 
 	return true;
 	}
@@ -635,4 +612,34 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 	// We don't delete scheduled analyzers here. They will be expired
 	// eventually.
 	return result;
+	}
+
+bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLayerAnalyzer* parent)
+	{
+	if ( ! parent )
+		parent = conn->GetRootAnalyzer();
+
+	if ( ! parent )
+		return false;
+
+	tag_set expected = GetScheduled(conn);
+
+	for ( tag_set::iterator it = expected.begin(); it != expected.end(); ++it )
+		{
+		Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*it, conn);
+
+		if ( ! analyzer )
+			continue;
+
+		parent->AddChildAnalyzer(analyzer, init);
+
+		EnumVal* tag = it->AsEnumVal();
+		Ref(tag);
+		conn->Event(scheduled_analyzer_applied, 0, tag);
+
+		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
+		                  analyzer_mgr->GetComponentName(*it));
+		}
+
+	return expected.size();
 	}

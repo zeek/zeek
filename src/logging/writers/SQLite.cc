@@ -35,7 +35,8 @@ SQLite::SQLite(WriterFrontend* frontend)
 			BifConst::LogSQLite::empty_field->Len()
 			);
 
-	io = new AsciiFormatter(this, AsciiFormatter::SeparatorInfo(set_separator, unset_field, empty_field));
+	threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);
+	io = new threading::formatter::Ascii(this, sep_info);
 	}
 
 SQLite::~SQLite()
@@ -126,7 +127,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	fullpath.append(".sqlite");
 	string tablename;
 
-	map<const char*, const char*>::const_iterator it = info.config.find("tablename");
+	WriterInfo::config_map::const_iterator it = info.config.find("tablename");
 	if ( it == info.config.end() )
 		{
 		MsgThread::Info(Fmt("tablename configuration option not found. Defaulting to path %s", info.path));

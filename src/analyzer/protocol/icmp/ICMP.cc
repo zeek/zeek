@@ -31,7 +31,7 @@ void ICMP_Analyzer::Done()
 	}
 
 void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+			bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 

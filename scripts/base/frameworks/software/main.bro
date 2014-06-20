@@ -287,6 +287,13 @@ function parse_mozilla(unparsed_version: string): Description
 		if ( 2 in parts )
 			v = parse(parts[2])$version;
 		}
+	else if ( / Java\/[0-9]\./ in unparsed_version )
+		{
+		software_name = "Java";
+		parts = split_all(unparsed_version, /Java\/[0-9\._]*/);
+		if ( 2 in parts )
+			v = parse(parts[2])$version;
+		}
 
 	return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
 	}

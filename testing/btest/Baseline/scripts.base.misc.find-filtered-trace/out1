@@ -1,0 +1,1 @@
+1389719059.311687 warning in /Users/jsiwek/Projects/bro/bro/scripts/base/misc/find-filtered-trace.bro, line 48: The analyzed trace file was determined to contain only TCP control packets, which may indicate it's been pre-filtered.  By default, Bro reports the missing segments for this type of trace, but the 'detect_filtered_trace' option may be toggled if that's not desired.

@@ -28,7 +28,7 @@ global f:  file = open_log_file("sizeof_demo");
 global i:  int = -10;
 global iv: interval = -5sec;
 global p:  port = 80/tcp;
-global r:  example_record [ $i = 10 ];
+global r:  example_record = [ $i = +10 ];
 global si: set[int];
 global s:  string = "Hello";
 global sn: subnet = 192.168.0.0/24;

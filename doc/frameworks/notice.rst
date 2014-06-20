@@ -1,4 +1,6 @@
 
+.. _notice-framework:
+
 Notice Framework
 ================
 

@@ -81,6 +81,7 @@ bool Serializer::EndSerialization(SerialInfo* info)
 
 	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
 	chunk->len = format->EndWrite(&chunk->data);
+	chunk->free_func = ChunkedIO::Chunk::free_func_free;
 
 	if ( ! io->Write(chunk) )
 		{
@@ -282,7 +283,6 @@ int Serializer::Unserialize(UnserialInfo* info, bool block)
 
 	if ( ! info->chunk )
 		{ // only delete if we allocated it ourselves
-		delete [] chunk->data;
 		delete chunk;
 		}
 

@@ -1,0 +1,14 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r http/bro.org.pcap file_extraction.bro
+      Extracting file HTTP-FiIpIB2hRQSDBOSJRg.html
+      Extracting file HTTP-FMG4bMmVV64eOsCb.txt
+      Extracting file HTTP-FnaT2a3UDd093opCB9.txt
+      Extracting file HTTP-FsvATF146kf1Emc21j.txt
+      Extracting file HTTP-FkMQHg2nBr44fc5h63.txt
+      [...]
+

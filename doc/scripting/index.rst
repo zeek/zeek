@@ -87,7 +87,7 @@ Up until this point, the script has merely done some basic setup.  With the next
 the script starts to define instructions to take in a given event.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 38-62
+   :lines: 38-71
 
 The workhorse of the script is contained in the event handler for
 ``file_hash``.  The :bro:see:`file_hash` event allows scripts to access
@@ -95,7 +95,7 @@ the information associated with a file for which Bro's file analysis framework h
 generated a hash.  The event handler is passed the file itself as ``f``, the type of digest
 algorithm used as ``kind`` and the hash generated as ``hash``.
 
-On line 3, an ``if`` statement is used to check for the correct type of hash, in this case
+On line 34, an ``if`` statement is used to check for the correct type of hash, in this case
 a SHA1 hash.  It also checks for a mime type we've defined as being of interest as defined in the
 constant ``match_file_types``.  The comparison is made against the expression ``f$mime_type``, which uses
 the ``$`` dereference operator to check the value ``mime_type`` inside the variable ``f``.  Once both
@@ -113,22 +113,22 @@ this event continues and upon receipt of the values returned by
 the malware was first detected and the detection rate by splitting on an text space
 and storing the values returned in a local table variable.  In line 12, if the table
 returned by ``split1`` has two entries, indicating a successful split, we store the detection
-date in ``mhr_first_detected`` and the rate in ``mhr_detect_rate`` on lines 14 and 15 respectively
+date in ``mhr_first_detected`` and the rate in ``mhr_detect_rate`` on lines 18 and 14 respectively
 using the appropriate conversion functions.  From this point on, Bro knows it has seen a file
 transmitted which has a hash that has been seen by the Team Cymru Malware Hash Registry, the rest
 of the script is dedicated to producing a notice.
 
-On line 17, the detection time is processed into a string representation and stored in
+On line 19, the detection time is processed into a string representation and stored in
 ``readable_first_detected``.  The script then compares the detection rate against the
 ``notice_threshold`` that was defined earlier.  If the detection rate is high enough, the script
-creates a concise description of the notice on line 22, a possible URL to check the sample against
+creates a concise description of the notice on line 20, a possible URL to check the sample against
 ``virustotal.com``'s database, and makes the call to :bro:id:`NOTICE` to hand the relevant information
 off to the Notice framework.
 
-In approximately 25 lines of code, Bro provides an amazing
+In approximately a few dozen lines of code, Bro provides an amazing
 utility that would be incredibly difficult to implement and deploy
-with other products.  In truth, claiming that Bro does this in 25
-lines is a misdirection; there is a truly massive number of things
+with other products.  In truth, claiming that Bro does this in such a small
+number of lines is a misdirection; there is a truly massive number of things
 going on behind-the-scenes in Bro, but it is the inclusion of the
 scripting language that gives analysts access to those underlying
 layers in a succinct and well defined manner.
@@ -232,7 +232,7 @@ overly populated.
 
 .. btest:: connection-record-01
 
-    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/dns-session.trace ${DOC_ROOT}/scripting/connection_record_01.bro
+    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/http/get.trace ${DOC_ROOT}/scripting/connection_record_01.bro
 
 As you can see from the output, the connection record is something of
 a jumble when printed on its own.  Regularly taking a peek at a
@@ -248,9 +248,9 @@ originating host is referenced by ``c$id$orig_h`` which if given a
 narrative relates to ``orig_h`` which is a member of ``id`` which is
 a member of the data structure referred to as ``c`` that was passed
 into the event handler." Given that the responder port
-(``c$id$resp_p``) is ``53/tcp``, it's likely that Bro's base DNS scripts
+(``c$id$resp_p``) is ``53/tcp``, it's likely that Bro's base HTTP scripts
 can further populate the connection record.  Let's load the
-``base/protocols/dns`` scripts and check the output of our script. 
+``base/protocols/http`` scripts and check the output of our script. 
 
 Bro uses the dollar sign as its field delimiter and a direct
 correlation exists between the output of the connection record and the
@@ -262,16 +262,16 @@ brackets, which would correspond to the ``$``-delimiter in a Bro script.
 
 .. btest:: connection-record-02
 
-    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/dns-session.trace ${DOC_ROOT}/scripting/connection_record_02.bro
+    @TEST-EXEC: btest-rst-cmd bro -b -r ${TRACES}/http/get.trace ${DOC_ROOT}/scripting/connection_record_02.bro
 
-The addition of the ``base/protocols/dns`` scripts populates the
-``dns=[]`` member of the connection record.  While Bro is doing a
+The addition of the ``base/protocols/http`` scripts populates the
+``http=[]`` member of the connection record.  While Bro is doing a
 massive amount of work in the background, it is in what is commonly
 called "scriptland" that details are being refined and decisions
 being made. Were we to continue running in "bare mode" we could slowly
 keep adding infrastructure through ``@load`` statements.  For example,
 were we to ``@load base/frameworks/logging``, Bro would generate a
-``conn.log`` and ``dns.log`` for us in the current working directory.
+``conn.log`` and ``http.log`` for us in the current working directory.
 As mentioned above, including the appropriate ``@load`` statements is
 not only good practice, but can also help to indicate which
 functionalities are being used in a script.  Take a second to run the
@@ -345,13 +345,13 @@ keyword.  Unlike globals, constants can only be set or altered at
 parse time if the ``&redef`` attribute has been used.  Afterwards (in
 runtime) the constants are unalterable.  In most cases, re-definable
 constants are used in Bro scripts as containers for configuration
-options.  For example, the configuration option to log password
+options.  For example, the configuration option to log passwords
 decrypted from HTTP streams is stored in
-``HTTP::default_capture_password`` as shown in the stripped down
+:bro:see:`HTTP::default_capture_password` as shown in the stripped down
 excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/base/protocols/http/main.bro
-   :lines: 8-10,19-21,120
+   :lines: 9-11,20-22,121
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
@@ -657,7 +657,7 @@ using a 20 bit subnet mask.
 
 Because this is a script that doesn't use any kind of network
 analysis, we can handle the event :bro:id:`bro_init` which is always
-generated by Bro's core upon startup.  On lines six and seven, two
+generated by Bro's core upon startup.  On lines five and six, two
 locally scoped vectors are created to hold our lists of subnets and IP
 addresses respectively.  Then, using a set of nested ``for`` loops, we
 iterate over every subnet and every IP address and use an ``if``
@@ -760,7 +760,7 @@ string against which it will be tested to be on the right.
 In the sample above, two local variables are declared to hold our
 sample sentence and regular expression.  Our regular expression in
 this case will return true if the string contains either the word
-``quick`` or the word ``fox``. The ``if`` statement on line six uses
+``quick`` or the word ``fox``. The ``if`` statement on line eight uses
 embedded matching and the ``in`` operator to check for the existence
 of the pattern within the string.  If the statement resolves to true,
 :bro:id:`split` is called to break the string into separate pieces.
@@ -947,7 +947,7 @@ Logging Framework when ``Log::write`` is called.  Were there to be
 any name value pairs without the ``&log`` attribute, those fields
 would simply be ignored during logging but remain available for the
 lifespan of the variable.  The next step is to create the logging
-stream with :bro:id:`Log::create_stream` which takes a Log::ID and a
+stream with :bro:id:`Log::create_stream` which takes a ``Log::ID`` and a
 record as its arguments.  In this example, on line 25, we call the
 ``Log::create_stream`` method and pass ``Factor::LOG`` and the
 ``Factor::Info`` record as arguments. From here on out, if we issue
@@ -1001,7 +1001,7 @@ filename for the current call to ``Log::write``. The definition for
 this function has to take as its parameters a ``Log::ID`` called id, a
 string called ``path`` and the appropriate record type for the logs called
 ``rec``.  You can see the definition of ``mod5`` used in this example on
-line one conforms to that requirement.  The function simply returns
+line 38 conforms to that requirement.  The function simply returns
 ``factor-mod5`` if the factorial is divisible evenly by 5, otherwise, it
 returns ``factor-non5``.  In the additional ``bro_init`` event
 handler, we define a locally scoped ``Log::Filter`` and assign it a
@@ -1074,7 +1074,8 @@ make a call to :bro:id:`NOTICE` supplying it with an appropriate
 :bro:type:`Notice::Info` record.  Often times the call to ``NOTICE``
 includes just the ``Notice::Type``, and a concise message.  There are
 however, significantly more options available when raising notices as
-seen in the table below.  The only field in the table below whose
+seen in the definition of :bro:type:`Notice::Info`.  The only field in
+``Notice::Info`` whose
 attributes make it a required field is the ``note`` field.  Still,
 good manners are always important and including a concise message in
 ``$msg`` and, where necessary, the contents of the connection record
@@ -1085,57 +1086,6 @@ auto-populate the ``$id`` and ``$src`` fields as well.  Other fields
 that are commonly included, ``$identifier`` and ``$suppress_for`` are
 built around the automated suppression feature of the Notice Framework
 which we will cover shortly.  
-
-.. todo::
-
-    Once the link to ``Notice::Info`` work I think we should take out
-    the table. That's too easy to get out of date.
-
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| Field               | Type                                                             | Attributes     | Use                                    |
-+=====================+==================================================================+================+========================================+
-| ts                  | time                                                             | &log &optional | The time of the notice                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| uid                 | string                                                           | &log &optional | A unique connection ID                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| id                  | conn_id                                                          | &log &optional | A 4-tuple to identify endpoints        |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| conn                | connection                                                       | &optional      | Shorthand for the uid and id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| iconn               | icmp_conn                                                        | &optional      | Shorthand for the uid and id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| proto               | transport_proto                                                  | &log &optional | Transport protocol                     |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| note                | Notice::Type                                                     | &log           | The Notice::Type of the notice         |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| msg                 | string                                                           | &log &optional | Human readable message                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| sub                 | string                                                           | &log &optional | Human readable message                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| src                 | addr                                                             | &log &optional | Source address if no conn_id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| dst                 | addr                                                             | &log &optional | Destination addr if no conn_id         |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| p                   | port                                                             | &log &optional | Port if no conn_id                     |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| n                   | count                                                            | &log &optional | Count or status code                   |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| src_peer            | event_peer                                                       | &log &optional | Peer that raised the notice            |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| peer_descr          | string                                                           | &log &optional | Text description of the src_peer       |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| actions             | set[Notice::Action]                                              | &log &optional | Actions applied to the notice          |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| policy_items        | set[count]                                                       | &log &optional | Policy items that have been applied    |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_body_sections | vector                                                           | &optional       | Body of the email for email notices.  |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_delay_tokens  | set[string]                                                      | &optional      | Delay functionality for email notices. |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| identifier          | string                                                           | &optional      | A unique string identifier             |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| suppress_for        | interval                                                         | &log &optional | Length of time to suppress a notice.   |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 
 One of the default policy scripts raises a notice when an SSH login
 has been heuristically detected and the originating hostname is one
@@ -1153,7 +1103,7 @@ possible while staying concise.
 
 While much of the script relates to the actual detection, the parts
 specific to the Notice Framework are actually quite interesting in
-themselves.  On line 18 the script's ``export`` block adds the value
+themselves.  On line 13 the script's ``export`` block adds the value
 ``SSH::Interesting_Hostname_Login`` to the enumerable constant
 ``Notice::Type`` to indicate to the Bro core that a new type of notice
 is being defined.  The script then calls ``NOTICE`` and defines the
@@ -1222,7 +1172,7 @@ from the connection relative to the behavior that has been observed by
 Bro.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
-   :lines: 60-63
+   :lines: 64-68
 
 In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.bro` script
 which identifies when SSL certificates are set to expire and raises
@@ -1302,9 +1252,9 @@ in the call to ``NOTICE``.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_01.bro
 
-The Notice Policy shortcut above adds the ``Notice::Types`` of
-SSH::Interesting_Hostname_Login and SSH::Login to the
-Notice::emailed_types set while the shortcut below alters the length
+The Notice Policy shortcut above adds the ``Notice::Type`` of
+``SSH::Interesting_Hostname_Login`` to the
+``Notice::emailed_types`` set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_02.bro

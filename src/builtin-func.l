@@ -180,7 +180,7 @@ FILE* open_output_file(const char* surfix)
 
 void usage()
 	{
-	fprintf(stderr, "usage: bifcl [-p] *.bif\n");
+	fprintf(stderr, "usage: bifcl [-p <plugin> | -s] *.bif\n");
 	exit(1);
 	}
 
@@ -208,9 +208,13 @@ void init_alternative_mode()
 	fprintf(fp_func_init, "// %s\n\n", auto_gen_comment);
 
 	static char guard[1024];
-	getcwd(guard, sizeof(guard));
-	strncat(guard, "/", sizeof(guard));
-	strncat(guard, input_filename, sizeof(guard));
+	if ( getcwd(guard, sizeof(guard)) == NULL )
+		{
+		fprintf(stderr, "Error: cannot get current working directory\n");
+		err_exit();
+		}
+	strncat(guard, "/", sizeof(guard) - strlen(guard) - 1);
+	strncat(guard, input_filename, sizeof(guard) - strlen(guard) - 1);
 
 	for ( char* p = guard; *p; p++ )
 		{
@@ -271,7 +275,7 @@ void finish_alternative_mode()
 
 int main(int argc, char* argv[])
 	{
-	char opt;
+	int opt;
 
 	while ( (opt = getopt(argc, argv, "p:s")) != -1 )
 		{

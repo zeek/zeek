@@ -265,7 +265,10 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 		}
 
 	else if ( n < 0 )
-		reporter->InternalError("RPC underflow");
+		{
+		reporter->AnalyzerError(analyzer, "RPC underflow");
+		return 0;
+		}
 
 	return 1;
 	}
@@ -396,7 +399,7 @@ Contents_RPC::~Contents_RPC()
 	{
 	}
 
-void Contents_RPC::Undelivered(int seq, int len, bool orig)
+void Contents_RPC::Undelivered(uint64 seq, int len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
@@ -474,8 +477,12 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 			}
 
 		if ( resync_toskip != 0 )
+			{
 			// Should never happen.
-			reporter->InternalError("RPC resync: skipping over data failed");
+			reporter->AnalyzerError(this,
+			  "RPC resync: skipping over data failed");
+			return false;
+			}
 
 		// Now lets see whether data points to the beginning of a RPC
 		// frame. If the resync processs is successful, we should be
@@ -625,7 +632,11 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 				marker_buf.Init(4,4);
 
 				if ( ! dummy_p )
-					reporter->InternalError("inconsistent RPC record marker extraction");
+					{
+					reporter->AnalyzerError(this,
+					  "inconsistent RPC record marker extraction");
+					return;
+					}
 
 				last_frag = (marker & 0x80000000) != 0;
 				marker &= 0x7fffffff;
@@ -679,10 +690,9 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 				RPC_Interpreter* arg_interp)
-: tcp::TCP_ApplicationAnalyzer(name, conn)
+	: tcp::TCP_ApplicationAnalyzer(name, conn),
+	  interp(arg_interp), orig_rpc(), resp_rpc()
 	{
-	interp = arg_interp;
-
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
 			network_time + rpc_timeout, 1, TIMER_RPC_EXPIRE);
@@ -694,7 +704,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = min(len, caplen);

@@ -13,9 +13,6 @@ class CounterVector;
 
 /**
  * The abstract base class for Bloom filters.
- *
- * At this point we won't let the user choose the hasher, but we might open
- * up the interface in the future.
  */
 class BloomFilter : public SerialObj {
 public:
@@ -25,27 +22,20 @@ public:
 	virtual ~BloomFilter();
 
 	/**
-	 * Adds an element of type T to the Bloom filter.
-	 * @param x The element to add
+	 * Adds an element to the Bloom filter.
+	 *
+	 * @param key The key associated with the element to add.
 	 */
-	template <typename T>
-	void Add(const T& x)
-		{
-		AddImpl((*hasher)(x));
-		}
+	virtual void Add(const HashKey* key) = 0;
 
 	/**
 	 * Retrieves the associated count of a given value.
 	 *
-	 * @param x The value of type `T` to check.
+	 * @param key The key associated with the element to check.
 	 *
-	 * @return The counter associated with *x*.
+	 * @return The counter associated with *key*.
 	 */
-	template <typename T>
-	size_t Count(const T& x) const
-		{
-		return CountImpl((*hasher)(x));
-		}
+	virtual size_t Count(const HashKey* key) const = 0;
 
 	/**
 	 * Checks whether the Bloom filter is empty.
@@ -74,6 +64,12 @@ public:
 	 * @return A copy of `*this`.
 	 */
 	virtual BloomFilter* Clone() const = 0;
+
+	/**
+	 * Returns a string with a representation of the Bloom filter's
+	 * internal state. This is for debugging/testing purposes only.
+	 */
+	virtual string InternalState() const = 0;
 
 	/**
 	 * Serializes the Bloom filter.
@@ -109,25 +105,6 @@ protected:
 	 */
 	BloomFilter(const Hasher* hasher);
 
-	/**
-	 * Abstract method for implementinng the *Add* operation.
-	 *
-	 * @param hashes A set of *k* hashes for the item to add, computed by
-	 * the internal hasher object.
-	 *
-	 */
-	virtual void AddImpl(const Hasher::digest_vector& hashes) = 0;
-
-	/**
-	 * Abstract method for implementing the *Count* operation.
-	 *
-	 * @param hashes A set of *k* hashes for the item to add, computed by
-	 * the internal hasher object.
-	 *
-	 * @return Returns the counter associated with the hashed element.
-	 */
-	virtual size_t CountImpl(const Hasher::digest_vector& hashes) const = 0;
-
 	const Hasher* hasher;
 };
 
@@ -146,6 +123,11 @@ public:
 	 * @param cells The number of cells.
 	 */
 	BasicBloomFilter(const Hasher* hasher, size_t cells);
+
+	/**
+	 * Destructor.
+	 */
+	~BasicBloomFilter();
 
 	/**
 	 * Computes the number of cells based on a given false positive rate
@@ -180,6 +162,7 @@ public:
 	virtual void Clear();
 	virtual bool Merge(const BloomFilter* other);
 	virtual BasicBloomFilter* Clone() const;
+	virtual string InternalState() const;
 
 protected:
 	DECLARE_SERIAL(BasicBloomFilter);
@@ -190,8 +173,8 @@ protected:
 	BasicBloomFilter();
 
 	// Overridden from BloomFilter.
-	virtual void AddImpl(const Hasher::digest_vector& h);
-	virtual size_t CountImpl(const Hasher::digest_vector& h) const;
+	virtual void Add(const HashKey* key);
+	virtual size_t Count(const HashKey* key) const;
 
 private:
 	BitVector* bits;
@@ -214,11 +197,17 @@ public:
 	 */
 	CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
 
+	/**
+	 * Destructor.
+	 */
+	~CountingBloomFilter();
+
 	// Overridden from BloomFilter.
 	virtual bool Empty() const;
 	virtual void Clear();
 	virtual bool Merge(const BloomFilter* other);
 	virtual CountingBloomFilter* Clone() const;
+	virtual string InternalState() const;
 
 protected:
 	DECLARE_SERIAL(CountingBloomFilter);
@@ -229,8 +218,8 @@ protected:
 	CountingBloomFilter();
 
 	// Overridden from BloomFilter.
-	virtual void AddImpl(const Hasher::digest_vector& h);
-	virtual size_t CountImpl(const Hasher::digest_vector& h) const;
+	virtual void Add(const HashKey* key);
+	virtual size_t Count(const HashKey* key) const;
 
 private:
 	CounterVector* cells;

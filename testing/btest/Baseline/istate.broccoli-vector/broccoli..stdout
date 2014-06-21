@@ -1,0 +1,12 @@
+Connected to Bro instance at: localhost:47757
+Received bro_vector
+  0: a
+  1: b
+  2: c
+  3: d
+  4: e
+Received bro_vector
+  0: one
+  1: two
+  2: three
+Terminating

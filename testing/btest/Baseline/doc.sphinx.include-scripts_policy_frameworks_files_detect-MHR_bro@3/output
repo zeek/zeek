@@ -1,0 +1,31 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+detect-MHR.bro
+
+export {
+	redef enum Notice::Type += {
+		## The hash value of a file transferred over HTTP matched in the
+		## malware hash registry.
+		Match
+	};
+
+	## File types to attempt matching against the Malware Hash Registry.
+	const match_file_types = /application\/x-dosexec/ |
+	                         /application\/vnd.ms-cab-compressed/ |
+	                         /application\/pdf/ |
+	                         /application\/x-shockwave-flash/ |
+	                         /application\/x-java-applet/ |
+	                         /application\/jar/ |
+	                         /video\/mp4/ &redef;
+
+	## The Match notice has a sub message with a URL where you can get more
+	## information about the file. The %s will be replaced with the SHA-1
+	## hash of the file.
+	const match_sub_url = "https://www.virustotal.com/en/search/?query=%s" &redef;
+
+	## The malware hash registry runs each malware sample through several
+	## A/V engines.  Team Cymru returns a percentage to indicate how
+	## many A/V engines flagged the sample as malicious. This threshold
+	## allows you to require a minimum detection rate.
+	const notice_threshold = 10 &redef;
+}

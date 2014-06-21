@@ -1,0 +1,5 @@
+[id=[orig_h=212.180.42.100, orig_p=25000/tcp, resp_h=131.243.64.3, resp_p=53/tcp], orig=[size=29, state=5, num_pkts=6, num_bytes_ip=273, flow_label=0], resp=[size=44, state=5, num_pkts=5, num_bytes_ip=248, flow_label=0], start_time=930613226.067666, duration=0.709643, service={
+
+}, addl=, hot=0, history=ShADadFf, uid=UWkUyAuUGXf, tunnel=<uninitialized>, conn=[ts=930613226.067666, uid=UWkUyAuUGXf, id=[orig_h=212.180.42.100, orig_p=25000/tcp, resp_h=131.243.64.3, resp_p=53/tcp], proto=tcp, service=<uninitialized>, duration=0.709643, orig_bytes=29, resp_bytes=44, conn_state=SF, local_orig=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=6, orig_ip_bytes=273, resp_pkts=5, resp_ip_bytes=248, tunnel_parents={
+
+}], extract_orig=F, extract_resp=F]

@@ -22,7 +22,6 @@ type uint24 = record {
 	};
 
 	string state_label(int state_nr);
-	double get_time_from_asn1(const ASN1_TIME * atime);
 %}
 
 extern type to_int;
@@ -35,26 +34,25 @@ type SSLRecord(is_orig: bool) = record {
 	head4 : uint8;
 	rec : RecordText(this)[] &length=length, &requires(content_type);
 } &length = length+5, &byteorder=bigendian,
-  &let {
+	&let {
 	version : int =
-		$context.connection.determine_ssl_version(head0, head1, head2);
+		$context.connection.determine_ssl_record_layer(head0, head1, head2, head3, head4);
 
 	content_type : int = case version of {
-		UNKNOWN_VERSION -> 0;
 		SSLv20 -> head2+300;
 		default -> head0;
 	};
 
 	length : int = case version of {
+		# fail analyzer if the packet cannot be recognized as TLS.
 		UNKNOWN_VERSION -> 0;
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
 		default -> (head3 << 8) | head4;
 	};
 };
 
-type RecordText(rec: SSLRecord) = case $context.connection.state() of {
-	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
-	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
+type RecordText(rec: SSLRecord) = case $context.connection.state(rec.is_orig) of {
+	STATE_ENCRYPTED
 		-> ciphertext : CiphertextRecord(rec);
 	default
 		-> plaintext : PlaintextRecord(rec);
@@ -64,6 +62,7 @@ type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
 	ALERT			-> alert : Alert(rec);
 	HANDSHAKE		-> handshake : Handshake(rec);
+	HEARTBEAT -> heartbeat: Heartbeat(rec);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	V2_ERROR		-> v2_error : V2Error(rec);
 	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
@@ -72,179 +71,103 @@ type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	default			-> unknown_record : UnknownRecord(rec);
 };
 
+######################################################################
+# TLS Extensions
+######################################################################
+
 type SSLExtension(rec: SSLRecord) = record {
 	type: uint16;
 	data_len: uint16;
-	data: bytestring &length=data_len;
+
+	# Pretty code ahead. Deal with the fact that perhaps extensions are
+	# not really present and we do not want to fail because of that.
+	ext: case type of {
+		EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION -> apnl: ApplicationLayerProtocolNegotiationExtension(rec)[] &until($element == 0 || $element != 0);
+		EXT_ELLIPTIC_CURVES -> elliptic_curves: EllipticCurves(rec)[] &until($element == 0 || $element != 0);
+		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == 0 || $element != 0);
+#		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
+		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
+		default -> data: bytestring &restofdata;
+	};
+} &length=data_len+4 &exportsourcedata;
+
+type ServerNameHostName() = record {
+	length: uint16;
+	host_name: bytestring &length=length;
 };
 
+type ServerName() = record {
+	name_type: uint8; # has to be 0 for host-name
+	name: case name_type of {
+		0 -> host_name: ServerNameHostName;
+		default -> data : bytestring &restofdata &transient; # unknown name
+	};
+};
+
+type ServerNameExt(rec: SSLRecord) = record {
+	length: uint16;
+	server_names: ServerName[] &until($input.length() == 0);
+} &length=length+2;
+
+# Do not parse for now. Structure is correct, but only contains asn.1 data that we would not use further.
+#type OcspStatusRequest(rec: SSLRecord) = record {
+#	responder_id_list_length: uint16;
+#	responder_id_list: bytestring &length=responder_id_list_length;
+#	request_extensions_length: uint16;
+#	request_extensions: bytestring &length=request_extensions_length;
+#};
+#
+#type StatusRequest(rec: SSLRecord) = record {
+#	status_type: uint8; # 1 -> ocsp
+#	req: case status_type of {
+#		1 -> ocsp_status_request: OcspStatusRequest(rec);
+#		default -> data : bytestring &restofdata &transient; # unknown
+#	};
+#};
+
+type EcPointFormats(rec: SSLRecord) = record {
+	length: uint8;
+	point_format_list: uint8[length];
+};
+
+type EllipticCurves(rec: SSLRecord) = record {
+	length: uint16;
+	elliptic_curve_list: uint16[length/2];
+};
+
+type ProtocolName() = record {
+  length: uint8;
+	name: bytestring &length=length;
+};
+
+type ApplicationLayerProtocolNegotiationExtension(rec: SSLRecord) = record {
+	length: uint16;
+	protocol_name_list: ProtocolName[] &until($input.length() == 0);
+} &length=length+2;
+
 ######################################################################
-# state management according to Section 7.3. in spec
+# Encryption Tracking
 ######################################################################
 
 enum AnalyzerState {
-	STATE_INITIAL,
-	STATE_CLIENT_HELLO_RCVD,
-	STATE_IN_SERVER_HELLO,
-	STATE_SERVER_HELLO_DONE,
-	STATE_CLIENT_CERT,
-	STATE_CLIENT_KEY_WITH_CERT,
-	STATE_CLIENT_KEY_NO_CERT,
-	STATE_CLIENT_CERT_VERIFIED,
-	STATE_CLIENT_ENCRYPTED,
-	STATE_CLIENT_FINISHED,
-	STATE_ABBREV_SERVER_ENCRYPTED,
-	STATE_ABBREV_SERVER_FINISHED,
-	STATE_COMM_ENCRYPTED,
-	STATE_CONN_ESTABLISHED,
-	STATE_V2_CL_MASTER_KEY_EXPECTED,
-
-	STATE_TRACK_LOST,
-	STATE_ANY
+	STATE_CLEAR,
+	STATE_ENCRYPTED
 };
 
 %code{
 	string state_label(int state_nr)
 		{
 		switch ( state_nr ) {
-		case STATE_INITIAL:
-			return string("INITIAL");
-		case STATE_CLIENT_HELLO_RCVD:
-			return string("CLIENT_HELLO_RCVD");
-		case STATE_IN_SERVER_HELLO:
-			return string("IN_SERVER_HELLO");
-		case STATE_SERVER_HELLO_DONE:
-			return string("SERVER_HELLO_DONE");
-		case STATE_CLIENT_CERT:
-			return string("CLIENT_CERT");
-		case STATE_CLIENT_KEY_WITH_CERT:
-			return string("CLIENT_KEY_WITH_CERT");
-		case STATE_CLIENT_KEY_NO_CERT:
-			return string("CLIENT_KEY_NO_CERT");
-		case STATE_CLIENT_CERT_VERIFIED:
-			return string("CLIENT_CERT_VERIFIED");
-		case STATE_CLIENT_ENCRYPTED:
-			return string("CLIENT_ENCRYPTED");
-		case STATE_CLIENT_FINISHED:
-			return string("CLIENT_FINISHED");
-		case STATE_ABBREV_SERVER_ENCRYPTED:
-			return string("ABBREV_SERVER_ENCRYPTED");
-		case STATE_ABBREV_SERVER_FINISHED:
-			return string("ABBREV_SERVER_FINISHED");
-		case STATE_COMM_ENCRYPTED:
-			return string("COMM_ENCRYPTED");
-		case STATE_CONN_ESTABLISHED:
-			return string("CONN_ESTABLISHED");
-		case STATE_V2_CL_MASTER_KEY_EXPECTED:
-			return string("STATE_V2_CL_MASTER_KEY_EXPECTED");
-		case STATE_TRACK_LOST:
-			return string("TRACK_LOST");
-		case STATE_ANY:
-			return string("ANY");
+		case STATE_CLEAR:
+			return string("CLEAR");
+
+		case STATE_ENCRYPTED:
+			return string("ENCRYPTED");
 
 		default:
 			return string(fmt("UNKNOWN (%d)", state_nr));
 		}
 		}
-
-
-	double get_time_from_asn1(const ASN1_TIME * atime)
-		{
-		time_t lResult = 0;
-
-		char lBuffer[24];
-		char * pBuffer = lBuffer;
-
-		size_t lTimeLength = atime->length;
-		char * pString = (char *) atime->data;
-
-		if ( atime->type == V_ASN1_UTCTIME )
-			{
-			if ( lTimeLength < 11 || lTimeLength > 17 )
-				return 0;
-
-			memcpy(pBuffer, pString, 10);
-			pBuffer += 10;
-			pString += 10;
-			}
-		else
-			{
-			if ( lTimeLength < 13 )
-				return 0;
-
-			memcpy(pBuffer, pString, 12);
-			pBuffer += 12;
-			pString += 12;
-			}
-
-		if ((*pString == 'Z') || (*pString == '-') || (*pString == '+'))
-			{
-			*(pBuffer++) = '0';
-			*(pBuffer++) = '0';
-			}
-		else
-			{
-			*(pBuffer++) = *(pString++);
-			*(pBuffer++) = *(pString++);
-
-			// Skip any fractional seconds...
-			if (*pString == '.')
-				{
-				pString++;
-				while ((*pString >= '0') && (*pString <= '9'))
-					pString++;
-				}
-			}
-
-		*(pBuffer++) = 'Z';
-		*(pBuffer++) = '\0';
-
-		time_t lSecondsFromUTC;
-
-		if ( *pString == 'Z' )
-			lSecondsFromUTC = 0;
-
-		else
-			{
-			if ((*pString != '+') && (pString[5] != '-'))
-				return 0;
-
-			lSecondsFromUTC = ((pString[1]-'0') * 10 + (pString[2]-'0')) * 60;
-			lSecondsFromUTC += (pString[3]-'0') * 10 + (pString[4]-'0');
-
-			if (*pString == '-')
-				lSecondsFromUTC = -lSecondsFromUTC;
-			}
-
-		tm lTime;
-		lTime.tm_sec  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
-		lTime.tm_min  = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
-		lTime.tm_hour = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
-		lTime.tm_mday = ((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0');
-		lTime.tm_mon  = (((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0')) - 1;
-		lTime.tm_year = ((lBuffer[0] - '0') * 10) + (lBuffer[1] - '0');
-
-		if ( lTime.tm_year < 50 )
-			lTime.tm_year += 100; // RFC 2459
-
-		lTime.tm_wday = 0;
-		lTime.tm_yday = 0;
-		lTime.tm_isdst = 0;  // No DST adjustment requested
-
-		lResult = mktime(&lTime);
-
-		if ( lResult )
-			{
-			if ( 0 != lTime.tm_isdst )
-				lResult -= 3600;  // mktime may adjust for DST  (OS dependent)
-
-			lResult += lSecondsFromUTC;
-			}
-		else
-			lResult = 0;
-
-		return lResult;
-	}
 %}
 
 ######################################################################
@@ -276,21 +199,7 @@ type ChangeCipherSpec(rec: SSLRecord) = record {
 	type : uint8;
 } &length = 1, &let {
 	state_changed : bool =
-		$context.connection.transition(STATE_CLIENT_FINISHED,
-					 STATE_COMM_ENCRYPTED, rec.is_orig, false) ||
-		$context.connection.transition(STATE_IN_SERVER_HELLO,
-					 STATE_ABBREV_SERVER_ENCRYPTED, rec.is_orig, false) ||
-		$context.connection.transition(STATE_CLIENT_KEY_NO_CERT,
-					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CLIENT_CERT_VERIFIED,
-					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CLIENT_CERT,
-					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CLIENT_KEY_WITH_CERT,
-					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_ABBREV_SERVER_FINISHED,
-					 STATE_COMM_ENCRYPTED, rec.is_orig, true) ||
-		$context.connection.lost_track();
+		$context.connection.startEncryption(rec.is_orig);
 };
 
 
@@ -309,7 +218,7 @@ type Alert(rec: SSLRecord) = record {
 ######################################################################
 
 type V2Error(rec: SSLRecord) = record {
-	data:   bytestring &restofdata &transient;
+	data : bytestring &restofdata &transient;
 } &let {
 	error_code : uint16 = ((rec.head3 << 8) | rec.head4);
 };
@@ -326,17 +235,21 @@ type ApplicationData(rec: SSLRecord) = record {
 };
 
 ######################################################################
-# Handshake Protocol (7.4.)
+# V3 Heartbeat
 ######################################################################
+
+type Heartbeat(rec: SSLRecord) = record {
+	type : uint8;
+	payload_length : uint16;
+	data : bytestring &restofdata;
+};
 
 ######################################################################
 # V3 Hello Request (7.4.1.1.)
 ######################################################################
 
 # Hello Request is empty
-type HelloRequest(rec: SSLRecord) = empty &let {
-	hr: bool = $context.connection.set_hello_requested(true);
-};
+type HelloRequest(rec: SSLRecord) = empty;
 
 
 ######################################################################
@@ -346,7 +259,7 @@ type HelloRequest(rec: SSLRecord) = empty &let {
 type ClientHello(rec: SSLRecord) = record {
 	client_version : uint16;
 	gmt_unix_time : uint32;
-	random_bytes : bytestring &length = 28 &transient;
+	random_bytes : bytestring &length = 28;
 	session_len : uint8;
 	session_id : uint8[session_len];
 	csuit_len : uint16 &check(csuit_len > 1 && csuit_len % 2 == 0);
@@ -357,15 +270,7 @@ type ClientHello(rec: SSLRecord) = record {
 	# of the following fields.
 	ext_len: uint16[] &until($element == 0 || $element != 0);
 	extensions : SSLExtension(rec)[] &until($input.length() == 0);
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_INITIAL,
-				STATE_CLIENT_HELLO_RCVD, rec.is_orig, true) ||
-		($context.connection.hello_requested() &&
-		 $context.connection.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
-		$context.connection.lost_track();
 };
-
 
 ######################################################################
 # V2 Client Hello (SSLv2 2.5.)
@@ -379,13 +284,6 @@ type V2ClientHello(rec: SSLRecord) = record {
 	session_id : uint8[session_len];
 	challenge : bytestring &length = chal_len;
 } &length = 6 + csuit_len + session_len + chal_len, &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_INITIAL,
-			STATE_CLIENT_HELLO_RCVD, rec.is_orig, true) ||
-		($context.connection.hello_requested() &&
-		 $context.connection.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
-		$context.connection.lost_track();
-
 	client_version : int = rec.version;
 };
 
@@ -397,7 +295,7 @@ type V2ClientHello(rec: SSLRecord) = record {
 type ServerHello(rec: SSLRecord) = record {
 	server_version : uint16;
 	gmt_unix_time : uint32;
-	random_bytes : bytestring &length = 28 &transient;
+	random_bytes : bytestring &length = 28;
 	session_len : uint8;
 	session_id : uint8[session_len];
 	cipher_suite : uint16[1];
@@ -407,12 +305,9 @@ type ServerHello(rec: SSLRecord) = record {
 	ext_len: uint16[] &until($element == 0 || $element != 0);
 	extensions : SSLExtension(rec)[] &until($input.length() == 0);
 } &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
-					   STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.connection.lost_track();
+	cipher_set : bool =
+		$context.connection.set_cipher(cipher_suite[0]);
 };
-
 
 ######################################################################
 # V2 Server Hello (SSLv2 2.6.)
@@ -429,14 +324,6 @@ type V2ServerHello(rec: SSLRecord) = record {
 	ciphers : uint24[ciph_len/3];
 	conn_id_data : bytestring &length = conn_id_len;
 } &let {
-	state_changed : bool =
-		(session_id_hit > 0 ?
-			$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
-				STATE_CONN_ESTABLISHED, rec.is_orig, false) :
-			$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
-				STATE_V2_CL_MASTER_KEY_EXPECTED, rec.is_orig, false)) ||
-		$context.connection.lost_track();
-
 	session_id_hit : uint8 = rec.head3;
 	cert_type : uint8 = rec.head4;
 };
@@ -451,33 +338,250 @@ type X509Certificate = record {
 	certificate : bytestring &length = to_int()(length);
 };
 
-type CertificateList = X509Certificate[] &until($input.length() == 0);
-
 type Certificate(rec: SSLRecord) = record {
 	length : uint24;
-	certificates : CertificateList &length = to_int()(length);
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_IN_SERVER_HELLO,
-					STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.connection.transition(STATE_SERVER_HELLO_DONE,
-					STATE_CLIENT_CERT, rec.is_orig, true) ||
-		$context.connection.lost_track();
-};
+	certificates : X509Certificate[] &until($input.length() == 0);
+} &length = to_int()(length)+3;
 
+# OCSP Stapling
+
+type CertificateStatus(rec: SSLRecord) = record {
+	status_type: uint8; # 1 = ocsp, everything else is undefined
+	length : uint24;
+	response: bytestring &restofdata;
+};
 
 ######################################################################
 # V3 Server Key Exchange Message (7.4.3.)
 ######################################################################
 
-# For now ignore details; just eat up complete message
-type ServerKeyExchange(rec: SSLRecord) = record {
-	key : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_IN_SERVER_HELLO,
-				STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.connection.lost_track();
+# Usually, the server key exchange does not contain any information
+# that we are interested in.
+#
+# The exception is when we are using an ECDHE, DHE or DH-Anon suite.
+# In this case, we can extract information about the chosen cipher from
+# here.
+type ServerKeyExchange(rec: SSLRecord) = case $context.connection.chosen_cipher() of {
+	TLS_ECDH_ECDSA_WITH_NULL_SHA,
+	TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
+	TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_NULL_SHA,
+	TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+	TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDH_RSA_WITH_NULL_SHA,
+	TLS_ECDH_RSA_WITH_RC4_128_SHA,
+	TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_NULL_SHA,
+	TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+	TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+	TLS_ECDH_ANON_WITH_NULL_SHA,
+	TLS_ECDH_ANON_WITH_RC4_128_SHA,
+	TLS_ECDH_ANON_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDH_ANON_WITH_AES_128_CBC_SHA,
+	TLS_ECDH_ANON_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
+	TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,
+	TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384,
+	TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+	TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+	TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,
+	TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,
+	TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,
+	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,
+	TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,
+	TLS_ECDHE_PSK_WITH_RC4_128_SHA,
+	TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA,
+	TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,
+	TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,
+	TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
+	TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,
+	TLS_ECDHE_PSK_WITH_NULL_SHA,
+	TLS_ECDHE_PSK_WITH_NULL_SHA256,
+	TLS_ECDHE_PSK_WITH_NULL_SHA384,
+	TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDH_ECDSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDH_ECDSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDH_RSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDH_RSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_ECDH_ECDSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_ECDH_ECDSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_ECDH_RSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_ECDH_RSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256,
+	TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CCM,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CCM,
+	TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8,
+	TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8,
+	TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+		-> ec_server_key_exchange : EcServerKeyExchange(rec);
+
+	# DHE suites
+	TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_DHE_DSS_WITH_DES_CBC_SHA,
+	TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,
+	TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_DHE_RSA_WITH_DES_CBC_SHA,
+	TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
+	TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+	TLS_DHE_DSS_WITH_AES_256_CBC_SHA,
+	TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+	TLS_DHE_DSS_WITH_AES_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_DHE_DSS_EXPORT1024_WITH_DES_CBC_SHA,
+	TLS_DHE_DSS_EXPORT1024_WITH_RC4_56_SHA,
+	TLS_DHE_DSS_WITH_RC4_128_SHA,
+	TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,
+	TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+	TLS_DHE_DSS_WITH_3DES_EDE_CBC_RMD,
+	TLS_DHE_DSS_WITH_AES_128_CBC_RMD,
+	TLS_DHE_DSS_WITH_AES_256_CBC_RMD,
+	TLS_DHE_RSA_WITH_3DES_EDE_CBC_RMD,
+	TLS_DHE_RSA_WITH_AES_128_CBC_RMD,
+	TLS_DHE_RSA_WITH_AES_256_CBC_RMD,
+	TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_DHE_PSK_WITH_RC4_128_SHA,
+	TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
+	TLS_DHE_PSK_WITH_AES_128_CBC_SHA,
+	TLS_DHE_PSK_WITH_AES_256_CBC_SHA,
+	TLS_DHE_DSS_WITH_SEED_CBC_SHA,
+	TLS_DHE_RSA_WITH_SEED_CBC_SHA,
+	TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+	TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+	TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,
+	TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,
+	TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
+	TLS_DHE_PSK_WITH_AES_256_CBC_SHA384,
+	TLS_DHE_PSK_WITH_NULL_SHA256,
+	TLS_DHE_PSK_WITH_NULL_SHA384,
+	TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_DHE_DSS_WITH_ARIA_128_CBC_SHA256,
+	TLS_DHE_DSS_WITH_ARIA_256_CBC_SHA384,
+	TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256,
+	TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384,
+	TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256,
+	TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384,
+	TLS_DHE_DSS_WITH_ARIA_128_GCM_SHA256,
+	TLS_DHE_DSS_WITH_ARIA_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256,
+	TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384,
+	TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256,
+	TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384,
+	TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_DHE_DSS_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DHE_DSS_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384,
+	TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+	TLS_DHE_RSA_WITH_AES_128_CCM,
+	TLS_DHE_RSA_WITH_AES_256_CCM,
+	TLS_DHE_RSA_WITH_AES_128_CCM_8,
+	TLS_DHE_RSA_WITH_AES_256_CCM_8,
+	TLS_DHE_PSK_WITH_AES_128_CCM,
+	TLS_DHE_PSK_WITH_AES_256_CCM,
+	TLS_PSK_DHE_WITH_AES_128_CCM_8,
+	TLS_PSK_DHE_WITH_AES_256_CCM_8,
+	TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+	# DH-anon suites
+	TLS_DH_ANON_EXPORT_WITH_RC4_40_MD5,
+	TLS_DH_ANON_WITH_RC4_128_MD5,
+	TLS_DH_ANON_EXPORT_WITH_DES40_CBC_SHA,
+	TLS_DH_ANON_WITH_DES_CBC_SHA,
+	TLS_DH_ANON_WITH_3DES_EDE_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_128_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_256_CBC_SHA,
+	TLS_DH_ANON_WITH_CAMELLIA_128_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_128_CBC_SHA256,
+	TLS_DH_ANON_WITH_AES_256_CBC_SHA256,
+	TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA,
+	TLS_DH_ANON_WITH_SEED_CBC_SHA,
+	TLS_DH_ANON_WITH_AES_128_GCM_SHA256,
+	TLS_DH_ANON_WITH_AES_256_GCM_SHA384,
+	TLS_DH_ANON_WITH_CAMELLIA_128_CBC_SHA256,
+	TLS_DH_ANON_WITH_CAMELLIA_256_CBC_SHA256,
+	TLS_DH_ANON_WITH_ARIA_128_CBC_SHA256,
+	TLS_DH_ANON_WITH_ARIA_256_CBC_SHA384,
+	TLS_DH_ANON_WITH_ARIA_128_GCM_SHA256,
+	TLS_DH_ANON_WITH_ARIA_256_GCM_SHA384,
+	TLS_DH_ANON_WITH_CAMELLIA_128_GCM_SHA256,
+	TLS_DH_ANON_WITH_CAMELLIA_256_GCM_SHA384
+	# DH non-anon suites do not send a ServerKeyExchange
+		-> dh_server_key_exchange : DhServerKeyExchange(rec);
+
+	default
+		-> key : bytestring &restofdata &transient;
+};
+
+# For the moment, we really only are interested in the curve name. If it
+# is not set (if the server sends explicit parameters), we do not bother.
+# We also do not parse the actual signature data following the named curve.
+type EcServerKeyExchange(rec: SSLRecord) = record {
+	curve_type: uint8;
+	curve: uint16; # only if curve_type = 3 (NAMED_CURVE)
+	data: bytestring &restofdata &transient;
+};
+
+# For both, dh_anon and dhe the ServerKeyExchange starts with a ServerDHParams
+# structure. After that, they start to differ, but we do not care about that.
+type DhServerKeyExchange(rec: SSLRecord) = record {
+	dh_p_length: uint16;
+	dh_p: bytestring &length=dh_p_length;
+	dh_g_length: uint16;
+	dh_g: bytestring &length=dh_g_length;
+	dh_Ys_length: uint16;
+	dh_Ys: bytestring &length=dh_Ys_length;
+	data: bytestring &restofdata &transient;
 };
 
 
@@ -488,11 +592,6 @@ type ServerKeyExchange(rec: SSLRecord) = record {
 # For now, ignore Certificate Request Details; just eat up message.
 type CertificateRequest(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_IN_SERVER_HELLO,
-					STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.connection.lost_track();
 };
 
 
@@ -501,12 +600,7 @@ type CertificateRequest(rec: SSLRecord) = record {
 ######################################################################
 
 # Server Hello Done is empty
-type ServerHelloDone(rec: SSLRecord) = empty &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_IN_SERVER_HELLO,
-					STATE_SERVER_HELLO_DONE, rec.is_orig, false) ||
-		$context.connection.lost_track();
-};
+type ServerHelloDone(rec: SSLRecord) = empty;
 
 
 ######################################################################
@@ -525,15 +619,6 @@ type ServerHelloDone(rec: SSLRecord) = empty &let {
 # encrypted anyway); just eat up message.
 type ClientKeyExchange(rec: SSLRecord) = record {
 	key : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_SERVER_HELLO_DONE,
-					STATE_CLIENT_KEY_NO_CERT, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CLIENT_CERT,
-					STATE_CLIENT_KEY_WITH_CERT, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CLIENT_CERT,
-					STATE_CLIENT_KEY_WITH_CERT, rec.is_orig, true) ||
-		$context.connection.lost_track();
 };
 
 ######################################################################
@@ -549,12 +634,10 @@ type V2ClientMasterKey(rec: SSLRecord) = record {
 	en_key_data : bytestring &length = en_key_len &transient;
 	key_arg_data : bytestring &length = key_arg_len &transient;
 } &length = 7 + cl_key_len + en_key_len + key_arg_len, &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_V2_CL_MASTER_KEY_EXPECTED,
-					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
-		$context.connection.lost_track();
-
 	cipher_kind : int = (((rec.head3 << 16) | (rec.head4 << 8)) | cipher_kind_8);
+	# encryption starts for both sides after this message.
+	state_changed_client : bool = $context.connection.startEncryption(true);
+	state_changed_server : bool = $context.connection.startEncryption(false);
 };
 
 
@@ -565,11 +648,6 @@ type V2ClientMasterKey(rec: SSLRecord) = record {
 # For now, ignore Certificate Verify; just eat up the message.
 type CertificateVerify(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_CLIENT_KEY_WITH_CERT,
-					STATE_CLIENT_CERT_VERIFIED, rec.is_orig, true) ||
-		$context.connection.lost_track();
 };
 
 
@@ -581,13 +659,6 @@ type CertificateVerify(rec: SSLRecord) = record {
 # so we will not be able to read those messages.
 type Finished(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_SERVER_HELLO_DONE,
-					STATE_COMM_ENCRYPTED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CLIENT_FINISHED,
-					STATE_COMM_ENCRYPTED, rec.is_orig, false) ||
-		$context.connection.lost_track();
 };
 
 type SessionTicketHandshake(rec: SSLRecord) = record {
@@ -599,10 +670,8 @@ type SessionTicketHandshake(rec: SSLRecord) = record {
 # V3 Handshake Protocol (7.)
 ######################################################################
 
-type UnknownHandshake(hs: Handshake, is_orig: bool) =  record {
+type UnknownHandshake(hs: Handshake, is_orig: bool) = record {
 	data : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool = $context.connection.lost_track();
 };
 
 type Handshake(rec: SSLRecord) = record {
@@ -622,7 +691,7 @@ type Handshake(rec: SSLRecord) = record {
 		CLIENT_KEY_EXCHANGE -> client_key_exchange : ClientKeyExchange(rec);
 		FINISHED            -> finished            : Finished(rec);
 		CERTIFICATE_URL     -> certificate_url     : bytestring &restofdata &transient;
-		CERTIFICATE_STATUS  -> certificate_status  : bytestring &restofdata &transient;
+		CERTIFICATE_STATUS  -> certificate_status  : CertificateStatus(rec);
 		default             -> unknown_handshake   : UnknownHandshake(this, rec.is_orig);
 	} &length = to_int()(length);
 };
@@ -632,33 +701,12 @@ type Handshake(rec: SSLRecord) = record {
 # Fragmentation (6.2.1.)
 ######################################################################
 
-type UnknownRecord(rec: SSLRecord) =  record {
+type UnknownRecord(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool = $context.connection.lost_track();
 };
 
 type CiphertextRecord(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
-} &let {
-	state_changed : bool =
-		$context.connection.transition(STATE_CLIENT_FINISHED,
-					STATE_CLIENT_FINISHED, rec.is_orig, false) ||
-		$context.connection.transition(STATE_CLIENT_FINISHED,
-					STATE_CLIENT_FINISHED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_ABBREV_SERVER_ENCRYPTED,
-					STATE_ABBREV_SERVER_FINISHED, rec.is_orig, false) ||
-		$context.connection.transition(STATE_CLIENT_ENCRYPTED,
-					STATE_CLIENT_FINISHED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_COMM_ENCRYPTED,
-					STATE_CONN_ESTABLISHED, rec.is_orig, false) ||
-		$context.connection.transition(STATE_COMM_ENCRYPTED,
-					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
-		$context.connection.transition(STATE_CONN_ESTABLISHED,
-					STATE_CONN_ESTABLISHED, rec.is_orig, false) ||
-		$context.connection.transition(STATE_CONN_ESTABLISHED,
-					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
-		$context.connection.lost_track();
 };
 
 
@@ -667,7 +715,7 @@ type CiphertextRecord(rec: SSLRecord) = record {
 ######################################################################
 
 type SSLPDU(is_orig: bool) = record {
-	records : SSLRecord(is_orig)[] &transient &until($element <= 0);
+	records : SSLRecord(is_orig)[] &transient;
 } &byteorder = bigendian;
 
 
@@ -678,67 +726,111 @@ type SSLPDU(is_orig: bool) = record {
 refine connection SSL_Conn += {
 
 	%member{
-		int state_;
-		int old_state_;
-		bool hello_requested_;
+		int client_state_;
+		int server_state_;
+		int record_layer_version_;
+		uint32 chosen_cipher_;
 	%}
 
 	%init{
-		state_ = STATE_INITIAL;
-		old_state_ = STATE_INITIAL;
-		hello_requested_ = false;
+		server_state_ = STATE_CLEAR;
+		client_state_ = STATE_CLEAR;
+		record_layer_version_ = UNKNOWN_VERSION;
+		chosen_cipher_ = NO_CHOSEN_CIPHER;
 	%}
 
-	function determine_ssl_version(head0 : uint8, head1 : uint8,
-					head2 : uint8) : int
+	function chosen_cipher() : int %{ return chosen_cipher_; %}
+
+	function set_cipher(cipher: uint32) : bool
 		%{
-		if ( head0 >= 20 && head0 <= 23 &&
-		     head1 == 0x03 && head2 <= 0x03 )
-			// This is most probably SSL version 3.
-			return (head1 << 8) | head2;
-
-		else if ( head0 >= 128 && head2 < 5 && head2 != 3 )
-			// Not very strong evidence, but we suspect
-			// this to be SSLv2.
-			return SSLv20;
-
-		else
-			return UNKNOWN_VERSION;
-		%}
-
-	function state() : int %{ return state_; %}
-	function old_state() : int %{ return old_state_; %}
-
-	function transition(olds : AnalyzerState, news : AnalyzerState,
-				current_record_is_orig : bool, is_orig : bool) : bool
-		%{
-		if ( (olds != STATE_ANY && olds != state_) ||
-		     current_record_is_orig != is_orig )
-			return false;
-
-		old_state_ = state_;
-		state_ = news;
-
-		//printf("transitioning from %s to %s\n", state_label(old_state()).c_str(), state_label(state()).c_str());
+		chosen_cipher_ = cipher;
 		return true;
 		%}
 
-	function lost_track() : bool
+	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
+					head2 : uint8, head3: uint8, head4: uint8) : int
 		%{
-		state_ = STATE_TRACK_LOST;
-		return false;
+		// re-check record layer version to be sure that we still are synchronized with
+		// the data stream
+		if ( record_layer_version_ != UNKNOWN_VERSION && record_layer_version_ != SSLv20 )
+			{
+			uint16 version = (head1<<8) | head2;
+			if ( version != SSLv30 && version != TLSv10 &&
+			     version != TLSv11 && version != TLSv12 )
+				{
+				bro_analyzer()->ProtocolViolation(fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
+				return UNKNOWN_VERSION;
+				}
+			}
+
+		if ( record_layer_version_ != UNKNOWN_VERSION )
+			return record_layer_version_;
+
+		if ( head0 & 0x80 )
+			{
+			if ( head2 == 0x01 ) // SSLv2 client hello.
+				{
+				uint16 version = (head3 << 8) | head4;
+				if ( version != SSLv20 && version != SSLv30 && version != TLSv10 &&
+				     version != TLSv11 && version != TLSv12 )
+					{
+					bro_analyzer()->ProtocolViolation(fmt("Invalid version in SSL client hello. Version: %d", version));
+					return UNKNOWN_VERSION;
+					}
+
+				else
+					return SSLv20;
+				}
+
+			else if ( head2 == 0x04 ) // SSLv2 server hello. This connection will continue using SSLv2.
+				{
+				record_layer_version_ = SSLv20;
+				return SSLv20;
+				}
+
+			else // this is not SSL or TLS.
+				{
+				bro_analyzer()->ProtocolViolation(fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
+				return UNKNOWN_VERSION;
+				}
+			}
+
+		uint16 version = (head1<<8) | head2;
+		if ( version != SSLv30 && version != TLSv10 &&
+		     version != TLSv11 && version != TLSv12 )
+			{
+			bro_analyzer()->ProtocolViolation(fmt("Invalid version in TLS connection. Version: %d", version));
+			return UNKNOWN_VERSION;
+			}
+
+		if ( head0 >=20 && head0 <= 30 )
+			{ // ok, set record layer version, this never can be downgraded to v2
+			record_layer_version_ = version;
+			return version;
+			}
+
+		bro_analyzer()->ProtocolViolation(fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
+		return UNKNOWN_VERSION;
 		%}
 
-	function hello_requested() : bool
+	function client_state() : int %{ return client_state_; %}
+
+	function server_state() : int %{ return client_state_; %}
+
+	function state(is_orig: bool) : int
 		%{
-		bool ret = hello_requested_;
-		hello_requested_ = false;
-		return ret;
+		if ( is_orig )
+			return client_state_;
+		else
+			return server_state_;
 		%}
 
-	function set_hello_requested(val : bool) : bool
+	function startEncryption(is_orig: bool) : bool
 		%{
-		hello_requested_ = val;
-		return val;
+		if ( is_orig )
+			client_state_ = STATE_ENCRYPTED;
+		else
+			server_state_ = STATE_ENCRYPTED;
+		return true;
 		%}
 };

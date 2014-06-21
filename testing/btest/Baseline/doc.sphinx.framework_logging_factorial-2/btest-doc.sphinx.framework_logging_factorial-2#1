@@ -1,0 +1,33 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro framework_logging_factorial_02.bro
+
+.. rst-class:: btest-include
+
+    .. code-block:: guess
+      :linenos:
+
+      #separator \x09
+      #set_separator	,
+      #empty_field	(empty)
+      #unset_field	-
+      #path	factor
+      #open	2013-10-07-23-48-11
+      #fields	num	factorial_num
+      #types	count	count
+      1	1
+      2	2
+      3	6
+      4	24
+      5	120
+      6	720
+      7	5040
+      8	40320
+      9	362880
+      10	3628800
+      #close	2013-10-07-23-48-11
+

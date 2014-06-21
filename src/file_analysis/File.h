@@ -3,11 +3,14 @@
 #ifndef FILE_ANALYSIS_FILE_H
 #define FILE_ANALYSIS_FILE_H
 
+#include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Conn.h"
 #include "Val.h"
+#include "Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
 
@@ -54,6 +57,14 @@ public:
 	void SetTimeoutInterval(double interval);
 
 	/**
+	 * Change the maximum size that an attached extraction analyzer is allowed.
+	 * @param args the file extraction analyzer whose limit needs changed.
+	 * @param bytes new limit.
+	 * @return false if no extraction analyzer is active, else true.
+	 */
+	bool SetExtractionLimit(RecordVal* args, uint64 bytes);
+
+	/**
 	 * @return value of the "id" field from #val record.
 	 */
 	string GetID() const { return id; }
@@ -92,17 +103,19 @@ public:
 	/**
 	 * Queues attaching an analyzer.  Only one analyzer per type can be attached
 	 * at a time unless the arguments differ.
+	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
-	bool AddAnalyzer(RecordVal* args);
+	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Queues removal of an analyzer.
+	 * @param tag the analyzer tag of the file analyzer to remove.
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
-	bool RemoveAnalyzer(const RecordVal* args);
+	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Pass in non-sequential data and deliver to attached analyzers.
@@ -171,8 +184,9 @@ protected:
 	 * Updates the "conn_ids" and "conn_uids" fields in #val record with the
 	 * \c conn_id and UID taken from \a conn.
 	 * @param conn the connection over which a part of the file has been seen.
+	 * @param is_orig true if the connection originator is sending the file.
 	 */
-	void UpdateConnectionFields(Connection* conn);
+	void UpdateConnectionFields(Connection* conn, bool is_orig);
 
 	/**
 	 * Increment a byte count field of #val record by \a size.
@@ -211,11 +225,12 @@ protected:
 	void ReplayBOF();
 
 	/**
-	 * Does mime type detection and assigns type (if available) to \c mime_type
+	 * Does mime type detection via file magic signatures and assigns
+	 * strongest matching mime type (if available) to \c mime_type
 	 * field in #val.
 	 * @param data pointer to a chunk of file data.
 	 * @param len number of bytes in the data chunk.
-	 * @return whether mime type was available.
+	 * @return whether a mime type match was found.
 	 */
 	bool DetectMIME(const u_char* data, uint64 len);
 
@@ -239,7 +254,9 @@ private:
 	bool missed_bof;           /**< Flags that we missed start of file. */
 	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
+	bool did_file_new_event;   /**< Whether the file_new event has been done. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzer. */
+	queue<pair<EventHandlerPtr, val_list*> > fonc_queue;
 
 	struct BOF_Buffer {
 		BOF_Buffer() : full(false), replayed(false), size(0) {}
@@ -266,6 +283,7 @@ private:
 	static int bof_buffer_size_idx;
 	static int bof_buffer_idx;
 	static int mime_type_idx;
+	static int mime_types_idx;
 };
 
 } // namespace file_analysis

@@ -20,7 +20,10 @@ void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	Deref_Prefix(prefix);
 
 	if ( ! node )
-		reporter->InternalError("Cannot create node in patricia tree");
+		{
+		reporter->InternalWarning("Cannot create node in patricia tree");
+		return 0;
+		}
 
 	void* old = node->data;
 
@@ -49,7 +52,7 @@ void* PrefixTable::Insert(const Val* value, void* data)
 		break;
 
 	default:
-		reporter->InternalError("Wrong index type for PrefixTable");
+		reporter->InternalWarning("Wrong index type for PrefixTable");
 		return 0;
 	}
 	}
@@ -83,8 +86,8 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 		break;
 
 	default:
-		reporter->InternalError("Wrong index type %d for PrefixTable",
-		               value->Type()->Tag());
+		reporter->InternalWarning("Wrong index type %d for PrefixTable",
+		                          value->Type()->Tag());
 		return 0;
 	}
 	}
@@ -122,7 +125,7 @@ void* PrefixTable::Remove(const Val* value)
 		break;
 
 	default:
-		reporter->InternalError("Wrong index type for PrefixTable");
+		reporter->InternalWarning("Wrong index type for PrefixTable");
 		return 0;
 	}
 	}

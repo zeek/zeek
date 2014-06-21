@@ -4,8 +4,8 @@
 # This is loaded by default.
 #@load base/utils/conn-ids
 
-global c: conn_id = [ $orig_h = 10.0.0.100, $orig_p = 10000,
-                      $resp_h = 10.0.0.200, $resp_p = 20000 ];
+global c: conn_id = [ $orig_h = 10.0.0.100, $orig_p = 10000/tcp,
+                      $resp_h = 10.0.0.200, $resp_p = 20000/tcp ];
 
 print id_string(c);
 print reverse_id_string(c);

@@ -1,0 +1,4 @@
+# @TEST-EXEC: bro -r ${TRACES}/wikipedia.trace
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff http.log
+

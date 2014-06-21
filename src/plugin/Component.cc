@@ -44,7 +44,9 @@ void Component::Describe(ODesc* d) const
 		break;
 
 	default:
-		reporter->InternalError("unknown component type in plugin::Component::Describe");
+		reporter->InternalWarning("unknown component type in plugin::Component::Describe");
+		d->Add("<unknown component type>");
+		break;
 	}
 
 	d->Add("]");

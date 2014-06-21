@@ -1,7 +1,6 @@
 ## Generated for client side commands on an RSH connection.
 ##
-## See `RFC 1258 <http://tools.ietf.org/html/rfc1258>`__ for more information
-## about the Rlogin/Rsh protocol.
+## See :rfc:`1258` for more information about the Rlogin/Rsh protocol.
 ##
 ## c: The connection.
 ##
@@ -30,8 +29,7 @@ event rsh_request%(c: connection, client_user: string, server_user: string, line
 
 ## Generated for client side commands on an RSH connection.
 ##
-## See `RFC 1258 <http://tools.ietf.org/html/rfc1258>`__ for more information
-## about the Rlogin/Rsh protocol.
+## See :rfc:`1258` for more information about the Rlogin/Rsh protocol.
 ##
 ## c: The connection.
 ##

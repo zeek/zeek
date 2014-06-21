@@ -1,6 +1,0 @@
-# @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
-# @TEST-EXEC: btest-diff smtp_entities.log
-
-@load base/protocols/smtp
-
-redef SMTP::generate_md5=/text\/plain/;

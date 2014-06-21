@@ -5,12 +5,12 @@ module SumStats;
 
 export {
 	redef enum Calculation += {
-		## Keep last X observations in a queue
+		## Keep last X observations in a queue.
 		LAST
 	};
 
 	redef record Reducer += {
-		## number of elements to keep.
+		## Number of elements to keep.
 		num_last_elements: count &default=0;
 	};
 
@@ -33,15 +33,19 @@ function get_last(rv: ResultVal): vector of Observation
 	return s;
 	}
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( LAST in r$apply && r$num_last_elements > 0 )
+	register_observe_plugin(LAST, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
-		if ( ! rv?$last_elements )
-			rv$last_elements = Queue::init([$max_len=r$num_last_elements]);
-		Queue::put(rv$last_elements, obs);
-		}
+		if ( r$num_last_elements > 0 )
+			{
+			if ( ! rv?$last_elements )
+				rv$last_elements = Queue::init([$max_len=r$num_last_elements]);
+			Queue::put(rv$last_elements, obs);
+			}
+		});
 	}
+
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	{

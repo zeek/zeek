@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd -n 5 bro -r ${TRACES}/http/bro.org.pcap ${DOC_ROOT}/httpmonitor/file_extraction.bro

@@ -22,17 +22,17 @@ global n = 0;
 
 event bro_init() &priority=5
 	{
-	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE)];
-	SumStats::create([$epoch=5secs,
+	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE, SumStats::HLL_UNIQUE)];
+	SumStats::create([$name="test",
+	                  $epoch=5secs,
 	                  $reducers=set(r1),
-	                  $epoch_finished(rt: SumStats::ResultTable) =
+	                  $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
 	                  	{
-	                  	for ( key in rt )
-	                  		{
-	                  		local r = rt[key]["test"];
-	                  		print fmt("Host: %s - num:%d - sum:%.1f - avg:%.1f - max:%.1f - min:%.1f - var:%.1f - std_dev:%.1f - unique:%d", key$host, r$num, r$sum, r$average, r$max, r$min, r$variance, r$std_dev, r$unique);
-	                  		}
-
+	                  	local r = result["test"];
+	                  	print fmt("Host: %s - num:%d - sum:%.1f - avg:%.1f - max:%.1f - min:%.1f - var:%.1f - std_dev:%.1f - unique:%d - hllunique:%d", key$host, r$num, r$sum, r$average, r$max, r$min, r$variance, r$std_dev, r$unique, r$hll_unique);
+	                  	},
+	                  $epoch_finished(ts: time) =
+	                  	{
 	                  	terminate();
 	                  	}]);
 	}

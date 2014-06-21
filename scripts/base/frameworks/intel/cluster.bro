@@ -1,5 +1,5 @@
-##! Cluster transparency support for the intelligence framework.  This is mostly oriented
-##! toward distributing intelligence information across clusters.
+##! Cluster transparency support for the intelligence framework.  This is mostly
+##! oriented toward distributing intelligence information across clusters.
 
 @load base/frameworks/cluster
 @load ./input

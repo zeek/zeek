@@ -137,18 +137,6 @@ int DNS_Interpreter::ParseQuestions(DNS_MsgInfo* msg,
 	{
 	int n = msg->qdcount;
 
-	if ( n == 0 )
-		{
-		// Generate event here because we won't go into ParseQuestion.
-		EventHandlerPtr dns_event =
-			msg->rcode == DNS_CODE_OK ?
-				dns_query_reply : dns_rejected;
-		BroString* question_name = new BroString("<no query>");
-
-		SendReplyOrRejectEvent(msg, dns_event, data, len, question_name);
-		return 1;
-		}
-
 	while ( n > 0 && ParseQuestion(msg, data, len, msg_start) )
 		--n;
 	return n == 0;
@@ -220,6 +208,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	int name_len = sizeof(name) - 1;
 
 	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
+
 	if ( ! name_end )
 		return 0;
 
@@ -287,7 +276,17 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			break;
 
 		case TYPE_SRV:
-			status = ParseRR_SRV(msg, data, len, rdlength, msg_start);
+			if ( ntohs(analyzer->Conn()->RespPort()) == 137 )
+				{
+				// This is an NBSTAT (NetBIOS NODE STATUS) record.
+				// The SRV RFC reused the value that was already being
+				// used for this.
+				// We aren't parsing this yet.
+				status = 1;
+				}
+			else
+				status = ParseRR_SRV(msg, data, len, rdlength, msg_start);
+
 			break;
 
 		case TYPE_EDNS:
@@ -299,6 +298,16 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			break;
 
 		default:
+
+			if ( dns_unknown_reply && ! msg->skip_event )
+				{
+				val_list* vl = new val_list;
+				vl->append(analyzer->BuildConnVal());
+				vl->append(msg->BuildHdrVal());
+				vl->append(msg->BuildAnswerVal());
+				analyzer->ConnectionEvent(dns_unknown_reply, vl);
+				}
+
 			analyzer->Weird("DNS_RR_unknown_type");
 			data += rdlength;
 			len -= rdlength;
@@ -402,7 +411,9 @@ int DNS_Interpreter::ExtractLabel(const u_char*& data, int& len,
 		return 0;
 		}
 
-	if ( label_len > 63 )
+	if ( label_len > 63 &&
+		// NetBIOS name service look ups can use longer labels.
+		ntohs(analyzer->Conn()->RespPort()) != 137 )
 		{
 		analyzer->Weird("DNS_label_too_long");
 		return 0;
@@ -635,15 +646,24 @@ int DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
 	if ( ! name_end )
 		return 0;
-	*name_end = 0;	// terminate name so we can use it in snprintf()
 
 	if ( data - data_start != rdlength )
 		analyzer->Weird("DNS_RR_length_mismatch");
 
-	// The following is just a placeholder.
-	char buf[2048];
-	safe_snprintf(buf, sizeof(buf), "SRV %s priority=%d weight=%d port=%d",
-		      name, priority, weight, port);
+	if ( dns_SRV_reply && ! msg->skip_event )
+		{
+		val_list* vl = new val_list;
+		vl->append(analyzer->BuildConnVal());
+		vl->append(msg->BuildHdrVal());
+		vl->append(msg->BuildAnswerVal());
+		vl->append(new StringVal(new BroString(name, name_end - name, 1)));
+		vl->append(new Val(priority, TYPE_COUNT));
+		vl->append(new Val(weight, TYPE_COUNT));
+		vl->append(new Val(port, TYPE_COUNT));
+
+		analyzer->ConnectionEvent(dns_SRV_reply, vl);
+		}
+
 	return 1;
 	}
 
@@ -815,34 +835,61 @@ int DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	return 1;
 	}
 
+static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
+                                      const u_char*& data, int& len, int& rdlen)
+	{
+	if ( rdlen <= 0 )
+		return 0;
+
+	uint8 str_size = data[0];
+
+	--rdlen;
+	--len;
+	++data;
+
+	if ( str_size > rdlen )
+		{
+		analyzer->Weird("DNS_TXT_char_str_past_rdlen");
+		return 0;
+		}
+
+	StringVal* rval = new StringVal(str_size,
+	                                reinterpret_cast<const char*>(data));
+
+	rdlen -= str_size;
+	len -= str_size;
+	data += str_size;
+
+	return rval;
+	}
+
 int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
 	{
-	int name_len = data[0];
-
-	char* name = new char[name_len];
-
-	memcpy(name, data+1, name_len);
-
-	data += rdlength;
-	len -= rdlength;
-
-	if ( dns_TXT_reply && ! msg->skip_event )
+	if ( ! dns_TXT_reply || msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new StringVal(name_len, name));
-
-		analyzer->ConnectionEvent(dns_TXT_reply, vl);
+		data += rdlength;
+		len -= rdlength;
+		return 1;
 		}
 
-	delete [] name;
+	VectorVal* char_strings = new VectorVal(string_vec);
+	StringVal* char_string;
 
-	return 1;
+	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
+		char_strings->Assign(char_strings->Size(), char_string);
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(char_strings);
+
+	analyzer->ConnectionEvent(dns_TXT_reply, vl);
+
+	return rdlength == 0;
 	}
 
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
@@ -894,6 +941,7 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 
 	answer_type = DNS_QUESTION;
 	skip_event = 0;
+	tsig = 0;
 	}
 
 DNS_MsgInfo::~DNS_MsgInfo()
@@ -1002,7 +1050,7 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 	interp = arg_interp;
 
 	msg_buf = 0;
-	buf_n = msg_size = 0;
+	buf_n = buf_len = msg_size = 0;
 	state = DNS_LEN_HI;
 	}
 
@@ -1125,7 +1173,7 @@ void DNS_Analyzer::Done()
 	}
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

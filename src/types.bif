@@ -191,6 +191,7 @@ enum Type %{
 	TEREDO,
 	SOCKS,
 	GTPv1,
+	HTTP,
 %}
 
 type EncapsulatingConn: record;

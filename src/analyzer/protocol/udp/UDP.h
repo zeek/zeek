@@ -28,7 +28,7 @@ public:
 protected:
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
 

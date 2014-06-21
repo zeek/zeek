@@ -67,9 +67,6 @@ public:
 	virtual ~FlowSocketSrc();
 
 	int ExtractNextPDU();
-
-protected:
-	char* listenparms;
 };
 
 class FlowFileSrc : public FlowSrc {

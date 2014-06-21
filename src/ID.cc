@@ -14,6 +14,7 @@
 #include "PersistenceSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
+#include "broxygen/Manager.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -440,7 +441,6 @@ ID* ID::Unserialize(UnserialInfo* info)
 
 		default:
 			reporter->InternalError("unknown type for UnserialInfo::id_policy");
-
 		}
 		}
 
@@ -543,7 +543,7 @@ bool ID::DoUnserialize(UnserialInfo* info)
 		}
 
 	if ( installed_tmp && ! global_scope()->Remove(name) )
-		reporter->InternalError("tmp id missing");
+		reporter->InternalWarning("missing tmp ID in %s unserialization", name);
 
 	return true;
 	}
@@ -632,8 +632,8 @@ void ID::DescribeReSTShort(ODesc* d) const
 		d->Add(": ");
 		d->Add(":bro:type:`");
 
-		if ( ! is_type && type->GetTypeID() )
-			d->Add(type->GetTypeID());
+		if ( ! is_type && ! type->GetName().empty() )
+			d->Add(type->GetName().c_str());
 		else
 			{
 			TypeTag t = type->Tag();
@@ -644,14 +644,14 @@ void ID::DescribeReSTShort(ODesc* d) const
 				break;
 
 			case TYPE_FUNC:
-				d->Add(type->AsFuncType()->FlavorString());
+				d->Add(type->AsFuncType()->FlavorString().c_str());
 				break;
 
 			case TYPE_ENUM:
 				if ( is_type )
 					d->Add(type_name(t));
 				else
-					d->Add(type->AsEnumType()->Name().c_str());
+					d->Add(broxygen_mgr->GetEnumTypeName(Name()).c_str());
 				break;
 
 			default:
@@ -670,9 +670,9 @@ void ID::DescribeReSTShort(ODesc* d) const
 		}
 	}
 
-void ID::DescribeReST(ODesc* d, bool is_role) const
+void ID::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	if ( is_role )
+	if ( roles_only )
 		{
 		if ( is_type )
 			d->Add(":bro:type:`");
@@ -697,14 +697,14 @@ void ID::DescribeReST(ODesc* d, bool is_role) const
 		{
 		d->Add(":Type: ");
 
-		if ( ! is_type && type->GetTypeID() )
+		if ( ! is_type && ! type->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(type->GetTypeID());
+			d->Add(type->GetName());
 			d->Add("`");
 			}
 		else
-			type->DescribeReST(d);
+			type->DescribeReST(d, roles_only);
 
 		d->NL();
 		}

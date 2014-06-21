@@ -1,0 +1,8 @@
+Host: 6.5.4.3  Sampled observations: 2
+    [2, 5]
+Host: 10.10.10.10  Sampled observations: 1
+    [5]
+Host: 1.2.3.4  Sampled observations: 34
+    [5, 22, 52, 91, 94]
+Host: 7.2.1.5  Sampled observations: 2
+    [1, 91]

@@ -15,7 +15,7 @@ namespace probabilistic {
  */
 class BitVector : public SerialObj {
 public:
-	typedef size_t block_type;
+	typedef uint64 block_type;
 	typedef size_t size_type;
 	typedef bool const_reference;
 
@@ -275,6 +275,13 @@ public:
 	 * *i*  or `npos` if no such bit exists.
 	 */
 	size_type FindNext(size_type i) const;
+
+	/** Computes a hash value of the internal representation.
+	  * This is mainly for debugging/testing purposes.
+	  *
+	  * @return The hash.
+	  */
+	uint64 Hash() const;
 
 	/**
 	 * Serializes the bit vector.

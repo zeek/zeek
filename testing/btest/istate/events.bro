@@ -39,12 +39,17 @@ redef tcp_close_delay = 0secs;
 # File-analysis fields in http.log won't get set on receiver side correctly,
 # one problem is with the way serialization may send a unique ID in place
 # of a full value and expect the remote side to associate that unique ID with
-# a value it received at an earlier time.  So sometimes modifications the sender# makes to the value aren't seen on the receiver (in this case, the mime_type
-# field).
-event file_new(f: fa_file) &priority=10
+# a value it received at an earlier time.  So sometimes modifications the sender# makes to the value aren't seen on the receiver.
+function myfh(c: connection, is_orig: bool): string
 	{
-	delete f$mime_type;
-	FileAnalysis::stop(f);
+	return "";
+	}
+
+event bro_init() 
+	{
+	# Ignore all http files.
+	Files::register_protocol(Analyzer::ANALYZER_HTTP,
+	                         [$get_file_handle = myfh]);
 	}
 
 @TEST-END-FILE

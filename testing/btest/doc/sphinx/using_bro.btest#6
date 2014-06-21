@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd -n 5 "bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log"

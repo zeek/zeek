@@ -1,9 +1,11 @@
+# @TEST-REQUIRES: which sqlite3
+#
 # @TEST-EXEC: cat ssh.sql | sqlite3 ssh.sqlite
 #
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE ssh.sql
@@ -75,7 +77,6 @@ event bro_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from ssh;",
-		 ["dbname"] = "ssh"
 	};
 
 	outfile = open("../out");

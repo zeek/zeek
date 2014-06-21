@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2014-01-28-14-55-04
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
+#types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
+1359565680.761790	CXWv6p3arKYeMETxOg	192.168.6.10	53209	192.168.129.36	53	udp	41477	paypal.com	1	C_INTERNET	48	DNSKEY	0	NOERROR	F	F	T	T	1	<unknown type=48>,<unknown type=48>,<unknown type=46>,<unknown type=46>	455.000000,455.000000,455.000000,455.000000	F
+#close	2014-01-28-14-55-04

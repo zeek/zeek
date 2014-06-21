@@ -1,0 +1,8 @@
+# This tests that the known_devices log is created,
+# that devices are logged by MAC address, and that
+# the DHCP hostname is added, if available.
+
+# @TEST-EXEC: bro -r $TRACES/dhcp/dhcp.trace -r $TRACES/dhcp/dhcp_inform.trace %INPUT
+# @TEST-EXEC: btest-diff known_devices.log
+
+@load policy/protocols/dhcp/known-devices-and-hostnames

@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -56,12 +56,12 @@ event bro_init()
 	outfile = open("../out");
 	# first read in the old stuff into the table...
 	Input::add_table([$source="../input.log", $name="ssh", $idx=Idx, $val=Val, $destination=servers]);
-	Input::remove("ssh");
 	}
 
 event Input::end_of_data(name: string, source:string)
 	{
 	print outfile, servers;
+	Input::remove("ssh");
 	close(outfile);
 	terminate();
 	}

@@ -4,7 +4,8 @@ module SumStats;
 
 export {
 	redef enum Calculation += {
-		## Get uniquely distributed random samples from the observation stream.
+		## Get uniquely distributed random samples from the observation
+		## stream.
 		SAMPLE
 	};
 
@@ -24,8 +25,8 @@ export {
 
 redef record ResultVal += {
 	# Internal use only.  This is not meant to be publically available
-	# and just a copy of num_samples from the Reducer. Needed for availability
-	# in the compose hook.
+	# and just a copy of num_samples from the Reducer. Needed for
+	# availability in the compose hook.
 	num_samples: count &default=0;
 };
 
@@ -47,15 +48,14 @@ function sample_add_sample(obs:Observation, rv: ResultVal)
 		if ( ra < rv$num_samples )
 			rv$samples[ra] = obs;
 		}
-
 	}
 
-hook observe_hook(r: Reducer, val: double, obs: Observation, rv: ResultVal)
+hook register_observe_plugins()
 	{
-	if ( SAMPLE in r$apply )
+	register_observe_plugin(SAMPLE, function(r: Reducer, val: double, obs: Observation, rv: ResultVal)
 		{
 		sample_add_sample(obs, rv);
-		}
+		});
 	}
 
 hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
@@ -74,7 +74,6 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 		Reporter::error("Sample vector with too many elements. Aborting.");
 		return;
 		}
-
 
 	if ( |rv1$samples| != num_samples && |rv2$samples| < num_samples )
 		{

@@ -10,7 +10,7 @@
 
 #include "../ReaderBackend.h"
 
-#include "threading/AsciiFormatter.h"
+#include "threading/formatters/Ascii.h"
 #include "3rdparty/sqlite3.h"
 
 namespace input { namespace reader {
@@ -40,7 +40,7 @@ private:
 	string query;
 	sqlite3 *db;
 	sqlite3_stmt *st;
-	AsciiFormatter* io;
+	threading::formatter::Ascii* io;
 
 	string set_separator;
 	string unset_field;

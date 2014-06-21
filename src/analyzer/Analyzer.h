@@ -44,7 +44,7 @@ public:
 	 * Analyzer::DeliverPacket().
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
-				   bool orig, int seq,
+				   bool orig, uint64 seq,
 				   const IP_Hdr* ip, int caplen)
 		{ }
 
@@ -59,7 +59,7 @@ public:
 	 * Hook for receiving notification of stream gaps. Parameters are the
 	 * same as for Analyzer::Undelivered().
 	 */
-	virtual void Undelivered(int seq, int len, bool orig)	{ }
+	virtual void Undelivered(uint64 seq, int len, bool orig)	{ }
 };
 
 /**
@@ -143,7 +143,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			int seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+			uint64 seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -173,7 +173,7 @@ public:
 	 *
 	 * @param is_orig True if this is about originator-side input.
 	 */
-	void NextUndelivered(int seq, int len, bool is_orig);
+	void NextUndelivered(uint64 seq, int len, bool is_orig);
 
 	/**
 	 * Reports a message boundary.  This is a generic method that can be
@@ -195,7 +195,7 @@ public:
 	 * Parameters are the same as for NextPacket().
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
-					bool orig, int seq,
+					bool orig, uint64 seq,
 					const IP_Hdr* ip, int caplen);
 
 	/**
@@ -212,7 +212,7 @@ public:
 	 *
 	 * Parameters are the same as for NextUndelivered().
 	 */
-	virtual void ForwardUndelivered(int seq, int len, bool orig);
+	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
 
 	/**
 	 * Forwards an end-of-data notification on to all child analyzers.
@@ -227,7 +227,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -241,7 +241,7 @@ public:
 	 * NextUndelivered() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	/**
 	 * Hook for accessing end-of-data notifications. This is called by
@@ -303,7 +303,7 @@ public:
 	 * Signals the analyzer to skip all further input processsing. The \a
 	 * Next*() methods check this flag and discard the input if its set.
 	 *
-	 * @param do_skipe If true, further processing will be skipped.
+	 * @param do_skip If true, further processing will be skipped.
 	 */
 	void SetSkip(bool do_skip)		{ skip = do_skip; }
 
@@ -353,9 +353,10 @@ public:
 	 * discarded.
 	 *
 	 * @param analyzer The ananlyzer to add. Takes ownership.
+	 * @return false if analyzer type was already a child, else true.
 	 */
-	void AddChildAnalyzer(Analyzer* analyzer)
-		{ AddChildAnalyzer(analyzer, true); }
+	bool AddChildAnalyzer(Analyzer* analyzer)
+		{ return AddChildAnalyzer(analyzer, true); }
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
@@ -363,6 +364,7 @@ public:
 	 * discarded.
 	 *
 	 * @param tag The type of analyzer to add.
+	 * @return the new analyzer instance that was added.
 	 */
 	Analyzer* AddChildAnalyzer(Tag tag);
 
@@ -585,7 +587,7 @@ protected:
 	void RemoveTimer(Timer* t);
 
 	/**
-	 * Returnsn true if the analyzer has associated an SupportAnalyzer of a given type.
+	 * Returns true if the analyzer has associated an SupportAnalyzer of a given type.
 	 *
 	 * @param tag The type to check for.
 	 *
@@ -594,14 +596,23 @@ protected:
 	bool HasSupportAnalyzer(Tag tag, bool orig);
 
 	/**
+	 * Returns the first still active support analyzer for the given
+	 * direction, or null if none.
+	 *
+	 * @param orig True if asking about the originator side.
+	 */
+	SupportAnalyzer* FirstSupportAnalyzer(bool orig);
+
+	/**
 	 * Adds a a new child analyzer with the option whether to intialize
 	 * it. This is an internal method.
 	 *
 	 * @param analyzer The analyzer to add. Takes ownership.
 	 *
 	 * @param init If true, Init() will be calle.d
+	 * @return false if analyzer type was already a child, else true.
 	 */
-	void AddChildAnalyzer(Analyzer* analyzer, bool init);
+	bool AddChildAnalyzer(Analyzer* analyzer, bool init);
 
 	/**
 	 * Inits all child analyzers. This is an internal method.
@@ -612,6 +623,12 @@ protected:
 	 * Reorganizes the child data structure. This is an internal method.
 	 */
 	void AppendNewChildren();
+
+	/**
+	 * Returns true if the analyzer has been flagged for removal and
+	 * shouldn't be used otherwise anymore.
+	 */
+	bool Removing() const	{ return removing; }
 
 private:
 	// Internal method to eventually delete a child analyzer that's
@@ -716,6 +733,14 @@ public:
 	bool IsOrig() const 	{ return orig; }
 
 	/**
+	 * Returns the analyzer's next sibling, or null if none.
+	 *
+	 * only_active: If true, this will skip siblings that are still link
+	 * but flagged for removal.
+	 */
+	SupportAnalyzer* Sibling(bool only_active = false) const;
+
+	/**
 	* Passes packet input to the next sibling SupportAnalyzer if any, or
 	* on to the associated main analyzer if none. If however there's an
 	* output handler associated with this support analyzer, the data is
@@ -724,7 +749,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	virtual void ForwardPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -744,12 +769,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	virtual void ForwardUndelivered(int seq, int len, bool orig);
-
-	/**
-	 * Returns the analyzer next sibling, or null if none.
-	 */
-	SupportAnalyzer* Sibling() const 	{ return sibling; }
+	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
 
 protected:
 	friend class Analyzer;

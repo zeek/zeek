@@ -5,6 +5,7 @@
 
 #include "Tag.h"
 #include "plugin/Component.h"
+#include "plugin/TaggedComponent.h"
 
 #include "../config.h"
 #include "../util.h"
@@ -21,7 +22,8 @@ class Analyzer;
  * A plugin can provide a specific protocol analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component {
+class Component : public plugin::Component,
+                  public plugin::TaggedComponent<analyzer::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(Connection* conn);
 
@@ -101,13 +103,6 @@ public:
 	bool Enabled() const	{ return enabled; }
 
 	/**
-	 * Returns the analyzer's tag. Note that this is automatically
-	 * generated for each new Components, and hence unique across all of
-	 * them.
-	 */
-	analyzer::Tag Tag() const;
-
-	/**
 	 * Enables or disables this analyzer.
 	 *
 	 * @param arg_enabled True to enabled, false to disable.
@@ -128,11 +123,7 @@ private:
 	const char* canon_name;	// The analyzer's canonical name.
 	factory_callback factory;	// The analyzer's factory callback.
 	bool partial;	// True if the analyzer supports partial connections.
-	analyzer::Tag tag;	// The automatically assigned analyzer tag.
 	bool enabled;	// True if the analyzer is enabled.
-
-	// Global counter used to generate unique tags.
-	static analyzer::Tag::type_t type_counter;
 };
 
 }

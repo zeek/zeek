@@ -1,0 +1,7 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+detect-MHR.bro
+
+@load base/frameworks/files
+@load base/frameworks/notice
+@load frameworks/files/hash-all-files

@@ -1,9 +1,0 @@
-# See COPYING file in this directory for original libmagic copyright.
-#------------------------------------------------------------------------------
-# $File$
-# rtf:	file(1) magic for Rich Text Format (RTF)
-#
-# Duncan P. Simpson, D.P.Simpson@dcs.warwick.ac.uk
-#
-0	string		{\\rtf		Rich Text Format data,
-!:mime	text/rtf

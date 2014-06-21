@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 #include <openssl/md5.h>
-#include <magic.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -50,27 +49,24 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "BroDoc.h"
 #include "Brofiler.h"
 
 #include "threading/Manager.h"
 #include "input/Manager.h"
 #include "logging/Manager.h"
 #include "logging/writers/Ascii.h"
+#include "input/readers/Raw.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
-
 #include "file_analysis/Manager.h"
+#include "broxygen/Manager.h"
 
 #include "binpac_bro.h"
 
 #include "3rdparty/sqlite3.h"
 
 Brofiler brofiler;
-
-magic_t magic_desc_cookie = 0;
-magic_t magic_mime_cookie = 0;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -99,6 +95,7 @@ input::Manager* input_mgr = 0;
 plugin::Manager* plugin_mgr = 0;
 analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
+broxygen::Manager* broxygen_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -115,7 +112,6 @@ int signal_val = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
-int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
 extern char version[];
 char* command_line_policy = 0;
@@ -123,7 +119,14 @@ vector<string> params;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 
-extern std::list<BroDoc*> docs_generated;
+OpaqueType* md5_type = 0;
+OpaqueType* sha1_type = 0;
+OpaqueType* sha256_type = 0;
+OpaqueType* entropy_type = 0;
+OpaqueType* cardinality_type = 0;
+OpaqueType* topk_type = 0;
+OpaqueType* bloomfilter_type = 0;
+OpaqueType* x509_opaque_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -160,6 +163,7 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
+	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
@@ -194,7 +198,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
+	fprintf(stderr, "    -X|--broxygen                  | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -212,12 +216,12 @@ void usage()
 #endif
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
-	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
-	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
+	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
+	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Broxygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
 
 	fprintf(stderr, "\n");
 	fprintf(stderr, "    Supported log formats: ");
@@ -364,6 +368,7 @@ void terminate_bro()
 
 	plugin_mgr->FinishPlugins();
 
+	delete broxygen_mgr;
 	delete timer_mgr;
 	delete dns_mgr;
 	delete persistence_serializer;
@@ -374,10 +379,10 @@ void terminate_bro()
 	delete secondary_path;
 	delete remote_serializer;
 	delete analyzer_mgr;
+	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
 	delete thread_mgr;
-	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;
@@ -446,6 +451,7 @@ int main(int argc, char** argv)
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
+	int parse_only = false;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -457,6 +463,7 @@ int main(int argc, char** argv)
 	int print_plugins = 0;
 
 	static struct option long_opts[] = {
+		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
@@ -464,7 +471,7 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"doc-scripts",		no_argument,		0,	'Z'},
+		{"broxygen",		required_argument,		0,	'X'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
 		{"flowfile",		required_argument,	0,	'y'},
@@ -523,7 +530,7 @@ int main(int argc, char** argv)
 	if ( p )
 		add_to_name_list(p, ':', prefixes);
 
-	string active_file;
+	string broxygen_config;
 
 #ifdef USE_IDMEF
 	string libidmef_dtd_path = "idmef-message.dtd";
@@ -536,7 +543,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -546,6 +553,10 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
+		case 'a':
+			parse_only = true;
+			break;
+
 		case 'b':
 			bare_mode = true;
 			break;
@@ -718,8 +729,8 @@ int main(int argc, char** argv)
 			break;
 #endif
 
-		case 'Z':
-			generate_documentation = 1;
+		case 'X':
+			broxygen_config = optarg;
 			break;
 
 #ifdef USE_IDMEF
@@ -770,10 +781,10 @@ int main(int argc, char** argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
-	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
-	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
+	int r = sqlite3_initialize();
 
-	sqlite3_initialize();
+	if ( r != SQLITE_OK )
+		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
@@ -793,6 +804,8 @@ int main(int argc, char** argv)
 
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
+
+	broxygen_mgr = new broxygen::Manager(broxygen_config, bro_argv[0]);
 
 	add_input_file("base/init-bare.bro");
 	if ( ! bare_mode )
@@ -836,11 +849,23 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
+	broxygen_mgr->InitPreScript();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
+
+	input::reader::Raw::ClassInit();
+
+	md5_type = new OpaqueType("md5");
+	sha1_type = new OpaqueType("sha1");
+	sha256_type = new OpaqueType("sha256");
+	entropy_type = new OpaqueType("entropy");
+	cardinality_type = new OpaqueType("cardinality");
+	topk_type = new OpaqueType("topk");
+	bloomfilter_type = new OpaqueType("bloomfilter");
+	x509_opaque_type = new OpaqueType("x509");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -858,6 +883,7 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPostScript();
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
+	broxygen_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{
@@ -865,25 +891,15 @@ int main(int argc, char** argv)
 		exit(1);
 		}
 
+	if ( parse_only )
+		{
+		int rc = (reporter->Errors() > 0 ? 1 : 0);
+		exit(rc);
+		}
+
 #ifdef USE_PERFTOOLS_DEBUG
 	}
 #endif
-
-	if ( generate_documentation )
-		{
-		CreateProtoAnalyzerDoc("proto-analyzers.rst");
-
-		std::list<BroDoc*>::iterator it;
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			(*it)->WriteDocFile();
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			delete *it;
-
-		terminate_bro();
-		return 0;
-		}
 
 	if ( reporter->Errors() > 0 )
 		{
@@ -894,6 +910,8 @@ int main(int argc, char** argv)
 	reporter->InitOptions();
 
 	init_general_global_var();
+
+	broxygen_mgr->GenerateDocs();
 
 	if ( user_pcap_filter )
 		{
@@ -930,6 +948,8 @@ int main(int argc, char** argv)
 
 		if ( rule_debug )
 			rule_matcher->PrintDebug();
+
+		file_mgr->InitMagic();
 		}
 
 	delete [] script_rule_files;
@@ -1150,9 +1170,13 @@ int main(int argc, char** argv)
 		curl_global_cleanup();
 #endif
 
+		terminate_bro();
+
 		sqlite3_shutdown();
 
-		terminate_bro();
+		ERR_free_strings();
+		EVP_cleanup();
+		CRYPTO_cleanup_all_ex_data();
 
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.

@@ -1,9 +1,0 @@
-# See COPYING file in this directory for original libmagic copyright.
-#-----------------------------------------------------------------------------
-# $File: misctools,v 1.12 2010/09/29 18:36:49 rrt Exp $
-# misctools:  file(1) magic for miscellaneous UNIX tools.
-#
-0	string/c	BEGIN:VCALENDAR		vCalendar calendar file
-!:mime	text/calendar
-0	string/c	BEGIN:VCARD		vCard visiting card
-!:mime	text/x-vcard

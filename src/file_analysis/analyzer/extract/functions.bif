@@ -1,0 +1,19 @@
+##! Internal functions used by the extraction file analyzer.
+
+module FileExtract;
+
+%%{
+#include "file_analysis/Manager.h"
+%%}
+
+## :bro:see:`FileExtract::set_limit`.
+function FileExtract::__set_limit%(file_id: string, args: any, n: count%): bool
+    %{
+	using BifType::Record::Files::AnalyzerArgs;
+	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+    bool result = file_mgr->SetExtractionLimit(file_id->CheckString(), rv, n);
+	Unref(rv);
+    return new Val(result, TYPE_BOOL);
+    %}
+
+module GLOBAL;

@@ -82,7 +82,10 @@ double Manager::NextTimestamp(double* network_time)
 		{
 		MsgThread* t = *i;
 
-		if ( (*i)->MightHaveOut() && ! t->Killed() )
+		if ( t->MightHaveOut() || t->Killed() )
+			// Even if the thread doesn't have output, it may be killed/done,
+			// which should also signify that processing is needed.  The
+			// "processing" in that case is joining the thread and deleting it.
 			return timer_mgr->Time();
 		}
 
@@ -149,10 +152,8 @@ void Manager::Process()
 		{
 		BasicThread* t = *i;
 
-		if ( ! t->Killed() )
-			continue;
-
-		to_delete.push_back(t);
+		if ( t->Killed() )
+			to_delete.push_back(t);
 		}
 
 	for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ )

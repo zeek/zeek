@@ -100,6 +100,9 @@ static int lookup_IPC_name(BroString* name)
 SMB_Session::SMB_Session(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
+	req_cmd = 0;
+	smb_mailslot_prot = false;
+	smb_pipe_prot = false;
 	dce_rpc_session = 0;
 	init_SMB_command_name();
 
@@ -735,26 +738,18 @@ int SMB_Session::ParseTransaction(int is_orig, int cmd,
 		break;
 
 	default:
-		reporter->InternalError("command mismatch for ParseTransaction");
+		reporter->AnalyzerError(analyzer,
+		  "command mismatch for SMB_Session::ParseTransaction");
+		return 0;
 	}
 
-	int ret;
-	if ( is_orig )
-		{
-		if ( cmd == SMB_COM_TRANSACTION || cmd == SMB_COM_TRANSACTION2 )
-			ret = ParseTransactionRequest(cmd, hdr, body);
+	if ( ! is_orig )
+		return ParseTransactionResponse(cmd, hdr, body);
 
-		else if ( cmd == SMB_COM_TRANSACTION_SECONDARY ||
-		          cmd == SMB_COM_TRANSACTION2_SECONDARY )
-			ret = ParseTransactionSecondaryRequest(cmd, hdr, body);
+	if ( cmd == SMB_COM_TRANSACTION || cmd == SMB_COM_TRANSACTION2 )
+		return ParseTransactionRequest(cmd, hdr, body);
 
-		else
-			ret = 0;
-		}
-	else
-		ret = ParseTransactionResponse(cmd, hdr, body);
-
-	return ret;
+	return ParseTransactionSecondaryRequest(cmd, hdr, body);
 	}
 
 int SMB_Session::ParseTransactionRequest(int cmd,

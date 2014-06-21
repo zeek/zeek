@@ -5,13 +5,11 @@
 
 #include "config.h"
 #include "util.h"
+#include "../Tag.h"
+#include "plugin/TaggedComponent.h"
+#include "plugin/ComponentManager.h"
 
 class EnumVal;
-
-namespace file_analysis {
-class Manager;
-class Component;
-}
 
 namespace analyzer {
 
@@ -19,76 +17,34 @@ class Manager;
 class Component;
 
 /**
- * Class to identify an analyzer type.
+ * Class to identify a protocol analyzer type.
  *
- * Each analyzer type gets a tag consisting of a main type and subtype. The
- * former is an identifier that's unique all analyzer classes. The latter is
- * passed through to the analyzer instances for their use, yet not further
- * interpreted by the analyzer infrastructure; it allows an analyzer to
- * branch out into a set of sub-analyzers internally. Jointly, main type and
- * subtype form an analyzer "tag". Each unique tag corresponds to a single
- * "analyzer" from the user's perspective. At the script layer, these tags
- * are mapped into enums of type \c Analyzer::Tag. Internally, the
- * analyzer::Manager maintains the mapping of tag to analyzer (and it also
- * assigns them their main types), and analyzer::Component creates new
- * tags.
- *
- * The Tag class supports all operations necessary to act as an index in a
- * \c std::map.
+ * The script-layer analogue is Analyzer::Tag.
  */
-class Tag  {
+class Tag : public ::Tag  {
 public:
-	/**
-	 * Type for the analyzer's main type.
-	 */
-	typedef uint32 type_t;
-
-	/**
-	 * Type for the analyzer's subtype.
-	 */
-	typedef uint32 subtype_t;
-
 	/*
 	 * Copy constructor.
 	 */
-	Tag(const Tag& other);
+	Tag(const Tag& other) : ::Tag(other) {}
 
 	/**
 	 * Default constructor. This initializes the tag with an error value
 	 * that will make \c operator \c bool return false.
 	 */
-	Tag();
+	Tag() : ::Tag() {}
 
 	/**
 	 * Destructor.
 	 */
-	~Tag();
-
-	/**
-	 * Returns the tag's main type.
-	 */
-	type_t Type() const 	{ return type; }
-
-	/**
-	 * Returns the tag's subtype.
-	 */
-	subtype_t Subtype() const 	{ return subtype; }
-
-	/**
-	 * Returns the \c Analyzer::Tag enum that corresponds to this tag.
-	 * The returned value is \a does not have its ref-count increased.
-	 */
-	EnumVal* AsEnumVal() const;
-
-	/**
-	 * Returns the numerical values for main and subtype inside a string
-	 * suitable for printing. This is primarily for debugging.
-	 */
-	std::string AsString() const;
+	~Tag() {}
 
 	/**
 	 * Returns false if the tag represents an error value rather than a
 	 * legal analyzer type.
+	 * TODO: make this conversion operator "explicit" (C++11) or use a
+	 *       "safe bool" idiom (not necessary if "explicit" is available),
+	 *       otherwise this may allow nonsense/undesired comparison operations.
 	 */
 	operator bool() const	{ return *this != Tag(); }
 
@@ -102,7 +58,7 @@ public:
 	 */
 	bool operator==(const Tag& other) const
 		{
-		return type == other.type && subtype == other.subtype;
+		return ::Tag::operator==(other);
 		}
 
 	/**
@@ -110,7 +66,7 @@ public:
 	 */
 	bool operator!=(const Tag& other) const
 		{
-		return type != other.type || subtype != other.subtype;
+		return ::Tag::operator!=(other);
 		}
 
 	/**
@@ -118,23 +74,30 @@ public:
 	 */
 	bool operator<(const Tag& other) const
 		{
-		return type != other.type ? type < other.type : (subtype < other.subtype);
+		return ::Tag::operator<(other);
 		}
+
+	/**
+	 * Returns the \c Analyzer::Tag enum that corresponds to this tag.
+	 * The returned value does not have its ref-count increased.
+	 *
+	 * @param etype the script-layer enum type associated with the tag.
+	 */
+	EnumVal* AsEnumVal() const;
 
 	static Tag Error;
 
 protected:
 	friend class analyzer::Manager;
-	friend class analyzer::Component;
-	friend class file_analysis::Manager;
-	friend class file_analysis::Component;
+	friend class plugin::ComponentManager<Tag, Component>;
+	friend class plugin::TaggedComponent<Tag>;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param type The main type. Note that the \a analyzer::Manager
 	 * manages the value space internally, so noone else should assign
-	 * any main tyoes.
+	 * any main types.
 	 *
 	 * @param subtype The sub type, which is left to an analyzer for
 	 * interpretation. By default it's set to zero.
@@ -144,14 +107,9 @@ protected:
 	/**
 	 * Constructor.
 	 *
-	 * @param val An enuam value of script type \c Analyzer::Tag.
+	 * @param val An enum value of script type \c Analyzer::Tag.
 	 */
-	Tag(EnumVal* val);
-
-private:
-	type_t type;		// Main type.
-	subtype_t subtype;	// Subtype.
-	mutable EnumVal* val;	// Analyzer::Tag value.
+	Tag(EnumVal* val) : ::Tag(val) {}
 };
 
 }

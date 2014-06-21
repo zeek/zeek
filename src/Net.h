@@ -4,6 +4,7 @@
 #define net_h
 
 #include "net_util.h"
+#include "util.h"
 #include "BPF_Program.h"
 #include "List.h"
 #include "PktSrc.h"
@@ -19,7 +20,7 @@ extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
-extern void net_packet_arrival(double t, const struct pcap_pkthdr* hdr,
+extern void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
 			PktSrc* src_ps);
 extern int net_packet_match(BPF_Program* fp, const u_char* pkt,
@@ -97,15 +98,14 @@ struct ScannedFile {
 	ino_t inode;
 	int include_level;
 	string name;
-	string subpath;		// Path in BROPATH's policy/ containing the file.
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
 
-	ScannedFile(ino_t arg_inode, int arg_include_level, string arg_name,
-		    string arg_subpath = "", bool arg_skipped = false,
+	ScannedFile(ino_t arg_inode, int arg_include_level, const string& arg_name,
+		    bool arg_skipped = false,
 		    bool arg_prefixes_checked = false)
 			: inode(arg_inode), include_level(arg_include_level),
-			name(arg_name), subpath(arg_subpath), skipped(arg_skipped),
+			name(arg_name), skipped(arg_skipped),
 			prefixes_checked(arg_prefixes_checked)
 		{ }
 };

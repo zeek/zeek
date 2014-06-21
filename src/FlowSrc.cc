@@ -14,8 +14,11 @@
 
 FlowSrc::FlowSrc()
 	{ // TODO: v9.
+	selectable_fd = -1;
 	idle = false;
 	data = 0;
+	pdu_len = -1;
+	exporter_ip = 0;
 	current_timestamp = next_timestamp = 0.0;
 	netflow_analyzer = new binpac::NetFlow::NetFlow_Analyzer();
 	}
@@ -64,7 +67,6 @@ void FlowSrc::Close()
 
 FlowSocketSrc::~FlowSocketSrc()
 	{
-	delete [] listenparms;
 	}
 
 int FlowSocketSrc::ExtractNextPDU()

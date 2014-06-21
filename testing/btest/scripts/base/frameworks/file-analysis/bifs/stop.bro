@@ -4,5 +4,5 @@
 
 event file_new(f: fa_file)
 	{
-	FileAnalysis::stop(f);
+	Files::stop(f);
 	}

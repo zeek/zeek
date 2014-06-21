@@ -41,5 +41,11 @@ function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 
 function __name%(atype: Analyzer::Tag%) : string
 	%{
-	return new StringVal(analyzer_mgr->GetAnalyzerName(atype));
+	return new StringVal(analyzer_mgr->GetComponentName(atype));
+	%}
+
+function __tag%(name: string%) : Analyzer::Tag
+	%{
+	analyzer::Tag t = analyzer_mgr->GetComponentTag(name->CheckString());
+	return t.AsEnumVal()->Ref();
 	%}

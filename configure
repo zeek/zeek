@@ -32,12 +32,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools     force use of Google perftools on non-Linux systems
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
+    --enable-jemalloc      link against jemalloc
+    --enable-ruby          build ruby bindings for broccoli (deprecated)
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
-    --disable-ruby         don't try to build ruby bindings for broccoli
     --disable-dataseries   don't use the optional DataSeries log writer
     --disable-elasticsearch don't use the optional ElasticSearch log writer
 
@@ -49,11 +50,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-perl=PATH       path to perl executable
+    --with-libmagic=PATH   path to libmagic install root
 
   Optional Packages in Non-Standard Locations:
-    --with-libmagic=PATH   path to libmagic install root
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
+    --with-jemalloc=PATH   path to jemalloc install root
     --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
@@ -105,6 +107,7 @@ append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
+append_cache_entry ENABLE_JEMALLOC      BOOL false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -113,6 +116,7 @@ append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -159,6 +163,9 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
+        --enable-jemalloc)
+            append_cache_entry ENABLE_JEMALLOC     BOOL   true
+            ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
             ;;
@@ -174,8 +181,8 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
-        --disable-ruby)
-            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
+        --enable-ruby)
+            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false
             ;;
         --disable-dataseries)
             append_cache_entry DISABLE_DATASERIES     BOOL   true
@@ -212,6 +219,10 @@ while [ $# -ne 0 ]; do
             ;;
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
+            ;;
+        --with-jemalloc=*)
+            append_cache_entry JEMALLOC_ROOT_DIR    PATH    $optarg
+            append_cache_entry ENABLE_JEMALLOC      BOOL    true
             ;;
         --with-python=*)
             append_cache_entry PYTHON_EXECUTABLE    PATH    $optarg

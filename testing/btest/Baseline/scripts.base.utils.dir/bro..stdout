@@ -1,0 +1,10 @@
+new_file1, ../testdir/bye
+new_file1, ../testdir/hi
+new_file1, ../testdir/howsitgoing
+new_file2, ../testdir/bye
+new_file2, ../testdir/hi
+new_file2, ../testdir/howsitgoing
+new_file1, ../testdir/bye
+new_file1, ../testdir/newone
+new_file2, ../testdir/bye
+new_file2, ../testdir/newone

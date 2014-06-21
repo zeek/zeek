@@ -9,7 +9,7 @@ type Foo: record {
 
 redef record Foo += {
         c: count &default=42;
-        d: count &optional;
+        d: string &optional;
         anotherset: set[count] &default=set();
 };
 

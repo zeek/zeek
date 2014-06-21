@@ -20,6 +20,7 @@ public:
 
 	SerialInfo(const SerialInfo& info)
 		{
+		chunk = info.chunk;
 		s = info.s;
 		may_suspend = info.may_suspend;
 		cache = info.cache;

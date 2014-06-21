@@ -11,9 +11,10 @@ set(file_analysis_SRCS
     Manager.cc
     File.cc
     FileTimer.cc
-    Analyzer.h
+    Analyzer.cc
     AnalyzerSet.cc
     Component.cc
+    Tag.cc
 )
 
 bif_target(file_analysis.bif)

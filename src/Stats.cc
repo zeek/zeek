@@ -160,7 +160,7 @@ void ProfileLogger::Log()
 	file->Write(fmt("%.06f Connections expired due to inactivity: %d\n",
 		network_time, killed_by_inactivity));
 
-	file->Write(fmt("%.06f Total reassembler data: %dK\n", network_time,
+	file->Write(fmt("%.06f Total reassembler data: %"PRIu64"K\n", network_time,
 		Reassembler::TotalMemoryAllocation() / 1024));
 
 	// Signature engine.
@@ -399,6 +399,7 @@ PacketProfiler::PacketProfiler(unsigned int mode, double freq,
 	last_Utime = last_Stime = last_Rtime = 0.0;
 	last_timestamp = time = 0.0;
 	pkt_cnt = byte_cnt = 0;
+	last_mem = 0;
 
 	file->Write("time dt npkts nbytes dRtime dUtime dStime dmem\n");
 	}

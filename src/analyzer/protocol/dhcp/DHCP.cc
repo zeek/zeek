@@ -1,4 +1,3 @@
-
 #include "DHCP.h"
 
 #include "events.bif.h"
@@ -22,7 +21,7 @@ void DHCP_Analyzer::Done()
 	}
 
 void DHCP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool orig, int seq, const IP_Hdr* ip, int caplen)
+			bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->NewData(orig, data, data + len);

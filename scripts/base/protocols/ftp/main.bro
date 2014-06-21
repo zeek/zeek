@@ -3,6 +3,8 @@
 ##! will take on the full path that the client is at along with the requested
 ##! file name.
 
+@load ./info
+@load ./utils
 @load ./utils-commands
 @load base/utils/paths
 @load base/utils/numbers
@@ -20,76 +22,11 @@ export {
 		"EPSV"
 	} &redef;
 
-	## This setting changes if passwords used in FTP sessions are captured or not.
-	const default_capture_password = F &redef;
-
 	## User IDs that can be considered "anonymous".
 	const guest_ids = { "anonymous", "ftp", "ftpuser", "guest" } &redef;
 
-	## The expected endpoints of an FTP data channel.
-	type ExpectedDataChannel: record {
-		## Whether PASV mode is toggled for control channel.
-		passive: bool &log;
-		## The host that will be initiating the data connection.
-		orig_h: addr &log;
-		## The host that will be accepting the data connection.
-		resp_h: addr &log;
-		## The port at which the acceptor is listening for the data connection.
-		resp_p: port &log;
-	};
-
-	type Info: record {
-		## Time when the command was sent.
-		ts:               time        &log;
-		## Unique ID for the connection.
-		uid:              string      &log;
-		## The connection's 4-tuple of endpoint addresses/ports.
-		id:               conn_id     &log;
-		## User name for the current FTP session.
-		user:             string      &log &default="<unknown>";
-		## Password for the current FTP session if captured.
-		password:         string      &log &optional;
-		## Command given by the client.
-		command:          string      &log &optional;
-		## Argument for the command if one is given.
-		arg:              string      &log &optional;
-
-		## Libmagic "sniffed" file type if the command indicates a file transfer.
-		mime_type:        string      &log &optional;
-		## Size of the file if the command indicates a file transfer.
-		file_size:        count       &log &optional;
-
-		## Reply code from the server in response to the command.
-		reply_code:       count       &log &optional;
-		## Reply message from the server in response to the command.
-		reply_msg:        string      &log &optional;
-		## Arbitrary tags that may indicate a particular attribute of this command.
-		tags:             set[string] &log;
-
-		## Expected FTP data channel.
-		data_channel:     ExpectedDataChannel &log &optional;
-
-		## Current working directory that this session is in.  By making
-		## the default value '.', we can indicate that unless something
-		## more concrete is discovered that the existing but unknown
-		## directory is ok to use.
-		cwd:                string  &default=".";
-
-		## Command that is currently waiting for a response.
-		cmdarg:             CmdArg  &optional;
-		## Queue for commands that have been sent but not yet responded to
-		## are tracked here.
-		pending_commands:   PendingCmds;
-
-		## Indicates if the session is in active or passive mode.
-		passive:            bool &default=F;
-
-		## Determines if the password will be captured for this request.
-		capture_password:   bool &default=default_capture_password;
-	};
-
 	## This record is to hold a parsed FTP reply code.  For example, for the
-	## 201 status code, the digits would be parsed as: x->2, y->0, z=>1.
+	## 201 status code, the digits would be parsed as: x->2, y->0, z->1.
 	type ReplyCode: record {
 		x: count;
 		y: count;
@@ -171,36 +108,25 @@ function set_ftp_session(c: connection)
 
 function ftp_message(s: Info)
 	{
-	# If it either has a tag associated with it (something detected)
-	# or it's a deliberately logged command.
-	if ( |s$tags| > 0 || (s?$cmdarg && s$cmdarg$cmd in logged_commands) )
+	s$ts=s$cmdarg$ts;
+	s$command=s$cmdarg$cmd;
+
+	s$arg = s$cmdarg$arg;
+	if ( s$cmdarg$cmd in file_cmds )
+		s$arg = build_url_ftp(s);
+
+	if ( s$arg == "" )
+		delete s$arg;
+
+	if ( s?$password &&
+	     ! s$capture_password &&
+	     to_lower(s$user) !in guest_ids )
 		{
-		if ( s?$password &&
-		     ! s$capture_password &&
-		     to_lower(s$user) !in guest_ids )
-			{
-			s$password = "<hidden>";
-			}
-
-		local arg = s$cmdarg$arg;
-		if ( s$cmdarg$cmd in file_cmds )
-			{
-			local comp_path = build_path_compressed(s$cwd, arg);
-			if ( comp_path[0] != "/" )
-				comp_path = cat("/", comp_path);
-
-			arg = fmt("ftp://%s%s", addr_to_uri(s$id$resp_h), comp_path);
-			}
-
-		s$ts=s$cmdarg$ts;
-		s$command=s$cmdarg$cmd;
-		if ( arg == "" )
-			delete s$arg;
-		else
-			s$arg=arg;
-
-		Log::write(FTP::LOG, s);
+		s$password = "<hidden>";
 		}
+
+	if ( s?$cmdarg && s$command in logged_commands)
+		Log::write(FTP::LOG, s);
 
 	# The MIME and file_size fields are specific to file transfer commands
 	# and may not be used in all commands so they need reset to "blank"
@@ -209,8 +135,6 @@ function ftp_message(s: Info)
 	delete s$file_size;
 	# Same with data channel.
 	delete s$data_channel;
-	# Tags are cleared everytime too.
-	s$tags = set();
 	}
 
 function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
@@ -218,8 +142,9 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	s$passive = chan$passive;
 	s$data_channel = chan;
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
-	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p, Analyzer::ANALYZER_FTP_DATA,
-				    5mins);
+	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
+	                            Analyzer::ANALYZER_FTP_DATA,
+	                            5mins);
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5

@@ -1,6 +1,7 @@
 ##! The Bro logging interface.
 ##!
-##! See :doc:`/logging` for a introduction to Bro's logging framework.
+##! See :doc:`/frameworks/logging` for an introduction to Bro's
+##! logging framework.
 
 module Log;
 
@@ -26,7 +27,7 @@ export {
 	const set_separator = "," &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output non-ambigious. 
+        ## *unset_field* to make the output unambiguous. 
 	## Can be overwritten by individual writers.
 	const empty_field = "(empty)" &redef;
 
@@ -40,8 +41,8 @@ export {
 		columns: any;
 
 		## Event that will be raised once for each log entry.
-		## The event receives a single same parameter, an instance of type
-		## ``columns``.
+		## The event receives a single same parameter, an instance of
+		## type ``columns``.
 		ev: any &optional;
 	};
 
@@ -75,9 +76,16 @@ export {
 	};
 
 	## Default rotation interval. Zero disables rotation.
+	##
+	## Note that this is overridden by the BroControl LogRotationInterval
+	## option.
 	const default_rotation_interval = 0secs &redef;
 
-	## Default alarm summary mail interval. Zero disables alarm summary mails.
+	## Default alarm summary mail interval. Zero disables alarm summary
+	## mails.
+	##
+	## Note that this is overridden by the BroControl MailAlarmsInterval
+	## option.
 	const default_mail_alarms_interval = 0secs &redef;
 
 	## Default naming format for timestamps embedded into filenames.
@@ -113,7 +121,7 @@ export {
 		##
 		## The specific interpretation of the string is up to
 		## the used writer, and may for example be the destination
-		## file name. Generally, filenames are expected to given
+		## file name. Generally, filenames are expected to be given
 		## without any extensions; writers will add appropiate
 		## extensions automatically.
 		##
@@ -125,34 +133,36 @@ export {
 		path: string &optional;
 
 		## A function returning the output path for recording entries
-		## matching this filter. This is similar to ``path`` yet allows
+		## matching this filter. This is similar to *path* yet allows
 		## to compute the string dynamically. It is ok to return
 		## different strings for separate calls, but be careful: it's
 		## easy to flood the disk by returning a new string for each
-		## connection ...
+		## connection.
 		##
 		## id: The ID associated with the log stream.
 		##
 		## path: A suggested path value, which may be either the filter's
-		##       ``path`` if defined, else a previous result from the function.
-		##       If no ``path`` is defined for the filter, then the first call
-		##       to the function will contain an empty string.
+		##       ``path`` if defined, else a previous result from the
+		##       function.  If no ``path`` is defined for the filter,
+		##       then the first call to the function will contain an
+		##       empty string.
 		##
 		## rec: An instance of the streams's ``columns`` type with its
 		##      fields set to the values to be logged.
 		##
-		## Returns: The path to be used for the filter, which will be subject
-		##          to the same automatic correction rules as the *path*
-		##          field of :bro:type:`Log::Filter` in the case of conflicts
-		##          with other filters trying to use the same writer/path pair.
+		## Returns: The path to be used for the filter, which will be
+		##          subject to the same automatic correction rules as
+		##          the *path* field of :bro:type:`Log::Filter` in the
+		##          case of conflicts with other filters trying to use
+		##          the same writer/path pair.
 		path_func: function(id: ID, path: string, rec: any): string &optional;
 
 		## Subset of column names to record. If not given, all
 		## columns are recorded.
 		include: set[string] &optional;
 
-		## Subset of column names to exclude from recording. If not given,
-		## all columns are recorded.
+		## Subset of column names to exclude from recording. If not
+		## given, all columns are recorded.
 		exclude: set[string] &optional;
 
 		## If true, entries are recorded locally.
@@ -228,7 +238,7 @@ export {
 	##
 	## filter: A record describing the desired logging parameters.
 	##
-	## Returns: True if the filter was sucessfully added, false if
+	## Returns: True if the filter was successfully added, false if
 	##          the filter was not added or the *filter* argument was not
 	##          the correct type.
 	##
@@ -276,7 +286,7 @@ export {
 	##
 	## Returns: True if the stream was found and no error occurred in writing
 	##          to it or if the stream was disabled and nothing was written.
-	##          False if the stream was was not found, or the *columns*
+	##          False if the stream was not found, or the *columns*
 	##          argument did not match what the stream was initially defined
 	##          to handle, or one of the stream's filters has an invalid
 	##          ``path_func``.
@@ -285,8 +295,8 @@ export {
 	global write: function(id: ID, columns: any) : bool;
 
 	## Sets the buffering status for all the writers of a given logging stream.
-	## A given writer implementation may or may not support buffering and if it
-	## doesn't then toggling buffering with this function has no effect.
+	## A given writer implementation may or may not support buffering and if
+	## it doesn't then toggling buffering with this function has no effect.
 	##
 	## id: The ID associated with a logging stream for which to
 	##     enable/disable buffering.
@@ -346,7 +356,7 @@ export {
 	##
 	## npath: The new path of the file (after already being rotated/processed
 	##        by writer-specific postprocessor as defined in
-	##        :bro:id:`Log::default_rotation_postprocessors`.
+	##        :bro:id:`Log::default_rotation_postprocessors`).
 	##
 	## Returns: True when :bro:id:`Log::default_rotation_postprocessor_cmd`
 	##          is empty or the system command given by it has been invoked

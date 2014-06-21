@@ -144,7 +144,6 @@ public:
 	// More values for spesific DNS types.
 	// struct EDNS_ADDITIONAL* edns;
 
-	int tsig_init;
 	struct TSIG_DATA* tsig;
 };
 
@@ -259,7 +258,7 @@ public:
 	~DNS_Analyzer();
 
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	virtual void Init();
 	virtual void Done();

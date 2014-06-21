@@ -1,0 +1,135 @@
+##! Functions to create and manipulate probabilistic cardinality counters.
+
+%%{
+#include "probabilistic/CardinalityCounter.h"
+
+using namespace probabilistic;
+%%}
+
+module GLOBAL;
+
+## Initializes a probabilistic cardinality counter that uses the HyperLogLog
+## algorithm.
+##
+## err: the desired error rate (e.g. 0.01).
+##
+## confidence: the desired confidence for the error rate (e.g., 0.95).
+##
+## Returns: a HLL cardinality handle.
+##
+## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
+##    hll_cardinality_copy
+function hll_cardinality_init%(err: double, confidence: double%): opaque of cardinality
+	%{
+	CardinalityCounter* c = new CardinalityCounter(err, confidence);
+	CardinalityVal* cv = new CardinalityVal(c);
+
+	return cv;
+	%}
+
+## Adds an element to a HyperLogLog cardinality counter.
+##
+## handle: the HLL handle.
+##
+## elem: the element to add.
+##
+## Returns: true on success.
+##
+## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into
+##    hll_cardinality_init hll_cardinality_copy
+function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
+	%{
+	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+
+	if ( ! cv->Type() && ! cv->Typify(elem->Type()) )
+		{
+		reporter->Error("failed to set HLL type");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	else if ( ! same_type(cv->Type(), elem->Type()) )
+		{
+		reporter->Error("incompatible HLL data type");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	cv->Add(elem);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Merges a HLL cardinality counter into another.
+##
+## .. note:: The same restrictions as for Bloom filter merging apply,
+##    see :bro:id:`bloomfilter_merge`.
+##
+## handle1: the first HLL handle, which will contain the merged result.
+##
+## handle2: the second HLL handle, which will be merged into the first.
+##
+## Returns: true on success.
+##
+## .. bro:see:: hll_cardinality_estimate  hll_cardinality_add
+##    hll_cardinality_init hll_cardinality_copy
+function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: opaque of cardinality%): bool
+	%{
+	CardinalityVal* v1 = static_cast<CardinalityVal*>(handle1);
+	CardinalityVal* v2 = static_cast<CardinalityVal*>(handle2);
+
+	if ( (v1->Type() != v2->Type()) && // both 0 is ok
+	     (v1->Type() != 0) && // any one 0 also is ok
+	     (v2->Type() != 0) &&
+	     ! same_type(v1->Type(), v2->Type()) )
+		{
+		reporter->Error("incompatible HLL types");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	CardinalityCounter* h1 = v1->Get();
+	CardinalityCounter* h2 = v2->Get();
+
+	bool res = h1->Merge(h2);
+	if ( ! res )
+		{
+		reporter->Error("Carinality counters with different parameters cannot be merged");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Estimate the current cardinality of an HLL cardinality counter.
+##
+## handle: the HLL handle.
+##
+## Returns: the cardinality estimate. Returns -1.0 if the counter is empty.
+##
+## .. bro:see:: hll_cardinality_merge_into hll_cardinality_add
+##    hll_cardinality_init hll_cardinality_copy
+function hll_cardinality_estimate%(handle: opaque of cardinality%): double
+	%{
+	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+	CardinalityCounter* h = cv->Get();
+
+	double estimate = h->Size();
+
+	return new Val(estimate, TYPE_DOUBLE);
+	%}
+
+## Copy a HLL cardinality counter.
+##
+## handle: cardinality counter to copy.
+##
+## Returns: copy of handle.
+##
+## .. bro:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
+##    hll_cardinality_init
+function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardinality
+	%{
+	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
+	CardinalityCounter* h = cv->Get();
+	CardinalityCounter* h2 = new CardinalityCounter(*h);
+	CardinalityVal* out = new CardinalityVal(h2);
+
+	return out;
+	%}
+

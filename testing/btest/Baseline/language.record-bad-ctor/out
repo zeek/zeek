@@ -1,3 +1,3 @@
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.bro, line 6: no type given (asdfasdf)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.bro, line 7: uninitialized list value ($ports=asdfasdf)
-error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.bro, line 7: bad record initializer ([$ports=asdfasdf])
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.record-bad-ctor/record-bad-ctor.bro, line 7: bad record initializer ((coerce [$ports=asdfasdf] to record { ports:error; }))

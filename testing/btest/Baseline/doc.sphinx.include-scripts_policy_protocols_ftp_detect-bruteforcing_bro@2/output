@@ -1,0 +1,13 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+detect-bruteforcing.bro
+
+event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
+	{
+	local cmd = c$ftp$cmdarg$cmd;
+	if ( cmd == "USER" || cmd == "PASS" )
+		{
+		if ( FTP::parse_ftp_reply_code(code)$x == 5 )
+			SumStats::observe("ftp.failed_auth", [$host=c$id$orig_h], [$str=cat(c$id$resp_h)]);
+		}
+	}

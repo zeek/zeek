@@ -4,6 +4,7 @@
 #define INPUT_READERS_RAW_H
 
 #include <vector>
+#include <pthread.h>
 
 #include "../ReaderBackend.h"
 
@@ -20,6 +21,8 @@ public:
 
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Raw(frontend); }
 
+	static bool ClassInit();
+
 protected:
 	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields);
 	virtual void DoClose();
@@ -27,6 +30,11 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
+	void ClosePipeEnd(int i);
+	bool SetFDFlags(int fd, int cmd, int flags);
+	bool LockForkMutex();
+	bool UnlockForkMutex();
+
 	bool OpenInput();
 	bool CloseInput();
 	int64_t GetLine(FILE* file);
@@ -44,7 +52,6 @@ private:
 	string separator;
 	unsigned int sep_length; // length of the separator
 
-	static const int block_size;
 	int bufpos;
 	char* buf;
 	char* outbuf;
@@ -72,6 +79,8 @@ private:
 		stderr_out = 5
 	};
 
+	static const int block_size;
+	static pthread_mutex_t fork_mutex;
 };
 
 }

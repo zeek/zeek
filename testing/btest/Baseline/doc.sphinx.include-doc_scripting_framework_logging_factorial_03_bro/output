@@ -1,0 +1,12 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+framework_logging_factorial_03.bro
+
+event bro_init()
+    {
+    Log::create_stream(LOG, [$columns=Info]);
+    
+    local filter: Log::Filter = [$name="split-mod5s", $path_func=mod5];
+    Log::add_filter(Factor::LOG, filter);
+    Log::remove_filter(Factor::LOG, "default");
+    }

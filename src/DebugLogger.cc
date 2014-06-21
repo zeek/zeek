@@ -16,7 +16,8 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "notifiers", 0, false },  { "main-loop", 0, false },
 	{ "dpd", 0, false }, { "tm", 0, false },
 	{ "logging", 0, false }, {"input", 0, false }, 
-	{ "threading", 0, false }, { "file_analysis", 0, false }
+	{ "threading", 0, false }, { "file_analysis", 0, false },
+	{ "plugins", 0, false }, { "broxygen", 0, false }
 };
 
 DebugLogger::DebugLogger(const char* filename)
@@ -78,6 +79,8 @@ void DebugLogger::EnableStreams(const char* s)
 
 		tok = strtok(0, ",");
 		}
+
+	delete [] tmp;
 	}
 
 void DebugLogger::Log(DebugStream stream, const char* fmt, ...)

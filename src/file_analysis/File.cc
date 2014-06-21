@@ -10,9 +10,12 @@
 #include "Val.h"
 #include "Type.h"
 #include "Event.h"
+#include "RuleMatcher.h"
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
+
+#include "analyzer/extract/Extract.h"
 
 using namespace file_analysis;
 
@@ -50,6 +53,7 @@ int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::mime_type_idx = -1;
+int File::mime_types_idx = -1;
 
 void File::StaticInit()
 	{
@@ -70,12 +74,14 @@ void File::StaticInit()
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
 	mime_type_idx = Idx("mime_type");
+	mime_types_idx = Idx("mime_types");
 	}
 
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
            bool is_orig)
 	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
-	  missed_bof(false), need_reassembly(false), done(false), analyzers(this)
+	  missed_bof(false), need_reassembly(false), done(false),
+	  did_file_new_event(false), analyzers(this)
 	{
 	StaticInit();
 
@@ -87,9 +93,9 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	if ( conn )
 		{
 		// add source, connection, is_orig fields
-		SetSource(analyzer_mgr->GetAnalyzerName(tag));
+		SetSource(analyzer_mgr->GetComponentName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
-		UpdateConnectionFields(conn);
+		UpdateConnectionFields(conn, is_orig);
 		}
 
 	UpdateLastActivityTime();
@@ -99,6 +105,12 @@ File::~File()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
 	Unref(val);
+
+	while ( ! fonc_queue.empty() )
+		{
+		delete_vals(fonc_queue.front().second);
+		fonc_queue.pop();
+		}
 	}
 
 void File::UpdateLastActivityTime()
@@ -111,18 +123,15 @@ double File::GetLastActivityTime() const
 	return val->Lookup(last_active_idx)->AsTime();
 	}
 
-void File::UpdateConnectionFields(Connection* conn)
+void File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	{
 	if ( ! conn )
 		return;
 
 	Val* conns = val->Lookup(conns_idx);
 
-	bool is_first = false;
-
 	if ( ! conns )
 		{
-		is_first = true;
 		conns = empty_connection_table();
 		val->Assign(conns_idx, conns);
 		}
@@ -133,12 +142,18 @@ void File::UpdateConnectionFields(Connection* conn)
 		Val* conn_val = conn->BuildConnVal();
 		conns->AsTableVal()->Assign(idx, conn_val);
 
-		if ( ! is_first && FileEventAvailable(file_over_new_connection) )
+		if ( FileEventAvailable(file_over_new_connection) )
 			{
 			val_list* vl = new val_list();
 			vl->append(val->Ref());
 			vl->append(conn_val->Ref());
-			FileEvent(file_over_new_connection, vl);
+			vl->append(new Val(is_orig, TYPE_BOOL));
+
+			if ( did_file_new_event )
+				FileEvent(file_over_new_connection, vl);
+			else
+				fonc_queue.push(pair<EventHandlerPtr, val_list*>(
+				        file_over_new_connection, vl));
 			}
 		}
 
@@ -192,6 +207,22 @@ void File::SetTimeoutInterval(double interval)
 	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
 	}
 
+bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
+	{
+	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), args);
+
+	if ( ! a )
+		return false;
+
+	Extract* e = dynamic_cast<Extract*>(a);
+
+	if ( ! e )
+		return false;
+
+	e->SetLimit(bytes);
+	return true;
+	}
+
 void File::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
@@ -220,14 +251,14 @@ void File::ScheduleInactivityTimer() const
 	timer_mgr->Add(new FileTimer(network_time, id, GetTimeoutInterval()));
 	}
 
-bool File::AddAnalyzer(RecordVal* args)
+bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueAdd(args);
+	return done ? false : analyzers.QueueAdd(tag, args);
 	}
 
-bool File::RemoveAnalyzer(const RecordVal* args)
+bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueRemove(args);
+	return done ? false : analyzers.QueueRemove(tag, args);
 	}
 
 bool File::BufferBOF(const u_char* data, uint64 len)
@@ -251,20 +282,18 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
+	RuleMatcher::MIME_Matches matches;
+	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
+	file_mgr->DetectMIME(data, len, &matches);
 
-	if ( mime )
-		{
-		const char* mime_end = strchr(mime, ';');
+	if ( matches.empty() )
+		return false;
 
-		if ( mime_end )
-			// strip off charset
-			val->Assign(mime_type_idx, new StringVal(mime_end - mime, mime));
-		else
-			val->Assign(mime_type_idx, new StringVal(mime));
-		}
+	val->Assign(mime_type_idx,
+	            new StringVal(*(matches.begin()->second.begin())));
+	val->Assign(mime_types_idx, file_analysis::GenMIMEMatchesVal(matches));
 
-	return mime;
+	return true;
 	}
 
 void File::ReplayBOF()
@@ -310,7 +339,7 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	analyzers.DrainModifications();
@@ -345,7 +374,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		{
 		if ( ! a->DeliverStream(data, len) )
 			{
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 			continue;
 			}
 
@@ -353,7 +382,7 @@ void File::DataIn(const u_char* data, uint64 len)
 		                LookupFieldDefaultCount(missing_bytes_idx);
 
 		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	analyzers.DrainModifications();
@@ -378,7 +407,7 @@ void File::EndOfFile()
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->EndOfFile() )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	FileEvent(file_state_remove);
@@ -400,7 +429,7 @@ void File::Gap(uint64 offset, uint64 len)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->Undelivered(offset, len) )
-			analyzers.QueueRemove(a->Args());
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
 	if ( FileEventAvailable(file_gap) )
@@ -431,11 +460,30 @@ void File::FileEvent(EventHandlerPtr h)
 	FileEvent(h, vl);
 	}
 
+static void flush_file_event_queue(queue<pair<EventHandlerPtr, val_list*> >& q)
+	{
+	while ( ! q.empty() )
+		{
+		pair<EventHandlerPtr, val_list*> p = q.front();
+		mgr.QueueEvent(p.first, p.second);
+		q.pop();
+		}
+	}
+
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
+	if ( h == file_state_remove )
+		flush_file_event_queue(fonc_queue);
+
 	mgr.QueueEvent(h, vl);
 
-	if ( h == file_new || h == file_timeout )
+	if ( h == file_new )
+		{
+		did_file_new_event = true;
+		flush_file_event_queue(fonc_queue);
+		}
+
+	if ( h == file_new || h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.
 		mgr.Drain();

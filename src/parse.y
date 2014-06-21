@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 85
+%expect 75
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -28,8 +28,6 @@
 
 %token TOK_DEBUG
 
-%token TOK_DOC TOK_POST_DOC
-
 %token TOK_NO_TEST
 
 %nonassoc TOK_HOOK
@@ -47,15 +45,14 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
 %type <b> opt_no_test opt_no_test_block
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC
-%type <str_l> opt_doc_list opt_post_doc_list
+%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
 %type <re> pattern
-%type <expr> expr init anonymous_function
+%type <expr> expr opt_expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -83,17 +80,13 @@
 #include "RE.h"
 #include "Scope.h"
 #include "Reporter.h"
-#include "BroDoc.h"
-#include "BroDocObj.h"
 #include "Brofiler.h"
+#include "broxygen/Manager.h"
 
-#include <list>
+#include <set>
 #include <string>
 
-extern Brofiler brofiler;
-extern BroDoc* current_reST_doc;
-extern int generate_documentation;
-extern std::list<std::string>* reST_doc_comments;
+extern const char* filename;  // Absolute path of file currently being parsed.
 
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
@@ -124,27 +117,17 @@ int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
+std::vector<int> saved_in_init;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
-CommentedEnumType *cur_enum_type_doc = 0;
-const char* cur_enum_elem_id = 0;
-
-type_decl_list* fake_type_decl_list = 0;
-TypeDecl* last_fake_type_decl = 0;
-
 static ID* cur_decl_type_id = 0;
 
 static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
-	cur_enum_type = new EnumType(cur_decl_type_id->Name());
-
-	// For documentation purposes, a separate type object is created
-	// in order to avoid overlap that can be caused by redefs.
-	if ( generate_documentation )
-		cur_enum_type_doc = new CommentedEnumType(cur_decl_type_id->Name());
+	cur_enum_type = new EnumType();
 	}
 
 static void parser_redef_enum (ID *id)
@@ -160,53 +143,91 @@ static void parser_redef_enum (ID *id)
 		if ( ! cur_enum_type )
 			id->Error("not an enum");
 		}
-
-	if ( generate_documentation )
-		cur_enum_type_doc = new CommentedEnumType(id->Name());
 	}
 
-static void add_enum_comment (std::list<std::string>* comments)
+static type_decl_list* copy_type_decl_list(type_decl_list* tdl)
 	{
-	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comments);
-	}
+	if ( ! tdl )
+		return 0;
 
-static ID* create_dummy_id (ID* id, BroType* type)
-	{
-	ID* fake_id = new ID(copy_string(id->Name()), (IDScope) id->Scope(),
-	                     is_export);
+	type_decl_list* rval = new type_decl_list();
 
-	fake_id->SetType(type->Ref());
-
-	if ( id->AsType() )
+	loop_over_list(*tdl, i)
 		{
-		type->SetTypeID(copy_string(id->Name()));
-		fake_id->MakeType();
+		TypeDecl* td = (*tdl)[i];
+		rval->append(new TypeDecl(*td));
 		}
 
-	return fake_id;
+	return rval;
 	}
 
-static std::list<std::string>* concat_opt_docs (std::list<std::string>* pre,
-                                                std::list<std::string>* post)
+static attr_list* copy_attr_list(attr_list* al)
 	{
-	if ( ! pre && ! post ) return 0;
+	if ( ! al )
+		return 0;
 
-	if ( pre && ! post ) return pre;
+	attr_list* rval = new attr_list();
 
-	if ( ! pre && post ) return post;
+	loop_over_list(*al, i)
+		{
+		Attr* a = (*al)[i];
+		::Ref(a);
+		rval->append(a);
+		}
 
-	pre->splice(pre->end(), *post);
-	delete post;
-
-	return pre;
+	return rval;
 	}
 
+static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
+	{
+	set<BroType*> types = BroType::GetAliases(id->Name());
+
+	if ( types.empty() )
+		{
+		id->Error("failed to redef record: no types found in alias map");
+		return;
+		}
+
+	for ( set<BroType*>::const_iterator it = types.begin(); it != types.end(); )
+		{
+		RecordType* add_to = (*it)->AsRecordType();
+		const char* error = 0;
+		++it;
+
+		if ( it == types.end() )
+			error = add_to->AddFields(fields, attrs);
+		else
+			error = add_to->AddFields(copy_type_decl_list(fields),
+			                          copy_attr_list(attrs));
+
+		if ( error )
+			{
+			id->Error(error);
+			break;
+			}
+		}
+	}
+
+static bool expr_is_table_type_name(const Expr* expr)
+	{
+	if ( expr->Tag() != EXPR_NAME )
+		return false;
+
+	BroType* type = expr->Type();
+
+	if ( type->IsTable() )
+		return true;
+
+	if ( type->Tag() == TYPE_TYPE )
+		return type->AsTypeType()->Type()->IsTable();
+
+	return false;
+	}
 %}
 
 %union {
 	bool b;
 	char* str;
-	std::list<std::string>* str_l;
 	ID* id;
 	id_list* id_l;
 	init_class ic;
@@ -259,6 +280,13 @@ bro:
 decl_list:
 		decl_list decl
 	|
+	;
+
+opt_expr:
+		expr
+			{ $$ = $1; }
+	|
+			{ $$ = 0; }
 	;
 
 expr:
@@ -418,11 +446,13 @@ expr:
 			$$ = new IndexExpr($1, $3);
 			}
 
-	|	expr '[' expr ':' expr ']'
+	|	expr '[' opt_expr ':' opt_expr ']'
 			{
 			set_location(@1, @6);
-			ListExpr* le = new ListExpr($3);
-			le->Append($5);
+			Expr* low = $3 ? $3 : new ConstExpr(new Val(0, TYPE_COUNT));
+			Expr* high = $5 ? $5 : new SizeExpr($1);
+			ListExpr* le = new ListExpr(low);
+			le->Append(high);
 			$$ = new IndexExpr($1, le, true);
 			}
 
@@ -439,7 +469,7 @@ expr:
 			}
 
 	|       '$' TOK_ID func_params '='
-	                {
+			{
 			func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
 			begin_func(func_id,
@@ -449,7 +479,7 @@ expr:
 				   $3);
 			}
 		 func_body
-	                {
+			{
 			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()));
 			}
 
@@ -524,13 +554,13 @@ expr:
 
 	|	expr '('
 			{
-			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+			if ( expr_is_table_type_name($1) )
 				++in_init;
 			}
 
 		opt_expr_list
 			{
-			if ( $1->Tag() == EXPR_NAME && $1->Type()->IsTable() )
+			if ( expr_is_table_type_name($1) )
 				--in_init;
 			}
 
@@ -545,7 +575,8 @@ expr:
 				{
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
-					$$ = new RecordConstructorExpr($4, ctor_type);
+					$$ = new RecordCoerceExpr(new RecordConstructorExpr($4),
+					                          ctor_type->AsRecordType());
 					break;
 
 				case TYPE_TABLE:
@@ -699,46 +730,24 @@ single_pattern:
 	;
 
 enum_body:
-		enum_body_list opt_post_doc_list
+		enum_body_list
 			{
 			$$ = cur_enum_type;
-
-			if ( generate_documentation )
-				{
-				add_enum_comment($2);
-				cur_enum_elem_id = 0;
-				}
-
 			cur_enum_type = NULL;
 			}
 
-	|	enum_body_list ',' opt_post_doc_list
+	|	enum_body_list ','
 			{
 			$$ = cur_enum_type;
-
-			if ( generate_documentation )
-				{
-				add_enum_comment($3);
-				cur_enum_elem_id = 0;
-				}
-
 			cur_enum_type = NULL;
 			}
 	;
 
 enum_body_list:
-		enum_body_elem opt_post_doc_list
-			{
-			if ( generate_documentation )
-				add_enum_comment($2);
-			}
+		enum_body_elem
 
-	|	enum_body_list ',' opt_post_doc_list
-			{
-			if ( generate_documentation )
-				add_enum_comment($3);
-			} enum_body_elem
-;
+	|	enum_body_list ',' enum_body_elem
+	;
 
 enum_body_elem:
 		/* TODO: We could also define this as TOK_ID '=' expr, (or
@@ -746,25 +755,19 @@ enum_body_elem:
 		   error messages if someboy tries to use constant variables as
 		   enumerator.
 		*/
-		opt_doc_list TOK_ID '=' TOK_CONSTANT
+		TOK_ID '=' TOK_CONSTANT
 			{
-			set_location(@2, @4);
+			set_location(@1, @3);
 			assert(cur_enum_type);
 
-			if ( $4->Type()->Tag() != TYPE_COUNT )
+			if ( $3->Type()->Tag() != TYPE_COUNT )
 				reporter->Error("enumerator is not a count constant");
 			else
-				cur_enum_type->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
-
-			if ( generate_documentation )
-				{
-				cur_enum_type_doc->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
-				cur_enum_elem_id = $2;
-				add_enum_comment($1);
-				}
+				cur_enum_type->AddName(current_module, $1,
+				                       $3->InternalUnsigned(), is_export);
 			}
 
-	|	opt_doc_list TOK_ID '=' '-' TOK_CONSTANT
+	|	TOK_ID '=' '-' TOK_CONSTANT
 			{
 			/* We only accept counts as enumerator, but we want to return a nice
 			   error message if users triy to use a negative integer (will also
@@ -773,18 +776,11 @@ enum_body_elem:
 			reporter->Error("enumerator is not a count constant");
 			}
 
-	|	opt_doc_list TOK_ID
+	|	TOK_ID
 			{
-			set_location(@2);
+			set_location(@1);
 			assert(cur_enum_type);
-			cur_enum_type->AddName(current_module, $2, is_export);
-
-			if ( generate_documentation )
-				{
-				cur_enum_type_doc->AddName(current_module, $2, is_export);
-				cur_enum_elem_id = $2;
-				add_enum_comment($1);
-				}
+			cur_enum_type->AddName(current_module, $1, is_export);
 			}
 	;
 
@@ -872,12 +868,11 @@ type:
 				}
 
 	|	TOK_RECORD '{'
-			{ ++in_record; do_doc_token_start(); }
+			{ ++in_record; }
 		type_decl_list
 			{ --in_record; }
 		'}'
 				{
-				do_doc_token_stop();
 				set_location(@1, @5);
 				$$ = new RecordType($4);
 				}
@@ -889,9 +884,8 @@ type:
 				$$ = 0;
 				}
 
-	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); do_doc_token_start(); } enum_body '}'
+	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); } enum_body '}'
 				{
-				do_doc_token_stop();
 				set_location(@1, @5);
 				$4->UpdateLocationEndInfo(@5);
 				$$ = $4;
@@ -983,45 +977,21 @@ type_decl_list:
 		type_decl_list type_decl
 			{
 			$1->append($2);
-
-			if ( generate_documentation && last_fake_type_decl )
-				{
-				fake_type_decl_list->append(last_fake_type_decl);
-				last_fake_type_decl = 0;
-				}
 			}
 	|
 			{
 			$$ = new type_decl_list();
-
-			if ( generate_documentation )
-				fake_type_decl_list = new type_decl_list();
 			}
 	;
 
 type_decl:
-		opt_doc_list TOK_ID ':' type opt_attr ';' opt_post_doc_list
+		TOK_ID ':' type opt_attr ';'
 			{
-			set_location(@2, @6);
+			set_location(@1, @4);
+			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
 
-			if ( generate_documentation )
-				{
-				// TypeDecl ctor deletes the attr list, so make a copy
-				attr_list* a = $5;
-				attr_list* a_copy = 0;
-
-				if ( a )
-					{
-					a_copy = new attr_list;
-					loop_over_list(*a, i)
-						a_copy->append((*a)[i]);
-					}
-
-				last_fake_type_decl = new CommentedTypeDecl(
-					$4, $2, a_copy, (in_record > 0), concat_opt_docs($1, $7));
-				}
-
-			$$ = new TypeDecl($4, $2, $5, (in_record > 0));
+			if ( in_record > 0 && cur_decl_type_id )
+				broxygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
 			}
 	;
 
@@ -1055,9 +1025,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			current_module = $2;
-
-			if ( generate_documentation )
-				current_reST_doc->AddModule(current_module);
+			broxygen_mgr->ModuleUsage(::filename, current_module);
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
@@ -1066,171 +1034,51 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
-
-			if ( generate_documentation )
-				{
-				ID* id = $2;
-				if ( id->Type()->Tag() == TYPE_FUNC )
-					{
-					switch ( id->Type()->AsFuncType()->Flavor() ) {
-
-					case FUNC_FLAVOR_FUNCTION:
-						current_reST_doc->AddFunction(
-							new BroDocObj(id, reST_doc_comments));
-						break;
-
-					case FUNC_FLAVOR_EVENT:
-						current_reST_doc->AddEvent(
-							new BroDocObj(id, reST_doc_comments));
-						break;
-
-					case FUNC_FLAVOR_HOOK:
-						current_reST_doc->AddHook(
-							new BroDocObj(id, reST_doc_comments));
-						break;
-
-					default:
-						reporter->InternalError("invalid function flavor");
-						break;
-					}
-					}
-
-				else
-					{
-					current_reST_doc->AddStateVar(
-						new BroDocObj(id, reST_doc_comments));
-					}
-				}
+			broxygen_mgr->Identifier($2);
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_CONST);
-
-			if ( generate_documentation )
-				{
-				if ( $2->FindAttr(ATTR_REDEF) )
-					current_reST_doc->AddOption(
-						new BroDocObj($2, reST_doc_comments));
-				else
-					current_reST_doc->AddConstant(
-						new BroDocObj($2, reST_doc_comments));
-				}
+			broxygen_mgr->Identifier($2);
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
-
-			if ( generate_documentation &&
-				! streq("capture_filters", $2->Name()) )
-				{
-				ID* fake_id = create_dummy_id($2, $2->Type());
-				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
-				o->SetRole(true);
-				current_reST_doc->AddRedef(o);
-				}
+			broxygen_mgr->Redef($2, ::filename);
 			}
 
-	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
-		'{' { parser_redef_enum($3); do_doc_token_start(); } enum_body '}' ';'
+	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
+			{ parser_redef_enum($3); broxygen_mgr->Redef($3, ::filename); }
+		enum_body '}' ';'
 			{
-			do_doc_token_stop();
-
-			if ( generate_documentation )
-				{
-				ID* fake_id = create_dummy_id($3, cur_enum_type_doc);
-				cur_enum_type_doc = 0;
-				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
-				o->SetRole(true);
-
-				if ( extract_module_name(fake_id->Name()) == "Notice" &&
-				     extract_var_name(fake_id->Name()) == "Type" )
-					current_reST_doc->AddNotice(o);
-				else
-					current_reST_doc->AddRedef(o);
-				}
+			// Broxygen already grabbed new enum IDs as the type created them.
 			}
 
-	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
-			'{' { ++in_record; do_doc_token_start(); }
-			type_decl_list
-			{ --in_record; do_doc_token_stop(); } '}' opt_attr ';'
+	|	TOK_REDEF TOK_RECORD global_id
+			{ cur_decl_type_id = $3; broxygen_mgr->Redef($3, ::filename); }
+		TOK_ADD_TO '{'
+			{ ++in_record; }
+		type_decl_list
+			{ --in_record; }
+		'}' opt_attr ';'
 			{
+			cur_decl_type_id = 0;
+
 			if ( ! $3->Type() )
 				$3->Error("unknown identifier");
 			else
-				{
-				RecordType* add_to = $3->Type()->AsRecordType();
-				if ( ! add_to )
-					$3->Error("not a record type");
-				else
-					{
-					const char* error = add_to->AddFields($7, $10);
-					if ( error )
-						$3->Error(error);
-					else if ( generate_documentation )
-						{
-						if ( fake_type_decl_list )
-							{
-							BroType* fake_record =
-								new RecordType(fake_type_decl_list);
-							ID* fake = create_dummy_id($3, fake_record);
-							fake_type_decl_list = 0;
-							BroDocObj* o =
-								new BroDocObj(fake, reST_doc_comments, true);
-							o->SetRole(true);
-							current_reST_doc->AddRedef(o);
-							}
-						else
-							{
-							fprintf(stderr, "Warning: doc mode did not process "
-								"record extension for '%s', CommentedTypeDecl"
-								"list unavailable.\n", $3->Name());
-							}
-						}
-					}
-				}
+				extend_record($3, $8, $11);
 			}
 
-	|	TOK_TYPE global_id ':' { cur_decl_type_id = $2; } type opt_attr ';'
+	|	TOK_TYPE global_id ':'
+			{ cur_decl_type_id = $2; broxygen_mgr->StartType($2);  }
+		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
-			add_type($2, $5, $6, 0);
-
-			if ( generate_documentation )
-				{
-				TypeTag t = $2->AsType()->Tag();
-				if ( t == TYPE_ENUM && cur_enum_type_doc )
-					{
-					ID* fake = create_dummy_id($2, cur_enum_type_doc);
-					cur_enum_type_doc = 0;
-					current_reST_doc->AddType(
-						new BroDocObj(fake, reST_doc_comments, true));
-					}
-
-				else if ( t == TYPE_RECORD && fake_type_decl_list )
-					{
-					BroType* fake_record = new RecordType(fake_type_decl_list);
-					ID* fake = create_dummy_id($2, fake_record);
-					fake_type_decl_list = 0;
-					current_reST_doc->AddType(
-						new BroDocObj(fake, reST_doc_comments, true));
-					}
-
-				else
-					current_reST_doc->AddType(
-						new BroDocObj($2, reST_doc_comments));
-				}
-			}
-
-	|	TOK_EVENT event_id ':' type_list opt_attr ';'
-			{
-			add_type($2, $4, $5, 1);
-
-			if ( generate_documentation )
-				current_reST_doc->AddEvent(
-					new BroDocObj($2, reST_doc_comments));
+			add_type($2, $5, $6);
+			broxygen_mgr->Identifier($2);
 			}
 
 	|	func_hdr func_body
@@ -1258,18 +1106,13 @@ func_hdr:
 			begin_func($2, current_module.c_str(),
 				FUNC_FLAVOR_FUNCTION, 0, $3);
 			$$ = $3;
-			if ( generate_documentation )
-				current_reST_doc->AddFunction(
-					new BroDocObj($2, reST_doc_comments));
+			broxygen_mgr->Identifier($2);
 			}
 	|	TOK_EVENT event_id func_params
 			{
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 0, $3);
 			$$ = $3;
-			if ( generate_documentation )
-				current_reST_doc->AddEventHandler(
-					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_HOOK def_global_id func_params
 			{
@@ -1278,9 +1121,6 @@ func_hdr:
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_HOOK, 0, $3);
 			$$ = $3;
-			if ( generate_documentation )
-				current_reST_doc->AddHookHandler(
-					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params
 			{
@@ -1291,12 +1131,24 @@ func_hdr:
 	;
 
 func_body:
-		opt_attr '{' stmt_list '}'
+		opt_attr '{'
+			{
+			saved_in_init.push_back(in_init);
+			in_init = 0;
+			}
+
+		stmt_list
+			{
+			in_init = saved_in_init.back();
+			saved_in_init.pop_back();
+			}
+
+		'}'
 			{
 			if ( optimize )
-				$3 = $3->Simplify();
+				$4 = $4->Simplify();
 
-			end_func($3, $1);
+			end_func($4, $1);
 			}
 	;
 
@@ -1680,7 +1532,7 @@ global_id:
 	;
 
 def_global_id:
-	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; } 
+	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; }
 		{ $$ = $2; }
 	;
 
@@ -1729,40 +1581,6 @@ resolve_id:
 			}
 	;
 
-opt_post_doc_list:
-		opt_post_doc_list TOK_POST_DOC
-			{
-			$1->push_back($2);
-			$$ = $1;
-			}
-	|
-		TOK_POST_DOC
-			{
-			$$ = new std::list<std::string>();
-			$$->push_back($1);
-			delete [] $1;
-			}
-	|
-			{ $$ = 0; }
-	;
-
-opt_doc_list:
-		opt_doc_list TOK_DOC
-			{
-			$1->push_back($2);
-			$$ = $1;
-			}
-	|
-		TOK_DOC
-			{
-			$$ = new std::list<std::string>();
-			$$->push_back($1);
-			delete [] $1;
-			}
-	|
-			{ $$ = 0; }
-	;
-
 opt_no_test:
 		TOK_NO_TEST
 			{ $$ = true; }
@@ -1787,10 +1605,6 @@ int yyerror(const char msg[])
 		sprintf(msgbuf, "%s, at end of file", msg);
 	else
 		sprintf(msgbuf, "%s, at or near \"%s\"", msg, last_tok);
-
-	if ( generate_documentation )
-		strcat(msgbuf, "\nDocumentation mode is enabled: "
-		       "remember to check syntax of ## style comments\n");
 
 	if ( in_debug )
 		g_curr_debug_error = copy_string(msg);

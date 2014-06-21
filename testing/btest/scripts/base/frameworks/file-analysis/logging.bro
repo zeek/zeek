@@ -1,5 +1,5 @@
 # @TEST-EXEC: bro -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.bro %INPUT
-# @TEST-EXEC: btest-diff file_analysis.log
+# @TEST-EXEC: btest-diff files.log
 
 redef test_file_analysis_source = "HTTP";
 

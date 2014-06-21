@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2012-10-03-20-20-39
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.host	seen.str	seen.str_type	seen.where	sources
-#types	time	string	addr	port	addr	port	addr	string	enum	enum	table[string]
-1349295639.424940	-	-	-	-	-	123.123.123.123	-	-	Intel::IN_ANYWHERE	worker-1
-#close	2012-10-03-20-20-49
+#open	2014-04-01-23-13-48
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	seen.indicator	seen.indicator_type	seen.where	sources
+#types	time	string	addr	port	addr	port	string	string	string	string	enum	enum	set[string]
+1396394028.821227	-	-	-	-	-	-	-	-	123.123.123.123	Intel::ADDR	Intel::IN_ANYWHERE	worker-1
+#close	2014-04-01-23-13-58

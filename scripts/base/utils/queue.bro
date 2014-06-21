@@ -42,8 +42,8 @@ export {
 	## Returns: The value at the end of the queue.
 	global peek:      function(q: Queue): any;
 
-	## Merge two queue's together.  If any settings are applied
-	## to the queues, the settings from q1 are used for the new
+	## Merge two queues together.  If any settings are applied
+	## to the queues, the settings from *q1* are used for the new
 	## merged queue.
 	##
 	## q1: The first queue.  Settings are taken from here.
@@ -64,8 +64,8 @@ export {
 	##
 	## q: The queue.
 	##
-	## ret: A vector containing the
-	##      current contents of q as the type of ret.
+	## ret: A vector containing the current contents of the queue
+	##      as the type of ret.
 	global get_vector: function(q: Queue, ret: vector of any);
 
 }

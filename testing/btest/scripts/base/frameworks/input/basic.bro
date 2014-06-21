@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;
@@ -50,13 +50,13 @@ event bro_init()
 	outfile = open("../out");
 	# first read in the old stuff into the table...
 	Input::add_table([$source="../input.log", $name="ssh", $idx=Idx, $val=Val, $destination=servers]);
-	Input::remove("ssh");
 	}
 
 event Input::end_of_data(name: string, source:string)
 	{
 	print outfile, servers;
 	print outfile, to_count(servers[-42]$ns); # try to actually use a string. If null-termination is wrong this will fail.
+	Input::remove("ssh");
 	close(outfile);
 	terminate();
 	}

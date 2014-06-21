@@ -11,6 +11,13 @@
 # Load the scan detection script.
 @load misc/scan
 
+# Log some information about web applications being used by users 
+# on your network.
+@load misc/app-stats
+
+# Detect traceroute being run on the network.  
+@load misc/detect-traceroute
+
 # Generate notices when vulnerable versions of software are discovered.
 # The default is to only monitor software found in the address space defined
 # as "local".  Refer to the software framework's documentation for more 
@@ -22,10 +29,6 @@
 
 # This adds signatures to detect cleartext forward and reverse windows shells.
 @load-sigs frameworks/signatures/detect-windows-shells
-
-# Uncomment the following line to begin receiving (by default hourly) emails
-# containing all of your notices.
-# redef Notice::policy += { [$action = Notice::ACTION_ALARM, $priority = 0] };
 
 # Load all of the scripts that detect software in various protocols.
 @load protocols/ftp/software
@@ -52,9 +55,12 @@
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
-# This script checks each SSL certificate hash against the ICSI certificate
-# notary service.
-@load protocols/ssl/notary
+# This script prevents the logging of SSL CA certificates in x509.log
+@load protocols/ssl/log-hostcerts-only
+
+# Uncomment the following line to check each SSL certificate hash against the ICSI
+# certificate notary service; see http://notary.icsi.berkeley.edu .
+# @load protocols/ssl/notary
 
 # If you have libGeoIP support built in, do some geographic detections and 
 # logging for SSH traffic.
@@ -64,7 +70,17 @@
 # Detect logins using "interesting" hostnames.
 @load protocols/ssh/interesting-hostnames
 
-# Detect MD5 sums in Team Cymru's Malware Hash Registry.
-@load protocols/http/detect-MHR
 # Detect SQL injection attacks.
 @load protocols/http/detect-sqli
+
+#### Network File Handling ####
+
+# Enable MD5 and SHA1 hashing for all files.
+@load frameworks/files/hash-all-files
+
+# Detect SHA1 sums in Team Cymru's Malware Hash Registry.
+@load frameworks/files/detect-MHR
+
+# Uncomment the following line to enable detection of the heartbleed attack. Enabling
+# this might impact performance a bit.
+# @load policy/protocols/ssl/heartbleed

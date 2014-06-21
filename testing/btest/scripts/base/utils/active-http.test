@@ -1,0 +1,28 @@
+# @TEST-REQUIRES: which python
+# @TEST-REQUIRES: which curl
+#
+# @TEST-EXEC: btest-bg-run httpd python $SCRIPTS/httpd.py --max 1 --addr=127.0.0.1
+# @TEST-EXEC: sleep 3
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-diff bro/.stdout
+
+@load base/utils/active-http
+@load base/frameworks/communication # let network-time run. otherwise there are no heartbeats...
+redef exit_only_after_terminate = T;
+
+event bro_init()
+	{
+	local req = ActiveHTTP::Request($url="127.0.0.1:32123");
+
+	when ( local resp = ActiveHTTP::request(req) )
+		{
+		print resp;
+		terminate();
+		}
+	timeout 1min
+		{
+		print "HTTP request timeout";
+		terminate();
+		}
+	}

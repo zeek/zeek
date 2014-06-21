@@ -1,8 +1,0 @@
-# See COPYING file in this directory for original libmagic copyright.
-#------------------------------------------------------------------------------
-# $File$
-# pdf:  file(1) magic for Portable Document Format
-#
-
-0	string		%PDF-		PDF document
-!:mime	application/pdf

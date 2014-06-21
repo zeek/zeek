@@ -1,0 +1,7 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+data_struct_set_declaration.bro
+
+    # Check for SMTPS 
+    if ( 587/tcp !in ssl_ports )
+        add ssl_ports[587/tcp];

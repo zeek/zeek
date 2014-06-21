@@ -3,8 +3,9 @@
 #ifndef FILE_ANALYZER_PLUGIN_COMPONENT_H
 #define FILE_ANALYZER_PLUGIN_COMPONENT_H
 
-#include "analyzer/Tag.h"
+#include "Tag.h"
 #include "plugin/Component.h"
+#include "plugin/TaggedComponent.h"
 
 #include "Val.h"
 
@@ -22,7 +23,8 @@ class Analyzer;
  * A plugin can provide a specific file analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component {
+class Component : public plugin::Component,
+                  public plugin::TaggedComponent<file_analysis::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);
 
@@ -38,15 +40,8 @@ public:
 	 * from file_analysis::Analyzer. This is typically a static \c
 	 * Instatiate() method inside the class that just allocates and
 	 * returns a new instance.
-	 *
-	 * @param subtype A subtype associated with this component that
-	 * further distinguishes it. The subtype will be integrated into
-	 * the analyzer::Tag that the manager associates with this analyzer,
-	 * and analyzer instances can accordingly access it via analyzer::Tag().
-	 * If not used, leave at zero.
 	 */
-	Component(const char* name, factory_callback factory,
-	          analyzer::Tag::subtype_t subtype = 0);
+	Component(const char* name, factory_callback factory);
 
 	/**
 	 * Copy constructor.
@@ -80,13 +75,6 @@ public:
 	factory_callback Factory() const	{ return factory; }
 
 	/**
-	 * Returns the analyzer's tag. Note that this is automatically
-	 * generated for each new Components, and hence unique across all of
-	 * them.
-	 */
-	analyzer::Tag Tag() const;
-
-	/**
 	 * Generates a human-readable description of the component's main
 	 * parameters. This goes into the output of \c "bro -NN".
 	 */
@@ -98,10 +86,6 @@ private:
 	const char* name;	// The analyzer's name.
 	const char* canon_name;	// The analyzer's canonical name.
 	factory_callback factory;	// The analyzer's factory callback.
-	analyzer::Tag tag;	// The automatically assigned analyzer tag.
-
-	// Global counter used to generate unique tags.
-	static analyzer::Tag::type_t type_counter;
 };
 
 }

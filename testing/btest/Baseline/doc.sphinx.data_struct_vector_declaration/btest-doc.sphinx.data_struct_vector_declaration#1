@@ -1,0 +1,12 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro data_struct_vector_declaration.bro
+      contents of v1: [1, 2, 3, 4]
+      length of v1: 4
+      contents of v1: [1, 2, 3, 4]
+      length of v2: 4
+

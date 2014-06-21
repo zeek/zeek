@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/wikipedia.trace ${DOC_ROOT}/scripting/data_type_interval.bro

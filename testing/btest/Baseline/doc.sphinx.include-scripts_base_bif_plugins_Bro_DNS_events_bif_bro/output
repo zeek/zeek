@@ -1,0 +1,30 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+Bro_DNS.events.bif.bro
+
+## Generated for DNS requests. For requests with multiple queries, this event
+## is raised once for each.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+## sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## query: The queried name.
+##
+## qtype: The queried resource record type.
+##
+## qclass: The queried resource record class.
+##
+## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
+##    dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+global dns_request: event(c: connection , msg: dns_msg , query: string , qtype: count , qclass: count );

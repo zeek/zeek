@@ -1,0 +1,11 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+framework_notice_hook_suppression_01.bro
+
+@load policy/protocols/ssl/expiring-certs.bro
+
+hook Notice::policy(n: Notice::Info) 
+   {
+   if ( n$note == SSL::Certificate_Expires_Soon )
+       n$suppress_for = 12hrs;
+   }

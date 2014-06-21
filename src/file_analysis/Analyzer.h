@@ -5,13 +5,11 @@
 
 #include "Val.h"
 #include "NetVar.h"
-#include "analyzer/Tag.h"
+#include "Tag.h"
 
 #include "file_analysis/file_analysis.bif.h"
 
 namespace file_analysis {
-
-typedef int FA_Tag;
 
 class File;
 
@@ -25,11 +23,7 @@ public:
 	 * Destructor.  Nothing special about it. Virtual since we definitely expect
 	 * to delete instances of derived classes via pointers to this class.
 	 */
-	virtual ~Analyzer()
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %d", tag);
-		Unref(args);
-		}
+	virtual ~Analyzer();
 
 	/**
 	 * Subclasses may override this metod to receive file data non-sequentially.
@@ -76,7 +70,7 @@ public:
 	/**
 	 * @return the analyzer type enum value.
 	 */
-	FA_Tag Tag() const { return tag; }
+	file_analysis::Tag Tag() const { return tag; }
 
 	/**
 	 * @return the AnalyzerArgs associated with the analyzer.
@@ -88,18 +82,6 @@ public:
 	 */
 	File* GetFile() const { return file; }
 
-	/**
-	 * Retrieves an analyzer tag field from full analyzer argument record.
-	 * @param args an \c AnalyzerArgs (script-layer type) value.
-	 * @return the analyzer tag equivalent of the 'tag' field from the
-	 *         \c AnalyzerArgs value \a args.
-	 */
-	static FA_Tag ArgsTag(const RecordVal* args)
-		{
-		using BifType::Record::FileAnalysis::AnalyzerArgs;
-		return args->Lookup(AnalyzerArgs->FieldOffset("tag"))->AsEnum();
-		}
-
 protected:
 
 	/**
@@ -108,15 +90,15 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(RecordVal* arg_args, File* arg_file)
-	    : tag(file_analysis::Analyzer::ArgsTag(arg_args)),
+	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file)
+	    : tag(arg_tag),
 	      args(arg_args->Ref()->AsRecordVal()),
 	      file(arg_file)
 		{}
 
 private:
 
-	FA_Tag tag;	/**< The particular analyzer type of the analyzer instance. */
+	file_analysis::Tag tag;	/**< The particular type of the analyzer instance. */
 	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
 };

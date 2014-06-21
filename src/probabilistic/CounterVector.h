@@ -86,7 +86,7 @@ public:
 	/**
 	 * Sets all counters to 0.
 	 */
-	void Clear();
+	void Reset();
 
 	/**
 	 * Retrieves the number of cells in the storage.
@@ -125,6 +125,13 @@ public:
 	 * An alias for ::Merge.
 	 */
 	CounterVector& operator|=(const CounterVector& other);
+
+	/** Computes a hash value of the internal representation.
+	  * This is mainly for debugging/testing purposes.
+	  *
+	  * @return The hash.
+	  */
+	uint64 Hash() const;
 
 	/**
 	 * Serializes the bit vector.

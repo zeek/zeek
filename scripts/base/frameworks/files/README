@@ -1,0 +1,3 @@
+The file analysis framework provides an interface for driving the analysis
+of files, possibly independent of any network protocol over which they're
+transported.

@@ -20,21 +20,22 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	peer = 0;
 	start_time = last_time = 0.0;
 	start_seq = last_seq = ack_seq = 0;
-	last_seq_high = ack_seq_high = 0;
+	seq_wraps = ack_wraps = 0;
 	window = 0;
 	window_scale = 0;
 	window_seq = window_ack_seq = 0;
 	contents_start_seq = 0;
+	FIN_seq = 0;
 	SYN_cnt = FIN_cnt = RST_cnt = 0;
 	did_close = 0;
 	contents_file = 0;
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 
-	src_addr = is_orig ? tcp_analyzer->Conn()->RespAddr() :
-				tcp_analyzer->Conn()->OrigAddr();
-	dst_addr = is_orig ? tcp_analyzer->Conn()->OrigAddr() :
-				tcp_analyzer->Conn()->RespAddr();
+	hist_last_SYN = hist_last_FIN = hist_last_RST = 0;
+
+	src_addr = is_orig ? Conn()->RespAddr() : Conn()->OrigAddr();
+	dst_addr = is_orig ? Conn()->OrigAddr() : Conn()->RespAddr();
 
 	checksum_base = ones_complement_checksum(src_addr, 0);
 	checksum_base = ones_complement_checksum(dst_addr, checksum_base);
@@ -49,6 +50,11 @@ TCP_Endpoint::~TCP_Endpoint()
 	{
 	delete contents_processor;
 	Unref(contents_file);
+	}
+
+Connection* TCP_Endpoint::Conn() const
+	{
+	return tcp_analyzer->Conn();
 	}
 
 void TCP_Endpoint::Done()
@@ -102,7 +108,8 @@ void TCP_Endpoint::CheckEOF()
 		contents_processor->CheckEOF();
 	}
 
-void TCP_Endpoint::SizeBufferedData(int& waiting_on_hole, int& waiting_on_ack)
+void TCP_Endpoint::SizeBufferedData(uint64& waiting_on_hole,
+                                    uint64& waiting_on_ack)
 	{
 	if ( contents_processor )
 		contents_processor->SizeBufferedData(waiting_on_hole, waiting_on_ack);
@@ -140,7 +147,7 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		// handshake.
 		if ( ! is_handshake(new_state) )
 			if ( is_handshake(state) && is_handshake(peer->state) )
-				tcp_analyzer->Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
+				Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
 
 		prev_state = state;
 		state = new_state;
@@ -153,16 +160,27 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		}
 	}
 
-bro_int_t TCP_Endpoint::Size() const
+uint64 TCP_Endpoint::Size() const
 	{
-	bro_int_t size;
+	if ( prev_state == TCP_ENDPOINT_SYN_SENT && state == TCP_ENDPOINT_RESET &&
+	     peer->state == TCP_ENDPOINT_INACTIVE && ! NoDataAcked() )
+		// This looks like a half-open connection was discovered and aborted.
+		// Sequence numbers could be misleading if used in context of data size
+		// and there was never a chance for this endpoint to send data anyway.
+		return 0;
 
-	uint64 last_seq_64 = (uint64(last_seq_high) << 32) | last_seq;
-	uint64 ack_seq_64 = (uint64(ack_seq_high) << 32) | ack_seq;
+	uint64 size;
+	uint64 last_seq_64 = ToFullSeqSpace(LastSeq(), SeqWraps());
+	uint64 ack_seq_64 = ToFullSeqSpace(AckSeq(), AckWraps());
+
+	// Going straight to relative sequence numbers and comparing those might
+	// make more sense, but there's some cases (e.g. due to RSTs) where
+	// last_seq might not be initialized to a trustworthy value such that
+	// rel_seq > rel_ack, but last_seq_64 < start_seq, which is obviously wrong.
 	if ( last_seq_64 > ack_seq_64 )
-		size = last_seq_64 - start_seq;
+		size = last_seq_64 - StartSeqI64();
 	else
-		size = ack_seq_64 - start_seq;
+		size = ack_seq_64 - StartSeqI64();
 
 	// Don't include SYN octet in sequence space.  For partial connections
 	// (no SYN seen), we're still careful to adjust start_seq as though
@@ -177,7 +195,7 @@ bro_int_t TCP_Endpoint::Size() const
 	return size;
 	}
 
-int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
+int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 				const u_char* data,
 				const IP_Hdr* ip, const struct tcphdr* tp)
 	{
@@ -192,7 +210,7 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 	if ( contents_file && ! contents_processor && 
 	     seq + len > contents_start_seq )
 		{
-		int under_seq = contents_start_seq - seq;
+		int64 under_seq = contents_start_seq - seq;
 		if ( under_seq > 0 )
 			{
 			seq += under_seq;
@@ -204,14 +222,26 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 		FILE* f = contents_file->Seek(seq - contents_start_seq);
 
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
-			// ### this should really generate an event
-			reporter->InternalError("contents write failed");
+			{
+			char buf[256];
+			strerror_r(errno, buf, sizeof(buf));
+			reporter->Error("TCP contents write failed: %s", buf);
+
+			if ( contents_file_write_failure )
+				{
+				val_list* vl = new val_list();
+				vl->append(Conn()->BuildConnVal());
+				vl->append(new Val(IsOrig(), TYPE_BOOL));
+				vl->append(new StringVal(buf));
+				tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+				}
+			}
 		}
 
 	return status;
 	}
 
-void TCP_Endpoint::AckReceived(int seq)
+void TCP_Endpoint::AckReceived(uint64 seq)
 	{
 	if ( contents_processor )
 		contents_processor->AckReceived(seq);
@@ -221,7 +251,7 @@ void TCP_Endpoint::SetContentsFile(BroFile* f)
 	{
 	Ref(f);
 	contents_file = f;
-	contents_start_seq = last_seq - start_seq;
+	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);
 
 	if ( contents_start_seq == 0 )
 		contents_start_seq = 1;	// skip SYN
@@ -238,7 +268,7 @@ int TCP_Endpoint::CheckHistory(uint32 mask, char code)
 		code = tolower(code);
 		}
 
-	return tcp_analyzer->Conn()->CheckHistory(mask, code);
+	return Conn()->CheckHistory(mask, code);
 	}
 
 void TCP_Endpoint::AddHistory(char code)
@@ -246,6 +276,6 @@ void TCP_Endpoint::AddHistory(char code)
 	if ( ! IsOrig() )
 		code = tolower(code);
 
-	tcp_analyzer->Conn()->AddHistory(code);
+	Conn()->AddHistory(code);
 	}
 

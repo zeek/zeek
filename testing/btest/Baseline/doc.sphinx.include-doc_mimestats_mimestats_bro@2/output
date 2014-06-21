@@ -1,0 +1,8 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+mimestats.bro
+
+	local r1: SumStats::Reducer = [$stream="mime.bytes",
+	                               $apply=set(SumStats::SUM)];
+	local r2: SumStats::Reducer = [$stream="mime.hits", 
+	                               $apply=set(SumStats::UNIQUE)];

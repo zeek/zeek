@@ -84,7 +84,7 @@ public:
 	// Adds type and value to description.
 	void DescribeExtended(ODesc* d) const;
 	// Produces a description that's reST-ready.
-	void DescribeReST(ODesc* d, bool is_role=false) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 	void DescribeReSTShort(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;

@@ -5,8 +5,8 @@
 ##! particular analyzer for new connections.
 ##!
 ##! Protocol analyzers are identified by unique tags of type
-##! :bro:type:`Analyzer::Tag`, such as :bro:enum:`Analyzer::ANALYZER_HTTP` and
-##! :bro:enum:`Analyzer::ANALYZER_HTTP`. These tags are defined internally by
+##! :bro:type:`Analyzer::Tag`, such as :bro:enum:`Analyzer::ANALYZER_HTTP`.
+##! These tags are defined internally by
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
 
@@ -15,8 +15,8 @@
 module Analyzer;
 
 export {
-	## If true, all available analyzers are initially disabled at startup. One
-	## can then selectively enable them with
+	## If true, all available analyzers are initially disabled at startup.
+	## One can then selectively enable them with
 	## :bro:id:`Analyzer::enable_analyzer`.
 	global disable_all = F &redef;
 
@@ -45,7 +45,7 @@ export {
 	##
 	## ports: The set of well-known ports to associate with the analyzer.
 	##
-	## Returns: True if the ports were sucessfully registered.
+	## Returns: True if the ports were successfully registered.
 	global register_for_ports: function(tag: Analyzer::Tag, ports: set[port]) : bool;
 
 	## Registers an individual well-known port for an analyzer. If a future
@@ -57,7 +57,7 @@ export {
 	##
 	## p: The well-known port to associate with the analyzer.
 	##
-	## Returns: True if the port was sucessfully registered.
+	## Returns: True if the port was successfully registered.
 	global register_for_port: function(tag: Analyzer::Tag, p: port) : bool;
 
 	## Returns a set of all well-known ports currently registered for a
@@ -81,8 +81,15 @@ export {
 	## Returns: The analyzer name corresponding to the tag.
 	global name: function(tag: Analyzer::Tag) : string;
 
-	## Schedules an analyzer for a future connection originating from a given IP
-	## address and port.
+	## Translates an analyzer's name to a tag enum value.
+	##
+	## name: The analyzer name.
+	##
+	## Returns: The analyzer tag corresponding to the name.
+	global get_tag: function(name: string): Analyzer::Tag;
+
+	## Schedules an analyzer for a future connection originating from a
+	## given IP address and port.
 	##
 	## orig: The IP address originating a connection in the future.
 	##       0.0.0.0 can be used as a wildcard to match any originator address.
@@ -96,7 +103,7 @@ export {
 	## tout: A timeout interval after which the scheduling request will be
 	##       discarded if the connection has not yet been seen.
 	##
-	## Returns: True if succesful.
+	## Returns: True if successful.
 	global schedule_analyzer: function(orig: addr, resp: addr, resp_p: port,
 	                                   analyzer: Analyzer::Tag, tout: interval) : bool;
 
@@ -185,6 +192,11 @@ function all_registered_ports(): table[Analyzer::Tag] of set[port]
 function name(atype: Analyzer::Tag) : string
 	{
 	return __name(atype);
+	}
+
+function get_tag(name: string): Analyzer::Tag
+	{
+	return __tag(name);
 	}
 
 function schedule_analyzer(orig: addr, resp: addr, resp_p: port,

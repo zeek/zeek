@@ -1,14 +1,10 @@
-#include <string>
-
 #include "PE.h"
-#include "pe_pac.h"
-#include "util.h"
-#include "Event.h"
+#include "file_analysis/Manager.h"
 
 using namespace file_analysis;
 
 PE::PE(RecordVal* args, File* file)
-    : file_analysis::Analyzer(args, file)
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("PE"), args, file)
 	{
 	conn = new binpac::PE::MockConnection(this);
 	interp = new binpac::PE::File(conn);
@@ -25,10 +21,6 @@ bool PE::DeliverStream(const u_char* data, uint64 len)
 	try
 		{
 		interp->NewData(data, data + len);
-		}
-	catch ( const binpac::HaltParser &e )
-		{
-		return false;
 		}
 	catch ( const binpac::Exception& e )
 		{

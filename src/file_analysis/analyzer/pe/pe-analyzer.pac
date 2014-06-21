@@ -2,7 +2,6 @@
 %extern{
 #include "Event.h"
 #include "file_analysis/File.h"
-#include "file_analysis.bif.func_h"
 #include "events.bif.h"
 %}
 
@@ -10,7 +9,6 @@ refine flow File += {
 
 	function proc_the_file(): bool
 		%{
-		throw binpac::HaltParser();
 		return true;
 		%}
 

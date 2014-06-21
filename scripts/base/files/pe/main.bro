@@ -79,7 +79,7 @@ event file_new(f: fa_file)
 	if ( f?$mime_type && f$mime_type == /application\/x-dosexec.*/ ) 
 		{
 		#print "found a windows executable";
-		FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_PE]);
+		Files::add_analyzer(f, Files::ANALYZER_PE);
 		#FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT, 
 		#                               $extract_filename=fmt("exe-%d", ++blah_counter)]);
 		}

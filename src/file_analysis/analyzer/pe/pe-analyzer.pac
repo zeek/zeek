@@ -9,6 +9,7 @@ refine flow File += {
 
 	function proc_the_file(): bool
 		%{
+		printf("Processed\n");
 		return true;
 		%}
 
@@ -204,3 +205,4 @@ refine typeattr IMAGE_SECTION_HEADER += &let {
 refine typeattr TheFile += &let {
 	proc: bool = $context.flow.proc_the_file();
 };
+

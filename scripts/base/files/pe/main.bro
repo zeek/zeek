@@ -39,11 +39,15 @@ hook set_file(f: fa_file) &priority=5
 
 event pe_dos_header(f: fa_file, h: PE::DOSHeader) &priority=5
 	{
+	print "DOS header";
+	print h;
 	hook set_file(f);
 	}
 
 event pe_file_header(f: fa_file, h: PE::FileHeader) &priority=5
 	{
+	print "File header";
+	print h;
 	hook set_file(f);
 	f$pe$compile_ts = h$ts;
 	f$pe$machine    = machine_types[h$machine];
@@ -53,6 +57,8 @@ event pe_file_header(f: fa_file, h: PE::FileHeader) &priority=5
 
 event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 	{
+	print "Optional header";
+	print h;
 	hook set_file(f);
 	f$pe$os = os_versions[h$os_version_major, h$os_version_minor];
 	f$pe$subsystem = windows_subsystems[h$subsystem];
@@ -60,6 +66,8 @@ event pe_optional_header(f: fa_file, h: PE::OptionalHeader) &priority=5
 
 event pe_section_header(f: fa_file, h: PE::SectionHeader) &priority=5
 	{
+	print "Section header";
+	print h;
 	hook set_file(f);
 
 	print h;
@@ -78,9 +86,6 @@ event file_new(f: fa_file)
 	{
 	if ( f?$mime_type && f$mime_type == /application\/x-dosexec.*/ ) 
 		{
-		#print "found a windows executable";
 		Files::add_analyzer(f, Files::ANALYZER_PE);
-		#FileAnalysis::add_analyzer(f, [$tag=FileAnalysis::ANALYZER_EXTRACT, 
-		#                               $extract_filename=fmt("exe-%d", ++blah_counter)]);
 		}
 	}

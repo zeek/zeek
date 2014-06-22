@@ -3,7 +3,7 @@ type TheFile = record {
 	dos_header      : DOS_Header;
 	dos_code        : DOS_Code(dos_code_len);
 	pe_header       : IMAGE_NT_HEADERS;
-	section_headers : IMAGE_SECTION_HEADER[] &length=pe_header.optional_header.size_of_headers;
+	section_headers : IMAGE_SECTIONS(pe_header.file_header.NumberOfSections);
 	#pad             : bytestring &length=offsetof(pe_header.data_directories + pe_header.data_directories[1].virtual_address);
 	#data_sections   : DATA_SECTIONS[pe_header.file_header.NumberOfSections];
 	#data_sections   : DATA_SECTIONS[] &length=data_len;
@@ -41,7 +41,7 @@ type DOS_Code(len: uint32) = record {
 type IMAGE_NT_HEADERS = record {
 	PESignature     : uint32;
 	file_header     : IMAGE_FILE_HEADER;
-	optional_header : IMAGE_OPTIONAL_HEADER(file_header.SizeOfOptionalHeader) &length=file_header.SizeOfOptionalHeader;
+	optional_header : IMAGE_OPTIONAL_HEADER(file_header.SizeOfOptionalHeader, file_header.NumberOfSections) &length=file_header.SizeOfOptionalHeader;
 } &byteorder=littleendian &length=file_header.SizeOfOptionalHeader+offsetof(optional_header);
 
 type IMAGE_FILE_HEADER = record {
@@ -54,7 +54,7 @@ type IMAGE_FILE_HEADER = record {
 	Characteristics       : uint16;
 };
 
-type IMAGE_OPTIONAL_HEADER(len: uint16) = record {
+type IMAGE_OPTIONAL_HEADER(len: uint16, number_of_sections: uint16) = record {
 	magic                   : uint16;
 	major_linker_version    : uint8;
 	minor_linker_version    : uint8;
@@ -80,12 +80,13 @@ type IMAGE_OPTIONAL_HEADER(len: uint16) = record {
 	subsystem               : uint16;
 	dll_characteristics     : uint16;
 	mem: case magic of {
-		0x0b01  -> i32           : MEM_INFO32;
-		0x0b02  -> i64           : MEM_INFO64;
+		267  -> i32           : MEM_INFO32;
+		268  -> i64           : MEM_INFO64;
 		default -> InvalidPEFile : empty;
 	};
 	loader_flags            : uint32;
 	number_of_rva_and_sizes : uint32;
+	rvas					: IMAGE_RVAS(number_of_rva_and_sizes);
 } &byteorder=littleendian &length=len;
 
 type MEM_INFO32 = record {
@@ -101,6 +102,10 @@ type MEM_INFO64 = record {
 	size_of_heap_reserve  : uint64;
 	size_of_heap_commit   : uint64;
 } &byteorder=littleendian &length=32;
+
+type IMAGE_SECTIONS(num: uint16) = record {
+	sections : IMAGE_SECTION_HEADER[num];
+} &length=num*40;
 
 type IMAGE_SECTION_HEADER = record {
 	name                      : bytestring &length=8;
@@ -128,6 +133,15 @@ type IMAGE_IMPORT_DIRECTORY = record {
 	rva_module_name         : uint32;
 	rva_import_addr_table   : uint32;
 };
+
+type IMAGE_RVAS(num: uint32) = record {
+	rvas : IMAGE_RVA[num];
+} &length=num*8;
+
+type IMAGE_RVA = record {
+	virtual_address : uint32;
+	size			: uint32;
+} &length=8;
 
 type DATA_SECTIONS = record {
 	blah: uint8;

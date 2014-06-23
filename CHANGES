@@ -1,4 +1,8 @@
 
+2.3-2 | 2014-06-23 16:54:15 -0500
+
+  * Remove references to line numbers in tutorial text. (Daniel Thayer)
+
 2.3 | 2014-06-16 09:48:25 -0500
 
   * Release 2.3.

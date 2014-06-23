@@ -162,8 +162,8 @@ tools like ``awk`` allow you to indicate the log file as a command
 line option, bro-cut only takes input through redirection such as
 ``|`` and ``<``.  There are a couple of ways to direct log file data
 into ``bro-cut``, each dependent upon the type of log file you're
-processing.  A caveat of its use, however, is that the 8 lines of
-header data must be present.
+processing.  A caveat of its use, however, is that all of the
+header lines must be present.
 
 .. note::
 
@@ -177,8 +177,8 @@ moving the current log file into a directory with format
 ``YYYY-MM-DD`` and gzip compressing the file with a file format that
 includes the log file type and time range of the file.  In the case of
 processing a compressed log file you simply adjust your command line
-tools to use the complementary ``z*`` versions of commands such as cat
-(``zcat``), ``grep`` (``zgrep``), and ``head`` (``zhead``).
+tools to use the complementary ``z*`` versions of commands such as ``cat``
+(``zcat``) or ``grep`` (``zgrep``).
 
 Working with Timestamps
 -----------------------

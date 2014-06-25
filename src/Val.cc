@@ -1152,7 +1152,7 @@ bool PatternVal::DoUnserialize(UnserialInfo* info)
 	}
 
 ListVal::ListVal(TypeTag t)
-: Val(new TypeList(t == TYPE_ANY ? 0 : base_type(t)))
+: Val(new TypeList(t == TYPE_ANY ? 0 : base_type_no_ref(t)))
 	{
 	tag = t;
 	}

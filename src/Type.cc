@@ -1691,7 +1691,7 @@ void VectorType::Describe(ODesc* d) const
 	yield_type->Describe(d);
 	}
 
-BroType* base_type(TypeTag tag)
+BroType* base_type_no_ref(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
 
@@ -1707,7 +1707,7 @@ BroType* base_type(TypeTag tag)
 		base_types[t]->SetLocationInfo(&l);
 		}
 
-	return base_types[t]->Ref();
+	return base_types[t];
 	}
 
 

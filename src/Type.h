@@ -613,7 +613,13 @@ extern OpaqueType* bloomfilter_type;
 extern OpaqueType* x509_opaque_type;
 
 // Returns the BRO basic (non-parameterized) type with the given type.
-extern BroType* base_type(TypeTag tag);
+// The reference count of the type is not increased.
+BroType* base_type_no_ref(TypeTag tag);
+
+// Returns the BRO basic (non-parameterized) type with the given type.
+// The caller assumes responsibility for a reference to the type.
+inline BroType* base_type(TypeTag tag)
+	{ return base_type_no_ref(tag)->Ref(); }
 
 // Returns the BRO basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }

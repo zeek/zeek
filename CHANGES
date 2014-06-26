@@ -1,4 +1,9 @@
 
+2.3-3 | 2014-06-26 15:41:04 -0500
+
+  * Support tilde expansion when Bro tries to find its own path. (Jon
+    Siwek)
+
 2.3-2 | 2014-06-23 16:54:15 -0500
 
   * Remove references to line numbers in tutorial text. (Daniel Thayer)

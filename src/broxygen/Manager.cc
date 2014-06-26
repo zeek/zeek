@@ -5,6 +5,7 @@
 
 #include <utility>
 #include <cstdlib>
+#include <wordexp.h>
 
 using namespace broxygen;
 using namespace std;
@@ -40,7 +41,18 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 
 	const char* env_path = getenv("PATH");
 	string path = env_path ? string(env_path) + ":." : ".";
-	string path_to_bro = find_file(bro_command, path);
+	wordexp_t expanded_path;
+	wordexp(path.c_str(), &expanded_path, WRDE_NOCMD);
+	string path_to_bro;
+
+	if ( expanded_path.we_wordc == 1 )
+		path_to_bro = find_file(bro_command, expanded_path.we_wordv[0]);
+	else
+		{
+		reporter->InternalWarning("odd expansion of path: %s\n", path.c_str());
+		path_to_bro = find_file(bro_command, path);
+		}
+
 	struct stat s;
 
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )

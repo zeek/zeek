@@ -1,4 +1,10 @@
 
+2.3-6 | 2014-06-26 17:24:10 -0700
+
+  * DataSeries compilation issue fixed. (mlaterman)
+
+  * Fix a reference counting bug in ListVal ctor. (Jon Siwek)
+
 2.3-3 | 2014-06-26 15:41:04 -0500
 
   * Support tilde expansion when Bro tries to find its own path. (Jon

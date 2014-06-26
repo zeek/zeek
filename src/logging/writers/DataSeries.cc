@@ -235,7 +235,7 @@ DataSeries::DataSeries(WriterFrontend* frontend) : WriterBackend(frontend)
 	threading::formatter::Ascii::SeparatorInfo sep_info;
 	ascii = new threading::formatter::Ascii(this, sep_info);
 
-	compress_type = Extent::compress_none;
+	compress_type = Extent::compress_mode_none;
 	log_file = 0;
 	log_output = 0;
 }
@@ -343,25 +343,25 @@ bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading:
 	compress_type = Extent::compress_all;
 
 	if( ds_compression == "lzf" )
-		compress_type = Extent::compress_lzf;
+		compress_type = Extent::compress_mode_lzf;
 
 	else if( ds_compression == "lzo" )
-		compress_type = Extent::compress_lzo;
+		compress_type = Extent::compress_mode_lzo;
 
-	else if( ds_compression == "gz" )
-		compress_type = Extent::compress_gz;
+	else if( ds_compression == "zlib" )
+		compress_type = Extent::compress_mode_zlib;
 
 	else if( ds_compression == "bz2" )
-		compress_type = Extent::compress_bz2;
+		compress_type = Extent::compress_mode_bz2;
 
 	else if( ds_compression == "none" )
-		compress_type = Extent::compress_none;
+		compress_type = Extent::compress_mode_none;
 
 	else if( ds_compression == "any" )
 		compress_type = Extent::compress_all;
 
 	else
-		Warning(Fmt("%s is not a valid compression type. Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'. Defaulting to 'any'", ds_compression.c_str()));
+		Warning(Fmt("%s is not a valid compression type. Valid types are: 'lzf', 'lzo', 'zlib', 'bz2', 'none', 'any'. Defaulting to 'any'", ds_compression.c_str()));
 
         log_type = log_types.registerTypePtr(schema);
 	log_series.setType(log_type);

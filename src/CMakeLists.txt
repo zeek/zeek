@@ -387,6 +387,10 @@ else ()
     target_link_libraries(bro ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()
 
+if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
+    set_target_properties(bro PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")
+endif ()
+
 install(TARGETS bro DESTINATION bin)
 
 set(BRO_EXE bro

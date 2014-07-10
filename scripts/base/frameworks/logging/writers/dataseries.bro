@@ -8,9 +8,9 @@ export {
 	## 'none' -- No compression.
 	## 'lzf'  -- LZF compression (very quick, but leads to larger output files).
 	## 'lzo'  -- LZO compression (very fast decompression times).
-	## 'gz'   -- GZIP compression (slower than LZF, but also produces smaller output).
+	## 'zlib' -- GZIP compression (slower than LZF, but also produces smaller output).
 	## 'bz2'  -- BZIP2 compression (slower than GZIP, but also produces smaller output).
-	const compression = "gz" &redef;
+	const compression = "zlib" &redef;
 
 	## The extent buffer size.
 	## Larger values here lead to better compression and more efficient writes,

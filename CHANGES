@@ -1,4 +1,9 @@
 
+2.3-11 | 2014-07-10 14:49:27 -0700
+
+  * Fixing DataSeries output. It was using a now illegal value as its
+    default compression level. (Robin Sommer)
+
 2.3-7 | 2014-06-26 17:35:18 -0700
 
   * Extending "make test-all" to include aux/bro-aux. (Robin Sommer)

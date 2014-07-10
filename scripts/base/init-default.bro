@@ -16,6 +16,7 @@
 @load base/utils/paths
 @load base/utils/patterns
 @load base/utils/queue
+@load base/utils/readfile
 @load base/utils/strings
 @load base/utils/thresholds
 @load base/utils/time

@@ -1691,6 +1691,16 @@ void VectorType::Describe(ODesc* d) const
 	yield_type->Describe(d);
 	}
 
+void VectorType::DescribeReST(ODesc* d, bool roles_only) const
+	{
+	d->Add(fmt(":bro:type:`%s` of ", type_name(Tag())));
+
+	if ( yield_type->GetName().empty() )
+		yield_type->DescribeReST(d, roles_only);
+	else
+		d->Add(fmt(":bro:type:`%s`", yield_type->GetName().c_str()));
+	}
+
 BroType* base_type_no_ref(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];

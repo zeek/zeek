@@ -1,4 +1,9 @@
 
+2.3-12 | 2014-07-10 19:17:37 -0500
+
+  * Include yield of vectors in Broxygen's type descriptions.
+    Addresses BIT-1217. (Jon Siwek)
+
 2.3-11 | 2014-07-10 14:49:27 -0700
 
   * Fixing DataSeries output. It was using a now illegal value as its

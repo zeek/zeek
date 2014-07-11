@@ -1,4 +1,24 @@
 
+2.3-12 | 2014-07-10 19:17:37 -0500
+
+  * Include yield of vectors in Broxygen's type descriptions.
+    Addresses BIT-1217. (Jon Siwek)
+
+2.3-11 | 2014-07-10 14:49:27 -0700
+
+  * Fixing DataSeries output. It was using a now illegal value as its
+    default compression level. (Robin Sommer)
+
+2.3-7 | 2014-06-26 17:35:18 -0700
+
+  * Extending "make test-all" to include aux/bro-aux. (Robin Sommer)
+    
+2.3-6 | 2014-06-26 17:24:10 -0700
+
+  * DataSeries compilation issue fixed. (mlaterman)
+
+  * Fix a reference counting bug in ListVal ctor. (Jon Siwek)
+
 2.3-3 | 2014-06-26 15:41:04 -0500
 
   * Support tilde expansion when Bro tries to find its own path. (Jon

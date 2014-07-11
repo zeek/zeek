@@ -607,6 +607,7 @@ public:
 	bool IsUnspecifiedVector() const;
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	VectorType()	{ yield_type = 0; }
@@ -625,8 +626,14 @@ extern OpaqueType* topk_type;
 extern OpaqueType* bloomfilter_type;
 extern OpaqueType* x509_opaque_type;
 
+// Returns the Bro basic (non-parameterized) type with the given type.
+// The reference count of the type is not increased.
+BroType* base_type_no_ref(TypeTag tag);
+
 // Returns the BRO basic (non-parameterized) type with the given type.
-extern BroType* base_type(TypeTag tag);
+// The caller assumes responsibility for a reference to the type.
+inline BroType* base_type(TypeTag tag)
+	{ return base_type_no_ref(tag)->Ref(); }
 
 // Returns the BRO basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }

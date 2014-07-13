@@ -26,6 +26,6 @@ void Component::DoDescribe(ODesc* d) const
 	if ( factory )
 		{
 		d->Add("ANALYZER_");
-		d->Add(canon_name);
+		d->Add(CanonicalName());
 		}
 	}

@@ -27,13 +27,16 @@ class ComponentManager {
 public:
 
 	/**
-	 * Constructor creates a new enum type called a "Tag" to associate with
+	 * Constructor creates a new enum type to associate with
 	 * a component.
 	 *
-	 * @param module The script-layer module in which to install the "Tag" ID
+	 * @param module The script-layer module in which to install the ID
 	 * representing an enum type.
+	 *
+	 * @param local_id The local part of the ID of the new enum type
+	 * (e.g., "Tag").
 	 */
-	ComponentManager(const string& module);
+	ComponentManager(const string& module, const string& local_id);
 
 	/**
 	 * @return The script-layer module in which the component's "Tag" ID lives.
@@ -125,13 +128,15 @@ private:
 };
 
 template <class T, class C>
-ComponentManager<T, C>::ComponentManager(const string& arg_module)
+ComponentManager<T, C>::ComponentManager(const string& arg_module, const string& local_id)
 	: module(arg_module)
 	{
-	tag_enum_type = new EnumType(module + "::Tag");
-	::ID* id = install_ID("Tag", module.c_str(), true, true);
+	tag_enum_type = new EnumType(module + "::" + local_id);
+	::ID* id = install_ID(local_id.c_str(), module.c_str(), true, true);
 	add_type(id, tag_enum_type, 0);
 	broxygen_mgr->Identifier(id);
+
+	// fprintf(stderr, "Enum: %s\n", id->Name());
 	}
 
 template <class T, class C>
@@ -241,6 +246,7 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsEnumVal()->InternalInt(), true);
+	// fprintf(stderr, "Enum item: %s/%s\n", module.c_str(), id.c_str());
 	}
 
 } // namespace plugin

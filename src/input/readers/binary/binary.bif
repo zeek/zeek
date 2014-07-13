@@ -1,0 +1,4 @@
+
+module InputBinary;
+
+const chunk_size: count;

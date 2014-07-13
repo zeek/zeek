@@ -1,5 +1,5 @@
 #
-# @TEST-REQUIRES: has-writer DataSeries && which ds2txt
+# @TEST-REQUIRES: has-writer Bro::DataSeriesWriter && which ds2txt
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
 #
 # @TEST-GROUP: leaks

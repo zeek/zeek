@@ -3363,8 +3363,6 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load BiFs defined by plugins.
-@load base/bif/plugins
 
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
@@ -3374,3 +3372,7 @@ const bits_per_uid: count = 96 &redef;
 @load base/frameworks/files
 
 @load base/bif
+
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+

@@ -2920,7 +2920,15 @@ void EnumVal::ValDescribe(ODesc* d) const
 	const char* ename = type->AsEnumType()->Lookup(val.int_val);
 
 	if ( ! ename )
+		{
+		EnumType::enum_name_list l = type->AsEnumType()->Names();
+
+		for ( EnumType::enum_name_list::const_iterator iter = l.begin();
+		      iter != l.end(); ++iter )
+			fprintf(stderr, "%s -> %lld\n", iter->first.c_str(), iter->second);
+
 		ename = "<undefined>";
+		}
 
 	d->Add(ename);
 	}

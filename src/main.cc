@@ -12,10 +12,6 @@
 #include <getopt.h>
 #endif
 
-#ifdef USE_CURL
-#include <curl/curl.h>
-#endif
-
 #ifdef USE_IDMEF
 extern "C" {
 #include <libidmef/idmefxml.h>
@@ -54,8 +50,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "threading/Manager.h"
 #include "input/Manager.h"
 #include "logging/Manager.h"
-#include "logging/writers/Ascii.h"
-#include "input/readers/Raw.h"
+#include "logging/writers/ascii/Ascii.h"
+#include "input/readers/raw/Raw.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
@@ -226,25 +222,6 @@ void usage()
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Broxygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
-
-	fprintf(stderr, "\n");
-	fprintf(stderr, "    Supported log formats: ");
-
-	bool first = true;
-	list<string> fmts = logging::Manager::SupportedFormats();
-
-	for ( list<string>::const_iterator i = fmts.begin(); i != fmts.end(); ++i )
-		{
-		if ( *i == "None" )
-			// Skip, it's uninteresting.
-			continue;
-
-		if ( ! first )
-			fprintf(stderr, ",");
-
-		fprintf(stderr, "%s", (*i).c_str());
-		first = false;
-		}
 
 	fprintf(stderr, "\n");
 
@@ -813,10 +790,6 @@ int main(int argc, char** argv)
 	SSL_library_init();
 	SSL_load_error_strings();
 
-#ifdef USE_CURL
-	curl_global_init(CURL_GLOBAL_ALL);
-#endif
-
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
@@ -896,8 +869,6 @@ int main(int argc, char** argv)
 		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
-
-	input::reader::Raw::ClassInit();
 
 	md5_type = new OpaqueType("md5");
 	sha1_type = new OpaqueType("sha1");
@@ -1251,10 +1222,6 @@ int main(int argc, char** argv)
 
 		done_with_network();
 		net_delete();
-
-#ifdef USE_CURL
-		curl_global_cleanup();
-#endif
 
 		terminate_bro();
 

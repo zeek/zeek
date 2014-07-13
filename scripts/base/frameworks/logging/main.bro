@@ -5,9 +5,15 @@
 
 module Log;
 
-# Log::ID and Log::Writer are defined in types.bif due to circular dependencies.
-
 export {
+	## Type that defines a ID unique for each log stream. Scripts creating new log
+	## streams need to redef this enum to add their own specific log ID. The log ID
+	## implicitly determines the default name of the generated log file.  
+	type Log::ID: enum {
+		## Dummy place-holder.
+		UNKNOWN
+	};
+
 	## If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 

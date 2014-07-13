@@ -156,7 +156,7 @@ public:
 		}
 };
 
-using namespace logging;
+using namespace input;
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{

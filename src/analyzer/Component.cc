@@ -12,7 +12,6 @@ Component::Component(const std::string& name, factory_callback arg_factory, Tag:
 	: plugin::Component(plugin::component::ANALYZER, name),
 	  plugin::TaggedComponent<analyzer::Tag>(arg_subtype)
 	{
-	canon_name = canonify_name(name);
 	factory = arg_factory;
 	enabled = arg_enabled;
 	partial = arg_partial;

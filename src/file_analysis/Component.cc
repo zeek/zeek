@@ -12,7 +12,6 @@ Component::Component(const std::string& name, factory_callback arg_factory, Tag:
 	: plugin::Component(plugin::component::FILE_ANALYZER, name),
 	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
 	{
-	canon_name = canonify_name(name);
 	factory = arg_factory;
 
 	file_mgr->RegisterComponent(this, "ANALYZER_");

@@ -56,6 +56,14 @@ public:
 	const std::string& Name() const;
 
 	/**
+	 * Returns a canonocalized version of the components's name.  The
+	 * returned name is derived from what's passed to the constructor but
+	 * upper-cased and transformed to allow being part of a script-level
+	 * ID.
+	 */
+	const std::string& CanonicalName() const	{ return canon_name; }
+
+	/**
 	 * Returns a textual representation of the component. This goes into
 	 * the output of "bro -NN".
 	 *
@@ -83,6 +91,7 @@ private:
 
 	component::Type type;
 	std::string name;
+	std::string canon_name;
 };
 
 }

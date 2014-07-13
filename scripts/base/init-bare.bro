@@ -113,6 +113,18 @@ type conn_id: record {
 	resp_p: port;	##< The responder's port number.
 } &log;
 
+## The identifying 4-tuple of a uni-directional flow.
+##
+## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
+##    part of the port values, `src_p` and `dst_p`, and can be extracted from
+##    them with :bro:id:`get_port_transport_proto`.
+type flow_id : record {
+	src_h: addr;	##< The source IP address.
+	src_p: port;	##< The source port number.
+	dst_h: addr;	##< The destination IP address.
+	dst_p: port;	##< The desintation port number.
+};
+
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
 ## addition to :bro:type:`conn_id`.
 ##

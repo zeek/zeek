@@ -2343,6 +2343,19 @@ function to_subnet%(sn: string%): subnet
 	return ret;
 	%}
 
+## Converts a :bro:type:`addr` to a :bro:type:`subnet`.
+##
+## a: The address to convert.
+##
+## Returns: The *sn* string as a :bro:type:`subnet`.
+##
+## .. bro:see:: to_subset
+function addr_to_subnet%(a: addr%): subnet
+	%{
+	int width = (a->AsAddr().GetFamily() == IPv4 ? 32 : 128);
+	return new SubNetVal(a->AsAddr(), width);
+	%}
+
 ## Converts a :bro:type:`string` to a :bro:type:`double`.
 ##
 ## str: The :bro:type:`string` to convert.

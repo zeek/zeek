@@ -247,10 +247,11 @@ in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro
 -b``), no dynamic plugins will be activated by default; instead the
 user can selectively enable individual plugins in scriptland using the
 ``@load-plugin <qualified-plugin-name>`` directive (e.g.,
-``@load-plugin Demo::Rot13``). Alternatively, one can also set the
-environment variable ``BRO_PLUGIN_ACTIVATE`` to a list of
-comma(!)-separated names of plugins to unconditionally activate, even
-in bare mode.
+``@load-plugin Demo::Rot13``). Alternatively, one can activate a
+plugin from the command-line by specifying its full name
+(``Demo::Rot13``), or set the environment variable
+``BRO_PLUGIN_ACTIVATE`` to a list of comma(!)-separated names of
+plugins to unconditionally activate, even in bare mode.
 
 ``bro -N`` shows activated plugins separately from found but not yet
 activated plugins. Note that plugins compiled statically into Bro are
@@ -322,6 +323,11 @@ Packet Dumpers
 --------------
 
 Not yet available as plugins.
+
+Hooks
+=====
+
+TODO.
 
 Testing Plugins
 ===============
@@ -398,9 +404,20 @@ Run the test-suite::
 Debugging Plugins
 =================
 
-..todo::
+Plugins can use Bro's standard debug logger by using the
+``PLUGIN_DBG_LOG(<plugin>, <args>)`` macro (defined in
+``DebugLogger.h``), where ``<plugin>`` is the ``Plugin`` instance and
+``<args>`` are printf-style arguments, just as with Bro's standard
+debuggging macros.
 
-    Document.
+At runtime, one then activates a plugin's debugging output with ``-B
+plugin-<name>``, where ``<name>`` is the name of the plugin as
+returned by its ``Configure()`` method, yet with the
+namespace-separator ``::`` replaced with a simple dash. Example: If
+the plugin is called ``Bro::Demo``, use ``-B plugin-Bro-Dome``. As
+usual, the debugging output will be recorded to ``debug.log`` if Bro's
+compiled in debug mode.
+
 
 Documenting Plugins
 ===================

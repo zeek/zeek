@@ -547,7 +547,7 @@ class EnumType : public BroType {
 public:
 	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
 
-    EnumType(EnumType* e);
+	EnumType(EnumType* e);
 	EnumType(const string& arg_name);
 	~EnumType();
 

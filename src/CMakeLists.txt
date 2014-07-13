@@ -426,6 +426,6 @@ add_dependencies(bro bif_loader_plugins)
 # Install *.bif.bro.
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
-# Make clean removes the bif and plugin directories.
+# Make clean removes the bif directory.
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/scripts/base/bif)
 

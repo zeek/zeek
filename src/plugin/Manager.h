@@ -23,7 +23,7 @@ namespace plugin {
  * @param method_call The \a Manager method corresponding to the hook.
  */
 #define PLUGIN_HOOK_VOID(hook, method_call) \
-	if ( plugin_mgr->HavePluginForHook(plugin::hook) ) plugin_mgr->method_call;
+	{ if ( plugin_mgr->HavePluginForHook(plugin::hook) ) plugin_mgr->method_call; }
 
 /**
  * Macro to trigger hooks that return a result.

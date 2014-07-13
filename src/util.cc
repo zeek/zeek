@@ -1626,7 +1626,6 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	unsigned int ret_total;
 
 #ifdef HAVE_MALLINFO
-	// For memory, getrusage() gives bogus results on Linux. Grmpf.
 	struct mallinfo mi = mallinfo();
 
 	if ( malloced )
@@ -1637,7 +1636,7 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 
-	// At least on FreeBSD it's in KB.
+	// In KB.
 	ret_total = r.ru_maxrss * 1024;
 
 	if ( total )

@@ -277,6 +277,49 @@ int BroFunc::IsPure() const
 	return 1;
 	}
 
+Val* BroFunc::HandlePluginResult(Val* plugin_resul, tval_list* args)
+	{
+	// Helper function factoring out this code from BroFunc:Call() for better
+	// readability.
+
+	switch ( Flavor() ) {
+	case FUNC_FLAVOR_EVENT:
+		Unref(plugin_result);
+		plugin_result = 0;
+		break;
+
+	case FUNC_FLAVOR_HOOK:
+		if ( plugin_result->Type()->Tag() != TYPE_BOOL )
+			reporter->InternalError("plugin returned non-bool for hook");
+
+		break;
+
+	case FUNC_FLAVOR_FUNCTION:
+		{
+		BroType* yt = FType()->YieldType();
+
+		if ( (! yt) || yt->Tag() == TYPE_VOID )
+			{
+			Unref(plugin_result);
+			plugin_result = 0;
+			}
+
+		else
+			{
+			if ( plugin_result->Type()->Tag() != yt->Tag() )
+				reporter->InternalError("plugin returned wrong type for function call");
+			}
+
+		break;
+		}
+	}
+
+	loop_over_list(*args, i)
+		Unref((*args)[i]);
+
+	return plugin_result;
+	}
+
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
@@ -286,45 +329,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, args), 0);
 
 	if ( plugin_result )
-		{
-		// TODO: We should factor this out into its own method.
-		switch ( Flavor() ) {
-		case FUNC_FLAVOR_EVENT:
-			Unref(plugin_result);
-			plugin_result = 0;
-			break;
-
-		case FUNC_FLAVOR_HOOK:
-			if ( plugin_result->Type()->Tag() != TYPE_BOOL )
-				reporter->InternalError("plugin returned non-bool for hook");
-
-			break;
-
-		case FUNC_FLAVOR_FUNCTION:
-			{
-			BroType* yt = FType()->YieldType();
-
-			if ( (! yt) || yt->Tag() == TYPE_VOID )
-				{
-				Unref(plugin_result);
-				plugin_result = 0;
-				}
-
-			else
-				{
-				if ( plugin_result->Type()->Tag() != yt->Tag() )
-					reporter->InternalError("plugin returned wrong type for function call");
-				}
-
-			break;
-			}
-		}
-
-		loop_over_list(*args, i)
-			Unref((*args)[i]);
-
-		return plugin_result;
-		}
+		return HandlePluginResult(plugin_result, args);
 
 	if ( bodies.empty() )
 		{

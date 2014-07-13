@@ -242,7 +242,7 @@ public:
 	// is now fully closed, a connection_finished event will be
 	// generated; otherwise not.
 	virtual void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
-					analyzer::tcp::TCP_Endpoint* peer, int gen_event);
+				      analyzer::tcp::TCP_Endpoint* peer, int gen_event);
 	virtual void ConnectionFinished(int half_finished);
 	virtual void ConnectionReset();
 

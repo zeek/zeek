@@ -444,7 +444,7 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	if ( ! c->Factory() )
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
-								"dynamically", c->CanonicalName().c_str());
+					  "dynamically", c->CanonicalName().c_str());
 		return 0;
 		}
 

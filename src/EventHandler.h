@@ -62,7 +62,7 @@ private:
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.
-    bool generate_always;
+	bool generate_always;
 
 	declare(List, SourceID);
 	typedef List(SourceID) receiver_list;

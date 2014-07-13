@@ -154,7 +154,7 @@ export {
 				      args: AnalyzerArgs &default=AnalyzerArgs()): bool;
 
 	## Adds all analyzers associated with a give MIME type to the analysis of
-	## a  file.  Note that analyzers added via MIME types cannot take further
+	## a file.  Note that analyzers added via MIME types cannot take further
 	## arguments.
 	##
 	## f: the file.

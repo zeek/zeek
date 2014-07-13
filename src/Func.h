@@ -100,6 +100,7 @@ public:
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
 	Stmt* AddInits(Stmt* body, id_list* inits);
+	Val* HandlePluginResult(Val* plugin_result, val_list* args);
 
 	DECLARE_SERIAL(BroFunc);
 

@@ -94,9 +94,7 @@ int BroObj::suppress_errors = 0;
 BroObj::~BroObj()
 	{
 	if ( notify_plugins )
-		{
-                PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
-		}
+		PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
 
 	delete location;
 	}

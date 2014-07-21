@@ -70,6 +70,9 @@ public:
 protected:
 	Func();
 
+	// Helper function for handling result of plugin hook.
+	Val* HandlePluginResult(Val* plugin_result, val_list* args, function_flavor flavor) const;
+
 	DECLARE_ABSTRACT_SERIAL(Func);
 
 	vector<Body> bodies;
@@ -100,7 +103,6 @@ public:
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
 	Stmt* AddInits(Stmt* body, id_list* inits);
-	Val* HandlePluginResult(Val* plugin_result, val_list* args) const;
 
 	DECLARE_SERIAL(BroFunc);
 

@@ -277,7 +277,7 @@ int BroFunc::IsPure() const
 	return 1;
 	}
 
-Val* BroFunc::HandlePluginResult(Val* plugin_resul, tval_list* args)
+Val* BroFunc::HandlePluginResult(Val* plugin_result, val_list* args) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for better
 	// readability.

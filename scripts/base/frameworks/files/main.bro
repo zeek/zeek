@@ -234,6 +234,42 @@ export {
 	## callback: Function to execute when the given file analyzer is being added.
 	global register_analyzer_add_callback: function(tag: Files::Tag, callback: function(f: fa_file, args: AnalyzerArgs));
 
+	## Registers a set of MIME types for an analyzer. If a future connection on one of
+	## these types is seen, the analyzer will be automatically assigned to parsing it.
+	## The function *adds* to all MIME types already registered, it doesn't replace
+	## them.
+	##
+	## tag: The tag of the analyzer.
+	##
+	## mts: The set of MIME types, each in the form "foo/bar" (case-insensitive).
+	##
+	## Returns: True if the MIME types were successfully registered.
+	global register_for_mime_types: function(tag: Analyzer::Tag, mts: set[string]) : bool;
+
+	## Registers a MIME type for an analyzer. If a future file with this type is seen,
+	## the analyzer will be automatically assigned to parsing it. The function *adds*
+	## to all MIME types already registered, it doesn't replace them.   
+	##
+	## tag: The tag of the analyzer.
+	##
+	## mt: The MIME type in the form "foo/bar" (case-insensitive).
+	##
+	## Returns: True if the MIME type was successfully registered.  
+	global register_for_mime_type: function(tag: Analyzer::Tag, mt: string) : bool;
+
+	## Returns a set of all MIME types currently registered for a specific analyzer.
+	##
+	## tag: The tag of the analyzer.
+	##
+	## Returns: The set of MIME types.
+	global registered_mime_types: function(tag: Analyzer::Tag) : set[string];
+
+	## Returns a table of all MIME-type-to-analyzer mappings currently registered. 
+	##
+	## Returns: A table mapping each analyzer to the set of MIME types registered for
+	## it.
+	global all_registered_mime_types: function() : table[Analyzer::Tag] of set[string];
+
 	## Event that can be handled to access the Info record as it is sent on
 	## to the logging framework.
 	global log_files: event(rec: Info);
@@ -245,6 +281,9 @@ redef record fa_file += {
 
 # Store the callbacks for protocol analyzers that have files.
 global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table();
+
+# Store the MIME type to analyzer mappings.
+global mime_types: table[Analyzer::Tag] of set[string];
 
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
@@ -368,6 +407,41 @@ function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool
 	local result = (tag !in registered_protocols);
 	registered_protocols[tag] = reg;
 	return result;
+	}
+
+function register_for_mime_types(tag: Analyzer::Tag, mime_types: set[string]) : bool
+	{
+	local rc = T;
+
+	for ( mt in mime_types )
+		{
+		if ( ! register_for_mime_type(tag, mt) )
+			rc = F;
+		}
+
+	return rc;
+	}
+
+function register_for_mime_type(tag: Analyzer::Tag, mt: string) : bool
+	{
+	if ( ! __register_for_mime_type(tag, mt) )
+		return F;
+
+	if ( tag !in mime_types )
+		mime_types[tag] = set();
+
+	add mime_types[tag][mt];
+	return T;
+	}
+
+function registered_mime_types(tag: Analyzer::Tag) : set[string]
+	{
+	return tag in mime_types ? mime_types[tag] : set();
+	}
+
+function all_registered_mime_types(): table[Analyzer::Tag] of set[string]
+	{
+	return mime_types;
 	}
 
 function describe(f: fa_file): string

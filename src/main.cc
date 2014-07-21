@@ -855,14 +855,14 @@ int main(int argc, char** argv)
 	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
 
-	// Process remaining arguments.  X=Y arguments indicate script
-	// variable/parameter assignments.  The remainder are treated
-	// as scripts to load.
+	// Process remaining arguments. X=Y arguments indicate script
+	// variable/parameter assignments. X::Y arguments indicate plugins to
+	// activate/query. The remainder are treated as scripts to load.
 	while ( optind < argc )
 		{
 		if ( strchr(argv[optind], '=') )
 			params.push_back(argv[optind++]);
-		else if ( print_plugins && strstr(argv[optind], "::") )
+		else if ( strstr(argv[optind], "::") )
 			requested_plugins.insert(argv[optind++]);
 		else
 			add_input_file(argv[optind++]);
@@ -889,6 +889,10 @@ int main(int argc, char** argv)
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	broxygen_mgr->InitPreScript();
+
+	for ( set<string>::const_iterator i = requested_plugins.begin();
+	      i != requested_plugins.end(); i++ )
+		plugin_mgr->ActivateDynamicPlugin(*i);
 
 	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
 

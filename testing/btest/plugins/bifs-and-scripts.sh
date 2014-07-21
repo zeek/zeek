@@ -18,6 +18,9 @@
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.bro  demo/foo -r $TRACES/empty.trace >>output
 
+# @TEST-EXEC: echo === >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b Demo::Foo  demo/foo -r $TRACES/empty.trace >>output
+
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 cat >scripts/__load__.bro <<EOF

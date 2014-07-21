@@ -146,6 +146,10 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		return false;
                 }
 
+	if ( m->second == "" )
+		// Already activated.
+		return true;
+
 	std::string dir = m->second + "/";
 
 	if ( dir.empty() )
@@ -283,6 +287,8 @@ void Manager::UpdateInputFiles()
 	for ( file_list::const_reverse_iterator i = scripts_to_load.rbegin();
 	      i != scripts_to_load.rend(); i++ )
 		add_input_file_at_front((*i).c_str());
+
+	scripts_to_load.clear();
 	}
 
 static bool plugin_cmp(const Plugin* a, const Plugin* b)

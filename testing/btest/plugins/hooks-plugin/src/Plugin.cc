@@ -1,50 +1,37 @@
 
-#include <plugin/Plugin.h>
+#include "Plugin.h"
 
 #include <Func.h>
 #include <Event.h>
 
-namespace plugin {
-namespace Demo_Hooks {
+namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
 
-class Plugin : public plugin::Plugin
-{
-protected:
-	plugin::Configuration Configure()
-		{
-		EnableHook(HOOK_LOAD_FILE);
-		EnableHook(HOOK_CALL_FUNCTION);
-		EnableHook(HOOK_QUEUE_EVENT);
-		EnableHook(HOOK_DRAIN_EVENTS);
-		EnableHook(HOOK_UPDATE_NETWORK_TIME);
-		EnableHook(META_HOOK_PRE);
-		EnableHook(META_HOOK_POST);
-		EnableHook(HOOK_BRO_OBJ_DTOR);
+using namespace plugin::Demo_Hooks;
 
-		plugin::Configuration config;
-		config.name = "Demo::Hooks";
-		config.description = "Exercises all plugin hooks";
-		config.version.major = 1;
-		config.version.minor = 0;
-		return config;
-		}
+plugin::Configuration Plugin::Configure()
+	{
+	EnableHook(HOOK_LOAD_FILE);
+	EnableHook(HOOK_CALL_FUNCTION);
+	EnableHook(HOOK_QUEUE_EVENT);
+	EnableHook(HOOK_DRAIN_EVENTS);
+	EnableHook(HOOK_UPDATE_NETWORK_TIME);
+	EnableHook(META_HOOK_PRE);
+	EnableHook(META_HOOK_POST);
+	EnableHook(HOOK_BRO_OBJ_DTOR);
 
-	virtual int HookLoadFile(const std::string& file, const std::string& ext);
-	virtual Val* HookCallFunction(const Func* func, val_list* args);
-	virtual bool HookQueueEvent(Event* event);
-	virtual void HookDrainEvents();
-	virtual void HookUpdateNetworkTime(double network_time);
-	virtual void HookBroObjDtor(void* obj);
-	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
-	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
+	plugin::Configuration config;
+	config.name = "Demo::Hooks";
+	config.description = "Exercises all plugin hooks";
+	config.version.major = 1;
+	config.version.minor = 0;
+	return config;
+	}
 
-} plugin;
-
-static void describe_hook_args(const HookArgumentList& args, ODesc* d)
+static void describe_hook_args(const plugin::HookArgumentList& args, ODesc* d)
 	{
 	bool first = true;
 
-	for ( HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
+	for ( plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
 		{
 		if ( ! first )
 			d->Add(", ");
@@ -81,14 +68,16 @@ bool Plugin::HookQueueEvent(Event* event)
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookQueueEvent",
 		d.Description());
 
-    static int i = 0;
+	static int i = 0;
 
-    if ( network_time && i == 0 ) {
-    	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| RequestObjDtor",
-	    	d.Description());
-        RequestBroObjDtor(event);
-        i = 1;
-    }
+	if ( network_time && i == 0 )
+		{
+		fprintf(stderr, "%.6f %-15s %s\n", network_time, "| RequestObjDtor",
+			d.Description());
+
+		RequestBroObjDtor(event);
+		i = 1;
+		}
 
 	return false;
 	}
@@ -132,6 +121,3 @@ void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgum
 		hook_name(hook), d1.Description(),
 		d2.Description());
 	}
-
-}
-}

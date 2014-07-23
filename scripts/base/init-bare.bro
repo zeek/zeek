@@ -2738,6 +2738,7 @@ type ModbusRegisters: vector of count;
 type ModbusHeaders: record {
 	tid:           count;
 	pid:           count;
+	len:           count;
 	uid:           count;
 	function_code: count;
 };

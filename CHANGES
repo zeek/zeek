@@ -1,4 +1,15 @@
 
+2.3-20 | 2014-07-22 17:41:02 -0700
+
+  * Updating submodule(s).
+
+2.3-19 | 2014-07-22 17:29:19 -0700
+
+  * Implement bytestring_to_coils() in Modbus analyzer so that coils
+    gets passed to the corresponding events. (Hui Lin)
+
+  * Add length field to ModbusHeaders. (Hui Lin)
+
 2.3-12 | 2014-07-10 19:17:37 -0500
 
   * Include yield of vectors in Broxygen's type descriptions.

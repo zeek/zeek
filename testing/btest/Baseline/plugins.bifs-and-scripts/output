@@ -1,4 +1,4 @@
-Demo::Foo - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1.0)
+Demo::Foo - <Insert description> (dynamic, version 1.0)
     [Event] plugin_event
     [Function] hello_plugin_world
 

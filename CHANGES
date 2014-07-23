@@ -1,4 +1,8 @@
 
+2.3-20 | 2014-07-22 17:41:02 -0700
+
+  * Updating submodule(s).
+
 2.3-19 | 2014-07-22 17:29:19 -0700
 
   * Implement bytestring_to_coils() in Modbus analyzer so that coils

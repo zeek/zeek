@@ -18,3 +18,7 @@ calling bif, Hello from the plugin!
 plugin: automatically loaded at startup
 calling bif, Hello from the plugin!
 plugin: manually loaded
+===
+plugin: automatically loaded at startup
+calling bif, Hello from the plugin!
+plugin: manually loaded

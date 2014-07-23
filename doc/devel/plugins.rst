@@ -231,6 +231,12 @@ as well as the ``__bro_plugin__`` magic file and the ``README`` (which
 you should customize). One can add further CMake ``install`` rules to
 install additional files if neeed.
 
+``init-plugin`` will never override existing files, so it's safe to
+rerun in an existing plugin directory; it only put files in place that
+don't exist yet. That also provides a convenient way to revert a file
+back to what ``init-plugin`` created originally: just delete it and
+rerun.
+
 Activating a Plugin
 ===================
 

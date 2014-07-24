@@ -1,0 +1,10 @@
+event mysql_command_response%(c: connection, response: count%);
+event mysql_server_version%(c: connection, ver: string%);
+event mysql_debug%(c: connection, ver: count%);
+event mysql_handshake_response%(c: connection, username: string%);
+
+event mysql_login%(c: connection, username: string, success: bool%);
+event mysql_command_request%(c: connection, command: count, arg: string%);
+
+event mysql_error%(c: connection, code: count, msg: string%);
+event mysql_ok%(c: connection, affected_rows: count%);

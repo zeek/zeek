@@ -1,0 +1,39 @@
+## A Kerberos 5 ``Authentication Server (AS) Request`` as defined
+## in :rfc:`4120`.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_as_req%(c: connection, msg: KRB::KDC_Request%);
+
+## A Kerberos 5 ``Ticket-Granting Service (TGS) Request`` as defined
+## in :rfc:`4120`.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_tgs_req%(c: connection, msg: KRB::KDC_Request%);
+
+## A Kerberos 5 ``Authentication Server (AS) Reply`` as defined
+## in :rfc:`4120`.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC reply message data structure.
+event krb_as_rep%(c: connection, msg: KRB::KDC_Reply%);
+
+## A Kerberos 5 ``Ticket-Granting Service (TGS) Reply`` as defined
+## in :rfc:`4120`.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC reply message data structure.
+event krb_tgs_rep%(c: connection, msg: KRB::KDC_Reply%);
+
+## A Kerberos 5 ``ERROR_MSG`` as defined in :rfc:`4120`.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos error message data structure.
+event krb_error%(c: connection, msg: KRB::Error_Msg%);
+

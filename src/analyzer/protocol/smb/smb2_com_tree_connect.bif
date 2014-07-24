@@ -1,0 +1,4 @@
+event smb2_tree_connect_request%(c: connection, hdr: SMB2::Header, path: string%);
+event smb2_tree_connect_response%(c: connection, hdr: SMB2::Header, response: SMB2::TreeConnectResponse%);
+
+type SMB2::TreeConnectResponse: record;

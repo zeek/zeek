@@ -1,0 +1,15 @@
+## Generated for SMB/CIFS messages of type *nt create andx*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## name: The ``name`` attribute  specified in the message.
+event smb1_nt_create_andx_request%(c: connection, hdr: SMB1::Header, file_name: string%);
+event smb1_nt_create_andx_response%(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes%);
+
+

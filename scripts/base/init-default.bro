@@ -48,6 +48,7 @@
 @load base/protocols/modbus
 @load base/protocols/pop3
 @load base/protocols/radius
+@load base/protocols/smb
 @load base/protocols/snmp
 @load base/protocols/smtp
 @load base/protocols/socks

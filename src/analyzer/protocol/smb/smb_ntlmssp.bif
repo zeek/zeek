@@ -1,0 +1,64 @@
+## Generated for SMB/CIFS requests that contain a security blob with a GSSAPI NTLM message of type *negotiate*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## negotiate: The parsed data of the NTLM message. See init-bare for more details.
+##
+event smb_ntlm_negotiate%(c: connection, hdr: SMB1::Header, request: SMB::NTLMNegotiate%);
+
+## Generated for SMB/CIFS requests that contain a security blob with a GSSAPI NTLM message of type *challenge*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## negotiate: The parsed data of the NTLM message. See init-bare for more details.
+##
+event smb_ntlm_challenge%(c: connection, hdr: SMB1::Header, request: SMB::NTLMChallenge%);
+
+## Generated for SMB/CIFS requests that contain a security blob with a GSSAPI NTLM message of type *authenticate*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+## negotiate: The parsed data of the NTLM message. See init-bare for more details.
+##
+event smb_ntlm_authenticate%(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate%);
+
+## Generated for SMB/CIFS requests that contain a security blob with a GSSAPI message of type *accept-completed*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB message.
+##
+event smb_ntlm_accepted%(c: connection, hdr: SMB1::Header%);
+
+
+#### Types
+
+type SMB::NTLMNegotiate: record;
+type SMB::NTLMChallenge: record;
+type SMB::NTLMAuthenticate: record;
+
+type SMB::NTLMNegotiateFlags: record;
+type SMB::NTLMVersion: record;
+type SMB::NTLMAVs: record;

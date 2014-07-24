@@ -1,0 +1,4 @@
+event smb2_close_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID%);
+event smb2_close_response%(c: connection, hdr: SMB2::Header, response: SMB2::CloseResponse%);
+
+type SMB2::CloseResponse: record;

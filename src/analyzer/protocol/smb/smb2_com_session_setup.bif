@@ -1,0 +1,8 @@
+event smb2_session_setup_request%(c: connection, hdr: SMB2::Header, request: SMB2::SessionSetupRequest%);
+event smb2_session_setup_response%(c: connection, hdr: SMB2::Header, response: SMB2::SessionSetupResponse%);
+
+#### Types
+
+type SMB2::SessionSetupRequest: record;
+type SMB2::SessionSetupResponse: record;
+type SMB2::SessionSetupFlags: record;

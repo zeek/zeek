@@ -1,0 +1,5 @@
+## TODO
+event smb1_echo_request%(c: connection, data: string%);
+
+## TODO
+event smb1_echo_response%(c: connection, data: string%);

@@ -1,0 +1,9 @@
+## Generated for SMB/CIFS messages of type *tree disconnect*.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for
+## more information about the SMB/CIFS protocol. Bro's SMB/CIFS analyzer parses
+## both SMB-over-NetBIOS on ports 138/139 and SMB-over-TCP on port 445.
+##
+## c: The connection.
+event smb1_tree_disconnect%(c: connection, hdr: SMB1::Header, is_orig: bool%);
+

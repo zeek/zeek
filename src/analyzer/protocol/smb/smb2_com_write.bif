@@ -1,0 +1,12 @@
+## Generated for SMB2 request messages of type *write*.
+##
+## c: The connection.
+##
+## hdr: The parsed header of the SMB2 message.
+##
+## file_id: The GUID being used for the file.
+##
+## offset: How far into the file this write should be taking place.
+##
+## length: The number of bytes of the file being written.
+event smb2_write_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count%);

@@ -336,7 +336,7 @@ type SMB_read_andx_response = record {
 	byte_count	: uint16;
 	pad		: padding[padding_length];
 	data		: bytestring &length = data_length;
-	# Chris: the length here is causing problems - could we be having
+	# The length here is causing problems - could we be having
 	# issues with the packet format or is the data_length just not
 	# right. The problem is that the padding isn't always filled right,
 	# espeically when its not the first command in the packet.

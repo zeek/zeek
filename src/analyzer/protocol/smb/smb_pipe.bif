@@ -1,0 +1,6 @@
+## TODO
+event smb_atsvc_job_add%(c: connection, server: string, job: string%);
+
+## TODO
+event smb_atsvc_job_id%(c: connection, id: count, status: count%);
+

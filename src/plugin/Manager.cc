@@ -144,7 +144,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 		reporter->Error("plugin %s is not available", name.c_str());
 		return false;
-                }
+		}
 
 	if ( m->second == "" )
 		// Already activated.

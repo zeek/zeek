@@ -76,7 +76,7 @@ public:
 
 protected:
 	/**
-	 * Adds type specific information to the outout of Describe().
+	 * Adds type specific information to the output of Describe().
 	 *
 	 * The default version does nothing.
 	 *

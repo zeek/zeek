@@ -73,7 +73,7 @@ public:
 	void SearchDynamicPlugins(const std::string& dir);
 
 	/**
-	 * Activates a plugin that SearchPlugins() has previously discovered.
+	 * Activates a plugin that SearchDynamicPlugins() has previously discovered.
 	 * Activating a plugin involves loading its dynamic module, making its
 	 * bifs available, and adding its script paths to BROPATH.
 	 *
@@ -86,8 +86,8 @@ public:
 	bool ActivateDynamicPlugin(const std::string& name);
 
 	/**
-	 * Activates plugins that SearchPlugins() has previously discovered. The
-	 * effect is the same all calling \a ActivePlugin(name) for each plugin.
+	 * Activates plugins that SearchDynamicPlugins() has previously discovered.
+	 * The effect is the same all calling \a ActivePlugin(name) for each plugin.
 	 *
 	 * @param all If true, activates all plugins that are found. If false,
 	 * activates only those that should always be activated unconditionally,
@@ -218,7 +218,7 @@ public:
 	// Hook entry functions.
 
 	/**
-	 * Hook that gives plugins a chance to take over loading an input input
+	 * Hook that gives plugins a chance to take over loading an input
 	 * file. This method must be called between InitPreScript() and
 	 * InitPostScript() for each input file Bro is about to load, either
 	 * given on the command line or via @load script directives. The hook can
@@ -288,7 +288,7 @@ public:
 	 * Internal method that registers a bif file's init function for a
 	 * plugin.
 	 *
-	 * @param plugin The plugin to reguster the function for.
+	 * @param plugin The plugin to register the function for.
 	 *
 	 * @param c The init function to register.
 	 */

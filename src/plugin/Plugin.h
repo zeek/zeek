@@ -302,7 +302,7 @@ typedef std::list<HookArgument> HookArgumentList;
  *
  * A plugin needs to explicitly register all the functionality it provides.
  * For components, it needs to call AddComponent(); for BiFs AddBifItem();
- * and for hooks EnableHook() and then also implemennt the corresponding
+ * and for hooks EnableHook() and then also implement the corresponding
  * virtual methods.
  *
  */
@@ -346,7 +346,7 @@ public:
 
 	/**
 	 * For dynamic plugins, returns the base directory from which it was
-	 * loaded. For static plugins, returns null.
+	 * loaded. For static plugins, returns an empty string.
 	 **/
 	const std::string& PluginDirectory() const;
 
@@ -376,40 +376,6 @@ public:
 	 * must be called only after InitBif() has been executed.
 	 */
 	bif_item_list BifItems() const;
-
-	/**
-	 * A function called when the plugin is instantiated to query basic
-	 * configuration parameters.
-	 *
-	 * The plugin must override this method and return a suitably
-	 * initialized configuration object.
-	 *
-	 * @return A configuration describing the plugin.
-	 */
-	virtual Configuration Configure() = 0;
-
-	/**
-	 * First-stage initialization of the plugin called early during Bro's
-	 * startup, before scripts are parsed. This can be overridden by
-	 * derived classes; they must however call the parent's
-	 * implementation.
-	 */
-	virtual void InitPreScript();
-
-	/**
-	 * Second-stage initialization of the plugin called late during Bro's
-	 * startup, after scripts are parsed. This can be overridden by
-	 * derived classes; they must however call the parent's
-	 * implementation.
-	 */
-	virtual void InitPostScript();
-
-	/**
-	 * Finalizer method that derived classes can override for performing
-	 * custom tasks at shutdown.  This can be overridden by derived
-	 * classes; they must however call the parent's implementation.
-	 */
-	virtual void Done();
 
 	/**
 	 * Returns a textual description of the plugin.
@@ -445,7 +411,7 @@ public:
 	 * will normally be a Bro script, but it passes through the plugin
 	 * system as well to load files with other extensions as supported by
 	 * any of the current plugins. In other words, calling this method is
-	 * similar to given a file on the command line. Note that the file
+	 * similar to giving a file on the command line. Note that the file
 	 * may be only queued for now, and actually loaded later.
 	 *
 	 * This method must not be called after InitPostScript().
@@ -462,6 +428,29 @@ protected:
 	friend class Manager;
 
 	/**
+	 * First-stage initialization of the plugin called early during Bro's
+	 * startup, before scripts are parsed. This can be overridden by
+	 * derived classes; they must however call the parent's
+	 * implementation.
+	 */
+	virtual void InitPreScript();
+
+	/**
+	 * Second-stage initialization of the plugin called late during Bro's
+	 * startup, after scripts are parsed. This can be overridden by
+	 * derived classes; they must however call the parent's
+	 * implementation.
+	 */
+	virtual void InitPostScript();
+
+	/**
+	 * Finalizer method that derived classes can override for performing
+	 * custom tasks at shutdown.  This can be overridden by derived
+	 * classes; they must however call the parent's implementation.
+	 */
+	virtual void Done();
+
+	/**
 	 * Registers and activates a component.
 	 *
 	 * @param c The component. The method takes ownership.
@@ -471,7 +460,7 @@ protected:
 	/**
 	 * Enables a hook. The corresponding virtual method will now be
 	 * called as Bro's processing proceeds. Note that enabling hooks can
-	 * have performance impaxct as many trigger frequently inside Bro's
+	 * have performance impact as many trigger frequently inside Bro's
 	 * main processing path.
 	 *
 	 * Note that while hooks may be enabled/disabled dynamically at any
@@ -557,16 +546,16 @@ protected:
 	 * from executing it). In the latter case it must provide a matching
 	 * return value.
 	 *
-	 * The default implementation does never handle the call in any way.
+	 * The default implementation never handles the call in any way.
 	 *
 	 * @param func The function being called.
 	 *
 	 * @param args The function arguments. The method can modify the list
-	 * in place long as it ensures matching types and correct reference
+	 * in place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
 	 * @return If the plugin handled the call, a Val with +1 reference
-	 * count containomg the result value to pass back to the interpreter
+	 * count containixnmg the result value to pass back to the interpreter
 	 * (for void functions and events any \a Val is fine; it will be
 	 * ignored; best to use a \c TYPE_ANY). If the plugin did not handle
 	 * the call, it must return null.
@@ -581,15 +570,14 @@ protected:
 	 * inspect the event, or take it over (i.e., prevent the interpreter
 	 * from queuing it itself).
 	 *
-	 * The default implementation does never handle the queuing in any
-	 * way.
+	 * The default implementation never handles the queuing in any way.
 	 *
-	 * @param event The even to be queued. The method can modify it in in
-	 * place long as it ensures matching types and correct reference
+	 * @param event The event to be queued. The method can modify it in
+	 * place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
 	 * @return True if the plugin took charge of the event; in that case
-	 * it must have assumed ownership of the event and the intpreter will
+	 * it must have assumed ownership of the event and the interpreter will
 	 * not do anything further with it. False otherwise.
 	 */
 	virtual bool HookQueueEvent(Event* event);
@@ -609,7 +597,7 @@ protected:
 	virtual void HookUpdateNetworkTime(double network_time);
 
 	/**
-	 * Hook for destruction of objects registerd with
+	 * Hook for destruction of objects registered with
 	 * RequestBroObjDtor(). When Bro's reference counting triggers the
 	 * objects destructor to run, this method will be run. It may also
 	 * run for other objects that this plugin has not registered for.
@@ -652,6 +640,18 @@ protected:
 	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
 
 private:
+
+	/**
+	 * A function called when the plugin is instantiated to query basic
+	 * configuration parameters.
+	 *
+	 * The plugin must override this method and return a suitably
+	 * initialized configuration object.
+	 *
+	 * @return A configuration describing the plugin.
+	 */
+	virtual Configuration Configure() = 0;
+
 	/**
 	 * Intializes the plugin's internal configuration. Called by the
 	 * manager before anything else.

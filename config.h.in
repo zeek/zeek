@@ -209,3 +209,14 @@
 
 /* Common IPv6 extension structure */
 #cmakedefine HAVE_IP6_EXT
+
+/* String with host architecture (e.g., "linux-x86_64") */
+#define HOST_ARCHITECTURE "@HOST_ARCHITECTURE@"
+
+/* String with extension of dynamic libraries (e.g., ".so") */
+#define DYNAMIC_PLUGIN_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@"
+
+/* True if we're building outside of the main Bro source code tree. */
+#ifndef BRO_PLUGIN_INTERNAL_BUILD
+#define BRO_PLUGIN_INTERNAL_BUILD @BRO_PLUGIN_INTERNAL_BUILD@
+#endif

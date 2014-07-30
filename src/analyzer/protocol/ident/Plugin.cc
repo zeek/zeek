@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "Ident.h"
 
-BRO_PLUGIN_BEGIN(Bro, Ident)
-	BRO_PLUGIN_DESCRIPTION("Ident analyzer");
-	BRO_PLUGIN_ANALYZER("Ident", ident::Ident_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_Ident {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("Ident", ::analyzer::ident::Ident_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::Ident";
+		config.description = "Ident analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

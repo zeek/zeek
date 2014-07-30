@@ -29,6 +29,7 @@
 #include "Anon.h"
 #include "Serializer.h"
 #include "PacketDumper.h"
+#include "plugin/Manager.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -141,13 +142,17 @@ RETSIGTYPE watchdog(int /* signo */)
 	return RETSIGVAL;
 	}
 
+void net_update_time(double new_network_time)
+	{
+	network_time = new_network_time;
+	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
+	}
+
 void net_init(name_list& interfaces, name_list& readfiles,
 	      name_list& netflows, name_list& flowfiles,
 	        const char* writefile, const char* filter,
 			const char* secondary_filter, int do_watchdog)
 	{
-	init_net_var();
-
 	if ( readfiles.length() > 0 || flowfiles.length() > 0 )
 		{
 		reading_live = pseudo_realtime > 0.0;
@@ -315,7 +320,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 	TimerMgr* tmgr = sessions->LookupTimerMgr(src_ps->GetCurrentTag());
 
 	// network_time never goes back.
-	network_time = tmgr->Time() < t ? t : tmgr->Time();
+	net_update_time(tmgr->Time() < t ? t : tmgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;
@@ -395,7 +400,7 @@ void net_run()
 				{
 				// Take advantage of the lull to get up to
 				// date on timers and events.
-				network_time = ct;
+				net_update_time(ct);
 				expire_timers();
 				usleep(1); // Just yield.
 				}
@@ -408,7 +413,7 @@ void net_run()
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			network_time = current_time();
+			net_update_time(current_time());
 			expire_timers();
 
 			// Avoid busy-waiting - pause for 100 ms.

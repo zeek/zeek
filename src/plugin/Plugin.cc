@@ -1,3 +1,5 @@
+// See the file  in the main distribution directory for copyright.
+
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <cassert>
@@ -7,18 +9,46 @@
 #include "Component.h"
 
 #include "../Desc.h"
+#include "../Event.h"
 
 using namespace plugin;
 
+const char* plugin::hook_name(HookType h)
+{
+	static const char* hook_names[int(NUM_HOOKS) + 1] = {
+		// Order must match that of HookType.
+		"LoadFile",
+		"CallFunction",
+		"QueueEvent",
+		"DrainEvents",
+		"UpdateNetworkTime",
+		"BroObjDtor",
+		// MetaHooks
+		"MetaHookPre",
+		"MetaHookPost",
+		// End marker.
+		"<end>",
+	};
+
+	return hook_names[int(h)];
+	}
+
+Configuration::Configuration()
+	{
+	name = "";
+	description = "";
+	api_version = BRO_PLUGIN_API_VERSION;
+	}
+
 BifItem::BifItem(const std::string& arg_id, Type arg_type)
 	{
-	id = copy_string(arg_id.c_str());
+	id = arg_id;
 	type = arg_type;
 	}
 
 BifItem::BifItem(const BifItem& other)
 	{
-	id = copy_string(other.id);
+	id = other.id;
 	type = other.type;
 	}
 
@@ -26,7 +56,7 @@ BifItem& BifItem::operator=(const BifItem& other)
 	{
 	if ( this != &other )
 		{
-		id = copy_string(other.id);
+		id = other.id;
 		type = other.type;
 		}
 
@@ -35,63 +65,109 @@ BifItem& BifItem::operator=(const BifItem& other)
 
 BifItem::~BifItem()
 	{
-	delete [] id;
+	}
+
+void HookArgument::Describe(ODesc* d) const
+	{
+	switch ( type ) {
+	case BOOL:
+		d->Add(arg.bool_ ? "true" : "false");
+		break;
+
+	case DOUBLE:
+		d->Add(arg.double_);
+		break;
+
+	case EVENT:
+		if ( arg.event )
+			{
+			d->Add(arg.event->Handler()->Name());
+			d->Add("(");
+			describe_vals(arg.event->Args(), d);
+			d->Add(")");
+			}
+		else
+			d->Add("<null>");
+		break;
+
+	case FUNC:
+		if ( arg.func )
+			d->Add(arg.func->Name());
+		else
+			d->Add("<null>");
+		break;
+
+	case INT:
+		d->Add(arg.int_);
+		break;
+
+	case STRING:
+		d->Add(arg_string);
+		break;
+
+	case VAL:
+		if ( arg.val )
+			arg.val->Describe(d);
+
+		else
+			d->Add("<null>");
+		break;
+
+	case VAL_LIST:
+		if ( arg.vals )
+			{
+			d->Add("(");
+			describe_vals(arg.vals, d);
+			d->Add(")");
+			}
+		else
+			d->Add("<null>");
+		break;
+
+	case VOID:
+		d->Add("<void>");
+		break;
+
+	case VOIDP:
+		d->Add("<void ptr>");
+		break;
+	}
 	}
 
 Plugin::Plugin()
 	{
-	name = copy_string("<NAME-NOT-SET>");
-	description = copy_string("");
-
-	// These will be reset by the BRO_PLUGIN_* macros.
-	version = -9999;
-	api_version = -9999;
 	dynamic = false;
-
 	Manager::RegisterPlugin(this);
 	}
 
 Plugin::~Plugin()
 	{
 	Done();
-
-	delete [] name;
-	delete [] description;
 	}
 
-const char* Plugin::Name() const
+void Plugin::DoConfigure()
 	{
-	return name;
+	config = Configure();
 	}
 
-void Plugin::SetName(const char* arg_name)
+const std::string& Plugin::Name() const
 	{
-	name = copy_string(arg_name);
+	return config.name;
 	}
 
-const char* Plugin::Description() const
+const std::string& Plugin::Description() const
 	{
-	return description;
+	return config.description;
 	}
 
-void Plugin::SetDescription(const char* arg_description)
+VersionNumber Plugin::Version() const
 	{
-	description = copy_string(arg_description);
-	}
-
-int Plugin::Version() const
-	{
-	return dynamic ? version : 0;
-	}
-
-void Plugin::SetVersion(int arg_version)
-	{
-	version = arg_version;
+	return config.version;
 	}
 
 int Plugin::APIVersion() const
 	{
-	return api_version;
+	return config.api_version;
 	}
 
 bool Plugin::DynamicPlugin() const
@@ -99,14 +175,25 @@ bool Plugin::DynamicPlugin() const
 	return dynamic;
 	}
 
-void Plugin::SetAPIVersion(int arg_version)
+const std::string& Plugin::PluginDirectory() const
 	{
-	api_version = arg_version;
+	return base_dir;
 	}
 
-void Plugin::SetDynamicPlugin(bool arg_dynamic)
+const std::string& Plugin::PluginPath() const
 	{
-	dynamic = arg_dynamic;
+	return sopath;
+	}
+
+void Plugin::SetPluginLocation(const std::string& arg_dir, const std::string& arg_sopath)
+	{
+	base_dir = arg_dir;
+	sopath = arg_sopath;
+	}
+
+void Plugin::SetDynamic(bool is_dynamic)
+	{
+	dynamic = is_dynamic;
 	}
 
 void Plugin::InitPreScript()
@@ -115,32 +202,11 @@ void Plugin::InitPreScript()
 
 void Plugin::InitPostScript()
 	{
-	for ( bif_init_func_list::const_iterator f = bif_inits.begin(); f != bif_inits.end(); f++ )
-		{
-		bif_init_func_result items = (**f)();
-
-		for ( bif_init_func_result::const_iterator i = items.begin(); i != items.end(); i++ )
-			{
-			BifItem bi((*i).first, (BifItem::Type)(*i).second);
-			bif_items.push_back(bi);
-			}
-		}
 	}
 
 Plugin::bif_item_list Plugin::BifItems() const
 	{
-	bif_item_list l1 = bif_items;
-	bif_item_list l2 = CustomBifItems();
-
-	for ( bif_item_list::const_iterator i = l2.begin(); i != l2.end(); i++ )
-		l1.push_back(*i);
-
-	return l1;
-	}
-
-Plugin::bif_item_list Plugin::CustomBifItems() const
-	{
-	return bif_item_list();
+    return bif_items;
 	}
 
 void Plugin::Done()
@@ -161,6 +227,18 @@ static bool component_cmp(const Component* a, const Component* b)
 	return a->Name() < b->Name();
 	}
 
+bool Plugin::LoadBroFile(const std::string& file)
+	{
+	::add_input_file(file.c_str());
+	return true;
+	}
+
+void Plugin::AddBifItem(const std::string& name, BifItem::Type type)
+	{
+	BifItem bi(name, (BifItem::Type)type);
+	bif_items.push_back(bi);
+	}
+
 void Plugin::AddComponent(Component* c)
 	{
 	components.push_back(c);
@@ -170,32 +248,90 @@ void Plugin::AddComponent(Component* c)
 	components.sort(component_cmp);
 	}
 
-void Plugin::AddBifInitFunction(bif_init_func c)
+Plugin::hook_list Plugin::EnabledHooks() const
 	{
-	bif_inits.push_back(c);
+	return plugin_mgr->HooksEnabledForPlugin(this);
+	}
+
+void Plugin::EnableHook(HookType hook, int priority)
+	{
+	plugin_mgr->EnableHook(hook, this, priority);
+	}
+
+void Plugin::DisableHook(HookType hook)
+	{
+	plugin_mgr->DisableHook(hook, this);
+	}
+
+void Plugin::RequestEvent(EventHandlerPtr handler)
+	{
+	plugin_mgr->RequestEvent(handler, this);
+	}
+
+void Plugin::RequestBroObjDtor(BroObj* obj)
+	{
+	plugin_mgr->RequestBroObjDtor(obj, this);
+	}
+
+int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
+	{
+	return -1;
+	}
+
+Val* Plugin::HookCallFunction(const Func* func, val_list* args)
+	{
+	return 0;
+	}
+
+bool Plugin::HookQueueEvent(Event* event)
+	{
+	return false;
+	}
+
+void Plugin::HookDrainEvents()
+	{
+	}
+
+void Plugin::HookUpdateNetworkTime(double network_time)
+	{
+	}
+
+void Plugin::HookBroObjDtor(void* obj)
+	{
+	}
+
+void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
+	{
+	}
+
+void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result)
+	{
 	}
 
 void Plugin::Describe(ODesc* d) const
 	{
-	d->Add("Plugin: ");
-	d->Add(name);
+	d->Add(config.name);
 
-	if ( description && *description )
+	if ( config.description.size() )
 		{
 		d->Add(" - ");
-		d->Add(description);
+		d->Add(config.description);
 		}
 
 	if ( dynamic )
 		{
-		if ( version > 0 )
+		d->Add(" (dynamic, ");
+
+		if ( config.version )
 			{
-			d->Add(" (version ");
-			d->Add(version);
+			d->Add("version ");
+			d->Add(config.version.major);
+			d->Add(".");
+			d->Add(config.version.minor);
 			d->Add(")");
 			}
 		else
-			d->Add(" (version not set)");
+			d->Add("no version information)");
 		}
 
 	else
@@ -250,6 +386,19 @@ void Plugin::Describe(ODesc* d) const
 		d->Add((*i).GetID());
 		d->Add("\n");
 		}
-	}
 
+	hook_list hooks = EnabledHooks();
+
+	for ( hook_list::iterator i = hooks.begin(); i != hooks.end(); i++ )
+		{
+		HookType hook = (*i).first;
+		int prio = (*i).second;
+
+		d->Add("    Implements ");
+		d->Add(hook_name(hook));
+		d->Add(" (priority ");
+		d->Add(prio);
+		d->Add(")\n");
+		}
+	}
 

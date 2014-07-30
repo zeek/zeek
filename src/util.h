@@ -170,7 +170,16 @@ extern bool ensure_intermediate_dirs(const char* dirname);
 extern bool ensure_dir(const char *dirname);
 
 // Returns true if path exists and is a directory.
-bool is_dir(const char* path);
+bool is_dir(const std::string& path);
+
+// Returns true if path exists and is a file.
+bool is_file(const std::string& path);
+
+// Replaces all occurences of *o* in *s* with *n*.
+extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
+
+// Remove all leading and trainling white space from string.
+extern std::string strstrip(std::string s);
 
 extern uint8 shared_hmac_md5_key[16];
 
@@ -229,9 +238,14 @@ extern int int_list_cmp(const void* v1, const void* v2);
 // when a package is loaded (i.e., "__load__.bro).
 extern const char* PACKAGE_LOADER;
 
-extern const char* bro_path();
+extern const std::string& bro_path();
 extern const char* bro_magic_path();
+extern const char* bro_plugin_path();
+extern const char* bro_plugin_activate();
 extern std::string bro_prefixes();
+
+extern void add_to_bro_path(const std::string& dir);
+
 
 /**
  * Wrapper class for functions like dirname(3) or basename(3) that won't
@@ -505,6 +519,6 @@ struct CompareString
  * @param name The string to canonicalize.
  * @return The canonicalized version of \a name which caller may later delete[].
  */
-const char* canonify_name(const char* name);
+std::string canonify_name(const std::string& name);
 
 #endif

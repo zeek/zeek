@@ -49,7 +49,7 @@ public:
 	virtual void Done();
 	void StatTimer(double t, int is_expire);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new InterConn_Analyzer(conn); }
 
 protected:

@@ -1,11 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "NCP.h"
 
-BRO_PLUGIN_BEGIN(Bro, NCP)
-	BRO_PLUGIN_DESCRIPTION("NCP analyzer");
-	BRO_PLUGIN_ANALYZER("NCP", ncp::NCP_Analyzer);
-	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_NCP");
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_NCP {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("NCP", ::analyzer::ncp::NCP_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("Contents_NCP", 0));
+
+		plugin::Configuration config;
+		config.name = "Bro::NCP";
+		config.description = "NCP analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

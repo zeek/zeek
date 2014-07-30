@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "SOCKS.h"
 
-BRO_PLUGIN_BEGIN(Bro, SOCKS)
-	BRO_PLUGIN_DESCRIPTION("SOCKS analyzer");
-	BRO_PLUGIN_ANALYZER("SOCKS", socks::SOCKS_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_SOCKS {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("SOCKS", ::analyzer::socks::SOCKS_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::SOCKS";
+		config.description = "SOCKS analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

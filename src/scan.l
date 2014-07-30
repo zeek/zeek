@@ -30,6 +30,8 @@
 #include "analyzer/Analyzer.h"
 #include "broxygen/Manager.h"
 
+#include "plugin/Manager.h"
+
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern EnumType* cur_enum_type;
 
@@ -315,6 +317,11 @@ when	return TOK_WHEN;
 		sig_files.push_back(copy_string(path.c_str()));
 	}
 
+@load-plugin{WS}{ID} {
+	const char* plugin = skip_whitespace(yytext + 12);
+    plugin_mgr->ActivateDynamicPlugin(plugin);
+}
+
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
@@ -501,6 +508,24 @@ static bool already_scanned(const string& path)
 
 static int load_files(const char* orig_file)
 	{
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(orig_file), -1);
+
+	if ( rc == 1 )
+		return 0; // A plugin took care of it, just skip.
+
+	if ( rc == 0 )
+		{
+		if ( ! reporter->Errors() )
+			// This is just in case the plugin failed to report
+			// the error itself, in which case we want to at
+			// least tell the user that something went wrong.
+			reporter->Error("Plugin reported error loading %s", orig_file);
+
+		exit(1);
+		}
+
+	assert(rc == -1); // No plugin in charge of this file.
+
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned.
 	bool did_module_restore = false;
@@ -680,6 +705,17 @@ void add_input_file(const char* file)
 		(void) load_files(file);
 	else
 		input_files.append(copy_string(file));
+	}
+
+void add_input_file_at_front(const char* file)
+	{
+	if ( ! file )
+		reporter->InternalError("empty filename");
+
+	if ( ! filename )
+		(void) load_files(file);
+	else
+        	input_files.insert(copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)

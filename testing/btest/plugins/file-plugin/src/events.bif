@@ -1,0 +1,2 @@
+
+event foo_piece%(f: fa_file, data: string%);

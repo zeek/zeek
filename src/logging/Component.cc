@@ -2,7 +2,6 @@
 
 #include "Component.h"
 #include "Manager.h"
-
 #include "../Desc.h"
 #include "../util.h"
 
@@ -25,5 +24,3 @@ void Component::DoDescribe(ODesc* d) const
 	d->Add("Log::WRITER_");
 	d->Add(CanonicalName());
 	}
-
-

@@ -57,4 +57,4 @@ function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	return Log::run_rotation_postprocessor_cmd(info, dst);
 	}
 
-# redef Log::default_rotation_postprocessors += { [Log::WRITER_DATASERIES] = default_rotation_postprocessor_func };
+redef Log::default_rotation_postprocessors += { [Log::WRITER_DATASERIES] = default_rotation_postprocessor_func };

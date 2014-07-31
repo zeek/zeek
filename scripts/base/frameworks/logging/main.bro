@@ -6,9 +6,9 @@
 module Log;
 
 export {
-	## Type that defines a ID unique for each log stream. Scripts creating new log
+	## Type that defines an ID unique to each log stream. Scripts creating new log
 	## streams need to redef this enum to add their own specific log ID. The log ID
-	## implicitly determines the default name of the generated log file.  
+	## implicitly determines the default name of the generated log file.
 	type Log::ID: enum {
 		## Dummy place-holder.
 		UNKNOWN
@@ -33,13 +33,13 @@ export {
 	const set_separator = "," &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output unambiguous. 
+	## *unset_field* to make the output unambiguous.
 	## Can be overwritten by individual writers.
 	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
 	## Can be overwritten by individual writers.
-	const unset_field = "-" &redef;	
+	const unset_field = "-" &redef;
 
 	## Type defining the content of a logging stream.
 	type Stream: record {

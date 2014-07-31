@@ -1476,9 +1476,9 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		}
 	else
 		{
-		// We allow double-definitions if matching exactly. This is
-		// so that we can define an enum both in a *.bif and *.bro to
-		// avoid cyclic dependencies.
+		// We allow double-definitions if matching exactly. This is so that
+		// we can define an enum both in a *.bif and *.bro for avoiding
+		// cyclic dependencies.
 		if ( id->Name() != make_full_var_name(module_name.c_str(), name)
 		     || (id->HasVal() && val != id->ID_Val()->AsEnum()) )
 			{

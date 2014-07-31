@@ -33,13 +33,6 @@ const char* plugin::hook_name(HookType h)
 	return hook_names[int(h)];
 	}
 
-Configuration::Configuration()
-	{
-	name = "";
-	description = "";
-	api_version = BRO_PLUGIN_API_VERSION;
-	}
-
 BifItem::BifItem(const std::string& arg_id, Type arg_type)
 	{
 	id = arg_id;

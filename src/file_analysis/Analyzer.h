@@ -31,13 +31,13 @@ public:
 	 * Initializes the analyzer before input processing starts.
 	 */
 	virtual void Init()
-		{ };
+		{ }
 
 	/**
 	 * Finishes the analyzer's operation after all input has been parsed.
 	 */
 	virtual void Done()
-		{ };
+		{ }
 
 	/**
 	 * Subclasses may override this metod to receive file data non-sequentially.

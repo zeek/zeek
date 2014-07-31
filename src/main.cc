@@ -933,9 +933,6 @@ int main(int argc, char** argv)
 		}
 
 	reporter->InitOptions();
-
-	init_general_global_var();
-
 	broxygen_mgr->GenerateDocs();
 
 	if ( user_pcap_filter )

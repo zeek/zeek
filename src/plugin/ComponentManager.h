@@ -166,7 +166,7 @@ EnumType* ComponentManager<T, C>::GetTagEnumType() const
 template <class T, class C>
 const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	{
-	static const std::string& error = "<error>";
+	static const std::string error = "<error>";
 
 	if ( ! tag )
 		return error;

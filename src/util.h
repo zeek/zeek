@@ -178,7 +178,7 @@ bool is_file(const std::string& path);
 // Replaces all occurences of *o* in *s* with *n*.
 extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
 
-// Remove all leading and trainling white space from string.
+// Remove all leading and trailing white space from string.
 extern std::string strstrip(std::string s);
 
 extern uint8 shared_hmac_md5_key[16];

@@ -150,8 +150,8 @@ export {
 	##          for the file isn't currently active or the *args*
 	##          were invalid for the analyzer type.
 	global add_analyzer: function(f: fa_file,
-				      tag: Files::Tag,
-				      args: AnalyzerArgs &default=AnalyzerArgs()): bool;
+	                              tag: Files::Tag,
+	                              args: AnalyzerArgs &default=AnalyzerArgs()): bool;
 
 	## Adds all analyzers associated with a give MIME type to the analysis of
 	## a file.  Note that analyzers added via MIME types cannot take further
@@ -248,13 +248,13 @@ export {
 
 	## Registers a MIME type for an analyzer. If a future file with this type is seen,
 	## the analyzer will be automatically assigned to parsing it. The function *adds*
-	## to all MIME types already registered, it doesn't replace them.   
+	## to all MIME types already registered, it doesn't replace them.
 	##
 	## tag: The tag of the analyzer.
 	##
 	## mt: The MIME type in the form "foo/bar" (case-insensitive).
 	##
-	## Returns: True if the MIME type was successfully registered.  
+	## Returns: True if the MIME type was successfully registered.
 	global register_for_mime_type: function(tag: Analyzer::Tag, mt: string) : bool;
 
 	## Returns a set of all MIME types currently registered for a specific analyzer.

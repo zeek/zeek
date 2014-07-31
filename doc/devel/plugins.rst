@@ -73,7 +73,7 @@ there as follows::
             *p  = (*p - b + 13) % 26 + b;
             }
 
-        return new StringVal(strlen(rot13), rot13);
+        return new StringVal(new BroString(1, rot13, strlen(rot13)));
         %}
 
 The syntax of this file is just like any other ``*.bif`` file; we
@@ -200,7 +200,7 @@ directory.
     activated. See below for more information on activating plugins.
 
 ``lib/bif/``
-    Directory with auto-generated Bro scripts that declare the plugins
+    Directory with auto-generated Bro scripts that declare the plugin's
     bif elements. The files here are produced by ``bifcl``.
 
 By convention, a plugin should put its custom scripts into sub folders
@@ -229,9 +229,9 @@ install``).
 ``make install`` copies over the ``lib`` and ``scripts`` directories,
 as well as the ``__bro_plugin__`` magic file and the ``README`` (which
 you should customize). One can add further CMake ``install`` rules to
-install additional files if neeed.
+install additional files if needed.
 
-``init-plugin`` will never override existing files, so it's safe to
+``init-plugin`` will never overwrite existing files, so it's safe to
 rerun in an existing plugin directory; it only put files in place that
 don't exist yet. That also provides a convenient way to revert a file
 back to what ``init-plugin`` created originally: just delete it and
@@ -420,7 +420,7 @@ At runtime, one then activates a plugin's debugging output with ``-B
 plugin-<name>``, where ``<name>`` is the name of the plugin as
 returned by its ``Configure()`` method, yet with the
 namespace-separator ``::`` replaced with a simple dash. Example: If
-the plugin is called ``Bro::Demo``, use ``-B plugin-Bro-Dome``. As
+the plugin is called ``Bro::Demo``, use ``-B plugin-Bro-Demo``. As
 usual, the debugging output will be recorded to ``debug.log`` if Bro's
 compiled in debug mode.
 

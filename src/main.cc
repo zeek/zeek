@@ -927,6 +927,7 @@ int main(int argc, char** argv)
 
 	init_general_global_var();
 	init_net_var();
+	init_builtin_funcs_subdirs();
 
 	plugin_mgr->InitBifs();
 

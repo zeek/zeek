@@ -1,4 +1,13 @@
 
+2.3-86 | 2014-07-31 14:19:58 -0700
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+    
+  * Adding missing check that a plugin's API version matches what Bro
+    defines. (Robin Sommer)
+
+  * Adding NEWS entry for plugins. (Robin Sommer)
+
 2.3-83 | 2014-07-30 16:26:11 -0500
 
   * Minor adjustments to plugin code/docs. (Jon Siwek)

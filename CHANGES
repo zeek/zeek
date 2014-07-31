@@ -1,71 +1,69 @@
 
+2.3-86 | 2014-07-31 14:19:58 -0700
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+    
+  * Adding missing check that a plugin's API version matches what Bro
+    defines. (Robin Sommer)
+
+  * Adding NEWS entry for plugins. (Robin Sommer)
+
 2.3-83 | 2014-07-30 16:26:11 -0500
 
   * Minor adjustments to plugin code/docs. (Jon Siwek)
 
-  * Dynamic plugin support. (Robin Sommer)
+  * Dynamic plugin support. (Rpbin Sommer)
 
-    - An overview of main functionality is in doc/devel/plugins.rst.
+    Bro now supports extending core functionality, like protocol and
+    file analysis, dynamically with external plugins in the form of
+    shared libraries. See doc/devel/plugins.rst for an overview of the
+    main functionality. Changes coming with this:
 
-    - This removes the old Plugin macro magic, and hence touches all the
-      existing analyzers to move them to the new API.
+        - Replacing the old Plugin macro magic with a new API.
+          
+        - The plugin API changed to generally use std::strings instead
+          of const char*.
 
-    - The plugin API changed to generally use std::strings instead of
-      const char*.
+        - There are a number of invocations of PLUGIN_HOOK_
+          {VOID,WITH_RESULT} across the code base, which allow plugins
+          to hook into the processing at those locations.
 
-    - There are a number of invocations of PLUGIN_HOOK_
-      {VOID,WITH_RESULT} across the code base, which allow plugins to
-      hook into the processing at those locations. These are macros to
-      make sure the overhead remains as low as possible when no plugin
-      actually defines a hook (i.e., the normal case). See
-      src/plugin/Manager.h for the macros' definition.
+        - A few new accessor methods to various classes to allow
+          plugins to get to that information.
 
-    - There's one hook which could be potentially expensive: plugins can
-      be notified if a BroObj they are interested in gets destroyed. But
-      I didn't see a performance impact in my tests (with no such hook
-      defined), and the memory usage doesn't change due to field
-      alignment.
+        - network_time cannot be just assigned to anymore, there's now
+          function net_update_time() for that.
 
-    - Adds a few new accessor methods to various classes to allow
-      plugins to get to that information.
+        - Redoing how builtin variables are initialized, so that it
+          works for plugins as well. No more init_net_var(), but
+          instead bifcl-generated code that registers them.
 
-    - network_time cannot be just assigned to anymore, there's now
-      function net_update_time() for that.
-
-    - Redos how builtin variables are initialized, so that it
-      works for plugins as well. No more init_net_var(), but instead
-      bifcl-generated code that registers them.
+        - Various changes for adjusting to the now dynamic generation
+          of analyzer instances.
 
     - same_type() gets an optional extra argument allowing record type
-      comparision to ignore if field names don't match.
+      comparision to ignore if field names don't match. (Robin Sommer)
 
-    - There are various changes for adjusting to the now dynamic
-      generation of analyzer instances.
+    - Further unify file analysis API with the protocol analyzer API
+      (assigning IDs to analyzers; adding Init()/Done() methods;
+      adding subtypes). (Robin Sommer)
 
-    - The file analysis API gets unified further with the protocol
-      analyzer API (assigning IDs to analyzers; adding Init()/Done()
-      methods; adding subtypes).
+    - A new command line option -Q that prints some basic execution
+      time stats. (Robin Sommer)
 
-    - Adding a new command line option -Q that prints some basic
-      execution time stats. Seems generally useful, and I'm planing
-      to provide a plugin hook for measuring custom stuff.
+    - Add support to the file analysis for activating analyzers by
+      MIME type. (Robin Sommer)
 
-    - I'm not yet happy with the current conventions for the C++
-      namespaces that plugins are in. I'm planing to clean that up later
-      though, as I have some more branches relying on the current scheme
-      and it will be easier to clean things up once everything is in.
+          - File::register_for_mime_type(tag: Analyzer::Tag, mt:
+            string): Associates a file analyzer with a MIME type.
 
-    - There's a new piece of functionality for the file analysis
-      framework: activate analyzers by MIME type. Pieces going in there:
+          - File::add_analyzers_for_mime_type(f: fa_file, mtype:
+            string): Activates all analyzers registered for a MIME
+            type for the file.
 
-      - File::register_for_mime_type(tag: Analyzer::Tag, mt: string):
-        Associates a file analyzer with a MIME type.
-
-      - File::add_analyzers_for_mime_type(f: fa_file, mtype: string):
-        Activates all analyzers registered for a MIME type for the file.
-
-      - The default file_new() handler calls
-        File::add_analyzers_for_mime_type() with the file's MIME type.
+          - The default file_new() handler calls
+            File::add_analyzers_for_mime_type() with the file's MIME
+            type.
 
 2.3-20 | 2014-07-22 17:41:02 -0700
 

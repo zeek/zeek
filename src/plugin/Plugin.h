@@ -10,7 +10,10 @@
 #include "analyzer/Component.h"
 #include "file_analysis/Component.h"
 
-static const int BRO_PLUGIN_API_VERSION = 2;
+// We allow to override this externally for testing purposes.
+#ifndef BRO_PLUGIN_API_VERSION
+#define BRO_PLUGIN_API_VERSION 2
+#endif
 
 class ODesc;
 class Func;
@@ -75,12 +78,22 @@ public:
 	std::string description;	//< A short textual description of the plugin. Mandatory.
 	VersionNumber version;		//< THe plugin's version. Optional.
 
-	Configuration();
+	// We force this to inline so that the API version gets hardcoded
+	// into the external plugin. (Technically, it's not a "force", just a
+	// strong hint.). The attribute seems generally available.
+	inline Configuration() __attribute__((always_inline));
 
 private:
 	friend class Plugin;
 	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
 };
+
+inline Configuration::Configuration()
+		{
+		name = "";
+		description = "";
+		api_version = BRO_PLUGIN_API_VERSION;
+		}
 
 /**
  * A class describing an item defined in \c *.bif file.

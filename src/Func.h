@@ -134,6 +134,7 @@ protected:
 
 extern void builtin_error(const char* msg, BroObj* arg = 0);
 extern void init_builtin_funcs();
+extern void init_builtin_funcs_subdirs();
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 

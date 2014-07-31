@@ -153,16 +153,17 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
+add_subdirectory(analyzer)
+add_subdirectory(broxygen)
+add_subdirectory(file_analysis)
 add_subdirectory(input)
 add_subdirectory(logging)
-add_subdirectory(analyzer)
-add_subdirectory(file_analysis)
 add_subdirectory(probabilistic)
-add_subdirectory(broxygen)
 
 set(bro_SUBDIRS
-    ${bro_SUBDIR_LIBS}
+    # Order is important here.
     ${bro_PLUGIN_LIBS}
+    ${bro_SUBDIR_LIBS}
 )
 
 if ( NOT bro_HAVE_OBJECT_LIBRARIES )

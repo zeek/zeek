@@ -19,4 +19,5 @@ set(input_SRCS
 bif_target(input.bif)
 
 bro_add_subdir_library(input ${input_SRCS} ${BIF_OUTPUT_CC})
+add_dependencies(bro_input generate_outputs)
 

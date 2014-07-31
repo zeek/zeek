@@ -12,6 +12,7 @@
 #include <DataSeries/GeneralField.hpp>
 
 #include "logging/WriterBackend.h"
+#include "threading/formatters/Ascii.h"
 
 namespace logging { namespace writer {
 

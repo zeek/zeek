@@ -135,8 +135,6 @@ ComponentManager<T, C>::ComponentManager(const string& arg_module, const string&
 	::ID* id = install_ID(local_id.c_str(), module.c_str(), true, true);
 	add_type(id, tag_enum_type, 0);
 	broxygen_mgr->Identifier(id);
-
-	// fprintf(stderr, "Enum: %s\n", id->Name());
 	}
 
 template <class T, class C>
@@ -246,7 +244,6 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsEnumVal()->InternalInt(), true);
-	// fprintf(stderr, "Enum item: %s/%s\n", module.c_str(), id.c_str());
 	}
 
 } // namespace plugin

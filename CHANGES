@@ -1,5 +1,5 @@
 
-2.3-95 | 2014-08-01 14:15:30 -0700
+2.3-96 | 2014-08-01 14:35:01 -0700
 
   * Small change to DHCP documentation. In server->client messages the
     host name may differ from the one requested by the client.

@@ -28,6 +28,7 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- bro-cut has been rewritten in C, and is hence much faster.
 
 Bro 2.3
 =======

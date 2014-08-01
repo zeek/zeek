@@ -1,4 +1,22 @@
 
+2.3-95 | 2014-08-01 14:15:30 -0700
+
+  * Small change to DHCP documentation. In server->client messages the
+    host name may differ from the one requested by the client.
+    (Johanna Amann)
+
+  * Split DHCP log writing from record creation. This allows users to
+    customize dhcp.log by changing the record in their own dhcp_ack
+    event. (Johanna Amann)
+
+  * Update PATH so that documentation btests can find bro-cut. (Daniel
+    Thayer)
+
+  * Remove gawk from list of optional packages in documentation.
+    (Daniel Thayer)
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+
 2.3-86 | 2014-07-31 14:19:58 -0700
 
   * Fix for redefining built-in constants. (Robin Sommer)

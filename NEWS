@@ -4,6 +4,32 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.4 (in progress)
+=====================
+
+Dependencies
+------------
+
+New Functionality
+-----------------
+
+- Bro now has support for external plugins that can extend its core
+  functionality, like protocol/file analysis, via shared libraries.
+  Plugins can be developed and distributed externally, and will be
+  pulled in dynamically at startup. Currently, a plugin can provide
+  custom protocol analyzers, file analyzers, log writers[TODO], input
+  readers[TODO], packet sources[TODO], and new built-in functions. A
+  plugin can furthermore hook into Bro's processing a number of places
+  to add custom logic.
+
+  See http://www.bro.org/sphinx-git/devel/plugins.html for more
+  information on writing plugins.
+
+Changed Functionality
+---------------------
+
+- bro-cut has been rewritten in C, and is hence much faster.
+
 Bro 2.3
 =======
 

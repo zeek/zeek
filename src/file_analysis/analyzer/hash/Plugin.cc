@@ -1,11 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 #include "plugin/Plugin.h"
 
 #include "Hash.h"
 
-BRO_PLUGIN_BEGIN(Bro, FileHash)
-	BRO_PLUGIN_DESCRIPTION("Hash file content");
-	BRO_PLUGIN_FILE_ANALYZER("MD5", MD5);
-	BRO_PLUGIN_FILE_ANALYZER("SHA1", SHA1);
-	BRO_PLUGIN_FILE_ANALYZER("SHA256", SHA256);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_FileHash {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::file_analysis::Component("MD5", ::file_analysis::MD5::Instantiate));
+		AddComponent(new ::file_analysis::Component("SHA1", ::file_analysis::SHA1::Instantiate));
+		AddComponent(new ::file_analysis::Component("SHA256", ::file_analysis::SHA256::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::FileHash";
+		config.description = "Hash file content";
+		return config;
+		}
+} plugin;
+
+}
+}

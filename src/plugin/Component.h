@@ -3,6 +3,8 @@
 #ifndef PLUGIN_COMPONENT_H
 #define PLUGIN_COMPONENT_H
 
+#include <string>
+
 class ODesc;
 
 namespace plugin {
@@ -14,7 +16,7 @@ namespace component {
  */
 enum Type {
 	READER,	/// An input reader (not currently used).
-	WRITER,	/// An logging writer (not currenly used).
+	WRITER,	/// A logging writer (not currenly used).
 	ANALYZER,	/// A protocol analyzer.
 	FILE_ANALYZER	/// A file analyzer.
 	};
@@ -32,8 +34,11 @@ public:
 	 * Constructor.
 	 *
 	 * @param type The type of the compoment.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of the same type.
 	 */
-	Component(component::Type type);
+	Component(component::Type type, const std::string& name);
 
 	/**
 	 * Destructor.
@@ -46,22 +51,47 @@ public:
 	component::Type Type() const;
 
 	/**
-	 * Returns a descriptive name for the analyzer. This name must be
-	 * unique across all components of the same type.
+	 * Returns the compoment's name.
 	 */
-	virtual const char* Name() const = 0;
+	const std::string& Name() const;
 
 	/**
-	 * Returns a textual representation of the component. The default
-	 * version just output the type. Derived version should call the
-	 * parent's implementation and that add further information.
+	 * Returns a canonocalized version of the components's name.  The
+	 * returned name is derived from what's passed to the constructor but
+	 * upper-cased and transformed to allow being part of a script-level
+	 * ID.
+	 */
+	const std::string& CanonicalName() const	{ return canon_name; }
+
+	/**
+	 * Returns a textual representation of the component. This goes into
+	 * the output of "bro -NN".
+	 *
+	 * By default, this just outputs the type and the name. Derived
+	 * versions can override DoDescribe() to add type specific details.
 	 *
 	 * @param d The description object to use.
 	 */
-	virtual void Describe(ODesc* d) const;
+	void Describe(ODesc* d) const;
+
+protected:
+	/**
+	 * Adds type specific information to the output of Describe().
+	 *
+	 * The default version does nothing.
+	 *
+	 * @param d The description object to use.
+	  */
+	virtual void DoDescribe(ODesc* d) const	{ }
 
 private:
+	// Disable.
+	Component(const Component& other);
+	Component operator=(const Component& other);
+
 	component::Type type;
+	std::string name;
+	std::string canon_name;
 };
 
 }

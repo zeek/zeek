@@ -1,3 +1,5 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
@@ -6,15 +8,27 @@
 #include "RSH.h"
 #include "Rlogin.h"
 
-BRO_PLUGIN_BEGIN(Bro, Login)
-	BRO_PLUGIN_DESCRIPTION("Telnet/Rsh/Rlogin analyzers");
-	BRO_PLUGIN_ANALYZER("Telnet", login::Telnet_Analyzer);
-	BRO_PLUGIN_ANALYZER("Rsh", login::Rsh_Analyzer);
-	BRO_PLUGIN_ANALYZER("Rlogin", login::Rlogin_Analyzer);
-	BRO_PLUGIN_ANALYZER_BARE("NVT");
-	BRO_PLUGIN_ANALYZER_BARE("Login");
-	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_Rsh");
-	BRO_PLUGIN_SUPPORT_ANALYZER("Contents_Rlogin");
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_Login {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("Telnet", ::analyzer::login::Telnet_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("Rsh", ::analyzer::login::Rsh_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("Rlogin", ::analyzer::login::Rlogin_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("NVT", 0));
+		AddComponent(new ::analyzer::Component("Login", 0));
+		AddComponent(new ::analyzer::Component("Contents_Rsh", 0));
+		AddComponent(new ::analyzer::Component("Contents_Rlogin", 0));
+
+		plugin::Configuration config;
+		config.name = "Bro::Login";
+		config.description = "Telnet/Rsh/Rlogin analyzers";
+		return config;
+		}
+} plugin;
+
+}
+}

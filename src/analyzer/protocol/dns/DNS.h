@@ -267,7 +267,7 @@ public:
 
 	void ExpireTimer(double t);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 protected:

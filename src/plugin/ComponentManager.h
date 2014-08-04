@@ -38,7 +38,7 @@ public:
 	/**
 	 * @return The script-layer module in which the component's "Tag" ID lives.
 	 */
-	const char* GetModule() const;
+	const std::string& GetModule() const;
 
 	/**
 	 * @return A list of all registered components.
@@ -56,7 +56,7 @@ public:
 	 * @param tag A component's tag.
 	 * @return The canonical component name.
 	 */
-	const char* GetComponentName(T tag) const;
+	const std::string& GetComponentName(T tag) const;
 
 	/**
 	 * Get a component name from it's enum value.
@@ -64,7 +64,7 @@ public:
 	 * @param val A component's enum value.
 	 * @return The canonical component name.
 	 */
-	const char* GetComponentName(Val* val) const;
+	const std::string& GetComponentName(Val* val) const;
 
 	/**
 	 * Get a component tag from its name.
@@ -83,8 +83,6 @@ public:
 	 * no such component assoicated with the value exists.
 	 */
 	T GetComponentTag(Val* v) const;
-
-protected:
 
 	/**
 	 * Add a component the internal maps used to keep track of it and create
@@ -119,7 +117,6 @@ protected:
 	C* Lookup(EnumVal* val) const;
 
 private:
-
 	string module; /**< Script layer module in which component tags live. */
 	EnumType* tag_enum_type; /**< Enum type of component tags. */
 	map<string, C*> components_by_name;
@@ -131,14 +128,14 @@ template <class T, class C>
 ComponentManager<T, C>::ComponentManager(const string& arg_module)
 	: module(arg_module)
 	{
-	tag_enum_type = new EnumType();
+	tag_enum_type = new EnumType(module + "::Tag");
 	::ID* id = install_ID("Tag", module.c_str(), true, true);
 	add_type(id, tag_enum_type, 0);
 	broxygen_mgr->Identifier(id);
 	}
 
 template <class T, class C>
-const char* ComponentManager<T, C>::GetModule() const
+const std::string& ComponentManager<T, C>::GetModule() const
 	{
 	return module.c_str();
 	}
@@ -162,9 +159,9 @@ EnumType* ComponentManager<T, C>::GetTagEnumType() const
 	}
 
 template <class T, class C>
-const char* ComponentManager<T, C>::GetComponentName(T tag) const
+const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	{
-	static const char* error = "<error>";
+	static const std::string error = "<error>";
 
 	if ( ! tag )
 		return error;
@@ -180,7 +177,7 @@ const char* ComponentManager<T, C>::GetComponentName(T tag) const
 	}
 
 template <class T, class C>
-const char* ComponentManager<T, C>::GetComponentName(Val* val) const
+const std::string& ComponentManager<T, C>::GetComponentName(Val* val) const
 	{
 	return GetComponentName(T(val->AsEnumVal()));
 	}
@@ -226,14 +223,14 @@ template <class T, class C>
 void ComponentManager<T, C>::RegisterComponent(C* component,
                                                const string& prefix)
 	{
-	const char* cname = component->CanonicalName();
+	std::string cname = component->CanonicalName();
 
 	if ( Lookup(cname) )
 		reporter->FatalError("Component '%s::%s' defined more than once",
-		                     module.c_str(), cname);
+		                     module.c_str(), cname.c_str());
 
 	DBG_LOG(DBG_PLUGINS, "Registering component %s (tag %s)",
-	        component->Name(), component->Tag().AsString().c_str());
+	        component->Name().c_str(), component->Tag().AsString().c_str());
 
 	components_by_name.insert(std::make_pair(cname, component));
 	components_by_tag.insert(std::make_pair(component->Tag(), component));
@@ -241,7 +238,7 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	        component->Tag().AsEnumVal()->InternalInt(), component));
 
 	// Install an identfier for enum value
-	string id = fmt("%s%s", prefix.c_str(), cname);
+	string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsEnumVal()->InternalInt(), true);
 	}

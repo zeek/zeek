@@ -13,6 +13,8 @@ namespace file_analysis {
 
 class File;
 
+typedef uint32 ID;
+
 /**
  * Base class for analyzers that can be attached to file_analysis::File objects.
  */
@@ -24,6 +26,18 @@ public:
 	 * to delete instances of derived classes via pointers to this class.
 	 */
 	virtual ~Analyzer();
+
+	/**
+	 * Initializes the analyzer before input processing starts.
+	 */
+	virtual void Init()
+		{ }
+
+	/**
+	 * Finishes the analyzer's operation after all input has been parsed.
+	 */
+	virtual void Done()
+		{ }
 
 	/**
 	 * Subclasses may override this metod to receive file data non-sequentially.
@@ -73,6 +87,13 @@ public:
 	file_analysis::Tag Tag() const { return tag; }
 
 	/**
+	 * Returns the analyzer instance's internal ID. These IDs are unique
+	 * across all analyzers instantiated and can thus be used to
+	 * indentify a specific instance.
+	 */
+	ID GetID() const	{ return id; }
+
+	/**
 	 * @return the AnalyzerArgs associated with the analyzer.
 	 */
 	RecordVal* Args() const { return args; }
@@ -82,10 +103,19 @@ public:
 	 */
 	File* GetFile() const { return file; }
 
+	/**
+	 * Sets the tag associated with the analyzer's type. Note that this
+	 * can be called only right after construction, if the constructor
+	 * did not receive a name or tag. The method cannot be used to change
+	 * an existing tag.
+	 */
+	void SetAnalyzerTag(const file_analysis::Tag& tag);
+
 protected:
 
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
+	 * @param arg_tag the tag definining the analyzer's type.
 	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
@@ -94,13 +124,35 @@ protected:
 	    : tag(arg_tag),
 	      args(arg_args->Ref()->AsRecordVal()),
 	      file(arg_file)
-		{}
+		{
+		id = ++id_counter;
+		}
+
+	/**
+	 * Constructor.  Only derived classes are meant to be instantiated.
+	 * As this version of the constructor does not receive a name or tag,
+	 * SetAnalyzerTag() must be called before the instance can be used.
+	 *
+	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
+	 *        tunable options, if any, related to a particular analyzer type.
+	 * @param arg_file the file to which the the analyzer is being attached.
+	 */
+	Analyzer(RecordVal* arg_args, File* arg_file)
+	    : tag(),
+	      args(arg_args->Ref()->AsRecordVal()),
+	      file(arg_file)
+		{
+		id = ++id_counter;
+		}
 
 private:
 
+	ID id;	/**< Unique instance ID. */
 	file_analysis::Tag tag;	/**< The particular type of the analyzer instance. */
 	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
+
+	static ID id_counter;
 };
 
 } // namespace file_analysis

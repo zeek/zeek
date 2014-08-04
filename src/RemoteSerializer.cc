@@ -1452,7 +1452,7 @@ void RemoteSerializer::Process()
 		// FIXME: The following chunk of code is copied from
 		// net_packet_dispatch().  We should change that function
 		// to accept an IOSource instead of the PktSrc.
-		network_time = p->time;
+		net_update_time(p->time);
 
 		SegmentProfiler(segment_logger, "expiring-timers");
 		TimerMgr* tmgr = sessions->LookupTimerMgr(GetCurrentTag());

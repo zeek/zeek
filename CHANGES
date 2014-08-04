@@ -1,4 +1,109 @@
 
+2.3-96 | 2014-08-01 14:35:01 -0700
+
+  * Small change to DHCP documentation. In server->client messages the
+    host name may differ from the one requested by the client.
+    (Johanna Amann)
+
+  * Split DHCP log writing from record creation. This allows users to
+    customize dhcp.log by changing the record in their own dhcp_ack
+    event. (Johanna Amann)
+
+  * Update PATH so that documentation btests can find bro-cut. (Daniel
+    Thayer)
+
+  * Remove gawk from list of optional packages in documentation.
+    (Daniel Thayer)
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+
+2.3-86 | 2014-07-31 14:19:58 -0700
+
+  * Fix for redefining built-in constants. (Robin Sommer)
+    
+  * Adding missing check that a plugin's API version matches what Bro
+    defines. (Robin Sommer)
+
+  * Adding NEWS entry for plugins. (Robin Sommer)
+
+2.3-83 | 2014-07-30 16:26:11 -0500
+
+  * Minor adjustments to plugin code/docs. (Jon Siwek)
+
+  * Dynamic plugin support. (Rpbin Sommer)
+
+    Bro now supports extending core functionality, like protocol and
+    file analysis, dynamically with external plugins in the form of
+    shared libraries. See doc/devel/plugins.rst for an overview of the
+    main functionality. Changes coming with this:
+
+        - Replacing the old Plugin macro magic with a new API.
+          
+        - The plugin API changed to generally use std::strings instead
+          of const char*.
+
+        - There are a number of invocations of PLUGIN_HOOK_
+          {VOID,WITH_RESULT} across the code base, which allow plugins
+          to hook into the processing at those locations.
+
+        - A few new accessor methods to various classes to allow
+          plugins to get to that information.
+
+        - network_time cannot be just assigned to anymore, there's now
+          function net_update_time() for that.
+
+        - Redoing how builtin variables are initialized, so that it
+          works for plugins as well. No more init_net_var(), but
+          instead bifcl-generated code that registers them.
+
+        - Various changes for adjusting to the now dynamic generation
+          of analyzer instances.
+
+    - same_type() gets an optional extra argument allowing record type
+      comparision to ignore if field names don't match. (Robin Sommer)
+
+    - Further unify file analysis API with the protocol analyzer API
+      (assigning IDs to analyzers; adding Init()/Done() methods;
+      adding subtypes). (Robin Sommer)
+
+    - A new command line option -Q that prints some basic execution
+      time stats. (Robin Sommer)
+
+    - Add support to the file analysis for activating analyzers by
+      MIME type. (Robin Sommer)
+
+          - File::register_for_mime_type(tag: Analyzer::Tag, mt:
+            string): Associates a file analyzer with a MIME type.
+
+          - File::add_analyzers_for_mime_type(f: fa_file, mtype:
+            string): Activates all analyzers registered for a MIME
+            type for the file.
+
+          - The default file_new() handler calls
+            File::add_analyzers_for_mime_type() with the file's MIME
+            type.
+
+2.3-20 | 2014-07-22 17:41:02 -0700
+
+  * Updating submodule(s).
+
+2.3-19 | 2014-07-22 17:29:19 -0700
+
+  * Implement bytestring_to_coils() in Modbus analyzer so that coils
+    gets passed to the corresponding events. (Hui Lin)
+
+  * Add length field to ModbusHeaders. (Hui Lin)
+
+2.3-12 | 2014-07-10 19:17:37 -0500
+
+  * Include yield of vectors in Broxygen's type descriptions.
+    Addresses BIT-1217. (Jon Siwek)
+
+2.3-11 | 2014-07-10 14:49:27 -0700
+
+  * Fixing DataSeries output. It was using a now illegal value as its
+    default compression level. (Robin Sommer)
+
 2.3-7 | 2014-06-26 17:35:18 -0700
 
   * Extending "make test-all" to include aux/bro-aux. (Robin Sommer)

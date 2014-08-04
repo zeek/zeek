@@ -116,6 +116,7 @@ SecondaryPath* secondary_path = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
+set<string> requested_plugins;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 
@@ -193,6 +194,7 @@ void usage()
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -O|--optimize                  | optimize policy script\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
+	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
 	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
@@ -215,7 +217,9 @@ void usage()
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
-	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
+	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
+	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $BRO_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n", bro_plugin_activate());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -247,14 +251,14 @@ void usage()
 	exit(1);
 	}
 
-void show_plugins(int level)
+bool show_plugins(int level)
 	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{
 		printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
-		return;
+		return false;
 		}
 
 	ODesc d;
@@ -262,15 +266,39 @@ void show_plugins(int level)
 	if ( level == 1 )
 		d.SetShort();
 
+	int count = 0;
+
 	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
 		{
+		if ( requested_plugins.size()
+		     && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
+			continue;
+
 		(*i)->Describe(&d);
 
 		if ( ! d.IsShort() )
 			d.Add("\n");
+
+		++count;
 		}
 
 	printf("%s", d.Description());
+
+	plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+
+	if ( inactives.size() && ! requested_plugins.size() )
+		{
+		printf("\nInactive dynamic plugins:\n");
+
+		for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
+			{
+			string name = (*i).first;
+			string path = (*i).second;
+			printf("  %s (%s)\n", name.c_str(), path.c_str());
+			}
+		}
+
+	return count != 0;
 	}
 
 void done_with_network()
@@ -431,6 +459,8 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
+	double time_start = current_time(true);
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;
@@ -461,6 +491,7 @@ int main(int argc, char** argv)
 	int rule_debug = 0;
 	int RE_level = 4;
 	int print_plugins = 0;
+	int time_bro = 0;
 
 	static struct option long_opts[] = {
 		{"parse-only",	no_argument,		0,	'a'},
@@ -543,7 +574,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghv",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -676,6 +707,10 @@ int main(int argc, char** argv)
 			dns_type = DNS_PRIME;
 			break;
 
+		case 'Q':
+			time_bro = 1;
+			break;
+
 		case 'R':
 			events_file = optarg;
 			break;
@@ -762,6 +797,7 @@ int main(int argc, char** argv)
 
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
+	plugin_mgr = new plugin::Manager();
 
 #ifdef DEBUG
 	if ( debug_streams )
@@ -811,19 +847,23 @@ int main(int argc, char** argv)
 	if ( ! bare_mode )
 		add_input_file("base/init-default.bro");
 
+	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
+
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
 	     interfaces.length() == 0 &&
 	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
 
-	// Process remaining arguments.  X=Y arguments indicate script
-	// variable/parameter assignments.  The remainder are treated
-	// as scripts to load.
+	// Process remaining arguments. X=Y arguments indicate script
+	// variable/parameter assignments. X::Y arguments indicate plugins to
+	// activate/query. The remainder are treated as scripts to load.
 	while ( optind < argc )
 		{
 		if ( strchr(argv[optind], '=') )
 			params.push_back(argv[optind++]);
+		else if ( strstr(argv[optind], "::") )
+			requested_plugins.insert(argv[optind++]);
 		else
 			add_input_file(argv[optind++]);
 		}
@@ -843,13 +883,18 @@ int main(int argc, char** argv)
 	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
-	plugin_mgr = new plugin::Manager();
 	file_mgr = new file_analysis::Manager();
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
 	broxygen_mgr->InitPreScript();
+
+	for ( set<string>::const_iterator i = requested_plugins.begin();
+	      i != requested_plugins.end(); i++ )
+		plugin_mgr->ActivateDynamicPlugin(*i);
+
+	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -880,16 +925,26 @@ int main(int argc, char** argv)
 
 	yyparse();
 
+	init_general_global_var();
+	init_net_var();
+	init_builtin_funcs_subdirs();
+
+	plugin_mgr->InitBifs();
+
+	if ( reporter->Errors() > 0 )
+		exit(1);
+
 	plugin_mgr->InitPostScript();
-	analyzer_mgr->InitPostScript();
-	file_mgr->InitPostScript();
 	broxygen_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{
-		show_plugins(print_plugins);
-		exit(1);
+		bool success = show_plugins(print_plugins);
+		exit(success ? 0 : 1);
 		}
+
+	analyzer_mgr->InitPostScript();
+	file_mgr->InitPostScript();
 
 	if ( parse_only )
 		{
@@ -908,9 +963,6 @@ int main(int argc, char** argv)
 		}
 
 	reporter->InitOptions();
-
-	init_general_global_var();
-
 	broxygen_mgr->GenerateDocs();
 
 	if ( user_pcap_filter )
@@ -1076,7 +1128,7 @@ int main(int argc, char** argv)
 	if ( ! reading_live && ! reading_traces )
 		// Set up network_time to track real-time, since
 		// we don't have any other source for it.
-		network_time = current_time();
+		net_update_time(current_time());
 
 	EventHandlerPtr bro_init = internal_handler("bro_init");
 	if ( bro_init )	//### this should be a function
@@ -1162,7 +1214,43 @@ int main(int argc, char** argv)
 
 #endif
 
+		double time_net_start = current_time(true);;
+
+		unsigned int mem_net_start_total;
+		unsigned int mem_net_start_malloced;
+
+		if ( time_bro )
+			{
+			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
+
+			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
+
+			fprintf(stderr, "# initialization %uM/%uM\n",
+				mem_net_start_total / 1024 / 1024,
+				mem_net_start_malloced / 1024 / 1024);
+			}
+
 		net_run();
+
+		double time_net_done = current_time(true);;
+
+		unsigned int mem_net_done_total;
+		unsigned int mem_net_done_malloced;
+
+		if ( time_bro )
+			{
+			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
+
+			fprintf(stderr, "# total time %.6f, processing %.6f\n",
+				time_net_done - time_start, time_net_done - time_net_start);
+
+			fprintf(stderr, "# total mem %uM/%uM, processing %uM/%uM\n",
+				mem_net_done_total / 1024 / 1024,
+				mem_net_done_malloced / 1024 / 1024,
+				(mem_net_done_total - mem_net_start_total) / 1024 / 1024,
+				(mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
+			}
+
 		done_with_network();
 		net_delete();
 

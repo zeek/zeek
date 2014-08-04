@@ -1,0 +1,17 @@
+# @TEST-EXEC: echo $'line1\nline2' > readthis.txt
+# @TEST-EXEC: bro -b %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default
+@load base/utils/readfile
+
+redef exit_only_after_terminate = T;
+
+event bro_init()
+	{
+	when ( local r = ReadFile::read("readthis.txt") )
+		{
+		print r;
+		terminate();
+		}
+	}

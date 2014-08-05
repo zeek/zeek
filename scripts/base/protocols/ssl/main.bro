@@ -41,6 +41,9 @@ export {
 		client_key_exchange_seen: bool     &default=F;
 		## Last alert that was seen during the connection.
 		last_alert:       string           &log &optional;
+		## Next protocol the server chose using the application layer
+		## next protocol extension, if present.
+		next_protocol:    string           &log &optional;
 
 		## The analyzer ID used for the analyzer instance attached
 		## to each connection.  It is not used for logging since it's a
@@ -197,6 +200,17 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
 		if ( |names| > 1 )
 			event conn_weird("SSL_many_server_names", c, cat(names));
 		}
+	}
+
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, protocols: string_vec)
+	{
+	set_session(c);
+
+	if ( is_orig )
+		return;
+
+	if ( |protocols| > 0 )
+		c$ssl$next_protocol = protocols[0];
 	}
 
 event ssl_handshake_message(c: connection, is_orig: bool, msg_type: count, length: count) &priority=5

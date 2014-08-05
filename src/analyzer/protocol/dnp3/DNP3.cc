@@ -112,6 +112,10 @@ const unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Lay
 bool DNP3_Analyzer::crc_table_initialized = false;
 unsigned int DNP3_Analyzer::crc_table[256];
 
+bool DNP3_UDP_Analyzer::crc_table_initialized = false;
+unsigned int DNP3_UDP_Analyzer::crc_table[256];
+
+
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3", c)
 	{
 	interp = new binpac::DNP3::DNP3_Conn(this);
@@ -363,6 +367,272 @@ void DNP3_Analyzer::PrecomputeCRCTable()
 	}
 
 unsigned int DNP3_Analyzer::CalcCRC(int len, const u_char* data)
+	{
+	unsigned int crc = 0x0000;
+
+	for ( int i = 0; i < len; i++ )
+		{
+		unsigned int index = (crc ^ data[i]) & 0xFF;
+		crc = crc_table[index] ^ (crc >> 8);
+		}
+
+	return ~crc & 0xFFFF;
+	}
+
+// ?? For DNP3 over UDP analyzer. most of the codes are copied and pasted. Better way to reuse the code?
+
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DHCP", c)
+	{
+	interp = new binpac::DNP3::DNP3_Conn(this);
+
+	ClearEndpointState(true);
+	ClearEndpointState(false);
+
+	if ( ! crc_table_initialized )
+		PrecomputeCRCTable();
+	}
+
+DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
+	{
+	delete interp;
+	}
+
+void DNP3_UDP_Analyzer::Done()
+	{
+	Analyzer::Done();
+
+	interp->FlowEOF(true);
+	interp->FlowEOF(false);
+	}
+
+void DNP3_UDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	Analyzer::DeliverStream(len, data, orig);
+
+	try
+		{
+		if ( ! ProcessData(len, data, orig) )
+			SetSkip(1);
+		}
+
+	catch ( const binpac::Exception& e )
+		{
+		SetSkip(1);
+		throw;
+		}
+	}
+/*
+void DNP3_UDP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+	{
+	Analyzer::Undelivered(seq, len, orig);
+	interp->NewGap(orig, len);
+	}
+
+void DNP3_UDP_Analyzer::EndpointEOF(bool is_orig)
+	{
+	Analyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
+	}
+*/
+
+bool DNP3_UDP_Analyzer::ProcessData(int len, const u_char* data, bool orig)
+	{
+	Endpoint* endp = orig ? &orig_state : &resp_state;
+
+	while ( len )
+		{
+		if ( endp->in_hdr )
+			{
+			// We're parsing the DNP3 header and link layer, get that in full.
+			if ( ! AddToBuffer(endp, PSEUDO_APP_LAYER_INDEX, &data, &len) )
+				return true;
+
+			// The first two bytes must always be 0x0564.
+			if( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 )
+				{
+				Weird("dnp3_header_lacks_magic");
+				return false;
+				}
+
+			// Make sure header checksum is correct.
+			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
+				{
+				ProtocolViolation("broken_checksum");
+				return false;
+				}
+
+			// If the checksum works out, we're pretty certainly DNP3.
+			ProtocolConfirmation();
+
+			// DNP3 packets without transport and application
+			// layers can happen, we ignore them.
+			if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == (char)PSEUDO_LINK_LAYER_LEN  )
+				{
+				ClearEndpointState(orig);
+				return true;
+				}
+
+			// Double check the direction in case the first
+			// received packet is a response.
+			u_char ctrl = endp->buffer[PSEUDO_CONTROL_FIELD_INDEX];
+
+			if ( orig != (bool)(ctrl & 0x80) )
+				Weird("dnp3_unexpected_flow_direction");
+
+			// Update state.
+			endp->pkt_length = endp->buffer[PSEUDO_LENGTH_INDEX];
+			endp->tpflags = endp->buffer[PSEUDO_TRANSPORT_INDEX];
+			endp->in_hdr = false; // Now parsing application layer.
+
+			// For the first packet, we submit the header to
+			// BinPAC.
+			if ( ++endp->pkt_cnt == 1 )
+				interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
+			}
+
+		if ( ! endp->in_hdr )
+			{
+			assert(endp->pkt_length);
+
+			// We're parsing the DNP3 application layer, get that
+			// in full now as well. We calculate the number of
+			// raw bytes the application layer consists of from
+			// the packet length by determining how much 16-byte
+			// chunks fit in there, and then add 2 bytes CRC for
+			// each.
+			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2 + 2 - 1;
+
+			if ( ! AddToBuffer(endp, n, &data, &len) )
+				return true;
+
+			// Parse the the application layer data.
+			if ( ! ParseAppLayer(endp) )
+				return false;
+
+			// Done with this packet, prepare for next.
+			endp->buffer_len = 0;
+			endp->in_hdr = true;
+			}
+		}
+
+	return true;
+	}
+
+bool DNP3_UDP_Analyzer::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len)
+	{
+	if ( ! target_len )
+		return true;
+
+	int to_copy = min(*len, target_len - endp->buffer_len);
+
+	memcpy(endp->buffer + endp->buffer_len, *data, to_copy);
+	*data += to_copy;
+	*len -= to_copy;
+	endp->buffer_len += to_copy;
+
+	return endp->buffer_len == target_len;
+	}
+
+bool DNP3_UDP_Analyzer::ParseAppLayer(Endpoint* endp)
+	{
+	bool orig = (endp == &orig_state);
+	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
+
+	u_char* data = endp->buffer + PSEUDO_TRANSPORT_INDEX; // The transport layer byte counts as app-layer it seems.
+	int len = endp->pkt_length - 5;
+
+	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer
+	// DNP3 Serial Transport Layer data is always 1 byte.
+	// Get FIN FIR seq field in transport header.
+	// FIR indicate whether the following DNP3 Serial Application Layer is first chunk of bytes or not.
+	// FIN indicate whether the following DNP3 Serial Application Layer is last chunk of bytes or not.
+
+	int is_first = (endp->tpflags & 0x40) >> 6; // Initial chunk of data in this packet.
+	int is_last = (endp->tpflags & 0x80) >> 7; // Last chunk of data in this packet.
+
+	int transport = PSEUDO_TRANSPORT_LEN;
+
+	int i = 0;
+	while ( len > 0 )
+		{
+		int n = min(len, 16);
+
+		// Make sure chunk has a correct checksum.
+		if ( ! CheckCRC(n, data, data + n, "app_chunk") )
+			return false;
+
+		// Pass on to BinPAC.
+		assert(data + n < endp->buffer + endp->buffer_len);
+		flow->flow_buffer()->BufferData(data + transport, data + n);
+		transport = 0;
+
+		data += n + 2;
+		len -= n;
+		}
+
+	if ( is_first )
+		endp->encountered_first_chunk = true;
+
+	if ( ! is_first && ! endp->encountered_first_chunk )
+		{
+		// We lost the first chunk.
+		Weird("dnp3_first_application_layer_chunk_missing");
+		return false;
+		}
+
+	if ( is_last )
+		{
+		flow->flow_buffer()->FinishBuffer();
+		flow->FlowEOF();
+		ClearEndpointState(orig);
+		}
+
+	return true;
+	}
+
+void DNP3_UDP_Analyzer::ClearEndpointState(bool orig)
+	{
+	Endpoint* endp = orig ? &orig_state : &resp_state;
+	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
+
+	endp->in_hdr = true;
+	endp->encountered_first_chunk = false;
+	endp->buffer_len = 0;
+	endp->pkt_length = 0;
+	endp->tpflags = 0;
+	endp->pkt_cnt = 0;
+	}
+
+bool DNP3_UDP_Analyzer::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where)
+	{
+	unsigned int crc = CalcCRC(len, data);
+
+	if ( crc16[0] == (crc & 0xff) && crc16[1] == (crc & 0xff00) >> 8 )
+		return true;
+
+	Weird(fmt("dnp3_corrupt_%s_checksum", where));
+	return false;
+	}
+
+void DNP3_UDP_Analyzer::PrecomputeCRCTable()
+	{
+	for( unsigned int i = 0; i < 256; i++)
+		{
+		unsigned int crc = i;
+
+		for ( unsigned int j = 0; j < 8; ++j )
+			{
+			if ( crc & 0x0001 )
+				crc = (crc >> 1) ^ 0xA6BC; // Generating polynomial.
+			else
+				crc >>= 1;
+			}
+
+		crc_table[i] = crc;
+		}
+	}
+
+unsigned int DNP3_UDP_Analyzer::CalcCRC(int len, const u_char* data)
 	{
 	unsigned int crc = 0x0000;
 

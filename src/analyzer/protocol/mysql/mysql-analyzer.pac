@@ -11,8 +11,16 @@ refine flow MySQL_Flow += {
 	function proc_mysql_handshake_response_packet(msg: Handshake_Response_Packet): bool
 		%{
 		if ( mysql_handshake_response )
-			BifEvent::generate_mysql_handshake_response(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-								    bytestring_to_val(${msg.username}));
+			{
+			if ( ${msg.version} == 10 )
+				BifEvent::generate_mysql_handshake_response(connection()->bro_analyzer(), 
+									    connection()->bro_analyzer()->Conn(),
+								    	    bytestring_to_val(${msg.v10_response.username}));
+			if ( ${msg.version} == 9 )
+				BifEvent::generate_mysql_handshake_response(connection()->bro_analyzer(), 
+									    connection()->bro_analyzer()->Conn(),
+								    	    bytestring_to_val(${msg.v9_response.username}));
+			}
 		return true;
 		%}
 

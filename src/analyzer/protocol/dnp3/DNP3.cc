@@ -109,13 +109,12 @@ const unsigned int PSEUDO_APP_LAYER_INDEX = 11;		// index of first DNP3 app-laye
 const unsigned int PSEUDO_TRANSPORT_LEN = 1;		// length of DNP3 Transport Layer
 const unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Layer
 
-//bool DNP3_Analyzer::crc_table_initialized = false;
-//unsigned int DNP3_Analyzer::crc_table[256];
+bool DNP3_Analyzer::crc_table_initialized = false;
+unsigned int DNP3_Analyzer::crc_table[256];
 
 bool DNP3_UDP_Analyzer::crc_table_initialized = false;
 unsigned int DNP3_UDP_Analyzer::crc_table[256];
 
-/*
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3", c)
 	{
 	interp = new binpac::DNP3::DNP3_Conn(this);
@@ -378,11 +377,10 @@ unsigned int DNP3_Analyzer::CalcCRC(int len, const u_char* data)
 
 	return ~crc & 0xFFFF;
 	}
-*/
 
 // ?? For DNP3 over UDP analyzer. most of the codes are copied and pasted. Better way to reuse the code?
 
-DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DNP3", c)
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DNP3_UDP", c)
 	{
 
 	printf("enter DNP3_UDP_Analyzer\n");
@@ -405,7 +403,7 @@ void DNP3_UDP_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, int seq, const IP_Hdr* ip, int caplen)
+void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	printf("enter DNP3_UDP_Analyzer DeliverPacket\n");
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

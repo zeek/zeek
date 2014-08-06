@@ -7,3 +7,9 @@ signature dpd_dnp3_server {
 	tcp-state responder
  	enable "dnp3"
 }
+
+signature dpd_dnp3_server_udp {
+	ip-proto == udp
+	payload /\x05\x64/
+	enable "dnp3_udp"
+}

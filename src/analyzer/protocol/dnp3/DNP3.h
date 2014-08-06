@@ -2,13 +2,13 @@
 #ifndef ANALYZER_PROTOCOL_DNP3_DNP3_H
 #define ANALYZER_PROTOCOL_DNP3_DNP3_H
 
-//#include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/udp/UDP.h"
 
 #include "dnp3_pac.h"
 
 namespace analyzer { namespace dnp3 {
-/*
+
 class DNP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
 	DNP3_Analyzer(Connection* conn);
@@ -52,7 +52,7 @@ private:
 	static bool crc_table_initialized;
 	static unsigned int crc_table[256];
 };
-*/
+
 
 class DNP3_UDP_Analyzer : public analyzer::Analyzer {
 public:
@@ -61,7 +61,7 @@ public:
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-                    int seq, const IP_Hdr* ip, int caplen);
+                    uint64 seq, const IP_Hdr* ip, int caplen);
 	//virtual void Undelivered(uint64 seq, int len, bool orig);
 	//virtual void EndpointEOF(bool is_orig);
 

@@ -1,9 +1,11 @@
 ###
 #
 # All information is from the MySQL internals documentation at:
-# <http://dev.mysql.com/doc/internals/en/connection-phase.html>
+# <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>
 #
 ###
+
+# Basic Types
 
 type uint24le = record {
 	byte3 : uint8;
@@ -49,11 +51,12 @@ type LengthEncodedString = record {
 			else 
 				return 0;
 			}
-
 		};
 %}
 
 extern type to_int;
+
+# Enums
 
 enum command_consts {
 	COM_SLEEP               = 0x00,
@@ -106,6 +109,18 @@ enum Expected {
 
 type NUL_String = RE/[^\0]*/;
 
+# MySQL PDU
+
+type MySQL_PDU(is_orig: bool) = record {
+	hdr		: Header;
+	msg		: case is_orig of {
+		false -> server_msg: Server_Message(hdr.seq_id);
+		true  -> client_msg: Client_Message(state);
+	} &requires(state);
+} &let {
+	state	: int = $context.connection.get_state();
+} &length=hdr.len &byteorder=bigendian;
+
 type Header = record {
 	le_len: uint24le;
 	seq_id: uint8;
@@ -113,35 +128,27 @@ type Header = record {
 	len   : uint32 = to_int()(le_len) + 4;	
 } &length=4;
 
-type MySQL_PDU(is_orig: bool) = record {
-	hdr: Header;
-	msg: case is_orig of {
-		false -> server_msg: Server_Message(hdr.seq_id);
-		true  -> client_msg: Client_Message(state);
-	} &requires(state);
-} &let {
-	state = $context.connection.get_state();
-} &length=hdr.len &byteorder=bigendian;
+type Server_Message(seq_id: uint8) = case seq_id of {
+	0       -> initial_handshake: Initial_Handshake_Packet;
+	default -> command_response : Command_Response;
+};
 
 type Client_Message(state: int) = case state of {
 	CONNECTION_PHASE -> connection_phase: Handshake_Response_Packet;
 	COMMAND_PHASE    -> command_phase   : Command_Request_Packet;
 };
 
-type Server_Message(seq_id: uint8) = case seq_id of {
-	0       -> initial_handshake: Initial_Handshake_Packet;
-	default -> command_response : Command_Response;
-};
+# Handshake Request
 
 type Initial_Handshake_Packet = record {
 	protocol_version: uint8;
-	pkt: case protocol_version of {
+	pkt				: case protocol_version of {
 		10      -> handshake10 : Handshake_v10;
 		9       -> handshake9  : Handshake_v9;
 		default -> error       : ERR_Packet;
 	};
 } &let {
-	set_version: bool = $context.connection.set_version(protocol_version);
+	set_version		: bool = $context.connection.set_version(protocol_version);
 };
 
 type Handshake_v10 = record {
@@ -160,14 +167,16 @@ type Handshake_v10 = record {
 type Handshake_v9 = record {
 	server_version		: NUL_String;
 	connection_id		: uint32;
-	scramble		: NUL_String;
+	scramble			: NUL_String;
 };
+
+# Handshake Response
 
 type Handshake_Response_Packet = case $context.connection.get_version() of {
 	10	-> v10_response	: Handshake_Response_Packet_v10;
 	9	-> v9_response	: Handshake_Response_Packet_v9;
 } &let {
-	version : uint8 = $context.connection.get_version();
+	version 			: uint8 = $context.connection.get_version();
 } &byteorder=bigendian;
 
 type Handshake_Response_Packet_v10 = record {
@@ -180,32 +189,36 @@ type Handshake_Response_Packet_v10 = record {
 };
 
 type Handshake_Response_Packet_v9 = record {
-	cap_flags	: uint16;
+	cap_flags		: uint16;
 	max_pkt_size 	: uint24le;
 	username     	: NUL_String;
 	auth_response	: NUL_String;
-	have_db		: case ( cap_flags & 0x8 ) of {
+	have_db			: case ( cap_flags & 0x8 ) of {
 		0x8	-> database : NUL_String;
 		0x0	-> none	    : empty;
 	};
 	password     	: bytestring &restofdata;
 };
 
+# Command Request
+
 type Command_Request_Packet = record {
-	command: uint8;
-	arg    : bytestring &restofdata;
+	command				: uint8;
+	arg    				: bytestring &restofdata;
 } &let {
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_COLUMN_COUNT);
+	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_COLUMN_COUNT);
 };
 
+# Command Response
+
 type Command_Response = case $context.connection.get_expectation() of {
-	EXPECT_COLUMN_COUNT		-> col_count	: ColumnCount;
-	EXPECT_COLUMN_DEFINITION	-> col_defs	: ColumnDefinitions;
-	EXPECT_RESULTSET		-> resultset    : Resultset;
-	EXPECT_STATUS			-> status       : Command_Response_Status;
-	EXPECT_EOF1			-> eof1		: EOF1;
-	EXPECT_EOF2			-> eof2		: EOF2;
-	default				-> unknown      : empty;
+	EXPECT_COLUMN_COUNT			-> col_count	: ColumnCount;
+	EXPECT_COLUMN_DEFINITION	-> col_defs		: ColumnDefinitions;
+	EXPECT_RESULTSET			-> resultset    : Resultset;
+	EXPECT_STATUS				-> status       : Command_Response_Status;
+	EXPECT_EOF1					-> eof1			: EOF1;
+	EXPECT_EOF2					-> eof2			: EOF2;
+	default						-> unknown      : empty;
 };
 
 type Command_Response_Status = record {
@@ -219,35 +232,35 @@ type Command_Response_Status = record {
 };
 
 type ColumnCount = record {
-	le_column_count	: LengthEncodedInteger;
+	le_column_count		: LengthEncodedInteger;
 } &let {
-	col_num           : uint32 = to_int()(le_column_count);
-	update_col_num    : bool = $context.connection.set_col_count(col_num);
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_COLUMN_DEFINITION);
+	col_num           	: uint32 = to_int()(le_column_count);
+	update_col_num    	: bool = $context.connection.set_col_count(col_num);
+	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_COLUMN_DEFINITION);
 };
 
 type ColumnDefinitions = record {
-	defs: ColumnDefinition41[1];
+	defs				: ColumnDefinition41[1];
 } &let {
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_EOF1);
+	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_EOF1);
 };
 
 type EOF1 = record {
-	eof: EOF_Packet;
+	eof					: EOF_Packet;
 } &let {
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);
+	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);
 };
 
 type EOF2 = record {
-	eof: EOF_Packet;
+	eof					: EOF_Packet;
 } &let {
-	update_expectation: bool = $context.connection.set_next_expected(NO_EXPECTATION);
+	update_expectation	: bool = $context.connection.set_next_expected(NO_EXPECTATION);
 };
 
 type Resultset = record {
-	rows: ResultsetRow[] &until($input.length()==0);
+	rows				: ResultsetRow[] &until($input.length()==0);
 } &let {
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_EOF2);
+	update_expectation	: bool = $context.connection.set_next_expected(EXPECT_EOF2);
 };
 
 type ResultsetRow = record {
@@ -280,8 +293,8 @@ type ColumnDefinition320 = record {
 };
 
 type OK_Packet = record {
-	le_rows: LengthEncodedInteger;
-	todo   : bytestring &restofdata;
+	le_rows		: LengthEncodedInteger;
+	todo   		: bytestring &restofdata;
 } &let {
 	rows        : uint32 = to_int()(le_rows);
 	update_state: bool   = $context.connection.update_state(COMMAND_PHASE);
@@ -298,6 +311,7 @@ type EOF_Packet = record {
 	status  : uint16;
 };
 
+# State tracking
 
 refine connection MySQL_Conn += {
 	%member{

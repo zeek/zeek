@@ -97,7 +97,7 @@
 //                                            Binpac DNP3 Analyzer
 
 #include "DNP3.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+//#include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "events.bif.h"
 
 using namespace analyzer::dnp3;
@@ -109,13 +109,13 @@ const unsigned int PSEUDO_APP_LAYER_INDEX = 11;		// index of first DNP3 app-laye
 const unsigned int PSEUDO_TRANSPORT_LEN = 1;		// length of DNP3 Transport Layer
 const unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Layer
 
-bool DNP3_Analyzer::crc_table_initialized = false;
-unsigned int DNP3_Analyzer::crc_table[256];
+//bool DNP3_Analyzer::crc_table_initialized = false;
+//unsigned int DNP3_Analyzer::crc_table[256];
 
 bool DNP3_UDP_Analyzer::crc_table_initialized = false;
 unsigned int DNP3_UDP_Analyzer::crc_table[256];
 
-
+/*
 DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3", c)
 	{
 	interp = new binpac::DNP3::DNP3_Conn(this);
@@ -378,11 +378,14 @@ unsigned int DNP3_Analyzer::CalcCRC(int len, const u_char* data)
 
 	return ~crc & 0xFFFF;
 	}
+*/
 
 // ?? For DNP3 over UDP analyzer. most of the codes are copied and pasted. Better way to reuse the code?
 
-DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DHCP", c)
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DNP3", c)
 	{
+
+	printf("enter DNP3_UDP_Analyzer\n");
 	interp = new binpac::DNP3::DNP3_Conn(this);
 
 	ClearEndpointState(true);
@@ -400,14 +403,13 @@ DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
 void DNP3_UDP_Analyzer::Done()
 	{
 	Analyzer::Done();
-
-	interp->FlowEOF(true);
-	interp->FlowEOF(false);
 	}
 
-void DNP3_UDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, int seq, const IP_Hdr* ip, int caplen)
 	{
-	Analyzer::DeliverStream(len, data, orig);
+	printf("enter DNP3_UDP_Analyzer DeliverPacket\n");
+	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+
 
 	try
 		{
@@ -437,7 +439,10 @@ void DNP3_UDP_Analyzer::EndpointEOF(bool is_orig)
 
 bool DNP3_UDP_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 	{
+	printf("enter DNP3_UDP_Analyzer process Data\n");
+
 	Endpoint* endp = orig ? &orig_state : &resp_state;
+
 
 	while ( len )
 		{

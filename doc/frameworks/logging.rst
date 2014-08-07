@@ -380,11 +380,11 @@ uncommon to need to delete that data before the end of the connection.
 Other Writers
 -------------
 
-Bro supports the following output formats other than ASCII:
+Bro supports the following built-in output formats other than ASCII:
 
 .. toctree::
    :maxdepth: 1
 
-   logging-dataseries
-   logging-elasticsearch
    logging-input-sqlite
+
+Further formats are available as external plugins.   

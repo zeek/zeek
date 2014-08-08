@@ -22,7 +22,7 @@ export {
 
 	## The minimal key length in bits that is considered to be safe. Any shorter
 	## (non-EC) key lengths will trigger the notice.
-	const notify_minimal_key_length = 1024 &redef;
+	const notify_minimal_key_length = 2048 &redef;
 
 	## Warn if the DH key length is smaller than the certificate key length. This is
 	## potentially unsafe because it gives a wrong impression of safety due to the
@@ -56,7 +56,7 @@ event ssl_established(c: connection) &priority=3
 		NOTICE([$note=Weak_Key,
 			$msg=fmt("Host uses weak certificate with %d bit key", key_length),
 			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$orig_h, c$id$orig_p, key_length)
+			$identifier=cat(c$id$resp_h, c$id$resp_h, key_length)
 		]);
 	}
 
@@ -66,12 +66,12 @@ event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string) &pri
 		return;
 
 	local key_length = |Ys| * 8; # key length in bits
- 
+
 	if ( key_length < notify_minimal_key_length )
 		NOTICE([$note=Weak_Key,
 			$msg=fmt("Host uses weak DH parameters with %d key bits", key_length),
 			$conn=c, $suppress_for=1day,
-			$identifier=cat(c$id$orig_h, c$id$orig_p, key_length)
+			$identifier=cat(c$id$resp_h, c$id$resp_p, key_length)
 		]);
 
 	if ( notify_dh_length_shorter_cert_length &&
@@ -86,7 +86,7 @@ event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string) &pri
 				$msg=fmt("DH key length of %d bits is smaller certificate key length of %d bits",
 					 key_length, c$ssl$cert_chain[0]$x509$certificate$key_length),
 				$conn=c, $suppress_for=1day,
-				$identifier=cat(c$id$orig_h, c$id$orig_p)
+				$identifier=cat(c$id$resp_h, c$id$resp_p)
 			       ]);
 		}
 	}

@@ -14,8 +14,12 @@ type uint24le = record {
 };
 
 type LengthEncodedInteger = record {
-	i1 : uint8;
-	val: case i1 of {
+	length : uint8;
+	integer : LengthEncodedIntegerLookahead(length);
+};
+
+type LengthEncodedIntegerLookahead(length: uint8) = record {
+	val: case length of {
 		0xfb    -> i0        : empty;
 		0xfc    -> i2	     : uint16;
 		0xfd    -> i3	     : uint24le;
@@ -40,13 +44,26 @@ type LengthEncodedString = record {
 			}
 		int operator()(LengthEncodedInteger* lei) const
 			{
-			if ( lei->i1() < 0xfb )
-				return lei->i1();
-			else if ( lei->i1() == 0xfc )
+			if ( lei->length() < 0xfb )
+				return lei->length();
+			else if ( lei->length() == 0xfc )
+				return lei->integer()->i2();
+			else if ( lei->length() == 0xfd )
+				return to_int()(lei->integer()->i3());
+			else if ( lei->length() == 0xfe )
+				return lei->integer()->i4();
+			else 
+				return 0;
+			}
+		int operator()(LengthEncodedIntegerLookahead* lei) const
+			{
+			if ( lei->length() < 0xfb )
+				return lei->length();
+			else if ( lei->length() == 0xfc )
 				return lei->i2();
-			else if ( lei->i1() == 0xfd )
+			else if ( lei->length() == 0xfd )
 				return to_int()(lei->i3());
-			else if ( lei->i1() == 0xfe )
+			else if ( lei->length() == 0xfe )
 				return lei->i4();
 			else 
 				return 0;
@@ -105,6 +122,7 @@ enum Expected {
 	EXPECT_EOF1,
 	EXPECT_EOF2,
 	EXPECT_RESULTSET,
+	EXPECT_QUERY_RESPONSE,
 };
 
 type NUL_String = RE/[^\0]*/;
@@ -212,13 +230,13 @@ type Command_Request_Packet = record {
 # Command Response
 
 type Command_Response = case $context.connection.get_expectation() of {
-	EXPECT_COLUMN_COUNT			-> col_count	: ColumnCount;
-	EXPECT_COLUMN_DEFINITION	-> col_defs		: ColumnDefinitions;
-	EXPECT_RESULTSET			-> resultset    : Resultset;
-	EXPECT_STATUS				-> status       : Command_Response_Status;
-	EXPECT_EOF1					-> eof1			: EOF1;
-	EXPECT_EOF2					-> eof2			: EOF2;
-	default						-> unknown      : empty;
+	EXPECT_COLUMN_COUNT			-> col_count_meta	: ColumnCountMeta;
+	EXPECT_COLUMN_DEFINITION	-> col_defs			: ColumnDefinitions;
+	EXPECT_RESULTSET			-> resultset    	: Resultset;
+	EXPECT_STATUS				-> status       	: Command_Response_Status;
+	EXPECT_EOF1					-> eof1				: EOF1;
+	EXPECT_EOF2					-> eof2				: EOF2;
+	default						-> unknown      	: empty;
 };
 
 type Command_Response_Status = record {
@@ -231,8 +249,18 @@ type Command_Response_Status = record {
 	};
 };
 
-type ColumnCount = record {
-	le_column_count		: LengthEncodedInteger;
+type ColumnCountMeta = record {
+	byte	: uint8;
+	pkt_type: case byte of {
+		0x00    -> ok		: OK_Packet;
+		0xff    -> err		: ERR_Packet;
+#		0xfb    -> Not implemented
+		default -> col_count: ColumnCount(byte);
+	};
+};
+
+type ColumnCount(byte: uint8) = record {
+	le_column_count		: LengthEncodedIntegerLookahead(byte);
 } &let {
 	col_num           	: uint32 = to_int()(le_column_count);
 	update_col_num    	: bool = $context.connection.set_col_count(col_num);
@@ -304,11 +332,15 @@ type ERR_Packet = record {
 	code : uint16;
 	state: bytestring &length=6;
 	msg  : bytestring &restofdata;
+} &let {
+	update_state: bool = $context.connection.update_state(COMMAND_PHASE);
 };
 
 type EOF_Packet = record {
 	warnings: uint16;
 	status  : uint16;
+} &let {
+	update_state: bool = $context.connection.update_state(COMMAND_PHASE);
 };
 
 # State tracking

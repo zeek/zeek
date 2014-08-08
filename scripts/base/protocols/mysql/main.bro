@@ -72,6 +72,12 @@ event mysql_command_request(c: connection, command: count, arg: string)
 		info$cmd = commands[command];
 		info$arg = sub(arg, /\0$/, "");
 		c$mysql = info;
+		if ( command == 1 )
+			{
+			# We get no response for quits, so let's just log it now.
+			Log::write(mysql::LOG, c$mysql);
+			delete c$mysql;			
+			}
 		}
 	}
 

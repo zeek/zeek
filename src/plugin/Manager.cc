@@ -542,15 +542,16 @@ int Manager::HookLoadFile(const string& file)
 
 	int rc = -1;
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
 
-		rc = p->HookLoadFile(normalized_file, ext);
+			rc = p->HookLoadFile(normalized_file, ext);
 
-		if ( rc >= 0 )
-			break;
-		}
+			if ( rc >= 0 )
+				break;
+			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_LOAD_FILE, args, HookArgument(rc));
@@ -573,15 +574,16 @@ Val* Manager::HookCallFunction(const Func* func, val_list* vargs) const
 
 	Val* v = 0;
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
 
-		v = p->HookCallFunction(func, vargs);
+			v = p->HookCallFunction(func, vargs);
 
-		if ( v )
-			break;
-		}
+			if ( v )
+				break;
+			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));
@@ -603,16 +605,17 @@ bool Manager::HookQueueEvent(Event* event) const
 
 	bool result = false;
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
-
-		if ( p->HookQueueEvent(event) )
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
-			result = true;
-			break;
+			Plugin* p = (*i).second;
+
+			if ( p->HookQueueEvent(event) )
+				{
+				result = true;
+				break;
+				}
 			}
-		}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_QUEUE_EVENT, args, HookArgument(result));
@@ -629,11 +632,12 @@ void Manager::HookDrainEvents() const
 
 	hook_list* l = hooks[HOOK_DRAIN_EVENTS];
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
-		p->HookDrainEvents();
-		}
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookDrainEvents();
+			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_DRAIN_EVENTS, args, HookArgument());
@@ -652,11 +656,12 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 
 	hook_list* l = hooks[HOOK_UPDATE_NETWORK_TIME];
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
-		p->HookUpdateNetworkTime(network_time);
-		}
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookUpdateNetworkTime(network_time);
+			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_UPDATE_NETWORK_TIME, args, HookArgument());
@@ -674,35 +679,37 @@ void Manager::HookBroObjDtor(void* obj) const
 
 	hook_list* l = hooks[HOOK_BRO_OBJ_DTOR];
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
-		p->HookBroObjDtor(obj);
-		}
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->HookBroObjDtor(obj);
+			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
-
 	}
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const
 	{
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
-		p->MetaHookPre(hook, args);
-		}
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->MetaHookPre(hook, args);
+			}
 	}
 
 void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const
 	{
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	for ( hook_list::iterator i = l->begin(); l && i != l->end(); i++ )
-		{
-		Plugin* p = (*i).second;
-		p->MetaHookPost(hook, args, result);
-		}
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+			p->MetaHookPost(hook, args, result);
+			}
 	}

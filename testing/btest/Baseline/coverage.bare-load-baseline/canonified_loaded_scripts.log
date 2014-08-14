@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-07-31-19-06-48
+#open	2014-08-14-04-31-10
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -21,9 +21,7 @@ scripts/base/init-bare.bro
       scripts/base/frameworks/logging/postprocessors/scp.bro
       scripts/base/frameworks/logging/postprocessors/sftp.bro
     scripts/base/frameworks/logging/writers/ascii.bro
-    scripts/base/frameworks/logging/writers/dataseries.bro
     scripts/base/frameworks/logging/writers/sqlite.bro
-    scripts/base/frameworks/logging/writers/elasticsearch.bro
     scripts/base/frameworks/logging/writers/none.bro
   scripts/base/frameworks/input/__load__.bro
     scripts/base/frameworks/input/main.bro
@@ -111,10 +109,8 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_RawReader.raw.bif.bro
     build/scripts/base/bif/plugins/Bro_SQLiteReader.sqlite.bif.bro
     build/scripts/base/bif/plugins/Bro_AsciiWriter.ascii.bif.bro
-    build/scripts/base/bif/plugins/Bro_DataSeriesWriter.dataseries.bif.bro
-    build/scripts/base/bif/plugins/Bro_ElasticSearchWriter.elasticsearch.bif.bro
     build/scripts/base/bif/plugins/Bro_NoneWriter.none.bif.bro
     build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2014-07-31-19-06-48
+#close	2014-08-14-04-31-10

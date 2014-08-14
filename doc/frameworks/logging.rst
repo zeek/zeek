@@ -38,7 +38,7 @@ Bro's logging interface is built around three main abstractions:
     Writers
         A writer defines the actual output format for the information
         being logged. At the moment, Bro comes with only one type of
-        writer, which produces tab separated ASCII files. In the 
+        writer, which produces tab separated ASCII files. In the
         future we will add further writers, like for binary output and
         direct logging into a database.
 
@@ -98,7 +98,7 @@ Note the fields that are set for the filter:
     ``include``
         A set limiting the fields to the ones given. The names
         correspond to those in the :bro:type:`Conn::Info` record, with
-        sub-records unrolled by concatenating fields (separated with 
+        sub-records unrolled by concatenating fields (separated with
         dots).
 
 Using the code above, you will now get a new log file ``origs.log``
@@ -155,7 +155,7 @@ that returns the desired path:
         {
         local filter: Log::Filter = [$name="conn-split", $path_func=split_log, $include=set("ts", "id.orig_h")];
         Log::add_filter(Conn::LOG, filter);
-        }   
+        }
 
 Running this will now produce two files, ``local.log`` and
 ``remote.log``, with the corresponding entries. One could extend this
@@ -263,7 +263,7 @@ specific destination exceeds a certain duration:
 .. code:: bro
 
     redef enum Notice::Type += {
-        ## Indicates that a connection remained established longer 
+        ## Indicates that a connection remained established longer
         ## than 5 minutes.
         Long_Conn_Found
     };
@@ -271,8 +271,8 @@ specific destination exceeds a certain duration:
     event Conn::log_conn(rec: Conn::Info)
         {
         if ( rec$duration > 5mins )
-            NOTICE([$note=Long_Conn_Found, 
-                    $msg=fmt("unusually long conn to %s", rec$id$resp_h), 
+            NOTICE([$note=Long_Conn_Found,
+                    $msg=fmt("unusually long conn to %s", rec$id$resp_h),
                     $id=rec$id]);
         }
 
@@ -335,11 +335,11 @@ example for the ``Foo`` module:
         # Define a hook event. By convention, this is called
         # "log_<stream>".
         global log_foo: event(rec: Info);
-        
+
     }
 
     # This event should be handled at a higher priority so that when
-    # users modify your stream later and they do it at priority 0, 
+    # users modify your stream later and they do it at priority 0,
     # their code runs after this.
     event bro_init() &priority=5
         {
@@ -356,7 +356,7 @@ it easily accessible across event handlers:
         foo: Info &optional;
         }
 
-Now you can use the :bro:id:`Log::write` method to output log records and 
+Now you can use the :bro:id:`Log::write` method to output log records and
 save the logged ``Foo::Info`` record into the connection record:
 
 .. code:: bro
@@ -387,4 +387,4 @@ Bro supports the following built-in output formats other than ASCII:
 
    logging-input-sqlite
 
-Further formats are available as external plugins.   
+Further formats are available as external plugins.

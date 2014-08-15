@@ -383,7 +383,6 @@ unsigned int DNP3_Analyzer::CalcCRC(int len, const u_char* data)
 DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DNP3_UDP", c)
 	{
 
-	printf("enter DNP3_UDP_Analyzer\n");
 	interp = new binpac::DNP3::DNP3_Conn(this);
 
 	ClearEndpointState(true);
@@ -405,7 +404,7 @@ void DNP3_UDP_Analyzer::Done()
 
 void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
-	printf("enter DNP3_UDP_Analyzer DeliverPacket\n");
+	
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 
@@ -437,8 +436,7 @@ void DNP3_UDP_Analyzer::EndpointEOF(bool is_orig)
 
 bool DNP3_UDP_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 	{
-	printf("enter DNP3_UDP_Analyzer process Data\n");
-
+	
 	Endpoint* endp = orig ? &orig_state : &resp_state;
 
 

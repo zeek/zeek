@@ -40,7 +40,7 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3, ports);
 	}
 
-event dnp3_application_request_header(c: connection, is_orig: bool, fc: count)
+event dnp3_application_request_header(c: connection, is_orig: bool, application_control: count, fc: count)
 	{
 	if ( ! c?$dnp3 )
 		c$dnp3 = [$ts=network_time(), $uid=c$uid, $id=c$id];
@@ -49,7 +49,7 @@ event dnp3_application_request_header(c: connection, is_orig: bool, fc: count)
 	c$dnp3$fc_request = function_codes[fc];
 	}
 
-event dnp3_application_response_header(c: connection, is_orig: bool, fc: count, iin: count)
+event dnp3_application_response_header(c: connection, is_orig: bool, application_control: count, fc: count, iin: count)
 	{
 	if ( ! c?$dnp3 )
 		c$dnp3 = [$ts=network_time(), $uid=c$uid, $id=c$id];

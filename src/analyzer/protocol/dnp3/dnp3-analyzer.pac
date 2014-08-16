@@ -20,7 +20,7 @@ flow DNP3_Flow(is_orig: bool) {
 		return true;
 		%}
 
-	function get_dnp3_application_request_header(fc: uint8): bool
+	function get_dnp3_application_request_header(application_control: uint8, fc: uint8): bool
 		%{
 		if ( ::dnp3_application_request_header )
 			{
@@ -28,13 +28,14 @@ flow DNP3_Flow(is_orig: bool) {
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
+				application_control, 
 				fc
 				);
 			}
 		return true;
 		%}
 
-	function get_dnp3_application_response_header(fc: uint8, iin: uint16): bool
+	function get_dnp3_application_response_header(application_control: uint8, fc: uint8, iin: uint16): bool
 		%{
 		if ( ::dnp3_application_response_header )
 			{
@@ -42,6 +43,7 @@ flow DNP3_Flow(is_orig: bool) {
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
+				application_control,
 				fc,
 				iin
 				);
@@ -725,11 +727,11 @@ refine typeattr Header_Block += &let {
 };
 
 refine typeattr DNP3_Application_Request_Header += &let {
-	process_request: bool =  $context.flow.get_dnp3_application_request_header(function_code);
+	process_request: bool =  $context.flow.get_dnp3_application_request_header(application_control, function_code);
 };
 
 refine typeattr DNP3_Application_Response_Header += &let {
-	process_request: bool =  $context.flow.get_dnp3_application_response_header(function_code, internal_indications);
+	process_request: bool =  $context.flow.get_dnp3_application_response_header(application_control, function_code, internal_indications);
 };
 
 refine typeattr Object_Header += &let {

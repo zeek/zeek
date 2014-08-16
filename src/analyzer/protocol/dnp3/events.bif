@@ -7,7 +7,7 @@
 ##
 ## fc: function code.
 ##
-event dnp3_application_request_header%(c: connection, is_orig: bool, fc: count%);
+event dnp3_application_request_header%(c: connection, is_orig: bool, application: count, fc: count%);
 
 ## Generated for a DNP3 response header.
 ##
@@ -19,7 +19,7 @@ event dnp3_application_request_header%(c: connection, is_orig: bool, fc: count%)
 ##
 ## iin: internal indication number.
 ##
-event dnp3_application_response_header%(c: connection, is_orig: bool, fc: count, iin: count%);
+event dnp3_application_response_header%(c: connection, is_orig: bool, application: count, fc: count, iin: count%);
 
 ## Generated for the object header found in both DNP3 requests and responses.
 ##

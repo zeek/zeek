@@ -16,6 +16,16 @@ static void DbgAndWarn(const char* msg)
 	DBG_LOG(DBG_BROXYGEN, "%s", msg);
 	}
 
+static void WarnMissingScript(const char* type, const ID* id,
+                              string script)
+	{
+	if ( script == "<command line>" )
+		return;
+
+	DbgAndWarn(fmt("Can't document %s %s, lookup of %s failed",
+	               type, id->Name(), script.c_str()));
+	}
+
 static string RemoveLeadingSpace(const string& s)
 	{
 	if ( s.empty() || s[0] != ' ' )
@@ -220,8 +230,7 @@ void Manager::StartType(ID* id)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Can't document identifier %s, lookup of %s failed",
-		               id->Name(), script.c_str()));
+		WarnMissingScript("identifier", id, script);
 		return;
 		}
 
@@ -285,8 +294,7 @@ void Manager::Identifier(ID* id)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Can't document identifier %s, lookup of %s failed",
-		               id->Name(), script.c_str()));
+		WarnMissingScript("identifier", id, script);
 		return;
 		}
 
@@ -340,8 +348,7 @@ void Manager::Redef(const ID* id, const string& path)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Can't document redef of %s, lookup of %s failed",
-		               id->Name(), from_script.c_str()));
+		WarnMissingScript("redef", id, from_script);
 		return;
 		}
 

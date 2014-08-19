@@ -1,4 +1,11 @@
 
+2.3-98 | 2014-08-19 11:03:46 -0500
+
+  * Silence some doc-related warnings when using `bro -e`.
+    Closes BIT-1232. (Jon Siwek)
+
+  * Fix possible null ptr derefs reported by Coverity. (Jon Siwek)
+
 2.3-96 | 2014-08-01 14:35:01 -0700
 
   * Small change to DHCP documentation. In server->client messages the

@@ -185,6 +185,9 @@ event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHea
 ## quantity: The quantity of registers that were written.
 event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
 
+
+event modbus_file_record_request%(c: connection, ref_tpe: count, file_num: count, record_num: count, record_len: count%);
+
 ## Generated for a Modbus read file record request.
 ##
 ## c: The connection.

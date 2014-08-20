@@ -376,6 +376,23 @@ refine flow ModbusTCP_Flow += {
 		return true;
 		%}
 
+	# support data strcuture
+	function deliver_FileRecordRequest(message: FileRecordRequest): bool
+		%{
+		if ( ::modbus_file_record_request )
+			{
+			BifEvent::generate_modbus_file_record_request(connection()->bro_analyzer(),
+			                                                            connection()->bro_analyzer()->Conn(),
+			                                                            ${message.ref_type}, 
+											${message.file_num},
+											${message.record_num},
+											${message.record_len});
+			}
+
+		return true;
+		%}
+	
+
 	# REQUEST FC=20
 	function deliver_ReadFileRecordRequest(header: ModbusTCP_TransportHeader, message: ReadFileRecordRequest): bool
 		%{

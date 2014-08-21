@@ -1,4 +1,13 @@
 
+2.3-116 | 2014-08-21 16:04:13 -0500
+
+  * Adding plugin testing to Makefile's test-all. (Robin Sommer)
+
+  * Converting log writers and input readers to plugins.
+    DataSeries and ElasticSearch plugins have moved to the new
+    bro-plugins repository, which is now a git submodule in the
+    aux/plugins directory. (Robin Sommer)
+
 2.3-98 | 2014-08-19 11:03:46 -0500
 
   * Silence some doc-related warnings when using `bro -e`.

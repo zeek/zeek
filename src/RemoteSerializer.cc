@@ -192,6 +192,7 @@
 #include "logging/Manager.h"
 #include "IPAddr.h"
 #include "bro_inet_ntop.h"
+#include "logging/logging.bif.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -2723,8 +2724,8 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	fmt.EndRead();
 
-	id_val = new EnumVal(id, BifType::Enum::Log::ID);
-	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
+	id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
+	writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
 	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields,
 	                             true, false, true) )
@@ -2796,8 +2797,8 @@ bool RemoteSerializer::ProcessLogWrite()
 				}
 			}
 
-		id_val = new EnumVal(id, BifType::Enum::Log::ID);
-		writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
+		id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
+		writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
 		success = log_mgr->Write(id_val, writer_val, path, num_fields, vals);
 

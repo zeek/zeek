@@ -1221,7 +1221,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 			iosource::PktDumper::Packet dp;
 			dp.hdr = p->hdr;
 			dp.data = p->pkt;
-			dump->Record(&dp);
+			dump->Dump(&dp);
 			}
 		}
 #endif

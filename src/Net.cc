@@ -127,7 +127,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					iosource::PktDumper::Packet p;
 					p.hdr = current_hdr;
 					p.data = current_pkt;
-					pkt_dumper->Record(&p);
+					pkt_dumper->Dump(&p);
 					}
 				}
 

@@ -50,11 +50,6 @@ int PktDumper::HdrSize() const
 	return is_open ? props.hdr_size : -1;
 	}
 
-bool PktDumper::Record(const Packet* pkt)
-	{
-	return Dump(pkt);
-	}
-
 void PktDumper::Opened(const Properties& arg_props)
 	{
 	is_open = true;

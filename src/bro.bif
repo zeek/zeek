@@ -3235,7 +3235,7 @@ function dump_current_packet%(file_name: string%) : bool
 		iosource::PktDumper::Packet p;
 		p.hdr = hdr;
 		p.data = pkt;
-		addl_pkt_dumper->Record(&p);
+		addl_pkt_dumper->Dump(&p);
 		}
 
 	return new Val(! addl_pkt_dumper->IsError(), TYPE_BOOL);
@@ -3300,7 +3300,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		iosource::PktDumper::Packet p;
 		p.hdr = &hdr;
 		p.data = (*pkt_vl)[4]->AsString()->Bytes();
-		addl_pkt_dumper->Record(&p);
+		addl_pkt_dumper->Dump(&p);
 		}
 
 	return new Val(addl_pkt_dumper->IsError(), TYPE_BOOL);

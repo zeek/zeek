@@ -25,8 +25,10 @@ public:
 	int HdrSize() const;
 	bool Record(const Packet* pkt);
 
+	// PktSrc interface for derived classes to implement.
 	virtual void Close() = 0;
 	virtual void Open() = 0;
+	virtual bool Dump(const Packet* pkt) = 0;
 
 protected:
 	// Methods to use by derived classed.
@@ -40,10 +42,6 @@ protected:
 	void Opened(const Properties& props);
 	void Closed();
 	void Error(const std::string& msg);
-
-	// PktSrc interface for derived classes to implement.
-
-	virtual bool Dump(const Packet* pkt) = 0;
 
 private:
 	bool is_open;

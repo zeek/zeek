@@ -1394,7 +1394,7 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 		iosource::PktDumper::Packet p;
 		p.hdr = hdr;
 		p.data = pkt;
-		pkt_dumper->Record(&p);
+		pkt_dumper->Dump(&p);
 		}
 
 	else
@@ -1407,7 +1407,7 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 		iosource::PktDumper::Packet p;
 		p.hdr = &h;
 		p.data = pkt;
-		pkt_dumper->Record(&p);
+		pkt_dumper->Dump(&p);
 		}
 	}
 

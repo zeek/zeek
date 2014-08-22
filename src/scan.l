@@ -606,22 +606,30 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	if ( ! lookup_ID(id, current_module.c_str()) )
+	ID* i;
+
+	if ( ! (i = lookup_ID(id, current_module.c_str())) )
 		{
 		if_stack.append(current_depth);
 		BEGIN(IGNORE);
 		}
+
+	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	if ( lookup_ID(id, current_module.c_str()) )
+	ID* i;
+
+	if ( (i = lookup_ID(id, current_module.c_str())) )
 		{
 		if_stack.append(current_depth);
 		BEGIN(IGNORE);
 		}
+
+	Unref(i);
 	}
 
 void do_atelse()

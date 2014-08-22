@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2014-04-24-18-29-46
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1396973486.753913	CXWv6p3arKYeMETxOg	173.203.79.216	46592	162.219.2.166	443	-	-	-	tcp	Heartbleed::SSL_Heartbeat_Attack	An TLS heartbleed attack was detected! Record length 16368, payload length 16365	-	173.203.79.216	162.219.2.166	443	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+#close	2014-04-24-18-29-46

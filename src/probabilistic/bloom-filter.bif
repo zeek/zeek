@@ -44,7 +44,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 	size_t optimal_k = BasicBloomFilter::K(cells, capacity);
 	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
                                  name->Len());
-	const Hasher* h = new DefaultHasher(optimal_k, seed);
+	const Hasher* h = new DoubleHasher(optimal_k, seed);
 
 	return new BloomFilterVal(new BasicBloomFilter(h, cells));
 	%}
@@ -84,7 +84,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 
 	size_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
 				       name->Len());
-	const Hasher* h = new DefaultHasher(k, seed);
+	const Hasher* h = new DoubleHasher(k, seed);
 
 	return new BloomFilterVal(new BasicBloomFilter(h, cells));
 	%}

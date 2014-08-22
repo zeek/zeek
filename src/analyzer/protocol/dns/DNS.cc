@@ -835,34 +835,61 @@ int DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	return 1;
 	}
 
+static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
+                                      const u_char*& data, int& len, int& rdlen)
+	{
+	if ( rdlen <= 0 )
+		return 0;
+
+	uint8 str_size = data[0];
+
+	--rdlen;
+	--len;
+	++data;
+
+	if ( str_size > rdlen )
+		{
+		analyzer->Weird("DNS_TXT_char_str_past_rdlen");
+		return 0;
+		}
+
+	StringVal* rval = new StringVal(str_size,
+	                                reinterpret_cast<const char*>(data));
+
+	rdlen -= str_size;
+	len -= str_size;
+	data += str_size;
+
+	return rval;
+	}
+
 int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
 	{
-	int name_len = data[0];
-
-	char* name = new char[name_len];
-
-	memcpy(name, data+1, name_len);
-
-	data += rdlength;
-	len -= rdlength;
-
-	if ( dns_TXT_reply && ! msg->skip_event )
+	if ( ! dns_TXT_reply || msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new StringVal(name_len, name));
-
-		analyzer->ConnectionEvent(dns_TXT_reply, vl);
+		data += rdlength;
+		len -= rdlength;
+		return 1;
 		}
 
-	delete [] name;
+	VectorVal* char_strings = new VectorVal(string_vec);
+	StringVal* char_string;
 
-	return 1;
+	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
+		char_strings->Assign(char_strings->Size(), char_string);
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(char_strings);
+
+	analyzer->ConnectionEvent(dns_TXT_reply, vl);
+
+	return rdlength == 0;
 	}
 
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
@@ -1146,7 +1173,7 @@ void DNS_Analyzer::Done()
 	}
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

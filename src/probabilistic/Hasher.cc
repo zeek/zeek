@@ -108,7 +108,7 @@ Hasher::digest UHF::hash(const void* x, size_t n) const
 
 	MD5(d, 16, d);
 
-	return d[0];
+	return *reinterpret_cast<const Hasher::digest*>(d);
 	}
 
 DefaultHasher::DefaultHasher(size_t k, size_t seed)

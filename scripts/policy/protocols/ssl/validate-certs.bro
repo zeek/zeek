@@ -28,7 +28,8 @@ export {
 event ssl_established(c: connection) &priority=3
 	{
 	# If there aren't any certs we can't very well do certificate validation.
-	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 )
+	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
+	     ! c$ssl$cert_chain[0]?$x509 )
 		return;
 
 	local chain_id = join_string_vec(c$ssl$cert_chain_fuids, ".");
@@ -36,7 +37,8 @@ event ssl_established(c: connection) &priority=3
 	local chain: vector of opaque of x509 = vector();
 	for ( i in c$ssl$cert_chain )
 		{
-		chain[i] = c$ssl$cert_chain[i]$x509$handle;
+		if ( c$ssl$cert_chain[i]?$x509 )
+			chain[i] = c$ssl$cert_chain[i]$x509$handle;
 		}
 
 	if ( chain_id in recently_validated_certs )
@@ -49,7 +51,7 @@ event ssl_established(c: connection) &priority=3
 		c$ssl$validation_status = result$result_string;
 		recently_validated_certs[chain_id] = result$result_string;
 		}
-		
+
 	if ( c$ssl$validation_status != "ok" )
 		{
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);

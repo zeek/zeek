@@ -379,10 +379,10 @@ void terminate_bro()
 	delete secondary_path;
 	delete remote_serializer;
 	delete analyzer_mgr;
+	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
 	delete thread_mgr;
-	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;
@@ -1173,6 +1173,10 @@ int main(int argc, char** argv)
 		terminate_bro();
 
 		sqlite3_shutdown();
+
+		ERR_free_strings();
+		EVP_cleanup();
+		CRYPTO_cleanup_all_ex_data();
 
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.

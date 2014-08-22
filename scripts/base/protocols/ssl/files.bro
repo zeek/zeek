@@ -52,22 +52,8 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	set_session(c);
-
-	local depth: count;
-
-	if ( is_orig )
-		{
-		depth = c$ssl$client_depth;
-		++c$ssl$client_depth;
-		}
-	else
-		{
-		depth = c$ssl$server_depth;
-		++c$ssl$server_depth;
-		}
-
-	return cat(Analyzer::ANALYZER_SSL, c$start_time, is_orig, id_string(c$id), depth);
+	# Unused.  File handles are generated in the analyzer.
+	return "";
 	}
 
 function describe_file(f: fa_file): string
@@ -135,13 +121,15 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 event ssl_established(c: connection) &priority=6
 	{
 	# update subject and issuer information
-	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 )
+	if ( c$ssl?$cert_chain && |c$ssl$cert_chain| > 0 &&
+	     c$ssl$cert_chain[0]?$x509 )
 		{
 		c$ssl$subject = c$ssl$cert_chain[0]$x509$certificate$subject;
 		c$ssl$issuer = c$ssl$cert_chain[0]$x509$certificate$issuer;
 		}
 
-	if ( c$ssl?$client_cert_chain && |c$ssl$client_cert_chain| > 0 )
+	if ( c$ssl?$client_cert_chain && |c$ssl$client_cert_chain| > 0 &&
+	     c$ssl$client_cert_chain[0]?$x509 )
 		{
 		c$ssl$client_subject = c$ssl$client_cert_chain[0]$x509$certificate$subject;
 		c$ssl$client_issuer = c$ssl$client_cert_chain[0]$x509$certificate$issuer;

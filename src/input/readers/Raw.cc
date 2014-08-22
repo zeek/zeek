@@ -67,12 +67,9 @@ void Raw::DoClose()
 	if ( file != 0 )
 		CloseInput();
 
-	if ( buf != 0 )
-		{
-		// we still have output that has not been flushed. Throw away.
-		delete buf;
-		buf = 0;
-		}
+	// Just throw away output that has not been flushed.
+	delete [] buf;
+	buf = 0;
 
 	if ( execute && childpid > 0 && kill(childpid, 0) == 0 )
 		{

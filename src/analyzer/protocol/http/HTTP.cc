@@ -243,10 +243,10 @@ int HTTP_Entity::Undelivered(int64_t len)
 		return 0;
 
 	if ( is_partial_content )
-		file_mgr->Gap(body_length, len,
+		precomputed_file_id = file_mgr->Gap(body_length, len,
 		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		              http_message->MyHTTP_Analyzer()->Conn(),
-		              http_message->IsOrig());
+		              http_message->IsOrig(), precomputed_file_id);
 	else
 		precomputed_file_id = file_mgr->Gap(body_length, len,
 		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
@@ -306,15 +306,15 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 	if ( is_partial_content )
 		{
 		if ( send_size && instance_length > 0 )
-			file_mgr->SetSize(instance_length,
+			precomputed_file_id = file_mgr->SetSize(instance_length,
 			                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 			                  http_message->MyHTTP_Analyzer()->Conn(),
-			                  http_message->IsOrig());
+			                  http_message->IsOrig(), precomputed_file_id);
 
-		file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
+		precomputed_file_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len, offset,
 		                 http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		                 http_message->MyHTTP_Analyzer()->Conn(),
-		                 http_message->IsOrig());
+		                 http_message->IsOrig(), precomputed_file_id);
 
 		offset += len;
 		}
@@ -583,9 +583,16 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 	top_level->EndOfData();
 
 	if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
-		// multipart/byteranges may span multiple connections
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                    MyHTTP_Analyzer()->Conn(), is_orig);
+		{
+		// multipart/byteranges may span multiple connections, so don't EOF.
+		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(top_level);
+
+		if ( he && ! he->FileID().empty() )
+			file_mgr->EndOfFile(he->FileID());
+		else
+			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                    MyHTTP_Analyzer()->Conn(), is_orig);
+		}
 
 	if ( http_message_done )
 		{
@@ -663,8 +670,15 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		Done();
 
 	else if ( is_orig || MyHTTP_Analyzer()->HTTP_ReplyCode() != 206 )
-		file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
-		                    MyHTTP_Analyzer()->Conn(), is_orig);
+		{
+		HTTP_Entity* he = dynamic_cast<HTTP_Entity*>(entity);
+
+		if ( he && ! he->FileID().empty() )
+			file_mgr->EndOfFile(he->FileID());
+		else
+			file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(),
+			                    MyHTTP_Analyzer()->Conn(), is_orig);
+		}
 	}
 
 void HTTP_Message::SubmitHeader(mime::MIME_Header* h)
@@ -1115,11 +1129,11 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		}
 	}
 
-void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
+void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
-	// DEBUG_MSG("Undelivered from %d: %d bytes\n", seq, length);
+	// DEBUG_MSG("Undelivered from %"PRIu64": %d bytes\n", seq, length);
 
 	HTTP_Message* msg =
 		is_orig ? request_message : reply_message;
@@ -1131,7 +1145,7 @@ void HTTP_Analyzer::Undelivered(int seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%d, len=%d", seq, len));
+				fmt("seq=%"PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body

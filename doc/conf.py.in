@@ -38,7 +38,6 @@ extensions += ["broxygen"]
 bro_binary = os.path.abspath("@CMAKE_SOURCE_DIR@/build/src/bro")
 broxygen_cache="@BROXYGEN_CACHE_DIR@"
 os.environ["BROPATH"] = "@BROPATH@"
-os.environ["BROMAGIC"] = "@BROMAGIC@"
 # ----- End of Broxygen configuration. -----
 
 # -- General configuration -----------------------------------------------------

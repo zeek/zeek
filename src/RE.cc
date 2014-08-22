@@ -3,6 +3,7 @@
 #include "config.h"
 
 #include <stdlib.h>
+#include <utility>
 
 #include "RE.h"
 #include "DFA.h"
@@ -266,6 +267,15 @@ void Specific_RE_Matcher::Dump(FILE* f)
 	dfa->Dump(f);
 	}
 
+inline void RE_Match_State::AddMatches(const AcceptingSet& as,
+                                       MatchPos position)
+	{
+	typedef std::pair<AcceptIdx, MatchPos> am_idx;
+
+	for ( AcceptingSet::const_iterator it = as.begin(); it != as.end(); ++it )
+		accepted_matches.insert(am_idx(*it, position));
+	}
+
 bool RE_Match_State::Match(const u_char* bv, int n,
 				bool bol, bool eol, bool clear)
 	{
@@ -283,14 +293,9 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		current_state = dfa->StartState();
 
 		const AcceptingSet* ac = current_state->Accept();
+
 		if ( ac )
-			{
-			loop_over_list(*ac, i)
-				{
-				accepted.append((*ac)[i]);
-				match_pos.append(0);
-				}
-			}
+			AddMatches(*ac, 0);
 		}
 
 	else if ( clear )
@@ -301,7 +306,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 
 	current_pos = 0;
 
-	int old_matches = accepted.length();
+	size_t old_matches = accepted_matches.size();
 
 	int ec;
 	int m = bol ? n + 1 : n;
@@ -324,25 +329,17 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 			break;
 			}
 
-		if ( next_state->Accept() )
-			{
-			const AcceptingSet* ac = next_state->Accept();
-			loop_over_list(*ac, i)
-				{
-				if ( ! accepted.is_member((*ac)[i]) )
-					{
-					accepted.append((*ac)[i]);
-					match_pos.append(current_pos);
-					}
-				}
-			}
+		const AcceptingSet* ac = next_state->Accept();
+
+		if ( ac )
+			AddMatches(*ac, current_pos);
 
 		++current_pos;
 
 		current_state = next_state;
 		}
 
-	return accepted.length() != old_matches;
+	return accepted_matches.size() != old_matches;
 	}
 
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n)
@@ -399,7 +396,8 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
 		+ padded_sizeof(*any_ccl)
-		+ accepted->MemoryAllocation();
+		+ padded_sizeof(*accepted)
+		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
 	}
 
 RE_Matcher::RE_Matcher()

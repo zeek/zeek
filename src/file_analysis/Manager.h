@@ -4,10 +4,9 @@
 #define FILE_ANALYSIS_MANAGER_H
 
 #include <string>
-#include <map>
-#include <set>
 #include <queue>
 
+#include "Dict.h"
 #include "Net.h"
 #include "Conn.h"
 #include "Val.h"
@@ -26,6 +25,9 @@
 #include "file_analysis/file_analysis.bif.h"
 
 namespace file_analysis {
+
+declare(PDict,bool);
+declare(PDict,File);
 
 /**
  * Main entry point for interacting with file analysis.
@@ -288,8 +290,8 @@ public:
 protected:
 	friend class FileTimer;
 
-	typedef set<string> IDSet;
-	typedef map<string, File*> IDMap;
+	typedef PDict(bool) IDSet;
+	typedef PDict(File) IDMap;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -361,8 +363,8 @@ protected:
 
 private:
 
-	IDMap id_map;	/**< Map file ID to file_analysis::File records. */
-	IDSet ignored;	/**< Ignored files.  Will be finally removed on EOF. */
+	PDict(File) id_map;  /**< Map file ID to file_analysis::File records. */
+	PDict(bool) ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 

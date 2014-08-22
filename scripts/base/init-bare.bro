@@ -2812,7 +2812,7 @@ export {
 	## Result of an X509 certificate chain verification
 	type Result: record {
 		## OpenSSL result code
-		result:	count;
+		result:	int;
 		## Result as string
 		result_string: string;
 		## References to the final certificate chain, if verification successful. End-host certificate is first.
@@ -2828,6 +2828,24 @@ export {
 		host: addr   &optional;
 		name: string &optional;
 	} &log;
+}
+
+module RADIUS;
+
+export {
+	type RADIUS::AttributeList: vector of string;
+	type RADIUS::Attributes: table[count] of RADIUS::AttributeList;
+
+	type RADIUS::Message: record {
+		## The type of message (Access-Request, Access-Accept, etc.).
+		code          : count;
+		## The transaction ID.
+		trans_id      : count;
+		## The "authenticator" string.
+		authenticator : string;
+		## Any attributes.
+		attributes    : RADIUS::Attributes &optional;
+	};
 }
 module GLOBAL;
 

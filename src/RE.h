@@ -9,6 +9,9 @@
 #include "CCL.h"
 #include "EquivClass.h"
 
+#include <set>
+#include <map>
+
 #include <ctype.h>
 typedef int (*cce_func)(int);
 
@@ -33,7 +36,10 @@ extern int re_lex(void);
 extern int clower(int);
 extern void synerr(const char str[]);
 
-typedef int_list AcceptingSet;
+typedef int AcceptIdx;
+typedef std::set<AcceptIdx> AcceptingSet;
+typedef uint64 MatchPos;
+typedef std::map<AcceptIdx, MatchPos> AcceptingMatchSet;
 typedef name_list string_list;
 
 typedef enum { MATCH_ANYWHERE, MATCH_EXACTLY, } match_type;
@@ -135,8 +141,8 @@ public:
 		current_state = 0;
 		}
 
-	const AcceptingSet* Accepted() const	{ return &accepted; }
-	const int_list* MatchPositions() const	{ return &match_pos; }
+	const AcceptingMatchSet& AcceptedMatches() const
+		{ return accepted_matches; }
 
 	// Returns the number of bytes feeded into the matcher so far
 	int Length()	{ return current_pos; }
@@ -149,16 +155,16 @@ public:
 		{
 		current_pos = -1;
 		current_state = 0;
-		accepted.clear();
-		match_pos.clear();
+		accepted_matches.clear();
 		}
+
+	void AddMatches(const AcceptingSet& as, MatchPos position);
 
 protected:
 	DFA_Machine* dfa;
 	int* ecs;
 
-	AcceptingSet accepted;
-	int_list match_pos;
+	AcceptingMatchSet accepted_matches;
 	DFA_State* current_state;
 	int current_pos;
 };

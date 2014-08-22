@@ -120,31 +120,41 @@ std::string get_unescaped_string(const std::string& arg_str)
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
  * returns a string containing all escaped values.
  *
+ * @param d an ODesc object to store the escaped hex version of the string,
+ *          if null one will be allocated and returned from the function.
  * @param str string to escape
  * @param escape_all If true, all characters are escaped. If false, only
  * characters are escaped that are either whitespace or not printable in
  * ASCII.
- * @return A std::string containing a list of escaped hex values of the form
- * \x## */
-std::string get_escaped_string(const std::string& str, bool escape_all)
+ * @return A ODesc object containing a list of escaped hex values of the form
+ *         \x##, which may be newly allocated if \a d was a null pointer. */
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
+                          bool escape_all)
 	{
-	char tbuf[16];
-	string esc = "";
+	if ( ! d )
+		d = new ODesc();
 
-	for ( size_t i = 0; i < str.length(); ++i )
+	for ( size_t i = 0; i < len; ++i )
 		{
 		char c = str[i];
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-			esc += tbuf;
+			char hex[4] = {'\\', 'x', '0', '0' };
+			bytetohex(c, hex + 2);
+			d->AddRaw(hex, 4);
 			}
 		else
-			esc += c;
+			d->AddRaw(&c, 1);
 		}
 
-	return esc;
+	return d;
+	}
+
+std::string get_escaped_string(const char* str, size_t len, bool escape_all)
+	{
+	ODesc d;
+	return get_escaped_string(&d, str, len, escape_all)->Description();
 	}
 
 char* copy_string(const char* s)
@@ -558,7 +568,7 @@ const char* fmt(const char* format, ...)
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
-		buf = (char*) malloc(buf_len);
+		buf = (char*) safe_malloc(buf_len);
 
 	va_list al;
 	va_start(al, format);
@@ -568,7 +578,7 @@ const char* fmt(const char* format, ...)
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
+		buf = (char*) safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);

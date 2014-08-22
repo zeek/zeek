@@ -361,6 +361,9 @@ private:
 
 	void DumpStateStats(BroFile* f, RuleHdrTest* hdr_test);
 
+	static bool AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
+	                                   const AcceptingMatchSet& ams);
+
 	int RE_level;
 	bool parse_error;
 	RuleHdrTest* root;

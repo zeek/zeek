@@ -46,7 +46,7 @@ bool file_analysis::X509::EndOfFile()
 	::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
 	if ( ! ssl_cert )
 		{
-		reporter->Error("Could not parse X509 certificate (fuid %s)", GetFile()->GetID().c_str());
+		reporter->Weird(fmt("Could not parse X509 certificate (fuid %s)", GetFile()->GetID().c_str()));
 		return false;
 		}
 
@@ -88,7 +88,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
-	char buf[256]; // we need a buffer for some of the openssl functions
+	char buf[2048]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
 	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
@@ -96,14 +96,16 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 
 	pX509Cert->Assign(0, new Val((uint64) X509_get_version(ssl_cert) + 1, TYPE_COUNT));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
-	int len = BIO_read(bio, &(*buf), sizeof(buf));
+	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, new StringVal(len, buf));
+	BIO_reset(bio);
 
 	X509_NAME_print_ex(bio, X509_get_subject_name(ssl_cert), 0, XN_FLAG_RFC2253);
-	len = BIO_gets(bio, &(*buf), sizeof(buf));
+	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(2, new StringVal(len, buf));
+	BIO_reset(bio);
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
-	len = BIO_gets(bio, &(*buf), sizeof(buf));
+	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(3, new StringVal(len, buf));
 	BIO_free(bio);
 
@@ -153,10 +155,53 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
 			pX509Cert->Assign(9, new Val(length, TYPE_COUNT));
+
+		EVP_PKEY_free(pkey);
 		}
 
 
 	return pX509Cert;
+	}
+
+StringVal* file_analysis::X509::GetExtensionFromBIO(BIO* bio)
+	{
+	BIO_flush(bio);
+	ERR_clear_error();
+	int length = BIO_pending(bio);
+
+	if ( ERR_peek_error() != 0 )
+		{
+		char tmp[120];
+		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
+		reporter->Weird(fmt("X509::GetExtensionFromBIO: %s", tmp));
+		BIO_free_all(bio);
+		return 0;
+		}
+
+	if ( length == 0 )
+		{
+		BIO_free_all(bio);
+		return new StringVal("");
+		}
+
+	char* buffer = (char*) malloc(length);
+
+	if ( ! buffer )
+		{
+		// Just emit an error here and try to continue instead of aborting
+		// because it's unclear the length value is very reliable.
+		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
+		BIO_free_all(bio);
+		return 0;
+		}
+
+	BIO_read(bio, (void*) buffer, length);
+	StringVal* ext_val = new StringVal(length, buffer);
+
+	free(buffer);
+	BIO_free_all(bio);
+
+	return ext_val;
 	}
 
 void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
@@ -178,16 +223,10 @@ void file_analysis::X509::ParseExtension(X509_EXTENSION* ex)
 	if( ! X509V3_EXT_print(bio, ex, 0, 0))
 		M_ASN1_OCTET_STRING_print(bio,ex->value);
 
-	BIO_flush(bio);
-	int length = BIO_pending(bio);
+	StringVal* ext_val = GetExtensionFromBIO(bio);
 
-	// Use OPENSSL_malloc here. Using new or anything else can lead
-	// to interesting, hard to debug segfaults.
-	char *buffer = (char*) OPENSSL_malloc(length);
-	BIO_read(bio, (void*)buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
-	OPENSSL_free(buffer);
-	BIO_free_all(bio);
+	if ( ! ext_val )
+		ext_val = new StringVal(0, "");
 
 	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
 	pX509Ext->Assign(0, new StringVal(name));
@@ -238,10 +277,11 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		vl->append(pBasicConstraint);
 
 		mgr.QueueEvent(x509_ext_basic_constraints, vl);
+		BASIC_CONSTRAINTS_free(constr);
 		}
 
 	else
-		reporter->Error("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str());
+		reporter->Weird(fmt("Certificate with invalid BasicConstraint. fuid %s", GetFile()->GetID().c_str()));
 	}
 
 void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
@@ -251,7 +291,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES *altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
 	if ( ! altname )
 		{
-		reporter->Error("Could not parse subject alternative names. fuid %s", GetFile()->GetID().c_str());
+		reporter->Weird(fmt("Could not parse subject alternative names. fuid %s", GetFile()->GetID().c_str()));
 		return;
 		}
 
@@ -271,7 +311,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			{
 			if ( ASN1_STRING_type(gen->d.ia5) != V_ASN1_IA5STRING )
 				{
-				reporter->Error("DNS-field does not contain an IA5String. fuid %s", GetFile()->GetID().c_str());
+				reporter->Weird(fmt("DNS-field does not contain an IA5String. fuid %s", GetFile()->GetID().c_str()));
 				continue;
 				}
 
@@ -318,7 +358,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 				else
 					{
-					reporter->Error("Weird IP address length %d in subject alternative name. fuid %s", gen->d.ip->length, GetFile()->GetID().c_str());
+					reporter->Weird(fmt("Weird IP address length %d in subject alternative name. fuid %s", gen->d.ip->length, GetFile()->GetID().c_str()));
 					continue;
 					}
 			}
@@ -352,6 +392,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		vl->append(GetFile()->GetVal()->Ref());
 		vl->append(sanExt);
 		mgr.QueueEvent(x509_ext_subject_alternative_name, vl);
+	GENERAL_NAMES_free(altname);
 	}
 
 StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
@@ -407,13 +448,20 @@ unsigned int file_analysis::X509::KeyLength(EVP_PKEY *key)
 			return 0;
 
 		const EC_GROUP *group = EC_KEY_get0_group(key->pkey.ec);
+
 		if ( ! group )
+			{
 			// unknown ex-group
+			BN_free(ec_order);
 			return 0;
+			}
 
 		if ( ! EC_GROUP_get_order(group, ec_order, NULL) )
+			{
 			// could not get ec-group-order
+			BN_free(ec_order);
 			return 0;
+			}
 
 		unsigned int length = BN_num_bits(ec_order);
 		BN_free(ec_order);

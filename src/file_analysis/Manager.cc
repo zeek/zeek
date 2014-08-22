@@ -27,7 +27,22 @@ Manager::Manager()
 
 Manager::~Manager()
 	{
-	Terminate();
+	// Have to assume that too much of Bro has been shutdown by this point
+	// to do anything more than reclaim memory.
+
+	File* f;
+	bool* b;
+
+	IterCookie* it = id_map.InitForIteration();
+
+	while ( (f = id_map.NextEntry(it)) )
+		delete f;
+
+	it = ignored.InitForIteration();
+
+	while( (b = ignored.NextEntry(it)) )
+		delete b;
+
 	delete magic_state;
 	}
 
@@ -54,11 +69,20 @@ void Manager::Terminate()
 	{
 	vector<string> keys;
 
-	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
-		keys.push_back(it->first);
+	IterCookie* it = id_map.InitForIteration();
+	HashKey* key;
+
+	while ( id_map.NextEntry(key, it) )
+		{
+		keys.push_back(string(static_cast<const char*>(key->Key()),
+		                      key->Size()));
+		delete key;
+		}
 
 	for ( size_t i = 0; i < keys.size(); ++i )
 		Timeout(keys[i], true);
+
+	mgr.Drain();
 	}
 
 string Manager::HashHandle(const string& handle) const
@@ -249,11 +273,12 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 	if ( IsIgnored(file_id) )
 		return 0;
 
-	File* rval = id_map[file_id];
+	File* rval = id_map.Lookup(file_id.c_str());
 
 	if ( ! rval )
 		{
-		rval = id_map[file_id] = new File(file_id, conn, tag, is_orig);
+		rval = new File(file_id, conn, tag, is_orig);
+		id_map.Insert(file_id.c_str(), rval);
 		rval->ScheduleInactivityTimer();
 
 		if ( IsIgnored(file_id) )
@@ -272,12 +297,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 
 File* Manager::LookupFile(const string& file_id) const
 	{
-	IDMap::const_iterator it = id_map.find(file_id);
-
-	if ( it == id_map.end() )
-		return 0;
-
-	return it->second;
+	return id_map.Lookup(file_id.c_str());
 	}
 
 void Manager::Timeout(const string& file_id, bool is_terminating)
@@ -308,37 +328,38 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 
 bool Manager::IgnoreFile(const string& file_id)
 	{
-	if ( id_map.find(file_id) == id_map.end() )
+	if ( ! id_map.Lookup(file_id.c_str()) )
 		return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
 
-	ignored.insert(file_id);
-
+	delete ignored.Insert(file_id.c_str(), new bool);
 	return true;
 	}
 
 bool Manager::RemoveFile(const string& file_id)
 	{
-	IDMap::iterator it = id_map.find(file_id);
+	HashKey key(file_id.c_str());
+	// Can't remove from the dictionary/map right away as invoking EndOfFile
+	// may cause some events to be executed which actually depend on the file
+	// still being in the dictionary/map.
+	File* f = static_cast<File*>(id_map.Lookup(&key));
 
-	if ( it == id_map.end() )
+	if ( ! f )
 		return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", file_id.c_str());
 
-	it->second->EndOfFile();
-
-	delete it->second;
-	id_map.erase(file_id);
-	ignored.erase(file_id);
-
+	f->EndOfFile();
+	delete f;
+	id_map.Remove(&key);
+	delete static_cast<bool*>(ignored.Remove(&key));
 	return true;
 	}
 
 bool Manager::IsIgnored(const string& file_id)
 	{
-	return ignored.find(file_id) != ignored.end();
+	return ignored.Lookup(file_id.c_str()) != 0;
 	}
 
 string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)

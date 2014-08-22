@@ -1,4 +1,4 @@
-##! Functions for parsing and manipulating IP addresses.
+##! Functions for parsing and manipulating IP and MAC addresses.
 
 # Regular expressions for matching IP addresses in strings.
 const ipv4_addr_regex = /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/;
@@ -14,13 +14,13 @@ const ipv6_compressed_hex4dec_regex = /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)
 #                        ipv6_compressed_hex4dec_regex;
 #const ip_addr_regex = ipv4_addr_regex | ipv6_addr_regex;
 
-const ipv6_addr_regex =     
+const ipv6_addr_regex =
     /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/ |
     /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/ | # IPv6 Compressed Hex
     /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ | # 6Hex4Dec
     /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
 
-const ip_addr_regex = 
+const ip_addr_regex =
     /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/ |
     /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/ |
     /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/ | # IPv6 Compressed Hex
@@ -57,7 +57,7 @@ function is_valid_ip(ip_str: string): bool
 		octets = split(ip_str, /\./);
 		if ( |octets| != 4 )
 			return F;
-		
+
 		return has_valid_octets(octets);
 		}
 	else if ( ip_str == ipv6_addr_regex )
@@ -118,4 +118,31 @@ function addr_to_uri(a: addr): string
 		return fmt("%s", a);
 	else
 		return fmt("[%s]", a);
+	}
+
+## Given a string, extracts the hex digits and returns a MAC address in
+## the format: 00:a0:32:d7:81:8f. If the string doesn't contain 12 or 16 hex
+## digits, an empty string is returned.
+##
+## a: the string to normalize.
+##
+## Returns: a normalized MAC address, or an empty string in the case of an error.
+function normalize_mac(a: string): string
+	{
+	local result = to_lower(gsub(a, /[^A-Fa-f0-9]/, ""));
+	local octets: string_vec;
+
+	if ( |result| == 12 )
+		{
+		octets = str_split(result, vector(2, 4, 6, 8, 10));
+		return fmt("%s:%s:%s:%s:%s:%s", octets[1], octets[2], octets[3], octets[4], octets[5], octets[6]);
+		}
+
+	if ( |result| == 16 )
+		{
+		octets = str_split(result, vector(2, 4, 6, 8, 10, 12, 14));
+		return fmt("%s:%s:%s:%s:%s:%s:%s:%s", octets[1], octets[2], octets[3], octets[4], octets[5], octets[6], octets[7], octets[8]);
+		}
+
+	return "";
 	}

@@ -594,6 +594,29 @@ RuleFileMagicState* RuleMatcher::InitFileMagic() const
 	return state;
 	}
 
+bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
+                                         const AcceptingMatchSet& ams)
+	{
+	DBG_LOG(DBG_RULES, "Checking rule: %s", r->id);
+
+	// Check whether all patterns of the rule have matched.
+	loop_over_list(r->patterns, j)
+		{
+		if ( ams.find(r->patterns[j]->id) == ams.end() )
+			return false;
+
+		// See if depth is satisfied.
+		if ( matchpos > r->patterns[j]->offset + r->patterns[j]->depth )
+			return false;
+
+		// FIXME: How to check for offset ??? ###
+		}
+
+	DBG_LOG(DBG_RULES, "All patterns of rule satisfied");
+
+	return true;
+	}
+
 RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
                                               const u_char* data, uint64 len,
                                               MIME_Matches* rval) const
@@ -636,56 +659,39 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 
 	DBG_LOG(DBG_RULES, "New pattern match found");
 
-	AcceptingSet accepted;
-	int_list matchpos;
+	AcceptingMatchSet accepted_matches;
 
 	loop_over_list(state->matchers, y)
 		{
 		RuleFileMagicState::Matcher* m = state->matchers[y];
-		const AcceptingSet* ac = m->state->Accepted();
-
-		loop_over_list(*ac, k)
-			{
-			if ( ! accepted.is_member((*ac)[k]) )
-				{
-				accepted.append((*ac)[k]);
-				matchpos.append((*m->state->MatchPositions())[k]);
-				}
-			}
+		const AcceptingMatchSet& ams = m->state->AcceptedMatches();
+		accepted_matches.insert(ams.begin(), ams.end());
 		}
 
 	// Find rules for which patterns have matched.
-	rule_list matched;
+	set<Rule*> rule_matches;
 
-	loop_over_list(accepted, i)
+	for ( AcceptingMatchSet::const_iterator it = accepted_matches.begin();
+	      it != accepted_matches.end(); ++it )
 		{
-		Rule* r = Rule::rule_table[accepted[i] - 1];
+		AcceptIdx aidx = it->first;
+		MatchPos mpos = it->second;
 
-		DBG_LOG(DBG_RULES, "Checking rule: %v", r->id);
+		Rule* r = Rule::rule_table[aidx - 1];
 
-		loop_over_list(r->patterns, j)
-			{
-			if ( ! accepted.is_member(r->patterns[j]->id) )
-				continue;
-
-			if ( (unsigned int) matchpos[i] >
-			     r->patterns[j]->offset + r->patterns[j]->depth )
-				continue;
-
-			DBG_LOG(DBG_RULES, "All patterns of rule satisfied");
-			}
-
-		if ( ! matched.is_member(r) )
-			matched.append(r);
+		if ( AllRulePatternsMatched(r, mpos, accepted_matches) )
+			rule_matches.insert(r);
 		}
 
-	loop_over_list(matched, j)
+	for ( set<Rule*>::const_iterator it = rule_matches.begin();
+	      it != rule_matches.end(); ++it )
 		{
-		Rule* r = matched[j];
+		Rule* r = *it;
 
 		loop_over_list(r->actions, rai)
 			{
-			const RuleActionMIME* ram = dynamic_cast<const RuleActionMIME*>(r->actions[rai]);
+			const RuleActionMIME* ram =
+			       dynamic_cast<const RuleActionMIME*>(r->actions[rai]);
 
 			if ( ! ram )
 				continue;
@@ -876,66 +882,40 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 	DBG_LOG(DBG_RULES, "New pattern match found");
 
-	// Build a joined AcceptingSet.
-	AcceptingSet accepted;
-	int_list matchpos;
+	AcceptingMatchSet accepted_matches;
 
-	loop_over_list(state->matchers, y)
+	loop_over_list(state->matchers, y )
 		{
 		RuleEndpointState::Matcher* m = state->matchers[y];
-		const AcceptingSet* ac = m->state->Accepted();
-
-		loop_over_list(*ac, k)
-			{
-			if ( ! accepted.is_member((*ac)[k]) )
-				{
-				accepted.append((*ac)[k]);
-				matchpos.append((*m->state->MatchPositions())[k]);
-				}
-			}
+		const AcceptingMatchSet& ams = m->state->AcceptedMatches();
+		accepted_matches.insert(ams.begin(), ams.end());
 		}
 
 	// Determine the rules for which all patterns have matched.
 	// This code should be fast enough as long as there are only very few
 	// matched patterns per connection (which is a plausible assumption).
 
-	rule_list matched;
+	// Find rules for which patterns have matched.
+	set<Rule*> rule_matches;
 
-	loop_over_list(accepted, i)
+	for ( AcceptingMatchSet::const_iterator it = accepted_matches.begin();
+	      it != accepted_matches.end(); ++it )
 		{
-		Rule* r = Rule::rule_table[accepted[i] - 1];
+		AcceptIdx aidx = it->first;
+		MatchPos mpos = it->second;
 
-		DBG_LOG(DBG_RULES, "Checking rule: %s", r->id);
+		Rule* r = Rule::rule_table[aidx - 1];
 
-		// Check whether all patterns of the rule have matched.
-		loop_over_list(r->patterns, j)
-			{
-			if ( ! accepted.is_member(r->patterns[j]->id) )
-				goto next_pattern;
-
-			// See if depth is satisfied.
-			if ( (unsigned int) matchpos[i] >
-			     r->patterns[j]->offset + r->patterns[j]->depth )
-				goto next_pattern;
-
-			DBG_LOG(DBG_RULES, "All patterns of rule satisfied");
-
-			// FIXME: How to check for offset ??? ###
-			}
-
-		// If not already in the list of matching rules, add it.
-		if ( ! matched.is_member(r) )
-			matched.append(r);
-
-next_pattern:
-		continue;
+		if ( AllRulePatternsMatched(r, mpos, accepted_matches) )
+			rule_matches.insert(r);
 		}
 
 	// Check which of the matching rules really belong to any of our nodes.
 
-	loop_over_list(matched, j)
+	for ( set<Rule*>::const_iterator it = rule_matches.begin();
+	      it != rule_matches.end(); ++it )
 		{
-		Rule* r = matched[j];
+		Rule* r = *it;
 
 		DBG_LOG(DBG_RULES, "Accepted rule: %s", r->id);
 
@@ -1306,7 +1286,10 @@ static Val* get_bro_val(const char* label)
 		return 0;
 		}
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+
+	return rval;
 	}
 
 

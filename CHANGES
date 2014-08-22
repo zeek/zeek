@@ -1,4 +1,287 @@
 
+2.3 | 2014-06-16 09:48:25 -0500
+
+  * Release 2.3.
+
+2.3-beta-33 | 2014-06-12 11:59:28 -0500
+
+  * Documentation improvements/fixes. (Daniel Thayer)
+
+2.3-beta-24 | 2014-06-11 15:35:31 -0500
+
+  * Fix SMTP state tracking when server response is missing.
+    (Robin Sommer)
+
+2.3-beta-22 | 2014-06-11 12:31:38 -0500
+
+  * Fix doc/test that broke due to a Bro script change. (Jon Siwek)
+
+  * Remove unused --with-libmagic configure option. (Jon Siwek)
+
+2.3-beta-20 | 2014-06-10 18:16:51 -0700
+
+  * Fix use-after-free in some cases of reassigning a table index.
+    Addresses BIT-1202. (Jon Siwek)
+
+2.3-beta-18 | 2014-06-06 13:11:50 -0700
+
+  * Add two more SSL events, one triggered for each handshake message
+    and one triggered for the tls change cipherspec message. (Bernhard
+    Amann)
+
+  * Small SSL bug fix. In case SSL::disable_analyzer_after_detection
+    was set to false, the ssl_established event would fire after each
+    data packet once the session is established. (Bernhard Amann)
+
+2.3-beta-16 | 2014-06-06 13:05:44 -0700
+
+  * Re-activate notice suppression for expiring certificates.
+    (Bernhard Amann)
+
+2.3-beta-14 | 2014-06-05 14:43:33 -0700
+
+  * Add new TLS extension type numbers from IANA (Bernhard Amann)
+
+  * Switch to double hashing for Bloomfilters for better performance.
+    (Matthias Vallentin)
+
+  * Bugfix to use full digest length instead of just one byte for
+    Bloomfilter's universal hash function. Addresses BIT-1140.
+    (Matthias Vallentin)
+
+  * Make buffer for X509 certificate subjects larger. Addresses
+    BIT-1195 (Bernhard Amann)
+
+2.3-beta-5 | 2014-05-29 15:34:42 -0500
+
+  * Fix misc/load-balancing.bro's reference to
+    PacketFilter::sampling_filter (Jon Siwek)
+
+2.3-beta-4 | 2014-05-28 14:55:24 -0500
+
+  * Fix potential mem leak in remote function/event unserialization.
+    (Jon Siwek)
+
+  * Fix reference counting bug in table coercion expressions (Jon Siwek)
+
+  * Fix an "unused value" warning. (Jon Siwek)
+
+  * Remove a duplicate unit test baseline dir. (Jon Siwek)
+
+2.3-beta | 2014-05-19 16:36:50 -0500
+
+  * Release 2.3-beta
+
+  * Clean up OpenSSL data structures on exit. (Bernhard Amann)
+
+  * Fixes for OCSP & x509 analysis memory leak issues. (Bernhard Amann)
+
+  * Remove remaining references to BROMAGIC (Daniel Thayer)
+
+  * Fix typos and formatting in event and BiF documentation (Daniel Thayer)
+
+  * Update intel framework plugin for ssl server_name extension API
+    changes. (Bernhard Amann, Justin Azoff)
+
+  * Fix expression errors in SSL/x509 scripts when unparseable data
+    is in certificate chain. (Bernhard Amann)
+
+2.2-478 | 2014-05-19 15:31:33 -0500
+
+  * Change record ctors to only allow record-field-assignment
+    expressions. (Jon Siwek)
+
+2.2-477 | 2014-05-19 14:13:00 -0500
+
+  * Fix X509::Result record's "result" field to be set internally as type int instead of type count. (Bernhard Amann)
+
+  * Fix a couple of doc build warnings (Daniel Thayer)
+
+2.2-470 | 2014-05-16 15:16:32 -0700
+
+  * Add a new section "Cluster Configuration" to the docs that is
+    intended as a how-to for configuring a Bro cluster.  Most of this
+    content was moved here from the BroControl doc (which is now
+    intended as more of a reference guide for more experienced users)
+    and the load balancing FAQ on the website. (Daniel Thayer)
+
+  * Update some doc tests and line numbers (Daniel Thayer)
+    
+2.2-457 | 2014-05-16 14:38:31 -0700
+
+  * New script policy/protocols/ssl/validate-ocsp.bro that adds OSCP
+    validation to ssl.log. The work is done by a new bif
+    x509_ocsp_verify(). (Bernhard Amann)
+
+  * STARTTLS support for POP3 and SMTP. The SSL analyzer takes over
+    when seen. smtp.log now logs when a connection switches to SSL.
+    (Bernhard Amann)
+
+  * Replace errors when parsing x509 certs with weirds. (Bernhard
+    Amann)
+
+  * Improved Heartbleed attack/scan detection. (Bernhard Amann)
+    
+  * Let TLS analyzer fail better when no longer in sync with the data
+    stream. (Bernhard Amann)
+
+2.2-444 | 2014-05-16 14:10:32 -0500
+
+  * Disable all default AppStat plugins except facebook. (Jon Siwek)
+
+  * Update for the active http test to force it to use ipv4. (Seth Hall)
+
+2.2-441 | 2014-05-15 11:29:56 -0700
+
+  * A new RADIUS analyzer. (Vlad Grigorescu)
+
+    It produces a radius.log and generates two events:
+
+        event radius_message(c: connection, result: RADIUS::Message);
+        event radius_attribute(c: connection, attr_type: count, value: string);
+
+2.2-427 | 2014-05-15 13:37:23 -0400
+
+  * Fix dynamic SumStats update on clusters (Bernhard Amann)
+
+2.2-425 | 2014-05-08 16:34:44 -0700
+
+  * Fix reassembly of data w/ sizes beyond 32-bit capacities. (Jon Siwek)
+
+    Reassembly code (e.g. for TCP) now uses int64/uint64 (signedness
+    is situational) data types in place of int types in order to
+    support delivering data to analyzers that pass 2GB thresholds.
+    There's also changes in logic that accompany the change in data
+    types, e.g. to fix TCP sequence space arithmetic inconsistencies.
+
+    Another significant change is in the Analyzer API: the *Packet and
+    *Undelivered methods now use a uint64 in place of an int for the
+    relative sequence space offset parameter.
+
+    Addresses BIT-348. 
+
+  * Fixing compiler warnings. (Robin Sommer)
+    
+  * Update SNMP analyzer's DeliverPacket method signature. (Jon Siwek)
+    
+2.2-417 | 2014-05-07 10:59:22 -0500
+
+  * Change handling of atypical OpenSSL error case in x509 verification. (Jon Siwek)
+
+  * Fix memory leaks in X509 certificate parsing/verification. (Jon Siwek)
+
+  * Fix new []/delete mismatch in input::reader::Raw::DoClose(). (Jon Siwek)
+
+  * Fix buffer over-reads in file_analysis::Manager::Terminate() (Jon Siwek)
+
+  * Fix buffer overlows in IP address masking logic. (Jon Siwek)
+
+    That could occur either in taking a zero-length mask on an IPv6 address
+    (e.g. [fe80::]/0) or a reverse mask of length 128 on any address (e.g.
+    via the remask_addr BuiltIn Function).
+
+  * Fix new []/delete mismatch in ~Base64Converter. (Jon Siwek)
+
+2.2-410 | 2014-05-02 12:49:53 -0500
+
+  * Replace an unneeded OPENSSL_malloc call. (Jon Siwek)
+
+2.2-409 | 2014-05-02 12:09:06 -0500
+
+  * Clean up and documentation for base SNMP script. (Jon Siwek)
+
+  * Update base SNMP script to now produce a snmp.log. (Seth Hall)
+
+  * Add DH support to SSL analyzer.  When using DHE or DH-Anon, sever
+    key parameters are now available in scriptland.  Also add script to
+    alert on weak certificate keys or weak dh-params. (Bernhard Amann)
+
+  * Add a few more ciphers Bro did not know at all so far. (Bernhard Amann)
+
+  * Log chosen curve when using ec cipher suite in TLS. (Bernhard Amann)
+
+2.2-397 | 2014-05-01 20:29:20 -0700
+
+  * Fix reference counting for lookup_ID() usages. (Jon Siwek)
+    
+2.2-395 | 2014-05-01 20:25:48 -0700
+
+  * Fix missing "irc-dcc-data" service field from IRC DCC connections.
+    (Jon Siwek)
+
+  * Correct a notice for heartbleed. The notice is thrown correctly,
+    just the message conteined wrong values. (Bernhard Amann)
+
+  * Improve/standardize some malloc/realloc return value checks. (Jon
+    Siwek)
+
+  * Improve file analysis manager shutdown/cleanup. (Jon Siwek)
+    
+2.2-388 | 2014-04-24 18:38:07 -0700
+
+  * Fix decoding of MIME quoted-printable. (Mareq)
+
+2.2-386 | 2014-04-24 18:22:29 -0700
+
+  * Do a Intel::ADDR lookup for host field if we find an IP address
+    there. (jshlbrd)
+
+2.2-381 | 2014-04-24 17:08:45 -0700
+
+  * Add Java version to software framework. (Brian Little)
+    
+2.2-379 | 2014-04-24 17:06:21 -0700
+
+  * Remove unused Val::attribs member. (Jon Siwek)
+    
+2.2-377 | 2014-04-24 16:57:54 -0700
+
+  * A larger set of SSL improvements and extensions. Addresses
+    BIT-1178. (Bernhard Amann)
+
+        - Fixes TLS protocol version detection. It also should
+          bail-out correctly on non-tls-connections now
+
+        - Adds support for a few TLS extensions, including
+          server_name, alpn, and ec-curves.
+
+        - Adds support for the heartbeat events.
+          
+        - Add Heartbleed detector script.
+
+        - Adds basic support for OCSP stapling.
+
+  * Fix parsing of DNS TXT RRs w/ multiple character-strings.
+    Addresses BIT-1156. (Jon Siwek)
+
+2.2-353 | 2014-04-24 16:12:30 -0700
+
+  * Adapt HTTP partial content to cache file analysis IDs. (Jon Siwek)
+    
+  * Adapt SSL analyzer to generate file analysis handles itself. (Jon
+    Siwek)
+
+  * Adapt more of HTTP analyzer to use cached file analysis IDs. (Jon
+    Siwek)
+
+  * Adapt IRC/FTP analyzers to cache file analysis IDs. (Jon Siwek)
+
+  * Refactor regex/signature AcceptingSet data structure and usages.
+    (Jon Siwek)
+
+  * Enforce data size limit when checking files for MIME matches. (Jon
+    Siwek)
+
+  * Refactor file analysis file ID lookup. (Jon Siwek)
+    
+2.2-344 | 2014-04-22 20:13:30 -0700
+
+  * Refactor various hex escaping code. (Jon Siwek)
+    
+2.2-341 | 2014-04-17 18:01:41 -0500
+
+  * Fix duplicate DNS log entries. (Robin Sommer)
+
 2.2-341 | 2014-04-17 18:01:01 -0500
 
   * Refactor initialization of ASCII log writer options. (Jon Siwek)
@@ -125,8 +408,19 @@
 
 2.2-294 | 2014-03-30 22:08:25 +0200
 
-  * TODO: x509 changes. (Bernhard Amann)
-    
+  * Rework and move X509 certificate processing from the SSL protocol
+    analyzer to a dedicated file analyzer. This will allow us to
+    examine X509 certificates from sources other than SSL in the
+    future. Furthermore, Bro now parses more fields and extensions
+    from the certificates (e.g. elliptic curve information, subject
+    alternative names, basic constraints). Certificate validation also
+    was improved, should be easier to use and exposes information like
+    the full verified certificate chain. (Bernhard Amann)
+
+    This update changes the format of ssl.log and adds a new x509.log
+    with certificate information. Furthermore all x509 events and
+    handling functions have changed.
+
 2.2-271 | 2014-03-30 20:25:17 +0200
 
   * Add unit tests covering vector/set/table ctors/inits. (Jon Siwek)

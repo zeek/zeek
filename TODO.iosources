@@ -1,10 +1,4 @@
-- Move the current_{iosrc,pkt_src,etc.} into manager
-- Remove all 2ndary path code
-- Remove all flow src code.
-- Move pktsrc/*.{h,cc} up a level? Or create a subsublibrary there?
-- Create a global Packet data structure and pass that around instead
-  of the pcap_* stuff?
 - PktDumper: Move Dump() to public and remove Record()
 - Wrap BPF_Program into namespace and clean up
-- Tests, in particular the packet dumping needs testing.
 - Add an interface for derived pkt source to run a BPF filter.
+- Tests, in particular the packet dumping needs testing.

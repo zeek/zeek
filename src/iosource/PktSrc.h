@@ -7,7 +7,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-#include "../IOSource.h"
+#include "IOSource.h"
 
 namespace iosource {
 

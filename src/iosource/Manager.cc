@@ -8,9 +8,8 @@
 
 #include "Manager.h"
 #include "IOSource.h"
-#include "pktsrc/PktSrc.h"
-#include "pktsrc/PktDumper.h"
-#include "pktsrc/Component.h"
+#include "PktSrc.h"
+#include "PktDumper.h"
 #include "plugin/Manager.h"
 
 #include "util.h"
@@ -222,14 +221,14 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, 
 
 	// Find the component providing packet sources of the requested prefix.
 
-	pktsrc::SourceComponent* component = 0;
+	PktSrcComponent* component = 0;
 
-	std::list<pktsrc::SourceComponent*> all_components = plugin_mgr->Components<pktsrc::SourceComponent>();
+	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
 
-	for ( std::list<pktsrc::SourceComponent*>::const_iterator i = all_components.begin();
+	for ( std::list<PktSrcComponent*>::const_iterator i = all_components.begin();
 	      i != all_components.end(); i++ )
 		{
-		pktsrc::SourceComponent* c = *i;
+		PktSrcComponent* c = *i;
 
 		if ( c->HandlesPrefix(prefix) &&
 		     ((  is_live && c->DoesLive() ) ||
@@ -272,11 +271,11 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 
 	// Find the component providing packet dumpers of the requested prefix.
 
-	pktsrc::DumperComponent* component = 0;
+	PktDumperComponent* component = 0;
 
-	std::list<pktsrc::DumperComponent*> all_components = plugin_mgr->Components<pktsrc::DumperComponent>();
+	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
 
-	for ( std::list<pktsrc::DumperComponent*>::const_iterator i = all_components.begin();
+	for ( std::list<PktDumperComponent*>::const_iterator i = all_components.begin();
 	      i != all_components.end(); i++ )
 		{
 		if ( (*i)->HandlesPrefix(prefix) )

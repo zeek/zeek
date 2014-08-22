@@ -30,8 +30,8 @@
 #include "Serializer.h"
 #include "PacketDumper.h"
 #include "iosource/Manager.h"
-#include "iosource/pktsrc/PktSrc.h"
-#include "iosource/pktsrc/PktDumper.h"
+#include "iosource/PktSrc.h"
+#include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 
 extern "C" {

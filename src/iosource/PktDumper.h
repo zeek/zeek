@@ -3,7 +3,7 @@
 #ifndef IOSOURCE_PKTSRC_PKTDUMPER_H
 #define IOSOURCE_PKTSRC_PKTDUMPER_H
 
-#include "../IOSource.h"
+#include "IOSource.h"
 
 namespace iosource {
 

@@ -12,7 +12,7 @@ namespace plugin {
 namespace component {
 
 /**
- * Component types. 
+ * Component types.
  */
 enum Type {
 	READER,	/// An input reader (not currently used).
@@ -28,7 +28,7 @@ enum Type {
 /**
  * Base class for plugin components. A component is a specific piece of
  * functionality that a plugin provides, such as a protocol analyzer or a log
- * writer. 
+ * writer.
  */
 class Component
 {

@@ -59,14 +59,6 @@ public:
 
 	static int GetLinkHeaderSize(int link_type);
 
-#if 0
-	PktSrc_Filter_Type FilterType() const	{ return filter_type; }
-
-	void AddSecondaryTablePrograms();
-	const secondary_program_list& ProgramTable() const
-		{ return program_list; }
-#endif
-
 protected:
 	// Methods to use by derived classes.
 
@@ -129,11 +121,6 @@ private:
 	double next_sync_point; // For trace synchronziation in pseudo-realtime
 
 	std::string errbuf;
-
-#if 0
-	PktSrc_Filter_Type filter_type; // normal path or secondary path
-	secondary_program_list program_list;
-#endif
 };
 
 }

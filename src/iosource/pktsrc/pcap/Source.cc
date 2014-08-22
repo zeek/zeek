@@ -245,12 +245,6 @@ int PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-#if 0
-	// We don't want load-level filters for the secondary path.
-	if ( filter_type == TYPE_FILTER_SECONDARY && index > 0 )
-		return 1;
-#endif
-
 	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
 	BPF_Program* code = filters.Lookup(hash);
 	delete hash;

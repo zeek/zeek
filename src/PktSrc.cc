@@ -364,10 +364,6 @@ int PktSrc::PrecompileFilter(int index, const char* filter)
 
 int PktSrc::SetFilter(int index)
 	{
-	// We don't want load-level filters for the secondary path.
-	if ( filter_type == TYPE_FILTER_SECONDARY && index > 0 )
-		return 1;
-
 	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
 	BPF_Program* code = filters.Lookup(hash);
 	delete hash;
@@ -418,28 +414,6 @@ void PktSrc::Close()
 		pcap_close(pd);
 		pd = 0;
 		closed = true;
-		}
-	}
-
-void PktSrc::AddSecondaryTablePrograms()
-	{
-	BPF_Program* program;
-
-	loop_over_list(secondary_path->EventTable(), i)
-		{
-		SecondaryEvent* se = secondary_path->EventTable()[i];
-		program = new BPF_Program();
-
-		if ( ! program->Compile(snaplen, datalink, se->Filter(),
-					netmask, errbuf, sizeof(errbuf)) )
-			{
-			delete program;
-			Close();
-			return;
-			}
-
-		SecondaryProgram* sp = new SecondaryProgram(program, se);
-		program_list.append(sp);
 		}
 	}
 
@@ -579,75 +553,6 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 		}
 	else
 		closed = true;
-	}
-
-
-SecondaryPath::SecondaryPath()
-	{
-	filter = 0;
-
-	// Glue together the secondary filter, if exists.
-	Val* secondary_fv = internal_val("secondary_filters");
-	if ( secondary_fv->AsTableVal()->Size() == 0 )
-		return;
-
-	int did_first = 0;
-	const TableEntryValPDict* v = secondary_fv->AsTable();
-	IterCookie* c = v->InitForIteration();
-	TableEntryVal* tv;
-	HashKey* h;
-
-	while ( (tv = v->NextEntry(h, c)) )
-		{
-		// Get the index values.
-		ListVal* index =
-			secondary_fv->AsTableVal()->RecoverIndex(h);
-
-		const char* str =
-			index->Index(0)->Ref()->AsString()->CheckString();
-
-		if ( ++did_first == 1 )
-			{
-			filter = copy_string(str);
-			}
-		else
-			{
-			if ( strlen(filter) > 0 )
-				{
-				char* tmp_f = new char[strlen(str) + strlen(filter) + 32];
-				if ( strlen(str) == 0 )
-					sprintf(tmp_f, "%s", filter);
-				else
-					sprintf(tmp_f, "(%s) or (%s)", filter, str);
-				delete [] filter;
-				filter = tmp_f;
-				}
-			}
-
-		// Build secondary_path event table item and link it.
-		SecondaryEvent* se =
-			new SecondaryEvent(index->Index(0)->Ref()->AsString()->CheckString(),
-				tv->Value()->AsFunc() );
-
-		event_list.append(se);
-
-		delete h;
-		Unref(index);
-		}
-	}
-
-SecondaryPath::~SecondaryPath()
-	{
-	loop_over_list(event_list, i)
-		delete event_list[i];
-
-	delete [] filter;
-	}
-
-
-SecondaryProgram::~SecondaryProgram()
-	{
-	delete program;
 	}
 
 PktDumper::PktDumper(const char* arg_filename, bool arg_append)

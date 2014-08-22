@@ -155,10 +155,10 @@ void net_update_time(double new_network_time)
 
 void net_init(name_list& interfaces, name_list& readfiles,
 	      name_list& netflows, name_list& flowfiles,
-	        const char* writefile, const char* filter,
-			const char* secondary_filter, int do_watchdog)
+	      const char* writefile, const char* filter,
+	      int do_watchdog)
 	{
-	if ( readfiles.length() > 0 || flowfiles.length() > 0 )
+	if ( readfiles.length() > 0 )
 		{
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = 1;
@@ -202,6 +202,11 @@ void net_init(name_list& interfaces, name_list& readfiles,
 	if ( writefile )
 		{
 		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
+		assert(pkt_dumper);
+
+		if ( pkt_dumper->ErrorMsg().size() )
+			reporter->FatalError("problem opening dump file %s - %s\n",
+					     writefile, pkt_dumper->ErrorMsg().c_str());
 
 		ID* id = global_scope()->Lookup("trace_output_file");
 		if ( ! id )

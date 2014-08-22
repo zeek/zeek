@@ -111,9 +111,6 @@ int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
 int generate_documentation = 0;
-#if 0
-SecondaryPath* secondary_path = 0;
-#endif
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -386,9 +383,6 @@ void terminate_bro()
 	delete event_serializer;
 	delete state_serializer;
 	delete event_registry;
-#if 0
-	delete secondary_path;
-#endif	
 	delete remote_serializer;
 	delete analyzer_mgr;
 	delete file_mgr;
@@ -1007,15 +1001,9 @@ int main(int argc, char** argv)
 
 	snaplen = internal_val("snaplen")->AsCount();
 
-#if 0
-	// Initialize the secondary path, if it's needed.
-	secondary_path = new SecondaryPath();
-#endif
-
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, "",
-			"", do_watchdog);
+			writefile, "", do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 

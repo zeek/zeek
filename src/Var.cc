@@ -9,6 +9,7 @@
 #include "Serializer.h"
 #include "RemoteSerializer.h"
 #include "EventRegistry.h"
+#include "Traverse.h"
 
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{
@@ -392,6 +393,34 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		}
 	}
 
+class OuterParamBindingFinder : public TraversalCallback {
+public:
+	OuterParamBindingFinder(Scope* s)
+		: scope(s) { }
+
+	virtual TraversalCode PreExpr(const Expr*);
+
+	Scope* scope;
+	vector<const NameExpr*> outer_param_references;
+};
+
+TraversalCode OuterParamBindingFinder::PreExpr(const Expr* expr)
+	{
+	if ( expr->Tag() != EXPR_NAME )
+		return TC_CONTINUE;
+
+	const NameExpr* e = static_cast<const NameExpr*>(expr);
+
+	if ( e->Id()->IsGlobal() )
+		return TC_CONTINUE;
+
+	if ( scope->GetIDs()->Lookup(e->Id()->Name()) )
+		return TC_CONTINUE;
+
+	outer_param_references.push_back(e);
+	return TC_CONTINUE;
+	}
+
 void end_func(Stmt* body, attr_list* attrs)
 	{
 	int frame_size = current_scope()->Length();
@@ -427,6 +456,16 @@ void end_func(Stmt* body, attr_list* attrs)
 
 			priority = v->InternalInt();
 			}
+		}
+
+	if ( streq(id->Name(), "anonymous-function") )
+		{
+		OuterParamBindingFinder cb(scope);
+		body->Traverse(&cb);
+
+		for ( size_t i = 0; i < cb.outer_param_references.size(); ++i )
+			cb.outer_param_references[i]->Error(
+						"referencing outer function parameters not supported");
 		}
 
 	if ( id->HasVal() )

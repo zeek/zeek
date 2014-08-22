@@ -7,6 +7,7 @@
 #include "Obj.h"
 #include "Serializer.h"
 #include "File.h"
+#include "plugin/Manager.h"
 
 Location no_location("<no location>", 0, 0, 0, 0);
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
@@ -92,6 +93,9 @@ int BroObj::suppress_errors = 0;
 
 BroObj::~BroObj()
 	{
+	if ( notify_plugins )
+		PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
+
 	delete location;
 	}
 

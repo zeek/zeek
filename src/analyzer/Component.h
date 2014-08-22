@@ -64,14 +64,6 @@ public:
 	~Component();
 
 	/**
-	 * Returns a canonocalized version of the analyzer's name.  The
-	 * returned name is derived from what's passed to the constructor but
-	 * upper-cased and transformed to allow being part of a script-level
-	 * ID.
-	 */
-	const std::string& CanonicalName() const	{ return canon_name; }
-
-	/**
 	 * Returns the analyzer's factory function.
 	 */
 	factory_callback Factory() const	{ return factory; }
@@ -104,7 +96,6 @@ protected:
 	virtual void DoDescribe(ODesc* d) const;
 
 private:
-	std::string canon_name;	// The analyzer's canonical name.
 	factory_callback factory;	// The analyzer's factory callback.
 	bool partial;	// True if the analyzer supports partial connections.
 	bool enabled;	// True if the analyzer is enabled.

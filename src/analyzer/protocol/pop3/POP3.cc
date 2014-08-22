@@ -13,6 +13,7 @@
 #include "POP3.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "analyzer/Manager.h"
 #include "analyzer/protocol/login/NVT.h"
 
 #include "events.bif.h"
@@ -41,15 +42,18 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 	waitingForAuthentication = false;
 	requestForMultiLine = false;
 	multiLine = false;
-	backOff = false;
+	tls = false;
 
 	lastRequiredCommand = 0;
 	authLines = 0;
 
 	mail = 0;
 
-	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, true));
-	AddSupportAnalyzer(new tcp::ContentLine_Analyzer(conn, false));
+	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
+	AddSupportAnalyzer(cl_orig);
+
+	cl_resp = new tcp::ContentLine_Analyzer(conn, false);
+	AddSupportAnalyzer(cl_resp);
 	}
 
 POP3_Analyzer::~POP3_Analyzer()
@@ -69,7 +73,13 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	if ( (TCP() && TCP()->IsPartial()) || backOff )
+	if ( tls )
+		{
+		ForwardStream(len, data, orig);
+		return;
+		}
+
+	if ( (TCP() && TCP()->IsPartial()) )
 		return;
 
 	BroString terminated_string(data, len, 1);
@@ -192,14 +202,13 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 
 		case AUTH_CRAM_MD5:
 			{ // Format: "user<space>password-hash"
-			char* s;
-			char* str = (char*) decoded->CheckString();
+			const char* s;
+			const char* str = (char*) decoded->CheckString();
 
 			for ( s = str; *s && *s != '\t' && *s != ' '; ++s )
 				;
-			*s = '\0';
 
-			user = str;
+			user = std::string(str, s);
 			password = "";
 
 			break;
@@ -567,7 +576,7 @@ void POP3_Analyzer::ProcessClientCmd()
 			}
 		break;
 
-	default: 
+	default:
 		reporter->AnalyzerError(this, "unknown POP3 command");
 		return;
 	}
@@ -702,7 +711,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 		case RETR:
 			{
 			int data_len = end_of_line - line;
-			if ( ! mail ) 
+			if ( ! mail )
 				BeginData();
 			ProcessData(data_len, line);
 			if ( requestForMultiLine == true )
@@ -718,8 +727,8 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			break;
 
 		case STLS:
-			backOff = true;
-			POP3Event(pop3_terminate, false, "Terminating due to TLS");
+			tls = true;
+			StartTLS();
 			return;
 
 		case QUIT:
@@ -799,10 +808,27 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			FinishClientCmd();
 		break;
 
-	default: 
+	default:
 		Weird("pop3_server_sending_client_commands");
 		break;
 	}
+	}
+
+void POP3_Analyzer::StartTLS()
+	{
+	// STARTTLS was succesful. Remove support analyzers, add SSL
+	// analyzer, and throw event signifying the change.
+	RemoveSupportAnalyzer(cl_orig);
+	RemoveSupportAnalyzer(cl_resp);
+
+	Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+	if ( ssl )
+		AddChildAnalyzer(ssl);
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+
+	ConnectionEvent(pop3_starttls, vl);
 	}
 
 void POP3_Analyzer::AuthSuccessfull()

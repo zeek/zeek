@@ -12,8 +12,10 @@ Quick Start Guide
 Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
 source code forms.  See :ref:`installing-bro` for instructions on how to
-install Bro. Below, ``$PREFIX`` is used to reference the Bro
-installation root directory, which by default is ``/usr/local/bro/`` if
+install Bro. 
+
+In the examples below, ``$PREFIX`` is used to reference the Bro
+installation root directory, which by default is ``/usr/local/bro`` if
 you install from source. 
 
 Managing Bro with BroControl
@@ -21,7 +23,10 @@ Managing Bro with BroControl
 
 BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
-traffic-monitoring cluster.
+traffic-monitoring cluster.  This section explains how to use BroControl
+to manage a stand-alone Bro installation.  For instructions on how to
+configure a Bro cluster, see the :doc:`Cluster Configuration
+<../configuration/index>` documentation.
 
 A Minimal Starting Configuration
 --------------------------------
@@ -155,7 +160,7 @@ changes we want to make:
    attempt looks like it may have been successful, and we want email when
    that happens, but only for certain servers.
 
-So we've defined *what* we want to do, but need to know *where* to do it.
+We've defined *what* we want to do, but need to know *where* to do it.
 The answer is to use a script written in the Bro programming language, so
 let's do a quick intro to Bro scripting.
 
@@ -181,7 +186,7 @@ must explicitly choose if they want to load them.
 
 The main entry point for the default analysis configuration of a standalone
 Bro instance managed by BroControl is the ``$PREFIX/share/bro/site/local.bro``
-script.  So we'll be adding to that in the following sections, but first
+script.  We'll be adding to that in the following sections, but first
 we have to figure out what to add.
 
 Redefining Script Option Variables
@@ -197,7 +202,7 @@ A redefineable constant might seem strange, but what that really means is that
 the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
-So let's continue on our path to modify the behavior for the two SSL
+Let's continue on our path to modify the behavior for the two SSL
 and SSH notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
 we see that it advertises:
 
@@ -211,7 +216,7 @@ we see that it advertises:
         const ignored_types: set[Notice::Type] = {} &redef;
     }
 
-That's exactly what we want to do for the SSL notice.  So add to ``local.bro``:
+That's exactly what we want to do for the SSL notice.  Add to ``local.bro``:
 
 .. code:: bro
 
@@ -229,7 +234,7 @@ is valid before installing it and then restarting the Bro instance:
 .. console::
 
    [BroControl] > check
-   bro is ok.
+   bro scripts are ok.
    [BroControl] > install
    removing old policies in /usr/local/bro/spool/policy/site ... done.
    removing old policies in /usr/local/bro/spool/policy/auto ... done.
@@ -245,15 +250,15 @@ is valid before installing it and then restarting the Bro instance:
 
 Now that the SSL notice is ignored, let's look at how to send an email on
 the SSH notice.  The notice framework has a similar option called
-``emailed_types``, but that can't differentiate between SSH servers and we
-only want email for logins to certain ones.  Then we come to the ``PolicyItem``
-record and ``policy`` set and realize that those are actually what get used
-to implement the simple functionality of ``ignored_types`` and
+``emailed_types``, but using that would generate email for all SSH servers and
+we only want email for logins to certain ones.  There is a ``policy`` hook
+that is actually what is used to implement the simple functionality of
+``ignored_types`` and
 ``emailed_types``, but it's extensible such that the condition and action taken
 on notices can be user-defined.
 
-In ``local.bro``, let's add a new ``PolicyItem`` record to the ``policy`` set
-that only takes the email action for SSH logins to a defined set of servers:
+In ``local.bro``, let's define a new ``policy`` hook handler body
+that takes the email action for SSH logins only for a defined set of servers:
 
 .. code:: bro
 
@@ -271,14 +276,14 @@ that only takes the email action for SSH logins to a defined set of servers:
 
 You'll just have to trust the syntax for now, but what we've done is
 first declare our own variable to hold a set of watched addresses,
-``watched_servers``; then added a record to the policy that will generate
-an email on the condition that the predicate function evaluates to true, which
-is whenever the notice type is an SSH login and the responding host stored
+``watched_servers``; then added a hook handler body to the policy that will
+generate an email whenever the notice type is an SSH login and the responding
+host stored
 inside the ``Info`` record's connection field is in the set of watched servers.
 
-.. note:: record field member access is done with the '$' character
+.. note:: Record field member access is done with the '$' character
    instead of a '.' as might be expected from other languages, in
-   order to avoid ambiguity with the builtin address type's use of '.'
+   order to avoid ambiguity with the built-in address type's use of '.'
    in IPv4 dotted decimal representations.
 
 Remember, to finalize that configuration change perform the ``check``,
@@ -292,9 +297,10 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 
 * We only looked at how to change options declared in the notice framework,
   there's many more options to look at in other script packages.
-* Continue reading with :ref:`using-bro` chapter which goes into more
-  depth on working with Bro; then look at :ref:`writing-scripts` for
-  learning how to start writing your own scripts.
+* Continue reading with :ref:`Using Bro <using-bro>` chapter which goes
+  into more depth on working with Bro; then look at
+  :ref:`writing-scripts` for learning how to start writing your own
+  scripts.
 * Look at the scripts in ``$PREFIX/share/bro/policy`` for further ones
   you may want to load; you can browse their documentation at the
   :ref:`overview of script packages <script-packages>`.
@@ -407,7 +413,7 @@ logging) and adds SSL certificate validation.
 You might notice that a script you load from the command line uses the
 ``@load`` directive in the Bro language to declare dependence on other scripts.
 This directive is similar to the ``#include`` of C/C++, except the semantics
-are "load this script if it hasn't already been loaded".
+are, "load this script if it hasn't already been loaded."
 
 .. note:: If one wants Bro to be able to load scripts that live outside the
    default directories in Bro's installation root, the ``BROPATH`` environment
@@ -420,7 +426,7 @@ Running Bro Without Installing
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have
-to first adjust ``BROPATH`` and ``BROMAGIC`` to look for scripts and
+to first adjust ``BROPATH`` to look for scripts and
 additional files inside the build directory.  Sourcing either
 ``build/bro-path-dev.sh`` or ``build/bro-path-dev.csh`` as appropriate
 for the current shell accomplishes this and also augments your

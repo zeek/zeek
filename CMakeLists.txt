@@ -1,9 +1,8 @@
 project(Bro C CXX)
 
 # When changing the minimum version here, also adapt
-# cmake/BroPluginDynamic and
 # aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
 
@@ -22,19 +21,16 @@ get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
 set(BRO_PLUGIN_INSTALL_PATH ${BRO_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
-set(BRO_MAGIC_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro/magic)
-set(BRO_MAGIC_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/magic/database)
-
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
      "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "export BROMAGIC=\"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
+
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
      "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
-     "setenv BROMAGIC \"${BRO_MAGIC_SOURCE_PATH}\"\n"
      "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src:${BRO_PLUGIN_INSTALL_PATH}\"\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
@@ -47,32 +43,6 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 ########################################################################
 ## Dependency Configuration
-
-include(ExternalProject)
-
-# LOG_* options to ExternalProject_Add appear in CMake 2.8.3.  If
-# available, using them hides external project configure/build output.
-if("${CMAKE_VERSION}" VERSION_GREATER 2.8.2)
-    set(EXTERNAL_PROJECT_LOG_OPTIONS
-        LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1)
-else()
-    set(EXTERNAL_PROJECT_LOG_OPTIONS)
-endif()
-
-set(LIBMAGIC_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libmagic-prefix)
-set(LIBMAGIC_INCLUDE_DIR ${LIBMAGIC_PREFIX}/include)
-set(LIBMAGIC_LIB_DIR ${LIBMAGIC_PREFIX}/lib)
-set(LIBMAGIC_LIBRARY ${LIBMAGIC_LIB_DIR}/libmagic.a)
-ExternalProject_Add(libmagic
-    PREFIX ${LIBMAGIC_PREFIX}
-    URL ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/file-5.16.tar.gz
-    CONFIGURE_COMMAND ./configure --enable-static --disable-shared
-                                  --prefix=${LIBMAGIC_PREFIX}
-                                  --includedir=${LIBMAGIC_INCLUDE_DIR}
-                                  --libdir=${LIBMAGIC_LIB_DIR}
-    BUILD_IN_SOURCE 1
-    ${EXTERNAL_PROJECT_LOG_OPTIONS}
-)
 
 include(FindRequiredPackage)
 
@@ -100,6 +70,10 @@ if (NOT BinPAC_ROOT_DIR AND
 endif ()
 FindRequiredPackage(BinPAC)
 
+if (ENABLE_JEMALLOC)
+    find_package(JeMalloc)
+endif ()
+
 if (MISSING_PREREQS)
     foreach (prereq ${MISSING_PREREQ_DESCS})
         message(SEND_ERROR ${prereq})
@@ -112,8 +86,8 @@ include_directories(BEFORE
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
-                    ${LIBMAGIC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
+                    ${JEMALLOC_INCLUDE_DIR}
 )
 
 # Optional Dependencies
@@ -153,33 +127,6 @@ if (GOOGLEPERFTOOLS_FOUND)
     endif ()
 endif ()
 
-set(USE_DATASERIES false)
-find_package(Lintel)
-find_package(DataSeries)
-find_package(LibXML2)
-
-if (NOT DISABLE_DATASERIES AND
-    LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
-    set(USE_DATASERIES true)
-	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
-	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
-	include_directories(BEFORE ${LibXML2_INCLUDE_DIR})
-	list(APPEND OPTLIBS ${Lintel_LIBRARIES})
-	list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
-	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
-endif()
-
-set(USE_ELASTICSEARCH false)
-set(USE_CURL false)
-find_package(LibCURL)
-
-if (NOT DISABLE_ELASTICSEARCH AND LIBCURL_FOUND)
-  set(USE_ELASTICSEARCH true)
-  set(USE_CURL true)
-  include_directories(BEFORE ${LibCURL_INCLUDE_DIR})
-  list(APPEND OPTLIBS ${LibCURL_LIBRARIES})
-endif()
-
 if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
@@ -191,8 +138,8 @@ set(brodeps
     ${PCAP_LIBRARY}
     ${OpenSSL_LIBRARIES}
     ${BIND_LIBRARY}
-    ${LIBMAGIC_LIBRARY}
     ${ZLIB_LIBRARY}
+    ${JEMALLOC_LIBRARIES}
     ${OPTLIBS}
 )
 
@@ -232,10 +179,6 @@ include(CheckOptionalBuildSources)
 CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
-
-install(DIRECTORY ./magic/database/
-        DESTINATION ${BRO_MAGIC_INSTALL_PATH}
-)
 
 ########################################################################
 ## Packaging Setup
@@ -281,10 +224,7 @@ message(
     "\ngperftools found:  ${HAVE_PERFTOOLS}"
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
-    "\ncURL:              ${USE_CURL}"
-    "\n"
-    "\nDataSeries:        ${USE_DATASERIES}"
-    "\nElasticSearch:     ${USE_ELASTICSEARCH}"
+    "\njemalloc:          ${ENABLE_JEMALLOC}"
     "\n"
     "\n================================================================\n"
 )

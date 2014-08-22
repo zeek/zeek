@@ -14,47 +14,9 @@
 #include "Manager.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
-
-#include "writers/Ascii.h"
-#include "writers/None.h"
-
-#ifdef USE_ELASTICSEARCH
-#include "writers/ElasticSearch.h"
-#endif
-
-#ifdef USE_DATASERIES
-#include "writers/DataSeries.h"
-#endif
-
-#include "writers/SQLite.h"
+#include "logging.bif.h"
 
 using namespace logging;
-
-// Structure describing a log writer type.
-struct WriterDefinition {
-	bro_int_t type;			// The type.
-	const char *name;		// Descriptive name for error messages.
-	bool (*init)();			// An optional one-time initialization function.
-	WriterBackend* (*factory)(WriterFrontend* frontend);	// A factory function creating instances.
-};
-
-// Static table defining all availabel log writers.
-WriterDefinition log_writers[] = {
-	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
-	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
-	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
-
-#ifdef USE_ELASTICSEARCH
-	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
-#endif
-
-#ifdef USE_DATASERIES
-	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
-#endif
-
-	// End marker, don't touch.
-	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (WriterBackend* (*)(WriterFrontend* frontend))0 }
-};
 
 struct Manager::Filter {
 	string name;
@@ -142,6 +104,7 @@ Manager::Stream::~Stream()
 	}
 
 Manager::Manager()
+	: plugin::ComponentManager<logging::Tag, logging::Component>("Log", "Writer")
 	{
 	rotations_pending = 0;
 	}
@@ -152,64 +115,17 @@ Manager::~Manager()
 		delete *s;
 	}
 
-list<string> Manager::SupportedFormats()
+WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
 	{
-	list<string> formats;
+	Component* c = Lookup(tag);
 
-	for ( WriterDefinition* ld = log_writers; ld->type != BifEnum::Log::WRITER_DEFAULT; ++ld )
-		formats.push_back(ld->name);
-
-	return formats;
-	}
-
-WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
-	{
-	WriterDefinition* ld = log_writers;
-
-	while ( true )
+	if ( ! c )
 		{
-		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
-			{
-			reporter->Error("unknown writer type requested");
-			return 0;
-			}
-
-		if ( ld->type != type )
-			{
-			// Not the right one.
-			++ld;
-			continue;
-			}
-
-		// If the writer has an init function, call it.
-		if ( ld->init )
-			{
-			if ( (*ld->init)() )
-				// Clear the init function so that we won't
-				// call it again later.
-				ld->init = 0;
-			else
-				{
-				// Init failed, disable by deleting factory
-				// function.
-				ld->factory = 0;
-
-				reporter->Error("initialization of writer %s failed", ld->name);
-				return 0;
-				}
-			}
-
-		if ( ! ld->factory )
-			// Oops, we can't instantiate this guy.
-			return 0;
-
-		// All done.
-		break;
+		reporter->Error("unknown writer type requested");
+		return 0;
 		}
 
-	assert(ld->factory);
-
-	WriterBackend* backend = (*ld->factory)(frontend);
+	WriterBackend* backend = (*c->Factory())(frontend);
 	assert(backend);
 
 	return backend;
@@ -537,16 +453,18 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		filter->indices.push_back(new_indices);
 
-		filter->fields = (threading::Field**)
+		void* tmp =
 			realloc(filter->fields,
-				sizeof(threading::Field*) * ++filter->num_fields);
+				sizeof(threading::Field*) * (filter->num_fields + 1));
 
-		if ( ! filter->fields )
+		if ( ! tmp )
 			{
-			--filter->num_fields;
 			reporter->Error("out of memory in add_filter");
 			return false;
 			}
+
+		++filter->num_fields;
+		filter->fields = (threading::Field**) tmp;
 
 		TypeTag st = TYPE_VOID;
 
@@ -1232,7 +1150,7 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 			{
 			WriterFrontend* writer = i->second->writer;
 
-			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
+			EnumVal writer_val(i->first.first, internal_type("Log::Writer")->AsEnumType());
 			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
 							       &writer_val,
 							       *i->second->info,

@@ -22,6 +22,7 @@ const char* plugin::hook_name(HookType h)
 		"QueueEvent",
 		"DrainEvents",
 		"UpdateNetworkTime",
+		"BroObjDtor",
 		// MetaHooks
 		"MetaHookPre",
 		"MetaHookPost",
@@ -71,7 +72,7 @@ void HookArgument::Describe(ODesc* d) const
 		break;
 
 	case EVENT:
-		if ( arg.event ) 
+		if ( arg.event )
 			{
 			d->Add(arg.event->Handler()->Name());
 			d->Add("(");
@@ -98,7 +99,7 @@ void HookArgument::Describe(ODesc* d) const
 		break;
 
 	case VAL:
-		if ( arg.val ) 
+		if ( arg.val )
 			arg.val->Describe(d);
 
 		else
@@ -118,6 +119,10 @@ void HookArgument::Describe(ODesc* d) const
 
 	case VOID:
 		d->Add("<void>");
+		break;
+
+	case VOIDP:
+		d->Add("<void ptr>");
 		break;
 	}
 	}
@@ -194,18 +199,7 @@ void Plugin::InitPostScript()
 
 Plugin::bif_item_list Plugin::BifItems() const
 	{
-	bif_item_list l1 = bif_items;
-	bif_item_list l2 = CustomBifItems();
-
-	for ( bif_item_list::const_iterator i = l2.begin(); i != l2.end(); i++ )
-		l1.push_back(*i);
-
-	return l1;
-	}
-
-Plugin::bif_item_list Plugin::CustomBifItems() const
-	{
-	return bif_item_list();
+    return bif_items;
 	}
 
 void Plugin::Done()
@@ -262,7 +256,17 @@ void Plugin::DisableHook(HookType hook)
 	plugin_mgr->DisableHook(hook, this);
 	}
 
-int Plugin::HookLoadFile(const std::string& file)
+void Plugin::RequestEvent(EventHandlerPtr handler)
+	{
+	plugin_mgr->RequestEvent(handler, this);
+	}
+
+void Plugin::RequestBroObjDtor(BroObj* obj)
+	{
+	plugin_mgr->RequestBroObjDtor(obj, this);
+	}
+
+int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	{
 	return -1;
 	}
@@ -285,6 +289,10 @@ void Plugin::HookUpdateNetworkTime(double network_time)
 	{
 	}
 
+void Plugin::HookBroObjDtor(void* obj)
+	{
+	}
+
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
 	{
 	}
@@ -295,7 +303,6 @@ void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgum
 
 void Plugin::Describe(ODesc* d) const
 	{
-	d->Add("Plugin: ");
 	d->Add(config.name);
 
 	if ( config.description.size() )
@@ -384,7 +391,7 @@ void Plugin::Describe(ODesc* d) const
 		d->Add(hook_name(hook));
 		d->Add(" (priority ");
 		d->Add(prio);
-		d->Add("]\n");
+		d->Add(")\n");
 		}
 	}
 

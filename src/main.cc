@@ -12,10 +12,6 @@
 #include <getopt.h>
 #endif
 
-#ifdef USE_CURL
-#include <curl/curl.h>
-#endif
-
 #ifdef USE_IDMEF
 extern "C" {
 #include <libidmef/idmefxml.h>
@@ -23,7 +19,6 @@ extern "C" {
 #endif
 
 #include <openssl/md5.h>
-#include <magic.h>
 
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
@@ -55,8 +50,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "threading/Manager.h"
 #include "input/Manager.h"
 #include "logging/Manager.h"
-#include "logging/writers/Ascii.h"
-#include "input/readers/Raw.h"
+#include "logging/writers/ascii/Ascii.h"
+#include "input/readers/raw/Raw.h"
 #include "analyzer/Manager.h"
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
@@ -69,9 +64,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "3rdparty/sqlite3.h"
 
 Brofiler brofiler;
-
-magic_t magic_desc_cookie = 0;
-magic_t magic_mime_cookie = 0;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -125,6 +117,7 @@ SecondaryPath* secondary_path = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
+set<string> requested_plugins;
 char* proc_status_file = 0;
 int snaplen = 0;	// this gets set from the scripting-layer's value
 
@@ -135,6 +128,7 @@ OpaqueType* entropy_type = 0;
 OpaqueType* cardinality_type = 0;
 OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
+OpaqueType* x509_opaque_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -171,6 +165,7 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
+	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
@@ -224,8 +219,8 @@ void usage()
 #endif
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
-	fprintf(stderr, "    $BROMAGIC                      | libmagic mime magic database search path (%s)\n", bro_magic_path());
 	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $BRO_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n", bro_plugin_activate());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
@@ -234,37 +229,18 @@ void usage()
 	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Broxygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
 
 	fprintf(stderr, "\n");
-	fprintf(stderr, "    Supported log formats: ");
-
-	bool first = true;
-	list<string> fmts = logging::Manager::SupportedFormats();
-
-	for ( list<string>::const_iterator i = fmts.begin(); i != fmts.end(); ++i )
-		{
-		if ( *i == "None" )
-			// Skip, it's uninteresting.
-			continue;
-
-		if ( ! first )
-			fprintf(stderr, ",");
-
-		fprintf(stderr, "%s", (*i).c_str());
-		first = false;
-		}
-
-	fprintf(stderr, "\n");
 
 	exit(1);
 	}
 
-void show_plugins(int level)
+bool show_plugins(int level)
 	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{
 		printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
-		return;
+		return false;
 		}
 
 	ODesc d;
@@ -272,15 +248,39 @@ void show_plugins(int level)
 	if ( level == 1 )
 		d.SetShort();
 
+	int count = 0;
+
 	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
 		{
+		if ( requested_plugins.size()
+		     && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
+			continue;
+
 		(*i)->Describe(&d);
 
 		if ( ! d.IsShort() )
 			d.Add("\n");
+
+		++count;
 		}
 
 	printf("%s", d.Description());
+
+	plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+
+	if ( inactives.size() && ! requested_plugins.size() )
+		{
+		printf("\nInactive dynamic plugins:\n");
+
+		for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
+			{
+			string name = (*i).first;
+			string path = (*i).second;
+			printf("  %s (%s)\n", name.c_str(), path.c_str());
+			}
+		}
+
+	return count != 0;
 	}
 
 void done_with_network()
@@ -391,10 +391,10 @@ void terminate_bro()
 #endif	
 	delete remote_serializer;
 	delete analyzer_mgr;
+	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
 	delete thread_mgr;
-	delete file_mgr;
 	delete reporter;
 
 	reporter = 0;
@@ -465,6 +465,7 @@ int main(int argc, char** argv)
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
+	int parse_only = false;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -477,6 +478,7 @@ int main(int argc, char** argv)
 	int time_bro = 0;
 
 	static struct option long_opts[] = {
+		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
@@ -556,7 +558,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWbdghvZQ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -566,6 +568,10 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
+		case 'a':
+			parse_only = true;
+			break;
+
 		case 'b':
 			bare_mode = true;
 			break;
@@ -791,13 +797,6 @@ int main(int argc, char** argv)
 	SSL_library_init();
 	SSL_load_error_strings();
 
-#ifdef USE_CURL
-	curl_global_init(CURL_GLOBAL_ALL);
-#endif
-
-	bro_init_magic(&magic_desc_cookie, MAGIC_NONE);
-	bro_init_magic(&magic_mime_cookie, MAGIC_MIME);
-
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
@@ -836,13 +835,15 @@ int main(int argc, char** argv)
 	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
 
-	// Process remaining arguments.  X=Y arguments indicate script
-	// variable/parameter assignments.  The remainder are treated
-	// as scripts to load.
+	// Process remaining arguments. X=Y arguments indicate script
+	// variable/parameter assignments. X::Y arguments indicate plugins to
+	// activate/query. The remainder are treated as scripts to load.
 	while ( optind < argc )
 		{
 		if ( strchr(argv[optind], '=') )
 			params.push_back(argv[optind++]);
+		else if ( strstr(argv[optind], "::") )
+			requested_plugins.insert(argv[optind++]);
 		else
 			add_input_file(argv[optind++]);
 		}
@@ -870,15 +871,16 @@ int main(int argc, char** argv)
 	file_mgr->InitPreScript();
 	broxygen_mgr->InitPreScript();
 
-	if ( ! bare_mode )
-		plugin_mgr->ActivateAllDynamicPlugins();
+	for ( set<string>::const_iterator i = requested_plugins.begin();
+	      i != requested_plugins.end(); i++ )
+		plugin_mgr->ActivateDynamicPlugin(*i);
+
+	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
-
-	input::reader::Raw::ClassInit();
 
 	md5_type = new OpaqueType("md5");
 	sha1_type = new OpaqueType("sha1");
@@ -887,6 +889,7 @@ int main(int argc, char** argv)
 	cardinality_type = new OpaqueType("cardinality");
 	topk_type = new OpaqueType("topk");
 	bloomfilter_type = new OpaqueType("bloomfilter");
+	x509_opaque_type = new OpaqueType("x509");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
@@ -903,6 +906,7 @@ int main(int argc, char** argv)
 
 	init_general_global_var();
 	init_net_var();
+	init_builtin_funcs_subdirs();
 
 	plugin_mgr->InitBifs();
 
@@ -910,18 +914,22 @@ int main(int argc, char** argv)
 		exit(1);
 
 	plugin_mgr->InitPostScript();
-	analyzer_mgr->InitPostScript();
-	file_mgr->InitPostScript();
 	broxygen_mgr->InitPostScript();
 
 	if ( print_plugins )
 		{
-		show_plugins(print_plugins);
-		exit(1);
+		bool success = show_plugins(print_plugins);
+		exit(success ? 0 : 1);
 		}
 
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
+
+	if ( parse_only )
+		{
+		int rc = (reporter->Errors() > 0 ? 1 : 0);
+		exit(rc);
+		}
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}
@@ -934,9 +942,6 @@ int main(int argc, char** argv)
 		}
 
 	reporter->InitOptions();
-
-	init_general_global_var();
-
 	broxygen_mgr->GenerateDocs();
 
 	if ( user_pcap_filter )
@@ -974,6 +979,8 @@ int main(int argc, char** argv)
 
 		if ( rule_debug )
 			rule_matcher->PrintDebug();
+
+		file_mgr->InitMagic();
 		}
 
 	delete [] script_rule_files;
@@ -1228,13 +1235,13 @@ int main(int argc, char** argv)
 		done_with_network();
 		net_delete();
 
-#ifdef USE_CURL
-		curl_global_cleanup();
-#endif
-
 		terminate_bro();
 
 		sqlite3_shutdown();
+
+		ERR_free_strings();
+		EVP_cleanup();
+		CRYPTO_cleanup_all_ex_data();
 
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.

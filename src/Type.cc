@@ -131,7 +131,7 @@ BroType* BroType::Clone() const
 	sinfo.cache = false;
 
 	this->Serialize(&sinfo);
-	char* data = 0;
+	char* data;
 	uint32 len = form->EndWrite(&data);
 	form->StartRead(data, len);
 
@@ -141,7 +141,7 @@ BroType* BroType::Clone() const
 	BroType* rval = this->Unserialize(&uinfo, false);
 	assert(rval != this);
 
-	delete [] data;
+	free(data);
 	return rval;
 	}
 
@@ -1403,6 +1403,23 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+EnumType::EnumType(const string& name)
+	: BroType(TYPE_ENUM)
+	{
+	counter = 0;
+	SetName(name);
+	}
+
+EnumType::EnumType(EnumType* e)
+	: BroType(TYPE_ENUM)
+	{
+	counter = e->counter;
+	SetName(e->GetName());
+
+	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+		names[copy_string(it->first)] = it->second;
+	}
+
 EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
@@ -1459,9 +1476,19 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		}
 	else
 		{
-		reporter->Error("identifier or enumerator value in enumerated type definition already exists");
-		SetError();
-		return;
+		// We allow double-definitions if matching exactly. This is so that
+		// we can define an enum both in a *.bif and *.bro for avoiding
+		// cyclic dependencies.
+		if ( id->Name() != make_full_var_name(module_name.c_str(), name)
+		     || (id->HasVal() && val != id->ID_Val()->AsEnum()) )
+			{
+			Unref(id);
+			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
+			SetError();
+			return;
+			}
+
+		Unref(id);
 		}
 
 	AddNameInternal(module_name, name, val, is_export);
@@ -1646,6 +1673,40 @@ VectorType::~VectorType()
 	Unref(yield_type);
 	}
 
+BroType* VectorType::YieldType()
+	{
+	// Work around the fact that we use void internally to mark a vector
+	// as being unspecified. When looking at its yield type, we need to
+	// return any as that's what other code historically expects for type
+	// comparisions.
+	if ( IsUnspecifiedVector() )
+		{
+		BroType* ret = ::base_type(TYPE_ANY);
+		Unref(ret); // unref, because this won't be held by anyone.
+		assert(ret);
+		return ret;
+		}
+
+	return yield_type;
+	}
+
+const BroType* VectorType::YieldType() const
+	{
+	// Work around the fact that we use void internally to mark a vector
+	// as being unspecified. When looking at its yield type, we need to
+	// return any as that's what other code historically expects for type
+	// comparisions.
+	if ( IsUnspecifiedVector() )
+		{
+		BroType* ret = ::base_type(TYPE_ANY);
+		Unref(ret); // unref, because this won't be held by anyone.
+		assert(ret);
+		return ret;
+		}
+
+	return yield_type;
+	}
+
 int VectorType::MatchesIndex(ListExpr*& index) const
 	{
 	expr_list& el = index->Exprs();
@@ -1665,7 +1726,7 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 
 bool VectorType::IsUnspecifiedVector() const
 	{
-	return yield_type->Tag() == TYPE_ANY;
+	return yield_type->Tag() == TYPE_VOID;
 	}
 
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);
@@ -1693,7 +1754,17 @@ void VectorType::Describe(ODesc* d) const
 	yield_type->Describe(d);
 	}
 
-BroType* base_type(TypeTag tag)
+void VectorType::DescribeReST(ODesc* d, bool roles_only) const
+	{
+	d->Add(fmt(":bro:type:`%s` of ", type_name(Tag())));
+
+	if ( yield_type->GetName().empty() )
+		yield_type->DescribeReST(d, roles_only);
+	else
+		d->Add(fmt(":bro:type:`%s`", yield_type->GetName().c_str()));
+	}
+
+BroType* base_type_no_ref(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
 
@@ -1709,7 +1780,7 @@ BroType* base_type(TypeTag tag)
 		base_types[t]->SetLocationInfo(&l);
 		}
 
-	return base_types[t]->Ref();
+	return base_types[t];
 	}
 
 
@@ -1734,7 +1805,7 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 	return 0;
 	}
 
-int same_type(const BroType* t1, const BroType* t2, int is_init)
+int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_record_field_names)
 	{
 	if ( t1 == t2 ||
 	     t1->Tag() == TYPE_ANY ||
@@ -1790,7 +1861,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 		if ( tl1 || tl2 )
 			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init) )
+			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1799,7 +1870,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 		if ( y1 || y2 )
 			{
-			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init) )
+			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1817,7 +1888,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		if ( t1->YieldType() || t2->YieldType() )
 			{
 			if ( ! t1->YieldType() || ! t2->YieldType() ||
-			     ! same_type(t1->YieldType(), t2->YieldType(), is_init) )
+			     ! same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1837,8 +1908,8 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
-			if ( ! streq(td1->id, td2->id) ||
-			     ! same_type(td1->type, td2->type, is_init) )
+			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
+			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1854,7 +1925,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 			return 0;
 
 		loop_over_list(*tl1, i)
-			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init) )
+			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init, match_record_field_names) )
 				return 0;
 
 		return 1;
@@ -1862,7 +1933,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->YieldType(), t2->YieldType(), is_init);
+		return same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names);
 
 	case TYPE_OPAQUE:
 		{
@@ -1872,7 +1943,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		}
 
 	case TYPE_TYPE:
-		return same_type(t1, t2, is_init);
+		return same_type(t1, t2, is_init, match_record_field_names);
 
 	case TYPE_UNION:
 		reporter->Error("union type in same_type()");

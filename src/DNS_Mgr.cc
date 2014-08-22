@@ -2,6 +2,7 @@
 
 #include "config.h"
 
+#include <openssl/md5.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -386,7 +387,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 			dns_mapping_altered =  0;
 
 	dm_rec = 0;
-	dns_fake_count = 0;
 
 	cache_name = dir = 0;
 
@@ -442,6 +442,33 @@ void DNS_Mgr::Init()
 	SetIdle(true);
 	}
 
+static TableVal* fake_name_lookup_result(const char* name)
+	{
+	uint32 hash[4];
+	MD5(reinterpret_cast<const u_char*>(name), strlen(name),
+	    reinterpret_cast<u_char*>(hash));
+	ListVal* hv = new ListVal(TYPE_ADDR);
+	hv->Append(new AddrVal(hash));
+	TableVal* tv = hv->ConvertToSet();
+	Unref(hv);
+	return tv;
+	}
+
+static const char* fake_text_lookup_result(const char* name)
+	{
+	static char tmp[32 + 256];
+	snprintf(tmp, sizeof(tmp), "fake_text_lookup_result_%s", name);
+	return tmp;
+	}
+
+static const char* fake_addr_lookup_result(const IPAddr& addr)
+	{
+	static char tmp[128];
+	snprintf(tmp, sizeof(tmp), "fake_addr_lookup_result_%s",
+	         addr.AsString().c_str());
+	return tmp;
+	}
+
 TableVal* DNS_Mgr::LookupHost(const char* name)
 	{
 	if ( ! nb_dns )
@@ -451,11 +478,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		Init();
 
 	if ( mode == DNS_FAKE )
-		{
-		ListVal* hv = new ListVal(TYPE_ADDR);
-		hv->Append(new AddrVal(uint32(++dns_fake_count)));
-		return hv->ConvertToSet();
-		}
+		return fake_name_lookup_result(name);
 
 	if ( mode != DNS_PRIME )
 		{
@@ -959,7 +982,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
-TableVal* DNS_Mgr::LookupNameInCache(string name)
+TableVal* DNS_Mgr::LookupNameInCache(const string& name)
 	{
 	HostMap::iterator it = host_mappings.find(name);
 	if ( it == host_mappings.end() )
@@ -989,7 +1012,7 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 	return tv6;
 	}
 
-const char* DNS_Mgr::LookupTextInCache(string name)
+const char* DNS_Mgr::LookupTextInCache(const string& name)
 	{
 	TextMap::iterator it = text_mappings.find(name);
 	if ( it == text_mappings.end() )
@@ -1009,17 +1032,37 @@ const char* DNS_Mgr::LookupTextInCache(string name)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
+static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
+                              TableVal* result)
+	{
+	callback->Resolved(result);
+	Unref(result);
+	delete callback;
+	}
+
+static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
+                              const char* result)
+	{
+	callback->Resolved(result);
+	delete callback;
+	}
+
 void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
 
+	if ( mode == DNS_FAKE )
+		{
+		resolve_lookup_cb(callback, fake_addr_lookup_result(host));
+		return;
+		}
+
 	// Do we already know the answer?
 	const char* name = LookupAddrInCache(host);
 	if ( name )
 		{
-		callback->Resolved(name);
-		delete callback;
+		resolve_lookup_cb(callback, name);
 		return;
 		}
 
@@ -1043,18 +1086,22 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
-void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
+
+	if ( mode == DNS_FAKE )
+		{
+		resolve_lookup_cb(callback, fake_name_lookup_result(name.c_str()));
+		return;
+		}
 
 	// Do we already know the answer?
 	TableVal* addrs = LookupNameInCache(name);
 	if ( addrs )
 		{
-		callback->Resolved(addrs);
-		Unref(addrs);
-		delete callback;
+		resolve_lookup_cb(callback, addrs);
 		return;
 		}
 
@@ -1078,13 +1125,25 @@ void DNS_Mgr::AsyncLookupName(string name, LookupCallback* callback)
 	IssueAsyncRequests();
 	}
 
-void DNS_Mgr::AsyncLookupNameText(string name, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupNameText(const string& name, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
 
+	if ( mode == DNS_FAKE )
+		{
+		resolve_lookup_cb(callback, fake_text_lookup_result(name.c_str()));
+		return;
+		}
+
 	// Do we already know the answer?
-	TableVal* addrs;
+	const char* txt = LookupTextInCache(name);
+
+	if ( txt )
+		{
+		resolve_lookup_cb(callback, txt);
+		return;
+		}
 
 	AsyncRequest* req = 0;
 

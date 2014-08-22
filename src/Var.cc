@@ -9,6 +9,7 @@
 #include "Serializer.h"
 #include "RemoteSerializer.h"
 #include "EventRegistry.h"
+#include "Traverse.h"
 
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{
@@ -169,7 +170,13 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			Val* aggr;
 			if ( t->Tag() == TYPE_RECORD )
+				{
 				aggr = new RecordVal(t->AsRecordType());
+
+				if ( init && t )
+					// Have an initialization and type is not deduced.
+					init = new RecordCoerceExpr(init, t->AsRecordType());
+				}
 
 			else if ( t->Tag() == TYPE_TABLE )
 				aggr = new TableVal(t->AsTableType(), id->Attrs());
@@ -379,9 +386,39 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
+		Unref(arg_id);
+
 		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type->Ref());
 		}
+	}
+
+class OuterIDBindingFinder : public TraversalCallback {
+public:
+	OuterIDBindingFinder(Scope* s)
+		: scope(s) { }
+
+	virtual TraversalCode PreExpr(const Expr*);
+
+	Scope* scope;
+	vector<const NameExpr*> outer_id_references;
+};
+
+TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
+	{
+	if ( expr->Tag() != EXPR_NAME )
+		return TC_CONTINUE;
+
+	const NameExpr* e = static_cast<const NameExpr*>(expr);
+
+	if ( e->Id()->IsGlobal() )
+		return TC_CONTINUE;
+
+	if ( scope->GetIDs()->Lookup(e->Id()->Name()) )
+		return TC_CONTINUE;
+
+	outer_id_references.push_back(e);
+	return TC_CONTINUE;
 	}
 
 void end_func(Stmt* body, attr_list* attrs)
@@ -421,6 +458,16 @@ void end_func(Stmt* body, attr_list* attrs)
 			}
 		}
 
+	if ( streq(id->Name(), "anonymous-function") )
+		{
+		OuterIDBindingFinder cb(scope);
+		body->Traverse(&cb);
+
+		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
+			cb.outer_id_references[i]->Error(
+						"referencing outer function IDs not supported");
+		}
+
 	if ( id->HasVal() )
 		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
 	else
@@ -436,10 +483,13 @@ void end_func(Stmt* body, attr_list* attrs)
 Val* internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+	return rval;
 	}
 
 Val* internal_const_val(const char* name)
@@ -451,13 +501,17 @@ Val* internal_const_val(const char* name)
 	if ( ! id->IsConst() )
 		reporter->InternalError("internal variable %s is not constant", name);
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+	return rval;
 	}
 
 Val* opt_internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	return id ? id->ID_Val() : 0;
+	Val* rval = id ? id->ID_Val() : 0;
+	Unref(id);
+	return rval;
 	}
 
 double opt_internal_double(const char* name)
@@ -497,6 +551,8 @@ ListVal* internal_list_val(const char* name)
 		return 0;
 
 	Val* v = id->ID_Val();
+	Unref(id);
+
 	if ( v )
 		{
 		if ( v->Type()->Tag() == TYPE_LIST )
@@ -522,7 +578,9 @@ BroType* internal_type(const char* name)
 	if ( ! id )
 		reporter->InternalError("internal type %s missing", name);
 
-	return id->Type();
+	BroType* rval = id->Type();
+	Unref(id);
+	return rval;
 	}
 
 Func* internal_func(const char* name)

@@ -78,7 +78,10 @@ EventMgr::~EventMgr()
 
 void EventMgr::QueueEvent(Event* event)
 	{
-	PLUGIN_HOOK_VOID(HOOK_QUEUE_EVENT, HookQueueEvent(event));
+	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(event), false);
+
+	if ( done )
+		return;
 
 	if ( ! head )
 		head = tail = event;

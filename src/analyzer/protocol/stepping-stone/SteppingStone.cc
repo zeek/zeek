@@ -63,7 +63,7 @@ void SteppingStoneEndpoint::Done()
 	Event(stp_remove_endp, stp_id);
 	}
 
-int SteppingStoneEndpoint::DataSent(double t, int seq, int len, int caplen,
+int SteppingStoneEndpoint::DataSent(double t, uint64 seq, int len, int caplen,
 		const u_char* data, const IP_Hdr* /* ip */,
 		const struct tcphdr* tp)
 	{
@@ -90,8 +90,8 @@ int SteppingStoneEndpoint::DataSent(double t, int seq, int len, int caplen,
 			break;
 		}
 
-	int ack = endp->AckSeq() - endp->StartSeq();
-	int top_seq = seq + len;
+	uint64 ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
+	uint64 top_seq = seq + len;
 
 	if ( top_seq <= ack || top_seq <= stp_max_top_seq )
 		// There is no new data in this packet
@@ -179,7 +179,7 @@ void SteppingStone_Analyzer::Init()
 	}
 
 void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
-						bool is_orig, int seq,
+						bool is_orig, uint64 seq,
 						const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,

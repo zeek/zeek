@@ -13,7 +13,9 @@ functionality to Bro:
 
     - Builtin functions/events/types for the scripting language.
 
-    - Protocol and file analyzers.
+    - Protocol analyzers.
+
+    - File analyzers.
 
     - Packet sources and packet dumpers. TODO: Not yet.
 
@@ -24,22 +26,21 @@ functionality to Bro:
 A plugin's functionality is available to the user just as if Bro had
 the corresponding code built-in. Indeed, internally many of Bro's
 pieces are structured as plugins as well, they are just statically
-compiled into the binary rather than loaded dynamically at runtime, as
-external plugins are.
+compiled into the binary rather than loaded dynamically at runtime.
 
 Quick Start
 ===========
 
 Writing a basic plugin is quite straight-forward as long as one
-follows a few conventions. In the following we walk through adding a
-new built-in function (bif) to Bro; we'll add `a `rot13(s: string) :
-string``, a function that rotates every character in a string by 13
-places.
+follows a few conventions. In the following we walk a simple example
+plugin that adds a new built-in function (bif) to Bro: we'll add 
+``rot13(s: string) : string``, a function that rotates every character
+in a string by 13 places.
 
-A plugin comes in the form of a directory following a certain
-structure. To get started, Bro's distribution provides a helper script
-``aux/bro-aux/plugin-support/init-plugin`` that creates a skeleton
-plugin that can then be customized. Let's use that::
+Generally, a plugin comes in the form of a directory following a
+certain structure. To get started, Bro's distribution provides a
+helper script ``aux/bro-aux/plugin-support/init-plugin`` that creates
+a skeleton plugin that can then be customized. Let's use that::
 
     # mkdir rot13-plugin
     # cd rot13-plugin
@@ -50,9 +51,9 @@ namespace the plugin will live in, and the second a descriptive name
 for the plugin itself. Bro uses the combination of the two to identify
 a plugin. The namespace serves to avoid naming conflicts between
 plugins written by independent developers; pick, e.g., the name of
-your organisation (and note that the namespace ``Bro`` is reserved for
-functionality distributed by the Bro Project). In our example, the
-plugin will be called ``Demo::Rot13``.
+your organisation. The namespace ``Bro`` is reserved for functionality
+distributed by the Bro Project. In our example, the plugin will be
+called ``Demo::Rot13``.
 
 The ``init-plugin`` script puts a number of files in place. The full
 layout is described later. For now, all we need is
@@ -62,7 +63,7 @@ there as follows::
     # cat scripts/functions.bif
     module CaesarCipher;
 
-    function camel_case%(s: string%) : string
+    function rot13%(s: string%) : string
         %{
         char* rot13 = copy_string(s->CheckString());
 
@@ -72,7 +73,7 @@ there as follows::
             *p  = (*p - b + 13) % 26 + b;
             }
 
-        return new StringVal(strlen(rot13), rot13);
+        return new StringVal(new BroString(1, rot13, strlen(rot13)));
         %}
 
 The syntax of this file is just like any other ``*.bif`` file; we
@@ -181,26 +182,26 @@ directory.
 ``<base>/__bro_plugin__``
     A file that marks a directory as containing a Bro plugin. The file
     must exist, and its content must consist of a single line with the
-    qualified name of the plugin (e.g., "Demo::Rot13").  
+    qualified name of the plugin (e.g., "Demo::Rot13").
 
 ``<base>/lib/<plugin-name>-<os>-<arch>.so``
     The shared library containing the plugin's compiled code. Bro will
     load this in dynamically at run-time if OS and architecture match
     the current platform.
 
-``lib/bif/``
-    Directory with auto-generated Bro scripts that declare the plugins
-    bif elements. The files here are produced by ``bifcl``.
-
 ``scripts/``
     A directory with the plugin's custom Bro scripts. When the plugin
     gets activated, this directory will be automatically added to
     ``BROPATH``, so that any scripts/modules inside can be
-    ``@load``ed. 
+    ``@load``ed.
 
 ``scripts``/__load__.bro
     A Bro script that will be loaded immediately when the plugin gets
     activated. See below for more information on activating plugins.
+
+``lib/bif/``
+    Directory with auto-generated Bro scripts that declare the plugin's
+    bif elements. The files here are produced by ``bifcl``.
 
 By convention, a plugin should put its custom scripts into sub folders
 of ``scripts/``, i.e., ``scripts/<script-namespace>/<script>.bro`` to
@@ -220,19 +221,21 @@ function.
 
 ``init-plugin`` puts a basic plugin structure in place that follows
 the above layout and augments it with a CMake build and installation
-system. Note that plugins with this structure can be used both
-directly out of their source directory (after ``make`` and setting
-Bro's ``BRO_PLUGIN_PATH``), and when installed alongside Bro (after
-``make install``).
+system. Plugins with this structure can be used both directly out of
+their source directory (after ``make`` and setting Bro's
+``BRO_PLUGIN_PATH``), and when installed alongside Bro (after ``make
+install``).
 
 ``make install`` copies over the ``lib`` and ``scripts`` directories,
 as well as the ``__bro_plugin__`` magic file and the ``README`` (which
 you should customize). One can add further CMake ``install`` rules to
-install additional files if neeed.
+install additional files if needed.
 
-.. todo::
-
-    Describe the other files that the script puts in place.
+``init-plugin`` will never overwrite existing files, so it's safe to
+rerun in an existing plugin directory; it only put files in place that
+don't exist yet. That also provides a convenient way to revert a file
+back to what ``init-plugin`` created originally: just delete it and
+rerun.
 
 Activating a Plugin
 ===================
@@ -250,16 +253,15 @@ in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro
 -b``), no dynamic plugins will be activated by default; instead the
 user can selectively enable individual plugins in scriptland using the
 ``@load-plugin <qualified-plugin-name>`` directive (e.g.,
-``@load-plugin Demo::Rot13``).
+``@load-plugin Demo::Rot13``). Alternatively, one can activate a
+plugin from the command-line by specifying its full name
+(``Demo::Rot13``), or set the environment variable
+``BRO_PLUGIN_ACTIVATE`` to a list of comma(!)-separated names of
+plugins to unconditionally activate, even in bare mode.
 
-``bro -N`` shows activated and found yet unactivated plugins
-separately. Note that plugins compiled statically into Bro are always
-activated, and hence show up as such even in bare mode.
-
-.. todo::
-
-    Is this the right activation model?
-
+``bro -N`` shows activated plugins separately from found but not yet
+activated plugins. Note that plugins compiled statically into Bro are
+always activated, and hence show up as such even in bare mode.
 
 Plugin Component
 ================
@@ -271,13 +273,13 @@ multiple protocol analyzers at once; or both a logging backend and
 input reader at the same time.
 
 We now walk briefly through the specifics of providing a specific type
-of functionality (a *component*) through plugin. We'll focus on their
-interfaces to the plugin system, rather than specifics on writing the
-corresponding logic (usually the best way to get going on that is to
-start with an existing plugin providing a corresponding component and
-adapt that). We'll also point out how the CMake infrastructure put in
-place by the ``init-plugin`` helper script ties the various pieces
-together.
+of functionality (a *component*) through a plugin. We'll focus on
+their interfaces to the plugin system, rather than specifics on
+writing the corresponding logic (usually the best way to get going on
+that is to start with an existing plugin providing a corresponding
+component and adapt that). We'll also point out how the CMake
+infrastructure put in place by the ``init-plugin`` helper script ties
+the various pieces together.
 
 Bro Scripts
 -----------
@@ -311,22 +313,117 @@ TODO.
 Logging Writer
 --------------
 
-Not yet implemented.
+Not yet available as plugins.
 
 Input Reader
 ------------
 
-Not yet implemented.
+Not yet available as plugins.
 
 Packet Sources
 --------------
 
-Not yet implemented.
+Not yet available as plugins.
 
 Packet Dumpers
 --------------
 
-Not yet implemented.
+Not yet available as plugins.
+
+Hooks
+=====
+
+TODO.
+
+Testing Plugins
+===============
+
+A plugin should come with a test suite to exercise its functionality.
+The ``init-plugin`` script puts in place a basic </btest/README> setup
+to start with. Initially, it comes with a single test that just checks
+that Bro loads the plugin correctly. It won't have a baseline yet, so
+let's get that in place::
+
+    # cd tests
+    # btest -d
+    [  0%] plugin.loading ... failed
+    % 'btest-diff output' failed unexpectedly (exit code 100)
+    % cat .diag
+    == File ===============================
+    Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 1.0)
+        [Function] CaesarCipher::rot13
+
+    == Error ===============================
+    test-diff: no baseline found.
+    =======================================
+
+    # btest -U
+    all 1 tests successful
+
+    # cd ..
+    # make test
+    make -C tests
+    make[1]: Entering directory `tests'
+    all 1 tests successful
+    make[1]: Leaving directory `tests'
+
+Now let's add a custom test that ensures that our bif works
+correctly::
+
+    # cd tests
+    # cat >plugin/rot13.bro
+
+    # @TEST-EXEC: bro %INPUT >output
+    # @TEST-EXEC: btest-diff output
+
+    event bro_init()
+        {
+        print CaesarCipher::rot13("Hello");
+        }
+
+Check the output::
+
+    # btest -d plugin/rot13.bro
+    [  0%] plugin.rot13 ... failed
+    % 'btest-diff output' failed unexpectedly (exit code 100)
+    % cat .diag
+    == File ===============================
+    Uryyb
+    == Error ===============================
+    test-diff: no baseline found.
+    =======================================
+
+    % cat .stderr
+
+    1 of 1 test failed
+
+Install the baseline::
+
+    # btest -U plugin/rot13.bro
+    all 1 tests successful
+
+Run the test-suite::
+
+    # btest
+    all 2 tests successful
+
+Debugging Plugins
+=================
+
+Plugins can use Bro's standard debug logger by using the
+``PLUGIN_DBG_LOG(<plugin>, <args>)`` macro (defined in
+``DebugLogger.h``), where ``<plugin>`` is the ``Plugin`` instance and
+``<args>`` are printf-style arguments, just as with Bro's standard
+debuggging macros.
+
+At runtime, one then activates a plugin's debugging output with ``-B
+plugin-<name>``, where ``<name>`` is the name of the plugin as
+returned by its ``Configure()`` method, yet with the
+namespace-separator ``::`` replaced with a simple dash. Example: If
+the plugin is called ``Bro::Demo``, use ``-B plugin-Bro-Demo``. As
+usual, the debugging output will be recorded to ``debug.log`` if Bro's
+compiled in debug mode.
+
 
 Documenting Plugins
 ===================

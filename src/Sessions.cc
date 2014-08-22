@@ -30,7 +30,6 @@
 #include "Discard.h"
 #include "RuleMatcher.h"
 
-#include "PacketSort.h"
 #include "TunnelEncapsulation.h"
 
 #include "analyzer/Manager.h"
@@ -168,7 +167,7 @@ void NetSessions::Done()
 
 void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
-			iosource::PktSrc* src_ps, PacketSortElement* pkt_elem)
+			iosource::PktSrc* src_ps)
 	{
 	const struct ip* ip_hdr = 0;
 	const u_char* ip_data = 0;
@@ -185,19 +184,11 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		// Blanket encapsulation
 		hdr_size += encap_hdr_size;
 
-#if 0
-	if ( src_ps->FilterType() == TYPE_FILTER_NORMAL )
-		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
-	else
-		NextPacketSecondary(t, hdr, pkt, hdr_size, src_ps);
-#else
-		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
-#endif
+	NextPacket(t, hdr, pkt, hdr_size);
 	}
 
 void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
-			     const u_char* const pkt, int hdr_size,
-			     PacketSortElement* pkt_elem)
+			     const u_char* const pkt, int hdr_size)
 	{
 	SegmentProfiler(segment_logger, "processing-packet");
 	if ( pkt_profiler )
@@ -210,70 +201,58 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( record_all_packets )
 		DumpPacket(hdr, pkt);
 
-	if ( pkt_elem && pkt_elem->IPHdr() )
-		// Fast path for "normal" IP packets if an IP_Hdr is
-		// already extracted when doing PacketSort. Otherwise
-		// the code below tries to extract the IP header, the
-		// difference here is that header extraction in
-		// PacketSort does not generate Weird events.
+	// ### The following isn't really correct.  What we *should*
+	// do is understanding the different link layers in order to
+	// find the network-layer protocol ID.  That's a big
+	// portability pain, though, unless we just assume everything's
+	// Ethernet .... not great, given the potential need to deal
+	// with PPP or FDDI (for some older traces).  So instead
+	// we look to see if what we have is consistent with an
+	// IPv4 packet.  If not, it's either ARP or IPv6 or weird.
 
-		DoNextPacket(t, hdr, pkt_elem->IPHdr(), pkt, hdr_size, 0);
-
-	else
+	if ( hdr_size > static_cast<int>(hdr->caplen) )
 		{
-		// ### The following isn't really correct.  What we *should*
-		// do is understanding the different link layers in order to
-		// find the network-layer protocol ID.  That's a big
-		// portability pain, though, unless we just assume everything's
-		// Ethernet .... not great, given the potential need to deal
-		// with PPP or FDDI (for some older traces).  So instead
-		// we look to see if what we have is consistent with an
-		// IPv4 packet.  If not, it's either ARP or IPv6 or weird.
+		Weird("truncated_link_frame", hdr, pkt);
+		return;
+		}
 
-		if ( hdr_size > static_cast<int>(hdr->caplen) )
-			{
-			Weird("truncated_link_frame", hdr, pkt);
-			return;
-			}
+	uint32 caplen = hdr->caplen - hdr_size;
+	if ( caplen < sizeof(struct ip) )
+		{
+		Weird("truncated_IP", hdr, pkt);
+		return;
+		}
 
-		uint32 caplen = hdr->caplen - hdr_size;
-		if ( caplen < sizeof(struct ip) )
+	const struct ip* ip = (const struct ip*) (pkt + hdr_size);
+
+	if ( ip->ip_v == 4 )
+		{
+		IP_Hdr ip_hdr(ip, false);
+		DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
+		}
+
+	else if ( ip->ip_v == 6 )
+		{
+		if ( caplen < sizeof(struct ip6_hdr) )
 			{
 			Weird("truncated_IP", hdr, pkt);
 			return;
 			}
 
-		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
+		IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false, caplen);
+		DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
+		}
 
-		if ( ip->ip_v == 4 )
-			{
-			IP_Hdr ip_hdr(ip, false);
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
-			}
+	else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt, hdr_size) )
+		{
+		if ( arp_analyzer )
+			arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
+		}
 
-		else if ( ip->ip_v == 6 )
-			{
-			if ( caplen < sizeof(struct ip6_hdr) )
-				{
-				Weird("truncated_IP", hdr, pkt);
-				return;
-				}
-
-			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false, caplen);
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
-			}
-
-		else if ( analyzer::arp::ARP_Analyzer::IsARP(pkt, hdr_size) )
-			{
-			if ( arp_analyzer )
-				arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
-			}
-
-		else
-			{
-			Weird("unknown_packet_type", hdr, pkt);
-			return;
-			}
+	else
+		{
+		Weird("unknown_packet_type", hdr, pkt);
+		return;
 		}
 
 	if ( dump_this_packet && ! record_all_packets )

@@ -39,12 +39,27 @@ type count_set: set[count];
 ##    directly and then remove this alias.
 type index_vec: vector of count;
 
+## A vector of any, used by some builtin functions to store a list of varying
+## types.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type any_vec: vector of any;
+
 ## A vector of strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type string_vec: vector of string;
+
+## A vector of x509 opaques.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type x509_opaque_vector: vector of opaque of x509;
 
 ## A vector of addresses.
 ##
@@ -66,6 +81,23 @@ type table_string_of_string: table[string] of string;
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type files_tag_set: set[Files::Tag];
+
+## A structure indicating a MIME type and strength of a match against
+## file magic signatures.
+##
+## :bro:see:`file_magic`
+type mime_match: record {
+	strength: int;    ##< How strongly the signature matched.  Used for
+	                  ##< prioritization when multiple file magic signatures
+	                  ##< match.
+	mime:     string; ##< The MIME type of the file magic signature match.
+};
+
+## A vector of file magic signature matches, ordered by strength of
+## the signature, strongest first.
+##
+## :bro:see:`file_magic`
+type mime_matches: vector of mime_match;
 
 ## A connection's transport-layer protocol. Note that Bro uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
@@ -378,10 +410,15 @@ type fa_file: record {
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
 
-	## A mime type provided by libmagic against the *bof_buffer*, or
-	## in the cases where no buffering of the beginning of file occurs,
-	## an initial guess of the mime type based on the first data seen.
+	## The mime type of the strongest file magic signature matches against
+	## the data chunk in *bof_buffer*, or in the cases where no buffering
+	## of the beginning of file occurs, an initial guess of the mime type
+	## based on the first data seen.
 	mime_type: string &optional;
+
+	## All mime types that matched file magic signatures against the data
+	## chunk in *bof_buffer*, in order of their strength value.
+	mime_types: mime_matches &optional;
 } &redef;
 
 ## Fields of a SYN packet.
@@ -1034,13 +1071,6 @@ const rpc_timeout = 24 sec &redef;
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 0.0 sec &redef;
-
-## Time window for reordering packets. This is used for dealing with timestamp
-## discrepancy between multiple packet sources.
-##
-## .. note:: Setting this can have a major performance impact as now packets
-##    need to be potentially copied and buffered.
-const packet_sort_window = 0 usecs &redef;
 
 ## If positive, indicates the encapsulation header size that should
 ## be skipped. This applies to all packets.
@@ -2427,18 +2457,6 @@ global dns_skip_all_addl = T &redef;
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 5;
 
-## An X509 certificate.
-##
-## .. bro:see:: x509_certificate
-type X509: record {
-	version: count;	##< Version number.
-	serial: string;	##< Serial number.
-	subject: string;	##< Subject.
-	issuer: string;	##< Issuer.
-	not_valid_before: time;	##< Timestamp before when certificate is not valid.
-	not_valid_after: time;	##< Timestamp after when certificate is not valid.
-};
-
 ## HTTP session statistics.
 ##
 ## .. bro:see:: http_stats
@@ -2720,6 +2738,7 @@ type ModbusRegisters: vector of count;
 type ModbusHeaders: record {
 	tid:           count;
 	pid:           count;
+	len:           count;
 	uid:           count;
 	function_code: count;
 };
@@ -2760,6 +2779,55 @@ export {
 	};
 }
 
+module X509;
+export {
+	type Certificate: record {
+		version: count;	##< Version number.
+		serial: string;	##< Serial number.
+		subject: string;	##< Subject.
+		issuer: string;	##< Issuer.
+		not_valid_before: time;	##< Timestamp before when certificate is not valid.
+		not_valid_after: time;	##< Timestamp after when certificate is not valid.
+		key_alg: string;	##< Name of the key algorithm
+		sig_alg: string;	##< Name of the signature algorithm
+		key_type: string &optional;	##< Key type, if key parseable by openssl (either rsa, dsa or ec)
+		key_length: count &optional;	##< Key length in bits
+		exponent: string &optional;	##< Exponent, if RSA-certificate
+		curve: string &optional;	##< Curve, if EC-certificate
+	} &log;
+
+	type Extension: record {
+		name: string;	##< Long name of extension. oid if name not known
+		short_name: string &optional;	##< Short name of extension if known
+		oid: string;	##< Oid of extension
+		critical: bool;	##< True if extension is critical
+		value: string;	##< Extension content parsed to string for known extensions. Raw data otherwise.
+	};
+
+	type BasicConstraints: record {
+		ca: bool;	##< CA flag set?
+		path_len: count &optional;	##< Maximum path length
+	} &log;
+
+	type SubjectAlternativeName: record {
+		dns: string_vec &optional &log;	##< List of DNS entries in SAN
+		uri: string_vec &optional &log;	##< List of URI entries in SAN
+		email: string_vec &optional &log;	##< List of email entries in SAN
+		ip: addr_vec &optional &log;	##< List of IP entries in SAN
+		other_fields: bool;	##< True if the certificate contained other, not recognized or parsed name fields
+	};
+
+	## Result of an X509 certificate chain verification
+	type Result: record {
+		## OpenSSL result code
+		result:	int;
+		## Result as string
+		result_string: string;
+		## References to the final certificate chain, if verification successful. End-host certificate is first.
+		chain_certs: vector of opaque of x509 &optional;
+	};
+}
+
 module SOCKS;
 export {
 	## This record is for a SOCKS client or server to provide either a
@@ -2769,6 +2837,148 @@ export {
 		name: string &optional;
 	} &log;
 }
+
+module RADIUS;
+
+export {
+	type RADIUS::AttributeList: vector of string;
+	type RADIUS::Attributes: table[count] of RADIUS::AttributeList;
+
+	type RADIUS::Message: record {
+		## The type of message (Access-Request, Access-Accept, etc.).
+		code          : count;
+		## The transaction ID.
+		trans_id      : count;
+		## The "authenticator" string.
+		authenticator : string;
+		## Any attributes.
+		attributes    : RADIUS::Attributes &optional;
+	};
+}
+module GLOBAL;
+
+@load base/bif/plugins/Bro_SNMP.types.bif
+
+module SNMP;
+export {
+	## The top-level message data structure of an SNMPv1 datagram, not
+	## including the PDU data.  See :rfc:`1157`.
+	type SNMP::HeaderV1: record {
+		community: string;
+	};
+
+	## The top-level message data structure of an SNMPv2 datagram, not
+	## including the PDU data.  See :rfc:`1901`.
+	type SNMP::HeaderV2: record {
+		community: string;
+	};
+
+	## The ``ScopedPduData`` data structure of an SNMPv3 datagram, not
+	## including the PDU data (i.e. just the "context" fields).
+	## See :rfc:`3412`.
+	type SNMP::ScopedPDU_Context: record {
+		engine_id: string;
+		name:      string;
+	};
+
+	## The top-level message data structure of an SNMPv3 datagram, not
+	## including the PDU data.  See :rfc:`3412`.
+	type SNMP::HeaderV3: record {
+		id:              count;
+		max_size:        count;
+		flags:           count;
+		auth_flag:       bool;
+		priv_flag:       bool;
+		reportable_flag: bool;
+		security_model:  count;
+		security_params: string;
+		pdu_context:     SNMP::ScopedPDU_Context &optional;
+	};
+
+	## A generic SNMP header data structure that may include data from
+	## any version of SNMP.  The value of the ``version`` field
+	## determines what header field is initialized.
+	type SNMP::Header: record {
+		version: count;
+		v1:      SNMP::HeaderV1 &optional; ##< Set when ``version`` is 0.
+		v2:      SNMP::HeaderV2 &optional; ##< Set when ``version`` is 1.
+		v3:      SNMP::HeaderV3 &optional; ##< Set when ``version`` is 3.
+	};
+
+	## A generic SNMP object value, that may include any of the
+	## valid ``ObjectSyntax`` values from :rfc:`1155` or :rfc:`3416`.
+	## The value is decoded whenever possible and assigned to
+	## the appropriate field, which can be determined from the value
+	## of the ``tag`` field.  For tags that can't be mapped to an
+	## appropriate type, the ``octets`` field holds the BER encoded
+	## ASN.1 content if there is any (though, ``octets`` is may also
+	## be used for other tags such as OCTET STRINGS or Opaque).  Null
+	## values will only have their corresponding tag value set.
+	type SNMP::ObjectValue: record {
+		tag:      count;
+		oid:      string &optional;
+		signed:   int    &optional;
+		unsigned: count  &optional;
+		address:  addr   &optional;
+		octets:   string &optional;
+	};
+
+	# These aren't an enum because it's easier to type fields as count.
+	# That way don't have to deal with type conversion, plus doesn't
+	# mislead that these are the only valid tag values (it's just the set
+	# of known tags).
+	const SNMP::OBJ_INTEGER_TAG       : count = 0x02; ##< Signed 64-bit integer.
+	const SNMP::OBJ_OCTETSTRING_TAG   : count = 0x04; ##< An octet string.
+	const SNMP::OBJ_UNSPECIFIED_TAG   : count = 0x05; ##< A NULL value.
+	const SNMP::OBJ_OID_TAG           : count = 0x06; ##< An Object Identifier.
+	const SNMP::OBJ_IPADDRESS_TAG     : count = 0x40; ##< An IP address.
+	const SNMP::OBJ_COUNTER32_TAG     : count = 0x41; ##< Unsigned 32-bit integer.
+	const SNMP::OBJ_UNSIGNED32_TAG    : count = 0x42; ##< Unsigned 32-bit integer.
+	const SNMP::OBJ_TIMETICKS_TAG     : count = 0x43; ##< Unsigned 32-bit integer.
+	const SNMP::OBJ_OPAQUE_TAG        : count = 0x44; ##< An octet string.
+	const SNMP::OBJ_COUNTER64_TAG     : count = 0x46; ##< Unsigned 64-bit integer.
+	const SNMP::OBJ_NOSUCHOBJECT_TAG  : count = 0x80; ##< A NULL value.
+	const SNMP::OBJ_NOSUCHINSTANCE_TAG: count = 0x81; ##< A NULL value.
+	const SNMP::OBJ_ENDOFMIBVIEW_TAG  : count = 0x82; ##< A NULL value.
+
+	## The ``VarBind`` data structure from either :rfc:`1157` or
+	## :rfc:`3416`, which maps an Object Identifier to a value.
+	type SNMP::Binding: record {
+		oid:   string;
+		value: SNMP::ObjectValue;
+	};
+
+	## A ``VarBindList`` data structure from either :rfc:`1157` or :rfc:`3416`.
+	## A sequences of :bro:see:`SNMP::Binding`, which maps an OIDs to values.
+	type SNMP::Bindings: vector of SNMP::Binding;
+
+	## A ``PDU`` data structure from either :rfc:`1157` or :rfc:`3416`.
+	type SNMP::PDU: record {
+		request_id:   int;
+		error_status: int;
+		error_index:  int;
+		bindings:     SNMP::Bindings;
+	};
+
+	## A ``Trap-PDU`` data structure from :rfc:`1157`.
+	type SNMP::TrapPDU: record {
+		enterprise:    string;
+		agent:         addr;
+		generic_trap:  int;
+		specific_trap: int;
+		time_stamp:    count;
+		bindings:      SNMP::Bindings;
+	};
+
+	## A ``BulkPDU`` data structure from :rfc:`3416`.
+	type SNMP::BulkPDU: record {
+		request_id:      int;
+		non_repeaters:   count;
+		max_repititions: count;
+		bindings:        SNMP::Bindings;
+	};
+}
+
 module GLOBAL;
 
 @load base/bif/event.bif
@@ -2855,6 +3065,12 @@ global load_sample_freq = 20 &redef;
 ##
 ## .. bro:see:: gap_report
 const gap_report_freq = 1.0 sec &redef;
+
+## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
+## and not report missing segments for such connections.
+## If this is enabled, then missing data at the end of connections may not
+## be reported via :bro:see:`content_gap`.
+const detect_filtered_trace = F &redef;
 
 ## Whether we want :bro:see:`content_gap` and :bro:see:`gap_report` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
@@ -3046,6 +3262,24 @@ const record_all_packets = F &redef;
 ## .. bro:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
 
+module JSON;
+export {
+	type TimestampFormat: enum {
+		## Timestamps will be formatted as UNIX epoch doubles.  This is
+		## the format that Bro typically writes out timestamps.
+		TS_EPOCH,
+		## Timestamps will be formatted as unsigned integers that
+		## represent the number of milliseconds since the UNIX
+		## epoch.
+		TS_MILLIS,
+		## Timestamps will be formatted in the ISO8601 DateTime format.
+		## Subseconds are also included which isn't actually part of the
+		## standard but most consumers that parse ISO8601 seem to be able
+		## to cope with that.
+		TS_ISO8601,
+	};
+}
+
 module Tunnel;
 export {
 	## The maximum depth of a tunnel to decapsulate until giving up.
@@ -3130,9 +3364,6 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
@@ -3141,3 +3372,7 @@ const bits_per_uid: count = 96 &redef;
 @load base/frameworks/files
 
 @load base/bif
+
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+

@@ -12,7 +12,10 @@
 #include "iosource/Component.h"
 #include "iosource/pktsrc/Component.h"
 
+// We allow to override this externally for testing purposes.
+#ifndef BRO_PLUGIN_API_VERSION
 #define BRO_PLUGIN_API_VERSION 2
+#endif
 
 class ODesc;
 class Func;
@@ -30,15 +33,16 @@ class Plugin;
  */
 enum HookType {
 	// Note: when changing this table, update hook_name() in Plugin.cc.
-	HOOK_LOAD_FILE,
-	HOOK_CALL_FUNCTION,
-	HOOK_QUEUE_EVENT,
-	HOOK_DRAIN_EVENTS,
-	HOOK_UPDATE_NETWORK_TIME,
+	HOOK_LOAD_FILE,			//< Activates Plugin::HookLoadFile().
+	HOOK_CALL_FUNCTION,		//< Activates Plugin::HookCallFunction().
+	HOOK_QUEUE_EVENT,		//< Activates Plugin::HookQueueEvent().
+	HOOK_DRAIN_EVENTS,		//< Activates Plugin::HookDrainEvents()
+	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
+	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
 
 	// Meta hooks.
-	META_HOOK_PRE,
-	META_HOOK_POST,
+	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
+	META_HOOK_POST,			//< Activates Plugin::MetaHookPost().
 
 	// End marker.
 	NUM_HOOKS,
@@ -50,15 +54,20 @@ enum HookType {
 extern const char* hook_name(HookType h);
 
 /**
- * Helper class to capture a plugin's version. A boolean operator evaluates
- * to true if the version has been set.
- */
+ * Helper class to capture a plugin's version.
+ * */
 struct VersionNumber {
 	int major; //< Major version number;
 	int minor; //< Minor version number;
 
+	/**
+	 *  Constructor.
+	 */
 	VersionNumber()	{ major = minor = -1; }
 
+	/**
+	 *  Returns true if the version is set to a non-negative value.
+	 */
 	operator bool() const { return major >= 0 && minor >= 0; }
 };
 
@@ -71,20 +80,22 @@ public:
 	std::string description;	//< A short textual description of the plugin. Mandatory.
 	VersionNumber version;		//< THe plugin's version. Optional.
 
-	Configuration()
-		{
-		// Note we inline this method here so that when plugins create an instance,
-		// *their* defaults will be used for the internal fields.
-		name = "";
-		description = "";
-		api_version = BRO_PLUGIN_API_VERSION;
-		}
+	// We force this to inline so that the API version gets hardcoded
+	// into the external plugin. (Technically, it's not a "force", just a
+	// strong hint.). The attribute seems generally available.
+	inline Configuration() __attribute__((always_inline));
 
 private:
 	friend class Plugin;
 	int api_version;	// Current BRO_PLUGIN_API_VERSION. Automatically set.
-
 };
+
+inline Configuration::Configuration()
+		{
+		name = "";
+		description = "";
+		api_version = BRO_PLUGIN_API_VERSION;
+		}
 
 /**
  * A class describing an item defined in \c *.bif file.
@@ -142,30 +153,127 @@ private:
 class HookArgument
 {
 public:
+	/**
+	 * Type of the argument.
+	 */
 	enum Type {
-		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID
+		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID, VOIDP,
 	};
 
+	/**
+	 * Default constructor initialized the argument with type VOID.
+	 */
 	HookArgument()	{ type = VOID; }
+
+	/**
+	 * Constructor with a boolean argument.
+	 */
 	HookArgument(bool a)	{ type = BOOL; arg.bool_ = a; }
+
+	/**
+	 * Constructor with a double argument.
+	 */
 	HookArgument(double a)	{ type = DOUBLE; arg.double_ = a; }
+
+	/**
+	 * Constructor with an event argument.
+	 */
 	HookArgument(const Event* a)	{ type = EVENT; arg.event = a; }
+
+	/**
+	 * Constructor with a function argument.
+	 */
 	HookArgument(const Func* a)	{ type = FUNC; arg.func = a; }
+
+	/**
+	 * Constructor with an integer  argument.
+	 */
 	HookArgument(int a)	{ type = INT; arg.int_ = a; }
+
+	/**
+	 * Constructor with a string argument.
+	 */
 	HookArgument(const std::string& a)	{ type = STRING; arg_string = a; }
+
+	/**
+	 * Constructor with a Bro value argument.
+	 */
 	HookArgument(const Val* a)	{ type = VAL; arg.val = a; }
+
+	/**
+	 * Constructor with a list of Bro values argument.
+	 */
 	HookArgument(const val_list* a)	{ type = VAL_LIST; arg.vals = a; }
 
+	/**
+	 * Constructor with a void pointer argument.
+	 */
+	HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
+
+	/**
+	 * Returns the value for a boolen argument. The argument's type must
+	 * match accordingly.
+	 */
 	bool AsBool() const	{ assert(type == BOOL); return arg.bool_; }
+
+	/**
+	 * Returns the value for a double argument. The argument's type must
+	 * match accordingly.
+	 */
 	double AsDouble() const	{ assert(type == DOUBLE); return arg.double_; }
+
+	/**
+	 * Returns the value for an event argument. The argument's type must
+	 * match accordingly.
+	 */
 	const Event* AsEvent() const	{ assert(type == EVENT); return arg.event; }
+
+	/**
+	 * Returns the value for a function argument. The argument's type must
+	 * match accordingly.
+	 */
 	const Func* AsFunc() const	{ assert(type == FUNC); return arg.func; }
+
+	/**
+	 * Returns the value for an integer argument. The argument's type must
+	 * match accordingly.
+	 */
 	double AsInt() const	{ assert(type == INT); return arg.int_; }
+
+	/**
+	 * Returns the value for a string argument. The argument's type must
+	 * match accordingly.
+	 */
 	const std::string& AsString() const	{ assert(type == STRING); return arg_string; }
+
+	/**
+	 * Returns the value for a Bro value argument. The argument's type must
+	 * match accordingly.
+	 */
 	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
+
+	/**
+	 * Returns the value for a list of Bro values argument. The argument's type must
+	 * match accordingly.
+	 */
 	const val_list* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
 
+	/**
+	 * Returns the value for a vod pointer argument. The argument's type
+	 * must match accordingly.
+	 */
+	const void* AsVoidPtr() const	{ assert(type == VOIDP); return arg.voidp; }
+
+	/**
+	 * Returns the argument's type.
+	 */
 	Type GetType() const	{ return type; }
+
+	/**
+	 * Returns a textual representation of the argument.
+	 *
+	 * @param d Description object to use for rendering.
+	 */
 	void Describe(ODesc* d) const;
 
 private:
@@ -178,6 +286,7 @@ private:
 		int int_;
 		const Val* val;
 		const val_list* vals;
+		const void* voidp;
 	} arg;
 
 	std::string arg_string; // Outside union because it has dtor.
@@ -191,24 +300,25 @@ typedef std::list<HookArgument> HookArgumentList;
  * Plugins encapsulate functionality that extends one or more of Bro's major
  * subsystems, such as analysis of a specific protocol, or logging output in
  * a particular format. A plugin acts a logical container that can provide a
- * set of different functionality. Specifically, it may:
+ * set of functionality. Specifically, it may:
  *
  * - Provide one or more \a components implementing functionality. For
  *   example, a RPC plugin could provide analyzer for set of related
  *   protocols (RPC, NFS, etc.), each of which would be a separate component.
- *   Likewise, a SQLite plugin could provide both a writer and reader
- *   component. In addition to components, a plugin can also provide of
- *   script-level elements defined in *.bif files.
+ *   Likewise, an SQLite plugin could provide both a writer and reader
+ *   component.
  *
- * - Provide BiF elements (functions, events, types, globals).
+ * - Provide BiF elements (functions, events, types, globals). Typically
+ *   they'll be defined in *.bif files, but a plugin can also create them
+ *   internally.
  *
  * - Provide hooks (aka callbacks) into Bro's core processing to inject
  *   and/or alter functionality.
  *
- * Note that a plugin needs to explicitly register all the functionality it
- * provides. For components, it needs to call AddComponent(); for BiFs
- * AddBifItem(); and for hooks EnableHook() and then also implemennt the
- * corresponding virtual methods).
+ * A plugin needs to explicitly register all the functionality it provides.
+ * For components, it needs to call AddComponent(); for BiFs AddBifItem();
+ * and for hooks EnableHook() and then also implement the corresponding
+ * virtual methods.
  *
  */
 class Plugin {
@@ -238,35 +348,36 @@ public:
 	const std::string& Description() const;
 
 	/**
-	 * Returns the version of the plugin. Version are only meaningful for
-	 * dynamically compiled plugins; for statically compiled ones, this
-	 * will always return 0.
+	 * Returns the version of the plugin. Versions are only meaningful
+	 * for dynamically compiled plugins; for statically compiled ones,
+	 * this will always return 0.
 	 */
 	VersionNumber Version() const;
 
 	/**
-	 * Returns true if this is a dynamically linked in plugin.
+	 * Returns true if this is a dynamically linked plugin.
 	 */
 	bool DynamicPlugin() const;
 
 	/**
 	 * For dynamic plugins, returns the base directory from which it was
-	 * loaded. For static plugins, returns null.
+	 * loaded. For static plugins, returns an empty string.
 	 **/
 	const std::string& PluginDirectory() const;
 
 	/**
 	 * For dynamic plugins, returns the full path to the shared library
-	 * from which it was loaded. For static plugins, returns null.
+	 * from which it was loaded. For static plugins, returns an empty
+	 * string.
 	 **/
 	const std::string& PluginPath() const;
 
 	/**
-	 * Returns the internal API version that this plugin relies on. Only
-	 * plugins that match Bro's current API version may be used. For
-	 * statically compiled plugins this is automatically the case, but
-	 * dynamically loaded plugins may cause a mismatch if they were
-	 * compiled for a different Bro version.
+	 * Returns the internal version of the Bro API that this plugin
+	 * relies on. Only plugins that match Bro's current API version can
+	 * be used. For statically compiled plugins this is automatically the
+	 * case, but dynamically loaded plugins may cause a mismatch if they
+	 * were compiled for a different Bro version.
 	 */
 	int APIVersion() const;
 
@@ -282,15 +393,54 @@ public:
 	bif_item_list BifItems() const;
 
 	/**
-	 * A function called when the plugin is instantiated to query basic
-	 * configuration parameters.
+	 * Returns a textual description of the plugin.
 	 *
-	 * The plugin must override this method and return a suitably
-	 * initialized configuration object.
-	 *
-	 * @return A configuration describing the plugin.
+	 * @param d Description object to use for rendering. If "short mode"
+	 * is disabled, the rendering will include a list of all components
+	 * and BiF items.
 	 */
-	virtual Configuration Configure() { return Configuration(); } // TODO: Change to abstract method.
+	void Describe(ODesc* d) const;
+
+	/**
+	 * Registers an individual BiF that the plugin defines. The
+	 * information is for informational purpuses only and will show up in
+	 * the result of BifItems() as well as in the Describe() output.
+	 * Another way to add this information is via overriding
+	 * CustomBifItems().
+	 *
+	 * Note that this method is rarely the right one to use. As it's for
+	 * informational purposes only, the plugin still needs to register
+	 * the BiF items themselves with the corresponding Bro parts. Doing
+	 * so can be tricky, and it's recommned to instead define BiF items
+	 * in separate *.bif files that the plugin then pulls in. If defined
+	 * there, one does *not* need to call this method.
+	 *
+	 * @param name The name of the BiF item.
+	 *
+	 * @param type The item's type.
+	 */
+	void AddBifItem(const std::string& name, BifItem::Type type);
+
+	/**
+	 * Adds a file to the list of files that Bro loads at startup. This
+	 * will normally be a Bro script, but it passes through the plugin
+	 * system as well to load files with other extensions as supported by
+	 * any of the current plugins. In other words, calling this method is
+	 * similar to giving a file on the command line. Note that the file
+	 * may be only queued for now, and actually loaded later.
+	 *
+	 * This method must not be called after InitPostScript().
+	 *
+	 * @param file The file to load. It will be searched along the
+	 * standard paths.
+	 *
+	 * @return True if successful (which however may only mean
+	 * "successfully queued").
+	 */
+	bool LoadBroFile(const std::string& file);
+
+protected:
+	friend class Manager;
 
 	/**
 	 * First-stage initialization of the plugin called early during Bro's
@@ -316,56 +466,6 @@ public:
 	virtual void Done();
 
 	/**
-	 * Returns a textual description of the plugin.
-	 *
-	 * @param d Description object to use for rendering. If "short mode"
-	 * is disabled, the rendering will include a list of all components
-	 * and BiF items.
-	 */
-	void Describe(ODesc* d) const;
-
-	/**
-	 * Registers an individual BiF that the plugin defines.  The
-	 * information is for informational purpuses only and will show up in
-	 * the result of BifItems() as well as in the Describe() output.
-	 * Another way to add this information is via overriding
-	 * CustomBifItems().
-	 *
-	 * \todo Do we need both this an CustomBifItems()?
-	 *
-	 * @param name The name of the BiF item.
-	 *
-	 * @param type The item's type.
-	 */
-	void AddBifItem(const std::string& name, BifItem::Type type);
-
-	/**
-	 * Adds a file to the list of files that Bro loads at startup. This
-	 * will normally be a Bro script, but it passes through the plugin
-	 * system as well to load files with other extensions as supported by
-	 * any of the current plugins. In other words, calling this method is
-	 * similar to given a file on the command line. Note that the file
-	 * may be only queued for now, and actually loaded later.
-	 *
-	 * This method must not be called after InitPostScript().
-	 *
-	 * @param file The file to load. It will be searched along the standard paths.
-	 *
-	 * @return True if successful (which however may only mean
-	 * "successfully queued").
-	 */
-	bool LoadBroFile(const std::string& file);
-
-protected:
-	friend class Manager;
-
-	/**
-	 * Intializes the plugin's configutation. Called by the manager
-	 * before anything else.
-	 */
-	void DoConfigure();
-
-	/**
 	 * Registers and activates a component.
 	 *
 	 * @param c The component. The method takes ownership.
@@ -375,15 +475,14 @@ protected:
 	/**
 	 * Enables a hook. The corresponding virtual method will now be
 	 * called as Bro's processing proceeds. Note that enabling hooks can
-	 * have performance impaxct as many trigger frequently inside Bro's
+	 * have performance impact as many trigger frequently inside Bro's
 	 * main processing path.
 	 *
-	 * Note that hooks may be enabled/disabled dynamically at any time,
-	 * the output of Bro's \c -NN option will only reflect that state at
-	 * startup time; hence usually one should call this for a plugin's
-	 * hooks in either the plugin's ctor or in InitPreScript(). For
-	 * consistency with other parts of the API, there's a macro
-	 * PLUGIN_ENABLE_HOOK for use inside the ctor.
+	 * Note that while hooks may be enabled/disabled dynamically at any
+	 * time, the output of Bro's \c -NN option will only reflect their
+	 * state at startup time. Usually one should call this method for a
+	 * plugin's hooks in either the plugin's constructor or in
+	 * InitPreScript().
 	 *
 	 * @param hook The hook to enable.
 	 *
@@ -409,16 +508,26 @@ protected:
 	hook_list EnabledHooks() const;
 
 	/**
-	 * Virtual method that can be overriden by derived class to provide
-	 * information about further script-level elements that the plugin
-	 * provides on its own, i.e., outside of the standard mechanism
-	 * processing *.bif files automatically. The returned information is
-	 * for informational purposes only and will show up in the result of
-	 * BifItems() as well as in the Describe() output.
-	 *
-	 * \todo Do we need both this an AddBifItem()?
+	 * Registers interest in an event, even if there's no handler for it.
+	 * Normally a plugin receives events through HookQueueEvent() only if Bro
+	 * actually has code to execute for it. By calling this method, the
+	 * plugin tells Bro to raise the event even if there's no correspondong
+	 * handler; it will then go into HookQueueEvent() just as any other.
+     *
+	 * @param handler The event handler being interested in.
 	 */
-	virtual bif_item_list CustomBifItems() const;
+	void RequestEvent(EventHandlerPtr handler);
+
+	/**
+	 * Registers interest in the destruction of a BroObj instance. When
+	 * Bro's reference counting triggers the objects destructor to run,
+	 * \a HookBroObjDtor will be called.
+	 *
+	 * Note that his can get expensive if triggered for many objects.
+	 *
+	 * @param handler The object being interested in.
+	 */
+	void RequestBroObjDtor(BroObj* obj);
 
 	// Hook functions.
 
@@ -428,15 +537,20 @@ protected:
 	 * timing guaranteed. It will be called once for each input file Bro
 	 * is about to load, either given on the command line or via @load
 	 * script directives. The hook can take over the file, in which case
-	 * Bro not further process it otherwise.
+	 * Bro will not further process it otherwise.
+	 *
+	 * @param file The filename to be loaded, including extension.
+	 *
+	 * @param ext The extension of the filename. This is provided
+	 * separately just for convenience. The dot is excluded.
 	 *
 	 * @return 1 if the plugin took over the file and loaded it
 	 * successfully; 0 if the plugin took over the file but had trouble
-	 * loading it (Bro will abort in this case, the plugin should have
-	 * printed an error message); and -1 if the plugin wasn't interested
-	 * in the file at all.
+	 * loading it (Bro will abort in this case, and the plugin should
+	 * have printed an error message); and -1 if the plugin wasn't
+	 * interested in the file at all.
 	 */
-	virtual int HookLoadFile(const std::string& file);
+	virtual int HookLoadFile(const std::string& file, const std::string& ext);
 
 	/**
 	 * Hook into executing a script-level function/event/hook. Whenever
@@ -447,19 +561,19 @@ protected:
 	 * from executing it). In the latter case it must provide a matching
 	 * return value.
 	 *
-	 * The default implementation does never handle the call in any way.
+	 * The default implementation never handles the call in any way.
 	 *
 	 * @param func The function being called.
 	 *
 	 * @param args The function arguments. The method can modify the list
-	 * in place long as it ensures matching types and correct reference
+	 * in place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
-	 * @return If the plugin handled the call, a +1 Val with the result
-	 * value to pass back to the interpreter (for void functions and
-	 * events any \a Val is fine; it will be ignored; best to use a \c
-	 * TYPE_ANY). If the plugin did not handle the call, it must return
-	 * null.
+	 * @return If the plugin handled the call, a Val with +1 reference
+	 * count containixnmg the result value to pass back to the interpreter
+	 * (for void functions and events any \a Val is fine; it will be
+	 * ignored; best to use a \c TYPE_ANY). If the plugin did not handle
+	 * the call, it must return null.
 	 */
 	virtual Val* HookCallFunction(const Func* func, val_list* args);
 
@@ -469,23 +583,22 @@ protected:
 	 * with this hook enabled a chance to handle the queuing otherwise
 	 * (in the order of their priorities). A plugin can either just
 	 * inspect the event, or take it over (i.e., prevent the interpreter
-	 * from queuing it it).
+	 * from queuing it itself).
 	 *
-	 * The default implementation does never handle the queuing in any
-	 * way.
+	 * The default implementation never handles the queuing in any way.
 	 *
-	 * @param event The even to be queued. The method can modify it in in
-	 * place long as it ensures matching types and correct reference
+	 * @param event The event to be queued. The method can modify it in
+	 * place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
 	 * @return True if the plugin took charge of the event; in that case
-	 * it must have assumed ownership of the event and the intpreter will
+	 * it must have assumed ownership of the event and the interpreter will
 	 * not do anything further with it. False otherwise.
 	 */
 	virtual bool HookQueueEvent(Event* event);
 
 	/**
-	 * Hook intp event queue draining. This method will be called
+	 * Hook into event queue draining. This method will be called
 	 * whenever the event manager is draining its queue.
 	 */
 	virtual void HookDrainEvents();
@@ -498,10 +611,24 @@ protected:
 	 */
 	virtual void HookUpdateNetworkTime(double network_time);
 
+	/**
+	 * Hook for destruction of objects registered with
+	 * RequestBroObjDtor(). When Bro's reference counting triggers the
+	 * objects destructor to run, this method will be run. It may also
+	 * run for other objects that this plugin has not registered for.
+	 *
+	 * @param obj A pointer to the object being destroyed. Note that the
+	 * object is already considered invalid and the pointer must not be
+	 * dereferenced.
+	 */
+	virtual void HookBroObjDtor(void* obj);
+
 	// Meta hooks.
 
 	/**
-	 * A meta hook called just before another hook gets to execute.
+	 * A meta hook called just before another hook gets to execute. This
+	 * will be called independent of whether there's an implementation
+	 * for the hook.
 	 *
 	 * hook: The name of the hook about the execute. This will be the
 	 * same as the corresponding method name (e.g., \c HookQueueEvent).
@@ -513,7 +640,7 @@ protected:
 	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
 
 	/**
-	 * A meta hook called just after another hook gets to execute. This
+	 * A meta hook called just after another hook got to execute. This
 	 * will be called independent of whether there's an implementation
 	 * for the hook.
 	 *
@@ -527,14 +654,30 @@ protected:
 	 */
 	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
 
-	// Methods that are used internally primarily.
+private:
+
+	/**
+	 * A function called when the plugin is instantiated to query basic
+	 * configuration parameters.
+	 *
+	 * The plugin must override this method and return a suitably
+	 * initialized configuration object.
+	 *
+	 * @return A configuration describing the plugin.
+	 */
+	virtual Configuration Configure() = 0;
+
+	/**
+	 * Intializes the plugin's internal configuration. Called by the
+	 * manager before anything else.
+	 */
+	void DoConfigure();
 
 	/**
 	 * Sets the base directory and shared library path from which the
 	 * plugin was loaded.
 	 *
-	 * This is used primarily internally; plugins will have there
-	 * location set automatically.
+	 * This is called by the manager.
 	 *
 	 * @param dir The plugin directory. The functions makes an internal
 	 * copy of string.
@@ -547,22 +690,20 @@ protected:
 	/**
 	 * Marks the plugin as dynamically loaded.
 	 *
-	 * This is used primarily internally; plugins will have this called
-	 * by the manager.
+	 * This is called by the manager.
 	 *
 	 * @param is_dynamic True if it's a dynamically loaded module.
 	 */
 	void SetDynamic(bool is_dynamic);
 
-private:
 	Configuration config;
 
 	std::string base_dir;	// The plugin's base directory.
 	std::string sopath;	// For dynamic plugins, the full path to the shared library.
 	bool dynamic;	// True if a dynamic plugin.
 
-	component_list components;
-	bif_item_list bif_items;
+	component_list components;	// Components the plugin provides.
+	bif_item_list bif_items;	// BiF items the plugin provides.
 };
 
 }

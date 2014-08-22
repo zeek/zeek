@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	radius
+#open	2014-05-15-15-24-25
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	mac	remote_ip	connect_info	result
+#types	time	string	addr	port	addr	port	string	string	addr	string	string
+1217631137.916736	CXWv6p3arKYeMETxOg	10.0.0.1	1645	10.0.0.100	1812	John.McGuirk	00:14:22:e9:54:5e	-	-	success
+#close	2014-05-15-15-24-25

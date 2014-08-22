@@ -4,7 +4,7 @@
 #define descriptor_h
 
 #include <stdio.h>
-#include <list>
+#include <set>
 #include <utility>
 
 #include "BroString.h"
@@ -54,16 +54,16 @@ public:
 	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
 
 	void EnableEscaping();
-	void AddEscapeSequence(const char* s) { escape_sequences.push_back(s); }
+	void AddEscapeSequence(const char* s) { escape_sequences.insert(s); }
 	void AddEscapeSequence(const char* s, size_t n)
-	    { escape_sequences.push_back(string(s, n)); }
+	    { escape_sequences.insert(string(s, n)); }
 	void AddEscapeSequence(const string & s)
-	    { escape_sequences.push_back(s); }
-	void RemoveEscapeSequence(const char* s) { escape_sequences.remove(s); }
+	    { escape_sequences.insert(s); }
+	void RemoveEscapeSequence(const char* s) { escape_sequences.erase(s); }
 	void RemoveEscapeSequence(const char* s, size_t n)
-	    { escape_sequences.remove(string(s, n)); }
+	    { escape_sequences.erase(string(s, n)); }
 	void RemoveEscapeSequence(const string & s)
-	    { escape_sequences.remove(s); }
+	    { escape_sequences.erase(s); }
 
 	void PushIndent();
 	void PopIndent();
@@ -163,6 +163,15 @@ protected:
 	 */
 	pair<const char*, size_t> FirstEscapeLoc(const char* bytes, size_t n);
 
+	/**
+	 * @param start start of string to check for starting with an espace
+	 *              sequence.
+	 * @param end one byte past the last character in the string.
+	 * @return The number of bytes in the escape sequence that the string
+	 *         starts with.
+	 */
+	size_t StartsWithEscapeSequence(const char* start, const char* end);
+
 	desc_type type;
 	desc_style style;
 
@@ -171,7 +180,8 @@ protected:
 	unsigned int size;	// size of buffer in bytes
 
 	bool escape;	// escape unprintable characters in output?
-	list<string> escape_sequences; // additional sequences of chars to escape
+	typedef set<string> escape_set;
+	escape_set escape_sequences; // additional sequences of chars to escape
 
 	BroFile* f;	// or the file we're using.
 

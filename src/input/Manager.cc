@@ -5,11 +5,7 @@
 #include "Manager.h"
 #include "ReaderFrontend.h"
 #include "ReaderBackend.h"
-#include "readers/Ascii.h"
-#include "readers/Raw.h"
-#include "readers/Benchmark.h"
-#include "readers/Binary.h"
-#include "readers/SQLite.h"
+#include "input.bif.h"
 
 #include "Event.h"
 #include "EventHandler.h"
@@ -23,24 +19,6 @@
 using namespace input;
 using threading::Value;
 using threading::Field;
-
-struct ReaderDefinition {
-	bro_int_t type;		// The reader type.
-	const char *name;	// Descriptive name for error messages.
-	bool (*init)();		// Optional one-time initializing function.
-	ReaderBackend* (*factory)(ReaderFrontend* frontend);	// Factory function for creating instances.
-};
-
-ReaderDefinition input_readers[] = {
-	{ BifEnum::Input::READER_ASCII, "Ascii", 0, reader::Ascii::Instantiate },
-	{ BifEnum::Input::READER_RAW, "Raw", 0, reader::Raw::Instantiate },
-	{ BifEnum::Input::READER_BENCHMARK, "Benchmark", 0, reader::Benchmark::Instantiate },
-	{ BifEnum::Input::READER_BINARY, "Binary", 0, reader::Binary::Instantiate },
-	{ BifEnum::Input::READER_SQLITE, "SQLite", 0, reader::SQLite::Instantiate },
-
-	// End marker
-	{ BifEnum::Input::READER_DEFAULT, "None", 0, (ReaderBackend* (*)(ReaderFrontend* frontend))0 }
-};
 
 static void delete_value_ptr_array(Value** vals, int num_fields)
 	{
@@ -215,6 +193,7 @@ Manager::AnalysisStream::~AnalysisStream()
 	}
 
 Manager::Manager()
+	: plugin::ComponentManager<input::Tag, input::Component>("Input", "Reader")
 	{
 	end_of_data = internal_handler("Input::end_of_data");
 	}
@@ -229,55 +208,17 @@ Manager::~Manager()
 
 	}
 
-ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type)
+ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, EnumVal* tag)
 	{
-	ReaderDefinition* ir = input_readers;
+	Component* c = Lookup(tag);
 
-	while ( true )
+	if ( ! c )
 		{
-		if ( ir->type == BifEnum::Input::READER_DEFAULT )
-			{
-			reporter->Error("The reader that was requested was not found and could not be initialized.");
-			return 0;
-			}
-
-		if ( ir->type != type )
-			{
-			// no, didn't find the right one...
-			++ir;
-			continue;
-			}
-
-
-		// call init function of writer if presnt
-		if ( ir->init )
-			{
-			if ( (*ir->init)() )
-				{
-				//clear it to be not called again
-				ir->init = 0;
-				}
-
-			else	{
-					// ohok. init failed, kill factory for all eternity
-					ir->factory = 0;
-					DBG_LOG(DBG_LOGGING, "Failed to init input class %s", ir->name);
-					return 0;
-				}
-
-			}
-
-		if ( ! ir->factory )
-			// no factory?
-			return 0;
-
-		// all done. break.
-		break;
+		reporter->Error("The reader that was requested was not found and could not be initialized.");
+		return 0;
 		}
 
-	assert(ir->factory);
-
-	ReaderBackend* backend = (*ir->factory)(frontend);
+	ReaderBackend* backend = (*c->Factory())(frontend);
 	assert(backend);
 
 	return backend;
@@ -286,8 +227,6 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type)
 // Create a new input reader object to be used at whomevers leisure lateron.
 bool Manager::CreateStream(Stream* info, RecordVal* description)
 	{
-	ReaderDefinition* ir = input_readers;
-
 	RecordType* rtype = description->Type()->AsRecordType();
 	if ( ! ( same_type(rtype, BifType::Record::Input::TableDescription, 0)
 		|| same_type(rtype, BifType::Record::Input::EventDescription, 0)
@@ -397,7 +336,9 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	string stream_name = name_val->AsString()->CheckString();
 	Unref(name_val);
 
-	RecordType *fields = fval->Lookup("fields", true)->AsType()->AsTypeType()->Type()->AsRecordType();
+	Val* fields_val = fval->Lookup("fields", true);
+	RecordType *fields = fields_val->AsType()->AsTypeType()->Type()->AsRecordType();
+	Unref(fields_val);
 
 	Val *want_record = fval->Lookup("want_record", true);
 
@@ -548,13 +489,17 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	Val* pred = fval->Lookup("pred", true);
 
-	RecordType *idx = fval->Lookup("idx", true)->AsType()->AsTypeType()->Type()->AsRecordType();
+	Val* idx_val = fval->Lookup("idx", true);
+	RecordType *idx = idx_val->AsType()->AsTypeType()->Type()->AsRecordType();
+	Unref(idx_val);
+
 	RecordType *val = 0;
 
-	if ( fval->Lookup("val", true) != 0 )
+	Val* val_val = fval->Lookup("val", true);
+	if ( val_val )
 		{
-		val = fval->Lookup("val", true)->AsType()->AsTypeType()->Type()->AsRecordType();
-		Unref(val); // The lookupwithdefault in the if-clause ref'ed val.
+		val = val_val->AsType()->AsTypeType()->Type()->AsRecordType();
+		Unref(val_val);
 		}
 
 	TableVal *dst = fval->Lookup("destination", true)->AsTableVal();
@@ -729,7 +674,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->pred = pred ? pred->AsFunc() : 0;
 	stream->num_idx_fields = idxfields;
 	stream->num_val_fields = valfields;
-	stream->tab = dst->AsTableVal();
+	stream->tab = dst->AsTableVal(); // ref'd by lookupwithdefault
 	stream->rtype = val ? val->AsRecordType() : 0;
 	stream->itype = idx->AsRecordType();
 	stream->event = event ? event_registry->Lookup(event->Name()) : 0;

@@ -48,7 +48,7 @@ void FlowSrc::Process()
 
 	// This is normally done by calling net_packet_dispatch(),
 	// but as we don't have a packet to dispatch ...
-    net_update_time(next_timestamp);
+	net_update_time(next_timestamp);
 	expire_timers();
 
 	netflow_analyzer->downflow()->set_exporter_ip(exporter_ip);

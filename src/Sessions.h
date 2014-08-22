@@ -28,7 +28,6 @@ declare(PDict,FragReassembler);
 
 class Discarder;
 class PacketFilter;
-class PacketSortElement;
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
@@ -74,7 +73,7 @@ public:
 	// employing the packet sorter first.
 	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
-			iosource::PktSrc* src_ps, PacketSortElement* pkt_elem);
+			iosource::PktSrc* src_ps);
 
 	void Done();	// call to drain events before destructing
 
@@ -220,8 +219,7 @@ protected:
 				uint8 tcp_flags, bool& flip_roles);
 
 	void NextPacket(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size,
-			PacketSortElement* pkt_elem);
+			const u_char* const pkt, int hdr_size);
 
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,

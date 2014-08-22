@@ -265,7 +265,7 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 	plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )
@@ -293,7 +293,7 @@ void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Files");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 	plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )

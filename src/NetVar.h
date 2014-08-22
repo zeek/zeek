@@ -23,6 +23,8 @@ extern TableType* string_set;
 extern TableType* string_array;
 extern TableType* count_set;
 extern VectorType* string_vec;
+extern VectorType* mime_matches;
+extern RecordType* mime_match;
 
 extern int watchdog_interval;
 
@@ -49,8 +51,6 @@ extern double tcp_reset_delay;
 extern int tcp_max_initial_window;
 extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
-
-extern RecordType* x509_type;
 
 extern RecordType* socks_address;
 
@@ -158,8 +158,6 @@ extern int table_incremental_step;
 
 extern RecordType* packet_type;
 
-extern double packet_sort_window;
-
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
 extern TableVal* preserve_orig_addr;
@@ -257,8 +255,6 @@ extern void init_net_var();
 #include "const.bif.netvar_h"
 #include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
-#include "logging.bif.netvar_h"
-#include "input.bif.netvar_h"
 #include "reporter.bif.netvar_h"
 
 #endif

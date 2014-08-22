@@ -27,13 +27,16 @@ class ComponentManager {
 public:
 
 	/**
-	 * Constructor creates a new enum type called a "Tag" to associate with
+	 * Constructor creates a new enum type to associate with
 	 * a component.
 	 *
-	 * @param module The script-layer module in which to install the "Tag" ID
+	 * @param module The script-layer module in which to install the ID
 	 * representing an enum type.
+	 *
+	 * @param local_id The local part of the ID of the new enum type
+	 * (e.g., "Tag").
 	 */
-	ComponentManager(const string& module);
+	ComponentManager(const string& module, const string& local_id);
 
 	/**
 	 * @return The script-layer module in which the component's "Tag" ID lives.
@@ -117,7 +120,6 @@ public:
 	C* Lookup(EnumVal* val) const;
 
 private:
-
 	string module; /**< Script layer module in which component tags live. */
 	EnumType* tag_enum_type; /**< Enum type of component tags. */
 	map<string, C*> components_by_name;
@@ -126,11 +128,11 @@ private:
 };
 
 template <class T, class C>
-ComponentManager<T, C>::ComponentManager(const string& arg_module)
+ComponentManager<T, C>::ComponentManager(const string& arg_module, const string& local_id)
 	: module(arg_module)
 	{
-	tag_enum_type = new EnumType();
-	::ID* id = install_ID("Tag", module.c_str(), true, true);
+	tag_enum_type = new EnumType(module + "::" + local_id);
+	::ID* id = install_ID(local_id.c_str(), module.c_str(), true, true);
 	add_type(id, tag_enum_type, 0);
 	broxygen_mgr->Identifier(id);
 	}
@@ -162,7 +164,7 @@ EnumType* ComponentManager<T, C>::GetTagEnumType() const
 template <class T, class C>
 const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	{
-	static const std::string& error = "<error>";
+	static const std::string error = "<error>";
 
 	if ( ! tag )
 		return error;

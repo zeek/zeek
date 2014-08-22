@@ -5,6 +5,7 @@
 
 #include <utility>
 #include <cstdlib>
+#include <wordexp.h>
 
 using namespace broxygen;
 using namespace std;
@@ -13,6 +14,16 @@ static void DbgAndWarn(const char* msg)
 	{
 	reporter->InternalWarning("%s", msg);
 	DBG_LOG(DBG_BROXYGEN, "%s", msg);
+	}
+
+static void WarnMissingScript(const char* type, const ID* id,
+                              string script)
+	{
+	if ( script == "<command line>" )
+		return;
+
+	DbgAndWarn(fmt("Can't document %s %s, lookup of %s failed",
+	               type, id->Name(), script.c_str()));
 	}
 
 static string RemoveLeadingSpace(const string& s)
@@ -40,7 +51,18 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 
 	const char* env_path = getenv("PATH");
 	string path = env_path ? string(env_path) + ":." : ".";
-	string path_to_bro = find_file(bro_command, path);
+	wordexp_t expanded_path;
+	wordexp(path.c_str(), &expanded_path, WRDE_NOCMD);
+	string path_to_bro;
+
+	if ( expanded_path.we_wordc == 1 )
+		path_to_bro = find_file(bro_command, expanded_path.we_wordv[0]);
+	else
+		{
+		reporter->InternalWarning("odd expansion of path: %s\n", path.c_str());
+		path_to_bro = find_file(bro_command, path);
+		}
+
 	struct stat s;
 
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
@@ -208,8 +230,7 @@ void Manager::StartType(ID* id)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Can't document identifier %s, lookup of %s failed",
-		               id->Name(), script.c_str()));
+		WarnMissingScript("identifier", id, script);
 		return;
 		}
 
@@ -273,8 +294,7 @@ void Manager::Identifier(ID* id)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Can't document identifier %s, lookup of %s failed",
-		               id->Name(), script.c_str()));
+		WarnMissingScript("identifier", id, script);
 		return;
 		}
 
@@ -328,8 +348,7 @@ void Manager::Redef(const ID* id, const string& path)
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(fmt("Can't document redef of %s, lookup of %s failed",
-		               id->Name(), from_script.c_str()));
+		WarnMissingScript("redef", id, from_script);
 		return;
 		}
 

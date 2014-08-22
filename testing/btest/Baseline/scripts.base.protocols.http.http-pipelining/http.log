@@ -3,12 +3,12 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2013-08-26-18-40-16
+#open	2014-04-01-23-16-13
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	orig_fuids	orig_mime_types	resp_fuids	resp_mime_types
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	vector[string]	vector[string]	vector[string]	vector[string]
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1258577884.844956	CXWv6p3arKYeMETxOg	192.168.1.104	1673	63.245.209.11	80	1	GET	www.mozilla.org	/style/enhanced.css	http://www.mozilla.org/projects/calendar/	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	0	2675	200	OK	-	-	-	(empty)	-	-	-	-	-	Fa7DPI2ItmEOoVqyYj	text/plain
 1258577884.960135	CXWv6p3arKYeMETxOg	192.168.1.104	1673	63.245.209.11	80	2	GET	www.mozilla.org	/script/urchin.js	http://www.mozilla.org/projects/calendar/	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	0	21421	200	OK	-	-	-	(empty)	-	-	-	-	-	FnBh5P1KP0SnMzl3Qj	text/plain
 1258577885.317160	CXWv6p3arKYeMETxOg	192.168.1.104	1673	63.245.209.11	80	3	GET	www.mozilla.org	/images/template/screen/bullet_utility.png	http://www.mozilla.org/style/screen.css	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	0	94	200	OK	-	-	-	(empty)	-	-	-	-	-	F2TV5w2Kwn3G7doSk5	image/gif
 1258577885.349639	CXWv6p3arKYeMETxOg	192.168.1.104	1673	63.245.209.11	80	4	GET	www.mozilla.org	/images/template/screen/key-point-top.png	http://www.mozilla.org/style/screen.css	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	0	2349	200	OK	-	-	-	(empty)	-	-	-	-	-	F4kk4T3Unyqtkczzue	image/png
 1258577885.394612	CXWv6p3arKYeMETxOg	192.168.1.104	1673	63.245.209.11	80	5	GET	www.mozilla.org	/projects/calendar/images/header-sunbird.png	http://www.mozilla.org/projects/calendar/calendar.css	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	0	27579	200	OK	-	-	-	(empty)	-	-	-	-	-	FcB26G4nL7jRheOyA8	image/png
-#close	2013-08-26-18-40-16
+#close	2014-04-01-23-16-13

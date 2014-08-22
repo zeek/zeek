@@ -319,7 +319,7 @@ when	return TOK_WHEN;
 
 @load-plugin{WS}{ID} {
 	const char* plugin = skip_whitespace(yytext + 12);
-    plugin_mgr->ActivateDynamicPlugin(plugin);
+	plugin_mgr->ActivateDynamicPlugin(plugin);
 }
 
 @unload{WS}{FILE}	{
@@ -631,22 +631,30 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	if ( ! lookup_ID(id, current_module.c_str()) )
+	ID* i;
+
+	if ( ! (i = lookup_ID(id, current_module.c_str())) )
 		{
 		if_stack.append(current_depth);
 		BEGIN(IGNORE);
 		}
+
+	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	if ( lookup_ID(id, current_module.c_str()) )
+	ID* i;
+
+	if ( (i = lookup_ID(id, current_module.c_str())) )
 		{
 		if_stack.append(current_depth);
 		BEGIN(IGNORE);
 		}
+
+	Unref(i);
 	}
 
 void do_atelse()
@@ -707,7 +715,7 @@ void add_input_file_at_front(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-        	input_files.insert(copy_string(file));
+		input_files.insert(copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)

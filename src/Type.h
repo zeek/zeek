@@ -6,6 +6,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <list>
 
 #include "Obj.h"
 #include "Attr.h"
@@ -73,6 +74,7 @@ class EnumType;
 class Serializer;
 class VectorType;
 class TypeType;
+class OpaqueType;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -202,6 +204,18 @@ public:
 	        {
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
+		}
+
+	OpaqueType* AsOpaqueType()
+		{
+		CHECK_TYPE_TAG(TYPE_OPAQUE, "BroType::AsOpaqueType");
+		return (OpaqueType*) this;
+		}
+
+	const OpaqueType* AsOpaqueType() const
+		{
+		CHECK_TYPE_TAG(TYPE_OPAQUE, "BroType::AsOpaqueType");
+		return (OpaqueType*) this;
 		}
 
 	VectorType* AsVectorType()
@@ -533,7 +547,8 @@ class EnumType : public BroType {
 public:
 	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
 
-	EnumType() : BroType(TYPE_ENUM) { counter = 0; }
+	EnumType(EnumType* e);
+	EnumType(const string& arg_name);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -556,6 +571,8 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
+	EnumType() { counter = 0; }
+
 	DECLARE_SERIAL(EnumType)
 
 	void AddNameInternal(const string& module_name,
@@ -580,8 +597,8 @@ class VectorType : public BroType {
 public:
 	VectorType(BroType* t);
 	virtual ~VectorType();
-	BroType* YieldType()	{ return yield_type; }
-	const BroType* YieldType() const	{ return yield_type; }
+	BroType* YieldType();
+	const BroType* YieldType() const;
 
 	int MatchesIndex(ListExpr*& index) const;
 
@@ -590,6 +607,7 @@ public:
 	bool IsUnspecifiedVector() const;
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	VectorType()	{ yield_type = 0; }
@@ -606,16 +624,24 @@ extern OpaqueType* entropy_type;
 extern OpaqueType* cardinality_type;
 extern OpaqueType* topk_type;
 extern OpaqueType* bloomfilter_type;
+extern OpaqueType* x509_opaque_type;
+
+// Returns the Bro basic (non-parameterized) type with the given type.
+// The reference count of the type is not increased.
+BroType* base_type_no_ref(TypeTag tag);
 
 // Returns the BRO basic (non-parameterized) type with the given type.
-extern BroType* base_type(TypeTag tag);
+// The caller assumes responsibility for a reference to the type.
+inline BroType* base_type(TypeTag tag)
+	{ return base_type_no_ref(tag)->Ref(); }
 
 // Returns the BRO basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 
-// True if the two types are equivalent.  If is_init is true then the
-// test is done in the context of an initialization.
-extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+// True if the two types are equivalent.  If is_init is true then the test is
+// done in the context of an initialization. If match_record_field_names is
+// true then for record types the field names have to match, too.
+extern int same_type(const BroType* t1, const BroType* t2, int is_init=0, bool match_record_field_names=true);
 
 // True if the two attribute lists are equivalent.
 extern int same_attrs(const Attributes* a1, const Attributes* a2);

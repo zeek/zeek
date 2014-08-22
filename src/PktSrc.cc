@@ -229,12 +229,21 @@ void PktSrc::Process()
 			{
 			// MPLS carried over the ethernet frame.
 			case 0x8847:
+				// Remove the data link layer and denote a
+				// header size of zero before the IP header.
 				have_mpls = true;
+				data += get_link_header_size(datalink);
+				pkt_hdr_size = 0;
 				break;
 
 			// VLAN carried over the ethernet frame.
 			case 0x8100:
 				data += get_link_header_size(datalink);
+
+				// Check for MPLS in VLAN.
+				if ( ((data[2] << 8) + data[3]) == 0x8847 )
+					have_mpls = true;
+
 				data += 4; // Skip the vlan header
 				pkt_hdr_size = 0;
 
@@ -274,8 +283,13 @@ void PktSrc::Process()
 		protocol = (data[2] << 8) + data[3];
 
 		if ( protocol == 0x0281 )
-			// MPLS Unicast
+			{
+			// MPLS Unicast. Remove the data link layer and
+			// denote a header size of zero before the IP header.
 			have_mpls = true;
+			data += get_link_header_size(datalink);
+			pkt_hdr_size = 0;
+			}
 
 		else if ( protocol != 0x0021 && protocol != 0x0057 )
 			{
@@ -290,12 +304,6 @@ void PktSrc::Process()
 
 	if ( have_mpls )
 		{
-		// Remove the data link layer
-		data += get_link_header_size(datalink);
-
-		// Denote a header size of zero before the IP header
-		pkt_hdr_size = 0;
-
 		// Skip the MPLS label stack.
 		bool end_of_stack = false;
 
@@ -309,13 +317,13 @@ void PktSrc::Process()
 	if ( pseudo_realtime )
 		{
 		current_pseudo = CheckPseudoTime();
-		net_packet_arrival(current_pseudo, &hdr, data, pkt_hdr_size, this);
+		net_packet_dispatch(current_pseudo, &hdr, data, pkt_hdr_size, this);
 		if ( ! first_wallclock )
 			first_wallclock = current_time(true);
 		}
 
 	else
-		net_packet_arrival(current_timestamp, &hdr, data, pkt_hdr_size, this);
+		net_packet_dispatch(current_timestamp, &hdr, data, pkt_hdr_size, this);
 
 	data = 0;
 	}

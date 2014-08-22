@@ -36,6 +36,31 @@ private:
 	const char* msg;
 };
 
+class RuleActionMIME : public RuleAction {
+public:
+	RuleActionMIME(const char* arg_mime, int arg_strength = 0)
+		{ mime = copy_string(arg_mime); strength = arg_strength; }
+
+	virtual ~RuleActionMIME()
+		{ delete [] mime; }
+
+	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
+	                      const u_char* data, int len)
+		{ }
+
+	virtual void PrintDebug();
+
+	string GetMIME() const
+		{ return mime; }
+
+	int GetStrength() const
+		{ return strength; }
+
+private:
+	const char* mime;
+	int strength;
+};
+
 // Base class for enable/disable actions.
 class RuleActionAnalyzer : public RuleAction {
 public:

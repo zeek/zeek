@@ -10,7 +10,7 @@ common/general documentation, style sheets, JavaScript, etc.  The Sphinx
 config file is produced from ``conf.py.in``, and can be edited to change
 various Sphinx options.
 
-There is also a custom Sphinx domain implemented in ``source/ext/bro.py``
+There is also a custom Sphinx domain implemented in ``ext/bro.py``
 which adds some reST directives and roles that aid in generating useful
 index entries and cross-references.  Other extensions can be added in
 a similar fashion.
@@ -19,7 +19,8 @@ The ``make doc`` target in the top-level Makefile can be used to locally
 render the reST files into HTML.  That target depends on:
 
 * Python interpreter >= 2.5
-* `Sphinx <http://sphinx.pocoo.org/>`_ >= 1.0.1
+* `Sphinx <http://sphinx-doc.org/>`_ >= 1.0.1
+* Doxygen (required only for building the Broccoli API doc)
 
 After completion, HTML documentation is symlinked in ``build/html``.
 

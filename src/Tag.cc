@@ -55,6 +55,7 @@ Tag& Tag::operator=(const Tag& other)
 		{
 		type = other.type;
 		subtype = other.subtype;
+		Unref(val);
 		val = other.val;
 
 		if ( val )

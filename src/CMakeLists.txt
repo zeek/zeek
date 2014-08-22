@@ -279,7 +279,6 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
-    FlowSrc.cc
     Frag.cc
     Frame.cc
     Func.cc

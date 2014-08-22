@@ -449,8 +449,6 @@ int main(int argc, char** argv)
 
 	name_list interfaces;
 	name_list read_files;
-	name_list netflows;
-	name_list flow_files;
 	name_list rule_files;
 	char* bst_file = 0;
 	char* id_name = 0;
@@ -552,7 +550,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -610,10 +608,6 @@ int main(int argc, char** argv)
 
 		case 'w':
 			writefile = optarg;
-			break;
-
-		case 'y':
-			flow_files.append(optarg);
 			break;
 
 		case 'z':
@@ -709,10 +703,6 @@ int main(int argc, char** argv)
 			do_watchdog = 1;
 			break;
 
-		case 'Y':
-			netflows.append(optarg);
-			break;
-
 		case 'h':
 			usage();
 			break;
@@ -800,8 +790,7 @@ int main(int argc, char** argv)
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
 
-	if ( (interfaces.length() > 0 || netflows.length() > 0) &&
-	     (read_files.length() > 0 || flow_files.length() > 0 ))
+	if ( interfaces.length() > 0 && read_files.length() > 0 )
 		usage();
 
 #ifdef USE_IDMEF
@@ -824,7 +813,7 @@ int main(int argc, char** argv)
 	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
 	if ( optind == argc &&
-	     read_files.length() == 0 && flow_files.length() == 0 &&
+	     read_files.length() == 0 &&
 	     interfaces.length() == 0 &&
 	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
@@ -983,8 +972,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	if ( (flow_files.length() == 0 || read_files.length() == 0) &&
-	     (netflows.length() == 0 || interfaces.length() == 0) )
+	if ( read_files.length() == 0 && interfaces.length() == 0 )
 		{
 		Val* interfaces_val = internal_val("interfaces");
 		if ( interfaces_val )
@@ -1002,8 +990,7 @@ int main(int argc, char** argv)
 	snaplen = internal_val("snaplen")->AsCount();
 
 	if ( dns_type != DNS_PRIME )
-		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, "", do_watchdog);
+		net_init(interfaces, read_files, writefile, "", do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 

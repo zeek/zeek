@@ -6,7 +6,6 @@
 #include "net_util.h"
 #include "util.h"
 #include "List.h"
-#include "FlowSrc.h"
 #include "Func.h"
 #include "RemoteSerializer.h"
 #include "iosource/IOSource.h"
@@ -14,7 +13,6 @@
 #include "iosource/pktsrc/PktDumper.h"
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
-		name_list& netflows, name_list& flowfiles,
 		const char* writefile, const char* filter,
 		int do_watchdog);
 extern void net_run();

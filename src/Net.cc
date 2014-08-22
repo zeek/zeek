@@ -154,7 +154,6 @@ void net_update_time(double new_network_time)
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,
-	      name_list& netflows, name_list& flowfiles,
 	      const char* writefile, const char* filter,
 	      int do_watchdog)
 	{

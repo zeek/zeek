@@ -17,6 +17,7 @@ PktSrc::PktSrc()
 	{
 	have_packet = false;
 	errbuf = "";
+	SetClosed(true);
 
 	next_sync_point = 0;
 	first_timestamp = 0.0;
@@ -195,7 +196,8 @@ void PktSrc::Init()
 
 void PktSrc::Done()
 	{
-	Close();
+	if ( IsOpen() )
+		Close();
 	}
 
 void PktSrc::GetFds(int* read, int* write, int* except)
@@ -433,8 +435,13 @@ int PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 
 	if ( ! code->Compile(SnapLen(), LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
-		Error(fmt("cannot compile BPF filter \"%s\": %s", filter.c_str(), errbuf));
-		Close();
+		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
+
+		if ( *errbuf )
+			msg += ": " + string(errbuf);
+
+		Error(msg);
+
 		delete code;
 		return 0;
 		}

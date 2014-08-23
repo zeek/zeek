@@ -30,7 +30,8 @@ public:
 	// similarly to pcap_compile_nopcap(). Parameters are
 	// similar. Returns true on success.
 	bool Compile(int snaplen, int linktype, const char* filter,
-		uint32 netmask, char* errbuf = 0, bool optimize = true);
+		uint32 netmask, char* errbuf = 0, unsigned int errbuf_len = 0,
+		bool optimize = true);
 
 	// Returns true if this program currently contains compiled
 	// code, false otherwise.

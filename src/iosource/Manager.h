@@ -64,7 +64,10 @@ protected:
 	typedef std::list<Source*> SourceList;
 	SourceList sources;
 
+	typedef std::list<PktDumper *> PktDumperList;
+
 	PktSrcList pkt_srcs;
+	PktDumperList pkt_dumpers;
 };
 
 }

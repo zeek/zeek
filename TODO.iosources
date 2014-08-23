@@ -1,3 +1,4 @@
-- Wrap BPF_Program into namespace and clean up
-- Add an interface for derived pkt source to run a BPF filter.
-- Tests, in particular the packet dumping needs testing.
+- Tests
+    - pktsrc plugin
+    - pktdump plugin
+

@@ -22,11 +22,19 @@ Manager::~Manager()
 	{
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		{
-		(*i)->src->Done();
+		// ??? (*i)->src->Done();
 		delete *i;
 		}
 
 	sources.clear();
+
+	for ( PktDumperList::iterator i = pkt_dumpers.begin(); i != pkt_dumpers.end(); ++i )
+		{
+		(*i)->Done();
+		delete *i;
+		}
+
+	pkt_dumpers.clear();
 	}
 
 void Manager::RemoveAll()
@@ -43,6 +51,7 @@ IOSource* Manager::FindSoonest(double* ts)
 	      i != sources.end(); ++i )
 		if ( ! (*i)->src->IsOpen() )
 			{
+			(*i)->src->Done();
 			delete *i;
 			sources.erase(i);
 			break;
@@ -246,15 +255,11 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, 
 	// Instantiate packet source.
 
 	PktSrc* ps = (*component->Factory())(npath, filter, is_live);
+	assert(ps);
 
-	if ( ! (ps && ps->IsOpen()) )
-	     {
-	     string type = (is_live ? "interface" : "trace file");
-	     string pserr = ps->ErrorMsg() ? (string(" - ") + ps->ErrorMsg()) : "";
-
-	     reporter->FatalError("%s: problem with %s %s%s",
-				  prog, npath.c_str(), type.c_str(), pserr.c_str());
-	     }
+	if ( ! ps->IsOpen() && ps->ErrorMsg() )
+		// Set an error message if it didn't open successfully.
+		ps->Error("could not open");
 
 	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
 
@@ -291,16 +296,16 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	// Instantiate packet dumper.
 
 	PktDumper* pd = (*component->Factory())(npath, append);
+	assert(pd);
 
-	if ( ! (pd && pd->IsOpen()) )
-		{
-		string pderr = pd->ErrorMsg().size() ? (string(" - ") + pd->ErrorMsg()) : "";
-
-		reporter->FatalError("%s: can't open write file \"%s\"%s",
-				     prog, npath.c_str(), pderr.c_str());
-		}
+	if ( ! pd->IsOpen() && pd->ErrorMsg() )
+		// Set an error message if it didn't open successfully.
+		pd->Error("could not open");
 
 	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(), npath.c_str());
+
+	pd->Init();
+	pkt_dumpers.push_back(pd);
 
 	return pd;
 	}

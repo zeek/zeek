@@ -6,7 +6,7 @@
 #include "../PktSrc.h"
 
 namespace iosource {
-namespace pktsrc {
+namespace pcap {
 
 class PcapSource : public iosource::PktSrc {
 public:

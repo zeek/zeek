@@ -20,6 +20,16 @@ PktDumper::~PktDumper()
 	{
 	}
 
+void PktDumper::Init()
+	{
+	Open();
+	}
+
+void PktDumper::Done()
+	{
+	Close();
+	}
+
 const std::string& PktDumper::Path() const
 	{
 	return props.path;
@@ -40,9 +50,9 @@ bool PktDumper::IsError() const
 	return errmsg.size();
 	}
 
-const std::string& PktDumper::ErrorMsg() const
+const char* PktDumper::ErrorMsg() const
 	{
-	return errmsg;
+	return errmsg.size() ? errmsg.c_str() : 0;
 	}
 
 int PktDumper::HdrSize() const
@@ -60,8 +70,8 @@ void PktDumper::Opened(const Properties& arg_props)
 void PktDumper::Closed()
 	{
 	is_open = false;
-	props.path = "";
 	DBG_LOG(DBG_PKTIO, "Closed dumper %s", props.path.c_str());
+	props.path = "";
 	}
 
 void PktDumper::Error(const std::string& msg)

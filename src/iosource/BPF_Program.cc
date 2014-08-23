@@ -91,7 +91,8 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 	}
 
 bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
-				uint32 netmask, char* errbuf, bool optimize)
+			  uint32 netmask, char* errbuf, unsigned int errbuf_len,
+			  bool optimize)
 	{
 	FreeCode();
 
@@ -99,13 +100,18 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
 	char my_error[PCAP_ERRBUF_SIZE];
 
 	int err = pcap_compile_nopcap(snaplen, linktype, &m_program,
-				     (char *) filter, optimize, netmask, error);
+				     (char *) filter, optimize, netmask, my_error);
 	if ( err < 0 && errbuf )
-		safe_strncpy(errbuf, my_errbuf, PCAP_ERRBUF_SIZE);
+		safe_strncpy(errbuf, my_error, errbuf_len);
+		*errbuf = '\0';
 #else
 	int err = pcap_compile_nopcap(snaplen, linktype, &m_program,
 				     (char*) filter, optimize, netmask);
+
+	if ( err < 0 && errbuf && errbuf_len )
+		*errbuf = '\0';
 #endif
+
 	if ( err == 0 )
 		m_compiled = true;
 

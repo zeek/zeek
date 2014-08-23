@@ -83,6 +83,8 @@ public:
 	static int GetLinkHeaderSize(int link_type);
 
 protected:
+	friend class Manager;
+
 	// Methods to use by derived classes.
 
 	struct Properties {

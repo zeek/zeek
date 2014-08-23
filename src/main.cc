@@ -390,6 +390,7 @@ void terminate_bro()
 	delete plugin_mgr;
 	delete thread_mgr;
 	delete reporter;
+	delete iosource_mgr;
 
 	reporter = 0;
 	}

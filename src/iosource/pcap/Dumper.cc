@@ -5,9 +5,9 @@
 
 #include "Dumper.h"
 #include "../PktSrc.h"
-#include "../../../Net.h"
+#include "../../Net.h"
 
-using namespace iosource::pktsrc;
+using namespace iosource::pcap;
 
 PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	{

@@ -21,16 +21,18 @@ public:
 	bool IsOpen() const;
 	double OpenTime() const;
 	bool IsError() const;
-	const std::string& ErrorMsg() const;
+	const char* ErrorMsg() const;
 	int HdrSize() const;
 	bool Record(const Packet* pkt);
 
-	// PktSrc interface for derived classes to implement.
+	// PktDumper interface for derived classes to implement.
 	virtual void Close() = 0;
 	virtual void Open() = 0;
 	virtual bool Dump(const Packet* pkt) = 0;
 
 protected:
+	friend class Manager;
+
 	// Methods to use by derived classed.
 	//
 	struct Properties {
@@ -38,6 +40,9 @@ protected:
 		int hdr_size;
 		double open_time;
 	};
+
+	void Init();
+	void Done();
 
 	void Opened(const Properties& props);
 	void Closed();

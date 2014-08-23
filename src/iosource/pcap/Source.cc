@@ -9,7 +9,7 @@
 #include <pcap-int.h>
 #endif
 
-using namespace iosource::pktsrc;
+using namespace iosource::pcap;
 
 PcapSource::~PcapSource()
 	{
@@ -182,7 +182,7 @@ void PcapSource::DoneWithPacket(Packet* pkt)
 
 int PcapSource::PrecompileFilter(int index, const std::string& filter)
 	{
-	return PktSrc::PrecompileBPFFilter(index, filter).
+	return PktSrc::PrecompileBPFFilter(index, filter);
 	}
 
 int PcapSource::SetFilter(int index)
@@ -192,7 +192,7 @@ int PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	BPF_Program* code = GetFilter(index);
+	BPF_Program* code = GetBPFFilter(index);
 
 	if ( ! code )
 		{

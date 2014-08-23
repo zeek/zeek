@@ -14,7 +14,7 @@ namespace iosource {
  */
 class IOSource {
 public:
-	IOSource()	{ idle = closed = false; }
+	IOSource()	{ idle = false; closed = false; }
 	virtual ~IOSource()	{}
 
 	// Returns true if source has nothing ready to process.
@@ -57,7 +57,6 @@ protected:
 	// Derived classed are to set this to true if they have gone dry
 	// temporarily.
 	void SetIdle(bool is_idle)	{ idle = is_idle; }
-		
 
 	// Derived classed are to set this to true if they have gone dry
 	// temporarily.

@@ -116,8 +116,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					pkt_dumper = iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
 					if ( ! pkt_dumper || pkt_dumper->IsError() )
 						{
-						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
-						delete pkt_dumper;
+						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
 						pkt_dumper = 0;
 						}
 					}
@@ -167,9 +166,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], filter, false);
 			assert(ps);
 
-			if ( ps->ErrorMsg() )
-				reporter->FatalError("%s: problem with trace file %s - %s\n",
-						     prog, readfiles[i],
+			if ( ! ps->IsOpen() )
+				reporter->FatalError("problem with trace file %s (%s)",
+						     readfiles[i],
 						     ps->ErrorMsg());
 			}
 		}
@@ -184,9 +183,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], filter, true);
 			assert(ps);
 
-			if ( ps->ErrorMsg() )
-				reporter->FatalError("%s: problem with interface %s - %s\n",
-						     prog, interfaces[i],
+			if ( ! ps->IsOpen() )
+				reporter->FatalError("problem with interface %s (%s)",
+						     interfaces[i],
 						     ps->ErrorMsg());
 			}
 		}
@@ -203,9 +202,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
 
-		if ( pkt_dumper->ErrorMsg().size() )
-			reporter->FatalError("problem opening dump file %s - %s\n",
-					     writefile, pkt_dumper->ErrorMsg().c_str());
+		if ( ! pkt_dumper->IsOpen() )
+			reporter->FatalError("problem opening dump file %s (%s)",
+					     writefile, pkt_dumper->ErrorMsg());
 
 		ID* id = global_scope()->Lookup("trace_output_file");
 		if ( ! id )
@@ -409,7 +408,7 @@ void net_get_final_stats()
 			{
 			iosource::PktSrc::Stats s;
 			ps->Statistics(&s);
-			reporter->Info("%d packets received on interface %s, %d dropped\n",
+			reporter->Info("%d packets received on interface %s, %d dropped",
 					s.received, ps->Path().c_str(), s.dropped);
 			}
 		}
@@ -429,8 +428,6 @@ void net_finish(int drain_events)
 		if ( sessions )
 			sessions->Done();
 		}
-
-	delete pkt_dumper;
 
 #ifdef DEBUG
 	extern int reassem_seen_bytes, reassem_copied_bytes;

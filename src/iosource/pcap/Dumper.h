@@ -9,7 +9,7 @@ extern "C" {
 #include "../PktDumper.h"
 
 namespace iosource {
-namespace pktsrc {
+namespace pcap {
 
 class PcapDumper : public PktDumper {
 public:

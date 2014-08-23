@@ -7,6 +7,7 @@ include_directories(BEFORE
 )
 
 set(iosource_SRCS
+    BPF_Program.cc
     Component.cc
     Manager.cc
     PktDumper.cc

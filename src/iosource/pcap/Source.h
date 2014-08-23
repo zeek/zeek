@@ -4,10 +4,6 @@
 #define IOSOURCE_PKTSRC_PCAP_SOURCE_H
 
 #include "../PktSrc.h"
-#include "BPF_Program.h"
-#include "Dict.h"
-
-declare(PDict,BPF_Program);
 
 namespace iosource {
 namespace pktsrc {
@@ -42,8 +38,6 @@ private:
 	Stats stats;
 
 	pcap_t *pd;
-	uint32 netmask;
-	PDict(BPF_Program) filters;
 
 	struct pcap_pkthdr current_hdr;
 	struct pcap_pkthdr last_hdr;

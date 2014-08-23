@@ -8,6 +8,10 @@ extern "C" {
 }
 
 #include "IOSource.h"
+#include "BPF_Program.h"
+#include "Dict.h"
+
+declare(PDict,BPF_Program);
 
 namespace iosource {
 
@@ -29,6 +33,7 @@ public:
 	const std::string& Filter() const;
 	bool IsLive() const;
 	int LinkType() const;
+	uint32 Netmask() const;
 	const char* ErrorMsg() const;
 	int HdrSize() const;
 	int SnapLen() const;
@@ -41,7 +46,22 @@ public:
 	// going to be continued.
 	void ContinueAfterSuspend();
 
-	virtual void Statistics(Stats* stats) = 0;
+	// Precompiles a BPF filter and associates the given index with it.
+	// Returns true on success, 0 if a problem occurred. The compiled
+	// filter will be then available via GetBPFFilter*(.
+	int PrecompileBPFFilter(int index, const std::string& filter);
+
+	// Returns the BPF filter with the given index, as compiled by
+	// PrecompileBPFFilter(), or null if none has been (successfully)
+	// compiled.
+	BPF_Program* GetBPFFilter(int index);
+
+	// Applies a precompiled BPF filter to a packet, returning true if it
+	// maches. This will close the source with an error message if no
+	// filter with that index has been compiled.
+	int ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt);
+
+	// PacketSource interace for derived classes to override.
 
 	// Returns the packet last processed; false if there is no
 	// current packet available.
@@ -50,12 +70,15 @@ public:
 	// Precompiles a filter and associates the given index with it.
 	// Returns true on success, 0 if a problem occurred or filtering is
 	// not supported.
-	virtual int PrecompileFilter(int index, const std::string& filter);
+	virtual int PrecompileFilter(int index, const std::string& filter) = 0;
 
 	// Activates the filter with the given index. Returns true on
 	// success, 0 if a problem occurred or the filtering is not
 	// supported.
-	virtual int SetFilter(int index);
+	virtual int SetFilter(int index) = 0;
+
+	// Returns current statistics about the source.
+	virtual void Statistics(Stats* stats) = 0;
 
 	static int GetLinkHeaderSize(int link_type);
 
@@ -68,7 +91,13 @@ protected:
 		int selectable_fd;
 		int link_type;
 		int hdr_size;
+		uint32 netmask;
 		bool is_live;
+
+		Properties()
+			{
+			netmask = PCAP_NETMASK_UNKNOWN;
+			}
 	};
 
 	struct Packet {
@@ -112,6 +141,9 @@ private:
 
 	bool have_packet;
 	Packet current_packet;
+
+	// For BPF filtering support.
+	PDict(BPF_Program) filters;
 
 	// Only set in pseudo-realtime mode.
 	double first_timestamp;

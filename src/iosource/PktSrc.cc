@@ -25,6 +25,10 @@ PktSrc::PktSrc()
 
 PktSrc::~PktSrc()
 	{
+	BPF_Program* code;
+	IterCookie* cookie = filters.InitForIteration();
+	while ( (code = filters.NextEntry(cookie)) )
+		delete code;
 	}
 
 const std::string& PktSrc::Path() const
@@ -41,6 +45,11 @@ const char* PktSrc::ErrorMsg() const
 int PktSrc::LinkType() const
 	{
 	return IsOpen() ? props.link_type : -1;
+	}
+
+uint32 PktSrc::Netmask() const
+	{
+	return IsOpen() ? props.netmask : PCAP_NETMASK_UNKNOWN;
 	}
 
 int PktSrc::HdrSize() const
@@ -76,6 +85,12 @@ void PktSrc::Opened(const Properties& arg_props)
 	{
 	props = arg_props;
 	SetClosed(false);
+
+	if ( ! PrecompileFilter(0, props.filter) || ! SetFilter(0) )
+		{
+		Close();
+		return;
+		}
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
@@ -409,12 +424,50 @@ int PktSrc::ExtractNextPacketInternal()
 	return 0;
 	}
 
-int PktSrc::PrecompileFilter(int index, const std::string& filter)
+int PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	{
+	char errbuf[PCAP_ERRBUF_SIZE];
+
+	// Compile filter.
+	BPF_Program* code = new BPF_Program();
+
+	if ( ! code->Compile(SnapLen(), LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+		{
+		Error(fmt("cannot compile BPF filter \"%s\": %s", filter.c_str(), errbuf));
+		Close();
+		delete code;
+		return 0;
+		}
+
+	// Store it in hash.
+	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
+	BPF_Program* oldcode = filters.Lookup(hash);
+	if ( oldcode )
+		delete oldcode;
+
+	filters.Insert(hash, code);
+	delete hash;
+
 	return 1;
 	}
 
-int PktSrc::SetFilter(int index)
+BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
-	return 1;
+	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
+	BPF_Program* code = filters.Lookup(hash);
+	delete hash;
+	return code;
+	}
+
+int PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
+	{
+	BPF_Program* code = GetBPFFilter(index);
+
+	if ( ! code )
+		{
+		Error(fmt("BPF filter %d not compiled", index));
+		Close();
+		}
+
+	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
 	}

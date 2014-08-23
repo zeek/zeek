@@ -37,13 +37,6 @@ void PcapSource::Close()
 	if ( ! pd )
 		return;
 
-	BPF_Program* code;
-	IterCookie* cookie = filters.InitForIteration();
-	while ( (code = filters.NextEntry(cookie)) )
-		delete code;
-
-	filters.Clear();
-
 	pcap_close(pd);
 	pd = 0;
 	last_data = 0;
@@ -55,10 +48,6 @@ void PcapSource::OpenLive()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
 	char tmp_errbuf[PCAP_ERRBUF_SIZE];
-
-#if 0
-	filter_type = ft;
-#endif
 
 	// Determine interface if not specified.
 	if ( props.path.empty() )
@@ -74,7 +63,7 @@ void PcapSource::OpenLive()
 
 	// Determine network and netmask.
 	uint32 net;
-	if ( pcap_lookupnet(props.path.c_str(), &net, &netmask, tmp_errbuf) < 0 )
+	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, tmp_errbuf) < 0 )
 		{
 		// ### The lookup can fail if no address is assigned to
 		// the interface; and libpcap doesn't have any useful notion
@@ -82,7 +71,7 @@ void PcapSource::OpenLive()
 		// just kludge around the error :-(.
 		// sprintf(errbuf, "pcap_lookupnet %s", tmp_errbuf);
 		// return;
-		netmask = 0xffffff00;
+		props.netmask = 0xffffff00;
 		}
 
 	// We use the smallest time-out possible to return almost immediately if
@@ -113,30 +102,21 @@ void PcapSource::OpenLive()
 
 	props.selectable_fd = pcap_fileno(pd);
 
-	if ( PrecompileFilter(0, props.filter) && SetFilter(0) )
-		{
-		SetHdrSize();
+	SetHdrSize();
 
-		if ( ! pd )
-			// Was closed, couldn't get header size.
-			return;
-
-		Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
-		}
-	else
-		Close();
+	if ( ! pd )
+		// Was closed, couldn't get header size.
+		return;
 
 	props.is_live = true;
 	Opened(props);
+
+	Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
 	}
 
 void PcapSource::OpenOffline()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
-
-#if 0
-	filter_type = ft;
-#endif
 
 	pd = pcap_open_offline(props.path.c_str(), errbuf);
 
@@ -146,25 +126,16 @@ void PcapSource::OpenOffline()
 		return;
 		}
 
-	if ( PrecompileFilter(0, props.filter) && SetFilter(0) )
-		{
-		SetHdrSize();
+	SetHdrSize();
 
-		if ( ! pd )
-			// Was closed, unknown link layer type.
-			return;
+	if ( ! pd )
+		// Was closed, unknown link layer type.
+		return;
 
-		// We don't put file sources into non-blocking mode as
-		// otherwise we would not be able to identify the EOF.
+	props.selectable_fd = fileno(pcap_file(pd));
 
-		props.selectable_fd = fileno(pcap_file(pd));
-
-		if ( props.selectable_fd < 0 )
-			InternalError("OS does not support selectable pcap fd");
-		}
-
-	else
-		Close();
+	if ( props.selectable_fd < 0 )
+		InternalError("OS does not support selectable pcap fd");
 
 	props.is_live = false;
 	Opened(props);
@@ -211,31 +182,7 @@ void PcapSource::DoneWithPacket(Packet* pkt)
 
 int PcapSource::PrecompileFilter(int index, const std::string& filter)
 	{
-	if ( ! pd )
-		return 1; // Prevent error message.
-
-	char errbuf[PCAP_ERRBUF_SIZE];
-
-	// Compile filter.
-	BPF_Program* code = new BPF_Program();
-
-	if ( ! code->Compile(pd, filter.c_str(), netmask, errbuf, sizeof(errbuf)) )
-		{
-		PcapError();
-		delete code;
-		return 0;
-		}
-
-	// Store it in hash.
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* oldcode = filters.Lookup(hash);
-	if ( oldcode )
-		delete oldcode;
-
-	filters.Insert(hash, code);
-	delete hash;
-
-	return 1;
+	return PktSrc::PrecompileBPFFilter(index, filter).
 	}
 
 int PcapSource::SetFilter(int index)
@@ -245,9 +192,7 @@ int PcapSource::SetFilter(int index)
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
-	BPF_Program* code = filters.Lookup(hash);
-	delete hash;
+	BPF_Program* code = GetFilter(index);
 
 	if ( ! code )
 		{

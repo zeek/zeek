@@ -129,6 +129,9 @@
 /* whether words are stored with the most significant byte first */
 #cmakedefine WORDS_BIGENDIAN
 
+/* whether htonll/ntohll is defined in <arpa/inet.h> */
+#cmakedefine HAVE_BYTEORDER_64
+
 /* ultrix can't hack const */
 #cmakedefine NEED_ULTRIX_CONST_HACK
 #ifdef NEED_ULTRIX_CONST_HACK

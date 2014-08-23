@@ -148,6 +148,8 @@ set(brodeps
 
 include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)
+include(CheckSymbolExists)
+check_symbol_exists(htonll arpa/inet.h HAVE_BYTEORDER_64)
 
 include(OSSpecific)
 include(CheckTypes)

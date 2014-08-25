@@ -622,13 +622,19 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 		{
 		if ( is_orig )
 			{
-			if ( flags.ACK() )
+			if ( ! flags.ACK() )
 				{
-				Weird("connection_originator_SYN_ack");
-				endpoint->SetState(TCP_ENDPOINT_SYN_ACK_SENT);
+				if ( peer->state == TCP_ENDPOINT_ESTABLISHED &&
+				     base_seq == endpoint->StartSeq() )
+					{
+					// This is a SYN/SYN-ACK reversal.  Roles have already been
+					// flipped, so establish connection.
+					is_partial = 0;
+					endpoint->SetState(TCP_ENDPOINT_ESTABLISHED);
+					}
+				else
+					endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
 				}
-			else
-				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
 
 			if ( tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
@@ -644,19 +650,6 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 				     ! seq_between(ack_seq, peer->StartSeq(), peer->LastSeq()) )
 					Weird("bad_SYN_ack");
 				}
-
-			else if ( peer->state == TCP_ENDPOINT_SYN_ACK_SENT &&
-				  base_seq == endpoint->StartSeq() )
-				{
-				// This is a SYN/SYN-ACK reversal,
-				// per the discussion in IsReuse.
-				// Flip the endpoints and establish
-				// the connection.
-				is_partial = 0;
-				Conn()->FlipRoles();
-				peer->SetState(TCP_ENDPOINT_ESTABLISHED);
-				}
-
 			else
 				Weird("simultaneous_open");
 
@@ -1192,6 +1185,21 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( ! tp )
 		return;
 
+	uint32 tcp_hdr_len = data - (const u_char*) tp;
+	TCP_Flags flags(tp);
+
+	if ( is_orig && flags.SYN() && flags.ACK() )
+		{
+		if ( orig->state == TCP_ENDPOINT_INACTIVE &&
+		     resp->state == TCP_ENDPOINT_INACTIVE)
+			{
+			Conn()->FlipRoles();
+			is_orig = false;
+			}
+		else
+			Weird("connection_originator_SYN_ack");
+		}
+
 	// We need the min() here because Ethernet frame padding can lead to
 	// caplen > len.
 	if ( packet_contents )
@@ -1203,8 +1211,6 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( ! ValidateChecksum(tp, endpoint, len, caplen) )
 		return;
 
-	uint32 tcp_hdr_len = data - (const u_char*) tp;
-	TCP_Flags flags(tp);
 	SetPartialStatus(flags, endpoint->IsOrig());
 
 	uint32 base_seq = ntohl(tp->th_seq);
@@ -1389,6 +1395,9 @@ void TCP_Analyzer::FlipRoles()
 	orig = tmp_ep;
 	orig->is_orig = !orig->is_orig;
 	resp->is_orig = !resp->is_orig;
+
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->FlipRoles();
 	}
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
@@ -1839,21 +1848,6 @@ bool TCP_Analyzer::IsReuse(double t, const u_char* pkt)
 		uint32 base_seq = ntohl(tp->th_seq);
 		if ( base_seq == conn_orig->StartSeq() )
 			return false;
-
-		if ( (tp->th_flags & TH_ACK) == 0 &&
-		     conn_orig->state == TCP_ENDPOINT_SYN_ACK_SENT &&
-		     resp->state == TCP_ENDPOINT_INACTIVE &&
-		     base_seq == resp->StartSeq() )
-			{
-			// This is an initial SYN with the right sequence
-			// number, and the state is consistent with the
-			// SYN & the SYN-ACK being flipped (e.g., due to
-			// reading from two interfaces w/ interrupt
-			// coalescence).  Don't treat this as a reuse.
-			// NextPacket() will flip set the connection
-			// state correctly
-			return false;
-			}
 
 		if ( conn_orig->state == TCP_ENDPOINT_SYN_SENT )
 			Weird("SYN_seq_jump");

@@ -1,6 +1,5 @@
 
 #include "plugin/Plugin.h"
-
 #include "KRB.h"
 
 BRO_PLUGIN_BEGIN(Bro, KRB)

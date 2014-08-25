@@ -109,13 +109,13 @@ const unsigned int PSEUDO_APP_LAYER_INDEX = 11;		// index of first DNP3 app-laye
 const unsigned int PSEUDO_TRANSPORT_LEN = 1;		// length of DNP3 Transport Layer
 const unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Layer
 
-bool DNP3_Analyzer::crc_table_initialized = false;
-unsigned int DNP3_Analyzer::crc_table[256];
+bool DNP3_TCP_Analyzer::crc_table_initialized = false;
+unsigned int DNP3_TCP_Analyzer::crc_table[256];
 
 bool DNP3_UDP_Analyzer::crc_table_initialized = false;
 unsigned int DNP3_UDP_Analyzer::crc_table[256];
 
-DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3", c)
+DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3_TCP", c)
 	{
 	interp = new binpac::DNP3::DNP3_Conn(this);
 
@@ -126,12 +126,12 @@ DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3", c)
 		PrecomputeCRCTable();
 	}
 
-DNP3_Analyzer::~DNP3_Analyzer()
+DNP3_TCP_Analyzer::~DNP3_TCP_Analyzer()
 	{
 	delete interp;
 	}
 
-void DNP3_Analyzer::Done()
+void DNP3_TCP_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
@@ -139,7 +139,7 @@ void DNP3_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
@@ -156,19 +156,19 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void DNP3_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void DNP3_TCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
 	}
 
-void DNP3_Analyzer::EndpointEOF(bool is_orig)
+void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig)
 	{
 	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
 	}
 
-bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
+bool DNP3_TCP_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 	{
 	Endpoint* endp = orig ? &orig_state : &resp_state;
 
@@ -251,7 +251,7 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 	return true;
 	}
 
-bool DNP3_Analyzer::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len)
+bool DNP3_TCP_Analyzer::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len)
 	{
 	if ( ! target_len )
 		return true;
@@ -266,7 +266,7 @@ bool DNP3_Analyzer::AddToBuffer(Endpoint* endp, int target_len, const u_char** d
 	return endp->buffer_len == target_len;
 	}
 
-bool DNP3_Analyzer::ParseAppLayer(Endpoint* endp)
+bool DNP3_TCP_Analyzer::ParseAppLayer(Endpoint* endp)
 	{
 	bool orig = (endp == &orig_state);
 	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
@@ -323,7 +323,7 @@ bool DNP3_Analyzer::ParseAppLayer(Endpoint* endp)
 	return true;
 	}
 
-void DNP3_Analyzer::ClearEndpointState(bool orig)
+void DNP3_TCP_Analyzer::ClearEndpointState(bool orig)
 	{
 	Endpoint* endp = orig ? &orig_state : &resp_state;
 	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
@@ -336,7 +336,7 @@ void DNP3_Analyzer::ClearEndpointState(bool orig)
 	endp->pkt_cnt = 0;
 	}
 
-bool DNP3_Analyzer::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where)
+bool DNP3_TCP_Analyzer::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where)
 	{
 	unsigned int crc = CalcCRC(len, data);
 
@@ -347,7 +347,7 @@ bool DNP3_Analyzer::CheckCRC(int len, const u_char* data, const u_char* crc16, c
 	return false;
 	}
 
-void DNP3_Analyzer::PrecomputeCRCTable()
+void DNP3_TCP_Analyzer::PrecomputeCRCTable()
 	{
 	for( unsigned int i = 0; i < 256; i++)
 		{
@@ -365,7 +365,7 @@ void DNP3_Analyzer::PrecomputeCRCTable()
 		}
 	}
 
-unsigned int DNP3_Analyzer::CalcCRC(int len, const u_char* data)
+unsigned int DNP3_TCP_Analyzer::CalcCRC(int len, const u_char* data)
 	{
 	unsigned int crc = 0x0000;
 

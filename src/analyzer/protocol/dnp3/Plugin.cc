@@ -12,7 +12,7 @@ class Plugin : public plugin::Plugin {
 public:
 	plugin::Configuration Configure()
 		{
-		AddComponent(new ::analyzer::Component("DNP3", ::analyzer::dnp3::DNP3_Analyzer::Instantiate));
+		AddComponent(new ::analyzer::Component("DNP3_TCP", ::analyzer::dnp3::DNP3_TCP_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("DNP3_UDP", ::analyzer::dnp3::DNP3_UDP_Analyzer::Instantiate));
 
 		plugin::Configuration config;

@@ -9,10 +9,10 @@
 
 namespace analyzer { namespace dnp3 {
 
-class DNP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class DNP3_TCP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
 public:
-	DNP3_Analyzer(Connection* conn);
-	virtual ~DNP3_Analyzer();
+	DNP3_TCP_Analyzer(Connection* conn);
+	virtual ~DNP3_TCP_Analyzer();
 
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
@@ -20,7 +20,7 @@ public:
 	virtual void EndpointEOF(bool is_orig);
 
 	static Analyzer* Instantiate(Connection* conn)
-		{ return new DNP3_Analyzer(conn); }
+		{ return new DNP3_TCP_Analyzer(conn); }
 
 private:
 	static const int MAX_BUFFER_SIZE = 300;

@@ -37,7 +37,7 @@ redef likely_server_ports += { ports };
 event bro_init() &priority=5
 	{
 	Log::create_stream(DNP3::LOG, [$columns=Info, $ev=log_dnp3]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_TCP, ports);
 	}
 
 event dnp3_application_request_header(c: connection, is_orig: bool, application_control: count, fc: count)

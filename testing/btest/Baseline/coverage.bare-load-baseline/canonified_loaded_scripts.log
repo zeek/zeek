@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-05-15-14-10-48
+#open	2014-08-26-20-10-29
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -13,6 +13,7 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/bro.bif.bro
   build/scripts/base/bif/reporter.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
+  build/scripts/base/bif/plugins/Bro_KRB.types.bif.bro
   build/scripts/base/bif/event.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
@@ -36,6 +37,7 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_Ident.events.bif.bro
     build/scripts/base/bif/plugins/Bro_InterConn.events.bif.bro
     build/scripts/base/bif/plugins/Bro_IRC.events.bif.bro
+    build/scripts/base/bif/plugins/Bro_KRB.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Login.functions.bif.bro
     build/scripts/base/bif/plugins/Bro_MIME.events.bif.bro
@@ -107,4 +109,4 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/broxygen.bif.bro
 scripts/policy/misc/loaded-scripts.bro
   scripts/base/utils/paths.bro
-#close	2014-05-15-14-10-48
+#close	2014-08-26-20-10-29

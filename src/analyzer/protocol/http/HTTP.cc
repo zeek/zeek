@@ -463,6 +463,20 @@ void HTTP_Entity::SubmitAllHeaders()
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f end of headers\n", network_time);
 
+	if ( Parent() &&
+	     Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+		{
+		// Don't treat single \r or \n characters in the multipart body content
+		// as lines because the MIME_Entity code will implicitly add back a
+		// \r\n for each line it receives.  We do this instead of setting
+		// plain delivery mode for the content line analyzer because
+		// the size of the content to deliver "plainly" may be unknown
+		// and just leaving it in that mode indefinitely screws up the
+		// detection of multipart boundaries.
+		http_message->content_line->SupressWeirds(true);
+		http_message->content_line->SetCRLFAsEOL(0);
+		}
+
 	// The presence of a message-body in a request is signaled by
 	// the inclusion of a Content-Length or Transfer-Encoding
 	// header field in the request's message-headers.
@@ -663,6 +677,13 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		}
 
 	current_entity = (HTTP_Entity*) entity->Parent();
+
+	if ( entity->Parent() &&
+	     entity->Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+		{
+		content_line->SupressWeirds(false);
+		content_line->SetCRLFAsEOL();
+		}
 
 	// It is necessary to call Done when EndEntity is triggered by
 	// SubmitAllHeaders (through EndOfData).

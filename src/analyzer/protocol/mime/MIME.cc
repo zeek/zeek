@@ -552,6 +552,7 @@ void MIME_Entity::init()
 	data_buf_offset = -1;
 
 	message = 0;
+	delay_adding_implicit_CRLF = false;
 	}
 
 MIME_Entity::~MIME_Entity()
@@ -1005,12 +1006,33 @@ void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
 
 void MIME_Entity::DecodeBinary(int len, const char* data, int trailing_CRLF)
 	{
+	if ( delay_adding_implicit_CRLF )
+		{
+		delay_adding_implicit_CRLF = false;
+		DataOctet(CR);
+		DataOctet(LF);
+		}
+
 	DataOctets(len, data);
 
 	if ( trailing_CRLF )
 		{
-		DataOctet(CR);
-		DataOctet(LF);
+		if ( Parent() &&
+		     Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+			{
+			// For multipart body content, we want to keep all implicit CRLFs
+			// except for the last because that one belongs to the multipart
+			// boundary delimiter, not the content.  Simply delaying the
+			// addition of implicit CRLFs until another chunk of content
+			// data comes in is a way to prevent the CRLF before the final
+			// message boundary from being accidentally added to the content.
+			delay_adding_implicit_CRLF = true;
+			}
+		else
+			{
+			DataOctet(CR);
+			DataOctet(LF);
+			}
 		}
 	}
 

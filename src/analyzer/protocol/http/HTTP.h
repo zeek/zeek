@@ -99,6 +99,8 @@ enum {
 // HTTP_MessageDone	-> {Request,Reply}Made
 
 class HTTP_Message : public mime::MIME_Message {
+friend class HTTP_Entity;
+
 public:
 	HTTP_Message(HTTP_Analyzer* analyzer, tcp::ContentLine_Analyzer* cl,
 			 bool is_orig, int expect_body, int64_t init_header_length);

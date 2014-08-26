@@ -1,4 +1,11 @@
 
+2.3-124 | 2014-08-26 09:24:19 -0500
+
+  * Better documentation for sub_bytes (Jimmy Jones)
+
+  * BIT-1234: Fix build on systems that already have ntohll/htonll
+    (Jon Siwek)
+
 2.3-121 | 2014-08-22 15:22:15 -0700
 
   * Detect functions that try to bind variables from an outer scope

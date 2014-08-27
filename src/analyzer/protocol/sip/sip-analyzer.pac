@@ -133,10 +133,6 @@ refine flow SIP_Flow += {
 			{
 			BifEvent::generate_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
-		if ( sip_message_done )
-			{
-			BifEvent::generate_sip_message_done(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
-			}
 
 		return true;
 		%}

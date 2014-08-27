@@ -17,13 +17,14 @@ public:
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-				   int seq, const IP_Hdr* ip, int caplen);
+				   			   uint64 seq, const IP_Hdr* ip, int caplen);
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 	{ return new SIP_Analyzer(conn); }
 
 	static bool Available()
-	{ return sip_request; }
+	{ return sip_request || sip_reply || sip_header ||
+		     sip_all_headers || sip_begin_entity || sip_end_entity; }
 
 protected:
 	binpac::SIP::SIP_Conn* interp;

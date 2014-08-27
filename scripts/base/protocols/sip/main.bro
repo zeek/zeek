@@ -68,8 +68,8 @@ export {
 	};
 		
 	## A list of SIP methods. Other methods will generate a weird. Note
-        ## that the SIP analyzer will only accept methods consisting solely
-        ## of letters ``[A-Za-z]``.
+    ## that the SIP analyzer will only accept methods consisting solely
+    ## of letters ``[A-Za-z]``.
 	const sip_methods: set[string] = {
 		"REGISTER", "INVITE", "ACK", "CANCEL", "BYE", "OPTIONS"
 	} &redef;
@@ -86,6 +86,7 @@ redef record connection += {
 };
 
 const ports = { 5060/udp };
+redef likely_server_ports += { ports };
 
 event bro_init() &priority=5
 	{
@@ -186,12 +187,12 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		}
 	}
 	
-event sip_message_done(c: connection, is_request: bool) &priority = 5
+event sip_end_entity(c: connection, is_request: bool) &priority = 5
 	{
 	set_state(c, is_request);
 	}
 
-event sip_message_done(c: connection, is_request: bool) &priority = -5
+event sip_end_entity(c: connection, is_request: bool) &priority = -5
 	{
 	# The reply body is done so we're ready to log.
 	if ( ! is_request )

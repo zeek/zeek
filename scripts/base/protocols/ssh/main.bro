@@ -22,7 +22,7 @@ export {
 		host_key: string &log &optional;
 		## Auth result
 		result: string &log &optional;
-		## Auth method
+		## Auth method (password, pubkey, etc.)
 		method: string &log &optional;
 	};
 
@@ -70,21 +70,34 @@ event ssh_client_version(c: connection, version: string)
 	c$ssh$client = version;
 	}
 
-event ssh_auth_successful(c: connection, method: string)
+function determine_auth_method(middle_pkt_len: int, first_pkt_len: int): string
+	{
+	if ( middle_pkt_len == 96 )
+		return "password";
+	if ( ( middle_pkt_len == 32 ) && ( first_pkt_len == 0 || first_pkt_len == 48 ) )
+		return "challenge-response";
+	if ( ( first_pkt_len >= 112 ) && ( first_pkt_len <= 432 ) )
+		return "pubkey";
+	if ( first_pkt_len == 16 )
+		return "host-based";
+	return fmt("unknown (mid=%d, first=%d)", middle_pkt_len, first_pkt_len);
+	}
+	
+event ssh_auth_successful(c: connection, middle_pkt_len: int, first_pkt_len: int)
 	{
 	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
 		return;
 	c$ssh$result = "success";
-	c$ssh$method = method;
+	c$ssh$method = determine_auth_method(middle_pkt_len, first_pkt_len);
 	Log::write(SSH::LOG, c$ssh);
 	}
 
-event ssh_auth_failed(c: connection, method: string)
+event ssh_auth_failed(c: connection, middle_pkt_len: int, first_pkt_len: int)
 	{
 	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
 		return;
 	c$ssh$result = "failure";
-	c$ssh$method = method;
+	c$ssh$method = determine_auth_method(middle_pkt_len, first_pkt_len);
 	Log::write(SSH::LOG, c$ssh);
 	}
 
@@ -93,7 +106,6 @@ event connection_closed(c: connection)
 	if ( c?$ssh && !c$ssh?$result )
 		{
 		c$ssh$result = "unknown";
-		c$ssh$method = "unknown";
 		Log::write(SSH::LOG, c$ssh);
 		}
 	}

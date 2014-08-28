@@ -44,7 +44,6 @@ protected:
 	
 	void ProcessEncrypted(int len, bool orig);
 	int AuthResult(int len, bool orig);
-	const char* AuthMethod(int len, bool orig);
 
 	bool had_gap;
 

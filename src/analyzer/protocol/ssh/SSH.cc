@@ -68,7 +68,6 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
-		printf("    **** %s\n", e.c_msg());
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
@@ -92,19 +91,18 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 	  	relative_len = len - initial_client_packet_size;
 	else
 	  	relative_len = len - initial_server_packet_size;
-	//	printf("Encrypted packet of length %d from %s.\n", len, orig?"client":"server");
 	if ( num_encrypted_packets_seen >= 4 )
 		{
 		int auth_result = AuthResult(relative_len, orig);
 		if ( auth_result > 0 )
 			{
 			num_encrypted_packets_seen = 1;
-			//printf("Have auth\n");
-			StringVal* method = new StringVal(AuthMethod(relative_len, orig));
 			if ( auth_result == 1 )
-				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), method);
+				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
+					                                   packet_n_1_size, packet_n_2_size);
 			if ( auth_result == 2 )
-				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), interp->bro_analyzer()->Conn(), method);
+				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
+					                               packet_n_1_size, packet_n_2_size);
 			}
 		}
 	if ( num_encrypted_packets_seen >= 2 )
@@ -132,16 +130,3 @@ int SSH_Analyzer::AuthResult(int len, bool orig)
 		return -1;
 	}
 
-const char* SSH_Analyzer::AuthMethod(int len, bool orig)
-	{
-	if ( packet_n_1_size == 96 ) // Password auth
-		return fmt("password (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
-	if ( packet_n_1_size == 32 && ( packet_n_2_size == 0 || packet_n_2_size == 48 ) ) // Challenge-response auth
-		return fmt("challenge-response (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
-	if ( packet_n_2_size >= 112 &&
-	     packet_n_2_size <= 432 ) // Public key auth
-		return fmt("pubkey (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
-	if ( packet_n_2_size == 16 ) // Host-based auth
-		return fmt("host-based (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
-	return fmt("unknown (L=%d, L-1=%d, L-2=%d)", len, packet_n_1_size, packet_n_2_size);
-	}

@@ -222,7 +222,7 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 	return std::make_pair(prefix, path);
 	}
 
-PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, bool is_live)
+PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	{
 	std::pair<std::string, std::string> t = split_prefix(path);
 	std::string prefix = t.first;
@@ -254,10 +254,10 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, const std::string& filter, 
 
 	// Instantiate packet source.
 
-	PktSrc* ps = (*component->Factory())(npath, filter, is_live);
+	PktSrc* ps = (*component->Factory())(npath, is_live);
 	assert(ps);
 
-	if ( ! ps->IsOpen() && ps->ErrorMsg() )
+	if ( ! ps->IsOpen() && ps->IsError() )
 		// Set an error message if it didn't open successfully.
 		ps->Error("could not open");
 
@@ -298,7 +298,7 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	PktDumper* pd = (*component->Factory())(npath, append);
 	assert(pd);
 
-	if ( ! pd->IsOpen() && pd->ErrorMsg() )
+	if ( ! pd->IsOpen() && pd->IsError() )
 		// Set an error message if it didn't open successfully.
 		pd->Error("could not open");
 

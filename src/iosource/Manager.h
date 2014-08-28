@@ -35,7 +35,7 @@ public:
 	// sources (and therefore returning a Size() of zero).
 	void Terminate()	{ RemoveAll(); }
 
-	PktSrc* OpenPktSrc(const std::string& path, const std::string& filter, bool is_live);
+	PktSrc* OpenPktSrc(const std::string& path, bool is_live);
 	PktDumper* OpenPktDumper(const std::string& path, bool append);
 
 protected:

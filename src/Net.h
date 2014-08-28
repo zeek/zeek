@@ -13,8 +13,7 @@
 #include "iosource/PktDumper.h"
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
-		const char* writefile, const char* filter,
-		int do_watchdog);
+		const char* writefile, int do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);

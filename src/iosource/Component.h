@@ -50,7 +50,7 @@ class PktSrcComponent : public iosource::Component {
 public:
 	enum InputType { LIVE, TRACE, BOTH };
 
-	typedef PktSrc* (*factory_callback)(const std::string& path, const std::string& filter, bool is_live);
+	typedef PktSrc* (*factory_callback)(const std::string& path, bool is_live);
 
 	/**
 	 * XXX

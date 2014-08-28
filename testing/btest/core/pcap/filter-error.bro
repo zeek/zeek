@@ -3,7 +3,7 @@
 # @TEST-EXEC: echo ---- >>output
 # @TEST-EXEC: bro -r $TRACES/workshop_2011_browse.trace  %INPUT >>output 2>&1
 # @TEST-EXEC: test -e conn.log
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 redef enum PcapFilterID += { A };
 

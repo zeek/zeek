@@ -37,6 +37,10 @@ public:
 	// code, false otherwise.
 	bool IsCompiled()	{ return m_compiled; }
 
+	// Returns true if this program matches any packets. This is not
+	// comprehensive, but can identify a few cases where it does.
+	bool MatchesAnything() 	{ return m_matches_anything; }
+
 	// Accessor to the compiled program. Returns nil when
 	// no program is currently compiled.
 	bpf_program* GetProgram();
@@ -47,6 +51,7 @@ protected:
 	// (I like to prefix member variables with m_, makes it clear
 	// in the implementation whether it's a global or not. --ck)
 	bool m_compiled;
+	bool m_matches_anything;
 	struct bpf_program m_program;
 };
 

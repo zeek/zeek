@@ -11,22 +11,21 @@ namespace pcap {
 class PcapSource : public iosource::PktSrc {
 public:
 	// XXX
-	PcapSource(const std::string& path, const std::string& filter, bool is_live);
+	PcapSource(const std::string& path, bool is_live);
 
 	virtual ~PcapSource();
 
-	static PktSrc* Instantiate(const std::string& path, const std::string& filter, bool is_live);
+	static PktSrc* Instantiate(const std::string& path, bool is_live);
 
 protected:
 	// PktSrc interface.
 	virtual void Open();
 	virtual void Close();
-	virtual int ExtractNextPacket(Packet* pkt);
-	virtual void DoneWithPacket(Packet* pkt);
-	virtual int PrecompileFilter(int index, const std::string& filter);
-	virtual int SetFilter(int index);
+	virtual bool ExtractNextPacket(Packet* pkt);
+	virtual void DoneWithPacket();
+	virtual bool PrecompileFilter(int index, const std::string& filter);
+	virtual bool SetFilter(int index);
 	virtual void Statistics(Stats* stats);
-	virtual bool GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt);
 
 private:
 	void OpenLive();

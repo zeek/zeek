@@ -86,6 +86,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 		}
 
 	m_compiled = true;
+	m_matches_anything = (strlen(filter) == 0 || strcmp(filter, "ip or not ip") == 0);
 
 	return true;
 	}

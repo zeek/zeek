@@ -53,6 +53,11 @@ uint32 PktSrc::Netmask() const
 	return IsOpen() ? props.netmask : PCAP_NETMASK_UNKNOWN;
 	}
 
+bool PktSrc::IsError() const
+	{
+	return ErrorMsg();
+	}
+
 int PktSrc::HdrSize() const
 	{
 	return IsOpen() ? props.hdr_size : -1;
@@ -87,7 +92,7 @@ void PktSrc::Opened(const Properties& arg_props)
 	props = arg_props;
 	SetClosed(false);
 
-	if ( ! PrecompileFilter(0, props.filter) || ! SetFilter(0) )
+	if ( ! PrecompileFilter(0, "") || ! SetFilter(0) )
 		{
 		Close();
 		return;
@@ -378,7 +383,7 @@ void PktSrc::Process()
 		net_packet_dispatch(current_packet.ts, current_packet.hdr, current_packet.data, pkt_hdr_size, this);
 
 	have_packet = 0;
-	DoneWithPacket(&current_packet);
+	DoneWithPacket();
 	}
 
 const char* PktSrc::Tag()
@@ -386,7 +391,7 @@ const char* PktSrc::Tag()
 	return "PktSrc";
 	}
 
-int PktSrc::ExtractNextPacketInternal()
+bool PktSrc::ExtractNextPacketInternal()
 	{
 	if ( have_packet )
 		return true;
@@ -426,7 +431,7 @@ int PktSrc::ExtractNextPacketInternal()
 	return 0;
 	}
 
-int PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
+bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -466,7 +471,7 @@ BPF_Program* PktSrc::GetBPFFilter(int index)
 	return code;
 	}
 
-int PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
+bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
 	{
 	BPF_Program* code = GetBPFFilter(index);
 
@@ -476,5 +481,18 @@ int PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_cha
 		Close();
 		}
 
+	if ( code->MatchesAnything() )
+		return true;
+
 	return pcap_offline_filter(code->GetProgram(), hdr, pkt);
+	}
+
+bool PktSrc::GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt)
+	{
+	if ( ! have_packet )
+		return false;
+
+	*hdr = current_packet.hdr;
+	*pkt = current_packet.data;
+	return true;
 	}

@@ -16,10 +16,9 @@ PcapSource::~PcapSource()
 	Close();
 	}
 
-PcapSource::PcapSource(const std::string& path, const std::string& filter, bool is_live)
+PcapSource::PcapSource(const std::string& path, bool is_live)
 	{
 	props.path = path;
-	props.filter = filter;
 	props.is_live = is_live;
 	last_data = 0;
 	}
@@ -141,10 +140,10 @@ void PcapSource::OpenOffline()
 	Opened(props);
 	}
 
-int PcapSource::ExtractNextPacket(Packet* pkt)
+bool PcapSource::ExtractNextPacket(Packet* pkt)
 	{
 	if ( ! pd )
-		return 0;
+		return false;
 
 	const u_char* data = pcap_next(pd, &current_hdr);
 
@@ -156,7 +155,7 @@ int PcapSource::ExtractNextPacket(Packet* pkt)
 		if ( ! props.is_live )
 			Close();
 
-		return 0;
+		return false;
 		}
 
 	pkt->ts = current_hdr.ts.tv_sec + double(current_hdr.ts.tv_usec) / 1e6;
@@ -166,29 +165,29 @@ int PcapSource::ExtractNextPacket(Packet* pkt)
 	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
 		{
 		Weird("empty_pcap_header", pkt);
-		return 0;
+		return false;
 		}
 
 	last_hdr = current_hdr;
 	last_data = data;
 	++stats.received;
-	return 1;
+	return true;
 	}
 
-void PcapSource::DoneWithPacket(Packet* pkt)
+void PcapSource::DoneWithPacket()
 	{
 	// Nothing to do.
 	}
 
-int PcapSource::PrecompileFilter(int index, const std::string& filter)
+bool PcapSource::PrecompileFilter(int index, const std::string& filter)
 	{
 	return PktSrc::PrecompileBPFFilter(index, filter);
 	}
 
-int PcapSource::SetFilter(int index)
+bool PcapSource::SetFilter(int index)
 	{
 	if ( ! pd )
-		return 1; // Prevent error message
+		return true; // Prevent error message
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -200,13 +199,13 @@ int PcapSource::SetFilter(int index)
 			      "No precompiled pcap filter for index %d",
 			      index);
 		Error(errbuf);
-		return 0;
+		return false;
 		}
 
 	if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
 		{
 		PcapError();
-		return 0;
+		return false;
 		}
 
 #ifndef HAVE_LINUX
@@ -214,7 +213,7 @@ int PcapSource::SetFilter(int index)
 	stats.received = stats.dropped = stats.link = 0;
 #endif
 
-	return 1;
+	return true;
 	}
 
 void PcapSource::Statistics(Stats* s)
@@ -246,16 +245,6 @@ void PcapSource::Statistics(Stats* s)
 		s->dropped = 0;
 	}
 
-bool PcapSource::GetCurrentPacket(const pcap_pkthdr** hdr, const u_char** pkt)
-	{
-	if ( ! last_data )
-		return false;
-
-	*hdr = &last_hdr;
-	*pkt = last_data;
-	return true;
-	}
-
 void PcapSource::PcapError()
 	{
 	if ( pd )
@@ -285,7 +274,7 @@ void PcapSource::SetHdrSize()
 		}
 	}
 
-iosource::PktSrc* PcapSource::Instantiate(const std::string& path, const std::string& filter, bool is_live)
+iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)
 	{
-	return new PcapSource(path, filter, is_live);
+	return new PcapSource(path, is_live);
 	}

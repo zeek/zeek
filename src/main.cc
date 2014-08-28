@@ -991,7 +991,7 @@ int main(int argc, char** argv)
 	snaplen = internal_val("snaplen")->AsCount();
 
 	if ( dns_type != DNS_PRIME )
-		net_init(interfaces, read_files, writefile, "", do_watchdog);
+		net_init(interfaces, read_files, writefile, do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 

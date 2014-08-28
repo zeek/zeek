@@ -153,8 +153,7 @@ void net_update_time(double new_network_time)
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,
-	      const char* writefile, const char* filter,
-	      int do_watchdog)
+	      const char* writefile, int do_watchdog)
 	{
 	if ( readfiles.length() > 0 )
 		{
@@ -163,7 +162,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 
 		for ( int i = 0; i < readfiles.length(); ++i )
 			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], filter, false);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], false);
 			assert(ps);
 
 			if ( ! ps->IsOpen() )
@@ -180,7 +179,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 
 		for ( int i = 0; i < interfaces.length(); ++i )
 			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], filter, true);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], true);
 			assert(ps);
 
 			if ( ! ps->IsOpen() )

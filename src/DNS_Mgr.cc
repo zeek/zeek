@@ -1217,9 +1217,10 @@ void DNS_Mgr::IssueAsyncRequests()
 		}
 	}
 
-void  DNS_Mgr::GetFds(int* read, int* write, int* except)
+void  DNS_Mgr::GetFds(std::vector<int>* read, std::vector<int>* write,
+                      std::vector<int>* except)
 	{
-	*read = nb_dns_fd(nb_dns);
+	read->push_back(nb_dns_fd(nb_dns));
 	}
 
 double DNS_Mgr::NextTimestamp(double* network_time)

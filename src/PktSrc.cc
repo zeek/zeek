@@ -51,7 +51,8 @@ PktSrc::~PktSrc()
 	delete [] readfile;
 	}
 
-void PktSrc::GetFds(int* read, int* write, int* except)
+void PktSrc::GetFds(std::vector<int>* read, std::vector<int>* write,
+                    std::vector<int>* except)
 	{
 	if ( pseudo_realtime )
 		{
@@ -62,7 +63,7 @@ void PktSrc::GetFds(int* read, int* write, int* except)
 		}
 
 	if ( selectable_fd >= 0 )
-		*read = selectable_fd;
+		read->push_back(selectable_fd);
 	}
 
 int PktSrc::ExtractNextPacket()

@@ -103,7 +103,8 @@ protected:
 	/**
 	 * Part of the IOSource interface.
 	 */
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(std::vector<int>* read, std::vector<int>* write,
+	                    std::vector<int>* except);
 
 	/**
 	 * Part of the IOSource interface.

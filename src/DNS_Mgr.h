@@ -132,7 +132,8 @@ protected:
 	void DoProcess(bool flush);
 
 	// IOSource interface.
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(std::vector<int>* read, std::vector<int>* write,
+	                    std::vector<int>* except);
 	virtual double NextTimestamp(double* network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "DNS_Mgr"; }

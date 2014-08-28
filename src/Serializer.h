@@ -355,7 +355,8 @@ public:
 	EventPlayer(const char* file);
 	virtual ~EventPlayer();
 
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(std::vector<int>* read, std::vector<int>* write,
+	                    std::vector<int>* except);
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "EventPlayer"; }

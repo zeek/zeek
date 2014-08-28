@@ -98,7 +98,8 @@ public:
 
 	// IOSource interface
 	bool IsReady();
-	void GetFds(int* read, int* write, int* except);
+	void GetFds(std::vector<int>* read, std::vector<int>* write,
+	            std::vector<int>* except);
 	double NextTimestamp(double* local_network_time);
 	void Process();
 	const char* Tag()	{ return "PktSrc"; }

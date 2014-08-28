@@ -1368,12 +1368,17 @@ void RemoteSerializer::Unregister(ID* id)
 			}
 	}
 
-void RemoteSerializer::GetFds(int* read, int* write, int* except)
+void RemoteSerializer::GetFds(std::vector<int>* read, std::vector<int>* write,
+                              std::vector<int>* except)
 	{
-	*read = io->Fd();
+	read->push_back(io->Fd());
+	std::vector<int> supp = io->FdSupplements();
+
+	for ( size_t i = 0; i < supp.size(); ++i )
+		read->push_back(supp[i]);
 
 	if ( io->CanWrite() )
-		*write = io->Fd();
+		write->push_back(io->Fd());
 	}
 
 double RemoteSerializer::NextTimestamp(double* local_network_time)
@@ -3356,6 +3361,15 @@ SocketComm::~SocketComm()
 
 static unsigned int first_rtime = 0;
 
+static void fd_vector_set(const std::vector<int>& fds, fd_set* set, int* max)
+	{
+	for ( size_t i = 0; i < fds.size(); ++i )
+		{
+		FD_SET(fds[i], set);
+		*max = ::max(fds[i], *max);
+		}
+	}
+
 void SocketComm::Run()
 	{
 	first_rtime = (unsigned int) current_time(true);
@@ -3381,6 +3395,7 @@ void SocketComm::Run()
 
 		FD_SET(io->Fd(), &fd_read);
 		max_fd = io->Fd();
+		fd_vector_set(io->FdSupplements(), &fd_read, &max_fd);
 
 		loop_over_list(peers, i)
 			{
@@ -3389,6 +3404,7 @@ void SocketComm::Run()
 				FD_SET(peers[i]->io->Fd(), &fd_read);
 				if ( peers[i]->io->Fd() > max_fd )
 					max_fd = peers[i]->io->Fd();
+				fd_vector_set(peers[i]->io->FdSupplements(), &fd_read, &max_fd);
 				}
 			else
 				{
@@ -3439,38 +3455,17 @@ void SocketComm::Run()
 		if ( ! io->IsFillingUp() && shutting_conns_down )
 			shutting_conns_down = false;
 
-		// We cannot rely solely on select() as the there may
-		// be some data left in our input/output queues. So, we use
-		// a small timeout for select and check for data
-		// manually afterwards.
-
 		static long selects = 0;
 		static long canwrites = 0;
-		static long timeouts = 0;
 
 		++selects;
 		if ( io->CanWrite() )
 			++canwrites;
 
-		// FIXME: Fine-tune this (timeouts, flush, etc.)
-		struct timeval small_timeout;
-		small_timeout.tv_sec = 0;
-		small_timeout.tv_usec =
-			io->CanWrite() || io->CanRead() ? 1 : 10;
-
-#if 0
-		if ( ! io->CanWrite() )
-			usleep(10);
-#endif
-
-		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
-				&small_timeout);
-
-		if ( a == 0 )
-			++timeouts;
+		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except, 0);
 
 		if ( selects % 100000 == 0 )
-			Log(fmt("selects=%ld canwrites=%ld timeouts=%ld", selects, canwrites, timeouts));
+			Log(fmt("selects=%ld canwrites=%ld", selects, canwrites));
 
 		if ( a < 0 )
 			// Ignore errors for now.

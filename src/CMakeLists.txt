@@ -279,6 +279,7 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
+    Flare.cc
     FlowSrc.cc
     Frag.cc
     Frame.cc
@@ -299,6 +300,7 @@ set(bro_SRCS
     OSFinger.cc
     PacketFilter.cc
     PersistenceSerializer.cc
+    Pipe.cc
     PktSrc.cc
     PolicyFile.cc
     PrefixTable.cc

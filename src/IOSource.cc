@@ -24,6 +24,15 @@ void IOSourceRegistry::RemoveAll()
 	dont_counts = sources.size();
 	}
 
+static void fd_vector_set(const std::vector<int>& fds, fd_set* set, int* max)
+	{
+	for ( size_t i = 0; i < fds.size(); ++i )
+		{
+		FD_SET(fds[i], set);
+		*max = ::max(fds[i], *max);
+		}
+	}
+
 IOSource* IOSourceRegistry::FindSoonest(double* ts)
 	{
 	// Remove sources which have gone dry. For simplicity, we only
@@ -94,16 +103,14 @@ IOSource* IOSourceRegistry::FindSoonest(double* ts)
 			// be ready.
 			continue;
 
-		src->fd_read = src->fd_write = src->fd_except = 0;
+		src->fd_read.clear();
+		src->fd_write.clear();
+		src->fd_except.clear();
 		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
 
-		FD_SET(src->fd_read, &fd_read);
-		FD_SET(src->fd_write, &fd_write);
-		FD_SET(src->fd_except, &fd_except);
-
-		maxx = max(src->fd_read, maxx);
-		maxx = max(src->fd_write, maxx);
-		maxx = max(src->fd_except, maxx);
+		fd_vector_set(src->fd_read, &fd_read, &maxx);
+		fd_vector_set(src->fd_write, &fd_write, &maxx);
+		fd_vector_set(src->fd_except, &fd_except, &maxx);
 		}
 
 	// We can't block indefinitely even when all sources are dry:
@@ -143,9 +150,7 @@ IOSource* IOSourceRegistry::FindSoonest(double* ts)
 			if ( ! src->src->IsIdle() )
 				continue;
 
-			if ( FD_ISSET(src->fd_read, &fd_read) ||
-			     FD_ISSET(src->fd_write, &fd_write) ||
-			     FD_ISSET(src->fd_except, &fd_except) )
+			if ( src->Ready(&fd_read, &fd_write, &fd_except) )
 				{
 				double local_network_time = 0;
 				double ts = src->src->NextTimestamp(&local_network_time);
@@ -173,4 +178,24 @@ void IOSourceRegistry::Register(IOSource* src, bool dont_count)
 	if ( dont_count )
 		++dont_counts;
 	return sources.push_back(s);
+	}
+
+static bool fd_vector_ready(const std::vector<int>& fds, fd_set* set)
+	{
+	for ( size_t i = 0; i < fds.size(); ++i )
+		if ( FD_ISSET(fds[i], set) )
+			return true;
+
+	return false;
+	}
+
+bool IOSourceRegistry::Source::Ready(fd_set* read, fd_set* write,
+                                     fd_set* except) const
+	{
+	if ( fd_vector_ready(fd_read, read) ||
+	     fd_vector_ready(fd_write, write) ||
+	     fd_vector_ready(fd_except, except) )
+		return true;
+
+	return false;
 	}

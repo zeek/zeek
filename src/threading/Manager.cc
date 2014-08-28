@@ -65,7 +65,8 @@ void Manager::AddMsgThread(MsgThread* thread)
 	msg_threads.push_back(thread);
 	}
 
-void Manager::GetFds(int* read, int* write, int* except)
+void Manager::GetFds(std::vector<int>* read, std::vector<int>* write,
+                     std::vector<int>* except)
 	{
 	}
 

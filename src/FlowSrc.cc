@@ -28,10 +28,11 @@ FlowSrc::~FlowSrc()
 	delete netflow_analyzer;
 	}
 
-void FlowSrc::GetFds(int* read, int* write, int* except)
+void FlowSrc::GetFds(std::vector<int>* read, std::vector<int>* write,
+                     std::vector<int>* except)
 	{
 	if ( selectable_fd >= 0 )
-		*read = selectable_fd;
+		read->push_back(selectable_fd);
 	}
 
 double FlowSrc::NextTimestamp(double* network_time)

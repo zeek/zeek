@@ -4,6 +4,8 @@
 #define iosource_h
 
 #include <list>
+#include <vector>
+#include <sys/select.h>
 #include "Timer.h"
 
 using namespace std;
@@ -22,7 +24,8 @@ public:
 
 	// Returns select'able fds (leaves args untouched if we don't have
 	// selectable fds).
-	virtual void GetFds(int* read, int* write, int* except) = 0;
+	virtual void GetFds(std::vector<int>* read, std::vector<int>* write,
+	                    std::vector<int>* except) = 0;
 
 	// The following two methods are only called when either IsIdle()
 	// returns false or select() on one of the fds indicates that there's
@@ -89,9 +92,11 @@ protected:
 
 	struct Source {
 		IOSource* src;
-		int fd_read;
-		int fd_write;
-		int fd_except;
+		std::vector<int> fd_read;
+		std::vector<int> fd_write;
+		std::vector<int> fd_except;
+
+		bool Ready(fd_set* read, fd_set* write, fd_set* except) const;
 	};
 
 	typedef list<Source*> SourceList;

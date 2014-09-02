@@ -692,11 +692,6 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 		data += rdlength;
 		len -= rdlength;
 		}
-	else
-		{ // no data, move on
-		data += rdlength;
-		len -= rdlength;
-		}
 
 	return 1;
 	}

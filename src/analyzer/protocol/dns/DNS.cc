@@ -696,6 +696,19 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 	return 1;
 	}
 
+void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
+                                    BroString** p)
+	{
+	uint16 dlen = ExtractShort(data, len);
+	dlen = min(len, static_cast<int>(dlen));
+
+	if ( p )
+		*p = new BroString(data, dlen, 0);
+
+	data += dlen;
+	len -= dlen;
+	}
+
 int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
@@ -713,24 +726,17 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	uint32 sign_time_sec = ExtractLong(data, len);
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
-
-	u_char request_MAC[16];
-	memcpy(request_MAC, data, sizeof(request_MAC));
-
-	// Here we adjust the size of the requested MAC + u_int16_t
-	// for length.  See RFC 2845, sec 2.3.
-	int n = sizeof(request_MAC) + sizeof(u_int16_t);
-	data += n;
-	len -= n;
-
+	BroString* request_MAC;
+	ExtractOctets(data, len, &request_MAC);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
+	ExtractOctets(data, len, 0);  // Other Data
 
 	msg->tsig = new TSIG_DATA;
 
 	msg->tsig->alg_name =
 		new BroString(alg_name, alg_name_end - alg_name, 1);
-	msg->tsig->sig = new BroString(request_MAC, sizeof(request_MAC), 1);
+	msg->tsig->sig = request_MAC;
 	msg->tsig->time_s = sign_time_sec;
 	msg->tsig->time_ms = sign_time_msec;
 	msg->tsig->fudge = fudge;

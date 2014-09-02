@@ -60,10 +60,6 @@ refine typeattr SSH_DH_GEX_REPLY += &let {
 	proc: bool = $context.flow.proc_ssh_server_host_key(k_s.val);
 };
 
-refine typeattr SSH_DH_GEX_GROUP += &let {
-	proc: bool = $context.flow.proc_ssh_server_host_key(p.val);
-};
-
 refine typeattr SSH_Message += &let {
 	proc_newkeys: bool = $context.flow.proc_newkeys() &if(msg_type == SSH_MSG_NEWKEYS);
 };

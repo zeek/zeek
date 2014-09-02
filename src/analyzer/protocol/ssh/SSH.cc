@@ -91,12 +91,12 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 	  	relative_len = len - initial_client_packet_size;
 	else
 	  	relative_len = len - initial_server_packet_size;
-	if ( num_encrypted_packets_seen >= 4 )
+
+	if ( num_encrypted_packets_seen >= 6 )
 		{
 		int auth_result = AuthResult(relative_len, orig);
 		if ( auth_result > 0 )
 			{
-			num_encrypted_packets_seen = 1;
 			if ( auth_result == 1 )
 				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
 					                                   packet_n_1_size, packet_n_2_size);
@@ -105,28 +105,35 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 					                               packet_n_1_size, packet_n_2_size);
 			}
 		}
-	if ( num_encrypted_packets_seen >= 2 )
+	if ( ( num_encrypted_packets_seen >= 2 ) &&
+	     ( orig != packet_n_1_is_orig ) )
 		{
 		packet_n_2_is_orig = packet_n_1_is_orig;
 		packet_n_2_size = packet_n_1_size;
 		}
-	packet_n_1_is_orig = orig;
-	packet_n_1_size = relative_len;
-	num_encrypted_packets_seen++;
+	
+	if ( orig == packet_n_1_is_orig )
+		 packet_n_1_size += len;
+	else
+		{
+		packet_n_1_is_orig = orig;
+		packet_n_1_size = relative_len;
+		num_encrypted_packets_seen++;
+		}
 	}
 
 
 int SSH_Analyzer::AuthResult(int len, bool orig)
 	{
-	  if ( !orig && packet_n_1_is_orig && !packet_n_2_is_orig )
+	if ( !orig && packet_n_1_is_orig && !packet_n_2_is_orig )
 		{
+		printf("Auth result = %d\n", len);
 		if ( len == -16 )
 			return 1;
-		else if ( len >= 16 && 
-			  len <= 32 )
+		else if ( len >= 16 && len <= 32 )
 			return 2;
 		return 0;
 		}	
-		return -1;
+	return -1;
 	}
 

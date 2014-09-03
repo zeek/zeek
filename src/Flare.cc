@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Flare.h"
-#include "util.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -16,7 +15,21 @@ Flare::Flare()
 void Flare::Fire()
 	{
 	char tmp;
-	safe_write(pipe.WriteFD(), &tmp, 1);
+
+	for ( ; ; )
+		{
+		int n = write(pipe.WriteFD(), &tmp, 1);
+
+		if ( n > 0 )
+			// Success -- wrote a byte to pipe.
+			break;
+
+		if ( n < 0 && errno == EAGAIN )
+			// Success -- pipe is full and just need at least one byte in it.
+			break;
+
+		// Loop because either the byte wasn't written or got EINTR error.
+		}
 	}
 
 void Flare::Extinguish()
@@ -25,5 +38,6 @@ void Flare::Extinguish()
 
 	for ( ; ; )
 		if ( read(pipe.ReadFD(), &tmp, sizeof(tmp)) == -1 && errno == EAGAIN )
+			// Pipe is now drained.
 			break;
 	}

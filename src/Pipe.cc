@@ -64,6 +64,8 @@ Pipe::Pipe(const Pipe& other)
 	{
 	fds[0] = dup_or_fail(other.fds[0], other.flags[0]);
 	fds[1] = dup_or_fail(other.fds[1], other.flags[1]);
+	flags[0] = other.flags[0];
+	flags[1] = other.flags[1];
 	}
 
 Pipe& Pipe::operator=(const Pipe& other)
@@ -75,5 +77,7 @@ Pipe& Pipe::operator=(const Pipe& other)
 	close(fds[1]);
 	fds[0] = dup_or_fail(other.fds[0], other.flags[0]);
 	fds[1] = dup_or_fail(other.fds[1], other.flags[1]);
+	flags[0] = other.flags[0];
+	flags[1] = other.flags[1];
 	return *this;
 	}

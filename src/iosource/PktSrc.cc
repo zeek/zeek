@@ -89,6 +89,16 @@ double PktSrc::CurrentPacketWallClock()
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
+	if ( arg_props.hdr_size < 0 )
+		{
+		char buf[512];
+		safe_snprintf(buf, sizeof(buf),
+			 "unknown data link type 0x%x", props.link_type);
+		Error(buf);
+		Close();
+		return;
+		}
+
 	props = arg_props;
 	SetClosed(false);
 
@@ -97,6 +107,9 @@ void PktSrc::Opened(const Properties& arg_props)
 		Close();
 		return;
 		}
+
+	if ( props.is_live )
+		Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
@@ -433,6 +446,9 @@ bool PktSrc::ExtractNextPacketInternal()
 
 bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	{
+	if ( index < 0 )
+		return false;
+
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	// Compile filter.
@@ -465,6 +481,9 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 
 BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
+	if ( index < 0 )
+		return 0;
+
 	HashKey* hash = new HashKey(HashKey(bro_int_t(index)));
 	BPF_Program* code = filters.Lookup(hash);
 	delete hash;

@@ -108,9 +108,8 @@ void PcapSource::OpenLive()
 		return;
 
 	props.is_live = true;
-	Opened(props);
 
-	Info(fmt("listening on %s, capture length %d bytes\n", props.path.c_str(), SnapLen()));
+	Opened(props);
 	}
 
 void PcapSource::OpenOffline()
@@ -264,14 +263,6 @@ void PcapSource::SetHdrSize()
 
 	props.link_type = pcap_datalink(pd);
 	props.hdr_size = GetLinkHeaderSize(props.link_type);
-
-	if ( props.hdr_size < 0 )
-		{
-		safe_snprintf(errbuf, sizeof(errbuf),
-			 "unknown data link type 0x%x", props.link_type);
-		Error(errbuf);
-		Close();
-		}
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

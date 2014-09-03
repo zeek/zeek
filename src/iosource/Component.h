@@ -93,7 +93,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	virtual void Describe(ODesc* d) const;
+	virtual void DoDescribe(ODesc* d) const;
 
 private:
 	std::vector<std::string> prefixes;
@@ -140,7 +140,7 @@ public:
 	 * Generates a human-readable description of the component. This goes
 	 * into the output of \c "bro -NN".
 	 */
-	virtual void Describe(ODesc* d) const;
+	virtual void DoDescribe(ODesc* d) const;
 
 private:
 	std::vector<std::string> prefixes;

@@ -64,10 +64,9 @@ PktSrcComponent::factory_callback PktSrcComponent::Factory() const
 	return factory;
 	}
 
-
-void PktSrcComponent::Describe(ODesc* d) const
+void PktSrcComponent::DoDescribe(ODesc* d) const
 	{
-	iosource::Component::Describe(d);
+	iosource::Component::DoDescribe(d);
 
 	string prefs;
 
@@ -77,16 +76,16 @@ void PktSrcComponent::Describe(ODesc* d) const
 		if ( prefs.size() )
 			prefs += ", ";
 
-		prefs += *i;
+		prefs += '"' + *i + '"';
 		}
 
-	d->Add(" (interface prefix");
+	d->Add("interface prefix");
 	if ( prefixes.size() > 1 )
 		d->Add("es");
 
-	d->Add(": ");
+	d->Add(" ");
 	d->Add(prefs);
-	d->Add("; ");
+	d->Add("; supports ");
 
 	switch ( type ) {
 	case LIVE:
@@ -105,7 +104,6 @@ void PktSrcComponent::Describe(ODesc* d) const
 		reporter->InternalError("unknown PkrSrc type");
 	}
 
-	d->Add(")");
 	}
 
 PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
@@ -141,9 +139,9 @@ bool PktDumperComponent::HandlesPrefix(const string& prefix) const
 	return false;
 	}
 
-void PktDumperComponent::Describe(ODesc* d) const
+void PktDumperComponent::DoDescribe(ODesc* d) const
 	{
-	plugin::Component::Describe(d);
+	plugin::Component::DoDescribe(d);
 
 	string prefs;
 
@@ -156,12 +154,11 @@ void PktDumperComponent::Describe(ODesc* d) const
 		prefs += *i;
 		}
 
-	d->Add(" (dumper prefix");
+	d->Add("dumper prefix");
 
 	if ( prefixes.size() > 1 )
 		d->Add("es");
 
 	d->Add(": ");
 	d->Add(prefs);
-	d->Add(")");
 	}

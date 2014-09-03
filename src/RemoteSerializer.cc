@@ -4212,6 +4212,7 @@ bool SocketComm::Listen()
 				safe_close(fd);
 				CloseListenFDs();
 				listen_next_try = time(0) + bind_retry_interval;
+				freeaddrinfo(res0);
 				return false;
 				}
 

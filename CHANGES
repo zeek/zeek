@@ -1,4 +1,15 @@
 
+2.3-129 | 2014-09-02 17:21:21 -0700
+
+  * Simplify a conditional with equivalent branches. (Jon Siwek)
+
+  * Change EDNS parsing code to use rdlength more cautiously. (Jon
+  Siwek)
+
+  * Fix a memory leak when bind() fails due to EADDRINUSE. (Jon Siwek)
+
+  * Fix possible buffer over-read in DNS TSIG parsing. (Jon Siwek)
+
 2.3-124 | 2014-08-26 09:24:19 -0500
 
   * Better documentation for sub_bytes (Jimmy Jones)

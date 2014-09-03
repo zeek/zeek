@@ -23,6 +23,7 @@ extern TableType* string_set;
 extern TableType* string_array;
 extern TableType* count_set;
 extern VectorType* string_vec;
+extern VectorType* index_vec;
 extern VectorType* mime_matches;
 extern RecordType* mime_match;
 
@@ -103,13 +104,6 @@ extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
 
 extern RecordType* ntp_msg;
-
-extern TableVal* samba_cmds;
-extern RecordType* smb_hdr;
-extern RecordType* smb_trans;
-extern RecordType* smb_trans_data;
-extern RecordType* smb_tree_connect;
-extern TableType* smb_negotiate;
 
 extern RecordType* geo_location;
 

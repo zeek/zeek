@@ -1,4 +1,13 @@
 
+2.3-134 | 2014-09-04 16:16:36 -0700
+
+  * Fixed a number of issues with OCSP reply validation. Addresses
+    BIT-1212. (Johanna Amann)
+
+  * Fix null pointer dereference in OCSP verification code in case no
+    certificate is sent as part as the ocsp reply. Addresses BIT-1212.
+    (Johanna Amann)
+
 2.3-131 | 2014-09-04 16:10:32 -0700
 
   * Make links in documentation templates protocol relative. (Johanna

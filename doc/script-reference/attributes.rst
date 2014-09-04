@@ -1,38 +1,120 @@
 Attributes
 ==========
 
-Attributes occur at the end of type or event declarations and change their
-behavior. The syntax is ``&key`` or ``&key=val``, e.g., ``type T:
-set[count] &read_expire=5min`` or ``event foo() &priority=-3``.  The Bro
-scripting language supports the following attributes.
+The Bro scripting language supports the following attributes.
 
-.. bro:attr:: &optional
++-----------------------------+-----------------------------------------------+
+| Name                        | Description                                   |
++=============================+===============================================+
+| :bro:attr:`&redef`          |Redefine a global constant or extend a type.   |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&priority`       |Specify priority for event handler or hook.    |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&log`            |Mark a record field to be written to a log.    |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&optional`       |Allow a record field value to be missing.      |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&default`        |Specifies a default value.                     |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&add_func`       |Specify a function to call for each "redef +=".|
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&delete_func`    |Same as "&add_func", except for "redef -=".    |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&expire_func`    |Specify a function to call when container      |
+|                             |element expires.                               |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&read_expire`    |Specify a read timeout interval.               |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&write_expire`   |Specify a write timeout interval.              |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&create_expire`  |Specify a creation timeout interval.           |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&synchronized`   |Synchronize a variable across nodes.           |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&persistent`     |Make a variable persistent (written to disk).  |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&rotate_interval`|Rotate a file after specified interval.        |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&rotate_size`    |Rotate a file after specified file size.       |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&encrypt`        |Encrypt a file when writing to disk.           |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&raw_output`     |Open file in raw mode (chars. are not escaped).|
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&mergeable`      |Prefer set union for synchronized state.       |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&group`          |Group event handlers to activate/deactivate.   |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&error_handler`  |Used internally for reporter framework events. |
++-----------------------------+-----------------------------------------------+
+| :bro:attr:`&type_column`    |Used by input framework for "port" type.       |
++-----------------------------+-----------------------------------------------+
 
-    Allows a record field to be missing. For example the type ``record {
-    a: addr; b: port &optional; }`` could be instantiated both as
-    singleton ``[$a=127.0.0.1]`` or pair ``[$a=127.0.0.1, $b=80/tcp]``.
-
-.. bro:attr:: &default
-
-    Uses a default value for a record field, a function/hook/event
-    parameter, or container elements.  For example, ``table[int] of
-    string &default="foo"`` would create a table that returns the
-    :bro:type:`string` ``"foo"`` for any non-existing index.
+Here is a more detailed explanation of each attribute:
 
 .. bro:attr:: &redef
 
-    Allows for redefinition of initial object values. This is typically
-    used with constants, for example, ``const clever = T &redef;`` would
-    allow the constant to be redefined at some later point during script
-    execution.
+    Allows for redefinition of initial values of global objects declared as
+    constant.
 
-.. bro:attr:: &rotate_interval
+    In this example, the constant (assuming it is global) can be redefined
+    with a :bro:keyword:`redef` at some later point::
 
-    Rotates a file after a specified interval.
+        const clever = T &redef;
 
-.. bro:attr:: &rotate_size
+.. bro:attr:: &priority
 
-    Rotates a file after it has reached a given size in bytes.
+    Specifies the execution priority (as a signed integer) of a hook or
+    event handler. Higher values are executed before lower ones. The
+    default value is 0.  Example::
+
+        event bro_init() &priority=10
+        {
+            print "high priority";
+        }
+
+.. bro:attr:: &log
+
+    Writes a :bro:type:`record` field to the associated log stream.
+
+.. bro:attr:: &optional
+
+    Allows a record field value to be missing (i.e., neither initialized nor
+    ever assigned a value).
+
+    In this example, the record could be instantiated with either
+    "myrec($a=127.0.0.1)" or "myrec($a=127.0.0.1, $b=80/tcp)"::
+
+        type myrec: record { a: addr; b: port &optional; };
+
+    The ``?$`` operator can be used to check if a record field has a value or
+    not (it returns a ``bool`` value of ``T`` if the field has a value,
+    and ``F`` if not).
+
+.. bro:attr:: &default
+
+    Specifies a default value for a record field, container element, or a
+    function/hook/event parameter.
+
+    In this example, the record could be instantiated with either
+    "myrec($a=5, $c=3.14)" or "myrec($a=5, $b=53/udp, $c=3.14)"::
+
+        type myrec: record { a: count; b: port &default=80/tcp; c: double; };
+
+    In this example, the table will return the string ``"foo"`` for any
+    attempted access to a non-existing index::
+
+        global mytable: table[count] of string &default="foo";
+
+    When used with function/hook/event parameters, all of the parameters
+    with the "&default" attribute must come after all other parameters.
+    For example, the following function could be called either as "myfunc(5)"
+    or as "myfunc(5, 53/udp)"::
+
+        function myfunc(a: count, b: port &default=80/tcp)
+        {
+            print a, b;
+        }
 
 .. bro:attr:: &add_func
 
@@ -46,8 +128,8 @@ scripting language supports the following attributes.
 
 .. bro:attr:: &delete_func
 
-    Same as &add_func, except for "redef" declarations that use the "-="
-    operator.
+    Same as :bro:attr:`&add_func`, except for :bro:keyword:`redef` declarations
+    that use the "-=" operator.
 
 .. bro:attr:: &expire_func
 
@@ -76,22 +158,28 @@ scripting language supports the following attributes.
     is, the element expires after the given amount of time since it has
     been inserted into the container, regardless of any reads or writes.
 
-.. bro:attr:: &persistent
-
-    Makes a variable persistent, i.e., its value is written to disk (per
-    default at shutdown time).
-
 .. bro:attr:: &synchronized
 
     Synchronizes variable accesses across nodes. The value of a
     ``&synchronized`` variable is automatically propagated to all peers
     when it changes.
 
+.. bro:attr:: &persistent
+
+    Makes a variable persistent, i.e., its value is written to disk (per
+    default at shutdown time).
+
+.. bro:attr:: &rotate_interval
+
+    Rotates a file after a specified interval.
+
+.. bro:attr:: &rotate_size
+
+    Rotates a file after it has reached a given size in bytes.
+
 .. bro:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
-
-.. TODO: needs to be documented in more detail.
 
 .. bro:attr:: &raw_output
 
@@ -108,20 +196,10 @@ scripting language supports the following attributes.
     inconsistencies and can be avoided by unifying the two sets, rather
     than merely overwriting the old value.
 
-.. bro:attr:: &priority
-
-    Specifies the execution priority (as a signed integer) of a hook or
-    event handler. Higher values are executed before lower ones. The
-    default value is 0.
-
 .. bro:attr:: &group
 
     Groups event handlers such that those in the same group can be
     jointly activated or deactivated.
-
-.. bro:attr:: &log
-
-    Writes a record field to the associated log stream.
 
 .. bro:attr:: &error_handler
 
@@ -135,5 +213,20 @@ scripting language supports the following attributes.
 .. bro:attr:: &type_column
 
     Used by the input framework. It can be used on columns of type
-    :bro:type:`port` and specifies the name of an additional column in
+    :bro:type:`port` (such a column only contains the port number) and
+    specifies the name of an additional column in
     the input file which specifies the protocol of the port (tcp/udp/icmp).
+
+    In the following example, the input file would contain four columns
+    named "ip", "srcp", "proto", and "msg"::
+
+        type Idx: record {
+            ip: addr;
+        };
+
+
+        type Val: record {
+            srcp: port &type_column = "proto";
+            msg: string;
+        };
+

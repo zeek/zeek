@@ -176,6 +176,10 @@ class BroIdentifier(BroGeneric):
     def get_index_text(self, objectname, name):
         return name
 
+class BroKeyword(BroGeneric):
+    def get_index_text(self, objectname, name):
+        return name
+
 class BroAttribute(BroGeneric):
     def get_index_text(self, objectname, name):
         return _('%s (attribute)') % (name)
@@ -213,6 +217,7 @@ class BroDomain(Domain):
         'type':             ObjType(l_('type'),             'type'),
         'namespace':        ObjType(l_('namespace'),        'namespace'),
         'id':               ObjType(l_('id'),               'id'),
+        'keyword':          ObjType(l_('keyword'),          'keyword'),
         'enum':             ObjType(l_('enum'),             'enum'),
         'attr':             ObjType(l_('attr'),             'attr'),
     }
@@ -221,6 +226,7 @@ class BroDomain(Domain):
         'type':             BroGeneric,
         'namespace':        BroNamespace,
         'id':               BroIdentifier,
+        'keyword':          BroKeyword,
         'enum':             BroEnum,
         'attr':             BroAttribute,
     }
@@ -229,6 +235,7 @@ class BroDomain(Domain):
         'type':             XRefRole(),
         'namespace':        XRefRole(),
         'id':               XRefRole(),
+        'keyword':          XRefRole(),
         'enum':             XRefRole(),
         'attr':             XRefRole(),
         'see':              XRefRole(),

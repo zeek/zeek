@@ -5,8 +5,11 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
+   operators
    types
    attributes
+   statements
+   directives
    notices
    proto-analyzers
    file-analyzers

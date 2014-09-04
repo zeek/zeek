@@ -1,6 +1,7 @@
 # @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
 # @TEST-EXEC: bash %INPUT
-# @TEST-EXEC: BRO_PLUGIN_INSTALL=`pwd`/test-install make BRO=${DIST}
+# @TEST-EXEC: ./configure --bro-dist=${DIST}
+# @TEST-EXEC: BRO_PLUGIN_INSTALL=`pwd`/test-install make
 # @TEST-EXEC: make install
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro -NN Demo::Foo >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro demo/foo -r $TRACES/empty.trace >>output

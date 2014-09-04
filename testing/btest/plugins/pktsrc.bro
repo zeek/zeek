@@ -4,5 +4,5 @@
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN Demo::Foo  >>output
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r foo:XXX %INPUT FilteredTraceDetection::enable=F >>output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff conn.log
+# @TEST-EXEC: btest-diff conn.log
 

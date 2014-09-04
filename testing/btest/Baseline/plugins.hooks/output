@@ -182,7 +182,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Cluster::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Communication::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Conn::LOG)) -> <null>
@@ -273,8 +273,8 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, (ip or not ip, and, )) -> <null>
@@ -316,7 +316,11 @@
 0.000000   MetaHookPost  LoadFile(../main) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_ARP.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_AYIYA.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_AsciiReader.ascii.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_AsciiWriter.ascii.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_BackDoor.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_BenchmarkReader.benchmark.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_BinaryReader.binary.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_BitTorrent.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_ConnSize.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_DCE_RPC.events.bif.bro) -> -1
@@ -347,16 +351,20 @@
 0.000000   MetaHookPost  LoadFile(./Bro_NetBIOS.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_NetBIOS.functions.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_NetFlow.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_NoneWriter.none.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_PIA.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_POP3.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_RADIUS.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_RPC.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_RawReader.raw.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SMB.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SMTP.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SMTP.functions.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SNMP.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SNMP.types.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SOCKS.events.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_SQLiteReader.sqlite.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./Bro_SQLiteWriter.sqlite.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SSH.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SSL.events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./Bro_SteppingStone.events.bif.bro) -> -1
@@ -380,21 +388,20 @@
 0.000000   MetaHookPost  LoadFile(./cardinality-counter.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./const.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./consts) -> -1
-0.000000   MetaHookPost  LoadFile(./consts.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./consts.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./contents) -> -1
 0.000000   MetaHookPost  LoadFile(./dcc-send) -> -1
 0.000000   MetaHookPost  LoadFile(./entities) -> -1
 0.000000   MetaHookPost  LoadFile(./event.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./events.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./exec) -> -1
 0.000000   MetaHookPost  LoadFile(./file_analysis.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./files) -> -1
-0.000000   MetaHookPost  LoadFile(./functions.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./gridftp) -> -1
 0.000000   MetaHookPost  LoadFile(./hll_unique) -> -1
+0.000000   MetaHookPost  LoadFile(./hooks.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./inactivity) -> -1
 0.000000   MetaHookPost  LoadFile(./info) -> -1
+0.000000   MetaHookPost  LoadFile(./init.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./input) -> -1
 0.000000   MetaHookPost  LoadFile(./input.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./last) -> -1
@@ -408,6 +415,7 @@
 0.000000   MetaHookPost  LoadFile(./netstats) -> -1
 0.000000   MetaHookPost  LoadFile(./non-cluster) -> -1
 0.000000   MetaHookPost  LoadFile(./patterns) -> -1
+0.000000   MetaHookPost  LoadFile(./pcap.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./plugins) -> -1
 0.000000   MetaHookPost  LoadFile(./polling) -> -1
 0.000000   MetaHookPost  LoadFile(./postprocessors) -> -1
@@ -432,9 +440,7 @@
 0.000000   MetaHookPost  LoadFile(.<...>/ascii) -> -1
 0.000000   MetaHookPost  LoadFile(.<...>/benchmark) -> -1
 0.000000   MetaHookPost  LoadFile(.<...>/binary) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/dataseries) -> -1
 0.000000   MetaHookPost  LoadFile(.<...>/drop) -> -1
-0.000000   MetaHookPost  LoadFile(.<...>/elasticsearch) -> -1
 0.000000   MetaHookPost  LoadFile(.<...>/email_admin) -> -1
 0.000000   MetaHookPost  LoadFile(.<...>/hostnames) -> -1
 0.000000   MetaHookPost  LoadFile(.<...>/none) -> -1
@@ -699,7 +705,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
-0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Conn::LOG))
@@ -790,8 +796,8 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
-0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T]))
-0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, (ip or not ip, and, ))
@@ -833,7 +839,11 @@
 0.000000   MetaHookPre   LoadFile(../main)
 0.000000   MetaHookPre   LoadFile(./Bro_ARP.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_AYIYA.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_AsciiReader.ascii.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_AsciiWriter.ascii.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_BackDoor.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_BenchmarkReader.benchmark.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_BinaryReader.binary.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_BitTorrent.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_ConnSize.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_DCE_RPC.events.bif.bro)
@@ -864,16 +874,20 @@
 0.000000   MetaHookPre   LoadFile(./Bro_NetBIOS.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_NetBIOS.functions.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_NetFlow.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_NoneWriter.none.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_PIA.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_POP3.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_RADIUS.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_RPC.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_RawReader.raw.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SMB.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SMTP.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SMTP.functions.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SNMP.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SNMP.types.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SOCKS.events.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_SQLiteReader.sqlite.bif.bro)
+0.000000   MetaHookPre   LoadFile(./Bro_SQLiteWriter.sqlite.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SSH.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SSL.events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./Bro_SteppingStone.events.bif.bro)
@@ -897,21 +911,20 @@
 0.000000   MetaHookPre   LoadFile(./cardinality-counter.bif.bro)
 0.000000   MetaHookPre   LoadFile(./const.bif.bro)
 0.000000   MetaHookPre   LoadFile(./consts)
-0.000000   MetaHookPre   LoadFile(./consts.bif.bro)
 0.000000   MetaHookPre   LoadFile(./consts.bro)
 0.000000   MetaHookPre   LoadFile(./contents)
 0.000000   MetaHookPre   LoadFile(./dcc-send)
 0.000000   MetaHookPre   LoadFile(./entities)
 0.000000   MetaHookPre   LoadFile(./event.bif.bro)
-0.000000   MetaHookPre   LoadFile(./events.bif.bro)
 0.000000   MetaHookPre   LoadFile(./exec)
 0.000000   MetaHookPre   LoadFile(./file_analysis.bif.bro)
 0.000000   MetaHookPre   LoadFile(./files)
-0.000000   MetaHookPre   LoadFile(./functions.bif.bro)
 0.000000   MetaHookPre   LoadFile(./gridftp)
 0.000000   MetaHookPre   LoadFile(./hll_unique)
+0.000000   MetaHookPre   LoadFile(./hooks.bif.bro)
 0.000000   MetaHookPre   LoadFile(./inactivity)
 0.000000   MetaHookPre   LoadFile(./info)
+0.000000   MetaHookPre   LoadFile(./init.bro)
 0.000000   MetaHookPre   LoadFile(./input)
 0.000000   MetaHookPre   LoadFile(./input.bif.bro)
 0.000000   MetaHookPre   LoadFile(./last)
@@ -925,6 +938,7 @@
 0.000000   MetaHookPre   LoadFile(./netstats)
 0.000000   MetaHookPre   LoadFile(./non-cluster)
 0.000000   MetaHookPre   LoadFile(./patterns)
+0.000000   MetaHookPre   LoadFile(./pcap.bif.bro)
 0.000000   MetaHookPre   LoadFile(./plugins)
 0.000000   MetaHookPre   LoadFile(./polling)
 0.000000   MetaHookPre   LoadFile(./postprocessors)
@@ -949,9 +963,7 @@
 0.000000   MetaHookPre   LoadFile(.<...>/ascii)
 0.000000   MetaHookPre   LoadFile(.<...>/benchmark)
 0.000000   MetaHookPre   LoadFile(.<...>/binary)
-0.000000   MetaHookPre   LoadFile(.<...>/dataseries)
 0.000000   MetaHookPre   LoadFile(.<...>/drop)
-0.000000   MetaHookPre   LoadFile(.<...>/elasticsearch)
 0.000000   MetaHookPre   LoadFile(.<...>/email_admin)
 0.000000   MetaHookPre   LoadFile(.<...>/hostnames)
 0.000000   MetaHookPre   LoadFile(.<...>/none)
@@ -1216,7 +1228,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2])
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1307,8 +1319,8 @@
 0.000000 | HookCallFunction Log::create_stream(Unified2::LOG, [columns=<no value description>, ev=Unified2::log_unified2])
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
-0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1405981560.501473, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1409853900.737227, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )

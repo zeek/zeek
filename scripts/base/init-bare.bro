@@ -2734,6 +2734,8 @@ type bt_tracker_headers: table[string] of string;
 
 type ModbusCoils: vector of bool;
 type ModbusRegisters: vector of count;
+type ModbusFileRecordData: vector of count;
+type ModbusReferenceWithData: vector of count;
 
 type ModbusHeaders: record {
 	tid:           count;

@@ -306,7 +306,10 @@ type FileRecordResponse = record {
 	file_len:    uint8    &check(file_len >= 0x07 && file_len <= 0xF5);
 	ref_type:    uint8    &check(ref_type == 6);
 	record_data: uint16[file_len/2] &length=file_len;
-} &byteorder=bigendian;
+}  &let{
+	deliver: bool = $context.flow.deliver_FileRecordResponse(this);
+}
+&byteorder=bigendian;
 
 # RESPONSE FC=20
 type ReadFileRecordResponse(header: ModbusTCP_TransportHeader) = record {
@@ -323,7 +326,10 @@ type ReferenceWithData = record {
 	record_num:     uint16;
 	word_count:     uint16;
 	register_value: uint16[word_count];
-} &byteorder=bigendian;
+} &let{ 
+	deliver: bool = $context.flow.deliver_ReferenceWithData(this);
+}
+&byteorder=bigendian;
 
 # REQUEST FC=21
 type WriteFileRecordRequest(header: ModbusTCP_TransportHeader) = record {

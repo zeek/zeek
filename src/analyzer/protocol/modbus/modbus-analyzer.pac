@@ -420,6 +420,33 @@ refine flow ModbusTCP_Flow += {
 		return true;
 		%}
 
+	# support data strcuture
+	function deliver_FileRecordResponse(message: FileRecordResponse): bool
+		%{
+		if ( ${message.file_len} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    fmt("invalid value for modbus file record response file_len %d", ${message.file_len}));
+			return false;
+			}
+
+		if ( ::modbus_file_record_response )
+			{
+			VectorVal* t = create_vector_of_count();
+			for (unsigned int i = 0; i < (${message.file_len} / 2) ; ++i)
+				{
+				Val* r = new Val((${message.record_data[i]}), TYPE_COUNT);
+				t->Assign(i, r);
+				}
+			BifEvent::generate_modbus_file_record_response(connection()->bro_analyzer(),
+			                                                            connection()->bro_analyzer()->Conn(),
+										    ${message.file_len},
+			                                                            ${message.ref_type}, t);
+			}
+
+		return true;
+		%}
+
 	# RESPONSE FC=20
 	function deliver_ReadFileRecordResponse(header: ModbusTCP_TransportHeader, message: ReadFileRecordResponse): bool
 		%{
@@ -440,6 +467,28 @@ refine flow ModbusTCP_Flow += {
 
 		return true;
 		%}
+
+	# support data strcuture
+	function deliver_ReferenceWithData(message: ReferenceWithData): bool
+		%{
+		if ( ::modbus_reference_with_data )
+			{
+			VectorVal* t = create_vector_of_count();
+			for (unsigned int i = 0; i < (${message.word_count}) ; ++i)
+				{
+				Val* r = new Val((${message.register_value[i]}), TYPE_COUNT);
+				t->Assign(i, r);
+				}
+			BifEvent::generate_modbus_reference_with_data(connection()->bro_analyzer(),
+			                                                            connection()->bro_analyzer()->Conn(),
+										    ${message.ref_type}, ${message.file_num},
+										    ${message.record_num}, 
+										    ${message.word_count}, t);
+			}
+
+		return true;
+		%}
+
 
 	# REQUEST FC=21
 	function deliver_WriteFileRecordRequest(header: ModbusTCP_TransportHeader, message: WriteFileRecordRequest): bool

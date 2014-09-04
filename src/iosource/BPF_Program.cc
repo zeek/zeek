@@ -58,7 +58,14 @@ int pcap_compile_nopcap(int snaplen_arg, int linktype_arg,
 }
 #endif
 
-BPF_Program::BPF_Program() : m_compiled(), m_program()
+// Simple heuristic to identify filters that always match, so that we can
+// skip the filtering in that case. "ip or not ip" is Bro's default filter.
+static bool filter_matches_anything(const char *filter)
+	{
+	return (! filter) || strlen(filter) == 0 || strcmp(filter, "ip or not ip") == 0;
+	}
+
+BPF_Program::BPF_Program() : m_compiled(), m_matches_anything(false), m_program()
 	{
 	}
 
@@ -86,7 +93,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 		}
 
 	m_compiled = true;
-	m_matches_anything = (strlen(filter) == 0 || strcmp(filter, "ip or not ip") == 0);
+	m_matches_anything = filter_matches_anything(filter);
 
 	return true;
 	}
@@ -114,7 +121,10 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
 #endif
 
 	if ( err == 0 )
+		{
 		m_compiled = true;
+		m_matches_anything = filter_matches_anything(filter);
+		}
 
 	return err == 0;
 	}

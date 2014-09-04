@@ -284,6 +284,17 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// inject the certificates in the certificate list of the OCSP reply, they actually are used during
 	// the lookup.
 	// Yay.
+
+	if ( basic->certs == 0 )
+		{
+		basic->certs = sk_X509_new_null();
+		if ( !basic->certs )
+			{
+			rval = x509_result_record(-1, "Could not allocate basic x509 stack");
+			goto x509_ocsp_cleanup;
+			}
+		}
+
 	issuer_certificate = 0;
 	for ( int i = 0; i < sk_X509_num(untrusted_certs); i++)
 		{

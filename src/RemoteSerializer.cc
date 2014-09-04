@@ -192,6 +192,7 @@
 #include "logging/Manager.h"
 #include "IPAddr.h"
 #include "bro_inet_ntop.h"
+#include "logging/logging.bif.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -1452,7 +1453,7 @@ void RemoteSerializer::Process()
 		// FIXME: The following chunk of code is copied from
 		// net_packet_dispatch().  We should change that function
 		// to accept an IOSource instead of the PktSrc.
-		network_time = p->time;
+		net_update_time(p->time);
 
 		SegmentProfiler(segment_logger, "expiring-timers");
 		TimerMgr* tmgr = sessions->LookupTimerMgr(GetCurrentTag());
@@ -2723,8 +2724,8 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	fmt.EndRead();
 
-	id_val = new EnumVal(id, BifType::Enum::Log::ID);
-	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
+	id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
+	writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
 	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields,
 	                             true, false, true) )
@@ -2796,8 +2797,8 @@ bool RemoteSerializer::ProcessLogWrite()
 				}
 			}
 
-		id_val = new EnumVal(id, BifType::Enum::Log::ID);
-		writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
+		id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
+		writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
 
 		success = log_mgr->Write(id_val, writer_val, path, num_fields, vals);
 
@@ -4211,6 +4212,7 @@ bool SocketComm::Listen()
 				safe_close(fd);
 				CloseListenFDs();
 				listen_next_try = time(0) + bind_retry_interval;
+				freeaddrinfo(res0);
 				return false;
 				}
 

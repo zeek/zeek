@@ -465,10 +465,7 @@ void Val::Describe(ODesc* d) const
 		d->SP();
 		}
 
-	if ( d->IsReadable() )
-		ValDescribe(d);
-	else
-		Val::ValDescribe(d);
+	ValDescribe(d);
 	}
 
 void Val::DescribeReST(ODesc* d) const

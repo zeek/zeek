@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "BackDoor.h"
 
-BRO_PLUGIN_BEGIN(Bro, BackDoor)
-	BRO_PLUGIN_DESCRIPTION("Backdoor Analyzer (deprecated)");
-	BRO_PLUGIN_ANALYZER("BackDoor", backdoor::BackDoor_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_BackDoor {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("BackDoor", ::analyzer::backdoor::BackDoor_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::BackDoor";
+		config.description = "Backdoor Analyzer deprecated";
+		return config;
+		}
+} plugin;
+
+}
+}

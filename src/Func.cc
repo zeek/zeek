@@ -331,7 +331,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, args), 0);
+	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), 0);
 
 	if ( plugin_result )
 		return HandlePluginResult(plugin_result, args, Flavor());
@@ -548,7 +548,7 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, args), 0);
+	Val* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), 0);
 
 	if ( plugin_result )
 		return HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);

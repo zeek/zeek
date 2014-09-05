@@ -244,7 +244,7 @@ public:
 	 * functions and events, it may be any Val and must be ignored). If no
 	 * plugin handled the call, the method returns null.
 	 */
-	Val* HookCallFunction(const Func* func, val_list* args) const;
+	Val* HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.
@@ -261,7 +261,7 @@ public:
 	 *
 	 * @param network_time The new network time.
 	 */
-	void HookUpdateNetworkTime(double network_time) const;
+	void HookUpdateNetworkTime(const double network_time) const;
 
 	/**
 	 * Hook that informs plugins that the event queue is being drained.

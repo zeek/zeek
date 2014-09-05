@@ -559,13 +559,14 @@ int Manager::HookLoadFile(const string& file)
 	return rc;
 	}
 
-Val* Manager::HookCallFunction(const Func* func, val_list* vargs) const
+Val* Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
 	{
 	HookArgumentList args;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(func));
+        args.push_back(HookArgument(parent));
 		args.push_back(HookArgument(vargs));
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
@@ -579,7 +580,7 @@ Val* Manager::HookCallFunction(const Func* func, val_list* vargs) const
 			{
 			Plugin* p = (*i).second;
 
-			v = p->HookCallFunction(func, vargs);
+			v = p->HookCallFunction(func, parent, vargs);
 
 			if ( v )
 				break;
@@ -644,7 +645,7 @@ void Manager::HookDrainEvents() const
 
 	}
 
-void Manager::HookUpdateNetworkTime(double network_time) const
+void Manager::HookUpdateNetworkTime(const double network_time) const
 	{
 	HookArgumentList args;
 

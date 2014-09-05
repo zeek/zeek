@@ -271,7 +271,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-Val* Plugin::HookCallFunction(const Func* func, val_list* args)
+Val* Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
 	{
 	return 0;
 	}
@@ -285,7 +285,7 @@ void Plugin::HookDrainEvents()
 	{
 	}
 
-void Plugin::HookUpdateNetworkTime(double network_time)
+void Plugin::HookUpdateNetworkTime(const double network_time)
 	{
 	}
 

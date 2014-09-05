@@ -573,7 +573,7 @@ protected:
 	 * ignored; best to use a \c TYPE_ANY). If the plugin did not handle
 	 * the call, it must return null.
 	 */
-	virtual Val* HookCallFunction(const Func* func, val_list* args);
+	virtual Val* HookCallFunction(const Func* func, Frame *parent, val_list* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about
@@ -607,7 +607,7 @@ protected:
 	 *
 	 * @param networkt_time The new network time.
 	 */
-	virtual void HookUpdateNetworkTime(double network_time);
+	virtual void HookUpdateNetworkTime(const double network_time);
 
 	/**
 	 * Hook for destruction of objects registered with

@@ -3,10 +3,6 @@
 #ifndef IOSOURCE_PKTSRC_PKTSRC_H
 #define IOSOURCE_PKTSRC_PKTSRC_H
 
-extern "C" {
-#include <pcap.h>
-}
-
 #include "IOSource.h"
 #include "BPF_Program.h"
 #include "Dict.h"

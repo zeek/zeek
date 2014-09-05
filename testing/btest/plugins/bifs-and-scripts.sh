@@ -23,6 +23,8 @@
 
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
+mkdir -p scripts/demo/foo/base/
+
 cat >scripts/__load__.bro <<EOF
 @load ./demo/foo/base/at-startup.bro
 EOF
@@ -38,8 +40,6 @@ event bro_init() &priority=-10
         }
 EOF
 
-mkdir -p scripts/demo/foo/base/
-
 cat >scripts/demo/foo/base/at-startup.bro <<EOF
 event bro_init() &priority=10
         {
@@ -48,17 +48,16 @@ event bro_init() &priority=10
         }
 EOF
 
-cat >src/functions.bif <<EOF
+cat >src/foo.bif <<EOF
 function hello_plugin_world%(%): string
         %{
         return new StringVal("Hello from the plugin!");
         %}
+
+event plugin_event%(foo: count%);
 EOF
 
 cat >activate.bro <<EOF
 @load-plugin Demo::Foo
 EOF
 
-cat >src/events.bif <<EOF
-event plugin_event%(foo: count%);
-EOF

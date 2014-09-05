@@ -151,7 +151,7 @@ void PktDumperComponent::DoDescribe(ODesc* d) const
 		if ( prefs.size() )
 			prefs += ", ";
 
-		prefs += *i;
+		prefs += '"' + *i + '"';
 		}
 
 	d->Add("dumper prefix");

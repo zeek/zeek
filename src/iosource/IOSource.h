@@ -3,6 +3,10 @@
 #ifndef IOSOURCE_IOSOURCE_H
 #define IOSOURCE_IOSOURCE_H
 
+extern "C" {
+#include <pcap.h>
+}
+
 #include <string>
 
 #include "Timer.h"

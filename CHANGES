@@ -1,6 +1,8 @@
 
 2.3.1 | 2014-09-04 17:07:23 -0700
 
+  * Fix a reference counting bug in ListVal ctor. (Jon Siwek)
+
   * Fix possible buffer over-read in DNS TSIG parsing. (Jon Siwek)
 
   * Change EDNS parsing code to use rdlength more cautiously. (Jon

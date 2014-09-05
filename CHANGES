@@ -1,4 +1,20 @@
 
+2.3.1 | 2014-09-04 17:07:23 -0700
+
+  * Fix possible buffer over-read in DNS TSIG parsing. (Jon Siwek)
+
+  * Change EDNS parsing code to use rdlength more cautiously. (Jon
+    Siwek)
+
+  * Fix null pointer dereference in OCSP verification code in case no
+    certificate is sent as part as the ocsp reply. Addresses BIT-1212.
+    (Johanna Amann)
+
+  * Fix OCSP reply validation. Addresses BIT-1212 (Johanna Amann)
+
+  * Make links in documentation templates protocol relative. (Johanna
+    Amann)
+
 2.3 | 2014-06-16 09:48:25 -0500
 
   * Release 2.3.

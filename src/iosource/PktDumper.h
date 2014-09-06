@@ -7,6 +7,9 @@
 
 namespace iosource {
 
+/**
+ * Base class for packet dumpers.
+ */
 class PktDumper {
 public:
 	/**

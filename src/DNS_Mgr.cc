@@ -405,7 +405,7 @@ DNS_Mgr::~DNS_Mgr()
 	delete [] dir;
 	}
 
-void DNS_Mgr::Init()
+void DNS_Mgr::InitPostScript()
 	{
 	if ( did_init )
 		return;

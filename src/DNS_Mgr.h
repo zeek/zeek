@@ -45,7 +45,7 @@ public:
 	DNS_Mgr(DNS_MgrMode mode);
 	virtual ~DNS_Mgr();
 
-	void Init();
+	void InitPostScript();
 	void Flush();
 
 	// Looks up the address or addresses of the given host, and returns

@@ -28,7 +28,7 @@ public:
 	virtual ~RemoteSerializer();
 
 	// Initialize the remote serializer (calling this will fork).
-	void Init();
+	void Enable();
 
 	// FIXME: Use SourceID directly (or rename everything to Peer*).
 	typedef SourceID PeerID;

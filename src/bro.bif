@@ -4459,7 +4459,7 @@ function enable_communication%(%): any
 		return 0;
 
 	using_communication = 1;
-	remote_serializer->Init();
+	remote_serializer->Enable();
 	return 0;
 	%}
 

@@ -22,7 +22,10 @@ public:
 	typedef IOSource* (*factory_callback)();
 
 	/**
-	 * XXX
+	 * Constructor.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of this type.
 	 */
 	Component(const std::string& name);
 
@@ -37,9 +40,14 @@ public:
 	~Component();
 
 protected:
-    /**
-     * XXXX
-     */
+	/**
+	 * Constructor to use by derived classes.
+	 *
+	 * @param type The type of the componnent.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of this type.
+	 */
 	Component(plugin::component::Type type, const std::string& name);
 };
 
@@ -48,12 +56,29 @@ protected:
  */
 class PktSrcComponent : public iosource::Component {
 public:
-	enum InputType { LIVE, TRACE, BOTH };
+	/**
+	 * Type of input a packet source supports.
+	 */
+	enum InputType {
+		LIVE,	///< Live input.
+		TRACE,		///< Offline input from trace file.
+		BOTH	///< Live input as well as offline.
+	};
 
 	typedef PktSrc* (*factory_callback)(const std::string& path, bool is_live);
 
 	/**
-	 * XXX
+	 * Constructor.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of this type.
+	 *
+	 * @param prefixes The list of interface/file prefixes associated
+	 * with this component.
+	 *
+	 * @param type Type of input the component supports.
+	 *
+	 * @param factor Factory function to instantiate component.
 	 */
 	PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory);
 

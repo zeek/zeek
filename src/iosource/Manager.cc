@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -22,7 +23,7 @@ Manager::~Manager()
 	{
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		{
-		// ??? (*i)->src->Done();
+		(*i)->src->Done();
 		delete *i;
 		}
 

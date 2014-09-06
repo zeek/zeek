@@ -14,56 +14,120 @@ extern "C" {
 namespace iosource {
 
 /**
- * Interface class for components providing/consuming data inside Bro's main loop.
+ * Interface class for components providing/consuming data inside Bro's main
+ * loop.
  */
 class IOSource {
 public:
+	/**
+	 * Constructor.
+	 */
 	IOSource()	{ idle = false; closed = false; }
+
+	/**
+	 * Destructor.
+	 */
 	virtual ~IOSource()	{}
 
-	// Returns true if source has nothing ready to process.
+	/**
+	 * Returns true if source has nothing ready to process.
+	 */
 	bool IsIdle() const	{ return idle; }
 
-	// Returns true if more data is to be expected in the future.
-	// Otherwise, source may be removed.
+	/**
+	 * Returns true if more data is to be expected in the future.
+	 * Otherwise, source may be removed.
+	 */
 	bool IsOpen() const	{ return ! closed; }
 
-	// XXX
+	/**
+	 * Initializes the source. Can be overwritten by derived classes.
+	 */
 	virtual void Init()	{ }
 
-	// XXX
+	/**
+	 * Finalizes the source when it's being closed. Can be overwritten by
+	 * derived classes.
+	 */
 	virtual void Done()	{ }
 
-	// Returns select'able fds (leaves args untouched if we don't have
-	// selectable fds).
+	/**
+	 * Returns select'able file descriptors for this source. Leaves the
+	 * passed values untouched if not available.
+	 *
+	 * @param read Pointer to where to store a read descriptor.
+	 *
+	 * @param write Pointer to where to store a write descriptor.
+	 *
+	 * @param except Pointer to where to store a except descriptor.
+	 */
 	virtual void GetFds(int* read, int* write, int* except) = 0;
 
-	// The following two methods are only called when either IsIdle()
-	// returns false or select() on one of the fds indicates that there's
-	// data to process.
-
-	// Returns timestamp (in global network time) associated with next
-	// data item.  If the source wants the data item to be processed
-	// with a local network time, it sets the argument accordingly.
+	/**
+	 * Returns the timestamp (in \a global network time) associated with
+	 * next data item from this source.  If the source wants the data
+	 * item to be processed with a local network time, it sets the
+	 * argument accordingly.
+	 *
+	 * This method will be called only when either IsIdle() returns
+	 * false, or select() on one of the fds returned by GetFDs()
+	 * indicates that there's data to process.
+	 *
+	 * Must be overridden by derived classes.
+	 *
+	 * @param network_time A pointer to store the \a local network time
+	 * associated with the next item (as opposed to global network time).
+	 *
+	 * @return The global network time of the next entry, or a value
+	 * smaller than zero if none is available currently.
+	 */
 	virtual double NextTimestamp(double* network_time) = 0;
 
-	// Processes and consumes next data item.
+	/**
+	 * Processes and consumes next data item.
+	 *
+	 * This method will be called only when either IsIdle() returns
+	 * false, or select() on one of the fds returned by GetFDs()
+	 * indicates that there's data to process.
+	 *
+	 * Must be overridden by derived classes.
+	 */
 	virtual void Process() = 0;
 
-	// Returns tag of timer manager associated with last processed
-	// data item, nil for global timer manager.
+	/**
+	 * Returns the tag of the timer manafger associated with the last
+	 * procesees data item.
+	 *
+	 * Can be overridden by derived classes.
+	 *
+	 * @return The tag, or null for the global timer manager.
+	 * 
+	 */
 	virtual TimerMgr::Tag* GetCurrentTag()	{ return 0; }
 
-	// Returns a descriptual tag for debugging.
+	/**
+	 * Returns a descriptual tag representing the source for debugging.
+	 *
+	 * Can be overridden by derived classes.
+	 *
+	 * @return The debugging name.
+	 */
 	virtual const char* Tag() = 0;
 
 protected:
-	// Derived classed are to set this to true if they have gone dry
-	// temporarily.
+	/*
+	 * Callback for derived classes to call when they have gone dry
+	 * temporarily.
+	 *
+	 * @param is_idle True if the source is idle currently.
+	 */
 	void SetIdle(bool is_idle)	{ idle = is_idle; }
 
-	// Derived classed are to set this to true if they have gone dry
-	// temporarily.
+	/*
+	 * Callback for derived class to call when they have shutdown.
+	 *
+	 * @param is_closed True if the source is now closed.
+	 */
 	void SetClosed(bool is_closed)	{ closed = is_closed; }
 
 private:

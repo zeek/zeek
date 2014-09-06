@@ -558,7 +558,7 @@ RemoteSerializer::~RemoteSerializer()
 	delete io;
 	}
 
-void RemoteSerializer::Init()
+void RemoteSerializer::Enable()
 	{
 	if ( initialized )
 		return;

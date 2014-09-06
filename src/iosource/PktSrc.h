@@ -11,6 +11,9 @@ declare(PDict,BPF_Program);
 
 namespace iosource {
 
+/**
+ * Base class for packet sources.
+ */
 class PktSrc : public IOSource {
 public:
 	/**

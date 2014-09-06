@@ -387,13 +387,13 @@ void PktSrc::Process()
 	if ( pseudo_realtime )
 		{
 		current_pseudo = CheckPseudoTime();
-		net_packet_dispatch(current_pseudo, current_packet.hdr, current_packet.data, pkt_hdr_size, this);
+		net_packet_dispatch(current_pseudo, current_packet.hdr, data, pkt_hdr_size, this);
 		if ( ! first_wallclock )
 			first_wallclock = current_time(true);
 		}
 
 	else
-		net_packet_dispatch(current_packet.ts, current_packet.hdr, current_packet.data, pkt_hdr_size, this);
+		net_packet_dispatch(current_packet.ts, current_packet.hdr, data, pkt_hdr_size, this);
 
 	have_packet = 0;
 	DoneWithPacket();

@@ -1,3 +1,4 @@
+// See the file  in the main distribution directory for copyright.
 
 #ifndef IOSOURCE_PKTSRC_PCAP_DUMPER_H
 #define IOSOURCE_PKTSRC_PCAP_DUMPER_H

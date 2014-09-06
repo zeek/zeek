@@ -377,18 +377,14 @@ void terminate_bro()
 
 	delete broxygen_mgr;
 	delete timer_mgr;
-	delete dns_mgr;
 	delete persistence_serializer;
-	delete event_player;
 	delete event_serializer;
 	delete state_serializer;
 	delete event_registry;
-	delete remote_serializer;
 	delete analyzer_mgr;
 	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
-	delete thread_mgr;
 	delete reporter;
 	delete iosource_mgr;
 
@@ -841,6 +837,7 @@ int main(int argc, char** argv)
 	// policy, but we can't parse policy without DNS resolution.
 	dns_mgr->SetDir(".state");
 
+	iosource_mgr = new iosource::Manager();
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
@@ -848,7 +845,6 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-	iosource_mgr = new iosource::Manager();
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -908,6 +904,7 @@ int main(int argc, char** argv)
 
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
+	dns_mgr->InitPostScript();
 
 	if ( parse_only )
 		{

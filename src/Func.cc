@@ -274,16 +274,23 @@ Val* Func::HandlePluginResult(Val* plugin_result, val_list* args, function_flavo
 
 		else
 			{
-			if ( plugin_result->Type()->Tag() != yt->Tag() )
-				reporter->InternalError("plugin returned wrong type for function call");
-			}
+			if ( plugin_result->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+                {
+                char sbuf[1024];
+                snprintf(sbuf, 1024, "plugin returned wrong type (got %d, expecting %d) for %s", plugin_result->Type()->Tag(), yt->Tag(), this->Name());
+				reporter->InternalError(sbuf);
+			    }
+            }
 
 		break;
 		}
 	}
 
+    /*
+    Let the plugin handle the reference counting
 	loop_over_list(*args, i)
 		Unref((*args)[i]);
+    */
 
 	return plugin_result;
 	}

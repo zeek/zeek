@@ -291,8 +291,7 @@ void PktSrc::Process()
 		     && protocol != 30 )
 			{
 			Weird("non_ip_packet_in_null_transport", &current_packet);
-			data = 0;
-			return;
+			goto done;
 			}
 
 		break;
@@ -307,12 +306,21 @@ void PktSrc::Process()
 			{
 			// MPLS carried over the ethernet frame.
 			case 0x8847:
+				// Remove the data link layer and denote a
+				// header size of zero before the IP header.
 				have_mpls = true;
+				data += GetLinkHeaderSize(props.link_type);
+				pkt_hdr_size = 0;
 				break;
 
 			// VLAN carried over the ethernet frame.
 			case 0x8100:
 				data += GetLinkHeaderSize(props.link_type);
+
+				// Check for MPLS in VLAN.
+				if ( ((data[2] << 8) + data[3]) == 0x8847 )
+					have_mpls = true;
+
 				data += 4; // Skip the vlan header
 				pkt_hdr_size = 0;
 
@@ -337,8 +345,7 @@ void PktSrc::Process()
 					{
 					// Neither IPv4 nor IPv6.
 					Weird("non_ip_packet_in_pppoe_encapsulation", &current_packet);
-					data = 0;
-					return;
+					goto done;
 					}
 				break;
 			}
@@ -352,15 +359,19 @@ void PktSrc::Process()
 		protocol = (data[2] << 8) + data[3];
 
 		if ( protocol == 0x0281 )
-			// MPLS Unicast
+			{
+			// MPLS Unicast. Remove the data link layer and
+			// denote a header size of zero before the IP header.
 			have_mpls = true;
+				data += GetLinkHeaderSize(props.link_type);
+			pkt_hdr_size = 0;
+			}
 
 		else if ( protocol != 0x0021 && protocol != 0x0057 )
 			{
 			// Neither IPv4 nor IPv6.
 			Weird("non_ip_packet_in_ppp_encapsulation", &current_packet);
-			data = 0;
-			return;
+			goto done;
 			}
 		break;
 		}
@@ -368,12 +379,6 @@ void PktSrc::Process()
 
 	if ( have_mpls )
 		{
-		// Remove the data link layer
-		data += GetLinkHeaderSize(props.link_type);
-
-		// Denote a header size of zero before the IP header
-		pkt_hdr_size = 0;
-
 		// Skip the MPLS label stack.
 		bool end_of_stack = false;
 
@@ -395,6 +400,7 @@ void PktSrc::Process()
 	else
 		net_packet_dispatch(current_packet.ts, current_packet.hdr, data, pkt_hdr_size, this);
 
+done:
 	have_packet = 0;
 	DoneWithPacket();
 	}

@@ -133,6 +133,7 @@ protected:
 	int GetDataBuffer();
 	void DataOctet(char ch);
 	void DataOctets(int len, const char* data);
+	void FlushData();
 	virtual void SubmitData(int len, const char* buf);
 
 	virtual void SubmitHeader(MIME_Header* h);

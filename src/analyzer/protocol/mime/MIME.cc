@@ -643,11 +643,7 @@ void MIME_Entity::EndOfData()
 		if ( content_encoding == CONTENT_ENCODING_BASE64 )
 			FinishDecodeBase64();
 
-		if ( data_buf_offset > 0 )
-			{
-			SubmitData(data_buf_offset, data_buf_data);
-			data_buf_offset = -1;
-			}
+		FlushData();
 		}
 
 	message->EndEntity (this);
@@ -1001,6 +997,7 @@ void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
 			DecodeBinary(len, data, trailing_CRLF);
 			break;
 	}
+	FlushData();
 	}
 
 void MIME_Entity::DecodeBinary(int len, const char* data, int trailing_CRLF)
@@ -1176,6 +1173,15 @@ void MIME_Entity::DataOctets(int len, const char* data)
 			SubmitData(data_buf_length, data_buf_data);
 			data_buf_offset = -1;
 			}
+		}
+	}
+
+void MIME_Entity::FlushData()
+	{
+	if ( data_buf_offset > 0 )
+		{
+		SubmitData(data_buf_offset, data_buf_data);
+		data_buf_offset = -1;
 		}
 	}
 

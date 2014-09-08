@@ -10,9 +10,7 @@ namespace pcap {
 
 class PcapSource : public iosource::PktSrc {
 public:
-	// XXX
 	PcapSource(const std::string& path, bool is_live);
-
 	virtual ~PcapSource();
 
 	static PktSrc* Instantiate(const std::string& path, bool is_live);

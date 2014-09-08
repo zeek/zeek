@@ -142,8 +142,9 @@ int fputs(data_chunk_t b, FILE* fp)
 void MIME_Mail::Undelivered(int len)
 	{
 	// is_orig param not available, doesn't matter as long as it's consistent
-	file_mgr->Gap(cur_entity_len, len, analyzer->GetAnalyzerTag(), analyzer->Conn(),
-	              false);
+	cur_entity_id = file_mgr->Gap(cur_entity_len, len,
+	                              analyzer->GetAnalyzerTag(), analyzer->Conn(),
+	                              false, cur_entity_id);
 	}
 
 int strcasecmp_n(data_chunk_t s, const char* t)
@@ -1331,6 +1332,7 @@ MIME_Mail::~MIME_Mail()
 void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	{
 	cur_entity_len = 0;
+	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
 		{
@@ -1370,6 +1372,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	cur_entity_id.clear();
 	}
 
 void MIME_Mail::SubmitHeader(MIME_Header* h)
@@ -1432,8 +1435,9 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		}
 
 	// is_orig param not available, doesn't matter as long as it's consistent
-	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
-	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), false);
+	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), false,
+	                 cur_entity_id);
 
 	cur_entity_len += len;
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();

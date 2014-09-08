@@ -97,7 +97,6 @@
 //                                            Binpac DNP3 Analyzer
 
 #include "DNP3.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "events.bif.h"
 
 using namespace analyzer::dnp3;
@@ -112,60 +111,19 @@ const unsigned int PSEUDO_LINK_LAYER_LEN = 8;		// length of DNP3 Pseudo Link Lay
 bool DNP3_Analyzer::crc_table_initialized = false;
 unsigned int DNP3_Analyzer::crc_table[256];
 
-DNP3_Analyzer::DNP3_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3", c)
+
+DNP3_Analyzer::DNP3_Analyzer()
 	{
-	interp = new binpac::DNP3::DNP3_Conn(this);
-
-	ClearEndpointState(true);
-	ClearEndpointState(false);
-
 	if ( ! crc_table_initialized )
 		PrecomputeCRCTable();
 	}
 
 DNP3_Analyzer::~DNP3_Analyzer()
 	{
-	delete interp;
 	}
 
-void DNP3_Analyzer::Done()
-	{
-	TCP_ApplicationAnalyzer::Done();
 
-	interp->FlowEOF(true);
-	interp->FlowEOF(false);
-	}
-
-void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
-	{
-	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
-
-	try
-		{
-		if ( ! ProcessData(len, data, orig) )
-			SetSkip(1);
-		}
-
-	catch ( const binpac::Exception& e )
-		{
-		SetSkip(1);
-		throw;
-		}
-	}
-
-void DNP3_Analyzer::Undelivered(uint64 seq, int len, bool orig)
-	{
-	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
-	interp->NewGap(orig, len);
-	}
-
-void DNP3_Analyzer::EndpointEOF(bool is_orig)
-	{
-	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
-	interp->FlowEOF(is_orig);
-	}
-
-bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
+bool DNP3_Analyzer::ProcessData(analyzer::Analyzer* thisAnalyzer, binpac::DNP3::DNP3_Conn* thisInterp, int len, const u_char* data, bool orig)
 	{
 	Endpoint* endp = orig ? &orig_state : &resp_state;
 
@@ -180,25 +138,25 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			// The first two bytes must always be 0x0564.
 			if( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 )
 				{
-				Weird("dnp3_header_lacks_magic");
+				thisAnalyzer->Weird("dnp3_header_lacks_magic");
 				return false;
 				}
 
 			// Make sure header checksum is correct.
-			if ( ! CheckCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
+			if ( ! CheckCRC(thisAnalyzer, PSEUDO_LINK_LAYER_LEN, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN, "header") )
 				{
-				ProtocolViolation("broken_checksum");
+				thisAnalyzer->ProtocolViolation("broken_checksum");
 				return false;
 				}
 
 			// If the checksum works out, we're pretty certainly DNP3.
-			ProtocolConfirmation();
+			thisAnalyzer->ProtocolConfirmation();
 
 			// DNP3 packets without transport and application
 			// layers can happen, we ignore them.
 			if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == (char)PSEUDO_LINK_LAYER_LEN  )
 				{
-				ClearEndpointState(orig);
+				ClearEndpointState(thisInterp, orig);
 				return true;
 				}
 
@@ -207,7 +165,7 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			u_char ctrl = endp->buffer[PSEUDO_CONTROL_FIELD_INDEX];
 
 			if ( orig != (bool)(ctrl & 0x80) )
-				Weird("dnp3_unexpected_flow_direction");
+				thisAnalyzer->Weird("dnp3_unexpected_flow_direction");
 
 			// Update state.
 			endp->pkt_length = endp->buffer[PSEUDO_LENGTH_INDEX];
@@ -217,7 +175,7 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			// For the first packet, we submit the header to
 			// BinPAC.
 			if ( ++endp->pkt_cnt == 1 )
-				interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
+				thisInterp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
 			}
 
 		if ( ! endp->in_hdr )
@@ -230,13 +188,15 @@ bool DNP3_Analyzer::ProcessData(int len, const u_char* data, bool orig)
 			// the packet length by determining how much 16-byte
 			// chunks fit in there, and then add 2 bytes CRC for
 			// each.
-			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2 + 2 - 1;
+			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2
+					+ 2 * ( ((endp->pkt_length - 5) % 16 == 0) ? 0 : 1) - 1 ;
 
 			if ( ! AddToBuffer(endp, n, &data, &len) )
 				return true;
 
 			// Parse the the application layer data.
-			if ( ! ParseAppLayer(endp) )
+			//if ( ! ParseAppLayer(endp) )
+			if ( ! ParseAppLayer(thisAnalyzer, thisInterp, endp) )
 				return false;
 
 			// Done with this packet, prepare for next.
@@ -263,10 +223,10 @@ bool DNP3_Analyzer::AddToBuffer(Endpoint* endp, int target_len, const u_char** d
 	return endp->buffer_len == target_len;
 	}
 
-bool DNP3_Analyzer::ParseAppLayer(Endpoint* endp)
+bool DNP3_Analyzer::ParseAppLayer(analyzer::Analyzer* thisAnalyzer, binpac::DNP3::DNP3_Conn* thisInterp, Endpoint* endp)
 	{
 	bool orig = (endp == &orig_state);
-	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
+	binpac::DNP3::DNP3_Flow* flow = orig ? thisInterp->upflow() : thisInterp->downflow();
 
 	u_char* data = endp->buffer + PSEUDO_TRANSPORT_INDEX; // The transport layer byte counts as app-layer it seems.
 	int len = endp->pkt_length - 5;
@@ -288,7 +248,7 @@ bool DNP3_Analyzer::ParseAppLayer(Endpoint* endp)
 		int n = min(len, 16);
 
 		// Make sure chunk has a correct checksum.
-		if ( ! CheckCRC(n, data, data + n, "app_chunk") )
+		if ( ! CheckCRC(thisAnalyzer, n, data, data + n, "app_chunk") )
 			return false;
 
 		// Pass on to BinPAC.
@@ -306,7 +266,7 @@ bool DNP3_Analyzer::ParseAppLayer(Endpoint* endp)
 	if ( ! is_first && ! endp->encountered_first_chunk )
 		{
 		// We lost the first chunk.
-		Weird("dnp3_first_application_layer_chunk_missing");
+		thisAnalyzer->Weird("dnp3_first_application_layer_chunk_missing");
 		return false;
 		}
 
@@ -314,16 +274,16 @@ bool DNP3_Analyzer::ParseAppLayer(Endpoint* endp)
 		{
 		flow->flow_buffer()->FinishBuffer();
 		flow->FlowEOF();
-		ClearEndpointState(orig);
+		ClearEndpointState(thisInterp, orig);
 		}
 
 	return true;
 	}
 
-void DNP3_Analyzer::ClearEndpointState(bool orig)
+void DNP3_Analyzer::ClearEndpointState(binpac::DNP3::DNP3_Conn* thisInterp, bool orig)
 	{
 	Endpoint* endp = orig ? &orig_state : &resp_state;
-	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
+	binpac::DNP3::DNP3_Flow* flow = orig ? thisInterp->upflow() : thisInterp->downflow();
 
 	endp->in_hdr = true;
 	endp->encountered_first_chunk = false;
@@ -333,14 +293,14 @@ void DNP3_Analyzer::ClearEndpointState(bool orig)
 	endp->pkt_cnt = 0;
 	}
 
-bool DNP3_Analyzer::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where)
+bool DNP3_Analyzer::CheckCRC(analyzer::Analyzer* thisAnalyzer, int len, const u_char* data, const u_char* crc16, const char* where)
 	{
 	unsigned int crc = CalcCRC(len, data);
 
 	if ( crc16[0] == (crc & 0xff) && crc16[1] == (crc & 0xff00) >> 8 )
 		return true;
 
-	Weird(fmt("dnp3_corrupt_%s_checksum", where));
+	thisAnalyzer->Weird(fmt("dnp3_corrupt_%s_checksum", where));
 	return false;
 	}
 
@@ -374,3 +334,95 @@ unsigned int DNP3_Analyzer::CalcCRC(int len, const u_char* data)
 
 	return ~crc & 0xFFFF;
 	}
+
+DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("DNP3_TCP", c)
+	{
+	interp = new binpac::DNP3::DNP3_Conn(this);
+
+	ClearEndpointState(interp, true);
+	ClearEndpointState(interp, false);
+	}
+
+DNP3_TCP_Analyzer::~DNP3_TCP_Analyzer()
+	{
+	delete interp;
+	}
+
+void DNP3_TCP_Analyzer::Done()
+	{
+	TCP_ApplicationAnalyzer::Done();
+
+	interp->FlowEOF(true);
+	interp->FlowEOF(false);
+	}
+
+void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+
+	try
+		{
+		if ( ! ProcessData(this, interp, len, data, orig) )
+			SetSkip(1);
+		}
+
+	catch ( const binpac::Exception& e )
+		{
+		SetSkip(1);
+		throw;
+		}
+	}
+
+void DNP3_TCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+	{
+	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
+	interp->NewGap(orig, len);
+	}
+
+void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig)
+	{
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
+	}
+
+DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : Analyzer("DNP3_UDP", c)
+	{
+
+	interp = new binpac::DNP3::DNP3_Conn(this);
+
+	ClearEndpointState(interp, true);
+	ClearEndpointState(interp, false);
+
+	if ( ! crc_table_initialized )
+		PrecomputeCRCTable();
+	}
+
+DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
+	{
+	delete interp;
+	}
+
+void DNP3_UDP_Analyzer::Done()
+	{
+	Analyzer::Done();
+	}
+
+void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
+	{
+
+	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+
+
+	try
+		{
+		if ( ! ProcessData(this, interp, len, data, orig) )
+			SetSkip(1);
+		}
+
+	catch ( const binpac::Exception& e )
+		{
+		SetSkip(1);
+		throw;
+		}
+	}
+

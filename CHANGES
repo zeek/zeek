@@ -1,4 +1,8 @@
 
+2.3-137 | 2014-09-08 19:01:13 -0500
+
+  * Fix Broxygen's rendering of opaque types. (Jon Siwek)
+
 2.3-136 | 2014-09-07 20:50:46 -0700
 
   * Change more http links to https. (Johanna Amann)

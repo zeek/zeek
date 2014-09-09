@@ -188,10 +188,10 @@
 #include "File.h"
 #include "Conn.h"
 #include "Reporter.h"
-#include "threading/SerialTypes.h"
-#include "logging/Manager.h"
 #include "IPAddr.h"
 #include "bro_inet_ntop.h"
+#include "iosource/Manager.h"
+#include "logging/Manager.h"
 #include "logging/logging.bif.h"
 
 extern "C" {
@@ -285,10 +285,10 @@ struct ping_args {
 	\
 	if ( ! c ) \
 		{ \
-		idle = io->IsIdle();\
+		SetIdle(io->IsIdle());\
 		return true; \
 		} \
-	idle = false; \
+	SetIdle(false); \
 	}
 
 static const char* msgToStr(int msg)
@@ -534,7 +534,6 @@ RemoteSerializer::RemoteSerializer()
 	current_sync_point = 0;
 	syncing_times = false;
 	io = 0;
-	closed = false;
 	terminating = false;
 	in_sync = 0;
 	last_flush = 0;
@@ -559,7 +558,7 @@ RemoteSerializer::~RemoteSerializer()
 	delete io;
 	}
 
-void RemoteSerializer::Init()
+void RemoteSerializer::Enable()
 	{
 	if ( initialized )
 		return;
@@ -572,7 +571,7 @@ void RemoteSerializer::Init()
 
 	Fork();
 
-	io_sources.Register(this);
+	iosource_mgr->Register(this);
 
 	Log(LogInfo, fmt("communication started, parent pid is %d, child pid is %d", getpid(), child_pid));
 	initialized = 1;
@@ -1276,7 +1275,7 @@ bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
 		return false;
 
 	listening = true;
-	closed = false;
+	SetClosed(false);
 	return true;
 	}
 
@@ -1345,7 +1344,7 @@ bool RemoteSerializer::StopListening()
 		return false;
 
 	listening = false;
-	closed = ! IsActive();
+	SetClosed(! IsActive());
 	return true;
 	}
 
@@ -1388,7 +1387,7 @@ double RemoteSerializer::NextTimestamp(double* local_network_time)
 	if ( received_logs > 0 )
 		{
 		// If we processed logs last time, assume there's more.
-		idle = false;
+		SetIdle(false);
 		received_logs = 0;
 		return timer_mgr->Time();
 		}
@@ -1403,7 +1402,7 @@ double RemoteSerializer::NextTimestamp(double* local_network_time)
 		pt = timer_mgr->Time();
 
 	if ( packets.length() )
-		idle = false;
+		SetIdle(false);
 
 	if ( et >= 0 && (et < pt || pt < 0) )
 		return et;
@@ -1482,7 +1481,7 @@ void RemoteSerializer::Process()
 		}
 
 	if ( packets.length() )
-		idle = false;
+		SetIdle(false);
 	}
 
 void RemoteSerializer::Finish()
@@ -1514,7 +1513,7 @@ bool RemoteSerializer::Poll(bool may_block)
 		}
 
 	io->Flush();
-	idle = false;
+	SetIdle(false);
 
 	switch ( msgstate ) {
 	case TYPE:
@@ -1696,7 +1695,7 @@ bool RemoteSerializer::DoMessage()
 
 	case MSG_TERMINATE:
 		assert(terminating);
-		io_sources.Terminate();
+		iosource_mgr->Terminate();
 		return true;
 
 	case MSG_REMOTE_PRINT:
@@ -1884,7 +1883,7 @@ void RemoteSerializer::RemovePeer(Peer* peer)
 	delete peer->cache_out;
 	delete peer;
 
-	closed = ! IsActive();
+	SetClosed(! IsActive());
 
 	if ( in_sync == peer )
 		in_sync = 0;
@@ -2846,7 +2845,7 @@ void RemoteSerializer::GotEvent(const char* name, double time,
 	BufferedEvent* e = new BufferedEvent;
 
 	// Our time, not the time when the event was generated.
-	e->time = pkt_srcs.length() ?
+	e->time = iosource_mgr->GetPktSrcs().size() ?
 			time_t(network_time) : time_t(timer_mgr->Time());
 
 	e->src = current_peer->id;
@@ -3091,7 +3090,7 @@ RecordVal* RemoteSerializer::GetPeerVal(PeerID id)
 void RemoteSerializer::ChildDied()
 	{
 	Log(LogError, "child died");
-	closed = true;
+	SetClosed(true);
 	child_pid = 0;
 
 	// Shut down the main process as well.
@@ -3190,7 +3189,7 @@ void RemoteSerializer::FatalError(const char* msg)
 	Log(LogError, msg);
 	reporter->Error("%s", msg);
 
-	closed = true;
+	SetClosed(true);
 
 	if ( kill(child_pid, SIGQUIT) < 0 )
 		reporter->Warning("warning: cannot kill child pid %d, %s", child_pid, strerror(errno));

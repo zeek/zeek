@@ -43,6 +43,7 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
+#include "iosource/Manager.h"
 
 /**
  * Return IP address without enclosing brackets and any leading 0x.
@@ -1424,11 +1425,13 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || pkt_srcs.length() == 0 )
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	if ( ! pseudo_realtime || real || pkt_srcs.empty() )
 		return t;
 
 	// This obviously only works for a single source ...
-	PktSrc* src = pkt_srcs[0];
+	iosource::PktSrc* src = pkt_srcs.front();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();

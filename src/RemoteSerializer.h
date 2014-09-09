@@ -6,7 +6,7 @@
 #include "Dict.h"
 #include "List.h"
 #include "Serializer.h"
-#include "IOSource.h"
+#include "iosource/IOSource.h"
 #include "Stats.h"
 #include "File.h"
 #include "logging/WriterBackend.h"
@@ -22,13 +22,13 @@ namespace threading {
 }
 
 // This class handles the communication done in Bro's main loop.
-class RemoteSerializer : public Serializer, public IOSource {
+class RemoteSerializer : public Serializer, public iosource::IOSource {
 public:
 	RemoteSerializer();
 	virtual ~RemoteSerializer();
 
 	// Initialize the remote serializer (calling this will fork).
-	void Init();
+	void Enable();
 
 	// FIXME: Use SourceID directly (or rename everything to Peer*).
 	typedef SourceID PeerID;

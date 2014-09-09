@@ -8,8 +8,7 @@ extern "C" {
 }
 
 #include <string>
-#include <vector>
-
+#include "FD_Set.h"
 #include "Timer.h"
 
 namespace iosource {
@@ -62,8 +61,7 @@ public:
 	 *
 	 * @param except Pointer to container where to insert a except descriptor.
 	 */
-	virtual void GetFds(std::vector<int>* read, std::vector<int>* write,
-	                    std::vector<int>* except) = 0;
+	virtual void GetFds(FD_Set* read, FD_Set* write, FD_Set* except) = 0;
 
 	/**
 	 * Returns the timestamp (in \a global network time) associated with

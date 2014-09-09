@@ -5,8 +5,7 @@
 
 #include <string>
 #include <list>
-#include <vector>
-#include <sys/select.h>
+#include "iosource/FD_Set.h"
 
 namespace iosource {
 
@@ -115,11 +114,19 @@ private:
 
 	struct Source {
 		IOSource* src;
-		std::vector<int> fd_read;
-		std::vector<int> fd_write;
-		std::vector<int> fd_except;
+		FD_Set fd_read;
+		FD_Set fd_write;
+		FD_Set fd_except;
 
-		bool Ready(fd_set* read, fd_set* write, fd_set* except) const;
+		bool Ready(fd_set* read, fd_set* write, fd_set* except) const
+			{ return fd_read.Ready(read) || fd_write.Ready(write) ||
+			         fd_except.Ready(except); }
+
+		void SetFds(fd_set* read, fd_set* write, fd_set* except,
+		            int* maxx) const;
+
+		void Clear()
+			{ fd_read.Clear(); fd_write.Clear(); fd_except.Clear(); }
 	};
 
 	typedef std::list<Source*> SourceList;

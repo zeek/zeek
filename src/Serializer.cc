@@ -1068,10 +1068,10 @@ void EventPlayer::GotFunctionCall(const char* name, double time,
 	// We don't replay function calls.
 	}
 
-void EventPlayer::GetFds(std::vector<int>* read, std::vector<int>* write,
-                         std::vector<int>* except)
+void EventPlayer::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                         iosource::FD_Set* except)
 	{
-	read->push_back(fd);
+	read->Insert(fd);
 	}
 
 double EventPlayer::NextTimestamp(double* local_network_time)

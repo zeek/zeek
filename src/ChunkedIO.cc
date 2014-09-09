@@ -630,11 +630,11 @@ bool ChunkedIOFd::IsFillingUp()
 	return stats.pending > MAX_BUFFERED_CHUNKS_SOFT;
 	}
 
-std::vector<int> ChunkedIOFd::FdSupplements() const
+iosource::FD_Set ChunkedIOFd::ExtraReadFDs() const
 	{
-	std::vector<int> rval;
-	rval.push_back(write_flare.FD());
-	rval.push_back(read_flare.FD());
+	iosource::FD_Set rval;
+	rval.Insert(write_flare.FD());
+	rval.Insert(read_flare.FD());
 	return rval;
 	}
 
@@ -1140,10 +1140,10 @@ bool ChunkedIOSSL::IsFillingUp()
 	return false;
 	}
 
-std::vector<int> ChunkedIOSSL::FdSupplements() const
+iosource::FD_Set ChunkedIOSSL::ExtraReadFDs() const
 	{
-	std::vector<int> rval;
-	rval.push_back(write_flare.FD());
+	iosource::FD_Set rval;
+	rval.Insert(write_flare.FD());
 	return rval;
 	}
 

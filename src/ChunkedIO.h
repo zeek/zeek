@@ -7,8 +7,8 @@
 #include "List.h"
 #include "util.h"
 #include "Flare.h"
+#include "iosource/FD_Set.h"
 #include <list>
-#include <vector>
 
 #ifdef NEED_KRB5_H
 # include <krb5.h>
@@ -98,8 +98,8 @@ public:
 
 	// Returns supplementary file descriptors that become read-ready in order
 	// to signal that there is some work that can be performed.
-	virtual std::vector<int> FdSupplements() const
-		{ return std::vector<int>(); }
+	virtual iosource::FD_Set ExtraReadFDs() const
+		{ return iosource::FD_Set(); }
 
 	// Makes sure that no additional protocol data is written into
 	// the output stream.  If this is activated, the output cannot
@@ -183,7 +183,7 @@ public:
 	virtual void Clear();
 	virtual bool Eof()	{ return eof; }
 	virtual int Fd()	{ return fd; }
-	virtual std::vector<int> FdSupplements() const;
+	virtual iosource::FD_Set ExtraReadFDs() const;
 	virtual void Stats(char* buffer, int length);
 
 private:
@@ -271,7 +271,7 @@ public:
 	virtual void Clear();
 	virtual bool Eof()	{ return eof; }
 	virtual int Fd()	{ return socket; }
-	virtual std::vector<int> FdSupplements() const;
+	virtual iosource::FD_Set ExtraReadFDs() const;
 	virtual void Stats(char* buffer, int length);
 
 private:
@@ -340,8 +340,8 @@ public:
 
 	virtual bool Eof()	{ return io->Eof(); }
 	virtual int Fd()	{ return io->Fd(); }
-	virtual std::vector<int> FdSupplements() const
-		{ return io->FdSupplements(); }
+	virtual iosource::FD_Set ExtraReadFDs() const
+		{ return io->ExtraReadFDs(); }
 	virtual void Stats(char* buffer, int length);
 
 	void EnableCompression(int level)

@@ -140,8 +140,8 @@ public:
 	void Finish();
 
 	// Overidden from IOSource:
-	virtual void GetFds(std::vector<int>* read, std::vector<int>* write,
-	                    std::vector<int>* except);
+	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except);
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual TimerMgr::Tag* GetCurrentTag();

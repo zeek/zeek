@@ -1367,17 +1367,14 @@ void RemoteSerializer::Unregister(ID* id)
 			}
 	}
 
-void RemoteSerializer::GetFds(std::vector<int>* read, std::vector<int>* write,
-                              std::vector<int>* except)
+void RemoteSerializer::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                              iosource::FD_Set* except)
 	{
-	read->push_back(io->Fd());
-	std::vector<int> supp = io->FdSupplements();
-
-	for ( size_t i = 0; i < supp.size(); ++i )
-		read->push_back(supp[i]);
+	read->Insert(io->Fd());
+	read->Aggregate(io->ExtraReadFDs());
 
 	if ( io->CanWrite() )
-		write->push_back(io->Fd());
+		write->Insert(io->Fd());
 	}
 
 double RemoteSerializer::NextTimestamp(double* local_network_time)
@@ -3390,11 +3387,9 @@ void SocketComm::Run()
 		FD_ZERO(&fd_write);
 		FD_ZERO(&fd_except);
 
-		int max_fd = 0;
-
+		int max_fd = io->Fd();
 		FD_SET(io->Fd(), &fd_read);
-		max_fd = io->Fd();
-		fd_vector_set(io->FdSupplements(), &fd_read, &max_fd);
+		max_fd = std::max(max_fd, io->ExtraReadFDs().Set(&fd_read));
 
 		loop_over_list(peers, i)
 			{
@@ -3403,7 +3398,8 @@ void SocketComm::Run()
 				FD_SET(peers[i]->io->Fd(), &fd_read);
 				if ( peers[i]->io->Fd() > max_fd )
 					max_fd = peers[i]->io->Fd();
-				fd_vector_set(peers[i]->io->FdSupplements(), &fd_read, &max_fd);
+				max_fd = std::max(max_fd,
+				                  peers[i]->io->ExtraReadFDs().Set(&fd_read));
 				}
 			else
 				{

@@ -44,15 +44,6 @@ void Manager::RemoveAll()
 	dont_counts = sources.size();
 	}
 
-static void fd_vector_set(const std::vector<int>& fds, fd_set* set, int* max)
-	{
-	for ( size_t i = 0; i < fds.size(); ++i )
-		{
-		FD_SET(fds[i], set);
-		*max = ::max(fds[i], *max);
-		}
-	}
-
 IOSource* Manager::FindSoonest(double* ts)
 	{
 	// Remove sources which have gone dry. For simplicity, we only
@@ -124,14 +115,9 @@ IOSource* Manager::FindSoonest(double* ts)
 			// be ready.
 			continue;
 
-		src->fd_read.clear();
-		src->fd_write.clear();
-		src->fd_except.clear();
+		src->Clear();
 		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
-
-		fd_vector_set(src->fd_read, &fd_read, &maxx);
-		fd_vector_set(src->fd_write, &fd_write, &maxx);
-		fd_vector_set(src->fd_except, &fd_except, &maxx);
+		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 		}
 
 	// We can't block indefinitely even when all sources are dry:
@@ -316,21 +302,10 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	return pd;
 	}
 
-static bool fd_vector_ready(const std::vector<int>& fds, fd_set* set)
+void Manager::Source::SetFds(fd_set* read, fd_set* write, fd_set* except,
+                             int* maxx) const
 	{
-	for ( size_t i = 0; i < fds.size(); ++i )
-		if ( FD_ISSET(fds[i], set) )
-			return true;
-
-	return false;
-	}
-
-bool Manager::Source::Ready(fd_set* read, fd_set* write, fd_set* except) const
-	{
-	if ( fd_vector_ready(fd_read, read) ||
-	     fd_vector_ready(fd_write, write) ||
-	     fd_vector_ready(fd_except, except) )
-		return true;
-
-	return false;
+	*maxx = std::max(*maxx, fd_read.Set(read));
+	*maxx = std::max(*maxx, fd_write.Set(write));
+	*maxx = std::max(*maxx, fd_except.Set(except));
 	}

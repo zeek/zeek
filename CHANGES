@@ -1,4 +1,28 @@
 
+2.3-161 | 2014-09-09 12:35:38 -0500
+
+  * Bugfixes and test updates/additions. (Robin Sommer)
+
+  * Interface tweaks and docs for PktSrc/PktDumper. (Robin Sommer)
+
+  * Moving PCAP-related bifs to iosource/pcap.bif. (Robin Sommer)
+
+  * Moving some of the BPF filtering code into base class.
+    This will allow packet sources that don't support BPF natively to
+    emulate the filtering via libpcap. (Robin Sommer)
+
+  * Moving Pkt{Src,Dumper} a directory level up and renaming
+    PktSourceComponent to PktSrcComponent. (Robin Sommer)
+
+  * Removing FlowSrc. (Robin Sommer)
+
+  * Removing remaining pieces of the 2ndary path, and left-over
+    files of packet sorter. (Robin Sommer)
+
+  * A bunch of infrastructure work to move IOSource, IOSourceRegistry
+    (now iosource::Manager) and PktSrc/PktDumper code into iosource/,
+    and over to a plugin structure. (Robin Sommer)
+
 2.3-137 | 2014-09-08 19:01:13 -0500
 
   * Fix Broxygen's rendering of opaque types. (Jon Siwek)

@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -5,26 +7,44 @@
 
 #include <algorithm>
 
-#include "util.h"
+#include "Manager.h"
 #include "IOSource.h"
+#include "PktSrc.h"
+#include "PktDumper.h"
+#include "plugin/Manager.h"
 
-IOSourceRegistry io_sources;
+#include "util.h"
 
-IOSourceRegistry::~IOSourceRegistry()
+#define DEFAULT_PREFIX "pcap"
+
+using namespace iosource;
+
+Manager::~Manager()
 	{
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
+		{
+		(*i)->src->Done();
 		delete *i;
+		}
 
 	sources.clear();
+
+	for ( PktDumperList::iterator i = pkt_dumpers.begin(); i != pkt_dumpers.end(); ++i )
+		{
+		(*i)->Done();
+		delete *i;
+		}
+
+	pkt_dumpers.clear();
 	}
 
-void IOSourceRegistry::RemoveAll()
+void Manager::RemoveAll()
 	{
 	// We're cheating a bit here ...
 	dont_counts = sources.size();
 	}
 
-IOSource* IOSourceRegistry::FindSoonest(double* ts)
+IOSource* Manager::FindSoonest(double* ts)
 	{
 	// Remove sources which have gone dry. For simplicity, we only
 	// remove at most one each time.
@@ -32,6 +52,7 @@ IOSource* IOSourceRegistry::FindSoonest(double* ts)
 	      i != sources.end(); ++i )
 		if ( ! (*i)->src->IsOpen() )
 			{
+			(*i)->src->Done();
 			delete *i;
 			sources.erase(i);
 			break;
@@ -101,9 +122,9 @@ IOSource* IOSourceRegistry::FindSoonest(double* ts)
 		FD_SET(src->fd_write, &fd_write);
 		FD_SET(src->fd_except, &fd_except);
 
-		maxx = max(src->fd_read, maxx);
-		maxx = max(src->fd_write, maxx);
-		maxx = max(src->fd_except, maxx);
+		maxx = std::max(src->fd_read, maxx);
+		maxx = std::max(src->fd_write, maxx);
+		maxx = std::max(src->fd_except, maxx);
 		}
 
 	// We can't block indefinitely even when all sources are dry:
@@ -166,11 +187,126 @@ finished:
 	return soonest_src;
 	}
 
-void IOSourceRegistry::Register(IOSource* src, bool dont_count)
+void Manager::Register(IOSource* src, bool dont_count)
 	{
+	src->Init();
 	Source* s = new Source;
 	s->src = src;
 	if ( dont_count )
 		++dont_counts;
-	return sources.push_back(s);
+
+	sources.push_back(s);
+	}
+
+void Manager::Register(PktSrc* src)
+	{
+	pkt_srcs.push_back(src);
+	Register(src, false);
+	}
+
+static std::pair<std::string, std::string> split_prefix(std::string path)
+	{
+	// See if the path comes with a prefix telling us which type of
+	// PktSrc to use. If not, choose default.
+	std::string prefix;
+
+	std::string::size_type i = path.find(":");
+	if ( i != std::string::npos )
+		{
+		prefix = path.substr(0, i);
+		path = path.substr(++i, std::string::npos);
+		}
+
+	else
+		prefix= DEFAULT_PREFIX;
+
+	return std::make_pair(prefix, path);
+	}
+
+PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
+	{
+	std::pair<std::string, std::string> t = split_prefix(path);
+	std::string prefix = t.first;
+	std::string npath = t.second;
+
+	// Find the component providing packet sources of the requested prefix.
+
+	PktSrcComponent* component = 0;
+
+	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
+
+	for ( std::list<PktSrcComponent*>::const_iterator i = all_components.begin();
+	      i != all_components.end(); i++ )
+		{
+		PktSrcComponent* c = *i;
+
+		if ( c->HandlesPrefix(prefix) &&
+		     ((  is_live && c->DoesLive() ) ||
+		      (! is_live && c->DoesTrace())) )
+			{
+			component = c;
+			break;
+			}
+		}
+
+
+	if ( ! component )
+		reporter->FatalError("type of packet source '%s' not recognized, or mode not supported", prefix.c_str());
+
+	// Instantiate packet source.
+
+	PktSrc* ps = (*component->Factory())(npath, is_live);
+	assert(ps);
+
+	if ( ! ps->IsOpen() && ps->IsError() )
+		// Set an error message if it didn't open successfully.
+		ps->Error("could not open");
+
+	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
+
+	Register(ps);
+	return ps;
+	}
+
+
+PktDumper* Manager::OpenPktDumper(const string& path, bool append)
+	{
+	std::pair<std::string, std::string> t = split_prefix(path);
+	std::string prefix = t.first;
+	std::string npath = t.second;
+
+	// Find the component providing packet dumpers of the requested prefix.
+
+	PktDumperComponent* component = 0;
+
+	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
+
+	for ( std::list<PktDumperComponent*>::const_iterator i = all_components.begin();
+	      i != all_components.end(); i++ )
+		{
+		if ( (*i)->HandlesPrefix(prefix) )
+			{
+			component = (*i);
+			break;
+			}
+		}
+
+	if ( ! component )
+		reporter->FatalError("type of packet dumper '%s' not recognized", prefix.c_str());
+
+	// Instantiate packet dumper.
+
+	PktDumper* pd = (*component->Factory())(npath, append);
+	assert(pd);
+
+	if ( ! pd->IsOpen() && pd->IsError() )
+		// Set an error message if it didn't open successfully.
+		pd->Error("could not open");
+
+	DBG_LOG(DBG_PKTIO, "Created packer dumper of type %s for %s", component->Name().c_str(), npath.c_str());
+
+	pd->Init();
+	pkt_dumpers.push_back(pd);
+
+	return pd;
 	}

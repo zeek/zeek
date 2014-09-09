@@ -15,7 +15,7 @@
 #include "SerialInfo.h"
 #include "IP.h"
 #include "Timer.h"
-#include "IOSource.h"
+#include "iosource/IOSource.h"
 #include "Reporter.h"
 
 class SerializationCache;
@@ -350,7 +350,7 @@ public:
 };
 
 // Plays a file of events back.
-class EventPlayer : public FileSerializer, public IOSource {
+class EventPlayer : public FileSerializer, public iosource::IOSource {
 public:
 	EventPlayer(const char* file);
 	virtual ~EventPlayer();

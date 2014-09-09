@@ -57,6 +57,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "plugin/Manager.h"
 #include "file_analysis/Manager.h"
 #include "broxygen/Manager.h"
+#include "iosource/Manager.h"
 
 #include "binpac_bro.h"
 
@@ -92,6 +93,7 @@ plugin::Manager* plugin_mgr = 0;
 analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
+iosource::Manager* iosource_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -108,7 +110,6 @@ int signal_val = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
-SecondaryPath* secondary_path = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -375,20 +376,16 @@ void terminate_bro()
 
 	delete broxygen_mgr;
 	delete timer_mgr;
-	delete dns_mgr;
 	delete persistence_serializer;
-	delete event_player;
 	delete event_serializer;
 	delete state_serializer;
 	delete event_registry;
-	delete secondary_path;
-	delete remote_serializer;
 	delete analyzer_mgr;
 	delete file_mgr;
 	delete log_mgr;
 	delete plugin_mgr;
-	delete thread_mgr;
 	delete reporter;
+	delete iosource_mgr;
 
 	reporter = 0;
 	}
@@ -448,8 +445,6 @@ int main(int argc, char** argv)
 
 	name_list interfaces;
 	name_list read_files;
-	name_list netflows;
-	name_list flow_files;
 	name_list rule_files;
 	char* bst_file = 0;
 	char* id_name = 0;
@@ -551,7 +546,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLNOPSWabdghvZQ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:z:CFGLNOPSWabdghvZQ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -609,10 +604,6 @@ int main(int argc, char** argv)
 
 		case 'w':
 			writefile = optarg;
-			break;
-
-		case 'y':
-			flow_files.append(optarg);
 			break;
 
 		case 'z':
@@ -708,10 +699,6 @@ int main(int argc, char** argv)
 			do_watchdog = 1;
 			break;
 
-		case 'Y':
-			netflows.append(optarg);
-			break;
-
 		case 'h':
 			usage();
 			break;
@@ -799,8 +786,7 @@ int main(int argc, char** argv)
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
 
-	if ( (interfaces.length() > 0 || netflows.length() > 0) &&
-	     (read_files.length() > 0 || flow_files.length() > 0 ))
+	if ( interfaces.length() > 0 && read_files.length() > 0 )
 		usage();
 
 #ifdef USE_IDMEF
@@ -823,7 +809,7 @@ int main(int argc, char** argv)
 	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
 	if ( optind == argc &&
-	     read_files.length() == 0 && flow_files.length() == 0 &&
+	     read_files.length() == 0 &&
 	     interfaces.length() == 0 &&
 	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
@@ -850,6 +836,7 @@ int main(int argc, char** argv)
 	// policy, but we can't parse policy without DNS resolution.
 	dns_mgr->SetDir(".state");
 
+	iosource_mgr = new iosource::Manager();
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
@@ -916,6 +903,7 @@ int main(int argc, char** argv)
 
 	analyzer_mgr->InitPostScript();
 	file_mgr->InitPostScript();
+	dns_mgr->InitPostScript();
 
 	if ( parse_only )
 		{
@@ -981,8 +969,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	if ( (flow_files.length() == 0 || read_files.length() == 0) &&
-	     (netflows.length() == 0 || interfaces.length() == 0) )
+	if ( read_files.length() == 0 && interfaces.length() == 0 )
 		{
 		Val* interfaces_val = internal_val("interfaces");
 		if ( interfaces_val )
@@ -999,13 +986,8 @@ int main(int argc, char** argv)
 
 	snaplen = internal_val("snaplen")->AsCount();
 
-	// Initialize the secondary path, if it's needed.
-	secondary_path = new SecondaryPath();
-
 	if ( dns_type != DNS_PRIME )
-		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, "",
-			secondary_path->Filter(), do_watchdog);
+		net_init(interfaces, read_files, writefile, do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
@@ -1164,9 +1146,9 @@ int main(int argc, char** argv)
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 
-	io_sources.Register(thread_mgr, true);
+	iosource_mgr->Register(thread_mgr, true);
 
-	if ( io_sources.Size() > 0 ||
+	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||
 	     BifConst::exit_only_after_terminate )
 		{

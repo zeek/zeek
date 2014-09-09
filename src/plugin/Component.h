@@ -12,20 +12,23 @@ namespace plugin {
 namespace component {
 
 /**
- * Component types. 
+ * Component types.
  */
 enum Type {
 	READER,	/// An input reader (not currently used).
 	WRITER,	/// A logging writer (not currenly used).
 	ANALYZER,	/// A protocol analyzer.
-	FILE_ANALYZER	/// A file analyzer.
+	FILE_ANALYZER,	/// A file analyzer.
+	IOSOURCE,	/// An I/O source, excluding packet sources.
+	PKTSRC,	/// A packet source.
+	PKTDUMPER	/// A packet dumper.
 	};
 }
 
 /**
  * Base class for plugin components. A component is a specific piece of
  * functionality that a plugin provides, such as a protocol analyzer or a log
- * writer. 
+ * writer.
  */
 class Component
 {

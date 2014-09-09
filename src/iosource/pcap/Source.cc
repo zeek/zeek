@@ -89,7 +89,7 @@ void PcapSource::OpenLive()
 
 	// ### This needs autoconf'ing.
 #ifdef HAVE_PCAP_INT_H
-	Info("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
+	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
 #ifdef HAVE_LINUX

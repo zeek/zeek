@@ -609,10 +609,10 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 
 int HTTP_Message::Undelivered(int64_t len)
 	{
-	if ( ! top_level )
-		return 0;
+	HTTP_Entity* e = current_entity ? current_entity
+	                                : static_cast<HTTP_Entity*>(top_level);
 
-	if ( ((HTTP_Entity*) top_level)->Undelivered(len) )
+	if ( e && e->Undelivered(len) )
 		{
 		content_gap_length += len;
 		return 1;

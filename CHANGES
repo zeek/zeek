@@ -1,4 +1,22 @@
 
+2.3-170 | 2014-09-12 19:28:01 -0700
+
+  * Fix incorrect data delivery skips after gap in HTTP Content-Range.
+    Addresses BIT-1247. (Jon Siwek)
+
+  * Fix file analysis placement of data after gap in HTTP
+    Content-Range. Addresses BIT-1248. (Jon Siwek)
+
+  * Fix issue w/ TCP reassembler not delivering some segments.
+    Addresses BIT-1246. (Jon Siwek)
+
+  * Fix MIME entity file data/gap ordering and raise http_entity_data
+    in line with data arrival. Addresses BIT-1240. (Jon Siwek)
+
+  * Implement file ID caching for MIME_Mail. (Jon Siwek)
+
+  * Fix a compile error. (Jon Siwek)
+
 2.3-161 | 2014-09-09 12:35:38 -0500
 
   * Bugfixes and test updates/additions. (Robin Sommer)
@@ -10,9 +28,6 @@
   * Moving some of the BPF filtering code into base class.
     This will allow packet sources that don't support BPF natively to
     emulate the filtering via libpcap. (Robin Sommer)
-
-  * Moving Pkt{Src,Dumper} a directory level up and renaming
-    PktSourceComponent to PktSrcComponent. (Robin Sommer)
 
   * Removing FlowSrc. (Robin Sommer)
 

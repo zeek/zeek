@@ -6,6 +6,7 @@
 
 #include "Source.h"
 
+#define HAVE_PCAP_INT_H
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
 #endif

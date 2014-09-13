@@ -94,6 +94,7 @@ private:
 	DECLARE_SERIAL(TCP_Reassembler);
 
 	void Undelivered(uint64 up_to_seq);
+	void Gap(uint64 seq, uint64 len);
 
 	void RecordToSeq(uint64 start_seq, uint64 stop_seq, BroFile* f);
 	void RecordBlock(DataBlock* b, BroFile* f);

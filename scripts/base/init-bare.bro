@@ -2485,8 +2485,7 @@ type http_message_stat: record {
 	header_length: count;
 };
 
-## Maximum number of HTTP entity data delivered to events. The amount of data
-## can be limited for better performance, zero disables truncation.
+## Maximum number of HTTP entity data delivered to events.
 ##
 ## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;

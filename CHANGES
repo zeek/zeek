@@ -1,4 +1,8 @@
 
+2.3-171 | 2014-09-15 11:14:57 -0500
+
+  * Fix a compile error on systems without pcap-int.h. (Jon Siwek)
+
 2.3-170 | 2014-09-12 19:28:01 -0700
 
   * Fix incorrect data delivery skips after gap in HTTP Content-Range.

@@ -12,3 +12,5 @@ Script Reference
    packages
    scripts
    Broxygen Example Script </scripts/broxygen/example.bro>
+   list-of-log-files
+   

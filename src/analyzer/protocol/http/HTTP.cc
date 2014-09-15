@@ -545,7 +545,7 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 
 	current_entity = 0;
 	top_level = new HTTP_Entity(this, 0, expect_body);
-	entity_data_buffer = new char[http_entity_data_delivery_size];
+	entity_data_buffer = 0;
 	BeginEntity(top_level);
 
 	start_time = network_time;
@@ -718,6 +718,9 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 
 int HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
+	if ( ! entity_data_buffer )
+		entity_data_buffer = new char[http_entity_data_delivery_size];
+
 	*plen = http_entity_data_delivery_size;
 	*pbuf = entity_data_buffer;
 	return 1;

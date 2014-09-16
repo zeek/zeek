@@ -18,8 +18,8 @@
 ##
 event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr, host_name: string%);
 
-## Generated for DHCP messages of type *DHCPOFFER* (server to client in response to
-## DHCPDISCOVER with offer of configuration parameters).
+## Generated for DHCP messages of type *DHCPOFFER* (server to client in response
+## to DHCPDISCOVER with offer of configuration parameters).
 ##
 ## c: The connection record describing the underlying UDP flow.
 ##
@@ -34,7 +34,7 @@ event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr, host_name: st
 ## serv_addr: The server address specified by the message.
 ##
 ## host_name: Optional host name value. May differ from the host name requested
-## from the client. 
+##            from the client. 
 ##
 ## .. bro:see:: dhcp_discover dhcp_request dhcp_decline dhcp_ack dhcp_nak
 ##              dhcp_release dhcp_inform
@@ -103,7 +103,7 @@ event dhcp_decline%(c: connection, msg: dhcp_msg, host_name: string%);
 ## serv_addr: The server address specified by the message.
 ##
 ## host_name: Optional host name value. May differ from the host name requested
-## from the client. 
+##            from the client.
 ##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_nak
 ##              dhcp_release dhcp_inform

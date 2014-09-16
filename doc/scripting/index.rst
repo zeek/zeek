@@ -1014,8 +1014,8 @@ remaining logs to factor.log.
    :lines: 38-62
    :linenos:
 
-To dynamically alter the file in which a stream writes its logs a
-filter can specify function returns a string to be used as the
+To dynamically alter the file in which a stream writes its logs, a
+filter can specify a function that returns a string to be used as the
 filename for the current call to ``Log::write``. The definition for
 this function has to take as its parameters a ``Log::ID`` called id, a
 string called ``path`` and the appropriate record type for the logs called

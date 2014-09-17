@@ -1,4 +1,9 @@
 
+2.3-174 | 2014-09-17 09:37:09 -0500
+
+  * Fixed some "make doc" warnings caused by reST formatting
+    (Daniel Thayer).
+
 2.3-172 | 2014-09-15 13:38:52 -0500
 
   * Remove unneeded allocations for HTTP messages. (Jon Siwek)

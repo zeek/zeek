@@ -1,4 +1,8 @@
 
+2.3-177 | 2014-09-17 09:41:27 -0500
+
+  * Documentation fixes. (Chris Mavrakis)
+
 2.3-174 | 2014-09-17 09:37:09 -0500
 
   * Fixed some "make doc" warnings caused by reST formatting

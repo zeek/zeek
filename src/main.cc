@@ -341,6 +341,10 @@ void terminate_bro()
 
 	terminating = true;
 
+	// File analysis termination may produce events, so do it early on in
+	// the termination process.
+	file_mgr->Terminate();
+
 	brofiler.WriteStats();
 
 	EventHandlerPtr bro_done = internal_handler("bro_done");
@@ -365,7 +369,6 @@ void terminate_bro()
 
 	mgr.Drain();
 
-	file_mgr->Terminate();
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();

@@ -1,4 +1,9 @@
 
+2.3-178 | 2014-09-18 14:29:46 -0500
+
+  * BIT-1256: Fix file analysis events from coming after bro_done().
+    (Jon Siwek)
+
 2.3-177 | 2014-09-17 09:41:27 -0500
 
   * Documentation fixes. (Chris Mavrakis)

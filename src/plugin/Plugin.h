@@ -605,9 +605,9 @@ protected:
 	 * Hook for updates to network time. This method will be called
 	 * whenever network time is advanced.
 	 *
-	 * @param networkt_time The new network time.
+	 * @param network_time The new network time.
 	 */
-	virtual void HookUpdateNetworkTime(const double network_time);
+	virtual void HookUpdateNetworkTime(double network_time);
 
 	/**
 	 * Hook for destruction of objects registered with

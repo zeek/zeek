@@ -269,12 +269,28 @@ Val* Func::HandlePluginResult(Val* plugin_result, val_list* args, function_flavo
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
 			Unref(plugin_result);
-			plugin_result = 0;
+			plugin_result = NULL;
 			}
 
 		else
 			{
-			if ( plugin_result->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+            /*
+            FIXME: I know this probably isn't a good idea, but what's the better solution?
+
+            Hack: we want a way to force a NULL return in certain cases (e.g. function delayed).  Since no function should ever reasonably return
+            an error, we use the error type to represent this case.
+
+            Note that re-using a type that a function could reasonably return breaks down in the case of e.g. a delayed function, where the function
+            will have a very specific type but still return NULL because things have not yet been evaluated.  Thus, if the delayed method returns a
+            bool, and our garbage return value is a bool, then how do we know whether or not the Val* returned by the function is actually meaningful
+            in the general case?
+            */
+            if ( plugin_result->Type()->Tag() == TYPE_ERROR )
+                {
+                Unref(plugin_result);
+                plugin_result = NULL;
+                }
+			else if ( plugin_result->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
                 {
                 char sbuf[1024];
                 snprintf(sbuf, 1024, "plugin returned wrong type (got %d, expecting %d) for %s", plugin_result->Type()->Tag(), yt->Tag(), this->Name());
@@ -286,11 +302,8 @@ Val* Func::HandlePluginResult(Val* plugin_result, val_list* args, function_flavo
 		}
 	}
 
-    /*
-    Let the plugin handle the reference counting
 	loop_over_list(*args, i)
 		Unref((*args)[i]);
-    */
 
 	return plugin_result;
 	}

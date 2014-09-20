@@ -261,7 +261,7 @@ public:
 	 *
 	 * @param network_time The new network time.
 	 */
-	void HookUpdateNetworkTime(const double network_time) const;
+	void HookUpdateNetworkTime(double network_time) const;
 
 	/**
 	 * Hook that informs plugins that the event queue is being drained.

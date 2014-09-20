@@ -285,7 +285,7 @@ void Plugin::HookDrainEvents()
 	{
 	}
 
-void Plugin::HookUpdateNetworkTime(const double network_time)
+void Plugin::HookUpdateNetworkTime(double network_time)
 	{
 	}
 

@@ -645,7 +645,7 @@ void Manager::HookDrainEvents() const
 
 	}
 
-void Manager::HookUpdateNetworkTime(const double network_time) const
+void Manager::HookUpdateNetworkTime(double network_time) const
 	{
 	HookArgumentList args;
 

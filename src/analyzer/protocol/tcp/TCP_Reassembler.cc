@@ -267,7 +267,8 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 		MatchUndelivered(up_to_seq, false);
 
 	// But we need to re-adjust last_reassem_seq in either case.
-	last_reassem_seq = up_to_seq;	// we've done our best ...
+	if ( up_to_seq > last_reassem_seq )
+		last_reassem_seq = up_to_seq;	// we've done our best ...
 	}
 
 void TCP_Reassembler::MatchUndelivered(uint64 up_to_seq, bool use_last_upper)

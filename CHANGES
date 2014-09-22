@@ -1,4 +1,9 @@
 
+2.3-180 | 2014-09-22 12:52:41 -0500
+
+  * BIT-1259: Fix issue w/ duplicate TCP reassembly deliveries.
+    (Jon Siwek)
+
 2.3-178 | 2014-09-18 14:29:46 -0500
 
   * BIT-1256: Fix file analysis events from coming after bro_done().

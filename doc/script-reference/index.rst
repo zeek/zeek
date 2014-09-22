@@ -5,6 +5,7 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
+   log-files
    notices
    proto-analyzers
    file-analyzers
@@ -12,5 +13,5 @@ Script Reference
    packages
    scripts
    Broxygen Example Script </scripts/broxygen/example.bro>
-   list-of-log-files
-   
+  
+

@@ -64,7 +64,7 @@ of the log file and links to descriptions of some of the fields for each log typ
 +----------------------------+---------------------------------------+---------------------------------+
 | modbus.log                 | Modbus protocol data                  | :bro:type:`Modbus::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
-| modbus_register_change.log |  <add description here>               |  <add link here>                |
+| modbus_register_change.log | Tracks changes to holding registers   | :bro:type:`Modbus::MemmapInfo`  |
 +----------------------------+---------------------------------------+---------------------------------+
 | notice.log                 | Bro notices                           | :bro:type:`Notice::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+

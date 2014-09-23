@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "RADIUS.h"
 
-BRO_PLUGIN_BEGIN(Bro, RADIUS)
-	BRO_PLUGIN_DESCRIPTION("RADIUS analyzer");
-	BRO_PLUGIN_ANALYZER("RADIUS", RADIUS::RADIUS_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_RADIUS {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("RADIUS", ::analyzer::RADIUS::RADIUS_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::RADIUS";
+		config.description = "RADIUS analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

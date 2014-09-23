@@ -243,10 +243,13 @@ int HTTP_Entity::Undelivered(int64_t len)
 		return 0;
 
 	if ( is_partial_content )
+		{
 		precomputed_file_id = file_mgr->Gap(body_length, len,
 		              http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
 		              http_message->MyHTTP_Analyzer()->Conn(),
 		              http_message->IsOrig(), precomputed_file_id);
+		offset += len;
+		}
 	else
 		precomputed_file_id = file_mgr->Gap(body_length, len,
 		                  http_message->MyHTTP_Analyzer()->GetAnalyzerTag(),
@@ -542,11 +545,8 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 
 	current_entity = 0;
 	top_level = new HTTP_Entity(this, 0, expect_body);
+	entity_data_buffer = 0;
 	BeginEntity(top_level);
-
-	buffer_offset = buffer_size = 0;
-	data_buffer = 0;
-	total_buffer_size = 0;
 
 	start_time = network_time;
 	body_length = 0;
@@ -557,6 +557,7 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 HTTP_Message::~HTTP_Message()
 	{
 	delete top_level;
+	delete [] entity_data_buffer;
 	}
 
 Val* HTTP_Message::BuildMessageStat(const int interrupted, const char* msg)
@@ -604,22 +605,14 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		}
 
 	MyHTTP_Analyzer()->HTTP_MessageDone(is_orig, this);
-
-	delete_strings(buffers);
-
-	if ( data_buffer )
-		{
-		delete data_buffer;
-		data_buffer = 0;
-		}
 	}
 
 int HTTP_Message::Undelivered(int64_t len)
 	{
-	if ( ! top_level )
-		return 0;
+	HTTP_Entity* e = current_entity ? current_entity
+	                                : static_cast<HTTP_Entity*>(top_level);
 
-	if ( ((HTTP_Entity*) top_level)->Undelivered(len) )
+	if ( e && e->Undelivered(len) )
 		{
 		content_gap_length += len;
 		return 1;
@@ -651,8 +644,6 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 
 	body_length += ((HTTP_Entity*) entity)->BodyLength();
 	header_length += ((HTTP_Entity*) entity)->HeaderLength();
-
-	DeliverEntityData();
 
 	if ( http_end_entity )
 		{
@@ -720,31 +711,18 @@ void HTTP_Message::SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */)
 
 void HTTP_Message::SubmitData(int len, const char* buf)
 	{
-	if ( buf != (const char*) data_buffer->Bytes() + buffer_offset ||
-	     buffer_offset + len > buffer_size )
-		{
-		reporter->AnalyzerError(MyHTTP_Analyzer(),
-		                                "HTTP message buffer misalignment");
-		return;
-		}
-
-	buffer_offset += len;
-	if ( buffer_offset >= buffer_size )
-		{
-		buffers.push_back(data_buffer);
-		data_buffer = 0;
-		}
+	if ( http_entity_data )
+		MyHTTP_Analyzer()->HTTP_EntityData(is_orig,
+		        new BroString(reinterpret_cast<const u_char*>(buf), len, 0));
 	}
 
 int HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
-	if ( ! data_buffer )
-		if ( ! InitBuffer(mime_segment_length) )
-			return 0;
+	if ( ! entity_data_buffer )
+		entity_data_buffer = new char[http_entity_data_delivery_size];
 
-	*plen = data_buffer->Len() - buffer_offset;
-	*pbuf = (char*) data_buffer->Bytes() + buffer_offset;
-
+	*plen = http_entity_data_delivery_size;
+	*pbuf = entity_data_buffer;
 	return 1;
 	}
 
@@ -785,96 +763,12 @@ void HTTP_Message::SetPlainDelivery(int64_t length)
 
 	if ( length > 0 && BifConst::skip_http_data )
 		content_line->SkipBytesAfterThisLine(length);
-
-	if ( ! data_buffer )
-		InitBuffer(length);
 	}
 
 void HTTP_Message::SkipEntityData()
 	{
 	if ( current_entity )
 		current_entity->SkipBody();
-	}
-
-void HTTP_Message::DeliverEntityData()
-	{
-	if ( http_entity_data )
-		{
-		const BroString* entity_data = 0;
-
-		if ( data_buffer && buffer_offset > 0 )
-			{
-			if ( buffer_offset < buffer_size )
-				{
-				entity_data = new BroString(data_buffer->Bytes(), buffer_offset, 0);
-				delete data_buffer;
-				}
-			else
-				entity_data = data_buffer;
-
-			data_buffer = 0;
-
-			if ( buffers.empty() )
-				MyHTTP_Analyzer()->HTTP_EntityData(is_orig,
-								entity_data);
-			else
-				buffers.push_back(entity_data);
-
-			entity_data = 0;
-			}
-
-		if ( ! buffers.empty() )
-			{
-			if ( buffers.size() == 1 )
-				{
-				entity_data = buffers[0];
-				buffers.clear();
-				}
-			else
-				{
-				entity_data = concatenate(buffers);
-				delete_strings(buffers);
-				}
-
-			MyHTTP_Analyzer()->HTTP_EntityData(is_orig, entity_data);
-			}
-		}
-	else
-		{
-		delete_strings(buffers);
-
-		if ( data_buffer )
-			delete data_buffer;
-
-		data_buffer = 0;
-		}
-
-	total_buffer_size = 0;
-	}
-
-int HTTP_Message::InitBuffer(int64_t length)
-	{
-	if ( length <= 0 )
-		return 0;
-
-	if ( total_buffer_size >= http_entity_data_delivery_size )
-		DeliverEntityData();
-
-	if ( total_buffer_size + length > http_entity_data_delivery_size )
-		{
-		length = http_entity_data_delivery_size - total_buffer_size;
-		if ( length <= 0 )
-			return 0;
-		}
-
-	u_char* b = new u_char[length];
-	data_buffer = new BroString(0, b, length);
-
-	buffer_size = length;
-	total_buffer_size += length;
-	buffer_offset = 0;
-
-	return 1;
 	}
 
 void HTTP_Message::Weird(const char* msg)
@@ -1823,7 +1717,7 @@ void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 		}
 	}
 
-void HTTP_Analyzer::HTTP_EntityData(int is_orig, const BroString* entity_data)
+void HTTP_Analyzer::HTTP_EntityData(int is_orig, BroString* entity_data)
 	{
 	if ( http_entity_data )
 		{
@@ -1831,8 +1725,7 @@ void HTTP_Analyzer::HTTP_EntityData(int is_orig, const BroString* entity_data)
 		vl->append(BuildConnVal());
 		vl->append(new Val(is_orig, TYPE_BOOL));
 		vl->append(new Val(entity_data->Len(), TYPE_COUNT));
-		// FIXME: Make sure that removing the const here is indeed ok...
-		vl->append(new StringVal(const_cast<BroString*>(entity_data)));
+		vl->append(new StringVal(entity_data));
 		ConnectionEvent(http_entity_data, vl);
 		}
 	else

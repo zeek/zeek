@@ -608,6 +608,10 @@ public:
 	CondExpr(Expr* op1, Expr* op2, Expr* op3);
 	~CondExpr();
 
+	const Expr* Op1() const	{ return op1; }
+	const Expr* Op2() const	{ return op2; }
+	const Expr* Op3() const	{ return op3; }
+
 	Expr* Simplify(SimplifyType simp_type);
 	Val* Eval(Frame* f) const;
 	int IsPure() const;
@@ -706,6 +710,7 @@ public:
 	~FieldExpr();
 
 	int Field() const	{ return field; }
+	const char* FieldName() const	{ return field_name; }
 
 	int CanDel() const;
 
@@ -736,6 +741,8 @@ class HasFieldExpr : public UnaryExpr {
 public:
 	HasFieldExpr(Expr* op, const char* field_name);
 	~HasFieldExpr();
+
+	const char* FieldName() const	{ return field_name; }
 
 protected:
 	friend class Expr;

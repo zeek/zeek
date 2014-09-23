@@ -75,6 +75,13 @@ type addr_vec: vector of addr;
 ##    directly and then remove this alias.
 type table_string_of_string: table[string] of string;
 
+## A set of file analyzer tags.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type files_tag_set: set[Files::Tag];
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##
@@ -2479,8 +2486,7 @@ type http_message_stat: record {
 	header_length: count;
 };
 
-## Maximum number of HTTP entity data delivered to events. The amount of data
-## can be limited for better performance, zero disables truncation.
+## Maximum number of HTTP entity data delivered to events.
 ##
 ## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;
@@ -2732,6 +2738,7 @@ type ModbusRegisters: vector of count;
 type ModbusHeaders: record {
 	tid:           count;
 	pid:           count;
+	len:           count;
 	uid:           count;
 	function_code: count;
 };
@@ -3357,9 +3364,6 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
@@ -3368,3 +3372,7 @@ const bits_per_uid: count = 96 &redef;
 @load base/frameworks/files
 
 @load base/bif
+
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+

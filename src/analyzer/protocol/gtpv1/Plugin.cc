@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "GTPv1.h"
 
-BRO_PLUGIN_BEGIN(Bro, GTPv1)
-	BRO_PLUGIN_DESCRIPTION("GTPv1 analyzer");
-	BRO_PLUGIN_ANALYZER("GTPv1", gtpv1::GTPv1_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_GTPv1 {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("GTPv1", ::analyzer::gtpv1::GTPv1_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::GTPv1";
+		config.description = "GTPv1 analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

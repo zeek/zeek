@@ -1,10 +1,24 @@
+// See the file  in the main distribution directory for copyright.
 
 #include "plugin/Plugin.h"
+
 #include "SNMP.h"
 
-BRO_PLUGIN_BEGIN(Bro, SNMP)
-	BRO_PLUGIN_DESCRIPTION("SNMP Analyzer");
-	BRO_PLUGIN_ANALYZER("SNMP", snmp::SNMP_Analyzer);
-	BRO_PLUGIN_BIF_FILE(types);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_SNMP {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("SNMP", ::analyzer::snmp::SNMP_Analyzer::InstantiateAnalyzer));
+
+		plugin::Configuration config;
+		config.name = "Bro::SNMP";
+		config.description = "SNMP analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

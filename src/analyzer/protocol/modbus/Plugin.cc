@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "Modbus.h"
 
-BRO_PLUGIN_BEGIN(Bro, Modbus)
-	BRO_PLUGIN_DESCRIPTION("Modbus analyzer");
-	BRO_PLUGIN_ANALYZER("MODBUS", modbus::ModbusTCP_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_Modbus {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("MODBUS", ::analyzer::modbus::ModbusTCP_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::Modbus";
+		config.description = "Modbus analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

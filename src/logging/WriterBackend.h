@@ -7,6 +7,8 @@
 
 #include "threading/MsgThread.h"
 
+#include "Component.h"
+
 class RemoteSerializer;
 
 namespace logging  {

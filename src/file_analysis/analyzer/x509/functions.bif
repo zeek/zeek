@@ -104,6 +104,39 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 	return untrusted_certs;
 	}
 
+// We need this function to be able to identify the signer certificate of an
+// OCSP request out of a list of possible certificates.
+X509* x509_get_ocsp_signer(STACK_OF(X509) *certs, OCSP_RESPID *rid)
+	{
+	// We support two lookup types - either by response id or by key.
+	if ( rid->type == V_OCSP_RESPID_NAME )
+		return X509_find_by_subject(certs, rid->value.byName);
+
+	// There only should be name and type - but let's be sure...
+	if ( rid->type != V_OCSP_RESPID_KEY )
+		return 0;
+
+	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwhise.
+	if ( rid->value.byKey->length != SHA_DIGEST_LENGTH )
+		return 0;
+
+	unsigned char* key_hash = rid->value.byKey->data;
+	for ( int i = 0; i < sk_X509_num(certs); ++i )
+		{
+		unsigned char digest[SHA_DIGEST_LENGTH];
+		X509* cert = sk_X509_value(certs, i);
+		if ( ! X509_pubkey_digest(cert, EVP_sha1(), digest, NULL) )
+			// digest failed for this certificate, try with next
+			continue;
+
+		if ( memcmp(digest, key_hash, SHA_DIGEST_LENGTH) == 0 )
+			// keys match, return certificate
+			return cert;
+		}
+
+	return 0;
+	}
+
 %%}
 
 ## Parses a certificate into an X509::Certificate structure.
@@ -221,6 +254,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	int out = -1;
 	int result = -1;
 	X509* issuer_certificate = 0;
+	X509* signer = 0;
 	OCSP_RESPONSE *resp = d2i_OCSP_RESPONSE(NULL, &start, ocsp_reply->Len());
 	if ( ! resp )
 		{
@@ -250,19 +284,47 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// inject the certificates in the certificate list of the OCSP reply, they actually are used during
 	// the lookup.
 	// Yay.
+
+	if ( ! basic->certs )
+		{
+		basic->certs = sk_X509_new_null();
+		if ( ! basic->certs )
+			{
+			rval = x509_result_record(-1, "Could not allocate basic x509 stack");
+			goto x509_ocsp_cleanup;
+			}
+		}
+
 	issuer_certificate = 0;
 	for ( int i = 0; i < sk_X509_num(untrusted_certs); i++)
 		{
 		sk_X509_push(basic->certs, X509_dup(sk_X509_value(untrusted_certs, i)));
 
-		if ( X509_NAME_cmp(X509_get_issuer_name(cert), X509_get_subject_name(sk_X509_value(untrusted_certs, i))) )
+		if ( X509_NAME_cmp(X509_get_issuer_name(cert), X509_get_subject_name(sk_X509_value(untrusted_certs, i))) == 0 )
 			issuer_certificate = sk_X509_value(untrusted_certs, i);
 		}
 
 	// Because we actually want to be able to give nice error messages that show why we were
 	// not able to verify the OCSP response - do our own verification logic first.
+	signer = x509_get_ocsp_signer(basic->certs, basic->tbsResponseData->responderId);
+
+	/*
+	Do this perhaps - OpenSSL also cannot do it, so I do not really feel bad about it.
+	Needs a different lookup because the root store is no stack of X509 certs
+
+	if ( !s igner )
+		// if we did not find it in the certificates that were sent, search in the root store
+		signer = x509_get_ocsp_signer(basic->certs, basic->tbsResponseData->responderId);
+	*/
+
+	if ( ! signer )
+		{
+		rval = x509_result_record(-1, "Could not find OCSP responder certificate");
+		goto x509_ocsp_cleanup;
+		}
+
 	csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, ctx, sk_X509_value(basic->certs, 0), basic->certs);
+	X509_STORE_CTX_init(csc, ctx, signer, basic->certs);
 	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
 	X509_STORE_CTX_set_purpose(csc, X509_PURPOSE_OCSP_HELPER);
 
@@ -280,7 +342,6 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		rval = x509_result_record(out, ERR_error_string(ERR_get_error(),NULL));
 		goto x509_ocsp_cleanup;
 		}
-
 
 	// ok, now we verified the OCSP response. This means that we have a valid chain tying it
 	// to a root that we trust and that the signature also hopefully is valid. This does not yet
@@ -322,7 +383,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		goto x509_ocsp_cleanup;
 		}
 
-	if ( ! OCSP_id_cmp(certid, single->certId) )
+	if ( OCSP_id_cmp(certid, single->certId) != 0 )
 		return x509_result_record(-1, "OCSP reply is not for host certificate");
 
 	// next - check freshness of proof...

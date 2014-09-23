@@ -43,6 +43,11 @@ public:
 
 	void SetEnable(bool arg_enable)	{ enabled = arg_enable; }
 
+	// Flags the event as interesting even if there is no body defined. In
+	// particular, this will then still pass the event on to plugins.
+	void SetGenerateAlways()	{ generate_always = true; }
+	bool GenerateAlways()	{ return generate_always; }
+
 	// We don't serialize the handler(s) itself here, but
 	// just the reference to it.
 	bool Serialize(SerialInfo* info) const;
@@ -57,6 +62,7 @@ private:
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.
+	bool generate_always;
 
 	declare(List, SourceID);
 	typedef List(SourceID) receiver_list;

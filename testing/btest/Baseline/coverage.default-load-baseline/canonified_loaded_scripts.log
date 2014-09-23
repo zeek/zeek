@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-05-15-14-12-26
+#open	2014-09-06-01-20-32
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -14,6 +14,39 @@ scripts/base/init-bare.bro
   build/scripts/base/bif/reporter.bif.bro
   build/scripts/base/bif/plugins/Bro_SNMP.types.bif.bro
   build/scripts/base/bif/event.bif.bro
+  scripts/base/frameworks/logging/__load__.bro
+    scripts/base/frameworks/logging/main.bro
+      build/scripts/base/bif/logging.bif.bro
+    scripts/base/frameworks/logging/postprocessors/__load__.bro
+      scripts/base/frameworks/logging/postprocessors/scp.bro
+      scripts/base/frameworks/logging/postprocessors/sftp.bro
+    scripts/base/frameworks/logging/writers/ascii.bro
+    scripts/base/frameworks/logging/writers/sqlite.bro
+    scripts/base/frameworks/logging/writers/none.bro
+  scripts/base/frameworks/input/__load__.bro
+    scripts/base/frameworks/input/main.bro
+      build/scripts/base/bif/input.bif.bro
+    scripts/base/frameworks/input/readers/ascii.bro
+    scripts/base/frameworks/input/readers/raw.bro
+    scripts/base/frameworks/input/readers/benchmark.bro
+    scripts/base/frameworks/input/readers/binary.bro
+    scripts/base/frameworks/input/readers/sqlite.bro
+  scripts/base/frameworks/analyzer/__load__.bro
+    scripts/base/frameworks/analyzer/main.bro
+      scripts/base/frameworks/packet-filter/utils.bro
+      build/scripts/base/bif/analyzer.bif.bro
+  scripts/base/frameworks/files/__load__.bro
+    scripts/base/frameworks/files/main.bro
+      build/scripts/base/bif/file_analysis.bif.bro
+      scripts/base/utils/site.bro
+        scripts/base/utils/patterns.bro
+    scripts/base/frameworks/files/magic/__load__.bro
+  build/scripts/base/bif/__load__.bro
+    build/scripts/base/bif/broxygen.bif.bro
+    build/scripts/base/bif/pcap.bif.bro
+    build/scripts/base/bif/bloom-filter.bif.bro
+    build/scripts/base/bif/cardinality-counter.bif.bro
+    build/scripts/base/bif/top-k.bif.bro
   build/scripts/base/bif/plugins/__load__.bro
     build/scripts/base/bif/plugins/Bro_ARP.events.bif.bro
     build/scripts/base/bif/plugins/Bro_AYIYA.events.bif.bro
@@ -71,40 +104,14 @@ scripts/base/init-bare.bro
     build/scripts/base/bif/plugins/Bro_X509.events.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.types.bif.bro
     build/scripts/base/bif/plugins/Bro_X509.functions.bif.bro
-  scripts/base/frameworks/logging/__load__.bro
-    scripts/base/frameworks/logging/main.bro
-      build/scripts/base/bif/logging.bif.bro
-    scripts/base/frameworks/logging/postprocessors/__load__.bro
-      scripts/base/frameworks/logging/postprocessors/scp.bro
-      scripts/base/frameworks/logging/postprocessors/sftp.bro
-    scripts/base/frameworks/logging/writers/ascii.bro
-    scripts/base/frameworks/logging/writers/dataseries.bro
-    scripts/base/frameworks/logging/writers/sqlite.bro
-    scripts/base/frameworks/logging/writers/elasticsearch.bro
-    scripts/base/frameworks/logging/writers/none.bro
-  scripts/base/frameworks/input/__load__.bro
-    scripts/base/frameworks/input/main.bro
-      build/scripts/base/bif/input.bif.bro
-    scripts/base/frameworks/input/readers/ascii.bro
-    scripts/base/frameworks/input/readers/raw.bro
-    scripts/base/frameworks/input/readers/benchmark.bro
-    scripts/base/frameworks/input/readers/binary.bro
-    scripts/base/frameworks/input/readers/sqlite.bro
-  scripts/base/frameworks/analyzer/__load__.bro
-    scripts/base/frameworks/analyzer/main.bro
-      scripts/base/frameworks/packet-filter/utils.bro
-      build/scripts/base/bif/analyzer.bif.bro
-  scripts/base/frameworks/files/__load__.bro
-    scripts/base/frameworks/files/main.bro
-      build/scripts/base/bif/file_analysis.bif.bro
-      scripts/base/utils/site.bro
-        scripts/base/utils/patterns.bro
-    scripts/base/frameworks/files/magic/__load__.bro
-  build/scripts/base/bif/__load__.bro
-    build/scripts/base/bif/bloom-filter.bif.bro
-    build/scripts/base/bif/cardinality-counter.bif.bro
-    build/scripts/base/bif/top-k.bif.bro
-    build/scripts/base/bif/broxygen.bif.bro
+    build/scripts/base/bif/plugins/Bro_AsciiReader.ascii.bif.bro
+    build/scripts/base/bif/plugins/Bro_BenchmarkReader.benchmark.bif.bro
+    build/scripts/base/bif/plugins/Bro_BinaryReader.binary.bif.bro
+    build/scripts/base/bif/plugins/Bro_RawReader.raw.bif.bro
+    build/scripts/base/bif/plugins/Bro_SQLiteReader.sqlite.bif.bro
+    build/scripts/base/bif/plugins/Bro_AsciiWriter.ascii.bif.bro
+    build/scripts/base/bif/plugins/Bro_NoneWriter.none.bif.bro
+    build/scripts/base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.bro
 scripts/base/init-default.bro
   scripts/base/utils/active-http.bro
     scripts/base/utils/exec.bro
@@ -236,4 +243,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2014-05-15-14-12-26
+#close	2014-09-06-01-20-32

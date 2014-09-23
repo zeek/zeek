@@ -94,7 +94,7 @@ public:
 		{ SetConn(conn); }
 	virtual ~PIA_UDP()	{ }
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new PIA_UDP(conn); }
 
 protected:
@@ -139,7 +139,7 @@ public:
 
 	void ReplayStreamBuffer(analyzer::Analyzer* analyzer);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new PIA_TCP(conn); }
 
 protected:

@@ -56,6 +56,7 @@ test-all: test
 	test -d aux/broctl && ( cd aux/broctl && make test )
 	test -d aux/btest  && ( cd aux/btest && make test )
 	test -d aux/bro-aux && ( cd aux/bro-aux && make test )
+	test -d aux/plugins && ( cd aux/plugins && make test-all )
 
 configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )

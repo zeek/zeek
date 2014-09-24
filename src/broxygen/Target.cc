@@ -27,13 +27,13 @@ static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
 		fprintf(f, "-");
 	fprintf(f, "\n\n");
 
-	fprintf(f, "%s\n\n", p->Description());
+	fprintf(f, "%s\n\n", p->Description().c_str());
 	}
 
 static void write_analyzer_component(FILE* f, const analyzer::Component* c)
 	{
 	EnumType* atag = analyzer_mgr->GetTagEnumType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName());
+	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
 		reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -44,7 +44,7 @@ static void write_analyzer_component(FILE* f, const analyzer::Component* c)
 static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
 	{
 	EnumType* atag = file_mgr->GetTagEnumType();
-	string tag = fmt("ANALYZER_%s", c->CanonicalName());
+	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Files", tag.c_str()) < 0 )
 		reporter->InternalError("missing analyzer tag for %s", tag.c_str());
@@ -130,7 +130,7 @@ static void write_plugin_bif_items(FILE* f, const plugin::Plugin* p,
 			fprintf(f, "%s\n\n", doc->ReStructuredText().c_str());
 		else
 			reporter->InternalWarning("Broxygen ID lookup failed: %s\n",
-			                          it->GetID());
+			                          it->GetID().c_str());
 		}
 	}
 
@@ -265,7 +265,7 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 	plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )
@@ -293,7 +293,7 @@ void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Files");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->Plugins();
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 	plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )

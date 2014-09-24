@@ -10,6 +10,8 @@
 #include "RemoteSerializer.h"
 #include "Val.h"
 
+#include "Component.h"
+
 #include <map>
 
 namespace input {
@@ -20,7 +22,7 @@ class ReaderBackend;
 /**
  * Singleton class for managing input streams.
  */
-class Manager {
+class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
 	/**
 	 * Constructor.
@@ -131,7 +133,7 @@ protected:
 
 	// Instantiates a new ReaderBackend of the given type (note that
 	// doing so creates a new thread!).
-	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);
+	ReaderBackend* CreateBackend(ReaderFrontend* frontend, EnumVal* tag);
 
 	// Function called from the ReaderBackend to notify the manager that
 	// a stream has been removed or a stream has been closed. Used to

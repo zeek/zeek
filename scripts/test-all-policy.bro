@@ -98,7 +98,4 @@
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
 @load tuning/json-logs.bro
-@load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro
-
-redef LogElasticSearch::server_host = "";

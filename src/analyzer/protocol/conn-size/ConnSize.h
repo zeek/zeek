@@ -21,7 +21,7 @@ public:
 	virtual void UpdateConnVal(RecordVal *conn_val);
 	virtual void FlipRoles();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
 
 protected:

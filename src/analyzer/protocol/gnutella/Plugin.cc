@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "Gnutella.h"
 
-BRO_PLUGIN_BEGIN(Bro, Gnutella)
-	BRO_PLUGIN_DESCRIPTION("Gnutella analyzer");
-	BRO_PLUGIN_ANALYZER("Gnutella", gnutella::Gnutella_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_Gnutella {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("Gnutella", ::analyzer::gnutella::Gnutella_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::Gnutella";
+		config.description = "Gnutella analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

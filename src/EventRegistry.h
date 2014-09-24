@@ -33,6 +33,8 @@ public:
 
 	string_list* UnusedHandlers();
 	string_list* UsedHandlers();
+	string_list* AllHandlers();
+
 	void PrintDebug();
 
 private:

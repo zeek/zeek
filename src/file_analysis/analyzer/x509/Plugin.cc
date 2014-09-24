@@ -1,11 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
+
 #include "plugin/Plugin.h"
 
 #include "X509.h"
 
-BRO_PLUGIN_BEGIN(Bro, X509)
-	BRO_PLUGIN_DESCRIPTION("X509 certificate parser");
-	BRO_PLUGIN_FILE_ANALYZER("X509", X509);
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(types);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_X509 {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::file_analysis::Component("X509", ::file_analysis::X509::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::X509";
+		config.description = "X509 analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

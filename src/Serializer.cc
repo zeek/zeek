@@ -19,6 +19,7 @@
 #include "Conn.h"
 #include "Timer.h"
 #include "RemoteSerializer.h"
+#include "iosource/Manager.h"
 
 Serializer::Serializer(SerializationFormat* arg_format)
 	{
@@ -1045,7 +1046,7 @@ EventPlayer::EventPlayer(const char* file)
 		Error(fmt("event replayer: cannot open %s", file));
 
 	if ( ReadHeader() )
-		io_sources.Register(this);
+		iosource_mgr->Register(this);
 	}
 
 EventPlayer::~EventPlayer()
@@ -1085,7 +1086,7 @@ double EventPlayer::NextTimestamp(double* local_network_time)
 		{
 		UnserialInfo info(this);
 		Unserialize(&info);
-		closed = io->Eof();
+		SetClosed(io->Eof());
 		}
 
 	if ( ! ne_time )
@@ -1142,7 +1143,7 @@ bool Packet::Serialize(SerialInfo* info) const
 static BroFile* profiling_output = 0;
 
 #ifdef DEBUG
-static PktDumper* dump = 0;
+static iosource::PktDumper* dump = 0;
 #endif
 
 Packet* Packet::Unserialize(UnserialInfo* info)
@@ -1188,7 +1189,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	p->hdr = hdr;
 	p->pkt = (u_char*) pkt;
 	p->tag = tag;
-	p->hdr_size = get_link_header_size(p->link_type);
+	p->hdr_size = iosource::PktSrc::GetLinkHeaderSize(p->link_type);
 
 	delete [] tag;
 
@@ -1213,9 +1214,15 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	if ( debug_logger.IsEnabled(DBG_TM) )
 		{
 		if ( ! dump )
-			dump = new PktDumper("tm.pcap");
+			dump = iosource_mgr->OpenPktDumper("tm.pcap", true);
 
-		dump->Dump(p->hdr, p->pkt);
+		if ( dump )
+			{
+			iosource::PktDumper::Packet dp;
+			dp.hdr = p->hdr;
+			dp.data = p->pkt;
+			dump->Dump(&dp);
+			}
 		}
 #endif
 

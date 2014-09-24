@@ -1,4 +1,11 @@
 
+2.3-183 | 2014-09-24 10:08:04 -0500
+
+  * Add a "node" field to Intel::Seen struture and intel.log to
+    indicate which node discovered a hit on an intel item. (Seth Hall)
+
+  * BIT-1261: Fixes to plugin quick start doc. (Jon Siwek)
+
 2.3-180 | 2014-09-22 12:52:41 -0500
 
   * BIT-1259: Fix issue w/ duplicate TCP reassembly deliveries.

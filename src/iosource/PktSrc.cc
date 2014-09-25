@@ -218,7 +218,8 @@ void PktSrc::Done()
 		Close();
 	}
 
-void PktSrc::GetFds(int* read, int* write, int* except)
+void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                    iosource::FD_Set* except)
 	{
 	if ( pseudo_realtime )
 		{
@@ -229,7 +230,7 @@ void PktSrc::GetFds(int* read, int* write, int* except)
 		}
 
 	if ( IsOpen() && props.selectable_fd >= 0 )
-		*read = props.selectable_fd;
+		read->Insert(props.selectable_fd);
 	}
 
 double PktSrc::NextTimestamp(double* local_network_time)

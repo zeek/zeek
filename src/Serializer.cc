@@ -1068,9 +1068,10 @@ void EventPlayer::GotFunctionCall(const char* name, double time,
 	// We don't replay function calls.
 	}
 
-void EventPlayer::GetFds(int* read, int* write, int* except)
+void EventPlayer::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                         iosource::FD_Set* except)
 	{
-	*read = fd;
+	read->Insert(fd);
 	}
 
 double EventPlayer::NextTimestamp(double* local_network_time)

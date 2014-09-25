@@ -853,9 +853,17 @@ int main(int argc, char** argv)
 	file_mgr->InitPreScript();
 	broxygen_mgr->InitPreScript();
 
+	bool missing_plugin = false;
+
 	for ( set<string>::const_iterator i = requested_plugins.begin();
 	      i != requested_plugins.end(); i++ )
-		plugin_mgr->ActivateDynamicPlugin(*i);
+		{
+		if ( ! plugin_mgr->ActivateDynamicPlugin(*i) )
+			missing_plugin = true;
+		}
+
+	if ( missing_plugin )
+		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
 	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
 

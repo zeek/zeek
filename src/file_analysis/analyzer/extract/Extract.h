@@ -34,6 +34,14 @@ public:
 	virtual bool DeliverStream(const u_char* data, uint64 len);
 
 	/**
+	 * Report undelivered bytes.
+	 * @param offset distance into the file where the gap occurred.
+	 * @param len number of bytes undelivered.
+	 * @return true
+	 */
+	virtual bool Undelivered(uint64 offset, uint64 len);
+
+	/**
 	 * Create a new instance of an Extract analyzer.
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
@@ -66,6 +74,7 @@ private:
 	string filename;
 	int fd;
 	uint64 limit;
+	uint64 depth;
 };
 
 } // namespace file_analysis

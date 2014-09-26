@@ -18,21 +18,24 @@ FileReassembler::~FileReassembler()
 
 void FileReassembler::BlockInserted(DataBlock* start_block)
 	{
-	if ( seq_delta(start_block->seq, last_reassem_seq) > 0 ||
-	     seq_delta(start_block->upper, last_reassem_seq) <= 0 )
+	if ( start_block->seq > last_reassem_seq ||
+	     start_block->upper <= last_reassem_seq )
 		return;
 
 	for ( DataBlock* b = start_block;
-	      b && seq_delta(b->seq, last_reassem_seq) <= 0; b = b->next )
+	      b && b->seq <= last_reassem_seq; b = b->next )
 		{
 		if ( b->seq == last_reassem_seq )
 			{ // New stuff.
-			int len = b->Size();
-			int seq = last_reassem_seq;
-			the_file->DeliverStream(b->block, len);
+			uint64 len = b->Size();
+			uint64 seq = last_reassem_seq;
 			last_reassem_seq += len;
+			the_file->DeliverStream(b->block, len);
 			}
 		}
+
+	// Throw out forwarded data
+	TrimToSeq(last_reassem_seq);
 	}
 
 void FileReassembler::Undelivered(uint64 up_to_seq)

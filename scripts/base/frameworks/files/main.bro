@@ -125,6 +125,10 @@ export {
 	## generate two handles that would hash to the same file id.
 	const salt = "I recommend changing this." &redef;
 
+	## Decide if you want to automatically attached analyzers to 
+	## files based on the detected mime type of the file.
+	const analyze_by_mime_type_automatically = T &redef;
+
 	## The default setting for if the file reassembler is enabled for 
 	## each file.
 	const enable_reassembler = T &redef;
@@ -180,15 +184,6 @@ export {
 	global add_analyzer: function(f: fa_file,
 	                              tag: Files::Tag,
 	                              args: AnalyzerArgs &default=AnalyzerArgs()): bool;
-
-	## Adds all analyzers associated with a give MIME type to the analysis of
-	## a file.  Note that analyzers added via MIME types cannot take further
-	## arguments.
-	##
-	## f: the file.
-	##
-	## mtype: the MIME type; it will be compared case-insensitive.
-	global add_analyzers_for_mime_type: function(f: fa_file, mtype: string);
 
 	## Removes an analyzer from the analysis of a given file.
 	##
@@ -312,6 +307,7 @@ global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table()
 
 # Store the MIME type to analyzer mappings.
 global mime_types: table[Analyzer::Tag] of set[string];
+global mime_type_to_analyzers: table[string] of set[Analyzer::Tag];
 
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
@@ -341,8 +337,6 @@ function set_info(f: fa_file)
 	f$info$overflow_bytes = f$overflow_bytes;
 	if ( f?$is_orig )
 		f$info$is_orig = f$is_orig;
-	if ( f?$mime_type )
-		f$info$mime_type = f$mime_type;
 	}
 
 function set_timeout_interval(f: fa_file, t: interval): bool
@@ -380,15 +374,6 @@ function add_analyzer(f: fa_file, tag: Files::Tag, args: AnalyzerArgs): bool
 	return T;
 	}
 
-function add_analyzers_for_mime_type(f: fa_file, mtype: string)
-	{
-	local dummy_args: AnalyzerArgs;
-	local analyzers = __add_analyzers_for_mime_type(f$id, mtype, dummy_args);
-
-	for ( tag in analyzers )
-		add f$info$analyzers[Files::analyzer_name(tag)];
-	}
-
 function register_analyzer_add_callback(tag: Files::Tag, callback: function(f: fa_file, args: AnalyzerArgs))
 	{
 	analyzer_add_callbacks[tag] = callback;
@@ -407,55 +392,6 @@ function stop(f: fa_file): bool
 function analyzer_name(tag: Files::Tag): string
 	{
 	return __analyzer_name(tag);
-	}
-
-event file_new(f: fa_file) &priority=10
-	{
-	set_info(f);
-
-	if ( f?$mime_type )
-		add_analyzers_for_mime_type(f, f$mime_type);
-
-	if ( enable_reassembler )
-		{
-		Files::enable_reassembly(f);
-		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
-		}
-	}
-
-event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=10
-	{
-	set_info(f);
-
-	if ( enable_reassembler )
-		{
-		Files::enable_reassembly(f);
-		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
-		}
-
-	add f$info$conn_uids[c$uid];
-	local cid = c$id;
-	add f$info$tx_hosts[f$is_orig ? cid$orig_h : cid$resp_h];
-	if( |Site::local_nets| > 0 )
-		f$info$local_orig=Site::is_local_addr(f$is_orig ? cid$orig_h : cid$resp_h);
-
-	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
-	}
-
-event file_timeout(f: fa_file) &priority=10
-	{
-	set_info(f);
-	f$info$timedout = T;
-	}
-
-event file_state_remove(f: fa_file) &priority=10
-	{
-	set_info(f);
-	}
-
-event file_state_remove(f: fa_file) &priority=-10
-	{
-	Log::write(Files::LOG, f$info);
 	}
 
 function register_protocol(tag: Analyzer::Tag, reg: ProtoRegistration): bool
@@ -480,13 +416,18 @@ function register_for_mime_types(tag: Analyzer::Tag, mime_types: set[string]) : 
 
 function register_for_mime_type(tag: Analyzer::Tag, mt: string) : bool
 	{
-	if ( ! __register_for_mime_type(tag, mt) )
-		return F;
-
 	if ( tag !in mime_types )
+		{
 		mime_types[tag] = set();
-
+		}
 	add mime_types[tag][mt];
+
+	if ( mt !in mime_type_to_analyzers )
+		{
+		mime_type_to_analyzers[mt] = set();
+		}
+	add mime_type_to_analyzers[mt][tag];
+
 	return T;
 	}
 
@@ -517,4 +458,63 @@ event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool) &priorit
 
 	local handler = registered_protocols[tag];
 	set_file_handle(handler$get_file_handle(c, is_orig));
+	}
+
+event file_new(f: fa_file) &priority=10
+	{
+	set_info(f);
+
+	if ( enable_reassembler )
+		{
+		Files::enable_reassembly(f);
+		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
+		}
+	}
+
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=10
+	{
+	set_info(f);
+
+	add f$info$conn_uids[c$uid];
+	local cid = c$id;
+	add f$info$tx_hosts[f$is_orig ? cid$orig_h : cid$resp_h];
+	if( |Site::local_nets| > 0 )
+		f$info$local_orig=Site::is_local_addr(f$is_orig ? cid$orig_h : cid$resp_h);
+
+	add f$info$rx_hosts[f$is_orig ? cid$resp_h : cid$orig_h];
+	}
+
+event file_mime_type(f: fa_file, mime_type: string) &priority=10
+	{
+	set_info(f);
+
+	f$info$mime_type = mime_type;
+
+
+	if ( analyze_by_mime_type_automatically &&
+	     mime_type in mime_type_to_analyzers )
+		{
+		local analyzers = mime_type_to_analyzers[mime_type];
+		for ( a in analyzers )
+			{
+			add f$info$analyzers[Files::analyzer_name(a)];
+			Files::add_analyzer(f, a);
+			}
+		}
+	}
+
+event file_timeout(f: fa_file) &priority=10
+	{
+	set_info(f);
+	f$info$timedout = T;
+	}
+
+event file_state_remove(f: fa_file) &priority=10
+	{
+	set_info(f);
+	}
+
+event file_state_remove(f: fa_file) &priority=-10
+	{
+	Log::write(Files::LOG, f$info);
 	}

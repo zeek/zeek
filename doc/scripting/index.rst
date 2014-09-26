@@ -103,9 +103,9 @@ In the ``file_hash`` event handler, there is an ``if`` statement that is used
 to check for the correct type of hash, in this case
 a SHA1 hash.  It also checks for a mime type we've defined as
 being of interest as defined in the constant ``match_file_types``.
-The comparison is made against the expression ``f$mime_type``, which uses
+The comparison is made against the expression ``f$info$mime_type``, which uses
 the ``$`` dereference operator to check the value ``mime_type``
-inside the variable ``f``.  If the entire expression evaluates to true,
+inside the variable ``f$info``.  If the entire expression evaluates to true,
 then a helper function is called to do the rest of the work.  In that
 function, a local variable is defined to hold a string comprised of
 the SHA1 hash concatenated with ``.malware.hash.cymru.com``; this

@@ -12,7 +12,7 @@ using namespace file_analysis;
 Extract::Extract(RecordVal* args, File* file, const string& arg_filename,
                  uint64 arg_limit)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), args, file),
-      filename(arg_filename), limit(arg_limit)
+      filename(arg_filename), limit(arg_limit), depth(0)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666);
 
@@ -53,7 +53,7 @@ file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	                   limit->AsCount());
 	}
 
-static bool check_limit_exceeded(uint64 lim, uint64 len, uint64* n)
+static bool check_limit_exceeded(uint64 lim, uint64 depth, uint64 len, uint64* n)
 	{
 	if ( lim == 0 )
 		{
@@ -61,18 +61,21 @@ static bool check_limit_exceeded(uint64 lim, uint64 len, uint64* n)
 		return false;
 		}
 
-	//if ( off >= lim )
-	//	{
-	//	*n = 0;
-	//	return true;
-	//	}
-	//
-	//*n = lim - off;
-
-	if ( len > *n )
+	if ( depth >= lim )
+		{
+		*n = 0;
 		return true;
+		}
+	else if ( depth + len > lim )
+		{
+		printf("exceeded the maximum extraction lenght depth: %llu len: %llu lim: %llu\n", depth, len, lim);
+		*n = lim - depth;
+		return true;
+		}
 	else
+		{
 		*n = len;
+		}
 
 	return false;
 	}
@@ -83,7 +86,7 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 		return false;
 
 	uint64 towrite = 0;
-	bool limit_exceeded = check_limit_exceeded(limit, len, &towrite);
+	bool limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);
 
 	if ( limit_exceeded && file_extraction_limit )
 		{
@@ -95,12 +98,21 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 		vl->append(new Val(len, TYPE_COUNT));
 		f->FileEvent(file_extraction_limit, vl);
 
-		// Limit may have been modified by BIF, re-check it.
-		limit_exceeded = check_limit_exceeded(limit, len, &towrite);
+		// Limit may have been modified by a BIF, re-check it.
+		limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);
 		}
 
 	if ( towrite > 0 )
-		safe_write(fd, (const char *) data, towrite);
+		{
+		safe_pwrite(fd, (const u_char *) data, towrite, depth);
+		depth += towrite;
+		}
 
 	return ( ! limit_exceeded );
+	}
+
+bool Extract::Undelivered(uint64 offset, uint64 len)
+	{
+	depth += len;
+	return true;
 	}

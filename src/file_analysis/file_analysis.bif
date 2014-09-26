@@ -47,16 +47,6 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	return new Val(result, TYPE_BOOL);
 	%}
 
-## :bro:see:`Files::add_analyzers_for_mime_type`.
-function Files::__add_analyzers_for_mime_type%(file_id: string, mtype: string, args: any%): files_tag_set
-	%{
-	using BifType::Record::Files::AnalyzerArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-	Val* analyzers = file_mgr->AddAnalyzersForMIMEType(file_id->CheckString(), mtype->CheckString(), rv);
-	Unref(rv);
-	return analyzers;
-	%}
-
 ## :bro:see:`Files::remove_analyzer`.
 function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
@@ -79,13 +69,6 @@ function Files::__stop%(file_id: string%): bool
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
 	return new StringVal(file_mgr->GetComponentName(tag));
-	%}
-
-## :bro:see:`Files::register_for_mime_type`.
-function Files::__register_for_mime_type%(id: Analyzer::Tag, mt: string%) : bool
-	%{
-	bool result = file_mgr->RegisterAnalyzerForMIMEType(id->AsEnumVal(), mt);
-	return new Val(result, TYPE_BOOL);
 	%}
 
 module GLOBAL;

@@ -353,9 +353,9 @@ type connection: record {
 ## gives up and discards any internal state related to the file.
 const default_file_timeout_interval: interval = 2 mins &redef;
 
-## Default amount of bytes that file analysis will buffer before raising
-## :bro:see:`file_new`.
-const default_file_bof_buffer_size: count = 1024 &redef;
+## Default amount of bytes that file analysis will buffer to provide
+## data back in time to attached analyzers
+const default_file_bof_buffer_size: count = 4096 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
@@ -410,16 +410,6 @@ type fa_file: record {
 	## The content of the beginning of a file up to *bof_buffer_size* bytes.
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
-
-	## The mime type of the strongest file magic signature matches against
-	## the data chunk in *bof_buffer*, or in the cases where no buffering
-	## of the beginning of file occurs, an initial guess of the mime type
-	## based on the first data seen.
-	mime_type: string &optional;
-
-	## All mime types that matched file magic signatures against the data
-	## chunk in *bof_buffer*, in order of their strength value.
-	mime_types: mime_matches &optional;
 } &redef;
 
 ## Fields of a SYN packet.

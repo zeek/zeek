@@ -231,12 +231,10 @@ protected:
 	/**
 	 * Does mime type detection via file magic signatures and assigns
 	 * strongest matching mime type (if available) to \c mime_type
-	 * field in #val.
-	 * @param data pointer to a chunk of file data.
-	 * @param len number of bytes in the data chunk.
+	 * field in #val.  It uses the data in the BOF buffer
 	 * @return whether a mime type match was found.
 	 */
-	bool DetectMIME(const u_char* data, uint64 len);
+	bool DetectMIME();
 
 	/**
 	 * Enables reassembly on the file.
@@ -283,20 +281,18 @@ protected:
 	FileReassembler *file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
+	bool did_mime_type;        /**< Whether the mime type ident has already been attempted. */
 	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
 	bool done;                 /**< If this object is about to be deleted. */
-	bool did_file_new_event;   /**< Whether the file_new event has been done. */
 	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
-	queue<pair<EventHandlerPtr, val_list*> > fonc_queue;
 
 	struct BOF_Buffer {
-		BOF_Buffer() : full(false), replayed(false), size(0) {}
+		BOF_Buffer() : full(false), size(0) {}
 		~BOF_Buffer()
 			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
 
 		bool full;
-		bool replayed;
 		uint64 size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */

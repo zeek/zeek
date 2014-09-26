@@ -1,4 +1,124 @@
 
+2.3-196 | 2014-09-25 17:53:27 -0700
+
+  * Changing prefix for packet sources/dumper from ':' to '%'.
+    Addresses BIT-1249. (Robin Sommer)
+
+  * Remove timeouts from remote communication loop. The select() now
+    blocks until there's work to do instead of relying on a small
+    timeout value which can cause unproductive use of cpu cycles. (Jon
+    Siwek)
+
+  * Improve error message when failing to activate a plugin. Also fix
+    a unit test helper script that checks plugin availability. (Jon
+    Siwek)
+
+2.3-183 | 2014-09-24 10:08:04 -0500
+
+  * Add a "node" field to Intel::Seen struture and intel.log to
+    indicate which node discovered a hit on an intel item. (Seth Hall)
+
+  * BIT-1261: Fixes to plugin quick start doc. (Jon Siwek)
+
+2.3-180 | 2014-09-22 12:52:41 -0500
+
+  * BIT-1259: Fix issue w/ duplicate TCP reassembly deliveries.
+    (Jon Siwek)
+
+2.3-178 | 2014-09-18 14:29:46 -0500
+
+  * BIT-1256: Fix file analysis events from coming after bro_done().
+    (Jon Siwek)
+
+2.3-177 | 2014-09-17 09:41:27 -0500
+
+  * Documentation fixes. (Chris Mavrakis)
+
+2.3-174 | 2014-09-17 09:37:09 -0500
+
+  * Fixed some "make doc" warnings caused by reST formatting
+    (Daniel Thayer).
+
+2.3-172 | 2014-09-15 13:38:52 -0500
+
+  * Remove unneeded allocations for HTTP messages. (Jon Siwek)
+
+2.3-171 | 2014-09-15 11:14:57 -0500
+
+  * Fix a compile error on systems without pcap-int.h. (Jon Siwek)
+
+2.3-170 | 2014-09-12 19:28:01 -0700
+
+  * Fix incorrect data delivery skips after gap in HTTP Content-Range.
+    Addresses BIT-1247. (Jon Siwek)
+
+  * Fix file analysis placement of data after gap in HTTP
+    Content-Range. Addresses BIT-1248. (Jon Siwek)
+
+  * Fix issue w/ TCP reassembler not delivering some segments.
+    Addresses BIT-1246. (Jon Siwek)
+
+  * Fix MIME entity file data/gap ordering and raise http_entity_data
+    in line with data arrival. Addresses BIT-1240. (Jon Siwek)
+
+  * Implement file ID caching for MIME_Mail. (Jon Siwek)
+
+  * Fix a compile error. (Jon Siwek)
+
+2.3-161 | 2014-09-09 12:35:38 -0500
+
+  * Bugfixes and test updates/additions. (Robin Sommer)
+
+  * Interface tweaks and docs for PktSrc/PktDumper. (Robin Sommer)
+
+  * Moving PCAP-related bifs to iosource/pcap.bif. (Robin Sommer)
+
+  * Moving some of the BPF filtering code into base class.
+    This will allow packet sources that don't support BPF natively to
+    emulate the filtering via libpcap. (Robin Sommer)
+
+  * Removing FlowSrc. (Robin Sommer)
+
+  * Removing remaining pieces of the 2ndary path, and left-over
+    files of packet sorter. (Robin Sommer)
+
+  * A bunch of infrastructure work to move IOSource, IOSourceRegistry
+    (now iosource::Manager) and PktSrc/PktDumper code into iosource/,
+    and over to a plugin structure. (Robin Sommer)
+
+2.3-137 | 2014-09-08 19:01:13 -0500
+
+  * Fix Broxygen's rendering of opaque types. (Jon Siwek)
+
+2.3-136 | 2014-09-07 20:50:46 -0700
+
+  * Change more http links to https. (Johanna Amann)
+
+2.3-134 | 2014-09-04 16:16:36 -0700
+
+  * Fixed a number of issues with OCSP reply validation. Addresses
+    BIT-1212. (Johanna Amann)
+
+  * Fix null pointer dereference in OCSP verification code in case no
+    certificate is sent as part as the ocsp reply. Addresses BIT-1212.
+    (Johanna Amann)
+
+2.3-131 | 2014-09-04 16:10:32 -0700
+
+  * Make links in documentation templates protocol relative. (Johanna
+    Amann)
+
+2.3-129 | 2014-09-02 17:21:21 -0700
+
+  * Simplify a conditional with equivalent branches. (Jon Siwek)
+
+  * Change EDNS parsing code to use rdlength more cautiously. (Jon
+    Siwek)
+
+  * Fix a memory leak when bind() fails due to EADDRINUSE. (Jon Siwek)
+
+  * Fix possible buffer over-read in DNS TSIG parsing. (Jon Siwek)
+
 2.3-124 | 2014-08-26 09:24:19 -0500
 
   * Better documentation for sub_bytes (Jimmy Jones)

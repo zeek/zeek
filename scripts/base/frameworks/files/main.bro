@@ -264,10 +264,10 @@ export {
 	## Returns: The set of MIME types.
 	global registered_mime_types: function(tag: Analyzer::Tag) : set[string];
 
-	## Returns a table of all MIME-type-to-analyzer mappings currently registered. 
+	## Returns a table of all MIME-type-to-analyzer mappings currently registered.
 	##
-	## Returns: A table mapping each analyzer to the set of MIME types registered for
-	## it.
+	## Returns: A table mapping each analyzer to the set of MIME types
+	##          registered for it.
 	global all_registered_mime_types: function() : table[Analyzer::Tag] of set[string];
 
 	## Event that can be handled to access the Info record as it is sent on

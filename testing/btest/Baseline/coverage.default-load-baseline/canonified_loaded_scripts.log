@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-08-14-04-31-11
+#open	2014-09-06-01-20-32
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -43,6 +43,7 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/files/magic/__load__.bro
   build/scripts/base/bif/__load__.bro
     build/scripts/base/bif/broxygen.bif.bro
+    build/scripts/base/bif/pcap.bif.bro
     build/scripts/base/bif/bloom-filter.bif.bro
     build/scripts/base/bif/cardinality-counter.bif.bro
     build/scripts/base/bif/top-k.bif.bro
@@ -242,4 +243,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2014-08-14-04-31-11
+#close	2014-09-06-01-20-32

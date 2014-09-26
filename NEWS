@@ -22,7 +22,7 @@ New Functionality
   plugin can furthermore hook into Bro's processing a number of places
   to add custom logic.
 
-  See http://www.bro.org/sphinx-git/devel/plugins.html for more
+  See https://www.bro.org/sphinx-git/devel/plugins.html for more
   information on writing plugins.
 
 Changed Functionality

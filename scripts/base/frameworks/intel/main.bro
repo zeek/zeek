@@ -81,6 +81,9 @@ export {
 		## Where the data was discovered.
 		where:           Where         &log;
 		
+		## The name of the node where the match was discovered.
+		node:            string        &optional &log;
+
 		## If the data was discovered within a connection, the 
 		## connection record should go here to give context to the data.
 		conn:            connection    &optional;
@@ -238,6 +241,11 @@ function Intel::seen(s: Seen)
 			{
 			s$indicator = cat(s$host);
 			s$indicator_type = Intel::ADDR;
+			}
+
+		if ( ! s?$node )
+			{
+			s$node = peer_description;
 			}
 
 		if ( have_full_data )

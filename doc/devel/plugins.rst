@@ -57,10 +57,10 @@ called ``Demo::Rot13``.
 
 The ``init-plugin`` script puts a number of files in place. The full
 layout is described later. For now, all we need is
-``src/functions.bif``. It's initially empty, but we'll add our new bif
+``src/rot13.bif``. It's initially empty, but we'll add our new bif
 there as follows::
 
-    # cat scripts/functions.bif
+    # cat src/rot13.bif
     module CaesarCipher;
 
     function rot13%(s: string%) : string
@@ -73,23 +73,25 @@ there as follows::
             *p  = (*p - b + 13) % 26 + b;
             }
 
-        return new StringVal(new BroString(1, rot13, strlen(rot13)));
+        BroString* bs = new BroString(1, reinterpret_cast<byte_vec>(rot13),
+                                      strlen(rot13));
+        return new StringVal(bs);
         %}
 
 The syntax of this file is just like any other ``*.bif`` file; we
 won't go into it here.
 
 Now we can already compile our plugin, we just need to tell the
-Makefile put in place by ``init-plugin`` where the Bro source tree is
-located (Bro needs to have been built there first)::
+configure script put in place by ``init-plugin`` where the Bro source
+tree is located (Bro needs to have been built there first)::
 
-    # make BRO=/path/to/bro/dist
+    # ./configure --bro-dist=/path/to/bro/dist && make
     [... cmake output ...]
 
 Now our ``rot13-plugin`` directory has everything that it needs
 for Bro to recognize it as a dynamic plugin. Once we point Bro to it,
 it will pull it in automatically, as we can check with the ``-N``
-option:
+option::
 
     # export BRO_PLUGIN_PATH=/path/to/rot13-plugin
     # bro -N
@@ -100,7 +102,7 @@ option:
 That looks quite good, except for the dummy description that we should
 replace with something nicer so that users will know what our plugin
 is about.  We do this by editing the ``config.description`` line in
-``src/Plugin.cc``, like this:
+``src/Plugin.cc``, like this::
 
     [...]
     plugin::Configuration Configure()
@@ -193,7 +195,7 @@ directory.
     A directory with the plugin's custom Bro scripts. When the plugin
     gets activated, this directory will be automatically added to
     ``BROPATH``, so that any scripts/modules inside can be
-    ``@load``ed.
+    "@load"ed.
 
 ``scripts``/__load__.bro
     A Bro script that will be loaded immediately when the plugin gets

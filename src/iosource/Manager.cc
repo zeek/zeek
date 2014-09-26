@@ -201,7 +201,7 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 	// PktSrc to use. If not, choose default.
 	std::string prefix;
 
-	std::string::size_type i = path.find(":");
+	std::string::size_type i = path.find("%");
 	if ( i != std::string::npos )
 		{
 		prefix = path.substr(0, i);

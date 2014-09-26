@@ -24,7 +24,7 @@ Component::~Component()
 PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type, factory_callback arg_factory)
 	: iosource::Component(plugin::component::PKTSRC, arg_name)
 	{
-	tokenize_string(arg_prefix, ":", &prefixes);
+	tokenize_string(arg_prefix, "%", &prefixes);
 	type = arg_type;
 	factory = arg_factory;
 	}
@@ -110,7 +110,7 @@ void PktSrcComponent::DoDescribe(ODesc* d) const
 PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
 	: plugin::Component(plugin::component::PKTDUMPER, name)
 	{
-	tokenize_string(arg_prefix, ":", &prefixes);
+	tokenize_string(arg_prefix, "%", &prefixes);
 	factory = arg_factory;
 	}
 

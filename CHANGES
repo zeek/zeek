@@ -1,4 +1,18 @@
 
+2.3-196 | 2014-09-25 17:53:27 -0700
+
+  * Changing prefix for packet sources/dumper from ':' to '%'.
+    Addresses BIT-1249. (Robin Sommer)
+
+  * Remove timeouts from remote communication loop. The select() now
+    blocks until there's work to do instead of relying on a small
+    timeout value which can cause unproductive use of cpu cycles. (Jon
+    Siwek)
+
+  * Improve error message when failing to activate a plugin. Also fix
+    a unit test helper script that checks plugin availability. (Jon
+    Siwek)
+
 2.3-183 | 2014-09-24 10:08:04 -0500
 
   * Add a "node" field to Intel::Seen struture and intel.log to

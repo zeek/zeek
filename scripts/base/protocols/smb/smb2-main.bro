@@ -131,8 +131,16 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 	# We can identify the file by its file id now so let's stick it 
 	# in the file map.
 	c$smb$fid_map[file_id$persistent+file_id$volatile] = c$smb$current_file;
+	}
 
+event smb2_create_response(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_size: count, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=-5
+	{
 	SMB::write_file_log(c$smb$current_file);
+	}
+
+event smb2_set_info_request(c: connection, hdr: SMB2::Header, request: SMB2::SetInfoRequest) &priority=5
+	{
+	c$smb$current_file$size = request$eof;
 	}
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5

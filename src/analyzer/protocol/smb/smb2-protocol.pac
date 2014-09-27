@@ -399,24 +399,6 @@ type SMB2_query_info_response(header: SMB2_Header) = record {
 	buffer              : bytestring &length = buffer_len;
 };
 
-type SMB2_set_info_request(header: SMB2_Header) = record {
-	structure_size      : uint16;
-	info_type           : uint8;
-	file_info_class     : uint8;
-	buffer_len          : uint32;
-	buffer_offset       : uint16;
-	reserved            : uint16;
-	additional_info     : uint32;
-	file_id             : SMB2_guid;
-	pad                 : padding to buffer_offset - header.head_length;
-	# TODO: a new structure needs to be created for this.
-	buffer              : bytestring &length = buffer_len;
-};
-
-type SMB2_set_info_response(header: SMB2_Header) = record {
-	structure_size      : uint16;
-};
-
 type SMB2_oplock_break(header: SMB2_Header) = record {
 	structure_size      : uint16;
 	oplock_level        : uint8;

@@ -60,10 +60,10 @@ refine connection SMB_Conn += {
 
 		if ( ${val.end_of_file} > 0 )
 			{
-			file_mgr->SetSize(${val.end_of_file}, 
-			                  bro_analyzer()->GetAnalyzerTag(),
-			                  bro_analyzer()->Conn(),
-			                  header->is_orig());
+			//file_mgr->SetSize(${val.end_of_file}, 
+			//                  bro_analyzer()->GetAnalyzerTag(),
+			//                  bro_analyzer()->Conn(),
+			//                  header->is_orig());
 			}
 
 		return true;

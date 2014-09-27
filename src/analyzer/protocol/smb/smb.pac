@@ -30,6 +30,7 @@
 #include "smb2_com_negotiate.bif.h"
 #include "smb2_com_read.bif.h"
 #include "smb2_com_session_setup.bif.h"
+#include "smb2_com_set_info.bif.h"
 #include "smb2_com_tree_connect.bif.h"
 #include "smb2_com_tree_disconnect.bif.h"
 #include "smb2_com_write.bif.h"
@@ -81,6 +82,7 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb2-com-negotiate.pac
 %include smb2-com-read.pac
 %include smb2-com-session-setup.pac
+%include smb2-com-set-info.pac
 %include smb2-com-tree-connect.pac
 %include smb2-com-tree-disconnect.pac
 %include smb2-com-write.pac

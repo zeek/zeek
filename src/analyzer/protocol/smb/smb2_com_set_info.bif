@@ -1,0 +1,3 @@
+event smb2_set_info_request%(c: connection, hdr: SMB2::Header, request: SMB2::SetInfoRequest%);
+
+type SMB2::SetInfoRequest: record;

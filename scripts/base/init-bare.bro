@@ -2706,6 +2706,10 @@ export {
 		flags: SMB2::SessionSetupFlags;
 	};
 
+	type SMB2::SetInfoRequest: record {
+		eof: count;
+	};
+
 	type SMB2::TreeConnectResponse: record {
 		share_type: count;
 	};

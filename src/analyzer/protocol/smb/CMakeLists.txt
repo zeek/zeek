@@ -30,6 +30,7 @@ bro_plugin_bif(
 	smb2_com_negotiate.bif
 	smb2_com_read.bif
 	smb2_com_session_setup.bif
+	smb2_com_set_info.bif
 	smb2_com_tree_connect.bif
 	smb2_com_tree_disconnect.bif
 	smb2_com_write.bif
@@ -72,6 +73,7 @@ bro_plugin_pac(
 	smb2-com-negotiate.pac
 	smb2-com-read.pac
 	smb2-com-session-setup.pac
+	smb2-com-set-info.pac
 	smb2-com-tree-connect.pac
 	smb2-com-tree-disconnect.pac
 	smb2-com-write.pac

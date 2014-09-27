@@ -57,6 +57,9 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		{
 		c$smb$current_file$fuid = f$id;
 
+		if ( c$smb$current_file$size > 0 )
+			f$total_bytes = c$smb$current_file$size;
+
 		if ( c$smb$current_file?$name )
 			f$info$filename = c$smb$current_file$name;
 		}

@@ -127,10 +127,13 @@ event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: co
 	# We can identify the file by its file id now so let's stick it 
 	# in the file map.
 	c$smb$fid_map[file_id] = c$smb$current_file;
-
-	SMB::write_file_log(c$smb$current_file);
 	}
 	
+event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes) &priority=-5
+	{
+	SMB::write_file_log(c$smb$current_file);
+	}
+
 event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count) &priority=5
 	{
 	SMB::set_current_file(c$smb, file_id);

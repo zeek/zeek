@@ -48,7 +48,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-Val* Plugin::HookCallFunction(const Func* func, val_list* args)
+Val* Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* args)
 	{
 	ODesc d;
 	d.SetShort();

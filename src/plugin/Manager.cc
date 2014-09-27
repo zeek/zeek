@@ -559,7 +559,7 @@ int Manager::HookLoadFile(const string& file)
 	return rc;
 	}
 
-Val* Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
+ValWrapper* Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
 	{
 	HookArgumentList args;
 
@@ -573,7 +573,7 @@ Val* Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs)
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	Val* v = 0;
+	ValWrapper* v = 0;
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
@@ -582,7 +582,7 @@ Val* Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs)
 
 			v = p->HookCallFunction(func, parent, vargs);
 
-			if ( v )
+			if ( v && v-> processed)
 				break;
 			}
 

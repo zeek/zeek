@@ -26,6 +26,34 @@ class Component;
 class Plugin;
 
 /**
+ * In certain cases, functions may have well-defined return types but still return NULL values (e.g. delayed functions, opaque types).
+ * Thus, it's necessary to explicitly define whether or not a plugin has handled a function in addition to recording the value it has
+ * returned.
+ *
+ * Plugins' function handlers return a result of this type.
+ */
+struct ValWrapper {
+    Val* value;       //< value being wrapped by this object
+    bool processed;   //< true if execution should *STOP* (read: the plugin is replacing a method), and false if execution should *CONTINUE* (read: bro should execute a method)
+
+    /**
+    Wrapper for a specific value.  If we're setting a value, we assume we've processed something.
+    
+    @param value value to be wrapped
+    */
+    ValWrapper(Val* value)
+    : value(value), processed(true) { }
+
+    /**
+    Wrapper for a specific value.  If we're setting 'processed', we assume there's a reason we're not setting a Val and set that to NULL.
+    
+    @param processed whether or not an execution of a function was handled by the plugin
+    */
+    ValWrapper(bool processed)
+    : value(NULL), processed(processed) { }
+};
+
+/**
  * Hook types that a plugin may define. Each label maps to the corresponding
  * virtual method in \a Plugin.
  */
@@ -155,7 +183,7 @@ public:
 	 * Type of the argument.
 	 */
 	enum Type {
-		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, VAL_LIST, VOID, VOIDP,
+		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, WRAPPED_VAL, VAL_LIST, VOID, VOIDP,
 	};
 
 	/**
@@ -208,6 +236,11 @@ public:
 	 */
 	HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
 
+    /**
+     * Constructor with a ValWrapper argument.
+     */
+    HookArgument(ValWrapper* a)   { type = WRAPPED_VAL; arg.wrapper = a; }
+
 	/**
 	 * Returns the value for a boolen argument. The argument's type must
 	 * match accordingly.
@@ -250,6 +283,12 @@ public:
 	 */
 	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
 
+    /**
+     * Returns the value for a Bro wrapped value argument.  The argument's type must
+     * match accordingly.
+     */
+    const ValWrapper* AsValWrapper() const { assert(type == VAL_WRAPPER); return arg.wrapper; }
+
 	/**
 	 * Returns the value for a list of Bro values argument. The argument's type must
 	 * match accordingly.
@@ -283,6 +322,7 @@ private:
 		const Func* func;
 		int int_;
 		const Val* val;
+        const ValWrapper* wrapper;
 		const val_list* vals;
 		const void* voidp;
 	} arg;
@@ -567,13 +607,14 @@ protected:
 	 * in place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
-	 * @return If the plugin handled the call, a Val with +1 reference
-	 * count containixnmg the result value to pass back to the interpreter
-	 * (for void functions and events any \a Val is fine; it will be
-	 * ignored; best to use a \c TYPE_ANY). If the plugin did not handle
-	 * the call, it must return null.
+	 * @return If the plugin handled the call, a ValWrapper with the
+     * processed flag set to true, and a value set on the object with 
+     * a+1 reference count containing the result value to pass back to the 
+     * interpreter.  If the plugin did not handle the call, it may either
+     * return NULL *or* return a ValWrapper with the processed flag set to
+     * 'false'.
 	 */
-	virtual Val* HookCallFunction(const Func* func, Frame *parent, val_list* args);
+	virtual ValWrapper* HookCallFunction(const Func* func, Frame *parent, val_list* args);
 
 	/**
 	 * Hook into raising events. Whenever the script interpreter is about

@@ -244,7 +244,7 @@ public:
 	 * functions and events, it may be any Val and must be ignored). If no
 	 * plugin handled the call, the method returns null.
 	 */
-	Val* HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
+	ValWrapper* HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.

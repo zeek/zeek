@@ -106,6 +106,21 @@ void HookArgument::Describe(ODesc* d) const
 			d->Add("<null>");
 		break;
 
+    case WRAPPED_VAL:
+        if ( arg.wrapper )
+            {
+            d->Add("wrapped(");
+            if(arg.wrapper->value)
+                {
+                arg.wrapper->value->Describe(d);
+                }
+            else
+                d->Add("<null>");
+            d->Add(")");
+            }
+
+        break;
+
 	case VAL_LIST:
 		if ( arg.vals )
 			{
@@ -271,7 +286,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-Val* Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
+ValWrapper* Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
 	{
 	return 0;
 	}

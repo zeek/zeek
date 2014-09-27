@@ -14,6 +14,9 @@ class Stmt;
 class Frame;
 class ID;
 class CallExpr;
+namespace plugin {
+    struct ValWrapper;
+}
 
 class Func : public BroObj {
 public:
@@ -71,7 +74,7 @@ protected:
 	Func();
 
 	// Helper function for handling result of plugin hook.
-	Val* HandlePluginResult(Val* plugin_result, val_list* args, function_flavor flavor) const;
+	plugin::ValWrapper* HandlePluginResult(plugin::ValWrapper* plugin_result, val_list* args, function_flavor flavor) const;
 
 	DECLARE_ABSTRACT_SERIAL(Func);
 

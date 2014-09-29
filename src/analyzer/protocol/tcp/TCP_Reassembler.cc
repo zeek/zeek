@@ -249,7 +249,9 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 				Gap(gap_at_seq, gap_len);
 				last_reassem_seq += gap_len;
 				BlockInserted(b);
-				b = b->next;
+				// Inserting a block may cause trimming of what's buffered,
+				// so have to assume 'b' is invalid, hence re-assign to start.
+				b = blocks;
 				}
 
 			if ( up_to_seq > last_reassem_seq )

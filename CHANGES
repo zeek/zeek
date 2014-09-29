@@ -1,4 +1,8 @@
 
+2.3-197 | 2014-09-29 10:42:01 -0500
+
+  * Fix possible seg fault in TCP reassembler. (Jon Siwek)
+
 2.3-196 | 2014-09-25 17:53:27 -0700
 
   * Changing prefix for packet sources/dumper from ':' to '%'.

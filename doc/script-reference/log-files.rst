@@ -34,11 +34,19 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | packetfilter.log           | Status of packet filters              | :bro:type:`PacketFilter::Info`  |
 +----------------------------+---------------------------------------+---------------------------------+
+| prof.log                   | Generates profiling statistics        | :bro:id:`do_profiling`          |
++----------------------------+---------------------------------------+---------------------------------+
 | reporter.log               | Records error messages, location,     | :bro:type:`Reporter::Info`      |
 |                            | and severity                          |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | stats.log                  | Shows log memory/packet/lag           | :bro:type:`Stats::Info`         |
 |                            | statistics                            |                                 |
++----------------------------+---------------------------------------+---------------------------------+
+| stderr.log                 | Standard error log when running       | n/a                             |
+|                            | BroControl                            |                                 |
++----------------------------+---------------------------------------+---------------------------------+
+| stdout.log                 | Standard output log when running      | n/a                             |
+|                            | BroControl                            |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | unified2.log               | Interprets Snort's unified output     | :bro:type:`Unified2::Info`      |
 |                            | format                                |                                 |

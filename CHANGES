@@ -1,4 +1,15 @@
 
+2.3-202 | 2014-09-29 17:05:18 -0700
+
+  * New SSL extension type from IANA and a few other SSL const
+    changes. (Johanna Amann)
+
+  * Make unexpected pipe errors fatal as precaution. Addresses
+    BIT-1260. (Jon Siwek)
+
+  * Adding a function for DNP3 to translate the timestamp format. (Hui
+    Lin)
+
 2.3-197 | 2014-09-29 10:42:01 -0500
 
   * Fix possible seg fault in TCP reassembler. (Jon Siwek)

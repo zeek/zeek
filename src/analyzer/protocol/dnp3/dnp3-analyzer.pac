@@ -16,7 +16,7 @@ connection DNP3_Conn(bro_analyzer: BroAnalyzer) {
         uint64 epochTime = 0;
 
         for ( unsigned int i = 0; i < length; i++ )
-            epochTime = time48[5-i] + epochTime * 256;
+            epochTime = time48[length - i - 1] + epochTime * 256;
 
         return epochTime;
         }

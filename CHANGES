@@ -1,4 +1,9 @@
 
+2.3-203 | 2014-09-29 20:06:54 -0700
+
+  * Fix to use length parameter in DNP3 time conversion correctly now.
+    (Robin Sommer)
+
 2.3-202 | 2014-09-29 17:05:18 -0700
 
   * New SSL extension type from IANA and a few other SSL const

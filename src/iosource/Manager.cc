@@ -117,6 +117,9 @@ IOSource* Manager::FindSoonest(double* ts)
 
 		src->Clear();
 		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
+		if ( src->fd_read.Empty() ) src->fd_read.Insert(0);
+		if ( src->fd_write.Empty() ) src->fd_write.Insert(0);
+		if ( src->fd_except.Empty() ) src->fd_except.Insert(0);
 		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 		}
 

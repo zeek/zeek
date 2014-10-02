@@ -3,4 +3,4 @@
 # Returns true if Bro has been compiled with support for writer type
 # $1. The type name must match the plugin name that "bro -N" prints.
 
-bro -N $1 >/dev/null
+bro -N | grep -q $1 >/dev/null

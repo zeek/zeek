@@ -9,6 +9,7 @@
 #include "config.h"
 #include "analyzer/Component.h"
 #include "file_analysis/Component.h"
+#include "iosource/Component.h"
 
 // We allow to override this externally for testing purposes.
 #ifndef BRO_PLUGIN_API_VERSION

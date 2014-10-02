@@ -1,0 +1,3 @@
+fatal error in /home/robin/bro/master/scripts/base/frameworks/packet-filter/./main.bro, line 282: Bad pcap filter 'kaputt'
+----
+error, cannot compile BPF filter "kaputt, too"

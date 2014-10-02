@@ -730,7 +730,7 @@ Bro supports ``usec``, ``msec``, ``sec``, ``min``, ``hr``, or ``day`` which repr
 microseconds, milliseconds, seconds, minutes, hours, and days
 respectively.  In fact, the interval data type allows for a surprising
 amount of variation in its definitions.  There can be a space between
-the numeric constant or they can crammed together like a temporal
+the numeric constant or they can be crammed together like a temporal
 portmanteau.  The time unit can be either singular or plural.  All of
 this adds up to to the fact that both ``42hrs`` and ``42 hr`` are
 perfectly valid and logically equivalent in Bro.  The point, however,
@@ -819,7 +819,7 @@ with the ``typedef`` and ``struct`` keywords, Bro allows you to cobble
 together new data types to suit the needs of your situation.
 
 When combined with the ``type`` keyword, ``record`` can generate a
-composite type.  We have, in fact, already encountered a a complex
+composite type.  We have, in fact, already encountered a complex
 example of the ``record`` data type in the earlier sections, the
 :bro:type:`connection` record passed to many events. Another one,
 :bro:type:`Conn::Info`, which corresponds to the fields logged into
@@ -1014,8 +1014,8 @@ remaining logs to factor.log.
    :lines: 38-62
    :linenos:
 
-To dynamically alter the file in which a stream writes its logs a
-filter can specify function returns a string to be used as the
+To dynamically alter the file in which a stream writes its logs, a
+filter can specify a function that returns a string to be used as the
 filename for the current call to ``Log::write``. The definition for
 this function has to take as its parameters a ``Log::ID`` called id, a
 string called ``path`` and the appropriate record type for the logs called

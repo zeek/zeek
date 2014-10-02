@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	packet_filter
+#open	2014-08-23-18-29-48
+#fields	ts	node	filter	init	success
+#types	time	string	string	bool	bool
+1408818588.510297	bro	port 50000	T	T
+#close	2014-08-23-18-29-48

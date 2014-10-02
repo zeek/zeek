@@ -83,6 +83,13 @@ void HookArgument::Describe(ODesc* d) const
 			d->Add("<null>");
 		break;
 
+    case FRAME:
+        if ( arg.frame )
+            arg.frame->Describe(d);
+        else
+            d->Add("<null>");
+        break;
+
 	case FUNC:
 		if ( arg.func )
 			d->Add(arg.func->Name());
@@ -106,21 +113,6 @@ void HookArgument::Describe(ODesc* d) const
 			d->Add("<null>");
 		break;
 
-    case WRAPPED_VAL:
-        if ( arg.wrapper )
-            {
-            d->Add("wrapped(");
-            if(arg.wrapper->value)
-                {
-                arg.wrapper->value->Describe(d);
-                }
-            else
-                d->Add("<null>");
-            d->Add(")");
-            }
-
-        break;
-
 	case VAL_LIST:
 		if ( arg.vals )
 			{
@@ -139,6 +131,26 @@ void HookArgument::Describe(ODesc* d) const
 	case VOIDP:
 		d->Add("<void ptr>");
 		break;
+    
+    case WRAPPED_VAL:
+        if ( arg.wrapper )
+            {
+            d->Add("wrapped(");
+            if(arg.wrapper->value)
+                {
+                arg.wrapper->value->Describe(d);
+                }
+            else
+                d->Add("<null>");
+            d->Add(")");
+            }
+        else
+            {
+            d->Add("<null>");
+            }
+
+        break;
+
 	}
 	}
 

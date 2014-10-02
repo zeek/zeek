@@ -184,7 +184,7 @@ public:
 	 * Type of the argument.
 	 */
 	enum Type {
-		BOOL, DOUBLE, EVENT, FUNC, INT, STRING, VAL, WRAPPED_VAL, VAL_LIST, VOID, VOIDP,
+		BOOL, DOUBLE, EVENT, FRAME, FUNC, INT, STRING, VAL, VAL_LIST, VOID, VOIDP, WRAPPED_VAL
 	};
 
 	/**
@@ -242,6 +242,11 @@ public:
      */
     HookArgument(ValWrapper* a)   { type = WRAPPED_VAL; arg.wrapper = a; }
 
+    /**
+     * Constructor with a Frame argument.
+     */
+    HookArgument(Frame* f)    { type = FRAME; arg.frame = f; }
+
 	/**
 	 * Returns the value for a boolen argument. The argument's type must
 	 * match accordingly.
@@ -290,6 +295,12 @@ public:
      */
     const ValWrapper* AsValWrapper() const { assert(type == VAL_WRAPPER); return arg.wrapper; }
 
+    /**
+     * Returns the value for a Bro frame argument.  The argument's type must
+     * match accordingly.
+     */
+    const Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
+
 	/**
 	 * Returns the value for a list of Bro values argument. The argument's type must
 	 * match accordingly.
@@ -321,6 +332,7 @@ private:
 		double double_;
 		const Event* event;
 		const Func* func;
+        const Frame* frame;
 		int int_;
 		const Val* val;
         const ValWrapper* wrapper;

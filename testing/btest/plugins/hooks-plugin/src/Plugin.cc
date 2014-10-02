@@ -5,6 +5,7 @@
 #include <Event.h>
 
 namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
+using plugin::ValWrapper;
 
 using namespace plugin::Demo_Hooks;
 
@@ -48,7 +49,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-Val* Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* args)
+ValWrapper* Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* args)
 	{
 	ODesc d;
 	d.SetShort();

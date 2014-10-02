@@ -17,11 +17,11 @@ functionality to Bro:
 
     - File analyzers.
 
-    - Packet sources and packet dumpers. TODO: Not yet.
+    - Packet sources and packet dumpers.
 
-    - Logging framework backends. TODO: Not yet.
+    - Logging framework backends.
 
-    - Input framework readers. TODO: Not yet.
+    - Input framework readers.
 
 A plugin's functionality is available to the user just as if Bro had
 the corresponding code built-in. Indeed, internally many of Bro's
@@ -315,22 +315,22 @@ TODO.
 Logging Writer
 --------------
 
-Not yet available as plugins.
+TODO.
 
 Input Reader
 ------------
 
-Not yet available as plugins.
+TODO.
 
 Packet Sources
 --------------
 
-Not yet available as plugins.
+TODO.
 
 Packet Dumpers
 --------------
 
-Not yet available as plugins.
+TODO.
 
 Hooks
 =====

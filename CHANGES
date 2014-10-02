@@ -1,4 +1,14 @@
 
+2.3-207 | 2014-10-02 16:39:17 -0700
+
+  * Updating plugin docs. (Robin Sommer)
+
+  * Fix packet sources being treated as idle when a packet is
+    available. Addresses BIT-1266. (Jon Siwek)
+
+  * Fix regression causing the main loop to spin more frequently.
+    Addresses BIT-1266. (Jon Siwek)
+
 2.3-203 | 2014-09-29 20:06:54 -0700
 
   * Fix to use length parameter in DNP3 time conversion correctly now.

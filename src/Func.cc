@@ -289,11 +289,14 @@ ValWrapper* Func::HandlePluginResult(ValWrapper* plugin_result, val_list* args, 
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
-            char sbuf[1024];
-            snprintf(sbuf, 1024, "plugin returned non-void result for void method %s", this->Name());
-			reporter->InternalError(sbuf);
+            if(plugin_result && plugin_result->value)
+                {
+                char sbuf[1024];
+                snprintf(sbuf, 1024, "plugin returned non-void result for void method %s", this->Name());
+			    reporter->InternalError(sbuf);
+                }
             }
-		else if ( plugin_result->value->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+		else if ( plugin_result->value && plugin_result->value->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
 			{
             char sbuf[1024];
             snprintf(sbuf, 1024, "plugin returned wrong type (got %d, expecting %d) for %s", plugin_result->value->Type()->Tag(), yt->Tag(), this->Name());

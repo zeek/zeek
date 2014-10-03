@@ -94,9 +94,22 @@ refine connection SMB_Conn += {
 		return result;
 		%}
 
-	function proc_smb_ntlm_accept(header: SMB_Header): bool
+	function proc_smb_ntlm_ssp(header: SMB_Header, val:SMB_NTLM_SSP): bool
 		%{
-		BifEvent::generate_smb_ntlm_accepted(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header));
+		if ( ${val.gssapi.is_init} )
+			return true;
+		for ( uint i = 0; i < ${val.gssapi.resp.args}->size(); ++i )
+			{
+			switch ( ${val.gssapi.resp.args[i].seq_meta.index} )
+				{
+				case 0:
+					if ( ${val.gssapi.resp.args[i].args.neg_state} == 0 )
+					 	BifEvent::generate_smb_ntlm_accepted(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header));
+					break;
+				default:
+					break;
+				}
+			}
 		return true;
 		%}
 
@@ -130,87 +143,85 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::SMB::NTLMAuthenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
-		result->Assign(1, bytestring_to_val(${val.domain_name.string.data}));
-		result->Assign(2, bytestring_to_val(${val.user_name.string.data}));
-		result->Assign(3, bytestring_to_val(${val.workstation.string.data}));
-		if ( ${val.flags.negotiate_version} )       result->Assign(4, build_version_record(${val.version}));
+//		result->Assign(1, bytestring_to_val(${val.domain_name.string.data}));
+//		result->Assign(2, bytestring_to_val(${val.user_name.string.data}));
+//		result->Assign(3, bytestring_to_val(${val.workstation.string.data}));
+//		if ( ${val.flags.negotiate_version} )       result->Assign(4, build_version_record(${val.version}));
 
 		BifEvent::generate_smb_ntlm_authenticate(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), result);
 
 		return true;
 		%}
 
-	function convert_der_num(is_long: bool, first: uint8, fields: bytestring): uint64
-		%{
-		if (!is_long) return first;
-
-		int result;
-		result = 0;
-
-		for (uint i = 0; i < fields.length(); i++)
-			{
-			result << 8;
-			result += ${fields[i]};
-			}
-		return result;
-		%}
-
-	function test_accepted(m: SMB_NTLM_SSP): bool
-		%{
-		if ( ${m.gssapi}->size() < 4 )
-			return false;
-		return ( ${m.gssapi[3].tag} == 10 && ${m.gssapi[3].value} == "\x00" );		         
-		%}
-
 };
 
-type DER_Length = record {
-	first : uint8;
-	rest  : bytestring &length=size;
+type GSSAPI_NEG_TOKEN(header: SMB_Header) = record {
+	wrapper 		 : ASN1EncodingMeta;
+	have_oid	     : case is_init of {
+		true  -> oid: ASN1Encoding;
+		false -> no_oid: empty;
+	};
+	have_init_wrapper: case is_init of {
+		true  -> init_wrapper: ASN1EncodingMeta;
+		false -> no_init_wrapper: empty;
+	};
+	msg_type         : case is_init of {
+		true  -> init: GSSAPI_NEG_TOKEN_INIT(header);
+		false -> resp: GSSAPI_NEG_TOKEN_RESP(header);
+	};
 } &let {
-	is_long_form : bool = (first >= 128);
-	size	     : uint8 = is_long_form ? first % 128 : 0;
-	value        : uint64 = $context.connection.convert_der_num(is_long_form, first, rest);
+	is_init: bool = wrapper.tag == 0x60;
 };
 
-type DER_ASN = record {
-	tag: uint8;
-	length: DER_Length;
-	skip_constructed: case (is_primitive && (tag != 0x04) ) of {
-		true -> value: bytestring &length=length.value;
-		false -> nothing: empty;
-	} &requires(is_primitive);
-} &let {
-	is_primitive: bool = (tag & 0x20) == 0;
-	last: bool = tag == 0x04;
+type GSSAPI_NEG_TOKEN_INIT(header: SMB_Header) = record {
+	seq_meta: ASN1EncodingMeta;
+	args	: GSSAPI_NEG_TOKEN_INIT_Arg(header)[];
+};
+
+type GSSAPI_NEG_TOKEN_INIT_Arg(header: SMB_Header) = record {
+	seq_meta: ASN1EncodingMeta;
+	args	: GSSAPI_NEG_TOKEN_INIT_Arg_Data(header, seq_meta.index) &length=seq_meta.length;
+};
+
+type GSSAPI_NEG_TOKEN_INIT_Arg_Data(header: SMB_Header, index: uint8) = case index of {
+	0 -> mech_type_list	: ASN1Encoding;
+	1 -> req_flags		: ASN1Encoding;
+	2 -> mech_token		: SMB_NTLM_SSP_Token(header);
+	3 -> mech_list_mic	: ASN1OctetString;
+};
+
+type GSSAPI_NEG_TOKEN_RESP(header: SMB_Header) = record {
+	seq_meta: ASN1EncodingMeta;
+	args	: GSSAPI_NEG_TOKEN_RESP_Arg(header)[];
+};
+
+type GSSAPI_NEG_TOKEN_RESP_Arg(header: SMB_Header) = record {
+	seq_meta: ASN1EncodingMeta;
+	args	: GSSAPI_NEG_TOKEN_RESP_Arg_Data(header, seq_meta.index) &length=seq_meta.length;
+};
+
+type GSSAPI_NEG_TOKEN_RESP_Arg_Data(header: SMB_Header, index: uint8) = case index of {
+	0 -> neg_state		: ASN1Integer;
+	1 -> supported_mech	: ASN1Encoding;
+	2 -> response_token	: SMB_NTLM_SSP_Token(header);
+	3 -> mech_list_mic	: ASN1OctetString;
 };
 
 type SMB_NTLM_SSP(header: SMB_Header) = record {
-	gssapi     : DER_ASN[] &until ($element.last);
-	skip_accepted: case ( is_accepted ) of {
-		true  -> nothing: empty;
-		false -> token: SMB_NTLM_Neg_Token(header);
-	} &requires(is_accepted);
+	gssapi   : GSSAPI_NEG_TOKEN(header);
 } &let {
-	is_accepted: bool = $context.connection.test_accepted(this);
-	proc:        bool = $context.connection.proc_smb_ntlm_accept(header) &if(is_accepted);
+	proc:        bool = $context.connection.proc_smb_ntlm_ssp(header, this);
 };
 
-type SMB_NTLM_Neg_Token(header: SMB_Header) = record {
-	identifier : bytestring &length=8;
-	msg_type   : uint32;
-	msg	   : case msg_type of {
-		0 -> accept       : empty;
-		1 -> negotiate    : SMB_NTLM_Negotiate(header, 12);
-		2 -> challenge    : SMB_NTLM_Challenge(header, 12);
-		3 -> authenticate : SMB_NTLM_Authenticate(header, 12);
-	};
-} &let {
-	is_accept	: bool = (msg_type == 0);
-	is_negotiate    : bool = (msg_type == 1);
-	is_challenge    : bool = (msg_type == 2);
-	is_authenticate : bool = (msg_type == 3);
-	proc		: bool = $context.connection.proc_smb_ntlm_accept(header) &if is_accept;
+type SMB_NTLM_SSP_Token(header: SMB_Header) = record {
+	meta: ASN1EncodingMeta;
+	signature: bytestring &length=8;
+	msg_type : uint32;
+	msg      : case msg_type of {
+	 	1 -> negotiate   : SMB_NTLM_Negotiate(header, offsetof(msg) - offsetof(signature));
+		2 -> challenge   : SMB_NTLM_Challenge(header, offsetof(msg) - offsetof(signature));
+		3 -> authenticate: SMB_NTLM_Authenticate(header, offsetof(msg) - offsetof(signature));
+	};	 
 };
 
 type SMB_NTLM_Negotiate(header: SMB_Header, offset: uint16) = record {
@@ -259,17 +270,14 @@ type SMB_NTLM_Authenticate(header: SMB_Header, offset: uint16) = record {
 		true -> version: SMB_NTLM_Version;
 		false -> no_version: empty;
 	};
-	mic		             : bytestring &length=16;
+#	mic		             : bytestring &length=16;
 	payload			     : bytestring &restofdata;
 } &let {
 	absolute_offset              : uint16 = offsetof(payload) + offset;
-	domain_name		     : SMB_NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload;
-	user_name		     : SMB_NTLM_String(user_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload;
-	workstation		     : SMB_NTLM_String(workstation_fields, absolute_offset , flags.negotiate_unicode) withinput payload;
-	encrypted_session_key	     : SMB_NTLM_String(workstation_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_key_exch);
-#	lm_response		     : SMB_LM_Response(lm_challenge_response_fields.offset - absolute_offset) withinput payload &if(lm_challenge_response_fields.length > 0);
-#	ntlm_response		     : SMB_NTLM_Response(nt_challenge_response_fields.offset - absolute_offset) withinput payload &if(nt_challenge_response_fields.length == 24);
-#	ntlmv2_response		     : SMB_NTLM_Response(nt_challenge_response_fields.offset - absolute_offset) withinput payload &if(nt_challenge_response_fields.length > 24);	 
+	domain_name		     : SMB_NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_domain_supplied);
+	user_name		     : SMB_NTLM_String(user_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(user_name_fields.length > 0);
+	workstation		     : SMB_NTLM_String(workstation_fields, absolute_offset , flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_workstation_supplied);
+	encrypted_session_key	     : SMB_NTLM_String(encrypted_session_key_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_key_exch);
 	proc		             : bool = $context.connection.proc_smb_ntlm_authenticate(header, this);
 };
 
@@ -287,15 +295,15 @@ type SMB_NTLM_StringData = record {
 	offset	   : uint32;
 };
 
-type SMB_Fixed_Length_String(unicode: bool) = record {
-	s: bytestring &restofdata;
+type SMB_Fixed_Length_String(unicode: bool, length: uint16) = record {
+	s: bytestring &length=length;
 } &let {
 	data: bytestring = $context.connection.unicode_to_ascii(s, sizeof(s), unicode);
 };
 
 type SMB_NTLM_String(fields: SMB_NTLM_StringData, offset: uint16, unicode: bool) = record {
 	      : padding to fields.offset - offset;
-	string: SMB_Fixed_Length_String(unicode) &length=fields.length;
+	string: SMB_Fixed_Length_String(unicode, fields.length) &length=fields.length;
 };
 
 type SMB_NTLM_AV_Pair_Sequence(offset: uint16) = record {
@@ -308,15 +316,15 @@ type SMB_NTLM_AV_Pair = record {
 	length     : uint16;
 	value_case : case id of {
 		0x0000 -> av_eol            : empty;
-		0x0001 -> nb_computer_name  : SMB_Fixed_Length_String(true) &length=length;
-		0x0002 -> nb_domain_name    : SMB_Fixed_Length_String(true) &length=length;
-		0x0003 -> dns_computer_name : SMB_Fixed_Length_String(true) &length=length;
-		0x0004 -> dns_domain_name   : SMB_Fixed_Length_String(true) &length=length;
-		0x0005 -> dns_tree_name     : SMB_Fixed_Length_String(true) &length=length;
+		0x0001 -> nb_computer_name  : SMB_Fixed_Length_String(true, length) &length=length;
+		0x0002 -> nb_domain_name    : SMB_Fixed_Length_String(true, length) &length=length;
+		0x0003 -> dns_computer_name : SMB_Fixed_Length_String(true, length) &length=length;
+		0x0004 -> dns_domain_name   : SMB_Fixed_Length_String(true, length) &length=length;
+		0x0005 -> dns_tree_name     : SMB_Fixed_Length_String(true, length) &length=length;
 		0x0006 -> av_flags          : uint32;
 		0x0007 -> timestamp         : uint64;
 		0x0008 -> single_host       : SMB_NTLM_Single_Host;
-		0x0009 -> target_name       : SMB_Fixed_Length_String(true) &length=length;
+		0x0009 -> target_name       : SMB_Fixed_Length_String(true, length) &length=length;
 		0x000a -> channel_bindings  : uint16;
 	};
 } &let {

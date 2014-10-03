@@ -49,6 +49,7 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb-common.pac
 %include smb-time.pac
 
+%include smb-ntlmssp-asn1.pac
 %include smb-ntlmssp.pac
 
 # SMB1 Commands

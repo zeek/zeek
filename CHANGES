@@ -1,4 +1,9 @@
 
+2.3-208 | 2014-10-03 09:38:52 -0500
+
+  * BIT-1268: Fix uninitialized router_list argument in
+    dhcp_offer/dhcp_ack. (Jon Siwek)
+
 2.3-207 | 2014-10-02 16:39:17 -0700
 
   * Updating plugin docs. (Robin Sommer)

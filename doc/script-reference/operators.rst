@@ -50,31 +50,37 @@ Arithmetic operators
 +------------------------------+-------------+-------------------------------+
 | Name                         | Syntax      | Notes                         |
 +==============================+=============+===============================+
-| Addition                     | *a* + *b*   | If operands are strings, then |
-|                              |             | this performs string          |
-|                              |             | concatenation.                |
+| Addition                     | *a* + *b*   | For :bro:type:`string`        |
+|                              |             | operands, this performs       |
+|                              |             | string concatenation.         |
 +------------------------------+-------------+-------------------------------+
 | Subtraction                  | *a* - *b*   |                               |
 +------------------------------+-------------+-------------------------------+
 | Multiplication               | *a* \* *b*  |                               |
 +------------------------------+-------------+-------------------------------+
-| Division                     | *a* / *b*   |                               |
+| Division                     | *a* / *b*   | For :bro:type:`int` or        |
+|                              |             | :bro:type:`count` operands,   |
+|                              |             | the fractional part of the    |
+|                              |             | result is dropped.            |
 +------------------------------+-------------+-------------------------------+
 | Modulo                       | *a* % *b*   | Operand types cannot be       |
-|                              |             | double.                       |
+|                              |             | "double".                     |
 +------------------------------+-------------+-------------------------------+
 | Unary plus                   | \+ *a*      |                               |
 +------------------------------+-------------+-------------------------------+
 | Unary minus                  | \- *a*      |                               |
 +------------------------------+-------------+-------------------------------+
 | Pre-increment                | ++ *a*      | Operand type cannot be        |
-|                              |             | double.                       |
+|                              |             | "double".                     |
 +------------------------------+-------------+-------------------------------+
 | Pre-decrement                | ``--`` *a*  | Operand type cannot be        |
-|                              |             | double.                       |
+|                              |             | "double".                     |
 +------------------------------+-------------+-------------------------------+
-| Absolute value               | \| *a* \|   | If operand is string, set,    |
-|                              |             | table, or vector, this        |
+| Absolute value               | \| *a* \|   | If operand is                 |
+|                              |             | :bro:type:`string`,           |
+|                              |             | :bro:type:`set`,              |
+|                              |             | :bro:type:`table`, or         |
+|                              |             | :bro:type:`vector`, this      |
 |                              |             | evaluates to number           |
 |                              |             | of elements.                  |
 +------------------------------+-------------+-------------------------------+
@@ -108,7 +114,8 @@ field name must be in the declaration of the record type.
 +==============================+=============+===============================+
 | Field access                 | *a* $ *b*   |                               |
 +------------------------------+-------------+-------------------------------+
-| Field value existence test   | *a* ?$ *b*  | Evaluates to type "bool".     |
+| Field value existence test   | *a* ?$ *b*  | Evaluates to type             |
+|                              |             | :bro:type:`bool`.             |
 |                              |             | True if the specified field   |
 |                              |             | has been assigned a value, or |
 |                              |             | false if not.                 |
@@ -122,7 +129,7 @@ Other operators
 | Name                           | Syntax            | Notes                  |
 +================================+===================+========================+
 | Membership test                | *a* in *b*        |Evaluates to type       |
-|                                |                   |"bool". Do not          |
+|                                |                   |:bro:type:`bool`. Do not|
 |                                |                   |confuse this use of "in"|
 |                                |                   |with that used in a     |
 |                                |                   |:bro:keyword:`for`      |
@@ -135,7 +142,8 @@ Other operators
 |                                |                   |"!(a in b)".            |
 +--------------------------------+-------------------+------------------------+
 | Table or vector element access | *a* [ *b* ]       |This operator can also  |
-|                                |                   |be used with a set, but |
+|                                |                   |be used with a          |
+|                                |                   |:bro:type:`set`, but    |
 |                                |                   |only with the           |
 |                                |                   |:bro:keyword:`add` or   |
 |                                |                   |:bro:keyword:`delete`   |
@@ -148,8 +156,11 @@ Other operators
 | Create a deep copy             | copy ( *a* )      |This is relevant only   | 
 |                                |                   |for data types that are |
 |                                |                   |assigned by reference,  |
-|                                |                   |such as "vector", "set",|
-|                                |                   |"table", and "record".  |
+|                                |                   |such as                 |
+|                                |                   |:bro:type:`vector`,     |
+|                                |                   |:bro:type:`set`,        |
+|                                |                   |:bro:type:`table`,      |
+|                                |                   |and :bro:type:`record`. |
 +--------------------------------+-------------------+------------------------+
 | Module namespace access        | *a* \:\: *b*      |The first operand is the|
 |                                |                   |module name, and the    |
@@ -162,8 +173,9 @@ Other operators
 |                                |                   |module.                 |
 +--------------------------------+-------------------+------------------------+
 | Conditional                    | *a* ? *b* : *c*   |The first operand must  |
-|                                |                   |evaluate to a "bool"    |
-|                                |                   |type.  If true, then the|
+|                                |                   |evaluate to type        |
+|                                |                   |:bro:type:`bool`.       |
+|                                |                   |If true, then the       |
 |                                |                   |second expression is    |
 |                                |                   |evaluated and is the    |
 |                                |                   |result of the entire    |

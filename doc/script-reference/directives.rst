@@ -16,7 +16,7 @@ executed.  Directives are evaluated before script execution begins.
 
     Example::
 
-        print "Directory:", @DIR
+        print "Directory:", @DIR;
 
 
 .. bro:keyword:: @FILENAME
@@ -25,7 +25,7 @@ executed.  Directives are evaluated before script execution begins.
 
     Example::
 
-        print "File:", @FILENAME
+        print "File:", @FILENAME;
 
 .. bro:keyword:: @load
 

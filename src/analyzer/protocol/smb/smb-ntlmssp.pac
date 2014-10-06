@@ -143,10 +143,10 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::SMB::NTLMAuthenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
-//		result->Assign(1, bytestring_to_val(${val.domain_name.string.data}));
-//		result->Assign(2, bytestring_to_val(${val.user_name.string.data}));
-//		result->Assign(3, bytestring_to_val(${val.workstation.string.data}));
-//		if ( ${val.flags.negotiate_version} )       result->Assign(4, build_version_record(${val.version}));
+		if ( ${val.flags.negotiate_oem_domain_supplied} )		result->Assign(1, bytestring_to_val(${val.domain_name.string.data}));
+		if ( ${val.user_name_fields.length} > 0 )				result->Assign(2, bytestring_to_val(${val.user_name.string.data}));
+		if ( ${val.flags.negotiate_oem_workstation_supplied} )	result->Assign(3, bytestring_to_val(${val.workstation.string.data}));
+		if ( ${val.flags.negotiate_version} )       result->Assign(4, build_version_record(${val.version}));
 
 		BifEvent::generate_smb_ntlm_authenticate(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), result);
 
@@ -295,15 +295,15 @@ type SMB_NTLM_StringData = record {
 	offset	   : uint32;
 };
 
-type SMB_Fixed_Length_String(unicode: bool, length: uint16) = record {
-	s: bytestring &length=length;
+type SMB_Fixed_Length_String(unicode: bool) = record {
+	s: bytestring &restofdata;
 } &let {
 	data: bytestring = $context.connection.unicode_to_ascii(s, sizeof(s), unicode);
 };
 
 type SMB_NTLM_String(fields: SMB_NTLM_StringData, offset: uint16, unicode: bool) = record {
 	      : padding to fields.offset - offset;
-	string: SMB_Fixed_Length_String(unicode, fields.length) &length=fields.length;
+	string: SMB_Fixed_Length_String(unicode) &length=fields.length;
 };
 
 type SMB_NTLM_AV_Pair_Sequence(offset: uint16) = record {
@@ -316,15 +316,15 @@ type SMB_NTLM_AV_Pair = record {
 	length     : uint16;
 	value_case : case id of {
 		0x0000 -> av_eol            : empty;
-		0x0001 -> nb_computer_name  : SMB_Fixed_Length_String(true, length) &length=length;
-		0x0002 -> nb_domain_name    : SMB_Fixed_Length_String(true, length) &length=length;
-		0x0003 -> dns_computer_name : SMB_Fixed_Length_String(true, length) &length=length;
-		0x0004 -> dns_domain_name   : SMB_Fixed_Length_String(true, length) &length=length;
-		0x0005 -> dns_tree_name     : SMB_Fixed_Length_String(true, length) &length=length;
+		0x0001 -> nb_computer_name  : SMB_Fixed_Length_String(true) &length=length;
+		0x0002 -> nb_domain_name    : SMB_Fixed_Length_String(true) &length=length;
+		0x0003 -> dns_computer_name : SMB_Fixed_Length_String(true) &length=length;
+		0x0004 -> dns_domain_name   : SMB_Fixed_Length_String(true) &length=length;
+		0x0005 -> dns_tree_name     : SMB_Fixed_Length_String(true) &length=length;
 		0x0006 -> av_flags          : uint32;
 		0x0007 -> timestamp         : uint64;
 		0x0008 -> single_host       : SMB_NTLM_Single_Host;
-		0x0009 -> target_name       : SMB_Fixed_Length_String(true, length) &length=length;
+		0x0009 -> target_name       : SMB_Fixed_Length_String(true) &length=length;
 		0x000a -> channel_bindings  : uint16;
 	};
 } &let {

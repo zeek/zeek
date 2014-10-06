@@ -5,17 +5,15 @@
 
 #include "net_util.h"
 #include "util.h"
-#include "BPF_Program.h"
 #include "List.h"
-#include "PktSrc.h"
-#include "FlowSrc.h"
 #include "Func.h"
 #include "RemoteSerializer.h"
+#include "iosource/IOSource.h"
+#include "iosource/PktSrc.h"
+#include "iosource/PktDumper.h"
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
-		name_list& netflows, name_list& flowfiles,
-		const char* writefile, const char* filter,
-		const char* secondary_filter, int do_watchdog);
+		const char* writefile, int do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
@@ -23,10 +21,8 @@ extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
 extern void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			const u_char* pkt, int hdr_size,
-			PktSrc* src_ps);
-extern int net_packet_match(BPF_Program* fp, const u_char* pkt,
-			    u_int len, u_int caplen);
-extern void expire_timers(PktSrc* src_ps = 0);
+			iosource::PktSrc* src_ps);
+extern void expire_timers(iosource::PktSrc* src_ps = 0);
 extern void termination_signal();
 
 // Functions to temporarily suspend processing of live input (network packets
@@ -83,13 +79,10 @@ extern const u_char* current_pkt;
 extern int current_dispatched;
 extern int current_hdr_size;
 extern double current_timestamp;
-extern PktSrc* current_pktsrc;
-extern IOSource* current_iosrc;
+extern iosource::PktSrc* current_pktsrc;
+extern iosource::IOSource* current_iosrc;
 
-declare(PList,PktSrc);
-extern PList(PktSrc) pkt_srcs;
-
-extern PktDumper* pkt_dumper;	// where to save packets
+extern iosource::PktDumper* pkt_dumper;	// where to save packets
 
 extern char* writefile;
 

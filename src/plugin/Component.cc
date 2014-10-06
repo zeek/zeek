@@ -50,6 +50,18 @@ void Component::Describe(ODesc* d) const
 		d->Add("File Analyzer");
 		break;
 
+	case component::IOSOURCE:
+		d->Add("I/O Source");
+		break;
+
+	case component::PKTSRC:
+		d->Add("Packet Source");
+		break;
+
+	case component::PKTDUMPER:
+		d->Add("Packet Dumper");
+		break;
+
 	default:
 		reporter->InternalWarning("unknown component type in plugin::Component::Describe");
 		d->Add("<unknown component type>");

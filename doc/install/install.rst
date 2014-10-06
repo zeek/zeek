@@ -180,7 +180,7 @@ automatically.  Finally, use ``make install-aux`` to install some of
 the other programs that are in the ``aux/bro-aux`` directory.
 
 OpenBSD users, please see our `FAQ
-<http://www.bro.org/documentation/faq.html>`_ if you are having
+<//www.bro.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
 
 Finally, if you want to build the Bro documentation (not required, because

@@ -1,4 +1,14 @@
 
+2.3-228 | 2014-10-07 15:32:37 -0700
+
+  * Include plugin unit tests into the top-level btest configuration. (Robin Sommer)
+
+  * Switching the prefix separator for packet source/dumper plugins
+    once more, now to "::". Addresses BIT-1267. (Robin Sommer)
+
+  * Fix for allowing a packet source/dumper plugin to support multiple
+    prefixes with a colon. (Robin Sommer)
+
 2.3-225 | 2014-10-07 15:13:35 -0700
 
   * Updating plugin documentation. (Robin Sommer)

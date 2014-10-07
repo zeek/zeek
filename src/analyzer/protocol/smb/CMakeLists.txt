@@ -20,6 +20,7 @@ bro_plugin_bif(
 	smb1_com_query_information.bif
 	smb1_com_read_andx.bif
 	smb1_com_session_setup_andx.bif
+	smb1_com_transaction2.bif
 	smb1_com_tree_connect_andx.bif
 	smb1_com_tree_disconnect.bif
 	smb1_com_write_andx.bif

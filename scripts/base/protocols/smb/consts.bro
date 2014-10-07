@@ -9,6 +9,23 @@ export {
 	const statuses: table[count] of StatusCode = {
 		[0x00000000] = [$id="SUCCESS", $desc="The operation completed successfully."],
 	} &redef &default=function(i: count):StatusCode { local unknown=fmt("unknown-%d", i); return [$id=unknown, $desc=unknown]; };
+
+	## These are files names that are used for special 
+	## cases by the file system and would not be 
+	## considered "normal" files.
+	const pipe_names: set[string] = {
+		"\\netdfs",
+		"\\spoolss",
+		"\\NETLOGON",
+		"\\winreg",
+		"\\lsarpc",
+		"\\samr",
+		"\\srvsvc",
+		"srvsvc",
+		"MsFteWds",
+		"\\wkssvc",
+	};
+
 }
 
 module SMB1;
@@ -88,6 +105,26 @@ export {
 		[0xD9] = "WRITE_BULK",
 		[0xDA] = "WRITE_BULK_DATA",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+	const trans2_sub_commands: table[count] of string = {
+		[0x00] = "OPEN2",	
+		[0x01] = "FIND_FIRST2",	
+		[0x02] = "FIND_NEXT2",	
+		[0x03] = "QUERY_FS_INFORMATION",	
+		[0x04] = "SET_FS_INFORMATION",	
+		[0x05] = "QUERY_PATH_INFORMATION",	
+		[0x06] = "SET_PATH_INFORMATION",	
+		[0x07] = "QUERY_FILE_INFORMATION",	
+		[0x08] = "SET_FILE_INFORMATION",	
+		[0x09] = "FSCTL",	
+		[0x0A] = "IOCTL",	
+		[0x0B] = "FIND_NOTIFY_FIRST",	
+		[0x0C] = "FIND_NOTIFY_NEXT",	
+		[0x0D] = "CREATE_DIRECTORY",	
+		[0x0E] = "SESSION_SETUP",	
+		[0x10] = "GET_DFS_REFERRAL",	
+		[0x11] = "REPORT_DFS_INCONSISTENCY",	
+	} &default=function(i: count):string { return fmt("unknown-trans2-sub-cmd-%d", i); };
 }
 
 module SMB2;

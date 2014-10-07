@@ -12,15 +12,15 @@ export {
 
 function get_file_handle(c: connection, is_orig: bool): string
 	{
-	if ( ! (c$smb?$current_file &&
-	        ((c$smb$current_file?$name && c$smb$current_file$name !in pipe_names) || 
-	         c$smb$current_file?$path)) )
+	if ( ! (c$smb_state?$current_file &&
+	        ((c$smb_state$current_file?$name && c$smb_state$current_file$name !in pipe_names) || 
+	         c$smb_state$current_file?$path)) )
 		{
-		# TODO: figure out what are the cases where this happens.
+		# TODO - figure out what are the cases where this happens.
 		return "";
 		}
 
-	local current_file = c$smb$current_file;
+	local current_file = c$smb_state$current_file;
 	local path_name = current_file?$path ? current_file$path : "";
 	local file_name = current_file?$name ? current_file$name : "";
 	# Include last_mod time if available because if a file has been modified it
@@ -38,8 +38,8 @@ function describe_file(f: fa_file): string
 	for ( cid in f$conns )
 		{
 		local info = f$conns[cid];
-		if ( info?$smb && info$smb?$current_file && info$smb$current_file?$name )
-			return info$smb$current_file$name;
+		if ( info?$smb_state && info$smb_state?$current_file && info$smb_state$current_file?$name )
+			return info$smb_state$current_file$name;
 		}
 	return "";
 	}
@@ -53,11 +53,11 @@ event bro_init() &priority=5
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
 	{
-	if ( c?$smb && c$smb?$current_file )
+	if ( c?$smb_state && c$smb_state?$current_file )
 		{
-		c$smb$current_file$fuid = f$id;
+		c$smb_state$current_file$fuid = f$id;
 
-		if ( c$smb$current_file?$name )
-			f$info$filename = c$smb$current_file$name;
+		if ( c$smb_state$current_file?$name )
+			f$info$filename = c$smb_state$current_file$name;
 		}
 	}

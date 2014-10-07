@@ -22,13 +22,16 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_transaction2_request(header: SMB_Header, val: SMB1_transaction2_request): bool
 		%{
-		//printf("transaction2_request  sub command: %d\n", ${val.sub_cmd});
+		if ( smb1_transaction2_request )
+			BifEvent::generate_smb1_transaction2_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), ${val.sub_cmd});
+		
 		return true;
 		%}
 
 	function proc_smb1_transaction2_response(header: SMB_Header, val: SMB1_transaction2_response): bool
 		%{
-		//printf("transaction2_response  sub command: %d\n", ${val.sub_cmd});
+//		if ( smb1_transaction2_response )
+//			BifEvent::generate_smb1_transaction2_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), new Val(${val.sub_cmd}, TYPE_COUNT));
 		return true;
 		%}
 
@@ -278,8 +281,13 @@ refine connection SMB_Conn += {
 
 	function proc_trans2_get_dfs_referral_request(header: SMB_Header, val: trans2_get_dfs_referral_request): bool
 		%{
-		// TODO: implement this.
-		//printf("trans2_get_dfs_referral request!\n");
+		if ( smb1_trans2_get_dfs_referral_request )
+			{
+			BifEvent::generate_smb1_trans2_get_dfs_referral_request(bro_analyzer(), bro_analyzer()->Conn(), \
+																	BuildHeaderVal(header), \
+																	smb_string2stringval(${val.file_name}),\
+																	${val.max_referral_level});
+			}
 		return true;
 		%}
 

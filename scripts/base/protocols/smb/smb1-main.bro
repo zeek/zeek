@@ -214,3 +214,52 @@ event smb1_trans2_get_dfs_referral_request(c: connection, hdr: SMB1::Header, fil
 	{
 	c$smb_state$current_cmd$argument = file_name;
 	}
+
+event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse) &priority=-5
+	{
+	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+		{
+		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
+		}
+	}
+	
+event smb_ntlm_negotiate(c: connection, hdr: SMB1::Header, request: SMB::NTLMNegotiate)
+	{
+	c$smb_state$current_cmd$sub_command = "NTLMSSP_NEGOTIATE";
+	}
+
+event smb1_error(c: connection, hdr: SMB1::Header, is_orig: bool)
+	{
+	if ( ! is_orig )
+		{
+		# This is for deferred commands only.
+		# The more specific messages won't fire for errors
+		if ( ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses ) &&
+		     ( c$smb_state$current_cmd$command in SMB::deferred_logging_cmds ) )
+			{
+			Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
+			}
+		}
+	}
+	
+event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLMAuthenticate)
+	{
+	c$smb_state$current_cmd$sub_command = "NTLMSSP_AUTHENTICATE";
+
+	local user: string = "";
+	if ( ( request?$domain_name && request$domain_name != "" ) && ( request?$user_name && request$user_name != "" ) )
+		user = fmt("%s\\%s", request$domain_name, request$user_name);	
+	else if ( ( request?$workstation && request$workstation != "" ) && ( request?$user_name && request$user_name != "" ) )
+		user = fmt("%s\\%s", request$workstation, request$user_name);
+	else if ( request?$user_name && request$user_name != "" )
+		user = request$user_name;
+	else if ( request?$domain_name && request$domain_name != "" )
+		user = fmt("%s\\", request$domain_name);
+	else if ( request?$workstation && request$workstation != "" )
+		user = fmt("%s\\", request$workstation);
+
+	if ( user != "" )
+		{
+		c$smb_state$current_cmd$argument = user;
+		}
+	}

@@ -103,7 +103,7 @@ refine connection SMB_Conn += {
 					response->Assign(4, smb_string2stringval(${val.ntlm.primary_domain}));
 					//response->Assign(5, bytestring_to_val(${val.ntlm.security_blob}));
 					break;
-				case 0:		// Error!
+				default:		// Error!
 					break;
 				}
 			

@@ -126,11 +126,13 @@ export {
 	redef record connection += {
 		smb_state : State &optional;
 	};
+	
 
 	## Internal use only
 	## Some commands shouldn't be logged by the smb1_message event
 	const deferred_logging_cmds: set[string] = {
 		"NEGOTIATE",
+		"SESSION_SETUP_ANDX",
 	};
 	
 	## This is an internally used function.

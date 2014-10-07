@@ -156,13 +156,13 @@ refine connection SMB_Conn += {
 		RecordVal* result = new RecordVal(BifType::Record::SMB::NTLMAuthenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
-		if ( ${val.flags.negotiate_oem_domain_supplied} )
+		if ( ${val.domain_name_fields.length} > 0 )
 			result->Assign(1, bytestring_to_val(${val.domain_name.string.data}));
 
 		if ( ${val.user_name_fields.length} > 0 )
 			result->Assign(2, bytestring_to_val(${val.user_name.string.data}));
 
-		if ( ${val.flags.negotiate_oem_workstation_supplied} )
+		if ( ${val.workstation_fields.length} > 0 )
 			result->Assign(3, bytestring_to_val(${val.workstation.string.data}));
 
 		if ( ${val.flags.negotiate_version} )
@@ -298,9 +298,9 @@ type SMB_NTLM_Authenticate(header: SMB_Header, offset: uint16) = record {
 	payload			     		: bytestring &restofdata;
 } &let {
 	absolute_offset			: uint16 = offsetof(payload) + offset;
-	domain_name				: SMB_NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_domain_supplied);
+	domain_name				: SMB_NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(domain_name_fields.length > 0);
 	user_name				: SMB_NTLM_String(user_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(user_name_fields.length > 0);
-	workstation				: SMB_NTLM_String(workstation_fields, absolute_offset , flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_workstation_supplied);
+	workstation				: SMB_NTLM_String(workstation_fields, absolute_offset , flags.negotiate_unicode) withinput payload &if(workstation_fields.length > 0);
 	encrypted_session_key	: SMB_NTLM_String(encrypted_session_key_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_key_exch);
 	proc					: bool = $context.connection.proc_smb_ntlm_authenticate(header, this);
 };

@@ -12,22 +12,37 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 		local state: SMB::State;
 		state$fid_map = table();
 		state$tid_map = table();
+		state$uid_map = table();
 		state$pending_cmds = table();
 		c$smb_state = state;
 		}
 
 	local smb_state = c$smb_state;
 	local tid = hdr$tid;
-	local pid = hdr$pid;
 	local uid = hdr$uid;
+	local pid = hdr$pid;
 	local mid = hdr$mid;
-	
+
+	if ( uid in smb_state$uid_map )
+		{
+		smb_state$current_cmd$username = smb_state$uid_map[uid];
+		}
+
 	if ( tid !in smb_state$tid_map )
 		{
 		local tmp_tree: SMB::TreeInfo = [$uid=c$uid, $id=c$id];
 		smb_state$tid_map[tid] = tmp_tree;
 		}
 	smb_state$current_tree = smb_state$tid_map[tid];
+	if ( smb_state$current_tree?$path )
+		{
+		smb_state$current_cmd$tree = smb_state$current_tree$path;
+		}
+		
+	if ( smb_state$current_tree?$service )
+		{
+		smb_state$current_cmd$tree_service = smb_state$current_tree$service;
+		}
 	
 	if ( mid !in smb_state$pending_cmds )
 		{
@@ -106,7 +121,11 @@ event smb1_tree_connect_andx_request(c: connection, hdr: SMB1::Header, path: str
 
 event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service: string, native_file_system: string) &priority=5
 	{
+	c$smb_state$current_cmd$referenced_tree$service = service;
+	c$smb_state$current_cmd$tree_service = service;
+	
 	c$smb_state$current_cmd$referenced_tree$native_file_system = native_file_system;
+
 	c$smb_state$current_tree = c$smb_state$current_cmd$referenced_tree;
 	c$smb_state$tid_map[hdr$tid] = c$smb_state$current_tree;
 	}
@@ -114,6 +133,11 @@ event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service:
 event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service: string, native_file_system: string) &priority=-5
 	{
 	Log::write(SMB::MAPPING_LOG, c$smb_state$current_tree);
+
+	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+		{
+		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
+		}
 	}
 
 event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string) &priority=5
@@ -201,6 +225,9 @@ event smb1_close_request(c: connection, hdr: SMB1::Header, file_id: count) &prio
 		# Need to check for existence of path in case tree connect message wasn't seen.
 		if ( c$smb_state$current_tree?$path )
 			fl$path = c$smb_state$current_tree$path;
+
+		c$smb_state$current_cmd$argument = fl$name;
+		
 		delete c$smb_state$fid_map[file_id];
 
 		SMB::write_file_log(fl);
@@ -269,10 +296,15 @@ event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLM
 	else if ( request?$domain_name && request$domain_name != "" )
 		user = fmt("%s\\", request$domain_name);
 	else if ( request?$workstation && request$workstation != "" )
-		user = fmt("%s\\", request$workstation);
+		user = fmt("%s", request$workstation);
 
 	if ( user != "" )
 		{
 		c$smb_state$current_cmd$argument = user;
+		}
+
+	if ( hdr$uid !in c$smb_state$uid_map )
+		{
+		c$smb_state$uid_map[hdr$uid] = user;
 		}
 	}

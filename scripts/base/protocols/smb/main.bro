@@ -95,9 +95,14 @@ export {
 		## Version of SMB for the command
 		version			: string &log;
 
+		## Authenticated username, if available
+		username		: string &log &optional;
+		
 		## If this is related to a tree, this is the tree
 		## that was used for the current command.
 		tree			: string &log &optional;
+		## The type of tree (disk share, printer share, named pipe, etc.)
+		tree_service	: string &log &optional;
 		
 		## If the command referenced a file, store it here.
 		referenced_file	: FileInfo &optional;
@@ -116,11 +121,13 @@ export {
 		current_tree   : TreeInfo    &optional;
 		
 		## Indexed on MID to map responses to requests.
-		pending_cmds   : table[count] of CmdInfo    &optional;
+		pending_cmds: table[count] of CmdInfo   &optional;
 		## File map to retrieve file information based on the file ID.
-		fid_map        : table[count] of FileInfo   &optional;
+		fid_map     : table[count] of FileInfo  &optional;
 		## Tree map to retrieve tree information based on the tree ID.
-		tid_map        : table[count] of TreeInfo   &optional;
+		tid_map     : table[count] of TreeInfo  &optional;
+		## User map to retrieve user name based on the user ID.
+		uid_map		: table[count] of string	&optional;
 	};
 	
 	redef record connection += {
@@ -133,6 +140,7 @@ export {
 	const deferred_logging_cmds: set[string] = {
 		"NEGOTIATE",
 		"SESSION_SETUP_ANDX",
+		"TREE_CONNECT_ANDX",
 	};
 	
 	## This is an internally used function.

@@ -9,7 +9,9 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_transaction_request(header: SMB_Header, val: SMB1_transaction_request): bool
 		%{
-		//printf("transaction_request\n");
+		if ( smb1_transaction_request )
+			BifEvent::generate_smb1_transaction_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), \
+														 smb_string2stringval(${val.name}), ${val.sub_cmd});
 		return true;
 		%}
 	function proc_smb1_transaction_response(header: SMB_Header, val: SMB1_transaction_response): bool

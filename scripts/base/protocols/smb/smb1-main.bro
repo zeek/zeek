@@ -308,3 +308,8 @@ event smb_ntlm_authenticate(c: connection, hdr: SMB1::Header, request: SMB::NTLM
 		c$smb_state$uid_map[hdr$uid] = user;
 		}
 	}
+
+event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count)
+	{
+	c$smb_state$current_cmd$sub_command = SMB1::trans_sub_commands[sub_cmd];
+	}

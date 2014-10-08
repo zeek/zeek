@@ -125,6 +125,20 @@ export {
 		[0x10] = "GET_DFS_REFERRAL",	
 		[0x11] = "REPORT_DFS_INCONSISTENCY",	
 	} &default=function(i: count):string { return fmt("unknown-trans2-sub-cmd-%d", i); };
+
+	const trans_sub_commands: table[count] of string = {
+		[0x01] = "SET_NMPIPE_STATE",	
+		[0x11] = "RAW_READ_NMPIPE",	
+		[0x21] = "QUERY_NMPIPE_STATE",	
+		[0x22] = "QUERY_NMPIPE_INFO",	
+		[0x23] = "PEEK_NMPIPE",	
+		[0x26] = "TRANSACT_NMPIPE",	
+		[0x31] = "RAW_WRITE_NMPIPE",	
+		[0x36] = "READ_NMPIPE",	
+		[0x37] = "WRITE_NMPIPE",	
+		[0x53] = "WAIT_NMPIPE",	
+		[0x54] = "CALL_NMPIPE",	
+	} &default=function(i: count):string { return fmt("unknown-trans-sub-cmd-%d", i); };
 }
 
 module SMB2;

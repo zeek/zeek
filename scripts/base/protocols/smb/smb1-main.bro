@@ -222,6 +222,11 @@ event smb1_trans2_query_path_info_request(c: connection, hdr: SMB1::Header, file
 	{
 	c$smb_state$current_cmd$argument = file_name;
 	}
+
+event smb1_trans2_find_first2_request(c: connection, hdr: SMB1::Header, args: SMB1::Find_First2_Request_Args)
+	{
+	c$smb_state$current_cmd$argument = args$file_name;
+	}
 	
 event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse) &priority=-5
 	{

@@ -109,8 +109,19 @@ refine connection SMB_Conn += {
 
 	function proc_trans2_find_first2_request(header: SMB_Header, val: trans2_find_first2_request): bool
 		%{
-		// TODO: implement this.
-		//printf("trans2_find_first2 request!\n");
+		if ( smb1_trans2_find_first2_request )
+			{
+			RecordVal* result = new RecordVal(BifType::Record::SMB1::Find_First2_Request_Args);
+			result->Assign(0, new Val(${val.search_attrs}, TYPE_COUNT));
+			result->Assign(1, new Val(${val.search_count}, TYPE_COUNT));
+			result->Assign(2, new Val(${val.flags}, TYPE_COUNT));
+			result->Assign(3, new Val(${val.info_level}, TYPE_COUNT));
+			result->Assign(4, new Val(${val.search_storage_type}, TYPE_COUNT));
+			result->Assign(5, smb_string2stringval(${val.file_name}));
+			BifEvent::generate_smb1_trans2_find_first2_request(bro_analyzer(), bro_analyzer()->Conn(), \
+															   BuildHeaderVal(header), result);
+			
+			}
 		return true;
 		%}
 

@@ -2628,7 +2628,7 @@ export {
 
 	type SMB1::Find_First2_Request_Args: record {
 		## File attributes to apply as a constraint to the search
-		search_attrs		: string;
+		search_attrs		: count;
 		## Max search results
 		search_count		: count;
 		## Misc. flags for how the server should manage the transaction

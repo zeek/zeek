@@ -27,7 +27,7 @@ type SMB1_transaction_data(header: SMB_Header, count: uint16, sub_cmd: uint16,
 #	SMB_MAILSLOT_LANMAN -> lanman   : SMB_MailSlot_message(header.unicode, count);
 #	SMB_RAP             -> rap      : SMB_Pipe_message(header.unicode, count, sub_cmd);
 	SMB_PIPE            -> pipe     : SMB_Pipe_message(header.unicode, count, sub_cmd);
-#	SMB_UNKNOWN         -> unknown  : bytestring &restofdata;
+	SMB_UNKNOWN         -> unknown  : bytestring &restofdata;
 #	default             -> data     : bytestring &restofdata;
 };
 
@@ -83,7 +83,7 @@ type SMB1_transaction_response(header: SMB_Header) = record {
 	pad1                : padding to data_offset - SMB_Header_length;
 	handle_response	    : case $context.connection.isATSVC() of {
 		true -> pipe_data : SMB1_transaction_data(header, data_count, 0, SMB_PIPE);
-#		false -> unk_data : SMB1_transaction_data(header, data_count, 0, SMB_UNKNOWN);
+		false -> unk_data : SMB1_transaction_data(header, data_count, 0, SMB_UNKNOWN);
 	};
 } &let {
 	proc : bool = $context.connection.proc_smb1_transaction_response(header, this);

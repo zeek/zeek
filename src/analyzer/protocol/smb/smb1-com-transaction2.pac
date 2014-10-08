@@ -182,8 +182,14 @@ refine connection SMB_Conn += {
 
 	function proc_trans2_query_path_info_request(header: SMB_Header, val: trans2_query_path_info_request): bool
 		%{
-		// TODO: implement this.
-		//printf("trans2_query_path_info request!\n");
+		if ( smb1_trans2_query_path_info_request )
+			{
+			BifEvent::generate_smb1_trans2_query_path_info_request(bro_analyzer(), bro_analyzer()->Conn(), \
+																   BuildHeaderVal(header), \
+																   smb_string2stringval(${val.file_name}),\
+																   ${val.level_of_interest});
+			
+			}
 		return true;
 		%}
 

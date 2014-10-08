@@ -123,6 +123,7 @@ event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string
 	c$smb_state$current_cmd$referenced_file$name = name;
 	c$smb_state$current_cmd$referenced_file$action = SMB::FILE_OPEN;
 	c$smb_state$current_file = c$smb_state$current_cmd$referenced_file;
+	c$smb_state$current_cmd$argument = name;
 	}
 
 event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes) &priority=5
@@ -148,6 +149,7 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 	{
 	SMB::set_current_file(c$smb_state, file_id);
 	c$smb_state$current_file$action = SMB::FILE_READ;
+	c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
 	}
 	
 event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count) &priority=-5
@@ -168,6 +170,7 @@ event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, 
 	{
 	SMB::set_current_file(c$smb_state, file_id);
 	c$smb_state$current_file$action = SMB::FILE_WRITE;
+	c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
 	}
 	
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count) &priority=-5
@@ -215,6 +218,11 @@ event smb1_trans2_get_dfs_referral_request(c: connection, hdr: SMB1::Header, fil
 	c$smb_state$current_cmd$argument = file_name;
 	}
 
+event smb1_trans2_query_path_info_request(c: connection, hdr: SMB1::Header, file_name: string, level_of_interets: count)
+	{
+	c$smb_state$current_cmd$argument = file_name;
+	}
+	
 event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse) &priority=-5
 	{
 	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )

@@ -45,7 +45,13 @@ Reference Section
    script-reference/index.rst
    components/index.rst
 
-..
+Development
+===========
+
+.. toctree::
+   :maxdepth: 2
+
+   devel/plugins.rst
 
 * :ref:`General Index <genindex>`
 * :ref:`search`

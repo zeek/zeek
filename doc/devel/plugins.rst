@@ -265,23 +265,25 @@ plugins to unconditionally activate, even in bare mode.
 activated plugins. Note that plugins compiled statically into Bro are
 always activated, and hence show up as such even in bare mode.
 
-Plugin Component
-================
+Plugin Components
+=================
 
-The following gives additional information about providing individual
-types of functionality via plugins. Note that a single plugin can
-provide more than one type. For example, a plugin could provide
-multiple protocol analyzers at once; or both a logging backend and
-input reader at the same time.
+The following subsections detail providing individual types of
+functionality via plugins. Note that a single plugin can provide more
+than one component type. For example, a plugin could provide multiple
+protocol analyzers at once; or both a logging backend and input reader
+at the same time.
 
-We now walk briefly through the specifics of providing a specific type
-of functionality (a *component*) through a plugin. We'll focus on
-their interfaces to the plugin system, rather than specifics on
-writing the corresponding logic (usually the best way to get going on
-that is to start with an existing plugin providing a corresponding
-component and adapt that). We'll also point out how the CMake
-infrastructure put in place by the ``init-plugin`` helper script ties
-the various pieces together.
+.. todo::
+
+    These subsections are mostly missing right now, as much of their
+    content isn't actually plugin-specific, but concerns generally
+    writing such functionality for Bro. The best way to get started
+    right now is to look at existing code implementing similar
+    functionality, either as a plugin or inside Bro proper. Also, for
+    each component type there's a unit test in
+    ``testing/btest/plugins`` creating a basic plugin skeleton with a
+    corresponding component.
 
 Bro Scripts
 -----------
@@ -412,25 +414,32 @@ Run the test-suite::
 Debugging Plugins
 =================
 
-Plugins can use Bro's standard debug logger by using the
-``PLUGIN_DBG_LOG(<plugin>, <args>)`` macro (defined in
-``DebugLogger.h``), where ``<plugin>`` is the ``Plugin`` instance and
-``<args>`` are printf-style arguments, just as with Bro's standard
-debuggging macros.
+If your plugin isn't loading as expected, Bro's debugging facilities
+can help to illuminate what's going on. To enable, recompile Bro
+with debugging support (``./configure --enable-debug``), and
+afterwards rebuild your plugin as well. If you then run Bro with ``-B
+plugins``, it will produce a file ``debug.log`` that records details
+about the process for searching, loading, and activating plugins. 
 
-At runtime, one then activates a plugin's debugging output with ``-B
-plugin-<name>``, where ``<name>`` is the name of the plugin as
-returned by its ``Configure()`` method, yet with the
-namespace-separator ``::`` replaced with a simple dash. Example: If
-the plugin is called ``Bro::Demo``, use ``-B plugin-Bro-Demo``. As
-usual, the debugging output will be recorded to ``debug.log`` if Bro's
-compiled in debug mode.
+To generate your own debugging output from inside your plugin, you can
+add a custom debug stream by using the ``PLUGIN_DBG_LOG(<plugin>,
+<args>)`` macro (defined in ``DebugLogger.h``), where ``<plugin>`` is
+the ``Plugin`` instance and ``<args>`` are printf-style arguments,
+just as with Bro's standard debugging macros (grep for ``DBG_LOG`` in
+Bro's ``src/`` to see examples). At runtime, you can then activate
+your plugin's debugging output with ``-B plugin-<name>``, where
+``<name>`` is the name of the plugin as returned by its
+``Configure()`` method, yet with the namespace-separator ``::``
+replaced with a simple dash. Example: If the plugin is called
+``Bro::Demo``, use ``-B plugin-Bro-Demo``. As usual, the debugging
+output will be recorded to ``debug.log`` if Bro's compiled in debug
+mode.
 
 
 Documenting Plugins
 ===================
 
-..todo::
+.. todo::
 
     Integrate all this with Broxygen.
 

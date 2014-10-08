@@ -1,4 +1,44 @@
 
+2.3-229 | 2014-10-07 20:18:11 -0700
+
+  * Fix for test portability. (Robin Sommer)
+
+2.3-228 | 2014-10-07 15:32:37 -0700
+
+  * Include plugin unit tests into the top-level btest configuration. (Robin Sommer)
+
+  * Switching the prefix separator for packet source/dumper plugins
+    once more, now to "::". Addresses BIT-1267. (Robin Sommer)
+
+  * Fix for allowing a packet source/dumper plugin to support multiple
+    prefixes with a colon. (Robin Sommer)
+
+2.3-225 | 2014-10-07 15:13:35 -0700
+
+  * Updating plugin documentation. (Robin Sommer)
+
+2.3-224 | 2014-10-07 14:32:17 -0700
+
+  * Improved the log file reference documentation. (Jeannette Dopheide
+    and Daniel Thayer)
+
+  * Improves shockwave flash file signatures. (Seth Hall)
+
+     - This moves the signatures out of the libmagic imported signatures
+       and into our own general.sig.
+
+     - Expand the detection to LZMA compressed flash files.
+
+  * Add new script language reference documentation on operators,
+    statements, and directives.  Also improved the documentation on
+    types and attributes by splitting them into two docs, and
+    providing more examples and adding a chart on the top of each page
+    with links to each type and attribute for easier access to the
+    information. (Daniel Thayer)
+
+  * Split the types and attributes reference doc into two docs.
+    (Daniel Thayer)
+
 2.3-208 | 2014-10-03 09:38:52 -0500
 
   * BIT-1268: Fix uninitialized router_list argument in

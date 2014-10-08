@@ -355,7 +355,7 @@ const default_file_timeout_interval: interval = 2 mins &redef;
 
 ## Default amount of bytes that file analysis will buffer before raising
 ## :bro:see:`file_new`.
-const default_file_bof_buffer_size: count = 1024 &redef;
+const default_file_bof_buffer_size: count = 3000 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a

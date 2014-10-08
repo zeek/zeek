@@ -1,7 +1,7 @@
-event file_new(f: fa_file)
+event file_mime_type(f: fa_file, mime_type: string)
     {
     print "new file", f$id;
-    if ( f?$mime_type && f$mime_type == "text/plain" )
+    if ( mime_type == "text/plain" )
         Files::add_analyzer(f, Files::ANALYZER_MD5);
     }
 

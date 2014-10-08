@@ -28,11 +28,18 @@ public:
 	 * Write a chunk of file data to the local extraction file.
 	 * @param data pointer to a chunk of file data.
 	 * @param len number of bytes in the data chunk.
-	 * @param offset number of bytes from start of file at which chunk starts.
 	 * @return false if there was no extraction file open and the data couldn't
 	 *         be written, else true.
 	 */
-	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset);
+	virtual bool DeliverStream(const u_char* data, uint64 len);
+
+	/**
+	 * Report undelivered bytes.
+	 * @param offset distance into the file where the gap occurred.
+	 * @param len number of bytes undelivered.
+	 * @return true
+	 */
+	virtual bool Undelivered(uint64 offset, uint64 len);
 
 	/**
 	 * Create a new instance of an Extract analyzer.
@@ -67,6 +74,7 @@ private:
 	string filename;
 	int fd;
 	uint64 limit;
+	uint64 depth;
 };
 
 } // namespace file_analysis

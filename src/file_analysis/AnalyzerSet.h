@@ -57,9 +57,10 @@ public:
 	 * Queue the attachment of an analyzer to #file.
 	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
+	 * @param a an analyzer pointer to return the instantiated analyzer to the caller.
 	 * @return true if analyzer was able to be instantiated, else false.
 	 */
-	bool QueueAdd(file_analysis::Tag tag, RecordVal* args);
+	bool QueueAdd(file_analysis::Tag tag, RecordVal* args, file_analysis::Analyzer* a);
 
 	/**
 	 * Remove an analyzer from #file immediately.

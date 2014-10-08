@@ -72,10 +72,10 @@ bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
 	return true;
 	}
 
-bool AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
+bool AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args, file_analysis::Analyzer* a)
 	{
 	HashKey* key = GetKey(tag, args);
-	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
+	a = InstantiateAnalyzer(tag, args);
 
 	if ( ! a )
 		{

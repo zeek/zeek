@@ -1,4 +1,9 @@
 
+2.3-230 | 2014-10-08 08:15:17 -0700
+
+  * Further baseline normalization for plugin test portability. (Robin
+    Sommer)
+
 2.3-229 | 2014-10-07 20:18:11 -0700
 
   * Fix for test portability. (Robin Sommer)

@@ -117,6 +117,9 @@ IOSource* Manager::FindSoonest(double* ts)
 
 		src->Clear();
 		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
+		if ( src->fd_read.Empty() ) src->fd_read.Insert(0);
+		if ( src->fd_write.Empty() ) src->fd_write.Insert(0);
+		if ( src->fd_except.Empty() ) src->fd_except.Insert(0);
 		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
 		}
 
@@ -201,11 +204,11 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 	// PktSrc to use. If not, choose default.
 	std::string prefix;
 
-	std::string::size_type i = path.find("%");
+	std::string::size_type i = path.find("::");
 	if ( i != std::string::npos )
 		{
 		prefix = path.substr(0, i);
-		path = path.substr(++i, std::string::npos);
+		path = path.substr(i + 2, std::string::npos);
 		}
 
 	else

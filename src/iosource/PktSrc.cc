@@ -434,6 +434,7 @@ bool PktSrc::ExtractNextPacketInternal()
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.ts;
 
+		SetIdle(false);
 		have_packet = true;
 		return 1;
 		}

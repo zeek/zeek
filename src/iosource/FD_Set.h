@@ -77,6 +77,23 @@ public:
 		return false;
 		}
 
+	/**
+	 * @return whether any file descriptors have been added to the set.
+	 */
+	bool Empty() const
+		{
+		return fds.empty();
+		}
+
+	/**
+	 * @return the greatest file descriptor of all that have been added to the
+	 * set, or -1 if the set is empty.
+	 */
+	int Max() const
+		{
+		return max;
+		}
+
 private:
 	int max;
 	std::set<int> fds;

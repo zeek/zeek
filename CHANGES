@@ -1,4 +1,8 @@
 
+2.3-229 | 2014-10-07 20:18:11 -0700
+
+  * Fix for test portability. (Robin Sommer)
+
 2.3-228 | 2014-10-07 15:32:37 -0700
 
   * Include plugin unit tests into the top-level btest configuration. (Robin Sommer)

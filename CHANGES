@@ -1,4 +1,10 @@
 
+2.3-233 | 2014-10-09 16:00:27 -0500
+
+  * Change find-bro-logs unit test to follow symlinks. (Jon Siwek)
+
+  * Add error checks and messages to a test script (Daniel Thayer)
+
 2.3-230 | 2014-10-08 08:15:17 -0700
 
   * Further baseline normalization for plugin test portability. (Robin

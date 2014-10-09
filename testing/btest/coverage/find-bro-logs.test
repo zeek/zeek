@@ -38,7 +38,7 @@ cat << '_EOF_' > find_logid.awk
 }
 _EOF_
 
-find ${BROSCRIPTS} -type f -exec awk -f find_logid.awk {} \; > out.logid
+find -L ${BROSCRIPTS} -type f -exec awk -f find_logid.awk {} \; > out.logid
 
 if [ ! -s out.logid ]; then
     echo "Did not find Bro scripts in directory: ${BROSCRIPTS}" 1>&2

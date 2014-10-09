@@ -9,6 +9,11 @@
 
 BROSCRIPTS=${DIST}/scripts
 
+if [ ! -d "${BROSCRIPTS}" ]; then
+    echo "Directory not found: ${BROSCRIPTS}" 1>&2
+    exit 1
+fi
+
 # For a given Bro script, look for a call to "create_stream".  If found,
 # extract the log ID (adding the module name if necessary), and print the
 # log ID and script filename.
@@ -34,6 +39,11 @@ cat << '_EOF_' > find_logid.awk
 _EOF_
 
 find ${BROSCRIPTS} -type f -exec awk -f find_logid.awk {} \; > out.logid
+
+if [ ! -s out.logid ]; then
+    echo "Did not find Bro scripts in directory: ${BROSCRIPTS}" 1>&2
+    exit 1
+fi
 
 # For each log ID, have Bro convert it to the corresponding log filename
 # using the default mechanism for generating a log filename (we must load

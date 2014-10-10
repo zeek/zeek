@@ -1,23 +1,6 @@
 refine connection SMB_Conn += {
-
-	%member{
-       		bool is_atsvc;
-	%}
-
-	%init{
-		is_atsvc = false;
-	%}
-
-	function isATSVC(): bool
-		%{
-		return is_atsvc;
-		%}
-
 	function proc_smb1_nt_create_andx_request(header: SMB_Header, val: SMB1_nt_create_andx_request): bool
 		%{
-		if ( ${val.filename.u.s}->size() == 14 && ${val.filename.u.s[0]} == '\\' && ${val.filename.u.s[2]} == 'a' && ${val.filename.u.s[4]} == 't' && ${val.filename.u.s[6]} == 's' && ${val.filename.u.s[8]} == 'v' && ${val.filename.u.s[10]} == 'c' )
-			is_atsvc = true;
-			
 		if ( smb1_nt_create_andx_request )
 			{
 			// name_length         : uint16;

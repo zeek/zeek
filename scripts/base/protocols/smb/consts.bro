@@ -26,6 +26,96 @@ export {
 		"\\wkssvc",
 	};
 
+	## The UUIDs used by the various RPC endpoints
+	const rpc_uuids: table[string] of string = {
+		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = "Server Service",
+		["6bffd098-a112-3610-9833-46c3f87e345a"] = "Workstation Service",
+	} &redef &default=function(i: string):string { return fmt("unknown-uuid-%s", i); };
+
+	## Server service sub commands
+	const srv_cmds: table[count] of string = {
+		[8]  = "NetrConnectionEnum",
+		[9]  = "NetrFileEnum",
+		[10] = "NetrFileGetInfo",
+		[11] = "NetrFileClose",
+		[12] = "NetrSessionEnum",
+		[13] = "NetrSessionDel",
+		[14] = "NetrShareAdd",
+		[15] = "NetrShareEnum",
+		[16] = "NetrShareGetInfo",
+		[17] = "NetrShareSetInfo",
+		[18] = "NetrShareDel",
+		[19] = "NetrShareDelSticky",
+		[20] = "NetrShareCheck",
+		[21] = "NetrServerGetInfo",
+		[22] = "NetrServerSetInfo",
+		[23] = "NetrServerDiskEnum",
+		[24] = "NetrServerStatisticsGet",
+		[25] = "NetrServerTransportAdd",
+		[26] = "NetrServerTransportEnum",
+		[27] = "NetrServerTransportDel",
+		[28] = "NetrRemoteTOD",
+		[30] = "NetprPathType",
+		[31] = "NetprPathCanonicalize",
+		[32] = "NetprPathCompare",
+		[33] = "NetprNameValidate",
+		[34] = "NetprNameCanonicalize",
+		[35] = "NetprNameCompare",
+		[36] = "NetrShareEnumSticky",
+		[37] = "NetrShareDelStart",
+		[38] = "NetrShareDelCommit",
+		[39] = "NetrGetFileSecurity",
+		[40] = "NetrSetFileSecurity",
+		[41] = "NetrServerTransportAddEx",
+		[43] = "NetrDfsGetVersion",
+		[44] = "NetrDfsCreateLocalPartition",
+		[45] = "NetrDfsDeleteLocalPartition",
+		[46] = "NetrDfsSetLocalVolumeState",
+		[48] = "NetrDfsCreateExitPoint",
+		[49] = "NetrDfsDeleteExitPoint",
+		[50] = "NetrDfsModifyPrefix",
+		[51] = "NetrDfsFixLocalVolume",
+		[52] = "NetrDfsManagerReportSiteInfo",
+		[53] = "NetrServerTransportDelEx",
+		[54] = "NetrServerAliasAdd",
+		[55] = "NetrServerAliasEnum",
+		[56] = "NetrServerAliasDel",
+		[57] = "NetrShareDelEx",
+	} &redef &default=function(i: count):string { return fmt("unknown-srv-command-%d", i); };
+
+	## Workstation service sub commands
+	const wksta_cmds: table[count] of string = {
+		[0]  = "NetrWkstaGetInfo",
+		[1]  = "NetrWkstaSetInfo",
+		[2]  = "NetrWkstaUserEnum",
+		[5]  = "NetrWkstaTransportEnum",
+		[6]  = "NetrWkstaTransportAdd",
+		[7]  = "NetrWkstaTransportDel",
+		[8]  = "NetrUseAdd",
+		[9]  = "NetrUseGetInfo",
+		[10] = "NetrUseDel",
+		[11] = "NetrUseEnum",
+		[13] = "NetrWorkstationStatisticsGet",
+		[20] = "NetrGetJoinInformation",
+		[22] = "NetrJoinDomain2",
+		[23] = "NetrUnjoinDomain2",
+		[24] = "NetrRenameMachineInDomain2",
+		[25] = "NetrValidateName2",
+		[26] = "NetrGetJoinableOUs2",
+		[27] = "NetrAddAlternateComputerName",
+		[28] = "NetrRemoveAlternateComputerName",
+		[29] = "NetrSetPrimaryComputerName",
+		[30] = "NetrEnumerateComputerNames",
+	} &redef &default=function(i: count):string { return fmt("unknown-wksta-command-%d", i); };
+
+	type rpc_cmd_table: table[count] of string;
+	
+	## The subcommands for RPC endpoints
+	const rpc_sub_cmds: table[string] of rpc_cmd_table = {
+		["4b324fc8-1670-01d3-1278-5a47bf6ee188"] = srv_cmds,
+		["6bffd098-a112-3610-9833-46c3f87e345a"] = wksta_cmds,	
+	} &redef &default=function(i: string):rpc_cmd_table { return table() &default=function(j: string):string { return fmt("unknown-uuid-%s", j); }; };
+	
 }
 
 module SMB1;

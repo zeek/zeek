@@ -128,6 +128,8 @@ export {
 		tid_map     : table[count] of TreeInfo  &optional;
 		## User map to retrieve user name based on the user ID.
 		uid_map		: table[count] of string	&optional;
+		## Pipe map to retrieve UUID based on the file ID of a pipe.
+		pipe_map	: table[count] of string	&optional;
 	};
 	
 	redef record connection += {
@@ -139,6 +141,7 @@ export {
 	## Some commands shouldn't be logged by the smb1_message event
 	const deferred_logging_cmds: set[string] = {
 		"NEGOTIATE",
+		"READ_ANDX",
 		"SESSION_SETUP_ANDX",
 		"TREE_CONNECT_ANDX",
 	};
@@ -152,10 +155,13 @@ export {
 
 redef record FileInfo += {
 	## ID referencing this file.
-	fid            : count   &optional;
+	fid	: count   &optional;
 
 	## Maintain a reference to the file record.
-	f              : fa_file &optional;
+	f	: fa_file &optional;
+
+	## UUID referencing this file if DCE/RPC
+	uuid: string &optional;
 };
 
 const ports = { 139/tcp, 445/tcp };

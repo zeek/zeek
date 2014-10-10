@@ -13,6 +13,7 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 		state$fid_map = table();
 		state$tid_map = table();
 		state$uid_map = table();
+		state$pipe_map = table();
 		state$pending_cmds = table();
 		c$smb_state = state;
 		}
@@ -180,21 +181,25 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 	{
 	if ( c$smb_state$current_tree?$path && !c$smb_state$current_file?$path )
 		c$smb_state$current_file$path = c$smb_state$current_tree$path;
-	
+
 	# TODO - Why is this commented out?
 	#write_file_log(c$smb_state$current_file);
 	}
 	
-#event smb1_read_andx_response(c: connection, hdr: SMB1::Header, data_len: count) &priority=5
-#	{
-#	# TODO - determine what to do here
-#	}
+event smb1_read_andx_response(c: connection, hdr: SMB1::Header, data_len: count) &priority=5
+	{
+	if ( c$smb_state$current_cmd$status !in SMB::ignored_command_statuses )
+		{
+		Log::write(SMB::CMD_LOG, c$smb_state$current_cmd);
+		}
+	}
 
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count) &priority=5
 	{
 	SMB::set_current_file(c$smb_state, file_id);
 	c$smb_state$current_file$action = SMB::FILE_WRITE;
-	c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
+	if ( !c$smb_state$current_cmd?$argument )
+		c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
 	}
 	
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count) &priority=-5
@@ -313,3 +318,36 @@ event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, s
 	{
 	c$smb_state$current_cmd$sub_command = SMB1::trans_sub_commands[sub_cmd];
 	}
+
+event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count)
+	{
+	c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
+	}
+
+event smb_pipe_bind_ack_response(c: connection, hdr: SMB1::Header)
+	{
+	c$smb_state$current_cmd$sub_command = "RPC_BIND_ACK";
+	c$smb_state$current_cmd$argument = SMB::rpc_uuids[c$smb_state$current_file$uuid];	
+	}
+	
+event smb_pipe_bind_request(c: connection, hdr: SMB1::Header, uuid: string, version: string)
+	{
+	c$smb_state$current_cmd$sub_command = "RPC_BIND";
+	c$smb_state$current_file$uuid = uuid;
+	c$smb_state$current_cmd$argument = fmt("%s v%s", SMB::rpc_uuids[uuid], version);
+	}
+
+event smb_pipe_request(c: connection, hdr: SMB1::Header, op_num: count)
+	{
+	c$smb_state$current_cmd$argument = fmt("%s: %s", SMB::rpc_uuids[c$smb_state$current_file$uuid],
+									   				 SMB::rpc_sub_cmds[c$smb_state$current_file$uuid][op_num]);
+	}
+	
+#event smb1_transaction_setup(c: connection, hdr: SMB1::Header, op_code: count, file_id: count)
+#	{
+#	local uuid = SMB::rpc_uuids[c$smb_state$pipe_map[file_id]];
+#	if ( uuid in SMB::rpc_uuids )
+#		{
+#		print fmt("smb1_transaction_setup %s", SMB::rap_cmds[op_code]);
+#		}
+#	}

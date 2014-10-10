@@ -2,8 +2,6 @@ refine connection SMB_Conn += {
 
 	function proc_smb1_close_request(h: SMB_Header, val: SMB1_close_request): bool
 		%{
-		is_atsvc = false;
-		
 		if ( smb1_close_request )
 			BifEvent::generate_smb1_close_request(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),

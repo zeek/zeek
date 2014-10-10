@@ -379,8 +379,8 @@ type SMB_transaction_data(unicode: bool, count: uint16, sub_cmd: uint16,
 
 	SMB_MAILSLOT_BROWSE -> mailslot : SMB_MailSlot_message(unicode, count);
 	SMB_MAILSLOT_LANMAN -> lanman : SMB_MailSlot_message(unicode, count);
-	SMB_RAP -> rap	: SMB_Pipe_message(unicode, count, sub_cmd);
-	SMB_PIPE -> pipe : SMB_Pipe_message(unicode, count, sub_cmd);
+	SMB_RAP -> rap	: SMB_Pipe_message(unicode, count);
+	SMB_PIPE -> pipe : SMB_Pipe_message(unicode, count);
 	SMB_UNKNOWN -> unknown : bytestring &restofdata;
 	default -> data : bytestring &restofdata;
 
@@ -416,7 +416,7 @@ type SMB_transaction(trans_type: int, unicode: bool) = record {
 						determine_transaction_type( setup_count, name_string( this )));
 } &let {
 	# does this work?
-	sub_cmd : uint16 = setup_count ? setup[0] : 0;
+	sub_cmd : uint16 = setup_count ? setup.op_code : 0;
 
 } &byteorder = littleendian;
 

@@ -1,4 +1,8 @@
 
+2.3-234 | 2014-10-14 14:42:09 -0500
+
+  * Documentation fixes. (Steve Smoot)
+
 2.3-233 | 2014-10-09 16:00:27 -0500
 
   * Change find-bro-logs unit test to follow symlinks. (Jon Siwek)

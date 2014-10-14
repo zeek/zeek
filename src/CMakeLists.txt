@@ -157,6 +157,7 @@ add_subdirectory(analyzer)
 add_subdirectory(broxygen)
 add_subdirectory(file_analysis)
 add_subdirectory(input)
+add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
 
@@ -254,7 +255,6 @@ set(bro_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BPF_Program.cc
     Brofiler.cc
     BroString.cc
     CCL.cc
@@ -279,14 +279,13 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
-    FlowSrc.cc
+    Flare.cc
     Frag.cc
     Frame.cc
     Func.cc
     Hash.cc
     ID.cc
     IntSet.cc
-    IOSource.cc
     IP.cc
     IPAddr.cc
     List.cc
@@ -299,7 +298,7 @@ set(bro_SRCS
     OSFinger.cc
     PacketFilter.cc
     PersistenceSerializer.cc
-    PktSrc.cc
+    Pipe.cc
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc

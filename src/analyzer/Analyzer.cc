@@ -4,6 +4,7 @@
 
 #include "Analyzer.h"
 #include "Manager.h"
+#include "binpac.h"
 
 #include "analyzer/protocol/pia/PIA.h"
 #include "../Event.h"

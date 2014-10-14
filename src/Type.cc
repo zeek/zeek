@@ -1381,6 +1381,11 @@ void OpaqueType::Describe(ODesc* d) const
 	d->Add(name.c_str());
 	}
 
+void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
+	{
+	d->Add(fmt(":bro:type:`%s` of %s", type_name(Tag()), name.c_str()));
+	}
+
 IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
 
 bool OpaqueType::DoSerialize(SerialInfo* info) const

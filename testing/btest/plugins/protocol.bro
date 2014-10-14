@@ -1,6 +1,6 @@
 # @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
 # @TEST-EXEC: cp -r %DIR/protocol-plugin/* .
-# @TEST-EXEC: make BRO=${DIST}
+# @TEST-EXEC: ./configure --bro-dist=${DIST} && make
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -NN Demo::Foo >>output
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r $TRACES/port4242.trace %INPUT >>output

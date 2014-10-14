@@ -134,13 +134,7 @@ protected:
 	tcp::ContentLine_Analyzer* content_line;
 	bool is_orig;
 
-	vector<const BroString*> buffers;
-
-	// Controls the total buffer size within http_entity_data_delivery_size.
-	int total_buffer_size;
-
-	int buffer_offset, buffer_size;
-	BroString* data_buffer;
+	char* entity_data_buffer;
 
 	double start_time;
 
@@ -153,9 +147,6 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	int InitBuffer(int64_t length);
-	void DeliverEntityData();
-
 	Val* BuildMessageStat(const int interrupted, const char* msg);
 };
 
@@ -167,7 +158,7 @@ public:
 	void Undelivered(tcp::TCP_Endpoint* sender, uint64 seq, int len);
 
 	void HTTP_Header(int is_orig, mime::MIME_Header* h);
-	void HTTP_EntityData(int is_orig, const BroString* entity_data);
+	void HTTP_EntityData(int is_orig, BroString* entity_data);
 	void HTTP_MessageDone(int is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
 	void HTTP_Event(const char* category, StringVal *detail);

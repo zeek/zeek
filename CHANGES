@@ -1,4 +1,9 @@
 
+2.3-235 | 2014-10-15 10:20:47 -0500
+
+  * BIT-1273: Add error message for bad enum declaration syntax.
+    (Jon Siwek)
+
 2.3-234 | 2014-10-14 14:42:09 -0500
 
   * Documentation fixes. (Steve Smoot)

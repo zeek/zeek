@@ -1,4 +1,12 @@
 
+2.3-238 | 2014-10-16 06:51:49 -0700
+
+  * Fix multipart HTTP/MIME entity file analysis so that (1) singular
+    CR or LF characters in multipart body content are no longer
+    converted to a full CRLF (thus corrupting the file) and (2) it
+    also no longer considers the CRLF before the multipart boundary as
+    part of the content. Addresses BIT-1235. (Jon Siwek)
+
 2.3-235 | 2014-10-15 10:20:47 -0500
 
   * BIT-1273: Add error message for bad enum declaration syntax.

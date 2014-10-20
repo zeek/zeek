@@ -65,12 +65,14 @@ function request2curl(r: Request, bodyfile: string, headersfile: string): string
 	cmd = fmt("%s -m %.0f", cmd, r$max_time);
 
 	if ( r?$client_data )
-		cmd = fmt("%s -d -", cmd);
+		cmd = fmt("%s -d @-", cmd);
 
 	if ( r?$addl_curl_args )
 		cmd = fmt("%s %s", cmd, r$addl_curl_args);
 
 	cmd = fmt("%s \"%s\"", cmd, str_shell_escape(r$url));
+	# hack so the bodyfile will exsist even if curl did not write one.
+	cmd = fmt("%s && touch %s", cmd, str_shell_escape(bodyfile));
 	return cmd;
 	}
 

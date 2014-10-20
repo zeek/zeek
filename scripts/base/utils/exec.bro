@@ -106,6 +106,16 @@ event Input::end_of_data(name: string, source:string)
 
 	local track_file = parts[2];
 
+	# If the file is empty, add it to the result$files table
+	# this is needed because it is expected that the file was read
+	# even if it was empty
+	local result = results[name];
+	if ( ! result?$files )
+		result$files = table();
+
+	if ( track_file !in result$files )
+		result$files[track_file] = vector(source);
+
 	Input::remove(name);
 
 	if ( name !in pending_files )

@@ -1,4 +1,19 @@
 
+2.3-247 | 2014-10-21 13:42:38 -0700
+
+  * Updates to the SSL analyzer. (Johanna Amann)
+
+        * Mark everything below 2048 bit as a weak key.
+
+        * Fix notice suppression.
+
+        * Add information about server-chosen protocol to ssl.log, if
+          provided by application_layer_next_protocol.
+
+        * Add boolean flag to ssl.log signaling if a session was
+          resumed. Remove the (usually not really that useful) session
+          ID that the client sent.
+
 2.3-240 | 2014-10-21 13:36:33 -0700
 
   * Fix Coverity-reported issues in DNP3 analyzer. (Seth Hall)

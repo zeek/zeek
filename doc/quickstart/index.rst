@@ -1,5 +1,5 @@
 
-.. _FAQ: http://www.bro.org/documentation/faq.html
+.. _FAQ: //www.bro.org/documentation/faq.html
 
 .. _quickstart:
 

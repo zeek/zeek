@@ -118,8 +118,6 @@ include(BifCl)
 
 set(BIF_SRCS
     bro.bif
-    logging.bif
-    input.bif
     event.bif
     const.bif
     types.bif
@@ -156,13 +154,17 @@ set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
 add_subdirectory(analyzer)
-add_subdirectory(file_analysis)
-add_subdirectory(probabilistic)
 add_subdirectory(broxygen)
+add_subdirectory(file_analysis)
+add_subdirectory(input)
+add_subdirectory(iosource)
+add_subdirectory(logging)
+add_subdirectory(probabilistic)
 
 set(bro_SUBDIRS
-    ${bro_SUBDIR_LIBS}
+    # Order is important here.
     ${bro_PLUGIN_LIBS}
+    ${bro_SUBDIR_LIBS}
 )
 
 if ( NOT bro_HAVE_OBJECT_LIBRARIES )
@@ -253,7 +255,6 @@ set(bro_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BPF_Program.cc
     Brofiler.cc
     BroString.cc
     CCL.cc
@@ -278,14 +279,13 @@ set(bro_SRCS
     EventRegistry.cc
     Expr.cc
     File.cc
-    FlowSrc.cc
+    Flare.cc
     Frag.cc
     Frame.cc
     Func.cc
     Hash.cc
     ID.cc
     IntSet.cc
-    IOSource.cc
     IP.cc
     IPAddr.cc
     List.cc
@@ -298,7 +298,7 @@ set(bro_SRCS
     OSFinger.cc
     PacketFilter.cc
     PersistenceSerializer.cc
-    PktSrc.cc
+    Pipe.cc
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc
@@ -346,24 +346,6 @@ set(bro_SRCS
     threading/SerialTypes.cc
     threading/formatters/Ascii.cc
     threading/formatters/JSON.cc
-
-    logging/Manager.cc
-    logging/WriterBackend.cc
-    logging/WriterFrontend.cc
-    logging/writers/Ascii.cc
-    logging/writers/DataSeries.cc
-    logging/writers/SQLite.cc
-    logging/writers/ElasticSearch.cc
-    logging/writers/None.cc
-
-    input/Manager.cc
-    input/ReaderBackend.cc
-    input/ReaderFrontend.cc
-    input/readers/Ascii.cc
-    input/readers/Raw.cc
-    input/readers/Benchmark.cc
-    input/readers/Binary.cc
-    input/readers/SQLite.cc
 
     3rdparty/sqlite3.c
 

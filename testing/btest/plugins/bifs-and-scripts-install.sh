@@ -1,10 +1,13 @@
 # @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin Demo Foo
 # @TEST-EXEC: bash %INPUT
-# @TEST-EXEC: BRO_PLUGIN_INSTALL=`pwd`/test-install make BRO=${DIST}
+# @TEST-EXEC: ./configure --bro-dist=${DIST} --install-root=`pwd`/test-install
+# @TEST-EXEC: make
 # @TEST-EXEC: make install
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro -NN Demo::Foo >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro demo/foo -r $TRACES/empty.trace >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
+
+mkdir -p scripts/demo/foo/base/
 
 cat >scripts/__load__.bro <<EOF
 @load ./demo/foo/base/at-startup.bro
@@ -21,8 +24,6 @@ event bro_init() &priority=-10
         }
 EOF
 
-mkdir -p scripts/demo/foo/base/
-
 cat >scripts/demo/foo/base/at-startup.bro <<EOF
 event bro_init() &priority=10
         {
@@ -31,17 +32,16 @@ event bro_init() &priority=10
         }
 EOF
 
-cat >src/functions.bif <<EOF
+cat >src/foo.bif <<EOF
 function hello_plugin_world%(%): string
         %{
         return new StringVal("Hello from the plugin!");
         %}
+
+event plugin_event%(foo: count%);
 EOF
 
 cat >activate.bro <<EOF
 @load-plugin Demo::Foo
 EOF
 
-cat >src/events.bif <<EOF
-event plugin_event%(foo: count%);
-EOF

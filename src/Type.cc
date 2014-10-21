@@ -1381,6 +1381,11 @@ void OpaqueType::Describe(ODesc* d) const
 	d->Add(name.c_str());
 	}
 
+void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
+	{
+	d->Add(fmt(":bro:type:`%s` of %s", type_name(Tag()), name.c_str()));
+	}
+
 IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
 
 bool OpaqueType::DoSerialize(SerialInfo* info) const
@@ -1476,10 +1481,19 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		}
 	else
 		{
+		// We allow double-definitions if matching exactly. This is so that
+		// we can define an enum both in a *.bif and *.bro for avoiding
+		// cyclic dependencies.
+		if ( id->Name() != make_full_var_name(module_name.c_str(), name)
+		     || (id->HasVal() && val != id->ID_Val()->AsEnum()) )
+			{
+			Unref(id);
+			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
+			SetError();
+			return;
+			}
+
 		Unref(id);
-		reporter->Error("identifier or enumerator value in enumerated type definition already exists");
-		SetError();
-		return;
 		}
 
 	AddNameInternal(module_name, name, val, is_export);

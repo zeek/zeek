@@ -5,9 +5,15 @@
 
 module Log;
 
-# Log::ID and Log::Writer are defined in types.bif due to circular dependencies.
-
 export {
+	## Type that defines an ID unique to each log stream. Scripts creating new log
+	## streams need to redef this enum to add their own specific log ID. The log ID
+	## implicitly determines the default name of the generated log file.
+	type Log::ID: enum {
+		## Dummy place-holder.
+		UNKNOWN
+	};
+
 	## If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
@@ -27,13 +33,13 @@ export {
 	const set_separator = "," &redef;
 
 	## String to use for empty fields. This should be different from
-        ## *unset_field* to make the output unambiguous. 
+	## *unset_field* to make the output unambiguous.
 	## Can be overwritten by individual writers.
 	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
 	## Can be overwritten by individual writers.
-	const unset_field = "-" &redef;	
+	const unset_field = "-" &redef;
 
 	## Type defining the content of a logging stream.
 	type Stream: record {

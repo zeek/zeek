@@ -22,7 +22,7 @@ string Manager::salt;
 
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Tag,
-	                           file_analysis::Component>("Files"),
+	                           file_analysis::Component>("Files", "Tag"),
 	id_map(), ignored(), current_file_id(), magic_state()
 	{
 	}

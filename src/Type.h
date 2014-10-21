@@ -534,6 +534,7 @@ public:
 	const string& Name() const { return name; }
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	OpaqueType() { }

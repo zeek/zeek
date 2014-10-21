@@ -1,6 +1,5 @@
 // See the file  in the main distribution directory for copyright.
 
-
 #include "plugin/Plugin.h"
 
 #include "Finger.h"

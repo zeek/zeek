@@ -17,11 +17,11 @@ functionality to Bro:
 
     - File analyzers.
 
-    - Packet sources and packet dumpers. TODO: Not yet.
+    - Packet sources and packet dumpers.
 
-    - Logging framework backends. TODO: Not yet.
+    - Logging framework backends.
 
-    - Input framework readers. TODO: Not yet.
+    - Input framework readers.
 
 A plugin's functionality is available to the user just as if Bro had
 the corresponding code built-in. Indeed, internally many of Bro's
@@ -57,10 +57,10 @@ called ``Demo::Rot13``.
 
 The ``init-plugin`` script puts a number of files in place. The full
 layout is described later. For now, all we need is
-``src/functions.bif``. It's initially empty, but we'll add our new bif
+``src/rot13.bif``. It's initially empty, but we'll add our new bif
 there as follows::
 
-    # cat scripts/functions.bif
+    # cat src/rot13.bif
     module CaesarCipher;
 
     function rot13%(s: string%) : string
@@ -73,23 +73,25 @@ there as follows::
             *p  = (*p - b + 13) % 26 + b;
             }
 
-        return new StringVal(new BroString(1, rot13, strlen(rot13)));
+        BroString* bs = new BroString(1, reinterpret_cast<byte_vec>(rot13),
+                                      strlen(rot13));
+        return new StringVal(bs);
         %}
 
 The syntax of this file is just like any other ``*.bif`` file; we
 won't go into it here.
 
 Now we can already compile our plugin, we just need to tell the
-Makefile put in place by ``init-plugin`` where the Bro source tree is
-located (Bro needs to have been built there first)::
+configure script put in place by ``init-plugin`` where the Bro source
+tree is located (Bro needs to have been built there first)::
 
-    # make BRO=/path/to/bro/dist
+    # ./configure --bro-dist=/path/to/bro/dist && make
     [... cmake output ...]
 
 Now our ``rot13-plugin`` directory has everything that it needs
 for Bro to recognize it as a dynamic plugin. Once we point Bro to it,
 it will pull it in automatically, as we can check with the ``-N``
-option:
+option::
 
     # export BRO_PLUGIN_PATH=/path/to/rot13-plugin
     # bro -N
@@ -100,7 +102,7 @@ option:
 That looks quite good, except for the dummy description that we should
 replace with something nicer so that users will know what our plugin
 is about.  We do this by editing the ``config.description`` line in
-``src/Plugin.cc``, like this:
+``src/Plugin.cc``, like this::
 
     [...]
     plugin::Configuration Configure()
@@ -193,7 +195,7 @@ directory.
     A directory with the plugin's custom Bro scripts. When the plugin
     gets activated, this directory will be automatically added to
     ``BROPATH``, so that any scripts/modules inside can be
-    ``@load``ed.
+    "@load"ed.
 
 ``scripts``/__load__.bro
     A Bro script that will be loaded immediately when the plugin gets
@@ -263,23 +265,25 @@ plugins to unconditionally activate, even in bare mode.
 activated plugins. Note that plugins compiled statically into Bro are
 always activated, and hence show up as such even in bare mode.
 
-Plugin Component
-================
+Plugin Components
+=================
 
-The following gives additional information about providing individual
-types of functionality via plugins. Note that a single plugin can
-provide more than one type. For example, a plugin could provide
-multiple protocol analyzers at once; or both a logging backend and
-input reader at the same time.
+The following subsections detail providing individual types of
+functionality via plugins. Note that a single plugin can provide more
+than one component type. For example, a plugin could provide multiple
+protocol analyzers at once; or both a logging backend and input reader
+at the same time.
 
-We now walk briefly through the specifics of providing a specific type
-of functionality (a *component*) through a plugin. We'll focus on
-their interfaces to the plugin system, rather than specifics on
-writing the corresponding logic (usually the best way to get going on
-that is to start with an existing plugin providing a corresponding
-component and adapt that). We'll also point out how the CMake
-infrastructure put in place by the ``init-plugin`` helper script ties
-the various pieces together.
+.. todo::
+
+    These subsections are mostly missing right now, as much of their
+    content isn't actually plugin-specific, but concerns generally
+    writing such functionality for Bro. The best way to get started
+    right now is to look at existing code implementing similar
+    functionality, either as a plugin or inside Bro proper. Also, for
+    each component type there's a unit test in
+    ``testing/btest/plugins`` creating a basic plugin skeleton with a
+    corresponding component.
 
 Bro Scripts
 -----------
@@ -313,22 +317,22 @@ TODO.
 Logging Writer
 --------------
 
-Not yet available as plugins.
+TODO.
 
 Input Reader
 ------------
 
-Not yet available as plugins.
+TODO.
 
 Packet Sources
 --------------
 
-Not yet available as plugins.
+TODO.
 
 Packet Dumpers
 --------------
 
-Not yet available as plugins.
+TODO.
 
 Hooks
 =====
@@ -410,25 +414,32 @@ Run the test-suite::
 Debugging Plugins
 =================
 
-Plugins can use Bro's standard debug logger by using the
-``PLUGIN_DBG_LOG(<plugin>, <args>)`` macro (defined in
-``DebugLogger.h``), where ``<plugin>`` is the ``Plugin`` instance and
-``<args>`` are printf-style arguments, just as with Bro's standard
-debuggging macros.
+If your plugin isn't loading as expected, Bro's debugging facilities
+can help to illuminate what's going on. To enable, recompile Bro
+with debugging support (``./configure --enable-debug``), and
+afterwards rebuild your plugin as well. If you then run Bro with ``-B
+plugins``, it will produce a file ``debug.log`` that records details
+about the process for searching, loading, and activating plugins. 
 
-At runtime, one then activates a plugin's debugging output with ``-B
-plugin-<name>``, where ``<name>`` is the name of the plugin as
-returned by its ``Configure()`` method, yet with the
-namespace-separator ``::`` replaced with a simple dash. Example: If
-the plugin is called ``Bro::Demo``, use ``-B plugin-Bro-Demo``. As
-usual, the debugging output will be recorded to ``debug.log`` if Bro's
-compiled in debug mode.
+To generate your own debugging output from inside your plugin, you can
+add a custom debug stream by using the ``PLUGIN_DBG_LOG(<plugin>,
+<args>)`` macro (defined in ``DebugLogger.h``), where ``<plugin>`` is
+the ``Plugin`` instance and ``<args>`` are printf-style arguments,
+just as with Bro's standard debugging macros (grep for ``DBG_LOG`` in
+Bro's ``src/`` to see examples). At runtime, you can then activate
+your plugin's debugging output with ``-B plugin-<name>``, where
+``<name>`` is the name of the plugin as returned by its
+``Configure()`` method, yet with the namespace-separator ``::``
+replaced with a simple dash. Example: If the plugin is called
+``Bro::Demo``, use ``-B plugin-Bro-Demo``. As usual, the debugging
+output will be recorded to ``debug.log`` if Bro's compiled in debug
+mode.
 
 
 Documenting Plugins
 ===================
 
-..todo::
+.. todo::
 
     Integrate all this with Broxygen.
 

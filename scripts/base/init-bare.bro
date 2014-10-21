@@ -2485,8 +2485,7 @@ type http_message_stat: record {
 	header_length: count;
 };
 
-## Maximum number of HTTP entity data delivered to events. The amount of data
-## can be limited for better performance, zero disables truncation.
+## Maximum number of HTTP entity data delivered to events.
 ##
 ## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;
@@ -3364,9 +3363,6 @@ const global_hash_seed: string = "" &redef;
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
 
-# Load BiFs defined by plugins.
-@load base/bif/plugins
-
 # Load these frameworks here because they use fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
@@ -3375,3 +3371,7 @@ const bits_per_uid: count = 96 &redef;
 @load base/frameworks/files
 
 @load base/bif
+
+# Load BiFs defined by plugins.
+@load base/bif/plugins
+

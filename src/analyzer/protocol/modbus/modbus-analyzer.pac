@@ -376,28 +376,60 @@ refine flow ModbusTCP_Flow += {
 		return true;
 		%}
 
+	# Support data structure for REQUEST FC=20.
+	function deliver_FileRecordRequest(message: FileRecordRequest): bool
+		%{
+		if ( ::modbus_file_record_request )
+			{
+			BifEvent::generate_modbus_file_record_request(connection()->bro_analyzer(),
+			                                              connection()->bro_analyzer()->Conn(),
+			                                              ${message.ref_type},
+			                                              ${message.file_num},
+			                                              ${message.record_num},
+			                                              ${message.record_len});
+			}
+
+		return true;
+		%}
+
 	# REQUEST FC=20
 	function deliver_ReadFileRecordRequest(header: ModbusTCP_TransportHeader, message: ReadFileRecordRequest): bool
 		%{
 		if ( ::modbus_read_file_record_request )
 			{
-			//TODO: this need to be a vector of some Reference Request record type
-			//VectorVal *t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
-			//	{
-			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
-			//	t->Assign(i, r);
-			//
-			//	Val* k = new Val((${message.references[i].file_num}), TYPE_COUNT);
-			//	t->Assign(i, k);
-			//
-			//	Val* l = new Val((${message.references[i].record_num}), TYPE_COUNT);
-			//	t->Assign(i, l);
-			//	}
-
 			BifEvent::generate_modbus_read_file_record_request(connection()->bro_analyzer(),
 			                                                   connection()->bro_analyzer()->Conn(),
 			                                                   HeaderToBro(header));
+			}
+
+		return true;
+		%}
+
+	# Support data structure for RESPONSE FC=20.
+	function deliver_FileRecordResponse(message: FileRecordResponse): bool
+		%{
+		if ( ${message.file_len} % 2 != 0 )
+			{
+			connection()->bro_analyzer()->Weird(
+			    fmt("invalid value for modbus file record response file_len %d", ${message.file_len});
+
+			return false;
+			}
+
+		if ( ::modbus_file_record_response )
+			{
+			VectorVal* t = create_vector_of_count();
+
+			for ( unsigned int i = 0; i < (${message.file_len} / 2); ++i )
+				{
+				Val* r = new Val((${message.record_data[i]}), TYPE_COUNT);
+				t->Assign(i, r);
+				}
+
+			BifEvent::generate_modbus_file_record_response(connection()->bro_analyzer(),
+			                                               connection()->bro_analyzer()->Conn(),
+			                                               ${message.file_len},
+			                                               ${message.ref_type}, t);
 			}
 
 		return true;
@@ -408,14 +440,6 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_file_record_response )
 			{
-			//VectorVal *t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
-			//	{
-			//	//TODO: work the reference type in here somewhere
-			//	Val* r = new Val(${message.references[i].record_data}), TYPE_COUNT);
-			//	t->Assign(i, r);
-			//	}
-
 			BifEvent::generate_modbus_read_file_record_response(connection()->bro_analyzer(),
 			                                                    connection()->bro_analyzer()->Conn(),
 			                                                    HeaderToBro(header));
@@ -423,6 +447,30 @@ refine flow ModbusTCP_Flow += {
 
 		return true;
 		%}
+
+	# Support data structure for REQUEST FC=21 and RESPONSE FC=21.
+	function deliver_ReferenceWithData(message: ReferenceWithData): bool
+		%{
+		if ( ::modbus_reference_with_data )
+			{
+			VectorVal* t = create_vector_of_count();
+
+			for (unsigned int i = 0; i < (${message.word_count}) ; ++i)
+				{
+				Val* r = new Val(${message.register_value[i]}, TYPE_COUNT);
+				t->Assign(i, r);
+				}
+
+			BifEvent::generate_modbus_reference_with_data(connection()->bro_analyzer(),
+			                                              connection()->bro_analyzer()->Conn(),
+			                                              ${message.ref_type}, ${message.file_num},
+			                                              ${message.record_num},
+			                                              ${message.word_count}, t);
+			}
+
+		return true;
+		%}
+
 
 	# REQUEST FC=21
 	function deliver_WriteFileRecordRequest(header: ModbusTCP_TransportHeader, message: WriteFileRecordRequest): bool
@@ -456,30 +504,11 @@ refine flow ModbusTCP_Flow += {
 		return true;
 		%}
 
-
 	# RESPONSE FC=21
 	function deliver_WriteFileRecordResponse(header: ModbusTCP_TransportHeader, message: WriteFileRecordResponse): bool
 		%{
 		if ( ::modbus_write_file_record_response )
 			{
-			//VectorVal* t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
-			//	{
-			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
-			//	t->Assign(i, r);
-			//
-			//	Val* f = new Val((${message.references[i].file_num}), TYPE_COUNT);
-			//	t->Assign(i, f);
-			//
-			//	Val* rn = new Val((${message.references[i].record_num}), TYPE_COUNT);
-			//	t->Assign(i, rn);
-			//
-			//	for ( unsigned int j = 0; j<(${message.references[i].register_value}->size()); ++j )
-			//		{
-			//		Val* k = new Val((${message.references[i].register_value[j]}), TYPE_COUNT);
-			//		t->Assign(i, k);
-			//		}
-
 			BifEvent::generate_modbus_write_file_record_response(connection()->bro_analyzer(),
 			                                                     connection()->bro_analyzer()->Conn(),
 			                                                     HeaderToBro(header));

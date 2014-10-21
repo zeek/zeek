@@ -268,7 +268,7 @@ type WriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader) = record {
 	start_address: uint16;
 	quantity:      uint16;
 	byte_count:    uint8;
-	# We specify registers buffer with quantity and byte_count so that the analyzer 
+	# We specify registers buffer with quantity and byte_count so that the analyzer
 	# will choke if something doesn't match right (correct devices should make it right).
 	registers:     uint16[quantity] &length=byte_count;
 } &let {
@@ -289,6 +289,8 @@ type FileRecordRequest = record {
 	file_num:   uint16 &check(file_num > 0);
 	record_num: uint16 &check(record_num <= 0x270F);
 	record_len: uint16;
+} &let {
+	deliver: bool = $context.flow.deliver_FileRecordRequest(this);
 } &byteorder=bigendian;
 
 # REQUEST FC=20
@@ -304,6 +306,8 @@ type FileRecordResponse = record {
 	file_len:    uint8    &check(file_len >= 0x07 && file_len <= 0xF5);
 	ref_type:    uint8    &check(ref_type == 6);
 	record_data: uint16[file_len/2] &length=file_len;
+} &let {
+	deliver: bool = $context.flow.deliver_FileRecordResponse(this);
 } &byteorder=bigendian;
 
 # RESPONSE FC=20
@@ -321,6 +325,8 @@ type ReferenceWithData = record {
 	record_num:     uint16;
 	word_count:     uint16;
 	register_value: uint16[word_count];
+} &let {
+	deliver: bool = $context.flow.deliver_ReferenceWithData(this);
 } &byteorder=bigendian;
 
 # REQUEST FC=21

@@ -185,6 +185,19 @@ event modbus_write_multiple_registers_request%(c: connection, headers: ModbusHea
 ## quantity: The quantity of registers that were written.
 event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHeaders, start_address: count, quantity: count%);
 
+## Generated for each file record inside a Modbus read file record request.
+##
+## c: The connection.
+##
+## ref_type: The reference type for the file record.
+##
+## file_num: The file number of the file record.
+##
+## record_num: The starting record number withint the file.
+##
+## record_len: The length of the record to be read.
+event modbus_file_record_request%(c: connection, ref_type: count, file_num: count, record_num: count, record_len: count%);
+
 ## Generated for a Modbus read file record request.
 ##
 ## c: The connection.
@@ -195,6 +208,17 @@ event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHe
 ##          is not yet passed through to the event.
 event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
 
+## Generated for each file record inside a Modbus read file record responses.
+##
+## c: The connection.
+##
+## file_len: The length of the file to be read.
+##
+## ref_type: The reference type for the file record.
+##
+## record_data: The record data to be read from the file.
+event modbus_file_record_response%(c: connection, file_len: count, ref_type: count, record_data: ModbusFileRecordData%);
+
 ## Generated for a Modbus read file record response.
 ##
 ## c: The connection.
@@ -204,6 +228,21 @@ event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
 ## .. note: This event is incomplete.  The information from the data structure
 ##          is not yet passed through to the event.
 event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
+
+## Generated for each reference with data inside Modbus write file record requests and responses.
+##
+## c: The connection.
+##
+## ref_type: The reference type for the file record.
+##
+## file_num: The file number of the file record.
+##
+## record_num: The starting record number withint the file.
+##
+## record_len: The length of the record to be written.
+##
+## register_value: The data to be written.
+event modbus_reference_with_data%(c: connection, ref_type: count, file_num: count, record_num: count, word_count: count, register_value: ModbusReferenceWithData%);
 
 ## Generated for a Modbus write file record request.
 ##

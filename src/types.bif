@@ -162,6 +162,8 @@ module GLOBAL;
 type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
+type ModbusFileRecordData: vector;
+type ModbusReferenceWithData: vector;
 
 module Tunnel;
 enum Type %{

@@ -114,7 +114,7 @@ event Input::end_of_data(name: string, source:string)
 		result$files = table();
 
 	if ( track_file !in result$files )
-		result$files[track_file] = vector(source);
+		result$files[track_file] = vector();
 
 	Input::remove(name);
 

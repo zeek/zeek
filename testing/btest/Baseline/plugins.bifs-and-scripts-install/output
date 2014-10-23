@@ -3,5 +3,5 @@ Demo::Foo - <Insert description> (dynamic, version 1.0)
     [Event] plugin_event
 
 plugin: automatically loaded at startup
-calling bif, Hello from the plugin!
 plugin: manually loaded
+calling bif, Hello from the plugin!

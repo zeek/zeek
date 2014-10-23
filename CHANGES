@@ -1,4 +1,9 @@
 
+2.3-248 | 2014-10-23 14:20:59 -0700
+
+  * Change order in which a plugin's scripts are loaded at startup.
+    (Robin Sommer)
+
 2.3-247 | 2014-10-21 13:42:38 -0700
 
   * Updates to the SSL analyzer. (Johanna Amann)

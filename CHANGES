@@ -1,4 +1,8 @@
 
+2.3-256 | 2014-10-24 15:33:45 -0700
+
+  * Adding missing test baseline. (Robin Sommer)
+
 2.3-255 | 2014-10-24 13:39:44 -0700
 
   * Fixing unstable active-http test. (Robin Sommer)

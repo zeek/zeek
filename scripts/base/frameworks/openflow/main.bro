@@ -84,7 +84,7 @@ export {
 	
 	type ofp_match: record {
 		# Wildcard fields.
-		wildcards: count &optional;
+		#wildcards: count &optional;
 		# Input switch port.
 		in_port: count &optional;
 		# Ethernet source address.
@@ -112,53 +112,63 @@ export {
 	};
 
 	type ofp_action_output: record {
+		# this should never change, but there are not
+		# constants available in records
+		# defaults to OFPAT_OUTPUT
 		_type: ofp_action_type &default=OFPAT_OUTPUT;
-		_len: count &default=8;
+		#_len: count &default=8;
+		# Output port.
 		_port: count &default=OFPP_FLOOD;
-		_max_len: count &optional;
+		#_max_len: count &optional;
 	};
 
-# TODO:
-#	type ofp_flow_mod: record {
-#		header: ofp_header;
-#		# Fields to match
-#		match: ofp_match;
-#		# Opaque controller-issued identifier.
-#		cookie: count &optional;
-#		
-#		# Flow actions
-#		
-#		# One of OFPFC_*.
-#		command: #TBD
-#		# Idle time befor discarding (seconds).
-#		idle_timeout: count &optional;
-#		# Max time before discarding (seconds).
-#		hard_timeout: count &optional;
-#		# Priority level of flow entry.
-#		priority: count &optional;
-#		# Buffered packet to apply to (or -1).
-#		# Not meaningful for OFPFC_DELETE*.
-#		buffer_id: count &optional;
-#		# For OFPFC_DELETE* commands, require
-#		# matching entries to include this as an
-#		# output port. A value of OFPP_NONE
-#		# indicates no restrictions
-#		out_port: count &optional;
-#		# One of OFPFF_*.
-#		flags: count &optional;
-#
-#		actions: vector of ofp_action_header;
-#	};
+#type ofp_flow_mod_flags:  enum {
+	# Send flow removed message when flow
+	# expires or is deleted.
+	const OFPFF_SEND_FLOW_REM = 0x1;
+	# Check for overlapping entries first.
+	const OFPFF_CHECK_OVERLAP = 0x2;
+	# Remark this is for emergency.
+	# Flows added with this are only used
+	# when the controller is disconnected.
+	const OFPFF_EMERG = 0x4;
+#};
 
-	global flow_mod: function(
-		dpid: count, cookie: count, idle_timeout: count, hard_timeout: count,
-		actions: vector of ofp_action_output, match: ofp_match): bool;
+	type ofp_flow_mod: record {
+		# header: ofp_header;
+		# Fields to match
+		match: ofp_match;
+		# Opaque controller-issued identifier.
+		cookie: count &optional;
+
+		# Flow actions
+
+		# One of OFPFC_*.
+		command: ofp_flow_mod_command &default=OFPFC_ADD;
+		# Idle time befor discarding (seconds).
+		idle_timeout: count &optional;
+		# Max time before discarding (seconds).
+		hard_timeout: count &optional;
+		# Priority level of flow entry.
+		priority: count &optional;
+		# Buffered packet to apply to (or -1).
+		# Not meaningful for OFPFC_DELETE*.
+		buffer_id: count &optional;
+		# For OFPFC_DELETE* commands, require
+		# matching entries to include this as an
+		# output port. A value of OFPP_NONE
+		# indicates no restrictions
+		out_port: count &optional;
+		# One of OFPFF_*.
+		flags: count &optional;
+		actions: vector of ofp_action_output;
+	};
+
+	global flow_mod: function(dpid: count, flow_mod: ofp_flow_mod): bool;
 }
 
 # Flow Modification function prototype
-type FlowModFunc: function(
-	dpid: count, cookie: count, idle_timeout:count, hard_timeout: count,
-	actions: vector of ofp_action_output, match: ofp_match): bool;
+type FlowModFunc: function(dpid: count, flow_mod: ofp_flow_mod): bool;
 
 # Flow Modification function
 global FlowMod: FlowModFunc;
@@ -170,10 +180,8 @@ function register_openflow_mod_func(func: FlowModFunc) {
 	FlowMod = func;
 }
 
-function flow_mod(
-	dpid: count, cookie: count, idle_timeout:count, hard_timeout:count,
-	actions: vector of ofp_action_output, match: ofp_match): bool {
-	return FlowMod(dpid, cookie, idle_timeout, hard_timeout, actions, match);
+function flow_mod(dpid: count, flow_mod: ofp_flow_mod): bool {
+	return FlowMod(dpid, flow_mod);
 }
 
 event bro_init() &priority=100000 {

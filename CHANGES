@@ -1,4 +1,8 @@
 
+2.3-255 | 2014-10-24 13:39:44 -0700
+
+  * Fixing unstable active-http test. (Robin Sommer)
+
 2.3-254 | 2014-10-24 11:40:51 -0700
 
   * Fix active-http.bro to deal reliably with empty server responses,

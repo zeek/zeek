@@ -5,7 +5,8 @@
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: cat bro/.stdout | sort >output
+# @TEST-EXEC: btest-diff output
 
 @load base/utils/active-http
 @load base/frameworks/communication # let network-time run. otherwise there are no heartbeats...

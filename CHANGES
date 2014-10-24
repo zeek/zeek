@@ -1,4 +1,9 @@
 
+2.3-254 | 2014-10-24 11:40:51 -0700
+
+  * Fix active-http.bro to deal reliably with empty server responses,
+    which will now be passed back as empty files. (Christian Struck)
+
 2.3-248 | 2014-10-23 14:20:59 -0700
 
   * Change order in which a plugin's scripts are loaded at startup.

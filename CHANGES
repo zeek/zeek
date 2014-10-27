@@ -1,4 +1,8 @@
 
+2.3-260 | 2014-10-27 12:54:17 -0500
+
+  * Fix errors/warnings when compiling with -std=c++11 (Jon Siwek)
+
 2.3-259 | 2014-10-27 10:04:04 -0500
 
   * Documentation fixes. (Vicente Jimenez Aguilar and Stefano Azzalini)

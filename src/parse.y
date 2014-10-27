@@ -127,7 +127,11 @@ static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
-	cur_enum_type = new EnumType();
+
+	if ( cur_decl_type_id )
+		cur_enum_type = new EnumType(cur_decl_type_id->Name());
+	else
+		reporter->FatalError("incorrect syntax for enum type declaration");
 	}
 
 static void parser_redef_enum (ID *id)

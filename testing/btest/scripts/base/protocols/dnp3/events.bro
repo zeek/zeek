@@ -82,12 +82,12 @@ event dnp3_frozen_counter_16wFlag(c: connection, is_orig: bool, flag:count, coun
 	print "dnp3_frozen_counter_16wFlag", is_orig, flag;
 	}
 
-event dnp3_frozen_counter_32wFlagTime(c: connection, is_orig: bool, flag:count, count_value: count, time48: string)
+event dnp3_frozen_counter_32wFlagTime(c: connection, is_orig: bool, flag:count, count_value: count, time48: count)
 	{
 	print "dnp3_frozen_counter_32wFlagTime", is_orig, flag;
 	}
 
-event dnp3_frozen_counter_16wFlagTime(c: connection, is_orig: bool, flag:count, count_value: count, time48: string)
+event dnp3_frozen_counter_16wFlagTime(c: connection, is_orig: bool, flag:count, count_value: count, time48: count)
 	{
 	print "dnp3_frozen_counter_16wFlagTime", is_orig, flag;
 	}
@@ -142,12 +142,12 @@ event dnp3_frozen_analog_input_16wFlag(c: connection, is_orig: bool, flag: count
 	print "dnp3_frozen_analog_input_16wFlag", is_orig, flag, frozen_value;
 	}
 
-event dnp3_frozen_analog_input_32wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_32wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: count)
 	{
 	print "dnp3_frozen_analog_input_32wTime", is_orig, flag, frozen_value, time48;
 	}
 
-event dnp3_frozen_analog_input_16wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_16wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: count)
 	{
 	print "dnp3_frozen_analog_input_16wTime", is_orig, flag, frozen_value, time48;
 	}
@@ -182,12 +182,12 @@ event dnp3_analog_input_event_16woTime(c: connection, is_orig: bool, flag: count
 	print "dnp3_analog_input_event_16woTime", is_orig, flag, value;
 	}
 
-event dnp3_analog_input_event_32wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
+event dnp3_analog_input_event_32wTime(c: connection, is_orig: bool, flag: count, value: count, time48: count)
 	{
 	print "dnp3_analog_input_event_32wTime", is_orig, flag, value, time48;
 	}
 
-event dnp3_analog_input_16wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
+event dnp3_analog_input_16wTime(c: connection, is_orig: bool, flag: count, value: count, time48: count)
 	{
 	print "dnp3_analog_input_event_16wTime", is_orig, flag, value, time48;
 	}
@@ -202,12 +202,12 @@ event dnp3_analog_inputDP_woTime(c: connection, is_orig: bool, flag: count, valu
 	print "dnp3_analog_input_event_DPwoTime", is_orig, flag, value_low, value_high;
 	}
 
-event dnp3_analog_inputSP_wTime(c: connection, is_orig: bool, flag: count, value: count, time48: string)
+event dnp3_analog_inputSP_wTime(c: connection, is_orig: bool, flag: count, value: count, time48: count)
 	{
 	print "dnp3_analog_input_event_SPwTime", is_orig, flag, value, time48;
 	}
 
-event dnp3_analog_inputDP_wTime(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string)
+event dnp3_analog_inputDP_wTime(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: count)
 	{
 	print "dnp3_analog_input_event_DPwTime", is_orig, flag, value_low, value_high, time48;
 	}
@@ -222,12 +222,12 @@ event dnp3_frozen_analog_input_event_16woTime(c: connection, is_orig: bool, flag
 	print "dnp3_frozen_analog_input_event_16woTime", is_orig, flag, frozen_value;
 	}
 
-event dnp3_frozen_analog_input_event_32wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_event_32wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: count)
 	{
 	print "dnp3_frozen_analog_input_event_32wTime", is_orig, flag, frozen_value, time48;
 	}
 
-event dnp3_frozen_analog_input_event_16wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_event_16wTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: count)
 	{
 	print "dnp3_frozen_analog_input_event_16wTime", is_orig, flag, frozen_value, time48;
 	}
@@ -242,12 +242,12 @@ event dnp3_frozen_analog_input_event_DPwoTime(c: connection, is_orig: bool, flag
 	print "dnp3_frozen_analog_input_event_DPwoTime", is_orig, flag, frozen_value_low, frozen_value_high;
 	}
 
-event dnp3_frozen_analog_input_event_SPwTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: string)
+event dnp3_frozen_analog_input_event_SPwTime(c: connection, is_orig: bool, flag: count, frozen_value: count, time48: count)
 	{
 	print "dnp3_frozen_analog_inputeventSP_wTime", is_orig, flag, frozen_value, time48;
 	}
 
-event dnp3_frozen_analog_input_event_DPwTime(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: string)
+event dnp3_frozen_analog_input_event_DPwTime(c: connection, is_orig: bool, flag: count, frozen_value_low: count, frozen_value_high: count, time48: count)
 	{
 	print "dnp3_frozen_analog_inputeventDP_wTime", is_orig, flag, frozen_value_low, frozen_value_high, time48;
 	}

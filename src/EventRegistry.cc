@@ -71,6 +71,23 @@ EventRegistry::string_list* EventRegistry::UsedHandlers()
 	return names;
 	}
 
+EventRegistry::string_list* EventRegistry::AllHandlers()
+	{
+	string_list* names = new string_list;
+
+	IterCookie* c = handlers.InitForIteration();
+
+	HashKey* k;
+	EventHandler* v;
+	while ( (v = handlers.NextEntry(k, c)) )
+		{
+		names->append(v->Name());
+		delete k;
+		}
+
+	return names;
+	}
+
 void EventRegistry::PrintDebug()
 	{
 	IterCookie* c = handlers.InitForIteration();

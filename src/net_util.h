@@ -180,8 +180,11 @@ extern uint32 extract_uint32(const u_char* data);
 
 inline double ntohd(double d)	{ return d; }
 inline double htond(double d)	{ return d; }
+
+#ifndef HAVE_BYTEORDER_64
 inline uint64 ntohll(uint64 i)	{ return i; }
 inline uint64 htonll(uint64 i)	{ return i; }
+#endif
 
 #else
 
@@ -207,6 +210,7 @@ inline double ntohd(double d)
 
 inline double htond(double d) { return ntohd(d); }
 
+#ifndef HAVE_BYTEORDER_64
 inline uint64 ntohll(uint64 i)
 	{
 	u_char c;
@@ -224,6 +228,7 @@ inline uint64 ntohll(uint64 i)
 	}
 
 inline uint64 htonll(uint64 i) { return ntohll(i); }
+#endif
 
 #endif
 

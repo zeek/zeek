@@ -6,6 +6,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <list>
 
 #include "Obj.h"
 #include "Attr.h"
@@ -334,6 +335,7 @@ public:
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
 	BroType* YieldType();
+	const BroType* YieldType() const;
 
 	void Describe(ODesc* d) const;
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
@@ -396,6 +398,7 @@ public:
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType();
+	const BroType* YieldType() const;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
 	string FlavorString() const;
@@ -531,6 +534,7 @@ public:
 	const string& Name() const { return name; }
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	OpaqueType() { }
@@ -542,7 +546,10 @@ protected:
 
 class EnumType : public BroType {
 public:
-	EnumType() : BroType(TYPE_ENUM) { counter = 0; }
+	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
+
+	EnumType(EnumType* e);
+	EnumType(const string& arg_name);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -555,12 +562,18 @@ public:
 	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
-	bro_int_t Lookup(const string& module_name, const char* name);
-	const char* Lookup(bro_int_t value); // Returns 0 if not found
+	bro_int_t Lookup(const string& module_name, const char* name) const;
+	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
+
+	// Returns the list of defined names with their values. The names
+	// will be fully qualified with their module name.
+	enum_name_list Names() const;
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
+	EnumType() { counter = 0; }
+
 	DECLARE_SERIAL(EnumType)
 
 	void AddNameInternal(const string& module_name,
@@ -586,6 +599,7 @@ public:
 	VectorType(BroType* t);
 	virtual ~VectorType();
 	BroType* YieldType();
+	const BroType* YieldType() const;
 
 	int MatchesIndex(ListExpr*& index) const;
 
@@ -625,9 +639,10 @@ inline BroType* base_type(TypeTag tag)
 // Returns the BRO basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 
-// True if the two types are equivalent.  If is_init is true then the
-// test is done in the context of an initialization.
-extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+// True if the two types are equivalent.  If is_init is true then the test is
+// done in the context of an initialization. If match_record_field_names is
+// true then for record types the field names have to match, too.
+extern int same_type(const BroType* t1, const BroType* t2, int is_init=0, bool match_record_field_names=true);
 
 // True if the two attribute lists are equivalent.
 extern int same_attrs(const Attributes* a1, const Attributes* a2);

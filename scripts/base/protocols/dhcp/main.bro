@@ -47,13 +47,13 @@ redef record connection += {
 const ports = { 67/udp, 68/udp };
 redef likely_server_ports += { 67/udp };
 
-event bro_init()
+event bro_init() &priority=5
 	{
 	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string)
+event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string) &priority=5
 	{
 	local info: Info;
 	info$ts          = network_time();
@@ -71,6 +71,9 @@ event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_lis
 		info$assigned_ip = c$id$orig_h;
 
 	c$dhcp = info;
+	}
 
+event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string) &priority=-5
+	{
 	Log::write(DHCP::LOG, c$dhcp);
 	}

@@ -4,6 +4,7 @@
 
 #include "Analyzer.h"
 #include "Manager.h"
+#include "binpac.h"
 
 #include "analyzer/protocol/pia/PIA.h"
 #include "../Event.h"
@@ -75,7 +76,7 @@ analyzer::ID Analyzer::id_counter = 0;
 const char* Analyzer::GetAnalyzerName() const
 	{
 	assert(tag);
-	return analyzer_mgr->GetComponentName(tag);
+	return analyzer_mgr->GetComponentName(tag).c_str();
 	}
 
 void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
@@ -87,7 +88,7 @@ void Analyzer::SetAnalyzerTag(const Tag& arg_tag)
 bool Analyzer::IsAnalyzer(const char* name)
 	{
 	assert(tag);
-	return strcmp(analyzer_mgr->GetComponentName(tag), name) == 0;
+	return strcmp(analyzer_mgr->GetComponentName(tag).c_str(), name) == 0;
 	}
 
 // Used in debugging output.
@@ -642,12 +643,12 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-void Analyzer::ProtocolConfirmation()
+void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	{
 	if ( protocol_confirmed )
 		return;
 
-	EnumVal* tval = tag.AsEnumVal();
+	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 	Ref(tval);
 
 	val_list* vl = new val_list;

@@ -69,11 +69,11 @@ public:
 	~NetSessions();
 
 	// Main entry point for packet processing. Dispatches the packet
-	// either through NextPacket() or NextPacketSecondary(), optionally
-	// employing the packet sorter first.
+	// either through NextPacket(), optionally employing the packet
+	// sorter first.
 	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
-			PktSrc* src_ps);
+			iosource::PktSrc* src_ps);
 
 	void Done();	// call to drain events before destructing
 
@@ -220,10 +220,6 @@ protected:
 
 	void NextPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size);
-
-	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
-			const u_char* const pkt, int hdr_size,
-			const PktSrc* src_ps);
 
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first

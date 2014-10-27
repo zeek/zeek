@@ -40,7 +40,7 @@ class NTP_Analyzer : public analyzer::Analyzer {
 public:
 	NTP_Analyzer(Connection* conn);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NTP_Analyzer(conn); }
 
 protected:

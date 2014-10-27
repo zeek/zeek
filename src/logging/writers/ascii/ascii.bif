@@ -1,0 +1,14 @@
+
+# Options for the ASCII writer.
+
+module LogAscii;
+
+const output_to_stdout: bool;
+const include_meta: bool;
+const meta_prefix: string;
+const separator: string;
+const set_separator: string;
+const empty_field: string;
+const unset_field: string;
+const use_json: bool;
+const json_timestamps: JSON::TimestampFormat;

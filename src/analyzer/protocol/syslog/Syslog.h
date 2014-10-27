@@ -18,7 +18,7 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64 seq, const IP_Hdr* ip, int caplen);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Syslog_Analyzer(conn); }
 
 protected:
@@ -41,7 +41,7 @@ protected:
 //	virtual void Undelivered(uint64 seq, int len, bool orig);
 //	virtual void EndpointEOF(tcp::TCP_Reassembler* endp);
 //
-//	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+//	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new Syslog_tcp::TCP_Analyzer(conn); }
 //
 //protected:

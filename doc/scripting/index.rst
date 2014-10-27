@@ -260,7 +260,7 @@ originating host is referenced by ``c$id$orig_h`` which if given a
 narrative relates to ``orig_h`` which is a member of ``id`` which is
 a member of the data structure referred to as ``c`` that was passed
 into the event handler. Given that the responder port
-``c$id$resp_p`` is ``53/tcp``, it's likely that Bro's base HTTP scripts
+``c$id$resp_p`` is ``80/tcp``, it's likely that Bro's base HTTP scripts
 can further populate the connection record.  Let's load the
 ``base/protocols/http`` scripts and check the output of our script. 
 

@@ -28,7 +28,7 @@ public:
 	virtual void EndpointEOF(bool is_orig);
 	
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new MySQL_Analyzer(conn); }
 
 	static bool Available()

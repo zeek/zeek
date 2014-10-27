@@ -1,9 +1,21 @@
+//See the file in the main distribution directory for copyright.
+
 #include "plugin/Plugin.h"
 
 #include "MySQL.h"
 
-BRO_PLUGIN_BEGIN(Bro, MySQL)
-	BRO_PLUGIN_DESCRIPTION("MySQL analyzer");
-	BRO_PLUGIN_ANALYZER("MySQL", MySQL::MySQL_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+	namespace Bro_MySQL {
+		class Plugin : public plugin::Plugin {
+		public:
+			plugin::Configuration Configure()
+				{
+				AddComponent(new ::analyzer::Component("MySQL", ::analyzer::MySQL::MySQL_Analyzer::Instantiate));
+				plugin::Configuration config;
+				config.name = "Bro::MySQL";
+				config.description = "MySQL analyzer";
+				return config;
+				}
+		} plugin;
+	}
+}

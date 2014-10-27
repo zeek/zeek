@@ -18,7 +18,7 @@ public:
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 							   uint64 seq, const IP_Hdr* ip, int caplen);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
 protected:

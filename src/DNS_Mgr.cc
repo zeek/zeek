@@ -35,6 +35,7 @@
 #include "Net.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "iosource/Manager.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
@@ -404,17 +405,17 @@ DNS_Mgr::~DNS_Mgr()
 	delete [] dir;
 	}
 
-bool DNS_Mgr::Init()
+void DNS_Mgr::InitPostScript()
 	{
 	if ( did_init )
-		return true;
+		return;
 
 	const char* cache_dir = dir ? dir : ".";
 
 	if ( mode == DNS_PRIME && ! ensure_dir(cache_dir) )
 		{
 		did_init = 0;
-		return false;
+		return;
 		}
 
 	cache_name = new char[strlen(cache_dir) + 64];
@@ -433,14 +434,12 @@ bool DNS_Mgr::Init()
 
 	did_init = 1;
 
-	io_sources.Register(this, true);
+	iosource_mgr->Register(this, true);
 
 	// We never set idle to false, having the main loop only calling us from
 	// time to time. If we're issuing more DNS requests than we can handle
 	// in this way, we are having problems anyway ...
-	idle = true;
-
-	return true;
+	SetIdle(true);
 	}
 
 static TableVal* fake_name_lookup_result(const char* name)
@@ -1217,9 +1216,10 @@ void DNS_Mgr::IssueAsyncRequests()
 		}
 	}
 
-void  DNS_Mgr::GetFds(int* read, int* write, int* except)
+void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                     iosource::FD_Set* except)
 	{
-	*read = nb_dns_fd(nb_dns);
+	read->Insert(nb_dns_fd(nb_dns));
 	}
 
 double DNS_Mgr::NextTimestamp(double* network_time)

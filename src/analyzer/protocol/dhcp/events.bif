@@ -18,8 +18,8 @@
 ##
 event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr, host_name: string%);
 
-## Generated for DHCP messages of type *DHCPOFFER* (server to client in response to
-## DHCPDISCOVER with offer of configuration parameters).
+## Generated for DHCP messages of type *DHCPOFFER* (server to client in response
+## to DHCPDISCOVER with offer of configuration parameters).
 ##
 ## c: The connection record describing the underlying UDP flow.
 ##
@@ -33,7 +33,8 @@ event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr, host_name: st
 ##
 ## serv_addr: The server address specified by the message.
 ##
-## host_name: The value of the host name option, if specified by the client.
+## host_name: Optional host name value. May differ from the host name requested
+##            from the client.
 ##
 ## .. bro:see:: dhcp_discover dhcp_request dhcp_decline dhcp_ack dhcp_nak
 ##              dhcp_release dhcp_inform
@@ -75,7 +76,7 @@ event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: add
 ##
 ## msg: The parsed type-independent part of the DHCP message.
 ##
-## host_name: The value of the host name option, if specified by the client.
+## host_name: Optional host name value.
 ##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_ack dhcp_nak
 ##              dhcp_release dhcp_inform
@@ -101,7 +102,8 @@ event dhcp_decline%(c: connection, msg: dhcp_msg, host_name: string%);
 ##
 ## serv_addr: The server address specified by the message.
 ##
-## host_name: The value of the host name option, if specified by the client.
+## host_name: Optional host name value. May differ from the host name requested
+##            from the client.
 ##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_nak
 ##              dhcp_release dhcp_inform
@@ -116,7 +118,7 @@ event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_li
 ##
 ## msg: The parsed type-independent part of the DHCP message.
 ##
-## host_name: The value of the host name option, if specified by the client.
+## host_name: Optional host name value.
 ##
 ## .. bro:see:: dhcp_discover dhcp_offer dhcp_request dhcp_decline dhcp_ack dhcp_release
 ##              dhcp_inform

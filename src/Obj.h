@@ -92,6 +92,7 @@ public:
 		{
 		ref_cnt = 1;
 		in_ser_cache = false;
+		notify_plugins = false;
 
 		// A bit of a hack.  We'd like to associate location
 		// information with every object created when parsing,
@@ -151,6 +152,9 @@ public:
 	// extend compound objects such as statement lists.
 	virtual void UpdateLocationEndInfo(const Location& end);
 
+	// Enable notification of plugins when this objects gets destroyed.
+	void NotifyPluginsOnDtor()	{ notify_plugins = true; }
+
 	int RefCnt() const	{ return ref_cnt; }
 
 	// Helper class to temporarily suppress errors
@@ -181,6 +185,7 @@ private:
 	friend inline void Ref(BroObj* o);
 	friend inline void Unref(BroObj* o);
 
+	bool notify_plugins;
 	int ref_cnt;
 
 	// If non-zero, do not print runtime errors.  Useful for

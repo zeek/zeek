@@ -1,0 +1,9 @@
+
+module InputBenchmark;
+
+const factor: double;
+const spread: count;
+const autospread: double;
+const addfactor: count;
+const stopspreadat: count;
+const timedspread: double;

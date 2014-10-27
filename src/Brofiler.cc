@@ -96,7 +96,7 @@ bool Brofiler::WriteStats()
 	map<pair<string, string>, uint64 >::const_iterator it;
 	for ( it = usage_map.begin(); it != usage_map.end(); ++it )
 		{
-		fprintf(f, "%"PRIu64"%c%s%c%s\n", it->second, delim,
+		fprintf(f, "%" PRIu64"%c%s%c%s\n", it->second, delim,
 				it->first.first.c_str(), delim, it->first.second.c_str());
 		}
 

@@ -416,7 +416,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )
-			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
+			DEBUG_MSG("Content-Range length = %" PRId64"\n", len);
 
 		if ( len > 0 )
 			{
@@ -1060,7 +1060,7 @@ void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%"PRIu64", len=%d", seq, len));
+				fmt("seq=%" PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body

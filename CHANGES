@@ -1,4 +1,8 @@
 
+2.3-263 | 2014-10-28 15:09:10 -0500
+
+  * Fix checking of fwrite return values (Johanna Amann)
+
 2.3-260 | 2014-10-27 12:54:17 -0500
 
   * Fix errors/warnings when compiling with -std=c++11 (Jon Siwek)

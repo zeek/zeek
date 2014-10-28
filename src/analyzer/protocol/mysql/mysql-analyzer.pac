@@ -1,25 +1,32 @@
 refine flow MySQL_Flow += {
-	function proc_mysql_handshakev10(msg: Handshake_v10): bool
+	function proc_mysql_initial_handshake_packet(msg: Initial_Handshake_Packet): bool
 		%{
-		if ( mysql_server_version ) 
-			BifEvent::generate_mysql_server_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-								bytestring_to_val(${msg.server_version}));
-		connection()->bro_analyzer()->ProtocolConfirmation();
+		if ( mysql_server_version )
+			{
+			if ( ${msg.version} == 10 )
+				BifEvent::generate_mysql_server_version(connection()->bro_analyzer(),
+														connection()->bro_analyzer()->Conn(),
+														bytestring_to_val(${msg.handshake10.server_version}));
+			if ( ${msg.version} == 9 )
+				BifEvent::generate_mysql_server_version(connection()->bro_analyzer(),
+														connection()->bro_analyzer()->Conn(),
+														bytestring_to_val(${msg.handshake9.server_version}));
+			}
 		return true;
 		%}
 
 	function proc_mysql_handshake_response_packet(msg: Handshake_Response_Packet): bool
 		%{
-		if ( mysql_handshake_response )
+		if ( mysql_handshake )
 			{
 			if ( ${msg.version} == 10 )
-				BifEvent::generate_mysql_handshake_response(connection()->bro_analyzer(), 
-									    connection()->bro_analyzer()->Conn(),
-								    	    bytestring_to_val(${msg.v10_response.username}));
+				BifEvent::generate_mysql_handshake(connection()->bro_analyzer(), 
+									    		   connection()->bro_analyzer()->Conn(),
+													bytestring_to_val(${msg.v10_response.username}));
 			if ( ${msg.version} == 9 )
-				BifEvent::generate_mysql_handshake_response(connection()->bro_analyzer(), 
-									    connection()->bro_analyzer()->Conn(),
-								    	    bytestring_to_val(${msg.v9_response.username}));
+				BifEvent::generate_mysql_handshake(connection()->bro_analyzer(), 
+									    		   connection()->bro_analyzer()->Conn(),
+								    	    	   bytestring_to_val(${msg.v9_response.username}));
 			}
 		return true;
 		%}
@@ -27,37 +34,45 @@ refine flow MySQL_Flow += {
 	function proc_mysql_command_request_packet(msg: Command_Request_Packet): bool
 		%{
 		if ( mysql_command_request )
-			BifEvent::generate_mysql_command_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-								${msg.command}, bytestring_to_val(${msg.arg}));
+			BifEvent::generate_mysql_command_request(connection()->bro_analyzer(),
+													 connection()->bro_analyzer()->Conn(),
+													 ${msg.command},
+													 bytestring_to_val(${msg.arg}));
 		return true;
 		%}
 
 	function proc_err_packet(msg: ERR_Packet): bool
 		%{
 		if ( mysql_error )
-			BifEvent::generate_mysql_error(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						       ${msg.code}, bytestring_to_val(${msg.msg}));
+			BifEvent::generate_mysql_error(connection()->bro_analyzer(),
+										   connection()->bro_analyzer()->Conn(),
+						       			   ${msg.code},
+										   bytestring_to_val(${msg.msg}));
 		return true;
 		%}
 
 	function proc_ok_packet(msg: OK_Packet): bool
 		%{
 		if ( mysql_ok )
-			BifEvent::generate_mysql_ok(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.rows});
+			BifEvent::generate_mysql_ok(connection()->bro_analyzer(),
+										connection()->bro_analyzer()->Conn(),
+										${msg.rows});
 		return true;
 		%}
 	
 	function proc_resultset(msg: Resultset): bool
 		%{
-		if ( mysql_command_response )
-			BifEvent::generate_mysql_command_response(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.rows}->size());
+		if ( mysql_ok )
+			BifEvent::generate_mysql_ok(connection()->bro_analyzer(),
+										connection()->bro_analyzer()->Conn(),
+										${msg.rows}->size());
 		return true;
 		%}
 
 };
 
-refine typeattr Handshake_v10 += &let {
-	proc = $context.flow.proc_mysql_handshakev10(this);
+refine typeattr Initial_Handshake_Packet += &let {
+	proc = $context.flow.proc_mysql_initial_handshake_packet(this);
 };
 
 refine typeattr Handshake_Response_Packet += &let {
@@ -77,5 +92,5 @@ refine typeattr OK_Packet += &let {
 };
 
 refine typeattr Resultset += &let {
-	debug = $context.flow.proc_resultset(this);
+	proc = $context.flow.proc_resultset(this);
 };

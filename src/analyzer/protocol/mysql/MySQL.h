@@ -33,7 +33,7 @@ public:
 
 	static bool Available()
 		{
-		return ( mysql_command_response || mysql_server_version || mysql_debug || mysql_handshake_response || mysql_login || mysql_command_request );
+		return ( mysql_command_request || mysql_error || mysql_ok || mysql_server_version || mysql_handshake );
 		}
 
 protected:

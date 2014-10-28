@@ -159,14 +159,14 @@ type Client_Message(state: int) = case state of {
 # Handshake Request
 
 type Initial_Handshake_Packet = record {
-	protocol_version: uint8;
-	pkt				: case protocol_version of {
+	version : uint8;
+	pkt		: case version of {
 		10      -> handshake10 : Handshake_v10;
 		9       -> handshake9  : Handshake_v9;
 		default -> error       : ERR_Packet;
 	};
 } &let {
-	set_version		: bool = $context.connection.set_version(protocol_version);
+	set_version		: bool = $context.connection.set_version(version);
 };
 
 type Handshake_v10 = record {

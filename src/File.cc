@@ -708,10 +708,10 @@ void BroFile::InitEncrypt(const char* keyfile)
 
 	secret_len = htonl(secret_len);
 
-	if ( ! (fwrite("BROENC1", 7, 1, f) &&
-		fwrite(&secret_len, sizeof(secret_len), 1, f) &&
-		fwrite(secret, ntohl(secret_len), 1, f) &&
-		fwrite(iv, iv_len, 1, f)) )
+	if ( fwrite("BROENC1", 7, 1, f) < 7 ||
+		fwrite(&secret_len, sizeof(secret_len), 1, f) < sizeof(secret_len) ||
+		fwrite(secret, ntohl(secret_len), 1, f) < ntohl(secret_len) ||
+		fwrite(iv, iv_len, 1, f) < iv_len )
 		{
 		reporter->Error("can't write header to log file %s: %s",
 				name, strerror(errno));
@@ -736,7 +736,7 @@ void BroFile::FinishEncrypt()
 		int outl;
 		EVP_SealFinal(cipher_ctx, cipher_buffer, &outl);
 
-		if ( outl && ! fwrite(cipher_buffer, outl, 1, f) )
+		if ( outl && fwrite(cipher_buffer, outl, 1, f) < outl )
 			{
 			reporter->Error("write error for %s: %s",
 					name, strerror(errno));
@@ -777,7 +777,7 @@ int BroFile::Write(const char* data, int len)
 				return 0;
 				}
 
-			if ( outl && ! fwrite(cipher_buffer, outl, 1, f) )
+			if ( outl && fwrite(cipher_buffer, outl, 1, f) < outl )
 				{
 				reporter->Error("write error for %s: %s",
 						name, strerror(errno));
@@ -792,8 +792,7 @@ int BroFile::Write(const char* data, int len)
 		return 1;
 		}
 
-	len = fwrite(data, 1, len, f);
-	if ( len <= 0 )
+	if ( fwrite(data, 1, len, f) < len )
 		return false;
 
 	if ( rotate_size && current_size < rotate_size && current_size + len >= rotate_size )

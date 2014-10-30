@@ -1,4 +1,8 @@
 
+2.3-264 | 2014-10-30 13:25:57 -0500
+
+  * Fix some minor Coverity Scan complaints. (Jon Siwek)
+
 2.3-263 | 2014-10-28 15:09:10 -0500
 
   * Fix checking of fwrite return values (Johanna Amann)

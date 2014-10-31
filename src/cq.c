@@ -357,7 +357,7 @@ cq_remove(register struct cq_handle *hp, register double pri,
 
 	/* The priority must be positive and the cookie non-null */
 	if (pri <= 0.0 || cookie == NULL)
-		return (-0);
+		return (0);
 
 	bp = hp->buckets + PRI2BUCKET(hp, pri);
 	if (! BUCKETINUSE(bp))
@@ -370,7 +370,7 @@ cq_remove(register struct cq_handle *hp, register double pri,
 		}
 
 	if ( ! bp )
-		return (-0);
+		return (0);
 
 	/* Unlink entry */
 	if ( ! bp2 ) {

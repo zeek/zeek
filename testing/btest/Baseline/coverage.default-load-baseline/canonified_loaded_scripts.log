@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2014-09-06-01-20-32
+#open	2014-10-31-20-38-48
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -220,6 +220,7 @@ scripts/base/init-default.bro
     scripts/base/protocols/modbus/main.bro
   scripts/base/protocols/mysql/__load__.bro
     scripts/base/protocols/mysql/main.bro
+      scripts/base/protocols/mysql/consts.bro
   scripts/base/protocols/pop3/__load__.bro
   scripts/base/protocols/radius/__load__.bro
     scripts/base/protocols/radius/main.bro
@@ -246,4 +247,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-checksum-offloading.bro
   scripts/base/misc/find-filtered-trace.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2014-09-06-01-20-32
+#close	2014-10-31-20-38-48

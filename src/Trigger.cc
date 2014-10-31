@@ -207,7 +207,7 @@ bool Trigger::Eval()
 		return false;
 		}
 
-	if ( v->IsZero() )
+	if ( ! v || v->IsZero() )
 		{
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());

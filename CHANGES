@@ -1,4 +1,12 @@
 
+2.3-272 | 2014-10-31 16:29:42 -0700
+
+  * Fix segfault if when statement's RHS is unitialized. Addresses
+    BIT-1176. (Jon Siwek)
+
+  * Fix checking vector indices via "in". Addresses BIT-1280.  (Jon
+    Siwek)
+
 2.3-268 | 2014-10-31 12:12:22 -0500
 
   * BIT-1283: Fix crash when using &encrypt. (Jon Siwek)

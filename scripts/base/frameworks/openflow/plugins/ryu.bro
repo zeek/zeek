@@ -3,17 +3,51 @@
 @load base/utils/exec
 @load base/utils/active-http
 
+
 module Openflow;
 
+
 export {
-	const controller_ip = "10.255.0.20" &redef;
+	## The Ryu openflow controller IP.
+	const controller_ip = "0.0.0.0" &redef;
+	## The port where the ReST API listens on.
 	const controller_port = "8080" &redef;
+
+	## Ryu error definitions.
+	type RyuError: enum {
+		## The controller IP needs to be redefined.
+		CONTROLLER_IP_REDEF,
+		## The openflow command type is not available
+		## for this ryu openflow plugin.
+		COMMAND_TYPE_NOT_AVAILABLE,
+		## The openflow action type is not available
+		## for this ryu openflow plugin.
+		ACTION_TYPE_NOT_AVAILABLE,
+	};
+
+	## Ryu error event.
+	##
+	## flow_mod: The openflow flow_mod record which describes
+	##           the flow to delete, modify or add.
+	##
+	## error: The error why the plugin aborted.
+	##
+	## msg: More detailed error description.
+	global Openflow::ryu_error: event(flow_mod: ofp_flow_mod, error: RyuError, msg: string &default="");
 }
 
+
+# Openflow no buffer constant.
 const OFP_NO_BUFFER = 0xffffffff;
+
+
+# Ryu ReST API flow_mod URL-path
 const RYU_FLOWENTRY_PATH = "/stats/flowentry/";
 
+
+# Ryu ReST API action_output type.
 type ryu_flow_action_output: record {
+	# Ryu uses strings as its ReST API output action.
 	# The type should be never changed...
 	# but constants are not possible in a record.
 	_type: string &default="OUTPUT";
@@ -21,9 +55,11 @@ type ryu_flow_action_output: record {
 	_port: count;
 };
 
-# The restAPI documentation can be found at
+
+# The ReST API documentation can be found at
 # https://media.readthedocs.org/pdf/ryu/latest/ryu.pdf
-# on page 278-299
+# on page 278-299 (30.10.2014)
+# Ryu ReST API flow_mod type.
 type ryu_flow_mod: record {
 	dpid: count;
 	cookie: count &optional;
@@ -38,26 +74,40 @@ type ryu_flow_mod: record {
 	actions: vector of ryu_flow_action_output;
 };
 
-# register the ryu openflow plugin flow_mod function
-hook register_openflow_plugin() {
+
+# Hook to register the Ryu openflow plugin's flow_mod function
+# as the one the openflow framework should use.
+hook register_openflow_plugin()
+	{
 	register_openflow_mod_func(
-		function(dpid: count, flow_mod: ofp_flow_mod): bool {
+		function(dpid: count, flow_mod: ofp_flow_mod): bool
+			{
+			# Check if the controller_ip has been redefined.
+			if(controller_ip == "0.0.0.0")
+				{
+				Reporter::warning(fmt("The constant Openflow::controller_ip must be redefined"));
+				event Openflow::ryu_error(flow_mod, CONTROLLER_IP_REDEF, cat(controller_ip));
+				return F;
+				}
 			# Generate ryu_flow_actions because their type differs (using strings as type).
 			local _flow_actions: vector of ryu_flow_action_output;
-			for(i in flow_mod$actions) {
-				switch(flow_mod$actions[i]$_type) {
+			for(i in flow_mod$actions)
+				{
+				switch(flow_mod$actions[i]$_type)
+					{
 					case OFPAT_OUTPUT:
 						_flow_actions[|_flow_actions|] = ryu_flow_action_output($_port=flow_mod$actions[i]$_port);
 						break;
 					default:
-						print fmt("Error: flow action '%s' not available", flow_mod$actions[i]$_type);
+						Reporter::warning(fmt("The given Openflow action type '%s' is not available", flow_mod$actions[i]$_type));
+						event Openflow::ryu_error(flow_mod, ACTION_TYPE_NOT_AVAILABLE, cat(flow_mod$actions[i]$_type));
 						return F;
+					}
 				}
-			}
-			# Generate our ryu_flow_mod record for the restAPI call.
+			# Generate our ryu_flow_mod record for the ReST API call.
 			local _flow_mod: ryu_flow_mod = ryu_flow_mod(
 				$dpid=dpid,
-				$cookie=flow_mod$cookie,
+				$cookie=generate_cookie(flow_mod$cookie),
 				$idle_timeout=flow_mod$idle_timeout,
 				$hard_timeout=flow_mod$hard_timeout,
 				$match=flow_mod$match,
@@ -65,7 +115,8 @@ hook register_openflow_plugin() {
 			);
 			# Type of the command
 			local command_type: string;
-			switch(flow_mod$command) {
+			switch(flow_mod$command)
+				{
 				case OFPFC_ADD:
 					command_type = "add";
 					break;
@@ -73,76 +124,30 @@ hook register_openflow_plugin() {
 					command_type = "delete";
 					break;
 				default:
-					print fmt("Error: command type '%s' not available", flow_mod$command);
+					Reporter::warning(fmt("The given Openflow command type '%s' is not available", result$body));
+					event Openflow::ryu_error(flow_mod, COMMAND_TYPE_NOT_AVAILABLE, cat(flow_mod$command));
 					return F;
-			}
-			# Create the ActiveHTTP request and convert the record to a ryu restAPI JSON string
+				}
+			# Create the ActiveHTTP request and convert the record to a Ryu ReST API JSON string
 			local request: ActiveHTTP::Request = ActiveHTTP::Request(
 				$url=cat("http://", controller_ip, ":", controller_port, RYU_FLOWENTRY_PATH, command_type),
 				$method="POST",
 				$client_data=JSON::convert(_flow_mod)
 			);
-			# Execute call to ryu's restAPI
-			when(local result = ActiveHTTP::request(request)) {
-				if(result$code == 200) {
-					print fmt(
-						"%sed flow %s:%s -> %s:%s",
-						command_type,
-						flow_mod$match$nw_src,
-						flow_mod$match$tp_src,
-						flow_mod$match$nw_dst,
-						flow_mod$match$tp_dst
-					);
-				} else {
-					print fmt("Error: could not %s flow, restAPI returned:\n%s", command_type, result);
+			# Execute call to Ryu's ReST API
+			when(local result = ActiveHTTP::request(request))
+				{
+				if(result$code == 200)
+					event Openflow::flow_mod_success(flow_mod, result$body);
+				else
+					{
+					Reporter::warning(fmt("Flow modification failed with error: %s", result$body));
+					event Openflow::flow_mod_failure(flow_mod, result$body);
 					return F;
-				}				
-			}
-
-			# Add reverse flow because openflow only uses unidirectional flows.
-			if(|flow_mod$actions| == 1 && (flow_mod$match$dl_type == ETH_IPv4 || flow_mod$match$dl_type == ETH_IPv6)) {
-				local reverse_flow_match: ofp_match;
-				local reverse_flow_actions: vector of ryu_flow_action_output;
-				reverse_flow_actions[|reverse_flow_actions|] = ryu_flow_action_output($_port=flow_mod$match$in_port);
-				reverse_flow_match = ofp_match(
-					$in_port=flow_mod$actions[0]$_port,
-					$dl_type=flow_mod$match$dl_type,
-					$nw_proto=flow_mod$match$nw_proto,
-					$nw_src=flow_mod$match$nw_dst,
-					$nw_dst=flow_mod$match$nw_src,
-					$tp_src=flow_mod$match$tp_dst,
-					$tp_dst=flow_mod$match$tp_src
-				);
-				local reverse_flow_mod: ryu_flow_mod = ryu_flow_mod(
-					$dpid=dpid,
-					$cookie=flow_mod$cookie,
-					$idle_timeout=flow_mod$idle_timeout,
-					$hard_timeout=flow_mod$hard_timeout,
-					$match=reverse_flow_match,
-					$actions=reverse_flow_actions
-				);
-				local reverse_request: ActiveHTTP::Request = ActiveHTTP::Request(
-					$url=cat("http://", controller_ip, ":", controller_port, RYU_FLOWENTRY_PATH, command_type),
-					$method="POST",
-					$client_data=JSON::convert(reverse_flow_mod)
-				);
-				when(local result2 = ActiveHTTP::request(reverse_request)) {
-					if(result2$code == 200) {
-						print fmt(
-							"%sed flow %s:%s -> %s:%s",
-							command_type,
-							reverse_flow_match$nw_src,
-							reverse_flow_match$tp_src,
-							reverse_flow_match$nw_dst,
-							reverse_flow_match$tp_dst
-						);
-					} else {
-						print fmt("Error: could not %s flow, restAPI returned:\n%s", command_type, result2);
-						return F;
 					}
 				}
-			}
+
 			return T;
-		}
+			}
 	);
-}
+	}

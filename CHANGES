@@ -1,4 +1,9 @@
 
+2.3-266 | 2014-10-31 09:21:28 -0500
+
+  * BIT-1166: Add configure options to fine tune local state dirs used
+    by BroControl. (Jon Siwek)
+
 2.3-264 | 2014-10-30 13:25:57 -0500
 
   * Fix some minor Coverity Scan complaints. (Jon Siwek)

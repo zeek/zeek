@@ -1,4 +1,9 @@
 
+2.3-267 | 2014-10-31 10:35:02 -0500
+
+  * BIT-1284: Allow arbitrary when statement timeout expressions
+    (Jon Siwek)
+
 2.3-266 | 2014-10-31 09:21:28 -0500
 
   * BIT-1166: Add configure options to fine tune local state dirs used

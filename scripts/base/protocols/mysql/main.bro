@@ -71,14 +71,11 @@ event mysql_command_request(c: connection, command: count, arg: string) &priorit
 
 event mysql_command_request(c: connection, command: count, arg: string) &priority=-5
 	{
-	if ( !c?$mysql )
+	if ( c?$mysql && c$mysql?$cmd && c$mysql$cmd == "quit" )
 		{
-		if ( command == 1 )
-			{
-			# We get no response for quits, so let's just log it now.
-			Log::write(mysql::LOG, c$mysql);
-			delete c$mysql;			
-			}
+		# We get no response for quits, so let's just log it now.
+		Log::write(mysql::LOG, c$mysql);
+		delete c$mysql;			
 		}
 	}
 

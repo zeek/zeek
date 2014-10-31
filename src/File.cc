@@ -527,7 +527,7 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 		if ( ef->AttrExpr() )
 			InitEncrypt(ef->AttrExpr()->ExprVal()->AsString()->CheckString());
 		else
-			InitEncrypt(log_encryption_key->AsString()->CheckString());
+			InitEncrypt(opt_internal_string("log_encryption_key")->CheckString());
 		}
 
 	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )

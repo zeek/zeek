@@ -1,4 +1,8 @@
 
+2.3-268 | 2014-10-31 12:12:22 -0500
+
+  * BIT-1283: Fix crash when using &encrypt. (Jon Siwek)
+
 2.3-267 | 2014-10-31 10:35:02 -0500
 
   * BIT-1284: Allow arbitrary when statement timeout expressions

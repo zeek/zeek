@@ -1,4 +1,8 @@
 
+2.3-274 | 2014-10-31 17:45:25 -0700
+
+  * Adding call to new binpac::init() function. (Robin Sommer)
+
 2.3-272 | 2014-10-31 16:29:42 -0700
 
   * Fix segfault if when statement's RHS is unitialized. Addresses

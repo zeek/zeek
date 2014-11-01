@@ -772,6 +772,9 @@ int main(int argc, char** argv)
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
+	// Must come after hash initialization.
+	binpac::init();
+
 	ERR_load_crypto_strings();
 	OPENSSL_add_all_algorithms_conf();
 	SSL_library_init();

@@ -22,6 +22,7 @@ set(binpac_headers
 set(binpac_lib_SRCS
     binpac_buffer.cc
     binpac_bytestring.cc
+    binpac_regex.cc
     ${binpac_headers}
 )
 

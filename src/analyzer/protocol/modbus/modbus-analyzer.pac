@@ -411,7 +411,7 @@ refine flow ModbusTCP_Flow += {
 		if ( ${message.file_len} % 2 != 0 )
 			{
 			connection()->bro_analyzer()->Weird(
-			    fmt("invalid value for modbus file record response file_len %d", ${message.file_len});
+			    fmt("invalid value for modbus file record response file_len %d", ${message.file_len}));
 
 			return false;
 			}

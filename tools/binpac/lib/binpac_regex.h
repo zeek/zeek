@@ -9,6 +9,12 @@ class RE_Matcher;
 namespace binpac
 {
 
+// Must be called before any binpac functionality is used.
+//
+// Note, this must be declared/defined here, and inline, because the RE
+// functionality can only be used when compiling from inside Bro.
+inline void init();
+
 // Internal vector recording not yet compiled matchers.
 extern std::vector<RE_Matcher*>* uncompiled_re_matchers;
 
@@ -62,10 +68,6 @@ inline void RegExMatcher::init()
 	uncompiled_re_matchers->clear();
 	}
 
-// Must be called before any binpac functionality is used.
-//
-// Note, this must be defined here, and inline, because the RE functionality
-// can only be used when compiling from inside Bro.
 inline void init()
 	{
 	RegExMatcher::init();

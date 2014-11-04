@@ -22,7 +22,7 @@ static void bad_pipe_op(const char* which)
 
 void Flare::Fire()
 	{
-	char tmp;
+	char tmp = 0;
 
 	for ( ; ; )
 		{

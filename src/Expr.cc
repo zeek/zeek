@@ -636,7 +636,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 		return v_result;
 		}
 
-	if ( is_vec1 || is_vec2 )
+	if ( IsVector(Type()->Tag()) && (is_vec1 || is_vec2) )
 		{ // fold vector against scalar
 		VectorVal* vv = (is_vec1 ? v1 : v2)->AsVectorVal();
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
@@ -4703,8 +4703,14 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 	     v2->Type()->Tag() == TYPE_SUBNET )
 		return new Val(v2->AsSubNetVal()->Contains(v1->AsAddr()), TYPE_BOOL);
 
-	TableVal* vt = v2->AsTableVal();
-	if ( vt->Lookup(v1, false) )
+	Val* res;
+
+	if ( is_vector(v2) )
+		res = v2->AsVectorVal()->Lookup(v1);
+	else
+		res = v2->AsTableVal()->Lookup(v1, false);
+
+	if ( res )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);

@@ -1,4 +1,9 @@
 
+2.3-278 | 2014-11-03 18:55:18 -0800
+
+  * Add new curves from draft-ietf-tls-negotiated-ff-dhe to SSL
+    analysis. (Johanna Amann)
+
 2.3-274 | 2014-10-31 17:45:25 -0700
 
   * Adding call to new binpac::init() function. (Robin Sommer)

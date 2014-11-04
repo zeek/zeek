@@ -84,7 +84,7 @@ StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
 		if ( i > 0 )
 			{
 			rval += ".";
-			snprintf(tmp, sizeof(tmp), "%"PRIu64, subidentifier_values[i]);
+			snprintf(tmp, sizeof(tmp), "%" PRIu64, subidentifier_values[i]);
 			rval += tmp;
 			}
 		else

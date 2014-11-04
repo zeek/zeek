@@ -2769,19 +2769,6 @@ signature file-magic-auto408 {
 	file-magic /(.{512})(\xec\xa5\xc1)/
 }
 
-# >0  string,=FWS (len=3), ["Macromedia Flash data,"], swap_endian=0
-# >>3  byte&,x, ["version %d"], swap_endian=0
-signature file-magic-auto409 {
-	file-mime "application/x-shockwave-flash", 1
-	file-magic /(FWS)(.{1})/
-}
-
-# >0  string,=CWS (len=3), ["Macromedia Flash data (compressed),"], swap_endian=0
-signature file-magic-auto410 {
-	file-mime "application/x-shockwave-flash", 60
-	file-magic /(CWS)/
-}
-
 # >0  regex/20,=^\.[A-Za-z0-9][A-Za-z0-9][ \t] (len=29), ["troff or preprocessor input text"], swap_endian=0
 signature file-magic-auto411 {
 	file-mime "text/troff", 59

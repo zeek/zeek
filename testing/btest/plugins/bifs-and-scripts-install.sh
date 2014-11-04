@@ -21,6 +21,7 @@ cat >scripts/demo/foo/manually.bro <<EOF
 event bro_init() &priority=-10
         {
         print "plugin: manually loaded";
+        print "calling bif", hello_plugin_world();
         }
 EOF
 
@@ -28,7 +29,6 @@ cat >scripts/demo/foo/base/at-startup.bro <<EOF
 event bro_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
-        print "calling bif", hello_plugin_world();
         }
 EOF
 

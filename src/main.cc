@@ -775,6 +775,9 @@ int main(int argc, char** argv)
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
+	// Must come after hash initialization.
+	binpac::init();
+
 	ERR_load_crypto_strings();
 	OPENSSL_add_all_algorithms_conf();
 	SSL_library_init();
@@ -853,9 +856,17 @@ int main(int argc, char** argv)
 	file_mgr->InitPreScript();
 	broxygen_mgr->InitPreScript();
 
+	bool missing_plugin = false;
+
 	for ( set<string>::const_iterator i = requested_plugins.begin();
 	      i != requested_plugins.end(); i++ )
-		plugin_mgr->ActivateDynamicPlugin(*i);
+		{
+		if ( ! plugin_mgr->ActivateDynamicPlugin(*i) )
+			missing_plugin = true;
+		}
+
+	if ( missing_plugin )
+		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
 	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
 

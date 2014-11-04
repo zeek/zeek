@@ -5,6 +5,7 @@
 
 #include <string>
 #include <list>
+#include "iosource/FD_Set.h"
 
 namespace iosource {
 
@@ -44,7 +45,7 @@ public:
 	 * may block for a little while if all are dry.
 	 *
 	 * @param ts A pointer where to store the timestamp of the input that
-	 * the soonest source has available next. 
+	 * the soonest source has available next.
 	 *
 	 * @return The source, or null if no source has input.
 	 */
@@ -113,9 +114,19 @@ private:
 
 	struct Source {
 		IOSource* src;
-		int fd_read;
-		int fd_write;
-		int fd_except;
+		FD_Set fd_read;
+		FD_Set fd_write;
+		FD_Set fd_except;
+
+		bool Ready(fd_set* read, fd_set* write, fd_set* except) const
+			{ return fd_read.Ready(read) || fd_write.Ready(write) ||
+			         fd_except.Ready(except); }
+
+		void SetFds(fd_set* read, fd_set* write, fd_set* except,
+		            int* maxx) const;
+
+		void Clear()
+			{ fd_read.Clear(); fd_write.Clear(); fd_except.Clear(); }
 	};
 
 	typedef std::list<Source*> SourceList;

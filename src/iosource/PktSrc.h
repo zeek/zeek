@@ -266,7 +266,11 @@ protected:
 
 		Properties()
 			{
+			selectable_fd = -1;
+			link_type = -1;
+			hdr_size = -1;
 			netmask = PCAP_NETMASK_UNKNOWN;
+			is_live = false;
 			}
 	};
 
@@ -388,7 +392,8 @@ private:
 	// IOSource interface implementation.
 	virtual void Init();
 	virtual void Done();
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except);
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual const char* Tag();

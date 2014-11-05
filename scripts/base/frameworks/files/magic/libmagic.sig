@@ -616,10 +616,10 @@ signature file-magic-auto116 {
 }
 
 # >257  string,=ustar  \000 (len=8), ["GNU tar archive"], swap_endian=0
-signature file-magic-auto117 {
-	file-mime "application/x-tar", 110
-	file-magic /(.{257})(ustar  \x00)/
-}
+#signature file-magic-auto117 {
+#	file-mime "application/x-tar", 110
+#	file-magic /(.{257})(ustar  \x00)/
+#}
 
 # >0  string,=<MIFFile (len=8), ["FrameMaker MIF (ASCII) file"], swap_endian=0
 signature file-magic-auto118 {
@@ -700,10 +700,10 @@ signature file-magic-auto130 {
 }
 
 # >257  string,=ustar\000 (len=6), ["POSIX tar archive"], swap_endian=0
-signature file-magic-auto131 {
-	file-mime "application/x-tar", 90
-	file-magic /(.{257})(ustar\x00)/
-}
+#signature file-magic-auto131 {
+#	file-mime "application/x-tar", 90
+#	file-magic /(.{257})(ustar\x00)/
+#}
 
 # >0  string,=AC1.40 (len=6), ["DWG AutoDesk AutoCAD Release 1.40"], swap_endian=0
 signature file-magic-auto132 {
@@ -2882,10 +2882,10 @@ signature file-magic-auto480 {
 }
 
 # >0  string,=\n( (len=2), ["Emacs v18 byte-compiled Lisp data"], swap_endian=0
-signature file-magic-auto481 {
-	file-mime "application/x-elc", 50
-	file-magic /(\x0a\x28)/
-}
+#signature file-magic-auto481 {
+#	file-mime "application/x-elc", 50
+#	file-magic /(\x0a\x28)/
+#}
 
 # >0  string,=\021\t (len=2), ["Award BIOS Logo, 136 x 126"], swap_endian=0
 signature file-magic-auto482 {
@@ -3148,10 +3148,10 @@ signature file-magic-auto521 {
 }
 
 # >0  regex,=^class[ \t\n]+ (len=12), ["C++ source text"], swap_endian=0
-signature file-magic-auto522 {
-	file-mime "text/x-c++", 47
-	file-magic /(.*)(class[ \x09\x0a]+[[:alnum:]_]+)(.*)(\x7b)(.*)(public:)/
-}
+#signature file-magic-auto522 {
+#	file-mime "text/x-c++", 47
+#	file-magic /(.*)(class[ \x09\x0a]+[[:alnum:]_]+)(.*)(\x7b)(.*)(public:)/
+#}
 
 # >0  search/1,=This is Info file (len=17), ["GNU Info text"], swap_endian=0
 signature file-magic-auto528 {
@@ -3363,10 +3363,10 @@ signature file-magic-auto556 {
 }
 
 # >0  regex,=^extern[ \t\n]+ (len=13), ["C source text"], swap_endian=0
-signature file-magic-auto557 {
-	file-mime "text/x-c", 43
-	file-magic /(.*)(extern[ \x09\x0a]+)/
-}
+#signature file-magic-auto557 {
+#	file-mime "text/x-c", 43
+#	file-magic /(.*)(extern[ \x09\x0a]+)/
+#}
 
 # >0  search/4096,=% -*-latex-*- (len=13), ["LaTeX document text"], swap_endian=0
 signature file-magic-auto558 {
@@ -3382,10 +3382,10 @@ signature file-magic-auto558 {
 #}
 
 # >0  regex,=^struct[ \t\n]+ (len=13), ["C source text"], swap_endian=0
-signature file-magic-auto560 {
-	file-mime "text/x-c", 43
-	file-magic /(.*)(struct[ \x09\x0a]+)/
-}
+#signature file-magic-auto560 {
+#	file-mime "text/x-c", 43
+#	file-magic /(.*)(struct[ \x09\x0a]+)/
+#}
 
 # >0  search/w/1,=#!/bin/nodejs (len=13), ["Node.js script text executable"], swap_endian=0
 signature file-magic-auto561 {
@@ -3438,10 +3438,10 @@ signature file-magic-auto567 {
 }
 
 # >0  regex,=^char[ \t\n]+ (len=11), ["C source text"], swap_endian=0
-signature file-magic-auto568 {
-	file-mime "text/x-c", 41
-	file-magic /(.*)(char[ \x09\x0a]+)/
-}
+#signature file-magic-auto568 {
+#	file-mime "text/x-c", 41
+#	file-magic /(.*)(char[ \x09\x0a]+)/
+#}
 
 # >0  search/1,=#! (len=2), [""], swap_endian=0
 # >>0  regex,=^#!.*/bin/perl$ (len=15), ["Perl script text executable"], swap_endian=0
@@ -3524,10 +3524,10 @@ signature file-magic-auto578 {
 }
 
 # >0  search/8192,=main( (len=5), ["C source text"], swap_endian=0
-signature file-magic-auto581 {
-	file-mime "text/x-c", 40
-	file-magic /(.*)(main\x28)/
-}
+#signature file-magic-auto581 {
+#	file-mime "text/x-c", 40
+#	file-magic /(.*)(main\x28)/
+#}
 
 # Not specific enough.
 # >0  search/1,=\" (len=2), ["troff or preprocessor input text"], swap_endian=0
@@ -3556,10 +3556,10 @@ signature file-magic-auto584 {
 #}
 
 # >0  regex,=^#include (len=9), ["C source text"], swap_endian=0
-signature file-magic-auto586 {
-	file-mime "text/x-c", 39
-	file-magic /(.*)(#include)/
-}
+#signature file-magic-auto586 {
+#	file-mime "text/x-c", 39
+#	file-magic /(.*)(#include)/
+#}
 
 # >0  search/1,=.\" (len=3), ["troff or preprocessor input text"], swap_endian=0
 #signature file-magic-auto587 {

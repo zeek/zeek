@@ -6,8 +6,8 @@ signature file-plaintext {
 }
 
 signature file-tar {
-    file-magic /^([[:print:]\x00]){100}(([[:digit:]\x00\x20]){8}){3}/
-    file-mime "application/x-tar", 150
+    file-magic /^[[:print:]\x00]{100}([[:digit:]\x20]{7}\x00){3}([[:digit:]\x20]{11}\x00){2}([[:digit:]\x00\x20]{7}[\x20\x00])[0-7\x00]/
+    file-mime "application/x-tar", 100
 }
 
 signature file-zip {
@@ -120,7 +120,7 @@ signature file-python {
 }
 
 signature file-php {
-	file-magic /.*<\?php/
+	file-magic /^.*<\?php/
 	file-mime "text/x-php", 40
 }
 

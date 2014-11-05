@@ -24,9 +24,9 @@ event file_new(f: fa_file)
 	                    [$extract_filename=efname, $extract_limit=max_extract]);
     }
 
-event file_extraction_limit(f: fa_file, args: any, limit: count, offset: count, len: count)
+event file_extraction_limit(f: fa_file, args: any, limit: count, len: count)
     {
-    print outfile, "file_extraction_limit", limit, offset, len;
+    print outfile, "file_extraction_limit", limit, len;
 
 	if ( double_it && ! doubled )
 		{

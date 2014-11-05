@@ -214,6 +214,21 @@ public:
 	bool SetTimeoutInterval(const string& file_id, double interval) const;
 
 	/**
+	 * Enable the reassembler for a file.
+	 */
+	bool EnableReassembly(const string& file_id);
+	
+	/**
+	 * Disable the reassembler for a file.
+	 */
+	bool DisableReassembly(const string& file_id);
+
+	/**
+	 * Set the reassembly for a file in bytes.
+	 */
+	bool SetReassemblyBuffer(const string& file_id, uint64 max);
+
+	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
 	 * to local disk;
 	 * @param file_id the file identifier/hash.
@@ -237,18 +252,6 @@ public:
 	 */
 	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
 	                 RecordVal* args) const;
-
-	/**
-	 * Queue attachment of an all analyzers associated with a given MIME
-	 * type to the file identifier.
-	 *
-	 * @param file_id the file identifier/hash.
-	 * @param mtype the MIME type; comparisions will be performanced case-insensitive.
-	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
-	 * @return A ref'ed \c set[Tag] with all added analyzers.
-	 */
-	TableVal* AddAnalyzersForMIMEType(const string& file_id, const string& mtype,
-					  RecordVal* args);
 
 	/**
 	 * Queue removal of an analyzer for a given file identifier.
@@ -277,62 +280,6 @@ public:
 	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
 
 	/**
-	 * Registers a MIME type for an analyzer. Once registered, files of
-	 * that MIME type will automatically get a corresponding analyzer
-	 * assigned.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful.
-	 */
-	bool RegisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype);
-
-	/**
-	 * Registers a MIME type for an analyzer. Once registered, files of
-	 * that MIME type will automatically get a corresponding analyzer
-	 * assigned.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful.
-	 */
-	bool RegisterAnalyzerForMIMEType(Tag tag, const string& mtype);
-
-	/**
-	 * Unregisters a MIME type for an analyzer.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful (incl. when the type wasn't actually
-	 * registered for the analyzer).
-	 *
-	 */
-	bool UnregisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype);
-
-	/**
-	 * Unregisters a MIME type for an analyzer.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Files::Tag.
-	 *
-	 * @param mtype The MIME type. It will be matched case-insenistive.
-	 *
-	 * @return True if successful (incl. when the type wasn't actually
-	 * registered for the analyzer).
-	 *
-	 */
-	bool UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype);
-
-    /**
 	 * Returns a set of all matching MIME magic signatures for a given
 	 * chunk of data.
 	 * @param data A chunk of bytes to match magic MIME signatures against.

@@ -1,4 +1,9 @@
 
+2.3-280 | 2014-11-05 09:46:33 -0500
+
+  * Add Windows detection based on CryptoAPI HTTP traffic as a 
+    software framework policy script. (Vlad Grigorescu)
+
 2.3-278 | 2014-11-03 18:55:18 -0800
 
   * Add new curves from draft-ietf-tls-negotiated-ff-dhe to SSL

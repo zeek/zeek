@@ -32,6 +32,7 @@
 @load frameworks/packet-filter/shunt.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
+@load frameworks/software/windows-version-detection.bro
 @load integration/barnyard2/__load__.bro
 @load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro

@@ -266,7 +266,11 @@ protected:
 
 		Properties()
 			{
+			selectable_fd = -1;
+			link_type = -1;
+			hdr_size = -1;
 			netmask = PCAP_NETMASK_UNKNOWN;
+			is_live = false;
 			}
 	};
 

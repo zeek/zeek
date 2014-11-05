@@ -24,6 +24,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --prefix=PREFIX        installation directory [/usr/local/bro]
     --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
+    --localstatedir=PATH   when using BroControl, path to store log files
+                           and run-time data (within log/ and spool/ subdirs)
+                           [PREFIX]
+    --spooldir=PATH        when using BroControl, path to store run-time data
+                           [PREFIX/spool]
+    --logdir=PATH          when using BroControl, path to store log file
+                           [PREFIX/logs]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
   Optional Features:
@@ -143,6 +150,15 @@ while [ $# -ne 0 ]; do
         --conf-files-dir=*)
             append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
             user_set_conffilesdir="true"
+            ;;
+        --localstatedir=*)
+            append_cache_entry BRO_LOCAL_STATE_DIR  PATH   $optarg
+            ;;
+        --spooldir=*)
+            append_cache_entry BRO_SPOOL_DIR  PATH   $optarg
+            ;;
+        --logdir=*)
+            append_cache_entry BRO_LOG_DIR  PATH   $optarg
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true

@@ -214,7 +214,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	char req_buf[512+1], name_buf[512+1];
 	int is_req_host;
 
-	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %"PRIu32, &creation_time,
+	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %" PRIu32, &creation_time,
 	     &is_req_host, req_buf, &failed, name_buf, &map_type, &num_addrs,
 	     &req_ttl) != 8 )
 		return;
@@ -360,7 +360,7 @@ void DNS_Mapping::Clear()
 
 void DNS_Mapping::Save(FILE* f) const
 	{
-	fprintf(f, "%.0f %d %s %d %s %d %d %"PRIu32"\n", creation_time, req_host != 0,
+	fprintf(f, "%.0f %d %s %d %s %d %d %" PRIu32"\n", creation_time, req_host != 0,
 		req_host ? req_host : req_addr.AsString().c_str(),
 		failed, (names && names[0]) ? names[0] : "*",
 		map_type, num_addrs, req_ttl);

@@ -544,7 +544,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			if ( proto_typ != 0x0800 && proto_typ != 0x86dd )
 				{
 				// Not IPv4/IPv6 payload.
-				Weird(fmt("unknown_gre_protocol_%"PRIu16, proto_typ), ip_hdr,
+				Weird(fmt("unknown_gre_protocol_%" PRIu16, proto_typ), ip_hdr,
 				      encapsulation);
 				return;
 				}

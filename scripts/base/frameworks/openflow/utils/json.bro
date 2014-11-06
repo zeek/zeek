@@ -12,7 +12,18 @@ export {
 	##
 	## returns: a JSON formatted string.
 	global convert: function(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string;
+
+	global jsonToRecord: function(input: string): any;
 }
+
+function jsonToRecord(input: string): any
+	{
+	local lhs: table[count] of string;
+	lhs = split1(input, / /);
+	for (i in lhs)
+		print lhs[i];
+	return lhs;
+	}
 
 function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/): string
 	{

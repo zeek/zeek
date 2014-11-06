@@ -43,6 +43,8 @@ const OFP_NO_BUFFER = 0xffffffff;
 
 # Ryu ReST API flow_mod URL-path
 const RYU_FLOWENTRY_PATH = "/stats/flowentry/";
+# Ryu ReST API flow_stats URL-path
+const RYU_FLOWSTATS_PATH = "/stats/flow/";
 
 
 # Ryu ReST API action_output type.
@@ -85,7 +87,7 @@ hook register_openflow_plugin()
 			# Check if the controller_ip has been redefined.
 			if(controller_ip == "0.0.0.0")
 				{
-				Reporter::warning(fmt("The constant Openflow::controller_ip must be redefined"));
+				Reporter::warning("The constant Openflow::controller_ip must be redefined");
 				event Openflow::ryu_error(flow_mod, CONTROLLER_IP_REDEF, cat(controller_ip));
 				return F;
 				}
@@ -124,7 +126,7 @@ hook register_openflow_plugin()
 					command_type = "delete";
 					break;
 				default:
-					Reporter::warning(fmt("The given Openflow command type '%s' is not available", result$body));
+					Reporter::warning(fmt("The given Openflow command type '%s' is not available", cat(flow_mod$command)));
 					event Openflow::ryu_error(flow_mod, COMMAND_TYPE_NOT_AVAILABLE, cat(flow_mod$command));
 					return F;
 				}
@@ -150,4 +152,7 @@ hook register_openflow_plugin()
 			return T;
 			}
 	);
+
+	# TODO: implement when a JSON -> record converter exists
+	# register_openflow_stats_func();
 	}

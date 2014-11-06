@@ -212,7 +212,7 @@ export {
 	## Body of reply to OFPST_FLOW request.
 	type ofp_flow_stats: record {
 		## Length of this entry
-		length: count;
+		_length: count;
 		## ID of table flow came from.
 		table_id: count;
 		## Description of fields.
@@ -247,7 +247,24 @@ export {
 	##           the flow to delete, modify or add.
 	##
 	## Returns: T, if successful, else F.
-	global flow_mod: function(dpid: count, flow_mod: ofp_flow_mod): bool;
+	global flow_mod: function(dpid: count, flow_mod: ofp_flow_mod): bool
+			&default=function(dpid: count, flow_mod:ofp_flow_mod): bool
+		{
+		Reporter::warning("Openflow::flow_mod function not implemented. Please load the right Openflow plugin");
+		return F;
+		};
+
+	## Function to get flow stats from the openflow switch/router
+	##
+	## dpid: The openflow controller datapath id.
+	##
+	## Returns: list with the installed flows and their statistics
+	global flow_stats: function(dpid: count): vector of ofp_flow_stats
+			&default=function(dpid: count): vector of ofp_flow_stats
+		{
+		Reporter::warning("Openflow::flow_stats function not implemented. Please load the right Openflow plugin");
+		return vector();
+		};
 
 	## Function to get the unique id out of a given cookie
 	##
@@ -285,15 +302,25 @@ export {
 type FlowModFunc: function(dpid: count, flow_mod: ofp_flow_mod): bool;
 
 
+# Flow Statistics function prototype
+type FlowStatsFunc: function(dpid: count): vector of ofp_flow_stats;
+
+
 # Hook for registering openflow plugins
 global register_openflow_plugin: hook();
 
 
-# Function for plugins to call when they
-# register their flow_mod function.
+# Function for plugins to call when they register their flow_mod function.
 function register_openflow_mod_func(func: FlowModFunc)
 	{
 	flow_mod = func;
+	}
+
+
+# Function for plugins to call when they register their flow_stats function.
+function register_openflow_stats_func(func: FlowStatsFunc)
+	{
+	flow_stats = func;
 	}
 
 
@@ -316,7 +343,7 @@ function _is_valid_cookie(cookie: count): bool
 	{
 	if (cookie / COOKIE_BID_START == BRO_COOKIE_ID)
 		return T;
-	Reporter::warning(fmt("The given Openflow cookie '%d' is not a valid", cookie));
+	Reporter::warning(fmt("The given Openflow cookie '%d' is not valid", cookie));
 	return F;
 	}
 

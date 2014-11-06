@@ -19,8 +19,8 @@ const idle_timeout = 30;
 const hard_timeout = 0;
 const in_port = 3;
 const out_port = 1;
-
 global delete_flow: bool = F;
+
 
 export {
 	## Number of bytes transferred before shunting a flow.
@@ -35,22 +35,14 @@ export {
 	global shunt_triggered: event(c: connection);
 }
 
+
 function size_callback(c: connection, cnt: count): interval
 	{
-	# print flow traffic.
-	print fmt(
-		"%s:%s <-> %s:%s reached %s/%s",
-		c$id$orig_h,
-		port_to_count(c$id$orig_p),
-		c$id$resp_h,
-		port_to_count(c$id$resp_p),
-		c$orig$num_bytes_ip  + c$resp$num_bytes_ip,
-		size_threshold
-	);
+	# print Openflow::flow_stats(dpid);
 	# if traffic exceeds the given threshold, remove flow.
 	if ( c$orig$num_bytes_ip + c$resp$num_bytes_ip >= size_threshold )
 		{
-		# create openflow flow_mod add records from connection data and given default constants
+		# create openflow flow_mod add records from connection data and give default constants
 		local actions: vector of Openflow::ofp_action_output;
 		local reverse_actions: vector of Openflow::ofp_action_output;
 		actions[|actions|] = Openflow::ofp_action_output($_port=out_port);
@@ -120,21 +112,26 @@ function size_callback(c: connection, cnt: count): interval
 	return poll_interval;
 	}
 
+
 event connection_established(c: connection)
 	{
 	print fmt("new connection");
 	ConnPolling::watch(c, size_callback, 0, 0secs);
 	}
 
+
 event Openflow::flow_mod_success(flow_mod: Openflow::ofp_flow_mod, msg: string)
 	{
 	print fmt("succsess, %s", cat(flow_mod));
 	}
 
+
 event Openflow::flow_mod_failure(flow_mod: Openflow::ofp_flow_mod, msg: string)
 	{
 	print fmt("failed, %s", cat(flow_mod));
 	}
+
+
 event Openflow::ryu_error(flow_mod: Openflow::ofp_flow_mod, error: Openflow::RyuError, msg: string)
 	{
 	print fmt("ERROR: %s, msg: %s\n%s", error, msg, flow_mod);

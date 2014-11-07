@@ -61,14 +61,8 @@ function decompose_uri(s: string): URI
                                         {
                                         parts = split1(opv[each], /=/);
 
-                                        # why does the order here matter?
                                         u$params_k[each] = parts[1];
                                         u$params_v[each] = parts[2];
-                                        }
-                                else
-                                        {
-                                        # malformed URI
-                                        # domain.tld/path/file.ext?foo&
                                         }
                                 }
                         }

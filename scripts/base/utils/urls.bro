@@ -3,14 +3,16 @@
 ## A regular expression for matching and extracting URLs.
 const url_regex = /^([a-zA-Z\-]{3,5})(:\/\/[^\/?#"'\r\n><]*)([^?#"'\r\n><]*)([^[:blank:]\r\n"'><]*|\??[^"'\r\n><]*)/ &redef;
 
-type uri_record: record {
-	protocol:	string &optional;
+type URI: record {
+	scheme:		string &optional;
 	# this could be a domain name or an IP address
 	netlocation:	string;
 	portnum:	count &optional;
 	path:		string &optional;
 	file_name:	string &optional;
 	file_ext:	string &optional;
+	params_k:	table[count] of string;
+	params_v:	table[count] of string;
 };
 
 ## Extracts URLs discovered in arbitrary text.
@@ -34,11 +36,49 @@ function find_all_urls_without_scheme(s: string): string_set
 	return return_urls;
 	}
 
-function decompose_uri(s: string): uri_record
+function decompose_uri(s: string): URI
 	{
 	local parts: string_array;
 	local u: uri = [$netlocation=""];
 
+        if ( /\?/ in s)
+                {
+                local k: table[count] of string;
+                local v: table[count] of string;
+                u$params_k = k;
+                u$params_v = v;
+
+                parts = split1(s, /\?/);
+                s = parts[1];
+                local query: string = parts[2];
+                if (/&/ in query)
+                        {
+                        local opv: table[count] of string = split(query, /&/);
+
+                        for (each in opv)
+                                {
+                                if (/=/ in opv[each])
+                                        {
+                                        parts = split1(opv[each], /=/);
+
+                                        # why does the order here matter?
+                                        u$params_k[each] = parts[1];
+                                        u$params_v[each] = parts[2];
+                                        }
+                                else
+                                        {
+                                        # malformed URI
+                                        # domain.tld/path/file.ext?foo&
+                                        }
+                                }
+                        }
+                else
+                        {
+                        parts = split1(query, /=/);
+                        u$params_k[0] = parts[1];
+                        u$params_v[0] = parts[2];
+                        }
+                }
 	if (/:\/\// in s)
 		{
 		parts = split1(s, /:\/\//);
@@ -78,6 +118,5 @@ function decompose_uri(s: string): uri_record
 		{
 		u$netlocation = s;
 		}
-
 	return u;
 	}

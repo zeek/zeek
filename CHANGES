@@ -1,4 +1,9 @@
 
+2.3-300 | 2014-11-11 13:22:18 -0800
+
+  * Add builtin function enum_to_int() that converts an enum into a
+    integer. (Christian Struck)
+
 2.3-297 | 2014-11-11 11:50:47 -0800
 
   * Removing method from SSL analyzer that's no longer used. (Robin

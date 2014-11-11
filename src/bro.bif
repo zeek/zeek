@@ -2159,6 +2159,21 @@ function counts_to_addr%(v: index_vec%): addr
 		}
 	%}
 
+## Converts an :bro:type:`enum` to an :bro:type:`int`
+##
+## e: The :bro:type:`enum` to convert.
+##
+## Returns: The :bro:type:`enum` as :bro:type:`int`.
+function enum_to_int%(e: any%): int
+	%{
+	if ( e->Type()->Tag() != TYPE_ENUM )
+		{
+		builtin_error("enum_to_int() requires enum_val");
+		return new Val(-1, TYPE_INT);
+		}
+	return new Val(e->AsEnum(), TYPE_INT);
+	%}
+
 ## Converts a :bro:type:`string` to an :bro:type:`int`.
 ##
 ## str: The :bro:type:`string` to convert.

@@ -1,4 +1,9 @@
 
+2.3-297 | 2014-11-11 11:50:47 -0800
+
+  * Removing method from SSL analyzer that's no longer used. (Robin
+    Sommer)
+
 2.3-296 | 2014-11-11 11:42:38 -0800
 
   * A new analyzer parsing the MySQL wire protocol. Activity gets

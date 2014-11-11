@@ -1,4 +1,10 @@
 
+2.3-296 | 2014-11-11 11:42:38 -0800
+
+  * A new analyzer parsing the MySQL wire protocol. Activity gets
+    logged into mysql.log. Supports protocol versions 9 and 10. (Vlad
+    Grigorescu)
+
 2.3-278 | 2014-11-03 18:55:18 -0800
 
   * Add new curves from draft-ietf-tls-negotiated-ff-dhe to SSL

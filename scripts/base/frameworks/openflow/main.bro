@@ -248,7 +248,7 @@ export {
 	##
 	## Returns: T, if successful, else F.
 	global flow_mod: function(dpid: count, flow_mod: ofp_flow_mod): bool
-			&default=function(dpid: count, flow_mod:ofp_flow_mod): bool
+			&default=function(dpid: count, flow_mod: ofp_flow_mod): bool
 		{
 		Reporter::warning("Openflow::flow_mod function not implemented. Please load the right Openflow plugin");
 		return F;

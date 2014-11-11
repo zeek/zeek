@@ -69,9 +69,7 @@ function convert(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 			local field_desc = ft[field];
 			# replace the escape pattern in the field.
 			if( field_escape_pattern in field )
-				{
 				field = cat(sub(field, field_escape_pattern, ""));
-				}
 			if ( field_desc?$value && (!only_loggable || field_desc$log) )
 				{
 				local onepart = cat("\"", field, "\": ", JSON::convert(field_desc$value, only_loggable));

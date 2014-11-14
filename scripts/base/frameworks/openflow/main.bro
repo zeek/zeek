@@ -159,10 +159,10 @@ export {
 		## this should never change, but there are not
 		## constants available in records
 		## defaults to OFPAT_OUTPUT
-		_type: ofp_action_type &default=OFPAT_OUTPUT;
+		type_: ofp_action_type &default=OFPAT_OUTPUT;
 		#_len: count &default=8;
 		## Output port.
-		_port: count &default=OFPP_FLOOD;
+		port_: count &default=OFPP_FLOOD;
 		#_max_len: count &optional;
 	};
 
@@ -239,46 +239,26 @@ export {
 		actions: vector of ofp_action_output;
 	};
 
-	## Function to modify flows in a openflow flow table.
-	##
-	## dpid: The openflow controller datapath id.
-	##
-	## flow_mod: The openflow flow_mod record which describes
-	##           the flow to delete, modify or add.
-	##
-	## Returns: T, if successful, else F.
-	global flow_mod: function(dpid: count, flow_mod: ofp_flow_mod): bool
-			&default=function(dpid: count, flow_mod: ofp_flow_mod): bool
-		{
-		Reporter::warning("Openflow::flow_mod function not implemented. Please load the right Openflow plugin");
-		return F;
-		};
-
-	## Function to get flow stats from the openflow switch/router
-	##
-	## dpid: The openflow controller datapath id.
-	##
-	## Returns: list with the installed flows and their statistics
-	global flow_stats: function(dpid: count): vector of ofp_flow_stats
-			&default=function(dpid: count): vector of ofp_flow_stats
-		{
-		Reporter::warning("Openflow::flow_stats function not implemented. Please load the right Openflow plugin");
-		return vector();
-		};
-
-	## Function to get the unique id out of a given cookie
-	##
-	## cookie: The openflow match cookie
-	##
-	## Returns: The cookie unique id
-	global get_cookie_uid: function(cookie: count): count;
-
-	## Function to get the group id out of a given cookie
+	## Function to get the unique id out of a given cookie.
 	##
 	## cookie: The openflow match cookie.
 	##
-	## Returns: The cookie group id
+	## Returns: The cookie unique id.
+	global get_cookie_uid: function(cookie: count): count;
+
+	## Function to get the group id out of a given cookie.
+	##
+	## cookie: The openflow match cookie.
+	##
+	## Returns: The cookie group id.
 	global get_cookie_gid: function(cookie: count): count;
+
+	## Function to get the group id out of a given cookie.
+	##
+	## cookie: The openflow match cookie.
+	##
+	## Returns: The cookie group id.
+	global generate_cookie: function(cookie: count &default=0): count;
 
 	## Event to signal that a flow has been successfully modified.
 	##
@@ -286,48 +266,67 @@ export {
 	##           the flow to delete, modify or add.
 	##
 	## msg: Message to describe the event.
-	global Openflow::flow_mod_success: event(flow_mod: ofp_flow_mod, msg: string &default = "Flow successfully modified");
+	global Openflow::flow_mod_success: event(flow_mod: ofp_flow_mod, msg: string &default="Flow successfully modified");
 
 	## Event to signal that a flow mod has failed.
 	##
 	## flow_mod: The openflow flow_mod record which describes
-	##           the flow to delete, modify ord add.
+	##           the flow to delete, modify or add.
 	##
 	## msg: Message to describe the event.
-	global Openflow::flow_mod_failure: event(flow_mod: ofp_flow_mod, msg: string &default = "Could not modify flow");
+	global Openflow::flow_mod_failure: event(flow_mod: ofp_flow_mod, msg: string &default="Could not modify flow");
+
+	## Available openflow plugins
+	type Plugin: enum {
+		PLACEHOLDER,
+	};
+
+	## Controller related state.
+	## Can be redefined by plugins to
+	## add state.
+	type ControllerState: record {
+		## Controller ip.
+		ip: addr &optional;
+		## Controller listen port.
+		port_: count &optional;
+		## Openflow switch datapath id.
+		dpid: count &optional;
+		## Type of the openflow plugin.
+		type_: Plugin;
+	} &redef;
+
+	## Controller record representing an openflow controller
+	type Controller: record {
+		## Controller related state.
+		state: ControllerState;
+		## flow_mod function the plugin implements
+		flow_mod: function(state: ControllerState, flow_mod: ofp_flow_mod): bool;
+		## flow_stats function the plugin implements if existing 
+		flow_stats: function(state: ControllerState): vector of ofp_flow_stats &optional;
+	};
+
+	## Global flow_mod function wrapper
+	##
+	## controller: The controller which should execute the flow modification
+	##
+	## flow_mod: The openflow flow_mod record which describes
+	##           the flow to delete, modify or add
+	##
+	## Returns: T if successfull, else F
+	global flow_mod: function(controller: Controller, flow_mod: ofp_flow_mod): bool;
 }
 
-
-# Flow Modification function prototype
-type FlowModFunc: function(dpid: count, flow_mod: ofp_flow_mod): bool;
-
-
-# Flow Statistics function prototype
-type FlowStatsFunc: function(dpid: count): vector of ofp_flow_stats;
-
-
-# Hook for registering openflow plugins
-global register_openflow_plugin: hook();
-
-
-# Function for plugins to call when they register their flow_mod function.
-function register_openflow_mod_func(func: FlowModFunc)
+# the flow_mod function wrapper
+function flow_mod(controller: Controller, flow_mod: ofp_flow_mod): bool
 	{
-	flow_mod = func;
-	}
-
-
-# Function for plugins to call when they register their flow_stats function.
-function register_openflow_stats_func(func: FlowStatsFunc)
-	{
-	flow_stats = func;
+		return controller$flow_mod(controller$state, flow_mod);
 	}
 
 
 # local function to forge a flow_mod cookie for this framework.
 # all flow entries from the openflow framework should have the
 # 42 bit of the cookie set.
-function generate_cookie(cookie: count &default = 0): count
+function generate_cookie(cookie: count &default=0): count
 	{
 	local c = BRO_COOKIE_ID * COOKIE_BID_START;
 	if(cookie >= COOKIE_UID_SIZE)
@@ -365,11 +364,4 @@ function get_cookie_gid(cookie: count): count
 			COOKIE_GID_START
 		);
 	return INVALID_COOKIE;
-	}
-
-
-event bro_init()
-	{
-	# Call all of the plugin registration hooks
-	hook register_openflow_plugin();
 	}

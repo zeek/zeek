@@ -2,7 +2,9 @@
 @load base/frameworks/notice
 @load base/frameworks/openflow
 
+
 module OpenflowShunt;
+
 
 # pox
 # global param_dpid = "00-24-a8-5c-0c-00|15" &redef;
@@ -12,7 +14,6 @@ module OpenflowShunt;
 
 
 # default constants which are not automatically gathered.
-redef Openflow::controller_ip = "10.255.0.20";
 const dpid = 4222282094087168;
 const cookie = 0;
 const idle_timeout = 30;
@@ -38,6 +39,7 @@ export {
 
 function size_callback(c: connection, cnt: count): interval
 	{
+	local controller = OpenflowRyu::new(10.255.0.20, 8080, dpid);
 	# print Openflow::flow_stats(dpid);
 	# if traffic exceeds the given threshold, remove flow.
 	if ( c$orig$num_bytes_ip + c$resp$num_bytes_ip >= size_threshold )
@@ -45,8 +47,8 @@ function size_callback(c: connection, cnt: count): interval
 		# create openflow flow_mod add records from connection data and give default constants
 		local actions: vector of Openflow::ofp_action_output;
 		local reverse_actions: vector of Openflow::ofp_action_output;
-		actions[|actions|] = Openflow::ofp_action_output($_port=out_port);
-		reverse_actions[|reverse_actions|] = Openflow::ofp_action_output($_port=in_port);
+		actions[|actions|] = Openflow::ofp_action_output($port_=out_port);
+		reverse_actions[|reverse_actions|] = Openflow::ofp_action_output($port_=in_port);
 		# flow layer 4 protocol
 		local nw_proto = Openflow::IP_TCP;
 		if(is_udp_port(c$id$orig_p))
@@ -93,9 +95,8 @@ function size_callback(c: connection, cnt: count): interval
 		];
 
 		# call openflow framework
-		if(Openflow::flow_mod(dpid, flow_mod) && Openflow::flow_mod(dpid, reverse_flow_mod)) {
+		if(Openflow::flow_mod(controller, flow_mod) && Openflow::flow_mod(controller, reverse_flow_mod))
 			event shunt_triggered(c);
-		}
 
 		if(delete_flow)
 			{
@@ -132,7 +133,7 @@ event Openflow::flow_mod_failure(flow_mod: Openflow::ofp_flow_mod, msg: string)
 	}
 
 
-event Openflow::ryu_error(flow_mod: Openflow::ofp_flow_mod, error: Openflow::RyuError, msg: string)
+event OpenflowRyu::error(flow_mod: Openflow::ofp_flow_mod, error: OpenflowRyu::Error, msg: string)
 	{
 	print fmt("ERROR: %s, msg: %s\n%s", error, msg, flow_mod);
 	}

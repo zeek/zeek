@@ -416,7 +416,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )
-			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
+			DEBUG_MSG("Content-Range length = %" PRId64"\n", len);
 
 		if ( len > 0 )
 			{
@@ -465,6 +465,20 @@ void HTTP_Entity::SubmitAllHeaders()
 
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f end of headers\n", network_time);
+
+	if ( Parent() &&
+	     Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+		{
+		// Don't treat single \r or \n characters in the multipart body content
+		// as lines because the MIME_Entity code will implicitly add back a
+		// \r\n for each line it receives.  We do this instead of setting
+		// plain delivery mode for the content line analyzer because
+		// the size of the content to deliver "plainly" may be unknown
+		// and just leaving it in that mode indefinitely screws up the
+		// detection of multipart boundaries.
+		http_message->content_line->SupressWeirds(true);
+		http_message->content_line->SetCRLFAsEOL(0);
+		}
 
 	// The presence of a message-body in a request is signaled by
 	// the inclusion of a Content-Length or Transfer-Encoding
@@ -654,6 +668,13 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		}
 
 	current_entity = (HTTP_Entity*) entity->Parent();
+
+	if ( entity->Parent() &&
+	     entity->Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+		{
+		content_line->SupressWeirds(false);
+		content_line->SetCRLFAsEOL();
+		}
 
 	// It is necessary to call Done when EndEntity is triggered by
 	// SubmitAllHeaders (through EndOfData).
@@ -1039,7 +1060,7 @@ void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%"PRIu64", len=%d", seq, len));
+				fmt("seq=%" PRIu64", len=%d", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body

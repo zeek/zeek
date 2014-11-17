@@ -182,7 +182,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	{
 	if ( DEBUG_reassem )
 		{
-		DEBUG_MSG("%.6f Reassembler::AddAndCheck seq=%"PRIu64", upper=%"PRIu64"\n",
+		DEBUG_MSG("%.6f Reassembler::AddAndCheck seq=%" PRIu64", upper=%" PRIu64"\n",
 		          network_time, seq, upper);
 		}
 

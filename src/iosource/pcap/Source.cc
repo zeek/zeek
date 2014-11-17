@@ -21,6 +21,9 @@ PcapSource::PcapSource(const std::string& path, bool is_live)
 	{
 	props.path = path;
 	props.is_live = is_live;
+	pd = 0;
+	memset(&current_hdr, 0, sizeof(current_hdr));
+	memset(&last_hdr, 0, sizeof(last_hdr));
 	last_data = 0;
 	}
 

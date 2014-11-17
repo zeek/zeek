@@ -5,18 +5,18 @@ connection DNP3_Conn(bro_analyzer: BroAnalyzer) {
 };
 
 %header{
-    uint64 bytestring_to_time(const_bytestring time48, size_t length);
+    uint64 bytestring_to_time(const_bytestring time48);
     %}
 
 %code{
-    uint64 bytestring_to_time(const_bytestring time48, size_t length)
+    uint64 bytestring_to_time(const_bytestring time48)
         {
         /* In DNP3, a timestamp is represented by 6 bytes since epoch
            in milliseconds. The 6 bytes are stored in big endian format. */
         uint64 epochTime = 0;
 
-        for ( unsigned int i = 0; i < length; i++ )
-            epochTime = time48[length - i - 1] + epochTime * 256;
+        for ( int i = time48.length() - 1; i >= 0; i-- )
+            epochTime = time48[i] + epochTime * 256;
 
         return epochTime;
         }
@@ -240,7 +240,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_counter_32wFlagTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, count_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, count_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -254,7 +254,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_counter_16wFlagTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, count_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, count_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -408,7 +408,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_analog_input_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, frozen_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, frozen_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -422,7 +422,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_analog_input_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, frozen_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, frozen_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -520,7 +520,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_analog_input_event_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -534,7 +534,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_analog_input_event_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -576,7 +576,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_analog_input_event_SPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -590,7 +590,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_analog_input_event_DPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, value_low, value_high, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, value_low, value_high, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -632,7 +632,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_analog_input_event_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, frozen_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, frozen_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -646,7 +646,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_analog_input_event_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, frozen_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, frozen_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -688,7 +688,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_analog_input_event_SPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, frozen_value, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, frozen_value, bytestring_to_time(time48));
 			}
 
 		return true;
@@ -702,7 +702,7 @@ flow DNP3_Flow(is_orig: bool) {
 			BifEvent::generate_dnp3_frozen_analog_input_event_DPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), flag, frozen_value_low, frozen_value_high, bytestring_to_time(time48, sizeof(time48)));
+				is_orig(), flag, frozen_value_low, frozen_value_high, bytestring_to_time(time48));
 			}
 
 		return true;

@@ -14,7 +14,7 @@ function check_exit_condition()
 	{
 	c += 1;
 
-	if ( c == 3 )
+	if ( c == 4 )
 		terminate();
 	}
 
@@ -35,6 +35,8 @@ event bro_init()
 	# Not sure of a portable way to test signals yet.
 	#test_cmd("test3", [$cmd="bash ../suicide.sh"]);
 	test_cmd("test4", [$cmd="bash ../stdin.sh", $stdin="hibye"]);
+	test_cmd("test5", [$cmd="bash ../empty_file.sh",
+	                   $read_files=set("out3", "out4")]);
 	}
 
 @TEST-END-FILE
@@ -72,4 +74,10 @@ echo "nope"
 #! /usr/bin/env bash
 read -r line
 echo "$line"
+@TEST-END-FILE
+
+@TEST-START-FILE empty_file.sh
+#! /usr/bin/env bash
+touch out3
+echo "test" > out4
 @TEST-END-FILE

@@ -1,4 +1,172 @@
 
+2.3-301 | 2014-11-11 13:47:27 -0800
+
+  * Add builtin function enum_to_int() that converts an enum into a
+    integer. (Christian Struck)
+
+2.3-297 | 2014-11-11 11:50:47 -0800
+
+  * Removing method from SSL analyzer that's no longer used. (Robin
+    Sommer)
+
+2.3-296 | 2014-11-11 11:42:38 -0800
+
+  * A new analyzer parsing the MySQL wire protocol. Activity gets
+    logged into mysql.log. Supports protocol versions 9 and 10. (Vlad
+    Grigorescu)
+
+2.3-278 | 2014-11-03 18:55:18 -0800
+
+  * Add new curves from draft-ietf-tls-negotiated-ff-dhe to SSL
+    analysis. (Johanna Amann)
+
+2.3-274 | 2014-10-31 17:45:25 -0700
+
+  * Adding call to new binpac::init() function. (Robin Sommer)
+
+2.3-272 | 2014-10-31 16:29:42 -0700
+
+  * Fix segfault if when statement's RHS is unitialized. Addresses
+    BIT-1176. (Jon Siwek)
+
+  * Fix checking vector indices via "in". Addresses BIT-1280.  (Jon
+    Siwek)
+
+2.3-268 | 2014-10-31 12:12:22 -0500
+
+  * BIT-1283: Fix crash when using &encrypt. (Jon Siwek)
+
+2.3-267 | 2014-10-31 10:35:02 -0500
+
+  * BIT-1284: Allow arbitrary when statement timeout expressions
+    (Jon Siwek)
+
+2.3-266 | 2014-10-31 09:21:28 -0500
+
+  * BIT-1166: Add configure options to fine tune local state dirs used
+    by BroControl. (Jon Siwek)
+
+2.3-264 | 2014-10-30 13:25:57 -0500
+
+  * Fix some minor Coverity Scan complaints. (Jon Siwek)
+
+2.3-263 | 2014-10-28 15:09:10 -0500
+
+  * Fix checking of fwrite return values (Johanna Amann)
+
+2.3-260 | 2014-10-27 12:54:17 -0500
+
+  * Fix errors/warnings when compiling with -std=c++11 (Jon Siwek)
+
+2.3-259 | 2014-10-27 10:04:04 -0500
+
+  * Documentation fixes. (Vicente Jimenez Aguilar and Stefano Azzalini)
+
+2.3-256 | 2014-10-24 15:33:45 -0700
+
+  * Adding missing test baseline. (Robin Sommer)
+
+2.3-255 | 2014-10-24 13:39:44 -0700
+
+  * Fixing unstable active-http test. (Robin Sommer)
+
+2.3-254 | 2014-10-24 11:40:51 -0700
+
+  * Fix active-http.bro to deal reliably with empty server responses,
+    which will now be passed back as empty files. (Christian Struck)
+
+2.3-248 | 2014-10-23 14:20:59 -0700
+
+  * Change order in which a plugin's scripts are loaded at startup.
+    (Robin Sommer)
+
+2.3-247 | 2014-10-21 13:42:38 -0700
+
+  * Updates to the SSL analyzer. (Johanna Amann)
+
+        * Mark everything below 2048 bit as a weak key.
+
+        * Fix notice suppression.
+
+        * Add information about server-chosen protocol to ssl.log, if
+          provided by application_layer_next_protocol.
+
+        * Add boolean flag to ssl.log signaling if a session was
+          resumed. Remove the (usually not really that useful) session
+          ID that the client sent.
+
+2.3-240 | 2014-10-21 13:36:33 -0700
+
+  * Fix Coverity-reported issues in DNP3 analyzer. (Seth Hall)
+
+2.3-238 | 2014-10-16 06:51:49 -0700
+
+  * Fix multipart HTTP/MIME entity file analysis so that (1) singular
+    CR or LF characters in multipart body content are no longer
+    converted to a full CRLF (thus corrupting the file) and (2) it
+    also no longer considers the CRLF before the multipart boundary as
+    part of the content. Addresses BIT-1235. (Jon Siwek)
+
+2.3-235 | 2014-10-15 10:20:47 -0500
+
+  * BIT-1273: Add error message for bad enum declaration syntax.
+    (Jon Siwek)
+
+2.3-234 | 2014-10-14 14:42:09 -0500
+
+  * Documentation fixes. (Steve Smoot)
+
+2.3-233 | 2014-10-09 16:00:27 -0500
+
+  * Change find-bro-logs unit test to follow symlinks. (Jon Siwek)
+
+  * Add error checks and messages to a test script (Daniel Thayer)
+
+2.3-230 | 2014-10-08 08:15:17 -0700
+
+  * Further baseline normalization for plugin test portability. (Robin
+    Sommer)
+
+2.3-229 | 2014-10-07 20:18:11 -0700
+
+  * Fix for test portability. (Robin Sommer)
+
+2.3-228 | 2014-10-07 15:32:37 -0700
+
+  * Include plugin unit tests into the top-level btest configuration. (Robin Sommer)
+
+  * Switching the prefix separator for packet source/dumper plugins
+    once more, now to "::". Addresses BIT-1267. (Robin Sommer)
+
+  * Fix for allowing a packet source/dumper plugin to support multiple
+    prefixes with a colon. (Robin Sommer)
+
+2.3-225 | 2014-10-07 15:13:35 -0700
+
+  * Updating plugin documentation. (Robin Sommer)
+
+2.3-224 | 2014-10-07 14:32:17 -0700
+
+  * Improved the log file reference documentation. (Jeannette Dopheide
+    and Daniel Thayer)
+
+  * Improves shockwave flash file signatures. (Seth Hall)
+
+     - This moves the signatures out of the libmagic imported signatures
+       and into our own general.sig.
+
+     - Expand the detection to LZMA compressed flash files.
+
+  * Add new script language reference documentation on operators,
+    statements, and directives.  Also improved the documentation on
+    types and attributes by splitting them into two docs, and
+    providing more examples and adding a chart on the top of each page
+    with links to each type and attribute for easier access to the
+    information. (Daniel Thayer)
+
+  * Split the types and attributes reference doc into two docs.
+    (Daniel Thayer)
+
 2.3-208 | 2014-10-03 09:38:52 -0500
 
   * BIT-1268: Fix uninitialized router_list argument in

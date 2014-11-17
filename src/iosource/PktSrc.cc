@@ -506,6 +506,7 @@ bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_ch
 		{
 		Error(fmt("BPF filter %d not compiled", index));
 		Close();
+		return false;
 		}
 
 	if ( code->MatchesAnything() )

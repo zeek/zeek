@@ -707,7 +707,7 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
 	const size_t BUFSIZE = 1024;
 	char* data = new char[BUFSIZE];
 	snprintf(data, BUFSIZE,
-	         "%"PRI_PTR_COMPAT_UINT",%s,%s,%"PRIu16",%"PRIu32",%d", p->id,
+	         "%" PRI_PTR_COMPAT_UINT",%s,%s,%" PRIu16",%" PRIu32",%d", p->id,
 	         ip.AsString().c_str(), zone_id.c_str(), port, uint32(retry),
 	         use_ssl);
 
@@ -1267,7 +1267,7 @@ bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
 
 	const size_t BUFSIZE = 1024;
 	char* data = new char[BUFSIZE];
-	snprintf(data, BUFSIZE, "%s,%"PRIu16",%d,%d,%s,%"PRIu32,
+	snprintf(data, BUFSIZE, "%s,%" PRIu16",%d,%d,%s,%" PRIu32,
 	         ip.AsString().c_str(), port, expect_ssl, ipv6, zone_id.c_str(),
 	         (uint32) retry);
 
@@ -4075,7 +4075,7 @@ bool SocketComm::Connect(Peer* peer)
 
 		const size_t BUFSIZE = 1024;
 		char* data = new char[BUFSIZE];
-		snprintf(data, BUFSIZE, "%s,%"PRIu32, peer->ip.AsString().c_str(),
+		snprintf(data, BUFSIZE, "%s,%" PRIu32, peer->ip.AsString().c_str(),
 		         peer->port);
 
 		if ( ! SendToParent(MSG_CONNECTED, peer, data) )
@@ -4190,7 +4190,7 @@ bool SocketComm::Listen()
 		     setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0 )
 			Error(fmt("can't set IPV6_V6ONLY, %s", strerror(errno)));
 
-		if ( bind(fd, res->ai_addr, res->ai_addrlen) < 0 )
+		if ( ::bind(fd, res->ai_addr, res->ai_addrlen) < 0 )
 			{
 			Error(fmt("can't bind to %s:%s, %s", l_addr_str.c_str(),
 			          port_str, strerror(errno)));
@@ -4287,7 +4287,7 @@ bool SocketComm::AcceptConnection(int fd)
 
 	const size_t BUFSIZE = 1024;
 	char* data = new char[BUFSIZE];
-	snprintf(data, BUFSIZE, "%s,%"PRIu32, peer->ip.AsString().c_str(),
+	snprintf(data, BUFSIZE, "%s,%" PRIu32, peer->ip.AsString().c_str(),
 	         peer->port);
 
 	if ( ! SendToParent(MSG_CONNECTED, peer, data) )

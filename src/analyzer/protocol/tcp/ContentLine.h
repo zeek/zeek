@@ -15,6 +15,9 @@ public:
 	ContentLine_Analyzer(Connection* conn, bool orig);
 	~ContentLine_Analyzer();
 
+	void SupressWeirds(bool enable)
+		{ suppress_weirds = enable; }
+
 	// If enabled, flag (first) line with embedded NUL. Default off.
 	void SetIsNULSensitive(bool enable)
 		{ flag_NULs = enable; }
@@ -95,6 +98,8 @@ protected:
 
 	// Don't deliver further data.
 	int skip_deliveries;
+
+	bool suppress_weirds;
 
 	// If true, flag (first) line with embedded NUL.
 	unsigned int flag_NULs:1;

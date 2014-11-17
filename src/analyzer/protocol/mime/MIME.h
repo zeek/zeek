@@ -173,6 +173,7 @@ protected:
 	int data_buf_offset;
 
 	MIME_Message* message;
+	bool delay_adding_implicit_CRLF;
 };
 
 // The reason I separate MIME_Message as an abstract class is to

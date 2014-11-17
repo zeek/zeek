@@ -1,0 +1,55 @@
+# This test is intended to help keep Bro's reference documentation up-to-date.
+# If this test fails, then it indicates that the set of all the log filenames
+# that Bro could potentially create (with the scripts included with Bro) has
+# changed.  In that case, the reference documentation listing all Bro log files
+# should be checked and updated if necessary.
+
+# @TEST-EXEC: bash %INPUT
+# @TEST-EXEC: btest-diff out
+
+BROSCRIPTS=${DIST}/scripts
+
+if [ ! -d "${BROSCRIPTS}" ]; then
+    echo "Directory not found: ${BROSCRIPTS}" 1>&2
+    exit 1
+fi
+
+# For a given Bro script, look for a call to "create_stream".  If found,
+# extract the log ID (adding the module name if necessary), and print the
+# log ID and script filename.
+cat << '_EOF_' > find_logid.awk
+/module[ ]+[A-Za-z0-9_]/ {
+    mod = $2
+    if ( substr(mod, length(mod), 1) == ";" ) {
+        mod = substr(mod, 1, length(mod)-1)
+    }
+}
+
+/Log::create_stream/ {
+    if ( substr($1, 1, 1) != "#" ) {
+        x = index($1, "(")
+        logid = substr($1, x+1, length($1)-x-1)
+        if ( logid == "LOG" ) {
+            printf "%s::", mod
+        }
+        printf "%s", logid
+        printf " %s\n", FILENAME
+    }
+}
+_EOF_
+
+find -L ${BROSCRIPTS} -type f -exec awk -f find_logid.awk {} \; > out.logid
+
+if [ ! -s out.logid ]; then
+    echo "Did not find Bro scripts in directory: ${BROSCRIPTS}" 1>&2
+    exit 1
+fi
+
+# For each log ID, have Bro convert it to the corresponding log filename
+# using the default mechanism for generating a log filename (we must load
+# all Bro scripts so that all log IDs are defined).
+awk '{print $1}' out.logid | while read logid; do
+    bro ${BROSCRIPTS}/test-all-policy.bro -e "print Log::default_path_func(${logid}, \"\", 0);" >> out.tmp
+done
+
+grep -v WARNING out.tmp | sort -u > out

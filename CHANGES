@@ -1,4 +1,9 @@
 
+2.3-305 | 2014-11-18 11:09:04 -0800
+
+  * Improve coercion of &default expressions. Addresses BIT-1288. (Jon
+    Siwek)
+
 2.3-303 | 2014-11-18 10:53:04 -0800
 
   * For DH key exchanges, use p as the parameter for weak key

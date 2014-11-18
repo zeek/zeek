@@ -1,4 +1,9 @@
 
+2.3-309 | 2014-11-18 12:17:53 -0800
+
+  * New decompose_uri() function in base/utils/urls that splits a URI
+    into its pieces. (Anthony Kasza).
+
 2.3-305 | 2014-11-18 11:09:04 -0800
 
   * Improve coercion of &default expressions. Addresses BIT-1288. (Jon

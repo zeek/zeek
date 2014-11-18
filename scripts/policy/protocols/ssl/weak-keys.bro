@@ -65,7 +65,7 @@ event ssl_dh_server_params(c: connection, p: string, q: string, Ys: string) &pri
 	if ( ! addr_matches_host(c$id$resp_h, notify_weak_keys) )
 		return;
 
-	local key_length = |Ys| * 8; # key length in bits
+	local key_length = |p| * 8; # length of the used prime number in bits
 
 	if ( key_length < notify_minimal_key_length )
 		NOTICE([$note=Weak_Key,

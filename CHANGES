@@ -1,4 +1,9 @@
 
+2.3-303 | 2014-11-18 10:53:04 -0800
+
+  * For DH key exchanges, use p as the parameter for weak key
+    exchanges. (Johanna Amann)
+
 2.3-301 | 2014-11-11 13:47:27 -0800
 
   * Add builtin function enum_to_int() that converts an enum into a

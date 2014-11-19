@@ -1,4 +1,8 @@
 
+2.3-310 | 2014-11-19 10:56:59 -0600
+
+  * Disable verbose bison output. (Jon Siwek)
+
 2.3-309 | 2014-11-18 12:17:53 -0800
 
   * New decompose_uri() function in base/utils/urls that splits a URI

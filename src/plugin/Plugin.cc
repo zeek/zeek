@@ -83,12 +83,12 @@ void HookArgument::Describe(ODesc* d) const
 			d->Add("<null>");
 		break;
 
-    case FRAME:
-        if ( arg.frame )
-            arg.frame->Describe(d);
-        else
-            d->Add("<null>");
-        break;
+	case FRAME:
+		if ( arg.frame )
+			arg.frame->Describe(d);
+		else
+			d->Add("<null>");
+		break;
 
 	case FUNC:
 		if ( arg.func )
@@ -131,25 +131,25 @@ void HookArgument::Describe(ODesc* d) const
 	case VOIDP:
 		d->Add("<void ptr>");
 		break;
-    
-    case WRAPPED_VAL:
-        if ( arg.wrapper )
-            {
-            d->Add("wrapped(");
-            if(arg.wrapper->value)
-                {
-                arg.wrapper->value->Describe(d);
-                }
-            else
-                d->Add("<null>");
-            d->Add(")");
-            }
-        else
-            {
-            d->Add("<null>");
-            }
+	
+	case WRAPPED_VAL:
+		if ( arg.wrapper )
+			{
+			d->Add("wrapped(");
+			if(arg.wrapper->value)
+				{
+				arg.wrapper->value->Describe(d);
+				}
+			else
+				d->Add("<null>");
+			d->Add(")");
+			}
+		else
+			{
+			d->Add("<null>");
+			}
 
-        break;
+		break;
 
 	}
 	}
@@ -226,7 +226,7 @@ void Plugin::InitPostScript()
 
 Plugin::bif_item_list Plugin::BifItems() const
 	{
-    return bif_items;
+	return bif_items;
 	}
 
 void Plugin::Done()
@@ -399,7 +399,7 @@ void Plugin::Describe(ODesc* d) const
 			type = "<unknown>";
 		}
 
-		d->Add("    ");
+		d->Add("	");
 		d->Add("[");
 		d->Add(type);
 		d->Add("] ");
@@ -414,7 +414,7 @@ void Plugin::Describe(ODesc* d) const
 		HookType hook = (*i).first;
 		int prio = (*i).second;
 
-		d->Add("    Implements ");
+		d->Add("	Implements ");
 		d->Add(hook_name(hook));
 		d->Add(" (priority ");
 		d->Add(prio);

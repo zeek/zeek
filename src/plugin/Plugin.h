@@ -34,24 +34,24 @@ class Plugin;
  * Plugins' function handlers return a result of this type.
  */
 struct ValWrapper {
-    Val* value;       //< value being wrapped by this object
-    bool processed;   //< true if execution should *STOP* (read: the plugin is replacing a method), and false if execution should *CONTINUE* (read: bro should execute a method)
+	Val* value;	   //< value being wrapped by this object
+	bool processed;   //< true if execution should *STOP* (read: the plugin is replacing a method), and false if execution should *CONTINUE* (read: bro should execute a method)
 
-    /**
-    Wrapper for a specific value.  If we're setting a value, we assume we've processed something.
-    
-    @param value value to be wrapped
-    */
-    ValWrapper(Val* value)
-    : value(value), processed(true) { }
+	/**
+	Wrapper for a specific value.  If we're setting a value, we assume we've processed something.
+	
+	@param value value to be wrapped
+	*/
+	ValWrapper(Val* value)
+	: value(value), processed(true) { }
 
-    /**
-    Wrapper for a specific value.  If we're setting 'processed', we assume there's a reason we're not setting a Val and set that to NULL.
-    
-    @param processed whether or not an execution of a function was handled by the plugin
-    */
-    ValWrapper(bool processed)
-    : value(NULL), processed(processed) { }
+	/**
+	Wrapper for a specific value.  If we're setting 'processed', we assume there's a reason we're not setting a Val and set that to NULL.
+	
+	@param processed whether or not an execution of a function was handled by the plugin
+	*/
+	ValWrapper(bool processed)
+	: value(NULL), processed(processed) { }
 };
 
 /**
@@ -237,15 +237,15 @@ public:
 	 */
 	HookArgument(void* p)	{ type = VOIDP; arg.voidp = p; }
 
-    /**
-     * Constructor with a ValWrapper argument.
-     */
-    HookArgument(ValWrapper* a)   { type = WRAPPED_VAL; arg.wrapper = a; }
+	/**
+	 * Constructor with a ValWrapper argument.
+	 */
+	HookArgument(ValWrapper* a)   { type = WRAPPED_VAL; arg.wrapper = a; }
 
-    /**
-     * Constructor with a Frame argument.
-     */
-    HookArgument(Frame* f)    { type = FRAME; arg.frame = f; }
+	/**
+	 * Constructor with a Frame argument.
+	 */
+	HookArgument(Frame* f)	{ type = FRAME; arg.frame = f; }
 
 	/**
 	 * Returns the value for a boolen argument. The argument's type must
@@ -289,17 +289,17 @@ public:
 	 */
 	const Val* AsVal() const	{ assert(type == VAL); return arg.val; }
 
-    /**
-     * Returns the value for a Bro wrapped value argument.  The argument's type must
-     * match accordingly.
-     */
-    const ValWrapper* AsValWrapper() const { assert(type == VAL_WRAPPER); return arg.wrapper; }
+	/**
+	 * Returns the value for a Bro wrapped value argument.  The argument's type must
+	 * match accordingly.
+	 */
+	const ValWrapper* AsValWrapper() const { assert(type == VAL_WRAPPER); return arg.wrapper; }
 
-    /**
-     * Returns the value for a Bro frame argument.  The argument's type must
-     * match accordingly.
-     */
-    const Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
+	/**
+	 * Returns the value for a Bro frame argument.  The argument's type must
+	 * match accordingly.
+	 */
+	const Frame* AsFrame() const { assert(type == FRAME); return arg.frame; }
 
 	/**
 	 * Returns the value for a list of Bro values argument. The argument's type must
@@ -332,10 +332,10 @@ private:
 		double double_;
 		const Event* event;
 		const Func* func;
-        const Frame* frame;
+		const Frame* frame;
 		int int_;
 		const Val* val;
-        const ValWrapper* wrapper;
+		const ValWrapper* wrapper;
 		const val_list* vals;
 		const void* voidp;
 	} arg;
@@ -564,7 +564,7 @@ protected:
 	 * actually has code to execute for it. By calling this method, the
 	 * plugin tells Bro to raise the event even if there's no correspondong
 	 * handler; it will then go into HookQueueEvent() just as any other.
-     *
+	 *
 	 * @param handler The event handler being interested in.
 	 */
 	void RequestEvent(EventHandlerPtr handler);
@@ -621,11 +621,11 @@ protected:
 	 * counting.
 	 *
 	 * @return If the plugin handled the call, a ValWrapper with the
-     * processed flag set to true, and a value set on the object with 
-     * a+1 reference count containing the result value to pass back to the 
-     * interpreter.  If the plugin did not handle the call, it may either
-     * return NULL *or* return a ValWrapper with the processed flag set to
-     * 'false'.
+	 * processed flag set to true, and a value set on the object with 
+	 * a+1 reference count containing the result value to pass back to the 
+	 * interpreter.  If the plugin did not handle the call, it may either
+	 * return NULL *or* return a ValWrapper with the processed flag set to
+	 * 'false'.
 	 */
 	virtual ValWrapper* HookCallFunction(const Func* func, Frame *parent, val_list* args);
 

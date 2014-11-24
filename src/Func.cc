@@ -249,38 +249,34 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 
 ValWrapper* Func::HandlePluginResult(ValWrapper* plugin_result, val_list* args, function_flavor flavor) const
 	{
-    // We either have not received a plugin result, or the plugin result hasn't been processed (read: fall into ::Call method)
-    if(!plugin_result)
-        return NULL;
+	// We either have not received a plugin result, or the plugin result hasn't been processed (read: fall into ::Call method)
+	if(!plugin_result)
+		return NULL;
 
-    if(!plugin_result->processed)
-        {
-        if(plugin_result->value)
-            {
-            Unref(plugin_result->value);
-            plugin_result->value = NULL;
-            }
-        delete plugin_result;
-        return NULL;
-        }
+	if(!plugin_result->processed)
+		{
+		if(plugin_result->value)
+			{
+			Unref(plugin_result->value);
+			plugin_result->value = NULL;
+			}
+		delete plugin_result;
+		return NULL;
+		}
 
 	switch ( flavor ) {
 	case FUNC_FLAVOR_EVENT:
-        if(plugin_result->value)
-            {
-            char sbuf[1024];
-            snprintf(sbuf, 1024, "plugin returned non-void result for event %s", this->Name());
-            reporter->InternalError(sbuf);
-            }
+		if(plugin_result->value)
+			{
+			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+			}
 		break;
 
 	case FUNC_FLAVOR_HOOK:
 		if ( plugin_result->value->Type()->Tag() != TYPE_BOOL )
-		    {
-            char sbuf[1024];
-            snprintf(sbuf, 1024, "plugin returned non-bool for hook %s", this->Name());
-        	reporter->InternalError(sbuf);
-            }
+			{
+			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+			}
 		break;
 
 	case FUNC_FLAVOR_FUNCTION:
@@ -289,19 +285,15 @@ ValWrapper* Func::HandlePluginResult(ValWrapper* plugin_result, val_list* args, 
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
-            if(plugin_result && plugin_result->value)
-                {
-                char sbuf[1024];
-                snprintf(sbuf, 1024, "plugin returned non-void result for void method %s", this->Name());
-			    reporter->InternalError(sbuf);
-                }
-            }
+			if(plugin_result && plugin_result->value)
+				{
+				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
+				}
+			}
 		else if ( plugin_result->value && plugin_result->value->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
 			{
-            char sbuf[1024];
-            snprintf(sbuf, 1024, "plugin returned wrong type (got %d, expecting %d) for %s", plugin_result->value->Type()->Tag(), yt->Tag(), this->Name());
-			reporter->InternalError(sbuf);
-            }
+			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s", plugin_result->value->Type()->Tag(), yt->Tag(), this->Name());
+			}
 
 		break;
 		}
@@ -358,13 +350,13 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	ValWrapper* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), 0);
 
-    plugin_result = HandlePluginResult(plugin_result, args, Flavor());
-    if(plugin_result)
-        {
-        Val *result = plugin_result->value;
-        delete plugin_result;
-        return result;
-        }
+	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
+	if(plugin_result)
+		{
+		Val *result = plugin_result->value;
+		delete plugin_result;
+		return result;
+		}
 
 	if ( bodies.empty() )
 		{
@@ -455,11 +447,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
 	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
-	     (flow != FLOW_RETURN /* we fell off the end */ ||
-	      ! result /* explicit return with no result */) &&
-	     ! f->HasDelayed() )
+		 (flow != FLOW_RETURN /* we fell off the end */ ||
+		  ! result /* explicit return with no result */) &&
+		 ! f->HasDelayed() )
 		reporter->Warning("non-void function returns without a value: %s",
-		                  Name());
+						  Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -580,13 +572,13 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 
 	ValWrapper* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), 0);
 
-    plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
-    if(plugin_result)
-        {
-        Val *result = plugin_result->value;
-        delete plugin_result;
-        return result;
-        }
+	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+	if(plugin_result)
+		{
+		Val *result = plugin_result->value;
+		delete plugin_result;
+		return result;
+		}
 
 	if ( g_trace_state.DoTrace() )
 		{

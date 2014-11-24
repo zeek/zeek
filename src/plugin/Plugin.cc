@@ -293,7 +293,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 
 std::pair<Val*, bool> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
 	{
-    std::pair<Val*, bool> result(NULL, false);
+	std::pair<Val*, bool> result(NULL, false);
 	return result;
 	}
 

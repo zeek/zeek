@@ -583,11 +583,11 @@ std::pair<Val*, bool> Manager::HookCallFunction(const Func* func, Frame* parent,
 			v = p->HookCallFunction(func, parent, vargs);
 
 			if ( v.second )
-	            {
+				{
 				break;
-			    }
-	        }
-
+				}
+			}
+	
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));
 

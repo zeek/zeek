@@ -1,0 +1,38 @@
+module MySQL;
+
+export {
+	const commands: table[count] of string = {
+		[0]  = "sleep",
+		[1]  = "quit",
+		[2]  = "init_db",
+		[3]  = "query",
+		[4]  = "field_list",
+		[5]  = "create_db",
+		[6]  = "drop_db",
+		[7]  = "refresh",
+		[8]  = "shutdown",
+		[9]  = "statistics",
+		[10] = "process_info",
+		[11] = "connect",
+		[12] = "process_kill",
+		[13] = "debug",
+		[14] = "ping",
+		[15] = "time",
+		[16] = "delayed_insert",
+		[17] = "change_user",
+		[18] = "binlog_dump",
+		[19] = "table_dump",
+		[20] = "connect_out",
+		[21] = "register_slave",
+		[22] = "stmt_prepare",
+		[23] = "stmt_execute",
+		[24] = "stmt_send_long_data",
+		[25] = "stmt_close",
+		[26] = "stmt_reset",
+		[27] = "set_option",
+		[28] = "stmt_fetch",
+		[29] = "daemon",
+		[30] = "binlog_dump_gtid",
+		[31] = "reset_connection",
+	} &default=function(i: count): string { return fmt("unknown-%d", i); };
+}

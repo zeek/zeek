@@ -25,6 +25,9 @@ New Functionality
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
   information on writing plugins.
 
+- Bro now has supoprt for the MySQL wire protocol. Activity gets
+  logged into mysql.log.
+
 Changed Functionality
 ---------------------
 

@@ -158,6 +158,12 @@ export {
 		[26] = "brainpoolP256r1",
 		[27] = "brainpoolP384r1",
 		[28] = "brainpoolP512r1",
+		# draft-ietf-tls-negotiated-ff-dhe-02
+		[256] = "ffdhe2432",
+		[257] = "ffdhe3072",
+		[258] = "ffdhe4096",
+		[259] = "ffdhe6144",
+		[260] = "ffdhe8192",
 		[0xFF01] = "arbitrary_explicit_prime_curves",
 		[0xFF02] = "arbitrary_explicit_char2_curves"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };

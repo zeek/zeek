@@ -11,7 +11,7 @@ class Plugin : public ::plugin::Plugin
 {
 protected:
 	virtual int HookLoadFile(const std::string& file, const std::string& ext);
-	virtual plugin::ValWrapper* HookCallFunction(const Func* func, Frame* frame, val_list* args);
+	virtual std::pair<Val*, bool> HookCallFunction(const Func* func, Frame* frame, val_list* args);
 	virtual bool HookQueueEvent(Event* event);
 	virtual void HookDrainEvents();
 	virtual void HookUpdateNetworkTime(double network_time);

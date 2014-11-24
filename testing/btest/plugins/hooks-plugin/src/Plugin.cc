@@ -5,7 +5,6 @@
 #include <Event.h>
 
 namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
-using plugin::ValWrapper;
 
 using namespace plugin::Demo_Hooks;
 
@@ -49,7 +48,7 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-ValWrapper* Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* args)
+std::pair<Val*, bool> Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* args)
 	{
 	ODesc d;
 	d.SetShort();
@@ -58,7 +57,7 @@ ValWrapper* Plugin::HookCallFunction(const Func* func, Frame* frame, val_list* a
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookCallFunction",
 		d.Description());
 
-	return 0;
+	return std::pair<Val*, bool>(NULL, false);
 	}
 
 bool Plugin::HookQueueEvent(Event* event)

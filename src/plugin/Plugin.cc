@@ -133,21 +133,14 @@ void HookArgument::Describe(ODesc* d) const
 		break;
 	
 	case WRAPPED_VAL:
-		if ( arg.wrapper )
+		d->Add("wrapped(");
+		if(wrapper.first)
 			{
-			d->Add("wrapped(");
-			if(arg.wrapper->value)
-				{
-				arg.wrapper->value->Describe(d);
-				}
-			else
-				d->Add("<null>");
-			d->Add(")");
+			wrapper.first->Describe(d);
 			}
 		else
-			{
 			d->Add("<null>");
-			}
+		d->Add(")");
 
 		break;
 
@@ -298,9 +291,10 @@ int Plugin::HookLoadFile(const std::string& file, const std::string& ext)
 	return -1;
 	}
 
-ValWrapper* Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
+std::pair<Val*, bool> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)
 	{
-	return 0;
+    std::pair<Val*, bool> result(NULL, false);
+	return result;
 	}
 
 bool Plugin::HookQueueEvent(Event* event)

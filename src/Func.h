@@ -3,6 +3,8 @@
 #ifndef func_h
 #define func_h
 
+#include <utility>
+
 #include "BroList.h"
 #include "Obj.h"
 #include "Debug.h"
@@ -14,9 +16,6 @@ class Stmt;
 class Frame;
 class ID;
 class CallExpr;
-namespace plugin {
-    struct ValWrapper;
-}
 
 class Func : public BroObj {
 public:
@@ -74,7 +73,7 @@ protected:
 	Func();
 
 	// Helper function for handling result of plugin hook.
-	plugin::ValWrapper* HandlePluginResult(plugin::ValWrapper* plugin_result, val_list* args, function_flavor flavor) const;
+	std::pair<Val*, bool> HandlePluginResult(std::pair<Val*, bool> plugin_result, val_list* args, function_flavor flavor) const;
 
 	DECLARE_ABSTRACT_SERIAL(Func);
 

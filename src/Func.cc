@@ -48,14 +48,13 @@
 #include "Reporter.h"
 #include "plugin/Manager.h"
 
-using plugin::ValWrapper;
-
 extern	RETSIGTYPE sig_handler(int signo);
 
 const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
 vector<Func*> Func::unique_ids;
+static std::pair<Val*, bool> empty_hook_result(NULL, false);
 
 Func::Func() : scope(0), type(0)
 	{
@@ -247,33 +246,29 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValWrapper* Func::HandlePluginResult(ValWrapper* plugin_result, val_list* args, function_flavor flavor) const
+std::pair<Val*, bool> Func::HandlePluginResult(std::pair<Val*, bool> plugin_result, val_list* args, function_flavor flavor) const
 	{
-	// We either have not received a plugin result, or the plugin result hasn't been processed (read: fall into ::Call method)
-	if(!plugin_result)
-		return NULL;
+	// The plugin result hasn't been processed (read: fall into ::Call method)
 
-	if(!plugin_result->processed)
+	if(!plugin_result.second)
 		{
-		if(plugin_result->value)
+		if(plugin_result.first)
 			{
-			Unref(plugin_result->value);
-			plugin_result->value = NULL;
+			reporter->InternalError("plugin set processed flag to false but actually returned a value");
 			}
-		delete plugin_result;
-		return NULL;
+		return plugin_result;
 		}
 
 	switch ( flavor ) {
 	case FUNC_FLAVOR_EVENT:
-		if(plugin_result->value)
+		if(plugin_result.first)
 			{
 			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
 			}
 		break;
 
 	case FUNC_FLAVOR_HOOK:
-		if ( plugin_result->value->Type()->Tag() != TYPE_BOOL )
+		if ( plugin_result.first->Type()->Tag() != TYPE_BOOL )
 			{
 			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
 			}
@@ -285,14 +280,14 @@ ValWrapper* Func::HandlePluginResult(ValWrapper* plugin_result, val_list* args, 
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
-			if(plugin_result && plugin_result->value)
+			if(plugin_result.first)
 				{
 				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
 				}
 			}
-		else if ( plugin_result->value && plugin_result->value->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+		else if ( plugin_result.first && plugin_result.first->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
 			{
-			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s", plugin_result->value->Type()->Tag(), yt->Tag(), this->Name());
+			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s", plugin_result.first->Type()->Tag(), yt->Tag(), this->Name());
 			}
 
 		break;
@@ -347,14 +342,13 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
-
-	ValWrapper* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), 0);
+    
+	std::pair<Val*, bool> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
 	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
-	if(plugin_result)
+	if(plugin_result.second)
 		{
-		Val *result = plugin_result->value;
-		delete plugin_result;
+		Val *result = plugin_result.first;
 		return result;
 		}
 
@@ -570,13 +564,12 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	ValWrapper* plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), 0);
+	std::pair<Val*, bool> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
 	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
-	if(plugin_result)
+	if(plugin_result.second)
 		{
-		Val *result = plugin_result->value;
-		delete plugin_result;
+		Val *result = plugin_result.first;
 		return result;
 		}
 

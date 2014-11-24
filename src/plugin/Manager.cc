@@ -172,7 +172,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	// Load {bif,scripts}/__load__.bro automatically.
 
-	string init = dir + "lib/bif/__load__.bro";
+	string init = dir + "scripts/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -180,7 +180,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		scripts_to_load.push_back(init);
 		}
 
-	init = dir + "scripts/__load__.bro";
+	init = dir + "lib/bif/__load__.bro";
 
 	if ( is_file(init) )
 		{
@@ -559,7 +559,7 @@ int Manager::HookLoadFile(const string& file)
 	return rc;
 	}
 
-ValWrapper* Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
+std::pair<Val*, bool> Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
 	{
 	HookArgumentList args;
 
@@ -573,7 +573,7 @@ ValWrapper* Manager::HookCallFunction(const Func* func, Frame* parent, val_list*
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	ValWrapper* v = 0;
+	std::pair<Val*, bool> v;
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
@@ -582,9 +582,11 @@ ValWrapper* Manager::HookCallFunction(const Func* func, Frame* parent, val_list*
 
 			v = p->HookCallFunction(func, parent, vargs);
 
-			if ( v && v-> processed)
+			if ( v.second )
+                {
 				break;
-			}
+			    }
+            }
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));

@@ -1,4 +1,13 @@
 
+2.3-313 | 2014-11-25 14:27:07 -0800
+
+  * Make SSL v2 protocol tests more strict. In its former state they
+    triggered on http traffic over port 443 sometimes. Found by Michał
+    Purzyński. (Johanna Amann)
+
+  * Fix X509 analyzer to correctly return ECDSA as the key_type for
+    ECDSA certs. Bug found by Michał Purzyński. (Johanna Amann)
+
 2.3-310 | 2014-11-19 10:56:59 -0600
 
   * Disable verbose bison output. (Jon Siwek)

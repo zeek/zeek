@@ -112,7 +112,10 @@ refine connection SSL_Conn += {
 					cipher_suites24 : uint24[]) : bool
 		%{
 		if ( ! version_ok(version) )
+			{
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
+			bro_analyzer()->SetSkip(true);
+			}
 		else
 			bro_analyzer()->ProtocolConfirmation();
 
@@ -152,7 +155,10 @@ refine connection SSL_Conn += {
 					comp_method : uint8) : bool
 		%{
 		if ( ! version_ok(version) )
+			{
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
+			bro_analyzer()->SetSkip(true);
+			}
 
 		if ( ssl_server_hello )
 			{
@@ -202,6 +208,7 @@ refine connection SSL_Conn += {
 			// This should be impossible due to the binpac parser
 			// and protocol description
 			bro_analyzer()->ProtocolViolation(fmt("Impossible extension length: %lu", length));
+			bro_analyzer()->SetSkip(true);
 			return true;
 			}
 
@@ -392,7 +399,11 @@ refine connection SSL_Conn += {
 	function proc_check_v2_server_hello_version(version: uint16) : bool
 		%{
 		if ( version != SSLv20 )
+			{
 			bro_analyzer()->ProtocolViolation(fmt("Invalid version in SSL server hello. Version: %d", version));
+			bro_analyzer()->SetSkip(true);
+			return false;
+			}
 
 		return true;
 		%}
@@ -479,13 +490,13 @@ refine typeattr ServerHello += &let {
 };
 
 refine typeattr V2ServerHello += &let {
-	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
-				conn_id_data, 0, 0, ciphers, 0);
-
 	check_v2 : bool = $context.connection.proc_check_v2_server_hello_version(server_version);
 
+	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
+				conn_id_data, 0, 0, ciphers, 0) &if(check_v2 == true);
+
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)
-		&requires(proc);
+		&requires(proc) &if(check_v2 == true);
 };
 
 refine typeattr Certificate += &let {

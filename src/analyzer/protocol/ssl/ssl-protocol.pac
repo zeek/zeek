@@ -759,6 +759,7 @@ refine connection SSL_Conn += {
 			     version != TLSv11 && version != TLSv12 )
 				{
 				bro_analyzer()->ProtocolViolation(fmt("Invalid version late in TLS connection. Packet reported version: %d", version));
+				bro_analyzer()->SetSkip(true);
 				return UNKNOWN_VERSION;
 				}
 			}
@@ -775,6 +776,7 @@ refine connection SSL_Conn += {
 				     version != TLSv11 && version != TLSv12 )
 					{
 					bro_analyzer()->ProtocolViolation(fmt("Invalid version in SSL client hello. Version: %d", version));
+					bro_analyzer()->SetSkip(true);
 					return UNKNOWN_VERSION;
 					}
 
@@ -791,6 +793,7 @@ refine connection SSL_Conn += {
 			else // this is not SSL or TLS.
 				{
 				bro_analyzer()->ProtocolViolation(fmt("Invalid headers in SSL connection. Head1: %d, head2: %d, head3: %d", head1, head2, head3));
+				bro_analyzer()->SetSkip(true);
 				return UNKNOWN_VERSION;
 				}
 			}
@@ -800,6 +803,7 @@ refine connection SSL_Conn += {
 		     version != TLSv11 && version != TLSv12 )
 			{
 			bro_analyzer()->ProtocolViolation(fmt("Invalid version in TLS connection. Version: %d", version));
+			bro_analyzer()->SetSkip(true);
 			return UNKNOWN_VERSION;
 			}
 
@@ -810,6 +814,7 @@ refine connection SSL_Conn += {
 			}
 
 		bro_analyzer()->ProtocolViolation(fmt("Invalid type in TLS connection. Version: %d, Type: %d", version, head0));
+		bro_analyzer()->SetSkip(true);
 		return UNKNOWN_VERSION;
 		%}
 

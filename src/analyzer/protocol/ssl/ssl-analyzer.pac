@@ -493,10 +493,10 @@ refine typeattr V2ServerHello += &let {
 	check_v2 : bool = $context.connection.proc_check_v2_server_hello_version(server_version);
 
 	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0,
-				conn_id_data, 0, 0, ciphers, 0) &if(check_v2 == true);
+				conn_id_data, 0, 0, ciphers, 0) &requires(check_v2) &if(check_v2 == true);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)
-		&requires(proc) &if(check_v2 == true);
+		&requires(proc) &requires(check_v2) &if(check_v2 == true);
 };
 
 refine typeattr Certificate += &let {

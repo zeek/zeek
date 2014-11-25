@@ -147,7 +147,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val)
 #ifndef OPENSSL_NO_EC
 		else if ( pkey->type == EVP_PKEY_EC )
 			{
-			pX509Cert->Assign(8, new StringVal("dsa"));
+			pX509Cert->Assign(8, new StringVal("ecdsa"));
 			pX509Cert->Assign(11, KeyCurve(pkey));
 			}
 #endif

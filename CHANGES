@@ -1,4 +1,10 @@
 
+2.3-316 | 2014-11-25 17:35:06 -0800
+
+  * Make the SSL analyzer skip further processing once encountering
+    situations which are very probably non-recoverable. (Johanna
+    Amann)
+
 2.3-313 | 2014-11-25 14:27:07 -0800
 
   * Make SSL v2 protocol tests more strict. In its former state they

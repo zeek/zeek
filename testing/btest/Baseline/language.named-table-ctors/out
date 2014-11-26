@@ -16,7 +16,7 @@
 [one] = 1.0,
 [three] = 3.0
 }
-0
+0.0
 {
 [42] = forty-two,
 [37] = thirty-seven

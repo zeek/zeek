@@ -1,4 +1,54 @@
 
+2.3-316 | 2014-11-25 17:35:06 -0800
+
+  * Make the SSL analyzer skip further processing once encountering
+    situations which are very probably non-recoverable. (Johanna
+    Amann)
+
+2.3-313 | 2014-11-25 14:27:07 -0800
+
+  * Make SSL v2 protocol tests more strict. In its former state they
+    triggered on http traffic over port 443 sometimes. Found by Michał
+    Purzyński. (Johanna Amann)
+
+  * Fix X509 analyzer to correctly return ECDSA as the key_type for
+    ECDSA certs. Bug found by Michał Purzyński. (Johanna Amann)
+
+2.3-310 | 2014-11-19 10:56:59 -0600
+
+  * Disable verbose bison output. (Jon Siwek)
+
+2.3-309 | 2014-11-18 12:17:53 -0800
+
+  * New decompose_uri() function in base/utils/urls that splits a URI
+    into its pieces. (Anthony Kasza).
+
+2.3-305 | 2014-11-18 11:09:04 -0800
+
+  * Improve coercion of &default expressions. Addresses BIT-1288. (Jon
+    Siwek)
+
+2.3-303 | 2014-11-18 10:53:04 -0800
+
+  * For DH key exchanges, use p as the parameter for weak key
+    exchanges. (Johanna Amann)
+
+2.3-301 | 2014-11-11 13:47:27 -0800
+
+  * Add builtin function enum_to_int() that converts an enum into a
+    integer. (Christian Struck)
+
+2.3-297 | 2014-11-11 11:50:47 -0800
+
+  * Removing method from SSL analyzer that's no longer used. (Robin
+    Sommer)
+
+2.3-296 | 2014-11-11 11:42:38 -0800
+
+  * A new analyzer parsing the MySQL wire protocol. Activity gets
+    logged into mysql.log. Supports protocol versions 9 and 10. (Vlad
+    Grigorescu)
+
 2.3-280 | 2014-11-05 09:46:33 -0500
 
   * Add Windows detection based on CryptoAPI HTTP traffic as a 

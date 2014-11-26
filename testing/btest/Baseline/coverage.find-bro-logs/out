@@ -21,6 +21,7 @@ known_services
 loaded_scripts
 modbus
 modbus_register_change
+mysql
 notice
 notice_alarm
 packet_filter

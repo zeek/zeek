@@ -24,12 +24,6 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SSL_Analyzer(conn); }
 
-	static bool Available()
-		{
-		return ( ssl_client_hello || ssl_server_hello ||
-			ssl_established || ssl_extension || ssl_alert );
-		}
-
 protected:
 	binpac::SSL::SSL_Conn* interp;
 	bool had_gap;

@@ -1,0 +1,6 @@
+# This tests a PCAP with a few MySQL commands from the Wireshark samples.
+
+# @TEST-EXEC: bro -b -r $TRACES/mysql/mysql.trace %INPUT
+# @TEST-EXEC: btest-diff mysql.log
+
+@load base/protocols/mysql

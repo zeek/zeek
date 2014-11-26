@@ -265,6 +265,14 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
+			Expr* e = a->AttrExpr();
+			if ( check_and_promote_expr(e, type) )
+				{
+				a->SetAttrExpr(e);
+				// Ok.
+				break;
+				}
+
 			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
 
@@ -297,8 +305,11 @@ void Attributes::CheckAttr(Attr* a)
 
 				Expr* e = a->AttrExpr();
 				if ( check_and_promote_expr(e, ytype) )
+					{
+					a->SetAttrExpr(e);
 					// Ok.
 					break;
+					}
 
 				Error("&default value has inconsistent type 2");
 				}

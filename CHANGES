@@ -1,4 +1,19 @@
 
+2.3-326 | 2014-12-01 12:10:27 -0600
+
+  * BIFScanner: fix invalid characters in generated preprocessor macros.
+    (Hilko Bengen)
+
+  * BIT-1294: fix exec.bro from mutating Input::end_of_data event
+    parameters. (Johanna Amann)
+
+  * Add/invoke "distclean" for testing directories. (Raúl Benencia)
+
+  * Delete prebuilt python bytecode files from git. (Jon Siwek)
+
+  * Add Windows detection based on CryptoAPI HTTP traffic as a software
+    framework policy script. (Vlad Grigorescu)
+
 2.3-316 | 2014-11-25 17:35:06 -0800
 
   * Make the SSL analyzer skip further processing once encountering

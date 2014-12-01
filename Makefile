@@ -48,6 +48,7 @@ bindist:
 
 distclean:
 	rm -rf $(BUILD)
+	$(MAKE) -C testing $@
 
 test:
 	@( cd testing && make )

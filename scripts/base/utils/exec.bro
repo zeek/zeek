@@ -96,8 +96,9 @@ event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s
 		result$files[track_file][|result$files[track_file]|] = s;
 	}
 
-event Input::end_of_data(name: string, source:string)
+event Input::end_of_data(orig_name: string, source:string)
 	{
+	local name = orig_name;
 	local parts = split1(name, /_/);
 	name = parts[1];
 

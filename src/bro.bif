@@ -2163,8 +2163,7 @@ function counts_to_addr%(v: index_vec%): addr
 ##
 ## e: The :bro:type:`enum` to convert.
 ##
-## Returns: The :bro:type:`enum` as the :bro:type:`int` value that it
-## to corresponds.
+## Returns: The :bro:type:`int` value that corresponds to the :bro:type:`enum`.
 function enum_to_int%(e: any%): int
 	%{
 	if ( e->Type()->Tag() != TYPE_ENUM )

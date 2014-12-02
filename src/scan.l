@@ -26,6 +26,7 @@
 #include "Reporter.h"
 #include "RE.h"
 #include "Net.h"
+#include "Traverse.h"
 
 #include "analyzer/Analyzer.h"
 #include "broxygen/Manager.h"
@@ -615,11 +616,48 @@ void end_RE()
 	BEGIN(INITIAL);
 	}
 
+struct LocalNameFinder : public TraversalCallback {
+
+	LocalNameFinder()
+		{}
+
+	virtual TraversalCode PreExpr(const Expr* expr)
+		{
+		if ( expr->Tag() != EXPR_NAME )
+			return TC_CONTINUE;
+
+		const NameExpr* name_expr = static_cast<const NameExpr*>(expr);
+
+		if ( name_expr->Id()->IsGlobal() )
+			return TC_CONTINUE;
+
+		local_names.push_back(name_expr);
+		return TC_CONTINUE;
+		}
+
+	std::vector<const NameExpr*> local_names;
+};
+
 void do_atif(Expr* expr)
 	{
 	++current_depth;
 
-	Val* val = expr->Eval(0);
+	LocalNameFinder cb;
+	expr->Traverse(&cb);
+	Val* val = 0;
+
+	if ( cb.local_names.empty() )
+		val = expr->Eval(0);
+	else
+		for ( size_t i = 0; i < cb.local_names.size(); ++i )
+			cb.local_names[i]->Error("referencing a local name in @if");
+
+	if ( ! val )
+		{
+		expr->Error("invalid expression in @if");
+		return;
+		}
+
 	if ( ! val->AsBool() )
 		{
 		if_stack.append(current_depth);

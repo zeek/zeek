@@ -15,6 +15,11 @@ if (NOT BRO_SCRIPT_INSTALL_PATH)
     set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
 
+if (NOT BRO_MAN_INSTALL_PATH)
+    # set the default Bro man page installation path (user did not specify one)
+    set(BRO_MAN_INSTALL_PATH ${BRO_ROOT_DIR}/share/man)
+endif ()
+
 # sanitize the Bro script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
@@ -175,6 +180,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
+add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 

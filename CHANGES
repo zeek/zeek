@@ -1,4 +1,9 @@
 
+2.3-328 | 2014-12-02 08:13:10 -0500
+
+  * Update windows-version-detection.bro to add support for 
+    Windows 10. (Michal Purzynski)
+
 2.3-326 | 2014-12-01 12:10:27 -0600
 
   * BIFScanner: fix invalid characters in generated preprocessor macros.

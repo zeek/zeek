@@ -1,4 +1,9 @@
 
+2.3-332 | 2014-12-03 14:14:11 -0800
+
+  * Make using local IDs in @if directives an error. Addresses
+    BIT-1296. (Jon Siwek)
+
 2.3-330 | 2014-12-03 14:10:39 -0800
 
   * Fix some "make doc" warnings and update some doc tests. (Daniel

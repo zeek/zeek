@@ -1,4 +1,9 @@
 
+2.3-334 | 2014-12-03 14:22:07 -0800
+
+  * Fix compound assignment to require proper L-value. Addresses
+    BIT-1295. (Jon Siwek)
+
 2.3-332 | 2014-12-03 14:14:11 -0800
 
   * Make using local IDs in @if directives an error. Addresses

@@ -1438,7 +1438,7 @@ bool AddExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 AddToExpr::AddToExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_ADD_TO, arg_op1, arg_op2)
+: BinaryExpr(EXPR_ADD_TO, arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;
@@ -1562,7 +1562,7 @@ bool SubExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 RemoveFromExpr::RemoveFromExpr(Expr* arg_op1, Expr* arg_op2)
-: BinaryExpr(EXPR_REMOVE_FROM, arg_op1, arg_op2)
+: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), arg_op2)
 	{
 	if ( IsError() )
 		return;

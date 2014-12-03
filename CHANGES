@@ -1,4 +1,9 @@
 
+2.3-330 | 2014-12-03 14:10:39 -0800
+
+  * Fix some "make doc" warnings and update some doc tests. (Daniel
+    Thayer)
+
 2.3-328 | 2014-12-02 08:13:10 -0500
 
   * Update windows-version-detection.bro to add support for 

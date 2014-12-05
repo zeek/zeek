@@ -3,7 +3,7 @@
 bro \- passive network traffic analyzer
 .SH SYNOPSIS
 .B bro
-\/\fP [options] [file ...]
+\/\fP [\fIoptions\fR] [\fIfile\fR ...]
 .SH DESCRIPTION
 Bro is primarily a security monitor that inspects all traffic on a link in
 depth for signs of suspicious activity. More generally, however, Bro
@@ -102,6 +102,9 @@ optimize policy script
 \fB\-P\fR,\ \-\-prime\-dns
 prime DNS
 .TP
+\fB\-Q\fR,\ \-\-time
+print execution time summary to stderr
+.TP
 \fB\-R\fR,\ \-\-replay <events.bst>
 replay events
 .TP
@@ -128,33 +131,34 @@ load seeds from given file
 .TP
 \fB\-\-save\-seeds\fR <file>
 save seeds to given file
-.SH ENVIRONMENTS
+.SH ENVIRONMENT
 .TP
 .B BROPATH
-file search path (.:/usr/share/bro:/usr/share/bro/policy:/usr/share/bro/site)
+file search path
+.TP
+.B BRO_PLUGIN_PATH
+plugin search path
+.TP
+.B BRO_PLUGIN_ACTIVATE
+plugins to always activate
 .TP
 .B BRO_PREFIXES
-prefix list ()
+prefix list
 .TP
 .B BRO_DNS_FAKE
-disable DNS lookups (off)
+disable DNS lookups
 .TP
 .B BRO_SEED_FILE
-file to load seeds from (not set)
+file to load seeds from
 .TP
 .B BRO_LOG_SUFFIX
-ASCII log file extension (.log)
+ASCII log file extension
 .TP
 .B BRO_PROFILER_FILE
-Output file for script execution statistics (not set)
+Output file for script execution statistics
 .TP
 .B BRO_DISABLE_BROXYGEN
-Disable Broxygen documentation support (not set)
-.IP
-Supported log formats: Ascii,SQLite
+Disable Broxygen documentation support
 .SH AUTHOR
 .B bro
 was written by The Bro Project <info@bro.org>.
-.PP
-This manual page was written by Raúl Benencia <rul@kalgan.cc>
-for the Debian project (but may be used by others).

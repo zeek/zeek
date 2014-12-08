@@ -1,4 +1,10 @@
 
+2.3-338 | 2014-12-08 13:56:19 -0800
+
+  * Add man page for Bro. (Raúl Benencia)
+
+  * Updating doc baselines. (Robin Sommer)
+
 2.3-334 | 2014-12-03 14:22:07 -0800
 
   * Fix compound assignment to require proper L-value. Addresses

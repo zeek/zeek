@@ -4,6 +4,8 @@
 #include "Type.h"
 #include "Val.h"
 #include "Var.h"
+#include <algorithm>
+#include <utility>
 
 static RecordType* ip4_hdr_type = 0;
 static RecordType* ip6_hdr_type = 0;
@@ -635,4 +637,73 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		}
 
 	return rval;
+	}
+
+IP_Hdr::IP_Hdr(const IP_Hdr& other)
+	{
+	del = true;
+
+	if ( other.ip4 )
+		{
+		char* new_hdr = new char[other.HdrLen()];
+		memcpy(new_hdr, other.ip4, other.HdrLen());
+		ip4 = (const struct ip*)new_hdr;
+		ip6 = 0;
+		ip6_hdrs = 0;
+		}
+	else
+		{
+		ip4 = 0;
+		char* new_hdr = new char[other.HdrLen()];
+		memcpy(new_hdr, other.ip6, other.HdrLen());
+		ip6 = (const struct ip6_hdr*)new_hdr;
+		ip6_hdrs = other.ip6_hdrs->Copy(ip6);
+		}
+	}
+
+IP_Hdr& IP_Hdr::operator=(IP_Hdr other)
+	{
+	swap(*this, other);
+	return *this;
+	}
+
+IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
+	{
+	IPv6_Hdr_Chain* rval = new IPv6_Hdr_Chain;
+	rval->length = length;
+
+#ifdef ENABLE_MOBILE_IPV6
+	if ( homeAddr )
+		rval->homeAddr = new IPAddr(*homeAddr);
+#endif
+
+	if ( finalDst )
+		rval->finalDst = new IPAddr(*finalDst);
+
+	if ( chain.empty() )
+		{
+		reporter->InternalWarning("empty IPv6 header chain");
+		delete rval;
+		return 0;
+		}
+
+	const u_char* new_data = (const u_char*)new_hdr;
+	const u_char* old_data = chain[0]->Data();
+
+	for ( size_t i = 0; i < chain.size(); ++i )
+		{
+		int off = chain[i]->Data() - old_data;
+		rval->chain.push_back(new IPv6_Hdr(chain[i]->Type(), new_data + off));
+		}
+
+	return rval;
+	}
+
+void swap(IP_Hdr& a, IP_Hdr& b)
+	{
+	using std::swap;
+	swap(a.ip4, b.ip4);
+	swap(a.ip6, b.ip6);
+	swap(a.del, b.del);
+	swap(a.ip6_hdrs, b.ip6_hdrs);
 	}

@@ -1,4 +1,11 @@
 
+2.3-343 | 2014-12-12 12:43:46 -0800
+
+  * Fix PIA packet replay to deliver copy of IP header. This prevented
+    one from writing a packet-wise analyzer that needs access to IP
+    headers and can be attached to a connection via signature match.
+    Addresses BIT-1298 (Jon Siwek)
+
 2.3-338 | 2014-12-08 13:56:19 -0800
 
   * Add man page for Bro. (Raúl Benencia)

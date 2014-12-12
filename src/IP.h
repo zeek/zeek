@@ -368,18 +368,11 @@ public:
 		}
 
 	/**
-	 * Copy constructor.  The internal buffer of \a other which contains
-	 * the header data must not be truncated.  Also not that if that buffer
-	 * points to a full packet payload, only the IP header portion is copied.
+	 * Copy a header.  The internal buffer which contains the header data
+	 * must not be truncated.  Also note that if that buffer points to a full
+	 * packet payload, only the IP header portion is copied.
 	 */
-	IP_Hdr(const IP_Hdr& other);
-
-	/**
-	 * Copy assignment.  The internal buffer of \a other which contains
-	 * the header data must not be truncated.  Also not that if that buffer
-	 * points to a full packet payload, only the IP header portion is copied.
-	 */
-	IP_Hdr& operator=(IP_Hdr other);
+	IP_Hdr* Copy() const;
 
 	/**
 	 * Destructor.
@@ -580,8 +573,6 @@ public:
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
 	RecordVal* BuildPktHdrVal() const;
-
-	friend void swap(IP_Hdr& a, IP_Hdr& b);
 
 private:
 

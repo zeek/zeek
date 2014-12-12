@@ -43,7 +43,7 @@ void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
 		}
 
 	DataBlock* b = new DataBlock;
-	b->ip = ip ? new IP_Hdr(*ip) : 0;
+	b->ip = ip ? ip->Copy() : 0;
 	b->data = tmp;
 	b->is_orig = is_orig;
 	b->len = len;

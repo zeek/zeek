@@ -4,8 +4,6 @@
 #include "Type.h"
 #include "Val.h"
 #include "Var.h"
-#include <algorithm>
-#include <utility>
 
 static RecordType* ip4_hdr_type = 0;
 static RecordType* ip6_hdr_type = 0;
@@ -639,32 +637,20 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 	return rval;
 	}
 
-IP_Hdr::IP_Hdr(const IP_Hdr& other)
+IP_Hdr* IP_Hdr::Copy() const
 	{
-	del = true;
+	char* new_hdr = new char[HdrLen()];
 
-	if ( other.ip4 )
+	if ( ip4 )
 		{
-		char* new_hdr = new char[other.HdrLen()];
-		memcpy(new_hdr, other.ip4, other.HdrLen());
-		ip4 = (const struct ip*)new_hdr;
-		ip6 = 0;
-		ip6_hdrs = 0;
+		memcpy(new_hdr, ip4, HdrLen());
+		return new IP_Hdr((const struct ip*) new_hdr, true);
 		}
-	else
-		{
-		ip4 = 0;
-		char* new_hdr = new char[other.HdrLen()];
-		memcpy(new_hdr, other.ip6, other.HdrLen());
-		ip6 = (const struct ip6_hdr*)new_hdr;
-		ip6_hdrs = other.ip6_hdrs->Copy(ip6);
-		}
-	}
 
-IP_Hdr& IP_Hdr::operator=(IP_Hdr other)
-	{
-	swap(*this, other);
-	return *this;
+	memcpy(new_hdr, ip6, HdrLen());
+	const struct ip6_hdr* new_ip6 = (const struct ip6_hdr*)new_hdr;
+	IPv6_Hdr_Chain* new_ip6_hdrs = ip6_hdrs->Copy(new_ip6);
+	return new IP_Hdr(new_ip6, true, 0, new_ip6_hdrs);
 	}
 
 IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
@@ -697,13 +683,4 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 		}
 
 	return rval;
-	}
-
-void swap(IP_Hdr& a, IP_Hdr& b)
-	{
-	using std::swap;
-	swap(a.ip4, b.ip4);
-	swap(a.ip6, b.ip6);
-	swap(a.del, b.del);
-	swap(a.ip6_hdrs, b.ip6_hdrs);
 	}

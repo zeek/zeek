@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "FileReassembler.h"
 #include "Conn.h"
 #include "Val.h"
 #include "Tag.h"
@@ -15,6 +16,8 @@
 #include "BroString.h"
 
 namespace file_analysis {
+
+class FileReassembler;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -166,6 +169,7 @@ public:
 
 protected:
 	friend class Manager;
+	friend class FileReassembler;
 
 	/**
 	 * Constructor; only file_analysis::Manager should be creating these.
@@ -227,12 +231,37 @@ protected:
 	/**
 	 * Does mime type detection via file magic signatures and assigns
 	 * strongest matching mime type (if available) to \c mime_type
-	 * field in #val.
-	 * @param data pointer to a chunk of file data.
-	 * @param len number of bytes in the data chunk.
+	 * field in #val.  It uses the data in the BOF buffer
 	 * @return whether a mime type match was found.
 	 */
-	bool DetectMIME(const u_char* data, uint64 len);
+	bool DetectMIME();
+
+	/**
+	 * Enables reassembly on the file.
+	 */
+	void EnableReassembly();
+
+	/**
+	 * Disables reassembly on the file.  If there is an existing reassembler
+	 * for the file, this will cause it to be deleted and won't allow a new
+	 * one to be created until reassembly is reenabled.
+	 */
+	void DisableReassembly();
+
+	/**
+	 * Set a maximum allowed bytes of memory for file reassembly for this file.
+	 */
+	void SetReassemblyBuffer(uint64 max);
+
+	/**
+	 * Perform stream-wise delivery for analyzers that need it.
+	 */
+	void DeliverStream(const u_char* data, uint64 len);
+
+	/** 
+	 * Perform chunk-wise delivery for analyzers that need it.
+	 */
+	void DeliverChunk(const u_char* data, uint64 len, uint64 offset);
 
 	/**
 	 * Lookup a record field index/offset by name.
@@ -246,25 +275,24 @@ protected:
 	 */
 	static void StaticInit();
 
-private:
+protected:
 	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
+	FileReassembler *file_reassembler; /**< A reassembler for the file if it's needed. */
+	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
+	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
+	bool did_mime_type;        /**< Whether the mime type ident has already been attempted. */
+	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
-	bool first_chunk;          /**< Track first non-linear chunk. */
-	bool missed_bof;           /**< Flags that we missed start of file. */
-	bool need_reassembly;      /**< Whether file stream reassembly is needed. */
 	bool done;                 /**< If this object is about to be deleted. */
-	bool did_file_new_event;   /**< Whether the file_new event has been done. */
-	AnalyzerSet analyzers;     /**< A set of attached file analyzer. */
-	queue<pair<EventHandlerPtr, val_list*> > fonc_queue;
+	AnalyzerSet analyzers;     /**< A set of attached file analyzers. */
 
 	struct BOF_Buffer {
-		BOF_Buffer() : full(false), replayed(false), size(0) {}
+		BOF_Buffer() : full(false), size(0) {}
 		~BOF_Buffer()
 			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
 
 		bool full;
-		bool replayed;
 		uint64 size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */

@@ -68,7 +68,6 @@ static bool check_limit_exceeded(uint64 lim, uint64 depth, uint64 len, uint64* n
 		}
 	else if ( depth + len > lim )
 		{
-		printf("exceeded the maximum extraction lenght depth: %llu len: %llu lim: %llu\n", depth, len, lim);
 		*n = lim - depth;
 		return true;
 		}

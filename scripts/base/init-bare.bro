@@ -353,8 +353,9 @@ type connection: record {
 ## gives up and discards any internal state related to the file.
 const default_file_timeout_interval: interval = 2 mins &redef;
 
-## Default amount of bytes that file analysis will buffer to provide
-## data back in time to attached analyzers
+## Default amount of bytes that file analysis will buffer in order to use
+## for mime type matching.  File analyzers attached at the time of mime type
+## matching or later, will receive a copy of this buffer.
 const default_file_bof_buffer_size: count = 4096 &redef;
 
 ## A file that Bro is analyzing.  This is Bro's type for describing the basic
@@ -395,8 +396,9 @@ type fa_file: record {
 	missing_bytes: count &default=0;
 
 	## The number of bytes in the file stream that were not delivered to
-	## stream file analyzers.  This could be overlapping bytes or 
-	## bytes that couldn't be reassembled.
+	## stream file analyzers.  Generally, this consists of bytes that
+	## couldn't be reassembled, either because reassembly simply isn't
+	## enabled, or due to size limitations of the reassembly buffer.
 	overflow_bytes: count &default=0;
 
 	## The amount of time between receiving new data for this file that

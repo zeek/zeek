@@ -5,7 +5,7 @@ FILE_STATE_REMOVE
 file #0, 4, 0
 [orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
 FILE_BOF_BUFFER
-test^M^J
+test
 source: HTTP
 MD5: 098f6bcd4621d373cade4e832627b4f6
 SHA1: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
@@ -17,7 +17,7 @@ FILE_STATE_REMOVE
 file #1, 5, 0
 [orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
 FILE_BOF_BUFFER
-test2^M^J
+test2
 source: HTTP
 MD5: ad0234829205b9033196ba818f7a872b
 SHA1: 109f4b3c50d7b0df729d299bc6f8e9ef9066971f
@@ -29,7 +29,7 @@ FILE_STATE_REMOVE
 file #2, 5, 0
 [orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
 FILE_BOF_BUFFER
-test3^M^J
+test3
 source: HTTP
 MD5: 8ad8757baa8564dc136c1e07507f4a98
 SHA1: 3ebfa301dc59196f18593c45e519287a23297589

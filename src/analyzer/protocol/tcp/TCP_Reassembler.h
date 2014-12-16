@@ -11,9 +11,6 @@ namespace analyzer { namespace tcp {
 
 class TCP_Analyzer;
 
-const int STOP_ON_GAP = 1;
-const int PUNT_ON_PARTIAL = 1;
-
 class TCP_Reassembler : public Reassembler {
 public:
 	enum Type {

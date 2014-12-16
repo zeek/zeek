@@ -133,7 +133,7 @@ export {
 	## each file.
 	const enable_reassembler = T &redef;
 
-	## The default allow per-file reassembly buffer size.
+	## The default per-file reassembly buffer size.
 	const reassembly_buffer_size = 1048576 &redef;
 
 	## Allows the file reassembler to be used if it's necessary because the
@@ -489,7 +489,6 @@ event file_mime_type(f: fa_file, mime_type: string) &priority=10
 	set_info(f);
 
 	f$info$mime_type = mime_type;
-
 
 	if ( analyze_by_mime_type_automatically &&
 	     mime_type in mime_type_to_analyzers )

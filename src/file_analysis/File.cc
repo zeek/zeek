@@ -147,7 +147,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		{
 		val_list* vl = new val_list();
 		vl->append(val->Ref());
-		vl->append(conn->BuildConnVal()->Ref());
+		vl->append(conn->BuildConnVal());
 		vl->append(new Val(is_orig, TYPE_BOOL));
 		FileEvent(file_over_new_connection, vl);
 		}

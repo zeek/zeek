@@ -103,7 +103,7 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 
 	if ( towrite > 0 )
 		{
-		safe_pwrite(fd, (const u_char *) data, towrite, depth);
+		safe_write(fd, reinterpret_cast<const char*>(data), towrite);
 		depth += towrite;
 		}
 
@@ -112,6 +112,13 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 
 bool Extract::Undelivered(uint64 offset, uint64 len)
 	{
-	depth += len;
+	if ( depth == offset )
+		{
+		char* tmp = new char[len]();
+		safe_write(fd, tmp, len);
+		delete [] tmp;
+		depth += len;
+		}
+
 	return true;
 	}

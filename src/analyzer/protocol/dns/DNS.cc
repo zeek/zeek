@@ -692,13 +692,21 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 		data += rdlength;
 		len -= rdlength;
 		}
-	else
-		{ // no data, move on
-		data += rdlength;
-		len -= rdlength;
-		}
 
 	return 1;
+	}
+
+void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
+                                    BroString** p)
+	{
+	uint16 dlen = ExtractShort(data, len);
+	dlen = min(len, static_cast<int>(dlen));
+
+	if ( p )
+		*p = new BroString(data, dlen, 0);
+
+	data += dlen;
+	len -= dlen;
 	}
 
 int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
@@ -718,24 +726,17 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	uint32 sign_time_sec = ExtractLong(data, len);
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
-
-	u_char request_MAC[16];
-	memcpy(request_MAC, data, sizeof(request_MAC));
-
-	// Here we adjust the size of the requested MAC + u_int16_t
-	// for length.  See RFC 2845, sec 2.3.
-	int n = sizeof(request_MAC) + sizeof(u_int16_t);
-	data += n;
-	len -= n;
-
+	BroString* request_MAC;
+	ExtractOctets(data, len, &request_MAC);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
+	ExtractOctets(data, len, 0);  // Other Data
 
 	msg->tsig = new TSIG_DATA;
 
 	msg->tsig->alg_name =
 		new BroString(alg_name, alg_name_end - alg_name, 1);
-	msg->tsig->sig = new BroString(request_MAC, sizeof(request_MAC), 1);
+	msg->tsig->sig = request_MAC;
 	msg->tsig->time_s = sign_time_sec;
 	msg->tsig->time_ms = sign_time_msec;
 	msg->tsig->fudge = fudge;
@@ -835,34 +836,61 @@ int DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	return 1;
 	}
 
+static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
+                                      const u_char*& data, int& len, int& rdlen)
+	{
+	if ( rdlen <= 0 )
+		return 0;
+
+	uint8 str_size = data[0];
+
+	--rdlen;
+	--len;
+	++data;
+
+	if ( str_size > rdlen )
+		{
+		analyzer->Weird("DNS_TXT_char_str_past_rdlen");
+		return 0;
+		}
+
+	StringVal* rval = new StringVal(str_size,
+	                                reinterpret_cast<const char*>(data));
+
+	rdlen -= str_size;
+	len -= str_size;
+	data += str_size;
+
+	return rval;
+	}
+
 int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start)
 	{
-	int name_len = data[0];
-
-	char* name = new char[name_len];
-
-	memcpy(name, data+1, name_len);
-
-	data += rdlength;
-	len -= rdlength;
-
-	if ( dns_TXT_reply && ! msg->skip_event )
+	if ( ! dns_TXT_reply || msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new StringVal(name_len, name));
-
-		analyzer->ConnectionEvent(dns_TXT_reply, vl);
+		data += rdlength;
+		len -= rdlength;
+		return 1;
 		}
 
-	delete [] name;
+	VectorVal* char_strings = new VectorVal(string_vec);
+	StringVal* char_string;
 
-	return 1;
+	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
+		char_strings->Assign(char_strings->Size(), char_string);
+
+	val_list* vl = new val_list;
+
+	vl->append(analyzer->BuildConnVal());
+	vl->append(msg->BuildHdrVal());
+	vl->append(msg->BuildAnswerVal());
+	vl->append(char_strings);
+
+	analyzer->ConnectionEvent(dns_TXT_reply, vl);
+
+	return rdlength == 0;
 	}
 
 void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
@@ -1146,7 +1174,7 @@ void DNS_Analyzer::Done()
 	}
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

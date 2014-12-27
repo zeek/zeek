@@ -16,6 +16,7 @@ the 'dpkg-dev' package, please install it first.
 }
 
 prefix=/opt/bro
+localstatedir=/var/opt/bro
 
 # During the packaging process, `dpkg-shlibs` will fail if used on a library
 # that links to other internal/project libraries unless an RPATH is used or
@@ -31,7 +32,7 @@ cd ..
 ( cd build && make package )
 
 # Full Bro package
-./configure --prefix=${prefix} --pkg-name-prefix=Bro --binary-package
+./configure --prefix=${prefix} --localstatedir=${localstatedir} --pkg-name-prefix=Bro --binary-package
 ( cd build && make package )
 
 # Broccoli
@@ -42,6 +43,6 @@ cd ../..
 
 # Broctl
 cd aux/broctl
-./configure --prefix=${prefix} --binary-package
+./configure --prefix=${prefix} --localstatedir=${localstatedir} --binary-package
 ( cd build && make package && mv *.deb ../../../build/ )
 cd ../..

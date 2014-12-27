@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2014-10-21-18-37-33
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	ocsp_status
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
+1409786981.016881	CXWv6p3arKYeMETxOg	192.168.4.149	53106	93.184.216.146	443	TLSv10	TLS_ECDHE_RSA_WITH_RC4_128_SHA	secp256r1	-	F	-	-	T	FtaZVlJfywdNmVFr1,FoILekwkdtTuZtlVa	(empty)	CN=si0.twimg.com,O=Twitter\, Inc.,L=San Francisco,ST=California,C=US	CN=DigiCert High Assurance CA-3,OU=www.digicert.com,O=DigiCert Inc,C=US	-	-	good
+#close	2014-10-21-18-37-33

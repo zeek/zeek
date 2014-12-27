@@ -27,4 +27,7 @@ status:
 coverage:
 	@for repo in $(REPOS); do (cd $$repo && echo "Coverage for '$$repo' repo:" && make coverage); done
 
+update-timing:
+	@for repo in $(REPOS); do (cd $$repo && echo "Coverage for '$$repo' repo:" && make update-timing); done
+
 .PHONY: all brief init pull push status coverage

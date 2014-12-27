@@ -80,7 +80,6 @@ public:
 		{
 		val.int_val = b;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -90,7 +89,6 @@ public:
 		{
 		val.int_val = bro_int_t(i);
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -100,7 +98,6 @@ public:
 		{
 		val.uint_val = bro_uint_t(u);
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -110,7 +107,6 @@ public:
 		{
 		val.int_val = i;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -120,7 +116,6 @@ public:
 		{
 		val.uint_val = u;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -130,7 +125,6 @@ public:
 		{
 		val.double_val = d;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -145,7 +139,6 @@ public:
 	Val(BroType* t, bool type_type) // Extra arg to differentiate from protected version.
 		{
 		type = new TypeType(t->Ref());
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -155,7 +148,6 @@ public:
 		{
 		val.int_val = 0;
 		type = base_type(TYPE_ERROR);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -364,7 +356,6 @@ protected:
 		{
 		val.string_val = s;
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -376,7 +367,6 @@ protected:
 	Val(TypeTag t)
 		{
 		type = base_type(t);
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -385,7 +375,6 @@ protected:
 	Val(BroType* t)
 		{
 		type = t->Ref();
-		attribs = 0;
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -400,7 +389,6 @@ protected:
 
 	BroValUnion val;
 	BroType* type;
-	RecordVal* attribs;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -944,7 +932,6 @@ public:
 		{
 		val.int_val = i;
 		type = t;
-		attribs = 0;
 		}
 
 	Val* SizeVal() const	{ return new Val(val.int_val, TYPE_INT); }

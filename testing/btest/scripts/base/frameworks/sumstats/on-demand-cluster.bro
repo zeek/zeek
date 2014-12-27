@@ -7,6 +7,7 @@
 # @TEST-EXEC: btest-bg-wait 15
 
 # @TEST-EXEC: btest-diff manager-1/.stdout
+#
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
@@ -36,6 +37,20 @@ event remote_connection_closed(p: event_peer)
 global ready_for_data: event();
 redef Cluster::manager2worker_events += /^ready_for_data$/;
 
+event on_demand()
+	{
+	local host = 7.2.1.5;
+	when ( local result = SumStats::request_key("test sumstat", [$host=host]) )
+		{
+		print "SumStat key request";
+		if ( "test" in result )
+			print fmt("    Host: %s -> %.0f", host, result["test"]$sum);
+
+		if ( Cluster::node == "manager-1" )
+		  terminate();
+		}
+	}
+
 event ready_for_data()
 	{
 	if ( Cluster::node == "worker-1" )
@@ -52,33 +67,8 @@ event ready_for_data()
 		SumStats::observe("test", [$host=7.2.1.5], [$num=91]);
 		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
 		}
-	}
 
-
-event on_demand2()
-	{
-	local host = 7.2.1.5;
-	when ( local result = SumStats::request_key("test sumstat", [$host=host]) )
-		{
-		print "SumStat key request";
-		if ( "test" in result )
-			print fmt("    Host: %s -> %.0f", host, result["test"]$sum);
-		terminate();
-		}
-	}
-
-event on_demand()
-	{
-	#when ( local results = SumStats::request("test sumstat") )
-	#	{
-	#	print "Complete SumStat request";
-	#	print fmt("    Host: %s -> %.0f", 6.5.4.3, results[[$host=6.5.4.3]]["test"]$sum);
-	#	print fmt("    Host: %s -> %.0f", 10.10.10.10, results[[$host=10.10.10.10]]["test"]$sum);
-	#	print fmt("    Host: %s -> %.0f", 1.2.3.4, results[[$host=1.2.3.4]]["test"]$sum);
-	#	print fmt("    Host: %s -> %.0f", 7.2.1.5, results[[$host=7.2.1.5]]["test"]$sum);
-
-		event on_demand2();
-	#	}
+	schedule 1sec { on_demand() };
 	}
 
 global peer_count = 0;
@@ -87,10 +77,7 @@ event remote_connection_handshake_done(p: event_peer) &priority=-5
 	++peer_count;
 	if ( peer_count == 2 )
 		{
-		if ( Cluster::local_node_type() == Cluster::MANAGER )
-			event ready_for_data();
-
-		schedule 1sec { on_demand() };
+		event ready_for_data();
 		}
 	}
 

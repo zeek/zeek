@@ -35,7 +35,7 @@ before you begin:
 
 To build Bro from source, the following additional dependencies are required:
 
-    * CMake 2.8.0 or greater            (http://www.cmake.org)
+    * CMake 2.6.3 or greater            (http://www.cmake.org)
     * Make
     * C/C++ compiler
     * SWIG                              (http://www.swig.org)
@@ -80,7 +80,7 @@ that ``bash`` and ``python`` are in your ``PATH``):
   Distributions of these dependencies can likely be obtained from your
   preferred Mac OS X package management system (e.g. MacPorts_, Fink_,
   or Homebrew_).  Specifically for MacPorts, the ``cmake``, ``swig``,
-  ``swig-python`` and packages provide the required dependencies.
+  and ``swig-python`` packages provide the required dependencies.
 
 
 Optional Dependencies
@@ -91,7 +91,6 @@ build time:
 
     * LibGeoIP (for geolocating IP addresses)
     * sendmail (enables Bro and BroControl to send mail)
-    * gawk (enables all features of bro-cut)
     * curl (used by a Bro script that implements active HTTP)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
     * ipsumdump (for trace-summary; http://www.cs.ucla.edu/~kohler/ipsumdump)
@@ -181,8 +180,13 @@ automatically.  Finally, use ``make install-aux`` to install some of
 the other programs that are in the ``aux/bro-aux`` directory.
 
 OpenBSD users, please see our `FAQ
-<http://www.bro.org/documentation/faq.html>`_ if you are having
+<//www.bro.org/documentation/faq.html>`_ if you are having
 problems installing Bro.
+
+Finally, if you want to build the Bro documentation (not required, because
+all of the documentation for the latest Bro release is available on the
+Bro web site), there are instructions in ``doc/README`` in the source
+distribution.
 
 Configure the Run-Time Environment
 ==================================

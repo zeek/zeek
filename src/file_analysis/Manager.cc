@@ -12,45 +12,77 @@
 #include "UID.h"
 
 #include "plugin/Manager.h"
+#include "analyzer/Manager.h"
 
 using namespace file_analysis;
 
 TableVal* Manager::disabled = 0;
+TableType* Manager::tag_set_type = 0;
 string Manager::salt;
 
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Tag,
-	                           file_analysis::Component>("Files")
+	                           file_analysis::Component>("Files", "Tag"),
+	id_map(), ignored(), current_file_id(), magic_state()
 	{
 	}
 
 Manager::~Manager()
 	{
-	Terminate();
+	for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
+		delete i->second;
+
+	// Have to assume that too much of Bro has been shutdown by this point
+	// to do anything more than reclaim memory.
+
+	File* f;
+	bool* b;
+
+	IterCookie* it = id_map.InitForIteration();
+
+	while ( (f = id_map.NextEntry(it)) )
+		delete f;
+
+	it = ignored.InitForIteration();
+
+	while( (b = ignored.NextEntry(it)) )
+		delete b;
+
+	delete magic_state;
 	}
 
 void Manager::InitPreScript()
 	{
-	std::list<Component*> analyzers = plugin_mgr->Components<Component>();
-
-	for ( std::list<Component*>::const_iterator i = analyzers.begin();
-	      i != analyzers.end(); ++i )
-	      RegisterComponent(*i, "ANALYZER_");
 	}
 
 void Manager::InitPostScript()
 	{
 	}
 
+void Manager::InitMagic()
+	{
+	delete magic_state;
+	magic_state = rule_matcher->InitFileMagic();
+	}
+
 void Manager::Terminate()
 	{
 	vector<string> keys;
 
-	for ( IDMap::iterator it = id_map.begin(); it != id_map.end(); ++it )
-		keys.push_back(it->first);
+	IterCookie* it = id_map.InitForIteration();
+	HashKey* key;
+
+	while ( id_map.NextEntry(key, it) )
+		{
+		keys.push_back(string(static_cast<const char*>(key->Key()),
+		                      key->Size()));
+		delete key;
+		}
 
 	for ( size_t i = 0; i < keys.size(); ++i )
 		Timeout(keys[i], true);
+
+	mgr.Drain();
 	}
 
 string Manager::HashHandle(const string& handle) const
@@ -72,6 +104,7 @@ void Manager::SetHandle(const string& handle)
 	if ( handle.empty() )
 		return;
 
+	DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", handle.c_str());
 	current_file_id = HashHandle(handle);
 	}
 
@@ -221,6 +254,28 @@ bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
 	return file->AddAnalyzer(tag, args);
 	}
 
+TableVal* Manager::AddAnalyzersForMIMEType(const string& file_id, const string& mtype,
+					   RecordVal* args)
+	{
+	if ( ! tag_set_type )
+		tag_set_type = internal_type("files_tag_set")->AsTableType();
+
+	TableVal* sval = new TableVal(tag_set_type);
+	TagSet* l = LookupMIMEType(mtype, false);
+
+	if ( ! l )
+		return sval;
+
+	for ( TagSet::const_iterator i = l->begin(); i != l->end(); i++ )
+		{
+		file_analysis::Tag tag = *i;
+		if ( AddAnalyzer(file_id, tag, args) )
+			sval->Assign(tag.AsEnumVal(), 0);
+		}
+
+	return sval;
+	}
+
 bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
                              RecordVal* args) const
 	{
@@ -241,11 +296,12 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 	if ( IsIgnored(file_id) )
 		return 0;
 
-	File* rval = id_map[file_id];
+	File* rval = id_map.Lookup(file_id.c_str());
 
 	if ( ! rval )
 		{
-		rval = id_map[file_id] = new File(file_id, conn, tag, is_orig);
+		rval = new File(file_id, conn, tag, is_orig);
+		id_map.Insert(file_id.c_str(), rval);
 		rval->ScheduleInactivityTimer();
 
 		if ( IsIgnored(file_id) )
@@ -264,12 +320,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 
 File* Manager::LookupFile(const string& file_id) const
 	{
-	IDMap::const_iterator it = id_map.find(file_id);
-
-	if ( it == id_map.end() )
-		return 0;
-
-	return it->second;
+	return id_map.Lookup(file_id.c_str());
 	}
 
 void Manager::Timeout(const string& file_id, bool is_terminating)
@@ -300,37 +351,38 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 
 bool Manager::IgnoreFile(const string& file_id)
 	{
-	if ( id_map.find(file_id) == id_map.end() )
+	if ( ! id_map.Lookup(file_id.c_str()) )
 		return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
 
-	ignored.insert(file_id);
-
+	delete ignored.Insert(file_id.c_str(), new bool);
 	return true;
 	}
 
 bool Manager::RemoveFile(const string& file_id)
 	{
-	IDMap::iterator it = id_map.find(file_id);
+	HashKey key(file_id.c_str());
+	// Can't remove from the dictionary/map right away as invoking EndOfFile
+	// may cause some events to be executed which actually depend on the file
+	// still being in the dictionary/map.
+	File* f = static_cast<File*>(id_map.Lookup(&key));
 
-	if ( it == id_map.end() )
+	if ( ! f )
 		return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Remove FileID %s", file_id.c_str());
 
-	it->second->EndOfFile();
-
-	delete it->second;
-	id_map.erase(file_id);
-	ignored.erase(file_id);
-
+	f->EndOfFile();
+	delete f;
+	id_map.Remove(&key);
+	delete static_cast<bool*>(ignored.Remove(&key));
 	return true;
 	}
 
 bool Manager::IsIgnored(const string& file_id)
 	{
-	return ignored.find(file_id) != ignored.end();
+	return ignored.Lookup(file_id.c_str()) != 0;
 	}
 
 string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
@@ -342,6 +394,9 @@ string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 
 	if ( ! get_file_handle )
 		return "";
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
+		analyzer_mgr->GetComponentName(tag).c_str());
 
 	EnumVal* tagval = tag.AsEnumVal();
 	Ref(tagval);
@@ -389,9 +444,120 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	if ( ! c->Factory() )
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
-								"dynamically", c->CanonicalName());
+					  "dynamically", c->CanonicalName().c_str());
 		return 0;
 		}
 
-	return c->Factory()(args, f);
+	DBG_LOG(DBG_FILE_ANALYSIS, "Instantiate analyzer %s for file %s",
+		GetComponentName(tag).c_str(), f->id.c_str());
+
+	Analyzer* a = c->Factory()(args, f);
+
+	if ( ! a )
+		reporter->InternalError("file analyzer instantiation failed");
+
+	a->SetAnalyzerTag(tag);
+
+	return a;
+	}
+
+Manager::TagSet* Manager::LookupMIMEType(const string& mtype, bool add_if_not_found)
+	{
+	MIMEMap::const_iterator i = mime_types.find(to_upper(mtype));
+
+	if ( i != mime_types.end() )
+		return i->second;
+
+	if ( ! add_if_not_found )
+		return 0;
+
+	TagSet* l = new TagSet;
+	mime_types.insert(std::make_pair(to_upper(mtype), l));
+	return l;
+	}
+
+bool Manager::RegisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype)
+	{
+	Component* p = Lookup(tag);
+
+	if ( ! p  )
+		return false;
+
+	return RegisterAnalyzerForMIMEType(p->Tag(), mtype->CheckString());
+	}
+
+bool Manager::RegisterAnalyzerForMIMEType(Tag tag, const string& mtype)
+	{
+	TagSet* l = LookupMIMEType(mtype, true);
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Register analyzer %s for MIME type %s",
+		GetComponentName(tag).c_str(), mtype.c_str());
+
+	l->insert(tag);
+	return true;
+	}
+
+bool Manager::UnregisterAnalyzerForMIMEType(EnumVal* tag, StringVal* mtype)
+	{
+	Component* p = Lookup(tag);
+
+	if ( ! p  )
+		return false;
+
+	return UnregisterAnalyzerForMIMEType(p->Tag(), mtype->CheckString());
+	}
+
+bool Manager::UnregisterAnalyzerForMIMEType(Tag tag, const string& mtype)
+	{
+	TagSet* l = LookupMIMEType(mtype, true);
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "Unregister analyzer %s for MIME type %s",
+		GetComponentName(tag).c_str(), mtype.c_str());
+
+	l->erase(tag);
+	return true;
+	}
+
+RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,
+        RuleMatcher::MIME_Matches* rval) const
+	{
+	if ( ! magic_state )
+		reporter->InternalError("file magic signature state not initialized");
+
+	rval = rule_matcher->Match(magic_state, data, len, rval);
+	rule_matcher->ClearFileMagicState(magic_state);
+	return rval;
+	}
+
+string Manager::DetectMIME(const u_char* data, uint64 len) const
+	{
+	RuleMatcher::MIME_Matches matches;
+	DetectMIME(data, len, &matches);
+
+	if ( matches.empty() )
+		return "";
+
+	return *(matches.begin()->second.begin());
+	}
+
+VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+	{
+	VectorVal* rval = new VectorVal(mime_matches);
+
+	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
+	      it != m.end(); ++it )
+		{
+		RecordVal* element = new RecordVal(mime_match);
+
+		for ( set<string>::const_iterator it2 = it->second.begin();
+		      it2 != it->second.end(); ++it2 )
+			{
+			element->Assign(0, new Val(it->first, TYPE_INT));
+			element->Assign(1, new StringVal(*it2));
+			}
+
+		rval->Assign(rval->Size(), element);
+		}
+
+	return rval;
 	}

@@ -4,6 +4,17 @@
 module Input;
 
 export {
+	type Event: enum {
+		EVENT_NEW = 0,
+		EVENT_CHANGED = 1,
+		EVENT_REMOVED = 2,
+	};
+
+	type Mode: enum {
+		MANUAL = 0,
+		REREAD = 1,
+		STREAM = 2
+	};
 
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;

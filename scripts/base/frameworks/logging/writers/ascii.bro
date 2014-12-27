@@ -26,20 +26,20 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const use_json = F &redef;
 
-	## Format of timestamps when writing out JSON. By default, the JSON formatter will
-	## use double values for timestamps which represent the number of seconds from the
-	## UNIX epoch.
+	## Format of timestamps when writing out JSON. By default, the JSON
+	## formatter will use double values for timestamps which represent the
+	## number of seconds from the UNIX epoch.
 	const json_timestamps: JSON::TimestampFormat = JSON::TS_EPOCH &redef;
 
 	## If true, include lines with log meta information such as column names
 	## with types, the values of ASCII logging options that are in use, and
 	## the time when the file was opened and closed (the latter at the end).
-        ##
+	##
 	## If writing in JSON format, this is implicitly disabled.
 	const include_meta = T &redef;
 
 	## Prefix for lines with meta information.
-        ##
+	##
 	## This option is also available as a per-filter ``$config`` option.
 	const meta_prefix = "#" &redef;
 

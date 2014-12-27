@@ -367,7 +367,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## str: The textual information returned by the reply.
+## strs: The textual information returned by the reply.
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
@@ -376,7 +376,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%);
+event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec%);
 
 ## Generated for DNS replies of type *SRV*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
@@ -392,11 +392,17 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%)
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## priority: Priority of the SRV response.
+## target: Target of the SRV response -- the canonical hostname of the
+##         machine providing the service, ending in a dot.
 ##
-## weight: Weight of the SRV response.
+## priority: Priority of the SRV response -- the priority of the target
+##           host, lower value means more preferred.
 ##
-## p: Port of the SRV response.
+## weight: Weight of the SRV response -- a relative weight for records
+##         with the same priority, higher value means more preferred.
+##
+## p: Port of the SRV response -- the TCP or UDP port on which the
+##    service is to be found.
 ##
 ## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
@@ -408,8 +414,7 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%)
 event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count%);
 
 ## Generated on DNS reply resource records when the type of record is not one
-## that Bro knows how to parse and generate another more specific specific
-## event.
+## that Bro knows how to parse and generate another more specific event.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the
 ##    transport-layer session being analyzed.

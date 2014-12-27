@@ -110,7 +110,7 @@ public:
 		T result = 0;
 
 		// loop optmized with Duff's Device
-		register unsigned n = (size + 7) / 8;
+		unsigned n = (size + 7) / 8;
 		switch ( size % 8 ) {
 		case 0: do { result ^= byte_lookup[offset++][*p++];
 		case 7:      result ^= byte_lookup[offset++][*p++];

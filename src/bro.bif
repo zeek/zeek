@@ -2,8 +2,8 @@
 ##! such as general programming algorithms, string processing, math functions,
 ##! introspection, type conversion, file/directory manipulation, packet
 ##! filtering, interprocess communication and controlling protocol analyzer
-##! behavior. 
-##! 
+##! behavior.
+##!
 ##! You'll find most of Bro's built-in functions that aren't protocol-specific
 ##! in this file.
 
@@ -21,6 +21,7 @@
 #include "IPAddr.h"
 #include "util.h"
 #include "file_analysis/Manager.h"
+#include "iosource/Manager.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ TableType* var_sizes;
 // and hence it's declared in NetVar.{h,cc}.
 extern RecordType* gap_info;
 
-static PktDumper* addl_pkt_dumper = 0;
+static iosource::PktDumper* addl_pkt_dumper = 0;
 
 bro_int_t parse_int(const char*& fmt)
 	{
@@ -835,30 +836,44 @@ function syslog%(s: string%): any
 	return 0;
 	%}
 
-%%{
-extern "C" {
-#include <magic.h>
-}
-%%}
-
-## Determines the MIME type of a piece of data using ``libmagic``.
+## Determines the MIME type of a piece of data using Bro's file magic
+## signatures.
 ##
 ## data: The data to find the MIME type for.
 ##
-## return_mime: If true, the function returns a short MIME type string (e.g.,
-##              ``text/plain`` instead of a more elaborate textual description).
+## return_mime: Deprecated argument; does nothing, except emit a warning
+##              when false.
 ##
-## Returns: The MIME type of *data*, or "<unknown>" if there was an error.
-function identify_data%(data: string, return_mime: bool%): string
+## Returns: The MIME type of *data*, or "<unknown>" if there was an error
+##          or no match.  This is the strongest signature match.
+##
+## .. bro:see:: file_magic
+function identify_data%(data: string, return_mime: bool &default=T%): string
 	%{
-	magic_t* magic = return_mime ? &magic_mime_cookie : &magic_desc_cookie;
+	if ( ! return_mime )
+		reporter->Warning("identify_data() builtin-function only returns MIME types, but verbose file info requested");
 
-	if( ! *magic )
+	string strongest_match = file_mgr->DetectMIME(data->Bytes(), data->Len());
+
+	if ( strongest_match.empty() )
 		return new StringVal("<unknown>");
 
-	const char* desc = bro_magic_buffer(*magic, data->Bytes(), data->Len());
+	return new StringVal(strongest_match);
+	%}
 
-	return new StringVal(desc ? desc : "<unknown>");
+## Determines the MIME type of a piece of data using Bro's file magic
+## signatures.
+##
+## data: The data for which to find matching MIME types.
+##
+## Returns: All matching signatures, in order of strength.
+##
+## .. bro:see:: identify_data
+function file_magic%(data: string%): mime_matches
+	%{
+	RuleMatcher::MIME_Matches matches;
+	file_mgr->DetectMIME(data->Bytes(), data->Len(), &matches);
+	return file_analysis::GenMIMEMatchesVal(matches);
 	%}
 
 ## Performs an entropy test on the given data.
@@ -1661,11 +1676,14 @@ function net_stats%(%): NetStats
 	unsigned int drop = 0;
 	unsigned int link = 0;
 
-	loop_over_list(pkt_srcs, i)
-		{
-		PktSrc* ps = pkt_srcs[i];
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 
-		struct PktSrc::Stats stat;
+	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
+	      i != pkt_srcs.end(); i++ )
+		{
+		iosource::PktSrc* ps = *i;
+
+		struct iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
 		recv += stat.received;
 		drop += stat.dropped;
@@ -2139,6 +2157,22 @@ function counts_to_addr%(v: index_vec%): addr
 		memset(bytes, 0, sizeof(bytes));
 		return new AddrVal(bytes);
 		}
+	%}
+
+## Converts an :bro:type:`enum` to an :bro:type:`int`.
+##
+## e: The :bro:type:`enum` to convert.
+##
+## Returns: The :bro:type:`int` value that corresponds to the :bro:type:`enum`.
+function enum_to_int%(e: any%): int
+	%{
+	if ( e->Type()->Tag() != TYPE_ENUM )
+		{
+		builtin_error("enum_to_int() requires enum value");
+		return new Val(-1, TYPE_INT);
+		}
+
+	return new Val(e->AsEnum(), TYPE_INT);
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`int`.
@@ -3210,10 +3244,15 @@ function dump_current_packet%(file_name: string%) : bool
 		return new Val(0, TYPE_BOOL);
 
 	if ( ! addl_pkt_dumper )
-		addl_pkt_dumper = new PktDumper(0, true);
+		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	addl_pkt_dumper->Open(file_name->CheckString());
-	addl_pkt_dumper->Dump(hdr, pkt);
+	if ( addl_pkt_dumper )
+		{
+		iosource::PktDumper::Packet p;
+		p.hdr = hdr;
+		p.data = pkt;
+		addl_pkt_dumper->Dump(&p);
+		}
 
 	return new Val(! addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
@@ -3270,10 +3309,15 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	hdr.len = (*pkt_vl)[3]->AsCount();
 
 	if ( ! addl_pkt_dumper )
-		addl_pkt_dumper = new PktDumper(0, true);
+		addl_pkt_dumper = iosource_mgr->OpenPktDumper(file_name->CheckString(), true);
 
-	addl_pkt_dumper->Open(file_name->CheckString());
-	addl_pkt_dumper->Dump(&hdr, (*pkt_vl)[4]->AsString()->Bytes());
+	if ( addl_pkt_dumper )
+		{
+		iosource::PktDumper::Packet p;
+		p.hdr = &hdr;
+		p.data = (*pkt_vl)[4]->AsString()->Bytes();
+		addl_pkt_dumper->Dump(&p);
+		}
 
 	return new Val(addl_pkt_dumper->IsError(), TYPE_BOOL);
 	%}
@@ -4096,14 +4140,14 @@ function rotate_file_by_name%(f: string%): rotate_info
 	bool is_addl_pkt_dumper = false;
 
 	// Special case: one of current dump files.
-	if ( pkt_dumper && streq(pkt_dumper->FileName(), f->CheckString()) )
+	if ( pkt_dumper && streq(pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_pkt_dumper = true;
 		pkt_dumper->Close();
 		}
 
 	if ( addl_pkt_dumper &&
-	     streq(addl_pkt_dumper->FileName(), f->CheckString()) )
+	     streq(addl_pkt_dumper->Path().c_str(), f->CheckString()) )
 		{
 		is_addl_pkt_dumper = true;
 		addl_pkt_dumper->Close();
@@ -4199,103 +4243,6 @@ function enable_raw_output%(f: file%): any
 #                              Packet Filtering
 #
 # ===========================================================================
-
-## Precompiles a PCAP filter and binds it to a given identifier.
-##
-## id: The PCAP identifier to reference the filter *s* later on.
-##
-## s: The PCAP filter. See ``man tcpdump`` for valid expressions.
-##
-## Returns: True if *s* is valid and precompiles successfully.
-##
-## .. bro:see:: install_pcap_filter
-##          install_src_addr_filter
-##          install_src_net_filter
-##          uninstall_src_addr_filter
-##          uninstall_src_net_filter
-##          install_dst_addr_filter
-##          install_dst_net_filter
-##          uninstall_dst_addr_filter
-##          uninstall_dst_net_filter
-##          pcap_error
-function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
-	%{
-	bool success = true;
-
-	loop_over_list(pkt_srcs, i)
-		{
-		pkt_srcs[i]->ClearErrorMsg();
-
-		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
-							s->CheckString()) )
-			{
-			reporter->Error("precompile_pcap_filter: %s",
-				pkt_srcs[i]->ErrorMsg());
-			success = false;
-			}
-		}
-
-	return new Val(success, TYPE_BOOL);
-	%}
-
-## Installs a PCAP filter that has been precompiled with
-## :bro:id:`precompile_pcap_filter`.
-##
-## id: The PCAP filter id of a precompiled filter.
-##
-## Returns: True if the filter associated with *id* has been installed
-##          successfully.
-##
-## .. bro:see:: precompile_pcap_filter
-##              install_src_addr_filter
-##              install_src_net_filter
-##              uninstall_src_addr_filter
-##              uninstall_src_net_filter
-##              install_dst_addr_filter
-##              install_dst_net_filter
-##              uninstall_dst_addr_filter
-##              uninstall_dst_net_filter
-##              pcap_error
-function install_pcap_filter%(id: PcapFilterID%): bool
-	%{
-	bool success = true;
-
-	loop_over_list(pkt_srcs, i)
-		{
-		pkt_srcs[i]->ClearErrorMsg();
-
-		if ( ! pkt_srcs[i]->SetFilter(id->ForceAsInt()) )
-			success = false;
-		}
-
-	return new Val(success, TYPE_BOOL);
-	%}
-
-## Returns a string representation of the last PCAP error.
-##
-## Returns: A descriptive error message of the PCAP function that failed.
-##
-## .. bro:see:: precompile_pcap_filter
-##              install_pcap_filter
-##              install_src_addr_filter
-##              install_src_net_filter
-##              uninstall_src_addr_filter
-##              uninstall_src_net_filter
-##              install_dst_addr_filter
-##              install_dst_net_filter
-##              uninstall_dst_addr_filter
-##              uninstall_dst_net_filter
-function pcap_error%(%): string
-	%{
-	loop_over_list(pkt_srcs, i)
-		{
-		const char* err = pkt_srcs[i]->ErrorMsg();
-		if ( *err )
-			return new StringVal(err);
-		}
-
-	return new StringVal("no error");
-	%}
 
 ## Installs a filter to drop packets from a given IP source address with
 ## a certain probability if none of a given set of TCP flags are set.
@@ -4528,7 +4475,7 @@ function enable_communication%(%): any
 		return 0;
 
 	using_communication = 1;
-	remote_serializer->Init();
+	remote_serializer->Enable();
 	return 0;
 	%}
 

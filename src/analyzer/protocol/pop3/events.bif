@@ -13,7 +13,7 @@
 ## arg: The argument to the command.
 ##
 ## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
-##    pop3_terminate pop3_unexpected
+##    pop3_unexpected
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -37,8 +37,8 @@ event pop3_request%(c: connection, is_orig: bool,
 ##
 ## msg: The textual description the server sent along with *cmd*.
 ##
-## .. bro:see:: pop3_data pop3_login_failure pop3_login_success  pop3_request
-##    pop3_terminate pop3_unexpected
+## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
+##    pop3_unexpected
 ##
 ## .. todo:: This event is receiving odd parameters, should unify.
 ##
@@ -62,8 +62,8 @@ event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
 ##
 ## data: The data sent.
 ##
-## .. bro:see::  pop3_login_failure pop3_login_success pop3_reply pop3_request
-##    pop3_terminate pop3_unexpected
+## .. bro:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
+##    pop3_unexpected
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -87,7 +87,6 @@ event pop3_data%(c: connection, is_orig: bool, data: string%);
 ## detail: The input that triggered the event.
 ##
 ## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
-##    pop3_terminate
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -106,21 +105,14 @@ event pop3_unexpected%(c: connection, is_orig: bool,
 ##
 ## c: The connection.
 ##
-## is_orig: Always false.
-##
-## msg: A descriptive message why processing was stopped.
-##
-## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
-##    pop3_unexpected
-##
-## .. note:: Currently, only the ``STARTLS`` command is recognized and
-##    triggers this.
+## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+##    pop3_request pop3_unexpected
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
-event pop3_terminate%(c: connection, is_orig: bool, msg: string%);
+event pop3_starttls%(c: connection%);
 
 ## Generated for successful authentications on POP3 connections.
 ##
@@ -136,7 +128,7 @@ event pop3_terminate%(c: connection, is_orig: bool, msg: string%);
 ##
 ## password: The password used for authentication.
 ##
-## .. bro:see:: pop3_data pop3_login_failure  pop3_reply pop3_request pop3_terminate
+## .. bro:see:: pop3_data pop3_login_failure pop3_reply pop3_request
 ##    pop3_unexpected
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -160,7 +152,7 @@ event pop3_login_success%(c: connection, is_orig: bool,
 ##
 ## password: The password attempted for authentication.
 ##
-## .. bro:see:: pop3_data  pop3_login_success pop3_reply pop3_request pop3_terminate
+## .. bro:see:: pop3_data pop3_login_success pop3_reply pop3_request
 ##    pop3_unexpected
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol

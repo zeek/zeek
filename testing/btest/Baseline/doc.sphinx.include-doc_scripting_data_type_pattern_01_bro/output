@@ -4,7 +4,7 @@ data_type_pattern_01.bro
 
 event bro_init()
     {
-    local test_string = "The quick brown fox jumped over the lazy dog.";
+    local test_string = "The quick brown fox jumps over the lazy dog.";
     local test_pattern = /quick|lazy/;
     
     if ( test_pattern in test_string )

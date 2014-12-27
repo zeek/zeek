@@ -192,6 +192,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		string fullname = make_full_var_name(current_module.c_str(), s.c_str());
 		debug_msg("Function %s not defined.\n", fullname.c_str());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
 
@@ -199,6 +200,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
 
@@ -206,6 +208,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s declared but not defined.\n", id->Name());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
 
@@ -216,8 +219,11 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s is a built-in function\n", id->Name());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
+
+	Unref(id);
 
 	Stmt* body = 0;	// the particular body we care about; 0 = all
 

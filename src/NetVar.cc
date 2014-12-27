@@ -20,6 +20,8 @@ TableType* string_set;
 TableType* string_array;
 TableType* count_set;
 VectorType* string_vec;
+VectorType* mime_matches;
+RecordType* mime_match;
 
 int watchdog_interval;
 
@@ -46,9 +48,6 @@ double tcp_partial_close_delay;
 int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
-
-RecordType* x509_type;
-RecordType* x509_extension_type;
 
 RecordType* socks_address;
 
@@ -246,8 +245,6 @@ bro_uint_t bits_per_uid;
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
-#include "logging.bif.netvar_def"
-#include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 
 void init_event_handlers()
@@ -312,8 +309,6 @@ void init_net_var()
 	{
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
-#include "logging.bif.netvar_init"
-#include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
@@ -330,6 +325,8 @@ void init_net_var()
 	string_set = internal_type("string_set")->AsTableType();
 	string_array = internal_type("string_array")->AsTableType();
 	string_vec = internal_type("string_vec")->AsVectorType();
+	mime_match = internal_type("mime_match")->AsRecordType();
+	mime_matches = internal_type("mime_matches")->AsVectorType();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
@@ -353,9 +350,6 @@ void init_net_var()
 		opt_internal_int("tcp_max_above_hole_without_any_acks");
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
-
-	x509_type = internal_type("X509")->AsRecordType();
-	x509_extension_type = internal_type("X509_extension_info")->AsRecordType();
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 

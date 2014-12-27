@@ -38,7 +38,7 @@ Rule::~Rule()
 const char* Rule::TypeToString(Rule::PatternType type)
 	{
 	static const char* labels[] = {
-		"Payload", "HTTP-REQUEST", "HTTP-REQUEST-BODY",
+		"File Magic", "Payload", "HTTP-REQUEST", "HTTP-REQUEST-BODY",
 		"HTTP-REQUEST-HEADER", "HTTP-REPLY-BODY",
 		"HTTP-REPLY-HEADER", "FTP", "Finger",
 	};

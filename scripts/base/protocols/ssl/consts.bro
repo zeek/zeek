@@ -14,15 +14,43 @@ export {
 		[TLSv11] = "TLSv11",
 		[TLSv12] = "TLSv12",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-	
-	## Mapping between numeric codes and human readable strings for alert 
+
+	## TLS content types:
+	const CHANGE_CIPHER_SPEC = 20;
+	const ALERT = 21;
+	const HANDSHAKE = 22;
+	const APPLICATION_DATA = 23;
+	const HEARTBEAT = 24;
+	const V2_ERROR = 300;
+	const V2_CLIENT_HELLO = 301;
+	const V2_CLIENT_MASTER_KEY = 302;
+	const V2_SERVER_HELLO = 304;
+
+	## TLS Handshake types:
+	const HELLO_REQUEST       = 0;
+	const CLIENT_HELLO        = 1;
+	const SERVER_HELLO        = 2;
+	const HELLO_VERIFY_REQUEST = 3; # RFC 6347
+	const SESSION_TICKET      = 4; # RFC 5077
+	const CERTIFICATE         = 11;
+	const SERVER_KEY_EXCHANGE = 12;
+	const CERTIFICATE_REQUEST = 13;
+	const SERVER_HELLO_DONE   = 14;
+	const CERTIFICATE_VERIFY  = 15;
+	const CLIENT_KEY_EXCHANGE = 16;
+	const FINISHED            = 20;
+	const CERTIFICATE_URL     = 21; # RFC 3546
+	const CERTIFICATE_STATUS  = 22; # RFC 3546
+	const SUPPLEMENTAL_DATA   = 23; # RFC 4680
+
+	## Mapping between numeric codes and human readable strings for alert
 	## levels.
 	const alert_levels: table[count] of string = {
 		[1] = "warning",
 		[2] = "fatal",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-	
-	## Mapping between numeric codes and human readable strings for alert 
+
+	## Mapping between numeric codes and human readable strings for alert
 	## descriptions.
 	const alert_descriptions: table[count] of string = {
 		[0] = "close_notify",
@@ -58,7 +86,7 @@ export {
 		[115] = "unknown_psk_identity",
 		[120] = "no_application_protocol",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-	
+
 	## Mapping between numeric codes and human readable strings for SSL/TLS
 	## extensions.
 	# More information can be found here:
@@ -83,6 +111,11 @@ export {
 		[16] = "application_layer_protocol_negotiation",
 		[17] = "status_request_v2",
 		[18] = "signed_certificate_timestamp",
+		[19] = "client_certificate_type",
+		[20] = "server_certificate_type",
+		[21] = "padding", # temporary till 2015-03-12
+		[22] = "encrypt_then_mac",
+		[23] = "extended_master_secret", # temporary till 2015-09-26
 		[35] = "SessionTicket TLS",
 		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",
@@ -93,7 +126,56 @@ export {
 		[35655] = "padding",
 		[65281] = "renegotiation_info"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-	
+
+	## Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
+	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+	const ec_curves: table[count] of string = {
+		[1] = "sect163k1",
+		[2] = "sect163r1",
+		[3] = "sect163r2",
+		[4] = "sect193r1",
+		[5] = "sect193r2",
+		[6] = "sect233k1",
+		[7] = "sect233r1",
+		[8] = "sect239k1",
+		[9] = "sect283k1",
+		[10] = "sect283r1",
+		[11] = "sect409k1",
+		[12] = "sect409r1",
+		[13] = "sect571k1",
+		[14] = "sect571r1",
+		[15] = "secp160k1",
+		[16] = "secp160r1",
+		[17] = "secp160r2",
+		[18] = "secp192k1",
+		[19] = "secp192r1",
+		[20] = "secp224k1",
+		[21] = "secp224r1",
+		[22] = "secp256k1",
+		[23] = "secp256r1",
+		[24] = "secp384r1",
+		[25] = "secp521r1",
+		[26] = "brainpoolP256r1",
+		[27] = "brainpoolP384r1",
+		[28] = "brainpoolP512r1",
+		# draft-ietf-tls-negotiated-ff-dhe-02
+		[256] = "ffdhe2432",
+		[257] = "ffdhe3072",
+		[258] = "ffdhe4096",
+		[259] = "ffdhe6144",
+		[260] = "ffdhe8192",
+		[0xFF01] = "arbitrary_explicit_prime_curves",
+		[0xFF02] = "arbitrary_explicit_char2_curves"
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+	## Mapping between numeric codes and human readable string for SSL/TLC EC point formats.
+	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
+	const ec_point_formats: table[count] of string = {
+		[0] = "uncompressed",
+		[1] = "ansiX962_compressed_prime",
+		[2] = "ansiX962_compressed_char2"
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
 	# SSLv2
 	const SSLv20_CK_RC4_128_WITH_MD5 = 0x010080;
 	const SSLv20_CK_RC4_128_EXPORT40_WITH_MD5 = 0x020080;
@@ -444,6 +526,10 @@ export {
 	const TLS_PSK_WITH_AES_256_CCM_8 = 0xC0A9;
 	const TLS_PSK_DHE_WITH_AES_128_CCM_8 = 0xC0AA;
 	const TLS_PSK_DHE_WITH_AES_256_CCM_8 = 0xC0AB;
+	const TLS_ECDHE_ECDSA_WITH_AES_128_CCM = 0xC0AC;
+	const TLS_ECDHE_ECDSA_WITH_AES_256_CCM = 0xC0AD;
+	const TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 = 0xC0AE;
+	const TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF;
 	# draft-agl-tls-chacha20poly1305-02
 	const TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13;
 	const TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC14;
@@ -458,8 +544,8 @@ export {
 	const SSL_RSA_WITH_DES_CBC_MD5 = 0xFF82;
 	const SSL_RSA_WITH_3DES_EDE_CBC_MD5 = 0xFF83;
 	const TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF;
-	
-	## This is a table of all known cipher specs.  It can be used for 
+
+	## This is a table of all known cipher specs.  It can be used for
 	## detecting unknown ciphers and for converting the cipher spec
 	## constants into a human readable format.
 	const cipher_desc: table[count] of string = {
@@ -807,6 +893,10 @@ export {
 		[TLS_PSK_WITH_AES_256_CCM_8] = "TLS_PSK_WITH_AES_256_CCM_8",
 		[TLS_PSK_DHE_WITH_AES_128_CCM_8] = "TLS_PSK_DHE_WITH_AES_128_CCM_8",
 		[TLS_PSK_DHE_WITH_AES_256_CCM_8] = "TLS_PSK_DHE_WITH_AES_256_CCM_8",
+		[TLS_ECDHE_ECDSA_WITH_AES_128_CCM] = "TLS_ECDHE_ECDSA_WITH_AES_128_CCM",
+		[TLS_ECDHE_ECDSA_WITH_AES_256_CCM] = "TLS_ECDHE_ECDSA_WITH_AES_256_CCM",
+		[TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8] = "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8",
+		[TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8] = "TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8",
 		[TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256] = "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
 		[TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256] = "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
@@ -819,44 +909,6 @@ export {
 		[SSL_RSA_WITH_DES_CBC_MD5] = "SSL_RSA_WITH_DES_CBC_MD5",
 		[SSL_RSA_WITH_3DES_EDE_CBC_MD5] = "SSL_RSA_WITH_3DES_EDE_CBC_MD5",
 		[TLS_EMPTY_RENEGOTIATION_INFO_SCSV] = "TLS_EMPTY_RENEGOTIATION_INFO_SCSV",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-	
-	## Mapping between the constants and string values for SSL/TLS errors.
-	const x509_errors: table[count] of string = {
-		[0]  = "ok",
-		[1]  = "unable to get issuer cert",
-		[2]  = "unable to get crl",
-		[3]  = "unable to decrypt cert signature",
-		[4]  = "unable to decrypt crl signature",
-		[5]  = "unable to decode issuer public key",
-		[6]  = "cert signature failure",
-		[7]  = "crl signature failure",
-		[8]  = "cert not yet valid",
-		[9]  = "cert has expired",
-		[10] = "crl not yet valid",
-		[11] = "crl has expired",
-		[12] = "error in cert not before field",
-		[13] = "error in cert not after field",
-		[14] = "error in crl last update field",
-		[15] = "error in crl next update field",
-		[16] = "out of mem",
-		[17] = "depth zero self signed cert",
-		[18] = "self signed cert in chain",
-		[19] = "unable to get issuer cert locally",
-		[20] = "unable to verify leaf signature",
-		[21] = "cert chain too long",
-		[22] = "cert revoked",
-		[23] = "invalid ca",
-		[24] = "path length exceeded",
-		[25] = "invalid purpose",
-		[26] = "cert untrusted",
-		[27] = "cert rejected",
-		[28] = "subject issuer mismatch",
-		[29] = "akid skid mismatch",
-		[30] = "akid issuer serial mismatch",
-		[31] = "keyusage no certsign",
-		[32] = "unable to get crl issuer",
-		[33] = "unhandled critical extension",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 }

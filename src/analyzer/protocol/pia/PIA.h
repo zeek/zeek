@@ -42,17 +42,18 @@ public:
 protected:
 	void PIA_Done();
 	void PIA_DeliverPacket(int len, const u_char* data, bool is_orig,
-				int seq, const IP_Hdr* ip, int caplen);
+				uint64 seq, const IP_Hdr* ip, int caplen);
 
 	enum State { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
 
 	// Buffers one chunk of data.  Used both for packet payload (incl.
 	// sequence numbers for TCP) and chunks of a reassembled stream.
 	struct DataBlock {
+		IP_Hdr* ip;
 		const u_char* data;
 		bool is_orig;
 		int len;
-		int seq;
+		uint64 seq;
 		DataBlock* next;
 	};
 
@@ -65,10 +66,10 @@ protected:
 		State state;
 	};
 
-	void AddToBuffer(Buffer* buffer, int seq, int len,
-				const u_char* data, bool is_orig);
+	void AddToBuffer(Buffer* buffer, uint64 seq, int len,
+				const u_char* data, bool is_orig, const IP_Hdr* ip = 0);
 	void AddToBuffer(Buffer* buffer, int len,
-				const u_char* data, bool is_orig);
+				const u_char* data, bool is_orig, const IP_Hdr* ip = 0);
 	void ClearBuffer(Buffer* buffer);
 
 	DataBlock* CurrentPacket()	{ return &current_packet; }
@@ -94,7 +95,7 @@ public:
 		{ SetConn(conn); }
 	virtual ~PIA_UDP()	{ }
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new PIA_UDP(conn); }
 
 protected:
@@ -105,7 +106,7 @@ protected:
 		}
 
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen);
@@ -139,7 +140,7 @@ public:
 
 	void ReplayStreamBuffer(analyzer::Analyzer* analyzer);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new PIA_TCP(conn); }
 
 protected:
@@ -150,14 +151,14 @@ protected:
 		}
 
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		}
 
 	virtual void DeliverStream(int len, const u_char* data, bool is_orig);
-	virtual void Undelivered(int seq, int len, bool is_orig);
+	virtual void Undelivered(uint64 seq, int len, bool is_orig);
 
 	virtual void ActivateAnalyzer(analyzer::Tag tag,
 					const Rule* rule = 0);

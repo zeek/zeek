@@ -14,10 +14,10 @@ public:
 
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
+	static Analyzer* Instantiate(Connection* conn)
 		{ return new DNP3_Analyzer(conn); }
 
 private:

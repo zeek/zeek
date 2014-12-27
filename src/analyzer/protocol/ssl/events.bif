@@ -24,8 +24,9 @@
 ##          standardized as part of the SSL/TLS protocol. The
 ##          :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
 ##
-## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_handshake_message
+##    ssl_change_cipher_spec
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
@@ -58,13 +59,16 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, client
 ##              standardized as part of the SSL/TLS protocol.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate ssl_server_curve
+##    ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
 ## sessions start with an unencrypted handshake, and Bro extracts as much
 ## information out of that as it can. This event provides access to any
 ## extensions either side sends as part of an extended *hello* message.
+##
+## Note that Bro offers more specialized events for a few extensions.
 ##
 ## c: The connection.
 ##
@@ -77,8 +81,110 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, server
 ## val: The raw extension value that was sent in the message.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake ssl_extension_ec_point_formats
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
+
+## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
+## defined in :rfc:`4492` and sent by the client in the initial handshake. It
+## gives the list of elliptic curves supported by the client.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## curves: List of supported elliptic curves.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name ssl_server_curve
+event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
+
+## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
+## is defined in :rfc:`4492` and sent by the client and/or server in the initial
+## handshake. It gives the list of elliptic curve point formats supported by the
+## client.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## point_formats: List of supported point formats.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name ssl_server_curve
+event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
+
+## Generated if a named curve is chosen by the server for an SSL/TLS connection.
+## The curve is sent by the server in the ServerKeyExchange message as defined
+## in :rfc:`4492`, in case an ECDH or ECDHE cipher suite is chosen.
+##
+## c: The connection.
+##
+## curve: The curve.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
+event ssl_server_curve%(c: connection, curve: count%);
+
+## Generated if a server uses a DH-anon or DHE cipher suite. This event contains
+## the server DH parameters, which are sent in the ServerKeyExchange message as
+## defined in :rfc:`5246`.
+##
+## c: The connection.
+##
+## p: The DH prime modulus.
+##
+## q: The DH generator.
+##
+## Ys: The server's DH public key.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_server_curve
+event ssl_dh_server_params%(c: connection, p: string, q: string, Ys: string%);
+
+## Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
+## This TLS extension is defined in draft-ietf-tls-applayerprotoneg and sent in
+## the initial handshake. It contains the list of client supported application
+## protocols by the client or the server, respectively.
+##
+## At the moment it is mostly used to negotiate the use of SPDY / HTTP2-drafts.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## protocols: List of supported application layer protocols.
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_server_name
+event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
+
+## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
+## defined in :rfc:`3546` and sent by the client in the initial handshake. It
+## contains the name of the server it is contacting. This information can be
+## used by the server to choose the correct certificate for the host the client
+## wants to contact.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## names: A list of server names (DNS hostnames).
+##
+## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_ec_point_formats
+##    ssl_extension_application_layer_protocol_negotiation
+event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an unencrypted handshake, and Bro extracts as much information out of that
@@ -92,7 +198,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ## c: The connection.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello  ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate
 event ssl_established%(c: connection%);
 
 ## Generated for SSL/TLS alert records. SSL/TLS sessions start with an
@@ -115,7 +221,7 @@ event ssl_established%(c: connection%);
 ##       defined as part of the SSL/TLS protocol.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake
 event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 
 ## Generated for SSL/TLS handshake messages that are a part of the
@@ -136,68 +242,83 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 ## ticket: The raw ticket data.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    x509_certificate x509_error x509_extension ssl_alert
+##    ssl_alert
 event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
 
-## Generated for X509 certificates seen in SSL/TLS connections. During the
-## initial SSL/TLS handshake, certificates are exchanged in the clear. Bro
-## raises this event for each certificate seen (including both a site's primary
-## cert, and further certs sent as part of the validation chain).
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
+## Generated for SSL/TLS heartbeat messages that are sent before session
+## encryption starts. Generally heartbeat messages should rarely be seen in
+## normal TLS traffic. Heartbeats are described in :rfc:`6520`.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## cert: The parsed certificate.
+## length: length of the entire heartbeat message.
 ##
-## chain_idx: The index in the validation chain that this cert has. Index zero
-##            indicates an endpoint's primary cert, while higher indices
-##            indicate the place in the validation chain (which has length
-##            *chain_len*).
+## heartbeat_type: type of the heartbeat message. Per RFC, 1 = request, 2 = response.
 ##
-## chain_len: The total length of the validation chain that this cert is part
-##            of.
+## payload_length: length of the payload of the heartbeat message, according to
+##                 packet field.
 ##
-## der_cert: The complete cert encoded in `DER
-##           <http://en.wikipedia.org/wiki/Distinguished_Encoding_Rules>`__
-##           format.
+## payload: payload contained in the heartbeat message. Size can differ from
+##          payload_length, if payload_length and actual packet length disagree.
 ##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello  x509_error x509_extension x509_verify
-event x509_certificate%(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string%);
+## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+##    ssl_alert ssl_encrypted_data
+event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
-## Generated for X509 extensions seen in a certificate.
+## Generated for SSL/TLS messages that are sent after session encryption
+## started.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
+## Note that :bro:id:`SSL::disable_analyzer_after_detection` has to be changed
+## from its default to false for this event to be generated.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## cert: The parsed certificate.
+## content_type: message type as reported by TLS session layer.
 ##
-## extension: The parsed extension.
+## length: length of the entire heartbeat message.
 ##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello x509_certificate x509_error  x509_verify
-event x509_extension%(c: connection, is_orig: bool, cert: X509, extension: X509_extension_info%);
+## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+##    ssl_alert ssl_heartbeat
+event ssl_encrypted_data%(c: connection, is_orig: bool, content_type: count, length: count%);
 
-## Generated when errors occur during parsing an X509 certificate.
-##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
-## about the X.509 format.
+## This event contains the OCSP response contained in a Certificate Status Request
+## message, when the client requested OCSP stapling and the server supports it.
+## See description in :rfc:`6066`.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if event is raised for originator side of the connection.
 ##
-## err: An error code describing what went wrong. :bro:id:`SSL::x509_errors`
-##      maps error codes to a textual description.
+## response: OCSP data.
+event ssl_stapled_ocsp%(c: connection, is_orig: bool, response: string%);
+
+## This event is raised for each unencrypted SSL/TLS handshake message.
 ##
-## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    ssl_server_hello x509_certificate  x509_extension x509_err2str x509_verify
-event x509_error%(c: connection, is_orig: bool, err: count%);
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## msg_type: Type of the handshake message that was seen.
+##
+## length: Length of the handshake message that was seen.
+##
+## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
+##    ssl_change_cipher_spec
+event ssl_handshake_message%(c: connection, is_orig: bool, msg_type: count, length: count%);
+
+## This event is raised when a SSL/TLS ChangeCipherSpec message is encountered
+## before encryption begins. Traffic will be encrypted following this message.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for originator side of the connection.
+##
+## .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
+##    ssl_handshake_message
+event ssl_change_cipher_spec%(c: connection, is_orig: bool%);

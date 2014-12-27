@@ -77,7 +77,7 @@ public:
 	NFS_Analyzer(Connection* conn);
 	virtual void Init();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NFS_Analyzer(conn); }
 };
 

@@ -54,7 +54,8 @@ script and much more in following sections.
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
    :lines: 4-6
 
-Lines 3 to 5 of the script process the ``__load__.bro`` script in the
+The first part of the script consists of ``@load`` directives which 
+process the ``__load__.bro`` script in the
 respective directories being loaded.  The ``@load`` directives are
 often considered good practice or even just good manners when writing
 Bro scripts to make sure they can be used on their own. While it's unlikely that in a
@@ -78,29 +79,37 @@ of the :bro:id:`NOTICE` function to generate notices of type
 ``TeamCymruMalwareHashRegistry::Match`` as done in the next section.  Notices
 allow Bro to generate some kind of extra notification beyond its
 default log types.  Often times, this extra notification comes in the
-form of an email generated and sent to a preconfigured address, but can be altered
-depending on the needs of the deployment.  The export section is finished off with
-the definition of two constants that list the kind of files we want to match against and
-the minimum percentage of detection threshold in which we are interested.
+form of an email generated and sent to a preconfigured address, but can
+be altered depending on the needs of the deployment.  The export section
+is finished off with the definition of a few constants that list the kind
+of files we want to match against and the minimum percentage of
+detection threshold in which we are interested.
 
-Up until this point, the script has merely done some basic setup.  With the next section,
-the script starts to define instructions to take in a given event.
+Up until this point, the script has merely done some basic setup.  With
+the next section, the script starts to define instructions to take in
+a given event.
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/frameworks/files/detect-MHR.bro
-   :lines: 38-62
+   :lines: 38-71
 
 The workhorse of the script is contained in the event handler for
 ``file_hash``.  The :bro:see:`file_hash` event allows scripts to access
-the information associated with a file for which Bro's file analysis framework has
-generated a hash.  The event handler is passed the file itself as ``f``, the type of digest
-algorithm used as ``kind`` and the hash generated as ``hash``.
+the information associated with a file for which Bro's file analysis
+framework has generated a hash.  The event handler is passed the
+file itself as ``f``, the type of digest algorithm used as ``kind``
+and the hash generated as ``hash``.
 
-On line 3, an ``if`` statement is used to check for the correct type of hash, in this case
-a SHA1 hash.  It also checks for a mime type we've defined as being of interest as defined in the
-constant ``match_file_types``.  The comparison is made against the expression ``f$mime_type``, which uses
-the ``$`` dereference operator to check the value ``mime_type`` inside the variable ``f``.  Once both
-values resolve to true, a local variable is defined to hold a string comprised of the SHA1 hash concatenated
-with ``.malware.hash.cymru.com``; this value will be the domain queried in the malware hash registry.
+In the ``file_hash`` event handler, there is an ``if`` statement that is used
+to check for the correct type of hash, in this case
+a SHA1 hash.  It also checks for a mime type we've defined as
+being of interest as defined in the constant ``match_file_types``.
+The comparison is made against the expression ``f$mime_type``, which uses
+the ``$`` dereference operator to check the value ``mime_type``
+inside the variable ``f``.  If the entire expression evaluates to true,
+then a helper function is called to do the rest of the work.  In that
+function, a local variable is defined to hold a string comprised of
+the SHA1 hash concatenated with ``.malware.hash.cymru.com``; this
+value will be the domain queried in the malware hash registry.
 
 The rest of the script is contained within a ``when`` block.  In
 short, a ``when`` block is used when Bro needs to perform asynchronous
@@ -111,24 +120,28 @@ this event continues and upon receipt of the values returned by
 :bro:id:`lookup_hostname_txt`, the ``when`` block is executed.  The
 ``when`` block splits the string returned into a portion for the date on which
 the malware was first detected and the detection rate by splitting on an text space
-and storing the values returned in a local table variable.  In line 12, if the table
-returned by ``split1`` has two entries, indicating a successful split, we store the detection
-date in ``mhr_first_detected`` and the rate in ``mhr_detect_rate`` on lines 14 and 15 respectively
+and storing the values returned in a local table variable.
+In the ``do_mhr_lookup`` function, if the table
+returned by ``split1`` has two entries, indicating a successful split, we
+store the detection
+date in ``mhr_first_detected`` and the rate in ``mhr_detect_rate``
 using the appropriate conversion functions.  From this point on, Bro knows it has seen a file
 transmitted which has a hash that has been seen by the Team Cymru Malware Hash Registry, the rest
 of the script is dedicated to producing a notice.
 
-On line 17, the detection time is processed into a string representation and stored in
-``readable_first_detected``.  The script then compares the detection rate against the
-``notice_threshold`` that was defined earlier.  If the detection rate is high enough, the script
-creates a concise description of the notice on line 22, a possible URL to check the sample against
-``virustotal.com``'s database, and makes the call to :bro:id:`NOTICE` to hand the relevant information
-off to the Notice framework.
+The detection time is processed into a string representation and stored in
+``readable_first_detected``.  The script then compares the detection rate
+against the ``notice_threshold`` that was defined earlier.  If the
+detection rate is high enough, the script creates a concise description
+of the notice and stores it in the ``message`` variable.  It also
+creates a possible URL to check the sample against
+``virustotal.com``'s database, and makes the call to :bro:id:`NOTICE`
+to hand the relevant information off to the Notice framework.
 
-In approximately 25 lines of code, Bro provides an amazing
+In approximately a few dozen lines of code, Bro provides an amazing
 utility that would be incredibly difficult to implement and deploy
-with other products.  In truth, claiming that Bro does this in 25
-lines is a misdirection; there is a truly massive number of things
+with other products.  In truth, claiming that Bro does this in such a small
+number of lines is a misdirection; there is a truly massive number of things
 going on behind-the-scenes in Bro, but it is the inclusion of the
 scripting language that gives analysts access to those underlying
 layers in a succinct and well defined manner.
@@ -180,7 +193,7 @@ event definition used by Bro.  As Bro detects DNS requests being
 issued by an originator, it issues this event and any number of
 scripts then have access to the data Bro passes along with the event.
 In this example, Bro passes not only the message, the query, query
-type and query class for the DNS request, but also a then record used
+type and query class for the DNS request, but also a record used
 for the connection itself.
 
 The Connection Record Data Type
@@ -210,8 +223,7 @@ into the connection record data type will be
 :bro:id:`connection_state_remove` .  As detailed in the in-line
 documentation, Bro generates this event just before it decides to
 remove this event from memory, effectively forgetting about it.  Let's
-take a look at a simple script, stored as
-``connection_record_01.bro``, that will output the connection record
+take a look at a simple example script, that will output the connection record
 for a single connection.
 
 .. btest-include:: ${DOC_ROOT}/scripting/connection_record_01.bro
@@ -243,12 +255,12 @@ of reference for accessing data in a script.
 Bro makes extensive use of nested data structures to store state and
 information gleaned from the analysis of a connection as a complete
 unit.  To break down this collection of information, you will have to
-make use of use Bro's field delimiter ``$``.  For example, the
+make use of Bro's field delimiter ``$``.  For example, the
 originating host is referenced by ``c$id$orig_h`` which if given a
 narrative relates to ``orig_h`` which is a member of ``id`` which is
 a member of the data structure referred to as ``c`` that was passed
-into the event handler." Given that the responder port
-(``c$id$resp_p``) is ``53/tcp``, it's likely that Bro's base HTTP scripts
+into the event handler. Given that the responder port
+``c$id$resp_p`` is ``80/tcp``, it's likely that Bro's base HTTP scripts
 can further populate the connection record.  Let's load the
 ``base/protocols/http`` scripts and check the output of our script. 
 
@@ -276,7 +288,7 @@ As mentioned above, including the appropriate ``@load`` statements is
 not only good practice, but can also help to indicate which
 functionalities are being used in a script.  Take a second to run the
 script without the ``-b`` flag and check the output when all of Bro's
-functionality is applied to the tracefile.  
+functionality is applied to the trace file.  
 
 Data Types and Data Structures
 ==============================
@@ -384,9 +396,12 @@ which it was declared.  Local variables tend to be used for values
 that are only needed within a specific scope and once the processing
 of a script passes beyond that scope and no longer used, the variable
 is deleted. Bro maintains names of locals separately from globally
-visible ones, an example of which is illustrated below.  The script
-executes the event handler :bro:id:`bro_init` which in turn calls the
-function ``add_two(i: count)`` with an argument of ``10``.  Once Bro
+visible ones, an example of which is illustrated below.
+
+.. btest-include:: ${DOC_ROOT}/scripting/data_type_local.bro
+
+The script executes the event handler :bro:id:`bro_init` which in turn calls
+the function ``add_two(i: count)`` with an argument of ``10``.  Once Bro
 enters the ``add_two`` function, it provisions a locally scoped
 variable called ``added_two`` to hold the value of ``i+2``, in this
 case, ``12``.  The ``add_two`` function then prints the value of the
@@ -397,8 +412,6 @@ stored in the locally scoped variable ``test``.  When Bro finishes
 processing the ``bro_init`` function, the variable called ``test`` is
 no longer in scope and, since there exist no other references to the
 value ``12``, the value is also deleted.  
-
-.. btest-include:: ${DOC_ROOT}/scripting/data_type_local.bro
 
 
 Data Structures
@@ -506,26 +519,28 @@ Tables
 
 A table in Bro is a mapping of a key to a value or yield.  While the
 values don't have to be unique, each key in the table must be unique
-to preserve a one-to-one mapping of keys to values.  In the example
-below, we've compiled a table of SSL-enabled services and their common
-ports.  The explicit declaration and constructor for the table on
-lines 5 and 7 lay out the data types of the keys (strings) and the
-data types of the yields (ports) and then fill in some sample key and
-yield pairs.  Line 8 shows how to use a table accessor to insert one
-key-yield pair into the table.  When using the ``in`` operator on a table,
-you are effectively working with the keys of the table.  In the case
-of an ``if`` statement, the ``in`` operator will check for membership among
-the set of keys and return a true or false value.  As seen on line 10,
-we are checking if ``SMTPS`` is not in the set of keys for the
-ssl_services table and if the condition holds true, we add the
-key-yield pair to the table.  Line 13 shows the use of a ``for`` statement
-to iterate over each key currently in the table.  
+to preserve a one-to-one mapping of keys to values.
 
 .. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_declaration.bro
 
 .. btest:: data_struct_table_declaration
 
     @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/data_struct_table_declaration.bro
+
+In this example,
+we've compiled a table of SSL-enabled services and their common
+ports.  The explicit declaration and constructor for the table are on
+two different lines and lay out the data types of the keys (strings) and the
+data types of the yields (ports) and then fill in some sample key and
+yield pairs.  You can also use a table accessor to insert one
+key-yield pair into the table.  When using the ``in``
+operator on a table, you are effectively working with the keys of the table.
+In the case of an ``if`` statement, the ``in`` operator will check for
+membership among the set of keys and return a true or false value.
+The example shows how to check if ``SMTPS`` is not in the set
+of keys for the ``ssl_services`` table and if the condition holds true,
+we add the key-yield pair to the table.  Finally, the example shows how
+to use a ``for`` statement to iterate over each key currently in the table.  
 
 Simple examples aside, tables can become extremely complex as the keys
 and values for the table become more intricate.  Tables can have keys
@@ -535,9 +550,15 @@ Bro implies a cost in complexity for the person writing the scripts
 but pays off in effectiveness given the power of Bro as a network
 security platform.
 
-The script below shows a sample table of strings indexed by two
+.. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_complex.bro
+
+.. btest:: data_struct_table_complex
+
+    @TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_struct_table_complex.bro
+
+This script shows a sample table of strings indexed by two
 strings, a count, and a final string.  With a tuple acting as an
-aggregate key, the order is the important as a change in order would
+aggregate key, the order is important as a change in order would
 result in a new key.  Here, we're using the table to track the
 director, studio, year or release, and lead actor in a series of
 samurai flicks.  It's important to note that in the case of the ``for``
@@ -546,14 +567,9 @@ iterate over, say, the directors; we have to iterate with the exact
 format as the keys themselves.  In this case, we need squared brackets
 surrounding four temporary variables to act as a collection for our
 iteration.  While this is a contrived example, we could easily have
-had keys containing IP addresses (``addr``), ports (``port``) and even a ``string``
-calculated as the result of a reverse hostname lookup.
+had keys containing IP addresses (``addr``), ports (``port``) and even
+a ``string`` calculated as the result of a reverse hostname lookup.
 
-.. btest-include:: ${DOC_ROOT}/scripting/data_struct_table_complex.bro
-
-.. btest:: data_struct_table_complex
-
-    @TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_struct_table_complex.bro
 
 Vectors
 ~~~~~~~
@@ -657,7 +673,7 @@ using a 20 bit subnet mask.
 
 Because this is a script that doesn't use any kind of network
 analysis, we can handle the event :bro:id:`bro_init` which is always
-generated by Bro's core upon startup.  On lines six and seven, two
+generated by Bro's core upon startup.  In the example script, two
 locally scoped vectors are created to hold our lists of subnets and IP
 addresses respectively.  Then, using a set of nested ``for`` loops, we
 iterate over every subnet and every IP address and use an ``if``
@@ -714,7 +730,7 @@ Bro supports ``usec``, ``msec``, ``sec``, ``min``, ``hr``, or ``day`` which repr
 microseconds, milliseconds, seconds, minutes, hours, and days
 respectively.  In fact, the interval data type allows for a surprising
 amount of variation in its definitions.  There can be a space between
-the numeric constant or they can crammed together like a temporal
+the numeric constant or they can be crammed together like a temporal
 portmanteau.  The time unit can be either singular or plural.  All of
 this adds up to to the fact that both ``42hrs`` and ``42 hr`` are
 perfectly valid and logically equivalent in Bro.  The point, however,
@@ -760,7 +776,7 @@ string against which it will be tested to be on the right.
 In the sample above, two local variables are declared to hold our
 sample sentence and regular expression.  Our regular expression in
 this case will return true if the string contains either the word
-``quick`` or the word ``fox``. The ``if`` statement on line six uses
+``quick`` or the word ``fox``. The ``if`` statement in the script uses
 embedded matching and the ``in`` operator to check for the existence
 of the pattern within the string.  If the statement resolves to true,
 :bro:id:`split` is called to break the string into separate pieces.
@@ -768,8 +784,8 @@ of the pattern within the string.  If the statement resolves to true,
 table of strings indexed by a count.  Each element of the table will
 be the segments before and after any matches against the pattern but
 excluding the actual matches.  In this case, our pattern matches
-twice, and results in a table with three entries.  Lines 11 through 13
-print the contents of the table in order.  
+twice, and results in a table with three entries.  The ``print`` statements
+in the script will print the contents of the table in order.  
 
 .. btest:: data_type_pattern
 
@@ -780,7 +796,7 @@ inequality operators through the ``==`` and ``!=`` operators
 respectively. When used in this manner however, the string must match
 entirely to resolve to true.  For example, the script below uses two
 ternary conditional statements to illustrate the use of the ``==``
-operators with patterns.  On lines 8 and 11 the output is altered based
+operator with patterns.  The output is altered based
 on the result of the comparison between the pattern and the string.  
 
 .. btest-include:: ${DOC_ROOT}/scripting/data_type_pattern_02.bro
@@ -803,7 +819,7 @@ with the ``typedef`` and ``struct`` keywords, Bro allows you to cobble
 together new data types to suit the needs of your situation.
 
 When combined with the ``type`` keyword, ``record`` can generate a
-composite type.  We have, in fact, already encountered a a complex
+composite type.  We have, in fact, already encountered a complex
 example of the ``record`` data type in the earlier sections, the
 :bro:type:`connection` record passed to many events. Another one,
 :bro:type:`Conn::Info`, which corresponds to the fields logged into
@@ -915,11 +931,7 @@ through a contrived example of simply logging the digits 1 through 10
 and their corresponding factorial to the default ASCII log writer. 
 It's always best to work through the problem once, simulating the
 desired output with ``print`` and ``fmt`` before attempting to dive
-into the Logging Framework.  Below is a script that defines a
-factorial function to recursively calculate the factorial of a
-unsigned integer passed as an argument to the function.  Using
-``print`` and  :bro:id:`fmt` we can ensure that Bro can perform these
-calculations correctly as well get an idea of the answers ourselves.
+into the Logging Framework.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_01.bro
 
@@ -927,19 +939,28 @@ calculations correctly as well get an idea of the answers ourselves.
 
    @TEST-EXEC: btest-rst-cmd bro ${DOC_ROOT}/scripting/framework_logging_factorial_01.bro
 
+This script defines a factorial function to recursively calculate the
+factorial of a unsigned integer passed as an argument to the function.  Using
+``print`` and  :bro:id:`fmt` we can ensure that Bro can perform these
+calculations correctly as well get an idea of the answers ourselves.
+
 The output of the script aligns with what we expect so now it's time
-to integrate the Logging Framework.  As mentioned above we have to
-perform a few steps before we can issue the :bro:id:`Log::write` 
-method and produce a logfile.  As we are working within a namespace
-and informing an outside entity of workings and data internal to the
-namespace, we use an ``export`` block.  First we need to inform Bro
+to integrate the Logging Framework.
+
+.. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_02.bro
+
+As mentioned above we have to perform a few steps before we can
+issue the :bro:id:`Log::write` method and produce a logfile.
+As we are working within a namespace and informing an outside
+entity of workings and data internal to the namespace, we use
+an ``export`` block.  First we need to inform Bro
 that we are going to be adding another Log Stream by adding a value to
-the :bro:type:`Log::ID` enumerable.  In line 6 of the script, we append the
+the :bro:type:`Log::ID` enumerable.  In this script, we append the
 value ``LOG`` to the ``Log::ID`` enumerable, however due to this being in
 an export block the value appended to ``Log::ID`` is actually
 ``Factor::Log``.  Next, we need to define the name and value pairs
-that make up the data of our logs and dictate its format.  Lines 8
-through 11 define a new datatype called an ``Info`` record (actually,
+that make up the data of our logs and dictate its format.  This script
+defines a new record datatype called ``Info`` (actually,
 ``Factor::Info``) with two fields, both unsigned integers. Each of the
 fields in the ``Factor::Log`` record type include the ``&log``
 attribute, indicating that these fields should be passed to the
@@ -947,16 +968,14 @@ Logging Framework when ``Log::write`` is called.  Were there to be
 any name value pairs without the ``&log`` attribute, those fields
 would simply be ignored during logging but remain available for the
 lifespan of the variable.  The next step is to create the logging
-stream with :bro:id:`Log::create_stream` which takes a Log::ID and a
-record as its arguments.  In this example, on line 25, we call the
+stream with :bro:id:`Log::create_stream` which takes a ``Log::ID`` and a
+record as its arguments.  In this example, we call the
 ``Log::create_stream`` method and pass ``Factor::LOG`` and the
 ``Factor::Info`` record as arguments. From here on out, if we issue
 the ``Log::write`` command with the correct ``Log::ID`` and a properly
 formatted ``Factor::Info`` record, a log entry will be generated.  
 
-.. btest-include:: ${DOC_ROOT}/scripting/framework_logging_factorial_02.bro
-
-Now, if we run the new version of the script, instead of generating
+Now, if we run this script, instead of generating
 logging information to stdout, no output is created.  Instead the
 output is all in ``factor.log``, properly formatted and organized.
 
@@ -995,13 +1014,13 @@ remaining logs to factor.log.
    :lines: 38-62
    :linenos:
 
-To dynamically alter the file in which a stream writes its logs a
-filter can specify function returns a string to be used as the
+To dynamically alter the file in which a stream writes its logs, a
+filter can specify a function that returns a string to be used as the
 filename for the current call to ``Log::write``. The definition for
 this function has to take as its parameters a ``Log::ID`` called id, a
 string called ``path`` and the appropriate record type for the logs called
-``rec``.  You can see the definition of ``mod5`` used in this example on
-line one conforms to that requirement.  The function simply returns
+``rec``.  You can see the definition of ``mod5`` used in this example
+conforms to that requirement.  The function simply returns
 ``factor-mod5`` if the factorial is divisible evenly by 5, otherwise, it
 returns ``factor-non5``.  In the additional ``bro_init`` event
 handler, we define a locally scoped ``Log::Filter`` and assign it a
@@ -1074,7 +1093,8 @@ make a call to :bro:id:`NOTICE` supplying it with an appropriate
 :bro:type:`Notice::Info` record.  Often times the call to ``NOTICE``
 includes just the ``Notice::Type``, and a concise message.  There are
 however, significantly more options available when raising notices as
-seen in the table below.  The only field in the table below whose
+seen in the definition of :bro:type:`Notice::Info`.  The only field in
+``Notice::Info`` whose
 attributes make it a required field is the ``note`` field.  Still,
 good manners are always important and including a concise message in
 ``$msg`` and, where necessary, the contents of the connection record
@@ -1085,57 +1105,6 @@ auto-populate the ``$id`` and ``$src`` fields as well.  Other fields
 that are commonly included, ``$identifier`` and ``$suppress_for`` are
 built around the automated suppression feature of the Notice Framework
 which we will cover shortly.  
-
-.. todo::
-
-    Once the link to ``Notice::Info`` work I think we should take out
-    the table. That's too easy to get out of date.
-
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| Field               | Type                                                             | Attributes     | Use                                    |
-+=====================+==================================================================+================+========================================+
-| ts                  | time                                                             | &log &optional | The time of the notice                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| uid                 | string                                                           | &log &optional | A unique connection ID                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| id                  | conn_id                                                          | &log &optional | A 4-tuple to identify endpoints        |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| conn                | connection                                                       | &optional      | Shorthand for the uid and id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| iconn               | icmp_conn                                                        | &optional      | Shorthand for the uid and id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| proto               | transport_proto                                                  | &log &optional | Transport protocol                     |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| note                | Notice::Type                                                     | &log           | The Notice::Type of the notice         |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| msg                 | string                                                           | &log &optional | Human readable message                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| sub                 | string                                                           | &log &optional | Human readable message                 |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| src                 | addr                                                             | &log &optional | Source address if no conn_id           |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| dst                 | addr                                                             | &log &optional | Destination addr if no conn_id         |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| p                   | port                                                             | &log &optional | Port if no conn_id                     |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| n                   | count                                                            | &log &optional | Count or status code                   |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| src_peer            | event_peer                                                       | &log &optional | Peer that raised the notice            |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| peer_descr          | string                                                           | &log &optional | Text description of the src_peer       |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| actions             | set[Notice::Action]                                              | &log &optional | Actions applied to the notice          |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| policy_items        | set[count]                                                       | &log &optional | Policy items that have been applied    |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_body_sections | vector                                                           | &optional       | Body of the email for email notices.  |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| email_delay_tokens  | set[string]                                                      | &optional      | Delay functionality for email notices. |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| identifier          | string                                                           | &optional      | A unique string identifier             |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
-| suppress_for        | interval                                                         | &log &optional | Length of time to suppress a notice.   |
-+---------------------+------------------------------------------------------------------+----------------+----------------------------------------+
 
 One of the default policy scripts raises a notice when an SSH login
 has been heuristically detected and the originating hostname is one
@@ -1153,15 +1122,15 @@ possible while staying concise.
 
 While much of the script relates to the actual detection, the parts
 specific to the Notice Framework are actually quite interesting in
-themselves.  On line 18 the script's ``export`` block adds the value
+themselves.  The script's ``export`` block adds the value
 ``SSH::Interesting_Hostname_Login`` to the enumerable constant
 ``Notice::Type`` to indicate to the Bro core that a new type of notice
 is being defined.  The script then calls ``NOTICE`` and defines the
 ``$note``, ``$msg``, ``$sub`` and ``$conn`` fields of the
-:bro:type:`Notice::Info` record.  Line 42 also includes a ternary if
-statement that modifies the ``$msg`` text depending on whether the
+:bro:type:`Notice::Info` record.  There are two ternary if
+statements that modify the ``$msg`` text depending on whether the
 host is a local address and whether it is the client or the server.
-This use of :bro:id:`fmt` and a ternary operators is a concise way to
+This use of :bro:id:`fmt` and ternary operators is a concise way to
 lend readability to the notices that are generated without the need
 for branching ``if`` statements that each raise a specific notice.
 
@@ -1222,7 +1191,7 @@ from the connection relative to the behavior that has been observed by
 Bro.  
 
 .. btest-include:: ${BRO_SRC_ROOT}/scripts/policy/protocols/ssl/expiring-certs.bro
-   :lines: 60-63
+   :lines: 64-68
 
 In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.bro` script
 which identifies when SSL certificates are set to expire and raises
@@ -1302,9 +1271,9 @@ in the call to ``NOTICE``.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_01.bro
 
-The Notice Policy shortcut above adds the ``Notice::Types`` of
-SSH::Interesting_Hostname_Login and SSH::Login to the
-Notice::emailed_types set while the shortcut below alters the length
+The Notice Policy shortcut above adds the ``Notice::Type`` of
+``SSH::Interesting_Hostname_Login`` to the
+``Notice::emailed_types`` set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 
 .. btest-include:: ${DOC_ROOT}/scripting/framework_notice_shortcuts_02.bro

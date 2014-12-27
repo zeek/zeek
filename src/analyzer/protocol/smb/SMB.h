@@ -188,7 +188,7 @@ public:
 	SMB_Analyzer(Connection* conn);
 	~SMB_Analyzer();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SMB_Analyzer(conn); }
 
 protected:

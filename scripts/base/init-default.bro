@@ -46,7 +46,10 @@
 @load base/protocols/http
 @load base/protocols/irc
 @load base/protocols/modbus
+@load base/protocols/mysql
 @load base/protocols/pop3
+@load base/protocols/radius
+@load base/protocols/snmp
 @load base/protocols/smtp
 @load base/protocols/socks
 @load base/protocols/ssh
@@ -57,7 +60,7 @@
 @load base/files/hash
 @load base/files/extract
 @load base/files/unified2
-
+@load base/files/x509
 
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace

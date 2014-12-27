@@ -43,6 +43,7 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
+#include "iosource/Manager.h"
 
 /**
  * Return IP address without enclosing brackets and any leading 0x.
@@ -120,31 +121,41 @@ std::string get_unescaped_string(const std::string& arg_str)
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
  * returns a string containing all escaped values.
  *
+ * @param d an ODesc object to store the escaped hex version of the string,
+ *          if null one will be allocated and returned from the function.
  * @param str string to escape
  * @param escape_all If true, all characters are escaped. If false, only
  * characters are escaped that are either whitespace or not printable in
  * ASCII.
- * @return A std::string containing a list of escaped hex values of the form
- * \x## */
-std::string get_escaped_string(const std::string& str, bool escape_all)
+ * @return A ODesc object containing a list of escaped hex values of the form
+ *         \x##, which may be newly allocated if \a d was a null pointer. */
+ODesc* get_escaped_string(ODesc* d, const char* str, size_t len,
+                          bool escape_all)
 	{
-	char tbuf[16];
-	string esc = "";
+	if ( ! d )
+		d = new ODesc();
 
-	for ( size_t i = 0; i < str.length(); ++i )
+	for ( size_t i = 0; i < len; ++i )
 		{
 		char c = str[i];
 
 		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
 			{
-			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-			esc += tbuf;
+			char hex[4] = {'\\', 'x', '0', '0' };
+			bytetohex(c, hex + 2);
+			d->AddRaw(hex, 4);
 			}
 		else
-			esc += c;
+			d->AddRaw(&c, 1);
 		}
 
-	return esc;
+	return d;
+	}
+
+std::string get_escaped_string(const char* str, size_t len, bool escape_all)
+	{
+	ODesc d;
+	return get_escaped_string(&d, str, len, escape_all)->Description();
 	}
 
 char* copy_string(const char* s)
@@ -558,7 +569,7 @@ const char* fmt(const char* format, ...)
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
-		buf = (char*) malloc(buf_len);
+		buf = (char*) safe_malloc(buf_len);
 
 	va_list al;
 	va_start(al, format);
@@ -568,7 +579,7 @@ const char* fmt(const char* format, ...)
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
+		buf = (char*) safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
@@ -646,18 +657,56 @@ bool ensure_dir(const char *dirname)
 	return true;
 	}
 
-bool is_dir(const char* path)
+bool is_dir(const std::string& path)
 	{
 	struct stat st;
-	if ( stat(path, &st) < 0 )
+	if ( stat(path.c_str(), &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning("can't stat %s: %s", path, strerror(errno));
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
 
 		return false;
 		}
 
 	return S_ISDIR(st.st_mode);
+	}
+
+bool is_file(const std::string& path)
+	{
+	struct stat st;
+	if ( stat(path.c_str(), &st) < 0 )
+		{
+		if ( errno != ENOENT )
+			reporter->Warning("can't stat %s: %s", path.c_str(), strerror(errno));
+
+		return false;
+		}
+
+	return S_ISREG(st.st_mode);
+	}
+
+string strreplace(const string& s, const string& o, const string& n)
+	{
+	string r = s;
+
+	while ( true )
+		{
+		size_t i = r.find(o);
+
+		if ( i == std::string::npos )
+			break;
+
+		r.replace(i, o.size(), n);
+		}
+
+	return r;
+}
+
+std::string strstrip(std::string s)
+	{
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
 	}
 
 int hmac_key_set = 0;
@@ -899,26 +948,51 @@ int int_list_cmp(const void* v1, const void* v2)
 		return 1;
 	}
 
-const char* bro_path()
+static string bro_path_value;
+
+const std::string& bro_path()
 	{
-	const char* path = getenv("BROPATH");
-	if ( ! path )
-		path = ".:"
+	if ( bro_path_value.empty() )
+		{
+		const char* path = getenv("BROPATH");
+		if ( ! path )
+			path = ".:"
 			BRO_SCRIPT_INSTALL_PATH ":"
 			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
 			BRO_SCRIPT_INSTALL_PATH "/site";
 
+		bro_path_value = path;
+		}
+
+	return bro_path_value;
+	}
+
+extern void add_to_bro_path(const string& dir)
+	{
+	// Make sure path is initialized.
+	bro_path();
+
+	bro_path_value += string(":") + dir;
+	}
+
+const char* bro_plugin_path()
+	{
+	const char* path = getenv("BRO_PLUGIN_PATH");
+
+	if ( ! path )
+		path = BRO_PLUGIN_INSTALL_PATH;
+
 	return path;
 	}
 
-const char* bro_magic_path()
+const char* bro_plugin_activate()
 	{
-	const char* path = getenv("BROMAGIC");
+	const char* names = getenv("BRO_PLUGIN_ACTIVATE");
 
-	if ( ! path )
-		path = BRO_MAGIC_INSTALL_PATH;
+	if ( ! names )
+		names = "";
 
-	return path;
+	return names;
 	}
 
 string bro_prefixes()
@@ -1351,11 +1425,13 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || pkt_srcs.length() == 0 )
+	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+
+	if ( ! pseudo_realtime || real || pkt_srcs.empty() )
 		return t;
 
 	// This obviously only works for a single source ...
-	PktSrc* src = pkt_srcs[0];
+	iosource::PktSrc* src = pkt_srcs.front();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();
@@ -1553,31 +1629,21 @@ void get_memory_usage(unsigned int* total, unsigned int* malloced)
 	unsigned int ret_total;
 
 #ifdef HAVE_MALLINFO
-	// For memory, getrusage() gives bogus results on Linux. Grmpf.
 	struct mallinfo mi = mallinfo();
 
 	if ( malloced )
 		*malloced = mi.uordblks;
 
-	ret_total = mi.arena;
+#endif
 
-	if ( total )
-		*total = ret_total;
-#else
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 
-	if ( malloced )
-		*malloced = 0;
-
-	// At least on FreeBSD it's in KB.
+	// In KB.
 	ret_total = r.ru_maxrss * 1024;
 
 	if ( total )
 		*total = ret_total;
-#endif
-
-	// return ret_total;
 	}
 
 #ifdef malloc
@@ -1649,56 +1715,16 @@ void operator delete[](void* v)
 
 #endif
 
-void bro_init_magic(magic_t* cookie_ptr, int flags)
+std::string canonify_name(const std::string& name)
 	{
-	if ( ! cookie_ptr || *cookie_ptr )
-		return;
-
-	*cookie_ptr = magic_open(flags);
-
-	// Always use Bro's custom magic database.
-	const char* database = bro_magic_path();
-
-	if ( ! *cookie_ptr )
-		{
-		const char* err = magic_error(*cookie_ptr);
-		reporter->InternalError("can't init libmagic: %s",
-		                        err ? err : "unknown");
-		}
-
-	else if ( magic_load(*cookie_ptr, database) < 0 )
-		{
-		const char* err = magic_error(*cookie_ptr);
-		reporter->InternalError("can't load magic file %s: %s", database,
-		                        err ? err : "unknown");
-		magic_close(*cookie_ptr);
-		*cookie_ptr = 0;
-		}
-	}
-
-const char* bro_magic_buffer(magic_t cookie, const void* buffer, size_t length)
-	{
-	const char* rval = magic_buffer(cookie, buffer, length);
-	if ( ! rval )
-		{
-		const char* err = magic_error(cookie);
-		reporter->Error("magic_buffer error: %s", err ? err : "unknown");
-		}
-
-	return rval;
-	}
-
-const char* canonify_name(const char* name)
-	{
-	unsigned int len = strlen(name);
-	char* nname = new char[len + 1];
+	unsigned int len = name.size();
+	std::string nname;
 
 	for ( unsigned int i = 0; i < len; i++ )
 		{
 		char c = isalnum(name[i]) ? name[i] : '_';
-		nname[i] = toupper(c);
+		nname += toupper(c);
 		}
 
-	nname[len] = '\0';
 	return nname;
 	}

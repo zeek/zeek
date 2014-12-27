@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	notice
+#open	2014-05-14-22-40-36
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	file_mime_type	file_desc	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
+#types	time	string	addr	port	addr	port	string	string	string	enum	enum	string	string	addr	addr	port	count	string	set[enum]	interval	bool	string	string	string	double	double
+1397169549.882425	CXWv6p3arKYeMETxOg	192.168.4.149	59676	107.170.241.107	443	-	-	-	tcp	Heartbleed::SSL_Heartbeat_Attack	Heartbeat before ciphertext. Probable attack or scan. Length: 32, is_orig: 1	-	192.168.4.149	107.170.241.107	443	32	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+1397169549.882425	CXWv6p3arKYeMETxOg	192.168.4.149	59676	107.170.241.107	443	-	-	-	tcp	Heartbleed::SSL_Heartbeat_Odd_Length	Heartbeat message smaller than minimum required length. Probable attack. Message length: 32. Required length: 48. Cipher: TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA. Cipher match: /^?(_256_CBC_SHA$)$?/	-	192.168.4.149	107.170.241.107	443	32	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+1397169549.895057	CXWv6p3arKYeMETxOg	192.168.4.149	59676	107.170.241.107	443	-	-	-	tcp	Heartbleed::SSL_Heartbeat_Attack_Success	An encrypted TLS heartbleed attack was probably detected! First packet client record length 32, first packet server record length 16416. Time: 0.035413	-	192.168.4.149	107.170.241.107	443	-	bro	Notice::ACTION_LOG	3600.000000	F	-	-	-	-	-
+#close	2014-05-14-22-40-37

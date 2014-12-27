@@ -156,7 +156,7 @@ public:
 		}
 };
 
-using namespace logging;
+using namespace input;
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
@@ -214,6 +214,8 @@ bool ReaderBackend::Init(const int arg_num_fields,
 	{
 	if ( Failed() )
 		return true;
+
+	SetOSName(Fmt("bro: %s", Name()));
 
 	num_fields = arg_num_fields;
 	fields = arg_fields;

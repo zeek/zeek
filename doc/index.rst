@@ -12,8 +12,10 @@ Introduction Section
    :maxdepth: 2
 
    intro/index.rst
+   cluster/index.rst
    install/index.rst
    quickstart/index.rst
+   configuration/index.rst
 
 .. 
 
@@ -29,7 +31,7 @@ Using Bro Section
    httpmonitor/index.rst
    broids/index.rst
    mimestats/index.rst
-   cluster/index.rst
+   scripting/index.rst
 
 ..
 
@@ -39,12 +41,17 @@ Reference Section
 .. toctree::
    :maxdepth: 2
 
-   scripting/index.rst
    frameworks/index.rst
    script-reference/index.rst
    components/index.rst
 
-..
+Development
+===========
+
+.. toctree::
+   :maxdepth: 2
+
+   devel/plugins.rst
 
 * :ref:`General Index <genindex>`
 * :ref:`search`

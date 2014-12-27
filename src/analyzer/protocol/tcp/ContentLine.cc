@@ -32,6 +32,7 @@ void ContentLine_Analyzer::InitState()
 	seq_to_skip = 0;
 	plain_delivery_length = 0;
 	is_plain = 0;
+	suppress_weirds = false;
 
 	InitBuffer(0);
 	}
@@ -109,7 +110,7 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 	seq += len;
 	}
 
-void ContentLine_Analyzer::Undelivered(int seq, int len, bool orig)
+void ContentLine_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	{
 	ForwardUndelivered(seq, len, orig);
 	}
@@ -258,7 +259,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 
 			else
 				{
-				if ( Conn()->FlagEvent(SINGULAR_LF) )
+				if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_LF) )
 					Conn()->Weird("line_terminated_with_single_LF");
 				buf[offset++] = c;
 				}
@@ -277,7 +278,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
 		}
 
 		if ( last_char == '\r' )
-			if ( Conn()->FlagEvent(SINGULAR_CR) )
+			if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_CR) )
 				Conn()->Weird("line_terminated_with_single_CR");
 
 		last_char = c;
@@ -307,7 +308,7 @@ void ContentLine_Analyzer::CheckNUL()
 			; // Ignore it.
 		else
 			{
-			if ( Conn()->FlagEvent(NUL_IN_LINE) )
+			if ( ! suppress_weirds && Conn()->FlagEvent(NUL_IN_LINE) )
 				Conn()->Weird("NUL_in_line");
 			flag_NULs = 0;
 			}

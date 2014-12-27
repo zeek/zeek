@@ -308,7 +308,8 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 ##
 ## s: The string to obtain a substring from.
 ##
-## start: The starting position of the substring in *s*
+## start: The starting position of the substring in *s*, where 1 is the first
+##        character. As a special case, 0 also represents the first character.
 ##
 ## n: The number of characters to extract, beginning at *start*.
 ##

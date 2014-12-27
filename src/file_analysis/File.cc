@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
+#include <algorithm>
 
 #include "File.h"
 #include "FileTimer.h"
@@ -10,6 +11,7 @@
 #include "Val.h"
 #include "Type.h"
 #include "Event.h"
+#include "RuleMatcher.h"
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
@@ -52,6 +54,7 @@ int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
 int File::mime_type_idx = -1;
+int File::mime_types_idx = -1;
 
 void File::StaticInit()
 	{
@@ -72,6 +75,7 @@ void File::StaticInit()
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
 	mime_type_idx = Idx("mime_type");
+	mime_types_idx = Idx("mime_types");
 	}
 
 File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
@@ -82,7 +86,7 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 	{
 	StaticInit();
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new File object %s", file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = new RecordVal(fa_file_type);
 	val->Assign(id_idx, new StringVal(file_id.c_str()));
@@ -100,7 +104,7 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 
 File::~File()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
 	Unref(val);
 
 	while ( ! fonc_queue.empty() )
@@ -228,6 +232,7 @@ void File::IncrementByteCount(uint64 size, int field_idx)
 
 void File::SetTotalBytes(uint64 size)
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
 	val->Assign(total_bytes_idx, new Val(size, TYPE_COUNT));
 	}
 
@@ -250,11 +255,17 @@ void File::ScheduleInactivityTimer() const
 
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
+		id.c_str(), file_mgr->GetComponentName(tag).c_str());
+
 	return done ? false : analyzers.QueueAdd(tag, args);
 	}
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
+		id.c_str(), file_mgr->GetComponentName(tag).c_str());
+
 	return done ? false : analyzers.QueueRemove(tag, args);
 	}
 
@@ -279,20 +290,18 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 
 bool File::DetectMIME(const u_char* data, uint64 len)
 	{
-	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
+	RuleMatcher::MIME_Matches matches;
+	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
+	file_mgr->DetectMIME(data, len, &matches);
 
-	if ( mime )
-		{
-		const char* mime_end = strchr(mime, ';');
+	if ( matches.empty() )
+		return false;
 
-		if ( mime_end )
-			// strip off charset
-			val->Assign(mime_type_idx, new StringVal(mime_end - mime, mime));
-		else
-			val->Assign(mime_type_idx, new StringVal(mime));
-		}
+	val->Assign(mime_type_idx,
+	            new StringVal(*(matches.begin()->second.begin())));
+	val->Assign(mime_types_idx, file_analysis::GenMIMEMatchesVal(matches));
 
-	return mime;
+	return true;
 	}
 
 void File::ReplayBOF()
@@ -313,7 +322,6 @@ void File::ReplayBOF()
 	val->Assign(bof_buffer_idx, new StringVal(bs));
 
 	DetectMIME(bs->Bytes(), bs->Len());
-
 	FileEvent(file_new);
 
 	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
@@ -331,6 +339,11 @@ void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 		FileEvent(file_new);
 		first_chunk = false;
 		}
+
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " bytes in at offset" PRIu64 "; %s [%s]",
+		id.c_str(), len, offset,
+		IsComplete() ? "complete" : "incomplete",
+		fmt_bytes((const char*) data, min((uint64)40, len)), len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = 0;
 	IterCookie* c = analyzers.InitForIteration();
@@ -366,6 +379,11 @@ void File::DataIn(const u_char* data, uint64 len)
 		missed_bof = false;
 		}
 
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " bytes in; %s [%s]",
+		id.c_str(), len,
+		IsComplete() ? "complete" : "incomplete",
+		fmt_bytes((const char*) data, min((uint64)40, len)), len > 40 ? "..." : "");
+
 	file_analysis::Analyzer* a = 0;
 	IterCookie* c = analyzers.InitForIteration();
 
@@ -390,6 +408,8 @@ void File::DataIn(const u_char* data, uint64 len)
 
 void File::EndOfFile()
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End of file", id.c_str());
+
 	if ( done )
 		return;
 
@@ -416,6 +436,9 @@ void File::EndOfFile()
 
 void File::Gap(uint64 offset, uint64 len)
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64,
+		id.c_str(), len, offset);
+
 	analyzers.DrainModifications();
 
 	// If we were buffering the beginning of the file, a gap means we've got

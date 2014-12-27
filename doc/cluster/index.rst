@@ -1,18 +1,19 @@
 
 ========================
-Setting up a Bro Cluster
+Bro Cluster Architecture
 ========================
 
-Intro
-------
 
 Bro is not multithreaded, so once the limitations of a single processor core
 are reached the only option currently is to spread the workload across many
 cores, or even many physical computers. The cluster deployment scenario for
-Bro is the current solution to build these larger systems. The accompanying
-tools and scripts provide the structure to easily manage many Bro processes
-examining packets and doing correlation activities but acting as a singular,
-cohesive entity.
+Bro is the current solution to build these larger systems. The tools and
+scripts that accompany Bro provide the structure to easily manage many Bro
+processes examining packets and doing correlation activities but acting as
+a singular, cohesive entity.  This document describes the Bro cluster
+architecture.  For information on how to configure a Bro cluster,
+see the documentation for
+:doc:`BroControl <../components/broctl/README>`.
 
 Architecture
 ---------------
@@ -41,11 +42,11 @@ messages and notices from the rest of the nodes in the cluster using the Bro
 communications protocol.  The result is a single log instead of many
 discrete logs that you have to combine in some manner with post-processing.
 The manager also takes the opportunity to de-duplicate notices, and it has the
-ability to do so since it’s acting as the choke point for notices and how notices
-might be processed into actions (e.g., emailing, paging, or blocking).
+ability to do so since it's acting as the choke point for notices and how
+notices might be processed into actions (e.g., emailing, paging, or blocking).
 
 The manager process is started first by BroControl and it only opens its
-designated port and waits for connections, it doesn’t initiate any
+designated port and waits for connections, it doesn't initiate any
 connections to the rest of the cluster.  Once the workers are started and
 connect to the manager, logs and notices will start arriving to the manager
 process from the workers.
@@ -58,12 +59,11 @@ the workers by alleviating the need for all of the workers to connect
 directly to each other.
 
 Examples of synchronized state from the scripts that ship with Bro include
-the full list of “known” hosts and services (which are hosts or services
+the full list of "known" hosts and services (which are hosts or services
 identified as performing full TCP handshakes) or an analyzed protocol has been
 found on the connection.  If worker A detects host 1.2.3.4 as an active host,
 it would be beneficial for worker B to know that as well.  So worker A shares
-that information as an insertion to a set
-<link to set documentation would be good here> which travels to the cluster’s
+that information as an insertion to a set which travels to the cluster's
 proxy and the proxy sends that same set insertion to worker B. The result
 is that worker A and worker B have shared knowledge about host and services
 that are active on the network being monitored.
@@ -79,7 +79,7 @@ necessary for the number of workers they are serving.  It is best to start
 with a single proxy and add more if communication performance problems are
 found.
 
-Bro processes acting as proxies don’t tend to be extremely hard on CPU
+Bro processes acting as proxies don't tend to be extremely hard on CPU
 or memory and users frequently run proxy processes on the same physical
 host as the manager.
 
@@ -106,7 +106,7 @@ dedicated to being workers with each one containing dual 6-core processors.
 
 Once a flow-based load balancer is put into place this model is extremely
 easy to scale. It is recommended that you estimate the amount of
-hardware you will need to fully analyze your traffic.  If more is needed it’s
+hardware you will need to fully analyze your traffic.  If more is needed it's
 relatively easy to increase the size of the cluster in most cases.
 
 Frontend Options
@@ -147,14 +147,13 @@ On host flow balancing
 PF_RING
 ^^^^^^^
 
-The PF_RING software for Linux has a “clustering” feature which will do
+The PF_RING software for Linux has a "clustering" feature which will do
 flow-based load balancing across a number of processes that are sniffing the
 same interface.  This allows you to easily take advantage of multiple
-cores in a single physical host because Bro’s main event loop is single
-threaded and can’t natively utilize all of the cores.  More information about
-Bro with PF_RING can be found here: (someone want to write a quick Bro/PF_RING
-tutorial to link to here?  document installing kernel module, libpcap
-wrapper, building Bro with the --with-pcap configure option)
+cores in a single physical host because Bro's main event loop is single
+threaded and can't natively utilize all of the cores.  If you want to use
+PF_RING, see the documentation on `how to configure Bro with PF_RING
+<http://bro.org/documentation/load-balancing.html>`_.
 
 Netmap
 ^^^^^^
@@ -167,7 +166,7 @@ Click! Software Router
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Click! can be used for flow based load balancing with a simple configuration.
-(link to an example for the config).  This solution is not recommended on
-Linux due to Bro’s PF_RING support and only as a last resort on other
+This solution is not recommended on
+Linux due to Bro's PF_RING support and only as a last resort on other
 operating systems since it causes a lot of overhead due to context switching
 back and forth between kernel and userland several times per packet.

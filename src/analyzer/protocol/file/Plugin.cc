@@ -1,11 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "./File.h"
 
-BRO_PLUGIN_BEGIN(Bro, File)
-	BRO_PLUGIN_DESCRIPTION("Generic file analyzer");
-	BRO_PLUGIN_ANALYZER("FTP_Data", file::FTP_Data);
-	BRO_PLUGIN_ANALYZER("IRC_Data", file::IRC_Data);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_File {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("FTP_Data", ::analyzer::file::FTP_Data::Instantiate));
+		AddComponent(new ::analyzer::Component("IRC_Data", ::analyzer::file::IRC_Data::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::File";
+		config.description = "Generic file analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}

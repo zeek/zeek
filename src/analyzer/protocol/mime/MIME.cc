@@ -142,8 +142,9 @@ int fputs(data_chunk_t b, FILE* fp)
 void MIME_Mail::Undelivered(int len)
 	{
 	// is_orig param not available, doesn't matter as long as it's consistent
-	file_mgr->Gap(cur_entity_len, len, analyzer->GetAnalyzerTag(), analyzer->Conn(),
-	              false);
+	cur_entity_id = file_mgr->Gap(cur_entity_len, len,
+	                              analyzer->GetAnalyzerTag(), analyzer->Conn(),
+	                              false, cur_entity_id);
 	}
 
 int strcasecmp_n(data_chunk_t s, const char* t)
@@ -552,6 +553,7 @@ void MIME_Entity::init()
 	data_buf_offset = -1;
 
 	message = 0;
+	delay_adding_implicit_CRLF = false;
 	}
 
 MIME_Entity::~MIME_Entity()
@@ -643,11 +645,7 @@ void MIME_Entity::EndOfData()
 		if ( content_encoding == CONTENT_ENCODING_BASE64 )
 			FinishDecodeBase64();
 
-		if ( data_buf_offset > 0 )
-			{
-			SubmitData(data_buf_offset, data_buf_data);
-			data_buf_offset = -1;
-			}
+		FlushData();
 		}
 
 	message->EndEntity (this);
@@ -1001,16 +999,38 @@ void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
 			DecodeBinary(len, data, trailing_CRLF);
 			break;
 	}
+	FlushData();
 	}
 
 void MIME_Entity::DecodeBinary(int len, const char* data, int trailing_CRLF)
 	{
+	if ( delay_adding_implicit_CRLF )
+		{
+		delay_adding_implicit_CRLF = false;
+		DataOctet(CR);
+		DataOctet(LF);
+		}
+
 	DataOctets(len, data);
 
 	if ( trailing_CRLF )
 		{
-		DataOctet(CR);
-		DataOctet(LF);
+		if ( Parent() &&
+		     Parent()->MIMEContentType() == mime::CONTENT_TYPE_MULTIPART )
+			{
+			// For multipart body content, we want to keep all implicit CRLFs
+			// except for the last because that one belongs to the multipart
+			// boundary delimiter, not the content.  Simply delaying the
+			// addition of implicit CRLFs until another chunk of content
+			// data comes in is a way to prevent the CRLF before the final
+			// message boundary from being accidentally added to the content.
+			delay_adding_implicit_CRLF = true;
+			}
+		else
+			{
+			DataOctet(CR);
+			DataOctet(LF);
+			}
 		}
 	}
 
@@ -1044,6 +1064,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 						{
 						DataOctet((a << 4) + b);
 						legal = 1;
+						i += 2;
 						}
 					}
 
@@ -1175,6 +1196,15 @@ void MIME_Entity::DataOctets(int len, const char* data)
 			SubmitData(data_buf_length, data_buf_data);
 			data_buf_offset = -1;
 			}
+		}
+	}
+
+void MIME_Entity::FlushData()
+	{
+	if ( data_buf_offset > 0 )
+		{
+		SubmitData(data_buf_offset, data_buf_data);
+		data_buf_offset = -1;
 		}
 	}
 
@@ -1324,6 +1354,7 @@ MIME_Mail::~MIME_Mail()
 void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	{
 	cur_entity_len = 0;
+	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
 		{
@@ -1363,6 +1394,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	cur_entity_id.clear();
 	}
 
 void MIME_Mail::SubmitHeader(MIME_Header* h)
@@ -1425,8 +1457,9 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		}
 
 	// is_orig param not available, doesn't matter as long as it's consistent
-	file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
-	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), false);
+	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
+	                 analyzer->GetAnalyzerTag(), analyzer->Conn(), false,
+	                 cur_entity_id);
 
 	cur_entity_len += len;
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();

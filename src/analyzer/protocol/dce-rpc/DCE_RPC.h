@@ -178,7 +178,7 @@ public:
 	DCE_RPC_Analyzer(Connection* conn, bool speculative = false);
 	~DCE_RPC_Analyzer();
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DCE_RPC_Analyzer(conn); }
 
 protected:

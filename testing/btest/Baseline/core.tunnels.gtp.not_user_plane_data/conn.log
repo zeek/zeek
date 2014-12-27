@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2013-08-26-19-02-18
+#open	2014-04-01-22-57-11
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	set[string]
 1333458850.532814	CXWv6p3arKYeMETxOg	247.56.43.90	2152	247.56.43.248	2152	udp	-	-	-	-	S0	-	0	D	1	52	0	0	(empty)
 1333458850.867091	CjhGID4nQcgTWjvg4c	247.56.43.214	2152	237.56.101.238	2152	udp	-	0.028676	12	14	SF	-	0	Dd	1	40	1	42	(empty)
-#close	2013-08-26-19-02-18
+#close	2014-04-01-22-57-11

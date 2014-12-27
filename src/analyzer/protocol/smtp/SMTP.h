@@ -7,6 +7,7 @@
 using namespace std;
 
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/tcp/ContentLine.h"
 #include "analyzer/protocol/mime/MIME.h"
 
 #undef SMTP_CMD_DEF
@@ -44,11 +45,11 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void ConnectionFinished(int half_finished);
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new SMTP_Analyzer(conn);
 		}
@@ -74,6 +75,7 @@ protected:
 				int detail_len, const char* detail);
 	void UnexpectedCommand(const int cmd_code, const int reply_code);
 	void UnexpectedReply(const int cmd_code, const int reply_code);
+	void StartTLS();
 
 	bool orig_is_sender;
 	int expect_sender, expect_recver;
@@ -84,11 +86,14 @@ protected:
 	int pipelining;			// whether pipelining is supported
 	list<int> pending_cmd_q;	// to support pipelining
 	int skip_data;			// whether to skip message body
-	int orig_record_contents;	// keep the original record_contents
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap
 
 	mime::MIME_Mail* mail;
+
+private:
+	tcp::ContentLine_Analyzer* cl_orig;
+	tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } } // namespace analyzer::* 

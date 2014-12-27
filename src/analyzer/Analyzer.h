@@ -44,7 +44,7 @@ public:
 	 * Analyzer::DeliverPacket().
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
-				   bool orig, int seq,
+				   bool orig, uint64 seq,
 				   const IP_Hdr* ip, int caplen)
 		{ }
 
@@ -59,7 +59,7 @@ public:
 	 * Hook for receiving notification of stream gaps. Parameters are the
 	 * same as for Analyzer::Undelivered().
 	 */
-	virtual void Undelivered(int seq, int len, bool orig)	{ }
+	virtual void Undelivered(uint64 seq, int len, bool orig)	{ }
 };
 
 /**
@@ -97,8 +97,8 @@ public:
 
 	/**
 	 * Constructor. As this version of the constructor does not receive a
-	 * name or tag, setTag() must be called before the instance can be
-	 * used.
+	 * name or tag, SetAnalyzerTag() must be called before the instance
+	 * can be used.
 	 *
 	 * @param conn The connection the analyzer is associated with.
 	 */
@@ -143,7 +143,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			int seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+			uint64 seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -173,7 +173,7 @@ public:
 	 *
 	 * @param is_orig True if this is about originator-side input.
 	 */
-	void NextUndelivered(int seq, int len, bool is_orig);
+	void NextUndelivered(uint64 seq, int len, bool is_orig);
 
 	/**
 	 * Reports a message boundary.  This is a generic method that can be
@@ -195,7 +195,7 @@ public:
 	 * Parameters are the same as for NextPacket().
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
-					bool orig, int seq,
+					bool orig, uint64 seq,
 					const IP_Hdr* ip, int caplen);
 
 	/**
@@ -212,7 +212,7 @@ public:
 	 *
 	 * Parameters are the same as for NextUndelivered().
 	 */
-	virtual void ForwardUndelivered(int seq, int len, bool orig);
+	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
 
 	/**
 	 * Forwards an end-of-data notification on to all child analyzers.
@@ -227,7 +227,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -241,7 +241,7 @@ public:
 	 * NextUndelivered() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
 
 	/**
 	 * Hook for accessing end-of-data notifications. This is called by
@@ -471,8 +471,11 @@ public:
 	 * may turn into \c protocol_confirmed event at the script-layer (but
 	 * only once per analyzer for each connection, even if the method is
 	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
 	 */
-	 virtual void ProtocolConfirmation();
+	virtual void ProtocolConfirmation(Tag tag = Tag());
 
 	/**
 	 * Signals Bro's protocol detection that the analyzer has found a
@@ -749,7 +752,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	virtual void ForwardPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -769,7 +772,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	virtual void ForwardUndelivered(int seq, int len, bool orig);
+	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
 
 protected:
 	friend class Analyzer;

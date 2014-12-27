@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('sphinx_input/ext'))
 
 # ----- Begin of BTest configuration. -----
 btest = os.path.abspath("@CMAKE_SOURCE_DIR@/aux/btest")
-brocut = os.path.abspath("@CMAKE_SOURCE_DIR@/aux/bro-aux/bro-cut")
+brocut = os.path.abspath("@CMAKE_SOURCE_DIR@/build/aux/bro-aux/bro-cut")
 bro = os.path.abspath("@CMAKE_SOURCE_DIR@/build/src")
 
 os.environ["PATH"] += (":%s:%s/sphinx:%s:%s" % (btest, btest, bro, brocut))
@@ -38,7 +38,6 @@ extensions += ["broxygen"]
 bro_binary = os.path.abspath("@CMAKE_SOURCE_DIR@/build/src/bro")
 broxygen_cache="@BROXYGEN_CACHE_DIR@"
 os.environ["BROPATH"] = "@BROPATH@"
-os.environ["BROMAGIC"] = "@BROMAGIC@"
 # ----- End of Broxygen configuration. -----
 
 # -- General configuration -----------------------------------------------------

@@ -1,4 +1,9 @@
 
+2.3-348 | 2014-12-31 09:19:34 -0800
+
+  * Changing Makefile's test-all to run test-all for broctl, which now
+    executes trace-summary tests as well. (Robin Sommer)
+
 2.3-345 | 2014-12-31 09:06:15 -0800
 
   * Correct a typo in the Notice framework doc. (Daniel Thayer)

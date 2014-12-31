@@ -1,4 +1,8 @@
 
+2.3-345 | 2014-12-31 09:06:15 -0800
+
+  * Correct a typo in the Notice framework doc. (Daniel Thayer)
+
 2.3-343 | 2014-12-12 12:43:46 -0800
 
   * Fix PIA packet replay to deliver copy of IP header. This prevented

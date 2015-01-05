@@ -71,10 +71,49 @@ global classification_map: table[count] of string;
 global sid_map: table[count] of string;
 global gen_map: table[count] of string;
 
+global num_classification_map_reads = 0;
+global num_sid_map_reads = 0;
+global num_gen_map_reads = 0;
+global watching = F;
+
 # For reading in config files.
 type OneLine: record {
 	line: string;
 };
+
+function mappings_initialized(): bool
+	{
+	return num_classification_map_reads > 0 &&
+	       num_sid_map_reads > 0 &&
+	       num_gen_map_reads > 0;
+	}
+
+function start_watching()
+	{
+	if ( watching )
+		return;
+
+	watching = T;
+
+	if ( watch_dir != "" )
+		{
+		Dir::monitor(watch_dir, function(fname: string)
+			{
+			Input::add_analysis([$source=fname,
+			                     $reader=Input::READER_BINARY,
+			                     $mode=Input::STREAM,
+			                     $name=fname]);
+			}, 10secs);
+		}
+
+	if ( watch_file != "" )
+		{
+		Input::add_analysis([$source=watch_file,
+		                     $reader=Input::READER_BINARY,
+		                     $mode=Input::STREAM,
+		                     $name=watch_file]);
+		}
+	}
 
 function create_info(ev: IDSEvent): Info
 	{
@@ -136,11 +175,33 @@ event Unified2::read_classification_line(desc: Input::EventDescription, tpe: Inp
 		}
 	}
 
+event Input::end_of_data(name: string, source: string)
+	{
+	if ( name == classification_config )
+		++num_classification_map_reads;
+	else if ( name == sid_msg )
+		++num_sid_map_reads;
+	else if ( name == gen_msg )
+		++num_gen_map_reads;
+	else
+		return;
+
+	if ( watching )
+		return;
+
+	if ( mappings_initialized() )
+		start_watching();
+	}
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2]);
 
-	if ( sid_msg != "" )
+	if ( sid_msg == "" )
+		{
+		num_sid_map_reads = 1;
+		}
+	else
 		{
 		Input::add_event([$source=sid_msg,
 		                  $reader=Input::READER_RAW,
@@ -151,7 +212,11 @@ event bro_init() &priority=5
 		                  $ev=Unified2::read_sid_msg_line]);
 		}
 
-	if ( gen_msg != "" )
+	if ( gen_msg == "" )
+		{
+		num_gen_map_reads = 1;
+		}
+	else
 		{
 		Input::add_event([$source=gen_msg,
 		                  $name=gen_msg,
@@ -162,7 +227,11 @@ event bro_init() &priority=5
 		                  $ev=Unified2::read_gen_msg_line]);
 		}
 
-	if ( classification_config != "" )
+	if ( classification_config == "" )
+		{
+		num_classification_map_reads = 1;
+		}
+	else
 		{
 		Input::add_event([$source=classification_config,
 		                  $name=classification_config,
@@ -173,24 +242,8 @@ event bro_init() &priority=5
 		                  $ev=Unified2::read_classification_line]);
 		}
 
-	if ( watch_dir != "" )
-		{
-		Dir::monitor(watch_dir, function(fname: string)
-			{
-			Input::add_analysis([$source=fname,
-			                     $reader=Input::READER_BINARY,
-			                     $mode=Input::STREAM,
-			                     $name=fname]);
-			}, 10secs);
-		}
-
-	if ( watch_file != "" )
-		{
-		Input::add_analysis([$source=watch_file,
-		                     $reader=Input::READER_BINARY,
-		                     $mode=Input::STREAM,
-		                     $name=watch_file]);
-		}
+	if ( mappings_initialized() )
+		start_watching();
 	}
 
 event file_new(f: fa_file)

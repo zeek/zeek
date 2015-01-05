@@ -1,4 +1,8 @@
 
+2.3-349 | 2015-01-05 15:21:13 -0600
+
+  * Fix race condition in unified2 file analyzer startup. (Jon siwek)
+
 2.3-348 | 2014-12-31 09:19:34 -0800
 
   * Changing Makefile's test-all to run test-all for broctl, which now

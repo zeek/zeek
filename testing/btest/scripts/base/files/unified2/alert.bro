@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT test_watch_file=$FILES/unified2.u2
+# @TEST-EXEC: bro -b %INPUT Unified2::watch_file=$FILES/unified2.u2
 # @TEST-EXEC: btest-diff unified2.log
 
 @TEST-START-FILE sid_msg.map
@@ -67,36 +67,6 @@ redef Unified2::sid_msg = @DIR+"/sid_msg.map";
 redef Unified2::gen_msg = @DIR+"/gen_msg.map";
 redef Unified2::classification_config = @DIR+"/classification.config";
 global i = 0;
-
-# TODO: can't currently use Unified2::watch_file directly for the test as
-# there's a race between reading that file and the map/classification
-# config files, which leads to not all fields of the unified2.log being
-# populated on occassion.
-const test_watch_file: string = "" &redef;
-
-event start_test()
-	{
-	Input::add_analysis([$source=test_watch_file,
-	                     $reader=Input::READER_BINARY,
-	                     $mode=Input::STREAM,
-	                     $name=test_watch_file]);
-	}
-
-# TODO: this should be handled by unified2 module, but it's here for
-# working around the issue mentioned in comment above.
-event file_new(f: fa_file)
-	{
-	if ( f$source == test_watch_file )
-		{
-		Files::add_analyzer(f, Files::ANALYZER_UNIFIED2);
-		f$u2_events = table();
-		}
-	}
-
-event bro_init()
-	{
-	schedule 2sec { start_test() };
-	}
 
 event Unified2::alert(f: fa_file, ev: Unified2::IDSEvent, pkt: Unified2::Packet)
 	{

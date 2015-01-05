@@ -189,7 +189,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Cluster::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Communication::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Conn::LOG)) -> <null>
@@ -283,8 +283,8 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, (ip or not ip, and, )) -> <null>
@@ -303,6 +303,8 @@
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, (SumStats::UNIQUE, anonymous-function{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || flattenSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = flattenSumStats::rv$unique_vals})) -> <null>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, (SumStats::VARIANCE, anonymous-function{ if (1 < SumStats::rv$num) SumStats::rv$var_s += ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average})) -> <null>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugins, ()) -> <null>
+0.000000   MetaHookPost  CallFunction(Unified2::mappings_initialized, ()) -> <null>
+0.000000   MetaHookPost  CallFunction(Unified2::start_watching, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(bro_init, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(cat, (Packe, t, _, Filter)) -> <null>
 0.000000   MetaHookPost  CallFunction(current_time, ()) -> <null>
@@ -724,7 +726,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Conn::LOG))
@@ -818,8 +820,8 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql]))
-0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T]))
-0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, (ip or not ip, and, ))
@@ -838,6 +840,8 @@
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, (SumStats::UNIQUE, anonymous-function{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || flattenSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = flattenSumStats::rv$unique_vals}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, (SumStats::VARIANCE, anonymous-function{ if (1 < SumStats::rv$num) SumStats::rv$var_s += ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugins, ())
+0.000000   MetaHookPre   CallFunction(Unified2::mappings_initialized, ())
+0.000000   MetaHookPre   CallFunction(Unified2::start_watching, ())
 0.000000   MetaHookPre   CallFunction(bro_init, ())
 0.000000   MetaHookPre   CallFunction(cat, (Packe, t, _, Filter))
 0.000000   MetaHookPre   CallFunction(current_time, ())
@@ -1259,7 +1263,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1353,8 +1357,8 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])
-0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1418743793.447552, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )
@@ -1373,6 +1377,8 @@
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::UNIQUE, anonymous-function{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || flattenSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = flattenSumStats::rv$unique_vals})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::VARIANCE, anonymous-function{ if (1 < SumStats::rv$num) SumStats::rv$var_s += ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average})
 0.000000 | HookCallFunction SumStats::register_observe_plugins()
+0.000000 | HookCallFunction Unified2::mappings_initialized()
+0.000000 | HookCallFunction Unified2::start_watching()
 0.000000 | HookCallFunction bro_init()
 0.000000 | HookCallFunction cat(Packe, t, _, Filter)
 0.000000 | HookCallFunction current_time()

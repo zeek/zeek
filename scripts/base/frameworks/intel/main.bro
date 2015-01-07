@@ -67,6 +67,7 @@ export {
 		IN_ANYWHERE,
 	};
 
+	## Information about a piece of "seen" data.
 	type Seen: record {
 		## The string if the data is about a string.
 		indicator:       string        &log &optional;
@@ -124,7 +125,7 @@ export {
 		sources:  set[string]    &log &default=string_set();
 	};
 
-	## Intelligence data manipulation functions.
+	## Intelligence data manipulation function.
 	global insert: function(item: Item);
 
 	## Function to declare discovery of a piece of data in order to check

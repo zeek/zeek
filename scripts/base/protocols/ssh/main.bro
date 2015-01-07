@@ -12,6 +12,8 @@ export {
 		uid:    string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:     conn_id &log;
+		## SSH major version (1 or 2)
+		version: count &log;
 		## Auth result
 		result: string &log &optional;
 		## Auth method (password, pubkey, etc.)
@@ -54,23 +56,36 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 	}
 
-function determine_auth_method(middle_pkt_len: int, first_pkt_len: int): string
+function determine_auth_method(version: int, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int): string
 	{
 	# This is still being tested.
 	# Based on "Analysis for Identifying User Authentication Methods on SSH Connections"
 	# by Satoh, Nakamura, Ikenaga.
 
-	if ( middle_pkt_len == 96 )
-		return "password";
-	if ( middle_pkt_len == 16 )
-		return "gssapi";
-	if ( ( middle_pkt_len == 32 ) && ( first_pkt_len == 0 || first_pkt_len == 48 ) )
-		return "challenge-response";
-	if ( middle_pkt_len < 256 )
-		return fmt("unknown (mid=%d, first=%d)", middle_pkt_len, first_pkt_len);	
-	if ( first_pkt_len == 16 )
-		return "host-based";
-	return fmt("pubkey (~%d bits)", (first_pkt_len - 16)*8);
+	if ( version == 2 )
+		{
+		if ( first_pkt_len == 0 )
+			return "none";
+		if ( middle_pkt_len == 96 )
+			return "password";
+		if ( middle_pkt_len == 16 )
+			return "gssapi";
+		if ( ( middle_pkt_len == 32 ) && ( first_pkt_len == 0 || first_pkt_len == 48 ) )
+			return "challenge-response";
+		if ( middle_pkt_len < 256 )
+			return fmt("unknown (mid=%d, first=%d)", middle_pkt_len, first_pkt_len);	
+		if ( first_pkt_len == 16 )
+			return "host-based";
+		return fmt("pubkey (~%d bits)", (first_pkt_len - 16)*8);
+		}
+	else if ( version == 1 )
+		{
+		if ( first_pkt_len == 0 )
+			return "password";
+		if ( first_pkt_len >= 96 && first_pkt_len <= 256 )
+			return fmt("pubkey (~%d bits)", first_pkt_len * 8);
+		return fmt("%d %d %d", first_pkt_len, middle_pkt_len, last_pkt_len);
+		}
 	}	
 
 event ssh_server_version(c: connection, version: string)
@@ -97,33 +112,37 @@ event ssh_client_version(c: connection, version: string)
 		c$ssh = s;
 		}
 	c$ssh$client = version;
+	if ( version[4] == "1" )
+		c$ssh$version = 1;
+	if ( version[4] == "2" )
+		c$ssh$version = 2;
 	}
 
-event ssh_auth_successful(c: connection, middle_pkt_len: int, first_pkt_len: int)
+event ssh_auth_successful(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int)
 	{
 	print "ssh_auth_successful";
 	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
 		return;
 	c$ssh$result = "success";
-	c$ssh$method = determine_auth_method(middle_pkt_len, first_pkt_len);
+	c$ssh$method = determine_auth_method(c$ssh$version, last_pkt_len, middle_pkt_len, first_pkt_len);
 	}
 
-event ssh_auth_successful(c: connection, middle_pkt_len: int, first_pkt_len: int) &priority=-5
+event ssh_auth_successful(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int) &priority=-5
 	{
 	c$ssh$logged = T;
 	Log::write(SSH::LOG, c$ssh);	
 	}
 	
-event ssh_auth_failed(c: connection, middle_pkt_len: int, first_pkt_len: int)
+event ssh_auth_failed(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int)
 	{
 	print "ssh_auth_failed";
 	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
 		return;
 	c$ssh$result = "failure";
-	c$ssh$method = determine_auth_method(middle_pkt_len, first_pkt_len);
+	c$ssh$method = determine_auth_method(c$ssh$version, last_pkt_len, middle_pkt_len, first_pkt_len);
 	}
 	
-event ssh_auth_failed(c: connection, middle_pkt_len: int, first_pkt_len: int) &priority=-5
+event ssh_auth_failed(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int) &priority=-5
 	{
 	c$ssh$logged = T;
 	Log::write(SSH::LOG, c$ssh);

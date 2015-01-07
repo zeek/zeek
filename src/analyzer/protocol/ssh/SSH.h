@@ -31,11 +31,13 @@ protected:
 	binpac::SSH::SSH_Conn* interp;
 	
 	void ProcessEncrypted(int len, bool orig);
-	int AuthResult(int len, bool orig);
+	int AuthResult(int len, bool orig, int version);
 
 	bool had_gap;
 
 	// Packet analysis stuff
+	bool auth_decision_made;
+	
 	int initial_client_packet_size;
 	int initial_server_packet_size;
 	int num_encrypted_packets_seen;

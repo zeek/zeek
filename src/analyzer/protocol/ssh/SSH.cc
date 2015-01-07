@@ -17,6 +17,7 @@ SSH_Analyzer::SSH_Analyzer(Connection* c)
 	{
 	interp = new binpac::SSH::SSH_Conn(this);
 	had_gap = false;
+	auth_decision_made = false;
 	num_encrypted_packets_seen = 0;
 	initial_client_packet_size = 0;
 	initial_server_packet_size = 0;
@@ -68,6 +69,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	catch ( const binpac::Exception& e )
 		{
+		  printf("Binpac exception: %s\n", e.c_msg());
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
 	}
@@ -92,17 +94,24 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 	else
 	  	relative_len = len - initial_server_packet_size;
 
-	if ( num_encrypted_packets_seen >= 6 )
+	if ( !auth_decision_made && ( num_encrypted_packets_seen > 3 ) )
 		{
-		int auth_result = AuthResult(relative_len, orig);
+		int auth_result = AuthResult(relative_len, orig, interp->get_version());
 		if ( auth_result > 0 )
 			{
+			auth_decision_made = true;
 			if ( auth_result == 1 )
-				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
-					                                   packet_n_1_size, packet_n_2_size);
+				BifEvent::generate_ssh_auth_successful(interp->bro_analyzer(), 
+								       interp->bro_analyzer()->Conn(), 
+								       len,
+								       packet_n_1_size, 
+								       packet_n_2_size);
 			if ( auth_result == 2 )
-				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
-					                               packet_n_1_size, packet_n_2_size);
+				BifEvent::generate_ssh_auth_failed(interp->bro_analyzer(), 
+								   interp->bro_analyzer()->Conn(), 
+								   len,
+								   packet_n_1_size, 
+								   packet_n_2_size);
 			}
 		}
 	if ( ( num_encrypted_packets_seen >= 2 ) &&
@@ -111,29 +120,47 @@ void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 		packet_n_2_is_orig = packet_n_1_is_orig;
 		packet_n_2_size = packet_n_1_size;
 		}
-	
-	if ( orig == packet_n_1_is_orig )
+	if ( num_encrypted_packets_seen == 0 )
+        num_encrypted_packets_seen = 1;
+	else if ( orig == packet_n_1_is_orig )
 		 packet_n_1_size += len;
 	else
 		{
 		packet_n_1_is_orig = orig;
 		packet_n_1_size = relative_len;
-		num_encrypted_packets_seen++;
+        if ( ! ( ( interp->get_version() == binpac::SSH::SSH1 ) && len > 90 ) )
+            num_encrypted_packets_seen++;
 		}
 	}
 
 
-int SSH_Analyzer::AuthResult(int len, bool orig)
+int SSH_Analyzer::AuthResult(int len, bool orig, int version)
 	{
-	if ( !orig && packet_n_1_is_orig && !packet_n_2_is_orig )
-		{
-		printf("Auth result = %d\n", len);
-		if ( len == -16 )
-			return 1;
-		else if ( len >= 16 && len <= 32 )
-			return 2;
-		return 0;
-		}	
+    if ( version == binpac::SSH::SSH2 )
+        {
+        if ( !orig && packet_n_1_is_orig && !packet_n_2_is_orig )
+            {
+            if ( len == -16 )
+                return 1;
+            else if ( len >= 16 && len <= 32 )
+                return 2;
+            return 0;
+            }
+        }
+    else if ( version == binpac::SSH::SSH1 )
+        {
+        // On a successful login, the server sends a longer message
+        if ( !orig && len > 0 )
+            {
+            // To verify a public key, the server sends back a message of the same size
+            // as the previous one. Ignore that occurrence here.
+            if ( ! ( packet_n_1_is_orig && ( len == packet_n_1_size ) ) )
+                return 1;
+            }
+        // If we've seen too many messages without a longer message, treat it as a failure
+        if ( num_encrypted_packets_seen > 7 )
+            return 2;
+        }
 	return -1;
 	}
 

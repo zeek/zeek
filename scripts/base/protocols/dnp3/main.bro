@@ -31,7 +31,7 @@ redef record connection += {
 	dnp3: Info &optional;
 };
 
-const ports = { 20000/tcp };
+const ports = { 20000/tcp , 20000/udp };
 redef likely_server_ports += { ports };
 
 event bro_init() &priority=5

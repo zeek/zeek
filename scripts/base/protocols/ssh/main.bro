@@ -186,11 +186,24 @@ event connection_state_remove(c: connection) &priority=-5
 		Log::write(SSH::LOG, c$ssh);
 	}
 	
-event ssh_server_host_key(c: connection, key: string)
+function generate_fingerprint(c: connection, key: string)
 	{
-	if ( !c?$ssh )
-		return;
 	local lx = str_split(md5_hash(key), vector(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30));
 	lx[0] = "";
 	c$ssh$host_key = sub(join_string_vec(lx, ":"), /:/, "");
 	}
+
+event ssh1_server_host_key(c: connection, p: string, e: string)
+	{
+	if ( !c?$ssh )
+		return;
+	generate_fingerprint(c, e + p);
+	}
+
+event ssh_server_host_key(c: connection, key: string)
+	{
+	if ( !c?$ssh )
+		return;
+	generate_fingerprint(c, key);
+	}
+

@@ -41,6 +41,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-ruby          build ruby bindings for broccoli (deprecated)
+    --enable-broker        enable use of the Broker communication library
+                           (requires C++ Actor Framework and C++11)
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
@@ -55,6 +57,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-perl=PATH       path to perl executable
+    --with-libcaf=PATH     path to C++ Actor Framework installation
+                           (a required Broker dependency)
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libGeoIP install root
@@ -67,6 +71,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-ruby-lib=PATH   path to ruby library
     --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
+    --with-rocksdb=PATH    path to RocksDB installation
+                           (an optional Broker dependency)
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
@@ -176,6 +182,9 @@ while [ $# -ne 0 ]; do
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
+        --enable-broker)
+            append_cache_entry ENABLE_BROKER        BOOL   true
+            ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
             ;;
@@ -247,6 +256,12 @@ while [ $# -ne 0 ]; do
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
+            ;;
+        --with-libcaf=*)
+            append_cache_entry LIBCAF_ROOT_DIR      PATH   $optarg
+            ;;
+        --with-rocksdb=*)
+            append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

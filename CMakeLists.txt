@@ -177,6 +177,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################
 ## Recurse on sub-directories
 
+if ( ENABLE_BROKER )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    add_subdirectory(aux/broker)
+    set(brodeps ${brodeps} broker)
+endif ()
+
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(doc)
@@ -224,6 +230,7 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
+    "\nBroker:            ${ENABLE_BROKER}"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"

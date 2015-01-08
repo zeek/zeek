@@ -1,4 +1,8 @@
 
+2.3-375 | 2015-01-08 13:10:09 -0600
+
+  * Increase minimum required CMake version to 2.8. (Jon Siwek)
+
 2.3-374 | 2015-01-07 10:03:17 -0600
 
   * Improve documentation of the Intelligence Framework. (Daniel Thayer)

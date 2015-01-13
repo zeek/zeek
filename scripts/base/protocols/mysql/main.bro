@@ -18,8 +18,10 @@ export {
 		cmd:	string	&log;
 		## The argument issued to the command
 		arg:	string	&log;
-		## The result (error, OK, etc.) from the server
-		result: string &log &optional;
+		## Did the server tell us that the command succeeded?
+		success: bool &log &optional;
+		## The number of affected rows, if any
+		rows: count &log &optional;
 		## Server message, if any
 		response: string &log &optional;
 	};
@@ -57,16 +59,21 @@ event mysql_handshake(c: connection, username: string)
 
 event mysql_command_request(c: connection, command: count, arg: string) &priority=5
 	{
-	if ( ! c?$mysql )
+	if ( c?$mysql )
 		{
-		local info: Info;
-		info$ts = network_time();
-		info$uid = c$uid;
-		info$id = c$id;
-		info$cmd = commands[command];
-		info$arg = sub(arg, /\0$/, "");
-		c$mysql = info;
+		# We got a request, but we haven't logged our
+		# previous request yet, so let's do that now.
+		Log::write(mysql::LOG, c$mysql);
+		delete c$mysql;		
 		}
+
+	local info: Info;
+	info$ts = network_time();
+	info$uid = c$uid;
+	info$id = c$id;
+	info$cmd = commands[command];
+	info$arg = sub(arg, /\0$/, "");
+	c$mysql = info;
 	}
 
 event mysql_command_request(c: connection, command: count, arg: string) &priority=-5
@@ -83,7 +90,7 @@ event mysql_error(c: connection, code: count, msg: string) &priority=5
 	{
 	if ( c?$mysql )
 		{
-		c$mysql$result = "error";
+		c$mysql$success = F;
 		c$mysql$response = msg;
 		}
 	}
@@ -101,12 +108,21 @@ event mysql_ok(c: connection, affected_rows: count) &priority=5
 	{
 	if ( c?$mysql )
 		{
-		c$mysql$result = "ok";
-		c$mysql$response = fmt("Affected rows: %d", affected_rows);
+		c$mysql$success = T;
+		c$mysql$rows = affected_rows;
 		}
 	}
 
 event mysql_ok(c: connection, affected_rows: count) &priority=-5
+	{
+	if ( c?$mysql )
+		{
+		Log::write(mysql::LOG, c$mysql);
+		delete c$mysql;
+		}
+	}
+
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$mysql )
 		{

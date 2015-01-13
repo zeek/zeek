@@ -181,6 +181,8 @@ if ( ENABLE_BROKER )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     add_subdirectory(aux/broker)
     set(brodeps ${brodeps} broker)
+    add_definitions(-DENABLE_BROKER)
+    include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker)
 endif ()
 
 add_subdirectory(src)

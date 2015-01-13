@@ -63,6 +63,10 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "3rdparty/sqlite3.h"
 
+#ifdef ENABLE_BROKER
+#include <comm/Manager.h>
+#endif
+
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -94,6 +98,9 @@ analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
 broxygen::Manager* broxygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
+#ifdef ENABLE_BROKER
+comm::Manager* comm_mgr = 0;
+#endif
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -851,6 +858,16 @@ int main(int argc, char** argv)
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
 
+#ifdef ENABLE_BROKER
+	comm_mgr = new comm::Manager();
+
+	if ( ! comm_mgr->InitPreScript() )
+		{
+		fprintf(stderr, "Failed to initialize communication manager.");
+		exit(1);
+		}
+#endif
+
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
@@ -924,6 +941,11 @@ int main(int argc, char** argv)
 		int rc = (reporter->Errors() > 0 ? 1 : 0);
 		exit(rc);
 		}
+
+#ifdef ENABLE_BROKER
+	comm_mgr->InitPostScript();
+	iosource_mgr->Register(comm_mgr);
+#endif
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}

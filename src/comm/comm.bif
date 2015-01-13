@@ -1,0 +1,43 @@
+
+module Comm;
+
+%%{
+#include "comm/Manager.h"
+%%}
+
+function Comm::listen%(p: port, a: string &default=""%): bool
+	%{
+	if ( ! p->IsTCP() )
+		{
+		reporter->Error("listen port must use tcp");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = comm_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::connect%(a: string, p: port, retry: interval%): bool
+	%{
+	if ( ! p->IsTCP() )
+		{
+		reporter->Error("remote connection port must use tcp");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = comm_mgr->Connect(a->CheckString(), p->Port(),
+	                              std::chrono::duration<double>(retry));
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::disconnect%(a: string, p: port%): bool
+	%{
+	if ( ! p->IsTCP() )
+		{
+		reporter->Error("remote connection port must use tcp");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = comm_mgr->Disconnect(a->CheckString(), p->Port());
+	return new Val(rval, TYPE_BOOL);
+	%}

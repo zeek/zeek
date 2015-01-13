@@ -49,6 +49,7 @@ protected:
 	// Buffers one chunk of data.  Used both for packet payload (incl.
 	// sequence numbers for TCP) and chunks of a reassembled stream.
 	struct DataBlock {
+		IP_Hdr* ip;
 		const u_char* data;
 		bool is_orig;
 		int len;
@@ -66,9 +67,9 @@ protected:
 	};
 
 	void AddToBuffer(Buffer* buffer, uint64 seq, int len,
-				const u_char* data, bool is_orig);
+				const u_char* data, bool is_orig, const IP_Hdr* ip = 0);
 	void AddToBuffer(Buffer* buffer, int len,
-				const u_char* data, bool is_orig);
+				const u_char* data, bool is_orig, const IP_Hdr* ip = 0);
 	void ClearBuffer(Buffer* buffer);
 
 	DataBlock* CurrentPacket()	{ return &current_packet; }

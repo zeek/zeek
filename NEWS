@@ -25,10 +25,33 @@ New Functionality
   See https://www.bro.org/sphinx-git/devel/plugins.html for more
   information on writing plugins.
 
+- Bro now has supoprt for the MySQL wire protocol. Activity gets
+  logged into mysql.log.
+
+- Bro's file analysis now supports reassembly of files that are not
+  transferred/seen sequentially.
+
 Changed Functionality
 ---------------------
 
 - bro-cut has been rewritten in C, and is hence much faster.
+
+- File analysis
+
+    * Removed ``fa_file`` record's ``mime_type`` and ``mime_types``
+      fields.  The events ``file_mime_type`` and ``file_mime_types``
+      have been added which contain the same information.  The
+      ``mime_type`` field of ``Files::Info`` also still has this info.
+
+    * Removed ``Files::add_analyzers_for_mime_type`` function.
+
+    * Removed ``offset`` parameter of the ``file_extraction_limit``
+      event.  Since file extraction now internally depends on file
+      reassembly for non-sequential files, "offset" can be obtained
+      with other information already available -- adding together
+      ``seen_bytes`` and ``missed_bytes`` fields of the ``fa_file``
+      record gives the how many bytes have been written so far (i.e.
+      the "offset").
 
 Bro 2.3
 =======

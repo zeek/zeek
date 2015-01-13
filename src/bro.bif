@@ -2,8 +2,8 @@
 ##! such as general programming algorithms, string processing, math functions,
 ##! introspection, type conversion, file/directory manipulation, packet
 ##! filtering, interprocess communication and controlling protocol analyzer
-##! behavior. 
-##! 
+##! behavior.
+##!
 ##! You'll find most of Bro's built-in functions that aren't protocol-specific
 ##! in this file.
 
@@ -2157,6 +2157,22 @@ function counts_to_addr%(v: index_vec%): addr
 		memset(bytes, 0, sizeof(bytes));
 		return new AddrVal(bytes);
 		}
+	%}
+
+## Converts an :bro:type:`enum` to an :bro:type:`int`.
+##
+## e: The :bro:type:`enum` to convert.
+##
+## Returns: The :bro:type:`int` value that corresponds to the :bro:type:`enum`.
+function enum_to_int%(e: any%): int
+	%{
+	if ( e->Type()->Tag() != TYPE_ENUM )
+		{
+		builtin_error("enum_to_int() requires enum value");
+		return new Val(-1, TYPE_INT);
+		}
+
+	return new Val(e->AsEnum(), TYPE_INT);
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`int`.

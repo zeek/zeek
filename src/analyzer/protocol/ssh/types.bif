@@ -1,0 +1,5 @@
+module SSH;
+
+type Capabilities: record;
+
+module GLOBAL;

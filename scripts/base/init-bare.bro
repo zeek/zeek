@@ -2222,6 +2222,43 @@ export {
 	const heartbeat_interval = 1.0 secs &redef;
 }
 
+module SSH;
+
+export {
+	## SSH Capability record
+	type Capabilities: record {
+		## Key exchange algorithms
+		kex_algorithms							: string_vec;
+		## The algorithms supported for the server host key
+		server_host_key_algorithms				: string_vec;
+		## Acceptable symmetric encryption algorithms for c->s,
+		## in order of preference
+		encryption_algorithms_client_to_server	: string_vec;
+		## Acceptable symmetric encryption algorithms for s->c,
+		## in order of preference
+		encryption_algorithms_server_to_client	: string_vec;
+		## Acceptable MAC algorithms for c->s,
+		## in order of preference
+		mac_algorithms_client_to_server			: string_vec;
+
+		## Acceptable MAC algorithms for s->c,
+		## in order of preference
+		mac_algorithms_server_to_client			: string_vec;
+		## Acceptable compression algorithms for c->s,
+		## in order of preference
+		compression_algorithms_client_to_server	: string_vec;
+		## Acceptable compression algorithms for c->s,
+		## in order of preference
+		compression_algorithms_server_to_client	: string_vec;
+		## Language tags in order of preference for c->s
+		languages_client_to_server				: string_vec &optional;
+		## Language tags in order of preference for s->c
+		languages_server_to_client				: string_vec &optional;
+		## Are these the capabilities of the server?
+		is_server								: bool;
+	};
+}
+
 module GLOBAL;
 
 ## An NTP message.

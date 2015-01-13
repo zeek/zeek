@@ -15,22 +15,40 @@ export {
 		## SSH major version (1 or 2)
 		version: count &log;
 		## Auth result
-		result: string &log &optional;
-		## Auth method (password, pubkey, etc.)
-		method: string &log &optional;
+		auth_success: bool &log &optional;
+
+		## Auth details
+		auth_details: string &log &optional;
 		## Direction of the connection. If the client was a local host
 		## logging into an external host, this would be OUTBOUND. INBOUND
 		## would be set for the opposite situation.
 		## TODO: handle local-local and remote-remote better.
 		direction: Direction &log &optional;
+		## The encryption algorithm in use
+		cipher_alg: string &log &optional;
+		## The signing (MAC) algorithm in use
+		mac_alg: string &log &optional;
+		## The compression algorithm in use
+		compression_alg: string &log &optional;
+		## The key exchange algorithm in use
+		kex_alg: string &log &optional;
+
+		## The server host key's algorithm
+		host_key_alg: string &log &optional;
+		## The server's key fingerprint
+		host_key: string &log &optional;
 		## The client's version string
 		client: string &log &optional;
 		## The server's version string
 		server: string &log &optional;
-		## The server's key fingerprint
-		host_key: string &log &optional;
+		
 		## This connection has been logged (internal use)
 		logged: bool &default=F;
+		## Number of failures seen (internal use)
+		num_failures: count &default=0;
+		## Store capabilities from the first host for
+		## comparison with the second (internal use)
+		capabilities: Capabilities &optional;
 	};
 
 	## If true, we tell the event engine to not look at further data
@@ -48,146 +66,167 @@ redef record connection += {
 	ssh: Info &optional;
 };
 
-const ports = { 22/tcp };
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 	}
 
-function determine_auth_method(version: int, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int): string
-	{
-	# This is still being tested.
-	# Based on "Analysis for Identifying User Authentication Methods on SSH Connections"
-	# by Satoh, Nakamura, Ikenaga.
 
-	if ( version == 2 )
-		{
-		if ( first_pkt_len == 0 )
-			return "none";
-		if ( middle_pkt_len == 96 )
-			return "password";
-		if ( middle_pkt_len == 16 )
-			return "gssapi";
-		if ( ( middle_pkt_len == 32 ) && ( first_pkt_len == 0 || first_pkt_len == 48 ) )
-			return "challenge-response";
-		if ( middle_pkt_len < 256 )
-			return fmt("unknown (mid=%d, first=%d)", middle_pkt_len, first_pkt_len);	
-		if ( first_pkt_len == 16 )
-			return "host-based";
-		return fmt("pubkey (~%d bits)", (first_pkt_len - 16)*8);
-		}
-	else if ( version == 1 )
-		{
-		if ( first_pkt_len == 0 )
-			return "password";
-		if ( first_pkt_len >= 96 && first_pkt_len <= 256 )
-			return fmt("pubkey (~%d bits)", first_pkt_len * 8);
-		return fmt("%d %d %d", first_pkt_len, middle_pkt_len, last_pkt_len);
-		}
-	}	
+function init_record(c: connection)
+	{
+	local s: SSH::Info;
+	s$ts  = network_time();
+	s$uid = c$uid;
+	s$id  = c$id;
+	c$ssh = s;
+	}
+	
 
 event ssh_server_version(c: connection, version: string)
 	{
 	if ( !c?$ssh )
-		{
-		local s: SSH::Info;
-		s$ts  = network_time();
-		s$uid = c$uid;
-		s$id  = c$id;
-		c$ssh = s;
-		}
+		init_record(c);
+		
 	c$ssh$server = version;
 	}
 
 event ssh_client_version(c: connection, version: string)
 	{
 	if ( !c?$ssh )
-		{
-		local s: SSH::Info;
-		s$ts  = network_time();
-		s$uid = c$uid;
-		s$id  = c$id;
-		c$ssh = s;
-		}
+		init_record(c);
+		
 	c$ssh$client = version;
+	
 	if ( version[4] == "1" )
 		c$ssh$version = 1;
 	if ( version[4] == "2" )
 		c$ssh$version = 2;
 	}
 
-event ssh_auth_successful(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int)
+event ssh_auth_successful(c: connection, auth_method_none: bool)
 	{
-	print "ssh_auth_successful";
-	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
+	if ( !c?$ssh || ( c$ssh?$auth_success && c$ssh$auth_success ) )
 		return;
-	c$ssh$result = "success";
-	c$ssh$method = determine_auth_method(c$ssh$version, last_pkt_len, middle_pkt_len, first_pkt_len);
-	}
 
-event ssh_auth_successful(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int) &priority=-5
-	{
-	c$ssh$logged = T;
-	Log::write(SSH::LOG, c$ssh);	
-	}
-	
-event ssh_auth_failed(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int)
-	{
-	print "ssh_auth_failed";
-	if ( !c?$ssh || ( c$ssh?$result && c$ssh$result == "success" ) )
+	# We can't accurately tell for compressed streams
+	if ( c$ssh?$compression_alg && ( c$ssh$compression_alg == "zlib@openssh.com" ||
+	   	 						     c$ssh$compression_alg == "zlib" ) )
 		return;
-	c$ssh$result = "failure";
-	c$ssh$method = determine_auth_method(c$ssh$version, last_pkt_len, middle_pkt_len, first_pkt_len);
-	}
-	
-event ssh_auth_failed(c: connection, last_pkt_len: int, middle_pkt_len: int, first_pkt_len: int) &priority=-5
-	{
-	c$ssh$logged = T;
-	Log::write(SSH::LOG, c$ssh);
-	}
+		
+	c$ssh$auth_success = T;
 
-event connection_state_remove(c: connection)
-	{
-	if ( c?$ssh && !c$ssh?$result )
+	if ( auth_method_none )
+		c$ssh$auth_details = "method: none";
+
+	if ( skip_processing_after_detection)
 		{
-		c$ssh$result = "unknown";
+		skip_further_processing(c$id);
+		set_record_packets(c$id, F);
+		}	
+	}
+
+event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=-5
+	{
+	if ( c?$ssh && !c$ssh$logged )
+		{
+		c$ssh$logged = T;
+		Log::write(SSH::LOG, c$ssh);
 		}
 	}
-
-event ssh_server_capabilities(c: connection, kex_algorithms: string, server_host_key_algorithms: string, encryption_algorithms_client_to_server: string, encryption_algorithms_server_to_client: string, mac_algorithms_client_to_server: string, mac_algorithms_server_to_client: string, compression_algorithms_client_to_server: string, compression_algorithms_server_to_client: string, languages_client_to_server: string, languages_server_to_client: string)
+	
+event ssh_auth_failed(c: connection)
 	{
-	# print "kex_algorithms", kex_algorithms;
-	# print "";
-	# print "server_host_key_algorithms", server_host_key_algorithms;
-	# print "";
-	# print "encryption_algorithms_client_to_server", encryption_algorithms_client_to_server;
-	# print "";
-	# print "encryption_algorithms_server_to_client", encryption_algorithms_server_to_client;
-	# print "";
-	# print "mac_algorithms_client_to_server", mac_algorithms_client_to_server;
-	# print "";
-	# print "mac_algorithms_server_to_client", mac_algorithms_server_to_client;
-	# print "";
-	# print "compression_algorithms_client_to_server", compression_algorithms_client_to_server;
-	# print "";
-	# print "compression_algorithms_server_to_client", compression_algorithms_server_to_client;
-	# print "";
-	# print "languages_client_to_server", languages_client_to_server;
-	# print "";
-	# print "languages_server_to_client", languages_server_to_client;
-	# print "";
+	if ( !c?$ssh || ( c$ssh?$auth_success && !c$ssh$auth_success ) )
+		return;
+
+	# We can't accurately tell for compressed streams
+	if ( c$ssh?$compression_alg && ( c$ssh$compression_alg == "zlib@openssh.com" ||
+	   	 						     c$ssh$compression_alg == "zlib" ) )
+		return;
+
+	c$ssh$auth_success = F;
+	c$ssh$num_failures += 1;
+	}
+
+function array_to_vec(s: string_array): vector of string
+	{
+	local r: vector of string;
+	
+	for (i in s)
+		r[i] = s[i];
+	return r;
+	}
+	
+function find_client_preferred_algorithm(client_algorithms: vector of string, server_algorithms: vector of string): string
+	{
+	for ( i in client_algorithms )
+		for ( j in server_algorithms )
+			if ( client_algorithms[i] == server_algorithms[j] )
+				return client_algorithms[i];
+	}
+	
+function find_client_preferred_algorithm_bidirectional(client_algorithms_c_to_s: vector of string,
+		 											   server_algorithms_c_to_s: vector of string,
+		 											   client_algorithms_s_to_c: vector of string,
+													   server_algorithms_s_to_c: vector of string): string
+	{
+	local c_to_s = find_client_preferred_algorithm(client_algorithms_c_to_s, server_algorithms_c_to_s);
+	local s_to_c = find_client_preferred_algorithm(client_algorithms_s_to_c, server_algorithms_s_to_c);
+
+	return c_to_s == s_to_c ? c_to_s : fmt("To server: %s, to client: %s", c_to_s, s_to_c);
+	}
+	
+event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities)
+	{
+	if ( !c?$ssh || ( c$ssh?$capabilities && c$ssh$capabilities$is_server == capabilities$is_server ) )
+		return;
+
+	if ( !c$ssh?$capabilities )
+		{
+		c$ssh$capabilities = capabilities;
+		return;
+		}
+
+	local client_caps = capabilities$is_server ? c$ssh$capabilities : capabilities;
+	local server_caps = capabilities$is_server ? capabilities : c$ssh$capabilities;
+
+	c$ssh$cipher_alg = find_client_preferred_algorithm_bidirectional(client_caps$encryption_algorithms_client_to_server,
+																	 server_caps$encryption_algorithms_client_to_server,
+																	 client_caps$encryption_algorithms_server_to_client,
+																	 server_caps$encryption_algorithms_server_to_client);
+																
+	c$ssh$mac_alg = find_client_preferred_algorithm_bidirectional(client_caps$mac_algorithms_client_to_server,
+																  server_caps$mac_algorithms_client_to_server,
+															  	  client_caps$mac_algorithms_server_to_client,
+															  	  server_caps$mac_algorithms_server_to_client);
+																 
+	c$ssh$compression_alg = find_client_preferred_algorithm_bidirectional(client_caps$compression_algorithms_client_to_server,
+																		  server_caps$compression_algorithms_client_to_server,
+															          	  client_caps$compression_algorithms_server_to_client,
+															          	  server_caps$compression_algorithms_server_to_client);
+
+	c$ssh$kex_alg = find_client_preferred_algorithm(client_caps$kex_algorithms, server_caps$kex_algorithms);	
+	c$ssh$host_key_alg = find_client_preferred_algorithm(client_caps$server_host_key_algorithms,
+														 server_caps$server_host_key_algorithms);
 	}
 	
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( c?$ssh && !c$ssh$logged )
+	if ( c?$ssh && !c$ssh$logged && c$ssh?$client && c$ssh?$server )
+		{
+		if ( c$ssh?$auth_success && !c$ssh$auth_success )
+		   c$ssh$auth_details = fmt("%d failure%s", c$ssh$num_failures, c$ssh$num_failures == 1 ? "" : "s");
+		   
+		c$ssh$logged = T;
 		Log::write(SSH::LOG, c$ssh);
+		}
 	}
 	
 function generate_fingerprint(c: connection, key: string)
 	{
+	if ( !c?$ssh )
+		return;
+	
 	local lx = str_split(md5_hash(key), vector(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30));
 	lx[0] = "";
 	c$ssh$host_key = sub(join_string_vec(lx, ":"), /:/, "");
@@ -195,15 +234,11 @@ function generate_fingerprint(c: connection, key: string)
 
 event ssh1_server_host_key(c: connection, p: string, e: string)
 	{
-	if ( !c?$ssh )
-		return;
 	generate_fingerprint(c, e + p);
 	}
 
 event ssh_server_host_key(c: connection, key: string)
 	{
-	if ( !c?$ssh )
-		return;
 	generate_fingerprint(c, key);
 	}
 

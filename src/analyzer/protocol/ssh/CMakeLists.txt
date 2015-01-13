@@ -6,6 +6,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DI
 
 bro_plugin_begin(Bro SSH)
 	bro_plugin_cc(SSH.cc Plugin.cc)
+	bro_plugin_bif(types.bif)
 	bro_plugin_bif(events.bif)
 	bro_plugin_pac(ssh.pac ssh-analyzer.pac ssh-protocol.pac)
 bro_plugin_end()

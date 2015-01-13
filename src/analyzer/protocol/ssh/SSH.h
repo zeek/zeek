@@ -31,22 +31,16 @@ protected:
 	binpac::SSH::SSH_Conn* interp;
 	
 	void ProcessEncrypted(int len, bool orig);
-	int AuthResult(int len, bool orig, int version);
 
 	bool had_gap;
 
 	// Packet analysis stuff
 	bool auth_decision_made;
+	bool skipped_banner;
 	
-	int initial_client_packet_size;
-	int initial_server_packet_size;
-	int num_encrypted_packets_seen;
+	int service_accept_size;
+	int userauth_failure_size;
 
-	bool packet_n_1_is_orig;
-	int packet_n_1_size;
-	bool packet_n_2_is_orig;
-	int packet_n_2_size;
-	
 };
 
 } } // namespace analyzer::* 

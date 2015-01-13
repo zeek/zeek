@@ -2,11 +2,13 @@ event ssh_server_version%(c: connection, version: string%);
 
 event ssh_client_version%(c: connection, version: string%);
 
-event ssh_auth_successful%(c: connection, last_packet_len: int, middle_packet_len: int, first_packet_len: int%);
+event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 
-event ssh_auth_failed%(c: connection, last_packet_len: int, middle_packet_len: int, first_packet_len: int%);
+event ssh_auth_failed%(c: connection%);
 
-event ssh_server_capabilities%(c: connection, kex_algorithms: string, server_host_key_algorithms: string, encryption_algorithms_client_to_server: string, encryption_algorithms_server_to_client: string, mac_algorithms_client_to_server: string, mac_algorithms_server_to_client: string, compression_algorithms_client_to_server: string, compression_algorithms_server_to_client: string, languages_client_to_server: string, languages_server_to_client: string%);
+event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
+
+event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabilities%);
 
 event ssh_server_host_key%(c: connection, key: string%);
 

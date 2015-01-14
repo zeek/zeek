@@ -5,7 +5,8 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_AYIYA, 5072/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DHCP, 67/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DHCP, 68/udp)) -> <null>
-0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNP3, 20000/tcp)) -> <null>
+0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/tcp)) -> <null>
+0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNS, 137/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNS, 53/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNS, 53/udp)) -> <null>
@@ -57,7 +58,8 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_AYIYA, 5072/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DHCP, 67/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DHCP, 68/udp)) -> <null>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNP3, 20000/tcp)) -> <null>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/tcp)) -> <null>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNS, 137/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNS, 53/tcp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNS, 53/udp)) -> <null>
@@ -104,7 +106,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_TEREDO, 3544/udp)) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_AYIYA, {5072/udp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DHCP, {67<...>/udp})) -> <null>
-0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DNP3, {20000/tcp})) -> <null>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DNP3_TCP, {20000<...>/tcp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DNS, {5355<...>/udp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_FTP, {2811<...>/tcp})) -> <null>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp})) -> <null>
@@ -189,7 +191,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::__write, (PacketFilter::LOG, [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Cluster::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Communication::LOG)) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, (Conn::LOG)) -> <null>
@@ -283,8 +285,8 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509])) -> <null>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
-0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
+0.000000   MetaHookPost  CallFunction(Log::write, (PacketFilter::LOG, [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T])) -> <null>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, ()) -> <null>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, (ip or not ip, and, )) -> <null>
@@ -542,7 +544,8 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_AYIYA, 5072/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DHCP, 67/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DHCP, 68/udp))
-0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNP3, 20000/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNS, 137/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNS, 53/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, (Analyzer::ANALYZER_DNS, 53/udp))
@@ -594,7 +597,8 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_AYIYA, 5072/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DHCP, 67/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DHCP, 68/udp))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNP3, 20000/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNP3_TCP, 20000/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNS, 137/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNS, 53/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_DNS, 53/udp))
@@ -641,7 +645,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, (Analyzer::ANALYZER_TEREDO, 3544/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_AYIYA, {5072/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DHCP, {67<...>/udp}))
-0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DNP3, {20000/tcp}))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DNP3_TCP, {20000<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_DNS, {5355<...>/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_FTP, {2811<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, (Analyzer::ANALYZER_GTPV1, {2152<...>/udp}))
@@ -726,7 +730,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, (PacketFilter::LOG, [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Communication::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, (Conn::LOG))
@@ -820,8 +824,8 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (Weird::LOG, [columns=<no value description>, ev=Weird::log_weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (X509::LOG, [columns=<no value description>, ev=X509::log_x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, (mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql]))
-0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T]))
-0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::default_path_func, (PacketFilter::LOG, , [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, (PacketFilter::LOG, [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, (ip or not ip, and, ))
@@ -1079,7 +1083,8 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_AYIYA, 5072/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DHCP, 67/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DHCP, 68/udp)
-0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNP3, 20000/tcp)
+0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNP3_TCP, 20000/tcp)
+0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNP3_TCP, 20000/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNS, 137/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNS, 53/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNS, 53/udp)
@@ -1131,7 +1136,8 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_AYIYA, 5072/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DHCP, 67/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DHCP, 68/udp)
-0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNP3, 20000/tcp)
+0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNP3_TCP, 20000/tcp)
+0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNP3_TCP, 20000/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNS, 137/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNS, 53/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNS, 53/udp)
@@ -1178,7 +1184,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_TEREDO, 3544/udp)
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_AYIYA, {5072/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, {67<...>/udp})
-0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3, {20000/tcp})
+0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_TCP, {20000<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, {5355<...>/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, {2811<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_GTPV1, {2152<...>/udp})
@@ -1263,7 +1269,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Communication::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Conn::LOG)
@@ -1357,8 +1363,8 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=<no value description>, ev=Weird::log_weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=<no value description>, ev=X509::log_x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=<no value description>, ev=MySQL::log_mysql])
-0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1420494303.113424, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::default_path_func(PacketFilter::LOG, , [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1421274039.845117, node=bro, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )

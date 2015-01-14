@@ -1,4 +1,16 @@
 
+2.3-390 | 2015-01-14 13:27:34 -0800
+
+  * Updating MySQL analyses. (Vlad Grigorescu)
+     - Use a boolean success instead of a result string.
+     - Change the affected_rows response detail string to a "rows" count.
+     - Fix the state tracking to log incomplete command.
+
+  * Extend DNP3 to support communication over UDP. (Hui Lin)
+
+  * Fix a bug in DNP3 determining the length of an object in some
+    cases. (Hui Lin)
+
 2.3-376 | 2015-01-12 09:38:10 -0600
 
   * Improve documentation for connection_established event. (Jon Siwek)

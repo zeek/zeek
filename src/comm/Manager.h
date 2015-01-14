@@ -2,6 +2,7 @@
 #define BRO_COMM_MANAGER_H
 
 #include <broker/endpoint.hh>
+#include <broker/message_queue.hh>
 #include <memory>
 #include <string>
 #include <map>
@@ -28,7 +29,15 @@ public:
 
 	bool Disconnect(const std::string& addr, uint16_t port);
 
+	bool Print(std::string topic, std::string msg, const Val* flags);
+
+	bool SubscribeToPrints(std::string topic_prefix);
+
+	bool UnsubscribeToPrints(const std::string& topic_prefix);
+
 private:
+
+	int get_flags(const Val* flags);
 
 	// IOSource interface overrides:
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -43,6 +52,11 @@ private:
 
 	std::unique_ptr<broker::endpoint> endpoint;
 	std::map<std::pair<std::string, uint16_t>, broker::peering> peers;
+	std::map<std::string, broker::message_queue> print_subscriptions;
+
+	int send_flags_self_idx;
+	int send_flags_peers_idx;
+	int send_flags_unsolicited_idx;
 };
 
 } // namespace comm

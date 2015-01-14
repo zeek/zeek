@@ -3,24 +3,20 @@
 #define ANALYZER_PROTOCOL_DNP3_DNP3_H
 
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/udp/UDP.h"
+
 #include "dnp3_pac.h"
 
 namespace analyzer { namespace dnp3 {
 
-class DNP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class DNP3_Base {
 public:
-	DNP3_Analyzer(Connection* conn);
-	virtual ~DNP3_Analyzer();
+	DNP3_Base(analyzer::Analyzer* analyzer);
+	virtual ~DNP3_Base();
 
-	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
-	virtual void EndpointEOF(bool is_orig);
+	binpac::DNP3::DNP3_Conn* Interpreter()	{ return interp; }
 
-	static Analyzer* Instantiate(Connection* conn)
-		{ return new DNP3_Analyzer(conn); }
-
-private:
+protected:
 	static const int MAX_BUFFER_SIZE = 300;
 
 	struct Endpoint	{
@@ -40,17 +36,45 @@ private:
 	bool CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where);
 	unsigned int CalcCRC(int len, const u_char* data);
 
-	binpac::DNP3::DNP3_Conn* interp;
-
-	Endpoint orig_state;
-	Endpoint resp_state;
-
 	static void PrecomputeCRCTable();
 
 	static bool crc_table_initialized;
 	static unsigned int crc_table[256];
+
+	analyzer::Analyzer* analyzer;
+	binpac::DNP3::DNP3_Conn* interp;
+
+	Endpoint orig_state;
+	Endpoint resp_state;
 };
 
-} } // namespace analyzer::* 
+class DNP3_TCP_Analyzer : public DNP3_Base, public tcp::TCP_ApplicationAnalyzer {
+public:
+	DNP3_TCP_Analyzer(Connection* conn);
+	virtual ~DNP3_TCP_Analyzer();
+
+	virtual void Done();
+	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	virtual void Undelivered(uint64 seq, int len, bool orig);
+	virtual void EndpointEOF(bool is_orig);
+
+	static Analyzer* Instantiate(Connection* conn)
+		{ return new DNP3_TCP_Analyzer(conn); }
+};
+
+class DNP3_UDP_Analyzer : public DNP3_Base, public analyzer::Analyzer {
+public:
+	DNP3_UDP_Analyzer(Connection* conn);
+	virtual ~DNP3_UDP_Analyzer();
+
+	virtual void DeliverPacket(int len, const u_char* data, bool orig,
+                    uint64 seq, const IP_Hdr* ip, int caplen);
+
+	static analyzer::Analyzer* Instantiate(Connection* conn)
+		{ return new DNP3_UDP_Analyzer(conn); }
+};
+
+
+} } // namespace analyzer::*
 
 #endif

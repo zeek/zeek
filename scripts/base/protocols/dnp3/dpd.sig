@@ -5,5 +5,11 @@ signature dpd_dnp3_server {
 	ip-proto == tcp
 	payload /\x05\x64/
 	tcp-state responder
- 	enable "dnp3"
+ 	enable "dnp3_tcp"
+}
+
+signature dpd_dnp3_server_udp {
+	ip-proto == udp
+	payload /\x05\x64/
+	enable "dnp3_udp"
 }

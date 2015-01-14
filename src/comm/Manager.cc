@@ -3,9 +3,16 @@
 #include <cstdio>
 #include <unistd.h>
 #include "util.h"
+#include "Var.h"
 #include "Reporter.h"
+#include "comm/comm.bif.h"
 
 bool comm::Manager::InitPreScript()
+	{
+	return true;
+	}
+
+bool comm::Manager::InitPostScript()
 	{
 	auto res = broker::init();
 
@@ -15,20 +22,22 @@ bool comm::Manager::InitPreScript()
 		return false;
 		}
 
-	char host[256];
 	const char* name;
+	auto name_from_script = internal_val("Comm::endpoint_name")->AsString();
 
-	if ( gethostname(host, sizeof(host)) == 0 )
-		name = fmt("bro@%s.%ld", host, static_cast<long>(getpid()));
+	if ( name_from_script->Len() )
+		name = name_from_script->CheckString();
 	else
-		name = fmt("bro@<unknown>.%ld", static_cast<long>(getpid()));
+		{
+		char host[256];
+
+		if ( gethostname(host, sizeof(host)) == 0 )
+			name = fmt("bro@%s.%ld", host, static_cast<long>(getpid()));
+		else
+			name = fmt("bro@<unknown>.%ld", static_cast<long>(getpid()));
+		}
 
 	endpoint = std::unique_ptr<broker::endpoint>(new broker::endpoint(name));
-	return true;
-	}
-
-bool comm::Manager::InitPostScript()
-	{
 	return true;
 	}
 
@@ -93,17 +102,44 @@ void comm::Manager::Process()
 		if ( ! u.relation.remote() )
 			continue;
 
-		// TODO: generate events
 		switch ( u.status ) {
 		case broker::peer_status::tag::established:
-			printf("established\n");
+			if ( Comm::remote_connection_established )
+				{
+				val_list* vl = new val_list;
+				vl->append(new StringVal(u.relation.remote_tuple().first));
+				vl->append(new PortVal(u.relation.remote_tuple().second,
+				                       TRANSPORT_TCP));
+				vl->append(new StringVal(u.peer_name));
+				mgr.QueueEvent(Comm::remote_connection_established, vl);
+				}
+
 			break;
+
 		case broker::peer_status::tag::disconnected:
-			printf("disconnected\n");
+			if ( Comm::remote_connection_broken )
+				{
+				val_list* vl = new val_list;
+				vl->append(new StringVal(u.relation.remote_tuple().first));
+				vl->append(new PortVal(u.relation.remote_tuple().second,
+				                       TRANSPORT_TCP));
+				mgr.QueueEvent(Comm::remote_connection_broken, vl);
+				}
+
 			break;
+
 		case broker::peer_status::tag::incompatible:
-			printf("incompatible\n");
+			if ( Comm::remote_connection_incompatible )
+				{
+				val_list* vl = new val_list;
+				vl->append(new StringVal(u.relation.remote_tuple().first));
+				vl->append(new PortVal(u.relation.remote_tuple().second,
+				                       TRANSPORT_TCP));
+				mgr.QueueEvent(Comm::remote_connection_incompatible, vl);
+				}
+
 			break;
+
 		default:
 			reporter->InternalWarning("unknown broker::peer_status::tag : %d",
 			                          static_cast<int>(u.status));

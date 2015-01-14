@@ -5,6 +5,14 @@ module Comm;
 #include "comm/Manager.h"
 %%}
 
+event Comm::remote_connection_established%(peer_address: string,
+                                           peer_port: port,
+                                           peer_name: string%);
+event Comm::remote_connection_broken%(peer_address: string,
+                                      peer_port: port%);
+event Comm::remote_connection_incompatible%(peer_address: string,
+                                            peer_port: port%);
+
 function Comm::listen%(p: port, a: string &default=""%): bool
 	%{
 	if ( ! p->IsTCP() )

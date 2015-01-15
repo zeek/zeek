@@ -1,17 +1,29 @@
 
 %%{
 #include "comm/Manager.h"
+#include "comm/Data.h"
 %%}
 
 module Comm;
 
 type Comm::SendFlags: record;
 
+type Comm::Data: record;
+
+type Comm::EventArgs: record;
+
+function Comm::data%(d: any%): Comm::Data
+	%{
+	return comm::make_data_val(d);
+	%}
+
 event Comm::remote_connection_established%(peer_address: string,
                                            peer_port: port,
                                            peer_name: string%);
+
 event Comm::remote_connection_broken%(peer_address: string,
                                       peer_port: port%);
+
 event Comm::remote_connection_incompatible%(peer_address: string,
                                             peer_port: port%);
 
@@ -62,14 +74,40 @@ function Comm::print%(topic: string, msg: string,
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Comm::subscribe_to_prints%(topic_prefix: string &default = ""%): bool
+function Comm::subscribe_to_prints%(topic_prefix: string%): bool
 	%{
 	auto rval = comm_mgr->SubscribeToPrints(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}
 
-function Comm::unsubscribe_to_prints%(topic_prefix: string &default = ""%): bool
+function Comm::unsubscribe_to_prints%(topic_prefix: string%): bool
 	%{
 	auto rval = comm_mgr->UnsubscribeToPrints(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::event_args%(...%): Comm::EventArgs
+	%{
+	auto rval = comm_mgr->MakeEventArgs(@ARGS@);
+	return rval;
+	%}
+
+function Comm::event%(topic: string, args: Comm::EventArgs,
+                      flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = comm_mgr->Event(topic->CheckString(), args->AsRecordVal(),
+	                            flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::subscribe_to_events%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->SubscribeToEvents(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::unsubscribe_to_events%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}

@@ -6,6 +6,7 @@ include_directories(BEFORE
 )
 
 set(comm_SRCS
+    Data.cc
     Manager.cc
 )
 

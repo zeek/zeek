@@ -31,9 +31,17 @@ public:
 
 	bool Print(std::string topic, std::string msg, const Val* flags);
 
+	bool Event(std::string topic, const RecordVal* args, const Val* flags);
+
+	RecordVal* MakeEventArgs(const val_list* args);
+
 	bool SubscribeToPrints(std::string topic_prefix);
 
 	bool UnsubscribeToPrints(const std::string& topic_prefix);
+
+	bool SubscribeToEvents(std::string topic_prefix);
+
+	bool UnsubscribeToEvents(const std::string& topic_prefix);
 
 private:
 
@@ -53,10 +61,13 @@ private:
 	std::unique_ptr<broker::endpoint> endpoint;
 	std::map<std::pair<std::string, uint16_t>, broker::peering> peers;
 	std::map<std::string, broker::message_queue> print_subscriptions;
+	std::map<std::string, broker::message_queue> event_subscriptions;
 
 	int send_flags_self_idx;
 	int send_flags_peers_idx;
 	int send_flags_unsolicited_idx;
+
+	VectorType* vector_of_data_type;
 };
 
 } // namespace comm

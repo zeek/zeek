@@ -1,4 +1,5 @@
 #include "Manager.h"
+#include "Data.h"
 #include <broker/broker.hh>
 #include <cstdio>
 #include <unistd.h>
@@ -31,6 +32,9 @@ bool comm::Manager::InitPostScript()
 	send_flags_self_idx = require_field(send_flags_type, "self");
 	send_flags_peers_idx = require_field(send_flags_type, "peers");
 	send_flags_unsolicited_idx = require_field(send_flags_type, "unsolicited");
+
+	comm::opaque_of_data_type = new OpaqueType("Comm::Data");
+	vector_of_data_type = new VectorType(internal_type("Comm::Data")->Ref());
 
 	auto res = broker::init();
 
@@ -103,6 +107,96 @@ bool comm::Manager::Print(string topic, string msg, const Val* flags)
 	return true;
 	}
 
+bool comm::Manager::Event(std::string topic, const RecordVal* args,
+                          const Val* flags)
+	{
+	if ( ! args->Lookup(0) )
+		return false;
+
+	auto event_name = args->Lookup(0)->AsString()->CheckString();
+	auto vv = args->Lookup(1)->AsVectorVal();
+	broker::message msg;
+	msg.reserve(vv->Size() + 1);
+	msg.emplace_back(event_name);
+
+	for ( auto i = 0u; i < vv->Size(); ++i )
+		{
+		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
+		auto data_val = dynamic_cast<DataVal*>(val);
+		msg.emplace_back(data_val->data);
+		}
+
+	endpoint->send(move(topic), move(msg), get_flags(flags));
+	return true;
+	}
+
+RecordVal* comm::Manager::MakeEventArgs(const val_list* args)
+	{
+	auto rval = new RecordVal(BifType::Record::Comm::EventArgs);
+	auto arg_vec = new VectorVal(vector_of_data_type);
+	rval->Assign(1, arg_vec);
+	const Func* func;
+
+	for ( auto i = 0u; i < args->length(); ++i )
+		{
+		auto arg_val = (*args)[i];
+
+		if ( i == 0 )
+			{
+			// Event val must come first.
+
+			if ( arg_val->Type()->Tag() != TYPE_FUNC )
+				{
+				reporter->Error("1st param of Comm::event_args must be event");
+				return rval;
+				}
+
+			func = arg_val->AsFunc();
+
+			if ( func->Flavor() != FUNC_FLAVOR_EVENT )
+				{
+				reporter->Error("1st param of Comm::event_args must be event");
+				return rval;
+				}
+
+			auto num_args = func->FType()->Args()->NumFields();
+
+			if ( num_args != args->length() - 1 )
+				{
+				reporter->Error("bad # of Comm::event_args: got %d, expect %d",
+				                args->length(), num_args + 1);
+				return rval;
+				}
+
+			rval->Assign(0, new StringVal(func->Name()));
+			continue;
+			}
+
+		auto expected_type = (*func->FType()->ArgTypes()->Types())[i - 1];
+
+		if ( ! same_type((*args)[i]->Type(), expected_type) )
+			{
+			rval->Assign(0, 0);
+			reporter->Error("Comm::event_args param %d type mismatch", i);
+			return rval;
+			}
+
+		auto data_val = make_data_val((*args)[i]);
+
+		if ( ! data_val->Lookup(0) )
+			{
+			Unref(data_val);
+			rval->Assign(0, 0);
+			reporter->Error("Comm::event_args unsupported event/params");
+			return rval;
+			}
+
+		arg_vec->Assign(i - 1, data_val);
+		}
+
+	return rval;
+	}
+
 bool comm::Manager::SubscribeToPrints(string topic_prefix)
 	{
 	auto& q = print_subscriptions[topic_prefix];
@@ -117,6 +211,22 @@ bool comm::Manager::SubscribeToPrints(string topic_prefix)
 bool comm::Manager::UnsubscribeToPrints(const string& topic_prefix)
 	{
 	return print_subscriptions.erase(topic_prefix);
+	}
+
+bool comm::Manager::SubscribeToEvents(string topic_prefix)
+	{
+	auto& q = event_subscriptions[topic_prefix];
+
+	if ( q )
+		return false;
+
+	q = broker::message_queue(move(topic_prefix), *endpoint);
+	return true;
+	}
+
+bool comm::Manager::UnsubscribeToEvents(const string& topic_prefix)
+	{
+	return event_subscriptions.erase(topic_prefix);
 	}
 
 int comm::Manager::get_flags(const Val* flags)
@@ -148,6 +258,9 @@ void comm::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	read->Insert(endpoint->peer_status().fd());
 
 	for ( const auto& ps : print_subscriptions )
+		read->Insert(ps.second.fd());
+
+	for ( const auto& ps : event_subscriptions )
 		read->Insert(ps.second.fd());
 	}
 
@@ -248,6 +361,70 @@ void comm::Manager::Process()
 			val_list* vl = new val_list;
 			vl->append(new StringVal(move(*msg)));
 			mgr.QueueEvent(Comm::print_handler, vl);
+			}
+		}
+
+	for ( const auto& es : event_subscriptions )
+		{
+		auto event_messages = es.second.want_pop();
+
+		if ( event_messages.empty() )
+			continue;
+
+		idle = false;
+
+		for ( auto& em : event_messages )
+			{
+			if ( em.empty() )
+				{
+				reporter->Warning("got empty event message");
+				continue;
+				}
+
+			std::string* event_name = broker::get<std::string>(em[0]);
+
+			if ( ! event_name )
+				{
+				reporter->Warning("got event message w/o event name: %d",
+				                  static_cast<int>(broker::which(em[0])));
+				continue;
+				}
+
+			EventHandlerPtr ehp = event_registry->Lookup(event_name->data());
+
+			if ( ! ehp )
+				continue;
+
+			auto arg_types = ehp->FType()->ArgTypes()->Types();
+
+			if ( arg_types->length() != em.size() - 1 )
+				{
+				reporter->Warning("got event message with invalid # of args,"
+				                  " got %zd, expected %d", em.size() - 1,
+				                  arg_types->length());
+				continue;
+				}
+
+			val_list* vl = new val_list;
+
+			for ( auto i = 1u; i < em.size(); ++i )
+				{
+				auto val = data_to_val(move(em[i]), (*arg_types)[i - 1]);
+
+				if ( val )
+					vl->append(val);
+				else
+					{
+					reporter->Warning("failed to convert remote event arg # %d",
+					                  i - 1);
+					break;
+					}
+				}
+
+			if ( vl->length() == em.size() - 1 )
+				mgr.QueueEvent(ehp, vl);
+			else
+				delete_vals(vl);
 			}
 		}
 

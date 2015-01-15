@@ -1,4 +1,8 @@
 
+2.3-392 | 2015-01-15 09:44:15 -0800
+
+  * Small changes to EC curve names in a newer draft. (Johanna Amann)
+
 2.3-390 | 2015-01-14 13:27:34 -0800
 
   * Updating MySQL analyses. (Vlad Grigorescu)

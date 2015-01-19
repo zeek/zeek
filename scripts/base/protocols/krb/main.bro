@@ -9,19 +9,36 @@ export {
 
 	type Info: record {
 		## Timestamp for when the event happened.
-		ts:     time    &log;
+		ts:     			time    &log;
 		## Unique ID for the connection.
-		uid:    string  &log;
+		uid:    			string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:     conn_id &log;
+		id:     			conn_id &log;
 		## Client
-		client:	string &log &optional;
+		client:				string &log &optional;
 		## Service
-		service:string &log;
+		service:			string &log;
 		## Ticket valid from
-		from:	time &log &optional;
+		from:				time &log &optional;
 		## Ticket valid till
-		till:	time &log &optional;
+		till:				time &log &optional;
+		## Forwardable ticket requested
+		forwardable: 		bool &log &optional;
+		## Proxiable ticket requested
+		proxiable:			bool &log &optional;
+		## Postdated ticket requested
+		postdated:			bool &log &optional;
+		## Renewable ticket requested
+		renewable:			bool &log &optional;
+		## The request is for a renewal
+		renew_request:		bool &log &optional;
+		# The request is to validate a postdated ticket
+		validate_request:	bool &log &optional;
+		# Network addresses supplied by the client
+		network_addrs:		vector of addr &log &optional;
+		# NetBIOS addresses supplied by the client
+		netbios_addrs:		vector of string &log &optional;
+		
 		## Result
 		result:	string &log &default="unknown";
 		## Error code
@@ -32,6 +49,19 @@ export {
 		logged: bool &default=F;
 	};
 
+	## The server response error texts which are *not* logged.
+	const ignored_errors: set[string] = {
+		# This will significantly increase the noisiness of the log.
+		# However, one attack is to iterate over principals, looking
+		# for ones that don't require preauth, and then performn
+		# an offline attack on that ticket. To detect that attack,
+		# log NEEDED_PREAUTH.
+		"NEEDED_PREAUTH",
+		# This is a more specific version of NEEDED_PREAUTH that's used
+		# by Winodws AD Kerberos.
+		"Need to use PA-ENC-TIMESTAMP/PA-PK-AS-REQ",
+	} &redef;
+	
 	## Event that can be handled to access the KRB record as it is sent on
 	## to the loggin framework.
 	global log_krb: event(rec: Info);
@@ -53,9 +83,16 @@ event krb_error(c: connection, msg: Error_Msg)
 	{
 	local info: Info;
 
+	if ( msg?$error_text && msg$error_text in ignored_errors )
+		{
+		if ( c?$krb )
+			delete c$krb;
+		return;
+		}
+
 	if ( c?$krb && c$krb$logged )
 		return;
-	
+		
 	if ( c?$krb )
 		info = c$krb;
 		
@@ -94,16 +131,43 @@ event krb_as_req(c: connection, msg: KDC_Request)
 	{
 	if ( c?$krb && c$krb$logged )
 		return;
-	
+
 	local info: Info;
 	info$ts  = network_time();
 	info$uid = c$uid;
 	info$id  = c$id;
+
 	info$client = fmt("%s/%s", msg$client_name, msg$service_realm);
 	info$service = msg$service_name;
+
 	if ( msg?$from )
 		info$from = msg$from;
+
+	if ( msg?$host_addrs )
+		{
+		for ( i in msg$host_addrs )
+			{
+			if ( msg$host_addrs[i]?$ip )
+				{
+				if ( ! info?$network_addrs )
+						info$network_addrs = vector();
+				info$network_addrs[|info$network_addrs|] = msg$host_addrs[i]$ip;
+				}
+
+			if ( msg$host_addrs[i]?$netbios )
+				{
+				if ( ! info?$netbios_addrs )
+						info$netbios_addrs = vector();
+				info$netbios_addrs[|info$netbios_addrs|] = msg$host_addrs[i]$netbios;
+				}
+			}
+		}
+		
 	info$till = msg$till;
+	info$forwardable = msg$kdc_options$forwardable;
+	info$proxiable = msg$kdc_options$proxiable;
+	info$postdated = msg$kdc_options$postdated;
+	info$renewable = msg$kdc_options$renewable;
 	
 	c$krb = info;
 	}

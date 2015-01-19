@@ -55,7 +55,7 @@ type KRB_KDC_REQ = record {
 	padata_meta: ASN1EncodingMeta;
 	tmp1       : case has_padata of {
 		true  -> padata	: KRB_PA_Data_Sequence &length=padata_meta.length;
-		false -> n1	: empty;
+		false -> n1		: empty;
 	};
 	tmp2       : case has_padata of {
 		true  -> meta2	: ASN1EncodingMeta;
@@ -64,7 +64,7 @@ type KRB_KDC_REQ = record {
 	body       : KRB_REQ_Body &length=body_length;
 } &let {
 	has_padata : bool = padata_meta.index == 3;
-	body_length: uint8 = has_padata ? meta2.length : padata_meta.length;
+	body_length: uint64 = has_padata ? meta2.length : padata_meta.length;
 };
 
 type KRB_PA_Data_Sequence = record {
@@ -73,19 +73,18 @@ type KRB_PA_Data_Sequence = record {
 };
 
 type KRB_PA_Data = record {
-	seq_meta		: ASN1EncodingMeta;
+	seq_meta			: ASN1EncodingMeta;
 	pa_data_type     	: SequenceElement(true);
 	pa_data_elem_meta	: ASN1EncodingMeta;
-	pa_data_element  	: KRB_PA_Data_Element(data_type);
+	pa_data_element  	: KRB_PA_Data_Element(data_type, pa_data_elem_meta.length);
 } &let {
 	data_type: int64 = binary_to_int64(pa_data_type.data.content);
 };
 
-type KRB_PA_Data_Element(type: int64) = case type of {
+type KRB_PA_Data_Element(type: int64, length: uint64) = case type of {
 	1       -> pa_tgs_req		: KRB_AP_REQ;
-	2       -> pa_enc_timestamp	: KRB_Encrypted_Data;
 	3       -> pa_pw_salt		: ASN1OctetString;
-	default -> unknown		: bytestring &restofdata;
+	default -> unknown			: bytestring &length=length;
 };
 
 type KRB_REQ_Body = record {
@@ -99,47 +98,48 @@ type KRB_REQ_Arg = record {
 };
 
 type KRB_REQ_Arg_Data(index: uint8) = case index of {
-	0 	-> options	: KRB_KDC_Options;
-	1  	-> principal	: KRB_Principal_Name;
-	2  	-> realm	: ASN1OctetString;
-	3  	-> sname	: KRB_Principal_Name;
-	4  	-> from		: KRB_Time;
-	5  	-> till		: KRB_Time;
-	6  	-> rtime	: KRB_Time;
-	7  	-> nonce	: ASN1Integer;
-	8  	-> etype	: Array;
-	9  	-> addrs	: KRB_Host_Addresses;
-	10 	-> auth_data 	: ASN1OctetString; # TODO
-	11 	-> addl_tkts 	: KRB_Ticket_Sequence;
+ 	0 	-> options		: KRB_KDC_Options;
+ 	1  	-> principal	: KRB_Principal_Name;
+ 	2  	-> realm		: ASN1OctetString;
+ 	3  	-> sname		: KRB_Principal_Name;
+ 	4  	-> from			: KRB_Time;
+ 	5  	-> till			: KRB_Time;
+ 	6  	-> rtime		: KRB_Time;
+ 	7  	-> nonce		: ASN1Integer;
+ 	8  	-> etype		: Array;
+ 	9  	-> addrs		: KRB_Host_Addresses;
+ 	10 	-> auth_data 	: ASN1OctetString; # TODO
+ 	11 	-> addl_tkts 	: KRB_Ticket_Sequence;
 	default -> unknown	: bytestring &restofdata;
 };
 
 type KRB_KDC_Options = record {
 	meta : ASN1EncodingMeta;
+	pad: uint8;
 	flags: uint32;
 } &let {
-	reserved		: bool	= flags & 0x80000000;
-	forwardable		: bool	= flags & 0x40000000;
-	forwarded		: bool	= flags & 0x20000000;
-	proxiable		: bool	= flags & 0x10000000;
-	proxy			: bool	= flags &  0x8000000;
-	allow_postdate		: bool	= flags &  0x4000000;
-	postdated		: bool	= flags &  0x2000000;
-	unused7			: bool	= flags &  0x1000000;
-	renewable		: bool	= flags &   0x800000;
-	unused9			: bool	= flags &   0x400000;
-	unused10		: bool	= flags &   0x200000;
-	opt_hardware_auth	: bool	= flags &   0x100000;
-	unused12		: bool	= flags &    0x80000;
-	unused13		: bool	= flags &    0x40000;
+	reserved				: bool	= (flags & 0x80000000) > 0;
+	forwardable				: bool	= (flags & 0x40000000) > 0;
+	forwarded				: bool	= (flags & 0x20000000) > 0;
+	proxiable				: bool	= (flags & 0x10000000) > 0;
+	proxy					: bool	= (flags &  0x8000000) > 0;
+	allow_postdate			: bool	= (flags &  0x4000000) > 0;
+	postdated				: bool	= (flags &  0x2000000) > 0;
+	unused7					: bool	= (flags &  0x1000000) > 0;
+	renewable				: bool	= (flags &   0x800000) > 0;
+	unused9					: bool	= (flags &   0x400000) > 0;
+	unused10				: bool	= (flags &   0x200000) > 0;
+	opt_hardware_auth		: bool	= (flags &   0x100000) > 0;
+	unused12				: bool	= (flags &    0x80000) > 0;
+	unused13				: bool	= (flags &    0x40000) > 0;
 	# ...
-	unused15		: bool	= flags &    0x10000;
+	unused15				: bool	= (flags &    0x10000) > 0;
 	# ...
-	disable_transited_check	: bool	= flags &       0x10;
-	renewable_ok		: bool	= flags &        0x8;
-	enc_tkt_in_skey		: bool	= flags &        0x4;
-	renew			: bool	= flags &        0x2;
-	validate		: bool	= flags &        0x1;
+	disable_transited_check	: bool	= (flags &       0x10) > 0;
+	renewable_ok			: bool	= (flags &        0x8) > 0;
+	enc_tkt_in_skey			: bool	= (flags &        0x4) > 0;
+	renew					: bool	= (flags &        0x2) > 0;
+	validate				: bool	= (flags &        0x1) > 0;
 };
 
 type KRB_Principal_Name = record {
@@ -148,7 +148,7 @@ type KRB_Principal_Name = record {
 	name_type : ASN1Integer;
 	seq_meta_1: ASN1EncodingMeta;
 	seq_meta_2: ASN1EncodingMeta;
-	data      : ASN1OctetString[] &length=seq_meta_2.length;
+	data      : ASN1OctetString[];
 };
 
 type KRB_Time = record {
@@ -162,12 +162,13 @@ type KRB_Host_Addresses = record {
 };
 
 type KRB_Host_Address = record {
-	addr_type: SequenceElement(true);
-	address  : SequenceElement(true);
+	addr_type_meta	: SequenceElement(false);
+	addr_type		: ASN1Integer;
+	address  		: SequenceElement(true);
 };
 
 type KRB_Ticket(in_sequence: bool) = record {
-    	have_seq  : case in_sequence of {
+    have_seq  : case in_sequence of {
 		true  -> meta: ASN1EncodingMeta;
 		false -> none: empty;
 	};
@@ -176,7 +177,7 @@ type KRB_Ticket(in_sequence: bool) = record {
 	tkt_vno   : SequenceElement(true);
 	realm	  : SequenceElement(true);
 	sname_meta: ASN1EncodingMeta;
-	sname	  : KRB_Principal_Name;
+	sname	  : KRB_Principal_Name &length=sname_meta.length;
 	enc_part  : KRB_Encrypted_Data;
 };
 
@@ -187,7 +188,7 @@ type KRB_Ticket_Sequence = record {
 
 type KRB_Encrypted_Data_in_Seq = record {
 	index_meta  : ASN1EncodingMeta;
-	data	    : KRB_Encrypted_Data;
+	data	    : KRB_Encrypted_Data &length=index_meta.length;
 };
 
 type KRB_Encrypted_Data = record {
@@ -223,12 +224,13 @@ type KRB_KDC_REP = record {
 		false -> n2	: empty;
 	};
 	client_realm: ASN1OctetString &length=realm_length;
-	client_name : KRB_Principal_Name;
+	cname_meta	: ASN1EncodingMeta;
+	client_name : KRB_Principal_Name &length=cname_meta.length;
 	ticket      : KRB_Ticket(true);
 	enc_part    : KRB_Encrypted_Data_in_Seq;
 } &let {
 	has_padata  : bool = padata_meta.index == 2;
-	realm_length: uint8 = has_padata ? meta2.length : padata_meta.length;
+	realm_length: uint64 = has_padata ? meta2.length : padata_meta.length;
 };
 
 ### AP_REQ
@@ -249,9 +251,9 @@ type KRB_AP_Options = record {
 	flags	: uint32;
 		: padding[1];
 } &let {
-	reserved	: bool = flags & 0x80000000;
-	use_session_key	: bool = flags & 0x40000000;
-	mutual_required	: bool = flags & 0x20000000;
+	reserved		: bool = (flags & 0x80000000) > 0;
+	use_session_key	: bool = (flags & 0x40000000) > 0;
+	mutual_required	: bool = (flags & 0x20000000) > 0;
 };
 
 
@@ -265,30 +267,73 @@ type KRB_AP_REP = record {
 
 ### KRB_ERROR
 
+# pvno            [0] INTEGER (5),
+# msg-type        [1] INTEGER (30),
+# ctime           [2] KerberosTime OPTIONAL,
+# cusec           [3] Microseconds OPTIONAL,
+# stime           [4] KerberosTime,
+# susec           [5] Microseconds,
+# error-code      [6] Int32,
+# crealm          [7] Realm OPTIONAL,
+# cname           [8] PrincipalName OPTIONAL,
+# realm           [9] Realm -- service realm --,
+# sname           [10] PrincipalName -- service name --,
+# e-text          [11] KerberosString OPTIONAL,
+
 type KRB_ERROR_MSG = record {
-	seq_meta: ASN1EncodingMeta;
-	args	: KRB_ERROR_Arg[];
+	seq_meta	: ASN1EncodingMeta;
+ 	pvno		: SequenceElement(true);
+ 	msg_type	: SequenceElement(true);
+ 	ctime_meta	: ASN1EncodingMeta;
+ 	tmp1		: case has_ctime of {
+ 		true  	-> ctime 	: bytestring &length=ctime_meta.length;
+ 		false 	-> n1	   	: empty;
+ 	};
+ 	tmp2		: case has_ctime of {
+ 		true	-> cusec_meta	: ASN1EncodingMeta;
+ 		false	-> n2			: empty;
+ 	};
+ 	tmp3		: case has_cusec of {
+ 		true	-> cusec	: ASN1Integer;
+ 		false	-> n3		: empty;
+ 	};
+ 	tmp4		: case has_cusec of {
+ 		true	-> stime_meta	: ASN1EncodingMeta;
+ 		false	-> n4			: empty;
+ 	};
+	stime		: bytestring &length=stime_length;
+	susec		: SequenceElement(true);
+	error_code	: SequenceElement(true);
+	args		: KRB_ERROR_Arg(binary_to_int64(error_code.data.content))[];
+} &let {
+ 	has_ctime: bool = ctime_meta.index == 2;
+ 	has_cusec: bool = has_ctime ? cusec_meta.index == 3 : ctime_meta.index == 3;
+	stime_length: uint64 = has_ctime ? (has_cusec ? stime_meta.length : cusec_meta.length) : (has_cusec ? stime_meta.length : ctime_meta.length);
 };
 
-type KRB_ERROR_Arg = record {
+type KRB_ERROR_Arg(error_code: uint64) = record {
 	seq_meta: ASN1EncodingMeta;
-	args	: KRB_ERROR_Arg_Data(seq_meta.index) &length=seq_meta.length;
+	args	: KRB_ERROR_Arg_Data(seq_meta.index, error_code) &length=seq_meta.length;
 };
 
-type KRB_ERROR_Arg_Data(index: uint8) = case index of {
-	0  -> pvno		: ASN1Integer;
-	1  -> msg_type		: ASN1Integer;
-	2  -> ctime		: KRB_Time;
-	3  -> cusec		: ASN1Integer;
-	4  -> stime		: KRB_Time;
-	5  -> susec		: ASN1Integer;
-	6  -> error_code	: ASN1Integer;
+type KRB_ERROR_Arg_Data(index: uint8, error_code: uint64) = case index of {
 	7  -> crealm		: ASN1OctetString;
-	8  -> cname		: KRB_Principal_Name;
-	9  -> realm		: ASN1OctetString;
-	10 -> sname		: KRB_Principal_Name;
+	8  -> cname			: KRB_Principal_Name;
+	9  -> realm			: ASN1OctetString;
+	10 -> sname			: KRB_Principal_Name;
 	11 -> e_text		: ASN1OctetString;
-	12 -> e_data		: ASN1OctetString;
+	12 -> e_data		: KRB_ERROR_PA_Data(error_code);
+};
+
+type KRB_ERROR_PA_Data(error_code: uint64) = record {
+	have_padata1: case ( error_code == 25 ) of {
+		true 	-> meta1 	: ASN1EncodingMeta;
+		false	-> data		: ASN1OctetString;
+	};
+	have_padata2: case ( error_code == 25 ) of {
+		true 	-> padata 	: KRB_PA_Data_Sequence;
+		false	-> n1		: empty;
+	};
 };
 
 ### KRB_SAFE
@@ -313,7 +358,7 @@ type KRB_SAFE_Arg = record {
 type KRB_SAFE_Arg_Data(index: uint8) = case index of {
 	0 -> user_data	: ASN1OctetString;
 	1 -> timestamp  : KRB_Time;
-	2 -> usec	: ASN1Integer;
+	2 -> usec		: ASN1Integer;
 	3 -> seq_number : ASN1Integer;
 	4 -> sender_addr: KRB_Host_Address;
 	5 -> recp_addr  : KRB_Host_Address;

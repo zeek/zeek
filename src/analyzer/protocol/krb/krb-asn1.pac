@@ -4,13 +4,14 @@ type ASN1Encoding = record {
 };
 
 type ASN1EncodingMeta = record {
-     tag:      uint8;
-     len:      uint8;
-     more_len: bytestring &length = long_len ? len & 0x7f : 0;
+	tag:      	uint8;
+	len:      	uint8;
+	more_len: 	bytestring &length = long_len ? (len & 0x7f) : 0;
 } &let {
-     long_len: bool = len & 0x80;
-     length:   uint64 = long_len ? binary_to_int64(more_len) : len & 0x7f;
-	 index:    uint8 = tag - 160;
+	long_len: 	bool = (len & 0x80) > 0;
+	length:   	uint64 = long_len ? binary_to_int64(more_len) : len;
+	has_index:	bool = (tag >= 160);
+	index:    	uint8 = tag - 160;
 };
 
 type ASN1Integer = record {

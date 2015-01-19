@@ -5,11 +5,12 @@ connection KRB_Conn(bro_analyzer: BroAnalyzer) {
 
 flow KRB_Flow(is_orig: bool) {
 	datagram = KRB_PDU withcontext(connection, this);
-
 };
 
 %header{
 Val* GetTimeFromAsn1(const KRB_Time* atime);
+Val* GetTimeFromAsn1(StringVal* atime);
+
 Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
 Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
@@ -21,17 +22,25 @@ RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts);
 %code{
 Val* GetTimeFromAsn1(const KRB_Time* atime)
 	{
+	return GetTimeFromAsn1(bytestring_to_val(atime->time()));
+	}
+
+Val* GetTimeFromAsn1(StringVal* atime)
+	{
 	time_t lResult = 0;
 
-	char lBuffer[16];
+	char lBuffer[17];
 	char* pBuffer = lBuffer;
 
-	size_t lTimeLength = atime->time().length();
-	char * pString = (char *) atime->time().data();
-
-	if ( lTimeLength != 15 )
+	size_t lTimeLength = atime->Len();
+	char * pString = (char *) atime->Bytes();
+	
+	if ( lTimeLength != 15 && lTimeLength != 17 )
 		return 0;
 
+	if (lTimeLength == 17 )
+		pString = pString + 2;
+		
 	memcpy(pBuffer, pString, 15);
 	*(pBuffer+15) = '\0';
 
@@ -53,7 +62,7 @@ Val* GetTimeFromAsn1(const KRB_Time* atime)
 		lResult = 0;
 
 	return new Val(double(lResult), TYPE_TIME);
-}
+	}
 
 Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 {
@@ -102,7 +111,6 @@ refine connection KRB_Conn += {
 
 	function proc_krb_kdc_req(msg: KRB_KDC_REQ): bool
 		%{
-
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) && ! krb_as_req )
 			return false;
 
@@ -126,9 +134,6 @@ refine connection KRB_Conn += {
 					case 1:
 						// will be generated as separate event
 						break;
-					case 2:
-						// encrypted timestamp is unreadable
-						break;
 					case 3:
 						{
 						RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
@@ -139,17 +144,20 @@ refine connection KRB_Conn += {
 						}
 					default:
 						{
-						RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
-						type_val->Assign(0, new Val(${msg.padata.padata_elems[i].data_type}, TYPE_COUNT));
-						type_val->Assign(1, bytestring_to_val(${msg.padata.padata_elems[i].pa_data_element.unknown}));
-						padata->Assign(padata->Size(), type_val);
+						if ( ${msg.padata.padata_elems[i].pa_data_element.unknown}.length() )
+							{
+							RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+							type_val->Assign(0, new Val(${msg.padata.padata_elems[i].data_type}, TYPE_COUNT));
+							type_val->Assign(1, bytestring_to_val(${msg.padata.padata_elems[i].pa_data_element.unknown}));
+							padata->Assign(padata->Size(), type_val);
+							}
 						break;
 						}
 					}
 				}
 			rv->Assign(2, padata);
 			}
-		
+
 		for ( uint i = 0; i < ${msg.body.args}->size(); ++i )
 			{
 			switch ( ${msg.body.args[i].seq_meta.index} )
@@ -197,7 +205,7 @@ refine connection KRB_Conn += {
 						for ( uint j = 0; j < ${msg.body.args[i].data.addrs.addresses}->size(); ++j )
 							{
 							RecordVal* addr = new RecordVal(BifType::Record::KRB::Host_Address);
-							switch ( binary_to_int64(${msg.body.args[i].data.addrs.addresses[j].addr_type.data.content}) )
+							switch ( binary_to_int64(${msg.body.args[i].data.addrs.addresses[j].addr_type.encoding.content}) )
 								{
 								case 2:
 								addr->Assign(0, new AddrVal(IPAddr(IPv4, (const uint32_t*) c_str(${msg.body.args[i].data.addrs.addresses[j].address.data.content}), IPAddr::Network)));
@@ -210,7 +218,7 @@ refine connection KRB_Conn += {
 								break;
 								default:
 								RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
-								unk->Assign(0, asn1_integer_to_val(${msg.body.args[i].data.addrs.addresses[j].addr_type.data}, TYPE_COUNT));
+								unk->Assign(0, asn1_integer_to_val(${msg.body.args[i].data.addrs.addresses[j].addr_type}, TYPE_COUNT));
 								unk->Assign(1, bytestring_to_val(${msg.body.args[i].data.addrs.addresses[j].address.data.content}));
 								addr->Assign(2, unk);
 								break;
@@ -344,31 +352,23 @@ refine connection KRB_Conn += {
 		if ( krb_error )
 			{
 			RecordVal* rv = new RecordVal(BifType::Record::KRB::Error_Msg);
+			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
+			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
+			if ( ${msg.has_ctime} )
+				rv->Assign(2, GetTimeFromAsn1(bytestring_to_val(${msg.ctime})));
+
+			// TODO: if ( ${msg.has_cusec} )
+				
+			rv->Assign(3, GetTimeFromAsn1(bytestring_to_val(${msg.stime})));
+			// TODO: ${msg.susec}
+
+			
+			rv->Assign(4, asn1_integer_to_val(${msg.error_code.data}, TYPE_COUNT));
+			
 			for ( uint i = 0; i < ${msg.args}->size(); i++ )
 				{
 				switch ( ${msg.args[i].seq_meta.index} )
 					{
-					case 0:
-						rv->Assign(0, asn1_integer_to_val(${msg.args[i].args.pvno}, TYPE_COUNT));
-						break;
-					case 1:
-						rv->Assign(1, asn1_integer_to_val(${msg.args[i].args.msg_type}, TYPE_COUNT));
-						break;
-					case 2:
-						rv->Assign(2, GetTimeFromAsn1(${msg.args[i].args.ctime}));
-						break;
-					case 3:
-//						TODO
-						break;
-					case 4:
-						rv->Assign(3, GetTimeFromAsn1(${msg.args[i].args.stime}));
-						break;
-					case 5:
-//						TODO
-						break;
-					case 6:
-						rv->Assign(4, asn1_integer_to_val(${msg.args[i].args.error_code}, TYPE_COUNT));
-						break;
 					case 7:
 						rv->Assign(5, bytestring_to_val(${msg.args[i].args.crealm.encoding.content}));
 						break;
@@ -383,6 +383,42 @@ refine connection KRB_Conn += {
 						break;
 					case 11:
 						rv->Assign(9, bytestring_to_val(${msg.args[i].args.e_text.encoding.content}));
+						break;
+					case 12:
+						if ( ${msg.error_code.data.content}[0] == 25 )
+							{
+							VectorVal* padata = new VectorVal(internal_type("KRB::Type_Value_Vector")->AsVectorType());
+
+							for ( uint j = 0; j < ${msg.args[i].args.e_data.padata.padata_elems}->size(); ++j)
+								{
+								switch( ${msg.args[i].args.e_data.padata.padata_elems[j].data_type} )
+									{
+								case 1:
+									// will be generated as separate event
+									break;
+								case 3:
+									{
+									RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+									type_val->Assign(0, new Val(${msg.args[i].args.e_data.padata.padata_elems[j].data_type}, TYPE_COUNT));
+									type_val->Assign(1, bytestring_to_val(${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.pa_pw_salt.encoding.content}));
+									padata->Assign(padata->Size(), type_val);
+									break;
+									}
+								default:
+									{
+									if ( ${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.unknown}.length() )
+										{
+										RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+										type_val->Assign(0, new Val(${msg.args[i].args.e_data.padata.padata_elems[j].data_type}, TYPE_COUNT));
+										type_val->Assign(1, bytestring_to_val(${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.unknown}));
+										padata->Assign(padata->Size(), type_val);
+										}
+									break;
+									}
+									}
+								}
+							rv->Assign(10, padata);
+							}
 						break;
 					default:
 						break;
@@ -410,13 +446,24 @@ refine connection KRB_Conn += {
 			// Not implemented
     		return true;
    		%}
-    
+
+	function debug_req_arg(msg: KRB_REQ_Arg_Data): bool
+		%{
+		printf("KRB_REQ_Arg index=%d\n", ${msg.index});
+		return true;
+		%}
+
+	function debug_asn1_encoding_meta(msg: ASN1EncodingMeta): bool
+		%{
+		printf("ASN1 Element tag=%x, length=%d\n", ${msg.tag}, ${msg.length});
+		return true;
+		%}
 }
 
 
 refine typeattr KRB_AS_REQ += &let {
 	proc: bool = $context.connection.proc_krb_kdc_req(data);
- };
+};
     
 refine typeattr KRB_TGS_REQ += &let {
 	proc: bool = $context.connection.proc_krb_kdc_req(data);
@@ -454,3 +501,10 @@ refine typeattr KRB_CRED_MSG += &let {
 	proc: bool = $context.connection.proc_krb_cred_msg(this);
  };
     
+#refine typeattr KRB_REQ_Arg_Data += &let {
+#	proc: bool = $context.connection.debug_req_arg(this);
+#};
+
+#refine typeattr ASN1EncodingMeta += &let {
+#	proc: bool = $context.connection.debug_asn1_encoding_meta(this);
+#};

@@ -2975,31 +2975,6 @@ export {
 
 module KRB;
 export {
-	## The data from the ERROR_MSG message. See :rfc:`4120`.
-	type KRB::Error_Msg: record {
-		## Protocol version number (5 for KRB5)
-		pvno:		count;
-		## The message type (30 for ERROR_MSG)
-		msg_type:	count;
-		## Current time on the client
-		client_time:	time &optional;
-		## Current time on the server
-		server_time:	time;
-		## The specific error code
-		error_code:	count;
-		## Realm of the ticket
-		client_realm:	string &optional;
-		## Name on the ticket
-		client_name:  	string &optional;
-		## Realm of the service
-		service_realm:	string;
-		## Name of the service
-		service_name:	string;
-		## Additional text to explain the error
-		error_text:	string &optional;
-	};
-
-
 	## KDC Options. See :rfc:`4120`
 	type KRB::KDC_Options: record {
 		## The ticket to be issued should have its forwardable flag set.
@@ -3030,7 +3005,7 @@ export {
 		enc_tkt_in_skey			:	bool;
 		## The request is for a renewal
 		renew					:	bool;
-		## The request ist to validate a postdated ticket.
+		## The request is to validate a postdated ticket.
 		validate				:	bool;
 	};
 
@@ -3045,6 +3020,33 @@ export {
 
 	type KRB::Type_Value_Vector: vector of KRB::Type_Value;
 	
+	## The data from the ERROR_MSG message. See :rfc:`4120`.
+	type KRB::Error_Msg: record {
+		## Protocol version number (5 for KRB5)
+		pvno			: count;
+		## The message type (30 for ERROR_MSG)
+		msg_type		: count;
+		## Current time on the client
+		client_time		: time &optional;
+		## Current time on the server
+		server_time		: time;
+		## The specific error code
+		error_code		: count;
+		## Realm of the ticket
+		client_realm	: string &optional;
+		## Name on the ticket
+		client_name		: string &optional;
+		## Realm of the service
+		service_realm	: string;
+		## Name of the service
+		service_name	: string;
+		## Additional text to explain the error
+		error_text		: string &optional;
+		## Optional pre-authentication data
+		pa_data			: vector of KRB::Type_Value &optional;
+	};
+
+
 	## A Kerberos ticket. See :rfc:`4120`.
 	type KRB::Ticket: record {
 		## Protocol version number (5 for KRB5)
@@ -3062,9 +3064,9 @@ export {
 	## A Kerberos host address See :rfc:`4120`.
 	type KRB::Host_Address: record {
 		## IPv4 or IPv6 address
-		ip			: addr &optional;
+		ip			: addr &log &optional;
 		## NetBIOS address
-		netbios 	: string &optional;
+		netbios 	: string &log &optional;
 		## Some other type that we don't support yet
 		unknown 	: KRB::Type_Value &optional;
 	};

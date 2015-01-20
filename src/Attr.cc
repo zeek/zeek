@@ -18,7 +18,7 @@ const char* attr_name(attr_tag t)
 		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)",
+		"(&tracked)", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -212,6 +212,7 @@ void Attributes::DescribeReST(ODesc* d) const
 void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
+	case ATTR_DEPRECATED:
 	case ATTR_OPTIONAL:
 	case ATTR_REDEF:
 		break;

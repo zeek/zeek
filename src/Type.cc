@@ -1434,7 +1434,7 @@ EnumType::~EnumType()
 // Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
-void EnumType::AddName(const string& module_name, const char* name, bool is_export)
+void EnumType::AddName(const string& module_name, const char* name, bool is_export, bool deprecated)
 	{
 	/* implicit, auto-increment */
 	if ( counter < 0)
@@ -1443,11 +1443,11 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 		SetError();
 		return;
 		}
-	CheckAndAddName(module_name, name, counter, is_export);
+	CheckAndAddName(module_name, name, counter, is_export, deprecated);
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export)
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, bool deprecated)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
@@ -1457,11 +1457,11 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		return;
 		}
 	counter = -1;
-	CheckAndAddName(module_name, name, val, is_export);
+	CheckAndAddName(module_name, name, val, is_export, deprecated);
 	}
 
 void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export)
+                               bro_int_t val, bool is_export, bool deprecated)
 	{
 	if ( Lookup(val) )
 		{
@@ -1477,6 +1477,14 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		id = install_ID(name, module_name.c_str(), true, is_export);
 		id->SetType(this->Ref());
 		id->SetEnumConst();
+
+		if ( deprecated )
+			{
+			attr_list* attr = new attr_list;
+			attr->append(new Attr(ATTR_DEPRECATED));
+			id->AddAttrs(new Attributes(attr, id->Type(), false));
+			}
+
 		broxygen_mgr->Identifier(id);
 		}
 	else

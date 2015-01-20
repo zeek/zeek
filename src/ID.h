@@ -80,6 +80,9 @@ public:
 	Attr* FindAttr(attr_tag t) const
 		{ return attrs ? attrs->FindAttr(t) : 0; }
 
+	bool IsDeprecated() const
+		{ return FindAttr(ATTR_DEPRECATED) != 0; }
+
 	void Error(const char* msg, const BroObj* o2 = 0);
 
 	void Describe(ODesc* d) const;

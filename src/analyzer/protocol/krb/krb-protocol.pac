@@ -13,6 +13,11 @@ enum KRBMessageTypes {
 	KRB_ERROR = 30,
 };
 
+type KRB_PDU_TCP = record {
+	size: uint32;
+	pdu	: KRB_PDU;
+} &length=size+4 &byteorder=bigendian;
+
 type KRB_PDU = record {
 	app_meta  : ASN1EncodingMeta;
 	msg_type  : case (app_meta.tag - 96) of {

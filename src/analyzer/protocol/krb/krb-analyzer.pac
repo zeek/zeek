@@ -1,12 +1,3 @@
-connection KRB_Conn(bro_analyzer: BroAnalyzer) {
-	upflow = KRB_Flow(true);
-	downflow = KRB_Flow(false);
-};
-
-flow KRB_Flow(is_orig: bool) {
-	datagram = KRB_PDU withcontext(connection, this);
-};
-
 %header{
 Val* GetTimeFromAsn1(const KRB_Time* atime);
 Val* GetTimeFromAsn1(StringVal* atime);
@@ -111,6 +102,7 @@ refine connection KRB_Conn += {
 
 	function proc_krb_kdc_req(msg: KRB_KDC_REQ): bool
 		%{
+		bro_analyzer()->ProtocolConfirmation();
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) && ! krb_as_req )
 			return false;
 
@@ -266,6 +258,7 @@ refine connection KRB_Conn += {
 
  	function proc_krb_kdc_rep(msg: KRB_KDC_REP): bool
 		%{
+		bro_analyzer()->ProtocolConfirmation();
 		
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) && ! krb_as_rep )
 			return false;
@@ -337,18 +330,21 @@ refine connection KRB_Conn += {
     
  	function proc_krb_ap_req(msg: KRB_AP_REQ): bool
 		%{
-			// Not implemented
-    		return true;
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
    		%}
     
  	function proc_krb_ap_rep(msg: KRB_AP_REP): bool
 		%{
-			// Not implemented
-    		return true;
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
    		%}
     
  	function proc_krb_error_msg(msg: KRB_ERROR_MSG): bool
 		%{
+		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
 			{
 			RecordVal* rv = new RecordVal(BifType::Record::KRB::Error_Msg);
@@ -431,20 +427,23 @@ refine connection KRB_Conn += {
     
  	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
 		%{
-			// Not implemented
-    		return true;
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
    		%}
     
  	function proc_krb_priv_msg(msg: KRB_PRIV_MSG): bool
-		%{
-			// Not implemented
-    		return true;
+		%{	
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
    		%}
     
  	function proc_krb_cred_msg(msg: KRB_CRED_MSG): bool
 		%{
-			// Not implemented
-    		return true;
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
    		%}
 
 	function debug_req_arg(msg: KRB_REQ_Arg_Data): bool

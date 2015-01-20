@@ -6,7 +6,7 @@
 #include "events.bif.h"
 %}
 
-analyzer KRB withcontext {
+analyzer KRB_TCP withcontext {
 	connection:	KRB_Conn;
 	flow:		KRB_Flow;
 };
@@ -19,7 +19,7 @@ connection KRB_Conn(bro_analyzer: BroAnalyzer) {
 %include krb-protocol.pac
 
 flow KRB_Flow(is_orig: bool) {
-	datagram = KRB_PDU withcontext(connection, this);
+	flowunit = KRB_PDU_TCP withcontext(connection, this);
 };
 
 %include krb-analyzer.pac

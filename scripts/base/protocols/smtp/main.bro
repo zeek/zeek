@@ -98,7 +98,7 @@ event bro_init() &priority=5
 
 function find_address_in_smtp_header(header: string): string
 {
-	local ips = find_ip_addresses(header);
+	local ips = extract_ip_addresses(header);
 	# If there are more than one IP address found, return the second.
 	if ( |ips| > 1 )
 		return ips[1];
@@ -163,7 +163,7 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		{
 		if ( ! c$smtp?$rcptto )
 			c$smtp$rcptto = set();
-		add c$smtp$rcptto[split1(arg, /:[[:blank:]]*/)[2]];
+		add c$smtp$rcptto[split_string1(arg, /:[[:blank:]]*/)[1]];
 		c$smtp$has_client_activity = T;
 		}
 
@@ -172,8 +172,8 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		# Flush last message in case we didn't see the server's acknowledgement.
 		smtp_message(c);
 
-		local partially_done = split1(arg, /:[[:blank:]]*/)[2];
-		c$smtp$mailfrom = split1(partially_done, /[[:blank:]]?/)[1];
+		local partially_done = split_string1(arg, /:[[:blank:]]*/)[1];
+		c$smtp$mailfrom = split_string1(partially_done, /[[:blank:]]?/)[0];
 		c$smtp$has_client_activity = T;
 		}
 	}
@@ -234,14 +234,14 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		if ( ! c$smtp?$to )
 			c$smtp$to = set();
 
-		local to_parts = split(h$value, /[[:blank:]]*,[[:blank:]]*/);
+		local to_parts = split_string(h$value, /[[:blank:]]*,[[:blank:]]*/);
 		for ( i in to_parts )
 			add c$smtp$to[to_parts[i]];
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )
 		{
-		local addresses = find_ip_addresses(h$value);
+		local addresses = extract_ip_addresses(h$value);
 		if ( 1 in addresses )
 			c$smtp$x_originating_ip = to_addr(addresses[1]);
 		}

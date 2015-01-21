@@ -31,7 +31,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 			case "X-FORWARDED-FOR":
 			if ( is_valid_ip(value) )
 				{
-				local addrs = find_ip_addresses(value);
+				local addrs = extract_ip_addresses(value);
 				for ( i in addrs )
 					{
 					Intel::seen([$host=to_addr(addrs[i]),

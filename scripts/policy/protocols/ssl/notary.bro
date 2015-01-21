@@ -70,23 +70,23 @@ event ssl_established(c: connection) &priority=3
 			clear_waitlist(digest);
 			return;
 			}
-		local fields = split(str, / /);
+		local fields = split_string(str, / /);
 		if ( |fields| != 5 ) # version 1 has 5 fields.
 			{
 			clear_waitlist(digest);
 			return;
 			}
-		local version = split(fields[1], /=/)[2];
+		local version = split_string(fields[0], /=/)[2];
 		if ( version != "1" )
 			{
 			clear_waitlist(digest);
 			return;
 			}
 		local r = notary_cache[digest];
-		r$first_seen = to_count(split(fields[2], /=/)[2]);
-		r$last_seen = to_count(split(fields[3], /=/)[2]);
-		r$times_seen = to_count(split(fields[4], /=/)[2]);
-		r$valid = split(fields[5], /=/)[2] == "1";
+		r$first_seen = to_count(split_string(fields[1], /=/)[1]);
+		r$last_seen = to_count(split_string(fields[2], /=/)[1]);
+		r$times_seen = to_count(split_string(fields[3], /=/)[1]);
+		r$valid = split_string(fields[4], /=/)[1] == "1";
 
 		# Assign notary answer to all records waiting for this digest.
 		if ( digest in waitlist )

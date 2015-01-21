@@ -48,7 +48,7 @@ function find_all_urls_without_scheme(s: string): string_set
 
 function decompose_uri(s: string): URI
 	{
-	local parts: string_array;
+	local parts: string_vec;
 	local u: URI = [$netlocation="", $path="/"];
 
 	if ( /\?/ in s)
@@ -56,55 +56,55 @@ function decompose_uri(s: string): URI
 		# Parse query.
 		u$params = table();
 
-		parts = split1(s, /\?/);
-		s = parts[1];
-		local query: string = parts[2];
+		parts = split_string1(s, /\?/);
+		s = parts[0];
+		local query: string = parts[1];
 
 		if ( /&/ in query )
 			{
-			local opv: table[count] of string = split(query, /&/);
+			local opv = split_string(query, /&/);
 
 			for ( each in opv )
 				{
 				if ( /=/ in opv[each] )
 					{
-					parts = split1(opv[each], /=/);
-					u$params[parts[1]] = parts[2];
+					parts = split_string1(opv[each], /=/);
+					u$params[parts[0]] = parts[1];
 					}
 				}
 			}
 		else
 			{
-			parts = split1(query, /=/);
-			u$params[parts[1]] = parts[2];
+			parts = split_string1(query, /=/);
+			u$params[parts[0]] = parts[1];
 			}
 		}
 
 	if ( /:\/\// in s )
 		{
 		# Parse scheme and remove from s.
-		parts = split1(s, /:\/\//);
-		u$scheme = parts[1];
-		s = parts[2];
+		parts = split_string1(s, /:\/\//);
+		u$scheme = parts[0];
+		s = parts[1];
 		}
 
 	if ( /\// in s )
 		{
 		# Parse path and remove from s.
-		parts = split1(s, /\//);
-		s = parts[1];
-		u$path = fmt("/%s", parts[2]);
+		parts = split_string1(s, /\//);
+		s = parts[0];
+		u$path = fmt("/%s", parts[1]);
 
 		if ( |u$path| > 1 && u$path[|u$path| - 1] != "/" )
 			{
 			local last_token: string = find_last(u$path, /\/.+/);
-			local full_filename = split1(last_token, /\//)[2];
+			local full_filename = split_string1(last_token, /\//)[1];
 
 			if ( /\./ in full_filename )
 				{
 				u$file_name = full_filename;
-				u$file_base = split1(full_filename, /\./)[1];
-				u$file_ext = split1(full_filename, /\./)[2];
+				u$file_base = split_string1(full_filename, /\./)[0];
+				u$file_ext = split_string1(full_filename, /\./)[1];
 				}
 			else
 				{
@@ -117,9 +117,9 @@ function decompose_uri(s: string): URI
 	if ( /:/ in s )
 		{
 		# Parse location and port.
-		parts = split1(s, /:/);
-		u$netlocation = parts[1];
-		u$portnum = to_count(parts[2]);
+		parts = split_string1(s, /:/);
+		u$netlocation = parts[0];
+		u$portnum = to_count(parts[1]);
 		}
 	else
 		u$netlocation = s;

@@ -50,11 +50,11 @@ type PatternMatchResult: record {
 ## Returns: a record indicating the match status.
 function match_pattern(s: string, p: pattern): PatternMatchResult
 	{
-	local a = split_n(s, p, T, 1);
+	local a = split_string_n(s, p, T, 1);
 
 	if ( |a| == 1 )
 		# no match
 		return [$matched = F, $str = "", $off = 0];
 	else
-		return [$matched = T, $str = a[2], $off = |a[1]| + 1];
+		return [$matched = T, $str = a[1], $off = |a[0]| + 1];
 	}

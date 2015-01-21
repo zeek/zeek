@@ -78,7 +78,7 @@ Deprecated Functionality
 
     * join_string_array: see join_string_vec instead.
 
-    * sort_string_array: use sort instead instead.
+    * sort_string_array: use sort instead.
 
     * find_ip_addresses: use extract_ip_addresses instead.
 

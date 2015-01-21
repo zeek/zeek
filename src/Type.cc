@@ -1479,11 +1479,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		id->SetEnumConst();
 
 		if ( deprecated )
-			{
-			attr_list* attr = new attr_list;
-			attr->append(new Attr(ATTR_DEPRECATED));
-			id->AddAttrs(new Attributes(attr, id->Type(), false));
-			}
+			id->MakeDeprecated();
 
 		broxygen_mgr->Identifier(id);
 		}

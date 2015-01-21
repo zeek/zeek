@@ -227,6 +227,18 @@ static bool expr_is_table_type_name(const Expr* expr)
 
 	return false;
 	}
+
+static bool has_attr(const attr_list* al, attr_tag tag)
+	{
+	if ( ! al )
+		return false;
+
+	for ( int i = 0; i < al->length(); ++i )
+		if ( (*al)[i]->Tag() == tag )
+			return true;
+
+	return false;
+	}
 %}
 
 %union {
@@ -1147,6 +1159,9 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+
+			if ( has_attr($1, ATTR_DEPRECATED) )
+				current_scope()->ScopeID()->MakeDeprecated();
 			}
 
 		stmt_list
@@ -1571,7 +1586,13 @@ global_or_event_id:
 					$$->Error("already a local identifier");
 
 				if ( $$->IsDeprecated() )
-					reporter->Warning("deprecated (%s)", $$->Name());
+					{
+					BroType* t = $$->Type();
+
+					if ( t->Tag() != TYPE_FUNC ||
+					     t->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+						reporter->Warning("deprecated (%s)", $$->Name());
+					}
 
 				delete [] $1;
 				}

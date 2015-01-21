@@ -66,3 +66,15 @@ function hmm(b: blah)
 	{
 	print b;
 	}
+
+global dont_use_me: function() &deprecated;
+
+function dont_use_me()
+	{
+	dont_use_me();
+	}
+
+function dont_use_me_either() &deprecated
+	{
+	dont_use_me_either();
+	}

@@ -53,6 +53,35 @@ Changed Functionality
       record gives the how many bytes have been written so far (i.e.
       the "offset").
 
+- has_valid_octets: now uses a string_vec parameter instead of
+  string_array.
+
+Deprecated Functionality
+------------------------
+
+- The split* family of functions are to be replaced with alternate
+  versions that return a vector of strings rather than a table of
+  strings.  This also allows deprecation for some related string
+  concatenation/extraction functions.  The full list is:
+
+    * split: use split_string instead.
+
+    * split1: use split_string1 instead.
+
+    * split_all: use split_string_all instead.
+
+    * split_n: use split_string_n instead.
+
+    * cat_string_array: see join_string_vec instead.
+
+    * cat_string_array_n: see join_string_vec instead.
+
+    * join_string_array: see join_string_vec instead.
+
+    * sort_string_array: use sort instead instead.
+
+    * find_ip_addresses: use extract_ip_addresses instead.
+
 Bro 2.3
 =======
 

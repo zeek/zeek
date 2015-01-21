@@ -49,6 +49,8 @@ The Bro scripting language supports the following attributes.
 +-----------------------------+-----------------------------------------------+
 | :bro:attr:`&type_column`    |Used by input framework for "port" type.       |
 +-----------------------------+-----------------------------------------------+
+| :bro:attr:`&deprecated`     |Marks an identifier as deprecated.             |
++-----------------------------+-----------------------------------------------+
 
 Here is a more detailed explanation of each attribute:
 
@@ -230,3 +232,9 @@ Here is a more detailed explanation of each attribute:
             msg: string;
         };
 
+.. bro:attr:: &deprecated
+
+    The associated identifier is marked as deprecated and will be
+    removed in a future version of Bro.  Look in the NEWS file for more
+    explanation and/or instructions to migrate code that uses deprecated
+    functionality.

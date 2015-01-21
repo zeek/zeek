@@ -63,7 +63,7 @@ export {
 	} &redef;
 	
 	## Event that can be handled to access the KRB record as it is sent on
-	## to the loggin framework.
+	## to the logging framework.
 	global log_krb: event(rec: Info);
 }
 
@@ -81,7 +81,7 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
 	}
 
-event krb_error(c: connection, msg: Error_Msg)
+event krb_error(c: connection, msg: Error_Msg) &priority=5
 	{
 	local info: Info;
 
@@ -123,21 +123,30 @@ event krb_error(c: connection, msg: Error_Msg)
 			info$error_msg = error_msg[msg$error_code];
 		}
 		
-	Log::write(KRB::LOG, info);
-	info$logged = T;
-
 	c$krb = info;
 	}
 
-event krb_as_req(c: connection, msg: KDC_Request)
+event krb_error(c: connection, msg: Error_Msg) &priority=-5
+	{
+	Log::write(KRB::LOG, c$krb);
+	c$krb$logged = T;
+	}
+
+event krb_as_req(c: connection, msg: KDC_Request) &priority=5
 	{
 	if ( c?$krb && c$krb$logged )
 		return;
 
 	local info: Info;
-	info$ts  = network_time();
-	info$uid = c$uid;
-	info$id  = c$id;
+
+	if ( !c?$krb )
+		{
+		info$ts  = network_time();
+		info$uid = c$uid;
+		info$id  = c$id;
+		}
+	else
+		info = c$krb;
 
 	info$client = fmt("%s/%s", msg$client_name, msg$service_realm);
 	info$service = msg$service_name;
@@ -174,7 +183,7 @@ event krb_as_req(c: connection, msg: KDC_Request)
 	c$krb = info;
 	}
 
-event krb_tgs_req(c: connection, msg: KDC_Request)
+event krb_tgs_req(c: connection, msg: KDC_Request) &priority=5
 	{
 	if ( c?$krb && c$krb$logged )
 		return;
@@ -191,7 +200,40 @@ event krb_tgs_req(c: connection, msg: KDC_Request)
 	c$krb = info;
 	}
 
-event krb_as_rep(c: connection, msg: KDC_Reply)
+event krb_as_rep(c: connection, msg: KDC_Reply) &priority=5
+	{
+	local info: Info;
+
+	if ( c?$krb && c$krb$logged )
+		return;
+
+	if ( c?$krb )
+		info = c$krb;
+		
+	if ( ! info?$ts )
+		{
+		info$ts  = network_time();
+		info$uid = c$uid;
+		info$id  = c$id;
+		}
+
+	if ( ! info?$client )
+		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
+
+	info$service = msg$ticket$service_name;
+	info$result = "success";
+
+	c$krb = info;
+	}
+
+event krb_as_rep(c: connection, msg: KDC_Reply) &priority=-5
+	{
+		
+	Log::write(KRB::LOG, c$krb);
+	c$krb$logged = T;
+	}
+
+event krb_tgs_rep(c: connection, msg: KDC_Reply) &priority=5
 	{
 	local info: Info;
 
@@ -214,42 +256,16 @@ event krb_as_rep(c: connection, msg: KDC_Reply)
 	info$service = msg$ticket$service_name;
 	info$result = "success";
 		
-	Log::write(KRB::LOG, info);
-	info$logged = T;
-
 	c$krb = info;
 	}
 
-event krb_tgs_rep(c: connection, msg: KDC_Reply)
+event krb_tgs_rep(c: connection, msg: KDC_Reply) &priority=-5
 	{
-	local info: Info;
-
-	if ( c?$krb && c$krb$logged )
-		return;
-
-	if ( c?$krb )
-		info = c$krb;
-		
-	if ( ! info?$ts )
-		{
-		info$ts  = network_time();
-		info$uid = c$uid;
-		info$id  = c$id;
-		}
-
-	if ( ! info?$client )
-		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
-
-	info$service = msg$ticket$service_name;
-	info$result = "success";
-		
-	Log::write(KRB::LOG, info);
-	info$logged = T;
-
-	c$krb = info;
+	Log::write(KRB::LOG, c$krb);
+	c$krb$logged = T;
 	}
 
-event connection_state_remove(c: connection)
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$krb && ! c$krb$logged )
 		Log::write(KRB::LOG, c$krb);

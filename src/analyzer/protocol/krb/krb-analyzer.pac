@@ -1,3 +1,8 @@
+%extern{
+#include "file_analysis/Manager.h"
+%}
+
+
 %header{
 Val* GetTimeFromAsn1(const KRB_Time* atime);
 Val* GetTimeFromAsn1(StringVal* atime);
@@ -132,6 +137,29 @@ refine connection KRB_Conn += {
 						type_val->Assign(0, new Val(${msg.padata.padata_elems[i].data_type}, TYPE_COUNT));
 						type_val->Assign(1, bytestring_to_val(${msg.padata.padata_elems[i].pa_data_element.pa_pw_salt.encoding.content}));
 						padata->Assign(padata->Size(), type_val);
+						break;
+						}
+					case 16:
+						{
+						const bytestring& cert = ${msg.padata.padata_elems[i].pa_data_element.pa_pk_as_req.cert};
+
+						ODesc common;
+						common.AddRaw("Analyzer::ANALYZER_KRB");
+						common.Add(bro_analyzer()->Conn()->StartTime());
+						common.AddRaw("T", 1);
+						bro_analyzer()->Conn()->IDString(&common);
+
+						ODesc file_handle;
+						file_handle.Add(common.Description());
+						file_handle.Add(0);
+
+						string file_id = file_mgr->HashHandle(file_handle.Description());
+
+						file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+			                 cert.length(), bro_analyzer()->GetAnalyzerTag(),
+			                 bro_analyzer()->Conn(), true, file_id);
+						file_mgr->EndOfFile(file_id);
+
 						break;
 						}
 					default:
@@ -292,6 +320,29 @@ refine connection KRB_Conn += {
 						type_val->Assign(0, new Val(${msg.padata.padata_elems[i].data_type}, TYPE_COUNT));
 						type_val->Assign(1, bytestring_to_val(${msg.padata.padata_elems[i].pa_data_element.pa_pw_salt.encoding.content}));
 						padata->Assign(padata->Size(), type_val);
+						break;
+						}
+					case 17:
+						{
+						const bytestring& cert = ${msg.padata.padata_elems[i].pa_data_element.pa_pk_as_rep.cert};
+							
+						ODesc common;
+						common.AddRaw("Analyzer::ANALYZER_KRB");
+						common.Add(bro_analyzer()->Conn()->StartTime());
+						common.AddRaw("F", 1);
+						bro_analyzer()->Conn()->IDString(&common);
+
+						ODesc file_handle;
+						file_handle.Add(common.Description());
+						file_handle.Add(1);
+
+						string file_id = file_mgr->HashHandle(file_handle.Description());
+
+						file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
+			                 cert.length(), bro_analyzer()->GetAnalyzerTag(),
+			                 bro_analyzer()->Conn(), false, file_id);
+						file_mgr->EndOfFile(file_id);
+
 						break;
 						}
 					default:
@@ -507,3 +558,4 @@ refine typeattr KRB_CRED_MSG += &let {
 #refine typeattr ASN1EncodingMeta += &let {
 #	proc: bool = $context.connection.debug_asn1_encoding_meta(this);
 #};
+

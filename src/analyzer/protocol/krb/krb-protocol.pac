@@ -89,7 +89,67 @@ type KRB_PA_Data = record {
 type KRB_PA_Data_Element(type: int64, length: uint64) = case type of {
 	1       -> pa_tgs_req		: KRB_AP_REQ;
 	3       -> pa_pw_salt		: ASN1OctetString;
+	16		-> pa_pk_as_req		: KRB_PA_PK_AS_Req &length=length;
+	17		-> pa_pk_as_rep		: KRB_PA_PK_AS_Rep &length=length;
 	default -> unknown			: bytestring &length=length;
+};
+
+# Octet string metadata
+# -- Sequence metadata
+# ---- [0] metadata
+# ------ Sequence metadata
+# -------- OID
+# ---------- [0] metadata
+# ------------ Sequence metadata
+# -------------- version
+# -------------- digestAlgorithms
+# -------------- signedData
+# -------------- certificates
+type KRB_PA_PK_AS_Req = record {
+	string_meta : ASN1EncodingMeta;
+	seq_meta1	: ASN1EncodingMeta;
+	elem_0_meta1: ASN1EncodingMeta;
+	seq_meta2	: ASN1EncodingMeta;
+	oid			: ASN1Encoding;
+	elem_0_meta2: ASN1EncodingMeta;
+	seq_meta3	: ASN1EncodingMeta;
+	version		: ASN1Encoding;
+	digest_algs	: ASN1Encoding;
+	signed_data	: ASN1Encoding;
+	cert_meta	: ASN1EncodingMeta;
+	cert		: bytestring &length=cert_meta.length;
+	# Ignore everything else
+				: bytestring &restofdata &transient;
+};
+
+# Octet string metadata
+# -- [0] metadata
+# ---- Sequence metadata
+# ------ [0] metadata
+# -------- Sequence metadata
+# ---------- OID
+# ------------ [0] metadata
+# -------------- Sequence metadata
+# ---------------- version
+# ---------------- digestAlgorithms
+# ---------------- signedData
+# ---------------- certificates
+type KRB_PA_PK_AS_Rep = record {
+	string_meta : ASN1EncodingMeta;
+	elem_0_meta1: ASN1EncodingMeta;
+	seq_meta1	: ASN1EncodingMeta;
+	elem_0_meta2: ASN1EncodingMeta;
+	seq_meta2	: ASN1EncodingMeta;
+	oid			: ASN1Encoding;
+	elem_0_meta3: ASN1EncodingMeta;
+	seq_meta3	: ASN1EncodingMeta;
+	version		: ASN1Encoding;
+	digest_algs	: ASN1Encoding;
+	signed_data	: ASN1Encoding;
+	cert_meta	: ASN1EncodingMeta;
+	cert		: bytestring &length=cert_meta.length;
+	# Ignore everything else
+				: bytestring &restofdata &transient;
 };
 
 type KRB_REQ_Body = record {

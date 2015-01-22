@@ -107,6 +107,12 @@ bool comm::Manager::Print(string topic, string msg, const Val* flags)
 	return true;
 	}
 
+bool comm::Manager::Event(std::string topic, broker::message msg, int flags)
+	{
+	endpoint->send(move(topic), move(msg), flags);
+	return true;
+	}
+
 bool comm::Manager::Event(std::string topic, const RecordVal* args,
                           const Val* flags)
 	{
@@ -127,6 +133,65 @@ bool comm::Manager::Event(std::string topic, const RecordVal* args,
 		}
 
 	endpoint->send(move(topic), move(msg), get_flags(flags));
+	return true;
+	}
+
+bool comm::Manager::AutoEvent(string topic, const Val* event, const Val* flags)
+	{
+	if ( event->Type()->Tag() != TYPE_FUNC )
+		{
+		reporter->Error("Comm::auto_event must operate on an event");
+		return false;
+		}
+
+	auto event_val = event->AsFunc();
+
+	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
+		{
+		reporter->Error("Comm::auto_event must operate on an event");
+		return false;
+		}
+
+	auto handler = event_registry->Lookup(event_val->Name());
+
+	if ( ! handler )
+		{
+		reporter->Error("Comm::auto_event failed to lookup event '%s'",
+		                event_val->Name());
+		return false;
+		}
+
+	handler->AutoRemote(move(topic), get_flags(flags));
+	return true;
+	}
+
+bool comm::Manager::AutoEventStop(const string& topic, const Val* event)
+	{
+	if ( event->Type()->Tag() != TYPE_FUNC )
+		{
+		reporter->Error("Comm::auto_event_stop must operate on an event");
+		return false;
+		}
+
+	auto event_val = event->AsFunc();
+
+	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
+		{
+		reporter->Error("Comm::auto_event_stop must operate on an event");
+		return false;
+		}
+
+	auto handler = event_registry->Lookup(event_val->Name());
+
+	if ( ! handler )
+		{
+		reporter->Error("Comm::auto_event_stop failed to lookup event '%s'",
+		                event_val->Name());
+		return false;
+		}
+
+
+	handler->AutoRemoteStop(topic);
 	return true;
 	}
 

@@ -31,7 +31,12 @@ public:
 
 	bool Print(std::string topic, std::string msg, const Val* flags);
 
+	bool Event(std::string topic, broker::message msg, int flags);
 	bool Event(std::string topic, const RecordVal* args, const Val* flags);
+
+	bool AutoEvent(std::string topic, const Val* event, const Val* flags);
+
+	bool AutoEventStop(const std::string& topic, const Val* event);
 
 	RecordVal* MakeEventArgs(const val_list* args);
 

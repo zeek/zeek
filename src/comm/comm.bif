@@ -100,6 +100,19 @@ function Comm::event%(topic: string, args: Comm::EventArgs,
 	return new Val(rval, TYPE_BOOL);
 	%}
 
+function Comm::auto_event%(topic: string, ev: any,
+                           flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = comm_mgr->AutoEvent(topic->CheckString(), ev, flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::auto_event_stop%(topic: string, ev: any%): bool
+	%{
+	auto rval = comm_mgr->AutoEventStop(topic->CheckString(), ev);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
 function Comm::subscribe_to_events%(topic_prefix: string%): bool
 	%{
 	auto rval = comm_mgr->SubscribeToEvents(topic_prefix->CheckString());

@@ -602,10 +602,37 @@ void RecordPaddingField::GenFieldEnd(Output* out_cc, Env* env, const DataPtr& fi
 	switch ( ptype_ )
 		{
 		case PAD_BY_LENGTH:
+			out_cc->println("if ( (%s) < 0 ) // check for negative pad length",
+			                expr_->EvalExpr(out_cc, env));
+			out_cc->inc_indent();
+			out_cc->println("{");
+			out_cc->println("throw binpac::ExceptionInvalidStringLength(\"%s\", %s);",
+			                Location(), expr_->EvalExpr(out_cc, env));
+			out_cc->println("}");
+			out_cc->dec_indent();
+			out_cc->println("");
+
 			out_cc->println("const_byteptr const %s = %s + (%s);",
 				env->LValue(end_of_field_dataptr_var),
 				field_begin.ptr_expr(),
 				expr_->EvalExpr(out_cc, env));
+
+			out_cc->println("// Checking out-of-bound padding for \"%s\"", field_id_str_.c_str());
+			out_cc->println("if ( %s > %s || %s < %s )",
+			                env->LValue(end_of_field_dataptr_var),
+			                env->RValue(end_of_data),
+			                env->LValue(end_of_field_dataptr_var),
+			                field_begin.ptr_expr());
+			out_cc->inc_indent();
+			out_cc->println("{");
+			out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", field_id_str_.c_str());
+			out_cc->println("	(%s), ",
+			                expr_->EvalExpr(out_cc, env));
+			out_cc->println("	(%s) - (%s));",
+			                env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var));
+			out_cc->println("}");
+			out_cc->dec_indent();
+			out_cc->println("");
 			break;
 
 		case PAD_TO_OFFSET:
@@ -626,6 +653,18 @@ void RecordPaddingField::GenFieldEnd(Output* out_cc, Env* env, const DataPtr& fi
 			out_cc->println("%s = %s;", 
 				env->LValue(end_of_field_dataptr_var),
 				field_begin.ptr_expr());
+			out_cc->println("}");
+			out_cc->dec_indent();
+			out_cc->println("if ( %s > %s )",
+				env->LValue(end_of_field_dataptr_var),
+				env->RValue(end_of_data));
+			out_cc->inc_indent();
+			out_cc->println("{");
+			out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", field_id_str_.c_str());
+			out_cc->println("	(%s), ",
+			                expr_->EvalExpr(out_cc, env));
+			out_cc->println("	(%s) - (%s));",
+			                env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var));
 			out_cc->println("}");
 			out_cc->dec_indent();
 			break;

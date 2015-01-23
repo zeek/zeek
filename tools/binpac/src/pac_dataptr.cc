@@ -41,10 +41,13 @@ void DataPtr::GenBoundaryCheck(Output* out_cc, Env* env,
 	ASSERT(id_);
 
 	out_cc->println("// Checking out-of-bound for \"%s\"", data_name);
-	out_cc->println("if ( %s + (%s) > %s )",
+	out_cc->println("if ( %s + (%s) > %s || %s + (%s) < %s )",
 		ptr_expr(),
 		data_size,
-		env->RValue(end_of_data));
+		env->RValue(end_of_data),
+		ptr_expr(),
+		data_size,
+		ptr_expr());
 
 	out_cc->inc_indent(); 
 	out_cc->println("{");

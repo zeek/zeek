@@ -1,4 +1,21 @@
 
+2.3.2 | 2015-01-23 11:15:13 -0600
+
+  * DNP3: fix reachable assertion and buffer over-read/overflow.
+    CVE number pending. (Travis Emmert, Jon Siwek)
+
+  * Update binpac: Fix potential out-of-bounds memory reads in generated
+    code. CVE-2014-9586. (John Villamil and Chris Rohlf - Yahoo
+    Paranoids, Jon Siwek)
+
+  * BIT-1234: Fix build on systems that already have ntohll/htonll.
+    (Jon Siwek)
+
+  * BIT-1291: Delete prebuilt python bytecode files from git.
+    (Jon Siwek)
+
+  * Adding call to new binpac::init() function. (Robin Sommer)
+
 2.3.1 | 2014-09-04 17:07:23 -0700
 
   * Fix a reference counting bug in ListVal ctor. (Jon Siwek)

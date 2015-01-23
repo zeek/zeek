@@ -1,4 +1,15 @@
 
+2.3-396 | 2015-01-23 10:49:15 -0600
+
+  * DNP3: fix reachable assertion and buffer over-read/overflow.
+    CVE number pending. (Travis Emmert, Jon Siwek)
+
+  * Update binpac: Fix potential out-of-bounds memory reads in generated
+    code. CVE-2014-9586. (John Villamil and Chris Rohlf - Yahoo
+    Paranoids, Jon Siwek)
+
+  * Fixing (harmless) Coverity warning. (Robin Sommer)
+
 2.3-392 | 2015-01-15 09:44:15 -0800
 
   * Small changes to EC curve names in a newer draft. (Johanna Amann)

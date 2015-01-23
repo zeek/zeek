@@ -138,8 +138,13 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 		if ( endp->in_hdr )
 			{
 			// We're parsing the DNP3 header and link layer, get that in full.
-			if ( ! AddToBuffer(endp, PSEUDO_APP_LAYER_INDEX, &data, &len) )
+			int res = AddToBuffer(endp, PSEUDO_APP_LAYER_INDEX, &data, &len);
+
+			if ( res == 0 )
 				return true;
+
+			if ( res < 0 )
+				return false;
 
 			// The first two bytes must always be 0x0564.
 			if( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 )
@@ -186,7 +191,11 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 
 		if ( ! endp->in_hdr )
 			{
-			assert(endp->pkt_length);
+			if ( endp->pkt_length <= 0 )
+				{
+				analyzer->Weird("dnp3_negative_or_zero_length_link_layer");
+				return false;
+				}
 
 			// We're parsing the DNP3 application layer, get that
 			// in full now as well. We calculate the number of
@@ -197,8 +206,13 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2
 					+ 2 * ( ((endp->pkt_length - 5) % 16 == 0) ? 0 : 1) - 1 ;
 
-			if ( ! AddToBuffer(endp, n, &data, &len) )
+			int res = AddToBuffer(endp, n, &data, &len);
+
+			if ( res == 0 )
 				return true;
+
+			if ( res < 0 )
+				return false;
 
 			// Parse the the application layer data.
 			if ( ! ParseAppLayer(endp) )
@@ -213,19 +227,42 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 	return true;
 	}
 
-bool DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len)
+int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len)
 	{
 	if ( ! target_len )
-		return true;
+		return 1;
+
+	if ( *len < 0 )
+		{
+		reporter->AnalyzerError(analyzer, "dnp3 negative input length: %d", *len);
+		return -1;
+		}
+
+	if ( target_len < endp->buffer_len )
+		{
+		reporter->AnalyzerError(analyzer, "dnp3 invalid target length: %d - %d",
+		                        target_len, endp->buffer_len);
+		return -1;
+		}
 
 	int to_copy = min(*len, target_len - endp->buffer_len);
+
+	if ( endp->buffer_len + to_copy > MAX_BUFFER_SIZE )
+		{
+		reporter->AnalyzerError(analyzer, "dnp3 buffer length exceeded: %d + %d",
+		                        endp->buffer_len, to_copy);
+		return -1;
+		}
 
 	memcpy(endp->buffer + endp->buffer_len, *data, to_copy);
 	*data += to_copy;
 	*len -= to_copy;
 	endp->buffer_len += to_copy;
 
-	return endp->buffer_len == target_len;
+	if ( endp->buffer_len == target_len )
+		return 1;
+
+	return 0;
 	}
 
 bool DNP3_Base::ParseAppLayer(Endpoint* endp)
@@ -256,8 +293,15 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 		if ( ! CheckCRC(n, data, data + n, "app_chunk") )
 			return false;
 
+		if ( data + n >= endp->buffer + endp->buffer_len )
+			{
+			reporter->AnalyzerError(analyzer,
+			                        "dnp3 app layer parsing overflow %d - %d",
+			                        endp->buffer_len, n);
+			return false;
+			}
+
 		// Pass on to BinPAC.
-		assert(data + n < endp->buffer + endp->buffer_len);
 		flow->flow_buffer()->BufferData(data + transport, data + n);
 		transport = 0;
 

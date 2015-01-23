@@ -36,30 +36,30 @@ type KRB_PDU = record {
 } &byteorder=bigendian;
 
 type KRB_AS_REQ = record {
-	data: KRB_KDC_REQ;
+	data: KRB_KDC_REQ(AS_REQ);
 };
 
 type KRB_TGS_REQ = record {
-	data: KRB_KDC_REQ;
+	data: KRB_KDC_REQ(TGS_REQ);
 };
 
 type KRB_AS_REP = record {
-	data: KRB_KDC_REP;
+	data: KRB_KDC_REP(AS_REP);
 };
 
 type KRB_TGS_REP = record {
-	data: KRB_KDC_REP;
+	data: KRB_KDC_REP(TGS_REP);
 };
 
 ### KDC_REQ
 
-type KRB_KDC_REQ = record {
+type KRB_KDC_REQ(pkt_type: uint8) = record {
 	seq_meta   : ASN1EncodingMeta;
 	pvno       : SequenceElement(true);
 	msg_type   : SequenceElement(true);
 	padata_meta: ASN1EncodingMeta;
 	tmp1       : case has_padata of {
-		true  -> padata	: KRB_PA_Data_Sequence &length=padata_meta.length;
+		true  -> padata	: KRB_PA_Data_Sequence(pkt_type) &length=padata_meta.length;
 		false -> n1		: empty;
 	};
 	tmp2       : case has_padata of {
@@ -72,16 +72,19 @@ type KRB_KDC_REQ = record {
 	body_length: uint64 = has_padata ? meta2.length : padata_meta.length;
 };
 
-type KRB_PA_Data_Sequence = record {
+type KRB_PA_Data_Sequence(pkt_type: uint8) = record {
 	seq_meta    : ASN1EncodingMeta;
-	padata_elems: KRB_PA_Data[];
+	padata_elems: KRB_PA_Data(pkt_type)[];
 };
 
-type KRB_PA_Data = record {
+type KRB_PA_Data(pkttype: uint8) = record {
 	seq_meta			: ASN1EncodingMeta;
 	pa_data_type     	: SequenceElement(true);
 	pa_data_elem_meta	: ASN1EncodingMeta;
-	pa_data_element  	: KRB_PA_Data_Element(data_type, pa_data_elem_meta.length);
+	have_data			: case ( pkttype == 30 ) of {
+		true	-> pa_data_placeholder: bytestring &length=pa_data_elem_meta.length;
+		false	-> pa_data_element : KRB_PA_Data_Element(binary_to_int64(pa_data_type.data.content), pa_data_elem_meta.length);
+	};
 } &let {
 	data_type: int64 = binary_to_int64(pa_data_type.data.content);
 };
@@ -275,13 +278,13 @@ type KRB_Encrypted_Data = record {
 
 ### KDC_REP
 
-type KRB_KDC_REP = record {
+type KRB_KDC_REP(pkt_type: uint8) = record {
 	seq_meta    : ASN1EncodingMeta;
 	pvno        : SequenceElement(true);
 	msg_type    : SequenceElement(true);
 	padata_meta : ASN1EncodingMeta;
 	tmp1        : case has_padata of {
-		true -> padata	: KRB_PA_Data_Sequence &length=padata_meta.length;
+		true -> padata	: KRB_PA_Data_Sequence(pkt_type) &length=padata_meta.length;
 		false -> n1	: empty;
 	};
 	tmp2        : case has_padata of {
@@ -387,17 +390,19 @@ type KRB_ERROR_Arg_Data(index: uint8, error_code: uint64) = case index of {
 	9  -> realm			: ASN1OctetString;
 	10 -> sname			: KRB_Principal_Name;
 	11 -> e_text		: ASN1OctetString;
-	12 -> e_data		: KRB_ERROR_PA_Data(error_code);
+	12 -> e_data		: KRB_ERROR_E_Data(error_code);
 };
 
-type KRB_ERROR_PA_Data(error_code: uint64) = record {
-	have_padata1: case ( error_code == 25 ) of {
-		true 	-> meta1 	: ASN1EncodingMeta;
-		false	-> data		: ASN1OctetString;
-	};
-	have_padata2: case ( error_code == 25 ) of {
-		true 	-> padata 	: KRB_PA_Data_Sequence;
-		false	-> n1		: empty;
+type KRB_ERROR_E_Data(error_code: uint64) = case ( error_code == 25 ) of {
+	true 	-> padata 	: KRB_ERROR_PA_Data;
+	false	-> unknown	: bytestring &restofdata;
+};
+
+type KRB_ERROR_PA_Data = record {
+	meta		: ASN1EncodingMeta;
+	have_padata	: case ( meta.tag == 30 ) of {
+		true 	-> padata 	: KRB_PA_Data_Sequence(KRB_ERROR);
+		false	-> unknown	: bytestring &restofdata;
 	};
 };
 

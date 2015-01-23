@@ -77,8 +77,8 @@ const tcp_ports = { 88/tcp, 750/tcp };
 event bro_init() &priority=5
 	{
 	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB, udp_ports);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
+#	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB, udp_ports);
+#	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
 	}
 
 event krb_error(c: connection, msg: Error_Msg) &priority=5
@@ -114,7 +114,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 	info$result = "failed";
 
 	info$error_code = msg$error_code;
-	
+
 	if ( msg?$error_text )
 		info$error_msg = msg$error_text;
 	else
@@ -128,8 +128,11 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 
 event krb_error(c: connection, msg: Error_Msg) &priority=-5
 	{
-	Log::write(KRB::LOG, c$krb);
-	c$krb$logged = T;
+	if ( c?$krb )
+		{
+		Log::write(KRB::LOG, c$krb);
+		c$krb$logged = T;
+		}
 	}
 
 event krb_as_req(c: connection, msg: KDC_Request) &priority=5

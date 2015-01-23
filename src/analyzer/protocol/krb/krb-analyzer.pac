@@ -432,40 +432,40 @@ refine connection KRB_Conn += {
 						rv->Assign(9, bytestring_to_val(${msg.args[i].args.e_text.encoding.content}));
 						break;
 					case 12:
-						if ( ${msg.error_code.data.content}[0] == 25 )
-							{
-							VectorVal* padata = new VectorVal(internal_type("KRB::Type_Value_Vector")->AsVectorType());
+						// if ( ${msg.error_code.data.content}[0] == 25 )
+						// 	{
+						// 	VectorVal* padata = new VectorVal(internal_type("KRB::Type_Value_Vector")->AsVectorType());
 
-							for ( uint j = 0; j < ${msg.args[i].args.e_data.padata.padata_elems}->size(); ++j)
-								{
-								switch( ${msg.args[i].args.e_data.padata.padata_elems[j].data_type} )
-									{
-								case 1:
-									// will be generated as separate event
-									break;
-								case 3:
-									{
-									RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
-									type_val->Assign(0, new Val(${msg.args[i].args.e_data.padata.padata_elems[j].data_type}, TYPE_COUNT));
-									type_val->Assign(1, bytestring_to_val(${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.pa_pw_salt.encoding.content}));
-									padata->Assign(padata->Size(), type_val);
-									break;
-									}
-								default:
-									{
-									if ( ${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.unknown}.length() )
-										{
-										RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
-										type_val->Assign(0, new Val(${msg.args[i].args.e_data.padata.padata_elems[j].data_type}, TYPE_COUNT));
-										type_val->Assign(1, bytestring_to_val(${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.unknown}));
-										padata->Assign(padata->Size(), type_val);
-										}
-									break;
-									}
-									}
-								}
-							rv->Assign(10, padata);
-							}
+						// 	for ( uint j = 0; j < ${msg.args[i].args.e_data.padata.padata_elems}->size(); ++j)
+						// 		{
+						// 		switch( ${msg.args[i].args.e_data.padata.padata_elems[j].data_type} )
+						// 			{
+						// 		case 1:
+						// 			// will be generated as separate event
+						// 			break;
+						// 		case 3:
+						// 			{
+						// 			RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+						// 			type_val->Assign(0, new Val(${msg.args[i].args.e_data.padata.padata_elems[j].data_type}, TYPE_COUNT));
+						// 			type_val->Assign(1, bytestring_to_val(${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.pa_pw_salt.encoding.content}));
+						// 			padata->Assign(padata->Size(), type_val);
+						// 			break;
+						// 			}
+						// 		default:
+						// 			{
+						// 			if ( ${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.unknown}.length() )
+						// 				{
+						// 				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+						// 				type_val->Assign(0, new Val(${msg.args[i].args.e_data.padata.padata_elems[j].data_type}, TYPE_COUNT));
+						// 				type_val->Assign(1, bytestring_to_val(${msg.args[i].args.e_data.padata.padata_elems[j].pa_data_element.unknown}));
+						// 				padata->Assign(padata->Size(), type_val);
+						// 				}
+						// 			break;
+						// 			}
+						// 			}
+						// 		}
+						// 	rv->Assign(10, padata);
+						// 	}
 						break;
 					default:
 						break;

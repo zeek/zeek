@@ -72,9 +72,9 @@ bool comm::Manager::InitPostScript()
 	return true;
 	}
 
-bool comm::Manager::Listen(uint16_t port, const char* addr)
+bool comm::Manager::Listen(uint16_t port, const char* addr, bool reuse_addr)
 	{
-	auto rval = endpoint->listen(port, addr);
+	auto rval = endpoint->listen(port, addr, reuse_addr);
 
 	if ( ! rval )
 		{

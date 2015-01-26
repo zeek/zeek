@@ -23,7 +23,8 @@ public:
 
 	bool InitPostScript();
 
-	bool Listen(uint16_t port, const char* addr = nullptr);
+	bool Listen(uint16_t port, const char* addr = nullptr,
+	            bool reuse_addr = true);
 
 	bool Connect(std::string addr, uint16_t port,
 	             std::chrono::duration<double> retry_interval);

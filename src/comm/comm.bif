@@ -28,7 +28,8 @@ event Comm::remote_connection_broken%(peer_address: string,
 event Comm::remote_connection_incompatible%(peer_address: string,
                                             peer_port: port%);
 
-function Comm::listen%(p: port, a: string &default = ""%): bool
+function Comm::listen%(p: port, a: string &default = "",
+					   reuse: bool &default = T%): bool
 	%{
 	if ( ! p->IsTCP() )
 		{
@@ -36,7 +37,8 @@ function Comm::listen%(p: port, a: string &default = ""%): bool
 		return new Val(false, TYPE_BOOL);
 		}
 
-	auto rval = comm_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0);
+	auto rval = comm_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0,
+								 reuse);
 	return new Val(rval, TYPE_BOOL);
 	%}
 

@@ -944,7 +944,7 @@ int main(int argc, char** argv)
 
 #ifdef ENABLE_BROKER
 	comm_mgr->InitPostScript();
-	iosource_mgr->Register(comm_mgr);
+	iosource_mgr->Register(comm_mgr, true);
 #endif
 
 #ifdef USE_PERFTOOLS_DEBUG

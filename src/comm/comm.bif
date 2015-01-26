@@ -2,6 +2,7 @@
 %%{
 #include "comm/Manager.h"
 #include "comm/Data.h"
+#include "logging/Manager.h"
 %%}
 
 module Comm;
@@ -122,5 +123,38 @@ function Comm::subscribe_to_events%(topic_prefix: string%): bool
 function Comm::unsubscribe_to_events%(topic_prefix: string%): bool
 	%{
 	auto rval = comm_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function
+Comm::enable_remote_logs%(id: Log::ID,
+                          flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = log_mgr->EnableRemoteLogs(id->AsEnumVal(),
+										  comm::Manager::GetFlags(flags));
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::disable_remote_logs%(id: Log::ID%): bool
+	%{
+	auto rval = log_mgr->DisableRemoteLogs(id->AsEnumVal());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::remote_logs_enabled%(id: Log::ID%): bool
+	%{
+	auto rval = log_mgr->RemoteLogsAreEnabled(id->AsEnumVal());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::subscribe_to_logs%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->SubscribeToLogs(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::unsubscribe_to_logs%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->UnsubscribeToLogs(topic_prefix->CheckString());
 	return new Val(rval, TYPE_BOOL);
 	%}

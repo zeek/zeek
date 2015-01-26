@@ -7,8 +7,15 @@
 #include "Var.h"
 #include "Reporter.h"
 #include "comm/comm.bif.h"
+#include "logging/Manager.h"
 
 using namespace std;
+
+VectorType* comm::Manager::vector_of_data_type;
+EnumType* comm::Manager::log_id_type;
+int comm::Manager::send_flags_self_idx;
+int comm::Manager::send_flags_peers_idx;
+int comm::Manager::send_flags_unsolicited_idx;
 
 bool comm::Manager::InitPreScript()
 	{
@@ -32,6 +39,8 @@ bool comm::Manager::InitPostScript()
 	send_flags_self_idx = require_field(send_flags_type, "self");
 	send_flags_peers_idx = require_field(send_flags_type, "peers");
 	send_flags_unsolicited_idx = require_field(send_flags_type, "unsolicited");
+
+	log_id_type = internal_type("Log::ID")->AsEnumType();
 
 	comm::opaque_of_data_type = new OpaqueType("Comm::Data");
 	vector_of_data_type = new VectorType(internal_type("Comm::Data")->Ref());
@@ -103,12 +112,40 @@ bool comm::Manager::Disconnect(const string& addr, uint16_t port)
 
 bool comm::Manager::Print(string topic, string msg, const Val* flags)
 	{
-	endpoint->send(move(topic), broker::message{move(msg)}, get_flags(flags));
+	endpoint->send(move(topic), broker::message{move(msg)}, GetFlags(flags));
 	return true;
 	}
 
 bool comm::Manager::Event(std::string topic, broker::message msg, int flags)
 	{
+	endpoint->send(move(topic), move(msg), flags);
+	return true;
+	}
+
+bool comm::Manager::Log(const EnumVal* stream, const RecordVal* columns,
+                        int flags)
+	{
+	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+
+	if ( ! stream_name )
+		{
+		reporter->Error("Failed to remotely log: stream %d doesn't have name",
+		                stream->AsEnum());
+		return false;
+		}
+
+	auto opt_column_data = val_to_data(columns);
+
+	if ( ! opt_column_data )
+		{
+		reporter->Error("Failed to remotely log stream %s: unsupported types",
+		                stream_name);
+		return false;
+		}
+
+	broker::message msg{broker::enum_value{stream_name},
+		                move(*opt_column_data)};
+	std::string topic = std::string("bro/log/") + stream_name;
 	endpoint->send(move(topic), move(msg), flags);
 	return true;
 	}
@@ -132,7 +169,7 @@ bool comm::Manager::Event(std::string topic, const RecordVal* args,
 		msg.emplace_back(data_val->data);
 		}
 
-	endpoint->send(move(topic), move(msg), get_flags(flags));
+	endpoint->send(move(topic), move(msg), GetFlags(flags));
 	return true;
 	}
 
@@ -161,7 +198,7 @@ bool comm::Manager::AutoEvent(string topic, const Val* event, const Val* flags)
 		return false;
 		}
 
-	handler->AutoRemote(move(topic), get_flags(flags));
+	handler->AutoRemote(move(topic), GetFlags(flags));
 	return true;
 	}
 
@@ -294,7 +331,23 @@ bool comm::Manager::UnsubscribeToEvents(const string& topic_prefix)
 	return event_subscriptions.erase(topic_prefix);
 	}
 
-int comm::Manager::get_flags(const Val* flags)
+bool comm::Manager::SubscribeToLogs(string topic_prefix)
+	{
+	auto& q = log_subscriptions[topic_prefix];
+
+	if ( q )
+		return false;
+
+	q = broker::message_queue(move(topic_prefix), *endpoint);
+	return true;
+	}
+
+bool comm::Manager::UnsubscribeToLogs(const string& topic_prefix)
+	{
+	return log_subscriptions.erase(topic_prefix);
+	}
+
+int comm::Manager::GetFlags(const Val* flags)
 	{
 	auto r = flags->AsRecordVal();
 	int rval = 0;
@@ -326,6 +379,9 @@ void comm::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 		read->Insert(ps.second.fd());
 
 	for ( const auto& ps : event_subscriptions )
+		read->Insert(ps.second.fd());
+
+	for ( const auto& ps : log_subscriptions )
 		read->Insert(ps.second.fd());
 	}
 
@@ -490,6 +546,79 @@ void comm::Manager::Process()
 				mgr.QueueEvent(ehp, vl);
 			else
 				delete_vals(vl);
+			}
+		}
+
+	struct unref_guard {
+		unref_guard(Val* v) : val(v) {}
+		~unref_guard() { Unref(val); }
+		Val* val;
+	};
+
+	for ( const auto& ls : log_subscriptions )
+		{
+		auto log_messages = ls.second.want_pop();
+
+		if ( log_messages.empty() )
+			continue;
+
+		idle = false;
+
+		for ( auto& lm : log_messages )
+			{
+			if ( lm.size() != 2 )
+				{
+				reporter->Warning("got bad remote log size: %zd (expect 2)",
+				                  lm.size());
+				continue;
+				}
+
+			if ( ! broker::get<broker::enum_value>(lm[0]) )
+				{
+				reporter->Warning("got remote log w/o stream id: %d",
+				                  static_cast<int>(broker::which(lm[0])));
+				continue;
+				}
+
+			if ( ! broker::get<broker::record>(lm[1]) )
+				{
+				reporter->Warning("got remote log w/o columns: %d",
+				                  static_cast<int>(broker::which(lm[1])));
+				continue;
+				}
+
+			auto stream_id = data_to_val(move(lm[0]), log_id_type);
+
+			if ( ! stream_id )
+				{
+				reporter->Warning("failed to unpack remote log stream id");
+				continue;
+				}
+
+			unref_guard stream_id_unreffer{stream_id};
+			auto columns_type = log_mgr->StreamColumns(stream_id->AsEnumVal());
+
+			if ( ! columns_type )
+				{
+				reporter->Warning("got remote log for unknown stream: %s",
+				                  stream_id->Type()->AsEnumType()->Lookup(
+				                      stream_id->AsEnum()));
+				continue;
+				}
+
+			auto columns = data_to_val(move(lm[1]), columns_type);
+
+			if ( ! columns )
+				{
+				reporter->Warning("failed to unpack remote log stream columns"
+				                  " for stream: %s",
+				                  stream_id->Type()->AsEnumType()->Lookup(
+				                      stream_id->AsEnum()));
+				continue;
+				}
+
+			log_mgr->Write(stream_id->AsEnumVal(), columns->AsRecordVal());
+			Unref(columns);
 			}
 		}
 

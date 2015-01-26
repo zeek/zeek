@@ -332,7 +332,7 @@ struct val_converter {
 			rval->Assign(i, item_val);
 			}
 
-		return nullptr;
+		return rval;
 		}
 };
 

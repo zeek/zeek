@@ -157,6 +157,16 @@ public:
 	 */
 	void Terminate();
 
+#ifdef ENABLE_BROKER
+	bool EnableRemoteLogs(EnumVal* stream_id, int flags);
+
+	bool DisableRemoteLogs(EnumVal* stream_id);
+
+	bool RemoteLogsAreEnabled(EnumVal* stream_id);
+
+	RecordType* StreamColumns(EnumVal* stream_id);
+#endif
+
 protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;

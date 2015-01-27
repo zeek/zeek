@@ -1,4 +1,8 @@
 
+2.3-397 | 2015-01-27 10:13:10 -0600
+
+  * Handle guess_lexer exceptions in pygments reST directive (Jon Siwek)
+
 2.3-396 | 2015-01-23 10:49:15 -0600
 
   * DNP3: fix reachable assertion and buffer over-read/overflow.

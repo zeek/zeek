@@ -17,6 +17,9 @@
 # Enable MD5 and SHA1 hashing for all files.
 @load frameworks/files/hash-all-files
 
+# disable ASCII logging
+redef Log::enable_local_logging = F;
+
 # enable broccoli
 @load frameworks/communication/listen
 

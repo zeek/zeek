@@ -14,6 +14,13 @@ type ASN1EncodingMeta = record {
 	index:    	uint8 = tag - 160;
 };
 
+type ASN1OptionalEncodingMeta(is_present: bool, previous_metadata: ASN1EncodingMeta) = case is_present of {
+	true  -> data: ASN1EncodingMeta;
+	false -> none: empty;
+} &let {
+	length: uint64 = is_present ? data.length : previous_metadata.length;
+};
+
 type ASN1Integer = record {
      encoding: ASN1Encoding;
 };

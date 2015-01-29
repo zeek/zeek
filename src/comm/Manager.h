@@ -31,18 +31,18 @@ public:
 
 	bool Disconnect(const std::string& addr, uint16_t port);
 
-	bool Print(std::string topic, std::string msg, const Val* flags);
+	bool Print(std::string topic, std::string msg, Val* flags);
 
 	bool Event(std::string topic, broker::message msg, int flags);
-	bool Event(std::string topic, const RecordVal* args, const Val* flags);
+	bool Event(std::string topic, RecordVal* args, Val* flags);
 
-	bool Log(const EnumVal* stream_id, const RecordVal* columns, int flags);
+	bool Log(EnumVal* stream_id, RecordVal* columns, int flags);
 
-	bool AutoEvent(std::string topic, const Val* event, const Val* flags);
+	bool AutoEvent(std::string topic, Val* event, Val* flags);
 
-	bool AutoEventStop(const std::string& topic, const Val* event);
+	bool AutoEventStop(const std::string& topic, Val* event);
 
-	RecordVal* MakeEventArgs(const val_list* args);
+	RecordVal* MakeEventArgs(val_list* args);
 
 	bool SubscribeToPrints(std::string topic_prefix);
 
@@ -56,7 +56,7 @@ public:
 
 	bool UnsubscribeToLogs(const std::string& topic_prefix);
 
-	static int GetFlags(const Val* flags);
+	static int GetFlags(Val* flags);
 
 private:
 
@@ -82,7 +82,6 @@ private:
 	static int send_flags_self_idx;
 	static int send_flags_peers_idx;
 	static int send_flags_unsolicited_idx;
-
 };
 
 } // namespace comm

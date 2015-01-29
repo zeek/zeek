@@ -19,4 +19,9 @@ export {
 		name: string &optional;  # nil for invalid event/args.
 		args: vector of Comm::Data;
 	};
+
+	type Comm::TableItem : record {
+		key: Comm::Data;
+		val: Comm::Data;
+	};
 }

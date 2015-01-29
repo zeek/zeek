@@ -7,15 +7,505 @@
 
 module Comm;
 
+enum DataType %{
+	BOOL,
+	INT,
+	COUNT,
+	DOUBLE,
+	STRING,
+	ADDR,
+	SUBNET,
+	PORT,
+	TIME,
+	INTERVAL,
+	ENUM,
+	SET,
+	TABLE,
+	VECTOR,
+	RECORD,
+%}
+
 type Comm::SendFlags: record;
 
 type Comm::Data: record;
 
 type Comm::EventArgs: record;
 
+type Comm::TableItem: record;
+
 function Comm::data%(d: any%): Comm::Data
 	%{
 	return comm::make_data_val(d);
+	%}
+
+function Comm::data_type%(d: Comm::Data%): Comm::DataType
+	%{
+	return comm::get_data_type(d->AsRecordVal(), frame);
+	%}
+
+function Comm::refine_to_bool%(d: Comm::Data%): bool
+	%{
+	return comm::refine<bool>(d->AsRecordVal(), TYPE_BOOL, frame);
+	%}
+
+function Comm::refine_to_int%(d: Comm::Data%): int
+	%{
+	return comm::refine<int64_t>(d->AsRecordVal(), TYPE_INT, frame);
+	%}
+
+function Comm::refine_to_count%(d: Comm::Data%): count
+	%{
+	return comm::refine<uint64_t>(d->AsRecordVal(), TYPE_COUNT, frame);
+	%}
+
+function Comm::refine_to_double%(d: Comm::Data%): double
+	%{
+	return comm::refine<double>(d->AsRecordVal(), TYPE_DOUBLE, frame);
+	%}
+
+function Comm::refine_to_string%(d: Comm::Data%): string
+	%{
+	return new StringVal(comm::require_data_type<std::string>(d->AsRecordVal(),
+												              TYPE_STRING,
+															  frame));
+	%}
+
+function Comm::refine_to_addr%(d: Comm::Data%): addr
+	%{
+	auto& a = comm::require_data_type<broker::address>(d->AsRecordVal(),
+													   TYPE_ADDR, frame);
+	auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
+	return new AddrVal(IPAddr(*bits));
+	%}
+
+function Comm::refine_to_subnet%(d: Comm::Data%): subnet
+	%{
+	auto& a = comm::require_data_type<broker::subnet>(d->AsRecordVal(),
+													  TYPE_SUBNET, frame);
+	auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
+	return new SubNetVal(IPPrefix(IPAddr(*bits), a.length()));
+	%}
+
+function Comm::refine_to_port%(d: Comm::Data%): port
+	%{
+	auto& a = comm::require_data_type<broker::port>(d->AsRecordVal(),
+													TYPE_SUBNET, frame);
+	return new PortVal(a.number(), comm::to_bro_port_proto(a.type()));
+	%}
+
+function Comm::refine_to_time%(d: Comm::Data%): time
+	%{
+	auto v = comm::require_data_type<broker::time_point>(d->AsRecordVal(),
+														TYPE_TIME, frame).value;
+	return new Val(v, TYPE_TIME);
+	%}
+
+function Comm::refine_to_interval%(d: Comm::Data%): interval
+	%{
+	auto v = comm::require_data_type<broker::time_duration>(d->AsRecordVal(),
+														TYPE_TIME, frame).value;
+	return new Val(v, TYPE_INTERVAL);
+	%}
+
+function Comm::refine_to_enum_name%(d: Comm::Data%): string
+	%{
+	auto& v = comm::require_data_type<broker::enum_value>(d->AsRecordVal(),
+														TYPE_ENUM, frame).name;
+	return new StringVal(v);
+	%}
+
+function Comm::set_create%(%): Comm::Data
+	%{
+	return comm::make_data_val(broker::set());
+	%}
+
+function Comm::set_clear%(s: Comm::Data%): bool
+	%{
+	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+												   frame);
+	v.clear();
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Comm::set_size%(s: Comm::Data%): count
+	%{
+	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+												   frame);
+	return new Val(static_cast<uint64_t>(v.size()), TYPE_COUNT);
+	%}
+
+function Comm::set_contains%(s: Comm::Data, key: Comm::Data%): bool
+	%{
+	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+												   frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	return new Val(v.find(k) != v.end(), TYPE_BOOL);
+	%}
+
+function Comm::set_insert%(s: Comm::Data, key: Comm::Data%): bool
+	%{
+	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+												   frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	return new Val(v.insert(k).second, TYPE_BOOL);
+	%}
+
+function Comm::set_remove%(s: Comm::Data, key: Comm::Data%): bool
+	%{
+	auto& v = comm::require_data_type<broker::set>(s->AsRecordVal(), TYPE_TABLE,
+												   frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	return new Val(v.erase(k) > 0, TYPE_BOOL);
+	%}
+
+function Comm::set_iterator%(s: Comm::Data%): opaque of Comm::SetIterator
+	%{
+	return new comm::SetIterator(s->AsRecordVal(), TYPE_TABLE, frame);
+	%}
+
+function Comm::set_iterator_last%(it: opaque of Comm::SetIterator%): bool
+	%{
+	auto set_it = static_cast<comm::SetIterator*>(it);
+	return new Val(set_it->it == set_it->dat.end(), TYPE_BOOL);
+	%}
+
+function Comm::set_iterator_next%(it: opaque of Comm::SetIterator%): bool
+	%{
+	auto set_it = static_cast<comm::SetIterator*>(it);
+
+	if ( set_it->it == set_it->dat.end() )
+		return new Val(false, TYPE_BOOL);
+
+	++set_it->it;
+	return new Val(set_it->it != set_it->dat.end(), TYPE_BOOL);
+	%}
+
+function Comm::set_iterator_value%(it: opaque of Comm::SetIterator%): Comm::Data
+	%{
+	auto set_it = static_cast<comm::SetIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::Comm::Data);
+
+	if ( set_it->it == set_it->dat.end() )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Warning("attempt to retrieve value of invalid set iterator");
+		reporter->PopLocation();
+		return rval;
+		}
+
+	rval->Assign(0, new comm::DataVal(*set_it->it));
+	return rval;
+	%}
+
+function Comm::table_create%(%): Comm::Data
+	%{
+	return comm::make_data_val(broker::table());
+	%}
+
+function Comm::table_clear%(t: Comm::Data%): bool
+	%{
+	auto& v = comm::require_data_type<broker::table>(t->AsRecordVal(),
+													 TYPE_TABLE, frame);
+	v.clear();
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Comm::table_size%(t: Comm::Data%): count
+	%{
+	auto& v = comm::require_data_type<broker::table>(t->AsRecordVal(),
+													 TYPE_TABLE, frame);
+	return new Val(static_cast<uint64_t>(v.size()), TYPE_COUNT);
+	%}
+
+function Comm::table_contains%(t: Comm::Data, key: Comm::Data%): bool
+	%{
+	auto& v = comm::require_data_type<broker::table>(t->AsRecordVal(),
+													 TYPE_TABLE, frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	return new Val(v.find(k) != v.end(), TYPE_BOOL);
+	%}
+
+function Comm::table_insert%(t: Comm::Data, key: Comm::Data, val: Comm::Data%): Comm::Data
+	%{
+	auto& table = comm::require_data_type<broker::table>(t->AsRecordVal(),
+													     TYPE_TABLE, frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto& v = comm::opaque_field_to_data(val->AsRecordVal(), frame);
+
+	try
+		{
+		auto& prev = table.at(k);
+		auto rval = comm::make_data_val(move(prev));
+		prev = v;
+		return rval;
+		}
+	catch (const std::out_of_range&)
+		{
+		table[k] = v;
+		return new RecordVal(BifType::Record::Comm::Data);
+		}
+	%}
+
+function Comm::table_remove%(t: Comm::Data, key: Comm::Data%): Comm::Data
+	%{
+	auto& table = comm::require_data_type<broker::table>(t->AsRecordVal(),
+													     TYPE_TABLE, frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto it = table.find(k);
+
+	if ( it == table.end() )
+		return new RecordVal(BifType::Record::Comm::Data);
+	else
+		{
+		auto rval = comm::make_data_val(move(it->second));
+		table.erase(it);
+		return rval;
+		}
+	%}
+
+function Comm::table_lookup%(t: Comm::Data, key: Comm::Data%): Comm::Data
+	%{
+	auto& table = comm::require_data_type<broker::table>(t->AsRecordVal(),
+													     TYPE_TABLE, frame);
+	auto& k = comm::opaque_field_to_data(key->AsRecordVal(), frame);
+	auto it = table.find(k);
+
+	if ( it == table.end() )
+		return new RecordVal(BifType::Record::Comm::Data);
+	else
+		return comm::make_data_val(it->second);
+	%}
+
+function Comm::table_iterator%(t: Comm::Data%): opaque of Comm::TableIterator
+	%{
+	return new comm::TableIterator(t->AsRecordVal(), TYPE_TABLE, frame);
+	%}
+
+function Comm::table_iterator_last%(it: opaque of Comm::TableIterator%): bool
+	%{
+	auto ti = static_cast<comm::TableIterator*>(it);
+	return new Val(ti->it == ti->dat.end(), TYPE_BOOL);
+	%}
+
+function Comm::table_iterator_next%(it: opaque of Comm::TableIterator%): bool
+	%{
+	auto ti = static_cast<comm::TableIterator*>(it);
+
+	if ( ti->it == ti->dat.end() )
+		return new Val(false, TYPE_BOOL);
+
+	++ti->it;
+	return new Val(ti->it != ti->dat.end(), TYPE_BOOL);
+	%}
+
+function Comm::table_iterator_value%(it: opaque of Comm::TableIterator%): Comm::TableItem
+	%{
+	auto ti = static_cast<comm::TableIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::Comm::TableItem);
+	auto key_val = new RecordVal(BifType::Record::Comm::Data);
+	auto val_val = new RecordVal(BifType::Record::Comm::Data);
+	rval->Assign(0, key_val);
+	rval->Assign(1, val_val);
+
+	if ( ti->it == ti->dat.end() )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Warning("attempt to retrieve value of invalid table iterator");
+		reporter->PopLocation();
+		return rval;
+		}
+
+	key_val->Assign(0, new comm::DataVal(ti->it->first));
+	val_val->Assign(0, new comm::DataVal(ti->it->second));
+	return rval;
+	%}
+
+function Comm::vector_create%(%): Comm::Data
+	%{
+	return comm::make_data_val(broker::vector());
+	%}
+
+function Comm::vector_clear%(v: Comm::Data%): bool
+	%{
+	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+													    TYPE_VECTOR, frame);
+	vec.clear();
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Comm::vector_size%(v: Comm::Data%): count
+	%{
+	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+													    TYPE_VECTOR, frame);
+	return new Val(static_cast<uint64_t>(vec.size()), TYPE_COUNT);
+	%}
+
+function Comm::vector_insert%(v: Comm::Data, d: Comm::Data, idx: count%): bool
+	%{
+	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+													    TYPE_VECTOR, frame);
+	auto& item = comm::opaque_field_to_data(d->AsRecordVal(), frame);
+	idx = min(idx, static_cast<uint64_t>(vec.size()));
+	vec.insert(vec.begin() + idx, item);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Comm::vector_replace%(v: Comm::Data, d: Comm::Data, idx: count%): Comm::Data
+	%{
+	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+													    TYPE_VECTOR, frame);
+	auto& item = comm::opaque_field_to_data(d->AsRecordVal(), frame);
+
+	if ( idx >= vec.size() )
+		return new RecordVal(BifType::Record::Comm::Data);
+
+	auto rval = comm::make_data_val(move(vec[idx]));
+	vec[idx] = item;
+	return rval;
+	%}
+
+function Comm::vector_remove%(v: Comm::Data, idx: count%): Comm::Data
+	%{
+	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+													    TYPE_VECTOR, frame);
+
+	if ( idx >= vec.size() )
+		return new RecordVal(BifType::Record::Comm::Data);
+
+	auto rval = comm::make_data_val(move(vec[idx]));
+	vec.erase(vec.begin() + idx);
+	return rval;
+	%}
+
+function Comm::vector_lookup%(v: Comm::Data, idx: count%): Comm::Data
+	%{
+	auto& vec = comm::require_data_type<broker::vector>(v->AsRecordVal(),
+													    TYPE_VECTOR, frame);
+
+	if ( idx >= vec.size() )
+		return new RecordVal(BifType::Record::Comm::Data);
+
+	return comm::make_data_val(vec[idx]);
+	%}
+
+function Comm::vector_iterator%(v: Comm::Data%): opaque of Comm::VectorIterator
+	%{
+	return new comm::VectorIterator(v->AsRecordVal(), TYPE_VECTOR, frame);
+	%}
+
+function Comm::vector_iterator_last%(it: opaque of Comm::VectorIterator%): bool
+	%{
+	auto vi = static_cast<comm::VectorIterator*>(it);
+	return new Val(vi->it == vi->dat.end(), TYPE_BOOL);
+	%}
+
+function Comm::vector_iterator_next%(it: opaque of Comm::VectorIterator%): bool
+	%{
+	auto vi = static_cast<comm::VectorIterator*>(it);
+
+	if ( vi->it == vi->dat.end() )
+		return new Val(false, TYPE_BOOL);
+
+	++vi->it;
+	return new Val(vi->it != vi->dat.end(), TYPE_BOOL);
+	%}
+
+function Comm::vector_iterator_value%(it: opaque of Comm::VectorIterator%): Comm::Data
+	%{
+	auto vi = static_cast<comm::VectorIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::Comm::Data);
+
+	if ( vi->it == vi->dat.end() )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Warning("attempt to retrieve value of invalid table iterator");
+		reporter->PopLocation();
+		return rval;
+		}
+
+	rval->Assign(0, new comm::DataVal(*vi->it));
+	return rval;
+	%}
+
+function Comm::record_create%(sz: count%): Comm::Data
+	%{
+	return comm::make_data_val(broker::record(std::vector<broker::record::field>(sz)));
+	%}
+
+function Comm::record_size%(r: Comm::Data%): count
+	%{
+	auto& v = comm::require_data_type<broker::record>(r->AsRecordVal(),
+													  TYPE_RECORD, frame);
+	return new Val(static_cast<uint64_t>(v.fields.size()), TYPE_COUNT);
+	%}
+
+function Comm::record_assign%(r: Comm::Data, d: Comm::Data, idx: count%): bool
+	%{
+	auto& v = comm::require_data_type<broker::record>(r->AsRecordVal(),
+													  TYPE_RECORD, frame);
+	auto& item = comm::opaque_field_to_data(d->AsRecordVal(), frame);
+
+	if ( idx >= v.fields.size() )
+		return new Val(false, TYPE_BOOL);
+
+	v.fields[idx] = item;
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Comm::record_lookup%(r: Comm::Data, idx: count%): Comm::Data
+	%{
+	auto& v = comm::require_data_type<broker::record>(r->AsRecordVal(),
+													  TYPE_RECORD, frame);
+
+	if ( idx >= v.size() )
+		return new RecordVal(BifType::Record::Comm::Data);
+
+	if ( ! v.fields[idx] )
+		return new RecordVal(BifType::Record::Comm::Data);
+
+	return comm::make_data_val(*v.fields[idx]);
+	%}
+
+function Comm::record_iterator%(r: Comm::Data%): opaque of Comm::RecordIterator
+	%{
+	return new comm::RecordIterator(r->AsRecordVal(), TYPE_RECORD, frame);
+	%}
+
+function Comm::record_iterator_last%(it: opaque of Comm::RecordIterator%): bool
+	%{
+	auto ri = static_cast<comm::RecordIterator*>(it);
+	return new Val(ri->it == ri->dat.fields.end(), TYPE_BOOL);
+	%}
+
+function Comm::record_iterator_next%(it: opaque of Comm::RecordIterator%): bool
+	%{
+	auto ri = static_cast<comm::RecordIterator*>(it);
+
+	if ( ri->it == ri->dat.fields.end() )
+		return new Val(false, TYPE_BOOL);
+
+	++ri->it;
+	return new Val(ri->it != ri->dat.fields.end(), TYPE_BOOL);
+	%}
+
+function Comm::record_iterator_value%(it: opaque of Comm::RecordIterator%): Comm::Data
+	%{
+	auto ri = static_cast<comm::RecordIterator*>(it);
+	auto rval = new RecordVal(BifType::Record::Comm::Data);
+
+	if ( ri->it == ri->dat.fields.end() )
+		{
+		reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+		reporter->Warning("attempt to retrieve value of invalid record iterator");
+		reporter->PopLocation();
+		return rval;
+		}
+
+	if ( ! *ri->it )
+		return rval; // field isn't set
+
+	rval->Assign(0, new comm::DataVal(**ri->it));
+	return rval;
 	%}
 
 event Comm::remote_connection_established%(peer_address: string,

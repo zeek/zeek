@@ -22,7 +22,7 @@ bool comm::Manager::InitPreScript()
 	return true;
 	}
 
-static int require_field(const RecordType* rt, const char* name)
+static int require_field(RecordType* rt, const char* name)
 	{
 	auto rval = rt->FieldOffset(name);
 
@@ -43,6 +43,10 @@ bool comm::Manager::InitPostScript()
 	log_id_type = internal_type("Log::ID")->AsEnumType();
 
 	comm::opaque_of_data_type = new OpaqueType("Comm::Data");
+	comm::opaque_of_set_iterator = new OpaqueType("Comm::SetIterator");
+	comm::opaque_of_table_iterator = new OpaqueType("Comm::TableIterator");
+	comm::opaque_of_vector_iterator = new OpaqueType("Comm::VectorIterator");
+	comm::opaque_of_record_iterator = new OpaqueType("Comm::RecordIterator");
 	vector_of_data_type = new VectorType(internal_type("Comm::Data")->Ref());
 
 	auto res = broker::init();
@@ -110,7 +114,7 @@ bool comm::Manager::Disconnect(const string& addr, uint16_t port)
 	return rval;
 	}
 
-bool comm::Manager::Print(string topic, string msg, const Val* flags)
+bool comm::Manager::Print(string topic, string msg, Val* flags)
 	{
 	endpoint->send(move(topic), broker::message{move(msg)}, GetFlags(flags));
 	return true;
@@ -122,8 +126,7 @@ bool comm::Manager::Event(std::string topic, broker::message msg, int flags)
 	return true;
 	}
 
-bool comm::Manager::Log(const EnumVal* stream, const RecordVal* columns,
-                        int flags)
+bool comm::Manager::Log(EnumVal* stream, RecordVal* columns, int flags)
 	{
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
@@ -150,8 +153,7 @@ bool comm::Manager::Log(const EnumVal* stream, const RecordVal* columns,
 	return true;
 	}
 
-bool comm::Manager::Event(std::string topic, const RecordVal* args,
-                          const Val* flags)
+bool comm::Manager::Event(std::string topic, RecordVal* args, Val* flags)
 	{
 	if ( ! args->Lookup(0) )
 		return false;
@@ -165,7 +167,7 @@ bool comm::Manager::Event(std::string topic, const RecordVal* args,
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
 		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
-		auto data_val = dynamic_cast<DataVal*>(val);
+		auto data_val = static_cast<DataVal*>(val);
 		msg.emplace_back(data_val->data);
 		}
 
@@ -173,7 +175,7 @@ bool comm::Manager::Event(std::string topic, const RecordVal* args,
 	return true;
 	}
 
-bool comm::Manager::AutoEvent(string topic, const Val* event, const Val* flags)
+bool comm::Manager::AutoEvent(string topic, Val* event, Val* flags)
 	{
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
@@ -202,7 +204,7 @@ bool comm::Manager::AutoEvent(string topic, const Val* event, const Val* flags)
 	return true;
 	}
 
-bool comm::Manager::AutoEventStop(const string& topic, const Val* event)
+bool comm::Manager::AutoEventStop(const string& topic, Val* event)
 	{
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
@@ -232,12 +234,12 @@ bool comm::Manager::AutoEventStop(const string& topic, const Val* event)
 	return true;
 	}
 
-RecordVal* comm::Manager::MakeEventArgs(const val_list* args)
+RecordVal* comm::Manager::MakeEventArgs(val_list* args)
 	{
 	auto rval = new RecordVal(BifType::Record::Comm::EventArgs);
 	auto arg_vec = new VectorVal(vector_of_data_type);
 	rval->Assign(1, arg_vec);
-	const Func* func;
+	Func* func;
 
 	for ( auto i = 0u; i < args->length(); ++i )
 		{
@@ -347,7 +349,7 @@ bool comm::Manager::UnsubscribeToLogs(const string& topic_prefix)
 	return log_subscriptions.erase(topic_prefix);
 	}
 
-int comm::Manager::GetFlags(const Val* flags)
+int comm::Manager::GetFlags(Val* flags)
 	{
 	auto r = flags->AsRecordVal();
 	int rval = 0;

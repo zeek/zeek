@@ -4,6 +4,10 @@
 using namespace std;
 
 OpaqueType* comm::opaque_of_data_type;
+OpaqueType* comm::opaque_of_set_iterator;
+OpaqueType* comm::opaque_of_table_iterator;
+OpaqueType* comm::opaque_of_vector_iterator;
+OpaqueType* comm::opaque_of_record_iterator;
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
@@ -20,7 +24,7 @@ static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	}
 	}
 
-static TransportProto to_bro_port_proto(broker::port::protocol tp)
+TransportProto comm::to_bro_port_proto(broker::port::protocol tp)
 	{
 	switch ( tp ) {
 	case broker::port::protocol::tcp:
@@ -70,7 +74,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(const std::string& a)
+	result_type operator()(std::string& a)
 		{
 		switch ( type->Tag() ) {
 		case TYPE_STRING:
@@ -103,7 +107,7 @@ struct val_converter {
 		}
 		}
 
-	result_type operator()(const broker::address& a)
+	result_type operator()(broker::address& a)
 		{
 		if ( type->Tag() == TYPE_ADDR )
 			{
@@ -114,7 +118,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(const broker::subnet& a)
+	result_type operator()(broker::subnet& a)
 		{
 		if ( type->Tag() == TYPE_SUBNET )
 			{
@@ -125,15 +129,15 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(const broker::port& a)
+	result_type operator()(broker::port& a)
 		{
 		if ( type->Tag() == TYPE_PORT )
-			return new PortVal(a.number(), to_bro_port_proto(a.type()));
+			return new PortVal(a.number(), comm::to_bro_port_proto(a.type()));
 
 		return nullptr;
 		}
 
-	result_type operator()(const broker::time_point& a)
+	result_type operator()(broker::time_point& a)
 		{
 		if ( type->Tag() == TYPE_TIME )
 			return new Val(a.value, TYPE_TIME);
@@ -141,7 +145,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(const broker::time_duration& a)
+	result_type operator()(broker::time_duration& a)
 		{
 		if ( type->Tag() == TYPE_INTERVAL )
 			return new Val(a.value, TYPE_INTERVAL);
@@ -149,7 +153,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(const broker::enum_value& a)
+	result_type operator()(broker::enum_value& a)
 		{
 		if ( type->Tag() == TYPE_ENUM )
 			{
@@ -175,12 +179,13 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
+			broker::vector composite_key;
 			auto indices = broker::get<broker::vector>(item);
 
 			if ( ! indices )
 				{
-				Unref(rval);
-				return nullptr;
+				composite_key.emplace_back(move(item));
+				indices = &composite_key;
 				}
 
 			auto expected_index_types = tt->Indices()->Types();
@@ -226,12 +231,13 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
+			broker::vector composite_key;
 			auto indices = broker::get<broker::vector>(item.first);
 
 			if ( ! indices )
 				{
-				Unref(rval);
-				return nullptr;
+				composite_key.emplace_back(move(item.first));
+				indices = &composite_key;
 				}
 
 			auto expected_index_types = tt->Indices()->Types();
@@ -341,7 +347,7 @@ Val* comm::data_to_val(broker::data d, BroType* type)
 	return broker::visit(val_converter{type}, d);
 	}
 
-broker::util::optional<broker::data> comm::val_to_data(const Val* v)
+broker::util::optional<broker::data> comm::val_to_data(Val* v)
 	{
 	switch ( v->Type()->Tag() ) {
 	case TYPE_BOOL:
@@ -388,7 +394,7 @@ broker::util::optional<broker::data> comm::val_to_data(const Val* v)
 		{
 		auto enum_type = v->Type()->AsEnumType();
 		auto enum_name = enum_type->Lookup(v->AsEnum());
-		return {broker::enum_value(enum_name ? "<unknown enum>" : enum_name)};
+		return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
 		}
 	case TYPE_STRING:
 		{
@@ -433,7 +439,9 @@ broker::util::optional<broker::data> comm::val_to_data(const Val* v)
 			auto entry = table->NextEntry(k, c);
 			auto vl = table_val->RecoverIndex(k);
 			iter_guard ig(k, vl);
-			broker::vector key;
+
+			broker::vector composite_key;
+			composite_key.reserve(vl->Length());
 
 			for ( auto k = 0; k < vl->Length(); ++k )
 				{
@@ -442,8 +450,15 @@ broker::util::optional<broker::data> comm::val_to_data(const Val* v)
 				if ( ! key_part )
 					return {};
 
-				key.emplace_back(move(*key_part));
+				composite_key.emplace_back(move(*key_part));
 				}
+
+			broker::data key;
+
+			if ( composite_key.size() == 1 )
+				key = move(composite_key[0]);
+			else
+				key = move(composite_key);
 
 			if ( is_set )
 				broker::get<broker::set>(rval)->emplace(move(key));
@@ -521,7 +536,7 @@ broker::util::optional<broker::data> comm::val_to_data(const Val* v)
 	return {};
 	}
 
-RecordVal* comm::make_data_val(const Val* v)
+RecordVal* comm::make_data_val(Val* v)
 	{
 	auto rval = new RecordVal(BifType::Record::Comm::Data);
 	auto data = val_to_data(v);
@@ -530,4 +545,121 @@ RecordVal* comm::make_data_val(const Val* v)
 		rval->Assign(0, new DataVal(move(*data)));
 
 	return rval;
+	}
+
+RecordVal* comm::make_data_val(broker::data d)
+	{
+	auto rval = new RecordVal(BifType::Record::Comm::Data);
+	rval->Assign(0, new DataVal(move(d)));
+	return rval;
+	}
+
+struct data_type_getter {
+	using result_type = EnumVal*;
+
+	result_type operator()(bool a)
+		{
+		return new EnumVal(BifEnum::Comm::BOOL,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(uint64_t a)
+		{
+		return new EnumVal(BifEnum::Comm::COUNT,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(int64_t a)
+		{
+		return new EnumVal(BifEnum::Comm::INT,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(double a)
+		{
+		return new EnumVal(BifEnum::Comm::DOUBLE,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const std::string& a)
+		{
+		return new EnumVal(BifEnum::Comm::STRING,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::address& a)
+		{
+		return new EnumVal(BifEnum::Comm::ADDR,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::subnet& a)
+		{
+		return new EnumVal(BifEnum::Comm::SUBNET,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::port& a)
+		{
+		return new EnumVal(BifEnum::Comm::PORT,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::time_point& a)
+		{
+		return new EnumVal(BifEnum::Comm::TIME,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::time_duration& a)
+		{
+		return new EnumVal(BifEnum::Comm::INTERVAL,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::enum_value& a)
+		{
+		return new EnumVal(BifEnum::Comm::ENUM,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::set& a)
+		{
+		return new EnumVal(BifEnum::Comm::SET,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::table& a)
+		{
+		return new EnumVal(BifEnum::Comm::TABLE,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::vector& a)
+		{
+		return new EnumVal(BifEnum::Comm::VECTOR,
+		                   BifType::Enum::Comm::DataType);
+		}
+
+	result_type operator()(const broker::record& a)
+		{
+		return new EnumVal(BifEnum::Comm::RECORD,
+		                   BifType::Enum::Comm::DataType);
+		}
+};
+
+EnumVal* comm::get_data_type(RecordVal* v, Frame* frame)
+	{
+	return broker::visit(data_type_getter{}, opaque_field_to_data(v, frame));
+	}
+
+broker::data& comm::opaque_field_to_data(RecordVal* v, Frame* f)
+	{
+	Val* d = v->Lookup(0);
+
+	if ( ! d )
+		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
+		                       "Comm::Data's opaque field is not set");
+
+	return static_cast<DataVal*>(d)->data;
 	}

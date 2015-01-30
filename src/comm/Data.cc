@@ -1,5 +1,5 @@
 #include "Data.h"
-#include "comm/comm.bif.h"
+#include "comm/data.bif.h"
 
 using namespace std;
 

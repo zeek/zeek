@@ -1,0 +1,156 @@
+
+##! Functions for peering and various messaging patterns (e.g. print/log/event).
+
+%%{
+#include "comm/Manager.h"
+#include "logging/Manager.h"
+%%}
+
+module Comm;
+
+type Comm::SendFlags: record;
+
+type Comm::EventArgs: record;
+
+event Comm::remote_connection_established%(peer_address: string,
+                                           peer_port: port,
+                                           peer_name: string%);
+
+event Comm::remote_connection_broken%(peer_address: string,
+                                      peer_port: port%);
+
+event Comm::remote_connection_incompatible%(peer_address: string,
+                                            peer_port: port%);
+
+function Comm::listen%(p: port, a: string &default = "",
+					   reuse: bool &default = T%): bool
+	%{
+	if ( ! p->IsTCP() )
+		{
+		reporter->Error("listen port must use tcp");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = comm_mgr->Listen(p->Port(), a->Len() ? a->CheckString() : 0,
+								 reuse);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::connect%(a: string, p: port, retry: interval%): bool
+	%{
+	if ( ! p->IsTCP() )
+		{
+		reporter->Error("remote connection port must use tcp");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = comm_mgr->Connect(a->CheckString(), p->Port(),
+	                              std::chrono::duration<double>(retry));
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::disconnect%(a: string, p: port%): bool
+	%{
+	if ( ! p->IsTCP() )
+		{
+		reporter->Error("remote connection port must use tcp");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	auto rval = comm_mgr->Disconnect(a->CheckString(), p->Port());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+event Comm::print_handler%(msg: string%);
+
+function Comm::print%(topic: string, msg: string,
+                      flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = comm_mgr->Print(topic->CheckString(), msg->CheckString(),
+	                            flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::subscribe_to_prints%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->SubscribeToPrints(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::unsubscribe_to_prints%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->UnsubscribeToPrints(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::event_args%(...%): Comm::EventArgs
+	%{
+	auto rval = comm_mgr->MakeEventArgs(@ARGS@);
+	return rval;
+	%}
+
+function Comm::event%(topic: string, args: Comm::EventArgs,
+                      flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = comm_mgr->Event(topic->CheckString(), args->AsRecordVal(),
+	                            flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::auto_event%(topic: string, ev: any,
+                           flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = comm_mgr->AutoEvent(topic->CheckString(), ev, flags);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::auto_event_stop%(topic: string, ev: any%): bool
+	%{
+	auto rval = comm_mgr->AutoEventStop(topic->CheckString(), ev);
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::subscribe_to_events%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->SubscribeToEvents(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::unsubscribe_to_events%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->UnsubscribeToEvents(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function
+Comm::enable_remote_logs%(id: Log::ID,
+                          flags: SendFlags &default = SendFlags()%): bool
+	%{
+	auto rval = log_mgr->EnableRemoteLogs(id->AsEnumVal(),
+										  comm::Manager::GetFlags(flags));
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::disable_remote_logs%(id: Log::ID%): bool
+	%{
+	auto rval = log_mgr->DisableRemoteLogs(id->AsEnumVal());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::remote_logs_enabled%(id: Log::ID%): bool
+	%{
+	auto rval = log_mgr->RemoteLogsAreEnabled(id->AsEnumVal());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::subscribe_to_logs%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->SubscribeToLogs(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}
+
+function Comm::unsubscribe_to_logs%(topic_prefix: string%): bool
+	%{
+	auto rval = comm_mgr->UnsubscribeToLogs(topic_prefix->CheckString());
+	return new Val(rval, TYPE_BOOL);
+	%}

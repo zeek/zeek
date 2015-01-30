@@ -32,6 +32,10 @@ public:
 	// Executes timeout code and deletes the object.
 	void Timeout();
 
+	// Return the timeout interval (negative if none was specified).
+	double TimeoutValue() const
+		{ return timeout_value; }
+
 	// Called if another entity needs to complete its operations first
 	// in any case before this trigger can proceed.
 	void Hold()	{ delayed = true; }
@@ -87,6 +91,7 @@ private:
 	Stmt* body;
 	Stmt* timeout_stmts;
 	Expr* timeout;
+	double timeout_value;
 	Frame* frame;
 	bool is_return;
 	const Location* location;

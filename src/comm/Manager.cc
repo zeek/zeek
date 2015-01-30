@@ -1,12 +1,15 @@
 #include "Manager.h"
 #include "Data.h"
+#include "Store.h"
 #include <broker/broker.hh>
 #include <cstdio>
 #include <unistd.h>
 #include "util.h"
 #include "Var.h"
 #include "Reporter.h"
-#include "comm/comm.bif.h"
+#include "comm/data.bif.h"
+#include "comm/messaging.bif.h"
+#include "comm/store.bif.h"
 #include "logging/Manager.h"
 
 using namespace std;
@@ -16,6 +19,12 @@ EnumType* comm::Manager::log_id_type;
 int comm::Manager::send_flags_self_idx;
 int comm::Manager::send_flags_peers_idx;
 int comm::Manager::send_flags_unsolicited_idx;
+
+comm::Manager::~Manager()
+	{
+	for ( auto& s : data_stores )
+		CloseStore(s.first);
+	}
 
 bool comm::Manager::InitPreScript()
 	{
@@ -47,6 +56,7 @@ bool comm::Manager::InitPostScript()
 	comm::opaque_of_table_iterator = new OpaqueType("Comm::TableIterator");
 	comm::opaque_of_vector_iterator = new OpaqueType("Comm::VectorIterator");
 	comm::opaque_of_record_iterator = new OpaqueType("Comm::RecordIterator");
+	comm::opaque_of_store_handle = new OpaqueType("Store::Handle");
 	vector_of_data_type = new VectorType(internal_type("Comm::Data")->Ref());
 
 	auto res = broker::init();
@@ -385,12 +395,58 @@ void comm::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 	for ( const auto& ps : log_subscriptions )
 		read->Insert(ps.second.fd());
+
+	for ( const auto& s : data_stores )
+		read->Insert(s.second->store->responses().fd());
 	}
 
 double comm::Manager::NextTimestamp(double* local_network_time)
 	{
 	// TODO: do something better?
 	return timer_mgr->Time();
+	}
+
+struct response_converter {
+	using result_type = RecordVal*;
+
+	result_type operator()(bool d)
+		{
+		return comm::make_data_val(broker::data{d});
+		}
+
+	result_type operator()(uint64_t d)
+		{
+		return comm::make_data_val(broker::data{d});
+		}
+
+	result_type operator()(broker::data& d)
+		{
+		return comm::make_data_val(move(d));
+		}
+
+	result_type operator()(std::vector<broker::data>& d)
+		{
+		return comm::make_data_val(broker::data{move(d)});
+		}
+
+	result_type operator()(broker::store::snapshot& d)
+		{
+		broker::table table;
+
+		for ( auto& item : d.entries )
+			{
+			auto& key = item.first;
+			auto& val = item.second.item;
+			table[move(key)] = move(val);
+			}
+
+		return comm::make_data_val(broker::data{move(table)});
+		}
+};
+
+static RecordVal* response_to_val(broker::store::response r)
+	{
+	return broker::visit(response_converter{}, r.reply.value);
 	}
 
 void comm::Manager::Process()
@@ -624,5 +680,92 @@ void comm::Manager::Process()
 			}
 		}
 
+	for ( const auto& s : data_stores )
+		{
+		auto responses = s.second->store->responses().want_pop();
+
+		if ( responses.empty() )
+			continue;
+
+		idle = false;
+
+		for ( auto& response : responses )
+			{
+			auto ck = static_cast<StoreQueryCallback*>(response.cookie);
+			auto it = pending_queries.find(ck);
+
+			if ( it == pending_queries.end() )
+				{
+				reporter->Warning("unmatched response to query on store %s",
+				                  s.second->store->id().data());
+				continue;
+				}
+
+			auto query = *it;
+
+			switch ( response.reply.stat ) {
+			case broker::store::result::status::timeout:
+				// Fine, trigger's timeout takes care of things.
+				break;
+			case broker::store::result::status::failure:
+				query->Result(query_result());
+				break;
+			case broker::store::result::status::success:
+				query->Result(query_result(response_to_val(move(response))));
+				break;
+			default:
+				reporter->InternalWarning("unknown store response status: %d",
+				                         static_cast<int>(response.reply.stat));
+				break;
+			}
+
+			pending_queries.erase(it);
+			}
+		}
+
 	SetIdle(idle);
+	}
+
+bool comm::Manager::AddStore(StoreHandleVal* handle)
+	{
+	if ( ! handle->store )
+		return false;
+
+	if ( data_stores.find(handle->store->id()) != data_stores.end() )
+		return false;
+
+	data_stores[handle->store->id()] = handle;
+	Ref(handle);
+	return true;
+	}
+
+bool comm::Manager::CloseStore(const broker::store::identifier& id)
+	{
+	auto it = data_stores.find(id);
+
+	if ( it == data_stores.end() )
+		return false;
+
+	for ( auto it = pending_queries.begin(); it != pending_queries.end(); )
+		{
+		auto query = *it;
+
+		if ( query->StoreID() == id )
+			{
+			it = pending_queries.erase(it);
+			query->Abort();
+			delete query;
+			}
+		else
+			++it;
+		}
+
+	it->second->store = nullptr;
+	Unref(it->second);
+	return true;
+	}
+
+bool comm::Manager::TrackStoreQuery(StoreQueryCallback* cb)
+	{
+	return pending_queries.insert(cb).second;
 	}

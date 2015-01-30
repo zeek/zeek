@@ -1,0 +1,378 @@
+
+##! Functions to interface with broker's distributed data store.
+
+%%{
+#include "comm/Manager.h"
+#include "comm/Store.h"
+#include "comm/Data.h"
+#include "Trigger.h"
+%%}
+
+module Store;
+
+type Store::ExpiryTime: record;
+
+type Store::QueryResult: record;
+
+type Store::BackendOptions: record;
+
+enum BackendType %{
+	MEMORY,
+	SQLITE,
+	ROCKSDB,
+%}
+
+function Store::create_master%(id: string, b: BackendType &default = MEMORY,
+                               options: BackendOptions &default = BackendOptions()%): opaque of Store::Handle
+	%{
+	auto rval = new comm::StoreHandleVal(id->CheckString(), comm::StoreType::MASTER,
+	                                     static_cast<BifEnum::Store::BackendType>(b->AsEnum()),
+	                                     options->AsRecordVal());
+	comm_mgr->AddStore(rval);
+	return rval;
+	%}
+
+function Store::create_clone%(id: string, b: BackendType &default = MEMORY,
+                              options: BackendOptions &default = BackendOptions(),
+                              resync: interval &default = 1sec%): opaque of Store::Handle
+	%{
+	auto rval = new comm::StoreHandleVal(id->CheckString(), comm::StoreType::CLONE,
+	                                     static_cast<BifEnum::Store::BackendType>(b->AsEnum()),
+	                                     options->AsRecordVal(),
+	                                     std::chrono::duration<double>(resync));
+	comm_mgr->AddStore(rval);
+	return rval;
+	%}
+
+function Store::create_frontend%(id: string%): opaque of Store::Handle
+	%{
+	auto rval = new comm::StoreHandleVal(id->CheckString(), comm::StoreType::FRONTEND,
+	                                     {}, nullptr);
+	comm_mgr->AddStore(rval);
+	return rval;
+	%}
+
+function Store::close_by_name%(id: string%): bool
+	%{
+	return new Val(comm_mgr->CloseStore(id->CheckString()), TYPE_BOOL);
+	%}
+
+function Store::close_by_handle%(h: opaque of Store::Handle%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	return new Val(comm_mgr->CloseStore(handle->store->id()), TYPE_BOOL);
+	%}
+
+###########################
+# non-blocking update API #
+###########################
+
+function Store::insert%(h: opaque of Store::Handle,
+                        k: Comm::Data, v: Comm::Data,
+                        e: Store::ExpiryTime &default = Store::ExpiryTime()%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	auto& val = comm::opaque_field_to_data(v->AsRecordVal(), frame);
+
+	broker::util::optional<broker::store::expiration_time> expiry;
+
+	auto abs_expiry_val = e->AsRecordVal()->Lookup(0);
+	auto rel_expiry_val = e->AsRecordVal()->Lookup(1);
+
+	if ( abs_expiry_val )
+		{
+		auto tag = broker::store::expiration_time::tag::absolute;
+		expiry = broker::store::expiration_time(abs_expiry_val->AsTime(), tag);
+		}
+	else if ( rel_expiry_val )
+		{
+		auto tag = broker::store::expiration_time::tag::since_last_modification;
+		expiry = broker::store::expiration_time(rel_expiry_val->AsInterval(), tag);
+		}
+
+	handle->store->insert(key, val, expiry);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::erase%(h: opaque of Store::Handle, k: Comm::Data%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	handle->store->erase(key);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::clear%(h: opaque of Store::Handle%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	handle->store->clear();
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::increment%(h: opaque of Store::Handle,
+                           k: Comm::Data, by: int%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	handle->store->increment(key, by);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::decrement%(h: opaque of Store::Handle,
+                           k: Comm::Data, by: int%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	handle->store->decrement(key, by);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::add_to_set%(h: opaque of Store::Handle,
+                            k: Comm::Data, element: Comm::Data%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	auto& ele = comm::opaque_field_to_data(element->AsRecordVal(), frame);
+	handle->store->add_to_set(key, ele);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::remove_from_set%(h: opaque of Store::Handle,
+                                 k: Comm::Data, element: Comm::Data%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	auto& ele = comm::opaque_field_to_data(element->AsRecordVal(), frame);
+	handle->store->remove_from_set(key, ele);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::push_left%(h: opaque of Store::Handle, k: Comm::Data,
+                           items: Comm::DataVector%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	broker::vector items_vector;
+	auto items_vv = items->AsVector();
+
+	for ( auto i = 0u; i < items_vv->size(); ++i )
+		{
+		auto& item = comm::opaque_field_to_data((*items_vv)[i]->AsRecordVal(),
+		                                        frame);
+		items_vector.emplace_back(item);
+		}
+
+	handle->store->push_left(key, move(items_vector));
+	return new Val(true, TYPE_BOOL);
+	%}
+
+function Store::push_right%(h: opaque of Store::Handle, k: Comm::Data,
+                            items: Comm::DataVector%): bool
+	%{
+	auto handle = static_cast<comm::StoreHandleVal*>(h);
+
+	if ( ! handle->store )
+		return new Val(false, TYPE_BOOL);
+
+	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
+	broker::vector items_vector;
+	auto items_vv = items->AsVector();
+
+	for ( auto i = 0u; i < items_vv->size(); ++i )
+		{
+		auto& item = comm::opaque_field_to_data((*items_vv)[i]->AsRecordVal(),
+		                                        frame);
+		items_vector.emplace_back(item);
+		}
+
+	handle->store->push_right(key, move(items_vector));
+	return new Val(true, TYPE_BOOL);
+	%}
+
+##########################
+# non-blocking query API #
+##########################
+
+%%{
+static bool prepare_for_query(Val* opaque, Frame* frame,
+                              comm::StoreHandleVal** handle,
+                              double* timeout,
+                              comm::StoreQueryCallback** cb)
+    {
+    *handle = static_cast<comm::StoreHandleVal*>(opaque);
+
+    if ( ! (*handle)->store )
+        return false;
+
+    Trigger* trigger = frame->GetTrigger();
+
+    if ( ! trigger )
+        {
+        reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+        reporter->Error("Store queries can only be called inside when-condition");
+        reporter->PopLocation();
+        return false;
+        }
+
+    *timeout = trigger->TimeoutValue();
+
+    if ( *timeout < 0 )
+        {
+        reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+        reporter->Error("Store queries must specify a timeout block");
+        reporter->PopLocation();
+        return false;
+        }
+
+    frame->SetDelayed();
+    trigger->Hold();
+    *cb = new comm::StoreQueryCallback(trigger, frame->GetCall(),
+                                       (*handle)->store->id());
+    comm_mgr->TrackStoreQuery(*cb);
+    return true;
+    }
+
+%%}
+
+function Store::pop_left%(h: opaque of Store::Handle,
+                          k: Comm::Data%): Store::QueryResult
+	%{
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
+	Val* key = k->AsRecordVal()->Lookup(0);
+
+	if ( ! key )
+		return comm::query_result();
+
+	handle->store->pop_left(static_cast<comm::DataVal*>(key)->data,
+	                         std::chrono::duration<double>(timeout), cb);
+	return 0;
+	%}
+
+function Store::pop_right%(h: opaque of Store::Handle,
+                           k: Comm::Data%): Store::QueryResult
+	%{
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
+	Val* key = k->AsRecordVal()->Lookup(0);
+
+	if ( ! key )
+		return comm::query_result();
+
+	handle->store->pop_right(static_cast<comm::DataVal*>(key)->data,
+	                         std::chrono::duration<double>(timeout), cb);
+	return 0;
+	%}
+
+function Store::lookup%(h: opaque of Store::Handle,
+                       k: Comm::Data%): Store::QueryResult
+	%{
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
+	Val* key = k->AsRecordVal()->Lookup(0);
+
+	if ( ! key )
+		return comm::query_result();
+
+	handle->store->lookup(static_cast<comm::DataVal*>(key)->data,
+	                      std::chrono::duration<double>(timeout), cb);
+	return 0;
+	%}
+
+function Store::exists%(h: opaque of Store::Handle,
+                        k: Comm::Data%): Store::QueryResult
+	%{
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
+	Val* key = k->AsRecordVal()->Lookup(0);
+
+	if ( ! key )
+		return comm::query_result();
+
+	handle->store->exists(static_cast<comm::DataVal*>(key)->data,
+	                      std::chrono::duration<double>(timeout), cb);
+	return 0;
+	%}
+
+function Store::keys%(h: opaque of Store::Handle%): Store::QueryResult
+	%{
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
+	handle->store->keys(std::chrono::duration<double>(timeout), cb);
+	return 0;
+	%}
+
+function Store::size%(h: opaque of Store::Handle%): Store::QueryResult
+	%{
+	double timeout;
+	comm::StoreQueryCallback* cb;
+	comm::StoreHandleVal* handle;
+
+	if ( ! prepare_for_query(h, frame, &handle, &timeout, &cb) )
+		return comm::query_result();
+
+	handle->store->size(std::chrono::duration<double>(timeout), cb);
+	return 0;
+	%}

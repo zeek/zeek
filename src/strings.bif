@@ -130,7 +130,7 @@ BroString* cat_string_array_n(TableVal* tbl, int start, int end)
 ## .. bro:see:: cat cat_sep string_cat cat_string_array_n
 ##              fmt
 ##              join_string_vec join_string_array
-function cat_string_array%(a: string_array%): string
+function cat_string_array%(a: string_array%): string &deprecated
 	%{
 	TableVal* tbl = a->AsTableVal();
 	return new StringVal(cat_string_array_n(tbl, 1, a->AsTable()->Length()));
@@ -149,7 +149,7 @@ function cat_string_array%(a: string_array%): string
 ## .. bro:see:: cat string_cat cat_string_array
 ##              fmt
 ##              join_string_vec join_string_array
-function cat_string_array_n%(a: string_array, start: count, end: count%): string
+function cat_string_array_n%(a: string_array, start: count, end: count%): string &deprecated
 	%{
 	TableVal* tbl = a->AsTableVal();
 	return new StringVal(cat_string_array_n(tbl, start, end));
@@ -168,7 +168,7 @@ function cat_string_array_n%(a: string_array, start: count, end: count%): string
 ## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 ##              fmt
 ##              join_string_vec
-function join_string_array%(sep: string, a: string_array%): string
+function join_string_array%(sep: string, a: string_array%): string &deprecated
 	%{
 	vector<const BroString*> vs;
 	TableVal* tbl = a->AsTableVal();
@@ -230,7 +230,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 ## Returns: A sorted copy of *a*.
 ##
 ## .. bro:see:: sort
-function sort_string_array%(a: string_array%): string_array
+function sort_string_array%(a: string_array%): string_array &deprecated
 	%{
 	TableVal* tbl = a->AsTableVal();
 	int n = a->AsTable()->Length();
@@ -336,6 +336,62 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 			return 0;
 		}
 	return 1;
+	}
+
+VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
+                           int max_num_sep)
+	{
+	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_STRING)));
+	const u_char* s = str_val->Bytes();
+	int n = str_val->Len();
+	const u_char* end_of_s = s + n;
+	int num = 0;
+	int num_sep = 0;
+
+	int offset = 0;
+	while ( n >= 0 )
+		{
+		offset = 0;
+		// Find next match offset.
+		int end_of_match = 0;
+		while ( n > 0 &&
+		        (end_of_match = re->MatchPrefix(s + offset, n)) <= 0 )
+			{
+			// Move on to next byte.
+			++offset;
+			--n;
+			}
+
+		if ( max_num_sep && num_sep >= max_num_sep )
+			{
+			offset = end_of_s - s;
+			n=0;
+			}
+
+		rval->Assign(num++, new StringVal(offset, (const char*) s));
+
+		// No more separators will be needed if this is the end of string.
+		if ( n <= 0 )
+			break;
+
+		if ( incl_sep )
+			{ // including the part that matches the pattern
+			rval->Assign(num++, new StringVal(end_of_match, (const char*) s+offset));
+			}
+
+		if ( max_num_sep && num_sep >= max_num_sep )
+			break;
+
+		++num_sep;
+
+		n -= end_of_match;
+		s += offset + end_of_match;;
+
+		if ( s > end_of_s )
+			reporter->InternalError("RegMatch in split goes beyond the string");
+		}
+
+	return rval;
 	}
 
 Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
@@ -493,15 +549,31 @@ Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
 ## Returns: An array of strings where each element corresponds to a substring
 ##          in *str* separated by *re*.
 ##
-## .. bro:see:: split1 split_all split_n str_split
+## .. bro:see:: split1 split_all split_n str_split split_string1 split_string_all split_string_n str_split
 ##
 ## .. note:: The returned table starts at index 1. Note that conceptually the
 ##           return value is meant to be a vector and this might change in the
 ##           future.
 ##
-function split%(str: string, re: pattern%): string_array
+function split%(str: string, re: pattern%): string_array &deprecated
 	%{
 	return do_split(str, re, 0, 0);
+	%}
+
+## Splits a string into an array of strings according to a pattern.
+##
+## str: The string to split.
+##
+## re: The pattern describing the element separator in *str*.
+##
+## Returns: An array of strings where each element corresponds to a substring
+##          in *str* separated by *re*.
+##
+## .. bro:see:: split_string1 split_string_all split_string_n str_split
+##
+function split_string%(str: string, re: pattern%): string_vec
+	%{
+	return do_split_string(str, re, 0, 0);
 	%}
 
 ## Splits a string *once* into a two-element array of strings according to a
@@ -518,10 +590,30 @@ function split%(str: string, re: pattern%): string_array
 ##          second everything after *re*. An array of one string is returned
 ##          when *s* cannot be split.
 ##
-## .. bro:see:: split split_all split_n str_split
-function split1%(str: string, re: pattern%): string_array
+## .. bro:see:: split split_all split_n str_split split_string split_string_all split_string_n str_split
+function split1%(str: string, re: pattern%): string_array &deprecated
 	%{
 	return do_split(str, re, 0, 1);
+	%}
+
+## Splits a string *once* into a two-element array of strings according to a
+## pattern. This function is the same as :bro:id:`split_string`, but *str* is
+## only split once (if possible) at the earliest position and an array of two
+## strings is returned.
+##
+## str: The string to split.
+##
+## re: The pattern describing the separator to split *str* in two pieces.
+##
+## Returns: An array of strings with two elements in which the first represents
+##          the substring in *str* up to the first occurence of *re*, and the
+##          second everything after *re*. An array of one string is returned
+##          when *s* cannot be split.
+##
+## .. bro:see:: split_string split_string_all split_string_n str_split
+function split_string1%(str: string, re: pattern%): string_vec
+	%{
+	return do_split_string(str, re, 0, 1);
 	%}
 
 ## Splits a string into an array of strings according to a pattern. This
@@ -538,10 +630,30 @@ function split1%(str: string, re: pattern%): string_array
 ##          to a substring in *str* of the part not matching *re* (odd-indexed)
 ##          and the part that matches *re* (even-indexed).
 ##
-## .. bro:see:: split split1 split_n str_split
-function split_all%(str: string, re: pattern%): string_array
+## .. bro:see:: split split1 split_n str_split split_string split_string1 split_string_n str_split
+function split_all%(str: string, re: pattern%): string_array &deprecated
 	%{
 	return do_split(str, re, 1, 0);
+	%}
+
+## Splits a string into an array of strings according to a pattern. This
+## function is the same as :bro:id:`split_string`, except that the separators
+## are returned as well. For example, ``split_string_all("a-b--cd", /(\-)+/)``
+## returns ``{"a", "-", "b", "--", "cd"}``: odd-indexed elements do match the
+## pattern and even-indexed ones do not.
+##
+## str: The string to split.
+##
+## re: The pattern describing the element separator in *str*.
+##
+## Returns: An array of strings where each two successive elements correspond
+##          to a substring in *str* of the part not matching *re* (even-indexed)
+##          and the part that matches *re* (odd-indexed).
+##
+## .. bro:see:: split_string split_string1 split_string_n str_split
+function split_string_all%(str: string, re: pattern%): string_vec
+	%{
+	return do_split_string(str, re, 1, 0);
 	%}
 
 ## Splits a string a given number of times into an array of strings according
@@ -563,11 +675,37 @@ function split_all%(str: string, re: pattern%): string_array
 ##          not matching *re* (odd-indexed) and the part that matches *re*
 ##          (even-indexed).
 ##
-## .. bro:see:: split split1 split_all str_split
+## .. bro:see:: split split1 split_all str_split split_string split_string1 split_string_all str_split
 function split_n%(str: string, re: pattern,
-		incl_sep: bool, max_num_sep: count%): string_array
+		incl_sep: bool, max_num_sep: count%): string_array &deprecated
 	%{
 	return do_split(str, re, incl_sep, max_num_sep);
+	%}
+
+## Splits a string a given number of times into an array of strings according
+## to a pattern. This function is similar to :bro:id:`split_string1` and
+## :bro:id:`split_string_all`, but with customizable behavior with respect to
+## including separators in the result and the number of times to split.
+##
+## str: The string to split.
+##
+## re: The pattern describing the element separator in *str*.
+##
+## incl_sep: A flag indicating whether to include the separator matches in the
+##           result (as in :bro:id:`split_string_all`).
+##
+## max_num_sep: The number of times to split *str*.
+##
+## Returns: An array of strings where, if *incl_sep* is true, each two
+##          successive elements correspond to a substring in *str* of the part
+##          not matching *re* (event-indexed) and the part that matches *re*
+##          (odd-indexed).
+##
+## .. bro:see:: split_string split_string1 split_string_all str_split
+function split_string_n%(str: string, re: pattern,
+		incl_sep: bool, max_num_sep: count%): string_vec
+	%{
+	return do_split_string(str, re, incl_sep, max_num_sep);
 	%}
 
 ## Substitutes a given replacement string for the first occurrence of a pattern

@@ -405,30 +405,30 @@ function default_path_func(id: ID, path: string, rec: any) : string
 
 	local id_str = fmt("%s", id);
 
-	local parts = split1(id_str, /::/);
+	local parts = split_string1(id_str, /::/);
 	if ( |parts| == 2 )
 		{
 		# Example: Notice::LOG -> "notice"
-		if ( parts[2] == "LOG" )
+		if ( parts[1] == "LOG" )
 			{
-			local module_parts = split_n(parts[1], /[^A-Z][A-Z][a-z]*/, T, 4);
+			local module_parts = split_string_n(parts[0], /[^A-Z][A-Z][a-z]*/, T, 4);
 			local output = "";
-			if ( 1 in module_parts )
-				output = module_parts[1];
+			if ( 0 in module_parts )
+				output = module_parts[0];
+			if ( 1 in module_parts && module_parts[1] != "" )
+				output = cat(output, sub_bytes(module_parts[1],1,1), "_", sub_bytes(module_parts[1], 2, |module_parts[1]|));
 			if ( 2 in module_parts && module_parts[2] != "" )
-				output = cat(output, sub_bytes(module_parts[2],1,1), "_", sub_bytes(module_parts[2], 2, |module_parts[2]|));
+				output = cat(output, "_", module_parts[2]);
 			if ( 3 in module_parts && module_parts[3] != "" )
-				output = cat(output, "_", module_parts[3]);
-			if ( 4 in module_parts && module_parts[4] != "" )
-				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
+				output = cat(output, sub_bytes(module_parts[3],1,1), "_", sub_bytes(module_parts[3], 2, |module_parts[3]|));
 			return to_lower(output);
 			}
 
 		# Example: Notice::POLICY_LOG -> "notice_policy"
-		if ( /_LOG$/ in parts[2] )
-			parts[2] = sub(parts[2], /_LOG$/, "");
+		if ( /_LOG$/ in parts[1] )
+			parts[1] = sub(parts[1], /_LOG$/, "");
 
-		return cat(to_lower(parts[1]),"_",to_lower(parts[2]));
+		return cat(to_lower(parts[0]),"_",to_lower(parts[1]));
 		}
 	else
 		return to_lower(id_str);

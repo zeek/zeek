@@ -274,7 +274,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
 		{
 		local s = ftp_data_expected[id$resp_h, id$resp_p];
-		s$mime_type = split1(mime_type, /;/)[1];
+		s$mime_type = split_string1(mime_type, /;/)[0];
 		}
 	}
 

@@ -1,4 +1,36 @@
 
+2.3-404 | 2015-01-30 14:23:27 -0800
+
+  * Update documentation (broken links, outdated tests). (Jon Siwek)
+
+  * Deprecate split* family of BIFs. (Jon Siwek)
+
+    These functions are now deprecated in favor of alternative versions that
+    return a vector of strings rather than a table of strings.
+
+    Deprecated functions:
+
+    - split: use split_string instead.
+    - split1: use split_string1 instead.
+    - split_all: use split_string_all instead.
+    - split_n: use split_string_n instead.
+    - cat_string_array: see join_string_vec instead.
+    - cat_string_array_n: see join_string_vec instead.
+    - join_string_array: see join_string_vec instead.
+    - sort_string_array: use sort instead instead.
+    - find_ip_addresses: use extract_ip_addresses instead.
+
+    Changed functions:
+
+    - has_valid_octets: uses a string_vec parameter instead of string_array.
+
+    Addresses BIT-924.
+
+  * Add a new attribute: &deprecated. While scripts are parsed, a
+    warning is raised for each usage of an identifier marked as
+    &deprecated.  This also works for BIFs. Addresses BIT-924,
+    BIT-757. (Jon Siwek)
+
 2.3-397 | 2015-01-27 10:13:10 -0600
 
   * Handle guess_lexer exceptions in pygments reST directive (Jon Siwek)

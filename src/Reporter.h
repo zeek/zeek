@@ -12,6 +12,7 @@
 #include "EventHandler.h"
 #include "IPAddr.h"
 
+namespace analyzer { class Analyzer; }
 class Connection;
 class Location;
 class Reporter;
@@ -90,6 +91,10 @@ public:
 	// Report an internal program error. Bro will terminate with a core
 	// dump after the message has been reported.
 	void InternalError(const char* fmt, ...) FMT_ATTR;
+
+	// Report an analyzer error. That analyzer will be set to not process
+	// any further input, but Bro otherwise continues normally.
+	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...);
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always

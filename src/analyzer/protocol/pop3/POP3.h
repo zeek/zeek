@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/tcp/ContentLine.h"
 #include "analyzer/protocol/login/NVT.h"
 #include "analyzer/protocol/mime/MIME.h"
 
@@ -69,7 +70,7 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
 		return new POP3_Analyzer(conn);
 		}
@@ -97,6 +98,7 @@ protected:
 	void BeginData();
 	void ProcessData(int length, const char* line);
 	void EndData();
+	void StartTLS();
 
 	vector<string> TokenizeLine(const string input, const char split);
 	int ParseCmd(string cmd);
@@ -108,7 +110,9 @@ protected:
 	list<string> cmds;
 
 private:
-	bool backOff;
+	bool tls;
+	tcp::ContentLine_Analyzer* cl_orig;
+	tcp::ContentLine_Analyzer* cl_resp;
 };
 
 } } // namespace analyzer::* 

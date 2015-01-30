@@ -2,13 +2,28 @@
 
 import BaseHTTPServer
 
+
 class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write("It works!")
+
+        if "/empty" in self.path:
+            self.wfile.write("")
+        else:
+            self.wfile.write("It works!")
+
+    def do_POST(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+
+        if "/empty" in self.path:
+            self.wfile.write("")
+        else:
+            self.wfile.write("It works!")
 
     def version_string(self):
         return "1.0"

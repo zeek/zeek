@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dnp3
+#open	2015-01-07-21-02-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fc_request	fc_reply	iin
+#types	time	string	addr	port	addr	port	string	string	count
+1420058427.969342	CXWv6p3arKYeMETxOg	192.168.80.160	1128	192.168.80.12	20000	READ	RESPONSE	36864
+1420058427.972303	CXWv6p3arKYeMETxOg	192.168.80.160	1128	192.168.80.12	20000	-	RESPONSE	36864
+#close	2015-01-07-21-02-12

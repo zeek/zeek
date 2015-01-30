@@ -1,6 +1,6 @@
 
 %%{
-#include "protocol/http/HTTP.h"
+#include "analyzer/protocol/http/HTTP.h"
 %%}
 
 ## Skips the data of the HTTP entity.
@@ -42,11 +42,11 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 ##
 ## .. note::
 ##
-##      Unescaping reserved characters may cause loss of information. RFC 2396:
-##      A URI is always in an "escaped" form, since escaping or unescaping a
-##      completed URI might change its semantics.  Normally, the only time
-##      escape encodings can safely be made is when the URI is being created
-##      from its component parts.
+##      Unescaping reserved characters may cause loss of information.
+##      :rfc:`2396`: A URI is always in an "escaped" form, since escaping or
+##      unescaping a completed URI might change its semantics.  Normally, the
+##      only time escape encodings can safely be made is when the URI is
+##      being created from its component parts.
 function unescape_URI%(URI: string%): string
 	%{
 	const u_char* line = URI->Bytes();

@@ -18,7 +18,7 @@ export {
 		do_notice: bool &default=F;
 
 		## Restrictions on when notices are created to only create
-		## them if the do_notice field is T and the notice was
+		## them if the *do_notice* field is T and the notice was
 		## seen in the indicated location.
 		if_in: Intel::Where &optional;
 	};

@@ -19,6 +19,7 @@
 #include "Conn.h"
 #include "Timer.h"
 #include "RemoteSerializer.h"
+#include "iosource/Manager.h"
 
 Serializer::Serializer(SerializationFormat* arg_format)
 	{
@@ -70,18 +71,18 @@ bool Serializer::StartSerialization(SerialInfo* info, const char* descr,
 
 bool Serializer::EndSerialization(SerialInfo* info)
 	{
-	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
-	chunk->len = format->EndWrite(&chunk->data);
-
 	if ( info->chunk )
 		{
-
 		if ( ! io->Write(info->chunk) )
 			{
 			Error(io->Error());
 			return false;
 			}
 		}
+
+	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
+	chunk->len = format->EndWrite(&chunk->data);
+	chunk->free_func = ChunkedIO::Chunk::free_func_free;
 
 	if ( ! io->Write(chunk) )
 		{
@@ -137,7 +138,14 @@ bool Serializer::Serialize(SerialInfo* info, const char* func, val_list* args)
 	Write(network_time, "time");
 	Write(a, "len");
 
-	loop_over_list(*args, i) (*args)[i]->Serialize(info);
+	loop_over_list(*args, i)
+		{
+		if ( ! (*args)[i]->Serialize(info) )
+			{
+			Error("failed");
+			return false;
+			}
+		}
 
 	WriteCloseTag("call");
 	WriteSeparator();
@@ -276,7 +284,6 @@ int Serializer::Unserialize(UnserialInfo* info, bool block)
 
 	if ( ! info->chunk )
 		{ // only delete if we allocated it ourselves
-		delete [] chunk->data;
 		delete chunk;
 		}
 
@@ -366,6 +373,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 		if ( ! v )
 			{
 			delete [] name;
+			delete_vals(args);
 			return false;
 			}
 
@@ -378,7 +386,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 				ignore = true;
 				}
 
-			if ( info->print && types && ! ignore )
+			if ( info->print && ! ignore )
 				v->Describe(&d);
 			}
 
@@ -412,7 +420,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 			break;
 
 		default:
-			reporter->InternalError("invalid function flavor");
+			reporter->InternalError("unserialized call for invalid function flavor");
 			break;
 		}
 
@@ -1032,12 +1040,13 @@ void ConversionSerializer::GotPacket(Packet* p)
 	}
 
 EventPlayer::EventPlayer(const char* file)
+    : stream_time(), replay_time(), ne_time(), ne_handler(), ne_args()
 	{
 	if ( ! OpenFile(file, true) || fd < 0 )
 		Error(fmt("event replayer: cannot open %s", file));
 
 	if ( ReadHeader() )
-		io_sources.Register(this);
+		iosource_mgr->Register(this);
 	}
 
 EventPlayer::~EventPlayer()
@@ -1059,9 +1068,10 @@ void EventPlayer::GotFunctionCall(const char* name, double time,
 	// We don't replay function calls.
 	}
 
-void EventPlayer::GetFds(int* read, int* write, int* except)
+void EventPlayer::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                         iosource::FD_Set* except)
 	{
-	*read = fd;
+	read->Insert(fd);
 	}
 
 double EventPlayer::NextTimestamp(double* local_network_time)
@@ -1077,7 +1087,7 @@ double EventPlayer::NextTimestamp(double* local_network_time)
 		{
 		UnserialInfo info(this);
 		Unserialize(&info);
-		closed = io->Eof();
+		SetClosed(io->Eof());
 		}
 
 	if ( ! ne_time )
@@ -1134,7 +1144,7 @@ bool Packet::Serialize(SerialInfo* info) const
 static BroFile* profiling_output = 0;
 
 #ifdef DEBUG
-static PktDumper* dump = 0;
+static iosource::PktDumper* dump = 0;
 #endif
 
 Packet* Packet::Unserialize(UnserialInfo* info)
@@ -1148,7 +1158,11 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 		UNSERIALIZE(&tv_usec) &&
 		UNSERIALIZE(&len) &&
 		UNSERIALIZE(&p->link_type)) )
+		{
+		delete p;
+		delete hdr;
 		return 0;
+		}
 
 	hdr->ts.tv_sec = tv_sec;
 	hdr->ts.tv_usec = tv_usec;
@@ -1156,12 +1170,18 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 
 	char* tag;
 	if ( ! info->s->Read((char**) &tag, 0, "tag") )
+		{
+		delete p;
+		delete hdr;
 		return 0;
+		}
 
 	char* pkt;
 	int caplen;
 	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
 		{
+		delete p;
+		delete hdr;
 		delete [] tag;
 		return 0;
 		}
@@ -1170,7 +1190,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	p->hdr = hdr;
 	p->pkt = (u_char*) pkt;
 	p->tag = tag;
-	p->hdr_size = get_link_header_size(p->link_type);
+	p->hdr_size = iosource::PktSrc::GetLinkHeaderSize(p->link_type);
 
 	delete [] tag;
 
@@ -1195,9 +1215,15 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	if ( debug_logger.IsEnabled(DBG_TM) )
 		{
 		if ( ! dump )
-			dump = new PktDumper("tm.pcap");
+			dump = iosource_mgr->OpenPktDumper("tm.pcap", true);
 
-		dump->Dump(p->hdr, p->pkt);
+		if ( dump )
+			{
+			iosource::PktDumper::Packet dp;
+			dp.hdr = p->hdr;
+			dp.data = p->pkt;
+			dump->Dump(&dp);
+			}
 		}
 #endif
 

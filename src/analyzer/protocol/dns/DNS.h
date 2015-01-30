@@ -144,7 +144,6 @@ public:
 	// More values for spesific DNS types.
 	// struct EDNS_ADDITIONAL* edns;
 
-	int tsig_init;
 	struct TSIG_DATA* tsig;
 };
 
@@ -181,6 +180,7 @@ protected:
 
 	uint16 ExtractShort(const u_char*& data, int& len);
 	uint32 ExtractLong(const u_char*& data, int& len);
+	void ExtractOctets(const u_char*& data, int& len, BroString** p);
 
 	int ParseRR_Name(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
@@ -259,7 +259,7 @@ public:
 	~DNS_Analyzer();
 
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	virtual void Init();
 	virtual void Done();
@@ -268,7 +268,7 @@ public:
 
 	void ExpireTimer(double t);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNS_Analyzer(conn); }
 
 protected:

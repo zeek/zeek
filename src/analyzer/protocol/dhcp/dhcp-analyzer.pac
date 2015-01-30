@@ -69,6 +69,7 @@ flow DHCP_Flow(is_orig: bool) {
 					break;
 
 				case HOST_NAME_OPTION:
+					Unref(host_name);
 					host_name = new StringVal((*ptr)->info()->host_name().length(),
 								  (const char*) (*ptr)->info()->host_name().begin());
 					break;
@@ -109,6 +110,10 @@ flow DHCP_Flow(is_orig: bool) {
 				BifEvent::generate_dhcp_inform(connection()->bro_analyzer(),
 							       connection()->bro_analyzer()->Conn(),
 							       dhcp_msg_val_->Ref(), host_name);
+				break;
+
+			default:
+				Unref(host_name);
 				break;
 			}
 
@@ -170,6 +175,7 @@ flow DHCP_Flow(is_orig: bool) {
 					break;
 
 				case HOST_NAME_OPTION:
+					Unref(host_name);
 					host_name = new StringVal((*ptr)->info()->host_name().length(),
 								  (const char*) (*ptr)->info()->host_name().begin());
 					break;
@@ -182,6 +188,9 @@ flow DHCP_Flow(is_orig: bool) {
 		switch ( type )
 			{
 			case DHCPOFFER:
+				if ( ! router_list )
+					router_list = new TableVal(dhcp_router_list);
+
 				BifEvent::generate_dhcp_offer(connection()->bro_analyzer(),
 							      connection()->bro_analyzer()->Conn(),
 							      dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
@@ -189,6 +198,9 @@ flow DHCP_Flow(is_orig: bool) {
 				break;
 
 			case DHCPACK:
+				if ( ! router_list )
+					router_list = new TableVal(dhcp_router_list);
+
 				BifEvent::generate_dhcp_ack(connection()->bro_analyzer(),
 							    connection()->bro_analyzer()->Conn(),
 							    dhcp_msg_val_->Ref(), new AddrVal(subnet_mask),
@@ -196,11 +208,16 @@ flow DHCP_Flow(is_orig: bool) {
 				break;
 
 			case DHCPNAK:
+				Unref(router_list);
 				BifEvent::generate_dhcp_nak(connection()->bro_analyzer(),
 							    connection()->bro_analyzer()->Conn(),
 							    dhcp_msg_val_->Ref(), host_name);
 				break;
 
+			default:
+				Unref(router_list);
+				Unref(host_name);
+				break;
 			}
 
 		return true;
@@ -219,14 +236,18 @@ flow DHCP_Flow(is_orig: bool) {
 			}
 
 		Unref(dhcp_msg_val_);
-		RecordVal* r = new RecordVal(dhcp_msg);
 
+		const char* mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
+
+		RecordVal* r = new RecordVal(dhcp_msg);
 		r->Assign(0, new Val(${msg.op}, TYPE_COUNT));
 		r->Assign(1, new Val(${msg.type}, TYPE_COUNT));
 		r->Assign(2, new Val(${msg.xid}, TYPE_COUNT));
-		r->Assign(3, new StringVal(fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length())));
+		r->Assign(3, new StringVal(mac_str));
 		r->Assign(4, new AddrVal(${msg.ciaddr}));
 		r->Assign(5, new AddrVal(${msg.yiaddr}));
+
+		delete [] mac_str;
 
 		dhcp_msg_val_ = r;
 

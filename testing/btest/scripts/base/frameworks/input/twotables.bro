@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: sleep 5
 # @TEST-EXEC: cp input3.log input.log
-# @TEST-EXEC: btest-bg-wait -k 10
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff event.out
 # @TEST-EXEC: btest-diff pred1.out
 # @TEST-EXEC: btest-diff pred2.out

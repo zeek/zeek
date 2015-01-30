@@ -20,6 +20,7 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	nfa_states = arg_nfa_states;
 	accept = arg_accept;
 	mark = 0;
+	centry = 0;
 
 	SymPartition(ec);
 
@@ -210,9 +211,10 @@ void DFA_State::Dump(FILE* f, DFA_Machine* m)
 
 	if ( accept )
 		{
-		for ( int i = 0; i < accept->length(); ++i )
-			fprintf(f, "%s accept #%d",
-				i > 0 ? "," : "", int((*accept)[i]));
+		AcceptingSet::const_iterator it;
+
+		for ( it = accept->begin(); it != accept->end(); ++it )
+			fprintf(f, "%s accept #%d", it == accept->begin() ? "" : ",", *it);
 		}
 
 	fprintf(f, "\n");
@@ -284,7 +286,7 @@ unsigned int DFA_State::Size()
 	{
 	return sizeof(*this)
 		+ pad_size(sizeof(DFA_State*) * num_sym)
-		+ (accept ? pad_size(sizeof(int) * accept->length()) : 0)
+		+ (accept ? pad_size(sizeof(int) * accept->size()) : 0)
 		+ (nfa_states ? pad_size(sizeof(NFA_State*) * nfa_states->length()) : 0)
 		+ (meta_ec ? meta_ec->Size() : 0)
 		+ (centry ? padded_sizeof(CacheEntry) : 0);
@@ -304,6 +306,7 @@ DFA_State_Cache::~DFA_State_Cache()
 		{
 		assert(e->state);
 		delete e->hash;
+		Unref(e->state);
 		delete e;
 		}
 	}
@@ -410,7 +413,10 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 		(void) StateSetToDFA_State(state_set, start_state, ec);
 		}
 	else
+		{
 		start_state = 0; // Jam
+		delete ns;
+		}
 	}
 
 DFA_Machine::~DFA_Machine()
@@ -465,32 +471,19 @@ int DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
 		return 0;
 
 	AcceptingSet* accept = new AcceptingSet;
+
 	for ( int i = 0; i < state_set->length(); ++i )
 		{
 		int acc = (*state_set)[i]->Accept();
 
 		if ( acc != NO_ACCEPT )
-			{
-			int j;
-			for ( j = 0; j < accept->length(); ++j )
-				if ( (*accept)[j] == acc )
-					break;
-
-			if ( j >= accept->length() )
-				// It's not already present.
-				accept->append(acc);
-			}
+			accept->insert(acc);
 		}
 
-	if ( accept->length() == 0 )
+	if ( accept->empty() )
 		{
 		delete accept;
 		accept = 0;
-		}
-	else
-		{
-		accept->sort(int_list_cmp);
-		accept->resize(0);
 		}
 
 	DFA_State* ds = new DFA_State(state_count++, ec, state_set, accept);

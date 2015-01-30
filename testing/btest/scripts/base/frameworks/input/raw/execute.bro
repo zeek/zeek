@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: cat out.tmp | sed 's/^ *//g' >out
 # @TEST-EXEC: btest-diff out
 
@@ -27,6 +27,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	print outfile, description;
 	print outfile, tpe;
 	print outfile, s;
+	Input::remove("input");
 	close(outfile);
 	terminate();
 	}
@@ -35,5 +36,4 @@ event bro_init()
 	{
 	outfile = open("../out.tmp");
 	Input::add_event([$source="wc -l ../input.log |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line, $want_record=F]);
-	Input::remove("input");
 	}

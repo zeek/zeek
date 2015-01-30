@@ -1,0 +1,11 @@
+[zero, one, , , , five, , seven]
+vec[0] = zero.exe
+vec[1] = one.exe
+vec[2] = <not set>
+vec[3] = <not set>
+vec[4] = <not set>
+vec[5] = five.exe
+vec[6] = <not set>
+vec[7] = seven.exe
+vec[8] = <not set>
+vec[9] = <not set>

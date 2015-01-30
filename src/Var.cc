@@ -9,8 +9,7 @@
 #include "Serializer.h"
 #include "RemoteSerializer.h"
 #include "EventRegistry.h"
-
-extern int generate_documentation;
+#include "Traverse.h"
 
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{
@@ -171,7 +170,13 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			Val* aggr;
 			if ( t->Tag() == TYPE_RECORD )
+				{
 				aggr = new RecordVal(t->AsRecordType());
+
+				if ( init && t )
+					// Have an initialization and type is not deduced.
+					init = new RecordCoerceExpr(init, t->AsRecordType());
+				}
 
 			else if ( t->Tag() == TYPE_TABLE )
 				aggr = new TableVal(t->AsTableType(), id->Attrs());
@@ -261,61 +266,26 @@ extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
 	return new AssignExpr(new NameExpr(id), init, 0, val);
 	}
 
-void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
+void add_type(ID* id, BroType* t, attr_list* attr)
 	{
-	BroType* tnew = t;
+	string new_type_name = id->Name();
+	string old_type_name = t->GetName();
+	BroType* tnew = 0;
 
-	// In "documentation mode", we'd like to to be able to associate
-	// an identifier name with a declared type.  Dealing with declared
-	// types that are "aliases" to a builtin type requires that the BroType
-	// is cloned before setting the identifier name that resolves to it.
-	// And still this is not enough to document cases where the declared type
-	// is an alias for another declared type -- but that's not a natural/common
-	// practice.  If documenting that corner case is desired, one way
-	// is to add an ID* to class ID that tracks aliases and set it here if
-	// t->GetTypeID() is true.
-	if ( generate_documentation )
-		{
-		switch ( t->Tag() ) {
-		// Only "shallow" copy types that may contain records because
-		// we want to be able to see additions to the original record type's
-		// list of fields
-		case TYPE_RECORD:
-			tnew = new RecordType(t->AsRecordType()->Types());
-			break;
-		case TYPE_TABLE:
-			tnew = new TableType(t->AsTableType()->Indices(),
-			                     t->AsTableType()->YieldType());
-			break;
-		case TYPE_VECTOR:
-			tnew = new VectorType(t->AsVectorType()->YieldType());
-			break;
-		case TYPE_FUNC:
-			tnew = new FuncType(t->AsFuncType()->Args(),
-			                    t->AsFuncType()->YieldType(),
-			                    t->AsFuncType()->Flavor());
-			break;
-		default:
-			SerializationFormat* form = new BinarySerializationFormat();
-			form->StartWrite();
-			CloneSerializer ss(form);
-			SerialInfo sinfo(&ss);
-			sinfo.cache = false;
+	if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) &&
+	     old_type_name.empty() )
+		// An extensible type (record/enum) being declared for first time.
+		tnew = t;
+	else
+		// Clone the type to preserve type name aliasing.
+		tnew = t->Clone();
 
-			t->Serialize(&sinfo);
-			char* data;
-			uint32 len = form->EndWrite(&data);
-			form->StartRead(data, len);
+	BroType::AddAlias(new_type_name, tnew);
 
-			UnserialInfo uinfo(&ss);
-			uinfo.cache = false;
-			tnew = t->Unserialize(&uinfo);
+	if ( new_type_name != old_type_name && ! old_type_name.empty() )
+		BroType::AddAlias(old_type_name, tnew);
 
-			delete [] data;
-		}
-
-		tnew->SetTypeID(copy_string(id->Name()));
-		}
+	tnew->SetName(id->Name());
 
 	id->SetType(tnew);
 	id->MakeType();
@@ -416,10 +386,39 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
-		arg_id = install_ID(copy_string(arg_i->id), module_name,
-					false, false);
+		Unref(arg_id);
+
+		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type->Ref());
 		}
+	}
+
+class OuterIDBindingFinder : public TraversalCallback {
+public:
+	OuterIDBindingFinder(Scope* s)
+		: scope(s) { }
+
+	virtual TraversalCode PreExpr(const Expr*);
+
+	Scope* scope;
+	vector<const NameExpr*> outer_id_references;
+};
+
+TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
+	{
+	if ( expr->Tag() != EXPR_NAME )
+		return TC_CONTINUE;
+
+	const NameExpr* e = static_cast<const NameExpr*>(expr);
+
+	if ( e->Id()->IsGlobal() )
+		return TC_CONTINUE;
+
+	if ( scope->GetIDs()->Lookup(e->Id()->Name()) )
+		return TC_CONTINUE;
+
+	outer_id_references.push_back(e);
+	return TC_CONTINUE;
 	}
 
 void end_func(Stmt* body, attr_list* attrs)
@@ -459,6 +458,16 @@ void end_func(Stmt* body, attr_list* attrs)
 			}
 		}
 
+	if ( streq(id->Name(), "anonymous-function") )
+		{
+		OuterIDBindingFinder cb(scope);
+		body->Traverse(&cb);
+
+		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
+			cb.outer_id_references[i]->Error(
+						"referencing outer function IDs not supported");
+		}
+
 	if ( id->HasVal() )
 		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
 	else
@@ -474,10 +483,13 @@ void end_func(Stmt* body, attr_list* attrs)
 Val* internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+	return rval;
 	}
 
 Val* internal_const_val(const char* name)
@@ -489,13 +501,17 @@ Val* internal_const_val(const char* name)
 	if ( ! id->IsConst() )
 		reporter->InternalError("internal variable %s is not constant", name);
 
-	return id->ID_Val();
+	Val* rval = id->ID_Val();
+	Unref(id);
+	return rval;
 	}
 
 Val* opt_internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	return id ? id->ID_Val() : 0;
+	Val* rval = id ? id->ID_Val() : 0;
+	Unref(id);
+	return rval;
 	}
 
 double opt_internal_double(const char* name)
@@ -535,6 +551,8 @@ ListVal* internal_list_val(const char* name)
 		return 0;
 
 	Val* v = id->ID_Val();
+	Unref(id);
+
 	if ( v )
 		{
 		if ( v->Type()->Tag() == TYPE_LIST )
@@ -560,7 +578,9 @@ BroType* internal_type(const char* name)
 	if ( ! id )
 		reporter->InternalError("internal type %s missing", name);
 
-	return id->Type();
+	BroType* rval = id->Type();
+	Unref(id);
+	return rval;
 	}
 
 Func* internal_func(const char* name)

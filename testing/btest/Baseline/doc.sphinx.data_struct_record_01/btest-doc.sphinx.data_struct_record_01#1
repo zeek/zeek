@@ -1,0 +1,14 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro data_struct_record_01.bro
+      Service: dns(RFC1035)
+        port: 53/tcp
+        port: 53/udp
+      Service: http(RFC2616)
+        port: 80/tcp
+        port: 8080/tcp
+

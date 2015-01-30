@@ -1,0 +1,9 @@
+
+# Options for the SQLite writer
+
+module LogSQLite;
+
+const set_separator: string;
+const empty_field: string;
+const unset_field: string;
+

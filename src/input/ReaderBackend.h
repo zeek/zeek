@@ -8,6 +8,8 @@
 #include "threading/SerialTypes.h"
 #include "threading/MsgThread.h"
 
+#include "Component.h"
+
 namespace input {
 
 /**
@@ -121,6 +123,7 @@ public:
 		~ReaderInfo()
 			{
 			delete [] source;
+			delete [] name;
 
 			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
 				{

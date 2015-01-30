@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	known_services
-#open	2012-10-02-20-10-05
+#open	2014-04-01-22-57-25
 #fields	ts	host	port_num	port_proto	service
-#types	time	addr	port	enum	table[string]
+#types	time	addr	port	enum	set[string]
 1258567191.405770	192.168.1.1	53	udp	TEREDO
-#close	2012-10-02-20-10-05
+#close	2014-04-01-22-57-25

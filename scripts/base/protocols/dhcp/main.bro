@@ -3,7 +3,8 @@
 ##! noisy on most networks, and focuses on the end-result: assigned leases.
 ##!
 ##! If you'd like to track known DHCP devices and to log the hostname
-##! supplied by the client, see policy/protocols/dhcp/known-devices.bro
+##! supplied by the client, see
+##! :doc:`/scripts/policy/protocols/dhcp/known-devices-and-hostnames.bro`.
 
 @load ./utils.bro
 
@@ -18,7 +19,7 @@ export {
 		## associated connection is observed.
 		ts:		time		&log;
 		## A unique identifier of the connection over which DHCP is
-		## occuring.
+		## occurring.
 		uid:		string		&log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:		conn_id		&log;
@@ -28,7 +29,7 @@ export {
 		assigned_ip:	addr		&log &optional;
 		## IP address lease interval.
 		lease_time:	interval	&log &optional;
-		## A random number choosen by the client for this transaction.
+		## A random number chosen by the client for this transaction.
 		trans_id:	count		&log;
 	};
 
@@ -37,7 +38,7 @@ export {
 	global log_dhcp: event(rec: Info);
 }
 
-# Add the dhcp info to the connection record
+# Add the dhcp info to the connection record.
 redef record connection += {
 	dhcp: Info &optional;
 };
@@ -46,13 +47,13 @@ redef record connection += {
 const ports = { 67/udp, 68/udp };
 redef likely_server_ports += { 67/udp };
 
-event bro_init()
+event bro_init() &priority=5
 	{
 	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string)
+event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string) &priority=5
 	{
 	local info: Info;
 	info$ts          = network_time();
@@ -70,6 +71,9 @@ event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_lis
 		info$assigned_ip = c$id$orig_h;
 
 	c$dhcp = info;
+	}
 
+event dhcp_ack(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr, host_name: string) &priority=-5
+	{
 	Log::write(DHCP::LOG, c$dhcp);
 	}

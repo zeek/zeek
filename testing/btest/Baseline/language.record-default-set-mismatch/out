@@ -1,0 +1,1 @@
+error in /home/robin/bro/master/testing/btest/.tmp/language.record-default-set-mismatch/record-default-set-mismatch.bro, line 5: &default value has inconsistent type (&default=set(1, 2, 3))

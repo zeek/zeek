@@ -11,7 +11,7 @@ Manager::Manager()
 	did_process = true;
 	next_beat = 0;
 	terminating = false;
-	idle = true;
+	SetIdle(true);
 	}
 
 Manager::~Manager()
@@ -47,8 +47,8 @@ void Manager::Terminate()
 	all_threads.clear();
 	msg_threads.clear();
 
-	idle = true;
-	closed = true;
+	SetIdle(true);
+	SetClosed(true);
 	terminating = false;
 	}
 
@@ -56,7 +56,7 @@ void Manager::AddThread(BasicThread* thread)
 	{
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
-	idle = false;
+	SetIdle(false);
 	}
 
 void Manager::AddMsgThread(MsgThread* thread)
@@ -65,7 +65,8 @@ void Manager::AddMsgThread(MsgThread* thread)
 	msg_threads.push_back(thread);
 	}
 
-void Manager::GetFds(int* read, int* write, int* except)
+void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+                     iosource::FD_Set* except)
 	{
 	}
 
@@ -82,7 +83,10 @@ double Manager::NextTimestamp(double* network_time)
 		{
 		MsgThread* t = *i;
 
-		if ( (*i)->MightHaveOut() && ! t->Killed() )
+		if ( t->MightHaveOut() || t->Killed() )
+			// Even if the thread doesn't have output, it may be killed/done,
+			// which should also signify that processing is needed.  The
+			// "processing" in that case is joining the thread and deleting it.
 			return timer_mgr->Time();
 		}
 
@@ -149,10 +153,8 @@ void Manager::Process()
 		{
 		BasicThread* t = *i;
 
-		if ( ! t->Killed() )
-			continue;
-
-		to_delete.push_back(t);
+		if ( t->Killed() )
+			to_delete.push_back(t);
 		}
 
 	for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ )

@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2014-08-08-17-13-45
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
+1398558136.319509	CXWv6p3arKYeMETxOg	192.168.18.50	62277	162.219.2.166	443	TLSv12	TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA	-	-	F	-	-	T	F6fLv13PBYz8MNqx68,F8cTDl1penwXxGu4K7	(empty)	emailAddress=denicadmmail@arcor.de,CN=www.lilawelt.net,C=US	CN=StartCom Class 1 Primary Intermediate Server CA,OU=Secure Digital Certificate Signing,O=StartCom Ltd.,C=IL	-	-
+#close	2014-08-08-17-13-45

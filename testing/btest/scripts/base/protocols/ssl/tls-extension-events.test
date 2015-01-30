@@ -1,0 +1,26 @@
+# @TEST-EXEC: bro -C -r $TRACES/tls/chrome-34-google.trace %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_vec)
+	{
+	print "Curves", c$id$orig_h, c$id$resp_h;
+	for ( i in curves )
+		print SSL::ec_curves[curves[i]];
+	}
+
+event ssl_extension_ec_point_formats(c: connection, is_orig: bool, point_formats: index_vec)
+	{
+	print "Point formats", c$id$orig_h, c$id$resp_h, is_orig;
+	for ( i in point_formats )
+		print SSL::ec_point_formats[point_formats[i]];
+	}
+
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_orig: bool, protocols: string_vec)
+	{
+	print "ALPN", c$id$orig_h, c$id$resp_h, protocols;
+	}
+
+event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
+	{
+	print "server_name", c$id$orig_h, c$id$resp_h, names;
+	}

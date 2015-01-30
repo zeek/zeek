@@ -29,8 +29,10 @@ event new_connection_contents%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_attempt%(c: connection%);
 
-## Generated when a SYN-ACK packet is seen in response to a SYN packet during
-## a TCP handshake.  The final ACK of the handshake in response to SYN-ACK may
+## Generated when seeing a SYN-ACK packet from the responder in a TCP
+## handshake.  An associated SYN packet was not seen from the originator
+## side if its state is not set to :bro:see:`TCP_ESTABLISHED`.
+## The final ACK of the handshake in response to SYN-ACK may
 ## or may not occur later, one way to tell is to check the *history* field of
 ## :bro:type:`connection` to see if the originator sent an ACK, indicated by
 ## 'A' in the history string.
@@ -108,14 +110,14 @@ event connection_half_finished%(c: connection%);
 ## originator attempted to setup a TCP connection but the responder replied
 ## with a RST packet denying it.
 ##
+## c: The connection.
+##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending  connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
-##
-## c: The connection.
 ##
 ## .. note::
 ##
@@ -223,9 +225,10 @@ event connection_EOF%(c: connection, is_orig: bool%);
 ##        corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
 ##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.
 ##
-## seq: The packet's TCP sequence number.
+## seq: The packet's relative TCP sequence number.
 ##
-## ack: The packet's ACK number.
+## ack: If the ACK flag is set for the packet, the packet's relative ACK
+##      number, else zero.
 ##
 ## len: The length of the TCP payload, as specified in the packet header.
 ##
@@ -287,3 +290,13 @@ event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%)
 ## TODO.
 event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
 
+## Generated when failing to write contents of a TCP stream to a file.
+##
+## c: The connection whose contents are being recorded.
+##
+## is_orig: Which side of the connection encountered a failure to write.
+##
+## msg: A reason or description for the failure.
+##
+## .. bro:see:: set_contents_file get_contents_file
+event contents_file_write_failure%(c: connection, is_orig: bool, msg: string%);

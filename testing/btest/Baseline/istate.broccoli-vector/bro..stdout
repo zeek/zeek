@@ -1,0 +1,13 @@
+handshake done with peer
+bro_vector([a, b, c, d, e])
+bro_vector([one, two, three])
+broccoli_vector_element(0, a)
+broccoli_vector_element(1, b)
+broccoli_vector_element(2, c)
+broccoli_vector_element(3, d)
+broccoli_vector_element(4, e)
+broccoli_vector_element(5, additional element)
+broccoli_vector_element(0, one)
+broccoli_vector_element(1, two)
+broccoli_vector_element(2, three)
+broccoli_vector_element(3, additional element)

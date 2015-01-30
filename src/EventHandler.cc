@@ -3,6 +3,7 @@
 #include "Func.h"
 #include "Scope.h"
 #include "RemoteSerializer.h"
+#include "NetVar.h"
 
 EventHandler::EventHandler(const char* arg_name)
 	{
@@ -12,6 +13,7 @@ EventHandler::EventHandler(const char* arg_name)
 	type = 0;
 	error_handler = false;
 	enabled = true;
+	generate_always = false;
 	}
 
 EventHandler::~EventHandler()
@@ -22,7 +24,9 @@ EventHandler::~EventHandler()
 
 EventHandler::operator bool() const
 	{
-	return enabled && ((local && local->HasBodies()) || receivers.length());
+	return enabled && ((local && local->HasBodies())
+			   || receivers.length()
+			   || generate_always);
 	}
 
 FuncType* EventHandler::FType()
@@ -38,7 +42,10 @@ FuncType* EventHandler::FType()
 	if ( id->Type()->Tag() != TYPE_FUNC )
 		return 0;
 
-	return type = id->Type()->AsFuncType();
+	type = id->Type()->AsFuncType();
+	Unref(id);
+
+	return type;
 	}
 
 void EventHandler::SetLocalHandler(Func* f)
@@ -55,6 +62,9 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Event: %s\n", Name());
 #endif
+
+	if ( new_event )
+		NewEvent(vl);
 
 	if ( ! no_remote )
 		{
@@ -73,6 +83,56 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 		loop_over_list(*vl, i)
 			Unref((*vl)[i]);
 		}
+	}
+
+void EventHandler::NewEvent(val_list* vl)
+	{
+	if ( ! new_event )
+		return;
+
+	if ( this == new_event.Ptr() )
+		// new_event() is the one event we don't want to report.
+		return;
+
+	RecordType* args = FType()->Args();
+	VectorVal* vargs = new VectorVal(call_argument_vector);
+
+	for ( int i = 0; i < args->NumFields(); i++ )
+		{
+		const char* fname = args->FieldName(i);
+		BroType* ftype = args->FieldType(i);
+		Val* fdefault = args->FieldDefault(i);
+
+		RecordVal* rec = new RecordVal(call_argument);
+		rec->Assign(0, new StringVal(fname));
+
+		ODesc d;
+		d.SetShort();
+		ftype->Describe(&d);
+		rec->Assign(1, new StringVal(d.Description()));
+
+		if ( fdefault )
+			{
+			Ref(fdefault);
+			rec->Assign(2, fdefault);
+			}
+
+		if ( i < vl->length() && (*vl)[i] )
+			{
+			Val* val = (*vl)[i];
+			Ref(val);
+			rec->Assign(3, val);
+			}
+
+		vargs->Assign(i, rec);
+		}
+
+	val_list* mvl = new val_list(2);
+	mvl->append(new StringVal(name));
+	mvl->append(vargs);
+
+	Event* ev = new Event(new_event, mvl);
+	mgr.Dispatch(ev);
 	}
 
 void EventHandler::AddRemoteHandler(SourceID peer)

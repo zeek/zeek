@@ -24,6 +24,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --prefix=PREFIX        installation directory [/usr/local/bro]
     --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
+    --localstatedir=PATH   when using BroControl, path to store log files
+                           and run-time data (within log/ and spool/ subdirs)
+                           [PREFIX]
+    --spooldir=PATH        when using BroControl, path to store run-time data
+                           [PREFIX/spool]
+    --logdir=PATH          when using BroControl, path to store log file
+                           [PREFIX/logs]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
   Optional Features:
@@ -32,14 +39,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools     force use of Google perftools on non-Linux systems
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
+    --enable-jemalloc      link against jemalloc
+    --enable-ruby          build ruby bindings for broccoli (deprecated)
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
-    --disable-ruby         don't try to build ruby bindings for broccoli
-    --disable-dataseries   don't use the optional DataSeries log writer
-    --disable-elasticsearch don't use the optional ElasticSearch log writer
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -51,9 +57,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-perl=PATH       path to perl executable
 
   Optional Packages in Non-Standard Locations:
-    --with-libmagic=PATH   path to libmagic install root
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
+    --with-jemalloc=PATH   path to jemalloc install root
     --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
@@ -61,9 +67,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-ruby-lib=PATH   path to ruby library
     --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
-    --with-dataseries=PATH path to DataSeries and Lintel libraries
-    --with-xml2=PATH       path to libxml2 installation (for DataSeries)
-    --with-curl=PATH       path to libcurl install root (for ElasticSearch)
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
@@ -105,6 +108,7 @@ append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
+append_cache_entry ENABLE_JEMALLOC      BOOL false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -113,6 +117,7 @@ append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -146,6 +151,15 @@ while [ $# -ne 0 ]; do
             append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
             user_set_conffilesdir="true"
             ;;
+        --localstatedir=*)
+            append_cache_entry BRO_LOCAL_STATE_DIR  PATH   $optarg
+            ;;
+        --spooldir=*)
+            append_cache_entry BRO_SPOOL_DIR  PATH   $optarg
+            ;;
+        --logdir=*)
+            append_cache_entry BRO_LOG_DIR  PATH   $optarg
+            ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
@@ -158,6 +172,9 @@ while [ $# -ne 0 ]; do
         --enable-perftools-debug)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
+            ;;
+        --enable-jemalloc)
+            append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
@@ -174,14 +191,8 @@ while [ $# -ne 0 ]; do
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
-        --disable-ruby)
-            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
-            ;;
-        --disable-dataseries)
-            append_cache_entry DISABLE_DATASERIES     BOOL   true
-            ;;
-        --disable-elasticsearch)
-            append_cache_entry DISABLE_ELASTICSEARCH     BOOL   true
+        --enable-ruby)
+            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   false
             ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
@@ -204,14 +215,15 @@ while [ $# -ne 0 ]; do
         --with-perl=*)
             append_cache_entry PERL_EXECUTABLE PATH $optarg
             ;;
-        --with-libmagic=*)
-            append_cache_entry LibMagic_ROOT_DIR PATH $optarg
-            ;;
         --with-geoip=*)
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
+            ;;
+        --with-jemalloc=*)
+            append_cache_entry JEMALLOC_ROOT_DIR    PATH    $optarg
+            append_cache_entry ENABLE_JEMALLOC      BOOL    true
             ;;
         --with-python=*)
             append_cache_entry PYTHON_EXECUTABLE    PATH    $optarg
@@ -235,16 +247,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
-            ;;
-        --with-dataseries=*)
-            append_cache_entry DataSeries_ROOT_DIR PATH $optarg
-            append_cache_entry Lintel_ROOT_DIR PATH $optarg
-            ;;
-        --with-xml2=*)
-            append_cache_entry LibXML2_ROOT_DIR PATH $optarg
-            ;;
-        --with-curl=*)
-            append_cache_entry LibCURL_ROOT_DIR PATH $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

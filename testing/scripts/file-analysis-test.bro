@@ -56,18 +56,6 @@ event file_new(f: fa_file)
 		                       [$chunk_event=file_chunk,
 		                        $stream_event=file_stream]);
 		}
-
-	if ( f?$bof_buffer )
-		{
-		print "FILE_BOF_BUFFER";
-		print f$bof_buffer[0:10];
-		}
-
-	if ( f?$mime_type )
-		{
-		print "MIME_TYPE";
-		print f$mime_type;
-		}
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
@@ -92,6 +80,18 @@ event file_state_remove(f: fa_file)
 	if ( f?$conns )
 		for ( cid in f$conns )
 			print cid;
+
+	if ( f?$bof_buffer )
+		{
+		print "FILE_BOF_BUFFER";
+		print f$bof_buffer[0:11];
+		}
+
+	if ( f$info?$mime_type )
+		{
+		print "MIME_TYPE";
+		print f$info$mime_type;
+		}
 
 	if ( f?$total_bytes )
 		print "total bytes: " + fmt("%s", f$total_bytes);

@@ -72,7 +72,7 @@ bool BasicBloomFilter::Empty() const
 
 void BasicBloomFilter::Clear()
 	{
-	bits->Clear();
+	bits->Reset();
 	}
 
 bool BasicBloomFilter::Merge(const BloomFilter* other)
@@ -111,7 +111,7 @@ BasicBloomFilter* BasicBloomFilter::Clone() const
 
 std::string BasicBloomFilter::InternalState() const
 	{
-	return fmt("%" PRIu64, (uint64_t)bits->Hash());
+	return fmt("%" PRIu64, bits->Hash());
 	}
 
 BasicBloomFilter::BasicBloomFilter()
@@ -123,6 +123,11 @@ BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
 	: BloomFilter(hasher)
 	{
 	bits = new BitVector(cells);
+	}
+
+BasicBloomFilter::~BasicBloomFilter()
+	{
+	delete bits;
 	}
 
 IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
@@ -173,6 +178,11 @@ CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
 	cells = new CounterVector(width, arg_cells);
 	}
 
+CountingBloomFilter::~CountingBloomFilter()
+	{
+	delete cells;
+	}
+
 bool CountingBloomFilter::Empty() const
 	{
 	return cells->AllZero();
@@ -180,7 +190,7 @@ bool CountingBloomFilter::Empty() const
 
 void CountingBloomFilter::Clear()
 	{
-	cells->Clear();
+	cells->Reset();
 	}
 
 bool CountingBloomFilter::Merge(const BloomFilter* other)
@@ -219,7 +229,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 
 string CountingBloomFilter::InternalState() const
 	{
-	return fmt("%" PRIu64, (uint64_t)cells->Hash());
+	return fmt("%" PRIu64, cells->Hash());
 	}
 
 IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)

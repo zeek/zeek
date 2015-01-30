@@ -176,6 +176,10 @@ class BroIdentifier(BroGeneric):
     def get_index_text(self, objectname, name):
         return name
 
+class BroKeyword(BroGeneric):
+    def get_index_text(self, objectname, name):
+        return name
+
 class BroAttribute(BroGeneric):
     def get_index_text(self, objectname, name):
         return _('%s (attribute)') % (name)
@@ -191,6 +195,10 @@ class BroNotices(Index):
 
     def generate(self, docnames=None):
         content = {}
+
+        if 'notices' not in self.domain.env.domaindata['bro']:
+            return content, False
+
         for n in self.domain.env.domaindata['bro']['notices']:
             modname = n[0].split("::")[0]
             entries = content.setdefault(modname, [])
@@ -209,6 +217,7 @@ class BroDomain(Domain):
         'type':             ObjType(l_('type'),             'type'),
         'namespace':        ObjType(l_('namespace'),        'namespace'),
         'id':               ObjType(l_('id'),               'id'),
+        'keyword':          ObjType(l_('keyword'),          'keyword'),
         'enum':             ObjType(l_('enum'),             'enum'),
         'attr':             ObjType(l_('attr'),             'attr'),
     }
@@ -217,6 +226,7 @@ class BroDomain(Domain):
         'type':             BroGeneric,
         'namespace':        BroNamespace,
         'id':               BroIdentifier,
+        'keyword':          BroKeyword,
         'enum':             BroEnum,
         'attr':             BroAttribute,
     }
@@ -225,6 +235,7 @@ class BroDomain(Domain):
         'type':             XRefRole(),
         'namespace':        XRefRole(),
         'id':               XRefRole(),
+        'keyword':          XRefRole(),
         'enum':             XRefRole(),
         'attr':             XRefRole(),
         'see':              XRefRole(),

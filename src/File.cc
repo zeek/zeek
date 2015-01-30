@@ -281,6 +281,8 @@ FILE* BroFile::File()
 
 FILE* BroFile::BringIntoCache()
 	{
+	char buf[256];
+
 	if ( f )
 		reporter->InternalError("BroFile non-nil non-open file");
 
@@ -296,22 +298,30 @@ FILE* BroFile::BringIntoCache()
 
 	if ( ! f )
 		{
-		reporter->Error("can't open %s", name);
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("can't open %s: %s", name, buf);
 
 		f = fopen("/dev/null", "w");
 
-		if ( ! f )
-			reporter->InternalError("out of file descriptors");
+		if ( f )
+			{
+			okay_to_manage = 0;
+			return f;
+			}
 
-		okay_to_manage = 0;
-		return f;
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("can't open /dev/null: %s", buf);
+		return 0;
 		}
 
 	RaiseOpenEvent();
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
-		reporter->Error("reopen seek failed");
+		{
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("reopen seek failed: %s", buf);
+		}
 
 	InsertAtBeginning();
 
@@ -387,6 +397,7 @@ void BroFile::Suspend()
 	{
 	if ( ! is_in_cache )
 		reporter->InternalError("BroFile::Suspend() called for non-cached file");
+
 	if ( ! is_open )
 		reporter->InternalError("BroFile::Suspend() called for non-open file");
 
@@ -397,7 +408,9 @@ void BroFile::Suspend()
 
 	if ( (position = ftell(f)) < 0 )
 		{
-		reporter->Error("ftell failed");
+		char buf[256];
+		strerror_r(errno, buf, sizeof(buf));
+		reporter->Error("ftell failed: %s", buf);
 		position = 0;
 		}
 
@@ -407,10 +420,13 @@ void BroFile::Suspend()
 
 void BroFile::PurgeCache()
 	{
-	if ( ! tail )
-		reporter->InternalError("BroFile purge of empty cache");
+	if ( tail )
+		{
+		tail->Suspend();
+		return;
+		}
 
-	tail->Suspend();
+	reporter->InternalWarning("BroFile purge of empty cache");
 	}
 
 void BroFile::Unlink()
@@ -511,7 +527,7 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 		if ( ef->AttrExpr() )
 			InitEncrypt(ef->AttrExpr()->ExprVal()->AsString()->CheckString());
 		else
-			InitEncrypt(log_encryption_key->AsString()->CheckString());
+			InitEncrypt(opt_internal_string("log_encryption_key")->CheckString());
 		}
 
 	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )
@@ -692,10 +708,10 @@ void BroFile::InitEncrypt(const char* keyfile)
 
 	secret_len = htonl(secret_len);
 
-	if ( ! (fwrite("BROENC1", 7, 1, f) &&
-		fwrite(&secret_len, sizeof(secret_len), 1, f) &&
-		fwrite(secret, ntohl(secret_len), 1, f) &&
-		fwrite(iv, iv_len, 1, f)) )
+	if ( fwrite("BROENC1", 7, 1, f) < 1 ||
+		fwrite(&secret_len, sizeof(secret_len), 1, f) < 1 ||
+		fwrite(secret, ntohl(secret_len), 1, f) < 1 ||
+		fwrite(iv, iv_len, 1, f) < 1 )
 		{
 		reporter->Error("can't write header to log file %s: %s",
 				name, strerror(errno));
@@ -720,7 +736,7 @@ void BroFile::FinishEncrypt()
 		int outl;
 		EVP_SealFinal(cipher_ctx, cipher_buffer, &outl);
 
-		if ( outl && ! fwrite(cipher_buffer, outl, 1, f) )
+		if ( outl && fwrite(cipher_buffer, outl, 1, f) < 1 )
 			{
 			reporter->Error("write error for %s: %s",
 					name, strerror(errno));
@@ -761,7 +777,7 @@ int BroFile::Write(const char* data, int len)
 				return 0;
 				}
 
-			if ( outl && ! fwrite(cipher_buffer, outl, 1, f) )
+			if ( outl && fwrite(cipher_buffer, outl, 1, f) < 1 )
 				{
 				reporter->Error("write error for %s: %s",
 						name, strerror(errno));
@@ -776,8 +792,7 @@ int BroFile::Write(const char* data, int len)
 		return 1;
 		}
 
-	len = fwrite(data, 1, len, f);
-	if ( len <= 0 )
+	if ( fwrite(data, len, 1, f) < 1 )
 		return false;
 
 	if ( rotate_size && current_size < rotate_size && current_size + len >= rotate_size )

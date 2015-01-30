@@ -1,0 +1,27 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	mysql
+#open	2015-01-13-18-12-10
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd	arg	success	rows	response
+#types	time	string	addr	port	addr	port	string	string	bool	count	string
+1216281025.136728	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	login	tfoerste	T	0	-
+1216281025.137062	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	select @@version_comment limit 1	T	1	-
+1216281030.835001	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	SELECT DATABASE()	T	1	-
+1216281030.835395	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	init_db	test	T	0	-
+1216281030.835742	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	show databases	T	1	-
+1216281030.836349	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	show tables	T	1	-
+1216281030.836757	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	field_list	agent	T	3	-
+1216281048.287657	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	create table foo (id BIGINT( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, animal VARCHAR(64) NOT NULL, name VARCHAR(64) NULL DEFAULT NULL) ENGINE = MYISAM	T	0	-
+1216281057.746222	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	insert into foo (animal, name) values ("dog", "Goofy")	T	1	-
+1216281061.713980	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	insert into foo (animal, name) values ("cat", "Garfield")	T	1	-
+1216281066.549786	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	select * from foo	T	3	-
+1216281072.304467	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	delete from foo where name like '%oo%'	T	1	-
+1216281079.450037	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	delete from foo where id = 1	T	0	-
+1216281087.437392	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	select count(*) from foo	T	1	-
+1216281109.107769	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	select * from foo	T	3	-
+1216281116.209268	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	delete from foo	T	1	-
+1216281122.880561	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	query	drop table foo	T	0	-
+1216281124.418765	CXWv6p3arKYeMETxOg	192.168.0.254	56162	192.168.0.254	3306	quit	(empty)	-	-	-
+#close	2015-01-13-18-12-10

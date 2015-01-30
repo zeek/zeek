@@ -7,28 +7,16 @@
 #include "Reassem.h"
 #include "Serializer.h"
 
-const bool DEBUG_reassem = false;
+static const bool DEBUG_reassem = false;
 
-#ifdef DEBUG
-int reassem_seen_bytes = 0;
-int reassem_copied_bytes = 0;
-#endif
-
-DataBlock::DataBlock(const u_char* data, int size, int arg_seq,
+DataBlock::DataBlock(const u_char* data, uint64 size, uint64 arg_seq,
 			DataBlock* arg_prev, DataBlock* arg_next)
 	{
 	seq = arg_seq;
 	upper = seq + size;
-
 	block = new u_char[size];
-	if ( ! block )
-		reporter->InternalError("out of memory");
 
 	memcpy((void*) block, (const void*) data, size);
-
-#ifdef DEBUG
-	reassem_copied_bytes += size;
-#endif
 
 	prev = arg_prev;
 	next = arg_next;
@@ -41,9 +29,9 @@ DataBlock::DataBlock(const u_char* data, int size, int arg_seq,
 	Reassembler::total_size += pad_size(size) + padded_sizeof(DataBlock);
 	}
 
-unsigned int Reassembler::total_size = 0;
+uint64 Reassembler::total_size = 0;
 
-Reassembler::Reassembler(int init_seq, ReassemblerType arg_type)
+Reassembler::Reassembler(uint64 init_seq)
 	{
 	blocks = last_block = 0;
 	trim_seq = last_reassem_seq = init_seq;
@@ -54,24 +42,20 @@ Reassembler::~Reassembler()
 	ClearBlocks();
 	}
 
-void Reassembler::NewBlock(double t, int seq, int len, const u_char* data)
+void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
 	{
 	if ( len == 0 )
 		return;
 
-#ifdef DEBUG
-	reassem_seen_bytes += len;
-#endif
+	uint64 upper_seq = seq + len;
 
-	int upper_seq = seq + len;
-
-	if ( seq_delta(upper_seq, trim_seq) <= 0 )
+	if ( upper_seq <= trim_seq )
 		// Old data, don't do any work for it.
 		return;
 
-	if ( seq_delta(seq, trim_seq) < 0 )
+	if ( seq < trim_seq )
 		{ // Partially old data, just keep the good stuff.
-		int amount_old = seq_delta(trim_seq, seq);
+		uint64 amount_old = trim_seq - seq;
 
 		data += amount_old;
 		seq += amount_old;
@@ -89,42 +73,42 @@ void Reassembler::NewBlock(double t, int seq, int len, const u_char* data)
 	BlockInserted(start_block);
 	}
 
-int Reassembler::TrimToSeq(int seq)
+uint64 Reassembler::TrimToSeq(uint64 seq)
 	{
-	int num_missing = 0;
+	uint64 num_missing = 0;
 
 	// Do this accounting before looking for Undelivered data,
 	// since that will alter last_reassem_seq.
 
 	if ( blocks )
 		{
-		if ( seq_delta(blocks->seq, last_reassem_seq) > 0 )
+		if ( blocks->seq > last_reassem_seq )
 			// An initial hole.
-			num_missing += seq_delta(blocks->seq, last_reassem_seq);
+			num_missing += blocks->seq - last_reassem_seq;
 		}
 
-	else if ( seq_delta(seq, last_reassem_seq) > 0 )
+	else if ( seq > last_reassem_seq )
 		{ // Trimming data we never delivered.
 		if ( ! blocks )
 			// We won't have any accounting based on blocks
 			// for this hole.
-			num_missing += seq_delta(seq, last_reassem_seq);
+			num_missing += seq - last_reassem_seq;
 		}
 
-	if ( seq_delta(seq, last_reassem_seq) > 0 )
+	if ( seq > last_reassem_seq )
 		{
 		// We're trimming data we never delivered.
 		Undelivered(seq);
 		}
 
-	while ( blocks && seq_delta(blocks->upper, seq) <= 0 )
+	while ( blocks && blocks->upper <= seq )
 		{
 		DataBlock* b = blocks->next;
 
-		if ( b && seq_delta(b->seq, seq) <= 0 )
+		if ( b && b->seq <= seq )
 			{
 			if ( blocks->upper != b->seq )
-				num_missing += seq_delta(b->seq, blocks->upper);
+				num_missing += b->seq - blocks->upper;
 			}
 		else
 			{
@@ -132,7 +116,7 @@ int Reassembler::TrimToSeq(int seq)
 			// Second half of test is for acks of FINs, which
 			// don't get entered into the sequence space.
 			if ( blocks->upper != seq && blocks->upper != seq - 1 )
-				num_missing += seq_delta(seq, blocks->upper);
+				num_missing += seq - blocks->upper;
 			}
 
 		delete blocks;
@@ -153,7 +137,7 @@ int Reassembler::TrimToSeq(int seq)
 	else
 		last_block = 0;
 
-	if ( seq_delta(seq, trim_seq) > 0 )
+	if ( seq > trim_seq )
 		// seq is further ahead in the sequence space.
 		trim_seq = seq;
 
@@ -172,9 +156,9 @@ void Reassembler::ClearBlocks()
 	last_block = 0;
 	}
 
-int Reassembler::TotalSize() const
+uint64 Reassembler::TotalSize() const
 	{
-	int size = 0;
+	uint64 size = 0;
 
 	for ( DataBlock* b = blocks; b; b = b->next )
 		size += b->Size();
@@ -187,18 +171,18 @@ void Reassembler::Describe(ODesc* d) const
 	d->Add("reassembler");
 	}
 
-void Reassembler::Undelivered(int up_to_seq)
+void Reassembler::Undelivered(uint64 up_to_seq)
 	{
 	// TrimToSeq() expects this.
 	last_reassem_seq = up_to_seq;
 	}
 
-DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
+DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 					const u_char* data)
 	{
 	if ( DEBUG_reassem )
 		{
-		DEBUG_MSG("%.6f Reassembler::AddAndCheck seq=%d, upper=%d\n",
+		DEBUG_MSG("%.6f Reassembler::AddAndCheck seq=%" PRIu64", upper=%" PRIu64"\n",
 		          network_time, seq, upper);
 		}
 
@@ -212,10 +196,10 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
 
 	// Find the first block that doesn't come completely before the
 	// new data.
-	while ( b->next && seq_delta(b->upper, seq) <= 0 )
+	while ( b->next && b->upper <= seq )
 		b = b->next;
 
-	if ( seq_delta(b->upper, seq) <= 0 )
+	if ( b->upper <= seq )
 		{
 		// b is the last block, and it comes completely before
 		// the new block.
@@ -225,21 +209,20 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
 
 	DataBlock* new_b = 0;
 
-	if ( seq_delta(upper, b->seq) <= 0 )
+	if ( upper <= b->seq )
 		{
 		// The new block comes completely before b.
-		new_b = new DataBlock(data, seq_delta(upper, seq), seq,
-					b->prev, b);
+		new_b = new DataBlock(data, upper - seq, seq, b->prev, b);
 		if ( b == blocks )
 			blocks = new_b;
 		return new_b;
 		}
 
 	// The blocks overlap, complain.
-	if ( seq_delta(seq, b->seq) < 0 )
+	if ( seq < b->seq )
 		{
 		// The new block has a prefix that comes before b.
-		int prefix_len = seq_delta(b->seq, seq);
+		uint64 prefix_len = b->seq - seq;
 		new_b = new DataBlock(data, prefix_len, seq, b->prev, b);
 		if ( b == blocks )
 			blocks = new_b;
@@ -250,11 +233,11 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
 	else
 		new_b = b;
 
-	int overlap_start = seq;
-	int overlap_offset = seq_delta(overlap_start, b->seq);
-	int new_b_len = seq_delta(upper, seq);
-	int b_len = seq_delta(b->upper, overlap_start);
-	int overlap_len = min(new_b_len, b_len);
+	uint64 overlap_start = seq;
+	uint64 overlap_offset = overlap_start - b->seq;
+	uint64 new_b_len = upper - seq;
+	uint64 b_len = b->upper - overlap_start;
+	uint64 overlap_len = min(new_b_len, b_len);
 
 	Overlap(&b->block[overlap_offset], data, overlap_len);
 

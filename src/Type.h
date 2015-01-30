@@ -4,8 +4,9 @@
 #define type_h
 
 #include <string>
-#include <list>
+#include <set>
 #include <map>
+#include <list>
 
 #include "Obj.h"
 #include "Attr.h"
@@ -15,24 +16,32 @@
 // BRO types.
 
 typedef enum {
-	TYPE_VOID,
-	TYPE_BOOL, TYPE_INT, TYPE_COUNT, TYPE_COUNTER, TYPE_DOUBLE,
-	TYPE_TIME, TYPE_INTERVAL,
-	TYPE_STRING, TYPE_PATTERN,
-	TYPE_ENUM,
-	TYPE_TIMER,
-	TYPE_PORT, TYPE_ADDR, TYPE_SUBNET,
-	TYPE_ANY,
-	TYPE_TABLE,
-	TYPE_UNION,
-	TYPE_RECORD,
-	TYPE_LIST,
-	TYPE_FUNC,
-	TYPE_FILE,
-	TYPE_OPAQUE,
-	TYPE_VECTOR,
-	TYPE_TYPE,
-	TYPE_ERROR
+	TYPE_VOID,      // 0
+	TYPE_BOOL,      // 1
+	TYPE_INT,       // 2
+	TYPE_COUNT,     // 3
+	TYPE_COUNTER,   // 4
+	TYPE_DOUBLE,    // 5
+	TYPE_TIME,      // 6
+	TYPE_INTERVAL,  // 7
+	TYPE_STRING,    // 8
+	TYPE_PATTERN,   // 9
+	TYPE_ENUM,      // 10
+	TYPE_TIMER,     // 11
+	TYPE_PORT,      // 12
+	TYPE_ADDR,      // 13
+	TYPE_SUBNET,    // 14
+	TYPE_ANY,       // 15
+	TYPE_TABLE,     // 16
+	TYPE_UNION,     // 17
+	TYPE_RECORD,    // 18
+	TYPE_LIST,      // 19
+	TYPE_FUNC,      // 20
+	TYPE_FILE,      // 21
+	TYPE_VECTOR,    // 22
+	TYPE_OPAQUE,    // 23
+	TYPE_TYPE,      // 24
+	TYPE_ERROR      // 25
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
 
@@ -65,6 +74,7 @@ class EnumType;
 class Serializer;
 class VectorType;
 class TypeType;
+class OpaqueType;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -73,7 +83,9 @@ const int MATCHES_INDEX_VECTOR = 2;
 class BroType : public BroObj {
 public:
 	BroType(TypeTag tag, bool base_type = false);
-	~BroType();
+	~BroType() { }
+
+	BroType* Clone() const;
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -194,6 +206,18 @@ public:
 		return (VectorType*) this;
 		}
 
+	OpaqueType* AsOpaqueType()
+		{
+		CHECK_TYPE_TAG(TYPE_OPAQUE, "BroType::AsOpaqueType");
+		return (OpaqueType*) this;
+		}
+
+	const OpaqueType* AsOpaqueType() const
+		{
+		CHECK_TYPE_TAG(TYPE_OPAQUE, "BroType::AsOpaqueType");
+		return (OpaqueType*) this;
+		}
+
 	VectorType* AsVectorType()
 	        {
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
@@ -225,18 +249,26 @@ public:
 	BroType* Ref()		{ ::Ref(this); return this; }
 
 	virtual void Describe(ODesc* d) const;
-	virtual void DescribeReST(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	virtual unsigned MemoryAllocation() const;
 
 	bool Serialize(SerialInfo* info) const;
-	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
+	static BroType* Unserialize(UnserialInfo* info, bool use_existing = true);
 
-	void SetTypeID(const char* id)	{ type_id = id; }
-	const char* GetTypeID() const	{ return type_id; }
+	void SetName(const string& arg_name) { name = arg_name; }
+	string GetName() const { return name; }
+
+	typedef std::map<std::string, std::set<BroType*> > TypeAliasMap;
+
+	static std::set<BroType*> GetAliases(const std::string& type_name)
+		{ return BroType::type_aliases[type_name]; }
+
+	static void AddAlias(const std::string type_name, BroType* type)
+		{ BroType::type_aliases[type_name].insert(type); }
 
 protected:
-	BroType()	{ type_id = 0; }
+	BroType()	{ }
 
 	void SetError();
 
@@ -247,10 +279,9 @@ private:
 	InternalTypeTag internal_tag;
 	bool is_network_order;
 	bool base_type;
+	string name;
 
-	// This type_id field is only used by the documentation framework to
-	// track the names of declared types.
-	const char* type_id;
+	static TypeAliasMap type_aliases;
 };
 
 class TypeList : public BroType {
@@ -304,9 +335,10 @@ public:
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
 	BroType* YieldType();
+	const BroType* YieldType() const;
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
@@ -366,6 +398,7 @@ public:
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType();
+	const BroType* YieldType() const;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
 	string FlavorString() const;
@@ -380,7 +413,7 @@ public:
 	TypeList* ArgTypes() const	{ return arg_types; }
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
@@ -408,6 +441,7 @@ protected:
 class TypeDecl {
 public:
 	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0, bool in_record = false);
+	TypeDecl(const TypeDecl& other);
 	virtual ~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const
@@ -416,22 +450,11 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static TypeDecl* Unserialize(UnserialInfo* info);
 
-	virtual void DescribeReST(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	BroType* type;
 	Attributes* attrs;
 	const char* id;
-};
-
-class CommentedTypeDecl : public TypeDecl {
-public:
-	CommentedTypeDecl(BroType* t, const char* i, attr_list* attrs = 0,
-			bool in_record = false, std::list<std::string>* cmnt_list = 0);
-	virtual ~CommentedTypeDecl();
-
-	void DescribeReST(ODesc* d) const;
-
-	std::list<std::string>* comments;
 };
 
 class RecordType : public BroType {
@@ -465,7 +488,7 @@ public:
 	const char* AddFields(type_decl_list* types, attr_list* attr);
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
@@ -511,6 +534,7 @@ public:
 	const string& Name() const { return name; }
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	OpaqueType() { }
@@ -522,8 +546,10 @@ protected:
 
 class EnumType : public BroType {
 public:
-	EnumType(const string& arg_name);
+	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
+
 	EnumType(EnumType* e);
+	EnumType(const string& arg_name);
 	~EnumType();
 
 	// The value of this name is next internal counter value, starting
@@ -536,19 +562,25 @@ public:
 	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
-	bro_int_t Lookup(const string& module_name, const char* name);
-	const char* Lookup(bro_int_t value); // Returns 0 if not found
+	bro_int_t Lookup(const string& module_name, const char* name) const;
+	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
 
-	string Name() const { return name; }
+	// Returns the list of defined names with their values. The names
+	// will be fully qualified with their module name.
+	enum_name_list Names() const;
 
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	EnumType() { counter = 0; }
+
 	DECLARE_SERIAL(EnumType)
 
-	virtual void AddNameInternal(const string& module_name,
+	void AddNameInternal(const string& module_name,
 			const char* name, bro_int_t val, bool is_export);
+
+	void CheckAndAddName(const string& module_name,
+	                     const char* name, bro_int_t val, bool is_export);
 
 	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
@@ -560,38 +592,14 @@ protected:
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
 	bro_int_t counter;
-
-	// The name of the enum type is stored for documentation purposes.
-	string name;
-};
-
-class CommentedEnumType: public EnumType {
-public:
-	CommentedEnumType(const string& arg_name) : EnumType(arg_name) {}
-	CommentedEnumType(EnumType* e) : EnumType(e) {}
-	~CommentedEnumType();
-
-	void DescribeReST(ODesc* d) const;
-	void AddComment(const string& module_name, const char* name,
-			std::list<std::string>* comments);
-
-protected:
-	// This overriden method does not install the given ID name into a
-	// scope and it also does not do any kind of checking that the
-	// provided name already exists.
-	void AddNameInternal(const string& module_name, const char* name,
-			bro_int_t val, bool is_export);
-
-	// Comments are only filled when in "documentation mode".
-	typedef std::map< const char*, std::list<std::string>*, ltstr > CommentMap;
-	CommentMap comments;
 };
 
 class VectorType : public BroType {
 public:
 	VectorType(BroType* t);
 	virtual ~VectorType();
-	BroType* YieldType()	{ return yield_type; }
+	BroType* YieldType();
+	const BroType* YieldType() const;
 
 	int MatchesIndex(ListExpr*& index) const;
 
@@ -600,6 +608,7 @@ public:
 	bool IsUnspecifiedVector() const;
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 protected:
 	VectorType()	{ yield_type = 0; }
@@ -609,15 +618,31 @@ protected:
 	BroType* yield_type;
 };
 
+extern OpaqueType* md5_type;
+extern OpaqueType* sha1_type;
+extern OpaqueType* sha256_type;
+extern OpaqueType* entropy_type;
+extern OpaqueType* cardinality_type;
+extern OpaqueType* topk_type;
+extern OpaqueType* bloomfilter_type;
+extern OpaqueType* x509_opaque_type;
+
+// Returns the Bro basic (non-parameterized) type with the given type.
+// The reference count of the type is not increased.
+BroType* base_type_no_ref(TypeTag tag);
+
 // Returns the BRO basic (non-parameterized) type with the given type.
-extern BroType* base_type(TypeTag tag);
+// The caller assumes responsibility for a reference to the type.
+inline BroType* base_type(TypeTag tag)
+	{ return base_type_no_ref(tag)->Ref(); }
 
 // Returns the BRO basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 
-// True if the two types are equivalent.  If is_init is true then the
-// test is done in the context of an initialization.
-extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+// True if the two types are equivalent.  If is_init is true then the test is
+// done in the context of an initialization. If match_record_field_names is
+// true then for record types the field names have to match, too.
+extern int same_type(const BroType* t1, const BroType* t2, int is_init=0, bool match_record_field_names=true);
 
 // True if the two attribute lists are equivalent.
 extern int same_attrs(const Attributes* a1, const Attributes* a2);

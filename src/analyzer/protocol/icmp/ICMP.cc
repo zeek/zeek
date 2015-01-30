@@ -17,11 +17,10 @@
 using namespace analyzer::icmp;
 
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
-: TransportLayerAnalyzer("ICMP", c)
+	: TransportLayerAnalyzer("ICMP", c),
+	icmp_conn_val(), type(), code(), request_len(-1), reply_len(-1)
 	{
-	icmp_conn_val = 0;
 	c->SetInactivityTimeout(icmp_inactivity_timeout);
-	request_len = reply_len = -1;
 	}
 
 void ICMP_Analyzer::Done()
@@ -32,7 +31,7 @@ void ICMP_Analyzer::Done()
 	}
 
 void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+			bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -61,9 +60,9 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		default:
-			reporter->InternalError("unexpected IP proto in ICMP analyzer: %d",
-			                        ip->NextProto());
-			break;
+			reporter->AnalyzerError(this,
+			  "unexpected IP proto in ICMP analyzer: %d", ip->NextProto());
+			return;
 		}
 
 		if ( chksum != 0xffff )
@@ -100,7 +99,11 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	else if ( ip->NextProto() == IPPROTO_ICMPV6 )
 		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
 	else
-		reporter->InternalError("unexpected next protocol in ICMP::DeliverPacket()");
+		{
+		reporter->AnalyzerError(this,
+		  "expected ICMP as IP packet's protocol, got %d", ip->NextProto());
+		return;
+		}
 
 
 	if ( caplen >= len )
@@ -440,10 +443,8 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 
 void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	int orig_endp_idx = connection_type->FieldOffset("orig");
-	int resp_endp_idx = connection_type->FieldOffset("resp");
-	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
-	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
 	UpdateEndpointVal(orig_endp, 1);
 	UpdateEndpointVal(resp_endp, 0);

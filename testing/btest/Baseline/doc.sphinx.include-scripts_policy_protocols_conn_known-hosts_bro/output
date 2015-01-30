@@ -1,0 +1,9 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+known-hosts.bro
+
+module Known;
+
+export {
+	global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
+}

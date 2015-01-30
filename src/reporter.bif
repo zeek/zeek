@@ -4,7 +4,7 @@
 ##! If event handlers do exist, it's assumed they take care of determining
 ##! how/where to output the messages.
 ##!
-##! See :doc:`/scripts/base/frameworks/reporter/main` for a convenient
+##! See :doc:`/scripts/base/frameworks/reporter/main.bro` for a convenient
 ##! reporter message logging framework.
 
 module Reporter;

@@ -12,7 +12,7 @@
 #include "BroList.h"
 #include "Dict.h"
 #include "EventHandler.h"
-#include "IOSource.h"
+#include "iosource/IOSource.h"
 #include "IPAddr.h"
 
 class Val;
@@ -40,12 +40,12 @@ enum DNS_MgrMode {
 // Number of seconds we'll wait for a reply.
 #define DNS_TIMEOUT 5
 
-class DNS_Mgr : public IOSource {
+class DNS_Mgr : public iosource::IOSource {
 public:
 	DNS_Mgr(DNS_MgrMode mode);
 	virtual ~DNS_Mgr();
 
-	bool Init();
+	void InitPostScript();
 	void Flush();
 
 	// Looks up the address or addresses of the given host, and returns
@@ -62,8 +62,8 @@ public:
 	int Save();
 
 	const char* LookupAddrInCache(const IPAddr& addr);
-	TableVal* LookupNameInCache(string name);
-	const char* LookupTextInCache(string name);
+	TableVal* LookupNameInCache(const string& name);
+	const char* LookupTextInCache(const string& name);
 
 	// Support for async lookups.
 	class LookupCallback {
@@ -77,8 +77,8 @@ public:
 	};
 
 	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
-	void AsyncLookupName(string name, LookupCallback* callback);
-	void AsyncLookupNameText(string name, LookupCallback* callback);
+	void AsyncLookupName(const string& name, LookupCallback* callback);
+	void AsyncLookupNameText(const string& name, LookupCallback* callback);
 
 	struct Stats {
 		unsigned long requests;	// These count only async requests.
@@ -132,7 +132,8 @@ protected:
 	void DoProcess(bool flush);
 
 	// IOSource interface.
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except);
 	virtual double NextTimestamp(double* network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "DNS_Mgr"; }
@@ -162,8 +163,6 @@ protected:
 	EventHandlerPtr dns_mapping_altered;
 
 	RecordType* dm_rec;
-
-	int dns_fake_count;	// used to generate unique fake replies
 
 	typedef list<LookupCallback*> CallbackList;
 

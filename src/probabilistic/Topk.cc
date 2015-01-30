@@ -161,6 +161,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		Element* e = b->elements.front();
 		HashKey* key = GetHash(e->value);
 		elementDict->RemoveEntry(key);
+		delete key;
 		delete e;
 
 		b->elements.pop_front();
@@ -323,6 +324,7 @@ uint64_t TopkVal::GetCount(Val* value) const
 	{
 	HashKey* key = GetHash(value);
 	Element* e = (Element*) elementDict->Lookup(key);
+	delete key;
 
 	if ( e == 0 )
 		{
@@ -330,7 +332,6 @@ uint64_t TopkVal::GetCount(Val* value) const
 		return 0;
 		}
 
-	delete key;
 	return e->parent->count;
 	}
 
@@ -338,6 +339,7 @@ uint64_t TopkVal::GetEpsilon(Val* value) const
 	{
 	HashKey* key = GetHash(value);
 	Element* e = (Element*) elementDict->Lookup(key);
+	delete key;
 
 	if ( e == 0 )
 		{
@@ -345,7 +347,6 @@ uint64_t TopkVal::GetEpsilon(Val* value) const
 		return 0;
 		}
 
-	delete key;
 	return e->epsilon;
 	}
 

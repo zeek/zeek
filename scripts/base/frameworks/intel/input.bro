@@ -4,7 +4,7 @@ module Intel;
 
 export {
 	## Intelligence files that will be read off disk.  The files are
-	## reread everytime they are updated so updates much be atomic with
+	## reread every time they are updated so updates must be atomic with
 	## "mv" instead of writing the file in place.
 	const read_files: set[string] = {} &redef;
 }

@@ -16,9 +16,9 @@ public:
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Syslog_Analyzer(conn); }
 
 protected:
@@ -38,10 +38,10 @@ protected:
 //
 //	virtual void Done();
 //	virtual void DeliverStream(int len, const u_char* data, bool orig);
-//	virtual void Undelivered(int seq, int len, bool orig);
+//	virtual void Undelivered(uint64 seq, int len, bool orig);
 //	virtual void EndpointEOF(tcp::TCP_Reassembler* endp);
 //
-//	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+//	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new Syslog_tcp::TCP_Analyzer(conn); }
 //
 //protected:

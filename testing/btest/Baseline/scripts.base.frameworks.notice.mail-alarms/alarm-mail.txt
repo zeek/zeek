@@ -1,4 +1,4 @@
->  2005-10-07-23:23:55 Test_Notice 141.42.64.125:56730/tcp -> 125.190.109.199:80/tcp (uid arKYeMETxOg)
+>  2005-10-07-23:23:55 Test_Notice 141.42.64.125:56730/tcp -> 125.190.109.199:80/tcp (uid CjhGID4nQcgTWjvg4c)
    test
    # 141.42.64.125 = <skipped>  125.190.109.199 = <skipped>
 

@@ -6,16 +6,16 @@ module Exec;
 
 export {
 	type Command: record {
-		## The command line to execute.  Use care to avoid injection attacks.
-		## I.e. if the command uses untrusted/variable data, sanitize
-                ## it with str_shell_escape().
+		## The command line to execute.  Use care to avoid injection
+		## attacks (i.e., if the command uses untrusted/variable data,
+		## sanitize it with :bro:see:`str_shell_escape`).
 		cmd:         string;
-		## Provide standard in to the program as a string.
+		## Provide standard input to the program as a string.
 		stdin:       string      &default="";
-		## If additional files are required to be read in as part of the output
-		## of the command they can be defined here.
+		## If additional files are required to be read in as part of the
+		## output of the command they can be defined here.
 		read_files:  set[string] &optional;
-		# The unique id for tracking executors.
+		## The unique id for tracking executors.
 		uid: string &default=unique_id("");
 	};
 
@@ -24,7 +24,7 @@ export {
 		exit_code:    count            &default=0;
 		## True if the command was terminated with a signal.
 		signal_exit:  bool             &default=F;
-		## Each line of standard out.
+		## Each line of standard output.
 		stdout:       vector of string &optional;
 		## Each line of standard error.
 		stderr:       vector of string &optional;
@@ -39,11 +39,11 @@ export {
 	##
 	## cmd: The command to run.  Use care to avoid injection attacks!
 	##
-	## returns: A record representing the full results from the
+	## Returns: A record representing the full results from the
 	##          external program execution.
 	global run: function(cmd: Command): Result;
 
-	## The system directory for temp files.
+	## The system directory for temporary files.
 	const tmp_dir = "/tmp" &redef;
 }
 
@@ -96,8 +96,9 @@ event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s
 		result$files[track_file][|result$files[track_file]|] = s;
 	}
 
-event Input::end_of_data(name: string, source:string)
+event Input::end_of_data(orig_name: string, source:string)
 	{
+	local name = orig_name;
 	local parts = split1(name, /_/);
 	name = parts[1];
 
@@ -105,6 +106,15 @@ event Input::end_of_data(name: string, source:string)
 		return;
 
 	local track_file = parts[2];
+
+	# If the file is empty, still add it to the result$files table. This is needed
+	# because it is expected that the file was read even if it was empty.
+	local result = results[name];
+	if ( ! result?$files )
+		result$files = table();
+
+	if ( track_file !in result$files )
+		result$files[track_file] = vector();
 
 	Input::remove(name);
 

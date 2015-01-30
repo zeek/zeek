@@ -15,6 +15,7 @@
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
+#include "analyzer/Manager.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -141,6 +142,7 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	suppress_event = 0;
 
 	record_contents = record_packets = 1;
+	record_current_packet = record_current_content = 0;
 
 	timers_canceled = 0;
 	inactivity_timeout = 0;
@@ -159,8 +161,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 
 	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
 	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
-
-	uid = 0; // Will set later.
 
 	if ( arg_encap )
 		encapsulation = new EncapsulationStack(*arg_encap);
@@ -380,10 +380,9 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(8, new StringVal(""));	// history
 
 		if ( ! uid )
-			uid = calculate_unique_id();
+			uid.Set(bits_per_uid);
 
-		char tmp[20];
-		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+		conn_val->Assign(9, new StringVal(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(10, encapsulation->GetVectorVal());
@@ -530,7 +529,13 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 
 	// We need at least a name.
 	if ( ! name )
+		{
+		Unref(major);
+		Unref(minor);
+		Unref(minor2);
+		Unref(addl);
 		return 0;
+		}
 
 	RecordVal* version = new RecordVal(software_version);
 	version->Assign(0, major ? major : new Val(-1, TYPE_INT));
@@ -718,8 +723,8 @@ TimerMgr* Connection::GetTimerMgr() const
 void Connection::FlipRoles()
 	{
 	IPAddr tmp_addr = resp_addr;
-	orig_addr = resp_addr;
-	resp_addr = tmp_addr;
+	resp_addr = orig_addr;
+	orig_addr = tmp_addr;
 
 	uint32 tmp_port = resp_port;
 	resp_port = orig_port;
@@ -738,6 +743,8 @@ void Connection::FlipRoles()
 
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
+
+	analyzer_mgr->ApplyScheduledAnalyzers(this);
 	}
 
 unsigned int Connection::MemoryAllocation() const
@@ -778,8 +785,15 @@ void Connection::Describe(ODesc* d) const
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			reporter->InternalError("unknown transport in Connction::Describe()");
+			d->Add("unknown");
+			reporter->InternalWarning(
+			            "unknown transport in Connction::Describe()");
+
 			break;
+
+		default:
+			reporter->InternalError(
+			            "unhandled transport type in Connection::Describe");
 		}
 
 	d->SP();
@@ -795,6 +809,17 @@ void Connection::Describe(ODesc* d) const
 	d->Add(ntohs(resp_port));
 
 	d->NL();
+	}
+
+void Connection::IDString(ODesc* d) const
+	{
+	d->Add(orig_addr);
+	d->AddRaw(":", 1);
+	d->Add(ntohs(orig_port));
+	d->AddRaw(" > ", 3);
+	d->Add(resp_addr);
+	d->AddRaw(":", 1);
+	d->Add(ntohs(resp_port));
 	}
 
 bool Connection::Serialize(SerialInfo* info) const

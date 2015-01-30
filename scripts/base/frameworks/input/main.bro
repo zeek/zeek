@@ -4,6 +4,17 @@
 module Input;
 
 export {
+	type Event: enum {
+		EVENT_NEW = 0,
+		EVENT_CHANGED = 1,
+		EVENT_REMOVED = 2,
+	};
+
+	type Mode: enum {
+		MANUAL = 0,
+		REREAD = 1,
+		STREAM = 2
+	};
 
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
@@ -33,45 +44,45 @@ export {
 	## that contain types that are not supported (at the moment
 	## file and function). If true, the input framework will
 	## warn in these cases, but continue. If false, it will
-	## abort. Defaults to false (abort)
+	## abort. Defaults to false (abort).
 	const accept_unsupported_types = F &redef;
 
 	## TableFilter description type used for the `table` method.
 	type TableDescription: record {
-		## Common definitions for tables and events
+		# Common definitions for tables and events
 
 		## String that allows the reader to find the source.
 		## For `READER_ASCII`, this is the filename.
 		source: string;
 
-		## Reader to use for this stream
+		## Reader to use for this stream.
 		reader: Reader &default=default_reader;
 
-		## Read mode to use for this stream
+		## Read mode to use for this stream.
 		mode: Mode &default=default_mode;
 
-		## Descriptive name. Used to remove a stream at a later time
+		## Descriptive name. Used to remove a stream at a later time.
 		name: string;
 
 		# Special definitions for tables
 
-		## Table which will receive the data read by the input framework
+		## Table which will receive the data read by the input framework.
 		destination: any;
 
-		## Record that defines the values used as the index of the table
+		## Record that defines the values used as the index of the table.
 		idx: any;
 
-		## Record that defines the values used as the elements of the table
-		## If val is undefined, destination has to be a set.
+		## Record that defines the values used as the elements of the table.
+		## If this is undefined, then *destination* has to be a set.
 		val: any &optional;
 
-		## Defines if the value of the table is a record (default), or a single  value. Val
-		## can only contain one element when this is set to false.
+		## Defines if the value of the table is a record (default), or a single value.
+		## When this is set to false, then *val* can only contain one element.
 		want_record: bool &default=T;
 
 		## The event that is raised each time a value is added to, changed in or removed
 		## from the table. The event will receive an Input::Event enum as the first
-		## argument, the idx record as the second argument and the value (record) as the
+		## argument, the *idx* record as the second argument and the value (record) as the
 		## third argument.
 		ev: any &optional; # event containing idx, val as values.
 
@@ -88,19 +99,19 @@ export {
 
 	## EventFilter description type used for the `event` method.
 	type EventDescription: record {
-		## Common definitions for tables and events
+		# Common definitions for tables and events
 
 		## String that allows the reader to find the source.
 		## For `READER_ASCII`, this is the filename.
 		source: string;
 
-		## Reader to use for this steam
+		## Reader to use for this stream.
 		reader: Reader &default=default_reader;
 
-		## Read mode to use for this stream
+		## Read mode to use for this stream.
 		mode: Mode &default=default_mode;
 
-		## Descriptive name. Used to remove a stream at a later time
+		## Descriptive name. Used to remove a stream at a later time.
 		name: string;
 
 		# Special definitions for events
@@ -108,8 +119,8 @@ export {
 		## Record describing the fields to be retrieved from the source input.
 		fields: any;
 
-		## If want_record if false, the event receives each value in fields as a separate argument.
-		## If it is set to true (default), the event receives all fields in a single record value.
+		## If this is false, the event receives each value in fields as a separate argument.
+		## If this is set to true (default), the event receives all fields in a single record value.
 		want_record: bool &default=T;
 
 		## The event that is raised each time a new line is received from the reader.
@@ -122,23 +133,23 @@ export {
 		config: table[string] of string &default=table();
 	};
 
-	## A file analyis input stream type used to forward input data to the
+	## A file analysis input stream type used to forward input data to the
 	## file analysis framework.
 	type AnalysisDescription: record {
 		## String that allows the reader to find the source.
 		## For `READER_ASCII`, this is the filename.
 		source: string;
 
-		## Reader to use for this steam.  Compatible readers must be
+		## Reader to use for this stream.  Compatible readers must be
 		## able to accept a filter of a single string type (i.e.
 		## they read a byte stream).
 		reader: Reader &default=Input::READER_BINARY;
 
-		## Read mode to use for this stream
+		## Read mode to use for this stream.
 		mode: Mode &default=default_mode;
 
 		## Descriptive name that uniquely identifies the input source.
-		## Can be used used to remove a stream at a later time.
+		## Can be used to remove a stream at a later time.
 		## This will also be used for the unique *source* field of
 		## :bro:see:`fa_file`.  Most of the time, the best choice for this
 		## field will be the same value as the *source* field.
@@ -150,38 +161,44 @@ export {
 		config: table[string] of string &default=table();
 	};
 
-	## Create a new table input from a given source. Returns true on success.
+	## Create a new table input from a given source.
 	##
 	## description: `TableDescription` record describing the source.
+	##
+	## Returns: true on success.
 	global add_table: function(description: Input::TableDescription) : bool;
 
-	## Create a new event input from a given source. Returns true on success.
+	## Create a new event input from a given source.
 	##
-	## description: `TableDescription` record describing the source.
+	## description: `EventDescription` record describing the source.
+	##
+	## Returns: true on success.
 	global add_event: function(description: Input::EventDescription) : bool;
 
 	## Create a new file analysis input from a given source.  Data read from
 	## the source is automatically forwarded to the file analysis framework.
 	##
-	## description: A record describing the source
+	## description: A record describing the source.
 	##
-	## Returns: true on sucess.
+	## Returns: true on success.
 	global add_analysis: function(description: Input::AnalysisDescription) : bool;
 
-	## Remove a input stream. Returns true on success and false if the named stream was
-	## not found.
+	## Remove an input stream.
 	##
-	## id: string value identifying the stream to be removed
+	## id: string value identifying the stream to be removed.
+	##
+	## Returns: true on success and false if the named stream was not found.
 	global remove: function(id: string) : bool;
 
 	## Forces the current input to be checked for changes.
-	## Returns true on success and false if the named stream was not found
 	##
-	## id: string value identifying the stream
+	## id: string value identifying the stream.
+	##
+	## Returns: true on success and false if the named stream was not found.
 	global force_update: function(id: string) : bool;
 
-	## Event that is called, when the end of a data source has been reached, including
-	## after an update.
+	## Event that is called when the end of a data source has been reached,
+	## including after an update.
 	global end_of_data: event(name: string, source:string);
 }
 

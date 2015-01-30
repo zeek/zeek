@@ -433,7 +433,10 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 	const u_char* hdrs = (const u_char*) ip6;
 
 	if ( total_len < (int)sizeof(struct ip6_hdr) )
-		reporter->InternalError("IPv6_HdrChain::Init with truncated IP header");
+		{
+		reporter->InternalWarning("truncated IP header in IPv6_HdrChain::Init");
+		return;
+		}
 
 	do
 		{
@@ -623,10 +626,60 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 			break;
 #endif
 		default:
-			reporter->InternalError("IPv6_Hdr_Chain bad header %d", type);
-			break;
+			reporter->InternalWarning("IPv6_Hdr_Chain bad header %d", type);
+			Unref(ext_hdr);
+			continue;
 		}
+
 		rval->Assign(rval->Size(), ext_hdr);
+		}
+
+	return rval;
+	}
+
+IP_Hdr* IP_Hdr::Copy() const
+	{
+	char* new_hdr = new char[HdrLen()];
+
+	if ( ip4 )
+		{
+		memcpy(new_hdr, ip4, HdrLen());
+		return new IP_Hdr((const struct ip*) new_hdr, true);
+		}
+
+	memcpy(new_hdr, ip6, HdrLen());
+	const struct ip6_hdr* new_ip6 = (const struct ip6_hdr*)new_hdr;
+	IPv6_Hdr_Chain* new_ip6_hdrs = ip6_hdrs->Copy(new_ip6);
+	return new IP_Hdr(new_ip6, true, 0, new_ip6_hdrs);
+	}
+
+IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
+	{
+	IPv6_Hdr_Chain* rval = new IPv6_Hdr_Chain;
+	rval->length = length;
+
+#ifdef ENABLE_MOBILE_IPV6
+	if ( homeAddr )
+		rval->homeAddr = new IPAddr(*homeAddr);
+#endif
+
+	if ( finalDst )
+		rval->finalDst = new IPAddr(*finalDst);
+
+	if ( chain.empty() )
+		{
+		reporter->InternalWarning("empty IPv6 header chain");
+		delete rval;
+		return 0;
+		}
+
+	const u_char* new_data = (const u_char*)new_hdr;
+	const u_char* old_data = chain[0]->Data();
+
+	for ( size_t i = 0; i < chain.size(); ++i )
+		{
+		int off = chain[i]->Data() - old_data;
+		rval->chain.push_back(new IPv6_Hdr(chain[i]->Type(), new_data + off));
 		}
 
 	return rval;

@@ -4,7 +4,7 @@ module SumStats;
 
 export {
 	redef record Reducer += {
-		## number of elements to keep in the top-k list
+		## Number of elements to keep in the top-k list.
 		topk_size: count &default=500;
 	};
 

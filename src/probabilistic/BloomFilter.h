@@ -125,6 +125,11 @@ public:
 	BasicBloomFilter(const Hasher* hasher, size_t cells);
 
 	/**
+	 * Destructor.
+	 */
+	~BasicBloomFilter();
+
+	/**
 	 * Computes the number of cells based on a given false positive rate
 	 * and capacity. In the literature, this parameter often has the name
 	 * *M*.
@@ -191,6 +196,11 @@ public:
 	 * @param width The maximal bit-width of counter values.
 	 */
 	CountingBloomFilter(const Hasher* hasher, size_t cells, size_t width);
+
+	/**
+	 * Destructor.
+	 */
+	~CountingBloomFilter();
 
 	// Overridden from BloomFilter.
 	virtual bool Empty() const;

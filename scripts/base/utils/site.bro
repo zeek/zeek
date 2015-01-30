@@ -17,7 +17,8 @@ export {
 		[::1]/128,
 	} &redef;
 
-	## Networks that are considered "local".
+	## Networks that are considered "local".  Note that BroControl sets
+	## this automatically.
 	const local_nets: set[subnet] &redef;
 
 	## This is used for retrieving the subnet when using multiple entries in
@@ -67,7 +68,7 @@ export {
 	## The function inspects :bro:id:`Site::neighbor_zones`.
 	global is_neighbor_name: function(name: string): bool;
 
-	## Function that returns a common separated list of email addresses
+	## Function that returns a comma-separated list of email addresses
 	## that are considered administrators for the IP address provided as
 	## an argument.
 	## The function inspects :bro:id:`Site::local_admins`.

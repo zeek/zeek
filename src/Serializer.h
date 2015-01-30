@@ -15,7 +15,7 @@
 #include "SerialInfo.h"
 #include "IP.h"
 #include "Timer.h"
-#include "IOSource.h"
+#include "iosource/IOSource.h"
 #include "Reporter.h"
 
 class SerializationCache;
@@ -125,7 +125,7 @@ protected:
 
 	// This will be increased whenever there is an incompatible change
 	// in the data format.
-	static const uint32 DATA_FORMAT_VERSION = 23;
+	static const uint32 DATA_FORMAT_VERSION = 25;
 
 	ChunkedIO* io;
 
@@ -350,12 +350,13 @@ public:
 };
 
 // Plays a file of events back.
-class EventPlayer : public FileSerializer, public IOSource {
+class EventPlayer : public FileSerializer, public iosource::IOSource {
 public:
 	EventPlayer(const char* file);
 	virtual ~EventPlayer();
 
-	virtual void GetFds(int* read, int* write, int* except);
+	virtual void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
+	                    iosource::FD_Set* except);
 	virtual double NextTimestamp(double* local_network_time);
 	virtual void Process();
 	virtual const char* Tag()	{ return "EventPlayer"; }
@@ -403,6 +404,7 @@ public:
 		hdr_size = 0;
 		free = arg_free;
 		tag = arg_tag;
+		link_type = 0;
 		}
 
 	~Packet()

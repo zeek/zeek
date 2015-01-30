@@ -1,5 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include "IPAddr.h"
@@ -45,6 +46,14 @@ HashKey* BuildConnIDHashKey(const ConnID& id)
 	return new HashKey(&key, sizeof(key));
 	}
 
+static inline uint32_t bit_mask32(int bottom_bits)
+	{
+	if ( bottom_bits >= 32 )
+		return 0xffffffff;
+
+	return (((uint32_t) 1) << bottom_bits) - 1;
+	}
+
 void IPAddr::Mask(int top_bits_to_keep)
 	{
 	if ( top_bits_to_keep < 0 || top_bits_to_keep > 128 )
@@ -53,25 +62,20 @@ void IPAddr::Mask(int top_bits_to_keep)
 		return;
 		}
 
-	uint32_t tmp[4];
-	memcpy(tmp, in6.s6_addr, sizeof(in6.s6_addr));
+	uint32_t mask_bits[4] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
+	std::ldiv_t res = std::ldiv(top_bits_to_keep, 32);
 
-	int word = 3;
-	int bits_to_chop = 128 - top_bits_to_keep;
+	if ( res.quot < 4 )
+		mask_bits[res.quot] =
+		        htonl(mask_bits[res.quot] & ~bit_mask32(32 - res.rem));
 
-	while ( bits_to_chop >= 32 )
-		{
-		tmp[word] = 0;
-		--word;
-		bits_to_chop -= 32;
-		}
+	for ( unsigned int i = res.quot + 1; i < 4; ++i )
+		mask_bits[i] = 0;
 
-	uint32_t w = ntohl(tmp[word]);
-	w >>= bits_to_chop;
-	w <<= bits_to_chop;
-	tmp[word] = htonl(w);
+	uint32_t* p = reinterpret_cast<uint32_t*>(in6.s6_addr);
 
-	memcpy(in6.s6_addr, tmp, sizeof(in6.s6_addr));
+	for ( unsigned int i = 0; i < 4; ++i )
+		p[i] &= mask_bits[i];
 	}
 
 void IPAddr::ReverseMask(int top_bits_to_chop)
@@ -82,25 +86,19 @@ void IPAddr::ReverseMask(int top_bits_to_chop)
 		return;
 		}
 
-	uint32_t tmp[4];
-	memcpy(tmp, in6.s6_addr, sizeof(in6.s6_addr));
+	uint32_t mask_bits[4] = { 0, 0, 0, 0 };
+	std::ldiv_t res = std::ldiv(top_bits_to_chop, 32);
 
-	int word = 0;
-	int bits_to_chop = top_bits_to_chop;
+	if ( res.quot < 4 )
+		mask_bits[res.quot] = htonl(bit_mask32(32 - res.rem));
 
-	while ( bits_to_chop >= 32 )
-		{
-		tmp[word] = 0;
-		++word;
-		bits_to_chop -= 32;
-		}
+	for ( unsigned int i = res.quot + 1; i < 4; ++i )
+		mask_bits[i] = 0xffffffff;
 
-	uint32_t w = ntohl(tmp[word]);
-	w <<= bits_to_chop;
-	w >>= bits_to_chop;
-	tmp[word] = htonl(w);
+	uint32_t* p = reinterpret_cast<uint32_t*>(in6.s6_addr);
 
-	memcpy(in6.s6_addr, tmp, sizeof(in6.s6_addr));
+	for ( unsigned int i = 0; i < 4; ++i )
+		p[i] &= mask_bits[i];
 	}
 
 void IPAddr::Init(const std::string& s)

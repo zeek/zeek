@@ -86,7 +86,7 @@ public:
 	/**
 	 * Sets all counters to 0.
 	 */
-	void Clear();
+	void Reset();
 
 	/**
 	 * Retrieves the number of cells in the storage.
@@ -131,7 +131,7 @@ public:
 	  *
 	  * @return The hash.
 	  */
-	size_t Hash() const;
+	uint64 Hash() const;
 
 	/**
 	 * Serializes the bit vector.

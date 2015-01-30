@@ -1,4 +1,4 @@
-Host: 6.5.4.3 - num:2 - sum:6.0 - avg:3.0 - max:5.0 - min:1.0 - var:8.0 - std_dev:2.8 - unique:2
-Host: 10.10.10.10 - num:1 - sum:5.0 - avg:5.0 - max:5.0 - min:5.0 - var:0.0 - std_dev:0.0 - unique:1
-Host: 1.2.3.4 - num:9 - sum:437.0 - avg:48.6 - max:95.0 - min:3.0 - var:758.8 - std_dev:27.5 - unique:8
-Host: 7.2.1.5 - num:2 - sum:145.0 - avg:72.5 - max:91.0 - min:54.0 - var:684.5 - std_dev:26.2 - unique:2
+Host: 6.5.4.3 - num:2 - sum:6.0 - avg:3.0 - max:5.0 - min:1.0 - var:8.0 - std_dev:2.8 - unique:2 - hllunique:2
+Host: 10.10.10.10 - num:1 - sum:5.0 - avg:5.0 - max:5.0 - min:5.0 - var:0.0 - std_dev:0.0 - unique:1 - hllunique:1
+Host: 1.2.3.4 - num:9 - sum:437.0 - avg:48.6 - max:95.0 - min:3.0 - var:758.8 - std_dev:27.5 - unique:8 - hllunique:8
+Host: 7.2.1.5 - num:2 - sum:145.0 - avg:72.5 - max:91.0 - min:54.0 - var:684.5 - std_dev:26.2 - unique:2 - hllunique:2

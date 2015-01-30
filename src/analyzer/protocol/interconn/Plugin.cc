@@ -1,10 +1,25 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "InterConn.h"
 
-BRO_PLUGIN_BEGIN(Bro, InterConn)
-	BRO_PLUGIN_DESCRIPTION("InterConn analyzer (deprecated)");
-	BRO_PLUGIN_ANALYZER("InterConn", interconn::InterConn_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_InterConn {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("InterConn", ::analyzer::interconn::InterConn_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::InterConn";
+		config.description = "InterConn analyzer deprecated";
+		return config;
+		}
+} plugin;
+
+}
+}

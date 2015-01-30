@@ -4,7 +4,8 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.bro %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.bro %INPUT
+# @TEST-EXEC: btest-bg-wait 25
 
 redef test_file_analysis_source = "HTTP";
 

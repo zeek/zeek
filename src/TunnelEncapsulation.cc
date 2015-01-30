@@ -11,7 +11,7 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 	{
 	if ( ! uid )
 		{
-		uid = calculate_unique_id();
+		uid.Set(bits_per_uid);
 		c->SetUID(uid);
 		}
 	}
@@ -28,8 +28,7 @@ RecordVal* EncapsulatingConn::GetRecordVal() const
 	rv->Assign(0, id_val);
 	rv->Assign(1, new EnumVal(type, BifType::Enum::Tunnel::Type));
 
-	char tmp[20];
-	rv->Assign(2, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+	rv->Assign(2, new StringVal(uid.Base62("C").c_str()));
 
 	return rv;
 	}

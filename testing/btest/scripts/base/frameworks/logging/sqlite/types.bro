@@ -1,5 +1,6 @@
 #
-# @TEST-REQUIRES: has-writer SQLite 
+# @TEST-REQUIRES: which sqlite3
+# @TEST-REQUIRES: has-writer Bro::SQLiteWriter
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: bro -b %INPUT

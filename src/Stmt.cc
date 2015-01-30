@@ -660,8 +660,13 @@ void Case::Describe(ODesc* d) const
 
 TraversalCode Case::Traverse(TraversalCallback* cb) const
 	{
-	TraversalCode tc = cases->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
+	TraversalCode tc;
+
+	if ( cases )
+		{
+		tc = cases->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = s->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
@@ -788,6 +793,7 @@ bool SwitchStmt::AddCaseLabelMapping(const Val* v, int idx)
 		}
 
 	case_label_map.Insert(hk, new int(idx));
+	delete hk;
 	return true;
 	}
 
@@ -798,8 +804,9 @@ int SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	if ( ! hk )
 		{
 		reporter->PushLocation(e->GetLocationInfo());
-		reporter->InternalError("switch expression type mismatch (%s/%s)",
+		reporter->Error("switch expression type mismatch (%s/%s)",
 		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+		return -1;
 		}
 
 	int* label_idx = case_label_map.Lookup(hk);
@@ -1217,9 +1224,8 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		const PDict(TableEntryVal)* loop_vals = tv->AsTable();
 
 		HashKey* k;
-		TableEntryVal* iter_val;
 		IterCookie* c = loop_vals->InitForIteration();
-		while ( (iter_val = loop_vals->NextEntry(k, c)) )
+		while ( loop_vals->NextEntry(k, c) )
 			{
 			ListVal* ind_lv = tv->RecoverIndex(k);
 			delete k;

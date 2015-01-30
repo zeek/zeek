@@ -400,8 +400,6 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 
 		while ( (id = status->ids->NextEntry(status->id_cookie)) )
 			{
-			ID* g = global_scope()->Lookup(id->Name());
-
 			if ( ! DoIDSerialization(status, id) )
 				return false;
 

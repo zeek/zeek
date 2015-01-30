@@ -1,11 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "PIA.h"
 
-BRO_PLUGIN_BEGIN(Bro, PIA)
-	BRO_PLUGIN_DESCRIPTION("Analyzers implementing Dynamic Protocol Detection");
-	BRO_PLUGIN_ANALYZER("PIA_TCP", pia::PIA_TCP);
-	BRO_PLUGIN_ANALYZER("PIA_UDP", pia::PIA_UDP);
-	BRO_PLUGIN_BIF_FILE(events);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_PIA {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("PIA_TCP", ::analyzer::pia::PIA_TCP::Instantiate));
+		AddComponent(new ::analyzer::Component("PIA_UDP", ::analyzer::pia::PIA_UDP::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::PIA";
+		config.description = "Analyzers implementing Dynamic Protocol";
+		return config;
+		}
+} plugin;
+
+}
+}

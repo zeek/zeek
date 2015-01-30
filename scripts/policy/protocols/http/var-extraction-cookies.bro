@@ -1,4 +1,4 @@
-##! Extracts and logs variables names from cookies sent by clients.
+##! Extracts and logs variable names from cookies sent by clients.
 
 @load base/protocols/http/main
 @load base/protocols/http/utils

@@ -7,6 +7,7 @@
 #include "Obj.h"
 #include "Serializer.h"
 #include "File.h"
+#include "plugin/Manager.h"
 
 Location no_location("<no location>", 0, 0, 0, 0);
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
@@ -28,11 +29,14 @@ bool Location::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_LOCATION, SerialObj);
 	info->s->WriteOpenTag("Location");
-	SERIALIZE(filename);
-	SERIALIZE(first_line);
-	SERIALIZE(last_line);
-	SERIALIZE(first_column);
-	SERIALIZE(last_column);
+
+	if ( ! (SERIALIZE(filename) &&
+	        SERIALIZE(first_line) &&
+	        SERIALIZE(last_line) &&
+	        SERIALIZE(first_column) &&
+	        SERIALIZE(last_column)) )
+		return false;
+
 	info->s->WriteCloseTag("Location");
 	return true;
 	}
@@ -89,6 +93,9 @@ int BroObj::suppress_errors = 0;
 
 BroObj::~BroObj()
 	{
+	if ( notify_plugins )
+		PLUGIN_HOOK_VOID(HOOK_BRO_OBJ_DTOR, HookBroObjDtor(this));
+
 	delete location;
 	}
 

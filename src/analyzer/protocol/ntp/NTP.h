@@ -40,13 +40,13 @@ class NTP_Analyzer : public analyzer::Analyzer {
 public:
 	NTP_Analyzer(Connection* conn);
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
+	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NTP_Analyzer(conn); }
 
 protected:
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
+					uint64 seq, const IP_Hdr* ip, int caplen);
 
 	int Request(const u_char* data, int len);
 	int Reply(const u_char* data, int len);

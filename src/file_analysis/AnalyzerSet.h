@@ -38,6 +38,14 @@ public:
 	~AnalyzerSet();
 
 	/**
+	 * Looks up an analyzer by its tag and arguments.
+	 * @param tag an analyzer tag.
+	 * @param args an \c AnalyzerArgs record.
+	 * @return pointer to an analyzer instance, or a null pointer if not found.
+	 */
+	Analyzer* Find(file_analysis::Tag tag, RecordVal* args);
+
+	/**
 	 * Attach an analyzer to #file immediately.
 	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
@@ -49,9 +57,10 @@ public:
 	 * Queue the attachment of an analyzer to #file.
 	 * @param tag the analyzer tag of the file analyzer to add.
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
-	 * @return true if analyzer was able to be instantiated, else false.
+	 * @return if successful, a pointer to a newly instantiated analyzer else
+	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
-	bool QueueAdd(file_analysis::Tag tag, RecordVal* args);
+	file_analysis::Analyzer* QueueAdd(file_analysis::Tag tag, RecordVal* args);
 
 	/**
 	 * Remove an analyzer from #file immediately.

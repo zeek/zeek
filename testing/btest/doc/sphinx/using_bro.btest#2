@@ -1,0 +1,1 @@
+@TEST-EXEC: btest-rst-cmd -n 10 "cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration"

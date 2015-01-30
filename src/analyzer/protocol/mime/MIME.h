@@ -133,6 +133,7 @@ protected:
 	int GetDataBuffer();
 	void DataOctet(char ch);
 	void DataOctets(int len, const char* data);
+	void FlushData();
 	virtual void SubmitData(int len, const char* buf);
 
 	virtual void SubmitHeader(MIME_Header* h);
@@ -172,6 +173,7 @@ protected:
 	int data_buf_offset;
 
 	MIME_Message* message;
+	bool delay_adding_implicit_CRLF;
 };
 
 // The reason I separate MIME_Message as an abstract class is to
@@ -193,7 +195,8 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			reporter->InternalError("Done() must be called before destruction");
+			reporter->AnalyzerError(analyzer,
+			  "missing MIME_Message::Done() call");
 		}
 
 	virtual void Done()	{ finished = 1; }
@@ -247,7 +250,6 @@ protected:
 	int max_chunk_length;
 	int buffer_start;
 	int data_start;
-	int buffer_offset;
 	int compute_content_hash;
 	int content_hash_length;
 	MD5_CTX md5_hash;
@@ -257,6 +259,7 @@ protected:
 	BroString* data_buffer;
 
 	uint64 cur_entity_len;
+	string cur_entity_id;
 };
 
 

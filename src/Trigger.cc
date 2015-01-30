@@ -44,7 +44,10 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 		BroObj::SuppressErrors no_errors;
 		Val* v = e->Eval(trigger->frame);
 		if ( v )
+			{
 			trigger->Register(v);
+			Unref(v);
+			}
 		break;
 		}
 
@@ -128,18 +131,19 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		arg_frame->SetDelayed();
 		}
 
-	Val* timeout = arg_timeout ? arg_timeout->ExprVal() : 0;
+	Val* timeout_val = arg_timeout ? arg_timeout->Eval(arg_frame) : 0;
 
 	// Make sure we don't get deleted if somebody calls a method like
 	// Timeout() while evaluating the trigger. 
 	Ref(this);
 
-	if ( ! Eval() && timeout )
+	if ( ! Eval() && timeout_val )
 		{
-		timer = new TriggerTimer(timeout->AsInterval(), this);
+		timer = new TriggerTimer(timeout_val->AsInterval(), this);
 		timer_mgr->Add(timer);
 		}
 
+	Unref(timeout_val);
 	Unref(this);
 	}
 
@@ -203,7 +207,7 @@ bool Trigger::Eval()
 		return false;
 		}
 
-	if ( v->IsZero() )
+	if ( ! v || v->IsZero() )
 		{
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());

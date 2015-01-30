@@ -3,68 +3,68 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-22-19
+#open	2013-08-26-19-34-56
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334074939.467194	UWkUyAuUGXf	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
-#close	2012-04-10-16-22-19
+1334074939.467194	CXWv6p3arKYeMETxOg	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
+#close	2013-08-26-19-34-56
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-18-05-25
+#open	2013-08-26-19-34-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1332785125.596793	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2012-03-26-18-05-25
+#close	2013-08-26-19-34-57
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-03-26-17-21-48
+#open	2013-08-26-19-34-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1332782508.592037	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2012-03-26-17-21-48
+#close	2013-08-26-19-34-57
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-23-47
+#open	2013-08-26-19-34-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2012-04-10-16-23-47
+#close	2013-08-26-19-34-57
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-23-47
+#open	2013-08-26-19-34-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2012-04-10-16-23-47
+#close	2013-08-26-19-34-57
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-23-47
+#open	2013-08-26-19-34-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2012-04-10-16-23-47
+#close	2013-08-26-19-34-57
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2012-04-10-16-23-47
+#open	2013-08-26-19-34-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1334075027.053380	-	-	-	-	-	routing0_hdr	-	F	bro
-#close	2012-04-10-16-23-47
+#close	2013-08-26-19-34-57

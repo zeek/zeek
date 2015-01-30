@@ -6,12 +6,13 @@
 #include "config.h"
 #include "List.h"
 #include "util.h"
-
+#include "Flare.h"
+#include "iosource/FD_Set.h"
 #include <list>
 
 #ifdef NEED_KRB5_H
 # include <krb5.h>
-#endif 
+#endif
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -26,10 +27,28 @@ public:
 	ChunkedIO();
 	virtual ~ChunkedIO()	{ }
 
-	typedef struct {
+	struct Chunk {
+		typedef void (*FreeFunc)(char*);
+		static void free_func_free(char* data)	{ free(data); }
+		static void free_func_delete(char* data)	{ delete [] data; }
+
+		Chunk()
+		    : data(), len(), free_func(free_func_delete)
+			{ }
+
+		// Takes ownership of data.
+		Chunk(char* arg_data, uint32 arg_len,
+		      FreeFunc arg_ff = free_func_delete)
+			: data(arg_data), len(arg_len), free_func(arg_ff)
+			{ }
+
+		~Chunk()
+			{ free_func(data); }
+
 		char* data;
 		uint32 len;
-	} Chunk;
+		FreeFunc free_func;
+	};
 
 	// Initialization before any I/O operation is performed. Returns false
 	// on any form of error.
@@ -76,6 +95,11 @@ public:
 
 	// Returns underlying fd if available, -1 otherwise.
 	virtual int Fd()	{ return -1; }
+
+	// Returns supplementary file descriptors that become read-ready in order
+	// to signal that there is some work that can be performed.
+	virtual iosource::FD_Set ExtraReadFDs() const
+		{ return iosource::FD_Set(); }
 
 	// Makes sure that no additional protocol data is written into
 	// the output stream.  If this is activated, the output cannot
@@ -159,6 +183,7 @@ public:
 	virtual void Clear();
 	virtual bool Eof()	{ return eof; }
 	virtual int Fd()	{ return fd; }
+	virtual iosource::FD_Set ExtraReadFDs() const;
 	virtual void Stats(char* buffer, int length);
 
 private:
@@ -222,6 +247,8 @@ private:
 	ChunkQueue* pending_tail;
 
 	pid_t pid;
+	bro::Flare write_flare;
+	bro::Flare read_flare;
 };
 
 // Chunked I/O using an SSL connection.
@@ -244,6 +271,7 @@ public:
 	virtual void Clear();
 	virtual bool Eof()	{ return eof; }
 	virtual int Fd()	{ return socket; }
+	virtual iosource::FD_Set ExtraReadFDs() const;
 	virtual void Stats(char* buffer, int length);
 
 private:
@@ -285,6 +313,8 @@ private:
 
 	// One SSL for all connections.
 	static SSL_CTX* ctx;
+
+	bro::Flare write_flare;
 };
 
 #include <zlib.h>
@@ -292,8 +322,9 @@ private:
 // Wrapper class around a another ChunkedIO which the (un-)compresses data.
 class CompressedChunkedIO : public ChunkedIO {
 public:
-	CompressedChunkedIO(ChunkedIO* arg_io)
-		: io(arg_io) {} // takes ownership
+	CompressedChunkedIO(ChunkedIO* arg_io) // takes ownership
+	    : io(arg_io), zin(), zout(), error(), compress(), uncompress(),
+	      uncompressed_bytes_read(), uncompressed_bytes_written() {}
 	virtual ~CompressedChunkedIO()	{ delete io; }
 
 	virtual bool Init(); // does *not* call arg_io->Init()
@@ -309,6 +340,8 @@ public:
 
 	virtual bool Eof()	{ return io->Eof(); }
 	virtual int Fd()	{ return io->Fd(); }
+	virtual iosource::FD_Set ExtraReadFDs() const
+		{ return io->ExtraReadFDs(); }
 	virtual void Stats(char* buffer, int length);
 
 	void EnableCompression(int level)

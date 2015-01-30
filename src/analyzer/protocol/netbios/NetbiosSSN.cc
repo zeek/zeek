@@ -129,14 +129,11 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 	data += dstname->Len()+1;
 	len -= dstname->Len();
 
-	if ( smb_session )
-		{
-		smb_session->Deliver(is_query, len, data);
-		return 0;
-		}
-
 	delete srcname;
 	delete dstname;
+
+	if ( smb_session )
+		smb_session->Deliver(is_query, len, data);
 
 	return 0;
 	}
@@ -262,7 +259,7 @@ int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, int len,
 	if ( ConvertName(data, len, xname, xlen) )
 		Event(netbios_session_request, xname, xlen);
 
-	delete xname;
+	delete [] xname;
 
 	return 0;
 	}
@@ -349,7 +346,7 @@ Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
 	interp = arg_interp;
 	type = flags = msg_size = 0;
 	msg_buf = 0;
-	buf_n = msg_size = 0;
+	buf_n = buf_len = msg_size = 0;
 	state = NETBIOS_SSN_TYPE;
 	}
 
@@ -516,7 +513,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 	}
 
 void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen)
+					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

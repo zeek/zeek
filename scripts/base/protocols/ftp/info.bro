@@ -18,7 +18,8 @@ export {
 		orig_h: addr &log;
 		## The host that will be accepting the data connection.
 		resp_h: addr &log;
-		## The port at which the acceptor is listening for the data connection.
+		## The port at which the acceptor is listening for the data
+		## connection.
 		resp_p: port &log;
 	};
 
@@ -38,7 +39,8 @@ export {
 		## Argument for the command if one is given.
 		arg:              string      &log &optional;
 
-		## Libmagic "sniffed" file type if the command indicates a file transfer.
+		## Libmagic "sniffed" file type if the command indicates a file
+		## transfer.
 		mime_type:        string      &log &optional;
 		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;
@@ -59,8 +61,8 @@ export {
 
 		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
-		## Queue for commands that have been sent but not yet responded to
-		## are tracked here.
+		## Queue for commands that have been sent but not yet responded
+		## to are tracked here.
 		pending_commands:   PendingCmds;
 
 		## Indicates if the session is in active or passive mode.

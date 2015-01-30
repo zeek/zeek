@@ -265,6 +265,14 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
+			Expr* e = a->AttrExpr();
+			if ( check_and_promote_expr(e, type) )
+				{
+				a->SetAttrExpr(e);
+				// Ok.
+				break;
+				}
+
 			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
 
@@ -297,8 +305,11 @@ void Attributes::CheckAttr(Attr* a)
 
 				Expr* e = a->AttrExpr();
 				if ( check_and_promote_expr(e, ytype) )
+					{
+					a->SetAttrExpr(e);
 					// Ok.
 					break;
+					}
 
 				Error("&default value has inconsistent type 2");
 				}
@@ -317,8 +328,9 @@ void Attributes::CheckAttr(Attr* a)
 				break;
 
 			// Table defaults may be promotable.
-			if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-			      record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+			if ( ytype && ytype->Tag() == TYPE_RECORD &&
+			     atype->Tag() == TYPE_RECORD &&
+			     record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
 				// Ok.
 				break;
 

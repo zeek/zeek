@@ -16,12 +16,12 @@
 module Conn;
 
 export {
-	## The prefix given to files containing extracted connections as they are
-	## opened on disk.
+	## The prefix given to files containing extracted connections as they
+	## are opened on disk.
 	const extraction_prefix = "contents" &redef;
 	
-	## If this variable is set to ``T``, then all contents of all connections
-	## will be  extracted.
+	## If this variable is set to ``T``, then all contents of all
+	## connections will be extracted.
 	const default_extract = F &redef;
 }
 

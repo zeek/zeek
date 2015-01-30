@@ -1,11 +1,26 @@
+// See the file  in the main distribution directory for copyright.
+
 
 #include "plugin/Plugin.h"
 
 #include "SSL.h"
 
-BRO_PLUGIN_BEGIN(Bro, SSL)
-	BRO_PLUGIN_DESCRIPTION("SSL analyzer");
-	BRO_PLUGIN_ANALYZER("SSL", ssl::SSL_Analyzer);
-	BRO_PLUGIN_BIF_FILE(events);
-	BRO_PLUGIN_BIF_FILE(functions);
-BRO_PLUGIN_END
+namespace plugin {
+namespace Bro_SSL {
+
+class Plugin : public plugin::Plugin {
+public:
+	plugin::Configuration Configure()
+		{
+		AddComponent(new ::analyzer::Component("SSL", ::analyzer::ssl::SSL_Analyzer::Instantiate));
+
+		plugin::Configuration config;
+		config.name = "Bro::SSL";
+		config.description = "SSL analyzer";
+		return config;
+		}
+} plugin;
+
+}
+}
+

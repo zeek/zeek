@@ -1,7 +1,7 @@
 ##! This script tracks the memory map of holding (read/write) registers and logs
 ##! changes as they are discovered.
 ##!
-##! .. todo: Not all register reads and write functions are being supported yet.
+##! .. todo:: Not all register read and write functions are supported yet.
 
 @load base/protocols/modbus
 @load base/utils/directions-and-hosts
@@ -15,9 +15,9 @@ export {
 	const track_memmap: Host = ALL_HOSTS &redef;
 
 	type MemmapInfo: record {
-		## Timestamp for the detected register change
+		## Timestamp for the detected register change.
 		ts:        time     &log;
-		## Unique ID for the connection
+		## Unique ID for the connection.
 		uid:       string   &log;
 		## Connection ID.
 		id:        conn_id  &log;
@@ -27,7 +27,8 @@ export {
 		old_val:   count    &log;
 		## The new value stored in the register.
 		new_val:   count    &log;
-		## The time delta between when the 'old_val' and 'new_val' were seen.
+		## The time delta between when the *old_val* and *new_val* were
+		## seen.
 		delta:     interval &log;
 	};
 
@@ -42,8 +43,8 @@ export {
 	## The memory map of slaves is tracked with this variable.
 	global device_registers: table[addr] of Registers;
 
-	## This event is generated every time a register is seen to be different than
-	## it was previously seen to be.
+	## This event is generated every time a register is seen to be different
+	## than it was previously seen to be.
 	global changed_register: event(c: connection, register: count, old_val: count, new_val: count, delta: interval);
 }
 

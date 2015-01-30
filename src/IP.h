@@ -158,6 +158,12 @@ public:
 		}
 
 	/**
+	 * @return a copy of the header chain, but with pointers to individual
+	 * IPv6 headers now pointing within \a new_hdr.
+	 */
+	IPv6_Hdr_Chain* Copy(const struct ip6_hdr* new_hdr) const;
+
+	/**
 	 * Returns the number of headers in the chain.
 	 */
 	size_t Size() const { return chain.size(); }
@@ -176,7 +182,15 @@ public:
 	 * Returns whether the header chain indicates a fragmented packet.
 	 */
 	bool IsFragment() const
-		{ return chain[chain.size()-1]->Type() == IPPROTO_FRAGMENT; }
+		{
+		if ( chain.empty() )
+			{
+			reporter->InternalWarning("empty IPv6 header chain");
+			return false;
+			}
+
+		return chain[chain.size()-1]->Type() == IPPROTO_FRAGMENT;
+		}
 
 	/**
 	 * Returns pointer to fragment header structure if the chain contains one.
@@ -216,9 +230,14 @@ public:
 #ifdef ENABLE_MOBILE_IPV6
 		if ( homeAddr )
 			return IPAddr(*homeAddr);
-		else
 #endif
-			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+		if ( chain.empty() )
+			{
+			reporter->InternalWarning("empty IPv6 header chain");
+			return IPAddr();
+			}
+
+		return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
 		}
 
 	/**
@@ -230,8 +249,14 @@ public:
 		{
 		if ( finalDst )
 			return IPAddr(*finalDst);
-		else
-			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
+
+		if ( chain.empty() )
+			{
+			reporter->InternalWarning("empty IPv6 header chain");
+			return IPAddr();
+			}
+
+		return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
 		}
 
 	/**
@@ -244,6 +269,14 @@ protected:
 	// for access to protected ctor that changes next header values that
 	// point to a fragment
 	friend class FragReassembler;
+
+	IPv6_Hdr_Chain() :
+		length(0),
+#ifdef ENABLE_MOBILE_IPV6
+		homeAddr(0),
+#endif
+		finalDst(0)
+		{}
 
 	/**
 	 * Initializes the header chain from an IPv6 header structure, and replaces
@@ -306,32 +339,6 @@ protected:
 class IP_Hdr {
 public:
 	/**
-	 * Attempts to construct the header from some blob of data based on IP
-	 * version number.  Caller must have already checked that the header
-	 * is not truncated.
-	 * @param p pointer to memory containing an IPv4 or IPv6 packet.
-	 * @param arg_del whether to take ownership of \a p pointer's memory.
-	 * @param len the length of data, in bytes, pointed to by \a p.
-	 */
-	IP_Hdr(const u_char* p, bool arg_del, int len)
-		: ip4(0), ip6(0), del(arg_del), ip6_hdrs(0)
-		{
-		if ( ((const struct ip*)p)->ip_v == 4 )
-			ip4 = (const struct ip*)p;
-		else if ( ((const struct ip*)p)->ip_v == 6 )
-			{
-			ip6 = (const struct ip6_hdr*)p;
-			ip6_hdrs = new IPv6_Hdr_Chain(ip6, len);
-			}
-		else
-			{
-			if ( arg_del )
-				delete [] p;
-			reporter->InternalError("bad IP version in IP_Hdr ctor");
-			}
-		}
-
-	/**
 	 * Construct the header wrapper from an IPv4 packet.  Caller must have
 	 * already checked that the header is not truncated.
 	 * @param arg_ip4 pointer to memory containing an IPv4 packet.
@@ -361,19 +368,23 @@ public:
 		}
 
 	/**
+	 * Copy a header.  The internal buffer which contains the header data
+	 * must not be truncated.  Also note that if that buffer points to a full
+	 * packet payload, only the IP header portion is copied.
+	 */
+	IP_Hdr* Copy() const;
+
+	/**
 	 * Destructor.
 	 */
 	~IP_Hdr()
 		{
-		if ( ip6 )
-			delete ip6_hdrs;
+		delete ip6_hdrs;
 
 		if ( del )
 			{
-			if ( ip4 )
-				delete [] (struct ip*) ip4;
-			else
-				delete [] (struct ip6_hdr*) ip6;
+			delete [] (struct ip*) ip4;
+			delete [] (struct ip6_hdr*) ip6;
 			}
 		}
 
@@ -472,8 +483,16 @@ public:
 	 * For IPv6 header chains, returns the type of the last header in the chain.
 	 */
 	uint8 LastHeader() const
-		{ return ip4 ? IPPROTO_RAW :
-				((*ip6_hdrs)[ip6_hdrs->Size()-1])->Type(); }
+		{
+		if ( ip4 )
+			return IPPROTO_RAW;
+
+		size_t i = ip6_hdrs->Size();
+		if ( i > 0 )
+			return (*ip6_hdrs)[i-1]->Type();
+
+		return IPPROTO_NONE;
+		}
 
 	/**
 	 * Returns the protocol type of the IP packet's payload, usually an
@@ -481,8 +500,16 @@ public:
 	 * header's Next Header value.
 	 */
 	unsigned char NextProto() const
-		{ return ip4 ? ip4->ip_p :
-				((*ip6_hdrs)[ip6_hdrs->Size()-1])->NextHdr(); }
+		{
+		if ( ip4 )
+			return ip4->ip_p;
+
+		size_t i = ip6_hdrs->Size();
+		if ( i > 0 )
+			return (*ip6_hdrs)[i-1]->NextHdr();
+
+		return IPPROTO_NONE;
+		}
 
 	/**
 	 * Returns the IPv4 Time to Live or IPv6 Hop Limit field.
@@ -548,6 +575,7 @@ public:
 	RecordVal* BuildPktHdrVal() const;
 
 private:
+
 	const struct ip* ip4;
 	const struct ip6_hdr* ip6;
 	bool del;

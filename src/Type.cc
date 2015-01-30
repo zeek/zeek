@@ -8,32 +8,45 @@
 #include "Scope.h"
 #include "Serializer.h"
 #include "Reporter.h"
+#include "broxygen/Manager.h"
+#include "broxygen/utils.h"
 
 #include <string>
 #include <list>
 #include <map>
 
-extern int generate_documentation;
+BroType::TypeAliasMap BroType::type_aliases;
 
 // Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
 	static const char* type_names[int(NUM_TYPES)] = {
-		"void",
-		"bool", "int", "count", "counter",
-		"double", "time", "interval",
-		"string", "pattern",
-		"enum",
-		"timer",
-		"port", "addr", "subnet",
-		"any",
-		"table", "union", "record", "types",
-		"func",
-		"file",
-		"opaque",
-		"vector",
-		"type",
-		"error",
+		"void",      // 0
+		"bool",      // 1
+		"int",       // 2
+		"count",     // 3
+		"counter",   // 4
+		"double",    // 5
+		"time",      // 6
+		"interval",  // 7
+		"string",    // 8
+		"pattern",   // 9
+		"enum",      // 10
+		"timer",     // 11
+		"port",      // 12
+		"addr",      // 13
+		"subnet",    // 14
+		"any",       // 15
+		"table",     // 16
+		"union",     // 17
+		"record",    // 18
+		"types",     // 19
+		"func",      // 20
+		"file",      // 21
+		"vector",    // 22
+		"opaque",    // 23
+		"type",      // 24
+		"error",     // 25
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -47,7 +60,6 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	tag = t;
 	is_network_order = 0;
 	base_type = arg_base_type;
-	type_id = 0;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -110,10 +122,27 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
-BroType::~BroType()
+BroType* BroType::Clone() const
 	{
-	if ( type_id )
-		delete [] type_id;
+	SerializationFormat* form = new BinarySerializationFormat();
+	form->StartWrite();
+	CloneSerializer ss(form);
+	SerialInfo sinfo(&ss);
+	sinfo.cache = false;
+
+	this->Serialize(&sinfo);
+	char* data;
+	uint32 len = form->EndWrite(&data);
+	form->StartRead(data, len);
+
+	UnserialInfo uinfo(&ss);
+	uinfo.cache = false;
+
+	BroType* rval = this->Unserialize(&uinfo, false);
+	assert(rval != this);
+
+	free(data);
+	return rval;
 	}
 
 int BroType::MatchesIndex(ListExpr*& index) const
@@ -159,11 +188,9 @@ void BroType::Describe(ODesc* d) const
 		}
 	}
 
-void BroType::DescribeReST(ODesc* d) const
+void BroType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	d->Add(":bro:type:`");
-	d->Add(type_name(Tag()));
-	d->Add("`");
+	d->Add(fmt(":bro:type:`%s`", type_name(Tag())));
 	}
 
 void BroType::SetError()
@@ -179,13 +206,14 @@ unsigned int BroType::MemoryAllocation() const
 bool BroType::Serialize(SerialInfo* info) const
 	{
 	// We always send full types (see below).
-	SERIALIZE(true);
+	if ( ! SERIALIZE(true) )
+		return false;
 
 	bool ret = SerialObj::Serialize(info);
 	return ret;
 	}
 
-BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
+BroType* BroType::Unserialize(UnserialInfo* info, bool use_existing)
 	{
 	// To avoid external Broccoli clients needing to always send full type
 	// objects, we allow them to give us only the name of a type. To
@@ -219,12 +247,24 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 
 	BroType* t = (BroType*) SerialObj::Unserialize(info, SER_BRO_TYPE);
 
-	if ( ! t )
-		return 0;
+	if ( ! t || ! use_existing )
+		return t;
 
-	// For base types, we return our current instance
-	// if not in "documentation mode".
-	if ( t->base_type && ! generate_documentation )
+	if ( ! t->name.empty() )
+		{
+		// Avoid creating a new type if it's known by name.
+		// Also avoids loss of base type name alias (from condition below).
+		ID* id = global_scope()->Lookup(t->name.c_str());
+		BroType* t2 = id ? id->AsType() : 0;
+
+		if ( t2 )
+			{
+			Unref(t);
+			return t2->Ref();
+			}
+		}
+
+	if ( t->base_type )
 		{
 		BroType* t2 = ::base_type(TypeTag(t->tag));
 		Unref(t);
@@ -247,21 +287,10 @@ bool BroType::DoSerialize(SerialInfo* info) const
 	if ( ! (SERIALIZE(char(tag)) && SERIALIZE(char(internal_tag))) )
 		return false;
 
-	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type) &&
-		// Serialize the former "bool is_global_attributes_type" for
-		// backwards compatibility.
-		SERIALIZE(false)) )
+	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type)) )
 		return false;
 
-	// Likewise, serialize the former optional "RecordType* attributes_type"
-	// for backwards compatibility.
-	void* null = NULL;
-	SERIALIZE(null);
-
-	if ( generate_documentation )
-		{
-		SERIALIZE_OPTIONAL_STR(type_id);
-		}
+	SERIALIZE_STR(name.c_str(), name.size());
 
 	info->s->WriteCloseTag("Type");
 
@@ -279,24 +308,15 @@ bool BroType::DoUnserialize(UnserialInfo* info)
 	tag = (TypeTag) c1;
 	internal_tag = (InternalTypeTag) c2;
 
-	bool not_used;
-
-	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)
-			// Unerialize the former "bool is_global_attributes_type" for
-			// backwards compatibility.
-			&& UNSERIALIZE(&not_used)) )
+	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)) )
 		return 0;
 
-	BroType* not_used_either;
+	const char* n;
+	if ( ! UNSERIALIZE_STR(&n, 0) )
+		return false;
 
-	// Likewise, unserialize the former optional "RecordType*
-	// attributes_type" for backwards compatibility.
-	UNSERIALIZE_OPTIONAL(not_used_either, BroType::Unserialize(info, TYPE_RECORD));
-
-	if ( generate_documentation )
-		{
-		UNSERIALIZE_OPTIONAL_STR(type_id);
-		}
+	name = n;
+	delete [] n;
 
 	return true;
 	}
@@ -429,6 +449,11 @@ BroType* IndexType::YieldType()
 	return yield_type;
 	}
 
+const BroType* IndexType::YieldType() const
+	{
+	return yield_type;
+	}
+
 void IndexType::Describe(ODesc* d) const
 	{
 	BroType::Describe(d);
@@ -451,7 +476,7 @@ void IndexType::Describe(ODesc* d) const
 		}
 	}
 
-void IndexType::DescribeReST(ODesc* d) const
+void IndexType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":bro:type:`");
 
@@ -470,14 +495,14 @@ void IndexType::DescribeReST(ODesc* d) const
 
 		const BroType* t = (*IndexTypes())[i];
 
-		if ( t->GetTypeID() )
+		if ( ! t->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(t->GetTypeID());
+			d->Add(t->GetName());
 			d->Add("`");
 			}
 		else
-			t->DescribeReST(d);
+			t->DescribeReST(d, roles_only);
 		}
 
 	d->Add("]");
@@ -486,14 +511,14 @@ void IndexType::DescribeReST(ODesc* d) const
 		{
 		d->Add(" of ");
 
-		if ( yield_type->GetTypeID() )
+		if ( ! yield_type->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(yield_type->GetTypeID());
+			d->Add(yield_type->GetName());
 			d->Add("`");
 			}
 		else
-			yield_type->DescribeReST(d);
+			yield_type->DescribeReST(d, roles_only);
 		}
 	}
 
@@ -722,6 +747,11 @@ BroType* FuncType::YieldType()
 	return yield;
 	}
 
+const BroType* FuncType::YieldType() const
+	{
+	return yield;
+	}
+
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
 	return check_and_promote_args(index, args) ?
@@ -768,7 +798,7 @@ void FuncType::Describe(ODesc* d) const
 		}
 	}
 
-void FuncType::DescribeReST(ODesc* d) const
+void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":bro:type:`");
 	d->Add(FlavorString());
@@ -781,14 +811,14 @@ void FuncType::DescribeReST(ODesc* d) const
 		{
 		d->AddSP(" :");
 
-		if ( yield->GetTypeID() )
+		if ( ! yield->GetName().empty() )
 			{
 			d->Add(":bro:type:`");
-			d->Add(yield->GetTypeID());
+			d->Add(yield->GetName());
 			d->Add("`");
 			}
 		else
-			yield->DescribeReST(d);
+			yield->DescribeReST(d, roles_only);
 		}
 	}
 
@@ -873,6 +903,17 @@ TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_reco
 	id = i;
 	}
 
+TypeDecl::TypeDecl(const TypeDecl& other)
+	{
+	type = other.type->Ref();
+	attrs = other.attrs;
+
+	if ( attrs )
+		::Ref(attrs);
+
+	id = copy_string(other.id);
+	}
+
 TypeDecl::~TypeDecl()
 	{
 	Unref(type);
@@ -909,55 +950,24 @@ TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
 	return t;
 	}
 
-void TypeDecl::DescribeReST(ODesc* d) const
+void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(id);
 	d->Add(": ");
 
-	if ( type->GetTypeID() )
+	if ( ! type->GetName().empty() )
 		{
 		d->Add(":bro:type:`");
-		d->Add(type->GetTypeID());
+		d->Add(type->GetName());
 		d->Add("`");
 		}
 	else
-		type->DescribeReST(d);
+		type->DescribeReST(d, roles_only);
 
 	if ( attrs )
 		{
 		d->SP();
 		attrs->DescribeReST(d);
-		}
-	}
-
-CommentedTypeDecl::CommentedTypeDecl(BroType* t, const char* i,
-			attr_list* attrs, bool in_record, std::list<std::string>* cmnt_list)
-	: TypeDecl(t, i, attrs, in_record)
-	{
-	comments = cmnt_list;
-	}
-
-CommentedTypeDecl::~CommentedTypeDecl()
-	{
-	if ( comments ) delete comments;
-	}
-
-void CommentedTypeDecl::DescribeReST(ODesc* d) const
-	{
-	TypeDecl::DescribeReST(d);
-
-	if ( comments )
-		{
-		d->PushIndent();
-		std::list<std::string>::const_iterator i;
-
-		for ( i = comments->begin(); i != comments->end(); ++i)
-			{
-			if ( i != comments->begin() ) d->NL();
-			d->Add(i->c_str());
-			}
-
-		d->PopIndentNoNL();
 		}
 	}
 
@@ -1037,10 +1047,16 @@ void RecordType::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		{
-		d->AddSP("record {");
-		DescribeFields(d);
-		d->SP();
-		d->Add("}");
+		if ( d->IsShort() && GetName().size() )
+			d->Add(GetName());
+
+		else
+			{
+			d->AddSP("record {");
+			DescribeFields(d);
+			d->SP();
+			d->Add("}");
+			}
 		}
 
 	else
@@ -1050,9 +1066,13 @@ void RecordType::Describe(ODesc* d) const
 		}
 	}
 
-void RecordType::DescribeReST(ODesc* d) const
+void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(":bro:type:`record`");
+
+	if ( num_fields == 0 )
+		return;
+
 	d->NL();
 	DescribeFieldsReST(d, false);
 	}
@@ -1149,7 +1169,62 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				}
 			}
 
-		FieldDecl(i)->DescribeReST(d);
+		const TypeDecl* td = FieldDecl(i);
+		td->DescribeReST(d);
+
+		if ( func_args )
+			continue;
+
+		using broxygen::IdentifierInfo;
+		IdentifierInfo* doc = broxygen_mgr->GetIdentifierInfo(GetName());
+
+		if ( ! doc )
+			{
+			reporter->InternalWarning("Failed to lookup record doc: %s",
+			                          GetName().c_str());
+			continue;
+			}
+
+		string field_from_script = doc->GetDeclaringScriptForField(td->id);
+		string type_from_script;
+
+		if ( doc->GetDeclaringScript() )
+			type_from_script = doc->GetDeclaringScript()->Name();
+
+		if ( ! field_from_script.empty() &&
+		     field_from_script != type_from_script )
+			{
+			d->PushIndent();
+			d->Add(broxygen::redef_indication(field_from_script).c_str());
+			d->PopIndent();
+			}
+
+		vector<string> cmnts = doc->GetFieldComments(td->id);
+
+		if ( cmnts.empty() )
+			continue;
+
+		d->PushIndent();
+
+		for ( size_t i = 0; i < cmnts.size(); ++i )
+			{
+			if ( i > 0 )
+				d->NL();
+
+			if ( IsFunc(td->type->Tag()) )
+				{
+				string s = cmnts[i];
+
+				if ( broxygen::prettify_params(s) )
+					d->NL();
+
+				d->Add(s.c_str());
+				}
+			else
+				d->Add(cmnts[i].c_str());
+			}
+
+		d->PopIndentNoNL();
 		}
 
 	if ( ! func_args )
@@ -1306,6 +1381,11 @@ void OpaqueType::Describe(ODesc* d) const
 	d->Add(name.c_str());
 	}
 
+void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
+	{
+	d->Add(fmt(":bro:type:`%s` of %s", type_name(Tag()), name.c_str()));
+	}
+
 IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
 
 bool OpaqueType::DoSerialize(SerialInfo* info) const
@@ -1328,18 +1408,18 @@ bool OpaqueType::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-EnumType::EnumType(const string& arg_name)
-: BroType(TYPE_ENUM)
+EnumType::EnumType(const string& name)
+	: BroType(TYPE_ENUM)
 	{
-	name = arg_name;
 	counter = 0;
+	SetName(name);
 	}
 
 EnumType::EnumType(EnumType* e)
-: BroType(TYPE_ENUM)
+	: BroType(TYPE_ENUM)
 	{
-	name = e->name;
 	counter = e->counter;
+	SetName(e->GetName());
 
 	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
 		names[copy_string(it->first)] = it->second;
@@ -1349,15 +1429,6 @@ EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
 		delete [] iter->first;
-	}
-
-CommentedEnumType::~CommentedEnumType()
-	{
-	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
-		{
-		delete [] iter->first;
-		delete iter->second;
-		}
 	}
 
 // Note, we use reporter->Error() here (not Error()) to include the current script
@@ -1372,7 +1443,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 		SetError();
 		return;
 		}
-	AddNameInternal(module_name, name, counter, is_export);
+	CheckAndAddName(module_name, name, counter, is_export);
 	counter++;
 	}
 
@@ -1386,32 +1457,12 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		return;
 		}
 	counter = -1;
-	AddNameInternal(module_name, name, val, is_export);
+	CheckAndAddName(module_name, name, val, is_export);
 	}
 
-void CommentedEnumType::AddComment(const string& module_name, const char* name,
-                                   std::list<std::string>* new_comments)
+void EnumType::CheckAndAddName(const string& module_name, const char* name,
+                               bro_int_t val, bool is_export)
 	{
-	if ( ! new_comments )
-		return;
-
-	string fullname = make_full_var_name(module_name.c_str(), name);
-
-	CommentMap::iterator it = comments.find(fullname.c_str());
-
-	if ( it == comments.end() )
-		comments[copy_string(fullname.c_str())] = new_comments;
-	else
-		{
-		comments[fullname.c_str()]->splice(comments[fullname.c_str()]->end(),
-			*new_comments);
-		delete new_comments;
-		}
-	}
-
-void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
-	{
-	ID *id;
 	if ( Lookup(val) )
 		{
 		reporter->Error("enumerator value in enumerated type definition already exists");
@@ -1419,33 +1470,53 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 		return;
 		}
 
-	id = lookup_ID(name, module_name.c_str());
+	ID* id = lookup_ID(name, module_name.c_str());
+
 	if ( ! id )
 		{
 		id = install_ID(name, module_name.c_str(), true, is_export);
 		id->SetType(this->Ref());
 		id->SetEnumConst();
+		broxygen_mgr->Identifier(id);
 		}
 	else
 		{
-		reporter->Error("identifier or enumerator value in enumerated type definition already exists");
-		SetError();
-		return;
+		// We allow double-definitions if matching exactly. This is so that
+		// we can define an enum both in a *.bif and *.bro for avoiding
+		// cyclic dependencies.
+		if ( id->Name() != make_full_var_name(module_name.c_str(), name)
+		     || (id->HasVal() && val != id->ID_Val()->AsEnum()) )
+			{
+			Unref(id);
+			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
+			SetError();
+			return;
+			}
+
+		Unref(id);
 		}
 
-	string fullname = make_full_var_name(module_name.c_str(), name);
-	names[copy_string(fullname.c_str())] = val;
+	AddNameInternal(module_name, name, val, is_export);
+
+	set<BroType*> types = BroType::GetAliases(GetName());
+	set<BroType*>::const_iterator it;
+
+	for ( it = types.begin(); it != types.end(); ++it )
+		if ( *it != this )
+			(*it)->AsEnumType()->AddNameInternal(module_name, name, val,
+							     is_export);
 	}
 
-void CommentedEnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
+void EnumType::AddNameInternal(const string& module_name, const char* name,
+                               bro_int_t val, bool is_export)
 	{
 	string fullname = make_full_var_name(module_name.c_str(), name);
 	names[copy_string(fullname.c_str())] = val;
 	}
 
-bro_int_t EnumType::Lookup(const string& module_name, const char* name)
+bro_int_t EnumType::Lookup(const string& module_name, const char* name) const
 	{
-	NameMap::iterator pos =
+	NameMap::const_iterator pos =
 		names.find(make_full_var_name(module_name.c_str(), name).c_str());
 
 	if ( pos == names.end() )
@@ -1454,9 +1525,9 @@ bro_int_t EnumType::Lookup(const string& module_name, const char* name)
 		return pos->second;
 	}
 
-const char* EnumType::Lookup(bro_int_t value)
+const char* EnumType::Lookup(bro_int_t value) const
 	{
-	for ( NameMap::iterator iter = names.begin();
+	for ( NameMap::const_iterator iter = names.begin();
 	      iter != names.end(); ++iter )
 		if ( iter->second == value )
 			return iter->first;
@@ -1464,56 +1535,91 @@ const char* EnumType::Lookup(bro_int_t value)
 	return 0;
 	}
 
-void EnumType::DescribeReST(ODesc* d) const
+EnumType::enum_name_list EnumType::Names() const
 	{
-	d->Add(":bro:type:`");
-	d->Add(name.c_str());
-	d->Add("`");
+	enum_name_list n;
+	for ( NameMap::const_iterator iter = names.begin();
+	      iter != names.end(); ++iter )
+		n.push_back(std::make_pair(iter->first, iter->second));
+
+	return n;
 	}
 
-void CommentedEnumType::DescribeReST(ODesc* d) const
+void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 	{
-	// create temporary, reverse name map so that enums can be documented
-	// in ascending order of their actual integral value instead of by name
-	typedef std::map< bro_int_t, const char* > RevNameMap;
+	d->Add(":bro:type:`enum`");
+
+	// Create temporary, reverse name map so that enums can be documented
+	// in ascending order of their actual integral value instead of by name.
+	typedef map< bro_int_t, const char* > RevNameMap;
+
 	RevNameMap rev;
+
 	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
 		rev[it->second] = it->first;
 
-	d->Add(":bro:type:`");
-	d->Add(type_name(Tag()));
-	d->Add("`");
-	d->PushIndent();
-	d->NL();
-
 	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it )
 		{
-		if ( it != rev.begin() )
+		d->NL();
+		d->PushIndent();
+
+		if ( roles_only )
+			d->Add(fmt(":bro:enum:`%s`", it->second));
+		else
+			d->Add(fmt(".. bro:enum:: %s %s", it->second, GetName().c_str()));
+
+		using broxygen::IdentifierInfo;
+		IdentifierInfo* doc = broxygen_mgr->GetIdentifierInfo(it->second);
+
+		if ( ! doc )
 			{
-			d->NL();
-			d->NL();
+			reporter->InternalWarning("Enum %s documentation lookup failure",
+			                          it->second);
+			continue;
 			}
 
-		d->Add(".. bro:enum:: ");
-		d->AddSP(it->second);
-		d->Add(GetTypeID());
+		string enum_from_script;
+		string type_from_script;
 
-		CommentMap::const_iterator cmnt_it = comments.find(it->second);
-		if ( cmnt_it != comments.end() )
+		if ( doc->GetDeclaringScript() )
+			enum_from_script = doc->GetDeclaringScript()->Name();
+
+		IdentifierInfo* type_doc = broxygen_mgr->GetIdentifierInfo(GetName());
+
+		if ( type_doc && type_doc->GetDeclaringScript() )
+			type_from_script = type_doc->GetDeclaringScript()->Name();
+
+		if ( ! enum_from_script.empty() &&
+		     enum_from_script != type_from_script )
 			{
+			d->NL();
 			d->PushIndent();
-			d->NL();
-			std::list<std::string>::const_iterator i;
-			const std::list<std::string>* cmnt_list = cmnt_it->second;
-			for ( i = cmnt_list->begin(); i != cmnt_list->end(); ++i)
-				{
-				if ( i != cmnt_list->begin() ) d->NL();
-				d->Add(i->c_str());
-				}
-			d->PopIndentNoNL();
+			d->Add(broxygen::redef_indication(enum_from_script).c_str());
+			d->PopIndent();
 			}
+
+		vector<string> cmnts = doc->GetComments();
+
+		if ( cmnts.empty() )
+			{
+			d->PopIndentNoNL();
+			continue;
+			}
+
+		d->NL();
+		d->PushIndent();
+
+		for ( size_t i = 0; i < cmnts.size(); ++i )
+			{
+			if ( i > 0 )
+				d->NL();
+
+			d->Add(cmnts[i].c_str());
+			}
+
+		d->PopIndentNoNL();
+		d->PopIndentNoNL();
 		}
-	d->PopIndentNoNL();
 	}
 
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);
@@ -1563,15 +1669,47 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 	}
 
 VectorType::VectorType(BroType* element_type)
-: BroType(TYPE_VECTOR)
+    : BroType(TYPE_VECTOR), yield_type(element_type)
 	{
-	if ( element_type )
-		yield_type = element_type;
 	}
 
 VectorType::~VectorType()
 	{
 	Unref(yield_type);
+	}
+
+BroType* VectorType::YieldType()
+	{
+	// Work around the fact that we use void internally to mark a vector
+	// as being unspecified. When looking at its yield type, we need to
+	// return any as that's what other code historically expects for type
+	// comparisions.
+	if ( IsUnspecifiedVector() )
+		{
+		BroType* ret = ::base_type(TYPE_ANY);
+		Unref(ret); // unref, because this won't be held by anyone.
+		assert(ret);
+		return ret;
+		}
+
+	return yield_type;
+	}
+
+const BroType* VectorType::YieldType() const
+	{
+	// Work around the fact that we use void internally to mark a vector
+	// as being unspecified. When looking at its yield type, we need to
+	// return any as that's what other code historically expects for type
+	// comparisions.
+	if ( IsUnspecifiedVector() )
+		{
+		BroType* ret = ::base_type(TYPE_ANY);
+		Unref(ret); // unref, because this won't be held by anyone.
+		assert(ret);
+		return ret;
+		}
+
+	return yield_type;
 	}
 
 int VectorType::MatchesIndex(ListExpr*& index) const
@@ -1593,7 +1731,7 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 
 bool VectorType::IsUnspecifiedVector() const
 	{
-	return yield_type->Tag() == TYPE_ANY;
+	return yield_type->Tag() == TYPE_VOID;
 	}
 
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);
@@ -1621,7 +1759,17 @@ void VectorType::Describe(ODesc* d) const
 	yield_type->Describe(d);
 	}
 
-BroType* base_type(TypeTag tag)
+void VectorType::DescribeReST(ODesc* d, bool roles_only) const
+	{
+	d->Add(fmt(":bro:type:`%s` of ", type_name(Tag())));
+
+	if ( yield_type->GetName().empty() )
+		yield_type->DescribeReST(d, roles_only);
+	else
+		d->Add(fmt(":bro:type:`%s`", yield_type->GetName().c_str()));
+	}
+
+BroType* base_type_no_ref(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
 
@@ -1637,7 +1785,7 @@ BroType* base_type(TypeTag tag)
 		base_types[t]->SetLocationInfo(&l);
 		}
 
-	return base_types[t]->Ref();
+	return base_types[t];
 	}
 
 
@@ -1662,7 +1810,7 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 	return 0;
 	}
 
-int same_type(const BroType* t1, const BroType* t2, int is_init)
+int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_record_field_names)
 	{
 	if ( t1 == t2 ||
 	     t1->Tag() == TYPE_ANY ||
@@ -1718,7 +1866,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 		if ( tl1 || tl2 )
 			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init) )
+			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1727,7 +1875,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 		if ( y1 || y2 )
 			{
-			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init) )
+			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1745,7 +1893,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		if ( t1->YieldType() || t2->YieldType() )
 			{
 			if ( ! t1->YieldType() || ! t2->YieldType() ||
-			     ! same_type(t1->YieldType(), t2->YieldType(), is_init) )
+			     ! same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1765,8 +1913,8 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
-			if ( ! streq(td1->id, td2->id) ||
-			     ! same_type(td1->type, td2->type, is_init) )
+			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
+			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1782,7 +1930,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 			return 0;
 
 		loop_over_list(*tl1, i)
-			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init) )
+			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init, match_record_field_names) )
 				return 0;
 
 		return 1;
@@ -1790,7 +1938,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->YieldType(), t2->YieldType(), is_init);
+		return same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names);
 
 	case TYPE_OPAQUE:
 		{
@@ -1800,7 +1948,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		}
 
 	case TYPE_TYPE:
-		return same_type(t1, t2, is_init);
+		return same_type(t1, t2, is_init, match_record_field_names);
 
 	case TYPE_UNION:
 		reporter->Error("union type in same_type()");
@@ -2003,6 +2151,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			if ( ! y1 || ! y2 )
 				{
 				t1->Error("incompatible types", t2);
+				Unref(tl3);
 				return 0;
 				}
 

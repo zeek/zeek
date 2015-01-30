@@ -13,13 +13,15 @@ export {
 	
 	## Address to send the pretty-printed reports to. Default if not set is
 	## :bro:id:`Notice::mail_dest`.
+	##
+	## Note that this is overridden by the BroControl MailAlarmsTo option.
 	const mail_dest_pretty_printed = "" &redef;
 	## If an address from one of these networks is reported, we mark
 	## the entry with an additional quote symbol (i.e., ">"). Many MUAs
 	## then highlight such lines differently.
 	global flag_nets: set[subnet] &redef;
 	
-	## Function that renders a single alarm. Can be overidden.
+	## Function that renders a single alarm. Can be overridden.
 	global pretty_print_alarm: function(out: file, n: Info) &redef;
 	
 	## Force generating mail file, even if reading from traces or no mail

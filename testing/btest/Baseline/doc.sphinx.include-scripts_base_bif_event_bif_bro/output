@@ -1,0 +1,21 @@
+# @TEST-EXEC: cat %INPUT >output && btest-diff output
+
+event.bif.bro
+
+## Generated for every new connection. This event is raised with the first
+## packet of a previously unknown connection. Bro uses a flow-based definition
+## of "connection" here that includes not only TCP sessions but also UDP and
+## ICMP flows.
+global new_connection: event(c: connection );
+## Generated when a TCP connection timed out. This event is raised when
+## no activity was seen for an interval of at least
+## :bro:id:`tcp_connection_linger`, and either one endpoint has already
+## closed the connection or one side never became active.
+global connection_timeout: event(c: connection );
+## Generated when a connection's internal state is about to be removed from
+## memory. Bro generates this event reliably once for every connection when it
+## is about to delete the internal state. As such, the event is well-suited for
+## script-level cleanup that needs to be performed for every connection.  This
+## event is generated not only for TCP sessions but also for UDP and ICMP
+## flows.
+global connection_state_remove: event(c: connection );

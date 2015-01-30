@@ -1,26 +1,24 @@
+// See the file in the main distribution directory for copyright.
+
 #include "plugin/Plugin.h"
-#include "file_analysis/Component.h"
 
 #include "DataEvent.h"
 
-namespace plugin { namespace Bro_FileDataEvent {
+namespace plugin {
+namespace Bro_FileDataEvent {
 
 class Plugin : public plugin::Plugin {
-protected:
-	void InitPreScript()
+public:
+	plugin::Configuration Configure()
 		{
-		SetName("Bro::FileDataEvent");
-		SetVersion(-1);
-		SetAPIVersion(BRO_PLUGIN_API_VERSION);
-		SetDynamicPlugin(false);
+		AddComponent(new ::file_analysis::Component("DATA_EVENT", ::file_analysis::DataEvent::Instantiate));
 
-		SetDescription("Delivers file content via events");
-
-		AddComponent(new ::file_analysis::Component("DATA_EVENT",
-		        ::file_analysis::DataEvent::Instantiate));
+		plugin::Configuration config;
+		config.name = "Bro::FileDataEvent";
+		config.description = "Delivers file content";
+		return config;
 		}
-};
+} plugin;
 
-Plugin __plugin;
-
-} }
+}
+}

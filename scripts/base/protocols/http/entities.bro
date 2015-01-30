@@ -28,10 +28,16 @@ export {
 
 		## The current entity.
 		current_entity:  Entity           &optional;
-		## Current number of MIME entities in the HTTP request message body.
+		## Current number of MIME entities in the HTTP request message
+		## body.
 		orig_mime_depth: count            &default=0;
-		## Current number of MIME entities in the HTTP response message body.
+		## Current number of MIME entities in the HTTP response message
+		## body.
 		resp_mime_depth: count            &default=0;
+	};
+
+	redef record fa_file += {
+		http: HTTP::Info &optional;
 	};
 }
 
@@ -65,41 +71,47 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	{
 	if ( f$source == "HTTP" && c?$http ) 
 		{
+		f$http = c$http;
+
 		if ( c$http?$current_entity && c$http$current_entity?$filename )
 			f$info$filename = c$http$current_entity$filename;
 
 		if ( f$is_orig )
 			{
-			if ( ! c$http?$orig_mime_types )
+			if ( ! c$http?$orig_fuids )
 				c$http$orig_fuids = string_vec(f$id);
 			else
 				c$http$orig_fuids[|c$http$orig_fuids|] = f$id;
-
-			if ( f?$mime_type )
-				{
-				if ( ! c$http?$orig_mime_types )
-					c$http$orig_mime_types = string_vec(f$mime_type);
-				else
-					c$http$orig_mime_types[|c$http$orig_mime_types|] = f$mime_type;
-				}
 			}
 		else
 			{
-			if ( ! c$http?$resp_mime_types )
+			if ( ! c$http?$resp_fuids )
 				c$http$resp_fuids = string_vec(f$id);
 			else
 				c$http$resp_fuids[|c$http$resp_fuids|] = f$id;
-
-			if ( f?$mime_type )
-				{
-				if ( ! c$http?$resp_mime_types )
-					c$http$resp_mime_types = string_vec(f$mime_type);
-				else
-					c$http$resp_mime_types[|c$http$resp_mime_types|] = f$mime_type;
-				}
 			}
 		}
+	}
 
+event file_mime_type(f: fa_file, mime_type: string) &priority=5
+	{
+	if ( ! f?$http || ! f?$is_orig )
+		return;
+
+	if ( f$is_orig )
+		{
+		if ( ! f$http?$orig_mime_types )
+			f$http$orig_mime_types = string_vec(mime_type);
+		else
+			f$http$orig_mime_types[|f$http$orig_mime_types|] = mime_type;
+		}
+	else
+		{
+		if ( ! f$http?$resp_mime_types )
+			f$http$resp_mime_types = string_vec(mime_type);
+		else
+			f$http$resp_mime_types[|f$http$resp_mime_types|] = mime_type;
+		}
 	}
 
 event http_end_entity(c: connection, is_orig: bool) &priority=5

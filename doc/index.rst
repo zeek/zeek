@@ -1,92 +1,58 @@
+
 .. Bro documentation master file
 
+==========
+Bro Manual
+==========
+
+Introduction Section
+====================
+
+.. toctree::
+   :maxdepth: 2
+
+   intro/index.rst
+   cluster/index.rst
+   install/index.rst
+   quickstart/index.rst
+   configuration/index.rst
+
+.. 
+
+.. _using-bro:
+
+Using Bro Section
 =================
-Bro Documentation
+
+.. toctree::
+   :maxdepth: 2
+
+   logs/index.rst
+   httpmonitor/index.rst
+   broids/index.rst
+   mimestats/index.rst
+   scripting/index.rst
+
+..
+
+Reference Section
 =================
 
-Guides
-------
+.. toctree::
+   :maxdepth: 2
+
+   frameworks/index.rst
+   script-reference/index.rst
+   components/index.rst
+
+Development
+===========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   INSTALL
-   upgrade
-   quickstart
-   faq
-   reporting-problems
-
-Frameworks
-----------
-
-.. toctree::
-   :maxdepth: 1
-
-   notice
-   logging
-   input
-   file-analysis
-   cluster
-   signatures
-
-How-Tos
--------
-
-.. toctree::
-   :maxdepth: 1
-
-   geoip
-
-Script Reference
-----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   scripts/packages
-   scripts/index
-   scripts/builtins
-   scripts/proto-analyzers
-   scripts/file-analyzers
-
-Other Bro Components
---------------------
-
-The following are snapshots of documentation for components that come
-with this version of Bro (|version|). Since they can also be used
-independently, see the `download page
-<http://bro.org/download/index.html>`_ for documentation of any
-current, independent component releases.
-
-.. toctree::
-   :maxdepth: 1
-
-   BinPAC - A protocol parser generator <components/binpac/README>
-   Broccoli - The Bro Client Communication Library (README) <components/broccoli/README>
-   Broccoli - User Manual <components/broccoli/broccoli-manual>
-   Broccoli Python Bindings <components/broccoli-python/README>
-   Broccoli Ruby Bindings <components/broccoli-ruby/README>
-   BroControl - Interactive Bro management shell <components/broctl/README>
-   Bro-Aux - Small auxiliary tools for Bro <components/bro-aux/README>
-   BTest - A unit testing framework <components/btest/README>
-   Capstats - Command-line packet statistic tool <components/capstats/README>
-   PySubnetTree - Python module for CIDR lookups<components/pysubnettree/README>
-   trace-summary - Script for generating break-downs of network traffic <components/trace-summary/README>
-
-The `Broccoli API Reference <broccoli-api/index.html>`_ may also be of
-interest.
-
-Other Indices and References
-----------------------------
+   devel/plugins.rst
 
 * :ref:`General Index <genindex>`
-* `Notice Index <bro-noticeindex.html>`_
 * :ref:`search`
 
-Internal References
--------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   scripts/internal

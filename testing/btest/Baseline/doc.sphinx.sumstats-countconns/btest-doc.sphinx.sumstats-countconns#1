@@ -1,0 +1,9 @@
+.. rst-class:: btest-cmd
+
+    .. code-block:: none
+      :linenos:
+      :emphasize-lines: 1,1
+
+      # bro -r workshop_2011_browse.trace sumstats-countconns.bro
+      Number of connections established: 6
+

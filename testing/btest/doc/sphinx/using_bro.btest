@@ -1,0 +1,2 @@
+@TEST-EXEC: btest-rst-cmd bro -r $TRACES/wikipedia.trace
+@TEST-EXEC: btest-rst-include -n 15 conn.log

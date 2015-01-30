@@ -319,7 +319,8 @@ public:
 	\
 	if ( has_it )	\
 		{	\
-		info->s->Read(&dst, 0, "has_" #dst);	\
+		if ( ! info->s->Read(&dst, 0, "has_" #dst) )	\
+			return false;	\
 		if ( ! dst )	\
 			return false;	\
 		}	\
@@ -339,7 +340,11 @@ public:
 	\
 	if ( has_it )	\
 		{	\
-		info->s->Read(&dst, 0, "has_" #dst);	\
+		if ( ! info->s->Read(&dst, 0, "has_" #dst) )	\
+			{	\
+			delete del;	\
+			return 0;	\
+			}	\
 		if ( ! dst )	\
 			{	\
 			delete del;	\

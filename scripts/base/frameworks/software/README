@@ -1,0 +1,4 @@
+The software framework provides infrastructure for maintaining a table
+of software versions seen on the network. The version parsing itself
+is carried out by external protocol-specific scripts that feed into
+this framework.

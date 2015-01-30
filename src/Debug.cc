@@ -40,6 +40,7 @@ DebuggerState::DebuggerState()
 	next_bp_id = next_watch_id = next_display_id = 1;
 	BreakBeforeNextStmt(false);
 	curr_frame_idx = 0;
+	already_did_list = false;
 	BreakFromSignal(false);
 
 	// ### Don't choose this arbitrary size! Extend Frame.
@@ -191,14 +192,15 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		string fullname = make_full_var_name(current_module.c_str(), s.c_str());
 		debug_msg("Function %s not defined.\n", fullname.c_str());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
 
-	FuncType* ftype;
-	if ( ! (ftype = id->Type()->AsFuncType()) )
+	if ( ! id->Type()->AsFuncType() )
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
 
@@ -206,6 +208,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s declared but not defined.\n", id->Name());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
 
@@ -216,8 +219,11 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s is a built-in function\n", id->Name());
 		plr.type = plrUnknown;
+		Unref(id);
 		return;
 		}
+
+	Unref(id);
 
 	Stmt* body = 0;	// the particular body we care about; 0 = all
 
@@ -342,18 +348,16 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
 				plr.type = plrUnknown;
 
-			FILE* throwaway = search_for_file(filename.c_str(), "bro",
-								&full_filename, true, 0);
-			if ( ! throwaway )
+			string path(find_file(filename, bro_path(), "bro"));
+
+			if ( path.empty() )
 				{
 				debug_msg("No such policy file: %s.\n", filename.c_str());
 				plr.type = plrUnknown;
 				return result;
 				}
 
-			fclose(throwaway);
-
-			loc_filename = full_filename;
+			loc_filename = copy_string(path.c_str());
 			plr.type = plrFileAndLine;
 			}
 		}
@@ -722,7 +726,7 @@ static char* get_prompt(bool reset_counter = false)
 string get_context_description(const Stmt* stmt, const Frame* frame)
 	{
 	ODesc d;
-	const BroFunc* func = frame->GetFunction();
+	const BroFunc* func = frame ? frame->GetFunction() : 0;
 
 	if ( func )
 		func->DescribeDebug(&d, frame->GetFuncArgs());

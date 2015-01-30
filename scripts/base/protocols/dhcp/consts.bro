@@ -5,7 +5,7 @@ module DHCP;
 
 export {
 
-	## Types of DHCP messages. See RFC 1533.
+	## Types of DHCP messages. See :rfc:`1533`.
 	const message_types = {
 		[1] = "DHCP_DISCOVER",
 		[2] = "DHCP_OFFER",

@@ -32,9 +32,11 @@ export {
 		## mind that you will probably need to set the *method* field
 		## to "POST" or "PUT".
 		client_data:     string                  &optional;
-		## Arbitrary headers to pass to the server.  Some headers
-		## will be included by libCurl.
+
+		# Arbitrary headers to pass to the server.  Some headers
+		# will be included by libCurl.
 		#custom_headers: table[string] of string &optional;
+
 		## Timeout for the request.
 		max_time:        interval                &default=default_max_time;
 		## Additional curl command line arguments.  Be very careful
@@ -43,9 +45,9 @@ export {
 		addl_curl_args:  string                  &optional;
 	};
 
-	## Perform an HTTP request according to the :bro:type:`Request` record.
-	## This is an asynchronous function and must be called within a "when"
-	## statement.
+	## Perform an HTTP request according to the
+	## :bro:type:`ActiveHTTP::Request` record.  This is an asynchronous
+	## function and must be called within a "when" statement.
 	##
 	## req: A record instance representing all options for an HTTP request.
 	##
@@ -63,12 +65,14 @@ function request2curl(r: Request, bodyfile: string, headersfile: string): string
 	cmd = fmt("%s -m %.0f", cmd, r$max_time);
 
 	if ( r?$client_data )
-		cmd = fmt("%s -d -", cmd);
+		cmd = fmt("%s -d @-", cmd);
 
 	if ( r?$addl_curl_args )
 		cmd = fmt("%s %s", cmd, r$addl_curl_args);
 
 	cmd = fmt("%s \"%s\"", cmd, str_shell_escape(r$url));
+	# Make sure file will exist even if curl did not write one.
+	cmd = fmt("%s && touch %s", cmd, str_shell_escape(bodyfile));
 	return cmd;
 	}
 

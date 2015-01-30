@@ -7,9 +7,8 @@
 using namespace analyzer::pia;
 
 PIA::PIA(analyzer::Analyzer* arg_as_analyzer)
+	: state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet()
 	{
-	current_packet.data = 0;
-	as_analyzer = arg_as_analyzer;
 	}
 
 PIA::~PIA()
@@ -23,6 +22,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 	for ( DataBlock* b = buffer->head; b; b = next )
 		{
 		next = b->next;
+		delete b->ip;
 		delete [] b->data;
 		delete b;
 		}
@@ -31,8 +31,8 @@ void PIA::ClearBuffer(Buffer* buffer)
 	buffer->size = 0;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, int seq, int len, const u_char* data,
-			bool is_orig)
+void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
+			bool is_orig, const IP_Hdr* ip)
 	{
 	u_char* tmp = 0;
 
@@ -43,6 +43,7 @@ void PIA::AddToBuffer(Buffer* buffer, int seq, int len, const u_char* data,
 		}
 
 	DataBlock* b = new DataBlock;
+	b->ip = ip ? ip->Copy() : 0;
 	b->data = tmp;
 	b->is_orig = is_orig;
 	b->len = len;
@@ -60,9 +61,10 @@ void PIA::AddToBuffer(Buffer* buffer, int seq, int len, const u_char* data,
 	buffer->size += len;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig)
+void PIA::AddToBuffer(Buffer* buffer, int len, const u_char* data, bool is_orig,
+                      const IP_Hdr* ip)
 	{
-	AddToBuffer(buffer, -1, len, data, is_orig);
+	AddToBuffer(buffer, -1, len, data, is_orig, ip);
 	}
 
 void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
@@ -70,7 +72,7 @@ void PIA::ReplayPacketBuffer(analyzer::Analyzer* analyzer)
 	DBG_LOG(DBG_ANALYZER, "PIA replaying %d total packet bytes", pkt_buffer.size);
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
-		analyzer->DeliverPacket(b->len, b->data, b->is_orig, -1, 0, 0);
+		analyzer->DeliverPacket(b->len, b->data, b->is_orig, -1, b->ip, 0);
 	}
 
 void PIA::PIA_Done()
@@ -78,7 +80,7 @@ void PIA::PIA_Done()
 	FinishEndpointMatcher();
 	}
 
-void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, int seq,
+void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq,
 				const IP_Hdr* ip, int caplen)
 	{
 	if ( pkt_buffer.state == SKIPPING )
@@ -97,7 +99,7 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, int seq,
 	if ( (pkt_buffer.state == BUFFERING || new_state == BUFFERING) &&
 	     len > 0 )
 		{
-		AddToBuffer(&pkt_buffer, seq, len, data, is_orig);
+		AddToBuffer(&pkt_buffer, seq, len, data, is_orig, ip);
 		if ( pkt_buffer.size > dpd_buffer_size )
 			new_state = dpd_match_only_beginning ?
 						SKIPPING : MATCHING_ONLY;
@@ -147,10 +149,12 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		return;
 
 	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
-	a->SetSignature(rule);
 
-	if ( a )
-		ReplayPacketBuffer(a);
+	if ( ! a )
+		return;
+
+	a->SetSignature(rule);
+	ReplayPacketBuffer(a);
 	}
 
 void PIA_UDP::DeactivateAnalyzer(analyzer::Tag tag)
@@ -255,7 +259,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	stream_buffer.state = new_state;
 	}
 
-void PIA_TCP::Undelivered(int seq, int len, bool is_orig)
+void PIA_TCP::Undelivered(uint64 seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
@@ -330,14 +334,14 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 
 	tcp::TCP_Reassembler* reass_orig =
 		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					true, tcp->Orig());
+					tcp->Orig());
 
 	tcp::TCP_Reassembler* reass_resp =
 		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
-					false, tcp->Resp());
+					tcp->Resp());
 
-	int orig_seq = 0;
-	int resp_seq = 0;
+	uint64 orig_seq = 0;
+	uint64 resp_seq = 0;
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
 		{

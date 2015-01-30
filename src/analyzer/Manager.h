@@ -45,10 +45,6 @@ namespace analyzer {
  * sets up their initial analyzer tree, including adding the right \c PIA,
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individidual connections.
- *
- * Note that we keep the public interface of this class free of std::*
- * classes. This allows to external analyzer code to potentially use a
- * different C++ standard library.
  */
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
@@ -134,6 +130,14 @@ public:
 	void DisableAllAnalyzers();
 
 	/**
+	 * Returns the tag associated with an analyer name, or the tag
+	 * associated with an error if no such analyzer exists.
+	 *
+	 * @param name The canonical analyzer name to check.
+	 */
+	Tag GetAnalyzerTag(const char* name);
+
+	/**
 	 * Returns true if an analyzer is enabled.
 	 *
 	 * @param tag The analyzer's tag.
@@ -214,7 +218,8 @@ public:
 	 *
 	 * @return The new analyzer instance. Note that the analyzer will not
 	 * have been added to the connection's analyzer tree yet. Returns
-	 * null if tag is invalid or the requested analyzer is disabled.
+	 * null if tag is invalid, the requested analyzer is disabled, or the
+	 * analyzer can't be instantiated.
 	 */
 	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c);
 
@@ -290,6 +295,23 @@ public:
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
 				TransportProto proto, const char* analyzer,
 				double timeout);
+
+	/**
+	 * Searched for analyzers scheduled to be attached to a given connection
+	 * and then attaches them.
+	 *
+	 * @param conn The connection to which scheduled analyzers are attached.
+	 *
+	 * @param init True if the newly added analyzers should be
+	 * immediately initialized.
+	 *
+	 * @param root If given, the scheduled analyzers will become childs
+	 * of this; if not given the connection's root analyzer is used
+	 * instead.
+	 *
+	 * @return True if at least one scheduled analyzer was found.
+	 */
+	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = 0);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once

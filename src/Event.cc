@@ -6,6 +6,7 @@
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"
+#include "plugin/Manager.h"
 
 EventMgr mgr;
 
@@ -77,6 +78,11 @@ EventMgr::~EventMgr()
 
 void EventMgr::QueueEvent(Event* event)
 	{
+	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(event), false);
+
+	if ( done )
+		return;
+
 	if ( ! head )
 		head = tail = event;
 	else
@@ -91,7 +97,7 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Dispatch()
 	{
 	if ( ! head )
-		reporter->InternalError("EventMgr underflow");
+		reporter->InternalError("EventMgr::Dispatch underflow");
 
 	Event* current = head;
 
@@ -114,6 +120,8 @@ void EventMgr::Drain()
 		QueueEvent(event_queue_flush_point, new val_list());
 
 	SegmentProfiler(segment_logger, "draining-events");
+
+	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
 	draining = true;
 	while ( head )

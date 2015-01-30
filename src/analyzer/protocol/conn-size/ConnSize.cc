@@ -11,7 +11,8 @@
 using namespace analyzer::conn_size;
 
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
-: Analyzer("CONNSIZE", c)
+    : Analyzer("CONNSIZE", c),
+      orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts()
 	{
 	}
 
@@ -35,7 +36,7 @@ void ConnSize_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
@@ -54,17 +55,19 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
-	int orig_endp_idx = connection_type->FieldOffset("orig");
-	int resp_endp_idx = connection_type->FieldOffset("resp");
-	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
-	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
 	// endpoint is the RecordType from NetVar.h
-	// TODO: or orig_endp->Type()->AsRecordVal()->FieldOffset()
 	int pktidx = endpoint->FieldOffset("num_pkts");
 	int bytesidx = endpoint->FieldOffset("num_bytes_ip");
 
-	// TODO: error handling?
+	if ( pktidx < 0 )
+		reporter->InternalError("'endpoint' record missing 'num_pkts' field");
+
+	if ( bytesidx < 0 )
+		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
+
 	orig_endp->Assign(pktidx, new Val(orig_pkts, TYPE_COUNT));
 	orig_endp->Assign(bytesidx, new Val(orig_bytes, TYPE_COUNT));
 	resp_endp->Assign(pktidx, new Val(resp_pkts, TYPE_COUNT));

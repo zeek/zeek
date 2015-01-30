@@ -251,6 +251,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		analyzer->ConnectionEvent(event, vl);
 		}
 
+	Unref(reply);
 	return 1;
 	}
 

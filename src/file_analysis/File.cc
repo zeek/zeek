@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
+#include <algorithm>
 
 #include "File.h"
 #include "FileTimer.h"
@@ -10,9 +11,12 @@
 #include "Val.h"
 #include "Type.h"
 #include "Event.h"
+#include "RuleMatcher.h"
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
+
+#include "analyzer/extract/Extract.h"
 
 using namespace file_analysis;
 
@@ -49,7 +53,6 @@ int File::overflow_bytes_idx = -1;
 int File::timeout_interval_idx = -1;
 int File::bof_buffer_size_idx = -1;
 int File::bof_buffer_idx = -1;
-int File::mime_type_idx = -1;
 
 void File::StaticInit()
 	{
@@ -69,26 +72,25 @@ void File::StaticInit()
 	timeout_interval_idx = Idx("timeout_interval");
 	bof_buffer_size_idx = Idx("bof_buffer_size");
 	bof_buffer_idx = Idx("bof_buffer");
-	mime_type_idx = Idx("mime_type");
 	}
 
-File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
-           bool is_orig)
-	: id(file_id), val(0), postpone_timeout(false), first_chunk(true),
-	  missed_bof(false), need_reassembly(false), done(false),
-	  did_file_new_event(false), analyzers(this)
+File::File(const string& file_id, const string& source_name, Connection* conn,
+           analyzer::Tag tag, bool is_orig)
+	: id(file_id), val(0), file_reassembler(0), stream_offset(0), 
+	  reassembly_max_buffer(0), did_mime_type(false), 
+	  reassembly_enabled(false), postpone_timeout(false), done(false), 
+	  analyzers(this)
 	{
 	StaticInit();
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Creating new File object %s", file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = new RecordVal(fa_file_type);
 	val->Assign(id_idx, new StringVal(file_id.c_str()));
+	SetSource(source_name);
 
 	if ( conn )
 		{
-		// add source, connection, is_orig fields
-		SetSource(analyzer_mgr->GetComponentName(tag));
 		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
 		UpdateConnectionFields(conn, is_orig);
 		}
@@ -98,15 +100,9 @@ File::File(const string& file_id, Connection* conn, analyzer::Tag tag,
 
 File::~File()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Destroying File object %s", id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
 	Unref(val);
-
-	// Queue may not be empty in the case where only content gaps were seen.
-	while ( ! fonc_queue.empty() )
-		{
-		delete_vals(fonc_queue.front().second);
-		fonc_queue.pop();
-		}
+	delete file_reassembler;
 	}
 
 void File::UpdateLastActivityTime()
@@ -119,10 +115,10 @@ double File::GetLastActivityTime() const
 	return val->Lookup(last_active_idx)->AsTime();
 	}
 
-void File::UpdateConnectionFields(Connection* conn, bool is_orig)
+bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	{
 	if ( ! conn )
-		return;
+		return false;
 
 	Val* conns = val->Lookup(conns_idx);
 
@@ -133,27 +129,28 @@ void File::UpdateConnectionFields(Connection* conn, bool is_orig)
 		}
 
 	Val* idx = get_conn_id_val(conn);
-	if ( ! conns->AsTableVal()->Lookup(idx) )
+
+	if ( conns->AsTableVal()->Lookup(idx) )
 		{
-		Val* conn_val = conn->BuildConnVal();
-		conns->AsTableVal()->Assign(idx, conn_val);
-
-		if ( FileEventAvailable(file_over_new_connection) )
-			{
-			val_list* vl = new val_list();
-			vl->append(val->Ref());
-			vl->append(conn_val->Ref());
-			vl->append(new Val(is_orig, TYPE_BOOL));
-
-			if ( did_file_new_event )
-				FileEvent(file_over_new_connection, vl);
-			else
-				fonc_queue.push(pair<EventHandlerPtr, val_list*>(
-				        file_over_new_connection, vl));
-			}
+		Unref(idx);
+		return false;
 		}
 
+	conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
 	Unref(idx);
+	return true;
+	}
+
+void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
+	{
+	if ( conn && FileEventAvailable(file_over_new_connection) )
+		{
+		val_list* vl = new val_list();
+		vl->append(val->Ref());
+		vl->append(conn->BuildConnVal());
+		vl->append(new Val(is_orig, TYPE_BOOL));
+		FileEvent(file_over_new_connection, vl);
+		}
 	}
 
 uint64 File::LookupFieldDefaultCount(int idx) const
@@ -203,6 +200,22 @@ void File::SetTimeoutInterval(double interval)
 	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
 	}
 
+bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
+	{
+	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), args);
+
+	if ( ! a )
+		return false;
+
+	Extract* e = dynamic_cast<Extract*>(a);
+
+	if ( ! e )
+		return false;
+
+	e->SetLimit(bytes);
+	return true;
+	}
+
 void File::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
@@ -211,6 +224,7 @@ void File::IncrementByteCount(uint64 size, int field_idx)
 
 void File::SetTotalBytes(uint64 size)
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
 	val->Assign(total_bytes_idx, new Val(size, TYPE_COUNT));
 	}
 
@@ -220,7 +234,7 @@ bool File::IsComplete() const
 	if ( ! total )
 		return false;
 
-	if ( LookupFieldDefaultCount(seen_bytes_idx) >= total->AsCount() )
+	if ( stream_offset >= total->AsCount() )
 		return true;
 
 	return false;
@@ -233,17 +247,87 @@ void File::ScheduleInactivityTimer() const
 
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
-	return done ? false : analyzers.QueueAdd(tag, args);
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
+		id.c_str(), file_mgr->GetComponentName(tag).c_str());
+
+	if ( done )
+		return false;
+
+	return analyzers.QueueAdd(tag, args) != 0;
 	}
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
+		id.c_str(), file_mgr->GetComponentName(tag).c_str());
+
 	return done ? false : analyzers.QueueRemove(tag, args);
+	}
+
+void File::EnableReassembly()
+	{
+	reassembly_enabled = true;
+	}
+
+void File::DisableReassembly()
+	{
+	reassembly_enabled = false;
+	delete file_reassembler;
+	file_reassembler = 0;
+	}
+
+void File::SetReassemblyBuffer(uint64 max)
+	{
+	reassembly_max_buffer = max;
+	}
+
+bool File::DetectMIME()
+	{
+	did_mime_type = true;
+
+	Val* bof_buffer_val = val->Lookup(bof_buffer_idx);
+
+	if ( ! bof_buffer_val )
+		{
+		if ( bof_buffer.size == 0 )
+			return false;
+
+		BroString* bs = concatenate(bof_buffer.chunks);
+		bof_buffer_val = new StringVal(bs);
+		val->Assign(bof_buffer_idx, bof_buffer_val);
+		}
+
+	RuleMatcher::MIME_Matches matches;
+	const u_char* data = bof_buffer_val->AsString()->Bytes();
+	uint64 len = bof_buffer_val->AsString()->Len();
+	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
+	file_mgr->DetectMIME(data, len, &matches);
+
+	if ( matches.empty() )
+		return false;
+
+	if ( FileEventAvailable(file_mime_type) )
+		{
+		val_list* vl = new val_list();
+		vl->append(val->Ref());
+		vl->append(new StringVal(*(matches.begin()->second.begin())));
+		FileEvent(file_mime_type, vl);
+		}
+
+	if ( FileEventAvailable(file_mime_types) )
+		{
+		val_list* vl = new val_list();
+		vl->append(val->Ref());
+		vl->append(file_analysis::GenMIMEMatchesVal(matches));
+		FileEvent(file_mime_types, vl);
+		}
+
+	return true;
 	}
 
 bool File::BufferBOF(const u_char* data, uint64 len)
 	{
-	if ( bof_buffer.full || bof_buffer.replayed )
+	if ( bof_buffer.full )
 		return false;
 
 	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
@@ -251,135 +335,174 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 	bof_buffer.chunks.push_back(new BroString(data, len, 0));
 	bof_buffer.size += len;
 
-	if ( bof_buffer.size >= desired_size )
+	if ( bof_buffer.size < desired_size )
+		return true;
+
+	bof_buffer.full = true;
+
+	if ( bof_buffer.size > 0 )
 		{
-		bof_buffer.full = true;
-		ReplayBOF();
+		BroString* bs = concatenate(bof_buffer.chunks);
+		val->Assign(bof_buffer_idx, new StringVal(bs));
 		}
 
-	return true;
+	return false;
 	}
 
-bool File::DetectMIME(const u_char* data, uint64 len)
+void File::DeliverStream(const u_char* data, uint64 len)
 	{
-	const char* mime = bro_magic_buffer(magic_mime_cookie, data, len);
+	bool bof_was_full = bof_buffer.full;
+	// Buffer enough data for the BOF buffer
+	BufferBOF(data, len);
 
-	if ( mime )
+	if ( ! did_mime_type && bof_buffer.full &&
+	     LookupFieldDefaultCount(missing_bytes_idx) == 0 )
+		DetectMIME();
+
+	DBG_LOG(DBG_FILE_ANALYSIS,
+	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
+	        id.c_str(), len, stream_offset,
+	        IsComplete() ? "complete" : "incomplete",
+	        fmt_bytes((const char*) data, min((uint64)40, len)),
+	        len > 40 ? "..." : "");
+
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
+
+	while ( (a = analyzers.NextEntry(c)) )
 		{
-		const char* mime_end = strchr(mime, ';');
+		if ( ! a->GotStreamDelivery() )
+			{
+			int num_bof_chunks_behind = bof_buffer.chunks.size();
 
-		if ( mime_end )
-			// strip off charset
-			val->Assign(mime_type_idx, new StringVal(mime_end - mime, mime));
-		else
-			val->Assign(mime_type_idx, new StringVal(mime));
+			if ( ! bof_was_full )
+				// We just added a chunk to the BOF buffer, don't count it
+				// as it will get delivered on its own.
+				num_bof_chunks_behind -= 1;
+
+			uint64 bytes_delivered = 0;
+
+			// Catch this analyzer up with the BOF buffer.
+			for ( int i = 0; i < num_bof_chunks_behind; ++i )
+				{
+				if ( ! a->DeliverStream(bof_buffer.chunks[i]->Bytes(),
+				                        bof_buffer.chunks[i]->Len()) )
+					analyzers.QueueRemove(a->Tag(), a->Args());
+
+				bytes_delivered += bof_buffer.chunks[i]->Len();
+				}
+
+			a->SetGotStreamDelivery();
+			// May need to catch analyzer up on missed gap?
+			// Analyzer should be fully caught up to stream_offset now.
+			}
+
+		if ( ! a->DeliverStream(data, len) )
+			analyzers.QueueRemove(a->Tag(), a->Args());
 		}
 
-	return mime;
+	stream_offset += len;
+	IncrementByteCount(len, seen_bytes_idx);
 	}
 
-void File::ReplayBOF()
+void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
-	if ( bof_buffer.replayed )
-		return;
-
-	bof_buffer.replayed = true;
-
-	if ( bof_buffer.chunks.empty() )
+	// Potentially handle reassembly and deliver to the stream analyzers.
+	if ( file_reassembler )
 		{
-		// Since we missed the beginning, try file type detect on next data in.
-		missed_bof = true;
-		return;
+		if ( reassembly_max_buffer > 0 &&
+		     reassembly_max_buffer < file_reassembler->TotalSize() )
+			{
+			uint64 current_offset = stream_offset;
+			uint64 gap_bytes = file_reassembler->Flush();
+			IncrementByteCount(gap_bytes, overflow_bytes_idx);
+
+			if ( FileEventAvailable(file_reassembly_overflow) )
+				{
+				val_list* vl = new val_list();
+				vl->append(val->Ref());
+				vl->append(new Val(current_offset, TYPE_COUNT));
+				vl->append(new Val(gap_bytes, TYPE_COUNT));
+				FileEvent(file_reassembly_overflow, vl);
+				}
+			}
+
+		// Forward data to the reassembler.
+		file_reassembler->NewBlock(network_time, offset, len, data);
+		}
+	else if ( stream_offset == offset )
+		{
+		// This is the normal case where a file is transferred linearly.
+		// Nothing special should be done here.
+		DeliverStream(data, len);
+		}
+	else if ( reassembly_enabled )
+		{
+		// This is data that doesn't match the offset and the reassembler 
+		// needs to be enabled.
+		file_reassembler = new FileReassembler(this, stream_offset);
+		file_reassembler->NewBlock(network_time, offset, len, data);
+		}
+	else
+		{
+		// We can't reassemble so we throw out the data for streaming.
+		IncrementByteCount(len, overflow_bytes_idx);
 		}
 
-	BroString* bs = concatenate(bof_buffer.chunks);
-	val->Assign(bof_buffer_idx, new StringVal(bs));
+	DBG_LOG(DBG_FILE_ANALYSIS,
+	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
+	        id.c_str(), len, offset,
+	        IsComplete() ? "complete" : "incomplete",
+	        fmt_bytes((const char*) data, min((uint64)40, len)),
+	        len > 40 ? "..." : "");
 
-	DetectMIME(bs->Bytes(), bs->Len());
+	file_analysis::Analyzer* a = 0;
+	IterCookie* c = analyzers.InitForIteration();
 
-	FileEvent(file_new);
+	while ( (a = analyzers.NextEntry(c)) )
+		{
+		if ( ! a->DeliverChunk(data, len, offset) )
+			{
+			analyzers.QueueRemove(a->Tag(), a->Args());
+			}
+		}
 
-	for ( size_t i = 0; i < bof_buffer.chunks.size(); ++i )
-		DataIn(bof_buffer.chunks[i]->Bytes(), bof_buffer.chunks[i]->Len());
+	if ( IsComplete() )
+		EndOfFile();
 	}
 
 void File::DataIn(const u_char* data, uint64 len, uint64 offset)
 	{
 	analyzers.DrainModifications();
-
-	if ( first_chunk )
-		{
-		// TODO: this should all really be delayed until we attempt reassembly
-		DetectMIME(data, len);
-		FileEvent(file_new);
-		first_chunk = false;
-		}
-
-	file_analysis::Analyzer* a = 0;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
-		{
-		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
-		}
-
+	DeliverChunk(data, len, offset);
 	analyzers.DrainModifications();
-
-	// TODO: check reassembly requirement based on buffer size in record
-	if ( need_reassembly )
-		reporter->InternalError("file_analyzer::File TODO: reassembly not yet supported");
-
-	// TODO: reassembly overflow stuff, increment overflow count, eval trigger
-
-	IncrementByteCount(len, seen_bytes_idx);
 	}
 
 void File::DataIn(const u_char* data, uint64 len)
 	{
 	analyzers.DrainModifications();
-
-	if ( BufferBOF(data, len) )
-		return;
-
-	if ( missed_bof )
-		{
-		DetectMIME(data, len);
-		FileEvent(file_new);
-		missed_bof = false;
-		}
-
-	file_analysis::Analyzer* a = 0;
-	IterCookie* c = analyzers.InitForIteration();
-
-	while ( (a = analyzers.NextEntry(c)) )
-		{
-		if ( ! a->DeliverStream(data, len) )
-			{
-			analyzers.QueueRemove(a->Tag(), a->Args());
-			continue;
-			}
-
-		uint64 offset = LookupFieldDefaultCount(seen_bytes_idx) +
-		                LookupFieldDefaultCount(missing_bytes_idx);
-
-		if ( ! a->DeliverChunk(data, len, offset) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
-		}
-
+	DeliverChunk(data, len, stream_offset);
 	analyzers.DrainModifications();
-	IncrementByteCount(len, seen_bytes_idx);
 	}
 
 void File::EndOfFile()
 	{
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End of file", id.c_str());
+
 	if ( done )
 		return;
 
+	if ( ! did_mime_type &&
+	     LookupFieldDefaultCount(missing_bytes_idx) == 0 )
+		DetectMIME();
+
 	analyzers.DrainModifications();
 
-	// Send along anything that's been buffered, but never flushed.
-	ReplayBOF();
+	if ( file_reassembler )
+		{
+		file_reassembler->Flush();
+		analyzers.DrainModifications();
+		}
 
 	done = true;
 
@@ -399,11 +522,17 @@ void File::EndOfFile()
 
 void File::Gap(uint64 offset, uint64 len)
 	{
-	analyzers.DrainModifications();
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %," PRIu64,
+		id.c_str(), len, offset);
 
-	// If we were buffering the beginning of the file, a gap means we've got
-	// as much contiguous stuff at the beginning as possible, so work with that.
-	ReplayBOF();
+	if ( file_reassembler && ! file_reassembler->IsCurrentlyFlushing() )
+		{
+		file_reassembler->FlushTo(offset + len);
+		// The reassembler will call us back with all the gaps we need to know.
+		return;
+		}
+
+	analyzers.DrainModifications();
 
 	file_analysis::Analyzer* a = 0;
 	IterCookie* c = analyzers.InitForIteration();
@@ -424,6 +553,8 @@ void File::Gap(uint64 offset, uint64 len)
 		}
 
 	analyzers.DrainModifications();
+
+	stream_offset += len;
 	IncrementByteCount(len, missing_bytes_idx);
 	}
 
@@ -446,19 +577,9 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
 	mgr.QueueEvent(h, vl);
 
-	if ( h == file_new )
-		{
-		did_file_new_event = true;
-
-		while ( ! fonc_queue.empty() )
-			{
-			pair<EventHandlerPtr, val_list*> p = fonc_queue.front();
-			mgr.QueueEvent(p.first, p.second);
-			fonc_queue.pop();
-			}
-		}
-
-	if ( h == file_new || h == file_timeout )
+	if ( h == file_new || h == file_over_new_connection ||
+	     h == file_mime_type ||
+	     h == file_timeout || h == file_extraction_limit )
 		{
 		// immediate feedback is required for these events.
 		mgr.Drain();

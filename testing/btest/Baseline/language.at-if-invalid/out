@@ -1,0 +1,4 @@
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.at-if-invalid/at-if-invalid.bro, line 28: referencing a local name in @if (xyz)
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.at-if-invalid/at-if-invalid.bro, line 28: invalid expression in @if (F && foo(xyz))
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.at-if-invalid/at-if-invalid.bro, line 36: referencing a local name in @if (local_true_condition)
+error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.at-if-invalid/at-if-invalid.bro, line 36: invalid expression in @if (T && TRUE_CONDITION && local_true_condition)

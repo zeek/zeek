@@ -1,4 +1,8 @@
 
+2.3-405 | 2015-02-02 11:14:24 -0600
+
+  * Fix memory leak in new split_string* functions. (Jon Siwek)
+
 2.3-404 | 2015-01-30 14:23:27 -0800
 
   * Update documentation (broken links, outdated tests). (Jon Siwek)

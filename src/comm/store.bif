@@ -127,7 +127,7 @@ function Store::clear%(h: opaque of Store::Handle%): bool
 	%}
 
 function Store::increment%(h: opaque of Store::Handle,
-                           k: Comm::Data, by: int%): bool
+                           k: Comm::Data, by: int &default = +1%): bool
 	%{
 	auto handle = static_cast<comm::StoreHandleVal*>(h);
 
@@ -140,7 +140,7 @@ function Store::increment%(h: opaque of Store::Handle,
 	%}
 
 function Store::decrement%(h: opaque of Store::Handle,
-                           k: Comm::Data, by: int%): bool
+                           k: Comm::Data, by: int &default = +1%): bool
 	%{
 	auto handle = static_cast<comm::StoreHandleVal*>(h);
 

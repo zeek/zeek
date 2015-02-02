@@ -408,10 +408,20 @@ double comm::Manager::NextTimestamp(double* local_network_time)
 
 struct response_converter {
 	using result_type = RecordVal*;
+	broker::store::query::tag query_tag;
 
 	result_type operator()(bool d)
 		{
-		return comm::make_data_val(broker::data{d});
+		switch ( query_tag ) {
+		case broker::store::query::tag::pop_left:
+		case broker::store::query::tag::pop_right:
+		case broker::store::query::tag::lookup:
+			// A boolean result means the key doesn't exist (if it did, then
+			// the result would contain the broker::data value, not a bool).
+			return new RecordVal(BifType::Record::Comm::Data);
+		default:
+			return comm::make_data_val(broker::data{d});
+		}
 		}
 
 	result_type operator()(uint64_t d)
@@ -446,7 +456,7 @@ struct response_converter {
 
 static RecordVal* response_to_val(broker::store::response r)
 	{
-	return broker::visit(response_converter{}, r.reply.value);
+	return broker::visit(response_converter{r.request.type}, r.reply.value);
 	}
 
 void comm::Manager::Process()

@@ -13,7 +13,7 @@ export {
 
 function reverse_ip(ip: addr): addr
 	{
-	local octets = split(cat(ip), /\./);
-	return to_addr(cat(octets[4], ".", octets[3], ".", octets[2], ".", octets[1]));
+	local octets = split_string(cat(ip), /\./);
+	return to_addr(cat(octets[3], ".", octets[2], ".", octets[1], ".", octets[0]));
 	}
 

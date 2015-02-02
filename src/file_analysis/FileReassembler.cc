@@ -12,6 +12,11 @@ FileReassembler::FileReassembler(File *f, uint64 starting_offset)
 	{
 	}
 
+FileReassembler::FileReassembler()
+	: Reassembler(), the_file(0), flushing(false)
+	{
+	}
+
 FileReassembler::~FileReassembler()
 	{
 	}

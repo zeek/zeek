@@ -7,14 +7,14 @@
 # @TEST-EXEC: btest-diff coverage
 # @TEST-EXEC: btest-diff dnp3.log
 #
-event dnp3_application_request_header(c: connection, is_orig: bool, fc: count)
+event dnp3_application_request_header(c: connection, is_orig: bool, application_control: count, fc: count)
 	{
-	print "dnp3_application_request_header", is_orig, fc;
+	print "dnp3_application_request_header", is_orig, application_control, fc;
 	}
 
-event dnp3_application_response_header(c: connection, is_orig: bool, fc: count, iin: count)
+event dnp3_application_response_header(c: connection, is_orig: bool, application_control: count, fc: count, iin: count)
 	{
-	print "dnp3_application_response_header", is_orig, fc, iin;
+	print "dnp3_application_response_header", is_orig, application_control, fc, iin;
 	}
 
 event dnp3_object_header(c: connection, is_orig: bool, obj_type: count, qua_field: count, number: count, rf_low: count, rf_high: count)

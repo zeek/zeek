@@ -242,7 +242,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 
 		else if ( name == "HOST" )
 			# The split is done to remove the occasional port value that shows up here.
-			c$http$host = split1(value, /:/)[1];
+			c$http$host = split_string1(value, /:/)[0];
 
 		else if ( name == "RANGE" )
 			c$http$range_request = T;
@@ -262,12 +262,12 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{
 				local userpass = decode_base64(sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
-				local up = split(userpass, /:/);
+				local up = split_string(userpass, /:/);
 				if ( |up| >= 2 )
 					{
-					c$http$username = up[1];
+					c$http$username = up[0];
 					if ( c$http$capture_password )
-						c$http$password = up[2];
+						c$http$password = up[1];
 					}
 				else
 					{

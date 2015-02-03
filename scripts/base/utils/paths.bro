@@ -13,12 +13,12 @@ const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 function extract_path(input: string): string
 	{
 	const dir_pattern = /(\/|[A-Za-z]:[\\\/])([^\"\ ]|(\\\ ))*/;
-	local parts = split_all(input, dir_pattern);
+	local parts = split_string_all(input, dir_pattern);
 
 	if ( |parts| < 3 )
 		return "";
 
-	return parts[2];
+	return parts[1];
 	}
 
 ## Compresses a given path by removing '..'s and the parent directory it
@@ -31,27 +31,27 @@ function compress_path(dir: string): string
 	{
 	const cdup_sep = /((\/)*([^\/]|\\\/)+)?((\/)+\.\.(\/)*)/;
 
-	local parts = split_n(dir, cdup_sep, T, 1);
+	local parts = split_string_n(dir, cdup_sep, T, 1);
 	if ( |parts| > 1 )
 		{
 		# reaching a point with two parent dir references back-to-back means
 		# we don't know about anything higher in the tree to pop off
-		if ( parts[2] == "../.." )
-			return cat_string_array(parts);
-		if ( sub_bytes(parts[2], 0, 1) == "/" )
-			parts[2] = "/";
+		if ( parts[1] == "../.." )
+			return join_string_vec(parts, "");
+		if ( sub_bytes(parts[1], 0, 1) == "/" )
+			parts[1] = "/";
 		else
-			parts[2] = "";
-		dir = cat_string_array(parts);
+			parts[1] = "";
+		dir = join_string_vec(parts, "");
 		return compress_path(dir);
 		}
 
 	const multislash_sep = /(\/\.?){2,}/;
-	parts = split_all(dir, multislash_sep);
+	parts = split_string_all(dir, multislash_sep);
 	for ( i in parts )
-		if ( i % 2 == 0 )
+		if ( i % 2 == 1 )
 			parts[i] = "/";
-	dir = cat_string_array(parts);
+	dir = join_string_vec(parts, "");
 
 	# remove trailing slashes from path
 	if ( |dir| > 1 && sub_bytes(dir, |dir|, 1) == "/" )

@@ -30,10 +30,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$mailfrom )
 			{
-			local mailfromparts = split_n(c$smtp$mailfrom, /<.+>/, T, 1);
+			local mailfromparts = split_string_n(c$smtp$mailfrom, /<.+>/, T, 1);
 			if ( |mailfromparts| > 2 )
 				{
-				Intel::seen([$indicator=mailfromparts[2][1:-2],
+				Intel::seen([$indicator=mailfromparts[1][1:-2],
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_MAIL_FROM]);
@@ -44,10 +44,10 @@ event mime_end_entity(c: connection)
 			{
 			for ( rcptto in c$smtp$rcptto )
 				{
-				local rcpttoparts = split_n(rcptto, /<.+>/, T, 1);
+				local rcpttoparts = split_string_n(rcptto, /<.+>/, T, 1);
 				if ( |rcpttoparts| > 2 )
 					{
-					Intel::seen([$indicator=rcpttoparts[2][1:-2],
+					Intel::seen([$indicator=rcpttoparts[1][1:-2],
 					             $indicator_type=Intel::EMAIL,
 					             $conn=c,
 					             $where=SMTP::IN_RCPT_TO]);
@@ -57,10 +57,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$from )
 			{
-			local fromparts = split_n(c$smtp$from, /<.+>/, T, 1);
+			local fromparts = split_string_n(c$smtp$from, /<.+>/, T, 1);
 			if ( |fromparts| > 2 )
 				{
-				Intel::seen([$indicator=fromparts[2][1:-2],
+				Intel::seen([$indicator=fromparts[1][1:-2],
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_FROM]);
@@ -71,10 +71,10 @@ event mime_end_entity(c: connection)
 			{
 			for ( email_to in c$smtp$to )
 				{
-				local toparts = split_n(email_to, /<.+>/, T, 1);
+				local toparts = split_string_n(email_to, /<.+>/, T, 1);
 				if ( |toparts| > 2 )
 					{
-					Intel::seen([$indicator=toparts[2][1:-2],
+					Intel::seen([$indicator=toparts[1][1:-2],
 					             $indicator_type=Intel::EMAIL,
 					             $conn=c,
 					             $where=SMTP::IN_TO]);
@@ -84,10 +84,10 @@ event mime_end_entity(c: connection)
 
 		if ( c$smtp?$reply_to )
 			{
-			local replytoparts = split_n(c$smtp$reply_to, /<.+>/, T, 1);
+			local replytoparts = split_string_n(c$smtp$reply_to, /<.+>/, T, 1);
 			if ( |replytoparts| > 2 )
 				{
-				Intel::seen([$indicator=replytoparts[2][1:-2],
+				Intel::seen([$indicator=replytoparts[1][1:-2],
 				             $indicator_type=Intel::EMAIL,
 				             $conn=c,
 				             $where=SMTP::IN_REPLY_TO]);

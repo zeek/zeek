@@ -3213,6 +3213,10 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 			{
 			SetType(rt->FieldType(field)->Ref());
 			td = rt->FieldDecl(field);
+
+			if ( td->FindAttr(ATTR_DEPRECATED) )
+				reporter->Warning("deprecated (%s$%s)", rt->GetName().c_str(),
+				                  field_name);
 			}
 		}
 	}
@@ -3333,6 +3337,9 @@ HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name)
 
 		if ( field < 0 )
 			ExprError("no such field in record");
+		else if ( rt->FieldDecl(field)->FindAttr(ATTR_DEPRECATED) )
+			reporter->Warning("deprecated (%s?$%s)", rt->GetName().c_str(),
+			                  field_name);
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -4147,16 +4154,28 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			}
 
 		for ( i = 0; i < map_size; ++i )
-			if ( map[i] == -1 &&
-			     ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+			{
+			if ( map[i] == -1 )
 				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "non-optional field \"%s\" missing", t_r->FieldName(i));
-				Error(buf);
-				SetError();
-				break;
+				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+					{
+					char buf[512];
+					safe_snprintf(buf, sizeof(buf),
+					              "non-optional field \"%s\" missing",
+					              t_r->FieldName(i));
+					Error(buf);
+					SetError();
+					break;
+					}
 				}
+			else
+				{
+				if ( t_r->FieldDecl(i)->FindAttr(ATTR_DEPRECATED) )
+					reporter->Warning("deprecated (%s$%s)",
+					                  t_r->GetName().c_str(),
+					                  t_r->FieldName(i));
+				}
+			}
 		}
 	}
 

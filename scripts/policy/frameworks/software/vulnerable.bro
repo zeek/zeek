@@ -55,18 +55,18 @@ function decode_vulnerable_version_range(vuln_sw: string): VulnerableVersionRang
 		return vvr;
 		}
 
-	local versions = split1(vuln_sw, /\x09/);
+	local versions = split_string1(vuln_sw, /\x09/);
 
 	for ( i in versions )
 		{
-		local field_and_ver = split1(versions[i], /=/);
+		local field_and_ver = split_string1(versions[i], /=/);
 		if ( |field_and_ver| != 2 )
 			return vvr; #failure!
 
-		local ver = Software::parse(field_and_ver[2])$version;
-		if ( field_and_ver[1] == "min" )
+		local ver = Software::parse(field_and_ver[1])$version;
+		if ( field_and_ver[0] == "min" )
 			vvr$min = ver;
-		else if ( field_and_ver[1] == "max" )
+		else if ( field_and_ver[0] == "max" )
 			vvr$max = ver;
 		}
 
@@ -84,15 +84,15 @@ event grab_vulnerable_versions(i: count)
 
 	when ( local result = lookup_hostname_txt(cat(i,".",vulnerable_versions_update_endpoint)) )
 		{
-		local parts = split1(result, /\x09/);
+		local parts = split_string1(result, /\x09/);
 		if ( |parts| != 2 ) #failure or end of list!
 			{
 			schedule vulnerable_versions_update_interval { grab_vulnerable_versions(1) };
 			return;
 			}
 
-		local sw = parts[1];
-		local vvr = decode_vulnerable_version_range(parts[2]);
+		local sw = parts[0];
+		local vvr = decode_vulnerable_version_range(parts[1]);
 		if ( sw !in internal_vulnerable_versions )
 			internal_vulnerable_versions[sw] = set();
 		add internal_vulnerable_versions[sw][vvr];

@@ -2,6 +2,7 @@
 #include "Data.h"
 #include "Store.h"
 #include <broker/broker.hh>
+#include <broker/report.hh>
 #include <cstdio>
 #include <unistd.h>
 #include "util.h"
@@ -11,6 +12,7 @@
 #include "comm/messaging.bif.h"
 #include "comm/store.bif.h"
 #include "logging/Manager.h"
+#include "DebugLogger.h"
 
 using namespace std;
 
@@ -64,6 +66,15 @@ bool comm::Manager::InitPostScript()
 	if ( res )
 		{
 		fprintf(stderr, "broker::init failed: %s\n", broker::strerror(res));
+		return false;
+		}
+
+	res = broker::report::init(true);
+
+	if ( res )
+		{
+		fprintf(stderr, "broker::report::init failed: %s\n",
+		        broker::strerror(res));
 		return false;
 		}
 
@@ -398,6 +409,8 @@ void comm::Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 	for ( const auto& s : data_stores )
 		read->Insert(s.second->store->responses().fd());
+
+	read->Insert(broker::report::default_queue->fd());
 	}
 
 double comm::Manager::NextTimestamp(double* local_network_time)
@@ -730,6 +743,52 @@ void comm::Manager::Process()
 			}
 
 			pending_queries.erase(it);
+			}
+		}
+
+	auto reports = broker::report::default_queue->want_pop();
+
+	if ( ! reports.empty() )
+		{
+		idle = false;
+
+		for ( auto& report : reports )
+			{
+			if ( report.size() < 2 )
+				{
+				reporter->Warning("got broker report msg of size %zu, expect 4",
+				                  report.size());
+				continue;
+				}
+
+			uint64_t* level = broker::get<uint64_t>(report[1]);
+
+			if ( ! level )
+				{
+				reporter->Warning("got broker report msg w/ bad level type: %d",
+				                  static_cast<int>(broker::which(report[1])));
+				continue;
+				}
+
+			auto lvl = static_cast<broker::report::level>(*level);
+
+			switch ( lvl ) {
+			case broker::report::level::debug:
+				DBG_LOG(DBG_BROKER, broker::to_string(report).data());
+				break;
+			case broker::report::level::info:
+				reporter->Info("broker info: %s",
+				               broker::to_string(report).data());
+				break;
+			case broker::report::level::warn:
+				reporter->Warning("broker warning: %s",
+				                  broker::to_string(report).data());
+				break;
+			case broker::report::level::error:
+				reporter->Error("broker error: %s",
+				                broker::to_string(report).data());
+				break;
+			}
 			}
 		}
 

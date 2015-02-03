@@ -100,6 +100,7 @@ function comm_vector_to_bro_vector(d: Comm::Data): bro_vector
 
 event bro_init()
 {
+Comm::enable();
 print Comm::data_type(Comm::data(T));
 print Comm::data_type(Comm::data(+1));
 print Comm::data_type(Comm::data(1));

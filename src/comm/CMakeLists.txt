@@ -19,6 +19,7 @@ set(comm_SRCS
     Store.cc
 )
 
+bif_target(comm.bif)
 bif_target(data.bif)
 bif_target(messaging.bif)
 bif_target(store.bif)

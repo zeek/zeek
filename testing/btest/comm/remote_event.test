@@ -17,6 +17,7 @@ global auto_event_handler: event(msg: string, c: count);
 
 event bro_init()
 	{
+	Comm::enable();
 	Comm::listen(9999/tcp, "127.0.0.1");
 	Comm::subscribe_to_events("bro/event/");
 	Comm::auto_event("bro/event/my_topic", auto_event_handler);
@@ -47,6 +48,7 @@ global auto_event_handler: event(msg: string, c: count);
 
 event bro_init()
 	{
+	Comm::enable();
 	Comm::subscribe_to_events("bro/event/my_topic");
 	Comm::connect("127.0.0.1", 9999/tcp, 1secs);
 	}

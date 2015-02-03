@@ -53,6 +53,7 @@ event ready()
 
 event bro_init()
 	{
+	Comm::enable();
 	Comm::listen(9999/tcp, "127.0.0.1");
 	Comm::subscribe_to_events("bro/event/ready");
 	Comm::auto_event("bro/event/done", done);
@@ -106,6 +107,7 @@ event Comm::remote_connection_established(peer_address: string,
 
 event bro_init()
 	{
+	Comm::enable();
 	Comm::connect("127.0.0.1", 9999/tcp, 1secs);
 	Comm::auto_event("bro/event/ready", ready);
 	Comm::subscribe_to_events("bro/event/done");

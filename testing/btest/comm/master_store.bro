@@ -120,6 +120,7 @@ function dv(d: Comm::Data): Comm::DataVector
 
 event bro_init()
 	{
+	Comm::enable();
 	local myset: set[string] = {"a", "b", "c"};
 	local myvec: vector of string = {"alpha", "beta", "gamma"};
 	h = Store::create_master("master");

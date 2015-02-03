@@ -14,6 +14,7 @@ redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
+	Comm::enable();
 	Comm::listen(9999/tcp, "127.0.0.1");
 	Comm::subscribe_to_prints("bro/print/");
 	}
@@ -38,6 +39,7 @@ redef exit_only_after_terminate = T;
 
 event bro_init()
 	{
+	Comm::enable();
 	Comm::subscribe_to_prints("bro/print/my_topic");
 	Comm::connect("127.0.0.1", 9999/tcp, 1secs);
 	}

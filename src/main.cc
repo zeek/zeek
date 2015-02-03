@@ -860,12 +860,6 @@ int main(int argc, char** argv)
 
 #ifdef ENABLE_BROKER
 	comm_mgr = new comm::Manager();
-
-	if ( ! comm_mgr->InitPreScript() )
-		{
-		fprintf(stderr, "Failed to initialize communication manager.");
-		exit(1);
-		}
 #endif
 
 	plugin_mgr->InitPreScript();
@@ -941,11 +935,6 @@ int main(int argc, char** argv)
 		int rc = (reporter->Errors() > 0 ? 1 : 0);
 		exit(rc);
 		}
-
-#ifdef ENABLE_BROKER
-	comm_mgr->InitPostScript();
-	iosource_mgr->Register(comm_mgr, true);
-#endif
 
 #ifdef USE_PERFTOOLS_DEBUG
 	}

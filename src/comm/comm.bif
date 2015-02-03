@@ -1,0 +1,13 @@
+
+##! General functions regarding Bro's broker communication mechanisms.
+
+%%{
+#include "comm/Manager.h"
+%%}
+
+module Comm;
+
+function Comm::enable%(%): bool
+	%{
+	return new Val(comm_mgr->Enable(), TYPE_BOOL);
+	%}

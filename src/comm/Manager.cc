@@ -13,6 +13,7 @@
 #include "comm/store.bif.h"
 #include "logging/Manager.h"
 #include "DebugLogger.h"
+#include "iosource/Manager.h"
 
 using namespace std;
 
@@ -28,11 +29,6 @@ comm::Manager::~Manager()
 		CloseStore(s.first.first, s.first.second);
 	}
 
-bool comm::Manager::InitPreScript()
-	{
-	return true;
-	}
-
 static int require_field(RecordType* rt, const char* name)
 	{
 	auto rval = rt->FieldOffset(name);
@@ -44,8 +40,11 @@ static int require_field(RecordType* rt, const char* name)
 	return rval;
 	}
 
-bool comm::Manager::InitPostScript()
+bool comm::Manager::Enable()
 	{
+	if ( endpoint != nullptr )
+		return true;
+
 	auto send_flags_type = internal_type("Comm::SendFlags")->AsRecordType();
 	send_flags_self_idx = require_field(send_flags_type, "self");
 	send_flags_peers_idx = require_field(send_flags_type, "peers");
@@ -94,11 +93,15 @@ bool comm::Manager::InitPostScript()
 		}
 
 	endpoint = unique_ptr<broker::endpoint>(new broker::endpoint(name));
+	iosource_mgr->Register(this, true);
 	return true;
 	}
 
 bool comm::Manager::Listen(uint16_t port, const char* addr, bool reuse_addr)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto rval = endpoint->listen(port, addr, reuse_addr);
 
 	if ( ! rval )
@@ -114,6 +117,9 @@ bool comm::Manager::Listen(uint16_t port, const char* addr, bool reuse_addr)
 bool comm::Manager::Connect(string addr, uint16_t port,
                             chrono::duration<double> retry_interval)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto& peer = peers[make_pair(addr, port)];
 
 	if ( peer )
@@ -125,6 +131,9 @@ bool comm::Manager::Connect(string addr, uint16_t port,
 
 bool comm::Manager::Disconnect(const string& addr, uint16_t port)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto it = peers.find(make_pair(addr, port));
 
 	if ( it == peers.end() )
@@ -137,18 +146,27 @@ bool comm::Manager::Disconnect(const string& addr, uint16_t port)
 
 bool comm::Manager::Print(string topic, string msg, Val* flags)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	endpoint->send(move(topic), broker::message{move(msg)}, GetFlags(flags));
 	return true;
 	}
 
 bool comm::Manager::Event(std::string topic, broker::message msg, int flags)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	endpoint->send(move(topic), move(msg), flags);
 	return true;
 	}
 
 bool comm::Manager::Log(EnumVal* stream, RecordVal* columns, int flags)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto stream_name = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
 
 	if ( ! stream_name )
@@ -176,6 +194,9 @@ bool comm::Manager::Log(EnumVal* stream, RecordVal* columns, int flags)
 
 bool comm::Manager::Event(std::string topic, RecordVal* args, Val* flags)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	if ( ! args->Lookup(0) )
 		return false;
 
@@ -198,6 +219,9 @@ bool comm::Manager::Event(std::string topic, RecordVal* args, Val* flags)
 
 bool comm::Manager::AutoEvent(string topic, Val* event, Val* flags)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
 		reporter->Error("Comm::auto_event must operate on an event");
@@ -227,6 +251,9 @@ bool comm::Manager::AutoEvent(string topic, Val* event, Val* flags)
 
 bool comm::Manager::AutoEventStop(const string& topic, Val* event)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	if ( event->Type()->Tag() != TYPE_FUNC )
 		{
 		reporter->Error("Comm::auto_event_stop must operate on an event");
@@ -257,6 +284,9 @@ bool comm::Manager::AutoEventStop(const string& topic, Val* event)
 
 RecordVal* comm::Manager::MakeEventArgs(val_list* args)
 	{
+	if ( ! Enabled() )
+		return nullptr;
+
 	auto rval = new RecordVal(BifType::Record::Comm::EventArgs);
 	auto arg_vec = new VectorVal(vector_of_data_type);
 	rval->Assign(1, arg_vec);
@@ -324,6 +354,9 @@ RecordVal* comm::Manager::MakeEventArgs(val_list* args)
 
 bool comm::Manager::SubscribeToPrints(string topic_prefix)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto& q = print_subscriptions[topic_prefix];
 
 	if ( q )
@@ -335,11 +368,17 @@ bool comm::Manager::SubscribeToPrints(string topic_prefix)
 
 bool comm::Manager::UnsubscribeToPrints(const string& topic_prefix)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	return print_subscriptions.erase(topic_prefix);
 	}
 
 bool comm::Manager::SubscribeToEvents(string topic_prefix)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto& q = event_subscriptions[topic_prefix];
 
 	if ( q )
@@ -351,11 +390,17 @@ bool comm::Manager::SubscribeToEvents(string topic_prefix)
 
 bool comm::Manager::UnsubscribeToEvents(const string& topic_prefix)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	return event_subscriptions.erase(topic_prefix);
 	}
 
 bool comm::Manager::SubscribeToLogs(string topic_prefix)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto& q = log_subscriptions[topic_prefix];
 
 	if ( q )
@@ -367,6 +412,9 @@ bool comm::Manager::SubscribeToLogs(string topic_prefix)
 
 bool comm::Manager::UnsubscribeToLogs(const string& topic_prefix)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	return log_subscriptions.erase(topic_prefix);
 	}
 
@@ -797,6 +845,9 @@ void comm::Manager::Process()
 
 bool comm::Manager::AddStore(StoreHandleVal* handle)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	if ( ! handle->store )
 		return false;
 
@@ -814,6 +865,9 @@ comm::StoreHandleVal*
 comm::Manager::LookupStore(const broker::store::identifier& id,
                            comm::StoreType type)
 	{
+	if ( ! Enabled() )
+		return nullptr;
+
 	auto key = make_pair(id, type);
 	auto it = data_stores.find(key);
 
@@ -826,6 +880,9 @@ comm::Manager::LookupStore(const broker::store::identifier& id,
 bool comm::Manager::CloseStore(const broker::store::identifier& id,
                                StoreType type)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	auto key = make_pair(id, type);
 	auto it = data_stores.find(key);
 
@@ -854,5 +911,8 @@ bool comm::Manager::CloseStore(const broker::store::identifier& id,
 
 bool comm::Manager::TrackStoreQuery(StoreQueryCallback* cb)
 	{
+	if ( ! Enabled() )
+		return false;
+
 	return pending_queries.insert(cb).second;
 	}

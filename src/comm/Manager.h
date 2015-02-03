@@ -24,9 +24,10 @@ public:
 
 	~Manager();
 
-	bool InitPreScript();
+	bool Enable();
 
-	bool InitPostScript();
+	bool Enabled()
+		{ return endpoint != nullptr; }
 
 	bool Listen(uint16_t port, const char* addr = nullptr,
 	            bool reuse_addr = true);

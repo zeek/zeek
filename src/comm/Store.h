@@ -56,8 +56,10 @@ class StoreQueryCallback {
 public:
 
 	StoreQueryCallback(Trigger* arg_trigger, const CallExpr* arg_call,
-					   broker::store::identifier arg_store_id)
-		: trigger(arg_trigger), call(arg_call), store_id(move(arg_store_id))
+					   broker::store::identifier arg_store_id,
+	                   StoreType arg_store_type)
+		: trigger(arg_trigger), call(arg_call), store_id(move(arg_store_id)),
+	      store_type(arg_store_type)
 		{
 		Ref(trigger);
 		}
@@ -85,13 +87,20 @@ public:
 	const broker::store::identifier& StoreID() const
 		{ return store_id; }
 
+	StoreType GetStoreType() const
+		{ return store_type; }
+
 private:
 
 	Trigger* trigger;
 	const CallExpr* call;
 	broker::store::identifier store_id;
+	StoreType store_type;
 };
 
+// TODO: actually need to implement Bro's serialization to support copying vals
+// but doesn't make sense to "copy" a master data store, so assert we can
+// lookup a store by <id, type> pair locally (i.e. shouldn't send handles remotely).
 class StoreHandleVal : public OpaqueVal {
 public:
 

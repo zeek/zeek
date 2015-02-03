@@ -63,7 +63,9 @@ public:
 
 	bool AddStore(StoreHandleVal* handle);
 
-	bool CloseStore(const broker::store::identifier& id);
+	StoreHandleVal* LookupStore(const broker::store::identifier& id, StoreType type);
+
+	bool CloseStore(const broker::store::identifier& id, StoreType type);
 
 	bool TrackStoreQuery(StoreQueryCallback* cb);
 
@@ -91,7 +93,8 @@ private:
 	std::map<std::string, broker::message_queue> event_subscriptions;
 	std::map<std::string, broker::message_queue> log_subscriptions;
 
-	std::map<broker::store::identifier, StoreHandleVal*> data_stores;
+	std::map<std::pair<broker::store::identifier, StoreType>,
+	         StoreHandleVal*> data_stores;
 	std::unordered_set<StoreQueryCallback*> pending_queries;
 
 	static VectorType* vector_of_data_type;

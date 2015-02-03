@@ -25,10 +25,20 @@ enum BackendType %{
 function Store::create_master%(id: string, b: BackendType &default = MEMORY,
                                options: BackendOptions &default = BackendOptions()%): opaque of Store::Handle
 	%{
-	auto rval = new comm::StoreHandleVal(id->CheckString(), comm::StoreType::MASTER,
-	                                     static_cast<BifEnum::Store::BackendType>(b->AsEnum()),
-	                                     options->AsRecordVal());
-	comm_mgr->AddStore(rval);
+	auto id_str = id->CheckString();
+	auto type = comm::StoreType::MASTER;
+	auto rval = comm_mgr->LookupStore(id_str, type);
+
+	if ( rval )
+		{
+		Ref(rval);
+		return rval;
+		}
+
+	rval = new comm::StoreHandleVal(id_str, type,
+	                                static_cast<BifEnum::Store::BackendType>(b->AsEnum()),
+	                                options->AsRecordVal());
+	assert(comm_mgr->AddStore(rval));
 	return rval;
 	%}
 
@@ -36,25 +46,39 @@ function Store::create_clone%(id: string, b: BackendType &default = MEMORY,
                               options: BackendOptions &default = BackendOptions(),
                               resync: interval &default = 1sec%): opaque of Store::Handle
 	%{
-	auto rval = new comm::StoreHandleVal(id->CheckString(), comm::StoreType::CLONE,
-	                                     static_cast<BifEnum::Store::BackendType>(b->AsEnum()),
-	                                     options->AsRecordVal(),
-	                                     std::chrono::duration<double>(resync));
-	comm_mgr->AddStore(rval);
+	auto id_str = id->CheckString();
+	auto type = comm::StoreType::CLONE;
+	auto rval = comm_mgr->LookupStore(id_str, type);
+
+	if ( rval )
+		{
+		Ref(rval);
+		return rval;
+		}
+
+	rval = new comm::StoreHandleVal(id_str, type,
+	                                static_cast<BifEnum::Store::BackendType>(b->AsEnum()),
+	                                options->AsRecordVal(),
+	                                std::chrono::duration<double>(resync));
+	assert(comm_mgr->AddStore(rval));
 	return rval;
 	%}
 
 function Store::create_frontend%(id: string%): opaque of Store::Handle
 	%{
-	auto rval = new comm::StoreHandleVal(id->CheckString(), comm::StoreType::FRONTEND,
-	                                     {}, nullptr);
-	comm_mgr->AddStore(rval);
-	return rval;
-	%}
+	auto id_str = id->CheckString();
+	auto type = comm::StoreType::FRONTEND;
+	auto rval = comm_mgr->LookupStore(id_str, type);
 
-function Store::close_by_name%(id: string%): bool
-	%{
-	return new Val(comm_mgr->CloseStore(id->CheckString()), TYPE_BOOL);
+	if ( rval )
+		{
+		Ref(rval);
+		return rval;
+		}
+
+	rval = new comm::StoreHandleVal(id_str, type, {}, nullptr);
+	assert(comm_mgr->AddStore(rval));
+	return rval;
 	%}
 
 function Store::close_by_handle%(h: opaque of Store::Handle%): bool
@@ -64,7 +88,8 @@ function Store::close_by_handle%(h: opaque of Store::Handle%): bool
 	if ( ! handle->store )
 		return new Val(false, TYPE_BOOL);
 
-	return new Val(comm_mgr->CloseStore(handle->store->id()), TYPE_BOOL);
+	return new Val(comm_mgr->CloseStore(handle->store->id(),
+										handle->store_type), TYPE_BOOL);
 	%}
 
 ###########################
@@ -264,7 +289,8 @@ static bool prepare_for_query(Val* opaque, Frame* frame,
     frame->SetDelayed();
     trigger->Hold();
     *cb = new comm::StoreQueryCallback(trigger, frame->GetCall(),
-                                       (*handle)->store->id());
+                                       (*handle)->store->id(),
+                                       (*handle)->store_type);
     comm_mgr->TrackStoreQuery(*cb);
     return true;
     }

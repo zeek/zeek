@@ -23,7 +23,7 @@ int comm::Manager::send_flags_unsolicited_idx;
 comm::Manager::~Manager()
 	{
 	for ( auto& s : data_stores )
-		CloseStore(s.first);
+		CloseStore(s.first.first, s.first.second);
 	}
 
 bool comm::Manager::InitPreScript()
@@ -741,17 +741,34 @@ bool comm::Manager::AddStore(StoreHandleVal* handle)
 	if ( ! handle->store )
 		return false;
 
-	if ( data_stores.find(handle->store->id()) != data_stores.end() )
+	auto key = make_pair(handle->store->id(), handle->store_type);
+
+	if ( data_stores.find(key) != data_stores.end() )
 		return false;
 
-	data_stores[handle->store->id()] = handle;
+	data_stores[key] = handle;
 	Ref(handle);
 	return true;
 	}
 
-bool comm::Manager::CloseStore(const broker::store::identifier& id)
+comm::StoreHandleVal*
+comm::Manager::LookupStore(const broker::store::identifier& id,
+                           comm::StoreType type)
 	{
-	auto it = data_stores.find(id);
+	auto key = make_pair(id, type);
+	auto it = data_stores.find(key);
+
+	if ( it == data_stores.end() )
+		return nullptr;
+
+	return it->second;
+	}
+
+bool comm::Manager::CloseStore(const broker::store::identifier& id,
+                               StoreType type)
+	{
+	auto key = make_pair(id, type);
+	auto it = data_stores.find(key);
 
 	if ( it == data_stores.end() )
 		return false;
@@ -760,7 +777,7 @@ bool comm::Manager::CloseStore(const broker::store::identifier& id)
 		{
 		auto query = *it;
 
-		if ( query->StoreID() == id )
+		if ( query->GetStoreType() == type && query->StoreID() == id )
 			{
 			it = pending_queries.erase(it);
 			query->Abort();

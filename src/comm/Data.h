@@ -27,6 +27,7 @@ broker::util::optional<broker::data> val_to_data(Val* v);
 
 Val* data_to_val(broker::data d, BroType* type);
 
+// TODO: actually need to implement Bro's serialization to support copying vals
 class DataVal : public OpaqueVal {
 public:
 

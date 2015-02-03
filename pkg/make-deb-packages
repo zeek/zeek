@@ -3,8 +3,6 @@
 # This script generates binary DEB packages.
 # They can be found in ../build/ after running.
 
-./check-cmake || { exit 1; }
-
 # The DEB CPack generator depends on `dpkg-shlibdeps` to automatically
 # determine what dependencies to set for the packages
 type dpkg-shlibdeps > /dev/null 2>&1 || {

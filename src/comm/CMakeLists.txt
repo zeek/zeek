@@ -10,6 +10,9 @@ if ( ROCKSDB_INCLUDE_DIR )
     include_directories(BEFORE ${ROCKSDB_INCLUDE_DIR})
 endif ()
 
+include_directories(BEFORE ${LIBCAF_INCLUDE_DIR_CORE})
+include_directories(BEFORE ${LIBCAF_INCLUDE_DIR_IO})
+
 set(comm_SRCS
     Data.cc
     Manager.cc

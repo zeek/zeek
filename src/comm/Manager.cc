@@ -787,6 +787,7 @@ bool comm::Manager::CloseStore(const broker::store::identifier& id,
 			++it;
 		}
 
+	delete it->second->store;
 	it->second->store = nullptr;
 	Unref(it->second);
 	return true;

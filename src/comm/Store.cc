@@ -78,17 +78,15 @@ comm::StoreHandleVal::StoreHandleVal(broker::store::identifier id,
 
 	switch ( store_type ) {
 	case StoreType::FRONTEND:
-		store.reset(new broker::store::frontend(comm_mgr->Endpoint(),
-		                                        move(id)));
+		store = new broker::store::frontend(comm_mgr->Endpoint(), move(id));
 		break;
 	case StoreType::MASTER:
-		store.reset(new broker::store::master(comm_mgr->Endpoint(),
-		                                      move(id), move(backend)));
+		store = new broker::store::master(comm_mgr->Endpoint(), move(id),
+		                                  move(backend));
 		break;
 	case StoreType::CLONE:
-		store.reset(new broker::store::clone(comm_mgr->Endpoint(),
-		                                     move(id), resync,
-		                                     move(backend)));
+		store = new broker::store::clone(comm_mgr->Endpoint(), move(id), resync,
+		                                 move(backend));
 		break;
 	default:
 		reporter->FatalError("unknown data store type: %d",
@@ -138,4 +136,74 @@ void comm::StoreHandleVal::ValDescribe(ODesc* d) const
 		}
 
 	d->Add("}");
+	}
+
+IMPLEMENT_SERIAL(comm::StoreHandleVal, SER_COMM_STORE_HANDLE_VAL);
+
+bool comm::StoreHandleVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_COMM_STORE_HANDLE_VAL, OpaqueVal);
+
+	bool have_store = store != nullptr;
+
+	if ( ! SERIALIZE(have_store) )
+		return false;
+
+	if ( ! have_store )
+		return true;
+
+	if ( ! SERIALIZE(static_cast<int>(store_type)) )
+		return false;
+
+	if ( ! SERIALIZE_STR(store->id().data(), store->id().size()) )
+		return false;
+
+	return true;
+	}
+
+bool comm::StoreHandleVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+
+	bool have_store;
+
+	if ( ! UNSERIALIZE(&have_store) )
+		return false;
+
+	if ( ! have_store )
+		{
+		store = nullptr;
+		return true;
+		}
+
+	int type;
+
+	if ( ! UNSERIALIZE(&type) )
+		return false;
+
+	const char* id_str;
+	int len;
+
+	if ( ! UNSERIALIZE_STR(&id_str, &len) )
+		return false;
+
+	broker::store::identifier id(id_str, len);
+	delete [] id_str;
+
+	auto handle = comm_mgr->LookupStore(id, static_cast<comm::StoreType>(type));
+
+	if ( ! handle )
+		{
+		// Passing serialized version of store handles to other Bro processes
+		// doesn't make sense, only allow local clones of the handle val.
+		reporter->Error("failed to look up unserialized store handle %s, %d",
+		                id.data(), type);
+		store = nullptr;
+		return false;
+		}
+
+	store = handle->store;
+	store_type = handle->store_type;
+	backend_type = handle->backend_type;
+	return true;
 	}

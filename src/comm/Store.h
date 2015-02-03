@@ -98,9 +98,6 @@ private:
 	StoreType store_type;
 };
 
-// TODO: actually need to implement Bro's serialization to support copying vals
-// but doesn't make sense to "copy" a master data store, so assert we can
-// lookup a store by <id, type> pair locally (i.e. shouldn't send handles remotely).
 class StoreHandleVal : public OpaqueVal {
 public:
 
@@ -112,9 +109,16 @@ public:
 
     void ValDescribe(ODesc* d) const override;
 
-	std::unique_ptr<broker::store::frontend> store;
+	DECLARE_SERIAL(StoreHandleVal);
+
+	broker::store::frontend* store;
 	comm::StoreType store_type;
 	broker::util::optional<BifEnum::Store::BackendType> backend_type;
+
+protected:
+
+	StoreHandleVal()
+		{}
 };
 
 } // namespace comm

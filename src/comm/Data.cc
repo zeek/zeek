@@ -1,5 +1,7 @@
 #include "Data.h"
 #include "comm/data.bif.h"
+#include <caf/binary_serializer.hpp>
+#include <caf/binary_deserializer.hpp>
 
 using namespace std;
 
@@ -662,4 +664,36 @@ broker::data& comm::opaque_field_to_data(RecordVal* v, Frame* f)
 		                       "Comm::Data's opaque field is not set");
 
 	return static_cast<DataVal*>(d)->data;
+	}
+
+IMPLEMENT_SERIAL(comm::DataVal, SER_COMM_DATA_VAL);
+
+bool comm::DataVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_COMM_DATA_VAL, OpaqueVal);
+
+	std::string serial;
+	caf::binary_serializer bs(std::back_inserter(serial));
+	bs << data;
+
+	if ( ! SERIALIZE_STR(serial.data(), serial.size()) )
+		return false;
+
+	return true;
+	}
+
+bool comm::DataVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal);
+
+	const char* serial;
+	int len;
+
+	if ( ! UNSERIALIZE_STR(&serial, &len) )
+		return false;
+
+	caf::binary_deserializer bd(serial, len);
+	caf::uniform_typeid<broker::data>()->deserialize(&data, &bd);
+	delete [] serial;
+	return true;
 	}

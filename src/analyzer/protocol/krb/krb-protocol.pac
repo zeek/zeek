@@ -215,7 +215,7 @@ type KRB_SAFE_Arg = record {
 type KRB_SAFE_Arg_Data(index: uint8) = case index of {
 	0 -> user_data	: ASN1OctetString;
 	1 -> timestamp  : KRB_Time;
-	2 -> usec		: ASN1Integer;
+	2 -> usec	: ASN1Integer;
 	3 -> seq_number : ASN1Integer;
 	4 -> sender_addr: KRB_Host_Address;
 	5 -> recp_addr  : KRB_Host_Address;

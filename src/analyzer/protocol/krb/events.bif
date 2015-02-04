@@ -30,6 +30,43 @@ event krb_as_rep%(c: connection, msg: KRB::KDC_Reply%);
 ## msg: A Kerberos KDC reply message data structure.
 event krb_tgs_rep%(c: connection, msg: KRB::KDC_Reply%);
 
+## A Kerberos 5 ``Authentication Header (AP) Request`` as defined
+## in :rfc:`4120`.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_ap_req%(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options%);
+
+## A Kerberos 5 ``Authentication Header (AP) Reply`` as defined
+## in :rfc:`4120`. This is used if mutual authentication is desired.
+## All of the interesting information in here is encrypted, so the event
+## doesn't have much useful data, but it's available in case it's important
+## to know that this message was sent.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_ap_rep%(c: connection%);
+
+## A Kerberos 5 ``Private Message`` as defined
+## in :rfc:`4120`. This is an encrypted message, so the event
+## doesn't have much useful data, but it's available in case it's important
+## to know that this message was sent.
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_priv%(c: connection%);
+
+## A Kerberos 5 ``Credential Message`` as defined
+## in :rfc:`4120`. 
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_cred%(c: connection, tickets: KRB::Ticket_Vector%);
+
 ## A Kerberos 5 ``ERROR_MSG`` as defined in :rfc:`4120`.
 ##
 ## c: The connection over which this Kerberos message was sent.

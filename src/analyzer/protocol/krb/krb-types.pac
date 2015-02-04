@@ -5,7 +5,9 @@ Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
 VectorVal* proc_cipher_list(const Array* list);
 VectorVal* proc_host_address_list(const KRB_Host_Addresses* list);
+
 VectorVal* proc_tickets(const KRB_Ticket_Sequence* list);
+RecordVal* proc_ticket(const KRB_Ticket* ticket);
 %}
 
 %code{
@@ -71,16 +73,22 @@ VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
 	for ( uint i = 0; i < list->tickets()->size(); ++i )
 		{
 		KRB_Ticket* element = (*list->tickets())[i];
-		RecordVal* ticket = new RecordVal(BifType::Record::KRB::Ticket);
-
-		ticket->Assign(0, asn1_integer_to_val(element->tkt_vno()->data(), TYPE_COUNT));
-		ticket->Assign(1, bytestring_to_val(element->realm()->data()->content()));
-		ticket->Assign(2, GetStringFromPrincipalName(element->sname()));
-		ticket->Assign(3, asn1_integer_to_val(element->enc_part()->etype()->data(), TYPE_COUNT));
-		tickets->Assign(tickets->Size(), ticket);
+		tickets->Assign(tickets->Size(), proc_ticket(element));
 		}
 	
 	return tickets;
+}
+
+RecordVal* proc_ticket(const KRB_Ticket* ticket)
+{
+	RecordVal* rv = new RecordVal(BifType::Record::KRB::Ticket);
+
+	rv->Assign(0, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT));
+	rv->Assign(1, bytestring_to_val(ticket->realm()->data()->content()));
+	rv->Assign(2, GetStringFromPrincipalName(ticket->sname()));
+	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->etype()->data(), TYPE_COUNT));
+
+	return rv;
 }
 %}
 

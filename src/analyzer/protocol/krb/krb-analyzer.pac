@@ -208,14 +208,7 @@ refine connection KRB_Conn += {
 		rv->Assign(3, bytestring_to_val(${msg.client_realm.encoding.content}));
 		rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));
 
-		RecordVal* ticket = new RecordVal(BifType::Record::KRB::Ticket);
-
-		ticket->Assign(0, asn1_integer_to_val(${msg.ticket.tkt_vno.data}, TYPE_COUNT));
-		ticket->Assign(1, bytestring_to_val(${msg.ticket.realm.data.content}));
-		ticket->Assign(2, GetStringFromPrincipalName(${msg.ticket.sname}));
-		ticket->Assign(3, asn1_integer_to_val(${msg.ticket.enc_part.etype.data}, TYPE_COUNT));
-
-		rv->Assign(5, ticket);
+		rv->Assign(5, proc_ticket(${msg.ticket}));
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) )
 			BifEvent::generate_krb_as_rep(bro_analyzer(), bro_analyzer()->Conn(), rv);
@@ -243,14 +236,25 @@ refine connection KRB_Conn += {
  	function proc_krb_ap_req(msg: KRB_AP_REQ): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
+		if ( krb_ap_req )
+			{
+			RecordVal* rv = new RecordVal(BifType::Record::KRB::AP_Options);
+			rv->Assign(0, new Val(${msg.ap_options.use_session_key}, TYPE_BOOL));
+			rv->Assign(1, new Val(${msg.ap_options.mutual_required}, TYPE_BOOL));
+			
+			BifEvent::generate_krb_ap_req(bro_analyzer(), bro_analyzer()->Conn(), 
+						      proc_ticket(${msg.ticket}), rv);
+			}
    		return true;
    		%}
     
  	function proc_krb_ap_rep(msg: KRB_AP_REP): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
+		if ( krb_ap_rep )
+			{
+			BifEvent::generate_krb_ap_rep(bro_analyzer(), bro_analyzer()->Conn());
+			}
    		return true;
    		%}
     
@@ -264,14 +268,20 @@ refine connection KRB_Conn += {
  	function proc_krb_priv_msg(msg: KRB_PRIV_MSG): bool
 		%{	
 		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
+		if ( krb_priv )
+			{
+			BifEvent::generate_krb_priv(bro_analyzer(), bro_analyzer()->Conn());
+			}
    		return true;
    		%}
     
  	function proc_krb_cred_msg(msg: KRB_CRED_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
+		if ( krb_cred )
+			{
+			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), proc_tickets(${msg.tickets}));
+			}
    		return true;
    		%}
 }

@@ -3009,6 +3009,14 @@ export {
 		validate				:	bool;
 	};
 
+	## AP Options. See :rfc:`4120`
+	type KRB::AP_Options: record {
+		## Indicates that user-to-user-authentication is in use
+		use_session_key	: bool;
+		## Mutual authentication is required
+		mutual_required	: bool;
+	};
+
 	## Used in a few places in the Kerberos analyzer for elements
 	## that have a type and a string value.
 	type KRB::Type_Value: record {

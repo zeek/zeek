@@ -4,7 +4,9 @@
 Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
 VectorVal* proc_cipher_list(const Array* list);
+
 VectorVal* proc_host_address_list(const KRB_Host_Addresses* list);
+RecordVal* proc_host_address(const KRB_Host_Address* addr);
 
 VectorVal* proc_tickets(const KRB_Ticket_Sequence* list);
 RecordVal* proc_ticket(const KRB_Ticket* ticket);
@@ -35,37 +37,41 @@ VectorVal* proc_host_address_list(const KRB_Host_Addresses* list)
 
 	for ( uint i = 0; i < list->addresses()->size(); ++i )
 		{
-		RecordVal* addr = new RecordVal(BifType::Record::KRB::Host_Address);
-		KRB_Host_Address* element = (*list->addresses())[i];
-		
-		switch ( binary_to_int64(element->addr_type()->encoding()->content()) )
-			{
-			case 2:
-				addr->Assign(0, new AddrVal(IPAddr(IPv4, 
-						    	           (const uint32_t*) c_str(element->address()->data()->content()), 
-								   IPAddr::Network)));
-				break;
-			case 24:
-				addr->Assign(0, new AddrVal(IPAddr(IPv6, 
-						    		   (const uint32_t*) c_str(element->address()->data()->content()), 
-								   IPAddr::Network)));
-				break;
-			case 20:
-				addr->Assign(1, bytestring_to_val(element->address()->data()->content()));
-				break;
-			default:
-				RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
-				unk->Assign(0, asn1_integer_to_val(element->addr_type(), TYPE_COUNT));
-				unk->Assign(1, bytestring_to_val(element->address()->data()->content()));
-				addr->Assign(2, unk);
-				break;
-			}
-		addrs->Assign(addrs->Size(), addr);
+		addrs->Assign(addrs->Size(), proc_host_address((*list->addresses())[i]));
 		}
 
 	return addrs;	
 }
 
+RecordVal* proc_host_address(const KRB_Host_Address* addr)
+{
+	RecordVal* rv = new RecordVal(BifType::Record::KRB::Host_Address);
+	
+	switch ( binary_to_int64(addr->addr_type()->encoding()->content()) )
+		{
+		case 2:
+			rv->Assign(0, new AddrVal(IPAddr(IPv4, 
+					    	         (const uint32_t*) c_str(addr->address()->data()->content()), 
+							 IPAddr::Network)));
+			break;
+		case 24:
+			rv->Assign(0, new AddrVal(IPAddr(IPv6, 
+					    		 (const uint32_t*) c_str(addr->address()->data()->content()), 
+							 IPAddr::Network)));
+			break;
+		case 20:
+			rv->Assign(1, bytestring_to_val(addr->address()->data()->content()));
+			break;
+		default:
+			RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
+			unk->Assign(0, asn1_integer_to_val(addr->addr_type(), TYPE_COUNT));
+			unk->Assign(1, bytestring_to_val(addr->address()->data()->content()));
+			rv->Assign(2, unk);
+			break;
+		}
+		
+	return rv;
+}
 
 VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
 {

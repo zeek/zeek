@@ -67,6 +67,14 @@ event krb_priv%(c: connection%);
 ## msg: A Kerberos KDC request message data structure.
 event krb_cred%(c: connection, tickets: KRB::Ticket_Vector%);
 
+## A Kerberos 5 ``Credential Message`` as defined
+## in :rfc:`4120`. 
+##
+## c: The connection over which this Kerberos message was sent.
+##
+## msg: A Kerberos KDC request message data structure.
+event krb_safe_msg%(c: connection, msg: KRB::SAFE_Msg%);
+
 ## A Kerberos 5 ``ERROR_MSG`` as defined in :rfc:`4120`.
 ##
 ## c: The connection over which this Kerberos message was sent.

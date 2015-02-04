@@ -3027,6 +3027,38 @@ export {
 	};
 
 	type KRB::Type_Value_Vector: vector of KRB::Type_Value;
+
+	
+	## A Kerberos host address See :rfc:`4120`.
+	type KRB::Host_Address: record {
+		## IPv4 or IPv6 address
+		ip			: addr &log &optional;
+		## NetBIOS address
+		netbios 	: string &log &optional;
+		## Some other type that we don't support yet
+		unknown 	: KRB::Type_Value &optional;
+	};
+
+	type KRB::Host_Address_Vector: vector of KRB::Host_Address;
+
+	## The data from the SAFE message. See :rfc:`4120`.
+	type KRB::SAFE_Msg: record {
+		## Protocol version number (5 for KRB5)
+		pvno		: count;
+		## The message type (20 for SAFE_MSG)
+		msg_type	: count;
+		## The application-specific data that is being passed
+		## from the sender to the reciever
+		data		: string;
+		## Current time from the sender of the message
+		timestamp	: time &optional;
+		## Sequence number used to detect replays
+		seq		: count &optional;
+		## Sender address
+		sender		: Host_Address &optional;
+		## Recipient address
+		recipient    	: Host_Address &optional;
+	};
 	
 	## The data from the ERROR_MSG message. See :rfc:`4120`.
 	type KRB::Error_Msg: record {
@@ -3068,18 +3100,6 @@ export {
 	};
 
 	type KRB::Ticket_Vector: vector of KRB::Ticket;
-	
-	## A Kerberos host address See :rfc:`4120`.
-	type KRB::Host_Address: record {
-		## IPv4 or IPv6 address
-		ip			: addr &log &optional;
-		## NetBIOS address
-		netbios 	: string &log &optional;
-		## Some other type that we don't support yet
-		unknown 	: KRB::Type_Value &optional;
-	};
-
-	type KRB::Host_Address_Vector: vector of KRB::Host_Address;
 	
 	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
 	type KRB::KDC_Request: record {

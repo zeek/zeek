@@ -1,6 +1,7 @@
 module KRB;
 
 type Error_Msg: record;
+type SAFE_Msg: record;
 
 type KDC_Options: record;
 type AP_Options: record;

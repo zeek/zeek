@@ -27,76 +27,6 @@ RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 	return rv;
 }
 
-bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
-{
-	uint ctime_i = 0, ctime_usecs_i = 0, stime_i = 0, stime_usecs_i = 0;
-	int64 ctime_usecs = 0, stime_usecs = 0;
-
-	// We need to do a pass first, to see if we have microseconds for the timestamp values, which are optional
-
-	for ( uint i = 0; i < args->size(); i++ )
-		{
-		switch ( (*args)[i]->seq_meta()->index() )
-			{
-			case 2:
-				ctime_i = i;
-				break;
-			case 3:
-				ctime_usecs_i = i;
-				break;
-			case 4:
-				stime_i = i;
-				break;
-			case 5:
-				stime_usecs_i = i;
-				break;
-			}
-		}
-
-	if ( ctime_usecs_i ) ctime_usecs = binary_to_int64((*args)[ctime_usecs_i]->args()->cusec()->encoding()->content());
-	if ( ctime_i )	rv->Assign(2, GetTimeFromAsn1((*args)[ctime_i]->args()->ctime(), ctime_usecs));
-
-	if ( stime_usecs_i ) stime_usecs = binary_to_int64((*args)[stime_usecs_i]->args()->susec()->encoding()->content());
-	if ( stime_i ) rv->Assign(3, GetTimeFromAsn1((*args)[stime_i]->args()->stime(), stime_usecs));
-
-	for ( uint i = 0; i < args->size(); i++ )
-		{
-		switch ( (*args)[i]->seq_meta()->index() )
-			{
-			case 0:
-				rv->Assign(0, asn1_integer_to_val((*args)[i]->args()->pvno(), TYPE_COUNT));
-				break;
-			case 1:
-				rv->Assign(1, asn1_integer_to_val((*args)[i]->args()->msg_type(), TYPE_COUNT));
-				break;
-			// ctime/stime handled above
-			case 7:
-				rv->Assign(5, bytestring_to_val((*args)[i]->args()->crealm()->encoding()->content()));
-				break;
-			case 8:
-				rv->Assign(6, GetStringFromPrincipalName((*args)[i]->args()->cname()));
-				break;
-			case 9:
-				rv->Assign(7, bytestring_to_val((*args)[i]->args()->realm()->encoding()->content()));
-				break;
-			case 10:
-				rv->Assign(8, GetStringFromPrincipalName((*args)[i]->args()->sname()));
-				break;
-			case 11:
-				rv->Assign(9, bytestring_to_val((*args)[i]->args()->e_text()->encoding()->content()));
-				break;
-			case 12:
-				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
-					rv->Assign(10, proc_padata((*args)[i]->args()->e_data()->padata(), NULL, true));
-				break;
-			default:
-				break;
-			}
-		}
-
-	return true;
-}
-
 RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
 	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Request);
@@ -160,6 +90,76 @@ RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_an
 		}
 
 	return rv;
+}
+
+
+bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
+{
+	uint ctime_i = 0, stime_i = 0;
+	int64 ctime_usecs = 0, stime_usecs = 0;
+
+	// We need to do a pass first, to see if we have microseconds for the timestamp values, which are optional
+
+	for ( uint i = 0; i < args->size(); i++ )
+		{
+		switch ( (*args)[i]->seq_meta()->index() )
+			{
+			case 2:
+				ctime_i = i;
+				break;
+			case 3:
+				ctime_usecs = binary_to_int64((*args)[i]->args()->cusec()->encoding()->content());
+				break;
+			case 4:
+				stime_i = i;
+				break;
+			case 5:
+				stime_usecs = binary_to_int64((*args)[i]->args()->susec()->encoding()->content());
+				break;
+			default:
+				break;
+			}
+		}
+
+	if ( ctime_i ) rv->Assign(2, GetTimeFromAsn1((*args)[ctime_i]->args()->ctime(), ctime_usecs));
+	if ( stime_i ) rv->Assign(3, GetTimeFromAsn1((*args)[stime_i]->args()->stime(), stime_usecs));
+
+	for ( uint i = 0; i < args->size(); ++i )
+		{
+		switch ( (*args)[i]->seq_meta()->index() )
+			{
+			case 0:
+				rv->Assign(0, asn1_integer_to_val((*args)[i]->args()->pvno(), TYPE_COUNT));
+				break;
+			case 1:
+				rv->Assign(1, asn1_integer_to_val((*args)[i]->args()->msg_type(), TYPE_COUNT));
+				break;
+			// ctime/stime handled above
+			case 7:
+				rv->Assign(5, bytestring_to_val((*args)[i]->args()->crealm()->encoding()->content()));
+				break;
+			case 8:
+				rv->Assign(6, GetStringFromPrincipalName((*args)[i]->args()->cname()));
+				break;
+			case 9:
+				rv->Assign(7, bytestring_to_val((*args)[i]->args()->realm()->encoding()->content()));
+				break;
+			case 10:
+				rv->Assign(8, GetStringFromPrincipalName((*args)[i]->args()->sname()));
+				break;
+			case 11:
+				rv->Assign(9, bytestring_to_val((*args)[i]->args()->e_text()->encoding()->content()));
+				break;
+			case 12:
+				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
+					rv->Assign(10, proc_padata((*args)[i]->args()->e_data()->padata(), NULL, true));
+				break;
+			default:
+				break;
+			}
+		}
+
+	return true;
 }
 
 %}
@@ -261,8 +261,59 @@ refine connection KRB_Conn += {
  	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
-   		return true;
+		if ( krb_safe_msg )
+			{
+			RecordVal* rv = new RecordVal(BifType::Record::KRB::SAFE_Msg);
+
+			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
+			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
+
+			uint timestamp_i = 0;
+			int64 timestamp_usecs = 0;
+
+			// We need to do a pass first, to see if we have microseconds for the timestamp values, which are optional
+
+			for ( uint i = 0; i < ${msg.safe_body.args}->size(); ++i )
+				{
+				switch ( ${msg.safe_body.args[i].seq_meta.index} )
+					{
+					case 1:
+						timestamp_i = i;
+						break;
+					case 2:
+						timestamp_usecs = binary_to_int64(${msg.safe_body.args[i].args.usec.encoding.content});
+						break;
+					default:
+						break;
+					}
+				}
+
+			if ( timestamp_i ) 
+				rv->Assign(4, GetTimeFromAsn1(${msg.safe_body.args[timestamp_i].args.timestamp}, timestamp_usecs));
+
+			for ( uint i = 0; i < ${msg.safe_body.args}->size(); ++i )
+				{
+				switch ( ${msg.safe_body.args[i].seq_meta.index} )
+					{
+					case 0:
+						rv->Assign(3, bytestring_to_val(${msg.safe_body.args[i].args.user_data.encoding.content}));
+						break;
+					case 3:
+						rv->Assign(5, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, TYPE_COUNT));
+						break;
+					case 4:
+						rv->Assign(6, proc_host_address(${msg.safe_body.args[i].args.sender_addr}));
+						break;
+					case 5:
+						rv->Assign(7, proc_host_address(${msg.safe_body.args[i].args.recp_addr}));
+						break;
+					default:
+						break;
+					}
+				}
+			BifEvent::generate_krb_safe_msg(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			}
+		return true;
    		%}
     
  	function proc_krb_priv_msg(msg: KRB_PRIV_MSG): bool
@@ -283,6 +334,7 @@ refine connection KRB_Conn += {
 			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), proc_tickets(${msg.tickets}));
 			}
    		return true;
+
    		%}
 }
 

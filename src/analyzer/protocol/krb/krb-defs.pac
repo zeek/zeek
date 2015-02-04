@@ -1,3 +1,4 @@
+# Defined in RFC 4120
 enum KRBMessageTypes {
 	AS_REQ    = 10,
 	AS_REP    = 11,
@@ -11,3 +12,23 @@ enum KRBMessageTypes {
 	KRB_ERROR = 30,
 };
 
+# Defined by IANA in Kerberos Parameters - Pre-authentication and Typed Data
+enum KRBPADataTypes {
+	PA_TGS_REQ 		= 1,
+	PA_ENC_TIMESTAMP	= 2,
+	PA_PW_SALT 		= 3,
+	PA_PW_AS_REQ 		= 16,	
+	PA_PW_AS_REP		= 17,
+};
+
+# Defined in RFC 4120
+enum KRBErrorCodes {
+	KDC_ERR_PREAUTH_REQUIRED = 25,
+};
+
+# Defined in ASN.1
+enum ASN1Consts {
+	ASN1_SEQUENCE_TAG	= 48,
+	ASN1_APP_TAG_OFFSET	= 96,
+	ASN1_INDEX_TAG_OFFSET	= 160,
+};

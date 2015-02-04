@@ -18,7 +18,7 @@ type KRB_PDU_TCP = record {
 
 type KRB_PDU = record {
 	app_meta  : ASN1EncodingMeta;
-	msg_type  : case (app_meta.tag - 96) of {
+	msg_type  : case (app_meta.tag - ASN1_APP_TAG_OFFSET) of {
 		AS_REQ    -> as_req   : KRB_AS_REQ;
 		AS_REP    -> as_rep   : KRB_AS_REP;
 		TGS_REQ   -> tgs_req  : KRB_TGS_REQ;
@@ -188,7 +188,7 @@ type KRB_ERROR_Arg_Data(index: uint8, error_code: int64) = case index of {
 	12 -> e_data	: KRB_ERROR_E_Data(error_code);
 };
 
-type KRB_ERROR_E_Data(error_code: uint64) = case ( error_code == 25 ) of {
+type KRB_ERROR_E_Data(error_code: uint64) = case ( error_code == KDC_ERR_PREAUTH_REQUIRED ) of {
 	true 	-> padata 	: KRB_PA_Data_Sequence(KRB_ERROR);
 	false	-> unknown	: bytestring &restofdata;
 };

@@ -1,94 +1,11 @@
-%extern{
-#include "file_analysis/Manager.h"
-%}
-
-
 %header{
-Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
-Val* GetTimeFromAsn1(StringVal* atime, int64 usecs);
-
-Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname);
-
-Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
-Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
-
 RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts);
 RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
-
-VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error);
-
-VectorVal* proc_cipher_list(const Array* list);
-VectorVal* proc_host_address_list(const KRB_Host_Addresses* list);
-VectorVal* proc_tickets(const KRB_Ticket_Sequence* list);
 
 bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
 %}
 
 %code{
-Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
-	{
-	return GetTimeFromAsn1(bytestring_to_val(atime->time()), usecs);
-	}
-
-Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
-	{
-	time_t lResult = 0;
-
-	char lBuffer[17];
-	char* pBuffer = lBuffer;
-
-	size_t lTimeLength = atime->Len();
-	char * pString = (char *) atime->Bytes();
-	
-	if ( lTimeLength != 15 && lTimeLength != 17 )
-		return 0;
-
-	if (lTimeLength == 17 )
-		pString = pString + 2;
-		
-	memcpy(pBuffer, pString, 15);
-	*(pBuffer+15) = '\0';
-
-	tm lTime;
-	lTime.tm_sec  = ((lBuffer[12] - '0') * 10) + (lBuffer[13] - '0');
-	lTime.tm_min  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
-	lTime.tm_hour = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
-	lTime.tm_mday = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
-	lTime.tm_mon  = (((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0')) - 1;
-	lTime.tm_year = ((lBuffer[0] - '0') * 1000) + ((lBuffer[1] - '0') * 100) + ((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0') - 1900;
-
-	lTime.tm_wday = 0;
-	lTime.tm_yday = 0;
-	lTime.tm_isdst = 0;
-
-	lResult = timegm(&lTime);
-
-	if ( !lResult )
-		lResult = 0;
-
-	return new Val(double(lResult + (usecs/100000)), TYPE_TIME);
-	}
-
-Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname)
-{
-	if ( pname->data()->size() == 1 )
- 		return bytestring_to_val(pname->data()[0][0]->encoding()->content());
- 	if ( pname->data()->size() == 2 )
- 		return new StringVal(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
-
-	return new StringVal("unknown");
-}
-
-Val* asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
-{
-	return asn1_integer_to_val(i->encoding(), t);
-}
-
-Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
-{
-	return new Val(binary_to_int64(i->content()), t);
-}
-
 RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
 	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Options);
@@ -108,159 +25,6 @@ RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 	rv->Assign(12, new Val(opts->validate(), TYPE_BOOL));
 
 	return rv;
-}
-
-VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
-{
-	VectorVal* vv = new VectorVal(internal_type("KRB::Type_Value_Vector")->AsVectorType());
-	for ( uint i = 0; i < data->padata_elems()->size(); ++i)
-		{
-		KRB_PA_Data* element = (*data->padata_elems())[i];
-		int64 data_type = element->data_type();
-		
-		if ( is_error && ( data_type == 16 || data_type == 17 ) )
-			data_type = 0;
-		
-		switch( data_type )
-			{
-			case 1:
-				// will be generated as separate event
-				break;
-			case 2:
-				// encrypted timestamp is unreadable
-				break;
-			case 3:
-				{
-				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
-				type_val->Assign(0, new Val(element->data_type(), TYPE_COUNT));
-				type_val->Assign(1, bytestring_to_val(element->pa_data_element()->pa_pw_salt()->encoding()->content()));
-				vv->Assign(vv->Size(), type_val);
-				break;
-				}
-			case 16:
-				{
-				const bytestring& cert = element->pa_data_element()->pa_pk_as_req()->cert();
-				
-				ODesc common;
-				common.AddRaw("Analyzer::ANALYZER_KRB");
-				common.Add(bro_analyzer->Conn()->StartTime());
-				common.AddRaw("T", 1);
-				bro_analyzer->Conn()->IDString(&common);
-				
-				ODesc file_handle;
-				file_handle.Add(common.Description());
-				file_handle.Add(0);
-				
-				string file_id = file_mgr->HashHandle(file_handle.Description());
-				
-				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-			                 	 cert.length(), bro_analyzer->GetAnalyzerTag(),
-			                 	 bro_analyzer->Conn(), true, file_id);
-				file_mgr->EndOfFile(file_id);
-				
-				break;
-				}
-			case 17:
-				{
-				const bytestring& cert = element->pa_data_element()->pa_pk_as_rep()->cert();
-							
-				ODesc common;
-				common.AddRaw("Analyzer::ANALYZER_KRB");
-				common.Add(bro_analyzer->Conn()->StartTime());
-				common.AddRaw("F", 1);
-				bro_analyzer->Conn()->IDString(&common);
-				
-				ODesc file_handle;
-				file_handle.Add(common.Description());
-				file_handle.Add(1);
-				
-				string file_id = file_mgr->HashHandle(file_handle.Description());
-				
-				file_mgr->DataIn(reinterpret_cast<const u_char*>(cert.data()),
-	                 			 cert.length(), bro_analyzer->GetAnalyzerTag(),
-			 	                 bro_analyzer->Conn(), false, file_id);
-				file_mgr->EndOfFile(file_id);
-				
-				break;
-				}
-			default:
-				{
-				if ( ! is_error && element->pa_data_element()->unknown().length() )
-					{
-					RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
-					type_val->Assign(0, new Val(element->data_type(), TYPE_COUNT));
-					type_val->Assign(1, bytestring_to_val(element->pa_data_element()->unknown()));
-					vv->Assign(vv->Size(), type_val);
-					}
-				break;
-				}
-			}
-		}
-	return vv;
-}
-
-VectorVal* proc_cipher_list(const Array* list)
-{
-	VectorVal* ciphers = new VectorVal(internal_type("index_vec")->AsVectorType());
-	for ( uint i = 0; i < list->data()->size(); ++i )
-		ciphers->Assign(ciphers->Size(), asn1_integer_to_val((*list->data())[i], TYPE_COUNT));
-	return ciphers;
-}
-
-VectorVal* proc_host_address_list(const KRB_Host_Addresses* list)
-{
-	VectorVal* addrs = new VectorVal(internal_type("KRB::Host_Address_Vector")->AsVectorType());
-
-	for ( uint i = 0; i < list->addresses()->size(); ++i )
-		{
-		RecordVal* addr = new RecordVal(BifType::Record::KRB::Host_Address);
-		KRB_Host_Address* element = (*list->addresses())[i];
-		
-		switch ( binary_to_int64(element->addr_type()->encoding()->content()) )
-			{
-			case 2:
-				addr->Assign(0, new AddrVal(IPAddr(IPv4, 
-						    	           (const uint32_t*) c_str(element->address()->data()->content()), 
-								   IPAddr::Network)));
-				break;
-			case 24:
-				addr->Assign(0, new AddrVal(IPAddr(IPv6, 
-						    		   (const uint32_t*) c_str(element->address()->data()->content()), 
-								   IPAddr::Network)));
-				break;
-			case 20:
-				addr->Assign(1, bytestring_to_val(element->address()->data()->content()));
-				break;
-			default:
-				RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
-				unk->Assign(0, asn1_integer_to_val(element->addr_type(), TYPE_COUNT));
-				unk->Assign(1, bytestring_to_val(element->address()->data()->content()));
-				addr->Assign(2, unk);
-				break;
-			}
-		addrs->Assign(addrs->Size(), addr);
-		}
-
-	return addrs;	
-}
-
-
-VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
-{
-	VectorVal* tickets = new VectorVal(internal_type("KRB::Ticket_Vector")->AsVectorType());
-	for ( uint i = 0; i < list->tickets()->size(); ++i )
-		{
-		KRB_Ticket* element = (*list->tickets())[i];
-		RecordVal* ticket = new RecordVal(BifType::Record::KRB::Ticket);
-
-		ticket->Assign(0, asn1_integer_to_val(element->tkt_vno()->data(), TYPE_COUNT));
-		ticket->Assign(1, bytestring_to_val(element->realm()->data()->content()));
-		ticket->Assign(2, GetStringFromPrincipalName(element->sname()));
-		ticket->Assign(3, asn1_integer_to_val(element->enc_part()->etype()->data(), TYPE_COUNT));
-		tickets->Assign(tickets->Size(), ticket);
-		}
-	
-	return tickets;
 }
 
 bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
@@ -322,7 +86,7 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 				rv->Assign(9, bytestring_to_val((*args)[i]->args()->e_text()->encoding()->content()));
 				break;
 			case 12:
-				if ( error_code == 25 )
+				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
 					rv->Assign(10, proc_padata((*args)[i]->args()->e_data()->padata(), NULL, true));
 				break;
 			default:
@@ -537,39 +301,39 @@ refine typeattr KRB_AS_REQ += &let {
     
 refine typeattr KRB_TGS_REQ += &let {
 	proc: bool = $context.connection.proc_krb_kdc_req(data);
- };
+};
     
 refine typeattr KRB_AS_REP += &let {
 	proc: bool = $context.connection.proc_krb_kdc_rep(data);
- };
+};
     
 refine typeattr KRB_TGS_REP += &let {
 	proc: bool = $context.connection.proc_krb_kdc_rep(data);
- };
+};
     
 refine typeattr KRB_AP_REQ += &let {
 	proc: bool = $context.connection.proc_krb_ap_req(this);
- };
+};
     
 refine typeattr KRB_AP_REP += &let {
 	proc: bool = $context.connection.proc_krb_ap_rep(this);
- };
+};
     
 refine typeattr KRB_ERROR_MSG += &let {
 	proc: bool = $context.connection.proc_krb_error_msg(this);
- };
+};
     
 refine typeattr KRB_SAFE_MSG += &let {
 	proc: bool = $context.connection.proc_krb_safe_msg(this);
- };
+};
     
 refine typeattr KRB_PRIV_MSG += &let {
 	proc: bool = $context.connection.proc_krb_priv_msg(this);
- };
+};
     
 refine typeattr KRB_CRED_MSG += &let {
 	proc: bool = $context.connection.proc_krb_cred_msg(this);
- };
+};
     
 #refine typeattr KRB_REQ_Arg_Data += &let {
 #	proc: bool = $context.connection.debug_req_arg(this);

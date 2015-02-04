@@ -226,20 +226,6 @@ refine connection KRB_Conn += {
 		return true;
    		%}
     
- 	function proc_krb_ap_req(msg: KRB_AP_REQ): bool
-		%{
-		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
-   		return true;
-   		%}
-    
- 	function proc_krb_ap_rep(msg: KRB_AP_REP): bool
-		%{
-		bro_analyzer()->ProtocolConfirmation();
-		// Not implemented
-   		return true;
-   		%}
-    
  	function proc_krb_error_msg(msg: KRB_ERROR_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
@@ -253,6 +239,20 @@ refine connection KRB_Conn += {
 			}
     		return true;
     		%}
+    
+ 	function proc_krb_ap_req(msg: KRB_AP_REQ): bool
+		%{
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
+   		%}
+    
+ 	function proc_krb_ap_rep(msg: KRB_AP_REP): bool
+		%{
+		bro_analyzer()->ProtocolConfirmation();
+		// Not implemented
+   		return true;
+   		%}
     
  	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
 		%{
@@ -274,24 +274,6 @@ refine connection KRB_Conn += {
 		// Not implemented
    		return true;
    		%}
-
-	function debug_req_arg(msg: KRB_REQ_Arg_Data): bool
-		%{
-		printf("KRB_REQ_Arg index=%d\n", ${msg.index});
-		return true;
-		%}
-
-	function debug_asn1_encoding_meta(msg: ASN1EncodingMeta): bool
-		%{
-		printf("DeBuG ASN1 Element tag=%x, length=%d\n", ${msg.tag}, ${msg.length});
-		return true;
-		%}
-
-	function debug_krb_error_arg(msg: KRB_ERROR_Arg): bool
-		%{
-		printf("DeBuG KRB Error index=%d\n", ${msg.seq_meta.index});
-		return true;
-		%}
 }
 
 
@@ -333,16 +315,4 @@ refine typeattr KRB_PRIV_MSG += &let {
     
 refine typeattr KRB_CRED_MSG += &let {
 	proc: bool = $context.connection.proc_krb_cred_msg(this);
-};
-    
-#refine typeattr KRB_REQ_Arg_Data += &let {
-#	proc: bool = $context.connection.debug_req_arg(this);
-#};
-
-refine typeattr ASN1EncodingMeta += &let {
-	proc: bool = $context.connection.debug_asn1_encoding_meta(this);
-};
-
-refine typeattr KRB_ERROR_Arg += &let {
-	proc: bool = $context.connection.debug_krb_error_arg(this);
 };

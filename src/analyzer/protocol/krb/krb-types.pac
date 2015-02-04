@@ -125,7 +125,7 @@ type KRB_Ticket(in_sequence: bool) = record {
 
 type KRB_Ticket_Sequence = record {
 	seq_meta : ASN1EncodingMeta;
-	tickets  : KRB_Ticket(true)[] &length=seq_meta.length;
+	tickets  : KRB_Ticket(false)[] &length=seq_meta.length;
 };
 
 type KRB_Encrypted_Data_in_Seq = record {

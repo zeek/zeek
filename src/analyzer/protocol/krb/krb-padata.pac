@@ -115,9 +115,9 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 
 
 # Encapsulating header #1 for KDC_REQ/KDC_REP packets where the PADATA is optional.
-type KRB_PA_Data_Optional(pkt_type: uint8, desired_index: uint8) = record {
+type KRB_PA_Data_Optional(is_orig: bool, pkt_type: uint8, desired_index: uint8) = record {
 	first_meta	: ASN1EncodingMeta;
-	padata		: KRB_PA_Data_Optional_Contents(has_padata, pkt_type, first_meta.length);
+	padata		: KRB_PA_Data_Optional_Contents(is_orig, has_padata, pkt_type, first_meta.length);
 	next_meta	: ASN1OptionalEncodingMeta(has_padata, first_meta);
 } &let {
 	has_padata : bool = first_meta.index == desired_index;
@@ -126,23 +126,23 @@ type KRB_PA_Data_Optional(pkt_type: uint8, desired_index: uint8) = record {
 # Encapsulating header #2 for KDC_REQ/KDC_REP packets where the PADATA is optional.
 #
 # Note: Split off due to a BinPAC bug
-type KRB_PA_Data_Optional_Contents(is_present: bool, pkt_type: uint8, length: uint64) = case is_present of {
-	true -> padata: KRB_PA_Data_Sequence(pkt_type) &length=length;
+type KRB_PA_Data_Optional_Contents(is_orig: bool, is_present: bool, pkt_type: uint8, length: uint64) = case is_present of {
+	true -> padata: KRB_PA_Data_Sequence(is_orig, pkt_type) &length=length;
 	false -> none: empty;
 };
 
 # This is our main type
-type KRB_PA_Data_Sequence(pkt_type: uint8) = record {
+type KRB_PA_Data_Sequence(is_orig: bool, pkt_type: uint8) = record {
 	meta    	: ASN1EncodingMeta;
-	data		: KRB_PA_Data_Container(pkt_type, meta.tag, meta.length);
+	data		: KRB_PA_Data_Container(is_orig, pkt_type, meta.tag, meta.length);
 };
 
 # The data in KRB_PA_Data_Sequence is usually (and supposed to be) a sequence, which we'll parse,
 # but is sometimes an octet string. We'll grab that but ignore it.
 #
 # Note: This is a separate type due to a BinPAC bug.
-type KRB_PA_Data_Container(pkt_type: uint8, tag: uint8, length: uint64) = case tag of {
-	ASN1_SEQUENCE_TAG	-> padata_elems	: KRB_PA_Data(pkt_type)[];
+type KRB_PA_Data_Container(is_orig: bool, pkt_type: uint8, tag: uint8, length: uint64) = case tag of {
+	ASN1_SEQUENCE_TAG	-> padata_elems	: KRB_PA_Data(is_orig, pkt_type)[];
 	default 		-> unknown	: bytestring &length=length;
 } &let {
 	has_padata: bool = (tag == ASN1_SEQUENCE_TAG);
@@ -151,21 +151,21 @@ type KRB_PA_Data_Container(pkt_type: uint8, tag: uint8, length: uint64) = case t
 # The pre-auth data sequence.
 #
 # Note: Error packets don't have pre-auth data, they just advertise which mechanisms they support.
-type KRB_PA_Data(pkt_type: uint8) = record {
+type KRB_PA_Data(is_orig: bool, pkt_type: uint8) = record {
 	seq_meta	  : ASN1EncodingMeta;
 	pa_data_type      : SequenceElement(true);
 	pa_data_elem_meta : ASN1EncodingMeta;
 	have_data	  : case pkt_type of {
 		KRB_ERROR   -> pa_data_placeholder: bytestring &length=pa_data_elem_meta.length;
-		default	    -> pa_data_element : KRB_PA_Data_Element(data_type, pa_data_elem_meta.length);
+		default	    -> pa_data_element : KRB_PA_Data_Element(is_orig, data_type, pa_data_elem_meta.length);
 	} &requires(data_type);
 } &let {
 	data_type: int64 = binary_to_int64(pa_data_type.data.content);
 };
 
 # Each pre-auth element
-type KRB_PA_Data_Element(type: int64, length: uint64) = case type of {
-	PA_TGS_REQ      -> pa_tgs_req	: KRB_AP_REQ;
+type KRB_PA_Data_Element(is_orig: bool, type: int64, length: uint64) = case type of {
+	PA_TGS_REQ      -> pa_tgs_req	: KRB_AP_REQ(is_orig);
 	PA_PW_SALT      -> pa_pw_salt	: ASN1OctetString;
 	PA_PW_AS_REQ	-> pa_pk_as_req	: KRB_PA_PK_AS_Req &length=length;
 	PA_PW_AS_REP	-> pa_pk_as_rep	: KRB_PA_PK_AS_Rep &length=length;

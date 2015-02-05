@@ -19,7 +19,7 @@ connection KRB_Conn(bro_analyzer: BroAnalyzer) {
 %include krb-protocol.pac
 
 flow KRB_Flow(is_orig: bool) {
-	flowunit = KRB_PDU_TCP withcontext(connection, this);
+	flowunit = KRB_PDU_TCP(is_orig) withcontext(connection, this);
 };
 
 %include krb-analyzer.pac

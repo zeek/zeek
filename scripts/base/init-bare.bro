@@ -3135,8 +3135,8 @@ export {
 		additional_tickets	: vector of KRB::Ticket &optional;
 	};
 
-		## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
-	type KRB::KDC_Reply: record {
+	## The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
+	type KRB::KDC_Response: record {
 		## Protocol version number (5 for KRB5)
 		pvno				: count;
 		## The message type (11 for AS_REP, 13 for TGS_REP)

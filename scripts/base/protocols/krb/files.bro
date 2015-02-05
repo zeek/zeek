@@ -126,12 +126,12 @@ event krb_error(c: connection, msg: Error_Msg)
 	fill_in_subjects(c);
 	}
 
-event krb_as_rep(c: connection, msg: KDC_Reply)
+event krb_as_response(c: connection, msg: KDC_Response)
 	{
 	fill_in_subjects(c);
 	}
 
-event krb_tgs_rep(c: connection, msg: KDC_Reply)
+event krb_tgs_response(c: connection, msg: KDC_Response)
 	{
 	fill_in_subjects(c);
 	}

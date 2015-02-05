@@ -9,27 +9,27 @@ export {
 
 	type Info: record {
 		## Timestamp for when the event happened.
-		ts:     			time    &log;
+		ts:     		time    &log;
 		## Unique ID for the connection.
-		uid:    			string  &log;
+		uid:    		string  &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
-		id:     			conn_id &log;
+		id:     		conn_id &log;
 		## Client
-		client:				string &log &optional;
+		client:			string &log &optional;
 		## Service
-		service:			string &log;
+		service:		string &log;
 		## Ticket valid from
-		from:				time &log &optional;
+		from:			time &log &optional;
 		## Ticket valid till
-		till:				time &log &optional;
+		till:			time &log &optional;
 		## Forwardable ticket requested
 		forwardable: 		bool &log &optional;
 		## Proxiable ticket requested
-		proxiable:			bool &log &optional;
+		proxiable:		bool &log &optional;
 		## Postdated ticket requested
-		postdated:			bool &log &optional;
+		postdated:		bool &log &optional;
 		## Renewable ticket requested
-		renewable:			bool &log &optional;
+		renewable:		bool &log &optional;
 		## The request is for a renewal
 		renew_request:		bool &log &optional;
 		# The request is to validate a postdated ticket
@@ -40,13 +40,13 @@ export {
 		netbios_addrs:		vector of string &log &optional;
 		
 		## Result
-		result:	string &log &default="unknown";
+		result:			string &log &default="unknown";
 		## Error code
-		error_code: count &log &optional;
+		error_code: 		count &log &optional;
 		## Error message
-		error_msg: string &log &optional;
+		error_msg: 		string &log &optional;
 		## We've already logged this
-		logged: bool &default=F;
+		logged: 		bool &default=F;
 	};
 
 	## The server response error texts which are *not* logged.
@@ -71,14 +71,9 @@ redef record connection += {
 	krb: Info &optional;
 };
 
-const udp_ports = { 88/udp, 750/udp };
-const tcp_ports = { 88/tcp, 750/tcp };
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb]);
-#	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB, udp_ports);
-#	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
 	}
 
 event krb_error(c: connection, msg: Error_Msg) &priority=5
@@ -108,7 +103,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 	if ( ! info?$client )
 		if ( msg?$client_name || msg?$client_realm )
 			info$client = fmt("%s%s", msg?$client_name ? msg$client_name + "/" : "",
-		  			 	 	  		  msg?$client_realm ? msg$client_realm : "");
+		  			 	  msg?$client_realm ? msg$client_realm : "");
 
 	info$service = msg$service_name;
 	info$result = "failed";
@@ -135,7 +130,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=-5
 		}
 	}
 
-event krb_as_req(c: connection, msg: KDC_Request) &priority=5
+event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 	{
 	if ( c?$krb && c$krb$logged )
 		return;
@@ -164,14 +159,14 @@ event krb_as_req(c: connection, msg: KDC_Request) &priority=5
 			if ( msg$host_addrs[i]?$ip )
 				{
 				if ( ! info?$network_addrs )
-						info$network_addrs = vector();
+					info$network_addrs = vector();
 				info$network_addrs[|info$network_addrs|] = msg$host_addrs[i]$ip;
 				}
 
 			if ( msg$host_addrs[i]?$netbios )
 				{
 				if ( ! info?$netbios_addrs )
-						info$netbios_addrs = vector();
+					info$netbios_addrs = vector();
 				info$netbios_addrs[|info$netbios_addrs|] = msg$host_addrs[i]$netbios;
 				}
 			}
@@ -186,7 +181,7 @@ event krb_as_req(c: connection, msg: KDC_Request) &priority=5
 	c$krb = info;
 	}
 
-event krb_tgs_req(c: connection, msg: KDC_Request) &priority=5
+event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 	{
 	if ( c?$krb && c$krb$logged )
 		return;
@@ -203,7 +198,7 @@ event krb_tgs_req(c: connection, msg: KDC_Request) &priority=5
 	c$krb = info;
 	}
 
-event krb_as_rep(c: connection, msg: KDC_Reply) &priority=5
+event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 	{
 	local info: Info;
 
@@ -229,14 +224,14 @@ event krb_as_rep(c: connection, msg: KDC_Reply) &priority=5
 	c$krb = info;
 	}
 
-event krb_as_rep(c: connection, msg: KDC_Reply) &priority=-5
+event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 	{
 		
 	Log::write(KRB::LOG, c$krb);
 	c$krb$logged = T;
 	}
 
-event krb_tgs_rep(c: connection, msg: KDC_Reply) &priority=5
+event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 	{
 	local info: Info;
 
@@ -262,7 +257,7 @@ event krb_tgs_rep(c: connection, msg: KDC_Reply) &priority=5
 	c$krb = info;
 	}
 
-event krb_tgs_rep(c: connection, msg: KDC_Reply) &priority=-5
+event krb_tgs_response(c: connection, msg: KDC_Response) &priority=-5
 	{
 	Log::write(KRB::LOG, c$krb);
 	c$krb$logged = T;

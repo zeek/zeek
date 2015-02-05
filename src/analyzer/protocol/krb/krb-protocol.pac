@@ -11,50 +11,50 @@
 %include krb-padata.pac
 
 # KRB over TCP is the same as over UDP, but prefixed with a uint32 denoting the size
-type KRB_PDU_TCP = record {
+type KRB_PDU_TCP(is_orig: bool) = record {
 	size	: uint32;
-	pdu	: KRB_PDU;
+	pdu	: KRB_PDU(is_orig);
 } &length=size+4 &byteorder=bigendian;
 
-type KRB_PDU = record {
+type KRB_PDU(is_orig: bool) = record {
 	app_meta  : ASN1EncodingMeta;
 	msg_type  : case (app_meta.tag - ASN1_APP_TAG_OFFSET) of {
-		AS_REQ    -> as_req   : KRB_AS_REQ;
-		AS_REP    -> as_rep   : KRB_AS_REP;
-		TGS_REQ   -> tgs_req  : KRB_TGS_REQ;
-		TGS_REP   -> tgs_rep  : KRB_TGS_REP;
-		AP_REQ    -> ap_req   : KRB_AP_REQ;
-		AP_REP    -> ap_rep   : KRB_AP_REP;
-		KRB_SAFE  -> krb_safe : KRB_SAFE_MSG;
-		KRB_PRIV  -> krb_priv : KRB_PRIV_MSG;
-		KRB_CRED  -> krb_cred : KRB_CRED_MSG;
-		KRB_ERROR -> krb_error: KRB_ERROR_MSG;
+		AS_REQ    -> as_req   : KRB_AS_REQ(is_orig);
+		AS_REP    -> as_rep   : KRB_AS_REP(is_orig);
+		TGS_REQ   -> tgs_req  : KRB_TGS_REQ(is_orig);
+		TGS_REP   -> tgs_rep  : KRB_TGS_REP(is_orig);
+		AP_REQ    -> ap_req   : KRB_AP_REQ(is_orig);
+		AP_REP    -> ap_rep   : KRB_AP_REP(is_orig);
+		KRB_SAFE  -> krb_safe : KRB_SAFE_MSG(is_orig);
+		KRB_PRIV  -> krb_priv : KRB_PRIV_MSG(is_orig);
+		KRB_CRED  -> krb_cred : KRB_CRED_MSG(is_orig);
+		KRB_ERROR -> krb_error: KRB_ERROR_MSG(is_orig);
 	};
 } &byteorder=bigendian;
 
-type KRB_AS_REQ = record {
-	data: KRB_KDC_REQ(AS_REQ);
+type KRB_AS_REQ(is_orig: bool) = record {
+	data: KRB_KDC_REQ(is_orig, AS_REQ);
 };
 
-type KRB_TGS_REQ = record {
-	data: KRB_KDC_REQ(TGS_REQ);
+type KRB_TGS_REQ(is_orig: bool) = record {
+	data: KRB_KDC_REQ(is_orig, TGS_REQ);
 };
 
-type KRB_AS_REP = record {
-	data: KRB_KDC_REP(AS_REP);
+type KRB_AS_REP(is_orig: bool) = record {
+	data: KRB_KDC_REP(is_orig, AS_REP);
 };
 
-type KRB_TGS_REP = record {
-	data: KRB_KDC_REP(TGS_REP);
+type KRB_TGS_REP(is_orig: bool) = record {
+	data: KRB_KDC_REP(is_orig, TGS_REP);
 };
 
 ### A Kerberos ticket-granting-service or authentication-service request
 
-type KRB_KDC_REQ(pkt_type: uint8) = record {
+type KRB_KDC_REQ(is_orig: bool, pkt_type: uint8) = record {
 	seq_meta   : ASN1EncodingMeta;
 	pvno       : SequenceElement(true);
 	msg_type   : SequenceElement(true);
-	padata	   : KRB_PA_Data_Optional(pkt_type, 3);
+	padata	   : KRB_PA_Data_Optional(is_orig, pkt_type, 3);
 	body_meta  : ASN1EncodingMeta;
 	body_args  : KRB_REQ_Arg[];
 };
@@ -111,11 +111,11 @@ type KRB_KDC_Options = record {
 
 ### KDC_REP
 
-type KRB_KDC_REP(pkt_type: uint8) = record {
+type KRB_KDC_REP(is_orig: bool, pkt_type: uint8) = record {
 	seq_meta    : ASN1EncodingMeta;
 	pvno        : SequenceElement(true);
 	msg_type    : SequenceElement(true);
-	padata	    : KRB_PA_Data_Optional(pkt_type, 2);
+	padata	    : KRB_PA_Data_Optional(is_orig, pkt_type, 2);
 	client_realm: ASN1OctetString &length=padata.next_meta.length;
 	cname_meta  : ASN1EncodingMeta;
 	client_name : KRB_Principal_Name &length=cname_meta.length;
@@ -125,7 +125,7 @@ type KRB_KDC_REP(pkt_type: uint8) = record {
 
 ### AP_REQ
 
-type KRB_AP_REQ = record {
+type KRB_AP_REQ(is_orig: bool) = record {
 	string_meta : ASN1EncodingMeta;
 	app_meta    : ASN1EncodingMeta;
 	seq_meta    : ASN1EncodingMeta;
@@ -149,7 +149,7 @@ type KRB_AP_Options = record {
 
 ### AP_REP
 
-type KRB_AP_REP = record {
+type KRB_AP_REP(is_orig: bool) = record {
 	pvno 	: SequenceElement(true);
 	msg_type: SequenceElement(true);
 	enc_part: KRB_Encrypted_Data_in_Seq;
@@ -157,22 +157,22 @@ type KRB_AP_REP = record {
 
 ### KRB_ERROR
 
-type KRB_ERROR_MSG = record {
+type KRB_ERROR_MSG(is_orig: bool) = record {
 	seq_meta	: ASN1EncodingMeta;
-	args1		: KRB_ERROR_Arg(0)[] &until ($element.process_in_parent);
+	args1		: KRB_ERROR_Arg(is_orig, 0)[] &until ($element.process_in_parent);
 	error_code	: ASN1Integer;
-	args2		: KRB_ERROR_Arg(binary_to_int64(error_code.encoding.content))[];
+	args2		: KRB_ERROR_Arg(is_orig, binary_to_int64(error_code.encoding.content))[];
 };
 
-type KRB_ERROR_Arg(error_code: int64) = record {
+type KRB_ERROR_Arg(is_orig: bool, error_code: int64) = record {
 	seq_meta: ASN1EncodingMeta;
-	args	: KRB_ERROR_Arg_Data(seq_meta.index, error_code) &length=arg_length;
+	args	: KRB_ERROR_Arg_Data(is_orig, seq_meta.index, error_code) &length=arg_length;
 } &let {
 	process_in_parent: bool = seq_meta.index == 6;
 	arg_length : uint64 = ( process_in_parent ? 0 : seq_meta.length);
 };
 
-type KRB_ERROR_Arg_Data(index: uint8, error_code: int64) = case index of {
+type KRB_ERROR_Arg_Data(is_orig: bool, index: uint8, error_code: int64) = case index of {
 	0  -> pvno	: ASN1Integer;
 	1  -> msg_type	: ASN1Integer;
 	2  -> ctime	: KRB_Time;
@@ -185,17 +185,17 @@ type KRB_ERROR_Arg_Data(index: uint8, error_code: int64) = case index of {
 	9  -> realm	: ASN1OctetString;
 	10 -> sname	: KRB_Principal_Name;
 	11 -> e_text	: ASN1OctetString;
-	12 -> e_data	: KRB_ERROR_E_Data(error_code);
+	12 -> e_data	: KRB_ERROR_E_Data(is_orig, error_code);
 };
 
-type KRB_ERROR_E_Data(error_code: uint64) = case ( error_code == KDC_ERR_PREAUTH_REQUIRED ) of {
-	true 	-> padata 	: KRB_PA_Data_Sequence(KRB_ERROR);
+type KRB_ERROR_E_Data(is_orig: bool, error_code: uint64) = case ( error_code == KDC_ERR_PREAUTH_REQUIRED ) of {
+	true 	-> padata 	: KRB_PA_Data_Sequence(is_orig, KRB_ERROR);
 	false	-> unknown	: bytestring &restofdata;
 };
 
 ### KRB_SAFE
 
-type KRB_SAFE_MSG = record {
+type KRB_SAFE_MSG(is_orig: bool) = record {
 	pvno	 : SequenceElement(true);
 	msg_type : SequenceElement(true);
 	safe_body: KRB_SAFE_Body;
@@ -223,7 +223,7 @@ type KRB_SAFE_Arg_Data(index: uint8) = case index of {
 
 ### KRB_PRIV
 
-type KRB_PRIV_MSG = record {
+type KRB_PRIV_MSG(is_orig: bool) = record {
 	pvno	: SequenceElement(true);
 	msg_type: SequenceElement(true);
 	enc_part: KRB_Encrypted_Data_in_Seq;
@@ -231,7 +231,7 @@ type KRB_PRIV_MSG = record {
 
 ### KRB_CRED
 
-type KRB_CRED_MSG = record {
+type KRB_CRED_MSG(is_orig: bool) = record {
 	pvno	 : SequenceElement(true);
 	msg_type : SequenceElement(true);
 	tkts_meta: SequenceElement(false);

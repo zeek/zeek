@@ -12,6 +12,6 @@ type Host_Address: record;
 
 type KDC_Request: record;
 
-type KDC_Reply: record;
+type KDC_Response: record;
 
 module GLOBAL;

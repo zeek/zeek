@@ -166,38 +166,38 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 
 refine connection KRB_Conn += {
 
-	function proc_krb_kdc_req(msg: KRB_KDC_REQ): bool
+	function proc_krb_kdc_req_msg(msg: KRB_KDC_REQ): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) && ! krb_as_req )
+		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) && ! krb_as_request )
 			return false;
 
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) && ! krb_tgs_req )
+		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) && ! krb_tgs_request )
 			return false;		
 
 		RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) )
-			BifEvent::generate_krb_as_req(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::generate_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) )
-			BifEvent::generate_krb_tgs_req(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::generate_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
 				
 		return true;
 		%}
 
- 	function proc_krb_kdc_rep(msg: KRB_KDC_REP): bool
+ 	function proc_krb_kdc_rep_msg(msg: KRB_KDC_REP): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) && ! krb_as_rep )
+		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) && ! krb_as_response )
 			return false;
 
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) && ! krb_tgs_rep )
+		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) && ! krb_tgs_response )
 			return false;
 		
 		
-		RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Reply);
+		RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Response);
 
 		rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 		rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
@@ -211,10 +211,10 @@ refine connection KRB_Conn += {
 		rv->Assign(5, proc_ticket(${msg.ticket}));
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) )
-			BifEvent::generate_krb_as_rep(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::generate_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), rv);
 
 		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) )
-			BifEvent::generate_krb_tgs_rep(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::generate_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), rv);
 				
 		return true;
    		%}
@@ -233,27 +233,27 @@ refine connection KRB_Conn += {
     		return true;
     		%}
     
- 	function proc_krb_ap_req(msg: KRB_AP_REQ): bool
+ 	function proc_krb_ap_req_msg(msg: KRB_AP_REQ): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		if ( krb_ap_req )
+		if ( krb_ap_request )
 			{
 			RecordVal* rv = new RecordVal(BifType::Record::KRB::AP_Options);
 			rv->Assign(0, new Val(${msg.ap_options.use_session_key}, TYPE_BOOL));
 			rv->Assign(1, new Val(${msg.ap_options.mutual_required}, TYPE_BOOL));
 			
-			BifEvent::generate_krb_ap_req(bro_analyzer(), bro_analyzer()->Conn(), 
+			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(), 
 						      proc_ticket(${msg.ticket}), rv);
 			}
    		return true;
    		%}
     
- 	function proc_krb_ap_rep(msg: KRB_AP_REP): bool
+ 	function proc_krb_ap_rep_msg(msg: KRB_AP_REP): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		if ( krb_ap_rep )
+		if ( krb_ap_response )
 			{
-			BifEvent::generate_krb_ap_rep(bro_analyzer(), bro_analyzer()->Conn());
+			BifEvent::generate_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
 			}
    		return true;
    		%}
@@ -261,7 +261,7 @@ refine connection KRB_Conn += {
  	function proc_krb_safe_msg(msg: KRB_SAFE_MSG): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		if ( krb_safe_msg )
+		if ( krb_safe )
 			{
 			RecordVal* rv = new RecordVal(BifType::Record::KRB::SAFE_Msg);
 
@@ -311,7 +311,7 @@ refine connection KRB_Conn += {
 						break;
 					}
 				}
-			BifEvent::generate_krb_safe_msg(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::generate_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, rv);
 			}
 		return true;
    		%}
@@ -321,7 +321,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_priv )
 			{
-			BifEvent::generate_krb_priv(bro_analyzer(), bro_analyzer()->Conn());
+			BifEvent::generate_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
 			}
    		return true;
    		%}
@@ -331,7 +331,8 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_cred )
 			{
-			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), proc_tickets(${msg.tickets}));
+			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, 
+						    proc_tickets(${msg.tickets}));
 			}
    		return true;
 
@@ -340,27 +341,27 @@ refine connection KRB_Conn += {
 
 
 refine typeattr KRB_AS_REQ += &let {
-	proc: bool = $context.connection.proc_krb_kdc_req(data);
+	proc: bool = $context.connection.proc_krb_kdc_req_msg(data);
 };
     
 refine typeattr KRB_TGS_REQ += &let {
-	proc: bool = $context.connection.proc_krb_kdc_req(data);
+	proc: bool = $context.connection.proc_krb_kdc_req_msg(data);
 };
     
 refine typeattr KRB_AS_REP += &let {
-	proc: bool = $context.connection.proc_krb_kdc_rep(data);
+	proc: bool = $context.connection.proc_krb_kdc_rep_msg(data);
 };
     
 refine typeattr KRB_TGS_REP += &let {
-	proc: bool = $context.connection.proc_krb_kdc_rep(data);
+	proc: bool = $context.connection.proc_krb_kdc_rep_msg(data);
 };
     
 refine typeattr KRB_AP_REQ += &let {
-	proc: bool = $context.connection.proc_krb_ap_req(this);
+	proc: bool = $context.connection.proc_krb_ap_req_msg(this);
 };
     
 refine typeattr KRB_AP_REP += &let {
-	proc: bool = $context.connection.proc_krb_ap_rep(this);
+	proc: bool = $context.connection.proc_krb_ap_rep_msg(this);
 };
     
 refine typeattr KRB_ERROR_MSG += &let {

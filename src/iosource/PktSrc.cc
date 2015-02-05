@@ -171,6 +171,9 @@ int PktSrc::GetLinkHeaderSize(int link_type)
 	case DLT_PPP_SERIAL:	// PPP_SERIAL
 		return 4;
 
+	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
+		return 59;
+
 	case DLT_RAW:
 		return 0;
 	}
@@ -372,6 +375,26 @@ void PktSrc::Process()
 			{
 			// Neither IPv4 nor IPv6.
 			Weird("non_ip_packet_in_ppp_encapsulation", &current_packet);
+			goto done;
+			}
+		break;
+		}
+
+	case DLT_IEEE802_11_RADIO:
+		{
+		protocol = (data[57] << 8) + data[58];
+		if ( (data[54] == 0 && data[55] == 0 && data[56] == 0) &&
+		     (protocol == 0x0800 || protocol == 0x86DD) )
+			{
+			// Found an IPv4 or IPv6 packet.
+			// Skip over the RadioTap header, the IEEE QoS header,
+			// and logical link control header.
+			data += GetLinkHeaderSize(props.link_type);
+			pkt_hdr_size = 0;
+			}
+		else
+			{
+			Weird("non_ip_packet_in_ieee802_11_radio_encapsulation", &current_packet);
 			goto done;
 			}
 		break;

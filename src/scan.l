@@ -260,6 +260,7 @@ when	return TOK_WHEN;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
 &default	return TOK_ATTR_DEFAULT;
 &delete_func	return TOK_ATTR_DEL_FUNC;
+&deprecated	return TOK_ATTR_DEPRECATED;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
 &encrypt	return TOK_ATTR_ENCRYPT;
 &error_handler	return TOK_ATTR_ERROR_HANDLER;

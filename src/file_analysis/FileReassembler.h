@@ -48,7 +48,7 @@ public:
 		{ return flushing; }
 
 protected:
-	FileReassembler()	{ }
+	FileReassembler();
 
 	DECLARE_SERIAL(FileReassembler);
 

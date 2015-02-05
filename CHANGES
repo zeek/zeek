@@ -1,4 +1,85 @@
 
+2.3-411 | 2015-02-05 10:05:48 -0600
+
+  * Fix file analysis of files with total size below the bof_buffer size
+    never delivering content to stream analyzers. (Seth Hall)
+
+  * Add/fix log fields in x509 diff canonifier. (Jon Siwek)
+
+  * "id" not defined for debug code when using -DPROFILE_BRO_FUNCTIONS
+    (Mike Smiley)
+
+2.3-406 | 2015-02-03 17:02:45 -0600
+
+  * Add x509 canonifier to a unit test. (Jon Siwek)
+
+2.3-405 | 2015-02-02 11:14:24 -0600
+
+  * Fix memory leak in new split_string* functions. (Jon Siwek)
+
+2.3-404 | 2015-01-30 14:23:27 -0800
+
+  * Update documentation (broken links, outdated tests). (Jon Siwek)
+
+  * Deprecate split* family of BIFs. (Jon Siwek)
+
+    These functions are now deprecated in favor of alternative versions that
+    return a vector of strings rather than a table of strings.
+
+    Deprecated functions:
+
+    - split: use split_string instead.
+    - split1: use split_string1 instead.
+    - split_all: use split_string_all instead.
+    - split_n: use split_string_n instead.
+    - cat_string_array: see join_string_vec instead.
+    - cat_string_array_n: see join_string_vec instead.
+    - join_string_array: see join_string_vec instead.
+    - sort_string_array: use sort instead instead.
+    - find_ip_addresses: use extract_ip_addresses instead.
+
+    Changed functions:
+
+    - has_valid_octets: uses a string_vec parameter instead of string_array.
+
+    Addresses BIT-924.
+
+  * Add a new attribute: &deprecated. While scripts are parsed, a
+    warning is raised for each usage of an identifier marked as
+    &deprecated.  This also works for BIFs. Addresses BIT-924,
+    BIT-757. (Jon Siwek)
+
+2.3-397 | 2015-01-27 10:13:10 -0600
+
+  * Handle guess_lexer exceptions in pygments reST directive (Jon Siwek)
+
+2.3-396 | 2015-01-23 10:49:15 -0600
+
+  * DNP3: fix reachable assertion and buffer over-read/overflow.
+    CVE number pending. (Travis Emmert, Jon Siwek)
+
+  * Update binpac: Fix potential out-of-bounds memory reads in generated
+    code. CVE-2014-9586. (John Villamil and Chris Rohlf - Yahoo
+    Paranoids, Jon Siwek)
+
+  * Fixing (harmless) Coverity warning. (Robin Sommer)
+
+2.3-392 | 2015-01-15 09:44:15 -0800
+
+  * Small changes to EC curve names in a newer draft. (Johanna Amann)
+
+2.3-390 | 2015-01-14 13:27:34 -0800
+
+  * Updating MySQL analyses. (Vlad Grigorescu)
+     - Use a boolean success instead of a result string.
+     - Change the affected_rows response detail string to a "rows" count.
+     - Fix the state tracking to log incomplete command.
+
+  * Extend DNP3 to support communication over UDP. (Hui Lin)
+
+  * Fix a bug in DNP3 determining the length of an object in some
+    cases. (Hui Lin)
+
 2.3-376 | 2015-01-12 09:38:10 -0600
 
   * Improve documentation for connection_established event. (Jon Siwek)

@@ -135,7 +135,10 @@ class Pygments(Directive):
                 # lexer not found, use default.
                 lexer = TextLexer()
         else:
-            lexer = guess_lexer(content)
+            try:
+                lexer = guess_lexer(content)
+            except:
+                lexer = TextLexer()
 
         # import sys
         # print >>sys.stderr, self.arguments, lexer.__class__

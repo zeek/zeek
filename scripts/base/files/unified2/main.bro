@@ -152,26 +152,26 @@ redef record fa_file += {
 
 event Unified2::read_sid_msg_line(desc: Input::EventDescription, tpe: Input::Event, line: string)
 	{
-	local parts = split_n(line, / \|\| /, F, 100);
-	if ( |parts| >= 2 && /^[0-9]+$/ in parts[1] )
-		sid_map[to_count(parts[1])] = parts[2];
+	local parts = split_string_n(line, / \|\| /, F, 100);
+	if ( |parts| >= 2 && /^[0-9]+$/ in parts[0] )
+		sid_map[to_count(parts[0])] = parts[1];
 	}
 
 event Unified2::read_gen_msg_line(desc: Input::EventDescription, tpe: Input::Event, line: string)
 	{
-	local parts = split_n(line, / \|\| /, F, 3);
-	if ( |parts| >= 2 && /^[0-9]+$/ in parts[1] )
-		gen_map[to_count(parts[1])] = parts[3];
+	local parts = split_string_n(line, / \|\| /, F, 3);
+	if ( |parts| >= 2 && /^[0-9]+$/ in parts[0] )
+		gen_map[to_count(parts[0])] = parts[2];
 	}
 
 event Unified2::read_classification_line(desc: Input::EventDescription, tpe: Input::Event, line: string)
 	{
-	local parts = split_n(line, /: /, F, 2);
+	local parts = split_string_n(line, /: /, F, 2);
 	if ( |parts| == 2 )
 		{
-		local parts2 = split_n(parts[2], /,/, F, 4);
+		local parts2 = split_string_n(parts[1], /,/, F, 4);
 		if ( |parts2| > 1 )
-			classification_map[|classification_map|+1] = parts2[1];
+			classification_map[|classification_map|+1] = parts2[0];
 		}
 	}
 
@@ -249,9 +249,9 @@ event bro_init() &priority=5
 event file_new(f: fa_file)
 	{
 	local file_dir = "";
-	local parts = split_all(f$source, /\/[^\/]*$/);
+	local parts = split_string_all(f$source, /\/[^\/]*$/);
 	if ( |parts| == 3 )
-		file_dir = parts[1];
+		file_dir = parts[0];
 
 	if ( (watch_file != "" && f$source == watch_file) || 
 	     (watch_dir != "" && compress_path(watch_dir) == file_dir) )

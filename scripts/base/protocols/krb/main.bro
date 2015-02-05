@@ -58,7 +58,7 @@ export {
 		# log NEEDED_PREAUTH.
 		"NEEDED_PREAUTH",
 		# This is a more specific version of NEEDED_PREAUTH that's used
-		# by Winodws AD Kerberos.
+		# by Windows AD Kerberos.
 		"Need to use PA-ENC-TIMESTAMP/PA-PK-AS-REQ",
 	} &redef;
 	
@@ -82,8 +82,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 
 	if ( msg?$error_text && msg$error_text in ignored_errors )
 		{
-		if ( c?$krb )
-			delete c$krb;
+		if ( c?$krb ) delete c$krb;
 		return;
 		}
 
@@ -100,23 +99,17 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 		info$id  = c$id;
 		}
 
-	if ( ! info?$client )
-		if ( msg?$client_name || msg?$client_realm )
-			info$client = fmt("%s%s", msg?$client_name ? msg$client_name + "/" : "",
-		  			 	  msg?$client_realm ? msg$client_realm : "");
+	if ( ! info?$client && ( msg?$client_name || msg?$client_realm ) )
+		info$client = fmt("%s%s", msg?$client_name ? msg$client_name + "/" : "",
+				 	  msg?$client_realm ? msg$client_realm : "");
 
 	info$service = msg$service_name;
 	info$result = "failed";
 
 	info$error_code = msg$error_code;
 
-	if ( msg?$error_text )
-		info$error_msg = msg$error_text;
-	else
-		{
-		if ( msg$error_code in error_msg )
-			info$error_msg = error_msg[msg$error_code];
-		}
+	if ( msg?$error_text )			info$error_msg = msg$error_text;
+	else if ( msg$error_code in error_msg ) info$error_msg = error_msg[msg$error_code];
 		
 	c$krb = info;
 	}
@@ -158,15 +151,13 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 			{
 			if ( msg$host_addrs[i]?$ip )
 				{
-				if ( ! info?$network_addrs )
-					info$network_addrs = vector();
+				if ( ! info?$network_addrs ) info$network_addrs = vector();
 				info$network_addrs[|info$network_addrs|] = msg$host_addrs[i]$ip;
 				}
 
 			if ( msg$host_addrs[i]?$netbios )
 				{
-				if ( ! info?$netbios_addrs )
-					info$netbios_addrs = vector();
+				if ( ! info?$netbios_addrs ) info$netbios_addrs = vector();
 				info$netbios_addrs[|info$netbios_addrs|] = msg$host_addrs[i]$netbios;
 				}
 			}
@@ -191,8 +182,7 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 	info$uid = c$uid;
 	info$id  = c$id;
 	info$service = msg$service_name;
-	if ( msg?$from )
-		info$from = msg$from;
+	if ( msg?$from ) info$from = msg$from;
 	info$till = msg$till;
 
 	c$krb = info;
@@ -205,7 +195,7 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 	if ( c?$krb && c$krb$logged )
 		return;
 
-	if ( c?$krb )
+	if ( c?$krb ) 
 		info = c$krb;
 		
 	if ( ! info?$ts )
@@ -226,7 +216,6 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 
 event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 	{
-		
 	Log::write(KRB::LOG, c$krb);
 	c$krb$logged = T;
 	}

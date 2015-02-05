@@ -75,15 +75,15 @@ type KRB_REQ_Arg_Data(index: uint8) = case index of {
  	7  	-> nonce	: ASN1Integer;
  	8  	-> etype	: Array;
  	9  	-> addrs	: KRB_Host_Addresses;
- 	10 	-> auth_data 	: ASN1OctetString; # TODO
+ 	10 	-> auth_data 	: ASN1OctetString;
  	11 	-> addl_tkts 	: KRB_Ticket_Sequence;
 	default -> unknown	: bytestring &restofdata;
 };
 
 type KRB_KDC_Options = record {
-	meta : ASN1EncodingMeta;
-	pad: uint8;
-	flags: uint32;
+	meta	: ASN1EncodingMeta;
+	pad	: uint8;
+	flags	: uint32;
 } &let {
 	reserved		: bool	= (flags & 0x80000000) > 0;
 	forwardable		: bool	= (flags & 0x40000000) > 0;
@@ -168,8 +168,8 @@ type KRB_ERROR_Arg(is_orig: bool, error_code: int64) = record {
 	seq_meta: ASN1EncodingMeta;
 	args	: KRB_ERROR_Arg_Data(is_orig, seq_meta.index, error_code) &length=arg_length;
 } &let {
-	process_in_parent: bool = seq_meta.index == 6;
-	arg_length : uint64 = ( process_in_parent ? 0 : seq_meta.length);
+	process_in_parent : bool = seq_meta.index == 6;
+	arg_length 	  : uint64 = ( process_in_parent ? 0 : seq_meta.length);
 };
 
 type KRB_ERROR_Arg_Data(is_orig: bool, index: uint8, error_code: int64) = case index of {
@@ -189,8 +189,8 @@ type KRB_ERROR_Arg_Data(is_orig: bool, index: uint8, error_code: int64) = case i
 };
 
 type KRB_ERROR_E_Data(is_orig: bool, error_code: uint64) = case ( error_code == KDC_ERR_PREAUTH_REQUIRED ) of {
-	true 	-> padata 	: KRB_PA_Data_Sequence(is_orig, KRB_ERROR);
-	false	-> unknown	: bytestring &restofdata;
+	true 	-> padata  : KRB_PA_Data_Sequence(is_orig, KRB_ERROR);
+	false	-> unknown : bytestring &restofdata;
 };
 
 ### KRB_SAFE

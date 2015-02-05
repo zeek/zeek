@@ -157,4 +157,3 @@ event krb_cred%(c: connection, is_orig: bool, tickets: KRB::Ticket_Vector%);
 ## .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
 ##    krb_ap_request krb_ap_response krb_priv krb_safe krb_cred
 event krb_error%(c: connection, msg: KRB::Error_Msg%);
-

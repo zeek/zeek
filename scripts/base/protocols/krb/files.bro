@@ -10,14 +10,14 @@ export {
 		# Client certificate
 		client_cert:		Files::Info &optional;
 		# Subject of client certificate, if any
-		client_cert_subject:string &log &optional;
+		client_cert_subject:	string &log &optional;
 		# File unique ID of client cert, if any
 		client_cert_fuid:	string &log &optional;
 
 		# Server certificate
 		server_cert:		Files::Info &optional;
 		# Subject of server certificate, if any
-		server_cert_subject:string &log &optional;
+		server_cert_subject:	string &log &optional;
 		# File unique ID of server cert, if any
 		server_cert_fuid:	string &log &optional;
 	};
@@ -58,8 +58,8 @@ function describe_file(f: fa_file): string
 		}
 
 	return cat("Serial: ", f$info$x509$certificate$serial, " Subject: ",
-		f$info$x509$certificate$subject, " Issuer: ",
-		f$info$x509$certificate$issuer);
+			       f$info$x509$certificate$subject, " Issuer: ",
+			       f$info$x509$certificate$issuer);
 	}
 
 event bro_init() &priority=5
@@ -103,7 +103,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	c$krb = info;
 		
 	Files::add_analyzer(f, Files::ANALYZER_X509);
-	# always calculate hashes. They are not necessary for base scripts
+	# Always calculate hashes. They are not necessary for base scripts
 	# but very useful for identification, and required for policy scripts
 	Files::add_analyzer(f, Files::ANALYZER_MD5);
 	Files::add_analyzer(f, Files::ANALYZER_SHA1);

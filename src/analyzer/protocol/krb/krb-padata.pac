@@ -127,14 +127,14 @@ type KRB_PA_Data_Optional(is_orig: bool, pkt_type: uint8, desired_index: uint8) 
 #
 # Note: Split off due to a BinPAC bug
 type KRB_PA_Data_Optional_Contents(is_orig: bool, is_present: bool, pkt_type: uint8, length: uint64) = case is_present of {
-	true -> padata: KRB_PA_Data_Sequence(is_orig, pkt_type) &length=length;
-	false -> none: empty;
+	true -> padata	: KRB_PA_Data_Sequence(is_orig, pkt_type) &length=length;
+	false -> none	: empty;
 };
 
 # This is our main type
 type KRB_PA_Data_Sequence(is_orig: bool, pkt_type: uint8) = record {
-	meta    	: ASN1EncodingMeta;
-	data		: KRB_PA_Data_Container(is_orig, pkt_type, meta.tag, meta.length);
+	meta    : ASN1EncodingMeta;
+	data	: KRB_PA_Data_Container(is_orig, pkt_type, meta.tag, meta.length);
 };
 
 # The data in KRB_PA_Data_Sequence is usually (and supposed to be) a sequence, which we'll parse,

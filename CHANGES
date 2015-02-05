@@ -1,4 +1,14 @@
 
+2.3-411 | 2015-02-05 10:05:48 -0600
+
+  * Fix file analysis of files with total size below the bof_buffer size
+    never delivering content to stream analyzers. (Seth Hall)
+
+  * Add/fix log fields in x509 diff canonifier. (Jon Siwek)
+
+  * "id" not defined for debug code when using -DPROFILE_BRO_FUNCTIONS
+    (Mike Smiley)
+
 2.3-406 | 2015-02-03 17:02:45 -0600
 
   * Add x509 canonifier to a unit test. (Jon Siwek)

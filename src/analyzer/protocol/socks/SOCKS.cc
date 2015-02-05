@@ -57,8 +57,7 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// with the rest of the conneciton.
 		//
 		// Note that we assume that no payload data arrives before both endpoints
-		// are done with there part of the SOCKS protocol.
-
+		// are done with their part of the SOCKS protocol.
 		if ( ! pia )
 			{
 			pia = new pia::PIA_TCP(Conn());

@@ -148,6 +148,31 @@ refine connection SOCKS_Conn += {
 		return true;
 		%}
 
+	function socks5_auth_request_userpass(request: SOCKS5_Auth_Request_UserPass): bool
+		%{
+		StringVal* user = new StringVal(${request.username}.length(), (const char*) ${request.username}.begin());
+		StringVal* pass = new StringVal(${request.password}.length(), (const char*) ${request.password}.begin());
+		
+		BifEvent::generate_socks_login_userpass(bro_analyzer(),
+		                                        bro_analyzer()->Conn(),
+		                                        user, pass);
+		return true;
+		%}
+
+	function socks5_unsupported_authentication(auth_method: uint8): bool
+		%{
+		reporter->Weird(bro_analyzer()->Conn(), fmt("socks5_unsupported_authentication_%d", auth_method));
+		return true;
+		%}
+	
+	function socks5_auth_reply(reply: SOCKS5_Auth_Reply): bool
+		%{
+		BifEvent::generate_socks_login_reply(bro_analyzer(),
+		                                     bro_analyzer()->Conn(),
+		                                     ${reply.code});
+		return true;
+		%}
+
 	function version_error(version: uint8): bool
 		%{
 		bro_analyzer()->ProtocolViolation(fmt("unsupported/unknown SOCKS version %d", version));
@@ -175,4 +200,19 @@ refine typeattr SOCKS5_Request += &let {
 
 refine typeattr SOCKS5_Reply += &let {
 	proc: bool = $context.connection.socks5_reply(this);
+};
+
+refine typeattr SOCKS5_Auth_Negotiation_Reply += &let {
+};
+
+refine typeattr SOCKS5_Auth_Request_UserPass += &let {
+	proc: bool = $context.connection.socks5_auth_request_userpass(this);
+};
+
+refine typeattr SOCKS5_Auth_Reply += &let {
+	proc: bool = $context.connection.socks5_auth_reply(this);
+};
+
+refine typeattr SOCKS5_Unsupported_Authentication += &let {
+	proc: bool = $context.connection.socks5_unsupported_authentication($context.connection.v5_auth_method());
 };

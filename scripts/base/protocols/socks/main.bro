@@ -16,8 +16,10 @@ export {
 		id:          conn_id         &log;
 		## Protocol version of SOCKS.
 		version:     count           &log;
-		## Username for the proxy if extracted from the network.
+		## Username used to request a login to the proxy.
 		user:        string          &log &optional;
+		## Password used to request a login to the proxy.
+		password:    string          &log &optional;
 		## Server status for the attempt at using the proxy.
 		status:      string          &log &optional;
 		## Client requested SOCKS address. Could be an address, a name
@@ -91,3 +93,21 @@ event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Addres
 	if ( "SOCKS" in c$service )
 		Log::write(SOCKS::LOG, c$socks);
 	}
+
+event socks_login_userpass(c: connection, user: string, password: string) &priority=5
+	{
+	# Authentication only possible with the version 5.
+	set_session(c, 5); 
+
+	c$socks$user = user;
+	c$socks$password = password;
+	}
+
+event socks_login_reply(c: connection, code: count) &priority=5
+	{
+	# Authentication only possible with the version 5.
+	set_session(c, 5);
+
+	c$socks$status = v5_status[code];
+	}
+

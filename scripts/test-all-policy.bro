@@ -47,6 +47,7 @@
 @load misc/app-stats/plugins/netflix.bro
 @load misc/app-stats/plugins/pandora.bro
 @load misc/app-stats/plugins/youtube.bro
+@load misc/bpfconf.bro
 @load misc/capture-loss.bro
 @load misc/detect-traceroute/__load__.bro
 @load misc/detect-traceroute/main.bro

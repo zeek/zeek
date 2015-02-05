@@ -39,8 +39,8 @@ export {
 		# NetBIOS addresses supplied by the client
 		netbios_addrs:		vector of string &log &optional;
 		
-		## Result
-		result:			string &log &default="unknown";
+		## Request result
+		success:		bool &log &optional;
 		## Error code
 		error_code: 		count &log &optional;
 		## Error message
@@ -104,7 +104,7 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 				 	  msg?$client_realm ? msg$client_realm : "");
 
 	info$service = msg$service_name;
-	info$result = "failed";
+	info$success = F;
 
 	info$error_code = msg$error_code;
 
@@ -209,7 +209,7 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=5
 		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
 
 	info$service = msg$ticket$service_name;
-	info$result = "success";
+	info$success = T;
 
 	c$krb = info;
 	}
@@ -241,7 +241,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5
 		info$client = fmt("%s/%s", msg$client_name, msg$client_realm);
 
 	info$service = msg$ticket$service_name;
-	info$result = "success";
+	info$success = T;
 		
 	c$krb = info;
 	}

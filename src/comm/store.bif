@@ -108,20 +108,26 @@ function Store::insert%(h: opaque of Store::Handle,
 	auto& key = comm::opaque_field_to_data(k->AsRecordVal(), frame);
 	auto& val = comm::opaque_field_to_data(v->AsRecordVal(), frame);
 
-	broker::util::optional<broker::store::expiration_time> expiry;
+	using broker::store::expiration_time;
+	broker::util::optional<expiration_time> expiry;
 
 	auto abs_expiry_val = e->AsRecordVal()->Lookup(0);
-	auto rel_expiry_val = e->AsRecordVal()->Lookup(1);
 
 	if ( abs_expiry_val )
 		{
-		auto tag = broker::store::expiration_time::tag::absolute;
-		expiry = broker::store::expiration_time(abs_expiry_val->AsTime(), tag);
+		expiry = expiration_time(abs_expiry_val->AsTime());
+		handle->store->insert(key, val, expiry);
+		return new Val(true, TYPE_BOOL);
 		}
-	else if ( rel_expiry_val )
+
+	auto rel_expiry_val = e->AsRecordVal()->Lookup(1);
+
+	if ( rel_expiry_val )
 		{
-		auto tag = broker::store::expiration_time::tag::since_last_modification;
-		expiry = broker::store::expiration_time(rel_expiry_val->AsInterval(), tag);
+		auto ct = broker::time_point::now().value;
+		expiry = expiration_time(rel_expiry_val->AsInterval(), ct);
+		handle->store->insert(key, val, expiry);
+		return new Val(true, TYPE_BOOL);
 		}
 
 	handle->store->insert(key, val, expiry);
